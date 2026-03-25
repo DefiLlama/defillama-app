@@ -851,7 +851,7 @@ export const getProtocolOverviewPageData = async ({
 		titleMetrics.push('Volume')
 	}
 	if (incomeStatement) {
-		titleMetrics.push('Income Statement')
+		// titleMetrics.push('Income Statement')
 		seoDescription += `, Income Statement`
 		for (const type in incomeStatement.labelsByType) {
 			const breakdowns = incomeStatement.labelsByType[type]?.map((label) =>

@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useContext, useMemo } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingSpinner } from './LoadingSpinner'
 
 const dashboardBlue = '#326abd'
 import {
@@ -14,7 +14,7 @@ import { toNiceCsvDate } from '~/utils'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod } from '../queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
 import { generateConsistentChartColor } from '../utils/colorManager'
@@ -80,16 +80,21 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const { chartInstance, handleChartReady } = useChartImageExport()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'advanced-tvl-basic', protocol],
 		queryFn: () => ProtocolCharts.tvl(protocol),
-		enabled: chartType === 'tvl',
+		enabled: streamDone && chartType === 'tvl',
 		staleTime: Infinity
 	})
 
-	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolV1AddlChartsData(protocol)
+	const {
+		data: addlData,
+		historicalChainTvls,
+		isLoading: isAddlLoading
+	} = useFetchProtocolV1AddlChartsData(protocol, false, undefined, streamDone)
 
-	const isLoading = chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading
+	const isLoading = (chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading) || !streamDone
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
@@ -254,7 +259,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	if (isLoading) {
 		return (
 			<div className="flex min-h-[402px] items-center justify-center md:min-h-[418px]">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}

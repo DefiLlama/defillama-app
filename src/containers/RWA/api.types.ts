@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
 type RWAContractsByChain = Record<string, string[]>
@@ -33,7 +34,7 @@ export interface IFetchedRWAProject {
 	transferable?: boolean | null
 	selfCustody?: boolean | null
 	descriptionNotes?: string[] | null
-	parentPlatform?: string | null
+	parentPlatform?: RWAParentPlatform
 	stablecoin?: boolean | null
 	governance?: boolean | null
 	defiActiveTvl?: RWATvlByChain | null
@@ -54,65 +55,67 @@ export interface IFetchedRWAProject {
 	telegram?: boolean | string | null
 }
 
+/**
+ * Single stats bucket shape, shared between old flat API and new segmented API.
+ * Old API (byCategory/byPlatform): the entire value is one bucket with assetIssuers as a count.
+ * New API (byCategory/byPlatform, once migrated): each segment is one bucket with
+ * assetIssuers as an array of issuer names.
+ */
+export type RWAStatsBucket = {
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+	assetIssuers: number | Array<string>
+}
+
+/**
+ * Chain-specific stats bucket where assetIssuers is always an array of strings.
+ * byChain has always used this shape (never a plain number count).
+ */
+type RWAChainStatsBucket = {
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+	assetIssuers: Array<string>
+}
+
+/**
+ * Segmented stats shape: 4 non-overlapping buckets by asset classification.
+ * Already used by byChain; byCategory/byPlatform are migrating to this shape.
+ */
+export type RWAStatsSegmented = {
+	base: RWAStatsBucket
+	stablecoinsOnly: RWAStatsBucket
+	governanceOnly: RWAStatsBucket
+	stablecoinsAndGovernance: RWAStatsBucket
+}
+
+type RWAChainStatsSegmented = {
+	base: RWAChainStatsBucket
+	stablecoinsOnly: RWAChainStatsBucket
+	governanceOnly: RWAChainStatsBucket
+	stablecoinsAndGovernance: RWAChainStatsBucket
+}
+
 export interface IRWAStatsResponse {
 	totalOnChainMcap: number
 	totalActiveMcap: number
 	totalDefiActiveTvl: number
 	totalAssets: number
 	totalIssuers: number
-	byChain: Record<
-		string,
-		{
-			base: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			stablecoinsOnly: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			governanceOnly: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			stablecoinsAndGovernance: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-		}
-	>
-	byCategory: Record<
-		string,
-		{
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
-		}
-	>
-	byPlatform?: Record<
-		string,
-		{
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
-		}
-	>
+	byChain: Record<string, RWAChainStatsSegmented>
+	/**
+	 * TEMPORARY union: accepts both old flat shape and new segmented shape.
+	 * Once the API migration is complete, this should become Record<string, RWAStatsSegmented>.
+	 */
+	byCategory: Record<string, RWAStatsBucket | RWAStatsSegmented>
+	/**
+	 * TEMPORARY union: accepts both old flat shape and new segmented shape.
+	 * Once the API migration is complete, this should become Record<string, RWAStatsSegmented>.
+	 */
+	byPlatform?: Record<string, RWAStatsBucket | RWAStatsSegmented>
 }
 
 export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'> {
@@ -188,19 +191,24 @@ export interface IRWAAssetsOverview {
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
+export type RWATickerChartTarget =
+	| { kind: 'all' }
+	| { kind: 'chain'; slug: string }
+	| { kind: 'category'; slug: string }
+	| { kind: 'platform'; slug: string }
 
 export type IRWAInitialChartDataset = Record<
-	'onChainMcap' | 'activeMcap' | 'defiActiveTvl',
+	RWAChartMetricKey,
 	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
 >
 
 export interface IRWAChartDataByTicker {
-	onChainMcap: Array<{ timestamp: number } & Record<string, number>>
-	activeMcap: Array<{ timestamp: number } & Record<string, number>>
-	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
+	onChainMcap: IRWAChartMetricRows
+	activeMcap: IRWAChartMetricRows
+	defiActiveTvl: IRWAChartMetricRows
 }
-
-export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
 export type IRWABreakdownChartRow = { timestamp: number } & Record<string, number>
 
@@ -212,32 +220,53 @@ export type IRWABreakdownChartParams = {
 	includeGovernance?: boolean
 }
 
-export type IRWABreakdownDatasetsByMetric = Record<RWAChartMetricKey, MultiSeriesChart2Dataset>
-
-export type IRWAChainBreakdownDatasetsByToggle = {
-	base: IRWABreakdownDatasetsByMetric
-	includeStablecoin: IRWABreakdownDatasetsByMetric
-	includeGovernance: IRWABreakdownDatasetsByMetric
-	includeStablecoinAndGovernance: IRWABreakdownDatasetsByMetric
-}
+export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind: 'platform' }
+export type RWAOverviewBreakdownRequest =
+	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
+	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
-export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
-export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
+
+/**
+ * Flat row shape for the Categories overview table.
+ * The query function normalizes the API response (old flat or new segmented) into this shape
+ * so the UI always receives plain numbers regardless of API version.
+ */
+export type IRWACategoriesOverviewRow = {
+	category: string
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+	assetIssuers: number
+}
+
+/**
+ * Flat row shape for the Platforms overview table.
+ * Same normalization as IRWACategoriesOverviewRow applies.
+ */
+export type IRWAPlatformsOverviewRow = {
+	platform: string
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+}
 
 export type IRWAChainsOverview = {
 	rows: IRWAChainsOverviewRow[]
-	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWACategoriesOverview = {
 	rows: IRWACategoriesOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWAPlatformsOverview = {
 	rows: IRWAPlatformsOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export interface IRWAAssetData extends IRWAProject {

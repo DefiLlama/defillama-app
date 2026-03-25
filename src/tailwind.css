@@ -765,6 +765,11 @@
 		@apply relative isolate col-span-full grid min-h-full grid-cols-[228px_1fr] lg:gap-4;
 	}
 
+	html[data-llamaai-fullscreen='true'] #__next,
+	html[data-llamaai-fullscreen='true'] #__next > [data-rk] {
+		@apply grid-cols-1;
+	}
+
 	#__next > *:only-child,
 	#__next > [data-rk] > *:only-child {
 		@apply col-span-full;
@@ -833,6 +838,36 @@
 
 	hr {
 		@apply border-black/20 dark:border-white/20;
+	}
+
+	@media (min-width: 1024px) {
+		html[data-llamaai-fullscreen='true'] .desktop-nav-shell {
+			display: none;
+		}
+
+		html[data-llamaai-fullscreen='true'] .app-main-shell {
+			padding-left: 1rem !important;
+		}
+	}
+
+	.llamaai-chat-panel {
+		container-type: inline-size;
+	}
+
+	.llamaai-chat-width {
+		max-width: 52rem;
+	}
+
+	@container (min-width: 1120px) {
+		.llamaai-chat-width {
+			max-width: 62rem;
+		}
+	}
+
+	@container (min-width: 1400px) {
+		.llamaai-chat-width {
+			max-width: 72rem;
+		}
 	}
 }
 

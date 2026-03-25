@@ -186,6 +186,15 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const attestationFrequency = Array.isArray(asset.attestationFrequency)
 		? asset.attestationFrequency.filter(Boolean).join('; ')
 		: asset.attestationFrequency || null
+	const parentPlatformLabel =
+		typeof asset.parentPlatform === 'string'
+			? asset.parentPlatform.trim() || null
+			: Array.isArray(asset.parentPlatform)
+				? asset.parentPlatform
+						.map((value) => value.trim())
+						.filter(Boolean)
+						.join(', ') || null
+				: null
 	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
 	const timeSeriesCharts =
 		chartDimensions.length > 0
@@ -480,10 +489,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									{asset.accessModelDescription ? <QuestionHelper text={asset.accessModelDescription} /> : null}
 								</span>
 							</p>
-							{asset.parentPlatform ? (
+							{parentPlatformLabel ? (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 									<span className="text-(--text-label)">Parent Platform</span>
-									<span className="font-medium">{asset.parentPlatform}</span>
+									<span className="font-medium">{parentPlatformLabel}</span>
 								</p>
 							) : null}
 						</div>

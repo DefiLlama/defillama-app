@@ -17,10 +17,16 @@ import { CHART_COLORS } from '~/constants/colors'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview } from './api.types'
+import type { IRWAAssetsOverview, RWATickerChartTarget } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
-import type { RWAChartAggregationMode } from './chartAggregation'
-import type { RWAOverviewMode } from './constants'
+import { emptyChartDatasets, type RWAChartAggregationMode } from './chartAggregation'
+import {
+	getDefaultRWATimeSeriesChartBreakdown,
+	getRWATimeSeriesChartBreakdownOptions,
+	getRWATimeSeriesChartState,
+	type RWAOverviewMode,
+	type RWATimeSeriesChartState
+} from './constants'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
@@ -53,6 +59,7 @@ const MultiSeriesChart2 = lazy(
 ) as React.FC<IMultiSeriesChart2Props>
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
+const EMPTY_INITIAL_CHART_DATASET = emptyChartDatasets()
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
@@ -62,6 +69,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const isChainMode = mode === 'chain'
 	const isCategoryMode = mode === 'category'
 	const isPlatformMode = mode === 'platform'
+	const timeSeriesChartBreakdown =
+		typeof router.query.timeSeriesChartBreakdown === 'string' ? router.query.timeSeriesChartBreakdown : null
 	const nonTimeSeriesChartBreakdown =
 		typeof router.query.nonTimeSeriesChartBreakdown === 'string' ? router.query.nonTimeSeriesChartBreakdown : null
 	const chartType =
@@ -81,6 +90,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			? (router.query.treemapNestedBy as RwaTreemapNestedBy)
 			: null
 	const chartTypeKey = chartType as RWAChartType
+	const timeSeriesChartState = getRWATimeSeriesChartState(mode, timeSeriesChartBreakdown)
 
 	const {
 		selectedAssetNames,
@@ -162,19 +172,18 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		})
 
 	const activeFilters = hasActiveChartFilters(router.query)
-	const chartAggregationMode: RWAChartAggregationMode = isCategoryMode
-		? 'assetClass'
-		: isPlatformMode
-			? 'assetName'
-			: 'category'
-	const { chartDatasetByMode, isChartLoading, chartError } = useRwaChartDataset({
-		initialChartDataset: props.initialChartDataset,
+	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
+	const chartTarget = getTickerChartTarget(props)
+	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
+		selectedMetric: chartTypeKey,
+		initialDataset: initialChartDataset[chartTypeKey],
 		filteredAssets,
-		mode: chartAggregationMode,
-		chainSlug: props.chainSlug,
-		categorySlug: props.categorySlug,
-		platformSlug: props.platformSlug,
-		hasActiveFilters: activeFilters
+		mode: getRwaChartAggregationMode(timeSeriesChartState),
+		target: chartTarget,
+		useInitialDataset:
+			chartTypeKey === 'activeMcap' &&
+			!activeFilters &&
+			timeSeriesChartState.breakdown === getDefaultRWATimeSeriesChartBreakdown(mode)
 	})
 
 	const {
@@ -352,7 +361,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
-	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
+	const selectedTimeSeriesDataset = chartDataset
 	const selectedPieChartData =
 		chartTypeKey === 'onChainMcap'
 			? onChainPieChartData
@@ -440,11 +449,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					return
 				}
 
-				void pushShallowQuery(router, {
-					chartView: undefined,
-					nonTimeSeriesChartBreakdown: undefined,
-					pieChartBreakdown: undefined
-				})
+				void pushShallowQuery(router, { chartView: undefined })
 			}}
 			label={
 				chartView === 'pie'
@@ -455,6 +460,27 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							? 'HBar Chart'
 							: 'Time Series'
 			}
+			labelType="none"
+			variant="filter"
+		/>
+	)
+	const timeSeriesChartBreakdownOptions = getRWATimeSeriesChartBreakdownOptions(mode)
+	const timeSeriesChartBreakdownLabel =
+		timeSeriesChartBreakdownOptions.find((option) => option.key === timeSeriesChartState.breakdown)?.name ??
+		timeSeriesChartBreakdownOptions[0].name
+	const timeSeriesChartBreakdownSwitch = (
+		<Select
+			allValues={timeSeriesChartBreakdownOptions}
+			selectedValues={timeSeriesChartState.breakdown}
+			setSelectedValues={(value) => {
+				const nextBreakdown = getSelectedFilterValue(value)
+				const nextState = getRWATimeSeriesChartState(mode, nextBreakdown)
+				void pushShallowQuery(router, {
+					timeSeriesChartBreakdown:
+						nextState.breakdown === getDefaultRWATimeSeriesChartBreakdown(mode) ? undefined : nextState.breakdown
+				})
+			}}
+			label={timeSeriesChartBreakdownLabel}
 			labelType="none"
 			variant="filter"
 		/>
@@ -662,21 +688,21 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
-						content={definitions.totalOnChainMcap.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.totalOnChainMcap.label}
-					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainMcap, true)}</span>
-				</p>
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<Tooltip
 						content={definitions.totalActiveMcap.description}
 						className="text-(--text-label) underline decoration-dotted"
 					>
 						{definitions.totalActiveMcap.label}
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalActiveMcap, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.totalOnChainMcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.totalOnChainMcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainMcap, true)}</span>
 				</p>
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
@@ -704,6 +730,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							<div className="flex flex-wrap items-center justify-end gap-2 p-3">
 								{chartTypeSwitch}
 								{chartViewSwitch}
+								{timeSeriesChartBreakdownSwitch}
 								<ChartCsvExportButton chartInstance={multiSeriesChart2Instance} filename={timeSeriesChartFilename} />
 								<ChartPngExportButton
 									chartInstance={multiSeriesChart2Instance}
@@ -794,6 +821,28 @@ const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
 	if (props.categoryLinks.length > 0) return 'category'
 	if (props.platformLinks.length > 0) return 'platform'
 	return 'chain'
+}
+
+function assertNever(value: never): never {
+	throw new Error(`Unexpected value: ${String(value)}`)
+}
+
+const getRwaChartAggregationMode = (state: RWATimeSeriesChartState): RWAChartAggregationMode => {
+	switch (state.mode) {
+		case 'chain':
+		case 'category':
+		case 'platform':
+			return state.breakdown
+		default:
+			return assertNever(state)
+	}
+}
+
+const getTickerChartTarget = (props: IRWAAssetsOverview): RWATickerChartTarget => {
+	if (props.categorySlug) return { kind: 'category', slug: props.categorySlug }
+	if (props.platformSlug) return { kind: 'platform', slug: props.platformSlug }
+	if (props.chainSlug) return { kind: 'chain', slug: props.chainSlug }
+	return { kind: 'all' }
 }
 
 const getModeLinks = (

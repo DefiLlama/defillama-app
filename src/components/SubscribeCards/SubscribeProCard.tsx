@@ -82,7 +82,7 @@ function SubscribeProCardContent({
 							<svg className="relative mx-1 inline-block h-4 w-4">
 								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 							</svg>{' '}
-							- conversational analysis of DefiLlama data
+							- Generate charts, reports, and analysis on 7,000+ protocols, TradFi markets, and onchain data.
 						</span>
 					</li>
 					<li className="group ml-6 flex items-center gap-2.5">

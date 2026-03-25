@@ -6,9 +6,9 @@ import {
 	fetchRWAActiveTVLs,
 	fetchRWAChainBreakdownChartData,
 	fetchRWACategoryBreakdownChartData,
+	fetchRWAPlatformBreakdownChartData,
 	fetchRWAStats,
 	fetchRWAChartDataByTicker,
-	fetchRWAPlatformBreakdownChartData,
 	fetchRWAAssetDataById,
 	fetchRWAAssetChartData,
 	toUnixMsTimestamp
@@ -16,9 +16,6 @@ import {
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByTicker,
-	IRWABreakdownChartParams,
-	IRWABreakdownChartResponse,
-	IRWABreakdownDatasetsByMetric,
 	IRWAProject,
 	IRWAAssetsOverview,
 	IRWAAssetData,
@@ -28,19 +25,25 @@ import type {
 	IRWACategoriesOverviewRow,
 	IRWAPlatformsOverview,
 	IRWAPlatformsOverviewRow,
-	RWAChartMetricKey
+	RWAStatsBucket,
+	RWAStatsSegmented
 } from './api.types'
+import { toBreakdownChartDataset } from './breakdownDataset'
 import {
-	aggregateRwaChartData,
+	aggregateRwaMetricData,
 	applyDefaultAssetFilters,
-	sortKeysByLatestTimestampValue,
+	emptyChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import { definitions } from './definitions'
+import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
 type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
+
+const getRealRwaPlatforms = (value: Parameters<typeof getRwaPlatforms>[0]) =>
+	getRwaPlatforms(value).filter((platform) => platform !== UNKNOWN_PLATFORM && rwaSlug(platform) !== 'unknown')
 
 type AggregatedRwaMetrics = {
 	totals: {
@@ -261,8 +264,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
 			for (const item of data) {
-				const platform = item.parentPlatform
-				if (platform && rwaSlug(platform) === selectedPlatform) {
+				const platform = getRealRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
+				if (platform) {
 					actualPlatformName = platform
 					break
 				}
@@ -313,7 +316,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
 				: true
 			const hasPlatformMatch = selectedPlatform
-				? !!item.parentPlatform && rwaSlug(item.parentPlatform) === selectedPlatform
+				? getRealRwaPlatforms(item.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
 				: true
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
@@ -444,16 +447,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMcap)
 					}
 				}
-				const platformRaw = asset.parentPlatform as unknown
-				const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
-				const normalizedPlatforms = Array.from(
-					new Set(
-						platformCandidates
-							.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
-							.filter((platform): platform is string => platform.length > 0)
-					)
-				)
-				for (const platform of normalizedPlatforms) {
+				for (const platform of getRwaPlatforms(asset.parentPlatform)) {
+					if (platform === UNKNOWN_PLATFORM) continue
 					platforms.set(platform, (platforms.get(platform) ?? 0) + effectiveOnChainMcap)
 				}
 				if (asset.rwaClassification) {
@@ -546,7 +541,11 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			categorySlug: selectedCategory
 		})
 		const initialChartDataset = chartDataMs
-			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
+			? {
+					onChainMcap: emptyChartDataset(),
+					activeMcap: aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode),
+					defiActiveTvl: emptyChartDataset()
+				}
 			: null
 
 		return {
@@ -633,73 +632,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 	}
 }
 
-const RWA_CHART_METRIC_KEYS: RWAChartMetricKey[] = ['onChainMcap', 'activeMcap', 'defiActiveTvl']
-
-const emptyRwaBreakdownDataset = () => ({ source: [], dimensions: ['timestamp'] })
-
-function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
-	if (!rows || rows.length === 0) return emptyRwaBreakdownDataset()
-
-	const source: IRWABreakdownChartResponse = []
-	const seenSeries = new Set<string>()
-
-	for (const row of ensureChronologicalRows(rows)) {
-		const timestamp = Number(row.timestamp)
-
-		const normalizedRow: IRWABreakdownChartResponse[number] = { timestamp }
-		let hasData = false
-		for (const [series, value] of Object.entries(row)) {
-			if (series === 'timestamp') continue
-			const numericValue = Number(value)
-			if (!Number.isFinite(numericValue)) continue
-			hasData = true
-			seenSeries.add(series)
-			normalizedRow[series] = numericValue
-		}
-
-		if (hasData) {
-			source.push(normalizedRow)
-		}
-	}
-
-	if (source.length === 0) return emptyRwaBreakdownDataset()
-
-	return {
-		source,
-		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenSeries)]
-	}
-}
-
-async function fetchBreakdownDatasetsByMetric(
-	fetcher: (params: IRWABreakdownChartParams) => Promise<IRWABreakdownChartResponse | null>,
-	params: Omit<IRWABreakdownChartParams, 'key'> = {}
-): Promise<IRWABreakdownDatasetsByMetric> {
-	const requests = RWA_CHART_METRIC_KEYS.map((key) => fetcher({ ...params, key }))
-	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all(requests)
-
-	return {
-		onChainMcap: toBreakdownChartDataset(onChainMcapRows),
-		activeMcap: toBreakdownChartDataset(activeMcapRows),
-		defiActiveTvl: toBreakdownChartDataset(defiActiveTvlRows)
-	}
-}
-
 export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
-	const [
-		data,
-		baseChartDatasets,
-		stablecoinChartDatasets,
-		governanceChartDatasets,
-		stablecoinAndGovernanceChartDatasets
-	] = await Promise.all([
+	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeStablecoin: true }),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeGovernance: true }),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchRWAChainBreakdownChartData({ key: 'activeMcap' })
 	])
 
 	if (!data?.byChain) {
@@ -718,22 +654,14 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
 
 	return {
 		rows: rows.sort((a, b) => (b.base?.onChainMcap ?? 0) - (a.base?.onChainMcap ?? 0)),
-		chartDatasets: {
-			base: baseChartDatasets,
-			includeStablecoin: stablecoinChartDatasets,
-			includeGovernance: governanceChartDatasets,
-			includeStablecoinAndGovernance: stablecoinAndGovernanceChartDatasets
-		}
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
 
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview> {
-	const [data, chartDatasets] = await Promise.all([
+	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWACategoryBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchRWACategoryBreakdownChartData({ key: 'activeMcap', includeStablecoin: true, includeGovernance: true })
 	])
 
 	if (!data?.byCategory) {
@@ -743,26 +671,26 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 	const rows: IRWACategoriesOverviewRow[] = []
 	for (const category in data.byCategory) {
 		const stats = data.byCategory[category]
-
+		// TEMPORARY: Handle both old flat API shape and new segmented shape.
+		// Once API migration is complete, this can be simplified to always use mergeSegmentedStats.
+		const flat = isSegmentedStats(stats) ? mergeSegmentedStats(stats) : stats
 		rows.push({
-			...stats,
+			...flat,
+			assetIssuers: typeof flat.assetIssuers === 'number' ? flat.assetIssuers : flat.assetIssuers.length,
 			category
 		})
 	}
 
 	return {
 		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
-		chartDatasets
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
 
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> {
-	const [data, chartDatasets] = await Promise.all([
+	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWAPlatformBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchRWAPlatformBreakdownChartData({ key: 'activeMcap', includeStablecoin: true, includeGovernance: true })
 	])
 
 	if (!data?.byPlatform) {
@@ -772,16 +700,21 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 	const rows: IRWAPlatformsOverviewRow[] = []
 	for (const platform in data.byPlatform) {
 		const stats = data.byPlatform[platform]
-
+		// TEMPORARY: Handle both old flat API shape and new segmented shape.
+		// Once API migration is complete, this can be simplified to always use mergeSegmentedStats.
+		const flat = isSegmentedStats(stats) ? mergeSegmentedStats(stats) : stats
 		rows.push({
-			...stats,
+			onChainMcap: flat.onChainMcap,
+			activeMcap: flat.activeMcap,
+			defiActiveTvl: flat.defiActiveTvl,
+			assetCount: flat.assetCount,
 			platform
 		})
 	}
 
 	return {
 		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
-		chartDatasets
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
 
@@ -897,4 +830,57 @@ function isEmptyObject(value: unknown): boolean {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) return false
 	for (const _key in value) return false
 	return true
+}
+
+/**
+ * Runtime guard: detects whether a stats entry uses the new segmented format
+ * (base/stablecoinsOnly/governanceOnly/stablecoinsAndGovernance) or the old
+ * flat format (direct numeric fields).
+ *
+ * TEMPORARY: Remove once the API migration is complete and byCategory/byPlatform
+ * always return the segmented shape.
+ */
+function isSegmentedStats(stats: RWAStatsBucket | RWAStatsSegmented): stats is RWAStatsSegmented {
+	return 'base' in stats && typeof stats.base === 'object'
+}
+
+/**
+ * Merges all 4 segmented buckets into flat totals.
+ * Used for categories/platforms pages which don't expose stablecoin/governance
+ * toggles -- they always show the combined total across all asset classifications.
+ *
+ * For assetIssuers:
+ *   - If buckets contain string arrays (new API), deduplicates across buckets
+ *     and returns the unique count.
+ *   - If buckets contain numbers (fallback), sums them.
+ *
+ * TEMPORARY: Remove once the API migration is complete and all consumers
+ * are updated to handle the segmented format natively.
+ */
+function mergeSegmentedStats(stats: RWAStatsSegmented): {
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+	assetIssuers: number
+} {
+	const buckets = [stats.base, stats.stablecoinsOnly, stats.governanceOnly, stats.stablecoinsAndGovernance]
+	let onChainMcap = 0
+	let activeMcap = 0
+	let defiActiveTvl = 0
+	let assetCount = 0
+	const issuerSet = new Set<string>()
+	let issuerSum = 0
+	for (const b of buckets) {
+		onChainMcap += b.onChainMcap
+		activeMcap += b.activeMcap
+		defiActiveTvl += b.defiActiveTvl
+		assetCount += b.assetCount
+		if (Array.isArray(b.assetIssuers)) {
+			for (const issuer of b.assetIssuers) issuerSet.add(issuer)
+		} else {
+			issuerSum += b.assetIssuers
+		}
+	}
+	return { onChainMcap, activeMcap, defiActiveTvl, assetCount, assetIssuers: issuerSet.size || issuerSum }
 }

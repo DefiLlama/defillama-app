@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { type ComponentType, lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { type ComponentType, lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -49,6 +50,23 @@ const ProtocolChart = lazy(() =>
 	import('./Chart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
 )
 
+type ProtocolMetricOption =
+	| {
+			id: ProtocolChartsLabels
+			label: string
+			active: boolean
+			type: 'chart'
+	  }
+	| {
+			id: 'events'
+			label: string
+			active: boolean
+			type: 'events'
+	  }
+
+const getProtocolMetricLabel = (chart: ProtocolChartsLabels, tokenSymbol?: string | null) =>
+	chart.replace('Token', tokenSymbol ? `$${tokenSymbol}` : 'Token')
+
 export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const searchParams = useMemo(() => {
@@ -64,57 +82,61 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 		[props.chartDenominations]
 	)
 
-	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts } = useMemo(() => {
-		const defaultEnabledChartSet = new Set<ProtocolChartsLabels>(props.defaultToggledCharts)
-		const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
-		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
-		for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
-			const chartKey = protocolCharts[chartLabel]
-			const defaultEnabled = defaultEnabledChartSet.has(chartLabel)
-			defaultEnabledCharts[chartLabel] = defaultEnabled
-			chartsByVisibility[chartKey] = resolveVisibility({
-				queryValue: searchParams.get(chartKey),
-				defaultEnabled
-			})
-		}
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts, hasEvents } =
+		useMemo(() => {
+			const defaultEnabledChartSet = new Set<ProtocolChartsLabels>(props.defaultToggledCharts)
+			const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
+			const chartsByVisibility: Record<string, 'true' | 'false'> = {}
+			for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
+				const chartKey = protocolCharts[chartLabel]
+				const defaultEnabled = defaultEnabledChartSet.has(chartLabel)
+				defaultEnabledCharts[chartLabel] = defaultEnabled
+				chartsByVisibility[chartKey] = resolveVisibility({
+					queryValue: searchParams.get(chartKey),
+					defaultEnabled
+				})
+			}
 
-		const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
-		const hasEvents = (props.hallmarks?.length ?? 0) > 0 || (props.rangeHallmarks?.length ?? 0) > 0
+			const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
+			const hasEvents = (props.hallmarks?.length ?? 0) > 0 || (props.rangeHallmarks?.length ?? 0) > 0
 
-		const toggledMetrics = {
-			...chartsByVisibility,
-			denomination: denominationInSearchParams
-				? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
-				: null,
-			events: hasEvents ? resolveVisibility({ queryValue: searchParams.get('events'), defaultEnabled: true }) : 'false'
-		} as IToggledMetrics
+			const toggledMetrics = {
+				...chartsByVisibility,
+				denomination: denominationInSearchParams
+					? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
+					: null,
+				events: hasEvents
+					? resolveVisibility({ queryValue: searchParams.get('events'), defaultEnabled: true })
+					: 'false'
+			} as IToggledMetrics
 
-		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
+			const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
-		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+			const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
-		return {
-			toggledMetrics,
-			toggledCharts,
-			hasAtleasOneBarChart,
-			groupBy: (() => {
-				if (!hasAtleasOneBarChart) return 'daily'
-				// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
-				const groupByParam = normalizeChartInterval(searchParams.get('groupBy'))
-				if (groupByParam) return groupByParam
-				return normalizeChartInterval(props.defaultChartView) ?? 'daily'
-			})(),
-			defaultEnabledCharts
-		}
-	}, [
-		searchParams,
-		chartDenominationByLowerSymbol,
-		props.hallmarks,
-		props.rangeHallmarks,
-		props.defaultToggledCharts,
-		props.availableCharts,
-		props.defaultChartView
-	])
+			return {
+				toggledMetrics,
+				toggledCharts,
+				hasAtleasOneBarChart,
+				hasEvents,
+				groupBy: (() => {
+					if (!hasAtleasOneBarChart) return 'daily'
+					// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
+					const groupByParam = normalizeChartInterval(searchParams.get('groupBy'))
+					if (groupByParam) return groupByParam
+					return normalizeChartInterval(props.defaultChartView) ?? 'daily'
+				})(),
+				defaultEnabledCharts
+			}
+		}, [
+			searchParams,
+			chartDenominationByLowerSymbol,
+			props.hallmarks,
+			props.rangeHallmarks,
+			props.defaultToggledCharts,
+			props.availableCharts,
+			props.defaultChartView
+		])
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
@@ -137,6 +159,8 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+	const [metricsSearchValue, setMetricsSearchValue] = useState('')
+	const deferredMetricsSearchValue = useDeferredValue(metricsSearchValue)
 
 	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.name}.csv`)
 
@@ -153,6 +177,33 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 
 	const isClient = useIsClient()
 	const shouldShowEnabledEventsChip = toggledMetrics.events === 'true'
+
+	const filteredMetricOptions = useMemo(() => {
+		const options: ProtocolMetricOption[] = props.availableCharts.map((chart) => ({
+			id: chart,
+			label: getProtocolMetricLabel(chart, props.token?.symbol),
+			active: toggledMetrics[protocolCharts[chart]] === 'true',
+			type: 'chart'
+		}))
+
+		if (hasEvents) {
+			options.push({
+				id: 'events',
+				label: 'Events',
+				active: toggledMetrics.events === 'true',
+				type: 'events'
+			})
+		}
+
+		if (!deferredMetricsSearchValue) {
+			return options
+		}
+
+		return matchSorter(options, deferredMetricsSearchValue, {
+			keys: ['label', 'id'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [props.availableCharts, props.token?.symbol, toggledMetrics, hasEvents, deferredMetricsSearchValue])
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -171,50 +222,62 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 								</Ariakit.DialogDismiss>
 							</span>
 
+							<label className="relative">
+								<span className="sr-only">Search metrics</span>
+								<Icon
+									name="search"
+									height={16}
+									width={16}
+									className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+								/>
+								<input
+									type="text"
+									name="search"
+									inputMode="search"
+									placeholder="Search..."
+									autoFocus
+									value={metricsSearchValue}
+									className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+									onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+								/>
+							</label>
+
 							<div className="flex flex-wrap gap-2">
-								{props.availableCharts.map((chart) => (
+								{filteredMetricOptions.map((option) => (
 									<button
-										key={`add-metric-${chart}`}
+										key={`add-metric-${option.id}`}
 										onClick={() => {
+											if (option.type === 'events') {
+												void pushShallowQuery(router, {
+													events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
+												}).then(() => {
+													metricsDialogStore.toggle()
+												})
+												return
+											}
+
 											void pushShallowQuery(router, {
-												[protocolCharts[chart]]:
-													toggledMetrics[protocolCharts[chart]] === 'true'
-														? (getQueryValueOnRemove(defaultEnabledCharts[chart] === true) ?? undefined)
+												[protocolCharts[option.id]]:
+													toggledMetrics[protocolCharts[option.id]] === 'true'
+														? (getQueryValueOnRemove(defaultEnabledCharts[option.id] === true) ?? undefined)
 														: 'true'
 											}).then(() => {
 												metricsDialogStore.toggle()
 											})
 										}}
-										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
+										data-active={option.active}
 										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									>
-										<span>{chart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
-										{toggledMetrics[protocolCharts[chart]] === 'true' ? (
+										<span>{option.label}</span>
+										{option.active ? (
 											<Icon name="x" className="h-3.5 w-3.5" />
 										) : (
 											<Icon name="plus" className="h-3.5 w-3.5" />
 										)}
 									</button>
 								))}
-								{props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0 ? (
-									<button
-										onClick={() => {
-											void pushShallowQuery(router, {
-												events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
-											}).then(() => {
-												metricsDialogStore.toggle()
-											})
-										}}
-										data-active={toggledMetrics.events === 'true'}
-										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-									>
-										<span>Events</span>
-										{toggledMetrics.events === 'true' ? (
-											<Icon name="x" className="h-3.5 w-3.5" />
-										) : (
-											<Icon name="plus" className="h-3.5 w-3.5" />
-										)}
-									</button>
+								{filteredMetricOptions.length === 0 ? (
+									<p className="py-2 text-sm text-(--text-tertiary)">No metrics found.</p>
 								) : null}
 							</div>
 						</Ariakit.Dialog>

@@ -1,15 +1,16 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useContext, useMemo } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
 import { formattedNum } from '~/utils'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
+import { StreamDoneContext } from '../queries'
 import type { YieldsChartConfig } from '../types'
+import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { useYieldChartTransformations } from './useYieldChartTransformations'
 
@@ -53,14 +54,16 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
-	const { data: chart, isLoading: fetchingChartData, isError: chartError } = useYieldChartData(poolConfigId)
+	const streamDone = useContext(StreamDoneContext)
+	const gatedPoolId = streamDone ? poolConfigId : null
+	const { data: chart, isLoading: fetchingChartData, isError: chartError } = useYieldChartData(gatedPoolId)
 
 	const needsBorrowData = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(chartType)
 	const {
 		data: borrowChart,
 		isLoading: fetchingBorrowData,
 		isError: borrowError
-	} = useYieldChartLendBorrow(needsBorrowData ? poolConfigId : null)
+	} = useYieldChartLendBorrow(streamDone && needsBorrowData ? poolConfigId : null)
 
 	const {
 		tvlApyData,
@@ -153,7 +156,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const imageFilename = `${poolName.replace(/\s+/g, '_')}`
 	const imageTitle = `${poolName} - ${project} (${chain})`
 
-	const isLoading = needsBorrowData ? fetchingChartData || fetchingBorrowData : fetchingChartData
+	const isLoading = (needsBorrowData ? fetchingChartData || fetchingBorrowData : fetchingChartData) || !streamDone
 
 	const hasError = needsBorrowData ? chartError || borrowError : chartError
 
@@ -179,7 +182,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	if (isLoading) {
 		return (
 			<div className="flex h-full min-h-[360px] items-center justify-center">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -252,7 +255,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>

@@ -56,6 +56,7 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	onTableFullscreenOpen?: () => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -68,7 +69,8 @@ function ConversationMessageItem({
 	sessionId,
 	readOnly,
 	isLlama,
-	onActionClick
+	onActionClick,
+	onTableFullscreenOpen
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -76,6 +78,7 @@ function ConversationMessageItem({
 	readOnly: boolean
 	isLlama: boolean
 	onActionClick?: (message: string) => void
+	onTableFullscreenOpen?: () => void
 }) {
 	return (
 		<MessageBubble
@@ -85,6 +88,7 @@ function ConversationMessageItem({
 			isLlama={isLlama}
 			onActionClick={onActionClick}
 			nextUserMessage={nextUserMessage}
+			onTableFullscreenOpen={onTableFullscreenOpen}
 		/>
 	)
 }
@@ -106,7 +110,8 @@ function ConversationLiveStatus({
 	isResearchMode,
 	sessionId,
 	readOnly,
-	isLlama
+	isLlama,
+	onTableFullscreenOpen
 }: {
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
@@ -125,6 +130,7 @@ function ConversationLiveStatus({
 	sessionId: string | null
 	readOnly: boolean
 	isLlama: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	return (
 		<>
@@ -160,6 +166,7 @@ function ConversationLiveStatus({
 						isDraft
 						readOnly={readOnly}
 						isLlama={isLlama}
+						onTableFullscreenOpen={onTableFullscreenOpen}
 					/>
 				</div>
 			) : null}
@@ -227,7 +234,8 @@ export function ConversationView({
 	animateActiveExchange,
 	onOpenAlerts,
 	quotedText,
-	onClearQuotedText
+	onClearQuotedText,
+	onTableFullscreenOpen
 }: ConversationViewProps) {
 	// Keep the newest user prompt in the same block as the live response/status UI
 	// so the viewport-sized spacer applies to the whole active exchange.
@@ -241,7 +249,7 @@ export function ConversationView({
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
-				<div className="relative mx-auto flex w-full max-w-3xl flex-col">
+				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col">
 					<div className="flex w-full flex-col gap-2 px-2">
 						<div className="flex flex-col gap-2.5">
 							{paginationState.isLoadingMore ? (
@@ -271,6 +279,7 @@ export function ConversationView({
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 								)
 							})}
@@ -289,6 +298,7 @@ export function ConversationView({
 										sessionId={sessionId}
 										readOnly={readOnly}
 										isLlama={isLlama}
+										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 
 									<ConversationLiveStatus
@@ -309,6 +319,7 @@ export function ConversationView({
 										sessionId={sessionId}
 										readOnly={readOnly}
 										isLlama={isLlama}
+										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 								</div>
 							) : (
@@ -330,6 +341,7 @@ export function ConversationView({
 									sessionId={sessionId}
 									readOnly={readOnly}
 									isLlama={isLlama}
+									onTableFullscreenOpen={onTableFullscreenOpen}
 								/>
 							)}
 						</div>
@@ -354,7 +366,7 @@ export function ConversationView({
 			</div>
 
 			{!readOnly ? (
-				<div className="relative mx-auto w-full max-w-3xl pb-2.5">
+				<div className="llamaai-chat-width relative mx-auto w-full pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-9 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 					<PromptInput
 						handleSubmit={handleSubmit}

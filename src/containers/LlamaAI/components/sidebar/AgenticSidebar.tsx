@@ -14,6 +14,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAiBalance } from '~/containers/Subscribtion/useTopup'
@@ -29,7 +30,6 @@ interface AgenticSidebarProps {
 	restoringSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
-	handleSidebarToggle: () => void
 	onDelete: (sessionId: string) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	isDeletingSession: boolean
@@ -67,7 +67,6 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	onSessionSelect,
 	onDelete,
 	onUpdateTitle,
-	handleSidebarToggle,
 	selectMode,
 	isSelected,
 	onToggleSelect
@@ -81,7 +80,6 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
-	handleSidebarToggle: () => void
 	selectMode: boolean
 	isSelected: boolean
 	onToggleSelect: (sessionId: string) => void
@@ -106,7 +104,6 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 			isRestoring={restoringSessionId === item.session.sessionId}
 			isDeleting={deletingSessionId === item.session.sessionId}
 			isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
-			handleSidebarToggle={handleSidebarToggle}
 			style={itemStyle}
 			selectMode={selectMode}
 			isSelected={isSelected}
@@ -123,7 +120,6 @@ export function AgenticSidebar({
 	restoringSessionId,
 	onSessionSelect,
 	onNewChat,
-	handleSidebarToggle,
 	onDelete,
 	onUpdateTitle,
 	isDeletingSession: _isDeletingSession,
@@ -133,6 +129,7 @@ export function AgenticSidebar({
 	hasCustomInstructions,
 	onBulkDelete
 }: AgenticSidebarProps) {
+	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
@@ -238,7 +235,7 @@ export function AgenticSidebar({
 			!(event.target instanceof Element && event.target.closest('[role="dialog"]')) &&
 			document.documentElement.clientWidth < 1024
 		) {
-			handleSidebarToggle()
+			hideSidebar()
 		}
 	})
 
@@ -250,7 +247,7 @@ export function AgenticSidebar({
 	return (
 		<aside
 			ref={sidebarRef}
-			className={`relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
+			className={`llamaai-agentic-sidebar relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
 			<header className="flex flex-col gap-2 p-4">
 				<div className="flex items-center justify-between">
@@ -269,14 +266,39 @@ export function AgenticSidebar({
 					) : (
 						<div />
 					)}
-					<Tooltip
-						content="Close Chat History"
-						render={<button onClick={handleSidebarToggle} />}
-						className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-					>
-						<Icon name="panel-left-close" height={16} width={16} />
-						<span className="sr-only">Close Chat History</span>
-					</Tooltip>
+					<div className="flex items-center gap-2">
+						<Tooltip
+							content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+							render={
+								<button
+									onClick={toggleFullscreen}
+									data-umami-event="llamaai-fullscreen-toggle"
+									data-umami-event-action={isFullscreen ? 'exit' : 'enter'}
+									data-umami-event-source="sidebar_header"
+								/>
+							}
+							className="hidden h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:flex"
+						>
+							<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
+							<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+						</Tooltip>
+
+						<Tooltip
+							content="Close Chat History"
+							render={
+								<button
+									onClick={toggleSidebar}
+									data-umami-event="llamaai-sidebar-toggle"
+									data-umami-event-action="close"
+									data-umami-event-source="sidebar_header"
+								/>
+							}
+							className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+						>
+							<Icon name="panel-left-close" height={16} width={16} />
+							<span className="sr-only">Close Chat History</span>
+						</Tooltip>
+					</div>
 				</div>
 
 				<button
@@ -343,7 +365,6 @@ export function AgenticSidebar({
 									onSessionSelect={onSessionSelect}
 									onDelete={handleDelete}
 									onUpdateTitle={handleUpdateTitle}
-									handleSidebarToggle={handleSidebarToggle}
 									selectMode={selectMode}
 									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
 									onToggleSelect={toggleSelect}
@@ -356,20 +377,21 @@ export function AgenticSidebar({
 
 			{balance ? (
 				<div className="border-t border-[#e6e6e6] px-3 py-2.5 dark:border-[#222324]">
-					<button
-						onClick={() => setIsTopupModalOpen(true)}
+					<Tooltip
+						content="Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more."
+						render={<button onClick={() => setIsTopupModalOpen(true)} />}
 						className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#222324]"
 					>
 						<div className="flex items-center gap-2">
 							<Icon name="package" height={14} width={14} className="text-[#5C5CF9]" />
-							<span className="text-xs text-[#666] dark:text-[#919296]">LlamaAI Balance</span>
+							<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
 						</div>
 						<span
 							className={`font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
 						>
 							${totalAvailable.toFixed(2)}
 						</span>
-					</button>
+					</Tooltip>
 				</div>
 			) : null}
 

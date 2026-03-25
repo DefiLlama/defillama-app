@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { CHART_TYPES, type MetricAggregator, type MetricWindow } from '../../../types'
 import { AriakitCheckbox } from '../../AriakitCheckbox'
@@ -41,6 +42,7 @@ const WINDOW_OPTIONS: SelectOption[] = [
 
 export function PreviewStep() {
 	const { state, actions } = useComparisonWizardContext()
+	const { hasActiveSubscription } = useAuthContext()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const [tagInput, setTagInput] = useState('')
 
@@ -109,15 +111,19 @@ export function PreviewStep() {
 							</button>
 							<button
 								type="button"
-								onClick={() => actions.setVisibility('private')}
+								onClick={() => hasActiveSubscription && actions.setVisibility('private')}
+								disabled={!hasActiveSubscription}
 								className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors ${
 									state.visibility === 'private'
 										? 'border-(--primary) bg-(--primary)/10 text-(--primary)'
-										: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
+										: !hasActiveSubscription
+											? 'cursor-not-allowed border-(--form-control-border) text-(--text-tertiary) opacity-50'
+											: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
 								}`}
 							>
-								<Icon name="key" height={12} width={12} />
+								<Icon name={hasActiveSubscription ? 'key' : 'file-lock-2'} height={12} width={12} />
 								Private
+								{!hasActiveSubscription ? <span className="text-[10px] font-normal opacity-70">(Pro)</span> : null}
 							</button>
 						</div>
 					</div>

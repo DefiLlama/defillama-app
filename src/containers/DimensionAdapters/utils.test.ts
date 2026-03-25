@@ -1,0 +1,465 @@
+import { describe, expect, it } from 'vitest'
+import type { IProtocol } from './types'
+import {
+	buildAdapterByChainBreakdownPresentation,
+	buildAdapterByChainLatestValuePresentation,
+	buildChainsByAdapterChartPresentation,
+	mergeBreakdownCharts,
+	mergeNamedDimensionChartDataset,
+	mergeSingleDimensionChartDataset,
+	normalizeChainsByAdapterChartState,
+	type ChainsByAdapterChartState
+} from './utils'
+
+const toMs = (year: number, month: number, day: number) => Date.UTC(year, month - 1, day)
+
+const baseChartData = {
+	dimensions: ['timestamp', 'Ethereum', 'Solana', 'Base'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 0, Base: 0 },
+		{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20, Base: 0 },
+		{ timestamp: toMs(2024, 1, 3), Ethereum: 10, Solana: 0, Base: 30 }
+	]
+}
+
+const baseChainRows = [
+	{ name: 'Ethereum', logo: '', total24h: 40, total7d: null, total30d: null },
+	{ name: 'Solana', logo: '', total24h: 0, total7d: null, total30d: null },
+	{ name: 'Base', logo: '', total24h: 60, total7d: null, total30d: null }
+]
+
+const sparseChartData = {
+	dimensions: ['timestamp', 'Ethereum', 'Solana'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), Ethereum: 10 },
+		{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 }
+	]
+}
+
+const adapterBreakdownChartData = {
+	dimensions: ['timestamp', 'Hyperliquid Perps', 'dYdX', 'GMX'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 10, dYdX: 20, GMX: 0 },
+		{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 20, dYdX: 10, GMX: 10 },
+		{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 30, dYdX: 0, GMX: 10 }
+	]
+}
+
+const makeProtocolRow = (name: string, total24h: number | null, childProtocols?: IProtocol[]) =>
+	({
+		name,
+		slug: name.toLowerCase().replace(/\s+/g, '-'),
+		logo: '',
+		chains: [],
+		category: null,
+		total24h,
+		total7d: null,
+		total30d: null,
+		total1y: null,
+		totalAllTime: null,
+		mcap: null,
+		...(childProtocols ? { childProtocols } : {})
+	}) satisfies IProtocol
+
+const adapterProtocols = [
+	makeProtocolRow('Hyperliquid', 70, [
+		makeProtocolRow('Hyperliquid Perps', 55),
+		makeProtocolRow('Hyperliquid Spot', 15)
+	]),
+	makeProtocolRow('dYdX', 30),
+	makeProtocolRow('GMX', 10)
+]
+
+describe('normalizeChainsByAdapterChartState', () => {
+	it('returns the default bar state when no query params are present', () => {
+		expect(
+			normalizeChainsByAdapterChartState({
+				chartKindParam: undefined,
+				valueModeParam: undefined,
+				barLayoutParam: undefined,
+				groupByParam: undefined,
+				legacyChartTypeParam: undefined
+			})
+		).toEqual({
+			chartKind: 'bar',
+			valueMode: 'absolute',
+			barLayout: 'stacked',
+			groupBy: 'daily'
+		})
+	})
+
+	it('maps legacy dominance and cumulative URLs to line mode', () => {
+		expect(
+			normalizeChainsByAdapterChartState({
+				legacyChartTypeParam: 'dominance'
+			})
+		).toEqual({ chartKind: 'line', groupBy: 'daily' })
+
+		expect(
+			normalizeChainsByAdapterChartState({
+				groupByParam: 'cumulative'
+			})
+		).toEqual({ chartKind: 'line', groupBy: 'daily' })
+	})
+
+	it('ignores bar-only params for treemap and line modes', () => {
+		expect(
+			normalizeChainsByAdapterChartState({
+				chartKindParam: 'treemap',
+				valueModeParam: 'relative',
+				barLayoutParam: 'separate',
+				groupByParam: 'monthly'
+			})
+		).toEqual({ chartKind: 'treemap' })
+
+		expect(
+			normalizeChainsByAdapterChartState({
+				chartKindParam: 'line',
+				valueModeParam: 'absolute',
+				barLayoutParam: 'separate',
+				groupByParam: 'yearly'
+			})
+		).toEqual({ chartKind: 'line', groupBy: 'yearly' })
+
+		expect(
+			normalizeChainsByAdapterChartState({
+				chartKindParam: 'hbar',
+				valueModeParam: 'relative',
+				barLayoutParam: 'separate',
+				groupByParam: 'monthly'
+			})
+		).toEqual({ chartKind: 'hbar' })
+	})
+})
+
+describe('buildChainsByAdapterChartPresentation', () => {
+	it('builds absolute stacked bars with totals enabled', () => {
+		const state: ChainsByAdapterChartState = {
+			chartKind: 'bar',
+			valueMode: 'absolute',
+			barLayout: 'stacked',
+			groupBy: 'daily'
+		}
+
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state,
+			latestChainRows: baseChainRows
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.showTotalInTooltip).toBe(true)
+		expect(presentation.valueMode).toBe('absolute')
+		expect(presentation.barLayout).toBe('stacked')
+		expect(presentation.groupBy).toBe('daily')
+		expect(presentation.charts.every((chart) => chart.stack === 'chain')).toBe(true)
+		expect(presentation.dataset.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 0 },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 },
+			{ timestamp: toMs(2024, 1, 3), Ethereum: 10, Solana: 0 }
+		])
+	})
+
+	it('builds relative separate bars that sum to 100 per timestamp', () => {
+		const state: ChainsByAdapterChartState = {
+			chartKind: 'bar',
+			valueMode: 'relative',
+			barLayout: 'separate',
+			groupBy: 'daily'
+		}
+
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state,
+			latestChainRows: baseChainRows
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.showTotalInTooltip).toBe(false)
+		expect(presentation.valueMode).toBe('relative')
+		expect(presentation.barLayout).toBe('separate')
+		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+
+		const [day1, day2, day3] = presentation.dataset.source
+		expect(day1.Ethereum).toBe(100)
+		expect(day1.Solana).toBe(0)
+		expect(day2.Ethereum).toBeCloseTo(33.3333333333)
+		expect(day2.Solana).toBeCloseTo(66.6666666667)
+		expect(day3.Ethereum).toBe(100)
+		expect(day3.Solana).toBe(0)
+	})
+
+	it('keeps missing chain values null so tooltips do not show fake zeroes', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: sparseChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'absolute',
+				barLayout: 'stacked',
+				groupBy: 'daily'
+			},
+			latestChainRows: baseChainRows
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.dataset.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: null },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 }
+		])
+	})
+
+	it('builds grouped relative lines normalized to share', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: { chartKind: 'line', groupBy: 'weekly' },
+			latestChainRows: baseChainRows
+		})
+
+		expect(presentation.kind).toBe('line')
+		if (presentation.kind !== 'line') return
+
+		expect(presentation.groupBy).toBe('weekly')
+		expect(presentation.charts.every((chart) => chart.type === 'line' && chart.hideAreaStyle == null)).toBe(true)
+
+		const [week1] = presentation.dataset.source
+		expect(week1.Ethereum).toBeCloseTo(60)
+		expect(week1.Solana).toBeCloseTo(40)
+	})
+
+	it('builds treemap data from the latest timestamp using all selected chains', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: ['Ethereum', 'Solana', 'Base'],
+			state: { chartKind: 'treemap' },
+			latestChainRows: baseChainRows
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Base', 'Ethereum'])
+		expect(presentation.data[0].value).toBe(60)
+		expect(presentation.data[0].share).toBe(60)
+		expect(presentation.data[1].value).toBe(40)
+		expect(presentation.data[1].share).toBe(40)
+	})
+
+	it('builds hbar data from the latest-value ranking and groups overflow into Others', () => {
+		const extendedChainRows = [
+			{ name: 'Chain 1', logo: '', total24h: 100, total7d: null, total30d: null },
+			{ name: 'Chain 2', logo: '', total24h: 90, total7d: null, total30d: null },
+			{ name: 'Chain 3', logo: '', total24h: 80, total7d: null, total30d: null },
+			{ name: 'Chain 4', logo: '', total24h: 70, total7d: null, total30d: null },
+			{ name: 'Chain 5', logo: '', total24h: 60, total7d: null, total30d: null },
+			{ name: 'Chain 6', logo: '', total24h: 50, total7d: null, total30d: null },
+			{ name: 'Chain 7', logo: '', total24h: 40, total7d: null, total30d: null },
+			{ name: 'Chain 8', logo: '', total24h: 30, total7d: null, total30d: null },
+			{ name: 'Chain 9', logo: '', total24h: 20, total7d: null, total30d: null },
+			{ name: 'Chain 10', logo: '', total24h: 10, total7d: null, total30d: null },
+			{ name: 'Chain 11', logo: '', total24h: 5, total7d: null, total30d: null }
+		]
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: extendedChainRows.map((row) => row.name),
+			state: { chartKind: 'hbar' },
+			latestChainRows: extendedChainRows
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual([
+			'Chain 1',
+			'Chain 2',
+			'Chain 3',
+			'Chain 4',
+			'Chain 5',
+			'Chain 6',
+			'Chain 7',
+			'Chain 8',
+			'Chain 9',
+			'Others'
+		])
+		expect(presentation.data[0].value).toBe(100)
+		expect(presentation.data[8].value).toBe(20)
+		expect(presentation.data[9].value).toBe(15)
+		expect(presentation.data[9].share).toBeCloseTo((15 / 555) * 100)
+	})
+})
+
+describe('buildAdapterByChainBreakdownPresentation', () => {
+	it('builds relative separate bars from selected protocol breakdown series', () => {
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: adapterBreakdownChartData,
+			selectedProtocols: ['Hyperliquid Perps', 'dYdX'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'relative',
+				barLayout: 'separate',
+				groupBy: 'daily'
+			}
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.dataset.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 33.33333333333333, dYdX: 66.66666666666666 },
+			{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 66.66666666666666, dYdX: 33.33333333333333 },
+			{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 100, dYdX: 0 }
+		])
+	})
+})
+
+describe('buildAdapterByChainLatestValuePresentation', () => {
+	it('builds treemap data from selected top-level table rows only', () => {
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'treemap',
+			protocols: adapterProtocols,
+			selectedProtocols: ['Hyperliquid', 'dYdX']
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX'])
+		expect(presentation.data[0].value).toBe(70)
+		expect(presentation.data[1].value).toBe(30)
+	})
+
+	it('does not fall back to child-only breakdown names for latest-value charts', () => {
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			protocols: [makeProtocolRow('Hyperliquid', 70), makeProtocolRow('dYdX', 30), makeProtocolRow('GMX', 10)],
+			selectedProtocols: []
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data).toEqual([])
+	})
+
+	it('builds hbar data from selected protocols and groups overflow into Others', () => {
+		const manyProtocols = Array.from({ length: 11 }, (_, index) =>
+			makeProtocolRow(`Protocol ${index + 1}`, 110 - index * 10)
+		)
+
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			protocols: manyProtocols,
+			selectedProtocols: manyProtocols.map((protocol) => protocol.name)
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.at(-1)?.name).toBe('Others')
+		expect(presentation.data.at(-1)?.value).toBe(30)
+	})
+
+	it('uses the selected top-level latest-value protocols directly', () => {
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			protocols: adapterProtocols,
+			selectedProtocols: ['Hyperliquid', 'dYdX', 'GMX']
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX', 'GMX'])
+		expect(presentation.data[0].value).toBe(70)
+		expect(presentation.data[1].value).toBe(30)
+		expect(presentation.data[2].value).toBe(10)
+	})
+})
+
+describe('mergeSingleDimensionChartDataset', () => {
+	it('adds bribes and token tax data into the base series', () => {
+		expect(
+			mergeSingleDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Fees'],
+					source: [
+						{ timestamp: toMs(2024, 1, 1), Fees: 10 },
+						{ timestamp: toMs(2024, 1, 2), Fees: 20 }
+					]
+				},
+				extraCharts: [
+					[
+						[Math.floor(toMs(2024, 1, 1) / 1e3), 1],
+						[Math.floor(toMs(2024, 1, 2) / 1e3), 2]
+					],
+					[
+						[Math.floor(toMs(2024, 1, 1) / 1e3), 3],
+						[Math.floor(toMs(2024, 1, 2) / 1e3), 4]
+					]
+				]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Fees: 14 },
+			{ timestamp: toMs(2024, 1, 2), Fees: 26 }
+		])
+	})
+})
+
+describe('mergeBreakdownCharts', () => {
+	it('adds extra protocol values by timestamp and protocol name', () => {
+		expect(
+			mergeBreakdownCharts({
+				chart: [
+					[1, { A: 10, B: 20 }],
+					[2, { A: 30 }]
+				],
+				extraCharts: [
+					[
+						[1, { A: 1, C: 2 }],
+						[2, { B: 3 }]
+					],
+					[[2, { A: 4 }]]
+				]
+			})
+		).toEqual([
+			[1, { A: 11, B: 20, C: 2 }],
+			[2, { A: 34, B: 3 }]
+		])
+	})
+})
+
+describe('mergeNamedDimensionChartDataset', () => {
+	it('adds extra chain values into the matching named dimensions', () => {
+		expect(
+			mergeNamedDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Ethereum', 'Solana'],
+					source: [
+						{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+						{ timestamp: toMs(2024, 1, 2), Ethereum: 30, Solana: 40 }
+					]
+				},
+				extraCharts: [
+					[
+						[Math.floor(toMs(2024, 1, 1) / 1e3), { ethereum: 1, solana: 2 }],
+						[Math.floor(toMs(2024, 1, 2) / 1e3), { Ethereum: 3 }]
+					],
+					[[Math.floor(toMs(2024, 1, 2) / 1e3), { Solana: 4 }]]
+				]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 33, Solana: 44 }
+		])
+	})
+})

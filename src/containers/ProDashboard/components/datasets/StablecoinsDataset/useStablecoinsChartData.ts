@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/utils'
+import { StreamDoneContext } from '~/containers/ProDashboard/queries'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -25,12 +26,14 @@ interface UseStablecoinsChartDataResult {
 }
 
 export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataResult {
+	const streamDone = useContext(StreamDoneContext)
 	const {
 		data: rawData,
 		isLoading,
 		error
 	} = useQuery({
 		queryKey: ['pro-dashboard', 'stablecoins-chart-data', chain],
+		enabled: streamDone,
 		queryFn: async () => {
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
 				fetchStablecoinAssetsApi(),
@@ -187,7 +190,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			tokenInflowNames: chartData.tokenInflowNames || [],
 			peggedAssetNames: rawData?.peggedAssetNames || [],
 			totalMcapCurrent,
-			isLoading,
+			isLoading: isLoading || (!streamDone && !rawData),
 			error
 		}),
 		[
@@ -198,9 +201,10 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			chartData.tokenInflowNames,
 			chainsCirculatingValues,
 			dataWithExtraPeggedAndDominanceByDay,
-			rawData?.peggedAssetNames,
 			totalMcapCurrent,
 			isLoading,
+			streamDone,
+			rawData,
 			error
 		]
 	)

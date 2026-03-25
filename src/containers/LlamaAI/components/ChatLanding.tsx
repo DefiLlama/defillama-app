@@ -54,7 +54,7 @@ export function ChatLanding({
 	const [hasSeenWelcome, markWelcomeSeen] = useLlamaAIWelcome(hasActiveSubscription)
 
 	return (
-		<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5 overflow-hidden">
+		<div className="llamaai-chat-width mx-auto flex h-full w-full flex-col gap-2.5 overflow-hidden">
 			<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5 lg:mt-[100px] lg:flex-none lg:justify-start">
 				<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 				<h1 className="text-center text-2xl font-semibold">{title}</h1>

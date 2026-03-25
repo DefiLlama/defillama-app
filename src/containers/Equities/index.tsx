@@ -4,12 +4,10 @@ import { startTransition, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { useIsClient } from '~/hooks/useIsClient'
 import defs from '~/public/equities-definitions.json'
 import { abbreviateNumber } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { IEquitiesListCompanyRow, IEquitiesListPageProps } from './types'
-import { formatEquitiesDateTime } from './utils'
 
 const columnHelper = createColumnHelper<IEquitiesListCompanyRow>()
 
@@ -81,12 +79,6 @@ const columns = [
 			)
 		},
 		meta: { align: 'end', headerHelperText: defs.priceChangePercentage1m.description }
-	}),
-	columnHelper.accessor('volume', {
-		header: defs.volume.label,
-		size: 120,
-		cell: ({ getValue }) => abbreviateNumber(getValue(), 2),
-		meta: { align: 'end', headerHelperText: defs.volume.description }
 	}),
 	columnHelper.accessor('marketCap', {
 		header: defs.marketCap.label,
@@ -239,15 +231,6 @@ function buildPresetVisibility(preset: EquitiesPreset): VisibilityState {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-
-function LastUpdated({ value }: { value: string }) {
-	const isClient = useIsClient()
-	return (
-		<p className="shrink-0 text-right text-xs text-(--text-disabled)" suppressHydrationWarning>
-			Last updated: {isClient ? formatEquitiesDateTime(value) : value}
-		</p>
-	)
-}
 
 export function EquitiesOverview({ companies }: IEquitiesListPageProps) {
 	const router = useRouter()

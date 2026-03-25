@@ -1,5 +1,4 @@
 import type { MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
-import { equityIconUrl } from '~/utils/icons'
 import {
 	fetchEquitiesCompanies,
 	fetchEquitiesFilings,

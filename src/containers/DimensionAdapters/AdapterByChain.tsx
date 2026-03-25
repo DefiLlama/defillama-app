@@ -65,6 +65,7 @@ const SUPPORTED_OLD_VIEWS: TPageType[] = [
 	'DEX Aggregator Volume',
 	'Bridge Aggregator Volume'
 ]
+const FEES_CHART_PAGE_TYPES: TPageType[] = ['Fees', 'Revenue', 'Holders Revenue']
 
 const defaultSortingByType: Partial<Record<TPageType, SortingState>> & { default: SortingState } = {
 	'P/F': [{ desc: true, id: 'pfOrPs' }],
@@ -316,6 +317,7 @@ export function AdapterByChain(props: IProps) {
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
+	const showChartPanel = props.adapterType !== 'fees' || FEES_CHART_PAGE_TYPES.includes(props.type)
 
 	return (
 		<>
@@ -328,7 +330,7 @@ export function AdapterByChain(props: IProps) {
 					entityName={props.type}
 				/>
 			) : null}
-			{props.adapterType !== 'fees' ? (
+			{showChartPanel ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' ? (
@@ -430,6 +432,7 @@ export function AdapterByChain(props: IProps) {
 						chain={props.chain}
 						chartName={props.type}
 						dataType={props.dataType}
+						protocols={protocols}
 					/>
 				</div>
 			) : null}

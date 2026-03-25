@@ -1,7 +1,6 @@
-import { lazy, Suspense, useMemo, type ReactElement } from 'react'
+import { lazy, Suspense, useContext, useMemo, type ReactElement } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
@@ -11,8 +10,9 @@ import { download } from '~/utils/download'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod } from '../queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '../queries'
 import type { BorrowedChartConfig } from '../types'
+import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -35,7 +35,12 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
-	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocol, true)
+	const streamDone = useContext(StreamDoneContext)
+	const {
+		data: addlData,
+		historicalChainTvls,
+		isLoading
+	} = useFetchProtocolV1AddlChartsData(protocol, true, undefined, streamDone)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
@@ -134,10 +139,10 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const imageTitle = `${protocolName} - ${chartTypeLabel}`
 	const imageFilename = `${protocol.toLowerCase().replace(/\s+/g, '-')}-${chartType}`
 
-	if (isLoading) {
+	if (isLoading || !streamDone) {
 		return (
 			<div className="flex h-full min-h-[360px] items-center justify-center">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -149,7 +154,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>
@@ -173,7 +178,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>
@@ -197,7 +202,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>
@@ -213,7 +218,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>

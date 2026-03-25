@@ -14,8 +14,10 @@ import {
 	type VisibilityState,
 	type Table
 } from '@tanstack/react-table'
+import { useContext } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
+import { StreamDoneContext } from '../../../queries'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import type { NormalizedRow } from '../types'
@@ -110,11 +112,13 @@ export function useUnifiedTable({
 	const paramsKey = JSON.stringify({ chains: paramsChains })
 	const headersKey = sanitizedHeaders.join('|')
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data, isLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'unified-table', paramsKey, headersKey],
 		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
 		staleTime: Infinity,
-		retry: 1
+		retry: 1,
+		enabled: streamDone
 	})
 
 	useEffect(() => {
@@ -250,7 +254,7 @@ export function useUnifiedTable({
 
 	return {
 		table,
-		isLoading,
+		isLoading: isLoading || !streamDone,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
 		columns,

@@ -327,6 +327,23 @@ export function UnifiedChartTab({
 		return Array.from(set)
 	}, [chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
 
+	const chainHasGeckoIdByName = useMemo(() => {
+		const map = new Map<string, boolean>()
+		for (const chain of chains as any[]) {
+			map.set(chain.name, !!chain.gecko_id)
+		}
+		return map
+	}, [chains])
+
+	const protocolHasGeckoIdBySlug = useMemo(() => {
+		const map = new Map<string, boolean>()
+		for (const protocol of protocols as any[]) {
+			if (!protocol.slug) continue
+			map.set(protocol.slug, !!protocol.geckoId)
+		}
+		return map
+	}, [protocols])
+
 	const chartTypeOptions = useMemo(() => {
 		const chartTypesOrder = selectedChartTab === 'chain' ? chainChartTypes : protocolChartTypes
 		return chartTypesOrder.map((type) => ({
@@ -340,12 +357,12 @@ export function UnifiedChartTab({
 		if (!bulkChartType) return new Set<string>()
 		const getAvailableTypes = (item: ChartConfig) => {
 			if (item.chain) {
-				const geckoId = chains.find((c: any) => c.name === item.chain)?.gecko_id
-				return availableChainChartTypes(item.chain, { hasGeckoId: !!geckoId })
+				return availableChainChartTypes(item.chain, { hasGeckoId: chainHasGeckoIdByName.get(item.chain) ?? false })
 			}
 			if (item.protocol) {
-				const geckoId = protocols.find((p: any) => p.slug === item.protocol)?.geckoId
-				return availableProtocolChartTypes(item.protocol, { hasGeckoId: !!geckoId })
+				return availableProtocolChartTypes(item.protocol, {
+					hasGeckoId: protocolHasGeckoIdBySlug.get(item.protocol) ?? false
+				})
 			}
 			return []
 		}
@@ -353,15 +370,22 @@ export function UnifiedChartTab({
 		if (!firstItem) return new Set<string>()
 		const intersection = new Set(getAvailableTypes(firstItem))
 		for (const item of restItems) {
-			const available = getAvailableTypes(item)
+			const availableSet = new Set(getAvailableTypes(item))
 			for (const type of Array.from(intersection)) {
-				if (!available.includes(type)) {
+				if (!availableSet.has(type)) {
 					intersection.delete(type)
 				}
 			}
 		}
 		return intersection
-	}, [bulkChartType, composerItems, chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
+	}, [
+		bulkChartType,
+		composerItems,
+		chainHasGeckoIdByName,
+		protocolHasGeckoIdBySlug,
+		availableChainChartTypes,
+		availableProtocolChartTypes
+	])
 
 	const bulkChartTypeOptions = useMemo(() => {
 		if (!bulkChartType) return []
@@ -378,14 +402,16 @@ export function UnifiedChartTab({
 
 		if (selectedChartTab === 'chain') {
 			return chainOptions.filter((chain) => {
-				const geckoId = chains.find((c: any) => c.name === chain.value)?.gecko_id
-				const available = availableChainChartTypes(chain.value, { hasGeckoId: !!geckoId })
+				const available = availableChainChartTypes(chain.value, {
+					hasGeckoId: chainHasGeckoIdByName.get(chain.value) ?? false
+				})
 				return available.includes(selectedChartTypeSingle)
 			})
 		} else {
 			return protocolOptions.filter((protocol) => {
-				const geckoId = protocols.find((p: any) => p.slug === protocol.value)?.geckoId
-				const available = availableProtocolChartTypes(protocol.value, { hasGeckoId: !!geckoId })
+				const available = availableProtocolChartTypes(protocol.value, {
+					hasGeckoId: protocolHasGeckoIdBySlug.get(protocol.value) ?? false
+				})
 				return available.includes(selectedChartTypeSingle)
 			})
 		}
@@ -394,8 +420,8 @@ export function UnifiedChartTab({
 		selectedChartTab,
 		chainOptions,
 		protocolOptions,
-		chains,
-		protocols,
+		chainHasGeckoIdByName,
+		protocolHasGeckoIdBySlug,
 		availableChainChartTypes,
 		availableProtocolChartTypes
 	])
