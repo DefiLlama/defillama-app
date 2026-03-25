@@ -218,6 +218,7 @@ export default function Financials() {
 	const { data, isLoading } = useFinancialsData()
 	const onContentReady = useContentReady()
 
+
 	useEffect(() => {
 		if (data && !isLoading) {
 			onContentReady()

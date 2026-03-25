@@ -5,16 +5,6 @@ const DUNE_API_URL = 'https://api.dune.com/api/v1'
 const DUNE_API_KEY = 'YdjmcWGRqalcfxfIdyqCH0e7jIRHJzUL'
 
 const ALLOWED_QUERY_IDS = new Set([
-	'5441979',
-	'5519671',
-	'5747940',
-	'5695247',
-	'5582217',
-	'5524703',
-	'5449746',
-	'5305217',
-	'5305223',
-	'5449825',
 	'6370257'
 ])
 
