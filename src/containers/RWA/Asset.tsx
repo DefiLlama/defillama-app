@@ -203,12 +203,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 
 	const nativeYieldDataset = useMemo(() => {
 		if (!yieldChartRaw?.data) return null
-		const source = yieldChartRaw.data
-			.filter((item: any) => item.apyBase != null)
-			.map((item: any) => ({
-				timestamp: Math.floor(new Date(item.timestamp.split('T')[0]).getTime()),
-				'Native Yield': Number(item.apyBase.toFixed(2))
-			}))
+		const source: Array<{ timestamp: number; 'Native Yield': number }> = []
+		for (const item of yieldChartRaw.data) {
+			if (item.apyBase == null || !item.timestamp) continue
+			const ts = typeof item.timestamp === 'number' ? item.timestamp : new Date(String(item.timestamp).split('T')[0]).getTime()
+			if (!Number.isFinite(ts)) continue
+			source.push({ timestamp: Math.floor(ts), 'Native Yield': Number(Number(item.apyBase).toFixed(2)) })
+		}
 		return source.length > 0 ? { source, dimensions: ['timestamp', 'Native Yield'] } : null
 	}, [yieldChartRaw])
 

@@ -785,16 +785,30 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 	}
 }
 
+async function fetchYieldPoolData() {
+	const { fetchJson } = await import('~/utils/async')
+	const { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API } = await import('~/constants')
+
+	const [poolsRes, configRes, urlsRes] = await Promise.all([
+		fetchJson(YIELD_POOLS_API),
+		fetchJson(YIELD_CONFIG_API),
+		fetchJson(YIELD_URL_API)
+	])
+
+	return {
+		allPools: poolsRes?.data ?? [],
+		configProtocols: configRes?.protocols ?? {},
+		poolUrls: urlsRes ?? {}
+	}
+}
+
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartDataset, blockExplorersData]: [
-			IFetchedRWAProject,
-			IRWAAssetData['chartDataset'],
-			Awaited<ReturnType<typeof fetchBlockExplorers>>
-		] = await Promise.all([
+		const [data, chartDataset, blockExplorersData, yieldPoolData] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
 			fetchRWAAssetChartData(assetId),
-			fetchBlockExplorers().catch(() => [])
+			fetchBlockExplorers().catch(() => []),
+			fetchYieldPoolData().catch(() => null)
 		])
 
 		if (!data) {
@@ -894,19 +908,10 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 					}
 				}
 
-				// Lightweight fetch: only raw pool data + config protocol names.
-				// Avoids getYieldPageData() which calls 6 APIs and runs heavy processing
-				// (price fetching, LSD APY, raise valuations) that we don't need here.
-				const { fetchJson } = await import('~/utils/async')
-				const { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API } = await import('~/constants')
-				const [poolsRes, configRes, urlsRes] = await Promise.all([
-					fetchJson(YIELD_POOLS_API),
-					fetchJson(YIELD_CONFIG_API),
-					fetchJson(YIELD_URL_API)
-				])
-				const allPools: any[] = poolsRes?.data ?? []
-				const configProtocols: Record<string, { name?: string; category?: string }> = configRes?.protocols ?? {}
-				const poolUrls: Record<string, string> = urlsRes ?? {}
+				if (!yieldPoolData) throw new Error('Yield pool data unavailable')
+				const allPools: any[] = yieldPoolData.allPools
+				const configProtocols: Record<string, { name?: string; category?: string }> = yieldPoolData.configProtocols
+				const poolUrls: Record<string, string> = yieldPoolData.poolUrls
 
 				const matchedPoolIds = new Set<string>()
 				const matchedPools: typeof allPools = []
@@ -920,7 +925,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 					if (hasContracts) {
 						const underlyingTokens = pool.underlyingTokens ?? []
 						if (underlyingTokens.length > 0) {
-							const chainAddrs = addressesByChain.get(pool.chain.toLowerCase())
+							const chainAddrs = pool.chain ? addressesByChain.get(pool.chain.toLowerCase()) : undefined
 							if (chainAddrs && underlyingTokens.some((t: string) => chainAddrs.has(t.toLowerCase()))) {
 								matchedPoolIds.add(pool.pool)
 								matchedPools.push({ ...pool, _matchStrategy: 1 })
@@ -1015,7 +1020,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 					chains: [pool.chain],
 					project: configProtocols[pool.project]?.name ?? pool.project,
 					projectslug: pool.project,
-					url: poolUrls[pool.pool] ?? ''
+					url: poolUrls[pool.pool] || null
 				}))
 
 				if (yieldPools.length === 0) {
