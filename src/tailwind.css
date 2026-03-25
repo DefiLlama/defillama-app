@@ -36,6 +36,15 @@
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
 
+	@keyframes marquee {
+		from {
+			transform: translateX(0);
+		}
+		to {
+			transform: translateX(-50%);
+		}
+	}
+
 	@keyframes dot1 {
 		0%,
 		100% {
