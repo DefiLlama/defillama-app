@@ -18,7 +18,6 @@ import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAiBalance } from '~/containers/Subscribtion/useTopup'
-import { useMedia } from '~/hooks/useMedia'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
@@ -130,7 +129,6 @@ export function AgenticSidebar({
 	hasCustomInstructions,
 	onBulkDelete
 }: AgenticSidebarProps) {
-	const isMobile = useMedia('(max-width: 1023px)')
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -269,23 +267,22 @@ export function AgenticSidebar({
 						<div />
 					)}
 					<div className="flex items-center gap-2">
-						{!isMobile ? (
-							<Tooltip
-								content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-								render={
-									<button
-										onClick={toggleFullscreen}
-										data-umami-event="llamaai-fullscreen-toggle"
-										data-umami-event-action={isFullscreen ? 'exit' : 'enter'}
-										data-umami-event-source="sidebar_header"
-									/>
-								}
-								className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-							>
-								<Icon name="expand" height={16} width={16} />
-								<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
-							</Tooltip>
-						) : null}
+						<Tooltip
+							content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+							render={
+								<button
+									onClick={toggleFullscreen}
+									data-umami-event="llamaai-fullscreen-toggle"
+									data-umami-event-action={isFullscreen ? 'exit' : 'enter'}
+									data-umami-event-source="sidebar_header"
+								/>
+							}
+							className="hidden h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:flex"
+						>
+							<Icon name="expand" height={16} width={16} />
+							<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+						</Tooltip>
+
 						<Tooltip
 							content="Close Chat History"
 							render={
