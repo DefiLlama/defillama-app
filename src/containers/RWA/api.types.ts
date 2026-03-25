@@ -196,7 +196,7 @@ export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind:
 export type RWAOverviewBreakdownRequest =
 	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
 	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
-	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
+	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: true }
 	| { breakdown: 'assetGroup'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
@@ -211,14 +211,8 @@ export type IRWACategoriesOverviewRow = {
 	assetIssuers: number
 }
 
-/** Flat row shape for the Platforms overview table (merged from segmented stats). */
-export type IRWAPlatformsOverviewRow = {
-	platform: string
-	onChainMcap: number
-	activeMcap: number
-	defiActiveTvl: number
-	assetCount: number
-}
+/** Segmented row shape for the Platforms overview table. */
+export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
 
 export type IRWAAssetGroupsOverviewRow = {
 	assetGroup: string

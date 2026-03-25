@@ -22,10 +22,11 @@ function parseBooleanFlag(value: string | string[] | undefined): boolean | null 
 	if (value == null) return false
 	if (Array.isArray(value)) return null
 	if (value === 'true') return true
+	if (value === 'false') return false
 	return null
 }
 
-function parseRequest(req: NextApiRequest): RWAOverviewBreakdownRequest | null {
+export function parseOverviewBreakdownRequest(req: Pick<NextApiRequest, 'query'>): RWAOverviewBreakdownRequest | null {
 	const breakdown = req.query.breakdown
 	const key = parseChartMetricKey(req.query.key)
 	if (Array.isArray(breakdown) || breakdown == null || key == null) return null
@@ -44,8 +45,8 @@ function parseRequest(req: NextApiRequest): RWAOverviewBreakdownRequest | null {
 	}
 
 	if (breakdown === 'platform') {
-		if (!includeStablecoin || !includeGovernance) return null
-		return { breakdown, key, includeStablecoin: true, includeGovernance: true }
+		if (!includeGovernance) return null
+		return { breakdown, key, includeStablecoin, includeGovernance: true }
 	}
 
 	if (breakdown === 'assetGroup') {
@@ -61,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
 
-	const request = parseRequest(req)
+	const request = parseOverviewBreakdownRequest(req)
 	if (request == null) {
 		return res.status(400).json({ error: 'Invalid query parameters' })
 	}
