@@ -71,7 +71,7 @@ export default function SessionPage() {
 	}
 
 	return (
-		<Layout {...AI_LAYOUT_SEO}>
+		<Layout {...AI_LAYOUT_SEO} hideDesktopSearchLlamaAiButton>
 			<AgenticChat initialSessionId={resolvedSessionId} key={`session-${resolvedSessionId}`} />
 		</Layout>
 	)

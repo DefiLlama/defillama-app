@@ -21,6 +21,7 @@ import {
 } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
+import { LlamaAIChromeContext, useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
 import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
 import {
@@ -62,6 +63,7 @@ import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } fr
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -622,7 +624,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		isUpdatingTitle,
 		bulkDeleteSessions
 	} = useSessionMutations()
-	const { sidebarVisible, toggleSidebar, hideSidebar } = useSidebarVisibility()
+	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const { notify, requestPermission } = useStreamNotification()
 	const alertsModalStore = Ariakit.useDialogStore()
 	const settingsModalStore = Ariakit.useDialogStore()
@@ -857,6 +859,16 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setShouldAnimateSidebar(true)
 		toggleSidebar()
 	}, [toggleSidebar])
+
+	const chromeValue = useMemo(
+		() => ({
+			toggleSidebar: handleSidebarToggle,
+			hideSidebar,
+			toggleFullscreen,
+			isFullscreen
+		}),
+		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen]
+	)
 
 	// Append one message to the live conversation state.
 	const appendMessage = useCallback((message: Message) => {
@@ -1715,12 +1727,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}
 
 	return (
-		<div
-			className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:bottom-0 max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"
-			style={viewportHeight ? { height: `${viewportHeight - 68}px` } : undefined}
-		>
-			{!readOnly ? (
-				sidebarVisible ? (
+		<LlamaAIChromeContext.Provider value={chromeValue}>
+			<div
+				className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:bottom-0 max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"
+				style={viewportHeight ? { height: `${viewportHeight - 68}px` } : undefined}
+			>
+				{!readOnly && sidebarVisible ? (
 					<>
 						<AgenticSidebar
 							sessions={sessions}
@@ -1732,7 +1744,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								void handleSessionSelect(nextSessionId)
 							}}
 							onNewChat={handleNewChat}
-							handleSidebarToggle={handleSidebarToggle}
 							onDelete={deleteSession}
 							onUpdateTitle={updateSessionTitle}
 							isDeletingSession={isDeletingSession}
@@ -1744,205 +1755,213 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						/>
 						<div className="flex min-h-11 lg:hidden" />
 					</>
-				) : (
-					<ChatControls
-						handleSidebarToggle={handleSidebarToggle}
-						handleNewChat={handleNewChat}
-						onOpenSettings={settingsModalStore.show}
-						hasCustomInstructions={customInstructions.trim().length > 0}
-					/>
-				)
-			) : null}
+				) : null}
 
-			<div
-				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
-			>
-				{restoringSessionId && !hasMessages ? (
-					<LoadingConversationState />
-				) : !hasMessages && visibleError ? (
-					<EmptyConversationErrorState
-						message={visibleError}
-						onRetry={lastFailedRequest ? handleRetryLastFailedPrompt : undefined}
-					/>
-				) : shouldAnimateLandingTransition ? (
-					<div className="relative flex flex-1 overflow-hidden">
-						<div
-							aria-hidden="true"
-							className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
-						>
-							<ChatLanding
-								readOnly={readOnly}
-								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-								handleSubmit={handleSubmit}
-								promptInputRef={promptInputRef}
-								handleStopRequest={handleStopRequest}
-								isStreaming={isStreaming}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={researchUsage}
-								onOpenAlerts={alertsModalStore.show}
-								quotedText={quotedText}
-								onClearQuotedText={() => setQuotedText(null)}
-							/>
+				<div
+					className={`llamaai-chat-panel relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+				>
+					{!readOnly && !sidebarVisible ? (
+						<ChatControls
+							handleNewChat={handleNewChat}
+							onOpenSettings={settingsModalStore.show}
+							hasCustomInstructions={customInstructions.trim().length > 0}
+						/>
+					) : null}
+					{restoringSessionId && !hasMessages ? (
+						<LoadingConversationState />
+					) : !hasMessages && visibleError ? (
+						<EmptyConversationErrorState
+							message={visibleError}
+							onRetry={lastFailedRequest ? handleRetryLastFailedPrompt : undefined}
+						/>
+					) : shouldAnimateLandingTransition ? (
+						<div className="relative flex flex-1 overflow-hidden">
+							<div
+								aria-hidden="true"
+								className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
+							>
+								<ChatLanding
+									readOnly={readOnly}
+									title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+									isResearchMode={isResearchMode}
+									setIsResearchMode={setIsResearchMode}
+									researchUsage={researchUsage}
+									onOpenAlerts={alertsModalStore.show}
+									quotedText={quotedText}
+									onClearQuotedText={() => setQuotedText(null)}
+								/>
+							</div>
+							<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
+								<ConversationView
+									readOnly={readOnly}
+									messages={effectiveMessages}
+									sessionId={effectiveSessionId}
+									isLlama={isLlama}
+									isStreaming={isStreaming}
+									activeToolCalls={activeToolCalls}
+									spawnProgress={spawnProgress}
+									spawnStartTime={spawnStartTime}
+									executionStartedAt={executionStartedAt}
+									spawnIsResearchMode={spawnIsResearchMode}
+									streamingThinking={streamingThinking}
+									streamingDraft={streamingDraft}
+									isCompacting={isCompacting}
+									paginationState={paginationState}
+									paginationError={paginationError}
+									recovery={recovery}
+									error={visibleError}
+									lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
+									onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+									scrollContainerRef={scrollContainerRef}
+									messagesEndRef={messagesEndRef}
+									promptInputRef={promptInputRef}
+									showScrollToBottom={showScrollToBottom}
+									scrollToBottom={scrollToBottom}
+									handleSubmit={handleSubmit}
+									handleStopRequest={handleStopRequest}
+									handleActionClick={handleActionClick}
+									isResearchMode={isResearchMode}
+									setIsResearchMode={setIsResearchMode}
+									researchUsage={researchUsage}
+									animateActiveExchange={false}
+									onOpenAlerts={alertsModalStore.show}
+									quotedText={quotedText}
+									onClearQuotedText={() => setQuotedText(null)}
+									onTableFullscreenOpen={hideSidebar}
+								/>
+							</div>
 						</div>
-						<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
-							<ConversationView
-								readOnly={readOnly}
-								messages={effectiveMessages}
-								sessionId={effectiveSessionId}
-								isLlama={isLlama}
-								isStreaming={isStreaming}
-								activeToolCalls={activeToolCalls}
-								spawnProgress={spawnProgress}
-								spawnStartTime={spawnStartTime}
-								executionStartedAt={executionStartedAt}
-								spawnIsResearchMode={spawnIsResearchMode}
-								streamingThinking={streamingThinking}
-								streamingDraft={streamingDraft}
-								isCompacting={isCompacting}
-								paginationState={paginationState}
-								paginationError={paginationError}
-								recovery={recovery}
-								error={visibleError}
-								lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
-								onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
-								scrollContainerRef={scrollContainerRef}
-								messagesEndRef={messagesEndRef}
-								promptInputRef={promptInputRef}
-								showScrollToBottom={showScrollToBottom}
-								scrollToBottom={scrollToBottom}
-								handleSubmit={handleSubmit}
-								handleStopRequest={handleStopRequest}
-								handleActionClick={handleActionClick}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={researchUsage}
-								animateActiveExchange={false}
-								onOpenAlerts={alertsModalStore.show}
-								quotedText={quotedText}
-								onClearQuotedText={() => setQuotedText(null)}
-								onTableFullscreenOpen={hideSidebar}
-							/>
-						</div>
-					</div>
-				) : !hasMessages && !visibleError ? (
-					<ChatLanding
-						readOnly={readOnly}
-						title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={researchUsage}
-						onOpenAlerts={alertsModalStore.show}
-						quotedText={quotedText}
-						onClearQuotedText={() => setQuotedText(null)}
+					) : !hasMessages && !visibleError ? (
+						<ChatLanding
+							readOnly={readOnly}
+							title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+							handleSubmit={handleSubmit}
+							promptInputRef={promptInputRef}
+							handleStopRequest={handleStopRequest}
+							isStreaming={isStreaming}
+							isResearchMode={isResearchMode}
+							setIsResearchMode={setIsResearchMode}
+							researchUsage={researchUsage}
+							onOpenAlerts={alertsModalStore.show}
+							quotedText={quotedText}
+							onClearQuotedText={() => setQuotedText(null)}
+						/>
+					) : (
+						<ConversationView
+							readOnly={readOnly}
+							messages={effectiveMessages}
+							sessionId={effectiveSessionId}
+							isLlama={isLlama}
+							isStreaming={isStreaming}
+							activeToolCalls={activeToolCalls}
+							spawnProgress={spawnProgress}
+							spawnStartTime={spawnStartTime}
+							executionStartedAt={executionStartedAt}
+							streamingThinking={streamingThinking}
+							spawnIsResearchMode={spawnIsResearchMode}
+							streamingDraft={streamingDraft}
+							isCompacting={isCompacting}
+							paginationState={paginationState}
+							paginationError={paginationError}
+							recovery={recovery}
+							error={visibleError}
+							lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
+							onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+							scrollContainerRef={scrollContainerRef}
+							messagesEndRef={messagesEndRef}
+							promptInputRef={promptInputRef}
+							showScrollToBottom={showScrollToBottom}
+							scrollToBottom={scrollToBottom}
+							handleSubmit={handleSubmit}
+							handleStopRequest={handleStopRequest}
+							handleActionClick={handleActionClick}
+							isResearchMode={isResearchMode}
+							setIsResearchMode={setIsResearchMode}
+							researchUsage={researchUsage}
+							animateActiveExchange={shouldAnimateConversationTransition}
+							onOpenAlerts={alertsModalStore.show}
+							quotedText={quotedText}
+							onClearQuotedText={() => setQuotedText(null)}
+							onTableFullscreenOpen={hideSidebar}
+						/>
+					)}
+				</div>
+				{!readOnly ? (
+					<TextSelectionPopup
+						onSelect={(text) => {
+							setQuotedText(text)
+							requestAnimationFrame(() => {
+								promptInputRef.current?.focus()
+							})
+						}}
 					/>
-				) : (
-					<ConversationView
-						readOnly={readOnly}
-						messages={effectiveMessages}
-						sessionId={effectiveSessionId}
-						isLlama={isLlama}
-						isStreaming={isStreaming}
-						activeToolCalls={activeToolCalls}
-						spawnProgress={spawnProgress}
-						spawnStartTime={spawnStartTime}
-						executionStartedAt={executionStartedAt}
-						streamingThinking={streamingThinking}
-						spawnIsResearchMode={spawnIsResearchMode}
-						streamingDraft={streamingDraft}
-						isCompacting={isCompacting}
-						paginationState={paginationState}
-						paginationError={paginationError}
-						recovery={recovery}
-						error={visibleError}
-						lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
-						onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
-						scrollContainerRef={scrollContainerRef}
-						messagesEndRef={messagesEndRef}
-						promptInputRef={promptInputRef}
-						showScrollToBottom={showScrollToBottom}
-						scrollToBottom={scrollToBottom}
-						handleSubmit={handleSubmit}
-						handleStopRequest={handleStopRequest}
-						handleActionClick={handleActionClick}
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={researchUsage}
-						animateActiveExchange={shouldAnimateConversationTransition}
-						onOpenAlerts={alertsModalStore.show}
-						quotedText={quotedText}
-						onClearQuotedText={() => setQuotedText(null)}
-						onTableFullscreenOpen={hideSidebar}
+				) : null}
+				{!readOnly && rateLimitDetails ? (
+					<ResearchLimitModal
+						dialogStore={researchModalStore}
+						period={rateLimitDetails.period}
+						limit={rateLimitDetails.limit}
+						resetTime={rateLimitDetails.resetTime}
 					/>
-				)}
+				) : null}
+				{!readOnly ? (
+					<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
+				) : null}
+				{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
+				{shouldRenderSubscribeModal ? (
+					<Suspense fallback={<></>}>
+						<SubscribeProModal dialogStore={subscribeModalStore} />
+					</Suspense>
+				) : null}
+				{!readOnly ? (
+					<SettingsModal
+						dialogStore={settingsModalStore}
+						customInstructions={customInstructions}
+						onCustomInstructionsChange={setCustomInstructions}
+						enableMemory={enableMemory}
+						onEnableMemoryChange={setEnableMemory}
+						hackerMode={hackerMode}
+						onHackerModeChange={setHackerMode}
+						fetchFn={authorizedFetchStrict}
+					/>
+				) : null}
 			</div>
-			{!readOnly ? (
-				<TextSelectionPopup
-					onSelect={(text) => {
-						setQuotedText(text)
-						requestAnimationFrame(() => {
-							promptInputRef.current?.focus()
-						})
-					}}
-				/>
-			) : null}
-			{!readOnly && rateLimitDetails ? (
-				<ResearchLimitModal
-					dialogStore={researchModalStore}
-					period={rateLimitDetails.period}
-					limit={rateLimitDetails.limit}
-					resetTime={rateLimitDetails.resetTime}
-				/>
-			) : null}
-			{!readOnly ? (
-				<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
-			) : null}
-			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
-			{shouldRenderSubscribeModal ? (
-				<Suspense fallback={<></>}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
-			) : null}
-			{!readOnly ? (
-				<SettingsModal
-					dialogStore={settingsModalStore}
-					customInstructions={customInstructions}
-					onCustomInstructionsChange={setCustomInstructions}
-					enableMemory={enableMemory}
-					onEnableMemoryChange={setEnableMemory}
-					hackerMode={hackerMode}
-					onHackerModeChange={setHackerMode}
-					fetchFn={authorizedFetchStrict}
-				/>
-			) : null}
-		</div>
+		</LlamaAIChromeContext.Provider>
 	)
 }
 
 const ChatControls = memo(function ChatControls({
-	handleSidebarToggle,
 	handleNewChat,
 	onOpenSettings,
 	hasCustomInstructions
 }: {
-	handleSidebarToggle: () => void
 	handleNewChat: () => void
 	onOpenSettings: () => void
 	hasCustomInstructions: boolean
 }) {
+	const isMobile = useMedia('(max-width: 1023px)')
+	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
+
 	return (
-		<>
+		<div className="llamaai-chat-controls">
 			<nav
 				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
 				aria-label="Chat controls"
 			>
 				<Tooltip
 					content="Open Chat History"
-					render={<button onClick={handleSidebarToggle} />}
+					render={
+						<button
+							onClick={toggleSidebar}
+							data-umami-event="llamaai-sidebar-toggle"
+							data-umami-event-action="open"
+							data-umami-event-source="collapsed_controls"
+						/>
+					}
 					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="panel-left-open" height={16} width={16} />
@@ -1956,6 +1975,23 @@ const ChatControls = memo(function ChatControls({
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span className="sr-only">New Chat</span>
 				</Tooltip>
+				{!isMobile ? (
+					<Tooltip
+						content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+						render={
+							<button
+								onClick={toggleFullscreen}
+								data-umami-event="llamaai-fullscreen-toggle"
+								data-umami-event-action={isFullscreen ? 'exit' : 'enter'}
+								data-umami-event-source="collapsed_controls"
+							/>
+						}
+						className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+					>
+						<Icon name="expand" height={16} width={16} />
+						<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+					</Tooltip>
+				) : null}
 			</nav>
 			<Tooltip
 				content="Settings"
@@ -1970,6 +2006,6 @@ const ChatControls = memo(function ChatControls({
 				</div>
 				<span className="sr-only">Settings</span>
 			</Tooltip>
-		</>
+		</div>
 	)
 })

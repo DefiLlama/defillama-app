@@ -7,6 +7,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
@@ -23,7 +24,6 @@ interface AgenticSessionItemProps {
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
-	handleSidebarToggle: () => void
 	style: React.CSSProperties
 	selectMode?: boolean
 	isSelected?: boolean
@@ -39,13 +39,13 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	isRestoring,
 	isDeleting,
 	isUpdatingTitle,
-	handleSidebarToggle,
 	style,
 	selectMode,
 	isSelected,
 	onToggleSelect
 }: AgenticSessionItemProps) {
 	const { authorizedFetch } = useAuthContext()
+	const { hideSidebar } = useLlamaAIChrome()
 	const queryClient = useQueryClient()
 
 	const [isEditing, setIsEditing] = useState(false)
@@ -78,7 +78,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		trackUmamiEvent('llamaai-session-click')
 		void Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 		if (document.documentElement.clientWidth < 1024) {
-			handleSidebarToggle()
+			hideSidebar()
 		}
 	}
 

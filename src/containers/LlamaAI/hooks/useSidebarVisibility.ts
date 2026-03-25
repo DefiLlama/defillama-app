@@ -1,48 +1,70 @@
-import { useCallback, useState } from 'react'
-import { getStorageItem, setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
+import { useCallback, useEffect, useState } from 'react'
 import { useMedia } from '~/hooks/useMedia'
-
-const SIDEBAR_STORAGE_KEY = 'llamaai-sidebar-hidden'
+import {
+	clearLlamaAIChromeAttributes,
+	getLlamaAIBooleanCookie,
+	LLAMAAI_FULLSCREEN_COOKIE_NAME,
+	LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME,
+	setLlamaAICookie,
+	syncLlamaAIChromeAttributes
+} from '~/utils/cookies'
 
 export function useSidebarVisibility() {
-	const isMobile = useMedia('(max-width: 640px)')
-
-	const sidebarHiddenDesktop = useStorageItem(SIDEBAR_STORAGE_KEY, 'true')
-
-	const toggleSidebarDesktop = useCallback(() => {
-		// Use getStorageItem to read consistently, treat missing/null as default 'true' (sidebar hidden by default)
-		const currentValue = getStorageItem(SIDEBAR_STORAGE_KEY, 'true') ?? 'true'
-		const currentHidden = currentValue === 'true'
-		setStorageItem(SIDEBAR_STORAGE_KEY, String(!currentHidden))
-	}, [])
+	const isMobile = useMedia('(max-width: 1023px)')
+	const [sidebarHiddenDesktop, setSidebarHiddenDesktop] = useState(() => {
+		if (typeof document === 'undefined') return true
+		return getLlamaAIBooleanCookie(LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME)
+	})
+	const [isFullscreen, setIsFullscreen] = useState(() => {
+		if (typeof document === 'undefined') return false
+		return getLlamaAIBooleanCookie(LLAMAAI_FULLSCREEN_COOKIE_NAME)
+	})
 
 	// Mobile: uses local state (no persistence needed)
-	const [sidebarHiddenMobile, setSidebarHiddenMobile] = useState('true')
+	const [sidebarHiddenMobile, setSidebarHiddenMobile] = useState(true)
 
 	const toggleSidebarMobile = useCallback(() => {
-		setSidebarHiddenMobile((prev) => (prev === 'true' ? 'false' : 'true'))
+		setSidebarHiddenMobile((prev) => !prev)
 	}, [])
 
-	// Auto-hide sidebar on mobile when selecting a session
-	const hideOnMobile = useCallback(() => {
-		if (isMobile) {
-			setSidebarHiddenMobile('true')
-		}
-	}, [isMobile])
+	const toggleSidebarDesktop = useCallback(() => {
+		setSidebarHiddenDesktop((prev) => {
+			const next = !prev
+			setLlamaAICookie(LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME, next)
+			return next
+		})
+	}, [])
 
 	const hideSidebar = useCallback(() => {
 		if (isMobile) {
-			setSidebarHiddenMobile('true')
+			setSidebarHiddenMobile(true)
 		} else {
-			setStorageItem(SIDEBAR_STORAGE_KEY, 'true')
+			setSidebarHiddenDesktop(true)
+			setLlamaAICookie(LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME, true)
 		}
 	}, [isMobile])
 
+	const toggleFullscreen = useCallback(() => {
+		setIsFullscreen((prev) => {
+			const next = !prev
+			setLlamaAICookie(LLAMAAI_FULLSCREEN_COOKIE_NAME, next)
+			return next
+		})
+	}, [])
+
+	useEffect(() => {
+		syncLlamaAIChromeAttributes(isFullscreen, sidebarHiddenDesktop)
+	}, [isFullscreen, sidebarHiddenDesktop])
+
+	useEffect(() => {
+		return () => clearLlamaAIChromeAttributes()
+	}, [])
+
 	return {
-		sidebarVisible: isMobile ? sidebarHiddenMobile !== 'true' : sidebarHiddenDesktop !== 'true',
+		sidebarVisible: isMobile ? !sidebarHiddenMobile : !sidebarHiddenDesktop,
 		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebarDesktop,
-		hideOnMobile,
 		hideSidebar,
-		isMobile
+		isFullscreen,
+		toggleFullscreen
 	}
 }

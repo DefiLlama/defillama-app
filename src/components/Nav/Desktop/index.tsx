@@ -24,7 +24,7 @@ export function DesktopNav({
 	asPath: string
 }) {
 	return (
-		<span className="col-span-1 max-lg:hidden">
+		<span className="desktop-nav-shell col-span-1 max-lg:hidden">
 			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
 				<BasicLink href="/" className="mb-4 w-fit shrink-0">
 					<span className="sr-only">Navigate to DeFi Dashboard</span>
