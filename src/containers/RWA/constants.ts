@@ -124,7 +124,12 @@ export function getRWATimeSeriesChartState(mode: RWAOverviewMode, breakdown: str
 			return {
 				mode,
 				breakdown:
-					breakdown === 'assetClass' || breakdown === 'platform' || breakdown === 'category' ? breakdown : 'assetName'
+					breakdown === 'assetClass' ||
+					breakdown === 'platform' ||
+					breakdown === 'category' ||
+					breakdown === 'assetName'
+						? breakdown
+						: 'assetName'
 			}
 		default:
 			return assertNever(mode)

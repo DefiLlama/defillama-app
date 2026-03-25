@@ -52,11 +52,9 @@ function buildTickerGroupMapping(
 				weightedGroups = computeWeightedGroups(getRwaPlatforms(asset.parentPlatform))
 				break
 			case 'assetGroup': {
-				const assetGroup =
-					typeof asset.assetGroup === 'string' && asset.assetGroup.trim().length > 0
-						? asset.assetGroup
-						: UNKNOWN_ASSET_GROUP
-				weightedGroups = computeWeightedGroups([assetGroup])
+				const assetGroup = typeof asset.assetGroup === 'string' ? asset.assetGroup.trim() : ''
+				const assetGroupKey = assetGroup.length > 0 ? assetGroup : UNKNOWN_ASSET_GROUP
+				weightedGroups = computeWeightedGroups([assetGroupKey])
 				break
 			}
 			default:

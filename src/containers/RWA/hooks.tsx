@@ -640,7 +640,7 @@ export const useFilteredRwaAssets = ({
 			}
 
 			const assetType = asset.type || 'Unknown'
-			const assetGroup = typeof asset.assetGroup === 'string' ? asset.assetGroup : null
+			const assetGroup = typeof asset.assetGroup === 'string' ? asset.assetGroup : ''
 			const platformRaw = asset.parentPlatform as unknown
 			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
 			const normalizedPlatforms = toUniqueNonEmptyValues(
@@ -653,7 +653,7 @@ export const useFilteredRwaAssets = ({
 				(normalizedPlatforms.length > 0
 					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
 					: true) &&
-				(assetGroup ? selectedAssetGroupsSet.has(assetGroup) : true) &&
+				(selectedAssetGroupsSet.size > 0 ? assetGroup.length > 0 && selectedAssetGroupsSet.has(assetGroup) : true) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&

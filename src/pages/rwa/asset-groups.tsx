@@ -1,3 +1,4 @@
+import type { InferGetStaticPropsType } from 'next'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAAssetGroups } from '~/containers/RWA/AssetGroups'
 import { getRWAAssetGroupsOverview } from '~/containers/RWA/queries'
@@ -11,8 +12,10 @@ export const getStaticProps = withPerformanceLogging(`rwa/asset-groups`, async (
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	const { rows: assetGroups, initialChartDataset } = await getRWAAssetGroupsOverview()
+	const assetGroupNames =
+		rwaList.assetGroups.length > 0 ? rwaList.assetGroups : assetGroups.map((row) => row.assetGroup)
 
-	const assetGroupLinks = rwaList.assetGroups.map((assetGroup) => ({
+	const assetGroupLinks = assetGroupNames.map((assetGroup) => ({
 		label: assetGroup,
 		to: `/rwa/asset-group/${rwaSlug(assetGroup)}`
 	}))
@@ -29,7 +32,11 @@ export const getStaticProps = withPerformanceLogging(`rwa/asset-groups`, async (
 
 const pageName = ['RWA']
 
-export default function RWAAssetGroupsPage({ assetGroups, assetGroupLinks, initialChartDataset }) {
+export default function RWAAssetGroupsPage({
+	assetGroups,
+	assetGroupLinks,
+	initialChartDataset
+}: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="RWA Asset Groups - Real World Asset Analytics - DefiLlama"

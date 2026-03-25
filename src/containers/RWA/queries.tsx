@@ -294,8 +294,18 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualAssetGroupName: string | null = null
 		if (selectedAssetGroup) {
-			assert(params.rwaList.assetGroups, 'assetGroups not found in RWA list')
-			for (const assetGroup of params.rwaList.assetGroups) {
+			const assetGroupCandidates =
+				params.rwaList.assetGroups.length > 0
+					? params.rwaList.assetGroups
+					: Array.from(
+							new Set(
+								data
+									.map((item) => item.assetGroup)
+									.filter((assetGroup): assetGroup is string => typeof assetGroup === 'string' && assetGroup.length > 0)
+							)
+						)
+
+			for (const assetGroup of assetGroupCandidates) {
 				if (rwaSlug(assetGroup) === selectedAssetGroup) {
 					actualAssetGroupName = assetGroup
 					break
@@ -540,6 +550,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		const formattedAssetGroups = Array.from(assetGroups.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
+		const assetGroupNames = params.rwaList.assetGroups.length > 0 ? params.rwaList.assetGroups : formattedAssetGroups
 
 		const chainNavValues = params.rwaList.chains.map((chain) => ({
 			label: chain,
@@ -553,15 +564,10 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			label: platform,
 			to: `/rwa/platform/${rwaSlug(platform)}`
 		}))
-		const assetGroupNavValues = params.rwaList.assetGroups.map((assetGroup) => ({
+		const assetGroupNavValues = assetGroupNames.map((assetGroup) => ({
 			label: assetGroup,
 			to: `/rwa/asset-group/${rwaSlug(assetGroup)}`
 		}))
-
-		assert(chainNavValues?.length, 'chains not found in RWA list')
-		assert(categoryNavValues?.length, 'categories not found in RWA list')
-		assert(platformNavValues?.length, 'platforms not found in RWA list')
-		assert(assetGroupNavValues?.length, 'assetGroups not found in RWA list')
 
 		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
 		const isChainMode = !selectedCategory && !selectedPlatform && !selectedAssetGroup
@@ -627,14 +633,23 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				.map(([key]) => key),
 			selectedChain: actualChainName ?? 'All',
 			chainLinks:
-				selectedCategory || selectedPlatform || selectedAssetGroup
+				selectedCategory || selectedPlatform || selectedAssetGroup || chainNavValues.length === 0
 					? []
 					: [{ label: 'All', to: '/rwa' }, ...chainNavValues],
-			categoryLinks: selectedCategory ? [{ label: 'All', to: '/rwa/categories' }, ...categoryNavValues] : [],
+			categoryLinks:
+				selectedCategory && categoryNavValues.length > 0
+					? [{ label: 'All', to: '/rwa/categories' }, ...categoryNavValues]
+					: [],
 			selectedCategory: actualCategoryName ?? 'All',
-			platformLinks: selectedPlatform ? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues] : [],
+			platformLinks:
+				selectedPlatform && platformNavValues.length > 0
+					? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues]
+					: [],
 			selectedPlatform: actualPlatformName ?? 'All',
-			assetGroupLinks: selectedAssetGroup ? [{ label: 'All', to: '/rwa/asset-groups' }, ...assetGroupNavValues] : [],
+			assetGroupLinks:
+				selectedAssetGroup && assetGroupNavValues.length > 0
+					? [{ label: 'All', to: '/rwa/asset-groups' }, ...assetGroupNavValues]
+					: [],
 			selectedAssetGroup: actualAssetGroupName ?? 'All',
 			totals: {
 				onChainMcap: totalOnChainMcap,
