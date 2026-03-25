@@ -8,7 +8,7 @@ import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
 import { useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
-import { toFilterPool } from './utils'
+import { extractPoolTokens, toFilterPool } from './utils'
 
 const ALL_YIELD_COLUMNS = [
 	'show7dBaseApy',
@@ -130,11 +130,7 @@ const YieldPage = ({
 
 			if (toFilter) {
 				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
-				const poolTokens =
-					curr.symbol
-						?.split('(')[0]
-						.split('-')
-						.map((s) => s.toLowerCase().trim()) || []
+				const poolTokens = curr.symbol ? extractPoolTokens(curr.symbol) : []
 				let pegInfo = null
 				let maxAbs = -1
 				for (const t of poolTokens) {

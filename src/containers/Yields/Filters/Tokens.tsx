@@ -10,6 +10,7 @@ interface IFiltersByTokensProps {
 	tokensList: Array<string>
 	selectedTokens: Array<string>
 	nestedMenu?: boolean
+	autoApplyAttributes?: boolean
 }
 
 function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, string | string[] | undefined> {
@@ -42,7 +43,7 @@ function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, 
 	}
 }
 
-export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nestedMenu }: IFiltersByTokensProps) {
+export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nestedMenu, autoApplyAttributes = true }: IFiltersByTokensProps) {
 	const router = useRouter()
 	const { token, attribute } = router.query
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedTokens))
@@ -67,23 +68,25 @@ export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nested
 
 		// Mirror the desktop include behaviour: auto-apply single_exposure + no_il when a token
 		// filter is active, clean them up when the filter is cleared.
-		if (
-			values.length > 0 &&
-			values.length < tokensList.length &&
-			(!currentAttributes.includes('no_il') || !currentAttributes.includes('single_exposure'))
-		) {
-			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
-		} else if (
-			values.length === tokensList.length &&
-			(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
-		) {
-			const filtered = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
-			updates.attribute = filtered.length > 0 ? filtered : undefined
-		} else if (
-			values.length === 0 &&
-			(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
-		) {
-			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+		if (autoApplyAttributes) {
+			if (
+				values.length > 0 &&
+				values.length < tokensList.length &&
+				(!currentAttributes.includes('no_il') || !currentAttributes.includes('single_exposure'))
+			) {
+				updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
+			} else if (
+				values.length === tokensList.length &&
+				(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
+			) {
+				const filtered = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+				updates.attribute = filtered.length > 0 ? filtered : undefined
+			} else if (
+				values.length === 0 &&
+				(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
+			) {
+				updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+			}
 		}
 
 		void pushShallowQuery(router, updates)

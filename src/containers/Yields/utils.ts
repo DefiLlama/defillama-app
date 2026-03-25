@@ -1,6 +1,14 @@
 import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
+export function extractPoolTokens(symbol: string): string[] {
+	return symbol
+		.split('(')[0]
+		.split('-')
+		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
+		.filter(Boolean)
+}
+
 interface IToFilterPool {
 	curr: YieldsData['props']['pools'][number]
 	selectedProjectsSet: Set<string>
@@ -38,10 +46,7 @@ export function toFilterPool({
 	usdPeggedSymbols,
 	tokenCategories = {}
 }: IToFilterPool) {
-	const tokensInPoolArray = curr.symbol
-		.split('(')[0]
-		.split('-')
-		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
+	const tokensInPoolArray = extractPoolTokens(curr.symbol)
 	const tokensInPoolSet = new Set<string>(tokensInPoolArray)
 
 	let toFilter = true
