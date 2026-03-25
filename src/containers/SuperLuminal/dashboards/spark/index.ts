@@ -7,7 +7,7 @@ const DistributionRewards = lazy(() => import('./DistributionRewards'))
 export const tabs: DashboardTabConfig[] = [
 	{ id: 'financials', label: 'Financials', component: Financials },
 	{ id: 'dashboard', label: 'Overview' },
-	{ id: 'distribution-rewards', label: 'Distribution Rewards', component: DistributionRewards, source: 'Dune' }
+	{ id: 'distribution-rewards', label: 'Distribution Rewards', component: DistributionRewards }
 ]
 
 export const header = lazy(() => import('./SparkHeader'))

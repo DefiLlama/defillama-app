@@ -1,129 +1,65 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { assignColors, fetchDuneQuery, pivotByDate } from './api'
+import { assignColors } from './api'
 
-interface DistRevenueRow {
-	dt: string
-	token_symbol: string
-	tw_reward_usd: number
+interface ChartPayload {
+	data: Array<Record<string, number>>
+	keys: string[]
 }
 
-interface DistRevenueProjRow {
-	dt: string
-	token_symbol: string
-	tw_reward_proj_usd: number
+interface DistributionResponse {
+	meta: { updatedAt: string }
+	charts: {
+		actualRevenue: ChartPayload
+		revenueProjection: ChartPayload
+		susdsTvl: ChartPayload
+		xrSusds: ChartPayload
+		xrSusdc: ChartPayload
+		stakedUsdsTvl: ChartPayload
+	}
 }
 
-interface DistTvlRow {
-	dt: string
-	token: string
-	sp_amount: number
+interface ProcessedChart {
+	chartData: Array<Record<string, number>>
+	keys: string[]
+	colors: Record<string, string>
 }
 
-interface DistXrRow {
-	dt: string
-	integrator_name: string
-	tw_reward_usd: number
-}
-
-export function useDistActualRevenue() {
-	const query = useQuery({
-		queryKey: ['dune-dist-actual-revenue'],
-		queryFn: () => fetchDuneQuery<DistRevenueRow>('5582217'),
+export function useDistributionData() {
+	const query = useQuery<DistributionResponse>({
+		queryKey: ['spark-distribution-rewards'],
+		queryFn: async () => {
+			const res = await fetch('/api/spark/distribution-rewards')
+			if (!res.ok) throw new Error(`Distribution API error: ${res.status}`)
+			return res.json()
+		},
 		staleTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 
 	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const keys = [...new Set(rows.map((r) => r.token_symbol))].sort()
-		const colors = assignColors(keys)
-		const chartData = pivotByDate(rows, 'token_symbol', 'tw_reward_usd')
-		return { ...query, chartData, keys, colors }
-	}, [query])
-}
+		if (!query.data?.charts) {
+			return { data: null, isLoading: query.isLoading || query.isPending }
+		}
 
-export function useDistRevenueProjection() {
-	const query = useQuery({
-		queryKey: ['dune-dist-revenue-projection'],
-		queryFn: () => fetchDuneQuery<DistRevenueProjRow>('5524703'),
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
+		const { charts } = query.data
 
-	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const keys = [...new Set(rows.map((r) => r.token_symbol))].sort()
-		const colors = assignColors(keys)
-		const chartData = pivotByDate(rows, 'token_symbol', 'tw_reward_proj_usd')
-		return { ...query, chartData, keys, colors }
-	}, [query])
-}
+		const processChart = (chart: ChartPayload): ProcessedChart => ({
+			chartData: chart.data,
+			keys: chart.keys,
+			colors: assignColors(chart.keys)
+		})
 
-export function useDistSusdsTvl() {
-	const query = useQuery({
-		queryKey: ['dune-dist-susds-tvl'],
-		queryFn: () => fetchDuneQuery<DistTvlRow>('5449746'),
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
-
-	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const keys = [...new Set(rows.map((r) => r.token))].sort()
-		const colors = assignColors(keys)
-		const chartData = pivotByDate(rows, 'token', 'sp_amount')
-		return { ...query, chartData, keys, colors }
-	}, [query])
-}
-
-export function useDistXrSusds() {
-	const query = useQuery({
-		queryKey: ['dune-dist-xr-susds'],
-		queryFn: () => fetchDuneQuery<DistXrRow>('5305217'),
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
-
-	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const keys = [...new Set(rows.map((r) => r.integrator_name))].sort()
-		const colors = assignColors(keys)
-		const chartData = pivotByDate(rows, 'integrator_name', 'tw_reward_usd')
-		return { ...query, chartData, keys, colors }
-	}, [query])
-}
-
-export function useDistXrSusdc() {
-	const query = useQuery({
-		queryKey: ['dune-dist-xr-susdc'],
-		queryFn: () => fetchDuneQuery<DistXrRow>('5305223'),
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
-
-	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const keys = [...new Set(rows.map((r) => r.integrator_name))].sort()
-		const colors = assignColors(keys)
-		const chartData = pivotByDate(rows, 'integrator_name', 'tw_reward_usd')
-		return { ...query, chartData, keys, colors }
-	}, [query])
-}
-
-export function useDistStakedUsdsTvl() {
-	const query = useQuery({
-		queryKey: ['dune-dist-staked-usds-tvl'],
-		queryFn: () => fetchDuneQuery<DistTvlRow>('5449825'),
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
-
-	return useMemo(() => {
-		const rows = query.data?.result?.rows ?? []
-		const keys = [...new Set(rows.map((r) => r.token))].sort()
-		const colors = assignColors(keys)
-		const chartData = pivotByDate(rows, 'token', 'sp_amount')
-		return { ...query, chartData, keys, colors }
-	}, [query])
+		return {
+			data: {
+				actualRevenue: processChart(charts.actualRevenue),
+				revenueProjection: processChart(charts.revenueProjection),
+				susdsTvl: processChart(charts.susdsTvl),
+				xrSusds: processChart(charts.xrSusds),
+				xrSusdc: processChart(charts.xrSusdc),
+				stakedUsdsTvl: processChart(charts.stakedUsdsTvl)
+			},
+			isLoading: false
+		}
+	}, [query.data, query.isLoading, query.isPending])
 }
