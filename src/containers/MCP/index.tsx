@@ -74,12 +74,12 @@ function ClientMarquee() {
 	const items = [...clients, ...clients]
 	return (
 		<div
-			className="relative mt-8 overflow-hidden"
+			className="marquee-container relative mt-8"
 			style={{
 				maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
 			}}
 		>
-			<div className="flex w-max animate-[marquee_25s_linear_infinite] items-center gap-12">
+			<div className="marquee flex items-center">
 				{items.map((c, i) => (
 					<div
 						key={`${c.name}-${i}`}
