@@ -41,10 +41,11 @@ export function getOverviewBreakdownRequestState(
 	chartType: RWAChartMetricKey,
 	query: ParsedUrlQuery
 ) {
+	const includeStablecoin = isTrueQueryParam(query.includeStablecoins)
+	const includeGovernance = isTrueQueryParam(query.includeGovernance)
+
 	switch (page.kind) {
-		case 'chain': {
-			const includeStablecoin = isTrueQueryParam(query.includeStablecoins)
-			const includeGovernance = isTrueQueryParam(query.includeGovernance)
+		case 'chain':
 			return {
 				request: {
 					breakdown: 'chain',
@@ -54,38 +55,35 @@ export function getOverviewBreakdownRequestState(
 				} satisfies RWAOverviewBreakdownRequest,
 				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
 			}
-		}
-		case 'platform': {
-			const includeStablecoin = isTrueQueryParam(query.includeStablecoins)
+		case 'platform':
 			return {
 				request: {
 					breakdown: 'platform',
 					key: chartType,
 					includeStablecoin,
-					includeGovernance: true
+					includeGovernance
 				} satisfies RWAOverviewBreakdownRequest,
-				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
 			}
-		}
 		case 'category':
 			return {
 				request: {
 					breakdown: 'category',
 					key: chartType,
-					includeStablecoin: true,
-					includeGovernance: true
+					includeStablecoin,
+					includeGovernance
 				} satisfies RWAOverviewBreakdownRequest,
-				isDefaultState: chartType === DEFAULT_CHART_TYPE
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
 			}
 		case 'assetGroup':
 			return {
 				request: {
 					breakdown: 'assetGroup',
 					key: chartType,
-					includeStablecoin: true,
-					includeGovernance: true
+					includeStablecoin,
+					includeGovernance
 				} satisfies RWAOverviewBreakdownRequest,
-				isDefaultState: chartType === DEFAULT_CHART_TYPE
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
 			}
 		default:
 			return assertNever(page)

@@ -2,25 +2,25 @@ import { describe, expect, it } from 'vitest'
 import { parseOverviewBreakdownRequest } from '~/pages/api/rwa/overview-breakdown'
 
 describe('parseOverviewBreakdownRequest', () => {
-	it('accepts platform requests with includeStablecoin false when governance is true', () => {
+	it('accepts platform requests when both flags are false', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
 					breakdown: 'platform',
 					key: 'activeMcap',
 					includeStablecoin: 'false',
-					includeGovernance: 'true'
+					includeGovernance: 'false'
 				}
 			})
 		).toEqual({
 			breakdown: 'platform',
 			key: 'activeMcap',
 			includeStablecoin: false,
-			includeGovernance: true
+			includeGovernance: false
 		})
 	})
 
-	it('accepts platform requests with includeStablecoin true when governance is true', () => {
+	it('accepts platform requests when both flags are true', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
@@ -38,16 +38,37 @@ describe('parseOverviewBreakdownRequest', () => {
 		})
 	})
 
-	it('rejects platform requests when governance is false', () => {
+	it('accepts category and asset group requests with mixed inclusion flags', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
-					breakdown: 'platform',
+					breakdown: 'category',
 					key: 'activeMcap',
 					includeStablecoin: 'true',
 					includeGovernance: 'false'
 				}
 			})
-		).toBeNull()
+		).toEqual({
+			breakdown: 'category',
+			key: 'activeMcap',
+			includeStablecoin: true,
+			includeGovernance: false
+		})
+
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					breakdown: 'assetGroup',
+					key: 'activeMcap',
+					includeStablecoin: 'false',
+					includeGovernance: 'true'
+				}
+			})
+		).toEqual({
+			breakdown: 'assetGroup',
+			key: 'activeMcap',
+			includeStablecoin: false,
+			includeGovernance: true
+		})
 	})
 })

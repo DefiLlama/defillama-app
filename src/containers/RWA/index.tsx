@@ -140,8 +140,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		accessModels: props.accessModels,
 		issuers: props.issuers,
 		assetGroups: props.assetGroups,
-		defaultIncludeStablecoins: !isChainMode,
-		defaultIncludeGovernance: !isChainMode,
+		defaultIncludeStablecoins: false,
+		defaultIncludeGovernance: false,
 		mode
 	})
 

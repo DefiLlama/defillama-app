@@ -40,18 +40,15 @@ export function parseOverviewBreakdownRequest(req: Pick<NextApiRequest, 'query'>
 	}
 
 	if (breakdown === 'category') {
-		if (!includeStablecoin || !includeGovernance) return null
-		return { breakdown, key, includeStablecoin: true, includeGovernance: true }
+		return { breakdown, key, includeStablecoin, includeGovernance }
 	}
 
 	if (breakdown === 'platform') {
-		if (!includeGovernance) return null
-		return { breakdown, key, includeStablecoin, includeGovernance: true }
+		return { breakdown, key, includeStablecoin, includeGovernance }
 	}
 
 	if (breakdown === 'assetGroup') {
-		if (!includeStablecoin || !includeGovernance) return null
-		return { breakdown, key, includeStablecoin: true, includeGovernance: true }
+		return { breakdown, key, includeStablecoin, includeGovernance }
 	}
 
 	return null

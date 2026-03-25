@@ -1,15 +1,27 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAAssetGroupsOverviewRow, RWAOverviewPage } from './api.types'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
+import { getRWAOverviewCsvFileName, getRWAOverviewInclusion, getRWAOverviewTableData } from './overviewTableData'
 import { rwaSlug } from './rwaSlug'
 
-const columnHelper = createColumnHelper<IRWAAssetGroupsOverviewRow>()
+type RWAAssetGroupsTableRow = {
+	assetGroup: string
+	assetCount: number
+	activeMcap: number
+	onChainMcap: number
+	defiActiveTvl: number
+}
+
+const columnHelper = createColumnHelper<RWAAssetGroupsTableRow>()
 
 const columns = [
 	columnHelper.accessor('assetGroup', {
@@ -76,18 +88,53 @@ export function RWAAssetGroups({
 	initialChartDataset: MultiSeriesChart2Dataset
 	page: RWAOverviewPage
 }) {
+	const router = useRouter()
+	const includeStablecoins = isTrueQueryParam(router.query.includeStablecoins)
+	const includeGovernance = isTrueQueryParam(router.query.includeGovernance)
+	const inclusion = getRWAOverviewInclusion(includeStablecoins, includeGovernance)
+
+	const onToggleStablecoins = () => {
+		void pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
+	}
+
+	const onToggleGovernance = () => {
+		void pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
+	}
+
+	const data = assetGroups.map((row) => ({
+		assetGroup: row.assetGroup,
+		...getRWAOverviewTableData(row, inclusion)
+	}))
+	const csvFileName = getRWAOverviewCsvFileName('rwa-asset-groups', inclusion)
+
 	return (
 		<div className="flex flex-col gap-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					help="Include stablecoin-token assets in asset group totals/columns."
+					onChange={onToggleStablecoins}
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					help="Include governance-token assets in asset group totals/columns."
+					onChange={onToggleGovernance}
+				/>
+			</div>
 			<RWAOverviewBreakdownChart page={page} initialChartDataset={initialChartDataset} stackLabel="Asset Groups" />
 			<TableWithSearch
-				data={assetGroups}
+				data={data}
 				columns={columns}
 				placeholder="Search asset groups..."
 				columnToSearch="assetGroup"
 				header="Asset Groups"
 				headingAs="h1"
 				columnSizes={columnSizes}
-				csvFileName="rwa-asset-groups"
+				csvFileName={csvFileName}
 				sortingState={[{ id: 'activeMcap', desc: true }]}
 			/>
 		</div>

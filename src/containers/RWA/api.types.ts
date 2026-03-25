@@ -195,32 +195,15 @@ export type IRWABreakdownChartParams = {
 export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind: 'platform' } | { kind: 'assetGroup' }
 export type RWAOverviewBreakdownRequest =
 	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
-	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
-	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: true }
-	| { breakdown: 'assetGroup'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
+	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'assetGroup'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
 
-/** Flat row shape for the Categories overview table (merged from segmented stats). */
-export type IRWACategoriesOverviewRow = {
-	category: string
-	onChainMcap: number
-	activeMcap: number
-	defiActiveTvl: number
-	assetCount: number
-	assetIssuers: number
-}
-
-/** Segmented row shape for the Platforms overview table. */
+export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
 export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
-
-export type IRWAAssetGroupsOverviewRow = {
-	assetGroup: string
-	onChainMcap: number
-	activeMcap: number
-	defiActiveTvl: number
-	assetCount: number
-}
+export type IRWAAssetGroupsOverviewRow = NonNullable<IRWAStatsResponse['byAssetGroup']>[string] & { assetGroup: string }
 
 export type IRWAChainsOverview = {
 	rows: IRWAChainsOverviewRow[]

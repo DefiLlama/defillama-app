@@ -574,11 +574,10 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		})
 
 		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
-		const isChainMode = !selectedCategory && !selectedPlatform && !selectedAssetGroup
 		const aggregationMode: RWAChartAggregationMode = selectedAssetGroup ? 'assetName' : 'assetGroup'
 		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
-			includeStablecoins: !isChainMode,
-			includeGovernance: !isChainMode,
+			includeStablecoins: false,
+			includeGovernance: false,
 			mode: selectedAssetGroup ? 'assetGroup' : selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain',
 			categorySlug: selectedCategory
 		})
@@ -716,7 +715,7 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview> {
 	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchRWACategoryBreakdownChartData({ key: 'activeMcap', includeStablecoin: true, includeGovernance: true })
+		fetchRWACategoryBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: false })
 	])
 
 	if (!data?.byCategory) {
@@ -725,32 +724,14 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 
 	const rows: IRWACategoriesOverviewRow[] = []
 	for (const category in data.byCategory) {
-		const stats = data.byCategory[category]
-		const buckets = [stats.base, stats.stablecoinsOnly, stats.governanceOnly, stats.stablecoinsAndGovernance]
-		let onChainMcap = 0
-		let activeMcap = 0
-		let defiActiveTvl = 0
-		let assetCount = 0
-		const issuerSet = new Set<string>()
-		for (const b of buckets) {
-			onChainMcap += b.onChainMcap
-			activeMcap += b.activeMcap
-			defiActiveTvl += b.defiActiveTvl
-			assetCount += b.assetCount
-			for (const issuer of b.assetIssuers) issuerSet.add(issuer)
-		}
 		rows.push({
 			category,
-			onChainMcap,
-			activeMcap,
-			defiActiveTvl,
-			assetCount,
-			assetIssuers: issuerSet.size
+			...data.byCategory[category]
 		})
 	}
 
 	return {
-		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
+		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
 		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
@@ -758,7 +739,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> {
 	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchRWAPlatformBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: true })
+		fetchRWAPlatformBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: false })
 	])
 
 	if (!data?.byPlatform) {
@@ -775,9 +756,7 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 	}
 
 	return {
-		rows: rows.sort(
-			(a, b) => b.base.onChainMcap + b.governanceOnly.onChainMcap - (a.base.onChainMcap + a.governanceOnly.onChainMcap)
-		),
+		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
 		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
@@ -785,7 +764,7 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOverview> {
 	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchRWAAssetGroupBreakdownChartData({ key: 'activeMcap', includeStablecoin: true, includeGovernance: true })
+		fetchRWAAssetGroupBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: false })
 	])
 
 	if (!data?.byAssetGroup) {
@@ -794,29 +773,14 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 
 	const rows: IRWAAssetGroupsOverviewRow[] = []
 	for (const assetGroup in data.byAssetGroup) {
-		const stats = data.byAssetGroup[assetGroup]
-		const buckets = [stats.base, stats.stablecoinsOnly, stats.governanceOnly, stats.stablecoinsAndGovernance]
-		let onChainMcap = 0
-		let activeMcap = 0
-		let defiActiveTvl = 0
-		let assetCount = 0
-		for (const b of buckets) {
-			onChainMcap += b.onChainMcap
-			activeMcap += b.activeMcap
-			defiActiveTvl += b.defiActiveTvl
-			assetCount += b.assetCount
-		}
 		rows.push({
 			assetGroup: normalizeRwaAssetGroup(assetGroup),
-			onChainMcap,
-			activeMcap,
-			defiActiveTvl,
-			assetCount
+			...data.byAssetGroup[assetGroup]
 		})
 	}
 
 	return {
-		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
+		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
 		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }

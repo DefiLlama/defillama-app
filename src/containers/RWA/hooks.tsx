@@ -213,9 +213,6 @@ export const useRWATableQueryParams = ({
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
 		const excludeIssuersSet = parseExcludeParam(excludeIssuersQ)
 
-		// Default toggles:
-		// - category pages: ON (include stablecoins + governance by default)
-		// - other pages: OFF (unless explicitly set in the URL)
 		const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : defaultIncludeStablecoins
 		const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : defaultIncludeGovernance
 
