@@ -499,11 +499,11 @@ export function StablecoinsChartTab({
 						</div>
 
 						<div
-						key={stablecoinMode === 'chain' ? selectedStablecoinChartType : selectedStablecoinAssetChartType}
-						className="h-[320px]"
-					>
-						{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}
-					</div>
+							key={stablecoinMode === 'chain' ? selectedStablecoinChartType : selectedStablecoinAssetChartType}
+							className="h-[320px]"
+						>
+							{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}
+						</div>
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

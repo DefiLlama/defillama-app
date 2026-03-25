@@ -14,6 +14,10 @@ const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { 
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
+/** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
+const TABLE_WATERMARK_HEIGHT = 40
+const TABLE_WATERMARK_WIDTH = Math.round((389 / 133) * TABLE_WATERMARK_HEIGHT)
+
 type EntityLinkProps = ComponentPropsWithoutRef<'a'>
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
 type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
@@ -73,10 +77,26 @@ function TableWrapper({
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				)}
 			</div>
-			<div ref={tableRef} className="overflow-x-auto">
+			<div ref={tableRef} className="relative overflow-x-auto">
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
+					<img
+						src="/assets/defillama-dark-neutral.webp"
+						alt="defillama"
+						height={TABLE_WATERMARK_HEIGHT}
+						width={TABLE_WATERMARK_WIDTH}
+						className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
+					/>
+					<img
+						src="/assets/defillama-light-neutral.webp"
+						alt="defillama"
+						height={TABLE_WATERMARK_HEIGHT}
+						width={TABLE_WATERMARK_WIDTH}
+						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
+					/>
+				</div>
 				<table
 					{...tableProps}
-					className={`w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`}
+					className={`z-10 w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`}
 				>
 					{children}
 				</table>
@@ -95,19 +115,28 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 
 		const entityUrl = getEntityUrl(type, slug)
 
+		const logoKind = (logoType: string) => {
+			switch (logoType) {
+				case 'chain':
+					return 'chain'
+				case 'stablecoin':
+					return 'pegged'
+				case 'equities':
+					return 'equities'
+				default:
+					return 'token'
+			}
+		}
+
 		return (
 			<a
 				href={entityUrl}
-				className="text-(--link-text) no-underline hover:underline"
+				className="flex flex-nowrap items-center gap-1 text-(--link-text) no-underline hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
 				{...props}
 			>
-				{type !== 'pool' ? (
-					<>
-						<TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />{' '}
-					</>
-				) : null}
+				{type !== 'pool' ? <TokenLogo name={slug} kind={logoKind(type)} alt={`Logo of ${slug}`} size={14} /> : null}
 				{children}
 			</a>
 		)
