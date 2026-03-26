@@ -123,19 +123,27 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const { data: volatility } = useVolatility()
 	const poolsList = React.useMemo(() => props.poolsList ?? [], [props.poolsList])
 
-	const chainList = React.useMemo(
-		() => [...new Set(poolsList.map((p) => p.chains[0]))].sort(),
-		[poolsList]
-	)
+	const chainList = React.useMemo(() => [...new Set(poolsList.map((p) => p.chains[0]))].sort(), [poolsList])
 
 	const tokensList = React.useMemo(
 		() =>
-			[...new Set(poolsList.flatMap((p) => p.pool.split('(')[0].split('-').map((t) => t.trim()).filter(Boolean)))].sort(),
+			[
+				...new Set(
+					poolsList.flatMap((p) =>
+						p.pool
+							.split('(')[0]
+							.split('-')
+							.map((t) => t.trim())
+							.filter(Boolean)
+					)
+				)
+			].sort(),
 		[poolsList]
 	)
 
-	const { selectedChains, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy } =
-		useFormatYieldQueryParams({ chainList })
+	const { selectedChains, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy } = useFormatYieldQueryParams({
+		chainList
+	})
 
 	const poolsWithVolatility = React.useMemo(() => {
 		return poolsList.map((pool) => ({
@@ -188,7 +196,17 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		}
 
 		return pools
-	}, [poolsWithVolatility, selectedChains, chainList.length, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy])
+	}, [
+		poolsWithVolatility,
+		selectedChains,
+		chainList.length,
+		includeTokens,
+		excludeTokens,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy
+	])
 
 	const filteredStats = React.useMemo(() => {
 		const withApy = filteredPools.filter((p) => p.apy !== 0)
@@ -237,7 +255,12 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							{(nestedMenu) => (
 								<>
 									<FilterByChain chainList={chainList} selectedChains={selectedChains} nestedMenu={nestedMenu} />
-									<FilterByToken tokensList={tokensList} selectedTokens={includeTokens} nestedMenu={nestedMenu} autoApplyAttributes={false} />
+									<FilterByToken
+										tokensList={tokensList}
+										selectedTokens={includeTokens}
+										nestedMenu={nestedMenu}
+										autoApplyAttributes={false}
+									/>
 									<TVLRange variant="secondary" nestedMenu={nestedMenu} />
 									<APYRange nestedMenu={nestedMenu} />
 									{hasActiveFilters && (

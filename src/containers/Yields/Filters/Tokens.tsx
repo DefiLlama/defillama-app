@@ -43,7 +43,12 @@ function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, 
 	}
 }
 
-export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nestedMenu, autoApplyAttributes = true }: IFiltersByTokensProps) {
+export function FilterByToken({
+	tokensList = EMPTY_ARRAY,
+	selectedTokens,
+	nestedMenu,
+	autoApplyAttributes = true
+}: IFiltersByTokensProps) {
 	const router = useRouter()
 	const { token, attribute } = router.query
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedTokens))
