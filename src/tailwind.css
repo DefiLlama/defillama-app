@@ -1048,9 +1048,9 @@
 	text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
 }
 
-/* Align entity logos with text */
+/* Entity logos: wrapper uses leading-0; keep img optically centered with link text */
 .prose.llamaai-prose a img.inline-block {
-	vertical-align: -0.15em;
+	vertical-align: middle;
 }
 
 /* Scale entity logos to match heading font size */

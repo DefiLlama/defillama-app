@@ -213,7 +213,7 @@ export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 		key: 'PEGGEDGHS',
 		filterFn: (item) => item.pegType === 'peggedGHS',
 		help: 'Show stablecoins pegged to Ghanaian Cedi'
-	},
+	}
 ]
 
 type StablecoinFilterKey = string

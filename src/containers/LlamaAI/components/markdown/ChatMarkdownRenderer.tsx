@@ -7,9 +7,9 @@ import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
-import { TokenLogo } from '~/components/TokenLogo'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
@@ -184,29 +184,41 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 
 		const entityUrl = getEntityUrl(type, slug)
 
-		const logoKind = (logoType: string) => {
-			switch (logoType) {
+		const entityLogoUrl = (entityType: string, entitySlug: string) => {
+			switch (entityType) {
 				case 'chain':
-					return 'chain'
+					return chainIconUrl(entitySlug)
 				case 'stablecoin':
-					return 'pegged'
-				case 'equities':
-					return 'equities'
+					return peggedAssetIconUrl(entitySlug)
+				case 'equity':
+					return equityIconUrl(entitySlug)
+				case 'protocol':
+					return tokenIconUrl(entitySlug)
 				default:
-					return 'token'
+					return null
 			}
 		}
+
+		const logoUrl = entityLogoUrl(type, slug)
 
 		return (
 			<a
 				href={entityUrl}
-				className="flex flex-nowrap items-center gap-1 text-(--link-text) no-underline hover:underline"
+				className="text-(--link-text) no-underline hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
 				{...props}
 			>
-				{type !== 'pool' ? <TokenLogo name={slug} kind={logoKind(type)} alt={`Logo of ${slug}`} size={14} /> : null}
-				{children}
+				{logoUrl ? (
+					<img
+						src={logoUrl}
+						alt=""
+						height={14}
+						width={14}
+						className="relative top-[-0.1em] mr-1 inline-block shrink-0 rounded-full"
+					/>
+				) : null}
+				<span className="min-w-0">{children}</span>
 			</a>
 		)
 	}
