@@ -6,11 +6,7 @@ export function normalizeToken(token: string): string {
 }
 
 export function extractPoolTokens(symbol: string): string[] {
-	return symbol
-		.split('(')[0]
-		.split('-')
-		.map(normalizeToken)
-		.filter(Boolean)
+	return symbol.split('(')[0].split('-').map(normalizeToken).filter(Boolean)
 }
 
 interface IToFilterPool {

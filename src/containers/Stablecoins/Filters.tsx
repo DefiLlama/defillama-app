@@ -201,7 +201,7 @@ export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 		key: 'PEGGEDNGN',
 		filterFn: (item) => item.pegType === 'peggedNGN',
 		help: 'Show stablecoins pegged to Nigerian Naira'
-	}
+	},
 ]
 
 type StablecoinFilterKey = string
