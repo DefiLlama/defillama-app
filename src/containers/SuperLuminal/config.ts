@@ -3,7 +3,8 @@ export const SUPERLUMINAL_PROJECTS = [
 	{ id: 'spark', name: 'Spark', dashboardId: 'roxh2oxb1b7fhjz', customOnly: false },
 	{ id: 'maple', name: 'Maple', dashboardId: 'l5accmh9zooc32q', customOnly: false },
 	{ id: 'berachain', name: 'Berachain', dashboardId: 't62luatlj9thwx2', customOnly: true },
-	{ id: 'aave', name: 'Aave', dashboardId: 'g3rswlkr9khxa03', customOnly: false }
+	{ id: 'aave', name: 'Aave', dashboardId: 'g3rswlkr9khxa03', customOnly: false },
+	{ id: 'sonic', name: 'Sonic', dashboardId: 's0n1cd4shb0ard1', customOnly: true }
 ] as const
 
 export const SUPERLUMINAL_PROTOCOL_IDS: string[] = SUPERLUMINAL_PROJECTS.map((p) => p.id)
