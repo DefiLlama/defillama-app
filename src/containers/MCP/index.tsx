@@ -444,8 +444,8 @@ export default function MCPContainer() {
 						accessible through natural language.
 					</FeatureCard>
 					<FeatureCard icon={<span>🔑</span>} title="Easy Setup">
-						Add the config, your agent walks you through login. Works with Claude Code, OpenClaw, Cursor, Codex, Gemini
-						CLI, and more.
+						Paste the quick start prompt, your agent handles the rest. Works with Claude Code, OpenClaw, Cursor, Codex,
+						Gemini CLI, and more.
 					</FeatureCard>
 					<FeatureCard icon={<span>💳</span>} title="Uses Your API Credits">
 						Same credit pool as your DefiLlama API key. One credit per query. No separate billing. If you have an API
