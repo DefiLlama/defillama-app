@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { useEffect, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
@@ -10,6 +9,7 @@ interface IFiltersByTokensProps {
 	tokensList: Array<string>
 	selectedTokens: Array<string>
 	nestedMenu?: boolean
+	autoApplyAttributes?: boolean
 }
 
 function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, string | string[] | undefined> {
@@ -42,48 +42,56 @@ function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, 
 	}
 }
 
-export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nestedMenu }: IFiltersByTokensProps) {
+export function FilterByToken({
+	tokensList = EMPTY_ARRAY,
+	selectedTokens,
+	nestedMenu,
+	autoApplyAttributes = true
+}: IFiltersByTokensProps) {
 	const router = useRouter()
-	const { token, attribute } = router.query
-	const prevSelectionRef = useRef<Set<string>>(new Set(selectedTokens))
+	const { token, excludeToken, attribute } = router.query
+	const excludedTokens = excludeToken
+		? typeof excludeToken === 'string'
+			? [excludeToken]
+			: [...excludeToken]
+		: EMPTY_ARRAY
+	const displaySelectedTokens =
+		excludedTokens.length > 0 ? tokensList.filter((tokenValue) => !excludedTokens.includes(tokenValue)) : selectedTokens
 
 	const currentAttributes = attribute ? (typeof attribute === 'string' ? [attribute] : [...attribute]) : []
 
-	useEffect(() => {
-		prevSelectionRef.current = new Set(selectedTokens)
-	}, [selectedTokens])
-
 	const handleSetSelectedValues = (values: string[]) => {
-		const prevSet = prevSelectionRef.current
+		const prevSet = new Set(displaySelectedTokens)
 
 		for (const t of values) {
 			if (!prevSet.has(t)) {
 				trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN, { token: t })
 			}
 		}
-		prevSelectionRef.current = new Set(values)
 
 		const updates: Record<string, string | string[] | undefined> = tokenQueryUpdates(tokensList, values)
 
 		// Mirror the desktop include behaviour: auto-apply single_exposure + no_il when a token
 		// filter is active, clean them up when the filter is cleared.
-		if (
-			values.length > 0 &&
-			values.length < tokensList.length &&
-			(!currentAttributes.includes('no_il') || !currentAttributes.includes('single_exposure'))
-		) {
-			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
-		} else if (
-			values.length === tokensList.length &&
-			(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
-		) {
-			const filtered = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
-			updates.attribute = filtered.length > 0 ? filtered : undefined
-		} else if (
-			values.length === 0 &&
-			(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
-		) {
-			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+		if (autoApplyAttributes) {
+			if (
+				values.length > 0 &&
+				values.length < tokensList.length &&
+				(!currentAttributes.includes('no_il') || !currentAttributes.includes('single_exposure'))
+			) {
+				updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
+			} else if (
+				values.length === tokensList.length &&
+				(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
+			) {
+				const filtered = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+				updates.attribute = filtered.length > 0 ? filtered : undefined
+			} else if (
+				values.length === 0 &&
+				(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
+			) {
+				updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+			}
 		}
 
 		void pushShallowQuery(router, updates)
@@ -93,9 +101,9 @@ export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nested
 		<SelectWithCombobox
 			label="Tokens"
 			allValues={tokensList}
-			selectedValues={selectedTokens}
+			selectedValues={displaySelectedTokens}
 			nestedMenu={nestedMenu}
-			labelType={!token || token === 'All' ? 'none' : 'regular'}
+			labelType={(!token || token === 'All') && excludedTokens.length === 0 ? 'none' : 'regular'}
 			setSelectedValues={handleSetSelectedValues}
 		/>
 	)
