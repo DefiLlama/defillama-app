@@ -201,6 +201,21 @@ export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 		key: 'PEGGEDNGN',
 		filterFn: (item) => item.pegType === 'peggedNGN',
 		help: 'Show stablecoins pegged to Nigerian Naira'
+<<<<<<< feat/yields-add-filter-protocol
+=======
+	},
+	{
+		name: 'XOF',
+		key: 'PEGGEDXOF',
+		filterFn: (item) => item.pegType === 'peggedXOF',
+		help: 'Show stablecoins pegged to West African CFA Franc'
+	},
+	{
+		name: 'GHS',
+		key: 'PEGGEDGHS',
+		filterFn: (item) => item.pegType === 'peggedGHS',
+		help: 'Show stablecoins pegged to Ghanaian Cedi'
+>>>>>>> main
 	}
 ]
 

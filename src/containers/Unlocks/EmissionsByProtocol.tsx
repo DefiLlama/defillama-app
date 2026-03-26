@@ -78,6 +78,7 @@ interface IEmission {
 	geckoId?: string | null
 	name: string
 	meta: Partial<TokenData>
+	tbdSections?: string[]
 }
 
 const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
@@ -329,6 +330,7 @@ const getDesktopPieLegendPosition = (itemsCount: number) =>
 
 const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
+const EMPTY_TBD_SECTIONS: string[] = []
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
 const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
@@ -598,6 +600,7 @@ const ChartContainer = ({
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
+	const tbdSections = data.tbdSections ?? EMPTY_TBD_SECTIONS
 	const tokenAllocation = useMemo(
 		() => data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION,
 		[data.tokenAllocation, dataType]
@@ -876,16 +879,18 @@ const ChartContainer = ({
 		return stacks.map((name) => {
 			const yIdx = customYAxis?.indexOf(name) ?? -1
 			const isOverlay = yIdx !== -1
+			const isTBD = tbdSections.includes(name)
 			return {
 				type: isOverlay ? 'line' : chartType,
 				name: formatUnlockLabel(name),
 				encode: { x: 'timestamp', y: name },
 				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
-				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {})
+				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {}),
+				...(isTBD ? { isTBD: true } : {})
 			}
 		})
-	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType])
+	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType, tbdSections])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null

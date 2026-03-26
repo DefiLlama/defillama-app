@@ -129,6 +129,8 @@ export type MultiSeriesChart2SeriesConfig = {
 	valueSymbol?: string
 	/** Disable area fill for this series (line only). */
 	hideAreaStyle?: boolean
+	/** Mark this series as tentative/TBD — renders with reduced opacity and dashed border. */
+	isTBD?: boolean
 	// Optional: enable point markers on line series.
 	// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
 	// implicitly disable large mode unless `large` is explicitly set.
