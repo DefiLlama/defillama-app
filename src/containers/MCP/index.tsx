@@ -387,8 +387,9 @@ export default function MCPContainer() {
 					<StepCard step={1} title="Paste the URL">
 						Add the URL above to your MCP client. That's the only config needed.
 					</StepCard>
-					<StepCard step={2} title="Log in once">
-						Browser opens automatically. Sign in with your DefiLlama account. API plan required.
+					<StepCard step={2} title="Authenticate">
+						Run /mcp in Claude Code and select "Authenticate", or follow your agent's OAuth flow. Sign in with your
+						DefiLlama account. API plan required.
 					</StepCard>
 					<StepCard step={3} title="Start querying">
 						Ask your agent anything about DeFi. It calls the right tool automatically.
