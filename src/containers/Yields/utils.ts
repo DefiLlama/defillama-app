@@ -1,8 +1,12 @@
 import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
+const TETHER_SYMBOL_PATTERN = /₮0?/gu
+
 export function normalizeToken(token: string): string {
-	return token.toLowerCase().trim()
+	const normalizedToken = token.normalize('NFKC').trim().toLowerCase().replaceAll(TETHER_SYMBOL_PATTERN, 't')
+
+	return normalizedToken === 't' ? 'usdt' : normalizedToken
 }
 
 export function extractPoolTokens(symbol: string): string[] {
@@ -100,15 +104,12 @@ export function toFilterPool({
 						} else if (token === 'all_usd_stables') {
 							// only include pools that are marked as stablecoin &
 							// every token in the pool symbol contains usd-pegged stable symbol (substring match)
-							// normalize ₮ variants so USD₮/USD₮0 match against "usdt" from the stablecoins API
 							if (!curr.stablecoin) return false
 							if (!Array.isArray(usdPeggedSymbols) || usdPeggedSymbols.length === 0) return false
+							const normalizedUsdPeggedSymbols = usdPeggedSymbols.map(normalizeToken)
 							return (
 								tokensInPool.length > 0 &&
-								tokensInPool.every((sym) => {
-									const normalized = sym.replace('₮0', 't').replace('₮', 't')
-									return usdPeggedSymbols.some((usd) => normalized.includes(usd))
-								})
+								tokensInPool.every((sym) => normalizedUsdPeggedSymbols.some((usd) => sym.includes(usd)))
 							)
 						} else {
 							// Check if token matches a dynamic token category (e.g., TOKENIZED_GOLD, TOKENIZED_SILVER)

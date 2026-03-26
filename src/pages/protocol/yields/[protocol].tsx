@@ -126,18 +126,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const chainList = React.useMemo(() => [...new Set(poolsList.map((p) => p.chains[0]))].sort(), [poolsList])
 
 	const tokensList = React.useMemo(
-		() =>
-			[
-				...new Set(
-					poolsList.flatMap((p) =>
-						p.pool
-							.split('(')[0]
-							.split('-')
-							.map((t) => t.trim())
-							.filter(Boolean)
-					)
-				)
-			].sort(),
+		() => [...new Set(poolsList.flatMap((p) => extractPoolTokens(p.pool)))].sort(),
 		[poolsList]
 	)
 

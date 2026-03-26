@@ -195,23 +195,17 @@ export function YieldsChartTab({
 	const tokenOptions = useMemo(() => {
 		const tokenTvlMap = new Map<string, number>()
 		for (const p of yieldsData as any[]) {
-			const symbol = (p.pool || '') as string
-			const baseSymbol = symbol.split('(')[0]
-			const tokens = baseSymbol
-				.split('-')
-				.map((token: string) => token.trim())
-				.filter(Boolean)
+			const tokens = extractPoolTokens((p.pool || '') as string).map(normalizeToken)
 			for (const token of tokens) {
-				const normalized = token.toUpperCase()
-				if (!normalized) continue
-				const current = tokenTvlMap.get(normalized) || 0
-				tokenTvlMap.set(normalized, current + (p.tvl || 0))
+				if (!token) continue
+				const current = tokenTvlMap.get(token) || 0
+				tokenTvlMap.set(token, current + (p.tvl || 0))
 			}
 		}
 
 		const baseOptions = [
-			{ value: 'ALL_BITCOINS', label: 'All Bitcoins' },
-			{ value: 'ALL_USD_STABLES', label: 'All USD Stablecoins' }
+			{ value: 'all_bitcoins', label: 'All Bitcoins' },
+			{ value: 'all_usd_stables', label: 'All USD Stablecoins' }
 		]
 
 		const tokenOptionList = Array.from(tokenTvlMap.entries())
@@ -219,7 +213,7 @@ export function YieldsChartTab({
 				if (b[1] !== a[1]) return b[1] - a[1]
 				return a[0].localeCompare(b[0])
 			})
-			.map(([token]) => ({ value: token, label: token }))
+			.map(([token]) => ({ value: token, label: token.toUpperCase() }))
 
 		return [...baseOptions, ...tokenOptionList]
 	}, [yieldsData])
@@ -288,18 +282,21 @@ export function YieldsChartTab({
 		}
 	}
 
-	const toggleToken = (value: string) => {
-		if (selectedYieldTokens.includes(value)) {
-			onSelectedYieldTokensChange(selectedYieldTokens.filter((v) => v !== value))
-		} else {
-			onSelectedYieldTokensChange([...selectedYieldTokens, value])
-		}
-	}
-
 	const normalizedSelectedTokens = useMemo(
 		() => selectedYieldTokens.map((token) => normalizeToken(token)),
 		[selectedYieldTokens]
 	)
+	const normalizedSelectedTokenSet = useMemo(() => new Set(normalizedSelectedTokens), [normalizedSelectedTokens])
+
+	const toggleToken = (value: string) => {
+		const normalizedValue = normalizeToken(value)
+
+		if (normalizedSelectedTokenSet.has(normalizedValue)) {
+			onSelectedYieldTokensChange(selectedYieldTokens.filter((token) => normalizeToken(token) !== normalizedValue))
+		} else {
+			onSelectedYieldTokensChange([...selectedYieldTokens, normalizedValue])
+		}
+	}
 
 	const filteredPools = useMemo(() => {
 		return yieldsData.filter((pool: any) => {
@@ -772,7 +769,7 @@ export function YieldsChartTab({
 											{tokenVirtualizer.getVirtualItems().map((row) => {
 												const option = filteredTokenOptions[row.index]
 												if (!option) return null
-												const isActive = selectedYieldTokens.includes(option.value)
+												const isActive = normalizedSelectedTokenSet.has(option.value)
 												return (
 													<button
 														key={option.value}

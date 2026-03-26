@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { useEffect, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
@@ -50,24 +49,25 @@ export function FilterByToken({
 	autoApplyAttributes = true
 }: IFiltersByTokensProps) {
 	const router = useRouter()
-	const { token, attribute } = router.query
-	const prevSelectionRef = useRef<Set<string>>(new Set(selectedTokens))
+	const { token, excludeToken, attribute } = router.query
+	const excludedTokens = excludeToken
+		? typeof excludeToken === 'string'
+			? [excludeToken]
+			: [...excludeToken]
+		: EMPTY_ARRAY
+	const displaySelectedTokens =
+		excludedTokens.length > 0 ? tokensList.filter((tokenValue) => !excludedTokens.includes(tokenValue)) : selectedTokens
 
 	const currentAttributes = attribute ? (typeof attribute === 'string' ? [attribute] : [...attribute]) : []
 
-	useEffect(() => {
-		prevSelectionRef.current = new Set(selectedTokens)
-	}, [selectedTokens])
-
 	const handleSetSelectedValues = (values: string[]) => {
-		const prevSet = prevSelectionRef.current
+		const prevSet = new Set(displaySelectedTokens)
 
 		for (const t of values) {
 			if (!prevSet.has(t)) {
 				trackYieldsEvent(YIELDS_EVENTS.FILTER_TOKEN, { token: t })
 			}
 		}
-		prevSelectionRef.current = new Set(values)
 
 		const updates: Record<string, string | string[] | undefined> = tokenQueryUpdates(tokensList, values)
 
@@ -101,9 +101,9 @@ export function FilterByToken({
 		<SelectWithCombobox
 			label="Tokens"
 			allValues={tokensList}
-			selectedValues={selectedTokens}
+			selectedValues={displaySelectedTokens}
 			nestedMenu={nestedMenu}
-			labelType={!token || token === 'All' ? 'none' : 'regular'}
+			labelType={(!token || token === 'All') && excludedTokens.length === 0 ? 'none' : 'regular'}
 			setSelectedValues={handleSetSelectedValues}
 		/>
 	)
