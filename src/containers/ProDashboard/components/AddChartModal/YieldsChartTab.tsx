@@ -9,6 +9,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldsData } from '~/containers/ProDashboard/components/datasets/YieldsDataset/useYieldsData'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
+import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { getItemIconUrl } from '../../utils'
 import { AriakitMultiSelect } from '../AriakitMultiSelect'
@@ -296,7 +297,7 @@ export function YieldsChartTab({
 	}
 
 	const normalizedSelectedTokens = useMemo(
-		() => selectedYieldTokens.map((token) => token.toLowerCase()),
+		() => selectedYieldTokens.map((token) => normalizeToken(token)),
 		[selectedYieldTokens]
 	)
 
@@ -315,11 +316,7 @@ export function YieldsChartTab({
 			}
 
 			if (normalizedSelectedTokens.length > 0) {
-				const tokensInPool = (pool.pool || '')
-					.split('(')[0]
-					.split('-')
-					.map((token: string) => token.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
-					.filter(Boolean)
+				const tokensInPool = extractPoolTokens(pool.pool || '')
 
 				const matchesToken = normalizedSelectedTokens.some((token) => {
 					if (token === 'all_bitcoins') {

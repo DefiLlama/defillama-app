@@ -4,7 +4,7 @@ import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/compon
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
-import { toFilterPool } from './utils'
+import { normalizeToken, toFilterPool } from './utils'
 
 interface IChartProps {
 	chartData: any
@@ -52,10 +52,10 @@ export const PlotsPage = ({
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
-		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
-		const include_tokens = includeTokens.map((token) => token.toLowerCase())
-		const excludeTokensSet = new Set(excludeTokens.map((token) => token.toLowerCase()))
-		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
+		const pair_tokens = pairTokens.map((token) => normalizeToken(token))
+		const include_tokens = includeTokens.map((token) => normalizeToken(token))
+		const excludeTokensSet = new Set(excludeTokens.map((token) => normalizeToken(token)))
+		const exact_tokens = exactTokens.map((token) => normalizeToken(token))
 
 		const selectedProjectsSet = new Set(selectedProjects)
 		const selectedChainsSet = new Set(selectedChains)

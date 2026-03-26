@@ -15,7 +15,7 @@ import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import { useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { extractPoolTokens } from '~/containers/Yields/utils'
+import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -167,7 +167,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		if (includeTokens.length > 0) {
 			pools = pools.filter((p) => {
 				const poolTokens = extractPoolTokens(p.pool)
-				return includeTokens.some((t) => poolTokens.some((pt) => pt.includes(t.toLowerCase())))
+				return includeTokens.some((t) => poolTokens.some((pt) => pt.includes(normalizeToken(t))))
 			})
 		}
 
@@ -175,7 +175,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		if (excludeTokens.length > 0) {
 			pools = pools.filter((p) => {
 				const poolTokens = new Set(extractPoolTokens(p.pool))
-				return !excludeTokens.some((t) => poolTokens.has(t.toLowerCase()))
+				return !excludeTokens.some((t) => poolTokens.has(normalizeToken(t)))
 			})
 		}
 
