@@ -731,6 +731,20 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
+	if (protocolData.dimensions) {
+		for (const dimKey in protocolData.dimensions) {
+			const spikes = protocolData.dimensions[dimKey]?.genuineSpikes
+			if (!spikes) continue
+			for (const [dateStr, label] of spikes) {
+				const tsSeconds = Math.floor(new Date(dateStr).getTime() / 1e3)
+				if (!Number.isFinite(tsSeconds)) continue
+				if (!hallmarks[tsSeconds]) {
+					hallmarks[tsSeconds] = label
+				}
+			}
+		}
+	}
+
 	const name = protocolData.name ?? currentProtocolMetadata.displayName ?? ''
 
 	const defaultToggledCharts = buildDefaultToggledCharts({

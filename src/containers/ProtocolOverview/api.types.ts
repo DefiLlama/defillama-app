@@ -56,6 +56,7 @@ export interface IProtocolMetricsV2 {
 	raises?: Array<IProtocolRaise>
 	otherProtocols?: Array<string>
 	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
+	dimensions?: Record<string, { genuineSpikes?: Array<[string, string]>; adapter?: string }> | null
 	stablecoins?: Array<string>
 	misrepresentedTokens?: boolean
 	deprecated?: boolean

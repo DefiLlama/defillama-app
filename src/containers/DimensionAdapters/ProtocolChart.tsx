@@ -29,6 +29,7 @@ export const DimensionProtocolChartByType = ({
 	chartType,
 	breakdownNames,
 	metadata,
+	hallmarks,
 	title
 }: {
 	protocolName: string
@@ -37,6 +38,7 @@ export const DimensionProtocolChartByType = ({
 	chartType: 'chain' | 'version'
 	breakdownNames: string[]
 	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
+	hallmarks?: [number, string][]
 	title: string
 }) => {
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
@@ -176,6 +178,7 @@ export const DimensionProtocolChartByType = ({
 			chartType={chartType}
 			protocolName={protocolName}
 			adapterType={adapterType}
+			hallmarks={hallmarks}
 		/>
 	)
 }
@@ -188,7 +191,8 @@ const ChartByType = ({
 	breakdownNames,
 	chartType,
 	protocolName,
-	adapterType
+	adapterType,
+	hallmarks
 }: {
 	data: Array<[number, Record<string, number>]>
 	bribeData?: Array<[number, Record<string, number>]>
@@ -198,6 +202,7 @@ const ChartByType = ({
 	chartType: 'chain' | 'version'
 	protocolName: string
 	adapterType: string
+	hallmarks?: [number, string][]
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<LowercaseDwmcGrouping>('daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
@@ -402,6 +407,7 @@ const ChartByType = ({
 					groupBy={chartInterval}
 					valueSymbol="$"
 					showTotalInTooltip
+					hallmarks={hallmarks}
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>

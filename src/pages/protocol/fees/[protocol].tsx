@@ -16,6 +16,7 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
+import { buildHallmarksWithGenuineSpikes } from '~/containers/DimensionAdapters/utils'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -198,6 +199,10 @@ export const getStaticProps = withPerformanceLogging(
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
 
+		const hallmarks = buildHallmarksWithGenuineSpikes({
+			dimensions: protocolData.dimensions
+		})
+
 		const seoTitle = `${protocolData.name} ${defaultCharts.join(', ')} - DefiLlama`
 		const seoDescription = `Financial overview of ${protocolData.name} including ${defaultCharts.join(', ').toLowerCase()} with daily, weekly, monthly, and cumulative charts and historical data.`
 
@@ -230,6 +235,7 @@ export const getStaticProps = withPerformanceLogging(
 					tokenTaxData?.defaultChartView ??
 					'daily',
 				toggleOptions,
+				hallmarks,
 				seoTitle,
 				seoDescription
 			},
@@ -362,7 +368,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		}
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
 	const deferredFinalCharts = useDeferredValue(finalCharts)
-
+	console.log(props.hallmarks)
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -413,6 +419,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							charts={deferredFinalCharts.charts}
 							groupBy={groupBy}
 							valueSymbol="$"
+							hallmarks={props.hallmarks ?? undefined}
 							onReady={handleChartReady}
 						/>
 					</Suspense>
@@ -430,6 +437,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 								bribeRevenue: !!props.bribeRevenue,
 								tokenTax: !!props.tokenTax
 							}}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Fees by chain"
 						/>
 					</div>
@@ -445,6 +453,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 								bribeRevenue: !!props.bribeRevenue,
 								tokenTax: !!props.tokenTax
 							}}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Fees by protocol version"
 						/>
 					</div>
@@ -463,6 +472,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 										bribeRevenue: props.metrics.bribes ?? false,
 										tokenTax: props.metrics.tokenTax ?? false
 									}}
+									hallmarks={props.hallmarks ?? undefined}
 									title="Revenue by chain"
 								/>
 							</div>
@@ -479,6 +489,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									bribeRevenue: props.metrics.bribes ?? false,
 									tokenTax: props.metrics.tokenTax ?? false
 								}}
+								hallmarks={props.hallmarks ?? undefined}
 								title="Revenue by protocol version"
 							/>
 						</div>
