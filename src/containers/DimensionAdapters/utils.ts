@@ -5,7 +5,7 @@ import type {
 } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { getNDistinctColors, slug } from '~/utils'
-import type { IAdapterChainMetrics } from './api.types'
+import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
 import type { IChainsByAdapterPageData, IProtocol } from './types'
 
@@ -857,4 +857,52 @@ export function buildAdapterByChainLatestValuePresentation({
 		kind: 'hbar',
 		data: buildHBarPresentation({ selectedNames: selectedProtocols, latestRows })
 	}
+}
+
+/**
+ * Convert `dimensions.*.genuineSpikes` tuples from the adapter API into
+ * hallmark-compatible `[timestampSeconds, label]` entries and merge them
+ * with any pre-existing hallmarks (from hacks or protocol-level annotations).
+ *
+ * Timestamps are in **seconds** because the chart layer (`MultiSeriesChart2`)
+ * multiplies by 1e3 when rendering mark lines.
+ *
+ * Deduplicates by timestamp so the same date doesn't produce overlapping marks.
+ */
+export function buildHallmarksWithGenuineSpikes({
+	protocolHallmarks,
+	dimensions
+}: {
+	protocolHallmarks?: Array<unknown> | null
+	dimensions?: IAdapterProtocolMetrics['dimensions']
+}): Array<[number, string]> | null {
+	const hallmarkMap = new Map<number, string>()
+
+	for (const mark of protocolHallmarks ?? []) {
+		if (!Array.isArray(mark)) continue
+		if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
+			const ts = mark[0] >= 1e12 ? Math.floor(mark[0] / 1e3) : mark[0]
+			if (!hallmarkMap.has(ts)) {
+				hallmarkMap.set(ts, String(mark[1]))
+			}
+		}
+	}
+
+	if (dimensions) {
+		for (const dimKey in dimensions) {
+			const spikes = dimensions[dimKey]?.genuineSpikes
+			if (!spikes) continue
+			for (const [dateStr, label] of spikes) {
+				const ts = Math.floor(new Date(dateStr).getTime() / 1e3)
+				if (!Number.isFinite(ts)) continue
+				if (!hallmarkMap.has(ts)) {
+					hallmarkMap.set(ts, label)
+				}
+			}
+		}
+	}
+
+	if (hallmarkMap.size === 0) return null
+
+	return Array.from(hallmarkMap.entries()).sort((a, b) => a[0] - b[0])
 }

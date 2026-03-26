@@ -16,6 +16,7 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
+import { buildHallmarksWithGenuineSpikes } from '~/containers/DimensionAdapters/utils'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -198,12 +199,9 @@ export const getStaticProps = withPerformanceLogging(
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
 
-		const hallmarks: Array<[number, string]> = []
-		for (const mark of protocolData.hallmarks ?? []) {
-			if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
-				hallmarks.push([mark[0], mark[1]])
-			}
-		}
+		const hallmarks = buildHallmarksWithGenuineSpikes({
+			dimensions: protocolData.dimensions
+		})
 
 		const seoTitle = `${protocolData.name} ${defaultCharts.join(', ')} - DefiLlama`
 		const seoDescription = `Financial overview of ${protocolData.name} including ${defaultCharts.join(', ').toLowerCase()} with daily, weekly, monthly, and cumulative charts and historical data.`
@@ -237,7 +235,7 @@ export const getStaticProps = withPerformanceLogging(
 					tokenTaxData?.defaultChartView ??
 					'daily',
 				toggleOptions,
-				hallmarks: hallmarks.length > 0 ? hallmarks : null,
+				hallmarks,
 				seoTitle,
 				seoDescription
 			},
@@ -370,7 +368,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		}
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
 	const deferredFinalCharts = useDeferredValue(finalCharts)
-
+	console.log(props.hallmarks)
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
