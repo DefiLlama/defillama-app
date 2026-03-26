@@ -521,6 +521,32 @@
 	contain-intrinsic-size: auto 30px;
 }
 
+@utility marquee-container {
+	overflow: clip;
+}
+
+@utility marquee {
+	--gap: 20px;
+	--speed: 25s;
+	--direction: forwards;
+
+	display: flex;
+	width: max-content;
+	animation-name: marquee-animation;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-duration: var(--speed);
+	animation-direction: var(--direction);
+	padding-left: var(--gap);
+	gap: var(--gap);
+}
+
+@keyframes marquee-animation {
+	to {
+		transform: translateX(-50%);
+	}
+}
+
 /* --------------------------------- Base --------------------------------- */
 @layer base {
 	@font-face {
