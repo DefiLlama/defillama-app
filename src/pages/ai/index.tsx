@@ -876,6 +876,30 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 					</div>
 				</section>
 
+				{/* MCP Upsell */}
+				<section className="relative z-10 -mt-12 px-4 pb-10 md:-mt-16 md:px-8 md:pb-14">
+					<div className="mx-auto max-w-3xl">
+						<BasicLink
+							href="/mcp"
+							onClick={() => trackUmamiEvent('llamaai-mcp-upsell-click')}
+							className="group flex flex-col gap-4 rounded-2xl border border-[#5C5CF9]/20 bg-linear-to-r from-[#5C5CF9]/5 to-[#8A8AFF]/5 p-5 transition-colors hover:border-[#5C5CF9]/40 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+						>
+							<div>
+								<h3 className="font-semibold text-black dark:text-white">
+									Building with AI agents? <span className="text-[#5C5CF9]">Try our MCP Server</span>
+								</h3>
+								<p className="mt-1 max-w-lg text-sm text-[#555] dark:text-[#9a9a9f]">
+									Connect Claude, Cursor, OpenClaw, or any MCP-compatible agent directly to DefiLlama's data. 23 tools
+									for TVL, yields, prices, protocol metrics, and more.
+								</p>
+							</div>
+							<span className="shrink-0 self-start rounded-lg border border-[#5C5CF9]/30 px-4 py-2 text-sm font-medium text-[#5C5CF9] transition-colors group-hover:bg-[#5C5CF9]/10 sm:self-center">
+								Explore MCP
+							</span>
+						</BasicLink>
+					</div>
+				</section>
+
 				{/* Final CTA */}
 				<section className="relative z-10 px-4 pb-16 md:px-8 md:pb-24">
 					<div className="mx-auto max-w-3xl">

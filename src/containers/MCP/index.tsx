@@ -284,7 +284,9 @@ export default function MCPContainer() {
 			<section className="mx-auto max-w-[1100px] px-4 pb-10 pt-14 sm:px-6 md:px-8">
 				<div className="grid items-center gap-10 md:grid-cols-[1fr_1fr] md:gap-12">
 					<div>
-						<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-(--old-blue)">DefiLlama MCP Server</p>
+						<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-(--old-blue)">
+							DefiLlama MCP Server
+						</p>
 						<h1 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.75rem]">
 							DeFi Data for{' '}
 							<span className="bg-linear-to-r from-(--old-blue) to-[#8A8AFF] bg-clip-text text-transparent">
@@ -405,8 +407,8 @@ export default function MCPContainer() {
 								</span>
 							</h3>
 							<p className="mt-1 max-w-lg text-sm text-(--text-tertiary)">
-								Charts, onchain analysis, price forecasts, web search, and more. All in one AI chat. Available with
-								the Pro plan at a lower price point.
+								Charts, onchain analysis, price forecasts, web search, and more. All in one AI chat. Available with the
+								Pro plan at a lower price point.
 							</p>
 						</div>
 					</div>
@@ -465,8 +467,8 @@ export default function MCPContainer() {
 				<div className="mt-8">
 					<h3 className="mb-3 text-sm font-semibold text-(--text-secondary)">Install skills manually</h3>
 					<p className="mb-4 text-[13px] leading-relaxed text-(--text-tertiary)">
-						If you used the quick start prompt above, skills are already installed. Otherwise, install them
-						manually for your agent:
+						If you used the quick start prompt above, skills are already installed. Otherwise, install them manually for
+						your agent:
 					</p>
 					<div className="grid gap-4 md:grid-cols-2">
 						<CodeBlock label="Claude Code">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
