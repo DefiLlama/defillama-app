@@ -482,11 +482,13 @@ export default function MCPContainer() {
 					</p>
 					<div className="grid gap-4 md:grid-cols-2">
 						<CodeBlock label="Claude Code">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
-mkdir -p .claude/skills
-cp -r /tmp/defillama-skills/skills/* .claude/skills/`}</CodeBlock>
+mkdir -p ~/.claude/skills
+cp -r /tmp/defillama-skills/* ~/.claude/skills/
+rm -rf /tmp/defillama-skills`}</CodeBlock>
 						<CodeBlock label="OpenClaw">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
 mkdir -p ~/.openclaw/skills
-cp -r /tmp/defillama-skills/skills/* ~/.openclaw/skills/`}</CodeBlock>
+cp -r /tmp/defillama-skills/* ~/.openclaw/skills/
+rm -rf /tmp/defillama-skills`}</CodeBlock>
 					</div>
 				</div>
 			</section>
