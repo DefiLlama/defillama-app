@@ -198,6 +198,13 @@ export const getStaticProps = withPerformanceLogging(
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
 
+		const hallmarks: Array<[number, string]> = []
+		for (const mark of protocolData.hallmarks ?? []) {
+			if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
+				hallmarks.push([mark[0] * 1e3, mark[1]])
+			}
+		}
+
 		const seoTitle = `${protocolData.name} ${defaultCharts.join(', ')} - DefiLlama`
 		const seoDescription = `Financial overview of ${protocolData.name} including ${defaultCharts.join(', ').toLowerCase()} with daily, weekly, monthly, and cumulative charts and historical data.`
 
@@ -230,6 +237,7 @@ export const getStaticProps = withPerformanceLogging(
 					tokenTaxData?.defaultChartView ??
 					'daily',
 				toggleOptions,
+				hallmarks: hallmarks.length > 0 ? hallmarks : null,
 				seoTitle,
 				seoDescription
 			},
@@ -413,6 +421,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							charts={deferredFinalCharts.charts}
 							groupBy={groupBy}
 							valueSymbol="$"
+							hallmarks={props.hallmarks ?? undefined}
 							onReady={handleChartReady}
 						/>
 					</Suspense>
@@ -430,6 +439,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 								bribeRevenue: !!props.bribeRevenue,
 								tokenTax: !!props.tokenTax
 							}}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Fees by chain"
 						/>
 					</div>
@@ -445,6 +455,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 								bribeRevenue: !!props.bribeRevenue,
 								tokenTax: !!props.tokenTax
 							}}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Fees by protocol version"
 						/>
 					</div>
@@ -463,6 +474,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 										bribeRevenue: props.metrics.bribes ?? false,
 										tokenTax: props.metrics.tokenTax ?? false
 									}}
+									hallmarks={props.hallmarks ?? undefined}
 									title="Revenue by chain"
 								/>
 							</div>
@@ -479,6 +491,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									bribeRevenue: props.metrics.bribes ?? false,
 									tokenTax: props.metrics.tokenTax ?? false
 								}}
+								hallmarks={props.hallmarks ?? undefined}
 								title="Revenue by protocol version"
 							/>
 						</div>

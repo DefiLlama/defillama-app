@@ -62,6 +62,13 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const hallmarks: Array<[number, string]> = []
+		for (const mark of protocolData.hallmarks ?? []) {
+			if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
+				hallmarks.push([mark[0] * 1e3, mark[1]])
+			}
+		}
+
 		const seoTitle = `${protocolData.name} Perpetual Futures Volume - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} perpetual futures trading volume with daily and cumulative breakdowns on DefiLlama.`
 
@@ -106,6 +113,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: adapterData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
+				hallmarks: hallmarks.length > 0 ? hallmarks : null,
 				defaultChartView: adapterData?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
@@ -199,6 +207,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							charts={deferredFinalCharts.charts}
 							groupBy={groupBy}
 							valueSymbol="$"
+							hallmarks={props.hallmarks ?? undefined}
 							onReady={handleChartReady}
 						/>
 					</Suspense>
@@ -212,6 +221,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="derivatives"
 							breakdownNames={props.protocolChains}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Perp Volume by chain"
 						/>
 					</div>
@@ -223,6 +233,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="derivatives"
 							breakdownNames={props.protocolVersions}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Perp Volume by protocol version"
 						/>
 					</div>
