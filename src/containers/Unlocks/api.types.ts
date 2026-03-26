@@ -63,6 +63,9 @@ export interface ProtocolEmissionDetail {
 	unlockUsdChart?: unknown[] | null
 	futures?: Record<string, unknown> | null
 	categories?: Record<string, string[]> | null
+	componentData?: {
+		sections?: Record<string, { isTBD?: boolean; [key: string]: unknown }>
+	} | null
 }
 
 export interface EmissionSupplyMetrics {

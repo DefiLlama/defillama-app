@@ -193,6 +193,14 @@ function buildSeries({
 			delete base.areaStyle
 		}
 
+		if (chart.isTBD) {
+			base.itemStyle = { ...base.itemStyle, opacity: 0.2 }
+			if (base.areaStyle) {
+				base.areaStyle = { ...base.areaStyle, opacity: 0.1 }
+			}
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5 }
+		}
+
 		out.push(base)
 	}
 
