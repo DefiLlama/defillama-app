@@ -210,10 +210,9 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 
 	const filteredStats = React.useMemo(() => {
 		const withApy = filteredPools.filter((p) => p.apy !== 0)
-		if (withApy.length === 0) return null
 		return {
-			noOfPoolsTracked: withApy.length,
-			averageAPY: withApy.reduce((acc, { apy }) => acc + apy, 0) / withApy.length
+			noOfPoolsTracked: filteredPools.length,
+			averageAPY: withApy.length > 0 ? withApy.reduce((acc, { apy }) => acc + apy, 0) / withApy.length : null
 		}
 	}, [filteredPools])
 
@@ -245,8 +244,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex flex-wrap items-center gap-2 p-3">
 						<span>
-							{filteredStats
-								? `Tracking ${filteredStats.noOfPoolsTracked} ${filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'}, average APY ${filteredStats.averageAPY.toFixed(2)}%`
+							{filteredStats.noOfPoolsTracked > 0
+								? `Tracking ${filteredStats.noOfPoolsTracked} ${filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'}${filteredStats.averageAPY != null ? `, average APY ${filteredStats.averageAPY.toFixed(2)}%` : ''}`
 								: 'No pools matching filters'}
 						</span>
 					</div>
