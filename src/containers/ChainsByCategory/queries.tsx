@@ -172,89 +172,91 @@ export const getChainsByCategory = async ({
 		categoryName,
 		allCategories: categoryLinks,
 		colorsByChain,
-		chains: chainTvls.map((chain) => {
-			const name = slug(chain.name)
+		chains: chainTvls
+			.map((chain) => {
+				const name = slug(chain.name)
 
-			const fees24h = feesByDisplayName[chain.name]?.total24h ?? null
-			const fees7d = feesByDisplayName[chain.name]?.total7d ?? null
-			const fees30d = feesByDisplayName[chain.name]?.total30d ?? null
+				const fees24h = feesByDisplayName[chain.name]?.total24h ?? null
+				const fees7d = feesByDisplayName[chain.name]?.total7d ?? null
+				const fees30d = feesByDisplayName[chain.name]?.total30d ?? null
 
-			const revenue24h = revenueByDisplayName[chain.name]?.total24h ?? null
-			const revenue7d = revenueByDisplayName[chain.name]?.total7d ?? null
-			const revenue30d = revenueByDisplayName[chain.name]?.total30d ?? null
+				const revenue24h = revenueByDisplayName[chain.name]?.total24h ?? null
+				const revenue7d = revenueByDisplayName[chain.name]?.total7d ?? null
+				const revenue30d = revenueByDisplayName[chain.name]?.total30d ?? null
 
-			const appRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
-			const appRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
-			const appRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null
+				const appRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
+				const appRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
+				const appRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null
 
-			const dexVolume24h = dexs?.[chain.name]?.['24h'] ?? null
-			const dexVolume7d = dexs?.[chain.name]?.['7d'] ?? null
-			const dexVolume30d = dexs?.[chain.name]?.['30d'] ?? null
+				const dexVolume24h = dexs?.[chain.name]?.['24h'] ?? null
+				const dexVolume7d = dexs?.[chain.name]?.['7d'] ?? null
+				const dexVolume30d = dexs?.[chain.name]?.['30d'] ?? null
 
-			const stablesMcap = stablesChainMcapMap.get(name) ?? null
+				const stablesMcap = stablesChainMcapMap.get(name) ?? null
 
-			const activeUsers24h = activeUsersByDisplayName[chain.name]?.total24h ?? null
-			const activeUsers7d = activeUsersByDisplayName[chain.name]?.total7d ?? null
-			const activeUsers30d = activeUsersByDisplayName[chain.name]?.total30d ?? null
+				const activeUsers24h = activeUsersByDisplayName[chain.name]?.total24h ?? null
+				const activeUsers7d = activeUsersByDisplayName[chain.name]?.total7d ?? null
+				const activeUsers30d = activeUsersByDisplayName[chain.name]?.total30d ?? null
 
-			const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
+				const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 
-			const tvl =
-				(chain.tvl ?? 0) -
-				(chain.extraTvl?.doublecounted?.tvl ?? 0) -
-				(chain.extraTvl?.liquidstaking?.tvl ?? 0) +
-				(chain.extraTvl?.dcAndLsOverlap?.tvl ?? 0)
-			const tvlPrevDay =
-				(chain.tvlPrevDay ?? 0) -
-				(chain.extraTvl?.doublecounted?.tvlPrevDay ?? 0) -
-				(chain.extraTvl?.liquidstaking?.tvlPrevDay ?? 0) +
-				(chain.extraTvl?.dcAndLsOverlap?.tvlPrevDay ?? 0)
-			const tvlPrevWeek =
-				(chain.tvlPrevWeek ?? 0) -
-				(chain.extraTvl?.doublecounted?.tvlPrevWeek ?? 0) -
-				(chain.extraTvl?.liquidstaking?.tvlPrevWeek ?? 0) +
-				(chain.extraTvl?.dcAndLsOverlap?.tvlPrevWeek ?? 0)
-			const tvlPrevMonth =
-				(chain.tvlPrevMonth ?? 0) -
-				(chain.extraTvl?.doublecounted?.tvlPrevMonth ?? 0) -
-				(chain.extraTvl?.liquidstaking?.tvlPrevMonth ?? 0) +
-				(chain.extraTvl?.dcAndLsOverlap?.tvlPrevMonth ?? 0)
+				const tvl =
+					(chain.tvl ?? 0) -
+					(chain.extraTvl?.doublecounted?.tvl ?? 0) -
+					(chain.extraTvl?.liquidstaking?.tvl ?? 0) +
+					(chain.extraTvl?.dcAndLsOverlap?.tvl ?? 0)
+				const tvlPrevDay =
+					(chain.tvlPrevDay ?? 0) -
+					(chain.extraTvl?.doublecounted?.tvlPrevDay ?? 0) -
+					(chain.extraTvl?.liquidstaking?.tvlPrevDay ?? 0) +
+					(chain.extraTvl?.dcAndLsOverlap?.tvlPrevDay ?? 0)
+				const tvlPrevWeek =
+					(chain.tvlPrevWeek ?? 0) -
+					(chain.extraTvl?.doublecounted?.tvlPrevWeek ?? 0) -
+					(chain.extraTvl?.liquidstaking?.tvlPrevWeek ?? 0) +
+					(chain.extraTvl?.dcAndLsOverlap?.tvlPrevWeek ?? 0)
+				const tvlPrevMonth =
+					(chain.tvlPrevMonth ?? 0) -
+					(chain.extraTvl?.doublecounted?.tvlPrevMonth ?? 0) -
+					(chain.extraTvl?.liquidstaking?.tvlPrevMonth ?? 0) +
+					(chain.extraTvl?.dcAndLsOverlap?.tvlPrevMonth ?? 0)
 
-			const nftVolume24h = nftVolumeByDisplayName[chain.name]?.total24h ?? null
-			const nftVolume7d = nftVolumeByDisplayName[chain.name]?.total7d ?? null
-			const nftVolume30d = nftVolumeByDisplayName[chain.name]?.total30d ?? null
+				const nftVolume24h = nftVolumeByDisplayName[chain.name]?.total24h ?? null
+				const nftVolume7d = nftVolumeByDisplayName[chain.name]?.total7d ?? null
+				const nftVolume30d = nftVolumeByDisplayName[chain.name]?.total30d ?? null
 
-			return {
-				...chain,
-				protocols,
-				stablesMcap,
-				dexVolume24h,
-				dexVolume7d,
-				dexVolume30d,
-				fees24h,
-				fees7d,
-				fees30d,
-				revenue24h,
-				revenue7d,
-				revenue30d,
-				appRevenue24h,
-				appRevenue7d,
-				appRevenue30d,
-				activeUsers24h,
-				activeUsers7d,
-				activeUsers30d,
-				chainAssets: chainsAssets[chain.name] ?? null,
-				bridgedTvl: chainsAssets[chain.name]?.total?.total != null ? +chainsAssets[chain.name].total.total : null,
-				childGroups: rest.chainsGroupbyParent[chain.name] ?? null,
-				tvl,
-				tvlPrevDay,
-				tvlPrevWeek,
-				tvlPrevMonth,
-				nftVolume24h,
-				nftVolume7d,
-				nftVolume30d
-			}
-		}),
+				return {
+					...chain,
+					protocols,
+					stablesMcap,
+					dexVolume24h,
+					dexVolume7d,
+					dexVolume30d,
+					fees24h,
+					fees7d,
+					fees30d,
+					revenue24h,
+					revenue7d,
+					revenue30d,
+					appRevenue24h,
+					appRevenue7d,
+					appRevenue30d,
+					activeUsers24h,
+					activeUsers7d,
+					activeUsers30d,
+					chainAssets: chainsAssets[chain.name] ?? null,
+					bridgedTvl: chainsAssets[chain.name]?.total?.total != null ? +chainsAssets[chain.name].total.total : null,
+					childGroups: rest.chainsGroupbyParent[chain.name] ?? null,
+					tvl,
+					tvlPrevDay,
+					tvlPrevWeek,
+					tvlPrevMonth,
+					nftVolume24h,
+					nftVolume7d,
+					nftVolume30d
+				}
+			})
+			.sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)),
 		description:
 			category === 'All'
 				? 'Combined TVL, Fees, Volume, Stablecoins Supply by all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.'
