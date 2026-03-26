@@ -63,9 +63,9 @@ const clients = [
 	{ name: 'Cursor', icon: '/assets/mcp-clients/cursor.svg' },
 	{ name: 'Windsurf', icon: '/assets/mcp-clients/windsurf.svg' },
 	{ name: 'Codex', icon: '/assets/mcp-clients/codex.svg' },
-	{ name: 'Cline', icon: '/assets/mcp-clients/cline.svg' },
+	{ name: 'Gemini CLI', icon: '/assets/mcp-clients/gemini.svg' },
 	{ name: 'OpenCode', icon: '/assets/mcp-clients/opencode.svg' },
-	{ name: 'OpenClaw', icon: '/assets/mcp-clients/openclaw.svg' }
+	{ name: 'Cline', icon: '/assets/mcp-clients/cline.svg' }
 ]
 
 function ClientMarquee() {
@@ -186,6 +186,92 @@ function CodeBlock({ children, label }: { children: string; label: string }) {
 			<pre className="overflow-x-auto p-4 font-jetbrains text-[13px] leading-relaxed text-(--text-secondary)">
 				{children}
 			</pre>
+		</div>
+	)
+}
+
+const clientConfigs = [
+	{
+		name: 'Claude Code',
+		code: `claude mcp add defillama --transport http https://mcp.defillama.com/mcp`,
+	},
+	{
+		name: 'Codex',
+		code: `codex mcp add defillama --url https://mcp.defillama.com/mcp`,
+	},
+	{
+		name: 'Cursor / Windsurf',
+		code: `{
+  "mcpServers": {
+    "defillama": {
+      "url": "https://mcp.defillama.com/mcp"
+    }
+  }
+}`,
+	},
+	{
+		name: 'Gemini CLI',
+		code: `{
+  "mcpServers": {
+    "defillama": {
+      "httpUrl": "https://mcp.defillama.com/mcp"
+    }
+  }
+}`,
+	},
+	{
+		name: 'OpenCode',
+		code: `{
+  "mcp": {
+    "defillama": {
+      "type": "remote",
+      "url": "https://mcp.defillama.com/mcp"
+    }
+  }
+}`,
+	},
+]
+
+function ManualSetup() {
+	const [active, setActive] = useState(0)
+	return (
+		<div className="mt-10">
+			<h3 className="mb-4 text-center text-[13px] font-medium text-(--text-tertiary)">
+				Or add manually to your client config
+			</h3>
+			<div className="mx-auto max-w-2xl overflow-hidden rounded-md border border-(--cards-border) bg-(--bg-card)">
+				<div className="flex overflow-x-auto border-b border-(--cards-border) no-scrollbar">
+					{clientConfigs.map((c, i) => (
+						<button
+							key={c.name}
+							onClick={() => setActive(i)}
+							className={`shrink-0 px-4 py-2.5 text-[13px] font-medium transition-colors ${
+								active === i
+									? 'border-b-2 border-(--old-blue) text-(--old-blue)'
+									: 'text-(--text-tertiary) hover:text-(--text-primary)'
+							}`}
+						>
+							{c.name}
+						</button>
+					))}
+				</div>
+				<div className="relative">
+					<button
+						onClick={async () => {
+							try {
+								await navigator.clipboard.writeText(clientConfigs[active].code)
+								trackUmamiEvent('mcp-copy', { label: clientConfigs[active].name })
+							} catch {}
+						}}
+						className="absolute top-2 right-3 rounded-md px-2 py-0.5 text-[11px] text-(--text-tertiary) transition-colors hover:bg-(--btn-hover-bg) hover:text-(--text-primary)"
+					>
+						Copy
+					</button>
+					<pre className="overflow-x-auto p-4 font-jetbrains text-[13px] leading-relaxed text-(--text-secondary)">
+						{clientConfigs[active].code}
+					</pre>
+				</div>
+			</div>
 		</div>
 	)
 }
@@ -344,8 +430,8 @@ export default function MCPContainer() {
 						accessible through natural language.
 					</FeatureCard>
 					<FeatureCard icon={<span>🔑</span>} title="One-Click Setup">
-						Add the URL, log in once, done. Works with Claude, Cursor, VS Code, OpenClaw, and any MCP-compatible client.
-						Token refreshes silently.
+						Add the URL, log in once, done. Works with Claude Code, Cursor, Windsurf, Codex, Gemini CLI, OpenCode, and
+						more.
 					</FeatureCard>
 					<FeatureCard icon={<span>💳</span>} title="Uses Your API Credits">
 						Same credit pool as your DefiLlama API key. One credit per query. No separate billing. If you have an API
@@ -367,29 +453,15 @@ export default function MCPContainer() {
 					text="Read https://raw.githubusercontent.com/DefiLlama/defillama-skills/refs/heads/master/defillama-setup/SKILL.md and follow the instructions to connect to DefiLlama MCP"
 				/>
 
-				<div className="mt-10">
-					<h3 className="mb-4 text-center text-[13px] font-medium text-(--text-tertiary)">
-						Or add manually to your client config
-					</h3>
-					<div className="grid gap-4 md:grid-cols-2">
-						<CodeBlock label="Claude Code">{`claude mcp add defillama --transport http https://mcp.defillama.com/mcp`}</CodeBlock>
-						<CodeBlock label="Claude Desktop / Cursor / Windsurf">{`{
-  "mcpServers": {
-    "defillama": {
-      "url": "https://mcp.defillama.com/mcp"
-    }
-  }
-}`}</CodeBlock>
-					</div>
-				</div>
+				<ManualSetup />
 
 				<div className="mt-10 grid gap-4 md:grid-cols-3">
 					<StepCard step={1} title="Paste the URL">
 						Add the URL above to your MCP client. That's the only config needed.
 					</StepCard>
 					<StepCard step={2} title="Authenticate">
-						Run /mcp in Claude Code and select "Authenticate", or follow your agent's OAuth flow. Sign in with your
-						DefiLlama account. API plan required.
+						Your agent will prompt you to log in via browser on first use. Sign in with your DefiLlama account. API plan
+						required.
 					</StepCard>
 					<StepCard step={3} title="Start querying">
 						Ask your agent anything about DeFi. It calls the right tool automatically.
@@ -478,18 +550,10 @@ export default function MCPContainer() {
 				<div className="mt-8">
 					<h3 className="mb-3 text-sm font-semibold text-(--text-secondary)">Install skills manually</h3>
 					<p className="mb-4 text-[13px] leading-relaxed text-(--text-tertiary)">
-						If you used the quick start prompt above, skills are already installed. Otherwise, install them manually for
-						your agent:
+						The quick start prompt installs these automatically. To install manually, run:
 					</p>
-					<div className="grid gap-4 md:grid-cols-2">
-						<CodeBlock label="Claude Code">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
-mkdir -p ~/.claude/skills
-cp -r /tmp/defillama-skills/* ~/.claude/skills/
-rm -rf /tmp/defillama-skills`}</CodeBlock>
-						<CodeBlock label="OpenClaw">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
-mkdir -p ~/.openclaw/skills
-cp -r /tmp/defillama-skills/* ~/.openclaw/skills/
-rm -rf /tmp/defillama-skills`}</CodeBlock>
+					<div className="mx-auto max-w-2xl">
+						<CodeBlock label="Works with any agent">{`npx skills add DefiLlama/defillama-skills --yes`}</CodeBlock>
 					</div>
 				</div>
 			</section>

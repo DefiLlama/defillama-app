@@ -530,6 +530,7 @@
 	--speed: 25s;
 	--direction: forwards;
 
+	display: flex;
 	width: max-content;
 	animation-name: marquee-animation;
 	animation-timing-function: linear;
