@@ -59,6 +59,7 @@ const toolCategories = [
 
 const clients = [
 	{ name: 'Claude', icon: '/assets/mcp-clients/claude.svg' },
+	{ name: 'OpenClaw', icon: '/assets/mcp-clients/openclaw.svg' },
 	{ name: 'Claude Code', icon: '/assets/mcp-clients/claudecode.svg' },
 	{ name: 'Cursor', icon: '/assets/mcp-clients/cursor.svg' },
 	{ name: 'Windsurf', icon: '/assets/mcp-clients/windsurf.svg' },
@@ -194,6 +195,19 @@ const clientConfigs = [
 	{
 		name: 'Claude Code',
 		code: `claude mcp add defillama --transport http https://mcp.defillama.com/mcp`,
+	},
+	{
+		name: 'OpenClaw',
+		code: `{
+  "mcp": {
+    "servers": {
+      "defillama": {
+        "command": "npx",
+        "args": ["-y", "mcp-remote", "https://mcp.defillama.com/mcp"]
+      }
+    }
+  }
+}`,
 	},
 	{
 		name: 'Codex',
@@ -429,9 +443,9 @@ export default function MCPContainer() {
 						TVL, fees, revenue, token prices, yields, stablecoins, bridges, ETFs, hacks, treasuries, and more, all
 						accessible through natural language.
 					</FeatureCard>
-					<FeatureCard icon={<span>🔑</span>} title="One-Click Setup">
-						Add the URL, log in once, done. Works with Claude Code, Cursor, Windsurf, Codex, Gemini CLI, OpenCode, and
-						more.
+					<FeatureCard icon={<span>🔑</span>} title="Easy Setup">
+						Add the config, your agent walks you through login. Works with Claude Code, OpenClaw, Cursor, Codex, Gemini
+						CLI, and more.
 					</FeatureCard>
 					<FeatureCard icon={<span>💳</span>} title="Uses Your API Credits">
 						Same credit pool as your DefiLlama API key. One credit per query. No separate billing. If you have an API
@@ -449,7 +463,7 @@ export default function MCPContainer() {
 				/>
 
 				<CopyBox
-					label="Paste into Claude, Cursor, or any AI agent"
+					label="Paste into Claude, OpenClaw, or any AI agent"
 					text="Read https://raw.githubusercontent.com/DefiLlama/defillama-skills/refs/heads/master/defillama-setup/SKILL.md and follow the instructions to connect to DefiLlama MCP"
 				/>
 
