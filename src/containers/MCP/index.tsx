@@ -142,14 +142,16 @@ function CopyBox({ text, label }: { text: string; label: string }) {
 				<div className="flex items-center justify-between border-b border-(--cards-border) px-4 py-2.5">
 					<span className="text-xs font-medium text-(--old-blue)">{label}</span>
 					<button
-						onClick={(e) => {
-							navigator.clipboard.writeText(text)
-							trackUmamiEvent('mcp-copy', { label })
+						onClick={async (e) => {
 							const btn = e.currentTarget
-							btn.textContent = 'Copied!'
-							setTimeout(() => {
-								btn.textContent = 'Copy'
-							}, 2000)
+							try {
+								await navigator.clipboard.writeText(text)
+								trackUmamiEvent('mcp-copy', { label })
+								btn.textContent = 'Copied!'
+								setTimeout(() => {
+									btn.textContent = 'Copy'
+								}, 2000)
+							} catch {}
 						}}
 						className="rounded-md px-3 py-1 text-xs font-medium text-(--old-blue) transition-colors hover:bg-(--old-blue)/10"
 					>
@@ -170,9 +172,11 @@ function CodeBlock({ children, label }: { children: string; label: string }) {
 			<div className="flex items-center justify-between border-b border-(--cards-border) px-4 py-2">
 				<span className="text-xs font-medium text-(--text-tertiary)">{label}</span>
 				<button
-					onClick={() => {
-						navigator.clipboard.writeText(children)
-						trackUmamiEvent('mcp-copy', { label })
+					onClick={async () => {
+						try {
+							await navigator.clipboard.writeText(children)
+							trackUmamiEvent('mcp-copy', { label })
+						} catch {}
 					}}
 					className="rounded-md px-2 py-0.5 text-[11px] text-(--text-tertiary) transition-colors hover:bg-(--btn-hover-bg) hover:text-(--text-primary)"
 				>
@@ -228,10 +232,16 @@ function ToolCategoryGroup({
 	defaultOpen?: boolean
 }) {
 	const [open, setOpen] = useState(defaultOpen ?? true)
+	const panelId = `tools-${label
+		.toLowerCase()
+		.replace(/\s+&\s+/g, '-')
+		.replace(/\s+/g, '-')}`
 	return (
 		<div>
 			<button
 				onClick={() => setOpen((v) => !v)}
+				aria-expanded={open}
+				aria-controls={panelId}
 				className="mb-2 flex w-full items-center gap-2 text-left text-xs font-semibold uppercase tracking-widest text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 			>
 				<svg
@@ -249,7 +259,7 @@ function ToolCategoryGroup({
 				<span className="text-(--text-disabled) font-normal normal-case tracking-normal">({tools.length})</span>
 			</button>
 			{open && (
-				<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+				<div id={panelId} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 					{tools.map((t) => (
 						<div
 							key={t.name}
@@ -345,7 +355,7 @@ export default function MCPContainer() {
 			</section>
 
 			{/* Quick Start */}
-			<section id="setup" className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 md:px-8">
+			<section id="setup" className="mx-auto max-w-[1100px] scroll-mt-20 px-4 py-12 sm:px-6 md:px-8">
 				<SectionHeader
 					overline="Quick Start"
 					title="Paste This Into Your Agent"
@@ -419,7 +429,7 @@ export default function MCPContainer() {
 			</section>
 
 			{/* Tools */}
-			<section id="tools" className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 md:px-8">
+			<section id="tools" className="mx-auto max-w-[1100px] scroll-mt-20 px-4 py-12 sm:px-6 md:px-8">
 				<SectionHeader overline="23 Tools" title="Everything DeFi, One Connection" />
 
 				<div className="space-y-6">
@@ -472,8 +482,10 @@ export default function MCPContainer() {
 					</p>
 					<div className="grid gap-4 md:grid-cols-2">
 						<CodeBlock label="Claude Code">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
+mkdir -p .claude/skills
 cp -r /tmp/defillama-skills/skills/* .claude/skills/`}</CodeBlock>
 						<CodeBlock label="OpenClaw">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
+mkdir -p ~/.openclaw/skills
 cp -r /tmp/defillama-skills/skills/* ~/.openclaw/skills/`}</CodeBlock>
 					</div>
 				</div>
