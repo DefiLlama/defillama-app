@@ -18,7 +18,8 @@ const DASHBOARD_REGISTRY: Record<string, () => Promise<DashboardModule>> = {
 	roxh2oxb1b7fhjz: () => import('./dashboards/spark'),
 	l5accmh9zooc32q: () => import('./dashboards/maple'),
 	t62luatlj9thwx2: () => import('./dashboards/berachain'),
-	g3rswlkr9khxa03: () => import('./dashboards/aave')
+	g3rswlkr9khxa03: () => import('./dashboards/aave'),
+	s0n1cd4shb0ard1: () => import('./dashboards/sonic')
 }
 
 export function getDashboardModule(dashboardId: string) {
