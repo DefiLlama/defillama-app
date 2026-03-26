@@ -1,12 +1,10 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useState, type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { Icon } from '~/components/Icon'
+import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { useAuthContext } from '../Subscribtion/auth'
-import { setSignupSource } from '../Subscribtion/signupSource'
-
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
+import { WalletProvider } from '~/layout/WalletProvider'
 
 const toolCategories = [
 	{
@@ -95,7 +93,7 @@ function ClientMarquee() {
 }
 
 const skills = [
-	{ name: 'defi-data', desc: 'Core reference — maps any DeFi question to the right tool' },
+	{ name: 'defi-data', desc: 'Core reference: maps any DeFi question to the right tool' },
 	{ name: 'protocol-deep-dive', desc: 'Complete protocol report: TVL, fees, yields, income, users, token' },
 	{ name: 'token-research', desc: 'Token analysis: price, unlocks, DeFi deposits, yield opportunities' },
 	{ name: 'chain-ecosystem', desc: 'Blockchain overview: TVL, top protocols, bridges, stablecoins' },
@@ -126,11 +124,11 @@ function TerminalMock() {
 					<span className="text-(--text-tertiary)"> sort_by: &quot;tvl_base desc&quot;, limit: 5</span>
 				</div>
 				<div className="text-(--success)">
-					<div>1. Aave — $25.7B</div>
-					<div>2. Lido — $20.0B</div>
-					<div>3. SSV Network — $15.5B</div>
-					<div>4. EigenCloud — $9.2B</div>
-					<div>5. Binance Staked ETH — $8.0B</div>
+					<div>1. Aave · $25.7B</div>
+					<div>2. Lido · $20.0B</div>
+					<div>3. SSV Network · $15.5B</div>
+					<div>4. EigenCloud · $9.2B</div>
+					<div>5. Binance Staked ETH · $8.0B</div>
 				</div>
 			</div>
 		</div>
@@ -274,7 +272,6 @@ export default function MCPContainer() {
 	const handleGetStarted = () => {
 		trackUmamiEvent('mcp-get-started', { authenticated: isAuthenticated, subscribed: hasActiveSubscription })
 		if (!isAuthenticated || !hasActiveSubscription) {
-			setSignupSource('mcp')
 			dialog.show()
 			return
 		}
@@ -296,10 +293,10 @@ export default function MCPContainer() {
 						</h1>
 						<p className="mb-2 max-w-lg text-[15px] leading-relaxed text-(--text-tertiary)">
 							Connect your AI agent to DefiLlama data. Ask questions about TVL, yields, token prices, protocol metrics,
-							stablecoins, bridges, ETFs, and more — your agent gets the answers directly.
+							stablecoins, bridges, ETFs, and more. Your agent gets the answers directly.
 						</p>
 						<p className="mb-6 text-[13px] text-(--text-disabled)">
-							Requires an API plan — uses the same credits as your API key.
+							Requires an API plan. Uses the same credits as your DefiLlama API key.
 						</p>
 						<div className="flex flex-wrap gap-3">
 							<button
@@ -331,7 +328,7 @@ export default function MCPContainer() {
 			<section className="mx-auto max-w-[1100px] px-4 py-12 sm:px-6 md:px-8">
 				<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					<FeatureCard icon={<span>🔌</span>} title="23 DeFi Tools">
-						TVL, fees, revenue, token prices, yields, stablecoins, bridges, ETFs, hacks, treasuries, and more — all
+						TVL, fees, revenue, token prices, yields, stablecoins, bridges, ETFs, hacks, treasuries, and more, all
 						accessible through natural language.
 					</FeatureCard>
 					<FeatureCard icon={<span>🔑</span>} title="One-Click Setup">
@@ -339,8 +336,8 @@ export default function MCPContainer() {
 						Token refreshes silently.
 					</FeatureCard>
 					<FeatureCard icon={<span>💳</span>} title="Uses Your API Credits">
-						Same credit pool as your API key. One credit per query. No separate billing — if you have an API plan,
-						you're already set.
+						Same credit pool as your DefiLlama API key. One credit per query. No separate billing. If you have an API
+						plan, you're already set.
 					</FeatureCard>
 				</div>
 			</section>
@@ -350,7 +347,7 @@ export default function MCPContainer() {
 				<SectionHeader
 					overline="Quick Start"
 					title="Paste This Into Your Agent"
-					description="Copy this prompt and send it to your AI agent — it handles the rest."
+					description="Copy this prompt and send it to your AI agent. It handles the rest."
 				/>
 
 				<CopyBox
@@ -408,7 +405,7 @@ export default function MCPContainer() {
 								</span>
 							</h3>
 							<p className="mt-1 max-w-lg text-sm text-(--text-tertiary)">
-								Charts, on-chain analysis, price forecasts, web search, and more — all in one AI chat. Available with
+								Charts, onchain analysis, price forecasts, web search, and more. All in one AI chat. Available with
 								the Pro plan at a lower price point.
 							</p>
 						</div>
@@ -435,7 +432,7 @@ export default function MCPContainer() {
 				<SectionHeader
 					overline="Workflow Skills"
 					title="Guided Research Workflows"
-					description="Optional skills that teach your agent structured analysis patterns — turn raw tools into expert-level DeFi research. These are installed automatically by the quick start prompt unless you opted to skip them."
+					description="Optional skills that teach your agent structured analysis patterns, turning raw tools into expert-level DeFi research. Installed automatically by the quick start prompt unless you opted to skip them."
 				/>
 
 				<div className="grid gap-2 sm:grid-cols-2">
@@ -492,12 +489,26 @@ cp -r /tmp/defillama-skills/skills/* ~/.openclaw/skills/`}</CodeBlock>
 				</button>
 			</section>
 
-			{/* Subscribe Modal */}
-			<Ariakit.Dialog store={dialog} backdrop={<div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />}>
-				<Suspense>
-					<SubscribeProModal dialogStore={dialog} />
-				</Suspense>
-			</Ariakit.Dialog>
+			{/* API Subscribe Modal */}
+			<WalletProvider>
+				<Ariakit.DialogProvider store={dialog}>
+					<Ariakit.Dialog
+						className="dialog flex max-h-[85dvh] max-w-md flex-col overflow-hidden rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
+						portal
+						unmountOnHide
+					>
+						<span className="mx-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden">
+							<Ariakit.DialogDismiss className="ml-auto shrink-0 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
+								<Icon name="x" height={18} width={18} />
+								<span className="sr-only">Close</span>
+							</Ariakit.DialogDismiss>
+							<div className="min-h-0 flex-1 overflow-y-auto">
+								<SubscribeAPICard />
+							</div>
+						</span>
+					</Ariakit.Dialog>
+				</Ariakit.DialogProvider>
+			</WalletProvider>
 		</>
 	)
 }

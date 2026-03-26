@@ -7,7 +7,7 @@ export default function MCP() {
 	return (
 		<>
 			<Head>
-				<title>DefiLlama MCP — DeFi Data for AI Agents</title>
+				<title>DefiLlama MCP: DeFi Data for AI Agents</title>
 				<meta
 					name="description"
 					content="Connect Claude, Cursor, and other AI agents to DefiLlama's DeFi analytics. 23 tools for TVL, token prices, yields, protocol metrics, and more."
