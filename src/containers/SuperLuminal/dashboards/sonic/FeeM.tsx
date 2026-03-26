@@ -1,9 +1,17 @@
-import { lazy, useEffect, useMemo, useState } from 'react'
+import { lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel } from '@tanstack/react-table'
+import * as echarts from 'echarts/core'
+import { TreemapChart as EChartsTreemap } from 'echarts/charts'
+import { TooltipComponent, GraphicComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import type { IMultiSeriesChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/SuperLuminal/index'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { formattedNum } from '~/utils'
 import { useFeeMData, type FeeMLeaderboardEntry } from './feemApi'
 import { SonicIcon } from './SonicHeader'
+
+echarts.use([EChartsTreemap, TooltipComponent, GraphicComponent, CanvasRenderer])
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart')) as React.FC<IMultiSeriesChartProps>
 
@@ -38,6 +46,97 @@ function formatNumber(n: number): string {
 
 function formatS(n: number): string {
 	return `${formatNumber(n)} S`
+}
+
+const TREEMAP_COLORS = [
+	'#4691ce', '#4cae4f', '#e3570a', '#fac461', '#7f6562',
+	'#3b5d88', '#cf6a87', '#63cdda', '#f78fb3', '#778beb',
+	'#e77f67', '#786fa6', '#f5cd79', '#ea8685', '#596275',
+	'#574b90', '#f19066', '#3dc1d3', '#e15f41', '#c44569',
+	'#546de5', '#574b90', '#f78fb3', '#3dc1d3', '#e66767',
+	'#303952', '#574b90', '#fc5c65', '#45aaf2', '#26de81',
+]
+
+function FeeMTreemap({ leaderboard }: { leaderboard: FeeMLeaderboardEntry[] }) {
+	const id = useId()
+	const chartRef = useRef<echarts.ECharts | null>(null)
+	const [isDark] = useDarkModeManager()
+
+	const treeData = useMemo(() => {
+		return leaderboard
+			.filter((p) => p.collectedRewards > 0)
+			.map((p, i) => ({
+				name: p.name || 'Sonic',
+				value: p.collectedRewards,
+				itemStyle: { color: TREEMAP_COLORS[i % TREEMAP_COLORS.length] }
+			}))
+	}, [leaderboard])
+
+	useEffect(() => {
+		const el = document.getElementById(id)
+		if (!el) return
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
+		chartRef.current = instance
+
+		instance.setOption(
+			{
+				tooltip: {
+					formatter(info: any) {
+						return `<b>${info.name}</b><br/>Collected: ${formatS(info.value)}`
+					}
+				},
+				series: [
+					{
+						type: 'treemap',
+						top: 4,
+						left: 4,
+						right: 4,
+						bottom: 4,
+						roam: false,
+						nodeClick: false,
+						breadcrumb: { show: false },
+						label: {
+							show: true,
+							position: 'insideTopLeft',
+							color: '#fff',
+							textBorderColor: 'rgba(0,0,0,0.3)',
+							textBorderWidth: 2,
+							formatter(params: any) {
+								return `{name|${params.name}}\n{val|${formatS(params.value)}}`
+							},
+							rich: {
+								name: { fontSize: 13, fontWeight: 600, color: '#fff', lineHeight: 20 },
+								val: { fontSize: 11, color: 'rgba(255,255,255,0.85)', lineHeight: 18 }
+							}
+						},
+						itemStyle: {
+							borderColor: isDark ? '#1a1a2e' : '#fff',
+							borderWidth: 2,
+							gapWidth: 1
+						},
+						emphasis: {
+							itemStyle: { borderColor: isDark ? '#444' : '#ccc' }
+						},
+						data: treeData
+					}
+				]
+			},
+			{ notMerge: true }
+		)
+
+		return () => {
+			chartRef.current = null
+			instance.dispose()
+		}
+	}, [id, treeData, isDark])
+
+	useEffect(() => {
+		const handleResize = () => chartRef.current?.resize()
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [])
+
+	return <div id={id} className="w-full" style={{ height: '400px' }} />
 }
 
 const columnHelper = createColumnHelper<FeeMLeaderboardEntry>()
@@ -166,6 +265,14 @@ export default function FeeM() {
 						yAxisSymbols={['', 'S']}
 						height="400px"
 					/>
+				</ChartCard>
+			</div>
+
+			{/* Rewards Treemap */}
+			<div className="flex flex-col gap-4">
+				<SectionHeader>Rewards Distribution</SectionHeader>
+				<ChartCard title="Collected Rewards by Protocol">
+					<FeeMTreemap leaderboard={data.leaderboard} />
 				</ChartCard>
 			</div>
 
