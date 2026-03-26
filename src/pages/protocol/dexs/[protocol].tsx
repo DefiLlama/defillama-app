@@ -65,7 +65,7 @@ export const getStaticProps = withPerformanceLogging(
 		const hallmarks: Array<[number, string]> = []
 		for (const mark of protocolData.hallmarks ?? []) {
 			if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
-				hallmarks.push([mark[0] * 1e3, mark[1]])
+				hallmarks.push([mark[0], mark[1]])
 			}
 		}
 
