@@ -87,8 +87,7 @@ function useChartData(usageStats: any, colors: ChartColors) {
 		const topRoutesSet = new Set(topRoutes)
 		const hasOthers = sortedRoutes.length > TOP_ROUTES
 
-		const makeTimestamp = (date: string) =>
-			date.includes('T') ? Date.parse(date) : Date.parse(`${date}T00:00:00Z`)
+		const makeTimestamp = (date: string) => (date.includes('T') ? Date.parse(date) : Date.parse(`${date}T00:00:00Z`))
 
 		const seriesNames = hasOthers ? [...topRoutes, 'Others'] : topRoutes
 		const dimensions = ['date', ...seriesNames]
@@ -147,8 +146,10 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 		tooltipBorder: ''
 	}
 
-	const { sortedStats, totalRequests, averageRequests, dataset, charts, windowDays } =
-		useChartData(usageStats, activeColors)
+	const { sortedStats, totalRequests, averageRequests, dataset, charts, windowDays } = useChartData(
+		usageStats,
+		activeColors
+	)
 
 	const hasData = sortedStats.length > 0 && !isLoading && !isError
 	const totalLabel = hasData ? formattedNum(totalRequests) : '--'
@@ -190,8 +191,7 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 
 					const firstValue = list[0]?.value ?? list[0]?.data
 					const dateKey = firstValue?.date ?? firstValue?.[0]
-					const dateLabel =
-						typeof dateKey === 'number' ? formatTooltipChartDate(dateKey, 'daily') : ''
+					const dateLabel = typeof dateKey === 'number' ? formatTooltipChartDate(dateKey, 'daily') : ''
 
 					const items: Array<{ name: string; value: number; marker: string }> = []
 					let total = 0
@@ -244,10 +244,7 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 				<div className="flex flex-wrap gap-x-4 gap-y-1">
 					{charts.map((series) => (
 						<div key={series.name} className="flex items-center gap-1.5">
-							<span
-								className="inline-block h-2 w-2 rounded-full"
-								style={{ backgroundColor: series.color }}
-							/>
+							<span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: series.color }} />
 							<span className="text-[10px] text-(--sub-c-878787)">{series.name}</span>
 						</div>
 					))}

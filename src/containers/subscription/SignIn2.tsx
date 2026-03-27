@@ -42,7 +42,7 @@ export function SignIn2Modal({
 			</button>
 			<Ariakit.Dialog
 				store={dialogStore}
-				className="dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-[#181a1b] px-5 pt-6 pb-5 shadow-2xl max-sm:drawer max-sm:max-w-none max-sm:rounded-b-none"
+				className="dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-[#181a1b] px-5 pt-6 pb-5 shadow-2xl max-sm:max-w-none max-sm:drawer max-sm:rounded-b-none"
 				unmountOnHide
 			>
 				<SignIn2Flow dialogStore={dialogStore} />
@@ -53,7 +53,7 @@ export function SignIn2Modal({
 
 /* ── Multi-step flow ───────────────────────────────────────────────── */
 
-function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
+export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
 	const [step, setStep] = useState<Step>('email')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
@@ -236,7 +236,7 @@ function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
 						/>
 						<button
 							type="button"
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-[#878787] hover:text-white"
+							className="absolute top-1/2 right-3 -translate-y-1/2 text-[#878787] hover:text-white"
 							onClick={() => setShowPassword(!showPassword)}
 							tabIndex={-1}
 						>
@@ -286,7 +286,7 @@ function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
 						/>
 						<button
 							type="button"
-							className="absolute right-3 top-1/2 -translate-y-1/2 text-[#878787] hover:text-white"
+							className="absolute top-1/2 right-3 -translate-y-1/2 text-[#878787] hover:text-white"
 							onClick={() => setShowPassword(!showPassword)}
 							tabIndex={-1}
 						>
@@ -319,11 +319,7 @@ function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
 					</label>
 				</form>
 
-				<button
-					type="button"
-					className="mt-4 w-full text-center text-xs text-[#4b86db]"
-					onClick={() => goTo('signin')}
-				>
+				<button type="button" className="mt-4 w-full text-center text-xs text-[#4b86db]" onClick={() => goTo('signin')}>
 					Already have an account? Sign in
 				</button>
 			</>

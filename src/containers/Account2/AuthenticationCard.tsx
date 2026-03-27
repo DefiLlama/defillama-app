@@ -140,14 +140,13 @@ export function AuthenticationCard() {
 								className="shrink-0 text-sub-warning-text-light dark:text-sub-warning-text-dark"
 							/>
 							<p className="text-xs leading-4 text-sub-warning-text-light dark:text-sub-warning-text-dark">
-								Your email is not verified. Please verify your email by clicking the link sent to your
-								email.
+								Your email is not verified. Please verify your email by clicking the link sent to your email.
 							</p>
 						</div>
 						<button
 							onClick={handleResendVerification}
 							disabled={loaders.resendVerification}
-							className="flex h-8 shrink-0 items-center whitespace-nowrap rounded-lg border border-sub-warning-border-light px-3 text-xs font-medium text-sub-warning-text-light disabled:opacity-50 dark:border-sub-warning-border-dark dark:text-sub-warning-text-dark"
+							className="flex h-8 shrink-0 items-center rounded-lg border border-sub-warning-border-light px-3 text-xs font-medium whitespace-nowrap text-sub-warning-text-light disabled:opacity-50 dark:border-sub-warning-border-dark dark:text-sub-warning-text-dark"
 						>
 							{loaders.resendVerification ? 'Sending...' : 'Resend Email'}
 						</button>
@@ -164,10 +163,7 @@ export function AuthenticationCard() {
 				cooldownMessage={passwordCooldownMsg}
 			/>
 
-			<EmailChangeModal
-				isOpen={isEmailModalOpen}
-				onClose={() => setIsEmailModalOpen(false)}
-			/>
+			<EmailChangeModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} />
 		</>
 	)
 }

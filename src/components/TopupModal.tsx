@@ -85,11 +85,13 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
 			onClick={(e) => e.target === e.currentTarget && handleClose()}
 		>
-			<div className={`flex max-h-[90vh] w-full max-w-[420px] flex-col overflow-y-auto rounded-2xl border ${
-				step === 'stripe'
-					? 'border-(--sub-c-ced8e6) bg-white'
-					: 'border-(--sub-c-ced8e6) bg-white dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)'
-			}`}>
+			<div
+				className={`flex max-h-[90vh] w-full max-w-[420px] flex-col overflow-y-auto rounded-2xl border ${
+					step === 'stripe'
+						? 'border-(--sub-c-ced8e6) bg-white'
+						: 'border-(--sub-c-ced8e6) bg-white dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)'
+				}`}
+			>
 				{step === 'stripe' ? (
 					<>
 						{/* Stripe step header — always light */}
@@ -104,19 +106,13 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 								<Icon name="arrow-left" height={18} width={18} />
 							</button>
 							<div className="flex-1">
-								<h3 className="text-xl font-semibold leading-7 text-(--sub-c-090b0c)">
-									Complete Payment
-								</h3>
+								<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c)">Complete Payment</h3>
 								<p className="text-xs text-(--sub-c-878787)">
-									Top up{' '}
-									<span className="font-semibold text-(--sub-c-1f67d2)">${parsedAmount.toFixed(2)}</span> to
-									your External Data Balance
+									Top up <span className="font-semibold text-(--sub-c-1f67d2)">${parsedAmount.toFixed(2)}</span> to your
+									External Data Balance
 								</p>
 							</div>
-							<button
-								onClick={handleClose}
-								className="rounded-full p-1 text-(--sub-c-090b0c) transition-colors"
-							>
+							<button onClick={handleClose} className="rounded-full p-1 text-(--sub-c-090b0c) transition-colors">
 								<Icon name="x" height={24} width={24} />
 							</button>
 						</div>
@@ -145,9 +141,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 					<div className="flex flex-col gap-5 px-5 py-6">
 						{/* Header */}
 						<div className="flex items-center justify-between">
-							<h3 className="text-xl font-semibold leading-7 text-(--sub-c-090b0c) dark:text-white">
-								Top Up Balance
-							</h3>
+							<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c) dark:text-white">Top Up Balance</h3>
 							<button
 								onClick={handleClose}
 								className="rounded-full p-1 text-(--sub-c-090b0c) transition-colors dark:text-white"
@@ -156,9 +150,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 							</button>
 						</div>
 
-						<p className="text-xs leading-4 text-(--sub-c-878787)">
-							Add credits for LlamaAI to access premium data
-						</p>
+						<p className="text-xs leading-4 text-(--sub-c-878787)">Add credits for LlamaAI to access premium data</p>
 
 						{/* Amount input */}
 						<div className="flex flex-col gap-2">

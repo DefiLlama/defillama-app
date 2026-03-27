@@ -14,7 +14,7 @@ export function UserHeader({ displayName, onLogout }: UserHeaderProps) {
 			</div>
 			<button
 				onClick={onLogout}
-				className="flex h-8 items-center justify-center gap-1 rounded-lg border border-(--sub-c-dedede) dark:border-(--sub-c-2f3336) px-3 text-xs font-medium leading-4 text-(--error)"
+				className="flex h-8 items-center justify-center gap-1 rounded-lg border border-(--sub-c-dedede) px-3 text-xs leading-4 font-medium text-(--error) dark:border-(--sub-c-2f3336)"
 			>
 				<Icon name="sign-out" height={16} width={16} />
 				<span>Sign Out</span>

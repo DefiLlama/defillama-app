@@ -55,7 +55,9 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 				title: 'Analysis & AI Tools',
 				items: [
 					{ label: 'LlamaAI: Conversational Analytics', availability: 'check', highlightText: true },
+					{ label: 'Deep research: 5/day', availability: 'check' },
 					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'check' },
+					{ label: 'Custom Columns for personalized analysis', availability: 'check' },
 					{ label: 'Access to DefiLlama Sheets', availability: 'check' },
 					{ label: 'CSV data downloads', availability: 'check' },
 					{ label: 'Full access to LlamaFeed', availability: 'check' },
@@ -82,6 +84,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Access to TVL, revenue/fees and prices API endpoints', availability: 'check' },
 					{ label: 'Access to all data (unlocks, active users, token liq...)', availability: 'check' },
 					{ label: 'Priority support', availability: 'check' },
+					{ label: 'Access to DefiLlama MCP Server for AI agents', availability: 'check' },
 					{ label: '1000 requests/minute', availability: 'check' },
 					{ label: '1M calls/month', availability: 'check' },
 					{ label: '$0.60 per 1,000 additional calls after 1M limit', availability: 'check' }
@@ -144,7 +147,9 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 				title: 'Analysis & AI Tools',
 				items: [
 					{ label: 'LlamaAI: Conversational Analytics', availability: 'check', highlightText: true },
+					{ label: 'Deep research: 5/day', availability: 'check' },
 					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'check' },
+					{ label: 'Custom Columns for personalized analysis', availability: 'check' },
 					{ label: 'Access to DefiLlama Sheets', availability: 'check' },
 					{ label: 'CSV data downloads', availability: 'check' },
 					{ label: 'Full access to LlamaFeed', availability: 'check' },
@@ -171,6 +176,7 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Access to TVL, revenue/fees and prices API endpoints', availability: 'check' },
 					{ label: 'Access to all data (unlocks, active users, token liq...)', availability: 'check' },
 					{ label: 'Priority support', availability: 'check' },
+					{ label: 'Access to DefiLlama MCP Server for AI agents', availability: 'check' },
 					{ label: '1000 requests/minute', availability: 'check' },
 					{ label: '1M calls/month', availability: 'check' },
 					{ label: '$0.60 per 1,000 additional calls after 1M limit', availability: 'check' }

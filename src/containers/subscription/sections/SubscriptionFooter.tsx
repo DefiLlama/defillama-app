@@ -6,13 +6,31 @@ import { BasicLink } from '~/components/Link'
 function SocialIcons({ size }: { size: number }) {
 	return (
 		<div className="flex items-center gap-2">
-			<a href="https://discord.defillama.com" target="_blank" rel="noopener noreferrer" aria-label="Discord" className="rounded-full p-1 text-(--sub-social-icon)">
+			<a
+				href="https://discord.defillama.com"
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="Discord"
+				className="rounded-full p-1 text-(--sub-social-icon)"
+			>
 				<Icon name="chat" height={size} width={size} aria-hidden="true" />
 			</a>
-			<a href="https://twitter.com/DefiLlama" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="rounded-full p-1 text-(--sub-social-icon)">
+			<a
+				href="https://twitter.com/DefiLlama"
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="Twitter"
+				className="rounded-full p-1 text-(--sub-social-icon)"
+			>
 				<Icon name="twitter" height={size} width={size} aria-hidden="true" />
 			</a>
-			<a href="https://github.com/DefiLlama" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="rounded-full p-1 text-(--sub-social-icon)">
+			<a
+				href="https://github.com/DefiLlama"
+				target="_blank"
+				rel="noopener noreferrer"
+				aria-label="GitHub"
+				className="rounded-full p-1 text-(--sub-social-icon)"
+			>
 				<Icon name="github" height={size} width={size} aria-hidden="true" />
 			</a>
 		</div>
@@ -56,7 +74,9 @@ export function SubscriptionFooter() {
 				<div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[10px] leading-3 text-(--sub-footer-text)">
 					<FooterLinks />
 				</div>
-				<p className="mt-4 text-[10px] leading-3 text-(--sub-footer-text)">&copy; {new Date().getFullYear()} DefiLlama. All rights reserved.</p>
+				<p className="mt-4 text-[10px] leading-3 text-(--sub-footer-text)">
+					&copy; {new Date().getFullYear()} DefiLlama. All rights reserved.
+				</p>
 			</footer>
 
 			{/* Desktop */}

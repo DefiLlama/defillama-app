@@ -290,11 +290,7 @@ export function ProDashboardAPIProvider({
 	return (
 		<StreamDoneContext.Provider value={streamDone}>
 			<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
-				<ProDashboardAPIProviderInner
-					stream={stream}
-					streamDone={streamDone}
-					initialDashboardId={initialDashboardId}
-				>
+				<ProDashboardAPIProviderInner stream={stream} streamDone={streamDone} initialDashboardId={initialDashboardId}>
 					{children}
 				</ProDashboardAPIProviderInner>
 			</ProxyAuthTokenContext.Provider>

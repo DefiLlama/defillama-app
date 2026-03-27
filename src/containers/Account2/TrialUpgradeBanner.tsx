@@ -17,7 +17,7 @@ export function TrialUpgradeBanner({ onUpgrade, isLoading }: TrialUpgradeBannerP
 		<div className="flex items-center rounded-2xl border border-(--sub-c-1f67d2) bg-(--sub-c-1f67d2)/20 p-4">
 			<div className="flex w-full flex-col gap-4 sm:w-[200px]">
 				<div className="flex flex-col gap-3">
-					<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) dark:from-(--sub-c-4b86db) dark:to-[64%] dark:to-(--sub-c-a5c3ed) bg-clip-text text-lg font-semibold leading-[22px] text-transparent">
+					<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) bg-clip-text text-lg leading-[22px] font-semibold text-transparent dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) dark:to-[64%]">
 						Unlock the full power of DefiLlama
 					</p>
 					<ul className="flex flex-col gap-1.5">

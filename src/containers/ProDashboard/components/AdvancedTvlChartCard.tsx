@@ -85,8 +85,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const authToken = useContext(ProxyAuthTokenContext)
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'advanced-tvl-basic', protocol],
-		queryFn: () =>
-			authToken ? fetchAdvancedTvlBasicViaProxy(protocol, authToken) : ProtocolCharts.tvl(protocol),
+		queryFn: () => (authToken ? fetchAdvancedTvlBasicViaProxy(protocol, authToken) : ProtocolCharts.tvl(protocol)),
 		enabled: streamDone && chartType === 'tvl',
 		staleTime: Infinity
 	})

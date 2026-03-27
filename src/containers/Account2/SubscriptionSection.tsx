@@ -1,11 +1,12 @@
 import { lazy, Suspense, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import type { Subscription } from '~/containers/Subscribtion/useSubscribe'
 import { useAiBalance } from '~/containers/Subscribtion/useTopup'
 import { ApiAccessCard } from './ApiAccessCard'
-import { CancelTrialModal } from './CancelTrialModal'
+import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 import { useDevOverrides } from './DevToolbar' // [DEV-TOOLBAR] remove before production
 import { EndTrialModal } from './EndTrialModal'
 import { ExternalDataBalanceCard } from './ExternalDataBalanceCard'
@@ -14,6 +15,9 @@ import { TrialSubscriptionCard } from './TrialSubscriptionCard'
 import { TrialUpgradeBanner } from './TrialUpgradeBanner'
 
 const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
+const StripeCheckoutModal = lazy(() =>
+	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
+)
 
 function parseExpiryDate(raw: string): string {
 	const asDate = new Date(isNaN(Number(raw)) ? raw : Number(raw) * 1000)
@@ -58,6 +62,7 @@ function SubscriptionCardWithProps({
 	isManageLoading: boolean
 	isCancelLoading: boolean
 }) {
+	const isCancelPending = subscription.metadata?.isCanceled === 'true'
 	return (
 		<SubscriptionCard
 			planName={getPlanName(subscription.type)}
@@ -65,6 +70,7 @@ function SubscriptionCardWithProps({
 			subscriptionType={getSubscriptionTypeLabel(subscription)}
 			subscriptionPayment={getPaymentLabel(subscription.provider)}
 			provider={subscription.provider as 'stripe' | 'llamapay' | 'legacy'}
+			isCancelPending={isCancelPending}
 			onManage={onManage}
 			onCancel={onCancel}
 			isManageLoading={isManageLoading}
@@ -113,7 +119,7 @@ function FreeUpgradeBanner() {
 					</p>
 				</div>
 				<BasicLink
-					href="/subscription"
+					href="/subscription2"
 					className="flex h-8 w-fit items-center rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs leading-4 font-medium text-white"
 				>
 					View & Compare Plans
@@ -146,6 +152,26 @@ function FreeUpgradeBanner() {
 	)
 }
 
+function LegacyWarning() {
+	return (
+		<div className="flex items-start gap-2 rounded-2xl border border-sub-warning-border-light bg-sub-warning-bg/10 p-4 dark:border-sub-warning-border-dark">
+			<Icon
+				name="alert-warning"
+				height={20}
+				width={20}
+				className="mt-0.5 shrink-0 text-sub-warning-text-light dark:text-sub-warning-text-dark"
+			/>
+			<p className="text-sm text-sub-warning-text-light dark:text-sub-warning-text-dark">
+				Your current subscription is a legacy plan. You need to unsubscribe via{' '}
+				<a href="https://subscriptions.llamapay.io/" target="_blank" rel="noopener noreferrer" className="underline">
+					LlamaPay
+				</a>{' '}
+				and subscribe again after the current subscription expires.
+			</p>
+		</div>
+	)
+}
+
 export function SubscriptionSection() {
 	const dev = useDevOverrides() // [DEV-TOOLBAR] remove before production
 	const realAuth = useAuthContext() // [DEV-TOOLBAR] revert to: const { isTrial: isTrialFromAuth } = useAuthContext()
@@ -154,7 +180,10 @@ export function SubscriptionSection() {
 	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
-	const [isCancelTrialModalOpen, setIsCancelTrialModalOpen] = useState(false)
+	const [isCancelSubscriptionModalOpen, setIsCancelSubscriptionModalOpen] = useState(false)
+	const [isCancelSubModalOpen, setIsCancelSubModalOpen] = useState(false)
+	const [isYearlyUpgradeModalOpen, setIsYearlyUpgradeModalOpen] = useState(false)
+	const [yearlyUpgradeType, setYearlyUpgradeType] = useState<'api' | 'llamafeed' | null>(null)
 	const {
 		apiSubscription,
 		llamafeedSubscription,
@@ -162,7 +191,7 @@ export function SubscriptionSection() {
 		usageStats,
 		isUsageStatsLoading,
 		isUsageStatsError,
-		getPortalSessionUrl,
+		createPortalSession,
 		enableOverage,
 		cancelSubscription,
 		generateNewKeyMutation,
@@ -182,24 +211,28 @@ export function SubscriptionSection() {
 	const isApiMonthly = hasApiSubscription && apiSubscription?.billing_interval === 'month'
 	const isTrial = hasProSubscription && (isTrialFromAuth || String(llamafeedSubscription?.metadata?.isTrial) === 'true')
 
+	const isLegacy = activeSubscription?.provider === 'legacy'
+	const isCancelPending = activeSubscription?.metadata?.isCanceled === 'true'
+
 	const handleManageSubscription = async () => {
 		if (activeSubscription?.provider === 'stripe') {
-			const url = await getPortalSessionUrl()
-			if (url) window.open(url, '_blank')
-		} else if (activeSubscription?.provider === 'llamapay') {
-			if (activeSubscription?.checkoutUrl) {
-				window.open(activeSubscription.checkoutUrl, '_blank')
-			}
+			await createPortalSession()
+		} else {
+			window.open('https://subscriptions.llamapay.io/', '_blank')
 		}
 	}
 
 	const handleCancelSubscription = () => {
-		if (isCancelSubscriptionLoading) return
-		cancelSubscription(undefined)
+		if (activeSubscription?.provider === 'stripe') {
+			setIsCancelSubModalOpen(true)
+		} else {
+			window.open('https://subscriptions.llamapay.io/', '_blank')
+		}
 	}
 
 	const handleUpgradeToYearly = (type: 'llamafeed' | 'api') => {
-		handleSubscribe('stripe', type, undefined, 'year')
+		setYearlyUpgradeType(type)
+		setIsYearlyUpgradeModalOpen(true)
 	}
 
 	if (isTrial && llamafeedSubscription) {
@@ -209,17 +242,18 @@ export function SubscriptionSection() {
 				<div className="flex flex-col items-stretch gap-3 sm:flex-row">
 					<TrialSubscriptionCard
 						trialEndDate={trialEndDate}
-						onCancel={() => setIsCancelTrialModalOpen(true)}
+						isCancelPending={llamafeedSubscription.metadata?.isCanceled === 'true'}
+						onCancel={() => setIsCancelSubscriptionModalOpen(true)}
 						isCancelLoading={isCancelSubscriptionLoading}
 					/>
 					<TrialUpgradeBanner onUpgrade={() => setIsUpgradeModalOpen(true)} isLoading={false} />
 				</div>
-				<CancelTrialModal
-					isOpen={isCancelTrialModalOpen}
-					onClose={() => setIsCancelTrialModalOpen(false)}
+				<CancelSubscriptionModal
+					isOpen={isCancelSubscriptionModalOpen}
+					onClose={() => setIsCancelSubscriptionModalOpen(false)}
 					onConfirm={async (message) => {
 						await cancelSubscription(message)
-						setIsCancelTrialModalOpen(false)
+						setIsCancelSubscriptionModalOpen(false)
 					}}
 					isLoading={isCancelSubscriptionLoading}
 				/>
@@ -266,9 +300,41 @@ export function SubscriptionSection() {
 		</Suspense>
 	) : null
 
+	const cancelSubModal = isCancelSubModalOpen ? (
+		<CancelSubscriptionModal
+			isOpen={isCancelSubModalOpen}
+			onClose={() => setIsCancelSubModalOpen(false)}
+			onConfirm={async (message) => {
+				await cancelSubscription(message)
+				setIsCancelSubModalOpen(false)
+			}}
+			isLoading={isCancelSubscriptionLoading}
+			variant="subscription"
+		/>
+	) : null
+
+	const yearlyUpgradeModal =
+		isYearlyUpgradeModalOpen && yearlyUpgradeType ? (
+			<Suspense fallback={null}>
+				<StripeCheckoutModal
+					isOpen={isYearlyUpgradeModalOpen}
+					onClose={() => {
+						setIsYearlyUpgradeModalOpen(false)
+						setYearlyUpgradeType(null)
+					}}
+					paymentMethod="stripe"
+					type={yearlyUpgradeType}
+					billingInterval="year"
+					isUpgradeFlow
+					upgradeReturnPath="/account2?success=true"
+				/>
+			</Suspense>
+		) : null
+
 	if (hasApiSubscription) {
 		return (
 			<>
+				{isLegacy && <LegacyWarning />}
 				<div className="flex flex-col items-stretch gap-3 sm:flex-row">
 					<SubscriptionCardWithProps
 						subscription={activeSubscription}
@@ -277,7 +343,9 @@ export function SubscriptionSection() {
 						isManageLoading={isPortalSessionLoading}
 						isCancelLoading={isCancelSubscriptionLoading}
 					/>
-					{isApiMonthly && <YearlyUpgradeBanner onUpgrade={() => handleUpgradeToYearly('api')} planType="api" />}
+					{isApiMonthly && !isCancelPending && (
+						<YearlyUpgradeBanner onUpgrade={() => handleUpgradeToYearly('api')} planType="api" />
+					)}
 				</div>
 				<ApiAccessCard
 					apiKey={apiKey}
@@ -293,6 +361,8 @@ export function SubscriptionSection() {
 				/>
 				{balanceCard}
 				{topupModal}
+				{cancelSubModal}
+				{yearlyUpgradeModal}
 			</>
 		)
 	}
@@ -307,10 +377,14 @@ export function SubscriptionSection() {
 					isManageLoading={isPortalSessionLoading}
 					isCancelLoading={isCancelSubscriptionLoading}
 				/>
-				{isProMonthly && <YearlyUpgradeBanner onUpgrade={() => handleUpgradeToYearly('llamafeed')} planType="pro" />}
+				{isProMonthly && !isCancelPending && (
+					<YearlyUpgradeBanner onUpgrade={() => handleUpgradeToYearly('llamafeed')} planType="pro" />
+				)}
 			</div>
 			{balanceCard}
 			{topupModal}
+			{cancelSubModal}
+			{yearlyUpgradeModal}
 		</>
 	)
 }

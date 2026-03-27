@@ -51,9 +51,7 @@ export function ApiAccessCard({
 			{/* Header */}
 			<div className="flex items-center gap-2">
 				<Icon name="cli" height={28} width={28} className="text-(--sub-c-090b0c) dark:text-white" />
-				<span className="text-base font-medium leading-5 text-(--sub-c-090b0c) dark:text-white">
-					API Access
-				</span>
+				<span className="text-base leading-5 font-medium text-(--sub-c-090b0c) dark:text-white">API Access</span>
 			</div>
 
 			{/* API Key Section */}
@@ -64,7 +62,7 @@ export function ApiAccessCard({
 						<button
 							onClick={() => setShowKey((v) => !v)}
 							disabled={!apiKey}
-							className="flex h-6 items-center gap-1 rounded-md border border-(--sub-c-dedede) px-2 text-[10px] font-medium leading-3 text-(--sub-c-090b0c) disabled:opacity-50 dark:border-(--sub-c-2f3336) dark:text-white"
+							className="flex h-6 items-center gap-1 rounded-md border border-(--sub-c-dedede) px-2 text-[10px] leading-3 font-medium text-(--sub-c-090b0c) disabled:opacity-50 dark:border-(--sub-c-2f3336) dark:text-white"
 							aria-label={showKey ? 'Hide API key' : 'Show API key'}
 						>
 							<Icon name={showKey ? 'eye-off' : 'eye'} height={12} width={12} />
@@ -73,19 +71,23 @@ export function ApiAccessCard({
 						<button
 							onClick={handleCopy}
 							disabled={!apiKey}
-							className="flex h-6 items-center gap-1 rounded-md border border-(--sub-c-dedede) px-2 text-[10px] font-medium leading-3 text-(--sub-c-090b0c) disabled:opacity-50 dark:border-(--sub-c-2f3336) dark:text-white"
+							className="flex h-6 items-center gap-1 rounded-md border border-(--sub-c-dedede) px-2 text-[10px] leading-3 font-medium text-(--sub-c-090b0c) disabled:opacity-50 dark:border-(--sub-c-2f3336) dark:text-white"
 						>
 							<Icon name="copy" height={12} width={12} />
 							{copied ? 'Copied' : 'Copy'}
 						</button>
 						<button
 							onClick={() => {
-								if (window.confirm('Regenerating will invalidate your current API key. All existing integrations will stop working. Continue?')) {
+								if (
+									window.confirm(
+										'Regenerating will invalidate your current API key. All existing integrations will stop working. Continue?'
+									)
+								) {
 									onRegenerateKey()
 								}
 							}}
 							disabled={isRegenerateLoading}
-							className="flex h-6 items-center gap-1 rounded-md border border-(--sub-c-dedede) px-2 text-[10px] font-medium leading-3 text-(--sub-c-090b0c) disabled:opacity-50 dark:border-(--sub-c-2f3336) dark:text-white"
+							className="flex h-6 items-center gap-1 rounded-md border border-(--sub-c-dedede) px-2 text-[10px] leading-3 font-medium text-(--sub-c-090b0c) disabled:opacity-50 dark:border-(--sub-c-2f3336) dark:text-white"
 						>
 							<Icon name="repeat" height={12} width={12} />
 							{isRegenerateLoading ? 'Regenerating...' : 'Regenerate'}
@@ -93,7 +95,7 @@ export function ApiAccessCard({
 					</div>
 				</div>
 				<div className="rounded-lg bg-(--sub-c-f6f7f9) px-3 py-2.5 dark:bg-(--sub-c-090b0c)">
-					<code className="break-all font-mono text-xs leading-5 text-(--sub-c-878787)">
+					<code className="font-mono text-xs leading-5 break-all text-(--sub-c-878787)">
 						{!apiKey ? '...' : showKey ? apiKey : '•'.repeat(apiKey.length)}
 					</code>
 				</div>
@@ -127,10 +129,7 @@ export function ApiAccessCard({
 						</span>
 					</div>
 					<div className="h-2 overflow-hidden rounded-full bg-(--sub-c-eeeeee) dark:bg-white/[0.08]">
-						<div
-							className="h-full rounded-full bg-(--sub-c-1f67d2)"
-							style={{ width: `${usagePercentage}%` }}
-						/>
+						<div className="h-full rounded-full bg-(--sub-c-1f67d2)" style={{ width: `${usagePercentage}%` }} />
 					</div>
 					<div className="flex items-center justify-between">
 						<span className="text-xs text-(--sub-c-878787)">Rate Limit:</span>
@@ -142,11 +141,7 @@ export function ApiAccessCard({
 			</div>
 
 			{/* API Usage Breakdown */}
-			<ApiUsageBreakdown
-				usageStats={usageStats}
-				isLoading={isUsageStatsLoading}
-				isError={isUsageStatsError}
-			/>
+			<ApiUsageBreakdown usageStats={usageStats} isLoading={isUsageStatsLoading} isError={isUsageStatsError} />
 		</div>
 	)
 }

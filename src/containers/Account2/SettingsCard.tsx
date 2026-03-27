@@ -57,9 +57,7 @@ export function SettingsCard() {
 
 				<div className="flex flex-col gap-1">
 					<div className="flex items-center justify-between">
-						<span className="text-sm text-(--sub-c-090b0c) dark:text-white">
-							Receive promotional emails
-						</span>
+						<span className="text-sm text-(--sub-c-090b0c) dark:text-white">Receive promotional emails</span>
 						<ToggleSwitch
 							checked={promoEmailsOn}
 							onClick={handleTogglePromoEmails}

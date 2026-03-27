@@ -10,8 +10,10 @@ const LABEL_COL = 'w-[233px] md:w-[400px]'
 /* ── Style maps ────────────────────────────────────────────────────── */
 
 const planHeadStyles = {
-	selected: 'border-(--sub-c-1f67d2) shadow-[inset_1px_0_0_0_var(--sub-c-1f67d2),inset_-1px_0_0_0_var(--sub-c-1f67d2)] bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
-	default: 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) md:bg-white dark:md:bg-transparent'
+	selected:
+		'border-(--sub-c-1f67d2) shadow-[inset_1px_0_0_0_var(--sub-c-1f67d2),inset_-1px_0_0_0_var(--sub-c-1f67d2)] bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
+	default:
+		'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) md:bg-white dark:md:bg-transparent'
 }
 
 const planHeadButtonStyles = {
@@ -27,13 +29,15 @@ function ComparisonPlanHead({
 	billingCycle,
 	isFirst,
 	isLast,
-	isSelected
+	isSelected,
+	onAction
 }: {
 	plan: PlanKey
 	billingCycle: BillingCycle
 	isFirst: boolean
 	isLast: boolean
 	isSelected: boolean
+	onAction?: (plan: PlanKey) => void
 }) {
 	const meta = PLAN_META_BY_CYCLE[billingCycle][plan]
 	const colStyle = isSelected ? planHeadStyles.selected : planHeadStyles.default
@@ -49,7 +53,7 @@ function ComparisonPlanHead({
 		>
 			<div className="flex h-full flex-col justify-between p-3 md:p-5">
 				<div>
-					<p className="text-[14px] leading-4 font-medium text-(--sub-c-111f34) dark:text-white md:text-lg md:leading-5 md:text-(--sub-c-090b0c) dark:md:text-white">
+					<p className="text-[14px] leading-4 font-medium text-(--sub-c-111f34) md:text-lg md:leading-5 md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
 						{meta.title}
 					</p>
 					<div className="mt-1 flex items-end gap-px">
@@ -66,6 +70,7 @@ function ComparisonPlanHead({
 				<button
 					type="button"
 					className={`h-7 rounded-[6px] border px-2 text-[10px] leading-3 md:h-8 md:rounded-lg md:text-xs ${btnStyle}`}
+					onClick={() => onAction?.(plan)}
 				>
 					{meta.action}
 				</button>
@@ -80,21 +85,26 @@ export function SubscriptionComparisonSection({
 	planOrder,
 	comparisonSections,
 	billingCycle,
-	selectedPlan
+	selectedPlan,
+	onPlanAction
 }: {
 	planOrder: PlanKey[]
 	comparisonSections: ComparisonSection[]
 	billingCycle: BillingCycle
 	selectedPlan: PlanKey
+	onPlanAction?: (plan: PlanKey) => void
 }) {
 	return (
-		<section className="mt-12 bg-white py-12 dark:bg-(--sub-mobile-table-section-bg) md:mt-0 md:py-20 md:dark:bg-(--sub-desktop-table-section-bg)">
-			<div className="mx-auto max-w-[393px] px-4 md:max-w-none md:w-[984px] md:px-0">
-				<div className="overflow-x-auto md:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+		<section className="mt-12 bg-white py-12 md:mt-0 md:py-20 dark:bg-(--sub-mobile-table-section-bg) md:dark:bg-(--sub-desktop-table-section-bg)">
+			<div className="mx-auto max-w-[393px] px-4 md:w-[984px] md:max-w-none md:px-0">
+				<div className="overflow-x-auto [scrollbar-width:none] md:overflow-visible [&::-webkit-scrollbar]:hidden">
 					<div className="min-w-[761px] md:min-w-0" role="table" aria-label="Plan comparison">
 						<div className="flex" role="row">
-							<div role="columnheader" className={`flex h-[132px] items-center px-2 md:h-[129px] md:rounded-tl-[24px] md:px-4 ${LABEL_COL}`}>
-								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-c-111f34) dark:text-white md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-c-090b0c) dark:md:text-white">
+							<div
+								role="columnheader"
+								className={`flex h-[132px] items-center px-2 md:h-[129px] md:rounded-tl-[24px] md:px-4 ${LABEL_COL}`}
+							>
+								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-c-111f34) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
 									Compare Plans and Features
 								</h2>
 							</div>
@@ -108,6 +118,7 @@ export function SubscriptionComparisonSection({
 										isFirst={index === 0}
 										isLast={index === planOrder.length - 1}
 										isSelected={plan === selectedPlan}
+										onAction={onPlanAction}
 									/>
 								))}
 							</div>
@@ -118,8 +129,14 @@ export function SubscriptionComparisonSection({
 								const isLastSection = sectionIndex === comparisonSections.length - 1
 								return (
 									<div key={section.title} role="rowgroup">
-										<div className="flex h-10 bg-(--sub-mobile-table-header-bg) md:h-9 md:bg-(--sub-desktop-table-header-bg)" role="row">
-											<div role="rowheader" className={`flex items-center px-2 text-[14px] leading-[21px] font-medium text-(--sub-c-111f34) dark:text-white md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-c-090b0c) dark:md:text-white ${LABEL_COL}`}>
+										<div
+											className="flex h-10 bg-(--sub-mobile-table-header-bg) md:h-9 md:bg-(--sub-desktop-table-header-bg)"
+											role="row"
+										>
+											<div
+												role="rowheader"
+												className={`flex items-center px-2 text-[14px] leading-[21px] font-medium text-(--sub-c-111f34) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white ${LABEL_COL}`}
+											>
 												{section.title}
 											</div>
 											{planOrder.map((plan, planIndex) => {
@@ -137,14 +154,10 @@ export function SubscriptionComparisonSection({
 										{section.rows.map((row, rowIndex) => {
 											const isLastRow = isLastSection && rowIndex === section.rows.length - 1
 											return (
-												<div
-													key={`${section.title}-${row.label}`}
-													role="row"
-													className="flex h-[41px] md:h-[36px]"
-												>
+												<div key={`${section.title}-${row.label}`} role="row" className="flex h-[41px] md:h-[36px]">
 													<div
 														role="rowheader"
-														className={`flex items-center overflow-hidden border-b border-(--sub-mobile-table-border) px-2 text-[14px] leading-[21px] whitespace-nowrap text-ellipsis text-(--sub-mobile-text-muted) md:border-(--sub-desktop-table-border) md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) ${LABEL_COL}`}
+														className={`flex items-center overflow-hidden border-b border-(--sub-mobile-table-border) px-2 text-[14px] leading-[21px] text-ellipsis whitespace-nowrap text-(--sub-mobile-text-muted) md:border-(--sub-desktop-table-border) md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) ${LABEL_COL}`}
 													>
 														{row.label}
 													</div>
@@ -154,8 +167,10 @@ export function SubscriptionComparisonSection({
 														if (isLastRow) {
 															lastRowCls = 'border-b'
 															if (planIndex === 0) lastRowCls += ' rounded-bl-[16px] md:rounded-bl-[24px]'
-															if (planIndex === planOrder.length - 1) lastRowCls += ' rounded-br-[16px] md:rounded-br-[24px]'
-															if (plan === selectedPlan) lastRowCls += ' border-b-(--sub-c-1f67d2) rounded-b-[16px] md:rounded-b-[24px]'
+															if (planIndex === planOrder.length - 1)
+																lastRowCls += ' rounded-br-[16px] md:rounded-br-[24px]'
+															if (plan === selectedPlan)
+																lastRowCls += ' border-b-(--sub-c-1f67d2) rounded-b-[16px] md:rounded-b-[24px]'
 														}
 														return (
 															<ComparisonCell

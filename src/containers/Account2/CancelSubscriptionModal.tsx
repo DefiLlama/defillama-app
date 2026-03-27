@@ -1,17 +1,26 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 
-interface CancelTrialModalProps {
+interface CancelSubscriptionModalProps {
 	isOpen: boolean
 	onClose: () => void
 	onConfirm: (message?: string) => Promise<any>
 	isLoading: boolean
+	variant?: 'trial' | 'subscription'
 }
 
-export function CancelTrialModal({ isOpen, onClose, onConfirm, isLoading }: CancelTrialModalProps) {
+export function CancelSubscriptionModal({
+	isOpen,
+	onClose,
+	onConfirm,
+	isLoading,
+	variant = 'trial'
+}: CancelSubscriptionModalProps) {
 	const [message, setMessage] = useState('')
 
 	if (!isOpen) return null
+
+	const isTrial = variant === 'trial'
 
 	const handleClose = () => {
 		if (isLoading) return
@@ -36,8 +45,8 @@ export function CancelTrialModal({ isOpen, onClose, onConfirm, isLoading }: Canc
 			<div className="flex w-full max-w-[380px] flex-col gap-5 rounded-2xl border border-(--sub-c-ced8e6) bg-white px-5 py-6 dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)">
 				{/* Header */}
 				<div className="flex items-center justify-between">
-					<h3 className="text-xl font-semibold leading-7 text-(--sub-c-090b0c) dark:text-white">
-						Cancel Free Trial
+					<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c) dark:text-white">
+						{isTrial ? 'Cancel Free Trial' : 'Cancel Subscription'}
 					</h3>
 					<button
 						onClick={handleClose}
@@ -50,16 +59,14 @@ export function CancelTrialModal({ isOpen, onClose, onConfirm, isLoading }: Canc
 
 				{/* Body */}
 				<p className="text-sm leading-[21px] text-(--sub-c-090b0c) dark:text-white">
-					Your subscription will remain active until the end of your trial period. After that, it will not
-					renew and you won't be charged.
+					{isTrial
+						? "Your subscription will remain active until the end of your trial period. After that, it will not renew and you won't be charged."
+						: 'Your subscription will remain active until the end of your current billing period. After that, it will not renew.'}
 				</p>
 
 				{/* Feedback */}
 				<div className="flex flex-col gap-2">
-					<label
-						htmlFor="cancel-reason"
-						className="text-xs font-medium text-(--sub-c-878787)"
-					>
+					<label htmlFor="cancel-reason" className="text-xs font-medium text-(--sub-c-878787)">
 						Reason for cancelling (optional)
 					</label>
 					<textarea
@@ -68,7 +75,7 @@ export function CancelTrialModal({ isOpen, onClose, onConfirm, isLoading }: Canc
 						onChange={(e) => setMessage(e.target.value)}
 						placeholder="Let us know why you're cancelling..."
 						rows={3}
-						className="w-full resize-none rounded-lg border border-(--sub-c-dedede) bg-transparent p-3 text-sm text-(--sub-c-090b0c) placeholder:text-(--sub-c-878787) outline-none focus:border-(--sub-c-1f67d2) dark:border-(--sub-c-2f3336) dark:text-white"
+						className="w-full resize-none rounded-lg border border-(--sub-c-dedede) bg-transparent p-3 text-sm text-(--sub-c-090b0c) outline-none placeholder:text-(--sub-c-878787) focus:border-(--sub-c-1f67d2) dark:border-(--sub-c-2f3336) dark:text-white"
 					/>
 				</div>
 
@@ -86,7 +93,7 @@ export function CancelTrialModal({ isOpen, onClose, onConfirm, isLoading }: Canc
 						disabled={isLoading}
 						className="flex h-10 w-full items-center justify-center rounded-lg border border-(--sub-c-dedede) text-sm text-(--sub-c-878787) disabled:opacity-50 dark:border-(--sub-c-2f3336)"
 					>
-						Keep Trial
+						{isTrial ? 'Keep Trial' : 'Keep Subscription'}
 					</button>
 				</div>
 			</div>

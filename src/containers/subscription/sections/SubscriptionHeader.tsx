@@ -23,7 +23,11 @@ export function SubscriptionHeader() {
 		<>
 			{/* Mobile */}
 			<header className="relative z-20 flex h-16 items-center justify-between bg-(--sub-c-fbfbfbcc) px-4 backdrop-blur-[12px] md:hidden dark:bg-(--sub-c-090b0ccc)">
-				<BasicLink href="/" aria-label="Back to home" className="flex h-10 w-10 items-center justify-center rounded-full">
+				<BasicLink
+					href="/"
+					aria-label="Back to home"
+					className="flex h-10 w-10 items-center justify-center rounded-full"
+				>
 					<Icon name="chevron-left" height={28} width={28} />
 				</BasicLink>
 				<div className="flex items-center gap-4">
@@ -44,10 +48,7 @@ export function SubscriptionHeader() {
 				</BasicLink>
 				<div className="flex items-center gap-5">
 					<ThemeSwitch variant="pill" size="sm" />
-					<SignIn2Modal
-						text="Sign-in"
-						className="h-8 rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs text-white"
-					/>
+					<SignIn2Modal text="Sign-in" className="h-8 rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs text-white" />
 					<AccountLink className="text-xs text-(--sub-c-090b0c) dark:text-white" />
 				</div>
 			</header>

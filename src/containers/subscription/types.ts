@@ -48,3 +48,14 @@ export interface FaqItem {
 	question: string
 	answer: string
 }
+
+export interface PricingCardCallbacks {
+	onPrimaryCtaClick?: (cardKey: PlanKey) => void
+	onSecondaryCtaClick?: (cardKey: PlanKey) => void
+	onUpgradeToYearly?: (cardKey: PlanKey) => void
+	onUpgradeTier?: (cardKey: PlanKey) => void
+	onStartTrial?: () => void
+	onEndTrial?: () => void
+	isTrialAvailable?: boolean
+	loading?: 'stripe' | 'llamapay' | null
+}

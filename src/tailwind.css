@@ -707,14 +707,36 @@
 		--sub-c-2d0f0d: #2d0f0d;
 		--sub-c-f5c6c4: #f5c6c4;
 
-		--sub-grid-image-light: linear-gradient(to right, rgba(9, 11, 12, 0.14) 1px, transparent 1px),
+		--sub-grid-image-light:
+			linear-gradient(to right, rgba(9, 11, 12, 0.14) 1px, transparent 1px),
 			linear-gradient(to bottom, rgba(9, 11, 12, 0.14) 1px, transparent 1px);
-		--sub-grid-image-dark: linear-gradient(to right, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+		--sub-grid-image-dark:
+			linear-gradient(to right, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
 			linear-gradient(to bottom, rgba(255, 255, 255, 0.22) 1px, transparent 1px);
-		--sub-radial-mobile-light: radial-gradient(circle at center, rgba(115, 156, 216, 0.42) 0%, rgba(225, 234, 245, 0.4) 38%, rgba(247, 247, 247, 0) 72%);
-		--sub-radial-desktop-light: radial-gradient(circle at center, rgba(115, 156, 216, 0.42) 0%, rgba(225, 234, 245, 0.4) 38%, rgba(247, 247, 247, 0) 70%);
-		--sub-radial-mobile-dark: radial-gradient(circle at center, rgba(34, 55, 84, 0.8) 0%, rgba(8, 16, 25, 0.55) 38%, rgba(2, 7, 11, 0) 72%);
-		--sub-radial-desktop-dark: radial-gradient(circle at center, rgba(34, 55, 84, 0.8) 0%, rgba(8, 16, 25, 0.55) 38%, rgba(2, 7, 11, 0) 70%);
+		--sub-radial-mobile-light: radial-gradient(
+			circle at center,
+			rgba(115, 156, 216, 0.42) 0%,
+			rgba(225, 234, 245, 0.4) 38%,
+			rgba(247, 247, 247, 0) 72%
+		);
+		--sub-radial-desktop-light: radial-gradient(
+			circle at center,
+			rgba(115, 156, 216, 0.42) 0%,
+			rgba(225, 234, 245, 0.4) 38%,
+			rgba(247, 247, 247, 0) 70%
+		);
+		--sub-radial-mobile-dark: radial-gradient(
+			circle at center,
+			rgba(34, 55, 84, 0.8) 0%,
+			rgba(8, 16, 25, 0.55) 38%,
+			rgba(2, 7, 11, 0) 72%
+		);
+		--sub-radial-desktop-dark: radial-gradient(
+			circle at center,
+			rgba(34, 55, 84, 0.8) 0%,
+			rgba(8, 16, 25, 0.55) 38%,
+			rgba(2, 7, 11, 0) 70%
+		);
 		--sub-top-gradient-light: linear-gradient(180deg, rgba(247, 247, 247, 0) 0%, #f7f7f7 100%);
 		--sub-top-gradient-dark: linear-gradient(180deg, rgba(9, 11, 12, 0) 0%, #090b0c 100%);
 

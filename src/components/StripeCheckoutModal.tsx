@@ -65,6 +65,7 @@ interface StripeCheckoutModalProps {
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
 	isUpgradeFlow?: boolean
+	upgradeReturnPath?: string
 }
 
 export function StripeCheckoutModal({
@@ -74,11 +75,12 @@ export function StripeCheckoutModal({
 	type,
 	billingInterval = 'month',
 	isTrial = false,
-	isUpgradeFlow = false
+	isUpgradeFlow = false,
+	upgradeReturnPath
 }: StripeCheckoutModalProps) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
-	const postCheckoutPath = isUpgradeFlow ? '/account?success=true' : '/welcome'
+	const postCheckoutPath = isUpgradeFlow ? (upgradeReturnPath ?? '/account?success=true') : '/welcome'
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (): Promise<SubscriptionResult> => {
@@ -92,7 +94,7 @@ export function StripeCheckoutModal({
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						redirectUrl: `${window.location.origin}${postCheckoutPath}`,
-						cancelUrl: `${window.location.origin}/subscription`,
+						cancelUrl: `${window.location.origin}/subscription2`,
 						provider: paymentMethod,
 						subscriptionType: type,
 						billingInterval,

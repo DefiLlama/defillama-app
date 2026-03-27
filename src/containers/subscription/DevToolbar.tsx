@@ -2,7 +2,15 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import type { BillingCycle, PlanKey } from './types'
 
-export type SubPageScenario = 'live' | 'visitor' | 'free' | 'trial' | 'pro-monthly' | 'pro-yearly' | 'api-monthly' | 'api-yearly'
+export type SubPageScenario =
+	| 'live'
+	| 'visitor'
+	| 'free'
+	| 'trial'
+	| 'pro-monthly'
+	| 'pro-yearly'
+	| 'api-monthly'
+	| 'api-yearly'
 
 const SCENARIO_LABELS: Record<SubPageScenario, string> = {
 	live: 'Live',
@@ -20,6 +28,7 @@ export interface SubPageState {
 	currentPlan: PlanKey | null
 	isTrial: boolean
 	userBillingCycle: BillingCycle | null
+	isLoading?: boolean
 }
 
 function buildState(scenario: SubPageScenario): SubPageState | null {

@@ -1,5 +1,5 @@
 import { PricingCard } from '~/containers/subscription/components'
-import type { BillingCycle, PlanKey, PricingCardData } from '~/containers/subscription/types'
+import type { BillingCycle, PlanKey, PricingCardCallbacks, PricingCardData } from '~/containers/subscription/types'
 
 export function SubscriptionPricingSection({
 	pricingCards,
@@ -8,7 +8,8 @@ export function SubscriptionPricingSection({
 	currentPlan = null,
 	isAuthenticated = false,
 	isTrial = false,
-	userBillingCycle = null
+	userBillingCycle = null,
+	...callbacks
 }: {
 	pricingCards: PricingCardData[]
 	billingCycle: BillingCycle
@@ -17,7 +18,7 @@ export function SubscriptionPricingSection({
 	isAuthenticated?: boolean
 	isTrial?: boolean
 	userBillingCycle?: BillingCycle | null
-}) {
+} & PricingCardCallbacks) {
 	const isMonthly = billingCycle === 'monthly'
 	const isYearly = billingCycle === 'yearly'
 
@@ -29,15 +30,14 @@ export function SubscriptionPricingSection({
 						<img src="/assets/defillama-dark-neutral.webp" alt="DefiLlama" className="h-14 w-auto md:hidden" />
 						<img src="/assets/defillama-dark.webp" alt="DefiLlama" className="hidden h-10 w-auto md:block" />
 					</div>
-					<img src="/assets/defillama.webp" alt="DefiLlama" className="hidden h-14 w-auto dark:block md:h-10" />
+					<img src="/assets/defillama.webp" alt="DefiLlama" className="hidden h-14 w-auto md:h-10 dark:block" />
 				</div>
 				<div className="flex w-full flex-col items-center gap-7">
 					<h1 className="text-[32px] leading-[42px] font-semibold text-(--sub-c-090b0c) dark:text-(--sub-c-f5f7fb)">
-						The Smartest Way to Navigate{' '}
-						<br className="hidden md:inline" />
+						The Smartest Way to Navigate <br className="hidden md:inline" />
 						On-Chain Data
 					</h1>
-					<p className="text-[16px] leading-6 text-(--sub-c-617389) dark:text-(--sub-c-c6c6c6) md:w-[485px] md:text-[14px] md:leading-[21px] md:text-(--sub-c-484848) dark:md:text-(--sub-c-c6c6c6)">
+					<p className="text-[16px] leading-6 text-(--sub-c-617389) md:w-[485px] md:text-[14px] md:leading-[21px] md:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:md:text-(--sub-c-c6c6c6)">
 						Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
 						more.
 					</p>
@@ -45,7 +45,11 @@ export function SubscriptionPricingSection({
 			</div>
 
 			<div className="mt-9 flex flex-col items-center gap-3 md:mt-12 md:gap-5">
-				<div role="group" aria-label="Billing cycle" className="relative flex w-[268px] rounded-full bg-(--sub-c-e3ebf6) p-1 dark:bg-(--sub-c-131516) md:w-[236px]">
+				<div
+					role="group"
+					aria-label="Billing cycle"
+					className="relative flex w-[268px] rounded-full bg-(--sub-c-e3ebf6) p-1 md:w-[236px] dark:bg-(--sub-c-131516)"
+				>
 					<div
 						className={`absolute top-1 left-1 h-14 w-32 rounded-full bg-(--sub-c-1f67d2) transition-transform duration-300 ease-in-out md:h-12 md:w-28 ${
 							isYearly ? 'translate-x-32 md:translate-x-28' : 'translate-x-0'
@@ -56,7 +60,9 @@ export function SubscriptionPricingSection({
 						aria-pressed={isMonthly}
 						onClick={() => onBillingCycleChange('monthly')}
 						className={`relative z-10 h-14 w-32 rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:w-28 md:text-sm ${
-							isMonthly ? 'text-white' : 'text-(--sub-c-25364e) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white'
+							isMonthly
+								? 'text-white'
+								: 'text-(--sub-c-25364e) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white'
 						}`}
 					>
 						Monthly
@@ -66,7 +72,9 @@ export function SubscriptionPricingSection({
 						aria-pressed={isYearly}
 						onClick={() => onBillingCycleChange('yearly')}
 						className={`relative z-10 flex h-14 w-32 flex-col items-center justify-center rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:w-28 md:text-sm ${
-							isYearly ? 'text-white' : 'text-(--sub-c-25364e) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white'
+							isYearly
+								? 'text-white'
+								: 'text-(--sub-c-25364e) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white'
 						}`}
 					>
 						<span>Yearly</span>
@@ -77,7 +85,7 @@ export function SubscriptionPricingSection({
 						</span>
 					</button>
 				</div>
-				<p className="text-[12px] leading-4 text-(--sub-c-617389) dark:text-(--sub-c-c6c6c6) md:text-(--sub-c-484848) dark:md:text-(--sub-c-c6c6c6)">
+				<p className="text-[12px] leading-4 text-(--sub-c-617389) md:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:md:text-(--sub-c-c6c6c6)">
 					Cancel Anytime, Crypto &amp; Card Payments
 				</p>
 			</div>
@@ -93,6 +101,7 @@ export function SubscriptionPricingSection({
 						currentPlan={currentPlan}
 						billingCycle={billingCycle}
 						userBillingCycle={userBillingCycle}
+						{...callbacks}
 					/>
 				))}
 			</div>

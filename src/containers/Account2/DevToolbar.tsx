@@ -184,13 +184,7 @@ export function useDevOverrides() {
 	return useContext(DevContext)
 }
 
-function ToolbarUI({
-	scenario,
-	onChange
-}: {
-	scenario: DevScenario
-	onChange: (s: DevScenario) => void
-}) {
+function ToolbarUI({ scenario, onChange }: { scenario: DevScenario; onChange: (s: DevScenario) => void }) {
 	return (
 		<div className="sticky top-0 z-50 flex flex-wrap items-center gap-1.5 border-b border-yellow-500/30 bg-yellow-950/80 px-3 py-2 backdrop-blur-sm">
 			<span className="mr-1 text-xs font-medium text-yellow-400">DEV</span>

@@ -1,5 +1,12 @@
 import { Icon } from '~/components/Icon'
-import type { Availability, BillingCycle, FeatureItem, PlanKey, PricingCardData } from '~/containers/subscription/types'
+import type {
+	Availability,
+	BillingCycle,
+	FeatureItem,
+	PlanKey,
+	PricingCardCallbacks,
+	PricingCardData
+} from '~/containers/subscription/types'
 
 const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise: 3 }
 
@@ -19,7 +26,8 @@ const cardInnerStyles = {
 		'rounded-[24px] px-5 py-6 bg-white dark:bg-(--sub-c-131516) md:flex md:h-full md:flex-col md:justify-between md:overflow-hidden md:rounded-[24px] md:px-4'
 }
 
-export const SELECTED_COLUMN_HIGHLIGHT = 'shadow-[inset_1px_0_0_0_var(--sub-c-1f67d2),inset_-1px_0_0_0_var(--sub-c-1f67d2)] bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)'
+export const SELECTED_COLUMN_HIGHLIGHT =
+	'shadow-[inset_1px_0_0_0_var(--sub-c-1f67d2),inset_-1px_0_0_0_var(--sub-c-1f67d2)] bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)'
 
 const selectedColumnStyles = {
 	active: SELECTED_COLUMN_HIGHLIGHT,
@@ -42,12 +50,12 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 						name="minus"
 						height={24}
 						width={24}
-						className="text-(--sub-c-8c9aaf) dark:text-(--sub-c-5f6369) md:h-5 md:w-5"
+						className="text-(--sub-c-8c9aaf) md:h-5 md:w-5 dark:text-(--sub-c-5f6369)"
 					/>
 				)}
 			</span>
 			{item.highlightText ? (
-				<span className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) bg-clip-text text-[16px] leading-6 text-transparent md:pt-0.5 md:text-[12px] md:leading-4">
+				<span className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) bg-clip-text text-[16px] leading-6 text-transparent md:pt-0.5 md:text-[12px] md:leading-4 dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed)">
 					<span className="underline">{highlightPrefix}</span>
 					{highlightSuffix ? `: ${highlightSuffix}` : ''}
 				</span>
@@ -75,15 +83,25 @@ function PricingCardCta({
 	isTrial,
 	canUpgradeCycle,
 	isUpgradeTier,
-	isLowerTier
+	isLowerTier,
+	billingCycle,
+	onPrimaryCtaClick,
+	onSecondaryCtaClick,
+	onUpgradeToYearly,
+	onUpgradeTier,
+	onStartTrial,
+	onEndTrial,
+	isTrialAvailable,
+	loading
 }: {
 	card: PricingCardData
 	isCurrentPlan: boolean
 	isTrial: boolean
 	canUpgradeCycle: boolean
 	isUpgradeTier: boolean
-	isLowerTier: boolean | "" | null | 0
-}) {
+	isLowerTier: boolean | '' | null | 0
+	billingCycle: BillingCycle
+} & PricingCardCallbacks) {
 	/* ── Lower tier than current subscription: no CTA ── */
 	if (isLowerTier) return null
 
@@ -91,18 +109,23 @@ function PricingCardCta({
 	if (isCurrentPlan) {
 		return (
 			<>
-				<p className="text-center text-[16px] leading-5 font-medium text-(--sub-c-1f67d2) dark:text-(--sub-c-4b86db) md:text-sm">
+				<p className="text-center text-[16px] leading-5 font-medium text-(--sub-c-1f67d2) md:text-sm dark:text-(--sub-c-4b86db)">
 					{isTrial ? 'Trial Active' : 'Current Plan'}
 				</p>
 				{canUpgradeCycle ? (
 					<>
-						<button type="button" className={filledBtnCls}>
+						<button type="button" className={filledBtnCls} onClick={() => onUpgradeToYearly?.(card.key)}>
 							Upgrade to Yearly
 						</button>
 						<p className="text-center text-[12px] leading-4 text-(--sub-c-8a97aa) dark:text-(--sub-c-878787)">
 							Switch to annual billing and get 2 months free
 						</p>
 					</>
+				) : null}
+				{isTrial ? (
+					<button type="button" className={filledBtnCls} onClick={onEndTrial}>
+						Upgrade to Full Access
+					</button>
 				) : null}
 			</>
 		)
@@ -111,8 +134,13 @@ function PricingCardCta({
 	/* ── Higher-tier upgrade ── */
 	if (isUpgradeTier) {
 		return (
-			<button type="button" className={filledBtnCls}>
-				Upgrade to {card.title} with Card
+			<button
+				type="button"
+				className={filledBtnCls}
+				onClick={() => onUpgradeTier?.(card.key)}
+				disabled={loading === 'stripe'}
+			>
+				{loading === 'stripe' ? 'Processing...' : `Upgrade to ${card.title} with Card`}
 			</button>
 		)
 	}
@@ -120,13 +148,28 @@ function PricingCardCta({
 	/* ── Default: standard CTAs ── */
 	return (
 		<>
-			{card.secondaryCta ? (
-				<button type="button" className={outlineBtnCls}>
-					{card.secondaryCta}
+			{card.key === 'pro' && isTrialAvailable ? (
+				<button type="button" className={outlineBtnCls} onClick={onStartTrial}>
+					Free trial for 7 days
 				</button>
 			) : null}
-			<button type="button" className={filledBtnCls}>
-				{card.primaryCta}
+			{card.secondaryCta && billingCycle === 'monthly' ? (
+				<button
+					type="button"
+					className={outlineBtnCls}
+					onClick={() => onSecondaryCtaClick?.(card.key)}
+					disabled={loading === 'llamapay'}
+				>
+					{loading === 'llamapay' ? 'Processing...' : card.secondaryCta}
+				</button>
+			) : null}
+			<button
+				type="button"
+				className={filledBtnCls}
+				onClick={() => onPrimaryCtaClick?.(card.key)}
+				disabled={loading === 'stripe'}
+			>
+				{loading === 'stripe' ? 'Processing...' : card.primaryCta}
 			</button>
 		</>
 	)
@@ -141,7 +184,15 @@ export function PricingCard({
 	isAuthenticated = false,
 	currentPlan = null,
 	billingCycle = 'monthly',
-	userBillingCycle = null
+	userBillingCycle = null,
+	onPrimaryCtaClick,
+	onSecondaryCtaClick,
+	onUpgradeToYearly,
+	onUpgradeTier,
+	onStartTrial,
+	onEndTrial,
+	isTrialAvailable,
+	loading
 }: {
 	card: PricingCardData
 	isCurrentPlan?: boolean
@@ -150,9 +201,14 @@ export function PricingCard({
 	currentPlan?: PlanKey | null
 	billingCycle?: BillingCycle
 	userBillingCycle?: BillingCycle | null
-}) {
+} & PricingCardCallbacks) {
 	const canUpgradeCycle = isCurrentPlan && userBillingCycle === 'monthly'
-	const isUpgradeTier = isAuthenticated && currentPlan && !isCurrentPlan && card.key !== 'free' && PLAN_TIER[card.key] > PLAN_TIER[currentPlan]
+	const isUpgradeTier =
+		isAuthenticated &&
+		currentPlan &&
+		!isCurrentPlan &&
+		card.key !== 'free' &&
+		PLAN_TIER[card.key] > PLAN_TIER[currentPlan]
 	const isLowerTier = isAuthenticated && currentPlan && !isCurrentPlan && PLAN_TIER[card.key] < PLAN_TIER[currentPlan]
 	const isHighlighted = card.highlighted === true
 	const wrapperClass = isHighlighted ? cardWrapperStyles.highlighted : cardWrapperStyles.default
@@ -164,28 +220,28 @@ export function PricingCard({
 			<div className={innerClass}>
 				<div className={`mx-auto flex flex-col gap-7 md:gap-5 ${contentWidth}`}>
 					<div className="flex flex-col gap-2 md:min-h-[104px] md:gap-3">
-						<h3 className="text-[18px] leading-[22px] font-semibold text-(--sub-c-0f172a) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white">
+						<h3 className="text-[18px] leading-[22px] font-semibold text-(--sub-c-0f172a) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
 							{card.title}
 						</h3>
 						{card.priceMain ? (
 							<div className="flex flex-col gap-1 md:gap-0">
 								<div className="flex items-end gap-0.5">
-									<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-111f34) dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent md:text-[32px] md:leading-[42px]">
+									<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-111f34) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent md:text-[32px] md:leading-[42px] dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed)">
 										{card.priceMain}
 									</p>
-									<p className="text-[16px] leading-6 text-(--sub-c-64758c) dark:text-(--sub-c-c6c6c6) md:text-base md:text-(--sub-c-484848) dark:md:text-(--sub-c-c6c6c6)">
+									<p className="text-[16px] leading-6 text-(--sub-c-64758c) md:text-base md:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:md:text-(--sub-c-c6c6c6)">
 										{card.priceUnit}
 									</p>
 								</div>
 								{card.priceSecondary ? (
-									<p className="text-[22px] leading-6 text-(--sub-c-8a97aa) dark:text-(--sub-c-878787) md:text-[16px]">
+									<p className="text-[22px] leading-6 text-(--sub-c-8a97aa) md:text-[16px] dark:text-(--sub-c-878787)">
 										{card.priceSecondary}
 									</p>
 								) : null}
 							</div>
 						) : null}
 						{card.description ? (
-							<p className="text-[16px] leading-6 text-(--sub-c-334155) dark:text-(--sub-c-f6f7f9) md:text-[12px] md:leading-4 md:text-(--sub-c-484848) dark:md:text-(--sub-c-f6f7f9)">
+							<p className="text-[16px] leading-6 text-(--sub-c-334155) md:text-[12px] md:leading-4 md:text-(--sub-c-484848) dark:text-(--sub-c-f6f7f9) dark:md:text-(--sub-c-f6f7f9)">
 								{card.description}
 							</p>
 						) : null}
@@ -199,7 +255,7 @@ export function PricingCard({
 
 					{card.sections.map((section) => (
 						<div key={`${card.key}-${section.title}`} className="flex flex-col gap-3">
-							<h4 className="text-[20px] leading-7 font-semibold text-(--sub-c-0f172a) dark:text-white md:text-[16px] md:leading-5 md:font-medium md:text-(--sub-c-090b0c) dark:md:text-white">
+							<h4 className="text-[20px] leading-7 font-semibold text-(--sub-c-0f172a) md:text-[16px] md:leading-5 md:font-medium md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
 								{section.title}
 							</h4>
 							<ul className="flex flex-col gap-3 md:gap-2">
@@ -219,6 +275,15 @@ export function PricingCard({
 						canUpgradeCycle={canUpgradeCycle}
 						isUpgradeTier={isUpgradeTier}
 						isLowerTier={isLowerTier}
+						billingCycle={billingCycle}
+						onPrimaryCtaClick={onPrimaryCtaClick}
+						onSecondaryCtaClick={onSecondaryCtaClick}
+						onUpgradeToYearly={onUpgradeToYearly}
+						onUpgradeTier={onUpgradeTier}
+						onStartTrial={onStartTrial}
+						onEndTrial={onEndTrial}
+						isTrialAvailable={isTrialAvailable}
+						loading={loading}
 					/>
 				</div>
 			</div>
@@ -234,9 +299,22 @@ export function PricingCard({
 
 /* ── ComparisonCell (responsive) ────────────────────────────────────── */
 
-export function ComparisonCell({ value, plan, isSelected = false, className = '', hideBorderLeft = false }: { value: Availability; plan: PlanKey; isSelected?: boolean; className?: string; hideBorderLeft?: boolean }) {
+export function ComparisonCell({
+	value,
+	plan,
+	isSelected = false,
+	className = '',
+	hideBorderLeft = false
+}: {
+	value: Availability
+	plan: PlanKey
+	isSelected?: boolean
+	className?: string
+	hideBorderLeft?: boolean
+}) {
 	const selectedStyle = isSelected ? `relative z-10 ${selectedColumnStyles.active}` : selectedColumnStyles.inactive
-	const borderColor = 'border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:border-(--sub-c-eeeeee) dark:md:border-(--sub-c-232628)'
+	const borderColor =
+		'border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:border-(--sub-c-eeeeee) dark:md:border-(--sub-c-232628)'
 	const borderEnd = plan === 'enterprise' ? 'border-r' : ''
 	const isIncluded = value === 'check'
 
@@ -249,7 +327,13 @@ export function ComparisonCell({ value, plan, isSelected = false, className = ''
 			{isIncluded ? (
 				<Icon name="check" height={24} width={24} className="text-(--sub-c-4b86db)" aria-hidden="true" />
 			) : (
-				<Icon name="minus" height={24} width={24} className="text-(--sub-c-90a0b6) dark:text-(--sub-c-4d5158) md:text-(--sub-c-dedede) dark:md:text-(--sub-c-4d5158)" aria-hidden="true" />
+				<Icon
+					name="minus"
+					height={24}
+					width={24}
+					className="text-(--sub-c-90a0b6) md:text-(--sub-c-dedede) dark:text-(--sub-c-4d5158) dark:md:text-(--sub-c-4d5158)"
+					aria-hidden="true"
+				/>
 			)}
 		</div>
 	)

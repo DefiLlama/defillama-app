@@ -51,9 +51,7 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 			<div className="flex w-full max-w-[331px] flex-col gap-5 rounded-2xl border border-(--sub-c-ced8e6) bg-white px-5 py-6 dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)">
 				{/* Header */}
 				<div className="flex items-center justify-between">
-					<h3 className="text-xl font-semibold leading-7 text-(--sub-c-090b0c) dark:text-white">
-						Change Your Email
-					</h3>
+					<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c) dark:text-white">Change Your Email</h3>
 					<button
 						onClick={handleClose}
 						className="rounded-full p-1 text-(--sub-c-090b0c) transition-colors dark:text-white"
@@ -64,9 +62,7 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 
 				{/* Form */}
 				<form onSubmit={handleSubmit} className="flex flex-col gap-5">
-					<label className="text-sm leading-[21px] text-(--sub-c-090b0c) dark:text-white">
-						Enter your new email:
-					</label>
+					<label className="text-sm leading-[21px] text-(--sub-c-090b0c) dark:text-white">Enter your new email:</label>
 
 					<div className="flex flex-col gap-2">
 						<input

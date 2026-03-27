@@ -5,10 +5,12 @@ import type { BillingCycle, PlanKey } from './types'
 
 export function useSubscriptionPageState(): SubPageState {
 	const dev = useSubPageDev()
-	const { isAuthenticated, isTrial } = useAuthContext()
-	const { apiSubscription, llamafeedSubscription } = useSubscribe()
+	const { isAuthenticated, isTrial, loaders } = useAuthContext()
+	const { apiSubscription, llamafeedSubscription, isSubscriptionLoading, subscription } = useSubscribe()
 
 	if (dev) return dev
+
+	const isLoading = loaders.userLoading || (isAuthenticated && (isSubscriptionLoading || !subscription))
 
 	let currentPlan: PlanKey | null = null
 	let userBillingCycle: BillingCycle | null = null
@@ -25,5 +27,5 @@ export function useSubscriptionPageState(): SubPageState {
 		}
 	}
 
-	return { isAuthenticated, currentPlan, isTrial, userBillingCycle }
+	return { isAuthenticated, currentPlan, isTrial, userBillingCycle, isLoading }
 }

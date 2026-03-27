@@ -24,7 +24,7 @@ export function EndTrialModal({ isOpen, onClose, onConfirm, isLoading }: EndTria
 			<div className="flex w-full max-w-[380px] flex-col gap-5 rounded-2xl border border-(--sub-c-ced8e6) bg-white px-5 py-6 dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)">
 				{/* Header */}
 				<div className="flex items-center justify-between">
-					<h3 className="text-xl font-semibold leading-7 text-(--sub-c-090b0c) dark:text-white">
+					<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c) dark:text-white">
 						Upgrade to Full Access
 					</h3>
 					<button
@@ -38,14 +38,12 @@ export function EndTrialModal({ isOpen, onClose, onConfirm, isLoading }: EndTria
 
 				{/* Warning */}
 				<div className="flex items-start gap-2 rounded-xl border border-sub-warning-border-light bg-sub-warning-bg/10 p-3 dark:border-sub-warning-border-dark">
-					<Icon name="alert-warning" height={20} width={20} className="mt-0.5 shrink-0 text-sub-warning-text" />
+					<Icon name="alert-warning" height={20} width={20} className="text-sub-warning-text mt-0.5 shrink-0" />
 					<div className="flex flex-col gap-1">
-						<p className="text-xs font-semibold text-sub-warning-text">
-							This is NOT a subscription cancellation
-						</p>
+						<p className="text-sub-warning-text text-xs font-semibold">This is NOT a subscription cancellation</p>
 						<p className="text-xs leading-4 text-(--sub-c-878787)">
-							By proceeding, you will end your free trial early and convert to a paid subscription
-							immediately. You'll be charged the full amount ($49/month).
+							By proceeding, you will end your free trial early and convert to a paid subscription immediately. You'll
+							be charged the full amount ($49/month).
 						</p>
 					</div>
 				</div>
