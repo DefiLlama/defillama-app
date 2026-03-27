@@ -134,7 +134,17 @@ const ENABLED_COLUMNS = [
 	'showStdDev'
 ]
 
-const FILTER_QUERY_PARAMS = ['chain', 'excludeChain', 'token', 'excludeToken', 'minTvl', 'maxTvl', 'minApy', 'maxApy', ...ENABLED_COLUMNS]
+const FILTER_QUERY_PARAMS = [
+	'chain',
+	'excludeChain',
+	'token',
+	'excludeToken',
+	'minTvl',
+	'maxTvl',
+	'minApy',
+	'maxApy',
+	...ENABLED_COLUMNS
+]
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const router = useRouter()
