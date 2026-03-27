@@ -1092,15 +1092,7 @@ export const ChainsByAdapterChart = ({
 				if (deferredChartPresentation.charts.length <= 1) {
 					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
 				}
-				return {
-					...baseOptions,
-					legend: {
-						top: 12
-					},
-					grid: {
-						top: 40
-					}
-				}
+				return baseOptions
 			}
 			case 'line':
 				if (deferredChartPresentation.charts.length <= 1) {
@@ -1115,12 +1107,6 @@ export const ChainsByAdapterChart = ({
 					yAxis: {
 						min: 0,
 						max: 100
-					},
-					legend: {
-						top: 12
-					},
-					grid: {
-						top: 40
 					}
 				}
 			default:
