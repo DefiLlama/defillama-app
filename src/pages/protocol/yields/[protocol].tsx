@@ -63,26 +63,9 @@ export const getStaticProps = withPerformanceLogging(
 		let poolsError: string | null = null
 		let poolsList: IYieldTableRow[] = []
 		try {
-			const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
+			const { getYieldPageData } = await import('~/containers/Yields/queries/index')
 			const yieldsData = await getYieldPageData()
-			const dataBorrow = await getLendBorrowData(yieldsData.props).catch((err) => {
-				console.error('[protocol/yields] getLendBorrowData failed:', err?.message ?? err)
-				return { props: { pools: [] as any[] } }
-			})
-			const borrowByPool = new Map(dataBorrow.props.pools.map((i) => [i.pool, i]))
-			const allPools = (yieldsData?.props?.pools ?? []).map((p) => {
-				const x = borrowByPool.get(p.pool)
-				return {
-					...p,
-					apyBaseBorrow: x?.apyBaseBorrow ?? null,
-					apyRewardBorrow: x?.apyRewardBorrow ?? null,
-					apyBorrow: x?.apyBorrow ?? null,
-					totalSupplyUsd: x?.totalSupplyUsd ?? null,
-					totalBorrowUsd: x?.totalBorrowUsd ?? null,
-					totalAvailableUsd: x?.totalAvailableUsd ?? null,
-					ltv: x?.ltv ?? null
-				}
-			})
+			const allPools = yieldsData?.props?.pools ?? []
 			poolsList = allPools
 				.filter(
 					(pool) =>
@@ -134,8 +117,6 @@ export const getStaticPaths = () => {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const FILTER_QUERY_PARAMS = ['chain', 'excludeChain', 'token', 'excludeToken', 'minTvl', 'maxTvl', 'minApy', 'maxApy', ...ENABLED_COLUMNS]
-
 const ENABLED_COLUMNS = [
 	'show7dBaseApy',
 	'show7dIL',
@@ -152,6 +133,8 @@ const ENABLED_COLUMNS = [
 	'showMedianApy',
 	'showStdDev'
 ]
+
+const FILTER_QUERY_PARAMS = ['chain', 'excludeChain', 'token', 'excludeToken', 'minTvl', 'maxTvl', 'minApy', 'maxApy', ...ENABLED_COLUMNS]
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const router = useRouter()
