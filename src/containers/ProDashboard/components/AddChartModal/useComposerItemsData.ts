@@ -1,7 +1,13 @@
 import { useQueries } from '@tanstack/react-query'
 import { useContext, useMemo } from 'react'
 import type { TimePeriod } from '../../ProDashboardAPIContext'
-import { filterDataByTimePeriod, getChartQueryFn, getChartQueryKey, ProxyAuthTokenContext, StreamDoneContext } from '../../queries'
+import {
+	filterDataByTimePeriod,
+	getChartQueryFn,
+	getChartQueryKey,
+	ProxyAuthTokenContext,
+	StreamDoneContext
+} from '../../queries'
 import type { ChartConfig } from '../../types'
 import { groupData } from '../../utils'
 

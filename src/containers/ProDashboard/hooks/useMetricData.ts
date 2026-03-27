@@ -2,7 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useContext, useMemo } from 'react'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
-import { getChartQueryFn, getChartQueryKey, ProxyAuthTokenContext, StreamDoneContext, useParentChildMapping } from '../queries'
+import {
+	getChartQueryFn,
+	getChartQueryKey,
+	ProxyAuthTokenContext,
+	StreamDoneContext,
+	useParentChildMapping
+} from '../queries'
 import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
 
 const DEFAULT_COMPARE = {

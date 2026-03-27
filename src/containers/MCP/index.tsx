@@ -2,9 +2,9 @@ import * as Ariakit from '@ariakit/react'
 import { useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { useAuthContext } from '../Subscribtion/auth'
-import { WalletProvider } from '~/layout/WalletProvider'
 
 const toolCategories = [
 	{
@@ -73,7 +73,7 @@ function ClientMarquee() {
 	const items = [...clients, ...clients]
 	return (
 		<div
-			className="marquee-container relative mt-8"
+			className="relative mt-8 marquee-container"
 			style={{
 				maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
 			}}
@@ -194,7 +194,7 @@ function CodeBlock({ children, label }: { children: string; label: string }) {
 const clientConfigs = [
 	{
 		name: 'Claude Code',
-		code: `claude mcp add defillama --transport http https://mcp.defillama.com/mcp`,
+		code: `claude mcp add defillama --transport http https://mcp.defillama.com/mcp`
 	},
 	{
 		name: 'OpenClaw',
@@ -207,11 +207,11 @@ const clientConfigs = [
       }
     }
   }
-}`,
+}`
 	},
 	{
 		name: 'Codex',
-		code: `codex mcp add defillama --url https://mcp.defillama.com/mcp`,
+		code: `codex mcp add defillama --url https://mcp.defillama.com/mcp`
 	},
 	{
 		name: 'Cursor / Windsurf',
@@ -221,7 +221,7 @@ const clientConfigs = [
       "url": "https://mcp.defillama.com/mcp"
     }
   }
-}`,
+}`
 	},
 	{
 		name: 'Gemini CLI',
@@ -231,7 +231,7 @@ const clientConfigs = [
       "httpUrl": "https://mcp.defillama.com/mcp"
     }
   }
-}`,
+}`
 	},
 	{
 		name: 'OpenCode',
@@ -242,8 +242,8 @@ const clientConfigs = [
       "url": "https://mcp.defillama.com/mcp"
     }
   }
-}`,
-	},
+}`
+	}
 ]
 
 function ManualSetup() {
@@ -254,7 +254,7 @@ function ManualSetup() {
 				Or add manually to your client config
 			</h3>
 			<div className="mx-auto max-w-2xl overflow-hidden rounded-md border border-(--cards-border) bg-(--bg-card)">
-				<div className="flex overflow-x-auto border-b border-(--cards-border) no-scrollbar">
+				<div className="no-scrollbar flex overflow-x-auto border-b border-(--cards-border)">
 					{clientConfigs.map((c, i) => (
 						<button
 							key={c.name}
@@ -315,7 +315,7 @@ function StepCard({ step, title, children }: { step: number; title: string; chil
 function SectionHeader({ overline, title, description }: { overline: string; title: string; description?: string }) {
 	return (
 		<div className="mb-8">
-			<p className="mb-2 text-xs font-semibold uppercase tracking-widest text-(--old-blue)">{overline}</p>
+			<p className="mb-2 text-xs font-semibold tracking-widest text-(--old-blue) uppercase">{overline}</p>
 			<h2 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">{title}</h2>
 			{description && <p className="max-w-2xl text-[15px] text-(--text-tertiary)">{description}</p>}
 		</div>
@@ -342,7 +342,7 @@ function ToolCategoryGroup({
 				onClick={() => setOpen((v) => !v)}
 				aria-expanded={open}
 				aria-controls={panelId}
-				className="mb-2 flex w-full items-center gap-2 text-left text-xs font-semibold uppercase tracking-widest text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
+				className="mb-2 flex w-full items-center gap-2 text-left text-xs font-semibold tracking-widest text-(--text-tertiary) uppercase transition-colors hover:text-(--text-primary)"
 			>
 				<svg
 					viewBox="0 0 24 24"
@@ -356,7 +356,7 @@ function ToolCategoryGroup({
 					<polyline points="9 18 15 12 9 6" />
 				</svg>
 				{label}
-				<span className="text-(--text-disabled) font-normal normal-case tracking-normal">({tools.length})</span>
+				<span className="font-normal tracking-normal text-(--text-disabled) normal-case">({tools.length})</span>
 			</button>
 			{open && (
 				<div id={panelId} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -391,10 +391,10 @@ export default function MCPContainer() {
 	return (
 		<>
 			{/* Hero */}
-			<section className="mx-auto max-w-[1100px] px-4 pb-10 pt-14 sm:px-6 md:px-8">
+			<section className="mx-auto max-w-[1100px] px-4 pt-14 pb-10 sm:px-6 md:px-8">
 				<div className="grid items-center gap-10 md:grid-cols-[1fr_1fr] md:gap-12">
 					<div>
-						<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-(--old-blue)">
+						<p className="mb-3 text-xs font-semibold tracking-widest text-(--old-blue) uppercase">
 							DefiLlama MCP Server
 						</p>
 						<h1 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.75rem]">
