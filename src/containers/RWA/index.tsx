@@ -21,18 +21,34 @@ import type { IRWAAssetsOverview, RWATickerChartTarget } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
 import { emptyChartDatasets, type RWAChartAggregationMode } from './chartAggregation'
 import {
-	getDefaultRWATimeSeriesChartBreakdown,
-	getRWATimeSeriesChartBreakdownOptions,
-	getRWATimeSeriesChartState,
-	type RWAOverviewMode,
-	type RWATimeSeriesChartState
-} from './constants'
+	createRwaChartModeState,
+	getBreakdownLabel,
+	getChartBreakdownOptions,
+	getChartBreakdownQueryValue,
+	getChartMetricLabel,
+	getChartMetricOptions,
+	getChartMetricQueryValue,
+	getChartViewOptions,
+	getChartViewQueryValue,
+	getDefaultChartBreakdown,
+	type RWAChartBreakdown,
+	getTreemapNestedByLabel,
+	getTreemapNestedByOptions,
+	getTreemapNestedByQueryValue,
+	getTreemapParentGrouping,
+	parseRwaChartState,
+	setChartBreakdown,
+	setTreemapNestedBy,
+	type RWAChartState
+} from './chartState'
+import { type RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
 	useFilteredRwaAssets,
 	useRWATableQueryParams,
 	useRWAAssetCategoryPieChartData,
+	useRwaAssetGroupPieChartData,
 	useRwaAssetNamePieChartData,
 	useRwaAssetPlatformPieChartData,
 	useRwaCategoryAssetClassPieChartData,
@@ -41,17 +57,7 @@ import {
 	hasActiveChartFilters
 } from './hooks'
 import { rwaSlug } from './rwaSlug'
-import {
-	buildRwaNestedTreemapTreeData,
-	buildRwaTreemapTreeData,
-	canBuildRwaNestedTreemap,
-	getRwaTreemapParentGrouping,
-	getTreemapNestedByOptions,
-	normalizeTreemapNestedByForParentGrouping,
-	resolveTreemapNestedByOnParentGroupingChange,
-	validTreemapNestedBy
-} from './treemap'
-import type { RWAChartType, RwaTreemapNestedBy } from './treemap'
+import { buildRwaNestedTreemapTreeData, buildRwaTreemapTreeData, canBuildRwaNestedTreemap } from './treemap'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = lazy(
@@ -70,28 +76,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const isCategoryMode = mode === 'category'
 	const isPlatformMode = mode === 'platform'
 	const isAssetGroupMode = mode === 'assetGroup'
-	const timeSeriesChartBreakdown =
-		typeof router.query.timeSeriesChartBreakdown === 'string' ? router.query.timeSeriesChartBreakdown : null
-	const nonTimeSeriesChartBreakdown =
-		typeof router.query.nonTimeSeriesChartBreakdown === 'string' ? router.query.nonTimeSeriesChartBreakdown : null
-	const chartType =
-		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
-			? router.query.chartType
-			: 'activeMcap'
-	const chartViewQuery = typeof router.query.chartView === 'string' ? router.query.chartView : null
-	const chartView =
-		chartViewQuery === 'bar'
-			? 'hbar'
-			: chartViewQuery === 'pie' || chartViewQuery === 'treemap' || chartViewQuery === 'hbar'
-				? chartViewQuery
-				: 'timeSeries'
-	const treemapNestedByQuery =
-		typeof router.query.treemapNestedBy === 'string' &&
-		validTreemapNestedBy.has(router.query.treemapNestedBy as RwaTreemapNestedBy)
-			? (router.query.treemapNestedBy as RwaTreemapNestedBy)
-			: null
-	const chartTypeKey = chartType as RWAChartType
-	const timeSeriesChartState = getRWATimeSeriesChartState(mode, timeSeriesChartBreakdown)
+	const canBreakdownByChain = isCategoryMode || isPlatformMode || isAssetGroupMode || props.selectedChain === 'All'
+	const chartMode = createRwaChartModeState(mode, canBreakdownByChain)
+	const chartState = parseRwaChartState(router.query, chartMode)
+	const chartTypeKey = chartState.metric
+	const chartView = chartState.view
+	const timeSeriesBreakdown =
+		chartView === 'timeSeries' ? chartState.breakdown : getDefaultChartBreakdown(chartMode, 'timeSeries')
+	const nonTimeSeriesBreakdown =
+		chartView === 'timeSeries' ? getDefaultChartBreakdown(chartMode, 'pie') : chartState.breakdown
 
 	const {
 		selectedAssetNames,
@@ -182,12 +175,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedMetric: chartTypeKey,
 		initialDataset: initialChartDataset[chartTypeKey],
 		filteredAssets,
-		mode: getRwaChartAggregationMode(timeSeriesChartState),
+		mode: getRwaChartAggregationMode(timeSeriesBreakdown),
 		target: chartTarget,
 		useInitialDataset:
 			chartTypeKey === 'activeMcap' &&
 			!activeFilters &&
-			timeSeriesChartState.breakdown === getDefaultRWATimeSeriesChartBreakdown(mode)
+			timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries')
 	})
 
 	const {
@@ -196,7 +189,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetCategoryDefiActiveTvlPieChartData,
 		pieChartStackColors: assetCategoryPieChartStackColors
 	} = useRWAAssetCategoryPieChartData({
-		enabled: isChainMode,
+		enabled: isChainMode || nonTimeSeriesBreakdown === 'category',
 		assets: filteredAssets,
 		categories: props.categories,
 		selectedCategories
@@ -208,7 +201,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetClassDefiActiveTvlPieChartData,
 		assetClassPieChartStackColors
 	} = useRwaCategoryAssetClassPieChartData({
-		enabled: isCategoryMode || isChainMode,
+		enabled: isCategoryMode || isChainMode || nonTimeSeriesBreakdown === 'assetClass',
 		assets: filteredAssets,
 		assetClasses: props.assetClasses,
 		selectedAssetClasses
@@ -228,16 +221,24 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 
 	const {
+		assetGroupOnChainMcapPieChartData,
+		assetGroupActiveMcapPieChartData,
+		assetGroupDefiActiveTvlPieChartData,
+		assetGroupPieChartStackColors
+	} = useRwaAssetGroupPieChartData({
+		enabled: nonTimeSeriesBreakdown === 'assetGroup',
+		assets: filteredAssets
+	})
+
+	const {
 		assetPlatformOnChainMcapPieChartData,
 		assetPlatformActiveMcapPieChartData,
 		assetPlatformDefiActiveTvlPieChartData,
 		assetPlatformPieChartStackColors
 	} = useRwaAssetPlatformPieChartData({
-		enabled: isChainMode,
+		enabled: isChainMode || nonTimeSeriesBreakdown === 'platform',
 		assets: filteredAssets
 	})
-
-	const canBreakdownByChain = isCategoryMode || isPlatformMode || isAssetGroupMode || props.selectedChain === 'All'
 	const {
 		chainOnChainMcapPieChartData,
 		chainActiveMcapPieChartData,
@@ -251,58 +252,57 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Select pie chart breakdown based on route mode (same precedence as nav links).
 	const { onChainPieChartData, activeMcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
-			if (canBreakdownByChain && nonTimeSeriesChartBreakdown === 'chain') {
-				return {
-					onChainPieChartData: chainOnChainMcapPieChartData,
-					activeMcapPieChartData: chainActiveMcapPieChartData,
-					defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
-					pieChartStackColors: chainPieChartStackColors
-				}
-			}
-
-			if (isChainMode && nonTimeSeriesChartBreakdown === 'platform') {
-				return {
-					onChainPieChartData: assetPlatformOnChainMcapPieChartData,
-					activeMcapPieChartData: assetPlatformActiveMcapPieChartData,
-					defiActiveTvlPieChartData: assetPlatformDefiActiveTvlPieChartData,
-					pieChartStackColors: assetPlatformPieChartStackColors
-				}
-			}
-
-			if (isChainMode && nonTimeSeriesChartBreakdown === 'assetClass') {
-				return {
-					onChainPieChartData: assetClassOnChainMcapPieChartData,
-					activeMcapPieChartData: assetClassActiveMcapPieChartData,
-					defiActiveTvlPieChartData: assetClassDefiActiveTvlPieChartData,
-					pieChartStackColors: assetClassPieChartStackColors
-				}
-			}
-
-			if (isCategoryMode) {
-				return {
-					onChainPieChartData: assetClassOnChainMcapPieChartData,
-					activeMcapPieChartData: assetClassActiveMcapPieChartData,
-					defiActiveTvlPieChartData: assetClassDefiActiveTvlPieChartData,
-					pieChartStackColors: assetClassPieChartStackColors
-				}
-			}
-
-			if (isPlatformMode || isAssetGroupMode) {
-				return {
-					onChainPieChartData: assetNameOnChainMcapPieChartData,
-					activeMcapPieChartData: assetNameActiveMcapPieChartData,
-					defiActiveTvlPieChartData: assetNameDefiActiveTvlPieChartData,
-					pieChartStackColors: assetNamePieChartStackColors
-				}
-			}
-
-			return {
-				onChainPieChartData: assetCategoryOnChainMcapPieChartData,
-				activeMcapPieChartData: assetCategoryActiveMcapPieChartData,
-				defiActiveTvlPieChartData: assetCategoryDefiActiveTvlPieChartData,
-				pieChartStackColors: assetCategoryPieChartStackColors
+			switch (nonTimeSeriesBreakdown) {
+				case 'chain':
+					return {
+						onChainPieChartData: chainOnChainMcapPieChartData,
+						activeMcapPieChartData: chainActiveMcapPieChartData,
+						defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
+						pieChartStackColors: chainPieChartStackColors
+					}
+				case 'assetGroup':
+					return {
+						onChainPieChartData: assetGroupOnChainMcapPieChartData,
+						activeMcapPieChartData: assetGroupActiveMcapPieChartData,
+						defiActiveTvlPieChartData: assetGroupDefiActiveTvlPieChartData,
+						pieChartStackColors: assetGroupPieChartStackColors
+					}
+				case 'platform':
+					return {
+						onChainPieChartData: assetPlatformOnChainMcapPieChartData,
+						activeMcapPieChartData: assetPlatformActiveMcapPieChartData,
+						defiActiveTvlPieChartData: assetPlatformDefiActiveTvlPieChartData,
+						pieChartStackColors: assetPlatformPieChartStackColors
+					}
+				case 'assetClass':
+					return {
+						onChainPieChartData: assetClassOnChainMcapPieChartData,
+						activeMcapPieChartData: assetClassActiveMcapPieChartData,
+						defiActiveTvlPieChartData: assetClassDefiActiveTvlPieChartData,
+						pieChartStackColors: assetClassPieChartStackColors
+					}
+				case 'assetName':
+					return {
+						onChainPieChartData: assetNameOnChainMcapPieChartData,
+						activeMcapPieChartData: assetNameActiveMcapPieChartData,
+						defiActiveTvlPieChartData: assetNameDefiActiveTvlPieChartData,
+						pieChartStackColors: assetNamePieChartStackColors
+					}
+				case 'category':
+					return {
+						onChainPieChartData: assetCategoryOnChainMcapPieChartData,
+						activeMcapPieChartData: assetCategoryActiveMcapPieChartData,
+						defiActiveTvlPieChartData: assetCategoryDefiActiveTvlPieChartData,
+						pieChartStackColors: assetCategoryPieChartStackColors
+					}
+				default:
+					return assertNever(nonTimeSeriesBreakdown)
 			}
 		}, [
+			assetGroupActiveMcapPieChartData,
+			assetGroupDefiActiveTvlPieChartData,
+			assetGroupOnChainMcapPieChartData,
+			assetGroupPieChartStackColors,
 			assetClassActiveMcapPieChartData,
 			assetClassDefiActiveTvlPieChartData,
 			assetClassOnChainMcapPieChartData,
@@ -319,12 +319,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			assetCategoryDefiActiveTvlPieChartData,
 			assetCategoryOnChainMcapPieChartData,
 			assetCategoryPieChartStackColors,
-			isChainMode,
-			isCategoryMode,
-			isPlatformMode,
-			isAssetGroupMode,
-			canBreakdownByChain,
-			nonTimeSeriesChartBreakdown,
+			nonTimeSeriesBreakdown,
 			chainOnChainMcapPieChartData,
 			chainActiveMcapPieChartData,
 			chainDefiActiveTvlPieChartData,
@@ -366,8 +361,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const { chartInstance: multiSeriesChart2Instance, handleChartReady: handleMultiSeriesChart2Ready } =
 		useChartImageExport()
-	const chartMetricLabel =
-		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
+	const chartMetricLabel = getChartMetricLabel(chartTypeKey)
+	const chartMetricOptions = getChartMetricOptions()
+	const chartViewOptions = getChartViewOptions()
 	const selectedModeLabel = getSelectedModeLabel(mode, props)
 	const exportChartTitle = getRwaExportChartTitle({
 		mode,
@@ -443,13 +439,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const chartTypeSwitch = (
 		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-			{PIE_CHART_TYPES.map(({ key, label }) => (
+			{chartMetricOptions.map(({ key, label }) => (
 				<button
 					key={`pie-chart-type-${key}`}
 					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-					data-active={chartType === key}
+					data-active={chartTypeKey === key}
 					onClick={() => {
-						void pushShallowQuery(router, { chartType: key })
+						void pushShallowQuery(router, { chartType: getChartMetricQueryValue(key) })
 					}}
 				>
 					{label}
@@ -460,91 +456,38 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const chartViewSwitch = (
 		<Select
-			allValues={CHART_VIEW_OPTIONS}
+			allValues={chartViewOptions}
 			selectedValues={chartView}
 			setSelectedValues={(value) => {
-				const selectedView = getSelectedFilterValue(value)
-
-				if (selectedView === 'pie' || selectedView === 'treemap' || selectedView === 'hbar') {
-					void pushShallowQuery(router, { chartView: selectedView })
-					return
-				}
-
-				void pushShallowQuery(router, { chartView: undefined })
+				const selectedView = getSelectedFilterValue(value) as RWAChartState['view']
+				void pushShallowQuery(router, { chartView: getChartViewQueryValue(selectedView) })
 			}}
-			label={
-				chartView === 'pie'
-					? 'Pie Chart'
-					: chartView === 'treemap'
-						? 'Treemap Chart'
-						: chartView === 'hbar'
-							? 'HBar Chart'
-							: 'Time Series'
-			}
+			label={chartViewOptions.find(({ key }) => key === chartView)?.name ?? chartViewOptions[0].name}
 			labelType="none"
 			variant="filter"
 		/>
 	)
-	const timeSeriesChartBreakdownOptions = getRWATimeSeriesChartBreakdownOptions(mode)
-	const timeSeriesChartBreakdownLabel =
-		timeSeriesChartBreakdownOptions.find((option) => option.key === timeSeriesChartState.breakdown)?.name ??
-		timeSeriesChartBreakdownOptions[0].name
+	const chartBreakdownOptions = getChartBreakdownOptions(chartState)
+	const chartBreakdownLabel = getBreakdownLabel(chartState.breakdown)
 	const timeSeriesChartBreakdownSwitch = (
 		<Select
-			allValues={timeSeriesChartBreakdownOptions}
-			selectedValues={timeSeriesChartState.breakdown}
+			allValues={chartBreakdownOptions}
+			selectedValues={chartState.breakdown}
 			setSelectedValues={(value) => {
-				const nextBreakdown = getSelectedFilterValue(value)
-				const nextState = getRWATimeSeriesChartState(mode, nextBreakdown)
+				const nextBreakdown = getSelectedFilterValue(value) as RWAChartState['breakdown']
+				const nextState = setChartBreakdown(chartState, nextBreakdown)
 				void pushShallowQuery(router, {
-					timeSeriesChartBreakdown:
-						nextState.breakdown === getDefaultRWATimeSeriesChartBreakdown(mode) ? undefined : nextState.breakdown
+					timeSeriesChartBreakdown: getChartBreakdownQueryValue(nextState)
 				})
 			}}
-			label={timeSeriesChartBreakdownLabel}
+			label={chartBreakdownLabel}
 			labelType="none"
 			variant="filter"
 		/>
 	)
 
-	const pieChartBreakdownDefaultLabel =
-		mode === 'chain' ? 'Asset Category' : mode === 'category' ? 'Asset Class' : 'Asset Name'
-	const pieChartBreakdownOptions = isChainMode
-		? [
-				{ key: 'default', name: pieChartBreakdownDefaultLabel },
-				{ key: 'assetClass', name: 'Asset Class' },
-				{ key: 'platform', name: 'Asset Platform' },
-				...(canBreakdownByChain ? [{ key: 'chain', name: 'Chain' }] : [])
-			]
-		: [
-				{ key: 'default', name: pieChartBreakdownDefaultLabel },
-				{ key: 'chain', name: 'Chain' }
-			]
-	const selectedPieChartBreakdown =
-		nonTimeSeriesChartBreakdown === 'chain' && canBreakdownByChain
-			? 'chain'
-			: isChainMode && nonTimeSeriesChartBreakdown === 'platform'
-				? 'platform'
-				: isChainMode && nonTimeSeriesChartBreakdown === 'assetClass'
-					? 'assetClass'
-					: 'default'
-	const selectedPieChartBreakdownLabel =
-		selectedPieChartBreakdown === 'chain'
-			? 'Chain'
-			: selectedPieChartBreakdown === 'platform'
-				? 'Asset Platform'
-				: selectedPieChartBreakdown === 'assetClass'
-					? 'Asset Class'
-					: pieChartBreakdownDefaultLabel
-	const treemapParentGrouping = getRwaTreemapParentGrouping({
-		mode,
-		nonTimeSeriesChartBreakdown,
-		canBreakdownByChain
-	})
-	const treemapNestedBy = normalizeTreemapNestedByForParentGrouping({
-		parentGrouping: treemapParentGrouping,
-		nestedBy: treemapNestedByQuery
-	})
+	const treemapParentGrouping = getTreemapParentGrouping(nonTimeSeriesBreakdown)
+	const treemapNestedBy = chartState.treemapNestedBy
 	const treemapNestedByOptions = getTreemapNestedByOptions(treemapParentGrouping)
 	const isNestedTreemapSupported = canBuildRwaNestedTreemap({
 		parentGrouping: treemapParentGrouping,
@@ -552,61 +495,30 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	})
 	const pieChartBreakdownSwitch = (
 		<Select
-			allValues={pieChartBreakdownOptions}
-			selectedValues={selectedPieChartBreakdown}
+			allValues={chartBreakdownOptions}
+			selectedValues={chartState.breakdown}
 			setSelectedValues={(value) => {
-				const selectedBreakdown = getSelectedFilterValue(value)
-				const applyBreakdownChange = (nextBreakdown: 'default' | 'chain' | 'platform' | 'assetClass') => {
-					const nextNonTimeSeriesChartBreakdown = nextBreakdown === 'default' ? null : nextBreakdown
-					const nextTreemapParentGrouping = getRwaTreemapParentGrouping({
-						mode,
-						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown,
-						canBreakdownByChain
-					})
-					const nextTreemapNestedBy = resolveTreemapNestedByOnParentGroupingChange({
-						currentParentGrouping: treemapParentGrouping,
-						nextParentGrouping: nextTreemapParentGrouping,
-						currentNestedBy: treemapNestedBy
-					})
-					void pushShallowQuery(router, {
-						treemapNestedBy: nextTreemapNestedBy,
-						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown ?? undefined
-					})
-				}
-
-				if (selectedBreakdown === 'chain' && canBreakdownByChain) {
-					applyBreakdownChange('chain')
-					return
-				}
-				if (selectedBreakdown === 'platform') {
-					applyBreakdownChange('platform')
-					return
-				}
-				if (selectedBreakdown === 'assetClass') {
-					applyBreakdownChange('assetClass')
-					return
-				}
-				applyBreakdownChange('default')
+				const nextBreakdown = getSelectedFilterValue(value) as RWAChartState['breakdown']
+				const nextState = setChartBreakdown(chartState, nextBreakdown)
+				void pushShallowQuery(router, {
+					nonTimeSeriesChartBreakdown: getChartBreakdownQueryValue(nextState),
+					treemapNestedBy: getTreemapNestedByQueryValue(nextState)
+				})
 			}}
-			label={selectedPieChartBreakdownLabel}
+			label={chartBreakdownLabel}
 			labelType="none"
 			variant="filter"
 		/>
 	)
-	const treemapNestedByLabel =
-		treemapNestedBy === 'assetName' ? 'Asset Name' : treemapNestedBy === 'assetClass' ? 'Asset Class' : 'No Grouping'
+	const treemapNestedByLabel = getTreemapNestedByLabel(treemapNestedBy)
 	const treemapNestedBySwitch = (
 		<Select
 			allValues={treemapNestedByOptions}
 			selectedValues={treemapNestedBy}
 			setSelectedValues={(value) => {
-				const selectedNestedBy = getSelectedFilterValue(value)
-				if (selectedNestedBy !== 'none' && selectedNestedBy !== 'assetClass' && selectedNestedBy !== 'assetName') return
-				const normalizedNestedBy = normalizeTreemapNestedByForParentGrouping({
-					parentGrouping: treemapParentGrouping,
-					nestedBy: selectedNestedBy
-				})
-				void pushShallowQuery(router, { treemapNestedBy: normalizedNestedBy })
+				const selectedNestedBy = getSelectedFilterValue(value) as RWAChartState['treemapNestedBy']
+				const nextState = setTreemapNestedBy(chartState, selectedNestedBy)
+				void pushShallowQuery(router, { treemapNestedBy: getTreemapNestedByQueryValue(nextState) })
 			}}
 			label={`Nested by: ${treemapNestedByLabel}`}
 			labelType="none"
@@ -620,20 +532,20 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			const nestedTreeData = buildRwaNestedTreemapTreeData({
 				assets: filteredAssets,
 				metric: chartTypeKey,
-				rootLabel: selectedPieChartBreakdownLabel,
+				rootLabel: chartBreakdownLabel,
 				parentGrouping: treemapParentGrouping,
 				childGrouping: treemapNestedBy
 			})
 			if (nestedTreeData.length > 0) return nestedTreeData
 		}
-		return buildRwaTreemapTreeData(selectedPieChartData, selectedPieChartBreakdownLabel)
+		return buildRwaTreemapTreeData(selectedPieChartData, chartBreakdownLabel)
 	}, [
 		chartView,
 		chartTypeKey,
 		filteredAssets,
+		chartBreakdownLabel,
 		isNestedTreemapSupported,
 		selectedPieChartData,
-		selectedPieChartBreakdownLabel,
 		treemapNestedBy,
 		treemapParentGrouping
 	])
@@ -852,13 +764,16 @@ function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
 }
 
-const getRwaChartAggregationMode = (state: RWATimeSeriesChartState): RWAChartAggregationMode => {
-	switch (state.mode) {
-		case 'chain':
-		case 'category':
-		case 'platform':
+const getRwaChartAggregationMode = (state: RWAChartBreakdown): RWAChartAggregationMode => {
+	switch (state) {
 		case 'assetGroup':
-			return state.breakdown
+		case 'category':
+		case 'assetClass':
+		case 'assetName':
+		case 'platform':
+			return state
+		case 'chain':
+			throw new Error('Chain breakdown is not valid for time-series charts')
 		default:
 			return assertNever(state)
 	}
@@ -917,19 +832,4 @@ const pieChartLegendPosition = {
 	}
 } as const
 const pieChartLegendTextStyle = { fontSize: 14 }
-
-const PIE_CHART_TYPES = [
-	{ key: 'activeMcap', label: 'Active Mcap' },
-	{ key: 'onChainMcap', label: 'Onchain Mcap' },
-	{ key: 'defiActiveTvl', label: 'DeFi Active TVL' }
-]
-
-const CHART_VIEW_OPTIONS = [
-	{ key: 'timeSeries', name: 'Time Series Chart' },
-	{ key: 'pie', name: 'Pie Chart' },
-	{ key: 'treemap', name: 'Treemap Chart' },
-	{ key: 'hbar', name: 'HBar Chart' }
-]
-
-const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
 const MAX_HORIZONTAL_BARS = 9

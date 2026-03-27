@@ -913,6 +913,66 @@ export function useRwaAssetNamePieChartData({
 	}, [assets, enabled, selectedAssetNames])
 }
 
+export function useRwaAssetGroupPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 24
+		const OTHERS = 'Others'
+
+		if (!enabled || assets.length === 0) {
+			return {
+				assetGroupOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetGroupActiveMcapPieChartData: [] as PieChartDatum[],
+				assetGroupDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetGroupPieChartStackColors: {}
+			}
+		}
+
+		const totalsByGroup = new Map<string, { onChain: number; active: number; defi: number }>()
+		for (const asset of assets) {
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
+			const prev = totalsByGroup.get(assetGroup) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
+			totalsByGroup.set(assetGroup, prev)
+		}
+
+		const colorOrder = Array.from(totalsByGroup.keys()).sort()
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const assetGroupPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, row) => sum + row.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, totals] of totalsByGroup.entries()) {
+				const value = totals[metric]
+				if (value > 0) rows.push({ name, value })
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
+
+		return {
+			assetGroupOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetGroupActiveMcapPieChartData: toSortedChartData('active'),
+			assetGroupDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetGroupPieChartStackColors
+		}
+	}, [assets, enabled])
+}
+
 export function useRwaAssetPlatformPieChartData({
 	enabled,
 	assets
