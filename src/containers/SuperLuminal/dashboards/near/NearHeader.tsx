@@ -39,64 +39,8 @@ const LINK_LABELS: Record<string, string> = {
 
 export function NearIcon({ className = 'h-7 w-7' }: { className?: string }) {
 	return (
-		<svg viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-			<path d="M65.6641 18.75L51.3281 41.25L50.625 54.375L58.7109 41.25L65.6641 18.75Z" fill="url(#near-gradient-1)" />
-			<path d="M24.3359 71.25L38.6719 48.75L39.375 35.625L31.2891 48.75L24.3359 71.25Z" fill="url(#near-gradient-2)" />
-			<path
-				d="M65.6641 18.75C64.0547 16.0547 61.5234 14.0625 58.0078 14.0625C53.8594 14.0625 50.625 17.2969 50.625 21.4453V54.375L58.7109 41.25L65.6641 18.75Z"
-				fill="url(#near-gradient-3)"
-			/>
-			<path
-				d="M24.3359 71.25C25.9453 73.9453 28.4766 75.9375 31.9922 75.9375C36.1406 75.9375 39.375 72.7031 39.375 68.5547V35.625L31.2891 48.75L24.3359 71.25Z"
-				fill="url(#near-gradient-4)"
-			/>
-			<defs>
-				<linearGradient
-					id="near-gradient-1"
-					x1="58.2891"
-					y1="18.75"
-					x2="58.2891"
-					y2="54.375"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#00C1DE" />
-					<stop offset="1" stopColor="#00C1DE" stopOpacity="0" />
-				</linearGradient>
-				<linearGradient
-					id="near-gradient-2"
-					x1="31.7109"
-					y1="71.25"
-					x2="31.7109"
-					y2="35.625"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#00C1DE" />
-					<stop offset="1" stopColor="#00C1DE" stopOpacity="0" />
-				</linearGradient>
-				<linearGradient
-					id="near-gradient-3"
-					x1="51.6797"
-					y1="14.0625"
-					x2="63.7734"
-					y2="42.8906"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#00E4AA" />
-					<stop offset="1" stopColor="#00C1DE" />
-				</linearGradient>
-				<linearGradient
-					id="near-gradient-4"
-					x1="38.3203"
-					y1="75.9375"
-					x2="26.2266"
-					y2="47.1094"
-					gradientUnits="userSpaceOnUse"
-				>
-					<stop stopColor="#00E4AA" />
-					<stop offset="1" stopColor="#00C1DE" />
-				</linearGradient>
-			</defs>
-		</svg>
+		<div>
+		<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full max-w-[28px] h-auto"><path d="M13.9017 0.646973C13.3462 0.646973 12.8304 0.929357 12.5394 1.39357L9.40403 5.95741C9.30186 6.10784 9.34331 6.31059 9.49675 6.41075C9.6211 6.49202 9.78561 6.48196 9.89889 6.38645L12.9851 3.76201C13.0364 3.71677 13.1154 3.72137 13.1616 3.77165C13.1825 3.79469 13.1937 3.82444 13.1937 3.85502V12.0719C13.1937 12.1397 13.1377 12.1942 13.0684 12.1942C13.0312 12.1942 12.9962 12.1783 12.9727 12.1502L3.6435 1.20169C3.33966 0.850174 2.89352 0.647392 2.42388 0.646973H2.09782C1.21536 0.646973 0.5 1.34833 0.5 2.2135V13.7863C0.5 14.6515 1.21536 15.3528 2.09782 15.3528C2.65336 15.3528 3.16915 15.0704 3.46017 14.6062L6.59558 10.0424C6.69769 9.89194 6.65624 9.68919 6.50279 9.58903C6.37845 9.50776 6.21394 9.51782 6.10071 9.61334L3.01446 12.2378C2.96318 12.283 2.88412 12.2784 2.83797 12.2281C2.81703 12.2051 2.80592 12.1753 2.80634 12.1447V3.92583C2.80634 3.85796 2.86232 3.80349 2.93155 3.80349C2.96831 3.80349 3.00377 3.81941 3.02728 3.84748L12.3552 14.7981C12.659 15.1496 13.1052 15.3524 13.5749 15.3528H13.9009C14.7833 15.3532 15.4992 14.6523 15.5 13.7871V2.2135C15.5 1.34833 14.7842 0.646973 13.9017 0.646973Z" fill="#FFFFFF"></path></svg></div>
 	)
 }
 
