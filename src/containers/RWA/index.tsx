@@ -189,7 +189,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetCategoryDefiActiveTvlPieChartData,
 		pieChartStackColors: assetCategoryPieChartStackColors
 	} = useRWAAssetCategoryPieChartData({
-		enabled: isChainMode || nonTimeSeriesBreakdown === 'category',
+		enabled: nonTimeSeriesBreakdown === 'category',
 		assets: filteredAssets,
 		categories: props.categories,
 		selectedCategories
@@ -201,7 +201,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetClassDefiActiveTvlPieChartData,
 		assetClassPieChartStackColors
 	} = useRwaCategoryAssetClassPieChartData({
-		enabled: isCategoryMode || isChainMode || nonTimeSeriesBreakdown === 'assetClass',
+		enabled: nonTimeSeriesBreakdown === 'assetClass',
 		assets: filteredAssets,
 		assetClasses: props.assetClasses,
 		selectedAssetClasses
@@ -213,7 +213,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetNameDefiActiveTvlPieChartData,
 		assetNamePieChartStackColors
 	} = useRwaAssetNamePieChartData({
-		enabled: isPlatformMode || isAssetGroupMode,
+		enabled: nonTimeSeriesBreakdown === 'assetName',
 		assets: filteredAssets,
 		selectedAssetNames: isAssetGroupMode
 			? filteredAssets.map((asset) => asset.assetName || asset.ticker)
@@ -236,7 +236,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetPlatformDefiActiveTvlPieChartData,
 		assetPlatformPieChartStackColors
 	} = useRwaAssetPlatformPieChartData({
-		enabled: isChainMode || nonTimeSeriesBreakdown === 'platform',
+		enabled: nonTimeSeriesBreakdown === 'platform',
 		assets: filteredAssets
 	})
 	const {
