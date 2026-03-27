@@ -1,6 +1,8 @@
 import Router from 'next/router'
 import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
@@ -280,7 +282,7 @@ function ArtifactBlockRenderer({
 	isStreaming,
 	sessionId
 }: {
-	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'alert' }>
+	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'alert' | 'dashboard' }>
 	artifact?: ArtifactRecord
 	isStreaming: boolean
 	sessionId?: string | null
@@ -308,6 +310,11 @@ function ArtifactBlockRenderer({
 				}}
 			/>
 		)
+	}
+
+	if (block.type === 'dashboard') {
+		if (!artifact || artifact.type !== 'dashboard') return null
+		return <DashboardInlineCard dashboard={artifact.dashboard} />
 	}
 
 	if (!artifact) {
@@ -728,5 +735,50 @@ export function MessageBubble({
 				/>
 			) : null}
 		</>
+	)
+}
+
+const KIND_LABELS: Record<string, string> = {
+	chart: 'chart', multi: 'multi-chart', metric: 'metric', builder: 'chart builder',
+	text: 'text', table: 'table', 'unified-table': 'table', yields: 'yield chart',
+	stablecoins: 'stablecoin chart', 'stablecoin-asset': 'stablecoin chart',
+	'advanced-tvl': 'TVL breakdown', 'advanced-borrowed': 'borrowed chart',
+	'income-statement': 'income statement', 'unlocks-schedule': 'unlock schedule',
+	'unlocks-pie': 'unlock pie', 'llamaai-chart': 'AI chart'
+}
+
+function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
+	const { toggleDashboardPanel, isDashboardPanelOpen } = useLlamaAIChrome()
+	const kindCounts: Record<string, number> = {}
+	for (const item of dashboard.items) {
+		const label = KIND_LABELS[item.kind] || item.kind
+		kindCounts[label] = (kindCounts[label] || 0) + 1
+	}
+	const summary = Object.entries(kindCounts)
+		.map(([label, count]) => `${count} ${label}${count > 1 ? 's' : ''}`)
+		.join(' · ')
+
+	return (
+		<button
+			onClick={toggleDashboardPanel}
+			className="my-2 flex w-full items-center gap-3 rounded-lg border border-[#2172e5]/30 bg-[#2172e5]/5 px-3.5 py-2.5 text-left transition-all hover:border-[#2172e5]/50 hover:bg-[#2172e5]/10"
+		>
+			<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
+			<div className="min-w-0 flex-1">
+				<div className="flex items-center gap-2">
+					<span className="truncate text-sm font-semibold text-[#2172e5] dark:text-[#4190f7]">
+						{dashboard.dashboardName}
+					</span>
+					<span className="shrink-0 text-xs text-[#636e72] dark:text-[#8a8f98]">
+						{dashboard.items.length} items
+					</span>
+				</div>
+				<div className="truncate text-xs text-[#636e72] dark:text-[#8a8f98]">{summary}</div>
+			</div>
+			<Icon
+				name={isDashboardPanelOpen ? 'chevron-right' : 'chevron-left'}
+				className="h-4 w-4 shrink-0 text-[#636e72] dark:text-[#8a8f98]"
+			/>
+		</button>
 	)
 }

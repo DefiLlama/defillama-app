@@ -5,8 +5,8 @@ import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { DashboardItemConfig } from '../types'
 import { sanitizeItemsForAPI } from '../utils/dashboardUtils'
+import { MCP_SERVER } from '~/constants'
 
-const MCP_SERVER = 'https://mcp.llama.fi'
 const EMPTY_DASHBOARD_ITEMS: DashboardItemConfig[] = []
 const EMPTY_DASHBOARD_TAGS: string[] = []
 

@@ -1,5 +1,5 @@
 import { MCP_SERVER } from '~/constants'
-import type { AlertProposedData, ChartConfiguration, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
+import type { AlertProposedData, ChartConfiguration, DashboardArtifact, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -30,6 +30,7 @@ export interface AgenticSSECallbacks {
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
+	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
 	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
@@ -71,6 +72,26 @@ interface CsvExportEvent {
 
 interface AlertProposedEvent extends AlertProposedData {
 	type: 'alert_proposed'
+}
+
+interface DashboardEvent {
+	type: 'dashboard'
+	dashboard_id?: string
+	dashboardConfig?: {
+		dashboardName?: string
+		items?: any[]
+		timePeriod?: string
+		sourceDashboardId?: string
+	}
+	content?: {
+		dashboard_id?: string
+		dashboardConfig?: {
+			dashboardName?: string
+			items?: any[]
+			timePeriod?: string
+			sourceDashboardId?: string
+		}
+	}
 }
 
 interface CompactionEvent {
@@ -131,6 +152,7 @@ type AgenticSSEEvent =
 	| ChartsEvent
 	| CsvExportEvent
 	| AlertProposedEvent
+	| DashboardEvent
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
 	| CompactionEvent
 	| ({ type: 'tool_execution' } & ToolExecution)
@@ -231,6 +253,19 @@ function parseSSEStream(
 				case 'alert_proposed':
 					callbacks.onAlertProposed?.(data)
 					break
+				case 'dashboard': {
+					const config = data.dashboardConfig || data.content?.dashboardConfig
+					if (config && callbacks.onDashboard) {
+						callbacks.onDashboard({
+							id: data.dashboard_id || data.content?.dashboard_id || `dashboard_${Date.now()}`,
+							dashboardName: config.dashboardName || 'Dashboard',
+							items: config.items || [],
+							timePeriod: config.timePeriod,
+							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
+						})
+					}
+					break
+				}
 				case 'spawn_progress':
 					callbacks.onSpawnProgress(data)
 					break

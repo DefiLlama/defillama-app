@@ -59,7 +59,7 @@ import {
 	type StreamBuffer,
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
-import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
+import type { AlertProposedData, ChartConfiguration, DashboardArtifact, Message, ToolExecution } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setSignupSource } from '~/containers/Subscribtion/signupSource'
@@ -67,6 +67,10 @@ import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
+
+const DashboardPanel = lazy(() =>
+	import('~/containers/LlamaAI/components/DashboardPanel').then((m) => ({ default: m.DashboardPanel }))
 )
 
 interface PersistedAlertIntent {
@@ -89,6 +93,7 @@ interface PersistedMessageMetadata {
 	savedAlertId?: string
 	savedAlertIds?: string[]
 	quotedText?: string
+	dashboardConfig?: { dashboardName?: string; items?: any[]; timePeriod?: string; sourceDashboardId?: string }
 }
 
 interface PersistedMessage {
@@ -196,6 +201,7 @@ function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 
 // Convert a persisted API message into the UI message shape used by the chat view.
 function mapPersistedMessage(message: PersistedMessage): Message {
+	const dashboardConfig = message.metadata?.dashboardConfig
 	return {
 		role: message.role,
 		content: message.content,
@@ -203,6 +209,9 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
+		dashboards: dashboardConfig
+			? [{ id: `dashboard_restored_${message.messageId}`, dashboardName: dashboardConfig.dashboardName || 'Dashboard', items: dashboardConfig.items || [], timePeriod: dashboardConfig.timePeriod, sourceDashboardId: dashboardConfig.sourceDashboardId }]
+			: undefined,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
 			metadata: message.metadata,
@@ -356,6 +365,7 @@ function appendBufferedAssistantMessage(
 		buffer.charts.length > 0 ||
 		buffer.csvExports.length > 0 ||
 		buffer.alerts.length > 0 ||
+		buffer.dashboards.length > 0 ||
 		buffer.citations.length > 0 ||
 		buffer.toolExecutions.length > 0 ||
 		buffer.thinking
@@ -467,6 +477,12 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.alerts.push(data)
 			dispatch({ type: 'APPEND_ALERT', value: data })
+		},
+		onDashboard: (dashboard) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'CLEAR_ACTIVITY' })
+			buffer.dashboards.push(dashboard)
+			dispatch({ type: 'APPEND_DASHBOARD', value: dashboard })
 		},
 		onCitations: (citations) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -640,6 +656,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [quotedText, setQuotedText] = useState<string | null>(null)
+	const [dashboardPanelConfig, setDashboardPanelConfig] = useState<DashboardArtifact | null>(null)
+	const [dashboardVersions, setDashboardVersions] = useState<DashboardArtifact[]>([])
+	const [dashboardVersionIndex, setDashboardVersionIndex] = useState(0)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [customInstructions, setCustomInstructions] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
@@ -690,6 +709,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		charts: streamingCharts,
 		csvExports: streamingCsvExports,
 		alerts: streamingAlerts,
+		dashboards: streamingDashboards,
 		citations: streamingCitations,
 		toolExecutions: streamingToolExecutions,
 		thinking: streamingThinking,
@@ -715,6 +735,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 	const shouldAnimateConversationTransition =
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+
+	useEffect(() => {
+		if (streamingDashboards.length > 0) {
+			const latest = streamingDashboards[streamingDashboards.length - 1]
+			setDashboardVersions((prev) => {
+				const updated = [...prev, latest]
+				setDashboardVersionIndex(updated.length - 1)
+				return updated
+			})
+			setDashboardPanelConfig(latest)
+		}
+	}, [streamingDashboards])
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -860,14 +892,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		toggleSidebar()
 	}, [toggleSidebar])
 
+	const toggleDashboardPanel = useCallback(() => {
+		setDashboardPanelConfig((prev) => (prev ? null : dashboardVersions[dashboardVersionIndex] ?? null))
+	}, [dashboardVersions, dashboardVersionIndex])
+
 	const chromeValue = useMemo(
 		() => ({
 			toggleSidebar: handleSidebarToggle,
 			hideSidebar,
 			toggleFullscreen,
-			isFullscreen
+			isFullscreen,
+			toggleDashboardPanel,
+			isDashboardPanelOpen: !!dashboardPanelConfig
 		}),
-		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen]
+		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen, toggleDashboardPanel, dashboardPanelConfig]
 	)
 
 	// Append one message to the live conversation state.
@@ -1100,6 +1138,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
+
+			const lastDashboard = restored.findLast((m) => m.dashboards?.length)?.dashboards?.at(-1)
+			if (lastDashboard) {
+				setDashboardVersions(restored.flatMap((m) => m.dashboards || []))
+				setDashboardVersionIndex(restored.flatMap((m) => m.dashboards || []).length - 1)
+				setDashboardPanelConfig(lastDashboard)
+			} else {
+				setDashboardPanelConfig(null)
+				setDashboardVersions([])
+				setDashboardVersionIndex(0)
+			}
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
 			attach()
@@ -1320,6 +1369,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setMessages([])
 		setSessionId(null)
 		setSessionTitle(null)
+		setDashboardPanelConfig(null)
+		setDashboardVersions([])
+		setDashboardVersionIndex(0)
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
@@ -1890,6 +1942,21 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						/>
 					)}
 				</div>
+				{dashboardVersions.length > 0 ? (
+					<Suspense fallback={null}>
+						<DashboardPanel
+							config={dashboardPanelConfig}
+							versions={dashboardVersions}
+							versionIndex={dashboardVersionIndex}
+							onVersionChange={(i: number) => {
+								setDashboardVersionIndex(i)
+								setDashboardPanelConfig(dashboardVersions[i])
+							}}
+							onClose={() => setDashboardPanelConfig(null)}
+							sessionId={sessionId}
+						/>
+					</Suspense>
+				) : null}
 				{!readOnly ? (
 					<TextSelectionPopup
 						onSelect={(text) => {

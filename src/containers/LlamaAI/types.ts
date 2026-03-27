@@ -96,6 +96,14 @@ export interface AlertProposedData {
 	next_run_at: string
 }
 
+export interface DashboardArtifact {
+	id: string
+	dashboardName: string
+	items: any[]
+	timePeriod?: string
+	sourceDashboardId?: string
+}
+
 export type JsonPrimitive = string | number | boolean | null
 export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
 
@@ -201,6 +209,7 @@ export interface Message {
 	citations?: string[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
+	dashboards?: DashboardArtifact[]
 	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
 	id?: string
 	timestamp?: number
