@@ -178,7 +178,7 @@ export function BrowserContent({
 					</div>
 
 					{/* Prompt list */}
-					<div className="min-h-0 flex-1 overflow-y-auto">
+					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
 						<ul className="flex flex-col p-1.5 max-sm:px-2">
 							{activeCategory.prompts.map((prompt) => (
 								<PromptItem key={`${activeCategory.key}:${prompt}`} prompt={prompt} onClick={handlePromptClick} />

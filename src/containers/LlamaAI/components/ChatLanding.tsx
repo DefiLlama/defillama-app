@@ -181,7 +181,7 @@ const Capability = ({
 						<Icon name="x" height={14} width={14} />
 					</Ariakit.PopoverDismiss>
 				</div>
-				<div className="min-h-0 flex-1 overflow-y-auto">
+				<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
 					{cap.prompts.map((prompt, i) => (
 						<button
 							key={`${cap.key}:${prompt}`}
