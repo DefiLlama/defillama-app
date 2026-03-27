@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import type { IProtocol } from './types'
 import {
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
+	getCategoryProtocolNameFilterForChart,
+	leafProtocolNamesFromTableRows,
 	mergeBreakdownCharts,
 	mergeNamedDimensionChartDataset,
 	mergeSingleDimensionChartDataset,
@@ -480,6 +483,74 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 			{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 100, dYdX: 0 }
 		])
 	})
+
+	it('ranks visible protocol series by the latest selected window instead of lifetime totals', () => {
+		const recentLeaderChartData = {
+			dimensions: ['timestamp', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`), 'Hyperliquid'],
+			source: [
+				Object.assign(
+					{ timestamp: toMs(2024, 1, 1), Hyperliquid: 0 },
+					Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`Protocol ${index + 1}`, 100]))
+				),
+				Object.assign(
+					{ timestamp: toMs(2024, 1, 2), Hyperliquid: 50 },
+					Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`Protocol ${index + 1}`, 1]))
+				)
+			]
+		}
+
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: recentLeaderChartData,
+			selectedProtocols: ['Hyperliquid', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'absolute',
+				barLayout: 'stacked',
+				groupBy: 'daily'
+			}
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.charts.map((chart) => chart.name)).toContain('Hyperliquid')
+		expect(presentation.charts.map((chart) => chart.name)).toContain('Others')
+		expect(presentation.dataset.source.at(-1)?.Hyperliquid).toBe(50)
+		expect(presentation.dataset.source.at(-1)?.Others).toBe(1)
+	})
+
+	it('ranks cumulative line series by cumulative totals before applying the top-series cap', () => {
+		const cumulativeLineChartData = {
+			dimensions: ['timestamp', 'History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)],
+			source: [
+				Object.assign(
+					{ timestamp: toMs(2024, 1, 1), 'History Giant': 100 },
+					Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`Protocol ${index + 1}`, 0]))
+				),
+				Object.assign(
+					{ timestamp: toMs(2024, 1, 2), 'History Giant': 1 },
+					Object.fromEntries(Array.from({ length: 10 }, (_, index) => [`Protocol ${index + 1}`, 10]))
+				)
+			]
+		}
+
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: cumulativeLineChartData,
+			selectedProtocols: ['History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)],
+			state: {
+				chartKind: 'line',
+				groupBy: 'cumulative'
+			}
+		})
+
+		expect(presentation.kind).toBe('line')
+		if (presentation.kind !== 'line') return
+
+		expect(presentation.charts.map((chart) => chart.name)).toContain('History Giant')
+		expect(presentation.charts.map((chart) => chart.name)).toContain('Others')
+		expect(presentation.dataset.source.at(-1)?.['History Giant']).toBeCloseTo((101 / 191) * 100)
+		expect(presentation.dataset.source.at(-1)?.Others).toBeCloseTo((10 / 191) * 100)
+	})
 })
 
 describe('buildAdapterByChainLatestValuePresentation', () => {
@@ -649,5 +720,103 @@ describe('mergeNamedDimensionChartDataset', () => {
 			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
 			{ timestamp: toMs(2024, 1, 2), Ethereum: 33, Solana: 44 }
 		])
+	})
+})
+
+const protocol = (name: string, category: string | null): IProtocol =>
+	({
+		name,
+		slug: name.toLowerCase(),
+		logo: '',
+		chains: [],
+		category,
+		total24h: null,
+		total7d: null,
+		total30d: null,
+		total1y: null,
+		totalAllTime: null,
+		mcap: null
+	}) as IProtocol
+
+describe('getCategoryProtocolNameFilterForChart', () => {
+	it('returns unrestricted when the page has no categories', () => {
+		expect(
+			getCategoryProtocolNameFilterForChart({
+				categories: [],
+				protocols: [protocol('Uniswap', 'Dex')],
+				categoryParam: undefined,
+				excludeCategoryParam: undefined,
+				hasCategoryParam: false
+			})
+		).toEqual({ kind: 'unrestricted' })
+	})
+
+	it('returns restricted names matching selected categories (parent + children)', () => {
+		const parent = {
+			...protocol('Parent', 'Dex'),
+			childProtocols: [protocol('Child A', 'Lending'), protocol('Child B', 'Dex')]
+		} as IProtocol
+
+		const result = getCategoryProtocolNameFilterForChart({
+			categories: ['Dex', 'Lending'],
+			protocols: [parent],
+			categoryParam: 'Lending',
+			excludeCategoryParam: undefined,
+			hasCategoryParam: true
+		})
+
+		expect(result.kind).toBe('restricted')
+		if (result.kind === 'restricted') {
+			expect([...result.names].sort()).toEqual(['Child A'])
+		}
+	})
+
+	it('returns no-rows when category param clears the selection', () => {
+		expect(
+			getCategoryProtocolNameFilterForChart({
+				categories: ['Dex'],
+				protocols: [protocol('A', 'Dex')],
+				categoryParam: '',
+				excludeCategoryParam: undefined,
+				hasCategoryParam: true
+			})
+		).toEqual({ kind: 'no-rows' })
+	})
+
+	it('returns restricted leaf names when the filtered row is a parent with all children matching', () => {
+		const parent = {
+			...protocol('Parent', 'Dex'),
+			childProtocols: [protocol('Child A', 'Dex'), protocol('Child B', 'Lending')]
+		} as IProtocol
+
+		const result = getCategoryProtocolNameFilterForChart({
+			categories: ['Dex', 'Lending'],
+			protocols: [parent],
+			categoryParam: undefined,
+			excludeCategoryParam: undefined,
+			hasCategoryParam: false
+		})
+
+		expect(result.kind).toBe('restricted')
+		if (result.kind === 'restricted') {
+			expect([...result.names].sort()).toEqual(['Child A', 'Child B'])
+		}
+	})
+})
+
+describe('leafProtocolNamesFromTableRows', () => {
+	it('returns each standalone protocol name', () => {
+		expect(leafProtocolNamesFromTableRows([protocol('A', 'Dex')])).toEqual(['A'])
+	})
+
+	it('returns child names sorted by total24h descending', () => {
+		const parent = {
+			...protocol('Parent', 'Dex'),
+			childProtocols: [
+				{ ...protocol('C1', 'Dex'), total24h: 10 },
+				{ ...protocol('C2', 'Dex'), total24h: 100 }
+			]
+		} as IProtocol
+		expect(leafProtocolNamesFromTableRows([parent])).toEqual(['C2', 'C1'])
 	})
 })

@@ -3,11 +3,12 @@ import type {
 	MultiSeriesChart2Dataset,
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
-import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { getNDistinctColors, slug } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
-import type { IChainsByAdapterPageData } from './types'
+import type { IAdapterByChainPageData, IChainsByAdapterPageData, IProtocol } from './types'
 
 export type BribesData = {
 	total24h: number | null
@@ -105,6 +106,101 @@ export function processGroupedProtocols<T, R>(
 		processedData.push(processor(protocolVersions, parentKey))
 	}
 	return processedData
+}
+
+/** Table/category filter: which protocol rows belong to the selected categories (including child protocols). */
+export function getProtocolsByCategory(
+	protocols: IAdapterByChainPageData['protocols'],
+	categoriesToFilter: Array<string>
+): IProtocol[] {
+	const final: IProtocol[] = []
+
+	for (const protocol of protocols) {
+		if (protocol.childProtocols) {
+			const childProtocols = protocol.childProtocols.filter(
+				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
+			)
+
+			if (childProtocols.length === protocol.childProtocols.length) {
+				final.push(protocol)
+			} else {
+				for (const childProtocol of childProtocols) {
+					final.push(childProtocol)
+				}
+			}
+
+			continue
+		}
+
+		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
+			final.push(protocol)
+			continue
+		}
+	}
+
+	return final
+}
+
+/** Leaf `name`s for breakdown filter: parents with children are omitted; children are included recursively. */
+export function leafProtocolNamesFromTableRows(protocols: IProtocol[]): string[] {
+	const walk = (p: IProtocol): IProtocol[] =>
+		p.childProtocols && p.childProtocols.length > 0 ? p.childProtocols.flatMap(walk) : [p]
+	return protocols
+		.flatMap(walk)
+		.toSorted((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+		.map((p) => p.name)
+}
+
+export type CategoryProtocolNameFilter =
+	| { kind: 'unrestricted' }
+	| { kind: 'no-rows' }
+	| { kind: 'restricted'; names: Set<string> }
+
+/**
+ * Same category selection rules as the adapter-by-chain table; used to align breakdown chart series with the table.
+ */
+export function getCategoryProtocolNameFilterForChart({
+	categories,
+	protocols,
+	categoryParam,
+	excludeCategoryParam,
+	hasCategoryParam
+}: {
+	categories: string[]
+	protocols: IProtocol[]
+	categoryParam: string | string[] | undefined
+	excludeCategoryParam: string | string[] | undefined
+	hasCategoryParam: boolean
+}): CategoryProtocolNameFilter {
+	const excludeSet = parseExcludeParam(excludeCategoryParam)
+
+	let selectedCategories =
+		categories.length > 0 && hasCategoryParam && categoryParam === ''
+			? []
+			: categoryParam
+				? typeof categoryParam === 'string'
+					? [categoryParam]
+					: categoryParam
+				: categories
+
+	selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+
+	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+
+	if (categories.length === 0) {
+		return { kind: 'unrestricted' }
+	}
+
+	if (selectedCategories.length === 0) {
+		return { kind: 'no-rows' }
+	}
+
+	if (categoriesToFilter.length > 0) {
+		const filtered = getProtocolsByCategory(protocols, categoriesToFilter)
+		return { kind: 'restricted', names: new Set(leafProtocolNamesFromTableRows(filtered)) }
+	}
+
+	return { kind: 'unrestricted' }
 }
 
 export function processRevenueDataForMatching(protocols: IAdapterChainMetrics['protocols']) {
@@ -445,6 +541,7 @@ const VALID_GROUPINGS = new Set<ChartTimeGroupingWithCumulative>([
 	'yearly',
 	'cumulative'
 ])
+const MAX_BREAKDOWN_SERIES = 10
 const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
 const MIN_COMPLETE_DAILY_GAP_MS = 23 * 60 * 60 * 1000
 
@@ -531,10 +628,12 @@ export function normalizeChainsByAdapterChartState({
 
 function createSeriesUniverse({
 	chartData,
-	selectedNames
+	selectedNames,
+	rankingScores
 }: {
 	chartData: MultiSeriesChart2Dataset
 	selectedNames: string[]
+	rankingScores?: Map<string, number>
 }) {
 	const entityTotals = new Map<string, number>()
 	const entitySeries = new Map<string, Array<[number, number]>>()
@@ -555,9 +654,17 @@ function createSeriesUniverse({
 		}
 	}
 
-	const ranked = Array.from(entityTotals.entries()).toSorted((a, b) => b[1] - a[1])
-	const topEntityNames = ranked.slice(0, 10).map(([entity]) => entity)
-	const otherEntityNames = ranked.slice(10).map(([entity]) => entity)
+	const getRankingScore = (entity: string) => rankingScores?.get(entity) ?? Number.NEGATIVE_INFINITY
+	const ranked = Array.from(entityTotals.entries()).toSorted((a, b) => {
+		const aScore = getRankingScore(a[0])
+		const bScore = getRankingScore(b[0])
+		if (aScore !== bScore) {
+			return bScore > aScore ? 1 : -1
+		}
+		return b[1] - a[1]
+	})
+	const topEntityNames = ranked.slice(0, MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
+	const otherEntityNames = ranked.slice(MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
 	const topSeries = new Map<string, Array<[number, number]>>()
 
 	for (const entity of topEntityNames) {
@@ -771,8 +878,7 @@ function buildTreemapPresentation({
 function buildLatestValueRowsFromChartData({
 	chartData,
 	selectedNames,
-	groupBy,
-	seriesType
+	groupBy
 }: {
 	chartData: MultiSeriesChart2Dataset
 	selectedNames: string[]
@@ -807,20 +913,13 @@ function buildLatestValueRowsFromChartData({
 				})
 				.filter((point): point is [number, number] => point != null)
 
-			const groupedData =
-				seriesType === 'line'
-					? formatLineChart({
-							data: rawData,
-							groupBy,
-							dateInMs: true,
-							denominationPriceHistory: null
-						})
-					: formatBarChart({
-							data: rawData,
-							groupBy,
-							dateInMs: true,
-							denominationPriceHistory: null
-						})
+			// Cumulative rankings should always use running totals, even for line renderers.
+			const groupedData = formatBarChart({
+				data: rawData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
 
 			return {
 				name,
@@ -988,9 +1087,23 @@ export function buildAdapterByChainBreakdownPresentation({
 	selectedProtocols: string[]
 	state: ChainsByAdapterBarState | ChainsByAdapterLineState
 }): ChainsByAdapterBarPresentation | ChainsByAdapterLinePresentation {
+	const latestRows = buildLatestValueRowsFromChartData({
+		chartData,
+		selectedNames: selectedProtocols,
+		groupBy: state.groupBy,
+		seriesType: state.chartKind
+	})
+	const rankingScores = new Map<string, number>()
+	for (const row of latestRows) {
+		if (typeof row.total24h === 'number' && Number.isFinite(row.total24h)) {
+			rankingScores.set(row.name, row.total24h)
+		}
+	}
+
 	const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
 		chartData,
-		selectedNames: selectedProtocols
+		selectedNames: selectedProtocols,
+		rankingScores
 	})
 
 	switch (state.chartKind) {

@@ -38,6 +38,8 @@ import {
 	mergeBreakdownCharts,
 	mergeNamedDimensionChartDataset,
 	mergeSingleDimensionChartDataset,
+	getCategoryProtocolNameFilterForChart,
+	leafProtocolNamesFromTableRows,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
 } from './utils'
@@ -195,9 +197,13 @@ export const AdapterByChainChart = ({
 	adapterType,
 	chain,
 	chartName,
-	dataType
-}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType'> & {
+	dataType,
+	categories,
+	protocols,
+	tableProtocols
+}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType' | 'categories' | 'protocols'> & {
 	chartName: string
+	tableProtocols: IAdapterByChainPageData['protocols']
 }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
@@ -316,28 +322,63 @@ export const AdapterByChainChart = ({
 		return nextFailedMetrics
 	}, [breakdownChartDataState, chartViewMode, combinedBribesChartError, combinedTokenTaxChartError, feesChartMode])
 
-	const protocolOptions = React.useMemo(
-		() => (breakdownChartDataState.kind === 'ready' ? breakdownChartDataState.protocolDimensions : []),
-		[breakdownChartDataState]
+	const protocolOptions = React.useMemo(() => {
+		if (breakdownChartDataState.kind !== 'ready') return []
+		const api = new Set(breakdownChartDataState.protocolDimensions)
+		return leafProtocolNamesFromTableRows(tableProtocols).filter((name) => api.has(name))
+	}, [breakdownChartDataState, tableProtocols])
+
+	const categoryProtocolNameFilter = React.useMemo(
+		() =>
+			getCategoryProtocolNameFilterForChart({
+				categories,
+				protocols,
+				categoryParam: router.query.category,
+				excludeCategoryParam: router.query.excludeCategory,
+				hasCategoryParam: Object.prototype.hasOwnProperty.call(router.query, 'category')
+			}),
+		[categories, protocols, router.query]
 	)
+
 	const selectedProtocols = React.useMemo(() => {
 		if (chartViewMode !== 'Breakdown' || protocolOptions.length === 0) return []
-		const protocolsQuery = router.query.chartProtocols
-		const excludeProtocolsQuery = router.query.excludeChartProtocols
+		if (categoryProtocolNameFilter.kind === 'no-rows') return []
+
+		const protocolsQuery = router.query.protocol
+		const excludeProtocolsQuery = router.query.excludeProtocol
 		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
 		const baseSelectedProtocols =
 			protocolsQuery != null ? parseArrayParam(protocolsQuery, protocolOptions) : protocolOptions
 
-		return excludedProtocolsSet.size > 0
-			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
-			: baseSelectedProtocols
-	}, [chartViewMode, protocolOptions, router.query.chartProtocols, router.query.excludeChartProtocols])
+		let next =
+			excludedProtocolsSet.size > 0
+				? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
+				: baseSelectedProtocols
+
+		if (categoryProtocolNameFilter.kind === 'restricted') {
+			next = next.filter((name) => categoryProtocolNameFilter.names.has(name))
+		}
+
+		return next
+	}, [categoryProtocolNameFilter, chartViewMode, protocolOptions, router.query.protocol, router.query.excludeProtocol])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
-		void pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
+		void pushShallowQuery(router, {
+			chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode,
+			...(nextChartViewMode === 'Combined'
+				? {
+						protocol: undefined,
+						excludeProtocol: undefined,
+						chartKind: undefined,
+						chartType: undefined,
+						valueMode: undefined,
+						barLayout: undefined
+					}
+				: {})
+		})
 	}
 	const onChangeBreakdownChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
@@ -684,8 +725,8 @@ export const AdapterByChainChart = ({
 						<SelectWithCombobox
 							allValues={protocolOptions}
 							selectedValues={selectedProtocols}
-							includeQueryKey="chartProtocols"
-							excludeQueryKey="excludeChartProtocols"
+							includeQueryKey="protocol"
+							excludeQueryKey="excludeProtocol"
 							defaultSelectedValues={protocolOptions}
 							label="Protocols"
 							labelType="smol"
@@ -949,15 +990,15 @@ export const ChainsByAdapterChart = ({
 		]
 	)
 	const selectedChains = React.useMemo(() => {
-		const chainsQuery = router.query.chains
-		const excludeChainsQuery = router.query.excludeChains
+		const chainsQuery = router.query.chain
+		const excludeChainsQuery = router.query.excludeChain
 		const excludedChainsSet = parseExcludeParam(excludeChainsQuery)
 		const baseSelectedChains = chainsQuery != null ? parseArrayParam(chainsQuery, allChains) : allChains
 
 		return excludedChainsSet.size > 0
 			? baseSelectedChains.filter((chain) => !excludedChainsSet.has(chain))
 			: baseSelectedChains
-	}, [allChains, router.query.chains, router.query.excludeChains])
+	}, [allChains, router.query.chain, router.query.excludeChain])
 
 	const { data: bribesChartData, error: bribesChartError } = useQuery({
 		queryKey: ['adapter-chain-breakdown-chart', adapterType, chartName, 'dailyBribesRevenue'],
@@ -1179,8 +1220,8 @@ export const ChainsByAdapterChart = ({
 					<SelectWithCombobox
 						allValues={allChains}
 						selectedValues={selectedChains}
-						includeQueryKey="chains"
-						excludeQueryKey="excludeChains"
+						includeQueryKey="chain"
+						excludeQueryKey="excludeChain"
 						defaultSelectedValues={allChains}
 						label="Chains"
 						labelType="smol"
