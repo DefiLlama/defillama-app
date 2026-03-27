@@ -342,7 +342,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[9].share).toBeCloseTo((15 / 555) * 100)
 	})
 
-	it('builds grouped treemap data from the last grouped bar value for non-daily latest charts', () => {
+	it('builds treemap from rolling weekly sums (last 7 days from latest row)', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana', 'Base'],
@@ -374,7 +374,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[2].value).toBe(20)
 	})
 
-	it('supports line-backed latest-value charts by taking the last grouped point', () => {
+	it('sums rolling-window values for line-backed latest-value charts (weekly = last 7 days)', () => {
 		const lineBackedChartData = {
 			dimensions: ['timestamp', 'Hyperliquid', 'dYdX'],
 			source: [
@@ -395,9 +395,65 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.kind).toBe('hbar')
 		if (presentation.kind !== 'hbar') return
 
-		expect(presentation.data.map((item) => item.name)).toEqual(['dYdX', 'Hyperliquid'])
-		expect(presentation.data[0].value).toBe(25)
-		expect(presentation.data[1].value).toBe(15)
+		expect(presentation.data).toHaveLength(2)
+		expect(presentation.data.map((item) => item.name).toSorted()).toEqual(['Hyperliquid', 'dYdX'])
+		expect(presentation.data.every((item) => item.value === 45)).toBe(true)
+	})
+
+	it('excludes protocols with no data in the yearly rolling window from treemap', () => {
+		const latest = toMs(2026, 3, 15)
+		const olderThanOneYear = latest - 400 * 24 * 60 * 60 * 1000
+		const yearlyStoppedProtocolChartData = {
+			dimensions: ['timestamp', 'Active', 'StoppedLongAgo'],
+			source: [
+				{ timestamp: olderThanOneYear, Active: 1, StoppedLongAgo: 999 },
+				{ timestamp: latest, Active: 100 }
+			]
+		}
+
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: yearlyStoppedProtocolChartData,
+			selectedChains: ['Active', 'StoppedLongAgo'],
+			state: { chartKind: 'treemap', groupBy: 'yearly' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Active'])
+		expect(presentation.data[0].value).toBe(100)
+	})
+
+	it('sums only points inside the yearly rolling window for treemap', () => {
+		const t0 = toMs(2025, 1, 1)
+		const t1 = toMs(2025, 6, 1)
+		const t2 = toMs(2026, 3, 1)
+		const yearlyRollingChartData = {
+			dimensions: ['timestamp', 'Ethereum', 'Solana'],
+			source: [
+				{ timestamp: t0, Ethereum: 10, Solana: 5 },
+				{ timestamp: t1, Ethereum: 20, Solana: 10 },
+				{ timestamp: t2, Ethereum: 30, Solana: 15 }
+			]
+		}
+
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: yearlyRollingChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: { chartKind: 'treemap', groupBy: 'yearly' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		const cutoff = t2 - 365 * 24 * 60 * 60 * 1000
+		const ethereumSum = (t0 >= cutoff ? 10 : 0) + (t1 >= cutoff ? 20 : 0) + (t2 >= cutoff ? 30 : 0)
+		const solanaSum = (t0 >= cutoff ? 5 : 0) + (t1 >= cutoff ? 10 : 0) + (t2 >= cutoff ? 15 : 0)
+
+		const eth = presentation.data.find((d) => d.name === 'Ethereum')
+		const sol = presentation.data.find((d) => d.name === 'Solana')
+		expect(eth?.value).toBe(ethereumSum)
+		expect(sol?.value).toBe(solanaSum)
 	})
 })
 

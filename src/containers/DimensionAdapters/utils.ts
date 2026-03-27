@@ -448,6 +448,30 @@ const VALID_GROUPINGS = new Set<ChartTimeGroupingWithCumulative>([
 const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
 const MIN_COMPLETE_DAILY_GAP_MS = 23 * 60 * 60 * 1000
 
+/** Rolling window length for treemap/hbar "latest value" when groupBy is not daily/cumulative (from latest row in dataset). */
+function getRollingWindowMsForTreemapGrouping(groupBy: 'weekly' | 'monthly' | 'quarterly' | 'yearly'): number {
+	const dayMs = 24 * 60 * 60 * 1000
+	switch (groupBy) {
+		case 'weekly':
+			return 7 * dayMs
+		case 'monthly':
+			return 30 * dayMs
+		case 'quarterly':
+			return 90 * dayMs
+		case 'yearly':
+			return 365 * dayMs
+	}
+}
+
+function getLatestTimestampMsInDataset(chartData: MultiSeriesChart2Dataset): number | null {
+	let max = -Infinity
+	for (const row of chartData.source) {
+		const ts = Number(row.timestamp)
+		if (Number.isFinite(ts) && ts > max) max = ts
+	}
+	return Number.isFinite(max) && max > -Infinity ? max : null
+}
+
 function assertNever(value: never): never {
 	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
 }
@@ -771,6 +795,48 @@ function buildLatestValueRowsFromChartData({
 		})
 	}
 
+	if (groupBy === 'cumulative') {
+		return selectedNames.map((name) => {
+			const rawData = chartData.source
+				.map((row) => {
+					const timestamp = Number(row.timestamp)
+					const value = row[name]
+					return typeof value === 'number' && Number.isFinite(timestamp)
+						? ([timestamp, value] as [number, number])
+						: null
+				})
+				.filter((point): point is [number, number] => point != null)
+
+			const groupedData =
+				seriesType === 'line'
+					? formatLineChart({
+							data: rawData,
+							groupBy,
+							dateInMs: true,
+							denominationPriceHistory: null
+						})
+					: formatBarChart({
+							data: rawData,
+							groupBy,
+							dateInMs: true,
+							denominationPriceHistory: null
+						})
+
+			return {
+				name,
+				total24h: groupedData.at(-1)?.[1] ?? null
+			}
+		})
+	}
+
+	const latestTsMs = getLatestTimestampMsInDataset(chartData)
+	if (latestTsMs == null) {
+		return selectedNames.map((name) => ({ name, total24h: null }))
+	}
+
+	const windowMs = getRollingWindowMsForTreemapGrouping(groupBy)
+	const cutoffMs = latestTsMs - windowMs
+
 	return selectedNames.map((name) => {
 		const rawData = chartData.source
 			.map((row) => {
@@ -780,24 +846,25 @@ function buildLatestValueRowsFromChartData({
 			})
 			.filter((point): point is [number, number] => point != null)
 
-		const groupedData =
-			seriesType === 'line'
-				? formatLineChart({
-						data: rawData,
-						groupBy,
-						dateInMs: true,
-						denominationPriceHistory: null
-					})
-				: formatBarChart({
-						data: rawData,
-						groupBy,
-						dateInMs: true,
-						denominationPriceHistory: null
-					})
+		const sorted = rawData.toSorted((a, b) => a[0] - b[0])
+
+		let sum = 0
+		let pointsInWindow = 0
+		let i = sorted.length - 1
+		if (i >= 0) {
+			do {
+				const point = sorted[i]!
+				const [tsMs, value] = point
+				if (tsMs < cutoffMs) break
+				sum += value
+				pointsInWindow++
+				i--
+			} while (i >= 0)
+		}
 
 		return {
 			name,
-			total24h: groupedData.at(-1)?.[1] ?? null
+			total24h: pointsInWindow === 0 ? null : sum
 		}
 	})
 }
