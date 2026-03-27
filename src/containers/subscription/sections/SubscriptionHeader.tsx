@@ -1,6 +1,22 @@
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { ThemeSwitch } from '~/components/Nav/ThemeSwitch'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+
+function AccountLink({ className }: { className?: string }) {
+	const { isAuthenticated, loaders } = useAuthContext()
+
+	if (loaders.userLoading || !isAuthenticated) return null
+
+	return (
+		<BasicLink href="/account2" className={`flex items-center gap-1.5 font-medium ${className}`}>
+			<img src="/assets/account_avatar.png" alt="" className="h-6 w-6 rounded-full" />
+			<span>My Account</span>
+			<Icon name="chevron-right" height={16} width={16} />
+		</BasicLink>
+	)
+}
 
 export function SubscriptionHeader() {
 	return (
@@ -12,12 +28,11 @@ export function SubscriptionHeader() {
 				</BasicLink>
 				<div className="flex items-center gap-4">
 					<ThemeSwitch variant="pill" />
-					<button
-						type="button"
+					<SignIn2Modal
+						text="Sign-in"
 						className="h-10 rounded-lg bg-(--sub-c-1f67d2) px-4 text-[14px] leading-[17px] font-medium text-white"
-					>
-						Sign-in
-					</button>
+					/>
+					<AccountLink className="text-sm text-(--sub-c-090b0c) dark:text-white" />
 				</div>
 			</header>
 
@@ -29,9 +44,11 @@ export function SubscriptionHeader() {
 				</BasicLink>
 				<div className="flex items-center gap-5">
 					<ThemeSwitch variant="pill" size="sm" />
-					<button type="button" className="h-8 rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs text-white">
-						Sign-in
-					</button>
+					<SignIn2Modal
+						text="Sign-in"
+						className="h-8 rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs text-white"
+					/>
+					<AccountLink className="text-xs text-(--sub-c-090b0c) dark:text-white" />
 				</div>
 			</header>
 		</>

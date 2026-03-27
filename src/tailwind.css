@@ -28,6 +28,12 @@
 	--color-pro-gold-300: oklch(0.612 0.15 60); /* Vibrant gold */
 	--color-pro-gold-400: oklch(0.41 0.12 60); /* Deep gold */
 
+	--color-sub-warning-text-light: #a15d23;
+	--color-sub-warning-text-dark: #ffa455;
+	--color-sub-warning-border-light: #ffd2aa;
+	--color-sub-warning-border-dark: #422b1b;
+	--color-sub-warning-bg: #ff8e2b;
+
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
@@ -651,6 +657,21 @@
 		--sub-c-c6c6c6: #c6c6c6;
 		--sub-c-eeeeee: #eeeeee;
 		--sub-c-232628: #232628;
+
+		/* Chart palette */
+		--sub-chart-1: #1f67d2;
+		--sub-chart-2: #22c55e;
+		--sub-chart-3: #f59e0b;
+		--sub-chart-4: #38bdf8;
+		--sub-chart-5: #f97316;
+		--sub-chart-6: #a855f7;
+		--sub-chart-7: #14b8a6;
+		--sub-chart-others: #64748b;
+		--sub-chart-split: rgba(0, 0, 0, 0.06);
+		--sub-chart-axis: #ced8e6;
+		--sub-chart-tooltip-bg: #131516;
+		--sub-chart-tooltip-border: #2f3336;
+
 		--sub-c-1f67d214: #1f67d214;
 		--sub-c-1f67d20d: #1f67d20d;
 		--sub-c-4d5158: #4d5158;
@@ -679,11 +700,17 @@
 		--sub-c-f5f7fb: #f5f7fb;
 		--sub-c-151a1d: #151a1d;
 		--sub-c-cfcfcf: #cfcfcf;
+		--sub-c-ffa455: #ffa455;
+		--sub-c-422b1b: #422b1b;
+		--sub-c-b45309: #b45309;
+		--sub-c-e8c09a: #e8c09a;
+		--sub-c-2d0f0d: #2d0f0d;
+		--sub-c-f5c6c4: #f5c6c4;
 
-		--sub-grid-image-light: linear-gradient(to right, rgba(9, 11, 12, 0.06) 1px, transparent 1px),
-			linear-gradient(to bottom, rgba(9, 11, 12, 0.06) 1px, transparent 1px);
-		--sub-grid-image-dark: linear-gradient(to right, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-			linear-gradient(to bottom, rgba(255, 255, 255, 0.14) 1px, transparent 1px);
+		--sub-grid-image-light: linear-gradient(to right, rgba(9, 11, 12, 0.14) 1px, transparent 1px),
+			linear-gradient(to bottom, rgba(9, 11, 12, 0.14) 1px, transparent 1px);
+		--sub-grid-image-dark: linear-gradient(to right, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+			linear-gradient(to bottom, rgba(255, 255, 255, 0.22) 1px, transparent 1px);
 		--sub-radial-mobile-light: radial-gradient(circle at center, rgba(115, 156, 216, 0.42) 0%, rgba(225, 234, 245, 0.4) 38%, rgba(247, 247, 247, 0) 72%);
 		--sub-radial-desktop-light: radial-gradient(circle at center, rgba(115, 156, 216, 0.42) 0%, rgba(225, 234, 245, 0.4) 38%, rgba(247, 247, 247, 0) 70%);
 		--sub-radial-mobile-dark: radial-gradient(circle at center, rgba(34, 55, 84, 0.8) 0%, rgba(8, 16, 25, 0.55) 38%, rgba(2, 7, 11, 0) 72%);
@@ -768,6 +795,9 @@
 		--cards-border: oklch(0.255 0.002 247.9);
 		--form-control-border: oklch(0.318 0.008 240.1);
 		--old-blue: oklch(0.571 0.191 258.5);
+
+		--sub-chart-split: rgba(255, 255, 255, 0.06);
+		--sub-chart-axis: #2f3336;
 
 		--sub-mobile-table-border: var(--sub-c-232628);
 		--sub-mobile-table-header-bg: rgba(255, 255, 255, 0.02);

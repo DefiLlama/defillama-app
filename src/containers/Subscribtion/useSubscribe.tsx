@@ -281,7 +281,10 @@ export const useSubscribe = () => {
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours
 		refetchOnWindowFocus: false,
-		enabled: isAuthenticated && apiSubscription?.status === 'active' && router.pathname === '/account'
+		enabled:
+			isAuthenticated &&
+			apiSubscription?.status === 'active' &&
+			(router.pathname === '/account' || router.pathname === '/account2')
 	})
 
 	const generateNewKeyMutation = useMutation({
@@ -318,7 +321,7 @@ export const useSubscribe = () => {
 
 			return data
 		},
-		enabled: isAuthenticated && router.pathname === '/account',
+		enabled: isAuthenticated && (router.pathname === '/account' || router.pathname === '/account2'),
 		staleTime: 1000 * 60 * 5,
 		refetchOnWindowFocus: false,
 		retry: false
@@ -339,7 +342,10 @@ export const useSubscribe = () => {
 
 			return data
 		},
-		enabled: isAuthenticated && apiSubscription?.status === 'active' && router.pathname === '/account',
+		enabled:
+			isAuthenticated &&
+			apiSubscription?.status === 'active' &&
+			(router.pathname === '/account' || router.pathname === '/account2'),
 		staleTime: 1000 * 60 * 5,
 		refetchOnWindowFocus: false,
 		retry: false

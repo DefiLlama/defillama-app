@@ -1,14 +1,22 @@
 import { PricingCard } from '~/containers/subscription/components'
-import type { BillingCycle, PricingCardData } from '~/containers/subscription/types'
+import type { BillingCycle, PlanKey, PricingCardData } from '~/containers/subscription/types'
 
 export function SubscriptionPricingSection({
 	pricingCards,
 	billingCycle,
-	onBillingCycleChange
+	onBillingCycleChange,
+	currentPlan = null,
+	isAuthenticated = false,
+	isTrial = false,
+	userBillingCycle = null
 }: {
 	pricingCards: PricingCardData[]
 	billingCycle: BillingCycle
 	onBillingCycleChange: (nextBillingCycle: BillingCycle) => void
+	currentPlan?: PlanKey | null
+	isAuthenticated?: boolean
+	isTrial?: boolean
+	userBillingCycle?: BillingCycle | null
 }) {
 	const isMonthly = billingCycle === 'monthly'
 	const isYearly = billingCycle === 'yearly'
@@ -74,9 +82,18 @@ export function SubscriptionPricingSection({
 				</p>
 			</div>
 
-			<div className="mt-9 flex w-full flex-col gap-6 md:w-auto md:flex-row md:items-stretch md:justify-center md:gap-4">
+			<div className="mt-9 flex w-full flex-col gap-6 md:w-auto md:flex-row md:items-start md:justify-center md:gap-4">
 				{pricingCards.map((card) => (
-					<PricingCard key={card.key} card={card} />
+					<PricingCard
+						key={card.key}
+						card={card}
+						isCurrentPlan={card.key === currentPlan || (isTrial && card.key === 'pro')}
+						isTrial={isTrial && card.key === 'pro'}
+						isAuthenticated={isAuthenticated}
+						currentPlan={currentPlan}
+						billingCycle={billingCycle}
+						userBillingCycle={userBillingCycle}
+					/>
 				))}
 			</div>
 		</section>

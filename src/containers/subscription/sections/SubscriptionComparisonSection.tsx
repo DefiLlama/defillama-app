@@ -10,7 +10,7 @@ const LABEL_COL = 'w-[233px] md:w-[400px]'
 /* ── Style maps ────────────────────────────────────────────────────── */
 
 const planHeadStyles = {
-	selected: 'border-x border-(--sub-c-1f67d2) bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
+	selected: 'border-(--sub-c-1f67d2) shadow-[inset_1px_0_0_0_var(--sub-c-1f67d2),inset_-1px_0_0_0_var(--sub-c-1f67d2)] bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
 	default: 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) md:bg-white dark:md:bg-transparent'
 }
 
@@ -38,6 +38,9 @@ function ComparisonPlanHead({
 	const meta = PLAN_META_BY_CYCLE[billingCycle][plan]
 	const colStyle = isSelected ? planHeadStyles.selected : planHeadStyles.default
 	const btnStyle = isSelected ? planHeadButtonStyles.selected : planHeadButtonStyles.default
+	const slashIdx = meta.price.indexOf('/')
+	const priceValue = slashIdx >= 0 ? meta.price.slice(0, slashIdx) : meta.price
+	const priceUnit = slashIdx >= 0 ? meta.price.slice(slashIdx) : null
 
 	return (
 		<div
@@ -49,11 +52,16 @@ function ComparisonPlanHead({
 					<p className="text-[14px] leading-4 font-medium text-(--sub-c-111f34) dark:text-white md:text-lg md:leading-5 md:text-(--sub-c-090b0c) dark:md:text-white">
 						{meta.title}
 					</p>
-					<p
-						className={`mt-1 text-[12px] leading-4 md:text-sm ${plan === 'enterprise' ? 'text-(--sub-c-4b86db)' : 'text-(--sub-mobile-text-muted) md:text-(--sub-desktop-text-muted)'}`}
-					>
-						{meta.price}
-					</p>
+					<div className="mt-1 flex items-end gap-px">
+						<p className="bg-linear-to-r from-(--sub-c-4b86db) to-(--sub-c-a5c3ed) bg-clip-text text-[12px] leading-[17px] font-medium text-transparent md:text-sm">
+							{priceValue}
+						</p>
+						{priceUnit ? (
+							<p className="text-[12px] leading-4 text-(--sub-mobile-text-muted) md:text-xs md:text-(--sub-desktop-text-muted)">
+								{priceUnit}
+							</p>
+						) : null}
+					</div>
 				</div>
 				<button
 					type="button"
@@ -120,7 +128,7 @@ export function SubscriptionComparisonSection({
 													<div
 														key={`${section.title}-header-${plan}`}
 														role="cell"
-														className={`${PLAN_COL} ${prevPlan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
+														className={`${PLAN_COL} ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
 													/>
 												)
 											})}
@@ -132,11 +140,11 @@ export function SubscriptionComparisonSection({
 												<div
 													key={`${section.title}-${row.label}`}
 													role="row"
-													className={`flex h-[41px] border-b border-(--sub-mobile-table-border) md:h-[36px] md:border-(--sub-desktop-table-border) ${rowIndex % 2 === 1 ? 'bg-(--sub-table-row-alt-bg)' : ''}`}
+													className="flex h-[41px] md:h-[36px]"
 												>
 													<div
 														role="rowheader"
-														className={`flex items-center overflow-hidden px-2 text-[14px] leading-[21px] whitespace-nowrap text-ellipsis text-(--sub-mobile-text-muted) md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) ${LABEL_COL}`}
+														className={`flex items-center overflow-hidden border-b border-(--sub-mobile-table-border) px-2 text-[14px] leading-[21px] whitespace-nowrap text-ellipsis text-(--sub-mobile-text-muted) md:border-(--sub-desktop-table-border) md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) ${LABEL_COL}`}
 													>
 														{row.label}
 													</div>
@@ -147,7 +155,7 @@ export function SubscriptionComparisonSection({
 															lastRowCls = 'border-b'
 															if (planIndex === 0) lastRowCls += ' rounded-bl-[16px] md:rounded-bl-[24px]'
 															if (planIndex === planOrder.length - 1) lastRowCls += ' rounded-br-[16px] md:rounded-br-[24px]'
-															if (plan === selectedPlan) lastRowCls += ' rounded-b-[16px] md:rounded-b-[24px]'
+															if (plan === selectedPlan) lastRowCls += ' border-b-(--sub-c-1f67d2) rounded-b-[16px] md:rounded-b-[24px]'
 														}
 														return (
 															<ComparisonCell
