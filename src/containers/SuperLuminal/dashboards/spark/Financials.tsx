@@ -32,9 +32,7 @@ function KpiCard({ label, value }: { label: string; value: string }) {
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
-	return (
-		<h2 className="text-xs font-semibold uppercase tracking-wider text-(--text-label)">{children}</h2>
-	)
+	return <h2 className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">{children}</h2>
 }
 
 type AADimension = 'byProtocol' | 'byNetwork' | 'byAsset'
@@ -81,10 +79,7 @@ function AllocatedAssetsSection({
 	const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set())
 
 	const currentEntries: AllocatedAssetsEntry[] = allocatedAssets[dimension]
-	const pieData = useMemo(
-		() => currentEntries.map((e) => ({ name: e.name, value: e.value })),
-		[currentEntries]
-	)
+	const pieData = useMemo(() => currentEntries.map((e) => ({ name: e.name, value: e.value })), [currentEntries])
 	const pieColors = useMemo(() => assignColors(currentEntries.map((e) => e.name)), [currentEntries])
 
 	const toggleRow = (idx: number) => {
@@ -159,27 +154,15 @@ function AllocatedAssetsSection({
 												<span className="w-4 shrink-0 text-[10px] text-(--text-label)">
 													{hasChildren ? (isOpen ? '▼' : '▶') : ''}
 												</span>
-												<span
-													className="inline-block h-2 w-2 shrink-0 rounded-full"
-													style={{ background: color }}
-												/>
-												<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary)">
-													{entry.name}
-												</span>
-												<span className="shrink-0 text-sm font-semibold text-(--text-primary)">
-													{entry.formatted}
-												</span>
-												<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">
-													{entry.pct}%
-												</span>
+												<span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
+												<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary)">{entry.name}</span>
+												<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{entry.formatted}</span>
+												<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{entry.pct}%</span>
 											</div>
 											{isOpen && entry.children && (
 												<div className="pb-2 pl-8">
 													{entry.children.map((child) => (
-														<div
-															key={child.name}
-															className="flex items-center py-1.5 text-xs text-(--text-label)"
-														>
+														<div key={child.name} className="flex items-center py-1.5 text-xs text-(--text-label)">
 															<span className="min-w-0 flex-1 truncate">{child.name}</span>
 															<span className="shrink-0">{child.formatted}</span>
 														</div>
@@ -218,7 +201,6 @@ export default function Financials() {
 	const { data, isLoading } = useFinancialsData()
 	const onContentReady = useContentReady()
 
-
 	useEffect(() => {
 		if (data && !isLoading) {
 			onContentReady()
@@ -242,9 +224,7 @@ export default function Financials() {
 			<div className="flex flex-col gap-4">
 				<SectionHeader>Projected Returns Breakdown</SectionHeader>
 				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-					<h3 className="mb-3 text-sm font-medium text-(--text-label)">
-						{data.projectedBreakdown.title}
-					</h3>
+					<h3 className="mb-3 text-sm font-medium text-(--text-label)">{data.projectedBreakdown.title}</h3>
 					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div className="min-h-[300px]">
 							<PieChart
@@ -259,15 +239,9 @@ export default function Financials() {
 							<table className="w-full">
 								<thead>
 									<tr className="border-b border-(--cards-border)">
-										<th className="pb-2 text-left text-xs font-semibold uppercase text-(--text-label)">
-											Product
-										</th>
-										<th className="pb-2 text-right text-xs font-semibold uppercase text-(--text-label)">
-											Revenue
-										</th>
-										<th className="pb-2 text-right text-xs font-semibold uppercase text-(--text-label)">
-											Share
-										</th>
+										<th className="pb-2 text-left text-xs font-semibold text-(--text-label) uppercase">Product</th>
+										<th className="pb-2 text-right text-xs font-semibold text-(--text-label) uppercase">Revenue</th>
+										<th className="pb-2 text-right text-xs font-semibold text-(--text-label) uppercase">Share</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -498,11 +472,7 @@ export default function Financials() {
 				</div>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<ChartCard title="Total Treasury">
-						<MultiSeriesChart
-							series={data.treasurySeries}
-							valueSymbol="$"
-							height="400px"
-						/>
+						<MultiSeriesChart series={data.treasurySeries} valueSymbol="$" height="400px" />
 					</ChartCard>
 					<ChartCard title="SPK Buybacks">
 						<MultiSeriesChart
@@ -527,7 +497,7 @@ export default function Financials() {
 									href={report.url}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="border-b border-(--cards-border) py-3 text-sm font-medium text-(--link) hover:underline last:border-b-0"
+									className="border-b border-(--cards-border) py-3 text-sm font-medium text-(--link) last:border-b-0 hover:underline"
 								>
 									{report.label}
 								</a>
