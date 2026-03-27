@@ -503,8 +503,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 
 		const legend = {
-			top: 12,
-			right: 12,
+			padding: 12,
 			textStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 12,
@@ -677,6 +676,10 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const shouldHideDataZoom = datasetLength < 2 || hideDataZoom
 
 		// Always use a scroll legend when the default legend is enabled.
+		// Only constrain the left boundary when there are enough series to span the
+		// full width — otherwise omit `left` so items stay right-aligned.
+		const legendItemCount = series.length
+		const constrainLeft = legendItemCount > 5
 		const finalLegend = hideDefaultLegend
 			? undefined
 			: Array.isArray(legend)
@@ -686,7 +689,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 						orient: l?.orient ?? 'horizontal',
 						pageButtonPosition: l?.pageButtonPosition ?? 'end',
 						top: l?.top ?? 0,
-						...(l?.left != null ? { left: l.left } : {}),
+						...(l?.left != null ? { left: l.left } : constrainLeft ? { left: 12 } : {}),
 						right: l?.right ?? 12
 					}))
 				: legend
@@ -696,7 +699,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 							orient: legend?.orient ?? 'horizontal',
 							pageButtonPosition: legend?.pageButtonPosition ?? 'end',
 							top: legend?.top ?? 0,
-							...(legend?.left != null ? { left: legend.left } : {}),
+							...(legend?.left != null ? { left: legend.left } : constrainLeft ? { left: 12 } : {}),
 							right: legend?.right ?? 12
 						}
 					: undefined

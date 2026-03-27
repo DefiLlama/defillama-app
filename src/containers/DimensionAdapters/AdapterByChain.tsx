@@ -432,7 +432,6 @@ export function AdapterByChain(props: IProps) {
 						chain={props.chain}
 						chartName={props.type}
 						dataType={props.dataType}
-						protocols={protocols}
 					/>
 				</div>
 			) : null}

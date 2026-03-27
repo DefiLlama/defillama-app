@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import type { IProtocol } from './types'
 import {
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
@@ -22,11 +21,26 @@ const baseChartData = {
 	]
 }
 
-const baseChainRows = [
-	{ name: 'Ethereum', logo: '', total24h: 40, total7d: null, total30d: null },
-	{ name: 'Solana', logo: '', total24h: 0, total7d: null, total30d: null },
-	{ name: 'Base', logo: '', total24h: 60, total7d: null, total30d: null }
-]
+const nonMidnightDailyChartData = {
+	dimensions: ['timestamp', 'Ethereum', 'Solana'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+		{ timestamp: toMs(2024, 1, 2) + 12 * 60 * 60 * 1000, Ethereum: 30, Solana: 40 }
+	]
+}
+
+const shortGapDailyChartData = {
+	dimensions: ['timestamp', 'Ethereum', 'Solana'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+		{ timestamp: toMs(2024, 1, 1) + 22 * 60 * 60 * 1000, Ethereum: 30, Solana: 40 }
+	]
+}
+
+const singlePointDailyChartData = {
+	dimensions: ['timestamp', 'Ethereum', 'Solana'],
+	source: [{ timestamp: toMs(2024, 1, 1) + 12 * 60 * 60 * 1000, Ethereum: 30, Solana: 40 }]
+}
 
 const sparseChartData = {
 	dimensions: ['timestamp', 'Ethereum', 'Solana'],
@@ -44,31 +58,6 @@ const adapterBreakdownChartData = {
 		{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 30, dYdX: 0, GMX: 10 }
 	]
 }
-
-const makeProtocolRow = (name: string, total24h: number | null, childProtocols?: IProtocol[]) =>
-	({
-		name,
-		slug: name.toLowerCase().replace(/\s+/g, '-'),
-		logo: '',
-		chains: [],
-		category: null,
-		total24h,
-		total7d: null,
-		total30d: null,
-		total1y: null,
-		totalAllTime: null,
-		mcap: null,
-		...(childProtocols ? { childProtocols } : {})
-	}) satisfies IProtocol
-
-const adapterProtocols = [
-	makeProtocolRow('Hyperliquid', 70, [
-		makeProtocolRow('Hyperliquid Perps', 55),
-		makeProtocolRow('Hyperliquid Spot', 15)
-	]),
-	makeProtocolRow('dYdX', 30),
-	makeProtocolRow('GMX', 10)
-]
 
 describe('normalizeChainsByAdapterChartState', () => {
 	it('returns the default bar state when no query params are present', () => {
@@ -88,7 +77,7 @@ describe('normalizeChainsByAdapterChartState', () => {
 		})
 	})
 
-	it('maps legacy dominance and cumulative URLs to line mode', () => {
+	it('maps legacy dominance URLs to line mode and preserves cumulative grouping', () => {
 		expect(
 			normalizeChainsByAdapterChartState({
 				legacyChartTypeParam: 'dominance'
@@ -99,7 +88,19 @@ describe('normalizeChainsByAdapterChartState', () => {
 			normalizeChainsByAdapterChartState({
 				groupByParam: 'cumulative'
 			})
-		).toEqual({ chartKind: 'line', groupBy: 'daily' })
+		).toEqual({
+			chartKind: 'bar',
+			valueMode: 'absolute',
+			barLayout: 'stacked',
+			groupBy: 'cumulative'
+		})
+
+		expect(
+			normalizeChainsByAdapterChartState({
+				chartKindParam: 'line',
+				groupByParam: 'cumulative'
+			})
+		).toEqual({ chartKind: 'line', groupBy: 'cumulative' })
 	})
 
 	it('ignores bar-only params for treemap and line modes', () => {
@@ -110,7 +111,7 @@ describe('normalizeChainsByAdapterChartState', () => {
 				barLayoutParam: 'separate',
 				groupByParam: 'monthly'
 			})
-		).toEqual({ chartKind: 'treemap' })
+		).toEqual({ chartKind: 'treemap', groupBy: 'monthly' })
 
 		expect(
 			normalizeChainsByAdapterChartState({
@@ -128,7 +129,7 @@ describe('normalizeChainsByAdapterChartState', () => {
 				barLayoutParam: 'separate',
 				groupByParam: 'monthly'
 			})
-		).toEqual({ chartKind: 'hbar' })
+		).toEqual({ chartKind: 'hbar', groupBy: 'monthly' })
 	})
 })
 
@@ -144,8 +145,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state,
-			latestChainRows: baseChainRows
+			state
 		})
 
 		expect(presentation.kind).toBe('bar')
@@ -174,8 +174,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state,
-			latestChainRows: baseChainRows
+			state
 		})
 
 		expect(presentation.kind).toBe('bar')
@@ -204,8 +203,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 				valueMode: 'absolute',
 				barLayout: 'stacked',
 				groupBy: 'daily'
-			},
-			latestChainRows: baseChainRows
+			}
 		})
 
 		expect(presentation.kind).toBe('bar')
@@ -221,8 +219,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state: { chartKind: 'line', groupBy: 'weekly' },
-			latestChainRows: baseChainRows
+			state: { chartKind: 'line', groupBy: 'weekly' }
 		})
 
 		expect(presentation.kind).toBe('line')
@@ -236,43 +233,92 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(week1.Solana).toBeCloseTo(40)
 	})
 
-	it('builds treemap data from the latest timestamp using all selected chains', () => {
+	it('builds treemap data from the last complete daily chart timestamp', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana', 'Base'],
-			state: { chartKind: 'treemap' },
-			latestChainRows: baseChainRows
+			state: { chartKind: 'treemap', groupBy: 'daily' }
 		})
 
 		expect(presentation.kind).toBe('treemap')
 		if (presentation.kind !== 'treemap') return
 
 		expect(presentation.data.map((item) => item.name)).toEqual(['Base', 'Ethereum'])
-		expect(presentation.data[0].value).toBe(60)
-		expect(presentation.data[0].share).toBe(60)
-		expect(presentation.data[1].value).toBe(40)
-		expect(presentation.data[1].share).toBe(40)
+		expect(presentation.data[0].value).toBe(30)
+		expect(presentation.data[0].share).toBe(75)
+		expect(presentation.data[1].value).toBe(10)
+		expect(presentation.data[1].share).toBe(25)
+	})
+
+	it('falls back to the previous daily timestamp when the latest point is not at UTC midnight', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: nonMidnightDailyChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: { chartKind: 'hbar', groupBy: 'daily' }
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Solana', 'Ethereum'])
+		expect(presentation.data[0].value).toBe(20)
+		expect(presentation.data[1].value).toBe(10)
+	})
+
+	it('falls back to the previous daily timestamp when the latest gap is less than 23 hours', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: shortGapDailyChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: { chartKind: 'treemap', groupBy: 'daily' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Solana', 'Ethereum'])
+		expect(presentation.data[0].value).toBe(20)
+		expect(presentation.data[1].value).toBe(10)
+	})
+
+	it('uses the last available daily timestamp when there is only one point', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: singlePointDailyChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: { chartKind: 'hbar', groupBy: 'daily' }
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Solana', 'Ethereum'])
+		expect(presentation.data[0].value).toBe(40)
+		expect(presentation.data[1].value).toBe(30)
 	})
 
 	it('builds hbar data from the latest-value ranking and groups overflow into Others', () => {
-		const extendedChainRows = [
-			{ name: 'Chain 1', logo: '', total24h: 100, total7d: null, total30d: null },
-			{ name: 'Chain 2', logo: '', total24h: 90, total7d: null, total30d: null },
-			{ name: 'Chain 3', logo: '', total24h: 80, total7d: null, total30d: null },
-			{ name: 'Chain 4', logo: '', total24h: 70, total7d: null, total30d: null },
-			{ name: 'Chain 5', logo: '', total24h: 60, total7d: null, total30d: null },
-			{ name: 'Chain 6', logo: '', total24h: 50, total7d: null, total30d: null },
-			{ name: 'Chain 7', logo: '', total24h: 40, total7d: null, total30d: null },
-			{ name: 'Chain 8', logo: '', total24h: 30, total7d: null, total30d: null },
-			{ name: 'Chain 9', logo: '', total24h: 20, total7d: null, total30d: null },
-			{ name: 'Chain 10', logo: '', total24h: 10, total7d: null, total30d: null },
-			{ name: 'Chain 11', logo: '', total24h: 5, total7d: null, total30d: null }
-		]
+		const extendedChainChartData = {
+			dimensions: ['timestamp', ...Array.from({ length: 11 }, (_, index) => `Chain ${index + 1}`)],
+			source: [
+				{
+					timestamp: toMs(2024, 1, 1),
+					'Chain 1': 100,
+					'Chain 2': 90,
+					'Chain 3': 80,
+					'Chain 4': 70,
+					'Chain 5': 60,
+					'Chain 6': 50,
+					'Chain 7': 40,
+					'Chain 8': 30,
+					'Chain 9': 20,
+					'Chain 10': 10,
+					'Chain 11': 5
+				}
+			]
+		}
 		const presentation = buildChainsByAdapterChartPresentation({
-			chartData: baseChartData,
-			selectedChains: extendedChainRows.map((row) => row.name),
-			state: { chartKind: 'hbar' },
-			latestChainRows: extendedChainRows
+			chartData: extendedChainChartData,
+			selectedChains: Array.from({ length: 11 }, (_, index) => `Chain ${index + 1}`),
+			state: { chartKind: 'hbar', groupBy: 'daily' }
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -294,6 +340,64 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[8].value).toBe(20)
 		expect(presentation.data[9].value).toBe(15)
 		expect(presentation.data[9].share).toBeCloseTo((15 / 555) * 100)
+	})
+
+	it('builds grouped treemap data from the last grouped bar value for non-daily latest charts', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: ['Ethereum', 'Solana', 'Base'],
+			state: { chartKind: 'treemap', groupBy: 'weekly' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Ethereum', 'Base', 'Solana'])
+		expect(presentation.data[0].value).toBe(30)
+		expect(presentation.data[1].value).toBe(30)
+		expect(presentation.data[2].value).toBe(20)
+	})
+
+	it('builds cumulative latest-value treemap data from running totals', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: ['Ethereum', 'Solana', 'Base'],
+			state: { chartKind: 'treemap', groupBy: 'cumulative' }
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Ethereum', 'Base', 'Solana'])
+		expect(presentation.data[0].value).toBe(30)
+		expect(presentation.data[1].value).toBe(30)
+		expect(presentation.data[2].value).toBe(20)
+	})
+
+	it('supports line-backed latest-value charts by taking the last grouped point', () => {
+		const lineBackedChartData = {
+			dimensions: ['timestamp', 'Hyperliquid', 'dYdX'],
+			source: [
+				{ timestamp: toMs(2024, 1, 1), Hyperliquid: 10, dYdX: 5 },
+				{ timestamp: toMs(2024, 1, 2), Hyperliquid: 20, dYdX: 15 },
+				{ timestamp: toMs(2024, 1, 3), Hyperliquid: 15, dYdX: 25 }
+			]
+		}
+
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			selectedProtocols: ['Hyperliquid', 'dYdX'],
+			groupBy: 'weekly',
+			chartData: lineBackedChartData,
+			seriesType: 'line'
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['dYdX', 'Hyperliquid'])
+		expect(presentation.data[0].value).toBe(25)
+		expect(presentation.data[1].value).toBe(15)
 	})
 })
 
@@ -323,11 +427,20 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 })
 
 describe('buildAdapterByChainLatestValuePresentation', () => {
-	it('builds treemap data from selected top-level table rows only', () => {
+	it('uses the last complete daily chart timestamp', () => {
+		const chartData = {
+			dimensions: ['timestamp', 'Hyperliquid', 'dYdX', 'GMX'],
+			source: [
+				{ timestamp: toMs(2024, 1, 1), Hyperliquid: 20, dYdX: 10, GMX: 0 },
+				{ timestamp: toMs(2024, 1, 2), Hyperliquid: 70, dYdX: 30, GMX: 10 }
+			]
+		}
+
 		const presentation = buildAdapterByChainLatestValuePresentation({
 			chartKind: 'treemap',
-			protocols: adapterProtocols,
-			selectedProtocols: ['Hyperliquid', 'dYdX']
+			selectedProtocols: ['Hyperliquid', 'dYdX'],
+			groupBy: 'daily',
+			chartData
 		})
 
 		expect(presentation.kind).toBe('treemap')
@@ -338,11 +451,17 @@ describe('buildAdapterByChainLatestValuePresentation', () => {
 		expect(presentation.data[1].value).toBe(30)
 	})
 
-	it('does not fall back to child-only breakdown names for latest-value charts', () => {
+	it('returns no rows when selected protocols are missing from the chosen daily timestamp', () => {
+		const chartData = {
+			dimensions: ['timestamp', 'Hyperliquid', 'dYdX'],
+			source: [{ timestamp: toMs(2024, 1, 2), Hyperliquid: 70, dYdX: 30 }]
+		}
+
 		const presentation = buildAdapterByChainLatestValuePresentation({
 			chartKind: 'hbar',
-			protocols: [makeProtocolRow('Hyperliquid', 70), makeProtocolRow('dYdX', 30), makeProtocolRow('GMX', 10)],
-			selectedProtocols: []
+			selectedProtocols: [],
+			groupBy: 'daily',
+			chartData
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -352,14 +471,21 @@ describe('buildAdapterByChainLatestValuePresentation', () => {
 	})
 
 	it('builds hbar data from selected protocols and groups overflow into Others', () => {
-		const manyProtocols = Array.from({ length: 11 }, (_, index) =>
-			makeProtocolRow(`Protocol ${index + 1}`, 110 - index * 10)
-		)
+		const manyProtocolChartData = {
+			dimensions: ['timestamp', ...Array.from({ length: 11 }, (_, index) => `Protocol ${index + 1}`)],
+			source: [
+				Object.assign(
+					{ timestamp: toMs(2024, 1, 2) },
+					Object.fromEntries(Array.from({ length: 11 }, (_, index) => [`Protocol ${index + 1}`, 110 - index * 10]))
+				)
+			]
+		}
 
 		const presentation = buildAdapterByChainLatestValuePresentation({
 			chartKind: 'hbar',
-			protocols: manyProtocols,
-			selectedProtocols: manyProtocols.map((protocol) => protocol.name)
+			selectedProtocols: Array.from({ length: 11 }, (_, index) => `Protocol ${index + 1}`),
+			groupBy: 'daily',
+			chartData: manyProtocolChartData
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -369,11 +495,17 @@ describe('buildAdapterByChainLatestValuePresentation', () => {
 		expect(presentation.data.at(-1)?.value).toBe(30)
 	})
 
-	it('uses the selected top-level latest-value protocols directly', () => {
+	it('uses the selected daily chart protocols directly', () => {
+		const chartData = {
+			dimensions: ['timestamp', 'Hyperliquid', 'dYdX', 'GMX'],
+			source: [{ timestamp: toMs(2024, 1, 2), Hyperliquid: 70, dYdX: 30, GMX: 10 }]
+		}
+
 		const presentation = buildAdapterByChainLatestValuePresentation({
 			chartKind: 'hbar',
-			protocols: adapterProtocols,
-			selectedProtocols: ['Hyperliquid', 'dYdX', 'GMX']
+			selectedProtocols: ['Hyperliquid', 'dYdX', 'GMX'],
+			groupBy: 'daily',
+			chartData
 		})
 
 		expect(presentation.kind).toBe('hbar')
