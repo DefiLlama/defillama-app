@@ -13,10 +13,11 @@ import {
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import pb from '~/utils/pocketbase'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions, useFreeTierStatus } from './hooks'
 import { useDashboardStream } from './hooks/useDashboardStream'
-import { StreamDoneContext, useChartsData, useProtocolsAndChains } from './queries'
+import { ProxyAuthTokenContext, StreamDoneContext, useChartsData, useProtocolsAndChains } from './queries'
 import type { Dashboard } from './services/DashboardAPI'
 import type {
 	CexAnalyticsMetric,
@@ -282,13 +283,21 @@ export function ProDashboardAPIProvider({
 }) {
 	const stream = useDashboardStream(initialDashboardId)
 	const streamDone = !initialDashboardId || stream.isDone
+	const { hasActiveSubscription } = useAuthContext()
+	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
 
 	// Wrap in StreamDoneContext FIRST so all hooks inside the inner component read the correct value
 	return (
 		<StreamDoneContext.Provider value={streamDone}>
-			<ProDashboardAPIProviderInner stream={stream} streamDone={streamDone} initialDashboardId={initialDashboardId}>
-				{children}
-			</ProDashboardAPIProviderInner>
+			<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
+				<ProDashboardAPIProviderInner
+					stream={stream}
+					streamDone={streamDone}
+					initialDashboardId={initialDashboardId}
+				>
+					{children}
+				</ProDashboardAPIProviderInner>
+			</ProxyAuthTokenContext.Provider>
 		</StreamDoneContext.Provider>
 	)
 }
@@ -921,7 +930,8 @@ function ProDashboardAPIProviderInner({
 		return chartItems
 	}, [items])
 
-	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod)
+	const proxyAuthToken = useContext(ProxyAuthTokenContext)
+	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod, proxyAuthToken)
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()

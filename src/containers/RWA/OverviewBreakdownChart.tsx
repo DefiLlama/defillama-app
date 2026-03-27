@@ -1,3 +1,4 @@
+import type { ParsedUrlQuery } from 'querystring'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
@@ -35,19 +36,55 @@ function isChartMetricKey(value: string): value is RWAChartMetricKey {
 	return VALID_CHART_TYPES.has(value as RWAChartMetricKey)
 }
 
-function buildRequest(
+export function getOverviewBreakdownRequestState(
 	page: RWAOverviewPage,
 	chartType: RWAChartMetricKey,
-	includeStablecoin: boolean,
-	includeGovernance: boolean
-): RWAOverviewBreakdownRequest {
+	query: ParsedUrlQuery
+) {
+	const includeStablecoin = isTrueQueryParam(query.includeStablecoins)
+	const includeGovernance = isTrueQueryParam(query.includeGovernance)
+
 	switch (page.kind) {
 		case 'chain':
-			return { breakdown: 'chain', key: chartType, includeStablecoin, includeGovernance }
-		case 'category':
-			return { breakdown: 'category', key: chartType, includeStablecoin: true, includeGovernance: true }
+			return {
+				request: {
+					breakdown: 'chain',
+					key: chartType,
+					includeStablecoin,
+					includeGovernance
+				} satisfies RWAOverviewBreakdownRequest,
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
+			}
 		case 'platform':
-			return { breakdown: 'platform', key: chartType, includeStablecoin: true, includeGovernance: true }
+			return {
+				request: {
+					breakdown: 'platform',
+					key: chartType,
+					includeStablecoin,
+					includeGovernance
+				} satisfies RWAOverviewBreakdownRequest,
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
+			}
+		case 'category':
+			return {
+				request: {
+					breakdown: 'category',
+					key: chartType,
+					includeStablecoin,
+					includeGovernance
+				} satisfies RWAOverviewBreakdownRequest,
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
+			}
+		case 'assetGroup':
+			return {
+				request: {
+					breakdown: 'assetGroup',
+					key: chartType,
+					includeStablecoin,
+					includeGovernance
+				} satisfies RWAOverviewBreakdownRequest,
+				isDefaultState: chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
+			}
 		default:
 			return assertNever(page)
 	}
@@ -77,16 +114,7 @@ export function RWAOverviewBreakdownChart({
 	const router = useRouter()
 	const chartTypeQuery = readSingleQueryValue(router.query.chartType)
 	const chartType = chartTypeQuery && isChartMetricKey(chartTypeQuery) ? chartTypeQuery : DEFAULT_CHART_TYPE
-	const includeStablecoin =
-		page.kind === 'chain' && router.query.includeStablecoins != null
-			? isTrueQueryParam(router.query.includeStablecoins)
-			: false
-	const includeGovernance =
-		page.kind === 'chain' && router.query.includeGovernance != null
-			? isTrueQueryParam(router.query.includeGovernance)
-			: false
-	const isDefaultState = chartType === DEFAULT_CHART_TYPE && !includeStablecoin && !includeGovernance
-	const request = buildRequest(page, chartType, includeStablecoin, includeGovernance)
+	const { request, isDefaultState } = getOverviewBreakdownRequestState(page, chartType, router.query)
 	const { data, isLoading, error } = useQuery({
 		queryKey: [
 			'rwa-overview-breakdown',

@@ -128,7 +128,12 @@ function App({ Component, pageProps }: AppProps) {
 	}, [])
 
 	const { hasActiveSubscription } = useAuthContext()
-	const showFloatingButton = hasActiveSubscription && !router.pathname.includes('/ai/chat')
+	const showFloatingButton =
+		hasActiveSubscription &&
+		!router.pathname.startsWith('/ai') &&
+		!router.pathname.startsWith('/mcp') &&
+		!router.pathname.startsWith('/account') &&
+		!router.pathname.startsWith('/subscription')
 
 	useUmamiIdentityTracker()
 

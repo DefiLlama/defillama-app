@@ -55,7 +55,11 @@ function formatAxisLabel(value: number, symbol: string): string {
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
-function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['hallmarks']>, isThemeDark: boolean) {
+function buildHallmarksMarkLine(
+	hallmarks: NonNullable<IMultiSeriesChart2Props['hallmarks']>,
+	isThemeDark: boolean,
+	topOffset: number
+) {
 	const labelColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 
 	return hallmarks.length > 8
@@ -76,7 +80,7 @@ function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['
 						},
 						emphasis: {
 							label: {
-								show: true, // Show on hover
+								show: true,
 								color: labelColor,
 								fontFamily: 'sans-serif',
 								fontSize: 14,
@@ -89,7 +93,7 @@ function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['
 						name: 'end',
 						xAxis: +date * 1e3,
 						yAxis: 'max',
-						y: 0
+						y: topOffset
 					}
 				])
 			}
@@ -110,7 +114,7 @@ function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['
 						name: 'end',
 						xAxis: +date * 1e3,
 						yAxis: 'max',
-						y: Math.max(hallmarks.length * 40 - index * 40, 40)
+						y: topOffset + Math.max(hallmarks.length * 40 - index * 40, 40)
 					}
 				])
 			}
@@ -122,7 +126,8 @@ function buildSeries({
 	expandTo100Percent,
 	solidChartAreaStyle,
 	isThemeDark,
-	hallmarks
+	hallmarks,
+	hallmarkTopOffset
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
@@ -130,6 +135,7 @@ function buildSeries({
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
 	hallmarks: IMultiSeriesChart2Props['hallmarks']
+	hallmarkTopOffset: number
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -193,11 +199,19 @@ function buildSeries({
 			delete base.areaStyle
 		}
 
+		if (chart.isTBD) {
+			base.itemStyle = { ...base.itemStyle, opacity: 0.2 }
+			if (base.areaStyle) {
+				base.areaStyle = { ...base.areaStyle, opacity: 0.1 }
+			}
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5 }
+		}
+
 		out.push(base)
 	}
 
 	if (hallmarks && out.length > 0) {
-		out[0].markLine = buildHallmarksMarkLine(hallmarks, isThemeDark)
+		out[0].markLine = buildHallmarksMarkLine(hallmarks, isThemeDark, hallmarkTopOffset)
 	}
 
 	if (someSeriesHasYAxisIndex) {
@@ -489,9 +503,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 
 		const legend = {
-			// When legends are enabled, we want consistent placement (top)
-			// so callers don't have to override per-chart.
-			top: 0,
+			top: 12,
 			right: 12,
 			textStyle: {
 				fontFamily: 'sans-serif',
@@ -584,6 +596,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				? autoExportsEnabled
 				: false
 
+	const hallmarkTopOffset = hideDefaultLegend ? 0 : 28
 	const series = useMemo(() => {
 		return buildSeries({
 			effectiveCharts,
@@ -591,9 +604,18 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			expandTo100Percent,
 			solidChartAreaStyle,
 			isThemeDark,
-			hallmarks
+			hallmarks,
+			hallmarkTopOffset
 		})
-	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts])
+	}, [
+		effectiveCharts,
+		isThemeDark,
+		expandTo100Percent,
+		hallmarks,
+		solidChartAreaStyle,
+		selectedCharts,
+		hallmarkTopOffset
+	])
 
 	const seriesSymbols = useMemo(() => {
 		const map = new Map<string, string>()
@@ -788,8 +810,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const baseGrid = {
 			left: 12,
 			bottom: shouldHideDataZoom ? 12 : 68,
-			// Reserve enough space for a single-row scroll legend at the top
-			// without creating the huge "dead band" many callers were compensating for.
 			top: hideDefaultLegend ? 12 : 40,
 			right: 12,
 			outerBoundsMode: 'same',

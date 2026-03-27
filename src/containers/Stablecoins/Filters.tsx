@@ -183,6 +183,36 @@ export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 		key: 'PEGGEDMXN',
 		filterFn: (item) => item.pegType === 'peggedMXN',
 		help: 'Show stablecoins pegged to Mexican Peso'
+	},
+	{
+		name: 'KES',
+		key: 'PEGGEDKES',
+		filterFn: (item) => item.pegType === 'peggedKES',
+		help: 'Show stablecoins pegged to Kenyan Shilling'
+	},
+	{
+		name: 'ZAR',
+		key: 'PEGGEDZAR',
+		filterFn: (item) => item.pegType === 'peggedZAR',
+		help: 'Show stablecoins pegged to South African Rand'
+	},
+	{
+		name: 'NGN',
+		key: 'PEGGEDNGN',
+		filterFn: (item) => item.pegType === 'peggedNGN',
+		help: 'Show stablecoins pegged to Nigerian Naira'
+	},
+	{
+		name: 'XOF',
+		key: 'PEGGEDXOF',
+		filterFn: (item) => item.pegType === 'peggedXOF',
+		help: 'Show stablecoins pegged to West African CFA Franc'
+	},
+	{
+		name: 'GHS',
+		key: 'PEGGEDGHS',
+		filterFn: (item) => item.pegType === 'peggedGHS',
+		help: 'Show stablecoins pegged to Ghanaian Cedi'
 	}
 ]
 

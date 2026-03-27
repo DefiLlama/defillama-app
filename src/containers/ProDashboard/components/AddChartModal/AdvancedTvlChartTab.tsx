@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useContext, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -10,6 +10,8 @@ import {
 	useFetchProtocolV1AddlChartsData
 } from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { ProxyAuthTokenContext } from '../../queries'
+import { fetchAdvancedTvlBasicViaProxy, fetchProtocolFullViaProxy } from '../../services/fetchViaProxy'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
@@ -80,13 +82,28 @@ export function AdvancedTvlChartTab({
 	protocolsLoading
 }: AdvancedTvlChartTabProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
+	const authToken = useContext(ProxyAuthTokenContext)
 	const filteredProtocolOptions = protocolOptions
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
-		queryFn: () => ProtocolCharts.tvl(selectedAdvancedTvlProtocol!),
+		queryFn: () =>
+			authToken
+				? fetchAdvancedTvlBasicViaProxy(selectedAdvancedTvlProtocol!, authToken)
+				: ProtocolCharts.tvl(selectedAdvancedTvlProtocol!),
 		enabled: !!selectedAdvancedTvlProtocol && selectedAdvancedTvlChartType === 'tvl',
 		staleTime: 60 * 60 * 1000
+	})
+
+	// Pre-seed protocol full data via proxy for useFetchProtocolV1AddlChartsData
+	useQuery({
+		queryKey: ['protocol-overview-v1', selectedAdvancedTvlProtocol, 'metrics'],
+		queryFn: () =>
+			authToken && selectedAdvancedTvlProtocol
+				? fetchProtocolFullViaProxy(selectedAdvancedTvlProtocol, authToken)
+				: null,
+		enabled: !!selectedAdvancedTvlProtocol && !!authToken,
+		staleTime: Infinity
 	})
 
 	const {
@@ -364,7 +381,7 @@ export function AdvancedTvlChartTab({
 							<p className="text-xs pro-text2">Advanced TVL Chart</p>
 						</div>
 
-						<div className="h-[320px]">{chartContent}</div>
+						<div className="h-[320px]" key={selectedAdvancedTvlChartType}>{chartContent}</div>
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

@@ -43,6 +43,11 @@ export default function BarChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
 
 	const [legendOptions, setLegendOptions] = useState(() => (customLegendOptions ? [...customLegendOptions] : []))
+	const [prevCustomLegendOptions, setPrevCustomLegendOptions] = useState(customLegendOptions)
+	if (customLegendOptions !== prevCustomLegendOptions) {
+		setPrevCustomLegendOptions(customLegendOptions)
+		setLegendOptions(customLegendOptions ? [...customLegendOptions] : [])
+	}
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
 		const values = { ...(stacks || {}) }

@@ -5,7 +5,7 @@ describe('getRWATimeSeriesChartState', () => {
 	it('falls back to the chain default when the query value is invalid', () => {
 		expect(getRWATimeSeriesChartState('chain', 'assetName')).toEqual({
 			mode: 'chain',
-			breakdown: 'category'
+			breakdown: 'assetGroup'
 		})
 	})
 
@@ -19,7 +19,7 @@ describe('getRWATimeSeriesChartState', () => {
 	it('falls back to the platform default when the query value is invalid', () => {
 		expect(getRWATimeSeriesChartState('platform', 'platform')).toEqual({
 			mode: 'platform',
-			breakdown: 'assetName'
+			breakdown: 'assetGroup'
 		})
 	})
 })

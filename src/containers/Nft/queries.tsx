@@ -83,6 +83,8 @@ export const getNFTData = async (): Promise<NftDataResult> => {
 			}
 		})
 
+		data.sort((a, b) => b.volume1d - a.volume1d)
+
 		return {
 			chart: [],
 			collections: data,
@@ -156,6 +158,8 @@ export const getNFTMarketplacesData = async () => {
 		colors[marketplaces[i]] = allColors[i]
 	}
 	colors['Others'] = '#AAAAAA'
+
+	data.sort((a, b) => Number(b['1DayVolume'] ?? 0) - Number(a['1DayVolume'] ?? 0))
 
 	return {
 		data,

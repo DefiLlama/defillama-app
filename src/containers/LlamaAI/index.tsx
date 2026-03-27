@@ -1594,10 +1594,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// Stop the active streamed response while preserving already-buffered output.
 	const handleStopRequest = useCallback(() => {
-		if (sessionId) void stopAgenticExecution(sessionId)
+		if (sessionId) void stopAgenticExecution(sessionId, authorizedFetchCompat)
 		void abortActiveRequest()
 		dispatchStream({ type: 'RESET_STREAM' })
-	}, [sessionId, abortActiveRequest])
+	}, [sessionId, abortActiveRequest, authorizedFetchCompat])
 
 	// Reuse the same submit path for assistant action buttons.
 	const handleActionClick = useCallback(
@@ -1988,11 +1988,11 @@ const ChatControls = memo(function ChatControls({
 						}
 						className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 					>
-					<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
-					<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
-				</Tooltip>
-			) : null}
-		</nav>
+						<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
+						<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+					</Tooltip>
+				) : null}
+			</nav>
 			<Tooltip
 				content="Settings"
 				render={<button onClick={onOpenSettings} />}

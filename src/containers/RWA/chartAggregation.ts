@@ -1,4 +1,5 @@
 import type { IRWAAssetsOverview, IRWAChartDataByTicker, IRWAChartMetricRows, RWAChartMetricKey } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups, getRwaPlatforms } from './grouping'
 
@@ -10,7 +11,7 @@ export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
-export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform'
+export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform' | 'assetGroup'
 
 function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
@@ -50,6 +51,10 @@ function buildTickerGroupMapping(
 			case 'platform':
 				weightedGroups = computeWeightedGroups(getRwaPlatforms(asset.parentPlatform))
 				break
+			case 'assetGroup': {
+				weightedGroups = computeWeightedGroups([normalizeRwaAssetGroup(asset.assetGroup)])
+				break
+			}
 			default:
 				assertNever(mode)
 		}

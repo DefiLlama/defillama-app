@@ -1,6 +1,18 @@
 import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
+const TETHER_SYMBOL_PATTERN = /₮0?/gu
+
+export function normalizeToken(token: string): string {
+	const normalizedToken = token.normalize('NFKC').trim().toLowerCase().replaceAll(TETHER_SYMBOL_PATTERN, 't')
+
+	return normalizedToken === 't' ? 'usdt' : normalizedToken
+}
+
+export function extractPoolTokens(symbol: string): string[] {
+	return symbol.split('(')[0].split('-').map(normalizeToken).filter(Boolean)
+}
+
 interface IToFilterPool {
 	curr: YieldsData['props']['pools'][number]
 	selectedProjectsSet: Set<string>
@@ -38,10 +50,7 @@ export function toFilterPool({
 	usdPeggedSymbols,
 	tokenCategories = {}
 }: IToFilterPool) {
-	const tokensInPoolArray = curr.symbol
-		.split('(')[0]
-		.split('-')
-		.map((x) => x.toLowerCase().trim().replace('₮0', 't').replace('₮', 't'))
+	const tokensInPoolArray = extractPoolTokens(curr.symbol)
 	const tokensInPoolSet = new Set<string>(tokensInPoolArray)
 
 	let toFilter = true
@@ -97,9 +106,10 @@ export function toFilterPool({
 							// every token in the pool symbol contains usd-pegged stable symbol (substring match)
 							if (!curr.stablecoin) return false
 							if (!Array.isArray(usdPeggedSymbols) || usdPeggedSymbols.length === 0) return false
+							const normalizedUsdPeggedSymbols = usdPeggedSymbols.map(normalizeToken)
 							return (
 								tokensInPool.length > 0 &&
-								tokensInPool.every((sym) => usdPeggedSymbols.some((usd) => sym.includes(usd)))
+								tokensInPool.every((sym) => normalizedUsdPeggedSymbols.some((usd) => sym.includes(usd)))
 							)
 						} else {
 							// Check if token matches a dynamic token category (e.g., TOKENIZED_GOLD, TOKENIZED_SILVER)

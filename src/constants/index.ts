@@ -73,14 +73,6 @@ export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 // Datasets
 export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
 
-// RWA
-export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?z=0`
-export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?z=0`
-export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?z=0`
-export const RWA_LIST_API = `${RWA_SERVER_URL}/list?z=0`
-export const RWA_ASSET_DATA_API = `${RWA_SERVER_URL}/rwa`
-export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
-
 // Yields APIs
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
@@ -99,7 +91,6 @@ export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
-export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
 // External services

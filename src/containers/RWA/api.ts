@@ -9,7 +9,8 @@ import type {
 	IRWABreakdownChartResponse,
 	IRWABreakdownChartRow,
 	RWAAssetChartDimension,
-	RWAAssetChartRow
+	RWAAssetChartRow,
+	RWATickerChartTarget
 } from './api.types'
 
 export function toUnixMsTimestamp(ts: number): number {
@@ -18,18 +19,22 @@ export function toUnixMsTimestamp(ts: number): number {
 	return Number.isFinite(ts) && ts > 0 && ts < 1e12 ? ts * 1e3 : ts
 }
 
+function assertNever(value: never): never {
+	throw new Error(`Unexpected value: ${String(value)}`)
+}
+
 /**
  * Fetch current active TVL values for RWA projects.
  */
 export async function fetchRWAActiveTVLs(): Promise<Array<IFetchedRWAProject>> {
-	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current?z=0`)
+	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current`)
 }
 
 /**
  * Fetch aggregate stats for the RWA dashboard.
  */
 export async function fetchRWAStats(): Promise<IRWAStatsResponse> {
-	return fetchJson<IRWAStatsResponse>(`${RWA_SERVER_URL}/stats?z=0`)
+	return fetchJson<IRWAStatsResponse>(`${RWA_SERVER_URL}/stats`)
 }
 
 /**
@@ -43,22 +48,27 @@ export async function fetchRWAAssetDataById(assetId: string): Promise<IFetchedRW
 /**
  * Fetch ticker breakdown chart data for the selected RWA filter.
  */
-export async function fetchRWAChartDataByTicker({
-	selectedChain,
-	selectedCategory,
-	selectedPlatform
-}: {
-	selectedChain?: string
-	selectedCategory?: string
-	selectedPlatform?: string
-}): Promise<IRWAChartDataByTicker | null> {
-	const chartUrl = selectedChain
-		? `${RWA_SERVER_URL}/chart/chain/${selectedChain}`
-		: selectedCategory
-			? `${RWA_SERVER_URL}/chart/category/${selectedCategory}`
-			: selectedPlatform
-				? `${RWA_SERVER_URL}/chart/platform/${selectedPlatform}`
-				: `${RWA_SERVER_URL}/chart/chain/all`
+export async function fetchRWAChartDataByTicker(target: RWATickerChartTarget): Promise<IRWAChartDataByTicker | null> {
+	let chartUrl = `${RWA_SERVER_URL}/chart/chain/all`
+
+	switch (target.kind) {
+		case 'all':
+			break
+		case 'chain':
+			chartUrl = `${RWA_SERVER_URL}/chart/chain/${target.slug}`
+			break
+		case 'category':
+			chartUrl = `${RWA_SERVER_URL}/chart/category/${target.slug}`
+			break
+		case 'platform':
+			chartUrl = `${RWA_SERVER_URL}/chart/platform/${target.slug}`
+			break
+		case 'assetGroup':
+			chartUrl = `${RWA_SERVER_URL}/chart/assetGroup/${target.slug}`
+			break
+		default:
+			assertNever(target)
+	}
 
 	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown`).catch((error) => {
 		console.error('Failed to fetch RWA chart data by ticker:', error)
@@ -144,6 +154,26 @@ export async function fetchRWAPlatformBreakdownChartData(
 		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
 		.catch((error) => {
 			console.error('Failed to fetch RWA platform breakdown chart data:', error)
+			return null
+		})
+}
+
+/**
+ * Fetch asset-group-level RWA breakdown chart data.
+ */
+export async function fetchRWAAssetGroupBreakdownChartData(
+	params: IRWABreakdownChartParams = {}
+): Promise<IRWABreakdownChartResponse | null> {
+	const searchParams = new URLSearchParams()
+	if (params.key && params.key !== 'onChainMcap') searchParams.set('key', params.key)
+	if (params.includeStablecoin) searchParams.set('includeStablecoin', 'true')
+	if (params.includeGovernance) searchParams.set('includeGovernance', 'true')
+	const qs = searchParams.toString()
+	const url = `${RWA_SERVER_URL}/chart/assetGroup-breakdown${qs ? `?${qs}` : ''}`
+	return fetchJson<IRWABreakdownChartResponse>(url)
+		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error('Failed to fetch RWA asset-group breakdown chart data:', error)
 			return null
 		})
 }

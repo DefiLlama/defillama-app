@@ -521,6 +521,32 @@
 	contain-intrinsic-size: auto 30px;
 }
 
+@utility marquee-container {
+	overflow: clip;
+}
+
+@utility marquee {
+	--gap: 20px;
+	--speed: 25s;
+	--direction: forwards;
+
+	display: flex;
+	width: max-content;
+	animation-name: marquee-animation;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-duration: var(--speed);
+	animation-direction: var(--direction);
+	padding-left: var(--gap);
+	gap: var(--gap);
+}
+
+@keyframes marquee-animation {
+	to {
+		transform: translateX(-50%);
+	}
+}
+
 /* --------------------------------- Base --------------------------------- */
 @layer base {
 	@font-face {
@@ -1131,9 +1157,9 @@
 	text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
 }
 
-/* Align entity logos with text */
+/* Entity logos: wrapper uses leading-0; keep img optically centered with link text */
 .prose.llamaai-prose a img.inline-block {
-	vertical-align: -0.15em;
+	vertical-align: middle;
 }
 
 /* Scale entity logos to match heading font size */

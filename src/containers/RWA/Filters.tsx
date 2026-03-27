@@ -30,6 +30,8 @@ const FILTER_QUERY_KEYS = [
 	'excludeCategories',
 	'platforms',
 	'excludePlatforms',
+	'assetGroups',
+	'excludeAssetGroups',
 	'assetClasses',
 	'excludeAssetClasses',
 	'rwaClassifications',
@@ -77,6 +79,7 @@ type RWAFilterModes = {
 	isChainMode: boolean
 	isCategoryMode: boolean
 	isPlatformMode: boolean
+	isAssetGroupMode: boolean
 }
 
 type RWAFilterOptions = {
@@ -84,6 +87,7 @@ type RWAFilterOptions = {
 	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
 	platforms: IRWAAssetsOverview['platforms']
+	assetGroups: IRWAAssetsOverview['assetGroups']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
@@ -95,6 +99,7 @@ type RWAFilterSelections = {
 	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedPlatforms: string[]
+	selectedAssetGroups: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -297,6 +302,14 @@ function Filters({
 			label: 'Asset Names'
 		},
 		{
+			enabled: options.assetGroups.length > 1,
+			allValues: options.assetGroups,
+			selectedValues: selections.selectedAssetGroups,
+			includeQueryKey: 'assetGroups',
+			excludeQueryKey: 'excludeAssetGroups',
+			label: 'Asset Groups'
+		},
+		{
 			enabled: (modes.isChainMode || modes.isPlatformMode) && options.categoriesOptions.length > 1,
 			allValues: options.categoriesOptions,
 			selectedValues: selections.selectedCategories,
@@ -471,32 +484,28 @@ function Filters({
 					maxInputProps={ratioPercentInputProps}
 				/>
 			))}
-			{modes.isChainMode ? (
-				<Checkbox
-					variant={nestedMenu ? 'filter-borderless' : 'filter'}
-					value="includeStablecoins"
-					checked={selections.includeStablecoins}
-					onChange={() => {
-						const next = !selections.includeStablecoins
-						actions.setIncludeStablecoins(next)
-					}}
-				>
-					Stablecoins
-				</Checkbox>
-			) : null}
-			{modes.isChainMode ? (
-				<Checkbox
-					variant={nestedMenu ? 'filter-borderless' : 'filter'}
-					value="includeGovernance"
-					checked={selections.includeGovernance}
-					onChange={() => {
-						const next = !selections.includeGovernance
-						actions.setIncludeGovernance(next)
-					}}
-				>
-					Governance Tokens
-				</Checkbox>
-			) : null}
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeStablecoins"
+				checked={selections.includeStablecoins}
+				onChange={() => {
+					const next = !selections.includeStablecoins
+					actions.setIncludeStablecoins(next)
+				}}
+			>
+				Stablecoins
+			</Checkbox>
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeGovernance"
+				checked={selections.includeGovernance}
+				onChange={() => {
+					const next = !selections.includeGovernance
+					actions.setIncludeGovernance(next)
+				}}
+			>
+				Governance Tokens
+			</Checkbox>
 			<button
 				onClick={() => {
 					const resetUpdates: Record<string, undefined> = {}
