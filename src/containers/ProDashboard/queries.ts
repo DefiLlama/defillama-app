@@ -493,9 +493,10 @@ function useChartData(
 		gcTime: 1000 * 60 * 30,
 		refetchOnWindowFocus: false,
 		enabled:
-			!!item &&
-			((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
-				(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(type) || !!geckoId)))
+			(['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) && !!geckoId) ||
+			(!!item &&
+				((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
+					(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(type) || !!geckoId))))
 	})
 }
 
@@ -642,10 +643,11 @@ export function useChartsData(
 				},
 				enabled:
 					streamDone &&
-					!!item &&
-					((itemType === 'protocol' &&
-						(!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) || !!chart.geckoId)) ||
-						(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(chart.type) || !!chart.geckoId)))
+					((['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) && !!chart.geckoId) ||
+						(!!item &&
+							((itemType === 'protocol' &&
+								(!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) || !!chart.geckoId)) ||
+								(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(chart.type) || !!chart.geckoId)))))
 			}
 		})
 	})
