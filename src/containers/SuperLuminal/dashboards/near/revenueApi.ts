@@ -157,7 +157,13 @@ export function useRevenueData() {
 		const totalFeesSeries = intentFeesSeries.map((intent, i) => intent + (protocolFeesSeries[i] || 0))
 
 		// Extract revenue series from revenue endpoint
-		const intentRevenueSeries = revenue.revenueChart.series.find((s) => s.name === 'Intent Revenue')?.data || []
+		const fefundsSeries = revenue.revenueChart.series.find((s) => s.name === 'fefundsadmin')?.data || []
+		const oneCSFundsSeries = revenue.revenueChart.series.find((s) => s.name === '1csfundsadmin')?.data || []
+		const maxLen = Math.max(fefundsSeries.length, oneCSFundsSeries.length)
+		const intentRevenueSeries = Array.from(
+			{ length: maxLen },
+			(_, i) => (fefundsSeries[i] || 0) + (oneCSFundsSeries[i] || 0)
+		)
 		const protocolRevenueSeries =
 			revenue.revenueChart.series.find((s) => s.name === 'Protocol Revenue (70% Burned)')?.data || []
 		const cumulativeRevenueSeries = revenue.revenueChart.series.find((s) => s.name === 'Cumulative Total')?.data || []
