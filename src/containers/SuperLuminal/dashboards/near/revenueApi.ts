@@ -30,51 +30,65 @@ interface ChartData {
 
 interface WalletEntry {
 	wallet: string
-	totalNear: number
-	totalNearFormatted: string
-	share: number
+	address: string
+	link: string | null
+	total: number
+	totalFormatted: string
 	shareFormatted: string
+}
+
+interface WalletBreakdownData {
+	title: string
+	wallets: WalletEntry[]
+	total: number
+	totalFormatted: string
+}
+
+interface SupplyChartData {
+	title: string
+	dates: string[]
+	series: ChartSeries[]
 }
 
 interface RevenueAPIResponse {
 	metadata: Metadata
-	highlights: {
-		updatedAt: string
-		data: Array<{
-			burn_30d?: number
-			burn_all_time?: number
-			burn_ytd?: number
-			fees_30d?: number
-			fees_all_time?: number
-			fees_ytd?: number
-			revenue_pct_of_emissions_ytd?: number
-		}>
+	fees: {
+		feesChart: ChartData
+		kpis: {
+			allTimeFees?: FormattedValue
+			ytdFees?: FormattedValue
+			thirtyDayFees?: FormattedValue
+			allTimeIntent?: FormattedValue
+			allTimeProtocol?: FormattedValue
+			latestCumulative?: FormattedValue
+		}
 	}
 	revenue: {
 		revenueChart: ChartData
-		feesChart: ChartData
+		walletBreakdown?: WalletBreakdownData
 		kpis: {
-			latestBurnRevenue: FormattedValue
-			latestIntentsRevenue: FormattedValue
-			latestTotalRevenue: FormattedValue
-			latestFees: FormattedValue
-			cumulativeRevenue: FormattedValue
-			cumulativeFees: FormattedValue
+			allTimeRevenue?: FormattedValue
+			ytdRevenue?: FormattedValue
+			thirtyDayRevenue?: FormattedValue
+			twelveMonthRevenue?: FormattedValue
+			allTimeIntent?: FormattedValue
+			allTimeProtocol?: FormattedValue
+			latestCumulative?: FormattedValue
 		}
 	}
 	emissions: {
 		revenueVsEmissionsChart: ChartData
+		revenueBreakdownChart?: ChartData
 		percentageChart: ChartData
+		supplyChart?: SupplyChartData
 		kpis: {
 			latestRevenue: FormattedValue
 			latestEmissions: FormattedValue
 			latestPercentage: FormattedValue
+			netPosition?: FormattedValue
+			circulatingSupply?: FormattedValue
 		}
 	}
-}
-
-function parseDateToUnix(dateStr: string): number {
-	return Math.floor(new Date(dateStr + 'T00:00:00Z').getTime() / 1000)
 }
 
 function formatNear(value: number): string {
@@ -89,30 +103,6 @@ function sumLastNDays(series: number[], n: number): number {
 	return series.slice(start).reduce((sum, val) => sum + val, 0)
 }
 
-function getLastNDays(dates: string[], series: number[], n: number): Array<[number, number]> {
-	const start = Math.max(0, dates.length - n)
-	return dates.slice(start).map((date, i) => [parseDateToUnix(date), series[start + i] || 0])
-}
-
-function getLastNDaysForTimeframe(dates: string[], series: number[], timeframe: string): Array<[number, number]> {
-	let n: number
-	switch (timeframe) {
-		case '7d': n = 7; break
-		case '30d': n = 30; break
-		case '1y': n = 365; break
-		case 'all': n = dates.length; break
-		case 'ytd': {
-			const now = new Date()
-			const startOfYear = new Date(now.getFullYear(), 0, 1)
-			const daysSinceYearStart = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24))
-			n = Math.min(daysSinceYearStart, dates.length)
-			break
-		}
-		default: n = 365
-	}
-	return getLastNDays(dates, series, n)
-}
-
 function getCumulativeData(data: number[]): number[] {
 	const cumulative: number[] = []
 	let sum = 0
@@ -124,6 +114,22 @@ function getCumulativeData(data: number[]): number[] {
 }
 
 export type { FormattedValue, WalletEntry, Metadata }
+
+export function getValidTimeframeForAggregation(timeframe: string, aggregation: string): string {
+	// If monthly aggregation, minimum timeframe is 1y
+	if (aggregation === 'monthly') {
+		if (timeframe === '7d' || timeframe === '30d') {
+			return '1y'
+		}
+	}
+	// If weekly aggregation, minimum is 30d
+	if (aggregation === 'weekly') {
+		if (timeframe === '7d') {
+			return '30d'
+		}
+	}
+	return timeframe
+}
 
 export function useRevenueData() {
 	const query = useQuery<RevenueAPIResponse>({
@@ -142,53 +148,46 @@ export function useRevenueData() {
 			return { data: null, isLoading: query.isLoading || query.isPending }
 		}
 
-		const { metadata, highlights, revenue, emissions } = query.data
-		const highlightsData = highlights.data[0] || {}
+		const { metadata, fees, revenue, emissions } = query.data
 
-		// Extract series data
-		const totalFeesSeries = revenue.feesChart.series.find(s => s.name === 'Total Fees')?.data || []
-		const protocolFeesSeries = revenue.feesChart.series.find(s => s.name === 'Protocol Fees')?.data || []
-		const burnRevenueSeries = revenue.revenueChart.series.find(s => s.name === 'Burn Revenue')?.data || []
-		const intentsRevenueSeries = revenue.revenueChart.series.find(s => s.name === 'Intents Revenue')?.data || []
-		const revenueSeriesData = emissions.revenueVsEmissionsChart.series.find(s => s.name === 'Daily Revenue')?.data || []
-		const emissionsSeriesData = emissions.revenueVsEmissionsChart.series.find(s => s.name === 'Daily Emissions')?.data || []
-		const percentageSeriesData = emissions.percentageChart.series.find(s => s.name === 'Coverage %')?.data || []
+		// Extract fees series from fees endpoint
+		const intentFeesSeries = fees.feesChart.series.find((s) => s.name === 'Intent Fees')?.data || []
+		const protocolFeesSeries = fees.feesChart.series.find((s) => s.name === 'Protocol Fees')?.data || []
+		const cumulativeFeesSeries = fees.feesChart.series.find((s) => s.name === 'Cumulative Total')?.data || []
+		const totalFeesSeries = intentFeesSeries.map((intent, i) => intent + (protocolFeesSeries[i] || 0))
+
+		// Extract revenue series from revenue endpoint
+		const intentRevenueSeries = revenue.revenueChart.series.find((s) => s.name === 'Intent Revenue')?.data || []
+		const protocolRevenueSeries =
+			revenue.revenueChart.series.find((s) => s.name === 'Protocol Revenue (70% Burned)')?.data || []
+		const cumulativeRevenueSeries = revenue.revenueChart.series.find((s) => s.name === 'Cumulative Total')?.data || []
+		const totalRevenueSeries = intentRevenueSeries.map((intent, i) => intent + (protocolRevenueSeries[i] || 0))
+
+		// Extract emissions data
+		const emissionsSeriesData =
+			emissions.revenueVsEmissionsChart.series.find((s) => s.name === 'Daily Emissions')?.data || []
 
 		// Calculate cumulative data
-		const cumulativeFees = getCumulativeData(totalFeesSeries)
-		const cumulativeProtocolFees = getCumulativeData(protocolFeesSeries)
-		const totalRevenueSeries = burnRevenueSeries.map((burn, i) => burn + (intentsRevenueSeries[i] || 0))
-		const cumulativeRevenue = getCumulativeData(totalRevenueSeries)
-		const cumulativeBurnRevenue = getCumulativeData(burnRevenueSeries)
-		const cumulativeIntentsRevenue = getCumulativeData(intentsRevenueSeries)
+		const cumulativeFees = cumulativeFeesSeries.length > 0 ? cumulativeFeesSeries : getCumulativeData(totalFeesSeries)
+		const cumulativeRevenue =
+			cumulativeRevenueSeries.length > 0 ? cumulativeRevenueSeries : getCumulativeData(totalRevenueSeries)
+		const cumulativeProtocolRevenue = getCumulativeData(protocolRevenueSeries)
+		const cumulativeIntentsRevenue = getCumulativeData(intentRevenueSeries)
 		const cumulativeEmissions = getCumulativeData(emissionsSeriesData)
 
-		// Intent fees = Total fees - Protocol fees
-		const intentFeesSeries = totalFeesSeries.map((total, i) => total - (protocolFeesSeries[i] || 0))
-
 		// Calculate KPIs for different periods
-		const fees7d = sumLastNDays(totalFeesSeries, 7)
-		const fees1y = sumLastNDays(totalFeesSeries, 365)
+		const fees7d = totalFeesSeries.length > 0 ? sumLastNDays(totalFeesSeries, 7) : 0
+		const fees1y = totalFeesSeries.length > 0 ? sumLastNDays(totalFeesSeries, 365) : 0
 		const revenue7d = sumLastNDays(totalRevenueSeries, 7)
 		const revenue1y = sumLastNDays(totalRevenueSeries, 365)
 
-		// Prepare chart data - Last 12 months (365 days)
-		const last12MonthsDates = revenue.feesChart.dates.slice(-365)
-		const last12MonthsStart = Math.max(0, revenue.feesChart.dates.length - 365)
+		// Use dates from revenue chart (primary source)
+		const chartDates = revenue.revenueChart.dates
+		const feeChartDates = fees.feesChart.dates
+		const emissionsDates = emissions.revenueVsEmissionsChart.dates
 
-		const feesChartData = {
-			dates: last12MonthsDates,
-			cumulative: getLastNDays(revenue.feesChart.dates, cumulativeFees, 365),
-			protocolFees: getLastNDays(revenue.feesChart.dates, protocolFeesSeries, 365),
-			intentFees: getLastNDays(revenue.feesChart.dates, intentFeesSeries, 365)
-		}
-
-		const revenueChartData = {
-			dates: last12MonthsDates,
-			cumulative: getLastNDays(revenue.revenueChart.dates, cumulativeRevenue, 365),
-			burn: getLastNDays(revenue.revenueChart.dates, burnRevenueSeries, 365),
-			intents: getLastNDays(revenue.revenueChart.dates, intentsRevenueSeries, 365)
-		}
+		// Wallet breakdown
+		const walletBreakdown: WalletEntry[] = revenue.walletBreakdown?.wallets || []
 
 		// Calculate actual percentage from cumulative data
 		const percentageFromCumulative = cumulativeRevenue.map((rev, i) => {
@@ -196,93 +195,88 @@ export function useRevenueData() {
 			return em > 0 ? (rev / em) * 100 : 0
 		})
 
-		const emissionsChartData = {
-			dates: last12MonthsDates,
-			cumulativeRevenue: getLastNDays(emissions.revenueVsEmissionsChart.dates, cumulativeRevenue, 365),
-			cumulativeEmissions: getLastNDays(emissions.revenueVsEmissionsChart.dates, cumulativeEmissions, 365),
-			percentage: getLastNDays(emissions.revenueVsEmissionsChart.dates, percentageFromCumulative, 365)
-		}
-
-		const walletBreakdown: WalletEntry[] = []
-		if (metadata.feeWallets) {
-			Object.entries(metadata.feeWallets).forEach(([key, address]) => {
-				walletBreakdown.push({
-					wallet: address,
-					totalNear: 0,
-					totalNearFormatted: '—',
-					share: 0,
-					shareFormatted: '—'
-				})
-			})
-		}
-
 		return {
 			data: {
 				kpis: {
 					fees: {
-						allTime: { 
-							value: highlightsData.fees_all_time || 0, 
-							formatted: formatNear(highlightsData.fees_all_time || 0) 
+						allTime: {
+							value: fees.kpis.allTimeFees?.value || 0,
+							formatted: fees.kpis.allTimeFees?.formatted || formatNear(0)
 						},
-						ytd: { 
-							value: highlightsData.fees_ytd || 0, 
-							formatted: formatNear(highlightsData.fees_ytd || 0) 
+						ytd: {
+							value: fees.kpis.ytdFees?.value || 0,
+							formatted: fees.kpis.ytdFees?.formatted || formatNear(0)
 						},
-						d30: { 
-							value: highlightsData.fees_30d || 0, 
-							formatted: formatNear(highlightsData.fees_30d || 0) 
+						d30: {
+							value: fees.kpis.thirtyDayFees?.value || 0,
+							formatted: fees.kpis.thirtyDayFees?.formatted || formatNear(0)
 						},
-						d7: { 
-							value: fees7d, 
-							formatted: formatNear(fees7d) 
+						d7: {
+							value: fees7d,
+							formatted: formatNear(fees7d)
 						},
-						y1: { 
-							value: fees1y, 
-							formatted: formatNear(fees1y) 
+						y1: {
+							value: fees1y,
+							formatted: formatNear(fees1y)
 						}
 					},
 					revenue: {
-						allTime: { 
-							value: highlightsData.burn_all_time || 0, 
-							formatted: formatNear(highlightsData.burn_all_time || 0) 
+						allTime: {
+							value: revenue.kpis.allTimeRevenue?.value || 0,
+							formatted: revenue.kpis.allTimeRevenue?.formatted || formatNear(0)
 						},
-						ytd: { 
-							value: highlightsData.burn_ytd || 0, 
-							formatted: formatNear(highlightsData.burn_ytd || 0) 
+						ytd: {
+							value: revenue.kpis.ytdRevenue?.value || 0,
+							formatted: revenue.kpis.ytdRevenue?.formatted || formatNear(0)
 						},
-						d30: { 
-							value: highlightsData.burn_30d || 0, 
-							formatted: formatNear(highlightsData.burn_30d || 0) 
+						d30: {
+							value: revenue.kpis.thirtyDayRevenue?.value || 0,
+							formatted: revenue.kpis.thirtyDayRevenue?.formatted || formatNear(0)
 						},
-						d7: { 
-							value: revenue7d, 
-							formatted: formatNear(revenue7d) 
+						d7: {
+							value: revenue7d,
+							formatted: formatNear(revenue7d)
 						},
-						y1: { 
-							value: revenue1y, 
-							formatted: formatNear(revenue1y) 
+						y1: {
+							value: revenue.kpis.twelveMonthRevenue?.value || revenue1y,
+							formatted: revenue.kpis.twelveMonthRevenue?.formatted || formatNear(revenue1y)
 						}
 					}
 				},
-				feesChartData,
-				revenueChartData,
-				emissionsChartData,
+				feesChartData: {
+					dates: feeChartDates,
+					cumulative: cumulativeFees,
+					protocolFees: protocolFeesSeries,
+					intentFees: intentFeesSeries
+				},
+				revenueChartData: {
+					dates: chartDates,
+					cumulative: cumulativeRevenue,
+					burn: protocolRevenueSeries,
+					intents: intentRevenueSeries
+				},
+				emissionsChartData: {
+					dates: emissionsDates,
+					cumulativeRevenue,
+					cumulativeEmissions,
+					percentage: percentageFromCumulative
+				},
 				walletBreakdown,
 				metadata,
 				rawData: {
-					feesDates: revenue.feesChart.dates,
+					feesDates: feeChartDates,
 					totalFeesSeries,
 					protocolFeesSeries,
 					intentFeesSeries,
 					cumulativeFees,
-					revenueDates: revenue.revenueChart.dates,
-					burnRevenueSeries,
-					intentsRevenueSeries,
+					revenueDates: chartDates,
+					burnRevenueSeries: protocolRevenueSeries,
+					intentsRevenueSeries: intentRevenueSeries,
 					cumulativeRevenue,
-					cumulativeBurnRevenue,
+					cumulativeBurnRevenue: cumulativeProtocolRevenue,
 					cumulativeIntentsRevenue,
-					emissionsDates: emissions.revenueVsEmissionsChart.dates,
-					cumulativeEmissions: cumulativeEmissions,
+					emissionsDates,
+					cumulativeEmissions,
 					percentageFromCumulative
 				}
 			},

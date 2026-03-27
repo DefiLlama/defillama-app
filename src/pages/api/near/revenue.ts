@@ -11,15 +11,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	}
 
 	try {
-		const [metadata, highlights, revenue, emissions] = await Promise.all([
+		const [metadata, fees, revenue, emissions] = await Promise.all([
 			fetchJson(`${BASE}/api/near/metadata`, TIMEOUT),
-			fetchJson(`${BASE}/api/near/highlights`, TIMEOUT),
+			fetchJson(`${BASE}/api/near/fees`, TIMEOUT),
 			fetchJson(`${BASE}/api/near/revenue`, TIMEOUT),
 			fetchJson(`${BASE}/api/near/emissions`, TIMEOUT)
 		])
 
 		res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
-		return res.status(200).json({ metadata, highlights, revenue, emissions })
+		return res.status(200).json({ metadata, fees, revenue, emissions })
 	} catch (error) {
 		console.error('NEAR Revenue proxy error:', error)
 		return res.status(502).json({ error: 'Failed to fetch upstream data' })
