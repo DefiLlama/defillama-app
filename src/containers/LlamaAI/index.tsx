@@ -137,7 +137,7 @@ interface RestoreSessionSnapshotResult {
 }
 
 interface UsageLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT'
+	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
 	details?: Partial<RateLimitDetails>
 	upgradeUrl?: string
 }
@@ -1506,11 +1506,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (err?.code === 'FREE_QUESTION_LIMIT') {
-								appendMessage({
-									role: 'assistant',
-									content: err.message || "You've reached the free question limit. Subscribe for unlimited access."
-								})
+							if (err?.code === 'FREE_QUESTION_LIMIT' || err?.code === 'FREE_FORM_LIMIT' || err?.code === 'FREE_DAILY_LIMIT') {
+								let msg = err.message || "You've reached the free question limit. Subscribe for unlimited access."
+								if (err.details?.resetTime) {
+									const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
+									if (resetMs > 0) {
+										const hours = Math.floor(resetMs / 3600000)
+										const minutes = Math.floor((resetMs % 3600000) / 60000)
+										const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
+										msg += `\n\nResets in ${timeStr}.`
+									}
+								}
+								appendMessage({ role: 'assistant', content: msg })
 								dispatchStream({ type: 'RESET_STREAM' })
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return

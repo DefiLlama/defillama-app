@@ -150,7 +150,7 @@ interface RateLimitErrorDetails {
 }
 
 interface RateLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT'
+	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
 	details?: RateLimitErrorDetails
 	upgradeUrl?: string
 }
@@ -219,9 +219,11 @@ function parseSSEStream(
 				case 'tool_call':
 					callbacks.onProgress(data.name, data.isPremium)
 					break
-				case 'response_chunk':
-					callbacks.onToken(data.content)
+				case 'response_chunk': {
+					const chunk = typeof data.content === 'string' ? data.content.replace(/<bill\s*\/>/g, '') : data.content
+					if (chunk) callbacks.onToken(chunk)
 					break
+				}
 				case 'charts':
 					callbacks.onCharts(data.charts || [], data.chartData || {})
 					break
@@ -405,10 +407,14 @@ export async function fetchAgenticResponse({
 	// Map backend usage-limit and concurrency responses into UI-specific error shapes.
 	if (!response.ok) {
 		const errorData = (await response.json().catch(() => null)) as AgenticErrorResponse | null
-		if (response.status === 403 && errorData?.code === 'FREE_QUESTION_LIMIT') {
+		if (
+			response.status === 403 &&
+			(errorData?.code === 'FREE_QUESTION_LIMIT' || errorData?.code === 'FREE_FORM_LIMIT' || errorData?.code === 'FREE_DAILY_LIMIT')
+		) {
 			const err = new Error(errorData.content || 'Upgrade required') as RateLimitError
-			err.code = 'FREE_QUESTION_LIMIT'
+			err.code = errorData.code as RateLimitError['code']
 			err.upgradeUrl = errorData.upgradeUrl
+			err.details = errorData.details
 			throw err
 		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {

@@ -79,7 +79,7 @@ export interface ChatSession {
 export interface ResearchUsage {
 	remainingUsage: number
 	limit: number
-	period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
+	period: 'lifetime' | 'daily' | 'biweekly' | 'unlimited' | 'blocked'
 	resetTime: string | null
 }
 
