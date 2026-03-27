@@ -251,7 +251,9 @@ export function useFinancialsData() {
 			type: 'line' as const,
 			color: '#EF5350',
 			areaStyle: { opacity: 0 },
-			data: charts.treasury.dates.map((dateStr) => [parseDateToUnix(dateStr), charts.treasury.threshold] as [number, number])
+			data: charts.treasury.dates.map(
+				(dateStr) => [parseDateToUnix(dateStr), charts.treasury.threshold] as [number, number]
+			)
 		})
 
 		// Buybacks - MultiSeriesChart format
@@ -267,7 +269,10 @@ export function useFinancialsData() {
 		// Allocated Assets Historical
 		const aaHistorical = {
 			byProtocol: {
-				data: transformTimeSeries(charts.allocatedAssets.historical.dates, charts.allocatedAssets.historical.byProtocol),
+				data: transformTimeSeries(
+					charts.allocatedAssets.historical.dates,
+					charts.allocatedAssets.historical.byProtocol
+				),
 				stacks: charts.allocatedAssets.historical.byProtocol.map((s) => s.name),
 				colors: assignColors(charts.allocatedAssets.historical.byProtocol.map((s) => s.name))
 			},
@@ -299,17 +304,43 @@ export function useFinancialsData() {
 				projectedBreakdown: charts.projectedBreakdown,
 				breakdownPieData,
 				breakdownColors,
-				monthlyGross: { data: monthlyGrossData, stacks: monthlyGrossStacks, colors: monthlyGrossColors, title: charts.monthlyGross.title },
-				monthlyNet: { data: monthlyNetData, stacks: monthlyNetStacks, colors: monthlyNetColors, title: charts.monthlyNet.title },
+				monthlyGross: {
+					data: monthlyGrossData,
+					stacks: monthlyGrossStacks,
+					colors: monthlyGrossColors,
+					title: charts.monthlyGross.title
+				},
+				monthlyNet: {
+					data: monthlyNetData,
+					stacks: monthlyNetStacks,
+					colors: monthlyNetColors,
+					title: charts.monthlyNet.title
+				},
 				supplyTotal: { data: supplyTotalData, stacks: supplyTotalStacks, title: charts.supplyTotal.title },
-				supplyByChain: { data: supplyByChainData, stacks: supplyByChainStacks, colors: supplyByChainColors, title: charts.supplyByChain.title },
+				supplyByChain: {
+					data: supplyByChainData,
+					stacks: supplyByChainStacks,
+					colors: supplyByChainColors,
+					title: charts.supplyByChain.title
+				},
 				allocatedAssets: charts.allocatedAssets,
 				aaHistorical,
-				tvl: { data: tvlData, stacks: tvlStacks, colors: tvlColors, title: charts.tvl.title, currentFormatted: charts.tvl.currentFormatted },
+				tvl: {
+					data: tvlData,
+					stacks: tvlStacks,
+					colors: tvlColors,
+					title: charts.tvl.title,
+					currentFormatted: charts.tvl.currentFormatted
+				},
 				deposits: { data: depositsData, stacks: depositsStacks, title: charts.sparklendDeposits.title },
 				borrows: { data: borrowsData, stacks: borrowsStacks, title: charts.sparklendBorrows.title },
 				sllTvl: { data: sllTvlData, stacks: sllTvlStacks, colors: sllTvlColors, title: charts.sllTvl.title },
-				savingsTvl: { data: savingsTvlData, stacks: savingsTvlStacks, colors: savingsTvlColors, title: charts.savingsTvl.title },
+				savingsTvl: {
+					data: savingsTvlData,
+					stacks: savingsTvlStacks,
+					colors: savingsTvlColors,
+					title: charts.savingsTvl.title
+				},
 				treasurySeries,
 				treasuryThreshold: charts.treasury.threshold,
 				treasuryThresholdFormatted: charts.treasury.thresholdFormatted,
