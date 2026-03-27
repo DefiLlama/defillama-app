@@ -115,9 +115,6 @@ export const LiquidationsContainer = (props: {
 		const options = {
 			legend: {
 				orient: 'horizontal',
-				top: 0,
-				left: 12,
-				right: 12,
 				// By default everything is selected; don't allow toggling/deselect.
 				selectedMode: false
 			},
@@ -141,14 +138,6 @@ export const LiquidationsContainer = (props: {
 				splitLine: {
 					lineStyle: { color: '#a1a1aa', opacity: 0.1 }
 				}
-			},
-			grid: {
-				left: '2%',
-				right: '1%',
-				top: 36,
-				bottom: 56,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
 			},
 			tooltip: {
 				trigger: 'axis',
