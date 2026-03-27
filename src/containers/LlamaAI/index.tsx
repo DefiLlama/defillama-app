@@ -1594,10 +1594,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// Stop the active streamed response while preserving already-buffered output.
 	const handleStopRequest = useCallback(() => {
-		if (sessionId) void stopAgenticExecution(sessionId)
+		if (sessionId) void stopAgenticExecution(sessionId, authorizedFetchCompat)
 		void abortActiveRequest()
 		dispatchStream({ type: 'RESET_STREAM' })
-	}, [sessionId, abortActiveRequest])
+	}, [sessionId, abortActiveRequest, authorizedFetchCompat])
 
 	// Reuse the same submit path for assistant action buttons.
 	const handleActionClick = useCallback(
