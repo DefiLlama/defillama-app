@@ -882,7 +882,7 @@ export function buildHallmarksWithGenuineSpikes({
 		if (!Array.isArray(mark)) continue
 		if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
 			const ts = mark[0] >= 1e12 ? Math.floor(mark[0] / 1e3) : mark[0]
-			if (!hallmarkMap.has(ts)) {
+			if (!hallmarkMap.has(ts) && mark[1] !== '-') {
 				hallmarkMap.set(ts, String(mark[1]))
 			}
 		}
