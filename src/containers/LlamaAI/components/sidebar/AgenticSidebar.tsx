@@ -38,6 +38,7 @@ interface AgenticSidebarProps {
 	onOpenSettings?: () => void
 	hasCustomInstructions?: boolean
 	onBulkDelete?: (sessionIds: string[]) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<void>
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -69,7 +70,8 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	onUpdateTitle,
 	selectMode,
 	isSelected,
-	onToggleSelect
+	onToggleSelect,
+	onPinSession
 }: {
 	item: VirtualItem
 	itemStyle: CSSProperties
@@ -83,11 +85,15 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	selectMode: boolean
 	isSelected: boolean
 	onToggleSelect: (sessionId: string) => void
+	onPinSession?: (sessionId: string) => Promise<void>
 }) {
 	if (item.type === 'header') {
 		return (
 			<div style={itemStyle}>
-				<h2 className={`text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}>
+				<h2
+					className={`flex items-center gap-1 text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}
+				>
+					{item.groupName === 'Pinned' ? <Icon name="pin" height={10} width={10} className="shrink-0" /> : null}
 					{item.groupName}
 				</h2>
 			</div>
@@ -108,6 +114,7 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 			selectMode={selectMode}
 			isSelected={isSelected}
 			onToggleSelect={onToggleSelect}
+			onPinSession={onPinSession}
 		/>
 	)
 })
@@ -127,7 +134,8 @@ export function AgenticSidebar({
 	shouldAnimate = false,
 	onOpenSettings,
 	hasCustomInstructions,
-	onBulkDelete
+	onBulkDelete,
+	onPinSession
 }: AgenticSidebarProps) {
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -138,6 +146,7 @@ export function AgenticSidebar({
 	const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set())
 	const { balance, totalAvailable } = useAiBalance()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
+	const [searchQuery, setSearchQuery] = useState('')
 
 	const toggleSelect = useCallback((sessionId: string) => {
 		setSelectedSessionIds((prev) => {
@@ -190,9 +199,24 @@ export function AgenticSidebar({
 	)
 
 	const [nowMs] = useState(() => Date.now())
+
+	const filteredSessions = useMemo(() => {
+		if (!searchQuery.trim()) return sessions
+		const q = searchQuery.toLowerCase()
+		return sessions.filter((s) => s.title.toLowerCase().includes(q))
+	}, [sessions, searchQuery])
+
+	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
+		const pinned = filteredSessions
+			.filter((s) => s.isPinned)
+			.sort((a, b) => new Date(b.pinnedAt || 0).getTime() - new Date(a.pinnedAt || 0).getTime())
+		const unpinned = filteredSessions.filter((s) => !s.isPinned)
+		return { pinnedSessions: pinned, unpinnedSessions: unpinned }
+	}, [filteredSessions])
+
 	const groupedSessions = useMemo(() => {
 		return Object.entries(
-			sessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
+			unpinnedSessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
 				const groupName = getGroupName(session.lastActivity, nowMs)
 				acc[groupName] = [...(acc[groupName] || []), session]
 				return acc
@@ -200,19 +224,25 @@ export function AgenticSidebar({
 		).sort((a, b) => Date.parse(b[1][0].lastActivity) - Date.parse(a[1][0].lastActivity)) as Array<
 			[string, Array<ChatSession>]
 		>
-	}, [sessions, nowMs])
+	}, [unpinnedSessions, nowMs])
 
 	const virtualItems = useMemo(() => {
 		const items: VirtualItem[] = []
+		if (pinnedSessions.length > 0) {
+			items.push({ type: 'header', groupName: 'Pinned', isFirst: true })
+			for (const session of pinnedSessions) {
+				items.push({ type: 'session', session, groupName: 'Pinned' })
+			}
+		}
 		for (let groupIndex = 0; groupIndex < groupedSessions.length; groupIndex++) {
 			const [groupName, groupSessions] = groupedSessions[groupIndex]
-			items.push({ type: 'header', groupName, isFirst: groupIndex === 0 })
+			items.push({ type: 'header', groupName, isFirst: pinnedSessions.length === 0 && groupIndex === 0 })
 			for (const session of groupSessions) {
 				items.push({ type: 'session', session, groupName })
 			}
 		}
 		return items
-	}, [groupedSessions])
+	}, [pinnedSessions, groupedSessions])
 
 	const virtualizer = useVirtualizer({
 		count: virtualItems.length,
@@ -313,6 +343,32 @@ export function AgenticSidebar({
 				</button>
 			</header>
 
+			{sessions.length > 0 ? (
+				<div className="group/search relative mx-4 mb-2 flex items-center rounded-md bg-[#f5f5f5] transition-colors focus-within:bg-[#ebebeb] dark:bg-[#1a1a1b] dark:focus-within:bg-[#222324]">
+					<Icon
+						name="search"
+						height={13}
+						width={13}
+						className="pointer-events-none ml-2.5 shrink-0 text-[#999] transition-colors group-focus-within/search:text-(--old-blue) dark:text-[#555]"
+					/>
+					<input
+						type="text"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						placeholder="Search"
+						className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
+					/>
+					{searchQuery ? (
+						<button
+							onClick={() => setSearchQuery('')}
+							className="mr-1.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#ccc] text-white transition-colors hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
+						>
+							<Icon name="x" height={8} width={8} />
+						</button>
+					) : null}
+				</div>
+			) : null}
+
 			<nav
 				ref={scrollContainerRef}
 				className="thin-scrollbar flex-1 overflow-auto p-4 pt-0 pr-1"
@@ -329,6 +385,10 @@ export function AgenticSidebar({
 				) : sessions.length === 0 ? (
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						You don't have any chats yet
+					</p>
+				) : filteredSessions.length === 0 && searchQuery.trim() ? (
+					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+						No chats matching &ldquo;{searchQuery}&rdquo;
 					</p>
 				) : (
 					<div
@@ -368,6 +428,7 @@ export function AgenticSidebar({
 									selectMode={selectMode}
 									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
 									onToggleSelect={toggleSelect}
+									onPinSession={onPinSession}
 								/>
 							)
 						})}
@@ -405,15 +466,15 @@ export function AgenticSidebar({
 				<footer className="flex items-center gap-2 border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
 					<button
 						onClick={() => {
-							if (selectedSessionIds.size === sessions.length) {
+							if (selectedSessionIds.size === filteredSessions.length) {
 								setSelectedSessionIds(new Set())
 							} else {
-								setSelectedSessionIds(new Set(sessions.map((s) => s.sessionId)))
+								setSelectedSessionIds(new Set(filteredSessions.map((s) => s.sessionId)))
 							}
 						}}
 						className="flex-1 rounded-md px-2 py-1.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#222324]"
 					>
-						{selectedSessionIds.size === sessions.length ? 'Deselect All' : 'Select All'}
+						{selectedSessionIds.size === filteredSessions.length ? 'Deselect All' : 'Select All'}
 					</button>
 					<button
 						onClick={() => void handleBulkDelete()}
