@@ -1,6 +1,7 @@
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
+import { buildHallmarksMarkLine } from '~/components/ECharts/hallmarks'
 import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
@@ -145,27 +146,7 @@ export default function ProtocolChart({
 		if (series.length > 0 && (hallmarks?.length ?? 0) > 0) {
 			series[0] = {
 				...series[0],
-				markLine: {
-					data: (hallmarks ?? []).map(([date, event]: [number, string], index: number) => [
-						{
-							name: event,
-							xAxis: date,
-							yAxis: 0,
-							label: {
-								color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-								fontFamily: 'sans-serif',
-								fontSize: 14,
-								fontWeight: 500
-							}
-						},
-						{
-							name: 'end',
-							xAxis: date,
-							yAxis: 'max',
-							y: Math.max((hallmarks?.length ?? 0) * 20 - index * 20, 20)
-						}
-					])
-				}
+				markLine: buildHallmarksMarkLine({ hallmarks: hallmarks!, isThemeDark, dateInMs: true })
 			}
 		}
 

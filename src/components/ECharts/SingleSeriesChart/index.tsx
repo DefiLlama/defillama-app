@@ -2,6 +2,7 @@ import * as echarts from 'echarts/core'
 import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
+import { buildHallmarksMarkLine } from '../hallmarks'
 import type { ISingleSeriesChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -69,63 +70,7 @@ export default function SingleSeriesChart({
 			},
 			data: chartData.map(([timestamp, value, ...rest]) => [+timestamp * 1e3, value, ...rest]),
 			...(hallmarks && {
-				markLine:
-					hallmarks.length > 8
-						? {
-								symbol: 'none',
-								data: hallmarks.map(([date, event]) => [
-									{
-										name: event,
-										xAxis: +date * 1e3,
-										yAxis: 0,
-										label: {
-											show: false,
-											color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-											fontFamily: 'sans-serif',
-											fontSize: 14,
-											fontWeight: 500,
-											position: 'insideEndTop'
-										},
-										emphasis: {
-											label: {
-												show: true,
-												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-												fontFamily: 'sans-serif',
-												fontSize: 14,
-												fontWeight: 500,
-												position: 'insideEndTop'
-											}
-										}
-									},
-									{
-										name: 'end',
-										xAxis: +date * 1e3,
-										yAxis: 'max',
-										y: 0
-									}
-								])
-							}
-						: {
-								data: hallmarks.map(([date, event], index) => [
-									{
-										name: event,
-										xAxis: +date * 1e3,
-										yAxis: 0,
-										label: {
-											color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-											fontFamily: 'sans-serif',
-											fontSize: 14,
-											fontWeight: 500
-										}
-									},
-									{
-										name: 'end',
-										xAxis: +date * 1e3,
-										yAxis: 'max',
-										y: Math.max(hallmarks.length * 40 - index * 40, 40)
-									}
-								])
-							}
+				markLine: buildHallmarksMarkLine({ hallmarks, isThemeDark })
 			})
 		}
 
