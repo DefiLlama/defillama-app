@@ -10,6 +10,7 @@ import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { APYRange } from '~/containers/Yields/Filters/APYRange'
 import { FilterByChain } from '~/containers/Yields/Filters/Chains'
+import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import { useVolatility } from '~/containers/Yields/queries/client'
@@ -62,9 +63,23 @@ export const getStaticProps = withPerformanceLogging(
 		let poolsError: string | null = null
 		let poolsList: IYieldTableRow[] = []
 		try {
-			const { getYieldPageData } = await import('~/containers/Yields/queries/index')
+			const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
 			const yieldsData = await getYieldPageData()
-			const allPools = yieldsData?.props?.pools ?? []
+			const dataBorrow = await getLendBorrowData().catch(() => ({ props: { pools: [] as any[] } }))
+			const borrowByPool = new Map(dataBorrow.props.pools.map((i) => [i.pool, i]))
+			const allPools = (yieldsData?.props?.pools ?? []).map((p) => {
+				const x = borrowByPool.get(p.pool)
+				return {
+					...p,
+					apyBaseBorrow: x?.apyBaseBorrow ?? null,
+					apyRewardBorrow: x?.apyRewardBorrow ?? null,
+					apyBorrow: x?.apyBorrow ?? null,
+					totalSupplyUsd: x?.totalSupplyUsd ?? null,
+					totalBorrowUsd: x?.totalBorrowUsd ?? null,
+					totalAvailableUsd: x?.totalAvailableUsd ?? null,
+					ltv: x?.ltv ?? null
+				}
+			})
 			poolsList = allPools
 				.filter(
 					(pool) =>
@@ -116,7 +131,34 @@ export const getStaticPaths = () => {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const FILTER_QUERY_PARAMS = ['chain', 'excludeChain', 'token', 'excludeToken', 'minTvl', 'maxTvl', 'minApy', 'maxApy']
+const ENABLED_COLUMNS = [
+	'show7dBaseApy',
+	'show7dIL',
+	'show1dVolume',
+	'show7dVolume',
+	'showInceptionApy',
+	'showBorrowBaseApy',
+	'showBorrowRewardApy',
+	'showNetBorrowApy',
+	'showLTV',
+	'showTotalSupplied',
+	'showTotalBorrowed',
+	'showAvailable',
+	'showMedianApy',
+	'showStdDev'
+]
+
+const FILTER_QUERY_PARAMS = [
+	'chain',
+	'excludeChain',
+	'token',
+	'excludeToken',
+	'minTvl',
+	'maxTvl',
+	'minApy',
+	'maxApy',
+	...ENABLED_COLUMNS
+]
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const router = useRouter()
@@ -251,6 +293,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									/>
 									<TVLRange variant="secondary" nestedMenu={nestedMenu} />
 									<APYRange nestedMenu={nestedMenu} />
+									<ColumnFilters enabledColumns={ENABLED_COLUMNS} nestedMenu={nestedMenu} />
 									{hasActiveFilters && (
 										<button
 											onClick={resetFilters}
