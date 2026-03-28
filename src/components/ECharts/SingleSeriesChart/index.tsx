@@ -88,7 +88,7 @@ export default function SingleSeriesChart({
 										},
 										emphasis: {
 											label: {
-												show: true, // Show on hover
+												show: true,
 												color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 												fontFamily: 'sans-serif',
 												fontSize: 14,

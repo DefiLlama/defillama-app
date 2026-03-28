@@ -561,46 +561,6 @@ export const AdapterByChainChart = ({
 		}
 	}, [chain, adapterType, dashboardChartType, combinedChartInterval, chartName])
 
-	const breakdownMultiSeriesChartOptions = React.useMemo(() => {
-		switch (deferredBreakdownPresentation.kind) {
-			case 'treemap':
-			case 'hbar':
-				return undefined
-			case 'bar': {
-				const baseOptions =
-					deferredBreakdownPresentation.valueMode === 'relative'
-						? {
-								yAxis: {
-									min: 0,
-									max: 100
-								}
-							}
-						: {}
-				if (deferredBreakdownPresentation.charts.length <= 1) {
-					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
-				}
-				return baseOptions
-			}
-			case 'line':
-				if (deferredBreakdownPresentation.charts.length <= 1) {
-					return {
-						yAxis: {
-							min: 0,
-							max: 100
-						}
-					}
-				}
-				return {
-					yAxis: {
-						min: 0,
-						max: 100
-					}
-				}
-			default:
-				return assertNever(deferredBreakdownPresentation)
-		}
-	}, [deferredBreakdownPresentation])
-
 	const breakdownChartKindLabel =
 		breakdownChartState.chartKind === 'treemap'
 			? 'Treemap Chart'
@@ -622,6 +582,31 @@ export const AdapterByChainChart = ({
 				: 'Stacked'
 			: null
 	const breakdownChartHeight = getChartHeight(breakdownChartState)
+	const breakdownMultiSeriesChartOptions = React.useMemo(() => {
+		switch (deferredBreakdownPresentation.kind) {
+			case 'treemap':
+			case 'hbar':
+				return undefined
+			case 'bar':
+				return deferredBreakdownPresentation.valueMode === 'relative'
+					? {
+							yAxis: {
+								min: 0,
+								max: 100
+							}
+						}
+					: undefined
+			case 'line':
+				return {
+					yAxis: {
+						min: 0,
+						max: 100
+					}
+				}
+			default:
+				return assertNever(deferredBreakdownPresentation)
+		}
+	}, [deferredBreakdownPresentation])
 	const canExportBreakdownChart =
 		(deferredBreakdownPresentation.kind !== 'treemap' && deferredBreakdownPresentation.kind !== 'hbar') ||
 		deferredBreakdownPresentation.data.length > 0
@@ -1115,46 +1100,6 @@ export const ChainsByAdapterChart = ({
 		}
 	}, [chartName, chartState])
 
-	const multiSeriesChartOptions = React.useMemo(() => {
-		switch (deferredChartPresentation.kind) {
-			case 'treemap':
-			case 'hbar':
-				return undefined
-			case 'bar': {
-				const baseOptions =
-					deferredChartPresentation.valueMode === 'relative'
-						? {
-								yAxis: {
-									min: 0,
-									max: 100
-								}
-							}
-						: {}
-				if (deferredChartPresentation.charts.length <= 1) {
-					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
-				}
-				return baseOptions
-			}
-			case 'line':
-				if (deferredChartPresentation.charts.length <= 1) {
-					return {
-						yAxis: {
-							min: 0,
-							max: 100
-						}
-					}
-				}
-				return {
-					yAxis: {
-						min: 0,
-						max: 100
-					}
-				}
-			default:
-				return assertNever(deferredChartPresentation)
-		}
-	}, [deferredChartPresentation])
-
 	const chartKindLabel =
 		chartState.chartKind === 'treemap'
 			? 'Treemap Chart'
@@ -1168,6 +1113,31 @@ export const ChainsByAdapterChart = ({
 	const barLayoutLabel =
 		chartState.chartKind === 'bar' ? (chartState.barLayout === 'separate' ? 'Separate' : 'Stacked') : null
 	const chartHeight = getChartHeight(chartState)
+	const multiSeriesChartOptions = React.useMemo(() => {
+		switch (deferredChartPresentation.kind) {
+			case 'treemap':
+			case 'hbar':
+				return undefined
+			case 'bar':
+				return deferredChartPresentation.valueMode === 'relative'
+					? {
+							yAxis: {
+								min: 0,
+								max: 100
+							}
+						}
+					: undefined
+			case 'line':
+				return {
+					yAxis: {
+						min: 0,
+						max: 100
+					}
+				}
+			default:
+				return assertNever(deferredChartPresentation)
+		}
+	}, [deferredChartPresentation])
 	const canExportChart =
 		(deferredChartPresentation.kind !== 'treemap' && deferredChartPresentation.kind !== 'hbar') ||
 		deferredChartPresentation.data.length > 0

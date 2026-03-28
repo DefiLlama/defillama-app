@@ -53,6 +53,14 @@ function formatAxisLabel(value: number, symbol: string): string {
 	return formatNum(value, 5, symbol || undefined)
 }
 
+type AxisExtent = {
+	min?: number
+}
+
+function getZeroBaselineYAxisMin(extent: AxisExtent) {
+	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
+}
+
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
 function buildHallmarksMarkLine(
@@ -491,6 +499,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const yAxis = {
 			type: 'value',
 			boundaryGap: false,
+			min: getZeroBaselineYAxisMin,
 			nameTextStyle: { fontFamily: 'sans-serif', fontSize: 14, fontWeight: 400 },
 			axisLabel: {
 				formatter: (value: number) => formatAxisLabel(value, valueSymbol),

@@ -18,6 +18,14 @@ const customOffsets: Record<string, number> = {
 
 echarts.use([MarkAreaComponent])
 
+type AxisExtent = {
+	min?: number
+}
+
+function getZeroBaselineYAxisMin(extent: AxisExtent) {
+	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
+}
+
 export default function ProtocolChart({
 	chartData,
 	chartColors,
@@ -209,12 +217,16 @@ export default function ProtocolChart({
 				...yAxis,
 				name: '',
 				type: 'value',
+				min: getZeroBaselineYAxisMin,
 				alignTicks: true,
 				offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (customOffsets[type] ?? 40)
 			}
 
 			if (type === 'TVL') {
-				finalYAxis.push(yAxis)
+				finalYAxis.push({
+					...yAxis,
+					min: getZeroBaselineYAxisMin
+				})
 			}
 
 			if (type === 'Token Price') {
@@ -520,7 +532,10 @@ export default function ProtocolChart({
 		}
 
 		if (allYAxis.length === 0) {
-			finalYAxis.push(yAxis)
+			finalYAxis.push({
+				...yAxis,
+				min: getZeroBaselineYAxisMin
+			})
 		}
 
 		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
