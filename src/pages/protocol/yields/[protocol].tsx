@@ -65,7 +65,7 @@ export const getStaticProps = withPerformanceLogging(
 		try {
 			const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
 			const yieldsData = await getYieldPageData()
-			const dataBorrow = await getLendBorrowData(yieldsData.props).catch(() => ({ props: { pools: [] as any[] } }))
+			const dataBorrow = await getLendBorrowData().catch(() => ({ props: { pools: [] as any[] } }))
 			const borrowByPool = new Map(dataBorrow.props.pools.map((i) => [i.pool, i]))
 			const allPools = (yieldsData?.props?.pools ?? []).map((p) => {
 				const x = borrowByPool.get(p.pool)
