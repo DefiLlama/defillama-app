@@ -133,7 +133,7 @@ export function BrowserContent({
 			{/* Main layout: desktop sidebar + content */}
 			<div className="flex min-h-0 flex-1">
 				{/* Desktop: sidebar */}
-				<Ariakit.TabList className="hidden w-[176px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-black/6 bg-[#f8f8f8] p-1.5 sm:flex dark:border-[#2a2a2e] dark:bg-[#131316]">
+				<Ariakit.TabList className="hidden w-[176px] shrink-0 flex-col gap-0.5 overflow-y-auto overscroll-contain border-r border-black/6 bg-[#f8f8f8] p-1.5 sm:flex dark:border-[#2a2a2e] dark:bg-[#131316]">
 					{CAPABILITIES.map((cap) => (
 						<Ariakit.Tab
 							key={cap.key}
