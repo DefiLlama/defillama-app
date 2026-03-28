@@ -315,7 +315,7 @@ const ChainProtocolsTableInner = ({
 			const newColumns = Object.fromEntries(
 				columnOptions.map((column) => [
 					column.key,
-					['name', 'category'].includes(column.key) ? true : column[key] === newState
+					['name', 'category', 'forked_from'].includes(column.key) ? true : column[key] === newState
 				])
 			)
 
@@ -439,6 +439,7 @@ function isTableFilterState(value: string | null): value is TableFilterState {
 const columnOptions = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
+	{ name: 'Forked From', key: 'forked_from' },
 	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
 	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
@@ -551,6 +552,34 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
+const ForkedFromCell = ({ forkedFrom, compact = true }: { forkedFrom: Array<string> | null; compact?: boolean }) => {
+	if (!forkedFrom || forkedFrom.length === 0) return null
+
+	const visibleForks = forkedFrom.slice(0, 2)
+	const hiddenForks = forkedFrom.slice(2)
+
+	return (
+		<span
+			className={
+				compact
+					? 'flex flex-wrap items-center gap-x-1 text-[0.7rem] text-(--text-disabled)'
+					: 'flex flex-wrap justify-end gap-1 text-sm'
+			}
+		>
+			{compact ? <span>Fork of</span> : null}
+			{visibleForks.map((forkName, index) => (
+				<span key={forkName} className="inline-flex items-center gap-1">
+					<BasicLink href={`/forks/${slug(forkName)}`} className="text-(--link-text) hover:underline">
+						{forkName}
+					</BasicLink>
+					{index < visibleForks.length - 1 ? <span>,</span> : null}
+				</span>
+			))}
+			{hiddenForks.length > 0 ? <Tooltip content={hiddenForks.join(', ')}>+{hiddenForks.length} more</Tooltip> : null}
+		</span>
+	)
+}
+
 const columns = [
 	columnHelper.accessor('name', {
 		id: 'name',
@@ -596,12 +625,15 @@ const columns = [
 							{value}
 						</BasicLink>
 
-						<Tooltip
-							content={<ProtocolChainsComponent chains={row.original.chains} />}
-							className="text-[0.7rem] text-(--text-disabled)"
-						>
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
+						<span className="flex flex-col gap-0.5">
+							<Tooltip
+								content={<ProtocolChainsComponent chains={row.original.chains} />}
+								className="text-[0.7rem] text-(--text-disabled)"
+							>
+								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+							</Tooltip>
+							<ForkedFromCell forkedFrom={row.original.forkedFrom ?? null} />
+						</span>
 					</span>
 					{value === 'SyncDEX Finance' ? (
 						<Tooltip content={'Many users have reported issues with this protocol'}>
@@ -633,6 +665,17 @@ const columns = [
 		size: 140,
 		meta: {
 			align: 'end'
+		}
+	}),
+	columnHelper.accessor('forkedFrom', {
+		id: 'forked_from',
+		header: 'Forked From',
+		enableSorting: false,
+		cell: ({ getValue }) => <ForkedFromCell forkedFrom={getValue() ?? null} compact={false} />,
+		size: 180,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Original protocol lineage tracked in DefiLlama metadata'
 		}
 	}),
 	columnHelper.group({

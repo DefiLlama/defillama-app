@@ -630,13 +630,15 @@ export const getProtocolsByChain = async ({
 	chainMetadata,
 	protocolMetadata,
 	oracle = null,
-	fork = null
+	fork = null,
+	forksOnly = false
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	oracle?: string | null
 	fork?: string | null
+	forksOnly?: boolean
 }) => {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -649,10 +651,9 @@ export const getProtocolsByChain = async ({
 	const normalizedFork = fork ? slug(fork) : null
 
 	const protocolMatchesForkFilter = (protocol: ILiteProtocol): boolean => {
-		if (!normalizedFork) return true
-
 		const forkedFrom = protocol.forkedFrom
-		if (!forkedFrom) return false
+		if (!forkedFrom || forkedFrom.length === 0) return !normalizedFork && !forksOnly
+		if (!normalizedFork) return true
 		for (const forkName of forkedFrom) {
 			if (slug(forkName) === normalizedFork) return true
 		}
@@ -885,6 +886,7 @@ export const getProtocolsByChain = async ({
 				slug: slug(protocolMetadata[protocol.defillamaId].displayName),
 				chains: protocolMetadata[protocol.defillamaId].chains,
 				category: protocol.category ?? null,
+				forkedFrom: protocol.forkedFrom ?? null,
 				tvl: protocol.tvl != null && protocol.category !== 'Bridge' ? tvls : null,
 				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
@@ -1118,13 +1120,17 @@ export const getProtocolsByChain = async ({
 				if (p.category) categorySet.add(p.category)
 			}
 			const chilsProtocolCategories = Array.from(categorySet)
+			const parentForkedFrom = Array.from(
+				new Set(parentStore[parentProtocol.id].flatMap((child) => child.forkedFrom ?? []))
+			)
 
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
+				forkedFrom: parentForkedFrom.length > 0 ? parentForkedFrom : null,
 				childProtocols: parentStore[parentProtocol.id],
-				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
+				chains: Array.from(new Set(parentStore[parentProtocol.id].flatMap((p) => p.chains ?? []))),
 				tvl: parentTvl,
 				tvlChange: parentTvlChange,
 				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
