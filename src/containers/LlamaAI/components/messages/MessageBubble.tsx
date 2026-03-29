@@ -2,7 +2,6 @@ import Router from 'next/router'
 import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
-import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
@@ -20,6 +19,7 @@ import {
 	type ArtifactRecord,
 	type MessageRenderBlock
 } from '~/containers/LlamaAI/renderModel'
+import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
 import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { trackUmamiEvent } from '~/utils/analytics/umami'

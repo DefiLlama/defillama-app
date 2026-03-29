@@ -1,15 +1,15 @@
+import Router from 'next/router'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import Router from 'next/router'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
-import type { DashboardItemConfig } from '~/containers/ProDashboard/types'
 import type { DashboardArtifact } from '~/containers/LlamaAI/types'
-import { ProDashboardAPIProvider } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
+import { ProDashboardAPIProvider } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
+import type { DashboardItemConfig } from '~/containers/ProDashboard/types'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 interface DashboardPanelProps {
 	config: DashboardArtifact | null
