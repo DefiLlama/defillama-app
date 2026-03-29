@@ -34,6 +34,8 @@ export interface IYieldTableRow {
 	cv30d?: number | null
 	pegDeviation?: number | null
 	pegPrice?: number | null
+	apyMean30d?: number | null
+	apyChart30d?: string | null
 }
 
 export interface IYieldsProjectsTableRow {
