@@ -771,7 +771,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 											</h2>
 											{hasMore ? (
 												<a
-													href={`/yields?token=${asset.ticker}&attribute=no_il&attribute=single_exposure`}
+													href={`/yields?token=${encodeURIComponent(asset.ticker)}&attribute=no_il&attribute=single_exposure`}
 													className="text-xs font-medium text-(--link-text) hover:underline"
 												>
 													View all {totalPools} →
