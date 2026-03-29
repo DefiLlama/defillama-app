@@ -209,7 +209,7 @@ export interface LlamaAIChartConfig {
 	savedChartId?: string
 	chartRef?: string
 	title?: string
-	inlineChartConfig?: any
+	inlineChartConfig?: import('~/containers/LlamaAI/types').ChartConfiguration
 	inlineChartData?: Record<string, any[]>
 	colSpan?: StoredColSpan
 }

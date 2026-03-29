@@ -266,8 +266,12 @@ function parseSSEStream(
 					const config = data.dashboardConfig || data.content?.dashboardConfig
 					const chartData = data.chartData || data.content?.chartData
 					if (config && callbacks.onDashboard) {
+						const stableId =
+							data.dashboard_id ||
+							data.content?.dashboard_id ||
+							`dashboard_${config.dashboardName || ''}_${config.sourceDashboardId || ''}_${config.items?.length ?? 0}`
 						callbacks.onDashboard({
-							id: data.dashboard_id || data.content?.dashboard_id || `dashboard_${Date.now()}`,
+							id: stableId,
 							dashboardName: config.dashboardName || 'Dashboard',
 							items: config.items || [],
 							timePeriod: config.timePeriod,

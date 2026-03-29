@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import Router from 'next/router'
 import { Icon } from '~/components/Icon'
@@ -67,10 +67,6 @@ function DashboardPanelInner({
 			}
 		}
 	}, [isConfigPresent])
-
-	const handleClose = useCallback(() => {
-		onClose()
-	}, [onClose])
 
 	const handleCreateDashboard = async () => {
 		if (isCreating || !displayConfig) return
@@ -164,7 +160,7 @@ function DashboardPanelInner({
 							{isCreating ? 'Creating...' : 'Create Dashboard'}
 						</button>
 						<button
-							onClick={handleClose}
+							onClick={onClose}
 							className="flex h-7 w-7 items-center justify-center rounded-md text-[#636e72] transition-colors hover:bg-[#e6e6e6] dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 						>
 							<Icon name="x" className="h-4 w-4" />
