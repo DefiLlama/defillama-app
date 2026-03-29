@@ -34,9 +34,7 @@ const columns = [
 		id: 'project',
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
 		enableSorting: false,
-		cell: ({ row }) => (
-			<NameYield project={row.original.project} projectslug={row.original.projectslug} />
-		),
+		cell: ({ row }) => <NameYield project={row.original.project} projectslug={row.original.projectslug} />,
 		size: 200
 	}),
 	columnHelper.accessor('chains', {
@@ -143,7 +141,18 @@ const columns = [
 	})
 ]
 
-const COL_IDS = ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward', 'apyMean30d', 'cv30d', 'apyChart30d']
+const COL_IDS = [
+	'pool',
+	'project',
+	'chains',
+	'tvl',
+	'apy',
+	'apyBase',
+	'apyReward',
+	'apyMean30d',
+	'cv30d',
+	'apyChart30d'
+]
 
 const columnOrders: ColumnOrdersByBreakpoint = {
 	0: ['pool', 'apy', 'tvl', 'project', 'chains', 'apyBase', 'apyReward', 'apyMean30d', 'cv30d', 'apyChart30d'],
@@ -153,9 +162,42 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 }
 
 const columnSizes: ColumnSizesByBreakpoint = {
-	0: { pool: 120, project: 200, chains: 60, tvl: 120, apy: 100, apyBase: 140, apyReward: 140, apyMean30d: 125, cv30d: 110, apyChart30d: 125 },
-	812: { pool: 200, project: 200, chains: 60, tvl: 120, apy: 100, apyBase: 140, apyReward: 140, apyMean30d: 125, cv30d: 110, apyChart30d: 125 },
-	1280: { pool: 240, project: 200, chains: 60, tvl: 120, apy: 100, apyBase: 140, apyReward: 140, apyMean30d: 125, cv30d: 110, apyChart30d: 125 }
+	0: {
+		pool: 120,
+		project: 200,
+		chains: 60,
+		tvl: 120,
+		apy: 100,
+		apyBase: 140,
+		apyReward: 140,
+		apyMean30d: 125,
+		cv30d: 110,
+		apyChart30d: 125
+	},
+	812: {
+		pool: 200,
+		project: 200,
+		chains: 60,
+		tvl: 120,
+		apy: 100,
+		apyBase: 140,
+		apyReward: 140,
+		apyMean30d: 125,
+		cv30d: 110,
+		apyChart30d: 125
+	},
+	1280: {
+		pool: 240,
+		project: 200,
+		chains: 60,
+		tvl: 120,
+		apy: 100,
+		apyBase: 140,
+		apyReward: 140,
+		apyMean30d: 125,
+		cv30d: 110,
+		apyChart30d: 125
+	}
 }
 
 const COMPACT_COL_IDS = ['pool', 'project', 'chains', 'tvl', 'apy']

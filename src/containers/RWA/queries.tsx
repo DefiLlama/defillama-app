@@ -902,7 +902,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 					const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 					for (const id of ids) {
 						const meta = metadataCache.protocolMetadata[String(id)] as
-							| (typeof metadataCache.protocolMetadata)[string] & { name?: string }
+							| ((typeof metadataCache.protocolMetadata)[string] & { name?: string })
 							| undefined
 						if (meta?.name) projectSlugs.add(meta.name)
 					}

@@ -206,7 +206,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 		const source: Array<{ timestamp: number; 'Native Yield': number }> = []
 		for (const item of yieldChartRaw.data) {
 			if (item.apyBase == null || !item.timestamp) continue
-			const ts = typeof item.timestamp === 'number' ? item.timestamp : new Date(String(item.timestamp).split('T')[0]).getTime()
+			const ts =
+				typeof item.timestamp === 'number' ? item.timestamp : new Date(String(item.timestamp).split('T')[0]).getTime()
 			if (!Number.isFinite(ts)) continue
 			source.push({ timestamp: Math.floor(ts), 'Native Yield': Number(Number(item.apyBase).toFixed(2)) })
 		}
@@ -403,9 +404,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				{asset.nativeYieldCurrent != null ? (
 					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 						<span className="text-(--text-label)">Native Yield</span>
-						<span className="font-jetbrains text-xl font-semibold">
-							{asset.nativeYieldCurrent.toFixed(2)}%
-						</span>
+						<span className="font-jetbrains text-xl font-semibold">{asset.nativeYieldCurrent.toFixed(2)}%</span>
 					</p>
 				) : null}
 			</div>
@@ -428,7 +427,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</div>
 			) : null}
 
-				<div className="grid gap-2 lg:grid-cols-2">
+			<div className="grid gap-2 lg:grid-cols-2">
 				{/* Left Column */}
 				<div className="flex flex-col gap-2">
 					{/* Token Properties */}
@@ -709,7 +708,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</SectionCard>
 			) : null}
 
-			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) || (asset.yieldPools && asset.yieldPools.length > 0) ? (
+			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) ||
+			(asset.yieldPools && asset.yieldPools.length > 0) ? (
 				<div
 					className={`grid gap-2 ${(isLoadingYieldChart || nativeYieldDataset) && asset.yieldPools && asset.yieldPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
 				>
@@ -717,9 +717,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
 							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-4 pb-2">
-								<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
-									Native Yield
-								</span>
+								<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">Native Yield</span>
 								{asset.nativeYieldCurrent != null ? (
 									<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
 										{asset.nativeYieldCurrent.toFixed(2)}%
