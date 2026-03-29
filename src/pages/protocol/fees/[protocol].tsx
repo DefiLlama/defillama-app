@@ -16,7 +16,6 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
-import { buildHallmarksWithGenuineSpikes } from '~/containers/DimensionAdapters/utils'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -26,6 +25,7 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
+import { buildHallmarksWithGenuineSpikes } from '~/utils/hallmarks'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -368,7 +368,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		}
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
 	const deferredFinalCharts = useDeferredValue(finalCharts)
-	console.log(props.hallmarks)
+
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}

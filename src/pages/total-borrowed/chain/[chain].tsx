@@ -45,7 +45,6 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
 export default function TotalBorrowedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	console.log(props)
 	return (
 		<Layout
 			title={`Total Borrowed in DeFi on ${props.chain} - DefiLlama`}
