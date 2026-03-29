@@ -380,7 +380,7 @@ function adjustSeriesForExport(opts: {
 						p.emphasis = { ...p.emphasis, label: { ...p.emphasis.label, fontSize: EXPORT_FONT_SIZE } }
 					}
 					if (typeof p.y === 'number') {
-						p.y = p.y * 2
+						p.y = Math.max(p.y * 2, layout.gridTop + 8)
 					}
 					return p
 				})
@@ -545,7 +545,20 @@ async function exportTreemapWithZoom(
 		const imageAspect = chartImg.width / Math.max(1, chartImg.height)
 		const isPortraitCapture = imageAspect < 1
 		const exportWidth = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_WIDTH : IMAGE_EXPORT_WIDTH
-		const exportHeight = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : IMAGE_EXPORT_HEIGHT
+
+		const titleText = title || ''
+		let chartTop = 12
+		const titleHeight = titleText ? 40 : 0
+		if (titleText) {
+			chartTop = 52
+		}
+
+		const chartAreaW = exportWidth - 24
+		const naturalChartAreaH = Math.round(chartAreaW / Math.max(imageAspect, 0.0001))
+		const exportHeight = Math.max(
+			isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : 0,
+			titleHeight + naturalChartAreaH + 24
+		)
 		const dpr = 2
 		const canvas = document.createElement('canvas')
 		canvas.width = exportWidth * dpr
@@ -558,16 +571,12 @@ async function exportTreemapWithZoom(
 		ctx.fillStyle = isDark ? '#0b1214' : '#ffffff'
 		ctx.fillRect(0, 0, exportWidth, exportHeight)
 
-		const titleText = title || ''
-		let chartTop = 12
 		if (titleText) {
 			ctx.font = '600 28px sans-serif'
 			ctx.fillStyle = isDark ? '#ffffff' : '#000000'
 			ctx.fillText(titleText, 14, 36)
-			chartTop = 52
 		}
 
-		const chartAreaW = exportWidth - 24
 		const chartAreaH = exportHeight - chartTop - 12
 		const imgAspect = chartImg.width / chartImg.height
 		let drawW = chartAreaW

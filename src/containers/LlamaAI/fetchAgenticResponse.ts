@@ -1,5 +1,5 @@
 import { MCP_SERVER } from '~/constants'
-import type { AlertProposedData, ChartConfiguration, ToolExecution } from '~/containers/LlamaAI/types'
+import type { AlertProposedData, ChartConfiguration, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -12,23 +12,26 @@ export interface CsvExport {
 
 export interface SpawnProgressData {
 	agentId: string
-	status: 'started' | 'tool_call' | 'completed' | 'error'
+	status: 'started' | 'thinking' | 'tool_call' | 'completed' | 'error'
 	tool?: string
 	toolCount?: number
 	chartCount?: number
 	findingsPreview?: string
+	startedAt?: number
+	isResearchMode?: boolean
 }
 
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
-	onProgress: (toolName: string) => void
+	onProgress: (toolName: string, isPremium?: boolean) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
-	onSessionId: (sessionId: string) => void
+	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
 	onToolExecution?: (data: ToolExecution) => void
+	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
 	onTitle?: (title: string) => void
@@ -41,11 +44,13 @@ export interface AgenticSSECallbacks {
 interface SessionEvent {
 	type: 'session'
 	sessionId: string
+	startedAt?: number
 }
 
 interface ToolCallEvent {
 	type: 'tool_call'
 	name: string
+	isPremium?: boolean
 }
 
 interface ResponseChunkEvent {
@@ -109,6 +114,16 @@ interface DoneEvent {
 	type: 'done'
 }
 
+interface MessageMetadataEvent {
+	type: 'message_metadata'
+	content: {
+		inputTokens?: number
+		outputTokens?: number
+		executionTimeMs?: number
+		x402CostUsd?: string
+	}
+}
+
 type AgenticSSEEvent =
 	| SessionEvent
 	| ToolCallEvent
@@ -123,6 +138,7 @@ type AgenticSSEEvent =
 	| CitationsEvent
 	| TitleEvent
 	| MessageIdEvent
+	| MessageMetadataEvent
 	| TokenLimitEvent
 	| ErrorEvent
 	| DoneEvent
@@ -158,8 +174,10 @@ interface FetchAgenticResponseParams {
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
+	quotedText?: string
 	isSuggestedQuestion?: boolean
 	fetchFn?: typeof fetch
+	eventCounter?: { count: number }
 }
 
 async function getResponseErrorMessage(response: Response, fallback: string) {
@@ -181,7 +199,8 @@ async function getResponseErrorMessage(response: Response, fallback: string) {
 function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
-	abortSignal?: AbortSignal
+	abortSignal?: AbortSignal,
+	eventCounter?: { count: number }
 ) {
 	const decoder = new TextDecoder()
 	let lineBuffer = ''
@@ -191,13 +210,14 @@ function parseSSEStream(
 
 		try {
 			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
+			if (eventCounter) eventCounter.count++
 
 			switch (data.type) {
 				case 'session':
-					callbacks.onSessionId(data.sessionId)
+					callbacks.onSessionId(data.sessionId, data.startedAt)
 					break
 				case 'tool_call':
-					callbacks.onProgress(data.name)
+					callbacks.onProgress(data.name, data.isPremium)
 					break
 				case 'response_chunk':
 					callbacks.onToken(data.content)
@@ -219,6 +239,9 @@ function parseSSEStream(
 					break
 				case 'tool_execution':
 					callbacks.onToolExecution?.(data)
+					break
+				case 'message_metadata':
+					callbacks.onMessageMetadata?.(data.content)
 					break
 				case 'thinking':
 					callbacks.onThinking?.(data.content)
@@ -247,12 +270,25 @@ function parseSSEStream(
 		}
 	}
 
+	const HEARTBEAT_TIMEOUT_MS = 15_000
+
 	const process = async () => {
 		try {
 			while (true) {
 				if (abortSignal?.aborted) break
 
-				const { done, value } = await reader.read()
+				let timeoutId: ReturnType<typeof setTimeout> | undefined
+				const { done, value } = await Promise.race([
+					reader.read(),
+					new Promise<never>((_, reject) => {
+						timeoutId = setTimeout(() => {
+							void reader
+								.cancel('Stream heartbeat timeout')
+								.catch(() => undefined)
+								.finally(() => reject(new Error('Stream heartbeat timeout')))
+						}, HEARTBEAT_TIMEOUT_MS)
+					})
+				]).finally(() => clearTimeout(timeoutId))
 				if (done) {
 					// Some backends terminate the stream without a trailing newline, so flush the final buffered event on EOF.
 					if (lineBuffer.trim()) {
@@ -296,8 +332,10 @@ export async function fetchAgenticResponse({
 	images,
 	pageContext,
 	customInstructions,
+	quotedText,
 	isSuggestedQuestion,
-	fetchFn
+	fetchFn,
+	eventCounter
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
 
@@ -312,6 +350,7 @@ export async function fetchAgenticResponse({
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
+		quotedText?: string
 		isSuggestedQuestion?: true
 	} = {
 		message,
@@ -346,6 +385,10 @@ export async function fetchAgenticResponse({
 
 	if (customInstructions) {
 		requestBody.customInstructions = customInstructions
+	}
+
+	if (quotedText) {
+		requestBody.quotedText = quotedText
 	}
 
 	if (isSuggestedQuestion) {
@@ -384,14 +427,20 @@ export async function fetchAgenticResponse({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(response.body.getReader(), callbacks, abortSignal)
+	return parseSSEStream(response.body.getReader(), callbacks, abortSignal, eventCounter)
+}
+
+export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
+	try {
+		await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stop/${encodeURIComponent(sessionId)}`, { method: 'POST' })
+	} catch {}
 }
 
 // Probe whether a restored session still has a live execution that needs to be resumed client-side.
 export async function checkActiveExecution(
 	sessionId: string,
 	fetchFn?: typeof fetch
-): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string }> {
+): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string; hasResult?: boolean }> {
 	try {
 		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
 		if (!res) {
@@ -403,6 +452,7 @@ export async function checkActiveExecution(
 				status?: string
 				eventCount?: number
 				messageId?: string
+				hasResult?: boolean
 			} | null
 			return payload?.active === false ? { active: false, ...payload } : { active: false }
 		}
@@ -410,7 +460,13 @@ export async function checkActiveExecution(
 			const statusLabel = `${res.status} ${res.statusText}`.trim()
 			throw new Error(await getResponseErrorMessage(res, `Failed to check active execution (${statusLabel})`))
 		}
-		return (await res.json()) as { active: boolean; status?: string; eventCount?: number; messageId?: string }
+		return (await res.json()) as {
+			active: boolean
+			status?: string
+			eventCount?: number
+			messageId?: string
+			hasResult?: boolean
+		}
 	} catch (err) {
 		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
 		const status =
@@ -435,14 +491,22 @@ export async function resumeAgenticStream({
 	sessionId,
 	callbacks,
 	abortSignal,
-	fetchFn
+	fetchFn,
+	from,
+	eventCounter
 }: {
 	sessionId: string
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	fetchFn?: typeof fetch
+	from?: number
+	eventCounter?: { count: number }
 }) {
-	const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`, {
+	const url =
+		from != null
+			? `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
+			: `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
+	const res = await (fetchFn || fetch)(url, {
 		signal: abortSignal
 	})
 
@@ -455,5 +519,5 @@ export async function resumeAgenticStream({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(res.body.getReader(), callbacks, abortSignal)
+	return parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
 }

@@ -165,9 +165,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
-		}
+		const isPreview = auth.valid === false
 
 		const chainParam = typeof chain === 'string' ? chain.trim() : null
 		const isChainMode = mode === 'chains'
@@ -177,7 +175,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const isCsvDownload = !isChainMode
-		if (auth.isTrial && isCsvDownload) {
+		if (!isPreview && auth.valid && auth.isTrial && isCsvDownload) {
 			const csvDownloadCount = await getTrialCsvDownloadCount(req.headers.authorization!)
 			if (csvDownloadCount >= 1) {
 				return res.status(403).json({ error: 'Trial CSV download limit reached. Upgrade for unlimited downloads.' })
@@ -207,15 +205,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			items = filterProtocolsByChain(items, chainParam)
 		}
 
+		if (isPreview) {
+			items = items.slice(0, 10)
+		}
+
 		const csv = flattenItemsToCsv(items, dataset.fields)
 
-		if (auth.isTrial) {
+		if (!isPreview && auth.valid && auth.isTrial) {
 			await trackCsvDownload(req.headers.authorization!)
 		}
 
 		res.setHeader('Content-Type', 'text/csv; charset=utf-8')
 		res.setHeader('Content-Disposition', `attachment; filename="${datasetSlug}.csv"`)
 		res.setHeader('Cache-Control', 'private, no-store')
+		if (isPreview) {
+			res.setHeader('X-Preview', 'true')
+		}
 		return res.status(200).send(csv)
 	} catch (error) {
 		console.error(`Downloads proxy error (${datasetSlug}):`, error)

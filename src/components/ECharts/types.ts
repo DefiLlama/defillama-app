@@ -6,6 +6,9 @@ type EChartsFormatterParams = Record<string, unknown>
 
 type ChartDataItem = any
 
+export type ChartTimeGrouping = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+export type ChartTimeGroupingWithCumulative = ChartTimeGrouping | 'cumulative'
+
 export interface IChartProps {
 	chartData: ChartDataItem[]
 	stacks?: Array<string>
@@ -37,7 +40,7 @@ export interface IChartProps {
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	groupBy?: ChartTimeGrouping
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
 	hideDataZoom?: boolean
@@ -75,7 +78,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	stacks?: {
 		[stack: string]: string
 	}
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: ChartTimeGrouping
 	orientation?: 'vertical' | 'horizontal'
 }
 
@@ -126,6 +129,8 @@ export type MultiSeriesChart2SeriesConfig = {
 	valueSymbol?: string
 	/** Disable area fill for this series (line only). */
 	hideAreaStyle?: boolean
+	/** Mark this series as tentative/TBD — renders with reduced opacity and dashed border. */
+	isTBD?: boolean
 	// Optional: enable point markers on line series.
 	// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
 	// implicitly disable large mode unless `large` is explicitly set.
@@ -158,7 +163,7 @@ type MultiSeriesChart2BaseProps = {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	groupBy?: ChartTimeGroupingWithCumulative
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string
@@ -194,7 +199,7 @@ export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
 	showTotalInTooltip?: boolean
 	/**
 	 * Placement for the total line when `showTotalInTooltip` is enabled.
-	 * Defaults to `'bottom'`.
+	 * Defaults to `'top'`.
 	 */
 	tooltipTotalPosition?: 'top' | 'bottom'
 	/**
@@ -235,7 +240,7 @@ export interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	groupBy?: ChartTimeGrouping
 	hallmarks?: [number, string][]
 	valueSymbol?: string
 	yAxisSymbols?: string[]

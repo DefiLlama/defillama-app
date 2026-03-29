@@ -272,7 +272,7 @@ export function BridgesOverviewByChain({
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					{selectedChain === 'All' ? (
 						<>
-							<div className="flex items-center justify-end gap-2 border-b border-(--cards-border) *:last:mr-2">
+							<div className="flex items-center justify-end gap-2 border-b border-(--cards-border) pr-1">
 								<div className="mr-auto flex items-center">
 									<button
 										className="flex items-center justify-center border-b-2 border-transparent px-4 py-2.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:text-(--old-blue)"
@@ -308,16 +308,40 @@ export function BridgesOverviewByChain({
 						</>
 					) : (
 						<>
-							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-								<ChartSelector options={BRIDGE_CHAIN_CHART_OPTIONS} selectedChart={chartType} onClick={setChartType} />
-								<ChartExportButtons
-									chartInstance={exportChartInstance}
-									filename={chartFilename}
-									title={`${selectedChain} ${chartType}`}
-								/>
-							</div>
+							{chartType !== 'Bridge Volume' && (
+								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+									<ChartSelector
+										options={BRIDGE_CHAIN_CHART_OPTIONS}
+										selectedChart={chartType}
+										onClick={setChartType}
+									/>
+									<ChartExportButtons
+										chartInstance={exportChartInstance}
+										filename={chartFilename}
+										title={`${selectedChain} ${chartType}`}
+									/>
+								</div>
+							)}
 							{chartType === 'Bridge Volume' ? (
-								<BridgeVolumeChart data={rawBridgeVolumeData} height="360px" onReady={handleChartReady} />
+								<BridgeVolumeChart
+									data={rawBridgeVolumeData}
+									height="360px"
+									onReady={handleChartReady}
+									headerStart={
+										<ChartSelector
+											options={BRIDGE_CHAIN_CHART_OPTIONS}
+											selectedChart={chartType}
+											onClick={setChartType}
+										/>
+									}
+									headerEnd={
+										<ChartExportButtons
+											chartInstance={exportChartInstance}
+											filename={chartFilename}
+											title={`${selectedChain} ${chartType}`}
+										/>
+									}
+								/>
 							) : chartType === 'Net Flow' ? (
 								chainNetFlowData && chainNetFlowData.length > 0 ? (
 									<React.Suspense fallback={<div className="min-h-[360px]" />}>

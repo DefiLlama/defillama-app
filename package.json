@@ -11,6 +11,9 @@
 		"build:metadata": "bun scripts/pullMetadata.js && bun scripts/generateRobots.js",
 		"build": "bun run build:metadata && bunx next build",
 		"start": "./scripts/prestart.sh & bunx next start",
+		"test": "vitest run",
+		"test:types": "tsc -p tsconfig.vitest.json --noEmit",
+		"format:check": "oxfmt --check",
 		"format": "oxfmt --write",
 		"lint": "oxlint",
 		"ts": "tsc --noEmit"
@@ -37,7 +40,7 @@
 		"ioredis": "5.10.0",
 		"lodash": "4.17.23",
 		"match-sorter": "8.2.0",
-		"next": "16.1.6",
+		"next": "16.2.0",
 		"nprogress": "0.2.0",
 		"pg-promise": "12.6.2",
 		"pocketbase": "0.26.8",
@@ -63,6 +66,10 @@
 		"oxlint-tsgolint": "^0.16.0",
 		"postcss": "8.5.8",
 		"tailwindcss": "4.2.1",
-		"typescript": "5.9.3"
+		"typescript": "5.9.3",
+		"vitest": "^4.1.0"
+	},
+	"overrides": {
+		"@types/react": "19.2.14"
 	}
 }

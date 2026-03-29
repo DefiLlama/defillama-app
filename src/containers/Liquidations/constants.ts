@@ -1,4 +1,4 @@
-import { liquidationsIconUrl } from '~/utils'
+import { liquidationsIconUrl } from '~/utils/icons'
 
 export const LIQUIDATIONS_TOTAL_BINS = 100
 
@@ -196,7 +196,7 @@ export const DEFAULT_ASSETS_LIST = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }
 	name,
 	symbol,
 	route: `/liquidations/${symbol.toLowerCase()}`,
-	logo: liquidationsIconUrl(symbol.toLowerCase()),
+	logo: liquidationsIconUrl(symbol),
 	label: `${name} (${symbol.toUpperCase()})`,
 	to: `/liquidations/${symbol.toLowerCase()}`
 }))

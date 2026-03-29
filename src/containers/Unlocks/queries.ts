@@ -9,6 +9,7 @@ import type {
 	EmissionsChartConfig,
 	EmissionEvent,
 	ProtocolEmission,
+	ProtocolEmissionDetail,
 	TokenAllocationSplit
 } from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
@@ -721,6 +722,18 @@ export const getAllProtocolEmissions = async ({
 	}
 }
 
+const EMPTY_TBD_SECTIONS: string[] = []
+
+function extractTbdSections(res: ProtocolEmissionDetail): string[] {
+	const sections = res.componentData?.sections
+	if (!sections) return EMPTY_TBD_SECTIONS
+	const tbd: string[] = []
+	for (const [name, section] of Object.entries(sections)) {
+		if (section?.isTBD) tbd.push(name)
+	}
+	return tbd.length > 0 ? tbd : EMPTY_TBD_SECTIONS
+}
+
 function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 	return {
 		chartData: { documented: [], realtime: [] },
@@ -748,7 +761,8 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		hallmarks: { documented: [], realtime: [] },
 		name: null,
 		tokenPrice: {},
-		unlockUsdChart: null
+		unlockUsdChart: null,
+		tbdSections: EMPTY_TBD_SECTIONS
 	}
 }
 
@@ -853,7 +867,8 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			},
 			name: name || null,
 			tokenPrice,
-			unlockUsdChart: res.unlockUsdChart ?? null
+			unlockUsdChart: res.unlockUsdChart ?? null,
+			tbdSections: extractTbdSections(res)
 		}
 	} catch (e) {
 		console.log(e)

@@ -442,7 +442,7 @@ export function CustomColumnPanel({
 							{/* Autocomplete dropdown */}
 							{showAutocomplete && filteredSuggestions.length > 0 ? (
 								<div
-									className="absolute z-50 mt-1 thin-scrollbar max-h-64 overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
+									className="absolute z-50 mt-1 thin-scrollbar max-h-64 overflow-y-auto overscroll-contain rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
 									style={{
 										width: '320px',
 										minWidth: '280px',

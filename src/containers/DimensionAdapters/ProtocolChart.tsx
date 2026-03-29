@@ -2,19 +2,23 @@ import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
+import { getBucketTimestampMs } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { Tooltip } from '~/components/Tooltip'
 import type { ChartBuilderConfig } from '~/containers/ProDashboard/types'
 import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
+import { getNDistinctColors, slug } from '~/utils'
 import { fetchAdapterProtocolChartDataByBreakdownType } from './api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
-
-const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -25,6 +29,7 @@ export const DimensionProtocolChartByType = ({
 	chartType,
 	breakdownNames,
 	metadata,
+	hallmarks,
 	title
 }: {
 	protocolName: string
@@ -33,6 +38,7 @@ export const DimensionProtocolChartByType = ({
 	chartType: 'chain' | 'version'
 	breakdownNames: string[]
 	metadata?: { bribeRevenue?: boolean; tokenTax?: boolean }
+	hallmarks?: [number, string][]
 	title: string
 }) => {
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
@@ -172,6 +178,7 @@ export const DimensionProtocolChartByType = ({
 			chartType={chartType}
 			protocolName={protocolName}
 			adapterType={adapterType}
+			hallmarks={hallmarks}
 		/>
 	)
 }
@@ -184,7 +191,8 @@ const ChartByType = ({
 	breakdownNames,
 	chartType,
 	protocolName,
-	adapterType
+	adapterType,
+	hallmarks
 }: {
 	data: Array<[number, Record<string, number>]>
 	bribeData?: Array<[number, Record<string, number>]>
@@ -194,8 +202,9 @@ const ChartByType = ({
 	chartType: 'chain' | 'version'
 	protocolName: string
 	adapterType: string
+	hallmarks?: [number, string][]
 }) => {
-	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
+	const [chartInterval, changeChartInterval] = React.useState<LowercaseDwmcGrouping>('daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
@@ -204,14 +213,24 @@ const ChartByType = ({
 
 		if (!builderMetric || chartType === 'version') return null
 
-		const grouping =
-			chartInterval === 'Daily'
-				? 'day'
-				: chartInterval === 'Weekly'
-					? 'week'
-					: chartInterval === 'Monthly'
-						? 'month'
-						: 'day'
+		let grouping: ChartBuilderConfig['grouping']
+		switch (chartInterval) {
+			case 'weekly':
+				grouping = 'week'
+				break
+			case 'monthly':
+				grouping = 'month'
+				break
+			case 'quarterly':
+				grouping = 'quarter'
+				break
+			case 'yearly':
+				grouping = 'year'
+				break
+			default:
+				grouping = 'day'
+				break
+		}
 
 		return {
 			id: generateItemId('builder', `${protocolName}-${adapterType}`),
@@ -237,11 +256,9 @@ const ChartByType = ({
 
 		// Helper to compute final date based on interval
 		const computeFinalDate = (date: number) =>
-			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date) * 1e3
-				: chartInterval === 'Monthly'
-					? firstDayOfMonth(+date) * 1e3
-					: +date * 1e3
+			chartInterval === 'cumulative'
+				? +date * 1e3
+				: getBucketTimestampMs(+date * 1e3, chartInterval as ChartTimeGrouping)
 
 		// Aggregate by date with interval grouping
 		const aggregatedByDate: Map<number, Record<string, number>> = new Map()
@@ -304,7 +321,7 @@ const ChartByType = ({
 
 		// Sort dates and build dataset rows
 		const sortedDates = Array.from(aggregatedByDate.keys()).sort((a, b) => a - b)
-		const isCumulative = chartInterval === 'Cumulative'
+		const isCumulative = chartInterval === 'cumulative'
 		const cumulative: Record<string, number> = {}
 
 		for (const type of selectedTypes) {
@@ -361,20 +378,12 @@ const ChartByType = ({
 		<>
 			<div className="flex flex-wrap items-center justify-end gap-1 p-2 pb-0">
 				{title ? <h2 className="mr-auto text-base font-semibold">{title}</h2> : null}
-				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					{INTERVALS_LIST.map((dataInterval) => (
-						<Tooltip
-							content={dataInterval}
-							render={<button />}
-							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-							data-active={dataInterval === chartInterval}
-							onClick={() => changeChartInterval(dataInterval)}
-							key={`${dataInterval}-${chartType}-${title}-${protocolName}`}
-						>
-							{dataInterval.slice(0, 1).toUpperCase()}
-						</Tooltip>
-					))}
-				</div>
+				<ChartGroupingSelector
+					value={chartInterval}
+					setValue={changeChartInterval}
+					options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+					className="ml-auto text-xs font-medium"
+				/>
 				<SelectWithCombobox
 					allValues={breakdownNames}
 					selectedValues={selectedTypes}
@@ -395,10 +404,10 @@ const ChartByType = ({
 				<MultiSeriesChart2
 					dataset={deferredMainChartData.dataset}
 					charts={deferredMainChartData.charts}
-					groupBy={
-						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
-					}
+					groupBy={chartInterval}
 					valueSymbol="$"
+					showTotalInTooltip
+					hallmarks={hallmarks}
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>

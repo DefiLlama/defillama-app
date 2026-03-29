@@ -15,30 +15,33 @@ interface ILayoutProps extends ISEOProps {
 	metricFiltersLabel?: string
 	pageName?: Array<string>
 	announcement?: React.ReactNode
+	hideDesktopSearchLlamaAiButton?: boolean
 }
 
 function Layout({
 	title,
 	description,
 	canonicalUrl,
+	noIndex,
 	children,
 	pageName,
 	metricFilters,
 	metricFiltersLabel,
 	announcement,
+	hideDesktopSearchLlamaAiButton = false,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
 	return (
 		<>
-			<SEO title={title} description={description} canonicalUrl={canonicalUrl} />
+			<SEO title={title} description={description} canonicalUrl={canonicalUrl} noIndex={noIndex} />
 			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}
-				className="isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-dvh lg:p-4 lg:pl-0"
+				className="app-main-shell isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-dvh lg:p-4 lg:pl-0"
 			>
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
-					<DesktopSearch />
+					<DesktopSearch hideLlamaAiCta={hideDesktopSearchLlamaAiButton} />
 
 					{!metricFilters || metricFilters.length === 0 ? null : (
 						<MetricFilters options={metricFilters} label={metricFiltersLabel} />

@@ -9,6 +9,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
+import { PROMO_EMAILS_TEXT } from './constants'
 
 export const SignInModal = ({
 	text,
@@ -598,8 +599,7 @@ export const SignInForm = ({
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
 						<label htmlFor={promotionalEmailsCheckboxId} className="text-sm text-[#b4b7bc]">
-							Get early access announcements, new feature releases, and DeFi data insights from the DefiLlama team.
-							Unsubscribe anytime
+							{PROMO_EMAILS_TEXT}
 						</label>
 					</div>
 

@@ -1,9 +1,14 @@
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type {
+	ChartTimeGroupingWithCumulative,
+	MultiSeriesChart2Dataset,
+	MultiSeriesChart2SeriesConfig
+} from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { getNDistinctColors, slug } from '~/utils'
-import type { IAdapterChainMetrics } from './api.types'
+import { parseExcludeParam } from '~/utils/routerQuery'
+import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
-import type { IChainsByAdapterPageData } from './types'
+import type { IAdapterByChainPageData, IChainsByAdapterPageData, IProtocol } from './types'
 
 export type BribesData = {
 	total24h: number | null
@@ -101,6 +106,101 @@ export function processGroupedProtocols<T, R>(
 		processedData.push(processor(protocolVersions, parentKey))
 	}
 	return processedData
+}
+
+/** Table/category filter: which protocol rows belong to the selected categories (including child protocols). */
+export function getProtocolsByCategory(
+	protocols: IAdapterByChainPageData['protocols'],
+	categoriesToFilter: Array<string>
+): IProtocol[] {
+	const final: IProtocol[] = []
+
+	for (const protocol of protocols) {
+		if (protocol.childProtocols) {
+			const childProtocols = protocol.childProtocols.filter(
+				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
+			)
+
+			if (childProtocols.length === protocol.childProtocols.length) {
+				final.push(protocol)
+			} else {
+				for (const childProtocol of childProtocols) {
+					final.push(childProtocol)
+				}
+			}
+
+			continue
+		}
+
+		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
+			final.push(protocol)
+			continue
+		}
+	}
+
+	return final
+}
+
+/** Leaf `name`s for breakdown filter: parents with children are omitted; children are included recursively. */
+export function leafProtocolNamesFromTableRows(protocols: IProtocol[]): string[] {
+	const walk = (p: IProtocol): IProtocol[] =>
+		p.childProtocols && p.childProtocols.length > 0 ? p.childProtocols.flatMap(walk) : [p]
+	return protocols
+		.flatMap(walk)
+		.toSorted((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+		.map((p) => p.name)
+}
+
+export type CategoryProtocolNameFilter =
+	| { kind: 'unrestricted' }
+	| { kind: 'no-rows' }
+	| { kind: 'restricted'; names: Set<string> }
+
+/**
+ * Same category selection rules as the adapter-by-chain table; used to align breakdown chart series with the table.
+ */
+export function getCategoryProtocolNameFilterForChart({
+	categories,
+	protocols,
+	categoryParam,
+	excludeCategoryParam,
+	hasCategoryParam
+}: {
+	categories: string[]
+	protocols: IProtocol[]
+	categoryParam: string | string[] | undefined
+	excludeCategoryParam: string | string[] | undefined
+	hasCategoryParam: boolean
+}): CategoryProtocolNameFilter {
+	const excludeSet = parseExcludeParam(excludeCategoryParam)
+
+	let selectedCategories =
+		categories.length > 0 && hasCategoryParam && categoryParam === ''
+			? []
+			: categoryParam
+				? typeof categoryParam === 'string'
+					? [categoryParam]
+					: categoryParam
+				: categories
+
+	selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+
+	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+
+	if (categories.length === 0) {
+		return { kind: 'unrestricted' }
+	}
+
+	if (selectedCategories.length === 0) {
+		return { kind: 'no-rows' }
+	}
+
+	if (categoriesToFilter.length > 0) {
+		const filtered = getProtocolsByCategory(protocols, categoriesToFilter)
+		return { kind: 'restricted', names: new Set(leafProtocolNamesFromTableRows(filtered)) }
+	}
+
+	return { kind: 'unrestricted' }
 }
 
 export function processRevenueDataForMatching(protocols: IAdapterChainMetrics['protocols']) {
@@ -239,124 +339,860 @@ export function buildAdapterByChainChartDataset({
 	}
 }
 
-export function getChartDataByChainAndInterval({
-	chartData,
-	chartInterval,
-	selectedChains,
-	chartType
-}: {
-	chartData: IChainsByAdapterPageData['chartData']
-	chartInterval: 'Daily' | 'Weekly' | 'Monthly' | 'Cumulative'
-	selectedChains: string[]
-	chartType: 'Volume' | 'Dominance'
-}) {
-	const isDominance = chartType === 'Dominance'
-	const isCumulative = chartInterval === 'Cumulative'
-	const groupBy = isCumulative
-		? 'cumulative'
-		: chartInterval === 'Weekly'
-			? 'weekly'
-			: chartInterval === 'Monthly'
-				? 'monthly'
-				: 'daily'
+function assert(condition: unknown, message: string): asserts condition {
+	if (!condition) {
+		throw new Error(message)
+	}
+}
 
-	const chainTotals = new Map<string, number>()
-	const chainSeries = new Map<string, Array<[number, number]>>()
+function toChartTimestamp(timestamp: number) {
+	return timestamp < 1e12 ? timestamp * 1e3 : timestamp
+}
+
+export function mergeSingleDimensionChartDataset({
+	chartData,
+	extraCharts
+}: {
+	chartData: MultiSeriesChart2Dataset
+	extraCharts: Array<Array<[number, number]>>
+}): MultiSeriesChart2Dataset {
+	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
+	assert(chartData.dimensions.length === 2, 'Expected a single chart dimension')
+
+	const dimension = chartData.dimensions[1]
+	const rows = new Map<number, number | null>()
+
+	for (const row of chartData.source) {
+		const value = row[dimension]
+		rows.set(Number(row.timestamp), typeof value === 'number' ? value : null)
+	}
+
+	for (const extraChart of extraCharts) {
+		for (const [timestamp, value] of extraChart) {
+			const chartTimestamp = toChartTimestamp(timestamp)
+			rows.set(chartTimestamp, (rows.get(chartTimestamp) ?? 0) + value)
+		}
+	}
+
+	return {
+		dimensions: ['timestamp', dimension],
+		source: Array.from(rows.entries())
+			.sort((a, b) => a[0] - b[0])
+			.map(([timestamp, value]) => ({
+				timestamp,
+				[dimension]: value
+			}))
+	}
+}
+
+export function mergeBreakdownCharts({
+	chart,
+	extraCharts
+}: {
+	chart: Array<[number, Record<string, number>]>
+	extraCharts: Array<Array<[number, Record<string, number>]>>
+}): Array<[number, Record<string, number>]> {
+	const rows = new Map<number, Record<string, number>>()
+
+	const mergeChart = (input: Array<[number, Record<string, number>]>) => {
+		for (const [timestamp, values] of input) {
+			const row = rows.get(timestamp) ?? {}
+			for (const key in values) {
+				row[key] = (row[key] ?? 0) + values[key]
+			}
+			rows.set(timestamp, row)
+		}
+	}
+
+	mergeChart(chart)
+	for (const extraChart of extraCharts) {
+		mergeChart(extraChart)
+	}
+
+	return Array.from(rows.entries()).sort((a, b) => a[0] - b[0])
+}
+
+export function mergeNamedDimensionChartDataset({
+	chartData,
+	extraCharts
+}: {
+	chartData: MultiSeriesChart2Dataset
+	extraCharts: Array<Array<[number, Record<string, number>]>>
+}): MultiSeriesChart2Dataset {
+	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
+
+	const dimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
+	const rows = new Map<number, Record<string, number | null>>()
+
+	for (const row of chartData.source) {
+		const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+		for (const dimension of dimensions) {
+			const value = row[dimension]
+			nextRow[dimension] = typeof value === 'number' ? value : null
+		}
+		rows.set(Number(row.timestamp), nextRow)
+	}
+
+	for (const extraChart of extraCharts) {
+		for (const [timestamp, values] of extraChart) {
+			const chartTimestamp = toChartTimestamp(timestamp)
+			const row = rows.get(chartTimestamp) ?? { timestamp: chartTimestamp }
+
+			for (const dimension of dimensions) {
+				if (!(dimension in row)) {
+					row[dimension] = null
+				}
+			}
+
+			for (const key in values) {
+				if (!(key in row)) continue
+				row[key] = (row[key] ?? 0) + values[key]
+			}
+
+			rows.set(chartTimestamp, row)
+		}
+	}
+
+	return {
+		dimensions: chartData.dimensions,
+		source: Array.from(rows.values()).sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+	}
+}
+
+export type ChainsByAdapterChartKind = 'bar' | 'line' | 'treemap' | 'hbar'
+export type ChainsByAdapterValueMode = 'absolute' | 'relative'
+export type ChainsByAdapterBarLayout = 'stacked' | 'separate'
+
+export type ChainsByAdapterChartState =
+	| {
+			chartKind: 'bar'
+			valueMode: ChainsByAdapterValueMode
+			barLayout: ChainsByAdapterBarLayout
+			groupBy: ChartTimeGroupingWithCumulative
+	  }
+	| {
+			chartKind: 'line'
+			groupBy: ChartTimeGroupingWithCumulative
+	  }
+	| {
+			chartKind: 'treemap'
+			groupBy: ChartTimeGroupingWithCumulative
+	  }
+	| {
+			chartKind: 'hbar'
+			groupBy: ChartTimeGroupingWithCumulative
+	  }
+
+export type ChainsByAdapterLatestValueDatum = {
+	name: string
+	value: number
+	share: number
+	itemStyle: { color: string }
+}
+
+type BreakdownLatestValueRow = {
+	name: string
+	total24h: number | null
+}
+
+type ChainsByAdapterBarPresentation = {
+	kind: 'bar'
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesChart2SeriesConfig[]
+	valueMode: ChainsByAdapterValueMode
+	barLayout: ChainsByAdapterBarLayout
+	showTotalInTooltip: boolean
+	groupBy: ChartTimeGroupingWithCumulative
+}
+
+type ChainsByAdapterLinePresentation = {
+	kind: 'line'
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesChart2SeriesConfig[]
+	groupBy: ChartTimeGroupingWithCumulative
+}
+
+type ChainsByAdapterTreemapPresentation = {
+	kind: 'treemap'
+	data: ChainsByAdapterLatestValueDatum[]
+}
+
+type ChainsByAdapterHBarPresentation = {
+	kind: 'hbar'
+	data: ChainsByAdapterLatestValueDatum[]
+}
+
+export type ChainsByAdapterChartPresentation =
+	| ChainsByAdapterBarPresentation
+	| ChainsByAdapterLinePresentation
+	| ChainsByAdapterTreemapPresentation
+	| ChainsByAdapterHBarPresentation
+
+type ChainsByAdapterBarState = Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
+type ChainsByAdapterLineState = Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
+type LatestValueSeriesType = 'bar' | 'line'
+
+const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGroupingWithCumulative = 'daily'
+const VALID_GROUPINGS = new Set<ChartTimeGroupingWithCumulative>([
+	'daily',
+	'weekly',
+	'monthly',
+	'quarterly',
+	'yearly',
+	'cumulative'
+])
+const MAX_BREAKDOWN_SERIES = 10
+const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
+const MIN_COMPLETE_DAILY_GAP_MS = 23 * 60 * 60 * 1000
+
+/** Rolling window length for treemap/hbar "latest value" when groupBy is not daily/cumulative (from latest row in dataset). */
+function getRollingWindowMsForTreemapGrouping(groupBy: 'weekly' | 'monthly' | 'quarterly' | 'yearly'): number {
+	const dayMs = 24 * 60 * 60 * 1000
+	switch (groupBy) {
+		case 'weekly':
+			return 7 * dayMs
+		case 'monthly':
+			return 30 * dayMs
+		case 'quarterly':
+			return 90 * dayMs
+		case 'yearly':
+			return 365 * dayMs
+	}
+}
+
+function getLatestTimestampMsInDataset(chartData: MultiSeriesChart2Dataset): number | null {
+	let max = -Infinity
+	for (const row of chartData.source) {
+		const ts = Number(row.timestamp)
+		if (Number.isFinite(ts) && ts > max) max = ts
+	}
+	return Number.isFinite(max) && max > -Infinity ? max : null
+}
+
+function assertNever(value: never): never {
+	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
+}
+
+function toValidChartGrouping(value: string | undefined | null): ChartTimeGroupingWithCumulative | null {
+	if (!value) return null
+	return VALID_GROUPINGS.has(value as ChartTimeGroupingWithCumulative)
+		? (value as ChartTimeGroupingWithCumulative)
+		: null
+}
+
+export function normalizeChainsByAdapterChartState({
+	chartKindParam,
+	valueModeParam,
+	barLayoutParam,
+	groupByParam,
+	legacyChartTypeParam
+}: {
+	chartKindParam?: string | null
+	valueModeParam?: string | null
+	barLayoutParam?: string | null
+	groupByParam?: string | null
+	legacyChartTypeParam?: string | null
+}): ChainsByAdapterChartState {
+	const normalizedGroupBy = groupByParam?.toLowerCase()
+
+	const normalizedChartKind = chartKindParam?.toLowerCase()
+	if (normalizedChartKind === 'line') {
+		return {
+			chartKind: 'line',
+			groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
+		}
+	}
+	if (normalizedChartKind === 'treemap') {
+		return {
+			chartKind: 'treemap',
+			groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
+		}
+	}
+	if (normalizedChartKind === 'hbar') {
+		return { chartKind: 'hbar', groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY }
+	}
+	if (legacyChartTypeParam?.toLowerCase() === 'dominance') {
+		return {
+			chartKind: 'line',
+			groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
+		}
+	}
+
+	return {
+		chartKind: 'bar',
+		valueMode: valueModeParam?.toLowerCase() === 'relative' ? 'relative' : 'absolute',
+		barLayout: barLayoutParam?.toLowerCase() === 'separate' ? 'separate' : 'stacked',
+		groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
+	}
+}
+
+function createSeriesUniverse({
+	chartData,
+	selectedNames,
+	rankingScores
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+	rankingScores?: Map<string, number>
+}) {
+	const entityTotals = new Map<string, number>()
+	const entitySeries = new Map<string, Array<[number, number]>>()
 
 	for (const row of chartData.source) {
 		const timestamp = Number(row.timestamp)
-		for (const chain of selectedChains) {
-			const value = row[chain]
+		for (const entity of selectedNames) {
+			const value = row[entity]
 			if (typeof value === 'number') {
-				chainTotals.set(chain, (chainTotals.get(chain) ?? 0) + value)
-				let series = chainSeries.get(chain)
+				entityTotals.set(entity, (entityTotals.get(entity) ?? 0) + value)
+				let series = entitySeries.get(entity)
 				if (!series) {
 					series = []
-					chainSeries.set(chain, series)
+					entitySeries.set(entity, series)
 				}
 				series.push([timestamp, value])
 			}
 		}
 	}
 
-	const ranked = Array.from(chainTotals.entries()).toSorted((a, b) => b[1] - a[1])
-	const topChains: string[] = []
-	const otherChainNames: string[] = []
-	for (let i = 0; i < ranked.length; i++) {
-		if (i < 10) topChains.push(ranked[i][0])
-		else otherChainNames.push(ranked[i][0])
+	const getRankingScore = (entity: string) => rankingScores?.get(entity) ?? Number.NEGATIVE_INFINITY
+	const ranked = Array.from(entityTotals.entries()).toSorted((a, b) => {
+		const aScore = getRankingScore(a[0])
+		const bScore = getRankingScore(b[0])
+		if (aScore !== bScore) {
+			return bScore > aScore ? 1 : -1
+		}
+		return b[1] - a[1]
+	})
+	const topEntityNames = ranked.slice(0, MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
+	const otherEntityNames = ranked.slice(MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
+	const topSeries = new Map<string, Array<[number, number]>>()
+
+	for (const entity of topEntityNames) {
+		const series = entitySeries.get(entity)
+		if (series) {
+			topSeries.set(entity, series)
+		}
 	}
 
-	let othersSeries: Array<[number, number]> | null = null
-	if (otherChainNames.length > 0) {
+	if (otherEntityNames.length > 0) {
 		const othersMap = new Map<number, number>()
-		for (const chain of otherChainNames) {
-			for (const [ts, value] of chainSeries.get(chain)!) {
+		for (const entity of otherEntityNames) {
+			for (const [ts, value] of entitySeries.get(entity) ?? []) {
 				othersMap.set(ts, (othersMap.get(ts) ?? 0) + value)
 			}
 		}
-		othersSeries = Array.from(othersMap.entries()).sort((a, b) => a[0] - b[0])
-	}
-
-	const seriesNames = othersSeries ? [...topChains, 'Others'] : [...topChains]
-
-	const groupedSeries = new Map<string, Array<[number, number | null]>>()
-	for (const chain of topChains) {
-		groupedSeries.set(
-			chain,
-			formatBarChart({ data: chainSeries.get(chain)!, groupBy, dateInMs: true, denominationPriceHistory: null })
-		)
-	}
-	if (othersSeries) {
-		groupedSeries.set(
+		topSeries.set(
 			'Others',
-			formatBarChart({ data: othersSeries, groupBy, dateInMs: true, denominationPriceHistory: null })
+			Array.from(othersMap.entries()).sort((a, b) => a[0] - b[0])
 		)
 	}
 
-	const allColors = getNDistinctColors(seriesNames.length || 1)
-	const colorByChain = Object.fromEntries(seriesNames.map((chain, i) => [chain, allColors[i]]))
+	const topSeriesNames = Array.from(topSeries.keys())
+	const topColors = getNDistinctColors(topSeriesNames.length || 1)
+	const topColorBySeriesName = Object.fromEntries(topSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
 
-	const rowMap = new Map<number, Record<string, number>>()
-	for (const chain of seriesNames) {
-		for (const [timestamp, value] of groupedSeries.get(chain)!) {
+	return {
+		topSeries,
+		topSeriesNames,
+		topColorBySeriesName
+	}
+}
+
+function buildDenseRowsFromGroupedSeries(
+	groupedSeries: Map<string, Array<[number, number | null]>>,
+	seriesNames: string[]
+): MultiSeriesChart2Dataset {
+	const rowMap = new Map<number, Record<string, number | null>>()
+
+	for (const seriesName of seriesNames) {
+		for (const [timestamp, value] of groupedSeries.get(seriesName) ?? []) {
 			const row = rowMap.get(timestamp) ?? { timestamp }
-			row[chain] = value ?? 0
+			row[seriesName] = value
 			rowMap.set(timestamp, row)
 		}
 	}
 
 	const source = ensureChronologicalRows(Array.from(rowMap.values()))
 	for (const row of source) {
-		for (const chain of seriesNames) {
-			if (!(chain in row)) row[chain] = 0
+		for (const seriesName of seriesNames) {
+			if (!(seriesName in row)) row[seriesName] = null
 		}
 	}
 
-	const finalSource = isDominance
-		? source.map((row) => {
-				const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
-				let total = 0
-				for (const chain of seriesNames) {
-					if (row[chain] > 0) total += row[chain]
-				}
-				for (const chain of seriesNames) {
-					nextRow[chain] = total > 0 ? (row[chain] / total) * 100 : 0
-				}
-				return nextRow
-			})
-		: source
+	return {
+		source,
+		dimensions: ['timestamp', ...seriesNames]
+	}
+}
 
-	const charts = seriesNames.map((chain) => ({
-		type: (isDominance || isCumulative ? 'line' : 'bar') as 'line' | 'bar',
-		name: chain,
-		encode: { x: 'timestamp', y: chain },
-		...(isDominance || !isCumulative ? { stack: 'chain' as const } : {}),
-		color: colorByChain[chain]
-	}))
+function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesNames: string[]): MultiSeriesChart2Dataset {
+	return {
+		dimensions: dataset.dimensions,
+		source: dataset.source.map((row) => {
+			const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+			let total = 0
+			for (const seriesName of seriesNames) {
+				const value = row[seriesName]
+				if (typeof value === 'number' && Number.isFinite(value) && value > 0) total += value
+			}
+			for (const seriesName of seriesNames) {
+				const value = row[seriesName]
+				if (typeof value !== 'number' || !Number.isFinite(value)) {
+					nextRow[seriesName] = null
+					continue
+				}
+				nextRow[seriesName] = total > 0 ? (value / total) * 100 : 0
+			}
+			return nextRow
+		})
+	}
+}
+
+function buildBarPresentation({
+	topSeries,
+	topSeriesNames,
+	topColorBySeriesName,
+	state
+}: {
+	topSeries: Map<string, Array<[number, number]>>
+	topSeriesNames: string[]
+	topColorBySeriesName: Record<string, string>
+	state: ChainsByAdapterBarState
+}): ChainsByAdapterBarPresentation {
+	const groupedSeries = new Map<string, Array<[number, number | null]>>()
+
+	for (const seriesName of topSeriesNames) {
+		groupedSeries.set(
+			seriesName,
+			formatBarChart({
+				data: topSeries.get(seriesName) ?? [],
+				groupBy: state.groupBy,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
+		)
+	}
+
+	const absoluteDataset = buildDenseRowsFromGroupedSeries(groupedSeries, topSeriesNames)
+	const finalDataset =
+		state.valueMode === 'relative' ? normalizeDatasetToPercent(absoluteDataset, topSeriesNames) : absoluteDataset
 
 	return {
-		dataset: { source: finalSource, dimensions: ['timestamp', ...seriesNames] },
-		charts
+		kind: 'bar',
+		dataset: finalDataset,
+		charts: topSeriesNames.map((seriesName) => ({
+			type: 'bar',
+			name: seriesName,
+			encode: { x: 'timestamp', y: seriesName },
+			...(state.barLayout === 'stacked' ? { stack: 'chain' as const } : {}),
+			color: topColorBySeriesName[seriesName]
+		})),
+		valueMode: state.valueMode,
+		barLayout: state.barLayout,
+		showTotalInTooltip: state.valueMode === 'absolute' && state.barLayout === 'stacked',
+		groupBy: state.groupBy
 	}
+}
+
+function buildLinePresentation({
+	topSeries,
+	topSeriesNames,
+	topColorBySeriesName,
+	state
+}: {
+	topSeries: Map<string, Array<[number, number]>>
+	topSeriesNames: string[]
+	topColorBySeriesName: Record<string, string>
+	state: ChainsByAdapterLineState
+}): ChainsByAdapterLinePresentation {
+	const groupedSeries = new Map<string, Array<[number, number | null]>>()
+
+	for (const seriesName of topSeriesNames) {
+		groupedSeries.set(
+			seriesName,
+			formatBarChart({
+				data: topSeries.get(seriesName) ?? [],
+				groupBy: state.groupBy,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
+		)
+	}
+
+	const groupedDataset = buildDenseRowsFromGroupedSeries(groupedSeries, topSeriesNames)
+	const relativeDataset = normalizeDatasetToPercent(groupedDataset, topSeriesNames)
+
+	return {
+		kind: 'line',
+		dataset: relativeDataset,
+		charts: topSeriesNames.map((seriesName) => ({
+			type: 'line',
+			name: seriesName,
+			encode: { x: 'timestamp', y: seriesName },
+			color: topColorBySeriesName[seriesName],
+			stack: 'chain'
+		})),
+		groupBy: state.groupBy
+	}
+}
+
+function buildTreemapPresentation({
+	selectedNames,
+	latestRows
+}: {
+	selectedNames: string[]
+	latestRows: BreakdownLatestValueRow[]
+}): ChainsByAdapterLatestValueDatum[] {
+	const latestValuesByName = new Map<string, number>()
+	for (const row of latestRows) {
+		const value = row.total24h
+		if (typeof value === 'number' && Number.isFinite(value)) {
+			latestValuesByName.set(row.name, value)
+		}
+	}
+
+	const values = selectedNames
+		.map((name) => {
+			const rawValue = latestValuesByName.get(name) ?? 0
+			const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
+			return {
+				name,
+				value: Number.isFinite(value) ? value : 0
+			}
+		})
+		.filter((item) => item.value > 0)
+		.toSorted((a, b) => b.value - a.value)
+
+	const total = values.reduce((sum, item) => sum + item.value, 0)
+	const colors = getNDistinctColors(values.length || 1)
+
+	return values.map((item, index) => ({
+		...item,
+		share: total > 0 ? (item.value / total) * 100 : 0,
+		itemStyle: {
+			color: colors[index]
+		}
+	}))
+}
+
+function buildLatestValueRowsFromChartData({
+	chartData,
+	selectedNames,
+	groupBy
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+	groupBy: ChartTimeGroupingWithCumulative
+	seriesType: LatestValueSeriesType
+}): BreakdownLatestValueRow[] {
+	if (groupBy === 'daily') {
+		const effectiveTimestamp = getEffectiveDailyLatestTimestamp(chartData)
+		if (effectiveTimestamp == null) {
+			return selectedNames.map((name) => ({ name, total24h: null }))
+		}
+
+		const sourceRow = chartData.source.find((row) => Number(row.timestamp) === effectiveTimestamp)
+		return selectedNames.map((name) => {
+			const value = sourceRow?.[name]
+			return {
+				name,
+				total24h: typeof value === 'number' && Number.isFinite(value) ? value : null
+			}
+		})
+	}
+
+	if (groupBy === 'cumulative') {
+		return selectedNames.map((name) => {
+			const rawData = chartData.source
+				.map((row) => {
+					const timestamp = Number(row.timestamp)
+					const value = row[name]
+					return typeof value === 'number' && Number.isFinite(timestamp)
+						? ([timestamp, value] as [number, number])
+						: null
+				})
+				.filter((point): point is [number, number] => point != null)
+
+			// Cumulative rankings should always use running totals, even for line renderers.
+			const groupedData = formatBarChart({
+				data: rawData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
+
+			return {
+				name,
+				total24h: groupedData.at(-1)?.[1] ?? null
+			}
+		})
+	}
+
+	const latestTsMs = getLatestTimestampMsInDataset(chartData)
+	if (latestTsMs == null) {
+		return selectedNames.map((name) => ({ name, total24h: null }))
+	}
+
+	const windowMs = getRollingWindowMsForTreemapGrouping(groupBy)
+	const cutoffMs = latestTsMs - windowMs
+
+	return selectedNames.map((name) => {
+		const rawData = chartData.source
+			.map((row) => {
+				const timestamp = Number(row.timestamp)
+				const value = row[name]
+				return typeof value === 'number' && Number.isFinite(timestamp) ? ([timestamp, value] as [number, number]) : null
+			})
+			.filter((point): point is [number, number] => point != null)
+
+		const sorted = rawData.toSorted((a, b) => a[0] - b[0])
+
+		let sum = 0
+		let pointsInWindow = 0
+		let i = sorted.length - 1
+		if (i >= 0) {
+			do {
+				const point = sorted[i]!
+				const [tsMs, value] = point
+				if (tsMs < cutoffMs) break
+				sum += value
+				pointsInWindow++
+				i--
+			} while (i >= 0)
+		}
+
+		return {
+			name,
+			total24h: pointsInWindow === 0 ? null : sum
+		}
+	})
+}
+
+function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): number | null {
+	const timestamps = chartData.source
+		.map((row) => Number(row.timestamp))
+		.filter((timestamp) => Number.isFinite(timestamp))
+		.toSorted((a, b) => a - b)
+
+	if (timestamps.length === 0) return null
+	if (timestamps.length === 1) return timestamps[0]
+
+	const lastTimestamp = timestamps[timestamps.length - 1]
+	const previousTimestamp = timestamps[timestamps.length - 2]
+	const lastDate = new Date(lastTimestamp)
+	const isUtcMidnight =
+		lastDate.getUTCHours() === 0 &&
+		lastDate.getUTCMinutes() === 0 &&
+		lastDate.getUTCSeconds() === 0 &&
+		lastDate.getUTCMilliseconds() === 0
+	const gapMs = lastTimestamp - previousTimestamp
+
+	return !isUtcMidnight || gapMs < MIN_COMPLETE_DAILY_GAP_MS ? previousTimestamp : lastTimestamp
+}
+
+function buildHBarPresentation({
+	selectedNames,
+	latestRows
+}: {
+	selectedNames: string[]
+	latestRows: BreakdownLatestValueRow[]
+}): ChainsByAdapterLatestValueDatum[] {
+	const rankedValues = buildTreemapPresentation({ selectedNames, latestRows })
+
+	if (rankedValues.length <= MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS) {
+		return rankedValues
+	}
+
+	const topValues = rankedValues.slice(0, MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS)
+	const othersValue = rankedValues.slice(MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS).reduce((sum, item) => sum + item.value, 0)
+
+	if (othersValue <= 0) {
+		return topValues
+	}
+
+	const limitedValues = [...topValues, { name: 'Others', value: othersValue }]
+	const total = limitedValues.reduce((sum, item) => sum + item.value, 0)
+	const colors = getNDistinctColors(limitedValues.length)
+
+	return limitedValues.map((item, index) => ({
+		...item,
+		share: total > 0 ? (item.value / total) * 100 : 0,
+		itemStyle: {
+			color: colors[index]
+		}
+	}))
+}
+
+export function buildChainsByAdapterChartPresentation({
+	chartData,
+	selectedChains,
+	state,
+	latestValueSeriesType = 'bar'
+}: {
+	chartData: IChainsByAdapterPageData['chartData']
+	selectedChains: string[]
+	state: ChainsByAdapterChartState
+	latestValueSeriesType?: LatestValueSeriesType
+}): ChainsByAdapterChartPresentation {
+	switch (state.chartKind) {
+		case 'treemap': {
+			const latestRows = buildLatestValueRowsFromChartData({
+				chartData,
+				selectedNames: selectedChains,
+				groupBy: state.groupBy,
+				seriesType: latestValueSeriesType
+			})
+			return {
+				kind: 'treemap',
+				data: buildTreemapPresentation({ selectedNames: selectedChains, latestRows })
+			}
+		}
+		case 'hbar': {
+			const latestRows = buildLatestValueRowsFromChartData({
+				chartData,
+				selectedNames: selectedChains,
+				groupBy: state.groupBy,
+				seriesType: latestValueSeriesType
+			})
+			return {
+				kind: 'hbar',
+				data: buildHBarPresentation({ selectedNames: selectedChains, latestRows })
+			}
+		}
+		case 'line': {
+			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+				chartData,
+				selectedNames: selectedChains
+			})
+			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		}
+		case 'bar': {
+			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+				chartData,
+				selectedNames: selectedChains
+			})
+			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		}
+		default:
+			return assertNever(state)
+	}
+}
+
+export function buildAdapterByChainBreakdownPresentation({
+	chartData,
+	selectedProtocols,
+	state
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedProtocols: string[]
+	state: ChainsByAdapterBarState | ChainsByAdapterLineState
+}): ChainsByAdapterBarPresentation | ChainsByAdapterLinePresentation {
+	const latestRows = buildLatestValueRowsFromChartData({
+		chartData,
+		selectedNames: selectedProtocols,
+		groupBy: state.groupBy,
+		seriesType: state.chartKind
+	})
+	const rankingScores = new Map<string, number>()
+	for (const row of latestRows) {
+		if (typeof row.total24h === 'number' && Number.isFinite(row.total24h)) {
+			rankingScores.set(row.name, row.total24h)
+		}
+	}
+
+	const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+		chartData,
+		selectedNames: selectedProtocols,
+		rankingScores
+	})
+
+	switch (state.chartKind) {
+		case 'line':
+			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		case 'bar':
+			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		default:
+			return assertNever(state)
+	}
+}
+
+export function buildAdapterByChainLatestValuePresentation({
+	chartKind,
+	selectedProtocols,
+	groupBy,
+	chartData,
+	seriesType = 'bar'
+}: {
+	chartKind: 'treemap' | 'hbar'
+	selectedProtocols: string[]
+	groupBy: ChartTimeGroupingWithCumulative
+	chartData: MultiSeriesChart2Dataset
+	seriesType?: LatestValueSeriesType
+}): ChainsByAdapterTreemapPresentation | ChainsByAdapterHBarPresentation {
+	const latestRows = buildLatestValueRowsFromChartData({
+		chartData,
+		selectedNames: selectedProtocols,
+		groupBy,
+		seriesType
+	})
+
+	if (chartKind === 'treemap') {
+		return {
+			kind: 'treemap',
+			data: buildTreemapPresentation({ selectedNames: selectedProtocols, latestRows })
+		}
+	}
+
+	return {
+		kind: 'hbar',
+		data: buildHBarPresentation({ selectedNames: selectedProtocols, latestRows })
+	}
+}
+
+/**
+ * Convert `dimensions.*.genuineSpikes` tuples from the adapter API into
+ * hallmark-compatible `[timestampSeconds, label]` entries and merge them
+ * with any pre-existing hallmarks (from hacks or protocol-level annotations).
+ *
+ * Timestamps are in **seconds** because the chart layer (`MultiSeriesChart2`)
+ * multiplies by 1e3 when rendering mark lines.
+ *
+ * Deduplicates by timestamp so the same date doesn't produce overlapping marks.
+ */
+export function buildHallmarksWithGenuineSpikes({
+	protocolHallmarks,
+	dimensions
+}: {
+	protocolHallmarks?: Array<unknown> | null
+	dimensions?: IAdapterProtocolMetrics['dimensions']
+}): Array<[number, string]> | null {
+	const hallmarkMap = new Map<number, string>()
+
+	for (const mark of protocolHallmarks ?? []) {
+		if (!Array.isArray(mark)) continue
+		if (!Array.isArray(mark[0]) && typeof mark[0] === 'number') {
+			const ts = mark[0] >= 1e12 ? Math.floor(mark[0] / 1e3) : mark[0]
+			if (!hallmarkMap.has(ts) && mark[1] !== '-') {
+				hallmarkMap.set(ts, String(mark[1]))
+			}
+		}
+	}
+
+	if (dimensions) {
+		for (const dimKey in dimensions) {
+			const spikes = dimensions[dimKey]?.genuineSpikes
+			if (!spikes) continue
+			for (const [dateStr, label] of spikes) {
+				const ts = Math.floor(new Date(dateStr).getTime() / 1e3)
+				if (!Number.isFinite(ts)) continue
+				if (!hallmarkMap.has(ts)) {
+					hallmarkMap.set(ts, label)
+				}
+			}
+		}
+	}
+
+	if (hallmarkMap.size === 0) return null
+
+	return Array.from(hallmarkMap.entries()).sort((a, b) => a[0] - b[0])
 }

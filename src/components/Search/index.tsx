@@ -2,10 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { searchApi } from '~/api'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useDebouncedValue } from '~/hooks/useDebounce'
@@ -20,26 +20,8 @@ async function getDefaultSearchList() {
 		throw new Error(error instanceof Error ? error.message : 'Unknown error')
 	}
 }
-async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetchJson(SEARCH_API_URL, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${SEARCH_API_TOKEN}`
-		},
-		body: JSON.stringify({
-			queries: [
-				{
-					indexUid: 'pages',
-					limit: 20,
-					offset: 0,
-					q: query
-				}
-			]
-		})
-	}).then((res) => res?.results?.[0]?.hits ?? [])
-
-	return response
+async function fetchSearchList(query: string): Promise<Array<ISearchItem>> {
+	return searchApi<ISearchItem>({ indexUid: 'pages', limit: 20, offset: 0, q: query })
 }
 
 interface ISearchItem {
@@ -53,11 +35,7 @@ interface ISearchItem {
 	subName?: string
 }
 
-const hideLlamaAiButtonOnRoutes = new Set(['/ai'])
-
 export const MobileSearch = () => {
-	const router = useRouter()
-
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
@@ -74,19 +52,17 @@ export const MobileSearch = () => {
 
 	return (
 		<>
-			{!hideLlamaAiButtonOnRoutes.has(router.pathname) ? (
-				<BasicLink
-					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
-					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
-					data-umami-event="llamaai-mobile-nav-link"
-					data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
-				>
-					<svg className="h-4 w-4 shrink-0">
-						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
-					</svg>
-					<span className="sr-only">{isClient && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
-				</BasicLink>
-			) : null}
+			<BasicLink
+				href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
+				className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
+				data-umami-event="llamaai-mobile-nav-link"
+				data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
+			>
+				<svg className="h-4 w-4 shrink-0">
+					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
+				</svg>
+				<span className="sr-only">{isClient && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
+			</BasicLink>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 					<span className="sr-only">Search</span>
@@ -194,9 +170,7 @@ function getPreHydrationInputValue() {
 	return el instanceof HTMLInputElement ? el.value : ''
 }
 
-export const DesktopSearch = () => {
-	const router = useRouter()
-
+export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boolean }) => {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
@@ -314,7 +288,7 @@ export const DesktopSearch = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{!hideLlamaAiButtonOnRoutes.has(router.pathname) ? (
+			{!hideLlamaAiCta ? (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"

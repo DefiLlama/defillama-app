@@ -2,8 +2,8 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -16,7 +16,8 @@ import type { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/con
 import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { peggedAssetIconUrl } from '~/utils/icons'
 import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
@@ -69,7 +70,9 @@ export const PeggedAssetInfo = ({
 	totalCirculating,
 	unreleased,
 	mcap,
-	bridgeInfo
+	bridgeInfo,
+	blockExplorerUrl,
+	blockExplorerName
 }: PeggedAssetPageProps) => {
 	const router = useRouter()
 	let {
@@ -79,15 +82,12 @@ export const PeggedAssetInfo = ({
 		symbol,
 		description,
 		mintRedeemDescription,
-		address,
 		url,
 		pegMechanism,
 		twitter,
 		auditLinks,
 		price
 	} = peggedAssetData
-
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? '')
 
 	const [chartType, setChartType] = React.useState<ChartType>('Pie')
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
@@ -406,9 +406,9 @@ export const PeggedAssetInfo = ({
 										<span>Twitter</span>
 									</a>
 								) : null}
-								{blockExplorerLink !== undefined ? (
+								{blockExplorerUrl ? (
 									<a
-										href={blockExplorerLink}
+										href={blockExplorerUrl}
 										target="_blank"
 										rel="noopener noreferrer"
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"

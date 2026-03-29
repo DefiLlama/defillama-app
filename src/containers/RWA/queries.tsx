@@ -1,12 +1,15 @@
+import { fetchBlockExplorers } from '~/api'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	fetchRWAActiveTVLs,
+	fetchRWAAssetGroupBreakdownChartData,
 	fetchRWAChainBreakdownChartData,
 	fetchRWACategoryBreakdownChartData,
+	fetchRWAPlatformBreakdownChartData,
 	fetchRWAStats,
 	fetchRWAChartDataByTicker,
-	fetchRWAPlatformBreakdownChartData,
 	fetchRWAAssetDataById,
 	fetchRWAAssetChartData,
 	toUnixMsTimestamp
@@ -14,9 +17,6 @@ import {
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByTicker,
-	IRWABreakdownChartParams,
-	IRWABreakdownChartResponse,
-	IRWABreakdownDatasetsByMetric,
 	IRWAProject,
 	IRWAAssetsOverview,
 	IRWAAssetData,
@@ -26,14 +26,27 @@ import type {
 	IRWACategoriesOverviewRow,
 	IRWAPlatformsOverview,
 	IRWAPlatformsOverviewRow,
-	RWAChartMetricKey
+	IRWAAssetGroupsOverview,
+	IRWAAssetGroupsOverviewRow,
+	RWATickerChartTarget
 } from './api.types'
-import { aggregateRwaChartData, applyDefaultAssetFilters, type RWAChartAggregationMode } from './chartAggregation'
+import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from './assetGroup'
+import { toBreakdownChartDataset } from './breakdownDataset'
+import {
+	aggregateRwaMetricData,
+	applyDefaultAssetFilters,
+	emptyChartDataset,
+	type RWAChartAggregationMode
+} from './chartAggregation'
 import { definitions } from './definitions'
+import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
 type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
+
+const getRealRwaPlatforms = (value: Parameters<typeof getRwaPlatforms>[0]) =>
+	getRwaPlatforms(value).filter((platform) => platform !== UNKNOWN_PLATFORM && rwaSlug(platform) !== 'unknown')
 
 type AggregatedRwaMetrics = {
 	totals: {
@@ -173,29 +186,53 @@ type RWAAssetsOverviewParams = {
 	chain?: string
 	category?: string
 	platform?: string
+	assetGroup?: string
 	rwaList: IRWAList
 }
 
-const ASSETS_TO_EXCLUDE = new Set(['Franklin OnChain U.S. Government Money Fund (BENJI)'])
+const ASSETS_TO_EXCLUDE = new Set([])
 
-export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
+function assert(condition: unknown, message: string): asserts condition {
+	if (!condition) {
+		throw new Error(message)
+	}
+}
+
+export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
-		const selectedChain = params?.chain ? rwaSlug(params.chain) : undefined
-		const selectedCategory = params?.category ? rwaSlug(params.category) : undefined
-		const selectedPlatform = params?.platform ? rwaSlug(params.platform) : undefined
+		const selectedChain = params.chain ? rwaSlug(params.chain) : undefined
+		const selectedCategory = params.category ? rwaSlug(params.category) : undefined
+		const selectedPlatform = params.platform ? rwaSlug(params.platform) : undefined
+		const selectedAssetGroup = params.assetGroup ? rwaSlug(params.assetGroup) : undefined
 
-		// Route-level filtering supports chain OR category OR platform, not multiple at once.
-		const selectedCount = Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform)
+		const selectedCount =
+			Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform) + Number(!!selectedAssetGroup)
 		if (selectedCount > 1) return null
+
+		const target: RWATickerChartTarget = selectedChain
+			? { kind: 'chain', slug: selectedChain }
+			: selectedCategory
+				? { kind: 'category', slug: selectedCategory }
+				: selectedPlatform
+					? { kind: 'platform', slug: selectedPlatform }
+					: selectedAssetGroup
+						? { kind: 'assetGroup', slug: selectedAssetGroup }
+						: { kind: 'all' }
 
 		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
 			fetchRWAActiveTVLs(),
-			fetchRWAChartDataByTicker({ selectedChain, selectedCategory, selectedPlatform })
+			fetchRWAChartDataByTicker(target)
 		])
 
-		if (!data) {
-			throw new Error('Failed to get RWA assets list')
-		}
+		assert(data, 'Failed to get RWA assets list')
+		const hasUnknownAssetGroup = data.some(
+			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP
+		)
+		// Only expose the synthetic Unknown filter/route when the current dataset actually contains
+		// assets without an assetGroup value.
+		const assetGroupValues = hasUnknownAssetGroup
+			? appendUnknownRwaAssetGroup(params.rwaList.assetGroups)
+			: params.rwaList.assetGroups
 
 		const chartDataMs: IRWAChartDataByTicker | null = chartData
 			? {
@@ -250,17 +287,32 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			}
 		}
 
-		// `selectedPlatform` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
 			for (const item of data) {
-				const platform = item.parentPlatform
-				if (platform && rwaSlug(platform) === selectedPlatform) {
+				const platform = getRealRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
+				if (platform) {
 					actualPlatformName = platform
 					break
 				}
 			}
 			if (!actualPlatformName) {
+				return null
+			}
+		}
+
+		let actualAssetGroupName: string | null = null
+		if (selectedAssetGroup) {
+			// Resolve the display label from the same set of filterable values used by the overview,
+			// including the synthetic Unknown bucket when missing assetGroup values exist in the API data.
+			for (const assetGroup of assetGroupValues) {
+				const normalizedAssetGroup = normalizeRwaAssetGroup(assetGroup)
+				if (rwaSlug(normalizedAssetGroup) === selectedAssetGroup) {
+					actualAssetGroupName = normalizedAssetGroup
+					break
+				}
+			}
+			if (!actualAssetGroupName) {
 				return null
 			}
 		}
@@ -272,6 +324,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
 		const platforms = new Map<string, number>()
+		const assetGroups = new Map<string, number>()
 		const assetNames = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const issuerSet = new Set<string>()
@@ -306,7 +359,11 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
 				: true
 			const hasPlatformMatch = selectedPlatform
-				? !!item.parentPlatform && rwaSlug(item.parentPlatform) === selectedPlatform
+				? getRealRwaPlatforms(item.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
+				: true
+			const hasAssetGroupMatch = selectedAssetGroup
+				? // Match missing/blank asset groups through the same normalized Unknown bucket used in the filters.
+					rwaSlug(normalizeRwaAssetGroup(item.assetGroup)) === selectedAssetGroup
 				: true
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
@@ -386,6 +443,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				hasChainInTvl &&
 				hasCategoryMatch &&
 				hasPlatformMatch &&
+				hasAssetGroupMatch &&
 				asset.assetName &&
 				!ASSETS_TO_EXCLUDE.has(asset.assetName)
 			) {
@@ -437,18 +495,13 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMcap)
 					}
 				}
-				const platformRaw = asset.parentPlatform as unknown
-				const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
-				const normalizedPlatforms = Array.from(
-					new Set(
-						platformCandidates
-							.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
-							.filter((platform): platform is string => platform.length > 0)
-					)
-				)
-				for (const platform of normalizedPlatforms) {
+				for (const platform of getRwaPlatforms(asset.parentPlatform)) {
+					if (platform === UNKNOWN_PLATFORM) continue
 					platforms.set(platform, (platforms.get(platform) ?? 0) + effectiveOnChainMcap)
 				}
+				// Preserve assets with blank assetGroup values by assigning them to the normalized Unknown bucket.
+				const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
+				assetGroups.set(assetGroup, (assetGroups.get(assetGroup) ?? 0) + effectiveOnChainMcap)
 				if (asset.rwaClassification) {
 					rwaClassifications.set(
 						asset.rwaClassification,
@@ -496,48 +549,44 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const formattedPlatforms = Array.from(platforms.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
+		const formattedAssetGroups = Array.from(assetGroups.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
 
-		const chainNavValues =
-			params?.rwaList?.chains?.map((chain) => ({
-				label: chain,
-				to: `/rwa/chain/${rwaSlug(chain)}`
-			})) ?? []
-		const categoryNavValues =
-			params?.rwaList?.categories?.map((category) => ({
-				label: category,
-				to: `/rwa/category/${rwaSlug(category)}`
-			})) ?? []
-		const platformNavValues =
-			params?.rwaList?.platforms?.map((platform) => ({
-				label: platform,
-				to: `/rwa/platform/${rwaSlug(platform)}`
-			})) ?? []
-
-		if ((selectedChain && !chainNavValues) || chainNavValues.length === 0) {
-			throw new Error('chains not found in RWA list')
-		}
-
-		if ((selectedCategory && !categoryNavValues) || categoryNavValues.length === 0) {
-			throw new Error('categories not found in RWA list')
-		}
-
-		if ((selectedPlatform && !platformNavValues) || platformNavValues.length === 0) {
-			throw new Error('platforms not found in RWA list')
-		}
+		const chainNavValues = params.rwaList.chains.map((chain) => ({
+			label: chain,
+			to: `/rwa/chain/${rwaSlug(chain)}`
+		}))
+		const categoryNavValues = params.rwaList.categories.map((category) => ({
+			label: category,
+			to: `/rwa/category/${rwaSlug(category)}`
+		}))
+		const platformNavValues = params.rwaList.platforms.map((platform) => ({
+			label: platform,
+			to: `/rwa/platform/${rwaSlug(platform)}`
+		}))
+		const assetGroupNavValues = assetGroupValues.map((assetGroup) => {
+			const normalizedAssetGroup = normalizeRwaAssetGroup(assetGroup)
+			return {
+				label: normalizedAssetGroup,
+				to: `/rwa/asset-group/${rwaSlug(normalizedAssetGroup)}`
+			}
+		})
 
 		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
-		const isChainMode = !selectedCategory && !selectedPlatform
-		const aggregationMode: RWAChartAggregationMode = selectedCategory
-			? 'assetClass'
-			: selectedPlatform
-				? 'assetName'
-				: 'category'
+		const aggregationMode: RWAChartAggregationMode = selectedAssetGroup ? 'assetName' : 'assetGroup'
 		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
-			includeStablecoins: !isChainMode,
-			includeGovernance: !isChainMode
+			includeStablecoins: false,
+			includeGovernance: false,
+			mode: selectedAssetGroup ? 'assetGroup' : selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain',
+			categorySlug: selectedCategory
 		})
 		const initialChartDataset = chartDataMs
-			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
+			? {
+					onChainMcap: emptyChartDataset(),
+					activeMcap: aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode),
+					defiActiveTvl: emptyChartDataset()
+				}
 			: null
 
 		return {
@@ -573,6 +622,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				help: definitions.category.values?.[category] ?? null
 			})),
 			platforms: formattedPlatforms,
+			assetGroups: formattedAssetGroups,
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
 						.sort((a, b) => b[1] - a[1])
@@ -585,11 +635,22 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				.sort((a, b) => b[1] - a[1])
 				.map(([key]) => key),
 			selectedChain: actualChainName ?? 'All',
-			chainLinks: selectedCategory || selectedPlatform ? [] : [{ label: 'All', to: '/rwa' }, ...chainNavValues],
-			categoryLinks: selectedCategory ? [{ label: 'All', to: '/rwa/categories' }, ...categoryNavValues] : [],
+			chainLinks:
+				selectedCategory || selectedPlatform || selectedAssetGroup || chainNavValues.length === 0
+					? []
+					: [{ label: 'All', to: '/rwa' }, ...chainNavValues],
+			categoryLinks:
+				selectedCategory && categoryNavValues.length > 0
+					? [{ label: 'All', to: '/rwa/categories' }, ...categoryNavValues]
+					: [],
 			selectedCategory: actualCategoryName ?? 'All',
-			platformLinks: selectedPlatform ? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues] : [],
+			platformLinks:
+				selectedPlatform && platformNavValues.length > 0
+					? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues]
+					: [],
 			selectedPlatform: actualPlatformName ?? 'All',
+			assetGroupLinks: selectedAssetGroup ? [{ label: 'All', to: '/rwa/asset-groups' }, ...assetGroupNavValues] : [],
+			selectedAssetGroup: actualAssetGroupName ?? 'All',
 			totals: {
 				onChainMcap: totalOnChainMcap,
 				activeMcap: totalActiveMcap,
@@ -617,101 +678,18 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			initialChartDataset,
 			chainSlug: selectedChain ?? null,
 			categorySlug: selectedCategory ?? null,
-			platformSlug: selectedPlatform ?? null
+			platformSlug: selectedPlatform ?? null,
+			assetGroupSlug: selectedAssetGroup ?? null
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
 	}
 }
 
-const RWA_CHART_METRIC_KEYS: RWAChartMetricKey[] = ['onChainMcap', 'activeMcap', 'defiActiveTvl']
-
-const emptyRwaBreakdownDataset = () => ({ source: [], dimensions: ['timestamp'] })
-
-function sortBreakdownSeriesByLatestTimestampValue(rows: IRWABreakdownChartResponse, keys: Iterable<string>): string[] {
-	const seriesKeys = Array.from(keys).filter(Boolean)
-	if (seriesKeys.length === 0) return seriesKeys
-
-	let latestRow: IRWABreakdownChartResponse[number] | null = null
-	let latestTimestamp = Number.NEGATIVE_INFINITY
-	for (const row of rows) {
-		if (!Number.isFinite(row.timestamp)) continue
-		if (row.timestamp >= latestTimestamp) {
-			latestTimestamp = row.timestamp
-			latestRow = row
-		}
-	}
-
-	return seriesKeys.sort((a, b) => {
-		const aValueRaw = latestRow?.[a]
-		const bValueRaw = latestRow?.[b]
-		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
-		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
-		if (aValue !== bValue) return bValue - aValue
-		return a.localeCompare(b)
-	})
-}
-
-function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
-	if (!rows || rows.length === 0) return emptyRwaBreakdownDataset()
-
-	const source: IRWABreakdownChartResponse = []
-	const seenSeries = new Set<string>()
-
-	for (const row of ensureChronologicalRows(rows)) {
-		const timestamp = Number(row.timestamp)
-		if (!Number.isFinite(timestamp)) continue
-
-		const normalizedRow: IRWABreakdownChartResponse[number] = { timestamp }
-		for (const [series, value] of Object.entries(row)) {
-			if (series === 'timestamp') continue
-			const numericValue = Number(value)
-			if (!Number.isFinite(numericValue)) continue
-			seenSeries.add(series)
-			normalizedRow[series] = numericValue
-		}
-
-		source.push(normalizedRow)
-	}
-
-	if (source.length === 0) return emptyRwaBreakdownDataset()
-
-	return {
-		source,
-		dimensions: ['timestamp', ...sortBreakdownSeriesByLatestTimestampValue(source, seenSeries)]
-	}
-}
-
-async function fetchBreakdownDatasetsByMetric(
-	fetcher: (params: IRWABreakdownChartParams) => Promise<IRWABreakdownChartResponse | null>,
-	params: Omit<IRWABreakdownChartParams, 'key'> = {}
-): Promise<IRWABreakdownDatasetsByMetric> {
-	const requests = RWA_CHART_METRIC_KEYS.map((key) => fetcher({ ...params, key }))
-	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all(requests)
-
-	return {
-		onChainMcap: toBreakdownChartDataset(onChainMcapRows),
-		activeMcap: toBreakdownChartDataset(activeMcapRows),
-		defiActiveTvl: toBreakdownChartDataset(defiActiveTvlRows)
-	}
-}
-
 export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
-	const [
-		data,
-		baseChartDatasets,
-		stablecoinChartDatasets,
-		governanceChartDatasets,
-		stablecoinAndGovernanceChartDatasets
-	] = await Promise.all([
+	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeStablecoin: true }),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeGovernance: true }),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchRWAChainBreakdownChartData({ key: 'activeMcap' })
 	])
 
 	if (!data?.byChain) {
@@ -730,22 +708,14 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
 
 	return {
 		rows: rows.sort((a, b) => (b.base?.onChainMcap ?? 0) - (a.base?.onChainMcap ?? 0)),
-		chartDatasets: {
-			base: baseChartDatasets,
-			includeStablecoin: stablecoinChartDatasets,
-			includeGovernance: governanceChartDatasets,
-			includeStablecoinAndGovernance: stablecoinAndGovernanceChartDatasets
-		}
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
 
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview> {
-	const [data, chartDatasets] = await Promise.all([
+	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWACategoryBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchRWACategoryBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: false })
 	])
 
 	if (!data?.byCategory) {
@@ -754,27 +724,22 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 
 	const rows: IRWACategoriesOverviewRow[] = []
 	for (const category in data.byCategory) {
-		const stats = data.byCategory[category]
-
 		rows.push({
-			...stats,
-			category
+			category,
+			...data.byCategory[category]
 		})
 	}
 
 	return {
-		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
-		chartDatasets
+		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
 
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> {
-	const [data, chartDatasets] = await Promise.all([
+	const [data, activeMcapRows] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWAPlatformBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchRWAPlatformBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: false })
 	])
 
 	if (!data?.byPlatform) {
@@ -784,7 +749,6 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 	const rows: IRWAPlatformsOverviewRow[] = []
 	for (const platform in data.byPlatform) {
 		const stats = data.byPlatform[platform]
-
 		rows.push({
 			...stats,
 			platform
@@ -792,16 +756,45 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 	}
 
 	return {
-		rows: rows.sort((a, b) => b.onChainMcap - a.onChainMcap),
-		chartDatasets
+		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
+	}
+}
+
+export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOverview> {
+	const [data, activeMcapRows] = await Promise.all([
+		fetchRWAStats(),
+		fetchRWAAssetGroupBreakdownChartData({ key: 'activeMcap', includeStablecoin: false, includeGovernance: false })
+	])
+
+	if (!data?.byAssetGroup) {
+		throw new Error('Failed to get RWA stats')
+	}
+
+	const rows: IRWAAssetGroupsOverviewRow[] = []
+	for (const assetGroup in data.byAssetGroup) {
+		rows.push({
+			assetGroup: normalizeRwaAssetGroup(assetGroup),
+			...data.byAssetGroup[assetGroup]
+		})
+	}
+
+	return {
+		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
+		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
 	}
 }
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
+		const [data, chartDataset, blockExplorersData]: [
+			IFetchedRWAProject,
+			IRWAAssetData['chartDataset'],
+			Awaited<ReturnType<typeof fetchBlockExplorers>>
+		] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
-			fetchRWAAssetChartData(assetId)
+			fetchRWAAssetChartData(assetId),
+			fetchBlockExplorers().catch(() => [])
 		])
 
 		if (!data) {
@@ -836,6 +829,27 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			}
 		}
 
+		let contractUrls: Record<string, Record<string, string>> | null = null
+		if (data.contracts) {
+			contractUrls = {}
+			for (const chain in data.contracts) {
+				const addresses = data.contracts[chain]
+				if (!addresses) continue
+				for (const address of addresses) {
+					const result = getBlockExplorerNew({
+						apiResponse: blockExplorersData,
+						address,
+						chainName: chain,
+						urlType: 'token'
+					})
+					if (result) {
+						contractUrls[chain] ??= {}
+						contractUrls[chain][address] = result.url
+					}
+				}
+			}
+		}
+
 		if (chartDataset && data.activeMcapData === false) {
 			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
@@ -848,6 +862,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			rwaClassificationDescription,
 			accessModelDescription,
 			assetClassDescriptions,
+			contractUrls,
 			onChainMcap: onChainMcapBreakdown
 				? {
 						total: aggregatedMetrics.totals.onChainMcap,

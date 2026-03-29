@@ -1,32 +1,27 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-type GroupByType = (typeof GROUP_BY)[number]
-
-const GROUP_BY_TO_TOOLTIP: Record<GroupByType, 'daily' | 'weekly' | 'monthly' | 'cumulative'> = {
-	Daily: 'daily',
-	Weekly: 'weekly',
-	Monthly: 'monthly',
-	Cumulative: 'cumulative'
-}
 
 const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
@@ -205,32 +200,33 @@ export const LSTOverview = ({
 	barChartStacks
 }: LSTOverviewProps) => {
 	const [tab, setTab] = React.useState('breakdown')
-	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
+	const [groupBy, setGroupBy] = React.useState<LowercaseDwmcGrouping>('weekly')
 	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
 	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>(tokens ?? [])
 	const selectedBreakdownTokensSet = React.useMemo(() => new Set(selectedBreakdownTokens), [selectedBreakdownTokens])
 	const selectedInflowTokensSet = React.useMemo(() => new Set(selectedInflowTokens), [selectedInflowTokens])
 
 	const inflowsTooltipFormatter = React.useMemo(() => {
-		return createInflowsTooltipFormatter({ groupBy: GROUP_BY_TO_TOOLTIP[groupBy], valueSymbol: 'ETH' })
+		return createInflowsTooltipFormatter({ groupBy, valueSymbol: 'ETH' })
 	}, [groupBy])
 
 	const { chartInstance: breakdownChartInstance, handleChartReady: handleBreakdownReady } = useGetChartInstance()
+	const { chartInstance: inflowsChartInstance, handleChartReady: handleInflowsReady } = useGetChartInstance()
 
 	const breakdownExportFilenameBase = 'lst-breakdown-dominance'
 	const breakdownExportTitle = 'LST Breakdown (Dominance)'
+	const inflowsExportFilenameBase = 'lst-inflows'
+	const inflowsExportTitle = 'LST Inflows'
 
 	const inflowsData = React.useMemo(() => {
 		const store: Record<string | number, Record<string, number>> = {}
 
-		const isWeekly = groupBy === 'Weekly'
-		const isMonthly = groupBy === 'Monthly'
-		const isCumulative = groupBy === 'Cumulative'
+		const isCumulative = groupBy === 'cumulative'
 		const totalByToken: Record<string, number> = {}
 
 		for (const [date, dateEntry] of Object.entries(inflowsChartData)) {
 			for (const [token, value] of Object.entries(dateEntry)) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = groupBy === 'cumulative' ? +date : getBucketTimestampSec(+date, groupBy)
 				if (!store[dateKey]) {
 					store[dateKey] = {}
 				}
@@ -364,35 +360,43 @@ export const LSTOverview = ({
 						</div>
 					) : (
 						<div className="flex flex-col">
-							<div className="flex items-center justify-end gap-2 p-2 pb-0">
-								<TagGroup
-									selectedValue={groupBy}
-									setValue={(period) => setGroupBy(period)}
-									values={GROUP_BY}
-									className="mr-auto"
+							<div className="flex flex-nowrap items-center justify-end gap-2 overflow-x-auto p-2 pb-0">
+								<ChartGroupingSelector
+									value={groupBy}
+									setValue={setGroupBy}
+									options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+									className="mr-auto shrink-0"
 								/>
 								<SelectWithCombobox
 									allValues={tokens}
 									selectedValues={selectedInflowTokens}
 									setSelectedValues={setSelectedInflowTokens}
-									label={groupBy === 'Cumulative' ? 'LST' : 'Protocol'}
+									label={groupBy === 'cumulative' ? 'LST' : 'Protocol'}
 									labelType="smol"
 									variant="filter"
 									portal
 								/>
+								<ChartExportButtons
+									chartInstance={inflowsChartInstance}
+									filename={inflowsExportFilenameBase}
+									title={inflowsExportTitle}
+								/>
 							</div>
 
-							{groupBy === 'Cumulative' ? (
+							{groupBy === 'cumulative' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
 										dataset={deferredInflowsData.dataset}
 										charts={deferredInflowsData.cumulativeCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
+										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
+										onReady={handleInflowsReady}
 									/>
 								</React.Suspense>
 							) : (
@@ -401,11 +405,14 @@ export const LSTOverview = ({
 										dataset={deferredInflowsData.dataset}
 										charts={deferredInflowsData.barCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
+										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
+										onReady={handleInflowsReady}
 									/>
 								</React.Suspense>
 							)}

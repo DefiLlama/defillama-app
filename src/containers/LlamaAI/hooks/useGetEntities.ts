@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
+import { searchApi } from '~/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
-import { fetchJson } from '~/utils/async'
 
 export interface EntityResult {
 	id: string
@@ -10,35 +9,11 @@ export interface EntityResult {
 	type: string
 }
 
-interface SearchQuery {
-	indexUid: string
-	limit: number
-	offset: number
-	q: string
-	filter: Array<string | string[]>
-}
-
-/**
- * Generic search API helper for DefiLlama multi-search endpoint.
- */
-async function searchApi(query: SearchQuery): Promise<EntityResult[]> {
-	const response = await fetchJson(SEARCH_API_URL, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${SEARCH_API_TOKEN}`
-		},
-		body: JSON.stringify({ queries: [query] })
-	}).then((res) => res?.results?.[0]?.hits ?? [])
-
-	return response
-}
-
 /**
  * Fetch entities (chains, protocols, stablecoins, categories) matching the query.
  */
 async function fetchEntities(query: string): Promise<EntityResult[]> {
-	return searchApi({
+	return searchApi<EntityResult>({
 		indexUid: 'pages',
 		limit: 10,
 		offset: 0,
@@ -55,7 +30,7 @@ async function fetchEntities(query: string): Promise<EntityResult[]> {
  * Fetch coins/tokens matching the query.
  */
 export async function fetchCoins(query: string, limit: number = 10): Promise<EntityResult[]> {
-	const hits = await searchApi({
+	const hits = await searchApi<EntityResult>({
 		indexUid: 'pages',
 		limit,
 		offset: 0,

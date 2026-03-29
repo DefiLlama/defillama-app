@@ -108,6 +108,46 @@
 			opacity: 1;
 		}
 	}
+	@keyframes intro-exit {
+		from {
+			opacity: 1;
+			transform: scale(1);
+		}
+		to {
+			opacity: 0;
+			transform: scale(0.95);
+		}
+	}
+	@keyframes spotlight-enter {
+		from {
+			opacity: 0;
+			transform: scale(1.15);
+		}
+		to {
+			opacity: 1;
+			transform: scale(1);
+		}
+	}
+	@keyframes tooltip-enter-below {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	@keyframes tooltip-enter-above {
+		from {
+			opacity: 0;
+			transform: translateY(calc(-100% - 8px));
+		}
+		to {
+			opacity: 1;
+			transform: translateY(-100%);
+		}
+	}
 	@keyframes slideup {
 		0% {
 			opacity: 0;
@@ -212,7 +252,7 @@
 }
 
 @utility dialog {
-	@apply fixed inset-(--inset) top-0 right-0 bottom-0 left-0 z-50 m-auto mb-0 flex thin-scrollbar max-h-[70dvh] min-h-[40dvh] w-full max-w-full flex-col gap-8 overflow-auto rounded-t-md border-[#39393E] bg-(--app-bg) p-4 sm:mb-auto sm:h-fit sm:max-h-[calc(100%-32px)] sm:min-h-[initial] sm:max-w-[min(calc(100%-32px),560px)] sm:rounded-md dark:border;
+	@apply fixed inset-(--inset) top-0 right-0 bottom-0 left-0 z-50 m-auto mb-0 flex thin-scrollbar max-h-[70dvh] min-h-[40dvh] w-full max-w-full flex-col gap-8 overflow-auto overscroll-contain rounded-t-md border-[#39393E] bg-(--app-bg) p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:mb-auto sm:h-fit sm:max-h-[calc(100%-32px)] sm:min-h-[initial] sm:max-w-[min(calc(100%-32px),560px)] sm:rounded-md sm:pb-4 dark:border;
 }
 
 @utility drawer {
@@ -255,6 +295,25 @@
 			opacity: 0;
 			transform: translateX(100%);
 		}
+	}
+}
+
+@utility capability-panel {
+	opacity: 0;
+	transform: scale(0.96);
+	transition:
+		opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+		transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+	&[data-enter] {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	&[data-leave] {
+		transition:
+			opacity 120ms ease-out,
+			transform 120ms ease-out;
 	}
 }
 
@@ -462,6 +521,32 @@
 	contain-intrinsic-size: auto 30px;
 }
 
+@utility marquee-container {
+	overflow: clip;
+}
+
+@utility marquee {
+	--gap: 20px;
+	--speed: 25s;
+	--direction: forwards;
+
+	display: flex;
+	width: max-content;
+	animation-name: marquee-animation;
+	animation-timing-function: linear;
+	animation-iteration-count: infinite;
+	animation-duration: var(--speed);
+	animation-direction: var(--direction);
+	padding-left: var(--gap);
+	gap: var(--gap);
+}
+
+@keyframes marquee-animation {
+	to {
+		transform: translateX(-50%);
+	}
+}
+
 /* --------------------------------- Base --------------------------------- */
 @layer base {
 	@font-face {
@@ -623,6 +708,11 @@
 		@apply relative isolate col-span-full grid min-h-full grid-cols-[228px_1fr] lg:gap-4;
 	}
 
+	html[data-llamaai-fullscreen='true'] #__next,
+	html[data-llamaai-fullscreen='true'] #__next > [data-rk] {
+		@apply grid-cols-1;
+	}
+
 	#__next > *:only-child,
 	#__next > [data-rk] > *:only-child {
 		@apply col-span-full;
@@ -691,6 +781,36 @@
 
 	hr {
 		@apply border-black/20 dark:border-white/20;
+	}
+
+	@media (min-width: 1024px) {
+		html[data-llamaai-fullscreen='true'] .desktop-nav-shell {
+			display: none;
+		}
+
+		html[data-llamaai-fullscreen='true'] .app-main-shell {
+			padding-left: 1rem !important;
+		}
+	}
+
+	.llamaai-chat-panel {
+		container-type: inline-size;
+	}
+
+	.llamaai-chat-width {
+		max-width: 52rem;
+	}
+
+	@container (min-width: 1120px) {
+		.llamaai-chat-width {
+			max-width: 62rem;
+		}
+	}
+
+	@container (min-width: 1400px) {
+		.llamaai-chat-width {
+			max-width: 72rem;
+		}
 	}
 }
 
@@ -799,6 +919,17 @@
 	to {
 		opacity: 1;
 		transform: translateY(0);
+	}
+}
+
+@keyframes llama-popup-in {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(4px) scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0) scale(1);
 	}
 }
 
@@ -925,9 +1056,27 @@
 	margin-bottom: 0;
 }
 
-/* Align entity logos with text */
+/* ----------------------------- Hacker Mode: Code Blocks ----------------------------- */
+.prose.llamaai-prose.hacker-mode pre {
+	background: #0d0d0d;
+	border: 1px solid rgba(0, 255, 65, 0.2);
+	box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.03);
+	border-radius: 0.5rem;
+}
+.prose.llamaai-prose.hacker-mode pre code {
+	color: #00ff41;
+	text-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+	font-family: monospace;
+}
+.prose.llamaai-prose.hacker-mode :not(pre) > code {
+	color: #00ff41;
+	background: rgba(0, 255, 65, 0.08);
+	text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
+}
+
+/* Entity logos: wrapper uses leading-0; keep img optically centered with link text */
 .prose.llamaai-prose a img.inline-block {
-	vertical-align: -0.15em;
+	vertical-align: middle;
 }
 
 /* Scale entity logos to match heading font size */

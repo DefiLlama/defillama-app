@@ -3,8 +3,9 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
+import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -562,7 +563,6 @@ export function StablecoinsByChain({
 										dataset={deferredTotalMcapDataset}
 										charts={TOTAL_MCAP_CHARTS}
 										valueSymbol="$"
-										chartOptions={chartOptions}
 										onReady={handleExportChartReady}
 									/>
 								</React.Suspense>
@@ -573,7 +573,7 @@ export function StablecoinsByChain({
 										charts={deferredTokenMcapsData.charts}
 										stacked={true}
 										valueSymbol="$"
-										chartOptions={chartOptions}
+										showTotalInTooltip
 										onReady={handleExportChartReady}
 									/>
 								</React.Suspense>
@@ -585,7 +585,6 @@ export function StablecoinsByChain({
 										stacked={true}
 										expandTo100Percent={true}
 										valueSymbol="%"
-										chartOptions={chartOptions}
 										onReady={handleExportChartReady}
 									/>
 								</React.Suspense>
@@ -602,7 +601,6 @@ export function StablecoinsByChain({
 									<MultiSeriesChart2
 										dataset={deferredUsdInflowsDataset}
 										charts={USD_INFLOWS_CHARTS}
-										chartOptions={chartOptions}
 										onReady={handleExportChartReady}
 									/>
 								</React.Suspense>
@@ -668,10 +666,9 @@ function TokenInflowsChartPanel({
 					dataset={dataset}
 					charts={charts}
 					selectedCharts={selectedTokenInflowsSet}
+					showTotalInTooltip
 					chartOptions={
-						selectedTokenInflowsSet.size > 1
-							? { ...chartOptions, tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } }
-							: chartOptions
+						selectedTokenInflowsSet.size > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } } : undefined
 					}
 					onReady={onReady}
 				/>
@@ -737,14 +734,4 @@ const tokenColors: Record<string, string> = {
 	USDTB: '#C0C0C0',
 	FDUSD: '#00FF00',
 	Others: '#FF1493'
-}
-const chartOptions = {
-	grid: {
-		left: 12,
-		bottom: 68,
-		top: 12,
-		right: 12,
-		outerBoundsMode: 'same',
-		outerBoundsContain: 'axisLabel'
-	}
 }

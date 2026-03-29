@@ -13,7 +13,7 @@ import {
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
-import { type Chain, CHART_TYPES, type ChartConfig, type Protocol } from '../types'
+import { type Chain, CHART_TYPES, type ChartConfig, type DashboardGrouping, type Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
@@ -108,10 +108,10 @@ function ChartRenderer({
 	)
 }
 
-const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+const groupingOptions: DashboardGrouping[] = ['day', 'week', 'month', 'quarter', 'year']
 
 export function ChartCard({ chart }: ChartCardProps) {
-	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
+	const { getChainInfo, getProtocolInfo, protocols } = useProDashboardCatalog()
 	const { handleGroupingChange, handleCumulativeChange } = useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
 	const { chartInstance, handleChartReady } = useChartImageExport()
@@ -145,6 +145,12 @@ export function ChartCard({ chart }: ChartCardProps) {
 			itemName = chart.chain
 			itemIconUrl = getItemIconUrl('chain', itemInfo, chart.chain)
 			itemIdentifier = chart.chain
+		} else if (chart.geckoId) {
+			const protocolInfo = protocols.find((p: any) => p.geckoId === chart.geckoId)
+			itemInfo = protocolInfo
+			itemName = protocolInfo?.name || chart.geckoId
+			itemIconUrl = protocolInfo ? getItemIconUrl('protocol', protocolInfo, protocolInfo.slug) : undefined
+			itemIdentifier = chart.geckoId
 		}
 
 		const chartColor = chart.color || generateChartColor(itemIdentifier, chartTypeDetails?.color)
@@ -161,7 +167,7 @@ export function ChartCard({ chart }: ChartCardProps) {
 			showCumulative,
 			processedData: showCumulative && chart.data ? convertToCumulative(chart.data) : chart.data
 		}
-	}, [chart, getChainInfo, getProtocolInfo])
+	}, [chart, getChainInfo, getProtocolInfo, protocols])
 
 	const handleCsvExport = () => {
 		if (!processedData || processedData.length === 0) return

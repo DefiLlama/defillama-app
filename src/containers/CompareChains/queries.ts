@@ -1,5 +1,5 @@
 import { fetchProtocols } from '~/containers/Protocols/api'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl } from '~/utils/icons'
 
 type ChainOption = {
 	value: string

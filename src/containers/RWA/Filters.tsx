@@ -9,6 +9,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
+import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
@@ -29,6 +30,8 @@ const FILTER_QUERY_KEYS = [
 	'excludeCategories',
 	'platforms',
 	'excludePlatforms',
+	'assetGroups',
+	'excludeAssetGroups',
 	'assetClasses',
 	'excludeAssetClasses',
 	'rwaClassifications',
@@ -72,9 +75,11 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 }
 
 type RWAFilterModes = {
+	mode: RWAOverviewMode
 	isChainMode: boolean
 	isCategoryMode: boolean
 	isPlatformMode: boolean
+	isAssetGroupMode: boolean
 }
 
 type RWAFilterOptions = {
@@ -82,6 +87,7 @@ type RWAFilterOptions = {
 	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
 	platforms: IRWAAssetsOverview['platforms']
+	assetGroups: IRWAAssetsOverview['assetGroups']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
@@ -93,6 +99,7 @@ type RWAFilterSelections = {
 	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedPlatforms: string[]
+	selectedAssetGroups: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -257,7 +264,12 @@ function Filters({
 
 	if (!enabled) return null
 
-	const defaultSelectedTypes = options.typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
+	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
+	const defaultSelectedTypes = getDefaultSelectedTypes(
+		options.typeOptions.map((o) => o.key),
+		modes.mode,
+		categorySlug
+	)
 
 	// Determine active filters/chart controls purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.
@@ -288,6 +300,14 @@ function Filters({
 			includeQueryKey: 'assetNames',
 			excludeQueryKey: 'excludeAssetNames',
 			label: 'Asset Names'
+		},
+		{
+			enabled: options.assetGroups.length > 1,
+			allValues: options.assetGroups,
+			selectedValues: selections.selectedAssetGroups,
+			includeQueryKey: 'assetGroups',
+			excludeQueryKey: 'excludeAssetGroups',
+			label: 'Asset Groups'
 		},
 		{
 			enabled: (modes.isChainMode || modes.isPlatformMode) && options.categoriesOptions.length > 1,
@@ -464,32 +484,28 @@ function Filters({
 					maxInputProps={ratioPercentInputProps}
 				/>
 			))}
-			{modes.isChainMode ? (
-				<Checkbox
-					variant={nestedMenu ? 'filter-borderless' : 'filter'}
-					value="includeStablecoins"
-					checked={selections.includeStablecoins}
-					onChange={() => {
-						const next = !selections.includeStablecoins
-						actions.setIncludeStablecoins(next)
-					}}
-				>
-					Stablecoins
-				</Checkbox>
-			) : null}
-			{modes.isChainMode ? (
-				<Checkbox
-					variant={nestedMenu ? 'filter-borderless' : 'filter'}
-					value="includeGovernance"
-					checked={selections.includeGovernance}
-					onChange={() => {
-						const next = !selections.includeGovernance
-						actions.setIncludeGovernance(next)
-					}}
-				>
-					Governance Tokens
-				</Checkbox>
-			) : null}
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeStablecoins"
+				checked={selections.includeStablecoins}
+				onChange={() => {
+					const next = !selections.includeStablecoins
+					actions.setIncludeStablecoins(next)
+				}}
+			>
+				Stablecoins
+			</Checkbox>
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeGovernance"
+				checked={selections.includeGovernance}
+				onChange={() => {
+					const next = !selections.includeGovernance
+					actions.setIncludeGovernance(next)
+				}}
+			>
+				Governance Tokens
+			</Checkbox>
 			<button
 				onClick={() => {
 					const resetUpdates: Record<string, undefined> = {}

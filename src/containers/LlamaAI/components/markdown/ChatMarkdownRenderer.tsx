@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -6,13 +7,17 @@ import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
-import { TokenLogo } from '~/components/TokenLogo'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+/** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
+const TABLE_WATERMARK_HEIGHT = 40
+const TABLE_WATERMARK_WIDTH = Math.round((389 / 133) * TABLE_WATERMARK_HEIGHT)
 
 type EntityLinkProps = ComponentPropsWithoutRef<'a'>
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
@@ -34,13 +39,23 @@ function normalizeSourceUrl(url: string) {
 function TableWrapper({
 	children,
 	isStreaming = false,
-	tableProps
+	tableProps,
+	onTableFullscreenOpen
 }: {
 	children: ReactNode
 	isStreaming: boolean
 	tableProps?: ComponentPropsWithoutRef<'table'>
+	onTableFullscreenOpen?: () => void
 }) {
 	const tableRef = useRef<HTMLDivElement>(null)
+	const fullscreenDialogStore = Ariakit.useDialogStore()
+
+	const mergedTableClassName = `z-10 w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`
+
+	const openTableFullscreen = () => {
+		onTableFullscreenOpen?.()
+		fullscreenDialogStore.show()
+	}
 
 	const prepareCsv = () => {
 		const table = tableRef.current?.querySelector('table')
@@ -60,7 +75,68 @@ function TableWrapper({
 
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] p-2 dark:border-[#222324]">
-			<div className="ml-auto flex flex-nowrap items-center justify-end" id="ai-table-download">
+			<Ariakit.DialogProvider store={fullscreenDialogStore}>
+				<Ariakit.Dialog
+					modal
+					portal
+					unmountOnHide
+					backdrop={<div className="backdrop fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" />}
+					className="dialog fixed inset-0 z-50 m-auto flex max-h-[80dvh] w-[calc(100vw-1rem)] max-w-7xl flex-col gap-3 overflow-hidden rounded-xl border border-[#e6e6e6] bg-(--cards-bg) shadow-2xl sm:w-[calc(100vw-2rem)] dark:border-[#222324]"
+				>
+					<div className="flex shrink-0 items-center justify-between gap-2 border-b border-[#e6e6e6] dark:border-[#222324]">
+						{/* <Ariakit.DialogHeading className="text-sm font-medium text-(--text-form)">Table</Ariakit.DialogHeading> */}
+						<Ariakit.DialogDismiss
+							className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							aria-label="Close fullscreen table"
+						>
+							<Icon name="x" height={16} width={16} />
+						</Ariakit.DialogDismiss>
+					</div>
+					<div className="min-h-0 flex-1 overflow-auto">
+						<div className="relative overflow-x-auto">
+							<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
+								<img
+									src="/assets/defillama-dark-neutral.webp"
+									alt=""
+									height={TABLE_WATERMARK_HEIGHT}
+									width={TABLE_WATERMARK_WIDTH}
+									className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
+								/>
+								<img
+									src="/assets/defillama-light-neutral.webp"
+									alt=""
+									height={TABLE_WATERMARK_HEIGHT}
+									width={TABLE_WATERMARK_WIDTH}
+									className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
+								/>
+							</div>
+							<table {...tableProps} className={mergedTableClassName}>
+								{children}
+							</table>
+						</div>
+					</div>
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+			<div className="ml-auto flex flex-nowrap items-center justify-end gap-2" id="ai-table-download">
+				{isStreaming ? (
+					<button
+						type="button"
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) disabled:opacity-50"
+						disabled
+						aria-label="View table fullscreen"
+					>
+						<Icon name="expand" className="h-3 w-3 shrink-0" />
+					</button>
+				) : (
+					<button
+						type="button"
+						onClick={openTableFullscreen}
+						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+						aria-label="View table fullscreen"
+					>
+						<Icon name="expand" className="h-3 w-3 shrink-0" />
+					</button>
+				)}
 				{isStreaming ? (
 					<button
 						className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
@@ -73,11 +149,24 @@ function TableWrapper({
 					<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				)}
 			</div>
-			<div ref={tableRef} className="overflow-x-auto">
-				<table
-					{...tableProps}
-					className={`w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`}
-				>
+			<div ref={tableRef} className="relative overflow-x-auto">
+				<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
+					<img
+						src="/assets/defillama-dark-neutral.webp"
+						alt="defillama"
+						height={TABLE_WATERMARK_HEIGHT}
+						width={TABLE_WATERMARK_WIDTH}
+						className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
+					/>
+					<img
+						src="/assets/defillama-light-neutral.webp"
+						alt="defillama"
+						height={TABLE_WATERMARK_HEIGHT}
+						width={TABLE_WATERMARK_WIDTH}
+						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
+					/>
+				</div>
+				<table {...tableProps} className={mergedTableClassName}>
 					{children}
 				</table>
 			</div>
@@ -95,20 +184,41 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 
 		const entityUrl = getEntityUrl(type, slug)
 
+		const entityLogoUrl = (entityType: string, entitySlug: string) => {
+			switch (entityType) {
+				case 'chain':
+					return chainIconUrl(entitySlug)
+				case 'stablecoin':
+					return peggedAssetIconUrl(entitySlug)
+				case 'equity':
+					return equityIconUrl(entitySlug)
+				case 'protocol':
+					return tokenIconUrl(entitySlug)
+				default:
+					return null
+			}
+		}
+
+		const logoUrl = entityLogoUrl(type, slug)
+
 		return (
 			<a
 				href={entityUrl}
-				className="text-(--link-text) hover:underline"
+				className="text-(--link-text) no-underline hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
 				{...props}
 			>
-				{type !== 'pool' ? (
-					<>
-						<TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />{' '}
-					</>
+				{logoUrl ? (
+					<img
+						src={logoUrl}
+						alt=""
+						height={14}
+						width={14}
+						className="relative top-[-0.1em] mr-1 inline-block shrink-0 rounded-full"
+					/>
 				) : null}
-				{children}
+				<span className="min-w-0">{children}</span>
 			</a>
 		)
 	}
@@ -185,11 +295,15 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 export function ChatMarkdownRenderer({
 	content,
 	citations,
-	isStreaming = false
+	isStreaming = false,
+	hackerMode = false,
+	onTableFullscreenOpen
 }: {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
+	hackerMode?: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
@@ -208,7 +322,7 @@ export function ChatMarkdownRenderer({
 				return EntityLinkRenderer(props)
 			},
 			table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-				<TableWrapper isStreaming={isStreaming} tableProps={props}>
+				<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
 					{children}
 				</TableWrapper>
 			),
@@ -239,7 +353,7 @@ export function ChatMarkdownRenderer({
 				</ol>
 			)
 		}),
-		[isStreaming, processedData.linkMap]
+		[isStreaming, onTableFullscreenOpen, processedData.linkMap]
 	)
 
 	if (!processedData.content.trim()) {
@@ -247,7 +361,9 @@ export function ChatMarkdownRenderer({
 	}
 
 	return (
-		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
+		<div
+			className={`llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline${hackerMode ? ' hacker-mode' : ''}`}
+		>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
 				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}

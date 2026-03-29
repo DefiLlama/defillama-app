@@ -36,6 +36,7 @@ const tabs = {
 } as const
 
 const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
+	information: '/protocol',
 	unlocks: '/unlocks',
 	governance: '/governance',
 	forks: '/forks'
@@ -65,7 +66,7 @@ export function ProtocolOverviewLayout({
 		key: string
 	}>
 	metrics: IProtocolPageMetrics
-	tab?: keyof typeof tabs
+	tab: keyof typeof tabs
 	warningBanners?: Array<{
 		message: string
 		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
@@ -172,6 +173,7 @@ export function ProtocolOverviewLayout({
 			title={resolvedTitle}
 			description={resolvedDescription}
 			canonicalUrl={standaloneCanonicals[tab] ? canonicalUrl : null}
+			noIndex={!standaloneCanonicals[tab]}
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>

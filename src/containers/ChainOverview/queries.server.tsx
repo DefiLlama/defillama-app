@@ -16,12 +16,6 @@ import {
 	getProtocolEmissionsLookupFromAggregated
 } from '~/containers/Incentives/queries'
 import type { ChainIncentivesSummary, ProtocolEmissionsLookup } from '~/containers/Incentives/types'
-import { fetchChainUsers, fetchChainTransactions, fetchChainNewUsers } from '~/containers/OnchainUsersAndTxs/api'
-import type {
-	IUserDataResponse,
-	ITxDataResponse,
-	INewAddressesResponse
-} from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchRaises } from '~/containers/Raises/api'
@@ -34,8 +28,9 @@ import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import type { ProtocolEmissionWithHistory } from '~/containers/Unlocks/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { formatNum, getPercentChange, lastDayOfWeek, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
+import { formatNum, getPercentChange, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
@@ -134,7 +129,7 @@ export async function getChainOverviewData({
 			Awaited<ReturnType<typeof getStablecoinChainMcapSummary>>,
 			{ netInflows: number | null } | null,
 			number | null,
-			number | string | null,
+			number | null,
 			number | null,
 			RawRaisesResponse,
 			RawTreasuriesResponse | null,
@@ -198,20 +193,30 @@ export async function getChainOverviewData({
 							}
 						})
 						.catch(() => null),
-			!currentChainMetadata.activeUsers
+			!currentChainMetadata.chainActiveUsers
 				? Promise.resolve(null)
-				: fetchChainUsers({ chainName: currentChainMetadata.name })
-						.then((data: IUserDataResponse | null) => data?.[data?.length - 1]?.[1] ?? null)
+				: fetchAdapterChainMetrics({
+						chain: currentChainMetadata.name,
+						adapterType: 'active-users'
+					})
+						.then((data) => data?.total24h ?? null)
 						.catch(() => null),
-			!currentChainMetadata.activeUsers
+			!currentChainMetadata.txCount
 				? Promise.resolve(null)
-				: fetchChainTransactions({ chainName: currentChainMetadata.name })
-						.then((data: ITxDataResponse | null) => data?.[data?.length - 1]?.[1] ?? null)
+				: fetchAdapterChainMetrics({
+						chain: currentChainMetadata.name,
+						adapterType: 'active-users',
+						dataType: 'dailyTransactionsCount'
+					})
+						.then((data) => data?.total24h ?? null)
 						.catch(() => null),
-			!currentChainMetadata.activeUsers
+			!currentChainMetadata.chainNewUsers
 				? Promise.resolve(null)
-				: fetchChainNewUsers({ chainName: currentChainMetadata.name })
-						.then((data: INewAddressesResponse | null) => data?.[data?.length - 1]?.[1] ?? null)
+				: fetchAdapterChainMetrics({
+						chain: currentChainMetadata.name,
+						adapterType: 'new-users'
+					})
+						.then((data) => data?.total24h ?? null)
 						.catch(() => null),
 			fetchRaises(),
 			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
@@ -500,14 +505,17 @@ export async function getChainOverviewData({
 			charts.push('Bridged TVL')
 		}
 
-		if (activeUsers != null) {
+		if (currentChainMetadata.chainActiveUsers) {
 			charts.push('Active Addresses')
 		}
-		// if (newUsers != null) {
-		// 	charts.push('New Addresses')
-		// }
-		if (transactions != null) {
+		if (currentChainMetadata.chainNewUsers) {
+			charts.push('New Addresses')
+		}
+		if (currentChainMetadata.txCount) {
 			charts.push('Transactions')
+		}
+		if (currentChainMetadata.gasUsed) {
+			charts.push('Gas Used')
 		}
 		if (chain === 'All') {
 			charts.push('Raises')
@@ -571,7 +579,7 @@ export async function getChainOverviewData({
 				total7d: perps?.total7d ?? null,
 				change_7dover7d: perps?.change_7dover7d ?? null
 			},
-			users: { activeUsers, newUsers, transactions: transactions ? +transactions : null },
+			users: { activeUsers, newUsers, transactions },
 			inflows: inflowsData,
 			treasury: treasury ? { tvl: treasury.tvl ?? null, tokenBreakdowns: treasury.tokenBreakdowns ?? null } : null,
 			chainRaises: chainRaises ?? null,
@@ -881,7 +889,7 @@ export const getProtocolsByChain = async ({
 				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
 				mcaptvl:
-					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
+					protocol.mcap != null && protocol.category !== 'Bridge' && tvls?.default?.tvl != null
 						? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
 						: null,
 				strikeTvl:
@@ -1122,7 +1130,7 @@ export const getProtocolsByChain = async ({
 				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
-					parentProtocol.mcap && parentTvl?.default?.tvl
+					parentProtocol.mcap != null && parentTvl?.default?.tvl != null
 						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
 						: null
 			}

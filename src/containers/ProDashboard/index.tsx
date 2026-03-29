@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
 import { CopyDashboardLinkButton } from './components/CopyDashboardLinkButton'
@@ -11,6 +12,7 @@ import { CustomTimePeriodPicker } from './components/CustomTimePeriodPicker'
 import { EmptyState } from './components/EmptyState'
 import { LikeDashboardButton } from './components/LikeDashboardButton'
 import type { UnifiedTableFocusSection } from './components/UnifiedTable/types'
+import { useFreeTierStatus } from './hooks'
 import {
 	type AIGeneratedData,
 	type TimePeriod,
@@ -26,9 +28,7 @@ import type { DashboardItemConfig } from './types'
 
 const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
+import { DashboardPaywallModal, type PaywallReason } from './components/DashboardPaywallModal'
 const AddChartModal = lazy(() => import('./components/AddChartModal').then((m) => ({ default: m.AddChartModal })))
 const CreateDashboardPicker = lazy(() =>
 	import('./components/CreateDashboardPicker').then((m) => ({ default: m.CreateDashboardPicker }))
@@ -52,8 +52,19 @@ function ProDashboardContent() {
 	}>({ item: null, focusSection: undefined })
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const { canCreateDashboard } = useFreeTierStatus()
+	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
+		open: false,
+		reason: 'pro-feature'
+	})
+	const paywallDialogStore = Ariakit.useDialogStore({
+		open: paywallState.open,
+		setOpen: (open) => setPaywallState((prev) => ({ ...prev, open }))
+	})
+	const showPaywall = (reason: PaywallReason) => {
+		setSignupSource('pro-dashboard')
+		setPaywallState({ open: true, reason })
+	}
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod, setTimePeriod, setCustomTimePeriod } = useProDashboardTime()
@@ -194,10 +205,10 @@ function ProDashboardContent() {
 								{isReadOnly ? (
 									<button
 										onClick={() => {
-											if (hasActiveSubscription) {
+											if (canCreateDashboard) {
 												void copyDashboard()
 											} else {
-												subscribeModalStore.show()
+												showPaywall('dashboard-limit')
 											}
 										}}
 										className="flex items-center gap-1 rounded-md pro-btn-blue-outline px-4 py-1"
@@ -208,7 +219,11 @@ function ProDashboardContent() {
 								) : null}
 								<button
 									onClick={() => {
-										createDashboardDialogStore.show()
+										if (canCreateDashboard) {
+											createDashboardDialogStore.show()
+										} else {
+											showPaywall('dashboard-limit')
+										}
 									}}
 									className="flex items-center gap-1 rounded-md pro-btn-purple-outline px-4 py-1"
 								>
@@ -299,7 +314,13 @@ function ProDashboardContent() {
 						{items.length > 0 ? (
 							<button
 								className="hidden animate-ai-glow items-center gap-2 rounded-md pro-btn-blue-outline px-4 py-2 text-base whitespace-nowrap md:flex"
-								onClick={() => setShowIterateDashboardModal(true)}
+								onClick={() => {
+									if (hasActiveSubscription) {
+										setShowIterateDashboardModal(true)
+									} else {
+										showPaywall('llamaai')
+									}
+								}}
 								title="Edit with LlamaAI"
 							>
 								<Icon name="sparkles" height={16} width={16} />
@@ -348,7 +369,9 @@ function ProDashboardContent() {
 			{!protocolsLoading && items.length === 0 ? (
 				<EmptyState
 					onAddChart={openAddModal}
-					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
+					onGenerateWithAI={
+						hasActiveSubscription ? () => setShowIterateDashboardModal(true) : () => showPaywall('llamaai')
+					}
 					isReadOnly={isReadOnly}
 				/>
 			) : null}
@@ -411,10 +434,8 @@ function ProDashboardContent() {
 				/>
 			</Suspense>
 
-			{shouldRenderModal ? (
-				<Suspense fallback={<></>}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
+			{paywallState.open ? (
+				<DashboardPaywallModal dialogStore={paywallDialogStore} reason={paywallState.reason} />
 			) : null}
 		</div>
 	)

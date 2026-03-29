@@ -1,13 +1,21 @@
 import { useQueries } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import type { TimePeriod } from '../../ProDashboardAPIContext'
-import { getChartQueryFn, getChartQueryKey } from '../../queries'
+import {
+	filterDataByTimePeriod,
+	getChartQueryFn,
+	getChartQueryKey,
+	ProxyAuthTokenContext,
+	StreamDoneContext
+} from '../../queries'
 import type { ChartConfig } from '../../types'
 import { groupData } from '../../utils'
 
 const EMPTY_SERIES: [string, number][] = []
 
 export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: TimePeriod) {
+	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
 	const queries = useQueries({
 		queries: composerItems.map((item) => {
 			const itemType = item.protocol ? 'protocol' : 'chain'
@@ -17,13 +25,24 @@ export function useComposerItemsData(composerItems: ChartConfig[], timePeriod: T
 				(itemType === 'protocol' && ['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(item.type)) ||
 				(itemType === 'chain' && ['chainMcap', 'chainPrice'].includes(item.type))
 
-			const isEnabled = !!itemName && !!item.type && (!needsGeckoId || !!item.geckoId)
+			const isEnabled = streamDone && !!itemName && !!item.type && (!needsGeckoId || !!item.geckoId)
 
 			return {
 				queryKey: getChartQueryKey(item.type, itemType, itemName, item.geckoId, timePeriod),
-				queryFn: getChartQueryFn(item.type, itemType, itemName, item.geckoId, timePeriod),
+				queryFn: getChartQueryFn(
+					item.type,
+					itemType,
+					itemName,
+					item.geckoId,
+					timePeriod,
+					undefined,
+					undefined,
+					item.dataType,
+					authToken
+				),
 				staleTime: 5 * 60 * 1000,
-				enabled: isEnabled
+				enabled: isEnabled,
+				select: (data: [number, number][]) => filterDataByTimePeriod(data, timePeriod || 'all')
 			}
 		})
 	})

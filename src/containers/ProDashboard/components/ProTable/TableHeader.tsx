@@ -113,7 +113,7 @@ export function TableHeader({
 										gutter={4}
 										className="z-50 w-[260px] rounded-lg border pro-dashboard border-(--cards-border) bg-(--cards-bg) shadow-xl"
 									>
-										<div className="thin-scrollbar max-h-[420px] overflow-y-auto p-1.5">
+										<div className="thin-scrollbar max-h-[420px] overflow-y-auto overscroll-contain p-1.5">
 											{moreDatasets.map((preset) => {
 												const isActive = activePreset === preset.id
 												return (

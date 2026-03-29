@@ -7,6 +7,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
@@ -23,8 +24,11 @@ interface AgenticSessionItemProps {
 	isRestoring: boolean
 	isDeleting: boolean
 	isUpdatingTitle: boolean
-	handleSidebarToggle: () => void
 	style: React.CSSProperties
+	selectMode?: boolean
+	isSelected?: boolean
+	onToggleSelect?: (sessionId: string) => void
+	onPinSession?: (sessionId: string) => Promise<void>
 }
 
 export const AgenticSessionItem = memo(function AgenticSessionItem({
@@ -36,10 +40,14 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	isRestoring,
 	isDeleting,
 	isUpdatingTitle,
-	handleSidebarToggle,
-	style
+	style,
+	selectMode,
+	isSelected,
+	onToggleSelect,
+	onPinSession
 }: AgenticSessionItemProps) {
 	const { authorizedFetch } = useAuthContext()
+	const { hideSidebar } = useLlamaAIChrome()
 	const queryClient = useQueryClient()
 
 	const [isEditing, setIsEditing] = useState(false)
@@ -72,7 +80,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		trackUmamiEvent('llamaai-session-click')
 		void Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 		if (document.documentElement.clientWidth < 1024) {
-			handleSidebarToggle()
+			hideSidebar()
 		}
 	}
 
@@ -142,6 +150,37 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		)
 	}
 
+	if (selectMode) {
+		return (
+			<button
+				type="button"
+				onClick={() => onToggleSelect?.(session.sessionId)}
+				className="group relative -mx-1.5 flex w-full items-center gap-2 rounded-sm p-1.5 text-left text-xs hover:bg-[#f7f7f7] dark:hover:bg-[#222324]"
+				style={style}
+			>
+				<span
+					data-checked={isSelected}
+					className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#ccc] data-[checked=true]:border-(--old-blue) data-[checked=true]:bg-(--old-blue) dark:border-[#555] dark:data-[checked=true]:border-(--old-blue)"
+				>
+					{isSelected ? (
+						<svg
+							className="h-2.5 w-2.5 text-white"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="3"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<polyline points="20 6 9 17 4 12" />
+						</svg>
+					) : null}
+				</span>
+				<span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
+			</button>
+		)
+	}
+
 	return (
 		<div
 			data-active={isActive}
@@ -159,9 +198,10 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 					handleSessionClick(session.sessionId)
 				}}
 				aria-disabled={isEditing || isDeleting || isRestoring}
-				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
+				className="flex flex-1 items-center gap-1 overflow-hidden p-1.5 text-left aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
-				{session.title}
+				{session.isPinned ? <Icon name="pin" height={10} width={10} className="shrink-0 opacity-40" /> : null}
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
 			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
@@ -189,6 +229,15 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
 						</Ariakit.PopoverDismiss>
+						<Ariakit.MenuItem
+							onClick={() => {
+								void onPinSession?.(session.sessionId)
+							}}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+						>
+							<Icon name="pin" height={14} width={14} className="shrink-0" />
+							{session.isPinned ? 'Unpin' : 'Pin to Top'}
+						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
 							onClick={() => {
 								void (async () => {

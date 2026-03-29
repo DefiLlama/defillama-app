@@ -7,8 +7,9 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { createInflowsTooltipFormatter, preparePieChartData } from '~/components/ECharts/formatters'
+import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { FormattedName } from '~/components/FormattedName'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -225,6 +226,7 @@ export function BridgedTVLByChain({
 								charts={deferredInflowsData.charts}
 								hideDefaultLegend={true}
 								valueSymbol="$"
+								showTotalInTooltip
 								selectedCharts={selectedChartsSet}
 								chartOptions={
 									selectedTokens.length > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined

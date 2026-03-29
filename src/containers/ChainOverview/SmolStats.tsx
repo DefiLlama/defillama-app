@@ -8,6 +8,7 @@ import type { IChainOverviewData } from './types'
 import { UpcomingUnlocksChart } from './UpcomingUnlocksChart'
 
 export const SmolStats = (props: IChainOverviewData) => {
+	const chainSlug = slug(props.metadata.name)
 	return (
 		<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
 			{props.chain === 'All' ? (
@@ -39,11 +40,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 						<div className="col-span-1 flex max-h-[196px] min-h-[119px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[71px] xl:flex-row xl:flex-nowrap xl:gap-2 xl:*:last:flex-1">
 							<div className="flex flex-col gap-1">
 								<Tooltip
-									render={
-										<BasicLink
-											href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${slug(props.metadata.name)}`}
-										/>
-									}
+									render={<BasicLink href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${chainSlug}`} />}
 									className="text-sm font-semibold"
 									content="Total value of all spot trades executed on decentralized exchanges"
 								>
@@ -107,9 +104,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 			) : props.dexs?.chart?.length > 0 ? (
 				<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<Tooltip
-						render={
-							<BasicLink href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${slug(props.metadata.name)}`} />
-						}
+						render={<BasicLink href={props.metadata.name === 'All' ? '/dexs' : `/dexs/chain/${chainSlug}`} />}
 						className="text-sm font-semibold"
 						content={`Total value of all spot trades executed on decentralized exchanges${
 							props.metadata.name === 'All' ? '' : ` deployed on ${props.metadata.name}`
@@ -130,11 +125,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 				<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<div className="flex items-start justify-between gap-4">
 						<Tooltip
-							render={
-								<BasicLink
-									href={props.metadata.name === 'All' ? '/fees' : `/fees/chain/${slug(props.metadata.name)}`}
-								/>
-							}
+							render={<BasicLink href={props.metadata.name === 'All' ? '/fees' : `/fees/chain/${chainSlug}`} />}
 							className="text-sm font-semibold"
 							content={`Total fees paid by protocols on ${
 								props.metadata.name === 'All' ? 'all chains' : props.metadata.name
@@ -153,11 +144,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 				<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<Tooltip
 						placement="top-start"
-						render={
-							<BasicLink
-								href={props.metadata.name === 'All' ? '/stablecoins' : `/stablecoins/${props.metadata.name}`}
-							/>
-						}
+						render={<BasicLink href={props.metadata.name === 'All' ? '/stablecoins' : `/stablecoins/${chainSlug}`} />}
 						className="text-sm font-semibold"
 						content={`Total market cap of all stablecoins issued on ${
 							props.metadata.name === 'All' ? 'all chains' : props.metadata.name

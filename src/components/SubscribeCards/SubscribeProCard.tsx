@@ -82,7 +82,7 @@ function SubscribeProCardContent({
 							<svg className="relative mx-1 inline-block h-4 w-4">
 								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 							</svg>{' '}
-							- conversational analysis of DefiLlama data
+							- Generate charts, reports, and analysis on 7,000+ protocols, TradFi markets, and onchain data.
 						</span>
 					</li>
 					<li className="group ml-6 flex items-center gap-2.5">
@@ -323,6 +323,7 @@ export function SubscribeProCard({
 						paymentMethod="stripe"
 						type="llamafeed"
 						billingInterval="year"
+						isUpgradeFlow
 					/>
 				</Suspense>
 			) : null}
@@ -368,31 +369,37 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		<WalletProvider>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.Dialog
-					className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
+					className="dialog flex max-h-[85dvh] max-w-md flex-col overflow-hidden rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
 					onClose={() => setIsSignInModalOpen(false)}
 				>
-					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
+					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
+							<div className="min-h-0 flex-1 overflow-y-auto">
+								<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
+							</div>
 						) : (
 							<>
-								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
+								<Ariakit.DialogDismiss className="ml-auto shrink-0 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
 									<Icon name="x" height={18} width={18} />
 									<span className="sr-only">Close</span>
 								</Ariakit.DialogDismiss>
-								<SubscribeProCardContent
-									isAuthenticated={isAuthenticated}
-									isTrialActive={isTrial}
-									billingInterval={props.billingInterval}
-									isTrialAvailable={true}
-								/>
-								<div className="flex flex-col gap-3">
+								<div className="min-h-0 flex-1 overflow-y-auto">
+									<SubscribeProCardContent
+										isAuthenticated={isAuthenticated}
+										isTrialActive={isTrial}
+										billingInterval={props.billingInterval}
+										// Intentionally force the promotional trial copy in the modal; the main
+										// SubscribeProCard path uses useSubscribe() to determine actual eligibility.
+										isTrialAvailable={true}
+									/>
+								</div>
+								<div className="flex shrink-0 flex-col gap-3 pt-3">
 									<BasicLink
 										href="/subscription"
 										data-umami-event="subscribe-modal-goto-page"
-										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+										className="block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 									>
 										Unlock Pro Features
 									</BasicLink>

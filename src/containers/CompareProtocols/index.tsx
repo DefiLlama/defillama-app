@@ -161,7 +161,13 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 							</div>
 						) : (
 							<React.Suspense fallback={<div className="min-h-[398px]" />}>
-								<MultiSeriesChart2 dataset={dataset} charts={charts} valueSymbol="$" exportButtons="auto" />
+								<MultiSeriesChart2
+									dataset={dataset}
+									charts={charts}
+									valueSymbol="$"
+									showTotalInTooltip
+									exportButtons="auto"
+								/>
 							</React.Suspense>
 						)}
 					</div>

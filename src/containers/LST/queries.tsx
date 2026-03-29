@@ -1,4 +1,4 @@
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatNum, formattedNum, getNDistinctColors, slug } from '~/utils'

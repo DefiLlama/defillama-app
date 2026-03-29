@@ -2,7 +2,6 @@ export interface IChainMetadata {
 	stablecoins?: boolean
 	dexs?: boolean
 	name: string
-	activeUsers?: boolean
 	activeLiquidity?: boolean
 	fees?: boolean
 	revenue?: boolean
@@ -24,6 +23,12 @@ export interface IChainMetadata {
 	id: string
 	protocolCount?: number
 	incentives?: boolean
+	chainActiveUsers?: boolean
+	chainNewUsers?: boolean
+	activeUsers?: boolean
+	newUsers?: boolean
+	txCount?: boolean
+	gasUsed?: boolean
 	dimAgg?: Record<string, Record<string, { '24h'?: number | null; '7d'?: number | null; '30d'?: number | null }>>
 }
 
@@ -48,7 +53,6 @@ export interface IProtocolMetadata {
 	displayName?: string
 	chains?: Array<string>
 	hacks?: boolean
-	activeUsers?: boolean
 	governance?: boolean
 	expenses?: boolean
 	treasury?: boolean
@@ -63,6 +67,10 @@ export interface IProtocolMetadata {
 	borrowed?: boolean
 	tokenRights?: boolean
 	inflows?: boolean
+	activeUsers?: boolean
+	newUsers?: boolean
+	txCount?: boolean
+	gasUsed?: boolean
 }
 
 export interface ICexItem {
@@ -89,6 +97,7 @@ export interface IRWAList {
 	platforms: Array<string>
 	chains: Array<string>
 	categories: Array<string>
+	assetGroups: Array<string>
 	idMap: Record<string, string>
 }
 

@@ -3,8 +3,8 @@ import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
@@ -298,7 +298,6 @@ export function ChainsWithStablecoins({
 								dataset={deferredPeggedAreaTotalData.dataset}
 								charts={deferredPeggedAreaTotalData.charts}
 								valueSymbol="$"
-								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
@@ -309,7 +308,7 @@ export function ChainsWithStablecoins({
 								charts={deferredChainMcapsData.charts}
 								stacked={true}
 								valueSymbol="$"
-								chartOptions={chartOptions}
+								showTotalInTooltip
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
@@ -321,7 +320,6 @@ export function ChainsWithStablecoins({
 								stacked={true}
 								expandTo100Percent={true}
 								valueSymbol="%"
-								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
@@ -336,15 +334,4 @@ export function ChainsWithStablecoins({
 			<StablecoinsChainsTable data={groupedChains} />
 		</>
 	)
-}
-
-const chartOptions = {
-	grid: {
-		left: 12,
-		bottom: 68,
-		top: 12,
-		right: 12,
-		outerBoundsMode: 'same',
-		outerBoundsContain: 'axisLabel'
-	}
 }

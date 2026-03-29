@@ -1,0 +1,180 @@
+import * as React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { IRWAAssetsOverview } from './api.types'
+import type { RWAChartAggregationMode } from './chartAggregation'
+import { getRwaTickerChartQueryKey, useRwaAssetGroupPieChartData, useRwaChartDataset } from './hooks'
+
+const useQueryMock = vi.fn()
+
+vi.mock('@tanstack/react-query', () => ({
+	useQuery: (options: unknown) => useQueryMock(options)
+}))
+
+const assets: IRWAAssetsOverview['assets'] = [
+	{
+		id: '1',
+		ticker: 'AAA',
+		assetName: 'Alpha',
+		category: ['Treasuries'],
+		parentPlatform: 'Centrifuge',
+		trueRWA: false,
+		onChainMcap: null,
+		activeMcap: null,
+		defiActiveTvl: null
+	},
+	{
+		id: '2',
+		ticker: 'BBB',
+		assetName: 'Beta',
+		category: ['Private Credit'],
+		parentPlatform: 'Maple',
+		trueRWA: false,
+		onChainMcap: null,
+		activeMcap: null,
+		defiActiveTvl: null
+	}
+]
+
+function DatasetProbe({
+	mode,
+	initialDataset = { source: [], dimensions: ['timestamp'] },
+	useInitialDataset = false
+}: {
+	mode: RWAChartAggregationMode
+	initialDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] }
+	useInitialDataset?: boolean
+}) {
+	const { chartDataset } = useRwaChartDataset({
+		selectedMetric: 'onChainMcap',
+		initialDataset,
+		filteredAssets: assets,
+		mode,
+		target: { kind: 'all' },
+		useInitialDataset
+	})
+
+	return React.createElement('pre', null, chartDataset.dimensions.join('|'))
+}
+
+function AssetGroupProbe({ enabled, chartAssets }: { enabled: boolean; chartAssets: IRWAAssetsOverview['assets'] }) {
+	const result = useRwaAssetGroupPieChartData({ enabled, assets: chartAssets })
+	return React.createElement('script', {
+		type: 'application/json',
+		dangerouslySetInnerHTML: { __html: JSON.stringify(result) }
+	})
+}
+
+function readJsonMarkup(markup: string) {
+	const match = markup.match(/<script type="application\/json">([\s\S]*)<\/script>/)
+	expect(match?.[1]).toBeTruthy()
+	return JSON.parse(match![1])
+}
+
+describe('useRwaChartDataset', () => {
+	beforeEach(() => {
+		useQueryMock.mockReset()
+		useQueryMock.mockReturnValue({
+			data: [{ timestamp: 1, AAA: 100, BBB: 80 }],
+			isLoading: false,
+			error: null
+		})
+	})
+
+	it('regroups cached ticker rows without changing the fetch key', () => {
+		const categoryMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'category' }))
+		const platformMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'platform' }))
+
+		expect(categoryMarkup).toContain('timestamp|Treasuries|Private Credit')
+		expect(platformMarkup).toContain('timestamp|Centrifuge|Maple')
+		expect(useQueryMock).toHaveBeenCalledTimes(2)
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap')
+		})
+		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap')
+		})
+	})
+
+	it('returns the prerendered dataset when runtime fetching is disabled', () => {
+		useQueryMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			error: null
+		})
+
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, {
+				mode: 'category',
+				initialDataset: {
+					source: [{ timestamp: 1 }],
+					dimensions: ['timestamp', 'Prerendered']
+				},
+				useInitialDataset: true
+			})
+		)
+
+		expect(markup).toContain('timestamp|Prerendered')
+		expect(useQueryMock).toHaveBeenCalledTimes(1)
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap'),
+			enabled: false
+		})
+	})
+})
+
+describe('useRwaAssetGroupPieChartData', () => {
+	it('groups assets by normalized asset group and keeps Unknown', () => {
+		const chartAssets: IRWAAssetsOverview['assets'] = [
+			{
+				id: '1',
+				ticker: 'AAA',
+				assetName: 'Alpha',
+				assetGroup: 'Stablecoins',
+				category: ['Treasuries'],
+				parentPlatform: 'Centrifuge',
+				trueRWA: false,
+				onChainMcap: { total: 100, breakdown: [] },
+				activeMcap: { total: 90, breakdown: [] },
+				defiActiveTvl: { total: 30, breakdown: [] }
+			},
+			{
+				id: '2',
+				ticker: 'BBB',
+				assetName: 'Beta',
+				assetGroup: null,
+				category: ['Private Credit'],
+				parentPlatform: 'Maple',
+				trueRWA: false,
+				onChainMcap: { total: 50, breakdown: [] },
+				activeMcap: { total: 20, breakdown: [] },
+				defiActiveTvl: { total: 10, breakdown: [] }
+			}
+		]
+
+		const data = readJsonMarkup(
+			renderToStaticMarkup(React.createElement(AssetGroupProbe, { enabled: true, chartAssets }))
+		)
+		expect(data.assetGroupOnChainMcapPieChartData).toEqual([
+			{ name: 'Stablecoins', value: 100 },
+			{ name: 'Unknown', value: 50 }
+		])
+		expect(data.assetGroupActiveMcapPieChartData).toEqual([
+			{ name: 'Stablecoins', value: 90 },
+			{ name: 'Unknown', value: 20 }
+		])
+		expect(data.assetGroupDefiActiveTvlPieChartData).toEqual([
+			{ name: 'Stablecoins', value: 30 },
+			{ name: 'Unknown', value: 10 }
+		])
+	})
+
+	it('returns empty data when disabled', () => {
+		const data = readJsonMarkup(
+			renderToStaticMarkup(React.createElement(AssetGroupProbe, { enabled: false, chartAssets: assets }))
+		)
+		expect(data.assetGroupOnChainMcapPieChartData).toEqual([])
+		expect(data.assetGroupActiveMcapPieChartData).toEqual([])
+		expect(data.assetGroupDefiActiveTvlPieChartData).toEqual([])
+	})
+})

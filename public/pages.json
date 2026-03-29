@@ -64,13 +64,6 @@
       "oldName": "Top Protocols"
     },
     {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
-    },
-    {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Total Value Locked",
@@ -89,6 +82,13 @@
       "tab": "Protocols",
       "oldCategory": "Market Overview",
       "oldName": "Forks"
+    },
+    {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
     },
     {
       "name": "Total Borrowed by Protocol",
@@ -512,6 +512,42 @@
       "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
+      "name": "Bridges by Volume",
+      "route": "/bridges",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol",
+      "totalTrackedKey": "bridges.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Bridges",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
+      "totalTrackedKey": "bridges.chains",
+      "tab": "Chains",
+      "oldCategory": "Bridges",
+      "oldName": "Chains"
+    },
+    {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -547,78 +583,25 @@
       "oldName": "Volume (Chains)"
     },
     {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Bridges by Volume",
-      "route": "/bridges",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol",
-      "totalTrackedKey": "bridges.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Bridges",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
-      "totalTrackedKey": "bridges.chains",
-      "tab": "Chains",
-      "oldCategory": "Bridges",
-      "oldName": "Chains"
-    },
-    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
+      "category": "Equities, ETFs & DATs",
       "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
       "oldName": "DATs"
     },
     {
       "name": "Exchange Traded Funds (ETFs)",
       "route": "/etfs",
-      "category": "ETFs & DATs",
+      "category": "Equities, ETFs & DATs",
       "description": "AUM, Flows, Volume metrics of all ETFs",
       "oldName": "ETFs"
     },
     {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols",
-      "oldName": "Treasuries"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding its own token",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Treasury: Entities",
-      "route": "/entities",
-      "category": "Treasury",
-      "description": "Treasury by entity",
-      "totalTrackedKey": "treasury.entities"
+      "name": "Equities",
+      "route": "/equities",
+      "category": "Equities, ETFs & DATs",
+      "description": "Live company rankings by market cap, price, volume, and price change",
+      "oldName": "Equities"
     },
     {
       "name": "Unlocks: Overview",
@@ -644,6 +627,30 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols",
+      "oldName": "Treasuries"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Treasury: Entities",
+      "route": "/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity",
+      "totalTrackedKey": "treasury.entities"
     },
     {
       "name": "Raises: Overview",
@@ -704,19 +711,19 @@
       "oldName": "Governance"
     },
     {
-      "name": "Safe Harbor Agreements",
-      "route": "/safe-harbor-agreements",
-      "category": "Others",
-      "description": "Overview of protocols with Safe Harbor Agreements",
-      "totalTrackedKey": "safeHarbor.protocols"
-    },
-    {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
       "description": "Breakdown of annual operational expenses by protocol",
       "totalTrackedKey": "expenses.protocols",
       "tab": "Protocols"
+    },
+    {
+      "name": "Safe Harbor Agreements",
+      "route": "/safe-harbor-agreements",
+      "category": "Others",
+      "description": "Overview of protocols with Safe Harbor Agreements",
+      "totalTrackedKey": "safeHarbor.protocols"
     },
     {
       "name": "Token Rights",
@@ -949,6 +956,11 @@
     {
       "name": "LlamaAI",
       "route": "/ai"
+    },
+    {
+      "name": "Downloads",
+      "route": "/downloads",
+      "icon": "download-cloud"
     },
     {
       "name": "Custom Dashboards",

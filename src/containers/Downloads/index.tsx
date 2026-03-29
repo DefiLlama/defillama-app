@@ -1,5 +1,5 @@
-import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useCallback, useRef, useState } from 'react'
+import { matchSorter } from 'match-sorter'
+import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { TrialCsvLimitModal } from '~/components/TrialCsvLimitModal'
@@ -15,39 +15,104 @@ import { ChartDatasetModal } from './ChartDatasetModal'
 import { DatasetPreviewModal } from './DatasetPreviewModal'
 import { datasets, datasetCategories, type DatasetDefinition } from './datasets'
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
-
-const TABS = ['Datasets', 'Charts'] as const
+const TABS = ['Datasets', 'Time Series'] as const
 type Tab = (typeof TABS)[number]
+
+const ALL_CATEGORY = 'All'
 
 export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, user, loaders, authorizedFetch } = useAuthContext()
 	const [activeTab, setActiveTab] = useState<Tab>('Datasets')
 	const [previewDataset, setPreviewDataset] = useState<DatasetDefinition | null>(null)
 	const [previewChartDataset, setPreviewChartDataset] = useState<ChartDatasetDefinition | null>(null)
-	const [showSubscribeModal, setShowSubscribeModal] = useState(false)
 	const [trialConfirmOpen, setTrialConfirmOpen] = useState(false)
 	const [trialLimitOpen, setTrialLimitOpen] = useState(false)
 	const pendingDatasetRef = useRef<DatasetDefinition | null>(null)
 	const pendingChartDatasetRef = useRef<ChartDatasetDefinition | null>(null)
 
+	const [searchValue, setSearchValue] = useState('')
+	const deferredSearch = useDeferredValue(searchValue)
+	const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORY)
+
 	const csvDownloadCount = typeof user?.flags?.csvDownload === 'number' ? user.flags.csvDownload : 0
 
-	const subscribeModalStore = Ariakit.useDialogStore({
-		open: showSubscribeModal,
-		setOpen: setShowSubscribeModal
-	})
+	const isPreview = !isAuthenticated || !hasActiveSubscription
+
+	const allDatasetsByCategory = useMemo(() => {
+		return datasetCategories.map((category) => ({
+			category,
+			items: datasets.filter((d) => d.category === category)
+		}))
+	}, [])
+
+	const allChartsByCategory = useMemo(() => {
+		return chartDatasetCategories.map((category) => ({
+			category,
+			items: chartDatasets.filter((d) => d.category === category)
+		}))
+	}, [])
+
+	const filteredDatasetsByCategory = useMemo(() => {
+		let grouped = allDatasetsByCategory
+		if (selectedCategory !== ALL_CATEGORY) {
+			grouped = grouped.filter((g) => g.category === selectedCategory)
+		}
+		if (!deferredSearch) return grouped
+		return grouped
+			.map((group) => {
+				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
+				const matched = matchSorter(group.items, deferredSearch, {
+					keys: ['name', 'description', 'category'],
+					threshold: matchSorter.rankings.CONTAINS
+				})
+				return { ...group, items: matched }
+			})
+			.filter((group) => group.items.length > 0)
+	}, [deferredSearch, selectedCategory, allDatasetsByCategory])
+
+	const filteredChartsByCategory = useMemo(() => {
+		let grouped = allChartsByCategory
+		if (selectedCategory !== ALL_CATEGORY) {
+			grouped = grouped.filter((g) => g.category === selectedCategory)
+		}
+		if (!deferredSearch) return grouped
+		return grouped
+			.map((group) => {
+				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
+				const matched = matchSorter(group.items, deferredSearch, {
+					keys: ['name', 'description', 'category'],
+					threshold: matchSorter.rankings.CONTAINS
+				})
+				return { ...group, items: matched }
+			})
+			.filter((group) => group.items.length > 0)
+	}, [deferredSearch, selectedCategory, allChartsByCategory])
+
+	const totalFilteredCount = useMemo(() => {
+		const groups = activeTab === 'Datasets' ? filteredDatasetsByCategory : filteredChartsByCategory
+		return groups.reduce((sum, g) => sum + g.items.length, 0)
+	}, [activeTab, filteredDatasetsByCategory, filteredChartsByCategory])
+
+	const totalCount = useMemo(() => {
+		return activeTab === 'Datasets' ? datasets.length : chartDatasets.length
+	}, [activeTab])
+
+	const currentCategories = useMemo(() => {
+		return activeTab === 'Datasets' ? datasetCategories : chartDatasetCategories
+	}, [activeTab])
+
+	const categoryCounts = useMemo(() => {
+		const groups = activeTab === 'Datasets' ? allDatasetsByCategory : allChartsByCategory
+		const counts: Record<string, number> = {}
+		for (const g of groups) {
+			counts[g.category] = g.items.length
+		}
+		return counts
+	}, [activeTab, allDatasetsByCategory, allChartsByCategory])
 
 	const handleCardClick = useCallback(
 		(dataset: DatasetDefinition) => {
-			if (!isAuthenticated || !hasActiveSubscription) {
-				setShowSubscribeModal(true)
-				return
-			}
-
-			if (isTrial) {
+			if (isAuthenticated && hasActiveSubscription && isTrial) {
 				if (csvDownloadCount >= 1) {
 					setTrialLimitOpen(true)
 					return
@@ -64,12 +129,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 
 	const handleChartCardClick = useCallback(
 		(dataset: ChartDatasetDefinition) => {
-			if (!isAuthenticated || !hasActiveSubscription) {
-				setShowSubscribeModal(true)
-				return
-			}
-
-			if (isTrial) {
+			if (isAuthenticated && hasActiveSubscription && isTrial) {
 				if (csvDownloadCount >= 1) {
 					setTrialLimitOpen(true)
 					return
@@ -111,7 +171,10 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					<button
 						key={tab}
 						type="button"
-						onClick={() => setActiveTab(tab)}
+						onClick={() => {
+							setActiveTab(tab)
+							setSelectedCategory(ALL_CATEGORY)
+						}}
 						className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
 							activeTab === tab
 								? 'bg-(--primary) text-white shadow-sm'
@@ -123,94 +186,163 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 				))}
 			</div>
 
+			<label className="relative">
+				<span className="sr-only">Search datasets</span>
+				<Icon
+					name="search"
+					height={16}
+					width={16}
+					className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+				/>
+				<input
+					type="text"
+					inputMode="search"
+					placeholder="Search..."
+					value={searchValue}
+					onInput={(e) => setSearchValue(e.currentTarget.value)}
+					className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+				/>
+			</label>
+
+			<div className="flex flex-wrap items-center gap-2">
+				<button
+					type="button"
+					onClick={() => setSelectedCategory(ALL_CATEGORY)}
+					className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+						selectedCategory === ALL_CATEGORY
+							? 'bg-(--primary) text-white shadow-sm'
+							: 'border border-(--divider) bg-(--bg-primary) text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--text-primary)'
+					}`}
+				>
+					All
+					<span className={`ml-1.5 ${selectedCategory === ALL_CATEGORY ? 'text-white/70' : 'text-(--text-tertiary)'}`}>
+						{totalCount}
+					</span>
+				</button>
+				{currentCategories.map((category) => (
+					<button
+						key={category}
+						type="button"
+						onClick={() => setSelectedCategory(selectedCategory === category ? ALL_CATEGORY : category)}
+						className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+							selectedCategory === category
+								? 'bg-(--primary) text-white shadow-sm'
+								: 'border border-(--divider) bg-(--bg-primary) text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--text-primary)'
+						}`}
+					>
+						{category}
+						<span className={`ml-1.5 ${selectedCategory === category ? 'text-white/70' : 'text-(--text-tertiary)'}`}>
+							{categoryCounts[category] ?? 0}
+						</span>
+					</button>
+				))}
+			</div>
+
+			{(deferredSearch || selectedCategory !== ALL_CATEGORY) && (
+				<p className="text-xs text-(--text-tertiary)">
+					Showing {totalFilteredCount} of {totalCount} datasets
+					{selectedCategory !== ALL_CATEGORY ? ` in ${selectedCategory}` : ''}
+					{deferredSearch ? ` matching "${deferredSearch}"` : ''}
+				</p>
+			)}
+
 			{activeTab === 'Datasets' ? (
 				<div className="flex flex-col gap-8">
-					{datasetCategories.map((category) => {
-						const categoryDatasets = datasets.filter((d) => d.category === category)
-						return (
-							<section key={category} className="flex flex-col gap-3">
-								<h2 className="text-lg font-semibold text-(--text-primary)">{category}</h2>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-									{categoryDatasets.map((dataset) => {
-										const disabled = !!isUserLoading
-										return (
-											<button
-												key={dataset.slug}
-												type="button"
-												disabled={disabled}
-												onClick={() => handleCardClick(dataset)}
-												className="group flex cursor-pointer flex-col gap-3 rounded-xl border border-(--form-control-border) bg-(--bg-primary) p-5 text-left transition-all duration-150 hover:border-(--primary)/40 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-											>
-												<div className="flex items-start justify-between gap-3">
-													<div className="flex items-center gap-3">
-														<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
-															{disabled ? (
-																<LoadingSpinner size={18} />
-															) : (
-																<Icon name="file-text" className="h-5 w-5 text-(--primary)" />
-															)}
-														</div>
-														<span className="font-medium text-(--primary) group-hover:underline">{dataset.name}</span>
+					{filteredDatasetsByCategory.map(({ category, items }) => (
+						<section key={category} className="flex flex-col gap-3">
+							<h2 className="text-lg font-semibold text-(--text-primary)">{category}</h2>
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								{items.map((dataset) => {
+									const disabled = !!isUserLoading
+									return (
+										<button
+											key={dataset.slug}
+											type="button"
+											disabled={disabled}
+											onClick={() => handleCardClick(dataset)}
+											className="group flex cursor-pointer touch-manipulation flex-col gap-3 rounded-xl border border-(--form-control-border) bg-(--bg-primary) p-5 text-left transition-all duration-150 hover:border-(--primary)/40 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+										>
+											<div className="flex items-start justify-between gap-3">
+												<div className="flex items-center gap-3">
+													<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
+														{disabled ? (
+															<LoadingSpinner size={18} />
+														) : (
+															<Icon name="file-text" className="h-5 w-5 text-(--primary)" />
+														)}
 													</div>
-													<Icon
-														name="arrow-up-right"
-														className="mt-0.5 h-4 w-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
-													/>
+													<span className="font-medium text-(--primary) group-hover:underline">{dataset.name}</span>
 												</div>
-												<p className="text-sm text-(--text-secondary)">{dataset.description}</p>
-											</button>
-										)
-									})}
-								</div>
-							</section>
-						)
-					})}
+												<Icon
+													name="arrow-up-right"
+													className="mt-0.5 h-4 w-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
+												/>
+											</div>
+											<p className="text-sm text-(--text-secondary)">{dataset.description}</p>
+										</button>
+									)
+								})}
+							</div>
+						</section>
+					))}
+					{filteredDatasetsByCategory.length === 0 && (
+						<p className="py-8 text-center text-sm text-(--text-tertiary)">No datasets match your search.</p>
+					)}
 				</div>
 			) : (
 				<div className="flex flex-col gap-8">
-					{chartDatasetCategories.map((category) => {
-						const categoryDatasets = chartDatasets.filter((d) => d.category === category)
-						return (
-							<section key={`chart-${category}`} className="flex flex-col gap-3">
-								<h2 className="text-lg font-semibold text-(--text-primary)">{category}</h2>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-									{categoryDatasets.map((dataset) => {
-										const disabled = !!isUserLoading
-										return (
-											<button
-												key={dataset.slug}
-												type="button"
-												disabled={disabled}
-												onClick={() => handleChartCardClick(dataset)}
-												className="group flex cursor-pointer flex-col gap-3 rounded-xl border border-(--form-control-border) bg-(--bg-primary) p-5 text-left transition-all duration-150 hover:border-(--primary)/40 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-											>
-												<div className="flex items-start justify-between gap-3">
-													<div className="flex items-center gap-3">
-														<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
-															{disabled ? (
-																<LoadingSpinner size={18} />
-															) : (
-																<Icon name="bar-chart-2" className="h-5 w-5 text-(--primary)" />
-															)}
-														</div>
-														<span className="font-medium text-(--primary) group-hover:underline">{dataset.name}</span>
+					{filteredChartsByCategory.map(({ category, items }) => (
+						<section key={`chart-${category}`} className="flex flex-col gap-3">
+							<h2 className="text-lg font-semibold text-(--text-primary)">{category}</h2>
+							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+								{items.map((dataset) => {
+									const disabled = !!isUserLoading
+									return (
+										<button
+											key={dataset.slug}
+											type="button"
+											disabled={disabled}
+											onClick={() => handleChartCardClick(dataset)}
+											className="group flex cursor-pointer touch-manipulation flex-col gap-3 rounded-xl border border-(--form-control-border) bg-(--bg-primary) p-5 text-left transition-all duration-150 hover:border-(--primary)/40 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+										>
+											<div className="flex items-start justify-between gap-3">
+												<div className="flex items-center gap-3">
+													<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/10">
+														{disabled ? (
+															<LoadingSpinner size={18} />
+														) : (
+															<Icon name="bar-chart-2" className="h-5 w-5 text-(--primary)" />
+														)}
 													</div>
-													<Icon
-														name="arrow-up-right"
-														className="mt-0.5 h-4 w-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
-													/>
+													<span className="font-medium text-(--primary) group-hover:underline">{dataset.name}</span>
 												</div>
-												<p className="text-sm text-(--text-secondary)">{dataset.description}</p>
-												<span className="inline-flex w-fit items-center gap-1 rounded-full bg-(--link-hover-bg) px-2 py-0.5 text-xs text-(--text-tertiary)">
-													Select {dataset.paramLabel}
-												</span>
-											</button>
-										)
-									})}
-								</div>
-							</section>
-						)
-					})}
+												<Icon
+													name="arrow-up-right"
+													className="mt-0.5 h-4 w-4 shrink-0 text-(--text-secondary) transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-(--primary)"
+												/>
+											</div>
+											<p className="text-sm text-(--text-secondary)">{dataset.description}</p>
+											<span className="inline-flex w-fit items-center gap-1 rounded-full bg-(--link-hover-bg) px-2 py-0.5 text-xs text-(--text-tertiary)">
+												Select {dataset.paramLabel}
+											</span>
+										</button>
+									)
+								})}
+							</div>
+							{category === 'RWA' ? (
+								<p className="text-sm text-(--text-secondary)">
+									Download more RWA data{' '}
+									<a href="https://defillama.com/rwa" className="text-(--primary) underline hover:opacity-80">
+										here
+									</a>
+									.
+								</p>
+							) : null}
+						</section>
+					))}
+					{filteredChartsByCategory.length === 0 && (
+						<p className="py-8 text-center text-sm text-(--text-tertiary)">No datasets match your search.</p>
+					)}
 				</div>
 			)}
 
@@ -221,6 +353,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					authorizedFetch={authorizedFetch}
 					onClose={() => setPreviewChartDataset(null)}
 					isTrial={isTrial}
+					isPreview={isPreview}
 				/>
 			)}
 
@@ -230,14 +363,9 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					authorizedFetch={authorizedFetch}
 					onClose={() => setPreviewDataset(null)}
 					isTrial={isTrial}
+					isPreview={isPreview}
 				/>
 			)}
-
-			{showSubscribeModal ? (
-				<Suspense fallback={null}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
-			) : null}
 
 			{trialConfirmOpen ? (
 				<ConfirmationModal

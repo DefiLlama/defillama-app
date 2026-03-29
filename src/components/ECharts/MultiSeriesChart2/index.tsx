@@ -22,6 +22,7 @@ import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
+import { buildHallmarksMarkLine } from '../hallmarks'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -53,68 +54,15 @@ function formatAxisLabel(value: number, symbol: string): string {
 	return formatNum(value, 5, symbol || undefined)
 }
 
-type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
-
-function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['hallmarks']>, isThemeDark: boolean) {
-	const labelColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-
-	return hallmarks.length > 8
-		? {
-				symbol: 'none',
-				data: hallmarks.map(([date, event]) => [
-					{
-						name: event,
-						xAxis: +date * 1e3,
-						yAxis: 0,
-						label: {
-							show: false,
-							color: labelColor,
-							fontFamily: 'sans-serif',
-							fontSize: 14,
-							fontWeight: 500,
-							position: 'insideEndTop'
-						},
-						emphasis: {
-							label: {
-								show: true, // Show on hover
-								color: labelColor,
-								fontFamily: 'sans-serif',
-								fontSize: 14,
-								fontWeight: 500,
-								position: 'insideEndTop'
-							}
-						}
-					},
-					{
-						name: 'end',
-						xAxis: +date * 1e3,
-						yAxis: 'max',
-						y: 0
-					}
-				])
-			}
-		: {
-				data: hallmarks.map(([date, event], index) => [
-					{
-						name: event,
-						xAxis: +date * 1e3,
-						yAxis: 0,
-						label: {
-							color: labelColor,
-							fontFamily: 'sans-serif',
-							fontSize: 14,
-							fontWeight: 500
-						}
-					},
-					{
-						name: 'end',
-						xAxis: +date * 1e3,
-						yAxis: 'max',
-						y: Math.max(hallmarks.length * 40 - index * 40, 40)
-					}
-				])
-			}
+type AxisExtent = {
+	min?: number
 }
+
+function getZeroBaselineYAxisMin(extent: AxisExtent) {
+	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
+}
+
+type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
 function buildSeries({
 	effectiveCharts,
@@ -193,11 +141,19 @@ function buildSeries({
 			delete base.areaStyle
 		}
 
+		if (chart.isTBD) {
+			base.itemStyle = { ...base.itemStyle, opacity: 0.2 }
+			if (base.areaStyle) {
+				base.areaStyle = { ...base.areaStyle, opacity: 0.1 }
+			}
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5 }
+		}
+
 		out.push(base)
 	}
 
 	if (hallmarks && out.length > 0) {
-		out[0].markLine = buildHallmarksMarkLine(hallmarks, isThemeDark)
+		out[0].markLine = buildHallmarksMarkLine({ hallmarks, isThemeDark })
 	}
 
 	if (someSeriesHasYAxisIndex) {
@@ -423,7 +379,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		solidChartAreaStyle = false,
 		hideDataZoom,
 		showTotalInTooltip = false,
-		tooltipTotalPosition = 'bottom',
+		tooltipTotalPosition = 'top',
 		onReady,
 		hideDefaultLegend = true,
 		selectedCharts,
@@ -477,6 +433,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const yAxis = {
 			type: 'value',
 			boundaryGap: false,
+			min: getZeroBaselineYAxisMin,
 			nameTextStyle: { fontFamily: 'sans-serif', fontSize: 14, fontWeight: 400 },
 			axisLabel: {
 				formatter: (value: number) => formatAxisLabel(value, valueSymbol),
@@ -489,10 +446,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 
 		const legend = {
-			// When legends are enabled, we want consistent placement (top)
-			// so callers don't have to override per-chart.
-			top: 0,
-			right: 12,
+			padding: 12,
 			textStyle: {
 				fontFamily: 'sans-serif',
 				fontSize: 12,
@@ -655,6 +609,10 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const shouldHideDataZoom = datasetLength < 2 || hideDataZoom
 
 		// Always use a scroll legend when the default legend is enabled.
+		// Only constrain the left boundary when there are enough series to span the
+		// full width — otherwise omit `left` so items stay right-aligned.
+		const legendItemCount = series.length
+		const constrainLeft = legendItemCount > 5
 		const finalLegend = hideDefaultLegend
 			? undefined
 			: Array.isArray(legend)
@@ -664,7 +622,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 						orient: l?.orient ?? 'horizontal',
 						pageButtonPosition: l?.pageButtonPosition ?? 'end',
 						top: l?.top ?? 0,
-						...(l?.left != null ? { left: l.left } : {}),
+						...(l?.left != null ? { left: l.left } : constrainLeft ? { left: 12 } : {}),
 						right: l?.right ?? 12
 					}))
 				: legend
@@ -674,7 +632,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 							orient: legend?.orient ?? 'horizontal',
 							pageButtonPosition: legend?.pageButtonPosition ?? 'end',
 							top: legend?.top ?? 0,
-							...(legend?.left != null ? { left: legend.left } : {}),
+							...(legend?.left != null ? { left: legend.left } : constrainLeft ? { left: 12 } : {}),
 							right: legend?.right ?? 12
 						}
 					: undefined
@@ -788,8 +746,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const baseGrid = {
 			left: 12,
 			bottom: shouldHideDataZoom ? 12 : 68,
-			// Reserve enough space for a single-row scroll legend at the top
-			// without creating the huge "dead band" many callers were compensating for.
 			top: hideDefaultLegend ? 12 : 40,
 			right: 12,
 			outerBoundsMode: 'same',

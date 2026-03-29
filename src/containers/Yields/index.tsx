@@ -8,7 +8,7 @@ import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
 import { useHolderStats, useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
-import { toFilterPool } from './utils'
+import { extractPoolTokens, normalizeToken, toFilterPool } from './utils'
 
 const ALL_YIELD_COLUMNS = [
 	'show7dBaseApy',
@@ -98,10 +98,10 @@ const YieldPage = ({
 	])
 
 	const poolsData = React.useMemo(() => {
-		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
-		const include_tokens = includeTokens.map((token) => token.toLowerCase())
-		const excludeTokensSet = new Set(excludeTokens.map((token) => token.toLowerCase()))
-		const exact_tokens = exactTokens.map((token) => token.toLowerCase())
+		const pair_tokens = pairTokens.map((token) => normalizeToken(token))
+		const include_tokens = includeTokens.map((token) => normalizeToken(token))
+		const excludeTokensSet = new Set(excludeTokens.map((token) => normalizeToken(token)))
+		const exact_tokens = exactTokens.map((token) => normalizeToken(token))
 
 		// Selected sets already have excludes filtered out at hook level
 		const selectedProjectsSet = new Set(selectedProjects)
@@ -132,11 +132,7 @@ const YieldPage = ({
 
 			if (toFilter) {
 				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
-				const poolTokens =
-					curr.symbol
-						?.split('(')[0]
-						.split('-')
-						.map((s) => s.toLowerCase().trim()) || []
+				const poolTokens = curr.symbol ? extractPoolTokens(curr.symbol) : []
 				let pegInfo = null
 				let maxAbs = -1
 				for (const t of poolTokens) {

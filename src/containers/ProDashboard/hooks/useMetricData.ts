@@ -1,8 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import dayjs, { type Dayjs } from 'dayjs'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
-import { getChartQueryFn, getChartQueryKey, useParentChildMapping } from '../queries'
+import {
+	getChartQueryFn,
+	getChartQueryKey,
+	ProxyAuthTokenContext,
+	StreamDoneContext,
+	useParentChildMapping
+} from '../queries'
 import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
 
 const DEFAULT_COMPARE = {
@@ -191,6 +197,8 @@ export function useMetricData(metric: MetricConfig) {
 			: (chains.find((c: any) => c.name === subject.chain)?.gecko_id as string | undefined))
 	const { data: parentMapping } = useParentChildMapping()
 
+	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
 	const tokenTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
 	const chainTokenTypes = ['chainMcap', 'chainPrice']
 
@@ -200,10 +208,11 @@ export function useMetricData(metric: MetricConfig) {
 		isError
 	} = useQuery({
 		queryKey: ['pro-dashboard', 'metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
-		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping),
+		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping, undefined, undefined, authToken),
 		staleTime: Infinity,
 		select: (data: [number, number][]) => (Array.isArray(data) ? data : []),
 		enabled:
+			streamDone &&
 			!!item &&
 			((itemType === 'protocol' && (!tokenTypes.includes(type) || !!geckoId)) ||
 				(itemType === 'chain' && (!chainTokenTypes.includes(type) || !!geckoId)))
@@ -273,7 +282,7 @@ export function useMetricData(metric: MetricConfig) {
 
 	return {
 		...result,
-		isLoading,
+		isLoading: isLoading || (!streamDone && !series),
 		isError
 	}
 }

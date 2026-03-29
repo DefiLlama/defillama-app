@@ -7,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 import { ProDashboardAPIProvider, useProDashboardDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { getProDashboardServerData } from '~/containers/ProDashboard/queries.server'
+import { fetchDashboardConfig } from '~/containers/ProDashboard/queries.server'
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
@@ -19,29 +19,28 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 	if (dashboardId === 'new') {
 		context.res.setHeader('Cache-Control', 'private, no-store')
-		return { props: { dashboardId, serverData: null } }
+		return { props: { dashboardId } }
 	}
 
 	const authToken = getAuthTokenFromRequest(context.req)
-
-	if (authToken) {
-		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
-	} else {
-		context.res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
-	}
+	context.res.setHeader(
+		'Cache-Control',
+		authToken ? 'private, no-cache, no-store, must-revalidate' : 'public, s-maxage=300, stale-while-revalidate=3600'
+	)
 
 	try {
-		const serverData = await getProDashboardServerData({ dashboardId, authToken })
-		return { props: { dashboardId, serverData } }
+		const dashboard = await fetchDashboardConfig(dashboardId, authToken)
+		if (!dashboard) {
+			return { notFound: true }
+		}
 	} catch {
-		return { props: { dashboardId, serverData: null } }
+		// On fetch error, let client-side handle it via the stream
 	}
+
+	return { props: { dashboardId } }
 }
 
-export default function DashboardPage({
-	dashboardId,
-	serverData
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function DashboardPage({ dashboardId }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const initialId = dashboardId === 'new' ? undefined : dashboardId
 
 	return (
@@ -50,11 +49,7 @@ export default function DashboardPage({
 			description="Custom DeFi analytics dashboard on DefiLlama Pro. No-code dashboards with TVL, fees, volume, and protocol metrics."
 			canonicalUrl={`/pro/${dashboardId}`}
 		>
-			<ProDashboardAPIProvider
-				initialDashboardId={initialId}
-				serverData={serverData}
-				key={`dashboard-api-provider-${dashboardId}`}
-			>
+			<ProDashboardAPIProvider initialDashboardId={initialId} key={`dashboard-api-provider-${dashboardId}`}>
 				<DashboardPageContent dashboardId={dashboardId} />
 			</ProDashboardAPIProvider>
 		</Layout>

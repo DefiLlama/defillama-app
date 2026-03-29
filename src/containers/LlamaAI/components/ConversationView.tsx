@@ -21,6 +21,8 @@ interface ConversationViewProps {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	executionStartedAt: number
+	spawnIsResearchMode: boolean
 	streamingThinking: string
 	streamingDraft: Message | null
 	isCompacting: boolean
@@ -52,6 +54,9 @@ interface ConversationViewProps {
 	researchUsage?: ResearchUsage | null
 	animateActiveExchange: boolean
 	onOpenAlerts: () => void
+	quotedText?: string | null
+	onClearQuotedText?: () => void
+	onTableFullscreenOpen?: () => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -64,7 +69,8 @@ function ConversationMessageItem({
 	sessionId,
 	readOnly,
 	isLlama,
-	onActionClick
+	onActionClick,
+	onTableFullscreenOpen
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -72,6 +78,7 @@ function ConversationMessageItem({
 	readOnly: boolean
 	isLlama: boolean
 	onActionClick?: (message: string) => void
+	onTableFullscreenOpen?: () => void
 }) {
 	return (
 		<MessageBubble
@@ -81,6 +88,7 @@ function ConversationMessageItem({
 			isLlama={isLlama}
 			onActionClick={onActionClick}
 			nextUserMessage={nextUserMessage}
+			onTableFullscreenOpen={onTableFullscreenOpen}
 		/>
 	)
 }
@@ -90,6 +98,8 @@ function ConversationLiveStatus({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	executionStartedAt,
+	spawnIsResearchMode,
 	streamingThinking,
 	streamingDraft,
 	isCompacting,
@@ -100,12 +110,15 @@ function ConversationLiveStatus({
 	isResearchMode,
 	sessionId,
 	readOnly,
-	isLlama
+	isLlama,
+	onTableFullscreenOpen
 }: {
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	executionStartedAt: number
+	spawnIsResearchMode: boolean
 	streamingThinking: string
 	streamingDraft: Message | null
 	isCompacting: boolean
@@ -117,6 +130,7 @@ function ConversationLiveStatus({
 	sessionId: string | null
 	readOnly: boolean
 	isLlama: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	return (
 		<>
@@ -130,10 +144,16 @@ function ConversationLiveStatus({
 			) : null}
 
 			<div style={{ overflowAnchor: 'none' }}>
-				{spawnProgress.size > 0 ? (
-					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+				{spawnProgress.size > 0 && spawnIsResearchMode ? (
+					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} isResearchMode />
 				) : (
-					<ToolProgressIndicator toolCalls={activeToolCalls} thinking={streamingThinking} isCompacting={isCompacting} />
+					<ToolProgressIndicator
+						toolCalls={activeToolCalls}
+						thinking={streamingThinking}
+						isCompacting={isCompacting}
+						spawnProgress={spawnProgress.size > 0 ? spawnProgress : undefined}
+						executionStartedAt={executionStartedAt}
+					/>
 				)}
 			</div>
 
@@ -146,6 +166,7 @@ function ConversationLiveStatus({
 						isDraft
 						readOnly={readOnly}
 						isLlama={isLlama}
+						onTableFullscreenOpen={onTableFullscreenOpen}
 					/>
 				</div>
 			) : null}
@@ -188,6 +209,8 @@ export function ConversationView({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	executionStartedAt,
+	spawnIsResearchMode,
 	streamingThinking,
 	streamingDraft,
 	isCompacting,
@@ -209,7 +232,10 @@ export function ConversationView({
 	setIsResearchMode,
 	researchUsage,
 	animateActiveExchange,
-	onOpenAlerts
+	onOpenAlerts,
+	quotedText,
+	onClearQuotedText,
+	onTableFullscreenOpen
 }: ConversationViewProps) {
 	// Keep the newest user prompt in the same block as the live response/status UI
 	// so the viewport-sized spacer applies to the whole active exchange.
@@ -223,8 +249,8 @@ export function ConversationView({
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
-				<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-					<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
+				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col">
+					<div className="flex w-full flex-col gap-2 px-2">
 						<div className="flex flex-col gap-2.5">
 							{paginationState.isLoadingMore ? (
 								<div className="flex justify-center py-2">
@@ -253,6 +279,7 @@ export function ConversationView({
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 								)
 							})}
@@ -271,6 +298,7 @@ export function ConversationView({
 										sessionId={sessionId}
 										readOnly={readOnly}
 										isLlama={isLlama}
+										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 
 									<ConversationLiveStatus
@@ -278,6 +306,8 @@ export function ConversationView({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										executionStartedAt={executionStartedAt}
+										spawnIsResearchMode={spawnIsResearchMode}
 										streamingThinking={streamingThinking}
 										streamingDraft={streamingDraft}
 										isCompacting={isCompacting}
@@ -289,6 +319,7 @@ export function ConversationView({
 										sessionId={sessionId}
 										readOnly={readOnly}
 										isLlama={isLlama}
+										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 								</div>
 							) : (
@@ -297,7 +328,9 @@ export function ConversationView({
 									activeToolCalls={activeToolCalls}
 									spawnProgress={spawnProgress}
 									spawnStartTime={spawnStartTime}
+									executionStartedAt={executionStartedAt}
 									streamingThinking={streamingThinking}
+									spawnIsResearchMode={spawnIsResearchMode}
 									streamingDraft={streamingDraft}
 									isCompacting={isCompacting}
 									recovery={recovery}
@@ -308,6 +341,7 @@ export function ConversationView({
 									sessionId={sessionId}
 									readOnly={readOnly}
 									isLlama={isLlama}
+									onTableFullscreenOpen={onTableFullscreenOpen}
 								/>
 							)}
 						</div>
@@ -332,7 +366,7 @@ export function ConversationView({
 			</div>
 
 			{!readOnly ? (
-				<div className="relative mx-auto w-full max-w-3xl pb-2.5">
+				<div className="llamaai-chat-width relative mx-auto w-full pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-9 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 					<PromptInput
 						handleSubmit={handleSubmit}
@@ -346,6 +380,8 @@ export function ConversationView({
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
+						quotedText={quotedText}
+						onClearQuotedText={onClearQuotedText}
 					/>
 				</div>
 			) : null}
@@ -364,10 +400,18 @@ export function LoadingConversationState() {
 	)
 }
 
-export function EmptyConversationErrorState({ message }: { message: string }) {
+export function EmptyConversationErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
 	return (
-		<div className="flex flex-1 items-center justify-center">
+		<div className="flex flex-1 flex-col items-center justify-center gap-2">
 			<p className="text-sm text-red-700 dark:text-red-300">{message}</p>
+			{onRetry ? (
+				<button
+					onClick={onRetry}
+					className="rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+				>
+					Retry
+				</button>
+			) : null}
 		</div>
 	)
 }

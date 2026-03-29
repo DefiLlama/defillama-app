@@ -7,7 +7,12 @@ import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArti
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
-import { ThinkingPanel, TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import {
+	ThinkingPanel,
+	TOOL_ICONS,
+	TOOL_LABELS,
+	useHackerMode
+} from '~/containers/LlamaAI/components/status/StreamingStatus'
 import {
 	parseMessageToRenderModel,
 	type ArtifactRecord,
@@ -327,7 +332,9 @@ function MessageContentBlock({
 	isStreaming,
 	sessionId,
 	onActionClick,
-	nextUserMessage
+	nextUserMessage,
+	hackerMode,
+	onTableFullscreenOpen
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -335,13 +342,23 @@ function MessageContentBlock({
 	sessionId?: string | null
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	hackerMode?: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	if (block.type === 'action-group') {
 		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
 	}
 
 	if (block.type === 'markdown') {
-		return <ChatMarkdownRenderer content={block.content} citations={block.citations} isStreaming={isStreaming} />
+		return (
+			<ChatMarkdownRenderer
+				content={block.content}
+				citations={block.citations}
+				isStreaming={isStreaming}
+				hackerMode={hackerMode}
+				onTableFullscreenOpen={onTableFullscreenOpen}
+			/>
+		)
 	}
 
 	if (block.type === 'sources') {
@@ -357,7 +374,10 @@ function InlineContent({
 	isStreaming = false,
 	sessionId,
 	onActionClick,
-	nextUserMessage
+	nextUserMessage,
+	hackerMode,
+	showToolDetails = false,
+	onTableFullscreenOpen
 }: {
 	message: Message
 	toolExecutions?: ToolExecution[]
@@ -365,6 +385,9 @@ function InlineContent({
 	sessionId?: string | null
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	hackerMode?: boolean
+	showToolDetails?: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	const includeFallbackArtifacts = !isStreaming || !message.content?.trim()
 	const { artifactsById, blocks } = useMemo(
@@ -383,6 +406,8 @@ function InlineContent({
 						sessionId={sessionId}
 						onActionClick={onActionClick}
 						nextUserMessage={nextUserMessage}
+						hackerMode={hackerMode}
+						onTableFullscreenOpen={onTableFullscreenOpen}
 					/>
 				</div>
 			))}
@@ -392,13 +417,19 @@ function InlineContent({
 			) : null}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
-				<ToolExecutionPanel toolExecutions={toolExecutions} />
+				<ToolExecutionPanel toolExecutions={toolExecutions} showDetails={showToolDetails} />
 			) : null}
 		</div>
 	)
 }
 
-function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[] }) {
+function ToolExecutionPanel({
+	toolExecutions,
+	showDetails = false
+}: {
+	toolExecutions: ToolExecution[]
+	showDetails?: boolean
+}) {
 	const totalTime = toolExecutions.reduce((sum, execution) => sum + execution.executionTimeMs, 0)
 	const successCount = toolExecutions.filter((execution) => execution.success).length
 	const detailsRef = useRef<HTMLDetailsElement>(null)
@@ -441,29 +472,39 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 				className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 select-text dark:border-[#222324]"
 			>
 				{toolExecutions.map((execution) => (
-					<ToolExecutionRow key={getRowKey(getToolExecutionKey(execution))} execution={execution} />
+					<ToolExecutionRow
+						key={getRowKey(getToolExecutionKey(execution))}
+						execution={execution}
+						showDetails={showDetails}
+					/>
 				))}
 			</div>
 		</details>
 	)
 }
 
-function ToolExecutionRow({ execution }: { execution: ToolExecution }) {
+function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolExecution; showDetails?: boolean }) {
 	const [showPreview, setShowPreview] = useState(false)
 	const meta = TOOL_ICONS[execution.name] || { icon: 'sparkles', color: '#919296' }
 	const label = TOOL_LABELS[execution.name] || execution.name
+	const hasDetails = showDetails && (execution.resultPreview?.length || execution.sqlQuery || execution.toolData)
+	const parsedCost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
+	const premiumCostLabel = Number.isFinite(parsedCost) ? ` $${parsedCost.toFixed(3)}` : ''
 
 	return (
 		<div className="flex flex-col">
 			<button
 				type="button"
-				onClick={() =>
-					(execution.resultPreview?.length || execution.sqlQuery || execution.toolData) && setShowPreview(!showPreview)
-				}
+				onClick={() => hasDetails && setShowPreview(!showPreview)}
 				className="flex items-center gap-2 py-0.5 text-left"
 			>
 				<Icon name={meta.icon as never} height={12} width={12} className="shrink-0" style={{ color: meta.color }} />
 				<span className="flex-1 text-xs text-[#555] dark:text-[#ccc]">{label}</span>
+				{execution.isPremium || execution.costUsd ? (
+					<span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+						Premium{premiumCostLabel}
+					</span>
+				) : null}
 				{execution.success ? (
 					<span className="text-[10px] text-green-600 dark:text-green-400">ok</span>
 				) : (
@@ -472,7 +513,7 @@ function ToolExecutionRow({ execution }: { execution: ToolExecution }) {
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
 					{execution.executionTimeMs}ms
 				</span>
-				{execution.resultCount != null ? (
+				{showDetails && execution.resultCount != null ? (
 					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} rows</span>
 				) : null}
 			</button>
@@ -601,7 +642,8 @@ export function MessageBubble({
 	readOnly = false,
 	isLlama = false,
 	onActionClick,
-	nextUserMessage
+	nextUserMessage,
+	onTableFullscreenOpen
 }: {
 	message: Message
 	sessionId: string | null
@@ -610,12 +652,19 @@ export function MessageBubble({
 	isLlama?: boolean
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	onTableFullscreenOpen?: () => void
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const hackerMode = useHackerMode()
 
 	if (message.role === 'user') {
 		return (
 			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]">
+				{message.quotedText ? (
+					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
+						<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
+					</div>
+				) : null}
 				{message.images && message.images.length > 0 ? (
 					<div className="mb-2.5 flex flex-wrap gap-3">
 						{message.images.map((image) => {
@@ -655,19 +704,19 @@ export function MessageBubble({
 		)
 	}
 
-	const chartList =
-		message.charts?.flatMap((set) => set.charts.map((chart) => ({ id: chart.id, title: chart.title }))) ?? []
-
 	return (
 		<>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}
-				toolExecutions={isLlama ? message.toolExecutions : undefined}
+				toolExecutions={message.toolExecutions}
 				isStreaming={isDraft}
 				sessionId={sessionId}
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
+				hackerMode={hackerMode}
+				showToolDetails={isLlama}
+				onTableFullscreenOpen={onTableFullscreenOpen}
 			/>
 			{message.id && !isDraft ? (
 				<ResponseControls
@@ -675,7 +724,7 @@ export function MessageBubble({
 					content={message.content}
 					sessionId={sessionId}
 					readOnly={readOnly}
-					charts={chartList}
+					messageMetadata={message.messageMetadata}
 				/>
 			) : null}
 		</>

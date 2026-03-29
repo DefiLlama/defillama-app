@@ -1,4 +1,4 @@
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, slug } from '~/utils'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -9,18 +9,20 @@ import type { IHacksPageData, IProtocolTotalValueLostInHacksByProtocol } from '.
 export async function getHacksPageData(): Promise<IHacksPageData> {
 	const rawHacks = await fetchHacks()
 
-	const data = rawHacks.map((h) => ({
-		chains: h.chain ?? [],
-		classification: h.classification ?? '',
-		date: h.date,
-		target: h.targetType,
-		amount: h.amount ?? 0,
-		name: h.name,
-		technique: h.technique ?? '',
-		bridge: h.bridgeHack,
-		link: h.source ?? '',
-		language: h.language ?? ''
-	}))
+	const data = rawHacks
+		.map((h) => ({
+			chains: h.chain ?? [],
+			classification: h.classification ?? '',
+			date: h.date,
+			target: h.targetType,
+			amount: h.amount ?? 0,
+			name: h.name,
+			technique: h.technique ?? '',
+			bridge: h.bridgeHack,
+			link: h.source ?? '',
+			language: h.language ?? ''
+		}))
+		.sort((a, b) => b.date - a.date)
 
 	const monthlyHacks = new Map<number, number>()
 	const chainTotals = new Map<string, number>()

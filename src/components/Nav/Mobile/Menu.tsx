@@ -36,7 +36,7 @@ export function Menu({
 
 			<Ariakit.Dialog
 				unmountOnHide={false}
-				className="fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] drawer-to-left flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
+				className="fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] drawer-to-left flex-col overflow-auto overscroll-contain bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
 			>
 				<nav className="flex flex-1 flex-col">
 					<Ariakit.DialogDismiss className="ml-auto">

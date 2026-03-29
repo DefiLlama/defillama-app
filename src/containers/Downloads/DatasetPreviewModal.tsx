@@ -1,13 +1,19 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { downloadCSV } from '~/utils/download'
-import type { DatasetDefinition } from './datasets'
+import type { DatasetDefinition, DatasetExcludeToggle } from './datasets'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 const ROW_HEIGHT = 36
 const COLUMN_DETECTION_SAMPLE_SIZE = 200
@@ -238,14 +244,23 @@ interface Props {
 	authorizedFetch: (url: string, options?: any) => Promise<Response | null>
 	onClose: () => void
 	isTrial?: boolean
+	isPreview?: boolean
 }
 
-export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial }: Props) {
+export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial, isPreview }: Props) {
 	const queryClient = useQueryClient()
+	const subscribeModalStore = Ariakit.useDialogStore()
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
+	const [excludeState, setExcludeState] = useState<Record<string, boolean>>(() => {
+		const initial: Record<string, boolean> = {}
+		for (const toggle of dataset.excludeToggles ?? []) {
+			initial[toggle.field] = toggle.defaultExclude ?? false
+		}
+		return initial
+	})
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
@@ -270,9 +285,12 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		isLoading: loading,
 		error
 	} = useQuery({
-		queryKey: ['downloads-preview', dataset.slug, selectedChain],
+		queryKey: ['downloads-preview', dataset.slug, selectedChain, isPreview],
 		queryFn: async () => {
-			const response = await authorizedFetch(`/api/downloads/${dataset.slug}${chainQueryParam}`)
+			const sep = chainQueryParam ? '&' : '?'
+			const nonce = isPreview ? `${sep}_n=${Math.random().toString(36).slice(2)}` : ''
+			const url = `/api/downloads/${dataset.slug}${chainQueryParam}${nonce}`
+			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)
 				throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
@@ -333,12 +351,22 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 
 	const selectedCount = useMemo(() => columnMeta.filter((c) => cols.has(c.index)).length, [columnMeta, cols])
 
+	const excludeFilteredRows = useMemo(() => {
+		const toggles = dataset.excludeToggles
+		if (!toggles || toggles.length === 0) return rows
+		const activeExcludes = toggles.filter((t) => excludeState[t.field])
+		if (activeExcludes.length === 0) return rows
+		const fieldIndices = activeExcludes.map((t) => headers.indexOf(t.field)).filter((i) => i !== -1)
+		if (fieldIndices.length === 0) return rows
+		return rows.filter((row) => !fieldIndices.some((idx) => row.values[idx]?.toLowerCase() === 'true'))
+	}, [rows, headers, dataset.excludeToggles, excludeState])
+
 	const filteredRows = useMemo(() => {
-		if (deferredSearch.length === 0) return rows
-		return rows.filter((row) =>
+		if (deferredSearch.length === 0) return excludeFilteredRows
+		return excludeFilteredRows.filter((row) =>
 			columnMeta.some((column) => (row.values[column.index] ?? '').toLowerCase().includes(deferredSearch))
 		)
-	}, [columnMeta, deferredSearch, rows])
+	}, [columnMeta, deferredSearch, excludeFilteredRows])
 
 	const sortedRows = useMemo(() => {
 		if (!sortState) return filteredRows
@@ -490,252 +518,377 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	const allSelected = headers.length > 0 && cols.size === headers.length
 
 	return (
-		<Ariakit.DialogProvider
-			open
-			setOpen={(open) => {
-				if (!open) onClose()
-			}}
-		>
-			<Ariakit.Dialog
-				className="fixed inset-0 z-50 m-auto flex max-h-[90dvh] min-h-[55dvh] w-[calc(100vw-1rem)] max-w-7xl flex-col overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg) shadow-2xl sm:w-[calc(100vw-2rem)]"
-				portal
-				unmountOnHide
+		<>
+			<Ariakit.DialogProvider
+				open
+				setOpen={(open) => {
+					if (!open) onClose()
+				}}
 			>
-				<div className="flex shrink-0 flex-col border-b border-(--divider)">
-					<div className="flex items-center gap-3 px-4 py-2.5">
-						<div className="mr-auto min-w-0">
-							<h2 className="truncate text-base font-semibold">{dataset.name}</h2>
-							<p className="text-xs text-(--text-tertiary)">
-								{loading
-									? 'Loading...'
-									: error
-										? 'Error'
-										: `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`}
-							</p>
-						</div>
+				<Ariakit.Dialog
+					className="fixed inset-0 z-50 m-auto flex max-h-[90dvh] min-h-[55dvh] w-[calc(100vw-1rem)] max-w-7xl flex-col overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg) shadow-2xl sm:w-[calc(100vw-2rem)]"
+					portal
+					unmountOnHide
+				>
+					<div className="flex shrink-0 flex-col border-b border-(--divider)">
+						<div className="flex items-center gap-3 px-4 py-2.5">
+							<div className="mr-auto min-w-0">
+								<h2 className="truncate text-base font-semibold">{dataset.name}</h2>
+								<p className="text-xs text-(--text-tertiary)">
+									{loading
+										? 'Loading...'
+										: error
+											? 'Error'
+											: `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`}
+								</p>
+							</div>
 
-						{hasData ? (
-							<>
-								<button
-									type="button"
-									onClick={() => void handleCopy()}
-									disabled={selectedCount === 0}
-									className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
-									title="Copy selected columns as TSV"
-								>
-									<Icon name="clipboard" className="h-3.5 w-3.5" />
-									<span className="hidden lg:inline">Copy</span>
-								</button>
+							{hasData ? (
+								<>
+									<button
+										type="button"
+										onClick={() =>
+											isPreview ? (setSignupSource('downloads'), subscribeModalStore.show()) : void handleCopy()
+										}
+										disabled={!isPreview && selectedCount === 0}
+										className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+										title="Copy selected columns as TSV"
+									>
+										<Icon name="clipboard" className="h-3.5 w-3.5" />
+										<span className="hidden lg:inline">Copy</span>
+									</button>
 
-								<button
-									type="button"
-									onClick={handleDownload}
-									disabled={selectedCount === 0}
-									className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
-								>
-									<Icon name="download-cloud" className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">Download</span>
-								</button>
-							</>
-						) : null}
-
-						<button
-							type="button"
-							onClick={onClose}
-							className="rounded-md p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
-						>
-							<Icon name="x" className="h-4 w-4" />
-						</button>
-					</div>
-
-					{hasData ? (
-						<div className="flex flex-wrap items-center gap-2 border-t border-(--divider) px-4 py-2">
-							<label className="relative min-w-0 flex-1">
-								<Icon
-									name="search"
-									height={14}
-									width={14}
-									className="absolute top-0 bottom-0 left-2.5 my-auto text-(--text-tertiary)"
-								/>
-								<input
-									value={search}
-									onChange={(event) => setSearch(event.currentTarget.value)}
-									placeholder="Filter rows..."
-									className="w-full min-w-32 rounded-md border border-(--divider) bg-transparent py-1.5 pr-2.5 pl-8 text-xs transition-colors outline-none placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/30 sm:w-48"
-								/>
-							</label>
-
-							{dataset.chainFilterType && availableChains && availableChains.length > 0 ? (
-								<ChainPickerPopover
-									chains={availableChains}
-									selected={selectedChain}
-									onSelect={(chain) => {
-										setSelectedChain(chain)
-										setSelectedColumns(null)
-										setSortState(null)
-									}}
-								/>
+									<button
+										type="button"
+										onClick={() =>
+											isPreview ? (setSignupSource('downloads'), subscribeModalStore.show()) : handleDownload()
+										}
+										disabled={!isPreview && selectedCount === 0}
+										className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
+									>
+										<Icon name="download-cloud" className="h-3.5 w-3.5" />
+										<span className="hidden sm:inline">Download</span>
+									</button>
+								</>
 							) : null}
-
-							<ColumnPickerPopover
-								columns={columnMeta}
-								selected={cols}
-								allSelected={allSelected}
-								onToggle={toggleColumn}
-								onToggleAll={toggleAll}
-							/>
 
 							<button
 								type="button"
-								onClick={() => void handleCopy()}
-								disabled={selectedCount === 0}
-								className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:hidden"
-								title="Copy selected columns as TSV"
+								onClick={onClose}
+								className="rounded-md p-1.5 text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 							>
-								<Icon name="clipboard" className="h-3.5 w-3.5" />
+								<Icon name="x" className="h-4 w-4" />
 							</button>
 						</div>
-					) : null}
-				</div>
 
-				{loading ? (
-					<div className="flex flex-1 items-center justify-center">
-						<div className="flex flex-col items-center gap-3">
-							<LoadingSpinner size={28} />
-							<p className="text-sm text-(--text-secondary)">Fetching dataset...</p>
-						</div>
+						{hasData ? (
+							<div className="flex flex-wrap items-center gap-2 border-t border-(--divider) px-4 py-2">
+								{!isPreview ? (
+									<>
+										<label className="relative min-w-0 flex-1">
+											<Icon
+												name="search"
+												height={14}
+												width={14}
+												className="absolute top-0 bottom-0 left-2.5 my-auto text-(--text-tertiary)"
+											/>
+											<input
+												value={search}
+												onChange={(event) => setSearch(event.currentTarget.value)}
+												placeholder="Filter rows..."
+												className="w-full min-w-32 rounded-md border border-(--divider) bg-transparent py-1.5 pr-2.5 pl-8 text-xs transition-colors outline-none placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/30 sm:w-48"
+											/>
+										</label>
+
+										{dataset.chainFilterType && availableChains && availableChains.length > 0 ? (
+											<ChainPickerPopover
+												chains={availableChains}
+												selected={selectedChain}
+												onSelect={(chain) => {
+													setSelectedChain(chain)
+													setSelectedColumns(null)
+													setSortState(null)
+												}}
+											/>
+										) : null}
+
+										{dataset.excludeToggles?.map((toggle) => (
+											<ExcludeToggleButton
+												key={toggle.field}
+												toggle={toggle}
+												excluded={excludeState[toggle.field] ?? false}
+												onToggle={(excluded) => setExcludeState((prev) => ({ ...prev, [toggle.field]: excluded }))}
+											/>
+										))}
+
+										<ColumnPickerPopover
+											columns={columnMeta}
+											selected={cols}
+											allSelected={allSelected}
+											onToggle={toggleColumn}
+											onToggleAll={toggleAll}
+										/>
+
+										<button
+											type="button"
+											onClick={() => void handleCopy()}
+											disabled={selectedCount === 0}
+											className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:hidden"
+											title="Copy selected columns as TSV"
+										>
+											<Icon name="clipboard" className="h-3.5 w-3.5" />
+										</button>
+									</>
+								) : (
+									<p className="text-xs text-(--text-tertiary)">Preview — showing first {sortedRows.length} rows</p>
+								)}
+							</div>
+						) : null}
 					</div>
-				) : error ? (
-					<div className="flex flex-1 items-center justify-center">
-						<div className="flex flex-col items-center gap-2">
-							<Icon name="alert-triangle" className="h-6 w-6 text-red-500" />
-							<p className="text-sm text-red-500">{error instanceof Error ? error.message : 'Failed to fetch data'}</p>
+
+					{loading ? (
+						<div className="flex flex-1 items-center justify-center">
+							<div className="flex flex-col items-center gap-3">
+								<LoadingSpinner size={28} />
+								<p className="text-sm text-(--text-secondary)">Fetching dataset...</p>
+							</div>
 						</div>
-					</div>
-				) : columnMeta.length === 0 ? (
-					<div className="flex flex-1 items-center justify-center">
-						<div className="flex flex-col items-center gap-2 text-center">
-							<Icon name="eye-off" className="h-6 w-6 text-(--text-tertiary)" />
-							<p className="text-sm text-(--text-secondary)">No data</p>
+					) : error ? (
+						<div className="flex flex-1 items-center justify-center">
+							<div className="flex flex-col items-center gap-2">
+								<Icon name="alert-triangle" className="h-6 w-6 text-red-500" />
+								<p className="text-sm text-red-500">
+									{error instanceof Error ? error.message : 'Failed to fetch data'}
+								</p>
+							</div>
 						</div>
-					</div>
-				) : sortedRows.length === 0 ? (
-					<div className="flex flex-1 items-center justify-center">
-						<div className="flex flex-col items-center gap-2 text-center">
-							<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
-							<p className="text-sm text-(--text-secondary)">No matching rows</p>
+					) : columnMeta.length === 0 ? (
+						<div className="flex flex-1 items-center justify-center">
+							<div className="flex flex-col items-center gap-2 text-center">
+								<Icon name="eye-off" className="h-6 w-6 text-(--text-tertiary)" />
+								<p className="text-sm text-(--text-secondary)">No data</p>
+							</div>
 						</div>
-					</div>
-				) : (
-					<div className="relative min-h-0 flex-1">
-						<div
-							ref={rightShadowRef}
-							className="pointer-events-none absolute inset-y-0 right-0 z-40 w-32 opacity-0 transition-opacity duration-200"
-							style={{ background: 'linear-gradient(to left, var(--cards-bg) 0%, transparent 100%)' }}
-						/>
-						<div ref={tableContainerRef} className="thin-scrollbar h-full overflow-auto">
-							<div className="sticky top-0 z-20 bg-(--cards-bg)" style={{ minWidth: `${tableWidth}px` }}>
-								<div style={{ display: 'grid', gridTemplateColumns: gridTemplate }}>
-									{columnMeta.map((column, position) => {
-										const isSelected = cols.has(column.index)
-										const isSorted = sortState?.index === column.index ? activeSortDirection : false
-										const isSticky = position === 0
+					) : sortedRows.length === 0 ? (
+						<div className="flex flex-1 items-center justify-center">
+							<div className="flex flex-col items-center gap-2 text-center">
+								<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+								<p className="text-sm text-(--text-secondary)">No matching rows</p>
+							</div>
+						</div>
+					) : (
+						<div className="relative min-h-0 flex-1">
+							<div
+								ref={rightShadowRef}
+								className="pointer-events-none absolute inset-y-0 right-0 z-40 w-32 opacity-0 transition-opacity duration-200"
+								style={{ background: 'linear-gradient(to left, var(--cards-bg) 0%, transparent 100%)' }}
+							/>
+							<div
+								ref={tableContainerRef}
+								className={`thin-scrollbar h-full ${isPreview ? 'overflow-x-auto overflow-y-hidden' : 'overflow-auto'}`}
+							>
+								<div className="sticky top-0 z-20 bg-(--cards-bg)" style={{ minWidth: `${tableWidth}px` }}>
+									<div style={{ display: 'grid', gridTemplateColumns: gridTemplate }}>
+										{columnMeta.map((column, position) => {
+											const isSelected = cols.has(column.index)
+											const isSorted = sortState?.index === column.index ? activeSortDirection : false
+											const isSticky = position === 0
+											return (
+												<div
+													key={column.index}
+													className="border-t border-r border-(--divider) bg-(--cards-bg) last:border-r-0"
+													style={{
+														position: isSticky ? 'sticky' : undefined,
+														left: isSticky ? 0 : undefined,
+														zIndex: isSticky ? 30 : undefined,
+														background: 'var(--cards-bg)',
+														boxShadow: isSticky ? 'var(--sticky-shadow, none)' : undefined
+													}}
+												>
+													<div className="flex items-center gap-0.5 p-2">
+														<input
+															type="checkbox"
+															checked={isSelected}
+															onChange={() => toggleColumn(column.index)}
+															className="mr-1 h-3.5 w-3.5 shrink-0 cursor-pointer accent-(--primary)"
+														/>
+														<button
+															type="button"
+															onClick={() => handleSort(column)}
+															className="flex min-w-0 flex-1 items-center gap-1"
+														>
+															<span
+																className={`truncate text-xs font-medium ${isSelected ? 'text-(--text-secondary)' : 'text-(--text-tertiary)'}`}
+															>
+																{column.header}
+															</span>
+															<SortIcon dir={isSorted} />
+														</button>
+													</div>
+												</div>
+											)
+										})}
+									</div>
+								</div>
+
+								<div
+									style={{
+										height: `${rowVirtualizer.getTotalSize()}px`,
+										minWidth: `${tableWidth}px`,
+										position: 'relative'
+									}}
+								>
+									{rowVirtualizer.getVirtualItems().map((virtualRow) => {
+										const row = sortedRows[virtualRow.index]
+										const isOdd = virtualRow.index % 2 === 1
 										return (
 											<div
-												key={column.index}
-												className="border-t border-r border-(--divider) bg-(--cards-bg) last:border-r-0"
+												key={row.id}
 												style={{
-													position: isSticky ? 'sticky' : undefined,
-													left: isSticky ? 0 : undefined,
-													zIndex: isSticky ? 30 : undefined,
-													background: 'var(--cards-bg)',
-													boxShadow: isSticky ? 'var(--sticky-shadow, none)' : undefined
+													display: 'grid',
+													gridTemplateColumns: gridTemplate,
+													minWidth: `${tableWidth}px`,
+													position: 'absolute',
+													top: 0,
+													left: 0,
+													width: '100%',
+													height: `${virtualRow.size}px`,
+													transform: `translateY(${virtualRow.start}px)`
 												}}
 											>
-												<div className="flex items-center gap-0.5 p-2">
-													<input
-														type="checkbox"
-														checked={isSelected}
-														onChange={() => toggleColumn(column.index)}
-														className="mr-1 h-3.5 w-3.5 shrink-0 cursor-pointer accent-(--primary)"
-													/>
-													<button
-														type="button"
-														onClick={() => handleSort(column)}
-														className="flex min-w-0 flex-1 items-center gap-1"
-													>
-														<span
-															className={`truncate text-xs font-medium ${isSelected ? 'text-(--text-secondary)' : 'text-(--text-tertiary)'}`}
+												{columnMeta.map((column, position) => {
+													const rawValue = row.values[column.index] ?? ''
+													const displayValue = formatCellValue(rawValue, column)
+													const isSticky = position === 0
+													const isSelected = cols.has(column.index)
+													const tone = isSelected ? getCellTone(rawValue, column) : ''
+													return (
+														<div
+															key={column.index}
+															title={rawValue || undefined}
+															className={`overflow-hidden border-t border-r border-(--divider) p-2 text-sm text-ellipsis whitespace-nowrap last:border-r-0 ${tone} ${!isSelected ? 'text-(--text-tertiary) opacity-40' : ''}`}
+															style={{
+																textAlign: column.align,
+																position: isSticky ? 'sticky' : undefined,
+																left: isSticky ? 0 : undefined,
+																zIndex: isSticky ? 1 : undefined,
+																background: isSticky ? 'var(--cards-bg)' : isOdd ? 'var(--bg-primary)' : undefined,
+																boxShadow: isSticky ? 'var(--sticky-shadow, none)' : undefined
+															}}
 														>
-															{column.header}
-														</span>
-														<SortIcon dir={isSorted} />
-													</button>
-												</div>
+															{displayValue}
+														</div>
+													)
+												})}
 											</div>
 										)
 									})}
 								</div>
+								{isPreview ? (
+									<PlaceholderRows
+										columnMeta={columnMeta}
+										gridTemplate={gridTemplate}
+										tableWidth={tableWidth}
+										rows={sortedRows}
+										cols={cols}
+									/>
+								) : null}
 							</div>
-
-							<div
-								style={{
-									height: `${rowVirtualizer.getTotalSize()}px`,
-									minWidth: `${tableWidth}px`,
-									position: 'relative'
-								}}
-							>
-								{rowVirtualizer.getVirtualItems().map((virtualRow) => {
-									const row = sortedRows[virtualRow.index]
-									const isOdd = virtualRow.index % 2 === 1
-									return (
-										<div
-											key={row.id}
-											style={{
-												display: 'grid',
-												gridTemplateColumns: gridTemplate,
-												minWidth: `${tableWidth}px`,
-												position: 'absolute',
-												top: 0,
-												left: 0,
-												width: '100%',
-												height: `${virtualRow.size}px`,
-												transform: `translateY(${virtualRow.start}px)`
-											}}
-										>
-											{columnMeta.map((column, position) => {
-												const rawValue = row.values[column.index] ?? ''
-												const displayValue = formatCellValue(rawValue, column)
-												const isSticky = position === 0
-												const isSelected = cols.has(column.index)
-												const tone = isSelected ? getCellTone(rawValue, column) : ''
-												return (
-													<div
-														key={column.index}
-														title={rawValue || undefined}
-														className={`overflow-hidden border-t border-r border-(--divider) p-2 text-sm text-ellipsis whitespace-nowrap last:border-r-0 ${tone} ${!isSelected ? 'text-(--text-tertiary) opacity-40' : ''}`}
-														style={{
-															textAlign: column.align,
-															position: isSticky ? 'sticky' : undefined,
-															left: isSticky ? 0 : undefined,
-															zIndex: isSticky ? 1 : undefined,
-															background: isSticky ? 'var(--cards-bg)' : isOdd ? 'var(--bg-primary)' : undefined,
-															boxShadow: isSticky ? 'var(--sticky-shadow, none)' : undefined
-														}}
-													>
-														{displayValue}
-													</div>
-												)
-											})}
+							{isPreview ? (
+								<>
+									<div
+										className="pointer-events-none absolute inset-x-0 bottom-0 z-40"
+										style={{
+											top: '20%',
+											backdropFilter: 'blur(4px)',
+											WebkitBackdropFilter: 'blur(4px)',
+											maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+											WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)'
+										}}
+									/>
+									<div className="absolute inset-x-0 bottom-0 z-50 border-t border-(--divider) bg-(--cards-bg) px-6 py-5">
+										<div className="mx-auto flex max-w-lg flex-col items-center gap-3 text-center">
+											<p className="text-sm font-semibold text-(--text-primary)">
+												This is a preview — subscribe to download full datasets
+											</p>
+											<p className="text-xs text-(--text-tertiary)">
+												Get access to all rows, all columns, and unlimited CSV downloads
+											</p>
+											<Link
+												href="/subscribe"
+												className="mt-1 inline-flex items-center gap-2 rounded-lg bg-(--primary) px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
+											>
+												<Icon name="arrow-up-right" className="h-4 w-4" />
+												Subscribe
+											</Link>
 										</div>
-									)
-								})}
-							</div>
+									</div>
+								</>
+							) : null}
 						</div>
+					)}
+				</Ariakit.Dialog>
+			</Ariakit.DialogProvider>
+			{isPreview ? (
+				<Suspense fallback={null}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
+		</>
+	)
+}
+
+function PlaceholderRows({
+	columnMeta,
+	gridTemplate,
+	tableWidth,
+	rows,
+	cols
+}: {
+	columnMeta: ColumnMeta[]
+	gridTemplate: string
+	tableWidth: number
+	rows: PreviewRow[]
+	cols: Set<number>
+}) {
+	if (rows.length === 0) return null
+	const duplicated = [...rows, ...rows]
+	return (
+		<div style={{ minWidth: `${tableWidth}px` }}>
+			{duplicated.map((row, rowIdx) => {
+				const isOdd = (rows.length + rowIdx) % 2 === 1
+				return (
+					<div
+						key={`placeholder-${rowIdx}`}
+						style={{ display: 'grid', gridTemplateColumns: gridTemplate, height: `${ROW_HEIGHT}px` }}
+					>
+						{columnMeta.map((column, position) => {
+							const rawValue = row.values[column.index] ?? ''
+							const displayValue = formatCellValue(rawValue, column)
+							const isSticky = position === 0
+							const isSelected = cols.has(column.index)
+							const tone = isSelected ? getCellTone(rawValue, column) : ''
+							return (
+								<div
+									key={column.index}
+									className={`overflow-hidden border-t border-r border-(--divider) p-2 text-sm text-ellipsis whitespace-nowrap last:border-r-0 ${tone} ${!isSelected ? 'text-(--text-tertiary) opacity-40' : ''}`}
+									style={{
+										textAlign: column.align,
+										position: isSticky ? 'sticky' : undefined,
+										left: isSticky ? 0 : undefined,
+										zIndex: isSticky ? 1 : undefined,
+										background: isSticky ? 'var(--cards-bg)' : isOdd ? 'var(--bg-primary)' : undefined,
+										boxShadow: isSticky ? 'var(--sticky-shadow, none)' : undefined
+									}}
+								>
+									{displayValue}
+								</div>
+							)
+						})}
 					</div>
-				)}
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
+				)
+			})}
+		</div>
 	)
 }
 
@@ -804,6 +957,31 @@ function ChainPickerPopover({
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
+	)
+}
+
+function ExcludeToggleButton({
+	toggle,
+	excluded,
+	onToggle
+}: {
+	toggle: DatasetExcludeToggle
+	excluded: boolean
+	onToggle: (excluded: boolean) => void
+}) {
+	return (
+		<button
+			type="button"
+			onClick={() => onToggle(!excluded)}
+			className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+				excluded
+					? 'border-(--divider) text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
+					: 'border-(--primary)/30 bg-(--primary)/10 text-(--primary) hover:bg-(--primary)/20'
+			}`}
+		>
+			<Icon name={excluded ? 'eye-off' : 'eye'} className="h-3.5 w-3.5" />
+			{toggle.label}
+		</button>
 	)
 }
 

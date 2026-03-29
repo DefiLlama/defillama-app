@@ -12,7 +12,7 @@ import { getNDistinctColors } from '~/utils'
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
 	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
-	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
+	if (labels.length > 1 && labels.every((l) => l === labels[0])) {
 		return hallmarks.map((h) => [h[0], ''])
 	}
 	return hallmarks.map((h) => [h[0], h[1] || ''])
@@ -228,7 +228,7 @@ function inferTimeSeriesAxis(
 		.map((row) => row?.[config.axes.x.field])
 		.filter((value) => value != null && String(value).trim().length > 0)
 
-	if (rawValues.length === 0) {
+	if (rawValues.length === 0 || rawValues.some((v) => typeof v !== 'string')) {
 		return {
 			axisType: 'category',
 			dimensionName: 'category',
@@ -604,15 +604,7 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 			dimensions: [dimensionName, ...charts.map((chart) => chart.name)]
 		}
 
-		const hasDataZoom = axisType === 'time'
-		const chartOptions: Record<string, any> = {
-			grid: {
-				top: 24,
-				right: 12,
-				bottom: hasDataZoom ? 68 : 12,
-				left: 12
-			}
-		}
+		const chartOptions: Record<string, any> = {}
 
 		if (axisType === 'category') {
 			chartOptions.xAxis = {

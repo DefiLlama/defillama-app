@@ -1,11 +1,29 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type CSSProperties, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { matchSorter } from 'match-sorter'
+import {
+	type CSSProperties,
+	lazy,
+	memo,
+	Suspense,
+	startTransition,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useEffectEvent,
+	useMemo,
+	useRef,
+	useState
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { useAiBalance } from '~/containers/Subscribtion/useTopup'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+
+const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
 
 interface AgenticSidebarProps {
 	sessions: ChatSession[]
@@ -15,7 +33,6 @@ interface AgenticSidebarProps {
 	restoringSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
-	handleSidebarToggle: () => void
 	onDelete: (sessionId: string) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	isDeletingSession: boolean
@@ -23,6 +40,8 @@ interface AgenticSidebarProps {
 	shouldAnimate?: boolean
 	onOpenSettings?: () => void
 	hasCustomInstructions?: boolean
+	onBulkDelete?: (sessionIds: string[]) => Promise<void>
+	onPinSession?: (sessionId: string) => Promise<void>
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -42,7 +61,7 @@ type VirtualItem =
 	| { type: 'header'; groupName: string; isFirst: boolean }
 	| { type: 'session'; session: ChatSession; groupName: string }
 
-function VirtualizedSidebarItem({
+const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	item,
 	itemStyle,
 	currentSessionId,
@@ -52,7 +71,10 @@ function VirtualizedSidebarItem({
 	onSessionSelect,
 	onDelete,
 	onUpdateTitle,
-	handleSidebarToggle
+	selectMode,
+	isSelected,
+	onToggleSelect,
+	onPinSession
 }: {
 	item: VirtualItem
 	itemStyle: CSSProperties
@@ -63,15 +85,20 @@ function VirtualizedSidebarItem({
 	onSessionSelect: (sessionId: string) => void
 	onDelete: (sessionId: string) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
-	handleSidebarToggle: () => void
+	selectMode: boolean
+	isSelected: boolean
+	onToggleSelect: (sessionId: string) => void
+	onPinSession?: (sessionId: string) => Promise<void>
 }) {
 	if (item.type === 'header') {
 		return (
-			<div style={itemStyle}>
-				<h2 className={`text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}>
-					{item.groupName}
-				</h2>
-			</div>
+			<h2
+				style={itemStyle}
+				className={`flex items-center gap-1 text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}
+			>
+				{item.groupName === 'Pinned' ? <Icon name="pin" height={10} width={10} className="shrink-0" /> : null}
+				{item.groupName}
+			</h2>
 		)
 	}
 
@@ -85,11 +112,14 @@ function VirtualizedSidebarItem({
 			isRestoring={restoringSessionId === item.session.sessionId}
 			isDeleting={deletingSessionId === item.session.sessionId}
 			isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
-			handleSidebarToggle={handleSidebarToggle}
 			style={itemStyle}
+			selectMode={selectMode}
+			isSelected={isSelected}
+			onToggleSelect={onToggleSelect}
+			onPinSession={onPinSession}
 		/>
 	)
-}
+})
 
 export function AgenticSidebar({
 	sessions,
@@ -99,19 +129,57 @@ export function AgenticSidebar({
 	restoringSessionId,
 	onSessionSelect,
 	onNewChat,
-	handleSidebarToggle,
 	onDelete,
 	onUpdateTitle,
 	isDeletingSession: _isDeletingSession,
 	isUpdatingTitle: _isUpdatingTitle,
 	shouldAnimate = false,
 	onOpenSettings,
-	hasCustomInstructions
+	hasCustomInstructions,
+	onBulkDelete,
+	onPinSession
 }: AgenticSidebarProps) {
+	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
+	const [selectMode, setSelectMode] = useState(false)
+	const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set())
+	const { balance, totalAvailable } = useAiBalance()
+	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
+	const [searchQuery, setSearchQuery] = useState('')
+	const deferredSearchQuery = useDeferredValue(searchQuery)
+
+	const toggleSelect = useCallback((sessionId: string) => {
+		setSelectedSessionIds((prev) => {
+			const next = new Set(prev)
+			if (next.has(sessionId)) {
+				next.delete(sessionId)
+			} else {
+				next.add(sessionId)
+			}
+			return next
+		})
+	}, [])
+
+	const handleBulkDelete = useCallback(async () => {
+		if (selectedSessionIds.size === 0 || !onBulkDelete) return
+		const count = selectedSessionIds.size
+		if (!window.confirm(`Delete ${count} session${count > 1 ? 's' : ''}?`)) return
+		try {
+			await onBulkDelete([...selectedSessionIds])
+			setSelectMode(false)
+			setSelectedSessionIds(new Set())
+		} catch {
+			// rollback handled by mutation
+		}
+	}, [selectedSessionIds, onBulkDelete])
+
+	const exitSelectMode = useCallback(() => {
+		setSelectMode(false)
+		setSelectedSessionIds(new Set())
+	}, [])
 
 	const handleDelete = useCallback(
 		(sessionId: string) => {
@@ -134,9 +202,26 @@ export function AgenticSidebar({
 	)
 
 	const [nowMs] = useState(() => Date.now())
+
+	const filteredSessions = useMemo(() => {
+		if (!deferredSearchQuery.trim()) return sessions
+		return matchSorter(sessions, deferredSearchQuery.trim(), {
+			keys: ['title'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [sessions, deferredSearchQuery])
+
+	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
+		const pinned = filteredSessions
+			.filter((s) => s.isPinned)
+			.sort((a, b) => new Date(b.pinnedAt || 0).getTime() - new Date(a.pinnedAt || 0).getTime())
+		const unpinned = filteredSessions.filter((s) => !s.isPinned)
+		return { pinnedSessions: pinned, unpinnedSessions: unpinned }
+	}, [filteredSessions])
+
 	const groupedSessions = useMemo(() => {
 		return Object.entries(
-			sessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
+			unpinnedSessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
 				const groupName = getGroupName(session.lastActivity, nowMs)
 				acc[groupName] = [...(acc[groupName] || []), session]
 				return acc
@@ -144,19 +229,25 @@ export function AgenticSidebar({
 		).sort((a, b) => Date.parse(b[1][0].lastActivity) - Date.parse(a[1][0].lastActivity)) as Array<
 			[string, Array<ChatSession>]
 		>
-	}, [sessions, nowMs])
+	}, [unpinnedSessions, nowMs])
 
 	const virtualItems = useMemo(() => {
 		const items: VirtualItem[] = []
+		if (pinnedSessions.length > 0) {
+			items.push({ type: 'header', groupName: 'Pinned', isFirst: true })
+			for (const session of pinnedSessions) {
+				items.push({ type: 'session', session, groupName: 'Pinned' })
+			}
+		}
 		for (let groupIndex = 0; groupIndex < groupedSessions.length; groupIndex++) {
 			const [groupName, groupSessions] = groupedSessions[groupIndex]
-			items.push({ type: 'header', groupName, isFirst: groupIndex === 0 })
+			items.push({ type: 'header', groupName, isFirst: pinnedSessions.length === 0 && groupIndex === 0 })
 			for (const session of groupSessions) {
 				items.push({ type: 'session', session, groupName })
 			}
 		}
 		return items
-	}, [groupedSessions])
+	}, [pinnedSessions, groupedSessions])
 
 	const virtualizer = useVirtualizer({
 		count: virtualItems.length,
@@ -176,9 +267,10 @@ export function AgenticSidebar({
 			event.target instanceof Node &&
 			sidebarRef.current &&
 			!sidebarRef.current.contains(event.target) &&
+			!(event.target instanceof Element && event.target.closest('[role="dialog"]')) &&
 			document.documentElement.clientWidth < 1024
 		) {
-			handleSidebarToggle()
+			hideSidebar()
 		}
 	})
 
@@ -190,17 +282,57 @@ export function AgenticSidebar({
 	return (
 		<aside
 			ref={sidebarRef}
-			className={`relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
+			className={`llamaai-agentic-sidebar relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
-			<header className="flex flex-col gap-2 p-4">
-				<Tooltip
-					content="Close Chat History"
-					render={<button onClick={handleSidebarToggle} />}
-					className="ml-auto flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-				>
-					<Icon name="panel-left-close" height={16} width={16} />
-					<span className="sr-only">Close Chat History</span>
-				</Tooltip>
+			<header className="flex flex-col gap-2 p-4 pb-2">
+				<div className="flex items-center">
+					{sessions.length > 0 ? (
+						<button
+							onClick={selectMode ? exitSelectMode : () => setSelectMode(true)}
+							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors ${
+								selectMode
+									? 'bg-(--old-blue)/12 text-(--old-blue)'
+									: 'text-[#666] hover:text-[#333] dark:text-[#919296] dark:hover:text-white'
+							}`}
+						>
+							<Icon name={selectMode ? 'x' : 'check'} height={12} width={12} />
+							{selectMode ? 'Cancel' : 'Select'}
+						</button>
+					) : null}
+					<div className="ml-auto flex items-center gap-2">
+						<Tooltip
+							content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+							render={
+								<button
+									onClick={toggleFullscreen}
+									data-umami-event="llamaai-fullscreen-toggle"
+									data-umami-event-action={isFullscreen ? 'exit' : 'enter'}
+									data-umami-event-source="sidebar_header"
+								/>
+							}
+							className="hidden h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:flex"
+						>
+							<Icon name={isFullscreen ? 'shrink' : 'expand'} height={16} width={16} />
+							<span className="sr-only">{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</span>
+						</Tooltip>
+
+						<Tooltip
+							content="Close Chat History"
+							render={
+								<button
+									onClick={toggleSidebar}
+									data-umami-event="llamaai-sidebar-toggle"
+									data-umami-event-action="close"
+									data-umami-event-source="sidebar_header"
+								/>
+							}
+							className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+						>
+							<Icon name="panel-left-close" height={16} width={16} />
+							<span className="sr-only">Close Chat History</span>
+						</Tooltip>
+					</div>
+				</div>
 
 				<button
 					onClick={() => {
@@ -212,11 +344,37 @@ export function AgenticSidebar({
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span>New Chat</span>
 				</button>
+
+				{sessions.length > 0 ? (
+					<div className="group/search relative flex items-center rounded-md bg-[#f5f5f5] transition-colors focus-within:bg-[#ebebeb] dark:bg-[#1a1a1b] dark:focus-within:bg-[#222324]">
+						<Icon
+							name="search"
+							height={13}
+							width={13}
+							className="pointer-events-none ml-2.5 shrink-0 text-[#999] transition-colors group-focus-within/search:text-(--old-blue) dark:text-[#555]"
+						/>
+						<input
+							type="text"
+							value={searchQuery}
+							onChange={(e) => startTransition(() => setSearchQuery(e.target.value))}
+							placeholder="Search"
+							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
+						/>
+						{searchQuery ? (
+							<button
+								onClick={() => startTransition(() => setSearchQuery(''))}
+								className="mr-1.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#ccc] text-white transition-colors hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
+							>
+								<Icon name="x" height={8} width={8} />
+							</button>
+						) : null}
+					</div>
+				) : null}
 			</header>
 
 			<nav
 				ref={scrollContainerRef}
-				className="thin-scrollbar flex-1 overflow-auto p-4 pt-0 pr-1"
+				className="thin-scrollbar flex-1 overflow-auto overscroll-contain p-4 pt-0 pr-1"
 				aria-label="Chat history"
 			>
 				{isLoading ? (
@@ -230,6 +388,10 @@ export function AgenticSidebar({
 				) : sessions.length === 0 ? (
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						You don't have any chats yet
+					</p>
+				) : filteredSessions.length === 0 && searchQuery.trim() ? (
+					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
+						No chats matching &ldquo;{searchQuery}&rdquo;
 					</p>
 				) : (
 					<div
@@ -266,7 +428,10 @@ export function AgenticSidebar({
 									onSessionSelect={onSessionSelect}
 									onDelete={handleDelete}
 									onUpdateTitle={handleUpdateTitle}
-									handleSidebarToggle={handleSidebarToggle}
+									selectMode={selectMode}
+									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
+									onToggleSelect={toggleSelect}
+									onPinSession={onPinSession}
 								/>
 							)
 						})}
@@ -274,21 +439,68 @@ export function AgenticSidebar({
 				)}
 			</nav>
 
-			{onOpenSettings ? (
-				<footer className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
-					<button
-						onClick={onOpenSettings}
-						className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+			{balance ? (
+				<Tooltip
+					content="Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more."
+					render={<button type="button" onClick={() => setIsTopupModalOpen(true)} />}
+					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
+				>
+					<div className="flex min-w-0 items-center gap-2">
+						<Icon name="package" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />
+						<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
+					</div>
+					<span
+						className={`shrink-0 font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
 					>
-						<div className="relative">
-							<Icon name="settings" height={14} width={14} />
-							{hasCustomInstructions ? (
-								<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
-							) : null}
-						</div>
-						<span>Settings</span>
+						${totalAvailable.toFixed(2)}
+					</span>
+				</Tooltip>
+			) : null}
+
+			{selectMode ? (
+				<footer className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e6e6] px-4 py-2 dark:border-[#222324]">
+					<button
+						type="button"
+						onClick={() => {
+							if (selectedSessionIds.size === filteredSessions.length) {
+								setSelectedSessionIds(new Set())
+							} else {
+								setSelectedSessionIds(new Set(filteredSessions.map((s) => s.sessionId)))
+							}
+						}}
+						className="flex min-h-0 flex-1 items-center justify-center rounded-md px-2 py-2 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						{selectedSessionIds.size === filteredSessions.length ? 'Deselect All' : 'Select All'}
+					</button>
+					<button
+						type="button"
+						onClick={() => void handleBulkDelete()}
+						disabled={selectedSessionIds.size === 0 || !onBulkDelete}
+						className="flex min-h-0 items-center justify-center rounded-md bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-40 dark:text-red-400"
+					>
+						Delete{selectedSessionIds.size > 0 ? ` (${selectedSessionIds.size})` : ''}
 					</button>
 				</footer>
+			) : onOpenSettings ? (
+				<button
+					type="button"
+					onClick={onOpenSettings}
+					className="flex min-h-[52px] w-full shrink-0 items-center gap-2.5 border-t border-[#e6e6e6] px-4 py-3 text-left text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:border-[#222324] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+				>
+					<div className="relative">
+						<Icon name="settings" height={14} width={14} />
+						{hasCustomInstructions ? (
+							<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+						) : null}
+					</div>
+					<span>Settings</span>
+				</button>
+			) : null}
+
+			{isTopupModalOpen ? (
+				<Suspense fallback={<></>}>
+					<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+				</Suspense>
 			) : null}
 		</aside>
 	)

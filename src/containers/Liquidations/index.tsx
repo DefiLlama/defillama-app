@@ -14,8 +14,9 @@ import {
 	getLiquidationsCsvData
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, liquidationsIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 import { download } from '~/utils/download'
+import { liquidationsIconUrl } from '~/utils/icons'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = React.lazy(
@@ -114,9 +115,6 @@ export const LiquidationsContainer = (props: {
 		const options = {
 			legend: {
 				orient: 'horizontal',
-				top: 0,
-				left: 12,
-				right: 12,
 				// By default everything is selected; don't allow toggling/deselect.
 				selectedMode: false
 			},
@@ -140,14 +138,6 @@ export const LiquidationsContainer = (props: {
 				splitLine: {
 					lineStyle: { color: '#a1a1aa', opacity: 0.1 }
 				}
-			},
-			grid: {
-				left: '2%',
-				right: '1%',
-				top: 36,
-				bottom: 56,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
 			},
 			tooltip: {
 				trigger: 'axis',
@@ -265,7 +255,7 @@ export const LiquidationsContainer = (props: {
 			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 				<h1 className="flex items-center gap-2">
 					<img
-						src={liquidationsIconUrl(data.symbol.toLowerCase())}
+						src={liquidationsIconUrl(data.symbol)}
 						alt={data.name}
 						width={24}
 						height={24}

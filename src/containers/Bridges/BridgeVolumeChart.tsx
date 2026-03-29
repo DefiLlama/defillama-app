@@ -1,5 +1,11 @@
-import dayjs from 'dayjs'
-import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, type ReactNode, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import {
+	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { TagGroup } from '~/components/TagGroup'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -8,10 +14,10 @@ interface BridgeVolumeChartProps {
 	data: any[]
 	height?: string
 	onReady?: (instance: any | null) => void
+	headerStart?: ReactNode
+	headerEnd?: ReactNode
 }
 
-const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
-type TimePeriod = (typeof TIME_PERIODS)[number]
 const VIEW_TYPES = ['Split', 'Combined'] as const
 type ViewType = (typeof VIEW_TYPES)[number]
 const METRIC_TYPES = ['Volume', 'Transactions'] as const
@@ -37,8 +43,8 @@ const COMBINED_CHARTS = [
 	{ type: 'bar' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: '#22c55e' }
 ]
 
-export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartProps) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
+export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEnd }: BridgeVolumeChartProps) {
+	const [timePeriod, setTimePeriod] = useState<LowercaseDwmGrouping>('weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
 
@@ -53,7 +59,7 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 			withdrawals: metricType === 'Volume' ? item.withdrawUSD || 0 : item.withdrawTxs || 0
 		}))
 
-		if (timePeriod === 'Daily') {
+		if (timePeriod === 'daily') {
 			return rawData.map((item) => ({
 				date: item.timestamp,
 				...(viewType === 'Split'
@@ -76,8 +82,7 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 		>()
 
 		for (const item of rawData) {
-			const date = dayjs.unix(item.timestamp)
-			const key = (timePeriod === 'Weekly' ? date.startOf('week') : date.startOf('month')).unix()
+			const key = getBucketTimestampSec(item.timestamp, timePeriod as Exclude<ChartTimeGrouping, 'daily'>)
 
 			const existing = groupedData.get(key) || { deposits: 0, withdrawals: 0 }
 			groupedData.set(key, {
@@ -117,36 +122,25 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-2xl flex-col gap-2 overflow-x-auto p-3 sm:flex-row sm:flex-wrap sm:justify-center md:gap-4">
-				<fieldset className="flex flex-1 flex-col gap-1">
-					<legend className="text-xs font-medium text-(--text-secondary)">Time Period:</legend>
-					<TagGroup
-						selectedValue={timePeriod}
-						setValue={(period) => startTransition(() => setTimePeriod(period))}
-						values={TIME_PERIODS}
-						className="w-full *:flex-1"
-					/>
-				</fieldset>
-
-				<fieldset className="flex flex-1 flex-col gap-1">
-					<legend className="text-xs font-medium text-(--text-secondary)">View:</legend>
-					<TagGroup
-						selectedValue={viewType}
-						setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
-						values={VIEW_TYPES}
-						className="w-full *:flex-1"
-					/>
-				</fieldset>
-
-				<fieldset className="flex flex-1 flex-col gap-1">
-					<legend className="text-xs font-medium text-(--text-secondary)">Metric:</legend>
-					<TagGroup
-						selectedValue={metricType}
-						setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
-						values={METRIC_TYPES}
-						className="w-full *:flex-1"
-					/>
-				</fieldset>
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				{headerStart}
+				<ChartGroupingSelector
+					value={timePeriod}
+					setValue={setTimePeriod}
+					options={DWM_GROUPING_OPTIONS_LOWERCASE}
+					className={headerStart ? undefined : 'mr-auto'}
+				/>
+				<TagGroup
+					selectedValue={viewType}
+					setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
+					values={VIEW_TYPES}
+				/>
+				<TagGroup
+					selectedValue={metricType}
+					setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
+					values={METRIC_TYPES}
+				/>
+				{headerEnd}
 			</div>
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
@@ -156,6 +150,7 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 					charts={deferredChartData.charts}
 					height={height}
 					hideDefaultLegend={false}
+					groupBy={timePeriod}
 					valueSymbol={deferredChartData.metricType === 'Volume' ? '$' : ''}
 					onReady={onReady}
 				/>

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { PremiumFeatureGate } from '../PremiumFeatureGate'
 
 interface SavedChart {
 	id: string
@@ -21,7 +22,7 @@ interface LlamaAITabProps {
 }
 
 export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
-	const { authorizedFetch, user } = useAuthContext()
+	const { authorizedFetch, user, hasActiveSubscription } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -55,6 +56,14 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			<div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
 				<p className="text-sm pro-text2">Sign in to access your saved LlamaAI charts</p>
 			</div>
+		)
+	}
+
+	if (!hasActiveSubscription) {
+		return (
+			<PremiumFeatureGate featureName="LlamaAI Charts" paywallReason="llamaai">
+				{null}
+			</PremiumFeatureGate>
 		)
 	}
 

@@ -29,7 +29,8 @@ function getCachedStyleValues(textarea: HTMLTextAreaElement) {
 
 export function setInputSize(
 	promptInputRef: React.RefObject<HTMLTextAreaElement | null>,
-	highlightRef: React.RefObject<HTMLDivElement | null>
+	highlightRef: React.RefObject<HTMLDivElement | null>,
+	maxRows = 5
 ) {
 	try {
 		const textarea = promptInputRef?.current
@@ -37,7 +38,6 @@ export function setInputSize(
 
 		// Use cached style values to avoid expensive getComputedStyle calls
 		const { lineHeight, paddingTop, paddingBottom } = getCachedStyleValues(textarea)
-		const maxRows = 5
 		const maxHeight = lineHeight * maxRows + paddingTop + paddingBottom
 
 		// Batch: reset height, read scrollHeight, set final height in single frame
@@ -45,10 +45,11 @@ export function setInputSize(
 		const scrollHeight = textarea.scrollHeight
 		const nextHeight = Math.min(scrollHeight, maxHeight)
 		textarea.style.height = `${nextHeight}px`
+		textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden'
 
 		if (highlightRef?.current) {
-			// Use the already computed height instead of reading offsetHeight
 			highlightRef.current.style.height = `${nextHeight}px`
+			highlightRef.current.style.overflowY = textarea.style.overflowY
 			syncHighlightScroll(promptInputRef, highlightRef)
 		}
 	} catch (error) {

@@ -10,13 +10,16 @@ import {
 } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { CapabilityChips } from '~/containers/LlamaAI/components/input/CapabilityChips'
 import { EntityComboboxPopover } from '~/containers/LlamaAI/components/input/EntityCombobox'
 import { DragOverlay, ImageUpload, ImageUploadButton } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { InputTextarea } from '~/containers/LlamaAI/components/input/InputTextarea'
-import { ModeToggle, type ResearchUsage } from '~/containers/LlamaAI/components/input/ModeToggle'
+import { MobileToolsPopover } from '~/containers/LlamaAI/components/input/MobileToolsPopover'
+import { ModeToggle } from '~/containers/LlamaAI/components/input/ModeToggle'
 import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
 import { fileToBase64, useImageUpload } from '~/containers/LlamaAI/hooks/useImageUpload'
+import type { ResearchUsage } from '~/containers/LlamaAI/types'
 import { setInputSize, syncHighlightScroll } from '~/containers/LlamaAI/utils/scrollUtils'
 import { highlightWord } from '~/containers/LlamaAI/utils/textUtils'
 import { useMedia } from '~/hooks/useMedia'
@@ -53,6 +56,9 @@ interface PromptInputProps {
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
 	onOpenAlerts?: () => void
+	quotedText?: string | null
+	onClearQuotedText?: () => void
+	walkthroughActive?: boolean
 }
 
 const trackSubmit = () => {
@@ -79,7 +85,10 @@ export function PromptInput({
 	droppedFiles,
 	clearDroppedFiles,
 	externalDragging,
-	onOpenAlerts
+	onOpenAlerts,
+	quotedText,
+	onClearQuotedText,
+	walkthroughActive
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const [submitError, setSubmitError] = useState<string | null>(null)
@@ -139,7 +148,15 @@ export function PromptInput({
 		const textarea = promptInputRef.current
 		if (!textarea) return
 
-		setInputSize(promptInputRef, highlightRef)
+		if (value) {
+			setInputSize(promptInputRef, highlightRef, isMobile ? 3 : 5)
+		} else {
+			textarea.style.height = ''
+			textarea.style.overflowY = 'hidden'
+			if (highlightRef.current) {
+				highlightRef.current.style.height = ''
+			}
+		}
 
 		const pendingSelection = pendingSelectionRef.current
 		if (!pendingSelection) return
@@ -152,7 +169,7 @@ export function PromptInput({
 			textarea.setSelectionRange(pendingSelection.selectionStart, pendingSelection.selectionEnd)
 		} catch {}
 		pendingSelectionRef.current = null
-	}, [value, promptInputRef])
+	}, [value, promptInputRef, isMobile])
 
 	useEffect(() => {
 		valueRef.current = value
@@ -246,7 +263,7 @@ export function PromptInput({
 
 	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
-		if (!promptValue.trim()) return
+		if (!promptValue.trim() && imageUpload.selectedImages.length === 0) return
 
 		trackSubmit()
 		const finalEntities = entityCombobox.getFinalEntities()
@@ -362,6 +379,41 @@ export function PromptInput({
 				handleImageSelect={handleImageSelect}
 			/>
 
+			{quotedText ? (
+				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/4 py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/4">
+					<svg
+						className="h-3.5 w-3.5 shrink-0 -scale-x-100 text-[#2172e5]/50 dark:text-[#4190f7]/50"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2.5"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<polyline points="9 14 4 9 9 4" />
+						<path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+					</svg>
+					<p className="min-w-0 flex-1 truncate text-[13px] text-[#333] dark:text-[#bbb]">{quotedText}</p>
+					<button
+						type="button"
+						onClick={onClearQuotedText}
+						aria-label="Clear quoted text"
+						className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#555] dark:hover:bg-white/5 dark:hover:text-white"
+					>
+						<svg
+							className="h-3.5 w-3.5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+						>
+							<path d="M18 6L6 18M6 6l12 12" />
+						</svg>
+					</button>
+				</div>
+			) : null}
+
 			<InputTextarea
 				combobox={entityCombobox.combobox}
 				promptInputRef={promptInputRef}
@@ -392,17 +444,28 @@ export function PromptInput({
 
 			{submitError ? <p className="text-xs text-red-700 dark:text-red-300">{submitError}</p> : null}
 
-			<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-				<div className="flex items-center gap-2">
+			<div className="flex items-center justify-between gap-4 p-0">
+				<div className="hidden items-center gap-2 sm:flex">
 					<ModeToggle
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 					/>
+					<CapabilityChips
+						key={isPending || isStreaming ? 'capability-chips-disabled' : 'capability-chips-enabled'}
+						onPromptSelect={(prompt, categoryKey) => {
+							if (categoryKey === 'research') {
+								setIsResearchMode(true)
+							}
+							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+						}}
+						isPending={isPending}
+						isStreaming={isStreaming}
+					/>
 					{onOpenAlerts ? (
 						<Tooltip
 							content="Manage Alerts"
-							render={<button type="button" onClick={onOpenAlerts} />}
+							render={<button type="button" onClick={onOpenAlerts} data-walkthrough="alerts-button" />}
 							className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white"
 						>
 							<Icon name="calendar-plus" height={14} width={14} />
@@ -410,8 +473,26 @@ export function PromptInput({
 						</Tooltip>
 					) : null}
 				</div>
+				<MobileToolsPopover
+					isResearchMode={isResearchMode}
+					setIsResearchMode={setIsResearchMode}
+					researchUsage={researchUsage}
+					onOpenAlerts={onOpenAlerts}
+					onPromptSelect={(prompt, categoryKey) => {
+						if (categoryKey === 'research') {
+							setIsResearchMode(true)
+						}
+						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+					}}
+					onImageUploadClick={imageUpload.openFilePicker}
+					isPending={isPending}
+					isStreaming={isStreaming}
+					walkthroughActive={walkthroughActive}
+				/>
 				<div className="flex items-center gap-2">
-					<ImageUploadButton onClick={imageUpload.openFilePicker} />
+					<span className="max-sm:hidden" data-walkthrough="image-upload">
+						<ImageUploadButton onClick={imageUpload.openFilePicker} />
+					</span>
 					<SubmitButton
 						isStreaming={isStreaming}
 						isPending={isPending}

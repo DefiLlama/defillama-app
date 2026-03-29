@@ -1,15 +1,29 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { useMemo, useRef } from 'react'
+import { createContext, useContext, useMemo, useRef } from 'react'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import type { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
 import ChainCharts from './services/ChainCharts'
+import { fetchChartViaProxy } from './services/fetchViaProxy'
 import ProtocolCharts from './services/ProtocolCharts'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from './types'
 import { groupData } from './utils'
+
+/**
+ * When false, query hooks skip their own client-side fetches (the stream is providing data).
+ * When true (stream finished or no stream), queries fire as fallback.
+ * Default true so hooks work normally outside the streaming provider.
+ */
+export const StreamDoneContext = createContext(true)
+
+/**
+ * Auth token for proxying chart fetches through the server (bypasses rate limits).
+ * null = no active subscription, fetch directly from public APIs.
+ */
+export const ProxyAuthTokenContext = createContext<string | null>(null)
 
 // oxlint-disable-next-line no-unused-vars
 function generateChartKey(
@@ -353,6 +367,49 @@ const chainChartHandlers: Record<
 	}
 }
 
+function fetchChartDirect(
+	type: string,
+	itemType: 'chain' | 'protocol',
+	item: string,
+	geckoId?: string | null,
+	timePeriod?: TimePeriod,
+	customPeriod?: CustomTimePeriod | null,
+	dataType?: string
+): () => Promise<[number, number][]> {
+	if (itemType === 'protocol') {
+		const handler = protocolChartHandlers[type]
+		if (!handler) return () => Promise.resolve([])
+		return handler(item, geckoId, timePeriod, customPeriod, dataType)
+	}
+	const handler = chainChartHandlers[type]
+	if (handler) return handler(item, geckoId, timePeriod, customPeriod, dataType)
+	return async () => {
+		const data = await ChainCharts.tvl(item)
+		return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
+	}
+}
+
+function fetchChartProxied(
+	type: string,
+	itemType: 'chain' | 'protocol',
+	item: string,
+	authToken: string,
+	geckoId?: string | null,
+	dataType?: string
+): () => Promise<[number, number][]> {
+	return () =>
+		fetchChartViaProxy(
+			{
+				type,
+				protocol: itemType === 'protocol' ? item : '',
+				chain: itemType === 'chain' ? item : '',
+				geckoId,
+				dataType
+			},
+			authToken
+		)
+}
+
 function getChartQueryFn(
 	type: string,
 	itemType: 'chain' | 'protocol',
@@ -361,25 +418,24 @@ function getChartQueryFn(
 	timePeriod?: TimePeriod,
 	parentMapping?: Map<string, string[]>,
 	customPeriod?: CustomTimePeriod | null,
-	dataType?: string
+	dataType?: string,
+	authToken?: string | null
 ) {
-	if (itemType === 'protocol') {
-		const handler = protocolChartHandlers[type]
-		if (!handler) {
-			console.log(`Unknown chart type for protocol: ${type}`)
-			return () => Promise.resolve([])
-		}
+	const fetcher = authToken
+		? fetchChartProxied(type, itemType, item, authToken, geckoId, dataType)
+		: fetchChartDirect(type, itemType, item, geckoId, timePeriod, customPeriod, dataType)
 
+	if (itemType === 'protocol') {
 		const tokenTypes = new Set(['tokenMcap', 'tokenPrice', 'tokenVolume'])
 
 		return async () => {
 			if (tokenTypes.has(type)) {
-				return handler(item, geckoId, timePeriod, customPeriod, dataType)()
+				return fetcher()
 			}
 
 			let direct: [number, number][] = []
 			try {
-				direct = await handler(item, geckoId, timePeriod, customPeriod, dataType)()
+				direct = await fetcher()
 			} catch {
 				direct = []
 			}
@@ -388,10 +444,16 @@ function getChartQueryFn(
 			const children = parentMapping?.get(item) || []
 			if (children.length === 0) return direct
 
+			const childFetchers = children.map((childSlug) =>
+				authToken
+					? fetchChartProxied(type, 'protocol', childSlug, authToken, undefined, dataType)
+					: fetchChartDirect(type, 'protocol', childSlug, undefined, timePeriod, customPeriod, dataType)
+			)
+
 			const settled = await Promise.allSettled(
-				children.map(async (childSlug) => {
+				childFetchers.map(async (fn) => {
 					try {
-						return await handler(childSlug, undefined, timePeriod, customPeriod, dataType)()
+						return await fn()
 					} catch {
 						return [] as [number, number][]
 					}
@@ -410,15 +472,7 @@ function getChartQueryFn(
 			return Array.from(acc.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
 		}
 	} else {
-		const handler = chainChartHandlers[type]
-		if (handler) {
-			return handler(item, geckoId, timePeriod, customPeriod, dataType)
-		}
-		console.log(`Unknown chart type for chain: ${type}`)
-		return async () => {
-			const data = await ChainCharts.tvl(item)
-			return filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
-		}
+		return fetcher
 	}
 }
 
@@ -439,9 +493,10 @@ function useChartData(
 		gcTime: 1000 * 60 * 30,
 		refetchOnWindowFocus: false,
 		enabled:
-			!!item &&
-			((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
-				(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(type) || !!geckoId)))
+			(['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) && !!geckoId) ||
+			(!!item &&
+				((itemType === 'protocol' && (!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(type) || !!geckoId)) ||
+					(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(type) || !!geckoId))))
 	})
 }
 
@@ -466,9 +521,11 @@ function useChains() {
 	})
 }
 
-export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
+export function useProtocolsAndChains() {
+	const streamDone = useContext(StreamDoneContext)
 	return useQuery({
 		queryKey: ['pro-dashboard', 'protocols-and-chains'],
+		enabled: streamDone,
 		queryFn: async () => {
 			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
@@ -518,13 +575,11 @@ export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: a
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		},
-		staleTime: serverData ? Infinity : 1000 * 60 * 60,
+		staleTime: 1000 * 60 * 60,
 		gcTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
-		refetchOnReconnect: false,
-		initialData: serverData ?? undefined,
-		initialDataUpdatedAt: serverData ? Date.now() : undefined
+		refetchOnReconnect: false
 	})
 }
 
@@ -545,16 +600,15 @@ export function useChartsData(
 	charts,
 	timePeriod?: TimePeriod,
 	customPeriod?: CustomTimePeriod | null,
-	serverChartData?: Record<string, [number, number][]> | null
+	authToken?: string | null
 ) {
+	const streamDone = useContext(StreamDoneContext)
 	const { data: parentMapping } = useParentChildMapping()
 	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({
 		queries: charts.map((chart) => {
 			const itemType = chart.protocol ? 'protocol' : 'chain'
 			const item = chart.protocol || chart.chain
-
-			const chartServerData = serverChartData?.[chart.id]
 
 			return {
 				// queryKey is time-period-independent: the API always returns the full dataset,
@@ -573,13 +627,12 @@ export function useChartsData(
 					undefined,
 					parentMapping,
 					undefined,
-					chart.dataType
+					chart.dataType,
+					authToken
 				),
-				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
+				staleTime: 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,
-				initialData: chartServerData ?? undefined,
-				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {
 					const filtered = filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 					const chartTypeDetails = CHART_TYPES[chart.type]
@@ -589,10 +642,12 @@ export function useChartsData(
 					return filtered
 				},
 				enabled:
-					!!item &&
-					((itemType === 'protocol' &&
-						(!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) || !!chart.geckoId)) ||
-						(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(chart.type) || !!chart.geckoId)))
+					streamDone &&
+					((['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) && !!chart.geckoId) ||
+						(!!item &&
+							((itemType === 'protocol' &&
+								(!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) || !!chart.geckoId)) ||
+								(itemType === 'chain' && (!['chainMcap', 'chainPrice'].includes(chart.type) || !!chart.geckoId)))))
 			}
 		})
 	})

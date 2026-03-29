@@ -1,8 +1,7 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
@@ -205,7 +204,8 @@ export const useGroupAndFormatChains = ({
 					change_1d,
 					change_7d,
 					change_1m,
-					mcaptvl: chain.mcap && finalTvl ? +formatNum(+chain.mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
+					mcaptvl:
+						chain.mcap != null && finalTvl != null ? +formatNum(+chain.mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
 				}
 			})
 			.filter((chain) => (minTvl != null ? chain.tvl >= minTvl : true) && (maxTvl != null ? chain.tvl <= maxTvl : true))
@@ -238,6 +238,9 @@ export const useGroupAndFormatChains = ({
 			const subChains = data.filter((childChain) => subChainsList.has(childChain.name))
 			const subRows = [chain].concat(subChains)
 
+			const nullSum = (a: number | null, b: number | null): number | null =>
+				a == null && b == null ? null : (a ?? 0) + (b ?? 0)
+
 			const {
 				tvl,
 				tvlPrevDay,
@@ -245,66 +248,115 @@ export const useGroupAndFormatChains = ({
 				tvlPrevMonth,
 				mcap,
 				stablesMcap,
-				users,
-				totalVolume24h,
-				totalFees24h,
-				totalRevenue24h,
-				totalAppRevenue24h,
+				activeUsers24h,
+				activeUsers7d,
+				activeUsers30d,
+				dexVolume24h,
+				dexVolume7d,
+				dexVolume30d,
+				fees24h,
+				fees7d,
+				fees30d,
+				revenue24h,
+				revenue7d,
+				revenue30d,
+				appRevenue24h,
+				appRevenue7d,
+				appRevenue30d,
 				chainAssets,
-				nftVolume
+				nftVolume24h,
+				nftVolume7d,
+				nftVolume30d
 			} = subRows.reduce(
 				(acc, rowChain) => {
-					acc.tvl += rowChain.tvl
-					acc.tvlPrevDay += rowChain.tvlPrevDay
-					acc.tvlPrevWeek += rowChain.tvlPrevWeek
-					acc.tvlPrevMonth += rowChain.tvlPrevMonth
-					acc.mcap += rowChain.mcap
-					acc.stablesMcap += rowChain.stablesMcap
-					acc.users += rowChain.users
-					acc.totalVolume24h += rowChain.totalVolume24h
-					acc.totalFees24h += rowChain.totalFees24h
-					acc.totalRevenue24h += rowChain.totalRevenue24h
-					acc.totalAppRevenue24h += rowChain.totalAppRevenue24h
-					acc.chainAssets = {
-						total: {
-							total: +(acc.chainAssets.total?.total ?? 0) + +(rowChain.chainAssets?.total?.total ?? 0)
-						},
-						canonical: {
-							total: +(acc.chainAssets.canonical?.total ?? 0) + +(rowChain.chainAssets?.canonical?.total ?? 0)
-						},
-						ownTokens: {
-							total: +(acc.chainAssets.ownTokens?.total ?? 0) + +(rowChain.chainAssets?.ownTokens?.total ?? 0)
-						},
-						native: {
-							total: +(acc.chainAssets.native?.total ?? 0) + +(rowChain.chainAssets?.native?.total ?? 0)
-						},
-						thirdParty: {
-							total: +(acc.chainAssets.thirdParty?.total ?? 0) + +(rowChain.chainAssets?.thirdParty?.total ?? 0)
-						}
-					}
-					acc.nftVolume += rowChain.nftVolume
+					acc.tvl = nullSum(acc.tvl, rowChain.tvl)
+					acc.tvlPrevDay = nullSum(acc.tvlPrevDay, rowChain.tvlPrevDay)
+					acc.tvlPrevWeek = nullSum(acc.tvlPrevWeek, rowChain.tvlPrevWeek)
+					acc.tvlPrevMonth = nullSum(acc.tvlPrevMonth, rowChain.tvlPrevMonth)
+					acc.mcap = nullSum(acc.mcap, rowChain.mcap)
+					acc.stablesMcap = nullSum(acc.stablesMcap, rowChain.stablesMcap)
+					acc.activeUsers24h = nullSum(acc.activeUsers24h, rowChain.activeUsers24h)
+					acc.activeUsers7d = nullSum(acc.activeUsers7d, rowChain.activeUsers7d)
+					acc.activeUsers30d = nullSum(acc.activeUsers30d, rowChain.activeUsers30d)
+					acc.dexVolume24h = nullSum(acc.dexVolume24h, rowChain.dexVolume24h)
+					acc.dexVolume7d = nullSum(acc.dexVolume7d, rowChain.dexVolume7d)
+					acc.dexVolume30d = nullSum(acc.dexVolume30d, rowChain.dexVolume30d)
+					acc.fees24h = nullSum(acc.fees24h, rowChain.fees24h)
+					acc.fees7d = nullSum(acc.fees7d, rowChain.fees7d)
+					acc.fees30d = nullSum(acc.fees30d, rowChain.fees30d)
+					acc.revenue24h = nullSum(acc.revenue24h, rowChain.revenue24h)
+					acc.revenue7d = nullSum(acc.revenue7d, rowChain.revenue7d)
+					acc.revenue30d = nullSum(acc.revenue30d, rowChain.revenue30d)
+					acc.appRevenue24h = nullSum(acc.appRevenue24h, rowChain.appRevenue24h)
+					acc.appRevenue7d = nullSum(acc.appRevenue7d, rowChain.appRevenue7d)
+					acc.appRevenue30d = nullSum(acc.appRevenue30d, rowChain.appRevenue30d)
+					const aTotal = acc.chainAssets?.total?.total
+					const bTotal = rowChain.chainAssets?.total?.total
+					const aCanon = acc.chainAssets?.canonical?.total
+					const bCanon = rowChain.chainAssets?.canonical?.total
+					const aOwn = acc.chainAssets?.ownTokens?.total
+					const bOwn = rowChain.chainAssets?.ownTokens?.total
+					const aNative = acc.chainAssets?.native?.total
+					const bNative = rowChain.chainAssets?.native?.total
+					const aThird = acc.chainAssets?.thirdParty?.total
+					const bThird = rowChain.chainAssets?.thirdParty?.total
+					const allNull =
+						aTotal == null &&
+						bTotal == null &&
+						aCanon == null &&
+						bCanon == null &&
+						aOwn == null &&
+						bOwn == null &&
+						aNative == null &&
+						bNative == null &&
+						aThird == null &&
+						bThird == null
+					acc.chainAssets = allNull
+						? null
+						: {
+								total: { total: +(aTotal ?? 0) + +(bTotal ?? 0) },
+								canonical: { total: +(aCanon ?? 0) + +(bCanon ?? 0) },
+								ownTokens: { total: +(aOwn ?? 0) + +(bOwn ?? 0) },
+								native: { total: +(aNative ?? 0) + +(bNative ?? 0) },
+								thirdParty: { total: +(aThird ?? 0) + +(bThird ?? 0) }
+							}
+					acc.nftVolume24h = nullSum(acc.nftVolume24h, rowChain.nftVolume24h)
+					acc.nftVolume7d = nullSum(acc.nftVolume7d, rowChain.nftVolume7d)
+					acc.nftVolume30d = nullSum(acc.nftVolume30d, rowChain.nftVolume30d)
 					return acc
 				},
 				{
-					tvl: 0,
-					tvlPrevDay: 0,
-					tvlPrevWeek: 0,
-					tvlPrevMonth: 0,
-					mcap: 0,
-					stablesMcap: 0,
-					users: 0,
-					totalVolume24h: 0,
-					totalFees24h: 0,
-					totalRevenue24h: 0,
-					totalAppRevenue24h: 0,
-					chainAssets: {
-						total: { total: 0 },
-						canonical: { total: 0 },
-						ownTokens: { total: 0 },
-						native: { total: 0 },
-						thirdParty: { total: 0 }
-					},
-					nftVolume: 0
+					tvl: null as number | null,
+					tvlPrevDay: null as number | null,
+					tvlPrevWeek: null as number | null,
+					tvlPrevMonth: null as number | null,
+					mcap: null as number | null,
+					stablesMcap: null as number | null,
+					activeUsers24h: null as number | null,
+					activeUsers7d: null as number | null,
+					activeUsers30d: null as number | null,
+					dexVolume24h: null as number | null,
+					dexVolume7d: null as number | null,
+					dexVolume30d: null as number | null,
+					fees24h: null as number | null,
+					fees7d: null as number | null,
+					fees30d: null as number | null,
+					revenue24h: null as number | null,
+					revenue7d: null as number | null,
+					revenue30d: null as number | null,
+					appRevenue24h: null as number | null,
+					appRevenue7d: null as number | null,
+					appRevenue30d: null as number | null,
+					nftVolume24h: null as number | null,
+					nftVolume7d: null as number | null,
+					nftVolume30d: null as number | null,
+					chainAssets: null as {
+						total: { total: number }
+						canonical: { total: number }
+						ownTokens: { total: number }
+						native: { total: number }
+						thirdParty: { total: number }
+					} | null
 				}
 			)
 
@@ -325,18 +377,30 @@ export const useGroupAndFormatChains = ({
 				change_1m,
 				mcaptvl,
 				protocols: null,
-				users,
-				totalVolume24h,
-				totalFees24h,
-				totalRevenue24h,
-				totalAppRevenue24h,
+				activeUsers24h,
+				activeUsers7d,
+				activeUsers30d,
+				dexVolume24h,
+				dexVolume7d,
+				dexVolume30d,
+				fees24h,
+				fees7d,
+				fees30d,
+				revenue24h,
+				revenue7d,
+				revenue30d,
+				appRevenue24h,
+				appRevenue7d,
+				appRevenue30d,
+				nftVolume24h,
+				nftVolume7d,
+				nftVolume30d,
 				chainAssets,
-				nftVolume,
 				stablesMcap,
 				subRows
 			})
 		}
 
-		return { showByGroup, chainsTableData: chainsTableData.sort((a, b) => b.tvl - a.tvl) }
+		return { showByGroup, chainsTableData: chainsTableData.sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)) }
 	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent, hideGroupBy])
 }

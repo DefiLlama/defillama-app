@@ -255,6 +255,7 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 								<MultiSeriesChart2
 									dataset={chartData.dataset}
 									charts={chartData.charts}
+									showTotalInTooltip
 									exportButtons={{
 										png: true,
 										csv: true,

@@ -19,6 +19,7 @@ const ACCEPTED_TYPES = new Set([
 const ACCEPTED_EXTENSIONS = new Set(['.pdf', '.csv'])
 const IMAGE_MAX_SIZE = 10 * 1024 * 1024
 const FILE_MAX_SIZE = 30 * 1024 * 1024
+const MAX_TOTAL_BYTES = 50 * 1024 * 1024
 
 function isImageType(type: string) {
 	return type.startsWith('image/')
@@ -48,7 +49,7 @@ interface UseImageUploadOptions {
 }
 
 export function useImageUpload({
-	maxImages = 4,
+	maxImages = 15,
 	maxSizeBytes,
 	droppedFiles,
 	clearDroppedFiles
@@ -74,7 +75,50 @@ export function useImageUpload({
 
 	const addImages = useCallback(
 		(files: File[]) => {
-			const valid = files.filter((f) => isAcceptedFile(f) && f.size <= (maxSizeBytes ?? maxSizeForType(f.type)))
+			const rejected: { type: 'size' | 'format'; file: File }[] = []
+			const valid: File[] = []
+			for (const f of files) {
+				if (!isAcceptedFile(f)) {
+					rejected.push({ type: 'format', file: f })
+				} else if (f.size > (maxSizeBytes ?? maxSizeForType(f.type))) {
+					rejected.push({ type: 'size', file: f })
+				} else {
+					valid.push(f)
+				}
+			}
+
+			if (rejected.length > 0) {
+				const sizeRejected = rejected.filter((r) => r.type === 'size')
+				const formatRejected = rejected.filter((r) => r.type === 'format')
+				if (sizeRejected.length > 0) {
+					const uniqueMBs = [
+						...new Set(
+							sizeRejected.map((r) => Math.round((maxSizeBytes ?? maxSizeForType(r.file.type)) / (1024 * 1024)))
+						)
+					]
+					queueMicrotask(() => {
+						const limitsText = uniqueMBs.join('MB, ') + 'MB'
+						errorToast({
+							title: 'File too large',
+							description:
+								sizeRejected.length === 1
+									? `${sizeRejected[0].file.name} exceeds the ${limitsText} limit`
+									: uniqueMBs.length === 1
+										? `${sizeRejected.length} files exceed the ${limitsText} limit`
+										: `${sizeRejected.length} files exceed their size limits (${limitsText})`
+						})
+					})
+				}
+				if (formatRejected.length > 0) {
+					queueMicrotask(() => {
+						errorToast({
+							title: 'Unsupported file type',
+							description: 'Supported formats: PNG, JPEG, GIF, WebP, PDF, CSV, XLS'
+						})
+					})
+				}
+			}
+
 			if (valid.length === 0) return
 
 			const newImages: SelectedImage[] = []
@@ -90,19 +134,48 @@ export function useImageUpload({
 			if (newImages.length === 0) return
 
 			setSelectedImages((prev) => {
-				const totalCount = prev.length + newImages.length
-				if (totalCount > maxImages) {
+				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
+				let addedBytes = 0
+				let countLimitHit = false
+				let totalSizeLimitHit = false
+				const withinBudget: SelectedImage[] = [...prev]
+
+				for (const img of newImages) {
+					if (withinBudget.length >= maxImages) {
+						countLimitHit = true
+						if (img.url) URL.revokeObjectURL(img.url)
+						continue
+					}
+					if (existingBytes + addedBytes + img.file.size > MAX_TOTAL_BYTES) {
+						totalSizeLimitHit = true
+						if (img.url) URL.revokeObjectURL(img.url)
+						continue
+					}
+					addedBytes += img.file.size
+					withinBudget.push(img)
+				}
+
+				if (countLimitHit) {
 					queueMicrotask(() => {
 						errorToast({
 							title: 'File upload limit',
 							description: `You may upload only ${maxImages} files at a time`
 						})
 					})
-					for (const { url } of newImages.slice(maxImages - prev.length)) {
-						if (url) URL.revokeObjectURL(url)
-					}
 				}
-				return [...prev, ...newImages].slice(0, maxImages)
+
+				if (totalSizeLimitHit && withinBudget.length === prev.length) {
+					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+					queueMicrotask(() => {
+						errorToast({
+							title: 'Total upload size exceeded',
+							description: `Combined files must be under ${totalMB}MB`
+						})
+					})
+					return prev
+				}
+
+				return withinBudget
 			})
 		},
 		[maxImages, maxSizeBytes]
@@ -145,7 +218,7 @@ export function useImageUpload({
 		(e: React.ClipboardEvent) => {
 			const files = Array.from(e.clipboardData.items)
 				.map((item) => item.getAsFile())
-				.filter((file): file is File => Boolean(file) && isAcceptedFile(file))
+				.filter((file): file is File => Boolean(file))
 			if (files.length) {
 				trackUmamiEvent('llamaai-file-paste')
 				addImages(files)
@@ -178,7 +251,7 @@ export function useImageUpload({
 			e.stopPropagation()
 			dragCounterRef.current = 0
 			setIsDragging(false)
-			const files = Array.from(e.dataTransfer.files).filter(isAcceptedFile)
+			const files = Array.from(e.dataTransfer.files)
 			if (files.length) {
 				trackUmamiEvent('llamaai-file-upload', { method: 'drag_and_drop', count: files.length })
 				addImages(files)

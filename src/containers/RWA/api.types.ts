@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
 type RWAContractsByChain = Record<string, string[]>
@@ -10,6 +11,7 @@ export interface IFetchedRWAProject {
 	id: string
 	ticker: string
 	assetName?: string | null
+	assetGroup?: string | null
 	website?: string[] | null
 	twitter?: string[] | null
 	primaryChain?: string | null
@@ -33,7 +35,7 @@ export interface IFetchedRWAProject {
 	transferable?: boolean | null
 	selfCustody?: boolean | null
 	descriptionNotes?: string[] | null
-	parentPlatform?: string | null
+	parentPlatform?: RWAParentPlatform
 	stablecoin?: boolean | null
 	governance?: boolean | null
 	defiActiveTvl?: RWATvlByChain | null
@@ -41,17 +43,34 @@ export interface IFetchedRWAProject {
 	activeMcap?: RWANumberMap | null
 	price?: number | null
 	activeMcapData?: boolean
-	projectId?: string | string[] | false
-	coingeckoId?: string | false
-	oracleProvider?: string | false
-	oracleProofLink?: string | false
-	logo?: string | string[] | false
-	rwaGithub?: string | false
+	projectId?: string | string[] | null
+	coingeckoId?: string | null
+	oracleProvider?: string | null
+	oracleProofLink?: string | null
+	logo?: string | string[] | null
+	rwaGithub?: string | null
 	dateOfLastAttestation?: string | null
 	attestationFrequency?: string | string[] | null
 	holdersToRemove?: RWAHoldersByChain | null
 	discord?: boolean | string | null
 	telegram?: boolean | string | null
+}
+
+/** One classification slice in segmented RWA stats (base, stablecoins-only, governance, both). */
+export type RWAStatsSlice = {
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+	assetIssuers: string[]
+}
+
+/** Four non-overlapping slices by asset classification (used by byChain, byCategory, byPlatform, byAssetGroup). */
+export type RWAStatsSegmented = {
+	base: RWAStatsSlice
+	stablecoinsOnly: RWAStatsSlice
+	governanceOnly: RWAStatsSlice
+	stablecoinsAndGovernance: RWAStatsSlice
 }
 
 export interface IRWAStatsResponse {
@@ -60,59 +79,10 @@ export interface IRWAStatsResponse {
 	totalDefiActiveTvl: number
 	totalAssets: number
 	totalIssuers: number
-	byChain: Record<
-		string,
-		{
-			base: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			stablecoinsOnly: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			governanceOnly: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-			stablecoinsAndGovernance: {
-				onChainMcap: number
-				activeMcap: number
-				defiActiveTvl: number
-				assetCount: number
-				assetIssuers: Array<string>
-			}
-		}
-	>
-	byCategory: Record<
-		string,
-		{
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
-		}
-	>
-	byPlatform?: Record<
-		string,
-		{
-			onChainMcap: number
-			activeMcap: number
-			defiActiveTvl: number
-			assetCount: number
-			assetIssuers: number
-		}
-	>
+	byChain: Record<string, RWAStatsSegmented>
+	byCategory: Record<string, RWAStatsSegmented>
+	byPlatform?: Record<string, RWAStatsSegmented>
+	byAssetGroup?: Record<string, RWAStatsSegmented>
 }
 
 export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'> {
@@ -148,11 +118,14 @@ export interface IRWAAssetsOverview {
 	categories: Array<string>
 	categoriesOptions: Array<{ key: string; name: string; help?: string }>
 	platforms: Array<string>
+	assetGroups: Array<string>
 	assetNames: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>
 	platformLinks: Array<{ label: string; to: string }>
 	selectedPlatform: string
+	assetGroupLinks: Array<{ label: string; to: string }>
+	selectedAssetGroup: string
 	chainLinks: Array<{ label: string; to: string }>
 	selectedChain: string
 	categoryLinks: Array<{ label: string; to: string }>
@@ -185,22 +158,29 @@ export interface IRWAAssetsOverview {
 	chainSlug: string | null
 	categorySlug: string | null
 	platformSlug: string | null
+	assetGroupSlug: string | null
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
+export type RWATickerChartTarget =
+	| { kind: 'all' }
+	| { kind: 'chain'; slug: string }
+	| { kind: 'category'; slug: string }
+	| { kind: 'platform'; slug: string }
+	| { kind: 'assetGroup'; slug: string }
 
 export type IRWAInitialChartDataset = Record<
-	'onChainMcap' | 'activeMcap' | 'defiActiveTvl',
+	RWAChartMetricKey,
 	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
 >
 
 export interface IRWAChartDataByTicker {
-	onChainMcap: Array<{ timestamp: number } & Record<string, number>>
-	activeMcap: Array<{ timestamp: number } & Record<string, number>>
-	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
+	onChainMcap: IRWAChartMetricRows
+	activeMcap: IRWAChartMetricRows
+	defiActiveTvl: IRWAChartMetricRows
 }
-
-export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
 export type IRWABreakdownChartRow = { timestamp: number } & Record<string, number>
 
@@ -212,32 +192,37 @@ export type IRWABreakdownChartParams = {
 	includeGovernance?: boolean
 }
 
-export type IRWABreakdownDatasetsByMetric = Record<RWAChartMetricKey, MultiSeriesChart2Dataset>
-
-export type IRWAChainBreakdownDatasetsByToggle = {
-	base: IRWABreakdownDatasetsByMetric
-	includeStablecoin: IRWABreakdownDatasetsByMetric
-	includeGovernance: IRWABreakdownDatasetsByMetric
-	includeStablecoinAndGovernance: IRWABreakdownDatasetsByMetric
-}
+export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind: 'platform' } | { kind: 'assetGroup' }
+export type RWAOverviewBreakdownRequest =
+	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'assetGroup'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
+
 export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
 export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform']>[string] & { platform: string }
+export type IRWAAssetGroupsOverviewRow = NonNullable<IRWAStatsResponse['byAssetGroup']>[string] & { assetGroup: string }
 
 export type IRWAChainsOverview = {
 	rows: IRWAChainsOverviewRow[]
-	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWACategoriesOverview = {
 	rows: IRWACategoriesOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWAPlatformsOverview = {
 	rows: IRWAPlatformsOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
+}
+
+export type IRWAAssetGroupsOverview = {
+	rows: IRWAAssetGroupsOverviewRow[]
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export interface IRWAAssetData extends IRWAProject {
@@ -245,6 +230,7 @@ export interface IRWAAssetData extends IRWAProject {
 	rwaClassificationDescription: string | null
 	accessModelDescription: string | null
 	assetClassDescriptions: Record<string, string>
+	contractUrls: Record<string, Record<string, string>> | null
 	chartDataset: {
 		source: RWAAssetChartRow[]
 		dimensions: RWAAssetChartDimension[]

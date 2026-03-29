@@ -1,16 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { CACHE_SERVER } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
-import {
-	useFetchProtocolActiveUsers,
-	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions
-} from '~/containers/ProtocolOverview/queries.client'
 import { fetchRaises } from '~/containers/Raises/api'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
@@ -59,6 +55,11 @@ const getTvl24hChange = (
 	return { totalValueUSD: lastValue, tvlPrevDay }
 }
 
+const normalizeActivityChart = (values: Array<[number, number]> | null): Array<[number, number]> | null =>
+	values && values.length > 0
+		? values.map(([date, value]): [number, number] => [date * 1e3, +value]).sort((a, b) => a[0] - b[0])
+		: null
+
 export const useFetchChainChartData = ({
 	denomination,
 	selectedChain,
@@ -83,7 +84,7 @@ export const useFetchChainChartData = ({
 	tvlSettings: Record<string, boolean>
 	chainGeckoId?: string
 	toggledCharts: Array<ChainChartLabels>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	groupBy: ChartTimeGroupingWithCumulative
 }) => {
 	const toggledChartsSet = useMemo(() => new Set(toggledCharts), [toggledCharts])
 	const [nowMs] = useState(() => Date.now())
@@ -221,15 +222,70 @@ export const useFetchChainChartData = ({
 		toggledChartsSet.has('Net Inflows') ? selectedChain : null
 	)
 
-	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
-		toggledChartsSet.has('Active Addresses') ? `chain$${selectedChain}` : null
-	)
-	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
-		toggledChartsSet.has('New Addresses') ? `chain$${selectedChain}` : null
-	)
-	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
-		toggledChartsSet.has('Transactions') ? `chain$${selectedChain}` : null
-	)
+	const isActiveAddressesEnabled = toggledChartsSet.has('Active Addresses')
+	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useQuery<Array<
+		[number, number]
+	> | null>({
+		queryKey: ['chain-overview', 'active-addresses', selectedChain],
+		queryFn: () =>
+			fetchAdapterChainChartData({
+				adapterType: 'active-users',
+				chain: selectedChain
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isActiveAddressesEnabled
+	})
+	const isNewAddressesEnabled = toggledChartsSet.has('New Addresses')
+	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useQuery<Array<[number, number]> | null>({
+		queryKey: ['chain-overview', 'new-addresses', selectedChain],
+		queryFn: () =>
+			fetchAdapterChainChartData({
+				adapterType: 'new-users',
+				chain: selectedChain
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isNewAddressesEnabled
+	})
+	const isTransactionsEnabled = toggledChartsSet.has('Transactions')
+	const { data: transactionsData = null, isLoading: fetchingTransactions } = useQuery<Array<[number, number]> | null>({
+		queryKey: ['chain-overview', 'transactions', selectedChain],
+		queryFn: () =>
+			fetchAdapterChainChartData({
+				adapterType: 'active-users',
+				chain: selectedChain,
+				dataType: 'dailyTransactionsCount'
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isTransactionsEnabled
+	})
+	const isGasUsedEnabled = toggledChartsSet.has('Gas Used')
+	const { data: gasUsedData = null, isLoading: fetchingGasUsed } = useQuery<Array<[number, number]> | null>({
+		queryKey: ['chain-overview', 'gas-used', selectedChain],
+		queryFn: () =>
+			fetchAdapterChainChartData({
+				adapterType: 'active-users',
+				chain: selectedChain,
+				dataType: 'dailyGasUsed'
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isGasUsedEnabled
+	})
 
 	const isBridgedTvlEnabled = toggledChartsSet.has('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
@@ -378,6 +434,10 @@ export const useFetchChainChartData = ({
 			loadingCharts.push('Transactions')
 		}
 
+		if (fetchingGasUsed) {
+			loadingCharts.push('Gas Used')
+		}
+
 		if (fetchingBridgedTvlData) {
 			loadingCharts.push('Bridged TVL')
 		}
@@ -409,7 +469,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (chainFeesDataChart) {
+		if (isChainFeesEnabled && chainFeesDataChart) {
 			const chartName: ChainChartLabels = 'Chain Fees' as const
 			charts[chartName] = formatBarChart({
 				data: chainFeesDataChart,
@@ -418,7 +478,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (chainRevenueDataChart) {
+		if (isChainRevenueEnabled && chainRevenueDataChart) {
 			const chartName: ChainChartLabels = 'Chain Revenue' as const
 			charts[chartName] = formatBarChart({
 				data: chainRevenueDataChart,
@@ -427,7 +487,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (dexVolumeDataChart) {
+		if (isDexVolumeEnabled && dexVolumeDataChart) {
 			const chartName: ChainChartLabels = 'DEXs Volume' as const
 			charts[chartName] = formatBarChart({
 				data: dexVolumeDataChart,
@@ -436,7 +496,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (perpsVolumeDataChart) {
+		if (isPerpsVolumeEnabled && perpsVolumeDataChart) {
 			const chartName: ChainChartLabels = 'Perps Volume' as const
 			charts[chartName] = formatBarChart({
 				data: perpsVolumeDataChart,
@@ -445,7 +505,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (chainAppFeesDataChart) {
+		if (isChainAppFeesEnabled && chainAppFeesDataChart) {
 			const chartName: ChainChartLabels = 'App Fees' as const
 			charts[chartName] = formatBarChart({
 				data: chainAppFeesDataChart,
@@ -454,7 +514,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (chainAppRevenueDataChart) {
+		if (isChainAppRevenueEnabled && chainAppRevenueDataChart) {
 			const chartName: ChainChartLabels = 'App Revenue' as const
 			charts[chartName] = formatBarChart({
 				data: chainAppRevenueDataChart,
@@ -497,7 +557,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (inflowsChartData) {
+		if (toggledChartsSet.has('Net Inflows') && inflowsChartData) {
 			const chartName: ChainChartLabels = 'Net Inflows' as const
 			charts[chartName] = formatBarChart({
 				data: inflowsChartData,
@@ -506,7 +566,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (stablecoinsChartData) {
+		if (toggledChartsSet.has('Stablecoins Mcap') && stablecoinsChartData) {
 			const chartName: ChainChartLabels = 'Stablecoins Mcap' as const
 			charts[chartName] = formatLineChart({
 				data: stablecoinsChartData,
@@ -516,7 +576,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (activeAddressesData) {
+		if (isActiveAddressesEnabled && activeAddressesData) {
 			const chartName: ChainChartLabels = 'Active Addresses' as const
 			charts[chartName] = formatBarChart({
 				data: activeAddressesData,
@@ -526,7 +586,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (newAddressesData) {
+		if (isNewAddressesEnabled && newAddressesData) {
 			const chartName: ChainChartLabels = 'New Addresses' as const
 			charts[chartName] = formatBarChart({
 				data: newAddressesData,
@@ -536,7 +596,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (transactionsData) {
+		if (isTransactionsEnabled && transactionsData) {
 			const chartName: ChainChartLabels = 'Transactions' as const
 			charts[chartName] = formatBarChart({
 				data: transactionsData,
@@ -546,7 +606,17 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (bridgedTvlData) {
+		if (isGasUsedEnabled && gasUsedData) {
+			const chartName: ChainChartLabels = 'Gas Used' as const
+			charts[chartName] = formatBarChart({
+				data: gasUsedData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
+		if (isBridgedTvlEnabled && bridgedTvlData) {
 			const finalChainAssetsChart = []
 			for (const item of bridgedTvlData) {
 				if (!item) continue
@@ -573,7 +643,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (raisesData) {
+		if (isRaisesEnabled && raisesData) {
 			const chartName: ChainChartLabels = 'Raises' as const
 			charts[chartName] = formatBarChart({
 				data: raisesData,
@@ -583,7 +653,7 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		if (chainIncentivesData) {
+		if (isChainIncentivesEnabled && chainIncentivesData) {
 			const chartName: ChainChartLabels = 'Token Incentives' as const
 			charts[chartName] = formatLineChart({
 				data: chainIncentivesData,
@@ -612,16 +682,22 @@ export const useFetchChainChartData = ({
 		isDenominationEnabled,
 		denominationPriceHistory,
 		fetchingChainFees,
+		isChainFeesEnabled,
 		chainFeesDataChart,
 		fetchingChainRevenue,
+		isChainRevenueEnabled,
 		chainRevenueDataChart,
 		fetchingDexVolume,
+		isDexVolumeEnabled,
 		dexVolumeDataChart,
 		fetchingPerpVolume,
+		isPerpsVolumeEnabled,
 		perpsVolumeDataChart,
 		fetchingChainAppFees,
+		isChainAppFeesEnabled,
 		chainAppFeesDataChart,
 		fetchingChainAppRevenue,
+		isChainAppRevenueEnabled,
 		chainAppRevenueDataChart,
 		isTokenPriceEnabled,
 		isTokenMcapEnabled,
@@ -631,16 +707,25 @@ export const useFetchChainChartData = ({
 		fetchingStablecoinsChartDataByChain,
 		stablecoinsChartData,
 		fetchingActiveAddresses,
+		isActiveAddressesEnabled,
 		activeAddressesData,
 		fetchingNewAddresses,
+		isNewAddressesEnabled,
 		newAddressesData,
 		fetchingTransactions,
+		isTransactionsEnabled,
 		transactionsData,
+		fetchingGasUsed,
+		isGasUsedEnabled,
+		gasUsedData,
 		fetchingBridgedTvlData,
+		isBridgedTvlEnabled,
 		bridgedTvlData,
 		fetchingRaises,
+		isRaisesEnabled,
 		raisesData,
 		fetchingChainIncentives,
+		isChainIncentivesEnabled,
 		chainIncentivesData,
 		finalTvlChart,
 		denominationGeckoId,

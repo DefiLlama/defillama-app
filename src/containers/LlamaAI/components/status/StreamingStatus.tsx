@@ -10,7 +10,7 @@ export const TOOL_LABELS: Record<string, string> = {
 	generate_chart: 'Generating visualization',
 	web_search: 'Searching the web',
 	x_search: 'Searching X/Twitter',
-	spawn_agent: 'Spawning research agents',
+	spawn_agent: 'Spawning parallel agents',
 	export_csv: 'Exporting CSV',
 	create_alert: 'Creating alert',
 	valyu_search: 'Searching financial data',
@@ -49,7 +49,15 @@ export const TOOL_LABELS: Record<string, string> = {
 	x_get_retweeted_by: 'Fetching retweets',
 	x_get_community: 'Fetching X community',
 	x_get_community_members: 'Fetching community members',
-	x_get_community_posts: 'Fetching community posts'
+	x_get_community_posts: 'Fetching community posts',
+	query_allium: 'Querying onchain data',
+	apollo_org_search: 'Searching organizations',
+	apollo_people_search: 'Searching people',
+	apollo_people_enrich: 'Enriching people data',
+	apollo_org_enrich: 'Enriching org data',
+	clado_linkedin_scrape: 'Scraping LinkedIn profile',
+	clado_contacts_enrich: 'Enriching contact data',
+	feed_enrichment: 'Enriching feed data'
 }
 
 export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
@@ -98,7 +106,15 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	x_get_retweeted_by: { icon: 'twitter', color: '#94a3b8' },
 	x_get_community: { icon: 'twitter', color: '#94a3b8' },
 	x_get_community_members: { icon: 'twitter', color: '#94a3b8' },
-	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' }
+	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' },
+	query_allium: { icon: 'layers', color: '#6366f1' },
+	apollo_org_search: { icon: 'search', color: '#8b5cf6' },
+	apollo_people_search: { icon: 'users', color: '#8b5cf6' },
+	apollo_people_enrich: { icon: 'users', color: '#a78bfa' },
+	apollo_org_enrich: { icon: 'search', color: '#a78bfa' },
+	clado_linkedin_scrape: { icon: 'users', color: '#0077b5' },
+	clado_contacts_enrich: { icon: 'users', color: '#0077b5' },
+	feed_enrichment: { icon: 'layers', color: '#8b5cf6' }
 }
 
 function formatTime(seconds: number) {
@@ -107,7 +123,7 @@ function formatTime(seconds: number) {
 	return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`
 }
 
-function useHackerMode() {
+export function useHackerMode() {
 	const [isDark] = useDarkModeManager()
 	const [enabled, setEnabled] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
@@ -192,17 +208,18 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 	)
 }
 
-function ElapsedTimeLabel() {
+function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }) {
 	const [elapsed, setElapsed] = useState(0)
 
 	useEffect(() => {
-		const startedAt = Date.now()
+		const start = serverStartedAt || Date.now()
+		setElapsed(Math.floor((Date.now() - start) / 1000))
 		const interval = setInterval(() => {
-			setElapsed(Math.floor((Date.now() - startedAt) / 1000))
+			setElapsed(Math.floor((Date.now() - start) / 1000))
 		}, 1000)
 
 		return () => clearInterval(interval)
-	}, [])
+	}, [serverStartedAt])
 
 	return <span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 }
@@ -220,13 +237,18 @@ export function TypingIndicator() {
 export function ToolProgressIndicator({
 	toolCalls,
 	thinking,
-	isCompacting
+	isCompacting,
+	spawnProgress,
+	executionStartedAt
 }: {
 	toolCalls: ToolCall[]
 	thinking?: string
 	isCompacting?: boolean
+	spawnProgress?: Map<string, SpawnAgentStatus>
+	executionStartedAt?: number
 }) {
-	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting
+	const hasSpawn = spawnProgress && spawnProgress.size > 0
+	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn
 	const hackerMode = useHackerMode()
 
 	if (!hasActivity) return null
@@ -249,7 +271,7 @@ export function ToolProgressIndicator({
 					>
 						{hackerMode ? '> infiltrating mainframe...' : 'LlamaAI is thinking...'}
 					</p>
-					<ElapsedTimeLabel />
+					<ElapsedTimeLabel startedAt={executionStartedAt} />
 				</div>
 				{thinking ? <ThinkingPanel thinking={thinking} defaultOpen /> : null}
 				{isCompacting ? (
@@ -278,10 +300,44 @@ export function ToolProgressIndicator({
 										style={{ color: meta.color }}
 									/>
 									<p className="m-0 text-xs font-medium text-[#444] dark:text-[#ccc]">{toolCall.label}</p>
+									{toolCall.isPremium ? (
+										<span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+											Premium
+										</span>
+									) : null}
 								</li>
 							)
 						})}
 					</ul>
+				) : null}
+				{hasSpawn ? (
+					<div className="flex flex-col gap-1.5">
+						<p className="m-0 flex items-center gap-2 text-xs font-medium text-[#444] dark:text-[#ccc]">
+							<Icon name="users" height={14} width={14} className="shrink-0 opacity-70" style={{ color: '#f472b6' }} />
+							Working in herd...
+						</p>
+						<ul className="flex flex-col gap-1 pl-5">
+							{[...spawnProgress!.values()].map((agent) => (
+								<li key={agent.id} className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
+									{agent.status === 'completed' ? (
+										<span className="text-[10px] text-green-500">✓</span>
+									) : agent.status === 'error' ? (
+										<span className="text-[10px] text-red-500">✗</span>
+									) : (
+										<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
+									)}
+									<span className="text-xs text-[#666] dark:text-[#919296]">
+										{agent.id}
+										{agent.status === 'tool_call' && agent.tool ? (
+											<span className="opacity-60"> — {TOOL_LABELS[agent.tool] || agent.tool}</span>
+										) : null}
+										{agent.status === 'thinking' ? <span className="opacity-60"> — Thinking...</span> : null}
+										{agent.status === 'completed' ? <span className="opacity-60"> — Done</span> : null}
+									</span>
+								</li>
+							))}
+						</ul>
+					</div>
 				) : null}
 			</div>
 		</section>
@@ -290,16 +346,19 @@ export function ToolProgressIndicator({
 
 export const SpawnProgressCard = memo(function SpawnProgressCard({
 	agents,
-	startTime
+	startTime,
+	isResearchMode
 }: {
 	agents: Map<string, SpawnAgentStatus>
 	startTime: number
+	isResearchMode?: boolean
 }) {
-	const [elapsed, setElapsed] = useState(0)
+	const [elapsed, setElapsed] = useState(() => (startTime ? Math.floor((Date.now() - startTime) / 1000) : 0))
 	const [isExpanded, setIsExpanded] = useState(true)
 
 	useEffect(() => {
 		if (!startTime) return
+		setElapsed(Math.floor((Date.now() - startTime) / 1000))
 		const interval = setInterval(() => {
 			setElapsed(Math.floor((Date.now() - startTime) / 1000))
 		}, 1000)
@@ -313,7 +372,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 	return (
 		<section
 			className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]"
-			aria-label="Parallel research progress"
+			aria-label={isResearchMode ? 'Parallel research progress' : 'Herd work progress'}
 		>
 			<button
 				type="button"
@@ -323,7 +382,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 				<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
 
 				<p className="m-0 flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
-					Researching in parallel...
+					{isResearchMode ? 'Researching in parallel...' : 'Working in herd...'}
 				</p>
 
 				<p className="m-0 flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
@@ -404,7 +463,9 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 										{agent.toolCount != null || agent.chartCount != null ? ')' : ''}
 									</span>
 								) : null}
-								{agent.status === 'started' ? <span className="opacity-60"> - Starting...</span> : null}
+								{agent.status === 'started' || agent.status === 'thinking' ? (
+									<span className="opacity-60"> - {agent.status === 'thinking' ? 'Thinking...' : 'Starting...'}</span>
+								) : null}
 								{agent.status === 'error' ? <span className="opacity-60"> - Error</span> : null}
 							</p>
 						</li>

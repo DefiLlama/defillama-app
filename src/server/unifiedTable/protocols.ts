@@ -257,7 +257,7 @@ const baseMetricsMapping = (row: ProtocolAggregateRow, totals: Awaited<typeof to
 		mcap: row.mcap ?? null,
 		fdv: row.fdv ?? null,
 		chainMcap: row.chain_mcap ?? null,
-		mcaptvl: row.mcap && tvl ? row.mcap / tvl : null,
+		mcaptvl: row.mcap != null && tvl != null ? row.mcap / tvl : null,
 		pf: computeAnnualizedRatioFrom30d(row.mcap, row.fees_30d),
 		ps: computeAnnualizedRatioFrom30d(row.mcap, row.revenue_30d),
 		protocolCount: null

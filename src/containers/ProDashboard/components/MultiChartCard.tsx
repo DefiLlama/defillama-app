@@ -12,7 +12,7 @@ import {
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { CHART_TYPES, type MultiChartConfig } from '../types'
+import { CHART_TYPES, type DashboardGrouping, type MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -46,7 +46,7 @@ interface MultiChartCardProps {
 }
 
 const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardProps) {
-	const { getProtocolInfo } = useProDashboardCatalog()
+	const { getProtocolInfo, protocols } = useProDashboardCatalog()
 	const {
 		handleGroupingChange,
 		handleCumulativeChange,
@@ -155,7 +155,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		return validItems.map((cfg, index) => {
 			const rawData = cfg.data as [string, number][]
 			const meta = CHART_TYPES[cfg.type]
-			const name = cfg.protocol ? getProtocolInfo(cfg.protocol)?.name || cfg.protocol : cfg.chain
+			const name = cfg.protocol
+				? getProtocolInfo(cfg.protocol)?.name || cfg.protocol
+				: cfg.chain || (cfg.geckoId && protocols.find((p: any) => p.geckoId === cfg.geckoId)?.name) || cfg.geckoId || ''
 
 			const data: [number, number][] = rawData.map(([timestamp, value]) => [
 				typeof timestamp === 'string' && !Number.isNaN(Number(timestamp))
@@ -191,7 +193,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				metricType: cfg.type
 			}
 		})
-	}, [validItems, colorContext, getProtocolInfo])
+	}, [validItems, colorContext, getProtocolInfo, protocols])
 
 	const chartTypeInfo = useMemo(() => {
 		const uniqueTypes = new Set(validItems.map((item) => item.type))
@@ -537,7 +539,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 	}, [allCountMetrics, allPercentMetrics, allRatioMetrics, seriesCount, showPercentage])
 
-	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+	const groupingOptions: DashboardGrouping[] = ['day', 'week', 'month', 'quarter', 'year']
 
 	return (
 		<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]">
@@ -681,7 +683,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 									? 'monthly'
 									: multi.grouping === 'quarter'
 										? 'quarterly'
-										: 'daily'
+										: multi.grouping === 'year'
+											? 'yearly'
+											: 'daily'
 						}
 						hideDataZoom={true}
 						onReady={handleChartReady}

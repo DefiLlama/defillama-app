@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useContext, useMemo } from 'react'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
 import { getProtocolEmissionsPieData } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { download } from '~/utils/download'
+import { StreamDoneContext } from '../queries'
 import type { UnlocksPieConfig } from '../types'
+import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -24,10 +25,11 @@ interface UnlocksPieCardProps {
 export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const { protocol, protocolName, chartType } = config
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data, isLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'unlocks-pie', protocol],
 		queryFn: () => getProtocolEmissionsPieData(slug(protocol)),
-		enabled: Boolean(protocol),
+		enabled: streamDone && Boolean(protocol),
 		staleTime: 60 * 60 * 1000
 	})
 
@@ -76,10 +78,10 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 		download(csvFileName, csvContent)
 	}, [chartData, csvFileName, hasChartData])
 
-	if (isLoading) {
+	if (isLoading || !streamDone) {
 		return (
 			<div className="flex h-full min-h-[360px] items-center justify-center">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -106,7 +108,7 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>

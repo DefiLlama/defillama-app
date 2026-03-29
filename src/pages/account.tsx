@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -11,10 +12,12 @@ import { WalletProvider } from '~/layout/WalletProvider'
 export default function Account() {
 	const router = useRouter()
 	const success = Array.isArray(router.query.success) ? router.query.success[0] : router.query.success
+	const topupSuccess = Array.isArray(router.query.topup) ? router.query.topup[0] : router.query.topup
 	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 	const successProcessedRef = useRef(false)
+	const topupProcessedRef = useRef(false)
 	const successFlowIdRef = useRef(0)
 	const [activeFlowId, setActiveFlowId] = useState<number | null>(null)
 
@@ -23,6 +26,23 @@ export default function Account() {
 			successProcessedRef.current = false
 		}
 	}, [success])
+
+	useEffect(() => {
+		if (topupSuccess !== 'success' || !isAuthenticated || topupProcessedRef.current) return
+
+		topupProcessedRef.current = true
+		void queryClient.invalidateQueries({ queryKey: ['ai-balance'] })
+		toast.success('Top-up successful! Your External Data Balance has been updated.')
+
+		const { topup: _ignored, ...nextQuery } = router.query
+		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [topupSuccess, isAuthenticated, queryClient, router])
+
+	useEffect(() => {
+		if (topupSuccess !== 'success') {
+			topupProcessedRef.current = false
+		}
+	}, [topupSuccess])
 
 	useEffect(() => {
 		if (success !== 'true' || !isAuthenticated || successProcessedRef.current) return

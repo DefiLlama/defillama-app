@@ -74,6 +74,8 @@ export interface ChatSession {
 	isActive: boolean
 	isPublic?: boolean
 	shareToken?: string
+	isPinned?: boolean
+	pinnedAt?: string
 }
 
 export interface ResearchUsage {
@@ -113,6 +115,8 @@ export interface ToolExecution {
 	resultId?: string
 	sqlQuery?: string
 	toolData?: JsonObject
+	isPremium?: boolean
+	costUsd?: string
 }
 
 export interface AlertIntent {
@@ -184,6 +188,13 @@ export interface CsvItem {
 	filename: string
 }
 
+export interface MessageMetadata {
+	inputTokens?: number
+	outputTokens?: number
+	executionTimeMs?: number
+	x402CostUsd?: string
+}
+
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
@@ -197,6 +208,8 @@ export interface Message {
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
 	thinking?: string
+	quotedText?: string
+	messageMetadata?: MessageMetadata
 }
 
 export interface ChartSet {
@@ -208,11 +221,12 @@ export interface ToolCall {
 	id: number
 	name: string
 	label: string
+	isPremium?: boolean
 }
 
 export interface SpawnAgentStatus {
 	id: string
-	status: 'started' | 'tool_call' | 'completed' | 'error'
+	status: 'started' | 'thinking' | 'tool_call' | 'completed' | 'error'
 	tool?: string
 	toolCount?: number
 	chartCount?: number

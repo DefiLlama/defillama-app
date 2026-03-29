@@ -1,4 +1,5 @@
 import type * as echarts from 'echarts/core'
+import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
 import type { IProtocolNumericSeries } from './chartSeries.utils'
@@ -31,6 +32,9 @@ export interface IProtocolPageMetrics {
 	inflows: boolean
 	liquidity: boolean
 	activeUsers: boolean
+	newUsers: boolean
+	txCount: boolean
+	gasUsed: boolean
 	borrowed: boolean
 	tokenRights: boolean
 }
@@ -44,7 +48,7 @@ interface IAdapterOverview {
 	methodologyURL?: string | null
 	breakdownMethodology?: Record<string, string> | null
 	childMethodologies?: Array<[string, string | null, string | null]>
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	defaultChartView?: ChartTimeGrouping
 }
 
 export type IProtocolOverviewChartSeries = IProtocolNumericSeries
@@ -180,10 +184,11 @@ export interface IProtocolOverviewPageData {
 		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
 		hasOtherTokenHolderFlows: boolean
+		hasTokenHolderNetIncome: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IProtocolMetricsV2['warningBanners']
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	defaultChartView?: ChartTimeGrouping
 	seoTitle: string
 	seoDescription: string
 	defaultToggledCharts: ProtocolChartsLabels[]
@@ -252,7 +257,7 @@ export interface IProtocolCoreChartProps {
 	height?: string
 	unlockTokenSymbol?: string | null
 	isThemeDark: boolean
-	groupBy?: string
+	groupBy?: ChartTimeGroupingWithCumulative
 	hideDataZoom?: boolean
 	onReady?: (instance: echarts.ECharts | null) => void
 	style?: React.CSSProperties

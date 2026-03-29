@@ -8,6 +8,7 @@ import { resolveUserEmail } from '~/components/Nav/Account'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { formatEthAddress } from '~/utils'
 import type { AuthModel } from '~/utils/pocketbase'
+import { PROMO_EMAILS_TEXT } from '../constants'
 
 interface AccountStatusProps {
 	user: AuthModel
@@ -275,10 +276,7 @@ export const AccountStatus = ({
 							<div className="flex items-center justify-between border-t border-[#39393E]/30 pt-3">
 								<div>
 									<span className="text-sm text-[#b4b7bc]">Promotional emails</span>
-									<p className="mt-0.5 text-xs text-[#8a8c90]">
-										Get early access announcements, new feature releases, and DeFi data insights from the DefiLlama
-										team. Unsubscribe anytime
-									</p>
+									<p className="mt-0.5 text-xs text-[#8a8c90]">{PROMO_EMAILS_TEXT}</p>
 								</div>
 								<button
 									type="button"

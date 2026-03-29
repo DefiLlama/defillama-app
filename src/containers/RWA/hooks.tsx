@@ -13,31 +13,22 @@ import {
 	isTrueQueryParam,
 	pushShallowQuery
 } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWATickerChartTarget } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import {
-	aggregateRwaChartData,
-	emptyChartDatasets,
-	type RWAChartAggregationMode,
-	type RWAChartDatasetsByMetric
+	aggregateRwaMetricData,
+	emptyChartDataset,
+	type RWAChartDataset,
+	type RWAChartAggregationMode
 } from './chartAggregation'
+import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
+import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
 const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
 type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
 const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
-const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
-
-const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
-	if (!values || values.length === 0) return []
-	const out = new Set<string>()
-	for (const value of values) {
-		const normalized = typeof value === 'string' ? value.trim() : ''
-		if (!normalized) continue
-		out.add(normalized)
-	}
-	return Array.from(out)
-}
 
 const buildStackColors = (order: string[]) => {
 	const stackColors: Record<string, string> = {}
@@ -103,23 +94,27 @@ export const useRWATableQueryParams = ({
 	types,
 	categories,
 	platforms,
+	assetGroups,
 	assetClasses,
 	rwaClassifications,
 	accessModels,
 	issuers,
 	defaultIncludeStablecoins,
-	defaultIncludeGovernance
+	defaultIncludeGovernance,
+	mode
 }: {
 	assetNames: string[]
 	types: string[]
 	categories: string[]
 	platforms: string[]
+	assetGroups: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
 	issuers: string[]
 	defaultIncludeStablecoins: boolean
 	defaultIncludeGovernance: boolean
+	mode: RWAOverviewMode
 }) => {
 	const router = useRouter()
 	const {
@@ -131,6 +126,8 @@ export const useRWATableQueryParams = ({
 		excludeCategories: excludeCategoriesQ,
 		platforms: platformsQ,
 		excludePlatforms: excludePlatformsQ,
+		assetGroups: assetGroupsQ,
+		excludeAssetGroups: excludeAssetGroupsQ,
 		assetClasses: assetClassesQ,
 		excludeAssetClasses: excludeAssetClassesQ,
 		rwaClassifications: rwaClassificationsQ,
@@ -155,12 +152,14 @@ export const useRWATableQueryParams = ({
 		transferableStates: transferableStatesQ,
 		selfCustodyStates: selfCustodyStatesQ
 	} = router.query
+	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
 
 	const {
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -197,6 +196,7 @@ export const useRWATableQueryParams = ({
 		const typesValidSet = new Set(types)
 		const categoriesValidSet = new Set(categories)
 		const platformsValidSet = new Set(platforms)
+		const assetGroupsValidSet = new Set(assetGroups)
 		const assetClassesValidSet = new Set(assetClasses)
 		const rwaClassificationsValidSet = new Set(rwaClassifications)
 		const accessModelsValidSet = new Set(accessModels)
@@ -207,14 +207,12 @@ export const useRWATableQueryParams = ({
 		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
 		const excludePlatformsSet = parseExcludeParam(excludePlatformsQ)
+		const excludeAssetGroupsSet = parseExcludeParam(excludeAssetGroupsQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
 		const excludeIssuersSet = parseExcludeParam(excludeIssuersQ)
 
-		// Default toggles:
-		// - category pages: ON (include stablecoins + governance by default)
-		// - other pages: OFF (unless explicitly set in the URL)
 		const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : defaultIncludeStablecoins
 		const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : defaultIncludeGovernance
 
@@ -234,7 +232,7 @@ export const useRWATableQueryParams = ({
 				? parseArrayParam(typesQ, types, typesValidSet)
 				: excludeTypesSet.size > 0
 					? types
-					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
+					: getDefaultSelectedTypes(types, mode, categorySlug)
 		const selectedTypes = excludeTypesSet.size > 0 ? baseTypes.filter((t) => !excludeTypesSet.has(t)) : baseTypes
 
 		const baseCategories =
@@ -254,6 +252,17 @@ export const useRWATableQueryParams = ({
 					: platforms
 		const selectedPlatforms =
 			excludePlatformsSet.size > 0 ? basePlatforms.filter((p) => !excludePlatformsSet.has(p)) : basePlatforms
+
+		const baseAssetGroups =
+			assetGroupsQ != null
+				? parseArrayParam(assetGroupsQ, assetGroups, assetGroupsValidSet)
+				: excludeAssetGroupsSet.size > 0
+					? assetGroups
+					: assetGroups
+		const selectedAssetGroups =
+			excludeAssetGroupsSet.size > 0
+				? baseAssetGroups.filter((assetGroup) => !excludeAssetGroupsSet.has(assetGroup))
+				: baseAssetGroups
 
 		const baseAssetClasses =
 			assetClassesQ != null
@@ -309,6 +318,7 @@ export const useRWATableQueryParams = ({
 			selectedTypes,
 			selectedCategories,
 			selectedPlatforms,
+			selectedAssetGroups,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -338,6 +348,8 @@ export const useRWATableQueryParams = ({
 		excludeCategoriesQ,
 		platformsQ,
 		excludePlatformsQ,
+		assetGroupsQ,
+		excludeAssetGroupsQ,
 		assetClassesQ,
 		excludeAssetClassesQ,
 		rwaClassificationsQ,
@@ -367,10 +379,13 @@ export const useRWATableQueryParams = ({
 		types,
 		categories,
 		platforms,
+		assetGroups,
 		assetClasses,
 		rwaClassifications,
 		accessModels,
-		issuers
+		issuers,
+		mode,
+		categorySlug
 	])
 
 	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
@@ -393,11 +408,11 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		void pushShallowQuery(router, { includeStablecoins: value ? 'true' : 'false' })
+		void pushShallowQuery(router, { includeStablecoins: value ? 'true' : undefined })
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		void pushShallowQuery(router, { includeGovernance: value ? 'true' : 'false' })
+		void pushShallowQuery(router, { includeGovernance: value ? 'true' : undefined })
 	}
 
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>
@@ -420,6 +435,7 @@ export const useRWATableQueryParams = ({
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -482,6 +498,7 @@ export const useFilteredRwaAssets = ({
 	selectedTypes,
 	selectedCategories,
 	selectedPlatforms,
+	selectedAssetGroups,
 	selectedAssetClasses,
 	selectedRwaClassifications,
 	selectedAccessModels,
@@ -508,6 +525,7 @@ export const useFilteredRwaAssets = ({
 	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedPlatforms: string[]
+	selectedAssetGroups: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -553,6 +571,7 @@ export const useFilteredRwaAssets = ({
 		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
 		const selectedPlatformsSet = new Set(selectedPlatforms)
+		const selectedAssetGroupsSet = new Set(selectedAssetGroups)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
@@ -619,6 +638,7 @@ export const useFilteredRwaAssets = ({
 			}
 
 			const assetType = asset.type || 'Unknown'
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
 			const platformRaw = asset.parentPlatform as unknown
 			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
 			const normalizedPlatforms = toUniqueNonEmptyValues(
@@ -631,6 +651,9 @@ export const useFilteredRwaAssets = ({
 				(normalizedPlatforms.length > 0
 					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
 					: true) &&
+				// Asset groups are now fully normalized up-front, so an empty selection should mean
+				// "show no asset groups" rather than falling back to "show everything".
+				selectedAssetGroupsSet.has(assetGroup) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
@@ -665,6 +688,7 @@ export const useFilteredRwaAssets = ({
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -712,15 +736,13 @@ export function useRWAAssetCategoryPieChartData({
 		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const category of toUniqueNonEmptyValues(asset.category)) {
+			for (const { value: category, weight } of computeWeightedGroups(asset.category)) {
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				// Intentional full-count behavior for multi-category assets.
-				// To migrate to split-even later, divide each metric by asset.category.length here.
-				prev.onChain += asset.onChainMcap?.total ?? 0
-				prev.active += asset.activeMcap?.total ?? 0
-				prev.defi += asset.defiActiveTvl?.total ?? 0
+				prev.onChain += (asset.onChainMcap?.total ?? 0) * weight
+				prev.active += (asset.activeMcap?.total ?? 0) * weight
+				prev.defi += (asset.defiActiveTvl?.total ?? 0) * weight
 				categoryTotals.set(category, prev)
 			}
 		}
@@ -772,15 +794,13 @@ export function useRwaCategoryAssetClassPieChartData({
 		const assetClassTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const assetClass of toUniqueNonEmptyValues(asset.assetClass)) {
+			for (const { value: assetClass, weight } of computeWeightedGroups(asset.assetClass)) {
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
-				// Intentional full-count behavior for multi-asset-class assets.
-				// To migrate to split-even later, divide each metric by asset.assetClass.length here.
-				prev.onChain += asset.onChainMcap?.total ?? 0
-				prev.active += asset.activeMcap?.total ?? 0
-				prev.defi += asset.defiActiveTvl?.total ?? 0
+				prev.onChain += (asset.onChainMcap?.total ?? 0) * weight
+				prev.active += (asset.activeMcap?.total ?? 0) * weight
+				prev.defi += (asset.defiActiveTvl?.total ?? 0) * weight
 				assetClassTotals.set(assetClass, prev)
 			}
 		}
@@ -893,6 +913,66 @@ export function useRwaAssetNamePieChartData({
 	}, [assets, enabled, selectedAssetNames])
 }
 
+export function useRwaAssetGroupPieChartData({
+	enabled,
+	assets
+}: {
+	enabled: boolean
+	assets: IRWAAssetsOverview['assets']
+}) {
+	return useMemo(() => {
+		const MAX_LABELS = 24
+		const OTHERS = 'Others'
+
+		if (!enabled || assets.length === 0) {
+			return {
+				assetGroupOnChainMcapPieChartData: [] as PieChartDatum[],
+				assetGroupActiveMcapPieChartData: [] as PieChartDatum[],
+				assetGroupDefiActiveTvlPieChartData: [] as PieChartDatum[],
+				assetGroupPieChartStackColors: {}
+			}
+		}
+
+		const totalsByGroup = new Map<string, { onChain: number; active: number; defi: number }>()
+		for (const asset of assets) {
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
+			const prev = totalsByGroup.get(assetGroup) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
+			totalsByGroup.set(assetGroup, prev)
+		}
+
+		const colorOrder = Array.from(totalsByGroup.keys()).sort()
+		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
+		const assetGroupPieChartStackColors = buildStackColors(colorOrder)
+
+		const limitChartData = (data: PieChartDatum[]) => {
+			if (data.length <= MAX_LABELS) return data
+			const head = data.slice(0, MAX_LABELS - 1)
+			const othersValue = data.slice(MAX_LABELS - 1).reduce((sum, row) => sum + row.value, 0)
+			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
+		}
+
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, totals] of totalsByGroup.entries()) {
+				const value = totals[metric]
+				if (value > 0) rows.push({ name, value })
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
+
+		return {
+			assetGroupOnChainMcapPieChartData: toSortedChartData('onChain'),
+			assetGroupActiveMcapPieChartData: toSortedChartData('active'),
+			assetGroupDefiActiveTvlPieChartData: toSortedChartData('defi'),
+			assetGroupPieChartStackColors
+		}
+	}, [assets, enabled])
+}
+
 export function useRwaAssetPlatformPieChartData({
 	enabled,
 	assets
@@ -923,6 +1003,7 @@ export function useRwaAssetPlatformPieChartData({
 				.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
 				.filter((platform): platform is string => platform.length > 0)
 			const platforms = normalizedPlatforms.length > 0 ? Array.from(new Set(normalizedPlatforms)) : [UNKNOWN]
+			const platformWeight = 1 / platforms.length
 
 			for (const platform of platforms) {
 				const key = rwaSlug(platform)
@@ -931,11 +1012,9 @@ export function useRwaAssetPlatformPieChartData({
 				// Prefer a non-Unknown label if we previously only had Unknown.
 				if (prev.label === UNKNOWN && platform !== UNKNOWN) prev.label = platform
 
-				// Intentional full-count behavior for assets mapped to multiple platforms.
-				// To migrate to split-even later, divide each metric by platforms.length here.
-				prev.onChain += asset.onChainMcap?.total ?? 0
-				prev.active += asset.activeMcap?.total ?? 0
-				prev.defi += asset.defiActiveTvl?.total ?? 0
+				prev.onChain += (asset.onChainMcap?.total ?? 0) * platformWeight
+				prev.active += (asset.activeMcap?.total ?? 0) * platformWeight
+				prev.defi += (asset.defiActiveTvl?.total ?? 0) * platformWeight
 				totalsBySlug.set(key, prev)
 			}
 		}
@@ -1086,6 +1165,7 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 	'types',
 	'categories',
 	'platforms',
+	'assetGroups',
 	'assetClasses',
 	'rwaClassifications',
 	'accessModels',
@@ -1094,6 +1174,7 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 	'excludeTypes',
 	'excludeCategories',
 	'excludePlatforms',
+	'excludeAssetGroups',
 	'excludeAssetClasses',
 	'excludeRwaClassifications',
 	'excludeAccessModels',
@@ -1122,69 +1203,91 @@ export function hasActiveChartFilters(query: NextRouter['query']): boolean {
 	return false
 }
 
-async function fetchRwaTickerChartData(params: {
-	chainSlug: string | null
-	categorySlug: string | null
-	platformSlug: string | null
-}): Promise<IRWAChartDataByTicker> {
-	const searchParams = new URLSearchParams()
-	if (params.chainSlug) searchParams.set('chain', params.chainSlug)
-	else if (params.categorySlug) searchParams.set('category', params.categorySlug)
-	else if (params.platformSlug) searchParams.set('platform', params.platformSlug)
+export function getRwaTickerChartQueryKey(target: RWATickerChartTarget, selectedMetric: RWAChartMetricKey) {
+	return ['rwa-ticker-chart', target.kind, target.kind === 'all' ? 'all' : target.slug, selectedMetric] as const
+}
 
-	return fetchJson<IRWAChartDataByTicker>(`/api/rwa/chart-data?${searchParams.toString()}`)
+function assert(condition: unknown, message: string): asserts condition {
+	if (!condition) {
+		throw new Error(message)
+	}
+}
+
+function assertNever(value: never): never {
+	throw new Error(`Unexpected value: ${String(value)}`)
+}
+
+async function fetchRwaTickerChartData(params: {
+	key: RWAChartMetricKey
+	target: RWATickerChartTarget
+}): Promise<IRWAChartMetricRows> {
+	const searchParams = new URLSearchParams({ key: params.key })
+
+	switch (params.target.kind) {
+		case 'all':
+			break
+		case 'chain':
+			searchParams.set('chain', params.target.slug)
+			break
+		case 'category':
+			searchParams.set('category', params.target.slug)
+			break
+		case 'platform':
+			searchParams.set('platform', params.target.slug)
+			break
+		case 'assetGroup':
+			searchParams.set('assetGroup', params.target.slug)
+			break
+		default:
+			assertNever(params.target)
+	}
+
+	return fetchJson<IRWAChartMetricRows>(`/api/rwa/ticker-breakdown?${searchParams.toString()}`)
 }
 
 export function useRwaChartDataset({
-	initialChartDataset,
+	selectedMetric,
+	initialDataset,
 	filteredAssets,
 	mode,
-	chainSlug,
-	categorySlug,
-	platformSlug,
-	hasActiveFilters
+	target,
+	useInitialDataset
 }: {
-	initialChartDataset: RWAChartDatasetsByMetric | null
+	selectedMetric: RWAChartMetricKey
+	initialDataset: RWAChartDataset
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
-	chainSlug: string | null
-	categorySlug: string | null
-	platformSlug: string | null
-	hasActiveFilters: boolean
+	target: RWATickerChartTarget
+	useInitialDataset: boolean
 }): {
-	chartDatasetByMode: RWAChartDatasetsByMetric
+	chartDataset: RWAChartDataset
 	isChartLoading: boolean
 	chartError: string | null
 } {
 	const {
-		data: tickerData,
+		data: tickerRows,
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['rwa-ticker-chart', chainSlug, categorySlug, platformSlug],
-		queryFn: () => fetchRwaTickerChartData({ chainSlug, categorySlug, platformSlug }),
+		queryKey: getRwaTickerChartQueryKey(target, selectedMetric),
+		queryFn: () => fetchRwaTickerChartData({ key: selectedMetric, target }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: hasActiveFilters
+		enabled: !useInitialDataset
 	})
 
-	const filteredDataset = useMemo(() => {
-		if (!hasActiveFilters || !tickerData) return null
-		return aggregateRwaChartData(filteredAssets, tickerData, mode)
-	}, [hasActiveFilters, tickerData, filteredAssets, mode])
+	assert(initialDataset.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 
-	if (!hasActiveFilters) {
-		return {
-			chartDatasetByMode: initialChartDataset ?? emptyChartDatasets(),
-			isChartLoading: false,
-			chartError: null
-		}
-	}
+	const chartDataset = useMemo(() => {
+		if (useInitialDataset) return initialDataset
+		if (!tickerRows) return emptyChartDataset()
+		return aggregateRwaMetricData(filteredAssets, tickerRows, mode)
+	}, [useInitialDataset, initialDataset, tickerRows, filteredAssets, mode])
 
 	return {
-		chartDatasetByMode: filteredDataset ?? emptyChartDatasets(),
-		isChartLoading: isLoading,
+		chartDataset,
+		isChartLoading: !useInitialDataset && isLoading,
 		chartError: error ? getErrorMessage(error) : null
 	}
 }

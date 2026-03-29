@@ -1,14 +1,27 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
-import type { IRWABreakdownDatasetsByMetric, IRWAPlatformsOverviewRow } from './api.types'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import type { IRWAPlatformsOverviewRow } from './api.types'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
+import { getRWAOverviewCsvFileName, getRWAOverviewInclusion, getRWAOverviewTableData } from './overviewTableData'
 import { rwaSlug } from './rwaSlug'
 
-const columnHelper = createColumnHelper<IRWAPlatformsOverviewRow>()
+type RWAPlatformsTableRow = {
+	platform: string
+	assetCount: number
+	activeMcap: number
+	onChainMcap: number
+	defiActiveTvl: number
+}
+
+const columnHelper = createColumnHelper<RWAPlatformsTableRow>()
 
 const columns = [
 	columnHelper.accessor('platform', {
@@ -36,28 +49,28 @@ const columns = [
 		header: definitions.totalAssetCount.label,
 		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
-		size: 148
-	}),
-	columnHelper.accessor('defiActiveTvl', {
-		id: 'defiActiveTvl',
-		header: definitions.totalDefiActiveTvl.label,
-		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 148
+		size: 160
 	}),
 	columnHelper.accessor('activeMcap', {
 		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
-		size: 228
+		size: 200
 	}),
 	columnHelper.accessor('onChainMcap', {
 		id: 'onChainMcap',
 		header: definitions.totalOnChainMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
-		size: 168
+		size: 208
+	}),
+	columnHelper.accessor('defiActiveTvl', {
+		id: 'defiActiveTvl',
+		header: definitions.totalDefiActiveTvl.label,
+		cell: (info) => formattedNum(info.getValue(), true),
+		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
+		size: 140
 	})
 ]
 
@@ -66,26 +79,65 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { platform: 240 }
 }
 
-export function RWAPlatformsTable({
+export function RWAPlatforms({
 	platforms,
-	chartDatasets
+	initialChartDataset
 }: {
 	platforms: IRWAPlatformsOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }) {
+	const router = useRouter()
+	const includeStablecoins = isTrueQueryParam(router.query.includeStablecoins)
+	const includeGovernance = isTrueQueryParam(router.query.includeGovernance)
+	const inclusion = getRWAOverviewInclusion(includeStablecoins, includeGovernance)
+
+	const onToggleStablecoins = () => {
+		void pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
+	}
+
+	const onToggleGovernance = () => {
+		void pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
+	}
+
+	const data = platforms.map((row) => ({
+		platform: row.platform,
+		...getRWAOverviewTableData(row, inclusion)
+	}))
+	const csvFileName = getRWAOverviewCsvFileName('rwa-platforms', inclusion)
+
 	return (
 		<div className="flex flex-col gap-2">
-			<RWAOverviewBreakdownChart datasets={chartDatasets} stackLabel="Platforms" />
+			<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					help="Include stablecoin-token assets in platform totals/columns."
+					onChange={onToggleStablecoins}
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					help="Include governance-token assets in platform totals/columns."
+					onChange={onToggleGovernance}
+				/>
+			</div>
+			<RWAOverviewBreakdownChart
+				page={{ kind: 'platform' }}
+				initialChartDataset={initialChartDataset}
+				stackLabel="Platforms"
+			/>
 			<TableWithSearch
-				data={platforms}
+				data={data}
 				columns={columns}
 				placeholder="Search platforms..."
 				columnToSearch="platform"
 				header="Platforms"
 				headingAs="h1"
 				columnSizes={columnSizes}
-				csvFileName="rwa-platforms"
-				sortingState={[{ id: 'onChainMcap', desc: true }]}
+				csvFileName={csvFileName}
+				sortingState={[{ id: 'activeMcap', desc: true }]}
 			/>
 		</div>
 	)

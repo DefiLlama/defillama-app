@@ -303,6 +303,8 @@ export async function getOracleDetailPageData({
 		})
 	}
 
+	protocolTableData.sort((a, b) => b.tvl - a.tvl)
+
 	const oracleChains = chainsByOracle[canonicalOracle] ?? []
 	const chainLinks = [{ label: 'All', to: `/oracles/${slug(canonicalOracle)}` }].concat(
 		oracleChains.map((c) => ({ label: c, to: `/oracles/${slug(canonicalOracle)}/${slug(c)}` }))

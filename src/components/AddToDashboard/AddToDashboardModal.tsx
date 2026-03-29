@@ -389,7 +389,7 @@ export function AddToDashboardModal({
 					/>
 				</div>
 
-				<div className="-mx-1 mb-4 thin-scrollbar max-h-56 overflow-y-auto px-1">
+				<div className="-mx-1 mb-4 thin-scrollbar max-h-56 overflow-y-auto overscroll-contain px-1">
 					{isLoadingDashboards ? (
 						<div className="flex items-center justify-center py-8">
 							<div className="h-5 w-5 animate-spin rounded-full border-2 border-pro-blue-300 border-t-transparent" />

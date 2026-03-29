@@ -1,26 +1,27 @@
-import { RWA_STATS_API_OLD, ZERO_FEE_PERPS } from '~/constants'
+import { ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { fetchCategoriesSummary, fetchCategoryChart, fetchTagChart } from './api'
 import {
 	categoriesPageExcludedExtraTvls,
 	getProtocolCategoryChartMetrics,
-	protocolCategories,
-	type ProtocolCategoryChartMetric
+	protocolCategoryConfig,
+	type ProtocolCategoryChartMetric,
+	type ProtocolCategoryMetrics
 } from './constants'
 import type {
 	IProtocolByCategoryOrTagPageData,
 	IProtocolsCategoriesExtraTvlPoint,
 	IProtocolsCategoriesPageData,
-	IProtocolsCategoriesTableRow,
-	IRWAStats
+	IProtocolsCategoriesTableRow
 } from './types'
 
 type GetProtocolsByCategoryOrTagParams = {
@@ -44,8 +45,11 @@ type GetProtocolsByCategoryOrTagParams = {
 const CHART_METRIC_LABELS: Record<ProtocolCategoryChartMetric, string> = {
 	tvl: 'TVL',
 	dexVolume: 'DEX Volume',
+	dexAggregatorsVolume: 'DEX Aggregator Volume',
 	perpVolume: 'Perp Volume',
 	openInterest: 'Open Interest',
+	optionsPremiumVolume: 'Options Premium Volume',
+	optionsNotionalVolume: 'Options Notional Volume',
 	borrowed: 'Borrowed',
 	staking: 'Staking TVL'
 }
@@ -53,8 +57,11 @@ const CHART_METRIC_LABELS: Record<ProtocolCategoryChartMetric, string> = {
 const CHART_METRIC_SERIES_TYPE: Record<ProtocolCategoryChartMetric, 'line' | 'bar'> = {
 	tvl: 'line',
 	dexVolume: 'bar',
+	dexAggregatorsVolume: 'bar',
 	perpVolume: 'bar',
 	openInterest: 'line',
+	optionsPremiumVolume: 'bar',
+	optionsNotionalVolume: 'bar',
 	borrowed: 'line',
 	staking: 'line'
 }
@@ -62,8 +69,11 @@ const CHART_METRIC_SERIES_TYPE: Record<ProtocolCategoryChartMetric, 'line' | 'ba
 const CHART_METRIC_Y_AXIS_INDEX: Record<ProtocolCategoryChartMetric, number> = {
 	tvl: 0,
 	dexVolume: 1,
+	dexAggregatorsVolume: 1,
 	perpVolume: 1,
 	openInterest: 1,
+	optionsPremiumVolume: 1,
+	optionsNotionalVolume: 1,
 	borrowed: 1,
 	staking: 0
 }
@@ -78,7 +88,6 @@ const createTimeSeriesMap = (
 	const chartMap = new Map<number, number | null>()
 
 	for (const [timestamp, value] of chartData ?? []) {
-		if (!Number.isFinite(timestamp)) continue
 		chartMap.set(normalizeChartTimestamp(timestamp), value ?? null)
 	}
 
@@ -104,24 +113,33 @@ const buildCategoryCharts = ({
 	metrics,
 	tvlChartData,
 	dexVolumeChartData,
+	dexAggregatorsVolumeChartData,
 	perpVolumeChartData,
 	openInterestChartData,
+	optionsPremiumVolumeChartData,
+	optionsNotionalVolumeChartData,
 	borrowedChartData,
 	stakingChartData
 }: {
 	metrics: ProtocolCategoryChartMetric[]
 	tvlChartData: Array<[number, number | null]>
 	dexVolumeChartData: Array<[number, number]> | null
+	dexAggregatorsVolumeChartData: Array<[number, number]> | null
 	perpVolumeChartData: Array<[number, number]> | null
 	openInterestChartData: Array<[number, number]> | null
+	optionsPremiumVolumeChartData: Array<[number, number]> | null
+	optionsNotionalVolumeChartData: Array<[number, number]> | null
 	borrowedChartData: Record<string | number, number | null> | undefined
 	stakingChartData: Record<string | number, number | null> | undefined
 }): IProtocolByCategoryOrTagPageData['charts'] => {
 	const chartMapsByMetric: Record<ProtocolCategoryChartMetric, Map<number, number | null>> = {
 		tvl: createTimeSeriesMap(tvlChartData),
 		dexVolume: createTimeSeriesMap(dexVolumeChartData),
+		dexAggregatorsVolume: createTimeSeriesMap(dexAggregatorsVolumeChartData),
 		perpVolume: createTimeSeriesMap(perpVolumeChartData),
 		openInterest: createTimeSeriesMap(openInterestChartData),
+		optionsPremiumVolume: createTimeSeriesMap(optionsPremiumVolumeChartData),
+		optionsNotionalVolume: createTimeSeriesMap(optionsNotionalVolumeChartData),
 		borrowed: createTimeSeriesMapFromRecord(borrowedChartData),
 		staking: createTimeSeriesMapFromRecord(stakingChartData)
 	}
@@ -212,11 +230,9 @@ export async function getProtocolsByCategoryOrTag(
 	const tag = params.kind === 'tag' ? params.tag : undefined
 	// For tag pages, we use the tag's parent category for category-specific logic.
 	const effectiveCategory = params.kind === 'category' ? params.category : params.tagCategory
+	const config = effectiveCategory ? protocolCategoryConfig[effectiveCategory] : null
+	const categoryMetrics: ProtocolCategoryMetrics | undefined = config?.metrics
 	const chartMetrics = getProtocolCategoryChartMetrics(effectiveCategory)
-	const shouldFetchDexVolumeChart = chartMetrics.includes('dexVolume')
-	const shouldFetchPerpVolumeChart = chartMetrics.includes('perpVolume')
-	const shouldFetchOpenInterestChart = chartMetrics.includes('openInterest')
-	const isDexAggregatorCategory = effectiveCategory === 'DEX Aggregator' || effectiveCategory === 'DEX Aggregators'
 
 	const currentChainMetadata: IChainMetadata = chain
 		? chainMetadata[slug(chain)]
@@ -224,6 +240,7 @@ export async function getProtocolsByCategoryOrTag(
 				name: 'All',
 				fees: true,
 				dexs: true,
+				dexAggregators: true,
 				perps: true,
 				openInterest: true,
 				optionsPremiumVolume: true,
@@ -246,10 +263,12 @@ export async function getProtocolsByCategoryOrTag(
 		optionsNotionalData,
 		chartData,
 		dexVolumeChartData,
+		dexAggregatorsVolumeChartData,
 		perpVolumeChartData,
 		openInterestChartData,
-		chainsByCategoriesOrTags,
-		rwaStats
+		optionsPremiumVolumeChartData,
+		optionsNotionalVolumeChartData,
+		chainsByCategoriesOrTags
 	]: [
 		{ protocols: Array<ProtocolLite>; parentProtocols: Array<ParentProtocolLite> },
 		IAdapterChainMetrics | null,
@@ -263,8 +282,10 @@ export async function getProtocolsByCategoryOrTag(
 		Array<[number, number]> | null,
 		Array<[number, number]> | null,
 		Array<[number, number]> | null,
-		Record<string, Array<string>> | null,
-		Record<string, IRWAStats> | null
+		Array<[number, number]> | null,
+		Array<[number, number]> | null,
+		Array<[number, number]> | null,
+		Record<string, Array<string>> | null
 	] = await Promise.all([
 		fetchProtocols(),
 		currentChainMetadata?.fees
@@ -280,23 +301,24 @@ export async function getProtocolsByCategoryOrTag(
 					dataType: 'dailyRevenue'
 				})
 			: null,
-		currentChainMetadata?.dexs &&
-		effectiveCategory &&
-		['Dexs', 'DEX Aggregator', 'DEX Aggregators', 'Prediction Market', 'Crypto Card Issuer'].includes(effectiveCategory)
+		categoryMetrics?.dexVolume && currentChainMetadata?.dexs
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
-					adapterType: isDexAggregatorCategory ? 'aggregators' : 'dexs'
+					adapterType: 'dexs'
 				})
-			: null,
-		currentChainMetadata?.perps && effectiveCategory && ['Derivatives', 'Interface'].includes(effectiveCategory)
+			: categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
+				? fetchAdapterChainMetrics({
+						chain: chain ?? 'All',
+						adapterType: 'aggregators'
+					})
+				: null,
+		categoryMetrics?.perpVolume && currentChainMetadata?.perps
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives'
 				})
 			: null,
-		currentChainMetadata?.openInterest &&
-		effectiveCategory &&
-		['Derivatives', 'Prediction Market'].includes(effectiveCategory)
+		categoryMetrics?.openInterest && currentChainMetadata?.openInterest
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -306,14 +328,14 @@ export async function getProtocolsByCategoryOrTag(
 					return null
 				})
 			: null,
-		currentChainMetadata?.optionsPremiumVolume && effectiveCategory === 'Options'
+		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume'
 				})
 			: null,
-		currentChainMetadata?.optionsNotionalVolume && effectiveCategory === 'Options'
+		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -321,29 +343,48 @@ export async function getProtocolsByCategoryOrTag(
 				})
 			: null,
 		tag ? fetchTagChart({ tag, chain }) : fetchCategoryChart({ category: category ?? '', chain }),
-		currentChainMetadata?.dexs && shouldFetchDexVolumeChart
+		categoryMetrics?.dexVolume && currentChainMetadata?.dexs
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
-					adapterType: isDexAggregatorCategory ? 'aggregators' : 'dexs'
+					adapterType: 'dexs'
 				}).catch(() => null)
 			: null,
-		currentChainMetadata?.perps && shouldFetchPerpVolumeChart
+		categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'aggregators'
+				}).catch(() => null)
+			: null,
+		categoryMetrics?.perpVolume && currentChainMetadata?.perps
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives'
 				}).catch(() => null)
 			: null,
-		currentChainMetadata?.openInterest && shouldFetchOpenInterestChart
+		categoryMetrics?.openInterest && currentChainMetadata?.openInterest
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
 					dataType: 'openInterestAtEnd'
 				}).catch(() => null)
 			: null,
+		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'options',
+					dataType: 'dailyPremiumVolume'
+				}).catch(() => null)
+			: null,
+		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'options',
+					dataType: 'dailyNotionalVolume'
+				}).catch(() => null)
+			: null,
 		tag
 			? fetchJson<Record<string, Array<string>>>('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
-			: fetchJson<Record<string, Array<string>>>('https://api.llama.fi/lite/chains-by-categories').catch(() => null),
-		effectiveCategory === 'RWA' ? fetchJson<Record<string, IRWAStats>>(RWA_STATS_API_OLD) : null
+			: fetchJson<Record<string, Array<string>>>('https://api.llama.fi/lite/chains-by-categories').catch(() => null)
 	])
 
 	const chainsLookupKey = tag ?? category
@@ -541,8 +582,7 @@ export async function getProtocolsByCategoryOrTag(
 			openInterest: adapterProtocolData?.openInterest ?? null,
 			optionsPremium: adapterProtocolData?.optionsPremium ?? null,
 			optionsNotional: adapterProtocolData?.optionsNotional ?? null,
-			tags: protocol.tags ?? [],
-			...(effectiveCategory === 'RWA' ? { rwaStats: rwaStats?.[protocol.defillamaId] ?? null } : {})
+			tags: protocol.tags ?? []
 		}
 
 		if (protocol.parentProtocol) {
@@ -618,24 +658,6 @@ export async function getProtocolsByCategoryOrTag(
 		const optionsPremium = sumMetricTotals({ rows: childProtocols, selector: (row) => row.optionsPremium })
 		const optionsNotional = sumMetricTotals({ rows: childProtocols, selector: (row) => row.optionsNotional })
 
-		const hasRWAStats = childProtocols.some((row) => row.rwaStats != null)
-		const aggregatedRwaStats: IRWAStats = {
-			volumeUsd1d: 0,
-			volumeUsd7d: 0,
-			tvlUsd: 0,
-			symbols: []
-		}
-
-		for (const childProtocol of childProtocols) {
-			if (childProtocol.rwaStats == null) continue
-			aggregatedRwaStats.volumeUsd1d += childProtocol.rwaStats.volumeUsd1d
-			aggregatedRwaStats.volumeUsd7d += childProtocol.rwaStats.volumeUsd7d
-			aggregatedRwaStats.tvlUsd += childProtocol.rwaStats.tvlUsd
-			aggregatedRwaStats.symbols = Array.from(
-				new Set([...aggregatedRwaStats.symbols, ...childProtocol.rwaStats.symbols])
-			)
-		}
-
 		finalProtocols.push({
 			name: parentProtocol.name,
 			slug: slug(parentProtocol.name),
@@ -660,8 +682,7 @@ export async function getProtocolsByCategoryOrTag(
 					? null
 					: optionsNotional,
 			subRows: childProtocols.toSorted((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)),
-			tags: Array.from(new Set(childProtocols.flatMap((row) => row.tags ?? []))),
-			...(hasRWAStats ? { rwaStats: aggregatedRwaStats } : {})
+			tags: Array.from(new Set(childProtocols.flatMap((row) => row.tags ?? [])))
 		})
 	}
 
@@ -690,8 +711,11 @@ export async function getProtocolsByCategoryOrTag(
 		metrics: chartMetrics,
 		tvlChartData: filteredTvlChart,
 		dexVolumeChartData,
+		dexAggregatorsVolumeChartData,
 		perpVolumeChartData,
 		openInterestChartData,
+		optionsPremiumVolumeChartData,
+		optionsNotionalVolumeChartData,
 		borrowedChartData: extraTvlCharts.borrowed,
 		stakingChartData: extraTvlCharts.staking
 	})
@@ -847,11 +871,6 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		fetchCategoriesSummary()
 	])
 
-	const categoryDescriptions = new Map<string, string>()
-	for (const [name, data] of Object.entries(protocolCategories)) {
-		categoryDescriptions.set(name, data.description)
-	}
-
 	const revenueByProtocol: Record<string, number> = {}
 	for (const protocol of revenueData?.protocols ?? []) {
 		revenueByProtocol[protocol.defillamaId] = protocol.total24h ?? 0
@@ -977,7 +996,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			subRows.push(
 				toCategoryTableRow({
 					row: tagRow,
-					description: categoryDescriptions.get(tagName) ?? ''
+					description: protocolCategoryConfig[tagName]?.description ?? ''
 				})
 			)
 		}
@@ -985,7 +1004,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		tableData.push(
 			toCategoryTableRow({
 				row: categoryRow,
-				description: categoryDescriptions.get(categoryName) ?? '',
+				description: protocolCategoryConfig[categoryName]?.description ?? '',
 				subRows
 			})
 		)
@@ -1002,7 +1021,6 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	const chartSource: IProtocolsCategoriesPageData['chartSource'] = []
 	for (const [date, chartByCategory] of Object.entries(chart ?? {})) {
 		const timestamp = Number(date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 
 		const chartRow: IProtocolsCategoriesPageData['chartSource'][number] = { timestamp }
 		for (const categoryName of categoryKeys) {

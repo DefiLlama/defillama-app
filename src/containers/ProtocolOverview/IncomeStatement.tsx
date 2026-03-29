@@ -466,7 +466,7 @@ export const IncomeStatement = ({
 		costOfRevenueByLabels.length > 0 ||
 		grossProfitByLabels.length > 0 ||
 		(hasIncentives && incentivesByLabels.length > 0) ||
-		tokenHolderNetIncomeByLabels.length > 0 ||
+		(incomeStatement?.hasTokenHolderNetIncome && tokenHolderNetIncomeByLabels.length > 0) ||
 		(incomeStatement?.hasOtherTokenHolderFlows && othersTokenHolderFlowsByLabels.length > 0)
 
 	const prepareTableCsv = () => {
@@ -519,7 +519,8 @@ export const IncomeStatement = ({
 		pushMetric('Gross Profit', grossProfitData, grossProfitByLabels)
 		if (hasIncentives) pushMetric('Incentives', incentivesData, incentivesByLabels)
 		pushMetric('Earnings', earningsData, EMPTY_BREAKDOWN_LABELS)
-		pushMetric('Token Holder Net Income', tokenHolderNetIncomeData, tokenHolderNetIncomeByLabels)
+		if (incomeStatement?.hasTokenHolderNetIncome)
+			pushMetric('Token Holder Net Income', tokenHolderNetIncomeData, tokenHolderNetIncomeByLabels)
 		if (incomeStatement?.hasOtherTokenHolderFlows)
 			pushMetric('Others Token Holder Flows', othersTokenHolderFlowsData, othersTokenHolderFlowsByLabels)
 
@@ -683,18 +684,20 @@ export const IncomeStatement = ({
 								breakdownMethodology={EMPTY_BREAKDOWN_METHODOLOGY}
 								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
-							<IncomeStatementByLabel
-								protocolName={name}
-								groupBy={groupBy}
-								data={tokenHolderNetIncomeData}
-								dataType="token holder net income"
-								label="Token Holder Net Income"
-								methodology={incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={tokenHolderNetIncomeByLabels}
-								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
-								alignWithBreakdownRows={hasAnyBreakdownRows}
-							/>
+							{incomeStatement?.hasTokenHolderNetIncome ? (
+								<IncomeStatementByLabel
+									protocolName={name}
+									groupBy={groupBy}
+									data={tokenHolderNetIncomeData}
+									dataType="token holder net income"
+									label="Token Holder Net Income"
+									methodology={incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
+									tableHeaders={tableHeaders}
+									breakdownByLabels={tokenHolderNetIncomeByLabels}
+									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
+									alignWithBreakdownRows={hasAnyBreakdownRows}
+								/>
+							) : null}
 							{incomeStatement?.hasOtherTokenHolderFlows ? (
 								<IncomeStatementByLabel
 									protocolName={name}
@@ -809,9 +812,9 @@ const IncomeStatementByLabel = ({
 	const [isExpanded, setIsExpanded] = useState(true)
 	return (
 		<>
-			<tr>
+			<tr className="group">
 				<th
-					className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10`}
+					className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) first:sticky first:left-0 first:z-10 dark:border-white/10`}
 				>
 					<div
 						className="flex items-center gap-1"
@@ -854,7 +857,7 @@ const IncomeStatementByLabel = ({
 				{tableHeaders.map((header, i) => (
 					<td
 						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`overflow-hidden border border-black/10 p-2 text-left font-medium text-ellipsis whitespace-nowrap dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
+						className={`overflow-hidden border border-black/10 p-2 text-left font-medium text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
 					>
 						{data[header[0]]?.value == null ? null : showComparison && i !== 0 && tableHeaders[i + 1] ? (
 							<Tooltip
@@ -879,9 +882,12 @@ const IncomeStatementByLabel = ({
 			{hasBreakdownRows && isExpanded ? (
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
-						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
+						<tr
+							key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}
+							className="group text-(--text-secondary)"
+						>
 							<th
-								className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-9 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10`}
+								className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-9 text-left font-normal text-ellipsis whitespace-nowrap italic group-hover:bg-(--link-hover-bg) first:sticky first:left-0 first:z-10 dark:border-white/10`}
 							>
 								{breakdownMethodology[breakdownlabel] ? (
 									<Tooltip
@@ -897,7 +903,7 @@ const IncomeStatementByLabel = ({
 							{tableHeaders.map((header, i) => (
 								<td
 									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
-									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap dark:border-white/10"
+									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) dark:border-white/10"
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  showComparison &&

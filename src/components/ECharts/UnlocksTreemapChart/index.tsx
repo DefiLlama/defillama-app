@@ -7,7 +7,8 @@ import { startTransition, useEffect, useId, useMemo, useRef, useState } from 're
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
 

@@ -1,25 +1,39 @@
 import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
-import { Tooltip } from '~/components/Tooltip'
 import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
-import { capitalizeFirstLetter, chainIconUrl, slug } from '~/utils'
+import { slug } from '~/utils'
+import { chainIconUrl } from '~/utils/icons'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import type { IChainOverviewData } from './types'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
+type ChainMetricOption = {
+	id: ChainChartLabels
+	label: string
+	active: boolean
+}
+
+const getChainMetricLabel = (chart: ChainChartLabels, tokenSymbol?: string | null) =>
+	chart.includes('Token') ? chart.replace('Token', tokenSymbol ? `$${tokenSymbol}` : 'Token') : chart
 
 interface ChainChartPanelProps {
 	charts: IChainOverviewData['charts']
@@ -30,7 +44,7 @@ interface ChainChartPanelProps {
 	denominations: string[]
 	denomination: string
 	hasBarChart: boolean
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	groupBy: ChartTimeGroupingWithCumulative
 	chainGeckoId: string | null
 	finalCharts: any
 	valueSymbol: string
@@ -84,15 +98,34 @@ export function ChainChartPanel({
 	const canAddToDashboard = metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+	const [metricsSearchValue, setMetricsSearchValue] = useState('')
+	const deferredMetricsSearchValue = useDeferredValue(metricsSearchValue)
 	const prepareCsv = () => prepareChartCsv(chartRenderModel.chartData, `${chain}.csv`)
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(metadata.name)
 	const imageExportTitle = metadata.name === 'All' ? 'All Chains' : metadata.name
 
-	const updateGroupBy = (newGroupBy: string) => {
+	const updateGroupBy = (newGroupBy: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: newGroupBy })
 	}
+
+	const filteredMetricOptions = useMemo(() => {
+		const options: ChainMetricOption[] = charts.map((chart) => ({
+			id: chart,
+			label: getChainMetricLabel(chart, chainTokenInfo?.token_symbol),
+			active: toggledCharts.includes(chart)
+		}))
+
+		if (!deferredMetricsSearchValue) {
+			return options
+		}
+
+		return matchSorter(options, deferredMetricsSearchValue, {
+			keys: ['label', 'id'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [charts, chainTokenInfo?.token_symbol, toggledCharts, deferredMetricsSearchValue])
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -111,34 +144,49 @@ export function ChainChartPanel({
 										<Icon name="x" className="h-5 w-5" />
 									</Ariakit.DialogDismiss>
 								</span>
+								<label className="relative">
+									<span className="sr-only">Search metrics</span>
+									<Icon
+										name="search"
+										height={16}
+										width={16}
+										className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+									/>
+									<input
+										type="text"
+										name="search"
+										inputMode="search"
+										placeholder="Search..."
+										autoFocus
+										value={metricsSearchValue}
+										className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+										onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+									/>
+								</label>
 								<div className="flex flex-wrap gap-2">
-									{charts.map((tchart) => (
+									{filteredMetricOptions.map((option) => (
 										<button
-											key={`add-chain-metric-${chainCharts[tchart]}`}
+											key={`add-chain-metric-${chainCharts[option.id]}`}
 											onClick={() => {
 												void pushShallowQuery(router, {
-													[chainCharts[tchart]]: toggledCharts.includes(tchart) ? 'false' : 'true'
+													[chainCharts[option.id]]: option.active ? 'false' : 'true'
 												})
 												metricsDialogStore.toggle()
 											}}
-											data-active={toggledCharts.includes(tchart)}
+											data-active={option.active}
 											className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										>
-											<span>
-												{tchart.includes('Token')
-													? tchart.replace(
-															'Token',
-															chainTokenInfo?.token_symbol ? `$${chainTokenInfo?.token_symbol}` : 'Token'
-														)
-													: tchart}
-											</span>
-											{toggledCharts.includes(tchart) ? (
+											<span>{option.label}</span>
+											{option.active ? (
 												<Icon name="x" className="h-3.5 w-3.5" />
 											) : (
 												<Icon name="plus" className="h-3.5 w-3.5" />
 											)}
 										</button>
 									))}
+									{filteredMetricOptions.length === 0 ? (
+										<p className="py-2 text-sm text-(--text-tertiary)">No metrics found.</p>
+									) : null}
 								</div>
 							</Ariakit.Dialog>
 						</Ariakit.DialogProvider>
@@ -197,20 +245,11 @@ export function ChainChartPanel({
 				) : null}
 
 				{hasBarChart ? (
-					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{INTERVALS_LIST.map((dataInterval) => (
-							<Tooltip
-								content={capitalizeFirstLetter(dataInterval)}
-								render={<button />}
-								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-								data-active={groupBy === dataInterval}
-								onClick={() => updateGroupBy(dataInterval)}
-								key={`${chain}-overview-groupBy-${dataInterval}`}
-							>
-								{dataInterval.slice(0, 1).toUpperCase()}
-							</Tooltip>
-						))}
-					</div>
+					<ChartGroupingSelector
+						value={groupBy}
+						onValueChange={updateGroupBy}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+					/>
 				) : null}
 				<EmbedChart />
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />

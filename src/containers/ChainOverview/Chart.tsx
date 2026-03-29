@@ -1,6 +1,7 @@
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -14,6 +15,14 @@ import {
 } from './constants'
 
 const customOffsets = {}
+
+type AxisExtent = {
+	min?: number
+}
+
+function getZeroBaselineYAxisMin(extent: AxisExtent) {
+	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
+}
 
 export default function ChainCoreChart({
 	chartData,
@@ -31,6 +40,7 @@ export default function ChainCoreChart({
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -42,10 +52,7 @@ export default function ChainCoreChart({
 		hideLegend: true,
 		unlockTokenSymbol,
 		isThemeDark,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly')
-				: 'daily'
+		groupBy: tooltipGroupBy
 	})
 
 	const { series, allYAxis } = useMemo(() => {
@@ -149,6 +156,7 @@ export default function ChainCoreChart({
 				...yAxis,
 				name: '',
 				type: 'value',
+				min: getZeroBaselineYAxisMin,
 				alignTicks: true,
 				offset:
 					noOffset || index == null || index < 2
@@ -157,7 +165,10 @@ export default function ChainCoreChart({
 			}
 
 			if (type === 'TVL') {
-				finalYAxis.push(yAxis)
+				finalYAxis.push({
+					...yAxis,
+					min: getZeroBaselineYAxisMin
+				})
 			}
 
 			if (type === 'Stablecoins Mcap') {
@@ -290,6 +301,23 @@ export default function ChainCoreChart({
 				})
 			}
 
+			if (type === 'Gas Used') {
+				finalYAxis.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => formattedNum(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chainOverviewChartColors['Gas Used']
+						}
+					}
+				})
+			}
+
 			if (type === 'Net Inflows') {
 				finalYAxis.push({
 					...options,
@@ -405,7 +433,10 @@ export default function ChainCoreChart({
 		}
 
 		if (allYAxis.length === 0) {
-			finalYAxis.push(yAxis)
+			finalYAxis.push({
+				...yAxis,
+				min: getZeroBaselineYAxisMin
+			})
 		}
 
 		instance.setOption({

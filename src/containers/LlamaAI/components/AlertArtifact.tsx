@@ -5,7 +5,6 @@ import { MCP_SERVER } from '~/constants'
 import type { AlertIntent } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { handleSimpleFetchResponse } from '~/utils/async'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (
@@ -37,14 +36,6 @@ interface AlertArtifactProps {
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-const getUserTimezone = () => {
-	try {
-		return Intl.DateTimeFormat().resolvedOptions().timeZone
-	} catch {
-		return 'UTC'
-	}
-}
-
 const getTimezoneLabel = (timezone: string): string => {
 	if (timezone === 'UTC') return 'UTC'
 	try {
@@ -67,11 +58,14 @@ export const AlertArtifact = memo(function AlertArtifact({
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
 	const [title, setTitle] = useState(defaultTitle || alertId.replace(/_/g, ' '))
-	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency ?? 'daily')
-	const [hour, setHour] = useState(alertIntent.hour ?? 9)
+	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency)
+	const [hour, setHour] = useState(alertIntent.hour)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
-	const [timezone] = useState(alertIntent.timezone ?? getUserTimezone())
-	const [saved, setSaved] = useState(savedAlertIds?.includes(alertId) || false)
+	const [timezone] = useState(alertIntent.timezone)
+	const [savedDbId, setSavedDbId] = useState<string | null>(savedAlertIds?.includes(alertId) ? alertId : null)
+	const [hasRetriedTest, setHasRetriedTest] = useState(false)
+
+	const isSaved = savedDbId !== null
 
 	const {
 		mutate: saveAlert,
@@ -84,20 +78,27 @@ export const AlertArtifact = memo(function AlertArtifact({
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
 		}) => {
-			return authorizedFetch(`${MCP_SERVER}/alerts`, {
+			const response = await authorizedFetch(`${MCP_SERVER}/alerts`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			})
-				.then((response) => assertResponse(response, 'Failed to save alert'))
-				.then(handleSimpleFetchResponse)
+			assertResponse(response, 'Failed to save alert')
+			return response!.json()
 		},
-		onSuccess: () => {
-			setSaved(true)
+		onSuccess: (data: any) => {
+			setSavedDbId(data.id)
 		}
 	})
 
-	const canSave = !!messageId && !isSaving && !saved && !!title.trim()
+	const testMutation = useMutation({
+		mutationFn: async (dbId: string) => {
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${dbId}/test`, { method: 'POST' })
+			assertResponse(res, 'Test failed')
+			const data: { success: boolean; error?: string } = await res!.json()
+			if (!data.success) throw new Error(data.error ?? 'Test failed')
+		}
+	})
 
 	const handleSave = () => {
 		if (!messageId) return
@@ -109,7 +110,11 @@ export const AlertArtifact = memo(function AlertArtifact({
 		})
 	}
 
-	const saveErrorMessage = saveError ? (saveError instanceof Error ? saveError.message : String(saveError)) : null
+	const handleTest = () => {
+		if (!savedDbId) return
+		if (testMutation.isError) setHasRetriedTest(true)
+		testMutation.mutate(savedDbId)
+	}
 
 	if (!isAuthenticated) {
 		return (
@@ -128,12 +133,12 @@ export const AlertArtifact = memo(function AlertArtifact({
 	return (
 		<div
 			className={`my-2 flex flex-col gap-3 rounded-lg border p-3 ${
-				saved
+				isSaved
 					? 'border-[#e6e6e6] bg-white dark:border-[#222324] dark:bg-[#181A1C]'
 					: 'animate-[alertPulse_2s_ease-in-out_infinite] border-amber-500/50 bg-white dark:bg-[#181A1C]'
 			}`}
 			style={
-				!saved
+				!isSaved
 					? ({
 							'--tw-shadow': '0 0 0 0 rgba(245, 158, 11, 0)',
 							animation: 'alertPulse 2s ease-in-out infinite'
@@ -161,7 +166,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 				value={title}
 				onChange={(e) => setTitle(e.target.value)}
 				placeholder="Alert title"
-				disabled={saved}
+				disabled={isSaved}
 				className="w-full rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 			/>
 
@@ -169,7 +174,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 				<select
 					value={frequency}
 					onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
-					disabled={saved}
+					disabled={isSaved}
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					<option value="daily">Daily</option>
@@ -180,7 +185,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<select
 						value={dayOfWeek}
 						onChange={(e) => setDayOfWeek(Number(e.target.value))}
-						disabled={saved}
+						disabled={isSaved}
 						className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 					>
 						{DAYS_OF_WEEK.map((day, idx) => (
@@ -196,7 +201,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 				<select
 					value={hour}
 					onChange={(e) => setHour(Number(e.target.value))}
-					disabled={saved}
+					disabled={isSaved}
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					{Array.from({ length: 24 }, (_, i) => (
@@ -209,7 +214,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
 			</div>
 
-			{!saved ? (
+			{!isSaved ? (
 				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
 					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
 					Action required — confirm your alert settings and save
@@ -218,14 +223,14 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 			<button
 				onClick={handleSave}
-				disabled={!canSave}
+				disabled={!messageId || isSaving || isSaved || !title.trim()}
 				className={`flex w-full items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
-					saved
+					isSaved
 						? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
 						: 'bg-[#2172E5] text-white hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50'
 				}`}
 			>
-				{saved ? (
+				{isSaved ? (
 					<>
 						<Icon name="check" className="h-4 w-4" />
 						<span>Saved</span>
@@ -239,7 +244,44 @@ export const AlertArtifact = memo(function AlertArtifact({
 					</>
 				)}
 			</button>
-			{saveErrorMessage ? <p className="text-center text-xs text-(--error)">{saveErrorMessage}</p> : null}
+			{saveError ? <p className="text-center text-xs text-(--error)">{saveError.message}</p> : null}
+
+			{isSaved && testMutation.isIdle ? (
+				<button
+					onClick={handleTest}
+					className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 dark:border-[#222324] dark:hover:bg-[#222324]"
+				>
+					<Icon name="mail" className="h-4 w-4" />
+					<span>Send test email</span>
+				</button>
+			) : null}
+
+			{testMutation.isPending ? (
+				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
+					<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+					Sending test email...
+				</p>
+			) : null}
+
+			{testMutation.isSuccess ? (
+				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+					<Icon name="check" className="h-3.5 w-3.5" />
+					Test email sent! Check your inbox
+				</p>
+			) : null}
+
+			{testMutation.isError && !hasRetriedTest ? (
+				<div className="flex flex-col items-center gap-1.5">
+					<p className="text-xs text-(--error)">{testMutation.error.message}</p>
+					<button onClick={handleTest} className="text-xs font-medium text-[#2172E5] hover:underline">
+						Retry
+					</button>
+				</div>
+			) : null}
+
+			{testMutation.isError && hasRetriedTest ? (
+				<p className="text-center text-xs text-(--error)">{testMutation.error.message}</p>
+			) : null}
 		</div>
 	)
 })

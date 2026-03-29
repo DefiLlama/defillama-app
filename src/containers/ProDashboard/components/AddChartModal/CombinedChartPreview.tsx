@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import { CHART_TYPES, type ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig, type DashboardGrouping } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -14,19 +14,18 @@ interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
 
-const mapGroupingToGroupBy = (
-	grouping: 'day' | 'week' | 'month' | 'quarter'
-): 'daily' | 'weekly' | 'monthly' | 'quarterly' => {
+const mapGroupingToGroupBy = (grouping: DashboardGrouping): 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' => {
 	if (grouping === 'week') return 'weekly'
 	if (grouping === 'month') return 'monthly'
 	if (grouping === 'quarter') return 'quarterly'
+	if (grouping === 'year') return 'yearly'
 	return 'daily'
 }
 
 export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProps) {
-	const { getProtocolInfo } = useProDashboardCatalog()
+	const { getProtocolInfo, protocols } = useProDashboardCatalog()
 
-	const previewGrouping = useMemo<'day' | 'week' | 'month' | 'quarter'>(() => {
+	const previewGrouping = useMemo<DashboardGrouping>(() => {
 		const definedGroupings = composerItems
 			.map((item) => item.grouping)
 			.filter((grouping): grouping is NonNullable<typeof grouping> => Boolean(grouping))
@@ -50,7 +49,12 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		for (const item of composerItems) {
 			if (item.data && Array.isArray(item.data) && item.data.length > 0) {
 				const meta = CHART_TYPES[item.type]
-				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
+				const displayName = item.protocol
+					? getProtocolInfo(item.protocol)?.name || item.protocol
+					: item.chain ||
+						(item.geckoId && protocols.find((p: any) => p.geckoId === item.geckoId)?.name) ||
+						item.geckoId ||
+						''
 
 				const nonMonetaryTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 				const percentMetricTypes = ['medianApy']
@@ -91,7 +95,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		const symbol = result.length > 0 && allPercentMetrics ? '%' : hasNonMonetaryMetrics ? '' : '$'
 
 		return { series: result, valueSymbol: symbol }
-	}, [getProtocolInfo, composerItems])
+	}, [getProtocolInfo, protocols, composerItems])
 
 	if (series.length === 0 && composerItems.length > 0) {
 		return (

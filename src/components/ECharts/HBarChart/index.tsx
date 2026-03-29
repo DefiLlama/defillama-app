@@ -1,5 +1,5 @@
 import { BarChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent } from 'echarts/components'
+import { GraphicComponent, GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useEffectEvent, useId, useRef } from 'react'
@@ -7,7 +7,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formatTooltipValue } from '../formatters'
 import type { IHBarChartProps } from '../types'
 
-echarts.use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
+echarts.use([CanvasRenderer, BarChart, GraphicComponent, GridComponent, TooltipComponent])
 
 function getYAxisLabelWidth(containerWidth: number) {
 	return Math.min(Math.max(containerWidth * 0.2, 100), 300)
@@ -50,9 +50,27 @@ export default function HBarChart({
 
 		const textColor = isThemeDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
 		const yAxisLabelWidth = getYAxisLabelWidth(chartDom.clientWidth || 600)
+		const watermarkHeight = 40
+		const watermarkWidth = Math.round((389 / 133) * watermarkHeight)
 
 		instance.setOption(
 			{
+				graphic: [
+					{
+						type: 'image',
+						zlevel: 10,
+						z: 999,
+						silent: true,
+						left: 'center',
+						top: 'middle',
+						style: {
+							image: isThemeDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp',
+							width: watermarkWidth,
+							height: watermarkHeight,
+							opacity: 0.3
+						}
+					}
+				],
 				grid: {
 					left: 12,
 					right: 12,
