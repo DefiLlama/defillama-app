@@ -443,7 +443,7 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 		return {
 			...base,
 			selectedMainTab: 'llamaai',
-			selectedLlamaAIChart: { id: editItem.savedChartId, title: editItem.title || '' }
+			selectedLlamaAIChart: editItem.savedChartId ? { id: editItem.savedChartId, title: editItem.title || '' } : null
 		}
 	}
 

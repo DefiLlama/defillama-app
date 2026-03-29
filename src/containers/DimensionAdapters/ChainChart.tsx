@@ -195,8 +195,8 @@ function getAdapterByChainChartKindQueryUpdate({
 	if (enteringLatestValueChart || leavingLatestValueChart) {
 		return {
 			...nextUpdates,
-			chartProtocols: undefined,
-			excludeChartProtocols: undefined
+			protocol: undefined,
+			excludeProtocol: undefined
 		}
 	}
 
@@ -344,8 +344,8 @@ export const AdapterByChainChart = ({
 	)
 	const selectedProtocols = React.useMemo(() => {
 		if (chartViewMode !== 'Breakdown' || protocolOptions.length === 0) return []
-		const protocolsQuery = router.query.chartProtocols
-		const excludeProtocolsQuery = router.query.excludeChartProtocols
+		const protocolsQuery = router.query.protocol
+		const excludeProtocolsQuery = router.query.excludeProtocol
 		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
 		const baseSelectedProtocols =
 			protocolsQuery != null ? parseArrayParam(protocolsQuery, protocolOptions) : protocolOptions
@@ -353,7 +353,7 @@ export const AdapterByChainChart = ({
 		return excludedProtocolsSet.size > 0
 			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
 			: baseSelectedProtocols
-	}, [chartViewMode, protocolOptions, router.query.chartProtocols, router.query.excludeChartProtocols])
+	}, [chartViewMode, protocolOptions, router.query.protocol, router.query.excludeProtocol])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
@@ -721,8 +721,8 @@ export const AdapterByChainChart = ({
 						<SelectWithCombobox
 							allValues={protocolOptions}
 							selectedValues={selectedProtocols}
-							includeQueryKey="chartProtocols"
-							excludeQueryKey="excludeChartProtocols"
+							includeQueryKey="protocol"
+							excludeQueryKey="excludeProtocol"
 							defaultSelectedValues={protocolOptions}
 							label="Protocols"
 							labelType="smol"
@@ -981,15 +981,15 @@ export const ChainsByAdapterChart = ({
 	)
 	const usesTimeSeriesData = chartState.chartKind === 'bar' || chartState.chartKind === 'line'
 	const selectedChains = React.useMemo(() => {
-		const chainsQuery = router.query.chains
-		const excludeChainsQuery = router.query.excludeChains
+		const chainsQuery = router.query.chain
+		const excludeChainsQuery = router.query.excludeChain
 		const excludedChainsSet = parseExcludeParam(excludeChainsQuery)
 		const baseSelectedChains = chainsQuery != null ? parseArrayParam(chainsQuery, allChains) : allChains
 
 		return excludedChainsSet.size > 0
 			? baseSelectedChains.filter((chain) => !excludedChainsSet.has(chain))
 			: baseSelectedChains
-	}, [allChains, router.query.chains, router.query.excludeChains])
+	}, [allChains, router.query.chain, router.query.excludeChain])
 
 	const { data: bribesChartData, error: bribesChartError } = useQuery({
 		queryKey: ['adapter-chain-breakdown-chart', adapterType, chartName, 'dailyBribesRevenue'],
@@ -1231,8 +1231,8 @@ export const ChainsByAdapterChart = ({
 					<SelectWithCombobox
 						allValues={allChains}
 						selectedValues={selectedChains}
-						includeQueryKey="chains"
-						excludeQueryKey="excludeChains"
+						includeQueryKey="chain"
+						excludeQueryKey="excludeChain"
 						defaultSelectedValues={allChains}
 						label="Chains"
 						labelType="smol"

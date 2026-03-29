@@ -510,7 +510,6 @@ function createAgenticCallbacks({
 		},
 		onDashboard: (dashboard) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			dispatch({ type: 'CLEAR_ACTIVITY' })
 			buffer.dashboards.push(dashboard)
 			dispatch({ type: 'APPEND_DASHBOARD', value: dashboard })
 		},
