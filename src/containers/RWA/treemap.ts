@@ -1,12 +1,10 @@
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview, IRWAProject } from './api.types'
-import type { RWAOverviewMode } from './constants'
+import { normalizeRwaAssetGroup } from './assetGroup'
+import type { RWAChartMetric, RwaTreemapNestedBy, RwaTreemapParentGrouping } from './chartState'
 import { computeWeightedGroups } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
-export type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
-export type RwaTreemapParentGrouping = 'category' | 'assetClass' | 'assetName' | 'platform' | 'chain'
-export type RwaTreemapNestedBy = 'none' | 'assetClass' | 'assetName'
 export type RwaPieChartDatum = { name: string; value: number }
 export type RwaTreemapNode = {
 	name: string
@@ -17,18 +15,6 @@ export type RwaTreemapNode = {
 }
 
 const TREEMAP_COLORS = CHART_COLORS
-
-export const TREEMAP_NESTED_BY_OPTIONS = [
-	{ key: 'none', name: 'No Grouping' },
-	{ key: 'assetClass', name: 'Asset Class' },
-	{ key: 'assetName', name: 'Asset Name' }
-] as const
-
-export const TREEMAP_NESTED_BY_NON_CATEGORY_OPTIONS = TREEMAP_NESTED_BY_OPTIONS.filter(
-	(option) => option.key !== 'assetClass'
-)
-
-export const validTreemapNestedBy = new Set<RwaTreemapNestedBy>(TREEMAP_NESTED_BY_OPTIONS.map(({ key }) => key))
 
 export const buildRwaTreemapTreeData = (pieData: RwaPieChartDatum[], breakdownLabel: string): RwaTreemapNode[] => {
 	const totalsByLabel = new Map<string, number>()
@@ -62,24 +48,6 @@ export const buildRwaTreemapTreeData = (pieData: RwaPieChartDatum[], breakdownLa
 	return children
 }
 
-export const getRwaTreemapParentGrouping = ({
-	mode,
-	nonTimeSeriesChartBreakdown,
-	canBreakdownByChain
-}: {
-	mode: RWAOverviewMode
-	nonTimeSeriesChartBreakdown: string | null
-	canBreakdownByChain: boolean
-}): RwaTreemapParentGrouping => {
-	if (canBreakdownByChain && nonTimeSeriesChartBreakdown === 'chain') return 'chain'
-	if (mode === 'chain' && nonTimeSeriesChartBreakdown === 'platform') return 'platform'
-	if (mode === 'chain' && nonTimeSeriesChartBreakdown === 'assetClass') return 'assetClass'
-	if (mode === 'category') return 'assetClass'
-	if (mode === 'platform') return 'assetName'
-	if (mode === 'assetGroup') return 'assetName'
-	return 'category'
-}
-
 export const canBuildRwaNestedTreemap = ({
 	parentGrouping,
 	childGrouping
@@ -90,43 +58,11 @@ export const canBuildRwaNestedTreemap = ({
 	if (childGrouping === 'none') return false
 	if (parentGrouping === 'assetClass' && childGrouping === 'assetClass') return false
 	if (parentGrouping === 'assetName' && childGrouping === 'assetName') return false
+	if (parentGrouping === 'category' && childGrouping === 'category') return false
 	return true
 }
 
-export const getTreemapNestedByOptions = (parentGrouping: RwaTreemapParentGrouping) =>
-	parentGrouping === 'category' ? TREEMAP_NESTED_BY_OPTIONS : TREEMAP_NESTED_BY_NON_CATEGORY_OPTIONS
-
-export const normalizeTreemapNestedByForParentGrouping = ({
-	parentGrouping,
-	nestedBy
-}: {
-	parentGrouping: RwaTreemapParentGrouping
-	nestedBy: RwaTreemapNestedBy | null
-}): RwaTreemapNestedBy => {
-	const defaultNestedBy: RwaTreemapNestedBy = parentGrouping === 'category' ? 'assetClass' : 'none'
-	if (!nestedBy) return defaultNestedBy
-	if (parentGrouping !== 'category' && nestedBy === 'assetClass') return 'none'
-	return nestedBy
-}
-
-export const resolveTreemapNestedByOnParentGroupingChange = ({
-	currentParentGrouping,
-	nextParentGrouping,
-	currentNestedBy
-}: {
-	currentParentGrouping: RwaTreemapParentGrouping
-	nextParentGrouping: RwaTreemapParentGrouping
-	currentNestedBy: RwaTreemapNestedBy
-}): RwaTreemapNestedBy => {
-	// Requirement: leaving Asset Category treemap defaults nested submenu to "No Grouping".
-	if (currentParentGrouping === 'category' && nextParentGrouping !== 'category') return 'none'
-	return normalizeTreemapNestedByForParentGrouping({
-		parentGrouping: nextParentGrouping,
-		nestedBy: currentNestedBy
-	})
-}
-
-const getRwaMetricValue = (asset: IRWAProject, metric: RWAChartType): number => {
+const getRwaMetricValue = (asset: IRWAProject, metric: RWAChartMetric): number => {
 	if (metric === 'activeMcap') return asset.activeMcap?.total ?? 0
 	if (metric === 'defiActiveTvl') return asset.defiActiveTvl?.total ?? 0
 	return asset.onChainMcap?.total ?? 0
@@ -134,7 +70,7 @@ const getRwaMetricValue = (asset: IRWAProject, metric: RWAChartType): number => 
 
 type RwaMetricByChainRow = { label: string; value: number }
 
-const getRwaMetricBreakdownByChain = (asset: IRWAProject, metric: RWAChartType): RwaMetricByChainRow[] => {
+const getRwaMetricBreakdownByChain = (asset: IRWAProject, metric: RWAChartMetric): RwaMetricByChainRow[] => {
 	const breakdown =
 		metric === 'activeMcap'
 			? asset.activeMcap?.breakdown
@@ -202,6 +138,8 @@ const getAssetGroupsByGrouping = (
 			return normalizeLabels(asset.assetClass ?? [])
 		case 'category':
 			return normalizeLabels(asset.category ?? [])
+		case 'assetGroup':
+			return normalizeLabels([normalizeRwaAssetGroup(asset.assetGroup)])
 		case 'platform': {
 			const platformRaw = asset.parentPlatform as unknown
 			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
@@ -336,6 +274,7 @@ const deriveChildShades = (parentHex: string, count: number): string[] => {
 }
 
 const getRwaTreemapGroupingLabel = (grouping: RwaTreemapParentGrouping): string => {
+	if (grouping === 'assetGroup') return 'Asset Group'
 	if (grouping === 'assetClass') return 'Asset Class'
 	if (grouping === 'assetName') return 'Asset Name'
 	if (grouping === 'platform') return 'Asset Platform'
@@ -351,7 +290,7 @@ export const buildRwaNestedTreemapTreeData = ({
 	childGrouping
 }: {
 	assets: IRWAAssetsOverview['assets']
-	metric: RWAChartType
+	metric: RWAChartMetric
 	rootLabel: string
 	parentGrouping: RwaTreemapParentGrouping
 	childGrouping: RwaTreemapNestedBy

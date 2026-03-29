@@ -1,13 +1,14 @@
 import type {
-	ChartTimeGrouping,
+	ChartTimeGroupingWithCumulative,
 	MultiSeriesChart2Dataset,
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { getNDistinctColors, slug } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
-import type { IChainsByAdapterPageData, IProtocol } from './types'
+import type { IAdapterByChainPageData, IChainsByAdapterPageData, IProtocol } from './types'
 
 export type BribesData = {
 	total24h: number | null
@@ -105,6 +106,101 @@ export function processGroupedProtocols<T, R>(
 		processedData.push(processor(protocolVersions, parentKey))
 	}
 	return processedData
+}
+
+/** Table/category filter: which protocol rows belong to the selected categories (including child protocols). */
+export function getProtocolsByCategory(
+	protocols: IAdapterByChainPageData['protocols'],
+	categoriesToFilter: Array<string>
+): IProtocol[] {
+	const final: IProtocol[] = []
+
+	for (const protocol of protocols) {
+		if (protocol.childProtocols) {
+			const childProtocols = protocol.childProtocols.filter(
+				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
+			)
+
+			if (childProtocols.length === protocol.childProtocols.length) {
+				final.push(protocol)
+			} else {
+				for (const childProtocol of childProtocols) {
+					final.push(childProtocol)
+				}
+			}
+
+			continue
+		}
+
+		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
+			final.push(protocol)
+			continue
+		}
+	}
+
+	return final
+}
+
+/** Leaf `name`s for breakdown filter: parents with children are omitted; children are included recursively. */
+export function leafProtocolNamesFromTableRows(protocols: IProtocol[]): string[] {
+	const walk = (p: IProtocol): IProtocol[] =>
+		p.childProtocols && p.childProtocols.length > 0 ? p.childProtocols.flatMap(walk) : [p]
+	return protocols
+		.flatMap(walk)
+		.toSorted((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+		.map((p) => p.name)
+}
+
+export type CategoryProtocolNameFilter =
+	| { kind: 'unrestricted' }
+	| { kind: 'no-rows' }
+	| { kind: 'restricted'; names: Set<string> }
+
+/**
+ * Same category selection rules as the adapter-by-chain table; used to align breakdown chart series with the table.
+ */
+export function getCategoryProtocolNameFilterForChart({
+	categories,
+	protocols,
+	categoryParam,
+	excludeCategoryParam,
+	hasCategoryParam
+}: {
+	categories: string[]
+	protocols: IProtocol[]
+	categoryParam: string | string[] | undefined
+	excludeCategoryParam: string | string[] | undefined
+	hasCategoryParam: boolean
+}): CategoryProtocolNameFilter {
+	const excludeSet = parseExcludeParam(excludeCategoryParam)
+
+	let selectedCategories =
+		categories.length > 0 && hasCategoryParam && categoryParam === ''
+			? []
+			: categoryParam
+				? typeof categoryParam === 'string'
+					? [categoryParam]
+					: categoryParam
+				: categories
+
+	selectedCategories = excludeSet.size > 0 ? selectedCategories.filter((c) => !excludeSet.has(c)) : selectedCategories
+
+	const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
+
+	if (categories.length === 0) {
+		return { kind: 'unrestricted' }
+	}
+
+	if (selectedCategories.length === 0) {
+		return { kind: 'no-rows' }
+	}
+
+	if (categoriesToFilter.length > 0) {
+		const filtered = getProtocolsByCategory(protocols, categoriesToFilter)
+		return { kind: 'restricted', names: new Set(leafProtocolNamesFromTableRows(filtered)) }
+	}
+
+	return { kind: 'unrestricted' }
 }
 
 export function processRevenueDataForMatching(protocols: IAdapterChainMetrics['protocols']) {
@@ -372,17 +468,19 @@ export type ChainsByAdapterChartState =
 			chartKind: 'bar'
 			valueMode: ChainsByAdapterValueMode
 			barLayout: ChainsByAdapterBarLayout
-			groupBy: ChartTimeGrouping
+			groupBy: ChartTimeGroupingWithCumulative
 	  }
 	| {
 			chartKind: 'line'
-			groupBy: ChartTimeGrouping
+			groupBy: ChartTimeGroupingWithCumulative
 	  }
 	| {
 			chartKind: 'treemap'
+			groupBy: ChartTimeGroupingWithCumulative
 	  }
 	| {
 			chartKind: 'hbar'
+			groupBy: ChartTimeGroupingWithCumulative
 	  }
 
 export type ChainsByAdapterLatestValueDatum = {
@@ -404,14 +502,14 @@ type ChainsByAdapterBarPresentation = {
 	valueMode: ChainsByAdapterValueMode
 	barLayout: ChainsByAdapterBarLayout
 	showTotalInTooltip: boolean
-	groupBy: ChartTimeGrouping
+	groupBy: ChartTimeGroupingWithCumulative
 }
 
 type ChainsByAdapterLinePresentation = {
 	kind: 'line'
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesChart2SeriesConfig[]
-	groupBy: ChartTimeGrouping
+	groupBy: ChartTimeGroupingWithCumulative
 }
 
 type ChainsByAdapterTreemapPresentation = {
@@ -432,18 +530,54 @@ export type ChainsByAdapterChartPresentation =
 
 type ChainsByAdapterBarState = Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
 type ChainsByAdapterLineState = Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
+type LatestValueSeriesType = 'bar' | 'line'
 
-const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGrouping = 'daily'
-const VALID_BAR_GROUPINGS = new Set<ChartTimeGrouping>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
+const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGroupingWithCumulative = 'daily'
+const VALID_GROUPINGS = new Set<ChartTimeGroupingWithCumulative>([
+	'daily',
+	'weekly',
+	'monthly',
+	'quarterly',
+	'yearly',
+	'cumulative'
+])
+const MAX_BREAKDOWN_SERIES = 10
 const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
+const MIN_COMPLETE_DAILY_GAP_MS = 23 * 60 * 60 * 1000
+
+/** Rolling window length for treemap/hbar "latest value" when groupBy is not daily/cumulative (from latest row in dataset). */
+function getRollingWindowMsForTreemapGrouping(groupBy: 'weekly' | 'monthly' | 'quarterly' | 'yearly'): number {
+	const dayMs = 24 * 60 * 60 * 1000
+	switch (groupBy) {
+		case 'weekly':
+			return 7 * dayMs
+		case 'monthly':
+			return 30 * dayMs
+		case 'quarterly':
+			return 90 * dayMs
+		case 'yearly':
+			return 365 * dayMs
+	}
+}
+
+function getLatestTimestampMsInDataset(chartData: MultiSeriesChart2Dataset): number | null {
+	let max = -Infinity
+	for (const row of chartData.source) {
+		const ts = Number(row.timestamp)
+		if (Number.isFinite(ts) && ts > max) max = ts
+	}
+	return Number.isFinite(max) && max > -Infinity ? max : null
+}
 
 function assertNever(value: never): never {
 	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
 }
 
-function toValidChartGrouping(value: string | undefined | null): ChartTimeGrouping | null {
+function toValidChartGrouping(value: string | undefined | null): ChartTimeGroupingWithCumulative | null {
 	if (!value) return null
-	return VALID_BAR_GROUPINGS.has(value as ChartTimeGrouping) ? (value as ChartTimeGrouping) : null
+	return VALID_GROUPINGS.has(value as ChartTimeGroupingWithCumulative)
+		? (value as ChartTimeGroupingWithCumulative)
+		: null
 }
 
 export function normalizeChainsByAdapterChartState({
@@ -460,9 +594,6 @@ export function normalizeChainsByAdapterChartState({
 	legacyChartTypeParam?: string | null
 }): ChainsByAdapterChartState {
 	const normalizedGroupBy = groupByParam?.toLowerCase()
-	if (normalizedGroupBy === 'cumulative') {
-		return { chartKind: 'line', groupBy: DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY }
-	}
 
 	const normalizedChartKind = chartKindParam?.toLowerCase()
 	if (normalizedChartKind === 'line') {
@@ -472,10 +603,13 @@ export function normalizeChainsByAdapterChartState({
 		}
 	}
 	if (normalizedChartKind === 'treemap') {
-		return { chartKind: 'treemap' }
+		return {
+			chartKind: 'treemap',
+			groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
+		}
 	}
 	if (normalizedChartKind === 'hbar') {
-		return { chartKind: 'hbar' }
+		return { chartKind: 'hbar', groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY }
 	}
 	if (legacyChartTypeParam?.toLowerCase() === 'dominance') {
 		return {
@@ -494,10 +628,12 @@ export function normalizeChainsByAdapterChartState({
 
 function createSeriesUniverse({
 	chartData,
-	selectedNames
+	selectedNames,
+	rankingScores
 }: {
 	chartData: MultiSeriesChart2Dataset
 	selectedNames: string[]
+	rankingScores?: Map<string, number>
 }) {
 	const entityTotals = new Map<string, number>()
 	const entitySeries = new Map<string, Array<[number, number]>>()
@@ -518,9 +654,17 @@ function createSeriesUniverse({
 		}
 	}
 
-	const ranked = Array.from(entityTotals.entries()).toSorted((a, b) => b[1] - a[1])
-	const topEntityNames = ranked.slice(0, 10).map(([entity]) => entity)
-	const otherEntityNames = ranked.slice(10).map(([entity]) => entity)
+	const getRankingScore = (entity: string) => rankingScores?.get(entity) ?? Number.NEGATIVE_INFINITY
+	const ranked = Array.from(entityTotals.entries()).toSorted((a, b) => {
+		const aScore = getRankingScore(a[0])
+		const bScore = getRankingScore(b[0])
+		if (aScore !== bScore) {
+			return bScore > aScore ? 1 : -1
+		}
+		return b[1] - a[1]
+	})
+	const topEntityNames = ranked.slice(0, MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
+	const otherEntityNames = ranked.slice(MAX_BREAKDOWN_SERIES).map(([entity]) => entity)
 	const topSeries = new Map<string, Array<[number, number]>>()
 
 	for (const entity of topEntityNames) {
@@ -731,6 +875,121 @@ function buildTreemapPresentation({
 	}))
 }
 
+function buildLatestValueRowsFromChartData({
+	chartData,
+	selectedNames,
+	groupBy
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+	groupBy: ChartTimeGroupingWithCumulative
+	seriesType: LatestValueSeriesType
+}): BreakdownLatestValueRow[] {
+	if (groupBy === 'daily') {
+		const effectiveTimestamp = getEffectiveDailyLatestTimestamp(chartData)
+		if (effectiveTimestamp == null) {
+			return selectedNames.map((name) => ({ name, total24h: null }))
+		}
+
+		const sourceRow = chartData.source.find((row) => Number(row.timestamp) === effectiveTimestamp)
+		return selectedNames.map((name) => {
+			const value = sourceRow?.[name]
+			return {
+				name,
+				total24h: typeof value === 'number' && Number.isFinite(value) ? value : null
+			}
+		})
+	}
+
+	if (groupBy === 'cumulative') {
+		return selectedNames.map((name) => {
+			const rawData = chartData.source
+				.map((row) => {
+					const timestamp = Number(row.timestamp)
+					const value = row[name]
+					return typeof value === 'number' && Number.isFinite(timestamp)
+						? ([timestamp, value] as [number, number])
+						: null
+				})
+				.filter((point): point is [number, number] => point != null)
+
+			// Cumulative rankings should always use running totals, even for line renderers.
+			const groupedData = formatBarChart({
+				data: rawData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
+
+			return {
+				name,
+				total24h: groupedData.at(-1)?.[1] ?? null
+			}
+		})
+	}
+
+	const latestTsMs = getLatestTimestampMsInDataset(chartData)
+	if (latestTsMs == null) {
+		return selectedNames.map((name) => ({ name, total24h: null }))
+	}
+
+	const windowMs = getRollingWindowMsForTreemapGrouping(groupBy)
+	const cutoffMs = latestTsMs - windowMs
+
+	return selectedNames.map((name) => {
+		const rawData = chartData.source
+			.map((row) => {
+				const timestamp = Number(row.timestamp)
+				const value = row[name]
+				return typeof value === 'number' && Number.isFinite(timestamp) ? ([timestamp, value] as [number, number]) : null
+			})
+			.filter((point): point is [number, number] => point != null)
+
+		const sorted = rawData.toSorted((a, b) => a[0] - b[0])
+
+		let sum = 0
+		let pointsInWindow = 0
+		let i = sorted.length - 1
+		if (i >= 0) {
+			do {
+				const point = sorted[i]!
+				const [tsMs, value] = point
+				if (tsMs < cutoffMs) break
+				sum += value
+				pointsInWindow++
+				i--
+			} while (i >= 0)
+		}
+
+		return {
+			name,
+			total24h: pointsInWindow === 0 ? null : sum
+		}
+	})
+}
+
+function getEffectiveDailyLatestTimestamp(chartData: MultiSeriesChart2Dataset): number | null {
+	const timestamps = chartData.source
+		.map((row) => Number(row.timestamp))
+		.filter((timestamp) => Number.isFinite(timestamp))
+		.toSorted((a, b) => a - b)
+
+	if (timestamps.length === 0) return null
+	if (timestamps.length === 1) return timestamps[0]
+
+	const lastTimestamp = timestamps[timestamps.length - 1]
+	const previousTimestamp = timestamps[timestamps.length - 2]
+	const lastDate = new Date(lastTimestamp)
+	const isUtcMidnight =
+		lastDate.getUTCHours() === 0 &&
+		lastDate.getUTCMinutes() === 0 &&
+		lastDate.getUTCSeconds() === 0 &&
+		lastDate.getUTCMilliseconds() === 0
+	const gapMs = lastTimestamp - previousTimestamp
+
+	return !isUtcMidnight || gapMs < MIN_COMPLETE_DAILY_GAP_MS ? previousTimestamp : lastTimestamp
+}
+
 function buildHBarPresentation({
 	selectedNames,
 	latestRows
@@ -764,32 +1023,42 @@ function buildHBarPresentation({
 	}))
 }
 
-function getAdapterByChainLatestProtocolRows(protocols: IProtocol[]): BreakdownLatestValueRow[] {
-	return protocols.map((protocol) => ({ name: protocol.name, total24h: protocol.total24h }))
-}
-
 export function buildChainsByAdapterChartPresentation({
 	chartData,
 	selectedChains,
 	state,
-	latestChainRows
+	latestValueSeriesType = 'bar'
 }: {
 	chartData: IChainsByAdapterPageData['chartData']
 	selectedChains: string[]
 	state: ChainsByAdapterChartState
-	latestChainRows: IChainsByAdapterPageData['chains']
+	latestValueSeriesType?: LatestValueSeriesType
 }): ChainsByAdapterChartPresentation {
 	switch (state.chartKind) {
-		case 'treemap':
+		case 'treemap': {
+			const latestRows = buildLatestValueRowsFromChartData({
+				chartData,
+				selectedNames: selectedChains,
+				groupBy: state.groupBy,
+				seriesType: latestValueSeriesType
+			})
 			return {
 				kind: 'treemap',
-				data: buildTreemapPresentation({ selectedNames: selectedChains, latestRows: latestChainRows })
+				data: buildTreemapPresentation({ selectedNames: selectedChains, latestRows })
 			}
-		case 'hbar':
+		}
+		case 'hbar': {
+			const latestRows = buildLatestValueRowsFromChartData({
+				chartData,
+				selectedNames: selectedChains,
+				groupBy: state.groupBy,
+				seriesType: latestValueSeriesType
+			})
 			return {
 				kind: 'hbar',
-				data: buildHBarPresentation({ selectedNames: selectedChains, latestRows: latestChainRows })
+				data: buildHBarPresentation({ selectedNames: selectedChains, latestRows })
 			}
+		}
 		case 'line': {
 			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
 				chartData,
@@ -818,9 +1087,23 @@ export function buildAdapterByChainBreakdownPresentation({
 	selectedProtocols: string[]
 	state: ChainsByAdapterBarState | ChainsByAdapterLineState
 }): ChainsByAdapterBarPresentation | ChainsByAdapterLinePresentation {
+	const latestRows = buildLatestValueRowsFromChartData({
+		chartData,
+		selectedNames: selectedProtocols,
+		groupBy: state.groupBy,
+		seriesType: state.chartKind
+	})
+	const rankingScores = new Map<string, number>()
+	for (const row of latestRows) {
+		if (typeof row.total24h === 'number' && Number.isFinite(row.total24h)) {
+			rankingScores.set(row.name, row.total24h)
+		}
+	}
+
 	const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
 		chartData,
-		selectedNames: selectedProtocols
+		selectedNames: selectedProtocols,
+		rankingScores
 	})
 
 	switch (state.chartKind) {
@@ -835,16 +1118,23 @@ export function buildAdapterByChainBreakdownPresentation({
 
 export function buildAdapterByChainLatestValuePresentation({
 	chartKind,
-	protocols,
-	selectedProtocols
+	selectedProtocols,
+	groupBy,
+	chartData,
+	seriesType = 'bar'
 }: {
 	chartKind: 'treemap' | 'hbar'
-	protocols: IProtocol[]
 	selectedProtocols: string[]
+	groupBy: ChartTimeGroupingWithCumulative
+	chartData: MultiSeriesChart2Dataset
+	seriesType?: LatestValueSeriesType
 }): ChainsByAdapterTreemapPresentation | ChainsByAdapterHBarPresentation {
-	const latestRows = getAdapterByChainLatestProtocolRows(protocols).filter((row) =>
-		selectedProtocols.includes(row.name)
-	)
+	const latestRows = buildLatestValueRowsFromChartData({
+		chartData,
+		selectedNames: selectedProtocols,
+		groupBy,
+		seriesType
+	})
 
 	if (chartKind === 'treemap') {
 		return {

@@ -298,7 +298,6 @@ export function ChainsWithStablecoins({
 								dataset={deferredPeggedAreaTotalData.dataset}
 								charts={deferredPeggedAreaTotalData.charts}
 								valueSymbol="$"
-								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
@@ -310,7 +309,6 @@ export function ChainsWithStablecoins({
 								stacked={true}
 								valueSymbol="$"
 								showTotalInTooltip
-								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
@@ -322,7 +320,6 @@ export function ChainsWithStablecoins({
 								stacked={true}
 								expandTo100Percent={true}
 								valueSymbol="%"
-								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
@@ -337,15 +334,4 @@ export function ChainsWithStablecoins({
 			<StablecoinsChainsTable data={groupedChains} />
 		</>
 	)
-}
-
-const chartOptions = {
-	grid: {
-		left: 12,
-		bottom: 68,
-		top: 12,
-		right: 12,
-		outerBoundsMode: 'same',
-		outerBoundsContain: 'axisLabel'
-	}
 }

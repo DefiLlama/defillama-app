@@ -365,24 +365,5 @@ const chartOptions = {
 
 			return `<div style="font-size: 0.75rem; line-height: 1rem;">${tooltipContent}</div>`
 		}
-	},
-	legend: {
-		type: 'scroll',
-		itemGap: 15,
-		top: 0,
-		bottom: 0,
-		left: 12,
-		right: 12
-	},
-	grid: {
-		top: 40,
-		right: 12,
-		bottom: 68,
-		left: 12,
-		outerBoundsMode: 'same',
-		outerBoundsContain: 'axisLabel'
-	},
-	xAxis: {
-		type: 'time'
 	}
 }
