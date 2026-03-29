@@ -209,10 +209,19 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			const ts =
 				typeof item.timestamp === 'number' ? item.timestamp : new Date(String(item.timestamp).split('T')[0]).getTime()
 			if (!Number.isFinite(ts)) continue
-			source.push({ timestamp: Math.floor(ts), 'Native Yield': Number(Number(item.apyBase).toFixed(2)) })
+			source.push({ timestamp: Math.floor(ts), 'Native Yield': Math.round(item.apyBase * 100) / 100 })
 		}
 		return source.length > 0 ? { source, dimensions: ['timestamp', 'Native Yield'] } : null
 	}, [yieldChartRaw])
+
+	const isCompactYields = !!asset.nativeYieldPoolId
+	const displayPools = useMemo(() => {
+		if (!asset.yieldPools || asset.yieldPools.length === 0) return []
+		const maxRows = isCompactYields ? 8 : asset.yieldPools.length
+		return asset.yieldPools.slice(0, maxRows)
+	}, [asset.yieldPools, isCompactYields])
+	const yieldPoolsTotal = asset.yieldPoolsTotal ?? asset.yieldPools?.length ?? 0
+	const hasMorePools = yieldPoolsTotal > displayPools.length
 
 	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
 	const timeSeriesCharts =
@@ -709,9 +718,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			) : null}
 
 			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) ||
-			(asset.yieldPools && asset.yieldPools.length > 0) ? (
+			displayPools.length > 0 ? (
 				<div
-					className={`grid gap-2 ${(isLoadingYieldChart || nativeYieldDataset) && asset.yieldPools && asset.yieldPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
+					className={`grid gap-2 ${(isLoadingYieldChart || nativeYieldDataset) && displayPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
 				>
 					{asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset) ? (
 						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -734,7 +743,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<Suspense fallback={<div className="min-h-[360px]" />}>
 										<MultiSeriesChart2
 											charts={NATIVE_YIELD_CHARTS}
-											dataset={nativeYieldDataset!}
+											dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
 											title={`Historical APY from ${asset.issuer ?? 'issuer'}`}
 											valueSymbol="%"
 											hideDefaultLegend={false}
@@ -751,35 +760,24 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						</div>
 					) : null}
 
-					{asset.yieldPools && asset.yieldPools.length > 0 ? (
+					{displayPools.length > 0 ? (
 						<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-							{(() => {
-								const isCompact = !!asset.nativeYieldPoolId
-								const maxRows = isCompact ? 8 : asset.yieldPools.length
-								const displayPools = asset.yieldPools.slice(0, maxRows)
-								const totalPools = asset.yieldPoolsTotal ?? asset.yieldPools.length
-								const hasMore = totalPools > displayPools.length
-								return (
-									<>
-										<div className="flex items-center justify-between">
-											<h2 className="font-semibold">
-												{hasMore
-													? `DeFi Yield Opportunities (${displayPools.length} of ${totalPools})`
-													: `DeFi Yield Opportunities (${displayPools.length})`}
-											</h2>
-											{hasMore ? (
-												<a
-													href={`/yields?token=${encodeURIComponent(asset.ticker)}&attribute=no_il&attribute=single_exposure`}
-													className="text-xs font-medium text-(--link-text) hover:underline"
-												>
-													View all {totalPools} →
-												</a>
-											) : null}
-										</div>
-										<RWAYieldsTable data={displayPools} compact={isCompact} />
-									</>
-								)
-							})()}
+							<div className="flex items-center justify-between">
+								<h2 className="font-semibold">
+									{hasMorePools
+										? `DeFi Yield Opportunities (${displayPools.length} of ${yieldPoolsTotal})`
+										: `DeFi Yield Opportunities (${displayPools.length})`}
+								</h2>
+								{hasMorePools ? (
+									<a
+										href={`/yields?token=${encodeURIComponent(asset.ticker)}&attribute=no_il&attribute=single_exposure`}
+										className="text-xs font-medium text-(--link-text) hover:underline"
+									>
+										View all {yieldPoolsTotal} →
+									</a>
+								) : null}
+							</div>
+							<RWAYieldsTable data={displayPools} compact={isCompactYields} />
 						</div>
 					) : null}
 				</div>
