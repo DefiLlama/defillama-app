@@ -84,17 +84,17 @@
       "oldName": "Forks"
     },
     {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
-    },
-    {
       "name": "Total Borrowed by Protocol",
       "route": "/total-borrowed",
       "category": "Total Value Locked",
       "description": "Sum of value currently borrowed across all active loans on a lending protocol",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
       "tab": "Protocols"
     },
     {
@@ -310,16 +310,6 @@
       "oldName": "DEXs"
     },
     {
-      "name": "Bridge Aggregator Volume by Protocol",
-      "route": "/bridge-aggregators",
-      "category": "Volume",
-      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
-      "totalTrackedKey": "bridgeAggregators.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Volume",
-      "oldName": "Bridge Aggregators"
-    },
-    {
       "name": "DEX Volume by Chain",
       "route": "/dexs/chains",
       "category": "Volume",
@@ -328,6 +318,16 @@
       "tab": "Chains",
       "oldCategory": "Volume",
       "oldName": "DEXs (Chains)"
+    },
+    {
+      "name": "Bridge Aggregator Volume by Protocol",
+      "route": "/bridge-aggregators",
+      "category": "Volume",
+      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
+      "totalTrackedKey": "bridgeAggregators.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Volume",
+      "oldName": "Bridge Aggregators"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -557,14 +557,6 @@
       "oldName": "Collections"
     },
     {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
-      "oldCategory": "NFTs",
-      "oldName": "Earnings"
-    },
-    {
       "name": "NFTs: Marketplaces",
       "route": "/nfts/marketplaces",
       "category": "NFTs",
@@ -572,6 +564,14 @@
       "totalTrackedKey": "nfts.marketplaces",
       "oldCategory": "NFTs",
       "oldName": "Marketplaces"
+    },
+    {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
+      "oldCategory": "NFTs",
+      "oldName": "Earnings"
     },
     {
       "name": "NFT Volume by Chain",
