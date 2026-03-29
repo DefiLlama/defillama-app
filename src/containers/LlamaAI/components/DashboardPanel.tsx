@@ -53,18 +53,23 @@ function DashboardPanelInner({
 	}, [displayConfig])
 
 	useEffect(() => {
-		if (isConfigPresent) {
-			if (animState === 'closed' || animState === 'closing') {
-				setAnimState('opening')
-				const timer = setTimeout(() => setAnimState('open'), 20)
-				return () => clearTimeout(timer)
+		let timer: ReturnType<typeof setTimeout> | undefined
+		setAnimState((prev) => {
+			if (isConfigPresent) {
+				if (prev === 'closed' || prev === 'closing') {
+					timer = setTimeout(() => setAnimState('open'), 20)
+					return 'opening'
+				}
+			} else {
+				if (prev === 'open' || prev === 'opening') {
+					timer = setTimeout(() => setAnimState('closed'), 200)
+					return 'closing'
+				}
 			}
-		} else {
-			if (animState === 'open' || animState === 'opening') {
-				setAnimState('closing')
-				const timer = setTimeout(() => setAnimState('closed'), 200)
-				return () => clearTimeout(timer)
-			}
+			return prev
+		})
+		return () => {
+			if (timer) clearTimeout(timer)
 		}
 	}, [isConfigPresent])
 
@@ -161,6 +166,7 @@ function DashboardPanelInner({
 						</button>
 						<button
 							onClick={onClose}
+							aria-label="Close"
 							className="flex h-7 w-7 items-center justify-center rounded-md text-[#636e72] transition-colors hover:bg-[#e6e6e6] dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 						>
 							<Icon name="x" className="h-4 w-4" />
@@ -181,6 +187,7 @@ function DashboardPanelInner({
 						<button
 							onClick={() => onVersionChange(versionIndex - 1)}
 							disabled={versionIndex === 0}
+							aria-label="Previous version"
 							className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 						>
 							<Icon name="chevron-left" className="h-3.5 w-3.5" />
@@ -191,6 +198,7 @@ function DashboardPanelInner({
 						<button
 							onClick={() => onVersionChange(versionIndex + 1)}
 							disabled={versionIndex === versions.length - 1}
+							aria-label="Next version"
 							className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
 						>
 							<Icon name="chevron-right" className="h-3.5 w-3.5" />
