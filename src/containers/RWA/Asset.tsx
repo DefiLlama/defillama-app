@@ -717,20 +717,26 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</SectionCard>
 			) : null}
 
-			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) ||
-			displayPools.length > 0 ? (
+			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) || displayPools.length > 0 ? (
 				<div
 					className={`grid gap-2 ${(isLoadingYieldChart || nativeYieldDataset) && displayPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
 				>
 					{asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset) ? (
 						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
-							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-4 pb-2">
-								<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">Native Yield</span>
-								{asset.nativeYieldCurrent != null ? (
-									<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
-										{asset.nativeYieldCurrent.toFixed(2)}%
+							<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 pt-4 pb-2">
+								<div className="flex flex-col">
+									<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
+										Native Yield
 									</span>
+									{asset.nativeYieldCurrent != null ? (
+										<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
+											{asset.nativeYieldCurrent.toFixed(2)}%
+										</span>
+									) : null}
+								</div>
+								{asset.issuer ? (
+									<span className="text-xs text-(--text-disabled)">Historical APY from {asset.issuer}</span>
 								) : null}
 							</div>
 							<div className="flex-1">
@@ -744,8 +750,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										<MultiSeriesChart2
 											charts={NATIVE_YIELD_CHARTS}
 											dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
-											title={`Historical APY from ${asset.issuer ?? 'issuer'}`}
 											valueSymbol="%"
+											height={380}
 											hideDefaultLegend={false}
 											exportButtons={{
 												png: true,
