@@ -785,16 +785,30 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 	}
 }
 
+async function fetchYieldPoolData() {
+	const { fetchJson } = await import('~/utils/async')
+	const { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API } = await import('~/constants')
+
+	const [poolsRes, configRes, urlsRes] = await Promise.all([
+		fetchJson(YIELD_POOLS_API),
+		fetchJson(YIELD_CONFIG_API),
+		fetchJson(YIELD_URL_API)
+	])
+
+	return {
+		allPools: poolsRes?.data ?? [],
+		configProtocols: configRes?.protocols ?? {},
+		poolUrls: urlsRes ?? {}
+	}
+}
+
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartDataset, blockExplorersData]: [
-			IFetchedRWAProject,
-			IRWAAssetData['chartDataset'],
-			Awaited<ReturnType<typeof fetchBlockExplorers>>
-		] = await Promise.all([
+		const [data, chartDataset, blockExplorersData, yieldPoolData] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
 			fetchRWAAssetChartData(assetId),
-			fetchBlockExplorers().catch(() => [])
+			fetchBlockExplorers().catch(() => []),
+			fetchYieldPoolData().catch(() => null)
 		])
 
 		if (!data) {
@@ -854,6 +868,170 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
 
+		// Fetch yield pools matching this asset via three strategies:
+		// 1. Address match: pool.underlyingTokens contains an asset contract address
+		// 2. Symbol+Project match: pool symbol contains asset ticker AND pool project
+		//    matches one of the asset's resolved projectId slugs (substring, catches variants)
+		// 3. Cross-protocol symbol match: pool symbol contains the exact ticker on ANY protocol
+		//    (no project guard — surfaces DeFi opportunities like Morpho/Aave/Pendle for RWA tokens)
+		// Results are capped to the top 10 by TVL.
+		let yieldPools: IRWAAssetData['yieldPools'] = null
+		let yieldPoolsTotal: IRWAAssetData['yieldPoolsTotal'] = null
+		let nativeYieldPoolId: IRWAAssetData['nativeYieldPoolId'] = null
+		let nativeYieldCurrent: IRWAAssetData['nativeYieldCurrent'] = null
+		try {
+			const hasContracts = !!data.contracts && Object.keys(data.contracts).length > 0
+			const ticker = data.ticker?.toUpperCase()
+			const hasTicker = !!ticker && ticker.length >= 3
+			const hasProjectAndTicker = !!data.projectId && hasTicker
+
+			if (hasContracts || hasTicker) {
+				// Build address lookup: lowercaseChain -> Set<lowercaseAddress>
+				const addressesByChain = new Map<string, Set<string>>()
+				if (hasContracts) {
+					for (const [chain, addresses] of Object.entries(data.contracts!)) {
+						const addrSet = new Set(addresses.map((a) => a.toLowerCase()))
+						addressesByChain.set(chain.toLowerCase(), addrSet)
+					}
+				}
+
+				// Resolve numeric projectId(s) to protocol slugs for symbol+project matching
+				const projectSlugs = new Set<string>()
+				if (hasProjectAndTicker && data.projectId) {
+					const ids = Array.isArray(data.projectId) ? data.projectId : [data.projectId]
+					const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+					for (const id of ids) {
+						const meta = metadataCache.protocolMetadata[String(id)] as
+							| (typeof metadataCache.protocolMetadata)[string] & { name?: string }
+							| undefined
+						if (meta?.name) projectSlugs.add(meta.name)
+					}
+				}
+
+				if (!yieldPoolData) throw new Error('Yield pool data unavailable')
+				const allPools: any[] = yieldPoolData.allPools
+				const configProtocols: Record<string, { name?: string; category?: string }> = yieldPoolData.configProtocols
+				const poolUrls: Record<string, string> = yieldPoolData.poolUrls
+
+				const matchedPoolIds = new Set<string>()
+				const matchedPools: typeof allPools = []
+
+				for (const pool of allPools) {
+					if (pool.apy === 0) continue
+					if (matchedPoolIds.has(pool.pool)) continue
+					if (pool.exposure !== 'single' || pool.ilRisk !== 'no') continue
+
+					// Strategy 1: Address match — only runs when contracts exist
+					if (hasContracts) {
+						const underlyingTokens = pool.underlyingTokens ?? []
+						if (underlyingTokens.length > 0) {
+							const chainAddrs = pool.chain ? addressesByChain.get(pool.chain.toLowerCase()) : undefined
+							if (chainAddrs && underlyingTokens.some((t: string) => chainAddrs.has(t.toLowerCase()))) {
+								matchedPoolIds.add(pool.pool)
+								matchedPools.push({ ...pool, _matchStrategy: 1 })
+								continue
+							}
+						}
+					}
+
+					// Strategy 2: Symbol + Project match — runs independently when projectId and ticker exist.
+					// Uses substring matching in both directions to catch wrapped/staked variants:
+					//   - trimmed.includes(ticker): e.g. pool token "USDCE" matches asset ticker "USDC"
+					//   - ticker.includes(trimmed): e.g. asset ticker "SDAI" matches pool token "DAI"
+					// This also catches wstETH↔stETH, sUSDe↔USDe, etc. The approach is intentionally
+					// loose to surface more relevant pools; the project slug guard prevents false positives
+					// from unrelated tokens that happen to share substrings.
+					if (hasProjectAndTicker && projectSlugs.size > 0 && pool.symbol && projectSlugs.has(pool.project)) {
+						const poolTokens = pool.symbol.toUpperCase().split(/[-+\/]/)
+						if (
+							poolTokens.some((t: string) => {
+								const trimmed = t.trim()
+								return trimmed === ticker || trimmed.includes(ticker!) || ticker!.includes(trimmed)
+							})
+						) {
+							matchedPoolIds.add(pool.pool)
+							matchedPools.push({ ...pool, _matchStrategy: 2 })
+							continue
+						}
+					}
+
+					// Strategy 3: Cross-protocol exact symbol match — surfaces DeFi opportunities
+					// across ANY protocol (Aave, Morpho, Pendle, etc.) where the exact ticker appears
+					// as a token in the pool symbol. No project guard needed because exact matching
+					// is precise enough (e.g. "USCC" won't false-positive like substring would).
+					if (hasTicker && pool.symbol) {
+						const poolTokens = pool.symbol.toUpperCase().split(/[-+\/]/)
+						if (poolTokens.some((t: string) => t.trim() === ticker)) {
+							matchedPoolIds.add(pool.pool)
+							matchedPools.push({ ...pool, _matchStrategy: 3 })
+						}
+					}
+				}
+
+				// Identify issuer project slugs to separate native yield from DeFi opportunities.
+				// Primary: use projectSlugs resolved from the RWA asset's projectId via metadata.
+				// Fallback: when projectId is missing/false, match pool project slugs against
+				// the first word of the asset's issuer name (e.g. "Ondo Finance" → "ondo" matches "ondo-yield-assets").
+				const issuerProjectSlugs = new Set(projectSlugs)
+				if (issuerProjectSlugs.size === 0 && data.issuer) {
+					// Extract candidate prefixes from the issuer name:
+					// - First word (e.g. "Ondo Finance" → "ondo")
+					// - Parenthesized content (e.g. "Permian Labs (USD.AI)" → "usdai")
+					const issuerLower = data.issuer.trim().toLowerCase()
+					const candidates: string[] = []
+					const firstWord = issuerLower.split(/\s+/)[0]
+					if (firstWord.length >= 3) candidates.push(firstWord)
+					const parenMatch = issuerLower.match(/\(([^)]+)\)/)
+					if (parenMatch) {
+						const normalized = parenMatch[1].replace(/[^a-z0-9]/g, '')
+						if (normalized.length >= 3) candidates.push(normalized)
+					}
+
+					for (const pool of matchedPools) {
+						const slugNormalized = pool.project.toLowerCase().replace(/[^a-z0-9]/g, '')
+						for (const candidate of candidates) {
+							if (slugNormalized.startsWith(candidate) || candidate.startsWith(slugNormalized)) {
+								issuerProjectSlugs.add(pool.project)
+								break
+							}
+						}
+					}
+				}
+
+				const issuerPools = matchedPools.filter((p: any) => issuerProjectSlugs.has(p.project))
+				const defiPools = matchedPools.filter((p: any) => !issuerProjectSlugs.has(p.project))
+
+				// Pick the primary issuer pool (highest TVL) for native yield chart
+				issuerPools.sort((a: any, b: any) => (b.tvlUsd ?? 0) - (a.tvlUsd ?? 0))
+				const primaryIssuerPool = issuerPools[0] ?? null
+				nativeYieldPoolId = primaryIssuerPool?.pool ?? null
+				nativeYieldCurrent = primaryIssuerPool?.apyBase ?? null
+
+				// Table shows only DeFi pools, sorted by TVL and capped at 10
+				defiPools.sort((a: any, b: any) => (b.tvlUsd ?? 0) - (a.tvlUsd ?? 0))
+				yieldPoolsTotal = defiPools.length
+				const cappedPools = defiPools.slice(0, 10)
+
+				yieldPools = cappedPools.map((pool) => ({
+					...pool,
+					tvl: pool.tvlUsd,
+					pool: pool.symbol,
+					configID: pool.pool,
+					chains: [pool.chain],
+					project: configProtocols[pool.project]?.name ?? pool.project,
+					projectslug: pool.project,
+					url: poolUrls[pool.pool] || null
+				}))
+
+				if (yieldPools.length === 0) {
+					yieldPools = null
+					yieldPoolsTotal = null
+				}
+			}
+		} catch (err) {
+			console.log('[HTTP]:[ERROR]:[RWA_YIELD]:', assetId, err instanceof Error ? err.message : '')
+		}
+
 		return {
 			...data,
 			slug: rwaSlug(data.ticker),
@@ -881,7 +1059,11 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 						breakdown: Object.entries(aggregatedMetrics.breakdowns.defiActiveTvlByProtocol).sort((a, b) => b[1] - a[1])
 					}
 				: null,
-			chartDataset
+			chartDataset,
+			yieldPools,
+			yieldPoolsTotal,
+			nativeYieldPoolId,
+			nativeYieldCurrent
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA asset data')
