@@ -94,7 +94,7 @@ export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
 // External services
-export const MCP_SERVER = 'http://localhost:6969'
+export const MCP_SERVER = 'https://mcp.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
 
