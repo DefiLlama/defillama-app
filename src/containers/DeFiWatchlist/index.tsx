@@ -506,7 +506,7 @@ function PortfolioNotifications({
 						e.preventDefault()
 						void handleFormSubmit()
 					}}
-					className="max-h-[calc(70dvh-140px)] overflow-y-auto"
+					className="max-h-[calc(70dvh-140px)] overflow-y-auto overscroll-contain"
 				>
 					<div className="border-b border-(--cards-border) p-4">
 						<h3 className="mb-2 text-sm font-semibold">Protocol Metrics</h3>

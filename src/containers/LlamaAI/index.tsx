@@ -668,7 +668,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		updateSessionTitle,
 		isDeletingSession,
 		isUpdatingTitle,
-		bulkDeleteSessions
+		bulkDeleteSessions,
+		pinSession
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const { notify, requestPermission } = useStreamNotification()
@@ -1481,7 +1482,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			isSuggestedQuestion?: boolean
 		) => {
 			const trimmed = prompt.trim()
-			if (!trimmed || isStreaming || promptSubmissionLockRef.current) return
+			const hasImages = images && images.length > 0
+			if ((!trimmed && !hasImages) || isStreaming || promptSubmissionLockRef.current) return
 			triggerPromptTransition(shouldShowLanding ? 'landing' : 'conversation')
 			promptSubmissionLockRef.current = true
 
@@ -1840,6 +1842,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							onOpenSettings={settingsModalStore.show}
 							hasCustomInstructions={customInstructions.trim().length > 0}
 							onBulkDelete={bulkDeleteSessions}
+							onPinSession={pinSession}
 						/>
 						<div className="flex min-h-11 lg:hidden" />
 					</>

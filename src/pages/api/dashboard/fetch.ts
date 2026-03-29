@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { fetchSingleChartData, withTimeout } from '~/containers/ProDashboard/queries.server'
+import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
-import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -9,10 +10,9 @@ import {
 	fetchStablecoinRatesApi
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-import { fetchSingleChartData, withTimeout } from '~/containers/ProDashboard/queries.server'
-import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
-import { fetchJson } from '~/utils/async'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { validateSubscription } from '~/utils/apiAuth'
+import { fetchJson } from '~/utils/async'
 
 export const config = { api: { responseLimit: false } }
 

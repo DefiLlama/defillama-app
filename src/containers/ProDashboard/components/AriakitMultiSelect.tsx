@@ -88,7 +88,7 @@ export function AriakitMultiSelect({
 						style={{ width: 'var(--popover-anchor-width)' }}
 					>
 						<div className="p-1">
-							<div className="thin-scrollbar max-h-[280px] overflow-y-auto">
+							<div className="thin-scrollbar max-h-[280px] overflow-y-auto overscroll-contain">
 								{options.length === 0 ? (
 									<p className="px-3 py-2 text-center text-xs pro-text3">No options available.</p>
 								) : null}

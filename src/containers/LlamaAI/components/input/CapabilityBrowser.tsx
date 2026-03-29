@@ -133,7 +133,7 @@ export function BrowserContent({
 			{/* Main layout: desktop sidebar + content */}
 			<div className="flex min-h-0 flex-1">
 				{/* Desktop: sidebar */}
-				<Ariakit.TabList className="hidden w-[176px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-black/6 bg-[#f8f8f8] p-1.5 sm:flex dark:border-[#2a2a2e] dark:bg-[#131316]">
+				<Ariakit.TabList className="hidden w-[176px] shrink-0 flex-col gap-0.5 overflow-y-auto overscroll-contain border-r border-black/6 bg-[#f8f8f8] p-1.5 sm:flex dark:border-[#2a2a2e] dark:bg-[#131316]">
 					{CAPABILITIES.map((cap) => (
 						<Ariakit.Tab
 							key={cap.key}
@@ -178,7 +178,7 @@ export function BrowserContent({
 					</div>
 
 					{/* Prompt list */}
-					<div className="min-h-0 flex-1 overflow-y-auto">
+					<div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
 						<ul className="flex flex-col p-1.5 max-sm:px-2">
 							{activeCategory.prompts.map((prompt) => (
 								<PromptItem key={`${activeCategory.key}:${prompt}`} prompt={prompt} onClick={handlePromptClick} />
