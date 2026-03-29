@@ -14,6 +14,7 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
+import { buildHallmarksWithGenuineSpikes } from '~/containers/DimensionAdapters/utils'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -62,6 +63,10 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const hallmarks = buildHallmarksWithGenuineSpikes({
+			dimensions: protocolData.dimensions
+		})
+
 		const seoTitle = `${protocolData.name} DEX Trading Volume & Stats - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} decentralized exchange trading volume with daily, weekly, and cumulative charts on DefiLlama.`
 
@@ -105,6 +110,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: adapterData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
+				hallmarks,
 				defaultChartView: adapterData?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
@@ -197,6 +203,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							charts={deferredFinalCharts.charts}
 							groupBy={groupBy}
 							valueSymbol="$"
+							hallmarks={props.hallmarks ?? undefined}
 							onReady={handleChartReady}
 						/>
 					</Suspense>
@@ -210,6 +217,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="dexs"
 							breakdownNames={props.protocolChains}
+							hallmarks={props.hallmarks ?? undefined}
 							title="DEX Volume by chain"
 						/>
 					</div>
@@ -221,6 +229,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="dexs"
 							breakdownNames={props.protocolVersions}
+							hallmarks={props.hallmarks ?? undefined}
 							title="DEX Volume by protocol version"
 						/>
 					</div>

@@ -402,7 +402,10 @@ export function MetricSentenceBuilder({
 		switch (activeToken) {
 			case 'aggregator':
 				return (
-					<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1.5" data-metric-token="true">
+					<div
+						className="thin-scrollbar max-h-[280px] overflow-y-auto overscroll-contain p-1.5"
+						data-metric-token="true"
+					>
 						{AGGREGATOR_OPTIONS.map((option) => (
 							<button
 								key={option.value}
@@ -422,7 +425,10 @@ export function MetricSentenceBuilder({
 				)
 			case 'window':
 				return (
-					<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1.5" data-metric-token="true">
+					<div
+						className="thin-scrollbar max-h-[280px] overflow-y-auto overscroll-contain p-1.5"
+						data-metric-token="true"
+					>
 						{WINDOW_OPTIONS.map((option) => (
 							<button
 								key={option.value}
@@ -442,7 +448,10 @@ export function MetricSentenceBuilder({
 				)
 			case 'metric':
 				return (
-					<div className="thin-scrollbar max-h-[320px] w-full overflow-y-auto" data-metric-token="true">
+					<div
+						className="thin-scrollbar max-h-[320px] w-full overflow-y-auto overscroll-contain"
+						data-metric-token="true"
+					>
 						<div className="sticky top-0 border-b border-(--cards-border) bg-(--cards-bg) p-1.5">
 							<input
 								value={searchTerm}
@@ -545,7 +554,10 @@ export function MetricSentenceBuilder({
 									/>
 									{subjectTab === 'chain' ? (
 										filteredChainOptions.length > 0 ? (
-											<ComboboxList ref={chainListRef} className="thin-scrollbar max-h-[240px] overflow-y-auto">
+											<ComboboxList
+												ref={chainListRef}
+												className="thin-scrollbar max-h-[240px] overflow-y-auto overscroll-contain"
+											>
 												<div style={{ height: chainVirtualizer.getTotalSize(), position: 'relative' }}>
 													{chainVirtualizer.getVirtualItems().map((virtualRow) => {
 														const option = filteredChainOptions[virtualRow.index]
@@ -596,7 +608,10 @@ export function MetricSentenceBuilder({
 											<p className="px-2 py-6 text-center text-sm text-(--text-tertiary)">No chains found.</p>
 										)
 									) : filteredProtocolOptions.length > 0 ? (
-										<ComboboxList ref={protocolListRef} className="thin-scrollbar max-h-[240px] overflow-y-auto">
+										<ComboboxList
+											ref={protocolListRef}
+											className="thin-scrollbar max-h-[240px] overflow-y-auto overscroll-contain"
+										>
 											<div style={{ height: protocolVirtualizer.getTotalSize(), position: 'relative' }}>
 												{protocolVirtualizer.getVirtualItems().map((virtualRow) => {
 													const option = filteredProtocolOptions[virtualRow.index]

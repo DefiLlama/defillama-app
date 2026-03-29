@@ -16,6 +16,14 @@ import {
 
 const customOffsets = {}
 
+type AxisExtent = {
+	min?: number
+}
+
+function getZeroBaselineYAxisMin(extent: AxisExtent) {
+	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
+}
+
 export default function ChainCoreChart({
 	chartData,
 	valueSymbol = '',
@@ -148,6 +156,7 @@ export default function ChainCoreChart({
 				...yAxis,
 				name: '',
 				type: 'value',
+				min: getZeroBaselineYAxisMin,
 				alignTicks: true,
 				offset:
 					noOffset || index == null || index < 2
@@ -156,7 +165,10 @@ export default function ChainCoreChart({
 			}
 
 			if (type === 'TVL') {
-				finalYAxis.push(yAxis)
+				finalYAxis.push({
+					...yAxis,
+					min: getZeroBaselineYAxisMin
+				})
 			}
 
 			if (type === 'Stablecoins Mcap') {
@@ -421,7 +433,10 @@ export default function ChainCoreChart({
 		}
 
 		if (allYAxis.length === 0) {
-			finalYAxis.push(yAxis)
+			finalYAxis.push({
+				...yAxis,
+				min: getZeroBaselineYAxisMin
+			})
 		}
 
 		instance.setOption({

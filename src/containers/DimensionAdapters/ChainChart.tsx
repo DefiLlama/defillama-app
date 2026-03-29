@@ -6,9 +6,7 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import {
 	ChartGroupingSelector,
-	DWM_GROUPING_OPTIONS_LOWERCASE,
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
-	type LowercaseDwmGrouping,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -40,6 +38,8 @@ import {
 	mergeBreakdownCharts,
 	mergeNamedDimensionChartDataset,
 	mergeSingleDimensionChartDataset,
+	getCategoryProtocolNameFilterForChart,
+	leafProtocolNamesFromTableRows,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
 } from './utils'
@@ -128,6 +128,9 @@ function getChartKindQueryUpdate(
 	nextChartKind: ChainsByAdapterChartKind,
 	currentGroupByParam: string | undefined
 ): Record<string, string | undefined> {
+	const normalizedGroupBy = currentGroupByParam?.toLowerCase()
+	const nextGroupBy = normalizedGroupBy === 'daily' ? undefined : normalizedGroupBy
+
 	switch (nextChartKind) {
 		case 'Bar':
 			return {
@@ -135,7 +138,7 @@ function getChartKindQueryUpdate(
 				chartType: undefined,
 				valueMode: undefined,
 				barLayout: undefined,
-				groupBy: currentGroupByParam?.toLowerCase() === 'daily' ? undefined : currentGroupByParam
+				groupBy: nextGroupBy
 			}
 		case 'Line':
 			return {
@@ -143,7 +146,7 @@ function getChartKindQueryUpdate(
 				chartType: undefined,
 				valueMode: undefined,
 				barLayout: undefined,
-				groupBy: currentGroupByParam?.toLowerCase() === 'daily' ? undefined : currentGroupByParam
+				groupBy: nextGroupBy
 			}
 		case 'Treemap':
 			return {
@@ -151,7 +154,7 @@ function getChartKindQueryUpdate(
 				chartType: undefined,
 				valueMode: undefined,
 				barLayout: undefined,
-				groupBy: undefined
+				groupBy: nextGroupBy
 			}
 		case 'HBar':
 			return {
@@ -159,7 +162,7 @@ function getChartKindQueryUpdate(
 				chartType: undefined,
 				valueMode: undefined,
 				barLayout: undefined,
-				groupBy: undefined
+				groupBy: nextGroupBy
 			}
 		default:
 			return assertNever(nextChartKind)
@@ -181,26 +184,12 @@ function getChartHeight(chartState: ChainsByAdapterChartState): string {
 
 function getAdapterByChainChartKindQueryUpdate({
 	nextChartKind,
-	currentGroupByParam,
-	currentChartKind
+	currentGroupByParam
 }: {
 	nextChartKind: ChainsByAdapterChartKind
 	currentGroupByParam: string | undefined
-	currentChartKind: ChainsByAdapterChartState['chartKind']
 }): Record<string, string | string[] | undefined> {
-	const nextUpdates = getChartKindQueryUpdate(nextChartKind, currentGroupByParam)
-	const enteringLatestValueChart = nextChartKind === 'Treemap' || nextChartKind === 'HBar'
-	const leavingLatestValueChart = currentChartKind === 'treemap' || currentChartKind === 'hbar'
-
-	if (enteringLatestValueChart || leavingLatestValueChart) {
-		return {
-			...nextUpdates,
-			chartProtocols: undefined,
-			excludeChartProtocols: undefined
-		}
-	}
-
-	return nextUpdates
+	return getChartKindQueryUpdate(nextChartKind, currentGroupByParam)
 }
 
 export const AdapterByChainChart = ({
@@ -209,9 +198,12 @@ export const AdapterByChainChart = ({
 	chain,
 	chartName,
 	dataType,
-	protocols
-}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType' | 'protocols'> & {
+	categories,
+	protocols,
+	tableProtocols
+}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType' | 'categories' | 'protocols'> & {
 	chartName: string
+	tableProtocols: IAdapterByChainPageData['protocols']
 }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
@@ -254,9 +246,6 @@ export const AdapterByChainChart = ({
 			router.query.valueMode
 		]
 	)
-	const isLatestValueBreakdownChart =
-		chartViewMode === 'Breakdown' &&
-		(breakdownChartState.chartKind === 'treemap' || breakdownChartState.chartKind === 'hbar')
 
 	const { data: combinedBribesChart, error: combinedBribesChartError } = useQuery({
 		queryKey: ['adapter-chain-chart', adapterType, chain, 'dailyBribesRevenue'],
@@ -295,7 +284,7 @@ export const AdapterByChainChart = ({
 		chartName,
 		chain,
 		dataType,
-		enabled: chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart,
+		enabled: chartViewMode === 'Breakdown',
 		feesChartMode
 	})
 
@@ -333,35 +322,65 @@ export const AdapterByChainChart = ({
 		return nextFailedMetrics
 	}, [breakdownChartDataState, chartViewMode, combinedBribesChartError, combinedTokenTaxChartError, feesChartMode])
 
-	const protocolOptions = React.useMemo(
+	const protocolOptions = React.useMemo(() => {
+		if (breakdownChartDataState.kind !== 'ready') return []
+		const api = new Set(breakdownChartDataState.protocolDimensions)
+		return leafProtocolNamesFromTableRows(tableProtocols).filter((name) => api.has(name))
+	}, [breakdownChartDataState, tableProtocols])
+
+	const categoryProtocolNameFilter = React.useMemo(
 		() =>
-			isLatestValueBreakdownChart
-				? protocols.map((protocol) => protocol.name)
-				: breakdownChartDataState.kind === 'ready'
-					? breakdownChartDataState.protocolDimensions
-					: [],
-		[breakdownChartDataState, isLatestValueBreakdownChart, protocols]
+			getCategoryProtocolNameFilterForChart({
+				categories,
+				protocols,
+				categoryParam: router.query.category,
+				excludeCategoryParam: router.query.excludeCategory,
+				hasCategoryParam: Object.prototype.hasOwnProperty.call(router.query, 'category')
+			}),
+		[categories, protocols, router.query]
 	)
+
 	const selectedProtocols = React.useMemo(() => {
 		if (chartViewMode !== 'Breakdown' || protocolOptions.length === 0) return []
-		const protocolsQuery = router.query.chartProtocols
-		const excludeProtocolsQuery = router.query.excludeChartProtocols
+		if (categoryProtocolNameFilter.kind === 'no-rows') return []
+
+		const protocolsQuery = router.query.protocol
+		const excludeProtocolsQuery = router.query.excludeProtocol
 		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
 		const baseSelectedProtocols =
 			protocolsQuery != null ? parseArrayParam(protocolsQuery, protocolOptions) : protocolOptions
 
-		return excludedProtocolsSet.size > 0
-			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
-			: baseSelectedProtocols
-	}, [chartViewMode, protocolOptions, router.query.chartProtocols, router.query.excludeChartProtocols])
+		let next =
+			excludedProtocolsSet.size > 0
+				? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
+				: baseSelectedProtocols
+
+		if (categoryProtocolNameFilter.kind === 'restricted') {
+			next = next.filter((name) => categoryProtocolNameFilter.names.has(name))
+		}
+
+		return next
+	}, [categoryProtocolNameFilter, chartViewMode, protocolOptions, router.query.protocol, router.query.excludeProtocol])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
-		void pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
+		void pushShallowQuery(router, {
+			chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode,
+			...(nextChartViewMode === 'Combined'
+				? {
+						protocol: undefined,
+						excludeProtocol: undefined,
+						chartKind: undefined,
+						chartType: undefined,
+						valueMode: undefined,
+						barLayout: undefined
+					}
+				: {})
+		})
 	}
-	const onChangeBreakdownChartInterval = (nextInterval: LowercaseDwmGrouping) => {
+	const onChangeBreakdownChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartKind = (nextChartKind: ChainsByAdapterChartKind) => {
@@ -369,8 +388,7 @@ export const AdapterByChainChart = ({
 			router,
 			getAdapterByChainChartKindQueryUpdate({
 				nextChartKind,
-				currentGroupByParam: readSingleQueryValue(router.query.groupBy),
-				currentChartKind: breakdownChartState.chartKind
+				currentGroupByParam: readSingleQueryValue(router.query.groupBy)
 			})
 		)
 	}
@@ -483,8 +501,10 @@ export const AdapterByChainChart = ({
 			case 'hbar':
 				return buildAdapterByChainLatestValuePresentation({
 					chartKind: breakdownChartState.chartKind,
-					protocols,
-					selectedProtocols
+					selectedProtocols,
+					groupBy: breakdownChartState.groupBy,
+					chartData: breakdownChartData,
+					seriesType: 'bar'
 				})
 			case 'line':
 			case 'bar':
@@ -496,7 +516,7 @@ export const AdapterByChainChart = ({
 			default:
 				return assertNever(breakdownChartState)
 		}
-	}, [breakdownChartData, breakdownChartState, protocols, selectedProtocols])
+	}, [breakdownChartData, breakdownChartState, selectedProtocols])
 	const deferredBreakdownPresentation = React.useDeferredValue(breakdownPresentation)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
@@ -541,60 +561,6 @@ export const AdapterByChainChart = ({
 		}
 	}, [chain, adapterType, dashboardChartType, combinedChartInterval, chartName])
 
-	const breakdownMultiSeriesChartOptions = React.useMemo(() => {
-		switch (deferredBreakdownPresentation.kind) {
-			case 'treemap':
-			case 'hbar':
-				return undefined
-			case 'bar': {
-				const baseOptions =
-					deferredBreakdownPresentation.valueMode === 'relative'
-						? {
-								yAxis: {
-									min: 0,
-									max: 100
-								}
-							}
-						: {}
-				if (deferredBreakdownPresentation.charts.length <= 1) {
-					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
-				}
-				return {
-					...baseOptions,
-					legend: {
-						top: 12
-					},
-					grid: {
-						top: 40
-					}
-				}
-			}
-			case 'line':
-				if (deferredBreakdownPresentation.charts.length <= 1) {
-					return {
-						yAxis: {
-							min: 0,
-							max: 100
-						}
-					}
-				}
-				return {
-					yAxis: {
-						min: 0,
-						max: 100
-					},
-					legend: {
-						top: 12
-					},
-					grid: {
-						top: 40
-					}
-				}
-			default:
-				return assertNever(deferredBreakdownPresentation)
-		}
-	}, [deferredBreakdownPresentation])
-
 	const breakdownChartKindLabel =
 		breakdownChartState.chartKind === 'treemap'
 			? 'Treemap Chart'
@@ -616,6 +582,31 @@ export const AdapterByChainChart = ({
 				: 'Stacked'
 			: null
 	const breakdownChartHeight = getChartHeight(breakdownChartState)
+	const breakdownMultiSeriesChartOptions = React.useMemo(() => {
+		switch (deferredBreakdownPresentation.kind) {
+			case 'treemap':
+			case 'hbar':
+				return undefined
+			case 'bar':
+				return deferredBreakdownPresentation.valueMode === 'relative'
+					? {
+							yAxis: {
+								min: 0,
+								max: 100
+							}
+						}
+					: undefined
+			case 'line':
+				return {
+					yAxis: {
+						min: 0,
+						max: 100
+					}
+				}
+			default:
+				return assertNever(deferredBreakdownPresentation)
+		}
+	}, [deferredBreakdownPresentation])
 	const canExportBreakdownChart =
 		(deferredBreakdownPresentation.kind !== 'treemap' && deferredBreakdownPresentation.kind !== 'hbar') ||
 		deferredBreakdownPresentation.data.length > 0
@@ -631,14 +622,14 @@ export const AdapterByChainChart = ({
 		}
 		if (breakdownChartState.chartKind === 'treemap') {
 			return {
-				filename: `${chainSlug}-${slug(chartName)}-by-protocol-treemap-latest`,
-				title: `${chartBaseTitle} - Treemap (Latest)`
+				filename: `${chainSlug}-${slug(chartName)}-by-protocol-treemap-${breakdownChartState.groupBy}`,
+				title: `${chartBaseTitle} - Treemap (${breakdownChartState.groupBy})`
 			}
 		}
 		if (breakdownChartState.chartKind === 'hbar') {
 			return {
-				filename: `${chainSlug}-${slug(chartName)}-by-protocol-hbar-latest`,
-				title: `${chartBaseTitle} - HBar (Latest)`
+				filename: `${chainSlug}-${slug(chartName)}-by-protocol-hbar-${breakdownChartState.groupBy}`,
+				title: `${chartBaseTitle} - HBar (${breakdownChartState.groupBy})`
 			}
 		}
 
@@ -699,13 +690,11 @@ export const AdapterByChainChart = ({
 						variant="filter"
 					/>
 				) : null}
-				{chartViewMode === 'Breakdown' &&
-				breakdownChartState.chartKind !== 'treemap' &&
-				breakdownChartState.chartKind !== 'hbar' ? (
+				{chartViewMode === 'Breakdown' ? (
 					<ChartGroupingSelector
 						value={breakdownChartState.groupBy}
 						onValueChange={onChangeBreakdownChartInterval}
-						options={DWM_GROUPING_OPTIONS_LOWERCASE}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
 					/>
 				) : null}
 				{chartViewMode === 'Combined' && !LINE_DIMENSIONS.has(chartName) ? (
@@ -721,8 +710,8 @@ export const AdapterByChainChart = ({
 						<SelectWithCombobox
 							allValues={protocolOptions}
 							selectedValues={selectedProtocols}
-							includeQueryKey="chartProtocols"
-							excludeQueryKey="excludeChartProtocols"
+							includeQueryKey="protocol"
+							excludeQueryKey="excludeProtocol"
 							defaultSelectedValues={protocolOptions}
 							label="Protocols"
 							labelType="smol"
@@ -747,13 +736,11 @@ export const AdapterByChainChart = ({
 					)}
 				</div>
 			</div>
-			{chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart && breakdownChartDataState.kind === 'error' ? (
+			{chartViewMode === 'Breakdown' && breakdownChartDataState.kind === 'error' ? (
 				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">
 					{breakdownChartDataState.message}
 				</p>
-			) : chartViewMode === 'Breakdown' &&
-			  !isLatestValueBreakdownChart &&
-			  breakdownChartDataState.kind === 'loading' ? (
+			) : chartViewMode === 'Breakdown' && breakdownChartDataState.kind === 'loading' ? (
 				<p className="flex min-h-[360px] items-center justify-center gap-1">
 					Loading
 					<LoadingDots />
@@ -889,7 +876,13 @@ function useAdapterByChainBreakdownChartData({
 
 		const mergedData = mergeBreakdownCharts({
 			chart: data ?? [],
-			extraCharts: [bribesData ?? [], tokenTaxData ?? []]
+			extraCharts:
+				feesChartMode.kind === 'fees'
+					? [
+							feesChartMode.extras.includes('dailyBribesRevenue') ? (bribesData ?? []) : [],
+							feesChartMode.extras.includes('dailyTokenTaxes') ? (tokenTaxData ?? []) : []
+						]
+					: []
 		})
 		const protocolValuesByTimestamp = new Map<number, Record<string, number>>()
 		const protocolTotals = new Map<string, number>()
@@ -946,12 +939,14 @@ export const ChainsByAdapterChart = ({
 	adapterType,
 	chartData,
 	allChains,
-	chains,
 	chartName
-}: Pick<IChainsByAdapterPageData, 'adapterType' | 'chartData' | 'allChains' | 'chains'> & { chartName: string }) => {
+}: Pick<IChainsByAdapterPageData, 'adapterType' | 'chartData' | 'allChains'> & {
+	chartName: string
+}) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
+
 	const feesChartMode = React.useMemo(
 		() =>
 			getFeesChartMode({
@@ -979,17 +974,16 @@ export const ChainsByAdapterChart = ({
 			router.query.valueMode
 		]
 	)
-	const usesTimeSeriesData = chartState.chartKind === 'bar' || chartState.chartKind === 'line'
 	const selectedChains = React.useMemo(() => {
-		const chainsQuery = router.query.chains
-		const excludeChainsQuery = router.query.excludeChains
+		const chainsQuery = router.query.chain
+		const excludeChainsQuery = router.query.excludeChain
 		const excludedChainsSet = parseExcludeParam(excludeChainsQuery)
 		const baseSelectedChains = chainsQuery != null ? parseArrayParam(chainsQuery, allChains) : allChains
 
 		return excludedChainsSet.size > 0
 			? baseSelectedChains.filter((chain) => !excludedChainsSet.has(chain))
 			: baseSelectedChains
-	}, [allChains, router.query.chains, router.query.excludeChains])
+	}, [allChains, router.query.chain, router.query.excludeChain])
 
 	const { data: bribesChartData, error: bribesChartError } = useQuery({
 		queryKey: ['adapter-chain-breakdown-chart', adapterType, chartName, 'dailyBribesRevenue'],
@@ -997,7 +991,7 @@ export const ChainsByAdapterChart = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: usesTimeSeriesData && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
+		enabled: feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
 	})
 
 	const { data: tokenTaxChartData, error: tokenTaxChartError } = useQuery({
@@ -1006,14 +1000,10 @@ export const ChainsByAdapterChart = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: usesTimeSeriesData && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
+		enabled: feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
 	})
 
 	const mergedChartData = React.useMemo(() => {
-		if (!usesTimeSeriesData) {
-			return chartData
-		}
-
 		switch (feesChartMode.kind) {
 			case 'plain':
 				return chartData
@@ -1025,10 +1015,10 @@ export const ChainsByAdapterChart = ({
 			default:
 				return assertNever(feesChartMode)
 		}
-	}, [bribesChartData, chartData, feesChartMode, tokenTaxChartData, usesTimeSeriesData])
+	}, [bribesChartData, chartData, feesChartMode, tokenTaxChartData])
 
 	const failedMetrics = React.useMemo(() => {
-		if (!usesTimeSeriesData || feesChartMode.kind === 'plain') {
+		if (feesChartMode.kind === 'plain') {
 			return []
 		}
 
@@ -1041,7 +1031,7 @@ export const ChainsByAdapterChart = ({
 		}
 
 		return nextFailedMetrics
-	}, [bribesChartError, feesChartMode, tokenTaxChartError, usesTimeSeriesData])
+	}, [bribesChartError, feesChartMode, tokenTaxChartError])
 
 	const chartPresentation = React.useMemo(
 		() =>
@@ -1049,13 +1039,13 @@ export const ChainsByAdapterChart = ({
 				chartData: mergedChartData,
 				selectedChains,
 				state: chartState,
-				latestChainRows: chains
+				latestValueSeriesType: 'bar'
 			}),
-		[mergedChartData, selectedChains, chartState, chains]
+		[mergedChartData, selectedChains, chartState]
 	)
 	const deferredChartPresentation = React.useDeferredValue(chartPresentation)
 
-	const onChangeChartInterval = (nextInterval: LowercaseDwmGrouping) => {
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 
@@ -1091,14 +1081,14 @@ export const ChainsByAdapterChart = ({
 
 		if (chartState.chartKind === 'treemap') {
 			return {
-				filename: `${slug(chartName)}-by-chain-treemap-latest`,
-				title: `${chartBaseTitle} - Treemap (Latest)`
+				filename: `${slug(chartName)}-by-chain-treemap-${chartState.groupBy}`,
+				title: `${chartBaseTitle} - Treemap (${chartState.groupBy})`
 			}
 		}
 		if (chartState.chartKind === 'hbar') {
 			return {
-				filename: `${slug(chartName)}-by-chain-hbar-latest`,
-				title: `${chartBaseTitle} - HBar (Latest)`
+				filename: `${slug(chartName)}-by-chain-hbar-${chartState.groupBy}`,
+				title: `${chartBaseTitle} - HBar (${chartState.groupBy})`
 			}
 		}
 
@@ -1109,60 +1099,6 @@ export const ChainsByAdapterChart = ({
 			}, ${chartState.groupBy})`
 		}
 	}, [chartName, chartState])
-
-	const multiSeriesChartOptions = React.useMemo(() => {
-		switch (deferredChartPresentation.kind) {
-			case 'treemap':
-			case 'hbar':
-				return undefined
-			case 'bar': {
-				const baseOptions =
-					deferredChartPresentation.valueMode === 'relative'
-						? {
-								yAxis: {
-									min: 0,
-									max: 100
-								}
-							}
-						: {}
-				if (deferredChartPresentation.charts.length <= 1) {
-					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
-				}
-				return {
-					...baseOptions,
-					legend: {
-						top: 12
-					},
-					grid: {
-						top: 40
-					}
-				}
-			}
-			case 'line':
-				if (deferredChartPresentation.charts.length <= 1) {
-					return {
-						yAxis: {
-							min: 0,
-							max: 100
-						}
-					}
-				}
-				return {
-					yAxis: {
-						min: 0,
-						max: 100
-					},
-					legend: {
-						top: 12
-					},
-					grid: {
-						top: 40
-					}
-				}
-			default:
-				return assertNever(deferredChartPresentation)
-		}
-	}, [deferredChartPresentation])
 
 	const chartKindLabel =
 		chartState.chartKind === 'treemap'
@@ -1177,6 +1113,31 @@ export const ChainsByAdapterChart = ({
 	const barLayoutLabel =
 		chartState.chartKind === 'bar' ? (chartState.barLayout === 'separate' ? 'Separate' : 'Stacked') : null
 	const chartHeight = getChartHeight(chartState)
+	const multiSeriesChartOptions = React.useMemo(() => {
+		switch (deferredChartPresentation.kind) {
+			case 'treemap':
+			case 'hbar':
+				return undefined
+			case 'bar':
+				return deferredChartPresentation.valueMode === 'relative'
+					? {
+							yAxis: {
+								min: 0,
+								max: 100
+							}
+						}
+					: undefined
+			case 'line':
+				return {
+					yAxis: {
+						min: 0,
+						max: 100
+					}
+				}
+			default:
+				return assertNever(deferredChartPresentation)
+		}
+	}, [deferredChartPresentation])
 	const canExportChart =
 		(deferredChartPresentation.kind !== 'treemap' && deferredChartPresentation.kind !== 'hbar') ||
 		deferredChartPresentation.data.length > 0
@@ -1220,19 +1181,17 @@ export const ChainsByAdapterChart = ({
 						variant="filter"
 					/>
 				) : null}
-				{chartState.chartKind !== 'treemap' && chartState.chartKind !== 'hbar' ? (
-					<ChartGroupingSelector
-						value={chartState.groupBy}
-						onValueChange={onChangeChartInterval}
-						options={DWM_GROUPING_OPTIONS_LOWERCASE}
-					/>
-				) : null}
+				<ChartGroupingSelector
+					value={chartState.groupBy}
+					onValueChange={onChangeChartInterval}
+					options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+				/>
 				<div className="ml-auto flex items-center justify-end gap-2">
 					<SelectWithCombobox
 						allValues={allChains}
 						selectedValues={selectedChains}
-						includeQueryKey="chains"
-						excludeQueryKey="excludeChains"
+						includeQueryKey="chain"
+						excludeQueryKey="excludeChain"
 						defaultSelectedValues={allChains}
 						label="Chains"
 						labelType="smol"

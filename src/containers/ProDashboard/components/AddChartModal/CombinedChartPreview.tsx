@@ -23,7 +23,7 @@ const mapGroupingToGroupBy = (grouping: DashboardGrouping): 'daily' | 'weekly' |
 }
 
 export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProps) {
-	const { getProtocolInfo } = useProDashboardCatalog()
+	const { getProtocolInfo, protocols } = useProDashboardCatalog()
 
 	const previewGrouping = useMemo<DashboardGrouping>(() => {
 		const definedGroupings = composerItems
@@ -49,7 +49,12 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		for (const item of composerItems) {
 			if (item.data && Array.isArray(item.data) && item.data.length > 0) {
 				const meta = CHART_TYPES[item.type]
-				const displayName = item.protocol ? getProtocolInfo(item.protocol)?.name || item.protocol : item.chain || ''
+				const displayName = item.protocol
+					? getProtocolInfo(item.protocol)?.name || item.protocol
+					: item.chain ||
+						(item.geckoId && protocols.find((p: any) => p.geckoId === item.geckoId)?.name) ||
+						item.geckoId ||
+						''
 
 				const nonMonetaryTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 				const percentMetricTypes = ['medianApy']
@@ -90,7 +95,7 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		const symbol = result.length > 0 && allPercentMetrics ? '%' : hasNonMonetaryMetrics ? '' : '$'
 
 		return { series: result, valueSymbol: symbol }
-	}, [getProtocolInfo, composerItems])
+	}, [getProtocolInfo, protocols, composerItems])
 
 	if (series.length === 0 && composerItems.length > 0) {
 		return (

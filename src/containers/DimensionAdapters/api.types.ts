@@ -46,6 +46,7 @@ export interface IAdapterProtocolMetrics {
 	symbol?: string
 	address?: string
 	hallmarks?: Array<unknown> | null
+	dimensions?: Record<string, { genuineSpikes?: Array<[string, string]>; adapter?: string }> | null
 	wrongLiquidity?: boolean
 	forkedFrom?: Array<string> | null
 	audits?: string | null

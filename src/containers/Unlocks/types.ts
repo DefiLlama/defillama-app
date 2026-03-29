@@ -39,4 +39,5 @@ export interface ProtocolEmissionResult {
 	name: string | null
 	tokenPrice: { price?: number; symbol?: string }
 	unlockUsdChart: unknown[] | null
+	tbdSections: string[]
 }
