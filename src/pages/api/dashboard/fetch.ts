@@ -87,7 +87,13 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 				}
 			}
 
-			return { chartDataByPeggedAsset, peggedAssetNames, peggedNameToChartDataIndex, filteredPeggedAssets, doublecountedIds }
+			return {
+				chartDataByPeggedAsset,
+				peggedAssetNames,
+				peggedNameToChartDataIndex,
+				filteredPeggedAssets,
+				doublecountedIds
+			}
 		}
 
 		case 'advancedTvlBasic': {

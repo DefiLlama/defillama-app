@@ -36,6 +36,10 @@ export function useChartResize(instanceRef: RefObject<echarts.ECharts | null>) {
 		}
 
 		window.addEventListener('resize', resize)
-		return () => window.removeEventListener('resize', resize)
+		window.addEventListener('chartResize', resize)
+		return () => {
+			window.removeEventListener('resize', resize)
+			window.removeEventListener('chartResize', resize)
+		}
 	}, [instanceRef])
 }

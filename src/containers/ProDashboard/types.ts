@@ -206,8 +206,11 @@ export interface IncomeStatementConfig {
 export interface LlamaAIChartConfig {
 	id: string
 	kind: 'llamaai-chart'
-	savedChartId: string
+	savedChartId?: string
+	chartRef?: string
 	title?: string
+	inlineChartConfig?: any
+	inlineChartData?: Record<string, any[]>
 	colSpan?: StoredColSpan
 }
 

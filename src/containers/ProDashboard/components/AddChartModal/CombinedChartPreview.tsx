@@ -51,7 +51,10 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 				const meta = CHART_TYPES[item.type]
 				const displayName = item.protocol
 					? getProtocolInfo(item.protocol)?.name || item.protocol
-					: item.chain || (item.geckoId && protocols.find((p: any) => p.geckoId === item.geckoId)?.name) || item.geckoId || ''
+					: item.chain ||
+						(item.geckoId && protocols.find((p: any) => p.geckoId === item.geckoId)?.name) ||
+						item.geckoId ||
+						''
 
 				const nonMonetaryTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 				const percentMetricTypes = ['medianApy']

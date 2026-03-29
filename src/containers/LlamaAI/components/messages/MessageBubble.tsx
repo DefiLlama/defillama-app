@@ -739,12 +739,22 @@ export function MessageBubble({
 }
 
 const KIND_LABELS: Record<string, string> = {
-	chart: 'chart', multi: 'multi-chart', metric: 'metric', builder: 'chart builder',
-	text: 'text', table: 'table', 'unified-table': 'table', yields: 'yield chart',
-	stablecoins: 'stablecoin chart', 'stablecoin-asset': 'stablecoin chart',
-	'advanced-tvl': 'TVL breakdown', 'advanced-borrowed': 'borrowed chart',
-	'income-statement': 'income statement', 'unlocks-schedule': 'unlock schedule',
-	'unlocks-pie': 'unlock pie', 'llamaai-chart': 'AI chart'
+	chart: 'chart',
+	multi: 'multi-chart',
+	metric: 'metric',
+	builder: 'chart builder',
+	text: 'text',
+	table: 'table',
+	'unified-table': 'table',
+	yields: 'yield chart',
+	stablecoins: 'stablecoin chart',
+	'stablecoin-asset': 'stablecoin chart',
+	'advanced-tvl': 'TVL breakdown',
+	'advanced-borrowed': 'borrowed chart',
+	'income-statement': 'income statement',
+	'unlocks-schedule': 'unlock schedule',
+	'unlocks-pie': 'unlock pie',
+	'llamaai-chart': 'AI chart'
 }
 
 function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
@@ -769,9 +779,7 @@ function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
 					<span className="truncate text-sm font-semibold text-[#2172e5] dark:text-[#4190f7]">
 						{dashboard.dashboardName}
 					</span>
-					<span className="shrink-0 text-xs text-[#636e72] dark:text-[#8a8f98]">
-						{dashboard.items.length} items
-					</span>
+					<span className="shrink-0 text-xs text-[#636e72] dark:text-[#8a8f98]">{dashboard.items.length} items</span>
 				</div>
 				<div className="truncate text-xs text-[#636e72] dark:text-[#8a8f98]">{summary}</div>
 			</div>

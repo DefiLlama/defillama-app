@@ -1,5 +1,11 @@
 import { MCP_SERVER } from '~/constants'
-import type { AlertProposedData, ChartConfiguration, DashboardArtifact, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
+import type {
+	AlertProposedData,
+	ChartConfiguration,
+	DashboardArtifact,
+	MessageMetadata,
+	ToolExecution
+} from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -83,6 +89,7 @@ interface DashboardEvent {
 		timePeriod?: string
 		sourceDashboardId?: string
 	}
+	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
 	content?: {
 		dashboard_id?: string
 		dashboardConfig?: {
@@ -91,6 +98,7 @@ interface DashboardEvent {
 			timePeriod?: string
 			sourceDashboardId?: string
 		}
+		chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
 	}
 }
 
@@ -198,6 +206,7 @@ interface FetchAgenticResponseParams {
 	customInstructions?: string
 	quotedText?: string
 	isSuggestedQuestion?: boolean
+	blockedSkills?: string[]
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -255,6 +264,7 @@ function parseSSEStream(
 					break
 				case 'dashboard': {
 					const config = data.dashboardConfig || data.content?.dashboardConfig
+					const chartData = data.chartData || data.content?.chartData
 					if (config && callbacks.onDashboard) {
 						callbacks.onDashboard({
 							id: data.dashboard_id || data.content?.dashboard_id || `dashboard_${Date.now()}`,
@@ -262,6 +272,7 @@ function parseSSEStream(
 							items: config.items || [],
 							timePeriod: config.timePeriod,
 							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
+							...(chartData && { chartData })
 						})
 					}
 					break
@@ -369,6 +380,7 @@ export async function fetchAgenticResponse({
 	customInstructions,
 	quotedText,
 	isSuggestedQuestion,
+	blockedSkills,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -387,6 +399,7 @@ export async function fetchAgenticResponse({
 		customInstructions?: string
 		quotedText?: string
 		isSuggestedQuestion?: true
+		blockedSkills?: string[]
 	} = {
 		message,
 		stream: true
@@ -428,6 +441,10 @@ export async function fetchAgenticResponse({
 
 	if (isSuggestedQuestion) {
 		requestBody.isSuggestedQuestion = true
+	}
+
+	if (blockedSkills && blockedSkills.length > 0) {
+		requestBody.blockedSkills = blockedSkills
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {

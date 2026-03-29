@@ -17,6 +17,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [refreshError, setRefreshError] = useState<string | null>(null)
 
+	const hasInlineData = !!(config.inlineChartConfig && config.inlineChartData)
 	const queryKey = ['pro-dashboard', 'saved-chart', user?.id, config.savedChartId]
 
 	const { data, isLoading, error, refetch } = useQuery({
@@ -29,8 +30,17 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		},
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: 'always',
-		enabled: !loaders.userLoading
+		enabled: !loaders.userLoading && !!config.savedChartId && !hasInlineData
 	})
+
+	if (hasInlineData) {
+		return (
+			<div className="flex flex-col gap-2 p-2">
+				<h3 className="font-medium">{config.title || 'Custom Chart'}</h3>
+				<ChartRenderer charts={[config.inlineChartConfig]} chartData={config.inlineChartData!} />
+			</div>
+		)
+	}
 
 	const handleOwnerRefresh = async () => {
 		setIsRefreshing(true)

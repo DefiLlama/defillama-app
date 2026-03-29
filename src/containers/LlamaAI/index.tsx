@@ -59,7 +59,13 @@ import {
 	type StreamBuffer,
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
-import type { AlertProposedData, ChartConfiguration, DashboardArtifact, Message, ToolExecution } from '~/containers/LlamaAI/types'
+import type {
+	AlertProposedData,
+	ChartConfiguration,
+	DashboardArtifact,
+	Message,
+	ToolExecution
+} from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setSignupSource } from '~/containers/Subscribtion/signupSource'
@@ -210,7 +216,31 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 		citations: message.citations,
 		csvExports: message.csvExports,
 		dashboards: dashboardConfig
-			? [{ id: `dashboard_restored_${message.messageId}`, dashboardName: dashboardConfig.dashboardName || 'Dashboard', items: dashboardConfig.items || [], timePeriod: dashboardConfig.timePeriod, sourceDashboardId: dashboardConfig.sourceDashboardId }]
+			? [
+					(() => {
+						const artifact: DashboardArtifact = {
+							id: `dashboard_restored_${message.messageId}`,
+							dashboardName: dashboardConfig.dashboardName || 'Dashboard',
+							items: dashboardConfig.items || [],
+							timePeriod: dashboardConfig.timePeriod,
+							sourceDashboardId: dashboardConfig.sourceDashboardId
+						}
+						const chartRefs = (dashboardConfig.items || []).filter((i: any) => i.kind === 'llamaai-chart' && i.chartRef)
+						if (chartRefs.length > 0 && message.chartData && message.charts) {
+							const chartConfigMap = new Map((message.charts as any[]).map((c: any) => [c.id, c]))
+							const bundled: Record<string, any> = {}
+							for (const item of chartRefs) {
+								const data = (message.chartData as Record<string, any>)[item.chartRef]
+								const config = chartConfigMap.get(item.chartRef)
+								if (data && config) {
+									bundled[item.chartRef] = { config, data, toolChain: [] }
+								}
+							}
+							if (Object.keys(bundled).length > 0) artifact.chartData = bundled
+						}
+						return artifact
+					})()
+				]
 			: undefined,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
@@ -567,6 +597,7 @@ function createAgenticCallbacks({
 
 export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+	const isMobileChatView = useMedia('(max-width: 1023px)')
 
 	const getAuthorizedFetchInput = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
 		if (!(input instanceof Request)) {
@@ -748,6 +779,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		}
 	}, [streamingDashboards])
 
+	useEffect(() => {
+		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
+		return () => clearTimeout(timer)
+	}, [dashboardPanelConfig])
+
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
 			window.clearTimeout(promptTransitionTimerRef.current)
@@ -893,7 +929,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [toggleSidebar])
 
 	const toggleDashboardPanel = useCallback(() => {
-		setDashboardPanelConfig((prev) => (prev ? null : dashboardVersions[dashboardVersionIndex] ?? null))
+		setDashboardPanelConfig((prev) => (prev ? null : (dashboardVersions[dashboardVersionIndex] ?? null)))
 	}, [dashboardVersions, dashboardVersionIndex])
 
 	const chromeValue = useMemo(
@@ -1139,16 +1175,15 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
 
-			const lastDashboard = restored.findLast((m) => m.dashboards?.length)?.dashboards?.at(-1)
-			if (lastDashboard) {
-				setDashboardVersions(restored.flatMap((m) => m.dashboards || []))
-				setDashboardVersionIndex(restored.flatMap((m) => m.dashboards || []).length - 1)
-				setDashboardPanelConfig(lastDashboard)
+			const allDashboards = restored.flatMap((m) => m.dashboards || [])
+			if (allDashboards.length > 0) {
+				setDashboardVersions(allDashboards)
+				setDashboardVersionIndex(allDashboards.length - 1)
 			} else {
-				setDashboardPanelConfig(null)
 				setDashboardVersions([])
 				setDashboardVersionIndex(0)
 			}
+			setDashboardPanelConfig(null)
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
 			attach()
@@ -1506,6 +1541,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						quotedText: currentQuotedText || undefined,
 						customInstructions: customInstructions || undefined,
 						isSuggestedQuestion,
+						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
 						eventCounter,
@@ -1640,7 +1676,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			attach,
 			shouldShowLanding,
 			triggerPromptTransition,
-			quotedText
+			quotedText,
+			isMobileChatView
 		]
 	)
 

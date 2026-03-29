@@ -337,7 +337,8 @@ function ProDashboardAPIProviderInner({
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
 	const chains = rawChains as Chain[]
 
-	const [state, dispatch] = useReducer(dashboardReducer, initialDashboardId, initDashboardState)
+	const initArg = initialItems?.length ? { dashboardId: initialDashboardId, items: initialItems } : initialDashboardId
+	const [state, dispatch] = useReducer(dashboardReducer, initArg, initDashboardState)
 
 	useEffect(() => {
 		if (initialItems && initialItems.length > 0) {
@@ -957,7 +958,7 @@ function ProDashboardAPIProviderInner({
 		const resolveChartItem = (chartItem: ChartConfig) => {
 			const query = queryById.get(chartItem.id)
 			const data = query?.data ?? EMPTY_CHART_DATA
-			const isLoading = (query?.isLoading ?? false) || (!streamDone && !query?.data)
+			const isLoading = !query || (query?.isLoading ?? false) || (!streamDone && !query?.data)
 			const hasError = query?.isError ?? false
 			const refetch = query?.refetch ?? NOOP
 			return {

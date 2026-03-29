@@ -194,7 +194,7 @@ function CodeBlock({ children, label }: { children: string; label: string }) {
 const clientConfigs = [
 	{
 		name: 'Claude Code',
-		code: `claude mcp add defillama --transport http https://mcp.defillama.com/mcp`,
+		code: `claude mcp add defillama --transport http https://mcp.defillama.com/mcp`
 	},
 	{
 		name: 'OpenClaw',
@@ -207,11 +207,11 @@ const clientConfigs = [
       }
     }
   }
-}`,
+}`
 	},
 	{
 		name: 'Codex',
-		code: `codex mcp add defillama --url https://mcp.defillama.com/mcp`,
+		code: `codex mcp add defillama --url https://mcp.defillama.com/mcp`
 	},
 	{
 		name: 'Cursor / Windsurf',
@@ -221,7 +221,7 @@ const clientConfigs = [
       "url": "https://mcp.defillama.com/mcp"
     }
   }
-}`,
+}`
 	},
 	{
 		name: 'Gemini CLI',
@@ -231,7 +231,7 @@ const clientConfigs = [
       "httpUrl": "https://mcp.defillama.com/mcp"
     }
   }
-}`,
+}`
 	},
 	{
 		name: 'OpenCode',
@@ -242,8 +242,8 @@ const clientConfigs = [
       "url": "https://mcp.defillama.com/mcp"
     }
   }
-}`,
-	},
+}`
+	}
 ]
 
 function ManualSetup() {

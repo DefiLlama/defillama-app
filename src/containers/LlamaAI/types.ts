@@ -102,6 +102,7 @@ export interface DashboardArtifact {
 	items: any[]
 	timePeriod?: string
 	sourceDashboardId?: string
+	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
 }
 
 export type JsonPrimitive = string | number | boolean | null

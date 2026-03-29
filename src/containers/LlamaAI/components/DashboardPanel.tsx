@@ -1,6 +1,8 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import Router from 'next/router'
 import { Icon } from '~/components/Icon'
+import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { DashboardItemConfig } from '~/containers/ProDashboard/types'
@@ -20,7 +22,14 @@ interface DashboardPanelProps {
 
 const NOOP = () => {}
 
-function DashboardPanelInner({ config, versions, versionIndex, onVersionChange, onClose, sessionId }: DashboardPanelProps) {
+function DashboardPanelInner({
+	config,
+	versions,
+	versionIndex,
+	onVersionChange,
+	onClose,
+	sessionId
+}: DashboardPanelProps) {
 	const { authorizedFetch, user } = useAuthContext()
 	const [isCreating, setIsCreating] = useState(false)
 	const [animState, setAnimState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed')
@@ -29,6 +38,19 @@ function DashboardPanelInner({ config, versions, versionIndex, onVersionChange, 
 	if (config) lastConfigRef.current = config
 	const displayConfig = config || lastConfigRef.current
 	const isConfigPresent = !!config
+
+	const enrichedItems = useMemo(() => {
+		if (!displayConfig) return []
+		const chartData = displayConfig.chartData
+		if (!chartData) return displayConfig.items as DashboardItemConfig[]
+		return (displayConfig.items as DashboardItemConfig[]).map((item: any) => {
+			if (item.kind === 'llamaai-chart' && item.chartRef && chartData[item.chartRef]) {
+				const bundled = chartData[item.chartRef]
+				return { ...item, inlineChartConfig: bundled.config, inlineChartData: { [item.chartRef]: bundled.data } }
+			}
+			return item
+		})
+	}, [displayConfig])
 
 	useEffect(() => {
 		if (isConfigPresent) {
@@ -54,9 +76,34 @@ function DashboardPanelInner({ config, versions, versionIndex, onVersionChange, 
 		if (isCreating || !displayConfig) return
 		setIsCreating(true)
 		try {
+			let finalItems = displayConfig.items as DashboardItemConfig[]
+
+			const chartRefItems = finalItems.filter((i: any) => i.kind === 'llamaai-chart' && i.chartRef && !i.savedChartId)
+			if (chartRefItems.length > 0 && sessionId) {
+				const promoteRes = await authorizedFetch(`${MCP_SERVER}/agentic/promote-charts`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sessionId, chartRefs: chartRefItems.map((i: any) => i.chartRef) })
+				})
+				if (promoteRes?.ok) {
+					const data = await promoteRes.json()
+					const mapping = data?.mapping || {}
+					finalItems = finalItems.map((item: any) => {
+						if (item.kind === 'llamaai-chart' && item.chartRef && mapping[item.chartRef]) {
+							return { ...item, savedChartId: mapping[item.chartRef], chartRef: undefined }
+						}
+						return item
+					})
+				} else {
+					toast.error('Failed to save custom charts. Try again.')
+					setIsCreating(false)
+					return
+				}
+			}
+
 			const dashboard = await dashboardAPI.createDashboard(
 				{
-					items: displayConfig.items as DashboardItemConfig[],
+					items: finalItems,
 					dashboardName: displayConfig.dashboardName,
 					timePeriod: (displayConfig.timePeriod as any) || '365d',
 					visibility: 'private',
@@ -78,7 +125,7 @@ function DashboardPanelInner({ config, versions, versionIndex, onVersionChange, 
 			)
 			void Router.push(`/pro/${dashboard.id}`)
 		} catch (err) {
-			console.error('Failed to create dashboard:', err)
+			toast.error(err instanceof Error ? err.message : 'Failed to create dashboard')
 		} finally {
 			setIsCreating(false)
 		}
@@ -94,7 +141,10 @@ function DashboardPanelInner({ config, versions, versionIndex, onVersionChange, 
 			className="shrink-0 overflow-hidden transition-[width] duration-200 ease-out max-lg:hidden"
 			style={{ width: isOpen ? 'min(50vw, 800px)' : '0px' }}
 		>
-			<div className="flex h-full flex-col border-l border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]" style={{ width: 'min(50vw, 800px)', minWidth: '400px' }}>
+			<div
+				className="flex h-full flex-col border-l border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
+				style={{ width: 'min(50vw, 800px)', minWidth: '400px' }}
+			>
 				<div className="flex items-center justify-between border-b border-[#e6e6e6] px-4 py-3 dark:border-[#222324]">
 					<div className="flex items-center gap-2 overflow-hidden">
 						<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
@@ -124,7 +174,7 @@ function DashboardPanelInner({ config, versions, versionIndex, onVersionChange, 
 
 				<div className="flex-1 overflow-y-auto">
 					<AppMetadataProvider>
-						<ProDashboardAPIProvider initialItems={displayConfig.items as DashboardItemConfig[]}>
+						<ProDashboardAPIProvider key={displayConfig.id} initialItems={enrichedItems}>
 							<ChartGrid onAddChartClick={NOOP} />
 						</ProDashboardAPIProvider>
 					</AppMetadataProvider>

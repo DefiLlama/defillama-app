@@ -67,9 +67,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	} = useQuery({
 		queryKey: ['yield-pool-chart-data', gatedPoolId],
 		queryFn: () =>
-			authToken
-				? fetchYieldsViaProxy(gatedPoolId!, authToken)
-				: fetchJson(`${YIELD_CHART_API}/${gatedPoolId}`),
+			authToken ? fetchYieldsViaProxy(gatedPoolId!, authToken) : fetchJson(`${YIELD_CHART_API}/${gatedPoolId}`),
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 1,

@@ -381,7 +381,9 @@ export function AdvancedTvlChartTab({
 							<p className="text-xs pro-text2">Advanced TVL Chart</p>
 						</div>
 
-						<div className="h-[320px]" key={selectedAdvancedTvlChartType}>{chartContent}</div>
+						<div className="h-[320px]" key={selectedAdvancedTvlChartType}>
+							{chartContent}
+						</div>
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
