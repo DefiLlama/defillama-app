@@ -80,9 +80,7 @@ function buildCumulative(daily: { date: number; [k: string]: number }[], keys: s
 	})
 }
 
-function mergeSeries(
-	series: { data: [number, number][]; label: string }[]
-): { date: number; [k: string]: number }[] {
+function mergeSeries(series: { data: [number, number][]; label: string }[]): { date: number; [k: string]: number }[] {
 	const dateMap = new Map<number, Record<string, number>>()
 	const keys = series.map((s) => s.label)
 

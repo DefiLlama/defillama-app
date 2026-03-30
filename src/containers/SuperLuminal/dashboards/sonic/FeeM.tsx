@@ -1,9 +1,15 @@
-import { lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel } from '@tanstack/react-table'
-import * as echarts from 'echarts/core'
+import {
+	createColumnHelper,
+	useReactTable,
+	getCoreRowModel,
+	getSortedRowModel,
+	getPaginationRowModel
+} from '@tanstack/react-table'
 import { TreemapChart as EChartsTreemap } from 'echarts/charts'
 import { TooltipComponent, GraphicComponent } from 'echarts/components'
+import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { IMultiSeriesChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/SuperLuminal/index'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -34,7 +40,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
-	return <h2 className="text-xs font-semibold uppercase tracking-wider text-(--text-label)">{children}</h2>
+	return <h2 className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">{children}</h2>
 }
 
 function formatNumber(n: number): string {
@@ -49,12 +55,36 @@ function formatS(n: number): string {
 }
 
 const TREEMAP_COLORS = [
-	'#4691ce', '#4cae4f', '#e3570a', '#fac461', '#7f6562',
-	'#3b5d88', '#cf6a87', '#63cdda', '#f78fb3', '#778beb',
-	'#e77f67', '#786fa6', '#f5cd79', '#ea8685', '#596275',
-	'#574b90', '#f19066', '#3dc1d3', '#e15f41', '#c44569',
-	'#546de5', '#574b90', '#f78fb3', '#3dc1d3', '#e66767',
-	'#303952', '#574b90', '#fc5c65', '#45aaf2', '#26de81',
+	'#4691ce',
+	'#4cae4f',
+	'#e3570a',
+	'#fac461',
+	'#7f6562',
+	'#3b5d88',
+	'#cf6a87',
+	'#63cdda',
+	'#f78fb3',
+	'#778beb',
+	'#e77f67',
+	'#786fa6',
+	'#f5cd79',
+	'#ea8685',
+	'#596275',
+	'#574b90',
+	'#f19066',
+	'#3dc1d3',
+	'#e15f41',
+	'#c44569',
+	'#546de5',
+	'#574b90',
+	'#f78fb3',
+	'#3dc1d3',
+	'#e66767',
+	'#303952',
+	'#574b90',
+	'#fc5c65',
+	'#45aaf2',
+	'#26de81'
 ]
 
 function FeeMTreemap({ leaderboard }: { leaderboard: FeeMLeaderboardEntry[] }) {
@@ -259,12 +289,7 @@ export default function FeeM() {
 			<div className="flex flex-col gap-4">
 				<SectionHeader>Daily Activity</SectionHeader>
 				<ChartCard title={data.dailyStatsTitle}>
-					<MultiSeriesChart
-						series={data.dailyStatsSeries}
-						valueSymbol=""
-						yAxisSymbols={['', 'S']}
-						height="400px"
-					/>
+					<MultiSeriesChart series={data.dailyStatsSeries} valueSymbol="" yAxisSymbols={['', 'S']} height="400px" />
 				</ChartCard>
 			</div>
 
@@ -287,14 +312,12 @@ export default function FeeM() {
 									{headerGroup.headers.map((header) => (
 										<th
 											key={header.id}
-											className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-label)"
+											className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-(--text-label) uppercase"
 											style={{ width: header.getSize() }}
 											onClick={header.column.getToggleSortingHandler()}
 										>
 											<div className="flex cursor-pointer items-center gap-1">
-												{typeof header.column.columnDef.header === 'string'
-													? header.column.columnDef.header
-													: null}
+												{typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : null}
 												{header.column.getIsSorted() === 'asc'
 													? ' \u2191'
 													: header.column.getIsSorted() === 'desc'
@@ -313,7 +336,7 @@ export default function FeeM() {
 										<td key={cell.id} className="px-4 py-2.5 text-sm text-(--text-primary)">
 											{typeof cell.column.columnDef.cell === 'function'
 												? cell.column.columnDef.cell(cell.getContext())
-												: cell.getValue() as string}
+												: (cell.getValue() as string)}
 										</td>
 									))}
 								</tr>

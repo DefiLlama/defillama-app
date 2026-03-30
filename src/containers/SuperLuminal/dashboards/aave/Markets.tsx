@@ -37,7 +37,11 @@ const reserveColumns: ColumnDef<FlatReserve>[] = [
 			const apy = formatPct(getValue<number>())
 			const reward = row.original.rewardSupplyApr
 			if (reward && reward > 0) {
-				return <span>{apy} <span className="text-green-500">+{formatPct(reward)}</span></span>
+				return (
+					<span>
+						{apy} <span className="text-green-500">+{formatPct(reward)}</span>
+					</span>
+				)
 			}
 			return apy
 		},
@@ -51,7 +55,11 @@ const reserveColumns: ColumnDef<FlatReserve>[] = [
 			const apy = formatPct(getValue<number | null>())
 			const discount = row.original.rewardBorrowDiscount
 			if (discount && discount > 0) {
-				return <span>{apy} <span className="text-green-500">-{formatPct(discount)}</span></span>
+				return (
+					<span>
+						{apy} <span className="text-green-500">-{formatPct(discount)}</span>
+					</span>
+				)
 			}
 			return apy
 		},

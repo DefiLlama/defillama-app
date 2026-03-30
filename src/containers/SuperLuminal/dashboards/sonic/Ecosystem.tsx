@@ -1,5 +1,11 @@
+import {
+	createColumnHelper,
+	useReactTable,
+	getCoreRowModel,
+	getSortedRowModel,
+	getPaginationRowModel
+} from '@tanstack/react-table'
 import { lazy, useEffect, useMemo, useState } from 'react'
-import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel } from '@tanstack/react-table'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/SuperLuminal/index'
 import { useEcosystemData, type TopProtocolEntry, type AssetCategory } from './ecosystemApi'
@@ -8,7 +14,15 @@ const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-function KpiCard({ label, value, change }: { label: string; value: string; change?: { value: number; formatted: string } }) {
+function KpiCard({
+	label,
+	value,
+	change
+}: {
+	label: string
+	value: string
+	change?: { value: number; formatted: string }
+}) {
 	return (
 		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
 			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
@@ -34,7 +48,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
-	return <h2 className="text-xs font-semibold uppercase tracking-wider text-(--text-label)">{children}</h2>
+	return <h2 className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">{children}</h2>
 }
 
 function formatUsd(n: number): string {
@@ -133,7 +147,7 @@ function ProtocolTable({ data, valueLabel }: { data: TopProtocolEntry[]; valueLa
 							{headerGroup.headers.map((header) => (
 								<th
 									key={header.id}
-									className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-label)"
+									className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-(--text-label) uppercase"
 									style={{ width: header.getSize() }}
 									onClick={header.column.getToggleSortingHandler()}
 								>
@@ -220,7 +234,13 @@ function AssetBreakdownSection({
 			<h3 className="mb-4 text-sm font-medium text-(--text-label)">{title}</h3>
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div className="min-h-[320px]">
-					<PieChart chartData={pieData} stackColors={pieColors} radius={['40%', '70%']} height="320px" valueSymbol="$" />
+					<PieChart
+						chartData={pieData}
+						stackColors={pieColors}
+						radius={['40%', '70%']}
+						height="320px"
+						valueSymbol="$"
+					/>
 				</div>
 				<div>
 					<div className="max-h-[400px] overflow-y-auto">
@@ -239,7 +259,7 @@ function AssetBreakdownSection({
 											{hasChildren ? (isOpen ? '\u25BC' : '\u25B6') : ''}
 										</span>
 										<span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
-										<span className="min-w-0 flex-1 truncate text-sm capitalize text-(--text-primary)">{cat.name}</span>
+										<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary) capitalize">{cat.name}</span>
 										<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{cat.formatted}</span>
 										<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{cat.pct}%</span>
 									</div>
@@ -312,13 +332,31 @@ export default function Ecosystem() {
 			<div className="flex flex-col gap-4">
 				<SectionHeader>DEX Volume</SectionHeader>
 				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-					<KpiCard label="24h Volume" value={data.dexVolume.kpis.total24h.formatted} change={data.dexVolume.kpis.change1d} />
-					<KpiCard label="7d Volume" value={data.dexVolume.kpis.total7d.formatted} change={data.dexVolume.kpis.change7d} />
-					<KpiCard label="30d Volume" value={data.dexVolume.kpis.total30d.formatted} change={data.dexVolume.kpis.change1m} />
+					<KpiCard
+						label="24h Volume"
+						value={data.dexVolume.kpis.total24h.formatted}
+						change={data.dexVolume.kpis.change1d}
+					/>
+					<KpiCard
+						label="7d Volume"
+						value={data.dexVolume.kpis.total7d.formatted}
+						change={data.dexVolume.kpis.change7d}
+					/>
+					<KpiCard
+						label="30d Volume"
+						value={data.dexVolume.kpis.total30d.formatted}
+						change={data.dexVolume.kpis.change1m}
+					/>
 					<KpiCard label="All-Time Volume" value={data.dexVolume.kpis.totalAllTime.formatted} />
 				</div>
 				<ChartCard title={data.dexVolume.title}>
-					<BarChart chartData={data.dexVolume.data} stacks={data.dexVolume.stacks} valueSymbol="$" title="" height="400px" />
+					<BarChart
+						chartData={data.dexVolume.data}
+						stacks={data.dexVolume.stacks}
+						valueSymbol="$"
+						title=""
+						height="400px"
+					/>
 				</ChartCard>
 				<SectionHeader>Top DEXes by Volume</SectionHeader>
 				<ProtocolTable data={data.dexVolume.topDexes} valueLabel="Volume" />

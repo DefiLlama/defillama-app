@@ -217,9 +217,7 @@ export default function Blockchain() {
 												onClick={header.column.getToggleSortingHandler()}
 											>
 												<div className="flex cursor-pointer items-center gap-1">
-													{typeof header.column.columnDef.header === 'string'
-														? header.column.columnDef.header
-														: null}
+													{typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : null}
 													{header.column.getIsSorted() === 'asc'
 														? ' \u2191'
 														: header.column.getIsSorted() === 'desc'

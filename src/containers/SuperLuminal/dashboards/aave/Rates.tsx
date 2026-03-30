@@ -117,20 +117,11 @@ export default function Rates() {
 
 	const activeAsset = selectedAsset || assetOptions[0] || ''
 
-	const assetReserves = useMemo(
-		() => reserves.filter((r) => r.symbol === activeAsset),
-		[reserves, activeAsset]
-	)
+	const assetReserves = useMemo(() => reserves.filter((r) => r.symbol === activeAsset), [reserves, activeAsset])
 
-	const primaryReserve = useMemo(
-		() => assetReserves.sort((a, b) => b.sizeUsd - a.sizeUsd)[0] ?? null,
-		[assetReserves]
-	)
+	const primaryReserve = useMemo(() => assetReserves.sort((a, b) => b.sizeUsd - a.sizeUsd)[0] ?? null, [assetReserves])
 
-	const {
-		chartData: supplyChartData,
-		isLoading: supplyLoading
-	} = useAaveAPYHistory(
+	const { chartData: supplyChartData, isLoading: supplyLoading } = useAaveAPYHistory(
 		primaryReserve?.chainId,
 		primaryReserve?.marketAddress,
 		primaryReserve?.tokenAddress,
@@ -138,10 +129,7 @@ export default function Rates() {
 		'supply'
 	)
 
-	const {
-		chartData: borrowChartData,
-		isLoading: borrowLoading
-	} = useAaveAPYHistory(
+	const { chartData: borrowChartData, isLoading: borrowLoading } = useAaveAPYHistory(
 		primaryReserve?.chainId,
 		primaryReserve?.marketAddress,
 		primaryReserve?.tokenAddress,
@@ -175,7 +163,13 @@ export default function Rates() {
 	const rateCurveData = useMemo(() => {
 		if (!primaryReserve) return null
 		const { baseVariableBorrowRate, variableRateSlope1, variableRateSlope2, optimalUsageRate } = primaryReserve
-		if (baseVariableBorrowRate == null || variableRateSlope1 == null || variableRateSlope2 == null || optimalUsageRate == null) return null
+		if (
+			baseVariableBorrowRate == null ||
+			variableRateSlope1 == null ||
+			variableRateSlope2 == null ||
+			optimalUsageRate == null
+		)
+			return null
 		if (optimalUsageRate === 0) return null
 
 		const points: { name: string; 'Borrow Rate': number; 'Supply Rate': number }[] = []
@@ -184,10 +178,17 @@ export default function Rates() {
 			if (u <= optimalUsageRate) {
 				borrowRate = baseVariableBorrowRate + (u / optimalUsageRate) * variableRateSlope1
 			} else {
-				borrowRate = baseVariableBorrowRate + variableRateSlope1 + ((u - optimalUsageRate) / (100 - optimalUsageRate)) * variableRateSlope2
+				borrowRate =
+					baseVariableBorrowRate +
+					variableRateSlope1 +
+					((u - optimalUsageRate) / (100 - optimalUsageRate)) * variableRateSlope2
 			}
 			const supplyRate = borrowRate * (u / 100)
-			points.push({ name: `${u}%`, 'Borrow Rate': Math.round(borrowRate * 100) / 100, 'Supply Rate': Math.round(supplyRate * 100) / 100 })
+			points.push({
+				name: `${u}%`,
+				'Borrow Rate': Math.round(borrowRate * 100) / 100,
+				'Supply Rate': Math.round(supplyRate * 100) / 100
+			})
 		}
 		return points
 	}, [primaryReserve])
@@ -215,7 +216,7 @@ export default function Rates() {
 				<select
 					value={activeAsset}
 					onChange={(e) => setSelectedAsset(e.target.value)}
-					className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-1.5 text-sm font-medium text-(--text-primary) outline-none transition-colors focus:border-(--sl-accent)"
+					className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-1.5 text-sm font-medium text-(--text-primary) transition-colors outline-none focus:border-(--sl-accent)"
 				>
 					{assetOptions.map((a) => (
 						<option key={a} value={a}>
@@ -276,8 +277,9 @@ export default function Rates() {
 			{rateCurveData ? (
 				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 					<div className="mb-4 flex flex-wrap items-baseline gap-x-6 gap-y-1">
-						<h3 className="text-[11px] font-semibold uppercase tracking-wider text-(--text-tertiary)">
-							{activeAsset} Interest Rate Model <span className="normal-case font-normal">\u00b7 {primaryReserve?.chain}</span>
+						<h3 className="text-[11px] font-semibold tracking-wider text-(--text-tertiary) uppercase">
+							{activeAsset} Interest Rate Model{' '}
+							<span className="font-normal normal-case">\u00b7 {primaryReserve?.chain}</span>
 						</h3>
 						{kpis?.optimalUtil && (
 							<span className="text-[11px] text-(--text-tertiary)">
