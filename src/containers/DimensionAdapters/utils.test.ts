@@ -548,8 +548,9 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 
 		expect(presentation.charts.map((chart) => chart.name)).toContain('History Giant')
 		expect(presentation.charts.map((chart) => chart.name)).toContain('Others')
-		expect(presentation.dataset.source.at(-1)?.['History Giant']).toBeCloseTo((101 / 191) * 100)
-		expect(presentation.dataset.source.at(-1)?.Others).toBeCloseTo((10 / 191) * 100)
+		expect(presentation.charts).toHaveLength(11)
+		expect(presentation.dataset.source.at(-1)?.['History Giant']).toBeCloseTo((101 / 201) * 100)
+		expect(presentation.dataset.source.at(-1)?.Others).toBeCloseTo((10 / 201) * 100)
 	})
 })
 
