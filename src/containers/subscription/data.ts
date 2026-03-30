@@ -346,6 +346,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 			},
 			{
 				label: 'Custom Columns for personalized analysis',
+				wrapLabel: true,
 				values: {
 					free: 'dash',
 					pro: 'check',
@@ -388,6 +389,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 		rows: [
 			{
 				label: 'Access to TVL, revenue/fees and prices API endpoints',
+				wrapLabel: true,
 				values: {
 					free: 'dash',
 					pro: 'dash',
@@ -397,6 +399,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 			},
 			{
 				label: 'Access to all data (unlocks, active users, token liq...)',
+				wrapLabel: true,
 				values: {
 					free: 'dash',
 					pro: 'dash',
@@ -416,6 +419,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 			{
 				label: 'Access to DefiLlama MCP Server for AI agents',
 				link: '/mcp',
+				wrapLabel: true,
 				values: {
 					free: 'dash',
 					pro: 'dash',
@@ -461,6 +465,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 			},
 			{
 				label: 'Custom bespoke solutions that fit your needs',
+				wrapLabel: true,
 				values: { free: 'dash', pro: 'dash', api: 'dash', enterprise: 'check' }
 			},
 			{

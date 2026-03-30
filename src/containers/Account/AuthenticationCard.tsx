@@ -2,14 +2,11 @@ import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useDevOverrides } from './DevToolbar' // [DEV-TOOLBAR] remove before production
 import { EmailChangeModal } from './EmailChangeModal'
 import { PasswordResetModal } from './PasswordResetModal'
 
 export function AuthenticationCard() {
-	const dev = useDevOverrides() // [DEV-TOOLBAR] remove before production
-	const realAuth = useAuthContext()
-	const { user, resetPasswordMutation, resendVerification, loaders } = dev?.auth ?? realAuth // [DEV-TOOLBAR] revert to: const { user, resetPasswordMutation, resendVerification, loaders } = useAuthContext()
+	const { user, resetPasswordMutation, resendVerification, loaders } = useAuthContext()
 
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)

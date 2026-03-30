@@ -1,15 +1,12 @@
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 import { AuthenticationCard } from './AuthenticationCard'
-import { useDevOverrides } from './DevToolbar' // [DEV-TOOLBAR] remove before production
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
 import { UserHeader } from './UserHeader'
 
 export function ManageAccount() {
-	const dev = useDevOverrides() // [DEV-TOOLBAR] remove before production
-	const realAuth = useAuthContext()
-	const { user, logout, isAuthenticated, loaders } = dev?.auth ?? realAuth // [DEV-TOOLBAR] revert to: const { user, logout, isAuthenticated, loaders } = useAuthContext()
+	const { user, logout, isAuthenticated, loaders } = useAuthContext()
 
 	if (loaders.userLoading) {
 		return (

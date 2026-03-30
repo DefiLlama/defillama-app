@@ -2,13 +2,10 @@ import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useDevOverrides } from './DevToolbar' // [DEV-TOOLBAR] remove before production
 import { ToggleSwitch } from './ToggleSwitch'
 
 export function SettingsCard() {
-	const dev = useDevOverrides() // [DEV-TOOLBAR] remove before production
-	const realAuth = useAuthContext()
-	const { user, addWallet, setPromotionalEmails, loaders } = dev?.auth ?? realAuth // [DEV-TOOLBAR] revert to: const { user, addWallet, setPromotionalEmails, loaders } = useAuthContext()
+	const { user, addWallet, setPromotionalEmails, loaders } = useAuthContext()
 	const { address } = useAccount()
 	const { signMessageAsync } = useSignMessage()
 	const { openConnectModal } = useConnectModal()

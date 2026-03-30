@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { DevToolbar } from '~/containers/Account/DevToolbar' // [DEV-TOOLBAR] remove before production
 import { ManageAccount } from '~/containers/Account/ManageAccount'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
@@ -66,12 +65,9 @@ export default function Account() {
 				description="Manage your DefiLlama account settings and authentication."
 				canonicalUrl="/account"
 			>
-				{/* [DEV-TOOLBAR] remove DevToolbar wrapper before production */}
-				<DevToolbar>
-					<div className="mx-auto w-full max-w-[573px] px-4 py-6">
-						<ManageAccount />
-					</div>
-				</DevToolbar>
+				<div className="mx-auto w-full max-w-[573px] px-4 py-6">
+					<ManageAccount />
+				</div>
 
 				{showSuccessModal && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">

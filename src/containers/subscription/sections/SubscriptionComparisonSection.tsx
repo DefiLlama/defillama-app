@@ -110,6 +110,15 @@ function ComparisonPlanHead({
 
 const LABEL_W = { mobile: 233, desktop: 400 }
 const PLAN_W = { mobile: 132, desktop: 146 }
+const COMPARISON_ROW_CLASSNAME = 'relative flex h-[41px] md:h-[36px]'
+const WRAPPED_COMPARISON_ROW_CLASSNAME = 'relative flex min-h-[41px] md:h-[36px]'
+const COMPARISON_ROW_HEADER_CLASSNAME =
+	'sticky left-0 z-30 flex w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
+const WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME =
+	'sticky left-0 z-30 flex w-[233px] items-start bg-white px-2 py-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:items-center md:px-4 md:py-0 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
+const COMPARISON_ROW_LABEL_CLASSNAME = 'block w-full overflow-hidden text-ellipsis whitespace-nowrap'
+const WRAPPED_COMPARISON_ROW_LABEL_CLASSNAME =
+	'block w-full whitespace-normal break-words md:overflow-hidden md:text-ellipsis md:whitespace-nowrap'
 
 function computeOverlayMetrics(planOrder: PlanKey[], selectedPlan: PlanKey) {
 	const isMd = window.matchMedia('(min-width: 768px)').matches
@@ -228,6 +237,7 @@ export function SubscriptionComparisonSection({
 						<div className="relative">
 							{comparisonSections.map((section, sectionIndex) => {
 								const isLastSection = sectionIndex === comparisonSections.length - 1
+								const hasWrappedLastRow = section.rows[section.rows.length - 1]?.wrapLabel
 								return (
 									<div key={section.title} role="rowgroup" className="relative">
 										<div
@@ -254,22 +264,25 @@ export function SubscriptionComparisonSection({
 
 										{section.rows.map((row, rowIndex) => {
 											const isLastRow = isLastSection && rowIndex === section.rows.length - 1
+											const rowClassName = row.wrapLabel ? WRAPPED_COMPARISON_ROW_CLASSNAME : COMPARISON_ROW_CLASSNAME
+											const rowHeaderClassName = row.wrapLabel
+												? WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME
+												: COMPARISON_ROW_HEADER_CLASSNAME
+											const rowLabelClassName = row.wrapLabel
+												? WRAPPED_COMPARISON_ROW_LABEL_CLASSNAME
+												: COMPARISON_ROW_LABEL_CLASSNAME
 											return (
-												<div
-													key={`${section.title}-${row.label}`}
-													role="row"
-													className="relative flex min-h-[41px] md:min-h-[36px]"
-												>
-													<div
-														role="rowheader"
-														className="sticky left-0 z-30 flex w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
-													>
+												<div key={`${section.title}-${row.label}`} role="row" className={rowClassName}>
+													<div role="rowheader" className={rowHeaderClassName}>
 														{row.link ? (
-															<a href={row.link} className="underline">
+															<a
+																href={row.link}
+																className={`${rowLabelClassName} text-current no-underline underline-offset-2 hover:text-(--sub-text-navy-900) hover:underline md:hover:text-(--sub-ink-primary) dark:hover:text-white`}
+															>
 																{row.label}
 															</a>
 														) : (
-															row.label
+															<span className={rowLabelClassName}>{row.label}</span>
 														)}
 													</div>
 													{planOrder.map((plan, planIndex) => {
@@ -305,7 +318,7 @@ export function SubscriptionComparisonSection({
 											)
 										})}
 
-										{isLastSection && overlayMetrics ? (
+										{isLastSection && overlayMetrics && !hasWrappedLastRow ? (
 											<PlanGridBottomOutline left={overlayMetrics.planGridLeft} width={overlayMetrics.planGridWidth} />
 										) : null}
 										{overlayMetrics ? (

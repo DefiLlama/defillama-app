@@ -32,6 +32,7 @@ export interface PricingCardData {
 export interface ComparisonRow {
 	label: string
 	link?: string
+	wrapLabel?: boolean
 	values: Record<PlanKey, Availability>
 }
 

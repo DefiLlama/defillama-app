@@ -7,7 +7,6 @@ import type { Subscription } from '~/containers/Subscribtion/useSubscribe'
 import { useAiBalance } from '~/containers/Subscribtion/useTopup'
 import { ApiAccessCard } from './ApiAccessCard'
 import { CancelSubscriptionModal } from './CancelSubscriptionModal'
-import { useDevOverrides } from './DevToolbar' // [DEV-TOOLBAR] remove before production
 import { EndTrialModal } from './EndTrialModal'
 import { ExternalDataBalanceCard } from './ExternalDataBalanceCard'
 import { SubscriptionCard } from './SubscriptionCard'
@@ -173,10 +172,8 @@ function LegacyWarning() {
 }
 
 export function SubscriptionSection() {
-	const dev = useDevOverrides() // [DEV-TOOLBAR] remove before production
-	const realAuth = useAuthContext() // [DEV-TOOLBAR] revert to: const { isTrial: isTrialFromAuth } = useAuthContext()
-	const { isTrial: isTrialFromAuth } = dev?.auth ?? realAuth // [DEV-TOOLBAR] revert to: (delete this line)
-	const realSubscribe = useSubscribe() // [DEV-TOOLBAR] rename to: const { apiSubscription, llamafeedSubscription, ... } = useSubscribe()
+	const { isTrial: isTrialFromAuth } = useAuthContext()
+
 	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
@@ -202,7 +199,7 @@ export function SubscriptionSection() {
 		isCancelSubscriptionLoading,
 		endTrialSubscription,
 		isEndTrialLoading
-	} = dev?.subscribe ?? realSubscribe // [DEV-TOOLBAR] revert to: } = useSubscribe()
+	} = useSubscribe()
 
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active'

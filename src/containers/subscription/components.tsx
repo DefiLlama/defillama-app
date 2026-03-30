@@ -401,7 +401,7 @@ export function ComparisonCell({
 		<div
 			role="cell"
 			aria-label={isIncluded ? 'Included' : 'Not included'}
-			className={`flex h-full w-[132px] items-center justify-center ${isSelected || hideBorderLeft ? '' : 'border-l'} text-center md:w-[146px] ${borderColor} ${selectedStyle} ${borderEnd} ${className}`}
+			className={`flex w-[132px] items-center justify-center self-stretch ${isSelected || hideBorderLeft ? '' : 'border-l'} text-center md:w-[146px] ${borderColor} ${selectedStyle} ${borderEnd} ${className}`}
 		>
 			{isIncluded ? (
 				<Icon name="check" height={24} width={24} className="text-(--sub-brand-secondary)" aria-hidden="true" />

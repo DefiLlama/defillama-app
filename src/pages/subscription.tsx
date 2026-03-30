@@ -16,7 +16,6 @@ import {
 	PRICING_CARDS_BY_CYCLE,
 	TRUST_LOGOS
 } from '~/containers/subscription/data'
-import { SubPageDevToolbar } from '~/containers/subscription/DevToolbar' // [DEV-TOOLBAR] remove before production
 import {
 	SubscriptionBackground,
 	SubscriptionComparisonSection,
@@ -372,10 +371,7 @@ export default function Subscription() {
 			</Head>
 			<LinkPreviewCard />
 			<WalletProvider>
-				{/* [DEV-TOOLBAR] remove DevToolbar wrapper before production */}
-				<SubPageDevToolbar>
-					<SubscriptionContent />
-				</SubPageDevToolbar>
+				<SubscriptionContent />
 			</WalletProvider>
 		</>
 	)
