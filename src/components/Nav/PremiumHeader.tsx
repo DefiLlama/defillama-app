@@ -1,5 +1,5 @@
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 
 export const PremiumHeader = () => {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import type { FaqItem } from '~/containers/subscription/types'
+import type { FaqItem } from '~/containers/Subscription/types'
 
 export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(0)

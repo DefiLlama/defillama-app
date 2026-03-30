@@ -6,8 +6,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 
 export function SubscribeLayout({
 	children,
@@ -41,7 +41,7 @@ export function SubscribeLayout({
 
 						<div className="flex items-center gap-2">
 							{!isAuthenticated ? (
-								<SignIn2Modal
+								<SignInModal
 									className="rounded-lg bg-[#5C5CF9] px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]"
 									hideWhenAuthenticated={false}
 								/>

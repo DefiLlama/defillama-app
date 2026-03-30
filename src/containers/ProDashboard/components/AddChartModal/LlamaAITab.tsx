@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { PremiumFeatureGate } from '../PremiumFeatureGate'
 
 interface SavedChart {

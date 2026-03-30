@@ -3,12 +3,12 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { MONTHLY_PRICING_CARDS } from '~/containers/subscription/data'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
-import type { FeatureItem } from '~/containers/subscription/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { PaymentButton } from '~/containers/Subscription/Crypto'
+import { MONTHLY_PRICING_CARDS } from '~/containers/Subscription/data'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import type { FeatureItem } from '~/containers/Subscription/types'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { QuestionHelper } from '../QuestionHelper'
@@ -235,7 +235,7 @@ export function SubscribeProCard({
 					</div>
 				) : (
 					<>
-						<SignIn2Modal text="Already a subscriber? Sign In" />
+						<SignInModal text="Already a subscriber? Sign In" />
 						{isAuthenticated && isTrialAvailable ? (
 							<div className="flex flex-col gap-1.5">
 								<button
@@ -357,7 +357,7 @@ export function SubscribeProModal({ dialogStore, returnUrl: _returnUrl }: Subscr
 					</span>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
-			<SignIn2Modal store={signInDialogStore} />
+			<SignInModal store={signInDialogStore} />
 		</WalletProvider>
 	)
 }

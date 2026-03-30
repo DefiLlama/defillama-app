@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type Ref } from 'react'
-import { ComparisonCell, SELECTED_COLUMN_HIGHLIGHT } from '~/containers/subscription/components'
-import { PLAN_META_BY_CYCLE } from '~/containers/subscription/data'
-import type { BillingCycle, ComparisonSection, PlanKey } from '~/containers/subscription/types'
+import { ComparisonCell, SELECTED_COLUMN_HIGHLIGHT } from '~/containers/Subscription/components'
+import { PLAN_META_BY_CYCLE } from '~/containers/Subscription/data'
+import type { BillingCycle, ComparisonSection, PlanKey } from '~/containers/Subscription/types'
 
 /* ── Style maps ────────────────────────────────────────────────────── */
 

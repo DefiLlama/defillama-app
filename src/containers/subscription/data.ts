@@ -5,7 +5,7 @@ import type {
 	PlanKey,
 	PlanMeta,
 	PricingCardData
-} from '~/containers/subscription/types'
+} from '~/containers/Subscription/types'
 
 export const PLAN_ORDER: PlanKey[] = ['free', 'pro', 'api', 'enterprise']
 

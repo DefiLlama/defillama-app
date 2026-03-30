@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import type { DashboardItemConfig } from '../types'
 import { sanitizeItemsForAPI } from '../utils/dashboardUtils'
 

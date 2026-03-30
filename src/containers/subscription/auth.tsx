@@ -3,7 +3,7 @@ import type { RecordAuthResponse } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
-import { clearSignupSource, getSignupSource } from '~/containers/Subscribtion/signupSource'
+import { clearSignupSource, getSignupSource } from '~/containers/Subscription/signupSource'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
 

@@ -8,8 +8,8 @@ import type {
 	StablecoinsChartConfig,
 	YieldsChartConfig
 } from '~/containers/ProDashboard/types'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 

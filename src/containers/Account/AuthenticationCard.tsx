@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { EmailChangeModal } from './EmailChangeModal'
 import { PasswordResetModal } from './PasswordResetModal'
 

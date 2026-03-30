@@ -1,10 +1,10 @@
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import type { Subscription } from '~/containers/Subscribtion/useSubscribe'
-import { useAiBalance } from '~/containers/Subscribtion/useTopup'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
+import type { Subscription } from '~/containers/Subscription/useSubscribe'
+import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { ApiAccessCard } from './ApiAccessCard'
 import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 import { EndTrialModal } from './EndTrialModal'
@@ -193,7 +193,6 @@ export function SubscriptionSection() {
 		cancelSubscription,
 		generateNewKeyMutation,
 		apiKey,
-		handleSubscribe,
 		isPortalSessionLoading,
 		isEnableOverageLoading,
 		isCancelSubscriptionLoading,

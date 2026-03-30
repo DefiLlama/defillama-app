@@ -1,8 +1,8 @@
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
 
 interface AuthUser {
@@ -20,7 +20,7 @@ export const resolveUserEmail = (user: AuthUser | null | undefined): string | nu
 	return user.email || null
 }
 
-export function Account({ asPath }: { asPath: string }) {
+export function Account({ asPath: _asPath }: { asPath: string }) {
 	const { isAuthenticated, user, loaders } = useAuthContext()
 	const isClient = useIsClient()
 
@@ -55,7 +55,7 @@ export function Account({ asPath }: { asPath: string }) {
 	}
 
 	return (
-		<SignIn2Modal
+		<SignInModal
 			text="Sign In / Subscribe"
 			className="flex items-center justify-center gap-2 rounded-md pro-btn-purple p-1 text-sm font-medium"
 			hideWhenAuthenticated={false}

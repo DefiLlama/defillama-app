@@ -1,8 +1,8 @@
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { ThemeSwitch } from '~/components/Nav/ThemeSwitch'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 
 function AccountLink({ className }: { className?: string }) {
 	const { isAuthenticated, loaders } = useAuthContext()
@@ -32,7 +32,7 @@ export function SubscriptionHeader() {
 				</BasicLink>
 				<div className="flex items-center gap-4">
 					<ThemeSwitch variant="pill" />
-					<SignIn2Modal
+					<SignInModal
 						text="Sign-in"
 						className="h-10 rounded-lg bg-(--sub-brand-primary) px-4 text-[14px] leading-[17px] font-medium text-white"
 					/>
@@ -48,7 +48,7 @@ export function SubscriptionHeader() {
 				</BasicLink>
 				<div className="flex items-center gap-5">
 					<ThemeSwitch variant="pill" size="sm" />
-					<SignIn2Modal text="Sign-in" className="h-8 rounded-lg bg-(--sub-brand-primary) px-3 text-xs text-white" />
+					<SignInModal text="Sign-in" className="h-8 rounded-lg bg-(--sub-brand-primary) px-3 text-xs text-white" />
 					<AccountLink className="text-xs text-(--sub-ink-primary) dark:text-white" />
 				</div>
 			</header>

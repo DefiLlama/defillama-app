@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { useAuthContext } from '../Subscribtion/auth'
+import { useAuthContext } from '../Subscription/auth'
 
 const toolCategories = [
 	{

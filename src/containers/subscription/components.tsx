@@ -6,7 +6,7 @@ import type {
 	PlanKey,
 	PricingCardCallbacks,
 	PricingCardData
-} from '~/containers/subscription/types'
+} from '~/containers/Subscription/types'
 
 const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise: 3 }
 

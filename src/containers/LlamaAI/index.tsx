@@ -61,8 +61,8 @@ import {
 } from '~/containers/LlamaAI/streamState'
 import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>

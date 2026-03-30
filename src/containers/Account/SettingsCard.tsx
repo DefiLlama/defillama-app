@@ -1,24 +1,29 @@
-import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { useAccount, useSignMessage } from 'wagmi'
+// import { useConnectModal } from '@rainbow-me/rainbowkit'
+// import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { ToggleSwitch } from './ToggleSwitch'
 
 export function SettingsCard() {
-	const { user, addWallet, setPromotionalEmails, loaders } = useAuthContext()
-	const { address } = useAccount()
-	const { signMessageAsync } = useSignMessage()
-	const { openConnectModal } = useConnectModal()
+	const {
+		user,
+		// addWallet,
+		setPromotionalEmails,
+		loaders
+	} = useAuthContext()
+	// const { address } = useAccount()
+	// const { signMessageAsync } = useSignMessage()
+	// const { openConnectModal } = useConnectModal()
 
 	const promoEmailsOn = user?.promotionalEmails === 'on' || user?.promotionalEmails === 'initial'
 
-	const handleConnectWallet = () => {
-		if (!address) {
-			openConnectModal?.()
-			return
-		}
-		addWallet(address, signMessageAsync).catch(() => {})
-	}
+	// const handleConnectWallet = () => {
+	// 	if (!address) {
+	// 		openConnectModal?.()
+	// 		return
+	// 	}
+	// 	addWallet(address, signMessageAsync).catch(() => {})
+	// }
 
 	const handleTogglePromoEmails = () => {
 		if (loaders.setPromotionalEmails) return

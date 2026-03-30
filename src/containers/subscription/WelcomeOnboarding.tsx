@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { readAppStorage, setLlamaAIWalkthroughState, writeAppStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 

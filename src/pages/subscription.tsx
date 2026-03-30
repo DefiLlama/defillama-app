@@ -6,16 +6,15 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LinkPreviewCard } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { ReturnModal } from '~/containers/Subscribtion/components/ReturnModal'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { ReturnModal } from '~/containers/Subscription/components/ReturnModal'
 import {
 	COMPARISON_SECTIONS,
 	FAQ_ITEMS,
 	PLAN_ORDER,
 	PRICING_CARDS_BY_CYCLE,
 	TRUST_LOGOS
-} from '~/containers/subscription/data'
+} from '~/containers/Subscription/data'
 import {
 	SubscriptionBackground,
 	SubscriptionComparisonSection,
@@ -24,10 +23,11 @@ import {
 	SubscriptionHeader,
 	SubscriptionPricingSection,
 	SubscriptionTrustedBlock
-} from '~/containers/subscription/sections'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
-import type { BillingCycle, PlanKey } from '~/containers/subscription/types'
-import { useSubscriptionPageState } from '~/containers/subscription/usePageState'
+} from '~/containers/Subscription/sections'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import type { BillingCycle, PlanKey } from '~/containers/Subscription/types'
+import { useSubscriptionPageState } from '~/containers/Subscription/usePageState'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { safeInternalPath } from '~/utils/routerQuery'
 
@@ -119,7 +119,7 @@ function SubscriptionContent() {
 			if (portalUrl) {
 				window.location.href = portalUrl
 			}
-		} catch (error) {
+		} catch {
 			toast.error('Failed to open billing portal. Please try again.')
 		}
 	}
@@ -267,7 +267,7 @@ function SubscriptionContent() {
 			<SubscriptionFooter />
 
 			{/* Sign-in dialog (opened programmatically by CTA buttons) */}
-			<SignIn2Modal store={signInDialog} />
+			<SignInModal store={signInDialog} />
 
 			{/* Stripe checkout modal */}
 			{stripeCheckout?.isOpen ? (

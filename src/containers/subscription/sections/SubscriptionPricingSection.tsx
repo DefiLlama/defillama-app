@@ -1,5 +1,5 @@
-import { PricingCard } from '~/containers/subscription/components'
-import type { BillingCycle, PlanKey, PricingCardCallbacks, PricingCardData } from '~/containers/subscription/types'
+import { PricingCard } from '~/containers/Subscription/components'
+import type { BillingCycle, PlanKey, PricingCardCallbacks, PricingCardData } from '~/containers/Subscription/types'
 
 export function SubscriptionPricingSection({
 	pricingCards,

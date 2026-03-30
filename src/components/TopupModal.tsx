@@ -3,7 +3,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { STRIPE_PUBLISHABLE_KEY } from '~/constants'
-import { useCreateTopup, TOPUP_CONFIG } from '~/containers/Subscribtion/useTopup'
+import { useCreateTopup, TOPUP_CONFIG } from '~/containers/Subscription/useTopup'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 

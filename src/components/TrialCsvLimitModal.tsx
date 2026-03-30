@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useCallback, useReducer } from 'react'
 import { Icon } from '~/components/Icon'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 
 interface State {
 	upgraded: boolean

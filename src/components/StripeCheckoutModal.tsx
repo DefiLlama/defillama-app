@@ -12,7 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { handleSimpleFetchResponse } from '~/utils/async'
 

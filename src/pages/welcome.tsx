@@ -1,5 +1,5 @@
-import { SubscribeLayout } from '~/containers/Subscribtion/Layout'
-import { WelcomeOnboarding } from '~/containers/Subscribtion/WelcomeOnboarding'
+import { SubscribeLayout } from '~/containers/Subscription/Layout'
+import { WelcomeOnboarding } from '~/containers/Subscription/WelcomeOnboarding'
 import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function Welcome() {

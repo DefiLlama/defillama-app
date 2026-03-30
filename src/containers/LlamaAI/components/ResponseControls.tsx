@@ -12,7 +12,7 @@ import { ShareModalContent, type ShareData } from '~/containers/LlamaAI/componen
 import type { MessageMetadata } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { handleSimpleFetchResponse } from '~/utils/async'
 

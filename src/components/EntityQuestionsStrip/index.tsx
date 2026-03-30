@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { setPendingPrompt, setPendingPageContext, setPendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 	isLoading?: boolean
 }
 
-const SignInForm = lazy(() => import('~/containers/Subscribtion/SignIn').then((m) => ({ default: m.SignInForm })))
+const SignInForm = lazy(() => import('~/containers/Subscription/SignIn').then((m) => ({ default: m.SignInForm })))
 const WalletProvider = lazy(() => import('~/layout/WalletProvider').then((m) => ({ default: m.WalletProvider })))
 
 export function EntityQuestionsStrip({ questions, entitySlug, entityType, entityName, isLoading }: Props) {

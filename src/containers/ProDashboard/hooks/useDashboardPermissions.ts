@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import type { Dashboard } from '../services/DashboardAPI'
 
 interface DashboardPermissions {

@@ -5,7 +5,7 @@ import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Turnstile } from '~/components/Turnstile'
-import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
+import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscription/auth'
 import { useMedia } from '~/hooks/useMedia'
 import { WalletProvider } from '~/layout/WalletProvider'
 import type { FormSubmitEvent } from '~/types/forms'
@@ -24,22 +24,22 @@ const mobileEntryInputCls =
 	'h-12 w-full rounded-[14px] border border-(--form-control-border) bg-(--signin-input-bg) px-4 text-base text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-none'
 const mobileEntryBtnCls =
 	'h-12 w-full rounded-[14px] bg-(--primary) text-base font-medium text-white disabled:bg-(--signin-btn-disabled-bg) disabled:text-(--signin-btn-disabled-text)'
-const signIn2DialogCls =
+const signInDialogCls =
 	'dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:top-6 max-sm:right-4 max-sm:bottom-auto max-sm:left-4 max-sm:mb-auto max-sm:min-h-0 max-sm:max-h-[calc(100dvh-48px)] max-sm:w-auto max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
 
 /* ── Modal entry point ─────────────────────────────────────────────── */
 
-function SignIn2Dialog({ store }: { store: Ariakit.DialogStore }) {
+function SignInDialog({ store }: { store: Ariakit.DialogStore }) {
 	return (
-		<Ariakit.Dialog store={store} className={signIn2DialogCls} unmountOnHide>
+		<Ariakit.Dialog store={store} className={signInDialogCls} unmountOnHide>
 			<WalletProvider>
-				<SignIn2Flow dialogStore={store} />
+				<SignInFlow dialogStore={store} />
 			</WalletProvider>
 		</Ariakit.Dialog>
 	)
 }
 
-export function SignIn2Modal({
+export function SignInModal({
 	text,
 	className,
 	hideWhenAuthenticated = true,
@@ -65,14 +65,14 @@ export function SignIn2Modal({
 					{text ?? 'Sign In'}
 				</button>
 			) : null}
-			<SignIn2Dialog store={dialogStore} />
+			<SignInDialog store={dialogStore} />
 		</>
 	)
 }
 
 /* ── Multi-step flow ───────────────────────────────────────────────── */
 
-export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
+export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
 	const isMobile = useMedia('(max-width: 639px)')
 	const [step, setStep] = useState<Step>(() =>
 		typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 'start' : 'signin'

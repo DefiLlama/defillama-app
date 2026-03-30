@@ -1,5 +1,5 @@
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { AuthenticationCard } from './AuthenticationCard'
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
@@ -26,7 +26,7 @@ export function ManageAccount() {
 						Please sign in to view and manage your account information and subscription details.
 					</p>
 				</div>
-				<SignIn2Modal
+				<SignInModal
 					text="Sign In"
 					className="flex h-10 items-center gap-2 rounded-lg bg-(--sub-brand-primary) px-5 text-sm font-medium text-white"
 				/>

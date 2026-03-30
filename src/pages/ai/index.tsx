@@ -9,8 +9,8 @@ import { SEO } from '~/components/SEO'
 import { MCP_SERVER } from '~/constants'
 import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import type { LandingQuestion } from '~/containers/LlamaAI/types'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -133,7 +133,7 @@ function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: Landing
 				))}
 			</div>
 
-			<SignIn2Modal store={signInDialogStore} />
+			<SignInModal store={signInDialogStore} />
 		</section>
 	)
 }

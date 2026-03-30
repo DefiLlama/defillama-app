@@ -1,9 +1,9 @@
 import { lazy, Suspense, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { SignIn2Modal } from '~/containers/subscription/SignIn2'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
@@ -26,11 +26,9 @@ export const PaymentButton = ({
 	const icon = isStripe ? 'card' : 'wallet'
 	const text = isStripe ? 'Pay with Card' : 'Pay with Crypto'
 
-	const planName = type === 'api' ? 'API' : type === 'llamafeed' ? 'Pro' : type
-
 	if (!isAuthenticated) {
 		return (
-			<SignIn2Modal
+			<SignInModal
 				text={text}
 				className="group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
 			/>

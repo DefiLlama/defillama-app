@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 
 const UMAMI_READY_RETRY_INTERVAL_MS = 500
 const MAX_UMAMI_READY_RETRIES = 10
