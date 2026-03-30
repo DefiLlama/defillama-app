@@ -139,11 +139,11 @@ function DashboardPanelInner({
 
 	return (
 		<div
-			className="shrink-0 overflow-hidden transition-[width] duration-200 ease-out max-lg:hidden"
+			className="shrink-0 overflow-hidden pl-2.5 transition-[width] duration-200 ease-out max-lg:hidden"
 			style={{ width: isOpen ? 'min(50vw, 800px)' : '0px' }}
 		>
 			<div
-				className="flex h-full flex-col border-l border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
+				className="flex h-full flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
 				style={{ width: 'min(50vw, 800px)', minWidth: '400px' }}
 			>
 				<div className="flex items-center justify-between border-b border-[#e6e6e6] px-4 py-3 dark:border-[#222324]">
@@ -174,7 +174,7 @@ function DashboardPanelInner({
 					</div>
 				</div>
 
-				<div className="flex-1 overflow-y-auto">
+				<div className="flex-1 overflow-y-auto overscroll-contain p-2.5 *:gap-2.5">
 					<AppMetadataProvider>
 						<ProDashboardAPIProvider key={displayConfig.id} initialItems={enrichedItems}>
 							<ChartGrid onAddChartClick={NOOP} />
