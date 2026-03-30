@@ -187,7 +187,7 @@ export const useSubscribe = () => {
 
 			const subscriptionData: SubscriptionRequest = {
 				redirectUrl: `${window.location.origin}/welcome`,
-				cancelUrl: `${window.location.origin}/subscription2?subscription=cancelled`,
+				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 				provider: paymentMethod,
 				subscriptionType,
 				billingInterval,
@@ -284,7 +284,7 @@ export const useSubscribe = () => {
 		enabled:
 			isAuthenticated &&
 			apiSubscription?.status === 'active' &&
-			(router.pathname === '/account' || router.pathname === '/account2')
+			router.pathname === '/account'
 	})
 
 	const generateNewKeyMutation = useMutation({
@@ -321,7 +321,7 @@ export const useSubscribe = () => {
 
 			return data
 		},
-		enabled: isAuthenticated && (router.pathname === '/account' || router.pathname === '/account2'),
+		enabled: isAuthenticated && router.pathname === '/account',
 		staleTime: 1000 * 60 * 5,
 		refetchOnWindowFocus: false,
 		retry: false
@@ -345,7 +345,7 @@ export const useSubscribe = () => {
 		enabled:
 			isAuthenticated &&
 			apiSubscription?.status === 'active' &&
-			(router.pathname === '/account' || router.pathname === '/account2'),
+			router.pathname === '/account',
 		staleTime: 1000 * 60 * 5,
 		refetchOnWindowFocus: false,
 		retry: false

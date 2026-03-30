@@ -10,7 +10,7 @@ function AccountLink({ className }: { className?: string }) {
 	if (loaders.userLoading || !isAuthenticated) return null
 
 	return (
-		<BasicLink href="/account2" className={`flex items-center gap-1.5 font-medium ${className}`}>
+		<BasicLink href="/account" className={`flex items-center gap-1.5 font-medium ${className}`}>
 			<img src="/assets/account_avatar.png" alt="" className="h-6 w-6 rounded-full" />
 			<span>My Account</span>
 			<Icon name="chevron-right" height={16} width={16} />

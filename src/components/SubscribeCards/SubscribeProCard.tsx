@@ -334,7 +334,7 @@ export function SubscribeProModal({ dialogStore, returnUrl: _returnUrl }: Subscr
 						</div>
 						<div className="flex shrink-0 flex-col gap-3 pt-3">
 							<BasicLink
-								href="/subscription2"
+								href="/subscription"
 								data-umami-event="subscribe-modal-goto-page"
 								className="block w-full rounded-lg bg-[#1f67d2] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#1a58b5]"
 							>

@@ -94,7 +94,7 @@ export function StripeCheckoutModal({
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						redirectUrl: `${window.location.origin}${postCheckoutPath}`,
-						cancelUrl: `${window.location.origin}/subscription2`,
+						cancelUrl: `${window.location.origin}/subscription`,
 						provider: paymentMethod,
 						subscriptionType: type,
 						billingInterval,

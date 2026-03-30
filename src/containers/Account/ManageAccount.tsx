@@ -33,7 +33,7 @@ export function ManageAccount() {
 					</p>
 				</div>
 				<BasicLink
-					href="/subscription2"
+					href="/subscription"
 					className="flex h-10 items-center gap-2 rounded-lg bg-(--sub-c-1f67d2) px-5 text-sm font-medium text-white"
 				>
 					<Icon name="arrow-right" height={16} width={16} />

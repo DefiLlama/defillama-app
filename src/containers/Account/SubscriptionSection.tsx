@@ -119,7 +119,7 @@ function FreeUpgradeBanner() {
 					</p>
 				</div>
 				<BasicLink
-					href="/subscription2"
+					href="/subscription"
 					className="flex h-8 w-fit items-center rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs leading-4 font-medium text-white"
 				>
 					View & Compare Plans
@@ -326,7 +326,7 @@ export function SubscriptionSection() {
 					type={yearlyUpgradeType}
 					billingInterval="year"
 					isUpgradeFlow
-					upgradeReturnPath="/account2?success=true"
+					upgradeReturnPath="/account?success=true"
 				/>
 			</Suspense>
 		) : null
