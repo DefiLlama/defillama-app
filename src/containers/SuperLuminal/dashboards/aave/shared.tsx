@@ -14,9 +14,7 @@ export function SuperluminalTable<T extends RowData>({
 
 	return (
 		<div className="thin-scrollbar w-full overflow-auto">
-			<div
-				style={{ display: 'grid', gridTemplateColumns, minWidth: `${instance.getTotalSize()}px` }}
-			>
+			<div style={{ display: 'grid', gridTemplateColumns, minWidth: `${instance.getTotalSize()}px` }}>
 				{instance.getHeaderGroups().map((headerGroup) =>
 					headerGroup.headers.map((header) => {
 						const align = header.column.columnDef.meta?.align ?? 'start'
@@ -27,7 +25,7 @@ export function SuperluminalTable<T extends RowData>({
 								style={{ textAlign: align }}
 							>
 								<span
-									className="relative inline-flex cursor-pointer flex-nowrap items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-(--text-tertiary)"
+									className="relative inline-flex cursor-pointer flex-nowrap items-center gap-1 text-[11px] font-semibold tracking-wider text-(--text-tertiary) uppercase"
 									onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 								>
 									{flexRender(header.column.columnDef.header, header.getContext())}
@@ -69,7 +67,7 @@ export function PageLoader() {
 export function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
 	return (
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
-			<h3 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-(--text-tertiary)">{title}</h3>
+			<h3 className="mb-4 text-[11px] font-semibold tracking-wider text-(--text-tertiary) uppercase">{title}</h3>
 			{children}
 		</div>
 	)
@@ -78,7 +76,7 @@ export function ChartCard({ title, children }: { title: string; children: React.
 export function CardSkeleton({ title }: { title: string }) {
 	return (
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
-			<h3 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-(--text-tertiary)">{title}</h3>
+			<h3 className="mb-4 text-[11px] font-semibold tracking-wider text-(--text-tertiary) uppercase">{title}</h3>
 			<div className="flex h-[400px] items-center justify-center">
 				<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
 			</div>
@@ -90,7 +88,7 @@ export function KpiCard({ label, value }: { label: string; value: string | numbe
 	return (
 		<div className="flex min-w-0 flex-1 flex-col gap-1 py-1">
 			<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary)">{label}</span>
-			<span className="font-jetbrains text-xl font-semibold tabular-nums text-(--text-primary)">{value ?? '—'}</span>
+			<span className="font-jetbrains text-xl font-semibold text-(--text-primary) tabular-nums">{value ?? '—'}</span>
 		</div>
 	)
 }
@@ -108,17 +106,19 @@ export function KpiSkeleton({ label }: { label: string }) {
 export function MetricStrip({ children }: { children: React.ReactNode }) {
 	return (
 		<div className="flex gap-0 overflow-x-auto rounded-lg border border-(--cards-border) bg-(--cards-bg)">
-			{Array.isArray(children)
-				? children.map((child, i) => (
-						<div
-							key={i}
-							className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-(--divider)' : ''}`}
-							style={{ minWidth: '120px' }}
-						>
-							{child}
-						</div>
-					))
-				: <div className="flex-1 px-5 py-3">{children}</div>}
+			{Array.isArray(children) ? (
+				children.map((child, i) => (
+					<div
+						key={i}
+						className={`flex-1 px-5 py-3 ${i > 0 ? 'border-l border-(--divider)' : ''}`}
+						style={{ minWidth: '120px' }}
+					>
+						{child}
+					</div>
+				))
+			) : (
+				<div className="flex-1 px-5 py-3">{children}</div>
+			)}
 		</div>
 	)
 }
@@ -127,7 +127,7 @@ export function MetricStrip({ children }: { children: React.ReactNode }) {
 export function SectionHeader({ title, actions }: { title: string; actions?: React.ReactNode }) {
 	return (
 		<div className="flex items-center justify-between">
-			<h3 className="text-[11px] font-semibold uppercase tracking-wider text-(--text-tertiary)">{title}</h3>
+			<h3 className="text-[11px] font-semibold tracking-wider text-(--text-tertiary) uppercase">{title}</h3>
 			{actions}
 		</div>
 	)
@@ -149,7 +149,7 @@ export function WindowToggle({
 				<button
 					key={w.value}
 					onClick={() => onChange(w.value)}
-					className={`px-3 py-1.5 text-sm font-medium leading-tight transition-colors ${
+					className={`px-3 py-1.5 text-sm leading-tight font-medium transition-colors ${
 						i === 0 ? 'rounded-l-md' : ''
 					}${i === options.length - 1 ? 'rounded-r-md' : ''} ${
 						value === w.value
