@@ -80,8 +80,6 @@ export default function IncomeBreakdown() {
 
 	return (
 		<div className="flex flex-col gap-6">
-			{/* Berachain Section */}
-			<SectionHeader title="Berachain" />
 			<div className="grid grid-cols-2 gap-4">
 				{kpis ? (
 					<>
