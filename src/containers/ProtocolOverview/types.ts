@@ -195,6 +195,7 @@ export interface IProtocolOverviewPageData {
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]
 	treasuryMethodologyUrl?: string | null
+	linkToLlamaswap?: string | null
 }
 
 interface ICredit {
