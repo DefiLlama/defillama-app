@@ -1,13 +1,11 @@
 const PROXY_URL = '/api/dashboard/fetch'
 
 async function proxyFetch<T>(type: string, params: Record<string, any>, authToken: string): Promise<T> {
-	const res = await fetch(PROXY_URL, {
-		method: 'POST',
+	const url = `${PROXY_URL}?type=${encodeURIComponent(type)}&params=${encodeURIComponent(JSON.stringify(params))}`
+	const res = await fetch(url, {
 		headers: {
-			'Content-Type': 'application/json',
 			Authorization: `Bearer ${authToken}`
-		},
-		body: JSON.stringify({ type, params })
+		}
 	})
 	if (!res.ok) {
 		throw new Error(`Proxy fetch failed: ${res.status}`)
