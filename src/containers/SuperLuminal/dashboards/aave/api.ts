@@ -195,7 +195,9 @@ export function useAaveMarkets() {
 					rewardSupplyApr: extractRewardSupplyApr(r.incentives),
 					rewardBorrowDiscount: extractRewardBorrowDiscount(r.incentives),
 					eModeCategories: (r.eModeInfo ?? []).map((e) => e.label),
-					baseVariableBorrowRate: r.borrowInfo?.baseVariableBorrowRate ? pct(r.borrowInfo.baseVariableBorrowRate.value) : null,
+					baseVariableBorrowRate: r.borrowInfo?.baseVariableBorrowRate
+						? pct(r.borrowInfo.baseVariableBorrowRate.value)
+						: null,
 					variableRateSlope1: r.borrowInfo?.variableRateSlope1 ? pct(r.borrowInfo.variableRateSlope1.value) : null,
 					variableRateSlope2: r.borrowInfo?.variableRateSlope2 ? pct(r.borrowInfo.variableRateSlope2.value) : null,
 					optimalUsageRate: r.borrowInfo?.optimalUsageRate ? pct(r.borrowInfo.optimalUsageRate.value) : null
