@@ -215,7 +215,7 @@ function SubscriptionContent() {
 
 	if (isPageStateLoading) {
 		return (
-			<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
+			<div className="relative col-span-full min-h-screen w-full [overflow-x:clip] [overflow-y:visible] bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
 				<SubscriptionBackground />
 				<SubscriptionHeader />
 				<div className="flex h-[60dvh] items-center justify-center">
@@ -227,7 +227,7 @@ function SubscriptionContent() {
 	}
 
 	return (
-		<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
+		<div className="relative col-span-full min-h-screen w-full [overflow-x:clip] [overflow-y:visible] bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
 			<SubscriptionBackground />
 			<SubscriptionHeader />
 

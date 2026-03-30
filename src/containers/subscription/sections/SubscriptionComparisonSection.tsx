@@ -167,11 +167,22 @@ export function SubscriptionComparisonSection({
 	}, [selectedPlan, planOrder])
 
 	/* ── Sync horizontal scroll: body → header ── */
-	const onBodyScroll = useCallback(() => {
-		if (headerScrollRef.current && bodyScrollRef.current) {
-			headerScrollRef.current.scrollLeft = bodyScrollRef.current.scrollLeft
+	const syncHorizontalScroll = useCallback((sourceEl: HTMLDivElement | null, targetEl: HTMLDivElement | null) => {
+		if (!sourceEl || !targetEl) return
+
+		const nextScrollLeft = sourceEl.scrollLeft
+		if (targetEl.scrollLeft !== nextScrollLeft) {
+			targetEl.scrollLeft = nextScrollLeft
 		}
 	}, [])
+
+	const onHeaderScroll = useCallback(() => {
+		syncHorizontalScroll(headerScrollRef.current, bodyScrollRef.current)
+	}, [syncHorizontalScroll])
+
+	const onBodyScroll = useCallback(() => {
+		syncHorizontalScroll(bodyScrollRef.current, headerScrollRef.current)
+	}, [syncHorizontalScroll])
 
 	return (
 		<section className="mt-12 bg-white py-12 md:mt-0 md:py-20 dark:bg-(--sub-mobile-table-section-bg) md:dark:bg-(--sub-desktop-table-section-bg)">
@@ -179,7 +190,8 @@ export function SubscriptionComparisonSection({
 				{/* ── Sticky plan header (mobile: sticky top-0, desktop: static) ── */}
 				<div
 					ref={headerScrollRef}
-					className="sticky top-0 z-40 overflow-hidden bg-white md:static dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+					className="sticky top-0 z-40 no-scrollbar touch-pan-x overflow-x-auto overflow-y-hidden bg-white md:static md:overflow-hidden dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+					onScroll={onHeaderScroll}
 				>
 					<div className="w-max">
 						<div className="flex" role="row">
@@ -211,7 +223,7 @@ export function SubscriptionComparisonSection({
 				</div>
 
 				{/* ── Scrollable body ── */}
-				<div ref={bodyScrollRef} className="overflow-x-auto" onScroll={onBodyScroll}>
+				<div ref={bodyScrollRef} className="touch-pan-x overflow-x-auto" onScroll={onBodyScroll}>
 					<div className="w-max" role="table" aria-label="Plan comparison">
 						<div className="relative">
 							{comparisonSections.map((section, sectionIndex) => {
