@@ -132,8 +132,8 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-	if (req.method !== 'POST') {
-		res.setHeader('Allow', ['POST'])
+	if (req.method !== 'GET') {
+		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
@@ -142,13 +142,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(auth.status).json({ error: auth.error })
 	}
 
-	const { type, params } = req.body
-	if (!type || !params) {
+	const { type, params: paramsStr } = req.query
+	if (!type || !paramsStr) {
 		return res.status(400).json({ error: 'Missing type or params' })
 	}
 
+	let params: any
 	try {
-		const data = await dispatchFetch(type, params)
+		params = JSON.parse(paramsStr as string)
+	} catch {
+		return res.status(400).json({ error: 'Invalid params JSON' })
+	}
+
+	try {
+		const data = await dispatchFetch(type as string, params)
 		res.setHeader('Cache-Control', 'private, max-age=300')
 		return res.status(200).json({ data })
 	} catch (error) {
