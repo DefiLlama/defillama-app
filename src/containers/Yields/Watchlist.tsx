@@ -5,7 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
-import { useVolatility } from '~/containers/Yields/queries/client'
+import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useBookmarks } from '~/hooks/useBookmarks'
@@ -25,12 +25,18 @@ const ALL_YIELD_COLUMNS = [
 	'showTotalBorrowed',
 	'showAvailable',
 	'showMedianApy',
-	'showStdDev'
+	'showStdDev',
+	'showHolderCount',
+	'showTop10Pct',
+	'showAvgPosition'
 ]
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
 	const { data: volatility } = useVolatility()
+	const { data: holderStats } = useHolderStats(
+		isClient ? protocolsDict.filter((p) => savedProtocols.has(p.pool)).map((p) => p.pool) : undefined
+	)
 
 	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
 		useBookmarks('yields')
@@ -75,10 +81,15 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 				lsdTokenOnly: t.lsdTokenOnly,
 				apyMedian30d: volatility?.[t.pool]?.[1] ?? null,
 				apyStd30d: volatility?.[t.pool]?.[2] ?? null,
-				cv30d: volatility?.[t.pool]?.[3] ?? null
+				cv30d: volatility?.[t.pool]?.[3] ?? null,
+				holderCount: holderStats?.[t.pool]?.holderCount ?? null,
+				avgPositionUsd: holderStats?.[t.pool]?.avgPositionUsd ?? null,
+				top10Pct: holderStats?.[t.pool]?.top10Pct ?? null,
+				holderChange7d: holderStats?.[t.pool]?.holderChange7d ?? null,
+				holderChange30d: holderStats?.[t.pool]?.holderChange30d ?? null
 			}))
 		} else return []
-	}, [isClient, savedProtocols, protocolsDict, volatility])
+	}, [isClient, savedProtocols, protocolsDict, volatility, holderStats])
 	const [open, setOpen] = useState(false)
 
 	return (

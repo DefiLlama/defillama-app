@@ -1,6 +1,8 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { useBlockExplorers } from '~/api/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { CopyHelper } from '~/components/Copy'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
@@ -22,10 +24,17 @@ import {
 	useHolderHistory,
 	useHolderStats
 } from '~/containers/Yields/queries/client'
+import {
+	computeHolderChanges,
+	type HolderChangeStatus,
+	type HolderFlowSummary,
+	type HolderWithChange
+} from '~/containers/Yields/queries/holderUtils'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -63,22 +72,192 @@ const SINGLE_APY_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
 	{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }
 ]
 
-const HOLDER_COUNT_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
-	{ type: 'line', name: 'Holders', encode: { x: 'timestamp', y: 'Holders' }, color: '#10b981' }
-]
-
-const EMPTY_HOLDER_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Holders'] }
-
-const CONCENTRATION_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
-	{ type: 'line', name: 'Top 10 %', encode: { x: 'timestamp', y: 'Top 10 %' }, color: '#f59e0b' }
-]
-const EMPTY_CONCENTRATION_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Top 10 %'] }
-
 const HOLDER_DONUT_RADIUS: [string, string] = ['45%', '75%']
+
+// Donut chart + table color palette
+const HOLDER_COLORS = [
+	'#5470c6',
+	'#91cc75',
+	'#fac858',
+	'#ee6666',
+	'#73c0de',
+	'#3ba272',
+	'#fc8452',
+	'#9a60b4',
+	'#ea7ccc',
+	'#4dc9f6',
+	'#a0d911' // "Others" slice
+]
 
 function truncateAddress(addr: string): string {
 	if (!addr || addr.length < 12) return addr
 	return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+}
+
+function HolderStatusBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {
+	switch (status) {
+		case 'accumulating':
+			return (
+				<span className="inline-flex items-center gap-1 text-xs text-(--success)">
+					<span>▲</span>
+					<span className="tabular-nums">+{change!.toFixed(1)}%</span>
+				</span>
+			)
+		case 'reducing':
+			return (
+				<span className="inline-flex items-center gap-1 text-xs text-(--error)">
+					<span>▼</span>
+					<span className="tabular-nums">{change!.toFixed(1)}%</span>
+				</span>
+			)
+		case 'new':
+			return (
+				<span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-blue-600 uppercase dark:text-blue-400">
+					New
+				</span>
+			)
+		case 'steady':
+			return <span className="text-xs text-(--text-disabled)">Steady</span>
+		case 'unknown':
+		default:
+			return <span className="text-xs text-(--text-disabled)">{'\u2014'}</span>
+	}
+}
+
+function HolderFlowSummaryBar({ summary }: { summary: HolderFlowSummary }) {
+	const total = summary.accumulating + summary.reducing + summary.newCount + summary.steady + summary.unknown
+	if (total === 0 || summary.unknown === total) return null
+
+	const segments = [
+		{
+			count: summary.accumulating,
+			label: 'Accumulating',
+			dotClass: 'bg-emerald-500',
+			pillClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+		},
+		{
+			count: summary.steady,
+			label: 'Steady',
+			dotClass: 'bg-gray-400',
+			pillClass: 'bg-gray-500/10 text-gray-500 dark:text-gray-400'
+		},
+		{
+			count: summary.newCount,
+			label: 'New',
+			dotClass: 'bg-blue-500',
+			pillClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+		},
+		{
+			count: summary.reducing,
+			label: 'Reducing',
+			dotClass: 'bg-red-500',
+			pillClass: 'bg-red-500/10 text-red-600 dark:text-red-400'
+		}
+	].filter((s) => s.count > 0)
+
+	return (
+		<div className="flex flex-wrap items-center gap-1.5">
+			{segments.map((seg) => (
+				<span
+					key={seg.label}
+					className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${seg.pillClass}`}
+				>
+					<span className={`h-1.5 w-1.5 rounded-full ${seg.dotClass}`} />
+					{seg.count} {seg.label}
+				</span>
+			))}
+		</div>
+	)
+}
+
+function TopHoldersTable({
+	holders,
+	summary,
+	chain,
+	blockExplorersData,
+	colors
+}: {
+	holders: HolderWithChange[]
+	summary: HolderFlowSummary
+	chain?: string
+	blockExplorersData?: any
+	colors: string[]
+}) {
+	if (!holders.length) return null
+
+	return (
+		<div>
+			<table className="w-full text-sm">
+				<thead>
+					<tr className="border-b border-(--cards-border) text-left text-xs text-(--text-disabled)">
+						<th className="py-2 pl-2 font-medium">Holder</th>
+						<th className="py-2 text-right font-medium">Share</th>
+						<th className="py-2 pr-2 text-right font-medium">
+							<div className="flex items-center justify-end gap-2">
+								<HolderFlowSummaryBar summary={summary} />
+								<span>7d</span>
+							</div>
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					{holders.map((h, i) => {
+						const explorer =
+							blockExplorersData && chain
+								? getBlockExplorerNew({
+										apiResponse: blockExplorersData,
+										address: h.address,
+										chainName: chain,
+										urlType: 'address'
+									})
+								: null
+						const barColor = colors[i] ?? colors[colors.length - 1]
+
+						return (
+							<tr key={h.address} className="border-b border-(--cards-border) last:border-b-0">
+								<td className="py-1.5 pl-2">
+									<div className="flex items-center gap-2">
+										<span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: barColor }} />
+										<span className="w-4 shrink-0 tabular-nums text-(--text-disabled)">{i + 1}</span>
+										{explorer?.url ? (
+											<a
+												href={explorer.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="font-mono text-xs text-(--link-text) hover:underline"
+											>
+												{truncateAddress(h.address)}
+											</a>
+										) : (
+											<span className="font-mono text-xs">{truncateAddress(h.address)}</span>
+										)}
+										<CopyHelper toCopy={h.address} />
+									</div>
+								</td>
+								<td className="w-[140px] py-1.5 text-right">
+									<div className="flex items-center justify-end gap-2">
+										<span className="tabular-nums">{h.balancePct.toFixed(2)}%</span>
+										<div className="h-1.5 w-16 overflow-hidden rounded-full bg-(--cards-border)">
+											<div
+												className="h-full rounded-full"
+												style={{
+													width: `${Math.min(h.balancePct, 100)}%`,
+													backgroundColor: barColor
+												}}
+											/>
+										</div>
+									</div>
+								</td>
+								<td className="py-1.5 pr-2 text-right">
+									<HolderStatusBadge status={h.status} change={h.balancePctChange} />
+								</td>
+							</tr>
+						)
+					})}
+				</tbody>
+			</table>
+		</div>
+	)
 }
 
 const EMPTY_BASE_REWARD_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
@@ -120,6 +299,10 @@ const PageView = (_props) => {
 	const { data: holderHistory } = useHolderHistory(poolId)
 	const { data: holderStatsMap } = useHolderStats(poolData.pool ? [poolData.pool] : undefined)
 	const holderStats = poolData.pool ? holderStatsMap?.[poolData.pool] : null
+	const { data: blockExplorersData } = useBlockExplorers()
+	const holderChanges = useMemo(() => {
+		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 7)
+	}, [holderStats?.top10Holders, holderHistory])
 	const poolConfigId = poolData.pool
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
@@ -303,40 +486,9 @@ const PageView = (_props) => {
 	const deferredNetBorrowApyDataset = useDeferredValue(netBorrowApyDataset)
 	const deferredPoolLiquidityDataset = useDeferredValue(poolLiquidityDataset)
 
-	const holderCountDataset = useMemo(() => {
-		if (!holderHistory?.length) return EMPTY_HOLDER_DATASET
-		return {
-			source: holderHistory.map((entry) => ({
-				timestamp: new Date(entry.timestamp).getTime(),
-				Holders: entry.holderCount
-			})),
-			dimensions: ['timestamp', 'Holders']
-		} as MultiSeriesChart2Dataset
-	}, [holderHistory])
-	const deferredHolderCountDataset = useDeferredValue(holderCountDataset)
-
-	const { chartInstance: holderCountChartInstance, handleChartReady: handleHolderCountReady } = useGetChartInstance()
-
-	const concentrationDataset = useMemo(() => {
-		if (!holderHistory?.length) return EMPTY_CONCENTRATION_DATASET
-		return {
-			source: holderHistory
-				.filter((e) => e.top10Pct != null)
-				.map((entry) => ({
-					timestamp: new Date(entry.timestamp).getTime(),
-					'Top 10 %': entry.top10Pct
-				})),
-			dimensions: ['timestamp', 'Top 10 %']
-		} as MultiSeriesChart2Dataset
-	}, [holderHistory])
-	const deferredConcentrationDataset = useDeferredValue(concentrationDataset)
-
-	const { chartInstance: concentrationChartInstance, handleChartReady: handleConcentrationReady } =
-		useGetChartInstance()
-
-	const holderDonutData = useMemo(() => {
+	const { holderDonutData, holderDonutColors } = useMemo(() => {
 		const holders = holderStats?.top10Holders
-		if (!holders?.length) return null
+		if (!holders?.length) return { holderDonutData: null, holderDonutColors: {} }
 		const top10Sum = holders.reduce((sum, h) => sum + h.balancePct, 0)
 		const othersSlice = 100 - top10Sum
 		const data = holders.map((h) => ({
@@ -346,7 +498,11 @@ const PageView = (_props) => {
 		if (othersSlice > 0.01) {
 			data.push({ name: 'Others', value: Math.round(othersSlice * 100) / 100 })
 		}
-		return data
+		const colors: Record<string, string> = {}
+		data.forEach((d, i) => {
+			colors[d.name] = HOLDER_COLORS[i] ?? HOLDER_COLORS[HOLDER_COLORS.length - 1]
+		})
+		return { holderDonutData: data, holderDonutColors: colors }
 	}, [holderStats?.top10Holders])
 	const deferredHolderDonutData = useDeferredValue(holderDonutData)
 
@@ -405,24 +561,23 @@ const PageView = (_props) => {
 							<>
 								<p className="flex items-center justify-between gap-1">
 									<span className="font-semibold">Holders</span>
-									<span className="ml-auto flex items-center gap-1.5 font-jetbrains">
-										{formattedNum(holderStats.holderCount)}
-										{holderStats.holderChange7d != null ? (
-											<span className={`text-xs ${holderStats.holderChange7d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
-												7d: {holderStats.holderChange7d >= 0 ? '+' : ''}{holderStats.holderChange7d}
-											</span>
-										) : null}
-										{holderStats.holderChange30d != null ? (
-											<span className={`text-xs ${holderStats.holderChange30d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
-												30d: {holderStats.holderChange30d >= 0 ? '+' : ''}{holderStats.holderChange30d}
-											</span>
-										) : null}
-									</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(holderStats.holderCount)}</span>
 								</p>
-								<p className="flex items-center justify-between gap-1">
-									<span className="font-semibold">Top 10 Concentration</span>
-									<span className="ml-auto font-jetbrains">{holderStats.top10Pct}%</span>
-								</p>
+								{holderStats.top10Pct != null ? (
+									<p className="flex items-center justify-between gap-1">
+										<span className="font-semibold">Top 10 Concentration</span>
+										<span className="ml-auto flex items-center gap-1.5 font-jetbrains">
+											<span
+												className="h-2 w-2 rounded-full"
+												style={{
+													backgroundColor:
+														holderStats.top10Pct >= 80 ? '#ef4444' : holderStats.top10Pct >= 50 ? '#eab308' : '#22c55e'
+												}}
+											/>
+											{holderStats.top10Pct}%
+										</span>
+									</p>
+								) : null}
 							</>
 						) : null}
 						<p className="flex items-center justify-between gap-1">
@@ -605,66 +760,39 @@ const PageView = (_props) => {
 				</div>
 			) : null}
 
-			{holderCountDataset.source.length || deferredHolderDonutData?.length ? (
-				<div className="grid grid-cols-2 gap-2">
-					{holderCountDataset.source.length ? (
-						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-								<h2 className="mr-auto text-base font-semibold">Holder Count</h2>
-								<ChartExportButtons
-									chartInstance={holderCountChartInstance}
-									filename={`${query.pool}-holder-count`}
-									title="Holder Count"
-								/>
-							</div>
-							<Suspense fallback={<div className="min-h-[360px]" />}>
-								<MultiSeriesChart2
-									dataset={deferredHolderCountDataset}
-									charts={HOLDER_COUNT_LINE_CHARTS}
-									valueSymbol=""
-									onReady={handleHolderCountReady}
-								/>
-							</Suspense>
-						</div>
-					) : null}
+			{deferredHolderDonutData?.length || holderChanges.holders.length ? (
+				<div className="grid grid-cols-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:grid-cols-2">
 					{deferredHolderDonutData?.length ? (
-						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+						<div className="relative flex flex-col">
 							<Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
 									title="Top 10 Holder Distribution"
 									chartData={deferredHolderDonutData}
+									stackColors={holderDonutColors}
 									radius={HOLDER_DONUT_RADIUS}
 									valueSymbol="%"
-									showLegend
-									legendPosition={{ right: 12, orient: 'vertical' }}
-									legendTextStyle={{ fontSize: 11 }}
-									toRight={180}
+									showLegend={false}
+									customLabel={{ show: false }}
+									formatTooltip={(p) => {
+										const val = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
+										return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${val.toFixed(2)}%</b>`
+									}}
 									exportButtons="auto"
 								/>
 							</Suspense>
 						</div>
 					) : null}
-				</div>
-			) : null}
-
-			{concentrationDataset.source.length ? (
-				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-						<h2 className="mr-auto text-base font-semibold">Top 10 Concentration</h2>
-						<ChartExportButtons
-							chartInstance={concentrationChartInstance}
-							filename={`${query.pool}-concentration`}
-							title="Top 10 Concentration"
-						/>
-					</div>
-					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<MultiSeriesChart2
-							dataset={deferredConcentrationDataset}
-							charts={CONCENTRATION_LINE_CHARTS}
-							valueSymbol="%"
-							onReady={handleConcentrationReady}
-						/>
-					</Suspense>
+					{holderChanges.holders.length ? (
+						<div className="border-t border-(--cards-border) p-2 xl:border-t-0 xl:border-l">
+							<TopHoldersTable
+								holders={holderChanges.holders}
+								summary={holderChanges.summary}
+								chain={poolData.chain}
+								blockExplorersData={blockExplorersData}
+								colors={HOLDER_COLORS}
+							/>
+						</div>
+					) : null}
 				</div>
 			) : null}
 

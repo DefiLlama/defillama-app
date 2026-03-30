@@ -6,18 +6,14 @@ import {
 	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
-	YIELD_HOLDER_HISTORY_API,
 	YIELD_POOLS_API,
 	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { fetchJson } from '~/utils/async'
-import { generateMockHolderHistory, generateMockHolderStats } from './holderMocks'
 import type { HolderHistoryEntry, HolderStatsMap } from './holderTypes'
 import { formatYieldsPageData } from './utils'
-
-const USE_MOCK_HOLDER_DATA = process.env.NEXT_PUBLIC_USE_MOCK_HOLDER_DATA === 'true'
 
 // single pool
 export const useYieldPoolData = (configID) => {
@@ -121,38 +117,58 @@ export const useVolatility = () => {
 }
 
 export const useHolderStats = (configIDs?: string[]) => {
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
+
 	return useQuery<HolderStatsMap>({
-		queryKey: ['holder-stats', configIDs],
+		queryKey: ['holder-stats', configIDs, hasActiveSubscription],
 		queryFn: async () => {
-			if (USE_MOCK_HOLDER_DATA && configIDs?.length) {
-				return generateMockHolderStats(configIDs)
+			const res = await authorizedFetch(YIELD_HOLDERS_API)
+			if (!res || !res.ok) return {}
+			const json = await res.json()
+			const raw = json?.data ?? {}
+			const result: HolderStatsMap = {}
+			for (const [id, entry] of Object.entries(raw)) {
+				const e = entry as any
+				result[id] = {
+					holderCount: e.holderCount ?? null,
+					avgPositionUsd: e.avgPositionUsd != null ? Number(e.avgPositionUsd) : null,
+					top10Pct: e.top10Pct != null ? Number(e.top10Pct) : null,
+					top10Holders: e.top10Holders?.holders ?? null,
+					tokenDecimals: e.top10Holders?.decimals ?? null,
+					holderChange7d: e.holderChange7d ?? null,
+					holderChange30d: e.holderChange30d ?? null
+				}
 			}
-			const res = await fetchJson(YIELD_HOLDERS_API)
-			return res?.data ?? {}
+			return result
 		},
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 1
+		retry: 0,
+		enabled: isAuthenticated && !!hasActiveSubscription
 	})
 }
 
 export const useHolderHistory = (configID: string | null) => {
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
+
 	return useQuery<HolderHistoryEntry[]>({
-		queryKey: ['holder-history', configID],
+		queryKey: ['holder-history', configID, hasActiveSubscription],
 		queryFn: async () => {
-			if (USE_MOCK_HOLDER_DATA && configID) {
-				return generateMockHolderHistory(configID)
-			}
-			const res = await fetchJson(`${YIELD_HOLDER_HISTORY_API}/${configID}`)
-			return (res?.data ?? []).map((row: any) => ({
-				...row,
-				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null
+			const res = await authorizedFetch(`${YIELD_HOLDERS_API}/${configID}`)
+			if (!res || !res.ok) return []
+			const json = await res.json()
+			return (json?.data ?? []).map((row: any) => ({
+				timestamp: row.timestamp,
+				holderCount: row.holderCount ?? null,
+				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
+				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null,
+				top10Holders: row.top10Holders?.holders ?? null
 			}))
 		},
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: !!configID
+		enabled: isAuthenticated && !!hasActiveSubscription && !!configID
 	})
 }
 

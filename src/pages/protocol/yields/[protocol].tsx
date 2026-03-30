@@ -12,7 +12,7 @@ import { APYRange } from '~/containers/Yields/Filters/APYRange'
 import { FilterByChain } from '~/containers/Yields/Filters/Chains'
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
-import { useVolatility } from '~/containers/Yields/queries/client'
+import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
@@ -122,6 +122,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const router = useRouter()
 	const { data: volatility } = useVolatility()
 	const poolsList = React.useMemo(() => props.poolsList ?? [], [props.poolsList])
+	const { data: holderStats } = useHolderStats(poolsList.map((p) => p.configID))
 
 	const chainList = React.useMemo(() => [...new Set(poolsList.map((p) => p.chains[0]))].sort(), [poolsList])
 
@@ -139,9 +140,14 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			...pool,
 			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
 			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
-			cv30d: volatility?.[pool.configID]?.[3] ?? null
+			cv30d: volatility?.[pool.configID]?.[3] ?? null,
+			holderCount: holderStats?.[pool.configID]?.holderCount ?? null,
+			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? null,
+			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? null,
+			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? null,
+			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? null
 		}))
-	}, [poolsList, volatility])
+	}, [poolsList, volatility, holderStats])
 
 	const filteredPools = React.useMemo(() => {
 		let pools = poolsWithVolatility

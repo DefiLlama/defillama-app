@@ -25,7 +25,9 @@ const ALL_YIELD_COLUMNS = [
 	'showAvailable',
 	'showMedianApy',
 	'showStdDev',
-	'showHolders'
+	'showHolderCount',
+	'showTop10Pct',
+	'showAvgPosition'
 ]
 
 const YieldPage = ({
@@ -190,6 +192,7 @@ const YieldPage = ({
 					pegDeviation: pegInfo?.pegDeviation ?? null,
 					pegPrice: pegInfo?.price ?? null,
 					holderCount: holderStats?.[curr.pool]?.holderCount ?? null,
+					avgPositionUsd: holderStats?.[curr.pool]?.avgPositionUsd ?? null,
 					top10Pct: holderStats?.[curr.pool]?.top10Pct ?? null,
 					holderChange7d: holderStats?.[curr.pool]?.holderChange7d ?? null,
 					holderChange30d: holderStats?.[curr.pool]?.holderChange30d ?? null
@@ -289,6 +292,7 @@ const YieldPage = ({
 				'APY Std Dev 30d': row.apyStd30d,
 				'CV 30d': row.cv30d,
 				'Holder Count': row.holderCount,
+				'Avg Position USD': row.avgPositionUsd,
 				'Top 10 %': row.top10Pct,
 				'Holder Change 7d': row.holderChange7d,
 				'Holder Change 30d': row.holderChange30d
