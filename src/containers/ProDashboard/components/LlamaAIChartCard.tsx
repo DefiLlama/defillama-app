@@ -1,5 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
@@ -14,8 +13,6 @@ interface LlamaAIChartCardProps {
 export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const { authorizedFetch, user, loaders } = useAuthContext()
 	const queryClient = useQueryClient()
-	const [isRefreshing, setIsRefreshing] = useState(false)
-	const [refreshError, setRefreshError] = useState<string | null>(null)
 
 	const hasInlineData = !!(config.inlineChartConfig && config.inlineChartData)
 	const queryKey = ['pro-dashboard', 'saved-chart', user?.id, config.savedChartId]
@@ -33,6 +30,18 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		enabled: !loaders.userLoading && !!config.savedChartId && !hasInlineData
 	})
 
+	const refreshMutation = useMutation({
+		mutationFn: async () => {
+			const res = await fetch(`${MCP_SERVER}/charts/${config.savedChartId}?refresh=false`)
+			if (!res?.ok) {
+				throw new Error(`Refresh failed${res ? ` (${res.status})` : ''}`)
+			}
+			const freshData = await res.json()
+			queryClient.setQueryData(queryKey, freshData)
+			return freshData
+		}
+	})
+
 	if (hasInlineData) {
 		return (
 			<div className="flex flex-col gap-2 p-2">
@@ -40,24 +49,6 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 				<ChartRenderer charts={[config.inlineChartConfig]} chartData={config.inlineChartData!} />
 			</div>
 		)
-	}
-
-	const handleOwnerRefresh = async () => {
-		setIsRefreshing(true)
-		setRefreshError(null)
-		try {
-			const res = await fetch(`${MCP_SERVER}/charts/${config.savedChartId}?refresh=false`)
-			if (!res?.ok) {
-				setRefreshError(`Refresh failed${res ? ` (${res.status})` : ''}`)
-				return
-			}
-			const freshData = await res.json()
-			queryClient.setQueryData(queryKey, freshData)
-		} catch (e) {
-			setRefreshError(e instanceof Error ? e.message : 'Refresh failed')
-		} finally {
-			setIsRefreshing(false)
-		}
 	}
 
 	if (isLoading || loaders.userLoading) {
@@ -104,14 +95,18 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 								Updated {new Date(data.dataFreshness.cachedAt).toLocaleDateString()}
 							</span>
 						) : null}
-						{refreshError ? <span className="text-xs text-[#EB5757]">{refreshError}</span> : null}
+						{refreshMutation.isError ? (
+							<span className="text-xs text-[#EB5757]">
+								{refreshMutation.error instanceof Error ? refreshMutation.error.message : 'Refresh failed'}
+							</span>
+						) : null}
 						{isOwner && isPremium ? (
 							<button
 								className="text-xs text-(--link-text) hover:underline disabled:opacity-50"
-								onClick={handleOwnerRefresh}
-								disabled={isRefreshing}
+								onClick={() => refreshMutation.mutate()}
+								disabled={refreshMutation.isPending}
 							>
-								{isRefreshing ? 'Refreshing...' : 'Refresh'}
+								{refreshMutation.isPending ? 'Refreshing...' : 'Refresh'}
 							</button>
 						) : isPremium ? (
 							<span className="text-xs text-[#F2994A]">Stale</span>
