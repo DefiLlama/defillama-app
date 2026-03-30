@@ -63,6 +63,7 @@ import type {
 	AlertProposedData,
 	ChartConfiguration,
 	DashboardArtifact,
+	DashboardItem,
 	Message,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
@@ -99,7 +100,12 @@ interface PersistedMessageMetadata {
 	savedAlertId?: string
 	savedAlertIds?: string[]
 	quotedText?: string
-	dashboardConfig?: { dashboardName?: string; items?: any[]; timePeriod?: string; sourceDashboardId?: string }
+	dashboardConfig?: {
+		dashboardName?: string
+		items?: DashboardItem[]
+		timePeriod?: string
+		sourceDashboardId?: string
+	}
 }
 
 interface PersistedMessage {
@@ -284,19 +290,27 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 		dashboards: dashboardConfig
 			? [
 					(() => {
+						const restoredDashboardIdSuffix =
+							message.messageId ??
+							(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+								? crypto.randomUUID()
+								: `unknown_${Date.now()}_${Math.random().toString(36).slice(2)}`)
 						const artifact: DashboardArtifact = {
-							id: `dashboard_restored_${message.messageId}`,
+							id: `dashboard_restored_${restoredDashboardIdSuffix}`,
 							dashboardName: dashboardConfig.dashboardName || 'Dashboard',
-							items: dashboardConfig.items || [],
+							items: dashboardConfig.items ?? [],
 							timePeriod: dashboardConfig.timePeriod,
 							sourceDashboardId: dashboardConfig.sourceDashboardId
 						}
-						const chartRefs = (dashboardConfig.items || []).filter((i: any) => i.kind === 'llamaai-chart' && i.chartRef)
+						const chartRefs = (dashboardConfig.items ?? []).filter(
+							(item): item is Extract<DashboardItem, { kind: 'llamaai-chart' }> & { chartRef: string } =>
+								item.kind === 'llamaai-chart' && typeof item.chartRef === 'string'
+						)
 						if (chartRefs.length > 0 && message.chartData && message.charts) {
-							const chartConfigMap = new Map((message.charts as any[]).map((c: any) => [c.id, c]))
-							const bundled: Record<string, any> = {}
+							const chartConfigMap = new Map(message.charts.map((chart) => [chart.id, chart]))
+							const bundled: NonNullable<DashboardArtifact['chartData']> = {}
 							for (const item of chartRefs) {
-								const data = (message.chartData as Record<string, any>)[item.chartRef]
+								const data = (message.chartData as Record<string, unknown[]>)[item.chartRef]
 								const config = chartConfigMap.get(item.chartRef)
 								if (data && config) {
 									bundled[item.chartRef] = { config, data, toolChain: [] }
@@ -1130,7 +1144,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						eventCounter: replayEventCounter
 					})
 						.then(() => true)
-						.catch(() => false)
+						.catch((resumeError) => {
+							console.error(
+								'Failed to resume agentic stream from buffered events',
+								{
+									resumeAgenticStream: 'resumeAgenticStream',
+									didResumeFromBuffer: false,
+									targetSessionId,
+									replayFrom,
+									replayEventCounter,
+									replayController: { aborted: replayController.signal.aborted },
+									replayCallbacks
+								},
+								resumeError
+							)
+							return false
+						})
 					if (abortControllerRef.current === replayController) {
 						abortControllerRef.current = null
 					}

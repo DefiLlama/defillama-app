@@ -40,8 +40,8 @@ function DashboardPanelInner({
 	const enrichedItems = useMemo(() => {
 		if (!config) return []
 		const chartData = config.chartData
-		if (!chartData) return config.items as DashboardItemConfig[]
-		return (config.items as DashboardItemConfig[]).map((item: any) => {
+		if (!chartData) return config.items
+		return config.items.map((item) => {
 			if (item.kind === 'llamaai-chart' && item.chartRef && chartData[item.chartRef]) {
 				const bundled = chartData[item.chartRef]
 				return { ...item, inlineChartConfig: bundled.config, inlineChartData: { [item.chartRef]: bundled.data } }
@@ -55,19 +55,22 @@ function DashboardPanelInner({
 			if (!config) {
 				throw new Error('No dashboard configuration')
 			}
-			let finalItems = config.items as DashboardItemConfig[]
+			let finalItems: DashboardItemConfig[] = config.items
 
-			const chartRefItems = finalItems.filter((i: any) => i.kind === 'llamaai-chart' && i.chartRef && !i.savedChartId)
+			const chartRefItems = finalItems.filter(
+				(item): item is Extract<DashboardItemConfig, { kind: 'llamaai-chart' }> & { chartRef: string } =>
+					item.kind === 'llamaai-chart' && typeof item.chartRef === 'string' && !item.savedChartId
+			)
 			if (chartRefItems.length > 0 && sessionId) {
 				const promoteRes = await authorizedFetch(`${MCP_SERVER}/agentic/promote-charts`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ sessionId, chartRefs: chartRefItems.map((i: any) => i.chartRef) })
+					body: JSON.stringify({ sessionId, chartRefs: chartRefItems.map((item) => item.chartRef) })
 				})
 				if (promoteRes?.ok) {
 					const data = await promoteRes.json()
 					const mapping = data?.mapping || {}
-					finalItems = finalItems.map((item: any) => {
+					finalItems = finalItems.map((item) => {
 						if (item.kind === 'llamaai-chart' && item.chartRef && mapping[item.chartRef]) {
 							return { ...item, savedChartId: mapping[item.chartRef], chartRef: undefined }
 						}

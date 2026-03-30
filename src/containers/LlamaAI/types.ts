@@ -1,3 +1,5 @@
+import type { DashboardItemConfig } from '~/containers/ProDashboard/types'
+
 export interface ChartConfiguration {
 	id: string
 	datasetName?: string
@@ -98,10 +100,12 @@ export interface AlertProposedData {
 	next_run_at: string
 }
 
+export type DashboardItem = DashboardItemConfig
+
 export interface DashboardArtifact {
 	id: string
 	dashboardName: string
-	items: any[]
+	items: DashboardItem[]
 	timePeriod?: string
 	sourceDashboardId?: string
 	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
