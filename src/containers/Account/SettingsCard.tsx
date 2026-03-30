@@ -2,6 +2,7 @@
 // import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { PROMO_EMAILS_TEXT } from '~/containers/Subscription/constants'
 import { ToggleSwitch } from './ToggleSwitch'
 
 export function SettingsCard() {
@@ -67,9 +68,7 @@ export function SettingsCard() {
 							aria-label="Receive promotional emails"
 						/>
 					</div>
-					<p className="max-w-[400px] text-xs leading-4 text-(--sub-text-muted)">
-						Receive emails about upcoming DefiLlama products and new release
-					</p>
+					<p className="max-w-[400px] text-xs leading-4 text-(--sub-text-muted)">{PROMO_EMAILS_TEXT}</p>
 				</div>
 			</div>
 		</div>
