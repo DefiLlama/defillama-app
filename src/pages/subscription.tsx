@@ -40,7 +40,7 @@ function SubscriptionContent() {
 	const router = useRouter()
 	const returnUrl = safeInternalPath(router.query.returnUrl)
 
-	const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
+	const [billingCycle, setBillingCycle] = useState<BillingCycle>('yearly')
 	const {
 		isAuthenticated,
 		currentPlan,

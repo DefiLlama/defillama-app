@@ -118,8 +118,8 @@ function PricingCardCta({
 	if (isCurrentPlan) {
 		return (
 			<>
-				<p className="text-center text-[16px] leading-5 font-medium text-(--sub-c-1f67d2) sm:text-sm dark:text-(--sub-c-4b86db)">
-					{isTrial ? 'Trial Active' : 'Current Plan'}
+				<p className="mt-4 text-center text-[16px] leading-5 font-medium text-(--sub-c-1f67d2) sm:text-sm dark:text-(--sub-c-4b86db)">
+					{isTrial ? 'Current Plan (trial)' : 'Current Plan'}
 				</p>
 				{isCancelPending ? (
 					<div className="flex flex-col gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
@@ -136,6 +136,11 @@ function PricingCardCta({
 						</button>
 					</div>
 				) : null}
+				{isTrial ? (
+					<button type="button" className={filledBtnCls} onClick={onEndTrial}>
+						Upgrade to Full Access
+					</button>
+				) : null}
 				{canUpgradeCycle && !isCancelPending ? (
 					<>
 						<button type="button" className={filledBtnCls} onClick={() => onUpgradeToYearly?.(card.key)}>
@@ -145,11 +150,6 @@ function PricingCardCta({
 							Switch to annual billing and get 2 months free
 						</p>
 					</>
-				) : null}
-				{isTrial ? (
-					<button type="button" className={filledBtnCls} onClick={onEndTrial}>
-						Upgrade to Full Access
-					</button>
 				) : null}
 			</>
 		)
@@ -326,7 +326,7 @@ export function PricingCard({
 						))}
 					</div>
 
-					<div className={`mx-auto mt-7 flex w-full flex-col gap-4 sm:mt-0 sm:gap-3 ${contentWidth}`}>
+					<div className={`mx-auto mt-7 flex w-full flex-col gap-4 sm:mt-5 sm:gap-3 ${contentWidth}`}>
 						<PricingCardCta
 							card={card}
 							isCurrentPlan={isCurrentPlan}

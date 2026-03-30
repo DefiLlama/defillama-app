@@ -1,6 +1,5 @@
-import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 import { AuthenticationCard } from './AuthenticationCard'
 import { useDevOverrides } from './DevToolbar' // [DEV-TOOLBAR] remove before production
 import { SettingsCard } from './SettingsCard'
@@ -23,22 +22,17 @@ export function ManageAccount() {
 	if (!isAuthenticated || !user) {
 		return (
 			<div className="flex flex-col items-center gap-6 py-16">
-				<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--sub-c-1f67d2)/10">
-					<Icon name="users" height={28} width={28} className="text-(--sub-c-1f67d2)" />
-				</div>
+				<img src="/assets/account_avatar.png" alt="" className="h-16 w-16 rounded-full" />
 				<div className="flex flex-col gap-2 text-center">
 					<h2 className="text-xl font-semibold text-(--sub-c-090b0c) dark:text-white">Account Access Required</h2>
 					<p className="max-w-md text-sm text-(--sub-c-878787)">
 						Please sign in to view and manage your account information and subscription details.
 					</p>
 				</div>
-				<BasicLink
-					href="/subscription"
+				<SignIn2Modal
+					text="Sign In"
 					className="flex h-10 items-center gap-2 rounded-lg bg-(--sub-c-1f67d2) px-5 text-sm font-medium text-white"
-				>
-					<Icon name="arrow-right" height={16} width={16} />
-					Sign In
-				</BasicLink>
+				/>
 			</div>
 		)
 	}
