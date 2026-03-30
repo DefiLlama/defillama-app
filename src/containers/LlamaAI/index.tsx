@@ -183,6 +183,72 @@ type RecoveryController = {
 	streamAttached: boolean
 }
 
+type DashboardPanelState = {
+	isOpen: boolean
+	mountedConfig: DashboardArtifact | null
+	versions: DashboardArtifact[]
+	versionIndex: number
+}
+
+type DashboardPanelAction =
+	| { type: 'APPEND'; value: DashboardArtifact }
+	| { type: 'RESTORE'; value: DashboardArtifact[] }
+	| { type: 'RESET' }
+	| { type: 'TOGGLE' }
+	| { type: 'SELECT_VERSION'; value: number }
+	| { type: 'CLOSE' }
+	| { type: 'UNMOUNT' }
+
+const INITIAL_DASHBOARD_PANEL_STATE: DashboardPanelState = {
+	isOpen: false,
+	mountedConfig: null,
+	versions: [],
+	versionIndex: 0
+}
+
+function dashboardPanelReducer(state: DashboardPanelState, action: DashboardPanelAction): DashboardPanelState {
+	switch (action.type) {
+		case 'APPEND': {
+			const versions = [...state.versions, action.value]
+			return {
+				isOpen: true,
+				mountedConfig: action.value,
+				versions,
+				versionIndex: versions.length - 1
+			}
+		}
+		case 'RESTORE':
+			return {
+				isOpen: false,
+				mountedConfig: null,
+				versions: action.value,
+				versionIndex: action.value.length > 0 ? action.value.length - 1 : 0
+			}
+		case 'RESET':
+			return INITIAL_DASHBOARD_PANEL_STATE
+		case 'TOGGLE':
+			return {
+				...state,
+				isOpen: !state.isOpen,
+				mountedConfig: state.isOpen ? state.mountedConfig : (state.versions[state.versionIndex] ?? null)
+			}
+		case 'SELECT_VERSION':
+			if (action.value < 0 || action.value >= state.versions.length) return state
+			return {
+				...state,
+				mountedConfig: state.isOpen ? (state.versions[action.value] ?? null) : state.mountedConfig,
+				versionIndex: action.value
+			}
+		case 'CLOSE':
+			return { ...state, isOpen: false }
+		case 'UNMOUNT':
+			if (state.isOpen) return state
+			return { ...state, mountedConfig: null }
+		default:
+			return state
+	}
+}
+
 function getErrorMessage(error: unknown): string {
 	if (error instanceof Error) return error.message
 	return String(error)
@@ -466,6 +532,7 @@ function createAgenticCallbacks({
 	onSessionId,
 	onTitle,
 	onTokenLimit,
+	onDashboardArtifact,
 	appendMessage,
 	notify
 }: {
@@ -478,6 +545,7 @@ function createAgenticCallbacks({
 	onSessionId?: (sessionId: string) => void
 	onTitle?: (title: string) => void
 	onTokenLimit?: () => void
+	onDashboardArtifact?: (dashboard: DashboardArtifact) => void
 	appendMessage: (message: Message) => void
 	notify: () => void
 }): AgenticSSECallbacks {
@@ -512,6 +580,7 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.dashboards.push(dashboard)
 			dispatch({ type: 'APPEND_DASHBOARD', value: dashboard })
+			onDashboardArtifact?.(dashboard)
 		},
 		onCitations: (citations) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -687,9 +756,15 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [quotedText, setQuotedText] = useState<string | null>(null)
-	const [dashboardPanelConfig, setDashboardPanelConfig] = useState<DashboardArtifact | null>(null)
-	const [dashboardVersions, setDashboardVersions] = useState<DashboardArtifact[]>([])
-	const [dashboardVersionIndex, setDashboardVersionIndex] = useState(0)
+	const [
+		{
+			isOpen: dashboardPanelIsOpen,
+			mountedConfig: dashboardPanelMountedConfig,
+			versions: dashboardVersions,
+			versionIndex: dashboardVersionIndex
+		},
+		dispatchDashboardPanel
+	] = useReducer(dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [customInstructions, setCustomInstructions] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
@@ -740,7 +815,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		charts: streamingCharts,
 		csvExports: streamingCsvExports,
 		alerts: streamingAlerts,
-		dashboards: streamingDashboards,
 		citations: streamingCitations,
 		toolExecutions: streamingToolExecutions,
 		thinking: streamingThinking,
@@ -768,21 +842,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 
 	useEffect(() => {
-		if (streamingDashboards.length > 0) {
-			const latest = streamingDashboards[streamingDashboards.length - 1]
-			setDashboardVersions((prev) => {
-				const updated = [...prev, latest]
-				setDashboardVersionIndex(updated.length - 1)
-				return updated
-			})
-			setDashboardPanelConfig(latest)
-		}
-	}, [streamingDashboards])
-
-	useEffect(() => {
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
 		return () => clearTimeout(timer)
-	}, [dashboardPanelConfig])
+	}, [dashboardPanelIsOpen, dashboardPanelMountedConfig])
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -929,8 +991,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [toggleSidebar])
 
 	const toggleDashboardPanel = useCallback(() => {
-		setDashboardPanelConfig((prev) => (prev ? null : (dashboardVersions[dashboardVersionIndex] ?? null)))
-	}, [dashboardVersions, dashboardVersionIndex])
+		dispatchDashboardPanel({ type: 'TOGGLE' })
+	}, [])
+
+	const handleDashboardVersionChange = useCallback((index: number) => {
+		dispatchDashboardPanel({ type: 'SELECT_VERSION', value: index })
+	}, [])
+
+	const handleDashboardClose = useCallback(() => {
+		dispatchDashboardPanel({ type: 'CLOSE' })
+	}, [])
+
+	const handleDashboardExited = useCallback(() => {
+		dispatchDashboardPanel({ type: 'UNMOUNT' })
+	}, [])
 
 	const chromeValue = useMemo(
 		() => ({
@@ -939,9 +1013,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			toggleFullscreen,
 			isFullscreen,
 			toggleDashboardPanel,
-			isDashboardPanelOpen: !!dashboardPanelConfig
+			isDashboardPanelOpen: dashboardPanelIsOpen
 		}),
-		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen, toggleDashboardPanel, dashboardPanelConfig]
+		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen, toggleDashboardPanel, dashboardPanelIsOpen]
 	)
 
 	// Append one message to the live conversation state.
@@ -1009,64 +1083,65 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			const { active, status, hasResult } = activeExecution
 			if (!active) {
 				if (status === 'completed' && hasResult) {
-					try {
-						setViewError(null)
-						dispatchStream({ type: 'SET_ERROR', value: null })
-						dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
-						dispatchStream({ type: 'RESET_RECOVERY' })
-						if (resetStream) {
-							dispatchStream({ type: 'START_STREAM' })
-							currentMessageIdRef.current = null
+					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
+					setViewError(null)
+					dispatchStream({ type: 'SET_ERROR', value: null })
+					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+					dispatchStream({ type: 'RESET_RECOVERY' })
+					if (resetStream) {
+						dispatchStream({ type: 'START_STREAM' })
+						currentMessageIdRef.current = null
+					}
+					const replayRequestId = beginRequest(
+						activeRequestIdRef,
+						activeRequestKindRef,
+						activeSessionIdRef,
+						'resume',
+						targetSessionId
+					)
+					const replayController = new AbortController()
+					abortControllerRef.current = replayController
+					const replaySettleState = createRequestSettleState(replayRequestId)
+					activeRequestSettleRef.current = replaySettleState
+					const replayCallbacks = createAgenticCallbacks({
+						requestId: replayRequestId,
+						activeRequestIdRef,
+						buffer,
+						dispatch: dispatchStream,
+						currentMessageIdRef,
+						toolCallIdRef,
+						appendMessage,
+						notify,
+						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
+						onTokenLimit: () => setShowTokenLimitModal(true),
+						onTitle: (title) => {
+							setSessionTitle(title)
+							updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+							moveSessionToTop(targetSessionId)
 						}
-						const replayRequestId = beginRequest(
-							activeRequestIdRef,
-							activeRequestKindRef,
-							activeSessionIdRef,
-							'resume',
-							targetSessionId
-						)
-						const replayController = new AbortController()
-						abortControllerRef.current = replayController
-						const replaySettleState = createRequestSettleState(replayRequestId)
-						activeRequestSettleRef.current = replaySettleState
-						const replayCallbacks = createAgenticCallbacks({
-							requestId: replayRequestId,
-							activeRequestIdRef,
-							buffer,
-							dispatch: dispatchStream,
-							currentMessageIdRef,
-							toolCallIdRef,
-							appendMessage,
-							notify,
-							onTokenLimit: () => setShowTokenLimitModal(true),
-							onTitle: (title) => {
-								setSessionTitle(title)
-								updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
-								moveSessionToTop(targetSessionId)
-							}
-						})
-						const replayEventCounter = { count: buffer.receivedEventCount }
-						return await resumeAgenticStream({
-							sessionId: targetSessionId,
-							callbacks: replayCallbacks,
-							abortSignal: replayController.signal,
-							fetchFn: authorizedFetchCompat,
-							from: buffer.receivedEventCount || undefined,
-							eventCounter: replayEventCounter
-						})
-							.then(() => true)
-							.finally(() => {
-								if (abortControllerRef.current === replayController) {
-									abortControllerRef.current = null
-								}
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
-								replaySettleState.resolve()
-								if (activeRequestSettleRef.current?.requestId === replayRequestId) {
-									activeRequestSettleRef.current = null
-								}
-							})
-					} catch {
-						// Buffer expired, fall through to restoreSessionSnapshot
+					})
+					const replayEventCounter = { count: buffer.receivedEventCount }
+					const didResumeFromBuffer = await resumeAgenticStream({
+						sessionId: targetSessionId,
+						callbacks: replayCallbacks,
+						abortSignal: replayController.signal,
+						fetchFn: authorizedFetchCompat,
+						from: replayFrom,
+						eventCounter: replayEventCounter
+					})
+						.then(() => true)
+						.catch(() => false)
+					if (abortControllerRef.current === replayController) {
+						abortControllerRef.current = null
+					}
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
+					replaySettleState.resolve()
+					const activeReplaySettle = activeRequestSettleRef.current
+					if (activeReplaySettle && activeReplaySettle.requestId === replayRequestId) {
+						activeRequestSettleRef.current = null
+					}
+					if (didResumeFromBuffer) {
+						return true
 					}
 				}
 				return false
@@ -1104,6 +1179,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				toolCallIdRef,
 				appendMessage,
 				notify,
+				onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 				onTokenLimit: () => setShowTokenLimitModal(true),
 				onTitle: (title) => {
 					setSessionTitle(title)
@@ -1140,7 +1216,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					})
 					dispatchStream({ type: 'RESET_STREAM' })
 				})
-				.finally(() => {
+				.then(() => {
 					const recoveryController = recoveryControllerRef.current
 					if (recoveryController?.sessionId === targetSessionId && recoveryController.streamAttached) {
 						clearRecoveryController()
@@ -1176,14 +1252,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setSessionTitle(match?.title || null)
 
 			const allDashboards = restored.flatMap((m) => m.dashboards || [])
-			if (allDashboards.length > 0) {
-				setDashboardVersions(allDashboards)
-				setDashboardVersionIndex(allDashboards.length - 1)
-			} else {
-				setDashboardVersions([])
-				setDashboardVersionIndex(0)
-			}
-			setDashboardPanelConfig(null)
+			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
 			attach()
@@ -1286,11 +1355,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			if (Date.now() >= latest.startedAt + RECOVERY_GRACE_MS) {
 				exhaustRecovery(latest)
 			}
-		})().finally(() => {
-			const latest = recoveryControllerRef.current
-			if (!latest || latest.id !== recoveryId) return
-			latest.attemptInFlight = false
-		})
+		})().then(
+			() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== recoveryId) return
+				latest.attemptInFlight = false
+			},
+			() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== recoveryId) return
+				latest.attemptInFlight = false
+			}
+		)
 	})
 
 	useEffect(() => {
@@ -1404,9 +1480,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setMessages([])
 		setSessionId(null)
 		setSessionTitle(null)
-		setDashboardPanelConfig(null)
-		setDashboardVersions([])
-		setDashboardVersionIndex(0)
+		dispatchDashboardPanel({ type: 'RESET' })
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
@@ -1555,6 +1629,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							toolCallIdRef,
 							appendMessage,
 							notify,
+							onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 							onTokenLimit: () => setShowTokenLimitModal(true),
 							onSessionId: (id) => {
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1640,7 +1715,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							dispatchStream({ type: 'RESET_STREAM' })
 							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 						})
-						.finally(() => {
+						.then(() => {
 							if (isActiveRequest(activeRequestIdRef, requestId)) {
 								abortControllerRef.current = null
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
@@ -1984,14 +2059,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				{dashboardVersions.length > 0 ? (
 					<Suspense fallback={null}>
 						<DashboardPanel
-							config={dashboardPanelConfig}
+							config={dashboardPanelMountedConfig}
+							isOpen={dashboardPanelIsOpen}
 							versions={dashboardVersions}
 							versionIndex={dashboardVersionIndex}
-							onVersionChange={(i: number) => {
-								setDashboardVersionIndex(i)
-								setDashboardPanelConfig(dashboardVersions[i])
-							}}
-							onClose={() => setDashboardPanelConfig(null)}
+							onVersionChange={handleDashboardVersionChange}
+							onClose={handleDashboardClose}
+							onExited={handleDashboardExited}
 							sessionId={sessionId}
 						/>
 					</Suspense>

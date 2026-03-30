@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -14,10 +14,12 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 interface DashboardPanelProps {
 	config: DashboardArtifact | null
+	isOpen: boolean
 	versions: DashboardArtifact[]
 	versionIndex: number
 	onVersionChange: (index: number) => void
 	onClose: () => void
+	onExited: () => void
 	sessionId?: string | null
 }
 
@@ -25,60 +27,35 @@ const NOOP = () => {}
 
 function DashboardPanelInner({
 	config,
+	isOpen,
 	versions,
 	versionIndex,
 	onVersionChange,
 	onClose,
+	onExited,
 	sessionId
 }: DashboardPanelProps) {
 	const { authorizedFetch, user } = useAuthContext()
-	const [animState, setAnimState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed')
-	const lastConfigRef = useRef<DashboardArtifact | null>(null)
-
-	if (config) lastConfigRef.current = config
-	const displayConfig = config || lastConfigRef.current
-	const isConfigPresent = !!config
 
 	const enrichedItems = useMemo(() => {
-		if (!displayConfig) return []
-		const chartData = displayConfig.chartData
-		if (!chartData) return displayConfig.items as DashboardItemConfig[]
-		return (displayConfig.items as DashboardItemConfig[]).map((item: any) => {
+		if (!config) return []
+		const chartData = config.chartData
+		if (!chartData) return config.items as DashboardItemConfig[]
+		return (config.items as DashboardItemConfig[]).map((item: any) => {
 			if (item.kind === 'llamaai-chart' && item.chartRef && chartData[item.chartRef]) {
 				const bundled = chartData[item.chartRef]
 				return { ...item, inlineChartConfig: bundled.config, inlineChartData: { [item.chartRef]: bundled.data } }
 			}
 			return item
 		})
-	}, [displayConfig])
-
-	useEffect(() => {
-		let timer: ReturnType<typeof setTimeout> | undefined
-		setAnimState((prev) => {
-			if (isConfigPresent) {
-				if (prev === 'closed' || prev === 'closing') {
-					timer = setTimeout(() => setAnimState('open'), 20)
-					return 'opening'
-				}
-			} else {
-				if (prev === 'open' || prev === 'opening') {
-					timer = setTimeout(() => setAnimState('closed'), 200)
-					return 'closing'
-				}
-			}
-			return prev
-		})
-		return () => {
-			if (timer) clearTimeout(timer)
-		}
-	}, [isConfigPresent])
+	}, [config])
 
 	const { mutate: handleCreateDashboard, isPending } = useMutation({
 		mutationFn: async () => {
-			if (!displayConfig) {
+			if (!config) {
 				throw new Error('No dashboard configuration')
 			}
-			let finalItems = displayConfig.items as DashboardItemConfig[]
+			let finalItems = config.items as DashboardItemConfig[]
 
 			const chartRefItems = finalItems.filter((i: any) => i.kind === 'llamaai-chart' && i.chartRef && !i.savedChartId)
 			if (chartRefItems.length > 0 && sessionId) {
@@ -104,8 +81,8 @@ function DashboardPanelInner({
 			return dashboardAPI.createDashboard(
 				{
 					items: finalItems,
-					dashboardName: displayConfig.dashboardName,
-					timePeriod: (displayConfig.timePeriod as any) || '365d',
+					dashboardName: config.dashboardName,
+					timePeriod: (config.timePeriod as any) || '365d',
 					visibility: 'private',
 					tags: [],
 					description: '',
@@ -132,80 +109,84 @@ function DashboardPanelInner({
 		}
 	})
 
-	if (animState === 'closed' || !displayConfig) return null
-
-	const isOpen = animState === 'open'
 	const hasMultipleVersions = versions.length > 1
 
 	return (
 		<div
 			className="shrink-0 overflow-hidden pl-2.5 transition-[width] duration-200 ease-out max-lg:hidden"
 			style={{ width: isOpen ? 'min(50vw, 800px)' : '0px' }}
+			onTransitionEnd={(event) => {
+				if (!isOpen && event.target === event.currentTarget && event.propertyName === 'width') {
+					onExited()
+				}
+			}}
 		>
-			<div
-				className="flex h-full flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
-				style={{ width: 'min(50vw, 800px)', minWidth: '400px' }}
-			>
-				<div className="flex items-center justify-between border-b border-[#e6e6e6] px-4 py-3 dark:border-[#222324]">
-					<div className="flex items-center gap-2 overflow-hidden">
-						<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
-						<span className="truncate text-sm font-medium text-[#1a1a2e] dark:text-[#e2e8f0]">
-							{displayConfig.dashboardName}
-						</span>
-						<span className="shrink-0 text-xs text-[#636e72] dark:text-[#8a8f98]">
-							{displayConfig.items.length} {displayConfig.items.length === 1 ? 'item' : 'items'}
-						</span>
+			{config ? (
+				<div
+					className="flex h-full flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
+					style={{ width: 'min(50vw, 800px)', minWidth: '400px' }}
+				>
+					<div className="flex items-center justify-between border-b border-[#e6e6e6] px-4 py-3 dark:border-[#222324]">
+						<div className="flex items-center gap-2 overflow-hidden">
+							<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
+							<span className="truncate text-sm font-medium text-[#1a1a2e] dark:text-[#e2e8f0]">
+								{config.dashboardName}
+							</span>
+							<span className="shrink-0 text-xs text-[#636e72] dark:text-[#8a8f98]">
+								{config.items.length} {config.items.length === 1 ? 'item' : 'items'}
+							</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<button
+								onClick={() => handleCreateDashboard()}
+								disabled={isPending || !config}
+								className="flex items-center gap-1.5 rounded-md bg-[#2172e5] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#1a5bc4] disabled:opacity-50"
+							>
+								{isPending ? 'Creating...' : 'Create Dashboard'}
+							</button>
+							<button
+								onClick={onClose}
+								aria-label="Close"
+								className="flex h-7 w-7 items-center justify-center rounded-md text-[#636e72] transition-colors hover:bg-[#e6e6e6] dark:text-[#8a8f98] dark:hover:bg-[#222324]"
+							>
+								<Icon name="x" className="h-4 w-4" />
+							</button>
+						</div>
 					</div>
-					<div className="flex items-center gap-2">
-						<button
-							onClick={() => handleCreateDashboard()}
-							disabled={isPending || !displayConfig}
-							className="flex items-center gap-1.5 rounded-md bg-[#2172e5] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#1a5bc4] disabled:opacity-50"
-						>
-							{isPending ? 'Creating...' : 'Create Dashboard'}
-						</button>
-						<button
-							onClick={onClose}
-							aria-label="Close"
-							className="flex h-7 w-7 items-center justify-center rounded-md text-[#636e72] transition-colors hover:bg-[#e6e6e6] dark:text-[#8a8f98] dark:hover:bg-[#222324]"
-						>
-							<Icon name="x" className="h-4 w-4" />
-						</button>
-					</div>
-				</div>
 
-				<div className="flex-1 overflow-y-auto overscroll-contain p-2.5 *:gap-2.5">
-					<AppMetadataProvider>
-						<ProDashboardAPIProvider key={displayConfig.id} initialItems={enrichedItems}>
-							<ChartGrid onAddChartClick={NOOP} />
-						</ProDashboardAPIProvider>
-					</AppMetadataProvider>
-				</div>
-
-				{hasMultipleVersions ? (
-					<div className="flex items-center justify-center gap-3 border-t border-[#e6e6e6] px-4 py-2.5 dark:border-[#222324]">
-						<button
-							onClick={() => onVersionChange(versionIndex - 1)}
-							disabled={versionIndex === 0}
-							aria-label="Previous version"
-							className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
-						>
-							<Icon name="chevron-left" className="h-3.5 w-3.5" />
-						</button>
-						<span className="text-xs text-[#636e72] dark:text-[#8a8f98]">
-							Version {versionIndex + 1} of {versions.length}
-						</span>
-						<button
-							onClick={() => onVersionChange(versionIndex + 1)}
-							disabled={versionIndex === versions.length - 1}
-							aria-label="Next version"
-							className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
-						>
-							<Icon name="chevron-right" className="h-3.5 w-3.5" />
-						</button>
+					<div className="flex-1 overflow-y-auto overscroll-contain p-2.5 *:gap-2.5">
+						<AppMetadataProvider>
+							<ProDashboardAPIProvider key={config.id} initialItems={enrichedItems}>
+								<ChartGrid onAddChartClick={NOOP} />
+							</ProDashboardAPIProvider>
+						</AppMetadataProvider>
 					</div>
-				) : null}
-			</div>
+
+					{hasMultipleVersions ? (
+						<div className="flex items-center justify-center gap-3 border-t border-[#e6e6e6] px-4 py-2.5 dark:border-[#222324]">
+							<button
+								onClick={() => onVersionChange(versionIndex - 1)}
+								disabled={versionIndex === 0}
+								aria-label="Previous version"
+								className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
+							>
+								<Icon name="chevron-left" className="h-3.5 w-3.5" />
+							</button>
+							<span className="text-xs text-[#636e72] dark:text-[#8a8f98]">
+								Version {versionIndex + 1} of {versions.length}
+							</span>
+							<button
+								onClick={() => onVersionChange(versionIndex + 1)}
+								disabled={versionIndex === versions.length - 1}
+								aria-label="Next version"
+								className="flex h-6 w-6 items-center justify-center rounded text-[#636e72] transition-colors hover:bg-[#e6e6e6] disabled:opacity-30 dark:text-[#8a8f98] dark:hover:bg-[#222324]"
+							>
+								<Icon name="chevron-right" className="h-3.5 w-3.5" />
+							</button>
+						</div>
+					) : null}
+				</div>
+			) : null}
 		</div>
 	)
 }
