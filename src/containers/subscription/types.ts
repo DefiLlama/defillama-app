@@ -4,6 +4,7 @@ export type Availability = 'check' | 'dash'
 
 export interface FeatureItem {
 	label: string
+	link?: string
 	availability: Availability
 	highlightText?: boolean
 }
@@ -30,6 +31,7 @@ export interface PricingCardData {
 
 export interface ComparisonRow {
 	label: string
+	link?: string
 	values: Record<PlanKey, Availability>
 }
 

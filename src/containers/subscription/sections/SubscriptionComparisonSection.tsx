@@ -264,7 +264,13 @@ export function SubscriptionComparisonSection({
 														role="rowheader"
 														className="sticky left-0 z-30 flex w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 													>
-														{row.label}
+														{row.link ? (
+															<a href={row.link} className="underline">
+																{row.label}
+															</a>
+														) : (
+															row.label
+														)}
 													</div>
 													{planOrder.map((plan, planIndex) => {
 														const prevPlan = planIndex > 0 ? planOrder[planIndex - 1] : null

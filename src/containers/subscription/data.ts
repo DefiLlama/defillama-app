@@ -59,6 +59,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 				items: [
 					{
 						label: 'LlamaAI: Conversational Analytics',
+						link: '/ai',
 						availability: 'check',
 						highlightText: true
 					},
@@ -68,7 +69,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 						label: 'Custom Columns for personalized analysis',
 						availability: 'check'
 					},
-					{ label: 'Access to DefiLlama Sheets', availability: 'check' },
+					{ label: 'Access to DefiLlama Sheets', link: '/sheets', availability: 'check' },
 					{ label: 'CSV data downloads', availability: 'check' },
 					{ label: 'Full access to LlamaFeed', availability: 'check' }
 				]
@@ -98,6 +99,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 					},
 					{
 						label: 'Access to DefiLlama MCP Server for AI agents',
+						link: '/mcp',
 						availability: 'check'
 					},
 					{ label: 'Priority support', availability: 'check' },
@@ -178,6 +180,7 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 				items: [
 					{
 						label: 'LlamaAI: Conversational Analytics',
+						link: '/ai',
 						availability: 'check',
 						highlightText: true
 					},
@@ -187,7 +190,7 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 						label: 'Custom Columns for personalized analysis',
 						availability: 'check'
 					},
-					{ label: 'Access to DefiLlama Sheets', availability: 'check' },
+					{ label: 'Access to DefiLlama Sheets', link: '/sheets', availability: 'check' },
 					{ label: 'CSV data downloads', availability: 'check' },
 					{ label: 'Full access to LlamaFeed', availability: 'check' }
 				]
@@ -218,6 +221,7 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Priority support', availability: 'check' },
 					{
 						label: 'Access to DefiLlama MCP Server for AI agents',
+						link: '/mcp',
 						availability: 'check'
 					},
 					{ label: '1000 requests/minute', availability: 'check' },
@@ -314,6 +318,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 		rows: [
 			{
 				label: 'LlamaAI: Conversational Analytics',
+				link: '/ai',
 				values: {
 					free: 'dash',
 					pro: 'check',
@@ -350,6 +355,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 			},
 			{
 				label: 'Access to DefiLlama Sheets',
+				link: '/sheets',
 				values: {
 					free: 'dash',
 					pro: 'check',
@@ -409,6 +415,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 			},
 			{
 				label: 'Access to DefiLlama MCP Server for AI agents',
+				link: '/mcp',
 				values: {
 					free: 'dash',
 					pro: 'dash',

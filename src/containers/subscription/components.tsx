@@ -60,14 +60,26 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 			</span>
 			{item.highlightText ? (
 				<span className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) bg-clip-text text-[16px] leading-6 text-transparent sm:pt-0.5 sm:text-[12px] sm:leading-4 dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
-					<span className="underline">{highlightPrefix}</span>
+					{item.link ? (
+						<a href={item.link} className="underline">
+							{highlightPrefix}
+						</a>
+					) : (
+						<span className="underline">{highlightPrefix}</span>
+					)}
 					{highlightSuffix ? `: ${highlightSuffix}` : ''}
 				</span>
 			) : (
 				<span
 					className={`text-[16px] leading-6 sm:pt-0.5 sm:text-[12px] sm:leading-4 ${item.availability === 'check' ? 'text-(--sub-ink-primary) dark:text-(--sub-text-primary-dark)' : 'text-(--sub-text-muted) dark:text-(--sub-text-muted-dark)'}`}
 				>
-					{item.label}
+					{item.link ? (
+						<a href={item.link} className="underline">
+							{item.label}
+						</a>
+					) : (
+						item.label
+					)}
 				</span>
 			)}
 		</li>
