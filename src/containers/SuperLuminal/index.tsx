@@ -100,7 +100,9 @@ const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Overview'
 function useProjectModules(projects: typeof ALL_PROJECTS) {
 	const [tabsByProject, setTabsByProject] = useState<Record<string, DashboardTabConfig[]>>({})
 	const [headersByProject, setHeadersByProject] = useState<Record<string, DashboardModule['header']>>({})
-	const [loadingProjects, setLoadingProjects] = useState<Set<string>>(() => new Set(projects.filter((p) => p.dashboardId && !p.comingSoon).map((p) => p.id)))
+	const [loadingProjects, setLoadingProjects] = useState<Set<string>>(
+		() => new Set(projects.filter((p) => p.dashboardId && !p.comingSoon).map((p) => p.id))
+	)
 
 	useEffect(() => {
 		let cancelled = false
@@ -113,7 +115,9 @@ function useProjectModules(projects: typeof ALL_PROJECTS) {
 						setTabsByProject((prev) => (prev[project.id] === mod.tabs ? prev : { ...prev, [project.id]: mod.tabs }))
 					}
 					if (!cancelled && mod?.header) {
-						setHeadersByProject((prev) => (prev[project.id] === mod.header ? prev : { ...prev, [project.id]: mod.header }))
+						setHeadersByProject((prev) =>
+							prev[project.id] === mod.header ? prev : { ...prev, [project.id]: mod.header }
+						)
 					}
 					if (!cancelled) {
 						setLoadingProjects((prev) => {
@@ -305,7 +309,7 @@ function SuperLuminalShell({
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 	const HeaderComponent = headersByProject[activeProject]
 	// Derive the effective tab: use activeTab if set and valid, otherwise first tab
-	const resolvedTab = activeTab && tabs.some((t) => t.id === activeTab) ? activeTab : tabs[0]?.id ?? 'dashboard'
+	const resolvedTab = activeTab && tabs.some((t) => t.id === activeTab) ? activeTab : (tabs[0]?.id ?? 'dashboard')
 
 	// Only show the global loader when the active tab is the pro dashboard (Overview) tab.
 	// Custom tabs handle their own loading state and should not be blocked by the stream.
@@ -320,161 +324,172 @@ function SuperLuminalShell({
 
 	return (
 		<CustomServerDataContext.Provider value={customServerData ?? {}}>
-		<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
-			{sidebarOpen && <div className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={closeSidebar} />}
+			<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
+				{sidebarOpen && <div className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={closeSidebar} />}
 
-			<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
-				<button
-					onClick={() => setSidebarOpen(true)}
-					className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
-				>
-					<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-						<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-					</svg>
-				</button>
-				<Logo size="sm" />
-			</div>
-
-			<aside
-				className={`sl-sidebar fixed top-0 left-0 z-30 flex h-screen w-56 shrink-0 flex-col overflow-hidden px-3 pt-6 pb-4 transition-transform duration-200 ${
-					sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-				} md:z-10 md:translate-x-0`}
-			>
-				<div className="hidden flex-col items-center pb-3 md:flex">
-					<Logo />
-				</div>
-				<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
-
-				<nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
-					{visibleProjects.map((project) => {
-						const isActive = activeProject === project.id
-						const isExpanded = isSingleProtocol || (expandedProject === project.id && !project.comingSoon)
-
-						return (
-							<div key={project.id}>
-								<button
-									onClick={() => {
-										if (isSingleProtocol) return
-										if (isActive && !project.comingSoon) {
-											setExpandedProject(isExpanded ? null : project.id)
-										} else {
-											setActiveProject(project.id)
-											setExpandedProject(project.comingSoon ? expandedProject : project.id)
-											if (!project.comingSoon) {
-												const projectTabs = tabsByProject[project.id]
-												setActiveTab(projectTabs?.[0]?.id ?? 'dashboard')
-											}
-											closeSidebar()
-										}
-									}}
-									className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[13px] font-semibold tracking-wide transition-colors ${
-										isActive
-											? 'text-(--sl-accent)'
-											: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
-									}`}
-								>
-									{!isSingleProtocol && (
-										<svg
-											width="12"
-											height="12"
-											viewBox="0 0 12 12"
-											fill="none"
-											className={`shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-										>
-											<path
-												d="M4.5 2.5L8 6L4.5 9.5"
-												stroke="currentColor"
-												strokeWidth="1.5"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											/>
-										</svg>
-									)}
-									{project.name}
-									{project.comingSoon && (
-										<span className="ml-auto rounded-full bg-(--sl-btn-inactive-bg) px-1.5 py-0.5 text-[10px] font-normal text-(--text-tertiary)">
-											Soon
-										</span>
-									)}
-								</button>
-
-								{isExpanded && (
-									<div className="ml-3 flex flex-col gap-0.5 border-l border-(--sl-divider) pt-1 pl-2">
-										{(tabsByProject[project.id] ?? DEFAULT_TABS).map((tab) => (
-											<button
-												key={tab.id}
-												onClick={() => {
-													setActiveTab(tab.id)
-													closeSidebar()
-												}}
-												className={`rounded-md px-3 py-1.5 text-left text-[12px] font-medium tracking-wide transition-colors ${
-													resolvedTab === tab.id
-														? 'bg-(--sl-accent-muted) text-(--sl-accent)'
-														: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
-												}`}
-											>
-												{tab.label}
-											</button>
-										))}
-									</div>
-								)}
-							</div>
-						)
-					})}
-				</nav>
-
-				<div className="mt-auto flex items-center justify-end pt-4">
+				<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
 					<button
-						onClick={toggleTheme}
-						className="flex h-8 w-8 items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
+						onClick={() => setSidebarOpen(true)}
+						className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
 					>
-						{isDark ? (
-							<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-								<circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5" />
-								<path
-									d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"
-									stroke="currentColor"
-									strokeWidth="1.5"
-									strokeLinecap="round"
-								/>
-							</svg>
-						) : (
-							<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-								<path
-									d="M14 9.68A6.5 6.5 0 0 1 6.32 2 6.5 6.5 0 1 0 14 9.68Z"
-									stroke="currentColor"
-									strokeWidth="1.5"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								/>
-							</svg>
-						)}
+						<svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+							<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+						</svg>
 					</button>
+					<Logo size="sm" />
 				</div>
-			</aside>
 
-			<div className="relative flex flex-1 flex-col gap-4 p-5 md:ml-56">
-				{showGlobalLoader && (
-					<div className="fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg) md:left-56">
-						<Logo animate />
+				<aside
+					className={`sl-sidebar fixed top-0 left-0 z-30 flex h-screen w-56 shrink-0 flex-col overflow-hidden px-3 pt-6 pb-4 transition-transform duration-200 ${
+						sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+					} md:z-10 md:translate-x-0`}
+				>
+					<div className="hidden flex-col items-center pb-3 md:flex">
+						<Logo />
 					</div>
-				)}
-				<ContentReadyContext.Provider value={markContentReady}>
-					{HeaderComponent && (
-						<Suspense fallback={null}>
-							<HeaderComponent />
-						</Suspense>
+					<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
+
+					<nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+						{visibleProjects.map((project) => {
+							const isActive = activeProject === project.id
+							const isExpanded = isSingleProtocol || (expandedProject === project.id && !project.comingSoon)
+
+							return (
+								<div key={project.id}>
+									<button
+										onClick={() => {
+											if (isSingleProtocol) return
+											if (isActive && !project.comingSoon) {
+												setExpandedProject(isExpanded ? null : project.id)
+											} else {
+												setActiveProject(project.id)
+												setExpandedProject(project.comingSoon ? expandedProject : project.id)
+												if (!project.comingSoon) {
+													const projectTabs = tabsByProject[project.id]
+													setActiveTab(projectTabs?.[0]?.id ?? 'dashboard')
+												}
+												closeSidebar()
+											}
+										}}
+										className={`flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-[13px] font-semibold tracking-wide transition-colors ${
+											isActive
+												? 'text-(--sl-accent)'
+												: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
+										}`}
+									>
+										{!isSingleProtocol && (
+											<svg
+												width="12"
+												height="12"
+												viewBox="0 0 12 12"
+												fill="none"
+												className={`shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+											>
+												<path
+													d="M4.5 2.5L8 6L4.5 9.5"
+													stroke="currentColor"
+													strokeWidth="1.5"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+												/>
+											</svg>
+										)}
+										{project.name}
+										{project.comingSoon && (
+											<span className="ml-auto rounded-full bg-(--sl-btn-inactive-bg) px-1.5 py-0.5 text-[10px] font-normal text-(--text-tertiary)">
+												Soon
+											</span>
+										)}
+									</button>
+
+									{isExpanded && (
+										<div className="ml-3 flex flex-col gap-0.5 border-l border-(--sl-divider) pt-1 pl-2">
+											{(tabsByProject[project.id] ?? DEFAULT_TABS).map((tab) => (
+												<button
+													key={tab.id}
+													onClick={() => {
+														setActiveTab(tab.id)
+														closeSidebar()
+													}}
+													className={`rounded-md px-3 py-1.5 text-left text-[12px] font-medium tracking-wide transition-colors ${
+														resolvedTab === tab.id
+															? 'bg-(--sl-accent-muted) text-(--sl-accent)'
+															: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
+													}`}
+												>
+													{tab.label}
+												</button>
+											))}
+										</div>
+									)}
+								</div>
+							)
+						})}
+					</nav>
+
+					<div className="mt-auto flex items-center justify-end pt-4">
+						<button
+							onClick={toggleTheme}
+							className="flex h-8 w-8 items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:bg-(--sl-hover-bg) hover:text-(--text-primary)"
+						>
+							{isDark ? (
+								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+									<circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5" />
+									<path
+										d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+									/>
+								</svg>
+							) : (
+								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+									<path
+										d="M14 9.68A6.5 6.5 0 0 1 6.32 2 6.5 6.5 0 1 0 14 9.68Z"
+										stroke="currentColor"
+										strokeWidth="1.5"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									/>
+								</svg>
+							)}
+						</button>
+					</div>
+				</aside>
+
+				<div className="relative flex flex-1 flex-col gap-4 p-5 md:ml-56">
+					{showGlobalLoader && (
+						<div className="fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg) md:left-56">
+							<Logo animate />
+						</div>
 					)}
-					{activeProjectConfig?.comingSoon ? (
-						<ProjectComingSoon />
-					) : activeProjectConfig?.customOnly ? (
-						<CustomOnlyContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
-					) : loadingProjects.has(activeProject) ? null : (
-						<SuperLuminalContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} dashboardId={dashboardId} hasCustomHeader={!!HeaderComponent} />
-					)}
-				</ContentReadyContext.Provider>
+					<ContentReadyContext.Provider value={markContentReady}>
+						{HeaderComponent && (
+							<Suspense fallback={null}>
+								<HeaderComponent />
+							</Suspense>
+						)}
+						{activeProjectConfig?.comingSoon ? (
+							<ProjectComingSoon />
+						) : activeProjectConfig?.customOnly ? (
+							<CustomOnlyContent
+								tabs={tabs}
+								activeTab={resolvedTab}
+								displayName={displayName}
+								hasCustomHeader={!!HeaderComponent}
+							/>
+						) : loadingProjects.has(activeProject) ? null : (
+							<SuperLuminalContent
+								tabs={tabs}
+								activeTab={resolvedTab}
+								displayName={displayName}
+								dashboardId={dashboardId}
+								hasCustomHeader={!!HeaderComponent}
+							/>
+						)}
+					</ContentReadyContext.Provider>
+				</div>
 			</div>
-		</div>
 		</CustomServerDataContext.Provider>
 	)
 }
@@ -488,10 +503,7 @@ export default function SuperLuminalDashboard({
 }) {
 	return (
 		<AppMetadataProvider>
-			<SuperLuminalShell
-				protocol={protocol}
-				customServerData={customServerData}
-			/>
+			<SuperLuminalShell protocol={protocol} customServerData={customServerData} />
 		</AppMetadataProvider>
 	)
 }

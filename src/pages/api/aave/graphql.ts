@@ -7,7 +7,9 @@ import * as duneCache from '~/utils/dune-cache'
 
 const AAVE_GRAPHQL_URL = 'https://api.v3.aave.com/graphql'
 
-const CHAIN_IDS = [1, 42161, 43114, 8453, 56, 100, 59144, 10, 137, 534352, 146, 324, 9745, 5000, 57073, 1868, 4326, 42220, 1088]
+const CHAIN_IDS = [
+	1, 42161, 43114, 8453, 56, 100, 59144, 10, 137, 534352, 146, 324, 9745, 5000, 57073, 1868, 4326, 42220, 1088
+]
 const VALID_CHAIN_IDS = new Set(CHAIN_IDS)
 const VALID_WINDOWS = new Set(['LAST_DAY', 'LAST_WEEK', 'LAST_MONTH', 'LAST_SIX_MONTHS', 'LAST_YEAR'])
 const HEX_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/

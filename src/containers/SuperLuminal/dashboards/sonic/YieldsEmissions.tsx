@@ -1,5 +1,11 @@
+import {
+	createColumnHelper,
+	useReactTable,
+	getCoreRowModel,
+	getSortedRowModel,
+	getPaginationRowModel
+} from '@tanstack/react-table'
 import { lazy, useEffect, useMemo } from 'react'
-import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel, getPaginationRowModel } from '@tanstack/react-table'
 import type { IChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/SuperLuminal/index'
 import { useYieldsEmissionsData, type YieldPool } from './yieldsEmissionsApi'
@@ -29,7 +35,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
-	return <h2 className="text-xs font-semibold uppercase tracking-wider text-(--text-label)">{children}</h2>
+	return <h2 className="text-xs font-semibold tracking-wider text-(--text-label) uppercase">{children}</h2>
 }
 
 function formatPct(n: number | null): string {
@@ -57,9 +63,7 @@ const columns = [
 	}),
 	columnHelper.accessor('apy', {
 		header: 'APY',
-		cell: (info) => (
-			<span className="tabular-nums font-medium text-green-500">{info.row.original.apyFormatted}</span>
-		),
+		cell: (info) => <span className="font-medium text-green-500 tabular-nums">{info.row.original.apyFormatted}</span>,
 		size: 100
 	}),
 	columnHelper.accessor('apyBase', {
@@ -136,14 +140,12 @@ export default function YieldsEmissions() {
 									{headerGroup.headers.map((header) => (
 										<th
 											key={header.id}
-											className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-(--text-label)"
+											className="px-4 py-3 text-left text-xs font-semibold tracking-wide text-(--text-label) uppercase"
 											style={{ width: header.getSize() }}
 											onClick={header.column.getToggleSortingHandler()}
 										>
 											<div className="flex cursor-pointer items-center gap-1">
-												{typeof header.column.columnDef.header === 'string'
-													? header.column.columnDef.header
-													: null}
+												{typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : null}
 												{header.column.getIsSorted() === 'asc'
 													? ' \u2191'
 													: header.column.getIsSorted() === 'desc'
@@ -157,10 +159,7 @@ export default function YieldsEmissions() {
 						</thead>
 						<tbody>
 							{table.getRowModel().rows.map((row) => (
-								<tr
-									key={row.id}
-									className="border-b border-(--cards-border) last:border-b-0 hover:bg-(--sl-hover-bg)"
-								>
+								<tr key={row.id} className="border-b border-(--cards-border) last:border-b-0 hover:bg-(--sl-hover-bg)">
 									{row.getVisibleCells().map((cell) => (
 										<td key={cell.id} className="px-4 py-2.5 text-sm text-(--text-primary)">
 											{typeof cell.column.columnDef.cell === 'function'
