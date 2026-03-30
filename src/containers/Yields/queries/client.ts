@@ -117,15 +117,11 @@ export const useVolatility = () => {
 }
 
 export const useHolderStats = (configIDs?: string[]) => {
-	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
-
 	return useQuery<HolderStatsMap>({
-		queryKey: ['holder-stats', configIDs, hasActiveSubscription],
+		queryKey: ['holder-stats', configIDs],
 		queryFn: async () => {
-			const res = await authorizedFetch(YIELD_HOLDERS_API)
-			if (!res || !res.ok) return {}
-			const json = await res.json()
-			const raw = json?.data ?? {}
+			const res = await fetchJson(YIELD_HOLDERS_API)
+			const raw = res?.data ?? {}
 			const result: HolderStatsMap = {}
 			for (const [id, entry] of Object.entries(raw)) {
 				const e = entry as any
@@ -143,21 +139,16 @@ export const useHolderStats = (configIDs?: string[]) => {
 		},
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isAuthenticated && !!hasActiveSubscription
+		retry: 1
 	})
 }
 
 export const useHolderHistory = (configID: string | null) => {
-	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
-
 	return useQuery<HolderHistoryEntry[]>({
-		queryKey: ['holder-history', configID, hasActiveSubscription],
+		queryKey: ['holder-history', configID],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${YIELD_HOLDERS_API}/${configID}`)
-			if (!res || !res.ok) return []
-			const json = await res.json()
-			return (json?.data ?? []).map((row: any) => ({
+			const res = await fetchJson(`${YIELD_HOLDERS_API}/${configID}`)
+			return (res?.data ?? []).map((row: any) => ({
 				timestamp: row.timestamp,
 				holderCount: row.holderCount ?? null,
 				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
@@ -168,7 +159,7 @@ export const useHolderHistory = (configID: string | null) => {
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: isAuthenticated && !!hasActiveSubscription && !!configID
+		enabled: !!configID
 	})
 }
 
