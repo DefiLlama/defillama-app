@@ -65,7 +65,7 @@ function SubscriptionCardWithProps({
 	return (
 		<SubscriptionCard
 			planName={getPlanName(subscription.type)}
-			renewalDate={formatDate(subscription.expires_at)}
+			renewalDate={formatDate(parseExpiryDate(subscription.expires_at))}
 			subscriptionType={getSubscriptionTypeLabel(subscription)}
 			subscriptionPayment={getPaymentLabel(subscription.provider)}
 			provider={subscription.provider as 'stripe' | 'llamapay' | 'legacy'}
