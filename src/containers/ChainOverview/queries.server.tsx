@@ -1,6 +1,7 @@
-import { fetchLlamaConfig } from '~/api'
+import { fetchCoinGeckoCoinById, fetchLlamaConfig } from '~/api'
+import type { CoinGeckoCoinDetailResult } from '~/api/types'
 import { tvlOptions } from '~/components/Filters/options'
-import { COINGECKO_KEY, REV_PROTOCOLS, TRADFI_API } from '~/constants'
+import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
@@ -133,13 +134,7 @@ export async function getChainOverviewData({
 			number | null,
 			RawRaisesResponse,
 			RawTreasuriesResponse | null,
-			{
-				market_data?: {
-					current_price?: { usd?: string | null }
-					market_cap?: { usd?: string | null }
-					fully_diluted_valuation?: { usd?: string | null }
-				}
-			},
+			CoinGeckoCoinDetailResult,
 			Record<string, number> | null,
 			RawChainAsset | null,
 			IAdapterChainMetrics | null,
@@ -221,15 +216,8 @@ export async function getChainOverviewData({
 			fetchRaises(),
 			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id
-				? fetchJson(
-						`https://pro-api.coingecko.com/api/v3/coins/${currentChainMetadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
-						{
-							headers: {
-								'x-cg-pro-api-key': COINGECKO_KEY
-							}
-						}
-					).catch(() => ({}))
-				: Promise.resolve({}),
+				? fetchCoinGeckoCoinById(currentChainMetadata.gecko_id)
+				: Promise.resolve({} as CoinGeckoCoinDetailResult),
 			chain && chain !== 'All'
 				? fetchJson<Record<string, number>>(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
