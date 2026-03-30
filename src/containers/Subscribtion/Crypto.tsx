@@ -2,8 +2,8 @@ import { lazy, Suspense, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
@@ -30,10 +30,9 @@ export const PaymentButton = ({
 
 	if (!isAuthenticated) {
 		return (
-			<SignInModal
+			<SignIn2Modal
 				text={text}
 				className="group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3.5 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0]"
-				pendingActionMessage={`Sign in or create an account to subscribe to the ${planName} plan.`}
 			/>
 		)
 	}

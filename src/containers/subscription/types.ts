@@ -56,6 +56,7 @@ export interface PricingCardCallbacks {
 	onUpgradeTier?: (cardKey: PlanKey) => void
 	onStartTrial?: () => void
 	onEndTrial?: () => void
+	onRevertCancellation?: () => void
 	isTrialAvailable?: boolean
 	loading?: 'stripe' | 'llamapay' | null
 }

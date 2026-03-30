@@ -6,47 +6,66 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
+import { useMedia } from '~/hooks/useMedia'
+import { WalletProvider } from '~/layout/WalletProvider'
 import type { FormSubmitEvent } from '~/types/forms'
 
-type Step = 'email' | 'signin' | 'signup' | 'forgot'
+type Step = 'start' | 'signin' | 'signup' | 'forgot'
 
 /* ── Shared styles ─────────────────────────────────────────────────── */
 
 const inputCls =
-	'h-10 w-full rounded-lg border border-white/12 bg-[#090b0c] px-3 text-sm text-white placeholder:text-[#878787] focus:border-[#1f67d2] focus:outline-none'
-const primaryBtnCls = 'h-10 w-full rounded-lg bg-[#1f67d2] text-sm font-medium text-white disabled:opacity-40'
+	'h-10 w-full rounded-lg border border-(--form-control-border) bg-(--signin-input-bg) px-3 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-none'
+const primaryBtnCls =
+	'h-10 w-full rounded-lg bg-(--primary) text-sm font-medium text-white disabled:bg-(--signin-btn-disabled-bg) disabled:text-(--signin-btn-disabled-text)'
 const outlineBtnCls =
-	'flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-sm font-medium text-white transition-colors hover:bg-white/5'
+	'flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-(--form-control-border) text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--signin-outline-hover-bg)'
+const mobileEntryInputCls =
+	'h-12 w-full rounded-[14px] border border-(--form-control-border) bg-(--signin-input-bg) px-4 text-base text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-none'
+const mobileEntryBtnCls =
+	'h-12 w-full rounded-[14px] bg-(--primary) text-base font-medium text-white disabled:bg-(--signin-btn-disabled-bg) disabled:text-(--signin-btn-disabled-text)'
+const signIn2DialogCls =
+	'dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:top-6 max-sm:right-4 max-sm:bottom-auto max-sm:left-4 max-sm:mb-auto max-sm:min-h-0 max-sm:max-h-[calc(100dvh-48px)] max-sm:w-auto max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
 
 /* ── Modal entry point ─────────────────────────────────────────────── */
+
+function SignIn2Dialog({ store }: { store: Ariakit.DialogStore }) {
+	return (
+		<Ariakit.Dialog store={store} className={signIn2DialogCls} unmountOnHide>
+			<WalletProvider>
+				<SignIn2Flow dialogStore={store} />
+			</WalletProvider>
+		</Ariakit.Dialog>
+	)
+}
 
 export function SignIn2Modal({
 	text,
 	className,
-	hideWhenAuthenticated = true
+	hideWhenAuthenticated = true,
+	store
 }: {
 	text?: string
 	className?: string
 	hideWhenAuthenticated?: boolean
+	store?: Ariakit.DialogStore
 }) {
-	const dialogStore = Ariakit.useDialogStore()
+	const localDialogStore = Ariakit.useDialogStore()
+	const dialogStore = store ?? localDialogStore
 	const { isAuthenticated, loaders } = useAuthContext()
+	const shouldRenderTrigger = text !== undefined || className !== undefined
 
 	if (loaders.userLoading) return null
 	if (hideWhenAuthenticated && isAuthenticated) return null
 
 	return (
 		<>
-			<button className={className} onClick={dialogStore.toggle} suppressHydrationWarning>
-				{text ?? 'Sign In'}
-			</button>
-			<Ariakit.Dialog
-				store={dialogStore}
-				className="dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-[#181a1b] px-5 pt-6 pb-5 shadow-2xl max-sm:max-w-none max-sm:drawer max-sm:rounded-b-none"
-				unmountOnHide
-			>
-				<SignIn2Flow dialogStore={dialogStore} />
-			</Ariakit.Dialog>
+			{shouldRenderTrigger ? (
+				<button type="button" className={className} onClick={dialogStore.show} suppressHydrationWarning>
+					{text ?? 'Sign In'}
+				</button>
+			) : null}
+			<SignIn2Dialog store={dialogStore} />
 		</>
 	)
 }
@@ -54,13 +73,18 @@ export function SignIn2Modal({
 /* ── Multi-step flow ───────────────────────────────────────────────── */
 
 export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
-	const [step, setStep] = useState<Step>('email')
+	const isMobile = useMedia('(max-width: 639px)')
+	const [step, setStep] = useState<Step>(() =>
+		typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 'start' : 'signin'
+	)
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
 	const [showPassword, setShowPassword] = useState(false)
 	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('on')
 	const [error, setError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
+	const [acceptedTerms, setAcceptedTerms] = useState(false)
 
 	const { login, signup, signInWithEthereumMutation, signInWithGithubMutation, resetPasswordMutation, loaders } =
 		useAuthContext()
@@ -71,14 +95,9 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 	const goTo = (next: Step) => {
 		setError('')
 		setPassword('')
+		setConfirmPassword('')
 		setShowPassword(false)
 		setStep(next)
-	}
-
-	const handleEmailContinue = (e: FormSubmitEvent) => {
-		e.preventDefault()
-		setError('')
-		setStep('signin')
 	}
 
 	const handleSignIn = async (e: FormSubmitEvent) => {
@@ -99,14 +118,27 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 			setError('Password must be at least 8 characters')
 			return
 		}
+		if (password !== confirmPassword) {
+			setError('Passwords do not match')
+			return
+		}
 		if (!turnstileToken) return
 		try {
-			await signup(email, password, password, turnstileToken, promotionalEmails)
+			await signup(email, password, confirmPassword, turnstileToken, promotionalEmails)
 			setTurnstileToken('')
 			dialogStore.hide()
 		} catch (err: any) {
-			const msg = typeof err?.error === 'string' ? err.error : err?.error?.email?.message || 'Failed to create account'
-			setError(msg)
+			if (typeof err?.error === 'string') {
+				setError(err.error)
+			} else if (err?.error) {
+				const messages: string[] = []
+				if (err.error.email?.message) messages.push(err.error.email.message)
+				if (err.error.password?.message) messages.push(err.error.password.message)
+				if (err.error.passwordConfirm?.message) messages.push(err.error.passwordConfirm.message)
+				setError(messages.length > 0 ? messages.join('. ') : 'Failed to create account')
+			} else {
+				setError('Failed to create account')
+			}
 		}
 	}
 
@@ -138,59 +170,161 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 		void signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())
 	}
 
+	const isMobileStart = isMobile && step === 'start'
+
 	/* ── Header ── */
 	const header = (
-		<div className="mb-5 flex items-center justify-between">
+		<div className={`flex items-center justify-between ${isMobileStart ? 'mb-7' : 'mb-5'}`}>
 			<div className="flex items-center gap-2">
-				<img src="/assets/defillama.webp" alt="" className="h-7 w-7 rounded-full" />
-				<span className="text-sm font-semibold text-white">DefiLlama</span>
+				<img src="/assets/logo_white.webp" alt="" className={isMobileStart ? 'h-6 w-6' : 'h-7 w-7'} />
+				<span className="text-sm font-semibold text-(--text-primary)">DefiLlama</span>
 			</div>
-			<Ariakit.DialogDismiss className="rounded-full p-1 text-[#878787] transition-colors hover:text-white">
+			<Ariakit.DialogDismiss className="rounded-full p-1 text-(--text-tertiary) transition-colors hover:text-(--text-primary)">
 				<Icon name="x" height={20} width={20} />
 				<span className="sr-only">Close</span>
 			</Ariakit.DialogDismiss>
 		</div>
 	)
 
-	const errorEl = error ? <p className="text-center text-xs text-red-500">{error}</p> : null
+	const errorEl = error ? <p className="text-center text-xs text-(--error)">{error}</p> : null
 
-	/* ── Step 1: Email ── */
-	if (step === 'email') {
+	const tabs = step !== 'forgot' && (
+		<div className="mb-6 flex gap-1 rounded-lg bg-(--signin-tab-bg) p-1">
+			<button
+				type="button"
+				className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${step === 'signin' ? 'bg-(--signin-bg) text-(--text-primary) shadow-sm' : 'text-(--text-tertiary) hover:text-(--text-primary)'}`}
+				onClick={() => goTo('signin')}
+			>
+				Sign In
+			</button>
+			<button
+				type="button"
+				className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${step === 'signup' ? 'bg-(--signin-bg) text-(--text-primary) shadow-sm' : 'text-(--text-tertiary) hover:text-(--text-primary)'}`}
+				onClick={() => goTo('signup')}
+			>
+				Sign Up
+			</button>
+		</div>
+	)
+
+	if (isMobileStart) {
 		return (
 			<>
 				{header}
-				<h2 className="mb-8 text-xl font-semibold text-white">Get started</h2>
+				<h2 className="mb-5 text-[22px] leading-[1.25] font-semibold text-(--text-primary)">Get Started</h2>
 
-				<form className="flex flex-col gap-4" onSubmit={handleEmailContinue}>
+				<form
+					className="flex flex-col gap-5"
+					onSubmit={(e) => {
+						e.preventDefault()
+						if (!email) return
+						goTo('signin')
+					}}
+				>
 					<input
 						type="email"
 						required
-						placeholder="Enter your email"
+						placeholder="Enter your email address"
+						className={mobileEntryInputCls}
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						autoFocus
+					/>
+					<button type="submit" disabled={!email} className={mobileEntryBtnCls}>
+						Continue
+					</button>
+				</form>
+
+				<p className="mt-6 text-sm leading-5 text-(--text-meta)">
+					By continuing, you agree to our{' '}
+					<BasicLink href="/terms" target="_blank" className="text-(--link)">
+						Terms of Service
+					</BasicLink>{' '}
+					and{' '}
+					<BasicLink href="/privacy-policy" target="_blank" className="text-(--link)">
+						Privacy Policy
+					</BasicLink>
+					.
+				</p>
+
+				<div className="my-6 flex items-center gap-4">
+					<div className="h-px flex-1 bg-(--signin-divider)" />
+					<span className="text-sm text-(--text-tertiary)">Or</span>
+					<div className="h-px flex-1 bg-(--signin-divider)" />
+				</div>
+
+				<button
+					type="button"
+					className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border border-(--form-control-border) text-base font-medium text-(--text-primary) transition-colors hover:bg-(--signin-outline-hover-bg)"
+					onClick={handleGithubSignIn}
+					disabled={signInWithGithubMutation.isPending}
+				>
+					<Icon name="github" height={20} width={20} />
+					{signInWithGithubMutation.isPending ? 'Connecting...' : 'Continue with GitHub'}
+				</button>
+
+				<p className="mt-6 text-center text-sm text-(--text-primary)">
+					Registered with a wallet before?{' '}
+					<button type="button" className="text-(--link)" onClick={() => void handleWalletSignIn()}>
+						Log in here
+					</button>
+				</p>
+			</>
+		)
+	}
+
+	/* ── Sign In (default) ── */
+	if (step === 'signin') {
+		return (
+			<>
+				{header}
+				{tabs}
+
+				<form className="flex flex-col gap-4" onSubmit={(e) => void handleSignIn(e)}>
+					<input
+						type="email"
+						required
+						placeholder="Enter your email address"
 						className={inputCls}
 						value={email}
 						onChange={(e) => setEmail(e.target.value)}
 						autoFocus
 					/>
-					<button type="submit" className={primaryBtnCls}>
-						Continue
+					<div className="relative">
+						<input
+							type={showPassword ? 'text' : 'password'}
+							required
+							placeholder="Enter your password"
+							className={`${inputCls} pr-10`}
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+						/>
+						<button
+							type="button"
+							className="absolute top-1/2 right-3 -translate-y-1/2 text-(--text-tertiary) hover:text-(--text-primary)"
+							onClick={() => setShowPassword(!showPassword)}
+							tabIndex={-1}
+						>
+							<Icon name={showPassword ? 'eye-off' : 'eye'} height={16} width={16} />
+						</button>
+					</div>
+					<button type="submit" disabled={loaders.login || !email || !password} className={primaryBtnCls}>
+						{loaders.login ? 'Signing in...' : 'Sign In'}
 					</button>
-					<p className="text-xs leading-4 text-[#c6c6c6]">
-						By continuing, you agree to our{' '}
-						<BasicLink href="/terms" target="_blank" className="text-[#4b86db] underline">
-							Terms of Service
-						</BasicLink>{' '}
-						and{' '}
-						<BasicLink href="/privacy-policy" target="_blank" className="text-[#4b86db] underline">
-							Privacy Policy
-						</BasicLink>
-						.
-					</p>
+					{errorEl}
 				</form>
 
+				<p className="mt-4 text-center text-sm text-(--text-primary)">
+					Forgot your password?{' '}
+					<button type="button" className="text-(--link)" onClick={() => goTo('forgot')}>
+						Reset password
+					</button>
+				</p>
+
 				<div className="my-6 flex items-center gap-5">
-					<div className="h-px flex-1 bg-white/6" />
-					<span className="text-sm text-[#878787]">Or</span>
-					<div className="h-px flex-1 bg-white/6" />
+					<div className="h-px flex-1 bg-(--signin-divider)" />
+					<span className="text-sm text-(--text-tertiary)">Or</span>
+					<div className="h-px flex-1 bg-(--signin-divider)" />
 				</div>
 
 				<button
@@ -203,11 +337,9 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 					{signInWithGithubMutation.isPending ? 'Connecting...' : 'Continue with GitHub'}
 				</button>
 
-				{errorEl}
-
-				<p className="mt-6 text-center text-xs text-white">
+				<p className="mt-6 text-center text-xs text-(--text-primary)">
 					Registered with a wallet before?{' '}
-					<button type="button" className="text-[#4b86db]" onClick={() => void handleWalletSignIn()}>
+					<button type="button" className="text-(--link)" onClick={() => void handleWalletSignIn()}>
 						Sign-in here
 					</button>
 				</p>
@@ -215,65 +347,26 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 		)
 	}
 
-	/* ── Step 2a: Welcome Back ── */
-	if (step === 'signin') {
-		return (
-			<>
-				{header}
-				<h2 className="text-xl font-semibold text-white">Welcome Back!</h2>
-				<p className="mt-1 mb-6 text-sm text-[#c6c6c6]">{email}</p>
-
-				<form className="flex flex-col gap-4" onSubmit={(e) => void handleSignIn(e)}>
-					<div className="relative">
-						<input
-							type={showPassword ? 'text' : 'password'}
-							required
-							placeholder="Enter your password"
-							className={`${inputCls} pr-10`}
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							autoFocus
-						/>
-						<button
-							type="button"
-							className="absolute top-1/2 right-3 -translate-y-1/2 text-[#878787] hover:text-white"
-							onClick={() => setShowPassword(!showPassword)}
-							tabIndex={-1}
-						>
-							<Icon name={showPassword ? 'eye-off' : 'eye'} height={16} width={16} />
-						</button>
-					</div>
-					<button type="submit" disabled={loaders.login || !password} className={primaryBtnCls}>
-						{loaders.login ? 'Signing in...' : 'Sign-in'}
-					</button>
-					{errorEl}
-				</form>
-
-				<p className="mt-6 text-center text-sm text-white">
-					Forgot your password?{' '}
-					<button type="button" className="text-[#4b86db]" onClick={() => goTo('forgot')}>
-						Reset password
-					</button>
-				</p>
-				<button type="button" className="mt-3 w-full text-center text-xs text-[#4b86db]" onClick={() => goTo('signup')}>
-					Don&apos;t have an account? Create one
-				</button>
-			</>
-		)
-	}
-
-	/* ── Step 2b: Create Account ── */
+	/* ── Sign Up ── */
 	if (step === 'signup') {
 		return (
 			<>
 				{header}
-				<h2 className="text-xl font-semibold text-white">Create Your Account</h2>
-				<p className="mt-1 mb-4 text-sm text-[#c6c6c6]">{email}</p>
-				<p className="mb-4 text-sm leading-5 text-[#c6c6c6]">
-					Create a password to finish setting up your account (must have at least 8 characters):
+				{tabs}
+				<p className="mb-4 text-sm leading-5 text-(--text-meta)">
+					Create an account with a password (must have at least 8 characters):
 				</p>
 
 				<form className="flex flex-col gap-4" onSubmit={(e) => void handleSignUp(e)}>
+					<input
+						type="email"
+						required
+						placeholder="Enter your email address"
+						className={inputCls}
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						autoFocus
+					/>
 					<div className="relative">
 						<input
 							type={showPassword ? 'text' : 'password'}
@@ -282,17 +375,24 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 							className={`${inputCls} pr-10`}
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
-							autoFocus
 						/>
 						<button
 							type="button"
-							className="absolute top-1/2 right-3 -translate-y-1/2 text-[#878787] hover:text-white"
+							className="absolute top-1/2 right-3 -translate-y-1/2 text-(--text-tertiary) hover:text-(--text-primary)"
 							onClick={() => setShowPassword(!showPassword)}
 							tabIndex={-1}
 						>
 							<Icon name={showPassword ? 'eye-off' : 'eye'} height={16} width={16} />
 						</button>
 					</div>
+					<input
+						type={showPassword ? 'text' : 'password'}
+						required
+						placeholder="Confirm password"
+						className={inputCls}
+						value={confirmPassword}
+						onChange={(e) => setConfirmPassword(e.target.value)}
+					/>
 
 					<Turnstile
 						onVerify={(token) => setTurnstileToken(token)}
@@ -301,27 +401,46 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 						className="flex justify-center"
 					/>
 
-					<button type="submit" disabled={loaders.signup || !turnstileToken} className={primaryBtnCls}>
-						{loaders.signup ? 'Creating account...' : 'Continue'}
-					</button>
-					{errorEl}
+					<label className="flex items-start gap-2">
+						<input
+							type="checkbox"
+							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-(--primary)"
+							checked={acceptedTerms}
+							onChange={(e) => setAcceptedTerms(e.target.checked)}
+						/>
+						<span className="text-xs leading-4 text-(--text-meta)">
+							I agree to the{' '}
+							<BasicLink href="/terms" target="_blank" className="text-(--link) underline">
+								Terms of Service
+							</BasicLink>{' '}
+							and{' '}
+							<BasicLink href="/privacy-policy" target="_blank" className="text-(--link) underline">
+								Privacy Policy
+							</BasicLink>
+						</span>
+					</label>
 
 					<label className="flex items-start gap-2">
 						<input
 							type="checkbox"
-							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#1f67d2]"
+							className="mt-0.5 h-4 w-4 shrink-0 rounded accent-(--primary)"
 							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
-						<span className="text-xs leading-4 text-[#c6c6c6]">
+						<span className="text-xs leading-4 text-(--text-meta)">
 							Receive emails about upcoming DefiLlama products and new releases
 						</span>
 					</label>
-				</form>
 
-				<button type="button" className="mt-4 w-full text-center text-xs text-[#4b86db]" onClick={() => goTo('signin')}>
-					Already have an account? Sign in
-				</button>
+					<button
+						type="submit"
+						disabled={loaders.signup || !turnstileToken || !acceptedTerms}
+						className={primaryBtnCls}
+					>
+						{loaders.signup ? 'Creating account...' : 'Create Account'}
+					</button>
+					{errorEl}
+				</form>
 			</>
 		)
 	}
@@ -330,19 +449,26 @@ export function SignIn2Flow({ dialogStore }: { dialogStore: Ariakit.DialogStore 
 	return (
 		<>
 			{header}
-			<h2 className="text-xl font-semibold text-white">Reset Password</h2>
-			<p className="mt-1 mb-6 text-sm text-[#c6c6c6]">
-				We&apos;ll send a reset link to <span className="text-white">{email}</span>
-			</p>
+			<h2 className="text-xl font-semibold text-(--text-primary)">Reset Password</h2>
+			<p className="mt-1 mb-6 text-sm text-(--text-meta)">Enter your email and we&apos;ll send you a reset link.</p>
 
 			<form className="flex flex-col gap-4" onSubmit={(e) => void handleForgotPassword(e)}>
-				<button type="submit" disabled={resetPasswordMutation.isPending} className={primaryBtnCls}>
+				<input
+					type="email"
+					required
+					placeholder="Enter your email address"
+					className={inputCls}
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					autoFocus
+				/>
+				<button type="submit" disabled={resetPasswordMutation.isPending || !email} className={primaryBtnCls}>
 					{resetPasswordMutation.isPending ? 'Sending...' : 'Send Reset Link'}
 				</button>
 				{errorEl}
 			</form>
 
-			<button type="button" className="mt-6 w-full text-center text-sm text-[#4b86db]" onClick={() => goTo('signin')}>
+			<button type="button" className="mt-6 w-full text-center text-sm text-(--link)" onClick={() => goTo('signin')}>
 				Back to sign in
 			</button>
 		</>

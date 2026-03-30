@@ -1,17 +1,13 @@
+import { useCallback, useEffect, useRef, useState, type Ref } from 'react'
 import { ComparisonCell, SELECTED_COLUMN_HIGHLIGHT } from '~/containers/subscription/components'
 import { PLAN_META_BY_CYCLE } from '~/containers/subscription/data'
 import type { BillingCycle, ComparisonSection, PlanKey } from '~/containers/subscription/types'
-
-/* ── Layout constants ──────────────────────────────────────────────── */
-
-const PLAN_COL = 'w-[132px] md:w-[146px]'
-const LABEL_COL = 'w-[233px] md:w-[400px]'
 
 /* ── Style maps ────────────────────────────────────────────────────── */
 
 const planHeadStyles = {
 	selected:
-		'border-(--sub-c-1f67d2) shadow-[inset_1px_0_0_0_var(--sub-c-1f67d2),inset_-1px_0_0_0_var(--sub-c-1f67d2)] bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
+		'border-x border-(--sub-c-1f67d2) bg-[rgba(31,103,210,0.06)] dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
 	default:
 		'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) md:bg-white dark:md:bg-transparent'
 }
@@ -22,6 +18,34 @@ const planHeadButtonStyles = {
 		'border-(--sub-c-c8d4e4) bg-white text-(--sub-c-1e293b) dark:border-(--sub-c-2f3336) dark:bg-transparent dark:text-white md:border-(--sub-c-dedede) md:text-(--sub-c-090b0c) dark:md:border-(--sub-c-2f3336) dark:md:bg-transparent dark:md:text-white'
 }
 
+function SelectedColumnRails({
+	left,
+	width,
+	roundBottom = false
+}: {
+	left: number
+	width: number
+	roundBottom?: boolean
+}) {
+	return (
+		<div
+			aria-hidden="true"
+			className={`pointer-events-none absolute -top-px bottom-0 z-20 border-x border-(--sub-c-1f67d2) ${roundBottom ? 'rounded-b-[16px] border-b' : ''}`}
+			style={{ left: `${left}px`, width: `${width}px` }}
+		/>
+	)
+}
+
+function PlanGridBottomOutline({ left, width }: { left: number; width: number }) {
+	return (
+		<div
+			aria-hidden="true"
+			className="pointer-events-none absolute bottom-0 z-0 h-[41px] rounded-br-[16px] rounded-bl-[16px] border-b border-(--sub-mobile-table-border) md:h-[36px] md:rounded-br-[24px] md:rounded-bl-[24px] md:border-(--sub-desktop-table-border)"
+			style={{ left: `${left}px`, width: `${width}px` }}
+		/>
+	)
+}
+
 /* ── ComparisonPlanHead ────────────────────────────────────────────── */
 
 function ComparisonPlanHead({
@@ -30,6 +54,7 @@ function ComparisonPlanHead({
 	isFirst,
 	isLast,
 	isSelected,
+	headerRef,
 	onAction
 }: {
 	plan: PlanKey
@@ -37,6 +62,7 @@ function ComparisonPlanHead({
 	isFirst: boolean
 	isLast: boolean
 	isSelected: boolean
+	headerRef?: Ref<HTMLDivElement>
 	onAction?: (plan: PlanKey) => void
 }) {
 	const meta = PLAN_META_BY_CYCLE[billingCycle][plan]
@@ -48,8 +74,9 @@ function ComparisonPlanHead({
 
 	return (
 		<div
+			ref={headerRef}
 			role="columnheader"
-			className={`${PLAN_COL} border-t ${colStyle} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
+			className={`w-[132px] border-t md:w-[146px] ${colStyle} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
 		>
 			<div className="flex h-full flex-col justify-between p-3 md:p-5">
 				<div>
@@ -79,6 +106,25 @@ function ComparisonPlanHead({
 	)
 }
 
+/* ── Overlay metrics from known column widths ─────────────────────── */
+
+const LABEL_W = { mobile: 233, desktop: 400 }
+const PLAN_W = { mobile: 132, desktop: 146 }
+
+function computeOverlayMetrics(planOrder: PlanKey[], selectedPlan: PlanKey) {
+	const isMd = window.matchMedia('(min-width: 768px)').matches
+	const labelW = isMd ? LABEL_W.desktop : LABEL_W.mobile
+	const planW = isMd ? PLAN_W.desktop : PLAN_W.mobile
+	const selectedIndex = planOrder.indexOf(selectedPlan)
+
+	return {
+		selectedLeft: labelW + selectedIndex * planW,
+		selectedWidth: planW,
+		planGridLeft: labelW,
+		planGridWidth: planOrder.length * planW
+	}
+}
+
 /* ── SubscriptionComparisonSection ─────────────────────────────────── */
 
 export function SubscriptionComparisonSection({
@@ -94,22 +140,59 @@ export function SubscriptionComparisonSection({
 	selectedPlan: PlanKey
 	onPlanAction?: (plan: PlanKey) => void
 }) {
+	const headerScrollRef = useRef<HTMLDivElement>(null)
+	const bodyScrollRef = useRef<HTMLDivElement>(null)
+	const selectedHeaderRef = useRef<HTMLDivElement>(null)
+
+	const [overlayMetrics, setOverlayMetrics] = useState<{
+		selectedLeft: number
+		selectedWidth: number
+		planGridLeft: number
+		planGridWidth: number
+	} | null>(null)
+
+	/* ── Compute overlay metrics from known widths ── */
+	useEffect(() => {
+		const update = () => setOverlayMetrics(computeOverlayMetrics(planOrder, selectedPlan))
+		update()
+
+		const mq = window.matchMedia('(min-width: 768px)')
+		mq.addEventListener('change', update)
+		window.addEventListener('resize', update)
+
+		return () => {
+			mq.removeEventListener('change', update)
+			window.removeEventListener('resize', update)
+		}
+	}, [selectedPlan, planOrder])
+
+	/* ── Sync horizontal scroll: body → header ── */
+	const onBodyScroll = useCallback(() => {
+		if (headerScrollRef.current && bodyScrollRef.current) {
+			headerScrollRef.current.scrollLeft = bodyScrollRef.current.scrollLeft
+		}
+	}, [])
+
 	return (
 		<section className="mt-12 bg-white py-12 md:mt-0 md:py-20 dark:bg-(--sub-mobile-table-section-bg) md:dark:bg-(--sub-desktop-table-section-bg)">
-			<div className="mx-auto max-w-[393px] px-4 md:w-[984px] md:max-w-none md:px-0">
-				<div className="overflow-x-auto [scrollbar-width:none] md:overflow-visible [&::-webkit-scrollbar]:hidden">
-					<div className="min-w-[761px] md:min-w-0" role="table" aria-label="Plan comparison">
+			<div className="mx-auto max-w-[393px] px-4 md:max-w-[984px] md:px-0">
+				{/* ── Sticky plan header (mobile: sticky top-0, desktop: static) ── */}
+				<div
+					ref={headerScrollRef}
+					className="sticky top-0 z-40 overflow-hidden bg-white md:static dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+				>
+					<div className="w-max">
 						<div className="flex" role="row">
 							<div
 								role="columnheader"
-								className={`flex h-[132px] items-center px-2 md:h-[129px] md:rounded-tl-[24px] md:px-4 ${LABEL_COL}`}
+								className="sticky left-0 z-30 flex h-[132px] w-[233px] items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 							>
 								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-c-111f34) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
 									Compare Plans and Features
 								</h2>
 							</div>
 
-							<div className="flex h-[132px] w-[528px] rounded-t-[16px] border-x border-t border-(--sub-mobile-table-border) md:h-[129px] md:w-[584px] md:rounded-t-[24px] md:border-(--sub-desktop-table-border)">
+							<div className="flex h-[132px] rounded-t-[16px] border-x border-t border-(--sub-mobile-table-border) md:h-[129px] md:rounded-t-[24px] md:border-(--sub-desktop-table-border)">
 								{planOrder.map((plan, index) => (
 									<ComparisonPlanHead
 										key={`plan-head-${plan}`}
@@ -118,24 +201,30 @@ export function SubscriptionComparisonSection({
 										isFirst={index === 0}
 										isLast={index === planOrder.length - 1}
 										isSelected={plan === selectedPlan}
+										headerRef={plan === selectedPlan ? selectedHeaderRef : undefined}
 										onAction={onPlanAction}
 									/>
 								))}
 							</div>
 						</div>
+					</div>
+				</div>
 
-						<div>
+				{/* ── Scrollable body ── */}
+				<div ref={bodyScrollRef} className="overflow-x-auto" onScroll={onBodyScroll}>
+					<div className="w-max" role="table" aria-label="Plan comparison">
+						<div className="relative">
 							{comparisonSections.map((section, sectionIndex) => {
 								const isLastSection = sectionIndex === comparisonSections.length - 1
 								return (
-									<div key={section.title} role="rowgroup">
+									<div key={section.title} role="rowgroup" className="relative">
 										<div
 											className="flex h-10 bg-(--sub-mobile-table-header-bg) md:h-9 md:bg-(--sub-desktop-table-header-bg)"
 											role="row"
 										>
 											<div
 												role="rowheader"
-												className={`flex items-center px-2 text-[14px] leading-[21px] font-medium text-(--sub-c-111f34) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white ${LABEL_COL}`}
+												className="sticky left-0 z-30 flex w-[233px] items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-c-111f34) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white"
 											>
 												{section.title}
 											</div>
@@ -145,7 +234,7 @@ export function SubscriptionComparisonSection({
 													<div
 														key={`${section.title}-header-${plan}`}
 														role="cell"
-														className={`${PLAN_COL} ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
+														className={`w-[132px] md:w-[146px] ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
 													/>
 												)
 											})}
@@ -154,10 +243,14 @@ export function SubscriptionComparisonSection({
 										{section.rows.map((row, rowIndex) => {
 											const isLastRow = isLastSection && rowIndex === section.rows.length - 1
 											return (
-												<div key={`${section.title}-${row.label}`} role="row" className="flex h-[41px] md:h-[36px]">
+												<div
+													key={`${section.title}-${row.label}`}
+													role="row"
+													className="relative flex h-[41px] md:h-[36px]"
+												>
 													<div
 														role="rowheader"
-														className={`flex items-center overflow-hidden border-b border-(--sub-mobile-table-border) px-2 text-[14px] leading-[21px] text-ellipsis whitespace-nowrap text-(--sub-mobile-text-muted) md:border-(--sub-desktop-table-border) md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) ${LABEL_COL}`}
+														className="sticky left-0 z-30 flex w-[233px] items-center overflow-hidden bg-white px-2 text-[14px] leading-[21px] text-ellipsis whitespace-nowrap text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 													>
 														{row.label}
 													</div>
@@ -169,8 +262,7 @@ export function SubscriptionComparisonSection({
 															if (planIndex === 0) lastRowCls += ' rounded-bl-[16px] md:rounded-bl-[24px]'
 															if (planIndex === planOrder.length - 1)
 																lastRowCls += ' rounded-br-[16px] md:rounded-br-[24px]'
-															if (plan === selectedPlan)
-																lastRowCls += ' border-b-(--sub-c-1f67d2) rounded-b-[16px] md:rounded-b-[24px]'
+															if (plan === selectedPlan) lastRowCls += ' border-b-(--sub-c-1f67d2) rounded-b-[16px]'
 														}
 														return (
 															<ComparisonCell
@@ -183,9 +275,27 @@ export function SubscriptionComparisonSection({
 															/>
 														)
 													})}
+
+													{!isLastRow ? (
+														<div
+															aria-hidden="true"
+															className="pointer-events-none absolute right-0 -bottom-px left-0 z-[15] h-px bg-(--sub-mobile-table-border) md:bg-(--sub-desktop-table-border)"
+														/>
+													) : null}
 												</div>
 											)
 										})}
+
+										{isLastSection && overlayMetrics ? (
+											<PlanGridBottomOutline left={overlayMetrics.planGridLeft} width={overlayMetrics.planGridWidth} />
+										) : null}
+										{overlayMetrics ? (
+											<SelectedColumnRails
+												left={overlayMetrics.selectedLeft}
+												width={overlayMetrics.selectedWidth}
+												roundBottom={isLastSection}
+											/>
+										) : null}
 									</div>
 								)
 							})}

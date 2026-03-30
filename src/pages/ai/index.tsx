@@ -10,9 +10,8 @@ import { MCP_SERVER } from '~/constants'
 import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import type { LandingQuestion } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignInForm } from '~/containers/Subscribtion/SignIn'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 import { useIsClient } from '~/hooks/useIsClient'
-import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -67,7 +66,6 @@ const FALLBACK_QUESTIONS: LandingQuestion[] = [
 function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: LandingQuestion[] }) {
 	const router = useRouter()
 	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
-	const [pendingQuestion, setPendingQuestion] = useState<LandingQuestion | null>(null)
 	const signInDialogStore = Ariakit.useDialogStore()
 
 	if (isAuthenticated && hasActiveSubscription) return null
@@ -87,7 +85,6 @@ function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: Landing
 		} else {
 			setPendingPrompt(question.text)
 			setPendingSuggestedFlag()
-			setPendingQuestion(question)
 			signInDialogStore.show()
 		}
 	}
@@ -136,21 +133,7 @@ function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: Landing
 				))}
 			</div>
 
-			<WalletProvider>
-				<Ariakit.Dialog
-					store={signInDialogStore}
-					className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
-					unmountOnHide
-				>
-					{pendingQuestion ? (
-						<p className="mb-4 rounded-lg bg-[#C99A4A]/10 px-3 py-2 text-center text-sm text-[#C99A4A]">
-							Sign in to ask: &ldquo;{pendingQuestion.text.slice(0, 60)}
-							{pendingQuestion.text.length > 60 ? '...' : ''}&rdquo;
-						</p>
-					) : null}
-					<SignInForm text="Sign in to try LlamaAI for free" dialogStore={signInDialogStore} returnUrl="/ai/chat" />
-				</Ariakit.Dialog>
-			</WalletProvider>
+			<SignIn2Modal store={signInDialogStore} />
 		</section>
 	)
 }

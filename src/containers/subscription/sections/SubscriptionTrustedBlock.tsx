@@ -1,4 +1,4 @@
-export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: string[] }) {
+export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: { src: string; alt: string }[] }) {
 	return (
 		<div className="flex w-full flex-col items-center md:w-auto">
 			<div className="flex w-full flex-col items-center gap-2 text-center md:w-[448px] md:gap-4">
@@ -10,12 +10,15 @@ export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: string[] 
 				</p>
 			</div>
 
-			<div className="mt-6 grid w-full grid-cols-2 gap-x-4 gap-y-4 md:mt-9 md:w-[1184px] md:grid-cols-4">
-				{trustLogos.map((src) => (
-					<div key={src} className="flex h-[56px] items-center justify-center md:h-[68px]">
+			<div className="mt-6 flex w-full flex-wrap justify-center gap-4 md:mt-9">
+				{trustLogos.map((logo) => (
+					<div
+						key={logo.src}
+						className="flex h-[56px] max-w-[280px] flex-[1_1_140px] items-center justify-center md:h-[68px]"
+					>
 						<img
-							src={src}
-							alt=""
+							src={logo.src}
+							alt={logo.alt}
 							className="max-h-[28px] max-w-[150px] object-contain opacity-70 brightness-0 md:max-h-[40px] md:max-w-[210px] dark:opacity-90 dark:brightness-100"
 						/>
 					</div>
@@ -24,7 +27,7 @@ export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: string[] 
 			<div className="mt-2 flex h-[56px] w-full items-center justify-center md:mt-4 md:h-[68px] md:w-[284px]">
 				<img
 					src="/assets/trusts-llama/cftc.svg"
-					alt=""
+					alt="CFTC"
 					className="max-h-[30px] object-contain opacity-70 brightness-0 md:max-h-[41px] dark:opacity-90 dark:brightness-100"
 				/>
 			</div>

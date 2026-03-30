@@ -1,16 +1,18 @@
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useIsClient } from '~/hooks/useIsClient'
 import { useSubPageDev, type SubPageState } from './DevToolbar'
 import type { BillingCycle, PlanKey } from './types'
 
 export function useSubscriptionPageState(): SubPageState {
 	const dev = useSubPageDev()
+	const isClient = useIsClient()
 	const { isAuthenticated, isTrial, loaders } = useAuthContext()
 	const { apiSubscription, llamafeedSubscription, isSubscriptionLoading, subscription } = useSubscribe()
 
 	if (dev) return dev
 
-	const isLoading = loaders.userLoading || (isAuthenticated && (isSubscriptionLoading || !subscription))
+	const isLoading = isClient && (loaders.userLoading || (isAuthenticated && (isSubscriptionLoading || !subscription)))
 
 	let currentPlan: PlanKey | null = null
 	let userBillingCycle: BillingCycle | null = null

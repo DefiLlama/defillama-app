@@ -8,6 +8,7 @@ export function SubscriptionPricingSection({
 	currentPlan = null,
 	isAuthenticated = false,
 	isTrial = false,
+	isCancelPending = false,
 	userBillingCycle = null,
 	...callbacks
 }: {
@@ -17,20 +18,19 @@ export function SubscriptionPricingSection({
 	currentPlan?: PlanKey | null
 	isAuthenticated?: boolean
 	isTrial?: boolean
+	isCancelPending?: boolean
 	userBillingCycle?: BillingCycle | null
 } & PricingCardCallbacks) {
 	const isMonthly = billingCycle === 'monthly'
 	const isYearly = billingCycle === 'yearly'
 
 	return (
-		<section className="mx-auto flex max-w-[393px] flex-col items-center px-4 pt-14 md:max-w-[1440px] md:px-[128px] md:pt-[80px] md:pb-[128px]">
+		<section className="mx-auto flex max-w-[1440px] flex-col items-center px-4 pt-14 md:px-10 md:pt-[80px] md:pb-[128px] 2xl:px-[128px]">
 			<div className="flex w-full flex-col items-center gap-9 text-center md:w-[533px]">
-				<div className="flex flex-col items-center">
-					<div className="dark:hidden">
-						<img src="/assets/defillama-dark-neutral.webp" alt="DefiLlama" className="h-14 w-auto md:hidden" />
-						<img src="/assets/defillama-dark.webp" alt="DefiLlama" className="hidden h-10 w-auto md:block" />
-					</div>
-					<img src="/assets/defillama.webp" alt="DefiLlama" className="hidden h-14 w-auto md:h-10 dark:block" />
+				<div className="flex items-center gap-2">
+					<img src="/assets/defillama-dark.webp" alt="DefiLlama" className="h-14 w-auto md:h-10 dark:hidden" />
+					<img src="/assets/logo_white.webp" alt="" className="hidden h-14 w-14 md:h-10 md:w-10 dark:block" />
+					<span className="hidden text-2xl font-bold text-white md:text-xl dark:inline">DefiLlama</span>
 				</div>
 				<div className="flex w-full flex-col items-center gap-7">
 					<h1 className="text-[32px] leading-[42px] font-semibold text-(--sub-c-090b0c) dark:text-(--sub-c-f5f7fb)">
@@ -90,13 +90,14 @@ export function SubscriptionPricingSection({
 				</p>
 			</div>
 
-			<div className="mt-9 flex w-full flex-col gap-6 md:w-auto md:flex-row md:items-start md:justify-center md:gap-4">
+			<div className="mt-9 flex w-full flex-wrap justify-center gap-4">
 				{pricingCards.map((card) => (
 					<PricingCard
 						key={card.key}
 						card={card}
 						isCurrentPlan={card.key === currentPlan || (isTrial && card.key === 'pro')}
 						isTrial={isTrial && card.key === 'pro'}
+						isCancelPending={isCancelPending && (card.key === currentPlan || (isTrial && card.key === 'pro'))}
 						isAuthenticated={isAuthenticated}
 						currentPlan={currentPlan}
 						billingCycle={billingCycle}

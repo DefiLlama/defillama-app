@@ -7,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignInModal } from './SignIn'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 
 export function SubscribeLayout({
 	children,
@@ -41,9 +41,9 @@ export function SubscribeLayout({
 
 						<div className="flex items-center gap-2">
 							{!isAuthenticated ? (
-								<SignInModal
+								<SignIn2Modal
 									className="rounded-lg bg-[#5C5CF9] px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]"
-									hideLoader
+									hideWhenAuthenticated={false}
 								/>
 							) : (
 								<Ariakit.MenuProvider open={isMenuOpen} setOpen={setIsMenuOpen}>

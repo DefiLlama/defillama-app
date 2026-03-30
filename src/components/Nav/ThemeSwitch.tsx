@@ -23,24 +23,25 @@ export function ThemeSwitch({ className, variant = 'default', size = 'md' }: The
 				type="button"
 				onClick={toggleDarkMode}
 				aria-label="Toggle theme"
+				aria-pressed={darkMode}
 				className={joinClasses(
-					'flex items-center gap-1 rounded-full p-0.5',
+					'flex items-center gap-1 rounded-full p-0.5 transition-colors',
 					darkMode ? 'bg-[#131516]' : 'bg-[#FFFFFF]',
 					className
 				)}
 			>
 				<span
 					className={joinClasses(
-						`flex ${controlSize} items-center justify-center rounded-full`,
-						darkMode ? 'text-[#8C8F95]' : 'text-[#878787]'
+						`flex ${controlSize} items-center justify-center rounded-full transition-colors`,
+						darkMode ? 'text-[#8C8F95]' : 'bg-[#DEDEDE] text-[#090B0C]'
 					)}
 				>
 					<Icon name="sun" height={iconSize} width={iconSize} />
 				</span>
 				<span
 					className={joinClasses(
-						`flex ${controlSize} items-center justify-center rounded-full`,
-						darkMode ? 'bg-[#232628] text-white' : 'bg-[#DEDEDE] text-[#090B0C]'
+						`flex ${controlSize} items-center justify-center rounded-full transition-colors`,
+						darkMode ? 'bg-[#232628] text-white' : 'text-[#878787]'
 					)}
 				>
 					<Icon name="moon" height={iconSize} width={iconSize} />

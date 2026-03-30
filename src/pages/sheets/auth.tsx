@@ -1,11 +1,12 @@
+import * as Ariakit from '@ariakit/react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { SignIn2Flow } from '~/containers/subscription/SignIn2'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -58,6 +59,8 @@ function AuthContent() {
 		}
 	}, [isAuthenticated, redirectUrl, router, router.query, user, isSubscriptionLoading, subscription])
 
+	const dialogStore = Ariakit.useDialogStore({ defaultOpen: true })
+
 	return (
 		<>
 			<Head>
@@ -89,7 +92,9 @@ function AuthContent() {
 						</div>
 					</div>
 				) : (
-					<SignInModal showOnlyAuthDialog />
+					<div className="w-full max-w-[331px] rounded-2xl bg-[#181a1b] px-5 pt-6 pb-5 shadow-2xl">
+						<SignIn2Flow dialogStore={dialogStore} />
+					</div>
 				)}
 				<Toast />
 			</div>

@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import Head from 'next/head'
-import { Icon } from '~/components/Icon'
-import { Toast } from '~/components/Toast'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { Icon } from '~/components/Icon'
+import { LinkPreviewCard } from '~/components/SEO'
+import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { ReturnModal } from '~/containers/Subscribtion/components/ReturnModal'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
@@ -25,7 +26,7 @@ import {
 	SubscriptionPricingSection,
 	SubscriptionTrustedBlock
 } from '~/containers/subscription/sections'
-import { SignIn2Flow } from '~/containers/subscription/SignIn2'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 import type { BillingCycle, PlanKey } from '~/containers/subscription/types'
 import { useSubscriptionPageState } from '~/containers/subscription/usePageState'
 import { WalletProvider } from '~/layout/WalletProvider'
@@ -40,10 +41,25 @@ function Subscription2Content() {
 	const returnUrl = safeInternalPath(router.query.returnUrl)
 
 	const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly')
-	const { isAuthenticated, currentPlan, isTrial, userBillingCycle, isLoading: isPageStateLoading } =
-		useSubscriptionPageState()
+	const {
+		isAuthenticated,
+		currentPlan,
+		isTrial,
+		userBillingCycle,
+		isLoading: isPageStateLoading
+	} = useSubscriptionPageState()
 	const { user, loaders } = useAuthContext()
-	const { handleSubscribe, loading, isTrialAvailable, endTrialSubscription, isEndTrialLoading } = useSubscribe()
+	const {
+		handleSubscribe,
+		loading,
+		isTrialAvailable,
+		endTrialSubscription,
+		isEndTrialLoading,
+		subscription,
+		getPortalSessionUrl
+	} = useSubscribe()
+
+	const isCancelPending = subscription?.metadata?.isCanceled === 'true'
 
 	const signInDialog = Ariakit.useDialogStore()
 
@@ -98,6 +114,17 @@ function Subscription2Content() {
 	}, [isAuthenticated, returnUrl, loaders.userLoading, user?.created])
 
 	/* ── Helpers ───────────────────────────────────────────────────────── */
+	const handleRevertCancellation = async () => {
+		try {
+			const portalUrl = await getPortalSessionUrl()
+			if (portalUrl) {
+				window.location.href = portalUrl
+			}
+		} catch (error) {
+			toast.error('Failed to open billing portal. Please try again.')
+		}
+	}
+
 	const billingInterval = billingCycle === 'yearly' ? 'year' : 'month'
 
 	const requireAuth = (action: () => void) => {
@@ -212,6 +239,7 @@ function Subscription2Content() {
 					currentPlan={currentPlan}
 					isAuthenticated={isAuthenticated}
 					isTrial={isTrial}
+					isCancelPending={isCancelPending}
 					userBillingCycle={userBillingCycle}
 					onPrimaryCtaClick={handlePrimaryCtaClick}
 					onSecondaryCtaClick={handleSecondaryCtaClick}
@@ -219,6 +247,7 @@ function Subscription2Content() {
 					onUpgradeTier={handleUpgradeTier}
 					onStartTrial={handleStartTrial}
 					onEndTrial={() => setShowEndTrialModal(true)}
+					onRevertCancellation={() => void handleRevertCancellation()}
 					isTrialAvailable={isTrialAvailable}
 					loading={loading as 'stripe' | 'llamapay' | null}
 				/>
@@ -226,11 +255,11 @@ function Subscription2Content() {
 					planOrder={PLAN_ORDER}
 					comparisonSections={COMPARISON_SECTIONS}
 					billingCycle={billingCycle}
-					selectedPlan={currentPlan === 'api' ? 'api' : 'pro'}
+					selectedPlan="api"
 					onPlanAction={handleComparisonPlanAction}
 				/>
 
-				<section className="mx-auto flex max-w-[393px] flex-col items-center px-4 py-12 md:max-w-[1440px] md:px-[128px] md:py-20">
+				<section className="mx-auto flex max-w-[1440px] flex-col items-center px-4 py-12 md:px-10 md:py-20 2xl:px-[128px]">
 					<SubscriptionTrustedBlock trustLogos={TRUST_LOGOS} />
 					<SubscriptionFaqBlock faqItems={FAQ_ITEMS} />
 				</section>
@@ -239,13 +268,7 @@ function Subscription2Content() {
 			<SubscriptionFooter />
 
 			{/* Sign-in dialog (opened programmatically by CTA buttons) */}
-			<Ariakit.Dialog
-				store={signInDialog}
-				className="dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-[#181a1b] px-5 pt-6 pb-5 shadow-2xl max-sm:max-w-none max-sm:drawer max-sm:rounded-b-none"
-				unmountOnHide
-			>
-				<SignIn2Flow dialogStore={signInDialog} />
-			</Ariakit.Dialog>
+			<SignIn2Modal store={signInDialog} />
 
 			{/* Stripe checkout modal */}
 			{stripeCheckout?.isOpen ? (
@@ -340,8 +363,14 @@ export default function Subscription2() {
 	return (
 		<>
 			<Head>
-				<title>Subscribe v2 - DefiLlama</title>
+				<title>Subscribe to DefiLlama Pro Analytics - DefiLlama</title>
+				<meta
+					name="description"
+					content="Unlock LlamaAI, advanced DeFi analytics, custom dashboards, CSV downloads, and pro-level data with DefiLlama Pro."
+				/>
+				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
+			<LinkPreviewCard />
 			<WalletProvider>
 				{/* [DEV-TOOLBAR] remove DevToolbar wrapper before production */}
 				<SubPageDevToolbar>

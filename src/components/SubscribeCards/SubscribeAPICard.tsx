@@ -1,8 +1,8 @@
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
@@ -132,7 +132,7 @@ export function SubscribeAPICard({
 					<>
 						{context === 'page' ? (
 							<>
-								<SignInModal text="Already a subscriber? Sign In" />
+								<SignIn2Modal text="Already a subscriber? Sign In" />
 								<div
 									className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 								>

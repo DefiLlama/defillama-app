@@ -2,6 +2,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { SignIn2Modal } from '~/containers/subscription/SignIn2'
 import { useIsClient } from '~/hooks/useIsClient'
 
 interface AuthUser {
@@ -54,12 +55,10 @@ export function Account({ asPath }: { asPath: string }) {
 	}
 
 	return (
-		<BasicLink
-			href={`/subscription?returnUrl=${encodeURIComponent(asPath)}`}
+		<SignIn2Modal
+			text="Sign In / Subscribe"
 			className="flex items-center justify-center gap-2 rounded-md pro-btn-purple p-1 text-sm font-medium"
-		>
-			<Icon name="users" className="h-4 w-4" />
-			Sign In / Subscribe
-		</BasicLink>
+			hideWhenAuthenticated={false}
+		/>
 	)
 }
