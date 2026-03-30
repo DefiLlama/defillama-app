@@ -1,3 +1,4 @@
+import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -31,7 +32,6 @@ function DashboardPanelInner({
 	sessionId
 }: DashboardPanelProps) {
 	const { authorizedFetch, user } = useAuthContext()
-	const [isCreating, setIsCreating] = useState(false)
 	const [animState, setAnimState] = useState<'closed' | 'opening' | 'open' | 'closing'>('closed')
 	const lastConfigRef = useRef<DashboardArtifact | null>(null)
 
@@ -73,10 +73,11 @@ function DashboardPanelInner({
 		}
 	}, [isConfigPresent])
 
-	const handleCreateDashboard = async () => {
-		if (isCreating || !displayConfig) return
-		setIsCreating(true)
-		try {
+	const { mutate: handleCreateDashboard, isPending } = useMutation({
+		mutationFn: async () => {
+			if (!displayConfig) {
+				throw new Error('No dashboard configuration')
+			}
 			let finalItems = displayConfig.items as DashboardItemConfig[]
 
 			const chartRefItems = finalItems.filter((i: any) => i.kind === 'llamaai-chart' && i.chartRef && !i.savedChartId)
@@ -96,13 +97,11 @@ function DashboardPanelInner({
 						return item
 					})
 				} else {
-					toast.error('Failed to save custom charts. Try again.')
-					setIsCreating(false)
-					return
+					throw new Error('Failed to save custom charts. Try again.')
 				}
 			}
 
-			const dashboard = await dashboardAPI.createDashboard(
+			return dashboardAPI.createDashboard(
 				{
 					items: finalItems,
 					dashboardName: displayConfig.dashboardName,
@@ -124,13 +123,14 @@ function DashboardPanelInner({
 				},
 				authorizedFetch
 			)
+		},
+		onSuccess: (dashboard) => {
 			void Router.push(`/pro/${dashboard.id}`)
-		} catch (err) {
+		},
+		onError: (err) => {
 			toast.error(err instanceof Error ? err.message : 'Failed to create dashboard')
-		} finally {
-			setIsCreating(false)
 		}
-	}
+	})
 
 	if (animState === 'closed' || !displayConfig) return null
 
@@ -158,11 +158,11 @@ function DashboardPanelInner({
 					</div>
 					<div className="flex items-center gap-2">
 						<button
-							onClick={handleCreateDashboard}
-							disabled={isCreating}
+							onClick={() => handleCreateDashboard()}
+							disabled={isPending || !displayConfig}
 							className="flex items-center gap-1.5 rounded-md bg-[#2172e5] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#1a5bc4] disabled:opacity-50"
 						>
-							{isCreating ? 'Creating...' : 'Create Dashboard'}
+							{isPending ? 'Creating...' : 'Create Dashboard'}
 						</button>
 						<button
 							onClick={onClose}
