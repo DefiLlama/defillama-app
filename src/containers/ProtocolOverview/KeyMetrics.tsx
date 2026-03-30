@@ -17,6 +17,7 @@ type KeyMetricsOptionalFields = Partial<
 		IProtocolOverviewPageData,
 		| 'category'
 		| 'hasKeyMetrics'
+		| 'linkToLlamaswap'
 		| 'oracleTvs'
 		| 'currentTvlByChain'
 		| 'openSmolStatsSummaryByDefault'
@@ -241,6 +242,17 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Raises {...props} />
 				<Expenses {...props} />
 			</div>
+			{props.linkToLlamaswap ? (
+				<a
+					target="_blank"
+					rel="noreferrer noopener"
+					href={props.linkToLlamaswap}
+					className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-white"
+				>
+					<span>Trade</span>
+					<Icon name="external-link" className="h-3 w-3" />
+				</a>
+			) : null}
 			<Flag protocol={props.name} isLending={props.category === 'Lending'} />
 		</div>
 	)

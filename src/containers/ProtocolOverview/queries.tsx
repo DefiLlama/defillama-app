@@ -34,6 +34,7 @@ import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
 import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
 import type { ProtocolChartsLabels } from './constants'
 import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
+import { LLAMASWAP_CHAINS } from './llamaswap'
 import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 
@@ -654,11 +655,15 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
+	let linkToLlamaswap = null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
 		const cmetadata = chainMetadata?.[slug(firstChain)]
+		if (cmetadata?.id && LLAMASWAP_CHAINS.includes(cmetadata.id)) {
+			linkToLlamaswap = `https://swap.defillama.com?from=${protocolData.address}&chain=${cmetadata.id}`
+		}
 		const chainGasIds = chainCoingeckoIdsForGasNotMcap as Record<
 			string,
 			{ geckoId: string; symbol: string; cmcId: string }
@@ -1005,7 +1010,8 @@ export const getProtocolOverviewPageData = async ({
 		seoTitle,
 		seoDescription,
 		defaultToggledCharts,
-		oracleTvs
+		oracleTvs,
+		linkToLlamaswap
 	}
 }
 
