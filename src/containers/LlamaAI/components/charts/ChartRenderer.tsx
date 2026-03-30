@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
@@ -145,6 +146,7 @@ function ChartExportButtonsSlot({
 	sessionId?: string | null
 	config: ChartConfiguration
 }) {
+	const { hasActiveSubscription } = useAuthContext()
 	const prepareCsvDirect = useMemo(
 		() => (exportModel ? () => ({ filename: exportModel.csvFilename, rows: exportModel.csvRows }) : undefined),
 		[exportModel]
@@ -152,7 +154,7 @@ function ChartExportButtonsSlot({
 
 	return (
 		<>
-			{sessionId ? (
+			{sessionId && hasActiveSubscription ? (
 				<AddToDashboardButton
 					chartConfig={null}
 					llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
