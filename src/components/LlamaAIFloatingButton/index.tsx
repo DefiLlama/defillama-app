@@ -234,7 +234,7 @@ export function LlamaAIFloatingButton() {
 					</div>
 
 					<div className="flex flex-1 flex-col overflow-hidden">
-						<div className="flex-1 overflow-y-auto p-5">
+						<div className="flex-1 overflow-y-auto overscroll-contain p-5">
 							<div className="mb-4">
 								<p className="mb-3 text-sm text-[#666] dark:text-[#919296]">
 									{entityContext ? `Ask about ${entityContext.entitySlug}:` : 'Try one of these:'}

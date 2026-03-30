@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRWAAssetsOverview } from './api.types'
 import type { RWAChartAggregationMode } from './chartAggregation'
-import { getRwaTickerChartQueryKey, useRwaChartDataset } from './hooks'
+import { getRwaTickerChartQueryKey, useRwaAssetGroupPieChartData, useRwaChartDataset } from './hooks'
 
 const useQueryMock = vi.fn()
 
@@ -57,6 +57,20 @@ function DatasetProbe({
 	return React.createElement('pre', null, chartDataset.dimensions.join('|'))
 }
 
+function AssetGroupProbe({ enabled, chartAssets }: { enabled: boolean; chartAssets: IRWAAssetsOverview['assets'] }) {
+	const result = useRwaAssetGroupPieChartData({ enabled, assets: chartAssets })
+	return React.createElement('script', {
+		type: 'application/json',
+		dangerouslySetInnerHTML: { __html: JSON.stringify(result) }
+	})
+}
+
+function readJsonMarkup(markup: string) {
+	const match = markup.match(/<script type="application\/json">([\s\S]*)<\/script>/)
+	expect(match?.[1]).toBeTruthy()
+	return JSON.parse(match![1])
+}
+
 describe('useRwaChartDataset', () => {
 	beforeEach(() => {
 		useQueryMock.mockReset()
@@ -106,5 +120,61 @@ describe('useRwaChartDataset', () => {
 			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap'),
 			enabled: false
 		})
+	})
+})
+
+describe('useRwaAssetGroupPieChartData', () => {
+	it('groups assets by normalized asset group and keeps Unknown', () => {
+		const chartAssets: IRWAAssetsOverview['assets'] = [
+			{
+				id: '1',
+				ticker: 'AAA',
+				assetName: 'Alpha',
+				assetGroup: 'Stablecoins',
+				category: ['Treasuries'],
+				parentPlatform: 'Centrifuge',
+				trueRWA: false,
+				onChainMcap: { total: 100, breakdown: [] },
+				activeMcap: { total: 90, breakdown: [] },
+				defiActiveTvl: { total: 30, breakdown: [] }
+			},
+			{
+				id: '2',
+				ticker: 'BBB',
+				assetName: 'Beta',
+				assetGroup: null,
+				category: ['Private Credit'],
+				parentPlatform: 'Maple',
+				trueRWA: false,
+				onChainMcap: { total: 50, breakdown: [] },
+				activeMcap: { total: 20, breakdown: [] },
+				defiActiveTvl: { total: 10, breakdown: [] }
+			}
+		]
+
+		const data = readJsonMarkup(
+			renderToStaticMarkup(React.createElement(AssetGroupProbe, { enabled: true, chartAssets }))
+		)
+		expect(data.assetGroupOnChainMcapPieChartData).toEqual([
+			{ name: 'Stablecoins', value: 100 },
+			{ name: 'Unknown', value: 50 }
+		])
+		expect(data.assetGroupActiveMcapPieChartData).toEqual([
+			{ name: 'Stablecoins', value: 90 },
+			{ name: 'Unknown', value: 20 }
+		])
+		expect(data.assetGroupDefiActiveTvlPieChartData).toEqual([
+			{ name: 'Stablecoins', value: 30 },
+			{ name: 'Unknown', value: 10 }
+		])
+	})
+
+	it('returns empty data when disabled', () => {
+		const data = readJsonMarkup(
+			renderToStaticMarkup(React.createElement(AssetGroupProbe, { enabled: false, chartAssets: assets }))
+		)
+		expect(data.assetGroupOnChainMcapPieChartData).toEqual([])
+		expect(data.assetGroupActiveMcapPieChartData).toEqual([])
+		expect(data.assetGroupDefiActiveTvlPieChartData).toEqual([])
 	})
 })

@@ -28,6 +28,7 @@ interface AgenticSessionItemProps {
 	selectMode?: boolean
 	isSelected?: boolean
 	onToggleSelect?: (sessionId: string) => void
+	onPinSession?: (sessionId: string) => Promise<void>
 }
 
 export const AgenticSessionItem = memo(function AgenticSessionItem({
@@ -42,7 +43,8 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	style,
 	selectMode,
 	isSelected,
-	onToggleSelect
+	onToggleSelect,
+	onPinSession
 }: AgenticSessionItemProps) {
 	const { authorizedFetch } = useAuthContext()
 	const { hideSidebar } = useLlamaAIChrome()
@@ -196,9 +198,10 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 					handleSessionClick(session.sessionId)
 				}}
 				aria-disabled={isEditing || isDeleting || isRestoring}
-				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
+				className="flex flex-1 items-center gap-1 overflow-hidden p-1.5 text-left aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
-				{session.title}
+				{session.isPinned ? <Icon name="pin" height={10} width={10} className="shrink-0 opacity-40" /> : null}
+				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
 			</button>
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
@@ -226,6 +229,15 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
 						</Ariakit.PopoverDismiss>
+						<Ariakit.MenuItem
+							onClick={() => {
+								void onPinSession?.(session.sessionId)
+							}}
+							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+						>
+							<Icon name="pin" height={14} width={14} className="shrink-0" />
+							{session.isPinned ? 'Unpin' : 'Pin to Top'}
+						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
 							onClick={() => {
 								void (async () => {

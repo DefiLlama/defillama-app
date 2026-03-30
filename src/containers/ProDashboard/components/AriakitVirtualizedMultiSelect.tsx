@@ -142,7 +142,7 @@ export function AriakitVirtualizedMultiSelect({
 							</div>
 							<div
 								ref={listRef}
-								className="thin-scrollbar max-h-[280px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
+								className="thin-scrollbar max-h-[280px] overflow-y-auto overscroll-contain rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 							>
 								{filteredOptions.length === 0 ? (
 									<p className="px-3 py-2 text-center text-xs pro-text3">No results found.</p>

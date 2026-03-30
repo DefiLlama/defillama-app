@@ -148,12 +148,6 @@ export class ChartDataTransformer {
 		const percentageChartOptions: Record<string, any> | undefined =
 			state.percentage && capabilities.allowPercentage
 				? {
-						grid: {
-							top: 24,
-							right: 12,
-							bottom: 68,
-							left: 12
-						},
 						...(!hasSecondaryAxis
 							? {
 									yAxis: {

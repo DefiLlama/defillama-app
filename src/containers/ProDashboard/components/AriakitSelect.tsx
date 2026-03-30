@@ -68,7 +68,7 @@ export function AriakitSelect({
 						className="z-50 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
 						style={{ width: 'var(--popover-anchor-width)' }}
 					>
-						<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1">
+						<div className="thin-scrollbar max-h-[280px] overflow-y-auto overscroll-contain p-1">
 							{options.length === 0 ? (
 								<p className="px-3 py-2 text-center text-xs pro-text3">No options available.</p>
 							) : null}
