@@ -85,19 +85,19 @@ function YearlyUpgradeBanner({ onUpgrade, planType = 'pro' }: { onUpgrade: () =>
 	const buttonLabel = planType === 'api' ? 'Upgrade API to Yearly' : 'Upgrade Pro to Yearly'
 
 	return (
-		<div className="flex items-center rounded-2xl border border-(--sub-c-1f67d2) bg-(--sub-c-1f67d2)/20 p-4">
+		<div className="flex items-center rounded-2xl border border-(--sub-brand-primary) bg-(--sub-brand-primary)/20 p-4">
 			<div className="flex w-full flex-col gap-8.5 sm:w-[155px]">
 				<div className="flex flex-col gap-3">
-					<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) bg-clip-text text-lg leading-[22px] font-semibold text-transparent dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) dark:to-[64%]">
+					<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) bg-clip-text text-lg leading-[22px] font-semibold text-transparent dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest) dark:to-[64%]">
 						Save {savings} with annual billing
 					</p>
-					<p className="text-xs leading-4 text-(--sub-c-090b0c) dark:text-white">
+					<p className="text-xs leading-4 text-(--sub-ink-primary) dark:text-white">
 						Switch to yearly and get 12 months of {subscriptionLabel} for the price of 10.
 					</p>
 				</div>
 				<button
 					onClick={onUpgrade}
-					className="flex h-8 w-full items-center justify-center rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs font-medium text-white"
+					className="flex h-8 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) px-3 text-xs font-medium text-white"
 				>
 					{buttonLabel}
 				</button>
@@ -108,19 +108,19 @@ function YearlyUpgradeBanner({ onUpgrade, planType = 'pro' }: { onUpgrade: () =>
 
 function FreeUpgradeBanner() {
 	return (
-		<div className="relative overflow-hidden rounded-2xl border border-(--sub-c-1f67d2) bg-(--sub-c-1f67d2)/20 p-4">
+		<div className="relative overflow-hidden rounded-2xl border border-(--sub-brand-primary) bg-(--sub-brand-primary)/20 p-4">
 			<div className="relative z-10 flex max-w-[250px] flex-col gap-6.5">
 				<div className="flex flex-col gap-3">
-					<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) bg-clip-text text-lg leading-[22px] font-semibold text-transparent dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) dark:to-77%">
+					<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) bg-clip-text text-lg leading-[22px] font-semibold text-transparent dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest) dark:to-77%">
 						Unlock the full power of DefiLlama
 					</p>
-					<p className="text-xs leading-4 text-(--sub-c-090b0c) dark:text-white">
+					<p className="text-xs leading-4 text-(--sub-ink-primary) dark:text-white">
 						Upgrade to Pro for advanced analytics tools, or get the API plan to power your own applications.
 					</p>
 				</div>
 				<BasicLink
 					href="/subscription"
-					className="flex h-8 w-fit items-center rounded-lg bg-(--sub-c-1f67d2) px-3 text-xs leading-4 font-medium text-white"
+					className="flex h-8 w-fit items-center rounded-lg bg-(--sub-brand-primary) px-3 text-xs leading-4 font-medium text-white"
 				>
 					View & Compare Plans
 				</BasicLink>

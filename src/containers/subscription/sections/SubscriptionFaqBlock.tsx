@@ -7,7 +7,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 
 	return (
 		<div className="mt-16 w-full md:mt-32 md:w-[384px]">
-			<h2 className="text-center text-[20px] leading-7 font-semibold text-(--sub-c-111f34) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
+			<h2 className="text-center text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 				Frequently Asked Questions
 			</h2>
 			<div className="mt-7 md:mt-9 md:flex md:flex-col md:gap-4">
@@ -29,14 +29,14 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								onClick={() => setExpandedIndex(isExpanded ? null : index)}
 								className="flex w-full items-center justify-between gap-4 text-left"
 							>
-								<p className="text-[12px] leading-4 text-(--sub-c-111f34) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
+								<p className="text-[12px] leading-4 text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 									{item.question}
 								</p>
 								<Icon
 									name={isExpanded ? 'x' : 'plus'}
 									height={16}
 									width={16}
-									className="shrink-0 text-(--sub-c-111f34) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white"
+									className="shrink-0 text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
 								/>
 							</button>
 							<div
@@ -46,7 +46,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
 							>
 								<div className="overflow-hidden">
-									<p className="pt-2 text-xs leading-4 text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6)">
+									<p className="pt-2 text-xs leading-4 text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark)">
 										{item.answer}
 									</p>
 								</div>

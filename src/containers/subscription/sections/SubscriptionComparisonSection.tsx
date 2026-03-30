@@ -7,15 +7,15 @@ import type { BillingCycle, ComparisonSection, PlanKey } from '~/containers/subs
 
 const planHeadStyles = {
 	selected:
-		'border-x border-(--sub-c-1f67d2) bg-[rgba(31,103,210,0.06)] dark:bg-(--sub-c-1f67d20d) md:rounded-t-[16px]',
+		'border-x border-(--sub-brand-primary) bg-[rgba(31,103,210,0.06)] dark:bg-(--sub-brand-primary-alpha-5) md:rounded-t-[16px]',
 	default:
 		'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) md:bg-white dark:md:bg-transparent'
 }
 
 const planHeadButtonStyles = {
-	selected: 'border-(--sub-c-1f67d2) bg-(--sub-c-1f67d2) text-white',
+	selected: 'border-(--sub-brand-primary) bg-(--sub-brand-primary) text-white',
 	default:
-		'border-(--sub-c-c8d4e4) bg-white text-(--sub-c-1e293b) dark:border-(--sub-c-2f3336) dark:bg-transparent dark:text-white md:border-(--sub-c-dedede) md:text-(--sub-c-090b0c) dark:md:border-(--sub-c-2f3336) dark:md:bg-transparent dark:md:text-white'
+		'border-(--sub-border-slate-200) bg-white text-(--sub-text-slate-900) dark:border-(--sub-border-strong) dark:bg-transparent dark:text-white md:border-(--sub-border-muted) md:text-(--sub-ink-primary) dark:md:border-(--sub-border-strong) dark:md:bg-transparent dark:md:text-white'
 }
 
 function SelectedColumnRails({
@@ -30,7 +30,7 @@ function SelectedColumnRails({
 	return (
 		<div
 			aria-hidden="true"
-			className={`pointer-events-none absolute -top-px bottom-0 z-20 border-x border-(--sub-c-1f67d2) ${roundBottom ? 'rounded-b-[16px] border-b' : ''}`}
+			className={`pointer-events-none absolute -top-px bottom-0 z-20 border-x border-(--sub-brand-primary) ${roundBottom ? 'rounded-b-[16px] border-b' : ''}`}
 			style={{ left: `${left}px`, width: `${width}px` }}
 		/>
 	)
@@ -80,11 +80,11 @@ function ComparisonPlanHead({
 		>
 			<div className="flex h-full flex-col justify-between p-3 md:p-5">
 				<div>
-					<p className="text-[14px] leading-4 font-medium text-(--sub-c-111f34) md:text-lg md:leading-5 md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
+					<p className="text-[14px] leading-4 font-medium text-(--sub-text-navy-900) md:text-lg md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 						{meta.title}
 					</p>
 					<div className="mt-1 flex items-end gap-px">
-						<p className="bg-linear-to-r from-(--sub-c-4b86db) to-(--sub-c-a5c3ed) bg-clip-text text-[12px] leading-[17px] font-medium text-transparent md:text-sm">
+						<p className="bg-linear-to-r from-(--sub-brand-secondary) to-(--sub-brand-softest) bg-clip-text text-[12px] leading-[17px] font-medium text-transparent md:text-sm">
 							{priceValue}
 						</p>
 						{priceUnit ? (
@@ -175,7 +175,7 @@ export function SubscriptionComparisonSection({
 
 	return (
 		<section className="mt-12 bg-white py-12 md:mt-0 md:py-20 dark:bg-(--sub-mobile-table-section-bg) md:dark:bg-(--sub-desktop-table-section-bg)">
-			<div className="mx-auto max-w-[393px] px-4 md:max-w-[984px] md:px-0">
+			<div className="mx-auto w-full px-2 md:max-w-[984px] md:px-0">
 				{/* ── Sticky plan header (mobile: sticky top-0, desktop: static) ── */}
 				<div
 					ref={headerScrollRef}
@@ -187,7 +187,7 @@ export function SubscriptionComparisonSection({
 								role="columnheader"
 								className="sticky left-0 z-30 flex h-[132px] w-[233px] items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 							>
-								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-c-111f34) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
+								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 									Compare Plans and Features
 								</h2>
 							</div>
@@ -224,7 +224,7 @@ export function SubscriptionComparisonSection({
 										>
 											<div
 												role="rowheader"
-												className="sticky left-0 z-30 flex w-[233px] items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-c-111f34) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white"
+												className="sticky left-0 z-30 flex w-[233px] items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-text-navy-900) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
 											>
 												{section.title}
 											</div>
@@ -246,11 +246,11 @@ export function SubscriptionComparisonSection({
 												<div
 													key={`${section.title}-${row.label}`}
 													role="row"
-													className="relative flex h-[41px] md:h-[36px]"
+													className="relative flex min-h-[41px] md:min-h-[36px]"
 												>
 													<div
 														role="rowheader"
-														className="sticky left-0 z-30 flex w-[233px] items-center overflow-hidden bg-white px-2 text-[14px] leading-[21px] text-ellipsis whitespace-nowrap text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+														className="sticky left-0 z-30 flex w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 													>
 														{row.label}
 													</div>
@@ -262,7 +262,8 @@ export function SubscriptionComparisonSection({
 															if (planIndex === 0) lastRowCls += ' rounded-bl-[16px] md:rounded-bl-[24px]'
 															if (planIndex === planOrder.length - 1)
 																lastRowCls += ' rounded-br-[16px] md:rounded-br-[24px]'
-															if (plan === selectedPlan) lastRowCls += ' border-b-(--sub-c-1f67d2) rounded-b-[16px]'
+															if (plan === selectedPlan)
+																lastRowCls += ' border-b-(--sub-brand-primary) rounded-b-[16px]'
 														}
 														return (
 															<ComparisonCell

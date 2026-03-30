@@ -29,7 +29,7 @@ const CSS_VAR_KEYS = {
 	],
 	others: '--sub-chart-others',
 	split: '--sub-chart-split',
-	muted: '--sub-c-878787',
+	muted: '--sub-text-muted',
 	axis: '--sub-chart-axis',
 	tooltipBg: '--sub-chart-tooltip-bg',
 	tooltipBorder: '--sub-chart-tooltip-border'
@@ -136,15 +136,19 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 	}, [])
 
 	// Use fallback colors for SSR / first render — will be replaced immediately on mount
-	const activeColors = colors ?? {
-		routes: CSS_VAR_KEYS.routes.map(() => ''),
-		others: '',
-		split: '',
-		muted: '',
-		axis: '',
-		tooltipBg: '',
-		tooltipBorder: ''
-	}
+	const fallbackColors = useMemo<ChartColors>(
+		() => ({
+			routes: CSS_VAR_KEYS.routes.map(() => ''),
+			others: '',
+			split: '',
+			muted: '',
+			axis: '',
+			tooltipBg: '',
+			tooltipBorder: ''
+		}),
+		[]
+	)
+	const activeColors = colors ?? fallbackColors
 
 	const { sortedStats, totalRequests, averageRequests, dataset, charts, windowDays } = useChartData(
 		usageStats,
@@ -220,21 +224,21 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 	)
 
 	return (
-		<div className="flex flex-col gap-4 rounded-lg bg-(--sub-c-f6f7f9) p-3 dark:bg-(--sub-c-090b0c)">
+		<div className="flex flex-col gap-4 rounded-lg bg-(--sub-surface-panel) p-3 dark:bg-(--sub-ink-primary)">
 			{/* Header */}
 			<div className="flex items-start justify-between gap-4">
 				<div className="flex flex-col gap-1">
-					<span className="text-sm text-(--sub-c-090b0c) dark:text-white">API Usage Breakdown</span>
-					<span className="text-xs text-(--sub-c-878787)">Last {windowDays} days</span>
+					<span className="text-sm text-(--sub-ink-primary) dark:text-white">API Usage Breakdown</span>
+					<span className="text-xs text-(--sub-text-muted)">Last {windowDays} days</span>
 				</div>
 				<div className="flex items-center gap-6">
 					<div className="flex flex-col items-end">
-						<span className="text-sm font-semibold text-(--sub-c-090b0c) dark:text-white">{totalLabel}</span>
-						<span className="text-[10px] text-(--sub-c-878787)">Total Requests</span>
+						<span className="text-sm font-semibold text-(--sub-ink-primary) dark:text-white">{totalLabel}</span>
+						<span className="text-[10px] text-(--sub-text-muted)">Total Requests</span>
 					</div>
 					<div className="flex flex-col items-end">
-						<span className="text-sm font-semibold text-(--sub-c-090b0c) dark:text-white">{avgLabel}</span>
-						<span className="text-[10px] text-(--sub-c-878787)">Ave/Day</span>
+						<span className="text-sm font-semibold text-(--sub-ink-primary) dark:text-white">{avgLabel}</span>
+						<span className="text-[10px] text-(--sub-text-muted)">Ave/Day</span>
 					</div>
 				</div>
 			</div>
@@ -245,7 +249,7 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 					{charts.map((series) => (
 						<div key={series.name} className="flex items-center gap-1.5">
 							<span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: series.color }} />
-							<span className="text-[10px] text-(--sub-c-878787)">{series.name}</span>
+							<span className="text-[10px] text-(--sub-text-muted)">{series.name}</span>
 						</div>
 					))}
 				</div>
@@ -253,16 +257,16 @@ export function ApiUsageBreakdown({ usageStats, isLoading, isError }: ApiUsageBr
 
 			{/* Chart */}
 			{isLoading ? (
-				<div className="flex min-h-[200px] items-center justify-center gap-2 text-xs text-(--sub-c-878787)">
+				<div className="flex min-h-[200px] items-center justify-center gap-2 text-xs text-(--sub-text-muted)">
 					<LoadingSpinner size={14} />
 					<span>Loading usage stats...</span>
 				</div>
 			) : isError ? (
-				<div className="flex min-h-[200px] items-center justify-center text-xs text-(--sub-c-878787)">
+				<div className="flex min-h-[200px] items-center justify-center text-xs text-(--sub-text-muted)">
 					Unable to load usage stats right now.
 				</div>
 			) : sortedStats.length === 0 ? (
-				<div className="flex min-h-[200px] items-center justify-center text-xs text-(--sub-c-878787)">
+				<div className="flex min-h-[200px] items-center justify-center text-xs text-(--sub-text-muted)">
 					No usage data yet.
 				</div>
 			) : (

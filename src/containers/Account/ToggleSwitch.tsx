@@ -14,7 +14,7 @@ export function ToggleSwitch({ checked, onClick, disabled, 'aria-label': ariaLab
 			onClick={onClick}
 			disabled={disabled}
 			className={`flex w-10 cursor-pointer items-center rounded-full p-0.5 transition-colors ${
-				checked ? 'justify-end bg-(--sub-c-1f67d2)' : 'bg-(--sub-c-dedede) dark:bg-(--sub-c-232628)'
+				checked ? 'justify-end bg-(--sub-brand-primary)' : 'bg-(--sub-border-muted) dark:bg-(--sub-surface-elevated-2)'
 			} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
 		>
 			<span className="block h-5 w-5 rounded-full bg-white" />

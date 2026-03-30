@@ -14,24 +14,24 @@ const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise
 
 const cardWrapperStyles = {
 	highlighted:
-		'w-full flex-[1_1_260px] flex flex-col gap-[10px] rounded-[24px] bg-(--sub-c-1f67d2) px-[2px] pt-[2px] pb-3 sm:max-w-[300px]',
+		'w-full flex-[1_1_260px] flex flex-col gap-[10px] rounded-[24px] bg-(--sub-brand-primary) px-[2px] pt-[2px] pb-3 sm:max-w-[300px]',
 	default: 'w-full flex-[1_1_260px] flex flex-col sm:max-w-[300px] sm:gap-[10px] sm:pb-3'
 }
 
 const cardShellStyles = {
 	highlighted: 'relative flex flex-1 flex-col',
 	default:
-		'relative flex flex-1 flex-col rounded-[24px] border border-(--sub-c-ced8e6) bg-white dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)'
+		'relative flex flex-1 flex-col rounded-[24px] border border-(--sub-border-slate-100) bg-white dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)'
 }
 
 const cardInnerStyles = {
 	highlighted:
-		'flex h-full flex-1 flex-col justify-between overflow-hidden rounded-[22px] bg-white px-5 py-6 dark:bg-(--sub-c-131516) sm:px-4',
+		'flex h-full flex-1 flex-col justify-between overflow-hidden rounded-[22px] bg-white px-5 py-6 dark:bg-(--sub-surface-dark) sm:px-4',
 	default:
-		'flex h-full flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-white px-5 py-6 dark:bg-(--sub-c-131516) sm:px-4'
+		'flex h-full flex-1 flex-col justify-between overflow-hidden rounded-[24px] bg-white px-5 py-6 dark:bg-(--sub-surface-dark) sm:px-4'
 }
 
-export const SELECTED_COLUMN_HIGHLIGHT = 'bg-[rgba(31,103,210,0.06)] dark:bg-(--sub-c-1f67d20d)'
+export const SELECTED_COLUMN_HIGHLIGHT = 'bg-[rgba(31,103,210,0.06)] dark:bg-(--sub-brand-primary-alpha-5)'
 
 const selectedColumnStyles = {
 	active: SELECTED_COLUMN_HIGHLIGHT,
@@ -48,24 +48,24 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 		<li className="flex items-start gap-2">
 			<span className="shrink-0">
 				{item.availability === 'check' ? (
-					<Icon name="check" height={24} width={24} className="text-(--sub-c-4b86db) sm:h-5 sm:w-5" />
+					<Icon name="check" height={24} width={24} className="text-(--sub-brand-secondary) sm:h-5 sm:w-5" />
 				) : (
 					<Icon
 						name="minus"
 						height={24}
 						width={24}
-						className="text-(--sub-c-8c9aaf) sm:h-5 sm:w-5 dark:text-(--sub-c-5f6369)"
+						className="text-(--sub-icon-muted) sm:h-5 sm:w-5 dark:text-(--sub-icon-muted-dark)"
 					/>
 				)}
 			</span>
 			{item.highlightText ? (
-				<span className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) bg-clip-text text-[16px] leading-6 text-transparent sm:pt-0.5 sm:text-[12px] sm:leading-4 dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed)">
+				<span className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) bg-clip-text text-[16px] leading-6 text-transparent sm:pt-0.5 sm:text-[12px] sm:leading-4 dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
 					<span className="underline">{highlightPrefix}</span>
 					{highlightSuffix ? `: ${highlightSuffix}` : ''}
 				</span>
 			) : (
 				<span
-					className={`text-[16px] leading-6 sm:pt-0.5 sm:text-[12px] sm:leading-4 ${item.availability === 'check' ? 'text-(--sub-c-090b0c) dark:text-(--sub-c-f6f7f9)' : 'text-(--sub-c-878787) dark:text-(--sub-c-71757c)'}`}
+					className={`text-[16px] leading-6 sm:pt-0.5 sm:text-[12px] sm:leading-4 ${item.availability === 'check' ? 'text-(--sub-ink-primary) dark:text-(--sub-text-primary-dark)' : 'text-(--sub-text-muted) dark:text-(--sub-text-muted-dark)'}`}
 				>
 					{item.label}
 				</span>
@@ -77,9 +77,9 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 /* ── PricingCardCta ────────────────────────────────────────────────── */
 
 const outlineBtnCls =
-	'h-14 w-full rounded-[12px] border border-(--sub-c-ced8e6) bg-(--sub-c-f8fafd) text-[16px] leading-5 font-medium text-(--sub-c-1e293b) dark:border-(--sub-c-2f3336) dark:text-white sm:h-10 sm:rounded-lg sm:border-(--sub-c-dedede) sm:bg-white sm:text-sm sm:text-(--sub-c-090b0c) dark:sm:border-(--sub-c-2f3336) dark:sm:bg-transparent dark:sm:text-white'
+	'h-14 w-full rounded-[12px] border border-(--sub-border-slate-100) bg-(--sub-surface-slate-10) text-[16px] leading-5 font-medium text-(--sub-text-slate-900) dark:border-(--sub-border-strong) dark:text-white sm:h-10 sm:rounded-lg sm:border-(--sub-border-muted) sm:bg-white sm:text-sm sm:text-(--sub-ink-primary) dark:sm:border-(--sub-border-strong) dark:sm:bg-transparent dark:sm:text-white'
 const filledBtnCls =
-	'h-14 w-full rounded-[12px] bg-(--sub-c-1f67d2) text-[16px] leading-5 font-medium text-white sm:h-10 sm:rounded-lg sm:text-sm'
+	'h-14 w-full rounded-[12px] bg-(--sub-brand-primary) text-[16px] leading-5 font-medium text-white sm:h-10 sm:rounded-lg sm:text-sm'
 
 function PricingCardCta({
 	card,
@@ -118,18 +118,18 @@ function PricingCardCta({
 	if (isCurrentPlan) {
 		return (
 			<>
-				<p className="mt-4 text-center text-[16px] leading-5 font-medium text-(--sub-c-1f67d2) sm:text-sm dark:text-(--sub-c-4b86db)">
+				<p className="mt-4 text-center text-[16px] leading-5 font-medium text-(--sub-brand-primary) sm:text-sm dark:text-(--sub-brand-secondary)">
 					{isTrial ? 'Current Plan (trial)' : 'Current Plan'}
 				</p>
 				{isCancelPending ? (
 					<div className="flex flex-col gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3">
 						<p className="text-center text-[13px] leading-5 font-medium text-yellow-500">Cancellation scheduled</p>
-						<p className="text-center text-[12px] leading-4 text-(--sub-c-878787)">
+						<p className="text-center text-[12px] leading-4 text-(--sub-text-muted)">
 							Your plan stays active until the end of the billing period.
 						</p>
 						<button
 							type="button"
-							className="mt-1 text-[13px] leading-5 font-medium text-(--sub-c-1f67d2) underline hover:text-(--sub-c-4b86db)"
+							className="mt-1 text-[13px] leading-5 font-medium text-(--sub-brand-primary) underline hover:text-(--sub-brand-secondary)"
 							onClick={onRevertCancellation}
 						>
 							Revert Cancellation
@@ -146,7 +146,7 @@ function PricingCardCta({
 						<button type="button" className={filledBtnCls} onClick={() => onUpgradeToYearly?.(card.key)}>
 							Upgrade to Yearly
 						</button>
-						<p className="text-center text-[12px] leading-4 text-(--sub-c-8a97aa) dark:text-(--sub-c-878787)">
+						<p className="text-center text-[12px] leading-4 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
 							Switch to annual billing and get 2 months free
 						</p>
 					</>
@@ -184,7 +184,7 @@ function PricingCardCta({
 					<button type="button" className={outlineBtnCls} onClick={onStartTrial}>
 						Free trial for 7 days
 					</button>
-					<p className="text-center text-[11px] leading-4 text-(--sub-c-8a97aa) dark:text-(--sub-c-878787)">
+					<p className="text-center text-[11px] leading-4 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
 						Trial includes 3 deep research questions/day and 1 CSV download
 					</p>
 				</>
@@ -210,7 +210,7 @@ function PricingCardCta({
 			{!isAuthenticated && card.key !== 'free' && card.key !== 'enterprise' ? (
 				<button
 					type="button"
-					className="text-[13px] leading-5 text-(--sub-c-8a97aa) underline hover:text-(--sub-c-1f67d2) dark:text-(--sub-c-878787) dark:hover:text-(--sub-c-4b86db)"
+					className="text-[13px] leading-5 text-(--sub-text-slate-400) underline hover:text-(--sub-brand-primary) dark:text-(--sub-text-muted) dark:hover:text-(--sub-brand-secondary)"
 					onClick={() => onPrimaryCtaClick?.('free')}
 				>
 					Already a subscriber? Sign In
@@ -279,28 +279,28 @@ export function PricingCard({
 				<div className={innerClass}>
 					<div className={`mx-auto flex flex-col gap-7 sm:gap-5 ${contentWidth}`}>
 						<div className="flex flex-col gap-2 sm:min-h-[104px] sm:gap-3">
-							<h3 className="text-[18px] leading-[22px] font-semibold text-(--sub-c-0f172a) sm:text-(--sub-c-090b0c) dark:text-white dark:sm:text-white">
+							<h3 className="text-[18px] leading-[22px] font-semibold text-(--sub-text-slate-950) sm:text-(--sub-ink-primary) dark:text-white dark:sm:text-white">
 								{card.title}
 							</h3>
 							{card.priceMain ? (
 								<div className="flex flex-col gap-1 sm:gap-0">
 									<div className="flex items-end gap-0.5">
-										<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-111f34) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed)">
+										<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
 											{card.priceMain}
 										</p>
-										<p className="text-[16px] leading-6 text-(--sub-c-64758c) sm:text-base sm:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:sm:text-(--sub-c-c6c6c6)">
+										<p className="text-[16px] leading-6 text-(--sub-text-slate-600) sm:text-base sm:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:sm:text-(--sub-text-secondary-dark)">
 											{card.priceUnit}
 										</p>
 									</div>
 									{card.priceSecondary ? (
-										<p className="text-[22px] leading-6 text-(--sub-c-8a97aa) sm:text-[16px] dark:text-(--sub-c-878787)">
+										<p className="text-[22px] leading-6 text-(--sub-text-slate-400) sm:text-[16px] dark:text-(--sub-text-muted)">
 											{card.priceSecondary}
 										</p>
 									) : null}
 								</div>
 							) : null}
 							{card.description ? (
-								<p className="text-[16px] leading-6 text-(--sub-c-334155) sm:text-[12px] sm:leading-4 sm:text-(--sub-c-484848) dark:text-(--sub-c-f6f7f9) dark:sm:text-(--sub-c-f6f7f9)">
+								<p className="text-[16px] leading-6 text-(--sub-text-slate-800) sm:text-[12px] sm:leading-4 sm:text-(--sub-text-secondary) dark:text-(--sub-text-primary-dark) dark:sm:text-(--sub-text-primary-dark)">
 									{card.description}
 								</p>
 							) : null}
@@ -314,7 +314,7 @@ export function PricingCard({
 
 						{card.sections.map((section) => (
 							<div key={`${card.key}-${section.title}`} className="flex flex-col gap-3">
-								<h4 className="text-[20px] leading-7 font-semibold text-(--sub-c-0f172a) sm:text-[16px] sm:leading-5 sm:font-medium sm:text-(--sub-c-090b0c) dark:text-white dark:sm:text-white">
+								<h4 className="text-[20px] leading-7 font-semibold text-(--sub-text-slate-950) sm:text-[16px] sm:leading-5 sm:font-medium sm:text-(--sub-ink-primary) dark:text-white dark:sm:text-white">
 									{section.title}
 								</h4>
 								<ul className="flex flex-col gap-3 sm:gap-2">
@@ -353,7 +353,7 @@ export function PricingCard({
 
 			{card.recommendedLabel ? (
 				<div className={badgeSlotClass}>
-					<div className="text-center text-[14px] leading-[17px] font-medium text-(--sub-c-a5c3ed)">
+					<div className="text-center text-[14px] leading-[17px] font-medium text-(--sub-brand-softest)">
 						{card.recommendedLabel}
 					</div>
 				</div>
@@ -381,7 +381,7 @@ export function ComparisonCell({
 }) {
 	const selectedStyle = isSelected ? `relative z-10 ${selectedColumnStyles.active}` : selectedColumnStyles.inactive
 	const borderColor =
-		'border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:border-(--sub-c-eeeeee) dark:md:border-(--sub-c-232628)'
+		'border-(--sub-border-slate-150) dark:border-(--sub-surface-elevated-2) md:border-(--sub-border-light) dark:md:border-(--sub-surface-elevated-2)'
 	const borderEnd = plan === 'enterprise' ? 'border-r' : ''
 	const isIncluded = value === 'check'
 
@@ -392,13 +392,13 @@ export function ComparisonCell({
 			className={`flex h-full w-[132px] items-center justify-center ${isSelected || hideBorderLeft ? '' : 'border-l'} text-center md:w-[146px] ${borderColor} ${selectedStyle} ${borderEnd} ${className}`}
 		>
 			{isIncluded ? (
-				<Icon name="check" height={24} width={24} className="text-(--sub-c-4b86db)" aria-hidden="true" />
+				<Icon name="check" height={24} width={24} className="text-(--sub-brand-secondary)" aria-hidden="true" />
 			) : (
 				<Icon
 					name="minus"
 					height={24}
 					width={24}
-					className="text-(--sub-c-90a0b6) md:text-(--sub-c-dedede) dark:text-(--sub-c-4d5158) dark:md:text-(--sub-c-4d5158)"
+					className="text-(--sub-text-slate-300) md:text-(--sub-border-muted) dark:text-(--sub-border-strong-muted) dark:md:text-(--sub-border-strong-muted)"
 					aria-hidden="true"
 				/>
 			)}

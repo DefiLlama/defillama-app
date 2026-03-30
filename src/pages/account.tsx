@@ -75,19 +75,19 @@ export default function Account() {
 
 				{showSuccessModal && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-						<div className="flex w-full max-w-[380px] flex-col items-center gap-6 rounded-2xl border border-(--sub-c-ced8e6) bg-white px-5 py-8 dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)">
-							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--sub-c-1f67d2)/10">
-								<Icon name="check" height={32} width={32} className="text-(--sub-c-1f67d2)" />
+						<div className="flex w-full max-w-[380px] flex-col items-center gap-6 rounded-2xl border border-(--sub-border-slate-100) bg-white px-5 py-8 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
+							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--sub-brand-primary)/10">
+								<Icon name="check" height={32} width={32} className="text-(--sub-brand-primary)" />
 							</div>
 							<div className="flex flex-col gap-2 text-center">
-								<h2 className="text-xl font-semibold text-(--sub-c-090b0c) dark:text-white">Payment Successful!</h2>
-								<p className="text-sm text-(--sub-c-878787)">
+								<h2 className="text-xl font-semibold text-(--sub-ink-primary) dark:text-white">Payment Successful!</h2>
+								<p className="text-sm text-(--sub-text-muted)">
 									Your subscription has been activated. Welcome to DefiLlama Pro!
 								</p>
 							</div>
 							<button
 								onClick={() => setShowSuccessModal(false)}
-								className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-c-1f67d2) text-sm font-medium text-white"
+								className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white"
 							>
 								Continue
 							</button>

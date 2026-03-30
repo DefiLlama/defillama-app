@@ -215,11 +215,11 @@ function SubscriptionContent() {
 
 	if (isPageStateLoading) {
 		return (
-			<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-c-f7f7f7) text-(--sub-c-090b0c) dark:bg-(--sub-c-090b0c) dark:text-white">
+			<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
 				<SubscriptionBackground />
 				<SubscriptionHeader />
 				<div className="flex h-[60dvh] items-center justify-center">
-					<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-c-1f67d2) border-t-transparent" />
+					<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
 				</div>
 				<SubscriptionFooter />
 			</div>
@@ -227,7 +227,7 @@ function SubscriptionContent() {
 	}
 
 	return (
-		<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-c-f7f7f7) text-(--sub-c-090b0c) dark:bg-(--sub-c-090b0c) dark:text-white">
+		<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
 			<SubscriptionBackground />
 			<SubscriptionHeader />
 

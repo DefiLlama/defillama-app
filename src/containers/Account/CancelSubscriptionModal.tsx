@@ -42,23 +42,23 @@ export function CancelSubscriptionModal({
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
 			onClick={(e) => e.target === e.currentTarget && handleClose()}
 		>
-			<div className="flex w-full max-w-[380px] flex-col gap-5 rounded-2xl border border-(--sub-c-ced8e6) bg-white px-5 py-6 dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)">
+			<div className="flex w-full max-w-[380px] flex-col gap-5 rounded-2xl border border-(--sub-border-slate-100) bg-white px-5 py-6 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
 				{/* Header */}
 				<div className="flex items-center justify-between">
-					<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c) dark:text-white">
+					<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary) dark:text-white">
 						{isTrial ? 'Cancel Free Trial' : 'Cancel Subscription'}
 					</h3>
 					<button
 						onClick={handleClose}
 						disabled={isLoading}
-						className="rounded-full p-1 text-(--sub-c-090b0c) transition-colors disabled:opacity-50 dark:text-white"
+						className="rounded-full p-1 text-(--sub-ink-primary) transition-colors disabled:opacity-50 dark:text-white"
 					>
 						<Icon name="x" height={24} width={24} />
 					</button>
 				</div>
 
 				{/* Body */}
-				<p className="text-sm leading-[21px] text-(--sub-c-090b0c) dark:text-white">
+				<p className="text-sm leading-[21px] text-(--sub-ink-primary) dark:text-white">
 					{isTrial
 						? "Your subscription will remain active until the end of your trial period. After that, it will not renew and you won't be charged."
 						: 'Your subscription will remain active until the end of your current billing period. After that, it will not renew.'}
@@ -66,7 +66,7 @@ export function CancelSubscriptionModal({
 
 				{/* Feedback */}
 				<div className="flex flex-col gap-2">
-					<label htmlFor="cancel-reason" className="text-xs font-medium text-(--sub-c-878787)">
+					<label htmlFor="cancel-reason" className="text-xs font-medium text-(--sub-text-muted)">
 						Reason for cancelling (optional)
 					</label>
 					<textarea
@@ -75,7 +75,7 @@ export function CancelSubscriptionModal({
 						onChange={(e) => setMessage(e.target.value)}
 						placeholder="Let us know why you're cancelling..."
 						rows={3}
-						className="w-full resize-none rounded-lg border border-(--sub-c-dedede) bg-transparent p-3 text-sm text-(--sub-c-090b0c) outline-none placeholder:text-(--sub-c-878787) focus:border-(--sub-c-1f67d2) dark:border-(--sub-c-2f3336) dark:text-white"
+						className="w-full resize-none rounded-lg border border-(--sub-border-muted) bg-transparent p-3 text-sm text-(--sub-ink-primary) outline-none placeholder:text-(--sub-text-muted) focus:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:text-white"
 					/>
 				</div>
 
@@ -91,7 +91,7 @@ export function CancelSubscriptionModal({
 					<button
 						onClick={handleClose}
 						disabled={isLoading}
-						className="flex h-10 w-full items-center justify-center rounded-lg border border-(--sub-c-dedede) text-sm text-(--sub-c-878787) disabled:opacity-50 dark:border-(--sub-c-2f3336)"
+						className="flex h-10 w-full items-center justify-center rounded-lg border border-(--sub-border-muted) text-sm text-(--sub-text-muted) disabled:opacity-50 dark:border-(--sub-border-strong)"
 					>
 						{isTrial ? 'Keep Trial' : 'Keep Subscription'}
 					</button>

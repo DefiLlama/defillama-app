@@ -48,13 +48,15 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
 			onClick={(e) => e.target === e.currentTarget && handleClose()}
 		>
-			<div className="flex w-full max-w-[331px] flex-col gap-5 rounded-2xl border border-(--sub-c-ced8e6) bg-white px-5 py-6 dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516)">
+			<div className="flex w-full max-w-[331px] flex-col gap-5 rounded-2xl border border-(--sub-border-slate-100) bg-white px-5 py-6 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
 				{/* Header */}
 				<div className="flex items-center justify-between">
-					<h3 className="text-xl leading-7 font-semibold text-(--sub-c-090b0c) dark:text-white">Change Your Email</h3>
+					<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary) dark:text-white">
+						Change Your Email
+					</h3>
 					<button
 						onClick={handleClose}
-						className="rounded-full p-1 text-(--sub-c-090b0c) transition-colors dark:text-white"
+						className="rounded-full p-1 text-(--sub-ink-primary) transition-colors dark:text-white"
 					>
 						<Icon name="x" height={24} width={24} />
 					</button>
@@ -62,7 +64,9 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 
 				{/* Form */}
 				<form onSubmit={handleSubmit} className="flex flex-col gap-5">
-					<label className="text-sm leading-[21px] text-(--sub-c-090b0c) dark:text-white">Enter your new email:</label>
+					<label className="text-sm leading-[21px] text-(--sub-ink-primary) dark:text-white">
+						Enter your new email:
+					</label>
 
 					<div className="flex flex-col gap-2">
 						<input
@@ -74,10 +78,10 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 								if (error) setError('')
 							}}
 							placeholder="your.new.email@example.com"
-							className={`h-10 w-full rounded-lg border bg-(--sub-c-f6f7f9) px-3 text-sm leading-[21px] text-(--sub-c-090b0c) outline-none dark:bg-(--sub-c-090b0c) dark:text-white ${
+							className={`h-10 w-full rounded-lg border bg-(--sub-surface-panel) px-3 text-sm leading-[21px] text-(--sub-ink-primary) outline-none dark:bg-(--sub-ink-primary) dark:text-white ${
 								hasError
 									? 'border-(--error)'
-									: 'border-(--sub-c-dedede) focus:border-(--sub-c-1f67d2) dark:border-(--sub-c-2f3336) dark:focus:border-(--sub-c-1f67d2)'
+									: 'border-(--sub-border-muted) focus:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:focus:border-(--sub-brand-primary)'
 							}`}
 						/>
 						{hasError && <p className="text-xs leading-4 text-(--error)">{error}</p>}
@@ -86,7 +90,7 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 					<button
 						type="submit"
 						disabled={!canSubmit}
-						className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-c-1f67d2) text-sm font-medium text-white disabled:opacity-25"
+						className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white disabled:opacity-25"
 					>
 						{isLoading ? 'Sending...' : 'Confirm Email'}
 					</button>

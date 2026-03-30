@@ -33,11 +33,11 @@ export function SubscriptionPricingSection({
 					<span className="hidden text-2xl font-bold text-white md:text-xl dark:inline">DefiLlama</span>
 				</div>
 				<div className="flex w-full flex-col items-center gap-7">
-					<h1 className="text-[32px] leading-[42px] font-semibold text-(--sub-c-090b0c) dark:text-(--sub-c-f5f7fb)">
+					<h1 className="text-[32px] leading-[42px] font-semibold text-(--sub-ink-primary) dark:text-(--sub-text-primary-dark)">
 						The Smartest Way to Navigate <br className="hidden md:inline" />
 						On-Chain Data
 					</h1>
-					<p className="text-[16px] leading-6 text-(--sub-c-617389) md:w-[485px] md:text-[14px] md:leading-[21px] md:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:md:text-(--sub-c-c6c6c6)">
+					<p className="text-[16px] leading-6 text-(--sub-text-slate-500) md:w-[485px] md:text-[14px] md:leading-[21px] md:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:md:text-(--sub-text-secondary-dark)">
 						Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
 						more.
 					</p>
@@ -48,10 +48,10 @@ export function SubscriptionPricingSection({
 				<div
 					role="group"
 					aria-label="Billing cycle"
-					className="relative flex w-[268px] rounded-full bg-(--sub-c-e3ebf6) p-1 md:w-[236px] dark:bg-(--sub-c-131516)"
+					className="relative flex w-[268px] rounded-full bg-(--sub-surface-slate-75) p-1 md:w-[236px] dark:bg-(--sub-surface-dark)"
 				>
 					<div
-						className={`absolute top-1 left-1 h-14 w-32 rounded-full bg-(--sub-c-1f67d2) transition-transform duration-300 ease-in-out md:h-12 md:w-28 ${
+						className={`absolute top-1 left-1 h-14 w-32 rounded-full bg-(--sub-brand-primary) transition-transform duration-300 ease-in-out md:h-12 md:w-28 ${
 							isYearly ? 'translate-x-32 md:translate-x-28' : 'translate-x-0'
 						}`}
 					/>
@@ -62,7 +62,7 @@ export function SubscriptionPricingSection({
 						className={`relative z-10 h-14 w-32 rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:w-28 md:text-sm ${
 							isMonthly
 								? 'text-white'
-								: 'text-(--sub-c-25364e) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white'
+								: 'text-(--sub-text-navy-700) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white'
 						}`}
 					>
 						Monthly
@@ -74,18 +74,18 @@ export function SubscriptionPricingSection({
 						className={`relative z-10 flex h-14 w-32 flex-col items-center justify-center rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:w-28 md:text-sm ${
 							isYearly
 								? 'text-white'
-								: 'text-(--sub-c-25364e) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white'
+								: 'text-(--sub-text-navy-700) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white'
 						}`}
 					>
 						<span>Yearly</span>
 						<span
-							className={`text-[12px] leading-4 transition-colors duration-300 md:text-[10px] md:leading-3 ${isYearly ? 'text-(--sub-c-a5c3ed)' : 'text-(--sub-c-4b86db) dark:text-(--sub-c-a5c3ed)'}`}
+							className={`text-[12px] leading-4 transition-colors duration-300 md:text-[10px] md:leading-3 ${isYearly ? 'text-(--sub-brand-softest)' : 'text-(--sub-brand-secondary) dark:text-(--sub-brand-softest)'}`}
 						>
 							2 months free
 						</span>
 					</button>
 				</div>
-				<p className="text-[12px] leading-4 text-(--sub-c-617389) md:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:md:text-(--sub-c-c6c6c6)">
+				<p className="text-[12px] leading-4 text-(--sub-text-slate-500) md:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:md:text-(--sub-text-secondary-dark)">
 					Cancel Anytime, Crypto &amp; Card Payments
 				</p>
 			</div>

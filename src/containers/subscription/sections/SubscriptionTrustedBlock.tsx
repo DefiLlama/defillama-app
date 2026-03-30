@@ -2,10 +2,10 @@ export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: { src: st
 	return (
 		<div className="flex w-full flex-col items-center md:w-auto">
 			<div className="flex w-full flex-col items-center gap-2 text-center md:w-[448px] md:gap-4">
-				<h2 className="text-[20px] leading-7 font-semibold text-(--sub-c-111f34) md:text-(--sub-c-090b0c) dark:text-white dark:md:text-white">
+				<h2 className="text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 					Trusted by DeFi Natives and Global Regulators
 				</h2>
-				<p className="text-[12px] leading-4 text-(--sub-c-617389) md:text-[14px] md:leading-[21px] md:text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6) dark:md:text-(--sub-c-c6c6c6)">
+				<p className="text-[12px] leading-4 text-(--sub-text-slate-500) md:text-[14px] md:leading-[21px] md:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:md:text-(--sub-text-secondary-dark)">
 					From top crypto exchanges to global central banks
 				</p>
 			</div>
@@ -14,7 +14,7 @@ export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: { src: st
 				{trustLogos.map((logo) => (
 					<div
 						key={logo.src}
-						className="flex h-[56px] max-w-[280px] flex-[1_1_140px] items-center justify-center md:h-[68px]"
+						className="flex h-[56px] w-[calc(50%-8px)] max-w-[280px] flex-none items-center justify-center md:h-[68px] md:w-auto md:flex-[1_1_140px]"
 					>
 						<img
 							src={logo.src}
