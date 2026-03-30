@@ -937,7 +937,7 @@
       "icon": "headset"
     },
     {
-      "name": "API",
+      "name": "API & MCP",
       "route": "https://api-docs.defillama.com",
       "icon": "code"
     },
