@@ -65,7 +65,7 @@ export default function Account() {
 				description="Manage your DefiLlama account settings and authentication."
 				canonicalUrl="/account"
 			>
-				<div className="mx-auto w-full max-w-[573px] px-4 py-6">
+				<div className="mx-auto w-full max-w-[573px] py-6">
 					<ManageAccount />
 				</div>
 

@@ -25,7 +25,7 @@ const mobileEntryInputCls =
 const mobileEntryBtnCls =
 	'h-12 w-full rounded-[14px] bg-(--primary) text-base font-medium text-white disabled:bg-(--signin-btn-disabled-bg) disabled:text-(--signin-btn-disabled-text)'
 const signInDialogCls =
-	'dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:top-6 max-sm:right-4 max-sm:bottom-auto max-sm:left-4 max-sm:mb-auto max-sm:min-h-0 max-sm:max-h-[calc(100dvh-48px)] max-sm:w-auto max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
+	'dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:top-6 max-sm:right-4 max-sm:bottom-auto max-sm:left-4 max-sm:m-0 max-sm:min-h-0 max-sm:max-h-[calc(100dvh-48px)] max-sm:w-auto max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
 
 /* ── Modal entry point ─────────────────────────────────────────────── */
 
