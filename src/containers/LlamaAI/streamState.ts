@@ -3,6 +3,7 @@ import type { CsvExport } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type {
 	AlertProposedData,
 	ChartSet,
+	DashboardArtifact,
 	Message,
 	MessageMetadata,
 	SpawnAgentStatus,
@@ -43,6 +44,7 @@ export interface StreamState {
 	charts: ChartSet[]
 	csvExports: CsvExport[]
 	alerts: AlertProposedData[]
+	dashboards: DashboardArtifact[]
 	citations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
@@ -63,6 +65,7 @@ export interface StreamBuffer {
 	charts: ChartSet[]
 	csvExports: CsvExport[]
 	alerts: AlertProposedData[]
+	dashboards: DashboardArtifact[]
 	citations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
@@ -83,6 +86,7 @@ export type StreamAction =
 	| { type: 'APPEND_CHARTS'; value: ChartSet }
 	| { type: 'APPEND_CSV_EXPORTS'; value: CsvExport[] }
 	| { type: 'APPEND_ALERT'; value: AlertProposedData }
+	| { type: 'APPEND_DASHBOARD'; value: DashboardArtifact }
 	| { type: 'MERGE_CITATIONS'; value: string[] }
 	| { type: 'APPEND_TOOL_EXECUTION'; value: ToolExecution }
 	| { type: 'SET_MESSAGE_METADATA'; value: MessageMetadata }
@@ -105,6 +109,7 @@ const createEmptyRuntimeState = () => ({
 	charts: [] as ChartSet[],
 	csvExports: [] as CsvExport[],
 	alerts: [] as AlertProposedData[],
+	dashboards: [] as DashboardArtifact[],
 	citations: [] as string[],
 	toolExecutions: [] as ToolExecution[],
 	thinking: '',
@@ -135,6 +140,7 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	charts: [],
 	csvExports: [],
 	alerts: [],
+	dashboards: [],
 	citations: [],
 	toolExecutions: [],
 	thinking: '',
@@ -173,6 +179,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, csvExports: [...state.csvExports, ...action.value] }
 		case 'APPEND_ALERT':
 			return { ...state, alerts: [...state.alerts, action.value] }
+		case 'APPEND_DASHBOARD':
+			return { ...state, dashboards: [...state.dashboards, action.value] }
 		case 'MERGE_CITATIONS':
 			return { ...state, citations: [...new Set([...state.citations, ...action.value])] }
 		case 'APPEND_TOOL_EXECUTION':
@@ -248,6 +256,7 @@ export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string):
 		charts: buffer.charts.length > 0 ? buffer.charts : undefined,
 		csvExports: buffer.csvExports.length > 0 ? buffer.csvExports : undefined,
 		alerts: buffer.alerts.length > 0 ? buffer.alerts : undefined,
+		dashboards: buffer.dashboards.length > 0 ? buffer.dashboards : undefined,
 		citations: buffer.citations.length > 0 ? buffer.citations : undefined,
 		toolExecutions: buffer.toolExecutions.length > 0 ? buffer.toolExecutions : undefined,
 		thinking: buffer.thinking || undefined,

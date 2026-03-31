@@ -1,4 +1,4 @@
-import type { AlertProposedData, ChartConfiguration, Message } from '~/containers/LlamaAI/types'
+import type { AlertProposedData, ChartConfiguration, DashboardArtifact, Message } from '~/containers/LlamaAI/types'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 export type ChartArtifactRecord = {
@@ -26,7 +26,13 @@ export type AlertArtifactRecord = {
 	savedAlertIds?: string[]
 }
 
-export type ArtifactRecord = ChartArtifactRecord | CsvArtifactRecord | AlertArtifactRecord
+export type DashboardArtifactRecord = {
+	type: 'dashboard'
+	id: string
+	dashboard: DashboardArtifact
+}
+
+export type ArtifactRecord = ChartArtifactRecord | CsvArtifactRecord | AlertArtifactRecord | DashboardArtifactRecord
 
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
@@ -36,6 +42,7 @@ export type MessageRenderBlock =
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
 	| { type: 'alert'; key: string; artifactId: string }
+	| { type: 'dashboard'; key: string; artifactId: string }
 	| { type: 'action-group'; key: string; actions: Array<{ label: string; message: string }> }
 
 type ParsedRenderModel = {
@@ -78,6 +85,12 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 			messageId: message.id,
 			savedAlertIds: message.savedAlertIds
 		})
+	}
+
+	if (message.dashboards) {
+		for (const dashboard of message.dashboards) {
+			artifacts.set(dashboard.id, { type: 'dashboard', id: dashboard.id, dashboard })
+		}
 	}
 
 	return artifacts
@@ -171,6 +184,17 @@ export function parseMessageToRenderModel(
 				key: `alert-${part.alertId}-${blocks.length}`,
 				artifactId: part.alertId
 			})
+			continue
+		}
+
+		if (part.type === 'dashboard') {
+			if (usedArtifactIds.has(part.dashboardId)) continue
+			usedArtifactIds.add(part.dashboardId)
+			blocks.push({
+				type: 'dashboard',
+				key: `dashboard-${part.dashboardId}-${blocks.length}`,
+				artifactId: part.dashboardId
+			})
 		}
 	}
 
@@ -205,6 +229,10 @@ export function parseMessageToRenderModel(
 			}
 			if (artifact.type === 'csv') {
 				blocks.push({ type: 'csv', key: `csv-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			if (artifact.type === 'dashboard') {
+				blocks.push({ type: 'dashboard', key: `dashboard-${artifactId}-fallback`, artifactId })
 				continue
 			}
 			blocks.push({ type: 'alert', key: `alert-${artifactId}-fallback`, artifactId })
