@@ -10,7 +10,10 @@ export default function Subscribe() {
 
 	return (
 		<WalletProvider>
-			<SubscribeLayout description="Unlock LlamaAI, advanced DeFi analytics, custom dashboards, CSV downloads, and pro-level data with DefiLlama Pro.">
+			<SubscribeLayout
+				description="Unlock LlamaAI, advanced DeFi analytics, custom dashboards, CSV downloads, and pro-level data with DefiLlama Pro."
+				canonicalUrl="/subscription"
+			>
 				<SubscribeHome returnUrl={returnUrl} />
 			</SubscribeLayout>
 		</WalletProvider>

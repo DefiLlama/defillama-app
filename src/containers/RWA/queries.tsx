@@ -929,7 +929,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 
 					// 2) Symbol + project match (substring both directions to catch wrapped/staked variants)
 					if (hasProjectAndTicker && projectSlugs.size > 0 && pool.symbol && projectSlugs.has(pool.project)) {
-						const poolTokens = pool.symbol.toUpperCase().split(/[-+\/]/)
+						const poolTokens = pool.symbol.toUpperCase().split(/[-+/]/)
 						if (
 							poolTokens.some((t: string) => {
 								const trimmed = t.trim()
@@ -944,7 +944,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 
 					// 3) Cross-protocol exact ticker match
 					if (hasTicker && pool.symbol) {
-						const poolTokens = pool.symbol.toUpperCase().split(/[-+\/]/)
+						const poolTokens = pool.symbol.toUpperCase().split(/[-+/]/)
 						if (poolTokens.some((t: string) => t.trim() === ticker)) {
 							matchedPoolIds.add(pool.pool)
 							matchedPools.push({ ...pool, _matchStrategy: 3 })
