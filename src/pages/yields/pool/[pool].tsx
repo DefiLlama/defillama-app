@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useBlockExplorers } from '~/api/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CopyHelper } from '~/components/Copy'
@@ -30,6 +30,7 @@ import {
 	type HolderFlowSummary,
 	type HolderWithChange
 } from '~/containers/Yields/queries/holderUtils'
+import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
@@ -170,34 +171,128 @@ function HolderFlowSummaryBar({ summary }: { summary: HolderFlowSummary }) {
 	)
 }
 
+function ConcentrationRiskPanel({
+	holders,
+	holderCount,
+	holderChange7d,
+	holderChange30d,
+	avgPositionUsd,
+	tvlUsd
+}: {
+	holders: Top10Holder[] | null
+	holderCount: number | null
+	holderChange7d: number | null
+	holderChange30d: number | null
+	avgPositionUsd: number | null
+	tvlUsd: number | null
+}) {
+	if (!holders?.length) return null
+
+	const top1 = holders[0]?.balancePct ?? 0
+	const top5 = holders.slice(0, 5).reduce((s, h) => s + h.balancePct, 0)
+	const top10 = holders.reduce((s, h) => s + h.balancePct, 0)
+
+	const exposureTiers = [
+		{ label: 'Top 1', pct: top1 },
+		{ label: 'Top 5', pct: top5 },
+		{ label: 'Top 10', pct: top10 }
+	]
+
+	return (
+		<div className="flex flex-col gap-4 p-3">
+			<h4 className="text-sm font-semibold">Holder Insights</h4>
+
+			{/* Dollar Exposure */}
+			{tvlUsd != null ? (
+				<div className="flex flex-col gap-2">
+					<span className="text-xs text-(--text-disabled)">TVL Exposure</span>
+					{exposureTiers.map((tier) => (
+						<div key={tier.label} className="flex items-center justify-between text-xs">
+							<span className="text-(--text-disabled)">{tier.label}</span>
+							<span className="tabular-nums font-medium">{formattedNum((tier.pct / 100) * tvlUsd, true)}</span>
+						</div>
+					))}
+				</div>
+			) : null}
+
+			{/* Holder Trend */}
+			{holderCount != null ? (
+				<div className="flex flex-col gap-2 rounded-md bg-(--cards-border)/30 p-2.5">
+					<div className="flex items-center justify-between">
+						<span className="text-xs text-(--text-disabled)">Total Holders</span>
+						<span className="text-sm tabular-nums font-semibold">{holderCount.toLocaleString()}</span>
+					</div>
+					{holderChange7d != null ? (
+						<div className="flex items-center justify-between text-xs">
+							<span className="text-(--text-disabled)">7d change</span>
+							<span className={`tabular-nums font-medium ${holderChange7d > 0 ? 'text-(--success)' : holderChange7d < 0 ? 'text-(--error)' : ''}`}>
+								{holderChange7d > 0 ? '+' : ''}{holderChange7d.toLocaleString()}
+							</span>
+						</div>
+					) : null}
+					{holderChange30d != null ? (
+						<div className="flex items-center justify-between text-xs">
+							<span className="text-(--text-disabled)">30d change</span>
+							<span className={`tabular-nums font-medium ${holderChange30d > 0 ? 'text-(--success)' : holderChange30d < 0 ? 'text-(--error)' : ''}`}>
+								{holderChange30d > 0 ? '+' : ''}{holderChange30d.toLocaleString()}
+							</span>
+						</div>
+					) : null}
+				</div>
+			) : null}
+
+			{/* Avg Position */}
+			{avgPositionUsd != null ? (
+				<div className="flex flex-col gap-1 rounded-md bg-(--cards-border)/30 p-2.5">
+					<span className="text-[11px] text-(--text-disabled)">Avg Position Size</span>
+					<span className="text-lg font-semibold tabular-nums">{formattedNum(avgPositionUsd, true)}</span>
+				</div>
+			) : null}
+		</div>
+	)
+}
+
 function TopHoldersTable({
 	holders,
+	holders30d,
 	summary,
 	chain,
 	blockExplorersData,
-	colors
+	colors,
+	hoveredIndex
 }: {
 	holders: HolderWithChange[]
+	holders30d: HolderWithChange[]
 	summary: HolderFlowSummary
 	chain?: string
 	blockExplorersData?: any
 	colors: string[]
+	hoveredIndex: number | null
 }) {
+	const changes30dMap = useMemo(() => {
+		const map = new Map<string, HolderWithChange>()
+		for (const h of holders30d) {
+			map.set(h.address.toLowerCase(), h)
+		}
+		return map
+	}, [holders30d])
 	if (!holders.length) return null
 
 	return (
 		<div>
 			<table className="w-full text-sm">
+				<colgroup>
+					<col style={{ width: '40%' }} />
+					<col style={{ width: '30%' }} />
+					<col style={{ width: '15%' }} />
+					<col style={{ width: '15%' }} />
+				</colgroup>
 				<thead>
 					<tr className="border-b border-(--cards-border) text-left text-xs text-(--text-disabled)">
 						<th className="py-2 pl-2 font-medium">Holder</th>
 						<th className="py-2 text-right font-medium">Share</th>
-						<th className="py-2 pr-2 text-right font-medium">
-							<div className="flex items-center justify-end gap-2">
-								<HolderFlowSummaryBar summary={summary} />
-								<span>7d</span>
-							</div>
-						</th>
+						<th className="py-2 text-right font-medium">7d</th>
+						<th className="py-2 pr-2 text-right font-medium">30d</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -217,7 +312,13 @@ function TopHoldersTable({
 							<tr key={h.address} className="border-b border-(--cards-border) last:border-b-0">
 								<td className="py-1.5 pl-2">
 									<div className="flex items-center gap-2">
-										<span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: barColor }} />
+										<span
+											className="h-2.5 w-2.5 shrink-0 rounded-full transition-transform duration-200"
+											style={{
+												backgroundColor: barColor,
+												transform: hoveredIndex === i ? 'scale(1.5)' : 'scale(1)'
+											}}
+										/>
 										<span className="w-4 shrink-0 tabular-nums text-(--text-disabled)">{i + 1}</span>
 										{explorer?.url ? (
 											<a
@@ -234,7 +335,7 @@ function TopHoldersTable({
 										<CopyHelper toCopy={h.address} />
 									</div>
 								</td>
-								<td className="w-[140px] py-1.5 text-right">
+								<td className="py-1.5 text-right">
 									<div className="flex items-center justify-end gap-2">
 										<span className="tabular-nums">{h.balancePct.toFixed(2)}%</span>
 										<div className="h-1.5 w-16 overflow-hidden rounded-full bg-(--cards-border)">
@@ -248,14 +349,27 @@ function TopHoldersTable({
 										</div>
 									</div>
 								</td>
-								<td className="py-1.5 pr-2 text-right">
+								<td className="py-1.5 text-right">
 									<HolderStatusBadge status={h.status} change={h.balancePctChange} />
+								</td>
+								<td className="py-1.5 pr-2 text-right">
+									{(() => {
+										const h30 = changes30dMap.get(h.address.toLowerCase())
+										return h30 ? (
+											<HolderStatusBadge status={h30.status} change={h30.balancePctChange} />
+										) : (
+											<span className="text-xs text-(--text-disabled)">{'\u2014'}</span>
+										)
+									})()}
 								</td>
 							</tr>
 						)
 					})}
 				</tbody>
 			</table>
+			<div className="flex justify-end border-t border-(--cards-border) px-2 py-1.5">
+				<HolderFlowSummaryBar summary={summary} />
+			</div>
 		</div>
 	)
 }
@@ -287,6 +401,28 @@ const PageView = (_props) => {
 	const { chartInstance: poolLiquidityChartInstance, handleChartReady: handlePoolLiquidityReady } =
 		useGetChartInstance()
 
+	const [holderDonutHoveredIndex, setHolderDonutHoveredIndex] = useState<number | null>(null)
+	const [holderDonutInstance, setHolderDonutInstance] = useState<import('echarts/core').ECharts | null>(null)
+
+	useEffect(() => {
+		if (!holderDonutInstance) return
+
+		const onMouseover = (params: any) => {
+			setHolderDonutHoveredIndex(params.dataIndex ?? null)
+		}
+		const onMouseout = () => {
+			setHolderDonutHoveredIndex(null)
+		}
+
+		holderDonutInstance.on('mouseover', 'series.pie', onMouseover)
+		holderDonutInstance.on('mouseout', 'series.pie', onMouseout)
+
+		return () => {
+			holderDonutInstance.off('mouseover', onMouseover)
+			holderDonutInstance.off('mouseout', onMouseout)
+		}
+	}, [holderDonutInstance])
+
 	const poolId = typeof query.pool === 'string' ? query.pool : null
 
 	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(poolId)
@@ -302,6 +438,9 @@ const PageView = (_props) => {
 	const { data: blockExplorersData } = useBlockExplorers()
 	const holderChanges = useMemo(() => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 7)
+	}, [holderStats?.top10Holders, holderHistory])
+	const holderChanges30d = useMemo(() => {
+		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 30)
 	}, [holderStats?.top10Holders, holderHistory])
 	const poolConfigId = poolData.pool
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
@@ -761,7 +900,7 @@ const PageView = (_props) => {
 			) : null}
 
 			{deferredHolderDonutData?.length || holderChanges.holders.length ? (
-				<div className="grid grid-cols-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:grid-cols-2">
+				<div className="grid grid-cols-1 rounded-md border border-(--cards-border) bg-(--cards-bg) lg:grid-cols-2 xl:grid-cols-[1fr_2fr_1fr]">
 					{deferredHolderDonutData?.length ? (
 						<div className="relative flex flex-col">
 							<Suspense fallback={<div className="min-h-[398px]" />}>
@@ -778,18 +917,33 @@ const PageView = (_props) => {
 										return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${val.toFixed(2)}%</b>`
 									}}
 									exportButtons="auto"
+									onReady={setHolderDonutInstance}
 								/>
 							</Suspense>
 						</div>
 					) : null}
 					{holderChanges.holders.length ? (
-						<div className="border-t border-(--cards-border) p-2 xl:border-t-0 xl:border-l">
+						<div className="border-t border-(--cards-border) p-2 lg:border-t-0 lg:border-l">
 							<TopHoldersTable
 								holders={holderChanges.holders}
+								holders30d={holderChanges30d.holders}
 								summary={holderChanges.summary}
 								chain={poolData.chain}
 								blockExplorersData={blockExplorersData}
 								colors={HOLDER_COLORS}
+								hoveredIndex={holderDonutHoveredIndex}
+							/>
+						</div>
+					) : null}
+					{holderStats?.top10Holders?.length ? (
+						<div className="border-t border-(--cards-border) lg:col-span-full xl:col-span-1 xl:border-t-0 xl:border-l">
+							<ConcentrationRiskPanel
+								holders={holderStats.top10Holders}
+								holderCount={holderStats.holderCount}
+								holderChange7d={holderStats.holderChange7d}
+								holderChange30d={holderStats.holderChange30d}
+								avgPositionUsd={holderStats.avgPositionUsd}
+								tvlUsd={poolData.tvlUsd ?? null}
 							/>
 						</div>
 					) : null}
