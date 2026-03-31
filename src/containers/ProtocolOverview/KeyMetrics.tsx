@@ -854,7 +854,7 @@ function BuyOnLlamaswap({
 		<Ariakit.HovercardProvider showTimeout={0}>
 			<Ariakit.HovercardAnchor render={<button className={btnClass} />}>
 				<span>Buy</span>
-				<Ariakit.MenuButtonArrow />
+				<Icon name="chevron-down" className="h-3 w-3" />
 			</Ariakit.HovercardAnchor>
 			<Ariakit.Hovercard
 				unmountOnHide
