@@ -50,3 +50,11 @@ export async function fetchYieldsLendBorrowViaProxy(poolConfigId: string, authTo
 export async function fetchTokenUsageViaProxy(symbol: string, authToken: string): Promise<any> {
 	return proxyFetch<any>('tokenUsage', { symbol }, authToken)
 }
+
+export async function fetchStablecoinsListViaProxy(authToken: string): Promise<any> {
+	return proxyFetch<any>('stablecoinsList', {}, authToken)
+}
+
+export async function fetchStablecoinAssetViaProxy(slug: string, authToken: string): Promise<any> {
+	return proxyFetch<any>('stablecoinAsset', { slug }, authToken)
+}

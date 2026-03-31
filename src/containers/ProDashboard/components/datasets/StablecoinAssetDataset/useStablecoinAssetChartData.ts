@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useContext, useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/utils'
+import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import {
+	fetchStablecoinAssetViaProxy,
+	fetchStablecoinsListViaProxy
+} from '~/containers/ProDashboard/services/fetchViaProxy'
 import {
 	fetchStablecoinAssetApi,
 	fetchStablecoinAssetsApi,
@@ -23,6 +28,7 @@ interface UseStablecoinAssetChartDataResult {
 }
 
 export function useStablecoinAssetChartData(stablecoinSlug: string): UseStablecoinAssetChartDataResult {
+	const authToken = useContext(ProxyAuthTokenContext)
 	const {
 		data: rawData,
 		isLoading,
@@ -32,16 +38,17 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 		queryFn: async () => {
 			if (!stablecoinSlug) return null
 
-			const peggedNameToPeggedIDMapping = await fetchStablecoinPeggedConfigApi()
-			const peggedID = peggedNameToPeggedIDMapping[stablecoinSlug]
-			if (!peggedID) {
-				return null
+			let res: any
+			if (authToken) {
+				res = await fetchStablecoinAssetViaProxy(stablecoinSlug, authToken)
+			} else {
+				const peggedNameToPeggedIDMapping = await fetchStablecoinPeggedConfigApi()
+				const peggedID = peggedNameToPeggedIDMapping[stablecoinSlug]
+				if (!peggedID) return null
+				res = await fetchStablecoinAssetApi(peggedID)
 			}
 
-			const res = await fetchStablecoinAssetApi(peggedID)
-			if (!res) {
-				return null
-			}
+			if (!res) return null
 
 			const chainsUnique: string[] = Object.keys(res.chainBalances || {})
 
@@ -173,10 +180,11 @@ export interface StablecoinAssetInfo {
 }
 
 export function useStablecoinAssetsList() {
+	const authToken = useContext(ProxyAuthTokenContext)
 	return useQuery({
 		queryKey: ['pro-dashboard', 'stablecoin-assets-list'],
 		queryFn: async () => {
-			const data = await fetchStablecoinAssetsApi()
+			const data = authToken ? await fetchStablecoinsListViaProxy(authToken) : await fetchStablecoinAssetsApi()
 			const peggedAssets = data?.peggedAssets || []
 			return peggedAssets
 				.map((asset: any) => {

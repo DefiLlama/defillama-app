@@ -126,6 +126,22 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 			return withTimeout(fetchProtocolsByToken(String(symbol)), FETCH_TIMEOUT)
 		}
 
+		case 'stablecoinsList': {
+			return withTimeout(fetchStablecoinAssetsApi(), FETCH_TIMEOUT)
+		}
+
+		case 'stablecoinAsset': {
+			const { slug } = params
+			if (!slug) throw new Error('Missing slug param')
+			const { fetchStablecoinPeggedConfigApi, fetchStablecoinAssetApi } = await import(
+				'~/containers/Stablecoins/api'
+			)
+			const peggedNameToPeggedIDMapping = await withTimeout(fetchStablecoinPeggedConfigApi(), FETCH_TIMEOUT)
+			const peggedID = peggedNameToPeggedIDMapping[slug]
+			if (!peggedID) return null
+			return withTimeout(fetchStablecoinAssetApi(peggedID), FETCH_TIMEOUT)
+		}
+
 		default:
 			throw new Error(`Unknown fetch type: ${type}`)
 	}
