@@ -44,9 +44,16 @@ export default function SuperLuminalProtocolPage({
 		return null
 	}
 
+	const project = SUPERLUMINAL_PROJECTS.find((p) => p.id === protocol)
+	const protocolName = project?.name ?? protocol
+
 	return (
 		<>
-			<SEO title="Dashboard" description="Verified metrics dashboard powered by DefiLlama" canonicalUrl={null} />
+			<SEO
+				title={`DefiLlama x ${protocolName}`}
+				description={`Verified metrics for ${protocolName} powered by DefiLlama`}
+				canonicalUrl={null}
+			/>
 			<link rel="preload" href="/assets/defillama.webp" as="image" />
 			<link rel="preload" href="/assets/defillama-dark.webp" as="image" />
 			<Suspense

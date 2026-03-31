@@ -9,7 +9,7 @@ export default function SuperLuminalPage() {
 
 	return (
 		<>
-			<SEO title="Dashboard" description="Verified metrics dashboard powered by DefiLlama" canonicalUrl={null} />
+			<SEO title="DefiLlama" description="Verified metrics powered by DefiLlama" canonicalUrl={null} />
 			<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col items-center justify-center bg-(--app-bg)">
 				<Logo />
 				<span className="mt-4 rounded-full border border-(--cards-border) bg-(--cards-bg) px-5 py-2.5 text-sm font-semibold tracking-wide text-(--text-secondary) shadow-lg">
