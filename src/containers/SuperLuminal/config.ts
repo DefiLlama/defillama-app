@@ -1,6 +1,6 @@
 export const SUPERLUMINAL_PROJECTS = [
 	{ id: 'etherfi', name: 'Ether.fi', dashboardId: '73x90j3b28pfhgx', customOnly: false },
-	{ id: 'spark', name: 'Spark', dashboardId: 'roxh2oxb1b7fhjz', customOnly: false },
+	{ id: 'spark', name: 'Spark', dashboardId: '9vn8xp43tdzo6gt', customOnly: false },
 	{ id: 'maple', name: 'Maple', dashboardId: 'l5accmh9zooc32q', customOnly: false },
 	{ id: 'berachain', name: 'Berachain', dashboardId: 't62luatlj9thwx2', customOnly: true },
 	{ id: 'aave', name: 'Aave', dashboardId: 'g3rswlkr9khxa03', customOnly: false },
