@@ -26,7 +26,7 @@ import type {
 	IResponseCGMarketsAPI,
 	LlamaConfigResponse,
 	PriceObject,
-	ProtocolLiquidityToken,
+	ProtocolLiquidityTokensResponse,
 	ProtocolTokenLiquidityChart,
 	SearchQuery,
 	TwitterPostsResponse,
@@ -360,8 +360,8 @@ export async function fetchTwitterPostsByUsername(username: string): Promise<Twi
 }
 
 /** Fetch the list of all protocols that have liquidity data available. */
-export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
-	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
+export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
 }
 
 /** Fetch historical liquidity chart for a specific token. */

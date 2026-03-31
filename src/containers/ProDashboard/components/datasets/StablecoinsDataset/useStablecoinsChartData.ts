@@ -2,7 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useContext, useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/utils'
 import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
-import { fetchStablecoinsListViaProxy, fetchStablecoinsViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
+import {
+	fetchStablecoinsListViaProxy,
+	fetchStablecoinsViaProxy
+} from '~/containers/ProDashboard/services/fetchViaProxy'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,

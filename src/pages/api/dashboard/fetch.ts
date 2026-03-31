@@ -133,9 +133,7 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 		case 'stablecoinAsset': {
 			const { slug } = params
 			if (!slug) throw new Error('Missing slug param')
-			const { fetchStablecoinPeggedConfigApi, fetchStablecoinAssetApi } = await import(
-				'~/containers/Stablecoins/api'
-			)
+			const { fetchStablecoinPeggedConfigApi, fetchStablecoinAssetApi } = await import('~/containers/Stablecoins/api')
 			const peggedNameToPeggedIDMapping = await withTimeout(fetchStablecoinPeggedConfigApi(), FETCH_TIMEOUT)
 			const peggedID = peggedNameToPeggedIDMapping[slug]
 			if (!peggedID) return null
