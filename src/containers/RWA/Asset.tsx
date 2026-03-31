@@ -774,7 +774,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										? `DeFi Yield Opportunities (${displayPools.length} of ${yieldPoolsTotal})`
 										: `DeFi Yield Opportunities (${displayPools.length})`}
 								</h2>
-								{hasMorePools ? (
+								{hasMorePools && asset.ticker ? (
 									<a
 										href={`/yields?token=${encodeURIComponent(asset.ticker)}&attribute=no_il&attribute=single_exposure`}
 										className="text-xs font-medium text-(--link-text) hover:underline"
