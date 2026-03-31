@@ -15,7 +15,7 @@ export interface HolderFlowSummary {
 	unknown: number
 }
 
-const STEADY_THRESHOLD = 0.5 // percentage points
+const STEADY_THRESHOLD = 0.05 // percentage points
 
 export function computeHolderChanges(
 	currentHolders: Top10Holder[] | null,
