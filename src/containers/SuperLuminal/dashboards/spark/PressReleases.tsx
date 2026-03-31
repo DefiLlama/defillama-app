@@ -131,7 +131,7 @@ export default function PressReleases() {
 	const [loading, setLoading] = useState(true)
 
 	useEffect(() => {
-		fetch('https://public.api.paragraph.com/api/v1/publications/b00mE4GGi4yHkul5EqRd/posts?limit=50')
+		fetch('/api/spark/reports')
 			.then((res) => res.json())
 			.then((apiData) => {
 				const posts = apiData.items || []
