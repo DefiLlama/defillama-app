@@ -658,9 +658,9 @@ export const getProtocolOverviewPageData = async ({
 	let tokenGeckoId = protocolData.gecko_id
 	if (!tokenGeckoId && protocolData.parentProtocol) {
 		const sibling = liteProtocolsData.protocols.find(
-			(p) => p.parentProtocol === protocolData.parentProtocol && p.gecko_id
+			(p) => p.parentProtocol === protocolData.parentProtocol && p.geckoId
 		)
-		if (sibling) tokenGeckoId = sibling.gecko_id
+		if (sibling) tokenGeckoId = sibling.geckoId
 	}
 	let llamaswapChains = null
 	if (tokenGeckoId && !isCEX) {
