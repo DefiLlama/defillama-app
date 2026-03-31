@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
@@ -7,6 +8,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData } from '~/containers/Yields/queries/client'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
 import type { IRWAAssetData } from './api.types'
@@ -200,6 +202,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				: null
 
 	const { data: yieldChartRaw, isLoading: isLoadingYieldChart } = useYieldChartData(asset.nativeYieldPoolId)
+	const { chartInstance: nativeYieldChartInstance, handleChartReady: onNativeYieldChartReady } = useGetChartInstance()
+
+	const nativeYieldExportFilename = `${asset.ticker ?? asset.assetName ?? 'asset'}-native-yield`
+	const nativeYieldExportTitle = `${asset.ticker ?? asset.assetName ?? 'Asset'} Native Yield`
 
 	const nativeYieldDataset = useMemo(() => {
 		if (!yieldChartRaw?.data) return null
@@ -724,8 +730,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					{asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset) ? (
 						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
-							<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 pt-4 pb-2">
-								<div className="flex flex-col">
+							<div className="flex flex-wrap items-start justify-end gap-2 p-3 pb-0">
+								<p className="mr-auto flex flex-col">
 									<span className="text-xs font-medium tracking-wide text-(--text-disabled) uppercase">
 										Native Yield
 									</span>
@@ -734,35 +740,35 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 											{asset.nativeYieldCurrent.toFixed(2)}%
 										</span>
 									) : null}
-								</div>
-								{asset.issuer ? (
-									<span className="text-xs text-(--text-disabled)">Historical APY from {asset.issuer}</span>
-								) : null}
+								</p>
+								<ChartExportButtons
+									chartInstance={nativeYieldChartInstance}
+									filename={nativeYieldExportFilename}
+									title={nativeYieldExportTitle}
+								/>
 							</div>
-							<div className="flex-1">
-								{isLoadingYieldChart ? (
-									<p className="flex min-h-[360px] items-center justify-center gap-1">
-										Loading
-										<LoadingDots />
-									</p>
-								) : (
-									<Suspense fallback={<div className="min-h-[360px]" />}>
-										<MultiSeriesChart2
-											charts={NATIVE_YIELD_CHARTS}
-											dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
-											valueSymbol="%"
-											height={380}
-											hideDefaultLegend={false}
-											exportButtons={{
-												png: true,
-												csv: true,
-												filename: `${asset.ticker ?? asset.assetName ?? 'asset'}-native-yield`,
-												pngTitle: `${asset.ticker ?? asset.assetName ?? 'Asset'} Native Yield`
-											}}
-										/>
-									</Suspense>
-								)}
-							</div>
+
+							{isLoadingYieldChart ? (
+								<p className="flex min-h-[360px] flex-1 items-center justify-center gap-1">
+									Loading
+									<LoadingDots />
+								</p>
+							) : (
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										charts={NATIVE_YIELD_CHARTS}
+										dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
+										valueSymbol="%"
+										hideDefaultLegend={false}
+										exportButtons="hidden"
+										onReady={onNativeYieldChartReady}
+									/>
+								</Suspense>
+							)}
+
+							{asset.issuer ? (
+								<p className="p-3 pt-0 text-xs text-(--text-disabled)">Historical APY from {asset.issuer}</p>
+							) : null}
 						</div>
 					) : null}
 
