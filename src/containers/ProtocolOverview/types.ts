@@ -1,4 +1,5 @@
 import type * as echarts from 'echarts/core'
+import type { LlamaswapChain } from '~/api/types'
 import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
@@ -195,7 +196,7 @@ export interface IProtocolOverviewPageData {
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]
 	treasuryMethodologyUrl?: string | null
-	llamaswapChains?: Array<{ chain: string; chainId: number; address: string; priceImpact: number }> | null
+	llamaswapChains?: LlamaswapChain[] | null
 }
 
 interface ICredit {

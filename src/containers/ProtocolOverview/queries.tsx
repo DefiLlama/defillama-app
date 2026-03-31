@@ -1,4 +1,9 @@
-import { fetchBlockExplorers, fetchCgChartByGeckoId, fetchLiquidityTokensDataset } from '~/api'
+import {
+	fetchBlockExplorers,
+	fetchCgChartByGeckoId,
+	fetchLiquidityTokensDataset,
+	fetchProtocolLlamaswapChains
+} from '~/api'
 import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -665,14 +670,7 @@ export const getProtocolOverviewPageData = async ({
 	}
 	let llamaswapChains = null
 	if (tokenGeckoId && !isCEX) {
-		try {
-			const liqData = await fetch(`https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity/${tokenGeckoId}`).then(
-				(r) => (r.ok ? r.json() : null)
-			)
-			if (liqData?.chains?.length) {
-				llamaswapChains = liqData.chains
-			}
-		} catch {}
+		llamaswapChains = await fetchProtocolLlamaswapChains(tokenGeckoId)
 	}
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {

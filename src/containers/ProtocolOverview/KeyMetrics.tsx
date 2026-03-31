@@ -1,8 +1,7 @@
-import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { useMemo, useRef, useState } from 'react'
+import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { Icon } from '~/components/Icon'
-import { TokenLogo } from '~/components/TokenLogo'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
@@ -718,7 +717,12 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				props.tokenCGData.price.ath != null || props.tokenCGData.price.atl != null ? (
 					<MetricSection
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						value={<span className="flex items-center gap-2"><BuyOnLlamaswap chains={props.llamaswapChains} />{props.formatPrice(props.tokenCGData.price.current)}</span>}
+						value={
+							<span className="flex items-center gap-2">
+								<BuyOnLlamaswap chains={props.llamaswapChains} />
+								{props.formatPrice(props.tokenCGData.price.current)}
+							</span>
+						}
 					>
 						<SubMetricRow label="All Time High" value={props.formatPrice(props.tokenCGData.price.ath)} />
 						<SubMetricRow label="All Time Low" value={props.formatPrice(props.tokenCGData.price.atl)} />
@@ -726,7 +730,12 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				) : (
 					<MetricRow
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						value={<span className="flex items-center gap-2"><BuyOnLlamaswap chains={props.llamaswapChains} />{props.formatPrice(props.tokenCGData.price.current)}</span>}
+						value={
+							<span className="flex items-center gap-2">
+								<BuyOnLlamaswap chains={props.llamaswapChains} />
+								{props.formatPrice(props.tokenCGData.price.current)}
+							</span>
+						}
 					/>
 				)
 			) : null}
@@ -821,73 +830,5 @@ const Raises = (props: IKeyMetricsProps) => {
 				</p>
 			))}
 		</MetricSection>
-	)
-}
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-
-function buildSwapUrl(chain: { chain: string; address: string }) {
-	return `https://swap.defillama.com/?chain=${chain.chain}&from=${ZERO_ADDRESS}&to=${chain.address}&tab=swap&ref=defillama`
-}
-
-function BuyOnLlamaswap({
-	chains
-}: {
-	chains: Array<{ chain: string; chainId: number; address: string; priceImpact: number }>
-}) {
-	if (!chains?.length) return null
-	const sorted = [...chains].sort((a, b) => a.priceImpact - b.priceImpact)
-
-	if (sorted.length === 1) {
-		return (
-			<a
-				target="_blank"
-				rel="noreferrer noopener"
-				href={buildSwapUrl(sorted[0])}
-				className="flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20"
-			>
-				<span>Buy</span>
-				<Icon name="external-link" className="h-2.5 w-2.5" />
-			</a>
-		)
-	}
-
-	return (
-		<Ariakit.HovercardProvider showTimeout={0}>
-			<Ariakit.HovercardAnchor
-				render={<button />}
-				className="flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20"
-			>
-				<span>Buy</span>
-				<Icon name="chevron-down" className="h-2.5 w-2.5" />
-			</Ariakit.HovercardAnchor>
-			<Ariakit.Hovercard
-				unmountOnHide
-				gutter={6}
-				className="z-10 flex min-w-[180px] flex-col overflow-auto rounded-lg border border-[hsl(204,20%,88%)] bg-(--bg-main) shadow-lg dark:border-[hsl(204,3%,32%)]"
-				portal
-			>
-				<span className="px-3 pt-2 pb-1 text-[10px] font-medium uppercase tracking-wide text-(--text-form)">
-					Select chain
-				</span>
-				{sorted.map((chain, i) => (
-					<a
-						key={chain.chain}
-						href={buildSwapUrl(chain)}
-						target="_blank"
-						rel="noreferrer noopener"
-						className="flex items-center gap-2.5 px-3 py-2 text-xs hover:bg-(--primary-hover) last-of-type:rounded-b-lg"
-					>
-						<TokenLogo name={chain.chain} kind="chain" size={18} />
-						<span className="capitalize">{chain.chain}</span>
-						{i === 0 ? (
-							<span className="ml-auto rounded-full bg-(--primary)/10 px-1.5 py-0.5 text-[10px] text-(--primary)">
-								Best
-							</span>
-						) : null}
-					</a>
-				))}
-			</Ariakit.Hovercard>
-		</Ariakit.HovercardProvider>
 	)
 }
