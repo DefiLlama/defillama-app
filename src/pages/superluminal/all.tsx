@@ -35,7 +35,7 @@ export default function SuperLuminalAllPage({
 
 	return (
 		<>
-			<SEO title="Dashboard" description="Verified metrics dashboard powered by DefiLlama" canonicalUrl={null} />
+			<SEO title="DefiLlama" description="Verified metrics powered by DefiLlama" canonicalUrl={null} />
 			<link rel="preload" href="/assets/defillama.webp" as="image" />
 			<link rel="preload" href="/assets/defillama-dark.webp" as="image" />
 			<Suspense
