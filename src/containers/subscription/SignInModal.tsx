@@ -6,11 +6,10 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscription/auth'
-import { useMedia } from '~/hooks/useMedia'
 import { WalletProvider } from '~/layout/WalletProvider'
 import type { FormSubmitEvent } from '~/types/forms'
 
-type Step = 'start' | 'signin' | 'signup' | 'forgot'
+type Step = 'signin' | 'signup' | 'forgot'
 
 /* ── Shared styles ─────────────────────────────────────────────────── */
 
@@ -20,12 +19,8 @@ const primaryBtnCls =
 	'h-10 w-full rounded-lg bg-(--primary) text-sm font-medium text-white disabled:bg-(--signin-btn-disabled-bg) disabled:text-(--signin-btn-disabled-text)'
 const outlineBtnCls =
 	'flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-(--form-control-border) text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--signin-outline-hover-bg)'
-const mobileEntryInputCls =
-	'h-12 w-full rounded-[14px] border border-(--form-control-border) bg-(--signin-input-bg) px-4 text-base text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-none'
-const mobileEntryBtnCls =
-	'h-12 w-full rounded-[14px] bg-(--primary) text-base font-medium text-white disabled:bg-(--signin-btn-disabled-bg) disabled:text-(--signin-btn-disabled-text)'
 const signInDialogCls =
-	'dialog flex max-h-[90dvh] w-full max-w-[331px] flex-col overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:top-6 max-sm:right-4 max-sm:bottom-auto max-sm:left-4 max-sm:m-0 max-sm:min-h-0 max-sm:max-h-[calc(100dvh-48px)] max-sm:w-auto max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
+	'dialog top-1/2 right-auto bottom-auto left-1/2 m-0 max-h-[90dvh] min-h-0 w-[calc(100vw-32px)] max-w-[331px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-(--signin-bg) px-5 pt-6 pb-5 shadow-2xl max-sm:max-h-[calc(100dvh-48px)] max-sm:rounded-[20px] max-sm:px-4 max-sm:pt-5 max-sm:pb-6'
 
 /* ── Modal entry point ─────────────────────────────────────────────── */
 
@@ -73,10 +68,7 @@ export function SignInModal({
 /* ── Multi-step flow ───────────────────────────────────────────────── */
 
 export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }) {
-	const isMobile = useMedia('(max-width: 639px)')
-	const [step, setStep] = useState<Step>(() =>
-		typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 'start' : 'signin'
-	)
+	const [step, setStep] = useState<Step>('signin')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
@@ -170,13 +162,11 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 		void signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())
 	}
 
-	const isMobileStart = isMobile && step === 'start'
-
 	/* ── Header ── */
 	const header = (
-		<div className={`flex items-center justify-between ${isMobileStart ? 'mb-7' : 'mb-5'}`}>
+		<div className="mb-5 flex items-center justify-between">
 			<div className="flex items-center gap-2">
-				<img src="/assets/logo_white.webp" alt="" className={isMobileStart ? 'h-6 w-6' : 'h-7 w-7'} />
+				<img src="/assets/logo_white.webp" alt="" className="h-7 w-7" />
 				<span className="text-sm font-semibold text-(--text-primary)">DefiLlama</span>
 			</div>
 			<Ariakit.DialogDismiss className="rounded-full p-1 text-(--text-tertiary) transition-colors hover:text-(--text-primary)">
@@ -206,72 +196,6 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 			</button>
 		</div>
 	)
-
-	if (isMobileStart) {
-		return (
-			<>
-				{header}
-				<h2 className="mb-5 text-[22px] leading-[1.25] font-semibold text-(--text-primary)">Get Started</h2>
-
-				<form
-					className="flex flex-col gap-5"
-					onSubmit={(e) => {
-						e.preventDefault()
-						if (!email) return
-						goTo('signin')
-					}}
-				>
-					<input
-						type="email"
-						required
-						placeholder="Enter your email address"
-						className={mobileEntryInputCls}
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						autoFocus
-					/>
-					<button type="submit" disabled={!email} className={mobileEntryBtnCls}>
-						Continue
-					</button>
-				</form>
-
-				<p className="mt-6 text-sm leading-5 text-(--text-meta)">
-					By continuing, you agree to our{' '}
-					<BasicLink href="/terms" target="_blank" className="text-(--link)">
-						Terms of Service
-					</BasicLink>{' '}
-					and{' '}
-					<BasicLink href="/privacy-policy" target="_blank" className="text-(--link)">
-						Privacy Policy
-					</BasicLink>
-					.
-				</p>
-
-				<div className="my-6 flex items-center gap-4">
-					<div className="h-px flex-1 bg-(--signin-divider)" />
-					<span className="text-sm text-(--text-tertiary)">Or</span>
-					<div className="h-px flex-1 bg-(--signin-divider)" />
-				</div>
-
-				<button
-					type="button"
-					className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border border-(--form-control-border) text-base font-medium text-(--text-primary) transition-colors hover:bg-(--signin-outline-hover-bg)"
-					onClick={handleGithubSignIn}
-					disabled={signInWithGithubMutation.isPending}
-				>
-					<Icon name="github" height={20} width={20} />
-					{signInWithGithubMutation.isPending ? 'Connecting...' : 'Continue with GitHub'}
-				</button>
-
-				<p className="mt-6 text-center text-sm text-(--text-primary)">
-					Registered with a wallet before?{' '}
-					<button type="button" className="text-(--link)" onClick={() => void handleWalletSignIn()}>
-						Log in here
-					</button>
-				</p>
-			</>
-		)
-	}
 
 	/* ── Sign In (default) ── */
 	if (step === 'signin') {
