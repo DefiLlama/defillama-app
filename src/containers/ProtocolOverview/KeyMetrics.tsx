@@ -243,9 +243,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Raises {...props} />
 				<Expenses {...props} />
 			</div>
-			{props.llamaswapChains?.length ? (
-				<BuyOnLlamaswap chains={props.llamaswapChains} />
-			) : null}
+			{props.llamaswapChains?.length ? <BuyOnLlamaswap chains={props.llamaswapChains} /> : null}
 			<Flag protocol={props.name} isLending={props.category === 'Lending'} />
 		</div>
 	)
@@ -868,7 +866,7 @@ function BuyOnLlamaswap({
 						href={buildSwapUrl(chain)}
 						target="_blank"
 						rel="noreferrer noopener"
-						className="flex items-center gap-2 px-3 py-2 text-xs whitespace-nowrap hover:bg-(--primary-hover) first-of-type:rounded-t-md last-of-type:rounded-b-md"
+						className="flex items-center gap-2 px-3 py-2 text-xs whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover)"
 					>
 						<span className="capitalize">{chain.chain}</span>
 					</a>

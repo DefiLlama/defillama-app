@@ -665,7 +665,9 @@ export const getProtocolOverviewPageData = async ({
 	let llamaswapChains = null
 	if (tokenGeckoId && !isCEX) {
 		try {
-			const liqData = await fetch(`https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity/${tokenGeckoId}`).then((r) => r.ok ? r.json() : null)
+			const liqData = await fetch(`https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity/${tokenGeckoId}`).then(
+				(r) => (r.ok ? r.json() : null)
+			)
 			if (liqData?.chains?.length) {
 				llamaswapChains = liqData.chains
 			}
