@@ -30,6 +30,13 @@ function formatRelativeTime(timestamp: string): string {
 	return `${Math.floor(diffInDays / 365)} years ago`
 }
 
+function isWithinLastThreeMonths(timestamp: string): boolean {
+	const date = new Date(parseInt(timestamp))
+	const now = new Date()
+	const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())
+	return date >= threeMonthsAgo
+}
+
 function isFinancialReport(post: ParagraphPost): boolean {
 	// Regex patterns for financial reports
 	const quarterlyPattern = /\bq[1-4]\b.*\b(financial|report|results?|earnings?)\b/i
@@ -129,11 +136,14 @@ export default function PressReleases() {
 			.then((apiData) => {
 				const posts = apiData.items || []
 
+				// Filter to only posts from the last 3 months
+				const recentPosts = posts.filter((post: ParagraphPost) => isWithinLastThreeMonths(post.publishedAt))
+
 				// Separate financial reports from regular press releases
 				const reports: ParagraphPost[] = []
 				const releases: ParagraphPost[] = []
 
-				posts.forEach((post: ParagraphPost) => {
+				recentPosts.forEach((post: ParagraphPost) => {
 					if (isFinancialReport(post)) {
 						reports.push(post)
 					} else {
