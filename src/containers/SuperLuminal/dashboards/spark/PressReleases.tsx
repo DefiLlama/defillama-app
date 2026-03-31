@@ -136,17 +136,15 @@ export default function PressReleases() {
 			.then((apiData) => {
 				const posts = apiData.items || []
 
-				// Filter to only posts from the last 3 months
-				const recentPosts = posts.filter((post: ParagraphPost) => isWithinLastThreeMonths(post.publishedAt))
-
 				// Separate financial reports from regular press releases
 				const reports: ParagraphPost[] = []
 				const releases: ParagraphPost[] = []
 
-				recentPosts.forEach((post: ParagraphPost) => {
+				posts.forEach((post: ParagraphPost) => {
 					if (isFinancialReport(post)) {
 						reports.push(post)
-					} else {
+					} else if (isWithinLastThreeMonths(post.publishedAt)) {
+						// Only include press releases from the last 3 months
 						releases.push(post)
 					}
 				})
