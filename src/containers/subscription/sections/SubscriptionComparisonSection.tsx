@@ -76,7 +76,7 @@ function ComparisonPlanHead({
 		<div
 			ref={headerRef}
 			role="columnheader"
-			className={`w-[132px] border-t md:w-[146px] ${colStyle} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
+			className={`w-[132px] shrink-0 border-t md:w-[146px] ${colStyle} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
 		>
 			<div className="flex h-full flex-col justify-between p-3 md:p-5">
 				<div>
@@ -110,12 +110,14 @@ function ComparisonPlanHead({
 
 const LABEL_W = { mobile: 233, desktop: 400 }
 const PLAN_W = { mobile: 132, desktop: 146 }
+const HORIZONTAL_SCROLL_AREA_CLASSNAME =
+	'no-scrollbar overflow-x-auto overflow-y-hidden overscroll-x-contain [-webkit-overflow-scrolling:touch]'
 const COMPARISON_ROW_CLASSNAME = 'relative flex h-[41px] md:h-[36px]'
 const WRAPPED_COMPARISON_ROW_CLASSNAME = 'relative flex min-h-[41px] md:h-[36px]'
 const COMPARISON_ROW_HEADER_CLASSNAME =
-	'sticky left-0 z-30 flex w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
+	'sticky left-0 z-30 flex shrink-0 w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
 const WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME =
-	'sticky left-0 z-30 flex w-[233px] items-start bg-white px-2 py-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:items-center md:px-4 md:py-0 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
+	'sticky left-0 z-30 flex shrink-0 w-[233px] items-start bg-white px-2 py-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:items-center md:px-4 md:py-0 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
 const COMPARISON_ROW_LABEL_CLASSNAME = 'block w-full overflow-hidden text-ellipsis whitespace-nowrap'
 const WRAPPED_COMPARISON_ROW_LABEL_CLASSNAME =
 	'block w-full whitespace-normal break-words md:overflow-hidden md:text-ellipsis md:whitespace-nowrap'
@@ -199,14 +201,14 @@ export function SubscriptionComparisonSection({
 				{/* ── Sticky plan header (mobile: sticky top-0, desktop: static) ── */}
 				<div
 					ref={headerScrollRef}
-					className="sticky top-0 z-40 no-scrollbar touch-pan-x overflow-x-auto overflow-y-hidden bg-white md:static md:overflow-hidden dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+					className={`sticky top-0 z-40 ${HORIZONTAL_SCROLL_AREA_CLASSNAME} bg-white md:static md:overflow-hidden dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)`}
 					onScroll={onHeaderScroll}
 				>
 					<div className="w-max">
 						<div className="flex" role="row">
 							<div
 								role="columnheader"
-								className="sticky left-0 z-30 flex h-[132px] w-[233px] items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+								className="sticky left-0 z-30 flex h-[132px] w-[233px] shrink-0 items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 							>
 								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 									Compare Plans and Features
@@ -232,21 +234,25 @@ export function SubscriptionComparisonSection({
 				</div>
 
 				{/* ── Scrollable body ── */}
-				<div ref={bodyScrollRef} className="touch-pan-x overflow-x-auto" onScroll={onBodyScroll}>
+				<div
+					ref={bodyScrollRef}
+					className={`relative isolate ${HORIZONTAL_SCROLL_AREA_CLASSNAME}`}
+					onScroll={onBodyScroll}
+				>
 					<div className="w-max" role="table" aria-label="Plan comparison">
 						<div className="relative">
 							{comparisonSections.map((section, sectionIndex) => {
 								const isLastSection = sectionIndex === comparisonSections.length - 1
 								const hasWrappedLastRow = section.rows[section.rows.length - 1]?.wrapLabel
 								return (
-									<div key={section.title} role="rowgroup" className="relative">
+									<div key={section.title} role="rowgroup" className="relative isolate">
 										<div
-											className="flex h-10 bg-(--sub-mobile-table-header-bg) md:h-9 md:bg-(--sub-desktop-table-header-bg)"
+											className="relative z-[25] flex h-10 bg-(--sub-mobile-table-header-bg) md:h-9 md:bg-(--sub-desktop-table-header-bg)"
 											role="row"
 										>
 											<div
 												role="rowheader"
-												className="sticky left-0 z-30 flex w-[233px] items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-text-navy-900) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
+												className="sticky left-0 z-30 flex w-[233px] shrink-0 items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-text-navy-900) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
 											>
 												{section.title}
 											</div>
@@ -256,7 +262,7 @@ export function SubscriptionComparisonSection({
 													<div
 														key={`${section.title}-header-${plan}`}
 														role="cell"
-														className={`w-[132px] md:w-[146px] ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
+														className={`w-[132px] shrink-0 md:w-[146px] ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10 border-x border-(--sub-brand-primary)' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan !== selectedPlan && plan === 'enterprise' ? 'border-r' : ''}`}
 													/>
 												)
 											})}
@@ -265,9 +271,12 @@ export function SubscriptionComparisonSection({
 										{section.rows.map((row, rowIndex) => {
 											const isLastRow = isLastSection && rowIndex === section.rows.length - 1
 											const rowClassName = row.wrapLabel ? WRAPPED_COMPARISON_ROW_CLASSNAME : COMPARISON_ROW_CLASSNAME
+											const rowHeaderDividerClassName = isLastRow
+												? ''
+												: 'border-b border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'
 											const rowHeaderClassName = row.wrapLabel
-												? WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME
-												: COMPARISON_ROW_HEADER_CLASSNAME
+												? `${WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME} ${rowHeaderDividerClassName}`
+												: `${COMPARISON_ROW_HEADER_CLASSNAME} ${rowHeaderDividerClassName}`
 											const rowLabelClassName = row.wrapLabel
 												? WRAPPED_COMPARISON_ROW_LABEL_CLASSNAME
 												: COMPARISON_ROW_LABEL_CLASSNAME

@@ -908,11 +908,11 @@
 		--sub-chart-axis: var(--sub-border-strong);
 
 		--sub-mobile-table-border: var(--sub-surface-elevated-2);
-		--sub-mobile-table-header-bg: rgba(255, 255, 255, 0.02);
+		--sub-mobile-table-header-bg: var(--sub-surface-dark-section);
 		--sub-mobile-table-section-bg: var(--sub-surface-dark-deep);
 		--sub-mobile-text-muted: var(--sub-text-secondary-dark);
 		--sub-desktop-table-border: var(--sub-surface-elevated-2);
-		--sub-desktop-table-header-bg: rgba(255, 255, 255, 0.02);
+		--sub-desktop-table-header-bg: var(--sub-surface-dark-section);
 		--sub-desktop-table-section-bg: var(--sub-surface-dark-section);
 		--sub-desktop-text-muted: var(--sub-text-secondary-dark);
 		--sub-table-row-alt-bg: var(--sub-surface-dark-row);
