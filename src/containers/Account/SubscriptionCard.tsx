@@ -5,7 +5,7 @@ interface SubscriptionCardProps {
 	renewalDate: string
 	subscriptionType: string
 	subscriptionPayment: string
-	provider: 'stripe' | 'llamapay' | 'legacy'
+	provider: 'stripe' | 'llamapay' | 'legacy' | 'manual'
 	isCancelPending: boolean
 	onManage: () => void
 	onCancel: () => void
@@ -37,6 +37,7 @@ export function SubscriptionCard({
 	isManageLoading,
 	isCancelLoading
 }: SubscriptionCardProps) {
+	const isManageable = provider === 'stripe' || provider === 'llamapay'
 	const manageLabel = provider === 'stripe' ? 'Manage on Stripe' : 'Manage on LlamaPay'
 
 	return (
@@ -63,7 +64,7 @@ export function SubscriptionCard({
 
 			{isCancelPending ? (
 				<p className="text-xs font-medium text-(--sub-orange-400)">Cancellation scheduled</p>
-			) : (
+			) : isManageable ? (
 				<div className="flex gap-2">
 					<button
 						onClick={onManage}
@@ -81,7 +82,7 @@ export function SubscriptionCard({
 						{isCancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
 					</button>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -39,6 +39,8 @@ function getSubscriptionTypeLabel(subscription: { billing_interval?: string; typ
 function getPaymentLabel(provider: string): string {
 	if (provider === 'stripe') return 'Stripe'
 	if (provider === 'llamapay') return 'LlamaPay'
+	if (provider === 'legacy') return 'Legacy'
+	if (provider === 'manual') return 'Manual'
 	return provider
 }
 
@@ -68,7 +70,7 @@ function SubscriptionCardWithProps({
 			renewalDate={formatDate(parseExpiryDate(subscription.expires_at))}
 			subscriptionType={getSubscriptionTypeLabel(subscription)}
 			subscriptionPayment={getPaymentLabel(subscription.provider)}
-			provider={subscription.provider as 'stripe' | 'llamapay' | 'legacy'}
+			provider={subscription.provider as 'stripe' | 'llamapay' | 'legacy' | 'manual'}
 			isCancelPending={isCancelPending}
 			onManage={onManage}
 			onCancel={onCancel}
@@ -213,7 +215,7 @@ export function SubscriptionSection() {
 	const handleManageSubscription = async () => {
 		if (activeSubscription?.provider === 'stripe') {
 			await createPortalSession()
-		} else {
+		} else if (activeSubscription?.provider === 'llamapay') {
 			window.open('https://subscriptions.llamapay.io/', '_blank')
 		}
 	}
@@ -221,7 +223,7 @@ export function SubscriptionSection() {
 	const handleCancelSubscription = () => {
 		if (activeSubscription?.provider === 'stripe') {
 			setIsCancelSubModalOpen(true)
-		} else {
+		} else if (activeSubscription?.provider === 'llamapay') {
 			window.open('https://subscriptions.llamapay.io/', '_blank')
 		}
 	}
