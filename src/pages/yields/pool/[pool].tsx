@@ -137,12 +137,6 @@ function HolderFlowSummaryBar({ summary }: { summary: HolderFlowSummary }) {
 			pillClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
 		},
 		{
-			count: summary.steady,
-			label: 'Steady',
-			dotClass: 'bg-gray-400',
-			pillClass: 'bg-gray-500/10 text-gray-500 dark:text-gray-400'
-		},
-		{
 			count: summary.newCount,
 			label: 'New',
 			dotClass: 'bg-blue-500',
