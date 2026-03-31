@@ -306,7 +306,7 @@ export default function Financials() {
 			<div className="flex flex-col gap-4">
 				<SectionHeader>sUSDS Distribution</SectionHeader>
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<ChartCard title={data.supplyTotal.title}>
+					<ChartCard title={'Spark-distributed USDS'}>
 						<AreaChart
 							chartData={data.supplyTotal.data}
 							stacks={data.supplyTotal.stacks}
