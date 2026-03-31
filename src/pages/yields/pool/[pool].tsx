@@ -225,16 +225,22 @@ function ConcentrationRiskPanel({
 					{holderChange7d != null ? (
 						<div className="flex items-center justify-between text-xs">
 							<span className="text-(--text-disabled)">7d change</span>
-							<span className={`tabular-nums font-medium ${holderChange7d > 0 ? 'text-(--success)' : holderChange7d < 0 ? 'text-(--error)' : ''}`}>
-								{holderChange7d > 0 ? '+' : ''}{holderChange7d.toLocaleString()}
+							<span
+								className={`tabular-nums font-medium ${holderChange7d > 0 ? 'text-(--success)' : holderChange7d < 0 ? 'text-(--error)' : ''}`}
+							>
+								{holderChange7d > 0 ? '+' : ''}
+								{holderChange7d.toLocaleString()}
 							</span>
 						</div>
 					) : null}
 					{holderChange30d != null ? (
 						<div className="flex items-center justify-between text-xs">
 							<span className="text-(--text-disabled)">30d change</span>
-							<span className={`tabular-nums font-medium ${holderChange30d > 0 ? 'text-(--success)' : holderChange30d < 0 ? 'text-(--error)' : ''}`}>
-								{holderChange30d > 0 ? '+' : ''}{holderChange30d.toLocaleString()}
+							<span
+								className={`tabular-nums font-medium ${holderChange30d > 0 ? 'text-(--success)' : holderChange30d < 0 ? 'text-(--error)' : ''}`}
+							>
+								{holderChange30d > 0 ? '+' : ''}
+								{holderChange30d.toLocaleString()}
 							</span>
 						</div>
 					) : null}
