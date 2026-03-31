@@ -97,21 +97,35 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		return { series: result, valueSymbol: symbol }
 	}, [getProtocolInfo, protocols, composerItems])
 
+	const anyLoading = composerItems.some((item) => item.isLoading)
+
 	if (series.length === 0 && composerItems.length > 0) {
 		return (
 			<div className="flex h-full w-full items-center justify-center">
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center">
-					<p className="mb-2 text-sm pro-text2">Chart Preview</p>
-					<p className="text-xs pro-text3">
-						{composerItems.length} chart{composerItems.length > 1 ? 's' : ''} selected
-					</p>
-					<div className="mt-3 space-y-1">
-						{composerItems.map((item) => (
-							<div key={item.id} className="text-xs pro-text3">
-								• {item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
+					{anyLoading ? (
+						<>
+							<svg className="mx-auto mb-2 h-5 w-5 animate-spin text-(--text-tertiary)" fill="none" viewBox="0 0 24 24">
+								<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+								<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+							</svg>
+							<p className="text-xs pro-text3">Loading chart data…</p>
+						</>
+					) : (
+						<>
+							<p className="mb-2 text-sm pro-text2">Chart Preview</p>
+							<p className="text-xs pro-text3">
+								{composerItems.length} chart{composerItems.length > 1 ? 's' : ''} selected
+							</p>
+							<div className="mt-3 space-y-1">
+								{composerItems.map((item) => (
+									<div key={item.id} className="text-xs pro-text3">
+										• {item.protocol || item.chain} - {CHART_TYPES[item.type]?.title || item.type}
+									</div>
+								))}
 							</div>
-						))}
-					</div>
+						</>
+					)}
 				</div>
 			</div>
 		)

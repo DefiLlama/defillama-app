@@ -70,9 +70,6 @@ export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
 export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
 export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 
-// Datasets
-export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
-
 // Yields APIs
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`

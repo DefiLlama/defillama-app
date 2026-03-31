@@ -336,7 +336,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			</div>
 
 			{/* Stats Row */}
-			<div className="flex flex-wrap gap-2">
+			<div className="flex flex-col gap-2 lg:flex-row">
 				<Tooltip
 					content={
 						onChainMcap?.breakdown != null ? (

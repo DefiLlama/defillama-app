@@ -192,7 +192,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 
 		const startStream = async () => {
 			try {
-				const response = await fetch(`/api/dashboard/${dashboardId}/stream`, {
+				const response = await fetch(`/api/dashboard/${dashboardId}/stream?_=${Math.random().toString(36).slice(2)}`, {
 					credentials: 'include',
 					signal: abortController.signal
 				})

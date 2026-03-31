@@ -512,6 +512,102 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		adapterType: 'fees',
 		dataType: 'dailyRevenue'
 	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-user-fees-chart',
+		name: 'Protocol User Fees',
+		description: 'Historical daily user fees for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyUserFees'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-user-fees-chart',
+		name: 'Chain User Fees',
+		description: 'Historical daily user fees for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyUserFees'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-holders-revenue-chart',
+		name: 'Protocol Holders Revenue',
+		description: 'Historical daily holders revenue for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyHoldersRevenue'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-holders-revenue-chart',
+		name: 'Chain Holders Revenue',
+		description: 'Historical daily holders revenue for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyHoldersRevenue'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-protocol-revenue-chart',
+		name: 'Protocol Treasury Revenue',
+		description: 'Historical daily protocol treasury revenue for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyProtocolRevenue'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-protocol-revenue-chart',
+		name: 'Chain Treasury Revenue',
+		description: 'Historical daily protocol treasury revenue for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyProtocolRevenue'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-supply-side-revenue-chart',
+		name: 'Protocol Supply Side Revenue',
+		description: 'Historical daily supply side revenue for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailySupplySideRevenue'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-supply-side-revenue-chart',
+		name: 'Chain Supply Side Revenue',
+		description: 'Historical daily supply side revenue for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailySupplySideRevenue'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-bribes-revenue-chart',
+		name: 'Protocol Bribes Revenue',
+		description: 'Historical daily bribes revenue for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyBribesRevenue'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-bribes-revenue-chart',
+		name: 'Chain Bribes Revenue',
+		description: 'Historical daily bribes revenue for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyBribesRevenue'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-token-taxes-chart',
+		name: 'Protocol Token Taxes',
+		description: 'Historical daily token taxes for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyTokenTaxes'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-token-taxes-chart',
+		name: 'Chain Token Taxes',
+		description: 'Historical daily token taxes for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyTokenTaxes'
+	}),
 
 	makeDimensionProtocolChart({
 		slug: 'protocol-dex-volume-chart',
@@ -570,6 +666,66 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		description: 'Historical daily DEX aggregator volume for a specific chain',
 		category: 'Volume',
 		adapterType: 'aggregators'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-options-notional-chart',
+		name: 'Protocol Options Notional Volume',
+		description: 'Historical daily options notional volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'options',
+		dataType: 'dailyNotionalVolume'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-options-notional-chart',
+		name: 'Chain Options Notional Volume',
+		description: 'Historical daily options notional volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'options',
+		dataType: 'dailyNotionalVolume'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-open-interest-chart',
+		name: 'Protocol Open Interest',
+		description: 'Historical open interest for a specific protocol',
+		category: 'Volume',
+		adapterType: 'open-interest',
+		dataType: 'openInterestAtEnd'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-open-interest-chart',
+		name: 'Chain Open Interest',
+		description: 'Historical open interest for a specific chain',
+		category: 'Volume',
+		adapterType: 'open-interest',
+		dataType: 'openInterestAtEnd'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-perps-aggregator-volume-chart',
+		name: 'Protocol Perps Aggregator Volume',
+		description: 'Historical daily perps aggregator volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'aggregator-derivatives'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-perps-aggregator-volume-chart',
+		name: 'Chain Perps Aggregator Volume',
+		description: 'Historical daily perps aggregator volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'aggregator-derivatives'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-bridge-aggregator-volume-chart',
+		name: 'Protocol Bridge Aggregator Volume',
+		description: 'Historical daily bridge aggregator volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'bridge-aggregators'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-bridge-aggregator-volume-chart',
+		name: 'Chain Bridge Aggregator Volume',
+		description: 'Historical daily bridge aggregator volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'bridge-aggregators'
 	}),
 
 	{

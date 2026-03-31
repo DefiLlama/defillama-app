@@ -124,6 +124,36 @@ export interface GeckoIdResponse {
 	id: string
 }
 
+/** Per-chain token metadata from CoinGecko GET /coins/{id} (`detail_platforms`). */
+export interface CoinGeckoDetailPlatform {
+	decimal_place?: number
+	contract_address?: string
+	geckoterminal_url?: string
+}
+
+/**
+ * Subset of CoinGecko GET /api/v3/coins/{id} used for chain token info and platform addresses.
+ * The live payload is larger; only fields we read or may read are declared.
+ */
+export interface CoinGeckoCoinDetailResponse {
+	id: string
+	symbol: string
+	name: string
+	asset_platform_id?: string | null
+	contract_address?: string | null
+	platforms?: Record<string, string>
+	detail_platforms?: Record<string, CoinGeckoDetailPlatform>
+	market_data?: {
+		current_price?: { usd?: number | null }
+		market_cap?: { usd?: number | null }
+		fully_diluted_valuation?: { usd?: number | null }
+		total_volume?: { usd?: number | null }
+	}
+}
+
+/** Result when the request fails and we fall back to `{}` (see fetchCoinGeckoCoinById). */
+export type CoinGeckoCoinDetailResult = CoinGeckoCoinDetailResponse | Record<string, never>
+
 export interface DenominationPriceHistory {
 	prices: Array<[number, number]>
 	mcaps: Array<[number, number]>
@@ -142,12 +172,65 @@ export interface TwitterPostsResponse {
 	[key: string]: unknown
 }
 
-export interface ProtocolLiquidityToken {
-	id: string
-	symbol?: string
-	tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }>
+export interface LlamaswapChain {
+	chain: string
+	chainId: number
+	address: string
+	priceImpact: number
+}
+
+export interface ProtocolLlamaswapResponse {
+	chains?: LlamaswapChain[]
 	[key: string]: unknown
 }
+
+/** Single pool row for a token from `LIQUIDITY_API` (`/liquidity.json`). */
+interface ProtocolLiquidityTokenPool {
+	chain: string
+	project: string
+	symbol: string
+	tvlUsd: number
+	pool?: string
+	apy?: number | null
+	apyBase?: number | null
+	apyReward?: number | null
+	rewardTokens?: string[] | null
+	apyPct1D?: number | null
+	apyPct7D?: number | null
+	apyPct30D?: number | null
+	stablecoin?: boolean
+	ilRisk?: string
+	exposure?: string
+	poolMeta?: string | null
+	predictions?: {
+		predictedClass?: string
+		predictedProbability?: number
+		binnedConfidence?: number
+	}
+	mu?: number
+	sigma?: number
+	count?: number
+	outlier?: boolean
+	underlyingTokens?: string[]
+	il7d?: number | null
+	apyBase7d?: number | null
+	apyMean30d?: number | null
+	volumeUsd1d?: number | null
+	volumeUsd7d?: number | null
+	apyBaseInception?: number | null
+	[key: string]: unknown
+}
+
+/** One token’s liquidity coverage from the datasets `liquidity.json` list. */
+interface ProtocolLiquidityToken {
+	id: string
+	symbol?: string
+	tokenPools?: ProtocolLiquidityTokenPool[]
+	[key: string]: unknown
+}
+
+/** Response body of `LIQUIDITY_API`: array of tokens with pool-level liquidity. */
+export type ProtocolLiquidityTokensResponse = ProtocolLiquidityToken[]
 
 export type ProtocolTokenLiquidityChart = Array<[string | number, number]>
 
