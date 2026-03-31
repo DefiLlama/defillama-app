@@ -117,8 +117,8 @@ export const useVolatility = () => {
 }
 
 export const useHolderStats = (configIDs?: string[]) => {
-	return useQuery<HolderStatsMap>({
-		queryKey: ['holder-stats', configIDs],
+	return useQuery<HolderStatsMap, unknown, HolderStatsMap>({
+		queryKey: ['holder-stats'],
 		queryFn: async () => {
 			const res = await fetchJson(YIELD_HOLDERS_API)
 			const raw = res?.data ?? {}
@@ -137,6 +137,16 @@ export const useHolderStats = (configIDs?: string[]) => {
 			}
 			return result
 		},
+		select: configIDs
+			? (data) => {
+					const ids = new Set(configIDs)
+					const filtered: HolderStatsMap = {}
+					for (const id of ids) {
+						if (data[id]) filtered[id] = data[id]
+					}
+					return filtered
+				}
+			: undefined,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1
