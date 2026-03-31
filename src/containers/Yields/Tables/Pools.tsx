@@ -244,7 +244,7 @@ const columns = [
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs holding the underlying assets instead. ${uniswapV3}`
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).apyMean30d as number | null, {
+	columnHelper.accessor((row) => row.apyMean30d ?? null, {
 		id: 'apyMean30d',
 		header: '30d Avg APY',
 		enableSorting: true,
@@ -324,7 +324,7 @@ const columns = [
 			headerHelperText: 'Standard deviation of daily APY over the last 30 days. Measures yield volatility.'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).apyChart30d as string | null | undefined, {
+	columnHelper.accessor((row) => row.apyChart30d ?? null, {
 		id: 'apyChart30d',
 		header: '30d APY Chart',
 		enableSorting: false,
