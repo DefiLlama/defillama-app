@@ -172,6 +172,18 @@ export interface TwitterPostsResponse {
 	[key: string]: unknown
 }
 
+export interface LlamaswapChain {
+	chain: string
+	chainId: number
+	address: string
+	priceImpact: number
+}
+
+export interface ProtocolLlamaswapResponse {
+	chains?: LlamaswapChain[]
+	[key: string]: unknown
+}
+
 /** Single pool row for a token from `LIQUIDITY_API` (`/liquidity.json`). */
 interface ProtocolLiquidityTokenPool {
 	chain: string

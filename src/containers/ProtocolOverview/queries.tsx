@@ -1,4 +1,9 @@
-import { fetchBlockExplorers, fetchCgChartByGeckoId, fetchLiquidityTokensDataset } from '~/api'
+import {
+	fetchBlockExplorers,
+	fetchCgChartByGeckoId,
+	fetchLiquidityTokensDataset,
+	fetchProtocolLlamaswapChains
+} from '~/api'
 import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -655,6 +660,18 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
+	// find gecko_id — may be on a sibling protocol (e.g., aave-v3 has no gecko_id, aave-v2 has "aave")
+	let tokenGeckoId = protocolData.gecko_id
+	if (!tokenGeckoId && protocolData.parentProtocol) {
+		const sibling = liteProtocolsData.protocols.find(
+			(p) => p.parentProtocol === protocolData.parentProtocol && p.geckoId
+		)
+		if (sibling) tokenGeckoId = sibling.geckoId
+	}
+	let llamaswapChains = null
+	if (tokenGeckoId && !isCEX) {
+		llamaswapChains = await fetchProtocolLlamaswapChains(tokenGeckoId)
+	}
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
@@ -1006,7 +1023,8 @@ export const getProtocolOverviewPageData = async ({
 		seoTitle,
 		seoDescription,
 		defaultToggledCharts,
-		oracleTvs
+		oracleTvs,
+		llamaswapChains
 	}
 }
 
