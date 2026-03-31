@@ -204,7 +204,7 @@ async function pullData() {
 				'protocols.json': {},
 				'categoriesAndTags.json': { categories: [], tags: [], tagCategoryMap: {} },
 				'cexs.json': [],
-				'rwa.json': { tickers: [], platforms: [], chains: [], categories: [], idMap: {} },
+				'rwa.json': { tickers: [], platforms: [], chains: [], assetGroups: [], categories: [], idMap: {} },
 				'tokenlist.json': {},
 				'cgExchangeIdentifiers.json': [],
 				'bridgeProtocolSlugs.json': [],

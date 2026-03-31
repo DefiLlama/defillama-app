@@ -21,6 +21,7 @@ import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
+import { buildProtocolOverviewHallmarks } from '~/utils/hallmarks'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,
@@ -713,37 +714,11 @@ export const getProtocolOverviewPageData = async ({
 		chartColors[chart] = CHART_COLORS[i]
 	}
 
-	const hallmarks: Record<number, string> = {}
-	const rangeHallmarks: Array<[[number, number], string]> = []
-	for (const hack of hacks ?? []) {
-		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
-	}
-	for (const mark of protocolData.hallmarks ?? []) {
-		if (Array.isArray(mark[0])) {
-			const [start, end] = mark[0]
-			if (typeof start === 'number' && typeof end === 'number') {
-				rangeHallmarks.push([[start, end], mark[1]])
-			}
-		} else {
-			if (!hallmarks[mark[0]]) {
-				hallmarks[mark[0]] = mark[1]
-			}
-		}
-	}
-
-	if (protocolData.dimensions) {
-		for (const dimKey in protocolData.dimensions) {
-			const spikes = protocolData.dimensions[dimKey]?.genuineSpikes
-			if (!spikes) continue
-			for (const [dateStr, label] of spikes) {
-				const tsSeconds = Math.floor(new Date(dateStr).getTime() / 1e3)
-				if (!Number.isFinite(tsSeconds)) continue
-				if (!hallmarks[tsSeconds]) {
-					hallmarks[tsSeconds] = label
-				}
-			}
-		}
-	}
+	const { hallmarks, rangeHallmarks } = buildProtocolOverviewHallmarks({
+		hacks,
+		protocolHallmarks: protocolData.hallmarks,
+		dimensions: protocolData.dimensions
+	})
 
 	const name = protocolData.name ?? currentProtocolMetadata.displayName ?? ''
 
@@ -1007,13 +982,8 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts,
 		chartColors,
 		initialMultiSeriesChartData,
-		hallmarks: Object.entries(hallmarks)
-			.sort(([a], [b]) => Number(a) - Number(b))
-			.map(([date, event]): [number, string] => [+date * 1e3, event]),
-		rangeHallmarks: rangeHallmarks.map(([date, event]): [[number, number], string] => [
-			[+date[0] * 1e3, +date[1] * 1e3],
-			event
-		]),
+		hallmarks,
+		rangeHallmarks,
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceIdsToApis(protocolData.governanceID ?? []),
 		incomeStatement,
