@@ -316,26 +316,26 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						/>
 					</Suspense>
 				)
-		case 'tokenValuesUsd':
-			return (
-				<Suspense fallback={<div className="min-h-[360px]" />}>
-					<AreaChart
-						title=""
-						chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
-						stacks={resolvedTokensUnique}
-						stackColors={stackColors}
-						valueSymbol="$"
-						customLegendName="Token"
-						customLegendOptions={resolvedTokensUnique}
-						hideDownloadButton={true}
-						hideDataZoom={true}
-						isStackedChart
-						chartOptions={chartOptions}
-						height="360px"
-						onReady={handleChartReady}
-					/>
-				</Suspense>
-			)
+			case 'tokenValuesUsd':
+				return (
+					<Suspense fallback={<div className="min-h-[360px]" />}>
+						<AreaChart
+							title=""
+							chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
+							stacks={resolvedTokensUnique}
+							stackColors={stackColors}
+							valueSymbol="$"
+							customLegendName="Token"
+							customLegendOptions={resolvedTokensUnique}
+							hideDownloadButton={true}
+							hideDataZoom={true}
+							isStackedChart
+							chartOptions={chartOptions}
+							height="360px"
+							onReady={handleChartReady}
+						/>
+					</Suspense>
+				)
 			case 'tokensPie':
 				return (
 					<Suspense fallback={<div className="min-h-[360px]" />}>
