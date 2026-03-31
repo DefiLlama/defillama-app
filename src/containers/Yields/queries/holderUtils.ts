@@ -37,7 +37,7 @@ export function computeHolderChanges(
 		let bestMs = -Infinity
 		for (const entry of historyEntries) {
 			const entryMs = new Date(entry.timestamp).getTime()
-			if (entryMs <= targetMs && entryMs > bestMs) {
+			if (entryMs <= targetMs && entryMs > bestMs && entry.top10Holders?.length) {
 				bestMs = entryMs
 				bestEntry = entry
 			}
