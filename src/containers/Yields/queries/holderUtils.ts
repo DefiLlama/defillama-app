@@ -32,14 +32,13 @@ export function computeHolderChanges(
 	const targetMs = now - lookbackDays * 24 * 60 * 60 * 1000
 
 	let pastHolders: Top10Holder[] | null = null
-	if (historyEntries?.length && historyEntries.length > 1) {
+	if (historyEntries?.length) {
 		let bestEntry: HolderHistoryEntry | null = null
-		let bestDiff = Infinity
+		let bestMs = -Infinity
 		for (const entry of historyEntries) {
 			const entryMs = new Date(entry.timestamp).getTime()
-			const diff = Math.abs(entryMs - targetMs)
-			if (diff < bestDiff) {
-				bestDiff = diff
+			if (entryMs <= targetMs && entryMs > bestMs) {
+				bestMs = entryMs
 				bestEntry = entry
 			}
 		}

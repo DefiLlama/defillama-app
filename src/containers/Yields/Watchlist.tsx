@@ -33,13 +33,12 @@ const ALL_YIELD_COLUMNS = [
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
+	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
+		useBookmarks('yields')
 	const { data: volatility } = useVolatility()
 	const { data: holderStats } = useHolderStats(
 		isClient ? protocolsDict.filter((p) => savedProtocols.has(p.pool)).map((p) => p.pool) : undefined
 	)
-
-	const { portfolios, selectedPortfolio, savedProtocols, addPortfolio, removePortfolio, setSelectedPortfolio } =
-		useBookmarks('yields')
 
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {

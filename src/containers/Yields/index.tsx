@@ -254,6 +254,7 @@ const YieldPage = ({
 			'APY Std Dev 30d',
 			'CV 30d',
 			'Holder Count',
+			'Avg Position USD',
 			'Top 10 %',
 			'Holder Change 7d',
 			'Holder Change 30d'
