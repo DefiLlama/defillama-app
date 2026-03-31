@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type Ref } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ComparisonCell, SELECTED_COLUMN_HIGHLIGHT } from '~/containers/Subscription/components'
 import { PLAN_META_BY_CYCLE } from '~/containers/Subscription/data'
 import type { BillingCycle, ComparisonSection, PlanKey } from '~/containers/Subscription/types'
@@ -54,7 +54,6 @@ function ComparisonPlanHead({
 	isFirst,
 	isLast,
 	isSelected,
-	headerRef,
 	onAction
 }: {
 	plan: PlanKey
@@ -62,7 +61,6 @@ function ComparisonPlanHead({
 	isFirst: boolean
 	isLast: boolean
 	isSelected: boolean
-	headerRef?: Ref<HTMLDivElement>
 	onAction?: (plan: PlanKey) => void
 }) {
 	const meta = PLAN_META_BY_CYCLE[billingCycle][plan]
@@ -74,7 +72,6 @@ function ComparisonPlanHead({
 
 	return (
 		<div
-			ref={headerRef}
 			role="columnheader"
 			className={`w-[132px] shrink-0 border-t md:w-[146px] ${colStyle} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
 		>
@@ -151,9 +148,8 @@ export function SubscriptionComparisonSection({
 	selectedPlan: PlanKey
 	onPlanAction?: (plan: PlanKey) => void
 }) {
-	const headerScrollRef = useRef<HTMLDivElement>(null)
 	const bodyScrollRef = useRef<HTMLDivElement>(null)
-	const selectedHeaderRef = useRef<HTMLDivElement>(null)
+	const headerPlanTrackRef = useRef<HTMLDivElement>(null)
 
 	const [overlayMetrics, setOverlayMetrics] = useState<{
 		selectedLeft: number
@@ -177,57 +173,54 @@ export function SubscriptionComparisonSection({
 		}
 	}, [selectedPlan, planOrder])
 
-	/* ── Sync horizontal scroll: body → header ── */
-	const syncHorizontalScroll = useCallback((sourceEl: HTMLDivElement | null, targetEl: HTMLDivElement | null) => {
-		if (!sourceEl || !targetEl) return
+	/* ── Sync horizontal scroll: body → header track ── */
+	const syncHeaderTrackOffset = useCallback((nextScrollLeft?: number) => {
+		const headerPlanTrack = headerPlanTrackRef.current
+		const bodyScroll = bodyScrollRef.current
+		if (!headerPlanTrack || !bodyScroll) return
 
-		const nextScrollLeft = sourceEl.scrollLeft
-		if (targetEl.scrollLeft !== nextScrollLeft) {
-			targetEl.scrollLeft = nextScrollLeft
-		}
+		const scrollLeft = nextScrollLeft ?? bodyScroll.scrollLeft
+		headerPlanTrack.style.transform = `translate3d(${-scrollLeft}px, 0, 0)`
 	}, [])
 
-	const onHeaderScroll = useCallback(() => {
-		syncHorizontalScroll(headerScrollRef.current, bodyScrollRef.current)
-	}, [syncHorizontalScroll])
-
 	const onBodyScroll = useCallback(() => {
-		syncHorizontalScroll(bodyScrollRef.current, headerScrollRef.current)
-	}, [syncHorizontalScroll])
+		syncHeaderTrackOffset()
+	}, [syncHeaderTrackOffset])
+
+	useEffect(() => {
+		syncHeaderTrackOffset()
+	}, [syncHeaderTrackOffset, billingCycle, planOrder, selectedPlan])
 
 	return (
 		<section className="mt-12 bg-white py-12 md:mt-0 md:py-20 dark:bg-(--sub-mobile-table-section-bg) md:dark:bg-(--sub-desktop-table-section-bg)">
 			<div className="mx-auto w-full px-2 md:max-w-[984px] md:px-0">
 				{/* ── Sticky plan header (mobile: sticky top-0, desktop: static) ── */}
-				<div
-					ref={headerScrollRef}
-					className={`sticky top-0 z-40 ${HORIZONTAL_SCROLL_AREA_CLASSNAME} bg-white md:static md:overflow-hidden dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)`}
-					onScroll={onHeaderScroll}
-				>
-					<div className="w-max">
-						<div className="flex" role="row">
-							<div
-								role="columnheader"
-								className="sticky left-0 z-30 flex h-[132px] w-[233px] shrink-0 items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
-							>
-								<h2 className="text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
-									Compare Plans and Features
-								</h2>
-							</div>
+				<div className="sticky top-0 z-40 overflow-hidden bg-white md:static dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)">
+					<div className="flex" role="row">
+						<div
+							role="columnheader"
+							className="sticky left-0 z-30 flex h-[132px] w-[233px] shrink-0 items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+						>
+							<h2 className="text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
+								Compare Plans and Features
+							</h2>
+						</div>
 
-							<div className="flex h-[132px] rounded-t-[16px] border-x border-t border-(--sub-mobile-table-border) md:h-[129px] md:rounded-t-[24px] md:border-(--sub-desktop-table-border)">
-								{planOrder.map((plan, index) => (
-									<ComparisonPlanHead
-										key={`plan-head-${plan}`}
-										plan={plan}
-										billingCycle={billingCycle}
-										isFirst={index === 0}
-										isLast={index === planOrder.length - 1}
-										isSelected={plan === selectedPlan}
-										headerRef={plan === selectedPlan ? selectedHeaderRef : undefined}
-										onAction={onPlanAction}
-									/>
-								))}
+						<div className="min-w-0 flex-1 overflow-hidden">
+							<div ref={headerPlanTrackRef} className="w-max [will-change:transform]">
+								<div className="flex h-[132px] rounded-t-[16px] border-x border-t border-(--sub-mobile-table-border) md:h-[129px] md:rounded-t-[24px] md:border-(--sub-desktop-table-border)">
+									{planOrder.map((plan, index) => (
+										<ComparisonPlanHead
+											key={`plan-head-${plan}`}
+											plan={plan}
+											billingCycle={billingCycle}
+											isFirst={index === 0}
+											isLast={index === planOrder.length - 1}
+											isSelected={plan === selectedPlan}
+											onAction={onPlanAction}
+										/>
+									))}
+								</div>
 							</div>
 						</div>
 					</div>
