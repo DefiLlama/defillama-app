@@ -124,6 +124,36 @@ export interface GeckoIdResponse {
 	id: string
 }
 
+/** Per-chain token metadata from CoinGecko GET /coins/{id} (`detail_platforms`). */
+export interface CoinGeckoDetailPlatform {
+	decimal_place?: number
+	contract_address?: string
+	geckoterminal_url?: string
+}
+
+/**
+ * Subset of CoinGecko GET /api/v3/coins/{id} used for chain token info and platform addresses.
+ * The live payload is larger; only fields we read or may read are declared.
+ */
+export interface CoinGeckoCoinDetailResponse {
+	id: string
+	symbol: string
+	name: string
+	asset_platform_id?: string | null
+	contract_address?: string | null
+	platforms?: Record<string, string>
+	detail_platforms?: Record<string, CoinGeckoDetailPlatform>
+	market_data?: {
+		current_price?: { usd?: number | null }
+		market_cap?: { usd?: number | null }
+		fully_diluted_valuation?: { usd?: number | null }
+		total_volume?: { usd?: number | null }
+	}
+}
+
+/** Result when the request fails and we fall back to `{}` (see fetchCoinGeckoCoinById). */
+export type CoinGeckoCoinDetailResult = CoinGeckoCoinDetailResponse | Record<string, never>
+
 export interface DenominationPriceHistory {
 	prices: Array<[number, number]>
 	mcaps: Array<[number, number]>
