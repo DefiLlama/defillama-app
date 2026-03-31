@@ -44,11 +44,20 @@ export function useDistributionData() {
 
 		const { charts } = query.data
 
-		const processChart = (chart: ChartPayload): ProcessedChart => ({
-			chartData: chart.data,
-			keys: chart.keys,
-			colors: assignColors(chart.keys)
-		})
+		const processChart = (chart: ChartPayload, fallbackKey = 'USD'): ProcessedChart => {
+			const needsRename = chart.keys.includes('undefined')
+			const keys = needsRename ? chart.keys.map((k) => (k === 'undefined' ? fallbackKey : k)) : chart.keys
+			const chartData = needsRename
+				? chart.data.map((row) => {
+						const next: Record<string, number> = {}
+						for (const [k, v] of Object.entries(row)) {
+							next[k === 'undefined' ? fallbackKey : k] = v
+						}
+						return next
+					})
+				: chart.data
+			return { chartData, keys, colors: assignColors(keys) }
+		}
 
 		return {
 			data: {

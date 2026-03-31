@@ -1,5 +1,6 @@
 import { lazy, useMemo } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { formatBarChart } from '~/components/ECharts/utils'
 import { useDistributionData } from './distributionApi'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -35,13 +36,49 @@ function makeStacks(keys: string[]): Record<string, string> {
 	return s
 }
 
+function mergeCumulativeStackChartData(
+	chartData: Array<Record<string, number>>,
+	keys: string[]
+): Array<Record<string, number>> {
+	const sorted = chartData.toSorted((a, b) => Number(a.date) - Number(b.date))
+	const bySec = new Map<number, Record<string, number>>()
+	for (const key of keys) {
+		const tuples: Array<[string | number, number]> = sorted.map((row) => [
+			row.date,
+			typeof row[key] === 'number' && Number.isFinite(row[key]) ? row[key] : 0
+		])
+		const cum = formatBarChart({
+			data: tuples,
+			groupBy: 'cumulative',
+			denominationPriceHistory: null
+		})
+		for (const [tsMs, val] of cum) {
+			if (val === null) continue
+			const sec = Math.round(tsMs / 1000)
+			let row = bySec.get(sec)
+			if (!row) {
+				row = { date: sec }
+				bySec.set(sec, row)
+			}
+			row[key] = val
+		}
+	}
+	return Array.from(bySec.entries())
+		.toSorted((a, b) => a[0] - b[0])
+		.map(([, row]) => row)
+}
+
 export default function DistributionRewards() {
 	const { data, isLoading } = useDistributionData()
 
 	const actualRevStacks = useMemo(() => makeStacks(data?.actualRevenue.keys ?? []), [data?.actualRevenue.keys])
-	const projStacks = useMemo(() => makeStacks(data?.revenueProjection.keys ?? []), [data?.revenueProjection.keys])
 	const xrSusdsStacks = useMemo(() => makeStacks(data?.xrSusds.keys ?? []), [data?.xrSusds.keys])
 	const xrSusdcStacks = useMemo(() => makeStacks(data?.xrSusdc.keys ?? []), [data?.xrSusdc.keys])
+
+	const revenueProjectionCumulativeChartData = useMemo(() => {
+		if (!data?.revenueProjection) return []
+		return mergeCumulativeStackChartData(data.revenueProjection.chartData, data.revenueProjection.keys)
+	}, [data?.revenueProjection])
 
 	if (isLoading || !data) {
 		return (
@@ -71,12 +108,14 @@ export default function DistributionRewards() {
 			</ChartCard>
 
 			<ChartCard title="Revenue Projection - User">
-				<BarChart
-					chartData={data.revenueProjection.chartData}
-					stacks={projStacks}
+				<AreaChart
+					chartData={revenueProjectionCumulativeChartData}
+					stacks={data.revenueProjection.keys}
 					stackColors={data.revenueProjection.colors}
 					valueSymbol="$"
 					title=""
+					isStackedChart={true}
+					hideGradient={true}
 					height="400px"
 					chartOptions={SCROLL_LEGEND}
 				/>
