@@ -188,7 +188,8 @@ export function useStablecoinAssetsList() {
 			const peggedAssets = data?.peggedAssets || []
 			return peggedAssets
 				.map((asset: any) => {
-					const mcap = asset.circulating?.peggedUSD || 0
+					const circulating = asset.circulating || {}
+				const mcap = Object.values(circulating).reduce((sum: number, val: any) => sum + (Number(val) || 0), 0)
 					return {
 						name: asset.name,
 						symbol: asset.symbol,
