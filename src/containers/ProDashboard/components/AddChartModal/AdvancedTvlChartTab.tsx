@@ -238,26 +238,26 @@ export function AdvancedTvlChartTab({
 						/>
 					</Suspense>
 				)
-			case 'tokenValuesUsd':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							chartData={resolvedTokenBreakdownUSD}
-							stacks={resolvedTokensUnique}
-							valueSymbol="$"
-							hideDefaultLegend={true}
-							hideGradient={true}
-							chartOptions={chartOptions}
-						/>
-					</Suspense>
-				)
+		case 'tokenValuesUsd':
+			return (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						chartData={resolvedTokenBreakdownUSD}
+						stacks={resolvedTokensUnique}
+						valueSymbol="$"
+						hideDefaultLegend={true}
+						isStackedChart
+						chartOptions={chartOptions}
+					/>
+				</Suspense>
+			)
 			case 'tokensPie':
 				return (
 					<Suspense
