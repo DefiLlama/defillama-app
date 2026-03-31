@@ -1,6 +1,6 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import type { RWAParentPlatform } from './grouping'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
 type RWAContractsByChain = Record<string, string[]>

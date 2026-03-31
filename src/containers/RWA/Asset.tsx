@@ -6,13 +6,13 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import { useYieldChartData } from '~/containers/Yields/queries/client'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
-import { RWAYieldsTable } from './RWAYieldsTable'
-import { useYieldChartData } from '~/containers/Yields/queries/client'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
+import { RWAYieldsTable } from './RWAYieldsTable'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -726,7 +726,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
 							<div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 pt-4 pb-2">
 								<div className="flex flex-col">
-									<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
+									<span className="text-xs font-medium tracking-wide text-(--text-disabled) uppercase">
 										Native Yield
 									</span>
 									{asset.nativeYieldCurrent != null ? (

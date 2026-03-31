@@ -6,12 +6,12 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum } from '~/utils'
 import { NameYield, NameYieldPool } from '~/containers/Yields/Tables/Name'
 import { YieldsTableWrapper } from '~/containers/Yields/Tables/shared'
 import { StabilityCell, StabilityHeader } from '~/containers/Yields/Tables/StabilityCell'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { formattedNum } from '~/utils'
 
 const columnHelper = createColumnHelper<IYieldTableRow>()
 
