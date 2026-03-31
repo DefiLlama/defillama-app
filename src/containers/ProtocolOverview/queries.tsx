@@ -34,7 +34,6 @@ import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
 import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
 import type { ProtocolChartsLabels } from './constants'
 import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
-import { LLAMASWAP_CHAINS } from './llamaswap'
 import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 
@@ -655,15 +654,28 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
-	let linkToLlamaswap = null
+	// find gecko_id — may be on a sibling protocol (e.g., aave-v3 has no gecko_id, aave-v2 has "aave")
+	let tokenGeckoId = protocolData.gecko_id
+	if (!tokenGeckoId && protocolData.parentProtocol) {
+		const sibling = liteProtocolsData.protocols.find(
+			(p) => p.parentProtocol === protocolData.parentProtocol && p.gecko_id
+		)
+		if (sibling) tokenGeckoId = sibling.gecko_id
+	}
+	let llamaswapChains = null
+	if (tokenGeckoId && !isCEX) {
+		try {
+			const liqData = await fetch(`https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity/${tokenGeckoId}`).then((r) => r.ok ? r.json() : null)
+			if (liqData?.chains?.length) {
+				llamaswapChains = liqData.chains
+			}
+		} catch {}
+	}
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
 
 		const cmetadata = chainMetadata?.[slug(firstChain)]
-		if (cmetadata?.id && LLAMASWAP_CHAINS.includes(cmetadata.id)) {
-			linkToLlamaswap = `https://swap.defillama.com?from=${protocolData.address}&chain=${cmetadata.id}`
-		}
 		const chainGasIds = chainCoingeckoIdsForGasNotMcap as Record<
 			string,
 			{ geckoId: string; symbol: string; cmcId: string }
@@ -1011,7 +1023,7 @@ export const getProtocolOverviewPageData = async ({
 		seoDescription,
 		defaultToggledCharts,
 		oracleTvs,
-		linkToLlamaswap
+		llamaswapChains
 	}
 }
 

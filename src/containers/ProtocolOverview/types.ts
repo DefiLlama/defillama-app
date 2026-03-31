@@ -195,7 +195,7 @@ export interface IProtocolOverviewPageData {
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]
 	treasuryMethodologyUrl?: string | null
-	linkToLlamaswap?: string | null
+	llamaswapChains?: Array<{ chain: string; chainId: number; address: string; priceImpact: number }> | null
 }
 
 interface ICredit {

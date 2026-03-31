@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
@@ -17,7 +18,7 @@ type KeyMetricsOptionalFields = Partial<
 		IProtocolOverviewPageData,
 		| 'category'
 		| 'hasKeyMetrics'
-		| 'linkToLlamaswap'
+		| 'llamaswapChains'
 		| 'oracleTvs'
 		| 'currentTvlByChain'
 		| 'openSmolStatsSummaryByDefault'
@@ -242,16 +243,8 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				<Raises {...props} />
 				<Expenses {...props} />
 			</div>
-			{props.linkToLlamaswap ? (
-				<a
-					target="_blank"
-					rel="noreferrer noopener"
-					href={props.linkToLlamaswap}
-					className="flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-white"
-				>
-					<span>Trade</span>
-					<Icon name="external-link" className="h-3 w-3" />
-				</a>
+			{props.llamaswapChains?.length ? (
+				<BuyOnLlamaswap chains={props.llamaswapChains} />
 			) : null}
 			<Flag protocol={props.name} isLending={props.category === 'Lending'} />
 		</div>
@@ -830,5 +823,57 @@ const Raises = (props: IKeyMetricsProps) => {
 				</p>
 			))}
 		</MetricSection>
+	)
+}
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const btnClass =
+	'flex items-center justify-center gap-1 rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+
+function buildSwapUrl(chain: { chain: string; address: string }) {
+	return `https://swap.defillama.com/?chain=${chain.chain}&from=${ZERO_ADDRESS}&to=${chain.address}&tab=swap&ref=defillama`
+}
+
+function BuyOnLlamaswap({
+	chains
+}: {
+	chains: Array<{ chain: string; chainId: number; address: string; priceImpact: number }>
+}) {
+	const sorted = [...chains].sort((a, b) => a.priceImpact - b.priceImpact)
+
+	if (sorted.length === 1) {
+		return (
+			<a target="_blank" rel="noreferrer noopener" href={buildSwapUrl(sorted[0])} className={btnClass}>
+				<span>Buy</span>
+				<Icon name="external-link" className="h-3 w-3" />
+			</a>
+		)
+	}
+
+	return (
+		<Ariakit.HovercardProvider showTimeout={0}>
+			<Ariakit.HovercardAnchor render={<button className={btnClass} />}>
+				<span>Buy</span>
+				<Ariakit.MenuButtonArrow />
+			</Ariakit.HovercardAnchor>
+			<Ariakit.Hovercard
+				unmountOnHide
+				gutter={4}
+				className="z-10 flex min-w-[140px] flex-col overflow-auto rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) dark:border-[hsl(204,3%,32%)]"
+				portal
+			>
+				{sorted.map((chain) => (
+					<a
+						key={chain.chain}
+						href={buildSwapUrl(chain)}
+						target="_blank"
+						rel="noreferrer noopener"
+						className="flex items-center gap-2 px-3 py-2 text-xs whitespace-nowrap hover:bg-(--primary-hover) first-of-type:rounded-t-md last-of-type:rounded-b-md"
+					>
+						<span className="capitalize">{chain.chain}</span>
+					</a>
+				))}
+			</Ariakit.Hovercard>
+		</Ariakit.HovercardProvider>
 	)
 }
