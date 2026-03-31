@@ -66,6 +66,7 @@ function ComparisonPlanHead({
 	const meta = PLAN_META_BY_CYCLE[billingCycle][plan]
 	const colStyle = isSelected ? planHeadStyles.selected : planHeadStyles.default
 	const btnStyle = isSelected ? planHeadButtonStyles.selected : planHeadButtonStyles.default
+	const edgeBorderClass = isSelected ? '' : `${isFirst ? 'border-l' : ''} ${isLast ? 'border-r' : ''}`
 	const slashIdx = meta.price.indexOf('/')
 	const priceValue = slashIdx >= 0 ? meta.price.slice(0, slashIdx) : meta.price
 	const priceUnit = slashIdx >= 0 ? meta.price.slice(slashIdx) : null
@@ -73,7 +74,7 @@ function ComparisonPlanHead({
 	return (
 		<div
 			role="columnheader"
-			className={`w-[132px] shrink-0 border-t md:w-[146px] ${colStyle} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
+			className={`box-border w-[132px] shrink-0 border-t md:w-[146px] ${colStyle} ${edgeBorderClass} ${isFirst ? 'rounded-tl-[16px] md:rounded-tl-[24px]' : ''} ${isLast ? 'rounded-tr-[16px] md:rounded-tr-[24px]' : ''}`}
 		>
 			<div className="flex h-full flex-col justify-between p-3 md:p-5">
 				<div>
@@ -112,9 +113,9 @@ const HORIZONTAL_SCROLL_AREA_CLASSNAME =
 const COMPARISON_ROW_CLASSNAME = 'relative flex h-[41px] md:h-[36px]'
 const WRAPPED_COMPARISON_ROW_CLASSNAME = 'relative flex min-h-[41px] md:h-[36px]'
 const COMPARISON_ROW_HEADER_CLASSNAME =
-	'sticky left-0 z-30 flex shrink-0 w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
+	'sticky left-0 z-30 box-border flex shrink-0 w-[233px] items-center bg-white px-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:px-4 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
 const WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME =
-	'sticky left-0 z-30 flex shrink-0 w-[233px] items-start bg-white px-2 py-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:items-center md:px-4 md:py-0 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
+	'sticky left-0 z-30 box-border flex shrink-0 w-[233px] items-start bg-white px-2 py-2 text-[14px] leading-[21px] text-(--sub-mobile-text-muted) md:w-[400px] md:items-center md:px-4 md:py-0 md:text-xs md:text-(--sub-desktop-text-muted) dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)'
 const COMPARISON_ROW_LABEL_CLASSNAME = 'block w-full overflow-hidden text-ellipsis whitespace-nowrap'
 const WRAPPED_COMPARISON_ROW_LABEL_CLASSNAME =
 	'block w-full whitespace-normal break-words md:overflow-hidden md:text-ellipsis md:whitespace-nowrap'
@@ -199,7 +200,7 @@ export function SubscriptionComparisonSection({
 					<div className="flex" role="row">
 						<div
 							role="columnheader"
-							className="sticky left-0 z-30 flex h-[132px] w-[233px] shrink-0 items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
+							className="sticky left-0 z-30 box-border flex h-[132px] w-[233px] shrink-0 items-center bg-white px-2 md:h-[129px] md:w-[400px] md:rounded-tl-[24px] md:px-4 dark:bg-(--sub-mobile-table-section-bg) dark:md:bg-(--sub-desktop-table-section-bg)"
 						>
 							<h2 className="text-[20px] leading-7 font-semibold text-(--sub-text-navy-900) md:w-[220px] md:text-[24px] md:leading-[34px] md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 								Compare Plans and Features
@@ -208,7 +209,7 @@ export function SubscriptionComparisonSection({
 
 						<div className="min-w-0 flex-1 overflow-hidden">
 							<div ref={headerPlanTrackRef} className="w-max [will-change:transform]">
-								<div className="flex h-[132px] rounded-t-[16px] border-x border-t border-(--sub-mobile-table-border) md:h-[129px] md:rounded-t-[24px] md:border-(--sub-desktop-table-border)">
+								<div className="flex h-[132px] rounded-t-[16px] border-t border-(--sub-mobile-table-border) md:h-[129px] md:rounded-t-[24px] md:border-(--sub-desktop-table-border)">
 									{planOrder.map((plan, index) => (
 										<ComparisonPlanHead
 											key={`plan-head-${plan}`}
@@ -245,7 +246,7 @@ export function SubscriptionComparisonSection({
 										>
 											<div
 												role="rowheader"
-												className="sticky left-0 z-30 flex w-[233px] shrink-0 items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-text-navy-900) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
+												className="sticky left-0 z-30 box-border flex w-[233px] shrink-0 items-center bg-(--sub-mobile-table-header-bg) px-2 text-[14px] leading-[21px] font-medium text-(--sub-text-navy-900) md:w-[400px] md:bg-(--sub-desktop-table-header-bg) md:px-4 md:text-[16px] md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
 											>
 												{section.title}
 											</div>
@@ -255,7 +256,7 @@ export function SubscriptionComparisonSection({
 													<div
 														key={`${section.title}-header-${plan}`}
 														role="cell"
-														className={`w-[132px] shrink-0 md:w-[146px] ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10 border-x border-(--sub-brand-primary)' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan !== selectedPlan && plan === 'enterprise' ? 'border-r' : ''}`}
+														className={`box-border w-[132px] shrink-0 md:w-[146px] ${prevPlan === selectedPlan || plan === selectedPlan ? '' : 'border-l'} ${plan === selectedPlan ? 'relative z-10 border-x border-(--sub-brand-primary)' : 'border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'} ${plan === selectedPlan ? SELECTED_COLUMN_HIGHLIGHT : ''} ${plan !== selectedPlan && plan === 'enterprise' ? 'border-r' : ''}`}
 													/>
 												)
 											})}
@@ -267,6 +268,9 @@ export function SubscriptionComparisonSection({
 											const rowHeaderDividerClassName = isLastRow
 												? ''
 												: 'border-b border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border)'
+											const rowCellDividerClassName = isLastRow
+												? ''
+												: 'border-b border-b-(--sub-mobile-table-border) md:border-b-(--sub-desktop-table-border)'
 											const rowHeaderClassName = row.wrapLabel
 												? `${WRAPPED_COMPARISON_ROW_HEADER_CLASSNAME} ${rowHeaderDividerClassName}`
 												: `${COMPARISON_ROW_HEADER_CLASSNAME} ${rowHeaderDividerClassName}`
@@ -305,17 +309,10 @@ export function SubscriptionComparisonSection({
 																plan={plan}
 																isSelected={plan === selectedPlan}
 																hideBorderLeft={prevPlan === selectedPlan}
-																className={lastRowCls || undefined}
+																className={`${rowCellDividerClassName} ${lastRowCls}`.trim() || undefined}
 															/>
 														)
 													})}
-
-													{!isLastRow ? (
-														<div
-															aria-hidden="true"
-															className="pointer-events-none absolute right-0 -bottom-px left-0 z-[15] h-px bg-(--sub-mobile-table-border) md:bg-(--sub-desktop-table-border)"
-														/>
-													) : null}
 												</div>
 											)
 										})}
