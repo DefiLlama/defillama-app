@@ -205,24 +205,30 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 				{tabs}
 
 				<form className="flex flex-col gap-4" onSubmit={(e) => void handleSignIn(e)}>
-					<input
-						type="email"
-						required
-						placeholder="Enter your email address"
-						className={inputCls}
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						autoFocus
-					/>
-					<div className="relative">
+					<label>
+						<span className="sr-only">Email</span>
 						<input
-							type={showPassword ? 'text' : 'password'}
+							type="email"
 							required
-							placeholder="Enter your password"
-							className={`${inputCls} pr-10`}
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
+							placeholder="Enter your email address"
+							className={inputCls}
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							autoFocus
 						/>
+					</label>
+					<div className="relative">
+						<label>
+							<span className="sr-only">Password</span>
+							<input
+								type={showPassword ? 'text' : 'password'}
+								required
+								placeholder="Enter your password"
+								className={`${inputCls} pr-10`}
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
+						</label>
 						<button
 							type="button"
 							className="absolute top-1/2 right-3 -translate-y-1/2 text-(--text-tertiary) hover:text-(--text-primary)"
@@ -282,24 +288,30 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 				</p>
 
 				<form className="flex flex-col gap-4" onSubmit={(e) => void handleSignUp(e)}>
-					<input
-						type="email"
-						required
-						placeholder="Enter your email address"
-						className={inputCls}
-						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						autoFocus
-					/>
-					<div className="relative">
+					<label>
+						<span className="sr-only">Email</span>
 						<input
-							type={showPassword ? 'text' : 'password'}
+							type="email"
 							required
-							placeholder="Create a password"
-							className={`${inputCls} pr-10`}
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
+							placeholder="Enter your email address"
+							className={inputCls}
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							autoFocus
 						/>
+					</label>
+					<div className="relative">
+						<label>
+							<span className="sr-only">Password</span>
+							<input
+								type={showPassword ? 'text' : 'password'}
+								required
+								placeholder="Create a password"
+								className={`${inputCls} pr-10`}
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+							/>
+						</label>
 						<button
 							type="button"
 							className="absolute top-1/2 right-3 -translate-y-1/2 text-(--text-tertiary) hover:text-(--text-primary)"
@@ -309,14 +321,17 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 							<Icon name={showPassword ? 'eye-off' : 'eye'} height={16} width={16} />
 						</button>
 					</div>
-					<input
-						type={showPassword ? 'text' : 'password'}
-						required
-						placeholder="Confirm password"
-						className={inputCls}
-						value={confirmPassword}
-						onChange={(e) => setConfirmPassword(e.target.value)}
-					/>
+					<label>
+						<span className="sr-only">Confirm password</span>
+						<input
+							type={showPassword ? 'text' : 'password'}
+							required
+							placeholder="Confirm password"
+							className={inputCls}
+							value={confirmPassword}
+							onChange={(e) => setConfirmPassword(e.target.value)}
+						/>
+					</label>
 
 					<Turnstile
 						onVerify={(token) => setTurnstileToken(token)}
@@ -377,15 +392,18 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 			<p className="mt-1 mb-6 text-sm text-(--text-meta)">Enter your email and we&apos;ll send you a reset link.</p>
 
 			<form className="flex flex-col gap-4" onSubmit={(e) => void handleForgotPassword(e)}>
-				<input
-					type="email"
-					required
-					placeholder="Enter your email address"
-					className={inputCls}
-					value={email}
-					onChange={(e) => setEmail(e.target.value)}
-					autoFocus
-				/>
+				<label>
+					<span className="sr-only">Email</span>
+					<input
+						type="email"
+						required
+						placeholder="Enter your email address"
+						className={inputCls}
+						value={email}
+						onChange={(e) => setEmail(e.target.value)}
+						autoFocus
+					/>
+				</label>
 				<button type="submit" disabled={resetPasswordMutation.isPending || !email} className={primaryBtnCls}>
 					{resetPasswordMutation.isPending ? 'Sending...' : 'Send Reset Link'}
 				</button>
