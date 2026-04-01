@@ -597,13 +597,12 @@ export function useCustomColumns() {
 	}
 }
 
-export function useLlamaAIWelcome(isSubscribed: boolean): [boolean, () => void] {
+export function useLlamaAIWelcome(_isSubscribed?: boolean): [boolean, () => void] {
 	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => {
 			const walkthroughState = getLlamaAIWalkthroughState(readAppStorage())
-			if (!isSubscribed) return '1'
-			return walkthroughState === 'armed' ? '0' : '1'
+			return walkthroughState === 'completed' ? '1' : '0'
 		},
 		() => '1' // SSR: assume seen
 	)
