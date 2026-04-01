@@ -166,11 +166,9 @@ export function SubscriptionComparisonSection({
 
 		const mq = window.matchMedia('(min-width: 768px)')
 		mq.addEventListener('change', update)
-		window.addEventListener('resize', update)
 
 		return () => {
 			mq.removeEventListener('change', update)
-			window.removeEventListener('resize', update)
 		}
 	}, [selectedPlan, planOrder])
 
