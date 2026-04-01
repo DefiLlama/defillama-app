@@ -192,10 +192,6 @@ function SubscriptionContent() {
 	const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise: 3 }
 
 	const handleComparisonPlanAction = (plan: PlanKey) => {
-		if (plan === 'free') {
-			signInDialog.show()
-			return
-		}
 		if (plan === 'enterprise') {
 			window.location.href = 'mailto:sales@defillama.com'
 			return
@@ -206,6 +202,13 @@ function SubscriptionContent() {
 			const isCurrentOrTrial = plan === currentPlan || (isTrial && plan === 'pro')
 			const isLowerTier = PLAN_TIER[plan] < PLAN_TIER[currentPlan]
 			if (isCurrentOrTrial || isLowerTier) return
+		}
+
+		if (plan === 'free') {
+			if (!isAuthenticated) {
+				signInDialog.show()
+			}
+			return
 		}
 
 		openStripeCheckout(planKeyToSubType(plan), billingInterval)
