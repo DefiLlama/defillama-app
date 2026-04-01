@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useCallback, useState } from 'react'
@@ -78,23 +79,17 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 
 	const errorMessage = topupMutation.error?.message ?? null
 
-	if (!isOpen) return null
-
 	return (
-		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-			onClick={(e) => e.target === e.currentTarget && handleClose()}
-		>
-			<div
-				className={`flex max-h-[90vh] w-full max-w-[420px] flex-col overflow-y-auto rounded-2xl border ${
-					step === 'stripe'
-						? 'border-(--sub-border-slate-100) bg-white'
-						: 'border-(--sub-border-slate-100) bg-white dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)'
-				}`}
+		<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
+			<Ariakit.Dialog
+				backdrop={<div className="bg-black/80" />}
+				className="dialog max-h-[90vh] min-h-0 gap-0 overflow-y-auto rounded-2xl border-0 p-0 md:max-w-[420px]"
+				portal
+				unmountOnHide
 			>
 				{step === 'stripe' ? (
 					<>
-						{/* Stripe step header — always light */}
+						{/* Stripe step header */}
 						<div className="flex items-center gap-3 border-b border-(--sub-border-slate-100) px-5 py-4">
 							<button
 								onClick={() => {
@@ -112,9 +107,9 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 									your External Data Balance
 								</p>
 							</div>
-							<button onClick={handleClose} className="rounded-full p-1 text-(--sub-ink-primary) transition-colors">
+							<Ariakit.DialogDismiss className="rounded-full p-1 text-(--sub-ink-primary) transition-colors">
 								<Icon name="x" height={24} width={24} />
-							</button>
+							</Ariakit.DialogDismiss>
 						</div>
 
 						{errorMessage ? (
@@ -144,12 +139,9 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 							<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary) dark:text-white">
 								Top Up Balance
 							</h3>
-							<button
-								onClick={handleClose}
-								className="rounded-full p-1 text-(--sub-ink-primary) transition-colors dark:text-white"
-							>
+							<Ariakit.DialogDismiss className="rounded-full p-1 text-(--sub-ink-primary) transition-colors dark:text-white">
 								<Icon name="x" height={24} width={24} />
-							</button>
+							</Ariakit.DialogDismiss>
 						</div>
 
 						<p className="text-xs leading-4 text-(--sub-text-muted)">Add credits for LlamaAI to access premium data</p>
@@ -232,7 +224,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 						)}
 					</div>
 				)}
-			</div>
-		</div>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }

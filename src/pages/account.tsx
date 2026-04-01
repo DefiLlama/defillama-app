@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
@@ -69,9 +70,14 @@ export default function Account() {
 					<ManageAccount />
 				</div>
 
-				{showSuccessModal && (
-					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-						<div className="flex w-full max-w-[380px] flex-col items-center gap-6 rounded-2xl border border-(--sub-border-slate-100) bg-white px-5 py-8 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
+				<Ariakit.DialogProvider open={showSuccessModal} setOpen={() => setShowSuccessModal(false)}>
+					<Ariakit.Dialog
+						backdrop={<div className="bg-black/80" />}
+						className="dialog max-h-[90vh] min-h-0 gap-0 overflow-y-auto rounded-2xl border-0 p-0 md:max-w-[380px]"
+						portal
+						unmountOnHide
+					>
+						<div className="flex flex-col items-center gap-6 bg-white px-5 py-8 dark:bg-(--sub-surface-dark)">
 							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-(--sub-brand-primary)/10">
 								<Icon name="check" height={32} width={32} className="text-(--sub-brand-primary)" />
 							</div>
@@ -81,15 +87,12 @@ export default function Account() {
 									Your subscription has been activated. Welcome to DefiLlama Pro!
 								</p>
 							</div>
-							<button
-								onClick={() => setShowSuccessModal(false)}
-								className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white"
-							>
+							<Ariakit.DialogDismiss className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white">
 								Continue
-							</button>
+							</Ariakit.DialogDismiss>
 						</div>
-					</div>
-				)}
+					</Ariakit.Dialog>
+				</Ariakit.DialogProvider>
 			</Layout>
 		</WalletProvider>
 	)
