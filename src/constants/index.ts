@@ -24,6 +24,9 @@ export const ETF_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/etf
 export const FDV_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
 export const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
+export const RWA_PERPS_SERVER_URL =
+	process.env.RWA_PERPS_SERVER_URL ??
+	(API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa-perps` : 'https://api.llama.fi/rwa-perps')
 export const STABLECOINS_SERVER_URL = API_KEY
 	? `https://pro-api.llama.fi/${API_KEY}/stablecoins`
 	: 'https://stablecoins.llama.fi'
