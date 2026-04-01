@@ -122,8 +122,9 @@ export function buildRWAPerpsCoinMetricSections(coin: IRWAPerpsCoinData): {
 	marketReference: MetricSectionData
 	pointInTimeRows: MetricRowData[]
 } {
+	const maxLeverage = formatMaybeNumber(coin.market.maxLeverage)
 	const tradingParameterChildren = [
-		{ label: 'Max Leverage', value: `${coin.market.maxLeverage}x` },
+		{ label: 'Max Leverage', value: maxLeverage === '-' ? '-' : `${maxLeverage}x` },
 		{ label: 'Maker Fee', value: formatFractionPercent(coin.market.makerFeeRate) },
 		{ label: 'Taker Fee', value: formatFractionPercent(coin.market.takerFeeRate) },
 		...(coin.market.deployerFeeShare == null || !Number.isFinite(coin.market.deployerFeeShare)

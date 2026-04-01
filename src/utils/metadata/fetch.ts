@@ -103,9 +103,9 @@ export async function fetchCoreMetadata(): Promise<{
 	const API_KEY = process.env.API_KEY
 	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
 	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
-	const RWA_PERPS_SERVER_URL =
-		process.env.RWA_PERPS_SERVER_URL ??
-		(API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa-perps` : 'https://api.llama.fi/rwa-perps')
+	const RWA_PERPS_SERVER_URL = API_KEY
+		? `https://pro-api.llama.fi/${API_KEY}/rwa-perps`
+		: 'https://api.llama.fi/rwa-perps'
 	const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
 	const DATASETS_SERVER_URL = API_KEY
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`

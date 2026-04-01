@@ -291,7 +291,7 @@ export default function TreemapChart({
 								} else if (isRwaVariant) {
 									arr = [
 										`{rwaName|${formatRwaTreemapBoxLabel(params)}}`,
-										`{rwaMetric|${valueLabel}: ${formattedNum(normalizedValue[0], true)}}`
+										`{rwaMetric|${valueLabel}: ${formatTreemapMetricValue(normalizedValue[0] ?? 0)}}`
 									]
 								} else {
 									arr = [
@@ -317,6 +317,11 @@ export default function TreemapChart({
 								lineHeight: 20
 							},
 							rwaName: {
+								fontSize: 12,
+								color: '#fff',
+								lineHeight: 18
+							},
+							rwaMetric: {
 								fontSize: 12,
 								color: '#fff',
 								lineHeight: 18
