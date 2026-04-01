@@ -443,7 +443,11 @@ export function AgenticSidebar({
 
 			{balance ? (
 				<Tooltip
-					content="Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more."
+					content={
+						hasActiveSubscription
+							? 'Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more.'
+							: 'Subscribe to a plan to top up your external data balance.'
+					}
 					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
 					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
 				>

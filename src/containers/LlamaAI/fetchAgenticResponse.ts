@@ -409,7 +409,9 @@ export async function fetchAgenticResponse({
 		const errorData = (await response.json().catch(() => null)) as AgenticErrorResponse | null
 		if (
 			response.status === 403 &&
-			(errorData?.code === 'FREE_QUESTION_LIMIT' || errorData?.code === 'FREE_FORM_LIMIT' || errorData?.code === 'FREE_DAILY_LIMIT')
+			(errorData?.code === 'FREE_QUESTION_LIMIT' ||
+				errorData?.code === 'FREE_FORM_LIMIT' ||
+				errorData?.code === 'FREE_DAILY_LIMIT')
 		) {
 			const err = new Error(errorData.content || 'Upgrade required') as RateLimitError
 			err.code = errorData.code as RateLimitError['code']

@@ -1508,7 +1508,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (err?.code === 'FREE_QUESTION_LIMIT' || err?.code === 'FREE_FORM_LIMIT' || err?.code === 'FREE_DAILY_LIMIT') {
+							if (
+								err?.code === 'FREE_QUESTION_LIMIT' ||
+								err?.code === 'FREE_FORM_LIMIT' ||
+								err?.code === 'FREE_DAILY_LIMIT'
+							) {
 								let msg = err.message || "You've reached the free question limit. Subscribe for unlimited access."
 								if (err.details?.resetTime) {
 									const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
