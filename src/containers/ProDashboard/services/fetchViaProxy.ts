@@ -58,3 +58,20 @@ export async function fetchStablecoinsListViaProxy(authToken: string): Promise<a
 export async function fetchStablecoinAssetViaProxy(slug: string, authToken: string): Promise<any> {
 	return proxyFetch<any>('stablecoinAsset', { slug }, authToken)
 }
+
+export async function fetchRWABreakdownViaProxy(
+	breakdown: string,
+	metric: string,
+	authToken: string,
+	chain?: string
+): Promise<any> {
+	return proxyFetch<any>('rwaBreakdown', { breakdown, metric, chain }, authToken)
+}
+
+export async function fetchRWAAssetChartViaProxy(assetId: string, authToken: string): Promise<any> {
+	return proxyFetch<any>('rwaAssetChart', { assetId }, authToken)
+}
+
+export async function fetchRWAAssetsListViaProxy(authToken: string): Promise<any> {
+	return proxyFetch<any>('rwaAssetsList', {}, authToken)
+}

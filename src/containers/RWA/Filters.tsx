@@ -92,6 +92,7 @@ type RWAFilterOptions = {
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
 	issuers: IRWAAssetsOverview['issuers']
+	categorySlug: IRWAAssetsOverview['categorySlug']
 }
 
 type RWAFilterSelections = {
@@ -264,11 +265,10 @@ function Filters({
 
 	if (!enabled) return null
 
-	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
 	const defaultSelectedTypes = getDefaultSelectedTypes(
 		options.typeOptions.map((o) => o.key),
 		modes.mode,
-		categorySlug
+		options.categorySlug
 	)
 
 	// Determine active filters/chart controls purely from URL query.

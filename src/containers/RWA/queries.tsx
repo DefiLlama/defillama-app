@@ -38,6 +38,7 @@ import {
 	emptyChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
+import { getDefaultRWAOverviewInclusion, type RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
@@ -218,10 +219,22 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					: selectedAssetGroup
 						? { kind: 'assetGroup', slug: selectedAssetGroup }
 						: { kind: 'all' }
+		const mode: RWAOverviewMode = selectedAssetGroup
+			? 'assetGroup'
+			: selectedPlatform
+				? 'platform'
+				: selectedCategory
+					? 'category'
+					: 'chain'
+		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
 
 		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
 			fetchRWAActiveTVLs(),
-			fetchRWAChartDataByTicker(target)
+			fetchRWAChartDataByTicker({
+				target,
+				includeStablecoins: defaultInclusion.includeStablecoins,
+				includeGovernance: defaultInclusion.includeGovernance
+			})
 		])
 
 		assert(data, 'Failed to get RWA assets list')
@@ -576,9 +589,9 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
 		const aggregationMode: RWAChartAggregationMode = selectedAssetGroup ? 'assetName' : 'assetGroup'
 		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
-			includeStablecoins: false,
-			includeGovernance: false,
-			mode: selectedAssetGroup ? 'assetGroup' : selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain',
+			includeStablecoins: defaultInclusion.includeStablecoins,
+			includeGovernance: defaultInclusion.includeGovernance,
+			mode,
 			categorySlug: selectedCategory
 		})
 		const initialChartDataset = chartDataMs

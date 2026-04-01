@@ -133,8 +133,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		accessModels: props.accessModels,
 		issuers: props.issuers,
 		assetGroups: props.assetGroups,
-		defaultIncludeStablecoins: false,
-		defaultIncludeGovernance: false,
+		categorySlug: props.categorySlug,
 		mode
 	})
 
@@ -168,7 +167,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			maxDefiActiveTvlToActiveMcapPct
 		})
 
-	const activeFilters = hasActiveChartFilters(router.query)
+	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
 	const chartTarget = getTickerChartTarget(props)
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
@@ -177,6 +176,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		filteredAssets,
 		mode: getRwaChartAggregationMode(timeSeriesBreakdown),
 		target: chartTarget,
+		includeStablecoins,
+		includeGovernance,
 		useInitialDataset:
 			chartTypeKey === 'activeMcap' &&
 			!activeFilters &&
@@ -578,7 +579,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					assetClassOptions: props.assetClassOptions,
 					rwaClassificationOptions: props.rwaClassificationOptions,
 					accessModelOptions: props.accessModelOptions,
-					issuers: props.issuers
+					issuers: props.issuers,
+					categorySlug: props.categorySlug
 				}}
 				selections={{
 					selectedAssetNames,
