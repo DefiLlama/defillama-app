@@ -754,7 +754,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<LoadingDots />
 								</p>
 							) : (
-								<Suspense fallback={<div className="min-h-[360px]" />}>
+								<Suspense fallback={<div className="min-h-[360px] flex-1" />}>
 									<MultiSeriesChart2
 										charts={NATIVE_YIELD_CHARTS}
 										dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
@@ -762,6 +762,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										hideDefaultLegend={false}
 										exportButtons="hidden"
 										onReady={onNativeYieldChartReady}
+										containerClassName="flex-1 min-h-[360px]"
 									/>
 								</Suspense>
 							)}
