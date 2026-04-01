@@ -17,6 +17,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useAiBalance } from '~/containers/Subscribtion/useTopup'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -137,6 +138,7 @@ export function AgenticSidebar({
 	const [selectMode, setSelectMode] = useState(false)
 	const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set())
 	const { balance, totalAvailable } = useAiBalance()
+	const { hasActiveSubscription } = useAuthContext()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 
 	const toggleSelect = useCallback((sessionId: string) => {
@@ -379,7 +381,7 @@ export function AgenticSidebar({
 				<div className="border-t border-[#e6e6e6] px-3 py-2.5 dark:border-[#222324]">
 					<Tooltip
 						content="Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more."
-						render={<button onClick={() => setIsTopupModalOpen(true)} />}
+						render={<button onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
 						className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#222324]"
 					>
 						<div className="flex items-center gap-2">

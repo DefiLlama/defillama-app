@@ -187,7 +187,7 @@ function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
 					</li>
 					<li className="flex items-center gap-2">
 						<Icon name="check" height={14} width={14} className="text-green-400" />
-						<span>5 deep research questions per day (instead of 3)</span>
+						<span>5 deep research questions per day (instead of 3 lifetime)</span>
 					</li>
 					<li className="flex items-center gap-2">
 						<Icon name="check" height={14} width={14} className="text-green-400" />
