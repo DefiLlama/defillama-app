@@ -1,7 +1,24 @@
 export type RWAOverviewMode = 'chain' | 'category' | 'platform' | 'assetGroup'
 
+export type RWAOverviewInclusionDefaults = {
+	includeStablecoins: boolean
+	includeGovernance: boolean
+}
+
 export const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
 export const RWA_YIELD_WRAPPER_SLUG = 'rwa-yield-wrapper'
+
+export function getDefaultRWAOverviewInclusion(
+	mode: RWAOverviewMode,
+	categorySlug?: string | null
+): RWAOverviewInclusionDefaults {
+	const isYieldWrapperCategory = mode === 'category' && categorySlug === RWA_YIELD_WRAPPER_SLUG
+
+	return {
+		includeStablecoins: isYieldWrapperCategory,
+		includeGovernance: isYieldWrapperCategory
+	}
+}
 
 export function isTypeIncludedByDefault(
 	type: string | null | undefined,

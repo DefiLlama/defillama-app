@@ -253,7 +253,7 @@ export function AdvancedTvlChartTab({
 							stacks={resolvedTokensUnique}
 							valueSymbol="$"
 							hideDefaultLegend={true}
-							hideGradient={true}
+							isStackedChart
 							chartOptions={chartOptions}
 						/>
 					</Suspense>

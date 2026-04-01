@@ -24,9 +24,11 @@ import type {
 	DenominationPriceHistory,
 	GeckoIdResponse,
 	IResponseCGMarketsAPI,
+	LlamaswapChain,
+	ProtocolLlamaswapResponse,
 	LlamaConfigResponse,
 	PriceObject,
-	ProtocolLiquidityToken,
+	ProtocolLiquidityTokensResponse,
 	ProtocolTokenLiquidityChart,
 	SearchQuery,
 	TwitterPostsResponse,
@@ -67,6 +69,7 @@ const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
 const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
+const PROTOCOL_LLAMASWAP_API_URL = 'https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity'
 
 // ---------------------------------------------------------------------------
 // CoinGecko queries
@@ -360,8 +363,17 @@ export async function fetchTwitterPostsByUsername(username: string): Promise<Twi
 }
 
 /** Fetch the list of all protocols that have liquidity data available. */
-export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
-	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
+export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
+}
+
+/** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */
+export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<LlamaswapChain[] | null> {
+	if (!geckoId) return null
+
+	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}`)
+		.then((data) => (Array.isArray(data?.chains) && data.chains.length > 0 ? data.chains : null))
+		.catch(() => null)
 }
 
 /** Fetch historical liquidity chart for a specific token. */

@@ -1,13 +1,14 @@
 import Head from 'next/head'
 import * as React from 'react'
 import { BasicLink } from '~/components/Link'
-import { LinkPreviewCard } from '~/components/SEO'
+import { LinkPreviewCard, SEO } from '~/components/SEO'
 
 export default function FulfillmentPolicies() {
 	return (
 		<SubscribeLayout2
 			title="Subscribe - Fulfillment Policies - DefiLlama"
 			description="DefiLlama subscription refund and cancellation policies."
+			canonicalUrl="/subscription/fulfillment-policies"
 		>
 			<div className="mx-auto mb-[64px] flex w-full max-w-xl flex-col gap-8 text-[#d5d5d5]">
 				<h1 className="text-center text-3xl font-bold text-white">Fulfillment Policies</h1>
@@ -36,17 +37,18 @@ export default function FulfillmentPolicies() {
 export function SubscribeLayout2({
 	children,
 	title = 'Subscribe - DefiLlama',
-	description
+	description,
+	canonicalUrl
 }: {
 	children: React.ReactNode
 	title?: string
 	description?: string
+	canonicalUrl?: string | null
 }) {
 	return (
 		<>
+			<SEO title={title} description={description} canonicalUrl={canonicalUrl} />
 			<Head>
-				<title>{title}</title>
-				{description ? <meta name="description" content={description} /> : null}
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />

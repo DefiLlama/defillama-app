@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { LinkPreviewCard } from '~/components/SEO'
+import { LinkPreviewCard, SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
@@ -12,20 +12,21 @@ import { SignInModal } from '~/containers/Subscription/SignInModal'
 export function SubscribeLayout({
 	children,
 	title = 'Subscribe to DefiLlama Pro Analytics - DefiLlama',
-	description
+	description,
+	canonicalUrl
 }: {
 	children: React.ReactNode
 	title?: string
 	description?: string
+	canonicalUrl?: string | null
 }) {
 	const { isAuthenticated, logout } = useAuthContext()
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
 	return (
 		<>
+			<SEO title={title} description={description} canonicalUrl={canonicalUrl} />
 			<Head>
-				<title>{title}</title>
-				{description ? <meta name="description" content={description} /> : null}
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />

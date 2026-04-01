@@ -1,10 +1,9 @@
 import * as Ariakit from '@ariakit/react'
-import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { LinkPreviewCard } from '~/components/SEO'
+import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { ReturnModal } from '~/containers/Subscription/components/ReturnModal'
@@ -361,15 +360,11 @@ function SubscriptionContent() {
 export default function Subscription() {
 	return (
 		<>
-			<Head>
-				<title>Subscribe to DefiLlama Pro Analytics - DefiLlama</title>
-				<meta
-					name="description"
-					content="Unlock LlamaAI, advanced DeFi analytics, custom dashboards, CSV downloads, and pro-level data with DefiLlama Pro."
-				/>
-				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
-			</Head>
-			<LinkPreviewCard />
+			<SEO
+				title="Subscribe to DefiLlama Pro Analytics - DefiLlama"
+				description="Unlock LlamaAI, advanced DeFi analytics, custom dashboards, CSV downloads, and pro-level data with DefiLlama Pro."
+				canonicalUrl="/subscription"
+			/>
 			<WalletProvider>
 				<SubscriptionContent />
 			</WalletProvider>

@@ -1,15 +1,17 @@
 import Head from 'next/head'
+import { SEO } from '~/components/SEO'
 import { TemporarilyDisabledPage } from '~/components/TemporarilyDisabledPage'
 
 export default function Liquidity() {
 	return (
 		<>
+			<SEO
+				title="Token Liquidity - DefiLlama"
+				description="Check token liquidity and swap depth across decentralized exchanges on DefiLlama."
+				canonicalUrl="/liquidity"
+			/>
 			<Head>
-				<title>Token Liquidity - DefiLlama</title>
-				<meta
-					name="description"
-					content="Check token liquidity and swap depth across decentralized exchanges on DefiLlama."
-				/>
+				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			{/* <iframe
 				title="Token Liquidity"

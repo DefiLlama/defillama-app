@@ -329,7 +329,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							customLegendOptions={resolvedTokensUnique}
 							hideDownloadButton={true}
 							hideDataZoom={true}
-							hideGradient={true}
+							isStackedChart
 							chartOptions={chartOptions}
 							height="360px"
 							onReady={handleChartReady}
