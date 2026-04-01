@@ -5,6 +5,7 @@ import type { IRWAAssetsOverview } from './api.types'
 import type { RWAChartAggregationMode } from './chartAggregation'
 import {
 	getRwaTickerChartQueryKey,
+	hasActiveChartFilters,
 	resolveRWAOverviewInclusionFlag,
 	useRwaAssetGroupPieChartData,
 	useRwaChartDataset
@@ -188,6 +189,24 @@ describe('resolveRWAOverviewInclusionFlag', () => {
 	it('lets an explicit false query override a true page default', () => {
 		expect(resolveRWAOverviewInclusionFlag('false', true)).toBe(false)
 		expect(resolveRWAOverviewInclusionFlag('true', false)).toBe(true)
+	})
+})
+
+describe('hasActiveChartFilters', () => {
+	it('ignores inclusion params that resolve to the current defaults', () => {
+		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, 'category', 'rwa-yield-wrapper')).toBe(false)
+		expect(hasActiveChartFilters({ includeGovernance: 'true' }, 'category', 'rwa-yield-wrapper')).toBe(false)
+		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, 'chain', null)).toBe(false)
+	})
+
+	it('treats inclusion params as active when they override the current defaults', () => {
+		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, 'category', 'rwa-yield-wrapper')).toBe(true)
+		expect(hasActiveChartFilters({ includeGovernance: 'false' }, 'category', 'rwa-yield-wrapper')).toBe(true)
+		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, 'chain', null)).toBe(true)
+	})
+
+	it('still treats non-inclusion query filters as active', () => {
+		expect(hasActiveChartFilters({ minActiveMcapToOnChainMcapPct: '10' }, 'category', 'rwa-yield-wrapper')).toBe(true)
 	})
 })
 

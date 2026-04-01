@@ -167,7 +167,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			maxDefiActiveTvlToActiveMcapPct
 		})
 
-	const activeFilters = hasActiveChartFilters(router.query)
+	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
 	const chartTarget = getTickerChartTarget(props)
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({

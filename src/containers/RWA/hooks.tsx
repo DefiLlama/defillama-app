@@ -96,6 +96,12 @@ export function resolveRWAOverviewInclusionFlag(
 	return queryValue != null ? isTrueQueryParam(queryValue) : defaultValue
 }
 
+function hasActiveInclusionOverride(queryValue: string | string[] | undefined, defaultValue: boolean): boolean {
+	if (queryValue == null) return false
+	if (Array.isArray(queryValue)) return true
+	return resolveRWAOverviewInclusionFlag(queryValue, defaultValue) !== defaultValue
+}
+
 export const useRWATableQueryParams = ({
 	assetNames,
 	types,
@@ -1205,8 +1211,22 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 	'includeGovernance'
 ])
 
-export function hasActiveChartFilters(query: NextRouter['query']): boolean {
+export function hasActiveChartFilters(
+	query: NextRouter['query'],
+	mode: RWAOverviewMode,
+	categorySlug?: string | null
+): boolean {
+	const defaultInclusion = getDefaultRWAOverviewInclusion(mode, categorySlug)
+
 	for (const key of CHART_FILTER_QUERY_KEYS) {
+		if (key === 'includeStablecoins') {
+			if (hasActiveInclusionOverride(query.includeStablecoins, defaultInclusion.includeStablecoins)) return true
+			continue
+		}
+		if (key === 'includeGovernance') {
+			if (hasActiveInclusionOverride(query.includeGovernance, defaultInclusion.includeGovernance)) return true
+			continue
+		}
 		if (key in query) return true
 	}
 	return false

@@ -97,7 +97,7 @@ function parseTarget(req: Pick<NextApiRequest, 'query'>): RWATickerChartTarget |
 }
 
 function parseBooleanFlag(value: string | string[] | undefined): boolean | null {
-	if (value == null) return false
+	if (value == null) return null
 	if (Array.isArray(value)) return null
 	if (value === 'true') return true
 	if (value === 'false') return false

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildTickerBreakdownUrl, parseTickerBreakdownRequest } from '~/pages/api/rwa/ticker-breakdown'
 
 describe('parseTickerBreakdownRequest', () => {
-	it('defaults both inclusion flags to false when they are omitted', () => {
+	it('rejects requests when inclusion flags are omitted', () => {
 		expect(
 			parseTickerBreakdownRequest({
 				query: {
@@ -10,12 +10,7 @@ describe('parseTickerBreakdownRequest', () => {
 					key: 'activeMcap'
 				}
 			})
-		).toEqual({
-			target: { kind: 'category', slug: 'rwa-yield-wrapper' },
-			key: 'activeMcap',
-			includeStablecoin: false,
-			includeGovernance: false
-		})
+		).toBeNull()
 	})
 
 	it('accepts explicit true and false inclusion flags', () => {
