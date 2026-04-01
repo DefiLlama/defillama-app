@@ -138,15 +138,13 @@ function FreeUpgradeBanner() {
 					src="/assets/sub_plans_bg_light.png"
 					alt=""
 					loading="lazy"
-					className="absolute dark:hidden"
-					// style={{ left: '-65px', top: '-201px', width: '1050px', height: '655px' }}
+					className="absolute inset-0 h-full w-full object-fill dark:hidden"
 				/>
 				<img
 					src="/assets/sub_plans_bg_dark.png"
 					alt=""
 					loading="lazy"
-					className="absolute hidden dark:block"
-					// style={{ left: '-65px', top: '-201px', width: '1050px', height: '655px' }}
+					className="absolute inset-0 hidden h-full w-full object-fill dark:block"
 				/>
 			</div>
 		</div>
