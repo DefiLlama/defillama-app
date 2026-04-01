@@ -8,20 +8,7 @@ export function normalizeTreemapValue(rawValue: unknown): Array<number | null> {
 			return Number.isFinite(parsed) ? parsed : null
 		})
 		while (value.length < 3) value.push(null)
-
-		const n0 = typeof value[0] === 'number' ? value[0] : Number(value[0] ?? 0)
-		value[0] = Number.isFinite(n0) ? n0 : 0
-
-		for (let idx = 1; idx <= 2; idx++) {
-			const current = value[idx]
-			if (current == null) {
-				value[idx] = null
-				continue
-			}
-			const n = typeof current === 'number' ? current : Number(current)
-			value[idx] = Number.isFinite(n) ? n : null
-		}
-
+		value[0] = value[0] ?? 0
 		return value
 	}
 

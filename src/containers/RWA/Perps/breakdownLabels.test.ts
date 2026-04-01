@@ -20,6 +20,7 @@ const baseRow = {
 describe('breakdownLabels', () => {
 	it('normalizes empty labels to the shared unknown bucket', () => {
 		expect(normalizeRWAPerpsBreakdownLabel('')).toBe(UNKNOWN_BREAKDOWN_LABEL)
+		expect(normalizeRWAPerpsBreakdownLabel(null)).toBe(UNKNOWN_BREAKDOWN_LABEL)
 		expect(normalizeRWAPerpsBreakdownLabel(undefined)).toBe(UNKNOWN_BREAKDOWN_LABEL)
 	})
 

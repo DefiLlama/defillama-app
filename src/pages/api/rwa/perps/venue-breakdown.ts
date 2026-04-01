@@ -1,16 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getRWAPerpsVenueBreakdownChartDataset } from '~/containers/RWA/Perps/queries'
-import type {
-	IRWAPerpsVenueBreakdownRequest,
-	RWAPerpsChartMetricKey,
-	RWAPerpsVenueBreakdown
-} from '~/containers/RWA/Perps/types'
-
-function parseChartMetricKey(value: string | string[] | undefined): RWAPerpsChartMetricKey | null {
-	if (Array.isArray(value) || value == null) return null
-	if (value === 'openInterest' || value === 'volume24h' || value === 'markets') return value
-	return null
-}
+import { parseChartMetricKey } from '~/containers/RWA/Perps/requestParsers'
+import type { IRWAPerpsVenueBreakdownRequest, RWAPerpsVenueBreakdown } from '~/containers/RWA/Perps/types'
 
 function parseBreakdown(value: string | string[] | undefined): RWAPerpsVenueBreakdown | null {
 	if (Array.isArray(value) || value == null) return null
@@ -25,11 +16,16 @@ export function parseVenueBreakdownRequest(req: Pick<NextApiRequest, 'query'>): 
 	const venue = req.query.venue
 	const breakdown = parseBreakdown(req.query.breakdown)
 	const key = parseChartMetricKey(req.query.key)
-	if (Array.isArray(venue) || typeof venue !== 'string' || venue.length === 0 || breakdown == null || key == null) {
+	if (Array.isArray(venue) || typeof venue !== 'string' || breakdown == null || key == null) {
 		return null
 	}
 
-	return { venue, breakdown, key }
+	const trimmedVenue = venue.trim()
+	if (trimmedVenue.length === 0) {
+		return null
+	}
+
+	return { venue: trimmedVenue, breakdown, key }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

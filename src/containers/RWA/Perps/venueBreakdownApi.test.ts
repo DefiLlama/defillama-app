@@ -18,6 +18,22 @@ describe('parseVenueBreakdownRequest', () => {
 		})
 	})
 
+	it('trims venue values before returning the request', () => {
+		expect(
+			parseVenueBreakdownRequest({
+				query: {
+					venue: ' xyz ',
+					breakdown: 'referenceAsset',
+					key: 'volume24h'
+				}
+			})
+		).toEqual({
+			venue: 'xyz',
+			breakdown: 'referenceAsset',
+			key: 'volume24h'
+		})
+	})
+
 	it('accepts markets requests', () => {
 		expect(
 			parseVenueBreakdownRequest({
@@ -41,6 +57,16 @@ describe('parseVenueBreakdownRequest', () => {
 					venue: ['xyz'],
 					breakdown: 'coin',
 					key: 'openInterest'
+				}
+			})
+		).toBeNull()
+
+		expect(
+			parseVenueBreakdownRequest({
+				query: {
+					venue: '   ',
+					breakdown: 'coin',
+					key: 'markets'
 				}
 			})
 		).toBeNull()

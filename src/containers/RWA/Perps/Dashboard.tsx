@@ -677,7 +677,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 
 	const timeSeriesMetricSwitch = (
 		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-			{chartMetricOptions.map(({ key, label }) => (
+			{chartMetricOptions.map(({ key, name }) => (
 				<button
 					key={`rwa-perps-chart-metric-${key}`}
 					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
@@ -688,7 +688,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 						})
 					}}
 				>
-					{label}
+					{name}
 				</button>
 			))}
 		</div>

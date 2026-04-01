@@ -228,4 +228,12 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('Only a single snapshot is available')
 		expect(html).not.toContain('timeseries')
 	})
+
+	it('renders the time-series metric switch labels from metric option names', () => {
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Open Interest')
+		expect(html).toContain('24h Volume')
+		expect(html).toContain('Markets')
+	})
 })

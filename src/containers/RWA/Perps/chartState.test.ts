@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsChartBreakdownOptions,
+	getRWAPerpsChartMetricOptions,
 	getRWAPerpsTreemapNestedByOptions,
 	parseRWAPerpsChartState,
 	setRWAPerpsChartView
@@ -75,6 +76,14 @@ describe('perps chartState options', () => {
 		expect(getDefaultRWAPerpsChartBreakdown('overview', 'treemap')).toBe('venue')
 		expect(getDefaultRWAPerpsChartBreakdown('venue', 'timeSeries')).toBe('referenceAsset')
 		expect(getDefaultRWAPerpsChartBreakdown('venue', 'treemap')).toBe('assetClass')
+	})
+
+	it('exposes chart metric options with key/name pairs', () => {
+		expect(getRWAPerpsChartMetricOptions()).toEqual([
+			{ key: 'openInterest', name: 'Open Interest' },
+			{ key: 'volume24h', name: '24h Volume' },
+			{ key: 'markets', name: 'Markets' }
+		])
 	})
 
 	it('exposes the intended overview grouping matrix', () => {

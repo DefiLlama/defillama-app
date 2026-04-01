@@ -284,7 +284,8 @@ export async function getRWAPerpsCoinData({ coin }: { coin: string }): Promise<I
 			marketChart,
 			fundingHistory
 		}
-	} catch {
+	} catch (error) {
+		console.error(`[rwa-perps] getRWAPerpsCoinData failed for ${coin}:`, error)
 		return null
 	}
 }

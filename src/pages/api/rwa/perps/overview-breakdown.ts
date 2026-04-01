@@ -1,12 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/queries'
-import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey } from '~/containers/RWA/Perps/types'
-
-function parseChartMetricKey(value: string | string[] | undefined): RWAPerpsChartMetricKey | null {
-	if (Array.isArray(value) || value == null) return null
-	if (value === 'openInterest' || value === 'volume24h' || value === 'markets') return value
-	return null
-}
+import { parseChartMetricKey } from '~/containers/RWA/Perps/requestParsers'
+import type { IRWAPerpsOverviewBreakdownRequest } from '~/containers/RWA/Perps/types'
 
 export function parseOverviewBreakdownRequest(
 	req: Pick<NextApiRequest, 'query'>

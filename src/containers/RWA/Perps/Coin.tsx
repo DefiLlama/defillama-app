@@ -160,6 +160,14 @@ function RWAPerpsCoinInfoCard({ coin }: { coin: IRWAPerpsCoinData }) {
 	const infoRows = buildRWAPerpsCoinInfoRows(coin)
 	const midpoint = Math.ceil(infoRows.length / 2)
 	const desktopInfoColumns = [infoRows.slice(0, midpoint), infoRows.slice(midpoint)].filter((rows) => rows.length > 0)
+	const renderInfoRowValue = (row: (typeof infoRows)[number]) =>
+		row.label === 'Website' ? (
+			<a href={row.value} target="_blank" rel="noopener noreferrer" className="text-(--link-text) hover:underline">
+				{row.value}
+			</a>
+		) : (
+			row.value
+		)
 
 	return (
 		<section className="col-span-full flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:p-4">
@@ -167,48 +175,14 @@ function RWAPerpsCoinInfoCard({ coin }: { coin: IRWAPerpsCoinData }) {
 			{coin.coin.description ? <p className="text-sm text-(--text-label)">{coin.coin.description}</p> : null}
 			<div className="flex flex-col xl:hidden">
 				{infoRows.map((row) => (
-					<MetricRow
-						key={row.label}
-						label={row.label}
-						value={
-							row.label === 'Website' ? (
-								<a
-									href={row.value}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="text-(--link-text) hover:underline"
-								>
-									{row.value}
-								</a>
-							) : (
-								row.value
-							)
-						}
-					/>
+					<MetricRow key={row.label} label={row.label} value={renderInfoRowValue(row)} />
 				))}
 			</div>
 			<div className="hidden gap-x-6 xl:grid xl:grid-cols-2">
 				{desktopInfoColumns.map((rows, index) => (
 					<div className="flex flex-col" key={`info-column-${index}`}>
 						{rows.map((row) => (
-							<MetricRow
-								key={row.label}
-								label={row.label}
-								value={
-									row.label === 'Website' ? (
-										<a
-											href={row.value}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-(--link-text) hover:underline"
-										>
-											{row.value}
-										</a>
-									) : (
-										row.value
-									)
-								}
-							/>
+							<MetricRow key={row.label} label={row.label} value={renderInfoRowValue(row)} />
 						))}
 					</div>
 				))}
@@ -220,6 +194,7 @@ function RWAPerpsCoinInfoCard({ coin }: { coin: IRWAPerpsCoinData }) {
 function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 	const router = useRouter()
 	const searchParams = useMemo(() => {
+		// Use the raw URL so chart controls reflect the current search string before router.query is hydrated.
 		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
 		return new URLSearchParams(queryString)
 	}, [router.asPath])

@@ -249,4 +249,28 @@ describe('buildRWAPerpsCoinChartSpec', () => {
 			{ timestamp: Date.UTC(2026, 2, 2), 'Funding Rate': 0.2, Premium: 2 }
 		])
 	})
+
+	it('normalizes second-based timestamps to milliseconds before grouping', () => {
+		const spec = buildRWAPerpsCoinChartSpec({
+			marketPoints: [
+				{
+					...chartPoints[0],
+					timestamp: Math.floor(Date.UTC(2026, 2, 1) / 1e3)
+				}
+			],
+			fundingHistory: [
+				{
+					...fundingHistoryPoints[0],
+					timestamp: Math.floor(Date.UTC(2026, 2, 2) / 1e3)
+				}
+			],
+			groupBy: 'daily',
+			enabledMetrics: ['openInterest', 'fundingRate']
+		})
+
+		expect(spec.dataset.source).toEqual([
+			{ timestamp: Date.UTC(2026, 2, 1), 'Open Interest': 100 },
+			{ timestamp: Date.UTC(2026, 2, 2), 'Funding Rate': 0.1 }
+		])
+	})
 })

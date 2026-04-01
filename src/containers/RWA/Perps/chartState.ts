@@ -43,10 +43,10 @@ const CHART_VIEW_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartView>> 
 	{ key: 'hbar', name: 'HBar Chart' }
 ]
 
-const CHART_METRIC_OPTIONS: ReadonlyArray<{ key: RWAPerpsChartMetricKey; label: string }> = [
-	{ key: 'openInterest', label: 'Open Interest' },
-	{ key: 'volume24h', label: '24h Volume' },
-	{ key: 'markets', label: 'Markets' }
+const CHART_METRIC_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartMetricKey>> = [
+	{ key: 'openInterest', name: 'Open Interest' },
+	{ key: 'volume24h', name: '24h Volume' },
+	{ key: 'markets', name: 'Markets' }
 ]
 
 const BREAKDOWN_LABELS: Record<RWAPerpsChartBreakdown, string> = {
@@ -135,7 +135,7 @@ export function getRWAPerpsChartMetricOptions() {
 export function getRWAPerpsChartMetricLabel(metric: RWAPerpsChartMetricKey) {
 	const option = CHART_METRIC_OPTIONS.find((item) => item.key === metric)
 	assert(option, `Missing RWA perps chart metric label for ${metric}`)
-	return option.label
+	return option.name
 }
 
 export function getRWAPerpsBreakdownLabel(breakdown: RWAPerpsChartBreakdown) {

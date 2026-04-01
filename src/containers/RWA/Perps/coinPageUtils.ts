@@ -249,12 +249,17 @@ function getMetricSourcePoints({
 }): Array<[number, number]> {
 	if (metricKey === 'fundingRate' || metricKey === 'premium') {
 		if (fundingHistory?.length) {
-			return fundingHistory.map((point) => [point.timestamp, getFundingHistoryMetricValue(point, metricKey)])
+			return fundingHistory.map((point) => [
+				toUnixMsTimestamp(point.timestamp),
+				getFundingHistoryMetricValue(point, metricKey)
+			])
 		}
 	}
 
 	if (!marketPoints?.length) return []
-	return marketPoints.map((point) => [point.timestamp, getMetricValue(point, metricKey)] as [number, number])
+	return marketPoints.map(
+		(point) => [toUnixMsTimestamp(point.timestamp), getMetricValue(point, metricKey)] as [number, number]
+	)
 }
 
 type ChartSpec = {
@@ -297,7 +302,7 @@ export function buildRWAPerpsCoinChartSpec({
 		const rawData = getMetricSourcePoints({ marketPoints, fundingHistory, metricKey: metric.key })
 		if (rawData.length === 0) continue
 		const seriesPoints =
-			metric.key === 'volume24h'
+			metric.defaultType === 'bar'
 				? formatBarChart({
 						data: rawData,
 						groupBy: groupBy === 'cumulative' ? 'cumulative' : groupBy,
@@ -319,7 +324,7 @@ export function buildRWAPerpsCoinChartSpec({
 
 		charts.push({
 			name: metric.label,
-			type: metric.key === 'volume24h' && groupBy !== 'cumulative' ? 'bar' : 'line',
+			type: metric.defaultType === 'bar' && groupBy !== 'cumulative' ? 'bar' : 'line',
 			encode: { x: 'timestamp', y: metric.label },
 			color: metric.color,
 			...(metric.yAxisIndex != null ? { yAxisIndex: metric.yAxisIndex } : {}),
