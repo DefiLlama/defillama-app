@@ -10,7 +10,7 @@ export function parseOverviewBreakdownRequest(
 	const key = parseChartMetricKey(req.query.key)
 	if (Array.isArray(breakdown) || breakdown == null || key == null) return null
 
-	if (breakdown === 'venue' || breakdown === 'assetClass' || breakdown === 'referenceAsset' || breakdown === 'coin') {
+	if (breakdown === 'venue' || breakdown === 'assetClass' || breakdown === 'baseAsset' || breakdown === 'coin') {
 		return { breakdown, key }
 	}
 

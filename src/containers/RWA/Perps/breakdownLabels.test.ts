@@ -4,7 +4,7 @@ import {
 	getRWAPerpsCoinBreakdownLabel,
 	getRWAPerpsOverviewBreakdownLabel,
 	getRWAPerpsOverviewSnapshotBreakdownLabel,
-	getRWAPerpsReferenceAssetBreakdownLabel,
+	getRWAPerpsBaseAssetBreakdownLabel,
 	getRWAPerpsSharedBreakdownLabel,
 	getRWAPerpsVenueBreakdownLabel,
 	normalizeRWAPerpsBreakdownLabel
@@ -25,7 +25,7 @@ describe('breakdownLabels', () => {
 	})
 
 	it('falls back to the coin suffix when reference asset is missing', () => {
-		expect(getRWAPerpsReferenceAssetBreakdownLabel({ coin: 'xyz:META', referenceAsset: '' })).toBe('META')
+		expect(getRWAPerpsBaseAssetBreakdownLabel({ coin: 'xyz:META', referenceAsset: '' })).toBe('META')
 	})
 
 	it('falls back to unknown when the coin label is also missing', () => {
@@ -34,7 +34,7 @@ describe('breakdownLabels', () => {
 
 	it('resolves overview, venue, and shared labels consistently', () => {
 		expect(getRWAPerpsSharedBreakdownLabel(baseRow, 'venue')).toBe('xyz')
-		expect(getRWAPerpsOverviewBreakdownLabel(baseRow, 'referenceAsset')).toBe('Meta')
+		expect(getRWAPerpsOverviewBreakdownLabel(baseRow, 'baseAsset')).toBe('Meta')
 		expect(getRWAPerpsVenueBreakdownLabel(baseRow, 'assetClass')).toBe('Single stock synthetic perp')
 		expect(getRWAPerpsOverviewSnapshotBreakdownLabel({ ...baseRow, category: [], id: 'x' } as any, 'coin')).toBe(
 			'xyz:META'

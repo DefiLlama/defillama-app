@@ -28,9 +28,7 @@ export function normalizeRWAPerpsBreakdownLabel(value: string | null | undefined
 	return typeof value === 'string' && value.trim().length > 0 ? value.trim() : UNKNOWN_BREAKDOWN_LABEL
 }
 
-export function getRWAPerpsReferenceAssetBreakdownLabel(
-	row: Pick<SharedBreakdownRow, 'coin' | 'referenceAsset'>
-): string {
+export function getRWAPerpsBaseAssetBreakdownLabel(row: Pick<SharedBreakdownRow, 'coin' | 'referenceAsset'>): string {
 	const [_, rawCoinLabel] = row.coin.split(':')
 	return normalizeRWAPerpsBreakdownLabel(firstNonEmptyString([row.referenceAsset, rawCoinLabel, row.coin]))
 }
@@ -45,8 +43,8 @@ export function getRWAPerpsSharedBreakdownLabel(row: SharedBreakdownRow, breakdo
 			return normalizeRWAPerpsBreakdownLabel(row.venue)
 		case 'assetClass':
 			return normalizeRWAPerpsBreakdownLabel(row.assetClass)
-		case 'referenceAsset':
-			return getRWAPerpsReferenceAssetBreakdownLabel(row)
+		case 'baseAsset':
+			return getRWAPerpsBaseAssetBreakdownLabel(row)
 		case 'coin':
 			return getRWAPerpsCoinBreakdownLabel(row)
 		default:

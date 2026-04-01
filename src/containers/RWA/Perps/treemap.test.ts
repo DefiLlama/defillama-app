@@ -176,13 +176,13 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 				{ ...baseMarket, id: 'flx:meta', coin: 'flx:META', venue: 'flx', referenceAsset: 'Meta', openInterest: 80 }
 			],
 			metric: 'openInterest',
-			parentGrouping: 'referenceAsset',
+			parentGrouping: 'baseAsset',
 			nestedBy: 'coin'
 		})
 
 		expect(tree[0]).toMatchObject({
 			name: 'Meta',
-			path: 'Ref Asset/Meta'
+			path: 'Base Asset/Meta'
 		})
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:META', 'flx:META'])
 	})
@@ -239,7 +239,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 				{ ...baseMarket, id: 'xyz:meta-2', coin: 'xyz:META-2', referenceAsset: 'Meta', openInterest: 80 }
 			],
 			metric: 'openInterest',
-			parentGrouping: 'referenceAsset',
+			parentGrouping: 'baseAsset',
 			nestedBy: 'coin',
 			venueLabel: 'xyz'
 		})
@@ -260,7 +260,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 				{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA' }
 			],
 			metric: 'markets',
-			parentGrouping: 'referenceAsset',
+			parentGrouping: 'baseAsset',
 			nestedBy: 'none',
 			venueLabel: 'xyz'
 		})
@@ -370,7 +370,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					}
 				],
 				metric: 'openInterest',
-				parentGrouping: 'referenceAsset',
+				parentGrouping: 'baseAsset',
 				nestedBy: 'none'
 			})[0]
 		).toMatchObject({

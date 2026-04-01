@@ -17,7 +17,7 @@ describe('rwa treemap formatting', () => {
 			info: {
 				name: 'Tesla',
 				value: [3, 6.12, 6.12],
-				treePathInfo: [{ name: 'Ref Asset' }, { name: 'Tesla' }]
+				treePathInfo: [{ name: 'Base Asset' }, { name: 'Tesla' }]
 			},
 			valueLabel: 'Markets',
 			formatMetricValue: (value) => String(value)
@@ -34,7 +34,7 @@ describe('rwa treemap formatting', () => {
 			info: {
 				name: 'xyz:META',
 				value: [2, 66.67, 44.44],
-				treePathInfo: [{ name: 'Ref Asset' }, { name: 'Meta' }, { name: 'xyz:META' }]
+				treePathInfo: [{ name: 'Base Asset' }, { name: 'Meta' }, { name: 'xyz:META' }]
 			},
 			valueLabel: 'Markets',
 			formatMetricValue: (value) => String(value)

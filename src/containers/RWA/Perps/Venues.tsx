@@ -87,7 +87,7 @@ export function RWAPerpsVenuesOverview({
 }) {
 	return (
 		<div className="flex flex-col gap-2">
-			<RWAPerpsOverviewChart breakdown="venue" initialChartDataset={initialChartDataset} stackLabel="Venues" />
+			<RWAPerpsOverviewChart breakdown="baseAsset" initialChartDataset={initialChartDataset} stackLabel="Base Asset" />
 			<TableWithSearch
 				data={venues}
 				columns={columns}

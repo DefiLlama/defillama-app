@@ -10,8 +10,8 @@ interface IRWAPerpsCoinInfo {
 	coin: string
 	displayName: string
 	venue: string
-	referenceAsset: string | null
-	referenceAssetGroup: string | null
+	baseAsset: string | null
+	baseAssetGroup: string | null
 	assetClass: string | null
 	rwaClassification: string | null
 	accessModel: string | null
@@ -44,16 +44,16 @@ export type IRWAPerpsTimeSeriesRow = IRWAPerpsMarket | IRWAPerpsAggregateHistori
 
 export type RWAPerpsChartMetricKey = 'openInterest' | 'volume24h' | 'markets'
 export type RWAPerpsChartView = 'timeSeries' | 'pie' | 'treemap' | 'hbar'
-export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'referenceAsset' | 'coin'
+export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'baseAsset' | 'coin'
 
-export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'referenceAsset' | 'coin'
-export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'referenceAsset' | 'coin'
-export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'venue' | 'assetClass' | 'referenceAsset' | 'coin'
-export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'referenceAsset' | 'coin'
-export type RWAPerpsVenueBreakdown = 'referenceAsset' | 'coin' | 'assetClass'
-export type RWAPerpsVenueTimeSeriesBreakdown = 'referenceAsset' | 'coin' | 'assetClass'
-export type RWAPerpsVenueNonTimeSeriesBreakdown = 'referenceAsset' | 'coin' | 'assetClass'
-export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'referenceAsset' | 'coin'
+export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
+export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
+export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
+export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
+export type RWAPerpsVenueBreakdown = 'baseAsset' | 'coin' | 'assetClass'
+export type RWAPerpsVenueTimeSeriesBreakdown = 'baseAsset' | 'coin' | 'assetClass'
+export type RWAPerpsVenueNonTimeSeriesBreakdown = 'baseAsset' | 'coin' | 'assetClass'
+export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'coin'
 export type RWAPerpsChartMode = 'overview' | 'venue'
 
 export interface IRWAPerpsOverviewBreakdownRequest {

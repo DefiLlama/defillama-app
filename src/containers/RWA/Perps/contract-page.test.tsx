@@ -37,7 +37,7 @@ function setupPageModule({ coins = ['xyz:META'], coinData = null }: { coins?: st
 		withPerformanceLogging: (_label: string, fn: any) => fn
 	}))
 
-	return import('~/pages/rwa/perps/coin/[coin]')
+	return import('~/pages/rwa/perps/contract/[contract]')
 }
 
 const TEST_COIN: IRWAPerpsCoinData = {
@@ -45,8 +45,8 @@ const TEST_COIN: IRWAPerpsCoinData = {
 		coin: 'xyz:META',
 		displayName: 'Meta',
 		venue: 'xyz',
-		referenceAsset: 'Meta',
-		referenceAssetGroup: 'Equities',
+		baseAsset: 'Meta',
+		baseAssetGroup: 'Equities',
 		assetClass: 'Single stock synthetic perp',
 		rwaClassification: 'Programmable Finance',
 		accessModel: 'Permissionless',
@@ -103,34 +103,34 @@ const TEST_COIN: IRWAPerpsCoinData = {
 	fundingHistory: null
 }
 
-describe('rwa perps coin page', () => {
-	it('getStaticPaths returns raw coin identifiers without slug conversion', async () => {
+describe('rwa perps contract page', () => {
+	it('getStaticPaths returns raw contract identifiers without slug conversion', async () => {
 		const page = await setupPageModule({ coins: ['xyz:META', 'km:NVDA'] })
 
 		await expect(page.getStaticPaths()).resolves.toEqual({
-			paths: [{ params: { coin: 'xyz:META' } }, { params: { coin: 'km:NVDA' } }],
+			paths: [{ params: { contract: 'xyz:META' } }, { params: { contract: 'km:NVDA' } }],
 			fallback: 'blocking'
 		})
 	})
 
-	it('getStaticProps returns notFound for unknown coins', async () => {
+	it('getStaticProps returns notFound for unknown contracts', async () => {
 		const page = await setupPageModule({ coins: ['xyz:META'] })
 
-		await expect(page.getStaticProps({ params: { coin: 'xyz:TSLA' } } as never)).resolves.toEqual({
+		await expect(page.getStaticProps({ params: { contract: 'xyz:TSLA' } } as never)).resolves.toEqual({
 			notFound: true
 		})
 	})
 
-	it('getStaticProps returns props for a known coin', async () => {
+	it('getStaticProps returns props for a known contract', async () => {
 		const page = await setupPageModule({ coins: ['xyz:META'], coinData: TEST_COIN })
 
-		await expect(page.getStaticProps({ params: { coin: 'xyz:META' } } as never)).resolves.toEqual({
+		await expect(page.getStaticProps({ params: { contract: 'xyz:META' } } as never)).resolves.toEqual({
 			props: { coin: TEST_COIN },
 			revalidate: 123
 		})
 	})
 
-	it('uses the raw coin identifier in the SEO title', async () => {
+	it('uses the raw contract identifier in the SEO title', async () => {
 		const page = await setupPageModule({ coins: ['xyz:META'], coinData: TEST_COIN })
 
 		const element = page.default({ coin: TEST_COIN } as never) as ReactElement<{ title: string }>

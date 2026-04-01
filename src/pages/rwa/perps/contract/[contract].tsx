@@ -16,24 +16,24 @@ export async function getStaticPaths() {
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	return {
-		paths: metadataCache.rwaPerpsList.coins.slice(0, 10).map((coin) => ({ params: { coin } })),
+		paths: metadataCache.rwaPerpsList.coins.slice(0, 10).map((contract) => ({ params: { contract } })),
 		fallback: 'blocking'
 	}
 }
 
 export const getStaticProps = withPerformanceLogging(
-	'rwa/perps/coin/[coin]',
-	async ({ params }: GetStaticPropsContext<{ coin: string }>) => {
-		if (!params?.coin) {
+	'rwa/perps/contract/[contract]',
+	async ({ params }: GetStaticPropsContext<{ contract: string }>) => {
+		if (!params?.contract) {
 			return { notFound: true }
 		}
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		if (!metadataCache.rwaPerpsList.coins.includes(params.coin)) {
+		if (!metadataCache.rwaPerpsList.coins.includes(params.contract)) {
 			return { notFound: true }
 		}
 
-		const coin = await getRWAPerpsCoinData({ coin: params.coin })
+		const coin = await getRWAPerpsCoinData({ coin: params.contract })
 		if (!coin) {
 			return { notFound: true }
 		}
@@ -48,14 +48,14 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['RWA', 'Perps']
 
 export default function RWAPerpsCoinDetailPage({ coin }: InferGetStaticPropsType<typeof getStaticProps>) {
-	const canonicalCoin = encodeURIComponent(coin.coin.coin)
+	const canonicalContract = encodeURIComponent(coin.coin.coin)
 
 	return (
 		<Layout
 			title={`${coin.coin.coin} - RWA Perps Analytics - DefiLlama`}
 			description={`Track the ${coin.coin.coin} perpetual market on ${coin.coin.venue}, including price, open interest, funding, market history, and detailed market data.`}
 			pageName={pageName}
-			canonicalUrl={`/rwa/perps/coin/${canonicalCoin}`}
+			canonicalUrl={`/rwa/perps/contract/${canonicalContract}`}
 		>
 			<RWAPerpsCoinPage coin={coin} />
 		</Layout>

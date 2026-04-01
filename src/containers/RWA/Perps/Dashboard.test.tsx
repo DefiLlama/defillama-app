@@ -146,38 +146,38 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		routerQuery = { chartView: 'treemap' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Venue')
-		expect(html).toContain('Nested by: Asset Class')
+		expect(html).toContain('Base Asset')
+		expect(html).toContain('Nested by: Contracts')
 		expect(html).toContain('reset')
 	})
 
-	it('hides the treemap nested-grouping selector when parent grouping is Coins', () => {
+	it('hides the treemap nested-grouping selector when parent grouping is Contracts', () => {
 		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'coin' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Coins')
+		expect(html).toContain('Contracts')
 		expect(html).not.toContain('Nested by:')
 		expect(html).toContain('reset')
 	})
 
-	it('shows the treemap nested-grouping selector when parent grouping is Ref Asset', () => {
-		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'referenceAsset' }
+	it('shows the treemap nested-grouping selector when parent grouping is Base Asset', () => {
+		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'baseAsset' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Ref Asset')
-		expect(html).toContain('Nested by: Coins')
+		expect(html).toContain('Base Asset')
+		expect(html).toContain('Nested by: Contracts')
 		expect(html).toContain('reset')
 	})
 
-	it('keeps the no-grouping treemap state selectable for ref asset breakdowns', () => {
+	it('keeps the no-grouping treemap state selectable for Base Asset breakdowns', () => {
 		routerQuery = {
 			chartView: 'treemap',
-			nonTimeSeriesChartBreakdown: 'referenceAsset',
+			nonTimeSeriesChartBreakdown: 'baseAsset',
 			treemapNestedBy: 'none'
 		}
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Ref Asset')
+		expect(html).toContain('Base Asset')
 		expect(html).toContain('Nested by: No Grouping')
 		expect(html).toContain('reset')
 	})
@@ -186,26 +186,26 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		routerQuery = { chartView: 'pie' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Venue')
+		expect(html).toContain('Base Asset')
 		expect(html).not.toContain('Nested by:')
 		expect(html).not.toContain('reset')
 	})
 
-	it('keeps Coin and Ref Asset as the first overview table columns', () => {
+	it('keeps Contract and Base Asset as the first overview table columns', () => {
 		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(lastTableWithSearchProps.columns.slice(0, 2).map((column: any) => column.header)).toEqual([
-			'Coin',
-			'Ref Asset'
+			'Contract',
+			'Base Asset'
 		])
 	})
 
-	it('keeps Coin and Ref Asset as the first venue table columns', () => {
+	it('keeps Contract and Base Asset as the first venue table columns', () => {
 		renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
 		expect(lastTableWithSearchProps.columns.slice(0, 2).map((column: any) => column.header)).toEqual([
-			'Coin',
-			'Ref Asset'
+			'Contract',
+			'Base Asset'
 		])
 	})
 

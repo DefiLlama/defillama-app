@@ -187,10 +187,9 @@ export function buildRWAPerpsCoinMetricSections(coin: IRWAPerpsCoinData): {
 
 export function buildRWAPerpsCoinInfoRows(coin: IRWAPerpsCoinData): MetricRowData[] {
 	const marketTimestampMs = toUnixMsTimestamp(coin.market.timestamp)
-	const referenceAsset = formatTextValue(coin.coin.referenceAsset)
+	const baseAsset = formatTextValue(coin.coin.baseAsset)
 	const symbolSuffix = coin.coin.coin.split(':')[1] ?? coin.coin.coin
-	const shouldShowReferenceAsset =
-		referenceAsset != null && referenceAsset.trim().toLowerCase() !== symbolSuffix.trim().toLowerCase()
+	const shouldShowBaseAsset = baseAsset != null && baseAsset.trim().toLowerCase() !== symbolSuffix.trim().toLowerCase()
 
 	return [
 		{ label: 'Venue', value: coin.coin.venue },
@@ -207,7 +206,7 @@ export function buildRWAPerpsCoinInfoRows(coin: IRWAPerpsCoinData): MetricRowDat
 			? [{ label: 'Oracle Provider', value: coin.coin.oracleProvider! }]
 			: []),
 		...(coin.coin.website ? [{ label: 'Website', value: coin.coin.website }] : []),
-		...(shouldShowReferenceAsset ? [{ label: 'Reference Asset', value: referenceAsset! }] : []),
+		...(shouldShowBaseAsset ? [{ label: 'Base Asset', value: baseAsset! }] : []),
 		{ label: 'Snapshot Time', value: formatRWAPerpsCoinChartDate(marketTimestampMs) }
 	]
 }

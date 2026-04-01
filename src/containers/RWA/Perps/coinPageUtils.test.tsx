@@ -14,8 +14,8 @@ const baseCoin: IRWAPerpsCoinData = {
 		coin: 'xyz:META',
 		displayName: 'Meta',
 		venue: 'xyz',
-		referenceAsset: 'Meta',
-		referenceAssetGroup: 'Equities',
+		baseAsset: 'Meta',
+		baseAssetGroup: 'Equities',
 		assetClass: 'Single stock synthetic perp',
 		rwaClassification: 'Programmable Finance',
 		accessModel: 'Permissionless',
@@ -143,12 +143,12 @@ describe('buildRWAPerpsCoinInfoRows', () => {
 			...baseCoin,
 			coin: {
 				...baseCoin.coin,
-				referenceAsset: 'META',
+				baseAsset: 'META',
 				website: null
 			}
 		})
 
-		expect(rows.some((row) => row.label === 'Reference Asset')).toBe(false)
+		expect(rows.some((row) => row.label === 'Base Asset')).toBe(false)
 		expect(rows.some((row) => row.label === 'Website')).toBe(false)
 	})
 
@@ -157,11 +157,11 @@ describe('buildRWAPerpsCoinInfoRows', () => {
 			...baseCoin,
 			coin: {
 				...baseCoin.coin,
-				referenceAsset: 'Meta Platforms'
+				baseAsset: 'Meta Platforms'
 			}
 		})
-		expect(rows.find((row) => row.label === 'Reference Asset')).toEqual({
-			label: 'Reference Asset',
+		expect(rows.find((row) => row.label === 'Base Asset')).toEqual({
+			label: 'Base Asset',
 			value: 'Meta Platforms'
 		})
 	})

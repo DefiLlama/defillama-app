@@ -14,23 +14,23 @@ describe('parseRWAPerpsChartState', () => {
 		expect(state.view).toBe('hbar')
 	})
 
-	it('defaults overview treemap to venue nested by asset class', () => {
+	it('defaults overview treemap to base asset nested by contracts', () => {
 		const state = parseRWAPerpsChartState({ chartView: 'treemap' }, 'overview')
 
 		expect(state).toMatchObject({
 			view: 'treemap',
-			breakdown: 'venue',
-			treemapNestedBy: 'assetClass'
+			breakdown: 'baseAsset',
+			treemapNestedBy: 'coin'
 		})
 	})
 
-	it('defaults venue treemap to asset class nested by reference asset', () => {
+	it('defaults venue treemap to base asset nested by contracts', () => {
 		const state = parseRWAPerpsChartState({ chartView: 'treemap' }, 'venue')
 
 		expect(state).toMatchObject({
 			view: 'treemap',
-			breakdown: 'assetClass',
-			treemapNestedBy: 'referenceAsset'
+			breakdown: 'baseAsset',
+			treemapNestedBy: 'coin'
 		})
 	})
 
@@ -39,7 +39,7 @@ describe('parseRWAPerpsChartState', () => {
 			{
 				chartView: 'treemap',
 				nonTimeSeriesChartBreakdown: 'assetClass',
-				treemapNestedBy: 'referenceAsset'
+				treemapNestedBy: 'baseAsset'
 			},
 			'overview'
 		)
@@ -47,7 +47,7 @@ describe('parseRWAPerpsChartState', () => {
 		expect(state).toMatchObject({
 			view: 'treemap',
 			breakdown: 'assetClass',
-			treemapNestedBy: 'referenceAsset'
+			treemapNestedBy: 'baseAsset'
 		})
 	})
 
@@ -55,7 +55,7 @@ describe('parseRWAPerpsChartState', () => {
 		const state = parseRWAPerpsChartState(
 			{
 				chartView: 'treemap',
-				nonTimeSeriesChartBreakdown: 'referenceAsset',
+				nonTimeSeriesChartBreakdown: 'baseAsset',
 				treemapNestedBy: 'assetClass'
 			},
 			'venue'
@@ -63,7 +63,7 @@ describe('parseRWAPerpsChartState', () => {
 
 		expect(state).toMatchObject({
 			view: 'treemap',
-			breakdown: 'referenceAsset',
+			breakdown: 'baseAsset',
 			treemapNestedBy: 'coin'
 		})
 	})
@@ -71,11 +71,11 @@ describe('parseRWAPerpsChartState', () => {
 
 describe('perps chartState options', () => {
 	it('uses the expected defaults for each page/view', () => {
-		expect(getDefaultRWAPerpsChartBreakdown('overview', 'timeSeries')).toBe('venue')
-		expect(getDefaultRWAPerpsChartBreakdown('overview', 'pie')).toBe('venue')
-		expect(getDefaultRWAPerpsChartBreakdown('overview', 'treemap')).toBe('venue')
-		expect(getDefaultRWAPerpsChartBreakdown('venue', 'timeSeries')).toBe('referenceAsset')
-		expect(getDefaultRWAPerpsChartBreakdown('venue', 'treemap')).toBe('assetClass')
+		expect(getDefaultRWAPerpsChartBreakdown('overview', 'timeSeries')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('overview', 'pie')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('overview', 'treemap')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('venue', 'timeSeries')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('venue', 'treemap')).toBe('baseAsset')
 	})
 
 	it('exposes chart metric options with key/name pairs', () => {
@@ -92,21 +92,21 @@ describe('perps chartState options', () => {
 				mode: 'overview',
 				view: 'timeSeries'
 			}).map(({ key }) => key)
-		).toEqual(['venue', 'assetClass', 'referenceAsset', 'coin'])
+		).toEqual(['baseAsset', 'venue', 'assetClass', 'coin'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'overview',
 				view: 'pie'
 			}).map(({ key }) => key)
-		).toEqual(['venue', 'assetClass', 'referenceAsset', 'coin'])
+		).toEqual(['baseAsset', 'venue', 'assetClass', 'coin'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'overview',
 				view: 'treemap'
 			}).map(({ key }) => key)
-		).toEqual(['venue', 'assetClass', 'referenceAsset', 'coin'])
+		).toEqual(['baseAsset', 'venue', 'assetClass', 'coin'])
 	})
 
 	it('exposes the intended venue grouping matrix', () => {
@@ -115,46 +115,43 @@ describe('perps chartState options', () => {
 				mode: 'venue',
 				view: 'timeSeries'
 			}).map(({ key }) => key)
-		).toEqual(['referenceAsset', 'coin', 'assetClass'])
+		).toEqual(['baseAsset', 'coin', 'assetClass'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'venue',
 				view: 'pie'
 			}).map(({ key }) => key)
-		).toEqual(['referenceAsset', 'coin', 'assetClass'])
+		).toEqual(['baseAsset', 'coin', 'assetClass'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'venue',
 				view: 'treemap'
 			}).map(({ key }) => key)
-		).toEqual(['assetClass', 'referenceAsset', 'coin'])
+		).toEqual(['baseAsset', 'assetClass', 'coin'])
 	})
 
 	it('returns nested-group options keyed by treemap parent group', () => {
 		expect(getRWAPerpsTreemapNestedByOptions('overview', 'venue').map(({ key }) => key)).toEqual([
 			'none',
 			'assetClass',
-			'referenceAsset',
+			'baseAsset',
 			'coin'
 		])
 		expect(getRWAPerpsTreemapNestedByOptions('overview', 'assetClass').map(({ key }) => key)).toEqual([
 			'none',
-			'referenceAsset',
+			'baseAsset',
 			'coin'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('overview', 'referenceAsset').map(({ key }) => key)).toEqual([
-			'none',
-			'coin'
-		])
+		expect(getRWAPerpsTreemapNestedByOptions('overview', 'baseAsset').map(({ key }) => key)).toEqual(['none', 'coin'])
 		expect(getRWAPerpsTreemapNestedByOptions('overview', 'coin').map(({ key }) => key)).toEqual(['none'])
 		expect(getRWAPerpsTreemapNestedByOptions('venue', 'assetClass').map(({ key }) => key)).toEqual([
 			'none',
-			'referenceAsset',
+			'baseAsset',
 			'coin'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('venue', 'referenceAsset').map(({ key }) => key)).toEqual(['none', 'coin'])
+		expect(getRWAPerpsTreemapNestedByOptions('venue', 'baseAsset').map(({ key }) => key)).toEqual(['none', 'coin'])
 		expect(getRWAPerpsTreemapNestedByOptions('venue', 'coin').map(({ key }) => key)).toEqual(['none'])
 	})
 
@@ -165,7 +162,7 @@ describe('perps chartState options', () => {
 				view: 'pie',
 				metric: 'openInterest',
 				breakdown: 'assetClass',
-				treemapNestedBy: 'referenceAsset'
+				treemapNestedBy: 'baseAsset'
 			},
 			'treemap'
 		)
@@ -173,7 +170,7 @@ describe('perps chartState options', () => {
 		expect(nextState).toMatchObject({
 			view: 'treemap',
 			breakdown: 'assetClass',
-			treemapNestedBy: 'referenceAsset'
+			treemapNestedBy: 'baseAsset'
 		})
 	})
 })

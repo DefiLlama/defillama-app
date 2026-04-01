@@ -252,8 +252,8 @@ describe('getRWAPerpsCoinData', () => {
 				coin: 'xyz:META',
 				displayName: 'Meta',
 				venue: 'xyz',
-				referenceAsset: 'Meta',
-				referenceAssetGroup: 'Equities'
+				baseAsset: 'Meta',
+				baseAssetGroup: 'Equities'
 			},
 			market: {
 				id: 'xyz:meta',
@@ -325,10 +325,10 @@ describe('perps overview queries', () => {
 		})
 		expect(result.initialChartDataset).toEqual({
 			source: [
-				{ timestamp: 1774483200000, xyz: 120 },
-				{ timestamp: 1774569600000, xyz: 130, flx: 100 }
+				{ timestamp: 1774483200000, Meta: 120 },
+				{ timestamp: 1774569600000, Gold: 100, NVIDIA: 130 }
 			],
-			dimensions: ['timestamp', 'xyz', 'flx']
+			dimensions: ['timestamp', 'NVIDIA', 'Meta', 'Gold']
 		})
 	})
 
@@ -350,7 +350,7 @@ describe('perps overview queries', () => {
 	it('builds regrouped overview time-series datasets for reference assets', async () => {
 		await expect(
 			getRWAPerpsBreakdownChartDataset({
-				breakdown: 'referenceAsset',
+				breakdown: 'baseAsset',
 				key: 'markets'
 			})
 		).resolves.toEqual({
@@ -517,7 +517,7 @@ describe('perps overview helpers', () => {
 					{ ...baseMarket, id: 'xyz:meta', referenceAsset: 'Meta' },
 					{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA', openInterest: 150 }
 				],
-				breakdown: 'referenceAsset',
+				breakdown: 'baseAsset',
 				key: 'markets'
 			})
 		).toEqual([
@@ -600,7 +600,7 @@ describe('perps overview helpers', () => {
 					{ ...rows[0], timestamp: 1774483200 },
 					{ ...rows[1], timestamp: 1774483200 }
 				],
-				breakdown: 'referenceAsset',
+				breakdown: 'baseAsset',
 				key: 'openInterest'
 			}).dimensions
 		).toEqual(['timestamp', 'META', 'Unknown'])
@@ -610,7 +610,7 @@ describe('perps overview helpers', () => {
 				mode: 'overview',
 				markets: rows,
 				metric: 'openInterest',
-				parentGrouping: 'referenceAsset',
+				parentGrouping: 'baseAsset',
 				nestedBy: 'none'
 			}).map((item) => item.name)
 		).toEqual(['META', 'Unknown'])
@@ -620,7 +620,7 @@ describe('perps overview helpers', () => {
 		await expect(
 			getRWAPerpsVenueBreakdownChartDataset({
 				venue: 'xyz',
-				breakdown: 'referenceAsset',
+				breakdown: 'baseAsset',
 				key: 'openInterest'
 			})
 		).resolves.toEqual({

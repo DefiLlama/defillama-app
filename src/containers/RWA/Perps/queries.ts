@@ -268,8 +268,8 @@ export async function getRWAPerpsCoinData({ coin }: { coin: string }): Promise<I
 				coin,
 				displayName: displayName ?? coin,
 				venue: market.venue,
-				referenceAsset: firstNonEmptyString([market.referenceAsset]),
-				referenceAssetGroup: firstNonEmptyString([market.referenceAssetGroup]),
+				baseAsset: firstNonEmptyString([market.referenceAsset]),
+				baseAssetGroup: firstNonEmptyString([market.referenceAssetGroup]),
 				assetClass: firstNonEmptyString([market.assetClass]),
 				rwaClassification: firstNonEmptyString([market.rwaClassification]),
 				accessModel: firstNonEmptyString([market.accessModel]),
@@ -386,9 +386,8 @@ export async function getRWAPerpsOverview(): Promise<IRWAPerpsOverviewPageData> 
 	}
 
 	const initialChartDataset = await getRWAPerpsBreakdownChartDataset({
-		breakdown: 'venue',
-		key: 'openInterest',
-		seriesNames: list.venues
+		breakdown: 'baseAsset',
+		key: 'openInterest'
 	})
 
 	return {
@@ -418,7 +417,7 @@ export async function getRWAPerpsVenuePage({ venue }: { venue: string }): Promis
 
 	const initialChartDataset = await getRWAPerpsVenueBreakdownChartDataset({
 		venue,
-		breakdown: 'referenceAsset',
+		breakdown: 'baseAsset',
 		key: 'openInterest'
 	})
 
@@ -445,9 +444,8 @@ export async function getRWAPerpsVenuesOverview(): Promise<IRWAPerpsVenuesOvervi
 	const stats = await fetchRWAPerpsStats()
 	assertHasVenueBuckets(stats)
 	const initialChartDataset = await getRWAPerpsBreakdownChartDataset({
-		breakdown: 'venue',
-		key: 'openInterest',
-		seriesNames: Object.keys(stats.byVenue)
+		breakdown: 'baseAsset',
+		key: 'openInterest'
 	})
 
 	const rows: IRWAPerpsVenuesOverviewRow[] = Object.entries(stats.byVenue).map(([venue, bucket]) => ({
