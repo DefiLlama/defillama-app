@@ -538,6 +538,14 @@ export const getAdapterByChainPageData = async ({
 			}
 		}
 
+		const breakdownAliasSet = new Set<string>()
+		for (const childProtocol of parentProtocols[protocol]) {
+			if (childProtocol.name !== protocol) breakdownAliasSet.add(childProtocol.name)
+			for (const alias of childProtocol.breakdownAliases ?? []) {
+				if (alias !== protocol) breakdownAliasSet.add(alias)
+			}
+		}
+
 		protocols[protocol] = {
 			name: protocol,
 			slug: slug(protocol),
@@ -550,10 +558,7 @@ export const getAdapterByChainPageData = async ({
 			total1y,
 			totalAllTime,
 			mcap: protocolsMcap[protocol] ?? null,
-			breakdownAliases: parentProtocols[protocol]
-				.map((p) => [p.name, ...(p.breakdownAliases ?? [])])
-				.flat()
-				.filter((alias, index, aliases) => alias !== protocol && aliases.indexOf(alias) === index),
+			breakdownAliases: Array.from(breakdownAliasSet),
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),
