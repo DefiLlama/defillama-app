@@ -28,9 +28,9 @@ export interface IChainOverviewData {
 	chainTokenInfo: {
 		gecko_id: string | null
 		token_symbol: string | null
-		current_price: string | null
-		market_cap: string | null
-		fully_diluted_valuation: string | null
+		current_price: number | null
+		market_cap: number | null
+		fully_diluted_valuation: number | null
 	} | null
 	stablecoins: {
 		mcap: number | null

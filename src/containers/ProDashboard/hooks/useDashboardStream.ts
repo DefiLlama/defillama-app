@@ -153,6 +153,24 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 						}
 						break
 
+					case 'rwaBreakdownData':
+						if (chunk.data) {
+							queryClient.setQueryData(
+								['pro-dashboard', 'rwa-breakdown-chart', chunk.breakdown, chunk.metric, chunk.chain],
+								chunk.data,
+								{ updatedAt: now }
+							)
+						}
+						break
+
+					case 'rwaAssetChartData':
+						if (chunk.data && chunk.id) {
+							queryClient.setQueryData(['pro-dashboard', 'rwa-asset-chart', chunk.id], chunk.data, {
+								updatedAt: now
+							})
+						}
+						break
+
 					case 'emissionData':
 						if (chunk.key && chunk.data) {
 							try {
@@ -192,7 +210,7 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 
 		const startStream = async () => {
 			try {
-				const response = await fetch(`/api/dashboard/${dashboardId}/stream`, {
+				const response = await fetch(`/api/dashboard/${dashboardId}/stream?_=${Math.random().toString(36).slice(2)}`, {
 					credentials: 'include',
 					signal: abortController.signal
 				})

@@ -184,6 +184,48 @@ export function useSessionMutations() {
 		}
 	})
 
+	const pinSessionMutation = useMutation({
+		mutationFn: async (sessionId: string) => {
+			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/pin`, {
+				method: 'PUT'
+			})
+				.then((res) => assertResponse(res, 'Failed to toggle pin'))
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+
+			return response
+		},
+		onMutate: async (sessionId) => {
+			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
+			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
+				if (!old) return { sessions: [], usage: null }
+				return {
+					...old,
+					sessions: old.sessions.map((session) => {
+						if (session.sessionId === sessionId) {
+							return {
+								...session,
+								isPinned: !session.isPinned,
+								pinnedAt: !session.isPinned ? new Date().toISOString() : undefined
+							}
+						}
+						return session
+					})
+				}
+			})
+			return { previous }
+		},
+		onError: (_err, _sessionId, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
+			}
+		},
+		onSettled: () => {
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+		}
+	})
+
 	// Insert a temporary session into the cache so first-message submits have a stable local target.
 	const createFakeSession = useCallback(() => {
 		const sessionId = crypto.randomUUID()
@@ -264,6 +306,8 @@ export function useSessionMutations() {
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending,
 		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,
-		isBulkDeleting: bulkDeleteSessionsMutation.isPending
+		isBulkDeleting: bulkDeleteSessionsMutation.isPending,
+		pinSession: pinSessionMutation.mutateAsync,
+		isPinningSession: pinSessionMutation.isPending
 	}
 }

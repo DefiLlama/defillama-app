@@ -280,7 +280,7 @@ export function CustomColumnModal({
 								autoComplete="off"
 							/>
 							{state.showSuggestions ? (
-								<ul className="absolute right-0 left-0 z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-(--divider) bg-(--cards-bg) shadow-sm">
+								<ul className="absolute right-0 left-0 z-10 mt-1 max-h-40 overflow-y-auto overscroll-contain rounded-lg border border-(--divider) bg-(--cards-bg) shadow-sm">
 									{state.suggestions.map((s, i) => (
 										<li
 											key={s.name || s}

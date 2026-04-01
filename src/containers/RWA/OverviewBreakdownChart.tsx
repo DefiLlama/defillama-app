@@ -24,7 +24,6 @@ const CHART_TYPE_OPTIONS: Array<{ key: RWAChartMetricKey; label: string }> = [
 const VALID_CHART_TYPES = new Set<RWAChartMetricKey>(CHART_TYPE_OPTIONS.map(({ key }) => key))
 const DEFAULT_CHART_TYPE: RWAChartMetricKey = 'activeMcap'
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
-const Y_AXIS_FLOOR = { yAxis: { min: 0 } } as const
 const STACKS_QUERY_KEY = 'stacks'
 const EXCLUDE_STACKS_QUERY_KEY: ExcludeQueryKey = 'excludeStacks'
 
@@ -207,7 +206,6 @@ export function RWAOverviewBreakdownChart({
 						showTotalInTooltip
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}
-						chartOptions={Y_AXIS_FLOOR}
 					/>
 				</Suspense>
 			)}

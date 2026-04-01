@@ -1,5 +1,6 @@
 import {
 	CACHE_SERVER,
+	COINGECKO_KEY,
 	COINS_SERVER_URL,
 	CONFIG_API,
 	DATASETS_SERVER_URL,
@@ -15,15 +16,19 @@ import type {
 	CgChartResponse,
 	CgMarketChartResponse,
 	ChainGeckoPair,
+	CoinGeckoCoinDetailResponse,
+	CoinGeckoCoinDetailResult,
 	CoinsChartResponse,
 	CoinMcapsResponse,
 	CoinsPricesResponse,
 	DenominationPriceHistory,
 	GeckoIdResponse,
 	IResponseCGMarketsAPI,
+	LlamaswapChain,
+	ProtocolLlamaswapResponse,
 	LlamaConfigResponse,
 	PriceObject,
-	ProtocolLiquidityToken,
+	ProtocolLiquidityTokensResponse,
 	ProtocolTokenLiquidityChart,
 	SearchQuery,
 	TwitterPostsResponse,
@@ -53,6 +58,9 @@ export async function searchApi<T = Record<string, unknown>>(query: SearchQuery)
 const COINGECKO_MARKETS_API_BASE = 'https://api.coingecko.com/api/v3/coins/markets'
 const COINGECKO_CONTRACTS_API_BASE = 'https://api.coingecko.com/api/v3/coins'
 const COINGECKO_MARKET_CHART_API_BASE = 'https://api.coingecko.com/api/v3/coins'
+const COINGECKO_COIN_API_BASE = COINGECKO_KEY
+	? 'https://pro-api.coingecko.com/api/v3/coins'
+	: 'https://api.coingecko.com/api/v3/coins'
 const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const CG_CHART_CACHE_URL = `${CACHE_SERVER}/cgchart`
 const COINS_MCAPS_API_URL = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
@@ -61,6 +69,7 @@ const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
 const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
+const PROTOCOL_LLAMASWAP_API_URL = 'https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity'
 
 // ---------------------------------------------------------------------------
 // CoinGecko queries
@@ -131,6 +140,42 @@ export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoI
 	}
 
 	return fetchJson<GeckoIdResponse>(`${COINGECKO_CONTRACTS_API_BASE}/${chain}/contract/${address}`).catch(() => null)
+}
+
+export type FetchCoinGeckoCoinByIdOptions = {
+	tickers?: boolean
+	communityData?: boolean
+	developerData?: boolean
+	sparkline?: boolean
+}
+
+const DEFAULT_FETCH_COIN_DETAIL_OPTIONS: Required<FetchCoinGeckoCoinByIdOptions> = {
+	tickers: true,
+	communityData: false,
+	developerData: false,
+	sparkline: false
+}
+
+/**
+ * Full coin metadata from CoinGecko GET /coins/{id} (platforms, contract addresses, market_data).
+ * Uses Pro API when `CG_KEY` is set; otherwise the public API.
+ * On failure, returns `{}` (same as previous Chain Overview behavior).
+ */
+export async function fetchCoinGeckoCoinById(
+	geckoId: string,
+	options: FetchCoinGeckoCoinByIdOptions = {}
+): Promise<CoinGeckoCoinDetailResult> {
+	if (!geckoId) return {}
+	const q = { ...DEFAULT_FETCH_COIN_DETAIL_OPTIONS, ...options }
+	const url = new URL(`${COINGECKO_COIN_API_BASE}/${encodeURIComponent(geckoId)}`)
+	url.searchParams.set('tickers', String(q.tickers))
+	url.searchParams.set('community_data', String(q.communityData))
+	url.searchParams.set('developer_data', String(q.developerData))
+	url.searchParams.set('sparkline', String(q.sparkline))
+
+	return fetchJson<CoinGeckoCoinDetailResponse>(url.toString(), {
+		headers: COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECKO_KEY } : undefined
+	}).catch((): CoinGeckoCoinDetailResult => ({}))
 }
 
 /**
@@ -318,8 +363,17 @@ export async function fetchTwitterPostsByUsername(username: string): Promise<Twi
 }
 
 /** Fetch the list of all protocols that have liquidity data available. */
-export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
-	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
+export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
+}
+
+/** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */
+export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<LlamaswapChain[] | null> {
+	if (!geckoId) return null
+
+	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}`)
+		.then((data) => (Array.isArray(data?.chains) && data.chains.length > 0 ? data.chains : null))
+		.catch(() => null)
 }
 
 /** Fetch historical liquidity chart for a specific token. */

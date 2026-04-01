@@ -1,5 +1,10 @@
-import { fetchBlockExplorers, fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
-import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
+import {
+	fetchBlockExplorers,
+	fetchCgChartByGeckoId,
+	fetchLiquidityTokensDataset,
+	fetchProtocolLlamaswapChains
+} from '~/api'
+import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
@@ -21,6 +26,7 @@ import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
+import { buildProtocolOverviewHallmarks } from '~/utils/hallmarks'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,
@@ -192,7 +198,7 @@ export const getProtocolOverviewPageData = async ({
 		number | null,
 		IProtocolExpenses | null,
 		IYieldsConfigResult,
-		ProtocolLiquidityToken[],
+		ProtocolLiquidityTokensResponse,
 		ProtocolsResponse,
 		IHackApiItem[],
 		IBridgeVolumeResult,
@@ -433,7 +439,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.liquidity
-			? fetchProtocolLiquidityTokens().catch(() => {
+			? fetchLiquidityTokensDataset().catch(() => {
 					return []
 				})
 			: [],
@@ -505,7 +511,8 @@ export const getProtocolOverviewPageData = async ({
 
 	const tokenPools =
 		yieldsData?.data && yieldsConfig
-			? (liquidityInfo?.find((p: ProtocolLiquidityToken) => p.id === protocolData.id)?.tokenPools ?? [])
+			? (liquidityInfo?.find((p: ProtocolLiquidityTokensResponse[number]) => p.id === protocolData.id)?.tokenPools ??
+				[])
 			: []
 
 	const liquidityAggregated = tokenPools.reduce(
@@ -653,6 +660,18 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
+	// find gecko_id — may be on a sibling protocol (e.g., aave-v3 has no gecko_id, aave-v2 has "aave")
+	let tokenGeckoId = protocolData.gecko_id
+	if (!tokenGeckoId && protocolData.parentProtocol) {
+		const sibling = liteProtocolsData.protocols.find(
+			(p) => p.parentProtocol === protocolData.parentProtocol && p.geckoId
+		)
+		if (sibling) tokenGeckoId = sibling.geckoId
+	}
+	let llamaswapChains = null
+	if (tokenGeckoId && !isCEX) {
+		llamaswapChains = await fetchProtocolLlamaswapChains(tokenGeckoId)
+	}
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
@@ -713,23 +732,11 @@ export const getProtocolOverviewPageData = async ({
 		chartColors[chart] = CHART_COLORS[i]
 	}
 
-	const hallmarks: Record<number, string> = {}
-	const rangeHallmarks: Array<[[number, number], string]> = []
-	for (const hack of hacks ?? []) {
-		hallmarks[hack.date] = `Hack: ${hack.classification ?? ''}`
-	}
-	for (const mark of protocolData.hallmarks ?? []) {
-		if (Array.isArray(mark[0])) {
-			const [start, end] = mark[0]
-			if (typeof start === 'number' && typeof end === 'number') {
-				rangeHallmarks.push([[start, end], mark[1]])
-			}
-		} else {
-			if (!hallmarks[mark[0]]) {
-				hallmarks[mark[0]] = mark[1]
-			}
-		}
-	}
+	const { hallmarks, rangeHallmarks } = buildProtocolOverviewHallmarks({
+		hacks,
+		protocolHallmarks: protocolData.hallmarks,
+		dimensions: protocolData.dimensions
+	})
 
 	const name = protocolData.name ?? currentProtocolMetadata.displayName ?? ''
 
@@ -993,13 +1000,8 @@ export const getProtocolOverviewPageData = async ({
 		availableCharts,
 		chartColors,
 		initialMultiSeriesChartData,
-		hallmarks: Object.entries(hallmarks)
-			.sort(([a], [b]) => Number(a) - Number(b))
-			.map(([date, event]): [number, string] => [+date * 1e3, event]),
-		rangeHallmarks: rangeHallmarks.map(([date, event]): [[number, number], string] => [
-			[+date[0] * 1e3, +date[1] * 1e3],
-			event
-		]),
+		hallmarks,
+		rangeHallmarks,
 		geckoId: protocolData.gecko_id ?? null,
 		governanceApis: governanceIdsToApis(protocolData.governanceID ?? []),
 		incomeStatement,
@@ -1021,7 +1023,8 @@ export const getProtocolOverviewPageData = async ({
 		seoTitle,
 		seoDescription,
 		defaultToggledCharts,
-		oracleTvs
+		oracleTvs,
+		llamaswapChains
 	}
 }
 

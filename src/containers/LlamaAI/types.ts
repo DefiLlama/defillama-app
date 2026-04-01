@@ -74,6 +74,8 @@ export interface ChatSession {
 	isActive: boolean
 	isPublic?: boolean
 	shareToken?: string
+	isPinned?: boolean
+	pinnedAt?: string
 }
 
 export interface ResearchUsage {

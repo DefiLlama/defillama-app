@@ -1,17 +1,17 @@
 import Head from 'next/head'
 import { BasicLink } from '~/components/Link'
-import { LinkPreviewCard } from '~/components/SEO'
+import { LinkPreviewCard, SEO } from '~/components/SEO'
 import SheetsContainer from '~/containers/Sheets'
 
 export default function Sheets() {
 	return (
 		<>
+			<SEO
+				title="DefiLlama Sheets - DeFi Data in Google Sheets"
+				description="Access DeFi data directly in Google Sheets. Pull TVL, fees, revenue, and token data with DefiLlama's Sheets integration."
+				canonicalUrl="/sheets"
+			/>
 			<Head>
-				<title>DefiLlama Sheets - DeFi Data in Google Sheets</title>
-				<meta
-					name="description"
-					content="Access DeFi data directly in Google Sheets. Pull TVL, fees, revenue, and token data with DefiLlama's Sheets integration."
-				/>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />

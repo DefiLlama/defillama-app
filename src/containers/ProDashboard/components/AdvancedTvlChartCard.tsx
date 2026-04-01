@@ -14,7 +14,8 @@ import { toNiceCsvDate } from '~/utils'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod, StreamDoneContext } from '../queries'
+import { filterDataByTimePeriod, ProxyAuthTokenContext, StreamDoneContext } from '../queries'
+import { fetchAdvancedTvlBasicViaProxy, fetchProtocolFullViaProxy } from '../services/fetchViaProxy'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
 import { generateConsistentChartColor } from '../utils/colorManager'
@@ -81,10 +82,19 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'advanced-tvl-basic', protocol],
-		queryFn: () => ProtocolCharts.tvl(protocol),
+		queryFn: () => (authToken ? fetchAdvancedTvlBasicViaProxy(protocol, authToken) : ProtocolCharts.tvl(protocol)),
 		enabled: streamDone && chartType === 'tvl',
+		staleTime: Infinity
+	})
+
+	// Pre-seed protocol full data via proxy so useFetchProtocolV1AddlChartsData uses cached data
+	useQuery({
+		queryKey: ['protocol-overview-v1', protocol, 'metrics'],
+		queryFn: () => (authToken ? fetchProtocolFullViaProxy(protocol, authToken) : null),
+		enabled: streamDone && !!authToken,
 		staleTime: Infinity
 	})
 
@@ -319,7 +329,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							customLegendOptions={resolvedTokensUnique}
 							hideDownloadButton={true}
 							hideDataZoom={true}
-							hideGradient={true}
+							isStackedChart
 							chartOptions={chartOptions}
 							height="360px"
 							onReady={handleChartReady}
@@ -424,7 +434,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 				) : null}
 			</div>
 
-			<div className="flex-1">
+			<div className="flex-1" key={chartType}>
 				<Suspense fallback={<div className="min-h-[360px]" />}>{chartContent}</Suspense>
 			</div>
 		</div>

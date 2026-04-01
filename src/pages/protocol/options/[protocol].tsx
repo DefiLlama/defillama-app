@@ -23,6 +23,7 @@ import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/ty
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
+import { buildHallmarksWithGenuineSpikes } from '~/utils/hallmarks'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -73,6 +74,10 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const hallmarks = buildHallmarksWithGenuineSpikes({
+			dimensions: protocolData.dimensions
+		})
+
 		const seoTitle = `${protocolData.name} Options Trading Volume - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} options premium and notional trading volume with historical charts on DefiLlama.`
 
@@ -136,6 +141,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: premiumVolumeData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
+				hallmarks,
 				defaultChartView: premiumVolumeData?.defaultChartView ?? notionalVolumeData?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
@@ -273,6 +279,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							charts={deferredFinalCharts.charts}
 							groupBy={groupBy}
 							valueSymbol="$"
+							hallmarks={props.hallmarks ?? undefined}
 							onReady={handleChartReady}
 						/>
 					</Suspense>
@@ -286,6 +293,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="options"
 							breakdownNames={props.protocolChains}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Options Premium Volume by chain"
 						/>
 					</div>
@@ -297,6 +305,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="options"
 							breakdownNames={props.protocolVersions}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Options Premium Volume by protocol version"
 						/>
 					</div>

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useContext } from 'react'
-import { StreamDoneContext } from '~/containers/ProDashboard/queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
+import { fetchTokenUsageViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 
 export interface TokenUsageData {
@@ -15,6 +16,7 @@ export interface TokenUsageData {
 
 export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = false) {
 	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
 	const query = useQuery<TokenUsageData[]>({
 		queryKey: [
 			'pro-dashboard',
@@ -32,7 +34,9 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 
 			try {
 				const promises = tokenSymbols.map(async (symbol) => {
-					const data = await fetchProtocolsByToken(symbol)
+					const data = authToken
+						? await fetchTokenUsageViaProxy(symbol, authToken)
+						: await fetchProtocolsByToken(symbol)
 					return { symbol, data }
 				})
 

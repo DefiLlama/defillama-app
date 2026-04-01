@@ -1,15 +1,20 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
+import { useYieldChartData } from '~/containers/Yields/queries/client'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
+import { RWAYieldsTable } from './RWAYieldsTable'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -195,6 +200,35 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						.filter(Boolean)
 						.join(', ') || null
 				: null
+
+	const { data: yieldChartRaw, isLoading: isLoadingYieldChart } = useYieldChartData(asset.nativeYieldPoolId)
+	const { chartInstance: nativeYieldChartInstance, handleChartReady: onNativeYieldChartReady } = useGetChartInstance()
+
+	const nativeYieldExportFilename = `${asset.ticker ?? asset.assetName ?? 'asset'}-native-yield`
+	const nativeYieldExportTitle = `${asset.ticker ?? asset.assetName ?? 'Asset'} Native Yield`
+
+	const nativeYieldDataset = useMemo(() => {
+		if (!yieldChartRaw?.data) return null
+		const source: Array<{ timestamp: number; 'Native Yield': number }> = []
+		for (const item of yieldChartRaw.data) {
+			if (item.apyBase == null || !item.timestamp) continue
+			const ts =
+				typeof item.timestamp === 'number' ? item.timestamp : new Date(String(item.timestamp).split('T')[0]).getTime()
+			if (!Number.isFinite(ts)) continue
+			source.push({ timestamp: Math.floor(ts), 'Native Yield': Math.round(item.apyBase * 100) / 100 })
+		}
+		return source.length > 0 ? { source, dimensions: ['timestamp', 'Native Yield'] } : null
+	}, [yieldChartRaw])
+
+	const isCompactYields = !!asset.nativeYieldPoolId
+	const displayPools = useMemo(() => {
+		if (!asset.yieldPools || asset.yieldPools.length === 0) return []
+		const maxRows = isCompactYields ? 8 : asset.yieldPools.length
+		return asset.yieldPools.slice(0, maxRows)
+	}, [asset.yieldPools, isCompactYields])
+	const yieldPoolsTotal = asset.yieldPoolsTotal ?? asset.yieldPools?.length ?? 0
+	const hasMorePools = yieldPoolsTotal > displayPools.length
+
 	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
 	const timeSeriesCharts =
 		chartDimensions.length > 0
@@ -308,7 +342,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			</div>
 
 			{/* Stats Row */}
-			<div className="flex flex-wrap gap-2">
+			<div className="flex flex-col gap-2 lg:flex-row">
 				<Tooltip
 					content={
 						onChainMcap?.breakdown != null ? (
@@ -382,6 +416,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					<span className="text-(--text-label)">Chains</span>
 					<span className="font-jetbrains text-xl font-semibold">{asset.chain?.length ?? 0}</span>
 				</p>
+				{asset.nativeYieldCurrent != null ? (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<span className="text-(--text-label)">Native Yield</span>
+						<span className="font-jetbrains text-xl font-semibold">{asset.nativeYieldCurrent.toFixed(2)}%</span>
+					</p>
+				) : null}
 			</div>
 
 			{asset.chartDataset && asset.chartDataset.source.length > 0 ? (
@@ -683,6 +723,78 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</SectionCard>
 			) : null}
 
+			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) || displayPools.length > 0 ? (
+				<div
+					className={`grid gap-2 ${(isLoadingYieldChart || nativeYieldDataset) && displayPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
+				>
+					{asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset) ? (
+						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
+							<div className="flex flex-wrap items-start justify-end gap-2 p-3 pb-0">
+								<p className="mr-auto flex flex-col">
+									<span className="text-xs font-medium tracking-wide text-(--text-disabled) uppercase">
+										Native Yield
+									</span>
+									{asset.nativeYieldCurrent != null ? (
+										<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
+											{asset.nativeYieldCurrent.toFixed(2)}%
+										</span>
+									) : null}
+								</p>
+								<ChartExportButtons
+									chartInstance={nativeYieldChartInstance}
+									filename={nativeYieldExportFilename}
+									title={nativeYieldExportTitle}
+								/>
+							</div>
+
+							{isLoadingYieldChart ? (
+								<p className="flex min-h-[360px] flex-1 items-center justify-center gap-1">
+									Loading
+									<LoadingDots />
+								</p>
+							) : (
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										charts={NATIVE_YIELD_CHARTS}
+										dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
+										valueSymbol="%"
+										hideDefaultLegend={false}
+										exportButtons="hidden"
+										onReady={onNativeYieldChartReady}
+									/>
+								</Suspense>
+							)}
+
+							{asset.issuer ? (
+								<p className="p-3 pt-0 text-xs text-(--text-disabled)">Historical APY from {asset.issuer}</p>
+							) : null}
+						</div>
+					) : null}
+
+					{displayPools.length > 0 ? (
+						<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+							<div className="flex items-center justify-between">
+								<h2 className="font-semibold">
+									{hasMorePools
+										? `DeFi Yield Opportunities (${displayPools.length} of ${yieldPoolsTotal})`
+										: `DeFi Yield Opportunities (${displayPools.length})`}
+								</h2>
+								{hasMorePools && asset.ticker ? (
+									<a
+										href={`/yields?token=${encodeURIComponent(asset.ticker)}&attribute=no_il&attribute=single_exposure`}
+										className="text-xs font-medium text-(--link-text) hover:underline"
+									>
+										View all {yieldPoolsTotal} →
+									</a>
+								) : null}
+							</div>
+							<RWAYieldsTable data={displayPools} compact={isCompactYields} />
+						</div>
+					) : null}
+				</div>
+			) : null}
+
 			{/* Chain Availability (moved to last) */}
 			{asset.chain && asset.chain.length > 0 ? (
 				<SectionCard title="Chains">
@@ -702,6 +814,16 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 		</div>
 	)
 }
+
+const NATIVE_YIELD_CHARTS = [
+	{
+		type: 'line' as const,
+		name: 'Native Yield',
+		encode: { x: 'timestamp', y: 'Native Yield' },
+		color: '#cc3e82',
+		valueSymbol: '%'
+	}
+]
 
 const BASE_TIME_SERIES_CHARTS: Array<{
 	type: 'line' | 'bar'

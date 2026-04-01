@@ -140,6 +140,7 @@ function ConversationLiveStatus({
 			spawnProgress.size === 0 &&
 			!streamingDraft?.content &&
 			!streamingThinking &&
+			!isCompacting &&
 			!hasStreamingCharts(streamingDraft?.charts) ? (
 				<TypingIndicator />
 			) : null}

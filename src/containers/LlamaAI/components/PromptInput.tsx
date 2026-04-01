@@ -266,7 +266,7 @@ export function PromptInput({
 
 	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
-		if (!promptValue.trim()) return
+		if (!promptValue.trim() && imageUpload.selectedImages.length === 0) return
 
 		trackSubmit()
 		const finalEntities = entityCombobox.getFinalEntities()

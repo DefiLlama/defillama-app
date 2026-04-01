@@ -69,7 +69,7 @@ export function MobileToolsPopover({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className="z-10 flex flex-col gap-0.5 rounded-xl border border-black/8 bg-white p-1.5 shadow-2xl max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:overflow-auto max-sm:rounded-b-none sm:max-h-[60dvh] dark:border-[#2a2a2e] dark:bg-[#18181b]"
+				className="z-10 flex flex-col gap-0.5 rounded-xl border border-black/8 bg-white p-1.5 shadow-2xl max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:overflow-auto max-sm:overscroll-contain max-sm:rounded-b-none sm:max-h-[60dvh] dark:border-[#2a2a2e] dark:bg-[#18181b]"
 			>
 				<div className="flex items-center justify-between px-3 pt-3 pb-1 sm:hidden">
 					{/* <Ariakit.MenuHeading className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">

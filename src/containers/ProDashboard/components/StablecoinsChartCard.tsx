@@ -368,7 +368,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 				</div>
 			) : null}
 
-			<div className="flex-1">
+			<div className="flex-1" key={chartType}>
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">

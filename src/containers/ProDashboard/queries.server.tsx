@@ -317,8 +317,16 @@ export async function fetchSingleChartData(
 	timePeriod: TimePeriod,
 	customTimePeriod: CustomTimePeriod | null
 ): Promise<[number, number][]> {
+	const tokenTypes = new Set(['tokenMcap', 'tokenPrice', 'tokenVolume'])
 	const itemType = chart.protocol ? 'protocol' : 'chain'
 	const item = chart.protocol || chart.chain
+
+	if (tokenTypes.has(chart.type) && chart.geckoId) {
+		const fetcher = protocolChartFetchers[chart.type]
+		if (!fetcher) return []
+		const data = await fetcher(item ?? '', chart.geckoId, chart.dataType)
+		return filterDataByTimePeriod(data, timePeriod || 'all', customTimePeriod)
+	}
 
 	if (!item) return []
 
@@ -328,7 +336,6 @@ export async function fetchSingleChartData(
 		const fetcher = protocolChartFetchers[chart.type]
 		if (!fetcher) return []
 
-		const tokenTypes = new Set(['tokenMcap', 'tokenPrice', 'tokenVolume'])
 		if (tokenTypes.has(chart.type) && !chart.geckoId) return []
 
 		data = await fetcher(item, chart.geckoId, chart.dataType)

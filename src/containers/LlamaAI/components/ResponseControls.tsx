@@ -250,7 +250,7 @@ export function ResponseControls({
 
 	return (
 		<>
-			<div className="flex items-center justify-end gap-1">
+			<div className="flex items-center gap-0.5 pt-1">
 				{content ? (
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}
@@ -261,19 +261,57 @@ export function ResponseControls({
 								}}
 							/>
 						}
-						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+						className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
 					>
 						{copied ? (
-							<Icon name="check-circle" height={14} width={14} />
+							<Icon name="check-circle" height={16} width={16} />
 						) : (
-							<Icon name="clipboard" height={14} width={14} />
+							<Icon name="clipboard" height={16} width={16} />
 						)}
 					</Tooltip>
 				) : null}
+				{!readOnly ? (
+					<>
+						<Tooltip
+							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
+							render={<button onClick={handleRateGood} disabled={showFeedback || isRatedAsGood || isRatedAsBad} />}
+							className={`rounded-md p-1.5 transition-colors hover:bg-black/5 hover:text-[#444] dark:hover:bg-white/5 dark:hover:text-[#ccc] ${isRatedAsGood ? 'text-(--success)' : 'text-[#999] dark:text-[#666]'}`}
+						>
+							<Icon name="thumbs-up" height={16} width={16} />
+							<span className="sr-only">Thumbs Up</span>
+						</Tooltip>
+						<Tooltip
+							content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
+							render={<button onClick={handleRateBad} disabled={showFeedback || isRatedAsGood || isRatedAsBad} />}
+							className={`rounded-md p-1.5 transition-colors hover:bg-black/5 hover:text-[#444] dark:hover:bg-white/5 dark:hover:text-[#ccc] ${isRatedAsBad ? 'text-(--error)' : 'text-[#999] dark:text-[#666]'}`}
+						>
+							<Icon name="thumbs-down" height={16} width={16} />
+							<span className="sr-only">Thumbs Down</span>
+						</Tooltip>
+					</>
+				) : null}
+				{sessionId && !readOnly ? (
+					<Tooltip
+						content="Share"
+						render={<button onClick={handleShareSession} disabled={isSharing || showShareModal} />}
+						className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
+					>
+						{isSharing ? <LoadingSpinner size={16} /> : <Icon name="share" height={16} width={16} />}
+						<span className="sr-only">Share</span>
+					</Tooltip>
+				) : null}
+				{content && sessionId && !readOnly ? (
+					<PDFExportButton
+						sessionId={sessionId}
+						messageId={messageId}
+						exportType="single_message"
+						className="flex items-center gap-1 rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
+					/>
+				) : null}
 				{messageMetadata && (messageMetadata.outputTokens != null || messageMetadata.x402CostUsd) ? (
 					<Ariakit.PopoverProvider placement="top">
-						<Ariakit.PopoverDisclosure className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white">
-							<Icon name="circle-help" height={14} width={14} />
+						<Ariakit.PopoverDisclosure className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]">
+							<Icon name="circle-help" height={16} width={16} />
 						</Ariakit.PopoverDisclosure>
 						<Ariakit.Popover
 							className="z-50 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-3 shadow-lg dark:border-[#333]"
@@ -309,51 +347,13 @@ export function ResponseControls({
 						</Ariakit.Popover>
 					</Ariakit.PopoverProvider>
 				) : null}
-				{content && sessionId && !readOnly ? (
-					<PDFExportButton
-						sessionId={sessionId}
-						messageId={messageId}
-						exportType="single_message"
-						className="flex items-center gap-1 rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
-					/>
-				) : null}
-				{!readOnly ? (
-					<>
-						<Tooltip
-							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
-							render={<button onClick={handleRateGood} disabled={showFeedback || isRatedAsGood || isRatedAsBad} />}
-							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsGood ? 'text-(--success)' : 'text-[#666] dark:text-[#919296]'}`}
-						>
-							<Icon name="thumbs-up" height={14} width={14} />
-							<span className="sr-only">Thumbs Up</span>
-						</Tooltip>
-						<Tooltip
-							content={isRatedAsBad ? 'Rated as bad' : 'Rate as bad'}
-							render={<button onClick={handleRateBad} disabled={showFeedback || isRatedAsGood || isRatedAsBad} />}
-							className={`rounded p-1.5 hover:bg-[#f7f7f7] hover:text-black dark:hover:bg-[#222324] dark:hover:text-white ${isRatedAsBad ? 'text-(--error)' : 'text-[#666] dark:text-[#919296]'}`}
-						>
-							<Icon name="thumbs-down" height={14} width={14} />
-							<span className="sr-only">Thumbs Down</span>
-						</Tooltip>
-					</>
-				) : null}
-				{sessionId && !readOnly ? (
-					<Tooltip
-						content="Share"
-						render={<button onClick={handleShareSession} disabled={isSharing || showShareModal} />}
-						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
-					>
-						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
-						<span className="sr-only">Share</span>
-					</Tooltip>
-				) : null}
 				{!readOnly ? (
 					<Tooltip
 						content="Provide Feedback"
 						render={<button onClick={handleOpenGeneralFeedback} disabled={showFeedback || !!submittedRating} />}
-						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
+						className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
 					>
-						<Icon name="message-square-warning" height={14} width={14} />
+						<Icon name="message-square-warning" height={16} width={16} />
 						<span className="sr-only">Provide Feedback</span>
 					</Tooltip>
 				) : null}

@@ -39,6 +39,9 @@ interface SubmitButtonProps {
 	selectedLlamaAIChart?: { id: string; title: string } | null
 	selectedUnlocksProtocol?: string | null
 	selectedUnlocksChartType?: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
+	rwaMode?: 'overview' | 'asset'
+	selectedRwaAssetId?: string | null
+	selectedRwaAssetMetrics?: string[]
 	onSubmit: () => void
 }
 
@@ -77,6 +80,9 @@ export function SubmitButton({
 	selectedIncomeStatementProtocol,
 	selectedLlamaAIChart,
 	selectedUnlocksProtocol,
+	rwaMode = 'overview',
+	selectedRwaAssetId,
+	selectedRwaAssetMetrics = [],
 	onSubmit
 }: SubmitButtonProps) {
 	const isStablecoinChainModeInvalid =
@@ -88,6 +94,7 @@ export function SubmitButton({
 	const isBorrowedInvalid = !selectedBorrowedProtocol || !selectedBorrowedChartType
 	const isIncomeStatementInvalid = !selectedIncomeStatementProtocol
 	const isUnlocksInvalid = !selectedUnlocksProtocol
+	const isRwaAssetInvalid = rwaMode === 'asset' && (!selectedRwaAssetId || selectedRwaAssetMetrics.length === 0)
 
 	const isDisabled =
 		chartTypesLoading ||
@@ -106,6 +113,7 @@ export function SubmitButton({
 			selectedChartTab === 'income-statement' &&
 			isIncomeStatementInvalid) ||
 		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'unlocks' && isUnlocksInvalid) ||
+		(selectedMainTab === 'charts' && chartMode === 'manual' && selectedChartTab === 'rwa' && isRwaAssetInvalid) ||
 		(selectedMainTab === 'charts' &&
 			chartMode === 'manual' &&
 			selectedChartTab !== 'yields' &&
@@ -114,6 +122,7 @@ export function SubmitButton({
 			selectedChartTab !== 'borrowed' &&
 			selectedChartTab !== 'income-statement' &&
 			selectedChartTab !== 'unlocks' &&
+			selectedChartTab !== 'rwa' &&
 			composerItems.length === 0) ||
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
@@ -145,7 +154,8 @@ export function SubmitButton({
 					selectedChartTab === 'stablecoins' ||
 					selectedChartTab === 'advanced-tvl' ||
 					selectedChartTab === 'borrowed' ||
-					selectedChartTab === 'income-statement'
+					selectedChartTab === 'income-statement' ||
+					selectedChartTab === 'rwa'
 				) {
 					return 'Add Chart'
 				}

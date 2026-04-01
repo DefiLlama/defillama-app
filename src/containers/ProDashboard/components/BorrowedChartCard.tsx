@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useMemo, type ReactElement } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
@@ -10,7 +11,8 @@ import { download } from '~/utils/download'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod, StreamDoneContext } from '../queries'
+import { filterDataByTimePeriod, ProxyAuthTokenContext, StreamDoneContext } from '../queries'
+import { fetchProtocolFullViaProxy } from '../services/fetchViaProxy'
 import type { BorrowedChartConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
@@ -36,6 +38,16 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
+
+	// Pre-seed protocol full data via proxy so useFetchProtocolV1AddlChartsData uses cached data
+	useQuery({
+		queryKey: ['protocol-overview-v1', protocol, 'metrics'],
+		queryFn: () => (authToken ? fetchProtocolFullViaProxy(protocol, authToken) : null),
+		enabled: streamDone && !!authToken,
+		staleTime: Infinity
+	})
+
 	const {
 		data: addlData,
 		historicalChainTvls,

@@ -2,7 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useContext, useMemo } from 'react'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
-import { getChartQueryFn, getChartQueryKey, StreamDoneContext, useParentChildMapping } from '../queries'
+import {
+	getChartQueryFn,
+	getChartQueryKey,
+	ProxyAuthTokenContext,
+	StreamDoneContext,
+	useParentChildMapping
+} from '../queries'
 import type { MetricAggregator, MetricConfig, MetricWindow } from '../types'
 
 const DEFAULT_COMPARE = {
@@ -192,6 +198,7 @@ export function useMetricData(metric: MetricConfig) {
 	const { data: parentMapping } = useParentChildMapping()
 
 	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
 	const tokenTypes = ['tokenMcap', 'tokenPrice', 'tokenVolume']
 	const chainTokenTypes = ['chainMcap', 'chainPrice']
 
@@ -201,7 +208,7 @@ export function useMetricData(metric: MetricConfig) {
 		isError
 	} = useQuery({
 		queryKey: ['pro-dashboard', 'metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
-		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping),
+		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping, undefined, undefined, authToken),
 		staleTime: Infinity,
 		select: (data: [number, number][]) => (Array.isArray(data) ? data : []),
 		enabled:

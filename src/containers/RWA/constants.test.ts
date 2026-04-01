@@ -1,25 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { getRWATimeSeriesChartState } from './constants'
+import { getDefaultRWAOverviewInclusion } from './constants'
 
-describe('getRWATimeSeriesChartState', () => {
-	it('falls back to the chain default when the query value is invalid', () => {
-		expect(getRWATimeSeriesChartState('chain', 'assetName')).toEqual({
-			mode: 'chain',
-			breakdown: 'assetGroup'
+describe('getDefaultRWAOverviewInclusion', () => {
+	it('enables stablecoins and governance by default for rwa-yield-wrapper category pages', () => {
+		expect(getDefaultRWAOverviewInclusion('category', 'rwa-yield-wrapper')).toEqual({
+			includeStablecoins: true,
+			includeGovernance: true
 		})
 	})
 
-	it('keeps the valid category breakdown options', () => {
-		expect(getRWATimeSeriesChartState('category', 'platform')).toEqual({
-			mode: 'category',
-			breakdown: 'platform'
+	it('keeps other RWA pages on the existing false defaults', () => {
+		expect(getDefaultRWAOverviewInclusion('category', 'private-credit')).toEqual({
+			includeStablecoins: false,
+			includeGovernance: false
 		})
-	})
-
-	it('falls back to the platform default when the query value is invalid', () => {
-		expect(getRWATimeSeriesChartState('platform', 'platform')).toEqual({
-			mode: 'platform',
-			breakdown: 'assetGroup'
+		expect(getDefaultRWAOverviewInclusion('chain', null)).toEqual({
+			includeStablecoins: false,
+			includeGovernance: false
 		})
 	})
 })

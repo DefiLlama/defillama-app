@@ -60,6 +60,13 @@ export const CATEGORY_CARDS: CategoryCardData[] = [
 		description: 'Market cap, dominance, inflows by chain or asset',
 		icon: 'dollar-sign',
 		tags: ['Market Cap', 'Dominance', 'Inflows']
+	},
+	{
+		id: 'rwa',
+		title: 'RWA',
+		description: 'Real World Assets by chain, category, or individual asset',
+		icon: 'landmark',
+		tags: ['Active Mcap', 'Onchain Mcap', 'DeFi TVL']
 	}
 ]
 

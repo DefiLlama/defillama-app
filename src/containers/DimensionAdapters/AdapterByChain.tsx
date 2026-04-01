@@ -35,6 +35,7 @@ import { formattedNum, slug, getAnnualizedRatio } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
 import { AdapterByChainChart } from './ChainChart'
 import type { IAdapterByChainPageData, IProtocol } from './types'
+import { getProtocolsByCategory } from './utils'
 
 type TPageType =
 	| 'Fees'
@@ -93,38 +94,6 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Options Premium Volume': definitions.optionsPremium.chain,
 	'Options Notional Volume': definitions.optionsNotional.chain,
 	Earnings: definitions.earnings.chain
-}
-
-const getProtocolsByCategory = (
-	protocols: IAdapterByChainPageData['protocols'],
-	categoriesToFilter: Array<string>
-): IProtocol[] => {
-	const final: IProtocol[] = []
-
-	for (const protocol of protocols) {
-		if (protocol.childProtocols) {
-			const childProtocols = protocol.childProtocols.filter(
-				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
-			)
-
-			if (childProtocols.length === protocol.childProtocols.length) {
-				final.push(protocol)
-			} else {
-				for (const childProtocol of childProtocols) {
-					final.push(childProtocol)
-				}
-			}
-
-			continue
-		}
-
-		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
-			final.push(protocol)
-			continue
-		}
-	}
-
-	return final
 }
 
 export function AdapterByChain(props: IProps) {
@@ -432,7 +401,9 @@ export function AdapterByChain(props: IProps) {
 						chain={props.chain}
 						chartName={props.type}
 						dataType={props.dataType}
-						protocols={protocols}
+						categories={props.categories}
+						protocols={props.protocols}
+						tableProtocols={protocols}
 					/>
 				</div>
 			) : null}

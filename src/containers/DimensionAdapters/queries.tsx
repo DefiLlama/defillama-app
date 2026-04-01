@@ -664,15 +664,12 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChainsSet.add(currentChainMetadata.name)
 		}
 
-		const [chainsData, rawChartData, bribesData, tokenTaxesData] = await Promise.all([
+		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
 			fetchAdapterChainMetrics({
 				adapterType,
 				dataType,
 				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
-			fetchJson<Array<[number, Record<string, number>]>>(
-				`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown?dataType=${dataType}`
-			).catch(() => []),
 			fetchAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
@@ -730,10 +727,7 @@ export const getChainsByFeesAdapterPageData = async ({
 		return {
 			adapterType,
 			dataType: dataType ?? null,
-			chartData: buildChainsChartData({
-				rawChartData,
-				allChains
-			}),
+			chartData: { dimensions: ['timestamp'], source: [] },
 			chains,
 			allChains
 		}
@@ -799,11 +793,9 @@ export const getChainsByAdapterPageData = async ({
 				dataType,
 				chainMetadata
 			}),
-			adapterType === 'fees' && dataType !== 'dailyHoldersRevenue'
-				? Promise.resolve([])
-				: fetchJson<Array<[number, Record<string, number>]>>(
-						`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown${dataType ? `?dataType=${dataType}` : ''}`
-					).catch(() => []),
+			fetchJson<Array<[number, Record<string, number>]>>(
+				`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown${dataType ? `?dataType=${dataType}` : ''}`
+			).catch(() => []),
 			getOptionalOverview({
 				enabled: adapterType === 'fees',
 				adapterType,

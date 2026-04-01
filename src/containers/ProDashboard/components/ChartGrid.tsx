@@ -59,6 +59,10 @@ const UnlocksScheduleCard = lazy(() =>
 )
 const UnlocksPieCard = lazy(() => import('./UnlocksPieCard').then((mod) => ({ default: mod.UnlocksPieCard })))
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
+const RWAOverviewChartCard = lazy(() =>
+	import('./RWAOverviewChartCard').then((mod) => ({ default: mod.RWAOverviewChartCard }))
+)
+const RWAAssetChartCard = lazy(() => import('./RWAAssetChartCard').then((mod) => ({ default: mod.RWAAssetChartCard })))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -244,6 +248,22 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 		return (
 			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
 				<LlamaAIChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'rwa-overview') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<RWAOverviewChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'rwa-asset') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<RWAAssetChartCard config={item} />
 			</Suspense>
 		)
 	}

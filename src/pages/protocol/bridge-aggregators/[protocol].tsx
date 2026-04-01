@@ -22,6 +22,7 @@ import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/ty
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
+import { buildHallmarksWithGenuineSpikes } from '~/utils/hallmarks'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -66,6 +67,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const hallmarks = buildHallmarksWithGenuineSpikes({
+			dimensions: protocolData.dimensions
+		})
+
 		const seoTitle = `${protocolData.name} Bridge Aggregator Volume - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} bridge aggregator volume across chains with daily and cumulative charts on DefiLlama.`
 
@@ -110,6 +115,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: adapterData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
+				hallmarks,
 				defaultChartView: adapterData?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
@@ -202,6 +208,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							charts={deferredFinalCharts.charts}
 							groupBy={groupBy}
 							valueSymbol="$"
+							hallmarks={props.hallmarks ?? undefined}
 							onReady={handleChartReady}
 						/>
 					</Suspense>
@@ -215,6 +222,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="bridge-aggregators"
 							breakdownNames={props.protocolChains}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Bridge Aggregator Volume by chain"
 						/>
 					</div>
@@ -226,6 +234,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							protocolName={slug(props.name)}
 							adapterType="bridge-aggregators"
 							breakdownNames={props.protocolVersions}
+							hallmarks={props.hallmarks ?? undefined}
 							title="Bridge Aggregator Volume by protocol version"
 						/>
 					</div>

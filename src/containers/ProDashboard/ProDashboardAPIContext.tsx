@@ -13,10 +13,11 @@ import {
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import pb from '~/utils/pocketbase'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions, useFreeTierStatus } from './hooks'
 import { useDashboardStream } from './hooks/useDashboardStream'
-import { StreamDoneContext, useChartsData, useProtocolsAndChains } from './queries'
+import { ProxyAuthTokenContext, StreamDoneContext, useChartsData, useProtocolsAndChains } from './queries'
 import type { Dashboard } from './services/DashboardAPI'
 import type {
 	CexAnalyticsMetric,
@@ -219,6 +220,8 @@ interface ProDashboardEditorActionsContextType {
 	handleAddUnifiedTable: (config?: Partial<UnifiedTableConfig>) => void
 	handleAddChartBuilder: (name: string | undefined, config: ChartBuilderConfig['config']) => void
 	handleAddLlamaAIChart: (savedChartId: string, title?: string) => void
+	handleAddRWAOverviewChart: (...args: any[]) => void
+	handleAddRWAAssetChart: (...args: any[]) => void
 	handleDuplicateChartBuilder: (builder: ChartBuilderConfig) => void
 	handleDuplicateMultiChart: (multi: MultiChartConfig) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -282,13 +285,17 @@ export function ProDashboardAPIProvider({
 }) {
 	const stream = useDashboardStream(initialDashboardId)
 	const streamDone = !initialDashboardId || stream.isDone
+	const { hasActiveSubscription } = useAuthContext()
+	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
 
 	// Wrap in StreamDoneContext FIRST so all hooks inside the inner component read the correct value
 	return (
 		<StreamDoneContext.Provider value={streamDone}>
-			<ProDashboardAPIProviderInner stream={stream} streamDone={streamDone} initialDashboardId={initialDashboardId}>
-				{children}
-			</ProDashboardAPIProviderInner>
+			<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
+				<ProDashboardAPIProviderInner stream={stream} streamDone={streamDone} initialDashboardId={initialDashboardId}>
+					{children}
+				</ProDashboardAPIProviderInner>
+			</ProxyAuthTokenContext.Provider>
 		</StreamDoneContext.Provider>
 	)
 }
@@ -395,6 +402,8 @@ function ProDashboardAPIProviderInner({
 		handleAddText,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleDuplicateChartBuilder,
 		handleDuplicateMultiChart,
 		handleEditItem,
@@ -921,7 +930,8 @@ function ProDashboardAPIProviderInner({
 		return chartItems
 	}, [items])
 
-	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod)
+	const proxyAuthToken = useContext(ProxyAuthTokenContext)
+	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod, proxyAuthToken)
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()
@@ -983,6 +993,8 @@ function ProDashboardAPIProviderInner({
 		handleAddUnifiedTable: typeof handleAddUnifiedTable
 		handleAddChartBuilder: typeof handleAddChartBuilder
 		handleAddLlamaAIChart: typeof handleAddLlamaAIChart
+		handleAddRWAOverviewChart: typeof handleAddRWAOverviewChart
+		handleAddRWAAssetChart: typeof handleAddRWAAssetChart
 		handleDuplicateChartBuilder: typeof handleDuplicateChartBuilder
 		handleDuplicateMultiChart: typeof handleDuplicateMultiChart
 		handleEditItem: typeof handleEditItem
@@ -1018,6 +1030,8 @@ function ProDashboardAPIProviderInner({
 			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleAddLlamaAIChart,
+			handleAddRWAOverviewChart,
+			handleAddRWAAssetChart,
 			handleDuplicateChartBuilder,
 			handleDuplicateMultiChart,
 			handleEditItem,
@@ -1180,6 +1194,10 @@ function ProDashboardAPIProviderInner({
 				handlersRef.current.handleAddChartBuilder(...args),
 			handleAddLlamaAIChart: (...args: Parameters<typeof handleAddLlamaAIChart>) =>
 				handlersRef.current.handleAddLlamaAIChart(...args),
+			handleAddRWAOverviewChart: (...args: Parameters<typeof handleAddRWAOverviewChart>) =>
+				handlersRef.current.handleAddRWAOverviewChart(...args),
+			handleAddRWAAssetChart: (...args: Parameters<typeof handleAddRWAAssetChart>) =>
+				handlersRef.current.handleAddRWAAssetChart(...args),
 			handleDuplicateChartBuilder: (...args: Parameters<typeof handleDuplicateChartBuilder>) =>
 				handlersRef.current.handleDuplicateChartBuilder(...args),
 			handleDuplicateMultiChart: (...args: Parameters<typeof handleDuplicateMultiChart>) =>

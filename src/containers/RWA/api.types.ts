@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
@@ -235,6 +236,10 @@ export interface IRWAAssetData extends IRWAProject {
 		source: RWAAssetChartRow[]
 		dimensions: RWAAssetChartDimension[]
 	} | null
+	yieldPools: IYieldTableRow[] | null
+	yieldPoolsTotal: number | null
+	nativeYieldPoolId: string | null
+	nativeYieldCurrent: number | null
 }
 
 const RWA_ASSET_CHART_DIMENSIONS = ['timestamp', 'DeFi Active TVL', 'Active Mcap', 'Onchain Mcap'] as const
