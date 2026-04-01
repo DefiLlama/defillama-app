@@ -24,7 +24,7 @@ describe('parseRWAPerpsChartState', () => {
 		})
 	})
 
-	it('defaults venue treemap to asset class nested by coins', () => {
+	it('defaults venue treemap to asset class nested by reference asset', () => {
 		const state = parseRWAPerpsChartState({ chartView: 'treemap' }, 'venue')
 
 		expect(state).toMatchObject({

@@ -341,7 +341,7 @@ export function RWAPerpsCoinPage({ coin }: { coin: IRWAPerpsCoinData }) {
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<div className="flex flex-col gap-6 xl:hidden">
-							<RWAPerpsCoinHeader coin={coin} headingAs="div" />
+							<RWAPerpsCoinHeader coin={coin} headingAs="h1" />
 							<RWAPerpsCoinPriceSummary coin={coin} />
 						</div>
 

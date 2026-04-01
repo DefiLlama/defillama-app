@@ -250,6 +250,27 @@ describe('buildRWAPerpsCoinChartSpec', () => {
 		])
 	})
 
+	it('sorts source points chronologically before taking last-value grouped buckets', () => {
+		const spec = buildRWAPerpsCoinChartSpec({
+			marketPoints: [chartPoints[1], chartPoints[0], chartPoints[2]],
+			fundingHistory: [fundingHistoryPoints[1], fundingHistoryPoints[0]],
+			groupBy: 'monthly',
+			enabledMetrics: ['openInterest', 'fundingRate']
+		})
+
+		expect(spec.dataset.source).toMatchObject([
+			{
+				timestamp: Date.UTC(2026, 2, 1),
+				'Open Interest': 120,
+				'Funding Rate': 0.2
+			},
+			{
+				timestamp: Date.UTC(2026, 3, 1),
+				'Open Interest': 140
+			}
+		])
+	})
+
 	it('normalizes second-based timestamps to milliseconds before grouping', () => {
 		const spec = buildRWAPerpsCoinChartSpec({
 			marketPoints: [

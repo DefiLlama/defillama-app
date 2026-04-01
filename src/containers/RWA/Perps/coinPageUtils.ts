@@ -249,17 +249,16 @@ function getMetricSourcePoints({
 }): Array<[number, number]> {
 	if (metricKey === 'fundingRate' || metricKey === 'premium') {
 		if (fundingHistory?.length) {
-			return fundingHistory.map((point) => [
-				toUnixMsTimestamp(point.timestamp),
-				getFundingHistoryMetricValue(point, metricKey)
-			])
+			return [...fundingHistory]
+				.sort((a, b) => toUnixMsTimestamp(a.timestamp) - toUnixMsTimestamp(b.timestamp))
+				.map((point) => [toUnixMsTimestamp(point.timestamp), getFundingHistoryMetricValue(point, metricKey)])
 		}
 	}
 
 	if (!marketPoints?.length) return []
-	return marketPoints.map(
-		(point) => [toUnixMsTimestamp(point.timestamp), getMetricValue(point, metricKey)] as [number, number]
-	)
+	return [...marketPoints]
+		.sort((a, b) => toUnixMsTimestamp(a.timestamp) - toUnixMsTimestamp(b.timestamp))
+		.map((point) => [toUnixMsTimestamp(point.timestamp), getMetricValue(point, metricKey)] as [number, number])
 }
 
 type ChartSpec = {
