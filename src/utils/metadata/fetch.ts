@@ -5,6 +5,7 @@ import type {
 	IChainMetadata,
 	IProtocolMetadata,
 	IRWAList,
+	IRWAPerpsList,
 	ITokenListEntry
 } from './types'
 
@@ -55,6 +56,7 @@ function sanitizeUrlForMetadataLogs(inputUrl: string): string {
 		// Normalize pro-api paths to avoid exposing API key segments.
 		pathname = pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
 		pathname = pathname.replace(/^\/[^/]+\/rwa(\/|$)/, '/rwa$1')
+		pathname = pathname.replace(/^\/[^/]+\/rwa-perps(\/|$)/, '/rwa-perps$1')
 		pathname = pathname.replace(/^\/[^/]+\/bridges(\/|$)/, '/bridges$1')
 
 		return `${pathname}${parsed.search}${parsed.hash}` || '/'
@@ -91,6 +93,7 @@ export async function fetchCoreMetadata(): Promise<{
 	categoriesAndTags: ICategoriesAndTags
 	cexs: ICexItem[]
 	rwaList: IRWAList
+	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -100,6 +103,9 @@ export async function fetchCoreMetadata(): Promise<{
 	const API_KEY = process.env.API_KEY
 	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
 	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
+	const RWA_PERPS_SERVER_URL = API_KEY
+		? `https://pro-api.llama.fi/${API_KEY}/rwa-perps`
+		: 'https://api.llama.fi/rwa-perps'
 	const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
 	const DATASETS_SERVER_URL = API_KEY
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
@@ -110,6 +116,7 @@ export async function fetchCoreMetadata(): Promise<{
 	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json`
 	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs`
 	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?rwa=123`
+	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list`
 	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
@@ -123,7 +130,7 @@ export async function fetchCoreMetadata(): Promise<{
 				})
 			: fetchJson<T>(url)
 
-	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, tokenlistArray, bridgesResponse] =
+	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, rwaPerpsList, tokenlistArray, bridgesResponse] =
 		await Promise.all([
 			fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
 			fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
@@ -140,6 +147,12 @@ export async function fetchCoreMetadata(): Promise<{
 				categories: [],
 				assetGroups: [],
 				idMap: {}
+			}),
+			fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
+				coins: [],
+				venues: [],
+				categories: [],
+				total: 0
 			}),
 			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
 			fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
@@ -197,6 +210,7 @@ export async function fetchCoreMetadata(): Promise<{
 		cexs: cexsResponse.cexs,
 		cgExchangeIdentifiers: cexsResponse.cg_volume_cexs,
 		rwaList,
+		rwaPerpsList,
 		tokenlist,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,

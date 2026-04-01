@@ -101,6 +101,13 @@ export interface IRWAList {
 	idMap: Record<string, string>
 }
 
+export interface IRWAPerpsList {
+	coins: Array<string>
+	venues: Array<string>
+	categories: Array<string>
+	total: number
+}
+
 export interface ITokenListEntry {
 	symbol: string
 	current_price: number | null
