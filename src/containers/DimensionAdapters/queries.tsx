@@ -428,7 +428,8 @@ export const getAdapterByChainPageData = async ({
 				: {}),
 			...(normalizedVolumeProtocols[protocol.name]?.total24h != null
 				? { normalizedVolume24h: normalizedVolumeProtocols[protocol.name].total24h }
-				: {})
+				: {}),
+			...(protocol.displayName !== protocol.name ? { breakdownAliases: [protocol.name] } : {})
 		}
 
 		if (protocol.linkedProtocols?.length > 1) {
@@ -447,7 +448,10 @@ export const getAdapterByChainPageData = async ({
 			protocols[protocol] = {
 				...parentProtocols[protocol][0],
 				name: protocol,
-				slug: slug(protocol)
+				slug: slug(protocol),
+				breakdownAliases: Array.from(
+					new Set([parentProtocols[protocol][0].name, ...(parentProtocols[protocol][0].breakdownAliases ?? [])])
+				).filter((alias) => alias !== protocol)
 			}
 			continue
 		}
@@ -546,6 +550,10 @@ export const getAdapterByChainPageData = async ({
 			total1y,
 			totalAllTime,
 			mcap: protocolsMcap[protocol] ?? null,
+			breakdownAliases: parentProtocols[protocol]
+				.map((p) => [p.name, ...(p.breakdownAliases ?? [])])
+				.flat()
+				.filter((alias, index, aliases) => alias !== protocol && aliases.indexOf(alias) === index),
 			childProtocols: parentProtocols[protocol],
 			...(bribes ? { bribes } : {}),
 			...(tokenTax ? { tokenTax } : {}),

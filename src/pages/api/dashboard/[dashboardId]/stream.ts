@@ -390,7 +390,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 								}
 							}
 						} else {
-							const breakdownParams = { key: metric || 'activeMcap', includeStablecoin: false, includeGovernance: false }
+							const breakdownParams = {
+								key: metric || 'activeMcap',
+								includeStablecoin: false,
+								includeGovernance: false
+							}
 							switch (breakdown) {
 								case 'category':
 									data = await withTimeout(rwaApi.fetchRWACategoryBreakdownChartData(breakdownParams), 10_000)

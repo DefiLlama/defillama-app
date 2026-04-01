@@ -837,7 +837,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	return (
 		<ChartContainer
 			id={id}
-			className={containerClassName ? 'flex-1 flex flex-col' : undefined}
+			className={containerClassName ? 'flex flex-1 flex-col' : undefined}
 			chartClassName={containerClassName ?? 'h-[360px]'}
 			chartStyle={!containerClassName && height ? { height } : undefined}
 			header={
