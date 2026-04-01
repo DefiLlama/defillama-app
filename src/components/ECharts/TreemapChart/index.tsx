@@ -280,18 +280,20 @@ export default function TreemapChart({
 									// Parent nodes: show the group name directly for visibility.
 									return String(params.name ?? '')
 								}
+								const normalizedValue = normalizeTreemapValue(params?.value)
 
 								if (variant === 'narrative') {
-									const normalizedValue = normalizeTreemapValue(params?.value)
 									arr = [
 										`{name|${pathParts[pathParts.length - 1]}}`,
 										`Return: {apy| ${normalizedValue[1] ?? 0}%}`,
 										`Market Cap: {mcap| ${formattedNum(normalizedValue[0], true)}}`
 									]
 								} else if (isRwaVariant) {
-									arr = [`{rwaName|${formatRwaTreemapBoxLabel(params)}}`]
+									arr = [
+										`{rwaName|${formatRwaTreemapBoxLabel(params)}}`,
+										`{rwaMetric|${valueLabel}: ${formattedNum(normalizedValue[0], true)}}`
+									]
 								} else {
-									const normalizedValue = normalizeTreemapValue(params?.value)
 									arr = [
 										`{name|${pathParts[pathParts.length - 1]}}`,
 										`Spot: {apy| ${normalizedValue[1] ?? 0}%}`,
