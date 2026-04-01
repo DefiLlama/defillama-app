@@ -412,6 +412,112 @@ export function mergeBreakdownCharts({
 	return Array.from(rows.entries()).sort((a, b) => a[0] - b[0])
 }
 
+export type ProtocolBreakdownNormalization = {
+	canonicalBySeriesName: Record<string, string>
+	aliasesByCanonicalName: Record<string, string[]>
+	signature: string
+}
+
+export function buildProtocolBreakdownNormalization(protocols: IProtocol[]): ProtocolBreakdownNormalization {
+	const canonicalBySeriesName = new Map<string, string>()
+	const aliasesByCanonicalName = new Map<string, Set<string>>()
+
+	const addAlias = (seriesName: string, canonicalName: string) => {
+		canonicalBySeriesName.set(seriesName, canonicalName)
+		const aliases = aliasesByCanonicalName.get(canonicalName) ?? new Set<string>()
+		aliases.add(seriesName)
+		aliasesByCanonicalName.set(canonicalName, aliases)
+	}
+
+	const walk = (protocol: IProtocol, canonicalName = protocol.name) => {
+		addAlias(protocol.name, canonicalName)
+		for (const alias of protocol.breakdownAliases ?? []) {
+			addAlias(alias, canonicalName)
+		}
+		for (const childProtocol of protocol.childProtocols ?? []) {
+			walk(childProtocol, canonicalName)
+		}
+	}
+
+	for (const protocol of protocols) {
+		walk(protocol)
+	}
+
+	const canonicalRecord = Object.fromEntries(
+		Array.from(canonicalBySeriesName.entries()).toSorted((a, b) => a[0].localeCompare(b[0]))
+	)
+	const aliasesRecord = Object.fromEntries(
+		Array.from(aliasesByCanonicalName.entries())
+			.toSorted((a, b) => a[0].localeCompare(b[0]))
+			.map(([canonicalName, aliases]) => [canonicalName, Array.from(aliases).toSorted((a, b) => a.localeCompare(b))])
+	)
+
+	return {
+		canonicalBySeriesName: canonicalRecord,
+		aliasesByCanonicalName: aliasesRecord,
+		signature: JSON.stringify(canonicalRecord)
+	}
+}
+
+export function normalizeProtocolBreakdownChartData({
+	chart,
+	normalization
+}: {
+	chart: Array<[number, Record<string, number>]>
+	normalization: ProtocolBreakdownNormalization
+}): {
+	chartData: MultiSeriesChart2Dataset
+	protocolDimensions: string[]
+} {
+	const protocolValuesByTimestamp = new Map<number, Record<string, number>>()
+	const protocolTotals = new Map<string, number>()
+
+	for (const [timestamp, protocolValues] of chart) {
+		const valuesAtTimestamp: Record<string, number> = {}
+
+		for (const [protocolName, value] of Object.entries(protocolValues)) {
+			const canonicalName = normalization.canonicalBySeriesName[protocolName]
+			if (!canonicalName) continue
+
+			valuesAtTimestamp[canonicalName] = (valuesAtTimestamp[canonicalName] ?? 0) + value
+			protocolTotals.set(canonicalName, (protocolTotals.get(canonicalName) ?? 0) + value)
+		}
+
+		if (Object.keys(valuesAtTimestamp).length > 0) {
+			protocolValuesByTimestamp.set(timestamp * 1e3, valuesAtTimestamp)
+		}
+	}
+
+	const protocolDimensions = Array.from(protocolTotals.entries())
+		.toSorted((a, b) => b[1] - a[1])
+		.map(([name]) => name)
+
+	if (protocolDimensions.length === 0) {
+		return {
+			chartData: { source: [], dimensions: ['timestamp'] },
+			protocolDimensions: []
+		}
+	}
+
+	const sortedTimestamps = Array.from(protocolValuesByTimestamp.keys()).sort((a, b) => a - b)
+	const source = sortedTimestamps.map((timestamp) => {
+		const row: Record<string, number | null> = { timestamp }
+		const valuesAtTimestamp = protocolValuesByTimestamp.get(timestamp)
+		for (const protocolName of protocolDimensions) {
+			row[protocolName] = valuesAtTimestamp?.[protocolName] ?? null
+		}
+		return row
+	})
+
+	return {
+		chartData: {
+			source,
+			dimensions: ['timestamp', ...protocolDimensions]
+		},
+		protocolDimensions
+	}
+}
+
 export function mergeNamedDimensionChartDataset({
 	chartData,
 	extraCharts
@@ -696,6 +802,80 @@ function createSeriesUniverse({
 		topSeriesNames,
 		topColorBySeriesName
 	}
+}
+
+function getOrderedSelectedSeriesNames({
+	chartData,
+	selectedNames
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+}) {
+	const selectedSet = new Set(selectedNames)
+	return chartData.dimensions.filter((dimension) => dimension !== 'timestamp' && selectedSet.has(dimension))
+}
+
+function orderSelectedNamesByRankingScores({
+	chartData,
+	selectedNames,
+	rankingScores
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
+	rankingScores?: Map<string, number>
+}) {
+	const selectedSeriesNames = getOrderedSelectedSeriesNames({ chartData, selectedNames })
+	const selectedSet = new Set(selectedSeriesNames)
+	const totals = new Map<string, number>()
+
+	for (const row of chartData.source) {
+		for (const seriesName of selectedSeriesNames) {
+			const value = row[seriesName]
+			if (typeof value === 'number' && Number.isFinite(value)) {
+				totals.set(seriesName, (totals.get(seriesName) ?? 0) + value)
+			}
+		}
+	}
+
+	const getRankingScore = (seriesName: string) => rankingScores?.get(seriesName) ?? Number.NEGATIVE_INFINITY
+
+	return selectedSeriesNames
+		.toSorted((a, b) => {
+			const aScore = getRankingScore(a)
+			const bScore = getRankingScore(b)
+			if (aScore !== bScore) {
+				return bScore > aScore ? 1 : -1
+			}
+
+			return (totals.get(b) ?? 0) - (totals.get(a) ?? 0)
+		})
+		.filter((seriesName) => selectedSet.has(seriesName))
+}
+
+function buildSeriesMapForNames({
+	chartData,
+	seriesNames
+}: {
+	chartData: MultiSeriesChart2Dataset
+	seriesNames: string[]
+}) {
+	const seriesMap = new Map<string, Array<[number, number]>>()
+
+	for (const seriesName of seriesNames) {
+		const rawSeries = chartData.source
+			.map((row) => {
+				const timestamp = Number(row.timestamp)
+				const value = row[seriesName]
+				return typeof value === 'number' && Number.isFinite(timestamp) ? ([timestamp, value] as [number, number]) : null
+			})
+			.filter((point): point is [number, number] => point != null)
+
+		if (rawSeries.length > 0) {
+			seriesMap.set(seriesName, rawSeries)
+		}
+	}
+
+	return seriesMap
 }
 
 function buildDenseRowsFromGroupedSeries(
@@ -1100,17 +1280,20 @@ export function buildAdapterByChainBreakdownPresentation({
 		}
 	}
 
-	const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+	const orderedSeriesNames = orderSelectedNamesByRankingScores({
 		chartData,
 		selectedNames: selectedProtocols,
 		rankingScores
 	})
+	const topSeries = buildSeriesMapForNames({ chartData, seriesNames: orderedSeriesNames })
+	const topColors = getNDistinctColors(orderedSeriesNames.length || 1)
+	const topColorBySeriesName = Object.fromEntries(orderedSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
 
 	switch (state.chartKind) {
 		case 'line':
-			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+			return buildLinePresentation({ topSeries, topSeriesNames: orderedSeriesNames, topColorBySeriesName, state })
 		case 'bar':
-			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+			return buildBarPresentation({ topSeries, topSeriesNames: orderedSeriesNames, topColorBySeriesName, state })
 		default:
 			return assertNever(state)
 	}
