@@ -59,7 +59,9 @@ const VALID_ITEM_KINDS = new Set([
 	'unlocks-schedule',
 	'unlocks-pie',
 	'unified-table',
-	'llamaai-chart'
+	'llamaai-chart',
+	'rwa-overview',
+	'rwa-asset'
 ])
 
 /**

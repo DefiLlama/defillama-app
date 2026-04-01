@@ -33,7 +33,12 @@ import {
 	type UnifiedTableConfig,
 	type UnlocksScheduleConfig,
 	type UnlocksPieConfig,
-	type YieldsChartConfig
+	type YieldsChartConfig,
+	type RWAOverviewChartConfig,
+	type RWAOverviewChartMetric,
+	type RWAOverviewChartView,
+	type RWAOverviewChartBreakdown,
+	type RWAAssetChartConfig
 } from './types'
 import { generateItemId } from './utils/dashboardUtils'
 
@@ -464,6 +469,50 @@ export function useDashboardActions(
 		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
 	)
 
+	const handleAddRWAOverviewChart = useCallback(
+		(
+			metric: RWAOverviewChartMetric,
+			chartView: RWAOverviewChartView,
+			breakdown: RWAOverviewChartBreakdown,
+			treemapNestedBy?: string,
+			chain?: string
+		) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newChart: RWAOverviewChartConfig = {
+				id: generateItemId('rwa-overview', `${chain || 'all'}-${metric}-${chartView}-${breakdown}`),
+				kind: 'rwa-overview',
+				metric,
+				chartView,
+				breakdown,
+				chain: chain || undefined,
+				treemapNestedBy: treemapNestedBy || 'none',
+				colSpan: 1
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
+	const handleAddRWAAssetChart = useCallback(
+		(assetId: string, assetName: string, metrics: RWAOverviewChartMetric[]) => {
+			if (isReadOnlyUntilDashboardLoaded) return
+
+			const newChart: RWAAssetChartConfig = {
+				id: generateItemId('rwa-asset', `${assetId}-${metrics.join('-')}`),
+				kind: 'rwa-asset',
+				assetId,
+				assetName,
+				metrics,
+				colSpan: 1
+			}
+
+			dispatchItemsAndSave((prev) => [...prev, newChart])
+		},
+		[dispatchItemsAndSave, isReadOnlyUntilDashboardLoaded]
+	)
+
 	const handleDuplicateMultiChart = useCallback(
 		(multi: MultiChartConfig) => {
 			if (isReadOnlyUntilDashboardLoaded) return
@@ -847,6 +896,8 @@ export function useDashboardActions(
 		handleAddText,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleDuplicateChartBuilder,
 		handleDuplicateMultiChart,
 		handleEditItem,

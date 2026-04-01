@@ -11,6 +11,7 @@ import { ChartTypePills } from './ChartTypePills'
 import { CombinedChartPreview } from './CombinedChartPreview'
 import { EntityPickerList } from './EntityPickerList'
 import { IncomeStatementChartTab } from './IncomeStatementChartTab'
+import { RWAChartTab } from './RWAChartTab'
 import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
 import type { ChartTabType, ManualChartViewMode } from './types'
@@ -102,6 +103,24 @@ interface UnifiedChartTabPropsExtended extends UnifiedChartTabProps {
 	onSelectedUnlocksProtocolChange?: (protocol: string | null) => void
 	onSelectedUnlocksProtocolNameChange?: (name: string | null) => void
 	onSelectedUnlocksChartTypeChange?: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
+	rwaMode?: 'overview' | 'asset'
+	selectedRwaChain?: string
+	selectedRwaMetric?: any
+	selectedRwaChartView?: any
+	selectedRwaBreakdown?: any
+	selectedRwaTreemapNestedBy?: string
+	selectedRwaAssetId?: string | null
+	selectedRwaAssetName?: string | null
+	selectedRwaAssetMetrics?: any[]
+	onRwaModeChange?: (mode: 'overview' | 'asset') => void
+	onSelectedRwaChainChange?: (chain: string) => void
+	onSelectedRwaMetricChange?: (metric: any) => void
+	onSelectedRwaChartViewChange?: (view: any) => void
+	onSelectedRwaBreakdownChange?: (breakdown: any) => void
+	onSelectedRwaTreemapNestedByChange?: (nestedBy: string) => void
+	onSelectedRwaAssetIdChange?: (id: string | null) => void
+	onSelectedRwaAssetNameChange?: (name: string | null) => void
+	onSelectedRwaAssetMetricsChange?: (metrics: any[]) => void
 }
 
 export function UnifiedChartTab({
@@ -180,9 +199,27 @@ export function UnifiedChartTab({
 	selectedUnlocksChartType = 'total',
 	onSelectedUnlocksProtocolChange,
 	onSelectedUnlocksProtocolNameChange,
-	onSelectedUnlocksChartTypeChange
+	onSelectedUnlocksChartTypeChange,
+	rwaMode = 'overview',
+	selectedRwaChain = 'All',
+	selectedRwaMetric = 'activeMcap',
+	selectedRwaChartView = 'timeSeries',
+	selectedRwaBreakdown = 'assetGroup',
+	selectedRwaTreemapNestedBy = 'none',
+	selectedRwaAssetId = null,
+	selectedRwaAssetName = null,
+	selectedRwaAssetMetrics = ['activeMcap', 'onChainMcap', 'defiActiveTvl'],
+	onRwaModeChange,
+	onSelectedRwaChainChange,
+	onSelectedRwaMetricChange,
+	onSelectedRwaChartViewChange,
+	onSelectedRwaBreakdownChange,
+	onSelectedRwaTreemapNestedByChange,
+	onSelectedRwaAssetIdChange,
+	onSelectedRwaAssetNameChange,
+	onSelectedRwaAssetMetricsChange
 }: UnifiedChartTabPropsExtended) {
-	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement', 'unlocks']
+	const specialtyTabs = ['yields', 'stablecoins', 'advanced-tvl', 'borrowed', 'income-statement', 'unlocks', 'rwa']
 	const [viewMode, setViewMode] = useState<ManualChartViewMode>(() =>
 		specialtyTabs.includes(selectedChartTab) || composerItems.length > 0 ? 'form' : 'cards'
 	)
@@ -500,6 +537,45 @@ export function UnifiedChartTab({
 						onSelectedStablecoinAssetChange={onSelectedStablecoinAssetChange || (() => {})}
 						onSelectedStablecoinAssetIdChange={onSelectedStablecoinAssetIdChange || (() => {})}
 						onSelectedStablecoinAssetChartTypeChange={onSelectedStablecoinAssetChartTypeChange || (() => {})}
+					/>
+				</div>
+				<SelectionFooter
+					composerItems={composerItems}
+					chartCreationMode={chartCreationMode}
+					unifiedChartName={unifiedChartName}
+					onChartCreationModeChange={onChartCreationModeChange}
+					onUnifiedChartNameChange={onUnifiedChartNameChange}
+					onComposerItemColorChange={onComposerItemColorChange}
+					onRemoveFromComposer={onRemoveFromComposer}
+				/>
+			</div>
+		)
+	}
+
+	if (selectedChartTab === 'rwa') {
+		return (
+			<div className="flex h-full flex-col">
+				<CategoryFormHeader category={selectedChartTab} onBack={handleBackToCards} />
+				<div className="min-h-0 flex-1">
+					<RWAChartTab
+						rwaMode={rwaMode}
+						selectedRwaChain={selectedRwaChain}
+						selectedRwaMetric={selectedRwaMetric}
+						selectedRwaChartView={selectedRwaChartView}
+						selectedRwaBreakdown={selectedRwaBreakdown}
+						selectedRwaTreemapNestedBy={selectedRwaTreemapNestedBy}
+						selectedRwaAssetId={selectedRwaAssetId}
+						selectedRwaAssetName={selectedRwaAssetName}
+						selectedRwaAssetMetrics={selectedRwaAssetMetrics}
+						onRwaModeChange={onRwaModeChange || (() => {})}
+						onSelectedRwaChainChange={onSelectedRwaChainChange || (() => {})}
+						onSelectedRwaMetricChange={onSelectedRwaMetricChange || (() => {})}
+						onSelectedRwaChartViewChange={onSelectedRwaChartViewChange || (() => {})}
+						onSelectedRwaBreakdownChange={onSelectedRwaBreakdownChange || (() => {})}
+						onSelectedRwaTreemapNestedByChange={onSelectedRwaTreemapNestedByChange || (() => {})}
+						onSelectedRwaAssetIdChange={onSelectedRwaAssetIdChange || (() => {})}
+						onSelectedRwaAssetNameChange={onSelectedRwaAssetNameChange || (() => {})}
+						onSelectedRwaAssetMetricsChange={onSelectedRwaAssetMetricsChange || (() => {})}
 					/>
 				</div>
 				<SelectionFooter

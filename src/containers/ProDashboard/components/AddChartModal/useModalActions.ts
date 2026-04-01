@@ -41,6 +41,8 @@ export function useModalActions(
 		handleAddMetric,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleEditItem
 	} = useProDashboardEditorActions()
 
@@ -354,6 +356,26 @@ export function useModalActions(
 						kind: 'stablecoins',
 						chain: state.selectedStablecoinChain,
 						chartType: state.selectedStablecoinChartType
+					} as any
+				}
+			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'rwa') {
+				if (state.rwaMode === 'asset' && state.selectedRwaAssetId && state.selectedRwaAssetName) {
+					newItem = {
+						...editItem,
+						kind: 'rwa-asset',
+						assetId: state.selectedRwaAssetId,
+						assetName: state.selectedRwaAssetName,
+						metrics: state.selectedRwaAssetMetrics
+					} as any
+				} else {
+					newItem = {
+						...editItem,
+						kind: 'rwa-overview',
+						metric: state.selectedRwaMetric,
+						chartView: state.selectedRwaChartView,
+						breakdown: state.selectedRwaBreakdown,
+						chain: state.selectedRwaChain === 'All' ? undefined : state.selectedRwaChain,
+						treemapNestedBy: state.selectedRwaTreemapNestedBy
 					} as any
 				}
 			} else if (
@@ -730,6 +752,22 @@ export function useModalActions(
 			} else if (
 				state.selectedMainTab === 'charts' &&
 				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'rwa'
+			) {
+				if (state.rwaMode === 'asset' && state.selectedRwaAssetId && state.selectedRwaAssetName) {
+					handleAddRWAAssetChart(state.selectedRwaAssetId, state.selectedRwaAssetName, state.selectedRwaAssetMetrics)
+				} else {
+					handleAddRWAOverviewChart(
+						state.selectedRwaMetric,
+						state.selectedRwaChartView,
+						state.selectedRwaBreakdown,
+						state.selectedRwaTreemapNestedBy,
+						state.selectedRwaChain === 'All' ? undefined : state.selectedRwaChain
+					)
+				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
 				state.selectedChartTab === 'advanced-tvl' &&
 				state.selectedAdvancedTvlProtocol &&
 				state.selectedAdvancedTvlProtocolName
@@ -908,6 +946,8 @@ export function useModalActions(
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
 		handleAddIncomeStatement,

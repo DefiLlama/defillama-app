@@ -115,7 +115,22 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 			setSelectedUnlocksProtocolName: (name: string | null) =>
 				dispatch({ type: 'SET_SELECTED_UNLOCKS_PROTOCOL_NAME', payload: name }),
 			setSelectedUnlocksChartType: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') =>
-				dispatch({ type: 'SET_SELECTED_UNLOCKS_CHART_TYPE', payload: type })
+				dispatch({ type: 'SET_SELECTED_UNLOCKS_CHART_TYPE', payload: type }),
+			setRwaMode: (mode: 'overview' | 'asset') => dispatch({ type: 'SET_RWA_MODE', payload: mode }),
+			setSelectedRwaChain: (chain: string) => dispatch({ type: 'SET_SELECTED_RWA_CHAIN', payload: chain }),
+			setSelectedRwaMetric: (metric: ModalState['selectedRwaMetric']) =>
+				dispatch({ type: 'SET_SELECTED_RWA_METRIC', payload: metric }),
+			setSelectedRwaChartView: (view: ModalState['selectedRwaChartView']) =>
+				dispatch({ type: 'SET_SELECTED_RWA_CHART_VIEW', payload: view }),
+			setSelectedRwaBreakdown: (breakdown: ModalState['selectedRwaBreakdown']) =>
+				dispatch({ type: 'SET_SELECTED_RWA_BREAKDOWN', payload: breakdown }),
+			setSelectedRwaTreemapNestedBy: (nestedBy: string) =>
+				dispatch({ type: 'SET_SELECTED_RWA_TREEMAP_NESTED_BY', payload: nestedBy }),
+			setSelectedRwaAssetId: (id: string | null) => dispatch({ type: 'SET_SELECTED_RWA_ASSET_ID', payload: id }),
+			setSelectedRwaAssetName: (name: string | null) =>
+				dispatch({ type: 'SET_SELECTED_RWA_ASSET_NAME', payload: name }),
+			setSelectedRwaAssetMetrics: (metrics: ModalState['selectedRwaAssetMetrics']) =>
+				dispatch({ type: 'SET_SELECTED_RWA_ASSET_METRICS', payload: metrics })
 		}),
 		[]
 	)

@@ -153,6 +153,24 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 						}
 						break
 
+					case 'rwaBreakdownData':
+						if (chunk.data) {
+							queryClient.setQueryData(
+								['pro-dashboard', 'rwa-breakdown-chart', chunk.breakdown, chunk.metric, chunk.chain],
+								chunk.data,
+								{ updatedAt: now }
+							)
+						}
+						break
+
+					case 'rwaAssetChartData':
+						if (chunk.data && chunk.id) {
+							queryClient.setQueryData(['pro-dashboard', 'rwa-asset-chart', chunk.id], chunk.data, {
+								updatedAt: now
+							})
+						}
+						break
+
 					case 'emissionData':
 						if (chunk.key && chunk.data) {
 							try {

@@ -126,6 +126,50 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 			return withTimeout(fetchProtocolsByToken(String(symbol)), FETCH_TIMEOUT)
 		}
 
+		case 'rwaBreakdown': {
+			const { breakdown, metric, chain } = params
+			if (!breakdown) throw new Error('Missing breakdown param')
+			const rwaApi = await import('~/containers/RWA/api')
+
+			if (chain && chain !== 'All') {
+				const tickerData = await withTimeout(
+					rwaApi.fetchRWAChartDataByTicker({
+						target: { kind: 'chain', slug: chain },
+						includeStablecoins: false,
+						includeGovernance: false
+					}),
+					FETCH_TIMEOUT
+				)
+				if (!tickerData) return null
+				const metricKey = (metric || 'activeMcap') as keyof typeof tickerData
+				return tickerData[metricKey] ?? null
+			}
+
+			const breakdownParams = { key: metric || 'activeMcap', includeStablecoin: false, includeGovernance: false }
+			switch (breakdown) {
+				case 'category':
+					return withTimeout(rwaApi.fetchRWACategoryBreakdownChartData(breakdownParams), FETCH_TIMEOUT)
+				case 'platform':
+					return withTimeout(rwaApi.fetchRWAPlatformBreakdownChartData(breakdownParams), FETCH_TIMEOUT)
+				case 'assetGroup':
+					return withTimeout(rwaApi.fetchRWAAssetGroupBreakdownChartData(breakdownParams), FETCH_TIMEOUT)
+				default:
+					return withTimeout(rwaApi.fetchRWAChainBreakdownChartData(breakdownParams), FETCH_TIMEOUT)
+			}
+		}
+
+		case 'rwaAssetChart': {
+			const { assetId } = params
+			if (!assetId) throw new Error('Missing assetId param')
+			const { fetchRWAAssetChartData } = await import('~/containers/RWA/api')
+			return withTimeout(fetchRWAAssetChartData(assetId), FETCH_TIMEOUT)
+		}
+
+		case 'rwaAssetsList': {
+			const { fetchRWAActiveTVLs } = await import('~/containers/RWA/api')
+			return withTimeout(fetchRWAActiveTVLs(), FETCH_TIMEOUT)
+		}
+
 		case 'stablecoinsList': {
 			return withTimeout(fetchStablecoinAssetsApi(), FETCH_TIMEOUT)
 		}
