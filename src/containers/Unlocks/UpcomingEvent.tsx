@@ -157,6 +157,20 @@ const formatTimeAgo = (timestamp: number) => {
 	return 'just now'
 }
 
+const formatDuration = (days: number) => {
+	if (days >= 365) {
+		const years = Math.floor(days / 365)
+		const remainingMonths = Math.floor((days % 365) / 30)
+		if (remainingMonths > 0) return `${years}y ${remainingMonths}m`
+		return `${years}y`
+	}
+	if (days >= 30) {
+		const months = Math.floor(days / 30)
+		return `${months}m`
+	}
+	return `${days}d`
+}
+
 const formatCountdownBadge = (days: number, hours: number, minutes: number, seconds: number) => {
 	if (days < 365) {
 		return `${days}D ${hours}H ${minutes}M ${seconds}S`
@@ -182,7 +196,17 @@ export const UpcomingEvent = ({
 	isProtocolPage = false
 }: UpcomingEventProps) => {
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
-	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
+	const {
+		currentUnlockBreakdown,
+		totalAmount,
+		tokenValue,
+		unlockPercent,
+		unlockPercentFloat,
+		hasLinear,
+		dailyValue,
+		dailyTokenAmount,
+		linearDurationDays
+	} = useMemo(() => {
 		const breakdown: UnlockBreakdown[] = event
 			.map(({ description, noOfTokens: eventNoOfTokens, timestamp: eventTimestamp, unlockType, rateDurationDays }) => {
 				const regex =
@@ -227,7 +251,29 @@ export const UpcomingEvent = ({
 		const unlockPercent = maxSupply ? (totalAmount / maxSupply) * 100 : null
 		const unlockPercentFloat = tokenValue && mcap ? (tokenValue / mcap) * 100 : null
 
-		return { currentUnlockBreakdown: breakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat }
+		const hasLinear = breakdown.some((item) => item.unlockType === 'linear')
+		const dailyTokenAmount = breakdown.reduce(
+			(sum, item) => sum + (item.unlockType === 'linear' ? item.perDayAmount : 0),
+			0
+		)
+		const dailyValue = price ? dailyTokenAmount * price : null
+		const linearItems = breakdown.filter((item) => item.endTime != null)
+		const linearDurationDays =
+			linearItems.length > 0
+				? Math.max(...linearItems.map((item) => Math.round((item.endTime! - item.timestamp) / 86400)))
+				: 0
+
+		return {
+			currentUnlockBreakdown: breakdown,
+			totalAmount,
+			tokenValue,
+			unlockPercent,
+			unlockPercentFloat,
+			hasLinear,
+			dailyValue,
+			dailyTokenAmount,
+			linearDurationDays
+		}
 	}, [event, price, maxSupply, mcap])
 
 	const [nowMs, setNowMs] = useState(() => Date.now())
@@ -304,11 +350,29 @@ export const UpcomingEvent = ({
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex flex-col">
-						<span className="text-xs text-(--text-label)">Unlock Value</span>
+						<span className="text-xs text-(--text-label)">{hasLinear ? 'Daily Unlock Rate' : 'Unlock Value'}</span>
 						<span className="text-sm font-semibold">
-							{tokenValue ? formattedNum(tokenValue, true) : <span>{formattedNum(unlockPercent)}%</span>}
+							{hasLinear ? (
+								dailyValue ? (
+									<>
+										{formattedNum(dailyValue, true)}{' '}
+										<span className="text-xs font-normal text-(--text-meta)">/ day</span>
+									</>
+								) : (
+									<span>{formattedNum(unlockPercent)}%</span>
+								)
+							) : tokenValue ? (
+								formattedNum(tokenValue, true)
+							) : (
+								<span>{formattedNum(unlockPercent)}%</span>
+							)}
 						</span>
-						{unlockPercent ? (
+						{hasLinear && linearDurationDays > 0 ? (
+							<span className="text-xs text-(--text-meta)">
+								Linear over {formatDuration(linearDurationDays)}
+								{tokenValue ? <> · Total: {formattedNum(tokenValue, true)}</> : null}
+							</span>
+						) : unlockPercent ? (
 							<span className="text-xs text-(--text-meta)">
 								{tokenValue ? formattedNum(unlockPercent) + '%' : null}
 								{unlockPercentFloat ? <> ({formattedNum(unlockPercentFloat)}% of float)</> : null}
@@ -361,9 +425,18 @@ export const UpcomingEvent = ({
 							<div className="flex min-w-[150px] items-center justify-between gap-4">
 								<div className="flex flex-col items-start">
 									<span className="text-sm font-semibold text-(--text-primary) tabular-nums">
-										{formattedNum(tokenValue, true)}
+										{hasLinear && dailyValue ? (
+											<>
+												{formattedNum(dailyValue, true)}{' '}
+												<span className="text-xs font-normal text-(--text-meta)">/ day</span>
+											</>
+										) : (
+											formattedNum(tokenValue, true)
+										)}
 									</span>
-									<span className="text-xs font-medium text-(--text-meta)">Unlock Value</span>
+									<span className="text-xs font-medium text-(--text-meta)">
+										{hasLinear ? 'Linear Unlock' : 'Unlock Value'}
+									</span>
 								</div>
 								<div className="flex flex-col items-end">
 									<span className="text-sm font-semibold text-(--text-primary) tabular-nums">
@@ -416,8 +489,23 @@ export const UpcomingEvent = ({
 					<span className="flex flex-col gap-1">
 						<span className="flex items-center justify-between gap-2 font-semibold">
 							<span>Total</span>
-							<span>{tokenValue ? formattedNum(tokenValue, true) : '-'}</span>
+							<span className="inline-flex items-baseline gap-1">
+								{hasLinear && dailyValue
+									? formattedNum(dailyValue, true)
+									: tokenValue
+										? formattedNum(tokenValue, true)
+										: '-'}
+								{hasLinear ? <span className="text-xs font-normal text-(--text-meta)">/ day</span> : null}
+							</span>
 						</span>
+						{hasLinear && linearDurationDays > 0 ? (
+							<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
+								<span>Linear over {formatDuration(linearDurationDays)}</span>
+								<span>
+									{formattedNum(dailyTokenAmount)} {tokenSymbol} / day
+								</span>
+							</span>
+						) : null}
 						<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 							<span>
 								{unlockPercent ? `${formattedNum(unlockPercent)}%` : null}

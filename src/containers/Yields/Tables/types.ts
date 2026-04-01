@@ -39,6 +39,8 @@ export interface IYieldTableRow {
 	top10Pct?: number | null
 	holderChange7d?: number | null
 	holderChange30d?: number | null
+	apyMean30d?: number | null
+	apyChart30d?: string | null
 }
 
 export interface IYieldsProjectsTableRow {

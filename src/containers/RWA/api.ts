@@ -45,10 +45,15 @@ export async function fetchRWAAssetDataById(assetId: string): Promise<IFetchedRW
 	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
 }
 
-/**
- * Fetch ticker breakdown chart data for the selected RWA filter.
- */
-export async function fetchRWAChartDataByTicker(target: RWATickerChartTarget): Promise<IRWAChartDataByTicker | null> {
+export async function fetchRWAChartDataByTicker({
+	target,
+	includeStablecoins,
+	includeGovernance
+}: {
+	target: RWATickerChartTarget
+	includeStablecoins: boolean
+	includeGovernance: boolean
+}): Promise<IRWAChartDataByTicker | null> {
 	let chartUrl = `${RWA_SERVER_URL}/chart/chain/all`
 
 	switch (target.kind) {
@@ -70,7 +75,12 @@ export async function fetchRWAChartDataByTicker(target: RWATickerChartTarget): P
 			assertNever(target)
 	}
 
-	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown`).catch((error) => {
+	const searchParams = new URLSearchParams({
+		includeStablecoin: String(includeStablecoins),
+		includeGovernance: String(includeGovernance)
+	})
+
+	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown?${searchParams.toString()}`).catch((error) => {
 		console.error('Failed to fetch RWA chart data by ticker:', error)
 		return null
 	})

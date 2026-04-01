@@ -24,6 +24,7 @@ interface IYieldsTableWrapper {
 	columnVisibility?: Record<string, boolean>
 	setColumnVisibility?: (value: React.SetStateAction<VisibilityState>) => void
 	sortingState?: SortingState
+	skipVirtualization?: boolean
 }
 
 export const YieldsTableWrapper = ({
@@ -34,7 +35,8 @@ export const YieldsTableWrapper = ({
 	rowSize,
 	columnVisibility,
 	setColumnVisibility,
-	sortingState = EMPTY_SORTING
+	sortingState = EMPTY_SORTING,
+	skipVirtualization
 }: IYieldsTableWrapper) => {
 	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -73,7 +75,7 @@ export const YieldsTableWrapper = ({
 
 	return (
 		<span className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<VirtualTable instance={instance} rowSize={rowSize} />
+			<VirtualTable instance={instance} rowSize={rowSize} skipVirtualization={skipVirtualization} />
 		</span>
 	)
 }

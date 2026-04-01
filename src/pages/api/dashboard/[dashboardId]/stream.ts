@@ -353,6 +353,88 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			)
 		}
 
+		// RWA overview chart data — stream per unique breakdown+metric+chain combo
+		const rwaOverviewItems = items.filter((item: any) => item.kind === 'rwa-overview')
+		const rwaAssetItems = items.filter((item: any) => item.kind === 'rwa-asset')
+
+		if (rwaOverviewItems.length > 0 || rwaAssetItems.length > 0) {
+			const rwaApi = await import('~/containers/RWA/api')
+
+			const seenOverviewKeys = new Set<string>()
+			for (const item of rwaOverviewItems) {
+				const { breakdown, metric, chain } = item as any
+				const resolvedChain = chain || 'All'
+				const cacheKey = JSON.stringify([breakdown, metric, resolvedChain])
+				if (seenOverviewKeys.has(cacheKey)) continue
+				seenOverviewKeys.add(cacheKey)
+
+				phase2Promises.push(
+					(async () => {
+						let data: any = null
+						if (resolvedChain !== 'All') {
+							const tickerData = await withTimeout(
+								rwaApi.fetchRWAChartDataByTicker({
+									target: { kind: 'chain', slug: resolvedChain },
+									includeStablecoins: false,
+									includeGovernance: false
+								}),
+								10_000
+							)
+							if (tickerData) {
+								const rows = (tickerData as any)[metric || 'activeMcap'] ?? null
+								if (rows) {
+									data = rows.map((row: any) => ({
+										...row,
+										timestamp: rwaApi.toUnixMsTimestamp(Number(row.timestamp))
+									}))
+								}
+							}
+						} else {
+							const breakdownParams = { key: metric || 'activeMcap', includeStablecoin: false, includeGovernance: false }
+							switch (breakdown) {
+								case 'category':
+									data = await withTimeout(rwaApi.fetchRWACategoryBreakdownChartData(breakdownParams), 10_000)
+									break
+								case 'platform':
+									data = await withTimeout(rwaApi.fetchRWAPlatformBreakdownChartData(breakdownParams), 10_000)
+									break
+								case 'assetGroup':
+									data = await withTimeout(rwaApi.fetchRWAAssetGroupBreakdownChartData(breakdownParams), 10_000)
+									break
+								default:
+									data = await withTimeout(rwaApi.fetchRWAChainBreakdownChartData(breakdownParams), 10_000)
+									break
+							}
+						}
+						if (data) {
+							writeLine({
+								type: 'rwaBreakdownData',
+								breakdown: breakdown || 'chain',
+								metric: metric || 'activeMcap',
+								chain: resolvedChain,
+								data
+							})
+						}
+					})().catch(() => {})
+				)
+			}
+
+			const seenAssetIds = new Set<string>()
+			for (const item of rwaAssetItems) {
+				const { assetId } = item as any
+				if (!assetId || seenAssetIds.has(assetId)) continue
+				seenAssetIds.add(assetId)
+
+				phase2Promises.push(
+					withTimeout(rwaApi.fetchRWAAssetChartData(assetId), 10_000)
+						.then((data) => {
+							if (data) writeLine({ type: 'rwaAssetChartData', id: assetId, data })
+						})
+						.catch(() => {})
+				)
+			}
+		}
+
 		// Emission data — stream per task
 		const emissionTasks: Array<{
 			key: string

@@ -220,6 +220,8 @@ interface ProDashboardEditorActionsContextType {
 	handleAddUnifiedTable: (config?: Partial<UnifiedTableConfig>) => void
 	handleAddChartBuilder: (name: string | undefined, config: ChartBuilderConfig['config']) => void
 	handleAddLlamaAIChart: (savedChartId: string, title?: string) => void
+	handleAddRWAOverviewChart: (...args: any[]) => void
+	handleAddRWAAssetChart: (...args: any[]) => void
 	handleDuplicateChartBuilder: (builder: ChartBuilderConfig) => void
 	handleDuplicateMultiChart: (multi: MultiChartConfig) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
@@ -400,6 +402,8 @@ function ProDashboardAPIProviderInner({
 		handleAddText,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleDuplicateChartBuilder,
 		handleDuplicateMultiChart,
 		handleEditItem,
@@ -989,6 +993,8 @@ function ProDashboardAPIProviderInner({
 		handleAddUnifiedTable: typeof handleAddUnifiedTable
 		handleAddChartBuilder: typeof handleAddChartBuilder
 		handleAddLlamaAIChart: typeof handleAddLlamaAIChart
+		handleAddRWAOverviewChart: typeof handleAddRWAOverviewChart
+		handleAddRWAAssetChart: typeof handleAddRWAAssetChart
 		handleDuplicateChartBuilder: typeof handleDuplicateChartBuilder
 		handleDuplicateMultiChart: typeof handleDuplicateMultiChart
 		handleEditItem: typeof handleEditItem
@@ -1024,6 +1030,8 @@ function ProDashboardAPIProviderInner({
 			handleAddUnifiedTable,
 			handleAddChartBuilder,
 			handleAddLlamaAIChart,
+			handleAddRWAOverviewChart,
+			handleAddRWAAssetChart,
 			handleDuplicateChartBuilder,
 			handleDuplicateMultiChart,
 			handleEditItem,
@@ -1186,6 +1194,10 @@ function ProDashboardAPIProviderInner({
 				handlersRef.current.handleAddChartBuilder(...args),
 			handleAddLlamaAIChart: (...args: Parameters<typeof handleAddLlamaAIChart>) =>
 				handlersRef.current.handleAddLlamaAIChart(...args),
+			handleAddRWAOverviewChart: (...args: Parameters<typeof handleAddRWAOverviewChart>) =>
+				handlersRef.current.handleAddRWAOverviewChart(...args),
+			handleAddRWAAssetChart: (...args: Parameters<typeof handleAddRWAAssetChart>) =>
+				handlersRef.current.handleAddRWAAssetChart(...args),
 			handleDuplicateChartBuilder: (...args: Parameters<typeof handleDuplicateChartBuilder>) =>
 				handlersRef.current.handleDuplicateChartBuilder(...args),
 			handleDuplicateMultiChart: (...args: Parameters<typeof handleDuplicateMultiChart>) =>

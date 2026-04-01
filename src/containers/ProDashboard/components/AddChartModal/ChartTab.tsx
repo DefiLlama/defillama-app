@@ -77,6 +77,24 @@ interface ChartTabProps {
 	onSelectedUnlocksProtocolChange?: (protocol: string | null) => void
 	onSelectedUnlocksProtocolNameChange?: (name: string | null) => void
 	onSelectedUnlocksChartTypeChange?: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
+	rwaMode?: 'overview' | 'asset'
+	selectedRwaChain?: string
+	selectedRwaMetric?: any
+	selectedRwaChartView?: any
+	selectedRwaBreakdown?: any
+	selectedRwaTreemapNestedBy?: string
+	selectedRwaAssetId?: string | null
+	selectedRwaAssetName?: string | null
+	selectedRwaAssetMetrics?: any[]
+	onRwaModeChange?: (mode: 'overview' | 'asset') => void
+	onSelectedRwaChainChange?: (chain: string) => void
+	onSelectedRwaMetricChange?: (metric: any) => void
+	onSelectedRwaChartViewChange?: (view: any) => void
+	onSelectedRwaBreakdownChange?: (breakdown: any) => void
+	onSelectedRwaTreemapNestedByChange?: (nestedBy: string) => void
+	onSelectedRwaAssetIdChange?: (id: string | null) => void
+	onSelectedRwaAssetNameChange?: (name: string | null) => void
+	onSelectedRwaAssetMetricsChange?: (metrics: any[]) => void
 	onUnifiedChartNameChange: (name: string) => void
 	onChartCreationModeChange: (mode: 'separate' | 'combined') => void
 	onComposerItemColorChange: (id: string, color: string) => void
@@ -221,6 +239,24 @@ export function ChartTab(props: ChartTabProps) {
 					onSelectedUnlocksProtocolChange={props.onSelectedUnlocksProtocolChange}
 					onSelectedUnlocksProtocolNameChange={props.onSelectedUnlocksProtocolNameChange}
 					onSelectedUnlocksChartTypeChange={props.onSelectedUnlocksChartTypeChange}
+					rwaMode={props.rwaMode}
+					selectedRwaChain={props.selectedRwaChain}
+					selectedRwaMetric={props.selectedRwaMetric}
+					selectedRwaChartView={props.selectedRwaChartView}
+					selectedRwaBreakdown={props.selectedRwaBreakdown}
+					selectedRwaTreemapNestedBy={props.selectedRwaTreemapNestedBy}
+					selectedRwaAssetId={props.selectedRwaAssetId}
+					selectedRwaAssetName={props.selectedRwaAssetName}
+					selectedRwaAssetMetrics={props.selectedRwaAssetMetrics}
+					onRwaModeChange={props.onRwaModeChange}
+					onSelectedRwaChainChange={props.onSelectedRwaChainChange}
+					onSelectedRwaMetricChange={props.onSelectedRwaMetricChange}
+					onSelectedRwaChartViewChange={props.onSelectedRwaChartViewChange}
+					onSelectedRwaBreakdownChange={props.onSelectedRwaBreakdownChange}
+					onSelectedRwaTreemapNestedByChange={props.onSelectedRwaTreemapNestedByChange}
+					onSelectedRwaAssetIdChange={props.onSelectedRwaAssetIdChange}
+					onSelectedRwaAssetNameChange={props.onSelectedRwaAssetNameChange}
+					onSelectedRwaAssetMetricsChange={props.onSelectedRwaAssetMetricsChange}
 					onUnifiedChartNameChange={props.onUnifiedChartNameChange}
 					onChartCreationModeChange={props.onChartCreationModeChange}
 					onComposerItemColorChange={props.onComposerItemColorChange}

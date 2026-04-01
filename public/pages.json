@@ -200,16 +200,6 @@
       "oldName": "Fees"
     },
     {
-      "name": "Holders Revenue by Protocol",
-      "route": "/holders-revenue",
-      "category": "Fees & Revenue",
-      "description": "Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers",
-      "totalTrackedKey": "holdersRevenue.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Fees & Revenue",
-      "oldName": "Holders Revenue"
-    },
-    {
       "name": "Revenue by Chain",
       "route": "/revenue/chains",
       "category": "Fees & Revenue",
@@ -218,6 +208,16 @@
       "tab": "Chains",
       "oldCategory": "Fees & Revenue",
       "oldName": "Revenue (Chains)"
+    },
+    {
+      "name": "Holders Revenue by Protocol",
+      "route": "/holders-revenue",
+      "category": "Fees & Revenue",
+      "description": "Subset of revenue that is distributed to token holders by means of buyback and burn, burning fees or direct distribution to stakers",
+      "totalTrackedKey": "holdersRevenue.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "Holders Revenue"
     },
     {
       "name": "Fees by Chain",

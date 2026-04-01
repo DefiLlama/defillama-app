@@ -42,6 +42,8 @@ const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
 	forks: '/forks'
 }
 
+const noIndexProtocolSlugs = new Set(['defi-swap'])
+
 export function ProtocolOverviewLayout({
 	children,
 	isCEX,
@@ -149,6 +151,7 @@ export function ProtocolOverviewLayout({
 	}, [metrics])
 
 	const entitySlug = slug(name)
+	const shouldNoIndex = !standaloneCanonicals[tab] || noIndexProtocolSlugs.has(entitySlug)
 	const canonicalUrl = isCEX
 		? tab === 'assets'
 			? `/cex/assets/${entitySlug}`
@@ -173,7 +176,7 @@ export function ProtocolOverviewLayout({
 			title={resolvedTitle}
 			description={resolvedDescription}
 			canonicalUrl={standaloneCanonicals[tab] ? canonicalUrl : null}
-			noIndex={!standaloneCanonicals[tab]}
+			noIndex={shouldNoIndex}
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>

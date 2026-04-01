@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { fetchProtocolLiquidityTokens, fetchProtocolTokenLiquidityChart } from '~/api'
+import { fetchLiquidityTokensDataset, fetchProtocolTokenLiquidityChart } from '~/api'
 import { CACHE_SERVER, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
@@ -34,8 +34,8 @@ interface ProtocolApiMiniResponse {
 }
 
 const LIQUIDITY_TOKENS_TTL_MS = 10 * 60 * 1000
-let liquidityTokensCache: { data: Awaited<ReturnType<typeof fetchProtocolLiquidityTokens>>; ts: number } | null = null
-let liquidityTokensPromise: Promise<Awaited<ReturnType<typeof fetchProtocolLiquidityTokens>>> | null = null
+let liquidityTokensCache: { data: Awaited<ReturnType<typeof fetchLiquidityTokensDataset>>; ts: number } | null = null
+let liquidityTokensPromise: Promise<Awaited<ReturnType<typeof fetchLiquidityTokensDataset>>> | null = null
 
 async function getCachedLiquidityTokens() {
 	if (liquidityTokensCache && Date.now() - liquidityTokensCache.ts < LIQUIDITY_TOKENS_TTL_MS) {
@@ -44,7 +44,7 @@ async function getCachedLiquidityTokens() {
 	if (liquidityTokensPromise != null) {
 		return liquidityTokensPromise
 	}
-	liquidityTokensPromise = fetchProtocolLiquidityTokens()
+	liquidityTokensPromise = fetchLiquidityTokensDataset()
 		.then((data) => {
 			liquidityTokensCache = { data, ts: Date.now() }
 			return data

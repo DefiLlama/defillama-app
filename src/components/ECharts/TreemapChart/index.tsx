@@ -351,9 +351,7 @@ export default function TreemapChart({
 										: isRwaVariant
 											? [
 													`{rwaName|${pathParts[pathParts.length - 1]}}`,
-													`{rwaMetric|${valueLabel}: ${formattedNum(normalizedValue[0], true)}}`,
-													`{shareParent|Parent: ${Number.isFinite(normalizedValue[1]) ? normalizedValue[1] : 0}%}`,
-													`{shareTotal|Overall: ${Number.isFinite(normalizedValue[2]) ? normalizedValue[2] : 0}%}`
+													`{rwaMetric|${valueLabel}: ${formattedNum(normalizedValue[0], true)}}`
 												]
 											: [
 													`{name|${pathParts[pathParts.length - 1]}}`,

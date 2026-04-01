@@ -4,7 +4,10 @@ import type {
 	ChartConfig,
 	DashboardItemConfig,
 	MetricAggregator,
-	MetricChartType
+	MetricChartType,
+	RWAOverviewChartBreakdown,
+	RWAOverviewChartMetric,
+	RWAOverviewChartView
 } from '../../types'
 import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
@@ -26,6 +29,7 @@ export type ChartTabType =
 	| 'borrowed'
 	| 'income-statement'
 	| 'unlocks'
+	| 'rwa'
 export type ManualChartViewMode = 'cards' | 'form'
 export type CombinedTableType =
 	| 'protocols'
@@ -147,6 +151,15 @@ export interface ModalState {
 	selectedUnlocksProtocol: string | null
 	selectedUnlocksProtocolName: string | null
 	selectedUnlocksChartType: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
+	rwaMode: 'overview' | 'asset'
+	selectedRwaChain: string
+	selectedRwaMetric: RWAOverviewChartMetric
+	selectedRwaChartView: RWAOverviewChartView
+	selectedRwaBreakdown: RWAOverviewChartBreakdown
+	selectedRwaTreemapNestedBy: string
+	selectedRwaAssetId: string | null
+	selectedRwaAssetName: string | null
+	selectedRwaAssetMetrics: RWAOverviewChartMetric[]
 }
 
 // oxlint-disable-next-line no-unused-vars
@@ -222,4 +235,13 @@ interface ModalActions {
 	setSelectedUnlocksProtocol: (protocol: string | null) => void
 	setSelectedUnlocksProtocolName: (name: string | null) => void
 	setSelectedUnlocksChartType: (type: 'total' | 'schedule' | 'allocation' | 'locked-unlocked') => void
+	setRwaMode: (mode: 'overview' | 'asset') => void
+	setSelectedRwaChain: (chain: string) => void
+	setSelectedRwaMetric: (metric: RWAOverviewChartMetric) => void
+	setSelectedRwaChartView: (view: RWAOverviewChartView) => void
+	setSelectedRwaBreakdown: (breakdown: RWAOverviewChartBreakdown) => void
+	setSelectedRwaTreemapNestedBy: (nestedBy: string) => void
+	setSelectedRwaAssetId: (id: string | null) => void
+	setSelectedRwaAssetName: (name: string | null) => void
+	setSelectedRwaAssetMetrics: (metrics: RWAOverviewChartMetric[]) => void
 }
