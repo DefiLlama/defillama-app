@@ -227,7 +227,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 							type="button"
 							className="absolute top-1/2 right-3 -translate-y-1/2 text-(--text-tertiary) hover:text-(--text-primary)"
 							onClick={() => setShowPassword(!showPassword)}
-							tabIndex={-1}
+							aria-label={showPassword ? 'Hide password' : 'Show password'}
 						>
 							<Icon name={showPassword ? 'eye-off' : 'eye'} height={16} width={16} />
 						</button>
@@ -304,7 +304,7 @@ export function SignInFlow({ dialogStore }: { dialogStore: Ariakit.DialogStore }
 							type="button"
 							className="absolute top-1/2 right-3 -translate-y-1/2 text-(--text-tertiary) hover:text-(--text-primary)"
 							onClick={() => setShowPassword(!showPassword)}
-							tabIndex={-1}
+							aria-label={showPassword ? 'Hide password' : 'Show password'}
 						>
 							<Icon name={showPassword ? 'eye-off' : 'eye'} height={16} width={16} />
 						</button>

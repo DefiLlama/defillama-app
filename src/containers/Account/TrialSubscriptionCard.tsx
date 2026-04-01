@@ -1,7 +1,7 @@
 import { Icon } from '~/components/Icon'
 
 interface TrialSubscriptionCardProps {
-	trialEndDate: string
+	trialEndDate: string | null
 	isCancelPending: boolean
 	onCancel: () => void
 	isCancelLoading: boolean
@@ -37,8 +37,8 @@ export function TrialSubscriptionCard({
 	onCancel,
 	isCancelLoading
 }: TrialSubscriptionCardProps) {
-	const remainingDays = getRemainingDays(trialEndDate)
-	const formattedDate = formatShortDate(trialEndDate)
+	const remainingDays = trialEndDate ? getRemainingDays(trialEndDate) : null
+	const formattedDate = trialEndDate ? formatShortDate(trialEndDate) : 'Unknown'
 
 	return (
 		<div className="flex min-w-0 flex-1 flex-col justify-between gap-4 rounded-2xl border border-(--sub-border-slate-100) bg-white p-4 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
@@ -53,7 +53,7 @@ export function TrialSubscriptionCard({
 					value="Active Free Trial"
 					valueClassName="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest) bg-clip-text text-transparent"
 				/>
-				<InfoRow label="Remaining Days" value={`${remainingDays} Days`} />
+				<InfoRow label="Remaining Days" value={remainingDays != null ? `${remainingDays} Days` : 'Unknown'} />
 			</div>
 
 			{isCancelPending ? (

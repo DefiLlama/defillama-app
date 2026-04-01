@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -18,9 +19,13 @@ const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
 )
 
-function parseExpiryDate(raw: string): string {
+function parseExpiryDate(raw: string): string | null {
 	const asDate = new Date(isNaN(Number(raw)) ? raw : Number(raw) * 1000)
-	return isNaN(asDate.getTime()) ? new Date().toISOString() : asDate.toISOString()
+	if (isNaN(asDate.getTime())) {
+		console.error(`[parseExpiryDate] Invalid expiry date: "${raw}"`)
+		return null
+	}
+	return asDate.toISOString()
 }
 
 function formatDate(dateStr: string): string {
@@ -64,10 +69,11 @@ function SubscriptionCardWithProps({
 	isCancelLoading: boolean
 }) {
 	const isCancelPending = subscription.metadata?.isCanceled === 'true'
+	const expiryDate = parseExpiryDate(subscription.expires_at)
 	return (
 		<SubscriptionCard
 			planName={getPlanName(subscription.type)}
-			renewalDate={formatDate(parseExpiryDate(subscription.expires_at))}
+			renewalDate={expiryDate ? formatDate(expiryDate) : 'Unknown'}
 			subscriptionType={getSubscriptionTypeLabel(subscription)}
 			subscriptionPayment={getPaymentLabel(subscription.provider)}
 			provider={subscription.provider as 'stripe' | 'llamapay' | 'legacy' | 'manual'}
@@ -257,7 +263,9 @@ export function SubscriptionSection() {
 					isOpen={isUpgradeModalOpen}
 					onClose={() => setIsUpgradeModalOpen(false)}
 					onConfirm={() => {
-						endTrialSubscription().then(() => setIsUpgradeModalOpen(false))
+						endTrialSubscription()
+							.then(() => setIsUpgradeModalOpen(false))
+							.catch(() => toast.error('Failed to end trial. Please try again.'))
 					}}
 					isLoading={isEndTrialLoading}
 				/>

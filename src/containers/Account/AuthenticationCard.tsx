@@ -33,10 +33,13 @@ export function AuthenticationCard() {
 			setIsPasswordModalOpen(true)
 			return
 		}
-		passwordResetSentAt.current = Date.now()
-		resetPasswordMutation.mutate(user.email)
 		setPasswordCooldownMsg('')
 		setIsPasswordModalOpen(true)
+		resetPasswordMutation.mutate(user.email, {
+			onSuccess: () => {
+				passwordResetSentAt.current = Date.now()
+			}
+		})
 	}
 
 	const handleResendPasswordReset = () => {
@@ -48,8 +51,11 @@ export function AuthenticationCard() {
 			return
 		}
 		setPasswordCooldownMsg('')
-		passwordResetSentAt.current = Date.now()
-		resetPasswordMutation.mutate(user.email)
+		resetPasswordMutation.mutate(user.email, {
+			onSuccess: () => {
+				passwordResetSentAt.current = Date.now()
+			}
+		})
 	}
 
 	const handleActivateEmailAuth = () => {
