@@ -11,21 +11,42 @@ import type {
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchJson } from '~/utils/async'
 
-function buildTickerBreakdownUrl(target: RWATickerChartTarget): string {
-	switch (target.kind) {
+type RWATickerBreakdownRequest = {
+	target: RWATickerChartTarget
+	key: RWAChartMetricKey
+	includeStablecoin: boolean
+	includeGovernance: boolean
+}
+
+export function buildTickerBreakdownUrl(request: RWATickerBreakdownRequest): string {
+	let pathname: string
+
+	switch (request.target.kind) {
 		case 'all':
-			return `${RWA_SERVER_URL}/chart/chain/all/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/chain/all/ticker-breakdown`
+			break
 		case 'chain':
-			return `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			break
 		case 'category':
-			return `${RWA_SERVER_URL}/chart/category/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/category/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			break
 		case 'platform':
-			return `${RWA_SERVER_URL}/chart/platform/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/platform/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			break
 		case 'assetGroup':
-			return `${RWA_SERVER_URL}/chart/assetGroup/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/assetGroup/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			break
 		default:
-			return assertNever(target)
+			return assertNever(request.target)
 	}
+
+	const searchParams = new URLSearchParams({
+		includeStablecoin: String(request.includeStablecoin),
+		includeGovernance: String(request.includeGovernance)
+	})
+
+	return `${pathname}?${searchParams.toString()}`
 }
 
 function normalizeTickerBreakdownData(raw: IRWAChartDataByTicker): IRWAChartDataByTicker {
@@ -49,7 +70,7 @@ function parseChartMetricKey(value: string | string[] | undefined): RWAChartMetr
 	return null
 }
 
-function parseTarget(req: NextApiRequest): RWATickerChartTarget | null {
+function parseTarget(req: Pick<NextApiRequest, 'query'>): RWATickerChartTarget | null {
 	const rawChain = req.query.chain
 	const rawCategory = req.query.category
 	const rawPlatform = req.query.platform
@@ -75,6 +96,32 @@ function parseTarget(req: NextApiRequest): RWATickerChartTarget | null {
 	return targets[0] ?? { kind: 'all' }
 }
 
+function parseBooleanFlag(value: string | string[] | undefined): boolean | null {
+	if (value == null) return false
+	if (Array.isArray(value)) return null
+	if (value === 'true') return true
+	if (value === 'false') return false
+	return null
+}
+
+export function parseTickerBreakdownRequest(req: Pick<NextApiRequest, 'query'>): RWATickerBreakdownRequest | null {
+	const target = parseTarget(req)
+	const key = parseChartMetricKey(req.query.key)
+	const includeStablecoin = parseBooleanFlag(req.query.includeStablecoin)
+	const includeGovernance = parseBooleanFlag(req.query.includeGovernance)
+
+	if (target == null || key == null || includeStablecoin == null || includeGovernance == null) {
+		return null
+	}
+
+	return {
+		target,
+		key,
+		includeStablecoin,
+		includeGovernance
+	}
+}
+
 function getMetricRows(data: IRWAChartDataByTicker, key: RWAChartMetricKey): IRWAChartMetricRows {
 	switch (key) {
 		case 'onChainMcap':
@@ -93,20 +140,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
 
-	const target = parseTarget(req)
-	const key = parseChartMetricKey(req.query.key)
+	const request = parseTickerBreakdownRequest(req)
 
-	if (target == null) {
-		return res.status(400).json({ error: 'Provide at most one of chain, category, platform, or assetGroup' })
+	if (request == null) {
+		return res.status(400).json({ error: 'Invalid query parameters' })
 	}
-	if (key == null) return res.status(400).json({ error: 'Missing or invalid key' })
 
 	try {
-		const raw = await fetchJson<IRWAChartDataByTicker>(buildTickerBreakdownUrl(target), {
+		const raw = await fetchJson<IRWAChartDataByTicker>(buildTickerBreakdownUrl(request), {
 			timeout: 30_000
 		})
 		const normalized = normalizeTickerBreakdownData(raw)
-		const rows = getMetricRows(normalized, key)
+		const rows = getMetricRows(normalized, request.key)
 
 		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
 		return res.status(200).json(rows)

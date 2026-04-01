@@ -3,12 +3,22 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRWAAssetsOverview } from './api.types'
 import type { RWAChartAggregationMode } from './chartAggregation'
-import { getRwaTickerChartQueryKey, useRwaAssetGroupPieChartData, useRwaChartDataset } from './hooks'
+import {
+	getRwaTickerChartQueryKey,
+	resolveRWAOverviewInclusionFlag,
+	useRwaAssetGroupPieChartData,
+	useRwaChartDataset
+} from './hooks'
 
 const useQueryMock = vi.fn()
+const fetchJsonMock = vi.fn()
 
 vi.mock('@tanstack/react-query', () => ({
 	useQuery: (options: unknown) => useQueryMock(options)
+}))
+
+vi.mock('~/utils/async', () => ({
+	fetchJson: (...args: unknown[]) => fetchJsonMock(...args)
 }))
 
 const assets: IRWAAssetsOverview['assets'] = [
@@ -39,10 +49,14 @@ const assets: IRWAAssetsOverview['assets'] = [
 function DatasetProbe({
 	mode,
 	initialDataset = { source: [], dimensions: ['timestamp'] },
+	includeStablecoins = false,
+	includeGovernance = false,
 	useInitialDataset = false
 }: {
 	mode: RWAChartAggregationMode
 	initialDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] }
+	includeStablecoins?: boolean
+	includeGovernance?: boolean
 	useInitialDataset?: boolean
 }) {
 	const { chartDataset } = useRwaChartDataset({
@@ -51,6 +65,8 @@ function DatasetProbe({
 		filteredAssets: assets,
 		mode,
 		target: { kind: 'all' },
+		includeStablecoins,
+		includeGovernance,
 		useInitialDataset
 	})
 
@@ -74,11 +90,13 @@ function readJsonMarkup(markup: string) {
 describe('useRwaChartDataset', () => {
 	beforeEach(() => {
 		useQueryMock.mockReset()
+		fetchJsonMock.mockReset()
 		useQueryMock.mockReturnValue({
 			data: [{ timestamp: 1, AAA: 100, BBB: 80 }],
 			isLoading: false,
 			error: null
 		})
+		fetchJsonMock.mockResolvedValue([{ timestamp: 1, AAA: 100, BBB: 80 }])
 	})
 
 	it('regroups cached ticker rows without changing the fetch key', () => {
@@ -89,11 +107,49 @@ describe('useRwaChartDataset', () => {
 		expect(platformMarkup).toContain('timestamp|Centrifuge|Maple')
 		expect(useQueryMock).toHaveBeenCalledTimes(2)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap')
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap')
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
+	})
+
+	it('changes the fetch key when inclusion flags change', () => {
+		renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'category', includeStablecoins: false }))
+		renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'category', includeStablecoins: true }))
+
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+		})
+		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', true, false)
+		})
+	})
+
+	it('passes the resolved inclusion flags to the ticker-breakdown fetcher', async () => {
+		let capturedOptions: { queryFn: () => Promise<unknown> } | undefined
+		useQueryMock.mockImplementation((options: { queryFn: () => Promise<unknown> }) => {
+			capturedOptions = options
+			return {
+				data: undefined,
+				isLoading: false,
+				error: null
+			}
+		})
+
+		renderToStaticMarkup(
+			React.createElement(DatasetProbe, {
+				mode: 'category',
+				includeStablecoins: true,
+				includeGovernance: false
+			})
+		)
+
+		await capturedOptions?.queryFn()
+
+		expect(fetchJsonMock).toHaveBeenCalledWith(
+			'/api/rwa/ticker-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
+		)
 	})
 
 	it('returns the prerendered dataset when runtime fetching is disabled', () => {
@@ -117,9 +173,21 @@ describe('useRwaChartDataset', () => {
 		expect(markup).toContain('timestamp|Prerendered')
 		expect(useQueryMock).toHaveBeenCalledTimes(1)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap'),
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),
 			enabled: false
 		})
+	})
+})
+
+describe('resolveRWAOverviewInclusionFlag', () => {
+	it('uses the page default when the query param is absent', () => {
+		expect(resolveRWAOverviewInclusionFlag(undefined, true)).toBe(true)
+		expect(resolveRWAOverviewInclusionFlag(undefined, false)).toBe(false)
+	})
+
+	it('lets an explicit false query override a true page default', () => {
+		expect(resolveRWAOverviewInclusionFlag('false', true)).toBe(false)
+		expect(resolveRWAOverviewInclusionFlag('true', false)).toBe(true)
 	})
 })
 

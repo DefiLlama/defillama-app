@@ -21,7 +21,7 @@ import {
 	type RWAChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
-import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
+import { getDefaultRWAOverviewInclusion, getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
@@ -89,6 +89,13 @@ const updateAttributeFilterStatesQuery = (queryKey: string, values: RWAAttribute
 	})
 }
 
+export function resolveRWAOverviewInclusionFlag(
+	queryValue: string | string[] | undefined,
+	defaultValue: boolean
+): boolean {
+	return queryValue != null ? isTrueQueryParam(queryValue) : defaultValue
+}
+
 export const useRWATableQueryParams = ({
 	assetNames,
 	types,
@@ -99,8 +106,7 @@ export const useRWATableQueryParams = ({
 	rwaClassifications,
 	accessModels,
 	issuers,
-	defaultIncludeStablecoins,
-	defaultIncludeGovernance,
+	categorySlug,
 	mode
 }: {
 	assetNames: string[]
@@ -112,8 +118,7 @@ export const useRWATableQueryParams = ({
 	rwaClassifications: string[]
 	accessModels: string[]
 	issuers: string[]
-	defaultIncludeStablecoins: boolean
-	defaultIncludeGovernance: boolean
+	categorySlug?: string | null
 	mode: RWAOverviewMode
 }) => {
 	const router = useRouter()
@@ -152,7 +157,7 @@ export const useRWATableQueryParams = ({
 		transferableStates: transferableStatesQ,
 		selfCustodyStates: selfCustodyStatesQ
 	} = router.query
-	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
+	const defaultInclusion = getDefaultRWAOverviewInclusion(mode, categorySlug)
 
 	const {
 		selectedAssetNames,
@@ -213,8 +218,8 @@ export const useRWATableQueryParams = ({
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
 		const excludeIssuersSet = parseExcludeParam(excludeIssuersQ)
 
-		const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : defaultIncludeStablecoins
-		const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : defaultIncludeGovernance
+		const includeStablecoins = resolveRWAOverviewInclusionFlag(stablecoinsQ, defaultInclusion.includeStablecoins)
+		const includeGovernance = resolveRWAOverviewInclusionFlag(governanceQ, defaultInclusion.includeGovernance)
 
 		// Build selected arrays with correct "exclude" semantics:
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
@@ -373,8 +378,8 @@ export const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPctQ,
 		stablecoinsQ,
 		governanceQ,
-		defaultIncludeStablecoins,
-		defaultIncludeGovernance,
+		defaultInclusion.includeStablecoins,
+		defaultInclusion.includeGovernance,
 		assetNames,
 		types,
 		categories,
@@ -408,11 +413,15 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		void pushShallowQuery(router, { includeStablecoins: value ? 'true' : undefined })
+		void pushShallowQuery(router, {
+			includeStablecoins: value === defaultInclusion.includeStablecoins ? undefined : value ? 'true' : 'false'
+		})
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		void pushShallowQuery(router, { includeGovernance: value ? 'true' : undefined })
+		void pushShallowQuery(router, {
+			includeGovernance: value === defaultInclusion.includeGovernance ? undefined : value ? 'true' : 'false'
+		})
 	}
 
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>
@@ -1203,8 +1212,20 @@ export function hasActiveChartFilters(query: NextRouter['query']): boolean {
 	return false
 }
 
-export function getRwaTickerChartQueryKey(target: RWATickerChartTarget, selectedMetric: RWAChartMetricKey) {
-	return ['rwa-ticker-chart', target.kind, target.kind === 'all' ? 'all' : target.slug, selectedMetric] as const
+export function getRwaTickerChartQueryKey(
+	target: RWATickerChartTarget,
+	selectedMetric: RWAChartMetricKey,
+	includeStablecoins: boolean,
+	includeGovernance: boolean
+) {
+	return [
+		'rwa-ticker-chart',
+		target.kind,
+		target.kind === 'all' ? 'all' : target.slug,
+		selectedMetric,
+		includeStablecoins,
+		includeGovernance
+	] as const
 }
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -1220,8 +1241,12 @@ function assertNever(value: never): never {
 async function fetchRwaTickerChartData(params: {
 	key: RWAChartMetricKey
 	target: RWATickerChartTarget
+	includeStablecoins: boolean
+	includeGovernance: boolean
 }): Promise<IRWAChartMetricRows> {
 	const searchParams = new URLSearchParams({ key: params.key })
+	searchParams.set('includeStablecoin', String(params.includeStablecoins))
+	searchParams.set('includeGovernance', String(params.includeGovernance))
 
 	switch (params.target.kind) {
 		case 'all':
@@ -1251,6 +1276,8 @@ export function useRwaChartDataset({
 	filteredAssets,
 	mode,
 	target,
+	includeStablecoins,
+	includeGovernance,
 	useInitialDataset
 }: {
 	selectedMetric: RWAChartMetricKey
@@ -1258,6 +1285,8 @@ export function useRwaChartDataset({
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
 	target: RWATickerChartTarget
+	includeStablecoins: boolean
+	includeGovernance: boolean
 	useInitialDataset: boolean
 }): {
 	chartDataset: RWAChartDataset
@@ -1269,8 +1298,14 @@ export function useRwaChartDataset({
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: getRwaTickerChartQueryKey(target, selectedMetric),
-		queryFn: () => fetchRwaTickerChartData({ key: selectedMetric, target }),
+		queryKey: getRwaTickerChartQueryKey(target, selectedMetric, includeStablecoins, includeGovernance),
+		queryFn: () =>
+			fetchRwaTickerChartData({
+				key: selectedMetric,
+				target,
+				includeStablecoins,
+				includeGovernance
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
