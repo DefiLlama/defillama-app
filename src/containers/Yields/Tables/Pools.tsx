@@ -602,7 +602,7 @@ const columns = [
 	}),
 	columnHelper.accessor((row) => row.avgPositionUsd ?? undefined, {
 		id: 'avgPositionUsd',
-		header: 'Avg Position',
+		header: 'Holders Avg Position',
 		enableSorting: true,
 		cell: (info) => {
 			const val = info.getValue() as number | null
@@ -664,6 +664,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
+		'top10Pct',
 		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
@@ -676,7 +677,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'top10Pct',
 		'avgPositionUsd'
 	],
 	400: [
@@ -697,6 +697,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
+		'top10Pct',
 		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
@@ -709,7 +710,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'top10Pct',
 		'avgPositionUsd'
 	],
 	640: [
@@ -733,6 +733,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
+		'top10Pct',
 		'apyChart30d',
 		'apyBorrow',
 		'apyBaseBorrow',
@@ -742,7 +743,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'top10Pct',
 		'avgPositionUsd'
 	],
 	1280: [
@@ -766,6 +766,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
+		'top10Pct',
 		'apyChart30d',
 		'apyBorrow',
 		'apyBaseBorrow',
@@ -775,7 +776,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'top10Pct',
 		'avgPositionUsd'
 	]
 }
@@ -1079,7 +1079,7 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
 					holderCount: showHolderCount === 'true',
-					top10Pct: showTop10Pct === 'true',
+					top10Pct: true,
 					avgPositionUsd: showAvgPosition === 'true',
 					...stablecoinColumnVisibility
 				}
@@ -1104,7 +1104,7 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
 					holderCount: showHolderCount === 'true',
-					top10Pct: showTop10Pct === 'true',
+					top10Pct: true,
 					avgPositionUsd: showAvgPosition === 'true',
 					...stablecoinColumnVisibility
 				}

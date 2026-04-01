@@ -254,7 +254,7 @@ const YieldPage = ({
 			'APY Std Dev 30d',
 			'CV 30d',
 			'Holder Count',
-			'Avg Position USD',
+			'Holders Avg Position USD',
 			'Top 10 %',
 			'Holder Change 7d',
 			'Holder Change 30d'
@@ -293,7 +293,7 @@ const YieldPage = ({
 				'APY Std Dev 30d': row.apyStd30d,
 				'CV 30d': row.cv30d,
 				'Holder Count': row.holderCount,
-				'Avg Position USD': row.avgPositionUsd,
+				'Holders Avg Position USD': row.avgPositionUsd,
 				'Top 10 %': row.top10Pct,
 				'Holder Change 7d': row.holderChange7d,
 				'Holder Change 30d': row.holderChange30d

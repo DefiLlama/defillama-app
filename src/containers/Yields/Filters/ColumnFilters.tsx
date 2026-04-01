@@ -41,8 +41,7 @@ const baseFilters = [
 	{ name: '30d Median APY', key: 'showMedianApy', isPremium: true },
 	{ name: '30d Std Dev', key: 'showStdDev', isPremium: true },
 	{ name: 'Holder Count', key: 'showHolderCount' },
-	{ name: 'Top 10 %', key: 'showTop10Pct' },
-	{ name: 'Avg Position', key: 'showAvgPosition' }
+	{ name: 'Holders Avg Position', key: 'showAvgPosition' }
 ]
 
 const getOptionalFilters = (hasActiveSubscription: boolean) =>

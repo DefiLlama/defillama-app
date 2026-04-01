@@ -5,6 +5,8 @@ export type HolderChangeStatus = 'accumulating' | 'reducing' | 'new' | 'steady' 
 export interface HolderWithChange extends Top10Holder {
 	status: HolderChangeStatus
 	balancePctChange: number | null
+	balanceStatus: HolderChangeStatus
+	balanceChangePct: number | null
 }
 
 export interface HolderFlowSummary {
@@ -15,17 +17,47 @@ export interface HolderFlowSummary {
 	unknown: number
 }
 
+export interface BalanceFlowSummary {
+	accumulating: number
+	reducing: number
+	newCount: number
+	steady: number
+	unknown: number
+}
+
 const STEADY_THRESHOLD = 0.05 // percentage points
+
+const BALANCE_STEADY_THRESHOLD = 0.5 // percent change in raw balance
+
+function computeBalanceChange(
+	current: string,
+	past: string
+): { status: HolderChangeStatus; changePct: number | null } {
+	const cur = parseFloat(current)
+	const prev = parseFloat(past)
+	if (!Number.isFinite(cur) || !Number.isFinite(prev) || prev === 0) {
+		return { status: 'unknown', changePct: null }
+	}
+	const pctChange = ((cur - prev) / prev) * 100
+	if (Math.abs(pctChange) < BALANCE_STEADY_THRESHOLD) {
+		return { status: 'steady', changePct: pctChange }
+	}
+	return {
+		status: pctChange > 0 ? 'accumulating' : 'reducing',
+		changePct: pctChange
+	}
+}
 
 export function computeHolderChanges(
 	currentHolders: Top10Holder[] | null,
 	historyEntries: HolderHistoryEntry[] | null,
 	lookbackDays: number = 7
-): { holders: HolderWithChange[]; summary: HolderFlowSummary } {
+): { holders: HolderWithChange[]; summary: HolderFlowSummary; balanceSummary: BalanceFlowSummary } {
 	const emptySummary: HolderFlowSummary = { accumulating: 0, reducing: 0, newCount: 0, steady: 0, unknown: 0 }
+	const emptyBalanceSummary: BalanceFlowSummary = { accumulating: 0, reducing: 0, newCount: 0, steady: 0, unknown: 0 }
 
 	if (!currentHolders?.length) {
-		return { holders: [], summary: emptySummary }
+		return { holders: [], summary: emptySummary, balanceSummary: emptyBalanceSummary }
 	}
 
 	const now = Date.now()
@@ -53,31 +85,48 @@ export function computeHolderChanges(
 	}
 
 	const summary = { ...emptySummary }
+	const balanceSummary = { ...emptyBalanceSummary }
 	const holders: HolderWithChange[] = currentHolders.map((h) => {
 		const pastHolder = pastMap.get(h.address.toLowerCase())
 
 		if (!pastHolders) {
 			summary.unknown++
-			return { ...h, status: 'unknown' as const, balancePctChange: null }
+			balanceSummary.unknown++
+			return { ...h, status: 'unknown' as const, balancePctChange: null, balanceStatus: 'unknown' as const, balanceChangePct: null }
 		}
 
 		if (!pastHolder) {
 			summary.newCount++
-			return { ...h, status: 'new' as const, balancePctChange: null }
+			balanceSummary.newCount++
+			return { ...h, status: 'new' as const, balancePctChange: null, balanceStatus: 'new' as const, balanceChangePct: null }
 		}
 
-		const change = h.balancePct - pastHolder.balancePct
-		if (Math.abs(change) < STEADY_THRESHOLD) {
+		// Share-based change
+		const shareChange = h.balancePct - pastHolder.balancePct
+		let shareStatus: HolderChangeStatus
+		if (Math.abs(shareChange) < STEADY_THRESHOLD) {
+			shareStatus = 'steady'
 			summary.steady++
-			return { ...h, status: 'steady' as const, balancePctChange: change }
-		} else if (change > 0) {
+		} else if (shareChange > 0) {
+			shareStatus = 'accumulating'
 			summary.accumulating++
-			return { ...h, status: 'accumulating' as const, balancePctChange: change }
 		} else {
+			shareStatus = 'reducing'
 			summary.reducing++
-			return { ...h, status: 'reducing' as const, balancePctChange: change }
+		}
+
+		// Balance-based change
+		const { status: balStatus, changePct: balChangePct } = computeBalanceChange(h.balance, pastHolder.balance)
+		balanceSummary[balStatus === 'new' ? 'newCount' : balStatus]++
+
+		return {
+			...h,
+			status: shareStatus,
+			balancePctChange: shareChange,
+			balanceStatus: balStatus,
+			balanceChangePct: balChangePct
 		}
 	})
 
-	return { holders, summary }
+	return { holders, summary, balanceSummary }
 }

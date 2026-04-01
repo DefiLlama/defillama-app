@@ -26,6 +26,7 @@ import {
 } from '~/containers/Yields/queries/client'
 import {
 	computeHolderChanges,
+	type BalanceFlowSummary,
 	type HolderChangeStatus,
 	type HolderFlowSummary,
 	type HolderWithChange
@@ -95,7 +96,7 @@ function truncateAddress(addr: string): string {
 	return `${addr.slice(0, 6)}...${addr.slice(-4)}`
 }
 
-function HolderStatusBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {
+function ShareBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {
 	switch (status) {
 		case 'accumulating':
 			return (
@@ -114,7 +115,7 @@ function HolderStatusBadge({ status, change }: { status: HolderChangeStatus; cha
 		case 'new':
 			return (
 				<span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-blue-600 uppercase dark:text-blue-400">
-					New
+					Entered Top 10
 				</span>
 			)
 		case 'steady':
@@ -125,26 +126,63 @@ function HolderStatusBadge({ status, change }: { status: HolderChangeStatus; cha
 	}
 }
 
-function HolderFlowSummaryBar({ summary }: { summary: HolderFlowSummary }) {
+function BalanceBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {
+	switch (status) {
+		case 'accumulating':
+			return (
+				<span className="inline-flex items-center gap-1 text-xs text-(--success)">
+					<span>▲</span>
+					<span className="tabular-nums">+{change!.toFixed(1)}%</span>
+				</span>
+			)
+		case 'reducing':
+			return (
+				<span className="inline-flex items-center gap-1 text-xs text-(--error)">
+					<span>▼</span>
+					<span className="tabular-nums">{change!.toFixed(1)}%</span>
+				</span>
+			)
+		case 'new':
+			return (
+				<span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-blue-600 uppercase dark:text-blue-400">
+					Entered Top 10
+				</span>
+			)
+		case 'steady':
+			return <span className="text-xs text-(--text-disabled)">Steady</span>
+		case 'unknown':
+		default:
+			return <span className="text-xs text-(--text-disabled)">{'\u2014'}</span>
+	}
+}
+
+function HolderFlowSummaryBar({
+	summary,
+	mode
+}: {
+	summary: HolderFlowSummary | BalanceFlowSummary
+	mode: ChangeMode
+}) {
 	const total = summary.accumulating + summary.reducing + summary.newCount + summary.steady + summary.unknown
 	if (total === 0 || summary.unknown === total) return null
 
+	const isBalance = mode === 'balance'
 	const segments = [
 		{
 			count: summary.accumulating,
-			label: 'Accumulating',
+			label: isBalance ? 'Accumulating' : 'Share Up',
 			dotClass: 'bg-emerald-500',
 			pillClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
 		},
 		{
 			count: summary.newCount,
-			label: 'New',
+			label: 'Entered Top 10',
 			dotClass: 'bg-blue-500',
 			pillClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
 		},
 		{
 			count: summary.reducing,
-			label: 'Reducing',
+			label: isBalance ? 'Reducing' : 'Share Down',
 			dotClass: 'bg-red-500',
 			pillClass: 'bg-red-500/10 text-red-600 dark:text-red-400'
 		}
@@ -252,10 +290,25 @@ function ConcentrationRiskPanel({
 	)
 }
 
+type ChangeMode = 'balance' | 'share'
+
+function formatTokenBalance(rawBalance: string, decimals: number | null): string {
+	const num = parseFloat(rawBalance)
+	if (!Number.isFinite(num)) return rawBalance
+	const adjusted = decimals != null ? num / 10 ** decimals : num
+	if (adjusted >= 1_000_000) return `${(adjusted / 1_000_000).toFixed(2)}M`
+	if (adjusted >= 1_000) return `${(adjusted / 1_000).toFixed(2)}K`
+	if (adjusted >= 1) return adjusted.toFixed(2)
+	if (adjusted >= 0.0001) return adjusted.toFixed(4)
+	return adjusted.toExponential(2)
+}
+
 function TopHoldersTable({
 	holders,
 	holders30d,
 	summary,
+	balanceSummary,
+	tokenDecimals,
 	chain,
 	blockExplorersData,
 	colors,
@@ -264,11 +317,14 @@ function TopHoldersTable({
 	holders: HolderWithChange[]
 	holders30d: HolderWithChange[]
 	summary: HolderFlowSummary
+	balanceSummary: BalanceFlowSummary
+	tokenDecimals: number | null
 	chain?: string
 	blockExplorersData?: any
 	colors: string[]
 	hoveredIndex: number | null
 }) {
+	const [mode, setMode] = useState<ChangeMode>('share')
 	const changes30dMap = useMemo(() => {
 		const map = new Map<string, HolderWithChange>()
 		for (const h of holders30d) {
@@ -278,8 +334,27 @@ function TopHoldersTable({
 	}, [holders30d])
 	if (!holders.length) return null
 
+	const activeSummary = mode === 'balance' ? balanceSummary : summary
+
 	return (
 		<div>
+			<div className="flex items-center justify-between border-b border-(--cards-border) px-2 py-1.5">
+				<div className="flex rounded-md bg-(--cards-border)/40 p-0.5 text-[11px]">
+					<button
+						onClick={() => setMode('share')}
+						className={`rounded px-2 py-0.5 font-medium transition-colors ${mode === 'share' ? 'bg-(--cards-bg) text-(--text-primary) shadow-sm' : 'text-(--text-disabled) hover:text-(--text-secondary)'}`}
+					>
+						Share
+					</button>
+					<button
+						onClick={() => setMode('balance')}
+						className={`rounded px-2 py-0.5 font-medium transition-colors ${mode === 'balance' ? 'bg-(--cards-bg) text-(--text-primary) shadow-sm' : 'text-(--text-disabled) hover:text-(--text-secondary)'}`}
+					>
+						Balance
+					</button>
+				</div>
+				<HolderFlowSummaryBar summary={activeSummary} mode={mode} />
+			</div>
 			<table className="w-full text-sm">
 				<colgroup>
 					<col style={{ width: '40%' }} />
@@ -290,7 +365,7 @@ function TopHoldersTable({
 				<thead>
 					<tr className="border-b border-(--cards-border) text-left text-xs text-(--text-disabled)">
 						<th className="py-2 pl-2 font-medium">Holder</th>
-						<th className="py-2 text-right font-medium">Share</th>
+						<th className="py-2 text-right font-medium">{mode === 'balance' ? 'Balance' : 'Share'}</th>
 						<th className="py-2 text-right font-medium">7d</th>
 						<th className="py-2 pr-2 text-right font-medium">30d</th>
 					</tr>
@@ -307,6 +382,7 @@ function TopHoldersTable({
 									})
 								: null
 						const barColor = colors[i] ?? colors[colors.length - 1]
+						const h30 = changes30dMap.get(h.address.toLowerCase())
 
 						return (
 							<tr key={h.address} className="border-b border-(--cards-border) last:border-b-0">
@@ -336,40 +412,46 @@ function TopHoldersTable({
 									</div>
 								</td>
 								<td className="py-1.5 text-right">
-									<div className="flex items-center justify-end gap-2">
-										<span className="tabular-nums">{h.balancePct.toFixed(2)}%</span>
-										<div className="h-1.5 w-16 overflow-hidden rounded-full bg-(--cards-border)">
-											<div
-												className="h-full rounded-full"
-												style={{
-													width: `${Math.min(h.balancePct, 100)}%`,
-													backgroundColor: barColor
-												}}
-											/>
+									{mode === 'share' ? (
+										<div className="flex items-center justify-end gap-2">
+											<span className="tabular-nums">{h.balancePct.toFixed(2)}%</span>
+											<div className="h-1.5 w-16 overflow-hidden rounded-full bg-(--cards-border)">
+												<div
+													className="h-full rounded-full"
+													style={{
+														width: `${Math.min(h.balancePct, 100)}%`,
+														backgroundColor: barColor
+													}}
+												/>
+											</div>
 										</div>
-									</div>
+									) : (
+										<span className="tabular-nums">{formatTokenBalance(h.balance, tokenDecimals)}</span>
+									)}
 								</td>
 								<td className="py-1.5 text-right">
-									<HolderStatusBadge status={h.status} change={h.balancePctChange} />
+									{mode === 'balance' ? (
+										<BalanceBadge status={h.balanceStatus} change={h.balanceChangePct} />
+									) : (
+										<ShareBadge status={h.status} change={h.balancePctChange} />
+									)}
 								</td>
 								<td className="py-1.5 pr-2 text-right">
-									{(() => {
-										const h30 = changes30dMap.get(h.address.toLowerCase())
-										return h30 ? (
-											<HolderStatusBadge status={h30.status} change={h30.balancePctChange} />
+									{h30 ? (
+										mode === 'balance' ? (
+											<BalanceBadge status={h30.balanceStatus} change={h30.balanceChangePct} />
 										) : (
-											<span className="text-xs text-(--text-disabled)">{'\u2014'}</span>
+											<ShareBadge status={h30.status} change={h30.balancePctChange} />
 										)
-									})()}
+									) : (
+										<span className="text-xs text-(--text-disabled)">{'\u2014'}</span>
+									)}
 								</td>
 							</tr>
 						)
 					})}
 				</tbody>
 			</table>
-			<div className="flex justify-end border-t border-(--cards-border) px-2 py-1.5">
-				<HolderFlowSummaryBar summary={summary} />
-			</div>
 		</div>
 	)
 }
@@ -704,7 +786,7 @@ const PageView = (_props) => {
 								</p>
 								{holderStats.top10Pct != null ? (
 									<p className="flex items-center justify-between gap-1">
-										<span className="font-semibold">Top 10 Concentration</span>
+										<span className="font-semibold">Top 10 %</span>
 										<span className="ml-auto flex items-center gap-1.5 font-jetbrains">
 											<span
 												className="h-2 w-2 rounded-full"
@@ -928,6 +1010,8 @@ const PageView = (_props) => {
 								holders={holderChanges.holders}
 								holders30d={holderChanges30d.holders}
 								summary={holderChanges.summary}
+								balanceSummary={holderChanges.balanceSummary}
+								tokenDecimals={holderStats?.tokenDecimals ?? null}
 								chain={poolData.chain}
 								blockExplorersData={blockExplorersData}
 								colors={HOLDER_COLORS}

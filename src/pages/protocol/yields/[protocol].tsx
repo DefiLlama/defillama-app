@@ -145,7 +145,10 @@ const ENABLED_COLUMNS = [
 	'showTotalBorrowed',
 	'showAvailable',
 	'showMedianApy',
-	'showStdDev'
+	'showStdDev',
+	'showHolderCount',
+	'showTop10Pct',
+	'showAvgPosition'
 ]
 
 const FILTER_QUERY_PARAMS = [
