@@ -193,7 +193,7 @@ describe('rwa perps coin page', () => {
 		}
 		const page = await setupPageModule({ coins: ['xyz:META'], coinData: coin })
 
-		const element = page.default({ coin } as never) as ReactElement
+		const element = page.default({ coin } as never) as ReactElement<{ title: string }>
 
 		expect(element.props.title).toBe('xyz:META - RWA Perps Analytics - DefiLlama')
 	})

@@ -42,7 +42,7 @@ describe('rwa perps overview page', () => {
 		}
 		const page = await setupPageModule({ data })
 
-		await expect(page.getStaticProps()).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
 			props: { data },
 			revalidate: 123
 		})
