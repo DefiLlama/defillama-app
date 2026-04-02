@@ -33,7 +33,7 @@ export function getRWAPerpsBaseAssetBreakdownLabel(row: Pick<SharedBreakdownRow,
 	return normalizeRWAPerpsBreakdownLabel(firstNonEmptyString([row.referenceAsset, rawCoinLabel, row.coin]))
 }
 
-export function getRWAPerpsCoinBreakdownLabel(row: Pick<SharedBreakdownRow, 'coin'>): string {
+export function getRWAPerpsContractBreakdownLabel(row: Pick<SharedBreakdownRow, 'coin'>): string {
 	return normalizeRWAPerpsBreakdownLabel(row.coin)
 }
 
@@ -45,8 +45,8 @@ export function getRWAPerpsSharedBreakdownLabel(row: SharedBreakdownRow, breakdo
 			return normalizeRWAPerpsBreakdownLabel(row.assetClass)
 		case 'baseAsset':
 			return getRWAPerpsBaseAssetBreakdownLabel(row)
-		case 'coin':
-			return getRWAPerpsCoinBreakdownLabel(row)
+		case 'contract':
+			return getRWAPerpsContractBreakdownLabel(row)
 		default:
 			return assertNever(breakdown)
 	}

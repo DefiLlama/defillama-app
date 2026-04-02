@@ -1,17 +1,17 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { RWAPerpsCoinSummaryMetrics } from './Coin'
+import { RWAPerpsContractSummaryMetrics } from './Contract'
 import {
-	buildRWAPerpsCoinChartSpec,
-	buildRWAPerpsCoinInfoRows,
-	DEFAULT_ENABLED_RWA_PERPS_COIN_CHART_METRICS,
-	type RWAPerpsCoinChartMetricKey
-} from './coinPageUtils'
-import type { IRWAPerpsCoinData } from './types'
+	buildRWAPerpsContractChartSpec,
+	buildRWAPerpsContractInfoRows,
+	DEFAULT_ENABLED_RWA_PERPS_CONTRACT_CHART_METRICS,
+	type RWAPerpsContractChartMetricKey
+} from './contractPageUtils'
+import type { IRWAPerpsContractData } from './types'
 
-const baseCoin: IRWAPerpsCoinData = {
-	coin: {
-		coin: 'xyz:META',
+const baseContract: IRWAPerpsContractData = {
+	contract: {
+		contract: 'xyz:META',
 		displayName: 'Meta',
 		venue: 'xyz',
 		baseAsset: 'Meta',
@@ -122,27 +122,28 @@ const fundingHistoryPoints = [
 	}
 ]
 
-describe('RWAPerpsCoinSummaryMetrics', () => {
+describe('RWAPerpsContractSummaryMetrics', () => {
 	it('renders price with inline 24h change and grouped metric sections without key-metrics png export', () => {
-		const html = renderToStaticMarkup(<RWAPerpsCoinSummaryMetrics coin={baseCoin} />)
+		const html = renderToStaticMarkup(<RWAPerpsContractSummaryMetrics contract={baseContract} />)
 
 		expect(html).toContain('Price')
 		expect(html).toContain('+5.00%')
-		expect(html).toContain('Fees 30d')
-		expect(html).toContain('Fees 7d')
-		expect(html).toContain('Fees 24h')
+		expect(html).toContain('Est. Protocol Fees 30d')
+		expect(html).toContain('Est. Protocol Fees 7d')
+		expect(html).toContain('Est. Protocol Fees 24h')
+		expect(html).toContain('Latest Funding Rate')
 		expect(html).toContain('Trading Parameters')
 		expect(html).toContain('Market Reference')
 		expect(html).not.toContain('Download Key Metrics as PNG')
 	})
 })
 
-describe('buildRWAPerpsCoinInfoRows', () => {
+describe('buildRWAPerpsContractInfoRows', () => {
 	it('omits duplicate reference assets and empty website rows', () => {
-		const rows = buildRWAPerpsCoinInfoRows({
-			...baseCoin,
-			coin: {
-				...baseCoin.coin,
+		const rows = buildRWAPerpsContractInfoRows({
+			...baseContract,
+			contract: {
+				...baseContract.contract,
 				baseAsset: 'META',
 				website: null
 			}
@@ -152,11 +153,11 @@ describe('buildRWAPerpsCoinInfoRows', () => {
 		expect(rows.some((row) => row.label === 'Website')).toBe(false)
 	})
 
-	it('includes the reference asset when it differs from the coin suffix', () => {
-		const rows = buildRWAPerpsCoinInfoRows({
-			...baseCoin,
-			coin: {
-				...baseCoin.coin,
+	it('includes the reference asset when it differs from the contract symbol suffix', () => {
+		const rows = buildRWAPerpsContractInfoRows({
+			...baseContract,
+			contract: {
+				...baseContract.contract,
 				baseAsset: 'Meta Platforms'
 			}
 		})
@@ -167,13 +168,13 @@ describe('buildRWAPerpsCoinInfoRows', () => {
 	})
 })
 
-describe('buildRWAPerpsCoinChartSpec', () => {
+describe('buildRWAPerpsContractChartSpec', () => {
 	it('keeps the expected default enabled metrics', () => {
-		expect(DEFAULT_ENABLED_RWA_PERPS_COIN_CHART_METRICS).toEqual(['openInterest', 'volume24h', 'price'])
+		expect(DEFAULT_ENABLED_RWA_PERPS_CONTRACT_CHART_METRICS).toEqual(['openInterest', 'volume24h', 'price'])
 	})
 
 	it('uses summed buckets for volume and last-value buckets for line metrics', () => {
-		const spec = buildRWAPerpsCoinChartSpec({
+		const spec = buildRWAPerpsContractChartSpec({
 			marketPoints: chartPoints,
 			fundingHistory: null,
 			groupBy: 'monthly',
@@ -201,33 +202,32 @@ describe('buildRWAPerpsCoinChartSpec', () => {
 		})
 	})
 
-	it('makes only volume cumulative while keeping line metrics non-cumulative in cumulative mode', () => {
-		const spec = buildRWAPerpsCoinChartSpec({
+	it('keeps grouped volume as a bar series without offering cumulative accumulation', () => {
+		const spec = buildRWAPerpsContractChartSpec({
 			marketPoints: chartPoints,
 			fundingHistory: null,
-			groupBy: 'cumulative',
+			groupBy: 'monthly',
 			enabledMetrics: ['volume24h', 'price', 'fundingRate']
 		})
 
 		expect(spec.charts.map((chart) => [chart.name, chart.type])).toEqual([
-			['Volume 24h', 'line'],
+			['Volume 24h', 'bar'],
 			['Price', 'line'],
 			['Funding Rate', 'line']
 		])
 
 		expect(spec.dataset.source).toMatchObject([
-			{ timestamp: Date.UTC(2026, 2, 1), 'Volume 24h': 10, Price: 10, 'Funding Rate': 1 },
-			{ timestamp: Date.UTC(2026, 2, 15), 'Volume 24h': 30, Price: 12, 'Funding Rate': 2 },
-			{ timestamp: Date.UTC(2026, 3, 1), 'Volume 24h': 60, Price: 14, 'Funding Rate': 3 }
+			{ timestamp: Date.UTC(2026, 2, 1), 'Volume 24h': 30, Price: 12, 'Funding Rate': 2 },
+			{ timestamp: Date.UTC(2026, 3, 1), 'Volume 24h': 30, Price: 14, 'Funding Rate': 3 }
 		])
 	})
 
 	it('keeps colors stable regardless of metric selection order', () => {
-		const spec = buildRWAPerpsCoinChartSpec({
+		const spec = buildRWAPerpsContractChartSpec({
 			marketPoints: chartPoints,
 			fundingHistory: null,
 			groupBy: 'daily',
-			enabledMetrics: ['premium', 'price'] as RWAPerpsCoinChartMetricKey[]
+			enabledMetrics: ['premium', 'price'] as RWAPerpsContractChartMetricKey[]
 		})
 
 		expect(spec.charts.map((chart) => [chart.name, chart.color])).toEqual([
@@ -237,7 +237,7 @@ describe('buildRWAPerpsCoinChartSpec', () => {
 	})
 
 	it('uses funding history for funding and premium when it is available', () => {
-		const spec = buildRWAPerpsCoinChartSpec({
+		const spec = buildRWAPerpsContractChartSpec({
 			marketPoints: chartPoints,
 			fundingHistory: fundingHistoryPoints,
 			groupBy: 'daily',
@@ -251,7 +251,7 @@ describe('buildRWAPerpsCoinChartSpec', () => {
 	})
 
 	it('sorts source points chronologically before taking last-value grouped buckets', () => {
-		const spec = buildRWAPerpsCoinChartSpec({
+		const spec = buildRWAPerpsContractChartSpec({
 			marketPoints: [chartPoints[1], chartPoints[0], chartPoints[2]],
 			fundingHistory: [fundingHistoryPoints[1], fundingHistoryPoints[0]],
 			groupBy: 'monthly',
@@ -272,7 +272,7 @@ describe('buildRWAPerpsCoinChartSpec', () => {
 	})
 
 	it('normalizes second-based timestamps to milliseconds before grouping', () => {
-		const spec = buildRWAPerpsCoinChartSpec({
+		const spec = buildRWAPerpsContractChartSpec({
 			marketPoints: [
 				{
 					...chartPoints[0],

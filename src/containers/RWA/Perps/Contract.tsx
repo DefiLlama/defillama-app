@@ -4,8 +4,8 @@ import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import {
 	ChartGroupingSelector,
-	DWMC_GROUPING_OPTIONS_LOWERCASE,
-	type LowercaseDwmcGrouping
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
@@ -14,21 +14,21 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import {
-	buildRWAPerpsCoinChartSpec,
-	buildRWAPerpsCoinInfoRows,
-	buildRWAPerpsCoinMetricSections,
-	RWA_PERPS_COIN_CHART_METRICS,
-	type RWAPerpsCoinChartMetricConfig,
-	type RWAPerpsCoinChartMetricKey
-} from './coinPageUtils'
-import type { IRWAPerpsCoinData } from './types'
+	buildRWAPerpsContractChartSpec,
+	buildRWAPerpsContractInfoRows,
+	buildRWAPerpsContractMetricSections,
+	RWA_PERPS_CONTRACT_CHART_METRICS,
+	type RWAPerpsContractChartMetricConfig,
+	type RWAPerpsContractChartMetricKey
+} from './contractPageUtils'
+import type { IRWAPerpsContractData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const normalizeChartGroup = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+const normalizeChartGroup = (value: string | null | undefined): LowercaseDwmGrouping | null => {
 	const normalizedValue = value?.toLowerCase() ?? null
-	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
-		return normalizedValue as LowercaseDwmcGrouping
+	if (DWM_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmGrouping
 	}
 	return null
 }
@@ -47,12 +47,12 @@ const resolveVisibility = ({
 
 const getQueryValueOnRemove = (isDefaultEnabled: boolean): 'false' | null => (isDefaultEnabled ? 'false' : null)
 
-export function getRWAPerpsCoinChartGroup(value: string | null | undefined): LowercaseDwmcGrouping {
+export function getRWAPerpsContractChartGroup(value: string | null | undefined): LowercaseDwmGrouping {
 	return normalizeChartGroup(value) ?? 'daily'
 }
 
-export function getRWAPerpsCoinEnabledMetrics(searchParams: URLSearchParams): RWAPerpsCoinChartMetricKey[] {
-	return RWA_PERPS_COIN_CHART_METRICS.filter(
+export function getRWAPerpsContractEnabledMetrics(searchParams: URLSearchParams): RWAPerpsContractChartMetricKey[] {
+	return RWA_PERPS_CONTRACT_CHART_METRICS.filter(
 		(metric) =>
 			resolveVisibility({
 				queryValue: searchParams.get(metric.queryKey),
@@ -61,11 +61,11 @@ export function getRWAPerpsCoinEnabledMetrics(searchParams: URLSearchParams): RW
 	).map((metric) => metric.key)
 }
 
-export function getRWAPerpsCoinMetricQueryPatch({
+export function getRWAPerpsContractMetricQueryPatch({
 	metric,
 	isActive
 }: {
-	metric: Pick<RWAPerpsCoinChartMetricConfig, 'queryKey' | 'defaultEnabled'>
+	metric: Pick<RWAPerpsContractChartMetricConfig, 'queryKey' | 'defaultEnabled'>
 	isActive: boolean
 }) {
 	return {
@@ -73,34 +73,40 @@ export function getRWAPerpsCoinMetricQueryPatch({
 	}
 }
 
-export function getRWAPerpsCoinGroupByQueryPatch(nextGroupBy: LowercaseDwmcGrouping) {
+export function getRWAPerpsContractGroupByQueryPatch(nextGroupBy: LowercaseDwmGrouping) {
 	return {
 		groupBy: nextGroupBy === 'daily' ? undefined : nextGroupBy
 	}
 }
 
-function RWAPerpsCoinHeader({ coin, headingAs: Tag = 'h1' }: { coin: IRWAPerpsCoinData; headingAs?: 'h1' | 'div' }) {
+function RWAPerpsContractHeader({
+	contract,
+	headingAs: Tag = 'h1'
+}: {
+	contract: IRWAPerpsContractData
+	headingAs?: 'h1' | 'div'
+}) {
 	return (
 		<Tag className="flex items-center gap-2 text-xl">
-			<span className="font-bold">{coin.coin.coin}</span>
+			<span className="font-bold">{contract.contract.contract}</span>
 		</Tag>
 	)
 }
 
-function RWAPerpsCoinPriceSummary({ coin }: { coin: IRWAPerpsCoinData }) {
+function RWAPerpsContractPriceSummary({ contract }: { contract: IRWAPerpsContractData }) {
 	return (
 		<div className="flex flex-nowrap items-end justify-between gap-8">
 			<div className="flex flex-col">
 				<span className="text-(--text-label)">Price</span>
 				<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
-					{formattedNum(coin.market.price, true)}
+					{formattedNum(contract.market.price, true)}
 				</p>
 			</div>
 
-			{coin.market.priceChange24h != null ? (
+			{contract.market.priceChange24h != null ? (
 				<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2">
 					<span className="overflow-hidden font-jetbrains text-ellipsis whitespace-nowrap">
-						<PercentChange percent={coin.market.priceChange24h} fontWeight={600} />
+						<PercentChange percent={contract.market.priceChange24h} fontWeight={600} />
 					</span>
 					<span className="text-(--text-label)">24h</span>
 				</p>
@@ -109,17 +115,17 @@ function RWAPerpsCoinPriceSummary({ coin }: { coin: IRWAPerpsCoinData }) {
 	)
 }
 
-export function RWAPerpsCoinSummaryMetrics({ coin }: { coin: IRWAPerpsCoinData }) {
+export function RWAPerpsContractSummaryMetrics({ contract }: { contract: IRWAPerpsContractData }) {
 	return (
 		<>
-			<RWAPerpsCoinPriceSummary coin={coin} />
-			<RWAPerpsCoinMetricsList coin={coin} />
+			<RWAPerpsContractPriceSummary contract={contract} />
+			<RWAPerpsContractMetricsList contract={contract} />
 		</>
 	)
 }
 
-function RWAPerpsCoinMetricsList({ coin }: { coin: IRWAPerpsCoinData }) {
-	const sections = buildRWAPerpsCoinMetricSections(coin)
+function RWAPerpsContractMetricsList({ contract }: { contract: IRWAPerpsContractData }) {
+	const sections = buildRWAPerpsContractMetricSections(contract)
 
 	return (
 		<div className="flex flex-col">
@@ -156,8 +162,8 @@ function RWAPerpsCoinMetricsList({ coin }: { coin: IRWAPerpsCoinData }) {
 	)
 }
 
-function RWAPerpsCoinInfoCard({ coin }: { coin: IRWAPerpsCoinData }) {
-	const infoRows = buildRWAPerpsCoinInfoRows(coin)
+function RWAPerpsContractInfoCard({ contract }: { contract: IRWAPerpsContractData }) {
+	const infoRows = buildRWAPerpsContractInfoRows(contract)
 	const midpoint = Math.ceil(infoRows.length / 2)
 	const desktopInfoColumns = [infoRows.slice(0, midpoint), infoRows.slice(midpoint)].filter((rows) => rows.length > 0)
 	const renderInfoRowValue = (row: (typeof infoRows)[number]) =>
@@ -172,7 +178,9 @@ function RWAPerpsCoinInfoCard({ coin }: { coin: IRWAPerpsCoinData }) {
 	return (
 		<section className="col-span-full flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 xl:p-4">
 			<h2 className="text-base font-semibold">Market Information</h2>
-			{coin.coin.description ? <p className="text-sm text-(--text-label)">{coin.coin.description}</p> : null}
+			{contract.contract.description ? (
+				<p className="text-sm text-(--text-label)">{contract.contract.description}</p>
+			) : null}
 			<div className="flex flex-col xl:hidden">
 				{infoRows.map((row) => (
 					<MetricRow key={row.label} label={row.label} value={renderInfoRowValue(row)} />
@@ -191,7 +199,7 @@ function RWAPerpsCoinInfoCard({ coin }: { coin: IRWAPerpsCoinData }) {
 	)
 }
 
-function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
+function RWAPerpsContractChartPanel({ contract }: { contract: IRWAPerpsContractData }) {
 	const router = useRouter()
 	const searchParams = useMemo(() => {
 		// Use the raw URL so chart controls reflect the current search string before router.query is hydrated.
@@ -201,21 +209,21 @@ function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 	const metricsDialogStore = Ariakit.useDialogStore()
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
-	const groupBy = getRWAPerpsCoinChartGroup(searchParams.get('groupBy'))
-	const enabledMetrics = useMemo(() => getRWAPerpsCoinEnabledMetrics(searchParams), [searchParams])
+	const groupBy = getRWAPerpsContractChartGroup(searchParams.get('groupBy'))
+	const enabledMetrics = useMemo(() => getRWAPerpsContractEnabledMetrics(searchParams), [searchParams])
 
 	const chartSpec = useMemo(
 		() =>
-			buildRWAPerpsCoinChartSpec({
-				marketPoints: coin.marketChart,
-				fundingHistory: coin.fundingHistory,
+			buildRWAPerpsContractChartSpec({
+				marketPoints: contract.marketChart,
+				fundingHistory: contract.fundingHistory,
 				groupBy,
 				enabledMetrics
 			}),
-		[coin.fundingHistory, coin.marketChart, enabledMetrics, groupBy]
+		[contract.fundingHistory, contract.marketChart, enabledMetrics, groupBy]
 	)
 	const deferredChartSpec = useDeferredValue(chartSpec)
-	const coinSlugBase = coin.coin.coin.replace(/:/g, '-').toLowerCase()
+	const contractSlugBase = contract.contract.contract.replace(/:/g, '-').toLowerCase()
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -234,15 +242,17 @@ function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 						</span>
 
 						<div className="flex flex-wrap gap-2">
-							{RWA_PERPS_COIN_CHART_METRICS.map((metric) => {
+							{RWA_PERPS_CONTRACT_CHART_METRICS.map((metric) => {
 								const isActive = enabledMetrics.includes(metric.key)
 								return (
 									<button
 										key={`add-metric-${metric.key}`}
 										onClick={() => {
-											void pushShallowQuery(router, getRWAPerpsCoinMetricQueryPatch({ metric, isActive })).then(() => {
-												metricsDialogStore.toggle()
-											})
+											void pushShallowQuery(router, getRWAPerpsContractMetricQueryPatch({ metric, isActive })).then(
+												() => {
+													metricsDialogStore.toggle()
+												}
+											)
 										}}
 										data-active={isActive}
 										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -261,7 +271,7 @@ function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 				</Ariakit.DialogProvider>
 
 				{enabledMetrics.map((metricKey) => {
-					const metric = RWA_PERPS_COIN_CHART_METRICS.find((item) => item.key === metricKey)
+					const metric = RWA_PERPS_CONTRACT_CHART_METRICS.find((item) => item.key === metricKey)
 					if (!metric) return null
 
 					return (
@@ -274,7 +284,7 @@ function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 								value={metric.key}
 								checked={true}
 								onChange={() => {
-									void pushShallowQuery(router, getRWAPerpsCoinMetricQueryPatch({ metric, isActive: true }))
+									void pushShallowQuery(router, getRWAPerpsContractMetricQueryPatch({ metric, isActive: true }))
 								}}
 								className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 							/>
@@ -293,14 +303,14 @@ function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 					<ChartGroupingSelector
 						value={groupBy}
 						onValueChange={(nextGroupBy) => {
-							void pushShallowQuery(router, getRWAPerpsCoinGroupByQueryPatch(nextGroupBy))
+							void pushShallowQuery(router, getRWAPerpsContractGroupByQueryPatch(nextGroupBy))
 						}}
-						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+						options={DWM_GROUPING_OPTIONS_LOWERCASE}
 					/>
 					<ChartExportButtons
 						chartInstance={chartInstance}
-						filename={`${coinSlugBase}-market-metrics`}
-						title={`${coin.coin.coin} Market Metrics`}
+						filename={`${contractSlugBase}-market-metrics`}
+						title={`${contract.contract.contract} Market Metrics`}
 						smol
 					/>
 				</div>
@@ -329,31 +339,31 @@ function RWAPerpsCoinChartPanel({ coin }: { coin: IRWAPerpsCoinData }) {
 	)
 }
 
-export function RWAPerpsCoinPage({ coin }: { coin: IRWAPerpsCoinData }) {
+export function RWAPerpsContractPage({ contract }: { contract: IRWAPerpsContractData }) {
 	return (
 		<article className="flex flex-col gap-2">
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:flex xl:min-h-[360px]">
-					<RWAPerpsCoinHeader coin={coin} headingAs="h1" />
-					<RWAPerpsCoinSummaryMetrics coin={coin} />
+					<RWAPerpsContractHeader contract={contract} headingAs="h1" />
+					<RWAPerpsContractSummaryMetrics contract={contract} />
 				</div>
 
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<div className="flex flex-col gap-6 xl:hidden">
-							<RWAPerpsCoinHeader coin={coin} headingAs="h1" />
-							<RWAPerpsCoinPriceSummary coin={coin} />
+							<RWAPerpsContractHeader contract={contract} headingAs="h1" />
+							<RWAPerpsContractPriceSummary contract={contract} />
 						</div>
 
-						<RWAPerpsCoinChartPanel coin={coin} />
+						<RWAPerpsContractChartPanel contract={contract} />
 					</div>
 
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
-						<RWAPerpsCoinMetricsList coin={coin} />
+						<RWAPerpsContractMetricsList contract={contract} />
 					</div>
 				</div>
 
-				<RWAPerpsCoinInfoCard coin={coin} />
+				<RWAPerpsContractInfoCard contract={contract} />
 			</div>
 		</article>
 	)

@@ -114,6 +114,7 @@ const overviewData = {
 		openInterest: 100,
 		volume24h: 50,
 		markets: 1,
+		protocolFees24h: 1,
 		cumulativeFunding: 10
 	}
 }
@@ -147,15 +148,15 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Base Asset')
-		expect(html).toContain('Nested by: Contracts')
+		expect(html).toContain('Nested by: Contract')
 		expect(html).toContain('reset')
 	})
 
-	it('hides the treemap nested-grouping selector when parent grouping is Contracts', () => {
-		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'coin' }
+	it('hides the treemap nested-grouping selector when parent grouping is Contract', () => {
+		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'contract' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Contracts')
+		expect(html).toContain('Contract')
 		expect(html).not.toContain('Nested by:')
 		expect(html).toContain('reset')
 	})
@@ -165,7 +166,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Base Asset')
-		expect(html).toContain('Nested by: Contracts')
+		expect(html).toContain('Nested by: Contract')
 		expect(html).toContain('reset')
 	})
 

@@ -164,8 +164,8 @@ function getRootLabel(grouping: ParentGrouping): string {
 			return 'Asset Class'
 		case 'baseAsset':
 			return 'Base Asset'
-		case 'coin':
-			return 'Contracts'
+		case 'contract':
+			return 'Contract'
 		default:
 			return assertNever(grouping)
 	}

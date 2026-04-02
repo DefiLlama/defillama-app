@@ -39,13 +39,13 @@ describe('parseVenueBreakdownRequest', () => {
 			parseVenueBreakdownRequest({
 				query: {
 					venue: 'xyz',
-					breakdown: 'coin',
+					breakdown: 'contract',
 					key: 'markets'
 				}
 			})
 		).toEqual({
 			venue: 'xyz',
-			breakdown: 'coin',
+			breakdown: 'contract',
 			key: 'markets'
 		})
 	})
@@ -55,7 +55,7 @@ describe('parseVenueBreakdownRequest', () => {
 			parseVenueBreakdownRequest({
 				query: {
 					venue: ['xyz'],
-					breakdown: 'coin',
+					breakdown: 'contract',
 					key: 'openInterest'
 				}
 			})
@@ -65,7 +65,7 @@ describe('parseVenueBreakdownRequest', () => {
 			parseVenueBreakdownRequest({
 				query: {
 					venue: '   ',
-					breakdown: 'coin',
+					breakdown: 'contract',
 					key: 'markets'
 				}
 			})

@@ -53,7 +53,7 @@ const BREAKDOWN_LABELS: Record<RWAPerpsChartBreakdown, string> = {
 	venue: 'Venue',
 	assetClass: 'Asset Class',
 	baseAsset: 'Base Asset',
-	coin: 'Contracts'
+	contract: 'Contract'
 }
 
 const TREEMAP_NESTED_BY_LABELS: Record<RWAPerpsTreemapNestedBy, string> = {
@@ -61,22 +61,22 @@ const TREEMAP_NESTED_BY_LABELS: Record<RWAPerpsTreemapNestedBy, string> = {
 	venue: 'Venue',
 	assetClass: 'Asset Class',
 	baseAsset: 'Base Asset',
-	coin: 'Contracts'
+	contract: 'Contract'
 }
 
 const TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTimeSeriesBreakdown[]> = {
-	overview: ['baseAsset', 'venue', 'assetClass', 'coin'],
-	venue: ['baseAsset', 'coin', 'assetClass']
+	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
+	venue: ['baseAsset', 'contract', 'assetClass']
 }
 
 const NON_TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsNonTimeSeriesBreakdown[]> = {
-	overview: ['baseAsset', 'venue', 'assetClass', 'coin'],
-	venue: ['baseAsset', 'coin', 'assetClass']
+	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
+	venue: ['baseAsset', 'contract', 'assetClass']
 }
 
 const TREEMAP_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTreemapBreakdown[]> = {
-	overview: ['baseAsset', 'venue', 'assetClass', 'coin'],
-	venue: ['baseAsset', 'assetClass', 'coin']
+	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
+	venue: ['baseAsset', 'assetClass', 'contract']
 }
 
 const TREEMAP_NESTED_BY_OPTIONS: Record<
@@ -84,15 +84,15 @@ const TREEMAP_NESTED_BY_OPTIONS: Record<
 	Partial<Record<RWAPerpsTreemapBreakdown, readonly RWAPerpsTreemapNestedBy[]>>
 > = {
 	overview: {
-		venue: ['none', 'assetClass', 'baseAsset', 'coin'],
-		assetClass: ['none', 'baseAsset', 'coin'],
-		baseAsset: ['none', 'coin'],
-		coin: ['none']
+		venue: ['none', 'assetClass', 'baseAsset', 'contract'],
+		assetClass: ['none', 'baseAsset', 'contract'],
+		baseAsset: ['none', 'contract'],
+		contract: ['none']
 	},
 	venue: {
-		assetClass: ['none', 'baseAsset', 'coin'],
-		baseAsset: ['none', 'coin'],
-		coin: ['none']
+		assetClass: ['none', 'baseAsset', 'contract'],
+		baseAsset: ['none', 'contract'],
+		contract: ['none']
 	}
 }
 
@@ -103,13 +103,13 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 	overview: {
 		venue: 'assetClass',
 		assetClass: 'baseAsset',
-		baseAsset: 'coin',
-		coin: 'none'
+		baseAsset: 'contract',
+		contract: 'none'
 	},
 	venue: {
 		assetClass: 'baseAsset',
-		baseAsset: 'coin',
-		coin: 'none'
+		baseAsset: 'contract',
+		contract: 'none'
 	}
 }
 

@@ -44,12 +44,12 @@ describe('parseOverviewBreakdownRequest', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
-					breakdown: 'coin',
+					breakdown: 'contract',
 					key: 'markets'
 				}
 			})
 		).toEqual({
-			breakdown: 'coin',
+			breakdown: 'contract',
 			key: 'markets'
 		})
 	})

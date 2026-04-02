@@ -1,13 +1,17 @@
-import type { ChartTimeGroupingWithCumulative, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
+import type { ChartTimeGrouping, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { formattedNum, toNiceDayMonthAndYearAndTime } from '~/utils'
-import type { IRWAPerpsCoinData, IRWAPerpsCoinFundingHistoryPoint, IRWAPerpsCoinMarketChartPoint } from './types'
+import type {
+	IRWAPerpsContractData,
+	IRWAPerpsContractFundingHistoryPoint,
+	IRWAPerpsContractMarketChartPoint
+} from './types'
 
-export type RWAPerpsCoinChartMetricKey = 'openInterest' | 'volume24h' | 'price' | 'fundingRate' | 'premium'
+export type RWAPerpsContractChartMetricKey = 'openInterest' | 'volume24h' | 'price' | 'fundingRate' | 'premium'
 
-export interface RWAPerpsCoinChartMetricConfig {
-	key: RWAPerpsCoinChartMetricKey
+export interface RWAPerpsContractChartMetricConfig {
+	key: RWAPerpsContractChartMetricKey
 	label: string
 	queryKey: string
 	defaultEnabled: boolean
@@ -17,7 +21,7 @@ export interface RWAPerpsCoinChartMetricConfig {
 	valueSymbol?: string
 }
 
-export const RWA_PERPS_COIN_CHART_METRICS: readonly RWAPerpsCoinChartMetricConfig[] = [
+export const RWA_PERPS_CONTRACT_CHART_METRICS: readonly RWAPerpsContractChartMetricConfig[] = [
 	{
 		key: 'openInterest',
 		label: 'Open Interest',
@@ -68,7 +72,7 @@ export const RWA_PERPS_COIN_CHART_METRICS: readonly RWAPerpsCoinChartMetricConfi
 	}
 ] as const
 
-export const DEFAULT_ENABLED_RWA_PERPS_COIN_CHART_METRICS = RWA_PERPS_COIN_CHART_METRICS.filter(
+export const DEFAULT_ENABLED_RWA_PERPS_CONTRACT_CHART_METRICS = RWA_PERPS_CONTRACT_CHART_METRICS.filter(
 	(metric) => metric.defaultEnabled
 ).map((metric) => metric.key)
 
@@ -95,11 +99,11 @@ function formatTextValue(value: string | null | undefined): string | null {
 	return value && value.trim().length > 0 ? value : null
 }
 
-export function formatRWAPerpsCoinPriceChange(value: number | null | undefined): string | null {
+export function formatRWAPerpsContractPriceChange(value: number | null | undefined): string | null {
 	return formatPercentChangeText(value)
 }
 
-export function formatRWAPerpsCoinChartDate(value: number): string {
+export function formatRWAPerpsContractChartDate(value: number): string {
 	return toNiceDayMonthAndYearAndTime(Math.floor(toUnixMsTimestamp(value) / 1e3))
 }
 
@@ -114,7 +118,7 @@ export type MetricSectionData = {
 	children: MetricRowData[]
 }
 
-export function buildRWAPerpsCoinMetricSections(coin: IRWAPerpsCoinData): {
+export function buildRWAPerpsContractMetricSections(contractData: IRWAPerpsContractData): {
 	openInterest: MetricRowData
 	volume: MetricSectionData
 	fees: MetricSectionData
@@ -122,96 +126,107 @@ export function buildRWAPerpsCoinMetricSections(coin: IRWAPerpsCoinData): {
 	marketReference: MetricSectionData
 	pointInTimeRows: MetricRowData[]
 } {
-	const maxLeverage = formatMaybeNumber(coin.market.maxLeverage)
+	const maxLeverage = formatMaybeNumber(contractData.market.maxLeverage)
 	const tradingParameterChildren = [
 		{ label: 'Max Leverage', value: maxLeverage === '-' ? '-' : `${maxLeverage}x` },
-		{ label: 'Maker Fee', value: formatFractionPercent(coin.market.makerFeeRate) },
-		{ label: 'Taker Fee', value: formatFractionPercent(coin.market.takerFeeRate) },
-		...(coin.market.deployerFeeShare == null || !Number.isFinite(coin.market.deployerFeeShare)
+		{ label: 'Maker Fee', value: formatFractionPercent(contractData.market.makerFeeRate) },
+		{ label: 'Taker Fee', value: formatFractionPercent(contractData.market.takerFeeRate) },
+		...(contractData.market.deployerFeeShare == null || !Number.isFinite(contractData.market.deployerFeeShare)
 			? []
-			: [{ label: 'Deployer Fee Share', value: formatFractionPercent(coin.market.deployerFeeShare) }]),
-		{ label: 'Size Decimals', value: formatMaybeNumber(coin.market.szDecimals) }
+			: [{ label: 'Deployer Fee Share', value: formatFractionPercent(contractData.market.deployerFeeShare) }]),
+		{ label: 'Size Decimals', value: formatMaybeNumber(contractData.market.szDecimals) }
 	]
 
 	const marketReferenceChildren = [
-		{ label: 'Oracle Price', value: formatMaybeCurrency(coin.market.oraclePx) },
-		{ label: 'Mid Price', value: formatMaybeCurrency(coin.market.midPx) },
-		{ label: 'Previous Day Price', value: formatMaybeCurrency(coin.market.prevDayPx) },
-		...(formatTextValue(coin.market.pair) ? [{ label: 'Pair', value: coin.market.pair }] : []),
-		...(formatTextValue(coin.market.marginAsset) ? [{ label: 'Margin Asset', value: coin.market.marginAsset }] : []),
-		...(formatTextValue(coin.market.settlementAsset)
-			? [{ label: 'Settlement Asset', value: coin.market.settlementAsset }]
+		{ label: 'Oracle Price', value: formatMaybeCurrency(contractData.market.oraclePx) },
+		{ label: 'Mid Price', value: formatMaybeCurrency(contractData.market.midPx) },
+		{ label: 'Previous Day Price', value: formatMaybeCurrency(contractData.market.prevDayPx) },
+		...(formatTextValue(contractData.market.pair) ? [{ label: 'Pair', value: contractData.market.pair }] : []),
+		...(formatTextValue(contractData.market.marginAsset)
+			? [{ label: 'Margin Asset', value: contractData.market.marginAsset }]
+			: []),
+		...(formatTextValue(contractData.market.settlementAsset)
+			? [{ label: 'Settlement Asset', value: contractData.market.settlementAsset }]
 			: [])
 	]
 
 	return {
 		openInterest: {
 			label: 'Open Interest',
-			value: formatMaybeCurrency(coin.market.openInterest)
+			value: formatMaybeCurrency(contractData.market.openInterest)
 		},
 		volume: {
 			label: 'Volume 30d',
-			value: formatMaybeCurrency(coin.market.volume30d),
+			value: formatMaybeCurrency(contractData.market.volume30d),
 			children: [
-				{ label: 'Volume 7d', value: formatMaybeCurrency(coin.market.volume7d) },
-				{ label: 'Volume 24h', value: formatMaybeCurrency(coin.market.volume24h) },
-				{ label: 'Cumulative Volume', value: formatMaybeCurrency(coin.market.volumeAllTime) }
+				{ label: 'Volume 7d', value: formatMaybeCurrency(contractData.market.volume7d) },
+				{ label: 'Volume 24h', value: formatMaybeCurrency(contractData.market.volume24h) },
+				{ label: 'Cumulative Volume', value: formatMaybeCurrency(contractData.market.volumeAllTime) }
 			]
 		},
 		fees: {
-			label: 'Fees 30d',
-			value: formatMaybeCurrency(coin.market.estimatedProtocolFees30d),
+			label: 'Est. Protocol Fees 30d',
+			value: formatMaybeCurrency(contractData.market.estimatedProtocolFees30d),
 			children: [
-				{ label: 'Fees 7d', value: formatMaybeCurrency(coin.market.estimatedProtocolFees7d) },
-				{ label: 'Fees 24h', value: formatMaybeCurrency(coin.market.estimatedProtocolFees24h) },
-				{ label: 'Cumulative Fees', value: formatMaybeCurrency(coin.market.estimatedProtocolFeesAllTime) }
+				{ label: 'Est. Protocol Fees 7d', value: formatMaybeCurrency(contractData.market.estimatedProtocolFees7d) },
+				{ label: 'Est. Protocol Fees 24h', value: formatMaybeCurrency(contractData.market.estimatedProtocolFees24h) },
+				{
+					label: 'Est. Cum. Protocol Fees',
+					value: formatMaybeCurrency(contractData.market.estimatedProtocolFeesAllTime)
+				}
 			]
 		},
 		tradingParameters: {
 			label: 'Trading Parameters',
-			value: `${coin.market.maxLeverage}x`,
+			value: `${contractData.market.maxLeverage}x`,
 			children: tradingParameterChildren
 		},
 		marketReference: {
 			label: 'Market Reference',
-			value: formatMaybeCurrency(coin.market.oraclePx),
+			value: formatMaybeCurrency(contractData.market.oraclePx),
 			children: marketReferenceChildren
 		},
 		pointInTimeRows: [
-			{ label: 'Funding Rate', value: formatFractionPercent(coin.market.fundingRate) },
-			{ label: 'Premium', value: formatFractionPercent(coin.market.premium) },
-			{ label: 'Cumulative Funding', value: formatMaybeCurrency(coin.market.cumulativeFunding) }
+			{ label: 'Latest Funding Rate', value: formatFractionPercent(contractData.market.fundingRate) },
+			{ label: 'Premium', value: formatFractionPercent(contractData.market.premium) },
+			{ label: 'Cum. Funding / Unit', value: formatMaybeCurrency(contractData.market.cumulativeFunding) }
 		]
 	}
 }
 
-export function buildRWAPerpsCoinInfoRows(coin: IRWAPerpsCoinData): MetricRowData[] {
-	const marketTimestampMs = toUnixMsTimestamp(coin.market.timestamp)
-	const baseAsset = formatTextValue(coin.coin.baseAsset)
-	const symbolSuffix = coin.coin.coin.split(':')[1] ?? coin.coin.coin
+export function buildRWAPerpsContractInfoRows(contractData: IRWAPerpsContractData): MetricRowData[] {
+	const marketTimestampMs = toUnixMsTimestamp(contractData.market.timestamp)
+	const baseAsset = formatTextValue(contractData.contract.baseAsset)
+	const symbolSuffix = contractData.contract.contract.split(':')[1] ?? contractData.contract.contract
 	const shouldShowBaseAsset = baseAsset != null && baseAsset.trim().toLowerCase() !== symbolSuffix.trim().toLowerCase()
 
 	return [
-		{ label: 'Venue', value: coin.coin.venue },
-		...(formatTextValue(coin.coin.assetClass) ? [{ label: 'Asset Class', value: coin.coin.assetClass! }] : []),
-		...(formatTextValue(coin.coin.rwaClassification)
-			? [{ label: 'RWA Classification', value: coin.coin.rwaClassification! }]
+		{ label: 'Venue', value: contractData.contract.venue },
+		...(formatTextValue(contractData.contract.assetClass)
+			? [{ label: 'Asset Class', value: contractData.contract.assetClass! }]
 			: []),
-		...(formatTextValue(coin.coin.accessModel) ? [{ label: 'Access Model', value: coin.coin.accessModel! }] : []),
-		...(formatTextValue(coin.coin.parentPlatform)
-			? [{ label: 'Parent Platform', value: coin.coin.parentPlatform! }]
+		...(formatTextValue(contractData.contract.rwaClassification)
+			? [{ label: 'RWA Classification', value: contractData.contract.rwaClassification! }]
 			: []),
-		...(formatTextValue(coin.coin.issuer) ? [{ label: 'Issuer', value: coin.coin.issuer! }] : []),
-		...(formatTextValue(coin.coin.oracleProvider)
-			? [{ label: 'Oracle Provider', value: coin.coin.oracleProvider! }]
+		...(formatTextValue(contractData.contract.accessModel)
+			? [{ label: 'Access Model', value: contractData.contract.accessModel! }]
 			: []),
-		...(coin.coin.website ? [{ label: 'Website', value: coin.coin.website }] : []),
+		...(formatTextValue(contractData.contract.parentPlatform)
+			? [{ label: 'Parent Platform', value: contractData.contract.parentPlatform! }]
+			: []),
+		...(formatTextValue(contractData.contract.issuer)
+			? [{ label: 'Issuer', value: contractData.contract.issuer! }]
+			: []),
+		...(formatTextValue(contractData.contract.oracleProvider)
+			? [{ label: 'Oracle Provider', value: contractData.contract.oracleProvider! }]
+			: []),
+		...(contractData.contract.website ? [{ label: 'Website', value: contractData.contract.website }] : []),
 		...(shouldShowBaseAsset ? [{ label: 'Base Asset', value: baseAsset! }] : []),
-		{ label: 'Snapshot Time', value: formatRWAPerpsCoinChartDate(marketTimestampMs) }
+		{ label: 'Snapshot Time', value: formatRWAPerpsContractChartDate(marketTimestampMs) }
 	]
 }
 
-function getMetricValue(point: IRWAPerpsCoinMarketChartPoint, metric: RWAPerpsCoinChartMetricKey): number {
+function getMetricValue(point: IRWAPerpsContractMarketChartPoint, metric: RWAPerpsContractChartMetricKey): number {
 	switch (metric) {
 		case 'openInterest':
 			return point.openInterest
@@ -227,8 +242,8 @@ function getMetricValue(point: IRWAPerpsCoinMarketChartPoint, metric: RWAPerpsCo
 }
 
 function getFundingHistoryMetricValue(
-	point: IRWAPerpsCoinFundingHistoryPoint,
-	metric: Extract<RWAPerpsCoinChartMetricKey, 'fundingRate' | 'premium'>
+	point: IRWAPerpsContractFundingHistoryPoint,
+	metric: Extract<RWAPerpsContractChartMetricKey, 'fundingRate' | 'premium'>
 ): number {
 	switch (metric) {
 		case 'fundingRate':
@@ -243,9 +258,9 @@ function getMetricSourcePoints({
 	fundingHistory,
 	metricKey
 }: {
-	marketPoints: IRWAPerpsCoinMarketChartPoint[] | null
-	fundingHistory: IRWAPerpsCoinFundingHistoryPoint[] | null
-	metricKey: RWAPerpsCoinChartMetricKey
+	marketPoints: IRWAPerpsContractMarketChartPoint[] | null
+	fundingHistory: IRWAPerpsContractFundingHistoryPoint[] | null
+	metricKey: RWAPerpsContractChartMetricKey
 }): Array<[number, number]> {
 	if (metricKey === 'fundingRate' || metricKey === 'premium') {
 		if (fundingHistory?.length) {
@@ -269,16 +284,16 @@ type ChartSpec = {
 	charts: MultiSeriesChart2SeriesConfig[]
 }
 
-export function buildRWAPerpsCoinChartSpec({
+export function buildRWAPerpsContractChartSpec({
 	marketPoints,
 	fundingHistory,
 	groupBy,
 	enabledMetrics
 }: {
-	marketPoints: IRWAPerpsCoinMarketChartPoint[] | null
-	fundingHistory: IRWAPerpsCoinFundingHistoryPoint[] | null
-	groupBy: ChartTimeGroupingWithCumulative
-	enabledMetrics: RWAPerpsCoinChartMetricKey[]
+	marketPoints: IRWAPerpsContractMarketChartPoint[] | null
+	fundingHistory: IRWAPerpsContractFundingHistoryPoint[] | null
+	groupBy: ChartTimeGrouping
+	enabledMetrics: RWAPerpsContractChartMetricKey[]
 }): ChartSpec {
 	const hasAnyData = (marketPoints?.length ?? 0) > 0 || (fundingHistory?.length ?? 0) > 0
 	if (!hasAnyData || enabledMetrics.length === 0) {
@@ -295,7 +310,7 @@ export function buildRWAPerpsCoinChartSpec({
 	const charts: MultiSeriesChart2SeriesConfig[] = []
 
 	for (const metricKey of enabledMetrics) {
-		const metric = RWA_PERPS_COIN_CHART_METRICS.find((item) => item.key === metricKey)
+		const metric = RWA_PERPS_CONTRACT_CHART_METRICS.find((item) => item.key === metricKey)
 		if (!metric) continue
 
 		const rawData = getMetricSourcePoints({ marketPoints, fundingHistory, metricKey: metric.key })
@@ -304,13 +319,13 @@ export function buildRWAPerpsCoinChartSpec({
 			metric.defaultType === 'bar'
 				? formatBarChart({
 						data: rawData,
-						groupBy: groupBy === 'cumulative' ? 'cumulative' : groupBy,
+						groupBy,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 				: formatLineChart({
 						data: rawData,
-						groupBy: groupBy === 'cumulative' ? 'daily' : groupBy,
+						groupBy,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
@@ -323,7 +338,7 @@ export function buildRWAPerpsCoinChartSpec({
 
 		charts.push({
 			name: metric.label,
-			type: metric.defaultType === 'bar' && groupBy !== 'cumulative' ? 'bar' : 'line',
+			type: metric.defaultType,
 			encode: { x: 'timestamp', y: metric.label },
 			color: metric.color,
 			...(metric.yAxisIndex != null ? { yAxisIndex: metric.yAxisIndex } : {}),
