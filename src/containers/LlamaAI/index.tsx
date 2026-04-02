@@ -63,6 +63,7 @@ import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } fr
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>
@@ -1786,6 +1787,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							handleNewChat={handleNewChat}
 							onOpenSettings={settingsModalStore.show}
 							hasCustomInstructions={customInstructions.trim().length > 0}
+							sessionTitle={effectiveSessionTitle}
 						/>
 					) : null}
 					{restoringSessionId && !hasMessages ? (
@@ -1960,14 +1962,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 const ChatControls = memo(function ChatControls({
 	handleNewChat,
 	onOpenSettings,
-	hasCustomInstructions
+	hasCustomInstructions,
+	sessionTitle
 }: {
 	handleNewChat: () => void
 	onOpenSettings: () => void
 	hasCustomInstructions: boolean
+	sessionTitle: string | null
 }) {
 	const isMobile = useMedia('(max-width: 1023px)')
 	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
+	const { balance, totalAvailable } = useAiBalance()
+
+	const tooltipParts = ['Open Chat History']
+	if (sessionTitle) tooltipParts.push(sessionTitle)
+	if (balance) tooltipParts.push(`$${totalAvailable.toFixed(2)}`)
+	const tooltipContent = tooltipParts.join(' | ')
 
 	return (
 		<div className="llamaai-chat-controls">
@@ -1976,7 +1986,7 @@ const ChatControls = memo(function ChatControls({
 				aria-label="Chat controls"
 			>
 				<Tooltip
-					content="Open Chat History"
+					content={tooltipContent}
 					render={
 						<button
 							onClick={toggleSidebar}
