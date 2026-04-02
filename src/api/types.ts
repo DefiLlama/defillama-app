@@ -172,7 +172,7 @@ export interface TwitterPostsResponse {
 	[key: string]: unknown
 }
 
-export interface LlamaswapChain {
+interface LlamaswapChain {
 	chain: string
 	chainId: number
 	address: string
@@ -180,9 +180,10 @@ export interface LlamaswapChain {
 }
 
 export interface ProtocolLlamaswapResponse {
-	chains?: LlamaswapChain[]
-	[key: string]: unknown
+	chains?: Array<LlamaswapChain>
 }
+
+export type ExtendedLlamaswapChain = LlamaswapChain & { displayName: string }
 
 /** Single pool row for a token from `LIQUIDITY_API` (`/liquidity.json`). */
 interface ProtocolLiquidityTokenPool {

@@ -12,7 +12,7 @@ import { ShareModalContent, type ShareData } from '~/containers/LlamaAI/componen
 import type { MessageMetadata } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
@@ -23,6 +23,7 @@ interface ResponseControlsProps {
 	sessionId?: string | null
 	readOnly?: boolean
 	messageMetadata?: MessageMetadata
+	isLatest?: boolean
 }
 
 type Rating = 'good' | 'bad' | null
@@ -146,7 +147,8 @@ export function ResponseControls({
 	initialRating,
 	sessionId,
 	readOnly = false,
-	messageMetadata
+	messageMetadata,
+	isLatest = false
 }: ResponseControlsProps) {
 	const [state, dispatch] = useReducer(responseControlsReducer, initialRating || null, createInitialState)
 	const { copied, showFeedback, showShareModal, selectedRating, submittedRating } = state
@@ -250,7 +252,9 @@ export function ResponseControls({
 
 	return (
 		<>
-			<div className="flex items-center gap-0.5 pt-1">
+			<div
+				className={`flex items-center gap-0.5 pt-1${isLatest ? '' : ' opacity-0 transition-opacity duration-150 group-hover/msg:opacity-100 focus-within:opacity-100'}`}
+			>
 				{content ? (
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}

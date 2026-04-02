@@ -4,7 +4,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { STRIPE_PUBLISHABLE_KEY } from '~/constants'
-import { useCreateTopup, TOPUP_CONFIG } from '~/containers/Subscribtion/useTopup'
+import { useCreateTopup, TOPUP_CONFIG } from '~/containers/Subscription/useTopup'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
@@ -14,7 +14,7 @@ interface TopupModalProps {
 }
 
 export function TopupModal({ isOpen, onClose }: TopupModalProps) {
-	const [amount, setAmount] = useState('')
+	const [amount, setAmount] = useState('10')
 	const [step, setStep] = useState<'select' | 'stripe'>('select')
 	const [isRedirecting, setIsRedirecting] = useState(false)
 	const topupMutation = useCreateTopup()
@@ -24,20 +24,16 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 		Number.isFinite(parsedAmount) && parsedAmount >= TOPUP_CONFIG.minAmount && parsedAmount <= TOPUP_CONFIG.maxAmount
 
 	const handleClose = useCallback(() => {
-		setAmount('')
+		setAmount('10')
 		setStep('select')
 		setIsRedirecting(false)
 		topupMutation.reset()
 		onClose()
 	}, [onClose, topupMutation])
 
-	const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/account?topup=success` : ''
-	const cancelUrl = typeof window !== 'undefined' ? `${window.location.origin}/account` : ''
-
-	const handleStripe = useCallback(() => {
-		if (!isValidAmount) return
-		setStep('stripe')
-	}, [isValidAmount])
+	const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/account'
+	const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}${currentPath}?topup=success` : ''
+	const cancelUrl = typeof window !== 'undefined' ? `${window.location.origin}${currentPath}` : ''
 
 	const fetchClientSecret = useCallback(async (): Promise<string> => {
 		const result = await topupMutation.mutateAsync({
@@ -49,6 +45,11 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 		if (result.provider === 'stripe') return result.clientSecret
 		throw new Error('Unexpected response from topup endpoint')
 	}, [topupMutation, parsedAmount, redirectUrl, cancelUrl])
+
+	const handleStripe = useCallback(() => {
+		if (!isValidAmount) return
+		setStep('stripe')
+	}, [isValidAmount])
 
 	const handleLlamaPay = useCallback(async () => {
 		if (!isValidAmount) return
@@ -81,41 +82,40 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 	return (
 		<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 			<Ariakit.Dialog
-				className="dialog gap-0 border border-[#4a4a50]/10 bg-[#131415] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[520px]"
+				backdrop={<div className="bg-black/80" />}
+				className="dialog max-h-[90vh] min-h-0 gap-0 overflow-y-auto rounded-2xl border-0 p-0 md:max-w-[420px]"
 				portal
 				unmountOnHide
 			>
-				<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white">
-					<Icon name="x" className="h-6 w-6" />
-				</Ariakit.DialogDismiss>
-
 				{step === 'stripe' ? (
 					<>
-						<div className="border-b border-[#39393E] p-5 sm:p-6">
-							<div className="flex items-center gap-3">
-								<button
-									onClick={() => {
-										setStep('select')
-										topupMutation.reset()
-									}}
-									className="rounded-lg p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E]/40 hover:text-white"
-								>
-									<Icon name="arrow-left" height={18} width={18} />
-								</button>
-								<div>
-									<h2 className="text-lg font-bold text-white sm:text-xl">Complete Payment</h2>
-									<p className="text-xs text-[#b4b7bc] sm:text-sm">
-										Top up{' '}
-										<span className="font-jetbrains font-semibold text-[#5C5CF9]">${parsedAmount.toFixed(2)}</span> to
-										your External Data Balance
-									</p>
-								</div>
+						{/* Stripe step header */}
+						<div className="flex items-center gap-3 border-b border-(--sub-border-slate-100) px-5 py-4">
+							<button
+								onClick={() => {
+									setStep('select')
+									topupMutation.reset()
+								}}
+								className="rounded-full p-1 text-(--sub-ink-primary) transition-colors"
+							>
+								<Icon name="arrow-left" height={18} width={18} />
+							</button>
+							<div className="flex-1">
+								<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary)">Complete Payment</h3>
+								<p className="text-xs text-(--sub-text-muted)">
+									Top up <span className="font-semibold text-(--sub-brand-primary)">${parsedAmount.toFixed(2)}</span> to
+									your External Data Balance
+								</p>
 							</div>
+							<Ariakit.DialogDismiss className="rounded-full p-1 text-(--sub-ink-primary) transition-colors">
+								<Icon name="x" height={24} width={24} />
+							</Ariakit.DialogDismiss>
 						</div>
+
 						{errorMessage ? (
-							<div className="border-b border-[#39393E] bg-red-500/10 p-4">
-								<div className="flex items-center gap-2 text-red-400">
-									<Icon name="alert-triangle" height={18} width={18} />
+							<div className="border-b border-(--sub-border-slate-100) bg-(--sub-orange-400)/10 p-4">
+								<div className="flex items-center gap-2 text-(--error)">
+									<Icon name="alert-warning" height={18} width={18} className="shrink-0" />
 									<p className="text-sm">{errorMessage}</p>
 								</div>
 							</div>
@@ -126,30 +126,31 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 								</EmbeddedCheckoutProvider>
 							</div>
 						) : (
-							<div className="py-12 text-center text-[#b4b7bc]">
+							<div className="py-12 text-center text-(--sub-text-muted)">
 								<p>Stripe is not configured.</p>
 								<p className="mt-1 text-sm">Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your environment.</p>
 							</div>
 						)}
 					</>
 				) : (
-					<div className="p-5 sm:p-6">
+					<div className="flex flex-col gap-5 px-5 py-6">
 						{/* Header */}
-						<div className="mb-6 flex items-center gap-3">
-							<div className="rounded-lg bg-[#5C5CF9]/10 p-2.5 text-[#5C5CF9]">
-								<Icon name="package" height={22} width={22} />
-							</div>
-							<div>
-								<h2 className="text-lg font-bold text-white sm:text-xl">Top Up External Data Balance</h2>
-								<p className="text-xs text-[#b4b7bc] sm:text-sm">Add credits for LlamaAI to access premium data</p>
-							</div>
+						<div className="flex items-center justify-between">
+							<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary) dark:text-white">
+								Top Up Balance
+							</h3>
+							<Ariakit.DialogDismiss className="rounded-full p-1 text-(--sub-ink-primary) transition-colors dark:text-white">
+								<Icon name="x" height={24} width={24} />
+							</Ariakit.DialogDismiss>
 						</div>
 
+						<p className="text-xs leading-4 text-(--sub-text-muted)">Add credits for LlamaAI to access premium data</p>
+
 						{/* Amount input */}
-						<div className="mb-4">
-							<label className="mb-2 block text-sm font-medium text-[#b4b7bc]">Amount (USD)</label>
+						<div className="flex flex-col gap-2">
+							<label className="text-sm text-(--sub-ink-primary) dark:text-white">Amount (USD)</label>
 							<div className="relative">
-								<span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 font-jetbrains text-xl text-[#8a8c90]">
+								<span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-(--sub-text-muted)">
 									$
 								</span>
 								<input
@@ -158,27 +159,27 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 									value={amount}
 									onChange={(e) => handleAmountInput(e.target.value)}
 									placeholder="0.00"
-									className="w-full rounded-lg border border-[#39393E] bg-[#1a1b1f] py-3.5 pr-4 pl-10 font-jetbrains text-xl text-white transition-colors outline-none placeholder:text-[#39393E] focus:border-[#5C5CF9]"
 									autoFocus
+									className="h-10 w-full rounded-lg border border-(--sub-border-muted) bg-(--sub-surface-panel) pr-3 pl-7 text-sm text-(--sub-ink-primary) outline-none focus:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:bg-(--sub-ink-primary) dark:text-white dark:focus:border-(--sub-brand-primary)"
 								/>
 							</div>
-							{amount && !isValidAmount ? (
-								<p className="mt-2 text-xs text-red-400">
+							{amount && !isValidAmount && (
+								<p className="text-xs text-(--error)">
 									Enter an amount between ${TOPUP_CONFIG.minAmount} and ${TOPUP_CONFIG.maxAmount}
 								</p>
-							) : null}
+							)}
 						</div>
 
 						{/* Quick select */}
-						<div className="mb-6 flex gap-2">
+						<div className="flex gap-2">
 							{TOPUP_CONFIG.quickAmounts.map((qa) => (
 								<button
 									key={qa}
 									onClick={() => setAmount(String(qa))}
-									className={`flex-1 rounded-lg border px-3 py-2 font-jetbrains text-sm font-medium transition-all ${
+									className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
 										amount === String(qa)
-											? 'border-[#5C5CF9] bg-[#5C5CF9] text-white shadow-lg shadow-[#5C5CF9]/20'
-											: 'border-[#39393E] bg-[#1a1b1f] text-[#8a8c90] hover:border-[#5C5CF9]/50 hover:text-white'
+											? 'border-(--sub-brand-primary) bg-(--sub-brand-primary) text-white'
+											: 'border-(--sub-border-muted) text-(--sub-ink-primary) hover:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:text-white dark:hover:border-(--sub-brand-primary)'
 									}`}
 								>
 									${qa}
@@ -187,50 +188,40 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 						</div>
 
 						{/* Payment methods */}
-						<div className="mb-2">
-							<label className="mb-3 block text-sm font-medium text-[#b4b7bc]">Payment Method</label>
+						<div className="flex flex-col gap-3">
+							<label className="text-sm text-(--sub-ink-primary) dark:text-white">Payment Method</label>
 							<div className="grid grid-cols-2 gap-3">
 								<button
 									onClick={handleStripe}
 									disabled={!isValidAmount || topupMutation.isPending}
-									className="group flex flex-col items-center gap-3 rounded-xl border border-[#39393E] bg-linear-to-b from-[#1a1b1f] to-[#161719] p-5 transition-all hover:border-[#5C5CF9]/60 hover:shadow-lg hover:shadow-[#5C5CF9]/10 disabled:cursor-not-allowed disabled:opacity-40"
+									className="flex flex-col items-center gap-2 rounded-xl border border-(--sub-border-muted) p-4 transition-colors hover:border-(--sub-brand-primary) disabled:opacity-40 dark:border-(--sub-border-strong) dark:hover:border-(--sub-brand-primary)"
 								>
-									<div className="rounded-lg bg-[#5C5CF9]/10 p-2.5 text-[#5C5CF9] transition-colors group-hover:bg-[#5C5CF9]/20">
-										<Icon name="credit-card" height={22} width={22} />
-									</div>
-									<div className="text-center">
-										<span className="block text-sm font-medium text-white">Pay with Card</span>
-									</div>
+									<Icon name="credit-card" height={22} width={22} className="text-(--sub-brand-primary)" />
+									<span className="text-sm font-medium text-(--sub-ink-primary) dark:text-white">Pay with Card</span>
 								</button>
 								<button
-									onClick={() => {
-										void handleLlamaPay()
-									}}
+									onClick={() => void handleLlamaPay()}
 									disabled={!isValidAmount || topupMutation.isPending || isRedirecting}
-									className="group flex flex-col items-center gap-3 rounded-xl border border-[#39393E] bg-linear-to-b from-[#1a1b1f] to-[#161719] p-5 transition-all hover:border-[#5C5CF9]/60 hover:shadow-lg hover:shadow-[#5C5CF9]/10 disabled:cursor-not-allowed disabled:opacity-40"
+									className="flex flex-col items-center gap-2 rounded-xl border border-(--sub-border-muted) p-4 transition-colors hover:border-(--sub-brand-primary) disabled:opacity-40 dark:border-(--sub-border-strong) dark:hover:border-(--sub-brand-primary)"
 								>
-									<div className="rounded-lg bg-[#5C5CF9]/10 p-2.5 text-[#5C5CF9] transition-colors group-hover:bg-[#5C5CF9]/20">
-										{isRedirecting ? (
-											<span className="block h-[22px] w-[22px] animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]" />
-										) : (
-											<Icon name="wallet" height={22} width={22} />
-										)}
-									</div>
-									<div className="text-center">
-										<span className="block text-sm font-medium text-white">
-											{isRedirecting ? 'Redirecting...' : 'Pay with Crypto'}
-										</span>
-									</div>
+									{isRedirecting ? (
+										<span className="block h-[22px] w-[22px] animate-spin rounded-full border-2 border-(--sub-brand-primary)/30 border-t-(--sub-brand-primary)" />
+									) : (
+										<Icon name="wallet" height={22} width={22} className="text-(--sub-brand-primary)" />
+									)}
+									<span className="text-sm font-medium text-(--sub-ink-primary) dark:text-white">
+										{isRedirecting ? 'Redirecting...' : 'Pay with Crypto'}
+									</span>
 								</button>
 							</div>
 						</div>
 
-						{errorMessage ? (
-							<div className="mt-4 flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-red-400">
-								<Icon name="alert-triangle" height={16} width={16} />
+						{errorMessage && (
+							<div className="flex items-center gap-2 rounded-lg bg-(--sub-orange-400)/10 p-3 text-(--error)">
+								<Icon name="alert-warning" height={16} width={16} className="shrink-0" />
 								<p className="text-sm">{errorMessage}</p>
 							</div>
-						) : null}
+						)}
 					</div>
 				)}
 			</Ariakit.Dialog>

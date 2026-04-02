@@ -201,8 +201,20 @@ export function subscribeToPinnedMetrics(callback: () => void) {
 
 const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
 
+const getResolvedTheme = (): 'dark' | 'light' => {
+	const themeCookie = getThemeCookie()
+	if (themeCookie) return themeCookie
+
+	if (typeof document !== 'undefined') {
+		if (document.documentElement.classList.contains('light')) return 'light'
+		if (document.documentElement.classList.contains('dark')) return 'dark'
+	}
+
+	return 'dark'
+}
+
 const toggleDarkMode = () => {
-	const isDarkMode = getThemeCookie() === 'dark'
+	const isDarkMode = getResolvedTheme() === 'dark'
 	setThemeCookie(!isDarkMode)
 	notifyKeyChange(THEME_SYNC_KEY)
 }
@@ -210,7 +222,7 @@ const toggleDarkMode = () => {
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
 		subscribeToTheme,
-		() => getThemeCookie() ?? 'dark',
+		() => getResolvedTheme(),
 		() => 'dark'
 	)
 

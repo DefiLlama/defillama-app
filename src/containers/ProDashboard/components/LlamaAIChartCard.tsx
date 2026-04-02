@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import type { LlamaAIChartConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 

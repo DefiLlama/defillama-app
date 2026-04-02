@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import type { AlertIntent } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (

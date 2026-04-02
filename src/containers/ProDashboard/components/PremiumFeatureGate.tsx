@@ -1,8 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { DashboardPaywallModal, type PaywallReason } from './DashboardPaywallModal'
 
 interface PremiumFeatureGateProps {

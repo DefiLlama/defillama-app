@@ -12,7 +12,7 @@ import {
 	useRef
 } from 'react'
 import toast from 'react-hot-toast'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import pb from '~/utils/pocketbase'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions, useFreeTierStatus } from './hooks'
@@ -205,7 +205,10 @@ interface ProDashboardEditorActionsContextType {
 			| 'bridge-aggregators'
 			| 'trending-contracts'
 			| 'chains'
-			| 'fees',
+			| 'fees'
+			| 'rwa'
+			| 'rwa-chains'
+			| 'rwa-selected-chain',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean,

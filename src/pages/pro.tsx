@@ -14,8 +14,8 @@ import {
 	useProDashboardDashboard,
 	useProDashboardUI
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import Layout from '~/layout'
 const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({

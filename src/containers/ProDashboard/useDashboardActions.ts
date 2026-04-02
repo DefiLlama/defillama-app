@@ -292,7 +292,10 @@ export function useDashboardActions(
 				| 'bridge-aggregators'
 				| 'trending-contracts'
 				| 'chains'
-				| 'fees',
+				| 'fees'
+				| 'rwa'
+				| 'rwa-chains'
+				| 'rwa-selected-chain',
 			datasetChain?: string,
 			tokenSymbol?: string | string[],
 			includeCex?: boolean,

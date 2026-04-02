@@ -101,6 +101,7 @@ export interface ITreemapChartProps {
 	height?: string
 	onReady?: (instance: echarts.ECharts | null) => void
 	valueLabel?: string
+	valueSymbol?: string
 }
 
 export type MultiSeriesChart2Dataset = {

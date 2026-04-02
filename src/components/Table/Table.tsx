@@ -403,7 +403,7 @@ export function VirtualTable<T extends RowData>({
 			{...props}
 			ref={tableContainerRef}
 			id="table-wrapper"
-			className="relative isolate thin-scrollbar w-full overflow-auto rounded-md bg-(--cards-bg)"
+			className="relative isolate thin-scrollbar w-full overflow-auto overscroll-x-contain rounded-md bg-(--cards-bg)"
 			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
 		>
 			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>

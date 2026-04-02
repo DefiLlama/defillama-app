@@ -1,13 +1,14 @@
 import * as Ariakit from '@ariakit/react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { PaymentButton } from '~/containers/Subscription/Crypto'
+import { MONTHLY_PRICING_CARDS } from '~/containers/Subscription/data'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import type { FeatureItem } from '~/containers/Subscription/types'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { QuestionHelper } from '../QuestionHelper'
@@ -15,6 +16,8 @@ import { QuestionHelper } from '../QuestionHelper'
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
 )
+
+const PRO_CARD = MONTHLY_PRICING_CARDS.find((c) => c.key === 'pro')!
 
 interface SubscribeProCardProps {
 	context?: 'modal' | 'page' | 'account'
@@ -27,106 +30,62 @@ interface SubscribeProCardProps {
 	isTrialAvailable?: boolean
 }
 
-function SubscribeProCardContent({
-	billingInterval = 'month',
-	isTrialAvailable = false,
-	isAuthenticated = false,
-	isTrialActive = false
-}: {
-	billingInterval?: 'year' | 'month'
-	isTrialAvailable?: boolean
-	isAuthenticated?: boolean
-	isTrialActive?: boolean
-}) {
-	const monthlyPrice = 49
-	const yearlyPrice = monthlyPrice * 10
-	const displayPrice = billingInterval === 'year' ? yearlyPrice : monthlyPrice
-	const displayPeriod = billingInterval === 'year' ? '/year' : '/month'
-
-	const showTrialAvailable = !isAuthenticated || isTrialAvailable || isTrialActive
+function ModalFeatureBullet({ item }: { item: FeatureItem }) {
+	const highlightPrefix = item.highlightText ? item.label.split(':')[0] : null
+	const highlightSuffix = item.highlightText ? item.label.slice((highlightPrefix?.length ?? 0) + 1).trim() : null
 
 	return (
+		<li className="flex items-start gap-2">
+			<span className="shrink-0">
+				{item.availability === 'check' ? (
+					<Icon name="check" height={20} width={20} className="text-[#4b86db]" />
+				) : (
+					<Icon name="minus" height={20} width={20} className="text-[#5f6369]" />
+				)}
+			</span>
+			{item.highlightText ? (
+				<span className="bg-linear-to-r from-[#4b86db] to-[#a5c3ed] bg-clip-text text-sm leading-5 text-transparent">
+					<span className="underline">{highlightPrefix}</span>
+					{highlightSuffix ? `: ${highlightSuffix}` : ''}
+				</span>
+			) : (
+				<span className={`text-sm leading-5 ${item.availability === 'check' ? 'text-[#f6f7f9]' : 'text-[#71757c]'}`}>
+					{item.label}
+				</span>
+			)}
+		</li>
+	)
+}
+
+function SubscribeProCardContent() {
+	return (
 		<>
-			<h2 className="relative z-10 text-center text-[2rem] font-extrabold whitespace-nowrap text-[#5C5CF9]">Pro</h2>
-			<div className="relative z-10 mt-1 flex flex-col items-center justify-center">
-				<div
-					className={`relative flex items-center ${showTrialAvailable ? 'after:absolute after:top-1/2 after:right-0 after:left-0 after:h-[1.5px] after:bg-[#8a8c90]' : ''}`}
-				>
-					<span className="bg-linear-to-r from-[#5C5CF9] to-[#7B7BFF] bg-clip-text text-center text-2xl font-medium text-transparent">
-						{displayPrice} USD
+			<h2 className="text-lg font-semibold text-white">{PRO_CARD.title}</h2>
+			<div className="mt-1 flex flex-col">
+				<div className="flex items-end gap-0.5">
+					<span className="bg-linear-to-r from-[#4b86db] to-[#a5c3ed] bg-clip-text text-[32px] leading-[42px] font-semibold text-transparent">
+						{PRO_CARD.priceMain}
 					</span>
-					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
+					<span className="text-base text-[#c6c6c6]">{PRO_CARD.priceUnit}</span>
 				</div>
-				{showTrialAvailable ? (
-					<div className="flex items-center">
-						<span className="text-sm font-bold">Free 7-day trial available</span>
-					</div>
-				) : null}
-				{billingInterval === 'year' ? (
-					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
-				) : null}
+				{PRO_CARD.priceSecondary ? <p className="text-base text-[#878787]">{PRO_CARD.priceSecondary}</p> : null}
 			</div>
-			{billingInterval === 'month' ? (
-				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
-			) : null}
-			<div className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
-				<h3 className="font-semibold">Access to:</h3>
-				<ul className="flex flex-col gap-3">
-					<li className="group flex items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span className="font-bold">
-							NEW:{' '}
-							<Link href="/ai" className="llamaai-glow-text">
-								LlamaAI
-							</Link>{' '}
-							<svg className="relative mx-1 inline-block h-4 w-4">
-								<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
-							</svg>{' '}
-							- Generate charts, reports, and analysis on 7,000+ protocols, TradFi markets, and onchain data.
-						</span>
-					</li>
-					<li className="group ml-6 flex items-center gap-2.5">
-						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
-						<span>Deep research: 5/day</span>
-						{showTrialAvailable ? (
-							<QuestionHelper text="During trial, deep research is limited to 3 questions. Full subscription includes 5/day." />
-						) : null}
-					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>DefiLlama Pro Dashboards - build custom dashboards</span>
-					</li>
-					<li className="flex flex-nowrap items-center gap-2.5">
-						<Icon name="check" height={16} width={16} className="shrink-0 text-green-400" />
-						<span>CSV Downloads - export any dataset</span>
-						{showTrialAvailable ? <QuestionHelper text="Trial accounts include 1 CSV download." /> : null}
-					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>Custom Columns - personalized analysis</span>
-					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>LlamaFeed - real-time premium insights</span>
-					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>
-							<Link href="/sheets" className="underline">
-								DefilLama Sheets
-							</Link>{' '}
-							– access blockchain data in your spreadsheets
-						</span>
-					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
-						<span>Upcoming DefiLlama Products</span>
-					</li>
-					<li className="flex flex-nowrap items-start gap-2.5">
-						<Icon name="x" height={16} width={16} className="relative top-0.5 shrink-0 text-red-400" />
-						<span>API access not included</span>
-					</li>
-				</ul>
+			<div className="mt-5 flex flex-col gap-4">
+				{PRO_CARD.includedTierText ? (
+					<ul className="flex flex-col gap-2">
+						<ModalFeatureBullet item={{ label: PRO_CARD.includedTierText, availability: 'check' }} />
+					</ul>
+				) : null}
+				{PRO_CARD.sections.map((section) => (
+					<div key={section.title} className="flex flex-col gap-2.5">
+						<h3 className="text-base font-medium text-white">{section.title}</h3>
+						<ul className="flex flex-col gap-2">
+							{section.items.map((item) => (
+								<ModalFeatureBullet key={item.label} item={item} />
+							))}
+						</ul>
+					</div>
+				))}
 			</div>
 		</>
 	)
@@ -238,12 +197,7 @@ export function SubscribeProCard({
 
 	return (
 		<>
-			<SubscribeProCardContent
-				billingInterval={billingInterval}
-				isTrialAvailable={isTrialAvailable}
-				isTrialActive={isTrial}
-				isAuthenticated={isAuthenticated}
-			/>
+			<SubscribeProCardContent />
 			<div className="relative z-10 mx-auto flex w-full max-w-[408px] flex-col gap-3">
 				{active ? (
 					<div className="flex flex-col gap-2">
@@ -349,11 +303,10 @@ interface SubscribeProModalProps extends SubscribeProCardProps {
 	dialogStore: Ariakit.DialogStore
 }
 
-export function SubscribeProModal({ dialogStore, returnUrl, ...props }: SubscribeProModalProps) {
+export function SubscribeProModal({ dialogStore, returnUrl: _returnUrl }: SubscribeProModalProps) {
 	const router = useRouter()
-	const { isAuthenticated, isTrial } = useAuthContext()
-
-	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
+	const { isAuthenticated } = useAuthContext()
+	const signInDialogStore = Ariakit.useDialogStore()
 
 	useEffect(() => {
 		if (dialogStore?.getState()?.open) {
@@ -363,8 +316,6 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore, router?.asPath])
 
-	const finalReturnUrl = returnUrl ?? router.asPath
-
 	return (
 		<WalletProvider>
 			<Ariakit.DialogProvider store={dialogStore}>
@@ -372,52 +323,41 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 					className="dialog flex max-h-[85dvh] max-w-md flex-col overflow-hidden rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
-					onClose={() => setIsSignInModalOpen(false)}
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden">
-						{isSignInModalOpen ? (
-							<div className="min-h-0 flex-1 overflow-y-auto">
-								<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
-							</div>
-						) : (
-							<>
-								<Ariakit.DialogDismiss className="ml-auto shrink-0 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
-									<Icon name="x" height={18} width={18} />
-									<span className="sr-only">Close</span>
-								</Ariakit.DialogDismiss>
-								<div className="min-h-0 flex-1 overflow-y-auto">
-									<SubscribeProCardContent
-										isAuthenticated={isAuthenticated}
-										isTrialActive={isTrial}
-										billingInterval={props.billingInterval}
-										// Intentionally force the promotional trial copy in the modal; the main
-										// SubscribeProCard path uses useSubscribe() to determine actual eligibility.
-										isTrialAvailable={true}
-									/>
-								</div>
-								<div className="flex shrink-0 flex-col gap-3 pt-3">
-									<BasicLink
-										href="/subscription"
-										data-umami-event="subscribe-modal-goto-page"
-										className="block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-									>
-										Unlock Pro Features
-									</BasicLink>
+						<Ariakit.DialogDismiss className="ml-auto shrink-0 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
+							<Icon name="x" height={18} width={18} />
+							<span className="sr-only">Close</span>
+						</Ariakit.DialogDismiss>
+						<div className="min-h-0 flex-1 overflow-y-auto">
+							<SubscribeProCardContent />
+						</div>
+						<div className="flex shrink-0 flex-col gap-3 pt-3">
+							<BasicLink
+								href="/subscription"
+								data-umami-event="subscribe-modal-goto-page"
+								className="block w-full rounded-lg bg-[#1f67d2] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#1a58b5]"
+							>
+								Unlock Pro Features
+							</BasicLink>
 
-									{!isAuthenticated ? (
-										<button
-											className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
-											onClick={() => setIsSignInModalOpen(true)}
-										>
-											Already a subscriber? Sign In
-										</button>
-									) : null}
-								</div>
-							</>
-						)}
+							{!isAuthenticated ? (
+								<button
+									type="button"
+									className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
+									onClick={() => {
+										dialogStore.hide()
+										signInDialogStore.show()
+									}}
+								>
+									Already a subscriber? Sign In
+								</button>
+							) : null}
+						</div>
 					</span>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
+			<SignInModal store={signInDialogStore} />
 		</WalletProvider>
 	)
 }

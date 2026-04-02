@@ -386,7 +386,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		dataset,
 		exportButtons,
 		title,
-		headingAs
+		headingAs,
+		containerClassName
 	} = props
 
 	const id = useId()
@@ -836,8 +837,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	return (
 		<ChartContainer
 			id={id}
-			chartClassName="h-[360px]"
-			chartStyle={height ? { height } : undefined}
+			className={containerClassName ? 'flex flex-1 flex-col' : undefined}
+			chartClassName={containerClassName ?? 'h-[360px]'}
+			chartStyle={!containerClassName && height ? { height } : undefined}
 			header={
 				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 					<ChartHeader

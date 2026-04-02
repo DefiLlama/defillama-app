@@ -127,6 +127,7 @@ export function SubmitButton({
 		(selectedMainTab === 'charts' && chartMode === 'builder' && !chartBuilder?.metric) ||
 		(selectedMainTab === 'table' && selectedTableType === 'stablecoins' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' && selectedTableType === 'trending-contracts' && !selectedDatasetChain) ||
+		(selectedMainTab === 'table' && selectedTableType === 'rwa-selected-chain' && !selectedDatasetChain) ||
 		(selectedMainTab === 'table' &&
 			selectedTableType === 'token-usage' &&
 			(!selectedTokens || selectedTokens.length === 0)) ||

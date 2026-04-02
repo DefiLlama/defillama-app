@@ -37,6 +37,7 @@ async function pullData() {
 				categoriesAndTags,
 				cexs,
 				rwaList,
+				rwaPerpsList,
 				tokenlist,
 				cgExchangeIdentifiers,
 				bridgeProtocolSlugs,
@@ -82,6 +83,7 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+		fs.writeFileSync(path.join(CACHE_DIR, 'rwaPerps.json'), JSON.stringify(rwaPerpsList))
 
 		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
@@ -205,6 +207,7 @@ async function pullData() {
 				'categoriesAndTags.json': { categories: [], tags: [], tagCategoryMap: {} },
 				'cexs.json': [],
 				'rwa.json': { tickers: [], platforms: [], chains: [], assetGroups: [], categories: [], idMap: {} },
+				'rwaPerps.json': { coins: [], venues: [], categories: [], total: 0 },
 				'tokenlist.json': {},
 				'cgExchangeIdentifiers.json': [],
 				'bridgeProtocolSlugs.json': [],

@@ -548,6 +548,27 @@
       "tab": "Protocols"
     },
     {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "Equities, ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "Equities, ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
+      "name": "Equities",
+      "route": "/equities",
+      "category": "Equities, ETFs & DATs",
+      "description": "Live company rankings by market cap, price, volume, and price change",
+      "oldName": "Equities"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -583,27 +604,6 @@
       "oldName": "Volume (Chains)"
     },
     {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "Equities, ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
-    },
-    {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "Equities, ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
-    },
-    {
-      "name": "Equities",
-      "route": "/equities",
-      "category": "Equities, ETFs & DATs",
-      "description": "Live company rankings by market cap, price, volume, and price change",
-      "oldName": "Equities"
-    },
-    {
       "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
@@ -629,6 +629,24 @@
       "oldName": "Calendar"
     },
     {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
+    },
+    {
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
@@ -651,24 +669,6 @@
       "category": "Treasury",
       "description": "Treasury by entity",
       "totalTrackedKey": "treasury.entities"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
     },
     {
       "name": "CEXs",

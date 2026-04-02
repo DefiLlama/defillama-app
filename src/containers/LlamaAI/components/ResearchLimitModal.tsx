@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 
 interface ResearchLimitModalProps {
 	dialogStore: Ariakit.DialogStore

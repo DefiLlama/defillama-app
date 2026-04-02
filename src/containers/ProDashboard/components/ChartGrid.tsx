@@ -28,7 +28,10 @@ import {
 	StablecoinsDataset,
 	TokenUsageDataset,
 	TrendingContractsDataset,
-	YieldsDataset
+	YieldsDataset,
+	RWAAssetsDataset,
+	RWAChainsDataset,
+	RWAChainAssetsDataset
 } from './datasets'
 import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
@@ -328,6 +331,10 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 						columnVisibility={item.columnVisibility}
 					/>
 				)
+			if (item.datasetType === 'rwa') return <RWAAssetsDataset />
+			if (item.datasetType === 'rwa-chains') return <RWAChainsDataset />
+			if (item.datasetType === 'rwa-selected-chain')
+				return <RWAChainAssetsDataset chain={item.datasetChain || 'Ethereum'} />
 			return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 		}
 

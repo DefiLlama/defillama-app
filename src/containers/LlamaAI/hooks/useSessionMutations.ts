@@ -4,7 +4,7 @@ import { MCP_SERVER } from '~/constants'
 import { SESSIONS_QUERY_KEY, type SessionListData } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 

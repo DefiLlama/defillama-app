@@ -7,6 +7,7 @@ import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json
 import chainMetadata from '../../../.cache/chains.json'
 import protocolMetadata from '../../../.cache/protocols.json'
 import rwaList from '../../../.cache/rwa.json'
+import rwaPerpsList from '../../../.cache/rwaPerps.json'
 import tokenlistRaw from '../../../.cache/tokenlist.json'
 import { fetchCoreMetadata } from './fetch'
 import type {
@@ -15,6 +16,7 @@ import type {
 	IChainMetadata,
 	IProtocolMetadata,
 	IRWAList,
+	IRWAPerpsList,
 	ITokenListEntry
 } from './types'
 
@@ -24,6 +26,7 @@ const metadataCache: {
 	categoriesAndTags: ICategoriesAndTags
 	cexs: Array<ICexItem>
 	rwaList: IRWAList
+	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -35,6 +38,7 @@ const metadataCache: {
 	categoriesAndTags,
 	cexs,
 	rwaList,
+	rwaPerpsList,
 	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
@@ -55,6 +59,7 @@ async function doRefresh(): Promise<void> {
 			categoriesAndTags: catAndTags,
 			cexs: cexData,
 			rwaList: rwaListData,
+			rwaPerpsList: rwaPerpsListData,
 			tokenlist,
 			cgExchangeIdentifiers: cgExIds,
 			bridgeProtocolSlugs,
@@ -67,6 +72,7 @@ async function doRefresh(): Promise<void> {
 		metadataCache.categoriesAndTags = catAndTags
 		metadataCache.cexs = cexData
 		metadataCache.rwaList = rwaListData
+		metadataCache.rwaPerpsList = rwaPerpsListData
 		metadataCache.cgExchangeIdentifiers = cgExIds
 		metadataCache.tokenlist = tokenlist
 		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs

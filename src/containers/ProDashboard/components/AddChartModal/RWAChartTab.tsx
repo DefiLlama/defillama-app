@@ -15,7 +15,7 @@ import {
 } from '~/containers/ProDashboard/components/datasets/RWADataset/useRWAChartData'
 import { getChartMetricOptions, getChartViewOptions, getChartMetricLabel } from '~/containers/RWA/chartState'
 import { buildRwaTreemapTreeData } from '~/containers/RWA/treemap'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { formattedNum } from '~/utils'
 import type { RWAOverviewChartBreakdown, RWAOverviewChartMetric, RWAOverviewChartView } from '../../types'
 import { AriakitSelect } from '../AriakitSelect'

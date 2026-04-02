@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 export function useDashboardEngagement(dashboardId: string | null) {

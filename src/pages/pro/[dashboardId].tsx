@@ -9,7 +9,7 @@ import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashb
 import { ProDashboardAPIProvider, useProDashboardDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { fetchDashboardConfig } from '~/containers/ProDashboard/queries.server'
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))

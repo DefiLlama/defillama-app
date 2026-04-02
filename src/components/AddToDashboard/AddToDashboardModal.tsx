@@ -9,7 +9,7 @@ import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboa
 import { type Dashboard, dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'

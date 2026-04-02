@@ -8,11 +8,17 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import type { ITreemapChartProps } from '../types'
+import {
+	formatRwaTreemapBoxLabel,
+	formatRwaTreemapTooltip,
+	formatRwaUpperLabel,
+	normalizeTreemapValue
+} from './rwaFormatting'
 
 echarts.use([
 	TitleComponent,
@@ -28,38 +34,6 @@ const visualMin = -100
 const visualMax = 100
 const visualMinBound = -40
 const visualMaxBound = 40
-
-function normalizeTreemapValue(rawValue: unknown): Array<number | null> {
-	if (Array.isArray(rawValue)) {
-		const value: Array<number | null> = rawValue.map((item) => {
-			if (item == null) return null
-			const parsed = typeof item === 'number' ? item : Number(item)
-			return Number.isFinite(parsed) ? parsed : null
-		})
-		while (value.length < 3) value.push(null)
-
-		const n0 = typeof value[0] === 'number' ? value[0] : Number(value[0] ?? 0)
-		value[0] = Number.isFinite(n0) ? n0 : 0
-
-		for (let idx = 1; idx <= 2; idx++) {
-			const current = value[idx]
-			if (current == null) {
-				value[idx] = null
-				continue
-			}
-			const n = typeof current === 'number' ? current : Number(current)
-			value[idx] = Number.isFinite(n) ? n : null
-		}
-
-		return value
-	}
-
-	if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
-		return [rawValue, null, null]
-	}
-
-	return [0, null, null]
-}
 
 function normalizeTreemapNodes(nodes: any[]): any[] {
 	return (nodes ?? []).map((node) => ({
@@ -107,24 +81,13 @@ function addColorGradientField(chartDataTree) {
 	}
 }
 
-function formatRwaUpperLabel(params: { name?: unknown; value?: unknown }) {
-	const name =
-		typeof params?.name === 'string' ? params.name : typeof params?.name === 'number' ? String(params.name) : ''
-	const normalizedValue = normalizeTreemapValue(params?.value)
-	const shareRaw = normalizedValue[1]
-	const share = typeof shareRaw === 'number' && Number.isFinite(shareRaw) ? Number(shareRaw.toFixed(2)) : null
-
-	if (share == null) return name
-	if (!name) return `(${share}%)`
-	return `${name} - (${share}%)`
-}
-
 export default function TreemapChart({
 	treeData,
 	variant = 'yields',
 	height,
 	onReady,
-	valueLabel = 'Market Cap'
+	valueLabel = 'Market Cap',
+	valueSymbol = '$'
 }: ITreemapChartProps) {
 	const id = useId()
 	const isNarrativeVariant = variant === 'narrative'
@@ -147,6 +110,10 @@ export default function TreemapChart({
 		if (!isRwaVariant) addColorGradientField(cloned)
 		return cloned
 	}, [isRwaVariant, treeData])
+	const formatTreemapMetricValue = useCallback(
+		(value: number) => formattedNum(value, valueSymbol && valueSymbol.length > 0 ? valueSymbol : false),
+		[valueSymbol]
+	)
 
 	const rwaRootLabel = useMemo(() => {
 		if (!isRwaVariant) return 'All'
@@ -217,36 +184,11 @@ export default function TreemapChart({
 					}
 
 					if (isRwaVariant) {
-						const formatPct = (value: unknown): number => {
-							const n = typeof value === 'number' ? value : Number(value)
-							return Number.isFinite(n) ? Number(n.toFixed(2)) : 0
-						}
-						const normalizedValue = normalizeTreemapValue(info.value)
-						const metricValue = formattedNum(normalizedValue[0], true)
-						const share = formatPct(normalizedValue[1])
-						const shareOfTotal = formatPct(normalizedValue[2])
-
-						// Nested RWA treemap shape can be:
-						// [Parent, Child] (e.g. Category -> Asset Class) or [Leaf].
-						if (treePath.length >= 2) {
-							const parent = treePath[treePath.length - 2]
-							const child = treePath[treePath.length - 1]
-							return [
-								`Parent: ${parent}<br>`,
-								`Child: ${child}<br>`,
-								`${valueLabel}: ${metricValue}<br>`,
-								`Share of Parent: ${share}%<br>`,
-								`Share of Total: ${shareOfTotal}%<br>`
-							].join('')
-						}
-
-						if (treePath.length === 1) {
-							const label = treePath[treePath.length - 1]
-							return [`${label}<br>`, `${valueLabel}: ${metricValue}<br>`, `Share: ${share}%<br>`].join('')
-						}
-
-						const rootLabel = treePath[0] || info.name || 'RWA'
-						return [`${rootLabel}<br>`, `${valueLabel}: ${metricValue}<br>`].join('')
+						return formatRwaTreemapTooltip({
+							info,
+							valueLabel,
+							formatMetricValue: formatTreemapMetricValue
+						})
 					}
 
 					if (treePath.length > 1) {
@@ -338,26 +280,26 @@ export default function TreemapChart({
 									// Parent nodes: show the group name directly for visibility.
 									return String(params.name ?? '')
 								}
-
 								const normalizedValue = normalizeTreemapValue(params?.value)
 
-								arr =
-									variant === 'narrative'
-										? [
-												`{name|${pathParts[pathParts.length - 1]}}`,
-												`Return: {apy| ${normalizedValue[1] ?? 0}%}`,
-												`Market Cap: {mcap| ${formattedNum(normalizedValue[0], true)}}`
-											]
-										: isRwaVariant
-											? [
-													`{rwaName|${pathParts[pathParts.length - 1]}}`,
-													`{rwaMetric|${valueLabel}: ${formattedNum(normalizedValue[0], true)}}`
-												]
-											: [
-													`{name|${pathParts[pathParts.length - 1]}}`,
-													`Spot: {apy| ${normalizedValue[1] ?? 0}%}`,
-													`Change {apy| ${normalizedValue[2] ?? 0}%}`
-												]
+								if (variant === 'narrative') {
+									arr = [
+										`{name|${pathParts[pathParts.length - 1]}}`,
+										`Return: {apy| ${normalizedValue[1] ?? 0}%}`,
+										`Market Cap: {mcap| ${formattedNum(normalizedValue[0], true)}}`
+									]
+								} else if (isRwaVariant) {
+									arr = [
+										`{rwaName|${formatRwaTreemapBoxLabel(params)}}`,
+										`{rwaMetric|${valueLabel}: ${formatTreemapMetricValue(normalizedValue[0] ?? 0)}}`
+									]
+								} else {
+									arr = [
+										`{name|${pathParts[pathParts.length - 1]}}`,
+										`Spot: {apy| ${normalizedValue[1] ?? 0}%}`,
+										`Change {apy| ${normalizedValue[2] ?? 0}%}`
+									]
+								}
 							} else {
 								arr = [String(params.name ?? '')]
 							}
@@ -382,16 +324,6 @@ export default function TreemapChart({
 							rwaMetric: {
 								fontSize: 12,
 								color: '#fff',
-								lineHeight: 18
-							},
-							shareParent: {
-								fontSize: 12,
-								color: 'rgba(255,255,255,0.7)',
-								lineHeight: 18
-							},
-							shareTotal: {
-								fontSize: 12,
-								color: 'rgba(255,255,255,0.7)',
 								lineHeight: 18
 							}
 						}
@@ -494,7 +426,19 @@ export default function TreemapChart({
 			onReadyRef.current?.(null)
 			instance.dispose()
 		}
-	}, [id, chartDataTree, isDark, isNarrativeLike, isNarrativeVariant, isRwaVariant, rwaRootLabel, variant, valueLabel])
+	}, [
+		chartDataTree,
+		formatTreemapMetricValue,
+		id,
+		isDark,
+		isNarrativeLike,
+		isNarrativeVariant,
+		isRwaVariant,
+		rwaRootLabel,
+		valueLabel,
+		valueSymbol,
+		variant
+	])
 
 	useEffect(() => {
 		const instance = chartRef.current

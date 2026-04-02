@@ -4,8 +4,8 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useDashboardCreation } from '~/containers/ProDashboard/hooks/useDashboardCreation'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 
 const SubscribeProModal = lazy(() =>

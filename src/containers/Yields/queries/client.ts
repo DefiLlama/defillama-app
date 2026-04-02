@@ -9,7 +9,7 @@ import {
 	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 

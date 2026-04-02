@@ -75,3 +75,7 @@ export async function fetchRWAAssetChartViaProxy(assetId: string, authToken: str
 export async function fetchRWAAssetsListViaProxy(authToken: string): Promise<any> {
 	return proxyFetch<any>('rwaAssetsList', {}, authToken)
 }
+
+export async function fetchRWAStatsViaProxy(authToken: string): Promise<any> {
+	return proxyFetch<any>('rwaStats', {}, authToken)
+}

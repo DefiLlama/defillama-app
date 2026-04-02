@@ -49,6 +49,9 @@ export type CombinedTableType =
 	| 'bridge-aggregators'
 	| 'trending-contracts'
 	| 'chains'
+	| 'rwa'
+	| 'rwa-chains'
+	| 'rwa-selected-chain'
 
 export interface ChartBuilderConfig {
 	metric:

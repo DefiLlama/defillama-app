@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useCallback } from 'react'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 

@@ -12,7 +12,7 @@ import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface AgenticSessionItemProps {

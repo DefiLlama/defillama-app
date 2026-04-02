@@ -1,4 +1,4 @@
-import type { Dispatch, RefObject, SetStateAction } from 'react'
+import { useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -64,12 +64,17 @@ interface ConversationViewProps {
 // submitted prompt slightly below the top edge on both mobile and desktop.
 const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
 
+function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, Message | null] {
+	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
+}
+
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
 	sessionId,
 	readOnly,
 	isLlama,
+	isLatestAssistant,
 	onActionClick,
 	onTableFullscreenOpen
 }: {
@@ -78,6 +83,7 @@ function ConversationMessageItem({
 	sessionId: string | null
 	readOnly: boolean
 	isLlama: boolean
+	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	onTableFullscreenOpen?: () => void
 }) {
@@ -87,6 +93,7 @@ function ConversationMessageItem({
 			sessionId={sessionId}
 			readOnly={readOnly}
 			isLlama={isLlama}
+			isLatestAssistant={isLatestAssistant}
 			onActionClick={onActionClick}
 			nextUserMessage={nextUserMessage}
 			onTableFullscreenOpen={onTableFullscreenOpen}
@@ -239,14 +246,38 @@ export function ConversationView({
 	onClearQuotedText,
 	onTableFullscreenOpen
 }: ConversationViewProps) {
-	// Keep the newest user prompt in the same block as the live response/status UI
-	// so the viewport-sized spacer applies to the whole active exchange.
-	const activeExchangeMessage =
-		messages[messages.length - 1]?.role === 'user' &&
-		(isStreaming || recovery.status === 'reconnecting' || Boolean(error))
-			? messages[messages.length - 1]
-			: null
-	const renderedMessages = activeExchangeMessage ? messages.slice(0, -1) : messages
+	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
+	const [initialTailSnapshot] = useState(() => getMessageTailSnapshot(messages))
+	const currentTailSnapshot = getMessageTailSnapshot(messages)
+	const hasTailChangedSinceMount =
+		currentTailSnapshot[0] !== initialTailSnapshot[0] || currentTailSnapshot[1] !== initialTailSnapshot[1]
+
+	// Find the last user message index for the exchange spacer
+	const lastUserIndex = (() => {
+		for (let i = messages.length - 1; i >= 0; i--) {
+			if (messages[i].role === 'user') return i
+		}
+		return -1
+	})()
+
+	// During streaming: the last message is the user prompt (response is a separate draft).
+	// After streaming: keep the last user→response pair wrapped in the viewport-sized
+	// spacer so the scroll position keeps the user message near the top of the viewport.
+	const shouldSpaceLastExchange =
+		!readOnly &&
+		lastUserIndex >= 0 &&
+		(isLiveExchange ? messages[messages.length - 1]?.role === 'user' : hasTailChangedSinceMount)
+
+	const lastExchangeMessages = shouldSpaceLastExchange ? messages.slice(lastUserIndex) : []
+	const renderedMessages = shouldSpaceLastExchange ? messages.slice(0, lastUserIndex) : messages
+
+	// Find the last assistant message to keep its controls always visible
+	const lastAssistantId = (() => {
+		for (let i = messages.length - 1; i >= 0; i--) {
+			if (messages[i].role === 'assistant' && messages[i].id) return messages[i].id
+		}
+		return null
+	})()
 
 	return (
 		<>
@@ -280,49 +311,56 @@ export function ConversationView({
 										sessionId={sessionId}
 										readOnly={readOnly}
 										isLlama={isLlama}
+										isLatestAssistant={message.id === lastAssistantId}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 										onTableFullscreenOpen={onTableFullscreenOpen}
 									/>
 								)
 							})}
 
-							{activeExchangeMessage ? (
+							{shouldSpaceLastExchange ? (
 								<div
 									className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
-										animateActiveExchange
+										animateActiveExchange && isLiveExchange
 											? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
 											: ''
 									}`}
 								>
-									<ConversationMessageItem
-										key={activeExchangeMessage.id || 'active-exchange-user'}
-										message={activeExchangeMessage}
-										sessionId={sessionId}
-										readOnly={readOnly}
-										isLlama={isLlama}
-										onTableFullscreenOpen={onTableFullscreenOpen}
-									/>
+									{lastExchangeMessages.map((message, i) => (
+										<ConversationMessageItem
+											key={message.id || `exchange-${i}`}
+											message={message}
+											sessionId={sessionId}
+											readOnly={readOnly}
+											isLlama={isLlama}
+											isLatestAssistant={message.id === lastAssistantId}
+											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+											onTableFullscreenOpen={onTableFullscreenOpen}
+										/>
+									))}
 
-									<ConversationLiveStatus
-										isStreaming={isStreaming}
-										activeToolCalls={activeToolCalls}
-										spawnProgress={spawnProgress}
-										spawnStartTime={spawnStartTime}
-										executionStartedAt={executionStartedAt}
-										spawnIsResearchMode={spawnIsResearchMode}
-										streamingThinking={streamingThinking}
-										streamingDraft={streamingDraft}
-										isCompacting={isCompacting}
-										recovery={recovery}
-										error={error}
-										lastFailedPrompt={lastFailedPrompt}
-										onRetryLastFailedPrompt={onRetryLastFailedPrompt}
-										isResearchMode={isResearchMode}
-										sessionId={sessionId}
-										readOnly={readOnly}
-										isLlama={isLlama}
-										onTableFullscreenOpen={onTableFullscreenOpen}
-									/>
+									{isLiveExchange ? (
+										<ConversationLiveStatus
+											isStreaming={isStreaming}
+											activeToolCalls={activeToolCalls}
+											spawnProgress={spawnProgress}
+											spawnStartTime={spawnStartTime}
+											executionStartedAt={executionStartedAt}
+											spawnIsResearchMode={spawnIsResearchMode}
+											streamingThinking={streamingThinking}
+											streamingDraft={streamingDraft}
+											isCompacting={isCompacting}
+											recovery={recovery}
+											error={error}
+											lastFailedPrompt={lastFailedPrompt}
+											onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+											isResearchMode={isResearchMode}
+											sessionId={sessionId}
+											readOnly={readOnly}
+											isLlama={isLlama}
+											onTableFullscreenOpen={onTableFullscreenOpen}
+										/>
+									) : null}
 								</div>
 							) : (
 								<ConversationLiveStatus

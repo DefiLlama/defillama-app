@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useMedia } from '~/hooks/useMedia'
 import { getExperimentVariant } from '~/utils/analytics/experiment'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
