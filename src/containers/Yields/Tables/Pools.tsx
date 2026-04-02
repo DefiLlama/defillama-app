@@ -609,7 +609,7 @@ const columns = [
 			if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
 			return <span className="tabular-nums">{formattedNum(val, true)}</span>
 		},
-		size: 120,
+		size: 160,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Average position size in USD (TVL / holder count).'
@@ -660,12 +660,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
-		'top10Pct',
-		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
@@ -676,8 +673,11 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd',
+		'top10Pct',
 		'holderCount',
-		'avgPositionUsd'
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	],
 	400: [
 		'pool',
@@ -693,12 +693,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
-		'top10Pct',
-		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
@@ -709,8 +706,11 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd',
+		'top10Pct',
 		'holderCount',
-		'avgPositionUsd'
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	],
 	640: [
 		'pool',
@@ -726,15 +726,12 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
-		'top10Pct',
-		'apyChart30d',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
@@ -742,8 +739,11 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd',
+		'top10Pct',
 		'holderCount',
-		'avgPositionUsd'
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	],
 	1280: [
 		'pool',
@@ -759,15 +759,12 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
-		'top10Pct',
-		'apyChart30d',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
@@ -775,8 +772,11 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalSupplyUsd',
 		'totalBorrowUsd',
 		'totalAvailableUsd',
+		'top10Pct',
 		'holderCount',
-		'avgPositionUsd'
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	]
 }
 
@@ -812,7 +812,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	},
 	812: {
 		pool: 200,
@@ -845,7 +845,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	},
 	1280: {
 		pool: 240,
@@ -878,7 +878,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	},
 	1536: {
 		pool: 280,
@@ -911,7 +911,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	},
 	1600: {
 		pool: 320,
@@ -944,7 +944,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	},
 	1640: {
 		pool: 360,
@@ -977,7 +977,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	},
 	1720: {
 		pool: 420,
@@ -1010,7 +1010,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalAvailableUsd: 120,
 		holderCount: 130,
 		top10Pct: 110,
-		avgPositionUsd: 120
+		avgPositionUsd: 160
 	}
 }
 
