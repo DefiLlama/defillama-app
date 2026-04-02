@@ -48,7 +48,7 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 								: researchUsage?.period === 'blocked'
 									? 'Subscribe to Pro to use research'
 									: researchUsage
-										? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : researchUsage.period === 'biweekly' ? ' (14 days)' : ''}`
+										? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : researchUsage.period === 'biweekly' ? ' (every 14 days)' : ''}`
 										: '5 reports/day · Free trial: 3 total'}
 						</span>
 					</div>
