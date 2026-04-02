@@ -1,8 +1,15 @@
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useBlockExplorers } from '~/api/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { CopyHelper } from '~/components/Copy'
+import { LinkPreviewCard } from '~/components/SEO'
+import { YIELD_POOLS_LAMBDA_API } from '~/constants'
+import { tokenIconUrl } from '~/utils/icons'
+import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
@@ -1116,17 +1123,71 @@ const liquidityChartColors: Record<string, string> = {
 
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
-export default function YieldPoolPage(props) {
+export const getStaticPaths = () => ({ paths: [], fallback: 'blocking' as const })
+
+export const getStaticProps = withPerformanceLogging(
+	'yields/pool/[pool]',
+	async ({ params }: GetStaticPropsContext<{ pool: string }>) => {
+		const poolId = params?.pool
+		if (!poolId) return { notFound: true, revalidate: maxAgeForNext([22]) }
+
+		try {
+			const res = await fetchJson(`${YIELD_POOLS_LAMBDA_API}?pool=${poolId}`)
+			const poolData = res?.data?.[0]
+
+			if (!poolData) return { notFound: true, revalidate: maxAgeForNext([22]) }
+
+			const symbol = poolData.symbol ?? ''
+			const projectName = poolData.projectName ?? poolData.project ?? ''
+			const chain = poolData.chain ?? ''
+			const apy = poolData.apy != null ? `${Number(poolData.apy).toFixed(2)}%` : null
+			const tvl = poolData.tvlUsd != null ? Number(poolData.tvlUsd) : null
+
+			const titleParts = [symbol, projectName, chain].filter(Boolean).join(' · ')
+
+			return {
+				props: {
+					seoTitle: `${titleParts}${apy ? ` — ${apy} APY` : ''} - DefiLlama Yields`,
+					seoDescription: `${symbol} yield pool on ${projectName} (${chain}).${apy ? ` Current APY: ${apy}.` : ''}${tvl ? ` TVL: $${tvl.toLocaleString('en-US', { maximumFractionDigits: 0 })}.` : ''} Compare rates, TVL, and holder stats on DefiLlama.`,
+					seoCardName: `${symbol} — ${projectName}`,
+					seoProjectName: projectName,
+					seoTvl: tvl,
+					poolId
+				},
+				revalidate: maxAgeForNext([22])
+			}
+		} catch {
+			return { props: { poolId, seoTitle: null, seoDescription: null, seoCardName: null, seoProjectName: null, seoTvl: null }, revalidate: maxAgeForNext([5]) }
+		}
+	}
+)
+
+export default function YieldPoolPage({
+	poolId: _poolId,
+	seoTitle,
+	seoDescription,
+	seoCardName,
+	seoProjectName,
+	seoTvl
+}: InferGetStaticPropsType<typeof getStaticProps>) {
 	const { query } = useRouter()
 	const pool = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
 
 	return (
 		<Layout
-			title={pool ? `Yields ${pool} - DefiLlama` : ''}
-			description={pool ? `Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.` : ''}
+			title={seoTitle ?? (pool ? `Yields Pool - DefiLlama` : '')}
+			description={seoDescription ?? ''}
 			canonicalUrl={pool ? `/yields/pool/${pool}` : null}
 		>
-			<PageView {...props} />
+			{seoCardName ? (
+				<LinkPreviewCard
+					cardName={seoCardName}
+					token={seoProjectName ?? undefined}
+					logo={seoProjectName ? tokenIconUrl(seoProjectName) : undefined}
+					tvl={seoTvl != null ? `$${Number(seoTvl).toLocaleString('en-US', { maximumFractionDigits: 0 })}` : undefined}
+				/>
+			) : null}
+			<PageView />
 		</Layout>
 	)
 }
