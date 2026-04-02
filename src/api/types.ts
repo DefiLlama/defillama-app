@@ -291,6 +291,7 @@ export interface LlamaswapChain {
 	chainId: number
 	address: string
 	priceImpact: number
+	liquidity?: number
 }
 
 export interface ProtocolLlamaswapResponse {
