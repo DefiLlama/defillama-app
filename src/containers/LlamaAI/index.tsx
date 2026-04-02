@@ -63,6 +63,7 @@ import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } fr
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>
@@ -673,6 +674,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		cursor: number | null
 		isLoadingMore: boolean
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
 	const abortControllerRef = useRef<AbortController | null>(null)
@@ -933,69 +935,76 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				dispatchStream({ type: 'SET_ERROR', value: checkError.message })
 				return false
 			}
-			const { active, status, hasResult } = activeExecution
+			const { active, status, hasResult, eventCount } = activeExecution
 			if (!active) {
-				if (status === 'completed' && hasResult) {
-					try {
-						setViewError(null)
-						dispatchStream({ type: 'SET_ERROR', value: null })
-						dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
-						dispatchStream({ type: 'RESET_RECOVERY' })
-						if (resetStream) {
-							dispatchStream({ type: 'START_STREAM' })
-							currentMessageIdRef.current = null
+				// Skip replay when the client buffer already has all (or more) events than the
+				// server — the server buffer was pruned after DB save and only contains {done}.
+				const hasNewEvents = eventCount != null && buffer.receivedEventCount < eventCount
+				if (status === 'completed' && hasResult && hasNewEvents) {
+					setViewError(null)
+					dispatchStream({ type: 'SET_ERROR', value: null })
+					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+					dispatchStream({ type: 'RESET_RECOVERY' })
+					if (resetStream) {
+						dispatchStream({ type: 'START_STREAM' })
+						currentMessageIdRef.current = null
+					}
+					const replayRequestId = beginRequest(
+						activeRequestIdRef,
+						activeRequestKindRef,
+						activeSessionIdRef,
+						'resume',
+						targetSessionId
+					)
+					const replayController = new AbortController()
+					abortControllerRef.current = replayController
+					const replaySettleState = createRequestSettleState(replayRequestId)
+					activeRequestSettleRef.current = replaySettleState
+					const replayCallbacks = createAgenticCallbacks({
+						requestId: replayRequestId,
+						activeRequestIdRef,
+						buffer,
+						dispatch: dispatchStream,
+						currentMessageIdRef,
+						toolCallIdRef,
+						appendMessage,
+						notify,
+						onTokenLimit: () => setShowTokenLimitModal(true),
+						onTitle: (title) => {
+							setSessionTitle(title)
+							updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+							moveSessionToTop(targetSessionId)
 						}
-						const replayRequestId = beginRequest(
-							activeRequestIdRef,
-							activeRequestKindRef,
-							activeSessionIdRef,
-							'resume',
-							targetSessionId
-						)
-						const replayController = new AbortController()
-						abortControllerRef.current = replayController
-						const replaySettleState = createRequestSettleState(replayRequestId)
-						activeRequestSettleRef.current = replaySettleState
-						const replayCallbacks = createAgenticCallbacks({
-							requestId: replayRequestId,
-							activeRequestIdRef,
-							buffer,
-							dispatch: dispatchStream,
-							currentMessageIdRef,
-							toolCallIdRef,
-							appendMessage,
-							notify,
-							onTokenLimit: () => setShowTokenLimitModal(true),
-							onTitle: (title) => {
-								setSessionTitle(title)
-								updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
-								moveSessionToTop(targetSessionId)
+					})
+					const replayEventCounter = { count: buffer.receivedEventCount }
+					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
+
+					return resumeAgenticStream({
+						sessionId: targetSessionId,
+						callbacks: replayCallbacks,
+						abortSignal: replayController.signal,
+						fetchFn: authorizedFetchCompat,
+						from: replayFrom,
+						eventCounter: replayEventCounter
+					})
+						.then(() => true)
+						.catch(() => {
+							// Buffer expired — reset streaming state so the UI doesn't get stuck.
+							if (resetStream) {
+								dispatchStream({ type: 'RESET_STREAM' })
+							}
+							return false
+						})
+						.finally(() => {
+							if (abortControllerRef.current === replayController) {
+								abortControllerRef.current = null
+							}
+							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
+							replaySettleState.resolve()
+							if (activeRequestSettleRef.current?.requestId === replayRequestId) {
+								activeRequestSettleRef.current = null
 							}
 						})
-						const replayEventCounter = { count: buffer.receivedEventCount }
-						return await resumeAgenticStream({
-							sessionId: targetSessionId,
-							callbacks: replayCallbacks,
-							abortSignal: replayController.signal,
-							fetchFn: authorizedFetchCompat,
-							from: buffer.receivedEventCount || undefined,
-							eventCounter: replayEventCounter
-						})
-							.then(() => true)
-							.finally(() => {
-								if (abortControllerRef.current === replayController) {
-									abortControllerRef.current = null
-								}
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
-								replaySettleState.resolve()
-								if (activeRequestSettleRef.current?.requestId === replayRequestId) {
-									activeRequestSettleRef.current = null
-								}
-							})
-					} catch {
-						// Buffer expired — reset streaming state so the UI doesn't get stuck
-						if (resetStream) dispatchStream({ type: 'RESET_STREAM' })
-					}
 				}
 				return false
 			}
@@ -1099,6 +1108,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
 
 			setMessages(restored)
+			setConversationViewResetKey((current) => current + 1)
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
@@ -1320,6 +1330,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		await abortActiveRequest()
 		clearConversationRuntimeState()
 		setMessages([])
+		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
 		restoredSessionIdRef.current = null
@@ -1344,7 +1355,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
-			const { restored: restoredOk } = await restoreSessionSnapshot(selectedSessionId, requestId)
+			const { restored: restoredOk, recoveredResponse } = await restoreSessionSnapshot(selectedSessionId, requestId)
 
 			if (!restoredOk) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1359,6 +1370,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setRestoringSessionId(null)
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+
+			// Skip resume when the restored snapshot already contains the assistant response —
+			// the session is complete and calling /stream would be a redundant replay.
+			if (recoveredResponse) {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return
+			}
 
 			const didResume = await resumeRunningExecution({
 				targetSessionId: selectedSessionId,
@@ -1769,6 +1787,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							handleNewChat={handleNewChat}
 							onOpenSettings={settingsModalStore.show}
 							hasCustomInstructions={customInstructions.trim().length > 0}
+							sessionTitle={effectiveSessionTitle}
 						/>
 					) : null}
 					{restoringSessionId && !hasMessages ? (
@@ -1801,6 +1820,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							</div>
 							<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 								<ConversationView
+									key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 									readOnly={readOnly}
 									messages={effectiveMessages}
 									sessionId={effectiveSessionId}
@@ -1856,6 +1876,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						/>
 					) : (
 						<ConversationView
+							key={`conversation-${conversationViewResetKey}`}
 							readOnly={readOnly}
 							messages={effectiveMessages}
 							sessionId={effectiveSessionId}
@@ -1941,14 +1962,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 const ChatControls = memo(function ChatControls({
 	handleNewChat,
 	onOpenSettings,
-	hasCustomInstructions
+	hasCustomInstructions,
+	sessionTitle
 }: {
 	handleNewChat: () => void
 	onOpenSettings: () => void
 	hasCustomInstructions: boolean
+	sessionTitle: string | null
 }) {
 	const isMobile = useMedia('(max-width: 1023px)')
 	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
+	const { balance, totalAvailable } = useAiBalance()
+
+	const tooltipParts = ['Open Chat History']
+	if (sessionTitle) tooltipParts.push(sessionTitle)
+	if (balance) tooltipParts.push(`$${totalAvailable.toFixed(2)}`)
+	const tooltipContent = tooltipParts.join(' | ')
 
 	return (
 		<div className="llamaai-chat-controls">
@@ -1957,7 +1986,7 @@ const ChatControls = memo(function ChatControls({
 				aria-label="Chat controls"
 			>
 				<Tooltip
-					content="Open Chat History"
+					content={tooltipContent}
 					render={
 						<button
 							onClick={toggleSidebar}
