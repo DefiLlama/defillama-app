@@ -7,14 +7,11 @@ import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
+import { AuthProvider } from '~/containers/Subscription/auth'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
-const LlamaAIFloatingButton = lazy(() =>
-	import('~/components/LlamaAIFloatingButton').then((m) => ({ default: m.LlamaAIFloatingButton }))
-)
 NProgress.configure({ showSpinner: false })
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
@@ -127,14 +124,6 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [])
 
-	const { hasActiveSubscription } = useAuthContext()
-	const showFloatingButton =
-		hasActiveSubscription &&
-		!router.pathname.startsWith('/ai') &&
-		!router.pathname.startsWith('/mcp') &&
-		!router.pathname.startsWith('/account') &&
-		!router.pathname.startsWith('/subscription')
-
 	useUmamiIdentityTracker()
 
 	return (
@@ -152,12 +141,6 @@ function App({ Component, pageProps }: AppProps) {
 				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
 				data-host-url="https://tasty.defillama.com"
 			/>
-
-			{showFloatingButton ? (
-				<Suspense fallback={null}>
-					<LlamaAIFloatingButton />
-				</Suspense>
-			) : null}
 
 			<Component {...pageProps} />
 		</>
