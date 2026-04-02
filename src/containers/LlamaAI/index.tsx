@@ -993,7 +993,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								}
 							})
 					} catch {
-						// Buffer expired, fall through to restoreSessionSnapshot
+						// Buffer expired — reset streaming state so the UI doesn't get stuck
+						if (resetStream) dispatchStream({ type: 'RESET_STREAM' })
 					}
 				}
 				return false
