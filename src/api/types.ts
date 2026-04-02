@@ -131,28 +131,142 @@ export interface CoinGeckoDetailPlatform {
 	geckoterminal_url?: string
 }
 
+/** CoinGecko GET /coins/{id} ticker row when `depth=false` (2% orderbook costs omitted). */
+export interface CoinGeckoCoinTicker {
+	base?: string
+	target?: string
+	market?: {
+		name?: string
+		identifier?: string
+		has_trading_incentive?: boolean
+	}
+	last?: number
+	volume?: number
+	converted_last?: { btc?: number; eth?: number; usd?: number }
+	converted_volume?: { btc?: number; eth?: number; usd?: number }
+	trust_score?: string | null
+	bid_ask_spread_percentage?: number
+	timestamp?: string
+	last_traded_at?: string
+	last_fetch_at?: string
+	is_anomaly?: boolean
+	is_stale?: boolean
+	trade_url?: string | null
+	token_info_url?: string | null
+	coin_id?: string
+	target_coin_id?: string
+	coin_mcap_usd?: number
+}
+
 /**
- * Subset of CoinGecko GET /api/v3/coins/{id} used for chain token info and platform addresses.
- * The live payload is larger; only fields we read or may read are declared.
+ * Same as {@link CoinGeckoCoinTicker} plus 2% orderbook depth when `depth=true`
+ * (see CoinGecko `cost_to_move_*` fields — often returned as strings for precision).
  */
-export interface CoinGeckoCoinDetailResponse {
+export interface CoinGeckoCoinTickerWithDepth extends CoinGeckoCoinTicker {
+	cost_to_move_up_usd?: string
+	cost_to_move_down_usd?: string
+}
+
+/** Multi-currency numeric maps as returned by CoinGecko `market_data`. */
+export type CoinGeckoCurrencyNumberMap = Partial<Record<string, number | null>>
+
+export interface CoinGeckoCoinMarketData {
+	current_price?: CoinGeckoCurrencyNumberMap
+	market_cap?: CoinGeckoCurrencyNumberMap
+	fully_diluted_valuation?: CoinGeckoCurrencyNumberMap
+	total_volume?: CoinGeckoCurrencyNumberMap
+	total_value_locked?: { btc?: number; usd?: number }
+	mcap_to_tvl_ratio?: number | null
+	fdv_to_tvl_ratio?: number | null
+	circulating_supply?: number
+	total_supply?: number
+	max_supply?: number | null
+	max_supply_infinite?: boolean
+	outstanding_token_value_usd?: number
+	market_cap_rank?: number | null
+	[key: string]: unknown
+}
+
+export interface CoinGeckoCoinImage {
+	thumb?: string
+	small?: string
+	large?: string
+}
+
+export interface CoinGeckoCoinLinks {
+	homepage?: string[]
+	whitepaper?: string
+	blockchain_site?: string[]
+	official_forum_url?: string[]
+	chat_url?: string[]
+	announcement_url?: string[]
+	snapshot_url?: string
+	twitter_screen_name?: string
+	repos_url?: { github?: string[]; bitbucket?: string[] }
+	[key: string]: unknown
+}
+
+/**
+ * Shared body of CoinGecko GET /api/v3/coins/{id} (platforms, contract addresses, market_data, etc.).
+ * `tickers` shape depends on the `depth` query flag — see {@link CoinGeckoCoinDetailResponse} vs
+ * {@link CoinGeckoCoinDetailResponseWithDepth}.
+ */
+export interface CoinGeckoCoinDetailBody {
 	id: string
 	symbol: string
 	name: string
+	web_slug?: string | null
 	asset_platform_id?: string | null
 	contract_address?: string | null
 	platforms?: Record<string, string>
 	detail_platforms?: Record<string, CoinGeckoDetailPlatform>
-	market_data?: {
-		current_price?: { usd?: number | null }
-		market_cap?: { usd?: number | null }
-		fully_diluted_valuation?: { usd?: number | null }
-		total_volume?: { usd?: number | null }
-	}
+	categories?: string[]
+	image?: CoinGeckoCoinImage
+	links?: CoinGeckoCoinLinks
+	localization?: Record<string, string>
+	description?: Record<string, string>
+	market_cap_rank?: number | null
+	market_cap_rank_with_rehypothecated?: number | null
+	market_data?: CoinGeckoCoinMarketData
+	community_data?: Record<string, unknown>
+	developer_data?: Record<string, unknown>
+	last_updated?: string
+	[key: string]: unknown
 }
+
+/**
+ * Response when `depth` is false or omitted — `tickers` do not include orderbook depth fields.
+ */
+export interface CoinGeckoCoinDetailResponse extends CoinGeckoCoinDetailBody {
+	tickers?: CoinGeckoCoinTicker[]
+}
+
+/**
+ * Response when `depth=true` — each ticker may include `cost_to_move_up_usd` / `cost_to_move_down_usd`.
+ */
+export interface CoinGeckoCoinDetailResponseWithDepth extends CoinGeckoCoinDetailBody {
+	tickers?: CoinGeckoCoinTickerWithDepth[]
+}
+
+/** Response from CoinGecko GET /coins/{id}/tickers when `depth=true`. */
+export interface CoinGeckoCoinTickersResponseWithDepth {
+	name?: string
+	tickers?: CoinGeckoCoinTickerWithDepth[]
+}
+
+/**
+ * Discriminated by the `depth` query param: which ticker row type is used.
+ * (The HTTP response does not include a `depth` field; this models the request/response pair.)
+ */
+export type CoinGeckoCoinDetailByDepth<D extends boolean> = D extends true
+	? CoinGeckoCoinDetailResponseWithDepth
+	: CoinGeckoCoinDetailResponse
 
 /** Result when the request fails and we fall back to `{}` (see fetchCoinGeckoCoinById). */
 export type CoinGeckoCoinDetailResult = CoinGeckoCoinDetailResponse | Record<string, never>
+
+/** Same as {@link CoinGeckoCoinDetailResult} but when `depth: true` was requested. */
+export type CoinGeckoCoinDetailResultWithDepth = CoinGeckoCoinDetailResponseWithDepth | Record<string, never>
 
 export interface DenominationPriceHistory {
 	prices: Array<[number, number]>
@@ -172,7 +286,7 @@ export interface TwitterPostsResponse {
 	[key: string]: unknown
 }
 
-interface LlamaswapChain {
+export interface LlamaswapChain {
 	chain: string
 	chainId: number
 	address: string
@@ -183,7 +297,7 @@ export interface ProtocolLlamaswapResponse {
 	chains?: Array<LlamaswapChain>
 }
 
-export type ExtendedLlamaswapChain = LlamaswapChain & { displayName: string }
+export type BuyOnLlamaswapChain = Omit<LlamaswapChain, 'priceImpact'> & { displayName: string }
 
 /** Single pool row for a token from `LIQUIDITY_API` (`/liquidity.json`). */
 interface ProtocolLiquidityTokenPool {

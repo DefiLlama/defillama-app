@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import {
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -14,8 +15,11 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useContext, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useTableSearch } from '~/components/Table/utils'
+import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { fetchRWAAssetsListViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
+import { fetchRWAActiveTVLs } from '~/containers/RWA/api'
+import type { IFetchedRWAProject } from '~/containers/RWA/api.types'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { downloadCSV } from '~/utils/download'
@@ -23,10 +27,6 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
 import { TablePagination } from '../../ProTable/TablePagination'
-import type { IFetchedRWAProject } from '~/containers/RWA/api.types'
-import { fetchRWAActiveTVLs } from '~/containers/RWA/api'
-import { fetchRWAAssetsListViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
 
 type RWAAssetRow = {
 	name: string
@@ -65,11 +65,7 @@ const columns: ColumnDef<RWAAssetRow, any>[] = [
 	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		cell: (info) => (
-			<span className="block truncate text-sm font-medium">
-				{info.getValue()}
-			</span>
-		),
+		cell: (info) => <span className="block truncate text-sm font-medium">{info.getValue()}</span>,
 		size: 240,
 		maxSize: 240
 	}),

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import type { CexAnalyticsMetric, CexAnalyticsView, ProtocolsTableConfig } from '~/containers/ProDashboard/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'

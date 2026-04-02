@@ -1,6 +1,7 @@
 import {
 	fetchBlockExplorers,
 	fetchCgChartByGeckoId,
+	fetchCoinGeckoCoinChainsByTickerVolume,
 	fetchLiquidityTokensDataset,
 	fetchProtocolLlamaswapChains
 } from '~/api'
@@ -669,8 +670,16 @@ export const getProtocolOverviewPageData = async ({
 		if (sibling) tokenGeckoId = sibling.geckoId
 	}
 	let llamaswapChains = null
+	let llamaswapChainsFromCoinGecko = false
 	if (tokenGeckoId && !isCEX) {
-		llamaswapChains = await fetchProtocolLlamaswapChains(tokenGeckoId)
+		llamaswapChains = await fetchProtocolLlamaswapChains(tokenGeckoId).catch(() => null)
+		if (!llamaswapChains?.length) {
+			const cgChains = await fetchCoinGeckoCoinChainsByTickerVolume(tokenGeckoId).catch(() => null)
+			if (cgChains?.length) {
+				llamaswapChains = cgChains
+				llamaswapChainsFromCoinGecko = true
+			}
+		}
 	}
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
@@ -1024,7 +1033,8 @@ export const getProtocolOverviewPageData = async ({
 		seoDescription,
 		defaultToggledCharts,
 		oracleTvs,
-		llamaswapChains
+		llamaswapChains,
+		llamaswapChainsFromCoinGecko
 	}
 }
 

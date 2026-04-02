@@ -17,15 +17,19 @@ import type {
 	CgChartResponse,
 	CgMarketChartResponse,
 	ChainGeckoPair,
+	CoinGeckoCoinDetailBody,
 	CoinGeckoCoinDetailResponse,
+	CoinGeckoCoinDetailResponseWithDepth,
 	CoinGeckoCoinDetailResult,
+	CoinGeckoCoinDetailResultWithDepth,
+	CoinGeckoCoinTickersResponseWithDepth,
 	CoinsChartResponse,
 	CoinMcapsResponse,
 	CoinsPricesResponse,
 	DenominationPriceHistory,
 	GeckoIdResponse,
 	IResponseCGMarketsAPI,
-	ExtendedLlamaswapChain,
+	BuyOnLlamaswapChain,
 	ProtocolLlamaswapResponse,
 	LlamaConfigResponse,
 	PriceObject,
@@ -71,6 +75,7 @@ const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 const PROTOCOL_LLAMASWAP_API_URL = 'https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity'
+const COINGECKO_TICKERS_PAGE_SIZE = 100
 
 // ---------------------------------------------------------------------------
 // CoinGecko queries
@@ -148,24 +153,35 @@ export type FetchCoinGeckoCoinByIdOptions = {
 	communityData?: boolean
 	developerData?: boolean
 	sparkline?: boolean
+	depth?: boolean
 }
 
 const DEFAULT_FETCH_COIN_DETAIL_OPTIONS: Required<FetchCoinGeckoCoinByIdOptions> = {
 	tickers: true,
 	communityData: false,
 	developerData: false,
-	sparkline: false
+	sparkline: false,
+	depth: false
 }
 
 /**
  * Full coin metadata from CoinGecko GET /coins/{id} (platforms, contract addresses, market_data).
  * Uses Pro API when `CG_KEY` is set; otherwise the public API.
  * On failure, returns `{}` (same as previous Chain Overview behavior).
+ * When `depth: true`, ticker rows include 2% orderbook depth (`cost_to_move_*_usd`).
  */
 export async function fetchCoinGeckoCoinById(
 	geckoId: string,
-	options: FetchCoinGeckoCoinByIdOptions = {}
-): Promise<CoinGeckoCoinDetailResult> {
+	options: FetchCoinGeckoCoinByIdOptions & { depth: true }
+): Promise<CoinGeckoCoinDetailResultWithDepth>
+export async function fetchCoinGeckoCoinById(
+	geckoId: string,
+	options?: FetchCoinGeckoCoinByIdOptions & { depth?: false }
+): Promise<CoinGeckoCoinDetailResult>
+export async function fetchCoinGeckoCoinById(
+	geckoId: string,
+	options?: FetchCoinGeckoCoinByIdOptions
+): Promise<CoinGeckoCoinDetailResult | CoinGeckoCoinDetailResultWithDepth> {
 	if (!geckoId) return {}
 	const q = { ...DEFAULT_FETCH_COIN_DETAIL_OPTIONS, ...options }
 	const url = new URL(`${COINGECKO_COIN_API_BASE}/${encodeURIComponent(geckoId)}`)
@@ -173,10 +189,122 @@ export async function fetchCoinGeckoCoinById(
 	url.searchParams.set('community_data', String(q.communityData))
 	url.searchParams.set('developer_data', String(q.developerData))
 	url.searchParams.set('sparkline', String(q.sparkline))
+	url.searchParams.set('depth', String(q.depth))
+	const headers = COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECKO_KEY } : undefined
+	if (q.depth) {
+		return fetchJson<CoinGeckoCoinDetailResponseWithDepth>(url.toString(), { headers }).catch(
+			(): CoinGeckoCoinDetailResultWithDepth => ({})
+		)
+	}
+	return fetchJson<CoinGeckoCoinDetailResponse>(url.toString(), { headers }).catch(
+		(): CoinGeckoCoinDetailResult => ({})
+	)
+}
 
-	return fetchJson<CoinGeckoCoinDetailResponse>(url.toString(), {
-		headers: COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECKO_KEY } : undefined
-	}).catch((): CoinGeckoCoinDetailResult => ({}))
+const EVM_HEX_ADDRESS_RE = /^0x[a-fA-F0-9]+$/
+
+function normalizeCoinGeckoTickerTokenRef(value: string): string {
+	const t = value.trim()
+	if (EVM_HEX_ADDRESS_RE.test(t)) return t.toLowerCase()
+	return t
+}
+
+/**
+ * From a CoinGecko GET /coins/{id} body (with `tickers`, typically `depth: true`), aggregate
+ * `converted_volume.usd` for each `platforms` entry where a ticker row's `base` or `target`
+ * equals that chain's contract address. Returns `{ chain, address }` rows sorted by total USD
+ * descending (CoinGecko `platforms` address strings preserved).
+ */
+export function parseCoinGeckoCoinChainsByTickerVolume(
+	coin: Pick<CoinGeckoCoinDetailBody, 'platforms'> & Pick<CoinGeckoCoinDetailResponseWithDepth, 'tickers'>
+): Array<{ chain: string; address: string }> {
+	const platforms = coin.platforms
+	if (!platforms || Object.keys(platforms).length === 0) return []
+	const tickers = coin.tickers
+	if (!tickers?.length) return []
+
+	const rows: Array<{ chain: string; address: string; norm: string; volumeUsd: number }> = []
+	for (const [chain, address] of Object.entries(platforms)) {
+		const trimmed = address?.trim()
+		if (!trimmed) continue
+		rows.push({
+			chain,
+			address: trimmed,
+			norm: normalizeCoinGeckoTickerTokenRef(trimmed),
+			volumeUsd: 0
+		})
+	}
+	if (rows.length === 0) return []
+
+	for (const ticker of tickers) {
+		const vol = Number(ticker.converted_volume?.usd) || 0
+		const base =
+			ticker.base !== undefined && ticker.base !== null ? normalizeCoinGeckoTickerTokenRef(String(ticker.base)) : ''
+		const target =
+			ticker.target !== undefined && ticker.target !== null
+				? normalizeCoinGeckoTickerTokenRef(String(ticker.target))
+				: ''
+
+		for (const row of rows) {
+			if (base === row.norm || target === row.norm) row.volumeUsd += vol
+		}
+	}
+
+	rows.sort((a, b) => b.volumeUsd - a.volumeUsd)
+
+	return rows
+		.map(({ chain, address }) => {
+			const llamaswapChain = LLAMASWAP_CHAINS.find((c) => c.gecko === chain)
+			if (!llamaswapChain) return null
+			return {
+				chain: llamaswapChain?.llamaswap,
+				address,
+				displayName: llamaswapChain?.displayName
+			}
+		})
+		.filter((chain) => chain !== null)
+}
+
+async function fetchCoinGeckoCoinTickersById(
+	geckoId: string
+): Promise<CoinGeckoCoinTickersResponseWithDepth['tickers']> {
+	if (!geckoId) return []
+
+	const headers = COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECKO_KEY } : undefined
+	const tickers: NonNullable<CoinGeckoCoinTickersResponseWithDepth['tickers']> = []
+
+	for (let page = 1; ; page++) {
+		const url = new URL(`${COINGECKO_COIN_API_BASE}/${encodeURIComponent(geckoId)}/tickers`)
+		url.searchParams.set('page', String(page))
+		url.searchParams.set('order', 'volume_desc')
+		url.searchParams.set('depth', 'true')
+		url.searchParams.set('dex_pair_format', 'contract_address')
+
+		const response = await fetchJson<CoinGeckoCoinTickersResponseWithDepth>(url.toString(), { headers }).catch(
+			(): CoinGeckoCoinTickersResponseWithDepth => ({})
+		)
+		const pageTickers = response.tickers ?? []
+		if (pageTickers.length === 0) break
+
+		tickers.push(...pageTickers)
+
+		if (pageTickers.length < COINGECKO_TICKERS_PAGE_SIZE) break
+	}
+
+	return tickers
+}
+
+/** Fetches coin platforms plus all paginated ticker pages, then {@link parseCoinGeckoCoinChainsByTickerVolume}. */
+export async function fetchCoinGeckoCoinChainsByTickerVolume(
+	geckoId: string
+): Promise<Array<{ chain: string; address: string }>> {
+	if (!geckoId) return []
+	const coin = await fetchCoinGeckoCoinById(geckoId, { tickers: false })
+	const tickers = await fetchCoinGeckoCoinTickersById(geckoId)
+	return parseCoinGeckoCoinChainsByTickerVolume({
+		platforms: coin.platforms,
+		tickers
+	})
 }
 
 /**
@@ -369,16 +497,19 @@ export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTo
 }
 
 /** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */
-export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<ExtendedLlamaswapChain[] | null> {
+export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<BuyOnLlamaswapChain[] | null> {
 	if (!geckoId) return null
 
 	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}`)
 		.then((data) =>
 			Array.isArray(data?.chains) && data.chains.length > 0
-				? data.chains.map((chain) => ({
-						...chain,
-						displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
-					}))
+				? data.chains
+						.sort((a, b) => a.priceImpact - b.priceImpact)
+						.map((chain) => ({
+							chain: chain.chain,
+							address: chain.address,
+							displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
+						}))
 				: null
 		)
 		.catch(() => null)
