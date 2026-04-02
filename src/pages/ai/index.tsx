@@ -11,6 +11,7 @@ import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/
 import type { LandingQuestion } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { useLlamaAILandingVisited } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -362,8 +363,14 @@ export const getStaticProps = withPerformanceLogging('ai', async () => {
 
 export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestions?: LandingQuestion[] }) {
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+	const [, markLandingVisited] = useLlamaAILandingVisited()
+	const { isAuthenticated } = useAuthContext()
 
 	const isClient = useIsClient()
+
+	useEffect(() => {
+		if (isAuthenticated) markLandingVisited()
+	}, [isAuthenticated, markLandingVisited])
 
 	return (
 		<>

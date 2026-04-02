@@ -16,6 +16,7 @@ const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
 export const LLAMA_AI_WALKTHROUGH_STATE = 'LLAMA_AI_WALKTHROUGH_STATE' as const
+const LLAMA_AI_LANDING_VISITED = 'LLAMA_AI_LANDING_VISITED' as const
 const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
@@ -165,6 +166,7 @@ export type AppStorage = SettingsStore & {
 	[YIELDS_SAVED_FILTERS]?: YieldSavedFilters
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
 	[LLAMA_AI_WALKTHROUGH_STATE]?: LlamaAIWalkthroughState
+	[LLAMA_AI_LANDING_VISITED]?: boolean
 	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore
@@ -624,4 +626,23 @@ export function useLlamaAIWelcome(_isSubscribed?: boolean): [boolean, () => void
 	const setShown = useMemo(() => () => setLlamaAIWalkthroughState('completed'), [])
 
 	return [shown, setShown]
+}
+
+export function useLlamaAILandingVisited(): [boolean, () => void] {
+	const visited = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => (readAppStorage()[LLAMA_AI_LANDING_VISITED] ? '1' : '0'),
+		() => '0'
+	)
+
+	const markVisited = useMemo(
+		() => () =>
+			writeAppStorage({
+				...readAppStorage(),
+				[LLAMA_AI_LANDING_VISITED]: true
+			}),
+		[]
+	)
+
+	return [visited === '1', markVisited]
 }

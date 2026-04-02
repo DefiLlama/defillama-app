@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 
 export interface CSVExport {
 	id: string
