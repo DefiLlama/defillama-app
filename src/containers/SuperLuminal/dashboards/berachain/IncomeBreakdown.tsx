@@ -1,8 +1,9 @@
 import { lazy, useMemo } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
+import { Tooltip } from '~/components/Tooltip'
 import { useCustomServerData } from '~/containers/SuperLuminal/CustomServerDataContext'
 import { formattedNum } from '~/utils'
-import { type BerachainIncomeServerData, useBerachainIncomeData } from './api'
+import { type BerachainIncomeServerData, useBerachainIncomeData, useHoneyRevenueData } from './api'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -35,10 +36,29 @@ function CardSkeleton({ title }: { title: string }) {
 	)
 }
 
-function KpiCard({ label, value }: { label: string; value: string | number | null }) {
+function InfoIcon() {
+	return (
+		<svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="inline-block text-(--text-label) opacity-50">
+			<circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
+			<path d="M8 7v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+			<circle cx="8" cy="5" r="0.75" fill="currentColor" />
+		</svg>
+	)
+}
+
+function KpiCard({ label, value, tooltip }: { label: string; value: string | number | null; tooltip?: string }) {
 	return (
 		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
+			<span className="flex items-center gap-1 text-xs font-medium tracking-wide text-(--text-label)">
+				{label}
+				{tooltip && (
+					<Tooltip content={tooltip}>
+						<span className="cursor-help">
+							<InfoIcon />
+						</span>
+					</Tooltip>
+				)}
+			</span>
 			<span className="text-2xl font-semibold text-(--text-primary)">{value ?? '—'}</span>
 		</div>
 	)
@@ -65,6 +85,7 @@ function getCumulativeTotal(data: Record<string, number>[], key: string) {
 export default function IncomeBreakdown() {
 	const serverData = useCustomServerData<BerachainIncomeServerData>('berachainIncome')
 	const { isLoading, berachain, bex, bend } = useBerachainIncomeData(serverData)
+	const { data: honeyRevenue, isLoading: isHoneyLoading } = useHoneyRevenueData()
 
 	const kpis = useMemo(() => {
 		if (isLoading) return null
@@ -80,6 +101,56 @@ export default function IncomeBreakdown() {
 
 	return (
 		<div className="flex flex-col gap-6">
+			{/* HONEY Revenue Section */}
+			<SectionHeader title="HONEY Backing Yield Revenue" />
+			<div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+				{isHoneyLoading || !honeyRevenue ? (
+					<>
+						<KpiSkeleton label="HONEY Supply" />
+						<KpiSkeleton label="sUSDe Yield (Current)" />
+						<KpiSkeleton label="sUSDe Yield (30d Avg)" />
+						<KpiSkeleton label="Annual Revenue (Current)" />
+						<KpiSkeleton label="Annual Revenue (30d Avg)" />
+						<KpiSkeleton label="Annual Revenue (Inception Avg)" />
+					</>
+				) : (
+					<>
+						<KpiCard
+							label="HONEY Supply"
+							value={honeyRevenue.honeySupply.formatted}
+							tooltip="Current HONEY total supply. Since HONEY ≈ $1, this approximates its market cap."
+						/>
+						<KpiCard
+							label="sUSDe Yield (Current)"
+							value={honeyRevenue.susdeYield.current.formatted}
+							tooltip="Latest sUSDe staking yield from Ethena (7-day rolling average)."
+						/>
+						<KpiCard
+							label="sUSDe Yield (30d Avg)"
+							value={honeyRevenue.susdeYield.avg30d.formatted}
+							tooltip="30-day average sUSDe staking yield from Ethena."
+						/>
+						<KpiCard
+							label="Annual Revenue (Current Yield)"
+							value={honeyRevenue.kpis.annualRevenueCurrent.formatted}
+							tooltip="Projected annual revenue using HONEY supply × current sUSDe yield."
+						/>
+						<KpiCard
+							label="Annual Revenue (30d Avg Yield)"
+							value={honeyRevenue.kpis.annualRevenue30d.formatted}
+							tooltip="Projected annual revenue using HONEY supply × 30-day average sUSDe yield."
+						/>
+						<KpiCard
+							label="Annual Revenue (Inception Avg)"
+							value={honeyRevenue.kpis.annualRevenueInception.formatted}
+							tooltip="Historical benchmark using HONEY supply × average sUSDe yield since USDe launch (Nov 2023)."
+						/>
+					</>
+				)}
+			</div>
+
+			{/* Chain Fees + Bribes Section */}
+			<SectionHeader title="Chain Fees & Bribes" />
 			<div className="grid grid-cols-2 gap-4">
 				{kpis ? (
 					<>
