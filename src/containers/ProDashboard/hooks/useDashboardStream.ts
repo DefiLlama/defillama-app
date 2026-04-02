@@ -189,11 +189,9 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 
 					case 'rwaChainAssetsTableData':
 						if (chunk.data && chunk.chain) {
-							queryClient.setQueryData(
-								['pro-dashboard', 'rwa-chain-assets-table', chunk.chain],
-								chunk.data,
-								{ updatedAt: now }
-							)
+							queryClient.setQueryData(['pro-dashboard', 'rwa-chain-assets-table', chunk.chain], chunk.data, {
+								updatedAt: now
+							})
 						}
 						break
 

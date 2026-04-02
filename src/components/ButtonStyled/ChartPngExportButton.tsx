@@ -836,7 +836,7 @@ export function ChartPngExportButton({
 				<button
 					data-umami-event="export-image"
 					data-umami-event-page={router.pathname}
-					className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-(--link-hover-bg) transition-colors"
+					className="flex items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-(--link-hover-bg)"
 					onClick={() => void handleDownload()}
 				>
 					<Icon name="download-paper" height={14} width={14} />
@@ -845,7 +845,7 @@ export function ChartPngExportButton({
 				<button
 					data-umami-event="copy-image"
 					data-umami-event-page={router.pathname}
-					className="flex items-center gap-2 px-3 py-2 text-xs hover:bg-(--link-hover-bg) transition-colors"
+					className="flex items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-(--link-hover-bg)"
 					onClick={() => void handleCopyToClipboard()}
 				>
 					<Icon name="copy" height={14} width={14} />

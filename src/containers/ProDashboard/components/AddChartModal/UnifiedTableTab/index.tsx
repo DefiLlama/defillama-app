@@ -21,6 +21,10 @@ import type {
 	UnifiedTableConfig
 } from '~/containers/ProDashboard/types'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
+import { AriakitVirtualizedSelect } from '../../AriakitVirtualizedSelect'
+import { RWAAssetsDataset } from '../../datasets/RWADataset/RWAAssetsDataset'
+import { RWAChainAssetsDataset } from '../../datasets/RWADataset/RWAChainAssetsDataset'
+import { RWAChainsDataset } from '../../datasets/RWADataset/RWAChainsDataset'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
 import { getOrderedCustomColumnIds } from '../../UnifiedTable/utils/customColumns'
@@ -35,10 +39,6 @@ import { FiltersPanel } from './components/FiltersPanel'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
-import { AriakitVirtualizedSelect } from '../../AriakitVirtualizedSelect'
-import { RWAAssetsDataset } from '../../datasets/RWADataset/RWAAssetsDataset'
-import { RWAChainsDataset } from '../../datasets/RWADataset/RWAChainsDataset'
-import { RWAChainAssetsDataset } from '../../datasets/RWADataset/RWAChainAssetsDataset'
 import { SimpleTableConfig } from './components/SimpleTableConfig'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
@@ -123,7 +123,15 @@ const sortingEqual = (a: SortingState, b: SortingState) => {
 	})
 }
 
-type TableTypeCardIcon = 'layers' | 'trending-up' | 'credit-card' | 'chain' | 'dollar-sign' | 'pie-chart' | 'flame' | 'landmark'
+type TableTypeCardIcon =
+	| 'layers'
+	| 'trending-up'
+	| 'credit-card'
+	| 'chain'
+	| 'dollar-sign'
+	| 'pie-chart'
+	| 'flame'
+	| 'landmark'
 
 const TABLE_TYPE_CARDS: Array<{
 	value: CombinedTableType
