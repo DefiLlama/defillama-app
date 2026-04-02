@@ -8,6 +8,7 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
+import { LLAMASWAP_CHAINS } from '~/constants/chains'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { getErrorMessage } from '~/utils/error'
@@ -24,7 +25,7 @@ import type {
 	DenominationPriceHistory,
 	GeckoIdResponse,
 	IResponseCGMarketsAPI,
-	LlamaswapChain,
+	ExtendedLlamaswapChain,
 	ProtocolLlamaswapResponse,
 	LlamaConfigResponse,
 	PriceObject,
@@ -368,11 +369,18 @@ export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTo
 }
 
 /** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */
-export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<LlamaswapChain[] | null> {
+export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<ExtendedLlamaswapChain[] | null> {
 	if (!geckoId) return null
 
 	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}`)
-		.then((data) => (Array.isArray(data?.chains) && data.chains.length > 0 ? data.chains : null))
+		.then((data) =>
+			Array.isArray(data?.chains) && data.chains.length > 0
+				? data.chains.map((chain) => ({
+						...chain,
+						displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
+					}))
+				: null
+		)
 		.catch(() => null)
 }
 

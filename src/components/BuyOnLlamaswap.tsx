@@ -1,15 +1,15 @@
 import * as Ariakit from '@ariakit/react'
-import type { LlamaswapChain } from '~/api/types'
+import type { ExtendedLlamaswapChain } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-function buildSwapUrl(chain: Pick<LlamaswapChain, 'chain' | 'address'>) {
+function buildSwapUrl(chain: Pick<ExtendedLlamaswapChain, 'chain' | 'address'>) {
 	return `https://swap.defillama.com/?chain=${chain.chain}&from=${ZERO_ADDRESS}&to=${chain.address}&tab=swap&ref=defillama`
 }
 
-export function BuyOnLlamaswap({ chains }: { chains?: LlamaswapChain[] | null }) {
+export function BuyOnLlamaswap({ chains }: { chains?: ExtendedLlamaswapChain[] | null }) {
 	if (!chains?.length) return null
 
 	const sorted = [...chains].sort((a, b) => a.priceImpact - b.priceImpact)
@@ -54,8 +54,8 @@ export function BuyOnLlamaswap({ chains }: { chains?: LlamaswapChain[] | null })
 						rel="noreferrer noopener"
 						className="flex items-center gap-2.5 px-3 py-2 text-xs last-of-type:rounded-b-lg hover:bg-(--primary-hover)"
 					>
-						<TokenLogo name={chain.chain} kind="chain" size={18} />
-						<span className="capitalize">{chain.chain}</span>
+						<TokenLogo name={chain.displayName} kind="chain" size={18} />
+						<span className="capitalize">{chain.displayName}</span>
 						{chain === sorted[0] ? (
 							<span className="ml-auto rounded-full bg-(--primary)/10 px-1.5 py-0.5 text-[10px] text-(--primary)">
 								Best
