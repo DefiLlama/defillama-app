@@ -673,6 +673,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		cursor: number | null
 		isLoadingMore: boolean
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
 	const abortControllerRef = useRef<AbortController | null>(null)
@@ -939,66 +940,70 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				// server — the server buffer was pruned after DB save and only contains {done}.
 				const hasNewEvents = eventCount != null && buffer.receivedEventCount < eventCount
 				if (status === 'completed' && hasResult && hasNewEvents) {
-					try {
-						setViewError(null)
-						dispatchStream({ type: 'SET_ERROR', value: null })
-						dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
-						dispatchStream({ type: 'RESET_RECOVERY' })
-						if (resetStream) {
-							dispatchStream({ type: 'START_STREAM' })
-							currentMessageIdRef.current = null
+					setViewError(null)
+					dispatchStream({ type: 'SET_ERROR', value: null })
+					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+					dispatchStream({ type: 'RESET_RECOVERY' })
+					if (resetStream) {
+						dispatchStream({ type: 'START_STREAM' })
+						currentMessageIdRef.current = null
+					}
+					const replayRequestId = beginRequest(
+						activeRequestIdRef,
+						activeRequestKindRef,
+						activeSessionIdRef,
+						'resume',
+						targetSessionId
+					)
+					const replayController = new AbortController()
+					abortControllerRef.current = replayController
+					const replaySettleState = createRequestSettleState(replayRequestId)
+					activeRequestSettleRef.current = replaySettleState
+					const replayCallbacks = createAgenticCallbacks({
+						requestId: replayRequestId,
+						activeRequestIdRef,
+						buffer,
+						dispatch: dispatchStream,
+						currentMessageIdRef,
+						toolCallIdRef,
+						appendMessage,
+						notify,
+						onTokenLimit: () => setShowTokenLimitModal(true),
+						onTitle: (title) => {
+							setSessionTitle(title)
+							updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+							moveSessionToTop(targetSessionId)
 						}
-						const replayRequestId = beginRequest(
-							activeRequestIdRef,
-							activeRequestKindRef,
-							activeSessionIdRef,
-							'resume',
-							targetSessionId
-						)
-						const replayController = new AbortController()
-						abortControllerRef.current = replayController
-						const replaySettleState = createRequestSettleState(replayRequestId)
-						activeRequestSettleRef.current = replaySettleState
-						const replayCallbacks = createAgenticCallbacks({
-							requestId: replayRequestId,
-							activeRequestIdRef,
-							buffer,
-							dispatch: dispatchStream,
-							currentMessageIdRef,
-							toolCallIdRef,
-							appendMessage,
-							notify,
-							onTokenLimit: () => setShowTokenLimitModal(true),
-							onTitle: (title) => {
-								setSessionTitle(title)
-								updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
-								moveSessionToTop(targetSessionId)
+					})
+					const replayEventCounter = { count: buffer.receivedEventCount }
+					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
+
+					return resumeAgenticStream({
+						sessionId: targetSessionId,
+						callbacks: replayCallbacks,
+						abortSignal: replayController.signal,
+						fetchFn: authorizedFetchCompat,
+						from: replayFrom,
+						eventCounter: replayEventCounter
+					})
+						.then(() => true)
+						.catch(() => {
+							// Buffer expired — reset streaming state so the UI doesn't get stuck.
+							if (resetStream) {
+								dispatchStream({ type: 'RESET_STREAM' })
+							}
+							return false
+						})
+						.finally(() => {
+							if (abortControllerRef.current === replayController) {
+								abortControllerRef.current = null
+							}
+							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
+							replaySettleState.resolve()
+							if (activeRequestSettleRef.current?.requestId === replayRequestId) {
+								activeRequestSettleRef.current = null
 							}
 						})
-						const replayEventCounter = { count: buffer.receivedEventCount }
-						return await resumeAgenticStream({
-							sessionId: targetSessionId,
-							callbacks: replayCallbacks,
-							abortSignal: replayController.signal,
-							fetchFn: authorizedFetchCompat,
-							from: buffer.receivedEventCount || undefined,
-							eventCounter: replayEventCounter
-						})
-							.then(() => true)
-							.finally(() => {
-								if (abortControllerRef.current === replayController) {
-									abortControllerRef.current = null
-								}
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
-								replaySettleState.resolve()
-								if (activeRequestSettleRef.current?.requestId === replayRequestId) {
-									activeRequestSettleRef.current = null
-								}
-							})
-					} catch {
-						// Buffer expired — reset streaming state so the UI doesn't get stuck
-						if (resetStream) dispatchStream({ type: 'RESET_STREAM' })
-					}
 				}
 				return false
 			}
@@ -1102,6 +1107,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
 
 			setMessages(restored)
+			setConversationViewResetKey((current) => current + 1)
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
@@ -1323,6 +1329,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		await abortActiveRequest()
 		clearConversationRuntimeState()
 		setMessages([])
+		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
 		restoredSessionIdRef.current = null
@@ -1811,6 +1818,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							</div>
 							<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 								<ConversationView
+									key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 									readOnly={readOnly}
 									messages={effectiveMessages}
 									sessionId={effectiveSessionId}
@@ -1866,6 +1874,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						/>
 					) : (
 						<ConversationView
+							key={`conversation-${conversationViewResetKey}`}
 							readOnly={readOnly}
 							messages={effectiveMessages}
 							sessionId={effectiveSessionId}

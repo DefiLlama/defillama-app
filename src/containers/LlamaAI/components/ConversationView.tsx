@@ -1,4 +1,4 @@
-import { useEffect, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react'
+import { useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -62,6 +62,10 @@ interface ConversationViewProps {
 // Keep the active exchange tall enough that scrolling to its bottom places the
 // submitted prompt slightly below the top edge on both mobile and desktop.
 const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
+
+function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, Message | null] {
+	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
+}
 
 function ConversationMessageItem({
 	message,
@@ -241,15 +245,11 @@ export function ConversationView({
 	onClearQuotedText,
 	onTableFullscreenOpen
 }: ConversationViewProps) {
-	// Track whether streaming occurred in this session so the spacer persists
-	// after the response finishes, keeping the user message pinned near the top.
-	const hadStreamingRef = useRef(false)
-	if (isStreaming) hadStreamingRef.current = true
-	useEffect(() => {
-		hadStreamingRef.current = false
-	}, [sessionId])
-
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
+	const [initialTailSnapshot] = useState(() => getMessageTailSnapshot(messages))
+	const currentTailSnapshot = getMessageTailSnapshot(messages)
+	const hasTailChangedSinceMount =
+		currentTailSnapshot[0] !== initialTailSnapshot[0] || currentTailSnapshot[1] !== initialTailSnapshot[1]
 
 	// Find the last user message index for the exchange spacer
 	const lastUserIndex = (() => {
@@ -265,7 +265,7 @@ export function ConversationView({
 	const shouldSpaceLastExchange =
 		!readOnly &&
 		lastUserIndex >= 0 &&
-		(isLiveExchange ? messages[messages.length - 1]?.role === 'user' : hadStreamingRef.current)
+		(isLiveExchange ? messages[messages.length - 1]?.role === 'user' : hasTailChangedSinceMount)
 
 	const lastExchangeMessages = shouldSpaceLastExchange ? messages.slice(lastUserIndex) : []
 	const renderedMessages = shouldSpaceLastExchange ? messages.slice(0, lastUserIndex) : messages
