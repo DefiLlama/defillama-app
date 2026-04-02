@@ -5,12 +5,14 @@ import {
 	YIELD_CHART_LEND_BORROW_API,
 	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
+	YIELD_HOLDERS_API,
 	YIELD_POOLS_API,
 	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
+import type { HolderHistoryEntry, HolderStatsMap } from './holderTypes'
 import { formatYieldsPageData } from './utils'
 
 // single pool
@@ -111,6 +113,63 @@ export const useVolatility = () => {
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isAuthenticated && !!hasActiveSubscription
+	})
+}
+
+export const useHolderStats = (configIDs?: string[]) => {
+	return useQuery<HolderStatsMap, unknown, HolderStatsMap>({
+		queryKey: ['holder-stats'],
+		queryFn: async () => {
+			const res = await fetchJson(YIELD_HOLDERS_API)
+			const raw = res?.data ?? {}
+			const result: HolderStatsMap = {}
+			for (const [id, entry] of Object.entries(raw)) {
+				const e = entry as any
+				result[id] = {
+					holderCount: e.holderCount ?? null,
+					avgPositionUsd: e.avgPositionUsd != null ? Number(e.avgPositionUsd) : null,
+					top10Pct: e.top10Pct != null ? Number(e.top10Pct) : null,
+					top10Holders: e.top10Holders?.holders ?? null,
+					tokenDecimals: e.top10Holders?.decimals ?? null,
+					holderChange7d: e.holderChange7d ?? null,
+					holderChange30d: e.holderChange30d ?? null
+				}
+			}
+			return result
+		},
+		select: configIDs
+			? (data) => {
+					const ids = new Set(configIDs)
+					const filtered: HolderStatsMap = {}
+					for (const id of ids) {
+						if (data[id]) filtered[id] = data[id]
+					}
+					return filtered
+				}
+			: undefined,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1
+	})
+}
+
+export const useHolderHistory = (configID: string | null) => {
+	return useQuery<HolderHistoryEntry[]>({
+		queryKey: ['holder-history', configID],
+		queryFn: async () => {
+			const res = await fetchJson(`${YIELD_HOLDERS_API}/${configID}`)
+			return (res?.data ?? []).map((row: any) => ({
+				timestamp: row.timestamp,
+				holderCount: row.holderCount ?? null,
+				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
+				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null,
+				top10Holders: row.top10Holders?.holders ?? null
+			}))
+		},
+		staleTime: Infinity,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!configID
 	})
 }
 

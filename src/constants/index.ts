@@ -88,6 +88,7 @@ export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
 export const YIELD_URL_API = `${YIELDS_SERVER_URL}/url`
 export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
+export const YIELD_HOLDERS_API = '/api/datasets/holders'
 
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
