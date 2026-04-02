@@ -2,7 +2,6 @@ import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { useLlamaAILandingVisited } from '~/contexts/LocalStorage'
 import { useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import { DesktopNav } from './Desktop'
@@ -88,9 +87,8 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const [hasVisitedLanding] = useLlamaAILandingVisited()
-	const shouldSkipLanding = hasActiveSubscription || (isAuthenticated && hasVisitedLanding)
+	const { isAuthenticated } = useAuthContext()
+	const shouldSkipLanding = isAuthenticated
 
 	const mainLinks = useMemo(() => {
 		const premium = premiumPages.map((p) => {

@@ -7,7 +7,6 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { useLlamaAILandingVisited } from '~/contexts/LocalStorage'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -39,8 +38,7 @@ interface ISearchItem {
 export const MobileSearch = () => {
 	const isClient = useIsClient()
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const [hasVisitedLanding] = useLlamaAILandingVisited()
-	const shouldSkipLanding = hasActiveSubscription || (isAuthenticated && hasVisitedLanding)
+	const shouldSkipLanding = isAuthenticated
 
 	const [searchValue, setSearchValue] = useState('')
 	const [mounted, setMounted] = useState(false)
@@ -176,8 +174,7 @@ function getPreHydrationInputValue() {
 export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boolean }) => {
 	const isClient = useIsClient()
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const [hasVisitedLanding] = useLlamaAILandingVisited()
-	const shouldSkipLanding = hasActiveSubscription || (isAuthenticated && hasVisitedLanding)
+	const shouldSkipLanding = isAuthenticated
 
 	const inputField = useRef<HTMLInputElement>(null)
 
