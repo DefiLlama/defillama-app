@@ -462,6 +462,9 @@ export interface ProtocolsTableConfig {
 		| 'bridge-aggregators'
 		| 'trending-contracts'
 		| 'chains'
+		| 'rwa'
+		| 'rwa-chains'
+		| 'rwa-selected-chain'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean

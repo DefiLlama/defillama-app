@@ -171,6 +171,32 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 						}
 						break
 
+					case 'rwaAssetsTableData':
+						if (chunk.data) {
+							queryClient.setQueryData(['pro-dashboard', 'rwa-assets-table'], chunk.data, {
+								updatedAt: now
+							})
+						}
+						break
+
+					case 'rwaChainsTableData':
+						if (chunk.data) {
+							queryClient.setQueryData(['pro-dashboard', 'rwa-chains-table'], chunk.data, {
+								updatedAt: now
+							})
+						}
+						break
+
+					case 'rwaChainAssetsTableData':
+						if (chunk.data && chunk.chain) {
+							queryClient.setQueryData(
+								['pro-dashboard', 'rwa-chain-assets-table', chunk.chain],
+								chunk.data,
+								{ updatedAt: now }
+							)
+						}
+						break
+
 					case 'emissionData':
 						if (chunk.key && chunk.data) {
 							try {

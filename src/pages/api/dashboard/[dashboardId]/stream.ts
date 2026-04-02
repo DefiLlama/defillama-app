@@ -439,6 +439,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			}
 		}
 
+		// RWA table data — stream assets list and/or stats
+		const hasRwaAssetsTable = items.some(
+			(item: any) => item.kind === 'table' && (item.datasetType === 'rwa' || item.datasetType === 'rwa-selected-chain')
+		)
+		const hasRwaChainsTable = items.some((item: any) => item.kind === 'table' && item.datasetType === 'rwa-chains')
+		const rwaSelectedChainItems = items.filter(
+			(item: any) => item.kind === 'table' && item.datasetType === 'rwa-selected-chain'
+		)
+
+		if (hasRwaAssetsTable || rwaSelectedChainItems.length > 0) {
+			phase2Promises.push(
+				(async () => {
+					const { fetchRWAActiveTVLs: fetchAssets } = await import('~/containers/RWA/api')
+					const data = await withTimeout(fetchAssets(), 10_000)
+					if (data) {
+						writeLine({ type: 'rwaAssetsTableData', data })
+						for (const item of rwaSelectedChainItems) {
+							const chain = (item as any).datasetChain
+							if (chain) {
+								writeLine({ type: 'rwaChainAssetsTableData', chain, data })
+							}
+						}
+					}
+				})().catch(() => {})
+			)
+		}
+
+		if (hasRwaChainsTable) {
+			phase2Promises.push(
+				(async () => {
+					const { fetchRWAStats: fetchStats } = await import('~/containers/RWA/api')
+					const data = await withTimeout(fetchStats(), 10_000)
+					if (data) {
+						writeLine({ type: 'rwaChainsTableData', data })
+					}
+				})().catch(() => {})
+			)
+		}
+
 		// Emission data — stream per task
 		const emissionTasks: Array<{
 			key: string

@@ -35,6 +35,10 @@ import { FiltersPanel } from './components/FiltersPanel'
 import { GroupingOptions } from './components/GroupingOptions'
 import { PresetPicker } from './components/PresetPicker'
 import { PresetSelector } from './components/PresetSelector'
+import { AriakitVirtualizedSelect } from '../../AriakitVirtualizedSelect'
+import { RWAAssetsDataset } from '../../datasets/RWADataset/RWAAssetsDataset'
+import { RWAChainsDataset } from '../../datasets/RWADataset/RWAChainsDataset'
+import { RWAChainAssetsDataset } from '../../datasets/RWADataset/RWAChainAssetsDataset'
 import { SimpleTableConfig } from './components/SimpleTableConfig'
 import { usePresetRecommendations } from './hooks/usePresetRecommendations'
 import type { FilterPreset } from './presets/filterPresets'
@@ -119,7 +123,7 @@ const sortingEqual = (a: SortingState, b: SortingState) => {
 	})
 }
 
-type TableTypeCardIcon = 'layers' | 'trending-up' | 'credit-card' | 'chain' | 'dollar-sign' | 'pie-chart' | 'flame'
+type TableTypeCardIcon = 'layers' | 'trending-up' | 'credit-card' | 'chain' | 'dollar-sign' | 'pie-chart' | 'flame' | 'landmark'
 
 const TABLE_TYPE_CARDS: Array<{
 	value: CombinedTableType
@@ -177,7 +181,22 @@ const TABLE_TYPE_CARDS: Array<{
 		description: 'Most active smart contracts by transactions and gas usage',
 		icon: 'flame',
 		tags: ['Transactions', 'Gas']
+	},
+	{
+		value: 'rwa',
+		label: 'RWA',
+		description: 'Real World Assets overview and chain breakdown',
+		icon: 'landmark',
+		tags: ['Active Mcap', 'Onchain Mcap', 'DeFi TVL']
 	}
+]
+
+const RWA_TABLE_TYPES: CombinedTableType[] = ['rwa', 'rwa-chains', 'rwa-selected-chain']
+
+const RWA_TABS: Array<{ value: CombinedTableType; label: string }> = [
+	{ value: 'rwa-chains', label: 'By Chain' },
+	{ value: 'rwa', label: 'Assets' },
+	{ value: 'rwa-selected-chain', label: 'On Chain' }
 ]
 
 function TabContent({
@@ -232,7 +251,9 @@ function TabContent({
 	})
 	const isEditing = Boolean(editItem)
 	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
+	const isRwaType = RWA_TABLE_TYPES.includes(selectedTableType)
 	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
+	const [showRwaSelector, setShowRwaSelector] = useState(isEditing && isRwaType)
 
 	const initialTab = useMemo<TabKey>(() => {
 		if (focusedSectionOnly === 'filters') return 'filters'
@@ -661,8 +682,80 @@ function TabContent({
 		}
 		onTableTypeChange(type)
 		setShowTypeSelector(false)
+		setShowRwaSelector(false)
 	}
-	const handleBackToTypeSelector = useCallback(() => setShowTypeSelector(true), [setShowTypeSelector])
+
+	const handleRwaTabChange = (type: CombinedTableType) => {
+		onTableTypeChange(type)
+		if (type === 'rwa-selected-chain' && (!selectedDatasetChain || selectedDatasetChain === 'All')) {
+			onDatasetChainChange('Ethereum')
+		}
+	}
+
+	const handleBackToTypeSelector = useCallback(() => {
+		setShowTypeSelector(true)
+		setShowRwaSelector(false)
+	}, [])
+
+	if (showRwaSelector) {
+		const activeRwaTab = RWA_TABLE_TYPES.includes(selectedTableType) ? selectedTableType : 'rwa-chains'
+
+		return (
+			<div className="flex h-full flex-col gap-4 p-4">
+				<button
+					type="button"
+					onClick={handleBackToTypeSelector}
+					className="flex items-center gap-1 text-sm pro-text2 transition-colors hover:pro-text1"
+				>
+					<span>←</span>
+					<span>Back to table type selection</span>
+				</button>
+
+				<div className="flex items-center gap-1.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1">
+					{RWA_TABS.map((tab) => {
+						const isActive = tab.value === activeRwaTab
+						return (
+							<button
+								key={tab.value}
+								type="button"
+								onClick={() => handleRwaTabChange(tab.value)}
+								className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
+									isActive
+										? 'bg-(--primary)/10 text-(--text-primary) shadow-sm ring-1 ring-(--primary)/60'
+										: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+								}`}
+							>
+								{tab.label}
+							</button>
+						)
+					})}
+				</div>
+
+				{activeRwaTab === 'rwa-selected-chain' ? (
+					<AriakitVirtualizedSelect
+						label="Select Chain"
+						options={chainOptions.filter((o) => o.value !== 'All')}
+						selectedValue={selectedDatasetChain}
+						onChange={(option) => onDatasetChainChange(option.value)}
+						placeholder="Select chain..."
+						isLoading={protocolsLoading}
+					/>
+				) : null}
+
+				<div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)">
+					<div className="h-full overflow-auto">
+						{activeRwaTab === 'rwa-chains' ? (
+							<RWAChainsDataset />
+						) : activeRwaTab === 'rwa' ? (
+							<RWAAssetsDataset />
+						) : (
+							<RWAChainAssetsDataset chain={selectedDatasetChain || 'Ethereum'} />
+						)}
+					</div>
+				</div>
+			</div>
+		)
+	}
 
 	if (showTypeSelector) {
 		const heroCard = TABLE_TYPE_CARDS[0]
@@ -706,12 +799,27 @@ function TabContent({
 					<span className="mb-2.5 block text-xs font-medium tracking-wide pro-text2 uppercase">Other datasets</span>
 					<div className="grid grid-cols-2 gap-2">
 						{otherCards.map((card) => {
-							const isProLocked = card.value === 'token-usage' && !hasActiveSubscription
+							const isProLocked = (card.value === 'token-usage' || card.value === 'rwa') && !hasActiveSubscription
+							const isRwa = card.value === 'rwa'
+
 							return (
 								<button
 									key={card.value}
 									type="button"
-									onClick={() => handleSelectTableType(card.value)}
+									onClick={() => {
+										if (isProLocked) {
+											setSignupSource('pro-dashboard')
+											subscribeModalStore.show()
+											return
+										}
+										if (isRwa) {
+											onTableTypeChange('rwa-chains')
+											setShowRwaSelector(true)
+											setShowTypeSelector(false)
+										} else {
+											handleSelectTableType(card.value)
+										}
+									}}
 									className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
 								>
 									<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">

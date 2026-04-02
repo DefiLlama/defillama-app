@@ -639,6 +639,31 @@ export function useModalActions(
 						datasetChain: state.selectedDatasetChain,
 						chains: []
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'rwa') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'rwa',
+						chains: []
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'rwa-chains') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'rwa-chains',
+						chains: []
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'rwa-selected-chain' && state.selectedDatasetChain) {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'rwa-selected-chain',
+						datasetChain: state.selectedDatasetChain,
+						chains: [state.selectedDatasetChain]
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -899,6 +924,12 @@ export function useModalActions(
 					)
 				} else if (state.selectedTableType === 'chains') {
 					handleAddTable([], 'dataset', 'chains', state.selectedDatasetChain)
+				} else if (state.selectedTableType === 'rwa') {
+					handleAddTable([], 'dataset', 'rwa')
+				} else if (state.selectedTableType === 'rwa-chains') {
+					handleAddTable([], 'dataset', 'rwa-chains')
+				} else if (state.selectedTableType === 'rwa-selected-chain' && state.selectedDatasetChain) {
+					handleAddTable([state.selectedDatasetChain], 'dataset', 'rwa-selected-chain', state.selectedDatasetChain)
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

@@ -22,7 +22,10 @@ const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
 	'token-usage',
 	'yields',
 	'trending-contracts',
-	'chains'
+	'chains',
+	'rwa',
+	'rwa-chains',
+	'rwa-selected-chain'
 ]
 const PRIMARY_TABLE_TYPES_SET = new Set(PRIMARY_TABLE_TYPES)
 

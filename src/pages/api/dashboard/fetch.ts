@@ -170,6 +170,11 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 			return withTimeout(fetchRWAActiveTVLs(), FETCH_TIMEOUT)
 		}
 
+		case 'rwaStats': {
+			const { fetchRWAStats } = await import('~/containers/RWA/api')
+			return withTimeout(fetchRWAStats(), FETCH_TIMEOUT)
+		}
+
 		case 'stablecoinsList': {
 			return withTimeout(fetchStablecoinAssetsApi(), FETCH_TIMEOUT)
 		}
