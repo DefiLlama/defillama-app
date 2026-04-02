@@ -933,9 +933,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				dispatchStream({ type: 'SET_ERROR', value: checkError.message })
 				return false
 			}
-			const { active, status, hasResult } = activeExecution
+			const { active, status, hasResult, eventCount } = activeExecution
 			if (!active) {
-				if (status === 'completed' && hasResult) {
+				// Skip replay when the client buffer already has all (or more) events than the
+				// server — the server buffer was pruned after DB save and only contains {done}.
+				const hasNewEvents = eventCount != null && buffer.receivedEventCount < eventCount
+				if (status === 'completed' && hasResult && hasNewEvents) {
 					try {
 						setViewError(null)
 						dispatchStream({ type: 'SET_ERROR', value: null })
@@ -1344,7 +1347,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
-			const { restored: restoredOk } = await restoreSessionSnapshot(selectedSessionId, requestId)
+			const { restored: restoredOk, recoveredResponse } = await restoreSessionSnapshot(selectedSessionId, requestId)
 
 			if (!restoredOk) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1359,6 +1362,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setRestoringSessionId(null)
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+
+			// Skip resume when the restored snapshot already contains the assistant response —
+			// the session is complete and calling /stream would be a redundant replay.
+			if (recoveredResponse) {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return
+			}
 
 			const didResume = await resumeRunningExecution({
 				targetSessionId: selectedSessionId,
