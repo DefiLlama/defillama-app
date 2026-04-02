@@ -5,85 +5,10 @@ import { useId, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
-import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
+import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscription/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { PROMO_EMAILS_TEXT } from './constants'
-
-export const SignInModal = ({
-	text,
-	className,
-	showOnlyAuthDialog = false,
-	pendingActionMessage,
-	defaultFlow = 'signin',
-	hideLoader = false
-}: {
-	text?: string
-	className?: string
-	showOnlyAuthDialog?: boolean
-	pendingActionMessage?: string
-	defaultFlow?: 'signin' | 'signup' | 'forgot'
-	hideLoader?: boolean
-}) => {
-	const dialogStore = Ariakit.useDialogStore({ defaultOpen: showOnlyAuthDialog })
-
-	const { isAuthenticated, loaders } = useAuthContext()
-
-	if (loaders.userLoading) {
-		if (hideLoader) {
-			return null
-		}
-		return <LocalLoader />
-	}
-
-	if (isAuthenticated) {
-		return null
-	}
-
-	return (
-		<>
-			{showOnlyAuthDialog ? null : (
-				<button
-					className={
-						className ??
-						'mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-3.5 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed'
-					}
-					onClick={dialogStore.toggle}
-					suppressHydrationWarning
-				>
-					{text && text.includes('GitHub') ? (
-						<>
-							<Icon name="github" height={18} width={18} className="mr-2 inline-block" />
-							{text}
-						</>
-					) : (
-						(text ?? 'Sign In')
-					)}
-				</button>
-			)}
-
-			<Ariakit.Dialog
-				store={dialogStore}
-				hideOnInteractOutside={!showOnlyAuthDialog}
-				className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
-				style={{
-					backgroundImage: 'radial-gradient(circle at center, rgba(92, 92, 249, 0.05), transparent 80%)'
-				}}
-				unmountOnHide
-			>
-				<SignInForm
-					key={`signin-${defaultFlow}`}
-					text={text}
-					showOnlyAuthDialog={showOnlyAuthDialog}
-					pendingActionMessage={pendingActionMessage}
-					defaultFlow={defaultFlow}
-					dialogStore={dialogStore}
-				/>
-			</Ariakit.Dialog>
-		</>
-	)
-}
 
 export const SignInForm = ({
 	text: _text,

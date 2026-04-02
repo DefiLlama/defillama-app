@@ -1,8 +1,8 @@
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { PaymentButton } from '~/containers/Subscribtion/Crypto'
-import { SignInModal } from '~/containers/Subscribtion/SignIn'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { PaymentButton } from '~/containers/Subscription/Crypto'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))

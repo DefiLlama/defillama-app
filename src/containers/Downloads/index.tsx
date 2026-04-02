@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { TrialCsvLimitModal } from '~/components/TrialCsvLimitModal'
 import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import {
 	chartDatasets,
 	chartDatasetCategories,

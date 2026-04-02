@@ -9,7 +9,7 @@ import Script from 'next/script'
 import NProgress from 'nprogress'
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
+import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
 const LlamaAIFloatingButton = lazy(() =>

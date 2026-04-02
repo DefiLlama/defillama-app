@@ -6,8 +6,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard, SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { SignInModal } from './SignIn'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 
 export function SubscribeLayout({
 	children,
@@ -44,7 +44,7 @@ export function SubscribeLayout({
 							{!isAuthenticated ? (
 								<SignInModal
 									className="rounded-lg bg-[#5C5CF9] px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#4A4AF0]"
-									hideLoader
+									hideWhenAuthenticated={false}
 								/>
 							) : (
 								<Ariakit.MenuProvider open={isMenuOpen} setOpen={setIsMenuOpen}>

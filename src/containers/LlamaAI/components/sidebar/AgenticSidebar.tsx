@@ -20,7 +20,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
-import { useAiBalance } from '~/containers/Subscribtion/useTopup'
+import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))

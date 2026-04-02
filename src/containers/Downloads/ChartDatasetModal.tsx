@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { downloadCSV } from '~/utils/download'
 import type { ChartDatasetDefinition } from './chart-datasets'
 

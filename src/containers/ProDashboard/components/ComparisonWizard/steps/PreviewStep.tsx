@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { CHART_TYPES, type MetricAggregator, type MetricWindow } from '../../../types'
 import { AriakitCheckbox } from '../../AriakitCheckbox'

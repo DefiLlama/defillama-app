@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
