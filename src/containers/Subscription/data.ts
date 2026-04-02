@@ -213,19 +213,19 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 				title: 'API Access',
 				items: [
 					{
-						label: 'Access to TVL, revenue/fees and prices API endpoints',
-						availability: 'check'
-					},
-					{
 						label: 'Access to all data (unlocks, active users, token liq...)',
 						availability: 'check'
 					},
-					{ label: 'Priority support', availability: 'check' },
+					{
+						label: 'Access to TVL, revenue/fees and prices API endpoints',
+						availability: 'check'
+					},
 					{
 						label: 'Access to DefiLlama MCP Server for AI agents',
 						link: '/mcp',
 						availability: 'check'
 					},
+					{ label: 'Priority support', availability: 'check' },
 					{ label: '1000 requests/minute', availability: 'check' },
 					{ label: '1M calls/month', availability: 'check' },
 					{
