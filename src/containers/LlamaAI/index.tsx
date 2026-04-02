@@ -1985,10 +1985,18 @@ const ChatControls = memo(function ChatControls({
 	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const { balance, totalAvailable } = useAiBalance()
 
-	const tooltipParts = ['Open Chat History']
-	if (sessionTitle) tooltipParts.push(sessionTitle)
-	if (balance) tooltipParts.push(`$${totalAvailable.toFixed(2)}`)
-	const tooltipContent = tooltipParts.join(' | ')
+	const tooltipContent =
+		sessionTitle || balance ? (
+			<div className="flex items-center gap-3">
+				<span>Open</span>
+				<div className="flex flex-col items-end text-right">
+					{sessionTitle ? <span>{sessionTitle}</span> : null}
+					{balance ? <span>${totalAvailable.toFixed(2)}</span> : null}
+				</div>
+			</div>
+		) : (
+			'Open Chat History'
+		)
 
 	return (
 		<div className="llamaai-chat-controls">
