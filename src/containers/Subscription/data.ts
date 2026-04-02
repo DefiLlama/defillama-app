@@ -40,7 +40,8 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 					},
 					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
 					{ label: 'Token unlock schedules', availability: 'check' },
-					{ label: 'Funding rounds & raises', availability: 'check' }
+					{ label: 'Funding rounds & raises', availability: 'check' },
+					{ label: 'LlamaAI: Free tier (1/day + 1 research every 2 weeks)', link: '/ai', availability: 'check' }
 				]
 			}
 		],
@@ -161,7 +162,8 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 					},
 					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
 					{ label: 'Token unlock schedules', availability: 'check' },
-					{ label: 'Funding rounds & raises', availability: 'check' }
+					{ label: 'Funding rounds & raises', availability: 'check' },
+					{ label: 'LlamaAI: Free tier (1/day + 1 research every 2 weeks)', link: '/ai', availability: 'check' }
 				]
 			}
 		],
@@ -211,19 +213,19 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 				title: 'API Access',
 				items: [
 					{
-						label: 'Access to TVL, revenue/fees and prices API endpoints',
-						availability: 'check'
-					},
-					{
 						label: 'Access to all data (unlocks, active users, token liq...)',
 						availability: 'check'
 					},
-					{ label: 'Priority support', availability: 'check' },
+					{
+						label: 'Access to TVL, revenue/fees and prices API endpoints',
+						availability: 'check'
+					},
 					{
 						label: 'Access to DefiLlama MCP Server for AI agents',
 						link: '/mcp',
 						availability: 'check'
 					},
+					{ label: 'Priority support', availability: 'check' },
 					{ label: '1000 requests/minute', availability: 'check' },
 					{ label: '1M calls/month', availability: 'check' },
 					{
@@ -320,7 +322,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 				label: 'LlamaAI: Conversational Analytics',
 				link: '/ai',
 				values: {
-					free: 'dash',
+					free: 'check',
 					pro: 'check',
 					api: 'check',
 					enterprise: 'check'

@@ -1,4 +1,5 @@
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscription/auth'
 
 export interface CSVExport {
 	id: string
@@ -13,6 +14,28 @@ interface CSVExportArtifactProps {
 }
 
 export function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
+	const { hasActiveSubscription } = useAuthContext()
+
+	if (!hasActiveSubscription) {
+		return (
+			<div className="flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 opacity-60 dark:border-[#222324] dark:bg-[#181A1C]">
+				<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+					<Icon name="file-text" className="h-5 w-5 text-gray-400" />
+				</span>
+				<span className="flex min-w-0 flex-1 flex-col gap-0.5">
+					<span className="m-0 truncate text-sm font-medium text-(--text1)">{csvExport.title}</span>
+					<span className="m-0 text-xs text-(--text3)">CSV exports require a subscription</span>
+				</span>
+				<a
+					href="https://defillama.com/subscription"
+					className="flex shrink-0 items-center gap-1.5 rounded-md bg-[#2172E5] px-2.5 py-1 text-xs font-medium text-white hover:bg-[#1a5bbf]"
+				>
+					Subscribe
+				</a>
+			</div>
+		)
+	}
+
 	return (
 		<a
 			href={csvExport.url}

@@ -45,7 +45,8 @@ interface ConversationViewProps {
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>,
-		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
+		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
+		isSuggestedQuestion?: boolean
 	) => void
 	handleStopRequest: () => void
 	handleActionClick: (message: string) => void

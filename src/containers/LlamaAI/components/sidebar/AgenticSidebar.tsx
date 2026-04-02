@@ -20,6 +20,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -147,6 +148,7 @@ export function AgenticSidebar({
 	const [selectMode, setSelectMode] = useState(false)
 	const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set())
 	const { balance, totalAvailable } = useAiBalance()
+	const { hasActiveSubscription } = useAuthContext()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 	const [searchQuery, setSearchQuery] = useState('')
 	const deferredSearchQuery = useDeferredValue(searchQuery)
@@ -441,8 +443,12 @@ export function AgenticSidebar({
 
 			{balance ? (
 				<Tooltip
-					content="Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more."
-					render={<button type="button" onClick={() => setIsTopupModalOpen(true)} />}
+					content={
+						hasActiveSubscription
+							? 'Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more.'
+							: 'Subscribe to a plan to top up your external data balance.'
+					}
+					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
 					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
 				>
 					<div className="flex min-w-0 items-center gap-2">

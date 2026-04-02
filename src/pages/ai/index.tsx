@@ -11,6 +11,7 @@ import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/
 import type { LandingQuestion } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { useLlamaAILandingVisited } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -96,7 +97,7 @@ function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: Landing
 					Try LlamaAI for free
 				</h2>
 				<p className="text-sm text-[#666] dark:text-[#919296]">
-					Pick a question below to get a full AI-powered answer — 3 free per day.{' '}
+					Free mode: 3 suggested questions + 1 free-form question per day, 1 research report every 14 days.{' '}
 					{isAuthenticated ? null : (
 						<>
 							<button
@@ -149,7 +150,7 @@ const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
 				centered ? 'text-center' : 'text-center md:text-left'
 			)}
 		>
-			7-day free trial available
+			Free to use — 7-day Pro trial available
 		</p>
 	)
 }
@@ -362,8 +363,14 @@ export const getStaticProps = withPerformanceLogging('ai', async () => {
 
 export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestions?: LandingQuestion[] }) {
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+	const [, markLandingVisited] = useLlamaAILandingVisited()
+	const { isAuthenticated } = useAuthContext()
 
 	const isClient = useIsClient()
+
+	useEffect(() => {
+		if (isAuthenticated) markLandingVisited()
+	}, [isAuthenticated, markLandingVisited])
 
 	return (
 		<>
