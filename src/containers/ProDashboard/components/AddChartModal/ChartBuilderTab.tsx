@@ -385,7 +385,8 @@ export function ChartBuilderTab({
 				formatter: function (params: any) {
 					const rawTimestamp = params[0].value[0]
 					const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
-					const chartdate = new Date(millis).toLocaleDateString()
+					const _d = new Date(millis)
+					const chartdate = `${_d.getUTCDate().toString().padStart(2, '0')} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][_d.getUTCMonth()]} ${_d.getUTCFullYear()}`
 
 					let filteredParams = params.filter(
 						(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined

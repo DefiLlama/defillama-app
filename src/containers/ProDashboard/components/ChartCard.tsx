@@ -172,7 +172,10 @@ export function ChartCard({ chart }: ChartCardProps) {
 	const handleCsvExport = () => {
 		if (!processedData || processedData.length === 0) return
 		const headers = ['Date', `${itemName} ${chartTypeDetails.title}`]
-		const rows = processedData.map(([timestamp, value]) => [new Date(Number(timestamp)).toLocaleDateString(), value])
+		const rows = processedData.map(([timestamp, value]) => [
+			new Date(Number(timestamp)).toISOString().slice(0, 10),
+			value
+		])
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
 		const fileName = `${itemName}_${chartTypeDetails.title.replace(/\s+/g, '_')}_${
 			new Date().toISOString().split('T')[0]

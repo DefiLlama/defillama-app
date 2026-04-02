@@ -137,7 +137,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			case 'tvl-apy':
 				headers = ['Date', 'APY', 'TVL']
 				rows = currentChartData.map((el: any) => [
-					new Date(el.date * 1000).toLocaleDateString(),
+					new Date(el.date * 1000).toISOString().slice(0, 10),
 					el.APY ?? '',
 					el.TVL ?? ''
 				])
@@ -146,7 +146,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			case 'borrow-apy':
 				headers = ['Date', 'Base', 'Reward']
 				rows = currentChartData.map((el: any) => [
-					new Date(el.date * 1000).toLocaleDateString(),
+					new Date(el.date * 1000).toISOString().slice(0, 10),
 					el.Base ?? '',
 					el.Reward ?? ''
 				])
@@ -154,12 +154,12 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			case 'supply-apy-7d':
 			case 'net-borrow-apy':
 				headers = ['Date', 'APY']
-				rows = currentChartData.map((el: any) => [new Date(el[0] * 1000).toLocaleDateString(), el[1] ?? ''])
+				rows = currentChartData.map((el: any) => [new Date(el[0] * 1000).toISOString().slice(0, 10), el[1] ?? ''])
 				break
 			case 'pool-liquidity':
 				headers = ['Date', 'Supplied', 'Borrowed', 'Available']
 				rows = currentChartData.map((el: any) => [
-					new Date(el.date * 1000).toLocaleDateString(),
+					new Date(el.date * 1000).toISOString().slice(0, 10),
 					el.Supplied ?? '',
 					el.Borrowed ?? '',
 					el.Available ?? ''
@@ -168,7 +168,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 			default:
 				headers = ['Date', 'APY', 'TVL']
 				rows = currentChartData.map((el: any) => [
-					new Date(el.date * 1000).toLocaleDateString(),
+					new Date(el.date * 1000).toISOString().slice(0, 10),
 					el.APY ?? '',
 					el.TVL ?? ''
 				])
