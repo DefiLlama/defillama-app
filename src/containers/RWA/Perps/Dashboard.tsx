@@ -185,7 +185,7 @@ const overviewColumns = [
 		header: 'Max Leverage',
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
 		meta: { align: 'end' },
-		size: 122
+		size: 128
 	}),
 	overviewColumnHelper.accessor((row) => row.parentPlatform, {
 		id: 'parentPlatform',
@@ -197,13 +197,13 @@ const overviewColumns = [
 		id: 'marginAsset',
 		header: 'Margin Asset',
 		enableSorting: false,
-		size: 122
+		size: 132
 	}),
 	overviewColumnHelper.accessor((row) => row.settlementAsset, {
 		id: 'settlementAsset',
 		header: 'Settlement Asset',
 		enableSorting: false,
-		size: 136
+		size: 156
 	}),
 	overviewColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
@@ -325,7 +325,7 @@ const overviewColumns = [
 		header: 'Est. Protocol Fees All Time',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 200
+		size: 210
 	})
 ]
 
@@ -361,9 +361,9 @@ const venueColumns = [
 	}),
 	venueColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
 		id: 'baseAssetGroup',
-		header: 'Base Asset Group',
+		header: 'Asset Group',
 		enableSorting: false,
-		size: 180
+		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.assetClass, {
 		id: 'assetClass',
@@ -381,13 +381,13 @@ const venueColumns = [
 		id: 'marginAsset',
 		header: 'Margin Asset',
 		enableSorting: false,
-		size: 122
+		size: 132
 	}),
 	venueColumnHelper.accessor((row) => row.settlementAsset, {
 		id: 'settlementAsset',
 		header: 'Settlement Asset',
 		enableSorting: false,
-		size: 136
+		size: 156
 	}),
 	venueColumnHelper.accessor((row) => row.openInterest, {
 		id: 'openInterest',
@@ -436,7 +436,7 @@ const venueColumns = [
 		header: 'Max Leverage',
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
 		meta: { align: 'end' },
-		size: 122
+		size: 128
 	}),
 	venueColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
@@ -448,7 +448,7 @@ const venueColumns = [
 		id: 'accessModel',
 		header: 'Access Model',
 		enableSorting: false,
-		size: 134
+		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
