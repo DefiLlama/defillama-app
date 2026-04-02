@@ -5,6 +5,35 @@ import ChainCharts from '~/containers/ProDashboard/services/ChainCharts'
 
 const STALE_TIME = 10 * 60 * 1000
 
+export interface HoneyRevenueKpi {
+	value: number
+	formatted: string
+}
+
+export interface HoneyRevenueData {
+	honeySupply: HoneyRevenueKpi
+	susdeYield: {
+		current: HoneyRevenueKpi
+		avg30d: HoneyRevenueKpi
+		avgFromInception: HoneyRevenueKpi
+		lastUpdated: string
+	}
+	kpis: {
+		annualRevenueCurrent: HoneyRevenueKpi
+		annualRevenue30d: HoneyRevenueKpi
+		annualRevenueInception: HoneyRevenueKpi
+	}
+}
+
+export function useHoneyRevenueData() {
+	return useQuery<HoneyRevenueData>({
+		queryKey: ['berachain-honey-revenue'],
+		queryFn: () => fetch('/api/berachain/revenue').then((r) => r.json()),
+		staleTime: STALE_TIME,
+		refetchOnWindowFocus: false
+	})
+}
+
 export interface BerachainIncomeServerData {
 	chainFees: [number, number][]
 	bribes: [number, number][]
