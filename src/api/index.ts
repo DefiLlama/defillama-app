@@ -74,7 +74,7 @@ const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
 const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
-const PROTOCOL_LLAMASWAP_API_URL = 'https://d3g10bzo9rdluh.cloudfront.net/protocol-liquidity'
+const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
 const COINGECKO_TICKERS_PAGE_SIZE = 100
 
 // ---------------------------------------------------------------------------
@@ -500,11 +500,11 @@ export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTo
 export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<BuyOnLlamaswapChain[] | null> {
 	if (!geckoId) return null
 
-	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}`)
+	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}.json`)
 		.then((data) =>
 			Array.isArray(data?.chains) && data.chains.length > 0
 				? data.chains
-						.sort((a, b) => a.priceImpact - b.priceImpact)
+						.sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
 						.map((chain) => ({
 							chain: chain.chain,
 							address: chain.address,
