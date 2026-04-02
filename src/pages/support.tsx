@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import Script from 'next/script'
 import * as React from 'react'
 import toast from 'react-hot-toast'
-import { useUserHash } from '~/containers/Subscribtion/auth'
+import { useUserHash } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
 
 async function submitSupportRequest(formData: FormData) {

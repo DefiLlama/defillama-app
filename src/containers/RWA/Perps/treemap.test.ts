@@ -106,7 +106,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			],
 			metric: 'openInterest',
 			parentGrouping: 'venue',
-			nestedBy: 'coin'
+			nestedBy: 'contract'
 		})
 
 		expect(tree[0]).toMatchObject({
@@ -158,7 +158,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			],
 			metric: 'openInterest',
 			parentGrouping: 'assetClass',
-			nestedBy: 'coin'
+			nestedBy: 'contract'
 		})
 
 		expect(tree[0]).toMatchObject({
@@ -177,7 +177,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			],
 			metric: 'openInterest',
 			parentGrouping: 'baseAsset',
-			nestedBy: 'coin'
+			nestedBy: 'contract'
 		})
 
 		expect(tree[0]).toMatchObject({
@@ -220,7 +220,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			],
 			metric: 'openInterest',
 			parentGrouping: 'assetClass',
-			nestedBy: 'coin',
+			nestedBy: 'contract',
 			venueLabel: 'xyz'
 		})
 
@@ -240,7 +240,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			],
 			metric: 'openInterest',
 			parentGrouping: 'baseAsset',
-			nestedBy: 'coin',
+			nestedBy: 'contract',
 			venueLabel: 'xyz'
 		})
 
@@ -279,7 +279,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 				{ ...baseMarket, id: 'flx:gold', coin: 'flx:GOLD', venue: 'flx', referenceAsset: 'Gold', openInterest: 20 }
 			],
 			metric: 'openInterest',
-			parentGrouping: 'coin',
+			parentGrouping: 'contract',
 			nestedBy: 'none'
 		})
 
@@ -389,7 +389,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					}
 				],
 				metric: 'openInterest',
-				parentGrouping: 'coin',
+				parentGrouping: 'contract',
 				nestedBy: 'none'
 			})[0]
 		).toMatchObject({

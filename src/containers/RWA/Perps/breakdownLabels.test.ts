@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	UNKNOWN_BREAKDOWN_LABEL,
-	getRWAPerpsCoinBreakdownLabel,
+	getRWAPerpsContractBreakdownLabel,
 	getRWAPerpsOverviewBreakdownLabel,
 	getRWAPerpsOverviewSnapshotBreakdownLabel,
 	getRWAPerpsBaseAssetBreakdownLabel,
@@ -29,14 +29,14 @@ describe('breakdownLabels', () => {
 	})
 
 	it('falls back to unknown when the coin label is also missing', () => {
-		expect(getRWAPerpsCoinBreakdownLabel({ coin: '' })).toBe(UNKNOWN_BREAKDOWN_LABEL)
+		expect(getRWAPerpsContractBreakdownLabel({ coin: '' })).toBe(UNKNOWN_BREAKDOWN_LABEL)
 	})
 
 	it('resolves overview, venue, and shared labels consistently', () => {
 		expect(getRWAPerpsSharedBreakdownLabel(baseRow, 'venue')).toBe('xyz')
 		expect(getRWAPerpsOverviewBreakdownLabel(baseRow, 'baseAsset')).toBe('Meta')
 		expect(getRWAPerpsVenueBreakdownLabel(baseRow, 'assetClass')).toBe('Single stock synthetic perp')
-		expect(getRWAPerpsOverviewSnapshotBreakdownLabel({ ...baseRow, category: [], id: 'x' } as any, 'coin')).toBe(
+		expect(getRWAPerpsOverviewSnapshotBreakdownLabel({ ...baseRow, category: [], id: 'x' } as any, 'contract')).toBe(
 			'xyz:META'
 		)
 	})

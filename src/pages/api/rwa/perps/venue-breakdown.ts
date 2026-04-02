@@ -5,7 +5,7 @@ import type { IRWAPerpsVenueBreakdownRequest, RWAPerpsVenueBreakdown } from '~/c
 
 function parseBreakdown(value: string | string[] | undefined): RWAPerpsVenueBreakdown | null {
 	if (Array.isArray(value) || value == null) return null
-	if (value === 'baseAsset' || value === 'coin' || value === 'assetClass') {
+	if (value === 'baseAsset' || value === 'contract' || value === 'assetClass') {
 		return value
 	}
 

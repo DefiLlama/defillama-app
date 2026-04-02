@@ -37,6 +37,7 @@ describe('rwa perps overview page', () => {
 				openInterest: 1,
 				volume24h: 2,
 				markets: 3,
+				protocolFees24h: 4,
 				cumulativeFunding: 4
 			}
 		}

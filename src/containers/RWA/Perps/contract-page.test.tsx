@@ -1,13 +1,13 @@
 import type { ReactElement } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { IRWAPerpsCoinData } from './types'
+import type { IRWAPerpsContractData } from './types'
 
 afterEach(() => {
 	vi.clearAllMocks()
 	vi.resetModules()
 })
 
-function setupPageModule({ coins = ['xyz:META'], coinData = null }: { coins?: string[]; coinData?: unknown }) {
+function setupPageModule({ coins = ['xyz:META'], contractData = null }: { coins?: string[]; contractData?: unknown }) {
 	vi.doMock('~/constants', () => ({
 		SKIP_BUILD_STATIC_GENERATION: false
 	}))
@@ -21,11 +21,11 @@ function setupPageModule({ coins = ['xyz:META'], coinData = null }: { coins?: st
 			}
 		}
 	}))
-	vi.doMock('~/containers/RWA/Perps/Coin', () => ({
-		RWAPerpsCoinPage: () => null
+	vi.doMock('~/containers/RWA/Perps/Contract', () => ({
+		RWAPerpsContractPage: () => null
 	}))
 	vi.doMock('~/containers/RWA/Perps/queries', () => ({
-		getRWAPerpsCoinData: vi.fn().mockResolvedValue(coinData)
+		getRWAPerpsContractData: vi.fn().mockResolvedValue(contractData)
 	}))
 	vi.doMock('~/layout', () => ({
 		default: () => null
@@ -40,9 +40,9 @@ function setupPageModule({ coins = ['xyz:META'], coinData = null }: { coins?: st
 	return import('~/pages/rwa/perps/contract/[contract]')
 }
 
-const TEST_COIN: IRWAPerpsCoinData = {
-	coin: {
-		coin: 'xyz:META',
+const TEST_CONTRACT: IRWAPerpsContractData = {
+	contract: {
+		contract: 'xyz:META',
 		displayName: 'Meta',
 		venue: 'xyz',
 		baseAsset: 'Meta',
@@ -122,18 +122,18 @@ describe('rwa perps contract page', () => {
 	})
 
 	it('getStaticProps returns props for a known contract', async () => {
-		const page = await setupPageModule({ coins: ['xyz:META'], coinData: TEST_COIN })
+		const page = await setupPageModule({ coins: ['xyz:META'], contractData: TEST_CONTRACT })
 
 		await expect(page.getStaticProps({ params: { contract: 'xyz:META' } } as never)).resolves.toEqual({
-			props: { coin: TEST_COIN },
+			props: { contract: TEST_CONTRACT },
 			revalidate: 123
 		})
 	})
 
 	it('uses the raw contract identifier in the SEO title', async () => {
-		const page = await setupPageModule({ coins: ['xyz:META'], coinData: TEST_COIN })
+		const page = await setupPageModule({ coins: ['xyz:META'], contractData: TEST_CONTRACT })
 
-		const element = page.default({ coin: TEST_COIN } as never) as ReactElement<{ title: string }>
+		const element = page.default({ contract: TEST_CONTRACT } as never) as ReactElement<{ title: string }>
 
 		expect(element.props.title).toBe('xyz:META - RWA Perps Analytics - DefiLlama')
 	})

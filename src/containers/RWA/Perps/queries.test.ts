@@ -4,7 +4,7 @@ import {
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
 	hasEnoughTimeSeriesHistory,
 	getRWAPerpsBreakdownChartDataset,
-	getRWAPerpsCoinData,
+	getRWAPerpsContractData,
 	getRWAPerpsOverview,
 	getRWAPerpsVenueBreakdownChartDataset,
 	getRWAPerpsVenuePage,
@@ -14,7 +14,7 @@ import {
 import { buildRWAPerpsTreemapTreeData } from './treemap'
 
 const {
-	fetchRWAPerpsMarketsByCoin,
+	fetchRWAPerpsMarketsByContract,
 	fetchRWAPerpsMarketChart,
 	fetchRWAPerpsFundingHistory,
 	fetchRWAPerpsStats,
@@ -24,7 +24,7 @@ const {
 	fetchRWAPerpsList,
 	fetchRWAPerpsMarketsByVenue
 } = vi.hoisted(() => ({
-	fetchRWAPerpsMarketsByCoin: vi.fn(),
+	fetchRWAPerpsMarketsByContract: vi.fn(),
 	fetchRWAPerpsMarketChart: vi.fn(),
 	fetchRWAPerpsFundingHistory: vi.fn(),
 	fetchRWAPerpsStats: vi.fn(),
@@ -36,7 +36,7 @@ const {
 }))
 
 vi.mock('./api', () => ({
-	fetchRWAPerpsMarketsByCoin,
+	fetchRWAPerpsMarketsByContract,
 	fetchRWAPerpsMarketChart,
 	fetchRWAPerpsFundingHistory,
 	fetchRWAPerpsStats,
@@ -238,18 +238,18 @@ beforeEach(() => {
 	})
 })
 
-describe('getRWAPerpsCoinData', () => {
-	it('uses the raw coin identifier and returns a single matching market', async () => {
-		fetchRWAPerpsMarketsByCoin.mockResolvedValue([{ ...baseMarket, id: 'xyz:meta', venue: 'xyz' }])
+describe('getRWAPerpsContractData', () => {
+	it('uses the raw contract identifier and returns a single matching market', async () => {
+		fetchRWAPerpsMarketsByContract.mockResolvedValue([{ ...baseMarket, id: 'xyz:meta', venue: 'xyz' }])
 
-		const result = await getRWAPerpsCoinData({ coin: 'xyz:META' })
+		const result = await getRWAPerpsContractData({ contract: 'xyz:META' })
 
-		expect(fetchRWAPerpsMarketsByCoin).toHaveBeenCalledWith('xyz:META')
+		expect(fetchRWAPerpsMarketsByContract).toHaveBeenCalledWith('xyz:META')
 		expect(fetchRWAPerpsMarketChart).toHaveBeenCalledWith('xyz:meta')
 		expect(fetchRWAPerpsFundingHistory).toHaveBeenCalledWith('xyz:meta')
 		expect(result).toMatchObject({
-			coin: {
-				coin: 'xyz:META',
+			contract: {
+				contract: 'xyz:META',
 				displayName: 'Meta',
 				venue: 'xyz',
 				baseAsset: 'Meta',
@@ -278,33 +278,33 @@ describe('getRWAPerpsCoinData', () => {
 		})
 	})
 
-	it('returns null when the coin has no markets', async () => {
-		fetchRWAPerpsMarketsByCoin.mockResolvedValue([])
+	it('returns null when the contract has no markets', async () => {
+		fetchRWAPerpsMarketsByContract.mockResolvedValue([])
 
-		await expect(getRWAPerpsCoinData({ coin: 'xyz:MISSING' })).resolves.toBeNull()
+		await expect(getRWAPerpsContractData({ contract: 'xyz:MISSING' })).resolves.toBeNull()
 		expect(fetchRWAPerpsMarketChart).not.toHaveBeenCalled()
 		expect(fetchRWAPerpsFundingHistory).not.toHaveBeenCalled()
 	})
 
-	it('keeps the coin data when chart and funding fetches fail', async () => {
-		fetchRWAPerpsMarketsByCoin.mockResolvedValue([{ ...baseMarket, id: 'xyz:meta', venue: 'xyz' }])
+	it('keeps the contract data when chart and funding fetches fail', async () => {
+		fetchRWAPerpsMarketsByContract.mockResolvedValue([{ ...baseMarket, id: 'xyz:meta', venue: 'xyz' }])
 		fetchRWAPerpsMarketChart.mockRejectedValue(new Error('chart failed'))
 		fetchRWAPerpsFundingHistory.mockRejectedValue(new Error('funding failed'))
 
-		const result = await getRWAPerpsCoinData({ coin: 'xyz:META' })
+		const result = await getRWAPerpsContractData({ contract: 'xyz:META' })
 
-		expect(result?.coin.coin).toBe('xyz:META')
+		expect(result?.contract.contract).toBe('xyz:META')
 		expect(result?.marketChart).toBeNull()
 		expect(result?.fundingHistory).toBeNull()
 	})
 
-	it('returns null when multiple rows make the coin ambiguous', async () => {
-		fetchRWAPerpsMarketsByCoin.mockResolvedValue([
+	it('returns null when multiple rows make the contract ambiguous', async () => {
+		fetchRWAPerpsMarketsByContract.mockResolvedValue([
 			{ ...baseMarket, id: 'xyz:meta-1', coin: 'xyz:META' },
 			{ ...baseMarket, id: 'xyz:meta-2', coin: 'xyz:META' }
 		])
 
-		await expect(getRWAPerpsCoinData({ coin: 'xyz:META' })).resolves.toBeNull()
+		await expect(getRWAPerpsContractData({ contract: 'xyz:META' })).resolves.toBeNull()
 		expect(fetchRWAPerpsMarketChart).not.toHaveBeenCalled()
 		expect(fetchRWAPerpsFundingHistory).not.toHaveBeenCalled()
 	})
@@ -319,6 +319,7 @@ describe('perps overview queries', () => {
 				openInterest: 350,
 				volume24h: 200,
 				markets: 3,
+				protocolFees24h: 3,
 				cumulativeFunding: 111
 			},
 			markets: [{ id: 'xyz:nvda' }, { id: 'xyz:meta' }, { id: 'flx:gold' }]
@@ -362,10 +363,10 @@ describe('perps overview queries', () => {
 		})
 	})
 
-	it('builds regrouped overview time-series datasets for raw coins', async () => {
+	it('builds regrouped overview time-series datasets for raw contracts', async () => {
 		await expect(
 			getRWAPerpsBreakdownChartDataset({
-				breakdown: 'coin',
+				breakdown: 'contract',
 				key: 'markets'
 			})
 		).resolves.toEqual({
@@ -531,7 +532,7 @@ describe('perps overview helpers', () => {
 					{ ...baseMarket, id: 'xyz:meta', coin: 'xyz:META', referenceAsset: 'Meta' },
 					{ ...baseMarket, id: 'flx:meta', coin: 'flx:META', venue: 'flx', referenceAsset: 'Meta', openInterest: 80 }
 				],
-				breakdown: 'coin',
+				breakdown: 'contract',
 				key: 'openInterest'
 			})
 		).toEqual([
@@ -545,7 +546,7 @@ describe('perps overview helpers', () => {
 					{ ...baseMarket, id: 'xyz:meta', coin: 'xyz:META', referenceAsset: 'Meta' },
 					{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA', openInterest: 150 }
 				],
-				breakdown: 'coin',
+				breakdown: 'contract',
 				key: 'markets'
 			})
 		).toEqual([
@@ -634,7 +635,7 @@ describe('perps overview helpers', () => {
 		await expect(
 			getRWAPerpsVenueBreakdownChartDataset({
 				venue: 'xyz',
-				breakdown: 'coin',
+				breakdown: 'contract',
 				key: 'openInterest'
 			})
 		).resolves.toEqual({

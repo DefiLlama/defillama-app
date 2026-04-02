@@ -85,7 +85,7 @@ const venueColumnHelper = createColumnHelper<IRWAPerpsVenuePageData['markets'][n
 
 const overviewColumns = [
 	overviewColumnHelper.accessor((row) => row.coin, {
-		id: 'coin',
+		id: 'contract',
 		header: 'Contract',
 		enableSorting: false,
 		cell: (info) => (
@@ -105,7 +105,7 @@ const overviewColumns = [
 		id: 'baseAsset',
 		header: 'Base Asset',
 		enableSorting: false,
-		size: 180
+		size: 140
 	}),
 	overviewColumnHelper.accessor((row) => row.venue, {
 		id: 'venue',
@@ -118,202 +118,220 @@ const overviewColumns = [
 				{info.getValue()}
 			</BasicLink>
 		),
-		size: 120
+		size: 108
 	}),
 	overviewColumnHelper.accessor((row) => row.category.join(', '), {
 		id: 'category',
 		header: 'Category',
 		enableSorting: false,
-		size: 180
+		size: 132
+	}),
+	overviewColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
+		id: 'baseAssetGroup',
+		header: 'Asset Group',
+		enableSorting: false,
+		size: 136
 	}),
 	overviewColumnHelper.accessor((row) => row.assetClass, {
 		id: 'assetClass',
 		header: 'Asset Class',
 		enableSorting: false,
-		size: 220
+		size: 176
 	}),
 	overviewColumnHelper.accessor((row) => row.openInterest, {
 		id: 'openInterest',
 		header: 'Open Interest',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 160
+		size: 136
 	}),
 	overviewColumnHelper.accessor((row) => row.volume24h, {
 		id: 'volume24h',
 		header: '24h Volume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 160
+		size: 126
 	}),
 	overviewColumnHelper.accessor((row) => row.price, {
 		id: 'price',
 		header: 'Price',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 120
+		size: 88
 	}),
 	overviewColumnHelper.accessor((row) => row.priceChange24h, {
 		id: 'priceChange24h',
 		header: '24h Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: { align: 'end' },
-		size: 130
+		size: 118
 	}),
 	overviewColumnHelper.accessor((row) => row.fundingRate * 100, {
 		id: 'fundingRate',
-		header: 'Funding Rate',
+		header: 'Latest Funding Rate',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 130
+		size: 180
 	}),
 	overviewColumnHelper.accessor((row) => row.premium * 100, {
 		id: 'premium',
 		header: 'Premium',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 120
+		size: 108
 	}),
 	overviewColumnHelper.accessor((row) => row.maxLeverage, {
 		id: 'maxLeverage',
 		header: 'Max Leverage',
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
 		meta: { align: 'end' },
-		size: 120
+		size: 128
 	}),
 	overviewColumnHelper.accessor((row) => row.parentPlatform, {
 		id: 'parentPlatform',
 		header: 'Parent Platform',
 		enableSorting: false,
-		size: 180
+		size: 156
+	}),
+	overviewColumnHelper.accessor((row) => row.marginAsset, {
+		id: 'marginAsset',
+		header: 'Margin Asset',
+		enableSorting: false,
+		size: 132
+	}),
+	overviewColumnHelper.accessor((row) => row.settlementAsset, {
+		id: 'settlementAsset',
+		header: 'Settlement Asset',
+		enableSorting: false,
+		size: 156
 	}),
 	overviewColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
 		header: 'Issuer',
 		enableSorting: false,
-		size: 120
+		size: 96
 	}),
 	overviewColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
 		header: 'Oracle Provider',
 		enableSorting: false,
-		size: 240
+		size: 164
 	}),
 	overviewColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
 		header: 'RWA Classification',
 		enableSorting: false,
-		size: 180
+		size: 170
 	}),
 	overviewColumnHelper.accessor((row) => row.accessModel ?? '', {
 		id: 'accessModel',
 		header: 'Access Model',
 		enableSorting: false,
-		size: 150
+		size: 136
 	}),
 	overviewColumnHelper.accessor((row) => row.makerFeeRate * 100, {
 		id: 'makerFeeRate',
 		header: 'Maker Fee',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 120
+		size: 112
 	}),
 	overviewColumnHelper.accessor((row) => row.takerFeeRate * 100, {
 		id: 'takerFeeRate',
 		header: 'Taker Fee',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 120
+		size: 112
 	}),
 	overviewColumnHelper.accessor((row) => (row.deployerFeeShare == null ? null : row.deployerFeeShare * 100), {
 		id: 'deployerFeeShare',
 		header: 'Deployer Fee Share',
 		cell: (info) => (info.getValue() == null ? '-' : `${formattedNum(info.getValue(), false)}%`),
 		meta: { align: 'end' },
-		size: 170
+		size: 154
 	}),
 	overviewColumnHelper.accessor((row) => row.cumulativeFunding, {
 		id: 'cumulativeFunding',
-		header: 'Cumulative Funding',
+		header: 'Cum. Funding / Unit',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 170
+		size: 168
 	}),
 	overviewColumnHelper.accessor((row) => row.oraclePx, {
 		id: 'oraclePx',
 		header: 'Oracle Px',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 120
+		size: 92
 	}),
 	overviewColumnHelper.accessor((row) => row.midPx, {
 		id: 'midPx',
 		header: 'Mid Px',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 120
+		size: 88
 	}),
 	overviewColumnHelper.accessor((row) => row.prevDayPx, {
 		id: 'prevDayPx',
 		header: 'Prev Day Px',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 130
+		size: 116
 	}),
 	overviewColumnHelper.accessor((row) => row.volume7d, {
 		id: 'volume7d',
 		header: 'Volume 7d',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 140
+		size: 118
 	}),
 	overviewColumnHelper.accessor((row) => row.volume30d, {
 		id: 'volume30d',
 		header: 'Volume 30d',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 150
+		size: 126
 	}),
 	overviewColumnHelper.accessor((row) => row.volumeAllTime, {
 		id: 'volumeAllTime',
 		header: 'Volume All Time',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 170
+		size: 146
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees24h, {
 		id: 'estimatedProtocolFees24h',
-		header: 'Protocol Fees 24h',
+		header: 'Est. Protocol Fees 24h',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 170
+		size: 188
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees7d, {
 		id: 'estimatedProtocolFees7d',
-		header: 'Protocol Fees 7d',
+		header: 'Est. Protocol Fees 7d',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 170
+		size: 188
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees30d, {
 		id: 'estimatedProtocolFees30d',
-		header: 'Protocol Fees 30d',
+		header: 'Est. Protocol Fees 30d',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 180
+		size: 188
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFeesAllTime, {
 		id: 'estimatedProtocolFeesAllTime',
-		header: 'Protocol Fees All Time',
+		header: 'Est. Protocol Fees All Time',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 200
+		size: 210
 	})
 ]
 
 const venueColumns = [
 	venueColumnHelper.accessor((row) => row.coin, {
-		id: 'coin',
+		id: 'contract',
 		header: 'Contract',
 		enableSorting: false,
 		cell: (info) => (
@@ -333,130 +351,148 @@ const venueColumns = [
 		id: 'baseAsset',
 		header: 'Base Asset',
 		enableSorting: false,
-		size: 180
+		size: 140
 	}),
 	venueColumnHelper.accessor((row) => row.category.join(', '), {
 		id: 'category',
 		header: 'Category',
 		enableSorting: false,
-		size: 180
+		size: 132
+	}),
+	venueColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
+		id: 'baseAssetGroup',
+		header: 'Asset Group',
+		enableSorting: false,
+		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.assetClass, {
 		id: 'assetClass',
 		header: 'Asset Class',
 		enableSorting: false,
-		size: 220
+		size: 176
 	}),
 	venueColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
 		header: 'Issuer',
 		enableSorting: false,
-		size: 120
+		size: 96
+	}),
+	venueColumnHelper.accessor((row) => row.marginAsset, {
+		id: 'marginAsset',
+		header: 'Margin Asset',
+		enableSorting: false,
+		size: 132
+	}),
+	venueColumnHelper.accessor((row) => row.settlementAsset, {
+		id: 'settlementAsset',
+		header: 'Settlement Asset',
+		enableSorting: false,
+		size: 156
 	}),
 	venueColumnHelper.accessor((row) => row.openInterest, {
 		id: 'openInterest',
 		header: 'Open Interest',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 160
+		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.volume24h, {
 		id: 'volume24h',
 		header: '24h Volume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 160
+		size: 126
 	}),
 	venueColumnHelper.accessor((row) => row.price, {
 		id: 'price',
 		header: 'Price',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 120
+		size: 88
 	}),
 	venueColumnHelper.accessor((row) => row.priceChange24h, {
 		id: 'priceChange24h',
 		header: '24h Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: { align: 'end' },
-		size: 130
+		size: 118
 	}),
 	venueColumnHelper.accessor((row) => row.fundingRate * 100, {
 		id: 'fundingRate',
-		header: 'Funding Rate',
+		header: 'Latest Funding Rate',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 130
+		size: 180
 	}),
 	venueColumnHelper.accessor((row) => row.premium * 100, {
 		id: 'premium',
 		header: 'Premium',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 120
+		size: 108
 	}),
 	venueColumnHelper.accessor((row) => row.maxLeverage, {
 		id: 'maxLeverage',
 		header: 'Max Leverage',
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
 		meta: { align: 'end' },
-		size: 120
+		size: 128
 	}),
 	venueColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
 		header: 'RWA Classification',
 		enableSorting: false,
-		size: 180
+		size: 170
 	}),
 	venueColumnHelper.accessor((row) => row.accessModel ?? '', {
 		id: 'accessModel',
 		header: 'Access Model',
 		enableSorting: false,
-		size: 150
+		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
 		header: 'Oracle Provider',
 		enableSorting: false,
-		size: 240
+		size: 164
 	}),
 	venueColumnHelper.accessor((row) => row.makerFeeRate * 100, {
 		id: 'makerFeeRate',
 		header: 'Maker Fee',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 120
+		size: 112
 	}),
 	venueColumnHelper.accessor((row) => row.takerFeeRate * 100, {
 		id: 'takerFeeRate',
 		header: 'Taker Fee',
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
 		meta: { align: 'end' },
-		size: 120
+		size: 112
 	}),
 	venueColumnHelper.accessor((row) => row.cumulativeFunding, {
 		id: 'cumulativeFunding',
-		header: 'Cumulative Funding',
+		header: 'Cum. Funding / Unit',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 170
+		size: 168
 	}),
 	venueColumnHelper.accessor((row) => row.estimatedProtocolFees24h, {
 		id: 'estimatedProtocolFees24h',
-		header: 'Protocol Fees 24h',
+		header: 'Est. Protocol Fees 24h',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' },
-		size: 170
+		size: 188
 	})
 ]
 
 const overviewColumnVisibility: VisibilityState = {
 	category: false,
 	parentPlatform: false,
-	issuer: false,
+	marginAsset: false,
+	settlementAsset: false,
 	oracleProvider: false,
 	rwaClassification: false,
-	accessModel: false,
 	makerFeeRate: false,
 	takerFeeRate: false,
 	deployerFeeShare: false,
@@ -465,9 +501,7 @@ const overviewColumnVisibility: VisibilityState = {
 	midPx: false,
 	prevDayPx: false,
 	volume7d: false,
-	volume30d: false,
 	volumeAllTime: false,
-	estimatedProtocolFees24h: false,
 	estimatedProtocolFees7d: false,
 	estimatedProtocolFees30d: false,
 	estimatedProtocolFeesAllTime: false
@@ -476,12 +510,11 @@ const overviewColumnVisibility: VisibilityState = {
 const venueColumnVisibility: VisibilityState = {
 	category: false,
 	rwaClassification: false,
-	accessModel: false,
 	oracleProvider: false,
-	makerFeeRate: false,
-	takerFeeRate: false,
+	marginAsset: false,
+	settlementAsset: false,
 	cumulativeFunding: false,
-	estimatedProtocolFees24h: false
+	issuer: false
 }
 
 const StatCard = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -700,13 +733,13 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 					{ label: 'Total Open Interest', value: formattedNum(props.data.totals.openInterest, true) },
 					{ label: 'Total 24h Volume', value: formattedNum(props.data.totals.volume24h, true) },
 					{ label: 'Total Markets', value: formattedNum(props.data.totals.markets, false) },
-					{ label: 'Total Cumulative Funding', value: formattedNum(props.data.totals.cumulativeFunding, true) }
+					{ label: 'Est. Protocol Fees 24h', value: formattedNum(props.data.totals.protocolFees24h, true) }
 				]
 			: [
 					{ label: 'Open Interest', value: formattedNum(props.data.totals.openInterest, true) },
 					{ label: '24h Volume', value: formattedNum(props.data.totals.volume24h, true) },
 					{ label: 'Markets', value: formattedNum(props.data.totals.markets, false) },
-					{ label: 'Protocol Fees 24h', value: formattedNum(props.data.totals.protocolFees24h, true) }
+					{ label: 'Est. Protocol Fees 24h', value: formattedNum(props.data.totals.protocolFees24h, true) }
 				]
 
 	return (
@@ -859,7 +892,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				data={currentRows}
 				columns={props.mode === 'overview' ? overviewColumns : venueColumns}
 				placeholder={props.mode === 'overview' ? 'Search markets or assets...' : 'Search venue markets...'}
-				columnToSearch="coin"
+				columnToSearch="contract"
 				header={props.mode === 'overview' ? 'Markets Rankings' : `${props.data.venue} Markets`}
 				headingAs="h1"
 				sortingState={[{ id: 'openInterest', desc: true }]}

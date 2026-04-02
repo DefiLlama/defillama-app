@@ -6,8 +6,8 @@ interface IRWAPerpsNavLink {
 	to: string
 }
 
-interface IRWAPerpsCoinInfo {
-	coin: string
+interface IRWAPerpsContractInfo {
+	contract: string
 	displayName: string
 	venue: string
 	baseAsset: string | null
@@ -23,7 +23,7 @@ interface IRWAPerpsCoinInfo {
 	categories: string[]
 }
 
-export interface IRWAPerpsCoinFundingHistoryPoint {
+export interface IRWAPerpsContractFundingHistoryPoint {
 	timestamp: number
 	fundingRate: number
 	premium: number
@@ -31,29 +31,29 @@ export interface IRWAPerpsCoinFundingHistoryPoint {
 	fundingPayment: number
 }
 
-export type IRWAPerpsCoinMarketChartPoint = IRWAPerpsMarketChartPoint
+export type IRWAPerpsContractMarketChartPoint = IRWAPerpsMarketChartPoint
 
-export interface IRWAPerpsCoinData {
-	coin: IRWAPerpsCoinInfo
+export interface IRWAPerpsContractData {
+	contract: IRWAPerpsContractInfo
 	market: IRWAPerpsMarket
-	marketChart: IRWAPerpsCoinMarketChartPoint[] | null
-	fundingHistory: IRWAPerpsCoinFundingHistoryPoint[] | null
+	marketChart: IRWAPerpsContractMarketChartPoint[] | null
+	fundingHistory: IRWAPerpsContractFundingHistoryPoint[] | null
 }
 
 export type IRWAPerpsTimeSeriesRow = IRWAPerpsMarket | IRWAPerpsAggregateHistoricalPoint
 
 export type RWAPerpsChartMetricKey = 'openInterest' | 'volume24h' | 'markets'
 export type RWAPerpsChartView = 'timeSeries' | 'pie' | 'treemap' | 'hbar'
-export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'baseAsset' | 'coin'
+export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'baseAsset' | 'contract'
 
-export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
-export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
-export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
-export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'coin'
-export type RWAPerpsVenueBreakdown = 'baseAsset' | 'coin' | 'assetClass'
-export type RWAPerpsVenueTimeSeriesBreakdown = 'baseAsset' | 'coin' | 'assetClass'
-export type RWAPerpsVenueNonTimeSeriesBreakdown = 'baseAsset' | 'coin' | 'assetClass'
-export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'coin'
+export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsVenueBreakdown = 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsVenueTimeSeriesBreakdown = 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsVenueNonTimeSeriesBreakdown = 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'contract'
 export type RWAPerpsChartMode = 'overview' | 'venue'
 
 export interface IRWAPerpsOverviewBreakdownRequest {
@@ -74,6 +74,7 @@ export interface IRWAPerpsOverviewPageData {
 		openInterest: number
 		volume24h: number
 		markets: number
+		protocolFees24h: number
 		cumulativeFunding: number
 	}
 }

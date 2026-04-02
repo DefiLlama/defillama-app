@@ -41,7 +41,7 @@ export async function fetchRWAPerpsCurrent(): Promise<IRWAPerpsMarket[]> {
 }
 
 /**
- * Fetch the available coins, venues, and categories.
+ * Fetch the available contracts, venues, and categories.
  */
 export async function fetchRWAPerpsList(): Promise<IRWAPerpsListResponse> {
 	return fetchJson<IRWAPerpsListResponse>(`${RWA_PERPS_SERVER_URL}/list`)
@@ -55,14 +55,14 @@ export async function fetchRWAPerpsStats(): Promise<IRWAPerpsStatsResponse> {
 }
 
 /**
- * Fetch the coin and venue to market ID mapping.
+ * Fetch the contract and venue to market ID mapping.
  */
 export async function fetchRWAPerpsIdMap(): Promise<IRWAPerpsIdMapResponse> {
 	return fetchJson<IRWAPerpsIdMapResponse>(`${RWA_PERPS_SERVER_URL}/id-map`)
 }
 
 /**
- * Fetch a single market by its venue:coin ID.
+ * Fetch a single market by its venue:contract ID.
  */
 export async function fetchRWAPerpsMarketById(id: string): Promise<IRWAPerpsMarket> {
 	const encodedId = encodeRWAPerpsPathSegment(id)
@@ -70,11 +70,11 @@ export async function fetchRWAPerpsMarketById(id: string): Promise<IRWAPerpsMark
 }
 
 /**
- * Fetch all markets for a coin across venues.
+ * Fetch all markets for a contract across venues.
  */
-export async function fetchRWAPerpsMarketsByCoin(coin: string): Promise<IRWAPerpsMarket[]> {
-	const encodedCoin = encodeRWAPerpsPathSegment(coin)
-	return fetchJson<IRWAPerpsMarket[]>(`${RWA_PERPS_SERVER_URL}/coin/${encodedCoin}`)
+export async function fetchRWAPerpsMarketsByContract(contract: string): Promise<IRWAPerpsMarket[]> {
+	const encodedContract = encodeRWAPerpsPathSegment(contract)
+	return fetchJson<IRWAPerpsMarket[]>(`${RWA_PERPS_SERVER_URL}/coin/${encodedContract}`)
 }
 
 /**

@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { MCP_SERVER } from '~/constants'
 import type { ChatSession, ResearchUsage } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
 export interface SessionListData {

@@ -20,11 +20,11 @@ afterEach(() => {
 })
 
 describe('rwa perps api urls', () => {
-	it('encodes coin, venue, and market ids in request paths', async () => {
+	it('encodes contract, venue, and market ids in request paths', async () => {
 		const api = await import('./api')
 
 		await api.fetchRWAPerpsMarketById('xyz:META/2026')
-		await api.fetchRWAPerpsMarketsByCoin('xyz:META/2026')
+		await api.fetchRWAPerpsMarketsByContract('xyz:META/2026')
 		await api.fetchRWAPerpsMarketsByVenue('my venue')
 		await api.fetchRWAPerpsVenueChart('venue/one')
 

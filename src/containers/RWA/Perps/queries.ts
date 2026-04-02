@@ -5,7 +5,7 @@ import {
 	fetchRWAPerpsFundingHistory,
 	fetchRWAPerpsList,
 	fetchRWAPerpsMarketChart,
-	fetchRWAPerpsMarketsByCoin,
+	fetchRWAPerpsMarketsByContract,
 	fetchRWAPerpsMarketsByVenue,
 	fetchRWAPerpsStats,
 	fetchRWAPerpsVenueChart
@@ -23,9 +23,9 @@ import {
 	getRWAPerpsVenueBreakdownLabel
 } from './breakdownLabels'
 import type {
-	IRWAPerpsCoinData,
-	IRWAPerpsCoinFundingHistoryPoint,
-	IRWAPerpsCoinMarketChartPoint,
+	IRWAPerpsContractData,
+	IRWAPerpsContractFundingHistoryPoint,
+	IRWAPerpsContractMarketChartPoint,
 	IRWAPerpsOverviewPageData,
 	IRWAPerpsOverviewBreakdownRequest,
 	IRWAPerpsTimeSeriesRow,
@@ -78,7 +78,7 @@ function uniqueNonEmptyStrings(values: Array<string | null | undefined>): string
 	)
 }
 
-function normalizeMarketChart(points: IRWAPerpsMarketChartPoint[] | null): IRWAPerpsCoinMarketChartPoint[] | null {
+function normalizeMarketChart(points: IRWAPerpsMarketChartPoint[] | null): IRWAPerpsContractMarketChartPoint[] | null {
 	if (!points?.length) return null
 
 	return ensureChronologicalRows(
@@ -91,7 +91,7 @@ function normalizeMarketChart(points: IRWAPerpsMarketChartPoint[] | null): IRWAP
 
 function normalizeFundingHistory(
 	response: IRWAPerpsFundingHistoryResponse | null
-): IRWAPerpsCoinFundingHistoryPoint[] | null {
+): IRWAPerpsContractFundingHistoryPoint[] | null {
 	if (!response?.data?.length) return null
 
 	return ensureChronologicalRows(
@@ -105,8 +105,8 @@ function normalizeFundingHistory(
 	)
 }
 
-function resolveCoinMarket(markets: IRWAPerpsMarket[], coin: string): IRWAPerpsMarket | null {
-	const exactMatches = markets.filter((market) => market.coin === coin)
+function resolveContractMarket(markets: IRWAPerpsMarket[], contract: string): IRWAPerpsMarket | null {
+	const exactMatches = markets.filter((market) => market.coin === contract)
 	return exactMatches.length === 1 ? exactMatches[0] : null
 }
 
@@ -240,14 +240,18 @@ function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
 	return [...markets].sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
 }
 
-export async function getRWAPerpsCoinData({ coin }: { coin: string }): Promise<IRWAPerpsCoinData | null> {
+export async function getRWAPerpsContractData({
+	contract
+}: {
+	contract: string
+}): Promise<IRWAPerpsContractData | null> {
 	try {
-		const markets = await fetchRWAPerpsMarketsByCoin(coin)
+		const markets = await fetchRWAPerpsMarketsByContract(contract)
 		if (!markets?.length) {
 			return null
 		}
 
-		const market = resolveCoinMarket(markets, coin)
+		const market = resolveContractMarket(markets, contract)
 		if (!market) {
 			return null
 		}
@@ -264,9 +268,9 @@ export async function getRWAPerpsCoinData({ coin }: { coin: string }): Promise<I
 		const displayName = firstNonEmptyString([market.referenceAsset, market.coin.split(':')[1], market.coin])
 
 		return {
-			coin: {
-				coin,
-				displayName: displayName ?? coin,
+			contract: {
+				contract,
+				displayName: displayName ?? contract,
 				venue: market.venue,
 				baseAsset: firstNonEmptyString([market.referenceAsset]),
 				baseAssetGroup: firstNonEmptyString([market.referenceAssetGroup]),
@@ -285,7 +289,7 @@ export async function getRWAPerpsCoinData({ coin }: { coin: string }): Promise<I
 			fundingHistory
 		}
 	} catch (error) {
-		console.error(`[rwa-perps] getRWAPerpsCoinData failed for ${coin}:`, error)
+		console.error(`[rwa-perps] getRWAPerpsContractData failed for ${contract}:`, error)
 		return null
 	}
 }
@@ -397,6 +401,7 @@ export async function getRWAPerpsOverview(): Promise<IRWAPerpsOverviewPageData> 
 			openInterest: safeNumber(stats.totalOpenInterest),
 			volume24h: safeNumber(stats.totalVolume24h),
 			markets: safeNumber(stats.totalMarkets),
+			protocolFees24h: sumProtocolFees24h(current),
 			cumulativeFunding: safeNumber(stats.totalCumulativeFunding)
 		}
 	}
