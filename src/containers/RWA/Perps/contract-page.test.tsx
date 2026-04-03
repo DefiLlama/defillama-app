@@ -7,17 +7,23 @@ afterEach(() => {
 	vi.resetModules()
 })
 
-function setupPageModule({ coins = ['xyz:META'], contractData = null }: { coins?: string[]; contractData?: unknown }) {
+function setupPageModule({
+	contracts = ['xyz:META'],
+	contractData = null
+}: {
+	contracts?: string[]
+	contractData?: unknown
+}) {
 	vi.doMock('~/constants', () => ({
 		SKIP_BUILD_STATIC_GENERATION: false
 	}))
 	vi.doMock('~/utils/metadata', () => ({
 		default: {
 			rwaPerpsList: {
-				coins,
+				contracts,
 				venues: [],
 				categories: [],
-				total: coins.length
+				total: contracts.length
 			}
 		}
 	}))
@@ -60,7 +66,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 	market: {
 		id: 'xyz:meta',
 		timestamp: 1775011512,
-		coin: 'xyz:META',
+		contract: 'xyz:META',
 		venue: 'xyz',
 		openInterest: 100,
 		volume24h: 50,
@@ -71,14 +77,14 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		cumulativeFunding: 1,
 		referenceAsset: 'Meta',
 		referenceAssetGroup: 'Equities',
-		assetClass: 'Single stock synthetic perp',
+		assetClass: ['Single stock synthetic perp'],
 		parentPlatform: 'trade[XYZ]',
-		pair: '',
+		pair: null,
 		marginAsset: 'USDC',
 		settlementAsset: 'USDC',
 		category: ['RWA Perpetuals'],
 		issuer: 'XYZ',
-		website: 'https://trade.xyz/',
+		website: ['https://trade.xyz/'],
 		oracleProvider: 'Pyth',
 		description: null,
 		accessModel: 'Permissionless',
@@ -105,7 +111,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 
 describe('rwa perps contract page', () => {
 	it('getStaticPaths returns raw contract identifiers without slug conversion', async () => {
-		const page = await setupPageModule({ coins: ['xyz:META', 'km:NVDA'] })
+		const page = await setupPageModule({ contracts: ['xyz:META', 'km:NVDA'] })
 
 		await expect(page.getStaticPaths()).resolves.toEqual({
 			paths: [{ params: { contract: 'xyz:META' } }, { params: { contract: 'km:NVDA' } }],
@@ -114,7 +120,7 @@ describe('rwa perps contract page', () => {
 	})
 
 	it('getStaticProps returns notFound for unknown contracts', async () => {
-		const page = await setupPageModule({ coins: ['xyz:META'] })
+		const page = await setupPageModule({ contracts: ['xyz:META'] })
 
 		await expect(page.getStaticProps({ params: { contract: 'xyz:TSLA' } } as never)).resolves.toEqual({
 			notFound: true
@@ -122,7 +128,7 @@ describe('rwa perps contract page', () => {
 	})
 
 	it('getStaticProps returns props for a known contract', async () => {
-		const page = await setupPageModule({ coins: ['xyz:META'], contractData: TEST_CONTRACT })
+		const page = await setupPageModule({ contracts: ['xyz:META'], contractData: TEST_CONTRACT })
 
 		await expect(page.getStaticProps({ params: { contract: 'xyz:META' } } as never)).resolves.toEqual({
 			props: { contract: TEST_CONTRACT },
@@ -131,7 +137,7 @@ describe('rwa perps contract page', () => {
 	})
 
 	it('uses the raw contract identifier in the SEO title', async () => {
-		const page = await setupPageModule({ coins: ['xyz:META'], contractData: TEST_CONTRACT })
+		const page = await setupPageModule({ contracts: ['xyz:META'], contractData: TEST_CONTRACT })
 
 		const element = page.default({ contract: TEST_CONTRACT } as never) as ReactElement<{ title: string }>
 

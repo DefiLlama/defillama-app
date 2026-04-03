@@ -96,7 +96,7 @@ function formatMaybeNumber(value: number | null | undefined): string {
 }
 
 function formatTextValue(value: string | null | undefined): string | null {
-	return value && value.trim().length > 0 ? value : null
+	return value ?? null
 }
 
 export function formatRWAPerpsContractPriceChange(value: number | null | undefined): string | null {
@@ -198,7 +198,7 @@ export function buildRWAPerpsContractInfoRows(contractData: IRWAPerpsContractDat
 	const marketTimestampMs = toUnixMsTimestamp(contractData.market.timestamp)
 	const baseAsset = formatTextValue(contractData.contract.baseAsset)
 	const symbolSuffix = contractData.contract.contract.split(':')[1] ?? contractData.contract.contract
-	const shouldShowBaseAsset = baseAsset != null && baseAsset.trim().toLowerCase() !== symbolSuffix.trim().toLowerCase()
+	const shouldShowBaseAsset = baseAsset != null && baseAsset.toLowerCase() !== symbolSuffix.toLowerCase()
 
 	return [
 		{ label: 'Venue', value: contractData.contract.venue },

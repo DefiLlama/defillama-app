@@ -84,7 +84,7 @@ const overviewColumnHelper = createColumnHelper<IRWAPerpsOverviewPageData['marke
 const venueColumnHelper = createColumnHelper<IRWAPerpsVenuePageData['markets'][number]>()
 
 const overviewColumns = [
-	overviewColumnHelper.accessor((row) => row.coin, {
+	overviewColumnHelper.accessor((row) => row.contract, {
 		id: 'contract',
 		header: 'Contract',
 		enableSorting: false,
@@ -92,10 +92,10 @@ const overviewColumns = [
 			<span className="flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 				<BasicLink
-					href={`/rwa/perps/contract/${encodeURIComponent(info.row.original.coin)}`}
+					href={`/rwa/perps/contract/${encodeURIComponent(info.row.original.contract)}`}
 					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 				>
-					{info.row.original.coin}
+					{info.row.original.contract}
 				</BasicLink>
 			</span>
 		),
@@ -120,7 +120,7 @@ const overviewColumns = [
 		),
 		size: 108
 	}),
-	overviewColumnHelper.accessor((row) => row.category.join(', '), {
+	overviewColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
 		id: 'category',
 		header: 'Category',
 		enableSorting: false,
@@ -132,7 +132,7 @@ const overviewColumns = [
 		enableSorting: false,
 		size: 136
 	}),
-	overviewColumnHelper.accessor((row) => row.assetClass, {
+	overviewColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
 		id: 'assetClass',
 		header: 'Asset Class',
 		enableSorting: false,
@@ -330,7 +330,7 @@ const overviewColumns = [
 ]
 
 const venueColumns = [
-	venueColumnHelper.accessor((row) => row.coin, {
+	venueColumnHelper.accessor((row) => row.contract, {
 		id: 'contract',
 		header: 'Contract',
 		enableSorting: false,
@@ -338,10 +338,10 @@ const venueColumns = [
 			<span className="flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 				<BasicLink
-					href={`/rwa/perps/contract/${encodeURIComponent(info.row.original.coin)}`}
+					href={`/rwa/perps/contract/${encodeURIComponent(info.row.original.contract)}`}
 					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 				>
-					{info.row.original.coin}
+					{info.row.original.contract}
 				</BasicLink>
 			</span>
 		),
@@ -353,7 +353,7 @@ const venueColumns = [
 		enableSorting: false,
 		size: 140
 	}),
-	venueColumnHelper.accessor((row) => row.category.join(', '), {
+	venueColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
 		id: 'category',
 		header: 'Category',
 		enableSorting: false,
@@ -365,7 +365,7 @@ const venueColumns = [
 		enableSorting: false,
 		size: 136
 	}),
-	venueColumnHelper.accessor((row) => row.assetClass, {
+	venueColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
 		id: 'assetClass',
 		header: 'Asset Class',
 		enableSorting: false,

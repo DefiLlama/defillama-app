@@ -204,7 +204,7 @@ export async function fetchCoreMetadata(): Promise<{
 			idMap: {}
 		}),
 		fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
-			coins: [],
+			contracts: [],
 			venues: [],
 			categories: [],
 			total: 0

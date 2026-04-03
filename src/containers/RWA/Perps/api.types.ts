@@ -1,7 +1,7 @@
 export interface IRWAPerpsMarket {
 	id: string
 	timestamp: number
-	coin: string
+	contract: string
 	venue: string
 	openInterest: number
 	volume24h: number
@@ -10,23 +10,23 @@ export interface IRWAPerpsMarket {
 	fundingRate: number
 	premium: number
 	cumulativeFunding: number
-	referenceAsset: string
-	referenceAssetGroup: string
-	assetClass: string
-	parentPlatform: string
-	pair: string
-	marginAsset: string
-	settlementAsset: string
-	category: string[]
-	issuer?: string | null
-	website?: string | null
-	oracleProvider?: string | null
-	description?: string | null
-	accessModel?: string
+	referenceAsset: string | null
+	referenceAssetGroup: string | null
+	assetClass: string[] | null
+	parentPlatform: string | null
+	pair: string | null
+	marginAsset: string | null
+	settlementAsset: string | null
+	category: string[] | null
+	issuer: string | null
+	website: string[] | null
+	oracleProvider: string | null
+	description: string | null
+	accessModel: string | null
 	rwaClassification: string | null
 	makerFeeRate: number
 	takerFeeRate: number
-	deployerFeeShare?: number
+	deployerFeeShare: number
 	oraclePx: number
 	midPx: number
 	prevDayPx: number
@@ -44,10 +44,10 @@ export interface IRWAPerpsMarket {
 export interface IRWAPerpsAggregateHistoricalPoint {
 	timestamp: number
 	id: string
-	coin: string
+	contract: string
 	venue: string
-	referenceAsset: string
-	assetClass: string
+	referenceAsset: string | null
+	assetClass: string[] | null
 	category: string[]
 	openInterest: number
 	volume24h: number
@@ -65,7 +65,7 @@ export interface IRWAPerpsMarketChartPoint {
 }
 
 export interface IRWAPerpsListResponse {
-	coins: string[]
+	contracts: string[]
 	venues: string[]
 	categories: string[]
 	total: number
@@ -89,27 +89,16 @@ export interface IRWAPerpsStatsResponse {
 
 export type IRWAPerpsIdMapResponse = Record<string, string>
 
-export interface IRWAPerpsMarketListResponse {
-	data: IRWAPerpsMarket[]
-	total: number
-}
-
 export interface IRWAPerpsFundingHistoryPoint {
 	timestamp: number
 	id: string
-	coin: string
+	contract: string
 	venue: string
 	funding_rate: string
 	premium: string
 	open_interest: string
 	funding_payment: string
 	created_at: string
-}
-
-export interface IRWAPerpsFundingHistoryResponse {
-	id: string
-	data: IRWAPerpsFundingHistoryPoint[]
-	total: number
 }
 
 export interface IRWAPerpsFundingHistoryParams {

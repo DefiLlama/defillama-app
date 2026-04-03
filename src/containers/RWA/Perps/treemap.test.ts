@@ -4,7 +4,7 @@ import { buildRWAPerpsTreemapTreeData } from './treemap'
 const baseMarket = {
 	id: 'xyz:meta',
 	timestamp: 1775011512,
-	coin: 'xyz:META',
+	contract: 'xyz:META',
 	venue: 'xyz',
 	openInterest: 100,
 	volume24h: 50,
@@ -15,14 +15,14 @@ const baseMarket = {
 	cumulativeFunding: 10,
 	referenceAsset: 'Meta',
 	referenceAssetGroup: 'Equities',
-	assetClass: 'Single stock synthetic perp',
+	assetClass: ['Single stock synthetic perp'],
 	parentPlatform: 'trade[XYZ]',
 	pair: '',
 	marginAsset: 'USDC',
 	settlementAsset: 'USDC',
 	category: ['RWA Perpetuals'],
 	issuer: 'XYZ',
-	website: 'https://trade.xyz/',
+	website: ['https://trade.xyz/'],
 	oracleProvider: 'Pyth equity feed',
 	description: 'Perpetual market',
 	accessModel: 'Permissionless',
@@ -49,23 +49,23 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
-				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', assetClass: 'Single stock synthetic perp' },
+				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', assetClass: ['Single stock synthetic perp'] },
 				{
 					...baseMarket,
 					id: 'xyz:gold',
-					coin: 'xyz:GOLD',
+					contract: 'xyz:GOLD',
 					referenceAsset: 'Gold',
 					venue: 'xyz',
-					assetClass: 'Commodity synthetic perp',
+					assetClass: ['Commodity synthetic perp'],
 					openInterest: 50
 				},
 				{
 					...baseMarket,
 					id: 'flx:tsla',
-					coin: 'flx:TSLA',
+					contract: 'flx:TSLA',
 					referenceAsset: 'Tesla',
 					venue: 'flx',
-					assetClass: 'Single stock synthetic perp',
+					assetClass: ['Single stock synthetic perp'],
 					openInterest: 75
 				}
 			],
@@ -84,7 +84,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		])
 	})
 
-	it('builds overview nested tree data by venue -> coin', () => {
+	it('builds overview nested tree data by venue -> contract', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
@@ -93,12 +93,12 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					id: 'xyz:meta',
 					venue: 'xyz',
 					referenceAsset: 'Meta',
-					coin: 'xyz:META'
+					contract: 'xyz:META'
 				},
 				{
 					...baseMarket,
 					id: 'flx:nvda',
-					coin: 'flx:NVDA',
+					contract: 'flx:NVDA',
 					venue: 'flx',
 					referenceAsset: 'NVIDIA',
 					openInterest: 150
@@ -121,7 +121,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			mode: 'overview',
 			markets: [
 				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz' },
-				{ ...baseMarket, id: 'flx:gold', coin: 'flx:GOLD', referenceAsset: 'Gold', venue: 'flx', openInterest: 50 }
+				{ ...baseMarket, id: 'flx:gold', contract: 'flx:GOLD', referenceAsset: 'Gold', venue: 'flx', openInterest: 50 }
 			],
 			metric: 'openInterest',
 			parentGrouping: 'venue',
@@ -134,7 +134,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		])
 	})
 
-	it('builds overview nested tree data by asset class -> coin', () => {
+	it('builds overview nested tree data by asset class -> contract', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
@@ -142,16 +142,16 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					...baseMarket,
 					id: 'xyz:meta',
 					venue: 'xyz',
-					assetClass: 'Single stock synthetic perp',
+					assetClass: ['Single stock synthetic perp'],
 					referenceAsset: 'Meta',
-					coin: 'xyz:META'
+					contract: 'xyz:META'
 				},
 				{
 					...baseMarket,
 					id: 'xyz:nvda',
-					coin: 'xyz:NVDA',
+					contract: 'xyz:NVDA',
 					venue: 'xyz',
-					assetClass: 'Single stock synthetic perp',
+					assetClass: ['Single stock synthetic perp'],
 					referenceAsset: 'NVIDIA',
 					openInterest: 150
 				}
@@ -168,12 +168,12 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:NVDA', 'xyz:META'])
 	})
 
-	it('builds overview nested tree data by reference asset -> coin', () => {
+	it('builds overview nested tree data by reference asset -> contract', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
-				{ ...baseMarket, id: 'xyz:meta', coin: 'xyz:META', referenceAsset: 'Meta', openInterest: 100 },
-				{ ...baseMarket, id: 'flx:meta', coin: 'flx:META', venue: 'flx', referenceAsset: 'Meta', openInterest: 80 }
+				{ ...baseMarket, id: 'xyz:meta', contract: 'xyz:META', referenceAsset: 'Meta', openInterest: 100 },
+				{ ...baseMarket, id: 'flx:meta', contract: 'flx:META', venue: 'flx', referenceAsset: 'Meta', openInterest: 80 }
 			],
 			metric: 'openInterest',
 			parentGrouping: 'baseAsset',
@@ -187,7 +187,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:META', 'flx:META'])
 	})
 
-	it('builds venue detail nested trees by asset class -> coin', () => {
+	it('builds venue detail nested trees by asset class -> contract', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'venue',
 			markets: [
@@ -195,25 +195,25 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					...baseMarket,
 					id: 'xyz:meta',
 					venue: 'xyz',
-					assetClass: 'Single stock synthetic perp',
+					assetClass: ['Single stock synthetic perp'],
 					referenceAsset: 'Meta',
-					coin: 'xyz:META'
+					contract: 'xyz:META'
 				},
 				{
 					...baseMarket,
 					id: 'xyz:nvda',
-					coin: 'xyz:NVDA',
+					contract: 'xyz:NVDA',
 					venue: 'xyz',
-					assetClass: 'Single stock synthetic perp',
+					assetClass: ['Single stock synthetic perp'],
 					referenceAsset: 'NVIDIA',
 					openInterest: 150
 				},
 				{
 					...baseMarket,
 					id: 'xyz:gold',
-					coin: 'xyz:GOLD',
+					contract: 'xyz:GOLD',
 					venue: 'xyz',
-					assetClass: 'Commodity synthetic perp',
+					assetClass: ['Commodity synthetic perp'],
 					referenceAsset: 'Gold',
 					openInterest: 50
 				}
@@ -231,12 +231,12 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:NVDA', 'xyz:META'])
 	})
 
-	it('builds venue detail nested trees by reference asset -> coin', () => {
+	it('builds venue detail nested trees by reference asset -> contract', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'venue',
 			markets: [
-				{ ...baseMarket, id: 'xyz:meta', coin: 'xyz:META', referenceAsset: 'Meta', openInterest: 100 },
-				{ ...baseMarket, id: 'xyz:meta-2', coin: 'xyz:META-2', referenceAsset: 'Meta', openInterest: 80 }
+				{ ...baseMarket, id: 'xyz:meta', contract: 'xyz:META', referenceAsset: 'Meta', openInterest: 100 },
+				{ ...baseMarket, id: 'xyz:meta-2', contract: 'xyz:META-2', referenceAsset: 'Meta', openInterest: 80 }
 			],
 			metric: 'openInterest',
 			parentGrouping: 'baseAsset',
@@ -257,7 +257,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			markets: [
 				{ ...baseMarket, id: 'xyz:meta', referenceAsset: 'Meta' },
 				{ ...baseMarket, id: 'xyz:meta-2', referenceAsset: 'Meta' },
-				{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA' }
+				{ ...baseMarket, id: 'xyz:nvda', contract: 'xyz:NVDA', referenceAsset: 'NVIDIA' }
 			],
 			metric: 'markets',
 			parentGrouping: 'baseAsset',
@@ -271,12 +271,26 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		])
 	})
 
-	it('builds a flat overview treemap for coin parent grouping', () => {
+	it('builds a flat overview treemap for contract parent grouping', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
-				{ ...baseMarket, id: 'xyz:gold', coin: 'xyz:GOLD', venue: 'xyz', referenceAsset: 'Gold', openInterest: 80 },
-				{ ...baseMarket, id: 'flx:gold', coin: 'flx:GOLD', venue: 'flx', referenceAsset: 'Gold', openInterest: 20 }
+				{
+					...baseMarket,
+					id: 'xyz:gold',
+					contract: 'xyz:GOLD',
+					venue: 'xyz',
+					referenceAsset: 'Gold',
+					openInterest: 80
+				},
+				{
+					...baseMarket,
+					id: 'flx:gold',
+					contract: 'flx:GOLD',
+					venue: 'flx',
+					referenceAsset: 'Gold',
+					openInterest: 20
+				}
 			],
 			metric: 'openInterest',
 			parentGrouping: 'contract',
@@ -293,20 +307,26 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
-				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', assetClass: 'Single stock synthetic perp', openInterest: 100 },
+				{
+					...baseMarket,
+					id: 'xyz:meta',
+					venue: 'xyz',
+					assetClass: ['Single stock synthetic perp'],
+					openInterest: 100
+				},
 				{
 					...baseMarket,
 					id: 'xyz:gold',
-					coin: 'xyz:GOLD',
+					contract: 'xyz:GOLD',
 					venue: 'xyz',
 					referenceAsset: 'Gold',
-					assetClass: 'Commodity synthetic perp',
+					assetClass: ['Commodity synthetic perp'],
 					openInterest: 50
 				},
 				{
 					...baseMarket,
 					id: 'flx:tsla',
-					coin: 'flx:TSLA',
+					contract: 'flx:TSLA',
 					venue: 'flx',
 					referenceAsset: 'Tesla',
 					openInterest: 75
@@ -334,19 +354,19 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 				{
 					...baseMarket,
 					id: 'missing:1',
-					coin: 'missing:META',
+					contract: 'missing:META',
 					venue: '',
-					assetClass: '',
-					referenceAsset: '',
+					assetClass: null,
+					referenceAsset: null,
 					openInterest: 10
 				},
 				{
 					...baseMarket,
 					id: 'missing:2',
-					coin: '',
+					contract: '',
 					venue: 'xyz',
-					assetClass: '',
-					referenceAsset: '',
+					assetClass: null,
+					referenceAsset: null,
 					openInterest: 5
 				}
 			],
@@ -364,8 +384,8 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					{
 						...baseMarket,
 						id: 'missing:3',
-						coin: 'xyz:META',
-						referenceAsset: '',
+						contract: 'xyz:META',
+						referenceAsset: null,
 						openInterest: 10
 					}
 				],
@@ -383,8 +403,8 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					{
 						...baseMarket,
 						id: 'missing:4',
-						coin: '',
-						referenceAsset: '',
+						contract: '',
+						referenceAsset: null,
 						openInterest: 10
 					}
 				],

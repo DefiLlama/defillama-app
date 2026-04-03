@@ -102,7 +102,7 @@ export interface IRWAList {
 }
 
 export interface IRWAPerpsList {
-	coins: Array<string>
+	contracts: Array<string>
 	venues: Array<string>
 	categories: Array<string>
 	total: number
