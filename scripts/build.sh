@@ -40,7 +40,7 @@ fi
 
 # 2. Run Next.js build, capturing output for log upload
 if [ "${BUILD_STATUS:-0}" -eq 0 ]; then
-  bunx next build 2>&1 | tee build.log
+  bun x next build 2>&1 | tee build.log
   BUILD_STATUS=${PIPESTATUS[0]}
 else
   echo "Skipping next build due to earlier failure"

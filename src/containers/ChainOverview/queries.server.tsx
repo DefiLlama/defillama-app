@@ -1,12 +1,6 @@
-import {
-	fetchCoinPrices,
-	fetchLlamaConfig,
-	fetchProtocolLlamaswapDataset,
-	normalizeProtocolLlamaswapChains
-} from '~/api'
+import { fetchCoinPrices, fetchLlamaConfig } from '~/api'
 import { fetchCoinGeckoCoinById } from '~/api/coingecko'
 import type { CoinGeckoCoinDetailResult } from '~/api/coingecko.types'
-import type { ProtocolLlamaswapDataset } from '~/api/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
@@ -39,7 +33,7 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
-import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
@@ -92,11 +86,13 @@ function computeTvlChartSummary(chart: Array<[number, number]>): {
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
-	protocolMetadata
+	protocolMetadata,
+	protocolLlamaswapDataset = null
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
+	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
 }): Promise<IChainOverviewData | null> {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -171,7 +167,7 @@ export async function getChainOverviewData({
 					dcAndLsOverlap: []
 				}
 			}),
-			getProtocolsByChain({ chain, chainMetadata, protocolMetadata }),
+			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset }),
 			currentChainMetadata.stablecoins
 				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name).catch((err) => {
 						console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
@@ -548,7 +544,10 @@ export async function getChainOverviewData({
 							token_symbol: currentChainMetadata.tokenSymbol ?? null,
 							current_price: cgData?.market_data?.current_price?.usd ?? null,
 							market_cap: cgData?.market_data?.market_cap?.usd ?? null,
-							fully_diluted_valuation: cgData?.market_data?.fully_diluted_valuation?.usd ?? null
+							fully_diluted_valuation: cgData?.market_data?.fully_diluted_valuation?.usd ?? null,
+							llamaswapChains: currentChainMetadata.gecko_id
+								? (protocolLlamaswapDataset?.[currentChainMetadata.gecko_id] ?? null)
+								: null
 						}
 					: null,
 			stablecoins,
@@ -624,12 +623,14 @@ export const getProtocolsByChain = async ({
 	chain,
 	chainMetadata,
 	protocolMetadata,
+	protocolLlamaswapDataset = null,
 	oracle = null,
 	fork = null
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
+	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
 	oracle?: string | null
 	fork?: string | null
 }) => {
@@ -690,22 +691,13 @@ export const getProtocolsByChain = async ({
 		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)
 	}
 
-	const [
-		{ protocols, chains, parentProtocols },
-		fees,
-		revenue,
-		holdersRevenue,
-		dexs,
-		emissionsProtocols,
-		llamaswapDataset
-	]: [
+	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsProtocols]: [
 		ProtocolsResponse,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainOverview | null,
-		ProtocolEmissionsLookup,
-		ProtocolLlamaswapDataset
+		ProtocolEmissionsLookup
 	] = await Promise.all([
 		fetchProtocols(),
 		currentChainMetadata.fees
@@ -748,10 +740,6 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		getProtocolEmissionsLookupFromAggregated().catch((err) => {
-			console.log(err)
-			return {}
-		}),
-		fetchProtocolLlamaswapDataset().catch((err) => {
 			console.log(err)
 			return {}
 		})
@@ -914,6 +902,7 @@ export const getProtocolsByChain = async ({
 				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
 				: null
 
+		const llamaswapChains = protocol.geckoId ? (protocolLlamaswapDataset[protocol.geckoId] ?? null) : null
 		const childStore: IChildProtocol & { defillamaId: string } = {
 			name: protocolMetadata[protocol.defillamaId].displayName,
 			slug: slug(protocolMetadata[protocol.defillamaId].displayName),
@@ -923,7 +912,7 @@ export const getProtocolsByChain = async ({
 			tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 			mcap: protocol.mcap ?? null,
 			tokenPrice: protocol.geckoId ? (protocolTokenPrices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null,
-			llamaswapChains: protocol.geckoId ? normalizeProtocolLlamaswapChains(llamaswapDataset[protocol.geckoId]) : null,
+			...(llamaswapChains?.length ? { llamaswapChains } : {}),
 			mcaptvl: childMcapTvl,
 			strikeTvl:
 				protocol.category !== 'Bridge'
@@ -1160,6 +1149,10 @@ export const getProtocolsByChain = async ({
 					? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentProtocolTvl.toFixed(2))
 					: null
 
+			const parentLlamaswapChains = parentProtocol.gecko_id
+				? (protocolLlamaswapDataset[parentProtocol.gecko_id] ?? null)
+				: null
+
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
@@ -1173,9 +1166,7 @@ export const getProtocolsByChain = async ({
 				tokenPrice: parentProtocol.gecko_id
 					? (protocolTokenPrices[`coingecko:${parentProtocol.gecko_id}`]?.price ?? null)
 					: null,
-				llamaswapChains: parentProtocol.gecko_id
-					? normalizeProtocolLlamaswapChains(llamaswapDataset[parentProtocol.gecko_id])
-					: null,
+				...(parentLlamaswapChains?.length ? { llamaswapChains: parentLlamaswapChains } : {}),
 				mcaptvl: parentMcapTvl
 			}
 

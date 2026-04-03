@@ -124,3 +124,13 @@ export interface ITokenListEntry {
 	circulating_supply: number | null
 	max_supply: number | null
 }
+
+export interface IProtocolLlamaswapChain {
+	chain: string
+	chainId: number
+	address: string
+	liquidity?: number
+	displayName: string
+}
+
+export type ProtocolLlamaswapMetadata = Record<string, IProtocolLlamaswapChain[] | null>

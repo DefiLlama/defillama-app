@@ -32,6 +32,7 @@ export interface IChainOverviewData {
 		current_price: number | null
 		market_cap: number | null
 		fully_diluted_valuation: number | null
+		llamaswapChains?: BuyOnLlamaswapChain[] | null
 	} | null
 	stablecoins: {
 		mcap: number | null

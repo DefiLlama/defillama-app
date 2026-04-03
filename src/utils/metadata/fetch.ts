@@ -1,12 +1,15 @@
+import { LLAMASWAP_CHAINS } from '~/constants/chains'
 import { getErrorMessage } from '~/utils/error'
 import type {
 	ICategoriesAndTags,
 	ICexItem,
 	IChainMetadata,
+	IProtocolLlamaswapChain,
 	IProtocolMetadata,
 	IRWAList,
 	IRWAPerpsList,
-	ITokenListEntry
+	ITokenListEntry,
+	ProtocolLlamaswapMetadata
 } from './types'
 
 type RawBridgeInfo = {
@@ -28,6 +31,25 @@ type RawCexsResponse = {
 }
 
 type RawTokenListItem = ITokenListEntry & { id: string }
+
+type RawLlamaswapChain = {
+	chain: string
+	chainId: number
+	address: string
+	priceImpact: number
+	liquidity?: number
+}
+
+type RawProtocolLlamaswapEntry = {
+	name: string
+	slug: string
+	symbol: string
+	geckoId: string
+	chains?: Array<RawLlamaswapChain>
+	updatedAt?: string
+}
+
+type RawProtocolLlamaswapDataset = Record<string, RawProtocolLlamaswapEntry>
 
 const normalizeSlug = (value: unknown): string =>
 	String(value ?? '')
@@ -87,6 +109,29 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 	}
 }
 
+const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
+
+export function normalizeProtocolLlamaswapChains(
+	entry: Pick<RawProtocolLlamaswapEntry, 'chains'> | null | undefined
+): IProtocolLlamaswapChain[] | null {
+	if (!Array.isArray(entry?.chains) || entry.chains.length === 0) return null
+
+	return [...entry.chains]
+		.sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
+		.map((chain) => ({
+			chain: chain.chain,
+			chainId: chain.chainId,
+			address: chain.address,
+			liquidity: chain.liquidity,
+			displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
+		}))
+}
+
+/** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */
+export async function fetchProtocolLlamaswapDataset(): Promise<RawProtocolLlamaswapDataset> {
+	return fetchJson<RawProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL)
+}
+
 export async function fetchCoreMetadata(): Promise<{
 	protocols: Record<string, IProtocolMetadata>
 	chains: Record<string, IChainMetadata>
@@ -99,6 +144,7 @@ export async function fetchCoreMetadata(): Promise<{
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
 	bridgeChainSlugToName: Record<string, string>
+	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
 }> {
 	const API_KEY = process.env.API_KEY
 	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
@@ -130,33 +176,43 @@ export async function fetchCoreMetadata(): Promise<{
 				})
 			: fetchJson<T>(url)
 
-	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, rwaPerpsList, tokenlistArray, bridgesResponse] =
-		await Promise.all([
-			fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
-			fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
-			fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
-				categories: [],
-				tags: [],
-				tagCategoryMap: {}
-			}),
-			fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
-			fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
-				tickers: [],
-				platforms: [],
-				chains: [],
-				categories: [],
-				assetGroups: [],
-				idMap: {}
-			}),
-			fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
-				coins: [],
-				venues: [],
-				categories: [],
-				total: 0
-			}),
-			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
-			fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
-		])
+	const [
+		protocols,
+		chains,
+		categoriesAndTags,
+		cexsResponse,
+		rwaList,
+		rwaPerpsList,
+		tokenlistArray,
+		bridgesResponse,
+		protocolLlamaswapRaw
+	] = await Promise.all([
+		fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
+		fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
+		fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
+			categories: [],
+			tags: [],
+			tagCategoryMap: {}
+		}),
+		fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
+		fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
+			tickers: [],
+			platforms: [],
+			chains: [],
+			categories: [],
+			assetGroups: [],
+			idMap: {}
+		}),
+		fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
+			coins: [],
+			venues: [],
+			categories: [],
+			total: 0
+		}),
+		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
+		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] }),
+		fetchWithDevFallback<RawProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL, {})
+	])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -203,6 +259,11 @@ export async function fetchCoreMetadata(): Promise<{
 		})
 	)
 
+	const protocolLlamaswapDataset: ProtocolLlamaswapMetadata = {}
+	for (const geckoId in protocolLlamaswapRaw) {
+		protocolLlamaswapDataset[geckoId] = normalizeProtocolLlamaswapChains(protocolLlamaswapRaw[geckoId])
+	}
+
 	return {
 		protocols,
 		chains,
@@ -214,6 +275,7 @@ export async function fetchCoreMetadata(): Promise<{
 		tokenlist,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
-		bridgeChainSlugToName
+		bridgeChainSlugToName,
+		protocolLlamaswapDataset
 	}
 }

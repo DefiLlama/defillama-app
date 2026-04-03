@@ -1,4 +1,4 @@
-import { fetchBlockExplorers, fetchLiquidityTokensDataset, fetchProtocolLlamaswapChainsByGeckoId } from '~/api'
+import { fetchBlockExplorers, fetchLiquidityTokensDataset } from '~/api'
 import { fetchCoinGeckoChartByIdWithCacheFallback, fetchCoinGeckoCoinChainsByTickerVolume } from '~/api/coingecko'
 import type { CgChartResponse } from '~/api/coingecko.types'
 import type { BlockExplorersResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
@@ -24,7 +24,7 @@ import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { buildProtocolOverviewHallmarks } from '~/utils/hallmarks'
-import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,
 	fetchProtocolOverviewMetrics,
@@ -120,7 +120,8 @@ export const getProtocolOverviewPageData = async ({
 	isCEX = false,
 	chainMetadata,
 	tokenlist,
-	cgExchangeIdentifiers
+	cgExchangeIdentifiers,
+	protocolLlamaswapDataset
 }: {
 	protocolId: string
 	currentProtocolMetadata: IProtocolMetadata
@@ -128,6 +129,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	tokenlist: Record<string, import('~/utils/metadata/types').ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 }): Promise<IProtocolOverviewPageData> => {
 	const displayName = currentProtocolMetadata.displayName ?? ''
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
@@ -668,7 +670,7 @@ export const getProtocolOverviewPageData = async ({
 	let llamaswapChains = null
 	let llamaswapChainsFromCoinGecko = false
 	if (tokenGeckoId && !isCEX) {
-		llamaswapChains = await fetchProtocolLlamaswapChainsByGeckoId(tokenGeckoId).catch(() => null)
+		llamaswapChains = protocolLlamaswapDataset?.[tokenGeckoId] ?? null
 		if (!llamaswapChains?.length) {
 			const cgChains = await fetchCoinGeckoCoinChainsByTickerVolume(tokenGeckoId).catch(() => null)
 			if (cgChains?.length) {
