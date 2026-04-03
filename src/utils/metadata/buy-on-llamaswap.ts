@@ -7,6 +7,7 @@ import { getErrorMessage } from '~/utils/error'
 import { mergeProtocolLlamaswapChains, normalizeProtocolLlamaswapChains } from '~/utils/llamaswapChains'
 import { getSupportedCoinGeckoPlatformsForLlamaswap, normalizeEvmContractAddress } from '~/utils/llamaswapCoingecko'
 import type { IChainMetadata, IProtocolLlamaswapChain, IProtocolMetadata, ProtocolLlamaswapMetadata } from './types'
+
 const LLAMASWAP_SUPPORTED_PROTOCOL_CHAIN_SET = buildChainMatchSet(
 	LLAMASWAP_CHAINS.flatMap(({ displayName, llamaswap, gecko, geckoAliases = [] }) => [
 		displayName,
@@ -112,36 +113,36 @@ function getLlamaswapChainByMatch(value: string | null | undefined): string | nu
 	return null
 }
 
-function buildLiquidityTvlByChainAddress(liquidityTokens: ProtocolLiquidityTokensResponse): Map<string, number> {
-	const liquidityByChainAddress = new Map<string, number>()
+function buildPoolCoverageUsdByChainAddress(liquidityTokens: ProtocolLiquidityTokensResponse): Map<string, number> {
+	const poolCoverageUsdByChainAddress = new Map<string, number>()
 
 	for (const token of liquidityTokens) {
 		for (const pool of token.tokenPools ?? []) {
 			const llamaswapChain = getLlamaswapChainByMatch(pool.chain)
 			if (!llamaswapChain) continue
 
-			const tvlUsd = Number(pool.tvlUsd)
-			if (!Number.isFinite(tvlUsd)) continue
+			const poolCoverageUsd = Number(pool.tvlUsd)
+			if (!Number.isFinite(poolCoverageUsd)) continue
 
 			for (const underlyingToken of pool.underlyingTokens ?? []) {
 				const address = normalizeEvmContractAddress(underlyingToken)
 				if (!address) continue
 
 				const key = `${llamaswapChain}:${address}`
-				liquidityByChainAddress.set(key, (liquidityByChainAddress.get(key) ?? 0) + tvlUsd)
+				poolCoverageUsdByChainAddress.set(key, (poolCoverageUsdByChainAddress.get(key) ?? 0) + poolCoverageUsd)
 			}
 		}
 	}
 
-	return liquidityByChainAddress
+	return poolCoverageUsdByChainAddress
 }
 
-function rankSupportedPlatformsByLiquidity(
+function rankSupportedPlatformsByPoolCoverage(
 	platforms: Record<string, string> | null | undefined,
-	liquidityByChainAddress: Map<string, number>
+	poolCoverageUsdByChainAddress: Map<string, number>
 ): IProtocolLlamaswapChain[] {
 	const supportedPlatforms = getSupportedCoinGeckoPlatformsForLlamaswap(platforms)
-	const rankedChains: Array<IProtocolLlamaswapChain & { index: number; tvl: number }> = []
+	const rankedChains: Array<IProtocolLlamaswapChain & { index: number; poolCoverageUsd: number }> = []
 
 	for (const [platform, address] of Object.entries(supportedPlatforms)) {
 		const llamaswapChain = getLlamaswapChainByGeckoPlatform(platform)
@@ -152,13 +153,15 @@ function rankSupportedPlatformsByLiquidity(
 			address,
 			displayName: llamaswapChain.displayName,
 			index: rankedChains.length,
-			tvl: liquidityByChainAddress.get(`${llamaswapChain.llamaswap}:${address}`) ?? 0
+			poolCoverageUsd: poolCoverageUsdByChainAddress.get(`${llamaswapChain.llamaswap}:${address}`) ?? 0
 		})
 	}
 
-	rankedChains.sort((a, b) => b.tvl - a.tvl || a.index - b.index)
+	rankedChains.sort((a, b) => b.poolCoverageUsd - a.poolCoverageUsd || a.index - b.index)
 
-	return rankedChains.map(({ index: _index, tvl: _tvl, ...chain }) => chain)
+	return rankedChains
+		.filter(({ poolCoverageUsd }) => poolCoverageUsd > 0)
+		.map(({ index: _index, poolCoverageUsd: _poolCoverageUsd, ...chain }) => chain)
 }
 
 function mergeAndNormalizeProtocolChains({
@@ -196,7 +199,7 @@ export async function buildProtocolLlamaswapDataset({
 		fetchLiquidityTokensDataset()
 	])
 	const protocolLlamaswapDataset: ProtocolLlamaswapMetadata = {}
-	const liquidityByChainAddress = buildLiquidityTvlByChainAddress(liquidityTokens)
+	const poolCoverageUsdByChainAddress = buildPoolCoverageUsdByChainAddress(liquidityTokens)
 
 	for (const geckoId in protocolLlamaswapRaw) {
 		protocolLlamaswapDataset[geckoId] = normalizeProtocolLlamaswapChains(protocolLlamaswapRaw[geckoId], true)
@@ -246,7 +249,7 @@ export async function buildProtocolLlamaswapDataset({
 				chainGeckoIds,
 				chainMetadataByGeckoId,
 				primary: protocolLlamaswapDataset[geckoId],
-				secondary: rankSupportedPlatformsByLiquidity(platformsByGeckoId.get(geckoId), liquidityByChainAddress)
+				secondary: rankSupportedPlatformsByPoolCoverage(platformsByGeckoId.get(geckoId), poolCoverageUsdByChainAddress)
 			})
 
 			if (mergedChains?.length) {

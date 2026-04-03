@@ -64,11 +64,11 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 		if (!startDate || !endDate) return
 		for (const c of cexs) {
 			if (c.slug == null) continue
-			const slug = c.slug
+			const cexSlug = c.slug
 			const coin = c.coin ?? ''
 			void queryClient.prefetchQuery({
-				queryKey: ['cex-inflows', slug, startDate, endDate],
-				queryFn: () => fetchCexInflowsProxy(slug, startDate / 1e3, endDate / 1e3, coin, authorizedFetch),
+				queryKey: ['cex-inflows', cexSlug, startDate, endDate],
+				queryFn: () => fetchCexInflowsProxy(cexSlug, startDate / 1e3, endDate / 1e3, coin, authorizedFetch),
 				staleTime: 60 * 60 * 1000
 			})
 		}

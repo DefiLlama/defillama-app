@@ -234,7 +234,7 @@ describe('sortProtocolLlamaswapChainsByMetadataOrder', () => {
 })
 
 describe('buildProtocolLlamaswapDataset', () => {
-	it('uses liquidity-ranked CoinGecko chains when GitHub has no entry and counts all underlying tokens', async () => {
+	it('uses pool-coverage-ranked CoinGecko chains when GitHub has no entry and excludes zero-coverage chains', async () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-a',
@@ -267,8 +267,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 						},
 						{
 							chain: 'Arbitrum',
-							tvlUsd: 20,
-							underlyingTokens: ['not-an-evm-address', '0x00000000000000000000000000000000000000C1']
+							tvlUsd: 0,
+							underlyingTokens: ['0x00000000000000000000000000000000000000C1']
 						},
 						{
 							chain: 'Solana',
@@ -297,11 +297,6 @@ describe('buildProtocolLlamaswapDataset', () => {
 				displayName: 'Base'
 			},
 			{
-				chain: 'arbitrum',
-				address: '0x00000000000000000000000000000000000000c1',
-				displayName: 'Arbitrum'
-			},
-			{
 				chain: 'ethereum',
 				address: '0x00000000000000000000000000000000000000a1',
 				displayName: 'Ethereum'
@@ -309,7 +304,7 @@ describe('buildProtocolLlamaswapDataset', () => {
 		])
 	})
 
-	it('preserves GitHub ordering and only appends missing liquidity-ranked fallback chains', async () => {
+	it('preserves GitHub ordering and only appends missing pool-coverage-ranked fallback chains', async () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-b',
@@ -400,7 +395,7 @@ describe('buildProtocolLlamaswapDataset', () => {
 		])
 	})
 
-	it('keeps original CoinGecko platform order for equal or missing liquidity matches', async () => {
+	it('keeps original CoinGecko platform order for equal or missing pool coverage matches', async () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-c',
