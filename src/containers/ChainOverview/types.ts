@@ -160,6 +160,7 @@ export interface IChildProtocol {
 	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
 	chains: Array<string>
 	mcap: number | null
+	tokenPrice: number | null
 	mcaptvl: number | null
 	strikeTvl: boolean
 	fees?: {
