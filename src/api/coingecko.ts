@@ -1,14 +1,12 @@
 import { CACHE_SERVER, COINGECKO_KEY, DATASETS_SERVER_URL } from '~/constants'
-import { LLAMASWAP_CHAINS } from '~/constants/chains'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type {
 	CgChartResponse,
 	CgMarketChartResponse,
 	CoinGeckoCoinByContractAddressResponse,
-	CoinGeckoCoinDetailBody,
 	CoinGeckoCoinDetailResultForOptions,
+	CoinGeckoCoinListItem,
 	CoinGeckoCoinDetailResponseForOptions,
-	CoinGeckoCoinTickerWithDepth,
 	CoinGeckoCoinTickersResponseForOptions,
 	CoinGeckoCoinTickersResultForOptions,
 	CoinGeckoDerivativeExchange,
@@ -16,6 +14,7 @@ import type {
 	CoinGeckoSimplePriceResponse,
 	DenominationPriceHistory,
 	FetchCoinGeckoCoinByIdOptions,
+	FetchCoinGeckoCoinsListOptions,
 	FetchCoinGeckoCoinMarketChartByIdOptions,
 	FetchCoinGeckoCoinTickersByIdOptions,
 	FetchCoinGeckoDerivativesExchangesOptions,
@@ -25,7 +24,6 @@ import type {
 	IResponseCGMarketsAPI
 } from './coingecko.types'
 import { fetchCoinPrices } from './index'
-import type { BuyOnLlamaswapChain } from './types'
 
 const COINGECKO_API_BASE_URL = COINGECKO_KEY
 	? 'https://pro-api.coingecko.com/api/v3'
@@ -36,7 +34,6 @@ const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const CG_CHART_CACHE_URL = `${CACHE_SERVER}/cgchart`
 const COINGECKO_EXCHANGES_MAX_PAGE_SIZE = 250
 const COINGECKO_TICKERS_PAGE_SIZE = 100
-const EVM_HEX_ADDRESS_RE = /^0x[a-fA-F0-9]+$/
 
 function createCoinGeckoUrl(pathname: string): URL {
 	return new URL(pathname.replace(/^\//, ''), `${COINGECKO_API_BASE_URL}/`)
@@ -101,12 +98,6 @@ function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
 	return typeof item.id === 'string' && typeof item.symbol === 'string' && typeof item.name === 'string'
 }
 
-function normalizeCoinGeckoTickerTokenRef(value: string): string {
-	const tokenRef = value.trim()
-	if (EVM_HEX_ADDRESS_RE.test(tokenRef)) return tokenRef.toLowerCase()
-	return tokenRef
-}
-
 /**
  * Fetch the full sorted CoinGecko token list from the DefiLlama datasets mirror.
  * This is not a direct CoinGecko API call.
@@ -148,6 +139,17 @@ export async function fetchCoinGeckoExchanges({
 			return fetchCoinGeckoJson<CoinGeckoExchange[]>(url.pathname, url)
 		}
 	})
+}
+
+/** Fetch CoinGecko GET /coins/list with optional platforms included. */
+export async function fetchCoinGeckoCoinsList({
+	includePlatform = false,
+	status = 'active'
+}: FetchCoinGeckoCoinsListOptions = {}): Promise<CoinGeckoCoinListItem[]> {
+	const url = createCoinGeckoUrl('/coins/list')
+	setQueryParam(url, 'include_platform', includePlatform)
+	setQueryParam(url, 'status', status)
+	return fetchCoinGeckoJson<CoinGeckoCoinListItem[]>(url.pathname, url)
 }
 
 /**
@@ -266,122 +268,40 @@ export async function fetchCoinGeckoCoinById<TOptions extends FetchCoinGeckoCoin
 }
 
 /**
- * From a CoinGecko ticker list, aggregate `converted_volume.usd` for each `platforms` entry where
- * a ticker row's `base` or `target` equals that chain's contract address.
- */
-function parseCoinGeckoCoinChainsByTickerVolume(
-	coin: Pick<CoinGeckoCoinDetailBody, 'platforms'> & { tickers?: CoinGeckoCoinTickerWithDepth[] }
-): Array<BuyOnLlamaswapChain> {
-	const platforms = coin.platforms
-	if (!platforms || Object.keys(platforms).length === 0) return []
-	const tickers = coin.tickers
-	if (!tickers?.length) return []
-
-	const rows: Array<{ chain: string; address: string; norm: string; volumeUsd: number }> = []
-	for (const [chain, address] of Object.entries(platforms)) {
-		const trimmed = address?.trim()
-		if (!trimmed) continue
-		rows.push({
-			chain,
-			address: trimmed,
-			norm: normalizeCoinGeckoTickerTokenRef(trimmed),
-			volumeUsd: 0
-		})
-	}
-
-	if (rows.length === 0) return []
-
-	for (const ticker of tickers) {
-		const volumeUsd = Number(ticker.converted_volume?.usd) || 0
-		const base = ticker.base ? normalizeCoinGeckoTickerTokenRef(String(ticker.base)) : ''
-		const target = ticker.target ? normalizeCoinGeckoTickerTokenRef(String(ticker.target)) : ''
-
-		for (const row of rows) {
-			if (base === row.norm || target === row.norm) row.volumeUsd += volumeUsd
-		}
-	}
-
-	rows.sort((a, b) => b.volumeUsd - a.volumeUsd)
-
-	return rows
-		.map(({ chain, address }) => {
-			const llamaswapChain = LLAMASWAP_CHAINS.find((candidate) => candidate.gecko === chain)
-			if (!llamaswapChain) return null
-			return {
-				chain: llamaswapChain.llamaswap,
-				displayName: llamaswapChain.displayName,
-				address
-			}
-		})
-		.filter((chain): chain is BuyOnLlamaswapChain => chain !== null)
-}
-
-/**
  * Fetch all pages from CoinGecko GET /coins/{id}/tickers.
  * CoinGecko documents this endpoint as paginated to 100 rows, so the module combines every page.
  */
-async function fetchCoinGeckoCoinTickersById<
+export async function fetchCoinGeckoCoinTickersById<
 	TOptions extends FetchCoinGeckoCoinTickersByIdOptions | undefined = undefined
 >(geckoId: string, options?: TOptions): Promise<CoinGeckoCoinTickersResultForOptions<TOptions>> {
 	if (!geckoId) return {} as CoinGeckoCoinTickersResultForOptions<TOptions>
 
 	try {
-		const tickers: Array<
-			CoinGeckoCoinTickersResponseForOptions<TOptions>['tickers'] extends Array<infer T> ? T : never
-		> = []
 		let name: string | undefined
+		const tickers = await fetchAllPaginatedCoinGeckoResults<
+			CoinGeckoCoinTickersResponseForOptions<TOptions>['tickers'] extends Array<infer T> ? T : never
+		>({
+			pageSize: COINGECKO_TICKERS_PAGE_SIZE,
+			maxPages: options?.maxPages,
+			fetchPage: async (page) => {
+				const url = createCoinGeckoUrl(`/coins/${encodeURIComponent(geckoId)}/tickers`)
+				setQueryParam(url, 'exchange_ids', options?.exchangeIds)
+				setQueryParam(url, 'include_exchange_logo', options?.includeExchangeLogo)
+				setQueryParam(url, 'page', page)
+				setQueryParam(url, 'order', options?.order)
+				setQueryParam(url, 'depth', options?.depth)
+				setQueryParam(url, 'dex_pair_format', options?.dexPairFormat)
 
-		for (let page = 1; ; page++) {
-			const url = createCoinGeckoUrl(`/coins/${encodeURIComponent(geckoId)}/tickers`)
-			setQueryParam(url, 'exchange_ids', options?.exchangeIds)
-			setQueryParam(url, 'include_exchange_logo', options?.includeExchangeLogo)
-			setQueryParam(url, 'page', page)
-			setQueryParam(url, 'order', options?.order)
-			setQueryParam(url, 'depth', options?.depth)
-			setQueryParam(url, 'dex_pair_format', options?.dexPairFormat)
-
-			const response = await fetchCoinGeckoJson<CoinGeckoCoinTickersResponseForOptions<TOptions>>(url.pathname, url)
-			if (!name) name = response.name
-			const pageTickers = response.tickers ?? []
-			if (pageTickers.length === 0) break
-
-			tickers.push(...pageTickers)
-
-			if (pageTickers.length < COINGECKO_TICKERS_PAGE_SIZE) break
-		}
+				const response = await fetchCoinGeckoJson<CoinGeckoCoinTickersResponseForOptions<TOptions>>(url.pathname, url)
+				if (!name) name = response.name
+				return response.tickers ?? []
+			}
+		})
 
 		return { name, tickers } as CoinGeckoCoinTickersResultForOptions<TOptions>
 	} catch {
 		return {} as CoinGeckoCoinTickersResultForOptions<TOptions>
 	}
-}
-
-/**
- * Fetch the coin's platforms and all ticker pages, then map them into chain/address pairs sorted
- * by aggregate CoinGecko ticker volume.
- */
-export async function fetchCoinGeckoCoinChainsByTickerVolume(
-	geckoId: string
-): Promise<Array<{ chain: string; address: string }>> {
-	if (!geckoId) return []
-
-	const coin = await fetchCoinGeckoCoinById(geckoId, {
-		localization: false,
-		tickers: false,
-		marketData: false,
-		communityData: false,
-		developerData: false
-	})
-	const tickers = (await fetchCoinGeckoCoinTickersById(geckoId, {
-		order: 'volume_desc',
-		depth: true,
-		dexPairFormat: 'contract_address'
-	})) as { tickers?: CoinGeckoCoinTickerWithDepth[] }
-
-	return parseCoinGeckoCoinChainsByTickerVolume({
-		platforms: coin.platforms,
-		tickers: tickers.tickers
-	})
 }
 
 /** Fetch CoinGecko historical market chart data from GET /coins/{id}/market_chart. */

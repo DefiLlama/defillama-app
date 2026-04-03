@@ -3,6 +3,9 @@ const API_KEY = process.env.API_KEY
 export const COINGECKO_KEY = process.env.CG_KEY
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 export const SKIP_BUILD_STATIC_GENERATION = !['false', '0'].includes(process.env.SKIP_BUILD_STATIC_GENERATION)
+export const ENABLE_LLAMASWAP_PROTOCOLS_CHAINS = ['1', 'true'].includes(
+	(process.env.ENABLE_LLAMASWAP_PROTOCOLS_CHAINS ?? '').toLowerCase()
+)
 export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 
 // Base servers

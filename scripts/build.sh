@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Full build pipeline: metadata → next build → rclone artifact sync → discord notification.
+# Full build pipeline: metadata → Next.js build via Bun runtime → rclone artifact sync → discord notification.
 # Called by the Dockerfile builder stage and can also be run locally.
 
 set -o pipefail
@@ -40,7 +40,7 @@ fi
 
 # 2. Run Next.js build, capturing output for log upload
 if [ "${BUILD_STATUS:-0}" -eq 0 ]; then
-  bun x next build 2>&1 | tee build.log
+  bun --bun next build 2>&1 | tee build.log
   BUILD_STATUS=${PIPESTATUS[0]}
 else
   echo "Skipping next build due to earlier failure"

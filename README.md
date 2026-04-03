@@ -28,7 +28,15 @@ cd defillama-app
 bun install
 ```
 
-#### 3. Start the development server:
+#### 3. Configure environment variables:
+
+```bash
+cp .env.example .env.local
+```
+
+`ENABLE_LLAMASWAP_PROTOCOLS_CHAINS` is disabled by default. Set it to `true` or `1` only if you want metadata generation to build the buy-on-LlamaSwap protocol-chain dataset. When the variable is missing or set to `false`/`0`, that dataset stays empty.
+
+#### 4. Start the development server:
 
 ```bash
 bun dev

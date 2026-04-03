@@ -6,24 +6,18 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
-import { LLAMASWAP_CHAINS } from '~/constants/chains'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { getErrorMessage } from '~/utils/error'
 import type {
-	ChainGeckoPair,
 	CoinsChartResponse,
-	CoinMcapsResponse,
 	CoinsPricesResponse,
-	BuyOnLlamaswapChain,
-	ProtocolLlamaswapDataset,
-	ProtocolLlamaswapEntry,
 	LlamaConfigResponse,
 	PriceObject,
 	ProtocolLiquidityTokensResponse,
+	ProtocolLlamaswapDataset,
 	ProtocolTokenLiquidityChart,
 	SearchQuery,
-	TwitterPostsResponse,
 	BlockExplorersResponse
 } from './types'
 
@@ -47,10 +41,8 @@ export async function searchApi<T = Record<string, unknown>>(query: SearchQuery)
 // Shared APIs
 // ---------------------------------------------------------------------------
 
-const COINS_MCAPS_API_URL = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
 const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
 const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
-const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
@@ -60,57 +52,6 @@ const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidi
 /** Fetch the global DefiLlama protocol/chain config (chainCoingeckoIds, etc.). */
 export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
 	return fetchJson<LlamaConfigResponse>(CONFIG_API)
-}
-
-/** Fetch market caps for a list of chains, batched in groups of 10. */
-export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Record<string, number | null>> {
-	if (chains.length === 0) {
-		return {}
-	}
-
-	const validChains: Array<ChainGeckoPair> = chains
-		.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
-		.map(([chain, geckoId]) => [chain, geckoId])
-
-	if (validChains.length === 0) {
-		return {}
-	}
-
-	const batchSize = 10
-	const batches: Array<Array<ChainGeckoPair>> = []
-	for (let i = 0; i < validChains.length; i += batchSize) {
-		batches.push(validChains.slice(i, i + batchSize))
-	}
-
-	const batchResults = await runBatchPromises(
-		batches,
-		(batch) =>
-			fetchJson<CoinMcapsResponse>(COINS_MCAPS_API_URL, {
-				method: 'POST',
-				body: JSON.stringify({
-					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
-				})
-			}),
-		(batch, err) => {
-			postRuntimeLogs(
-				`Failed to fetch mcaps for batch (${batch.map(([_, geckoId]) => geckoId).join(', ')}): ${getErrorMessage(err)}`
-			)
-			return {}
-		}
-	)
-
-	const mergedMcaps: CoinMcapsResponse = {}
-	for (const batchResult of batchResults) {
-		Object.assign(mergedMcaps, batchResult)
-	}
-
-	return validChains.reduce<Record<string, number | null>>((acc, [chain, geckoId]) => {
-		const prefixedGeckoId = `coingecko:${geckoId}`
-		if (mergedMcaps[prefixedGeckoId]) {
-			acc[chain] = mergedMcaps[prefixedGeckoId]?.mcap ?? null
-		}
-		return acc
-	}, {})
 }
 
 /** Fetch current prices for a list of coin identifiers, batched in groups of 10. */
@@ -179,50 +120,17 @@ export async function fetchCoinsChart(params: {
 }
 
 // ---------------------------------------------------------------------------
-// Protocol & social queries
+// Protocol queries
 // ---------------------------------------------------------------------------
-
-/** Fetch recent Twitter/X posts for a given username. */
-export async function fetchTwitterPostsByUsername(username: string): Promise<TwitterPostsResponse | null> {
-	if (!username) return null
-	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(
-		() => null
-	)
-}
 
 /** Fetch the list of all protocols that have liquidity data available. */
 export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
 	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
 }
 
-export function normalizeProtocolLlamaswapChains(
-	entry: Pick<ProtocolLlamaswapEntry, 'chains'> | null | undefined
-): BuyOnLlamaswapChain[] | null {
-	if (!Array.isArray(entry?.chains) || entry.chains.length === 0) return null
-
-	return [...entry.chains]
-		.sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
-		.map((chain) => ({
-			chain: chain.chain,
-			chainId: chain.chainId,
-			address: chain.address,
-			liquidity: chain.liquidity,
-			displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
-		}))
-}
-
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */
 export async function fetchProtocolLlamaswapDataset(): Promise<ProtocolLlamaswapDataset> {
 	return fetchJson<ProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL)
-}
-
-/** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */
-export async function fetchProtocolLlamaswapChainsByGeckoId(geckoId: string): Promise<BuyOnLlamaswapChain[] | null> {
-	if (!geckoId) return null
-
-	return fetchJson<ProtocolLlamaswapEntry>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}.json`)
-		.then((data) => normalizeProtocolLlamaswapChains(data))
-		.catch(() => null)
 }
 
 /** Fetch historical liquidity chart for a specific token. */

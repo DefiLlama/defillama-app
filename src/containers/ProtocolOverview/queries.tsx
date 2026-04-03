@@ -1,5 +1,5 @@
 import { fetchBlockExplorers, fetchLiquidityTokensDataset } from '~/api'
-import { fetchCoinGeckoChartByIdWithCacheFallback, fetchCoinGeckoCoinChainsByTickerVolume } from '~/api/coingecko'
+import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import type { CgChartResponse } from '~/api/coingecko.types'
 import type { BlockExplorersResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
@@ -659,26 +659,8 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
-	// find gecko_id — may be on a sibling protocol (e.g., aave-v3 has no gecko_id, aave-v2 has "aave")
-	let tokenGeckoId = protocolData.gecko_id
-	if (!tokenGeckoId && protocolData.parentProtocol) {
-		const sibling = liteProtocolsData.protocols.find(
-			(p) => p.parentProtocol === protocolData.parentProtocol && p.geckoId
-		)
-		if (sibling) tokenGeckoId = sibling.geckoId
-	}
-	let llamaswapChains = null
-	let llamaswapChainsFromCoinGecko = false
-	if (tokenGeckoId && !isCEX) {
-		llamaswapChains = protocolLlamaswapDataset?.[tokenGeckoId] ?? null
-		if (!llamaswapChains?.length) {
-			const cgChains = await fetchCoinGeckoCoinChainsByTickerVolume(tokenGeckoId).catch(() => null)
-			if (cgChains?.length) {
-				llamaswapChains = cgChains
-				llamaswapChainsFromCoinGecko = true
-			}
-		}
-	}
+	const tokenGeckoId = currentProtocolMetadata.gecko_id ?? null
+	const llamaswapChains = !isCEX && tokenGeckoId ? (protocolLlamaswapDataset?.[tokenGeckoId] ?? null) : null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
@@ -704,7 +686,7 @@ export const getProtocolOverviewPageData = async ({
 		isCEX,
 		hasTvlChart: Boolean(currentProtocolMetadata.tvl && protocolTvlChartData.length > 0),
 		hasTvsChart: Boolean(oracleChartData?.length),
-		hasGeckoId: Boolean(protocolData.gecko_id),
+		hasGeckoId: Boolean(tokenGeckoId),
 		hasLiquidity: Boolean(currentProtocolMetadata.liquidity),
 		hasFees: Boolean(feesData),
 		hasRevenue: Boolean(revenueData),
@@ -929,8 +911,8 @@ export const getProtocolOverviewPageData = async ({
 				protocolData.symbol && protocolData.symbol !== '-'
 					? protocolData.symbol
 					: (protocolData.tokenCGData?.symbol ?? null),
-			gecko_id: protocolData.gecko_id ?? null,
-			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
+			gecko_id: tokenGeckoId,
+			gecko_url: tokenGeckoId ? `https://www.coingecko.com/en/coins/${tokenGeckoId}` : null,
 			explorer_url:
 				getBlockExplorerNew({
 					apiResponse: blockExplorersData,
@@ -1009,7 +991,7 @@ export const getProtocolOverviewPageData = async ({
 		initialMultiSeriesChartData,
 		hallmarks,
 		rangeHallmarks,
-		geckoId: protocolData.gecko_id ?? null,
+		geckoId: tokenGeckoId,
 		governanceApis: governanceIdsToApis(protocolData.governanceID ?? []),
 		incomeStatement,
 		warningBanners: getProtocolWarningBanners(protocolData),
@@ -1031,8 +1013,7 @@ export const getProtocolOverviewPageData = async ({
 		seoDescription,
 		defaultToggledCharts,
 		oracleTvs,
-		llamaswapChains,
-		llamaswapChainsFromCoinGecko
+		llamaswapChains
 	}
 }
 

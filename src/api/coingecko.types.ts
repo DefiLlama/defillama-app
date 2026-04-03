@@ -25,6 +25,7 @@ type CoinGeckoIncludeTokens = 'top' | 'all'
 type CoinGeckoDexPairFormat = 'contract_address' | 'symbol'
 
 type CoinGeckoCoinTickersOrder = 'trust_score_desc' | 'trust_score_asc' | 'volume_desc' | 'volume_asc'
+type CoinGeckoCoinListStatus = 'active' | 'inactive'
 
 type CoinGeckoCoinMarketChartInterval = '5m' | 'hourly' | 'daily'
 
@@ -237,6 +238,19 @@ export interface FetchCoinGeckoCoinTickersByIdOptions {
 	order?: CoinGeckoCoinTickersOrder
 	depth?: boolean
 	dexPairFormat?: CoinGeckoDexPairFormat
+	maxPages?: number
+}
+
+export interface CoinGeckoCoinListItem {
+	id: string
+	symbol: string
+	name: string
+	platforms?: Record<string, string>
+}
+
+export interface FetchCoinGeckoCoinsListOptions {
+	includePlatform?: boolean
+	status?: CoinGeckoCoinListStatus
 }
 
 /** Multi-currency numeric maps as returned by CoinGecko `market_data`. */

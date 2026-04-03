@@ -1,5 +1,12 @@
 import { toDisplayName } from '~/utils/chainNormalizer'
 
+type LlamaswapChainConfig = {
+	llamaswap: string
+	gecko: string
+	geckoAliases?: string[]
+	displayName: string
+}
+
 // EVM-compatible chains that have null chainId in the API but are actually EVM
 // Also includes chain name variants that appear in yields data but not in chains API
 const EVM_CHAINS_WITH_NULL_CHAINID = [
@@ -64,7 +71,7 @@ export function buildEvmChainsSet(chainData: Array<{ name: string; chainId: numb
 }
 
 /** CoinGecko `asset_platform_id` / swap.defillama.com `chain` param. Must stay in sync with enabled adapters in llamaswap-interface `list.ts` (union of `chainToId` on 1inch, CowSwap, KyberSwap, ParaSwap, Odos, 0x Gasless, 0x v2). */
-export const LLAMASWAP_CHAINS = [
+export const LLAMASWAP_CHAINS: LlamaswapChainConfig[] = [
 	{ llamaswap: 'ethereum', gecko: 'ethereum', displayName: 'Ethereum' },
 	{ llamaswap: 'arbitrum', gecko: 'arbitrum-one', displayName: 'Arbitrum' },
 	{ llamaswap: 'polygon', gecko: 'polygon-pos', displayName: 'Polygon POS' },
@@ -76,16 +83,28 @@ export const LLAMASWAP_CHAINS = [
 	{ llamaswap: 'zksync', gecko: 'zksync', displayName: 'ZkSync Era' },
 	{ llamaswap: 'linea', gecko: 'linea', displayName: 'Linea' },
 	{ llamaswap: 'scroll', gecko: 'scroll', displayName: 'Scroll' },
-	{ llamaswap: 'mantle', gecko: 'mantle', displayName: 'Mantle' },
-	{ llamaswap: 'mode', gecko: 'mode', displayName: 'Mode' },
 	{ llamaswap: 'sonic', gecko: 'sonic', displayName: 'Sonic' },
 	{ llamaswap: 'unichain', gecko: 'unichain', displayName: 'Unichain' },
 	{ llamaswap: 'monad', gecko: 'monad', displayName: 'Monad' },
 	{ llamaswap: 'berachain', gecko: 'berachain', displayName: 'Berachain' },
-	{ llamaswap: 'hyperevm', gecko: 'hyperevm', displayName: 'Hyperliquid' },
+	{ llamaswap: 'hyperevm', gecko: 'hyperevm', geckoAliases: ['hyperliquid'], displayName: 'Hyperliquid' },
 	{ llamaswap: 'plasma', gecko: 'plasma', displayName: 'Plasma' },
 	{ llamaswap: 'ink', gecko: 'ink', displayName: 'Ink' },
 	{ llamaswap: 'worldchain', gecko: 'world-chain', displayName: 'World Chain' },
 	{ llamaswap: 'megaeth', gecko: 'megaeth', displayName: 'MegaETH' },
 	{ llamaswap: 'tempo', gecko: 'tempo', displayName: 'Tempo' }
 ]
+
+const LLAMASWAP_CHAIN_BY_GECKO_PLATFORM = new Map<string, LlamaswapChainConfig>()
+
+for (const chain of LLAMASWAP_CHAINS) {
+	LLAMASWAP_CHAIN_BY_GECKO_PLATFORM.set(chain.gecko, chain)
+
+	for (const alias of chain.geckoAliases ?? []) {
+		LLAMASWAP_CHAIN_BY_GECKO_PLATFORM.set(alias, chain)
+	}
+}
+
+export function getLlamaswapChainByGeckoPlatform(platform: string): LlamaswapChainConfig | null {
+	return LLAMASWAP_CHAIN_BY_GECKO_PLATFORM.get(platform) ?? null
+}

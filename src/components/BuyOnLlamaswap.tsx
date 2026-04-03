@@ -1,32 +1,48 @@
 import * as Ariakit from '@ariakit/react'
-import type { BuyOnLlamaswapChain } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import type { IProtocolLlamaswapChain } from '~/utils/metadata/types'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+const BUTTON_CLASSNAME =
+	'flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20'
 
-function buildSwapUrl(chain: Pick<BuyOnLlamaswapChain, 'chain' | 'address'>, placement: string) {
-	return `https://swap.defillama.com/?chain=${chain.chain}&from=${ZERO_ADDRESS}&to=${chain.address}&tab=swap&utm_source=defillama&utm_medium=buy_button&utm_content=${placement}`
+function buildSwapUrl(chain: Pick<IProtocolLlamaswapChain, 'chain' | 'address'>, placement: string) {
+	const params = new URLSearchParams({
+		chain: chain.chain,
+		tab: 'swap',
+		utm_source: 'defillama',
+		utm_medium: 'buy_button',
+		utm_content: placement
+	})
+
+	if (chain.address === ZERO_ADDRESS) {
+		params.set('to', ZERO_ADDRESS)
+	} else {
+		params.set('from', ZERO_ADDRESS)
+		params.set('to', chain.address)
+	}
+
+	return `https://swap.defillama.com/?${params.toString()}`
 }
 
 export function BuyOnLlamaswap({
 	chains,
-	showBestChainBadge = true,
 	placement = 'protocol_page'
 }: {
-	chains?: BuyOnLlamaswapChain[] | null
-	showBestChainBadge?: boolean
+	chains?: IProtocolLlamaswapChain[] | null
 	placement?: string
 }) {
 	if (!chains?.length) return null
+	const primaryChain = chains[0]
 
 	if (chains.length === 1) {
 		return (
 			<a
 				target="_blank"
 				rel="noreferrer noopener"
-				href={buildSwapUrl(chains[0], placement)}
-				className="flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20"
+				href={buildSwapUrl(primaryChain, placement)}
+				className={BUTTON_CLASSNAME}
 			>
 				<span>Buy</span>
 				<Icon name="external-link" className="h-2.5 w-2.5" />
@@ -36,10 +52,7 @@ export function BuyOnLlamaswap({
 
 	return (
 		<Ariakit.HovercardProvider showTimeout={0}>
-			<Ariakit.HovercardAnchor
-				render={<button />}
-				className="flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20"
-			>
+			<Ariakit.HovercardAnchor render={<button />} className={BUTTON_CLASSNAME}>
 				<span>Buy</span>
 				<Icon name="chevron-down" className="h-2.5 w-2.5" />
 			</Ariakit.HovercardAnchor>
@@ -54,7 +67,7 @@ export function BuyOnLlamaswap({
 				</span>
 				{chains.map((chain) => (
 					<a
-						key={chain.chain}
+						key={`${chain.chain}:${chain.address}`}
 						href={buildSwapUrl(chain, placement)}
 						target="_blank"
 						rel="noreferrer noopener"
@@ -62,7 +75,7 @@ export function BuyOnLlamaswap({
 					>
 						<TokenLogo name={chain.displayName} kind="chain" size={18} />
 						<span className="capitalize">{chain.displayName}</span>
-						{showBestChainBadge && chain === chains[0] ? (
+						{chain.best ? (
 							<span className="ml-auto rounded-full bg-(--primary)/10 px-1.5 py-0.5 text-[10px] text-(--primary)">
 								Best
 							</span>

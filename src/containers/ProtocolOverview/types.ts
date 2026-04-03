@@ -1,7 +1,7 @@
 import type * as echarts from 'echarts/core'
-import type { BuyOnLlamaswapChain } from '~/api/types'
 import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import type { IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
 import type { IProtocolNumericSeries } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
@@ -197,7 +197,6 @@ export interface IProtocolOverviewPageData {
 	entityQuestions?: string[]
 	treasuryMethodologyUrl?: string | null
 	llamaswapChains?: BuyOnLlamaswapChain[] | null
-	llamaswapChainsFromCoinGecko?: boolean
 }
 
 interface ICredit {
