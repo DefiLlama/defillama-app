@@ -14,7 +14,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
-import { useContext, useMemo } from 'react'
+import { useContext } from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
 import { fetchRWAAssetsListViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
