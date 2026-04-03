@@ -52,9 +52,6 @@ export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
 export const RAISES_API = `${SERVER_URL}/raises`
 export const CEXS_API = `${SERVER_URL}/cexs`
 export const HACKS_API = `${SERVER_URL}/hacks`
-export const CG_TOKEN_API =
-	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
-
 // Icons
 export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 

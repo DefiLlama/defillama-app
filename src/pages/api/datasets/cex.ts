@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchCoinPrices } from '~/api'
+import { fetchCoinGeckoDerivativesExchanges, fetchCoinGeckoExchanges } from '~/api/coingecko'
 import type { IChainTvl } from '~/api/types'
-import { COINGECKO_KEY } from '~/constants'
 import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
-import { fetchJson } from '~/utils/async'
 
 export interface ICexItem {
 	name: string
@@ -41,16 +40,8 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 
 	try {
 		const [spotData, derivsData, priceData] = await Promise.all([
-			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
-				headers: {
-					'x-cg-pro-api-key': COINGECKO_KEY
-				}
-			}),
-			fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
-				headers: {
-					'x-cg-pro-api-key': COINGECKO_KEY
-				}
-			}),
+			fetchCoinGeckoExchanges({ perPage: 250 }),
+			fetchCoinGeckoDerivativesExchanges({ perPage: 1000 }),
 			fetchCoinPrices(['coingecko:bitcoin'])
 		])
 		spot = spotData

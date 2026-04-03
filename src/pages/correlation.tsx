@@ -1,12 +1,12 @@
-import { fetchAllCGTokensList } from '~/api'
-import type { IResponseCGMarketsAPI } from '~/api/types'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
+import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 import Correlations from '~/containers/Correlations'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('correlation', async () => {
-	const coinsData = await fetchAllCGTokensList()
+	const coinsData = await fetchCoinGeckoTokensListFromDataset()
 	return {
 		props: {
 			coinsData

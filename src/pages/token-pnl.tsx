@@ -1,11 +1,11 @@
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { TokenPnl } from '~/containers/TokenPnl'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('token-pnl', async () => {
-	const coinsData = await fetchAllCGTokensList()
+	const coinsData = await fetchCoinGeckoTokensListFromDataset()
 	return {
 		props: {
 			coinsData

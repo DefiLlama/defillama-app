@@ -1,11 +1,12 @@
 import {
-	fetchCoinGeckoCoinById,
 	fetchCoinPrices,
 	fetchLlamaConfig,
 	fetchProtocolLlamaswapDataset,
 	normalizeProtocolLlamaswapChains
 } from '~/api'
-import type { CoinGeckoCoinDetailResult, ProtocolLlamaswapDataset } from '~/api/types'
+import { fetchCoinGeckoCoinById } from '~/api/coingecko'
+import type { CoinGeckoCoinDetailResult } from '~/api/coingecko.types'
+import type { ProtocolLlamaswapDataset } from '~/api/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'

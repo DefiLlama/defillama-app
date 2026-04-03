@@ -1,4 +1,5 @@
-import { COINGECKO_KEY, V2_SERVER_URL } from '~/constants'
+import { fetchCoinGeckoExchanges, fetchCoinGeckoSimplePrice } from '~/api/coingecko'
+import { V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
@@ -164,33 +165,14 @@ export async function fetchAdapterChartDataByChainBreakdown({
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
 }
 
-interface CoinGeckoExchange {
-	trust_score: number
-	trade_volume_24h_btc: number
-}
-
-interface CoinGeckoBtcPrice {
-	bitcoin: {
-		usd: number
-	}
-}
-
 /**
  * Fetch estimated global CEX volume from CoinGecko exchange data.
  */
 export async function fetchCexVolume(): Promise<number | null> {
 	try {
 		const [cexs, btcPriceRes] = await Promise.all([
-			fetchJson<CoinGeckoExchange[]>('https://pro-api.coingecko.com/api/v3/exchanges?per_page=250', {
-				headers: {
-					'x-cg-pro-api-key': COINGECKO_KEY
-				}
-			}),
-			fetchJson<CoinGeckoBtcPrice>('https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', {
-				headers: {
-					'x-cg-pro-api-key': COINGECKO_KEY
-				}
-			})
+			fetchCoinGeckoExchanges({ perPage: 250 }),
+			fetchCoinGeckoSimplePrice({ ids: 'bitcoin', vsCurrencies: 'usd' })
 		])
 
 		// Validate BTC price exists and is a number

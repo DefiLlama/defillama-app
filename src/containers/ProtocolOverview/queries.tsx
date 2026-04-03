@@ -1,11 +1,7 @@
-import {
-	fetchBlockExplorers,
-	fetchCgChartByGeckoId,
-	fetchCoinGeckoCoinChainsByTickerVolume,
-	fetchLiquidityTokensDataset,
-	fetchProtocolLlamaswapChainsByGeckoId
-} from '~/api'
-import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
+import { fetchBlockExplorers, fetchLiquidityTokensDataset, fetchProtocolLlamaswapChainsByGeckoId } from '~/api'
+import { fetchCoinGeckoChartByIdWithCacheFallback, fetchCoinGeckoCoinChainsByTickerVolume } from '~/api/coingecko'
+import type { CgChartResponse } from '~/api/coingecko.types'
+import type { BlockExplorersResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
@@ -216,7 +212,7 @@ export const getProtocolOverviewPageData = async ({
 					const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
 					const tickers =
 						tokenEntry && geckoId
-							? await fetchCgChartByGeckoId(geckoId)
+							? await fetchCoinGeckoChartByIdWithCacheFallback(geckoId)
 									.then((res) => res?.data?.coinData?.tickers)
 									.catch(() => undefined)
 							: undefined

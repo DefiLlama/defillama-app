@@ -5,7 +5,8 @@ This file defines the commands and working conventions that all AI agents must f
 ## Package Manager
 
 - Use `bun` for all package management and project commands.
-- Do not use `npm`, `npx`, `yarn`, or `pnpm`, except for the single `npx tsc` exception listed below.
+- Use `bun x` instead of `npx` when you need to run a package binary.
+- Do not use `npm`, `npx`, `yarn`, or `pnpm`
 
 ## Approved Commands
 
@@ -16,12 +17,8 @@ This file defines the commands and working conventions that all AI agents must f
 ## Forbidden Commands
 
 - Do not run `bun run build` or any other build command. Builds are expected to fail because of API rate limits.
-- Do not use `npx tsc`, `npx eslint`, or any other `npx` command unless it matches the exception below.
+- Do not use `npx tsc`, `npx eslint`, or any other `npx` command. Use `bun x` instead when you need to run a package binary.
 - Do not use `npm run lint`, `npm run typecheck`, or any other `npm` command.
-
-Exception:
-
-- `bun x tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration, since there is no equivalent `bun` command for that project-specific config.
 
 ## Required Verification
 
