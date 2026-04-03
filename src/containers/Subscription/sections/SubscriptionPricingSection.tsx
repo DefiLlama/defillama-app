@@ -35,7 +35,7 @@ export function SubscriptionPricingSection({
 				<div className="flex w-full flex-col items-center gap-7">
 					<h1 className="text-[32px] leading-[42px] font-semibold text-(--sub-ink-primary) dark:text-(--sub-text-primary-dark)">
 						The Smartest Way to Navigate <br className="hidden md:inline" />
-						On-Chain Data
+						Onchain Data
 					</h1>
 					<p className="text-[16px] leading-6 text-(--sub-text-slate-500) md:w-[485px] md:text-[14px] md:leading-[21px] md:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:md:text-(--sub-text-secondary-dark)">
 						Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
