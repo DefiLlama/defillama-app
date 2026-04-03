@@ -148,15 +148,13 @@ export interface FetchCoinGeckoSimplePriceOptions {
 	precision?: CoinGeckoPrecision
 }
 
-interface CoinGeckoSimplePriceValue {
-	[currencyOrMetric: string]: number | null | undefined
-	last_updated_at?: number
-}
+type CoinGeckoSimplePriceValue = Record<string, number | null | undefined> & { last_updated_at?: number }
 
 export type CoinGeckoSimplePriceResponse = Record<string, CoinGeckoSimplePriceValue | undefined>
 
 export interface FetchCoinGeckoExchangesOptions {
 	perPage?: number
+	maxPages?: number
 }
 
 export interface CoinGeckoExchange {

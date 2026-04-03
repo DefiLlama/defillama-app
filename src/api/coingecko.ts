@@ -59,21 +59,37 @@ async function fetchCoinGeckoJson<T>(pathname: string, url: URL = createCoinGeck
 async function fetchAllPaginatedCoinGeckoResults<T>({
 	fetchPage,
 	pageSize,
-	breakOnPartialPage = true
+	breakOnPartialPage = true,
+	maxPages = 1000
 }: {
 	fetchPage: (page: number) => Promise<T[]>
 	pageSize: number
 	breakOnPartialPage?: boolean
+	maxPages?: number
 }): Promise<T[]> {
 	const results: T[] = []
+	const safeMaxPages = Math.max(1, maxPages)
+	let terminated = false
 
-	for (let page = 1; ; page++) {
+	for (let page = 1; page <= safeMaxPages; page++) {
 		const pageItems = await fetchPage(page)
-		if (pageItems.length === 0) break
+		if (pageItems.length === 0) {
+			terminated = true
+			break
+		}
 
 		results.push(...pageItems)
 
-		if (breakOnPartialPage && pageItems.length < pageSize) break
+		if (breakOnPartialPage && pageItems.length < pageSize) {
+			terminated = true
+			break
+		}
+	}
+
+	if (!terminated) {
+		throw new Error(
+			`[fetchAllPaginatedCoinGeckoResults] Reached maxPages=${safeMaxPages} without termination (pageSize=${pageSize}, breakOnPartialPage=${breakOnPartialPage})`
+		)
 	}
 
 	return results
@@ -117,12 +133,14 @@ export async function fetchCoinGeckoTokensListFromDataset(): Promise<Array<IResp
  * This endpoint documents `page` and `per_page`, so callers receive the combined result set.
  */
 export async function fetchCoinGeckoExchanges({
-	perPage = COINGECKO_EXCHANGES_MAX_PAGE_SIZE
+	perPage = COINGECKO_EXCHANGES_MAX_PAGE_SIZE,
+	maxPages
 }: FetchCoinGeckoExchangesOptions = {}): Promise<CoinGeckoExchange[]> {
 	const pageSize = Math.min(Math.max(1, perPage), COINGECKO_EXCHANGES_MAX_PAGE_SIZE)
 
 	return fetchAllPaginatedCoinGeckoResults<CoinGeckoExchange>({
 		pageSize,
+		maxPages,
 		fetchPage: async (page) => {
 			const url = createCoinGeckoUrl('/exchanges')
 			setQueryParam(url, 'per_page', pageSize)
@@ -138,13 +156,15 @@ export async function fetchCoinGeckoExchanges({
  */
 export async function fetchCoinGeckoDerivativesExchanges({
 	order,
-	perPage = 100
+	perPage = 100,
+	maxPages = 1000
 }: FetchCoinGeckoDerivativesExchangesOptions = {}): Promise<CoinGeckoDerivativeExchange[]> {
 	const pageSize = Math.max(1, perPage)
 
 	return fetchAllPaginatedCoinGeckoResults<CoinGeckoDerivativeExchange>({
 		pageSize,
 		breakOnPartialPage: false,
+		maxPages,
 		fetchPage: async (page) => {
 			const url = createCoinGeckoUrl('/derivatives/exchanges')
 			setQueryParam(url, 'order', order)
