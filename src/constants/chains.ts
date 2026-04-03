@@ -83,8 +83,6 @@ export const LLAMASWAP_CHAINS: LlamaswapChainConfig[] = [
 	{ llamaswap: 'zksync', gecko: 'zksync', displayName: 'ZkSync Era' },
 	{ llamaswap: 'linea', gecko: 'linea', displayName: 'Linea' },
 	{ llamaswap: 'scroll', gecko: 'scroll', displayName: 'Scroll' },
-	{ llamaswap: 'mantle', gecko: 'mantle', displayName: 'Mantle' },
-	{ llamaswap: 'mode', gecko: 'mode', displayName: 'Mode' },
 	{ llamaswap: 'sonic', gecko: 'sonic', displayName: 'Sonic' },
 	{ llamaswap: 'unichain', gecko: 'unichain', displayName: 'Unichain' },
 	{ llamaswap: 'monad', gecko: 'monad', displayName: 'Monad' },
