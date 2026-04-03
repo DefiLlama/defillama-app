@@ -9,7 +9,7 @@ import Script from 'next/script'
 import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider } from '~/containers/Subscription/auth'
+import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
 NProgress.configure({ showSpinner: false })
@@ -124,13 +124,6 @@ function App({ Component, pageProps }: AppProps) {
 	}, [])
 
 	const { hasActiveSubscription } = useAuthContext()
-	const showFloatingButton =
-		hasActiveSubscription &&
-		!router.pathname.startsWith('/ai') &&
-		!router.pathname.startsWith('/mcp') &&
-		!router.pathname.startsWith('/account') &&
-		!router.pathname.startsWith('/subscription') &&
-		!router.pathname.includes('/superluminal')
 
 	useUmamiIdentityTracker()
 

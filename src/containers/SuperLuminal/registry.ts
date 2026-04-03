@@ -4,6 +4,7 @@ export interface DashboardTabConfig {
 	id: string
 	label: string
 	component?: LazyExoticComponent<ComponentType> | ComponentType
+	proDashboardId?: string
 	source?: string
 }
 
