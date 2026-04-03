@@ -902,7 +902,7 @@ export const getProtocolsByChain = async ({
 				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
 				: null
 
-		const llamaswapChains = protocol.geckoId ? (protocolLlamaswapDataset[protocol.geckoId] ?? null) : null
+		const llamaswapChains = protocol.geckoId ? (protocolLlamaswapDataset?.[protocol.geckoId] ?? null) : null
 		const childStore: IChildProtocol & { defillamaId: string } = {
 			name: protocolMetadata[protocol.defillamaId].displayName,
 			slug: slug(protocolMetadata[protocol.defillamaId].displayName),
@@ -1150,7 +1150,7 @@ export const getProtocolsByChain = async ({
 					: null
 
 			const parentLlamaswapChains = parentProtocol.gecko_id
-				? (protocolLlamaswapDataset[parentProtocol.gecko_id] ?? null)
+				? (protocolLlamaswapDataset?.[parentProtocol.gecko_id] ?? null)
 				: null
 
 			protocolsStore[parentProtocol.id] = {
