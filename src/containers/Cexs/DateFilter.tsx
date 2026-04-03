@@ -1,8 +1,14 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { toNiceDayMonthAndYear, toNiceDayMonthAndYearAndTime } from '~/utils'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 const formatDateForInput = (timestamp: number | null) => {
 	if (timestamp == null) return ''
@@ -29,6 +35,13 @@ const isAtMidnight = (timestamp: number | null) => {
 
 export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
 	const router = useRouter()
+	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const isSubscribed = !loaders.userLoading && isAuthenticated && hasActiveSubscription
+	const [shouldRenderModal, setShouldRenderModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderModal,
+		setOpen: setShouldRenderModal
+	})
 	const [localStartDate, setLocalStartDate] = useState(() => formatDateForInput(startDate))
 	const [localEndDate, setLocalEndDate] = useState(() => formatDateForInput(endDate))
 	const [localStartHour, setLocalStartHour] = useState(() => getHourFromTimestamp(startDate))
@@ -82,8 +95,18 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 	}
 
 	return (
+		<>
 		<Ariakit.PopoverProvider>
-			<Ariakit.PopoverDisclosure className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+			<Ariakit.PopoverDisclosure
+				onClick={(e) => {
+					if (!isSubscribed) {
+						e.preventDefault()
+						setSignupSource('cex-inflows')
+						setShouldRenderModal(true)
+					}
+				}}
+				className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+			>
 				<span>Custom Range Inflows</span>
 				{startDate != null || endDate != null ? (
 					<span className="text-(--link-text)">
@@ -220,5 +243,11 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
+		{shouldRenderModal ? (
+			<Suspense fallback={<></>}>
+				<SubscribeProModal dialogStore={subscribeModalStore} />
+			</Suspense>
+		) : null}
+		</>
 	)
 }

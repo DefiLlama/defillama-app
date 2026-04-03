@@ -1,92 +1,83 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
-import toast from 'react-hot-toast'
+import { useEffect } from 'react'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
-import { fetchCexInflows } from './api'
+import { fetchCexInflowsProxy } from './api'
 import { DateFilter } from './DateFilter'
 import type { ICex } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
-
-const getOutflowsByTimerange = async (
-	startTime: number | null,
-	endTime: number | null,
-	cexData: ICex[]
-): Promise<Record<string, { outflows?: number | null }>> => {
-	let loadingToastId: string | undefined
-	try {
-		if (startTime && endTime) {
-			loadingToastId = toast.loading('Fetching inflows data...')
-
-			const cexsApiResults = await Promise.allSettled(
-				cexData.map(async (c) => {
-					if (c.slug == null) {
-						return [null, null] as const
-					} else {
-						const res = await fetchCexInflows(c.slug, startTime / 1e3, endTime / 1e3, c.coin ?? '')
-
-						return [c.slug, res] as const
-					}
-				})
-			)
-
-			const cexs = cexsApiResults
-				.map((result) => {
-					if (result.status === 'fulfilled') {
-						return result.value
-					}
-					return undefined
-				})
-				.filter((item): item is readonly [string, { outflows?: number | null }] => item != null && item[0] != null)
-
-			toast.dismiss(loadingToastId)
-
-			return cexs.length ? Object.fromEntries(cexs) : {}
-		}
-	} catch {
-		toast.dismiss(loadingToastId)
-		toast.error('Failed to fetch inflows data')
-		return {}
-	}
-	return {}
-}
 
 const getDateTimestamp = (dateString: string | string[] | undefined): number | null => {
 	if (!dateString || typeof dateString !== 'string') return null
 	return Number.isNaN(Number(dateString)) ? null : Number(dateString)
 }
 
-export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
+function CustomRangeCell({ cexSlug, coin }: { cexSlug: string | null; coin: string | null }) {
 	const router = useRouter()
+	const { authorizedFetch } = useAuthContext()
 
 	const startDate = getDateTimestamp(router.query.startDate)
 	const endDate = getDateTimestamp(router.query.endDate)
 
-	const { data: customRangeInflows = {} } = useQuery({
-		queryKey: ['cexs', startDate, endDate],
-		queryFn: () => getOutflowsByTimerange(startDate, endDate, cexs),
+	const { data, isLoading } = useQuery({
+		queryKey: ['cex-inflows', cexSlug, startDate, endDate],
+		queryFn: () => fetchCexInflowsProxy(cexSlug!, startDate! / 1e3, endDate! / 1e3, coin ?? '', authorizedFetch),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		enabled: !!startDate && !!endDate,
+		enabled: !!cexSlug && !!startDate && !!endDate,
 		retry: false
 	})
 
-	const cexsWithCustomRange = useMemo(() => {
-		return cexs.map((cex) => ({
-			...cex,
-			customRange: cex.slug != null ? (customRangeInflows[cex.slug]?.outflows ?? undefined) : undefined
-		}))
-	}, [cexs, customRangeInflows])
+	if (!startDate || !endDate || !cexSlug) return null
+
+	if (isLoading) {
+		return (
+			<span className="relative ml-auto block h-4 w-16 overflow-hidden rounded bg-black/5 dark:bg-white/10">
+				<span className="pointer-events-none absolute inset-y-0 -right-1/2 -left-1/2 animate-shimmer bg-[linear-gradient(99.97deg,transparent,rgba(0,0,0,0.08),transparent)] dark:bg-[linear-gradient(99.97deg,transparent,rgba(255,255,255,0.08),transparent)]" />
+			</span>
+		)
+	}
+
+	const value = data?.outflows ?? null
+	return (
+		<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
+			{value != null ? formattedNum(value, true) : ''}
+		</span>
+	)
+}
+
+export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
+	const router = useRouter()
+	const queryClient = useQueryClient()
+	const { authorizedFetch } = useAuthContext()
+
+	const startDate = getDateTimestamp(router.query.startDate)
+	const endDate = getDateTimestamp(router.query.endDate)
+
+	useEffect(() => {
+		if (!startDate || !endDate) return
+		for (const c of cexs) {
+			if (c.slug == null) continue
+			const slug = c.slug
+			const coin = c.coin ?? ''
+			void queryClient.prefetchQuery({
+				queryKey: ['cex-inflows', slug, startDate, endDate],
+				queryFn: () => fetchCexInflowsProxy(slug, startDate / 1e3, endDate / 1e3, coin, authorizedFetch),
+				staleTime: 60 * 60 * 1000
+			})
+		}
+	}, [startDate, endDate, cexs, queryClient, authorizedFetch])
 
 	return (
 		<>
 			<TableWithSearch
-				data={cexsWithCustomRange}
+				data={cexs}
 				columns={columns}
 				columnToSearch={'name'}
 				placeholder={'Search exchange...'}
@@ -247,18 +238,11 @@ const columns = [
 			headerHelperText: 'Open Interest / Clean Assets'
 		}
 	}),
-	columnHelper.accessor((row) => row.customRange ?? undefined, {
+	columnHelper.display({
 		id: 'customRange',
 		header: 'Custom range Inflows',
 		size: 200,
-		cell: (info) => {
-			const value = info.getValue()
-			return (
-				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
-					{value != null ? formattedNum(value, true) : ''}
-				</span>
-			)
-		},
+		cell: ({ row }) => <CustomRangeCell cexSlug={row.original.slug ?? null} coin={row.original.coin ?? null} />,
 		meta: {
 			align: 'end'
 		}

@@ -18,5 +18,4 @@ export interface ICex {
 	oi: number | null
 	derivVolume: number | null
 	leverage: number | null
-	customRange?: number
 }
