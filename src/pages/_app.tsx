@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
+import Router from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
@@ -31,7 +31,6 @@ const isChunkLoadError = (error: unknown) => {
 const client = new QueryClient()
 
 function App({ Component, pageProps }: AppProps) {
-	const router = useRouter()
 	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {

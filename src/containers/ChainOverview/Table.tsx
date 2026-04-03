@@ -40,6 +40,18 @@ import type { IProtocol } from './types'
 
 const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
 
+const getEarningsValue = (revenue: number | null | undefined, emissions: number | null | undefined) => {
+	if (revenue != null && emissions != null) {
+		return revenue - emissions
+	}
+
+	if (revenue != null) {
+		return revenue
+	}
+
+	return undefined
+}
+
 type ChainProtocolsTableProps = {
 	protocols: Array<IProtocol>
 	sampleRow?: any
@@ -443,7 +455,9 @@ const columnOptions = [
 	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_MONTH },
-	{ name: 'Mcap/TVL', key: 'mcaptvl', category: TABLE_CATEGORIES.TVL },
+	{ name: 'Token Price', key: 'token_price' },
+	{ name: 'Market Cap', key: 'mcap' },
+	{ name: 'Mcap/TVL', key: 'mcaptvl' },
 	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
 	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
 	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
@@ -639,7 +653,7 @@ const columns = [
 		id: 'tvl',
 		header: 'TVL',
 		columns: [
-			columnHelper.accessor((row) => row.tvl?.default?.tvl, {
+			columnHelper.accessor((row) => row.tvl?.default?.tvl ?? undefined, {
 				id: 'tvl',
 				header: 'TVL',
 				cell: ({ row }) =>
@@ -656,7 +670,7 @@ const columns = [
 				},
 				size: 120
 			}),
-			columnHelper.accessor((row) => row.tvlChange?.change1d, {
+			columnHelper.accessor((row) => row.tvlChange?.change1d ?? undefined, {
 				id: 'change_1d',
 				header: '1d Change',
 				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
@@ -666,7 +680,7 @@ const columns = [
 				},
 				size: 110
 			}),
-			columnHelper.accessor((row) => row.tvlChange?.change7d, {
+			columnHelper.accessor((row) => row.tvlChange?.change7d ?? undefined, {
 				id: 'change_7d',
 				header: '7d Change',
 				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
@@ -676,7 +690,7 @@ const columns = [
 				},
 				size: 110
 			}),
-			columnHelper.accessor((row) => row.tvlChange?.change1m, {
+			columnHelper.accessor((row) => row.tvlChange?.change1m ?? undefined, {
 				id: 'change_1m',
 				header: '1m Change',
 				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
@@ -685,25 +699,45 @@ const columns = [
 					headerHelperText: 'Change in TVL in the last 30 days'
 				},
 				size: 110
-			}),
-			columnHelper.accessor('mcaptvl', {
-				id: 'mcaptvl',
-				header: 'Mcap/TVL',
-				cell: (info) => info.getValue() ?? null,
-				size: 110,
-				meta: {
-					align: 'end',
-					headerHelperText: 'Market cap / TVL ratio'
-				}
 			})
 		],
 		meta: { headerHelperText: 'Value of all coins held in smart contracts of the protocol' }
+	}),
+	columnHelper.accessor((row) => row.mcap ?? undefined, {
+		id: 'mcap',
+		header: 'Market Cap',
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue(), true) : null),
+		meta: {
+			align: 'end',
+			headerHelperText: 'Current protocol token market cap'
+		},
+		size: 120
+	}),
+	columnHelper.accessor((row) => row.tokenPrice ?? undefined, {
+		id: 'token_price',
+		header: 'Token Price',
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue(), true) : null),
+		meta: {
+			align: 'end',
+			headerHelperText: 'Current protocol token price'
+		},
+		size: 120
+	}),
+	columnHelper.accessor((row) => row.mcaptvl ?? undefined, {
+		id: 'mcaptvl',
+		header: 'Mcap/TVL',
+		cell: (info) => info.getValue() ?? null,
+		size: 110,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Market cap / TVL ratio'
+		}
 	}),
 	columnHelper.group({
 		id: 'fees',
 		header: 'Fees & Revenue',
 		columns: [
-			columnHelper.accessor((row) => row.fees?.total24h, {
+			columnHelper.accessor((row) => row.fees?.total24h ?? undefined, {
 				id: 'fees_24h',
 				header: 'Fees 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -713,7 +747,7 @@ const columns = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor((row) => row.revenue?.total24h, {
+			columnHelper.accessor((row) => row.revenue?.total24h ?? undefined, {
 				id: 'revenue_24h',
 				header: 'Revenue 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -723,7 +757,7 @@ const columns = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.total24h, {
+			columnHelper.accessor((row) => row.holdersRevenue?.total24h ?? undefined, {
 				id: 'holdersRevenue_24h',
 				header: 'Holders Revenue 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -733,7 +767,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.emissions?.total24h, {
+			columnHelper.accessor((row) => row.emissions?.total24h ?? undefined, {
 				id: 'emissions_24h',
 				header: 'Incentives 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -743,7 +777,7 @@ const columns = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.fees?.total7d, {
+			columnHelper.accessor((row) => row.fees?.total7d ?? undefined, {
 				id: 'fees_7d',
 				header: 'Fees 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -753,7 +787,7 @@ const columns = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor((row) => row.revenue?.total7d, {
+			columnHelper.accessor((row) => row.revenue?.total7d ?? undefined, {
 				id: 'revenue_7d',
 				header: 'Revenue 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -763,7 +797,7 @@ const columns = [
 				},
 				size: 120
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.total7d, {
+			columnHelper.accessor((row) => row.holdersRevenue?.total7d ?? undefined, {
 				id: 'holdersRevenue_7d',
 				header: 'Holders Revenue 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -773,7 +807,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.emissions?.total7d, {
+			columnHelper.accessor((row) => row.emissions?.total7d ?? undefined, {
 				id: 'emissions_7d',
 				header: 'Incentives 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -783,7 +817,7 @@ const columns = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.fees?.total30d, {
+			columnHelper.accessor((row) => row.fees?.total30d ?? undefined, {
 				id: 'fees_30d',
 				header: 'Fees 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -793,7 +827,7 @@ const columns = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor((row) => row.revenue?.total30d, {
+			columnHelper.accessor((row) => row.revenue?.total30d ?? undefined, {
 				id: 'revenue_30d',
 				header: 'Revenue 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -803,7 +837,7 @@ const columns = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.total30d, {
+			columnHelper.accessor((row) => row.holdersRevenue?.total30d ?? undefined, {
 				id: 'holdersRevenue_30d',
 				header: 'Holders Revenue 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -813,7 +847,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.emissions?.total30d, {
+			columnHelper.accessor((row) => row.emissions?.total30d ?? undefined, {
 				id: 'emissions_30d',
 				header: 'Incentives 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -823,7 +857,7 @@ const columns = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.fees?.total1y, {
+			columnHelper.accessor((row) => row.fees?.total1y ?? undefined, {
 				id: 'fees_1y',
 				header: 'Fees 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -833,7 +867,7 @@ const columns = [
 				},
 				size: 100
 			}),
-			columnHelper.accessor((row) => row.fees?.monthlyAverage1y, {
+			columnHelper.accessor((row) => row.fees?.monthlyAverage1y ?? undefined, {
 				id: 'average_fees_1y',
 				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -843,7 +877,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.revenue?.total1y, {
+			columnHelper.accessor((row) => row.revenue?.total1y ?? undefined, {
 				id: 'revenue_1y',
 				header: 'Revenue 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -853,7 +887,7 @@ const columns = [
 				},
 				size: 120
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.total1y, {
+			columnHelper.accessor((row) => row.holdersRevenue?.total1y ?? undefined, {
 				id: 'holdersRevenue_1y',
 				header: 'Holders Revenue 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -863,7 +897,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.revenue?.monthlyAverage1y, {
+			columnHelper.accessor((row) => row.revenue?.monthlyAverage1y ?? undefined, {
 				id: 'average_revenue_1y',
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -873,7 +907,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.monthlyAverage1y, {
+			columnHelper.accessor((row) => row.holdersRevenue?.monthlyAverage1y ?? undefined, {
 				id: 'average_holdersRevenue_1y',
 				header: 'Monthly Avg 1Y Holders Revenue',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -883,7 +917,7 @@ const columns = [
 				},
 				size: 260
 			}),
-			columnHelper.accessor((row) => row.emissions?.total1y, {
+			columnHelper.accessor((row) => row.emissions?.total1y ?? undefined, {
 				id: 'emissions_1y',
 				header: 'Incentives 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -893,7 +927,7 @@ const columns = [
 				},
 				size: 125
 			}),
-			columnHelper.accessor((row) => row.emissions?.monthlyAverage1y, {
+			columnHelper.accessor((row) => row.emissions?.monthlyAverage1y ?? undefined, {
 				id: 'average_emissions_1y',
 				header: 'Monthly Avg 1Y Incentives',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -903,7 +937,7 @@ const columns = [
 				},
 				size: 220
 			}),
-			columnHelper.accessor((row) => row.fees?.totalAllTime, {
+			columnHelper.accessor((row) => row.fees?.totalAllTime ?? undefined, {
 				id: 'fees_cumulative',
 				header: 'Cumulative Fees',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -913,7 +947,7 @@ const columns = [
 				},
 				size: 150
 			}),
-			columnHelper.accessor((row) => row.revenue?.totalAllTime, {
+			columnHelper.accessor((row) => row.revenue?.totalAllTime ?? undefined, {
 				id: 'cumulativeRevenue',
 				header: 'Cumulative Revenue',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -923,7 +957,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.holdersRevenue?.totalAllTime, {
+			columnHelper.accessor((row) => row.holdersRevenue?.totalAllTime ?? undefined, {
 				id: 'cumulativeHoldersRevenue',
 				header: 'Cumulative Holders Revenue',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -933,7 +967,7 @@ const columns = [
 				},
 				size: 220
 			}),
-			columnHelper.accessor((row) => row.emissions?.totalAllTime, {
+			columnHelper.accessor((row) => row.emissions?.totalAllTime ?? undefined, {
 				id: 'cumulativeEmissions',
 				header: 'Cumulative Incentives',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -943,7 +977,7 @@ const columns = [
 				},
 				size: 180
 			}),
-			columnHelper.accessor((row) => row.fees?.pf, {
+			columnHelper.accessor((row) => row.fees?.pf ?? undefined, {
 				id: 'pf',
 				header: 'P/F',
 				cell: (info) => (info.getValue() != null ? `${info.getValue()}x` : null),
@@ -953,7 +987,7 @@ const columns = [
 				},
 				size: 80
 			}),
-			columnHelper.accessor((row) => row.revenue?.ps, {
+			columnHelper.accessor((row) => row.revenue?.ps ?? undefined, {
 				id: 'ps',
 				header: 'P/S',
 				cell: (info) => (info.getValue() != null ? `${info.getValue()}x` : null),
@@ -963,110 +997,68 @@ const columns = [
 				},
 				size: 80
 			}),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total24h ?? 0
-					const emissions = row.emissions?.total24h ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || null
-				},
-				{
-					id: 'earnings_24h',
-					header: 'Earnings 24h',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total24h, row.emissions?.total24h), {
+				id: 'earnings_24h',
+				header: 'Earnings 24h',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['24h']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total7d ?? 0
-					const emissions = row.emissions?.total7d ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || null
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['24h']
 				},
-				{
-					id: 'earnings_7d',
-					header: 'Earnings 7d',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total7d, row.emissions?.total7d), {
+				id: 'earnings_7d',
+				header: 'Earnings 7d',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['7d']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total30d ?? 0
-					const emissions = row.emissions?.total30d ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || null
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['7d']
 				},
-				{
-					id: 'earnings_30d',
-					header: 'Earnings 30d',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['30d']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total1y ?? 0
-					const emissions = row.emissions?.total1y ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || null
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total30d, row.emissions?.total30d), {
+				id: 'earnings_30d',
+				header: 'Earnings 30d',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['30d']
 				},
-				{
-					id: 'earnings_1y',
-					header: 'Earnings 1Y',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['1y']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.monthlyAverage1y ?? 0
-					const emissions = row.emissions?.monthlyAverage1y ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || null
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total1y, row.emissions?.total1y), {
+				id: 'earnings_1y',
+				header: 'Earnings 1Y',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['1y']
 				},
-				{
-					id: 'average_earnings_1y',
-					header: 'Monthly Avg 1Y Earnings',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
-					},
-					size: 200
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.totalAllTime ?? 0
-					const emissions = row.emissions?.totalAllTime ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || null
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.monthlyAverage1y, row.emissions?.monthlyAverage1y), {
+				id: 'average_earnings_1y',
+				header: 'Monthly Avg 1Y Earnings',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
 				},
-				{
-					id: 'cumulativeEarnings',
-					header: 'Cumulative Earnings',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['cumulative']
-					},
-					size: 180
-				}
-			)
+				size: 200
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.totalAllTime, row.emissions?.totalAllTime), {
+				id: 'cumulativeEarnings',
+				header: 'Cumulative Earnings',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['cumulative']
+				},
+				size: 180
+			})
 		],
 		meta: {
 			headerHelperText:
@@ -1077,7 +1069,7 @@ const columns = [
 		id: 'volume',
 		header: 'Volume',
 		columns: [
-			columnHelper.accessor((row) => row.dexs?.total24h, {
+			columnHelper.accessor((row) => row.dexs?.total24h ?? undefined, {
 				id: 'dex_volume_24h',
 				header: 'Spot Volume 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -1087,7 +1079,7 @@ const columns = [
 				},
 				size: 150
 			}),
-			columnHelper.accessor((row) => row.dexs?.total7d, {
+			columnHelper.accessor((row) => row.dexs?.total7d ?? undefined, {
 				id: 'dex_volume_7d',
 				header: 'Spot Volume 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -1097,7 +1089,7 @@ const columns = [
 				},
 				size: 150
 			}),
-			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
+			columnHelper.accessor((row) => row.dexs?.change_7dover7d ?? undefined, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => (getValue() !== 0 ? <PercentChange percent={getValue()} /> : null),
@@ -1107,7 +1099,7 @@ const columns = [
 				},
 				size: 140
 			}),
-			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
+			columnHelper.accessor((row) => row.dexs?.totalAllTime ?? undefined, {
 				id: 'dex_cumulative_volume',
 				header: 'Spot Cumulative Volume',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -1130,6 +1122,8 @@ const defaultColumns = JSON.stringify({
 	change_1d: true,
 	change_7d: true,
 	change_1m: true,
+	mcap: true,
+	token_price: true,
 	fees_24h: true,
 	revenue_24h: true
 })

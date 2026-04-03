@@ -35,6 +35,7 @@ export const sampleProtocol = {
 		change1m: 8.082591976279152
 	},
 	mcap: 552591758.0142369,
+	tokenPrice: 3.68,
 	mcaptvl: 0.17,
 	strikeTvl: true,
 	fees: {
@@ -65,6 +66,7 @@ export const sampleProtocol = {
 
 const FIELD_ALIASES = {
 	mcap: 'mcap',
+	tokenPrice: 'tokenPrice',
 	// TVL fields
 	tvl: 'tvl_default_tvl',
 	tvlPrevDay: 'tvl_default_tvlPrevDay',

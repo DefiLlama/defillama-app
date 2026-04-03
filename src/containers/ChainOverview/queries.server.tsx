@@ -1,4 +1,4 @@
-import { fetchCoinGeckoCoinById, fetchLlamaConfig } from '~/api'
+import { fetchCoinGeckoCoinById, fetchCoinPrices, fetchLlamaConfig } from '~/api'
 import type { CoinGeckoCoinDetailResult } from '~/api/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
@@ -737,6 +737,36 @@ export const getProtocolsByChain = async ({
 		})
 	])
 
+	const parentProtocolsMap = new Map(parentProtocols.map((parentProtocol) => [parentProtocol.id, parentProtocol]))
+	const eligibleProtocols = protocols.filter(
+		(protocol) =>
+			!protocol.defillamaId.startsWith('chain#') &&
+			protocolMetadata[protocol.defillamaId] &&
+			protocolMatchesForkFilter(protocol) &&
+			protocolMatchesOracleFilter(protocol) &&
+			toFilterProtocol({
+				protocolMetadata: protocolMetadata[protocol.defillamaId],
+				protocolData: protocol,
+				chainDisplayName: currentChainMetadata.name
+			})
+	)
+
+	const geckoIds = new Set<string>()
+	for (const protocol of eligibleProtocols) {
+		if (protocol.geckoId) {
+			geckoIds.add(`coingecko:${protocol.geckoId}`)
+		}
+
+		if (protocol.parentProtocol) {
+			const parentProtocol = parentProtocolsMap.get(protocol.parentProtocol)
+			if (parentProtocol?.gecko_id) {
+				geckoIds.add(`coingecko:${parentProtocol.gecko_id}`)
+			}
+		}
+	}
+
+	const protocolTokenPrices = geckoIds.size > 0 ? await fetchCoinPrices(Array.from(geckoIds)).catch(() => ({})) : {}
+
 	const dimensionProtocols = {}
 
 	for (const protocol of fees?.protocols ?? []) {
@@ -804,138 +834,131 @@ export const getProtocolsByChain = async ({
 
 	const parentStore: Record<string, Array<IChildProtocol>> = {}
 
-	for (const protocol of protocols) {
-		if (
-			!protocol.defillamaId.startsWith('chain#') &&
-			protocolMetadata[protocol.defillamaId] &&
-			protocolMatchesForkFilter(protocol) &&
-			protocolMatchesOracleFilter(protocol) &&
-			toFilterProtocol({
-				protocolMetadata: protocolMetadata[protocol.defillamaId],
-				protocolData: protocol,
-				chainDisplayName: currentChainMetadata.name
-			})
-		) {
-			const tvls = {} as Record<
-				TVL_TYPES,
-				{ tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }
-			>
+	for (const protocol of eligibleProtocols) {
+		const tvls = {} as Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }>
 
+		if (chain === 'All') {
+			tvls.default = {
+				tvl: protocol.tvl ?? null,
+				tvlPrevDay: protocol.tvlPrevDay ?? null,
+				tvlPrevWeek: protocol.tvlPrevWeek ?? null,
+				tvlPrevMonth: protocol.tvlPrevMonth ?? null
+			}
+		} else {
+			tvls.default = {
+				tvl: protocol?.chainTvls?.[currentChainMetadata.name]?.tvl ?? null,
+				tvlPrevDay: protocol?.chainTvls?.[currentChainMetadata.name]?.tvlPrevDay ?? null,
+				tvlPrevWeek: protocol?.chainTvls?.[currentChainMetadata.name]?.tvlPrevWeek ?? null,
+				tvlPrevMonth: protocol?.chainTvls?.[currentChainMetadata.name]?.tvlPrevMonth ?? null
+			}
+		}
+
+		const tvlChange = tvls.default.tvl
+			? {
+					change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
+					change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
+					change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
+				}
+			: null
+
+		for (const chainKey in protocol.chainTvls ?? {}) {
 			if (chain === 'All') {
-				tvls.default = {
-					tvl: protocol.tvl ?? null,
-					tvlPrevDay: protocol.tvlPrevDay ?? null,
-					tvlPrevWeek: protocol.tvlPrevWeek ?? null,
-					tvlPrevMonth: protocol.tvlPrevMonth ?? null
+				if (TVL_SETTINGS_KEYS_SET.has(chainKey as any) || chainKey === 'excludeParent') {
+					tvls[chainKey] = {
+						tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
+						tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
+						tvlPrevWeek: protocol?.chainTvls?.[chainKey]?.tvlPrevWeek ?? null,
+						tvlPrevMonth: protocol?.chainTvls?.[chainKey]?.tvlPrevMonth ?? null
+					}
 				}
 			} else {
-				tvls.default = {
-					tvl: protocol?.chainTvls?.[currentChainMetadata.name]?.tvl ?? null,
-					tvlPrevDay: protocol?.chainTvls?.[currentChainMetadata.name]?.tvlPrevDay ?? null,
-					tvlPrevWeek: protocol?.chainTvls?.[currentChainMetadata.name]?.tvlPrevWeek ?? null,
-					tvlPrevMonth: protocol?.chainTvls?.[currentChainMetadata.name]?.tvlPrevMonth ?? null
+				if (chainKey.startsWith(`${currentChainMetadata.name}-`)) {
+					const tvlKey = chainKey.split('-')[1]
+					tvls[tvlKey] = {
+						tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
+						tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
+						tvlPrevWeek: protocol?.chainTvls?.[chainKey]?.tvlPrevWeek ?? null,
+						tvlPrevMonth: protocol?.chainTvls?.[chainKey]?.tvlPrevMonth ?? null
+					}
 				}
 			}
+		}
 
-			const tvlChange = tvls.default.tvl
-				? {
-						change1d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevDay),
-						change7d: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevWeek),
-						change1m: getPercentChange(tvls.default.tvl, tvls.default.tvlPrevMonth)
-					}
+		const childProtocolTvl = tvls?.default?.tvl
+		const childMcapTvl =
+			protocol.mcap != null &&
+			protocol.category !== 'Bridge' &&
+			childProtocolTvl != null &&
+			childProtocolTvl !== 0 &&
+			Number.isFinite(childProtocolTvl)
+				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
 				: null
 
-			for (const chainKey in protocol.chainTvls ?? {}) {
-				if (chain === 'All') {
-					if (TVL_SETTINGS_KEYS_SET.has(chainKey as any) || chainKey === 'excludeParent') {
-						tvls[chainKey] = {
-							tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
-							tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
-							tvlPrevWeek: protocol?.chainTvls?.[chainKey]?.tvlPrevWeek ?? null,
-							tvlPrevMonth: protocol?.chainTvls?.[chainKey]?.tvlPrevMonth ?? null
-						}
-					}
-				} else {
-					if (chainKey.startsWith(`${currentChainMetadata.name}-`)) {
-						const tvlKey = chainKey.split('-')[1]
-						tvls[tvlKey] = {
-							tvl: protocol?.chainTvls?.[chainKey]?.tvl ?? null,
-							tvlPrevDay: protocol?.chainTvls?.[chainKey]?.tvlPrevDay ?? null,
-							tvlPrevWeek: protocol?.chainTvls?.[chainKey]?.tvlPrevWeek ?? null,
-							tvlPrevMonth: protocol?.chainTvls?.[chainKey]?.tvlPrevMonth ?? null
-						}
-					}
-				}
-			}
+		const childStore: IChildProtocol & { defillamaId: string } = {
+			name: protocolMetadata[protocol.defillamaId].displayName,
+			slug: slug(protocolMetadata[protocol.defillamaId].displayName),
+			chains: protocolMetadata[protocol.defillamaId].chains,
+			category: protocol.category ?? null,
+			tvl: protocol.tvl != null && protocol.category !== 'Bridge' ? tvls : null,
+			tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
+			mcap: protocol.mcap ?? null,
+			tokenPrice: protocol.geckoId ? (protocolTokenPrices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null,
+			mcaptvl: childMcapTvl,
+			strikeTvl:
+				protocol.category !== 'Bridge'
+					? toStrikeTvl(protocol, {
+							liquidstaking: !!tvls?.liquidstaking,
+							doublecounted: !!tvls?.doublecounted
+						})
+					: false,
+			defillamaId: protocol.defillamaId
+		}
 
-			const childStore: IChildProtocol & { defillamaId: string } = {
-				name: protocolMetadata[protocol.defillamaId].displayName,
-				slug: slug(protocolMetadata[protocol.defillamaId].displayName),
-				chains: protocolMetadata[protocol.defillamaId].chains,
-				category: protocol.category ?? null,
-				tvl: protocol.tvl != null && protocol.category !== 'Bridge' ? tvls : null,
-				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
-				mcap: protocol.mcap ?? null,
-				mcaptvl:
-					protocol.mcap != null && protocol.category !== 'Bridge' && tvls?.default?.tvl != null
-						? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
-						: null,
-				strikeTvl:
-					protocol.category !== 'Bridge'
-						? toStrikeTvl(protocol, {
-								liquidstaking: !!tvls?.liquidstaking,
-								doublecounted: !!tvls?.doublecounted
-							})
-						: false,
-				defillamaId: protocol.defillamaId
-			}
+		if (protocol.deprecated) {
+			childStore.deprecated = true
+		}
 
-			if (protocol.deprecated) {
-				childStore.deprecated = true
-			}
+		if (dimensionProtocols[protocol.defillamaId]?.fees) {
+			childStore.fees = dimensionProtocols[protocol.defillamaId].fees
+			childStore.fees.pf = protocol.mcap
+				? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.total30d)
+				: null
+		}
 
-			if (dimensionProtocols[protocol.defillamaId]?.fees) {
-				childStore.fees = dimensionProtocols[protocol.defillamaId].fees
-				childStore.fees.pf = protocol.mcap
-					? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].fees.total30d)
-					: null
-			}
+		if (dimensionProtocols[protocol.defillamaId]?.revenue) {
+			childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
+			childStore.revenue.ps = protocol.mcap
+				? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].revenue.total30d)
+				: null
+		}
 
-			if (dimensionProtocols[protocol.defillamaId]?.revenue) {
-				childStore.revenue = dimensionProtocols[protocol.defillamaId].revenue
-				childStore.revenue.ps = protocol.mcap
-					? getAnnualizedRatio(protocol.mcap, dimensionProtocols[protocol.defillamaId].revenue.total30d)
-					: null
-			}
+		if (dimensionProtocols[protocol.defillamaId]?.holdersRevenue) {
+			childStore.holdersRevenue = dimensionProtocols[protocol.defillamaId].holdersRevenue
+		}
 
-			if (dimensionProtocols[protocol.defillamaId]?.holdersRevenue) {
-				childStore.holdersRevenue = dimensionProtocols[protocol.defillamaId].holdersRevenue
-			}
+		if (dimensionProtocols[protocol.defillamaId]?.dexs) {
+			childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
+		}
 
-			if (dimensionProtocols[protocol.defillamaId]?.dexs) {
-				childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
-			}
+		const emissionsMatch =
+			emissionsProtocols[protocol.defillamaId] ||
+			emissionsProtocols[protocolMetadata[protocol.defillamaId]?.displayName]
 
-			const emissionsMatch =
-				emissionsProtocols[protocol.defillamaId] ||
-				emissionsProtocols[protocolMetadata[protocol.defillamaId]?.displayName]
-
-			if (emissionsMatch) {
-				childStore.emissions = {
-					total24h: emissionsMatch.emissions24h,
-					total7d: emissionsMatch.emissions7d,
-					total30d: emissionsMatch.emissions30d,
-					total1y: emissionsMatch.emissions1y,
-					monthlyAverage1y: emissionsMatch.emissionsMonthlyAverage1y,
-					totalAllTime: emissionsMatch.emissionsAllTime
-				}
+		if (emissionsMatch) {
+			childStore.emissions = {
+				total24h: emissionsMatch.emissions24h,
+				total7d: emissionsMatch.emissions7d,
+				total30d: emissionsMatch.emissions30d,
+				total1y: emissionsMatch.emissions1y,
+				monthlyAverage1y: emissionsMatch.emissionsMonthlyAverage1y,
+				totalAllTime: emissionsMatch.emissionsAllTime
 			}
+		}
 
-			if (protocol.parentProtocol && protocolMetadata[protocol.parentProtocol]) {
-				parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
-			} else {
-				protocolsStore[protocol.defillamaId] = childStore
-			}
+		if (protocol.parentProtocol && protocolMetadata[protocol.parentProtocol]) {
+			parentStore[protocol.parentProtocol] = [...(parentStore?.[protocol.parentProtocol] ?? []), childStore]
+		} else {
+			protocolsStore[protocol.defillamaId] = childStore
 		}
 	}
 
@@ -1107,6 +1130,15 @@ export const getProtocolsByChain = async ({
 			}
 			const chilsProtocolCategories = Array.from(categorySet)
 
+			const parentProtocolTvl = parentTvl?.default?.tvl
+			const parentMcapTvl =
+				parentProtocol.mcap != null &&
+				parentProtocolTvl != null &&
+				parentProtocolTvl !== 0 &&
+				Number.isFinite(parentProtocolTvl)
+					? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentProtocolTvl.toFixed(2))
+					: null
+
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
@@ -1117,10 +1149,10 @@ export const getProtocolsByChain = async ({
 				tvlChange: parentTvlChange,
 				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
 				mcap: parentProtocol.mcap ?? null,
-				mcaptvl:
-					parentProtocol.mcap != null && parentTvl?.default?.tvl != null
-						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
-						: null
+				tokenPrice: parentProtocol.gecko_id
+					? (protocolTokenPrices[`coingecko:${parentProtocol.gecko_id}`]?.price ?? null)
+					: null,
+				mcaptvl: parentMcapTvl
 			}
 
 			if (parentFees) {

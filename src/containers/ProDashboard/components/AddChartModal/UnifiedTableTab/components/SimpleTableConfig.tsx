@@ -255,6 +255,7 @@ const CHAIN_CATEGORY_OPTIONS = [
 	{ value: 'Parachain', label: 'Parachains' },
 	{ value: 'Cosmos', label: 'Cosmos' }
 ]
+const PRO_ONLY_TABLE_TYPES = new Set<string>(['token-usage', 'rwa', 'rwa-chains', 'rwa-selected-chain'])
 
 export function SimpleTableConfig({
 	selectedChains,
@@ -303,8 +304,6 @@ export function SimpleTableConfig({
 
 		return [...additionalOptions, ...baseOptions]
 	}, [tokenSearchInput, tokenOptions, defaultTokens, selectedTokens])
-
-	const PRO_ONLY_TABLE_TYPES = new Set<string>(['token-usage', 'rwa', 'rwa-chains', 'rwa-selected-chain'])
 
 	const datasetSelectOptions = useMemo(() => {
 		const legacySet = new Set(legacyTableTypes)
