@@ -16,6 +16,13 @@ const BEX_COLORS = { Revenue: '#66BB6A' }
 const BEND_COLORS = { Fees: '#AB47BC', Revenue: '#EF5350' }
 const BEND_STACKS = { Fees: 'a', Revenue: 'a' }
 
+const TOTAL_REVENUE_COLORS = {
+	'Chain Fees': BERACHAIN_COLORS['Chain Fees'],
+	Bribes: BERACHAIN_COLORS.Bribes,
+	'BEX Revenue': BEX_COLORS.Revenue,
+	'BEND Revenue': BEND_COLORS.Revenue
+}
+
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
 	return (
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
@@ -84,7 +91,7 @@ function getCumulativeTotal(data: Record<string, number>[], key: string) {
 
 export default function IncomeBreakdown() {
 	const serverData = useCustomServerData<BerachainIncomeServerData>('berachainIncome')
-	const { isLoading, berachain, bex, bend } = useBerachainIncomeData(serverData)
+	const { isLoading, berachain, bex, bend, totalRevenue } = useBerachainIncomeData(serverData)
 	const { data: honeyRevenue, isLoading: isHoneyLoading } = useHoneyRevenueData()
 
 	const kpis = useMemo(() => {
@@ -164,6 +171,22 @@ export default function IncomeBreakdown() {
 					</>
 				)}
 			</div>
+
+			{isLoading ? (
+				<CardSkeleton title="Cumulative Revenue (all sources)" />
+			) : (
+				<ChartCard title="Cumulative Revenue (all sources)">
+					<AreaChart
+						chartData={totalRevenue.cumulative}
+						stacks={['Chain Fees', 'Bribes', 'BEX Revenue', 'BEND Revenue']}
+						stackColors={TOTAL_REVENUE_COLORS}
+						valueSymbol="$"
+						title=""
+						height="400px"
+						isStackedChart
+					/>
+				</ChartCard>
+			)}
 
 			{isLoading ? (
 				<CardSkeleton title="Monthly Breakdown" />
