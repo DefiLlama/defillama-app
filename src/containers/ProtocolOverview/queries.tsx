@@ -3,7 +3,7 @@ import {
 	fetchCgChartByGeckoId,
 	fetchCoinGeckoCoinChainsByTickerVolume,
 	fetchLiquidityTokensDataset,
-	fetchProtocolLlamaswapChains
+	fetchProtocolLlamaswapChainsByGeckoId
 } from '~/api'
 import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
@@ -672,7 +672,7 @@ export const getProtocolOverviewPageData = async ({
 	let llamaswapChains = null
 	let llamaswapChainsFromCoinGecko = false
 	if (tokenGeckoId && !isCEX) {
-		llamaswapChains = await fetchProtocolLlamaswapChains(tokenGeckoId).catch(() => null)
+		llamaswapChains = await fetchProtocolLlamaswapChainsByGeckoId(tokenGeckoId).catch(() => null)
 		if (!llamaswapChains?.length) {
 			const cgChains = await fetchCoinGeckoCoinChainsByTickerVolume(tokenGeckoId).catch(() => null)
 			if (cgChains?.length) {

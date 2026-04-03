@@ -294,9 +294,16 @@ export interface LlamaswapChain {
 	liquidity?: number
 }
 
-export interface ProtocolLlamaswapResponse {
+export interface ProtocolLlamaswapEntry {
+	name: string
+	slug: string
+	symbol: string
+	geckoId: string
 	chains?: Array<LlamaswapChain>
+	updatedAt?: string
 }
+
+export type ProtocolLlamaswapDataset = Record<string, ProtocolLlamaswapEntry>
 
 export type BuyOnLlamaswapChain = Omit<LlamaswapChain, 'priceImpact'> & { displayName: string }
 

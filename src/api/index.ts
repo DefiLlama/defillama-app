@@ -30,7 +30,8 @@ import type {
 	GeckoIdResponse,
 	IResponseCGMarketsAPI,
 	BuyOnLlamaswapChain,
-	ProtocolLlamaswapResponse,
+	ProtocolLlamaswapDataset,
+	ProtocolLlamaswapEntry,
 	LlamaConfigResponse,
 	PriceObject,
 	ProtocolLiquidityTokensResponse,
@@ -496,22 +497,40 @@ export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTo
 	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
 }
 
+export function normalizeProtocolLlamaswapChains(
+	entry: Pick<ProtocolLlamaswapEntry, 'chains'> | null | undefined
+): BuyOnLlamaswapChain[] | null {
+	if (!Array.isArray(entry?.chains) || entry.chains.length === 0) return null
+
+	return [...entry.chains]
+		.sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
+		.map((chain) => ({
+			chain: chain.chain,
+			chainId: chain.chainId,
+			address: chain.address,
+			liquidity: chain.liquidity,
+			displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
+		}))
+}
+
+/** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */
+export async function fetchProtocolLlamaswapDataset(): Promise<ProtocolLlamaswapDataset> {
+	return fetchJson<ProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL).then((data) =>
+		Object.values(data ?? {}).reduce((acc, entry) => {
+			if (entry?.geckoId) {
+				acc[entry.geckoId] = entry
+			}
+			return acc
+		}, {} as ProtocolLlamaswapDataset)
+	)
+}
+
 /** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */
-export async function fetchProtocolLlamaswapChains(geckoId: string): Promise<BuyOnLlamaswapChain[] | null> {
+export async function fetchProtocolLlamaswapChainsByGeckoId(geckoId: string): Promise<BuyOnLlamaswapChain[] | null> {
 	if (!geckoId) return null
 
-	return fetchJson<ProtocolLlamaswapResponse>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}.json`)
-		.then((data) =>
-			Array.isArray(data?.chains) && data.chains.length > 0
-				? data.chains
-						.sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
-						.map((chain) => ({
-							chain: chain.chain,
-							address: chain.address,
-							displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
-						}))
-				: null
-		)
+	return fetchJson<ProtocolLlamaswapEntry>(`${PROTOCOL_LLAMASWAP_API_URL}/${encodeURIComponent(geckoId)}.json`)
+		.then((data) => normalizeProtocolLlamaswapChains(data))
 		.catch(() => null)
 }
 
