@@ -73,7 +73,7 @@ export const LLAMASWAP_CHAINS = [
 	{ llamaswap: 'base', gecko: 'base', displayName: 'Base' },
 	{ llamaswap: 'avax', gecko: 'avalanche', displayName: 'Avalanche' },
 	{ llamaswap: 'gnosis', gecko: 'xdai', displayName: 'Gnosis XDAI' },
-	{ llamaswap: 'zksync', gecko: 'zksync', displayName: 'ZkSync' },
+	{ llamaswap: 'zksync', gecko: 'zksync', displayName: 'ZkSync Era' },
 	{ llamaswap: 'linea', gecko: 'linea', displayName: 'Linea' },
 	{ llamaswap: 'scroll', gecko: 'scroll', displayName: 'Scroll' },
 	{ llamaswap: 'mantle', gecko: 'mantle', displayName: 'Mantle' },

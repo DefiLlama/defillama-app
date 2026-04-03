@@ -25,6 +25,7 @@ import type {
 	IResponseCGMarketsAPI
 } from './coingecko.types'
 import { fetchCoinPrices } from './index'
+import type { BuyOnLlamaswapChain } from './types'
 
 const COINGECKO_API_BASE_URL = COINGECKO_KEY
 	? 'https://pro-api.coingecko.com/api/v3'
@@ -250,7 +251,7 @@ export async function fetchCoinGeckoCoinById<TOptions extends FetchCoinGeckoCoin
  */
 function parseCoinGeckoCoinChainsByTickerVolume(
 	coin: Pick<CoinGeckoCoinDetailBody, 'platforms'> & { tickers?: CoinGeckoCoinTickerWithDepth[] }
-): Array<{ chain: string; address: string }> {
+): Array<BuyOnLlamaswapChain> {
 	const platforms = coin.platforms
 	if (!platforms || Object.keys(platforms).length === 0) return []
 	const tickers = coin.tickers
@@ -288,10 +289,11 @@ function parseCoinGeckoCoinChainsByTickerVolume(
 			if (!llamaswapChain) return null
 			return {
 				chain: llamaswapChain.llamaswap,
+				displayName: llamaswapChain.displayName,
 				address
 			}
 		})
-		.filter((chain): chain is { chain: string; address: string } => chain !== null)
+		.filter((chain): chain is BuyOnLlamaswapChain => chain !== null)
 }
 
 /**
