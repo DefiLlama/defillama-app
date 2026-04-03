@@ -27,7 +27,6 @@ export function PasswordResetModal({
 				unmountOnHide
 			>
 				<div className="flex flex-col gap-5 px-5 py-6">
-					{/* Header */}
 					<div className="flex items-center justify-between">
 						<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary) dark:text-white">
 							Change Password
@@ -37,7 +36,6 @@ export function PasswordResetModal({
 						</Ariakit.DialogDismiss>
 					</div>
 
-					{/* Body */}
 					<div className="flex flex-col gap-8">
 						<div className="text-sm leading-[21px] text-(--sub-ink-primary) dark:text-white">
 							<p className="mb-3.5">We sent a reset password link to {email}.</p>

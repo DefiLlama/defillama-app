@@ -4,17 +4,20 @@ import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { EmailChangeModal } from './EmailChangeModal'
 import { PasswordResetModal } from './PasswordResetModal'
+import { SwitchToEmailModal } from './SwitchToEmailModal'
 
 export function AuthenticationCard() {
 	const { user, resetPasswordMutation, resendVerification, loaders } = useAuthContext()
 
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+	const [isSwitchToEmailModalOpen, setIsSwitchToEmailModalOpen] = useState(false)
 	const [passwordCooldownMsg, setPasswordCooldownMsg] = useState('')
 	const passwordResetSentAt = useRef(0)
 	const PASSWORD_COOLDOWN_MS = 60_000
 
 	const hasEmailAuth = !!user?.email
+	const isEthereumAuth = user?.authMethod === 'ethereum'
 	const isEmailUnverified = hasEmailAuth && user?.verified === false
 	const walletDisplayName = user?.walletAddress
 		? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`
@@ -132,6 +135,23 @@ export function AuthenticationCard() {
 								Enable email sign-in as an alternative method.
 							</p>
 						</div>
+
+						{isEthereumAuth && (
+							<div className="flex flex-col gap-1">
+								<div className="flex items-center justify-between">
+									<span className="text-sm text-(--sub-ink-primary) dark:text-white">Switch to Email</span>
+									<button
+										onClick={() => setIsSwitchToEmailModalOpen(true)}
+										className="rounded-lg border border-(--sub-border-muted) px-3 py-2 text-xs font-medium text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white"
+									>
+										Switch to Email
+									</button>
+								</div>
+								<p className="text-xs leading-4 text-(--sub-text-muted)">
+									Replace wallet sign-in with email &amp; password authentication.
+								</p>
+							</div>
+						)}
 					</>
 				)}
 
@@ -169,6 +189,8 @@ export function AuthenticationCard() {
 			/>
 
 			<EmailChangeModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} />
+
+			<SwitchToEmailModal isOpen={isSwitchToEmailModalOpen} onClose={() => setIsSwitchToEmailModalOpen(false)} />
 		</>
 	)
 }
