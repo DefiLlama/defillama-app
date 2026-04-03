@@ -23,6 +23,26 @@ export function getSupportedCoinGeckoPlatformsForLlamaswap(platforms?: Record<st
 	return supportedPlatforms
 }
 
+export function mapSupportedCoinGeckoPlatformsToLlamaswapChains(
+	platforms?: Record<string, string>
+): IProtocolLlamaswapChain[] {
+	const supportedPlatforms = getSupportedCoinGeckoPlatformsForLlamaswap(platforms)
+	const normalizedChains: IProtocolLlamaswapChain[] = []
+
+	for (const [chain, address] of Object.entries(supportedPlatforms)) {
+		const llamaswapChain = getLlamaswapChainByGeckoPlatform(chain)
+		if (!llamaswapChain) continue
+
+		normalizedChains.push({
+			chain: llamaswapChain.llamaswap,
+			address,
+			displayName: llamaswapChain.displayName
+		})
+	}
+
+	return normalizedChains
+}
+
 export function parseCoinGeckoLlamaswapChainsByTickerVolume(coin: {
 	platforms?: Record<string, string>
 	tickers?: CoinGeckoCoinTickerWithDepth[]
@@ -32,7 +52,7 @@ export function parseCoinGeckoLlamaswapChainsByTickerVolume(coin: {
 	if (platformEntries.length === 0) return []
 
 	const tickers = coin.tickers
-	if (!tickers?.length) return []
+	if (!tickers?.length) return mapSupportedCoinGeckoPlatformsToLlamaswapChains(platforms)
 
 	const rows = platformEntries.map(([chain, address]) => ({
 		chain,
@@ -65,5 +85,5 @@ export function parseCoinGeckoLlamaswapChainsByTickerVolume(coin: {
 		})
 	}
 
-	return normalizedChains
+	return normalizedChains.length > 0 ? normalizedChains : mapSupportedCoinGeckoPlatformsToLlamaswapChains(platforms)
 }

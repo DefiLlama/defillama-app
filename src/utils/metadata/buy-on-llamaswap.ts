@@ -1,7 +1,7 @@
 import { fetchCoinGeckoCoinTickersById, fetchCoinGeckoCoinsList } from '~/api/coingecko'
 import type { CoinGeckoCoinTickerWithDepth } from '~/api/coingecko.types'
-import { LLAMASWAP_CHAINS } from '~/constants/chains'
 import { getErrorMessage } from '~/utils/error'
+import { mergeProtocolLlamaswapChains, normalizeProtocolLlamaswapChains } from '~/utils/llamaswapChains'
 import {
 	getSupportedCoinGeckoPlatformsForLlamaswap,
 	parseCoinGeckoLlamaswapChainsByTickerVolume
@@ -29,11 +29,6 @@ type RawProtocolLlamaswapDataset = Record<string, RawProtocolLlamaswapEntry>
 
 const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
 const COINGECKO_CHAIN_BATCH_SIZE = 8
-const LLAMASWAP_DISPLAY_NAME_BY_CHAIN = new Map<string, string>()
-
-for (const chain of LLAMASWAP_CHAINS) {
-	LLAMASWAP_DISPLAY_NAME_BY_CHAIN.set(chain.llamaswap, chain.displayName)
-}
 
 function previewResponseBody(body: string, length = 200): string {
 	return body.replace(/\s+/g, ' ').trim().slice(0, length)
@@ -75,38 +70,6 @@ async function fetchJson<T = unknown>(url: string, init?: RequestInit): Promise<
 			)}". Original error: ${getErrorMessage(error)}`
 		)
 	}
-}
-
-function sortChainsByLiquidityDesc<T extends { liquidity?: number }>(a: T, b: T): number {
-	return (b.liquidity ?? 0) - (a.liquidity ?? 0)
-}
-
-function toProtocolLlamaswapChain(
-	chain: Pick<RawLlamaswapChain, 'chain' | 'address'>,
-	options?: { best?: boolean }
-): IProtocolLlamaswapChain {
-	return {
-		chain: chain.chain,
-		address: chain.address,
-		displayName: LLAMASWAP_DISPLAY_NAME_BY_CHAIN.get(chain.chain) ?? chain.chain,
-		...(options?.best ? { best: true } : {})
-	}
-}
-
-export function normalizeProtocolLlamaswapChains(
-	entry: Pick<RawProtocolLlamaswapEntry, 'chains'> | null | undefined,
-	isLlamaswapList: boolean = false
-): IProtocolLlamaswapChain[] | null {
-	if (!Array.isArray(entry?.chains) || entry.chains.length === 0) return null
-
-	const sortedChains = entry.chains.slice().sort(sortChainsByLiquidityDesc)
-	const normalizedChains: IProtocolLlamaswapChain[] = []
-
-	for (let index = 0; index < sortedChains.length; index += 1) {
-		normalizedChains.push(toProtocolLlamaswapChain(sortedChains[index], { best: isLlamaswapList && index === 0 }))
-	}
-
-	return normalizedChains
 }
 
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */
@@ -186,19 +149,19 @@ export async function buildProtocolLlamaswapDataset({
 		platformsByGeckoId.set(coin.id, coin.platforms)
 	}
 
-	const missingGeckoIds = new Set<string>()
+	const relevantGeckoIds = new Set<string>()
 
 	for (const chainName in chains) {
 		const geckoId = chains[chainName]?.gecko_id
-		if (geckoId && !(geckoId in protocolLlamaswapDataset)) missingGeckoIds.add(geckoId)
+		if (geckoId) relevantGeckoIds.add(geckoId)
 	}
 
 	for (const protocolId in protocols) {
 		const geckoId = protocols[protocolId]?.gecko_id
-		if (geckoId && !(geckoId in protocolLlamaswapDataset)) missingGeckoIds.add(geckoId)
+		if (geckoId) relevantGeckoIds.add(geckoId)
 	}
 
-	for (const geckoIdBatch of batchArray([...missingGeckoIds], COINGECKO_CHAIN_BATCH_SIZE)) {
+	for (const geckoIdBatch of batchArray([...relevantGeckoIds], COINGECKO_CHAIN_BATCH_SIZE)) {
 		const backfilledBatchPromises: Array<Promise<[string, IProtocolLlamaswapChain[]] | null>> = []
 
 		for (const geckoId of geckoIdBatch) {
@@ -228,7 +191,10 @@ export async function buildProtocolLlamaswapDataset({
 		for (const entry of backfilledBatch) {
 			if (!entry) continue
 			const [geckoId, normalizedChains] = entry
-			protocolLlamaswapDataset[geckoId] = normalizedChains.length > 0 ? normalizedChains : null
+			protocolLlamaswapDataset[geckoId] = mergeProtocolLlamaswapChains(
+				protocolLlamaswapDataset[geckoId],
+				normalizedChains
+			)
 		}
 	}
 

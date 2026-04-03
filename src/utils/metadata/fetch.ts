@@ -1,3 +1,4 @@
+import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
 import { getErrorMessage } from '~/utils/error'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import type {
@@ -118,13 +119,13 @@ export async function fetchCoreMetadata({
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
 
-	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json`
-	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json`
-	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json`
-	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs`
-	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?rwa=123`
-	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list`
-	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
+	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=11`
+	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=11`
+	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=11`
+	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=11`
+	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=11`
+	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=11`
+	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=11`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
 	const isDev = process.env.NODE_ENV === 'development'
@@ -210,14 +211,16 @@ export async function fetchCoreMetadata({
 		})
 	)
 
-	const protocolLlamaswapDataset = await (isDev
-		? buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }).catch(
-				(error) => {
-					console.error('[metadata] dev: failed to build buy-on-llamaswap dataset, using fallback:', error)
-					return {} as ProtocolLlamaswapMetadata
-				}
-			)
-		: buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }))
+	const protocolLlamaswapDataset = ENABLE_LLAMASWAP_PROTOCOLS_CHAINS
+		? await (isDev
+				? buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }).catch(
+						(error) => {
+							console.error('[metadata] dev: failed to build buy-on-llamaswap dataset, using fallback:', error)
+							return {} as ProtocolLlamaswapMetadata
+						}
+					)
+				: buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }))
+		: ({} as ProtocolLlamaswapMetadata)
 
 	return {
 		protocols,

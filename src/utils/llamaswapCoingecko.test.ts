@@ -3,6 +3,7 @@ import type { CoinGeckoCoinTickerWithDepth } from '~/api/coingecko.types'
 import { getLlamaswapChainByGeckoPlatform } from '~/constants/chains'
 import {
 	getSupportedCoinGeckoPlatformsForLlamaswap,
+	mapSupportedCoinGeckoPlatformsToLlamaswapChains,
 	normalizeEvmContractAddress,
 	parseCoinGeckoLlamaswapChainsByTickerVolume
 } from './llamaswapCoingecko'
@@ -51,6 +52,29 @@ describe('getSupportedCoinGeckoPlatformsForLlamaswap', () => {
 			hyperliquid: '0x0d01dc56dcaaca66ad901c959b4011ec',
 			base: '0x4200000000000000000000000000000000000006'
 		})
+	})
+})
+
+describe('mapSupportedCoinGeckoPlatformsToLlamaswapChains', () => {
+	it('maps supported platform addresses without needing ticker data', () => {
+		expect(
+			mapSupportedCoinGeckoPlatformsToLlamaswapChains({
+				hyperliquid: '0x0D01DC56DCAACA66AD901C959B4011EC',
+				base: '0x4200000000000000000000000000000000000006',
+				solana: 'So11111111111111111111111111111111111111112'
+			})
+		).toEqual([
+			{
+				chain: 'hyperevm',
+				address: '0x0d01dc56dcaaca66ad901c959b4011ec',
+				displayName: 'Hyperliquid'
+			},
+			{
+				chain: 'base',
+				address: '0x4200000000000000000000000000000000000006',
+				displayName: 'Base'
+			}
+		])
 	})
 })
 
@@ -119,7 +143,36 @@ describe('parseCoinGeckoLlamaswapChainsByTickerVolume', () => {
 					}
 				]
 			})
-		).toEqual([])
+		).toEqual([
+			{
+				chain: 'hyperevm',
+				address: hyperliquidAddress,
+				displayName: 'Hyperliquid'
+			}
+		])
+	})
+
+	it('falls back to supported platform chains when ticker data is missing entirely', () => {
+		expect(
+			parseCoinGeckoLlamaswapChainsByTickerVolume({
+				platforms: {
+					hyperliquid: hyperliquidAddress,
+					base: baseAddress
+				},
+				tickers: []
+			})
+		).toEqual([
+			{
+				chain: 'hyperevm',
+				address: hyperliquidAddress,
+				displayName: 'Hyperliquid'
+			},
+			{
+				chain: 'base',
+				address: baseAddress,
+				displayName: 'Base'
+			}
+		])
 	})
 
 	it('returns identical output for both Hyperliquid Gecko platform keys', () => {
