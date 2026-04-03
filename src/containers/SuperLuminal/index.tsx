@@ -240,6 +240,7 @@ function CustomOnlyContent({
 	displayName: string
 	hasCustomHeader?: boolean
 }) {
+	const prevTab = useRef(activeTab)
 	const [visitedTabsBase, setVisitedTabsBase] = useState<Set<string>>(() => new Set([activeTab]))
 	const visitedTabs = visitedTabsBase.has(activeTab) ? visitedTabsBase : new Set([...visitedTabsBase, activeTab])
 
@@ -248,6 +249,12 @@ function CustomOnlyContent({
 			if (prev.has(activeTab)) return prev
 			return new Set(prev).add(activeTab)
 		})
+		if (activeTab !== prevTab.current) {
+			prevTab.current = activeTab
+			requestAnimationFrame(() => {
+				window.dispatchEvent(new Event('resize'))
+			})
+		}
 	}, [activeTab])
 
 	return (
@@ -261,7 +268,17 @@ function CustomOnlyContent({
 			)}
 
 			{tabs.map((tab) => {
-				if (!tab.component || !visitedTabs.has(tab.id)) return null
+				if (!visitedTabs.has(tab.id)) return null
+				if (tab.proDashboardId) {
+					return (
+						<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
+							<ProDashboardAPIProvider key={tab.proDashboardId} initialDashboardId={tab.proDashboardId}>
+								<DashboardTabInner visible={activeTab === tab.id} />
+							</ProDashboardAPIProvider>
+						</div>
+					)
+				}
+				if (!tab.component) return null
 				const TabComponent = tab.component
 				return (
 					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
