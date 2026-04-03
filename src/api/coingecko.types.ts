@@ -36,14 +36,15 @@ type CoinGeckoDerivativeExchangesOrder =
 	| 'trade_volume_24h_btc_asc'
 	| 'trade_volume_24h_btc_desc'
 
-type ResolveBooleanOption<TValue, TDefault extends boolean> = TValue extends boolean ? TValue : TDefault
+type ResolveBooleanOption<TValue, TDefault extends boolean> = [TValue] extends [boolean] ? TValue : TDefault
 
 type OptionValue<TOptions, TKey extends PropertyKey> = TOptions extends Record<TKey, infer TValue> ? TValue : never
 
-type DefaultedBooleanOption<TOptions, TKey extends PropertyKey, TDefault extends boolean> = ResolveBooleanOption<
-	OptionValue<TOptions, TKey>,
-	TDefault
->
+type DefaultedBooleanOption<TOptions, TKey extends PropertyKey, TDefault extends boolean> = [
+	OptionValue<TOptions, TKey>
+] extends [never]
+	? TDefault
+	: ResolveBooleanOption<OptionValue<TOptions, TKey>, TDefault>
 
 type CoinGeckoConditionalField<TEnabled extends boolean, TKey extends PropertyKey, TValue> = TEnabled extends false
 	? { [K in TKey]?: never }

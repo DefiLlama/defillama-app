@@ -213,14 +213,7 @@ export function normalizeProtocolLlamaswapChains(
 
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */
 export async function fetchProtocolLlamaswapDataset(): Promise<ProtocolLlamaswapDataset> {
-	return fetchJson<ProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL).then((data) =>
-		Object.values(data ?? {}).reduce((acc, entry) => {
-			if (entry?.geckoId) {
-				acc[entry.geckoId] = entry
-			}
-			return acc
-		}, {} as ProtocolLlamaswapDataset)
-	)
+	return fetchJson<ProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL)
 }
 
 /** Fetch LlamaSwap-supported chains for a protocol token by CoinGecko ID. */

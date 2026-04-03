@@ -42,7 +42,7 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const [spotData, derivsData, priceData] = await Promise.all([
 			fetchCoinGeckoExchanges({ perPage: 250 }),
-			fetchCoinGeckoDerivativesExchanges({ perPage: 1000 }),
+			fetchCoinGeckoDerivativesExchanges({ perPage: 250 }),
 			fetchCoinPrices(['coingecko:bitcoin'])
 		])
 		spotById = new Map(spotData.map((exchange) => [exchange.id, exchange]))
