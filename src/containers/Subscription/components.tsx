@@ -329,19 +329,19 @@ export function PricingCard({
 							{card.priceMain ? (
 								<div className="flex flex-col gap-1 sm:gap-0">
 									<div className="flex items-end gap-0.5">
-									{card.key === 'pro' && isTrialAvailable ? (
-										<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
-											<span className="line-through">{card.priceMain}</span>{' '}$0
+										{card.key === 'pro' && isTrialAvailable ? (
+											<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
+												<span className="line-through">{card.priceMain}</span> $0
+											</p>
+										) : (
+											<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
+												{card.priceMain}
+											</p>
+										)}
+										<p className="text-[16px] leading-6 text-(--sub-text-slate-600) sm:text-base sm:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:sm:text-(--sub-text-secondary-dark)">
+											{card.priceUnit}
 										</p>
-									) : (
-										<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
-											{card.priceMain}
-										</p>
-									)}
-									<p className="text-[16px] leading-6 text-(--sub-text-slate-600) sm:text-base sm:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:sm:text-(--sub-text-secondary-dark)">
-										{card.priceUnit}
-									</p>
-								</div>
+									</div>
 									{card.key === 'pro' && isTrialAvailable ? (
 										<p className="text-[14px] leading-5 font-medium text-(--sub-brand-primary) sm:text-[13px] sm:leading-4 dark:text-(--sub-brand-secondary)">
 											Free for 7 days — no charge until trial ends
