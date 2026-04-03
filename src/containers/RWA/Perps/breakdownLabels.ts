@@ -12,29 +12,24 @@ export const UNKNOWN_BREAKDOWN_LABEL = 'Unknown'
 
 type SharedBreakdown = RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
 
-type SharedBreakdownRow = Pick<IRWAPerpsTimeSeriesRow, 'coin' | 'venue' | 'referenceAsset' | 'assetClass'>
-
-function firstNonEmptyString(values: Array<string | null | undefined>): string | null {
-	for (const value of values) {
-		if (typeof value === 'string' && value.trim().length > 0) {
-			return value.trim()
-		}
-	}
-
-	return null
-}
+type SharedBreakdownRow = Pick<IRWAPerpsTimeSeriesRow, 'contract' | 'venue' | 'referenceAsset' | 'assetClass'>
 
 export function normalizeRWAPerpsBreakdownLabel(value: string | null | undefined): string {
-	return typeof value === 'string' && value.trim().length > 0 ? value.trim() : UNKNOWN_BREAKDOWN_LABEL
+	return value && value.length > 0 ? value : UNKNOWN_BREAKDOWN_LABEL
 }
 
-export function getRWAPerpsBaseAssetBreakdownLabel(row: Pick<SharedBreakdownRow, 'coin' | 'referenceAsset'>): string {
-	const [_, rawCoinLabel] = row.coin.split(':')
-	return normalizeRWAPerpsBreakdownLabel(firstNonEmptyString([row.referenceAsset, rawCoinLabel, row.coin]))
+export function getRWAPerpsBaseAssetBreakdownLabel(
+	row: Pick<SharedBreakdownRow, 'contract' | 'referenceAsset'>
+): string {
+	return normalizeRWAPerpsBreakdownLabel(row.referenceAsset ?? row.contract.split(':')[1] ?? row.contract)
 }
 
-export function getRWAPerpsContractBreakdownLabel(row: Pick<SharedBreakdownRow, 'coin'>): string {
-	return normalizeRWAPerpsBreakdownLabel(row.coin)
+export function getRWAPerpsContractBreakdownLabel(row: Pick<SharedBreakdownRow, 'contract'>): string {
+	return normalizeRWAPerpsBreakdownLabel(row.contract)
+}
+
+export function getRWAPerpsAssetClassBreakdownLabel(row: Pick<SharedBreakdownRow, 'assetClass'>): string {
+	return normalizeRWAPerpsBreakdownLabel(row.assetClass?.[0])
 }
 
 export function getRWAPerpsSharedBreakdownLabel(row: SharedBreakdownRow, breakdown: SharedBreakdown): string {
@@ -42,7 +37,7 @@ export function getRWAPerpsSharedBreakdownLabel(row: SharedBreakdownRow, breakdo
 		case 'venue':
 			return normalizeRWAPerpsBreakdownLabel(row.venue)
 		case 'assetClass':
-			return normalizeRWAPerpsBreakdownLabel(row.assetClass)
+			return getRWAPerpsAssetClassBreakdownLabel(row)
 		case 'baseAsset':
 			return getRWAPerpsBaseAssetBreakdownLabel(row)
 		case 'contract':

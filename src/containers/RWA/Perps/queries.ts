@@ -12,7 +12,7 @@ import {
 } from './api'
 import type {
 	IRWAPerpsAggregateHistoricalPoint,
-	IRWAPerpsFundingHistoryResponse,
+	IRWAPerpsFundingHistoryPoint,
 	IRWAPerpsMarket,
 	IRWAPerpsMarketChartPoint,
 	IRWAPerpsStatsResponse
@@ -43,6 +43,7 @@ type SnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown | RWAPerpsVenueN
 type BreakdownLabelResolver<TRow, TBreakdown extends string> = (row: TRow, breakdown: TBreakdown) => string
 
 const EMPTY_CHART_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+
 function safeNumber(value: unknown): number {
 	const parsed = typeof value === 'number' ? value : Number(value)
 	return Number.isFinite(parsed) ? parsed : 0
@@ -57,25 +58,8 @@ function toUnixMsTimestamp(timestamp: number): number {
 	return timestamp > 1e12 ? timestamp : timestamp * 1e3
 }
 
-function firstNonEmptyString(values: Array<string | null | undefined>): string | null {
-	for (const value of values) {
-		if (typeof value === 'string' && value.trim().length > 0) {
-			return value.trim()
-		}
-	}
-
-	return null
-}
-
-function uniqueNonEmptyStrings(values: Array<string | null | undefined>): string[] {
-	return Array.from(
-		new Set(
-			values
-				.filter((value): value is string => typeof value === 'string')
-				.map((value) => value.trim())
-				.filter(Boolean)
-		)
-	)
+function getPrimaryAssetClass(assetClass: string[] | null): string | null {
+	return assetClass?.[0] ?? null
 }
 
 function normalizeMarketChart(points: IRWAPerpsMarketChartPoint[] | null): IRWAPerpsContractMarketChartPoint[] | null {
@@ -90,12 +74,12 @@ function normalizeMarketChart(points: IRWAPerpsMarketChartPoint[] | null): IRWAP
 }
 
 function normalizeFundingHistory(
-	response: IRWAPerpsFundingHistoryResponse | null
+	points: IRWAPerpsFundingHistoryPoint[] | null
 ): IRWAPerpsContractFundingHistoryPoint[] | null {
-	if (!response?.data?.length) return null
+	if (!points?.length) return null
 
 	return ensureChronologicalRows(
-		response.data.map((point) => ({
+		points.map((point) => ({
 			timestamp: toUnixMsTimestamp(point.timestamp),
 			fundingRate: safeNumber(point.funding_rate),
 			premium: safeNumber(point.premium),
@@ -106,7 +90,7 @@ function normalizeFundingHistory(
 }
 
 function resolveContractMarket(markets: IRWAPerpsMarket[], contract: string): IRWAPerpsMarket | null {
-	const exactMatches = markets.filter((market) => market.coin === contract)
+	const exactMatches = markets.filter((market) => market.contract === contract)
 	return exactMatches.length === 1 ? exactMatches[0] : null
 }
 
@@ -265,24 +249,24 @@ export async function getRWAPerpsContractData({
 				.catch(() => null)
 		])
 
-		const displayName = firstNonEmptyString([market.referenceAsset, market.coin.split(':')[1], market.coin])
+		const displayName = market.referenceAsset ?? market.contract.split(':')[1] ?? market.contract
 
 		return {
 			contract: {
 				contract,
-				displayName: displayName ?? contract,
+				displayName,
 				venue: market.venue,
-				baseAsset: firstNonEmptyString([market.referenceAsset]),
-				baseAssetGroup: firstNonEmptyString([market.referenceAssetGroup]),
-				assetClass: firstNonEmptyString([market.assetClass]),
-				rwaClassification: firstNonEmptyString([market.rwaClassification]),
-				accessModel: firstNonEmptyString([market.accessModel]),
-				parentPlatform: firstNonEmptyString([market.parentPlatform]),
-				issuer: firstNonEmptyString([market.issuer]),
-				website: firstNonEmptyString([market.website]),
-				oracleProvider: firstNonEmptyString([market.oracleProvider]),
-				description: firstNonEmptyString([market.description]),
-				categories: uniqueNonEmptyStrings(market.category)
+				baseAsset: market.referenceAsset,
+				baseAssetGroup: market.referenceAssetGroup,
+				assetClass: getPrimaryAssetClass(market.assetClass),
+				rwaClassification: market.rwaClassification,
+				accessModel: market.accessModel,
+				parentPlatform: market.parentPlatform,
+				issuer: market.issuer,
+				website: market.website?.[0] ?? null,
+				oracleProvider: market.oracleProvider,
+				description: market.description,
+				categories: market.category ?? []
 			},
 			market,
 			marketChart,
@@ -417,7 +401,7 @@ export async function getRWAPerpsVenuePage({ venue }: { venue: string }): Promis
 	if (!list || !stats || !venueResponse) return null
 	if (!list.venues.includes(venue)) return null
 
-	const markets = venueResponse.data ?? []
+	const markets = venueResponse
 	if (markets.length === 0) return null
 
 	const initialChartDataset = await getRWAPerpsVenueBreakdownChartDataset({
@@ -439,7 +423,7 @@ export async function getRWAPerpsVenuePage({ venue }: { venue: string }): Promis
 		totals: {
 			openInterest: safeNumber(statsBucket?.openInterest),
 			volume24h: safeNumber(statsBucket?.volume24h),
-			markets: safeNumber(statsBucket?.markets ?? venueResponse.total ?? markets.length),
+			markets: safeNumber(statsBucket?.markets ?? markets.length),
 			protocolFees24h: sumProtocolFees24h(markets)
 		}
 	}

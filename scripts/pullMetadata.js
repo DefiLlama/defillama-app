@@ -209,7 +209,7 @@ async function pullData() {
 				'categoriesAndTags.json': { categories: [], tags: [], tagCategoryMap: {} },
 				'cexs.json': [],
 				'rwa.json': { tickers: [], platforms: [], chains: [], assetGroups: [], categories: [], idMap: {} },
-				'rwaPerps.json': { coins: [], venues: [], categories: [], total: 0 },
+				'rwaPerps.json': { contracts: [], venues: [], categories: [], total: 0 },
 				'tokenlist.json': {},
 				'cgExchangeIdentifiers.json': [],
 				'bridgeProtocolSlugs.json': [],
