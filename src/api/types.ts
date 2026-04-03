@@ -79,8 +79,6 @@ export interface ProtocolLlamaswapEntry {
 
 export type ProtocolLlamaswapDataset = Record<string, ProtocolLlamaswapEntry>
 
-export type BuyOnLlamaswapChain = Omit<LlamaswapChain, 'priceImpact'> & { displayName: string }
-
 /** Single pool row for a token from `LIQUIDITY_API` (`/liquidity.json`). */
 interface ProtocolLiquidityTokenPool {
 	chain: string

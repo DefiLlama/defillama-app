@@ -668,14 +668,12 @@ export const getProtocolOverviewPageData = async ({
 		if (sibling) tokenGeckoId = sibling.geckoId
 	}
 	let llamaswapChains = null
-	let llamaswapChainsFromCoinGecko = false
 	if (tokenGeckoId && !isCEX) {
 		llamaswapChains = protocolLlamaswapDataset?.[tokenGeckoId] ?? null
 		if (!llamaswapChains?.length) {
 			const cgChains = await fetchCoinGeckoCoinChainsByTickerVolume(tokenGeckoId).catch(() => null)
 			if (cgChains?.length) {
 				llamaswapChains = cgChains
-				llamaswapChainsFromCoinGecko = true
 			}
 		}
 	}
@@ -1031,8 +1029,7 @@ export const getProtocolOverviewPageData = async ({
 		seoDescription,
 		defaultToggledCharts,
 		oracleTvs,
-		llamaswapChains,
-		llamaswapChainsFromCoinGecko
+		llamaswapChains
 	}
 }
 

@@ -10,12 +10,12 @@ import { LLAMASWAP_CHAINS } from '~/constants/chains'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { getErrorMessage } from '~/utils/error'
+import type { IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 import type {
 	ChainGeckoPair,
 	CoinsChartResponse,
 	CoinMcapsResponse,
 	CoinsPricesResponse,
-	BuyOnLlamaswapChain,
 	ProtocolLlamaswapDataset,
 	ProtocolLlamaswapEntry,
 	LlamaConfigResponse,
@@ -54,6 +54,11 @@ const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 const PROTOCOL_LLAMASWAP_API_URL = 'https://llamaswap.github.io/protocol-liquidity'
+const LLAMASWAP_DISPLAY_NAME_BY_CHAIN = new Map<string, string>()
+
+for (const chain of LLAMASWAP_CHAINS) {
+	LLAMASWAP_DISPLAY_NAME_BY_CHAIN.set(chain.llamaswap, chain.displayName)
+}
 // DefiLlama Coins API queries
 // ---------------------------------------------------------------------------
 
@@ -200,15 +205,18 @@ export function normalizeProtocolLlamaswapChains(
 ): BuyOnLlamaswapChain[] | null {
 	if (!Array.isArray(entry?.chains) || entry.chains.length === 0) return null
 
-	return [...entry.chains]
-		.sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
-		.map((chain) => ({
+	const sortedChains = entry.chains.slice().sort((a, b) => (b.liquidity ?? 0) - (a.liquidity ?? 0))
+	const normalizedChains: BuyOnLlamaswapChain[] = []
+
+	for (const chain of sortedChains) {
+		normalizedChains.push({
 			chain: chain.chain,
-			chainId: chain.chainId,
 			address: chain.address,
-			liquidity: chain.liquidity,
-			displayName: LLAMASWAP_CHAINS.find((c) => c.llamaswap === chain.chain)?.displayName ?? chain.chain
-		}))
+			displayName: LLAMASWAP_DISPLAY_NAME_BY_CHAIN.get(chain.chain) ?? chain.chain
+		})
+	}
+
+	return normalizedChains
 }
 
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */

@@ -127,10 +127,9 @@ export interface ITokenListEntry {
 
 export interface IProtocolLlamaswapChain {
 	chain: string
-	chainId: number
 	address: string
-	liquidity?: number
 	displayName: string
+	best?: boolean
 }
 
 export type ProtocolLlamaswapMetadata = Record<string, IProtocolLlamaswapChain[] | null>

@@ -70,7 +70,9 @@ async function doRefresh(): Promise<void> {
 			bridgeChainSlugs,
 			bridgeChainSlugToName,
 			protocolLlamaswapDataset
-		} = await fetchCoreMetadata()
+		} = await fetchCoreMetadata({
+			existingProtocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
+		})
 
 		metadataCache.protocolMetadata = protocols
 		metadataCache.chainMetadata = chains
