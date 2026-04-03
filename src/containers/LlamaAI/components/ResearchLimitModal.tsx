@@ -14,7 +14,9 @@ interface ResearchLimitModalProps {
 
 export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _resetTime }: ResearchLimitModalProps) {
 	const isLifetime = period === 'lifetime'
-	const { isTrial } = useAuthContext()
+	const isBlocked = period === 'blocked'
+	const { user, isTrial } = useAuthContext()
+	const needsVerification = !!user && !user.verified
 	const { endTrialSubscription, isEndTrialLoading } = useSubscribe()
 	const [upgraded, setUpgraded] = useState(false)
 
@@ -84,15 +86,26 @@ export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _res
 					) : (
 						<>
 							<h2 className="mb-4 text-center text-xl leading-snug font-bold text-black dark:text-white">
-								Research Report Limit Reached
+								{isBlocked && needsVerification ? 'Email Verification Required' : 'Research Report Limit Reached'}
 							</h2>
 							<p className="mb-6 text-center text-base leading-6 text-[#666] dark:text-[#919296]">
-								{isLifetime
-									? `You've used all ${limit} research reports available on your trial plan.`
-									: `You've used all ${limit} research reports for today. Resets at midnight UTC.`}
+								{isBlocked && needsVerification
+									? 'Verify your email to unlock research reports.'
+									: isLifetime
+										? `You've used all ${limit} research reports available on your trial plan.`
+										: `You've used all ${limit} research reports for today. Resets at midnight UTC.`}
 							</p>
 
-							{isTrial ? (
+							{isBlocked && needsVerification ? (
+								<BasicLink
+									href="/account"
+									data-umami-event="verify-email-research-limit"
+									className="mx-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-6 py-3.5 text-center text-base font-semibold text-white transition-colors hover:bg-[#4A4AF0]"
+									onClick={dialogStore.hide}
+								>
+									Go to Account Settings
+								</BasicLink>
+							) : isTrial ? (
 								<div className="flex flex-col gap-3">
 									<button
 										onClick={() => {

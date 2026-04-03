@@ -30,7 +30,7 @@ describe('rwa perps api urls', () => {
 
 		expect(fetchJson.mock.calls).toEqual([
 			['https://example.com/rwa-perps/market/xyz%3AMETA%2F2026'],
-			['https://example.com/rwa-perps/coin/xyz%3AMETA%2F2026'],
+			['https://example.com/rwa-perps/contract/xyz%3AMETA%2F2026'],
 			['https://example.com/rwa-perps/venue/my%20venue'],
 			['https://example.com/rwa-perps/chart/venue/venue%2Fone']
 		])

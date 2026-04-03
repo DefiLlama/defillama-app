@@ -1,7 +1,6 @@
-import type { BuyOnLlamaswapChain } from '~/api/types'
 import type { RawRaise } from '~/containers/Raises/api.types'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
-import type { IChainMetadata } from '~/utils/metadata/types'
+import type { IChainMetadata, IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
 
 export interface IChainOverviewData {

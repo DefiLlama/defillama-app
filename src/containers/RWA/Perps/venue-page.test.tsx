@@ -12,7 +12,7 @@ function setupPageModule({ venues = ['xyz'], data = null }: { venues?: string[];
 	vi.doMock('~/utils/metadata', () => ({
 		default: {
 			rwaPerpsList: {
-				coins: [],
+				contracts: [],
 				venues,
 				categories: [],
 				total: venues.length

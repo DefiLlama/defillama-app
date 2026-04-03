@@ -133,6 +133,47 @@ function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: Landing
 				))}
 			</div>
 
+			<form
+				className="mt-6"
+				onSubmit={(e) => {
+					e.preventDefault()
+					const form = e.currentTarget
+					const input = form.elements.namedItem('freeform') as HTMLInputElement
+					const value = input.value.trim()
+					if (!value) return
+					trackUmamiEvent('llamaai-landing-freeform-submit', { question: value.slice(0, 50) })
+					if (!loaders.userLoading && isAuthenticated) {
+						setPendingPrompt(value)
+						void router.push('/ai/chat')
+					} else {
+						setPendingPrompt(value)
+						signInDialogStore.show()
+					}
+				}}
+			>
+				<div
+					className={clsx(
+						'flex items-center gap-2 rounded-xl border border-[#E8E8E8] bg-white px-4 py-3 transition-all duration-200',
+						'focus-within:border-[#C99A4A]/50 focus-within:shadow-[0_0_0_3px_rgba(201,154,74,0.1)]',
+						'dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:focus-within:border-[#FDE0A9]/30 dark:focus-within:shadow-[0_0_0_3px_rgba(253,224,169,0.05)]'
+					)}
+				>
+					<input
+						name="freeform"
+						type="text"
+						placeholder="Or ask your own question..."
+						className="flex-1 bg-transparent text-[14px] text-[#333] outline-none placeholder:text-[#999] dark:text-[#e0e0e3] dark:placeholder:text-[#666]"
+					/>
+					<button
+						type="submit"
+						className="flex shrink-0 items-center gap-1.5 rounded-lg bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-1.5 text-[13px] font-semibold text-[#5C4A1F] transition-all duration-200 hover:shadow-[0_2px_8px_rgba(253,224,169,0.4)]"
+					>
+						Ask
+						<Icon name="arrow-right" height={12} width={12} />
+					</button>
+				</div>
+			</form>
+
 			<SignInModal store={signInDialogStore} />
 		</section>
 	)

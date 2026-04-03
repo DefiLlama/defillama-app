@@ -3,12 +3,11 @@ import { fetchJson } from '~/utils/async'
 import type {
 	IRWAPerpsAggregateHistoricalPoint,
 	IRWAPerpsFundingHistoryParams,
-	IRWAPerpsFundingHistoryResponse,
+	IRWAPerpsFundingHistoryPoint,
 	IRWAPerpsIdMapResponse,
 	IRWAPerpsListResponse,
 	IRWAPerpsMarket,
 	IRWAPerpsMarketChartPoint,
-	IRWAPerpsMarketListResponse,
 	IRWAPerpsStatsResponse
 } from './api.types'
 
@@ -74,15 +73,15 @@ export async function fetchRWAPerpsMarketById(id: string): Promise<IRWAPerpsMark
  */
 export async function fetchRWAPerpsMarketsByContract(contract: string): Promise<IRWAPerpsMarket[]> {
 	const encodedContract = encodeRWAPerpsPathSegment(contract)
-	return fetchJson<IRWAPerpsMarket[]>(`${RWA_PERPS_SERVER_URL}/coin/${encodedContract}`)
+	return fetchJson<IRWAPerpsMarket[]>(`${RWA_PERPS_SERVER_URL}/contract/${encodedContract}`)
 }
 
 /**
  * Fetch all markets listed on a venue.
  */
-export async function fetchRWAPerpsMarketsByVenue(venue: string): Promise<IRWAPerpsMarketListResponse> {
+export async function fetchRWAPerpsMarketsByVenue(venue: string): Promise<IRWAPerpsMarket[]> {
 	const encodedVenue = encodeRWAPerpsPathSegment(venue)
-	return fetchJson<IRWAPerpsMarketListResponse>(`${RWA_PERPS_SERVER_URL}/venue/${encodedVenue}`)
+	return fetchJson<IRWAPerpsMarket[]>(`${RWA_PERPS_SERVER_URL}/venue/${encodedVenue}`)
 }
 
 /**
@@ -107,6 +106,6 @@ export async function fetchRWAPerpsVenueChart(venue: string): Promise<IRWAPerpsA
 export async function fetchRWAPerpsFundingHistory(
 	id: string,
 	params?: IRWAPerpsFundingHistoryParams
-): Promise<IRWAPerpsFundingHistoryResponse> {
-	return fetchJson<IRWAPerpsFundingHistoryResponse>(createRWAPerpsFundingHistoryUrl(id, params))
+): Promise<IRWAPerpsFundingHistoryPoint[]> {
+	return fetchJson<IRWAPerpsFundingHistoryPoint[]>(createRWAPerpsFundingHistoryUrl(id, params))
 }

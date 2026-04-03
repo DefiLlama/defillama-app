@@ -54,8 +54,8 @@ export function SubscriptionFaqBlock({ faqItems, onStartTrial }: { faqItems: Faq
 								</p>
 								<Icon
 									name={isExpanded ? 'x' : 'plus'}
-									height={16}
-									width={16}
+									height={18}
+									width={18}
 									className="shrink-0 text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white"
 								/>
 							</button>

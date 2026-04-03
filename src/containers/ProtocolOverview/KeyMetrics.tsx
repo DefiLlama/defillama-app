@@ -19,7 +19,6 @@ type KeyMetricsOptionalFields = Partial<
 		| 'category'
 		| 'hasKeyMetrics'
 		| 'llamaswapChains'
-		| 'llamaswapChainsFromCoinGecko'
 		| 'oracleTvs'
 		| 'currentTvlByChain'
 		| 'openSmolStatsSummaryByDefault'
@@ -720,10 +719,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
 						value={
 							<span className="flex items-center gap-2">
-								<BuyOnLlamaswap
-									chains={props.llamaswapChains}
-									showBestChainBadge={!props.llamaswapChainsFromCoinGecko}
-								/>
+								<BuyOnLlamaswap chains={props.llamaswapChains} />
 								{props.formatPrice(props.tokenCGData.price.current)}
 							</span>
 						}
@@ -736,10 +732,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
 						value={
 							<span className="flex items-center gap-2">
-								<BuyOnLlamaswap
-									chains={props.llamaswapChains}
-									showBestChainBadge={!props.llamaswapChainsFromCoinGecko}
-								/>
+								<BuyOnLlamaswap chains={props.llamaswapChains} />
 								{props.formatPrice(props.tokenCGData.price.current)}
 							</span>
 						}
