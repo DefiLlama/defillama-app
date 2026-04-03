@@ -1,4 +1,4 @@
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import YieldsStrategyPage from '~/containers/Yields/indexStrategy'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
@@ -12,7 +12,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategy', async ()
 		props: { pools, allPools, ...data }
 	} = await getLendBorrowData()
 
-	const searchData = await fetchAllCGTokensList()
+	const searchData = await fetchCoinGeckoTokensListFromDataset()
 
 	// restrict borrow and farming part (min apy's, noIL, single exposure only)
 	// and uppercase symbols (lend and borrow strings from router are upper case only)

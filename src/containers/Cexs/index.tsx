@@ -243,7 +243,8 @@ const columns = [
 		},
 		size: 130,
 		meta: {
-			align: 'end'
+			align: 'end',
+			headerHelperText: 'Open Interest / Clean Assets'
 		}
 	}),
 	columnHelper.accessor((row) => row.customRange ?? undefined, {

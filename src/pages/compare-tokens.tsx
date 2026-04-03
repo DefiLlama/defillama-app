@@ -1,4 +1,4 @@
-import type { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 import { CompareTokens } from '~/containers/CompareTokens'
 import { getCompareTokensPageData } from '~/containers/CompareTokens/queries'
 import type { CompareTokenProtocol } from '~/containers/CompareTokens/types'

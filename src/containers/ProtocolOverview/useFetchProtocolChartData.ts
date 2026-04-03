@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
+import type { DenominationPriceHistory } from '~/api/coingecko.types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart, getBucketTimestampSec } from '~/components/ECharts/utils'
 import { CACHE_SERVER, oracleProtocols } from '~/constants'
@@ -27,7 +28,7 @@ import {
 	normalizeSeriesToSeconds
 } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
-import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
+import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { usePrefetchedProtocolChartQuery } from './usePrefetchedProtocolChartQuery'
 
 type ChartInterval = ChartTimeGroupingWithCumulative
@@ -283,11 +284,11 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const { data: protocolTokenData = null, isLoading: fetchingProtocolTokenData } =
-		useQuery<IDenominationPriceHistory | null>({
+		useQuery<DenominationPriceHistory | null>({
 			queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 			queryFn: () =>
 				fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then(
-					(res: { data?: IDenominationPriceHistory }) => (res.data?.prices?.length ? res.data : null)
+					(res: { data?: DenominationPriceHistory }) => (res.data?.prices?.length ? res.data : null)
 				),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,

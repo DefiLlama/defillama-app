@@ -1,4 +1,4 @@
-import { fetchCgChartByGeckoId } from '~/api'
+import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import { getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import type { ITokenListEntry } from '~/utils/metadata/types'
@@ -55,7 +55,9 @@ export async function getProtocolUnlocksStaticPropsData(
 	const emissions = await getProtocolEmissons(normalizedName).catch(() => null)
 	const geckoId = emissions?.geckoId ?? emissions?.meta?.gecko_id ?? null
 	const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
-	const cgChart = geckoId ? await fetchCgChartByGeckoId(geckoId, { fullChart: false }).catch(() => null) : null
+	const cgChart = geckoId
+		? await fetchCoinGeckoChartByIdWithCacheFallback(geckoId, { fullChart: false }).catch(() => null)
+		: null
 	const cgMarketData = cgChart?.data?.coinData?.market_data
 	const tokenSymbol = emissions?.tokenPrice?.symbol ?? tokenEntry?.symbol?.toUpperCase() ?? null
 	const initialTokenMarketData = tokenEntry

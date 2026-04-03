@@ -1,4 +1,4 @@
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import { BorrowAggregatorAdvanced } from '~/containers/Yields/indexOptimizer'
 import { UNBOUNDED_DEBT_CEILING_PROJECTS } from '~/containers/Yields/queries'
@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let cgList = await fetchAllCGTokensList()
+	let cgList = await fetchCoinGeckoTokensListFromDataset()
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = data.symbols
 		.sort((a, b) => cgPositions[a] - cgPositions[b])

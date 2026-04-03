@@ -1,4 +1,4 @@
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import YieldsStrategyPageLongShort from '~/containers/Yields/indexStrategyLongShort'
 import { getPerpData, getYieldPageData } from '~/containers/Yields/queries/index'
@@ -31,7 +31,9 @@ export const getStaticProps = withPerformanceLogging('yields/strategy-long-short
 
 	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
 	// filter search token to only include what we have in pool arrays
-	const cgTokens = (await fetchAllCGTokensList()).filter((t) => poolsUniqueSymbols.has(t.symbol?.toUpperCase()))
+	const cgTokens = (await fetchCoinGeckoTokensListFromDataset()).filter((t) =>
+		poolsUniqueSymbols.has(t.symbol?.toUpperCase())
+	)
 	const tokens = []
 	const tokenSymbolsList = []
 

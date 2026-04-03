@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchCoinPrices } from '~/api'
+import { fetchCoinGeckoDerivativesExchanges, fetchCoinGeckoExchanges } from '~/api/coingecko'
+import type { CoinGeckoDerivativeExchange, CoinGeckoExchange } from '~/api/coingecko.types'
 import type { IChainTvl } from '~/api/types'
-import { COINGECKO_KEY } from '~/constants'
 import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
-import { fetchJson } from '~/utils/async'
 
 export interface ICexItem {
 	name: string
@@ -34,27 +34,19 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 	const hour7dSec = nowSec - 7 * 24 * 60 * 60
 	const hour30dSec = nowSec - 30 * 24 * 60 * 60
 
-	let spot = null
-	let derivs = null
+	let spotById = new Map<string, CoinGeckoExchange>()
+	let derivsById = new Map<string, CoinGeckoDerivativeExchange>()
 	let btcPrice = 0
 	let cexList: ICexItem[] = []
 
 	try {
 		const [spotData, derivsData, priceData] = await Promise.all([
-			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
-				headers: {
-					'x-cg-pro-api-key': COINGECKO_KEY
-				}
-			}),
-			fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
-				headers: {
-					'x-cg-pro-api-key': COINGECKO_KEY
-				}
-			}),
+			fetchCoinGeckoExchanges({ perPage: 250 }),
+			fetchCoinGeckoDerivativesExchanges({ perPage: 250 }),
 			fetchCoinPrices(['coingecko:bitcoin'])
 		])
-		spot = spotData
-		derivs = derivsData
+		spotById = new Map(spotData.map((exchange) => [exchange.id, exchange]))
+		derivsById = new Map(derivsData.map((exchange) => [exchange.id, exchange]))
 		btcPrice = priceData['coingecko:bitcoin']?.price || 0
 	} catch (error) {
 		console.log('Error fetching CoinGecko data:', error)
@@ -96,16 +88,14 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 				const cleanTvl = cexTvl - ownToken
 
 				const extra: any = {}
-				if (c.cgId && spot && !spot.status) {
-					const spotEx = spot.find((ex: any) => ex.id === c.cgId)
-					if (spotEx) {
-						extra.spotVolume = spotEx.trade_volume_24h_btc * btcPrice
-					}
+				if (c.cgId) {
+					const spotEx = spotById.get(c.cgId)
+					if (spotEx) extra.spotVolume = (spotEx.trade_volume_24h_btc ?? 0) * btcPrice
 				}
-				if (c.cgDeriv && derivs && !derivs.status) {
-					const _derivs = derivs.find((ex: any) => ex.id === c.cgDeriv)
-					if (_derivs) {
-						extra.oi = _derivs.open_interest_btc * btcPrice
+				if (c.cgDeriv) {
+					const derivsEx = derivsById.get(c.cgDeriv)
+					if (derivsEx) {
+						extra.oi = (derivsEx.open_interest_btc ?? 0) * btcPrice
 						extra.leverage = cleanTvl > 0 ? extra.oi / cleanTvl : 0
 					}
 				}
