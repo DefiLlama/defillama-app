@@ -14,8 +14,8 @@ const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise
 
 const cardWrapperStyles = {
 	highlighted:
-		'w-full flex-[1_1_260px] flex flex-col gap-[10px] rounded-[24px] bg-(--sub-brand-primary) px-[2px] pt-[2px] pb-3 sm:max-w-[300px]',
-	default: 'w-full flex-[1_1_260px] flex flex-col sm:max-w-[300px] sm:gap-[10px] sm:pb-3'
+		'w-full flex-[1_1_280px] flex flex-col gap-[10px] rounded-[24px] bg-(--sub-brand-primary) px-[2px] pt-[2px] pb-3 sm:max-w-[330px]',
+	default: 'w-full flex-[1_1_280px] flex flex-col sm:max-w-[330px] sm:gap-[10px] sm:pb-3'
 }
 
 const cardShellStyles = {
@@ -45,7 +45,7 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 	const highlightSuffix = item.highlightText ? item.label.slice((highlightPrefix?.length ?? 0) + 1).trim() : null
 
 	return (
-		<li className="flex items-start gap-2">
+		<li className={`flex items-start gap-2${item.isSubItem ? ' ml-7 sm:ml-5' : ''}`}>
 			<span className="shrink-0">
 				{item.availability === 'check' ? (
 					<Icon name="check" height={24} width={24} className="text-(--sub-brand-secondary) sm:h-5 sm:w-5" />
@@ -59,7 +59,7 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 				)}
 			</span>
 			{item.highlightText ? (
-				<span className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) bg-clip-text text-[16px] leading-6 text-transparent sm:pt-0.5 sm:text-[12px] sm:leading-4 dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
+				<span className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-brand-soft) bg-clip-text text-[16px] leading-6 text-transparent sm:pt-0.5 sm:text-[13px] sm:leading-[18px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
 					{item.link ? (
 						<a href={item.link} className="underline">
 							{highlightPrefix}
@@ -71,7 +71,7 @@ function FeatureBullet({ item }: { item: FeatureItem }) {
 				</span>
 			) : (
 				<span
-					className={`text-[16px] leading-6 sm:pt-0.5 sm:text-[12px] sm:leading-4 ${item.availability === 'check' ? 'text-(--sub-ink-primary) dark:text-(--sub-text-primary-dark)' : 'text-(--sub-text-muted) dark:text-(--sub-text-muted-dark)'}`}
+					className={`text-[16px] leading-6 sm:pt-0.5 sm:text-[13px] sm:leading-[18px] ${item.availability === 'check' ? 'text-(--sub-ink-primary) dark:text-(--sub-text-primary-dark)' : 'text-(--sub-text-muted) dark:text-(--sub-text-muted-dark)'}`}
 				>
 					{item.link ? (
 						<a href={item.link} className="underline">
@@ -159,7 +159,7 @@ function PricingCardCta({
 							Upgrade to Yearly
 						</button>
 						<p className="text-center text-[12px] leading-4 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
-							Switch to annual billing and get 2 months free
+							Switch to annual billing — save $600/year
 						</p>
 					</>
 				) : null}

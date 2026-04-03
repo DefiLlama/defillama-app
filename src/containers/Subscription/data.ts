@@ -41,7 +41,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
 					{ label: 'Token unlock schedules', availability: 'check' },
 					{ label: 'Funding rounds & raises', availability: 'check' },
-					{ label: 'LlamaAI: Free tier (1/day + 1 research every 2 weeks)', link: '/ai', availability: 'check' }
+					{ label: 'LlamaAI: AI-powered DeFi analyst — ask about any protocol, yield, or market trend (1 question/day + 1 deep research every 2 weeks)', link: '/ai', availability: 'check' }
 				]
 			}
 		],
@@ -64,7 +64,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 						availability: 'check',
 						highlightText: true
 					},
-					{ label: 'Deep research: 5/day', availability: 'check' },
+					{ label: 'Deep research: 5/day', availability: 'check', isSubItem: true },
 					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'check' },
 					{
 						label: 'Custom Columns for personalized analysis',
@@ -163,7 +163,7 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
 					{ label: 'Token unlock schedules', availability: 'check' },
 					{ label: 'Funding rounds & raises', availability: 'check' },
-					{ label: 'LlamaAI: Free tier (1/day + 1 research every 2 weeks)', link: '/ai', availability: 'check' }
+					{ label: 'LlamaAI: AI-powered DeFi analyst — ask about any protocol, yield, or market trend (1 question/day + 1 deep research every 2 weeks)', link: '/ai', availability: 'check' }
 				]
 			}
 		],
@@ -186,7 +186,7 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 						availability: 'check',
 						highlightText: true
 					},
-					{ label: 'Deep research: 5/day', availability: 'check' },
+					{ label: 'Deep research: 5/day', availability: 'check', isSubItem: true },
 					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'check' },
 					{
 						label: 'Custom Columns for personalized analysis',

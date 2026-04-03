@@ -7,6 +7,7 @@ export interface FeatureItem {
 	link?: string
 	availability: Availability
 	highlightText?: boolean
+	isSubItem?: boolean
 }
 
 export interface FeatureSection {

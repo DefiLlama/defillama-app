@@ -2,7 +2,33 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { FaqItem } from '~/containers/Subscription/types'
 
-export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
+function FaqAnswer({ text, onStartTrial }: { text: string; onStartTrial?: () => void }) {
+	const phrase = '7-day free trials'
+	const idx = text.indexOf(phrase)
+	if (idx === -1 || !onStartTrial) return <>{text}</>
+
+	return (
+		<>
+			{text.slice(0, idx)}
+			<button
+				type="button"
+				onClick={onStartTrial}
+				className="text-(--sub-brand-primary) underline dark:text-(--sub-brand-secondary)"
+			>
+				{phrase}
+			</button>
+			{text.slice(idx + phrase.length)}
+		</>
+	)
+}
+
+export function SubscriptionFaqBlock({
+	faqItems,
+	onStartTrial
+}: {
+	faqItems: FaqItem[]
+	onStartTrial?: () => void
+}) {
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(0)
 
 	return (
@@ -29,7 +55,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								onClick={() => setExpandedIndex(isExpanded ? null : index)}
 								className="flex w-full items-center justify-between gap-4 text-left"
 							>
-								<p className="text-[12px] leading-4 text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
+								<p className="text-[14px] leading-5 text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 									{item.question}
 								</p>
 								<Icon
@@ -46,8 +72,8 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
 							>
 								<div className="overflow-hidden">
-									<p className="pt-2 text-xs leading-4 text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark)">
-										{item.answer}
+									<p className="pt-2 text-[13px] leading-5 text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark)">
+										<FaqAnswer text={item.answer} onStartTrial={onStartTrial} />
 									</p>
 								</div>
 							</div>

@@ -262,7 +262,7 @@ function SubscriptionContent() {
 
 				<section className="mx-auto flex max-w-[1440px] flex-col items-center px-4 py-12 md:px-10 md:py-20 2xl:px-[128px]">
 					<SubscriptionTrustedBlock trustLogos={TRUST_LOGOS} />
-					<SubscriptionFaqBlock faqItems={FAQ_ITEMS} />
+					<SubscriptionFaqBlock faqItems={FAQ_ITEMS} onStartTrial={isTrialAvailable ? handleStartTrial : undefined} />
 				</section>
 			</main>
 
