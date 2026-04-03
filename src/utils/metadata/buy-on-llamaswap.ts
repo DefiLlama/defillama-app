@@ -1,10 +1,9 @@
-import { fetchCoinGeckoCoinTickersById, fetchCoinGeckoCoinsList } from '~/api/coingecko'
-import type { CoinGeckoCoinTickerWithDepth } from '~/api/coingecko.types'
+import { fetchCoinGeckoCoinsList } from '~/api/coingecko'
 import { getErrorMessage } from '~/utils/error'
 import { mergeProtocolLlamaswapChains, normalizeProtocolLlamaswapChains } from '~/utils/llamaswapChains'
 import {
 	getSupportedCoinGeckoPlatformsForLlamaswap,
-	parseCoinGeckoLlamaswapChainsByTickerVolume
+	mapSupportedCoinGeckoPlatformsToLlamaswapChains
 } from '~/utils/llamaswapCoingecko'
 import type { IChainMetadata, IProtocolLlamaswapChain, IProtocolMetadata, ProtocolLlamaswapMetadata } from './types'
 
@@ -77,13 +76,6 @@ export async function fetchProtocolLlamaswapDataset(): Promise<RawProtocolLlamas
 	return fetchJson<RawProtocolLlamaswapDataset>(PROTOCOL_LLAMASWAP_API_URL)
 }
 
-function parseCoinGeckoCoinChainsByTickerVolume(coin: {
-	platforms?: Record<string, string>
-	tickers?: CoinGeckoCoinTickerWithDepth[]
-}): IProtocolLlamaswapChain[] {
-	return parseCoinGeckoLlamaswapChainsByTickerVolume(coin)
-}
-
 async function fetchCoinGeckoCoinChainsByTickerVolume(
 	geckoId: string,
 	platforms: Record<string, string>
@@ -97,15 +89,8 @@ async function fetchCoinGeckoCoinChainsByTickerVolume(
 	}
 	if (!hasPlatforms) return []
 
-	const tickers = await fetchCoinGeckoCoinTickersById(geckoId, {
-		order: 'volume_desc',
-		depth: true,
-		dexPairFormat: 'contract_address'
-	})
-	return parseCoinGeckoCoinChainsByTickerVolume({
-		platforms,
-		tickers: 'tickers' in tickers ? (tickers.tickers as CoinGeckoCoinTickerWithDepth[] | undefined) : undefined
-	})
+	// Disabled the CoinGecko /coins/:id/tickers backfill and append every supported platform instead.
+	return mapSupportedCoinGeckoPlatformsToLlamaswapChains(platforms)
 }
 
 function batchArray<T>(items: T[], batchSize: number): T[][] {
