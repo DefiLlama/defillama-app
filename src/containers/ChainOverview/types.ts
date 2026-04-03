@@ -1,3 +1,4 @@
+import type { BuyOnLlamaswapChain } from '~/api/types'
 import type { RawRaise } from '~/containers/Raises/api.types'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import type { IChainMetadata } from '~/utils/metadata/types'
@@ -31,6 +32,7 @@ export interface IChainOverviewData {
 		current_price: number | null
 		market_cap: number | null
 		fully_diluted_valuation: number | null
+		llamaswapChains?: BuyOnLlamaswapChain[] | null
 	} | null
 	stablecoins: {
 		mcap: number | null
@@ -160,6 +162,8 @@ export interface IChildProtocol {
 	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
 	chains: Array<string>
 	mcap: number | null
+	tokenPrice: number | null
+	llamaswapChains?: BuyOnLlamaswapChain[] | null
 	mcaptvl: number | null
 	strikeTvl: boolean
 	fees?: {

@@ -5,6 +5,7 @@ import categoriesAndTags from '../../../.cache/categoriesAndTags.json'
 import cexs from '../../../.cache/cexs.json'
 import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json'
 import chainMetadata from '../../../.cache/chains.json'
+import protocolLlamaswapDatasetRaw from '../../../.cache/llamaswap-protocols.json'
 import protocolMetadata from '../../../.cache/protocols.json'
 import rwaList from '../../../.cache/rwa.json'
 import rwaPerpsList from '../../../.cache/rwaPerps.json'
@@ -15,6 +16,7 @@ import type {
 	ICexItem,
 	IChainMetadata,
 	IProtocolMetadata,
+	ProtocolLlamaswapMetadata,
 	IRWAList,
 	IRWAPerpsList,
 	ITokenListEntry
@@ -32,6 +34,7 @@ const metadataCache: {
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
 	bridgeChainSlugToName: Record<string, string>
+	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
 } = {
 	chainMetadata,
 	protocolMetadata,
@@ -43,7 +46,8 @@ const metadataCache: {
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
 	bridgeChainSlugs: bridgeChainSlugsRaw as string[],
-	bridgeChainSlugToName: bridgeChainSlugToNameRaw as Record<string, string>
+	bridgeChainSlugToName: bridgeChainSlugToNameRaw as Record<string, string>,
+	protocolLlamaswapDataset: protocolLlamaswapDatasetRaw as ProtocolLlamaswapMetadata
 }
 
 // On-demand refresh with TTL (1 hour) and concurrency-safe deduplication
@@ -64,7 +68,8 @@ async function doRefresh(): Promise<void> {
 			cgExchangeIdentifiers: cgExIds,
 			bridgeProtocolSlugs,
 			bridgeChainSlugs,
-			bridgeChainSlugToName
+			bridgeChainSlugToName,
+			protocolLlamaswapDataset
 		} = await fetchCoreMetadata()
 
 		metadataCache.protocolMetadata = protocols
@@ -78,6 +83,7 @@ async function doRefresh(): Promise<void> {
 		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
 		metadataCache.bridgeChainSlugs = bridgeChainSlugs
 		metadataCache.bridgeChainSlugToName = bridgeChainSlugToName
+		metadataCache.protocolLlamaswapDataset = protocolLlamaswapDataset
 
 		lastRefreshMs = Date.now()
 	} catch (err) {

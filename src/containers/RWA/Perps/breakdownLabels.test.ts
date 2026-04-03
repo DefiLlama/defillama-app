@@ -11,10 +11,10 @@ import {
 } from './breakdownLabels'
 
 const baseRow = {
-	coin: 'xyz:META',
+	contract: 'xyz:META',
 	venue: 'xyz',
 	referenceAsset: 'Meta',
-	assetClass: 'Single stock synthetic perp'
+	assetClass: ['Single stock synthetic perp']
 }
 
 describe('breakdownLabels', () => {
@@ -25,11 +25,11 @@ describe('breakdownLabels', () => {
 	})
 
 	it('falls back to the coin suffix when reference asset is missing', () => {
-		expect(getRWAPerpsBaseAssetBreakdownLabel({ coin: 'xyz:META', referenceAsset: '' })).toBe('META')
+		expect(getRWAPerpsBaseAssetBreakdownLabel({ contract: 'xyz:META', referenceAsset: null })).toBe('META')
 	})
 
 	it('falls back to unknown when the coin label is also missing', () => {
-		expect(getRWAPerpsContractBreakdownLabel({ coin: '' })).toBe(UNKNOWN_BREAKDOWN_LABEL)
+		expect(getRWAPerpsContractBreakdownLabel({ contract: '' })).toBe(UNKNOWN_BREAKDOWN_LABEL)
 	})
 
 	it('resolves overview, venue, and shared labels consistently', () => {

@@ -49,7 +49,7 @@ vi.mock('./api', () => ({
 
 const baseMarket = {
 	timestamp: 1775011512,
-	coin: 'xyz:META',
+	contract: 'xyz:META',
 	venue: 'xyz',
 	openInterest: 100,
 	volume24h: 50,
@@ -60,14 +60,14 @@ const baseMarket = {
 	cumulativeFunding: 10,
 	referenceAsset: 'Meta',
 	referenceAssetGroup: 'Equities',
-	assetClass: 'Single stock synthetic perp',
+	assetClass: ['Single stock synthetic perp'],
 	parentPlatform: 'trade[XYZ]',
-	pair: '',
+	pair: null,
 	marginAsset: 'USDC',
 	settlementAsset: 'USDC',
 	category: ['RWA Perpetuals'],
 	issuer: 'XYZ',
-	website: 'https://trade.xyz/',
+	website: ['https://trade.xyz/'],
 	oracleProvider: 'Pyth equity feed',
 	description: 'Perpetual market',
 	accessModel: 'Permissionless',
@@ -95,7 +95,7 @@ afterEach(() => {
 
 beforeEach(() => {
 	fetchRWAPerpsList.mockResolvedValue({
-		coins: ['xyz:META', 'flx:GOLD'],
+		contracts: ['xyz:META', 'flx:GOLD'],
 		venues: ['xyz', 'flx'],
 		categories: ['RWA Perpetuals', 'Commodities'],
 		total: 2
@@ -119,29 +119,34 @@ beforeEach(() => {
 		{
 			...baseMarket,
 			id: 'flx:gold',
+			contract: 'flx:GOLD',
 			venue: 'flx',
 			openInterest: 20,
 			category: ['Commodities'],
-			assetClass: 'Commodity synthetic perp'
+			assetClass: ['Commodity synthetic perp']
 		},
 		{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', openInterest: 120 },
-		{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA', venue: 'xyz', openInterest: 210 }
+		{
+			...baseMarket,
+			id: 'xyz:nvda',
+			contract: 'xyz:NVDA',
+			referenceAsset: 'NVIDIA',
+			venue: 'xyz',
+			openInterest: 210
+		}
 	])
-	fetchRWAPerpsMarketsByVenue.mockResolvedValue({
-		data: [
-			{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', referenceAsset: 'Meta', estimatedProtocolFees24h: 5 },
-			{
-				...baseMarket,
-				id: 'xyz:nvda',
-				coin: 'xyz:NVDA',
-				referenceAsset: 'NVIDIA',
-				venue: 'xyz',
-				openInterest: 180,
-				estimatedProtocolFees24h: 7
-			}
-		],
-		total: 2
-	})
+	fetchRWAPerpsMarketsByVenue.mockResolvedValue([
+		{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', referenceAsset: 'Meta', estimatedProtocolFees24h: 5 },
+		{
+			...baseMarket,
+			id: 'xyz:nvda',
+			contract: 'xyz:NVDA',
+			referenceAsset: 'NVIDIA',
+			venue: 'xyz',
+			openInterest: 180,
+			estimatedProtocolFees24h: 7
+		}
+	])
 	fetchRWAPerpsCategoryChart.mockImplementation(async (category: string) => {
 		if (category === 'RWA Perpetuals') {
 			return [
@@ -156,6 +161,7 @@ beforeEach(() => {
 				{
 					...baseMarket,
 					id: 'xyz:nvda',
+					contract: 'xyz:NVDA',
 					category: ['RWA Perpetuals'],
 					timestamp: 1774569600,
 					openInterest: 180,
@@ -168,6 +174,7 @@ beforeEach(() => {
 			{
 				...baseMarket,
 				id: 'flx:gold',
+				contract: 'flx:GOLD',
 				category: ['Commodities'],
 				venue: 'flx',
 				timestamp: 1774569600,
@@ -183,7 +190,7 @@ beforeEach(() => {
 				{
 					...baseMarket,
 					id: 'xyz:nvda',
-					coin: 'xyz:NVDA',
+					contract: 'xyz:NVDA',
 					referenceAsset: 'NVIDIA',
 					venue: 'xyz',
 					timestamp: 1774569600,
@@ -197,10 +204,10 @@ beforeEach(() => {
 			{
 				...baseMarket,
 				id: 'flx:gold',
-				coin: 'flx:GOLD',
+				contract: 'flx:GOLD',
 				referenceAsset: 'Gold',
 				venue: 'flx',
-				assetClass: 'Commodity synthetic perp',
+				assetClass: ['Commodity synthetic perp'],
 				timestamp: 1774569600,
 				openInterest: 100,
 				volume24h: 40
@@ -219,23 +226,19 @@ beforeEach(() => {
 			cumulativeFunding: 1
 		}
 	])
-	fetchRWAPerpsFundingHistory.mockResolvedValue({
-		id: 'xyz:META',
-		total: 1,
-		data: [
-			{
-				timestamp: 1774454400,
-				id: 'xyz:meta',
-				coin: 'xyz:META',
-				venue: 'xyz',
-				funding_rate: '0.00000625',
-				premium: '0.00010000',
-				open_interest: '6203.048',
-				funding_payment: '0.03876905',
-				created_at: '2026-03-26T15:17:54.413Z'
-			}
-		]
-	})
+	fetchRWAPerpsFundingHistory.mockResolvedValue([
+		{
+			timestamp: 1774454400,
+			id: 'xyz:meta',
+			contract: 'xyz:META',
+			venue: 'xyz',
+			funding_rate: '0.00000625',
+			premium: '0.00010000',
+			open_interest: '6203.048',
+			funding_payment: '0.03876905',
+			created_at: '2026-03-26T15:17:54.413Z'
+		}
+	])
 })
 
 describe('getRWAPerpsContractData', () => {
@@ -300,8 +303,8 @@ describe('getRWAPerpsContractData', () => {
 
 	it('returns null when multiple rows make the contract ambiguous', async () => {
 		fetchRWAPerpsMarketsByContract.mockResolvedValue([
-			{ ...baseMarket, id: 'xyz:meta-1', coin: 'xyz:META' },
-			{ ...baseMarket, id: 'xyz:meta-2', coin: 'xyz:META' }
+			{ ...baseMarket, id: 'xyz:meta-1', contract: 'xyz:META' },
+			{ ...baseMarket, id: 'xyz:meta-2', contract: 'xyz:META' }
 		])
 
 		await expect(getRWAPerpsContractData({ contract: 'xyz:META' })).resolves.toBeNull()
@@ -497,7 +500,7 @@ describe('perps overview helpers', () => {
 					{
 						...baseMarket,
 						id: 'xyz:nvda',
-						coin: 'xyz:NVDA',
+						contract: 'xyz:NVDA',
 						venue: 'xyz',
 						referenceAsset: 'NVIDIA',
 						openInterest: 150
@@ -516,7 +519,13 @@ describe('perps overview helpers', () => {
 			buildRWAPerpsVenueSnapshotBreakdownTotals({
 				rows: [
 					{ ...baseMarket, id: 'xyz:meta', referenceAsset: 'Meta' },
-					{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA', openInterest: 150 }
+					{
+						...baseMarket,
+						id: 'xyz:nvda',
+						contract: 'xyz:NVDA',
+						referenceAsset: 'NVIDIA',
+						openInterest: 150
+					}
 				],
 				breakdown: 'baseAsset',
 				key: 'markets'
@@ -529,8 +538,15 @@ describe('perps overview helpers', () => {
 		expect(
 			buildRWAPerpsOverviewSnapshotBreakdownTotals({
 				rows: [
-					{ ...baseMarket, id: 'xyz:meta', coin: 'xyz:META', referenceAsset: 'Meta' },
-					{ ...baseMarket, id: 'flx:meta', coin: 'flx:META', venue: 'flx', referenceAsset: 'Meta', openInterest: 80 }
+					{ ...baseMarket, id: 'xyz:meta', contract: 'xyz:META', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'flx:meta',
+						contract: 'flx:META',
+						venue: 'flx',
+						referenceAsset: 'Meta',
+						openInterest: 80
+					}
 				],
 				breakdown: 'contract',
 				key: 'openInterest'
@@ -543,8 +559,14 @@ describe('perps overview helpers', () => {
 		expect(
 			buildRWAPerpsVenueSnapshotBreakdownTotals({
 				rows: [
-					{ ...baseMarket, id: 'xyz:meta', coin: 'xyz:META', referenceAsset: 'Meta' },
-					{ ...baseMarket, id: 'xyz:nvda', coin: 'xyz:NVDA', referenceAsset: 'NVIDIA', openInterest: 150 }
+					{ ...baseMarket, id: 'xyz:meta', contract: 'xyz:META', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'xyz:nvda',
+						contract: 'xyz:NVDA',
+						referenceAsset: 'NVIDIA',
+						openInterest: 150
+					}
 				],
 				breakdown: 'contract',
 				key: 'markets'
@@ -560,19 +582,19 @@ describe('perps overview helpers', () => {
 			{
 				...baseMarket,
 				id: 'missing:1',
-				coin: 'xyz:META',
+				contract: 'xyz:META',
 				venue: '',
-				assetClass: '',
-				referenceAsset: '',
+				assetClass: null,
+				referenceAsset: null,
 				openInterest: 100
 			},
 			{
 				...baseMarket,
 				id: 'missing:2',
-				coin: '',
+				contract: '',
 				venue: 'flx',
-				assetClass: '',
-				referenceAsset: '',
+				assetClass: null,
+				referenceAsset: null,
 				openInterest: 50
 			}
 		]

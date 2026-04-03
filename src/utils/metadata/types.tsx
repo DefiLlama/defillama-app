@@ -102,7 +102,7 @@ export interface IRWAList {
 }
 
 export interface IRWAPerpsList {
-	coins: Array<string>
+	contracts: Array<string>
 	venues: Array<string>
 	categories: Array<string>
 	total: number
@@ -124,3 +124,13 @@ export interface ITokenListEntry {
 	circulating_supply: number | null
 	max_supply: number | null
 }
+
+export interface IProtocolLlamaswapChain {
+	chain: string
+	chainId: number
+	address: string
+	liquidity?: number
+	displayName: string
+}
+
+export type ProtocolLlamaswapMetadata = Record<string, IProtocolLlamaswapChain[] | null>

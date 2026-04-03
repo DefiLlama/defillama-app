@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
-import { fetchCgChartByGeckoId } from '~/api'
-import type { CgChartResponse } from '~/api/types'
+import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
+import type { CgChartResponse } from '~/api/coingecko.types'
 
 export interface PricePoint {
 	timestamp: number
@@ -11,7 +11,8 @@ export const usePriceCharts = (geckoIds: string[]) => {
 	const data = useQueries({
 		queries: geckoIds.map((id) => ({
 			queryKey: ['price_chart', id],
-			queryFn: (): Promise<CgChartResponse | null> => fetchCgChartByGeckoId(id, { fullChart: false }),
+			queryFn: (): Promise<CgChartResponse | null> =>
+				fetchCoinGeckoChartByIdWithCacheFallback(id, { fullChart: false }),
 			staleTime: 10 * 60 * 1000,
 			refetchOnWindowFocus: false,
 			retry: 0

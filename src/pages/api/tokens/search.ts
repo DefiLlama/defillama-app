@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	const searchQuery = typeof query === 'string' ? query.toLowerCase() : ''
 
 	try {
-		const allTokens = await fetchAllCGTokensList()
+		const allTokens = await fetchCoinGeckoTokensListFromDataset()
 
 		let filteredTokens = allTokens
 		if (searchQuery && searchQuery.length > 0) {

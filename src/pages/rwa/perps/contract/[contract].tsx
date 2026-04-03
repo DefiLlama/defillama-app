@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	return {
-		paths: metadataCache.rwaPerpsList.coins.slice(0, 10).map((contract) => ({ params: { contract } })),
+		paths: metadataCache.rwaPerpsList.contracts.slice(0, 10).map((contract) => ({ params: { contract } })),
 		fallback: 'blocking'
 	}
 }
@@ -29,7 +29,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		if (!metadataCache.rwaPerpsList.coins.includes(params.contract)) {
+		if (!metadataCache.rwaPerpsList.contracts.includes(params.contract)) {
 			return { notFound: true }
 		}
 

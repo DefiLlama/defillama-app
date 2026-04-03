@@ -1,5 +1,5 @@
 import { fetchCoinsChart } from '~/api'
-import type { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import type { ComparisonEntry, PricePoint, TimelinePoint } from './types'
 

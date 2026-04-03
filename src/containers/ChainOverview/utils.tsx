@@ -3,7 +3,7 @@ import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { IFormattedChainAsset, ILiteProtocol } from './types'
 
-const excludedCategoriesSet = new Set(['Canonical Bridge', 'Staking Pool'])
+const excludedCategoriesSet = new Set(['Canonical Bridge', 'Staking Pool', 'Foundation'])
 
 export const toFilterProtocol = ({
 	protocolMetadata,

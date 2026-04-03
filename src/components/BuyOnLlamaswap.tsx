@@ -5,16 +5,18 @@ import { TokenLogo } from '~/components/TokenLogo'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-function buildSwapUrl(chain: Pick<BuyOnLlamaswapChain, 'chain' | 'address'>) {
-	return `https://swap.defillama.com/?chain=${chain.chain}&from=${ZERO_ADDRESS}&to=${chain.address}&tab=swap&ref=defillama`
+function buildSwapUrl(chain: Pick<BuyOnLlamaswapChain, 'chain' | 'address'>, placement: string) {
+	return `https://swap.defillama.com/?chain=${chain.chain}&from=${ZERO_ADDRESS}&to=${chain.address}&tab=swap&utm_source=defillama&utm_medium=buy_button&utm_content=${placement}`
 }
 
 export function BuyOnLlamaswap({
 	chains,
-	showBestChainBadge = true
+	showBestChainBadge = true,
+	placement = 'protocol_page'
 }: {
 	chains?: BuyOnLlamaswapChain[] | null
 	showBestChainBadge?: boolean
+	placement?: string
 }) {
 	if (!chains?.length) return null
 
@@ -23,7 +25,7 @@ export function BuyOnLlamaswap({
 			<a
 				target="_blank"
 				rel="noreferrer noopener"
-				href={buildSwapUrl(chains[0])}
+				href={buildSwapUrl(chains[0], placement)}
 				className="flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20"
 			>
 				<span>Buy</span>
@@ -53,7 +55,7 @@ export function BuyOnLlamaswap({
 				{chains.map((chain) => (
 					<a
 						key={chain.chain}
-						href={buildSwapUrl(chain)}
+						href={buildSwapUrl(chain, placement)}
 						target="_blank"
 						rel="noreferrer noopener"
 						className="flex items-center gap-2.5 px-3 py-2 text-xs last-of-type:rounded-b-lg hover:bg-(--primary-hover)"

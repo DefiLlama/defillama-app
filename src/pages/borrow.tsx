@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -18,7 +18,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let cgList = await fetchAllCGTokensList()
+	let cgList = await fetchCoinGeckoTokensListFromDataset()
 	// const cgTokens = cgList.filter((x) => x.symbol)
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = {

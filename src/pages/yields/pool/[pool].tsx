@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useBlockExplorers } from '~/api/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { CopyHelper } from '~/components/Copy'
 import { LinkPreviewCard } from '~/components/SEO'
 import { YIELD_POOLS_LAMBDA_API } from '~/constants'
 import { tokenIconUrl } from '~/utils/icons'
@@ -12,6 +11,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { CopyHelper } from '~/components/Copy'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -31,6 +31,7 @@ import {
 	useHolderHistory,
 	useHolderStats
 } from '~/containers/Yields/queries/client'
+import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import {
 	computeHolderChanges,
 	type BalanceFlowSummary,
@@ -38,7 +39,6 @@ import {
 	type HolderFlowSummary,
 	type HolderWithChange
 } from '~/containers/Yields/queries/holderUtils'
-import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
@@ -248,7 +248,7 @@ function ConcentrationRiskPanel({
 					{exposureTiers.map((tier) => (
 						<div key={tier.label} className="flex items-center justify-between text-xs">
 							<span className="text-(--text-disabled)">{tier.label}</span>
-							<span className="tabular-nums font-medium">{formattedNum((tier.pct / 100) * tvlUsd, true)}</span>
+							<span className="font-medium tabular-nums">{formattedNum((tier.pct / 100) * tvlUsd, true)}</span>
 						</div>
 					))}
 				</div>
@@ -259,13 +259,13 @@ function ConcentrationRiskPanel({
 				<div className="flex flex-col gap-2 rounded-md bg-(--cards-border)/30 p-2.5">
 					<div className="flex items-center justify-between">
 						<span className="text-xs text-(--text-disabled)">Total Holders</span>
-						<span className="text-sm tabular-nums font-semibold">{holderCount.toLocaleString()}</span>
+						<span className="text-sm font-semibold tabular-nums">{holderCount.toLocaleString()}</span>
 					</div>
 					{holderChange7d != null ? (
 						<div className="flex items-center justify-between text-xs">
 							<span className="text-(--text-disabled)">7d change</span>
 							<span
-								className={`tabular-nums font-medium ${holderChange7d > 0 ? 'text-(--success)' : holderChange7d < 0 ? 'text-(--error)' : ''}`}
+								className={`font-medium tabular-nums ${holderChange7d > 0 ? 'text-(--success)' : holderChange7d < 0 ? 'text-(--error)' : ''}`}
 							>
 								{holderChange7d > 0 ? '+' : ''}
 								{holderChange7d.toLocaleString()}
@@ -276,7 +276,7 @@ function ConcentrationRiskPanel({
 						<div className="flex items-center justify-between text-xs">
 							<span className="text-(--text-disabled)">30d change</span>
 							<span
-								className={`tabular-nums font-medium ${holderChange30d > 0 ? 'text-(--success)' : holderChange30d < 0 ? 'text-(--error)' : ''}`}
+								className={`font-medium tabular-nums ${holderChange30d > 0 ? 'text-(--success)' : holderChange30d < 0 ? 'text-(--error)' : ''}`}
 							>
 								{holderChange30d > 0 ? '+' : ''}
 								{holderChange30d.toLocaleString()}
@@ -402,7 +402,7 @@ function TopHoldersTable({
 												transform: hoveredIndex === i ? 'scale(1.5)' : 'scale(1)'
 											}}
 										/>
-										<span className="w-4 shrink-0 tabular-nums text-(--text-disabled)">{i + 1}</span>
+										<span className="w-4 shrink-0 text-(--text-disabled) tabular-nums">{i + 1}</span>
 										{explorer?.url ? (
 											<a
 												href={explorer.url}

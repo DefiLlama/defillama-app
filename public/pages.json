@@ -120,15 +120,15 @@
       "oldName": "Overview"
     },
     {
-      "name": "Yields: Stablecoin Pools",
+      "name": "Stablecoin Yields",
       "route": "/yields/stablecoins",
       "category": "Yields",
-      "description": "APYs of pools with stablecoins",
+      "description": "Stablecoin liquidity pools by APY",
       "keys": [
         "pegged"
       ],
       "oldCategory": "Yields",
-      "oldName": "Stablecoin Pools"
+      "oldName": "Stablecoin Yields"
     },
     {
       "name": "Yields: Leveraged Lending",
@@ -765,19 +765,19 @@
       "oldName": "Watchlist"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
-    },
-    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
       "description": "Simple view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Simple"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
     },
     {
       "name": "Yields: Watchlist",

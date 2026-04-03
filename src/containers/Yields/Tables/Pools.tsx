@@ -1034,7 +1034,6 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 		showMedianApy,
 		showStdDev,
 		showHolderCount,
-		showTop10Pct,
 		showAvgPosition
 	} = router.query
 

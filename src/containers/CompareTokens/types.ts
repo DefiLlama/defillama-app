@@ -1,4 +1,4 @@
-import type { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 
 export type CompareTokenProtocol = {
 	geckoId?: string | null

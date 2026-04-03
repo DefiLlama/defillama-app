@@ -234,13 +234,6 @@ export interface IArticle {
 	imgSrc: string | null
 }
 
-// date in the chart is in ms
-export interface IDenominationPriceHistory {
-	prices: Array<[number, number]>
-	mcaps: Array<[number, number]>
-	volumes: Array<[number, number]>
-}
-
 export interface IToggledMetrics extends Record<
 	(typeof protocolCharts)[keyof typeof protocolCharts],
 	'true' | 'false'
