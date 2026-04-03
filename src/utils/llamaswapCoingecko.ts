@@ -1,6 +1,6 @@
 import type { CoinGeckoCoinTickerWithDepth } from '~/api/coingecko.types'
 import { getLlamaswapChainByGeckoPlatform } from '~/constants/chains'
-import type { IProtocolLlamaswapChain } from './types'
+import type { IProtocolLlamaswapChain } from '~/utils/metadata/types'
 
 const EVM_HEX_ADDRESS_RE = /^0x[a-f0-9]+$/i
 

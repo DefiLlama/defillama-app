@@ -211,11 +211,13 @@ export async function fetchCoreMetadata({
 	)
 
 	const protocolLlamaswapDataset = await (isDev
-		? buildProtocolLlamaswapDataset({ chains, existingDataset: existingProtocolLlamaswapDataset }).catch((error) => {
-				console.error('[metadata] dev: failed to build buy-on-llamaswap dataset, using fallback:', error)
-				return {} as ProtocolLlamaswapMetadata
-			})
-		: buildProtocolLlamaswapDataset({ chains, existingDataset: existingProtocolLlamaswapDataset }))
+		? buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }).catch(
+				(error) => {
+					console.error('[metadata] dev: failed to build buy-on-llamaswap dataset, using fallback:', error)
+					return {} as ProtocolLlamaswapMetadata
+				}
+			)
+		: buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }))
 
 	return {
 		protocols,

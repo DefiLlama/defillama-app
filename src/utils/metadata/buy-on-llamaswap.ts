@@ -5,8 +5,8 @@ import { getErrorMessage } from '~/utils/error'
 import {
 	getSupportedCoinGeckoPlatformsForLlamaswap,
 	parseCoinGeckoLlamaswapChainsByTickerVolume
-} from './llamaswapCoingecko'
-import type { IChainMetadata, IProtocolLlamaswapChain, ProtocolLlamaswapMetadata } from './types'
+} from '~/utils/llamaswapCoingecko'
+import type { IChainMetadata, IProtocolLlamaswapChain, IProtocolMetadata, ProtocolLlamaswapMetadata } from './types'
 
 type RawLlamaswapChain = {
 	chain: string
@@ -155,9 +155,11 @@ function batchArray<T>(items: T[], batchSize: number): T[][] {
 
 export async function buildProtocolLlamaswapDataset({
 	chains,
+	protocols,
 	existingDataset
 }: {
 	chains: Record<string, IChainMetadata>
+	protocols: Record<string, IProtocolMetadata>
 	existingDataset?: ProtocolLlamaswapMetadata
 }): Promise<ProtocolLlamaswapMetadata> {
 	const [protocolLlamaswapRaw, coinsList] = await Promise.all([
@@ -184,20 +186,19 @@ export async function buildProtocolLlamaswapDataset({
 		platformsByGeckoId.set(coin.id, coin.platforms)
 	}
 
-	const chainGeckoIds = new Set<string>()
+	const missingGeckoIds = new Set<string>()
+
 	for (const chainName in chains) {
 		const geckoId = chains[chainName]?.gecko_id
-		if (geckoId) chainGeckoIds.add(geckoId)
+		if (geckoId && !(geckoId in protocolLlamaswapDataset)) missingGeckoIds.add(geckoId)
 	}
 
-	const missingChainGeckoIds: string[] = []
-	for (const geckoId of chainGeckoIds) {
-		if (!(geckoId in protocolLlamaswapDataset)) {
-			missingChainGeckoIds.push(geckoId)
-		}
+	for (const protocolId in protocols) {
+		const geckoId = protocols[protocolId]?.gecko_id
+		if (geckoId && !(geckoId in protocolLlamaswapDataset)) missingGeckoIds.add(geckoId)
 	}
 
-	for (const geckoIdBatch of batchArray(missingChainGeckoIds, COINGECKO_CHAIN_BATCH_SIZE)) {
+	for (const geckoIdBatch of batchArray([...missingGeckoIds], COINGECKO_CHAIN_BATCH_SIZE)) {
 		const backfilledBatchPromises: Array<Promise<[string, IProtocolLlamaswapChain[]] | null>> = []
 
 		for (const geckoId of geckoIdBatch) {

@@ -1,6 +1,5 @@
 import { CACHE_SERVER, COINGECKO_KEY, DATASETS_SERVER_URL } from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { parseCoinGeckoLlamaswapChainsByTickerVolume } from '~/utils/metadata/llamaswapCoingecko'
 import type {
 	CgChartResponse,
 	CgMarketChartResponse,
@@ -8,7 +7,6 @@ import type {
 	CoinGeckoCoinDetailResultForOptions,
 	CoinGeckoCoinListItem,
 	CoinGeckoCoinDetailResponseForOptions,
-	CoinGeckoCoinTickerWithDepth,
 	CoinGeckoCoinTickersResponseForOptions,
 	CoinGeckoCoinTickersResultForOptions,
 	CoinGeckoDerivativeExchange,
@@ -304,34 +302,6 @@ export async function fetchCoinGeckoCoinTickersById<
 	} catch {
 		return {} as CoinGeckoCoinTickersResultForOptions<TOptions>
 	}
-}
-
-/**
- * Fetch the coin's platforms and all ticker pages, then map them into chain/address pairs sorted
- * by aggregate CoinGecko ticker volume.
- */
-export async function fetchCoinGeckoCoinChainsByTickerVolume(
-	geckoId: string
-): Promise<Array<{ chain: string; address: string }>> {
-	if (!geckoId) return []
-
-	const coin = await fetchCoinGeckoCoinById(geckoId, {
-		localization: false,
-		tickers: false,
-		marketData: false,
-		communityData: false,
-		developerData: false
-	})
-	const tickers = (await fetchCoinGeckoCoinTickersById(geckoId, {
-		order: 'volume_desc',
-		depth: true,
-		dexPairFormat: 'contract_address'
-	})) as { tickers?: CoinGeckoCoinTickerWithDepth[] }
-
-	return parseCoinGeckoLlamaswapChainsByTickerVolume({
-		platforms: coin.platforms,
-		tickers: tickers.tickers
-	})
 }
 
 /** Fetch CoinGecko historical market chart data from GET /coins/{id}/market_chart. */
