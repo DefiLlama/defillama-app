@@ -1,5 +1,6 @@
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { useIsClient } from '~/hooks/useIsClient'
 import { AuthenticationCard } from './AuthenticationCard'
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
@@ -7,9 +8,10 @@ import { UserHeader } from './UserHeader'
 import { isWalletEmail, getWalletAddress, truncateAddress } from './utils'
 
 export function ManageAccount() {
+	const isClient = useIsClient()
 	const { user, logout, isAuthenticated, loaders } = useAuthContext()
 
-	if (loaders.userLoading) {
+	if (!isClient || loaders.userLoading) {
 		return (
 			<div className="flex h-64 items-center justify-center">
 				<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />

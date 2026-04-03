@@ -214,19 +214,6 @@ function SubscriptionContent() {
 		openStripeCheckout(planKeyToSubType(plan), billingInterval)
 	}
 
-	if (isPageStateLoading) {
-		return (
-			<div className="relative col-span-full min-h-screen w-full [overflow-x:clip] [overflow-y:visible] bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
-				<SubscriptionBackground />
-				<SubscriptionHeader />
-				<div className="flex h-[60dvh] items-center justify-center">
-					<div className="h-8 w-8 animate-spin rounded-full border-2 border-(--sub-brand-primary) border-t-transparent" />
-				</div>
-				<SubscriptionFooter />
-			</div>
-		)
-	}
-
 	return (
 		<div className="relative col-span-full min-h-screen w-full [overflow-x:clip] [overflow-y:visible] bg-(--sub-surface-page) text-(--sub-ink-primary) dark:bg-(--sub-ink-primary) dark:text-white">
 			<SubscriptionBackground />
@@ -251,6 +238,7 @@ function SubscriptionContent() {
 					onRevertCancellation={() => void handleRevertCancellation()}
 					isTrialAvailable={isTrialAvailable}
 					loading={loading as 'stripe' | 'llamapay' | null}
+					isPageStateLoading={isPageStateLoading}
 				/>
 				<SubscriptionComparisonSection
 					planOrder={PLAN_ORDER}

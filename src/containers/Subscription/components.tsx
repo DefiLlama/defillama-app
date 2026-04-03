@@ -103,6 +103,7 @@ function PricingCardCta({
 	isUpgradeTier,
 	isLowerTier,
 	billingCycle,
+	isPageStateLoading,
 	onPrimaryCtaClick,
 	onSecondaryCtaClick,
 	onUpgradeToYearly,
@@ -122,7 +123,11 @@ function PricingCardCta({
 	isUpgradeTier: boolean
 	isLowerTier: boolean | '' | null | 0
 	billingCycle: BillingCycle
+	isPageStateLoading?: boolean
 } & PricingCardCallbacks) {
+	/* ── Still loading auth/subscription data: hide CTAs ── */
+	if (isPageStateLoading) return null
+
 	/* ── Lower tier than current subscription: no CTA ── */
 	if (isLowerTier) return null
 
@@ -243,6 +248,7 @@ export function PricingCard({
 	currentPlan = null,
 	billingCycle = 'monthly',
 	userBillingCycle = null,
+	isPageStateLoading = false,
 	onPrimaryCtaClick,
 	onSecondaryCtaClick,
 	onUpgradeToYearly,
@@ -261,6 +267,7 @@ export function PricingCard({
 	currentPlan?: PlanKey | null
 	billingCycle?: BillingCycle
 	userBillingCycle?: BillingCycle | null
+	isPageStateLoading?: boolean
 } & PricingCardCallbacks) {
 	const canUpgradeCycle = isCurrentPlan && userBillingCycle === 'monthly'
 	const isUpgradeTier =
@@ -349,6 +356,7 @@ export function PricingCard({
 							isUpgradeTier={isUpgradeTier}
 							isLowerTier={isLowerTier}
 							billingCycle={billingCycle}
+							isPageStateLoading={isPageStateLoading}
 							onPrimaryCtaClick={onPrimaryCtaClick}
 							onSecondaryCtaClick={onSecondaryCtaClick}
 							onUpgradeToYearly={onUpgradeToYearly}

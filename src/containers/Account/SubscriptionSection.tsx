@@ -178,7 +178,7 @@ function LegacyWarning() {
 }
 
 export function SubscriptionSection() {
-	const { isTrial: isTrialFromAuth } = useAuthContext()
+	const { isTrial: isTrialFromAuth, hasActiveSubscription } = useAuthContext()
 
 	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
@@ -203,7 +203,8 @@ export function SubscriptionSection() {
 		isEnableOverageLoading,
 		isCancelSubscriptionLoading,
 		endTrialSubscription,
-		isEndTrialLoading
+		isEndTrialLoading,
+		isSubscriptionLoading
 	} = useSubscribe()
 
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
@@ -274,6 +275,9 @@ export function SubscriptionSection() {
 	}
 
 	if (!activeSubscription) {
+		if (isSubscriptionLoading || hasActiveSubscription) {
+			return null
+		}
 		return <FreeUpgradeBanner />
 	}
 
