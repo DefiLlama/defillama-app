@@ -40,6 +40,18 @@ import type { IProtocol } from './types'
 
 const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
 
+const getEarningsValue = (revenue: number | null | undefined, emissions: number | null | undefined) => {
+	if (revenue != null && emissions != null) {
+		return revenue - emissions
+	}
+
+	if (revenue != null) {
+		return revenue
+	}
+
+	return undefined
+}
+
 type ChainProtocolsTableProps = {
 	protocols: Array<IProtocol>
 	sampleRow?: any
@@ -985,110 +997,68 @@ const columns = [
 				},
 				size: 80
 			}),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total24h ?? 0
-					const emissions = row.emissions?.total24h ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || undefined
-				},
-				{
-					id: 'earnings_24h',
-					header: 'Earnings 24h',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total24h, row.emissions?.total24h), {
+				id: 'earnings_24h',
+				header: 'Earnings 24h',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['24h']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total7d ?? 0
-					const emissions = row.emissions?.total7d ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || undefined
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['24h']
 				},
-				{
-					id: 'earnings_7d',
-					header: 'Earnings 7d',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total7d, row.emissions?.total7d), {
+				id: 'earnings_7d',
+				header: 'Earnings 7d',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['7d']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total30d ?? 0
-					const emissions = row.emissions?.total30d ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || undefined
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['7d']
 				},
-				{
-					id: 'earnings_30d',
-					header: 'Earnings 30d',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['30d']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.total1y ?? 0
-					const emissions = row.emissions?.total1y ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || undefined
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total30d, row.emissions?.total30d), {
+				id: 'earnings_30d',
+				header: 'Earnings 30d',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['30d']
 				},
-				{
-					id: 'earnings_1y',
-					header: 'Earnings 1Y',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['1y']
-					},
-					size: 125
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.monthlyAverage1y ?? 0
-					const emissions = row.emissions?.monthlyAverage1y ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || undefined
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total1y, row.emissions?.total1y), {
+				id: 'earnings_1y',
+				header: 'Earnings 1Y',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['1y']
 				},
-				{
-					id: 'average_earnings_1y',
-					header: 'Monthly Avg 1Y Earnings',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
-					},
-					size: 200
-				}
-			),
-			columnHelper.accessor(
-				(row) => {
-					const revenue = row.revenue?.totalAllTime ?? 0
-					const emissions = row.emissions?.totalAllTime ?? 0
-					return revenue && emissions ? revenue - emissions : revenue || undefined
+				size: 125
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.monthlyAverage1y, row.emissions?.monthlyAverage1y), {
+				id: 'average_earnings_1y',
+				header: 'Monthly Avg 1Y Earnings',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
 				},
-				{
-					id: 'cumulativeEarnings',
-					header: 'Cumulative Earnings',
-					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-					meta: {
-						align: 'end',
-						headerHelperText: definitions.earnings.protocol['cumulative']
-					},
-					size: 180
-				}
-			)
+				size: 200
+			}),
+			columnHelper.accessor((row) => getEarningsValue(row.revenue?.totalAllTime, row.emissions?.totalAllTime), {
+				id: 'cumulativeEarnings',
+				header: 'Cumulative Earnings',
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+				meta: {
+					align: 'end',
+					headerHelperText: definitions.earnings.protocol['cumulative']
+				},
+				size: 180
+			})
 		],
 		meta: {
 			headerHelperText:

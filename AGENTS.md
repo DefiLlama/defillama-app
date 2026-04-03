@@ -21,7 +21,7 @@ This file defines the commands and working conventions that all AI agents must f
 
 Exception:
 
-- `npx tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration, since there is no equivalent `bun` command for that project-specific config.
+- `bun x tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration, since there is no equivalent `bun` command for that project-specific config.
 
 ## Required Verification
 

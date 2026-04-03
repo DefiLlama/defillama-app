@@ -884,6 +884,16 @@ export const getProtocolsByChain = async ({
 			}
 		}
 
+		const childProtocolTvl = tvls?.default?.tvl
+		const childMcapTvl =
+			protocol.mcap != null &&
+			protocol.category !== 'Bridge' &&
+			childProtocolTvl != null &&
+			childProtocolTvl !== 0 &&
+			Number.isFinite(childProtocolTvl)
+				? +formatNum(+protocol.mcap.toFixed(2) / +childProtocolTvl.toFixed(2))
+				: null
+
 		const childStore: IChildProtocol & { defillamaId: string } = {
 			name: protocolMetadata[protocol.defillamaId].displayName,
 			slug: slug(protocolMetadata[protocol.defillamaId].displayName),
@@ -893,10 +903,7 @@ export const getProtocolsByChain = async ({
 			tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 			mcap: protocol.mcap ?? null,
 			tokenPrice: protocol.geckoId ? (protocolTokenPrices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null,
-			mcaptvl:
-				protocol.mcap != null && protocol.category !== 'Bridge' && tvls?.default?.tvl != null
-					? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
-					: null,
+			mcaptvl: childMcapTvl,
 			strikeTvl:
 				protocol.category !== 'Bridge'
 					? toStrikeTvl(protocol, {
@@ -1123,6 +1130,15 @@ export const getProtocolsByChain = async ({
 			}
 			const chilsProtocolCategories = Array.from(categorySet)
 
+			const parentProtocolTvl = parentTvl?.default?.tvl
+			const parentMcapTvl =
+				parentProtocol.mcap != null &&
+				parentProtocolTvl != null &&
+				parentProtocolTvl !== 0 &&
+				Number.isFinite(parentProtocolTvl)
+					? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentProtocolTvl.toFixed(2))
+					: null
+
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
@@ -1136,10 +1152,7 @@ export const getProtocolsByChain = async ({
 				tokenPrice: parentProtocol.gecko_id
 					? (protocolTokenPrices[`coingecko:${parentProtocol.gecko_id}`]?.price ?? null)
 					: null,
-				mcaptvl:
-					parentProtocol.mcap != null && parentTvl?.default?.tvl != null
-						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
-						: null
+				mcaptvl: parentMcapTvl
 			}
 
 			if (parentFees) {
