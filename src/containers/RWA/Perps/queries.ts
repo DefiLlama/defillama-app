@@ -1,5 +1,6 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { getPercentChange } from '~/utils'
 import {
 	fetchRWAPerpsCurrent,
 	fetchRWAPerpsFundingHistory,
@@ -224,6 +225,40 @@ function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
 	return [...markets].sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
 }
 
+function getSnapshotTotals(
+	rows: IRWAPerpsAggregateHistoricalPoint[],
+	key: 'openInterest' | 'volume24h'
+): { latestTotal: number | null; previousTotal: number | null } {
+	if (rows.length === 0) return { latestTotal: null, previousTotal: null }
+
+	const timestamps = [...new Set(rows.map((row) => toUnixMsTimestamp(row.timestamp)))].sort((a, b) => b - a)
+	const latestTimestamp = timestamps[0]
+	const previousTimestamp = timestamps[1]
+
+	if (latestTimestamp === undefined) {
+		return { latestTotal: null, previousTotal: null }
+	}
+
+	const latestTotal = rows.reduce((sum, row) => {
+		if (toUnixMsTimestamp(row.timestamp) !== latestTimestamp) return sum
+		return sum + safeNumber(row[key])
+	}, 0)
+
+	if (previousTimestamp === undefined) {
+		return { latestTotal: latestTotal > 0 ? latestTotal : null, previousTotal: null }
+	}
+
+	const previousTotal = rows.reduce((sum, row) => {
+		if (toUnixMsTimestamp(row.timestamp) !== previousTimestamp) return sum
+		return sum + safeNumber(row[key])
+	}, 0)
+
+	return {
+		latestTotal: latestTotal > 0 ? latestTotal : null,
+		previousTotal: previousTotal > 0 ? previousTotal : null
+	}
+}
+
 export async function getRWAPerpsContractData({
 	contract
 }: {
@@ -373,17 +408,25 @@ export async function getRWAPerpsOverview(): Promise<IRWAPerpsOverviewPageData> 
 		throw new Error('Failed to get RWA perps overview')
 	}
 
-	const initialChartDataset = await getRWAPerpsBreakdownChartDataset({
+	const overviewChartRows = await fetchRWAPerpsBreakdownChartRows({ seriesNames: list.venues })
+	const initialChartDataset = toRWAPerpsBreakdownChartDataset({
+		rows: overviewChartRows,
 		breakdown: 'baseAsset',
 		key: 'openInterest'
 	})
+	const openInterestSnapshotTotals = getSnapshotTotals(overviewChartRows, 'openInterest')
+	const volume24hSnapshotTotals = getSnapshotTotals(overviewChartRows, 'volume24h')
+	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(stats.totalOpenInterest)
+	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(stats.totalVolume24h)
 
 	return {
 		markets: sortMarketsByOpenInterest(current),
 		initialChartDataset,
 		totals: {
-			openInterest: safeNumber(stats.totalOpenInterest),
-			volume24h: safeNumber(stats.totalVolume24h),
+			openInterest: totalOpenInterest,
+			openInterestChange24h: getPercentChange(totalOpenInterest, openInterestSnapshotTotals.previousTotal),
+			volume24h: totalVolume24h,
+			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
 			markets: safeNumber(stats.totalMarkets),
 			protocolFees24h: sumProtocolFees24h(current),
 			cumulativeFunding: safeNumber(stats.totalCumulativeFunding)

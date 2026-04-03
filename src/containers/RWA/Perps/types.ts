@@ -72,7 +72,9 @@ export interface IRWAPerpsOverviewPageData {
 	initialChartDataset: MultiSeriesChart2Dataset
 	totals: {
 		openInterest: number
+		openInterestChange24h: number | null
 		volume24h: number
+		volume24hChange24h: number | null
 		markets: number
 		protocolFees24h: number
 		cumulativeFunding: number

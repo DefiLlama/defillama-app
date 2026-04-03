@@ -35,7 +35,9 @@ describe('rwa perps overview page', () => {
 			initialChartDataset: { source: [], dimensions: ['timestamp'] },
 			totals: {
 				openInterest: 1,
+				openInterestChange24h: 10,
 				volume24h: 2,
+				volume24hChange24h: -5,
 				markets: 3,
 				protocolFees24h: 4,
 				cumulativeFunding: 4

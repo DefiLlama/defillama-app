@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+	buildRWAPerpsOverviewChartSeries,
 	getRWAPerpsOverviewChartType,
 	getRWAPerpsOverviewChartTypeQueryPatch,
 	resolveRWAPerpsOverviewSelectedStacks
@@ -43,5 +44,15 @@ describe('OverviewChart helpers', () => {
 				excludeStacksQ: ['NVIDIA']
 			})
 		).toEqual(['Meta'])
+	})
+
+	it('builds line series without point markers for non-volume metrics', () => {
+		const series = buildRWAPerpsOverviewChartSeries({
+			chartType: 'openInterest',
+			stackOptions: ['Meta']
+		})
+
+		expect(series).toMatchObject([{ name: 'Meta', type: 'line' }])
+		expect(series[0]).not.toHaveProperty('showSymbol')
 	})
 })

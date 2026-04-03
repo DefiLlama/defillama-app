@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { RWAPerpsDashboard } from './Dashboard'
+import { buildRWAPerpsTimeSeriesCharts, RWAPerpsDashboard } from './Dashboard'
 
 let routerQuery: Record<string, string> = {}
 let lastTableWithSearchProps: any = null
@@ -112,7 +112,9 @@ const overviewData = {
 	initialChartDataset: { source: [], dimensions: ['timestamp'] },
 	totals: {
 		openInterest: 100,
+		openInterestChange24h: 25,
 		volume24h: 50,
+		volume24hChange24h: -10,
 		markets: 1,
 		protocolFees24h: 1,
 		cumulativeFunding: 10
@@ -234,7 +236,48 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Open Interest')
-		expect(html).toContain('24h Volume')
+		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
+	})
+
+	it('builds bar-series configs for time-series volume', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'volume24h',
+				dimensions: ['timestamp', 'Meta', 'NVIDIA']
+			})
+		).toMatchObject([
+			{ name: 'Meta', type: 'bar', stack: 'A' },
+			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+		])
+	})
+
+	it('does not enable point markers on overview line-series configs', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Meta']
+			})
+		).toMatchObject([{ name: 'Meta', type: 'line', stack: 'A' }])
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Meta']
+			})[0]
+		).not.toHaveProperty('showSymbol')
+	})
+
+	it('renders 24h changes inline on the overview open interest and volume cards', () => {
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('+25.00%')
+		expect(html).toContain('-10.00%')
+	})
+
+	it('does not render overview delta text on venue stat cards', () => {
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
+
+		expect(html).not.toContain('+25.00%')
+		expect(html).not.toContain('-10.00%')
 	})
 })

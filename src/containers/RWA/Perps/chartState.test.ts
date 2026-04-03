@@ -81,7 +81,7 @@ describe('perps chartState options', () => {
 	it('exposes chart metric options with key/name pairs', () => {
 		expect(getRWAPerpsChartMetricOptions()).toEqual([
 			{ key: 'openInterest', name: 'Open Interest' },
-			{ key: 'volume24h', name: '24h Volume' },
+			{ key: 'volume24h', name: 'Volume' },
 			{ key: 'markets', name: 'Markets' }
 		])
 	})
