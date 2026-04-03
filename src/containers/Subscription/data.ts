@@ -84,7 +84,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 		title: 'API',
 		priceMain: '$300',
 		priceUnit: '/month',
-		priceSecondary: '$3,000 /year',
+		priceSecondary: '$3,600 /year',
 		includedTierText: 'Includes all Pro tier features',
 		sections: [
 			{
