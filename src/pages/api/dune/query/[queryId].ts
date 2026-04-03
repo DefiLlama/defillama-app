@@ -4,9 +4,7 @@ import * as duneCache from '~/utils/dune-cache'
 const DUNE_API_URL = 'https://api.dune.com/api/v1'
 const DUNE_API_KEY = 'YdjmcWGRqalcfxfIdyqCH0e7jIRHJzUL'
 
-const ALLOWED_QUERY_IDS = new Set([
-	'6370257'
-])
+const ALLOWED_QUERY_IDS = new Set(['6370257'])
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 const REDIS_TTL_S = 0 // infinite – never evict cached data so dashboards stay up even if the API key expires
