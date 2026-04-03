@@ -46,7 +46,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
 							>
 								<div className="overflow-hidden">
-									<p className="pt-2 text-sm leading-6 text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) md:text-[15px] md:leading-7">
+									<p className="pt-2 text-sm leading-6 text-(--sub-text-secondary) md:text-[15px] md:leading-7 dark:text-(--sub-text-secondary-dark)">
 										{item.answer}
 									</p>
 								</div>
