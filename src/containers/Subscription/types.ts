@@ -1,10 +1,11 @@
 export type PlanKey = 'free' | 'pro' | 'api' | 'enterprise'
 export type BillingCycle = 'monthly' | 'yearly'
-export type Availability = 'check' | 'dash'
+export type Availability = 'check' | 'dash' | 'limited'
 
 export interface FeatureItem {
 	label: string
 	link?: string
+	linkText?: string
 	availability: Availability
 	highlightText?: boolean
 	isSubItem?: boolean
@@ -18,6 +19,7 @@ export interface FeatureSection {
 export interface PricingCardData {
 	key: PlanKey
 	title: string
+	subtitle?: string
 	priceMain?: string
 	priceUnit?: string
 	priceSecondary?: string
@@ -26,6 +28,7 @@ export interface PricingCardData {
 	sections: FeatureSection[]
 	primaryCta: string
 	secondaryCta?: string
+	ctaSubtext?: string
 	highlighted?: boolean
 	recommendedLabel?: string
 }
@@ -35,6 +38,7 @@ export interface ComparisonRow {
 	link?: string
 	wrapLabel?: boolean
 	values: Record<PlanKey, Availability>
+	tooltips?: Partial<Record<PlanKey, string>>
 }
 
 export interface ComparisonSection {

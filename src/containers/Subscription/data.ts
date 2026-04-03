@@ -24,96 +24,91 @@ export const PLAN_META_BY_CYCLE: Record<BillingCycle, Record<PlanKey, PlanMeta>>
 	}
 }
 
-export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
+const CARD_CONTENT: Omit<PricingCardData, 'priceMain' | 'priceUnit' | 'priceSecondary'>[] = [
 	{
 		key: 'free',
 		title: 'Free',
-		priceMain: '$0',
-		priceUnit: '/month',
+		subtitle: 'Understand what\u2019s happening onchain',
 		sections: [
 			{
 				title: 'Core Data & Dashboards',
 				items: [
+					{ label: 'Track TVL, volume, and key metrics across every major chain and protocol', availability: 'check' },
+					{ label: 'Find & compare yield opportunities and stablecoin data', availability: 'check' },
+					{ label: 'See upcoming token unlocks before they hit the market', availability: 'check' },
+					{ label: 'Stay on top of who\u2019s raising, and how much', availability: 'check' },
+					{ label: 'View custom dashboards built by analysts', availability: 'check' },
 					{
-						label: 'Overview of chains & protocol metrics',
-						availability: 'check'
-					},
-					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
-					{ label: 'Token unlock schedules', availability: 'check' },
-					{ label: 'Funding rounds & raises', availability: 'check' },
-					{ label: 'LlamaAI: AI-powered DeFi analyst — ask about any protocol, yield, or market trend (1 question/day + 1 deep research every 2 weeks)', link: '/ai', availability: 'check' }
+						label: 'Try LlamaAI free: one daily query and one deep research report every two weeks',
+						link: '/ai',
+						linkText: 'LlamaAI free',
+						availability: 'check',
+						highlightText: false
+					}
 				]
 			}
 		],
-		primaryCta: 'Get Started for Free'
+		primaryCta: 'Start for Free',
+		ctaSubtext: 'No card required'
 	},
 	{
 		key: 'pro',
 		title: 'Pro',
-		priceMain: '$49',
-		priceUnit: '/month',
-		priceSecondary: '$588 /year',
+		subtitle: 'The full research suite',
 		includedTierText: 'Includes all Free tier features',
 		sections: [
 			{
 				title: 'Analysis & AI Tools',
 				items: [
 					{
-						label: 'LlamaAI: Conversational Analytics',
+						label: 'Ask LlamaAI anything: it does the analysis',
 						link: '/ai',
+						linkText: 'LlamaAI',
 						availability: 'check',
-						highlightText: true
+						highlightText: false
 					},
-					{ label: 'Deep research: 5/day', availability: 'check', isSubItem: true },
-					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'check' },
+					{ label: 'Five LlamaAI deep research reports per day', availability: 'check', isSubItem: true },
+					{ label: 'Build your own custom dashboards', availability: 'check' },
+					{ label: 'Add custom data columns to track exactly what you care about', availability: 'check' },
 					{
-						label: 'Custom Columns for personalized analysis',
+						label: 'Live data in your spreadsheets via DefiLlama Sheets',
+						link: '/sheets',
+						linkText: 'DefiLlama Sheets',
 						availability: 'check'
 					},
-					{ label: 'Access to DefiLlama Sheets', link: '/sheets', availability: 'check' },
 					{ label: 'CSV data downloads', availability: 'check' },
 					{ label: 'Full access to LlamaFeed', availability: 'check' }
 				]
 			}
 		],
-		primaryCta: 'Pay with Card',
+		primaryCta: 'Get Pro Access',
 		secondaryCta: 'Pay with Crypto'
 	},
 	{
 		key: 'api',
 		title: 'API',
-		priceMain: '$300',
-		priceUnit: '/month',
-		priceSecondary: '$3,600 /year',
+		subtitle: 'Your complete DeFi terminal',
 		includedTierText: 'Includes all Pro tier features',
 		sections: [
 			{
 				title: 'API Access',
 				items: [
+					{ label: 'TVL, revenue, fees, and price data endpoints', availability: 'check' },
+					{ label: 'Full data access: token unlocks, active users, liquidity, and more', availability: 'check' },
 					{
-						label: 'Access to all data (unlocks, active users, token liq...)',
-						availability: 'check'
-					},
-					{
-						label: 'Access to TVL, revenue/fees and prices API endpoints',
-						availability: 'check'
-					},
-					{
-						label: 'Access to DefiLlama MCP Server for AI agents',
+						label: 'Connect DefiLlama data directly to your AI agents via MCP',
 						link: '/mcp',
+						linkText: 'MCP',
 						availability: 'check'
 					},
 					{ label: 'Priority support', availability: 'check' },
-					{ label: '1000 requests/minute', availability: 'check' },
-					{ label: '1M calls/month', availability: 'check' },
-					{
-						label: '$0.60 per 1,000 additional calls after 1M limit',
-						availability: 'check'
-					}
+					{ label: '1,000 requests / minute', availability: 'check' },
+					{ label: '1M calls / month', availability: 'check' },
+					{ label: '$0.60 per 1,000 calls beyond the 1M limit', availability: 'check' }
 				]
 			}
 		],
-		primaryCta: 'Pay with Card',
+		primaryCta: 'Get API Access',
 		secondaryCta: 'Pay with Crypto',
 		highlighted: true,
 		recommendedLabel: 'Recommended'
@@ -121,6 +116,7 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 	{
 		key: 'enterprise',
 		title: 'Enterprise',
+		subtitle: 'Custom data solutions',
 		description: 'Contact for pricing',
 		includedTierText: 'Includes all Pro & API tier features',
 		sections: [
@@ -128,145 +124,48 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 				title: 'Custom Solutions & Data',
 				items: [
 					{ label: 'Direct raw access to our database', availability: 'check' },
+					{ label: 'Bespoke data solutions built around your use case', availability: 'check' },
 					{
-						label: 'Custom bespoke solutions that fit your needs',
+						label: 'Non-public data access, including TVL broken down by individual token address',
 						availability: 'check'
 					},
 					{ label: 'Hourly data', availability: 'check' },
 					{
-						label: 'Access to non-public data, such as TVL breakdowns by token address',
+						label: 'Licensing agreements structured for your organization\u2019s requirements',
 						availability: 'check'
 					},
-					{ label: 'Increased API limits', availability: 'check' },
-					{ label: 'Custom data licensing agreements', availability: 'check' }
+					{ label: 'Increased API limits', availability: 'check' }
 				]
 			}
 		],
-		primaryCta: 'Contact Us'
+		primaryCta: 'Talk to Our Team'
 	}
 ]
 
-export const YEARLY_PRICING_CARDS: PricingCardData[] = [
-	{
-		key: 'free',
-		title: 'Free',
-		priceMain: '$0',
-		priceUnit: '/month',
-		sections: [
-			{
-				title: 'Core Data & Dashboards',
-				items: [
-					{
-						label: 'Overview of chains & protocol metrics',
-						availability: 'check'
-					},
-					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
-					{ label: 'Token unlock schedules', availability: 'check' },
-					{ label: 'Funding rounds & raises', availability: 'check' },
-					{ label: 'LlamaAI: AI-powered DeFi analyst — ask about any protocol, yield, or market trend (1 question/day + 1 deep research every 2 weeks)', link: '/ai', availability: 'check' }
-				]
-			}
-		],
-		primaryCta: 'Get Started for Free'
+const CYCLE_PRICING: Record<
+	BillingCycle,
+	Record<PlanKey, { priceMain?: string; priceUnit?: string; priceSecondary?: string }>
+> = {
+	monthly: {
+		free: { priceMain: '$0', priceUnit: '/month' },
+		pro: { priceMain: '$49', priceUnit: '/month', priceSecondary: '$588 /year' },
+		api: { priceMain: '$300', priceUnit: '/month', priceSecondary: '$3,600 /year' },
+		enterprise: {}
 	},
-	{
-		key: 'pro',
-		title: 'Pro',
-		priceMain: '$40.83',
-		priceUnit: '/month',
-		priceSecondary: '$490 /year',
-		includedTierText: 'Includes all Free tier features',
-		sections: [
-			{
-				title: 'Analysis & AI Tools',
-				items: [
-					{
-						label: 'LlamaAI: Conversational Analytics',
-						link: '/ai',
-						availability: 'check',
-						highlightText: true
-					},
-					{ label: 'Deep research: 5/day', availability: 'check', isSubItem: true },
-					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'check' },
-					{
-						label: 'Custom Columns for personalized analysis',
-						availability: 'check'
-					},
-					{ label: 'Access to DefiLlama Sheets', link: '/sheets', availability: 'check' },
-					{ label: 'CSV data downloads', availability: 'check' },
-					{ label: 'Full access to LlamaFeed', availability: 'check' }
-				]
-			}
-		],
-		primaryCta: 'Pay with Card',
-		secondaryCta: 'Pay with Crypto'
-	},
-	{
-		key: 'api',
-		title: 'API',
-		priceMain: '$250',
-		priceUnit: '/month',
-		priceSecondary: '$3,000 /year',
-		includedTierText: 'Includes all Pro tier features',
-		sections: [
-			{
-				title: 'API Access',
-				items: [
-					{
-						label: 'Access to all data (unlocks, active users, token liq...)',
-						availability: 'check'
-					},
-					{
-						label: 'Access to TVL, revenue/fees and prices API endpoints',
-						availability: 'check'
-					},
-					{
-						label: 'Access to DefiLlama MCP Server for AI agents',
-						link: '/mcp',
-						availability: 'check'
-					},
-					{ label: 'Priority support', availability: 'check' },
-					{ label: '1000 requests/minute', availability: 'check' },
-					{ label: '1M calls/month', availability: 'check' },
-					{
-						label: '$0.60 per 1,000 additional calls after 1M limit',
-						availability: 'check'
-					}
-				]
-			}
-		],
-		primaryCta: 'Pay with Card',
-		secondaryCta: 'Pay with Crypto',
-		highlighted: true,
-		recommendedLabel: 'Recommended'
-	},
-	{
-		key: 'enterprise',
-		title: 'Enterprise',
-		description: 'Contact for pricing',
-		includedTierText: 'Includes all Pro & API tier features',
-		sections: [
-			{
-				title: 'Custom Solutions & Data',
-				items: [
-					{ label: 'Direct raw access to our database', availability: 'check' },
-					{
-						label: 'Custom bespoke solutions that fit your needs',
-						availability: 'check'
-					},
-					{ label: 'Hourly data', availability: 'check' },
-					{
-						label: 'Access to non-public data, such as TVL breakdowns by token address',
-						availability: 'check'
-					},
-					{ label: 'Increased API limits', availability: 'check' },
-					{ label: 'Custom data licensing agreements', availability: 'check' }
-				]
-			}
-		],
-		primaryCta: 'Contact Us'
+	yearly: {
+		free: { priceMain: '$0', priceUnit: '/month' },
+		pro: { priceMain: '$40.83', priceUnit: '/month', priceSecondary: '$490 /year' },
+		api: { priceMain: '$250', priceUnit: '/month', priceSecondary: '$3,000 /year' },
+		enterprise: {}
 	}
-]
+}
+
+function buildPricingCards(cycle: BillingCycle): PricingCardData[] {
+	return CARD_CONTENT.map((card) => ({ ...card, ...CYCLE_PRICING[cycle][card.key] }))
+}
+
+export const MONTHLY_PRICING_CARDS = buildPricingCards('monthly')
+export const YEARLY_PRICING_CARDS = buildPricingCards('yearly')
 
 export const PRICING_CARDS_BY_CYCLE: Record<BillingCycle, PricingCardData[]> = {
 	monthly: MONTHLY_PRICING_CARDS,
@@ -322,28 +221,37 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 				label: 'LlamaAI: Conversational Analytics',
 				link: '/ai',
 				values: {
-					free: 'check',
+					free: 'limited',
 					pro: 'check',
 					api: 'check',
 					enterprise: 'check'
+				},
+				tooltips: {
+					free: '1 question per day'
 				}
 			},
 			{
-				label: 'Deep research: 5/day',
+				label: 'Deep research',
 				values: {
-					free: 'dash',
+					free: 'limited',
 					pro: 'check',
 					api: 'check',
 					enterprise: 'check'
+				},
+				tooltips: {
+					free: '1 report every 2 weeks'
 				}
 			},
 			{
 				label: 'Custom DefiLlama Pro Dashboards',
 				values: {
-					free: 'dash',
+					free: 'limited',
 					pro: 'check',
 					api: 'check',
 					enterprise: 'check'
+				},
+				tooltips: {
+					free: '1 public dashboard'
 				}
 			},
 			{

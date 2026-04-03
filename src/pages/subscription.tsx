@@ -50,12 +50,14 @@ function SubscriptionContent() {
 	const {
 		handleSubscribe,
 		loading,
-		isTrialAvailable,
+		isTrialAvailable: isTrialAvailableFromApi,
 		endTrialSubscription,
 		isEndTrialLoading,
 		subscription,
 		getPortalSessionUrl
 	} = useSubscribe()
+
+	const isTrialAvailable = isAuthenticated ? isTrialAvailableFromApi : true
 
 	const isCancelPending = subscription?.metadata?.isCanceled === 'true'
 
@@ -245,6 +247,7 @@ function SubscriptionContent() {
 					comparisonSections={COMPARISON_SECTIONS}
 					billingCycle={billingCycle}
 					selectedPlan="api"
+					currentPlan={currentPlan}
 					onPlanAction={handleComparisonPlanAction}
 				/>
 
@@ -278,7 +281,7 @@ function SubscriptionContent() {
 			<Ariakit.Dialog
 				open={showEndTrialModal}
 				onClose={() => setShowEndTrialModal(false)}
-				className="dialog flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none"
+				className="dialog flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-gray-200 bg-white p-6 text-gray-900 shadow-2xl max-sm:drawer max-sm:rounded-b-none dark:border-[#39393E] dark:bg-[#1a1b1f] dark:text-white"
 				portal
 				unmountOnHide
 			>
@@ -286,7 +289,7 @@ function SubscriptionContent() {
 					<h3 className="text-xl font-bold">Upgrade to Full Access</h3>
 					<button
 						onClick={() => setShowEndTrialModal(false)}
-						className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
+						className="rounded-full p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-[#8a8c90] dark:hover:bg-[#39393E] dark:hover:text-white"
 					>
 						<Icon name="x" height={18} width={18} />
 					</button>
@@ -295,8 +298,10 @@ function SubscriptionContent() {
 					<div className="flex items-start gap-3">
 						<Icon name="alert-triangle" height={20} width={20} className="mt-0.5 shrink-0 text-yellow-500" />
 						<div className="flex flex-col gap-2">
-							<p className="font-semibold text-yellow-500">This is NOT a subscription cancellation</p>
-							<p className="text-sm text-[#c5c5c5]">
+							<p className="font-semibold text-yellow-600 dark:text-yellow-500">
+								This is NOT a subscription cancellation
+							</p>
+							<p className="text-sm text-gray-600 dark:text-[#c5c5c5]">
 								By proceeding, you will end your free trial early and convert to a paid subscription immediately.
 								You&apos;ll be charged the full subscription amount ($49/month).
 							</p>
@@ -304,18 +309,18 @@ function SubscriptionContent() {
 					</div>
 				</div>
 				<div className="mt-2 flex flex-col gap-2">
-					<p className="text-sm text-[#8a8c90]">Benefits of converting now:</p>
+					<p className="text-sm text-gray-500 dark:text-[#8a8c90]">Benefits of converting now:</p>
 					<ul className="flex flex-col gap-1 text-sm">
 						<li className="flex items-center gap-2">
-							<Icon name="check" height={14} width={14} className="text-green-400" />
+							<Icon name="check" height={14} width={14} className="text-green-500 dark:text-green-400" />
 							<span>Full CSV download access</span>
 						</li>
 						<li className="flex items-center gap-2">
-							<Icon name="check" height={14} width={14} className="text-green-400" />
+							<Icon name="check" height={14} width={14} className="text-green-500 dark:text-green-400" />
 							<span>5 deep research questions per day (instead of 3)</span>
 						</li>
 						<li className="flex items-center gap-2">
-							<Icon name="check" height={14} width={14} className="text-green-400" />
+							<Icon name="check" height={14} width={14} className="text-green-500 dark:text-green-400" />
 							<span>All Pro features without limitations</span>
 						</li>
 					</ul>
@@ -324,14 +329,14 @@ function SubscriptionContent() {
 					<button
 						onClick={() => void handleEndTrial()}
 						disabled={isEndTrialLoading}
-						className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
+						className="w-full rounded-lg bg-(--sub-brand-primary) px-4 py-3 font-medium text-white transition-colors hover:bg-(--sub-brand-primary)/90 disabled:cursor-not-allowed disabled:opacity-70"
 					>
 						{isEndTrialLoading ? 'Processing...' : 'Confirm & Upgrade Now'}
 					</button>
 					<button
 						onClick={() => setShowEndTrialModal(false)}
 						disabled={isEndTrialLoading}
-						className="w-full rounded-lg border border-[#39393E] px-4 py-2 text-[#8a8c90] transition-colors hover:bg-[#2a2b30] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+						className="w-full rounded-lg border border-gray-200 px-4 py-2 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#39393E] dark:text-[#8a8c90] dark:hover:bg-[#2a2b30] dark:hover:text-white"
 					>
 						Close
 					</button>

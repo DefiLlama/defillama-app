@@ -37,9 +37,7 @@ export function ManageAccount() {
 		)
 	}
 
-	const displayName = isWalletEmail(user.email)
-		? truncateAddress(getWalletAddress(user.email))
-		: user.email
+	const displayName = isWalletEmail(user.email) ? truncateAddress(getWalletAddress(user.email)) : user.email
 
 	return (
 		<div className="flex flex-col gap-8">

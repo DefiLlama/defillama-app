@@ -18,7 +18,11 @@ function AuthActions({
 	const { isAuthenticated, loaders } = useAuthContext()
 
 	if (!isClient || loaders.userLoading) {
-		return <div className={`animate-pulse rounded-lg bg-(--sub-border-slate-100) dark:bg-(--sub-border-strong) ${skeletonClassName}`} />
+		return (
+			<div
+				className={`animate-pulse rounded-lg bg-(--sub-border-slate-100) dark:bg-(--sub-border-strong) ${skeletonClassName}`}
+			/>
+		)
 	}
 
 	if (isAuthenticated) {

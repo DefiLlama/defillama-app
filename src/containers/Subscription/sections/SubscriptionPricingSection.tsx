@@ -50,18 +50,18 @@ export function SubscriptionPricingSection({
 				<div
 					role="group"
 					aria-label="Billing cycle"
-					className="relative flex w-[268px] rounded-full bg-(--sub-surface-slate-75) p-1 md:w-[236px] dark:bg-(--sub-surface-dark)"
+					className="relative flex w-[268px] rounded-full bg-white p-1 md:w-[236px] dark:bg-(--sub-surface-dark)"
 				>
 					<div
-						className={`absolute top-1 left-1 h-14 w-32 rounded-full bg-(--sub-brand-primary) transition-transform duration-300 ease-in-out md:h-12 md:w-28 ${
-							isYearly ? 'translate-x-32 md:translate-x-28' : 'translate-x-0'
+						className={`absolute top-1 left-1 h-14 w-[calc(50%-4px)] rounded-full bg-(--sub-brand-primary) transition-transform duration-300 ease-in-out md:h-12 ${
+							isYearly ? 'translate-x-full' : 'translate-x-0'
 						}`}
 					/>
 					<button
 						type="button"
 						aria-pressed={isMonthly}
 						onClick={() => onBillingCycleChange('monthly')}
-						className={`relative z-10 h-14 w-32 rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:w-28 md:text-sm ${
+						className={`relative z-10 h-14 flex-1 rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:text-sm ${
 							isMonthly
 								? 'text-white'
 								: 'text-(--sub-text-navy-700) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white'
@@ -73,7 +73,7 @@ export function SubscriptionPricingSection({
 						type="button"
 						aria-pressed={isYearly}
 						onClick={() => onBillingCycleChange('yearly')}
-						className={`relative z-10 flex h-14 w-32 flex-col items-center justify-center rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:w-28 md:text-sm ${
+						className={`relative z-10 flex h-14 flex-1 flex-col items-center justify-center rounded-full text-[16px] leading-5 font-medium transition-colors duration-300 md:h-12 md:text-sm ${
 							isYearly
 								? 'text-white'
 								: 'text-(--sub-text-navy-700) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white'
