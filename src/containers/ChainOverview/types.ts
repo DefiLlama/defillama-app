@@ -1,3 +1,4 @@
+import type { BuyOnLlamaswapChain } from '~/api/types'
 import type { RawRaise } from '~/containers/Raises/api.types'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import type { IChainMetadata } from '~/utils/metadata/types'
@@ -161,6 +162,7 @@ export interface IChildProtocol {
 	chains: Array<string>
 	mcap: number | null
 	tokenPrice: number | null
+	llamaswapChains?: BuyOnLlamaswapChain[] | null
 	mcaptvl: number | null
 	strikeTvl: boolean
 	fees?: {

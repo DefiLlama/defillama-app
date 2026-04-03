@@ -1,5 +1,11 @@
-import { fetchCoinGeckoCoinById, fetchCoinPrices, fetchLlamaConfig } from '~/api'
-import type { CoinGeckoCoinDetailResult } from '~/api/types'
+import {
+	fetchCoinGeckoCoinById,
+	fetchCoinPrices,
+	fetchLlamaConfig,
+	fetchProtocolLlamaswapDataset,
+	normalizeProtocolLlamaswapChains
+} from '~/api'
+import type { CoinGeckoCoinDetailResult, ProtocolLlamaswapDataset } from '~/api/types'
 import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
@@ -683,13 +689,22 @@ export const getProtocolsByChain = async ({
 		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)
 	}
 
-	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsProtocols]: [
+	const [
+		{ protocols, chains, parentProtocols },
+		fees,
+		revenue,
+		holdersRevenue,
+		dexs,
+		emissionsProtocols,
+		llamaswapDataset
+	]: [
 		ProtocolsResponse,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainOverview | null,
-		ProtocolEmissionsLookup
+		ProtocolEmissionsLookup,
+		ProtocolLlamaswapDataset
 	] = await Promise.all([
 		fetchProtocols(),
 		currentChainMetadata.fees
@@ -732,6 +747,10 @@ export const getProtocolsByChain = async ({
 				})
 			: Promise.resolve(null),
 		getProtocolEmissionsLookupFromAggregated().catch((err) => {
+			console.log(err)
+			return {}
+		}),
+		fetchProtocolLlamaswapDataset().catch((err) => {
 			console.log(err)
 			return {}
 		})
@@ -903,6 +922,7 @@ export const getProtocolsByChain = async ({
 			tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 			mcap: protocol.mcap ?? null,
 			tokenPrice: protocol.geckoId ? (protocolTokenPrices[`coingecko:${protocol.geckoId}`]?.price ?? null) : null,
+			llamaswapChains: protocol.geckoId ? normalizeProtocolLlamaswapChains(llamaswapDataset[protocol.geckoId]) : null,
 			mcaptvl: childMcapTvl,
 			strikeTvl:
 				protocol.category !== 'Bridge'
@@ -1151,6 +1171,9 @@ export const getProtocolsByChain = async ({
 				mcap: parentProtocol.mcap ?? null,
 				tokenPrice: parentProtocol.gecko_id
 					? (protocolTokenPrices[`coingecko:${parentProtocol.gecko_id}`]?.price ?? null)
+					: null,
+				llamaswapChains: parentProtocol.gecko_id
+					? normalizeProtocolLlamaswapChains(llamaswapDataset[parentProtocol.gecko_id])
 					: null,
 				mcaptvl: parentMcapTvl
 			}
