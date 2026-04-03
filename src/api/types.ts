@@ -6,8 +6,6 @@ export interface IChainTvl {
 	}
 }
 
-export type ChainGeckoPair = [chain: string, geckoId: string]
-
 export interface LlamaConfigResponse {
 	chainCoingeckoIds: Record<string, LlamaChainConfig>
 }
@@ -22,13 +20,6 @@ interface LlamaChainConfig {
 	}
 	[key: string]: unknown
 }
-
-interface CoinMcapEntry {
-	mcap?: number | null
-	timestamp?: number
-}
-
-export type CoinMcapsResponse = Record<string, CoinMcapEntry>
 
 export interface PriceObject {
 	confidence: number
@@ -55,12 +46,7 @@ export interface CoinsChartResponse {
 	coins?: Record<string, CoinChartEntry | undefined>
 }
 
-export interface TwitterPostsResponse {
-	data?: unknown[]
-	[key: string]: unknown
-}
-
-export interface LlamaswapChain {
+interface LlamaswapChain {
 	chain: string
 	chainId: number
 	address: string
@@ -68,7 +54,7 @@ export interface LlamaswapChain {
 	liquidity?: number
 }
 
-export interface ProtocolLlamaswapEntry {
+interface ProtocolLlamaswapEntry {
 	name: string
 	slug: string
 	symbol: string
