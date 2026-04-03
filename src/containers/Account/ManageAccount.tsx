@@ -4,6 +4,7 @@ import { AuthenticationCard } from './AuthenticationCard'
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
 import { UserHeader } from './UserHeader'
+import { isWalletEmail, getWalletAddress, truncateAddress } from './utils'
 
 export function ManageAccount() {
 	const { user, logout, isAuthenticated, loaders } = useAuthContext()
@@ -34,12 +35,9 @@ export function ManageAccount() {
 		)
 	}
 
-	const hasEmailAuth = !!user?.email
-	const displayName = hasEmailAuth
-		? user.email
-		: user?.walletAddress
-			? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`
-			: ''
+	const displayName = isWalletEmail(user.email)
+		? truncateAddress(getWalletAddress(user.email))
+		: user.email
 
 	return (
 		<div className="flex flex-col gap-8">

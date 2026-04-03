@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { EmailChangeModal } from './EmailChangeModal'
 import { PasswordResetModal } from './PasswordResetModal'
+import { isWalletEmail, getWalletAddress, truncateAddress } from './utils'
 
 export function AuthenticationCard() {
 	const { user, resetPasswordMutation, resendVerification, loaders } = useAuthContext()
@@ -14,11 +15,11 @@ export function AuthenticationCard() {
 	const passwordResetSentAt = useRef(0)
 	const PASSWORD_COOLDOWN_MS = 60_000
 
-	const hasEmailAuth = !!user?.email
+	const walletEmail = isWalletEmail(user?.email)
+	const hasEmailAuth = !!user?.email && !walletEmail
 	const isEmailUnverified = hasEmailAuth && user?.verified === false
-	const walletDisplayName = user?.walletAddress
-		? `${user.walletAddress.slice(0, 6)}...${user.walletAddress.slice(-4)}`
-		: ''
+	const walletAddress = walletEmail ? getWalletAddress(user.email) : user?.walletAddress
+	const walletDisplayName = walletAddress ? truncateAddress(walletAddress) : ''
 
 	const handleChangeEmail = () => {
 		setIsEmailModalOpen(true)
