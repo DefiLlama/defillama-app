@@ -41,7 +41,8 @@ const YieldPage = ({
 	tokenCategories,
 	evmChains,
 	stablecoinInfoBySymbol,
-	entityQuestions: baseQuestions
+	entityQuestions: baseQuestions,
+	header = 'Yield Rankings'
 }) => {
 	const router = useRouter()
 	const { pathname } = router
@@ -302,14 +303,14 @@ const YieldPage = ({
 
 		return {
 			filename: 'yields',
-			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
+			rows: [headers].concat(csvData.map((row) => headers.map((h) => row[h])))
 		}
 	}
 
 	return (
 		<>
 			<YieldFiltersV2
-				header="Yield Rankings"
+				header={header}
 				poolsNumber={poolsData.length}
 				projectsNumber={selectedProjects.length}
 				chainsNumber={selectedChains.length}

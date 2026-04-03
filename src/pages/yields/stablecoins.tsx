@@ -15,12 +15,12 @@ export const getStaticProps = withPerformanceLogging('yields/stablecoins', async
 	}
 })
 
-const pageName = ['Yields: Stablecoin Pools']
+const pageName = ['Stablecoin Yields']
 
 export default function YieldPlots(data) {
 	return (
 		<Layout
-			title={`Stablecoin Pools - DefiLlama Yield`}
+			title={`Best Stablecoin Yields - DeFi Liquidity Pools by APY`}
 			description="Find the best stablecoin yield pools ranked by APY. Compare USDC, USDT, DAI, and other stablecoin farming opportunities across all chains."
 			canonicalUrl={`/yields/stablecoins`}
 			pageName={pageName}
@@ -31,7 +31,7 @@ export default function YieldPlots(data) {
 			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
 				{exploitWarning}
 			</Announcement>
-			<YieldPage {...data} />
+			<YieldPage {...data} header="Stablecoin Yield Rankings" />
 		</Layout>
 	)
 }

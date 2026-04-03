@@ -91,6 +91,7 @@ export function DesktopNav({
 														route={pageRoute}
 														name={pageName}
 														asPath={asPath}
+														isOld={true}
 													/>
 												))}
 											</div>

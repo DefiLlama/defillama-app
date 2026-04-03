@@ -29,10 +29,7 @@ const STEADY_THRESHOLD = 0.05 // percentage points
 
 const BALANCE_STEADY_THRESHOLD = 0.5 // percent change in raw balance
 
-function computeBalanceChange(
-	current: string,
-	past: string
-): { status: HolderChangeStatus; changePct: number | null } {
+function computeBalanceChange(current: string, past: string): { status: HolderChangeStatus; changePct: number | null } {
 	const cur = parseFloat(current)
 	const prev = parseFloat(past)
 	if (!Number.isFinite(cur) || !Number.isFinite(prev) || prev === 0) {
@@ -92,13 +89,25 @@ export function computeHolderChanges(
 		if (!pastHolders) {
 			summary.unknown++
 			balanceSummary.unknown++
-			return { ...h, status: 'unknown' as const, balancePctChange: null, balanceStatus: 'unknown' as const, balanceChangePct: null }
+			return {
+				...h,
+				status: 'unknown' as const,
+				balancePctChange: null,
+				balanceStatus: 'unknown' as const,
+				balanceChangePct: null
+			}
 		}
 
 		if (!pastHolder) {
 			summary.newCount++
 			balanceSummary.newCount++
-			return { ...h, status: 'new' as const, balancePctChange: null, balanceStatus: 'new' as const, balanceChangePct: null }
+			return {
+				...h,
+				status: 'new' as const,
+				balancePctChange: null,
+				balanceStatus: 'new' as const,
+				balanceChangePct: null
+			}
 		}
 
 		// Share-based change
