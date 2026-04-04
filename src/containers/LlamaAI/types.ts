@@ -93,6 +93,7 @@ export interface AlertProposedData {
 		hour: number
 		timezone: string
 		dayOfWeek?: number
+		deliveryChannel?: 'email' | 'telegram'
 	}
 	schedule_expression: string
 	next_run_at: string
@@ -125,6 +126,7 @@ export interface AlertIntent {
 	hour: number
 	timezone: string
 	dayOfWeek?: number
+	deliveryChannel?: 'email' | 'telegram'
 	toolExecutions: Array<{
 		toolName: string
 		arguments: JsonObject

@@ -77,6 +77,7 @@ interface PersistedAlertIntent {
 	dayOfWeek?: number
 	dataQuery?: string
 	title?: string
+	deliveryChannel?: 'email' | 'telegram'
 }
 
 interface PersistedToolExecution extends ToolExecution {
@@ -90,6 +91,7 @@ interface PersistedMessageMetadata {
 	savedAlertId?: string
 	savedAlertIds?: string[]
 	quotedText?: string
+	deliveryChannel?: 'email' | 'telegram'
 }
 
 interface PersistedMessage {
@@ -317,7 +319,8 @@ function buildRestoredAlerts({
 				frequency: metadata.alertIntent.frequency || 'daily',
 				hour: metadata.alertIntent.hour ?? 9,
 				timezone: metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: metadata.alertIntent.dayOfWeek
+				dayOfWeek: metadata.alertIntent.dayOfWeek,
+				deliveryChannel: metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
 			},
 			schedule_expression: '',
 			next_run_at: ''
