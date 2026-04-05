@@ -200,16 +200,6 @@
       "oldName": "Fees"
     },
     {
-      "name": "Revenue by Chain",
-      "route": "/revenue/chains",
-      "category": "Fees & Revenue",
-      "description": "Subset of fees that the chain collects for itself",
-      "totalTrackedKey": "chainRevenue.chains",
-      "tab": "Chains",
-      "oldCategory": "Fees & Revenue",
-      "oldName": "Revenue (Chains)"
-    },
-    {
       "name": "Holders Revenue by Protocol",
       "route": "/holders-revenue",
       "category": "Fees & Revenue",
@@ -218,6 +208,16 @@
       "tab": "Protocols",
       "oldCategory": "Fees & Revenue",
       "oldName": "Holders Revenue"
+    },
+    {
+      "name": "Revenue by Chain",
+      "route": "/revenue/chains",
+      "category": "Fees & Revenue",
+      "description": "Subset of fees that the chain collects for itself",
+      "totalTrackedKey": "chainRevenue.chains",
+      "tab": "Chains",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "Revenue (Chains)"
     },
     {
       "name": "Fees by Chain",
@@ -569,6 +569,31 @@
       "oldName": "Equities"
     },
     {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -602,31 +627,6 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
-    },
-    {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
     },
     {
       "name": "Raises: Overview",
@@ -765,19 +765,19 @@
       "oldName": "Watchlist"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
-    },
-    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
       "description": "Simple view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Simple"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
     },
     {
       "name": "Yields: Watchlist",
