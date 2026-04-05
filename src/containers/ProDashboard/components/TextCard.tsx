@@ -88,7 +88,7 @@ const SANITIZE_SCHEMA = {
 		'*': [...(defaultSchema.attributes?.['*'] ?? []), 'style', 'className', ...SVG_ATTRS]
 	}
 }
-const REHYPE_PLUGINS_WITH_HTML = [rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], rehypeSanitizeStyle] as any
+const REHYPE_PLUGINS = [rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], rehypeSanitizeStyle] as any
 
 export function TextCard({ text }: TextCardProps) {
 	return (
@@ -97,7 +97,7 @@ export function TextCard({ text }: TextCardProps) {
 
 			<ReactMarkdown
 				remarkPlugins={REMARK_PLUGINS}
-				rehypePlugins={text.allowHtml ? REHYPE_PLUGINS_WITH_HTML : []}
+				rehypePlugins={REHYPE_PLUGINS}
 				components={{
 					h1: ({ children }) => <h3 className="m-0! text-xl font-bold text-(--text-primary)">{children}</h3>,
 					h2: ({ children }) => <h4 className="m-0! text-lg font-semibold text-(--text-primary)">{children}</h4>,
