@@ -170,6 +170,7 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
@@ -330,6 +331,7 @@ export async function fetchAgenticResponse({
 	callbacks,
 	abortSignal,
 	researchMode,
+	enablePremiumTools,
 	entities,
 	images,
 	pageContext,
@@ -347,6 +349,7 @@ export async function fetchAgenticResponse({
 		stream: true
 		sessionId?: string
 		researchMode?: true
+		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
@@ -356,7 +359,8 @@ export async function fetchAgenticResponse({
 		isSuggestedQuestion?: true
 	} = {
 		message,
-		stream: true
+		stream: true,
+		enablePremiumTools
 	}
 
 	if (sessionId) {

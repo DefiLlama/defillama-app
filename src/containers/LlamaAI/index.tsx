@@ -20,7 +20,6 @@ import {
 	consumePendingSuggestedFlag
 } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
-import { MCP_SERVER } from '~/constants'
 import { LlamaAIChromeContext, useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
 import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
@@ -43,6 +42,7 @@ import {
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
+import { useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -60,7 +60,6 @@ import {
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
 import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -602,13 +601,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[authorizedFetch, getAuthorizedFetchInput]
 	)
 	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
-	const authorizedFetchStrict = useCallback<typeof fetch>(
-		async (input, init) => {
-			const request = getAuthorizedFetchInput(input, init)
-			return assertResponse(await authorizedFetch(request.url, request.init), 'Authorized request failed')
-		},
-		[authorizedFetch, getAuthorizedFetchInput]
-	)
 	const isLlama = !!user?.flags?.is_llama
 	const {
 		sessions,
@@ -646,15 +638,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [quotedText, setQuotedText] = useState<string | null>(null)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
-	const [customInstructions, setCustomInstructions] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
-	)
-	const [enableMemory, setEnableMemory] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
-	)
-	const [hackerMode, setHackerMode] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
-	)
+	const { settings, actions } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -779,30 +763,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingCitations,
 		streamingToolExecutions
 	])
-
-	// Hydrate per-user settings once auth is ready.
-	useEffect(() => {
-		if (!user) return
-		authorizedFetchStrict(`${MCP_SERVER}/user-settings`)
-			.then((res) => (res.ok ? res.json() : null))
-			.then((data) => {
-				const serverValue = data?.settings?.customInstructions
-				if (typeof serverValue === 'string') {
-					setCustomInstructions(serverValue)
-					localStorage.setItem('llamaai-custom-instructions', serverValue)
-				}
-				if (typeof data?.settings?.enableMemory === 'boolean') {
-					setEnableMemory(data.settings.enableMemory)
-					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
-				}
-				if (typeof data?.settings?.hackerMode === 'boolean') {
-					setHackerMode(data.settings.hackerMode)
-					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
-					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
-				}
-			})
-			.catch(() => {})
-	}, [user, authorizedFetchStrict])
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
@@ -1476,7 +1436,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						images: images?.length ? images : undefined,
 						pageContext,
 						quotedText: currentQuotedText || undefined,
-						customInstructions: customInstructions || undefined,
+						customInstructions: settings.customInstructions || undefined,
+						enablePremiumTools: settings.enablePremiumTools,
 						isSuggestedQuestion,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
@@ -1614,7 +1575,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			researchModalStore,
 			requestPermission,
 			notify,
-			customInstructions,
+			settings.customInstructions,
+			settings.enablePremiumTools,
 			appendMessage,
 			abortActiveRequest,
 			startRecoveryCycle,
@@ -1785,7 +1747,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							isUpdatingTitle={isUpdatingTitle}
 							shouldAnimate={shouldAnimateSidebar}
 							onOpenSettings={settingsModalStore.show}
-							hasCustomInstructions={customInstructions.trim().length > 0}
+							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							onBulkDelete={bulkDeleteSessions}
 							onPinSession={pinSession}
 						/>
@@ -1800,7 +1762,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<ChatControls
 							handleNewChat={handleNewChat}
 							onOpenSettings={settingsModalStore.show}
-							hasCustomInstructions={customInstructions.trim().length > 0}
+							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							sessionTitle={effectiveSessionTitle}
 						/>
 					) : null}
@@ -1956,18 +1918,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
 				) : null}
-				{!readOnly ? (
-					<SettingsModal
-						dialogStore={settingsModalStore}
-						customInstructions={customInstructions}
-						onCustomInstructionsChange={setCustomInstructions}
-						enableMemory={enableMemory}
-						onEnableMemoryChange={setEnableMemory}
-						hackerMode={hackerMode}
-						onHackerModeChange={setHackerMode}
-						fetchFn={authorizedFetchStrict}
-					/>
-				) : null}
+				{!readOnly ? <SettingsModal dialogStore={settingsModalStore} settings={settings} actions={actions} /> : null}
 			</div>
 		</LlamaAIChromeContext.Provider>
 	)
