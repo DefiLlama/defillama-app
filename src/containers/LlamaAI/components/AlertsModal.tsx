@@ -1,9 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import DOMPurify from 'dompurify'
 import { memo, useCallback, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
+import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -597,10 +599,52 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<div
 						className="prose prose-sm max-w-none text-sm text-black dark:text-white dark:prose-invert [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg"
 						dangerouslySetInnerHTML={{
-							__html: selectedExec.generated_summary.replace(/\[CHART:([^\]]+)\]/g, (_, chartId: string) => {
-								const chart = charts.find((c) => c.id === chartId)
-								return chart?.url ? `<img src="${chart.url}" alt="${chart.title || 'Chart'}" />` : ''
-							})
+							__html: DOMPurify.sanitize(
+								selectedExec.generated_summary.replace(/\[CHART:([^\]]+)\]/g, (_, chartId: string) => {
+									const chart = charts.find((c) => c.id === chartId)
+									if (!chart?.url) return ''
+									const safeUrl = sanitizeUrl(chart.url)
+									if (!safeUrl) return ''
+									const alt = (chart.title || 'Chart').replace(/"/g, '&quot;')
+									return `<img src="${safeUrl}" alt="${alt}" />`
+								}),
+								{
+									ALLOWED_TAGS: [
+										'p',
+										'br',
+										'b',
+										'i',
+										'em',
+										'strong',
+										'a',
+										'ul',
+										'ol',
+										'li',
+										'h1',
+										'h2',
+										'h3',
+										'h4',
+										'h5',
+										'h6',
+										'img',
+										'span',
+										'div',
+										'table',
+										'thead',
+										'tbody',
+										'tr',
+										'th',
+										'td',
+										'blockquote',
+										'code',
+										'pre',
+										'hr',
+										'sup',
+										'sub'
+									],
+									ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'width', 'height', 'class']
+								}
+							)
 						}}
 					/>
 				) : (
@@ -608,9 +652,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				)}
 				{charts.length > 0
 					? charts
-							.filter((c) => c.url && !selectedExec.generated_summary?.includes(`[CHART:${c.id}]`))
+							.filter((c) => sanitizeUrl(c.url) && !selectedExec.generated_summary?.includes(`[CHART:${c.id}]`))
 							.map((c) => (
-								<img key={c.id} src={c.url} alt={c.title || 'Chart'} className="my-2 max-w-full rounded-lg" />
+								<img
+									key={c.id}
+									src={sanitizeUrl(c.url)!}
+									alt={c.title || 'Chart'}
+									className="my-2 max-w-full rounded-lg"
+								/>
 							))
 					: null}
 				{selectedExec.citations?.length ? (
