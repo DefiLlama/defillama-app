@@ -22,7 +22,10 @@ const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
 	'token-usage',
 	'yields',
 	'trending-contracts',
-	'chains'
+	'chains',
+	'rwa',
+	'rwa-chains',
+	'rwa-selected-chain'
 ]
 const PRIMARY_TABLE_TYPES_SET = new Set(PRIMARY_TABLE_TYPES)
 
@@ -146,6 +149,24 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSelectedUnlocksProtocolChange={actions.setSelectedUnlocksProtocol}
 							onSelectedUnlocksProtocolNameChange={actions.setSelectedUnlocksProtocolName}
 							onSelectedUnlocksChartTypeChange={actions.setSelectedUnlocksChartType}
+							rwaMode={state.rwaMode}
+							selectedRwaChain={state.selectedRwaChain}
+							selectedRwaMetric={state.selectedRwaMetric}
+							selectedRwaChartView={state.selectedRwaChartView}
+							selectedRwaBreakdown={state.selectedRwaBreakdown}
+							selectedRwaTreemapNestedBy={state.selectedRwaTreemapNestedBy}
+							selectedRwaAssetId={state.selectedRwaAssetId}
+							selectedRwaAssetName={state.selectedRwaAssetName}
+							selectedRwaAssetMetrics={state.selectedRwaAssetMetrics}
+							onRwaModeChange={actions.setRwaMode}
+							onSelectedRwaChainChange={actions.setSelectedRwaChain}
+							onSelectedRwaMetricChange={actions.setSelectedRwaMetric}
+							onSelectedRwaChartViewChange={actions.setSelectedRwaChartView}
+							onSelectedRwaBreakdownChange={actions.setSelectedRwaBreakdown}
+							onSelectedRwaTreemapNestedByChange={actions.setSelectedRwaTreemapNestedBy}
+							onSelectedRwaAssetIdChange={actions.setSelectedRwaAssetId}
+							onSelectedRwaAssetNameChange={actions.setSelectedRwaAssetName}
+							onSelectedRwaAssetMetricsChange={actions.setSelectedRwaAssetMetrics}
 							onUnifiedChartNameChange={actions.setUnifiedChartName}
 							onChartCreationModeChange={actions.setChartCreationMode}
 							onComposerItemColorChange={actions.handleUpdateComposerItemColor}
@@ -263,6 +284,9 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							selectedLlamaAIChart={state.selectedLlamaAIChart}
 							selectedUnlocksProtocol={state.selectedUnlocksProtocol}
 							selectedUnlocksChartType={state.selectedUnlocksChartType}
+							rwaMode={state.rwaMode}
+							selectedRwaAssetId={state.selectedRwaAssetId}
+							selectedRwaAssetMetrics={state.selectedRwaAssetMetrics}
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>

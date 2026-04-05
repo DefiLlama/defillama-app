@@ -1,7 +1,7 @@
 import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '~/components/Icon'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useMedia } from '~/hooks/useMedia'
 import { getExperimentVariant } from '~/utils/analytics/experiment'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -170,7 +170,7 @@ export function OnboardingWalkthrough({
 	const isMobile = useMedia('(max-width: 639px)')
 
 	// A/B experiment: full steps (A) vs short steps (B)
-	const { user, isTrial } = useAuthContext()
+	const { user, isTrial, hasActiveSubscription } = useAuthContext()
 	const userId = user?.id ? String(user.id) : null
 	const variant = userId ? getExperimentVariant('walkthrough-steps-v1', userId) : 'A'
 
@@ -193,9 +193,11 @@ export function OnboardingWalkthrough({
 	const isFirstSpotlight = currentStep === firstSpotlightStep
 
 	const tapOrClick = isMobile ? 'Tap' : 'Click'
-	const researchDescription = isTrial
-		? `In-depth reports with analysis, charts, and citations. You have 3 free queries to try. ${tapOrClick} below.`
-		: `In-depth reports with analysis, charts, and citations. You get 5 per day. ${tapOrClick} below.`
+	const researchDescription = !hasActiveSubscription
+		? `In-depth reports with analysis, charts, and citations. Free mode includes 1 report every 14 days. ${tapOrClick} below.`
+		: isTrial
+			? `In-depth reports with analysis, charts, and citations. You have 3 free queries to try. ${tapOrClick} below.`
+			: `In-depth reports with analysis, charts, and citations. You get 5 per day. ${tapOrClick} below.`
 
 	// Find and measure spotlight target(s)
 	useEffect(() => {

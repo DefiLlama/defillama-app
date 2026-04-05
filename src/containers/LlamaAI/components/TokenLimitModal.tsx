@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 
 interface TokenLimitModalProps {
 	isOpen: boolean
@@ -84,7 +84,7 @@ export function TokenLimitModal({ isOpen, onClose }: TokenLimitModalProps) {
 							</li>
 							<li className="flex items-center gap-2">
 								<Icon name="check" height={14} width={14} className="text-green-400" />
-								<span>Deep research: 5/day (instead of 3)</span>
+								<span>Deep research: 5/day (instead of 3 lifetime)</span>
 							</li>
 							<li className="flex items-center gap-2">
 								<Icon name="check" height={14} width={14} className="text-green-400" />

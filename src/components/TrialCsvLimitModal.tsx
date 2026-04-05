@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useCallback, useReducer } from 'react'
 import { Icon } from '~/components/Icon'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 
 interface State {
 	upgraded: boolean
@@ -99,7 +99,7 @@ export function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClo
 							</li>
 							<li className="flex items-center gap-2">
 								<Icon name="check" height={14} width={14} className="text-green-400" />
-								<span>5 deep research questions per day (instead of 3)</span>
+								<span>5 deep research questions per day (instead of 3 lifetime)</span>
 							</li>
 							<li className="flex items-center gap-2">
 								<Icon name="check" height={14} width={14} className="text-green-400" />

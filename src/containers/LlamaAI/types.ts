@@ -83,7 +83,7 @@ export interface ChatSession {
 export interface ResearchUsage {
 	remainingUsage: number
 	limit: number
-	period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
+	period: 'lifetime' | 'daily' | 'biweekly' | 'unlimited' | 'blocked'
 	resetTime: string | null
 }
 
@@ -95,6 +95,7 @@ export interface AlertProposedData {
 		hour: number
 		timezone: string
 		dayOfWeek?: number
+		deliveryChannel?: 'email' | 'telegram'
 	}
 	schedule_expression: string
 	next_run_at: string
@@ -138,6 +139,7 @@ export interface AlertIntent {
 	hour: number
 	timezone: string
 	dayOfWeek?: number
+	deliveryChannel?: 'email' | 'telegram'
 	toolExecutions: Array<{
 		toolName: string
 		arguments: JsonObject

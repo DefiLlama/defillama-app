@@ -401,8 +401,6 @@ export function AdapterByChain(props: IProps) {
 						chain={props.chain}
 						chartName={props.type}
 						dataType={props.dataType}
-						categories={props.categories}
-						protocols={props.protocols}
 						tableProtocols={protocols}
 					/>
 				</div>

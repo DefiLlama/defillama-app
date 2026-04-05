@@ -20,7 +20,6 @@ import {
 	consumePendingSuggestedFlag
 } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
-import { MCP_SERVER } from '~/constants'
 import { LlamaAIChromeContext, useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
 import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
@@ -43,6 +42,7 @@ import {
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
+import { useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -68,8 +68,9 @@ import type {
 	ToolExecution
 } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>
@@ -87,6 +88,7 @@ interface PersistedAlertIntent {
 	dayOfWeek?: number
 	dataQuery?: string
 	title?: string
+	deliveryChannel?: 'email' | 'telegram'
 }
 
 interface PersistedToolExecution extends ToolExecution {
@@ -106,6 +108,7 @@ interface PersistedMessageMetadata {
 		timePeriod?: string
 		sourceDashboardId?: string
 	}
+	deliveryChannel?: 'email' | 'telegram'
 }
 
 interface PersistedMessage {
@@ -154,7 +157,7 @@ interface RestoreSessionSnapshotResult {
 }
 
 interface UsageLimitError extends Error {
-	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT'
+	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT' | 'FREE_FORM_LIMIT' | 'FREE_DAILY_LIMIT'
 	details?: Partial<RateLimitDetails>
 	upgradeUrl?: string
 }
@@ -435,7 +438,8 @@ function buildRestoredAlerts({
 				frequency: metadata.alertIntent.frequency || 'daily',
 				hour: metadata.alertIntent.hour ?? 9,
 				timezone: metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: metadata.alertIntent.dayOfWeek
+				dayOfWeek: metadata.alertIntent.dayOfWeek,
+				deliveryChannel: metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
 			},
 			schedule_expression: '',
 			next_run_at: ''
@@ -727,13 +731,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[authorizedFetch, getAuthorizedFetchInput]
 	)
 	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
-	const authorizedFetchStrict = useCallback<typeof fetch>(
-		async (input, init) => {
-			const request = getAuthorizedFetchInput(input, init)
-			return assertResponse(await authorizedFetch(request.url, request.init), 'Authorized request failed')
-		},
-		[authorizedFetch, getAuthorizedFetchInput]
-	)
 	const isLlama = !!user?.flags?.is_llama
 	const {
 		sessions,
@@ -780,15 +777,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		dispatchDashboardPanel
 	] = useReducer(dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
-	const [customInstructions, setCustomInstructions] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
-	)
-	const [enableMemory, setEnableMemory] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
-	)
-	const [hackerMode, setHackerMode] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
-	)
+	const { settings, actions } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -811,6 +800,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		cursor: number | null
 		isLoadingMore: boolean
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
 	const abortControllerRef = useRef<AbortController | null>(null)
@@ -917,30 +907,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingCitations,
 		streamingToolExecutions
 	])
-
-	// Hydrate per-user settings once auth is ready.
-	useEffect(() => {
-		if (!user) return
-		authorizedFetchStrict(`${MCP_SERVER}/user-settings`)
-			.then((res) => (res.ok ? res.json() : null))
-			.then((data) => {
-				const serverValue = data?.settings?.customInstructions
-				if (typeof serverValue === 'string') {
-					setCustomInstructions(serverValue)
-					localStorage.setItem('llamaai-custom-instructions', serverValue)
-				}
-				if (typeof data?.settings?.enableMemory === 'boolean') {
-					setEnableMemory(data.settings.enableMemory)
-					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
-				}
-				if (typeof data?.settings?.hackerMode === 'boolean') {
-					setHackerMode(data.settings.hackerMode)
-					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
-					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
-				}
-			})
-			.catch(() => {})
-	}, [user, authorizedFetchStrict])
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
@@ -1094,10 +1060,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				dispatchStream({ type: 'SET_ERROR', value: checkError.message })
 				return false
 			}
-			const { active, status, hasResult } = activeExecution
+			const { active, status, hasResult, eventCount } = activeExecution
 			if (!active) {
-				if (status === 'completed' && hasResult) {
-					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
+				// Skip replay when the client buffer already has all (or more) events than the
+				// server — the server buffer was pruned after DB save and only contains {done}.
+				const hasNewEvents = eventCount != null && buffer.receivedEventCount < eventCount
+				if (status === 'completed' && hasResult && hasNewEvents) {
 					setViewError(null)
 					dispatchStream({ type: 'SET_ERROR', value: null })
 					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
@@ -1135,7 +1103,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						}
 					})
 					const replayEventCounter = { count: buffer.receivedEventCount }
-					const didResumeFromBuffer = await resumeAgenticStream({
+					const replayFrom = buffer.receivedEventCount > 0 ? buffer.receivedEventCount : undefined
+
+					return resumeAgenticStream({
 						sessionId: targetSessionId,
 						callbacks: replayCallbacks,
 						abortSignal: replayController.signal,
@@ -1144,34 +1114,23 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						eventCounter: replayEventCounter
 					})
 						.then(() => true)
-						.catch((resumeError) => {
-							console.error(
-								'Failed to resume agentic stream from buffered events',
-								{
-									resumeAgenticStream: 'resumeAgenticStream',
-									didResumeFromBuffer: false,
-									targetSessionId,
-									replayFrom,
-									replayEventCounter,
-									replayController: { aborted: replayController.signal.aborted },
-									replayCallbacks
-								},
-								resumeError
-							)
+						.catch(() => {
+							// Buffer expired — reset streaming state so the UI doesn't get stuck.
+							if (resetStream) {
+								dispatchStream({ type: 'RESET_STREAM' })
+							}
 							return false
 						})
-					if (abortControllerRef.current === replayController) {
-						abortControllerRef.current = null
-					}
-					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
-					replaySettleState.resolve()
-					const activeReplaySettle = activeRequestSettleRef.current
-					if (activeReplaySettle && activeReplaySettle.requestId === replayRequestId) {
-						activeRequestSettleRef.current = null
-					}
-					if (didResumeFromBuffer) {
-						return true
-					}
+						.finally(() => {
+							if (abortControllerRef.current === replayController) {
+								abortControllerRef.current = null
+							}
+							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
+							replaySettleState.resolve()
+							if (activeRequestSettleRef.current?.requestId === replayRequestId) {
+								activeRequestSettleRef.current = null
+							}
+						})
 				}
 				return false
 			}
@@ -1276,6 +1235,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
 
 			setMessages(restored)
+			setConversationViewResetKey((current) => current + 1)
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
@@ -1507,6 +1467,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		await abortActiveRequest()
 		clearConversationRuntimeState()
 		setMessages([])
+		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
 		dispatchDashboardPanel({ type: 'RESET' })
@@ -1532,7 +1493,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
-			const { restored: restoredOk } = await restoreSessionSnapshot(selectedSessionId, requestId)
+			const { restored: restoredOk, recoveredResponse } = await restoreSessionSnapshot(selectedSessionId, requestId)
 
 			if (!restoredOk) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1547,6 +1508,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setRestoringSessionId(null)
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+
+			// Skip resume when the restored snapshot already contains the assistant response —
+			// the session is complete and calling /stream would be a redundant replay.
+			if (recoveredResponse) {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return
+			}
 
 			const didResume = await resumeRunningExecution({
 				targetSessionId: selectedSessionId,
@@ -1643,7 +1611,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						images: images?.length ? images : undefined,
 						pageContext,
 						quotedText: currentQuotedText || undefined,
-						customInstructions: customInstructions || undefined,
+						customInstructions: settings.customInstructions || undefined,
+						enablePremiumTools: settings.enablePremiumTools,
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						abortSignal: controller.signal,
@@ -1699,11 +1668,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (err?.code === 'FREE_QUESTION_LIMIT') {
-								appendMessage({
-									role: 'assistant',
-									content: err.message || "You've reached the free question limit. Subscribe for unlimited access."
-								})
+							if (
+								err?.code === 'FREE_QUESTION_LIMIT' ||
+								err?.code === 'FREE_FORM_LIMIT' ||
+								err?.code === 'FREE_DAILY_LIMIT'
+							) {
+								let msg = err.message || "You've reached the free question limit. Subscribe for unlimited access."
+								if (err.details?.resetTime) {
+									const resetMs = new Date(err.details.resetTime).getTime() - Date.now()
+									if (resetMs > 0) {
+										const hours = Math.floor(resetMs / 3600000)
+										const minutes = Math.floor((resetMs % 3600000) / 60000)
+										const timeStr = hours >= 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${hours}h ${minutes}m`
+										msg += `\n\nResets in ${timeStr}.`
+									}
+								}
+								appendMessage({ role: 'assistant', content: msg })
 								dispatchStream({ type: 'RESET_STREAM' })
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
@@ -1772,7 +1752,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			researchModalStore,
 			requestPermission,
 			notify,
-			customInstructions,
+			settings.customInstructions,
+			settings.enablePremiumTools,
 			appendMessage,
 			abortActiveRequest,
 			startRecoveryCycle,
@@ -1944,7 +1925,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							isUpdatingTitle={isUpdatingTitle}
 							shouldAnimate={shouldAnimateSidebar}
 							onOpenSettings={settingsModalStore.show}
-							hasCustomInstructions={customInstructions.trim().length > 0}
+							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							onBulkDelete={bulkDeleteSessions}
 							onPinSession={pinSession}
 						/>
@@ -1959,7 +1940,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<ChatControls
 							handleNewChat={handleNewChat}
 							onOpenSettings={settingsModalStore.show}
-							hasCustomInstructions={customInstructions.trim().length > 0}
+							hasCustomInstructions={settings.customInstructions.trim().length > 0}
+							sessionTitle={effectiveSessionTitle}
 						/>
 					) : null}
 					{restoringSessionId && !hasMessages ? (
@@ -1992,6 +1974,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							</div>
 							<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 								<ConversationView
+									key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 									readOnly={readOnly}
 									messages={effectiveMessages}
 									sessionId={effectiveSessionId}
@@ -2047,6 +2030,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						/>
 					) : (
 						<ConversationView
+							key={`conversation-${conversationViewResetKey}`}
 							readOnly={readOnly}
 							messages={effectiveMessages}
 							sessionId={effectiveSessionId}
@@ -2126,18 +2110,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
 				) : null}
-				{!readOnly ? (
-					<SettingsModal
-						dialogStore={settingsModalStore}
-						customInstructions={customInstructions}
-						onCustomInstructionsChange={setCustomInstructions}
-						enableMemory={enableMemory}
-						onEnableMemoryChange={setEnableMemory}
-						hackerMode={hackerMode}
-						onHackerModeChange={setHackerMode}
-						fetchFn={authorizedFetchStrict}
-					/>
-				) : null}
+				{!readOnly ? <SettingsModal dialogStore={settingsModalStore} settings={settings} actions={actions} /> : null}
 			</div>
 		</LlamaAIChromeContext.Provider>
 	)
@@ -2146,14 +2119,30 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 const ChatControls = memo(function ChatControls({
 	handleNewChat,
 	onOpenSettings,
-	hasCustomInstructions
+	hasCustomInstructions,
+	sessionTitle
 }: {
 	handleNewChat: () => void
 	onOpenSettings: () => void
 	hasCustomInstructions: boolean
+	sessionTitle: string | null
 }) {
 	const isMobile = useMedia('(max-width: 1023px)')
 	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
+	const { balance, totalAvailable } = useAiBalance()
+
+	const tooltipContent =
+		sessionTitle || balance ? (
+			<div className="flex items-center gap-3">
+				<span>Open</span>
+				<div className="flex flex-col items-end text-right">
+					{sessionTitle ? <span>{sessionTitle}</span> : null}
+					{balance ? <span>${totalAvailable.toFixed(2)}</span> : null}
+				</div>
+			</div>
+		) : (
+			'Open Chat History'
+		)
 
 	return (
 		<div className="llamaai-chat-controls">
@@ -2162,7 +2151,7 @@ const ChatControls = memo(function ChatControls({
 				aria-label="Chat controls"
 			>
 				<Tooltip
-					content="Open Chat History"
+					content={tooltipContent}
 					render={
 						<button
 							onClick={toggleSidebar}

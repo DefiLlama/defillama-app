@@ -72,7 +72,7 @@ export default function RWAAssetDetailPage({ asset }) {
 
 	return (
 		<Layout
-			title={`${displayName} - Real World Assets (RWA) Dashboard & Analytics - DefiLlama`}
+			title={`${displayName} - RWA Dashboard & Analytics - DefiLlama`}
 			description={`Overview of the tokenized real-world asset ${displayName}, including supply, blockchain distribution, and platform data. DefiLlama provides transparent, ad-free RWA analytics.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/asset/${asset.slug}`}

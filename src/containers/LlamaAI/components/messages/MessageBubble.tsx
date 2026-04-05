@@ -648,6 +648,7 @@ export function MessageBubble({
 	isDraft = false,
 	readOnly = false,
 	isLlama = false,
+	isLatestAssistant = false,
 	onActionClick,
 	nextUserMessage,
 	onTableFullscreenOpen
@@ -657,6 +658,7 @@ export function MessageBubble({
 	isDraft?: boolean
 	readOnly?: boolean
 	isLlama?: boolean
+	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 	onTableFullscreenOpen?: () => void
@@ -712,7 +714,7 @@ export function MessageBubble({
 	}
 
 	return (
-		<>
+		<div className="group/msg">
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}
@@ -732,9 +734,10 @@ export function MessageBubble({
 					sessionId={sessionId}
 					readOnly={readOnly}
 					messageMetadata={message.messageMetadata}
+					isLatest={isLatestAssistant}
 				/>
 			) : null}
-		</>
+		</div>
 	)
 }
 

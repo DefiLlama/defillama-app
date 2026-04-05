@@ -12,11 +12,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
+const checkoutBackdrop = <div className="fixed inset-0 bg-black/80" />
+const checkoutDialogClassName =
+	'dialog fixed inset-0 z-50 m-auto flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-[600px] flex-col gap-0 overflow-y-auto rounded-2xl border border-(--sub-border-slate-100) bg-white p-0 shadow-xl'
+const checkoutHeaderClassName = 'flex items-center justify-between border-b border-(--sub-border-slate-100) px-5 py-4'
+const checkoutTitleClassName = 'text-xl leading-7 font-semibold text-(--sub-ink-primary)'
+const checkoutCloseButtonClassName = 'rounded-full p-1 text-(--sub-ink-primary) transition-colors disabled:opacity-50'
 
 const formatAmount = (cents: number, currency: string) => {
 	const amount = cents / 100
@@ -65,6 +71,7 @@ interface StripeCheckoutModalProps {
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
 	isUpgradeFlow?: boolean
+	upgradeReturnPath?: string
 }
 
 export function StripeCheckoutModal({
@@ -74,11 +81,12 @@ export function StripeCheckoutModal({
 	type,
 	billingInterval = 'month',
 	isTrial = false,
-	isUpgradeFlow = false
+	isUpgradeFlow = false,
+	upgradeReturnPath
 }: StripeCheckoutModalProps) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
-	const postCheckoutPath = isUpgradeFlow ? '/account?success=true' : '/welcome'
+	const postCheckoutPath = isUpgradeFlow ? (upgradeReturnPath ?? '/account?success=true') : '/welcome'
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (): Promise<SubscriptionResult> => {
@@ -155,17 +163,17 @@ export function StripeCheckoutModal({
 
 	if (stripeInstance == null) {
 		return (
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
-				<Ariakit.Dialog className="dialog gap-4 md:max-w-[600px]" portal unmountOnHide>
-					<div className="flex items-center justify-between">
-						<h2 className="text-xl font-bold">Checkout</h2>
-						<Ariakit.DialogDismiss className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white">
+			<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && handleClose()}>
+				<Ariakit.Dialog className={checkoutDialogClassName} backdrop={checkoutBackdrop} portal unmountOnHide>
+					<div className={checkoutHeaderClassName}>
+						<h2 className={checkoutTitleClassName}>Checkout</h2>
+						<Ariakit.DialogDismiss className={checkoutCloseButtonClassName}>
 							<Icon name="x" className="h-6 w-6" />
 						</Ariakit.DialogDismiss>
 					</div>
-					<div className="py-8 text-center text-[#b4b7bc]">
-						<p className="mb-2">Stripe is not configured.</p>
-						<p className="text-sm">Please set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in your environment.</p>
+					<div className="px-5 py-8 text-center text-(--sub-text-muted)">
+						<p className="mb-2 text-base text-(--sub-ink-primary)">Stripe is not configured.</p>
+						<p className="text-sm">Please set `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` in your environment.</p>
 					</div>
 				</Ariakit.Dialog>
 			</Ariakit.DialogProvider>
@@ -177,20 +185,20 @@ export function StripeCheckoutModal({
 		const billingPeriod = billingInterval === 'year' ? 'Annual' : 'Monthly'
 
 		return (
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
-				<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
-					<div className="top-0 z-10 flex items-center justify-between border-b bg-(--app-bg) p-4">
-						<h2 className="text-xl font-bold">Complete Your Upgrade</h2>
-						<Ariakit.DialogDismiss className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white">
+			<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && handleClose()}>
+				<Ariakit.Dialog className={checkoutDialogClassName} backdrop={checkoutBackdrop} portal unmountOnHide>
+					<div className={checkoutHeaderClassName}>
+						<h2 className={checkoutTitleClassName}>Complete Your Upgrade</h2>
+						<Ariakit.DialogDismiss className={checkoutCloseButtonClassName}>
 							<Icon name="x" className="h-6 w-6" />
 						</Ariakit.DialogDismiss>
 					</div>
 
-					<div className="border-b border-[#39393E] bg-(--app-bg) p-4">
-						<div className="space-y-3">
+					<div className="border-b border-(--sub-border-slate-100) bg-(--sub-surface-panel) px-5 py-4">
+						<div className="space-y-3 text-(--sub-ink-primary)">
 							<div>
-								<h3 className="text-sm font-semibold text-[#8a8c90]">Upgrading to</h3>
-								<p className="text-lg font-bold text-black dark:text-white">
+								<h3 className="text-xs font-medium text-(--sub-text-muted)">Upgrading to</h3>
+								<p className="text-lg font-semibold text-(--sub-ink-primary)">
 									{planName} - {billingPeriod}
 								</p>
 							</div>
@@ -198,42 +206,44 @@ export function StripeCheckoutModal({
 							{result.pricing ? (
 								<div className="space-y-2 pt-2">
 									<div className="flex justify-between text-sm">
-										<span className="text-[#8a8c90]">New subscription price</span>
-										<span className="font-medium">
+										<span className="text-(--sub-text-muted)">New subscription price</span>
+										<span className="font-medium text-(--sub-ink-primary)">
 											{formatAmount(result.pricing.newSubscriptionPrice, result.pricing.currency)}
-											<span className="text-[#8a8c90]">/{billingInterval === 'year' ? 'year' : 'month'}</span>
+											<span className="text-(--sub-text-muted)">/{billingInterval === 'year' ? 'year' : 'month'}</span>
 										</span>
 									</div>
 
 									{result.pricing.prorationCredit > 0 ? (
 										<div className="flex justify-between text-sm">
-											<span className="text-[#8a8c90]">Proration credit</span>
-											<span className="font-medium text-green-400">
+											<span className="text-(--sub-text-muted)">Proration credit</span>
+											<span className="font-medium text-green-600">
 												-{formatAmount(result.pricing.prorationCredit, result.pricing.currency)}
 											</span>
 										</div>
 									) : null}
 
-									<div className="border-t border-[#39393E] pt-2">
+									<div className="border-t border-(--sub-border-slate-100) pt-2">
 										<div className="flex justify-between">
-											<span className="font-semibold">Amount due today</span>
-											<span className="text-lg font-bold text-[#5C5CF9]">
+											<span className="font-semibold text-(--sub-ink-primary)">Amount due today</span>
+											<span className="text-lg font-semibold text-(--sub-brand-primary)">
 												{formatAmount(result.pricing.amount, result.pricing.currency)}
 											</span>
 										</div>
 									</div>
 
-									<p className="pt-1 text-xs text-[#8a8c90]">
+									<p className="pt-1 text-xs text-(--sub-text-muted)">
 										You'll be charged immediately and your subscription will be updated.
 									</p>
 								</div>
 							) : (
-								<p className="text-sm text-[#8a8c90]">Enter your payment details below to complete the upgrade.</p>
+								<p className="text-sm text-(--sub-text-muted)">
+									Enter your payment details below to complete the upgrade.
+								</p>
 							)}
 						</div>
 					</div>
 
-					<div className="p-4">
+					<div className="p-5">
 						<Elements
 							stripe={stripeInstance}
 							options={{
@@ -249,19 +259,19 @@ export function StripeCheckoutModal({
 	}
 
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
-			<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
-				<div className="top-0 z-10 flex items-center justify-between border-b bg-(--app-bg) p-4">
-					<h2 className="text-xl font-bold">Complete Your Purchase</h2>
-					<Ariakit.DialogDismiss className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-white">
+		<Ariakit.DialogProvider open={isOpen} setOpen={(open) => !open && handleClose()}>
+			<Ariakit.Dialog className={checkoutDialogClassName} backdrop={checkoutBackdrop} portal unmountOnHide>
+				<div className={checkoutHeaderClassName}>
+					<h2 className={checkoutTitleClassName}>Complete Your Purchase</h2>
+					<Ariakit.DialogDismiss className={checkoutCloseButtonClassName}>
 						<Icon name="x" className="h-6 w-6" />
 					</Ariakit.DialogDismiss>
 				</div>
 
 				{errorMessage ? (
-					<div className="border-b border-[#39393E] bg-red-500/10 p-4">
-						<div className="flex items-center gap-2 text-red-400">
-							<Icon name="alert-triangle" height={20} width={20} />
+					<div className="border-b border-(--sub-border-slate-100) bg-(--sub-orange-400)/10 p-4">
+						<div className="flex items-center gap-2 text-(--error)">
+							<Icon name="alert-warning" height={20} width={20} className="shrink-0" />
 							<p className="text-sm">{errorMessage}</p>
 						</div>
 					</div>
@@ -323,11 +333,11 @@ function UpgradePaymentForm({ postCheckoutPath }: { postCheckoutPath: string }) 
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-6">
+		<form onSubmit={handleSubmit} className="flex flex-col gap-5">
 			{paymentMutation.error ? (
-				<div className="rounded-lg bg-red-500/10 p-3">
-					<div className="flex items-center gap-2 text-red-400">
-						<Icon name="alert-triangle" height={16} width={16} />
+				<div className="rounded-lg bg-(--sub-orange-400)/10 p-3">
+					<div className="flex items-center gap-2 text-(--error)">
+						<Icon name="alert-warning" height={16} width={16} className="shrink-0" />
 						<p className="text-sm">{paymentMutation.error.message}</p>
 					</div>
 				</div>
@@ -336,7 +346,7 @@ function UpgradePaymentForm({ postCheckoutPath }: { postCheckoutPath: string }) 
 			<button
 				type="submit"
 				disabled={!stripe || paymentMutation.isPending}
-				className="w-full rounded-lg bg-[#5C5CF9] px-6 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-50"
+				className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) px-6 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{paymentMutation.isPending ? 'Processing...' : 'Complete Upgrade'}
 			</button>

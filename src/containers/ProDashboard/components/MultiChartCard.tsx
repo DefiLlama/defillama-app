@@ -362,7 +362,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		const headers = ['Date', ...series.map((s) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
-			const row = [new Date(timestamp * 1000).toLocaleDateString()]
+			const _d = new Date(timestamp * 1000)
+			const row = [_d.toISOString().slice(0, 10)]
 			for (const s of series) {
 				const dataPoint = s.data.find(([t]) => t === timestamp)
 				row.push(dataPoint ? dataPoint[1].toString() : '0')

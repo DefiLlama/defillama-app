@@ -72,6 +72,15 @@ type ModalAction =
 	| { type: 'SET_SELECTED_UNLOCKS_PROTOCOL'; payload: string | null }
 	| { type: 'SET_SELECTED_UNLOCKS_PROTOCOL_NAME'; payload: string | null }
 	| { type: 'SET_SELECTED_UNLOCKS_CHART_TYPE'; payload: 'total' | 'schedule' | 'allocation' | 'locked-unlocked' }
+	| { type: 'SET_RWA_MODE'; payload: 'overview' | 'asset' }
+	| { type: 'SET_SELECTED_RWA_CHAIN'; payload: string }
+	| { type: 'SET_SELECTED_RWA_METRIC'; payload: ModalState['selectedRwaMetric'] }
+	| { type: 'SET_SELECTED_RWA_CHART_VIEW'; payload: ModalState['selectedRwaChartView'] }
+	| { type: 'SET_SELECTED_RWA_BREAKDOWN'; payload: ModalState['selectedRwaBreakdown'] }
+	| { type: 'SET_SELECTED_RWA_TREEMAP_NESTED_BY'; payload: string }
+	| { type: 'SET_SELECTED_RWA_ASSET_ID'; payload: string | null }
+	| { type: 'SET_SELECTED_RWA_ASSET_NAME'; payload: string | null }
+	| { type: 'SET_SELECTED_RWA_ASSET_METRICS'; payload: ModalState['selectedRwaAssetMetrics'] }
 	| { type: 'RESET_STATE' }
 	| { type: 'INITIALIZE_FROM_EDIT_ITEM'; payload: { editItem: DashboardItemConfig | null | undefined } }
 
@@ -184,7 +193,16 @@ const INITIAL_MODAL_STATE: ModalState = {
 	selectedLlamaAIChart: null,
 	selectedUnlocksProtocol: null,
 	selectedUnlocksProtocolName: null,
-	selectedUnlocksChartType: 'total'
+	selectedUnlocksChartType: 'total',
+	rwaMode: 'overview',
+	selectedRwaChain: 'All',
+	selectedRwaMetric: 'activeMcap',
+	selectedRwaChartView: 'timeSeries',
+	selectedRwaBreakdown: 'chain',
+	selectedRwaTreemapNestedBy: 'none',
+	selectedRwaAssetId: null,
+	selectedRwaAssetName: null,
+	selectedRwaAssetMetrics: ['activeMcap', 'onChainMcap', 'defiActiveTvl']
 }
 
 export function initializeFromEditItem(editItem: DashboardItemConfig | null | undefined): ModalState {
@@ -447,6 +465,34 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 		}
 	}
 
+	if (editItem.kind === 'rwa-overview') {
+		return {
+			...base,
+			selectedMainTab: 'charts',
+			chartMode: 'manual',
+			selectedChartTab: 'rwa',
+			rwaMode: 'overview',
+			selectedRwaChain: editItem.chain || 'All',
+			selectedRwaMetric: editItem.metric,
+			selectedRwaChartView: editItem.chartView,
+			selectedRwaBreakdown: editItem.breakdown,
+			selectedRwaTreemapNestedBy: editItem.treemapNestedBy || 'none'
+		}
+	}
+
+	if (editItem.kind === 'rwa-asset') {
+		return {
+			...base,
+			selectedMainTab: 'charts',
+			chartMode: 'manual',
+			selectedChartTab: 'rwa',
+			rwaMode: 'asset',
+			selectedRwaAssetId: editItem.assetId,
+			selectedRwaAssetName: editItem.assetName,
+			selectedRwaAssetMetrics: editItem.metrics
+		}
+	}
+
 	return base
 }
 
@@ -635,6 +681,33 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 
 		case 'SET_SELECTED_UNLOCKS_CHART_TYPE':
 			return { ...state, selectedUnlocksChartType: action.payload }
+
+		case 'SET_RWA_MODE':
+			return { ...state, rwaMode: action.payload }
+
+		case 'SET_SELECTED_RWA_CHAIN':
+			return { ...state, selectedRwaChain: action.payload }
+
+		case 'SET_SELECTED_RWA_METRIC':
+			return { ...state, selectedRwaMetric: action.payload }
+
+		case 'SET_SELECTED_RWA_CHART_VIEW':
+			return { ...state, selectedRwaChartView: action.payload }
+
+		case 'SET_SELECTED_RWA_BREAKDOWN':
+			return { ...state, selectedRwaBreakdown: action.payload }
+
+		case 'SET_SELECTED_RWA_TREEMAP_NESTED_BY':
+			return { ...state, selectedRwaTreemapNestedBy: action.payload }
+
+		case 'SET_SELECTED_RWA_ASSET_ID':
+			return { ...state, selectedRwaAssetId: action.payload }
+
+		case 'SET_SELECTED_RWA_ASSET_NAME':
+			return { ...state, selectedRwaAssetName: action.payload }
+
+		case 'SET_SELECTED_RWA_ASSET_METRICS':
+			return { ...state, selectedRwaAssetMetrics: action.payload }
 
 		case 'RESET_STATE':
 			return INITIAL_MODAL_STATE

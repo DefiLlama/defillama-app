@@ -37,11 +37,13 @@ async function pullData() {
 				categoriesAndTags,
 				cexs,
 				rwaList,
+				rwaPerpsList,
 				tokenlist,
 				cgExchangeIdentifiers,
 				bridgeProtocolSlugs,
 				bridgeChainSlugs,
-				bridgeChainSlugToName
+				bridgeChainSlugToName,
+				protocolLlamaswapDataset
 			},
 			{ tastyMetrics, trendingRoutes }
 		] = await Promise.all([
@@ -82,12 +84,14 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+		fs.writeFileSync(path.join(CACHE_DIR, 'rwaPerps.json'), JSON.stringify(rwaPerpsList))
 
 		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
 		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeProtocolSlugs.json'), JSON.stringify(bridgeProtocolSlugs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugs.json'), JSON.stringify(bridgeChainSlugs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugToName.json'), JSON.stringify(bridgeChainSlugToName))
+		fs.writeFileSync(path.join(CACHE_DIR, 'llamaswap-protocols.json'), JSON.stringify(protocolLlamaswapDataset))
 
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
@@ -204,12 +208,14 @@ async function pullData() {
 				'protocols.json': {},
 				'categoriesAndTags.json': { categories: [], tags: [], tagCategoryMap: {} },
 				'cexs.json': [],
-				'rwa.json': { tickers: [], platforms: [], chains: [], categories: [], idMap: {} },
+				'rwa.json': { tickers: [], platforms: [], chains: [], assetGroups: [], categories: [], idMap: {} },
+				'rwaPerps.json': { contracts: [], venues: [], categories: [], total: 0 },
 				'tokenlist.json': {},
 				'cgExchangeIdentifiers.json': [],
 				'bridgeProtocolSlugs.json': [],
 				'bridgeChainSlugs.json': [],
-				'bridgeChainSlugToName.json': {}
+				'bridgeChainSlugToName.json': {},
+				'llamaswap-protocols.json': {}
 			}
 			for (const [file, data] of Object.entries(stubs)) {
 				const filePath = path.join(CACHE_DIR, file)

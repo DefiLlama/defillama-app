@@ -6,7 +6,7 @@ import { searchApi } from '~/api'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -37,7 +37,8 @@ interface ISearchItem {
 
 export const MobileSearch = () => {
 	const isClient = useIsClient()
-	const { hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	const shouldSkipLanding = isAuthenticated
 
 	const [searchValue, setSearchValue] = useState('')
 	const [mounted, setMounted] = useState(false)
@@ -53,7 +54,7 @@ export const MobileSearch = () => {
 	return (
 		<>
 			<BasicLink
-				href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
+				href={isClient && shouldSkipLanding ? '/ai/chat' : '/ai'}
 				className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
 				data-umami-event="llamaai-mobile-nav-link"
 				data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
@@ -61,7 +62,7 @@ export const MobileSearch = () => {
 				<svg className="h-4 w-4 shrink-0">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 				</svg>
-				<span className="sr-only">{isClient && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
+				<span className="sr-only">{isClient && shouldSkipLanding ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
 			</BasicLink>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
@@ -172,7 +173,8 @@ function getPreHydrationInputValue() {
 
 export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boolean }) => {
 	const isClient = useIsClient()
-	const { hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	const shouldSkipLanding = isAuthenticated
 
 	const inputField = useRef<HTMLInputElement>(null)
 
@@ -290,7 +292,7 @@ export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boo
 			</Ariakit.ComboboxProvider>
 			{!hideLlamaAiCta ? (
 				<BasicLink
-					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
+					href={isClient && shouldSkipLanding ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
 					data-umami-event="llamaai-nav-link"
 					data-umami-event-subscribed={isClient && hasActiveSubscription ? 'true' : 'false'}
@@ -298,7 +300,7 @@ export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boo
 					<svg className="h-4 w-4 shrink-0">
 						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
-					<span className="whitespace-nowrap">{isClient && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
+					<span className="whitespace-nowrap">{isClient && shouldSkipLanding ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
 				</BasicLink>
 			) : null}
 		</>

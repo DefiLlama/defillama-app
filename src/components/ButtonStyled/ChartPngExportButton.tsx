@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
@@ -733,88 +734,124 @@ export function ChartPngExportButton({
 }: ChartPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
+	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
 
 	const [isDark] = useDarkModeManager()
 
-	const handleImageExport = async () => {
-		if (isLoading) return
+	const generateDataURL = async (): Promise<string | null> => {
+		const _chartInstance = chartInstance()
 
-		let safeFilename = filename
-		if (!safeFilename) {
-			safeFilename = 'chart'
+		if (!_chartInstance) {
+			toast.error('Failed to get chart instance')
+			return null
 		}
-		if (safeFilename.toLowerCase().endsWith('.png')) {
-			safeFilename = safeFilename.slice(0, -4)
+		setIsLoading(true)
+
+		const isTreemapExport = pngProfile === 'treemap' || hasSeriesType(_chartInstance.getOption(), 'treemap')
+
+		if (isTreemapExport) {
+			return await exportTreemapWithZoom(_chartInstance, title, isDark)
 		}
 
-		const doExport = async () => {
-			const _chartInstance = chartInstance()
+		const tempContainer = document.createElement('div')
+		tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
+		tempContainer.style.height = `${IMAGE_EXPORT_HEIGHT}px`
+		tempContainer.style.position = 'absolute'
+		tempContainer.style.left = '-99999px'
+		tempContainer.style.top = '0'
+		document.body.appendChild(tempContainer)
 
-			if (!_chartInstance) {
-				toast.error('Failed to get chart instance')
-				return
-			}
-			setIsLoading(true)
-
-			const isTreemapExport = pngProfile === 'treemap' || hasSeriesType(_chartInstance.getOption(), 'treemap')
-
-			let dataURL: string | null
-
-			if (isTreemapExport) {
-				dataURL = await exportTreemapWithZoom(_chartInstance, title, isDark)
-			} else {
-				const tempContainer = document.createElement('div')
-				tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
-				tempContainer.style.height = `${IMAGE_EXPORT_HEIGHT}px`
-				tempContainer.style.position = 'absolute'
-				tempContainer.style.left = '-99999px'
-				tempContainer.style.top = '0'
-				document.body.appendChild(tempContainer)
-
-				try {
-					dataURL = await renderClonedChartExport(tempContainer, _chartInstance, isDark, title, iconUrl, expandLegend)
-					document.body.removeChild(tempContainer)
-				} catch (error) {
-					console.log('Error exporting chart image:', error)
-					toast.error('Failed to export chart image')
-					dataURL = null
-					document.body.removeChild(tempContainer)
-				}
-			}
-
-			if (!dataURL) {
-				setIsLoading(false)
-				return
-			}
-			const imageFilename = `${safeFilename}_${new Date().toISOString().split('T')[0]}.png`
-			downloadDataURL(imageFilename, dataURL)
-			setIsLoading(false)
-		}
 		try {
-			await doExport()
+			const dataURL = await renderClonedChartExport(tempContainer, _chartInstance, isDark, title, iconUrl, expandLegend)
+			document.body.removeChild(tempContainer)
+			return dataURL
 		} catch (error) {
 			console.log('Error exporting chart image:', error)
 			toast.error('Failed to export chart image')
+			document.body.removeChild(tempContainer)
+			return null
+		}
+	}
+
+	const handleDownload = async () => {
+		if (isLoading) return
+		popover.hide()
+		try {
+			const dataURL = await generateDataURL()
+			if (!dataURL) return
+			let safeFilename = filename || 'chart'
+			if (safeFilename.toLowerCase().endsWith('.png')) {
+				safeFilename = safeFilename.slice(0, -4)
+			}
+			const imageFilename = `${safeFilename}_${new Date().toISOString().split('T')[0]}.png`
+			downloadDataURL(imageFilename, dataURL)
+		} catch (error) {
+			console.log('Error exporting chart image:', error)
+			toast.error('Failed to export chart image')
+		} finally {
 			setIsLoading(false)
 		}
 	}
 
+	const handleCopyToClipboard = () => {
+		if (isLoading) return
+		popover.hide()
+		// Safari requires clipboard.write() to be called synchronously within
+		// the user gesture. Passing a Promise<Blob> to ClipboardItem defers the
+		// async work while keeping the write() call in the gesture context.
+		const blobPromise = (async () => {
+			const dataURL = await generateDataURL()
+			if (!dataURL) throw new Error('Failed to generate image')
+			const response = await fetch(dataURL)
+			return await response.blob()
+		})()
+
+		navigator.clipboard
+			.write([new ClipboardItem({ 'image/png': blobPromise })])
+			.then(() => toast.success('Image copied to clipboard'))
+			.catch((error) => {
+				console.log('Error copying chart image:', error)
+				toast.error('Failed to copy image to clipboard')
+			})
+			.finally(() => setIsLoading(false))
+	}
+
 	return (
-		<>
-			<button
-				data-umami-event="export-image"
-				data-umami-event-page={router.pathname}
+		<Ariakit.PopoverProvider store={popover}>
+			<Ariakit.PopoverDisclosure
 				className={className}
-				onClick={() => {
-					void handleImageExport()
-				}}
 				data-loading={isLoading}
 				disabled={isLoading}
-				title="Download chart as image"
+				title="Export chart as image"
 			>
 				{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={12} width={12} />}
 				<span>{smol ? '.png' : 'Image'}</span>
-			</button>
-		</>
+			</Ariakit.PopoverDisclosure>
+
+			<Ariakit.Popover
+				gutter={8}
+				unmountOnHide
+				className="z-50 flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg) py-1 shadow-lg"
+			>
+				<button
+					data-umami-event="export-image"
+					data-umami-event-page={router.pathname}
+					className="flex items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-(--link-hover-bg)"
+					onClick={() => void handleDownload()}
+				>
+					<Icon name="download-paper" height={14} width={14} />
+					<span>Download image</span>
+				</button>
+				<button
+					data-umami-event="copy-image"
+					data-umami-event-page={router.pathname}
+					className="flex items-center gap-2 px-3 py-2 text-xs transition-colors hover:bg-(--link-hover-bg)"
+					onClick={() => void handleCopyToClipboard()}
+				>
+					<Icon name="copy" height={14} width={14} />
+					<span>Copy to clipboard</span>
+				</button>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
 	)
 }

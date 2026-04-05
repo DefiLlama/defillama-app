@@ -39,7 +39,8 @@ export const getStaticProps = withPerformanceLogging(
 			currentProtocolMetadata: metadata[1],
 			chainMetadata: metadataCache.chainMetadata,
 			tokenlist: metadataCache.tokenlist,
-			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers,
+			protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
 		})
 
 		if (!data) {

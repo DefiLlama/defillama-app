@@ -2,7 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useContext, useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/utils'
 import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
-import { fetchStablecoinsViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
+import {
+	fetchStablecoinsListViaProxy,
+	fetchStablecoinsViaProxy
+} from '~/containers/ProDashboard/services/fetchViaProxy'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -222,10 +225,11 @@ export interface StablecoinChainInfo {
 }
 
 export function useStablecoinChainsList() {
+	const authToken = useContext(ProxyAuthTokenContext)
 	return useQuery({
 		queryKey: ['pro-dashboard', 'stablecoin-chains-list'],
 		queryFn: async () => {
-			const data = await fetchStablecoinAssetsApi()
+			const data = authToken ? await fetchStablecoinsListViaProxy(authToken) : await fetchStablecoinAssetsApi()
 			const chains = data?.chains || []
 			return chains
 				.map((c: any) => {

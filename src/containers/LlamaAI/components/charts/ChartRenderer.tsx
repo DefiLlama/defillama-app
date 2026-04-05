@@ -14,6 +14,7 @@ import {
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
 import { ChartDataTransformer } from '~/containers/LlamaAI/utils/chartDataTransformer'
 import { buildRenderPlan, type ChartRenderPlan } from '~/containers/LlamaAI/utils/chartRenderPlan'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
@@ -145,6 +146,7 @@ function ChartExportButtonsSlot({
 	sessionId?: string | null
 	config: ChartConfiguration
 }) {
+	const { hasActiveSubscription } = useAuthContext()
 	const prepareCsvDirect = useMemo(
 		() => (exportModel ? () => ({ filename: exportModel.csvFilename, rows: exportModel.csvRows }) : undefined),
 		[exportModel]
@@ -152,7 +154,7 @@ function ChartExportButtonsSlot({
 
 	return (
 		<>
-			{sessionId ? (
+			{sessionId && hasActiveSubscription ? (
 				<AddToDashboardButton
 					chartConfig={null}
 					llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}

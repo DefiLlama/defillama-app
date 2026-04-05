@@ -238,6 +238,30 @@ export interface UnlocksPieConfig {
 	colSpan?: StoredColSpan
 }
 
+export type RWAOverviewChartView = 'timeSeries' | 'pie' | 'treemap' | 'hbar'
+export type RWAOverviewChartMetric = 'activeMcap' | 'onChainMcap' | 'defiActiveTvl'
+export type RWAOverviewChartBreakdown = 'chain' | 'category' | 'assetClass' | 'assetName' | 'platform' | 'assetGroup'
+
+export interface RWAOverviewChartConfig {
+	id: string
+	kind: 'rwa-overview'
+	metric: RWAOverviewChartMetric
+	chartView: RWAOverviewChartView
+	breakdown: RWAOverviewChartBreakdown
+	chain?: string
+	treemapNestedBy?: string
+	colSpan?: StoredColSpan
+}
+
+export interface RWAAssetChartConfig {
+	id: string
+	kind: 'rwa-asset'
+	assetId: string
+	assetName: string
+	metrics: RWAOverviewChartMetric[]
+	colSpan?: StoredColSpan
+}
+
 export type DashboardItemConfig =
 	| ChartConfig
 	| ProtocolsTableConfig
@@ -255,6 +279,8 @@ export type DashboardItemConfig =
 	| UnlocksPieConfig
 	| UnifiedTableConfig
 	| LlamaAIChartConfig
+	| RWAOverviewChartConfig
+	| RWAAssetChartConfig
 
 export interface ChartConfig {
 	id: string
@@ -439,6 +465,9 @@ export interface ProtocolsTableConfig {
 		| 'bridge-aggregators'
 		| 'trending-contracts'
 		| 'chains'
+		| 'rwa'
+		| 'rwa-chains'
+		| 'rwa-selected-chain'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean

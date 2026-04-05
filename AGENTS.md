@@ -1,44 +1,46 @@
 # Agent Commands and Conventions
 
-This document defines the commands and conventions that all AI agents (opencode) must follow when working on this project.
+This file defines the commands and working conventions that all AI agents must follow in this repository.
 
 ## Package Manager
 
-- Use `bun` as the package manager. **NEVER** use npm, npx, yarn, or pnpm.
+- Use `bun` for all package management and project commands.
+- Use `bun x` instead of `npx` when you need to run a package binary.
+- Do not use `npm`, `npx`, `yarn`, or `pnpm`
 
-## Allowed Commands
+## Approved Commands
 
-- Linting: `bun run lint`
-- TypeScript checking: `bun run ts`
-- Formatting: `bun run format`
+- Format code with `bun run format`
+- Run lint checks with `bun run lint`
+- Run TypeScript checks with `bun run ts`
 
 ## Forbidden Commands
 
-- **NEVER** run `bun run build` or any build commands. The build **WILL fail** due to API rate limits.
-- **NEVER** use `npx tsc`, `npx eslint`, or any npx commands. Use `bun run` equivalents instead.
-- **NEVER** run `npm run lint`, `npm run typecheck`, or any npm commands.
+- Do not run `bun run build` or any other build command. Builds are expected to fail because of API rate limits.
+- Do not use `npx tsc`, `npx eslint`, or any other `npx` command. Use `bun x` instead when you need to run a package binary.
+- Do not use `npm run lint`, `npm run typecheck`, or any other `npm` command.
 
-**Exception:** `npx tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration (no bun equivalent for project-specific configs).
+## Required Verification
 
-## Verification Requirements
+After completing any task, run these commands in order:
 
-When completing any task, you MUST run the following commands to verify code correctness:
+1. `bun run format`
+2. `bun run lint`
+3. `bun run ts`
 
-1. `bun run format` - to format code
-2. `bun run lint` - to check for linting errors
-3. `bun run ts` - to check for TypeScript errors
-
-Do NOT run `bun run build` as it will fail due to rate limits.
+Do not run `bun run build` as part of verification.
 
 ## Code Migration Rules
 
-When moving or renaming types/functions across files:
+When moving or renaming types or functions across files:
 
-1. **NEVER re-export** from the new location to maintain backwards compatibility
-2. **ALWAYS update imports** in all files that use the moved type/function
-3. Update imports to point directly to the new location (e.g., `from './api.types'` instead of `from './queries'`)
-4. This ensures clear dependency chains and avoids circular dependencies
+1. Never re-export from the new location for backwards compatibility.
+2. Always update imports in every file that uses the moved item.
+3. Point imports directly to the new file, for example `from './api.types'` instead of `from './queries'`.
+4. This keeps dependency chains clear and helps avoid circular dependencies.
 
-# Next.js: ALWAYS read docs before coding
+## Next.js Requirement
 
-Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.
+Before starting any Next.js work, read the relevant documentation in `node_modules/next/dist/docs/`.
+
+Treat those local docs as the source of truth.

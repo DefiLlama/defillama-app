@@ -2,19 +2,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import Router, { useRouter } from 'next/router'
+import Router from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
-import { lazy, Suspense, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
-import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
+import { AuthProvider } from '~/containers/Subscription/auth'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
-const LlamaAIFloatingButton = lazy(() =>
-	import('~/components/LlamaAIFloatingButton').then((m) => ({ default: m.LlamaAIFloatingButton }))
-)
 NProgress.configure({ showSpinner: false })
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
@@ -34,7 +31,6 @@ const isChunkLoadError = (error: unknown) => {
 const client = new QueryClient()
 
 function App({ Component, pageProps }: AppProps) {
-	const router = useRouter()
 	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {
@@ -127,14 +123,6 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [])
 
-	const { hasActiveSubscription } = useAuthContext()
-	const showFloatingButton =
-		hasActiveSubscription &&
-		!router.pathname.startsWith('/ai') &&
-		!router.pathname.startsWith('/mcp') &&
-		!router.pathname.startsWith('/account') &&
-		!router.pathname.startsWith('/subscription')
-
 	useUmamiIdentityTracker()
 
 	return (
@@ -152,12 +140,6 @@ function App({ Component, pageProps }: AppProps) {
 				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
 				data-host-url="https://tasty.defillama.com"
 			/>
-
-			{showFloatingButton ? (
-				<Suspense fallback={null}>
-					<LlamaAIFloatingButton />
-				</Suspense>
-			) : null}
 
 			<Component {...pageProps} />
 		</>

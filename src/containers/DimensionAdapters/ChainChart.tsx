@@ -34,12 +34,12 @@ import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 import {
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
+	buildProtocolBreakdownNormalization,
 	buildChainsByAdapterChartPresentation,
-	mergeBreakdownCharts,
 	mergeNamedDimensionChartDataset,
 	mergeSingleDimensionChartDataset,
-	getCategoryProtocolNameFilterForChart,
-	leafProtocolNamesFromTableRows,
+	mergeBreakdownCharts,
+	normalizeProtocolBreakdownChartData,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
 } from './utils'
@@ -198,10 +198,8 @@ export const AdapterByChainChart = ({
 	chain,
 	chartName,
 	dataType,
-	categories,
-	protocols,
 	tableProtocols
-}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType' | 'categories' | 'protocols'> & {
+}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType'> & {
 	chartName: string
 	tableProtocols: IAdapterByChainPageData['protocols']
 }) => {
@@ -281,11 +279,11 @@ export const AdapterByChainChart = ({
 
 	const breakdownChartDataState = useAdapterByChainBreakdownChartData({
 		adapterType,
-		chartName,
 		chain,
 		dataType,
 		enabled: chartViewMode === 'Breakdown',
-		feesChartMode
+		feesChartMode,
+		tableProtocols
 	})
 
 	const combinedChartData = React.useMemo(() => {
@@ -324,25 +322,11 @@ export const AdapterByChainChart = ({
 
 	const protocolOptions = React.useMemo(() => {
 		if (breakdownChartDataState.kind !== 'ready') return []
-		const api = new Set(breakdownChartDataState.protocolDimensions)
-		return leafProtocolNamesFromTableRows(tableProtocols).filter((name) => api.has(name))
-	}, [breakdownChartDataState, tableProtocols])
-
-	const categoryProtocolNameFilter = React.useMemo(
-		() =>
-			getCategoryProtocolNameFilterForChart({
-				categories,
-				protocols,
-				categoryParam: router.query.category,
-				excludeCategoryParam: router.query.excludeCategory,
-				hasCategoryParam: Object.prototype.hasOwnProperty.call(router.query, 'category')
-			}),
-		[categories, protocols, router.query]
-	)
+		return breakdownChartDataState.protocolDimensions
+	}, [breakdownChartDataState])
 
 	const selectedProtocols = React.useMemo(() => {
 		if (chartViewMode !== 'Breakdown' || protocolOptions.length === 0) return []
-		if (categoryProtocolNameFilter.kind === 'no-rows') return []
 
 		const protocolsQuery = router.query.protocol
 		const excludeProtocolsQuery = router.query.excludeProtocol
@@ -350,17 +334,10 @@ export const AdapterByChainChart = ({
 		const baseSelectedProtocols =
 			protocolsQuery != null ? parseArrayParam(protocolsQuery, protocolOptions) : protocolOptions
 
-		let next =
-			excludedProtocolsSet.size > 0
-				? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
-				: baseSelectedProtocols
-
-		if (categoryProtocolNameFilter.kind === 'restricted') {
-			next = next.filter((name) => categoryProtocolNameFilter.names.has(name))
-		}
-
-		return next
-	}, [categoryProtocolNameFilter, chartViewMode, protocolOptions, router.query.protocol, router.query.excludeProtocol])
+		return excludedProtocolsSet.size > 0
+			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
+			: baseSelectedProtocols
+	}, [chartViewMode, protocolOptions, router.query.protocol, router.query.excludeProtocol])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
@@ -809,56 +786,96 @@ export const AdapterByChainChart = ({
 
 function useAdapterByChainBreakdownChartData({
 	adapterType,
-	chartName,
 	chain,
 	dataType,
 	enabled,
-	feesChartMode
+	feesChartMode,
+	tableProtocols
 }: {
 	adapterType: `${ADAPTER_TYPES}`
-	chartName: string
 	chain: string
 	dataType: IAdapterByChainPageData['dataType']
 	enabled: boolean
 	feesChartMode: FeesChartMode
+	tableProtocols: IAdapterByChainPageData['protocols']
 }): BreakdownChartDataState {
 	const safeDataType = dataType === 'dailyEarnings' ? undefined : (dataType ?? undefined)
+	const breakdownNormalization = React.useMemo(
+		() => buildProtocolBreakdownNormalization(tableProtocols),
+		[tableProtocols]
+	)
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['adapter-breakdown-chart', adapterType, chain, safeDataType],
-		queryFn: () => fetchAdapterChainChartDataByProtocolBreakdown({ adapterType, chain, dataType: safeDataType }),
+		queryKey: [
+			'adapter-breakdown-chart',
+			adapterType,
+			chain,
+			safeDataType,
+			breakdownNormalization.signature,
+			feesChartMode.kind === 'fees' ? feesChartMode.extras.join(',') : ''
+		],
+		queryFn: async () => {
+			const requests = await Promise.allSettled([
+				fetchAdapterChainChartDataByProtocolBreakdown({ adapterType, chain, dataType: safeDataType }),
+				feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
+					? fetchAdapterChainChartDataByProtocolBreakdown({
+							adapterType,
+							chain,
+							dataType: 'dailyBribesRevenue'
+						})
+					: Promise.resolve([]),
+				feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
+					? fetchAdapterChainChartDataByProtocolBreakdown({
+							adapterType,
+							chain,
+							dataType: 'dailyTokenTaxes'
+						})
+					: Promise.resolve([])
+			])
+
+			const baseResult = requests[0]
+			if (baseResult?.status !== 'fulfilled') {
+				throw baseResult?.reason ?? new Error('Failed to fetch breakdown chart data')
+			}
+
+			const failedMetrics: FeesExtraMetric[] = []
+			if (
+				feesChartMode.kind === 'fees' &&
+				feesChartMode.extras.includes('dailyBribesRevenue') &&
+				requests[1]?.status === 'rejected'
+			) {
+				failedMetrics.push('dailyBribesRevenue')
+			}
+			if (
+				feesChartMode.kind === 'fees' &&
+				feesChartMode.extras.includes('dailyTokenTaxes') &&
+				requests[2]?.status === 'rejected'
+			) {
+				failedMetrics.push('dailyTokenTaxes')
+			}
+
+			const mergedData = mergeBreakdownCharts({
+				chart: baseResult.value,
+				extraCharts: [
+					requests[1]?.status === 'fulfilled' ? requests[1].value : [],
+					requests[2]?.status === 'fulfilled' ? requests[2].value : []
+				]
+			})
+			const normalized = normalizeProtocolBreakdownChartData({
+				chart: mergedData,
+				normalization: breakdownNormalization
+			})
+
+			return {
+				chartData: normalized.chartData,
+				protocolDimensions: normalized.protocolDimensions,
+				failedMetrics
+			}
+		},
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
 		enabled
-	})
-
-	const { data: bribesData, error: bribesError } = useQuery({
-		queryKey: ['adapter-breakdown-chart', adapterType, chain, chartName, 'dailyBribesRevenue'],
-		queryFn: () =>
-			fetchAdapterChainChartDataByProtocolBreakdown({
-				adapterType,
-				chain,
-				dataType: 'dailyBribesRevenue'
-			}),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: enabled && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
-	})
-
-	const { data: tokenTaxData, error: tokenTaxError } = useQuery({
-		queryKey: ['adapter-breakdown-chart', adapterType, chain, chartName, 'dailyTokenTaxes'],
-		queryFn: () =>
-			fetchAdapterChainChartDataByProtocolBreakdown({
-				adapterType,
-				chain,
-				dataType: 'dailyTokenTaxes'
-			}),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: enabled && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
 	})
 
 	return React.useMemo(() => {
@@ -874,65 +891,13 @@ function useAdapterByChainBreakdownChartData({
 			return { kind: 'error', message: getErrorMessage(error) }
 		}
 
-		const mergedData = mergeBreakdownCharts({
-			chart: data ?? [],
-			extraCharts:
-				feesChartMode.kind === 'fees'
-					? [
-							feesChartMode.extras.includes('dailyBribesRevenue') ? (bribesData ?? []) : [],
-							feesChartMode.extras.includes('dailyTokenTaxes') ? (tokenTaxData ?? []) : []
-						]
-					: []
-		})
-		const protocolValuesByTimestamp = new Map<number, Record<string, number>>()
-		const protocolTotals = new Map<string, number>()
-
-		for (const [timestamp, protocolValues] of mergedData) {
-			const valuesAtTimestamp: Record<string, number> = {}
-			for (const [protocolName, value] of Object.entries(protocolValues)) {
-				valuesAtTimestamp[protocolName] = value
-				protocolTotals.set(protocolName, (protocolTotals.get(protocolName) ?? 0) + value)
-			}
-			protocolValuesByTimestamp.set(timestamp * 1e3, valuesAtTimestamp)
-		}
-
-		const allProtocols = Array.from(protocolTotals.entries())
-			.toSorted((a, b) => b[1] - a[1])
-			.map(([name]) => name)
-
-		const sortedTimestamps = Array.from(protocolValuesByTimestamp.keys()).sort((a, b) => a - b)
-
-		const source = sortedTimestamps.map((timestamp) => {
-			const row: Record<string, number | null> = { timestamp }
-			const valuesAtTimestamp = protocolValuesByTimestamp.get(timestamp)
-			for (const protocolName of allProtocols) {
-				row[protocolName] = valuesAtTimestamp?.[protocolName] ?? null
-			}
-			return row
-		})
-
-		const breakdownChartData: MultiSeriesChart2Dataset = {
-			source,
-			dimensions: ['timestamp', ...allProtocols]
-		}
-
-		const failedMetrics: FeesExtraMetric[] = []
-		if (feesChartMode.kind === 'fees') {
-			if (feesChartMode.extras.includes('dailyBribesRevenue') && bribesError) {
-				failedMetrics.push('dailyBribesRevenue')
-			}
-			if (feesChartMode.extras.includes('dailyTokenTaxes') && tokenTaxError) {
-				failedMetrics.push('dailyTokenTaxes')
-			}
-		}
-
 		return {
 			kind: 'ready',
-			chartData: breakdownChartData,
-			protocolDimensions: allProtocols,
-			failedMetrics
+			chartData: data?.chartData ?? EMPTY_DATASET,
+			protocolDimensions: data?.protocolDimensions ?? [],
+			failedMetrics: data?.failedMetrics ?? []
 		}
-	}, [bribesData, bribesError, data, enabled, error, feesChartMode, isLoading, tokenTaxData, tokenTaxError])
+	}, [data, enabled, error, isLoading])
 }
 
 export const ChainsByAdapterChart = ({

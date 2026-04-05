@@ -28,7 +28,10 @@ import {
 	StablecoinsDataset,
 	TokenUsageDataset,
 	TrendingContractsDataset,
-	YieldsDataset
+	YieldsDataset,
+	RWAAssetsDataset,
+	RWAChainsDataset,
+	RWAChainAssetsDataset
 } from './datasets'
 import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
@@ -59,6 +62,10 @@ const UnlocksScheduleCard = lazy(() =>
 )
 const UnlocksPieCard = lazy(() => import('./UnlocksPieCard').then((mod) => ({ default: mod.UnlocksPieCard })))
 const LlamaAIChartCard = lazy(() => import('./LlamaAIChartCard'))
+const RWAOverviewChartCard = lazy(() =>
+	import('./RWAOverviewChartCard').then((mod) => ({ default: mod.RWAOverviewChartCard }))
+)
+const RWAAssetChartCard = lazy(() => import('./RWAAssetChartCard').then((mod) => ({ default: mod.RWAAssetChartCard })))
 
 const STORED_COL_SPANS = [0.5, 1, 1.5, 2] as const satisfies readonly StoredColSpan[]
 const METRIC_COL_SPANS = [0.5, 1] as const satisfies readonly StoredColSpan[]
@@ -248,6 +255,22 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 		)
 	}
 
+	if (item.kind === 'rwa-overview') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<RWAOverviewChartCard config={item} />
+			</Suspense>
+		)
+	}
+
+	if (item.kind === 'rwa-asset') {
+		return (
+			<Suspense fallback={<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]" />}>
+				<RWAAssetChartCard config={item} />
+			</Suspense>
+		)
+	}
+
 	if (item.kind === 'text') {
 		return <TextCard text={item} />
 	}
@@ -308,6 +331,10 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 						columnVisibility={item.columnVisibility}
 					/>
 				)
+			if (item.datasetType === 'rwa') return <RWAAssetsDataset />
+			if (item.datasetType === 'rwa-chains') return <RWAChainsDataset />
+			if (item.datasetType === 'rwa-selected-chain')
+				return <RWAChainAssetsDataset chain={item.datasetChain || 'Ethereum'} />
 			return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 		}
 

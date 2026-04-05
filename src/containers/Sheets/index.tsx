@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, type ReactNode } from 'react'
-import { useAuthContext } from '../Subscribtion/auth'
-import { setSignupSource } from '../Subscribtion/signupSource'
+import { useAuthContext } from '../Subscription/auth'
+import { setSignupSource } from '../Subscription/signupSource'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))

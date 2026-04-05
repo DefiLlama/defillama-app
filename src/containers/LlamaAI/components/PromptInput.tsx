@@ -37,7 +37,9 @@ interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>
+		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		pageContext?: undefined,
+		isSuggestedQuestion?: boolean
 	) => void | Promise<void>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	isPending: boolean
@@ -96,6 +98,7 @@ export function PromptInput({
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
 	const valueRef = useRef(value)
 	const selectedImageUrlsRef = useRef<string[]>([])
+	const isSuggestedRef = useRef(false)
 
 	// Route all programmatic prompt edits through one helper so caret restoration stays consistent.
 	const applyPromptEdit = useCallback(
@@ -269,11 +272,13 @@ export function PromptInput({
 		const finalEntities = entityCombobox.getFinalEntities()
 		const imagesToSend = [...imageUpload.selectedImages]
 		const hasImages = imagesToSend.length > 0
+		const isSuggested = isSuggestedRef.current
+		isSuggestedRef.current = false
 
 		if (hasImages) {
 			try {
 				const images = await prepareImagesForSubmit(imagesToSend)
-				await Promise.resolve(handleSubmit(promptValue, finalEntities, images))
+				await Promise.resolve(handleSubmit(promptValue, finalEntities, images, undefined, isSuggested || undefined))
 				setSubmitError(null)
 				if (shouldResetSubmittedDraft(promptValue, imagesToSend)) {
 					resetInput(imagesToSend)
@@ -287,7 +292,7 @@ export function PromptInput({
 		}
 
 		try {
-			await Promise.resolve(handleSubmit(promptValue, finalEntities))
+			await Promise.resolve(handleSubmit(promptValue, finalEntities, undefined, undefined, isSuggested || undefined))
 			setSubmitError(null)
 			resetInput()
 		} catch (error) {
@@ -457,6 +462,7 @@ export function PromptInput({
 							if (categoryKey === 'research') {
 								setIsResearchMode(true)
 							}
+							isSuggestedRef.current = true
 							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
 						}}
 						isPending={isPending}
@@ -482,6 +488,7 @@ export function PromptInput({
 						if (categoryKey === 'research') {
 							setIsResearchMode(true)
 						}
+						isSuggestedRef.current = true
 						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
 					}}
 					onImageUploadClick={imageUpload.openFilePicker}

@@ -71,6 +71,7 @@ export interface IProtocolMetadata {
 	newUsers?: boolean
 	txCount?: boolean
 	gasUsed?: boolean
+	gecko_id?: string
 }
 
 export interface ICexItem {
@@ -101,6 +102,13 @@ export interface IRWAList {
 	idMap: Record<string, string>
 }
 
+export interface IRWAPerpsList {
+	contracts: Array<string>
+	venues: Array<string>
+	categories: Array<string>
+	total: number
+}
+
 export interface ITokenListEntry {
 	symbol: string
 	current_price: number | null
@@ -117,3 +125,12 @@ export interface ITokenListEntry {
 	circulating_supply: number | null
 	max_supply: number | null
 }
+
+export interface IProtocolLlamaswapChain {
+	chain: string
+	address: string
+	displayName: string
+	best?: boolean
+}
+
+export type ProtocolLlamaswapMetadata = Record<string, IProtocolLlamaswapChain[] | null>

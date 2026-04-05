@@ -389,7 +389,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 			const rawTimestamp = params[0].value[0]
 			const millis = rawTimestamp < 10000000000 ? rawTimestamp * 1000 : rawTimestamp
 			const date = new Date(millis)
-			const chartdate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
+			const chartdate = `${date.getUTCDate().toString().padStart(2, '0')} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][date.getUTCMonth()]} ${date.getUTCFullYear()}`
 
 			let filteredParams = params.filter(
 				(item: any) => item.value[1] !== '-' && item.value[1] !== null && item.value[1] !== undefined
@@ -524,7 +524,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		const headers = ['Date', ...chartSeries.map((s: any) => s.name)]
 
 		const rows = timestamps.map((timestamp) => {
-			const row = [new Date(timestamp * 1000).toLocaleDateString()]
+			const _d = new Date(timestamp * 1000)
+			const row = [_d.toISOString().slice(0, 10)]
 			for (const s of chartSeries) {
 				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
 				row.push(dataPoint ? dataPoint[1].toString() : '0')

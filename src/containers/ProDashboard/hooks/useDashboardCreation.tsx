@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 
 type DatasetType = 'dexs' | 'perps' | 'options' | 'aggregators' | 'bridge-aggregators'
 

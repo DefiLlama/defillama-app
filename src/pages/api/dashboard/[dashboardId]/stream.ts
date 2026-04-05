@@ -353,6 +353,131 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			)
 		}
 
+		// RWA overview chart data — stream per unique breakdown+metric+chain combo
+		const rwaOverviewItems = items.filter((item: any) => item.kind === 'rwa-overview')
+		const rwaAssetItems = items.filter((item: any) => item.kind === 'rwa-asset')
+
+		if (rwaOverviewItems.length > 0 || rwaAssetItems.length > 0) {
+			const rwaApi = await import('~/containers/RWA/api')
+
+			const seenOverviewKeys = new Set<string>()
+			for (const item of rwaOverviewItems) {
+				const { breakdown, metric, chain } = item as any
+				const resolvedChain = chain || 'All'
+				const cacheKey = JSON.stringify([breakdown, metric, resolvedChain])
+				if (seenOverviewKeys.has(cacheKey)) continue
+				seenOverviewKeys.add(cacheKey)
+
+				phase2Promises.push(
+					(async () => {
+						let data: any = null
+						if (resolvedChain !== 'All') {
+							const tickerData = await withTimeout(
+								rwaApi.fetchRWAChartDataByTicker({
+									target: { kind: 'chain', slug: resolvedChain },
+									includeStablecoins: false,
+									includeGovernance: false
+								}),
+								10_000
+							)
+							if (tickerData) {
+								const rows = (tickerData as any)[metric || 'activeMcap'] ?? null
+								if (rows) {
+									data = rows.map((row: any) => ({
+										...row,
+										timestamp: rwaApi.toUnixMsTimestamp(Number(row.timestamp))
+									}))
+								}
+							}
+						} else {
+							const breakdownParams = {
+								key: metric || 'activeMcap',
+								includeStablecoin: false,
+								includeGovernance: false
+							}
+							switch (breakdown) {
+								case 'category':
+									data = await withTimeout(rwaApi.fetchRWACategoryBreakdownChartData(breakdownParams), 10_000)
+									break
+								case 'platform':
+									data = await withTimeout(rwaApi.fetchRWAPlatformBreakdownChartData(breakdownParams), 10_000)
+									break
+								case 'assetGroup':
+									data = await withTimeout(rwaApi.fetchRWAAssetGroupBreakdownChartData(breakdownParams), 10_000)
+									break
+								default:
+									data = await withTimeout(rwaApi.fetchRWAChainBreakdownChartData(breakdownParams), 10_000)
+									break
+							}
+						}
+						if (data) {
+							writeLine({
+								type: 'rwaBreakdownData',
+								breakdown: breakdown || 'chain',
+								metric: metric || 'activeMcap',
+								chain: resolvedChain,
+								data
+							})
+						}
+					})().catch(() => {})
+				)
+			}
+
+			const seenAssetIds = new Set<string>()
+			for (const item of rwaAssetItems) {
+				const { assetId } = item as any
+				if (!assetId || seenAssetIds.has(assetId)) continue
+				seenAssetIds.add(assetId)
+
+				phase2Promises.push(
+					withTimeout(rwaApi.fetchRWAAssetChartData(assetId), 10_000)
+						.then((data) => {
+							if (data) writeLine({ type: 'rwaAssetChartData', id: assetId, data })
+						})
+						.catch(() => {})
+				)
+			}
+		}
+
+		// RWA table data — stream assets list and/or stats
+		const hasRwaAssetsTable = items.some(
+			(item: any) => item.kind === 'table' && (item.datasetType === 'rwa' || item.datasetType === 'rwa-selected-chain')
+		)
+		const hasRwaChainsTable = items.some((item: any) => item.kind === 'table' && item.datasetType === 'rwa-chains')
+		const rwaSelectedChainItems = items.filter(
+			(item: any) => item.kind === 'table' && item.datasetType === 'rwa-selected-chain'
+		)
+
+		if (hasRwaAssetsTable || rwaSelectedChainItems.length > 0) {
+			phase2Promises.push(
+				(async () => {
+					const { fetchRWAActiveTVLs: fetchAssets } = await import('~/containers/RWA/api')
+					const data = await withTimeout(fetchAssets(), 10_000)
+					if (data) {
+						writeLine({ type: 'rwaAssetsTableData', data })
+						for (const item of rwaSelectedChainItems) {
+							const chain = (item as any).datasetChain
+							if (chain) {
+								writeLine({ type: 'rwaChainAssetsTableData', chain, data })
+							}
+						}
+					}
+				})().catch(() => {})
+			)
+		}
+
+		if (hasRwaChainsTable) {
+			phase2Promises.push(
+				(async () => {
+					const { fetchRWAStats: fetchStats } = await import('~/containers/RWA/api')
+					const data = await withTimeout(fetchStats(), 10_000)
+					if (data) {
+						writeLine({ type: 'rwaChainsTableData', data })
+					}
+				})().catch(() => {})
+			)
+		}
+
 		// Emission data — stream per task
 		const emissionTasks: Array<{
 			key: string

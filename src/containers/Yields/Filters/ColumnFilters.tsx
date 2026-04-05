@@ -3,8 +3,8 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { LockIcon } from '~/components/LockIcon'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 const SubscribeProModal = lazy(() =>
@@ -39,7 +39,9 @@ const baseFilters = [
 	{ name: 'Borrowed', key: 'showTotalBorrowed' },
 	{ name: 'Available', key: 'showAvailable' },
 	{ name: '30d Median APY', key: 'showMedianApy', isPremium: true },
-	{ name: '30d Std Dev', key: 'showStdDev', isPremium: true }
+	{ name: '30d Std Dev', key: 'showStdDev', isPremium: true },
+	{ name: 'Holder Count', key: 'showHolderCount' },
+	{ name: 'Holders Avg Position', key: 'showAvgPosition' }
 ]
 
 const getOptionalFilters = (hasActiveSubscription: boolean) =>

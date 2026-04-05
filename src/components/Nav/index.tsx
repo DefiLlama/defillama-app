@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import { DesktopNav } from './Desktop'
@@ -66,8 +66,8 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 	}, {})
 )
 
-function normalizeAiRoute(route: string, hasActiveSubscription: boolean): string {
-	return route === '/ai' && hasActiveSubscription ? '/ai/chat' : route
+function normalizeAiRoute(route: string, shouldSkipLanding: boolean): string {
+	return route === '/ai' && shouldSkipLanding ? '/ai/chat' : route
 }
 
 function canonicalAiRoute(route: string): string {
@@ -87,18 +87,19 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
 
-	const { hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated } = useAuthContext()
+	const shouldSkipLanding = isAuthenticated
 
 	const mainLinks = useMemo(() => {
 		const premium = premiumPages.map((p) => {
-			const route = normalizeAiRoute(p.route, hasActiveSubscription)
+			const route = normalizeAiRoute(p.route, shouldSkipLanding)
 			return route !== p.route ? { ...p, route } : p
 		})
 		return [
 			{ category: 'Main', pages: mainPages },
 			{ category: 'Premium', pages: premium }
 		]
-	}, [hasActiveSubscription])
+	}, [shouldSkipLanding])
 
 	const userDashboards = useMemo(
 		() =>
@@ -117,10 +118,10 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 		return parsed.flatMap((metric: string) => {
 			const page = routeToPageMap.get(metric) ?? routeToPageMap.get(canonicalAiRoute(metric))
 			if (!page) return []
-			const route = normalizeAiRoute(page.route, hasActiveSubscription)
+			const route = normalizeAiRoute(page.route, shouldSkipLanding)
 			return [route !== page.route ? { ...page, route } : page]
 		})
-	}, [pinnedMetrics, hasActiveSubscription])
+	}, [pinnedMetrics, shouldSkipLanding])
 
 	return (
 		<>

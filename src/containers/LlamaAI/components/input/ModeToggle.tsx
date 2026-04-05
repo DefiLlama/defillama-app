@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
 
 interface ModeToggleProps {
 	isResearchMode: boolean
@@ -10,6 +11,9 @@ interface ModeToggleProps {
 }
 
 export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }: ModeToggleProps) {
+	const { user } = useAuthContext()
+	const needsVerification = !!user && !user.verified
+
 	return (
 		<div
 			data-walkthrough="mode-toggle"
@@ -46,9 +50,11 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 							{researchUsage?.period === 'unlimited'
 								? 'Unlimited reports'
 								: researchUsage?.period === 'blocked'
-									? 'Subscribe to Pro to use research'
+									? needsVerification
+										? 'Verify your email to use research'
+										: 'Subscribe to Pro to use research'
 									: researchUsage
-										? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : ''}`
+										? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : researchUsage.period === 'biweekly' ? ' (every 14 days)' : ''}`
 										: '5 reports/day · Free trial: 3 total'}
 						</span>
 					</div>

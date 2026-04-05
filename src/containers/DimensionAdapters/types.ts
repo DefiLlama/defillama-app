@@ -46,6 +46,7 @@ export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> &
 	methodology?: string | null
 	doublecounted?: boolean
 	zeroFeePerp?: boolean
+	breakdownAliases?: Array<string>
 	childProtocols?: Array<IProtocol>
 }
 

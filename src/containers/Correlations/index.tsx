@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from 'react'
-import type { IResponseCGMarketsAPI } from '~/api/types'
+import type { IResponseCGMarketsAPI } from '~/api/coingecko.types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import { useIsClient } from '~/hooks/useIsClient'

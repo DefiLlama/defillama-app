@@ -9,7 +9,7 @@ import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
@@ -244,7 +244,7 @@ const columns = [
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs holding the underlying assets instead. ${uniswapV3}`
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).apyMean30d as number | null, {
+	columnHelper.accessor((row) => row.apyMean30d ?? null, {
 		id: 'apyMean30d',
 		header: '30d Avg APY',
 		enableSorting: true,
@@ -324,7 +324,7 @@ const columns = [
 			headerHelperText: 'Standard deviation of daily APY over the last 30 days. Measures yield volatility.'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).apyChart30d as string | null | undefined, {
+	columnHelper.accessor((row) => row.apyChart30d ?? null, {
 		id: 'apyChart30d',
 		header: '30d APY Chart',
 		enableSorting: false,
@@ -549,6 +549,72 @@ const columns = [
 			headerHelperText: 'Amount of borrowed collateral'
 		}
 	}),
+	columnHelper.accessor((row) => row.holderCount ?? undefined, {
+		id: 'holderCount',
+		header: 'Holders',
+		enableSorting: true,
+		cell: ({ getValue, row }) => {
+			const count = getValue() as number | null
+			if (count == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+			const change7d = row.original.holderChange7d
+			const change30d = row.original.holderChange30d
+			const tooltipParts = [
+				change7d != null ? `7d: ${change7d >= 0 ? '+' : ''}${change7d.toLocaleString()}` : null,
+				change30d != null ? `30d: ${change30d >= 0 ? '+' : ''}${change30d.toLocaleString()}` : null
+			].filter(Boolean)
+			return (
+				<Tooltip content={tooltipParts.length ? tooltipParts.join(', ') : null} className="justify-end">
+					<span className="tabular-nums">{formattedNum(count)}</span>
+				</Tooltip>
+			)
+		},
+		size: 120,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Number of unique token holders. Hover for 7d/30d change.'
+		}
+	}),
+	columnHelper.accessor((row) => row.top10Pct ?? undefined, {
+		id: 'top10Pct',
+		header: 'Top 10 %',
+		enableSorting: true,
+		cell: (info) => {
+			const val = info.getValue() as number | null
+			if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+
+			const accentColor = val >= 80 ? '#ef4444' : val >= 50 ? '#eab308' : '#22c55e'
+			const riskLabel = val >= 80 ? 'High concentration' : val >= 50 ? 'Medium concentration' : 'Low concentration'
+
+			return (
+				<Tooltip content={riskLabel} className="justify-end">
+					<span className="inline-flex items-center gap-1.5 tabular-nums">
+						<span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: accentColor }} />
+						{val.toFixed(1)}%
+					</span>
+				</Tooltip>
+			)
+		},
+		size: 110,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Percentage of TVL held by the top 10 holders. Higher = more concentrated.'
+		}
+	}),
+	columnHelper.accessor((row) => row.avgPositionUsd ?? undefined, {
+		id: 'avgPositionUsd',
+		header: 'Holders Avg Position',
+		enableSorting: true,
+		cell: (info) => {
+			const val = info.getValue() as number | null
+			if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+			return <span className="tabular-nums">{formattedNum(val, true)}</span>
+		},
+		size: 160,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Average position size in USD (TVL / holder count).'
+		}
+	}),
 	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
 		id: 'totalAvailableUsd',
 		header: 'Available',
@@ -594,11 +660,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
-		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
@@ -608,7 +672,12 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'top10Pct',
+		'holderCount',
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	],
 	400: [
 		'pool',
@@ -624,11 +693,9 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
-		'apyChart30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
@@ -638,7 +705,12 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'top10Pct',
+		'holderCount',
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	],
 	640: [
 		'pool',
@@ -654,21 +726,24 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
-		'apyChart30d',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'top10Pct',
+		'holderCount',
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	],
 	1280: [
 		'pool',
@@ -684,21 +759,24 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'apyBase7d',
 		'il7d',
 		'apyMean30d',
-		'cv30d',
 		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
 		'volumeUsd7d',
 		'apyBaseInception',
-		'apyChart30d',
 		'apyBorrow',
 		'apyBaseBorrow',
 		'apyRewardBorrow',
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'top10Pct',
+		'holderCount',
+		'avgPositionUsd',
+		'cv30d',
+		'apyChart30d'
 	]
 }
 
@@ -731,7 +809,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	},
 	812: {
 		pool: 200,
@@ -761,7 +842,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	},
 	1280: {
 		pool: 240,
@@ -791,7 +875,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	},
 	1536: {
 		pool: 280,
@@ -821,7 +908,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	},
 	1600: {
 		pool: 320,
@@ -851,7 +941,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	},
 	1640: {
 		pool: 360,
@@ -881,7 +974,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	},
 	1720: {
 		pool: 420,
@@ -911,7 +1007,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		top10Pct: 110,
+		avgPositionUsd: 160
 	}
 }
 
@@ -933,7 +1032,9 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 		showAvailable,
 		showLTV,
 		showMedianApy,
-		showStdDev
+		showStdDev,
+		showHolderCount,
+		showAvgPosition
 	} = router.query
 
 	const isStablecoinPage = router.pathname === '/yields/stablecoins'
@@ -976,6 +1077,9 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					holderCount: showHolderCount === 'true',
+					top10Pct: true,
+					avgPositionUsd: showAvgPosition === 'true',
 					...stablecoinColumnVisibility
 				}
 			: {
@@ -998,6 +1102,9 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					holderCount: showHolderCount === 'true',
+					top10Pct: true,
+					avgPositionUsd: showAvgPosition === 'true',
 					...stablecoinColumnVisibility
 				}
 

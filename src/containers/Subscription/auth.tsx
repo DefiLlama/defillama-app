@@ -1,0 +1,746 @@
+import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { RecordAuthResponse } from 'pocketbase'
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
+import toast from 'react-hot-toast'
+import { AUTH_SERVER } from '~/constants'
+import { clearSignupSource, getSignupSource } from '~/containers/Subscription/signupSource'
+import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
+import pb, { type AuthModel } from '~/utils/pocketbase'
+
+export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
+
+function syncAuthTokenToCookie(token: string | null) {
+	if (typeof document === 'undefined') return
+	if (token) {
+		document.cookie = `pb_auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`
+	} else {
+		document.cookie = `pb_auth_token=; path=/; max-age=0; path=/; Secure`
+	}
+}
+
+// Custom event name for auth store changes
+const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
+
+// Store for tracking auth state changes
+let authStoreSnapshot = {
+	token: pb.authStore.token,
+	record: pb.authStore.record ? { ...pb.authStore.record } : null,
+	isValid: pb.authStore.isValid
+}
+
+// Subscribe to PocketBase authStore changes and dispatch window events
+const subscribeToAuthStore = (callback: () => void) => {
+	const unsubscribe = pb.authStore.onChange((token, record) => {
+		const hasTokenChanged = authStoreSnapshot.token !== token
+		const hasRecordChanged = JSON.stringify(authStoreSnapshot.record) !== JSON.stringify(record)
+		const hasValidChanged = authStoreSnapshot.isValid !== pb.authStore.isValid
+
+		if (hasTokenChanged || hasRecordChanged || hasValidChanged) {
+			authStoreSnapshot = {
+				token,
+				record: record ? { ...record } : null,
+				isValid: pb.authStore.isValid
+			}
+			syncAuthTokenToCookie(pb.authStore.isValid ? token : null)
+			callback()
+		}
+	})
+
+	// Also listen to the custom event for external triggers
+	const handleAuthStoreChange = () => callback()
+	window.addEventListener(AUTH_STORE_CHANGE_EVENT, handleAuthStoreChange)
+
+	return () => {
+		unsubscribe()
+		window.removeEventListener(AUTH_STORE_CHANGE_EVENT, handleAuthStoreChange)
+	}
+}
+
+const getAuthStoreSnapshot = () => authStoreSnapshot
+
+// Cache the server snapshot to avoid infinite loop in useSyncExternalStore
+const serverSnapshot = {
+	token: '',
+	record: null,
+	isValid: false
+}
+
+const getServerSnapshot = () => serverSnapshot
+
+interface FetchOptions extends RequestInit {
+	skipAuth?: boolean
+}
+
+const getNonce = async (address: string) => {
+	return fetchJson<{ nonce: string }>(`${AUTH_SERVER}/nonce?address=${address}`).catch((error) => {
+		if (error instanceof Error && error.message) {
+			throw error
+		}
+		throw new Error('Failed to get nonce')
+	})
+}
+
+type CreateSiweMessage = (typeof import('viem/siwe'))['createSiweMessage']
+let createSiweMessagePromise: Promise<CreateSiweMessage> | null = null
+
+const loadCreateSiweMessage = async (): Promise<CreateSiweMessage> => {
+	if (createSiweMessagePromise == null) {
+		createSiweMessagePromise = import('viem/siwe').then((module) => module.createSiweMessage)
+	}
+	return createSiweMessagePromise
+}
+
+const clearUserSession = () => {
+	pb.authStore.clear()
+	syncAuthTokenToCookie(null)
+	localStorage.removeItem('userHash')
+	localStorage.removeItem('lite-dashboards')
+	if (typeof window !== 'undefined') {
+		;(window as any).__frontChatUserHash = null
+	}
+	if (typeof window !== 'undefined' && (window as any).FrontChat) {
+		;(window as any).FrontChat('shutdown', { clearSession: true })
+	}
+}
+
+const getAuthErrorMessageFromResponse = async (response: Response, fallbackMessage: string): Promise<string> => {
+	let parsed: unknown = null
+	try {
+		parsed = await response.json()
+	} catch {
+		return fallbackMessage
+	}
+
+	if (parsed == null || typeof parsed !== 'object') {
+		return fallbackMessage
+	}
+
+	const messageValue = (parsed as { message?: unknown }).message
+	if (typeof messageValue === 'string' && messageValue.length > 0) {
+		return messageValue
+	}
+
+	const errorValue = (parsed as { error?: unknown }).error
+	if (typeof errorValue === 'string' && errorValue.length > 0) {
+		return errorValue
+	}
+
+	return fallbackMessage
+}
+
+const getUserFacingErrorMessage = (error: unknown, fallbackMessage: string): string => {
+	if (!(error instanceof Error)) return fallbackMessage
+	const rawMessage = error.message || ''
+	if (!rawMessage.startsWith('[HTTP] [error]')) return rawMessage || fallbackMessage
+	const colonIndex = rawMessage.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = rawMessage.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
+}
+
+interface AuthContextType {
+	login: (email: string, password: string, onSuccess?: () => void) => Promise<void>
+	signup: (
+		email: string,
+		password: string,
+		passwordConfirm: string,
+		turnstileToken: string,
+		promotionalEmails?: PromotionalEmailsValue,
+		onSuccess?: () => void
+	) => Promise<void>
+	logout: () => void
+	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response | null>
+	signInWithEthereumMutation: UseMutationResult<
+		{
+			address: string
+		},
+		Error,
+		{
+			address: string
+			signMessageFunction: any
+		},
+		unknown
+	>
+	signInWithGithubMutation: UseMutationResult<RecordAuthResponse, Error, void>
+	addWallet: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
+	resetPasswordMutation: UseMutationResult<void, Error, string>
+	changeEmail: (email: string) => void
+	resendVerification: (email: string) => void
+	addEmail: (email: string) => Promise<void>
+	setPromotionalEmails: (value: string) => void
+	isAuthenticated: boolean
+	user: AuthModel
+	hasActiveSubscription: boolean
+	isTrial: boolean
+	loaders: {
+		login: boolean
+		signup: boolean
+		logout: boolean
+		addWallet: boolean
+		changeEmail: boolean
+		resendVerification: boolean
+		addEmail: boolean
+		setPromotionalEmails: boolean
+		userLoading: boolean
+	}
+}
+
+const AuthContext = createContext<AuthContextType>({} as AuthContextType)
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+	// Use useSyncExternalStore to listen to authStore changes
+	const authStoreState = useSyncExternalStore(subscribeToAuthStore, getAuthStoreSnapshot, getServerSnapshot)
+
+	// Derive isAuthenticated from authStoreState
+	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
+
+	const queryClient = useQueryClient()
+
+	const { isLoading: userQueryIsLoading } = useQuery({
+		queryKey: ['auth', 'status', authStoreState?.record?.id ?? null],
+		queryFn: async () => {
+			if (!authStoreState.token) {
+				clearUserSession()
+				return null
+			}
+			try {
+				const refreshResult = await pb.collection('users').authRefresh()
+				return refreshResult.record
+			} catch (error: any) {
+				if (error?.isAbort || error?.message?.includes('autocancelled')) {
+					if (authStoreState.isValid && authStoreState.record) {
+						return authStoreState.record
+					}
+					clearUserSession()
+					return null
+				}
+
+				console.log('Error refreshing auth:', error)
+
+				if (error?.status === 401 || error?.code === 401) {
+					clearUserSession()
+				}
+
+				throw new Error('Failed to refresh auth')
+			}
+		},
+		enabled: authStoreState.token != null && authStoreState.isValid,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 3,
+		retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
+	})
+
+	const loginMutation = useMutation({
+		mutationFn: async ({ email, password }: { email: string; password: string }) => {
+			try {
+				const res = await pb.collection('users').authWithPassword(email, password)
+
+				return res
+			} catch (error) {
+				console.log('Login error:', error)
+				throw new Error('Invalid credentials')
+			}
+		},
+		onSuccess: () => {
+			toast.success('Successfully signed in', { duration: 3000 })
+		},
+		onError: () => {
+			toast.error('Invalid email or password')
+		}
+	})
+
+	const userLoading = !authStoreState.token || !authStoreState.record ? userQueryIsLoading : false
+
+	const login = useCallback(
+		async (email: string, password: string, onSuccess?: () => void) => {
+			await loginMutation.mutateAsync({ email, password }).catch((error) => {
+				console.log('Login error:', error)
+				throw error
+			})
+			if (onSuccess) {
+				onSuccess()
+			}
+		},
+		[loginMutation]
+	)
+
+	const signupMutation = useMutation({
+		mutationFn: async ({
+			email,
+			password,
+			passwordConfirm,
+			turnstileToken,
+			promotionalEmails
+		}: {
+			email: string
+			password: string
+			passwordConfirm: string
+			turnstileToken: string
+			promotionalEmails?: PromotionalEmailsValue
+		}) => {
+			const response = await fetch(`${AUTH_SERVER}/auth/signup`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email,
+					password,
+					passwordConfirm,
+					auth_method: 'email',
+					source: getSignupSource(),
+					turnstile_token: turnstileToken,
+					promotionalEmails
+				})
+			})
+
+			if (!response.ok) {
+				const errorData = await response.json()
+				throw errorData
+			}
+
+			const { token } = await response.json()
+			pb.authStore.save(token)
+		},
+		onSuccess: () => {
+			clearSignupSource()
+			sessionStorage.setItem('just_signed_up', 'true')
+			toast.success('Account created! Please check your email to verify your account.', { duration: 5000 })
+		},
+		onError: (error: any) => {
+			if (error?.error === 'User with this email already exists') {
+				return
+			}
+			const message = error.error
+			if (message) {
+				toast.error(message)
+			} else {
+				toast.error('Failed to create account. Please try again.')
+			}
+		}
+	})
+
+	const signup = useCallback(
+		async (
+			email: string,
+			password: string,
+			passwordConfirm: string,
+			turnstileToken: string,
+			promotionalEmails?: PromotionalEmailsValue,
+			onSuccess?: () => void
+		) => {
+			const result = await signupMutation.mutateAsync({
+				email,
+				password,
+				passwordConfirm,
+				turnstileToken,
+				promotionalEmails
+			})
+			onSuccess?.()
+			return result
+		},
+		[signupMutation]
+	)
+
+	const logoutMutation = useMutation({
+		mutationFn: () => {
+			clearUserSession()
+			return Promise.resolve(true)
+		}
+	})
+
+	const logout = useCallback(() => {
+		logoutMutation.mutate()
+	}, [logoutMutation])
+
+	const authorizedFetch = useCallback(
+		async (url: string, options: FetchOptions = {}, onlyToken = false) => {
+			const { skipAuth = false, headers = {}, ...rest } = options
+
+			if (skipAuth) {
+				return fetch(url, options)
+			}
+
+			if (!pb.authStore.isValid) {
+				console.log('Not authenticated')
+				return null
+			}
+
+			const authHeaders = {
+				...headers,
+				Authorization: onlyToken ? pb.authStore.token : `Bearer ${pb.authStore.token}`
+			}
+
+			try {
+				const response = await fetch(url, {
+					...rest,
+					headers: authHeaders
+				})
+
+				if (!response.ok) {
+					return response
+				}
+
+				return response
+			} catch (error) {
+				if (error instanceof Error && error.message === 'Session expired') {
+					toast.error('Your session has expired. Please login again.')
+					logout()
+				}
+				throw error
+			}
+		},
+		[logout]
+	)
+
+	const signInWithEthereumMutation = useMutation({
+		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
+			const createSiweMessage = await loadCreateSiweMessage()
+			const { nonce } = await getNonce(address)
+			const issuedAt = new Date()
+			const message = createSiweMessage({
+				domain: window.location.host,
+				address: address as `0x${string}`,
+				statement: 'Sign in with Ethereum to the app.',
+				uri: window.location.origin,
+				version: '1',
+				chainId: 1,
+				nonce: nonce,
+				issuedAt: issuedAt
+			})
+
+			const signature = await signMessageFunction({
+				message: message,
+				account: address as `0x${string}`
+			})
+
+			const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					message,
+					signature,
+					address,
+					issuedAt: issuedAt.toISOString(),
+					source: getSignupSource()
+				})
+			})
+
+			if (!response.ok) {
+				const errorMessage = await getAuthErrorMessageFromResponse(response, 'Failed to sign in with Ethereum')
+				throw new Error(errorMessage)
+			}
+
+			const { password, identity, impersonate } = await response.json()
+
+			if (impersonate) {
+				pb.authStore.save(impersonate.token, impersonate.record)
+			} else {
+				await pb.collection('users').authWithPassword(identity, password)
+			}
+
+			clearSignupSource()
+			toast.success('Successfully signed in with Web3 wallet')
+
+			return { address }
+		}
+	})
+
+	const signInWithGithubMutation = useMutation({
+		mutationFn: async () => {
+			try {
+				const authData = await pb.collection('users').authWithOAuth2({
+					provider: 'github',
+					redirectTo: `${window.location.origin}/subscription`
+				})
+
+				return authData
+			} catch (error) {
+				console.log('GitHub sign-in error:', error)
+				throw new Error('Failed to sign in with GitHub')
+			}
+		}
+	})
+
+	const addWalletMutation = useMutation({
+		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
+			if (!pb.authStore.isValid) {
+				throw new Error('User not authenticated')
+			}
+
+			const createSiweMessage = await loadCreateSiweMessage()
+			const { nonce } = await getNonce(address)
+			const issuedAt = new Date()
+			const message = createSiweMessage({
+				domain: window.location.host,
+				address: address as `0x${string}`,
+				statement: 'Sign in with Ethereum to the app.',
+				uri: window.location.origin,
+				version: '1',
+				chainId: 1,
+				nonce: nonce,
+				issuedAt: issuedAt
+			})
+
+			const signature = await signMessageFunction({
+				message: message,
+				account: address as `0x${string}`
+			})
+
+			const response = await fetch(`${AUTH_SERVER}/add-wallet`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
+			})
+
+			if (!response.ok) {
+				const reason = await getAuthErrorMessageFromResponse(response, 'Failed to link wallet')
+				throw new Error(reason)
+			}
+
+			return { address }
+		},
+		onSuccess: async () => {
+			try {
+				await pb.collection('users').authRefresh()
+			} catch {
+				/* ignore refresh error */
+			}
+			toast.success('Wallet linked successfully')
+		},
+		onError: (error) => {
+			const message = error instanceof Error ? error.message : 'Failed to link wallet'
+			toast.error(message)
+		}
+	})
+
+	const addWallet = useCallback(
+		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
+			try {
+				await addWalletMutation.mutateAsync({ address, signMessageFunction })
+				if (onSuccess) {
+					onSuccess()
+				}
+				return Promise.resolve()
+			} catch (error) {
+				console.log('Add wallet error:', error)
+				return Promise.reject(error)
+			}
+		},
+		[addWalletMutation]
+	)
+
+	const resetPasswordMutation = useMutation({
+		mutationFn: async (email: string) => {
+			await pb.collection('users').requestPasswordReset(email)
+			toast.success('Password reset email sent')
+		}
+	})
+
+	const changeEmail = useMutation({
+		mutationFn: async (email: string) => {
+			try {
+				await pb.collection('users').requestEmailChange(email)
+				toast.success('Email change request sent')
+			} catch {
+				toast.error('User with this email already exists')
+			}
+		}
+	})
+
+	const resendVerification = useMutation({
+		mutationFn: async (email: string) => {
+			if (!pb.authStore.isValid) {
+				throw new Error('User not authenticated')
+			}
+
+			await pb.collection('users').requestVerification(email)
+
+			toast.success('Verification email sent')
+			return true
+		},
+		onError: () => {
+			toast.error('Failed to send verification email. Please try again.')
+		}
+	})
+
+	const addEmail = useMutation({
+		mutationFn: async (email: string) => {
+			const response = await fetch(`${AUTH_SERVER}/add-email`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ email })
+			})
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to add email'))
+			})
+		},
+		onSuccess: () => {
+			toast.success('Email added successfully')
+		},
+		onError: (error: any) => {
+			toast.error(getUserFacingErrorMessage(error, 'Failed to add email'))
+		}
+	})
+
+	const setPromotionalEmails = useMutation({
+		mutationFn: async (value: string) => {
+			const response = await fetch(`${AUTH_SERVER}/user/promotional-emails`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ value })
+			})
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to update promotional emails preference'))
+			})
+
+			return { value }
+		},
+		onSuccess: async (data) => {
+			queryClient.setQueryData(['auth', 'status', authStoreState?.record?.id ?? null], (oldData: any) => {
+				if (!oldData) return oldData
+				return {
+					...oldData,
+					promotionalEmails: data.value
+				}
+			})
+			try {
+				await pb.collection('users').authRefresh()
+			} catch (error) {
+				console.log('Error refreshing auth after promotional emails update:', error)
+			}
+			toast.success('Email preferences updated successfully')
+		},
+		onError: (error: any) => {
+			toast.error(getUserFacingErrorMessage(error, 'Failed to update email preferences'))
+		}
+	})
+
+	const userData = useMemo(() => {
+		if (!authStoreState?.record) return null
+
+		return {
+			id: authStoreState.record.id,
+			collectionId: authStoreState.record.collectionId,
+			collectionName: authStoreState.record.collectionName,
+			walletAddress: authStoreState.record.address,
+			authMethod: authStoreState.record.auth_method,
+			created: authStoreState.record.created,
+			updated: authStoreState.record.updated,
+			email: authStoreState.record.email,
+			name: authStoreState.record.name,
+			avatar: authStoreState.record.avatar,
+			username: authStoreState.record.username,
+			verified: authStoreState.record.email?.includes('@defillama.com') ? true : authStoreState.record.verified,
+			emailVisibility: authStoreState.record.emailVisibility,
+			expand: authStoreState.record.expand,
+			has_active_subscription: authStoreState.record.has_active_subscription,
+			flags: authStoreState.record.flags ?? {},
+			ethereum_email: authStoreState.record.ethereum_email,
+			promotionalEmails: authStoreState.record.promotionalEmails as PromotionalEmailsValue | undefined
+		} as AuthModel
+	}, [authStoreState])
+
+	const contextValue: AuthContextType = {
+		user: userData,
+		login,
+		signup,
+		logout,
+		authorizedFetch,
+		signInWithEthereumMutation,
+		signInWithGithubMutation,
+		addWallet,
+		resetPasswordMutation,
+		changeEmail: changeEmail.mutate,
+		resendVerification: resendVerification.mutate,
+		addEmail: addEmail.mutateAsync,
+		setPromotionalEmails: setPromotionalEmails.mutate,
+		isAuthenticated,
+		hasActiveSubscription: userData?.has_active_subscription ?? false,
+		isTrial: Boolean(userData?.flags?.is_trial),
+		loaders: {
+			login: loginMutation.isPending,
+			signup: signupMutation.isPending,
+			logout: logoutMutation.isPending,
+			addWallet: addWalletMutation.isPending,
+			changeEmail: changeEmail.isPending,
+			resendVerification: resendVerification.isPending,
+			addEmail: addEmail.isPending,
+			setPromotionalEmails: setPromotionalEmails.isPending,
+			userLoading
+		}
+	}
+
+	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+}
+
+export const useAuthContext = () => {
+	const context = useContext(AuthContext)
+	if (!context) {
+		throw new Error('useAuth must be used within an AuthProvider')
+	}
+	return context
+}
+
+function subscribeToUserHash(callback: () => void) {
+	window.addEventListener('userHashChange', callback)
+	return () => {
+		window.removeEventListener('userHashChange', callback)
+	}
+}
+
+export const useUserHash = () => {
+	const { user, hasActiveSubscription, authorizedFetch } = useAuthContext()
+
+	let email = user?.email ?? null
+	if (user?.email && user.email.startsWith('0x') && user.email.endsWith('@defillama.com') && user.ethereum_email) {
+		email = user.ethereum_email
+	}
+
+	const userHash = useSyncExternalStore(
+		subscribeToUserHash,
+		() => (email && hasActiveSubscription ? (localStorage.getItem('userHash') ?? null) : null),
+		() => null
+	)
+
+	useQuery({
+		queryKey: ['auth', 'user-hash', email, hasActiveSubscription],
+		queryFn: () =>
+			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
+				.then((res) => {
+					if (!res) throw new Error('Not authenticated')
+					return handleSimpleFetchResponse(res)
+				})
+				.then((res) => res.json())
+				.then((data) => {
+					const currentUserHash = localStorage.getItem('userHash')
+					if (currentUserHash !== data.userHash) {
+						localStorage.setItem('userHash', data.userHash)
+						window.dispatchEvent(new Event('userHashChange'))
+					}
+					return data.userHash
+				})
+				.catch(() => {
+					const currentUserHash = localStorage.getItem('userHash')
+					if (currentUserHash !== null) {
+						localStorage.removeItem('userHash')
+						window.dispatchEvent(new Event('userHashChange'))
+					}
+					return null
+				}),
+		enabled: !!(email && hasActiveSubscription),
+		staleTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		retry: 3
+	})
+
+	return { userHash, email }
+}

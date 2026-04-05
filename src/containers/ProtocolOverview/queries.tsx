@@ -1,5 +1,7 @@
-import { fetchBlockExplorers, fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
-import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
+import { fetchBlockExplorers, fetchLiquidityTokensDataset } from '~/api'
+import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
+import type { CgChartResponse } from '~/api/coingecko.types'
+import type { BlockExplorersResponse, ProtocolLiquidityTokensResponse } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
@@ -22,7 +24,7 @@ import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { buildProtocolOverviewHallmarks } from '~/utils/hallmarks'
-import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,
 	fetchProtocolOverviewMetrics,
@@ -118,7 +120,8 @@ export const getProtocolOverviewPageData = async ({
 	isCEX = false,
 	chainMetadata,
 	tokenlist,
-	cgExchangeIdentifiers
+	cgExchangeIdentifiers,
+	protocolLlamaswapDataset
 }: {
 	protocolId: string
 	currentProtocolMetadata: IProtocolMetadata
@@ -126,6 +129,7 @@ export const getProtocolOverviewPageData = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	tokenlist: Record<string, import('~/utils/metadata/types').ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 }): Promise<IProtocolOverviewPageData> => {
 	const displayName = currentProtocolMetadata.displayName ?? ''
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
@@ -193,7 +197,7 @@ export const getProtocolOverviewPageData = async ({
 		number | null,
 		IProtocolExpenses | null,
 		IYieldsConfigResult,
-		ProtocolLiquidityToken[],
+		ProtocolLiquidityTokensResponse,
 		ProtocolsResponse,
 		IHackApiItem[],
 		IBridgeVolumeResult,
@@ -210,7 +214,7 @@ export const getProtocolOverviewPageData = async ({
 					const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
 					const tickers =
 						tokenEntry && geckoId
-							? await fetchCgChartByGeckoId(geckoId)
+							? await fetchCoinGeckoChartByIdWithCacheFallback(geckoId)
 									.then((res) => res?.data?.coinData?.tickers)
 									.catch(() => undefined)
 							: undefined
@@ -434,7 +438,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.liquidity
-			? fetchProtocolLiquidityTokens().catch(() => {
+			? fetchLiquidityTokensDataset().catch(() => {
 					return []
 				})
 			: [],
@@ -506,7 +510,8 @@ export const getProtocolOverviewPageData = async ({
 
 	const tokenPools =
 		yieldsData?.data && yieldsConfig
-			? (liquidityInfo?.find((p: ProtocolLiquidityToken) => p.id === protocolData.id)?.tokenPools ?? [])
+			? (liquidityInfo?.find((p: ProtocolLiquidityTokensResponse[number]) => p.id === protocolData.id)?.tokenPools ??
+				[])
 			: []
 
 	const liquidityAggregated = tokenPools.reduce(
@@ -654,6 +659,8 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const firstChain = chains.sort((a, b) => b[1] - a[1])?.[0]?.[0] ?? null
+	const tokenGeckoId = currentProtocolMetadata.gecko_id ?? null
+	const llamaswapChains = !isCEX && tokenGeckoId ? (protocolLlamaswapDataset?.[tokenGeckoId] ?? null) : null
 	const chartDenominations: Array<{ symbol: string; geckoId?: string | null }> = []
 	if (firstChain && !isCEX) {
 		chartDenominations.push({ symbol: 'USD', geckoId: null })
@@ -679,7 +686,7 @@ export const getProtocolOverviewPageData = async ({
 		isCEX,
 		hasTvlChart: Boolean(currentProtocolMetadata.tvl && protocolTvlChartData.length > 0),
 		hasTvsChart: Boolean(oracleChartData?.length),
-		hasGeckoId: Boolean(protocolData.gecko_id),
+		hasGeckoId: Boolean(tokenGeckoId),
 		hasLiquidity: Boolean(currentProtocolMetadata.liquidity),
 		hasFees: Boolean(feesData),
 		hasRevenue: Boolean(revenueData),
@@ -904,8 +911,8 @@ export const getProtocolOverviewPageData = async ({
 				protocolData.symbol && protocolData.symbol !== '-'
 					? protocolData.symbol
 					: (protocolData.tokenCGData?.symbol ?? null),
-			gecko_id: protocolData.gecko_id ?? null,
-			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
+			gecko_id: tokenGeckoId,
+			gecko_url: tokenGeckoId ? `https://www.coingecko.com/en/coins/${tokenGeckoId}` : null,
 			explorer_url:
 				getBlockExplorerNew({
 					apiResponse: blockExplorersData,
@@ -984,7 +991,7 @@ export const getProtocolOverviewPageData = async ({
 		initialMultiSeriesChartData,
 		hallmarks,
 		rangeHallmarks,
-		geckoId: protocolData.gecko_id ?? null,
+		geckoId: tokenGeckoId,
 		governanceApis: governanceIdsToApis(protocolData.governanceID ?? []),
 		incomeStatement,
 		warningBanners: getProtocolWarningBanners(protocolData),
@@ -1005,7 +1012,8 @@ export const getProtocolOverviewPageData = async ({
 		seoTitle,
 		seoDescription,
 		defaultToggledCharts,
-		oracleTvs
+		oracleTvs,
+		llamaswapChains
 	}
 }
 

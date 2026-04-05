@@ -1,5 +1,6 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
@@ -117,6 +118,48 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	feed_enrichment: { icon: 'layers', color: '#8b5cf6' }
 }
 
+let currentSecondSnapshot = Math.floor(Date.now() / 1000)
+const currentSecondListeners = new Set<() => void>()
+let currentSecondIntervalId: number | null = null
+
+function notifyCurrentSecondListeners() {
+	for (const listener of currentSecondListeners) {
+		listener()
+	}
+}
+
+function syncCurrentSecondSnapshot() {
+	const nextSecond = Math.floor(Date.now() / 1000)
+	if (nextSecond === currentSecondSnapshot) return
+	currentSecondSnapshot = nextSecond
+	notifyCurrentSecondListeners()
+}
+
+function subscribeToCurrentSecond(listener: () => void) {
+	currentSecondListeners.add(listener)
+	syncCurrentSecondSnapshot()
+
+	if (currentSecondIntervalId === null && typeof window !== 'undefined') {
+		currentSecondIntervalId = window.setInterval(syncCurrentSecondSnapshot, 1000)
+	}
+
+	return () => {
+		currentSecondListeners.delete(listener)
+		if (currentSecondListeners.size === 0 && currentSecondIntervalId !== null) {
+			window.clearInterval(currentSecondIntervalId)
+			currentSecondIntervalId = null
+		}
+	}
+}
+
+function useCurrentSecond() {
+	return useSyncExternalStore(
+		subscribeToCurrentSecond,
+		() => currentSecondSnapshot,
+		() => currentSecondSnapshot
+	)
+}
+
 function formatTime(seconds: number) {
 	const minutes = Math.floor(seconds / 60)
 	const remainder = seconds % 60
@@ -125,14 +168,7 @@ function formatTime(seconds: number) {
 
 export function useHackerMode() {
 	const [isDark] = useDarkModeManager()
-	const [enabled, setEnabled] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
-	)
-	useEffect(() => {
-		const handler = () => setEnabled(localStorage.getItem('llamaai-hacker-mode') === 'true')
-		window.addEventListener('llamaai-hacker-mode-changed', handler)
-		return () => window.removeEventListener('llamaai-hacker-mode-changed', handler)
-	}, [])
+	const enabled = useLlamaAISetting('hackerMode')
 	return enabled && isDark
 }
 
@@ -197,8 +233,8 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 				onScroll={syncAutoScrollIntent}
 				className={
 					hackerMode
-						? 'mt-1 max-h-[160px] overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
-						: 'mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
+						? 'mt-1 h-[160px] min-h-[40px] resize-y overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
+						: 'mt-1 h-[120px] min-h-[40px] resize-y overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
 				}
 				style={hackerMode ? { textShadow: '0 0 8px rgba(0,255,65,0.4)' } : undefined}
 			>
@@ -209,17 +245,10 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 }
 
 function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }) {
-	const [elapsed, setElapsed] = useState(0)
-
-	useEffect(() => {
-		const start = serverStartedAt || Date.now()
-		setElapsed(Math.floor((Date.now() - start) / 1000))
-		const interval = setInterval(() => {
-			setElapsed(Math.floor((Date.now() - start) / 1000))
-		}, 1000)
-
-		return () => clearInterval(interval)
-	}, [serverStartedAt])
+	const currentSecond = useCurrentSecond()
+	const [fallbackStartSecond] = useState(() => Math.floor(Date.now() / 1000))
+	const startSecond = serverStartedAt ? Math.floor(serverStartedAt / 1000) : fallbackStartSecond
+	const elapsed = Math.max(0, currentSecond - startSecond)
 
 	return <span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 }
@@ -353,17 +382,9 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 	startTime: number
 	isResearchMode?: boolean
 }) {
-	const [elapsed, setElapsed] = useState(() => (startTime ? Math.floor((Date.now() - startTime) / 1000) : 0))
+	const currentSecond = useCurrentSecond()
+	const elapsed = startTime ? Math.max(0, currentSecond - Math.floor(startTime / 1000)) : 0
 	const [isExpanded, setIsExpanded] = useState(true)
-
-	useEffect(() => {
-		if (!startTime) return
-		setElapsed(Math.floor((Date.now() - startTime) / 1000))
-		const interval = setInterval(() => {
-			setElapsed(Math.floor((Date.now() - startTime) / 1000))
-		}, 1000)
-		return () => clearInterval(interval)
-	}, [startTime])
 
 	const agentList = useMemo(() => [...agents.values()], [agents])
 	const completed = agentList.filter((agent) => agent.status === 'completed').length

@@ -5,6 +5,8 @@ import type { IProtocolPageMetrics } from './types'
 
 const canonicalProtocolAaveRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/aave")[^>]*\/?>/
+const canonicalProtocolDefiSwapRegex =
+	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/defi-swap")[^>]*\/?>/
 const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="noindex")[^>]*\/?>/
 
 const metrics: IProtocolPageMetrics = {
@@ -220,6 +222,27 @@ describe('ProtocolOverviewLayout SEO', () => {
 
 		expect(markup).toMatch(canonicalProtocolAaveRegex)
 		expect(markup).not.toMatch(robotsNoindexRegex)
+	})
+
+	it('marks configured protocol overview pages as noindex while keeping the canonical URL', async () => {
+		setupLayoutMocks()
+
+		const { ProtocolOverviewLayout } = await import('./Layout')
+		const markup = renderToStaticMarkup(
+			React.createElement(
+				ProtocolOverviewLayout as React.ComponentType<any>,
+				{
+					name: 'Defi Swap',
+					category: 'DEX',
+					metrics,
+					tab: 'information'
+				},
+				null
+			)
+		)
+
+		expect(markup).toMatch(canonicalProtocolDefiSwapRegex)
+		expect(markup).toMatch(robotsNoindexRegex)
 	})
 
 	it('marks a non-standalone tab as noindex without a canonical URL', async () => {

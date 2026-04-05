@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { IProtocol } from './types'
 import {
+	buildProtocolBreakdownNormalization,
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
@@ -9,6 +10,7 @@ import {
 	mergeBreakdownCharts,
 	mergeNamedDimensionChartDataset,
 	mergeSingleDimensionChartDataset,
+	normalizeProtocolBreakdownChartData,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
 } from './utils'
@@ -513,13 +515,16 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 		expect(presentation.kind).toBe('bar')
 		if (presentation.kind !== 'bar') return
 
-		expect(presentation.charts.map((chart) => chart.name)).toContain('Hyperliquid')
-		expect(presentation.charts.map((chart) => chart.name)).toContain('Others')
+		expect(presentation.charts.map((chart) => chart.name)).toEqual([
+			'Hyperliquid',
+			...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)
+		])
 		expect(presentation.dataset.source.at(-1)?.Hyperliquid).toBe(50)
-		expect(presentation.dataset.source.at(-1)?.Others).toBe(1)
+		expect(presentation.dataset.source.at(-1)?.['Protocol 10']).toBe(1)
 	})
 
-	it('ranks cumulative line series by cumulative totals before applying the top-series cap', () => {
+	it('ranks cumulative line series by cumulative totals without collapsing overflow into Others', () => {
+		const selectedProtocols = ['History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)]
 		const cumulativeLineChartData = {
 			dimensions: ['timestamp', 'History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)],
 			source: [
@@ -536,7 +541,7 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 
 		const presentation = buildAdapterByChainBreakdownPresentation({
 			chartData: cumulativeLineChartData,
-			selectedProtocols: ['History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)],
+			selectedProtocols,
 			state: {
 				chartKind: 'line',
 				groupBy: 'cumulative'
@@ -546,11 +551,11 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 		expect(presentation.kind).toBe('line')
 		if (presentation.kind !== 'line') return
 
-		expect(presentation.charts.map((chart) => chart.name)).toContain('History Giant')
-		expect(presentation.charts.map((chart) => chart.name)).toContain('Others')
+		expect(presentation.charts.map((chart) => chart.name)).toEqual(selectedProtocols)
 		expect(presentation.charts).toHaveLength(11)
 		expect(presentation.dataset.source.at(-1)?.['History Giant']).toBeCloseTo((101 / 201) * 100)
-		expect(presentation.dataset.source.at(-1)?.Others).toBeCloseTo((10 / 201) * 100)
+		expect(presentation.dataset.source.at(-1)?.['Protocol 1']).toBeCloseTo((10 / 201) * 100)
+		expect(presentation.dataset.source.at(-1)?.['Protocol 10']).toBeCloseTo((10 / 201) * 100)
 	})
 })
 
@@ -619,6 +624,7 @@ describe('buildAdapterByChainLatestValuePresentation', () => {
 		expect(presentation.kind).toBe('hbar')
 		if (presentation.kind !== 'hbar') return
 
+		expect(presentation.data).toHaveLength(10)
 		expect(presentation.data.at(-1)?.name).toBe('Others')
 		expect(presentation.data.at(-1)?.value).toBe(30)
 	})
@@ -724,7 +730,7 @@ describe('mergeNamedDimensionChartDataset', () => {
 	})
 })
 
-const protocol = (name: string, category: string | null): IProtocol =>
+const protocol = (name: string, category: string | null, options: Partial<IProtocol> = {}): IProtocol =>
 	({
 		name,
 		slug: name.toLowerCase(),
@@ -736,8 +742,91 @@ const protocol = (name: string, category: string | null): IProtocol =>
 		total30d: null,
 		total1y: null,
 		totalAllTime: null,
-		mcap: null
+		mcap: null,
+		...options
 	}) as IProtocol
+
+describe('buildProtocolBreakdownNormalization', () => {
+	it('maps parent-normalized rows back to raw breakdown aliases', () => {
+		const normalization = buildProtocolBreakdownNormalization([
+			protocol('Hyperliquid', null, { breakdownAliases: ['Hyperliquid Perps'] }),
+			protocol('tradeXYZ', null)
+		])
+
+		expect(normalization.canonicalBySeriesName.Hyperliquid).toBe('Hyperliquid')
+		expect(normalization.canonicalBySeriesName['Hyperliquid Perps']).toBe('Hyperliquid')
+		expect(normalization.canonicalBySeriesName.tradeXYZ).toBe('tradeXYZ')
+		expect(normalization.aliasesByCanonicalName.Hyperliquid).toEqual(['Hyperliquid', 'Hyperliquid Perps'])
+	})
+
+	it('maps child protocols to the parent canonical name', () => {
+		const normalization = buildProtocolBreakdownNormalization([
+			protocol('Aster', null, {
+				childProtocols: [protocol('Aster Perps', null), protocol('Aster Legacy', null)]
+			})
+		])
+
+		expect(normalization.canonicalBySeriesName.Aster).toBe('Aster')
+		expect(normalization.canonicalBySeriesName['Aster Perps']).toBe('Aster')
+		expect(normalization.canonicalBySeriesName['Aster Legacy']).toBe('Aster')
+	})
+})
+
+describe('normalizeProtocolBreakdownChartData', () => {
+	it('aggregates aliased series into the canonical parent protocol', () => {
+		const normalization = buildProtocolBreakdownNormalization([
+			protocol('Hyperliquid', null, { breakdownAliases: ['Hyperliquid Perps'] })
+		])
+
+		const result = normalizeProtocolBreakdownChartData({
+			chart: [
+				[1704067200, { 'Hyperliquid Perps': 10 }],
+				[1704153600, { 'Hyperliquid Perps': 20 }]
+			],
+			normalization
+		})
+
+		expect(result.protocolDimensions).toEqual(['Hyperliquid'])
+		expect(result.chartData.source).toEqual([
+			{ timestamp: 1704067200 * 1e3, Hyperliquid: 10 },
+			{ timestamp: 1704153600 * 1e3, Hyperliquid: 20 }
+		])
+	})
+
+	it('aggregates multiple child protocols into the parent canonical protocol', () => {
+		const normalization = buildProtocolBreakdownNormalization([
+			protocol('Aster', null, {
+				childProtocols: [protocol('Aster Perps', null), protocol('Aster Legacy', null)]
+			})
+		])
+
+		const result = normalizeProtocolBreakdownChartData({
+			chart: [
+				[1704067200, { 'Aster Perps': 10, 'Aster Legacy': 5 }],
+				[1704153600, { 'Aster Perps': 20 }]
+			],
+			normalization
+		})
+
+		expect(result.protocolDimensions).toEqual(['Aster'])
+		expect(result.chartData.source).toEqual([
+			{ timestamp: 1704067200 * 1e3, Aster: 15 },
+			{ timestamp: 1704153600 * 1e3, Aster: 20 }
+		])
+	})
+
+	it('drops unmatched breakdown series', () => {
+		const normalization = buildProtocolBreakdownNormalization([protocol('Hyperliquid', null)])
+
+		const result = normalizeProtocolBreakdownChartData({
+			chart: [[1704067200, { tradeXYZ: 10 }]],
+			normalization
+		})
+
+		expect(result.protocolDimensions).toEqual([])
+		expect(result.chartData).toEqual({ source: [], dimensions: ['timestamp'] })
+	})
+})
 
 describe('getCategoryProtocolNameFilterForChart', () => {
 	it('returns unrestricted when the page has no categories', () => {

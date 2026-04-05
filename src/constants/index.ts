@@ -3,6 +3,9 @@ const API_KEY = process.env.API_KEY
 export const COINGECKO_KEY = process.env.CG_KEY
 export const SEARCH_API_TOKEN = process.env.NEXT_PUBLIC_SEARCH_API_TOKEN
 export const SKIP_BUILD_STATIC_GENERATION = !['false', '0'].includes(process.env.SKIP_BUILD_STATIC_GENERATION)
+export const ENABLE_LLAMASWAP_PROTOCOLS_CHAINS = ['1', 'true'].includes(
+	(process.env.ENABLE_LLAMASWAP_PROTOCOLS_CHAINS ?? '').toLowerCase()
+)
 export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ''
 
 // Base servers
@@ -24,6 +27,9 @@ export const ETF_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/etf
 export const FDV_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
 export const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
+export const RWA_PERPS_SERVER_URL = API_KEY
+	? `https://pro-api.llama.fi/${API_KEY}/rwa-perps`
+	: 'https://api.llama.fi/rwa-perps'
 export const STABLECOINS_SERVER_URL = API_KEY
 	? `https://pro-api.llama.fi/${API_KEY}/stablecoins`
 	: 'https://stablecoins.llama.fi'
@@ -49,9 +55,6 @@ export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
 export const RAISES_API = `${SERVER_URL}/raises`
 export const CEXS_API = `${SERVER_URL}/cexs`
 export const HACKS_API = `${SERVER_URL}/hacks`
-export const CG_TOKEN_API =
-	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
-
 // Icons
 export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
 
@@ -70,9 +73,6 @@ export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
 export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
 export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 
-// Datasets
-export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
-
 // Yields APIs
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
@@ -88,6 +88,7 @@ export const YIELD_PROJECT_MEDIAN_API = `${YIELDS_SERVER_URL}/medianProject`
 export const YIELD_TOKEN_CATEGORIES_API = 'https://ask.llama.fi/token-categories/yields'
 export const YIELD_URL_API = `${YIELDS_SERVER_URL}/url`
 export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
+export const YIELD_HOLDERS_API = '/api/datasets/holders'
 
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'

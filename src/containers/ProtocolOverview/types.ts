@@ -1,6 +1,7 @@
 import type * as echarts from 'echarts/core'
 import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import type { IProtocolLlamaswapChain as BuyOnLlamaswapChain } from '~/utils/metadata/types'
 import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
 import type { IProtocolNumericSeries } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
@@ -195,6 +196,7 @@ export interface IProtocolOverviewPageData {
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]
 	treasuryMethodologyUrl?: string | null
+	llamaswapChains?: BuyOnLlamaswapChain[] | null
 }
 
 interface ICredit {
@@ -229,13 +231,6 @@ export interface IArticle {
 	date: string
 	href: string
 	imgSrc: string | null
-}
-
-// date in the chart is in ms
-export interface IDenominationPriceHistory {
-	prices: Array<[number, number]>
-	mcaps: Array<[number, number]>
-	volumes: Array<[number, number]>
 }
 
 export interface IToggledMetrics extends Record<

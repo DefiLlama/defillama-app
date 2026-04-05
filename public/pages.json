@@ -120,15 +120,15 @@
       "oldName": "Overview"
     },
     {
-      "name": "Yields: Stablecoin Pools",
+      "name": "Stablecoin Yields",
       "route": "/yields/stablecoins",
       "category": "Yields",
-      "description": "APYs of pools with stablecoins",
+      "description": "Stablecoin liquidity pools by APY",
       "keys": [
         "pegged"
       ],
       "oldCategory": "Yields",
-      "oldName": "Stablecoin Pools"
+      "oldName": "Stablecoin Yields"
     },
     {
       "name": "Yields: Leveraged Lending",
@@ -548,41 +548,6 @@
       "tab": "Protocols"
     },
     {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections",
-      "totalTrackedKey": "nfts.collections",
-      "oldCategory": "NFTs",
-      "oldName": "Collections"
-    },
-    {
-      "name": "NFTs: Marketplaces",
-      "route": "/nfts/marketplaces",
-      "category": "NFTs",
-      "description": "Overview of all NFT marketplaces",
-      "totalTrackedKey": "nfts.marketplaces",
-      "oldCategory": "NFTs",
-      "oldName": "Marketplaces"
-    },
-    {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
-      "oldCategory": "NFTs",
-      "oldName": "Earnings"
-    },
-    {
-      "name": "NFT Volume by Chain",
-      "route": "/nfts/chains",
-      "category": "NFTs",
-      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain",
-      "totalTrackedKey": "nfts.chains",
-      "oldCategory": "NFTs",
-      "oldName": "Volume (Chains)"
-    },
-    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
       "category": "Equities, ETFs & DATs",
@@ -629,6 +594,59 @@
       "oldName": "Calendar"
     },
     {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections",
+      "totalTrackedKey": "nfts.collections",
+      "oldCategory": "NFTs",
+      "oldName": "Collections"
+    },
+    {
+      "name": "NFTs: Marketplaces",
+      "route": "/nfts/marketplaces",
+      "category": "NFTs",
+      "description": "Overview of all NFT marketplaces",
+      "totalTrackedKey": "nfts.marketplaces",
+      "oldCategory": "NFTs",
+      "oldName": "Marketplaces"
+    },
+    {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
+      "oldCategory": "NFTs",
+      "oldName": "Earnings"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains",
+      "category": "NFTs",
+      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain",
+      "totalTrackedKey": "nfts.chains",
+      "oldCategory": "NFTs",
+      "oldName": "Volume (Chains)"
+    },
+    {
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
+    },
+    {
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
@@ -651,24 +669,6 @@
       "category": "Treasury",
       "description": "Treasury by entity",
       "totalTrackedKey": "treasury.entities"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
     },
     {
       "name": "CEXs",
@@ -765,19 +765,19 @@
       "oldName": "Watchlist"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
-    },
-    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
       "description": "Simple view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Simple"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
     },
     {
       "name": "Yields: Watchlist",

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { CexAnalyticsMetric, CexAnalyticsView, ProtocolsTableConfig } from '~/containers/ProDashboard/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
@@ -139,6 +140,24 @@ const tableTypeOptions: Array<{
 		label: 'Trending Contracts',
 		description: 'Most active smart contracts by transactions and gas usage',
 		icon: '🔥'
+	},
+	{
+		value: 'rwa',
+		label: 'RWA Assets',
+		description: 'Real World Assets with active mcap, onchain mcap, and DeFi TVL',
+		icon: '🏛️'
+	},
+	{
+		value: 'rwa-chains',
+		label: 'RWA By Chain',
+		description: 'RWA metrics aggregated by chain',
+		icon: '🏛️'
+	},
+	{
+		value: 'rwa-selected-chain',
+		label: 'RWA On Chain',
+		description: 'RWA assets on a selected chain',
+		icon: '🏛️'
 	}
 ]
 
@@ -236,6 +255,7 @@ const CHAIN_CATEGORY_OPTIONS = [
 	{ value: 'Parachain', label: 'Parachains' },
 	{ value: 'Cosmos', label: 'Cosmos' }
 ]
+const PRO_ONLY_TABLE_TYPES = new Set<string>(['token-usage', 'rwa', 'rwa-chains', 'rwa-selected-chain'])
 
 export function SimpleTableConfig({
 	selectedChains,
@@ -262,6 +282,7 @@ export function SimpleTableConfig({
 	onBackToTypeSelector,
 	isEditing = false
 }: SimpleTableConfigProps) {
+	const { hasActiveSubscription } = useAuthContext()
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptionsData, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 	const { data: defaultTokensData } = useTokenSearch('')
@@ -288,13 +309,14 @@ export function SimpleTableConfig({
 		const legacySet = new Set(legacyTableTypes)
 		return tableTypeOptions
 			.filter((option) => !option.hidden || legacySet.has(option.value))
+			.filter((option) => hasActiveSubscription || !PRO_ONLY_TABLE_TYPES.has(option.value))
 			.map((option) => ({
 				value: option.value,
 				label: option.hidden ? `${option.label} (Legacy)` : option.label,
 				icon: option.icon,
 				description: option.description
 			}))
-	}, [legacyTableTypes])
+	}, [legacyTableTypes, hasActiveSubscription])
 
 	const trendingChainOptions = useMemo(
 		() =>
@@ -499,6 +521,16 @@ export function SimpleTableConfig({
 						<span className="text-sm font-medium pro-text2">Include CEXs</span>
 					</button>
 				</>
+			) : selectedTableType === 'rwa-selected-chain' ? (
+				<AriakitVirtualizedSelect
+					label="Select Chain"
+					options={chainOptions}
+					selectedValue={selectedDatasetChain}
+					onChange={(option) => onDatasetChainChange(option.value)}
+					placeholder="Select chain..."
+					isLoading={protocolsLoading}
+					renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
+				/>
 			) : null}
 		</div>
 	)

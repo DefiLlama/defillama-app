@@ -41,6 +41,8 @@ export function useModalActions(
 		handleAddMetric,
 		handleAddChartBuilder,
 		handleAddLlamaAIChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleEditItem
 	} = useProDashboardEditorActions()
 
@@ -356,6 +358,26 @@ export function useModalActions(
 						chartType: state.selectedStablecoinChartType
 					} as any
 				}
+			} else if (state.selectedMainTab === 'charts' && state.selectedChartTab === 'rwa') {
+				if (state.rwaMode === 'asset' && state.selectedRwaAssetId && state.selectedRwaAssetName) {
+					newItem = {
+						...editItem,
+						kind: 'rwa-asset',
+						assetId: state.selectedRwaAssetId,
+						assetName: state.selectedRwaAssetName,
+						metrics: state.selectedRwaAssetMetrics
+					} as any
+				} else {
+					newItem = {
+						...editItem,
+						kind: 'rwa-overview',
+						metric: state.selectedRwaMetric,
+						chartView: state.selectedRwaChartView,
+						breakdown: state.selectedRwaBreakdown,
+						chain: state.selectedRwaChain === 'All' ? undefined : state.selectedRwaChain,
+						treemapNestedBy: state.selectedRwaTreemapNestedBy
+					} as any
+				}
 			} else if (
 				state.selectedMainTab === 'charts' &&
 				state.selectedChartTab === 'unlocks' &&
@@ -617,6 +639,31 @@ export function useModalActions(
 						datasetChain: state.selectedDatasetChain,
 						chains: []
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'rwa') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'rwa',
+						chains: []
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'rwa-chains') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'rwa-chains',
+						chains: []
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'rwa-selected-chain' && state.selectedDatasetChain) {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'rwa-selected-chain',
+						datasetChain: state.selectedDatasetChain,
+						chains: [state.selectedDatasetChain]
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -726,6 +773,22 @@ export function useModalActions(
 					)
 				} else {
 					handleAddStablecoinsChart(state.selectedStablecoinChain, state.selectedStablecoinChartType)
+				}
+			} else if (
+				state.selectedMainTab === 'charts' &&
+				state.chartMode === 'manual' &&
+				state.selectedChartTab === 'rwa'
+			) {
+				if (state.rwaMode === 'asset' && state.selectedRwaAssetId && state.selectedRwaAssetName) {
+					handleAddRWAAssetChart(state.selectedRwaAssetId, state.selectedRwaAssetName, state.selectedRwaAssetMetrics)
+				} else {
+					handleAddRWAOverviewChart(
+						state.selectedRwaMetric,
+						state.selectedRwaChartView,
+						state.selectedRwaBreakdown,
+						state.selectedRwaTreemapNestedBy,
+						state.selectedRwaChain === 'All' ? undefined : state.selectedRwaChain
+					)
 				}
 			} else if (
 				state.selectedMainTab === 'charts' &&
@@ -861,6 +924,12 @@ export function useModalActions(
 					)
 				} else if (state.selectedTableType === 'chains') {
 					handleAddTable([], 'dataset', 'chains', state.selectedDatasetChain)
+				} else if (state.selectedTableType === 'rwa') {
+					handleAddTable([], 'dataset', 'rwa')
+				} else if (state.selectedTableType === 'rwa-chains') {
+					handleAddTable([], 'dataset', 'rwa-chains')
+				} else if (state.selectedTableType === 'rwa-selected-chain' && state.selectedDatasetChain) {
+					handleAddTable([state.selectedDatasetChain], 'dataset', 'rwa-selected-chain', state.selectedDatasetChain)
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())
@@ -908,6 +977,8 @@ export function useModalActions(
 		handleAddYieldChart,
 		handleAddStablecoinsChart,
 		handleAddStablecoinAssetChart,
+		handleAddRWAOverviewChart,
+		handleAddRWAAssetChart,
 		handleAddAdvancedTvlChart,
 		handleAddBorrowedChart,
 		handleAddIncomeStatement,

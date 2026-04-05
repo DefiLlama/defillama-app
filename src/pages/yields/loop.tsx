@@ -1,5 +1,5 @@
 import { startTransition, useState } from 'react'
-import { fetchAllCGTokensList } from '~/api'
+import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
 import { Announcement } from '~/components/Announcement'
 import YieldPageLoop from '~/containers/Yields/indexLoop'
 import { calculateLoopAPY, getLendBorrowData } from '~/containers/Yields/queries/index'
@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 		props: { ...data }
 	} = await getLendBorrowData()
 
-	const cgTokens = await fetchAllCGTokensList()
+	const cgTokens = await fetchCoinGeckoTokensListFromDataset()
 
 	const tokens = []
 
