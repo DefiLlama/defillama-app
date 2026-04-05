@@ -346,7 +346,6 @@ export function SubscribeProModal({ dialogStore, returnUrl: _returnUrl }: Subscr
 									type="button"
 									className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
 									onClick={() => {
-										dialogStore.hide()
 										signInDialogStore.show()
 									}}
 								>
