@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { memo, useCallback, useEffect, useReducer, useRef } from 'react'
+import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { type LlamaAISettings, type LlamaAISettingsActions } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -53,6 +53,7 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 	const latestCustomInstructionsRef = useRef(settings.customInstructions)
 	const wasOpenRef = useRef(false)
 	const [modalState, dispatch] = useReducer(modalReducer, { status: 'closed' })
+	const [charCount, setCharCount] = useState(settings.customInstructions.length)
 
 	useEffect(() => {
 		latestCustomInstructionsRef.current = settings.customInstructions
@@ -63,11 +64,13 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 		}
 		draftValueRef.current = settings.customInstructions
 		baselineRef.current = settings.customInstructions.trim()
+		setCharCount(settings.customInstructions.length)
 		dispatch({ type: 'MARK_CLEAN' })
 	}, [isOpen, modalState.status, settings.customInstructions])
 
 	const syncDirtyState = useCallback(() => {
 		draftValueRef.current = textareaRef.current?.value ?? draftValueRef.current
+		setCharCount(draftValueRef.current.length)
 		const nextValue = draftValueRef.current.trim()
 		dispatch({ type: nextValue === baselineRef.current ? 'MARK_CLEAN' : 'MARK_DIRTY' })
 	}, [])
@@ -110,6 +113,7 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 				}
 				draftValueRef.current = nextValue
 				baselineRef.current = nextValue.trim()
+				setCharCount(nextValue.length)
 				dispatch({ type: 'OPEN' })
 			})
 
@@ -209,7 +213,9 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 							rows={4}
 						/>
 						<div className="flex items-center justify-between text-[11px] text-[#999] dark:text-[#666]">
-							<p className="m-0">Max 500 characters</p>
+							<p className="m-0">
+								{charCount}/{MAX_LENGTH} characters
+							</p>
 							<p className="m-0 hidden sm:inline">⌘+Enter to save &amp; close</p>
 						</div>
 					</section>
