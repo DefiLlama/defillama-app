@@ -502,7 +502,13 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				if (!old) return []
 				return old.map((item) =>
 					item.id === alertId
-						? { ...item, title: nextTitle, schedule_expression: newExpression, delivery_channel, condition: nextCondition || null }
+						? {
+								...item,
+								title: nextTitle,
+								schedule_expression: newExpression,
+								delivery_channel,
+								condition: nextCondition || null
+							}
 						: item
 				)
 			})
@@ -589,17 +595,12 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				</div>
 				{selectedExec.generated_summary ? (
 					<div
-						className="prose prose-sm max-w-none text-sm text-black dark:prose-invert dark:text-white [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg"
+						className="prose prose-sm max-w-none text-sm text-black dark:text-white dark:prose-invert [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg"
 						dangerouslySetInnerHTML={{
-							__html: selectedExec.generated_summary.replace(
-								/\[CHART:([^\]]+)\]/g,
-								(_, chartId: string) => {
-									const chart = charts.find((c) => c.id === chartId)
-									return chart?.url
-										? `<img src="${chart.url}" alt="${chart.title || 'Chart'}" />`
-										: ''
-								}
-							)
+							__html: selectedExec.generated_summary.replace(/\[CHART:([^\]]+)\]/g, (_, chartId: string) => {
+								const chart = charts.find((c) => c.id === chartId)
+								return chart?.url ? `<img src="${chart.url}" alt="${chart.title || 'Chart'}" />` : ''
+							})
 						}}
 					/>
 				) : (
@@ -609,12 +610,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					? charts
 							.filter((c) => c.url && !selectedExec.generated_summary?.includes(`[CHART:${c.id}]`))
 							.map((c) => (
-								<img
-									key={c.id}
-									src={c.url}
-									alt={c.title || 'Chart'}
-									className="my-2 max-w-full rounded-lg"
-								/>
+								<img key={c.id} src={c.url} alt={c.title || 'Chart'} className="my-2 max-w-full rounded-lg" />
 							))
 					: null}
 				{selectedExec.citations?.length ? (
@@ -623,12 +619,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<ol className="list-decimal pl-4">
 							{selectedExec.citations.map((url, i) => (
 								<li key={i} className="text-[10px]">
-									<a
-										href={url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="text-[#2172E5] hover:underline"
-									>
+									<a href={url} target="_blank" rel="noopener noreferrer" className="text-[#2172E5] hover:underline">
 										{new URL(url).hostname.replace('www.', '')}
 									</a>
 								</li>
