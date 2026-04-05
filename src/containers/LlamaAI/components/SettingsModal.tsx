@@ -235,8 +235,8 @@ export const SettingsModal = memo(function SettingsModal({
 							<div className="flex flex-col gap-0.5 text-left">
 								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Premium data tools</p>
 								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
-									Enable paid tools like X/Twitter data, people search, and smart money analytics. Uses your $10/mo
-									credits.
+									Enable paid tools like X/Twitter data, people search, and smart money analytics. Uses your external
+									data balance
 								</p>
 							</div>
 							<div
