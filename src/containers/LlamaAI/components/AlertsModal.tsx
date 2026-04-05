@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
@@ -18,6 +18,23 @@ interface Alert {
 	enabled: boolean
 	run_count: number
 	created_at: string
+	delivery_channel?: 'email' | 'telegram'
+	condition?: string | null
+}
+
+interface AlertExecution {
+	id: string
+	executed_at: string
+	status: string
+	duration_ms: number
+	chart_count: number
+}
+
+interface AlertExecutionDetail extends AlertExecution {
+	alertTitle: string
+	generated_summary: string | null
+	generated_charts: { id: string; type: string; title: string; url: string }[] | null
+	citations: string[] | null
 }
 
 interface AlertsModalProps {
@@ -304,11 +321,54 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const [dayOfWeek, setDayOfWeek] = useState(() => {
 		return parsedSchedule.dayOfWeek ?? 1
 	})
+	const [deliveryChannel, setDeliveryChannel] = useState<'email' | 'telegram'>(alert.delivery_channel || 'email')
+	const [condition, setCondition] = useState(alert.condition || '')
 	const [isEditing, setIsEditing] = useState(false)
 	const [isDeleting, setIsDeleting] = useState(false)
+	const [showExecutions, setShowExecutions] = useState(false)
+	const [executions, setExecutions] = useState<AlertExecution[] | null>(null)
+	const [executionsLoading, setExecutionsLoading] = useState(false)
+	const [selectedExec, setSelectedExec] = useState<AlertExecutionDetail | null>(null)
+	const [execDetailLoading, setExecDetailLoading] = useState(false)
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
+
+	const loadExecutions = useCallback(async () => {
+		if (!authorizedFetch || executions) return
+		setExecutionsLoading(true)
+		try {
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions`)
+			if (res?.ok) {
+				const data = await res.json()
+				setExecutions(data.executions ?? [])
+			}
+		} catch {}
+		setExecutionsLoading(false)
+	}, [authorizedFetch, alert.id, executions])
+
+	const loadExecDetail = useCallback(
+		async (execId: string) => {
+			if (!authorizedFetch) return
+			setExecDetailLoading(true)
+			try {
+				const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions/${execId}`)
+				if (res?.ok) {
+					const data = await res.json()
+					setSelectedExec(data)
+				}
+			} catch {}
+			setExecDetailLoading(false)
+		},
+		[authorizedFetch, alert.id]
+	)
+
+	const handleToggleExecutions = () => {
+		const next = !showExecutions
+		setShowExecutions(next)
+		if (next) loadExecutions()
+		if (!next) setSelectedExec(null)
+	}
 
 	const handleTimezoneChange = (nextTimezone: string) => {
 		setTimezone(nextTimezone)
@@ -396,16 +456,22 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
+			condition: string
 		}
 	>({
 		mutationFn: async ({
 			alertId,
 			title: nextTitle,
-			alertConfig
+			alertConfig,
+			delivery_channel,
+			condition: nextCondition
 		}: {
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
+			condition: string
 		}) => {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
@@ -415,7 +481,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					title: nextTitle,
-					alertConfig
+					alertConfig,
+					delivery_channel,
+					condition: nextCondition || null
 				})
 			})
 			if (!res) throw new Error('Not authenticated')
@@ -424,7 +492,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 			return alertConfig
 		},
-		onSuccess: (_data, { alertId, title: nextTitle, alertConfig }) => {
+		onSuccess: (_data, { alertId, title: nextTitle, alertConfig, delivery_channel, condition: nextCondition }) => {
 			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
@@ -433,7 +501,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
 				if (!old) return []
 				return old.map((item) =>
-					item.id === alertId ? { ...item, title: nextTitle, schedule_expression: newExpression } : item
+					item.id === alertId
+						? { ...item, title: nextTitle, schedule_expression: newExpression, delivery_channel, condition: nextCondition || null }
+						: item
 				)
 			})
 			setIsEditing(false)
@@ -489,6 +559,87 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		)
 	}
 
+	const formatExecDate = (iso: string) => {
+		const d = new Date(iso)
+		return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+	}
+
+	const formatDuration = (ms: number) => (ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`)
+
+	const channelLabel = (alert.delivery_channel || 'email') === 'telegram' ? 'Telegram' : 'Email'
+
+	if (selectedExec) {
+		const charts = selectedExec.generated_charts || []
+		return (
+			<div className="border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+				<button
+					onClick={() => setSelectedExec(null)}
+					className="mb-3 flex items-center gap-1 text-xs text-[#2172E5] hover:underline"
+				>
+					<Icon name="arrow-left" className="h-3 w-3" />
+					Back to executions
+				</button>
+				<div className="mb-2 flex items-center justify-between">
+					<span className="text-xs text-[#666] dark:text-[#919296]">{formatExecDate(selectedExec.executed_at)}</span>
+					<span
+						className={`rounded px-1.5 py-0.5 text-[10px] ${selectedExec.status === 'success' || selectedExec.status === 'test' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-500'}`}
+					>
+						{selectedExec.status}
+					</span>
+				</div>
+				{selectedExec.generated_summary ? (
+					<div
+						className="prose prose-sm max-w-none text-sm text-black dark:prose-invert dark:text-white [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg"
+						dangerouslySetInnerHTML={{
+							__html: selectedExec.generated_summary.replace(
+								/\[CHART:([^\]]+)\]/g,
+								(_, chartId: string) => {
+									const chart = charts.find((c) => c.id === chartId)
+									return chart?.url
+										? `<img src="${chart.url}" alt="${chart.title || 'Chart'}" />`
+										: ''
+								}
+							)
+						}}
+					/>
+				) : (
+					<p className="text-xs text-[#999]">No content available.</p>
+				)}
+				{charts.length > 0
+					? charts
+							.filter((c) => c.url && !selectedExec.generated_summary?.includes(`[CHART:${c.id}]`))
+							.map((c) => (
+								<img
+									key={c.id}
+									src={c.url}
+									alt={c.title || 'Chart'}
+									className="my-2 max-w-full rounded-lg"
+								/>
+							))
+					: null}
+				{selectedExec.citations?.length ? (
+					<div className="mt-3 border-t border-[#e6e6e6] pt-2 dark:border-[#333]">
+						<p className="mb-1 text-[10px] font-medium text-[#999]">Sources</p>
+						<ol className="list-decimal pl-4">
+							{selectedExec.citations.map((url, i) => (
+								<li key={i} className="text-[10px]">
+									<a
+										href={url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="text-[#2172E5] hover:underline"
+									>
+										{new URL(url).hostname.replace('www.', '')}
+									</a>
+								</li>
+							))}
+						</ol>
+					</div>
+				) : null}
+			</div>
+		)
+	}
+
 	return (
 		<div className="border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 			<div className="flex items-start justify-between gap-3">
@@ -501,12 +652,29 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					</div>
 					<p className="mt-0.5 text-xs text-[#666] dark:text-[#919296]">
 						{formatScheduleExpression(alert.schedule_expression)}
+						<span className="ml-1.5 inline-flex items-center gap-1 rounded bg-[#f0f0f0] px-1.5 py-0.5 text-[10px] dark:bg-[#333]">
+							{channelLabel}
+						</span>
 					</p>
+					{alert.condition ? (
+						<p className="mt-0.5 truncate text-[10px] text-amber-600 dark:text-amber-400">
+							Condition: {alert.condition}
+						</p>
+					) : null}
 					<p className="mt-1 text-[10px] text-[#999] dark:text-[#666]">
 						{alert.enabled ? `Next run ${formatNextRun(alert.next_run_at)}` : 'Paused'} · {alert.run_count} runs
 					</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-1">
+					{alert.run_count > 0 ? (
+						<button
+							onClick={handleToggleExecutions}
+							className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${showExecutions ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+							title="View history"
+						>
+							<Icon name="clock" className="h-3.5 w-3.5" />
+						</button>
+					) : null}
 					<button
 						onClick={() => {
 							toggleAlertMutation.reset()
@@ -547,6 +715,45 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			</div>
 
 			{toggleErrorMessage && !isEditing ? <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p> : null}
+
+			{showExecutions ? (
+				<div className="mt-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
+					<p className="mb-2 text-xs font-medium text-[#666] dark:text-[#919296]">Execution History</p>
+					{executionsLoading ? (
+						<div className="flex justify-center py-4">
+							<LoadingSpinner size={16} />
+						</div>
+					) : !executions || executions.length === 0 ? (
+						<p className="text-center text-xs text-[#999]">No executions yet.</p>
+					) : (
+						<div className="flex flex-col gap-1">
+							{executions.map((exec) => (
+								<button
+									key={exec.id}
+									onClick={() => loadExecDetail(exec.id)}
+									disabled={execDetailLoading}
+									className="flex items-center justify-between rounded-md px-2 py-1.5 text-left hover:bg-white dark:hover:bg-[#222]"
+								>
+									<div>
+										<span className="text-xs text-black dark:text-white">{formatExecDate(exec.executed_at)}</span>
+										<span className="ml-2 text-[10px] text-[#999]">{formatDuration(exec.duration_ms)}</span>
+									</div>
+									<span
+										className={`rounded px-1.5 py-0.5 text-[10px] ${exec.status === 'success' || exec.status === 'test' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-500'}`}
+									>
+										{exec.status}
+									</span>
+								</button>
+							))}
+						</div>
+					)}
+					{execDetailLoading ? (
+						<div className="mt-2 flex justify-center">
+							<LoadingSpinner size={16} />
+						</div>
+					) : null}
+				</div>
+			) : null}
 
 			{isEditing ? (
 				<div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
@@ -603,6 +810,23 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							))}
 						</select>
 					</div>
+					<div className="flex items-center gap-2">
+						<span className="text-sm text-(--text3)">Deliver via</span>
+						<select
+							value={deliveryChannel}
+							onChange={(e) => setDeliveryChannel(e.target.value as 'email' | 'telegram')}
+							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+						>
+							<option value="email">Email</option>
+							<option value="telegram">Telegram</option>
+						</select>
+					</div>
+					<input
+						value={condition}
+						onChange={(e) => setCondition(e.target.value)}
+						placeholder="Condition (e.g. only send if TVL drops below $1B)"
+						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+					/>
 					<div className="flex justify-end gap-2">
 						<button
 							onClick={() => {
@@ -621,7 +845,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 								updateAlertMutation.mutate({
 									alertId: alert.id,
 									title,
-									alertConfig: { frequency, hour, dayOfWeek, timezone }
+									alertConfig: { frequency, hour, dayOfWeek, timezone },
+									delivery_channel: deliveryChannel,
+									condition
 								})
 							}}
 							disabled={updateAlertMutation.isPending || !title.trim()}

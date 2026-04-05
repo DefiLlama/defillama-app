@@ -77,6 +77,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
 		}) => {
 			const response = await authorizedFetch(`${MCP_SERVER}/alerts`, {
 				method: 'POST',
@@ -106,7 +107,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 			messageId,
 			alertId,
 			title: title.trim(),
-			alertConfig: { frequency, hour, dayOfWeek, timezone }
+			alertConfig: { frequency, hour, dayOfWeek, timezone },
+			delivery_channel: alertIntent.deliveryChannel || 'email'
 		})
 	}
 
