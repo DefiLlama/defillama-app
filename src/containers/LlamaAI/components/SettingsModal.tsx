@@ -7,6 +7,7 @@ import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const STORAGE_KEY = 'llamaai-custom-instructions'
 const MEMORY_STORAGE_KEY = 'llamaai-enable-memory'
+const PREMIUM_TOOLS_KEY = 'llamaai-enable-premium-tools'
 const HACKER_MODE_KEY = 'llamaai-hacker-mode'
 const MAX_LENGTH = 500
 
@@ -16,6 +17,8 @@ interface SettingsModalProps {
 	onCustomInstructionsChange: (value: string) => void
 	enableMemory: boolean
 	onEnableMemoryChange: (value: boolean) => void
+	enablePremiumTools: boolean
+	onEnablePremiumToolsChange: (value: boolean) => void
 	hackerMode: boolean
 	onHackerModeChange: (value: boolean) => void
 	fetchFn?: typeof fetch
@@ -37,6 +40,8 @@ export const SettingsModal = memo(function SettingsModal({
 	onCustomInstructionsChange,
 	enableMemory,
 	onEnableMemoryChange,
+	enablePremiumTools,
+	onEnablePremiumToolsChange,
 	hackerMode,
 	onHackerModeChange,
 	fetchFn
@@ -45,6 +50,7 @@ export const SettingsModal = memo(function SettingsModal({
 	const [isDark] = useDarkModeManager()
 	const [draft, setDraft] = useState(customInstructions)
 	const [memoryDraft, setMemoryDraft] = useState(enableMemory)
+	const [premiumToolsDraft, setPremiumToolsDraft] = useState(enablePremiumTools)
 	const [hackerDraft, setHackerDraft] = useState(hackerMode)
 
 	useEffect(() => {
@@ -56,13 +62,14 @@ export const SettingsModal = memo(function SettingsModal({
 			if (cancelled) return
 			setDraft(customInstructions)
 			setMemoryDraft(enableMemory)
+			setPremiumToolsDraft(enablePremiumTools)
 			setHackerDraft(hackerMode)
 		})
 
 		return () => {
 			cancelled = true
 		}
-	}, [isOpen, customInstructions, enableMemory, hackerMode])
+	}, [isOpen, customInstructions, enableMemory, enablePremiumTools, hackerMode])
 
 	const save = useCallback(() => {
 		const trimmed = draft.trim()
@@ -98,6 +105,17 @@ export const SettingsModal = memo(function SettingsModal({
 			void saveSettingsToServer(fetchFn, { enableMemory: next })
 		}
 	}, [memoryDraft, onEnableMemoryChange, fetchFn])
+
+	const handlePremiumToolsToggle = useCallback(() => {
+		const next = !premiumToolsDraft
+		trackUmamiEvent('llamaai-premium-tools-toggle')
+		setPremiumToolsDraft(next)
+		onEnablePremiumToolsChange(next)
+		localStorage.setItem(PREMIUM_TOOLS_KEY, String(next))
+		if (fetchFn) {
+			void saveSettingsToServer(fetchFn, { enablePremiumTools: next })
+		}
+	}, [premiumToolsDraft, onEnablePremiumToolsChange, fetchFn])
 
 	const handleHackerToggle = useCallback(() => {
 		const next = !hackerDraft
@@ -199,6 +217,36 @@ export const SettingsModal = memo(function SettingsModal({
 								<div
 									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
 										memoryDraft ? 'translate-x-4' : 'translate-x-0.5'
+									}`}
+								/>
+							</div>
+						</button>
+					</section>
+
+					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+						<button
+							type="button"
+							role="switch"
+							aria-checked={premiumToolsDraft}
+							aria-label="Premium data tools"
+							onClick={handlePremiumToolsToggle}
+							className="flex w-full items-center justify-between"
+						>
+							<div className="flex flex-col gap-0.5 text-left">
+								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Premium data tools</p>
+								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
+									Enable paid tools like X/Twitter data, people search, and smart money analytics. Uses your $10/mo
+									credits.
+								</p>
+							</div>
+							<div
+								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
+									premiumToolsDraft ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+								}`}
+							>
+								<div
+									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+										premiumToolsDraft ? 'translate-x-4' : 'translate-x-0.5'
 									}`}
 								/>
 							</div>

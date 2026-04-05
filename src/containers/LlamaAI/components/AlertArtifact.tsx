@@ -266,7 +266,9 @@ export const AlertArtifact = memo(function AlertArtifact({
 			{testMutation.isSuccess ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
 					<Icon name="check" className="h-3.5 w-3.5" />
-					{alertIntent.deliveryChannel === 'telegram' ? 'Test sent! Check your Telegram' : 'Test sent! Check your inbox'}
+					{alertIntent.deliveryChannel === 'telegram'
+						? 'Test sent! Check your Telegram'
+						: 'Test sent! Check your inbox'}
 				</p>
 			) : null}
 

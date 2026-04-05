@@ -652,6 +652,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [enableMemory, setEnableMemory] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
 	)
+	const [enablePremiumTools, setEnablePremiumTools] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-premium-tools') !== 'false' : true
+	)
 	const [hackerMode, setHackerMode] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
 	)
@@ -780,29 +783,53 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingToolExecutions
 	])
 
-	// Hydrate per-user settings once auth is ready.
+	// Hydrate per-user settings once per mount (not on every auth identity change).
+	const settingsHydratedRef = useRef(false)
 	useEffect(() => {
-		if (!user) return
+		if (!user || settingsHydratedRef.current) return
+		settingsHydratedRef.current = true
 		authorizedFetchStrict(`${MCP_SERVER}/user-settings`)
 			.then((res) => (res.ok ? res.json() : null))
 			.then((data) => {
-				const serverValue = data?.settings?.customInstructions
-				if (typeof serverValue === 'string') {
-					setCustomInstructions(serverValue)
-					localStorage.setItem('llamaai-custom-instructions', serverValue)
+				if (!data?.settings) return
+				const s = data.settings
+				if (typeof s.customInstructions === 'string') {
+					setCustomInstructions(s.customInstructions)
+					localStorage.setItem('llamaai-custom-instructions', s.customInstructions)
 				}
-				if (typeof data?.settings?.enableMemory === 'boolean') {
-					setEnableMemory(data.settings.enableMemory)
-					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
+				if (typeof s.enableMemory === 'boolean') {
+					setEnableMemory(s.enableMemory)
+					localStorage.setItem('llamaai-enable-memory', String(s.enableMemory))
 				}
-				if (typeof data?.settings?.hackerMode === 'boolean') {
-					setHackerMode(data.settings.hackerMode)
-					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
+				if (typeof s.enablePremiumTools === 'boolean') {
+					setEnablePremiumTools(s.enablePremiumTools)
+					localStorage.setItem('llamaai-enable-premium-tools', String(s.enablePremiumTools))
+				}
+				if (typeof s.hackerMode === 'boolean') {
+					setHackerMode(s.hackerMode)
+					localStorage.setItem('llamaai-hacker-mode', String(s.hackerMode))
 					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
 				}
 			})
 			.catch(() => {})
 	}, [user, authorizedFetchStrict])
+
+	// Sync settings across tabs via localStorage storage event.
+	useEffect(() => {
+		const onStorage = (e: StorageEvent) => {
+			if (e.key === 'llamaai-custom-instructions') {
+				setCustomInstructions(e.newValue || '')
+			} else if (e.key === 'llamaai-enable-memory') {
+				setEnableMemory(e.newValue !== 'false')
+			} else if (e.key === 'llamaai-enable-premium-tools') {
+				setEnablePremiumTools(e.newValue !== 'false')
+			} else if (e.key === 'llamaai-hacker-mode') {
+				setHackerMode(e.newValue === 'true')
+			}
+		}
+		window.addEventListener('storage', onStorage)
+		return () => window.removeEventListener('storage', onStorage)
+	}, [])
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
@@ -1963,6 +1990,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						onCustomInstructionsChange={setCustomInstructions}
 						enableMemory={enableMemory}
 						onEnableMemoryChange={setEnableMemory}
+						enablePremiumTools={enablePremiumTools}
+						onEnablePremiumToolsChange={setEnablePremiumTools}
 						hackerMode={hackerMode}
 						onHackerModeChange={setHackerMode}
 						fetchFn={authorizedFetchStrict}
