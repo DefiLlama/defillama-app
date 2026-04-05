@@ -495,7 +495,7 @@ export function ChartGrid({ onAddChartClick, onEditItem, forceAllowHtml }: Chart
 											<Icon name="plus" height={14} width={14} />
 											<span className="sr-only">Expand width</span>
 										</Tooltip>
-										{onEditItem ? (
+										{onEditItem && !(isAIGenerated && item.kind === 'text' && /<[a-z][\s\S]*>/i.test(item.content)) ? (
 											<Tooltip
 												content="Edit item"
 												render={<button onClick={() => onEditItem(item)} />}
