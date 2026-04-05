@@ -703,7 +703,7 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
-			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart) {
+			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart?.id) {
 				newItem = {
 					...editItem,
 					kind: 'llamaai-chart',
