@@ -1,16 +1,23 @@
 import ReactMarkdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
+import remarkGfm from 'remark-gfm'
 import type { TextConfig } from '../types'
 
 interface TextCardProps {
 	text: TextConfig
+	allowHtml?: boolean
 }
 
-export function TextCard({ text }: TextCardProps) {
+const REMARK_PLUGINS = [[remarkGfm, { singleTilde: false }]] as any
+
+export function TextCard({ text, allowHtml = false }: TextCardProps) {
 	return (
-		<div className="prose prose-sm flex thin-scrollbar flex-col gap-2 overflow-y-auto p-4 prose-invert">
+		<div className="prose prose-sm flex thin-scrollbar max-w-none flex-col gap-2 overflow-y-auto p-4 prose-invert">
 			{text.title ? <h2 className="text-lg font-semibold text-(--text-primary)">{text.title}</h2> : null}
 
 			<ReactMarkdown
+				remarkPlugins={REMARK_PLUGINS}
+				rehypePlugins={allowHtml ? [rehypeRaw] : []}
 				components={{
 					h1: ({ children }) => <h3 className="m-0! text-xl font-bold text-(--text-primary)">{children}</h3>,
 					h2: ({ children }) => <h4 className="m-0! text-lg font-semibold text-(--text-primary)">{children}</h4>,
@@ -43,7 +50,40 @@ export function TextCard({ text }: TextCardProps) {
 						</a>
 					),
 					strong: ({ children }) => <strong className="m-0! font-semibold text-(--text-primary)">{children}</strong>,
-					em: ({ children }) => <em className="m-0! text-(--text-secondary) italic">{children}</em>
+					em: ({ children }) => <em className="m-0! text-(--text-secondary) italic">{children}</em>,
+					table: ({ children }) => (
+						<div style={{ overflowX: 'auto' }}>
+							<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>{children}</table>
+						</div>
+					),
+					thead: ({ children }) => <thead>{children}</thead>,
+					tbody: ({ children }) => <tbody>{children}</tbody>,
+					tr: ({ children }) => <tr>{children}</tr>,
+					th: ({ children }) => (
+						<th
+							style={{
+								textAlign: 'left',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--cards-border)',
+								fontWeight: 600,
+								color: 'var(--text-primary)',
+								whiteSpace: 'nowrap'
+							}}
+						>
+							{children}
+						</th>
+					),
+					td: ({ children }) => (
+						<td
+							style={{
+								padding: '6px 12px',
+								borderBottom: '1px solid var(--cards-border)',
+								color: 'var(--text-secondary)'
+							}}
+						>
+							{children}
+						</td>
+					)
 				}}
 			>
 				{text.content}

@@ -160,7 +160,7 @@ function DashboardPanelInner({
 					<div className="flex-1 overflow-y-auto overscroll-contain p-2.5 *:gap-2.5">
 						<AppMetadataProvider>
 							<ProDashboardAPIProvider key={config.id} initialItems={enrichedItems}>
-								<ChartGrid onAddChartClick={NOOP} />
+								<ChartGrid onAddChartClick={NOOP} forceAllowHtml />
 							</ProDashboardAPIProvider>
 						</AppMetadataProvider>
 					</div>

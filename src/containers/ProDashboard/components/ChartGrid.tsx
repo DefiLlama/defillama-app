@@ -109,6 +109,7 @@ const getNextStoredColSpan = (
 interface ChartGridProps {
 	onAddChartClick: () => void
 	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
+	forceAllowHtml?: boolean
 }
 
 interface UnifiedTableCardProps {
@@ -140,9 +141,10 @@ interface DashboardItemRendererProps {
 	item: DashboardItemConfig
 	onEditItem?: (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => void
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
+	isAIGenerated?: boolean
 }
 
-function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardItemRendererProps) {
+function DashboardItemRenderer({ item, onEditItem, handleEditItem, isAIGenerated }: DashboardItemRendererProps) {
 	const handleConfigChange = (newConfig: DashboardItemConfig) => handleEditItem(item.id, newConfig)
 
 	const handleDatasetChainChange = (newChain: string) =>
@@ -272,7 +274,7 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 	}
 
 	if (item.kind === 'text') {
-		return <TextCard text={item} />
+		return <TextCard text={item} allowHtml={isAIGenerated} />
 	}
 
 	if (item.kind === 'unified-table') {
@@ -357,13 +359,15 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 	return null
 }
 
-export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
+export function ChartGrid({ onAddChartClick, onEditItem, forceAllowHtml }: ChartGridProps) {
 	const { chartsWithData } = useProDashboardChartsData()
 	const { handleChartsReordered, handleRemoveItem, handleColSpanChange, handleEditItem } =
 		useProDashboardEditorActions()
 	const { isReadOnly } = useProDashboardPermissions()
-	const { getCurrentRatingSession, autoSkipOlderSessionsForRating, submitRating, skipRating } =
+	const { currentDashboard, getCurrentRatingSession, autoSkipOlderSessionsForRating, submitRating, skipRating } =
 		useProDashboardDashboard()
+	const isAIGenerated =
+		forceAllowHtml || (!!currentDashboard?.aiGenerated && Object.keys(currentDashboard.aiGenerated).length > 0)
 	const [deleteConfirmItem, setDeleteConfirmItem] = useState<string | null>(null)
 	const isSmallScreen = useMedia('(max-width: 768px)')
 
@@ -432,7 +436,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							}`}
 							className={`col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 						>
-							<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
+							<DashboardItemRenderer
+								item={item}
+								onEditItem={onEditItem}
+								handleEditItem={handleEditItem}
+								isAIGenerated={isAIGenerated}
+							/>
 						</div>
 					)
 				})}
@@ -506,7 +515,12 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 										</Tooltip>
 									</div>
 									<div className="min-h-0 flex-1">
-										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
+										<DashboardItemRenderer
+											item={item}
+											onEditItem={onEditItem}
+											handleEditItem={handleEditItem}
+											isAIGenerated={isAIGenerated}
+										/>
 									</div>
 								</SortableItem>
 							)
