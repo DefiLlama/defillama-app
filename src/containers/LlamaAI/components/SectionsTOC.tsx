@@ -1,28 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { headingSlug } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Message } from '~/containers/LlamaAI/types'
-
-type Section = {
-	text: string
-	id: string
-}
-
-function extractSections(content: string, messageId?: string): Section[] {
-	const sections: Section[] = []
-	const lines = content.split('\n')
-	for (const line of lines) {
-		const match = line.match(/^(##)\s+(.+)$/)
-		if (match) {
-			const text = match[2].replace(/\*\*/g, '').replace(/\*/g, '').trim()
-			const slug = headingSlug(text)
-			const id = messageId ? `${messageId}--${slug}` : slug
-			sections.push({ text, id })
-		}
-	}
-	return sections
-}
-
-type MessageSections = { messageId: string; sections: Section[] }
 
 export function SectionsTOC({
 	messages,
@@ -32,59 +9,75 @@ export function SectionsTOC({
 	scrollContainerRef: React.RefObject<HTMLDivElement | null>
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
-	const [visibleMessageId, setVisibleMessageId] = useState<string | null>(null)
+	const [sections, setSections] = useState<Array<{ id: string; text: string }>>([])
+	const lastObservedMsgId = useRef<string | null>(null)
 
-	// Pre-compute sections for all assistant messages with 2+ headings
-	const messageSectionsMap = useMemo(() => {
-		const result: MessageSections[] = []
+	// Identify which message IDs have potential sections (assistant messages with ## headings)
+	const sectionMessageIds = useMemo(() => {
+		const ids: string[] = []
 		for (const msg of messages) {
 			if (msg.role === 'assistant' && msg.content && msg.id) {
-				const sections = extractSections(msg.content, msg.id)
-				if (sections.length >= 2) {
-					result.push({ messageId: msg.id, sections })
-				}
+				// Quick check: at least 2 h2 headings in raw markdown
+				const h2Count = (msg.content.match(/^## .+$/gm) || []).length
+				if (h2Count >= 2) ids.push(msg.id)
 			}
 		}
-		return result
+		return ids
 	}, [messages])
 
-	// Track which message with sections is currently most visible
 	useEffect(() => {
 		const container = scrollContainerRef.current
-		if (!container || messageSectionsMap.length === 0) return
+		if (!container || sectionMessageIds.length === 0) return
 
 		const handleScroll = () => {
 			const containerRect = container.getBoundingClientRect()
 			const containerMid = containerRect.top + containerRect.height / 2
-			let bestId: string | null = null
+
+			// Find the most visible message that has sections
+			let bestMsgId: string | null = null
 			let bestDistance = Infinity
 
-			for (const { messageId } of messageSectionsMap) {
-				const el = container.querySelector(`#msg-${messageId}`)
+			for (const msgId of sectionMessageIds) {
+				const el = document.getElementById(`msg-${msgId}`)
 				if (!el) continue
 				const rect = el.getBoundingClientRect()
-				// Check if the message overlaps the viewport
 				if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) continue
 				const distance = Math.abs(rect.top + rect.height / 2 - containerMid)
 				if (distance < bestDistance) {
 					bestDistance = distance
-					bestId = messageId
+					bestMsgId = msgId
 				}
 			}
 
-			setVisibleMessageId(bestId)
+			// Read sections from the DOM for the visible message
+			if (bestMsgId) {
+				lastObservedMsgId.current = bestMsgId
+				const headings = container.querySelectorAll(`h2[data-section-msg="${bestMsgId}"]`)
+				const newSections: Array<{ id: string; text: string }> = []
+				for (const h of headings) {
+					if (h.id && h.textContent) {
+						newSections.push({ id: h.id, text: h.textContent.trim() })
+					}
+				}
+				setSections(newSections.length >= 2 ? newSections : [])
+			} else if (!bestMsgId) {
+				lastObservedMsgId.current = null
+				setSections([])
+			}
 
-			// Track active heading within the visible message
-			if (bestId) {
-				const headings = container.querySelectorAll(`[data-section-heading][id^="${bestId}--"]`)
+			// Active heading: last one whose top scrolled past the container top.
+			// Stays active until the next heading reaches the top.
+			const visibleMsgId = bestMsgId ?? lastObservedMsgId.current
+			if (visibleMsgId) {
+				const headings = container.querySelectorAll(`[data-section-msg="${visibleMsgId}"]`)
 				let current: string | null = null
 				for (const heading of headings) {
-					const rect = heading.getBoundingClientRect()
-					if (rect.top - containerRect.top <= 100) {
+					if (heading.getBoundingClientRect().top - containerRect.top <= 20) {
 						current = heading.id
 					}
 				}
-				setActiveId(current)
+				// If no heading has scrolled past yet, highlight the first one
+				setActiveId(current ?? (headings.length > 0 ? headings[0].id : null))
 			} else {
 				setActiveId(null)
 			}
@@ -93,28 +86,22 @@ export function SectionsTOC({
 		container.addEventListener('scroll', handleScroll, { passive: true })
 		handleScroll()
 		return () => container.removeEventListener('scroll', handleScroll)
-	}, [messageSectionsMap, scrollContainerRef])
+	}, [sectionMessageIds, scrollContainerRef])
 
-	const scrollToSection = useCallback(
-		(id: string) => {
-			const container = scrollContainerRef.current
-			if (!container) return
-			const el = container.querySelector(`#${CSS.escape(id)}`)
-			if (el) {
-				el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-			}
-		},
-		[scrollContainerRef]
-	)
+	const scrollToSection = useCallback((id: string) => {
+		const el = document.getElementById(id)
+		if (el) {
+			el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		}
+	}, [])
 
-	const visibleSections = messageSectionsMap.find((ms) => ms.messageId === visibleMessageId)?.sections
-	if (!visibleSections || visibleSections.length < 2) return null
+	if (sections.length < 2) return null
 
 	return (
 		<nav className="sticky top-0 hidden thin-scrollbar max-h-dvh w-56 shrink-0 overflow-y-auto py-6 pr-2 xl:block">
 			<p className="mb-3 text-sm font-semibold text-[#333] dark:text-[#ccc]">Sections</p>
 			<ol className="flex flex-col gap-0.5">
-				{visibleSections.map((section, i) => {
+				{sections.map((section, i) => {
 					const isActive = activeId === section.id
 					return (
 						<li key={section.id}>

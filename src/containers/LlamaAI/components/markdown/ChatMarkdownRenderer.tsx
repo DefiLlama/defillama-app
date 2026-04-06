@@ -42,8 +42,12 @@ function HeadingWithId({
 }: { level: number; messageId?: string; children?: ReactNode } & Record<string, any>) {
 	const text = extractText(children)
 	const slug = headingSlug(text)
-	const id = messageId ? `${messageId}--${slug}` : slug
-	return createElement(`h${level}`, { ...props, id, 'data-section-heading': true }, children)
+	const id = messageId ? `${messageId.slice(0, 8)}-${slug}` : slug
+	const attrs: Record<string, any> = { ...props, id, 'data-section-heading': true }
+	if (level === 2 && messageId) {
+		attrs['data-section-msg'] = messageId
+	}
+	return createElement(`h${level}`, attrs, children)
 }
 
 /** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
