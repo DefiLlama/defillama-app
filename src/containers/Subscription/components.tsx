@@ -257,6 +257,79 @@ function PricingCardCta({
 	)
 }
 
+export function PricingCardContent({
+	card,
+	isTrialAvailable = false
+}: {
+	card: PricingCardData
+	isTrialAvailable?: boolean
+}) {
+	return (
+		<div className="flex flex-col gap-7 sm:gap-5">
+			<div className="flex flex-col gap-2 sm:min-h-[140px] sm:gap-3">
+				<h3 className="text-[22px] leading-[28px] font-semibold text-(--sub-text-slate-950) sm:text-[20px] sm:leading-[26px] sm:text-(--sub-ink-primary) dark:text-white dark:sm:text-white">
+					{card.title}
+				</h3>
+				{card.subtitle ? (
+					<p className="text-[15px] leading-5 font-medium text-(--sub-text-slate-600) sm:text-[14px] sm:leading-4 sm:text-(--sub-text-secondary) dark:text-(--sub-text-muted-dark)">
+						{card.subtitle}
+					</p>
+				) : null}
+				{card.priceMain ? (
+					<div className="flex flex-col gap-1 sm:gap-0">
+						<div className="flex items-end gap-0.5">
+							{card.key === 'pro' && isTrialAvailable ? (
+								<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
+									<span className="line-through">{card.priceMain}</span> $0
+								</p>
+							) : (
+								<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
+									{card.priceMain}
+								</p>
+							)}
+							<p className="text-[16px] leading-6 text-(--sub-text-slate-600) sm:text-base sm:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:sm:text-(--sub-text-secondary-dark)">
+								{card.priceUnit}
+							</p>
+						</div>
+						{card.key === 'pro' && isTrialAvailable ? (
+							<p className="text-[14px] leading-5 font-medium text-(--sub-brand-primary) sm:text-[13px] sm:leading-4 dark:text-(--sub-brand-secondary)">
+								Free for 7 days — no charge until trial ends
+							</p>
+						) : card.priceSecondary ? (
+							<p className="text-[22px] leading-6 text-(--sub-text-slate-400) sm:text-[16px] dark:text-(--sub-text-muted)">
+								{card.priceSecondary}
+							</p>
+						) : null}
+					</div>
+				) : card.description ? (
+					<p className="text-[28px] leading-[36px] font-semibold text-(--sub-text-slate-950) sm:text-[24px] sm:leading-[32px] dark:text-white">
+						{card.description}
+					</p>
+				) : null}
+			</div>
+
+			{card.includedTierText ? (
+				<p className="text-[13px] leading-5 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
+					{card.includedTierText}
+				</p>
+			) : null}
+
+			{card.sections.map((section) => (
+				<div key={`${card.key}-${section.title}`} className="flex flex-col gap-3">
+					<h4 className="text-[20px] leading-7 font-semibold text-(--sub-text-slate-950) sm:text-[16px] sm:leading-5 sm:font-medium sm:text-(--sub-ink-primary) dark:text-white dark:sm:text-white">
+						{section.title}
+					</h4>
+					<ul className="flex flex-col gap-3 sm:gap-2">
+						{section.items.map((item) => (
+							<FeatureBullet key={`${card.key}-${section.title}-${item.label}`} item={item} />
+						))}
+					</ul>
+				</div>
+			))}
+		</div>
+	)
+}
+
 /* ── PricingCard (responsive) ───────────────────────────────────────── */
 
 export function PricingCard({
@@ -307,7 +380,6 @@ export function PricingCard({
 	const wrapperClass = isHighlighted ? cardWrapperStyles.highlighted : cardWrapperStyles.default
 	const shellClass = isHighlighted ? cardShellStyles.highlighted : cardShellStyles.default
 	const innerClass = isHighlighted ? cardInnerStyles.highlighted : cardInnerStyles.default
-	const contentWidth = ''
 	const badgeSlotClass = card.recommendedLabel
 		? 'flex items-center justify-center text-center'
 		: 'hidden sm:flex sm:h-[17px] sm:items-center sm:justify-center sm:opacity-0'
@@ -316,64 +388,11 @@ export function PricingCard({
 		<div className={wrapperClass}>
 			<div className={shellClass}>
 				<div className={innerClass}>
-					<div className={`mx-auto flex flex-col gap-7 sm:gap-5 ${contentWidth}`}>
-						<div className="flex flex-col gap-2 sm:min-h-[140px] sm:gap-3">
-							<h3 className="text-[22px] leading-[28px] font-semibold text-(--sub-text-slate-950) sm:text-[20px] sm:leading-[26px] sm:text-(--sub-ink-primary) dark:text-white dark:sm:text-white">
-								{card.title}
-							</h3>
-							{card.subtitle ? (
-								<p className="text-[15px] leading-5 font-medium text-(--sub-text-slate-600) sm:text-[14px] sm:leading-4 sm:text-(--sub-text-secondary) dark:text-(--sub-text-muted-dark)">
-									{card.subtitle}
-								</p>
-							) : null}
-							{card.priceMain ? (
-								<div className="flex flex-col gap-1 sm:gap-0">
-									<div className="flex items-end gap-0.5">
-										{card.key === 'pro' && isTrialAvailable ? (
-											<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
-												<span className="line-through">{card.priceMain}</span> $0
-											</p>
-										) : (
-											<p className="bg-linear-to-r from-(--sub-brand-primary) to-(--sub-text-navy-900) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent sm:text-[32px] sm:leading-[42px] dark:from-(--sub-brand-secondary) dark:to-(--sub-brand-softest)">
-												{card.priceMain}
-											</p>
-										)}
-										<p className="text-[16px] leading-6 text-(--sub-text-slate-600) sm:text-base sm:text-(--sub-text-secondary) dark:text-(--sub-text-secondary-dark) dark:sm:text-(--sub-text-secondary-dark)">
-											{card.priceUnit}
-										</p>
-									</div>
-									{card.key === 'pro' && isTrialAvailable ? (
-										<p className="text-[14px] leading-5 font-medium text-(--sub-brand-primary) sm:text-[13px] sm:leading-4 dark:text-(--sub-brand-secondary)">
-											Free for 7 days — no charge until trial ends
-										</p>
-									) : card.priceSecondary ? (
-										<p className="text-[22px] leading-6 text-(--sub-text-slate-400) sm:text-[16px] dark:text-(--sub-text-muted)">
-											{card.priceSecondary}
-										</p>
-									) : null}
-								</div>
-							) : card.description ? (
-								<p className="text-[28px] leading-[36px] font-semibold text-(--sub-text-slate-950) sm:text-[24px] sm:leading-[32px] dark:text-white">
-									{card.description}
-								</p>
-							) : null}
-						</div>
-
-						{card.sections.map((section) => (
-							<div key={`${card.key}-${section.title}`} className="flex flex-col gap-3">
-								<h4 className="text-[20px] leading-7 font-semibold text-(--sub-text-slate-950) sm:text-[16px] sm:leading-5 sm:font-medium sm:text-(--sub-ink-primary) dark:text-white dark:sm:text-white">
-									{section.title}
-								</h4>
-								<ul className="flex flex-col gap-3 sm:gap-2">
-									{section.items.map((item) => (
-										<FeatureBullet key={`${card.key}-${section.title}-${item.label}`} item={item} />
-									))}
-								</ul>
-							</div>
-						))}
+					<div className="mx-auto">
+						<PricingCardContent card={card} isTrialAvailable={isTrialAvailable} />
 					</div>
 
-					<div className={`mx-auto mt-7 flex w-full flex-col gap-4 sm:mt-5 sm:gap-3 ${contentWidth}`}>
+					<div className="mx-auto mt-7 flex w-full flex-col gap-4 sm:mt-5 sm:gap-3">
 						<PricingCardCta
 							card={card}
 							isCurrentPlan={isCurrentPlan}
@@ -398,10 +417,6 @@ export function PricingCard({
 						{isLowerTier ? (
 							<p className="text-center text-[13px] leading-5 font-medium text-(--sub-brand-primary) dark:text-(--sub-brand-secondary)">
 								Included in your plan
-							</p>
-						) : card.includedTierText && !isCurrentPlan ? (
-							<p className="text-center text-[12px] leading-4 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
-								{card.includedTierText}
 							</p>
 						) : null}
 					</div>
