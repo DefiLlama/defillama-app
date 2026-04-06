@@ -4,6 +4,52 @@ import { BasicLink } from '~/components/Link'
 import { isSuperLuminalEnabled } from '~/containers/SuperLuminal/config'
 import { Logo } from '~/containers/SuperLuminal/Logo'
 
+function SonicIcon() {
+	return (
+		<svg
+			clipRule="evenodd"
+			fillRule="evenodd"
+			strokeLinejoin="round"
+			strokeMiterlimit="2"
+			viewBox="0 0 180 180"
+			xmlns="http://www.w3.org/2000/svg"
+			className="h-14 w-14 shrink-0"
+		>
+			<g fill="url(#sonic-brand-a)">
+				<path d="m90 7.5c45.533 0 82.5 36.967 82.5 82.5s-36.967 82.5-82.5 82.5-82.5-36.967-82.5-82.5 36.967-82.5 82.5-82.5zm67.861 90.573c-42.086 6.922-71.149 27.287-93.917 53.61 7.993 3.176 16.74 4.927 25.904 4.927 35.031 0 63.956-25.584 68.013-58.537zm-103.98 48.63c12.075-15.367 29.012-28.893 49.34-40.152-20.672 4.701-41.249 16.316-61.074 31.266 3.559 3.355 7.492 6.339 11.734 8.886zm-32.346-50.896c1.014 13.37 6.108 24.893 14.076 34.906 17.787-16.574 41.222-28.705 70.191-35.375l-84.267 0.469zm14.138-46.378c-7.899 9.894-12.908 21.244-14.016 34.446l84.073 0.762c-29.876-7.796-53.229-19.177-70.057-35.208zm122.23 33.03c-3.914-33.105-32.91-58.849-68.051-58.849-9.142 0-17.867 1.742-25.84 4.901 14.887 21.28 57.159 49.575 93.891 53.948zm-103.8-49.075c-4.095 2.439-7.907 5.284-11.373 8.476 13.223 12.708 32.666 23.768 61.418 32.338-20.864-11.522-37.144-25.196-50.045-40.814z" />
+			</g>
+			<defs>
+				<linearGradient
+					id="sonic-brand-a"
+					x2="1"
+					gradientTransform="matrix(164.74 .32312 -.32312 164.74 7.5105 89.933)"
+					gradientUnits="userSpaceOnUse"
+				>
+					<stop stopColor="#fac461" offset="0" />
+					<stop stopColor="#e3570a" offset=".28" />
+					<stop stopColor="#7f6562" offset=".55" />
+					<stop stopColor="#3b5d88" offset=".73" />
+					<stop stopColor="#203f55" offset="1" />
+				</linearGradient>
+			</defs>
+		</svg>
+	)
+}
+
+function BerachainIcon() {
+	return (
+		<svg
+			version="1.1"
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 1441.2 1608"
+			fill="currentColor"
+			className="h-14 w-14 shrink-0 text-[#F6A623]"
+		>
+			<path d="M1286.9,687.3c-2.2-7-3.8-14.1-5-21.3c-0.6-3.3-1.2-6.7-1.9-10c-1.6-7.2-3.3-14.3-5.2-21.4v0 c31.5-47.6,181.9-296.1,10.7-455.6c-190-177-412,55-412,55l0.7,1c-99.8-30.3-208-33.9-313.2-1c0,0,0,0,0,0 c-1.3-1.4-222.5-231.5-412-55c-189.5,176.5,15.1,462.1,16.2,463.6c0,0,0,0,0,0c-2.2,6.7-3.9,13.6-5.1,20.5 C139.6,785.4,0,823.1,0,1036s146,388,444,388h122.3c0,0,0,0,0,0c0.5,0.8,50.9,72.1,154.3,72.1c96-0.1,159.3-71.4,159.9-72.1 c0,0,0,0,0,0h116.7c298,0,444-171,444-388C1441.2,837.8,1320.1,791.4,1286.9,687.3L1286.9,687.3z" />
+		</svg>
+	)
+}
+
 function SparkBolt() {
 	return (
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 497 497" className="h-9 w-9 shrink-0">
@@ -54,7 +100,7 @@ export default function SuperLuminalPage() {
 					Verified on-chain metrics and investor-grade reporting powered by DefiLlama.
 				</p>
 
-				<div className="relative mt-12 grid w-full max-w-2xl grid-cols-1 gap-5 md:grid-cols-2">
+				<div className="relative mt-12 grid w-full max-w-4xl grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
 					{/* Spark Dashboard Card */}
 					<div className="group relative isolate flex flex-col overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow] duration-200 hover:border-[#FA43BD]/15 hover:shadow-lg hover:shadow-[#FA43BD]/[0.03]">
 						<div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #FA43BD, #FFA930)' }} />
@@ -86,13 +132,22 @@ export default function SuperLuminalPage() {
 						</BasicLink>
 					</div>
 
-					{/* Coming Soon Placeholder */}
-					<div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center">
-						<Icon name="layout-grid" className="h-8 w-8 text-(--text-tertiary)" />
-						<span className="mt-3 text-sm font-medium text-(--text-secondary)">More dashboards coming soon</span>
-						<p className="mt-1 text-xs text-(--text-tertiary)">
-							Investor-grade reporting for additional protocols.
-						</p>
+					{/* Sonic – Coming Soon */}
+					<div className="relative isolate flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center opacity-60">
+						<SonicIcon />
+						<span className="mt-3 text-lg font-semibold text-(--text-primary)">Sonic</span>
+						<span className="mt-3 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">
+							Coming Soon
+						</span>
+					</div>
+
+					{/* Berachain – Coming Soon */}
+					<div className="relative isolate flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center opacity-60">
+						<BerachainIcon />
+						<span className="mt-3 text-lg font-semibold text-(--text-primary)">Berachain</span>
+						<span className="mt-3 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">
+							Coming Soon
+						</span>
 					</div>
 				</div>
 			</div>
