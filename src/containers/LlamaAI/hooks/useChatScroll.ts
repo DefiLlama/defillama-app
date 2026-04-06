@@ -13,6 +13,7 @@ interface UseChatScrollParams {
 	paginationState: PaginationState
 	onLoadMoreMessages: () => void
 	keyboardOpen?: boolean
+	startDetached?: boolean
 }
 
 type ScrollMode = 'attached' | 'detached' | 'reattaching'
@@ -43,9 +44,10 @@ export function useChatScroll({
 	hasMessages,
 	paginationState,
 	onLoadMoreMessages,
-	keyboardOpen
+	keyboardOpen,
+	startDetached = false
 }: UseChatScrollParams) {
-	const modeRef = useRef<ScrollMode>('attached')
+	const modeRef = useRef<ScrollMode>(startDetached ? 'detached' : 'attached')
 	const paginationRef = useRef(paginationState)
 	const paginationLoadInFlightRef = useRef(false)
 	const lastScrollTopRef = useRef(0)
