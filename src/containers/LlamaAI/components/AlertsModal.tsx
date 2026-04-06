@@ -1,11 +1,10 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import DOMPurify from 'dompurify'
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
-import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { sanitizeAlertSummary, sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -46,33 +45,33 @@ interface AlertsModalProps {
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const BLOCKED_HOURS_UTC = [0, 1, 2]
 const GMT_OFFSETS = [
-	{ label: 'GMT-12', value: 'Etc/GMT+12' },
-	{ label: 'GMT-11', value: 'Etc/GMT+11' },
-	{ label: 'GMT-10', value: 'Etc/GMT+10' },
-	{ label: 'GMT-9', value: 'Etc/GMT+9' },
-	{ label: 'GMT-8', value: 'Etc/GMT+8' },
-	{ label: 'GMT-7', value: 'Etc/GMT+7' },
-	{ label: 'GMT-6', value: 'Etc/GMT+6' },
-	{ label: 'GMT-5', value: 'Etc/GMT+5' },
-	{ label: 'GMT-4', value: 'Etc/GMT+4' },
-	{ label: 'GMT-3', value: 'Etc/GMT+3' },
-	{ label: 'GMT-2', value: 'Etc/GMT+2' },
-	{ label: 'GMT-1', value: 'Etc/GMT+1' },
-	{ label: 'GMT+0 (UTC)', value: 'UTC' },
-	{ label: 'GMT+1', value: 'Etc/GMT-1' },
-	{ label: 'GMT+2', value: 'Etc/GMT-2' },
-	{ label: 'GMT+3', value: 'Etc/GMT-3' },
-	{ label: 'GMT+4', value: 'Etc/GMT-4' },
-	{ label: 'GMT+5', value: 'Etc/GMT-5' },
-	{ label: 'GMT+6', value: 'Etc/GMT-6' },
-	{ label: 'GMT+7', value: 'Etc/GMT-7' },
-	{ label: 'GMT+8', value: 'Etc/GMT-8' },
-	{ label: 'GMT+9', value: 'Etc/GMT-9' },
-	{ label: 'GMT+10', value: 'Etc/GMT-10' },
-	{ label: 'GMT+11', value: 'Etc/GMT-11' },
-	{ label: 'GMT+12', value: 'Etc/GMT-12' },
-	{ label: 'GMT+13', value: 'Etc/GMT-13' },
-	{ label: 'GMT+14', value: 'Etc/GMT-14' }
+	{ label: 'UTC-12', value: 'Etc/GMT+12' },
+	{ label: 'UTC-11', value: 'Etc/GMT+11' },
+	{ label: 'UTC-10', value: 'Etc/GMT+10' },
+	{ label: 'UTC-9', value: 'Etc/GMT+9' },
+	{ label: 'UTC-8', value: 'Etc/GMT+8' },
+	{ label: 'UTC-7', value: 'Etc/GMT+7' },
+	{ label: 'UTC-6', value: 'Etc/GMT+6' },
+	{ label: 'UTC-5', value: 'Etc/GMT+5' },
+	{ label: 'UTC-4', value: 'Etc/GMT+4' },
+	{ label: 'UTC-3', value: 'Etc/GMT+3' },
+	{ label: 'UTC-2', value: 'Etc/GMT+2' },
+	{ label: 'UTC-1', value: 'Etc/GMT+1' },
+	{ label: 'UTC', value: 'UTC' },
+	{ label: 'UTC+1', value: 'Etc/GMT-1' },
+	{ label: 'UTC+2', value: 'Etc/GMT-2' },
+	{ label: 'UTC+3', value: 'Etc/GMT-3' },
+	{ label: 'UTC+4', value: 'Etc/GMT-4' },
+	{ label: 'UTC+5', value: 'Etc/GMT-5' },
+	{ label: 'UTC+6', value: 'Etc/GMT-6' },
+	{ label: 'UTC+7', value: 'Etc/GMT-7' },
+	{ label: 'UTC+8', value: 'Etc/GMT-8' },
+	{ label: 'UTC+9', value: 'Etc/GMT-9' },
+	{ label: 'UTC+10', value: 'Etc/GMT-10' },
+	{ label: 'UTC+11', value: 'Etc/GMT-11' },
+	{ label: 'UTC+12', value: 'Etc/GMT-12' },
+	{ label: 'UTC+13', value: 'Etc/GMT-13' },
+	{ label: 'UTC+14', value: 'Etc/GMT-14' }
 ]
 const ALERTS_QUERY_KEY = 'llamaai-alerts'
 
@@ -207,7 +206,7 @@ const getTimezoneLabel = (timezone: string): string => {
 		const parts = formatter.formatToParts(now)
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')
 		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'GMT+').replace('+-', '-').replace('++', '+')
+			return tzPart.value.replace('GMT', 'UTC')
 		}
 	} catch {}
 	return timezone
@@ -315,7 +314,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
 	)
 	const [timezone, setTimezone] = useState(() => initialTimezone)
-	const hourRef = useRef(getValidHourForTimezone(parsedSchedule.hour ?? 9, initialTimezone))
+	const [hourDefault, setHourDefault] = useState(() =>
+		getValidHourForTimezone(parsedSchedule.hour ?? 9, initialTimezone)
+	)
 	const [mode, setMode] = useState<'view' | 'editing' | 'deleting'>('view')
 	const [showExecutions, setShowExecutions] = useState(false)
 	const [selectedExecId, setSelectedExecId] = useState<string | null>(null)
@@ -352,7 +353,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 
 	const handleTimezoneChange = (nextTimezone: string) => {
 		setTimezone(nextTimezone)
-		hourRef.current = getValidHourForTimezone(hourRef.current, nextTimezone)
+		setHourDefault((current) => getValidHourForTimezone(current, nextTimezone))
 	}
 
 	const toggleAlertMutation = useMutation<
@@ -422,7 +423,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 		},
 		onSuccess: () => {
-			setMode('view')
+			switchMode('view')
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
@@ -492,19 +493,19 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						: item
 				)
 			})
-			setMode('view')
+			switchMode('view')
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 
-	useEffect(() => {
+	const switchMode = (next: 'view' | 'editing' | 'deleting') => {
 		toggleAlertMutation.reset()
 		updateAlertMutation.reset()
 		deleteAlertMutation.reset()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [mode])
+		setMode(next)
+	}
 
 	const toggleErrorMessage = toggleAlertMutation.error?.message
 	const updateErrorMessage = updateAlertMutation.error?.message
@@ -529,7 +530,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<p className="text-sm text-[#666] dark:text-[#919296]">Delete "{alert.title}"?</p>
 					<div className="flex gap-2">
 						<button
-							onClick={() => setMode('view')}
+							onClick={() => switchMode('view')}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#f7f7f7] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel
@@ -580,52 +581,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<div
 						className="prose prose-sm max-w-none text-sm text-black dark:text-white dark:prose-invert [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg"
 						dangerouslySetInnerHTML={{
-							__html: DOMPurify.sanitize(
-								selectedExec.generated_summary.replace(/\[CHART:([^\]]+)\]/g, (_, chartId: string) => {
-									const chart = charts.find((c) => c.id === chartId)
-									if (!chart?.url) return ''
-									const safeUrl = sanitizeUrl(chart.url)
-									if (!safeUrl) return ''
-									const alt = (chart.title || 'Chart').replace(/"/g, '&quot;')
-									return `<img src="${safeUrl}" alt="${alt}" />`
-								}),
-								{
-									ALLOWED_TAGS: [
-										'p',
-										'br',
-										'b',
-										'i',
-										'em',
-										'strong',
-										'a',
-										'ul',
-										'ol',
-										'li',
-										'h1',
-										'h2',
-										'h3',
-										'h4',
-										'h5',
-										'h6',
-										'img',
-										'span',
-										'div',
-										'table',
-										'thead',
-										'tbody',
-										'tr',
-										'th',
-										'td',
-										'blockquote',
-										'code',
-										'pre',
-										'hr',
-										'sup',
-										'sub'
-									],
-									ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'width', 'height', 'class']
-								}
-							)
+							__html: sanitizeAlertSummary(selectedExec.generated_summary, charts)
 						}}
 					/>
 				) : (
@@ -647,8 +603,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<div className="mt-3 border-t border-[#e6e6e6] pt-2 dark:border-[#333]">
 						<p className="mb-1 text-[10px] font-medium text-[#999]">Sources</p>
 						<ol className="list-decimal pl-4">
-							{selectedExec.citations.map((url, i) => (
-								<li key={i} className="text-[10px]">
+							{selectedExec.citations.map((url) => (
+								<li key={url} className="text-[10px]">
 									<a href={url} target="_blank" rel="noopener noreferrer" className="text-[#2172E5] hover:underline">
 										{new URL(url).hostname.replace('www.', '')}
 									</a>
@@ -697,14 +653,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</button>
 					) : null}
 					<button
-						onClick={() => setMode((m) => (m === 'editing' ? 'view' : 'editing'))}
+						onClick={() => switchMode(mode === 'editing' ? 'view' : 'editing')}
 						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 						title="Edit"
 					>
 						<Icon name="pencil" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={() => setMode('deleting')}
+						onClick={() => switchMode('deleting')}
 						className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
 						title="Delete"
 					>
@@ -780,10 +736,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							alertId: alert.id,
 							title: titleValue,
 							alertConfig: {
-								frequency,
+								frequency: fd.get('frequency') as 'daily' | 'weekly',
 								hour: Number(fd.get('hour')),
 								dayOfWeek: Number(fd.get('dayOfWeek')),
-								timezone
+								timezone: fd.get('timezone') as string
 							},
 							delivery_channel: fd.get('delivery_channel') as 'email' | 'telegram',
 							condition: fd.get('condition') as string
@@ -800,7 +756,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					/>
 					<div className="flex flex-wrap items-center gap-2">
 						<select
-							value={frequency}
+							name="frequency"
+							defaultValue={frequency}
 							onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
@@ -826,20 +783,19 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<select
 							key={`hour-${timezone}`}
 							name="hour"
-							defaultValue={hourRef.current}
-							onChange={(e) => {
-								hourRef.current = Number(e.target.value)
-							}}
+							defaultValue={hourDefault}
+							onChange={(e) => setHourDefault(Number(e.target.value))}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
-							{Array.from({ length: 24 }, (_, i) => (
-								<option key={`hour-${i}`} value={i} disabled={blockedHours.includes(i)}>
-									{i.toString().padStart(2, '0')}:00{blockedHours.includes(i) ? ' (blocked)' : ''}
+							{Array.from({ length: 24 }, (_, h) => (
+								<option key={h} value={h} disabled={blockedHours.includes(h)}>
+									{h.toString().padStart(2, '0')}:00{blockedHours.includes(h) ? ' (blocked)' : ''}
 								</option>
 							))}
 						</select>
 						<select
-							value={timezone}
+							name="timezone"
+							defaultValue={timezone}
 							onChange={(e) => handleTimezoneChange(e.target.value)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
@@ -870,7 +826,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<div className="flex justify-end gap-2">
 						<button
 							type="button"
-							onClick={() => setMode('view')}
+							onClick={() => switchMode('view')}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#eee] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel

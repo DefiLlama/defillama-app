@@ -2,6 +2,8 @@
  * Utility functions for markdown processing in LlamaAI.
  */
 
+import DOMPurify from 'dompurify'
+
 /**
  * Allowed URL protocols for citation links.
  * Prevents dangerous schemes like javascript:, data:, etc.
@@ -198,4 +200,63 @@ export function extractLlamaLinks(content: string): Map<string, string> {
 	}
 
 	return linkMap
+}
+
+const SANITIZE_ALLOWED_TAGS = [
+	'p',
+	'br',
+	'b',
+	'i',
+	'em',
+	'strong',
+	'a',
+	'ul',
+	'ol',
+	'li',
+	'h1',
+	'h2',
+	'h3',
+	'h4',
+	'h5',
+	'h6',
+	'img',
+	'span',
+	'div',
+	'table',
+	'thead',
+	'tbody',
+	'tr',
+	'th',
+	'td',
+	'blockquote',
+	'code',
+	'pre',
+	'hr',
+	'sup',
+	'sub'
+]
+
+const SANITIZE_ALLOWED_ATTR = ['href', 'target', 'rel', 'src', 'alt', 'width', 'height', 'class']
+
+const CHART_PLACEHOLDER_REGEX = /\[CHART:([^\]]+)\]/g
+
+interface ChartRef {
+	id: string
+	url: string
+	title: string
+}
+
+export function sanitizeAlertSummary(html: string, charts: ChartRef[]): string {
+	const expanded = html.replace(CHART_PLACEHOLDER_REGEX, (_, chartId: string) => {
+		const chart = charts.find((c) => c.id === chartId)
+		if (!chart?.url) return ''
+		const safeUrl = sanitizeUrl(chart.url)
+		if (!safeUrl) return ''
+		const alt = (chart.title || 'Chart').replace(/"/g, '&quot;')
+		return `<img src="${safeUrl}" alt="${alt}" />`
+	})
+	return DOMPurify.sanitize(expanded, {
+		ALLOWED_TAGS: SANITIZE_ALLOWED_TAGS,
+		ALLOWED_ATTR: SANITIZE_ALLOWED_ATTR
+	})
 }
