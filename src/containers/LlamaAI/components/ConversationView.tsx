@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
+import { useEffect, useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -88,16 +88,18 @@ function ConversationMessageItem({
 	onTableFullscreenOpen?: () => void
 }) {
 	return (
-		<MessageBubble
-			message={message}
-			sessionId={sessionId}
-			readOnly={readOnly}
-			isLlama={isLlama}
-			isLatestAssistant={isLatestAssistant}
-			onActionClick={onActionClick}
-			nextUserMessage={nextUserMessage}
-			onTableFullscreenOpen={onTableFullscreenOpen}
-		/>
+		<div id={message.id ? `msg-${message.id}` : undefined}>
+			<MessageBubble
+				message={message}
+				sessionId={sessionId}
+				readOnly={readOnly}
+				isLlama={isLlama}
+				isLatestAssistant={isLatestAssistant}
+				onActionClick={onActionClick}
+				nextUserMessage={nextUserMessage}
+				onTableFullscreenOpen={onTableFullscreenOpen}
+			/>
+		</div>
 	)
 }
 
@@ -247,6 +249,22 @@ export function ConversationView({
 	onTableFullscreenOpen
 }: ConversationViewProps) {
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
+	const [scrolledToHash, setScrolledToHash] = useState(false)
+
+	useEffect(() => {
+		if (scrolledToHash || messages.length === 0) return
+		const hash = window.location.hash
+		if (!hash.startsWith('#msg-')) return
+		const el = document.getElementById(hash.slice(1))
+		if (!el) return
+		setScrolledToHash(true)
+		requestAnimationFrame(() => {
+			el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+			el.classList.add('anchor-highlight')
+			setTimeout(() => el.classList.remove('anchor-highlight'), 2000)
+		})
+	}, [messages.length, scrolledToHash])
+
 	const [initialTailSnapshot] = useState(() => getMessageTailSnapshot(messages))
 	const currentTailSnapshot = getMessageTailSnapshot(messages)
 	const hasTailChangedSinceMount =

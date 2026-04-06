@@ -1132,6 +1132,16 @@
 	}
 }
 
+@keyframes anchorHighlight {
+	0% { background-color: rgba(59, 130, 246, 0.15); }
+	100% { background-color: transparent; }
+}
+
+.anchor-highlight {
+	animation: anchorHighlight 2s ease-out;
+	border-radius: 8px;
+}
+
 @keyframes llamaActiveExchangeEnter {
 	from {
 		opacity: 0.2;
