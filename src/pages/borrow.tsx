@@ -97,7 +97,7 @@ export default function YieldBorrow(data) {
 			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
 				{exploitWarning}
 			</Announcement>
-			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
+			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3">
 				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
 					<TokensSelect
 						label="Borrow"
