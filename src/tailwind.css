@@ -1141,9 +1141,23 @@
 	}
 }
 
+.message-anchor {
+	scroll-margin-top: 5rem;
+}
+
 .anchor-highlight {
-	animation: anchorHighlight 2s ease-out;
-	border-radius: 8px;
+	position: relative;
+	isolation: isolate;
+}
+
+.anchor-highlight::before {
+	content: '';
+	position: absolute;
+	inset: -4px -6px;
+	border-radius: 10px;
+	pointer-events: none;
+	z-index: -1;
+	animation: anchorHighlight 2s ease-out forwards;
 }
 
 @keyframes llamaActiveExchangeEnter {

@@ -67,7 +67,6 @@ import type {
 	Message,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -845,6 +844,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 	const shouldAnimateConversationTransition =
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+	const shouldStartDetachedForAnchor =
+		Boolean(sharedSession) && readOnly && typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
 
 	useEffect(() => {
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
@@ -962,7 +963,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		hasMessages,
 		paginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
-		keyboardOpen
+		keyboardOpen,
+		startDetached: shouldStartDetachedForAnchor
 	})
 
 	// Trigger the sidebar open/close animation before toggling visibility.
