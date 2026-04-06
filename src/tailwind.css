@@ -1019,18 +1019,18 @@
 	}
 
 	.llamaai-chat-width {
-		max-width: 52rem;
+		max-width: 46rem;
 	}
 
-	@container (min-width: 1120px) {
+	@container (min-width: 1024px) {
 		.llamaai-chat-width {
-			max-width: 62rem;
+			max-width: 54rem;
 		}
 	}
 
-	@container (min-width: 1400px) {
+	@container (min-width: 1440px) {
 		.llamaai-chat-width {
-			max-width: 72rem;
+			max-width: 58rem;
 		}
 	}
 }
