@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import DOMPurify from 'dompurify'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
@@ -309,72 +309,50 @@ interface AlertRowProps {
 const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const { authorizedFetch, user } = useAuthContext()
 	const queryClient = useQueryClient()
-	const [title, setTitle] = useState(alert.title)
+	const parsedSchedule = parseScheduleExpression(alert.schedule_expression)
+	const initialTimezone = parsedSchedule.timezone ?? getUserTimezone()
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(
 		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
 	)
-	const parsedSchedule = parseScheduleExpression(alert.schedule_expression)
-	const initialTimezone = parsedSchedule.timezone ?? getUserTimezone()
 	const [timezone, setTimezone] = useState(() => initialTimezone)
-	const [hour, setHour] = useState(() => {
-		const initialHour = parsedSchedule.hour ?? 9
-		return getValidHourForTimezone(initialHour, initialTimezone)
-	})
-	const [dayOfWeek, setDayOfWeek] = useState(() => {
-		return parsedSchedule.dayOfWeek ?? 1
-	})
-	const [deliveryChannel, setDeliveryChannel] = useState<'email' | 'telegram'>(alert.delivery_channel || 'email')
-	const [condition, setCondition] = useState(alert.condition || '')
-	const [isEditing, setIsEditing] = useState(false)
-	const [isDeleting, setIsDeleting] = useState(false)
+	const hourRef = useRef(getValidHourForTimezone(parsedSchedule.hour ?? 9, initialTimezone))
+	const [mode, setMode] = useState<'view' | 'editing' | 'deleting'>('view')
 	const [showExecutions, setShowExecutions] = useState(false)
-	const [executions, setExecutions] = useState<AlertExecution[] | null>(null)
-	const [executionsLoading, setExecutionsLoading] = useState(false)
-	const [selectedExec, setSelectedExec] = useState<AlertExecutionDetail | null>(null)
-	const [execDetailLoading, setExecDetailLoading] = useState(false)
+	const [selectedExecId, setSelectedExecId] = useState<string | null>(null)
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
 
-	const loadExecutions = useCallback(async () => {
-		if (!authorizedFetch || executions) return
-		setExecutionsLoading(true)
-		try {
+	const executionsQuery = useQuery<AlertExecution[]>({
+		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions'],
+		queryFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions`)
-			if (res?.ok) {
-				const data = await res.json()
-				setExecutions(data.executions ?? [])
-			}
-		} catch {}
-		setExecutionsLoading(false)
-	}, [authorizedFetch, alert.id, executions])
-
-	const loadExecDetail = useCallback(
-		async (execId: string) => {
-			if (!authorizedFetch) return
-			setExecDetailLoading(true)
-			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions/${execId}`)
-				if (res?.ok) {
-					const data = await res.json()
-					setSelectedExec(data)
-				}
-			} catch {}
-			setExecDetailLoading(false)
+			if (!res?.ok) throw new Error('Failed to fetch executions')
+			const data = await res.json()
+			return data.executions ?? []
 		},
-		[authorizedFetch, alert.id]
-	)
+		enabled: showExecutions && !!authorizedFetch
+	})
+
+	const execDetailQuery = useQuery<AlertExecutionDetail>({
+		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions', selectedExecId],
+		queryFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions/${selectedExecId}`)
+			if (!res?.ok) throw new Error('Failed to fetch execution detail')
+			return res.json()
+		},
+		enabled: !!selectedExecId && !!authorizedFetch
+	})
 
 	const handleToggleExecutions = () => {
 		const next = !showExecutions
 		setShowExecutions(next)
-		if (next) loadExecutions()
-		if (!next) setSelectedExec(null)
+		if (!next) setSelectedExecId(null)
 	}
 
 	const handleTimezoneChange = (nextTimezone: string) => {
 		setTimezone(nextTimezone)
-		setHour((currentHour) => getValidHourForTimezone(currentHour, nextTimezone))
+		hourRef.current = getValidHourForTimezone(hourRef.current, nextTimezone)
 	}
 
 	const toggleAlertMutation = useMutation<
@@ -444,7 +422,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 		},
 		onSuccess: () => {
-			setIsDeleting(false)
+			setMode('view')
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
@@ -514,12 +492,19 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						: item
 				)
 			})
-			setIsEditing(false)
+			setMode('view')
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
+
+	useEffect(() => {
+		toggleAlertMutation.reset()
+		updateAlertMutation.reset()
+		deleteAlertMutation.reset()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [mode])
 
 	const toggleErrorMessage = toggleAlertMutation.error?.message
 	const updateErrorMessage = updateAlertMutation.error?.message
@@ -537,19 +522,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		return 'soon'
 	}
 
-	if (isDeleting) {
+	if (mode === 'deleting') {
 		return (
 			<div className="flex flex-col gap-2 border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 				<div className="flex items-center justify-between gap-3">
 					<p className="text-sm text-[#666] dark:text-[#919296]">Delete "{alert.title}"?</p>
 					<div className="flex gap-2">
 						<button
-							onClick={() => {
-								toggleAlertMutation.reset()
-								updateAlertMutation.reset()
-								deleteAlertMutation.reset()
-								setIsDeleting(false)
-							}}
+							onClick={() => setMode('view')}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#f7f7f7] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel
@@ -576,12 +556,13 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 
 	const channelLabel = (alert.delivery_channel || 'email') === 'telegram' ? 'Telegram' : 'Email'
 
+	const selectedExec = execDetailQuery.data
 	if (selectedExec) {
 		const charts = selectedExec.generated_charts || []
 		return (
 			<div className="border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 				<button
-					onClick={() => setSelectedExec(null)}
+					onClick={() => setSelectedExecId(null)}
 					className="mb-3 flex items-center gap-1 text-xs text-[#2172E5] hover:underline"
 				>
 					<Icon name="arrow-left" className="h-3 w-3" />
@@ -716,24 +697,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</button>
 					) : null}
 					<button
-						onClick={() => {
-							toggleAlertMutation.reset()
-							updateAlertMutation.reset()
-							deleteAlertMutation.reset()
-							setIsEditing((current) => !current)
-						}}
-						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${isEditing ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+						onClick={() => setMode((m) => (m === 'editing' ? 'view' : 'editing'))}
+						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 						title="Edit"
 					>
 						<Icon name="pencil" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={() => {
-							toggleAlertMutation.reset()
-							updateAlertMutation.reset()
-							deleteAlertMutation.reset()
-							setIsDeleting(true)
-						}}
+						onClick={() => setMode('deleting')}
 						className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
 						title="Delete"
 					>
@@ -754,24 +725,26 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				</div>
 			</div>
 
-			{toggleErrorMessage && !isEditing ? <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p> : null}
+			{toggleErrorMessage && mode !== 'editing' ? (
+				<p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p>
+			) : null}
 
 			{showExecutions ? (
 				<div className="mt-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
 					<p className="mb-2 text-xs font-medium text-[#666] dark:text-[#919296]">Execution History</p>
-					{executionsLoading ? (
+					{executionsQuery.isLoading ? (
 						<div className="flex justify-center py-4">
 							<LoadingSpinner size={16} />
 						</div>
-					) : !executions || executions.length === 0 ? (
+					) : !executionsQuery.data || executionsQuery.data.length === 0 ? (
 						<p className="text-center text-xs text-[#999]">No executions yet.</p>
 					) : (
 						<div className="flex flex-col gap-1">
-							{executions.map((exec) => (
+							{executionsQuery.data.map((exec) => (
 								<button
 									key={exec.id}
-									onClick={() => loadExecDetail(exec.id)}
-									disabled={execDetailLoading}
+									onClick={() => setSelectedExecId(exec.id)}
+									disabled={execDetailQuery.isLoading}
 									className="flex items-center justify-between rounded-md px-2 py-1.5 text-left hover:bg-white dark:hover:bg-[#222]"
 								>
 									<div>
@@ -787,7 +760,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							))}
 						</div>
 					)}
-					{execDetailLoading ? (
+					{execDetailQuery.isLoading ? (
 						<div className="mt-2 flex justify-center">
 							<LoadingSpinner size={16} />
 						</div>
@@ -795,11 +768,33 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				</div>
 			) : null}
 
-			{isEditing ? (
-				<div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
+			{mode === 'editing' ? (
+				<form
+					onSubmit={(e) => {
+						e.preventDefault()
+						const fd = new FormData(e.currentTarget)
+						const titleValue = (fd.get('title') as string).trim()
+						if (!titleValue) return
+						trackUmamiEvent('llamaai-alert-edit')
+						updateAlertMutation.mutate({
+							alertId: alert.id,
+							title: titleValue,
+							alertConfig: {
+								frequency,
+								hour: Number(fd.get('hour')),
+								dayOfWeek: Number(fd.get('dayOfWeek')),
+								timezone
+							},
+							delivery_channel: fd.get('delivery_channel') as 'email' | 'telegram',
+							condition: fd.get('condition') as string
+						})
+					}}
+					className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]"
+				>
 					<input
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
+						name="title"
+						defaultValue={alert.title}
+						required
 						placeholder="Alert title"
 						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 					/>
@@ -814,8 +809,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</select>
 						{frequency === 'weekly' ? (
 							<select
-								value={dayOfWeek}
-								onChange={(e) => setDayOfWeek(Number(e.target.value))}
+								name="dayOfWeek"
+								defaultValue={parsedSchedule.dayOfWeek ?? 1}
 								className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 							>
 								{DAYS_OF_WEEK.map((day, idx) => (
@@ -824,12 +819,17 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 									</option>
 								))}
 							</select>
-						) : null}
+						) : (
+							<input type="hidden" name="dayOfWeek" value={1} />
+						)}
 						<span className="text-sm text-(--text3)">at</span>
 						<select
 							key={`hour-${timezone}`}
-							value={hour}
-							onChange={(e) => setHour(Number(e.target.value))}
+							name="hour"
+							defaultValue={hourRef.current}
+							onChange={(e) => {
+								hourRef.current = Number(e.target.value)
+							}}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							{Array.from({ length: 24 }, (_, i) => (
@@ -853,8 +853,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<div className="flex items-center gap-2">
 						<span className="text-sm text-(--text3)">Deliver via</span>
 						<select
-							value={deliveryChannel}
-							onChange={(e) => setDeliveryChannel(e.target.value as 'email' | 'telegram')}
+							name="delivery_channel"
+							defaultValue={alert.delivery_channel || 'email'}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							<option value="email">Email</option>
@@ -862,35 +862,22 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</select>
 					</div>
 					<input
-						value={condition}
-						onChange={(e) => setCondition(e.target.value)}
+						name="condition"
+						defaultValue={alert.condition || ''}
 						placeholder="Condition (e.g. only send if TVL drops below $1B)"
 						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 					/>
 					<div className="flex justify-end gap-2">
 						<button
-							onClick={() => {
-								toggleAlertMutation.reset()
-								updateAlertMutation.reset()
-								deleteAlertMutation.reset()
-								setIsEditing(false)
-							}}
+							type="button"
+							onClick={() => setMode('view')}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#eee] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel
 						</button>
 						<button
-							onClick={() => {
-								trackUmamiEvent('llamaai-alert-edit')
-								updateAlertMutation.mutate({
-									alertId: alert.id,
-									title,
-									alertConfig: { frequency, hour, dayOfWeek, timezone },
-									delivery_channel: deliveryChannel,
-									condition
-								})
-							}}
-							disabled={updateAlertMutation.isPending || !title.trim()}
+							type="submit"
+							disabled={updateAlertMutation.isPending}
 							className="flex items-center gap-1.5 rounded-md bg-[#2172E5] px-3 py-1.5 text-xs text-white hover:bg-[#1a5cc7] disabled:opacity-50"
 						>
 							{updateAlertMutation.isPending ? (
@@ -902,7 +889,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</button>
 					</div>
 					{updateErrorMessage ? <p className="text-center text-xs text-red-500">{updateErrorMessage}</p> : null}
-				</div>
+				</form>
 			) : null}
 		</div>
 	)
