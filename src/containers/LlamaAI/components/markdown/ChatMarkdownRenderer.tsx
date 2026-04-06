@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { useMemo, useRef } from 'react'
+import { createElement, useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -14,6 +14,37 @@ import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+export function headingSlug(text: string): string {
+	return text
+		.toLowerCase()
+		.replace(/[^\w\s-]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '')
+}
+
+function extractText(children: ReactNode): string {
+	if (typeof children === 'string') return children
+	if (typeof children === 'number') return String(children)
+	if (Array.isArray(children)) return children.map(extractText).join('')
+	if (children && typeof children === 'object' && 'props' in children) {
+		return extractText((children as any).props.children)
+	}
+	return ''
+}
+
+function HeadingWithId({
+	level,
+	messageId,
+	children,
+	...props
+}: { level: number; messageId?: string; children?: ReactNode } & Record<string, any>) {
+	const text = extractText(children)
+	const slug = headingSlug(text)
+	const id = messageId ? `${messageId}--${slug}` : slug
+	return createElement(`h${level}`, { ...props, id, 'data-section-heading': true }, children)
+}
 
 /** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
 const TABLE_WATERMARK_HEIGHT = 40
@@ -297,13 +328,15 @@ export function ChatMarkdownRenderer({
 	citations,
 	isStreaming = false,
 	hackerMode = false,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	messageId
 }: {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
+	messageId?: string
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
@@ -313,6 +346,21 @@ export function ChatMarkdownRenderer({
 
 	const markdownComponents = useMemo<Components>(
 		() => ({
+			h1: ({ node: _node, children, ...props }: any) => (
+				<HeadingWithId level={1} messageId={messageId} {...props}>
+					{children}
+				</HeadingWithId>
+			),
+			h2: ({ node: _node, children, ...props }: any) => (
+				<HeadingWithId level={2} messageId={messageId} {...props}>
+					{children}
+				</HeadingWithId>
+			),
+			h3: ({ node: _node, children, ...props }: any) => (
+				<HeadingWithId level={3} messageId={messageId} {...props}>
+					{children}
+				</HeadingWithId>
+			),
 			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
 				const textChild = getSingleTextChild(props.children)
 				if (!props.href && textChild && processedData.linkMap.has(textChild)) {
@@ -353,7 +401,7 @@ export function ChatMarkdownRenderer({
 				</ol>
 			)
 		}),
-		[isStreaming, onTableFullscreenOpen, processedData.linkMap]
+		[isStreaming, onTableFullscreenOpen, processedData.linkMap, messageId]
 	)
 
 	if (!processedData.content.trim()) {

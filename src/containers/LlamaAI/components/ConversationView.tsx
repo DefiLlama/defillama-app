@@ -2,8 +2,10 @@ import { useEffect, useState, type Dispatch, type RefObject, type SetStateAction
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
 import {
 	SpawnProgressCard,
 	ToolProgressIndicator,
@@ -248,6 +250,7 @@ export function ConversationView({
 	onClearQuotedText,
 	onTableFullscreenOpen
 }: ConversationViewProps) {
+	const { isFullscreen } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const [scrolledToHash, setScrolledToHash] = useState(false)
 
@@ -300,54 +303,36 @@ export function ConversationView({
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
-				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col">
-					<div className="flex w-full flex-col gap-2 px-2">
-						<div className="flex flex-col gap-2.5">
-							{paginationState.isLoadingMore ? (
-								<div className="flex justify-center py-2">
-									<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
-								</div>
-							) : null}
+				<div
+					className={`relative mx-auto flex ${isFullscreen ? 'max-w-[80rem] justify-center' : 'llamaai-chat-width w-full flex-col'}`}
+				>
+					{isFullscreen ? <SectionsTOC messages={messages} scrollContainerRef={scrollContainerRef} /> : null}
+					<div className={isFullscreen ? 'llamaai-chat-width flex w-full flex-col' : 'contents'}>
+						<div className="flex w-full flex-col gap-2 px-2">
+							<div className="flex flex-col gap-2.5">
+								{paginationState.isLoadingMore ? (
+									<div className="flex justify-center py-2">
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
+									</div>
+								) : null}
 
-							{paginationError ? (
-								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
-									<p className="text-xs text-red-700 dark:text-red-300">{paginationError}</p>
-								</div>
-							) : null}
+								{paginationError ? (
+									<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
+										<p className="text-xs text-red-700 dark:text-red-300">{paginationError}</p>
+									</div>
+								) : null}
 
-							{renderedMessages.map((message, index) => {
-								const originalIndex =
-									message.id != null ? messages.findIndex((candidate) => candidate.id === message.id) : index
-								const nextMessage = originalIndex >= 0 ? messages[originalIndex + 1] : undefined
-								const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
+								{renderedMessages.map((message, index) => {
+									const originalIndex =
+										message.id != null ? messages.findIndex((candidate) => candidate.id === message.id) : index
+									const nextMessage = originalIndex >= 0 ? messages[originalIndex + 1] : undefined
+									const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
 
-								return (
-									<ConversationMessageItem
-										key={message.id || `msg-${originalIndex >= 0 ? originalIndex : index}`}
-										message={message}
-										nextUserMessage={nextUserMessage}
-										sessionId={sessionId}
-										readOnly={readOnly}
-										isLlama={isLlama}
-										isLatestAssistant={message.id === lastAssistantId}
-										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
-										onTableFullscreenOpen={onTableFullscreenOpen}
-									/>
-								)
-							})}
-
-							{shouldSpaceLastExchange ? (
-								<div
-									className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
-										animateActiveExchange && isLiveExchange
-											? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
-											: ''
-									}`}
-								>
-									{lastExchangeMessages.map((message, i) => (
+									return (
 										<ConversationMessageItem
-											key={message.id || `exchange-${i}`}
+											key={message.id || `msg-${originalIndex >= 0 ? originalIndex : index}`}
 											message={message}
+											nextUserMessage={nextUserMessage}
 											sessionId={sessionId}
 											readOnly={readOnly}
 											isLlama={isLlama}
@@ -355,56 +340,79 @@ export function ConversationView({
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 										/>
-									))}
+									)
+								})}
 
-									{isLiveExchange ? (
-										<ConversationLiveStatus
-											isStreaming={isStreaming}
-											activeToolCalls={activeToolCalls}
-											spawnProgress={spawnProgress}
-											spawnStartTime={spawnStartTime}
-											executionStartedAt={executionStartedAt}
-											spawnIsResearchMode={spawnIsResearchMode}
-											streamingThinking={streamingThinking}
-											streamingDraft={streamingDraft}
-											isCompacting={isCompacting}
-											recovery={recovery}
-											error={error}
-											lastFailedPrompt={lastFailedPrompt}
-											onRetryLastFailedPrompt={onRetryLastFailedPrompt}
-											isResearchMode={isResearchMode}
-											sessionId={sessionId}
-											readOnly={readOnly}
-											isLlama={isLlama}
-											onTableFullscreenOpen={onTableFullscreenOpen}
-										/>
-									) : null}
-								</div>
-							) : (
-								<ConversationLiveStatus
-									isStreaming={isStreaming}
-									activeToolCalls={activeToolCalls}
-									spawnProgress={spawnProgress}
-									spawnStartTime={spawnStartTime}
-									executionStartedAt={executionStartedAt}
-									streamingThinking={streamingThinking}
-									spawnIsResearchMode={spawnIsResearchMode}
-									streamingDraft={streamingDraft}
-									isCompacting={isCompacting}
-									recovery={recovery}
-									error={error}
-									lastFailedPrompt={lastFailedPrompt}
-									onRetryLastFailedPrompt={onRetryLastFailedPrompt}
-									isResearchMode={isResearchMode}
-									sessionId={sessionId}
-									readOnly={readOnly}
-									isLlama={isLlama}
-									onTableFullscreenOpen={onTableFullscreenOpen}
-								/>
-							)}
+								{shouldSpaceLastExchange ? (
+									<div
+										className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
+											animateActiveExchange && isLiveExchange
+												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
+												: ''
+										}`}
+									>
+										{lastExchangeMessages.map((message, i) => (
+											<ConversationMessageItem
+												key={message.id || `exchange-${i}`}
+												message={message}
+												sessionId={sessionId}
+												readOnly={readOnly}
+												isLlama={isLlama}
+												isLatestAssistant={message.id === lastAssistantId}
+												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+												onTableFullscreenOpen={onTableFullscreenOpen}
+											/>
+										))}
+
+										{isLiveExchange ? (
+											<ConversationLiveStatus
+												isStreaming={isStreaming}
+												activeToolCalls={activeToolCalls}
+												spawnProgress={spawnProgress}
+												spawnStartTime={spawnStartTime}
+												executionStartedAt={executionStartedAt}
+												spawnIsResearchMode={spawnIsResearchMode}
+												streamingThinking={streamingThinking}
+												streamingDraft={streamingDraft}
+												isCompacting={isCompacting}
+												recovery={recovery}
+												error={error}
+												lastFailedPrompt={lastFailedPrompt}
+												onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+												isResearchMode={isResearchMode}
+												sessionId={sessionId}
+												readOnly={readOnly}
+												isLlama={isLlama}
+												onTableFullscreenOpen={onTableFullscreenOpen}
+											/>
+										) : null}
+									</div>
+								) : (
+									<ConversationLiveStatus
+										isStreaming={isStreaming}
+										activeToolCalls={activeToolCalls}
+										spawnProgress={spawnProgress}
+										spawnStartTime={spawnStartTime}
+										executionStartedAt={executionStartedAt}
+										streamingThinking={streamingThinking}
+										spawnIsResearchMode={spawnIsResearchMode}
+										streamingDraft={streamingDraft}
+										isCompacting={isCompacting}
+										recovery={recovery}
+										error={error}
+										lastFailedPrompt={lastFailedPrompt}
+										onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+										isResearchMode={isResearchMode}
+										sessionId={sessionId}
+										readOnly={readOnly}
+										isLlama={isLlama}
+										onTableFullscreenOpen={onTableFullscreenOpen}
+									/>
+								)}
+							</div>
 						</div>
+						<div ref={messagesEndRef} />
 					</div>
-					<div ref={messagesEndRef} />
 				</div>
 			</div>
 
