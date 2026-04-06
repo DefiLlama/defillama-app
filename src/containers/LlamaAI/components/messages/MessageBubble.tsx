@@ -671,14 +671,12 @@ export function MessageBubble({
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const hackerMode = useHackerMode()
-	const rootAnchorClassName = anchorClassName ? ` ${anchorClassName}` : ''
-
 	if (message.role === 'user') {
 		return (
 			<div
 				id={anchorId}
 				ref={anchorRef}
-				className={`ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]${rootAnchorClassName}`}
+				className={`ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425] ${anchorClassName ?? ''}`}
 			>
 				{message.quotedText ? (
 					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
@@ -725,7 +723,7 @@ export function MessageBubble({
 	}
 
 	return (
-		<div id={anchorId} ref={anchorRef} className={`group/msg${rootAnchorClassName}`}>
+		<div id={anchorId} ref={anchorRef} className={`group/msg ${anchorClassName ?? ''}`}>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}
