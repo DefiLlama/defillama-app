@@ -5,10 +5,9 @@
 import DOMPurify from 'dompurify'
 
 /**
- * Allowed URL protocols for citation links.
- * Prevents dangerous schemes like javascript:, data:, etc.
+ * Only allow secure external links in user-generated citations and artifacts.
  */
-const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
+const ALLOWED_PROTOCOLS = ['https:']
 
 /**
  * Validate and sanitize a URL for safe use in href attributes.
@@ -17,26 +16,28 @@ const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
 export function sanitizeUrl(url: string): string | null {
 	if (!url || typeof url !== 'string') return null
 
-	// Trim whitespace
 	const trimmed = url.trim()
 	if (!trimmed) return null
 
 	try {
-		// Try to parse as absolute URL
 		const parsed = new URL(trimmed)
 
-		// Check if protocol is whitelisted
 		if (!ALLOWED_PROTOCOLS.includes(parsed.protocol)) {
 			return null
 		}
 
-		// Return the href (properly encoded by URL constructor)
+		if (parsed.username || parsed.password) {
+			return null
+		}
+
 		return parsed.href
 	} catch {
-		// If parsing fails, try prepending https:// for URLs that look like domains
 		if (/^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}/.test(trimmed) && !trimmed.includes(' ')) {
 			try {
 				const withProtocol = new URL(`https://${trimmed}`)
+				if (withProtocol.username || withProtocol.password) {
+					return null
+				}
 				return withProtocol.href
 			} catch {
 				return null

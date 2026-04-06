@@ -356,6 +356,19 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		setHourDefault((current) => getValidHourForTimezone(current, nextTimezone))
 	}
 
+	const getConditionUpdate = (nextCondition: string) => {
+		const trimmedCondition = nextCondition.trim()
+		if (trimmedCondition) {
+			return { shouldInclude: true, value: trimmedCondition }
+		}
+
+		if (typeof alert.condition !== 'undefined') {
+			return { shouldInclude: true, value: null }
+		}
+
+		return { shouldInclude: false, value: null }
+	}
+
 	const toggleAlertMutation = useMutation<
 		boolean,
 		Error,
@@ -457,6 +470,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
+			const conditionUpdate = getConditionUpdate(nextCondition)
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
@@ -464,7 +478,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					title: nextTitle,
 					alertConfig,
 					delivery_channel,
-					condition: nextCondition || null
+					...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
 				})
 			})
 			if (!res) throw new Error('Not authenticated')
@@ -474,6 +488,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			return alertConfig
 		},
 		onSuccess: (_data, { alertId, title: nextTitle, alertConfig, delivery_channel, condition: nextCondition }) => {
+			const conditionUpdate = getConditionUpdate(nextCondition)
 			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
@@ -488,7 +503,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 								title: nextTitle,
 								schedule_expression: newExpression,
 								delivery_channel,
-								condition: nextCondition || null
+								...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
 							}
 						: item
 				)
@@ -603,13 +618,29 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					<div className="mt-3 border-t border-[#e6e6e6] pt-2 dark:border-[#333]">
 						<p className="mb-1 text-[10px] font-medium text-[#999]">Sources</p>
 						<ol className="list-decimal pl-4">
-							{selectedExec.citations.map((url) => (
-								<li key={url} className="text-[10px]">
-									<a href={url} target="_blank" rel="noopener noreferrer" className="text-[#2172E5] hover:underline">
-										{new URL(url).hostname.replace('www.', '')}
-									</a>
-								</li>
-							))}
+							{selectedExec.citations.map((url) => {
+								const sanitizedCitationUrl = sanitizeUrl(url)
+								const hostname = sanitizedCitationUrl
+									? new URL(sanitizedCitationUrl).hostname.replace('www.', '')
+									: null
+
+								return (
+									<li key={url} className="text-[10px]">
+										{sanitizedCitationUrl ? (
+											<a
+												href={sanitizedCitationUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-[#2172E5] hover:underline"
+											>
+												{hostname || sanitizedCitationUrl}
+											</a>
+										) : (
+											<span className="break-all text-[#666] dark:text-[#919296]">{url}</span>
+										)}
+									</li>
+								)
+							})}
 						</ol>
 					</div>
 				) : null}
@@ -692,6 +723,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<div className="flex justify-center py-4">
 							<LoadingSpinner size={16} />
 						</div>
+					) : executionsQuery.isError ? (
+						<p className="text-center text-xs text-red-500">
+							{executionsQuery.error.message || 'Failed to load executions.'}
+						</p>
 					) : !executionsQuery.data || executionsQuery.data.length === 0 ? (
 						<p className="text-center text-xs text-[#999]">No executions yet.</p>
 					) : (
@@ -720,6 +755,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<div className="mt-2 flex justify-center">
 							<LoadingSpinner size={16} />
 						</div>
+					) : execDetailQuery.isError ? (
+						<p className="mt-2 text-xs text-red-500">
+							{execDetailQuery.error.message || 'Failed to load execution detail.'}
+						</p>
 					) : null}
 				</div>
 			) : null}
