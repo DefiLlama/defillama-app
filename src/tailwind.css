@@ -1133,8 +1133,12 @@
 }
 
 @keyframes anchorHighlight {
-	0% { background-color: rgba(59, 130, 246, 0.15); }
-	100% { background-color: transparent; }
+	0% {
+		background-color: rgba(59, 130, 246, 0.15);
+	}
+	100% {
+		background-color: transparent;
+	}
 }
 
 .anchor-highlight {
