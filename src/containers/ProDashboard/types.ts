@@ -33,6 +33,7 @@ export interface TextConfig {
 	title?: string
 	content: string
 	colSpan?: StoredColSpan
+	allowHtml?: boolean
 }
 
 export type MetricAggregator =
