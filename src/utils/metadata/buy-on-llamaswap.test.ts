@@ -399,7 +399,7 @@ describe('buildProtocolLlamaswapDataset', () => {
 		])
 	})
 
-	it('keeps original CoinGecko platform order for equal or missing pool coverage matches', async () => {
+	it('keeps original CoinGecko platform order for equal pool coverage matches and omits missing matches', async () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-c',
@@ -453,11 +453,6 @@ describe('buildProtocolLlamaswapDataset', () => {
 				chain: 'base',
 				address: '0x00000000000000000000000000000000000000e2',
 				displayName: 'Base'
-			},
-			{
-				chain: 'arbitrum',
-				address: '0x00000000000000000000000000000000000000e3',
-				displayName: 'Arbitrum'
 			}
 		])
 	})

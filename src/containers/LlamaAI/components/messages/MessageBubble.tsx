@@ -1,5 +1,5 @@
 import Router from 'next/router'
-import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefCallback } from 'react'
 import { Icon } from '~/components/Icon'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
@@ -655,7 +655,10 @@ export function MessageBubble({
 	isLatestAssistant = false,
 	onActionClick,
 	nextUserMessage,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	anchorId,
+	anchorRef,
+	anchorClassName
 }: {
 	message: Message
 	sessionId: string | null
@@ -666,13 +669,19 @@ export function MessageBubble({
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 	onTableFullscreenOpen?: () => void
+	anchorId?: string
+	anchorRef?: RefCallback<HTMLDivElement>
+	anchorClassName?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const hackerMode = useHackerMode()
-
 	if (message.role === 'user') {
 		return (
-			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]">
+			<div
+				id={anchorId}
+				ref={anchorRef}
+				className={`ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425] ${anchorClassName ?? ''}`}
+			>
 				{message.quotedText ? (
 					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
 						<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
@@ -718,7 +727,7 @@ export function MessageBubble({
 	}
 
 	return (
-		<div className="group/msg">
+		<div id={anchorId} ref={anchorRef} className={`group/msg ${anchorClassName ?? ''}`}>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}
