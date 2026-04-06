@@ -63,7 +63,6 @@ export function SubscribeProModal({ dialogStore }: SubscribeProModalProps) {
 									type="button"
 									className="mx-auto w-full flex-1 rounded-lg border border-(--sub-border-slate-100) py-2 text-center font-medium text-(--sub-text-secondary) transition-colors hover:bg-(--sub-surface-slate-50) hover:text-(--sub-ink-primary) disabled:cursor-not-allowed dark:border-(--sub-border-strong) dark:text-(--sub-text-muted-dark) dark:hover:bg-(--sub-surface-elevated-2) dark:hover:text-white"
 									onClick={() => {
-										dialogStore.hide()
 										signInDialogStore.show()
 									}}
 								>

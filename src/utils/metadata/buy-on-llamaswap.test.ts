@@ -238,6 +238,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-a',
+				symbol: 'TKA',
+				name: 'Token A',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000a1',
 					base: '0x00000000000000000000000000000000000000b1',
@@ -308,6 +310,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-b',
+				symbol: 'TKB',
+				name: 'Token B',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000d1',
 					base: '0x00000000000000000000000000000000000000d2',
@@ -399,6 +403,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-c',
+				symbol: 'TKC',
+				name: 'Token C',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000e1',
 					base: '0x00000000000000000000000000000000000000e2',
@@ -460,6 +466,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'polygon-pos',
+				symbol: 'MATIC',
+				name: 'Polygon',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000f1',
 					'polygon-pos': '0x00000000000000000000000000000000000000f2'
