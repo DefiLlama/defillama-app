@@ -29,7 +29,7 @@ export default function SuperLuminalPage() {
 	return (
 		<>
 			<SEO title="DefiLlama" description="Verified metrics powered by DefiLlama" canonicalUrl={null} />
-			<div className="superluminal-dashboard relative col-span-full flex min-h-screen flex-col items-center bg-(--app-bg) px-6 pt-[12vh] pb-16">
+			<div className="superluminal-dashboard relative col-span-full flex min-h-screen flex-col items-center overflow-hidden bg-(--app-bg) px-6 pt-[12vh] pb-16">
 				{/* Ambient glow */}
 				<div
 					className="pointer-events-none absolute top-0 left-1/2 h-[600px] w-[900px] -translate-x-1/2"
