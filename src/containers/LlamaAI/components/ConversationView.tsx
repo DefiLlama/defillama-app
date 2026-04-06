@@ -1,4 +1,12 @@
-import { useRef, useState, type Dispatch, type RefCallback, type RefObject, type SetStateAction } from 'react'
+import {
+	useEffect,
+	useRef,
+	useState,
+	type Dispatch,
+	type RefCallback,
+	type RefObject,
+	type SetStateAction
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -266,6 +274,17 @@ export function ConversationView({
 	const highlightTimeoutRef = useRef<number | null>(null)
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+
+	useEffect(() => {
+		return () => {
+			pendingScrollHighlightRef.current?.()
+			if (highlightTimeoutRef.current !== null) {
+				window.clearTimeout(highlightTimeoutRef.current)
+				highlightTimeoutRef.current = null
+			}
+			handledAnchorIdRef.current = null
+		}
+	}, [])
 
 	const getAnchorRef = (anchorId?: string): RefCallback<HTMLDivElement> | undefined => {
 		if (!anchorId || anchorId !== targetAnchorId) return undefined
