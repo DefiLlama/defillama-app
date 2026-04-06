@@ -10,13 +10,16 @@ export interface ShareData {
 
 interface ShareModalContentProps {
 	shareData?: ShareData
+	messageId?: string
 }
 
-export function ShareModalContent({ shareData }: ShareModalContentProps) {
+export function ShareModalContent({ shareData, messageId }: ShareModalContentProps) {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const shareLinkInputId = useId()
-	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
+	const shareLink = shareData?.shareToken
+		? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}${messageId ? `#msg-${messageId}` : ''}`
+		: ''
 
 	useEffect(() => {
 		return () => {
