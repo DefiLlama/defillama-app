@@ -1,4 +1,12 @@
-import { useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
+import {
+	useEffect,
+	useRef,
+	useState,
+	type Dispatch,
+	type RefCallback,
+	type RefObject,
+	type SetStateAction
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -68,6 +76,14 @@ function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, 
 	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
 }
 
+function getMessageAnchorId(messageId?: string | null) {
+	return messageId ? `msg-${messageId}` : undefined
+}
+
+function getMessageAnchorIdFromHash(hash: string) {
+	return /^#msg-[A-Za-z0-9_-]+$/.test(hash) ? hash.slice(1) : null
+}
+
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
@@ -76,7 +92,9 @@ function ConversationMessageItem({
 	isLlama,
 	isLatestAssistant,
 	onActionClick,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	anchorId,
+	anchorRef
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -86,6 +104,8 @@ function ConversationMessageItem({
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	onTableFullscreenOpen?: () => void
+	anchorId?: string
+	anchorRef?: RefCallback<HTMLDivElement>
 }) {
 	return (
 		<MessageBubble
@@ -97,6 +117,9 @@ function ConversationMessageItem({
 			onActionClick={onActionClick}
 			nextUserMessage={nextUserMessage}
 			onTableFullscreenOpen={onTableFullscreenOpen}
+			anchorId={anchorId}
+			anchorRef={anchorRef}
+			anchorClassName={anchorId ? 'message-anchor' : undefined}
 		/>
 	)
 }
@@ -247,6 +270,67 @@ export function ConversationView({
 	onTableFullscreenOpen
 }: ConversationViewProps) {
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
+	const handledAnchorIdRef = useRef<string | null>(null)
+	const highlightTimeoutRef = useRef<number | null>(null)
+	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
+	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+
+	useEffect(() => {
+		return () => {
+			pendingScrollHighlightRef.current?.()
+			if (highlightTimeoutRef.current !== null) {
+				window.clearTimeout(highlightTimeoutRef.current)
+				highlightTimeoutRef.current = null
+			}
+			handledAnchorIdRef.current = null
+		}
+	}, [])
+
+	const getAnchorRef = (anchorId?: string): RefCallback<HTMLDivElement> | undefined => {
+		if (!anchorId || anchorId !== targetAnchorId) return undefined
+
+		return (node) => {
+			if (!node || handledAnchorIdRef.current === anchorId) return
+			if (window.location.hash !== `#${anchorId}` || node.id !== anchorId) return
+
+			handledAnchorIdRef.current = anchorId
+			requestAnimationFrame(() => {
+				const container = scrollContainerRef.current
+				let fallbackTimer: number | null = null
+				const applyHighlight = () => {
+					if (fallbackTimer !== null) {
+						window.clearTimeout(fallbackTimer)
+					}
+					container?.removeEventListener('scrollend', applyHighlight)
+					pendingScrollHighlightRef.current = null
+					node.classList.remove('anchor-highlight')
+					void node.offsetWidth
+					node.classList.add('anchor-highlight')
+					if (highlightTimeoutRef.current !== null) {
+						window.clearTimeout(highlightTimeoutRef.current)
+					}
+					highlightTimeoutRef.current = window.setTimeout(() => {
+						node.classList.remove('anchor-highlight')
+						highlightTimeoutRef.current = null
+					}, 2000)
+				}
+
+				pendingScrollHighlightRef.current?.()
+				pendingScrollHighlightRef.current = () => {
+					if (fallbackTimer !== null) {
+						window.clearTimeout(fallbackTimer)
+					}
+					container?.removeEventListener('scrollend', applyHighlight)
+					pendingScrollHighlightRef.current = null
+				}
+
+				container?.addEventListener('scrollend', applyHighlight, { once: true })
+				fallbackTimer = window.setTimeout(applyHighlight, 500)
+				node.scrollIntoView({ behavior: 'smooth', block: 'end' })
+			})
+		}
+	}
+
 	const [initialTailSnapshot] = useState(() => getMessageTailSnapshot(messages))
 	const currentTailSnapshot = getMessageTailSnapshot(messages)
 	const hasTailChangedSinceMount =
@@ -314,6 +398,8 @@ export function ConversationView({
 										isLatestAssistant={message.id === lastAssistantId}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 										onTableFullscreenOpen={onTableFullscreenOpen}
+										anchorId={getMessageAnchorId(message.id)}
+										anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
 									/>
 								)
 							})}
@@ -336,6 +422,8 @@ export function ConversationView({
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 											onTableFullscreenOpen={onTableFullscreenOpen}
+											anchorId={getMessageAnchorId(message.id)}
+											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
 										/>
 									))}
 

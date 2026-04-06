@@ -67,7 +67,6 @@ import type {
 	Message,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -836,7 +835,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
 	const effectiveMessages = sharedMessages ?? messages
 	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
-	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
+	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
+	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
 	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
@@ -844,6 +844,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 	const shouldAnimateConversationTransition =
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+	const shouldStartDetachedForAnchor =
+		Boolean(sharedSession) && readOnly && typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
 
 	useEffect(() => {
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
@@ -961,7 +963,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		hasMessages,
 		paginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
-		keyboardOpen
+		keyboardOpen,
+		startDetached: shouldStartDetachedForAnchor
 	})
 
 	// Trigger the sidebar open/close animation before toggling visibility.
