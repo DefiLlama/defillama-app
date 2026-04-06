@@ -836,7 +836,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
 	const effectiveMessages = sharedMessages ?? messages
 	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
-	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
+	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
+	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
 	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
