@@ -118,9 +118,10 @@ interface ShareDialogProps {
 	open: boolean
 	setOpen: (value: boolean) => void
 	shareData?: ShareData
+	messageId?: string
 }
 
-const ShareDialog = memo(function ShareDialog({ open, setOpen, shareData }: ShareDialogProps) {
+const ShareDialog = memo(function ShareDialog({ open, setOpen, shareData, messageId }: ShareDialogProps) {
 	return (
 		<Ariakit.DialogProvider open={open} setOpen={setOpen}>
 			<Ariakit.Dialog
@@ -135,7 +136,7 @@ const ShareDialog = memo(function ShareDialog({ open, setOpen, shareData }: Shar
 						<Icon name="x" height={16} width={16} />
 					</Ariakit.DialogDismiss>
 				</div>
-				<ShareModalContent shareData={shareData} />
+				<ShareModalContent shareData={shareData} messageId={messageId} />
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
@@ -181,7 +182,7 @@ export function ResponseControls({
 		},
 		onSuccess: (data) => {
 			if (data.shareToken) {
-				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
+				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}${messageId ? `#msg-${messageId}` : ''}`
 				void navigator.clipboard.writeText(shareLink)
 				dispatch({ type: 'setShowShareModal', value: true })
 			}
@@ -370,7 +371,7 @@ export function ResponseControls({
 				setSelectedRating={setSelectedRating}
 				onRatingSubmitted={setSubmittedRating}
 			/>
-			<ShareDialog open={showShareModal} setOpen={setShowShareModal} shareData={shareData} />
+			<ShareDialog open={showShareModal} setOpen={setShowShareModal} shareData={shareData} messageId={messageId} />
 		</>
 	)
 }
