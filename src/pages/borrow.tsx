@@ -84,6 +84,8 @@ export default function YieldBorrow(data) {
 		cdpRoutes: data.cdpPools
 	})
 
+	const hasSelection = borrowToken || collateralToken
+
 	return (
 		<Layout
 			title="Borrow Rate Aggregator - Best DeFi Lending Rates - DefiLlama"
@@ -97,52 +99,76 @@ export default function YieldBorrow(data) {
 			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
 				{exploitWarning}
 			</Announcement>
-			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3">
-				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
-					<TokensSelect
-						label="Borrow"
-						searchData={data.searchData}
-						queryParam={'borrow'}
-						placeholder="Select token to borrow"
-					/>
+			<div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-start">
+				<div className="w-full shrink-0 rounded-md border border-(--cards-border) bg-(--cards-bg) lg:w-[340px]">
+					<div className="relative flex flex-col p-4">
+						<TokensSelect
+							label="Borrow"
+							searchData={data.searchData}
+							queryParam={'borrow'}
+							placeholder="Select token to borrow"
+						/>
 
-					<div className="mt-2 flex items-center justify-center">
-						<button
-							aria-label="Swap borrow and collateral"
-							onClick={handleSwap}
-							className="inline-flex items-center justify-center rounded-full border border-(--form-control-border) bg-(--btn-bg) p-2 text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
-							title="Swap borrow and collateral"
-						>
-							<Icon name="repeat" className="h-4 w-4" />
-						</button>
+						<div className="relative z-10 flex items-center justify-center pt-2">
+							<button
+								aria-label="Swap borrow and collateral"
+								onClick={handleSwap}
+								className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-(--form-control-border) bg-(--cards-bg) text-(--text-tertiary) transition-all hover:scale-105 hover:border-(--primary) hover:text-(--primary) focus-visible:border-(--primary) focus-visible:text-(--primary) active:scale-95"
+								title="Swap borrow and collateral"
+							>
+								<Icon name="repeat" className="h-4 w-4" />
+							</button>
+						</div>
+
+						<TokensSelect
+							label="Collateral"
+							searchData={data.searchData}
+							queryParam={'collateral'}
+							placeholder="Select token for collateral"
+						/>
 					</div>
 
-					<TokensSelect
-						label="Collateral"
-						searchData={data.searchData}
-						queryParam={'collateral'}
-						placeholder="Select token for collateral"
-					/>
 					{borrowToken && !collateralToken ? (
-						<small className="mt-0.5 text-center text-orange-500">
-							Select your collateral token to see real borrow cost!
-						</small>
+						<p className="border-t border-(--cards-border) px-4 py-2.5 text-center text-sm text-(--warning)">
+							Select collateral to see real borrow cost
+						</p>
 					) : null}
 
-					{borrowToken || collateralToken ? (
-						<label className="mx-auto flex cursor-pointer gap-1">
+					{hasSelection ? (
+						<label className="group flex cursor-pointer items-center justify-between border-t border-(--cards-border) px-4 py-3 transition-colors hover:bg-(--btn-bg)">
+							<span className="text-sm text-(--text-secondary) select-none">Include Incentives</span>
+							<span
+								data-checked={includeIncentives}
+								className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border border-(--form-control-border) bg-(--btn-bg) transition-colors data-[checked=true]:border-(--primary) data-[checked=true]:bg-(--primary)"
+							>
+								<span
+									className="pointer-events-none block h-3.5 w-3.5 translate-x-0.5 rounded-full bg-(--text-tertiary) shadow-sm transition-transform data-[checked=true]:translate-x-[17px] data-[checked=true]:bg-white"
+									data-checked={includeIncentives}
+								/>
+							</span>
 							<input
 								type="checkbox"
 								checked={includeIncentives}
 								onChange={() => {
 									void pushShallowQuery(router, { incentives: includeIncentives ? undefined : 'true' })
 								}}
+								className="sr-only"
 							/>
-							<span className="text-base">Include Incentives</span>
 						</label>
 					) : null}
 				</div>
-				{borrowToken || collateralToken ? <PoolsList pools={filteredPools} /> : null}
+
+				<div className="min-w-0 flex-1">
+					{hasSelection ? (
+						<PoolsList pools={filteredPools} />
+					) : (
+						<div className="flex flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) px-6 py-16 text-center">
+							<p className="text-base text-(--text-secondary)">
+								Select a token to borrow and collateral to compare rates across protocols
+							</p>
+						</div>
+					)}
+				</div>
 			</div>
 		</Layout>
 	)
@@ -212,66 +238,80 @@ const TokensSelect = ({
 				}}
 			>
 				<Ariakit.SelectProvider value={selectedValue} setValue={onChange}>
-					<Ariakit.SelectLabel className="text-base">{label}</Ariakit.SelectLabel>
-					<Ariakit.Select className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) p-3 text-base font-medium text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
+					<Ariakit.SelectLabel className="text-[11px] font-semibold tracking-widest text-(--text-tertiary) uppercase">
+						{label}
+					</Ariakit.SelectLabel>
+					<Ariakit.Select
+						className={`group flex cursor-pointer flex-nowrap items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-all ${
+							tokenInSearchData
+								? 'border border-(--primary)/30 bg-(--primary)/5 font-semibold text-(--text-primary) hover:border-(--primary)/50 hover:bg-(--primary)/10'
+								: 'border border-(--form-control-border) bg-(--btn-bg) text-(--text-tertiary) hover:border-(--bg-border) hover:bg-(--btn-hover-bg)'
+						} focus-visible:border-(--primary) focus-visible:ring-1 focus-visible:ring-(--primary)/30`}
+					>
 						{tokenInSearchData ? (
-							<>
-								<span>
-									{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
-								</span>
-							</>
+							<span className="truncate">
+								{tokenInSearchData.symbol === 'USD_STABLES' ? tokenInSearchData.name : tokenInSearchData.symbol}
+							</span>
 						) : (
-							<span className="opacity-60">{placeholder}</span>
+							<span>{placeholder}</span>
 						)}
-						<Ariakit.SelectArrow className="ml-auto" />
+						<Icon
+							name="chevron-down"
+							className="ml-auto h-4 w-4 shrink-0 opacity-40 transition-transform group-aria-expanded:rotate-180"
+						/>
 					</Ariakit.Select>
 					<Ariakit.SelectPopover
 						unmountOnHide
 						hideOnInteractOutside
 						sameWidth
-						gutter={6}
+						gutter={4}
 						wrapperProps={{
 							className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 						}}
-						className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+						className="z-10 flex min-w-[180px] flex-col overflow-auto overscroll-contain rounded-lg border border-(--cards-border) bg-(--bg-main) shadow-lg max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(400px,60dvh)] lg:max-h-(--popover-available-height)"
 					>
 						<Ariakit.PopoverDismiss className="ml-auto p-2 opacity-50 sm:hidden">
 							<Icon name="x" className="h-5 w-5" />
 						</Ariakit.PopoverDismiss>
 
-						<Ariakit.Combobox
-							placeholder="Search..."
-							className="m-3 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
-						/>
+						<div className="p-2">
+							<Ariakit.Combobox
+								placeholder="Search tokens..."
+								className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm transition-colors outline-none placeholder:text-(--text-tertiary) focus:border-(--primary)"
+							/>
+						</div>
 
 						{matches.length > 0 ? (
-							<>
-								<Ariakit.ComboboxList ref={comboboxRef}>
-									{matches.slice(0, viewableMatches).map((option) => (
-										<Ariakit.SelectItem
-											key={`${queryParam}-${option.symbol}`}
-											value={option.symbol}
-											className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-											render={<Ariakit.ComboboxItem />}
-										>
-											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : `${option.symbol}`}
-										</Ariakit.SelectItem>
-									))}
-									{matches.length > viewableMatches ? (
-										<Ariakit.ComboboxItem
-											value="__see_more__"
-											setValueOnClick={false}
-											hideOnClick={false}
-											className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-											onClick={handleSeeMore}
-										>
-											See more...
-										</Ariakit.ComboboxItem>
-									) : null}
-								</Ariakit.ComboboxList>
-							</>
+							<Ariakit.ComboboxList ref={comboboxRef} className="px-1 pb-1">
+								{matches.slice(0, viewableMatches).map((option) => (
+									<Ariakit.SelectItem
+										key={`${queryParam}-${option.symbol}`}
+										value={option.symbol}
+										className="group flex shrink-0 cursor-pointer items-center gap-3 rounded-md px-2.5 py-2 text-sm cv-auto-37 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+										render={<Ariakit.ComboboxItem />}
+									>
+										<span className="truncate">
+											{option.symbol === 'USD_STABLES' ? searchData[option.symbol].name : option.symbol}
+										</span>
+										{option.symbol === selectedValue ? (
+											<Icon name="check" className="ml-auto h-3.5 w-3.5 shrink-0 text-(--primary)" />
+										) : null}
+									</Ariakit.SelectItem>
+								))}
+								{matches.length > viewableMatches ? (
+									<Ariakit.ComboboxItem
+										value="__see_more__"
+										setValueOnClick={false}
+										hideOnClick={false}
+										className="w-full cursor-pointer rounded-md px-2.5 py-2 text-sm text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+										onClick={handleSeeMore}
+									>
+										See more...
+									</Ariakit.ComboboxItem>
+								) : null}
+							</Ariakit.ComboboxList>
 						) : (
-							<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
+							<p className="px-3 py-6 text-center text-sm text-(--text-tertiary)">No results found</p>
 						)}
 					</Ariakit.SelectPopover>
 				</Ariakit.SelectProvider>
@@ -359,62 +399,88 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 
 	const finalPools: Array<IPool> = Object.values(filteredPools2)
 
+	const apyLabel = borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'
+	const showAvailable = Boolean(borrow)
+
 	return (
-		<div className="flex w-full flex-col overflow-y-auto rounded-md bg-white/60 dark:bg-black/60">
-			<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
+		<div className="flex w-full flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex items-center border-b border-(--cards-border)">
 				<button
-					className="rounded-tl-xl border-b border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
+					className="px-4 py-2.5 text-sm font-medium transition-colors data-[selected=false]:text-(--text-tertiary) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-[inset_0_-2px_0_var(--primary)]"
 					onClick={() => setTab('safe')}
 					data-selected={tab === 'safe'}
 				>
 					Safe
 				</button>
 				<button
-					className="border-b border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
+					className="px-4 py-2.5 text-sm font-medium transition-colors data-[selected=false]:text-(--text-tertiary) data-[selected=true]:text-(--text-primary) data-[selected=true]:shadow-[inset_0_-2px_0_var(--primary)]"
 					onClick={() => setTab('degen')}
 					data-selected={tab === 'degen'}
 				>
 					Degen
 				</button>
+				<span className="ml-auto pr-4 text-xs text-(--text-tertiary)">
+					{finalPools.length} {finalPools.length === 1 ? 'result' : 'results'}
+				</span>
 			</div>
 
 			{finalPools.length === 0 ? (
-				<p className="m-4 mb-6 text-center">Couldn't find any pools</p>
+				<p className="px-4 py-12 text-center text-sm text-(--text-tertiary)">No pools found for this pair</p>
 			) : (
-				<table className="my-4 border-separate border-spacing-y-2">
-					<tbody>
-						{finalPools.map((pool) => (
-							<tr key={JSON.stringify(pool)} className="p-3">
-								<th className="rounded-l-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
-									<span className="flex flex-nowrap items-center gap-1">
-										<TokenLogo name={pool.projectName} kind="token" size={20} alt={`Logo of ${pool.projectName}`} />
-										<span className="whitespace-nowrap">{pool.projectName}</span>
-									</span>
-								</th>
-
-								<td className="bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
-									<span className="flex flex-col">
-										<span>
-											{getAPY(pool, borrow, collateral, incentives).toLocaleString(undefined, {
-												maximumFractionDigits: 2
-											})}
-											%
-										</span>
-										<span className="text-xs whitespace-nowrap opacity-70">
-											{borrow && collateral ? 'Net APY' : borrow ? 'Net Borrow APY' : 'Net Supply APY'}
-										</span>
-									</span>
-								</td>
-								<td className="rounded-r-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
-									<span className="flex items-center gap-1.5">
-										<TokenLogo name={pool.chain} kind="chain" size={20} alt={`Logo of ${pool.chain}`} />
-										<span>{pool.chain}</span>
-									</span>
-								</td>
+				<div className="overflow-x-auto">
+					<table className="w-full">
+						<thead>
+							<tr className="border-b border-(--cards-border) text-left text-xs text-(--text-tertiary)">
+								<th className="px-4 py-2.5 font-medium">Protocol</th>
+								<th className="px-4 py-2.5 font-medium">{apyLabel}</th>
+								<th className="px-4 py-2.5 font-medium">Chain</th>
+								{showAvailable ? <th className="px-4 py-2.5 text-right font-medium">Available</th> : null}
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{finalPools.map((pool) => {
+								const apy = getAPY(pool, borrow, collateral, incentives)
+								return (
+									<tr
+										key={pool.projectName + pool.chain}
+										className="border-b border-(--cards-border) transition-colors last:border-b-0 hover:bg-(--btn-bg)"
+									>
+										<td className="px-4 py-3">
+											<span className="flex items-center gap-2">
+												<TokenLogo name={pool.projectName} kind="token" size={20} alt={`Logo of ${pool.projectName}`} />
+												<span className="text-sm font-medium">{pool.projectName}</span>
+											</span>
+										</td>
+										<td className="px-4 py-3">
+											<span
+												className={`text-sm font-medium tabular-nums ${apy >= 0 ? 'text-(--success)' : 'text-(--error)'}`}
+											>
+												{apy.toLocaleString(undefined, { maximumFractionDigits: 2 })}%
+											</span>
+										</td>
+										<td className="px-4 py-3">
+											<span className="flex items-center gap-2">
+												<TokenLogo name={pool.chain} kind="chain" size={18} alt={`Logo of ${pool.chain}`} />
+												<span className="text-sm text-(--text-secondary)">{pool.chain}</span>
+											</span>
+										</td>
+										{showAvailable ? (
+											<td className="px-4 py-3 text-right">
+												<span className="text-sm text-(--text-secondary) tabular-nums">
+													{pool.borrow.totalAvailableUsd
+														? `$${(pool.borrow.totalAvailableUsd / 1e6).toLocaleString(undefined, {
+																maximumFractionDigits: 1
+															})}M`
+														: '—'}
+												</span>
+											</td>
+										) : null}
+									</tr>
+								)
+							})}
+						</tbody>
+					</table>
+				</div>
 			)}
 		</div>
 	)
