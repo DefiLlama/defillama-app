@@ -3,96 +3,15 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
-import { rehypeSanitizeStyle } from './rehypeSanitizeStyle'
+import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const SVG_TAGS = [
-	'svg',
-	'g',
-	'path',
-	'circle',
-	'rect',
-	'line',
-	'polyline',
-	'polygon',
-	'ellipse',
-	'text',
-	'tspan',
-	'defs',
-	'use',
-	'symbol',
-	'clipPath',
-	'mask',
-	'linearGradient',
-	'radialGradient',
-	'stop',
-	'filter',
-	'feGaussianBlur',
-	'feOffset',
-	'feMerge',
-	'feMergeNode'
-]
-const SVG_ATTRS = [
-	'viewBox',
-	'xmlns',
-	'd',
-	'fill',
-	'stroke',
-	'strokeWidth',
-	'strokeLinecap',
-	'strokeLinejoin',
-	'cx',
-	'cy',
-	'r',
-	'rx',
-	'ry',
-	'x',
-	'y',
-	'x1',
-	'y1',
-	'x2',
-	'y2',
-	'width',
-	'height',
-	'points',
-	'transform',
-	'opacity',
-	'fillOpacity',
-	'strokeOpacity',
-	'fillRule',
-	'clipRule',
-	'textAnchor',
-	'dominantBaseline',
-	'offset',
-	'stopColor',
-	'stopOpacity',
-	'gradientUnits',
-	'gradientTransform',
-	'clipPathUnits',
-	'maskUnits',
-	'stdDeviation',
-	'dx',
-	'dy',
-	'result',
-	'in'
-]
-const SANITIZE_SCHEMA = {
-	...defaultSchema,
-	tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS],
-	attributes: {
-		...defaultSchema.attributes,
-		'*': [...(defaultSchema.attributes?.['*'] ?? []), 'style', 'className', ...SVG_ATTRS]
-	}
-}
-const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], rehypeSanitizeStyle] as any
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
 /** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
@@ -446,7 +365,7 @@ export function ChatMarkdownRenderer({
 		>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
-				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+				rehypePlugins={SANITIZE_REHYPE_PLUGINS}
 				components={markdownComponents}
 			>
 				{processedData.content}

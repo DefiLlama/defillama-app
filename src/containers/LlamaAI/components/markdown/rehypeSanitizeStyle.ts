@@ -6,7 +6,7 @@ import { visit } from 'unist-util-visit'
  * or otherwise break the page layout from user/AI-generated HTML.
  */
 const DANGEROUS_CSS_RE =
-	/\b(position\s*:\s*(fixed|absolute|sticky)|z-index\s*:\s*\d|pointer-events\s*:|opacity\s*:\s*0(\.\d+)?(?!\d))\b/gi
+	/\b(position\s*:\s*(fixed|absolute|sticky)|z-index\s*:\s*\d+|pointer-events\s*:\s*\w|opacity\s*:\s*0(\.\d+)?(?!\d))\b/i
 
 export function rehypeSanitizeStyle() {
 	return (tree: Root) => {
@@ -19,9 +19,6 @@ export function rehypeSanitizeStyle() {
 				.filter((decl) => !DANGEROUS_CSS_RE.test(decl.trim()))
 				.join(';')
 				.trim()
-
-			// Reset regex lastIndex since it's global
-			DANGEROUS_CSS_RE.lastIndex = 0
 
 			if (cleaned) {
 				node.properties.style = cleaned

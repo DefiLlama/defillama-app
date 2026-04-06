@@ -1,8 +1,6 @@
 import ReactMarkdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
-import { rehypeSanitizeStyle } from '~/containers/LlamaAI/components/markdown/rehypeSanitizeStyle'
+import { SANITIZE_REHYPE_PLUGINS } from '~/containers/LlamaAI/components/markdown/sanitizeConfig'
 import type { TextConfig } from '../types'
 
 interface TextCardProps {
@@ -10,85 +8,6 @@ interface TextCardProps {
 }
 
 const REMARK_PLUGINS = [[remarkGfm, { singleTilde: false }]] as any
-const SVG_TAGS = [
-	'svg',
-	'g',
-	'path',
-	'circle',
-	'rect',
-	'line',
-	'polyline',
-	'polygon',
-	'ellipse',
-	'text',
-	'tspan',
-	'defs',
-	'use',
-	'symbol',
-	'clipPath',
-	'mask',
-	'linearGradient',
-	'radialGradient',
-	'stop',
-	'filter',
-	'feGaussianBlur',
-	'feOffset',
-	'feMerge',
-	'feMergeNode'
-]
-const SVG_ATTRS = [
-	'viewBox',
-	'xmlns',
-	'd',
-	'fill',
-	'stroke',
-	'strokeWidth',
-	'strokeLinecap',
-	'strokeLinejoin',
-	'cx',
-	'cy',
-	'r',
-	'rx',
-	'ry',
-	'x',
-	'y',
-	'x1',
-	'y1',
-	'x2',
-	'y2',
-	'width',
-	'height',
-	'points',
-	'transform',
-	'opacity',
-	'fillOpacity',
-	'strokeOpacity',
-	'fillRule',
-	'clipRule',
-	'textAnchor',
-	'dominantBaseline',
-	'offset',
-	'stopColor',
-	'stopOpacity',
-	'gradientUnits',
-	'gradientTransform',
-	'clipPathUnits',
-	'maskUnits',
-	'stdDeviation',
-	'dx',
-	'dy',
-	'result',
-	'in'
-]
-const SANITIZE_SCHEMA = {
-	...defaultSchema,
-	tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS],
-	attributes: {
-		...defaultSchema.attributes,
-		'*': [...(defaultSchema.attributes?.['*'] ?? []), 'style', 'className', ...SVG_ATTRS]
-	}
-}
-const REHYPE_PLUGINS = [rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA], rehypeSanitizeStyle] as any
 
 export function TextCard({ text }: TextCardProps) {
 	return (
@@ -97,7 +16,7 @@ export function TextCard({ text }: TextCardProps) {
 
 			<ReactMarkdown
 				remarkPlugins={REMARK_PLUGINS}
-				rehypePlugins={REHYPE_PLUGINS}
+				rehypePlugins={SANITIZE_REHYPE_PLUGINS}
 				components={{
 					h1: ({ children }) => <h3 className="m-0! text-xl font-bold text-(--text-primary)">{children}</h3>,
 					h2: ({ children }) => <h4 className="m-0! text-lg font-semibold text-(--text-primary)">{children}</h4>,
