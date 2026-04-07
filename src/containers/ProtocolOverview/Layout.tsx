@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMemo } from 'react'
+import { Announcement } from '~/components/Announcement'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink, ButtonLink } from '~/components/Link'
@@ -210,6 +211,21 @@ export function ProtocolOverviewLayout({
 					{banner.message}
 				</p>
 			))}
+
+			{name === 'Spark' ? (
+				<Announcement announcementId="spark-investor-relations" version="1">
+					View Spark's{' '}
+					<a
+						href="https://investors.defillama.com/superluminal/spark"
+						target="_blank"
+						rel="noreferrer noopener"
+						className="underline"
+					>
+						investor relations
+					</a>{' '}
+					dashboard for more in depth analytics and investor reports.
+				</Announcement>
+			) : null}
 
 			<div className="isolate flex flex-1 flex-col gap-2">
 				<div className="flex w-full overflow-x-auto text-xs font-medium">
