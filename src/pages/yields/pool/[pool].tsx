@@ -9,7 +9,12 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { CopyHelper } from '~/components/Copy'
-import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
+import type {
+	IMultiSeriesChart2Props,
+	IPieChartProps,
+	MultiSeriesChart2Dataset,
+	MultiSeriesChart2SeriesConfig
+} from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -57,7 +62,12 @@ const SINGLE_APY_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
 	{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }
 ]
 
-type YieldMetricDef = { queryKey: string; defaultOn: boolean; needsBorrow: boolean; chart: MultiSeriesChart2SeriesConfig }
+type YieldMetricDef = {
+	queryKey: string
+	defaultOn: boolean
+	needsBorrow: boolean
+	chart: MultiSeriesChart2SeriesConfig
+}
 
 const YIELD_METRIC_DEFS: Record<string, YieldMetricDef> = {
 	APY: {
@@ -699,10 +709,7 @@ const PageView = (_props) => {
 		return defs
 	}, [priceMetrics])
 
-	const allMetricDefs = useMemo(
-		() => ({ ...YIELD_METRIC_DEFS, ...priceMetricDefs }),
-		[priceMetricDefs]
-	)
+	const allMetricDefs = useMemo(() => ({ ...YIELD_METRIC_DEFS, ...priceMetricDefs }), [priceMetricDefs])
 	const allMetricIds = useMemo(() => Object.keys(allMetricDefs), [allMetricDefs])
 
 	const { toggledMetricIds, availableMetricIds } = useMemo(() => {
@@ -827,9 +834,7 @@ const PageView = (_props) => {
 		const avg7Days: (number | null)[] = []
 		for (let i = 0; i < apyValues.length; i++) {
 			avg7Days[i] =
-				i + 1 < windowSize
-					? null
-					: apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+				i + 1 < windowSize ? null : apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
 		}
 
 		const dayMap = new Map<number, Record<string, number | null | undefined>>()
@@ -847,7 +852,7 @@ const PageView = (_props) => {
 				'TVL Change': tvlChange != null ? Math.round(tvlChange) : null,
 				'Supply APY Base': el.apyBase != null ? Number(Number(el.apyBase).toFixed(2)) : null,
 				'Supply APY Reward': el.apyReward != null ? Number(Number(el.apyReward).toFixed(2)) : null,
-				'_apy7d': avg7Days[i] != null ? Number(avg7Days[i]!.toFixed(2)) : null
+				_apy7d: avg7Days[i] != null ? Number(avg7Days[i]!.toFixed(2)) : null
 			})
 		})
 
@@ -922,7 +927,12 @@ const PageView = (_props) => {
 		const poolLiquidityDataset: MultiSeriesChart2Dataset = {
 			source: fullSortedSource
 				.filter((r) => r['Supplied'] != null && r['Borrowed'] != null && r['Available'] != null)
-				.map((r) => ({ timestamp: r.timestamp, Supplied: r['Supplied'], Borrowed: r['Borrowed'], Available: r['Available'] })),
+				.map((r) => ({
+					timestamp: r.timestamp,
+					Supplied: r['Supplied'],
+					Borrowed: r['Borrowed'],
+					Available: r['Available']
+				})),
 			dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 		}
 
@@ -1133,9 +1143,7 @@ const PageView = (_props) => {
 								</Ariakit.DialogDisclosure>
 								<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 									<span className="flex items-center justify-between gap-1">
-										<Ariakit.DialogHeading className="text-2xl font-bold">
-											Add metrics to chart
-										</Ariakit.DialogHeading>
+										<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
 										<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
 											<Icon name="x" className="h-5 w-5" />
 										</Ariakit.DialogDismiss>
@@ -1167,11 +1175,7 @@ const PageView = (_props) => {
 												key={`add-metric-${option.id}`}
 												onClick={() => {
 													void pushShallowQuery(router, {
-														[option.queryKey]: option.active
-															? option.defaultOn
-																? 'false'
-																: undefined
-															: 'true'
+														[option.queryKey]: option.active ? (option.defaultOn ? 'false' : undefined) : 'true'
 													})
 												}}
 												data-active={option.active}
