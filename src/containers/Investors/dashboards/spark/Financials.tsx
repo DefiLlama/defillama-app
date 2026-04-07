@@ -1,6 +1,6 @@
 import { lazy, useEffect, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/SuperLuminal/index'
+import { useContentReady } from '~/containers/Investors/index'
 import { assignColors } from './api'
 import { useFinancialsData, type AllocatedAssetsData, type AllocatedAssetsEntry } from './financialsApi'
 

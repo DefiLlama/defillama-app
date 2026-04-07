@@ -6,7 +6,7 @@ import { formattedNum } from '~/utils'
 import { useAaveMarkets, useAaveAPYHistory } from './api'
 import type { FlatReserve, TimeWindow } from './api'
 import {
-	SuperluminalTable,
+	InvestorsTable,
 	PageLoader,
 	ChartCard,
 	CardSkeleton,
@@ -88,7 +88,7 @@ function RateComparisonTable({ data }: { data: RateComparisonRow[] }) {
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 			<SectionHeader title="Rate Comparison Across Chains" />
 			<div className="mt-4">
-				<SuperluminalTable instance={instance} />
+				<InvestorsTable instance={instance} />
 			</div>
 		</div>
 	)

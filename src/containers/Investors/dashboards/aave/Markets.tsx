@@ -5,7 +5,7 @@ import type { IBarChartProps } from '~/components/ECharts/types'
 import { formattedNum } from '~/utils'
 import { useAaveMarkets } from './api'
 import type { FlatReserve } from './api'
-import { SuperluminalTable, PageLoader, ChartCard, KpiCard, MetricStrip, SectionHeader, formatPct } from './shared'
+import { InvestorsTable, PageLoader, ChartCard, KpiCard, MetricStrip, SectionHeader, formatPct } from './shared'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 
@@ -124,7 +124,7 @@ function ReservesTable({ data }: { data: FlatReserve[] }) {
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 			<SectionHeader title="All Reserves" />
 			<div className="mt-4">
-				<SuperluminalTable instance={instance} overrideRows={pagedRows} />
+				<InvestorsTable instance={instance} overrideRows={pagedRows} />
 			</div>
 			{totalPages > 1 && (
 				<div className="mt-3 flex items-center justify-between border-t border-(--divider) pt-3 text-[11px] text-(--text-tertiary)">

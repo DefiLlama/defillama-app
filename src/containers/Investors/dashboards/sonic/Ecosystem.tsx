@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { lazy, useEffect, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/SuperLuminal/index'
+import { useContentReady } from '~/containers/Investors/index'
 import { useEcosystemData, type TopProtocolEntry, type AssetCategory } from './ecosystemApi'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>

@@ -1,7 +1,7 @@
 import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import { lazy, useEffect } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/SuperLuminal/index'
+import { useContentReady } from '~/containers/Investors/index'
 import { formattedNum } from '~/utils'
 import { useBlockchainData, type TopToken } from './blockchainApi'
 
