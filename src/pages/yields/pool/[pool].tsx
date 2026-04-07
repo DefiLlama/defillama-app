@@ -607,6 +607,8 @@ const PageView = (_props) => {
 
 	const { chartInstance: supplyApyChartInstance, handleChartReady: handleSupplyApyReady } = useGetChartInstance()
 
+	const { chartInstance: supplyApy7dChartInstance, handleChartReady: handleSupplyApy7dReady } = useGetChartInstance()
+
 	const { chartInstance: borrowApyChartInstance, handleChartReady: handleBorrowApyReady } = useGetChartInstance()
 
 	const { chartInstance: netBorrowApyChartInstance, handleChartReady: handleNetBorrowApyReady } = useGetChartInstance()
@@ -820,10 +822,20 @@ const PageView = (_props) => {
 	const fullSortedSource = useMemo(() => {
 		if (!chart?.data?.length) return [] as Array<Record<string, number | null | undefined>>
 
+		const windowSize = 7
+		const apyValues = chart.data.map((m) => m.apy)
+		const avg7Days: (number | null)[] = []
+		for (let i = 0; i < apyValues.length; i++) {
+			avg7Days[i] =
+				i + 1 < windowSize
+					? null
+					: apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+		}
+
 		const dayMap = new Map<number, Record<string, number | null | undefined>>()
 
 		let prevTvl: number | null = null
-		chart.data.forEach((el) => {
+		chart.data.forEach((el, i) => {
 			const ts = Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000) * 1000
 			const tvl = el.tvlUsd ?? null
 			const tvlChange = tvl != null && prevTvl != null ? tvl - prevTvl : null
@@ -834,7 +846,8 @@ const PageView = (_props) => {
 				TVL: tvl,
 				'TVL Change': tvlChange != null ? Math.round(tvlChange) : null,
 				'Supply APY Base': el.apyBase != null ? Number(Number(el.apyBase).toFixed(2)) : null,
-				'Supply APY Reward': el.apyReward != null ? Number(Number(el.apyReward).toFixed(2)) : null
+				'Supply APY Reward': el.apyReward != null ? Number(Number(el.apyReward).toFixed(2)) : null,
+				'_apy7d': avg7Days[i] != null ? Number(avg7Days[i]!.toFixed(2)) : null
 			})
 		})
 
@@ -871,6 +884,7 @@ const PageView = (_props) => {
 
 	const {
 		supplyApyBarDataset = EMPTY_BASE_REWARD_DATASET,
+		supplyApy7dDataset = EMPTY_APY_DATASET,
 		borrowApyBarDataset = EMPTY_BASE_REWARD_DATASET,
 		netBorrowApyDataset = EMPTY_APY_DATASET,
 		poolLiquidityDataset = EMPTY_LIQUIDITY_DATASET
@@ -882,6 +896,13 @@ const PageView = (_props) => {
 				.filter((r) => r['Supply APY Base'] != null || r['Supply APY Reward'] != null)
 				.map((r) => ({ timestamp: r.timestamp, Base: r['Supply APY Base'], Reward: r['Supply APY Reward'] })),
 			dimensions: ['timestamp', 'Base', 'Reward']
+		}
+
+		const supplyApy7dDataset: MultiSeriesChart2Dataset = {
+			source: fullSortedSource
+				.filter((r) => r['_apy7d'] != null)
+				.map((r) => ({ timestamp: r.timestamp, APY: r['_apy7d'] })),
+			dimensions: ['timestamp', 'APY']
 		}
 
 		const borrowApyBarDataset: MultiSeriesChart2Dataset = {
@@ -905,9 +926,10 @@ const PageView = (_props) => {
 			dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 		}
 
-		return { supplyApyBarDataset, borrowApyBarDataset, netBorrowApyDataset, poolLiquidityDataset }
+		return { supplyApyBarDataset, supplyApy7dDataset, borrowApyBarDataset, netBorrowApyDataset, poolLiquidityDataset }
 	}, [fullSortedSource])
 	const deferredSupplyApyBarDataset = useDeferredValue(supplyApyBarDataset)
+	const deferredSupplyApy7dDataset = useDeferredValue(supplyApy7dDataset)
 	const deferredBorrowApyBarDataset = useDeferredValue(borrowApyBarDataset)
 	const deferredNetBorrowApyDataset = useDeferredValue(netBorrowApyDataset)
 	const deferredPoolLiquidityDataset = useDeferredValue(poolLiquidityDataset)
@@ -1248,6 +1270,27 @@ const PageView = (_props) => {
 										valueSymbol="%"
 										hideDefaultLegend={false}
 										onReady={handleSupplyApyReady}
+									/>
+								</Suspense>
+							</div>
+						) : null}
+						{supplyApy7dDataset.source.length ? (
+							<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+								<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+									<h2 className="mr-auto text-base font-semibold">7 day moving average of Supply APY</h2>
+									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />
+									<ChartExportButtons
+										chartInstance={supplyApy7dChartInstance}
+										filename={`${query.pool}-supply-apy-7d-avg`}
+										title="7 day moving average of Supply APY"
+									/>
+								</div>
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={deferredSupplyApy7dDataset}
+										charts={SINGLE_APY_LINE_CHARTS}
+										valueSymbol="%"
+										onReady={handleSupplyApy7dReady}
 									/>
 								</Suspense>
 							</div>
