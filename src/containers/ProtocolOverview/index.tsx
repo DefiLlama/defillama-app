@@ -74,7 +74,6 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						oracleTvsByChain={oracleTvsByChain}
 						formatPrice={formatPrice}
 						headingAs="h1"
-						headingClassName="flex flex-wrap items-center gap-2 text-xl "
 					/>
 					<KeyMetrics
 						{...props}
@@ -95,7 +94,6 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								oracleTvsByChain={oracleTvsByChain}
 								formatPrice={formatPrice}
 								headingAs="div"
-								headingClassName="flex flex-wrap items-center gap-2 text-xl"
 							/>
 						</div>
 						<Suspense
@@ -138,8 +136,7 @@ function ProtocolHeader({
 	tvlByChain,
 	oracleTvsByChain,
 	formatPrice,
-	headingAs: Tag = 'h1',
-	headingClassName
+	headingAs: Tag = 'h1'
 }: {
 	props: IProtocolOverviewPageData
 	oracleTvs: number
@@ -148,11 +145,10 @@ function ProtocolHeader({
 	oracleTvsByChain: [string, number][]
 	formatPrice: (value?: number | string | null) => string | number | null
 	headingAs?: 'h1' | 'div'
-	headingClassName: string
 }) {
 	return (
 		<>
-			<Tag className={headingClassName}>
+			<Tag className="flex flex-wrap items-center gap-2 text-xl">
 				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<span className="font-bold">{props.name}</span>
 				{props.token?.symbol && props.token.symbol !== '-' ? (
@@ -163,9 +159,10 @@ function ProtocolHeader({
 						<Icon name="alert-triangle" height={18} width={18} />
 					</Tooltip>
 				) : null}
-				<span className="ml-auto" />
-				{props.llamaswapChains?.length ? <BuyOnLlamaswap chains={props.llamaswapChains} size="large" /> : null}
-				<Bookmark readableName={props.name} />
+				<span className="ml-auto flex items-center justify-end gap-2">
+					{props.llamaswapChains?.length ? <BuyOnLlamaswap chains={props.llamaswapChains} size="large" /> : null}
+					<Bookmark readableName={props.name} />
+				</span>
 			</Tag>
 			{props.oracleTvs ? (
 				<PrimaryValue

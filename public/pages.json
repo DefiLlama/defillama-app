@@ -594,15 +594,6 @@
       "oldName": "Calendar"
     },
     {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections",
-      "totalTrackedKey": "nfts.collections",
-      "oldCategory": "NFTs",
-      "oldName": "Collections"
-    },
-    {
       "name": "NFTs: Marketplaces",
       "route": "/nfts/marketplaces",
       "category": "NFTs",
@@ -610,6 +601,15 @@
       "totalTrackedKey": "nfts.marketplaces",
       "oldCategory": "NFTs",
       "oldName": "Marketplaces"
+    },
+    {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections",
+      "totalTrackedKey": "nfts.collections",
+      "oldCategory": "NFTs",
+      "oldName": "Collections"
     },
     {
       "name": "NFTs: Collection Earnings",
@@ -765,19 +765,19 @@
       "oldName": "Watchlist"
     },
     {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
+    },
+    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
       "description": "Simple view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Simple"
-    },
-    {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
     },
     {
       "name": "Yields: Watchlist",
