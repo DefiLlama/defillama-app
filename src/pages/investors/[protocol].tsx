@@ -3,23 +3,23 @@ import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import {
-	isSuperLuminalEnabled,
-	SUPERLUMINAL_PROJECTS,
-	SUPERLUMINAL_PROTOCOL_IDS
-} from '~/containers/SuperLuminal/config'
-import { Logo } from '~/containers/SuperLuminal/Logo'
-import { fetchCustomServerData } from '~/containers/SuperLuminal/serverDataRegistry'
+	isInvestorsEnabled,
+	INVESTORS_PROJECTS,
+	INVESTORS_PROTOCOL_IDS
+} from '~/containers/Investors/config'
+import { Logo } from '~/containers/Investors/Logo'
+import { fetchCustomServerData } from '~/containers/Investors/serverDataRegistry'
 
-const SuperLuminalDashboard = lazy(() => import('~/containers/SuperLuminal'))
+const InvestorsDashboard = lazy(() => import('~/containers/Investors'))
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
 	const protocol = context.params?.protocol as string
 
-	if (!isSuperLuminalEnabled() || !protocol || !SUPERLUMINAL_PROTOCOL_IDS.includes(protocol)) {
+	if (!isInvestorsEnabled() || !protocol || !INVESTORS_PROTOCOL_IDS.includes(protocol)) {
 		return { props: { protocol: protocol || '' } }
 	}
 
-	const project = SUPERLUMINAL_PROJECTS.find((p) => p.id === protocol)
+	const project = INVESTORS_PROJECTS.find((p) => p.id === protocol)
 	if (!project?.dashboardId) {
 		return { props: { protocol } }
 	}
@@ -32,19 +32,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 	}
 }
 
-export default function SuperLuminalProtocolPage({
+export default function InvestorsProtocolPage({
 	protocol,
 	customServerData
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-	if (!isSuperLuminalEnabled() || !protocol) {
+	if (!isInvestorsEnabled() || !protocol) {
 		return null
 	}
 
-	if (!SUPERLUMINAL_PROTOCOL_IDS.includes(protocol)) {
+	if (!INVESTORS_PROTOCOL_IDS.includes(protocol)) {
 		return null
 	}
 
-	const project = SUPERLUMINAL_PROJECTS.find((p) => p.id === protocol)
+	const project = INVESTORS_PROJECTS.find((p) => p.id === protocol)
 	const protocolName = project?.name ?? protocol
 
 	return (
@@ -58,7 +58,7 @@ export default function SuperLuminalProtocolPage({
 			<link rel="preload" href="/assets/defillama-dark.webp" as="image" />
 			<Suspense
 				fallback={
-					<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
+					<div className="investors-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
 						<aside className="sl-sidebar fixed top-0 left-0 hidden h-screen w-56 md:block" />
 						<div className="flex flex-1 items-center justify-center p-5 md:ml-56">
 							<Logo animate />
@@ -66,7 +66,7 @@ export default function SuperLuminalProtocolPage({
 					</div>
 				}
 			>
-				<SuperLuminalDashboard protocol={protocol} customServerData={customServerData} />
+				<InvestorsDashboard protocol={protocol} customServerData={customServerData} />
 			</Suspense>
 			<Toast />
 		</>

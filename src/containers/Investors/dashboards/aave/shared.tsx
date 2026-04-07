@@ -1,7 +1,7 @@
 import { flexRender, type RowData, type Table } from '@tanstack/react-table'
 import { SortIcon } from '~/components/Table/SortIcon'
 
-export function SuperluminalTable<T extends RowData>({
+export function InvestorsTable<T extends RowData>({
 	instance,
 	overrideRows
 }: {

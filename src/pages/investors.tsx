@@ -2,8 +2,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { ThemeSwitch } from '~/components/Nav/ThemeSwitch'
 import { SEO } from '~/components/SEO'
-import { isSuperLuminalEnabled } from '~/containers/SuperLuminal/config'
-import { Logo } from '~/containers/SuperLuminal/Logo'
+import { isInvestorsEnabled } from '~/containers/Investors/config'
+import { Logo } from '~/containers/Investors/Logo'
 
 function SonicIcon() {
 	return (
@@ -93,15 +93,15 @@ function SparkBolt() {
 	)
 }
 
-export default function SuperLuminalPage() {
-	if (!isSuperLuminalEnabled()) {
+export default function InvestorsPage() {
+	if (!isInvestorsEnabled()) {
 		return null
 	}
 
 	return (
 		<>
 			<SEO title="DefiLlama" description="Verified metrics powered by DefiLlama" canonicalUrl={null} />
-			<div className="superluminal-dashboard relative col-span-full flex min-h-screen flex-col items-center overflow-hidden bg-(--app-bg) px-6 pt-[12vh] pb-16">
+			<div className="investors-dashboard relative col-span-full flex min-h-screen flex-col items-center overflow-hidden bg-(--app-bg) px-6 pt-[12vh] pb-16">
 				<ThemeSwitch variant="pill" size="sm" className="absolute top-4 right-4" />
 				{/* Ambient glow */}
 				<div

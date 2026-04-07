@@ -416,7 +416,7 @@
 	}
 }
 
-.superluminal-dashboard {
+.investors-dashboard {
 	--pro-text1: #1a1d23;
 	--pro-text2: #555962;
 	--pro-text3: #8b8f99;
@@ -495,7 +495,7 @@
 	}
 }
 
-.superluminal-dashboard {
+.investors-dashboard {
 	& .sl-sidebar {
 		background: var(--sl-sidebar-bg);
 		border-right: 1px solid var(--sl-sidebar-border);

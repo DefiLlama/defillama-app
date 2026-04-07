@@ -1,7 +1,7 @@
 import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel } from '@tanstack/react-table'
 import { lazy, useEffect, useState } from 'react'
 import type { IChartProps, IMultiSeriesChartProps } from '~/components/ECharts/types'
-import { useContentReady } from '~/containers/SuperLuminal/index'
+import { useContentReady } from '~/containers/Investors/index'
 import { useRevenueData, getValidTimeframeForAggregation, type WalletEntry } from './revenueApi'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>

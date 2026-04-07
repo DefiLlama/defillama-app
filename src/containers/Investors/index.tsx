@@ -9,7 +9,7 @@ import {
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { SUPERLUMINAL_PROJECTS } from './config'
+import { INVESTORS_PROJECTS } from './config'
 import { CustomServerDataContext } from './CustomServerDataContext'
 import { Logo } from './Logo'
 import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
@@ -20,7 +20,7 @@ export const useContentReady = () => useContext(ContentReadyContext)
 const NOOP = () => {}
 
 const ALL_PROJECTS = [
-	...SUPERLUMINAL_PROJECTS.map((p) => ({ ...p, comingSoon: false })),
+	...INVESTORS_PROJECTS.map((p) => ({ ...p, comingSoon: false })),
 	{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true, customOnly: false }
 ]
 
@@ -156,7 +156,7 @@ function DashboardTabInner({ visible }: { visible: boolean }) {
 	)
 }
 
-function SuperLuminalContent({
+function InvestorsContent({
 	tabs,
 	activeTab,
 	displayName,
@@ -292,7 +292,7 @@ function CustomOnlyContent({
 	)
 }
 
-function SuperLuminalShell({
+function InvestorsShell({
 	protocol,
 	customServerData
 }: {
@@ -341,7 +341,7 @@ function SuperLuminalShell({
 
 	return (
 		<CustomServerDataContext.Provider value={customServerData ?? {}}>
-			<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
+			<div className="investors-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
 				{sidebarOpen && <div className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={closeSidebar} />}
 
 				<div className="sticky top-0 z-10 flex items-center gap-3 bg-(--app-bg) px-4 py-3 md:hidden">
@@ -509,7 +509,7 @@ function SuperLuminalShell({
 								hasCustomHeader={!!HeaderComponent}
 							/>
 						) : loadingProjects.has(activeProject) ? null : (
-							<SuperLuminalContent
+							<InvestorsContent
 								tabs={tabs}
 								activeTab={resolvedTab}
 								displayName={displayName}
@@ -524,7 +524,7 @@ function SuperLuminalShell({
 	)
 }
 
-export default function SuperLuminalDashboard({
+export default function InvestorsDashboard({
 	protocol,
 	customServerData
 }: {
@@ -533,7 +533,7 @@ export default function SuperLuminalDashboard({
 }) {
 	return (
 		<AppMetadataProvider>
-			<SuperLuminalShell protocol={protocol} customServerData={customServerData} />
+			<InvestorsShell protocol={protocol} customServerData={customServerData} />
 		</AppMetadataProvider>
 	)
 }
