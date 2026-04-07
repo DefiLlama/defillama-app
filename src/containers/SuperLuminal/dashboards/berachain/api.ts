@@ -219,11 +219,10 @@ export function useBerachainIncomeData(serverData?: BerachainIncomeServerData) {
 		const bendFeesData = bendFees.data ?? []
 		const bendRevenueData = bendRevenue.data ?? []
 
-		// Berachain section: Chain Fees + Bribes
-		const berachainKeys = ['Chain Fees', 'Bribes']
+		const berachainKeys = ['Chain Fees', 'Incentives']
 		const berachainDaily = mergeSeries([
 			{ data: chainFeesData, label: 'Chain Fees' },
-			{ data: bribesData, label: 'Bribes' }
+			{ data: bribesData, label: 'Incentives' }
 		])
 		const berachainMonthly = aggregateMonthly(berachainDaily, berachainKeys)
 		const berachainCumulative = buildCumulative(berachainDaily, berachainKeys)
@@ -247,10 +246,10 @@ export function useBerachainIncomeData(serverData?: BerachainIncomeServerData) {
 		const bendMonthly = aggregateMonthly(bendDaily, bendKeys)
 		const bendCumulative = buildCumulative(bendDaily, bendKeys)
 
-		const totalRevenueKeys = ['Chain Fees', 'Bribes', 'BEX Revenue', 'BEND Revenue']
+		const totalRevenueKeys = ['Chain Fees', 'Incentives', 'BEX Revenue', 'BEND Revenue']
 		const totalRevenueDaily = mergeSeries([
 			{ data: chainFeesData, label: 'Chain Fees' },
-			{ data: bribesData, label: 'Bribes' },
+			{ data: bribesData, label: 'Incentives' },
 			{ data: bexRevenueData, label: 'BEX Revenue' },
 			{ data: bendRevenueData, label: 'BEND Revenue' }
 		])
