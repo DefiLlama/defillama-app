@@ -1,9 +1,15 @@
-export function Logo({ animate = false, size = 'default' }: { animate?: boolean; size?: 'default' | 'sm' }) {
+export function Logo({
+	animate = false,
+	size = 'default',
+	href
+}: {
+	animate?: boolean
+	size?: 'default' | 'sm'
+	href?: string
+}) {
 	const sm = size === 'sm'
-	return (
-		<div
-			className={`flex select-none ${sm ? 'items-center gap-2' : 'flex-col items-center gap-2.5'}${animate ? ' sl-loader' : ''}`}
-		>
+	const content = (
+		<>
 			<img
 				src="/assets/defillama.webp"
 				height={sm ? 24 : 36}
@@ -27,8 +33,20 @@ export function Logo({ animate = false, size = 'default' }: { animate?: boolean;
 			>
 				{sm ? 'IR' : 'Investor Relations'}
 			</span>
-		</div>
+		</>
 	)
+
+	const cls = `flex select-none ${sm ? 'items-center gap-2' : 'flex-col items-center gap-2.5'}${animate ? ' sl-loader' : ''}`
+
+	if (href) {
+		return (
+			<a href={href} className={cls}>
+				{content}
+			</a>
+		)
+	}
+
+	return <div className={cls}>{content}</div>
 }
 
 export function TextLoader() {
