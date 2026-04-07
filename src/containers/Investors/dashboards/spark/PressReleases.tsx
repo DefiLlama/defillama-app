@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useContentReady } from '~/containers/SuperLuminal/index'
+import { useContentReady } from '~/containers/Investors/index'
 
 interface ParagraphPost {
 	id: string

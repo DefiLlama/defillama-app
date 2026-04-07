@@ -52,12 +52,12 @@ export function Logo({
 export function TextLoader() {
 	return (
 		<div className="sl-loader text-center leading-none select-none">
-			<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">SUPER</span>
+			<span className="block text-[13px] font-medium tracking-[0.4em] text-(--sl-text-brand)">INVESTOR</span>
 			<span
 				className="block text-[34px] font-black tracking-[0.08em] text-transparent"
 				style={{ WebkitTextStroke: '1px var(--sl-stroke-brand)' }}
 			>
-				LUMINAL
+				RELATIONS
 			</span>
 		</div>
 	)

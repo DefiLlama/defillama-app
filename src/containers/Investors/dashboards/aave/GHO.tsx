@@ -6,7 +6,7 @@ import { formattedNum } from '~/utils'
 import { useAaveGHOReserve, useAaveMarkets, useAaveAPYHistory, num, pct } from './api'
 import type { TimeWindow } from './api'
 import {
-	SuperluminalTable,
+	InvestorsTable,
 	PageLoader,
 	CardSkeleton,
 	KpiCard,
@@ -95,7 +95,7 @@ function GHOMarketsTable({ data }: { data: GHOMarketRow[] }) {
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
 			<SectionHeader title="GHO Across Markets" />
 			<div className="mt-4">
-				<SuperluminalTable instance={instance} />
+				<InvestorsTable instance={instance} />
 			</div>
 		</div>
 	)

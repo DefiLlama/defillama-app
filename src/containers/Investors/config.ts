@@ -1,4 +1,4 @@
-export const SUPERLUMINAL_PROJECTS = [
+export const INVESTORS_PROJECTS = [
 	{ id: 'etherfi', name: 'Ether.fi', dashboardId: '73x90j3b28pfhgx', customOnly: false },
 	{ id: 'spark', name: 'Spark', dashboardId: '9vn8xp43tdzo6gt', customOnly: false },
 	{ id: 'maple', name: 'Maple', dashboardId: 'l5accmh9zooc32q', customOnly: false },
@@ -8,8 +8,8 @@ export const SUPERLUMINAL_PROJECTS = [
 	{ id: 'near', name: 'NEAR', dashboardId: 'n34rr3v3nu3d4sh', customOnly: true }
 ] as const
 
-export const SUPERLUMINAL_PROTOCOL_IDS: string[] = SUPERLUMINAL_PROJECTS.map((p) => p.id)
+export const INVESTORS_PROTOCOL_IDS: string[] = INVESTORS_PROJECTS.map((p) => p.id)
 
-export function isSuperLuminalEnabled(): boolean {
+export function isInvestorsEnabled(): boolean {
 	return !!process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID
 }
