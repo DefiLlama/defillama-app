@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Icon } from '~/components/Icon'
 import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
@@ -426,11 +427,15 @@ export function ToolProgressIndicator({
 export const SpawnProgressCard = memo(function SpawnProgressCard({
 	agents,
 	startTime,
-	isResearchMode
+	isResearchMode,
+	recovery,
+	onReconnect
 }: {
 	agents: Map<string, SpawnAgentStatus>
 	startTime: number
 	isResearchMode?: boolean
+	recovery?: RecoveryState
+	onReconnect?: () => void
 }) {
 	const currentSecond = useCurrentSecond()
 	const elapsed = startTime ? Math.max(0, currentSecond - Math.floor(startTime / 1000)) : 0
@@ -542,6 +547,37 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 						</li>
 					))}
 				</ul>
+			) : null}
+
+			{recovery?.status === 'reconnecting' ? (
+				<div className="flex items-center gap-2 border-t border-amber-200 pt-2 dark:border-amber-900/50">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						className="shrink-0 animate-spin text-amber-500"
+					>
+						<path d="M21 12a9 9 0 1 1-6.219-8.56" />
+					</svg>
+					<p className="m-0 flex-1 text-xs text-amber-700 dark:text-amber-300">
+						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}...
+					</p>
+					{onReconnect ? (
+						<button
+							type="button"
+							onClick={onReconnect}
+							className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
+						>
+							Reconnect now
+						</button>
+					) : null}
+				</div>
 			) : null}
 		</section>
 	)

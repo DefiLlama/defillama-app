@@ -227,8 +227,8 @@ async function getResponseErrorMessage(response: Response, fallback: string) {
 	return fallback
 }
 
-// Parse the backend SSE stream line-by-line and fan each event out to the UI callbacks.
-function parseSSEStream(
+/** @internal Exported for testing only. */
+export function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
 	abortSignal?: AbortSignal,

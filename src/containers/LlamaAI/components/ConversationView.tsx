@@ -177,7 +177,13 @@ function ConversationLiveStatus({
 
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
-					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} isResearchMode />
+					<SpawnProgressCard
+						agents={spawnProgress}
+						startTime={spawnStartTime}
+						isResearchMode
+						recovery={recovery}
+						onReconnect={onRetryLastFailedPrompt}
+					/>
 				) : (
 					<ToolProgressIndicator
 						toolCalls={activeToolCalls}
@@ -209,9 +215,17 @@ function ConversationLiveStatus({
 					<p className="text-sm text-amber-800 dark:text-amber-200">
 						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
 					</p>
-					<p className="text-xs text-amber-700 dark:text-amber-300">
-						Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
-					</p>
+					<div className="flex items-center justify-between">
+						<p className="text-xs text-amber-700 dark:text-amber-300">
+							Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+						</p>
+						<button
+							onClick={onRetryLastFailedPrompt}
+							className="shrink-0 rounded-md bg-amber-200 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
+						>
+							Reconnect now
+						</button>
+					</div>
 				</div>
 			) : null}
 
@@ -223,7 +237,7 @@ function ConversationLiveStatus({
 							onClick={onRetryLastFailedPrompt}
 							className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
 						>
-							Retry
+							Reconnect
 						</button>
 					) : null}
 				</div>
