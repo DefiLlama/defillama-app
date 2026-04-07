@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense } from 'react'
 import { useGetTokenPrice } from '~/api/client'
 import { Bookmark } from '~/components/Bookmark'
+import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { Icon } from '~/components/Icon'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -73,7 +74,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						oracleTvsByChain={oracleTvsByChain}
 						formatPrice={formatPrice}
 						headingAs="h1"
-						headingClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
+						headingClassName="flex flex-wrap items-center gap-2 text-xl "
 					/>
 					<KeyMetrics
 						{...props}
@@ -162,6 +163,8 @@ function ProtocolHeader({
 						<Icon name="alert-triangle" height={18} width={18} />
 					</Tooltip>
 				) : null}
+				<span className="ml-auto" />
+				{props.llamaswapChains?.length ? <BuyOnLlamaswap chains={props.llamaswapChains} size="large" /> : null}
 				<Bookmark readableName={props.name} />
 			</Tag>
 			{props.oracleTvs ? (

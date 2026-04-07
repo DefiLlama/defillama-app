@@ -4,8 +4,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import type { IProtocolLlamaswapChain } from '~/utils/metadata/types'
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
-const BUTTON_CLASSNAME =
-	'flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20'
 
 function buildSwapUrl(chain: Pick<IProtocolLlamaswapChain, 'chain' | 'address'>, placement: string) {
 	const params = new URLSearchParams({
@@ -28,10 +26,12 @@ function buildSwapUrl(chain: Pick<IProtocolLlamaswapChain, 'chain' | 'address'>,
 
 export function BuyOnLlamaswap({
 	chains,
-	placement = 'protocol_page'
+	placement = 'protocol_page',
+	size = 'small'
 }: {
 	chains?: IProtocolLlamaswapChain[] | null
 	placement?: string
+	size?: 'small' | 'large'
 }) {
 	if (!chains?.length) return null
 	const primaryChain = chains[0]
@@ -42,19 +42,30 @@ export function BuyOnLlamaswap({
 				target="_blank"
 				rel="noreferrer noopener"
 				href={buildSwapUrl(primaryChain, placement)}
-				className={BUTTON_CLASSNAME}
+				className={
+					size === 'small'
+						? `flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20`
+						: `flex items-center gap-1 rounded-full border-2 border-(--old-blue) bg-(--old-blue) px-2 py-1 text-xs font-medium text-white hover:bg-(--old-blue)/80`
+				}
 			>
-				<span>Buy</span>
-				<Icon name="external-link" className="h-2.5 w-2.5" />
+				{size === 'small' ? 'Buy' : 'Buy Now'}
+				<Icon name="external-link" className="h-3.5 w-3.5" />
 			</a>
 		)
 	}
 
 	return (
 		<Ariakit.HovercardProvider showTimeout={0}>
-			<Ariakit.HovercardAnchor render={<button />} className={BUTTON_CLASSNAME}>
-				<span>Buy</span>
-				<Icon name="chevron-down" className="h-2.5 w-2.5" />
+			<Ariakit.HovercardAnchor
+				render={<button />}
+				className={
+					size === 'small'
+						? `flex items-center gap-1 rounded-md bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary) hover:bg-(--primary)/20`
+						: `flex items-center gap-1 rounded-full border-2 border-(--old-blue) bg-(--old-blue) px-2 py-1 text-xs font-medium text-white hover:bg-(--old-blue)/80`
+				}
+			>
+				{size === 'small' ? 'Buy' : 'Buy Now'}
+				<Icon name="chevron-down" className="h-3.5 w-3.5" />
 			</Ariakit.HovercardAnchor>
 			<Ariakit.Hovercard
 				unmountOnHide
