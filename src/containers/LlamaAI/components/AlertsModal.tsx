@@ -310,6 +310,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const queryClient = useQueryClient()
 	const parsedSchedule = parseScheduleExpression(alert.schedule_expression)
 	const initialTimezone = parsedSchedule.timezone ?? getUserTimezone()
+	const deliveryChannelId = `alert-delivery-channel-${alert.id}`
+	const conditionId = `alert-condition-${alert.id}`
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(
 		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
 	)
@@ -354,6 +356,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const handleTimezoneChange = (nextTimezone: string) => {
 		setTimezone(nextTimezone)
 		setHourDefault((current) => getValidHourForTimezone(current, nextTimezone))
+	}
+
+	const resetEditingState = () => {
+		const nextParsedSchedule = parseScheduleExpression(alert.schedule_expression)
+		const nextTimezone = nextParsedSchedule.timezone ?? getUserTimezone()
+		setFrequency(alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily')
+		setTimezone(nextTimezone)
+		setHourDefault(getValidHourForTimezone(nextParsedSchedule.hour ?? 9, nextTimezone))
 	}
 
 	const getConditionUpdate = (nextCondition: string) => {
@@ -519,6 +529,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		toggleAlertMutation.reset()
 		updateAlertMutation.reset()
 		deleteAlertMutation.reset()
+		if (next === 'editing') {
+			resetEditingState()
+		}
 		setMode(next)
 	}
 
@@ -846,8 +859,11 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</select>
 					</div>
 					<div className="flex items-center gap-2">
-						<span className="text-sm text-(--text3)">Deliver via</span>
+						<label htmlFor={deliveryChannelId} className="text-sm text-(--text3)">
+							Deliver via
+						</label>
 						<select
+							id={deliveryChannelId}
 							name="delivery_channel"
 							defaultValue={alert.delivery_channel || 'email'}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
@@ -856,12 +872,18 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							<option value="telegram">Telegram</option>
 						</select>
 					</div>
-					<input
-						name="condition"
-						defaultValue={alert.condition || ''}
-						placeholder="Condition (e.g. only send if TVL drops below $1B)"
-						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
-					/>
+					<div className="flex flex-col gap-1">
+						<label htmlFor={conditionId} className="text-sm text-(--text3)">
+							Condition
+						</label>
+						<input
+							id={conditionId}
+							name="condition"
+							defaultValue={alert.condition || ''}
+							placeholder="Condition (e.g. only send if TVL drops below $1B)"
+							className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+						/>
+					</div>
 					<div className="flex justify-end gap-2">
 						<button
 							type="button"
