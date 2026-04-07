@@ -1,4 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
+import { fetchEquitiesCompanies } from '~/containers/Equities/api'
+import type { IEquitiesCompanyApiItem } from '~/containers/Equities/api.types'
 import type { CexAnalyticsMetric, CexAnalyticsView, ProtocolsTableConfig } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { getItemIconUrl } from '../../../../utils'
@@ -158,6 +161,24 @@ const tableTypeOptions: Array<{
 		label: 'RWA On Chain',
 		description: 'RWA assets on a selected chain',
 		icon: '🏛️'
+	},
+	{
+		value: 'equities',
+		label: 'Equities',
+		description: 'Stock market companies overview',
+		icon: '📈'
+	},
+	{
+		value: 'equities-financials',
+		label: 'Equities Financials',
+		description: 'Income statement, balance sheet & cashflow for a company',
+		icon: '📄'
+	},
+	{
+		value: 'equities-filings',
+		label: 'Equities Filings',
+		description: 'SEC filings for a specific company',
+		icon: '📋'
 	}
 ]
 
@@ -255,7 +276,15 @@ const CHAIN_CATEGORY_OPTIONS = [
 	{ value: 'Parachain', label: 'Parachains' },
 	{ value: 'Cosmos', label: 'Cosmos' }
 ]
-const PRO_ONLY_TABLE_TYPES = new Set<string>(['token-usage', 'rwa', 'rwa-chains', 'rwa-selected-chain'])
+const PRO_ONLY_TABLE_TYPES = new Set<string>([
+	'token-usage',
+	'rwa',
+	'rwa-chains',
+	'rwa-selected-chain',
+	'equities',
+	'equities-financials',
+	'equities-filings'
+])
 
 export function SimpleTableConfig({
 	selectedChains,
@@ -283,6 +312,19 @@ export function SimpleTableConfig({
 	isEditing = false
 }: SimpleTableConfigProps) {
 	const { hasActiveSubscription } = useAuthContext()
+	const { data: equitiesCompaniesData, isLoading: equitiesCompaniesLoading } = useQuery({
+		queryKey: ['pro-dashboard', 'equities-companies-table'],
+		queryFn: fetchEquitiesCompanies,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		enabled: selectedTableType === 'equities-financials' || selectedTableType === 'equities-filings'
+	})
+	const equitiesTickerOptions = useMemo(() => {
+		if (!equitiesCompaniesData) return []
+		return (equitiesCompaniesData as IEquitiesCompanyApiItem[])
+			.sort((a, b) => b.marketCap - a.marketCap)
+			.map((item) => ({ value: item.ticker, label: `${item.ticker} — ${item.name}` }))
+	}, [equitiesCompaniesData])
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptionsData, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 	const { data: defaultTokensData } = useTokenSearch('')
@@ -530,6 +572,15 @@ export function SimpleTableConfig({
 					placeholder="Select chain..."
 					isLoading={protocolsLoading}
 					renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
+				/>
+			) : selectedTableType === 'equities-financials' || selectedTableType === 'equities-filings' ? (
+				<AriakitVirtualizedSelect
+					label="Select Company"
+					options={equitiesTickerOptions}
+					selectedValue={selectedDatasetChain}
+					onChange={(option) => onDatasetChainChange(option.value)}
+					placeholder="Search ticker or company name..."
+					isLoading={equitiesCompaniesLoading}
 				/>
 			) : null}
 		</div>

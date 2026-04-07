@@ -469,6 +469,9 @@ export interface ProtocolsTableConfig {
 		| 'rwa'
 		| 'rwa-chains'
 		| 'rwa-selected-chain'
+		| 'equities'
+		| 'equities-financials'
+		| 'equities-filings'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean

@@ -79,3 +79,15 @@ export async function fetchRWAAssetsListViaProxy(authToken: string): Promise<any
 export async function fetchRWAStatsViaProxy(authToken: string): Promise<any> {
 	return proxyFetch<any>('rwaStats', {}, authToken)
 }
+
+export async function fetchEquitiesCompaniesViaProxy(authToken: string): Promise<any> {
+	return proxyFetch<any>('equitiesCompanies', {}, authToken)
+}
+
+export async function fetchEquitiesStatementsViaProxy(ticker: string, authToken: string): Promise<any> {
+	return proxyFetch<any>('equitiesStatements', { ticker }, authToken)
+}
+
+export async function fetchEquitiesFilingsViaProxy(ticker: string, authToken: string): Promise<any> {
+	return proxyFetch<any>('equitiesFilings', { ticker }, authToken)
+}

@@ -208,7 +208,10 @@ interface ProDashboardEditorActionsContextType {
 			| 'fees'
 			| 'rwa'
 			| 'rwa-chains'
-			| 'rwa-selected-chain',
+			| 'rwa-selected-chain'
+			| 'equities'
+			| 'equities-financials'
+			| 'equities-filings',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean,
