@@ -153,7 +153,7 @@ export default function SuperLuminalPage() {
 								<Icon name="arrow-right" className="h-3.5 w-3.5" />
 							</div>
 						</div>
-						<BasicLink href="/superluminal/spark" className="absolute inset-0">
+						<BasicLink href="/spark" className="absolute inset-0">
 							<span className="sr-only">View Spark Dashboard</span>
 						</BasicLink>
 					</div>
