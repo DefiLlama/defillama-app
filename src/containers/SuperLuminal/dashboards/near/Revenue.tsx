@@ -312,7 +312,7 @@ export default function Revenue() {
 						at 40x. At a $1.49B market cap, that gap is the core of the investment case.
 					</p>
 					<p>
-						The February 2026 fee switch is the structural event that makes this legible on-chain. Before it, Intents
+						The February 2026 fee switch is the structural event that makes this legible onchain. Before it, Intents
 						fees accrued outside the base protocol. After it, 100% of NEAR Intents volume triggers $NEAR purchases
 						through a three-tier fee architecture. Combined with the 70% gas burn on base-chain fees, every dollar of
 						Intents volume now creates direct, measurable supply compression. The token has moved from utility to
