@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { useContext, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
-import { fetchEquitiesStatementsViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { fetchEquitiesStatements } from '~/containers/Equities/api'
 import type { IEquitiesStatementsResponse } from '~/containers/Equities/api.types'
+import { ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
+import { fetchEquitiesStatementsViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
 import { abbreviateNumber } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -269,9 +269,7 @@ export function EquitiesFinancialsDataset({ ticker }: { ticker: string }) {
 									type="button"
 									onClick={() => setStatementType(option)}
 									className={`rounded px-2 py-1 text-xs font-medium transition ${
-										statementType === option
-											? 'bg-(--primary)/10 text-(--primary)'
-											: 'pro-text2 hover:pro-text1'
+										statementType === option ? 'bg-(--primary)/10 text-(--primary)' : 'pro-text2 hover:pro-text1'
 									}`}
 								>
 									{option}
@@ -285,9 +283,7 @@ export function EquitiesFinancialsDataset({ ticker }: { ticker: string }) {
 									type="button"
 									onClick={() => setPeriodType(option)}
 									className={`rounded px-2 py-1 text-xs font-medium transition ${
-										periodType === option
-											? 'bg-(--primary)/10 text-(--primary)'
-											: 'pro-text2 hover:pro-text1'
+										periodType === option ? 'bg-(--primary)/10 text-(--primary)' : 'pro-text2 hover:pro-text1'
 									}`}
 								>
 									{option}

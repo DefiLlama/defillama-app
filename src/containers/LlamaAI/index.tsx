@@ -1845,7 +1845,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			attemptRecoveryForController(controller.id)
 			return
 		}
-		if (sessionId && !isStreaming) {
+		if (sessionId && !isStreaming && error) {
 			void resumeRunningExecution({ targetSessionId: sessionId })
 		}
 	})

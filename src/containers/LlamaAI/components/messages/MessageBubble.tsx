@@ -396,7 +396,7 @@ function InlineContent({
 	showToolDetails?: boolean
 	onTableFullscreenOpen?: () => void
 }) {
-	const includeFallbackArtifacts = !isStreaming || !message.content?.trim()
+	const includeFallbackArtifacts = !isStreaming
 	const { artifactsById, blocks } = useMemo(
 		() => parseMessageToRenderModel(message, { includeFallbackArtifacts }),
 		[includeFallbackArtifacts, message]
