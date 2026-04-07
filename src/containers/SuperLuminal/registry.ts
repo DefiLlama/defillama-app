@@ -6,6 +6,7 @@ export interface DashboardTabConfig {
 	component?: LazyExoticComponent<ComponentType> | ComponentType
 	proDashboardId?: string
 	source?: string
+	group?: string
 }
 
 export interface DashboardModule {

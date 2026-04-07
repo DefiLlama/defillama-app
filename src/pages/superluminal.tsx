@@ -1,6 +1,6 @@
-import { SEO } from '~/components/SEO'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { SEO } from '~/components/SEO'
 import { isSuperLuminalEnabled } from '~/containers/SuperLuminal/config'
 import { Logo } from '~/containers/SuperLuminal/Logo'
 
@@ -54,7 +54,14 @@ function SparkBolt() {
 	return (
 		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 497 497" className="h-9 w-9 shrink-0">
 			<defs>
-				<linearGradient id="spark-bolt-grad" x1="400.58" y1="131.86" x2="80.11" y2="377.66" gradientUnits="userSpaceOnUse">
+				<linearGradient
+					id="spark-bolt-grad"
+					x1="400.58"
+					y1="131.86"
+					x2="80.11"
+					y2="377.66"
+					gradientUnits="userSpaceOnUse"
+				>
 					<stop stopColor="#FA43BD" />
 					<stop offset="1" stopColor="#FFA930" />
 				</linearGradient>
@@ -136,18 +143,14 @@ export default function SuperLuminalPage() {
 					<div className="relative isolate flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center opacity-60">
 						<SonicIcon />
 						<span className="mt-3 text-lg font-semibold text-(--text-primary)">Sonic</span>
-						<span className="mt-3 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">
-							Coming Soon
-						</span>
+						<span className="mt-3 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">Coming Soon</span>
 					</div>
 
 					{/* Berachain – Coming Soon */}
 					<div className="relative isolate flex flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-5 text-center opacity-60">
 						<BerachainIcon />
 						<span className="mt-3 text-lg font-semibold text-(--text-primary)">Berachain</span>
-						<span className="mt-3 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">
-							Coming Soon
-						</span>
+						<span className="mt-3 text-xs font-medium tracking-wide text-(--text-tertiary) uppercase">Coming Soon</span>
 					</div>
 				</div>
 			</div>

@@ -421,22 +421,35 @@ function SuperLuminalShell({
 
 									{isExpanded && (
 										<div className="ml-3 flex flex-col gap-0.5 border-l border-(--sl-divider) pt-1 pl-2">
-											{(tabsByProject[project.id] ?? DEFAULT_TABS).map((tab) => (
-												<button
-													key={tab.id}
-													onClick={() => {
-														setActiveTab(tab.id)
-														closeSidebar()
-													}}
-													className={`rounded-md px-3 py-1.5 text-left text-[12px] font-medium tracking-wide transition-colors ${
-														resolvedTab === tab.id
-															? 'bg-(--sl-accent-muted) text-(--sl-accent)'
-															: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
-													}`}
-												>
-													{tab.label}
-												</button>
-											))}
+											{(tabsByProject[project.id] ?? DEFAULT_TABS).map((tab, idx, arr) => {
+												const isNewGroup = tab.group && (idx === 0 || arr[idx - 1]?.group !== tab.group)
+												const isSoloGroup = isNewGroup && arr.filter((t) => t.group === tab.group).length === 1
+
+												return (
+													<div key={tab.id}>
+														{isNewGroup && !isSoloGroup && (
+															<div
+																className={`px-3 text-[10px] font-bold tracking-[0.15em] text-(--text-tertiary) uppercase${idx === 0 ? '' : ' mt-3'}`}
+															>
+																{tab.group}
+															</div>
+														)}
+														<button
+															onClick={() => {
+																setActiveTab(tab.id)
+																closeSidebar()
+															}}
+															className={`w-full rounded-md px-3 py-1.5 text-left text-[12px] tracking-wide transition-colors ${isSoloGroup ? `font-semibold${idx === 0 ? '' : ' mt-3'}` : 'font-medium'} ${
+																resolvedTab === tab.id
+																	? 'bg-(--sl-accent-muted) text-(--sl-accent)'
+																	: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
+															}`}
+														>
+															{tab.label}
+														</button>
+													</div>
+												)
+											})}
 										</div>
 									)}
 								</div>

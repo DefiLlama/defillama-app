@@ -39,7 +39,7 @@ const LINK_LABELS: Record<string, string> = {
 
 export function NearIcon({ className = 'h-7 w-7' }: { className?: string }) {
 	return (
-		<div>
+		<div className={className}>
 			<svg
 				width="16"
 				height="16"
