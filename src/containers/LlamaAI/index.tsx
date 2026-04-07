@@ -35,6 +35,11 @@ import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingSta
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import {
+	isTemporaryConnectivityError,
+	RECOVERY_ATTEMPT_DELAYS_MS,
+	RECOVERY_GRACE_MS
+} from '~/containers/LlamaAI/connectionErrors'
+import {
 	checkActiveExecution,
 	fetchAgenticResponse,
 	resumeAgenticStream,
@@ -163,19 +168,6 @@ interface UsageLimitError extends Error {
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
-const RECOVERY_GRACE_MS = 20000
-const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 2000, 4000, 8000, 14000] as const
-const CONNECTIVITY_ERROR_PATTERNS = [
-	'failed to fetch',
-	'networkerror',
-	'network error',
-	'load failed',
-	'err_network_changed',
-	'network changed',
-	'err_name_not_resolved',
-	'name not resolved',
-	'stream heartbeat timeout'
-] as const
 
 type RecoveryController = {
 	id: number
@@ -260,15 +252,6 @@ function dashboardPanelReducer(state: DashboardPanelState, action: DashboardPane
 function getErrorMessage(error: unknown): string {
 	if (error instanceof Error) return error.message
 	return String(error)
-}
-
-function isTemporaryConnectivityError(error: unknown): boolean {
-	if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-		return true
-	}
-
-	const message = getErrorMessage(error).toLowerCase()
-	return CONNECTIVITY_ERROR_PATTERNS.some((pattern) => message.includes(pattern))
 }
 
 // Normalize older persisted tool payloads that may still use `toolName`.
@@ -1382,11 +1365,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				existing.buffer = buffer
 				existing.failedRequest = failedRequest
 				existing.lastErrorMessage = getErrorMessage(recoveryError)
+				existing.attemptInFlight = false
 				dispatchStream({
 					type: 'UPDATE_RECOVERY',
 					attemptCount: existing.attemptCount,
 					lastErrorMessage: existing.lastErrorMessage
 				})
+				queueRecoveryAttempt(existing.id, 0)
 				return true
 			}
 
@@ -1705,7 +1690,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && isTemporaryConnectivityError(err) && eventCounter.count > 0) {
+							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -1785,6 +1770,19 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[isStreaming, handleSubmit]
 	)
 
+	// Immediately attempt to reconnect to a running or completed server-side execution.
+	// Works during active recovery (doesn't require lastFailedRequest).
+	const handleReconnectNow = useCallback(() => {
+		const controller = recoveryControllerRef.current
+		if (controller) {
+			attemptRecoveryForController(controller.id)
+			return
+		}
+		if (sessionId) {
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}
+	}, [sessionId, resumeRunningExecution])
+
 	// Retry the last failed prompt submission with the same prompt, images, and page context.
 	const handleRetryLastFailedPrompt = useCallback(() => {
 		if (!lastFailedRequest) return
@@ -1829,10 +1827,27 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [initialSessionId, sharedSession])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
+	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
+	// (setTimeout timers are frozen during sleep but wall clock advances).
 	const reconnectVisibleExecutionEvent = useEffectEvent(() => {
+		if (readOnly) return
 		const controller = recoveryControllerRef.current
-		if (!controller || readOnly) return
-		attemptRecoveryForController(controller.id)
+		if (controller) {
+			controller.startedAt = Date.now()
+			if (controller.expiryTimerId !== null) {
+				window.clearTimeout(controller.expiryTimerId)
+			}
+			controller.expiryTimerId = window.setTimeout(() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== controller.id || latest.attemptInFlight || latest.streamAttached) return
+				exhaustRecovery(latest)
+			}, RECOVERY_GRACE_MS)
+			attemptRecoveryForController(controller.id)
+			return
+		}
+		if (sessionId && !isStreaming) {
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}
 	})
 
 	useEffect(() => {
@@ -1841,9 +1856,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				reconnectVisibleExecutionEvent()
 			}
 		}
+		const onPageShow = (e: PageTransitionEvent) => {
+			if (e.persisted) {
+				reconnectVisibleExecutionEvent()
+			}
+		}
 
 		document.addEventListener('visibilitychange', onVisibilityChange)
-		return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+		window.addEventListener('pageshow', onPageShow)
+		return () => {
+			document.removeEventListener('visibilitychange', onVisibilityChange)
+			window.removeEventListener('pageshow', onPageShow)
+		}
 	}, [])
 
 	useEffect(() => {
@@ -1854,6 +1878,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		window.addEventListener('online', onOnline)
 		return () => window.removeEventListener('online', onOnline)
 	}, [])
+
+	// After recovery exhausts, periodically check if the server-side execution completed
+	// so we can restore the result without requiring user interaction.
+	useEffect(() => {
+		if (isStreaming || !error || !sessionId || readOnly) return
+		const intervalId = window.setInterval(() => {
+			if (document.hidden) return
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}, 30_000)
+		return () => window.clearInterval(intervalId)
+	}, [isStreaming, error, sessionId, readOnly, resumeRunningExecution])
 
 	// Mirror route param updates into a ref so the restore effect can consume them once.
 	useEffect(() => {
@@ -1997,6 +2032,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									error={visibleError}
 									lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 									onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+									onReconnectNow={handleReconnectNow}
 									scrollContainerRef={scrollContainerRef}
 									messagesEndRef={messagesEndRef}
 									promptInputRef={promptInputRef}
@@ -2053,6 +2089,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							error={visibleError}
 							lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 							onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+							onReconnectNow={handleReconnectNow}
 							scrollContainerRef={scrollContainerRef}
 							messagesEndRef={messagesEndRef}
 							promptInputRef={promptInputRef}
