@@ -1690,7 +1690,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && isTemporaryConnectivityError(err)) {
+							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -1769,6 +1769,19 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		},
 		[isStreaming, handleSubmit]
 	)
+
+	// Immediately attempt to reconnect to a running or completed server-side execution.
+	// Works during active recovery (doesn't require lastFailedRequest).
+	const handleReconnectNow = useCallback(() => {
+		const controller = recoveryControllerRef.current
+		if (controller) {
+			attemptRecoveryForController(controller.id)
+			return
+		}
+		if (sessionId) {
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}
+	}, [sessionId, resumeRunningExecution])
 
 	// Retry the last failed prompt submission with the same prompt, images, and page context.
 	const handleRetryLastFailedPrompt = useCallback(() => {
@@ -2019,6 +2032,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									error={visibleError}
 									lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 									onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+									onReconnectNow={handleReconnectNow}
 									scrollContainerRef={scrollContainerRef}
 									messagesEndRef={messagesEndRef}
 									promptInputRef={promptInputRef}
@@ -2075,6 +2089,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							error={visibleError}
 							lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 							onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+							onReconnectNow={handleReconnectNow}
 							scrollContainerRef={scrollContainerRef}
 							messagesEndRef={messagesEndRef}
 							promptInputRef={promptInputRef}
