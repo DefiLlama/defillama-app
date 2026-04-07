@@ -292,6 +292,49 @@ export default function Revenue() {
 
 	return (
 		<div className="flex flex-col gap-6">
+			<details className="group rounded-xl border border-(--cards-border) bg-(--cards-bg) transition-all hover:border-(--text-label)">
+				<summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 text-base font-semibold text-(--text-primary)">
+					<span>Quick Investment Thesis</span>
+					<svg
+						className="h-5 w-5 shrink-0 text-(--text-label) transition-transform duration-200 group-open:rotate-180"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+					</svg>
+				</summary>
+				<div className="flex flex-col gap-4 border-t border-(--cards-border) px-5 pt-4 pb-5 text-sm leading-relaxed text-(--text-secondary)">
+					<p>
+						The standard way to evaluate NEAR understates its traction. Base-chain metrics alone miss the majority of
+						fee-generating activity. When NEAR Intents volume is included, the annualized fee run rate as of early 2026
+						is approximately $53M, placing NEAR&apos;s P/S ratio at roughly 28x. Ethereum trades at 194x. Solana trades
+						at 40x. At a $1.49B market cap, that gap is the core of the investment case.
+					</p>
+					<p>
+						The February 2026 fee switch is the structural event that makes this legible on-chain. Before it, Intents
+						fees accrued outside the base protocol. After it, 100% of NEAR Intents volume triggers $NEAR purchases
+						through a three-tier fee architecture. Combined with the 70% gas burn on base-chain fees, every dollar of
+						Intents volume now creates direct, measurable supply compression. The token has moved from utility to
+						fee-accrual.
+					</p>
+					<p>
+						The October 2025 halving cut annual inflation from 5% to 2.5%, lowering the deflationary threshold by half.
+						At $1.22 per NEAR, the protocol now needs approximately $177M in daily volume to become net deflationary.
+						The trailing 90-day daily average through February 2026 was $77M. Under base case growth of 3.5x annually,
+						the model projects NEAR crosses the deflationary threshold in 2026, with the threshold itself declining each
+						subsequent year as the blended take rate rises with native front-end adoption.
+					</p>
+					<p>
+						There is also a reflexive element worth understanding. As the NEAR price rises, each token bought back
+						through the Intents fee mechanism absorbs more USD-denominated issuance in token terms, meaning higher
+						prices lower the volume required for net deflation. Volume drives deflation, deflation drives price
+						appreciation, price appreciation broadens institutional access, institutional access drives volume. This
+						loop operates most forcefully at inflection points, which is where the protocol appears to be now.
+					</p>
+				</div>
+			</details>
+
 			<div className="flex items-center justify-between">
 				<SectionHeader>Dashboard Timeframe</SectionHeader>
 				<TimeframeToggle
