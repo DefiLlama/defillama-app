@@ -1,5 +1,6 @@
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { ThemeSwitch } from '~/components/Nav/ThemeSwitch'
 import { SEO } from '~/components/SEO'
 import { isSuperLuminalEnabled } from '~/containers/SuperLuminal/config'
 import { Logo } from '~/containers/SuperLuminal/Logo'
@@ -101,6 +102,7 @@ export default function SuperLuminalPage() {
 		<>
 			<SEO title="DefiLlama" description="Verified metrics powered by DefiLlama" canonicalUrl={null} />
 			<div className="superluminal-dashboard relative col-span-full flex min-h-screen flex-col items-center overflow-hidden bg-(--app-bg) px-6 pt-[12vh] pb-16">
+				<ThemeSwitch variant="pill" size="sm" className="absolute top-4 right-4" />
 				{/* Ambient glow */}
 				<div
 					className="pointer-events-none absolute top-0 left-1/2 h-[600px] w-[900px] -translate-x-1/2"
@@ -122,7 +124,7 @@ export default function SuperLuminalPage() {
 				/>
 				<Logo />
 				<p className="mt-3 text-center text-sm text-(--text-secondary)">
-					Verified on-chain metrics and investor-grade reporting powered by DefiLlama.
+					Verified onchain metrics and investor-grade reporting powered by DefiLlama.
 				</p>
 
 				<div className="relative mt-12 grid w-full max-w-3xl auto-rows-fr grid-cols-1 gap-4 sm:grid-cols-2">
@@ -173,6 +175,13 @@ export default function SuperLuminalPage() {
 						</div>
 					))}
 				</div>
+
+				<p className="mt-16 text-center text-sm text-(--text-tertiary)">
+					Want an investor relations dashboard for your protocol or chain? Contact{' '}
+					<a href="mailto:sales@defillama.com" className="underline text-(--text-secondary)">
+						sales@defillama.com
+					</a>
+				</p>
 			</div>
 		</>
 	)
