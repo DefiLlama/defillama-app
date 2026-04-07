@@ -205,21 +205,17 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 
 					case 'equitiesStatementsData':
 						if (chunk.data && chunk.ticker) {
-							queryClient.setQueryData(
-								['pro-dashboard', 'equities-statements-table', chunk.ticker],
-								chunk.data,
-								{ updatedAt: now }
-							)
+							queryClient.setQueryData(['pro-dashboard', 'equities-statements-table', chunk.ticker], chunk.data, {
+								updatedAt: now
+							})
 						}
 						break
 
 					case 'equitiesFilingsData':
 						if (chunk.data && chunk.ticker) {
-							queryClient.setQueryData(
-								['pro-dashboard', 'equities-filings-table', chunk.ticker],
-								chunk.data,
-								{ updatedAt: now }
-							)
+							queryClient.setQueryData(['pro-dashboard', 'equities-filings-table', chunk.ticker], chunk.data, {
+								updatedAt: now
+							})
 						}
 						break
 

@@ -9,6 +9,8 @@ import { setSignupSource } from '~/containers/Subscription/signupSource'
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
+import { fetchEquitiesCompanies } from '~/containers/Equities/api'
+import type { IEquitiesCompanyApiItem } from '~/containers/Equities/api.types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
 	UNIFIED_TABLE_PRESETS,
@@ -23,8 +25,6 @@ import type {
 } from '~/containers/ProDashboard/types'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { AriakitVirtualizedSelect } from '../../AriakitVirtualizedSelect'
-import { fetchEquitiesCompanies } from '~/containers/Equities/api'
-import type { IEquitiesCompanyApiItem } from '~/containers/Equities/api.types'
 import { EquitiesCompaniesDataset } from '../../datasets/EquitiesDataset/EquitiesCompaniesDataset'
 import { EquitiesFilingsDataset } from '../../datasets/EquitiesDataset/EquitiesFilingsDataset'
 import { EquitiesFinancialsDataset } from '../../datasets/EquitiesDataset/EquitiesFinancialsDataset'

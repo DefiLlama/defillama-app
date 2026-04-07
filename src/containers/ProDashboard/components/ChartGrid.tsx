@@ -341,8 +341,7 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 			if (item.datasetType === 'equities') return <EquitiesCompaniesDataset />
 			if (item.datasetType === 'equities-financials')
 				return <EquitiesFinancialsDataset ticker={item.datasetChain || ''} />
-			if (item.datasetType === 'equities-filings')
-				return <EquitiesFilingsDataset ticker={item.datasetChain || ''} />
+			if (item.datasetType === 'equities-filings') return <EquitiesFilingsDataset ticker={item.datasetChain || ''} />
 			return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 		}
 
