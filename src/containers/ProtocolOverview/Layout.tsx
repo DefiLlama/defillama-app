@@ -5,6 +5,7 @@ import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink, ButtonLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -79,6 +80,8 @@ export function ProtocolOverviewLayout({
 	seoDescription?: string
 	entityQuestions?: string[]
 }) {
+	const { user } = useAuthContext()
+
 	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
 		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS_SET.has(option.key))
@@ -216,7 +219,7 @@ export function ProtocolOverviewLayout({
 				<Announcement announcementId="spark-investor-relations" version="1">
 					View Spark's{' '}
 					<a
-						href="https://investors.defillama.com/superluminal/spark"
+						href={`https://investors.defillama.com/spark${user?.id ? `?referrer=${user.id}` : ''}`}
 						target="_blank"
 						rel="noreferrer noopener"
 						className="underline"
