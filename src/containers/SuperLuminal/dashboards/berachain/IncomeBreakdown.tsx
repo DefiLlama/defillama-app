@@ -8,8 +8,8 @@ import { type BerachainIncomeServerData, useBerachainIncomeData, useHoneyRevenue
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 
-const BERACHAIN_COLORS = { 'Chain Fees': '#4FC3F7', Bribes: '#FFA726' }
-const BERACHAIN_STACKS = { 'Chain Fees': 'a', Bribes: 'a' }
+const BERACHAIN_COLORS = { 'Chain Fees': '#4FC3F7', Incentives: '#FFA726' }
+const BERACHAIN_STACKS = { 'Chain Fees': 'a', Incentives: 'a' }
 
 const BEX_COLORS = { Revenue: '#66BB6A' }
 
@@ -18,7 +18,7 @@ const BEND_STACKS = { Fees: 'a', Revenue: 'a' }
 
 const TOTAL_REVENUE_COLORS = {
 	'Chain Fees': BERACHAIN_COLORS['Chain Fees'],
-	Bribes: BERACHAIN_COLORS.Bribes,
+	Incentives: BERACHAIN_COLORS.Incentives,
 	'BEX Revenue': BEX_COLORS.Revenue,
 	'BEND Revenue': BEND_COLORS.Revenue
 }
@@ -98,7 +98,7 @@ export default function IncomeBreakdown() {
 		if (isLoading) return null
 		return {
 			chainFees: getCumulativeTotal(berachain.cumulative, 'Chain Fees'),
-			bribes: getCumulativeTotal(berachain.cumulative, 'Bribes'),
+			incentives: getCumulativeTotal(berachain.cumulative, 'Incentives'),
 			bexRevenue: getCumulativeTotal(bex.cumulative, 'Revenue'),
 			bexVolume: getCumulativeTotal(bex.volumeCumulative, 'Volume'),
 			bendFees: getCumulativeTotal(bend.cumulative, 'Fees'),
@@ -156,18 +156,17 @@ export default function IncomeBreakdown() {
 				)}
 			</div>
 
-			{/* Chain Fees + Bribes Section */}
-			<SectionHeader title="Chain Fees & Bribes" />
+			<SectionHeader title="Chain Fees & Incentives" />
 			<div className="grid grid-cols-2 gap-4">
 				{kpis ? (
 					<>
 						<KpiCard label="Total Chain Fees" value={kpis.chainFees} />
-						<KpiCard label="Total Bribes" value={kpis.bribes} />
+						<KpiCard label="Total Incentives" value={kpis.incentives} />
 					</>
 				) : (
 					<>
 						<KpiSkeleton label="Total Chain Fees" />
-						<KpiSkeleton label="Total Bribes" />
+						<KpiSkeleton label="Total Incentives" />
 					</>
 				)}
 			</div>
@@ -178,7 +177,7 @@ export default function IncomeBreakdown() {
 				<ChartCard title="Cumulative Revenue (all sources)">
 					<AreaChart
 						chartData={totalRevenue.cumulative}
-						stacks={['Chain Fees', 'Bribes', 'BEX Revenue', 'BEND Revenue']}
+						stacks={['Chain Fees', 'Incentives', 'BEX Revenue', 'BEND Revenue']}
 						stackColors={TOTAL_REVENUE_COLORS}
 						valueSymbol="$"
 						title=""
@@ -219,12 +218,12 @@ export default function IncomeBreakdown() {
 			)}
 
 			{isLoading ? (
-				<CardSkeleton title="Cumulative Bribes" />
+				<CardSkeleton title="Cumulative Incentives" />
 			) : (
-				<ChartCard title="Cumulative Bribes">
+				<ChartCard title="Cumulative Incentives">
 					<AreaChart
 						chartData={berachain.cumulative}
-						stacks={['Bribes']}
+						stacks={['Incentives']}
 						stackColors={BERACHAIN_COLORS}
 						valueSymbol="$"
 						title=""
