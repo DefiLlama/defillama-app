@@ -1,14 +1,20 @@
 import { Announcement } from '~/components/Announcement'
-import { BasicLink } from '~/components/Link'
+import { useAuthContext } from '../Subscription/auth'
 
 export const ChainOverviewAnnouncement = () => {
+	const { user } = useAuthContext()
 	return (
-		<Announcement announcementId="mcp-server" version="2026-03">
+		<Announcement announcementId="investor-relations" version="2026-04-07">
 			NEW!{' '}
-			<BasicLink href="/mcp" className="underline">
-				DefiLlama MCP Server
-			</BasicLink>{' '}
-			| Connect your AI agent to DeFi data
+			<a
+				href={`https://investors.defillama.com/${user?.id ? `?referrer=${user.id}` : ''}`}
+				target="_blank"
+				rel="noopener"
+				className="underline"
+			>
+				Investor Relations
+			</a>{' '}
+			| View curated protocol dashboards and announcements
 		</Announcement>
 	)
 }

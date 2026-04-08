@@ -28,7 +28,6 @@ const SVG_TAGS = [
 	'feMerge',
 	'feMergeNode'
 ]
-
 const SVG_ATTRS = [
 	'viewBox',
 	'xmlns',

@@ -52,6 +52,9 @@ export type CombinedTableType =
 	| 'rwa'
 	| 'rwa-chains'
 	| 'rwa-selected-chain'
+	| 'equities'
+	| 'equities-financials'
+	| 'equities-filings'
 
 export interface ChartBuilderConfig {
 	metric:

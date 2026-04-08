@@ -126,6 +126,11 @@ export function MetricCard({ metric }: MetricCardProps) {
 		if (delta == null && deltaPct == null) return null
 		if (compareFormat === 'absolute') {
 			if (delta == null) return null
+			if (format === 'percent') {
+				if (Math.abs(delta) < 0.005) return null
+			} else if (Math.abs(delta) < 1e-12) {
+				return null
+			}
 			const v =
 				format === 'currency'
 					? formattedNum(delta, true)
@@ -135,6 +140,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 			return v
 		}
 		if (deltaPct == null) return null
+		if (Math.abs(deltaPct) < 0.005) return null
 		const sign = deltaPct > 0 ? '+' : ''
 		return `${sign}${deltaPct.toFixed(2)}%`
 	}, [delta, deltaPct, compareFormat, format])

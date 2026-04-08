@@ -34,6 +34,7 @@
 		"@tanstack/react-virtual": "3.13.21",
 		"clsx": "2.1.1",
 		"dayjs": "1.11.19",
+		"dompurify": "^3.3.3",
 		"echarts": "6.0.0",
 		"echarts-simple-transform": "1.0.0",
 		"expr-eval": "2.0.2",
@@ -50,6 +51,7 @@
 		"react-markdown": "10.1.0",
 		"react-select": "5.10.2",
 		"rehype-raw": "7.0.0",
+		"rehype-sanitize": "^6.0.0",
 		"remark-gfm": "4.0.1",
 		"textarea-caret": "3.1.0",
 		"viem": "2.42.1",
@@ -57,6 +59,7 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "4.2.1",
+		"@types/dompurify": "^3.0.5",
 		"@types/lodash": "4.17.24",
 		"@types/node": "25.3.5",
 		"@types/react": "19.2.14",

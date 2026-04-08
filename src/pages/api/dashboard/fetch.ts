@@ -175,6 +175,25 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 			return withTimeout(fetchRWAStats(), FETCH_TIMEOUT)
 		}
 
+		case 'equitiesCompanies': {
+			const { fetchEquitiesCompanies } = await import('~/containers/Equities/api')
+			return withTimeout(fetchEquitiesCompanies(), FETCH_TIMEOUT)
+		}
+
+		case 'equitiesStatements': {
+			const { ticker } = params
+			if (!ticker) throw new Error('Missing ticker param')
+			const { fetchEquitiesStatements } = await import('~/containers/Equities/api')
+			return withTimeout(fetchEquitiesStatements(ticker), FETCH_TIMEOUT)
+		}
+
+		case 'equitiesFilings': {
+			const { ticker } = params
+			if (!ticker) throw new Error('Missing ticker param')
+			const { fetchEquitiesFilings } = await import('~/containers/Equities/api')
+			return withTimeout(fetchEquitiesFilings(ticker), FETCH_TIMEOUT)
+		}
+
 		case 'stablecoinsList': {
 			return withTimeout(fetchStablecoinAssetsApi(), FETCH_TIMEOUT)
 		}

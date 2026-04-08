@@ -594,15 +594,6 @@
       "oldName": "Calendar"
     },
     {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections",
-      "totalTrackedKey": "nfts.collections",
-      "oldCategory": "NFTs",
-      "oldName": "Collections"
-    },
-    {
       "name": "NFTs: Marketplaces",
       "route": "/nfts/marketplaces",
       "category": "NFTs",
@@ -610,6 +601,15 @@
       "totalTrackedKey": "nfts.marketplaces",
       "oldCategory": "NFTs",
       "oldName": "Marketplaces"
+    },
+    {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections",
+      "totalTrackedKey": "nfts.collections",
+      "oldCategory": "NFTs",
+      "oldName": "Collections"
     },
     {
       "name": "NFTs: Collection Earnings",
@@ -892,6 +892,12 @@
       "keys": [
         "news"
       ]
+    },
+    {
+      "name": "DefiLlama for Investors",
+      "route": "https://investors.defillama.com",
+      "category": "Tools",
+      "description": "Institutional-grade DeFi analytics and research tools for investors"
     }
   ],
   "Main": [
@@ -945,6 +951,11 @@
       "name": "DEX Aggregator",
       "route": "https://swap.defillama.com",
       "icon": "landmark"
+    },
+    {
+      "name": "Investor Relations",
+      "route": "https://investors.defillama.com",
+      "icon": "trending-up"
     }
   ],
   "Premium": [

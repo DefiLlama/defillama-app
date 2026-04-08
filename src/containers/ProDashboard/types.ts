@@ -33,6 +33,7 @@ export interface TextConfig {
 	title?: string
 	content: string
 	colSpan?: StoredColSpan
+	allowHtml?: boolean
 }
 
 export type MetricAggregator =
@@ -468,6 +469,9 @@ export interface ProtocolsTableConfig {
 		| 'rwa'
 		| 'rwa-chains'
 		| 'rwa-selected-chain'
+		| 'equities'
+		| 'equities-financials'
+		| 'equities-filings'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean

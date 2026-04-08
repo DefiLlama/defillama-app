@@ -8,6 +8,12 @@ import { mergeProtocolLlamaswapChains, normalizeProtocolLlamaswapChains } from '
 import { getSupportedCoinGeckoPlatformsForLlamaswap, normalizeEvmContractAddress } from '~/utils/llamaswapCoingecko'
 import type { IChainMetadata, IProtocolLlamaswapChain, IProtocolMetadata, ProtocolLlamaswapMetadata } from './types'
 
+const CHAIN_NATIVE_TOKEN_FALLBACKS: Record<string, IProtocolLlamaswapChain[]> = {
+	hyperliquid: [
+		{ chain: 'hyperevm', address: '0x0000000000000000000000000000000000000000', displayName: 'Hyperliquid' }
+	]
+}
+
 const LLAMASWAP_SUPPORTED_PROTOCOL_CHAIN_SET = buildChainMatchSet(
 	LLAMASWAP_CHAINS.flatMap(({ displayName, llamaswap, gecko, geckoAliases = [] }) => [
 		displayName,
@@ -279,6 +285,14 @@ export async function buildProtocolLlamaswapDataset({
 			if (mergedChains?.length) {
 				protocolLlamaswapDataset[geckoId] = mergedChains
 			}
+		}
+	}
+
+	for (const geckoId of chainGeckoIds) {
+		if (protocolLlamaswapDataset[geckoId]?.length) continue
+		const fallback = CHAIN_NATIVE_TOKEN_FALLBACKS[geckoId]
+		if (fallback) {
+			protocolLlamaswapDataset[geckoId] = fallback
 		}
 	}
 

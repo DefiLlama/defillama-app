@@ -43,7 +43,7 @@ const getTimezoneLabel = (timezone: string): string => {
 		const parts = formatter.formatToParts(new Date())
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')
 		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'GMT+').replace('+-', '-').replace('++', '+')
+			return tzPart.value.replace('GMT', 'UTC')
 		}
 	} catch {}
 	return timezone.split('/').pop()?.replace(/_/g, ' ') || timezone
@@ -77,6 +77,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
 		}) => {
 			const response = await authorizedFetch(`${MCP_SERVER}/alerts`, {
 				method: 'POST',
@@ -106,7 +107,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 			messageId,
 			alertId,
 			title: title.trim(),
-			alertConfig: { frequency, hour, dayOfWeek, timezone }
+			alertConfig: { frequency, hour, dayOfWeek, timezone },
+			delivery_channel: alertIntent.deliveryChannel || 'email'
 		})
 	}
 
@@ -204,9 +206,9 @@ export const AlertArtifact = memo(function AlertArtifact({
 					disabled={isSaved}
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
-					{Array.from({ length: 24 }, (_, i) => (
-						<option key={`alert-hour-${i}`} value={i}>
-							{i.toString().padStart(2, '0')}:00
+					{Array.from({ length: 24 }, (_, h) => (
+						<option key={`llamai-alert-h${h}`} value={h}>
+							{h.toString().padStart(2, '0')}:00
 						</option>
 					))}
 				</select>

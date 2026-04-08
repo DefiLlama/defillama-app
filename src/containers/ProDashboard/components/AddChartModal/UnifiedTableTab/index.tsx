@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
@@ -8,6 +9,8 @@ import { setSignupSource } from '~/containers/Subscription/signupSource'
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
+import { fetchEquitiesCompanies } from '~/containers/Equities/api'
+import type { IEquitiesCompanyApiItem } from '~/containers/Equities/api.types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
 	UNIFIED_TABLE_PRESETS,
@@ -22,6 +25,9 @@ import type {
 } from '~/containers/ProDashboard/types'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import { AriakitVirtualizedSelect } from '../../AriakitVirtualizedSelect'
+import { EquitiesCompaniesDataset } from '../../datasets/EquitiesDataset/EquitiesCompaniesDataset'
+import { EquitiesFilingsDataset } from '../../datasets/EquitiesDataset/EquitiesFilingsDataset'
+import { EquitiesFinancialsDataset } from '../../datasets/EquitiesDataset/EquitiesFinancialsDataset'
 import { RWAAssetsDataset } from '../../datasets/RWADataset/RWAAssetsDataset'
 import { RWAChainAssetsDataset } from '../../datasets/RWADataset/RWAChainAssetsDataset'
 import { RWAChainsDataset } from '../../datasets/RWADataset/RWAChainsDataset'
@@ -132,6 +138,28 @@ type TableTypeCardIcon =
 	| 'pie-chart'
 	| 'flame'
 	| 'landmark'
+	| 'bar-chart-2'
+
+function useEquitiesTickerOptions() {
+	const { data, isLoading } = useQuery({
+		queryKey: ['pro-dashboard', 'equities-companies-table'],
+		queryFn: fetchEquitiesCompanies,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false
+	})
+
+	const options = useMemo(() => {
+		if (!data) return []
+		return (data as IEquitiesCompanyApiItem[])
+			.sort((a, b) => b.marketCap - a.marketCap)
+			.map((item) => ({
+				value: item.ticker,
+				label: `${item.ticker} — ${item.name}`
+			}))
+	}, [data])
+
+	return { options, isLoading }
+}
 
 const TABLE_TYPE_CARDS: Array<{
 	value: CombinedTableType
@@ -196,6 +224,13 @@ const TABLE_TYPE_CARDS: Array<{
 		description: 'Real World Assets overview and chain breakdown',
 		icon: 'landmark',
 		tags: ['Active Mcap', 'Onchain Mcap', 'DeFi TVL']
+	},
+	{
+		value: 'equities',
+		label: 'Equities',
+		description: 'Stock market companies, financials & SEC filings',
+		icon: 'bar-chart-2',
+		tags: ['Price', 'Market Cap', 'Financials', 'Filings']
 	}
 ]
 
@@ -205,6 +240,14 @@ const RWA_TABS: Array<{ value: CombinedTableType; label: string }> = [
 	{ value: 'rwa-chains', label: 'By Chain' },
 	{ value: 'rwa', label: 'Assets' },
 	{ value: 'rwa-selected-chain', label: 'On Chain' }
+]
+
+const EQUITIES_TABLE_TYPES: CombinedTableType[] = ['equities', 'equities-financials', 'equities-filings']
+
+const EQUITIES_TABS: Array<{ value: CombinedTableType; label: string }> = [
+	{ value: 'equities', label: 'Companies' },
+	{ value: 'equities-financials', label: 'Financials' },
+	{ value: 'equities-filings', label: 'Filings' }
 ]
 
 function TabContent({
@@ -252,6 +295,7 @@ function TabContent({
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
 	const { hasActiveSubscription } = useAuthContext()
+	const { options: equitiesTickerOptions, isLoading: equitiesTickerLoading } = useEquitiesTickerOptions()
 	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({
 		open: shouldRenderSubscribeModal,
@@ -260,8 +304,10 @@ function TabContent({
 	const isEditing = Boolean(editItem)
 	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
 	const isRwaType = RWA_TABLE_TYPES.includes(selectedTableType)
+	const isEquitiesType = EQUITIES_TABLE_TYPES.includes(selectedTableType)
 	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
 	const [showRwaSelector, setShowRwaSelector] = useState(isEditing && isRwaType)
+	const [showEquitiesSelector, setShowEquitiesSelector] = useState(isEditing && isEquitiesType)
 
 	const initialTab = useMemo<TabKey>(() => {
 		if (focusedSectionOnly === 'filters') return 'filters'
@@ -691,6 +737,7 @@ function TabContent({
 		onTableTypeChange(type)
 		setShowTypeSelector(false)
 		setShowRwaSelector(false)
+		setShowEquitiesSelector(false)
 	}
 
 	const handleRwaTabChange = (type: CombinedTableType) => {
@@ -700,9 +747,17 @@ function TabContent({
 		}
 	}
 
+	const handleEquitiesTabChange = (type: CombinedTableType) => {
+		onTableTypeChange(type)
+		if ((type === 'equities-financials' || type === 'equities-filings') && !selectedDatasetChain) {
+			onDatasetChainChange('AAPL')
+		}
+	}
+
 	const handleBackToTypeSelector = useCallback(() => {
 		setShowTypeSelector(true)
 		setShowRwaSelector(false)
+		setShowEquitiesSelector(false)
 	}, [])
 
 	if (showRwaSelector) {
@@ -765,6 +820,67 @@ function TabContent({
 		)
 	}
 
+	if (showEquitiesSelector) {
+		const activeEquitiesTab = EQUITIES_TABLE_TYPES.includes(selectedTableType) ? selectedTableType : 'equities'
+		const needsTicker = activeEquitiesTab === 'equities-financials' || activeEquitiesTab === 'equities-filings'
+
+		return (
+			<div className="flex h-full flex-col gap-4 p-4">
+				<button
+					type="button"
+					onClick={handleBackToTypeSelector}
+					className="flex items-center gap-1 text-sm pro-text2 transition-colors hover:pro-text1"
+				>
+					<span>←</span>
+					<span>Back to table type selection</span>
+				</button>
+
+				<div className="flex items-center gap-1.5 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1">
+					{EQUITIES_TABS.map((tab) => {
+						const isActive = tab.value === activeEquitiesTab
+						return (
+							<button
+								key={tab.value}
+								type="button"
+								onClick={() => handleEquitiesTabChange(tab.value)}
+								className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition ${
+									isActive
+										? 'bg-(--primary)/10 text-(--text-primary) shadow-sm ring-1 ring-(--primary)/60'
+										: 'text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)'
+								}`}
+							>
+								{tab.label}
+							</button>
+						)
+					})}
+				</div>
+
+				{needsTicker ? (
+					<AriakitVirtualizedSelect
+						label="Select Company"
+						options={equitiesTickerOptions}
+						selectedValue={selectedDatasetChain}
+						onChange={(option) => onDatasetChainChange(option.value)}
+						placeholder="Search ticker or company name..."
+						isLoading={equitiesTickerLoading}
+					/>
+				) : null}
+
+				<div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)">
+					<div className="h-full overflow-auto">
+						{activeEquitiesTab === 'equities' ? (
+							<EquitiesCompaniesDataset />
+						) : activeEquitiesTab === 'equities-financials' ? (
+							<EquitiesFinancialsDataset ticker={selectedDatasetChain || ''} />
+						) : (
+							<EquitiesFilingsDataset ticker={selectedDatasetChain || ''} />
+						)}
+					</div>
+				</div>
+			</div>
+		)
+	}
+
 	if (showTypeSelector) {
 		const heroCard = TABLE_TYPE_CARDS[0]
 		const otherCards = TABLE_TYPE_CARDS.slice(1)
@@ -807,8 +923,11 @@ function TabContent({
 					<span className="mb-2.5 block text-xs font-medium tracking-wide pro-text2 uppercase">Other datasets</span>
 					<div className="grid grid-cols-2 gap-2">
 						{otherCards.map((card) => {
-							const isProLocked = (card.value === 'token-usage' || card.value === 'rwa') && !hasActiveSubscription
+							const isProLocked =
+								(card.value === 'token-usage' || card.value === 'rwa' || card.value === 'equities') &&
+								!hasActiveSubscription
 							const isRwa = card.value === 'rwa'
+							const isEquities = card.value === 'equities'
 
 							return (
 								<button
@@ -823,6 +942,10 @@ function TabContent({
 										if (isRwa) {
 											onTableTypeChange('rwa-chains')
 											setShowRwaSelector(true)
+											setShowTypeSelector(false)
+										} else if (isEquities) {
+											onTableTypeChange('equities')
+											setShowEquitiesSelector(true)
 											setShowTypeSelector(false)
 										} else {
 											handleSelectTableType(card.value)

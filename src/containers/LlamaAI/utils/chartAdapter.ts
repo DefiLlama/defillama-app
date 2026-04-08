@@ -693,20 +693,35 @@ export function adaptCandlestickData(
 
 	const sample = rawData[0] || {}
 	const keys = Object.keys(sample)
+	const timeField = config.dataTransformation?.timeField
 	const getTs = (r: any) => {
-		const t = Number(r.timestamp)
-		if (Number.isFinite(t)) {
-			return t < 1e12 ? t * 1000 : t
+		const candidates = timeField ? [r[timeField], r.timestamp, r.date] : [r.timestamp, r.date]
+		for (const raw of candidates) {
+			if (raw == null) continue
+			const t = Number(raw)
+			if (Number.isFinite(t)) {
+				return t < 1e12 ? t * 1000 : t
+			}
+			const d = new Date(raw).getTime()
+			if (Number.isFinite(d)) return d
 		}
-		return new Date(r.date).getTime()
+		return NaN
+	}
+
+	const metrics = config.dataTransformation?.metrics ?? []
+	const ohlcFields = {
+		open: metrics.find((m) => /open/i.test(m)) ?? 'open',
+		high: metrics.find((m) => /high/i.test(m)) ?? 'high',
+		low: metrics.find((m) => /low/i.test(m)) ?? 'low',
+		close: metrics.find((m) => /close/i.test(m)) ?? 'close'
 	}
 
 	data = rawData.map((r: any) => [
 		getTs(r),
-		parseFloat(r.open ?? r.price ?? 0),
-		parseFloat(r.close),
-		parseFloat(r.low),
-		parseFloat(r.high),
+		parseFloat(r[ohlcFields.open] ?? r.price ?? 0),
+		parseFloat(r[ohlcFields.close]),
+		parseFloat(r[ohlcFields.low]),
+		parseFloat(r[ohlcFields.high]),
 		parseFloat(r.volume || 0)
 	])
 

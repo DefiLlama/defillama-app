@@ -1690,7 +1690,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && isTemporaryConnectivityError(err) && eventCounter.count > 0) {
+							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
