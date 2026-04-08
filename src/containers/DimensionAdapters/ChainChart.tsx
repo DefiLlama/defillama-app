@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
 import {
 	ChartGroupingSelector,
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
@@ -50,7 +51,7 @@ const TreeMapBuilderChart = React.lazy(() => import('~/components/ECharts/TreeMa
 
 const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
 type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
-const CHART_KINDS_CHAINS_BY_ADAPTER = ['Bar', 'Line', 'Treemap', 'HBar'] as const
+const CHART_KINDS_CHAINS_BY_ADAPTER = ['Bar', 'Dominance', 'Treemap', 'HBar'] as const
 type ChainsByAdapterChartKind = (typeof CHART_KINDS_CHAINS_BY_ADAPTER)[number]
 const BAR_VALUE_MODES_CHAINS_BY_ADAPTER = ['Absolute', 'Relative'] as const
 type ChainsByAdapterValueMode = (typeof BAR_VALUE_MODES_CHAINS_BY_ADAPTER)[number]
@@ -60,7 +61,7 @@ const CHAINS_BY_ADAPTER_CHART_HEIGHT = '420px'
 const CHAINS_BY_ADAPTER_TREEMAP_HEIGHT = '520px'
 const CHART_KIND_OPTIONS = [
 	{ key: 'Bar', name: 'Bar Chart' },
-	{ key: 'Line', name: 'Line Chart' },
+	{ key: 'Dominance', name: 'Dominance Chart' },
 	{ key: 'Treemap', name: 'Treemap Chart' },
 	{ key: 'HBar', name: 'HBar Chart' }
 ] as const
@@ -140,9 +141,9 @@ function getChartKindQueryUpdate(
 				barLayout: undefined,
 				groupBy: nextGroupBy
 			}
-		case 'Line':
+		case 'Dominance':
 			return {
-				chartKind: 'line',
+				chartKind: 'dominance',
 				chartType: undefined,
 				valueMode: undefined,
 				barLayout: undefined,
@@ -172,7 +173,7 @@ function getChartKindQueryUpdate(
 function getChartHeight(chartState: ChainsByAdapterChartState): string {
 	switch (chartState.chartKind) {
 		case 'bar':
-		case 'line':
+		case 'dominance':
 			return CHAINS_BY_ADAPTER_CHART_HEIGHT
 		case 'treemap':
 		case 'hbar':
@@ -483,7 +484,7 @@ export const AdapterByChainChart = ({
 					chartData: breakdownChartData,
 					seriesType: 'bar'
 				})
-			case 'line':
+			case 'dominance':
 			case 'bar':
 				return buildAdapterByChainBreakdownPresentation({
 					chartData: breakdownChartData,
@@ -543,8 +544,8 @@ export const AdapterByChainChart = ({
 			? 'Treemap Chart'
 			: breakdownChartState.chartKind === 'hbar'
 				? 'HBar Chart'
-				: breakdownChartState.chartKind === 'line'
-					? 'Line Chart'
+				: breakdownChartState.chartKind === 'dominance'
+					? 'Dominance Chart'
 					: 'Bar Chart'
 	const breakdownBarValueModeLabel =
 		breakdownChartState.chartKind === 'bar'
@@ -573,7 +574,7 @@ export const AdapterByChainChart = ({
 							}
 						}
 					: undefined
-			case 'line':
+			case 'dominance':
 				return {
 					yAxis: {
 						min: 0,
@@ -591,10 +592,10 @@ export const AdapterByChainChart = ({
 		const chartBaseTitle = `${chain === 'All' ? 'All Chains' : chain} - ${chartName} by Protocol`
 		const chainSlug = slug(chain === 'All' ? 'all-chains' : chain)
 
-		if (breakdownChartState.chartKind === 'line') {
+		if (breakdownChartState.chartKind === 'dominance') {
 			return {
-				filename: `${chainSlug}-${slug(chartName)}-by-protocol-line-relative-${breakdownChartState.groupBy}`,
-				title: `${chartBaseTitle} - Dominance Line (${breakdownChartState.groupBy})`
+				filename: `${chainSlug}-${slug(chartName)}-by-protocol-dominance-${breakdownChartState.groupBy}`,
+				title: `${chartBaseTitle} - Dominance Chart (${breakdownChartState.groupBy})`
 			}
 		}
 		if (breakdownChartState.chartKind === 'treemap') {
@@ -637,8 +638,8 @@ export const AdapterByChainChart = ({
 								? 'Treemap'
 								: breakdownChartState.chartKind === 'hbar'
 									? 'HBar'
-									: breakdownChartState.chartKind === 'line'
-										? 'Line'
+									: breakdownChartState.chartKind === 'dominance'
+										? 'Dominance'
 										: 'Bar'
 						}
 						setSelectedValues={(value: string) => onChangeChartKind(value as ChainsByAdapterChartKind)}
@@ -697,11 +698,17 @@ export const AdapterByChainChart = ({
 						/>
 					) : null}
 					{chartViewMode === 'Breakdown' ? (
+						breakdownChartState.chartKind === 'treemap' ? (
+							<ChartRestoreButton chartInstance={exportChartInstance} />
+						) : null
+					) : null}
+					{chartViewMode === 'Breakdown' ? (
 						canExportBreakdownChart ? (
 							<ChartExportButtons
 								chartInstance={exportChartInstance}
 								filename={breakdownExportConfig.filename}
 								title={breakdownExportConfig.title}
+								pngProfile={breakdownChartState.chartKind === 'treemap' ? 'treemapNormalized' : undefined}
 							/>
 						) : null
 					) : (
@@ -757,7 +764,7 @@ export const AdapterByChainChart = ({
 									? '$'
 									: '%'
 							}
-							solidChartAreaStyle={deferredBreakdownPresentation.kind === 'line'}
+							solidChartAreaStyle={deferredBreakdownPresentation.kind === 'dominance'}
 							{...(breakdownMultiSeriesChartOptions ? { chartOptions: breakdownMultiSeriesChartOptions } : {})}
 							groupBy={deferredBreakdownPresentation.groupBy}
 							hideDefaultLegend={deferredBreakdownPresentation.charts.length === 1}
@@ -1037,10 +1044,10 @@ export const ChainsByAdapterChart = ({
 	const exportConfig = React.useMemo(() => {
 		const chartBaseTitle = `${chartName} by Chain`
 
-		if (chartState.chartKind === 'line') {
+		if (chartState.chartKind === 'dominance') {
 			return {
-				filename: `${slug(chartName)}-by-chain-line-relative-${chartState.groupBy}`,
-				title: `${chartBaseTitle} - Dominance Line (${chartState.groupBy})`
+				filename: `${slug(chartName)}-by-chain-dominance-${chartState.groupBy}`,
+				title: `${chartBaseTitle} - Dominance Chart (${chartState.groupBy})`
 			}
 		}
 
@@ -1070,8 +1077,8 @@ export const ChainsByAdapterChart = ({
 			? 'Treemap Chart'
 			: chartState.chartKind === 'hbar'
 				? 'HBar Chart'
-				: chartState.chartKind === 'line'
-					? 'Line Chart'
+				: chartState.chartKind === 'dominance'
+					? 'Dominance Chart'
 					: 'Bar Chart'
 	const barValueModeLabel =
 		chartState.chartKind === 'bar' ? (chartState.valueMode === 'relative' ? 'Relative (%)' : 'Absolute ($)') : null
@@ -1092,7 +1099,7 @@ export const ChainsByAdapterChart = ({
 							}
 						}
 					: undefined
-			case 'line':
+			case 'dominance':
 				return {
 					yAxis: {
 						min: 0,
@@ -1117,8 +1124,8 @@ export const ChainsByAdapterChart = ({
 							? 'Treemap'
 							: chartState.chartKind === 'hbar'
 								? 'HBar'
-								: chartState.chartKind === 'line'
-									? 'Line'
+								: chartState.chartKind === 'dominance'
+									? 'Dominance'
 									: 'Bar'
 					}
 					setSelectedValues={(value: string) => onChangeChartKind(value as ChainsByAdapterChartKind)}
@@ -1163,11 +1170,13 @@ export const ChainsByAdapterChart = ({
 						variant="filter"
 						portal
 					/>
+					{chartState.chartKind === 'treemap' ? <ChartRestoreButton chartInstance={exportChartInstance} /> : null}
 					{canExportChart ? (
 						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename={exportConfig.filename}
 							title={exportConfig.title}
+							pngProfile={chartState.chartKind === 'treemap' ? 'treemapNormalized' : undefined}
 						/>
 					) : null}
 				</div>
@@ -1200,7 +1209,7 @@ export const ChainsByAdapterChart = ({
 						valueSymbol={
 							deferredChartPresentation.kind === 'bar' && deferredChartPresentation.valueMode === 'absolute' ? '$' : '%'
 						}
-						solidChartAreaStyle={deferredChartPresentation.kind === 'line'}
+						solidChartAreaStyle={deferredChartPresentation.kind === 'dominance'}
 						{...(multiSeriesChartOptions ? { chartOptions: multiSeriesChartOptions } : {})}
 						groupBy={deferredChartPresentation.groupBy}
 						hideDefaultLegend={deferredChartPresentation.charts.length === 1}
