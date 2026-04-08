@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { chartDatasetsBySlug } from '~/containers/Downloads/chart-datasets'
-import { getTrialCsvDownloadCount, trackCsvDownload, validateSubscription } from '~/utils/apiAuth'
+import { validateSubscription } from '~/utils/apiAuth'
 
 function sanitize(s: string): string {
 	return s.replace(/[\r\n]+/g, ' ').trim()
@@ -83,10 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const isPreview = auth.valid === false
 
 		if (!isPreview && auth.valid && auth.isTrial) {
-			const csvDownloadCount = await getTrialCsvDownloadCount(req.headers.authorization!)
-			if (csvDownloadCount >= 1) {
-				return res.status(403).json({ error: 'Trial CSV download limit reached. Upgrade for unlimited downloads.' })
-			}
+			return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
 		}
 
 		let rows: Array<Record<string, unknown>>
@@ -111,10 +108,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const csv = rowsToCsv(rows)
-
-		if (!isPreview && auth.valid && auth.isTrial) {
-			await trackCsvDownload(req.headers.authorization!)
-		}
 
 		const filename = `${datasetSlug}_${sanitizeFilenameParam(param)}.csv`
 		res.setHeader('Content-Type', 'text/csv; charset=utf-8')

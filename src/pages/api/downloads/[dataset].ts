@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { datasetsBySlug, type DatasetDefinition } from '~/containers/Downloads/datasets'
 import { slug as toSlug } from '~/utils'
-import { getTrialCsvDownloadCount, trackCsvDownload, validateSubscription } from '~/utils/apiAuth'
+import { validateSubscription } from '~/utils/apiAuth'
 
 function sanitize(s: string): string {
 	return s.replace(/[\r\n]+/g, ' ').trim()
@@ -176,10 +176,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const isCsvDownload = !isChainMode
 		if (!isPreview && auth.valid && auth.isTrial && isCsvDownload) {
-			const csvDownloadCount = await getTrialCsvDownloadCount(req.headers.authorization!)
-			if (csvDownloadCount >= 1) {
-				return res.status(403).json({ error: 'Trial CSV download limit reached. Upgrade for unlimited downloads.' })
-			}
+			return res.status(403).json({ error: 'CSV downloads are available only for paid users.' })
 		}
 
 		let fetchUrl = dataset.url
@@ -210,10 +207,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const csv = flattenItemsToCsv(items, dataset.fields)
-
-		if (!isPreview && auth.valid && auth.isTrial) {
-			await trackCsvDownload(req.headers.authorization!)
-		}
 
 		res.setHeader('Content-Type', 'text/csv; charset=utf-8')
 		res.setHeader('Content-Disposition', `attachment; filename="${datasetSlug}.csv"`)

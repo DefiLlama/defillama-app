@@ -22,6 +22,8 @@ function reducer(state: State, action: Action): State {
 	}
 }
 
+const FEATURES = ['Unlimited CSV downloads', 'Unlimited data exports', '5 deep research reports per day', 'Custom dashboards & alerts']
+
 export function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
 	const { endTrialSubscription, isEndTrialLoading } = useSubscribe()
 	const [state, dispatch] = useReducer(reducer, initialState)
@@ -45,88 +47,89 @@ export function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClo
 		<Ariakit.Dialog
 			open={isOpen}
 			onClose={handleClose}
-			className="dialog flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none"
+			className="dialog flex max-h-[85dvh] max-w-sm flex-col overflow-hidden rounded-xl border border-[#39393E] bg-[#1a1b1f] p-0 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none"
 			portal
 			unmountOnHide
 		>
-			<div className="flex items-center justify-between">
-				<h3 className="text-xl font-bold">{upgraded ? 'Upgrade Successful' : 'Upgrade to Full Access'}</h3>
-				<button
-					onClick={handleClose}
-					className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
-				>
-					<Icon name="x" height={18} width={18} />
-				</button>
-			</div>
-			{upgraded ? (
-				<>
-					<div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-						<div className="flex items-start gap-3">
-							<Icon name="check" height={20} width={20} className="mt-0.5 shrink-0 text-green-500" />
-							<p className="text-sm text-[#c5c5c5]">
-								Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few minutes to
-								apply.
-							</p>
-						</div>
+			<button
+				onClick={handleClose}
+				className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
+			>
+				<Icon name="x" height={18} width={18} />
+			</button>
+
+			<div className="px-6 pt-8 pb-6">
+				<div className="flex flex-col items-center gap-4 text-center">
+					<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#5C5CF9]/15">
+						<Icon name="download-paper" height={28} width={28} className="text-[#5C5CF9]" />
 					</div>
-					<button
-						onClick={handleClose}
-						className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
-					>
-						Close
-					</button>
-				</>
-			) : (
-				<>
-					<div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
-						<div className="flex items-start gap-3">
-							<Icon name="alert-triangle" height={20} width={20} className="mt-0.5 shrink-0 text-yellow-500" />
-							<div className="flex flex-col gap-2">
-								<p className="font-semibold text-yellow-500">CSV download limit reached</p>
-								<p className="text-sm text-[#c5c5c5]">
-									Trial accounts are limited to 1 CSV download. To download more CSVs, upgrade to a full subscription
-									($49/month).
+
+					{upgraded ? (
+						<>
+							<div className="space-y-1.5">
+								<h3 className="text-lg font-semibold">Upgrade Successful</h3>
+							</div>
+							<div className="w-full rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+								<div className="flex items-start gap-3">
+									<Icon name="check" height={20} width={20} className="mt-0.5 shrink-0 text-green-500" />
+									<p className="text-left text-sm text-[#c5c5c5]">
+										Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few
+										minutes to apply.
+									</p>
+								</div>
+							</div>
+							<button
+								onClick={handleClose}
+								className="w-full rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+							>
+								Close
+							</button>
+						</>
+					) : (
+						<>
+							<div className="space-y-1.5">
+								<h3 className="text-lg font-semibold">CSV Downloads Require Pro</h3>
+								<p className="text-sm leading-relaxed text-[#8a8c90]">
+									Upgrade to export data from any chart or table across DefiLlama.
 								</p>
 							</div>
-						</div>
-					</div>
-					<div className="mt-2 flex flex-col gap-2">
-						<p className="text-sm text-[#8a8c90]">Benefits of upgrading:</p>
-						<ul className="flex flex-col gap-1 text-sm">
-							<li className="flex items-center gap-2">
-								<Icon name="check" height={14} width={14} className="text-green-400" />
-								<span>Unlimited CSV downloads</span>
-							</li>
-							<li className="flex items-center gap-2">
-								<Icon name="check" height={14} width={14} className="text-green-400" />
-								<span>5 deep research questions per day (instead of 3 lifetime)</span>
-							</li>
-							<li className="flex items-center gap-2">
-								<Icon name="check" height={14} width={14} className="text-green-400" />
-								<span>All Pro features without limitations</span>
-							</li>
-						</ul>
-					</div>
-					<div className="mt-2 flex flex-col gap-3">
-						<button
-							onClick={() => {
-								void handleUpgrade()
-							}}
-							disabled={isEndTrialLoading}
-							className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
-						>
-							{isEndTrialLoading ? 'Processing...' : 'Upgrade Now'}
-						</button>
-						<button
-							onClick={onClose}
-							disabled={isEndTrialLoading}
-							className="w-full rounded-lg border border-[#39393E] px-4 py-2 text-[#8a8c90] transition-colors hover:bg-[#2a2b30] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							Close
-						</button>
-					</div>
-				</>
-			)}
+
+							<div className="w-full rounded-lg bg-[#242529] p-4">
+								<p className="mb-2.5 text-left text-xs font-medium tracking-wide text-[#8a8c90] uppercase">
+									Included with Pro
+								</p>
+								<ul className="space-y-2">
+									{FEATURES.map((feature) => (
+										<li key={feature} className="flex items-center gap-2.5 text-left text-sm text-[#c5c5c7]">
+											<Icon name="check" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />
+											{feature}
+										</li>
+									))}
+								</ul>
+							</div>
+
+							<div className="flex w-full flex-col gap-2.5">
+								<button
+									onClick={() => {
+										void handleUpgrade()
+									}}
+									disabled={isEndTrialLoading}
+									className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
+								>
+									<Icon name="sparkles" height={16} width={16} />
+									{isEndTrialLoading ? 'Processing...' : 'Upgrade to Pro'}
+								</button>
+								<a
+									href="/subscription"
+									className="flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
+								>
+									View all plans
+								</a>
+							</div>
+						</>
+					)}
+				</div>
+			</div>
 		</Ariakit.Dialog>
 	)
 }
