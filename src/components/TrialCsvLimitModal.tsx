@@ -22,7 +22,12 @@ function reducer(state: State, action: Action): State {
 	}
 }
 
-const FEATURES = ['Unlimited CSV downloads', 'Unlimited data exports', '5 deep research reports per day', 'Custom dashboards & alerts']
+const FEATURES = [
+	'Unlimited CSV downloads',
+	'Unlimited data exports',
+	'5 deep research reports per day',
+	'Custom dashboards & alerts'
+]
 
 export function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
 	const { endTrialSubscription, isEndTrialLoading } = useSubscribe()
@@ -73,8 +78,8 @@ export function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClo
 								<div className="flex items-start gap-3">
 									<Icon name="check" height={20} width={20} className="mt-0.5 shrink-0 text-green-500" />
 									<p className="text-left text-sm text-[#c5c5c5]">
-										Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few
-										minutes to apply.
+										Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few minutes
+										to apply.
 									</p>
 								</div>
 							</div>
@@ -90,7 +95,7 @@ export function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClo
 							<div className="space-y-1.5">
 								<h3 className="text-lg font-semibold">CSV Downloads Require Pro</h3>
 								<p className="text-sm leading-relaxed text-[#8a8c90]">
-									Upgrade to export data from any chart or table across DefiLlama.
+									You're currently on a trial plan. Upgrade to export data from any chart or table across DefiLlama.
 								</p>
 							</div>
 

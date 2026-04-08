@@ -1,9 +1,8 @@
 import { matchSorter } from 'match-sorter'
-import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { TrialCsvLimitModal } from '~/components/TrialCsvLimitModal'
-import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import {
 	chartDatasets,
@@ -21,20 +20,15 @@ type Tab = (typeof TABS)[number]
 const ALL_CATEGORY = 'All'
 
 export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
-	const { isAuthenticated, hasActiveSubscription, isTrial, user, loaders, authorizedFetch } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
 	const [activeTab, setActiveTab] = useState<Tab>('Datasets')
 	const [previewDataset, setPreviewDataset] = useState<DatasetDefinition | null>(null)
 	const [previewChartDataset, setPreviewChartDataset] = useState<ChartDatasetDefinition | null>(null)
-	const [trialConfirmOpen, setTrialConfirmOpen] = useState(false)
 	const [trialLimitOpen, setTrialLimitOpen] = useState(false)
-	const pendingDatasetRef = useRef<DatasetDefinition | null>(null)
-	const pendingChartDatasetRef = useRef<ChartDatasetDefinition | null>(null)
 
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearch = useDeferredValue(searchValue)
 	const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORY)
-
-	const csvDownloadCount = typeof user?.flags?.csvDownload === 'number' ? user.flags.csvDownload : 0
 
 	const isPreview = !isAuthenticated || !hasActiveSubscription
 
@@ -113,47 +107,26 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 	const handleCardClick = useCallback(
 		(dataset: DatasetDefinition) => {
 			if (isAuthenticated && hasActiveSubscription && isTrial) {
-				if (csvDownloadCount >= 1) {
-					setTrialLimitOpen(true)
-					return
-				}
-				pendingDatasetRef.current = dataset
-				setTrialConfirmOpen(true)
+				setTrialLimitOpen(true)
 				return
 			}
 
 			setPreviewDataset(dataset)
 		},
-		[isAuthenticated, hasActiveSubscription, isTrial, csvDownloadCount]
+		[isAuthenticated, hasActiveSubscription, isTrial]
 	)
 
 	const handleChartCardClick = useCallback(
 		(dataset: ChartDatasetDefinition) => {
 			if (isAuthenticated && hasActiveSubscription && isTrial) {
-				if (csvDownloadCount >= 1) {
-					setTrialLimitOpen(true)
-					return
-				}
-				pendingChartDatasetRef.current = dataset
-				setTrialConfirmOpen(true)
+				setTrialLimitOpen(true)
 				return
 			}
 
 			setPreviewChartDataset(dataset)
 		},
-		[isAuthenticated, hasActiveSubscription, isTrial, csvDownloadCount]
+		[isAuthenticated, hasActiveSubscription, isTrial]
 	)
-
-	const handleTrialConfirm = useCallback(() => {
-		if (pendingDatasetRef.current) {
-			setPreviewDataset(pendingDatasetRef.current)
-			pendingDatasetRef.current = null
-		}
-		if (pendingChartDatasetRef.current) {
-			setPreviewChartDataset(pendingChartDatasetRef.current)
-			pendingChartDatasetRef.current = null
-		}
-	}, [])
 
 	const isUserLoading = loaders.userLoading
 
@@ -366,22 +339,6 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					isPreview={isPreview}
 				/>
 			)}
-
-			{trialConfirmOpen ? (
-				<ConfirmationModal
-					isOpen={trialConfirmOpen}
-					onClose={() => {
-						setTrialConfirmOpen(false)
-						pendingDatasetRef.current = null
-					}}
-					onConfirm={handleTrialConfirm}
-					title="Trial CSV download"
-					message="Trial accounts get 1 CSV download. Do you want to use it now?"
-					confirmText="Continue"
-					cancelText="Cancel"
-					confirmButtonClass="bg-(--primary) hover:opacity-90 text-white"
-				/>
-			) : null}
 
 			{trialLimitOpen ? <TrialCsvLimitModal isOpen={trialLimitOpen} onClose={() => setTrialLimitOpen(false)} /> : null}
 
