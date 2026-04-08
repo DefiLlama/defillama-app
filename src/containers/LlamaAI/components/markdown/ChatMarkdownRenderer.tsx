@@ -23,6 +23,18 @@ export function headingSlug(text: string): string {
 		.replace(/^-|-$/g, '')
 }
 
+function createHeadingIdFactory(messageId?: string) {
+	const counts = new Map<string, number>()
+
+	return (text: string) => {
+		const slug = headingSlug(text) || 'section'
+		const baseId = messageId ? `${messageId.slice(0, 8)}-${slug}` : slug
+		const occurrence = counts.get(baseId) ?? 0
+		counts.set(baseId, occurrence + 1)
+		return occurrence === 0 ? baseId : `${baseId}-${occurrence}`
+	}
+}
+
 function extractText(children: ReactNode): string {
 	if (typeof children === 'string') return children
 	if (typeof children === 'number') return String(children)
@@ -36,12 +48,17 @@ function extractText(children: ReactNode): string {
 function HeadingWithId({
 	level,
 	messageId,
+	resolveId,
 	children,
 	...props
-}: { level: number; messageId?: string; children?: ReactNode } & Record<string, any>) {
+}: {
+	level: number
+	messageId?: string
+	resolveId: (text: string) => string
+	children?: ReactNode
+} & Record<string, any>) {
 	const text = extractText(children)
-	const slug = headingSlug(text)
-	const id = messageId ? `${messageId.slice(0, 8)}-${slug}` : slug
+	const id = resolveId(text)
 	const attrs: Record<string, any> = { ...props, id, 'data-section-heading': true }
 	if (level === 2 && messageId) {
 		attrs['data-section-msg'] = messageId
@@ -347,65 +364,63 @@ export function ChatMarkdownRenderer({
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
-	const markdownComponents = useMemo<Components>(
-		() => ({
-			h1: ({ node: _node, children, ...props }: any) => (
-				<HeadingWithId level={1} messageId={messageId} {...props}>
-					{children}
-				</HeadingWithId>
-			),
-			h2: ({ node: _node, children, ...props }: any) => (
-				<HeadingWithId level={2} messageId={messageId} {...props}>
-					{children}
-				</HeadingWithId>
-			),
-			h3: ({ node: _node, children, ...props }: any) => (
-				<HeadingWithId level={3} messageId={messageId} {...props}>
-					{children}
-				</HeadingWithId>
-			),
-			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
-				const textChild = getSingleTextChild(props.children)
-				if (!props.href && textChild && processedData.linkMap.has(textChild)) {
-					const llamaUrl = processedData.linkMap.get(textChild)
-					return EntityLinkRenderer({ ...props, href: llamaUrl })
-				}
-				return EntityLinkRenderer(props)
-			},
-			table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-				<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
-					{children}
-				</TableWrapper>
-			),
-			th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
-				<th
-					{...props}
-					className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
-				>
-					{children}
-				</th>
-			),
-			td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
-				<td
-					{...props}
-					className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
-				>
-					{children}
-				</td>
-			),
-			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
-				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
-					{children}
-				</ul>
-			),
-			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-				<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
-					{children}
-				</ol>
-			)
-		}),
-		[isStreaming, onTableFullscreenOpen, processedData.linkMap, messageId]
-	)
+	const resolveHeadingId = createHeadingIdFactory(messageId)
+	const markdownComponents: Components = {
+		h1: ({ node: _node, children, ...props }: any) => (
+			<HeadingWithId level={1} messageId={messageId} resolveId={resolveHeadingId} {...props}>
+				{children}
+			</HeadingWithId>
+		),
+		h2: ({ node: _node, children, ...props }: any) => (
+			<HeadingWithId level={2} messageId={messageId} resolveId={resolveHeadingId} {...props}>
+				{children}
+			</HeadingWithId>
+		),
+		h3: ({ node: _node, children, ...props }: any) => (
+			<HeadingWithId level={3} messageId={messageId} resolveId={resolveHeadingId} {...props}>
+				{children}
+			</HeadingWithId>
+		),
+		a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
+			const textChild = getSingleTextChild(props.children)
+			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
+				const llamaUrl = processedData.linkMap.get(textChild)
+				return EntityLinkRenderer({ ...props, href: llamaUrl })
+			}
+			return EntityLinkRenderer(props)
+		},
+		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
+			<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
+				{children}
+			</TableWrapper>
+		),
+		th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
+			<th
+				{...props}
+				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
+			>
+				{children}
+			</th>
+		),
+		td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
+			<td
+				{...props}
+				className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
+			>
+				{children}
+			</td>
+		),
+		ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
+			<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
+				{children}
+			</ul>
+		),
+		ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
+			<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
+				{children}
+			</ol>
+		)
+	}
 
 	if (!processedData.content.trim()) {
 		return null

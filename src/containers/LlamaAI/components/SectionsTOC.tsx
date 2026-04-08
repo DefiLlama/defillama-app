@@ -27,7 +27,12 @@ export function SectionsTOC({
 
 	useEffect(() => {
 		const container = scrollContainerRef.current
-		if (!container || sectionMessageIds.length === 0) return
+		if (!container || sectionMessageIds.length === 0) {
+			lastObservedMsgId.current = null
+			setSections([])
+			setActiveId(null)
+			return
+		}
 
 		const handleScroll = () => {
 			const containerRect = container.getBoundingClientRect()
