@@ -978,10 +978,19 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			hideSidebar,
 			toggleFullscreen,
 			isFullscreen,
+			sidebarVisible,
 			toggleDashboardPanel,
 			isDashboardPanelOpen: dashboardPanelIsOpen
 		}),
-		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen, toggleDashboardPanel, dashboardPanelIsOpen]
+		[
+			handleSidebarToggle,
+			hideSidebar,
+			toggleFullscreen,
+			isFullscreen,
+			sidebarVisible,
+			toggleDashboardPanel,
+			dashboardPanelIsOpen
+		]
 	)
 
 	// Append one message to the live conversation state.

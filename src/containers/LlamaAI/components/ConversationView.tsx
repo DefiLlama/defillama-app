@@ -289,7 +289,7 @@ export function ConversationView({
 	onClearQuotedText,
 	onTableFullscreenOpen
 }: ConversationViewProps) {
-	const { isFullscreen } = useLlamaAIChrome()
+	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
 	const handledAnchorIdRef = useRef<string | null>(null)
 	const highlightTimeoutRef = useRef<number | null>(null)
@@ -390,7 +390,9 @@ export function ConversationView({
 				<div
 					className={`relative mx-auto flex ${isFullscreen ? 'max-w-[80rem] justify-center' : 'llamaai-chat-width w-full flex-col'}`}
 				>
-					{isFullscreen ? <SectionsTOC messages={messages} scrollContainerRef={scrollContainerRef} /> : null}
+					{isFullscreen && !sidebarVisible ? (
+						<SectionsTOC messages={messages} scrollContainerRef={scrollContainerRef} />
+					) : null}
 					<div className={isFullscreen ? 'llamaai-chat-width flex w-full flex-col' : 'contents'}>
 						<div className="flex w-full flex-col gap-2 px-2">
 							<div className="flex flex-col gap-2.5">
