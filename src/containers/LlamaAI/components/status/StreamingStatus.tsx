@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Icon } from '~/components/Icon'
 import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
@@ -58,7 +59,32 @@ export const TOOL_LABELS: Record<string, string> = {
 	apollo_org_enrich: 'Enriching org data',
 	clado_linkedin_scrape: 'Scraping LinkedIn profile',
 	clado_contacts_enrich: 'Enriching contact data',
-	feed_enrichment: 'Enriching feed data'
+	feed_enrichment: 'Enriching feed data',
+	generate_dashboard: 'Generating dashboard',
+	dashboard_generation_history: 'Loading dashboard history',
+	load_dashboard: 'Loading dashboard',
+	fetch_ohlcv: 'Fetching price data',
+	fetch_exchange_data: 'Fetching exchange data',
+	get_balance_history: 'Fetching balance history',
+	read_result: 'Reading result',
+	list_results: 'Listing results',
+	x_get_article: 'Reading X article',
+	nansen_smart_money_holdings: 'Fetching smart money holdings',
+	nansen_smart_money_trades: 'Fetching smart money trades',
+	nansen_smart_money_netflow: 'Fetching smart money netflow',
+	nansen_token_screener: 'Screening tokens',
+	nansen_token_holders: 'Fetching token holders',
+	nansen_who_bought_sold: 'Fetching buy/sell data',
+	nansen_flow_intelligence: 'Fetching flow intelligence',
+	nansen_token_trades: 'Fetching token trades',
+	nansen_token_flows: 'Fetching token flows',
+	nansen_pnl_leaderboard: 'Fetching PnL leaderboard',
+	nansen_pm_event_screener: 'Screening prediction events',
+	nansen_pm_market_screener: 'Screening prediction markets',
+	nansen_pm_top_holders: 'Fetching top holders',
+	nansen_pm_trades: 'Fetching market trades',
+	nansen_pm_pnl: 'Fetching market PnL',
+	nansen_pm_ohlcv: 'Fetching market OHLCV'
 }
 
 export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
@@ -115,7 +141,32 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	apollo_org_enrich: { icon: 'search', color: '#a78bfa' },
 	clado_linkedin_scrape: { icon: 'users', color: '#0077b5' },
 	clado_contacts_enrich: { icon: 'users', color: '#0077b5' },
-	feed_enrichment: { icon: 'layers', color: '#8b5cf6' }
+	feed_enrichment: { icon: 'layers', color: '#8b5cf6' },
+	generate_dashboard: { icon: 'layout-grid', color: '#2563eb' },
+	dashboard_generation_history: { icon: 'layout-grid', color: '#6366f1' },
+	load_dashboard: { icon: 'layout-grid', color: '#6366f1' },
+	fetch_ohlcv: { icon: 'bar-chart-2', color: '#f59e0b' },
+	fetch_exchange_data: { icon: 'bar-chart-2', color: '#f97316' },
+	get_balance_history: { icon: 'wallet', color: '#f97316' },
+	read_result: { icon: 'file-text', color: '#94a3b8' },
+	list_results: { icon: 'file-text', color: '#94a3b8' },
+	x_get_article: { icon: 'twitter', color: '#94a3b8' },
+	nansen_smart_money_holdings: { icon: 'trending-up', color: '#2563eb' },
+	nansen_smart_money_trades: { icon: 'trending-up', color: '#2563eb' },
+	nansen_smart_money_netflow: { icon: 'trending-up', color: '#2563eb' },
+	nansen_token_screener: { icon: 'search', color: '#2563eb' },
+	nansen_token_holders: { icon: 'users', color: '#2563eb' },
+	nansen_who_bought_sold: { icon: 'repeat', color: '#2563eb' },
+	nansen_flow_intelligence: { icon: 'activity', color: '#2563eb' },
+	nansen_token_trades: { icon: 'repeat', color: '#2563eb' },
+	nansen_token_flows: { icon: 'activity', color: '#2563eb' },
+	nansen_pnl_leaderboard: { icon: 'trending-up', color: '#2563eb' },
+	nansen_pm_event_screener: { icon: 'activity', color: '#ec4899' },
+	nansen_pm_market_screener: { icon: 'search', color: '#ec4899' },
+	nansen_pm_top_holders: { icon: 'users', color: '#ec4899' },
+	nansen_pm_trades: { icon: 'repeat', color: '#ec4899' },
+	nansen_pm_pnl: { icon: 'trending-up', color: '#ec4899' },
+	nansen_pm_ohlcv: { icon: 'bar-chart-2', color: '#ec4899' }
 }
 
 let currentSecondSnapshot = Math.floor(Date.now() / 1000)
@@ -376,11 +427,15 @@ export function ToolProgressIndicator({
 export const SpawnProgressCard = memo(function SpawnProgressCard({
 	agents,
 	startTime,
-	isResearchMode
+	isResearchMode,
+	recovery,
+	onReconnect
 }: {
 	agents: Map<string, SpawnAgentStatus>
 	startTime: number
 	isResearchMode?: boolean
+	recovery?: RecoveryState
+	onReconnect?: () => void
 }) {
 	const currentSecond = useCurrentSecond()
 	const elapsed = startTime ? Math.max(0, currentSecond - Math.floor(startTime / 1000)) : 0
@@ -492,6 +547,37 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 						</li>
 					))}
 				</ul>
+			) : null}
+
+			{recovery?.status === 'reconnecting' ? (
+				<div className="flex items-center gap-2 border-t border-amber-200 pt-2 dark:border-amber-900/50">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						className="shrink-0 animate-spin text-amber-500"
+					>
+						<path d="M21 12a9 9 0 1 1-6.219-8.56" />
+					</svg>
+					<p className="m-0 flex-1 text-xs text-amber-700 dark:text-amber-300">
+						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}...
+					</p>
+					{onReconnect ? (
+						<button
+							type="button"
+							onClick={onReconnect}
+							className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
+						>
+							Reconnect now
+						</button>
+					) : null}
+				</div>
 			) : null}
 		</section>
 	)

@@ -46,6 +46,7 @@ interface ConversationViewProps {
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
+	onReconnectNow: () => void
 	scrollContainerRef: RefObject<HTMLDivElement | null>
 	messagesEndRef: RefObject<HTMLDivElement | null>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
@@ -140,6 +141,7 @@ function ConversationLiveStatus({
 	error,
 	lastFailedPrompt,
 	onRetryLastFailedPrompt,
+	onReconnectNow,
 	isResearchMode,
 	sessionId,
 	readOnly,
@@ -159,6 +161,7 @@ function ConversationLiveStatus({
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
+	onReconnectNow: () => void
 	isResearchMode: boolean
 	sessionId: string | null
 	readOnly: boolean
@@ -179,7 +182,13 @@ function ConversationLiveStatus({
 
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
-					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} isResearchMode />
+					<SpawnProgressCard
+						agents={spawnProgress}
+						startTime={spawnStartTime}
+						isResearchMode
+						recovery={recovery}
+						onReconnect={onReconnectNow}
+					/>
 				) : (
 					<ToolProgressIndicator
 						toolCalls={activeToolCalls}
@@ -205,15 +214,23 @@ function ConversationLiveStatus({
 				</div>
 			) : null}
 
-			{recovery.status === 'reconnecting' ? (
+			{recovery.status === 'reconnecting' && !(spawnProgress.size > 0 && spawnIsResearchMode) ? (
 				<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
 					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
 					<p className="text-sm text-amber-800 dark:text-amber-200">
 						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
 					</p>
-					<p className="text-xs text-amber-700 dark:text-amber-300">
-						Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
-					</p>
+					<div className="flex items-center justify-between">
+						<p className="text-xs text-amber-700 dark:text-amber-300">
+							Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+						</p>
+						<button
+							onClick={onReconnectNow}
+							className="shrink-0 rounded-md bg-amber-200 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
+						>
+							Reconnect now
+						</button>
+					</div>
 				</div>
 			) : null}
 
@@ -225,7 +242,7 @@ function ConversationLiveStatus({
 							onClick={onRetryLastFailedPrompt}
 							className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
 						>
-							Retry
+							Reconnect
 						</button>
 					) : null}
 				</div>
@@ -254,6 +271,7 @@ export function ConversationView({
 	error,
 	lastFailedPrompt,
 	onRetryLastFailedPrompt,
+	onReconnectNow,
 	scrollContainerRef,
 	messagesEndRef,
 	promptInputRef,
@@ -449,6 +467,7 @@ export function ConversationView({
 												error={error}
 												lastFailedPrompt={lastFailedPrompt}
 												onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+												onReconnectNow={onReconnectNow}
 												isResearchMode={isResearchMode}
 												sessionId={sessionId}
 												readOnly={readOnly}
@@ -472,6 +491,7 @@ export function ConversationView({
 										error={error}
 										lastFailedPrompt={lastFailedPrompt}
 										onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+										onReconnectNow={onReconnectNow}
 										isResearchMode={isResearchMode}
 										sessionId={sessionId}
 										readOnly={readOnly}

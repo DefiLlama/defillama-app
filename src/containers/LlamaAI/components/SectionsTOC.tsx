@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import type { Message } from '~/containers/LlamaAI/types'
 
 export function SectionsTOC({
@@ -6,7 +6,7 @@ export function SectionsTOC({
 	scrollContainerRef
 }: {
 	messages: Message[]
-	scrollContainerRef: React.RefObject<HTMLDivElement | null>
+	scrollContainerRef: RefObject<HTMLDivElement | null>
 }) {
 	const [activeId, setActiveId] = useState<string | null>(null)
 	const [sections, setSections] = useState<Array<{ id: string; text: string }>>([])
