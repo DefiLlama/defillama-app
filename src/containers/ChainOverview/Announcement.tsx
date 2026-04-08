@@ -9,7 +9,7 @@ export const ChainOverviewAnnouncement = () => {
 			<a
 				href={`https://investors.defillama.com/${user?.id ? `?referrer=${user.id}` : ''}`}
 				target="_blank"
-				rel="noreferrer noopener"
+				rel="noopener"
 				className="underline"
 			>
 				Investor Relations

@@ -221,7 +221,7 @@ export function ProtocolOverviewLayout({
 					<a
 						href={`https://investors.defillama.com/spark${user?.id ? `?referrer=${user.id}` : ''}`}
 						target="_blank"
-						rel="noreferrer noopener"
+						rel="noopener"
 						className="underline"
 					>
 						investor relations
