@@ -12,6 +12,7 @@ const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="no
 const metrics: IProtocolPageMetrics = {
 	tvl: true,
 	dexs: false,
+	dexsNotionalVolume: false,
 	perps: false,
 	openInterest: false,
 	optionsPremiumVolume: false,

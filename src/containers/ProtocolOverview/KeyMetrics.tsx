@@ -26,6 +26,7 @@ type KeyMetricsOptionalFields = Partial<
 		| 'tokenLiquidity'
 		| 'outstandingFDV'
 		| 'dexVolume'
+		| 'dexNotionalVolume'
 		| 'dexAggregatorVolume'
 		| 'perpVolume'
 		| 'perpAggregatorVolume'
