@@ -85,6 +85,7 @@ export const getStaticProps = withPerformanceLogging(
 			...(computedMetrics ?? {
 				tvl: false,
 				dexs: false,
+				dexsNotionalVolume: false,
 				perps: false,
 				openInterest: false,
 				optionsPremiumVolume: false,

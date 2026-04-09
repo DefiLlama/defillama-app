@@ -78,6 +78,7 @@ export const getProtocolMetricFlags = ({
 	return {
 		tvl: !!metadata.tvl,
 		dexs: !!metadata.dexs,
+		dexsNotionalVolume: !!metadata.dexsNotionalVolume,
 		perps: !!metadata.perps,
 		openInterest: !!metadata.openInterest,
 		optionsPremiumVolume: !!metadata.optionsPremiumVolume,
@@ -144,6 +145,7 @@ export const getProtocolOverviewPageData = async ({
 		bribesData,
 		tokenTaxData,
 		dexVolumeData,
+		dexNotionalVolumeData,
 		dexAggregatorVolumeData,
 		perpVolumeData,
 		openInterestData,
@@ -173,6 +175,7 @@ export const getProtocolOverviewPageData = async ({
 	]: [
 		IProtocolDataExtended | null,
 		IProtocolValueChart,
+		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
@@ -280,6 +283,15 @@ export const getProtocolOverviewPageData = async ({
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.dexsNotionalVolume
+			? fetchAdapterProtocolMetrics({
+					adapterType: 'dexs',
+					dataType: 'dailyNotionalVolume',
+					protocol: currentProtocolMetadata.displayName ?? ''
+				})
+					.then((data) => formatAdapterData({ data, methodologyKey: 'dexsNotionalVolume' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators
@@ -559,6 +571,7 @@ export const getProtocolOverviewPageData = async ({
 		holdersRevenueData?.totalAllTime ||
 		incentives ||
 		dexVolumeData?.totalAllTime ||
+		dexNotionalVolumeData?.totalAllTime ||
 		perpVolumeData?.totalAllTime ||
 		dexAggregatorVolumeData?.totalAllTime ||
 		perpAggregatorVolumeData?.totalAllTime ||
@@ -692,6 +705,7 @@ export const getProtocolOverviewPageData = async ({
 		hasRevenue: Boolean(revenueData),
 		hasHoldersRevenue: Boolean(holdersRevenueData),
 		hasDexVolume: Boolean(dexVolumeData),
+		hasDexNotionalVolume: Boolean(dexNotionalVolumeData),
 		hasPerpVolume: Boolean(perpVolumeData),
 		hasOpenInterest: Boolean(openInterestData),
 		hasOptionsPremiumVolume: Boolean(optionsPremiumVolumeData),
@@ -927,6 +941,7 @@ export const getProtocolOverviewPageData = async ({
 		bribeRevenue: bribesData,
 		tokenTax: tokenTaxData,
 		dexVolume: dexVolumeData,
+		dexNotionalVolume: dexNotionalVolumeData,
 		dexAggregatorVolume: dexAggregatorVolumeData,
 		perpVolume: perpVolumeData,
 		openInterest: openInterestData,

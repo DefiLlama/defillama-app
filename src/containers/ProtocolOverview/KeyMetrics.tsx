@@ -55,6 +55,7 @@ export interface IKeyMetricsProps extends KeyMetricsRequiredFields, KeyMetricsOp
 
 type AdapterOverviewKey =
 	| 'dexVolume'
+	| 'dexNotionalVolume'
 	| 'dexAggregatorVolume'
 	| 'perpVolume'
 	| 'perpAggregatorVolume'
@@ -71,6 +72,12 @@ interface StandardMetricConfig {
 
 const STANDARD_METRICS: StandardMetricConfig[] = [
 	{ dataProp: 'dexVolume', definitionKey: 'dexs', label: 'DEX Volume', dataType: 'DEX Volume' },
+	{
+		dataProp: 'dexNotionalVolume',
+		definitionKey: 'dexsNotional',
+		label: 'DEX Notional Volume',
+		dataType: 'DEX Notional Volume'
+	},
 	{
 		dataProp: 'dexAggregatorVolume',
 		definitionKey: 'dexAggregators',

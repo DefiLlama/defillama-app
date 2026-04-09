@@ -430,6 +430,7 @@ export const useFetchProtocolChartData = ({
 	const revenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Revenue']
 	const holdersRevenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Holders Revenue']
 	const dexVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Volume']
+	const dexNotionalVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Notional Volume']
 	const perpVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Volume']
 	const openInterestDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Open Interest']
 	const optionsPremiumDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Premium Volume']
@@ -532,6 +533,19 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
 		enabled: isDexVolumeEnabled,
 		queryFn: () => fetchAdapterProtocolChartData({ ...dexVolumeDescriptor!.chartRequest, protocol: name })
+	})
+
+	const isDexNotionalVolumeEnabled = !!(
+		toggledMetrics.dexNotionalVolume === 'true' &&
+		metrics.dexsNotionalVolume &&
+		isRouterReady
+	)
+	const { data: dexNotionalVolumeDataChart, isLoading: fetchingDexNotionalVolume } = usePrefetchedProtocolChartQuery({
+		label: 'DEX Notional Volume',
+		prefetchedCharts: prefetchedChartsInSeconds,
+		queryKey: ['protocol-overview', protocolSlug, 'dex-notional-volume'],
+		enabled: isDexNotionalVolumeEnabled,
+		queryFn: () => fetchAdapterProtocolChartData({ ...dexNotionalVolumeDescriptor!.chartRequest, protocol: name })
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
@@ -821,6 +835,7 @@ export const useFetchProtocolChartData = ({
 			{ isLoading: isBribesEnabled && fetchingBribes, label: 'Bribes' },
 			{ isLoading: isTokenTaxesEnabled && fetchingTokenTaxes, label: 'Token Taxes' },
 			{ isLoading: isDexVolumeEnabled && fetchingDexVolume, label: 'DEX Volume' },
+			{ isLoading: isDexNotionalVolumeEnabled && fetchingDexNotionalVolume, label: 'DEX Notional Volume' },
 			{ isLoading: isPerpsVolumeEnabled && fetchingPerpVolume, label: 'Perp Volume' },
 			{ isLoading: isOpenInterestEnabled && fetchingOpenInterest, label: 'Open Interest' },
 			{ isLoading: isOptionsPremiumVolumeEnabled && fetchingOptionsPremiumVolume, label: 'Options Premium Volume' },
@@ -1006,6 +1021,12 @@ export const useFetchProtocolChartData = ({
 
 		if (dexVolumeDataChart)
 			charts['DEX Volume'] = formatBarChart({ data: dexVolumeDataChart, groupBy, denominationPriceHistory })
+		if (dexNotionalVolumeDataChart)
+			charts['DEX Notional Volume'] = formatBarChart({
+				data: dexNotionalVolumeDataChart,
+				groupBy,
+				denominationPriceHistory
+			})
 		if (perpsVolumeDataChart)
 			charts['Perp Volume'] = formatBarChart({ data: perpsVolumeDataChart, groupBy, denominationPriceHistory })
 		if (openInterestDataChart)
@@ -1225,6 +1246,7 @@ export const useFetchProtocolChartData = ({
 		isBribesEnabled,
 		isTokenTaxesEnabled,
 		isDexVolumeEnabled,
+		isDexNotionalVolumeEnabled,
 		isPerpsVolumeEnabled,
 		isOpenInterestEnabled,
 		isOptionsPremiumVolumeEnabled,
@@ -1245,6 +1267,8 @@ export const useFetchProtocolChartData = ({
 		tokenTaxesDataChart,
 		fetchingDexVolume,
 		dexVolumeDataChart,
+		fetchingDexNotionalVolume,
+		dexNotionalVolumeDataChart,
 		fetchingPerpVolume,
 		perpsVolumeDataChart,
 		fetchingOpenInterest,

@@ -70,10 +70,12 @@ const CHAIN_METADATA_KEYS: Record<string, ChainMetadataKey> = {
 	[`${ADAPTER_TYPES.PERPS}:${ADAPTER_DATA_TYPES.DAILY_VOLUME}`]: 'perps',
 	[`${ADAPTER_TYPES.AGGREGATORS}:${ADAPTER_DATA_TYPES.DAILY_VOLUME}`]: 'dexAggregators',
 	[`${ADAPTER_TYPES.PERPS_AGGREGATOR}:${ADAPTER_DATA_TYPES.DAILY_VOLUME}`]: 'perpsAggregators',
+	// dailyNotionalVolume is shared across adapter types -- composite keys disambiguate
+	[`${ADAPTER_TYPES.DEXS}:${ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME}`]: 'dexsNotionalVolume',
+	[`${ADAPTER_TYPES.OPTIONS}:${ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME}`]: 'optionsNotionalVolume',
 	// unambiguous data types
 	[ADAPTER_DATA_TYPES.DAILY_FEES]: 'fees',
 	[ADAPTER_DATA_TYPES.DAILY_REVENUE]: 'revenue',
-	[ADAPTER_DATA_TYPES.DAILY_NOTIONAL_VOLUME]: 'optionsNotionalVolume',
 	[ADAPTER_DATA_TYPES.DAILY_PREMIUM_VOLUME]: 'optionsPremiumVolume',
 	[ADAPTER_DATA_TYPES.OPEN_INTEREST_AT_END]: 'openInterest',
 	[ADAPTER_DATA_TYPES.DAILY_BRIDGE_VOLUME]: 'bridgeAggregators',

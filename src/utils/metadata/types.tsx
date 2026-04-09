@@ -1,6 +1,7 @@
 export interface IChainMetadata {
 	stablecoins?: boolean
 	dexs?: boolean
+	dexsNotionalVolume?: boolean
 	name: string
 	activeLiquidity?: boolean
 	fees?: boolean
@@ -42,6 +43,7 @@ export interface IProtocolMetadata {
 	revenue?: boolean
 	holdersRevenue?: boolean
 	dexs?: boolean
+	dexsNotionalVolume?: boolean
 	perps?: boolean
 	openInterest?: boolean
 	normalizedVolume?: boolean
