@@ -2,6 +2,7 @@ import type { ChartTimeGrouping, MultiSeriesChart2SeriesConfig } from '~/compone
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { formattedNum, toNiceDayMonthAndYearAndTime } from '~/utils'
+import { perpsDefinitions as d } from './definitions'
 import type {
 	IRWAPerpsContractData,
 	IRWAPerpsContractFundingHistoryPoint,
@@ -24,7 +25,7 @@ export interface RWAPerpsContractChartMetricConfig {
 export const RWA_PERPS_CONTRACT_CHART_METRICS: readonly RWAPerpsContractChartMetricConfig[] = [
 	{
 		key: 'openInterest',
-		label: 'Open Interest',
+		label: d.openInterest.label,
 		queryKey: 'oi',
 		defaultEnabled: true,
 		color: '#3B82F6',
@@ -42,7 +43,7 @@ export const RWA_PERPS_CONTRACT_CHART_METRICS: readonly RWAPerpsContractChartMet
 	},
 	{
 		key: 'price',
-		label: 'Price',
+		label: d.price.label,
 		queryKey: 'price',
 		defaultEnabled: true,
 		color: '#22C55E',
@@ -62,7 +63,7 @@ export const RWA_PERPS_CONTRACT_CHART_METRICS: readonly RWAPerpsContractChartMet
 	},
 	{
 		key: 'premium',
-		label: 'Premium',
+		label: d.premium.label,
 		queryKey: 'premium',
 		defaultEnabled: false,
 		color: '#EF4444',
@@ -110,11 +111,13 @@ export function formatRWAPerpsContractChartDate(value: number): string {
 type MetricRowData = {
 	label: string
 	value: string
+	tooltip?: string
 }
 
 export type MetricSectionData = {
 	label: string
 	value: string
+	tooltip?: string
 	children: MetricRowData[]
 }
 
@@ -128,68 +131,144 @@ export function buildRWAPerpsContractMetricSections(contractData: IRWAPerpsContr
 } {
 	const maxLeverage = formatMaybeNumber(contractData.market.maxLeverage)
 	const tradingParameterChildren = [
-		{ label: 'Max Leverage', value: maxLeverage === '-' ? '-' : `${maxLeverage}x` },
-		{ label: 'Maker Fee', value: formatFractionPercent(contractData.market.makerFeeRate) },
-		{ label: 'Taker Fee', value: formatFractionPercent(contractData.market.takerFeeRate) },
+		{
+			label: d.maxLeverage.label,
+			tooltip: d.maxLeverage.description,
+			value: maxLeverage === '-' ? '-' : `${maxLeverage}x`
+		},
+		{
+			label: d.makerFeeRate.label,
+			tooltip: d.makerFeeRate.description,
+			value: formatFractionPercent(contractData.market.makerFeeRate)
+		},
+		{
+			label: d.takerFeeRate.label,
+			tooltip: d.takerFeeRate.description,
+			value: formatFractionPercent(contractData.market.takerFeeRate)
+		},
 		...(contractData.market.deployerFeeShare == null || !Number.isFinite(contractData.market.deployerFeeShare)
 			? []
-			: [{ label: 'Deployer Fee Share', value: formatFractionPercent(contractData.market.deployerFeeShare) }]),
-		{ label: 'Size Decimals', value: formatMaybeNumber(contractData.market.szDecimals) }
+			: [
+					{
+						label: d.deployerFeeShare.label,
+						tooltip: d.deployerFeeShare.description,
+						value: formatFractionPercent(contractData.market.deployerFeeShare)
+					}
+				]),
+		{
+			label: d.sizeDecimals.label,
+			tooltip: d.sizeDecimals.description,
+			value: formatMaybeNumber(contractData.market.szDecimals)
+		}
 	]
 
 	const marketReferenceChildren = [
-		{ label: 'Oracle Price', value: formatMaybeCurrency(contractData.market.oraclePx) },
-		{ label: 'Mid Price', value: formatMaybeCurrency(contractData.market.midPx) },
-		{ label: 'Previous Day Price', value: formatMaybeCurrency(contractData.market.prevDayPx) },
-		...(formatTextValue(contractData.market.pair) ? [{ label: 'Pair', value: contractData.market.pair }] : []),
+		{
+			label: d.oraclePrice.label,
+			tooltip: d.oraclePrice.description,
+			value: formatMaybeCurrency(contractData.market.oraclePx)
+		},
+		{ label: d.midPrice.label, tooltip: d.midPrice.description, value: formatMaybeCurrency(contractData.market.midPx) },
+		{
+			label: d.previousDayPrice.label,
+			tooltip: d.previousDayPrice.description,
+			value: formatMaybeCurrency(contractData.market.prevDayPx)
+		},
+		...(formatTextValue(contractData.market.pair)
+			? [{ label: d.pair.label, tooltip: d.pair.description, value: contractData.market.pair }]
+			: []),
 		...(formatTextValue(contractData.market.marginAsset)
-			? [{ label: 'Margin Asset', value: contractData.market.marginAsset }]
+			? [{ label: d.marginAsset.label, tooltip: d.marginAsset.description, value: contractData.market.marginAsset }]
 			: []),
 		...(formatTextValue(contractData.market.settlementAsset)
-			? [{ label: 'Settlement Asset', value: contractData.market.settlementAsset }]
+			? [
+					{
+						label: d.settlementAsset.label,
+						tooltip: d.settlementAsset.description,
+						value: contractData.market.settlementAsset
+					}
+				]
 			: [])
 	]
 
 	return {
 		openInterest: {
-			label: 'Open Interest',
+			label: d.openInterest.label,
+			tooltip: d.openInterest.description,
 			value: formatMaybeCurrency(contractData.market.openInterest)
 		},
 		volume: {
-			label: 'Volume 30d',
+			label: d.volume30d.label,
+			tooltip: d.volume30d.description,
 			value: formatMaybeCurrency(contractData.market.volume30d),
 			children: [
-				{ label: 'Volume 7d', value: formatMaybeCurrency(contractData.market.volume7d) },
-				{ label: 'Volume 24h', value: formatMaybeCurrency(contractData.market.volume24h) },
-				{ label: 'Cumulative Volume', value: formatMaybeCurrency(contractData.market.volumeAllTime) }
+				{
+					label: d.volume7d.label,
+					tooltip: d.volume7d.description,
+					value: formatMaybeCurrency(contractData.market.volume7d)
+				},
+				{
+					label: 'Volume 24h',
+					tooltip: d.volume24h.description,
+					value: formatMaybeCurrency(contractData.market.volume24h)
+				},
+				{
+					label: d.cumulativeVolume.label,
+					tooltip: d.cumulativeVolume.description,
+					value: formatMaybeCurrency(contractData.market.volumeAllTime)
+				}
 			]
 		},
 		fees: {
-			label: 'Est. Protocol Fees 30d',
+			label: d.estimatedProtocolFees30d.label,
+			tooltip: d.estimatedProtocolFees30d.description,
 			value: formatMaybeCurrency(contractData.market.estimatedProtocolFees30d),
 			children: [
-				{ label: 'Est. Protocol Fees 7d', value: formatMaybeCurrency(contractData.market.estimatedProtocolFees7d) },
-				{ label: 'Est. Protocol Fees 24h', value: formatMaybeCurrency(contractData.market.estimatedProtocolFees24h) },
 				{
-					label: 'Est. Cum. Protocol Fees',
+					label: d.estimatedProtocolFees7d.label,
+					tooltip: d.estimatedProtocolFees7d.description,
+					value: formatMaybeCurrency(contractData.market.estimatedProtocolFees7d)
+				},
+				{
+					label: d.estimatedProtocolFees24h.label,
+					tooltip: d.estimatedProtocolFees24h.description,
+					value: formatMaybeCurrency(contractData.market.estimatedProtocolFees24h)
+				},
+				{
+					label: d.estimatedCumulativeProtocolFees.label,
+					tooltip: d.estimatedCumulativeProtocolFees.description,
 					value: formatMaybeCurrency(contractData.market.estimatedProtocolFeesAllTime)
 				}
 			]
 		},
 		tradingParameters: {
-			label: 'Trading Parameters',
+			label: d.tradingParameters.label,
+			tooltip: d.tradingParameters.description,
 			value: `${contractData.market.maxLeverage}x`,
 			children: tradingParameterChildren
 		},
 		marketReference: {
-			label: 'Market Reference',
+			label: d.marketReference.label,
+			tooltip: d.marketReference.description,
 			value: formatMaybeCurrency(contractData.market.oraclePx),
 			children: marketReferenceChildren
 		},
 		pointInTimeRows: [
-			{ label: 'Latest Funding Rate', value: formatFractionPercent(contractData.market.fundingRate) },
-			{ label: 'Premium', value: formatFractionPercent(contractData.market.premium) },
-			{ label: 'Cum. Funding / Unit', value: formatMaybeCurrency(contractData.market.cumulativeFunding) }
+			{
+				label: d.fundingRate.label,
+				tooltip: d.fundingRate.description,
+				value: formatFractionPercent(contractData.market.fundingRate)
+			},
+			{
+				label: d.premium.label,
+				tooltip: d.premium.description,
+				value: formatFractionPercent(contractData.market.premium)
+			},
+			{
+				label: d.cumulativeFunding.label,
+				tooltip: d.cumulativeFunding.description,
+				value: formatMaybeCurrency(contractData.market.cumulativeFunding)
+			}
 		]
 	}
 }
@@ -201,28 +280,52 @@ export function buildRWAPerpsContractInfoRows(contractData: IRWAPerpsContractDat
 	const shouldShowBaseAsset = baseAsset != null && baseAsset.toLowerCase() !== symbolSuffix.toLowerCase()
 
 	return [
-		{ label: 'Venue', value: contractData.contract.venue },
+		{ label: d.venue.label, tooltip: d.venue.description, value: contractData.contract.venue },
 		...(formatTextValue(contractData.contract.assetClass)
-			? [{ label: 'Asset Class', value: contractData.contract.assetClass! }]
+			? [{ label: d.assetClass.label, tooltip: d.assetClass.description, value: contractData.contract.assetClass! }]
 			: []),
 		...(formatTextValue(contractData.contract.rwaClassification)
-			? [{ label: 'RWA Classification', value: contractData.contract.rwaClassification! }]
+			? [
+					{
+						label: d.rwaClassification.label,
+						tooltip: d.rwaClassification.description,
+						value: contractData.contract.rwaClassification!
+					}
+				]
 			: []),
 		...(formatTextValue(contractData.contract.accessModel)
-			? [{ label: 'Access Model', value: contractData.contract.accessModel! }]
+			? [{ label: d.accessModel.label, tooltip: d.accessModel.description, value: contractData.contract.accessModel! }]
 			: []),
 		...(formatTextValue(contractData.contract.parentPlatform)
-			? [{ label: 'Parent Platform', value: contractData.contract.parentPlatform! }]
+			? [
+					{
+						label: d.parentPlatform.label,
+						tooltip: d.parentPlatform.description,
+						value: contractData.contract.parentPlatform!
+					}
+				]
 			: []),
 		...(formatTextValue(contractData.contract.issuer)
-			? [{ label: 'Issuer', value: contractData.contract.issuer! }]
+			? [{ label: d.issuer.label, tooltip: d.issuer.description, value: contractData.contract.issuer! }]
 			: []),
 		...(formatTextValue(contractData.contract.oracleProvider)
-			? [{ label: 'Oracle Provider', value: contractData.contract.oracleProvider! }]
+			? [
+					{
+						label: d.oracleProvider.label,
+						tooltip: d.oracleProvider.description,
+						value: contractData.contract.oracleProvider!
+					}
+				]
 			: []),
-		...(contractData.contract.website ? [{ label: 'Website', value: contractData.contract.website }] : []),
-		...(shouldShowBaseAsset ? [{ label: 'Base Asset', value: baseAsset! }] : []),
-		{ label: 'Snapshot Time', value: formatRWAPerpsContractChartDate(marketTimestampMs) }
+		...(contractData.contract.website
+			? [{ label: d.website.label, tooltip: d.website.description, value: contractData.contract.website }]
+			: []),
+		...(shouldShowBaseAsset ? [{ label: d.baseAsset.label, tooltip: d.baseAsset.description, value: baseAsset! }] : []),
+		{
+			label: d.snapshotTime.label,
+			tooltip: d.snapshotTime.description,
+			value: formatRWAPerpsContractChartDate(marketTimestampMs)
+		}
 	]
 }
 

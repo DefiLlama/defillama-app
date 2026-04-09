@@ -11,15 +11,16 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
+import { perpsDefinitions as d } from './definitions'
 import { hasEnoughTimeSeriesHistory } from './queries'
 import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey, RWAPerpsOverviewBreakdown } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const CHART_TYPE_OPTIONS: Array<{ key: RWAPerpsChartMetricKey; label: string }> = [
-	{ key: 'openInterest', label: 'Open Interest' },
+	{ key: 'openInterest', label: d.openInterest.label },
 	{ key: 'volume24h', label: 'Volume' },
-	{ key: 'markets', label: 'Markets' }
+	{ key: 'markets', label: d.markets.label }
 ]
 
 const VALID_CHART_TYPES = new Set<RWAPerpsChartMetricKey>(CHART_TYPE_OPTIONS.map(({ key }) => key))

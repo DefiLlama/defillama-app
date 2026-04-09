@@ -577,6 +577,48 @@ describe('perps overview helpers', () => {
 			{ name: 'xyz:META', value: 1 },
 			{ name: 'xyz:NVDA', value: 1 }
 		])
+
+		expect(
+			buildRWAPerpsOverviewSnapshotBreakdownTotals({
+				rows: [
+					{ ...baseMarket, id: 'xyz:meta', referenceAssetGroup: 'Equities', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'xyz:gold',
+						contract: 'xyz:GOLD',
+						referenceAssetGroup: 'Commodities',
+						referenceAsset: 'Gold',
+						openInterest: 50
+					}
+				],
+				breakdown: 'assetGroup',
+				key: 'openInterest'
+			})
+		).toEqual([
+			{ name: 'Equities', value: 100 },
+			{ name: 'Commodities', value: 50 }
+		])
+
+		expect(
+			buildRWAPerpsVenueSnapshotBreakdownTotals({
+				rows: [
+					{ ...baseMarket, id: 'xyz:meta', referenceAssetGroup: 'Equities', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'xyz:gold',
+						contract: 'xyz:GOLD',
+						referenceAssetGroup: 'Commodities',
+						referenceAsset: 'Gold',
+						openInterest: 50
+					}
+				],
+				breakdown: 'assetGroup',
+				key: 'markets'
+			})
+		).toEqual([
+			{ name: 'Commodities', value: 1 },
+			{ name: 'Equities', value: 1 }
+		])
 	})
 
 	it('keeps treemap group labels aligned with snapshot and time-series breakdown labels', () => {

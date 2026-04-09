@@ -10,6 +10,7 @@ import {
 import { Icon } from '~/components/Icon'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { PercentChange } from '~/components/PercentChange'
+import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
@@ -21,6 +22,7 @@ import {
 	type RWAPerpsContractChartMetricConfig,
 	type RWAPerpsContractChartMetricKey
 } from './contractPageUtils'
+import { perpsDefinitions as d } from './definitions'
 import type { IRWAPerpsContractData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -97,7 +99,9 @@ function RWAPerpsContractPriceSummary({ contract }: { contract: IRWAPerpsContrac
 	return (
 		<div className="flex flex-nowrap items-end justify-between gap-8">
 			<div className="flex flex-col">
-				<span className="text-(--text-label)">Price</span>
+				<Tooltip content={d.price.description} className="text-(--text-label) underline decoration-dotted">
+					{d.price.label}
+				</Tooltip>
 				<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 					{formattedNum(contract.market.price, true)}
 				</p>
@@ -129,33 +133,45 @@ function RWAPerpsContractMetricsList({ contract }: { contract: IRWAPerpsContract
 
 	return (
 		<div className="flex flex-col">
-			<MetricRow label={sections.openInterest.label} value={sections.openInterest.value} />
+			<MetricRow
+				label={sections.openInterest.label}
+				tooltip={sections.openInterest.tooltip}
+				value={sections.openInterest.value}
+			/>
 
-			<MetricSection label={sections.volume.label} value={sections.volume.value}>
+			<MetricSection label={sections.volume.label} tooltip={sections.volume.tooltip} value={sections.volume.value}>
 				{sections.volume.children.map((row) => (
-					<SubMetricRow key={row.label} label={row.label} value={row.value} />
+					<SubMetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={row.value} />
 				))}
 			</MetricSection>
 
-			<MetricSection label={sections.fees.label} value={sections.fees.value}>
+			<MetricSection label={sections.fees.label} tooltip={sections.fees.tooltip} value={sections.fees.value}>
 				{sections.fees.children.map((row) => (
-					<SubMetricRow key={row.label} label={row.label} value={row.value} />
+					<SubMetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={row.value} />
 				))}
 			</MetricSection>
 
 			{sections.pointInTimeRows.map((row) => (
-				<MetricRow key={row.label} label={row.label} value={row.value} />
+				<MetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={row.value} />
 			))}
 
-			<MetricSection label={sections.tradingParameters.label} value={sections.tradingParameters.value}>
+			<MetricSection
+				label={sections.tradingParameters.label}
+				tooltip={sections.tradingParameters.tooltip}
+				value={sections.tradingParameters.value}
+			>
 				{sections.tradingParameters.children.map((row) => (
-					<SubMetricRow key={row.label} label={row.label} value={row.value} />
+					<SubMetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={row.value} />
 				))}
 			</MetricSection>
 
-			<MetricSection label={sections.marketReference.label} value={sections.marketReference.value}>
+			<MetricSection
+				label={sections.marketReference.label}
+				tooltip={sections.marketReference.tooltip}
+				value={sections.marketReference.value}
+			>
 				{sections.marketReference.children.map((row) => (
-					<SubMetricRow key={row.label} label={row.label} value={row.value} />
+					<SubMetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={row.value} />
 				))}
 			</MetricSection>
 		</div>
@@ -183,14 +199,14 @@ function RWAPerpsContractInfoCard({ contract }: { contract: IRWAPerpsContractDat
 			) : null}
 			<div className="flex flex-col xl:hidden">
 				{infoRows.map((row) => (
-					<MetricRow key={row.label} label={row.label} value={renderInfoRowValue(row)} />
+					<MetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={renderInfoRowValue(row)} />
 				))}
 			</div>
 			<div className="hidden gap-x-6 xl:grid xl:grid-cols-2">
 				{desktopInfoColumns.map((rows, index) => (
 					<div className="flex flex-col" key={`info-column-${index}`}>
 						{rows.map((row) => (
-							<MetricRow key={row.label} label={row.label} value={renderInfoRowValue(row)} />
+							<MetricRow key={row.label} label={row.label} tooltip={row.tooltip} value={renderInfoRowValue(row)} />
 						))}
 					</div>
 				))}

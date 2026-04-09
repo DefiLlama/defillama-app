@@ -21,7 +21,8 @@ import type {
 import {
 	getRWAPerpsOverviewBreakdownLabel,
 	getRWAPerpsOverviewSnapshotBreakdownLabel,
-	getRWAPerpsVenueBreakdownLabel
+	getRWAPerpsVenueBreakdownLabel,
+	getRWAPerpsVenueSnapshotBreakdownLabel
 } from './breakdownLabels'
 import type {
 	IRWAPerpsContractData,
@@ -36,10 +37,11 @@ import type {
 	IRWAPerpsVenuesOverviewRow,
 	RWAPerpsChartMetricKey,
 	RWAPerpsOverviewNonTimeSeriesBreakdown,
-	RWAPerpsVenueNonTimeSeriesBreakdown
+	RWAPerpsOverviewSnapshotBreakdown,
+	RWAPerpsVenueSnapshotBreakdown
 } from './types'
 
-type SnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown | RWAPerpsVenueNonTimeSeriesBreakdown
+type SnapshotBreakdown = RWAPerpsOverviewSnapshotBreakdown | RWAPerpsVenueSnapshotBreakdown
 
 type BreakdownLabelResolver<TRow, TBreakdown extends string> = (row: TRow, breakdown: TBreakdown) => string
 
@@ -336,7 +338,7 @@ export function buildRWAPerpsOverviewSnapshotBreakdownTotals({
 	key
 }: {
 	rows: IRWAPerpsMarket[]
-	breakdown: RWAPerpsOverviewNonTimeSeriesBreakdown
+	breakdown: RWAPerpsOverviewSnapshotBreakdown
 	key: RWAPerpsChartMetricKey
 }) {
 	return buildSnapshotBreakdownTotals({
@@ -353,14 +355,14 @@ export function buildRWAPerpsVenueSnapshotBreakdownTotals({
 	key
 }: {
 	rows: IRWAPerpsMarket[]
-	breakdown: RWAPerpsVenueNonTimeSeriesBreakdown
+	breakdown: RWAPerpsVenueSnapshotBreakdown
 	key: RWAPerpsChartMetricKey
 }) {
 	return buildSnapshotBreakdownTotals({
 		rows,
 		breakdown,
 		key,
-		getBreakdownLabel: getRWAPerpsVenueBreakdownLabel
+		getBreakdownLabel: getRWAPerpsVenueSnapshotBreakdownLabel
 	})
 }
 
