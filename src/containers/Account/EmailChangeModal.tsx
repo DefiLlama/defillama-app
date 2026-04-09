@@ -12,10 +12,12 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 	const [email, setEmail] = useState('')
 	const [error, setError] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
+	const [isSuccess, setIsSuccess] = useState(false)
 
 	const handleClose = () => {
 		setEmail('')
 		setError('')
+		setIsSuccess(false)
 		onClose()
 	}
 
@@ -31,7 +33,7 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 			try {
 				await pb.collection('users').authRefresh()
 			} catch {}
-			handleClose()
+			setIsSuccess(true)
 		} catch {
 			setError('This email is already associated with another account.')
 		} finally {
@@ -61,39 +63,56 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 						</Ariakit.DialogDismiss>
 					</div>
 
-					{/* Form */}
-					<form onSubmit={handleSubmit} className="flex flex-col gap-5">
-						<label className="text-sm leading-[21px] text-(--sub-ink-primary) dark:text-white">
-							Enter your new email:
-						</label>
-
-						<div className="flex flex-col gap-2">
-							<input
-								type="email"
-								required
-								value={email}
-								onChange={(e) => {
-									setEmail(e.target.value)
-									if (error) setError('')
-								}}
-								placeholder="your.new.email@example.com"
-								className={`h-10 w-full rounded-lg border bg-(--sub-surface-panel) px-3 text-sm leading-[21px] text-(--sub-ink-primary) outline-none dark:bg-(--sub-ink-primary) dark:text-white ${
-									hasError
-										? 'border-(--error)'
-										: 'border-(--sub-border-muted) focus:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:focus:border-(--sub-brand-primary)'
-								}`}
-							/>
-							{hasError && <p className="text-xs leading-4 text-(--error)">{error}</p>}
+					{isSuccess ? (
+						<div className="flex flex-col items-center gap-4 text-center">
+							<div className="flex items-center rounded-full bg-green-100 p-3 dark:bg-green-900/30">
+								<Icon name="mail-rounded" height={24} width={24} className="text-green-600 dark:text-green-400" />
+							</div>
+							<p className="text-sm leading-5 text-(--sub-ink-primary) dark:text-white">
+								A confirmation link has been sent to <strong>{email}</strong>. Please check your inbox to confirm
+								the change.
+							</p>
+							<button
+								onClick={handleClose}
+								className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white"
+							>
+								Done
+							</button>
 						</div>
+					) : (
+						<form onSubmit={handleSubmit} className="flex flex-col gap-5">
+							<label className="text-sm leading-[21px] text-(--sub-ink-primary) dark:text-white">
+								Enter your new email:
+							</label>
 
-						<button
-							type="submit"
-							disabled={!canSubmit}
-							className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white disabled:opacity-25"
-						>
-							{isLoading ? 'Sending...' : 'Confirm Email'}
-						</button>
-					</form>
+							<div className="flex flex-col gap-2">
+								<input
+									type="email"
+									required
+									value={email}
+									onChange={(e) => {
+										setEmail(e.target.value)
+										if (error) setError('')
+									}}
+									placeholder="your.new.email@example.com"
+									className={`h-10 w-full rounded-lg border bg-(--sub-surface-panel) px-3 text-sm leading-[21px] text-(--sub-ink-primary) outline-none dark:bg-(--sub-ink-primary) dark:text-white ${
+										hasError
+											? 'border-(--error)'
+											: 'border-(--sub-border-muted) focus:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:focus:border-(--sub-brand-primary)'
+									}`}
+								/>
+								{hasError && <p className="text-xs leading-4 text-(--error)">{error}</p>}
+							</div>
+
+							<button
+								type="submit"
+								disabled={!canSubmit}
+								className="flex h-10 w-full items-center justify-center rounded-lg bg-(--sub-brand-primary) text-sm font-medium text-white disabled:opacity-25"
+							>
+								{isLoading ? 'Sending...' : 'Confirm Email'}
+							</button>
+						</form>
+					)}
 				</div>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
