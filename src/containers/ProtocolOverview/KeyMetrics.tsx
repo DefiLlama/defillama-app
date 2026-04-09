@@ -168,7 +168,12 @@ function buildStandardVolumeMetrics(
 		})
 	}
 	if (data.totalAllTime != null) {
-		metrics.push({ name: `Cumulative ${label}`, tooltipContent: defs?.['cumulative'], value: data.totalAllTime })
+		metrics.push({
+			name: `Cumulative ${label}`,
+			tooltipContent: defs?.['cumulative'],
+			value: data.totalAllTime,
+			chainBreakdown: cb ? extractChainValues(cb, 'totalAllTime') : null
+		})
 	}
 
 	return metrics
@@ -176,7 +181,7 @@ function buildStandardVolumeMetrics(
 
 function extractChainValues(
 	cb: Record<string, { total24h: number; total7d: number; total30d: number; totalAllTime: number }>,
-	key: 'total24h' | 'total7d' | 'total30d'
+	key: 'total24h' | 'total7d' | 'total30d' | 'totalAllTime'
 ): Record<string, number> {
 	const result: Record<string, number> = {}
 	for (const chain in cb) {
