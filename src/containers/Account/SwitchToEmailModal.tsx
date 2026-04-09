@@ -8,13 +8,14 @@ import pb from '~/utils/pocketbase'
 interface SwitchToEmailModalProps {
 	isOpen: boolean
 	onClose: () => void
+	defaultEmail?: string
 }
 
 type Step = 'email' | 'confirm' | 'success'
 
-export function SwitchToEmailModal({ isOpen, onClose }: SwitchToEmailModalProps) {
+export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEmailModalProps) {
 	const [step, setStep] = useState<Step>('email')
-	const [email, setEmail] = useState('')
+	const [email, setEmail] = useState(defaultEmail ?? '')
 	const [otp, setOtp] = useState('')
 	const [password, setPassword] = useState('')
 	const [passwordConfirm, setPasswordConfirm] = useState('')
@@ -25,7 +26,7 @@ export function SwitchToEmailModal({ isOpen, onClose }: SwitchToEmailModalProps)
 
 	const resetState = () => {
 		setStep('email')
-		setEmail('')
+		setEmail(defaultEmail ?? '')
 		setOtp('')
 		setPassword('')
 		setPasswordConfirm('')

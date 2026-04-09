@@ -188,7 +188,11 @@ export function AuthenticationCard() {
 
 			<EmailChangeModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} />
 
-			<SwitchToEmailModal isOpen={isSwitchToEmailModalOpen} onClose={() => setIsSwitchToEmailModalOpen(false)} />
+			<SwitchToEmailModal
+				isOpen={isSwitchToEmailModalOpen}
+				onClose={() => setIsSwitchToEmailModalOpen(false)}
+				defaultEmail={user?.ethereum_email}
+			/>
 		</>
 	)
 }
