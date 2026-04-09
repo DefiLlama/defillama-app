@@ -73,17 +73,13 @@ const SVG_ATTRS = [
 	'in'
 ]
 
-const DEFAULT_A_ATTRS_WITHOUT_CLASS = (defaultSchema.attributes?.a ?? []).filter(
-	(attr) => !(Array.isArray(attr) && attr[0] === 'className')
-)
-
 export const SANITIZE_SCHEMA = {
 	...defaultSchema,
-	tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS],
+	tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS, 'citation-badge'],
 	attributes: {
 		...defaultSchema.attributes,
-		a: [...DEFAULT_A_ATTRS_WITHOUT_CLASS, ['className', 'data-footnote-backref', 'citation-badge']],
-		span: [...(defaultSchema.attributes?.span ?? []), ['className', 'citation-badge']],
+		a: [...(defaultSchema.attributes?.a ?? []), 'data-footnote-backref'],
+		'citation-badge': ['href'],
 		'*': [...(defaultSchema.attributes?.['*'] ?? []), 'style', 'className', ...SVG_ATTRS]
 	}
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import type { Message } from '~/containers/LlamaAI/types'
 
 type Section = { text: string; msgId: string }
@@ -57,14 +57,17 @@ export function SectionsTOC({
 		}
 	}, [sections, scrollContainerRef])
 
-	const handleClick = (index: number) => {
-		const container = scrollContainerRef.current
-		if (!container) return
-		setActiveIndex(index)
-		clickLockUntil.current = Date.now() + 800
-		const headings = getHeadings(container, sections[0].msgId)
-		headings[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-	}
+	const handleClick = useCallback(
+		(index: number) => {
+			const container = scrollContainerRef.current
+			if (!container) return
+			setActiveIndex(index)
+			clickLockUntil.current = Date.now() + 800
+			const headings = getHeadings(container, sections[0].msgId)
+			headings[index]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		},
+		[scrollContainerRef, sections]
+	)
 
 	if (sections.length < 2) return <div className="w-0 shrink-0" />
 
@@ -76,7 +79,7 @@ export function SectionsTOC({
 					{sections.map((section, i) => {
 						const isActive = activeIndex === i
 						return (
-							<li key={i}>
+							<li key={`${section.msgId}-${section.text}`}>
 								<button
 									type="button"
 									onClick={() => handleClick(i)}

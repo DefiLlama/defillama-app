@@ -409,14 +409,12 @@ export function ConversationView({
 								) : null}
 
 								{renderedMessages.map((message, index) => {
-									const originalIndex =
-										message.id != null ? messages.findIndex((candidate) => candidate.id === message.id) : index
-									const nextMessage = originalIndex >= 0 ? messages[originalIndex + 1] : undefined
+									const nextMessage = messages[index + 1]
 									const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
 
 									return (
 										<ConversationMessageItem
-											key={message.id || `msg-${originalIndex >= 0 ? originalIndex : index}`}
+											key={message.id || `msg-${index}`}
 											message={message}
 											nextUserMessage={nextUserMessage}
 											sessionId={sessionId}

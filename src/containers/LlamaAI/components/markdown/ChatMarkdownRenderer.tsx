@@ -77,6 +77,7 @@ type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
 type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
+type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
 
 function normalizeSourceUrl(url: string) {
 	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
@@ -284,6 +285,21 @@ function getSingleTextChild(children: ReactNode): string | null {
 	return typeof children === 'string' ? children : null
 }
 
+function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
+	const className =
+		'mx-px inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline hover:border-[rgba(31,103,210,0.35)] hover:bg-[rgba(31,103,210,0.15)]'
+
+	if (!href) {
+		return <span className={className}>{children}</span>
+	}
+
+	return (
+		<a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+			{children}
+		</a>
+	)
+}
+
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
 	const sourceEntries = useMemo(() => {
 		const seen = new Map<string, number>()
@@ -421,6 +437,14 @@ export function ChatMarkdownRenderer({
 			</ol>
 		)
 	}
+
+	;(markdownComponents as Record<string, any>)['citation-badge'] = ({
+		node: _node,
+		children,
+		...props
+	}: CitationBadgeProps) => (
+		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
+	)
 
 	if (!processedData.content.trim()) {
 		return null

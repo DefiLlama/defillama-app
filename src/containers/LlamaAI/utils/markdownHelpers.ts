@@ -140,16 +140,23 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 }
 
 /**
- * Process citation markers in text and convert to HTML anchor tags.
- * Supports ranges like [1-3] and comma-separated values like [1, 3, 5].
+ * Process citation markers in text and convert to citation-badge tags.
+ * Supports ranges like [1-3], footnotes like [^1], and model-style markers like \u30101\u2020source\u3011.
  */
 export function processCitationMarkers(text: string, citations?: string[]): string {
+	const citationSequencePattern = String.raw`\d+(?:(?:\s*-\s*\d+)|(?:\s*,\s*\d+))*`
+	const citationMarkerRegex = new RegExp(
+		String.raw`(?:\[(?:\^\s*)?(${citationSequencePattern})\s*\]|【\s*(${citationSequencePattern})(?:\s*†[^】]*)?\s*】)`,
+		'g'
+	)
+
 	if (!citations || citations.length === 0) {
 		// Remove citation markers if no citations available
-		return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
+		return text.replace(citationMarkerRegex, '')
 	}
 
-	return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (_, nums) => {
+	return text.replace(citationMarkerRegex, (_match, bracketNums?: string, modelNums?: string) => {
+		const nums = bracketNums ?? modelNums ?? ''
 		const parts = nums.split(',').map((p: string) => p.trim())
 		const expandedNums: number[] = []
 
@@ -171,17 +178,17 @@ export function processCitationMarkers(text: string, citations?: string[]): stri
 				const rawUrl = citations[idx]
 
 				if (!rawUrl) {
-					return `<span class="citation-badge">${num}</span>`
+					return `<citation-badge>${num}</citation-badge>`
 				}
 
 				// Validate and sanitize the URL to prevent XSS
 				const safeUrl = sanitizeUrl(rawUrl)
 				if (safeUrl) {
-					return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
+					return `<citation-badge href="${safeUrl}">${num}</citation-badge>`
 				}
 
 				// URL is unsafe or malformed - render as non-clickable span
-				return `<span class="citation-badge">${num}</span>`
+				return `<citation-badge>${num}</citation-badge>`
 			})
 			.join('')
 	})
