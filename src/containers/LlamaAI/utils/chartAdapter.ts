@@ -789,7 +789,7 @@ export function adaptCandlestickData(
 			const m = parseFloat(r[macdField as string])
 			const s = parseFloat(r[signalField as string])
 			const h = parseFloat(r[histField as string])
-			return (Number.isFinite(m) && m !== 0) || (Number.isFinite(s) && s !== 0) || (Number.isFinite(h) && h !== 0)
+			return Number.isFinite(m) || Number.isFinite(s) || Number.isFinite(h)
 		})
 		if (hasValidMACD) {
 			indicators.push({
@@ -819,7 +819,7 @@ export function adaptCandlestickData(
 		const hasValidStoch = rawData.some((r: any) => {
 			const k = parseFloat(r[stochK as string])
 			const d = parseFloat(r[stochD as string])
-			return (Number.isFinite(k) && k !== 0) || (Number.isFinite(d) && d !== 0)
+			return Number.isFinite(k) || Number.isFinite(d)
 		})
 		if (hasValidStoch) {
 			indicators.push({
