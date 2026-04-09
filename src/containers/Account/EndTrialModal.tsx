@@ -50,8 +50,8 @@ export function EndTrialModal({ isOpen, onClose, onConfirm, isLoading }: EndTria
 								This is NOT a subscription cancellation
 							</p>
 							<p className="text-xs leading-4 text-(--sub-text-muted)">
-								By proceeding, you will end your free trial early and convert to a paid subscription immediately.
-								You'll be charged the full amount ($49/month).
+								By proceeding, you will end your free trial early and convert to a paid subscription immediately. You'll
+								be charged the full amount ($49/month).
 							</p>
 						</div>
 					</div>

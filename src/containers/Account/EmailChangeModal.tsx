@@ -69,8 +69,8 @@ export function EmailChangeModal({ isOpen, onClose }: EmailChangeModalProps) {
 								<Icon name="mail-rounded" height={24} width={24} className="text-green-600 dark:text-green-400" />
 							</div>
 							<p className="text-sm leading-5 text-(--sub-ink-primary) dark:text-white">
-								A confirmation link has been sent to <strong>{email}</strong>. Please check your inbox to confirm
-								the change.
+								A confirmation link has been sent to <strong>{email}</strong>. Please check your inbox to confirm the
+								change.
 							</p>
 							<button
 								onClick={handleClose}

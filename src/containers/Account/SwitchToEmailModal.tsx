@@ -341,13 +341,11 @@ export function SwitchToEmailModal({ isOpen, onClose }: SwitchToEmailModalProps)
 							<Icon name="check" height={32} width={32} className="text-(--sub-brand-primary)" />
 						</div>
 						<div className="flex flex-col gap-2 text-center">
-							<h2 className="text-xl font-semibold text-(--sub-ink-primary) dark:text-white">
-								Switch Successful!
-							</h2>
+							<h2 className="text-xl font-semibold text-(--sub-ink-primary) dark:text-white">Switch Successful!</h2>
 							<p className="text-sm text-(--sub-text-muted)">
 								Your account now uses email authentication. You can sign in with{' '}
-								<span className="font-medium text-(--sub-ink-primary) dark:text-white">{email}</span> and your
-								password going forward.
+								<span className="font-medium text-(--sub-ink-primary) dark:text-white">{email}</span> and your password
+								going forward.
 							</p>
 						</div>
 						<button
