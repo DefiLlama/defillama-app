@@ -26,9 +26,7 @@ export const getServerSideProps: GetServerSideProps = async () => {
 	return { props: { customServerData } }
 }
 
-export default function InvestorsAllPage({
-	customServerData
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function InvestorsAllPage({ customServerData }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	if (!isInvestorsEnabled()) {
 		return null
 	}

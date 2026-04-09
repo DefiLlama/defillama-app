@@ -1,4 +1,6 @@
-import { lazy, useEffect, useMemo, useState } from 'react'
+import type * as echarts from 'echarts/core'
+import { lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/Investors/index'
 import { assignColors } from './api'
@@ -13,13 +15,33 @@ const SCROLL_LEGEND = {
 	legend: { type: 'scroll' as const, orient: 'horizontal' as const, top: 0 }
 }
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ChartCard({
+	title,
+	actions,
+	children
+}: {
+	title: string
+	actions?: React.ReactNode
+	children: React.ReactNode
+}) {
 	return (
 		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
+			<div className="mb-3 flex items-center justify-between gap-2">
+				<h3 className="text-sm font-medium text-(--text-label)">{title}</h3>
+				{actions}
+			</div>
 			{children}
 		</div>
 	)
+}
+
+function useChartInstance() {
+	const ref = useRef<echarts.ECharts | null>(null)
+	const onReady = useCallback((instance: echarts.ECharts | null) => {
+		ref.current = instance
+	}, [])
+	const getInstance = useCallback(() => ref.current, [])
+	return { onReady, getInstance }
 }
 
 function KpiCard({ label, value }: { label: string; value: string }) {
@@ -197,6 +219,378 @@ function AllocatedAssetsSection({
 	)
 }
 
+function MonthlyReturnsSection({ data }: { data: NonNullable<ReturnType<typeof useFinancialsData>['data']> }) {
+	const gross = useChartInstance()
+	const net = useChartInstance()
+
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>Monthly Returns</SectionHeader>
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<ChartCard
+					title={data.monthlyGross.title}
+					actions={
+						<ChartPngExportButton
+							chartInstance={gross.getInstance}
+							filename="gross-returns"
+							title={data.monthlyGross.title}
+							smol
+						/>
+					}
+				>
+					<BarChart
+						chartData={data.monthlyGross.data}
+						stacks={data.monthlyGross.stacks}
+						stackColors={data.monthlyGross.colors}
+						hideDownloadButton
+						valueSymbol="$"
+						title=""
+						height="400px"
+						chartOptions={SCROLL_LEGEND}
+						onReady={gross.onReady}
+					/>
+				</ChartCard>
+				<ChartCard
+					title={data.monthlyNet.title}
+					actions={
+						<ChartPngExportButton
+							chartInstance={net.getInstance}
+							filename="net-returns"
+							title={data.monthlyNet.title}
+							smol
+						/>
+					}
+				>
+					<BarChart
+						chartData={data.monthlyNet.data}
+						stacks={data.monthlyNet.stacks}
+						stackColors={data.monthlyNet.colors}
+						hideDownloadButton
+						valueSymbol="$"
+						title=""
+						height="400px"
+						chartOptions={SCROLL_LEGEND}
+						onReady={net.onReady}
+					/>
+				</ChartCard>
+			</div>
+		</div>
+	)
+}
+
+function SusdsDistributionSection({ data }: { data: NonNullable<ReturnType<typeof useFinancialsData>['data']> }) {
+	const total = useChartInstance()
+	const byChain = useChartInstance()
+
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>sUSDS Distribution</SectionHeader>
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<ChartCard
+					title="Spark-distributed USDS"
+					actions={
+						<ChartPngExportButton
+							chartInstance={total.getInstance}
+							filename="spark-distributed-usds"
+							title="Spark-distributed USDS"
+							smol
+						/>
+					}
+				>
+					<AreaChart
+						chartData={data.supplyTotal.data}
+						stacks={data.supplyTotal.stacks}
+						hideDownloadButton
+						valueSymbol=""
+						title=""
+						height="400px"
+						onReady={total.onReady}
+					/>
+				</ChartCard>
+				<ChartCard
+					title={data.supplyByChain.title}
+					actions={
+						<ChartPngExportButton
+							chartInstance={byChain.getInstance}
+							filename="susds-by-chain"
+							title={data.supplyByChain.title}
+							smol
+						/>
+					}
+				>
+					<AreaChart
+						chartData={data.supplyByChain.data}
+						stacks={data.supplyByChain.stacks}
+						stackColors={data.supplyByChain.colors}
+						hideDownloadButton
+						valueSymbol=""
+						title=""
+						isStackedChart
+						hideGradient
+						height="400px"
+						chartOptions={SCROLL_LEGEND}
+						onReady={byChain.onReady}
+					/>
+				</ChartCard>
+			</div>
+		</div>
+	)
+}
+
+type FinData = NonNullable<ReturnType<typeof useFinancialsData>['data']>
+
+function TvlSection({ data }: { data: FinData }) {
+	const tvl = useChartInstance()
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>Total Value Locked</SectionHeader>
+			<KpiCard label="Current TVL" value={data.tvl.currentFormatted} />
+			<ChartCard
+				title={data.tvl.title}
+				actions={<ChartPngExportButton chartInstance={tvl.getInstance} filename="tvl" title={data.tvl.title} smol />}
+			>
+				<AreaChart
+					chartData={data.tvl.data}
+					stacks={data.tvl.stacks}
+					stackColors={data.tvl.colors}
+					hideDownloadButton
+					valueSymbol="$"
+					title=""
+					isStackedChart
+					hideGradient
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+					onReady={tvl.onReady}
+				/>
+			</ChartCard>
+		</div>
+	)
+}
+
+function DepositsAndBorrowsSection({ data }: { data: FinData }) {
+	const deposits = useChartInstance()
+	const borrows = useChartInstance()
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>SparkLend Deposits &amp; Borrows</SectionHeader>
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<ChartCard
+					title={data.deposits.title}
+					actions={
+						<ChartPngExportButton
+							chartInstance={deposits.getInstance}
+							filename="sparklend-deposits"
+							title={data.deposits.title}
+							smol
+						/>
+					}
+				>
+					<AreaChart
+						chartData={data.deposits.data}
+						stacks={data.deposits.stacks}
+						hideDownloadButton
+						valueSymbol="$"
+						title=""
+						height="400px"
+						onReady={deposits.onReady}
+					/>
+				</ChartCard>
+				<ChartCard
+					title={data.borrows.title}
+					actions={
+						<ChartPngExportButton
+							chartInstance={borrows.getInstance}
+							filename="sparklend-borrows"
+							title={data.borrows.title}
+							smol
+						/>
+					}
+				>
+					<AreaChart
+						chartData={data.borrows.data}
+						stacks={data.borrows.stacks}
+						hideDownloadButton
+						valueSymbol="$"
+						title=""
+						height="400px"
+						color="#f85149"
+						onReady={borrows.onReady}
+					/>
+				</ChartCard>
+			</div>
+		</div>
+	)
+}
+
+function SllTvlSection({ data }: { data: FinData }) {
+	const sllTvl = useChartInstance()
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>SLL TVL by Chain</SectionHeader>
+			<ChartCard
+				title={data.sllTvl.title}
+				actions={
+					<ChartPngExportButton
+						chartInstance={sllTvl.getInstance}
+						filename="sll-tvl-by-chain"
+						title={data.sllTvl.title}
+						smol
+					/>
+				}
+			>
+				<AreaChart
+					chartData={data.sllTvl.data}
+					stacks={data.sllTvl.stacks}
+					stackColors={data.sllTvl.colors}
+					hideDownloadButton
+					valueSymbol="$"
+					title=""
+					isStackedChart
+					hideGradient
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+					onReady={sllTvl.onReady}
+				/>
+			</ChartCard>
+		</div>
+	)
+}
+
+function SavingsTvlSection({ data }: { data: FinData }) {
+	const savingsTvl = useChartInstance()
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>Spark Savings TVL by Chain</SectionHeader>
+			<ChartCard
+				title={data.savingsTvl.title}
+				actions={
+					<ChartPngExportButton
+						chartInstance={savingsTvl.getInstance}
+						filename="spark-savings-tvl-by-chain"
+						title={data.savingsTvl.title}
+						smol
+					/>
+				}
+			>
+				<AreaChart
+					chartData={data.savingsTvl.data}
+					stacks={data.savingsTvl.stacks}
+					stackColors={data.savingsTvl.colors}
+					hideDownloadButton
+					valueSymbol="$"
+					title=""
+					isStackedChart
+					hideGradient
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+					onReady={savingsTvl.onReady}
+				/>
+			</ChartCard>
+		</div>
+	)
+}
+
+function TreasurySection({ data }: { data: FinData }) {
+	const treasury = useChartInstance()
+	const buybacks = useChartInstance()
+	return (
+		<div className="flex flex-col gap-4">
+			<SectionHeader>Treasury &amp; Buybacks</SectionHeader>
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
+					<h3 className="mb-3 text-sm font-medium text-(--text-label)">Treasury</h3>
+					<div className="flex flex-col gap-2">
+						<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
+							<span className="text-xs text-(--text-label)">Total Treasury Assets</span>
+							<span className="text-sm font-semibold text-(--text-primary)">
+								{data.treasuryKpis.totalAssets.formatted}
+							</span>
+						</div>
+						<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
+							<span className="text-xs text-(--text-label)">Buyback Threshold</span>
+							<span className="text-sm font-semibold text-(--text-primary)">
+								{data.treasuryKpis.buybackThreshold.formatted}
+							</span>
+						</div>
+						<div className="flex items-center justify-between py-2">
+							<span className="text-xs text-(--text-label)">Current vs Threshold</span>
+							<span
+								className={`text-sm font-semibold ${
+									data.treasuryKpis.vsThreshold.value >= 0 ? 'text-green-500' : 'text-red-500'
+								}`}
+							>
+								{data.treasuryKpis.vsThreshold.formatted}
+							</span>
+						</div>
+					</div>
+				</div>
+				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
+					<h3 className="mb-3 text-sm font-medium text-(--text-label)">SPK Buyback Tracker</h3>
+					<div className="flex flex-col gap-2">
+						<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
+							<span className="text-xs text-(--text-label)">USDS Spent</span>
+							<span className="text-sm font-semibold text-(--text-primary)">
+								{data.buybackKpis.usdsSpent.formatted}
+							</span>
+						</div>
+						<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
+							<span className="text-xs text-(--text-label)">SPK Bought</span>
+							<span className="text-sm font-semibold text-(--text-primary)">
+								{data.buybackKpis.spkBought.formatted}
+							</span>
+						</div>
+						<div className="flex items-center justify-between py-2">
+							<span className="text-xs text-(--text-label)">Avg Price</span>
+							<span className="text-sm font-semibold text-(--text-primary)">{data.buybackKpis.avgPrice.formatted}</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				<ChartCard
+					title="Total Treasury"
+					actions={
+						<ChartPngExportButton
+							chartInstance={treasury.getInstance}
+							filename="total-treasury"
+							title="Total Treasury"
+							smol
+						/>
+					}
+				>
+					<MultiSeriesChart
+						series={data.treasurySeries}
+						hideDownloadButton
+						valueSymbol="$"
+						height="400px"
+						onReady={treasury.onReady}
+					/>
+				</ChartCard>
+				<ChartCard
+					title="SPK Buybacks"
+					actions={
+						<ChartPngExportButton
+							chartInstance={buybacks.getInstance}
+							filename="spk-buybacks"
+							title="SPK Buybacks"
+							smol
+						/>
+					}
+				>
+					<MultiSeriesChart
+						series={data.buybacksSeries}
+						hideDownloadButton
+						valueSymbol=""
+						yAxisSymbols={['SPK', 'SPK']}
+						height="400px"
+						onReady={buybacks.onReady}
+					/>
+				</ChartCard>
+			</div>
+		</div>
+	)
+}
+
 export default function Financials() {
 	const { data, isLoading } = useFinancialsData()
 	const onContentReady = useContentReady()
@@ -274,216 +668,19 @@ export default function Financials() {
 			</div>
 
 			{/* Section 3: Monthly Returns */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>Monthly Returns</SectionHeader>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<ChartCard title={data.monthlyGross.title}>
-						<BarChart
-							chartData={data.monthlyGross.data}
-							stacks={data.monthlyGross.stacks}
-							stackColors={data.monthlyGross.colors}
-							valueSymbol="$"
-							title=""
-							height="400px"
-							chartOptions={SCROLL_LEGEND}
-						/>
-					</ChartCard>
-					<ChartCard title={data.monthlyNet.title}>
-						<BarChart
-							chartData={data.monthlyNet.data}
-							stacks={data.monthlyNet.stacks}
-							stackColors={data.monthlyNet.colors}
-							valueSymbol="$"
-							title=""
-							height="400px"
-							chartOptions={SCROLL_LEGEND}
-						/>
-					</ChartCard>
-				</div>
-			</div>
+			<MonthlyReturnsSection data={data} />
 
 			{/* Section 4: sUSDS Distribution */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>sUSDS Distribution</SectionHeader>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<ChartCard title={'Spark-distributed USDS'}>
-						<AreaChart
-							chartData={data.supplyTotal.data}
-							stacks={data.supplyTotal.stacks}
-							valueSymbol=""
-							title=""
-							height="400px"
-						/>
-					</ChartCard>
-					<ChartCard title={data.supplyByChain.title}>
-						<AreaChart
-							chartData={data.supplyByChain.data}
-							stacks={data.supplyByChain.stacks}
-							stackColors={data.supplyByChain.colors}
-							valueSymbol=""
-							title=""
-							isStackedChart
-							hideGradient
-							height="400px"
-							chartOptions={SCROLL_LEGEND}
-						/>
-					</ChartCard>
-				</div>
-			</div>
+			<SusdsDistributionSection data={data} />
 
 			{/* Section 5: Allocated Assets */}
 			<AllocatedAssetsSection allocatedAssets={data.allocatedAssets} aaHistorical={data.aaHistorical} />
 
-			{/* Section 6: Total Value Locked */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>Total Value Locked</SectionHeader>
-				<KpiCard label="Current TVL" value={data.tvl.currentFormatted} />
-				<ChartCard title={data.tvl.title}>
-					<AreaChart
-						chartData={data.tvl.data}
-						stacks={data.tvl.stacks}
-						stackColors={data.tvl.colors}
-						valueSymbol="$"
-						title=""
-						isStackedChart
-						hideGradient
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			</div>
-
-			{/* Section 7: SparkLend Deposits & Borrows */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>SparkLend Deposits &amp; Borrows</SectionHeader>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<ChartCard title={data.deposits.title}>
-						<AreaChart
-							chartData={data.deposits.data}
-							stacks={data.deposits.stacks}
-							valueSymbol="$"
-							title=""
-							height="400px"
-						/>
-					</ChartCard>
-					<ChartCard title={data.borrows.title}>
-						<AreaChart
-							chartData={data.borrows.data}
-							stacks={data.borrows.stacks}
-							valueSymbol="$"
-							title=""
-							height="400px"
-							color="#f85149"
-						/>
-					</ChartCard>
-				</div>
-			</div>
-
-			{/* Section 8: SLL TVL by Chain */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>SLL TVL by Chain</SectionHeader>
-				<ChartCard title={data.sllTvl.title}>
-					<AreaChart
-						chartData={data.sllTvl.data}
-						stacks={data.sllTvl.stacks}
-						stackColors={data.sllTvl.colors}
-						valueSymbol="$"
-						title=""
-						isStackedChart
-						hideGradient
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			</div>
-
-			{/* Section 9: Spark Savings TVL by Chain */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>Spark Savings TVL by Chain</SectionHeader>
-				<ChartCard title={data.savingsTvl.title}>
-					<AreaChart
-						chartData={data.savingsTvl.data}
-						stacks={data.savingsTvl.stacks}
-						stackColors={data.savingsTvl.colors}
-						valueSymbol="$"
-						title=""
-						isStackedChart
-						hideGradient
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			</div>
-
-			{/* Section 10: Treasury & Buybacks */}
-			<div className="flex flex-col gap-4">
-				<SectionHeader>Treasury &amp; Buybacks</SectionHeader>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-						<h3 className="mb-3 text-sm font-medium text-(--text-label)">Treasury</h3>
-						<div className="flex flex-col gap-2">
-							<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
-								<span className="text-xs text-(--text-label)">Total Treasury Assets</span>
-								<span className="text-sm font-semibold text-(--text-primary)">
-									{data.treasuryKpis.totalAssets.formatted}
-								</span>
-							</div>
-							<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
-								<span className="text-xs text-(--text-label)">Buyback Threshold</span>
-								<span className="text-sm font-semibold text-(--text-primary)">
-									{data.treasuryKpis.buybackThreshold.formatted}
-								</span>
-							</div>
-							<div className="flex items-center justify-between py-2">
-								<span className="text-xs text-(--text-label)">Current vs Threshold</span>
-								<span
-									className={`text-sm font-semibold ${
-										data.treasuryKpis.vsThreshold.value >= 0 ? 'text-green-500' : 'text-red-500'
-									}`}
-								>
-									{data.treasuryKpis.vsThreshold.formatted}
-								</span>
-							</div>
-						</div>
-					</div>
-					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-						<h3 className="mb-3 text-sm font-medium text-(--text-label)">SPK Buyback Tracker</h3>
-						<div className="flex flex-col gap-2">
-							<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
-								<span className="text-xs text-(--text-label)">USDS Spent</span>
-								<span className="text-sm font-semibold text-(--text-primary)">
-									{data.buybackKpis.usdsSpent.formatted}
-								</span>
-							</div>
-							<div className="flex items-center justify-between border-b border-(--cards-border) py-2">
-								<span className="text-xs text-(--text-label)">SPK Bought</span>
-								<span className="text-sm font-semibold text-(--text-primary)">
-									{data.buybackKpis.spkBought.formatted}
-								</span>
-							</div>
-							<div className="flex items-center justify-between py-2">
-								<span className="text-xs text-(--text-label)">Avg Price</span>
-								<span className="text-sm font-semibold text-(--text-primary)">
-									{data.buybackKpis.avgPrice.formatted}
-								</span>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<ChartCard title="Total Treasury">
-						<MultiSeriesChart series={data.treasurySeries} valueSymbol="$" height="400px" />
-					</ChartCard>
-					<ChartCard title="SPK Buybacks">
-						<MultiSeriesChart
-							series={data.buybacksSeries}
-							valueSymbol=""
-							yAxisSymbols={['SPK', 'SPK']}
-							height="400px"
-						/>
-					</ChartCard>
-				</div>
-			</div>
+			<TvlSection data={data} />
+			<DepositsAndBorrowsSection data={data} />
+			<SllTvlSection data={data} />
+			<SavingsTvlSection data={data} />
+			<TreasurySection data={data} />
 
 			{/* Section 11: Quarterly Reports */}
 			{data.quarterlyReports && data.quarterlyReports.length > 0 && (
