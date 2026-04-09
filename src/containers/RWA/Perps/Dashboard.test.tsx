@@ -149,8 +149,16 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		routerQuery = { chartView: 'treemap' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Base Asset')
-		expect(html).toContain('Nested by: Contract')
+		expect(html).toContain('Asset Group')
+		expect(html).toContain('Nested by: Base Asset')
+		expect(html).toContain('reset')
+	})
+
+	it('shows treemap by default when no chart view is provided', () => {
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Asset Group')
+		expect(html).toContain('Nested by: Base Asset')
 		expect(html).toContain('reset')
 	})
 
@@ -172,6 +180,15 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('reset')
 	})
 
+	it('shows asset-group treemap controls with a base-asset nested default', () => {
+		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'assetGroup' }
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Asset Group')
+		expect(html).toContain('Nested by: Base Asset')
+		expect(html).toContain('reset')
+	})
+
 	it('keeps the no-grouping treemap state selectable for Base Asset breakdowns', () => {
 		routerQuery = {
 			chartView: 'treemap',
@@ -189,26 +206,31 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		routerQuery = { chartView: 'pie' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Base Asset')
+		expect(html).toContain('Asset Group')
 		expect(html).not.toContain('Nested by:')
 		expect(html).not.toContain('reset')
 	})
 
-	it('keeps Contract and Base Asset as the first overview table columns', () => {
+	it('keeps the requested overview table column order', () => {
 		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(lastTableWithSearchProps.columns.slice(0, 2).map((column: any) => column.header)).toEqual([
+		expect(lastTableWithSearchProps.columns.slice(0, 5).map((column: any) => column.header)).toEqual([
 			'Contract',
-			'Base Asset'
+			'Venue',
+			'Base Asset',
+			'Asset Group',
+			'Asset Class'
 		])
 	})
 
-	it('keeps Contract and Base Asset as the first venue table columns', () => {
+	it('keeps the requested venue table column order', () => {
 		renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
-		expect(lastTableWithSearchProps.columns.slice(0, 2).map((column: any) => column.header)).toEqual([
+		expect(lastTableWithSearchProps.columns.slice(0, 4).map((column: any) => column.header)).toEqual([
 			'Contract',
-			'Base Asset'
+			'Base Asset',
+			'Asset Group',
+			'Asset Class'
 		])
 	})
 
@@ -230,6 +252,26 @@ describe('RWAPerpsDashboard treemap controls', () => {
 
 		expect(html).toContain('Only a single snapshot is available')
 		expect(html).not.toContain('timeseries')
+	})
+
+	it('renders fetched default time-series data when no server-preloaded dataset is available', () => {
+		routerQuery = { chartView: 'timeSeries' }
+		queryState = {
+			data: {
+				source: [
+					{ timestamp: 1774483200000, Meta: 100 },
+					{ timestamp: 1774569600000, Meta: 120 }
+				],
+				dimensions: ['timestamp', 'Meta']
+			},
+			isLoading: false,
+			error: null
+		}
+
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).not.toContain('Only a single snapshot is available')
+		expect(html).toContain('min-h-[360px]')
 	})
 
 	it('renders the time-series metric switch labels from metric option names', () => {

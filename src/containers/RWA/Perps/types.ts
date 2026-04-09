@@ -48,12 +48,14 @@ export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'baseAss
 
 export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
 export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
-export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
-export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'assetGroup' | 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'assetGroup' | 'contract'
 export type RWAPerpsVenueBreakdown = 'baseAsset' | 'contract' | 'assetClass'
 export type RWAPerpsVenueTimeSeriesBreakdown = 'baseAsset' | 'contract' | 'assetClass'
-export type RWAPerpsVenueNonTimeSeriesBreakdown = 'baseAsset' | 'contract' | 'assetClass'
-export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsVenueNonTimeSeriesBreakdown = 'assetGroup' | 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'assetGroup' | 'contract'
+export type RWAPerpsOverviewSnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown
+export type RWAPerpsVenueSnapshotBreakdown = RWAPerpsVenueNonTimeSeriesBreakdown
 export type RWAPerpsChartMode = 'overview' | 'venue'
 
 export interface IRWAPerpsOverviewBreakdownRequest {

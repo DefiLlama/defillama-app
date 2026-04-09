@@ -36,6 +36,16 @@ export type RWAPerpsChartOption<T extends string> = {
 	name: string
 }
 
+export type RWAPerpsChartLabels = {
+	openInterest: { label: string }
+	markets: { label: string }
+	venue: { label: string }
+	assetClass: { label: string }
+	baseAsset: { label: string }
+	assetGroup: { label: string }
+	contract: { label: string }
+}
+
 const CHART_VIEW_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartView>> = [
 	{ key: 'timeSeries', name: 'Time Series Chart' },
 	{ key: 'pie', name: 'Pie Chart' },
@@ -43,26 +53,7 @@ const CHART_VIEW_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartView>> 
 	{ key: 'hbar', name: 'HBar Chart' }
 ]
 
-const CHART_METRIC_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartMetricKey>> = [
-	{ key: 'openInterest', name: 'Open Interest' },
-	{ key: 'volume24h', name: 'Volume' },
-	{ key: 'markets', name: 'Markets' }
-]
-
-const BREAKDOWN_LABELS: Record<RWAPerpsChartBreakdown, string> = {
-	venue: 'Venue',
-	assetClass: 'Asset Class',
-	baseAsset: 'Base Asset',
-	contract: 'Contract'
-}
-
-const TREEMAP_NESTED_BY_LABELS: Record<RWAPerpsTreemapNestedBy, string> = {
-	none: 'No Grouping',
-	venue: 'Venue',
-	assetClass: 'Asset Class',
-	baseAsset: 'Base Asset',
-	contract: 'Contract'
-}
+const CHART_METRIC_KEYS: ReadonlyArray<RWAPerpsChartMetricKey> = ['openInterest', 'volume24h', 'markets']
 
 const TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTimeSeriesBreakdown[]> = {
 	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
@@ -70,13 +61,13 @@ const TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTimeSer
 }
 
 const NON_TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsNonTimeSeriesBreakdown[]> = {
-	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
-	venue: ['baseAsset', 'contract', 'assetClass']
+	overview: ['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'],
+	venue: ['assetGroup', 'baseAsset', 'contract', 'assetClass']
 }
 
 const TREEMAP_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTreemapBreakdown[]> = {
-	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
-	venue: ['baseAsset', 'assetClass', 'contract']
+	overview: ['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'],
+	venue: ['assetGroup', 'baseAsset', 'assetClass', 'contract']
 }
 
 const TREEMAP_NESTED_BY_OPTIONS: Record<
@@ -85,11 +76,13 @@ const TREEMAP_NESTED_BY_OPTIONS: Record<
 > = {
 	overview: {
 		venue: ['none', 'assetClass', 'baseAsset', 'contract'],
+		assetGroup: ['none', 'baseAsset', 'assetClass', 'contract'],
 		assetClass: ['none', 'baseAsset', 'contract'],
 		baseAsset: ['none', 'contract'],
 		contract: ['none']
 	},
 	venue: {
+		assetGroup: ['none', 'baseAsset', 'assetClass', 'contract'],
 		assetClass: ['none', 'baseAsset', 'contract'],
 		baseAsset: ['none', 'contract'],
 		contract: ['none']
@@ -102,21 +95,23 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 > = {
 	overview: {
 		venue: 'assetClass',
+		assetGroup: 'baseAsset',
 		assetClass: 'baseAsset',
 		baseAsset: 'contract',
 		contract: 'none'
 	},
 	venue: {
+		assetGroup: 'baseAsset',
 		assetClass: 'baseAsset',
 		baseAsset: 'contract',
 		contract: 'none'
 	}
 }
 
-const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'timeSeries'
+export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'treemap'
 const DEFAULT_CHART_METRIC: RWAPerpsChartMetricKey = 'openInterest'
 const VALID_CHART_VIEWS = new Set<RWAPerpsChartView>(CHART_VIEW_OPTIONS.map((option) => option.key))
-const VALID_CHART_METRICS = new Set<RWAPerpsChartMetricKey>(CHART_METRIC_OPTIONS.map((option) => option.key))
+const VALID_CHART_METRICS = new Set<RWAPerpsChartMetricKey>(CHART_METRIC_KEYS)
 
 function assert(condition: unknown, message: string): asserts condition {
 	if (!condition) {
@@ -128,22 +123,47 @@ export function getRWAPerpsChartViewOptions() {
 	return CHART_VIEW_OPTIONS
 }
 
-export function getRWAPerpsChartMetricOptions() {
-	return CHART_METRIC_OPTIONS
+export function getRWAPerpsChartMetricOptions(labels: RWAPerpsChartLabels) {
+	return CHART_METRIC_KEYS.map((key) => ({
+		key,
+		name: key === 'volume24h' ? 'Volume' : labels[key].label
+	}))
 }
 
-export function getRWAPerpsChartMetricLabel(metric: RWAPerpsChartMetricKey) {
-	const option = CHART_METRIC_OPTIONS.find((item) => item.key === metric)
+export function getRWAPerpsChartMetricLabel(metric: RWAPerpsChartMetricKey, labels: RWAPerpsChartLabels) {
+	const option = getRWAPerpsChartMetricOptions(labels).find((item) => item.key === metric)
 	assert(option, `Missing RWA perps chart metric label for ${metric}`)
 	return option.name
 }
 
-export function getRWAPerpsBreakdownLabel(breakdown: RWAPerpsChartBreakdown) {
-	return BREAKDOWN_LABELS[breakdown]
+export function getRWAPerpsBreakdownLabel(breakdown: RWAPerpsChartBreakdown, labels: RWAPerpsChartLabels) {
+	switch (breakdown) {
+		case 'venue':
+			return labels.venue.label
+		case 'assetClass':
+			return labels.assetClass.label
+		case 'baseAsset':
+			return labels.baseAsset.label
+		case 'assetGroup':
+			return labels.assetGroup.label
+		case 'contract':
+			return labels.contract.label
+	}
 }
 
-export function getRWAPerpsTreemapNestedByLabel(nestedBy: RWAPerpsTreemapNestedBy) {
-	return TREEMAP_NESTED_BY_LABELS[nestedBy]
+export function getRWAPerpsTreemapNestedByLabel(nestedBy: RWAPerpsTreemapNestedBy, labels: RWAPerpsChartLabels) {
+	switch (nestedBy) {
+		case 'none':
+			return 'No Grouping'
+		case 'venue':
+			return labels.venue.label
+		case 'assetClass':
+			return labels.assetClass.label
+		case 'baseAsset':
+			return labels.baseAsset.label
+		case 'contract':
+			return labels.contract.label
+	}
 }
 
 export function getDefaultRWAPerpsChartBreakdown(
@@ -157,26 +177,30 @@ export function getDefaultRWAPerpsChartBreakdown(
 
 export function getRWAPerpsChartBreakdownOptions({
 	mode,
-	view
-}: Pick<RWAPerpsChartState, 'mode' | 'view'>): RWAPerpsChartOption<RWAPerpsChartBreakdown>[] {
+	view,
+	labels
+}: Pick<RWAPerpsChartState, 'mode' | 'view'> & {
+	labels: RWAPerpsChartLabels
+}): RWAPerpsChartOption<RWAPerpsChartBreakdown>[] {
 	const options =
 		view === 'timeSeries'
 			? TIME_SERIES_BREAKDOWNS[mode]
 			: view === 'treemap'
 				? TREEMAP_BREAKDOWNS[mode]
 				: NON_TIME_SERIES_BREAKDOWNS[mode]
-	return options.map((key) => ({ key, name: BREAKDOWN_LABELS[key] }))
+	return options.map((key) => ({ key, name: getRWAPerpsBreakdownLabel(key, labels) }))
 }
 
 export function getRWAPerpsTreemapNestedByOptions(
 	mode: RWAPerpsChartMode,
-	breakdown: RWAPerpsTreemapBreakdown
+	breakdown: RWAPerpsTreemapBreakdown,
+	labels: RWAPerpsChartLabels
 ): RWAPerpsChartOption<RWAPerpsTreemapNestedBy>[] {
 	const options = TREEMAP_NESTED_BY_OPTIONS[mode][breakdown]
 	assert(options, `Missing RWA perps treemap nested-by options for ${mode}/${breakdown}`)
 	return options.map((key) => ({
 		key,
-		name: TREEMAP_NESTED_BY_LABELS[key]
+		name: getRWAPerpsTreemapNestedByLabel(key, labels)
 	}))
 }
 

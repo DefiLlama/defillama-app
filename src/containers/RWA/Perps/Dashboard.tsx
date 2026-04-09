@@ -19,6 +19,7 @@ import { PercentChange } from '~/components/PercentChange'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
@@ -43,6 +44,7 @@ import {
 	setRWAPerpsTreemapNestedBy,
 	setRWAPerpsChartView
 } from './chartState'
+import { perpsDefinitions as d } from './definitions'
 import {
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
@@ -54,9 +56,9 @@ import type {
 	IRWAPerpsOverviewPageData,
 	IRWAPerpsVenueBreakdownRequest,
 	IRWAPerpsVenuePageData,
-	RWAPerpsOverviewNonTimeSeriesBreakdown,
+	RWAPerpsOverviewSnapshotBreakdown,
 	RWAPerpsOverviewTreemapBreakdown,
-	RWAPerpsVenueNonTimeSeriesBreakdown,
+	RWAPerpsVenueSnapshotBreakdown,
 	RWAPerpsVenueTreemapBreakdown
 } from './types'
 
@@ -87,7 +89,7 @@ const venueColumnHelper = createColumnHelper<IRWAPerpsVenuePageData['markets'][n
 const overviewColumns = [
 	overviewColumnHelper.accessor((row) => row.contract, {
 		id: 'contract',
-		header: 'Contract',
+		header: d.contract.label,
 		enableSorting: false,
 		cell: (info) => (
 			<span className="flex items-center gap-2">
@@ -100,17 +102,12 @@ const overviewColumns = [
 				</BasicLink>
 			</span>
 		),
+		meta: { headerHelperText: d.contract.description },
 		size: 220
-	}),
-	overviewColumnHelper.accessor((row) => row.referenceAsset ?? '', {
-		id: 'baseAsset',
-		header: 'Base Asset',
-		enableSorting: false,
-		size: 140
 	}),
 	overviewColumnHelper.accessor((row) => row.venue, {
 		id: 'venue',
-		header: 'Venue',
+		header: d.venue.label,
 		cell: (info) => (
 			<BasicLink
 				href={`/rwa/perps/venue/${encodeURIComponent(info.getValue())}`}
@@ -119,213 +116,231 @@ const overviewColumns = [
 				{info.getValue()}
 			</BasicLink>
 		),
+		meta: { headerHelperText: d.venue.description },
 		size: 108
 	}),
-	overviewColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
-		id: 'category',
-		header: 'Category',
+	overviewColumnHelper.accessor((row) => row.referenceAsset ?? '', {
+		id: 'baseAsset',
+		header: d.baseAsset.label,
 		enableSorting: false,
-		size: 132
+		meta: { headerHelperText: d.baseAsset.description },
+		size: 140
 	}),
 	overviewColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
 		id: 'baseAssetGroup',
-		header: 'Asset Group',
+		header: d.assetGroup.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.assetGroup.description },
 		size: 136
 	}),
 	overviewColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
 		id: 'assetClass',
-		header: 'Asset Class',
+		header: d.assetClass.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.assetClass.description },
 		size: 176
+	}),
+	overviewColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
+		id: 'category',
+		header: d.category.label,
+		enableSorting: false,
+		meta: { headerHelperText: d.category.description },
+		size: 132
 	}),
 	overviewColumnHelper.accessor((row) => row.openInterest, {
 		id: 'openInterest',
-		header: 'Open Interest',
+		header: d.openInterest.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.openInterest.description },
 		size: 136
 	}),
 	overviewColumnHelper.accessor((row) => row.volume24h, {
 		id: 'volume24h',
-		header: '24h Volume',
+		header: d.volume24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.volume24h.description },
 		size: 126
 	}),
 	overviewColumnHelper.accessor((row) => row.price, {
 		id: 'price',
-		header: 'Price',
+		header: d.price.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.price.description },
 		size: 88
 	}),
 	overviewColumnHelper.accessor((row) => row.priceChange24h, {
 		id: 'priceChange24h',
-		header: '24h Price Change',
+		header: d.priceChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.priceChange24h.description },
 		size: 156
 	}),
 	overviewColumnHelper.accessor((row) => row.fundingRate * 100, {
 		id: 'fundingRate',
-		header: 'Latest Funding Rate',
+		header: d.fundingRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.fundingRate.description },
 		size: 180
 	}),
 	overviewColumnHelper.accessor((row) => row.premium * 100, {
 		id: 'premium',
-		header: 'Premium',
+		header: d.premium.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.premium.description },
 		size: 108
 	}),
 	overviewColumnHelper.accessor((row) => row.maxLeverage, {
 		id: 'maxLeverage',
-		header: 'Max Leverage',
+		header: d.maxLeverage.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.maxLeverage.description },
 		size: 128
 	}),
 	overviewColumnHelper.accessor((row) => row.parentPlatform, {
 		id: 'parentPlatform',
-		header: 'Parent Platform',
+		header: d.parentPlatform.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.parentPlatform.description },
 		size: 156
 	}),
 	overviewColumnHelper.accessor((row) => row.marginAsset, {
 		id: 'marginAsset',
-		header: 'Margin Asset',
+		header: d.marginAsset.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.marginAsset.description },
 		size: 132
 	}),
 	overviewColumnHelper.accessor((row) => row.settlementAsset, {
 		id: 'settlementAsset',
-		header: 'Settlement Asset',
+		header: d.settlementAsset.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.settlementAsset.description },
 		size: 156
 	}),
 	overviewColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
-		header: 'Issuer',
+		header: d.issuer.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.issuer.description },
 		size: 96
 	}),
 	overviewColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
-		header: 'Oracle Provider',
+		header: d.oracleProvider.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.oracleProvider.description },
 		size: 164
 	}),
 	overviewColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
-		header: 'RWA Classification',
+		header: d.rwaClassification.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.rwaClassification.description },
 		size: 170
 	}),
 	overviewColumnHelper.accessor((row) => row.accessModel ?? '', {
 		id: 'accessModel',
-		header: 'Access Model',
+		header: d.accessModel.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.accessModel.description },
 		size: 136
 	}),
 	overviewColumnHelper.accessor((row) => row.makerFeeRate * 100, {
 		id: 'makerFeeRate',
-		header: 'Maker Fee',
+		header: d.makerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.makerFeeRate.description },
 		size: 112
 	}),
 	overviewColumnHelper.accessor((row) => row.takerFeeRate * 100, {
 		id: 'takerFeeRate',
-		header: 'Taker Fee',
+		header: d.takerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.takerFeeRate.description },
 		size: 112
 	}),
 	overviewColumnHelper.accessor((row) => (row.deployerFeeShare == null ? null : row.deployerFeeShare * 100), {
 		id: 'deployerFeeShare',
-		header: 'Deployer Fee Share',
+		header: d.deployerFeeShare.label,
 		cell: (info) => (info.getValue() == null ? '-' : `${formattedNum(info.getValue(), false)}%`),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.deployerFeeShare.description },
 		size: 154
 	}),
 	overviewColumnHelper.accessor((row) => row.cumulativeFunding, {
 		id: 'cumulativeFunding',
-		header: 'Cum. Funding / Unit',
+		header: d.cumulativeFunding.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.cumulativeFunding.description },
 		size: 168
 	}),
 	overviewColumnHelper.accessor((row) => row.oraclePx, {
 		id: 'oraclePx',
-		header: 'Oracle Px',
+		header: d.oraclePx.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.oraclePx.description },
 		size: 92
 	}),
 	overviewColumnHelper.accessor((row) => row.midPx, {
 		id: 'midPx',
-		header: 'Mid Px',
+		header: d.midPx.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.midPx.description },
 		size: 88
 	}),
 	overviewColumnHelper.accessor((row) => row.prevDayPx, {
 		id: 'prevDayPx',
-		header: 'Prev Day Px',
+		header: d.prevDayPx.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.prevDayPx.description },
 		size: 116
 	}),
 	overviewColumnHelper.accessor((row) => row.volume7d, {
 		id: 'volume7d',
-		header: 'Volume 7d',
+		header: d.volume7d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.volume7d.description },
 		size: 118
 	}),
 	overviewColumnHelper.accessor((row) => row.volume30d, {
 		id: 'volume30d',
-		header: 'Volume 30d',
+		header: d.volume30d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.volume30d.description },
 		size: 126
 	}),
 	overviewColumnHelper.accessor((row) => row.volumeAllTime, {
 		id: 'volumeAllTime',
-		header: 'Volume All Time',
+		header: d.volumeAllTime.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.volumeAllTime.description },
 		size: 146
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees24h, {
 		id: 'estimatedProtocolFees24h',
-		header: 'Est. Protocol Fees 24h',
+		header: d.estimatedProtocolFees24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees24h.description },
 		size: 188
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees7d, {
 		id: 'estimatedProtocolFees7d',
-		header: 'Est. Protocol Fees 7d',
+		header: d.estimatedProtocolFees7d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees7d.description },
 		size: 188
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees30d, {
 		id: 'estimatedProtocolFees30d',
-		header: 'Est. Protocol Fees 30d',
+		header: d.estimatedProtocolFees30d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees30d.description },
 		size: 188
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFeesAllTime, {
 		id: 'estimatedProtocolFeesAllTime',
-		header: 'Est. Protocol Fees All Time',
+		header: d.estimatedProtocolFeesAllTime.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.estimatedProtocolFeesAllTime.description },
 		size: 210
 	})
 ]
@@ -333,7 +348,7 @@ const overviewColumns = [
 const venueColumns = [
 	venueColumnHelper.accessor((row) => row.contract, {
 		id: 'contract',
-		header: 'Contract',
+		header: d.contract.label,
 		enableSorting: false,
 		cell: (info) => (
 			<span className="flex items-center gap-2">
@@ -346,143 +361,154 @@ const venueColumns = [
 				</BasicLink>
 			</span>
 		),
+		meta: { headerHelperText: d.contract.description },
 		size: 220
 	}),
 	venueColumnHelper.accessor((row) => row.referenceAsset ?? '', {
 		id: 'baseAsset',
-		header: 'Base Asset',
+		header: d.baseAsset.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.baseAsset.description },
 		size: 140
-	}),
-	venueColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
-		id: 'category',
-		header: 'Category',
-		enableSorting: false,
-		size: 132
 	}),
 	venueColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
 		id: 'baseAssetGroup',
-		header: 'Asset Group',
+		header: d.assetGroup.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.assetGroup.description },
 		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
 		id: 'assetClass',
-		header: 'Asset Class',
+		header: d.assetClass.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.assetClass.description },
 		size: 176
+	}),
+	venueColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
+		id: 'category',
+		header: d.category.label,
+		enableSorting: false,
+		meta: { headerHelperText: d.category.description },
+		size: 132
 	}),
 	venueColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
-		header: 'Issuer',
+		header: d.issuer.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.issuer.description },
 		size: 96
 	}),
 	venueColumnHelper.accessor((row) => row.marginAsset, {
 		id: 'marginAsset',
-		header: 'Margin Asset',
+		header: d.marginAsset.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.marginAsset.description },
 		size: 132
 	}),
 	venueColumnHelper.accessor((row) => row.settlementAsset, {
 		id: 'settlementAsset',
-		header: 'Settlement Asset',
+		header: d.settlementAsset.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.settlementAsset.description },
 		size: 156
 	}),
 	venueColumnHelper.accessor((row) => row.openInterest, {
 		id: 'openInterest',
-		header: 'Open Interest',
+		header: d.openInterest.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.openInterest.description },
 		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.volume24h, {
 		id: 'volume24h',
-		header: '24h Volume',
+		header: d.volume24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.volume24h.description },
 		size: 126
 	}),
 	venueColumnHelper.accessor((row) => row.price, {
 		id: 'price',
-		header: 'Price',
+		header: d.price.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.price.description },
 		size: 88
 	}),
 	venueColumnHelper.accessor((row) => row.priceChange24h, {
 		id: 'priceChange24h',
-		header: '24h Price Change',
+		header: d.priceChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.priceChange24h.description },
 		size: 156
 	}),
 	venueColumnHelper.accessor((row) => row.fundingRate * 100, {
 		id: 'fundingRate',
-		header: 'Latest Funding Rate',
+		header: d.fundingRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.fundingRate.description },
 		size: 180
 	}),
 	venueColumnHelper.accessor((row) => row.premium * 100, {
 		id: 'premium',
-		header: 'Premium',
+		header: d.premium.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.premium.description },
 		size: 108
 	}),
 	venueColumnHelper.accessor((row) => row.maxLeverage, {
 		id: 'maxLeverage',
-		header: 'Max Leverage',
+		header: d.maxLeverage.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.maxLeverage.description },
 		size: 128
 	}),
 	venueColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
-		header: 'RWA Classification',
+		header: d.rwaClassification.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.rwaClassification.description },
 		size: 170
 	}),
 	venueColumnHelper.accessor((row) => row.accessModel ?? '', {
 		id: 'accessModel',
-		header: 'Access Model',
+		header: d.accessModel.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.accessModel.description },
 		size: 136
 	}),
 	venueColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
-		header: 'Oracle Provider',
+		header: d.oracleProvider.label,
 		enableSorting: false,
+		meta: { headerHelperText: d.oracleProvider.description },
 		size: 164
 	}),
 	venueColumnHelper.accessor((row) => row.makerFeeRate * 100, {
 		id: 'makerFeeRate',
-		header: 'Maker Fee',
+		header: d.makerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.makerFeeRate.description },
 		size: 112
 	}),
 	venueColumnHelper.accessor((row) => row.takerFeeRate * 100, {
 		id: 'takerFeeRate',
-		header: 'Taker Fee',
+		header: d.takerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.takerFeeRate.description },
 		size: 112
 	}),
 	venueColumnHelper.accessor((row) => row.cumulativeFunding, {
 		id: 'cumulativeFunding',
-		header: 'Cum. Funding / Unit',
+		header: d.cumulativeFunding.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.cumulativeFunding.description },
 		size: 168
 	}),
 	venueColumnHelper.accessor((row) => row.estimatedProtocolFees24h, {
 		id: 'estimatedProtocolFees24h',
-		header: 'Est. Protocol Fees 24h',
+		header: d.estimatedProtocolFees24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end' },
+		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees24h.description },
 		size: 188
 	})
 ]
@@ -536,9 +562,25 @@ export function buildRWAPerpsTimeSeriesCharts({
 	}))
 }
 
-const StatCard = ({ label, value, change }: { label: string; value: React.ReactNode; change?: number | null }) => (
+const StatCard = ({
+	label,
+	tooltip,
+	value,
+	change
+}: {
+	label: string
+	tooltip?: string
+	value: React.ReactNode
+	change?: number | null
+}) => (
 	<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-		<span className="text-(--text-label)">{label}</span>
+		{tooltip ? (
+			<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
+				{label}
+			</Tooltip>
+		) : (
+			<span className="text-(--text-label)">{label}</span>
+		)}
 		<span className="flex items-end justify-between gap-2 font-jetbrains">
 			<span className="text-2xl font-medium">{value}</span>
 			{change != null ? (
@@ -572,16 +614,16 @@ function fetchVenueTimeSeriesDataset(request: IRWAPerpsVenueBreakdownRequest) {
 export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const router = useRouter()
 	const chartState = parseRWAPerpsChartState(router.query, props.mode)
-	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric)
-	const chartMetricOptions = getRWAPerpsChartMetricOptions()
+	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric, d)
+	const chartMetricOptions = getRWAPerpsChartMetricOptions(d)
 	const chartViewOptions = getRWAPerpsChartViewOptions()
-	const chartBreakdownOptions = getRWAPerpsChartBreakdownOptions(chartState)
+	const chartBreakdownOptions = getRWAPerpsChartBreakdownOptions({ ...chartState, labels: d })
 	const showBreakdownSelect = chartBreakdownOptions.length > 1
 	const treemapBreakdown = chartState.breakdown as RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
-	const treemapNestedByOptions = getRWAPerpsTreemapNestedByOptions(props.mode, treemapBreakdown)
+	const treemapNestedByOptions = getRWAPerpsTreemapNestedByOptions(props.mode, treemapBreakdown, d)
 	const showTreemapNestedBySelect = chartState.view === 'treemap' && treemapNestedByOptions.length > 1
-	const treemapNestedByLabel = getRWAPerpsTreemapNestedByLabel(chartState.treemapNestedBy)
-	const breakdownLabel = getRWAPerpsBreakdownLabel(chartState.breakdown)
+	const treemapNestedByLabel = getRWAPerpsTreemapNestedByLabel(chartState.treemapNestedBy, d)
+	const breakdownLabel = getRWAPerpsBreakdownLabel(chartState.breakdown, d)
 	const isOverviewMode = props.mode === 'overview'
 	const currentRows = props.data.markets
 	const initialChartDataset = props.data.initialChartDataset
@@ -590,6 +632,10 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		chartState.view === 'timeSeries' &&
 		chartState.metric === 'openInterest' &&
 		chartState.breakdown === getDefaultRWAPerpsChartBreakdown(props.mode, 'timeSeries')
+	const hasPreloadedTimeSeriesDataset =
+		initialChartDataset.source.length > 0 ||
+		initialChartDataset.dimensions.some((dimension) => dimension !== 'timestamp')
+	const shouldUseInitialTimeSeriesDataset = isDefaultTimeSeriesState && hasPreloadedTimeSeriesDataset
 
 	const timeSeriesQuery = useQuery({
 		queryKey: [
@@ -613,11 +659,11 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: chartState.view === 'timeSeries' && !isDefaultTimeSeriesState
+		enabled: chartState.view === 'timeSeries' && !shouldUseInitialTimeSeriesDataset
 	})
 
 	const selectedTimeSeriesDataset =
-		chartState.view === 'timeSeries' && isDefaultTimeSeriesState
+		chartState.view === 'timeSeries' && shouldUseInitialTimeSeriesDataset
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
 	const timeSeriesCharts = useMemo(
@@ -634,12 +680,12 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 			isOverviewMode
 				? buildRWAPerpsOverviewSnapshotBreakdownTotals({
 						rows: currentRows,
-						breakdown: chartState.breakdown as RWAPerpsOverviewNonTimeSeriesBreakdown,
+						breakdown: chartState.breakdown as RWAPerpsOverviewSnapshotBreakdown,
 						key: chartState.metric
 					})
 				: buildRWAPerpsVenueSnapshotBreakdownTotals({
 						rows: currentRows,
-						breakdown: chartState.breakdown as RWAPerpsVenueNonTimeSeriesBreakdown,
+						breakdown: chartState.breakdown as RWAPerpsVenueSnapshotBreakdown,
 						key: chartState.metric
 					}),
 		[chartState.breakdown, chartState.metric, currentRows, isOverviewMode]
@@ -706,6 +752,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 			: chartState.view === 'hbar'
 				? barChartInstance
 				: pieChartInstance
+	const treemapValueLabel = chartState.metric === 'volume24h' ? 'Daily Volume' : chartMetricLabel
 	const valueSymbol = chartState.metric === 'markets' ? '' : '$'
 	const pageLabel = props.mode === 'overview' ? 'RWA Perps' : `${props.data.venue} RWA Perps`
 	const timeSeriesFilename = `${props.mode === 'overview' ? 'rwa-perps-overview' : `rwa-perps-venue-${props.data.venue}`}-time-series-${chartState.metric}-${chartState.breakdown}`
@@ -765,23 +812,49 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		props.mode === 'overview'
 			? [
 					{
-						label: 'Total Open Interest',
+						label: d.totalOpenInterest.label,
+						tooltip: d.totalOpenInterest.description,
 						value: formattedNum(props.data.totals.openInterest, true),
 						change: props.data.totals.openInterestChange24h
 					},
 					{
-						label: 'Total 24h Volume',
+						label: d.totalVolume24h.label,
+						tooltip: d.totalVolume24h.description,
 						value: formattedNum(props.data.totals.volume24h, true),
 						change: props.data.totals.volume24hChange24h
 					},
-					{ label: 'Total Markets', value: formattedNum(props.data.totals.markets, false) },
-					{ label: 'Est. Protocol Fees 24h', value: formattedNum(props.data.totals.protocolFees24h, true) }
+					{
+						label: d.totalMarkets.label,
+						tooltip: d.totalMarkets.description,
+						value: formattedNum(props.data.totals.markets, false)
+					},
+					{
+						label: d.estimatedProtocolFees24h.label,
+						tooltip: d.estimatedProtocolFees24h.description,
+						value: formattedNum(props.data.totals.protocolFees24h, true)
+					}
 				]
 			: [
-					{ label: 'Open Interest', value: formattedNum(props.data.totals.openInterest, true) },
-					{ label: '24h Volume', value: formattedNum(props.data.totals.volume24h, true) },
-					{ label: 'Markets', value: formattedNum(props.data.totals.markets, false) },
-					{ label: 'Est. Protocol Fees 24h', value: formattedNum(props.data.totals.protocolFees24h, true) }
+					{
+						label: d.openInterest.label,
+						tooltip: d.openInterest.description,
+						value: formattedNum(props.data.totals.openInterest, true)
+					},
+					{
+						label: d.volume24h.label,
+						tooltip: d.volume24h.description,
+						value: formattedNum(props.data.totals.volume24h, true)
+					},
+					{
+						label: d.markets.label,
+						tooltip: d.markets.description,
+						value: formattedNum(props.data.totals.markets, false)
+					},
+					{
+						label: d.estimatedProtocolFees24h.label,
+						tooltip: d.estimatedProtocolFees24h.description,
+						value: formattedNum(props.data.totals.protocolFees24h, true)
+					}
 				]
 
 	return (
@@ -791,7 +864,13 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 			) : null}
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				{statCards.map((card) => (
-					<StatCard key={card.label} label={card.label} value={card.value} change={card.change} />
+					<StatCard
+						key={card.label}
+						label={card.label}
+						tooltip={card.tooltip}
+						value={card.value}
+						change={card.change}
+					/>
 				))}
 			</div>
 			{chartState.view === 'timeSeries' ? (
@@ -922,7 +1001,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 									variant="rwa"
 									height="600px"
 									onReady={handleTreemapChartReady}
-									valueLabel={chartMetricLabel}
+									valueLabel={treemapValueLabel}
 									valueSymbol={valueSymbol}
 								/>
 							)}

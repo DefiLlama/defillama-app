@@ -21,8 +21,10 @@ import type {
 import {
 	getRWAPerpsOverviewBreakdownLabel,
 	getRWAPerpsOverviewSnapshotBreakdownLabel,
-	getRWAPerpsVenueBreakdownLabel
+	getRWAPerpsVenueBreakdownLabel,
+	getRWAPerpsVenueSnapshotBreakdownLabel
 } from './breakdownLabels'
+import { DEFAULT_CHART_VIEW } from './chartState'
 import type {
 	IRWAPerpsContractData,
 	IRWAPerpsContractFundingHistoryPoint,
@@ -35,15 +37,21 @@ import type {
 	IRWAPerpsVenuesOverview,
 	IRWAPerpsVenuesOverviewRow,
 	RWAPerpsChartMetricKey,
+	RWAPerpsChartView,
 	RWAPerpsOverviewNonTimeSeriesBreakdown,
-	RWAPerpsVenueNonTimeSeriesBreakdown
+	RWAPerpsOverviewSnapshotBreakdown,
+	RWAPerpsVenueSnapshotBreakdown
 } from './types'
 
-type SnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown | RWAPerpsVenueNonTimeSeriesBreakdown
+type SnapshotBreakdown = RWAPerpsOverviewSnapshotBreakdown | RWAPerpsVenueSnapshotBreakdown
 
 type BreakdownLabelResolver<TRow, TBreakdown extends string> = (row: TRow, breakdown: TBreakdown) => string
 
 const EMPTY_CHART_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+
+function shouldPreloadInitialChartDataset(activeView: RWAPerpsChartView) {
+	return activeView === 'timeSeries'
+}
 
 function safeNumber(value: unknown): number {
 	const parsed = typeof value === 'number' ? value : Number(value)
@@ -336,7 +344,7 @@ export function buildRWAPerpsOverviewSnapshotBreakdownTotals({
 	key
 }: {
 	rows: IRWAPerpsMarket[]
-	breakdown: RWAPerpsOverviewNonTimeSeriesBreakdown
+	breakdown: RWAPerpsOverviewSnapshotBreakdown
 	key: RWAPerpsChartMetricKey
 }) {
 	return buildSnapshotBreakdownTotals({
@@ -353,14 +361,14 @@ export function buildRWAPerpsVenueSnapshotBreakdownTotals({
 	key
 }: {
 	rows: IRWAPerpsMarket[]
-	breakdown: RWAPerpsVenueNonTimeSeriesBreakdown
+	breakdown: RWAPerpsVenueSnapshotBreakdown
 	key: RWAPerpsChartMetricKey
 }) {
 	return buildSnapshotBreakdownTotals({
 		rows,
 		breakdown,
 		key,
-		getBreakdownLabel: getRWAPerpsVenueBreakdownLabel
+		getBreakdownLabel: getRWAPerpsVenueSnapshotBreakdownLabel
 	})
 }
 
@@ -401,7 +409,11 @@ export async function getRWAPerpsVenueBreakdownChartDataset({
 	})
 }
 
-export async function getRWAPerpsOverview(): Promise<IRWAPerpsOverviewPageData> {
+export async function getRWAPerpsOverview({
+	activeView = DEFAULT_CHART_VIEW
+}: {
+	activeView?: RWAPerpsChartView
+} = {}): Promise<IRWAPerpsOverviewPageData> {
 	const [list, stats, current] = await Promise.all([fetchRWAPerpsList(), fetchRWAPerpsStats(), fetchRWAPerpsCurrent()])
 
 	if (!list || !stats || !current) {
@@ -409,11 +421,13 @@ export async function getRWAPerpsOverview(): Promise<IRWAPerpsOverviewPageData> 
 	}
 
 	const overviewChartRows = await fetchRWAPerpsBreakdownChartRows({ seriesNames: list.venues })
-	const initialChartDataset = toRWAPerpsBreakdownChartDataset({
-		rows: overviewChartRows,
-		breakdown: 'baseAsset',
-		key: 'openInterest'
-	})
+	const initialChartDataset = shouldPreloadInitialChartDataset(activeView)
+		? toRWAPerpsBreakdownChartDataset({
+				rows: overviewChartRows,
+				breakdown: 'baseAsset',
+				key: 'openInterest'
+			})
+		: EMPTY_CHART_DATASET
 	const openInterestSnapshotTotals = getSnapshotTotals(overviewChartRows, 'openInterest')
 	const volume24hSnapshotTotals = getSnapshotTotals(overviewChartRows, 'volume24h')
 	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(stats.totalOpenInterest)
@@ -434,7 +448,13 @@ export async function getRWAPerpsOverview(): Promise<IRWAPerpsOverviewPageData> 
 	}
 }
 
-export async function getRWAPerpsVenuePage({ venue }: { venue: string }): Promise<IRWAPerpsVenuePageData | null> {
+export async function getRWAPerpsVenuePage({
+	venue,
+	activeView = DEFAULT_CHART_VIEW
+}: {
+	venue: string
+	activeView?: RWAPerpsChartView
+}): Promise<IRWAPerpsVenuePageData | null> {
 	const [list, stats, venueResponse] = await Promise.all([
 		fetchRWAPerpsList(),
 		fetchRWAPerpsStats(),
@@ -447,11 +467,13 @@ export async function getRWAPerpsVenuePage({ venue }: { venue: string }): Promis
 	const markets = venueResponse
 	if (markets.length === 0) return null
 
-	const initialChartDataset = await getRWAPerpsVenueBreakdownChartDataset({
-		venue,
-		breakdown: 'baseAsset',
-		key: 'openInterest'
-	})
+	const initialChartDataset = shouldPreloadInitialChartDataset(activeView)
+		? await getRWAPerpsVenueBreakdownChartDataset({
+				venue,
+				breakdown: 'baseAsset',
+				key: 'openInterest'
+			})
+		: EMPTY_CHART_DATASET
 
 	const statsBucket = stats.byVenue?.[venue]
 

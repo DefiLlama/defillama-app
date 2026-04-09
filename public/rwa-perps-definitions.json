@@ -1,0 +1,206 @@
+{
+	"contract": {
+		"label": "Contract",
+		"description": "Ticker symbol of the perpetual futures contract as listed on the venue."
+	},
+	"baseAsset": {
+		"label": "Base Asset",
+		"description": "Underlying real-world asset the perpetual contract tracks."
+	},
+	"venue": {
+		"label": "Venue",
+		"description": "Protocol or exchange where the perpetual contract is listed and traded."
+	},
+	"category": {
+		"label": "Category",
+		"description": "High-level economic category assigned to the perpetual contract."
+	},
+	"assetGroup": {
+		"label": "Asset Group",
+		"description": "Grouping of the base asset by issuer or product family."
+	},
+	"assetClass": {
+		"label": "Asset Class",
+		"description": "High-level economic category of the underlying asset, such as commodities, equities, or fixed income."
+	},
+	"openInterest": {
+		"label": "Open Interest",
+		"description": "Total USD value of outstanding perpetual contracts that have not been settled or closed."
+	},
+	"volume24h": {
+		"label": "24h Volume",
+		"description": "Total USD notional volume traded on this contract in the last 24 hours."
+	},
+	"price": {
+		"label": "Price",
+		"description": "Latest traded price of the perpetual contract in USD."
+	},
+	"priceChange24h": {
+		"label": "24h Price Change",
+		"description": "Percentage change in contract price over the last 24 hours."
+	},
+	"fundingRate": {
+		"label": "Latest Funding Rate",
+		"description": "Most recent periodic funding rate paid between long and short position holders. Positive means longs pay shorts."
+	},
+	"premium": {
+		"label": "Premium",
+		"description": "Percentage difference between the perpetual contract price and the underlying asset's spot or index price."
+	},
+	"maxLeverage": {
+		"label": "Max Leverage",
+		"description": "Maximum leverage multiplier available for this contract on the venue."
+	},
+	"parentPlatform": {
+		"label": "Parent Platform",
+		"description": "Parent protocol or chain infrastructure on which the venue is built."
+	},
+	"marginAsset": {
+		"label": "Margin Asset",
+		"description": "Asset required as collateral to open or maintain a position on this contract."
+	},
+	"settlementAsset": {
+		"label": "Settlement Asset",
+		"description": "Asset in which profits and losses on the contract are settled."
+	},
+	"issuer": {
+		"label": "Issuer",
+		"description": "Entity responsible for issuing or managing the underlying real-world asset."
+	},
+	"oracleProvider": {
+		"label": "Oracle Provider",
+		"description": "Data provider supplying the reference price feed used by the contract."
+	},
+	"rwaClassification": {
+		"label": "RWA Classification",
+		"description": "Classification indicating how closely the contract relates to a tokenized real-world asset."
+	},
+	"accessModel": {
+		"label": "Access Model",
+		"description": "Indicates whether trading the contract requires KYC, permissioning, or is permissionlessly accessible."
+	},
+	"makerFeeRate": {
+		"label": "Maker Fee",
+		"description": "Fee rate charged on maker (limit) orders for this contract."
+	},
+	"takerFeeRate": {
+		"label": "Taker Fee",
+		"description": "Fee rate charged on taker (market) orders for this contract."
+	},
+	"deployerFeeShare": {
+		"label": "Deployer Fee Share",
+		"description": "Share of trading fees allocated to the contract deployer."
+	},
+	"cumulativeFunding": {
+		"label": "Cum. Funding / Unit",
+		"description": "Total cumulative funding payments per unit since the contract's inception."
+	},
+	"oraclePx": {
+		"label": "Oracle Px",
+		"description": "Current price reported by the oracle price feed."
+	},
+	"midPx": {
+		"label": "Mid Px",
+		"description": "Midpoint between the best bid and best ask price on the order book."
+	},
+	"prevDayPx": {
+		"label": "Prev Day Px",
+		"description": "Closing or settlement price from the previous trading day."
+	},
+	"volume7d": {
+		"label": "Volume 7d",
+		"description": "Total USD notional volume traded on this contract over the last 7 days."
+	},
+	"volume30d": {
+		"label": "Volume 30d",
+		"description": "Total USD notional volume traded on this contract over the last 30 days."
+	},
+	"volumeAllTime": {
+		"label": "Volume All Time",
+		"description": "Total USD notional volume traded on this contract since inception."
+	},
+	"estimatedProtocolFees24h": {
+		"label": "Est. Protocol Fees 24h",
+		"description": "Estimated fees earned by the protocol from trading activity on this contract in the last 24 hours."
+	},
+	"estimatedProtocolFees7d": {
+		"label": "Est. Protocol Fees 7d",
+		"description": "Estimated fees earned by the protocol from trading activity on this contract in the last 7 days."
+	},
+	"estimatedProtocolFees30d": {
+		"label": "Est. Protocol Fees 30d",
+		"description": "Estimated fees earned by the protocol from trading activity on this contract in the last 30 days."
+	},
+	"estimatedProtocolFeesAllTime": {
+		"label": "Est. Protocol Fees All Time",
+		"description": "Estimated total fees earned by the protocol from trading activity on this contract since inception."
+	},
+	"totalOpenInterest": {
+		"label": "Total Open Interest",
+		"description": "Aggregate USD value of all outstanding perpetual contracts across all tracked markets."
+	},
+	"totalVolume24h": {
+		"label": "Total 24h Volume",
+		"description": "Aggregate USD notional volume traded across all tracked markets in the last 24 hours."
+	},
+	"totalMarkets": {
+		"label": "Total Markets",
+		"description": "Total number of perpetual contract markets tracked."
+	},
+	"markets": {
+		"label": "Markets",
+		"description": "Number of perpetual contract markets listed on this venue."
+	},
+	"openInterestShare": {
+		"label": "% of Total OI",
+		"description": "This venue's share of total open interest across all tracked venues."
+	},
+	"volume24hShare": {
+		"label": "% of Total 24h Volume",
+		"description": "This venue's share of total 24-hour trading volume across all tracked venues."
+	},
+	"sizeDecimals": {
+		"label": "Size Decimals",
+		"description": "Number of decimal places used for position sizing on this contract."
+	},
+	"oraclePrice": {
+		"label": "Oracle Price",
+		"description": "Current price reported by the oracle price feed."
+	},
+	"midPrice": {
+		"label": "Mid Price",
+		"description": "Midpoint between the best bid and best ask price."
+	},
+	"previousDayPrice": {
+		"label": "Previous Day Price",
+		"description": "Closing or settlement price from the previous trading day."
+	},
+	"pair": {
+		"label": "Pair",
+		"description": "Trading pair identifier for the contract."
+	},
+	"cumulativeVolume": {
+		"label": "Cumulative Volume",
+		"description": "Total USD notional volume traded on this contract since inception."
+	},
+	"estimatedCumulativeProtocolFees": {
+		"label": "Est. Cum. Protocol Fees",
+		"description": "Estimated total fees earned by the protocol from this contract since inception."
+	},
+	"tradingParameters": {
+		"label": "Trading Parameters",
+		"description": "Key trading configuration parameters for this contract."
+	},
+	"marketReference": {
+		"label": "Market Reference",
+		"description": "Reference pricing data points for this contract."
+	},
+	"website": {
+		"label": "Website",
+		"description": "Official website for the venue or contract."
+	},
+	"snapshotTime": {
+		"label": "Snapshot Time",
+		"description": "Timestamp of the most recent data snapshot for this contract."
+	}
+}

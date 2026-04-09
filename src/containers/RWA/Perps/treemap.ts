@@ -76,13 +76,13 @@ function sortEntries(entries: Array<[string, number]>) {
 		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
 }
 
-function buildFlatNodes(entries: Array<[string, number]>): RWAPerpsTreemapNode[] {
+function buildFlatNodes(entries: Array<[string, number]>, rootLabel: string): RWAPerpsTreemapNode[] {
 	const sortedEntries = sortEntries(entries)
 	const total = sortedEntries.reduce((sum, [, value]) => sum + value, 0)
 
 	return sortedEntries.map(([name, value], index) => ({
 		name,
-		path: name,
+		path: `${rootLabel}/${name}`,
 		value: [value, toShare(value, total), toShare(value, total)],
 		itemStyle: { color: CHART_COLORS[index % CHART_COLORS.length] }
 	}))
@@ -160,6 +160,8 @@ function getRootLabel(grouping: ParentGrouping): string {
 	switch (grouping) {
 		case 'venue':
 			return 'Venue'
+		case 'assetGroup':
+			return 'Asset Group'
 		case 'assetClass':
 			return 'Asset Class'
 		case 'baseAsset':
@@ -187,6 +189,7 @@ export function buildRWAPerpsTreemapTreeData({
 	venueLabel?: string
 }): RWAPerpsTreemapNode[] {
 	if (!markets.length) return []
+	const rootLabel = mode === 'overview' ? getRootLabel(parentGrouping) : normalizeLabel(venueLabel, 'Venue')
 
 	if (nestedBy === 'none') {
 		const totalsByParent = new Map<string, number>()
@@ -199,7 +202,7 @@ export function buildRWAPerpsTreemapTreeData({
 			totalsByParent.set(label, (totalsByParent.get(label) ?? 0) + value)
 		}
 
-		return buildFlatNodes([...totalsByParent.entries()])
+		return buildFlatNodes([...totalsByParent.entries()], rootLabel)
 	}
 
 	return buildNestedTreeData({
@@ -210,7 +213,7 @@ export function buildRWAPerpsTreemapTreeData({
 				? (parentGrouping as RWAPerpsOverviewTreemapBreakdown)
 				: (parentGrouping as RWAPerpsVenueTreemapBreakdown),
 		nestedBy: nestedBy as ChildGrouping,
-		rootLabel: mode === 'overview' ? getRootLabel(parentGrouping) : normalizeLabel(venueLabel, 'Venue')
+		rootLabel
 	})
 }
 
