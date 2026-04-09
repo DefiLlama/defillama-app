@@ -8,6 +8,16 @@ import {
 	setRWAPerpsChartView
 } from './chartState'
 
+const chartLabels = {
+	openInterest: { label: 'Open Interest' },
+	markets: { label: 'Markets' },
+	venue: { label: 'Venue' },
+	assetClass: { label: 'Asset Class' },
+	baseAsset: { label: 'Base Asset' },
+	assetGroup: { label: 'Asset Group' },
+	contract: { label: 'Contract' }
+} as const
+
 describe('parseRWAPerpsChartState', () => {
 	it('normalizes legacy hbar query values', () => {
 		const state = parseRWAPerpsChartState({ chartView: 'bar' }, 'overview')
@@ -96,7 +106,7 @@ describe('perps chartState options', () => {
 	})
 
 	it('exposes chart metric options with key/name pairs', () => {
-		expect(getRWAPerpsChartMetricOptions()).toEqual([
+		expect(getRWAPerpsChartMetricOptions(chartLabels)).toEqual([
 			{ key: 'openInterest', name: 'Open Interest' },
 			{ key: 'volume24h', name: 'Volume' },
 			{ key: 'markets', name: 'Markets' }
@@ -107,21 +117,24 @@ describe('perps chartState options', () => {
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'overview',
-				view: 'timeSeries'
+				view: 'timeSeries',
+				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['baseAsset', 'venue', 'assetClass', 'contract'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'overview',
-				view: 'pie'
+				view: 'pie',
+				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'overview',
-				view: 'treemap'
+				view: 'treemap',
+				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'])
 	})
@@ -130,61 +143,69 @@ describe('perps chartState options', () => {
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'venue',
-				view: 'timeSeries'
+				view: 'timeSeries',
+				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['baseAsset', 'contract', 'assetClass'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'venue',
-				view: 'pie'
+				view: 'pie',
+				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['assetGroup', 'baseAsset', 'contract', 'assetClass'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
 				mode: 'venue',
-				view: 'treemap'
+				view: 'treemap',
+				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['assetGroup', 'baseAsset', 'assetClass', 'contract'])
 	})
 
 	it('returns nested-group options keyed by treemap parent group', () => {
-		expect(getRWAPerpsTreemapNestedByOptions('overview', 'venue').map(({ key }) => key)).toEqual([
+		expect(getRWAPerpsTreemapNestedByOptions('overview', 'venue', chartLabels).map(({ key }) => key)).toEqual([
 			'none',
 			'assetClass',
 			'baseAsset',
 			'contract'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('overview', 'assetGroup').map(({ key }) => key)).toEqual([
+		expect(getRWAPerpsTreemapNestedByOptions('overview', 'assetGroup', chartLabels).map(({ key }) => key)).toEqual([
 			'none',
 			'baseAsset',
 			'assetClass',
 			'contract'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('overview', 'assetClass').map(({ key }) => key)).toEqual([
+		expect(getRWAPerpsTreemapNestedByOptions('overview', 'assetClass', chartLabels).map(({ key }) => key)).toEqual([
 			'none',
 			'baseAsset',
 			'contract'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('overview', 'baseAsset').map(({ key }) => key)).toEqual([
+		expect(getRWAPerpsTreemapNestedByOptions('overview', 'baseAsset', chartLabels).map(({ key }) => key)).toEqual([
 			'none',
 			'contract'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('overview', 'contract').map(({ key }) => key)).toEqual(['none'])
-		expect(getRWAPerpsTreemapNestedByOptions('venue', 'assetClass').map(({ key }) => key)).toEqual([
+		expect(getRWAPerpsTreemapNestedByOptions('overview', 'contract', chartLabels).map(({ key }) => key)).toEqual([
+			'none'
+		])
+		expect(getRWAPerpsTreemapNestedByOptions('venue', 'assetClass', chartLabels).map(({ key }) => key)).toEqual([
 			'none',
 			'baseAsset',
 			'contract'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('venue', 'assetGroup').map(({ key }) => key)).toEqual([
+		expect(getRWAPerpsTreemapNestedByOptions('venue', 'assetGroup', chartLabels).map(({ key }) => key)).toEqual([
 			'none',
 			'baseAsset',
 			'assetClass',
 			'contract'
 		])
-		expect(getRWAPerpsTreemapNestedByOptions('venue', 'baseAsset').map(({ key }) => key)).toEqual(['none', 'contract'])
-		expect(getRWAPerpsTreemapNestedByOptions('venue', 'contract').map(({ key }) => key)).toEqual(['none'])
+		expect(getRWAPerpsTreemapNestedByOptions('venue', 'baseAsset', chartLabels).map(({ key }) => key)).toEqual([
+			'none',
+			'contract'
+		])
+		expect(getRWAPerpsTreemapNestedByOptions('venue', 'contract', chartLabels).map(({ key }) => key)).toEqual(['none'])
 	})
 
 	it('defaults asset-group treemaps to nested base assets', () => {

@@ -1,5 +1,6 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { DEFAULT_CHART_VIEW } from '~/containers/RWA/Perps/chartState'
 import { RWAPerpsDashboard } from '~/containers/RWA/Perps/Dashboard'
 import { getRWAPerpsVenuePage } from '~/containers/RWA/Perps/queries'
 import { RWAPerpsTabNav } from '~/containers/RWA/Perps/TabNav'
@@ -34,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getRWAPerpsVenuePage({ venue: params.venue })
+		const data = await getRWAPerpsVenuePage({ venue: params.venue, activeView: DEFAULT_CHART_VIEW })
 		if (!data) {
 			return { notFound: true }
 		}

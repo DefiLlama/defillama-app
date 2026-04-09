@@ -1,7 +1,5 @@
-import perpsDefinitionsJson from '~/public/rwa-perps-definitions.json'
+import perpsDefinitionsJson from '../../../../public/rwa-perps-definitions.json'
 
-type PerpsDefinitions = {
-	[K in keyof typeof perpsDefinitionsJson]: (typeof perpsDefinitionsJson)[K]
-}
+export type PerpsDefinitions = typeof perpsDefinitionsJson
 
 export const perpsDefinitions: PerpsDefinitions = perpsDefinitionsJson

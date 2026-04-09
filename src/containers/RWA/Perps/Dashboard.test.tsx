@@ -254,6 +254,26 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).not.toContain('timeseries')
 	})
 
+	it('renders fetched default time-series data when no server-preloaded dataset is available', () => {
+		routerQuery = { chartView: 'timeSeries' }
+		queryState = {
+			data: {
+				source: [
+					{ timestamp: 1774483200000, Meta: 100 },
+					{ timestamp: 1774569600000, Meta: 120 }
+				],
+				dimensions: ['timestamp', 'Meta']
+			},
+			isLoading: false,
+			error: null
+		}
+
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).not.toContain('Only a single snapshot is available')
+		expect(html).toContain('min-h-[360px]')
+	})
+
 	it('renders the time-series metric switch labels from metric option names', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 

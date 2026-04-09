@@ -614,16 +614,16 @@ function fetchVenueTimeSeriesDataset(request: IRWAPerpsVenueBreakdownRequest) {
 export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const router = useRouter()
 	const chartState = parseRWAPerpsChartState(router.query, props.mode)
-	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric)
-	const chartMetricOptions = getRWAPerpsChartMetricOptions()
+	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric, d)
+	const chartMetricOptions = getRWAPerpsChartMetricOptions(d)
 	const chartViewOptions = getRWAPerpsChartViewOptions()
-	const chartBreakdownOptions = getRWAPerpsChartBreakdownOptions(chartState)
+	const chartBreakdownOptions = getRWAPerpsChartBreakdownOptions({ ...chartState, labels: d })
 	const showBreakdownSelect = chartBreakdownOptions.length > 1
 	const treemapBreakdown = chartState.breakdown as RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
-	const treemapNestedByOptions = getRWAPerpsTreemapNestedByOptions(props.mode, treemapBreakdown)
+	const treemapNestedByOptions = getRWAPerpsTreemapNestedByOptions(props.mode, treemapBreakdown, d)
 	const showTreemapNestedBySelect = chartState.view === 'treemap' && treemapNestedByOptions.length > 1
-	const treemapNestedByLabel = getRWAPerpsTreemapNestedByLabel(chartState.treemapNestedBy)
-	const breakdownLabel = getRWAPerpsBreakdownLabel(chartState.breakdown)
+	const treemapNestedByLabel = getRWAPerpsTreemapNestedByLabel(chartState.treemapNestedBy, d)
+	const breakdownLabel = getRWAPerpsBreakdownLabel(chartState.breakdown, d)
 	const isOverviewMode = props.mode === 'overview'
 	const currentRows = props.data.markets
 	const initialChartDataset = props.data.initialChartDataset
@@ -632,6 +632,10 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		chartState.view === 'timeSeries' &&
 		chartState.metric === 'openInterest' &&
 		chartState.breakdown === getDefaultRWAPerpsChartBreakdown(props.mode, 'timeSeries')
+	const hasPreloadedTimeSeriesDataset =
+		initialChartDataset.source.length > 0 ||
+		initialChartDataset.dimensions.some((dimension) => dimension !== 'timestamp')
+	const shouldUseInitialTimeSeriesDataset = isDefaultTimeSeriesState && hasPreloadedTimeSeriesDataset
 
 	const timeSeriesQuery = useQuery({
 		queryKey: [
@@ -655,11 +659,11 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: chartState.view === 'timeSeries' && !isDefaultTimeSeriesState
+		enabled: chartState.view === 'timeSeries' && !shouldUseInitialTimeSeriesDataset
 	})
 
 	const selectedTimeSeriesDataset =
-		chartState.view === 'timeSeries' && isDefaultTimeSeriesState
+		chartState.view === 'timeSeries' && shouldUseInitialTimeSeriesDataset
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
 	const timeSeriesCharts = useMemo(

@@ -314,7 +314,7 @@ describe('getRWAPerpsContractData', () => {
 })
 
 describe('perps overview queries', () => {
-	it('builds the overview page model with totals, sorted markets, and default chart data', async () => {
+	it('builds the overview page model with totals, sorted markets, and no preloaded chart for the default treemap view', async () => {
 		const result = await getRWAPerpsOverview()
 
 		expect(result).toMatchObject({
@@ -329,6 +329,12 @@ describe('perps overview queries', () => {
 			},
 			markets: [{ id: 'xyz:nvda' }, { id: 'xyz:meta' }, { id: 'flx:gold' }]
 		})
+		expect(result.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
+	})
+
+	it('preloads the overview time-series dataset when the active view is timeSeries', async () => {
+		const result = await getRWAPerpsOverview({ activeView: 'timeSeries' })
+
 		expect(result.initialChartDataset).toEqual({
 			source: [
 				{ timestamp: 1774483200000, Meta: 120 },
@@ -400,6 +406,12 @@ describe('perps overview queries', () => {
 				{ label: 'flx', to: '/rwa/perps/venue/flx' }
 			]
 		})
+		expect(result?.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
+	})
+
+	it('preloads the venue time-series dataset when the active view is timeSeries', async () => {
+		const result = await getRWAPerpsVenuePage({ venue: 'xyz', activeView: 'timeSeries' })
+
 		expect(result?.initialChartDataset.dimensions).toEqual(['timestamp', 'NVIDIA', 'Meta'])
 	})
 

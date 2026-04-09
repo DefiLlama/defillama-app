@@ -54,8 +54,8 @@ export type RWAPerpsVenueBreakdown = 'baseAsset' | 'contract' | 'assetClass'
 export type RWAPerpsVenueTimeSeriesBreakdown = 'baseAsset' | 'contract' | 'assetClass'
 export type RWAPerpsVenueNonTimeSeriesBreakdown = 'assetGroup' | 'baseAsset' | 'contract' | 'assetClass'
 export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'assetGroup' | 'contract'
-export type RWAPerpsOverviewSnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown | 'assetGroup'
-export type RWAPerpsVenueSnapshotBreakdown = RWAPerpsVenueNonTimeSeriesBreakdown | 'assetGroup'
+export type RWAPerpsOverviewSnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown
+export type RWAPerpsVenueSnapshotBreakdown = RWAPerpsVenueNonTimeSeriesBreakdown
 export type RWAPerpsChartMode = 'overview' | 'venue'
 
 export interface IRWAPerpsOverviewBreakdownRequest {
