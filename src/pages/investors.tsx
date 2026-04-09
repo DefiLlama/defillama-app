@@ -178,7 +178,7 @@ export default function InvestorsPage() {
 
 				<p className="mt-16 text-center text-sm text-(--text-tertiary)">
 					Want an investor relations dashboard for your protocol or chain? Contact{' '}
-					<a href="mailto:sales@defillama.com" className="underline text-(--text-secondary)">
+					<a href="mailto:sales@defillama.com" className="text-(--text-secondary) underline">
 						sales@defillama.com
 					</a>
 				</p>

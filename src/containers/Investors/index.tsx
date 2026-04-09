@@ -353,17 +353,17 @@ function InvestorsShell({
 							<path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
 						</svg>
 					</button>
-				<Logo size="sm" href="/" />
-			</div>
-
-			<aside
-				className={`sl-sidebar fixed top-0 left-0 z-30 flex h-screen w-56 shrink-0 flex-col overflow-hidden px-3 pt-6 pb-4 transition-transform duration-200 ${
-					sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-				} md:z-10 md:translate-x-0`}
-			>
-				<div className="hidden flex-col items-center pb-3 md:flex">
-					<Logo href="/" />
+					<Logo size="sm" href="/" />
 				</div>
+
+				<aside
+					className={`sl-sidebar fixed top-0 left-0 z-30 flex h-screen w-56 shrink-0 flex-col overflow-hidden px-3 pt-6 pb-4 transition-transform duration-200 ${
+						sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+					} md:z-10 md:translate-x-0`}
+				>
+					<div className="hidden flex-col items-center pb-3 md:flex">
+						<Logo href="/" />
+					</div>
 					<div className="mb-3 hidden h-px bg-(--sl-divider) md:block" />
 
 					<nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
