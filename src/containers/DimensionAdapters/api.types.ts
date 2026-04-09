@@ -60,7 +60,7 @@ export interface IAdapterProtocolMetrics {
 		breakdownMethodology: Record<string, Record<string, string>>
 		defaultChartView?: ChartTimeGrouping | null
 	}>
-	chainBreakdown: {
+	chainBreakdown?: {
 		[chain: string]: {
 			total24h: number
 			total48hto24h: number

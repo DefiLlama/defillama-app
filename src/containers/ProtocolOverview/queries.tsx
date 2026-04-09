@@ -1017,6 +1017,7 @@ export const getProtocolOverviewPageData = async ({
 			bribesData?.defaultChartView ??
 			tokenTaxData?.defaultChartView ??
 			dexVolumeData?.defaultChartView ??
+			dexNotionalVolumeData?.defaultChartView ??
 			dexAggregatorVolumeData?.defaultChartView ??
 			perpVolumeData?.defaultChartView ??
 			perpAggregatorVolumeData?.defaultChartView ??
@@ -1047,7 +1048,7 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 			const v = data.chainBreakdown[chain]
 			slim[chain] = { total24h: v.total24h, total7d: v.total7d, total30d: v.total30d, totalAllTime: v.totalAllTime }
 		}
-		chainBreakdown = slim
+		chainBreakdown = Object.keys(slim).length === 0 ? null : slim
 	}
 
 	const commonMethodologyMap = commonMethodology as Record<string, string>
