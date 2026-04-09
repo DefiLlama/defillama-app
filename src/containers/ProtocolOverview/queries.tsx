@@ -1017,6 +1017,7 @@ export const getProtocolOverviewPageData = async ({
 			bribesData?.defaultChartView ??
 			tokenTaxData?.defaultChartView ??
 			dexVolumeData?.defaultChartView ??
+			dexNotionalVolumeData?.defaultChartView ??
 			dexAggregatorVolumeData?.defaultChartView ??
 			perpVolumeData?.defaultChartView ??
 			perpAggregatorVolumeData?.defaultChartView ??
@@ -1035,6 +1036,19 @@ export const getProtocolOverviewPageData = async ({
 function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMetrics; methodologyKey?: string }) {
 	if (!data) {
 		return null
+	}
+
+	let chainBreakdown: Record<
+		string,
+		{ total24h: number; total7d: number; total30d: number; totalAllTime: number }
+	> | null = null
+	if (data.chainBreakdown) {
+		const slim: typeof chainBreakdown & {} = {}
+		for (const chain in data.chainBreakdown) {
+			const v = data.chainBreakdown[chain]
+			slim[chain] = { total24h: v.total24h, total7d: v.total7d, total30d: v.total30d, totalAllTime: v.totalAllTime }
+		}
+		chainBreakdown = Object.keys(slim).length === 0 ? null : slim
 	}
 
 	const commonMethodologyMap = commonMethodology as Record<string, string>
@@ -1076,7 +1090,8 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 								: null,
 							methodologyURL: topChildMethodology?.[2] ?? null
 						}),
-			defaultChartView: data.defaultChartView ?? 'daily'
+			defaultChartView: data.defaultChartView ?? 'daily',
+			chainBreakdown
 		}
 	}
 
@@ -1089,7 +1104,8 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 			? (data.methodology?.[methodologyKey] ?? commonMethodologyMap[methodologyKey] ?? null)
 			: null,
 		methodologyURL: data.methodologyURL ?? null,
-		defaultChartView: data.defaultChartView ?? 'daily'
+		defaultChartView: data.defaultChartView ?? 'daily',
+		chainBreakdown
 	}
 }
 
