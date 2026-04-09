@@ -319,8 +319,10 @@ describe('perps overview queries', () => {
 
 		expect(result).toMatchObject({
 			totals: {
-				openInterest: 350,
-				volume24h: 200,
+				openInterest: 230,
+				openInterestChange24h: 91.66666666666666,
+				volume24h: 130,
+				volume24hChange24h: 85.71428571428571,
 				markets: 3,
 				protocolFees24h: 3,
 				cumulativeFunding: 111

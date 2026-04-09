@@ -9,7 +9,8 @@ import type {
 	IMultiSeriesChart2Props,
 	IPieChartProps,
 	ITreemapChartProps,
-	MultiSeriesChart2Dataset
+	MultiSeriesChart2Dataset,
+	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { preparePieChartData } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
@@ -161,10 +162,10 @@ const overviewColumns = [
 	}),
 	overviewColumnHelper.accessor((row) => row.priceChange24h, {
 		id: 'priceChange24h',
-		header: '24h Change',
+		header: '24h Price Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: { align: 'end' },
-		size: 118
+		size: 156
 	}),
 	overviewColumnHelper.accessor((row) => row.fundingRate * 100, {
 		id: 'fundingRate',
@@ -412,10 +413,10 @@ const venueColumns = [
 	}),
 	venueColumnHelper.accessor((row) => row.priceChange24h, {
 		id: 'priceChange24h',
-		header: '24h Change',
+		header: '24h Price Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: { align: 'end' },
-		size: 118
+		size: 156
 	}),
 	venueColumnHelper.accessor((row) => row.fundingRate * 100, {
 		id: 'fundingRate',
@@ -517,10 +518,35 @@ const venueColumnVisibility: VisibilityState = {
 	issuer: false
 }
 
-const StatCard = ({ label, value }: { label: string; value: React.ReactNode }) => (
+export function buildRWAPerpsTimeSeriesCharts({
+	metric,
+	dimensions
+}: {
+	metric: 'openInterest' | 'volume24h' | 'markets'
+	dimensions: string[]
+}): Array<MultiSeriesChart2SeriesConfig> {
+	const seriesKeys = dimensions.filter((dimension) => dimension !== 'timestamp')
+
+	return seriesKeys.map((seriesName, index) => ({
+		name: seriesName,
+		type: metric === 'volume24h' ? 'bar' : 'line',
+		encode: { x: 'timestamp', y: seriesName },
+		color: CHART_COLORS[index % CHART_COLORS.length],
+		stack: 'A'
+	}))
+}
+
+const StatCard = ({ label, value, change }: { label: string; value: React.ReactNode; change?: number | null }) => (
 	<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 		<span className="text-(--text-label)">{label}</span>
-		<span className="font-jetbrains text-2xl font-medium">{value}</span>
+		<span className="flex items-end justify-between gap-2 font-jetbrains">
+			<span className="text-2xl font-medium">{value}</span>
+			{change != null ? (
+				<span className="text-base text-(--text-secondary)">
+					<PercentChange percent={change} fontWeight={500} />
+				</span>
+			) : null}
+		</span>
 	</p>
 )
 
@@ -594,6 +620,14 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		chartState.view === 'timeSeries' && isDefaultTimeSeriesState
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
+	const timeSeriesCharts = useMemo(
+		() =>
+			buildRWAPerpsTimeSeriesCharts({
+				metric: chartState.metric,
+				dimensions: selectedTimeSeriesDataset.dimensions
+			}),
+		[chartState.metric, selectedTimeSeriesDataset.dimensions]
+	)
 
 	const snapshotBreakdownRows = useMemo(
 		() =>
@@ -730,8 +764,16 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const statCards =
 		props.mode === 'overview'
 			? [
-					{ label: 'Total Open Interest', value: formattedNum(props.data.totals.openInterest, true) },
-					{ label: 'Total 24h Volume', value: formattedNum(props.data.totals.volume24h, true) },
+					{
+						label: 'Total Open Interest',
+						value: formattedNum(props.data.totals.openInterest, true),
+						change: props.data.totals.openInterestChange24h
+					},
+					{
+						label: 'Total 24h Volume',
+						value: formattedNum(props.data.totals.volume24h, true),
+						change: props.data.totals.volume24hChange24h
+					},
 					{ label: 'Total Markets', value: formattedNum(props.data.totals.markets, false) },
 					{ label: 'Est. Protocol Fees 24h', value: formattedNum(props.data.totals.protocolFees24h, true) }
 				]
@@ -749,7 +791,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 			) : null}
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				{statCards.map((card) => (
-					<StatCard key={card.label} label={card.label} value={card.value} />
+					<StatCard key={card.label} label={card.label} value={card.value} change={card.change} />
 				))}
 			</div>
 			{chartState.view === 'timeSeries' ? (
@@ -800,7 +842,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 						<Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
 								dataset={deferredTimeSeriesDataset}
-								stacked
+								charts={timeSeriesCharts}
 								showTotalInTooltip
 								valueSymbol={valueSymbol}
 								onReady={handleTimeSeriesChartReady}

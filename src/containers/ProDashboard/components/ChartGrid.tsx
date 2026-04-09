@@ -31,7 +31,10 @@ import {
 	YieldsDataset,
 	RWAAssetsDataset,
 	RWAChainsDataset,
-	RWAChainAssetsDataset
+	RWAChainAssetsDataset,
+	EquitiesCompaniesDataset,
+	EquitiesFinancialsDataset,
+	EquitiesFilingsDataset
 } from './datasets'
 import { ProtocolsByChainTable } from './ProTable'
 import { Rating } from './Rating'
@@ -335,6 +338,10 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 			if (item.datasetType === 'rwa-chains') return <RWAChainsDataset />
 			if (item.datasetType === 'rwa-selected-chain')
 				return <RWAChainAssetsDataset chain={item.datasetChain || 'Ethereum'} />
+			if (item.datasetType === 'equities') return <EquitiesCompaniesDataset />
+			if (item.datasetType === 'equities-financials')
+				return <EquitiesFinancialsDataset ticker={item.datasetChain || ''} />
+			if (item.datasetType === 'equities-filings') return <EquitiesFilingsDataset ticker={item.datasetChain || ''} />
 			return <StablecoinsDataset chain={item.datasetChain || 'All'} />
 		}
 
@@ -466,27 +473,37 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
-										<Tooltip
-											content="Shrink width"
-											render={
-												<button onClick={() => handleColSpanChange(item.id, shrinkTarget)} disabled={disableShrink} />
-											}
-											className="px-3 py-2 hover:pro-btn-blue disabled:cursor-not-allowed disabled:opacity-50"
-										>
-											<Icon name="minus" height={14} width={14} />
-											<span className="sr-only">Shrink width</span>
-										</Tooltip>
-										<Tooltip
-											content="Expand width"
-											render={
-												<button onClick={() => handleColSpanChange(item.id, expandTarget)} disabled={disableExpand} />
-											}
-											className="px-3 py-2 hover:pro-btn-blue disabled:cursor-not-allowed disabled:opacity-50"
-										>
-											<Icon name="plus" height={14} width={14} />
-											<span className="sr-only">Expand width</span>
-										</Tooltip>
-										{onEditItem ? (
+										{item.kind !== 'table' ? (
+											<>
+												<Tooltip
+													content="Shrink width"
+													render={
+														<button
+															onClick={() => handleColSpanChange(item.id, shrinkTarget)}
+															disabled={disableShrink}
+														/>
+													}
+													className="px-3 py-2 hover:pro-btn-blue disabled:cursor-not-allowed disabled:opacity-50"
+												>
+													<Icon name="minus" height={14} width={14} />
+													<span className="sr-only">Shrink width</span>
+												</Tooltip>
+												<Tooltip
+													content="Expand width"
+													render={
+														<button
+															onClick={() => handleColSpanChange(item.id, expandTarget)}
+															disabled={disableExpand}
+														/>
+													}
+													className="px-3 py-2 hover:pro-btn-blue disabled:cursor-not-allowed disabled:opacity-50"
+												>
+													<Icon name="plus" height={14} width={14} />
+													<span className="sr-only">Expand width</span>
+												</Tooltip>
+											</>
+										) : null}
+										{onEditItem && !(item.kind === 'text' && item.allowHtml) ? (
 											<Tooltip
 												content="Edit item"
 												render={<button onClick={() => onEditItem(item)} />}

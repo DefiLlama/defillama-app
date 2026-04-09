@@ -664,6 +664,32 @@ export function useModalActions(
 						datasetChain: state.selectedDatasetChain,
 						chains: [state.selectedDatasetChain]
 					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'equities') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'equities',
+						chains: []
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'equities-financials' && state.selectedDatasetChain) {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'equities-financials',
+						datasetChain: state.selectedDatasetChain,
+						chains: []
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'equities-filings' && state.selectedDatasetChain) {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'equities-filings',
+						datasetChain: state.selectedDatasetChain,
+						chains: []
+					} as ProtocolsTableConfig
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				newItem = {
@@ -703,7 +729,7 @@ export function useModalActions(
 						label: state.metricLabel
 					} as any
 				}
-			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart) {
+			} else if (state.selectedMainTab === 'llamaai' && state.selectedLlamaAIChart?.id) {
 				newItem = {
 					...editItem,
 					kind: 'llamaai-chart',
@@ -930,6 +956,12 @@ export function useModalActions(
 					handleAddTable([], 'dataset', 'rwa-chains')
 				} else if (state.selectedTableType === 'rwa-selected-chain' && state.selectedDatasetChain) {
 					handleAddTable([state.selectedDatasetChain], 'dataset', 'rwa-selected-chain', state.selectedDatasetChain)
+				} else if (state.selectedTableType === 'equities') {
+					handleAddTable([], 'dataset', 'equities')
+				} else if (state.selectedTableType === 'equities-financials' && state.selectedDatasetChain) {
+					handleAddTable([], 'dataset', 'equities-financials', state.selectedDatasetChain)
+				} else if (state.selectedTableType === 'equities-filings' && state.selectedDatasetChain) {
+					handleAddTable([], 'dataset', 'equities-filings', state.selectedDatasetChain)
 				}
 			} else if (state.selectedMainTab === 'text' && state.textContent.trim()) {
 				handleAddText(state.textTitle.trim() || undefined, state.textContent.trim())

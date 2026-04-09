@@ -18,7 +18,7 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 
 const CHART_TYPE_OPTIONS: Array<{ key: RWAPerpsChartMetricKey; label: string }> = [
 	{ key: 'openInterest', label: 'Open Interest' },
-	{ key: 'volume24h', label: '24h Volume' },
+	{ key: 'volume24h', label: 'Volume' },
 	{ key: 'markets', label: 'Markets' }
 ]
 
@@ -73,6 +73,21 @@ function fetchOverviewBreakdownDataset(request: IRWAPerpsOverviewBreakdownReques
 	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/perps/overview-breakdown?${searchParams.toString()}`)
 }
 
+export function buildRWAPerpsOverviewChartSeries({
+	chartType,
+	stackOptions
+}: {
+	chartType: RWAPerpsChartMetricKey
+	stackOptions: string[]
+}): Array<MultiSeriesChart2SeriesConfig> {
+	return stackOptions.map((seriesName, index) => ({
+		name: seriesName,
+		type: chartType === 'volume24h' ? 'bar' : 'line',
+		encode: { x: 'timestamp', y: seriesName },
+		color: CHART_COLORS[index % CHART_COLORS.length]
+	}))
+}
+
 export function RWAPerpsOverviewChart({
 	breakdown,
 	initialChartDataset,
@@ -97,15 +112,10 @@ export function RWAPerpsOverviewChart({
 	const hasTimeSeriesHistory = useMemo(() => hasEnoughTimeSeriesHistory(dataset), [dataset])
 	const showLoadingState = !isDefaultState && isLoading
 	const stackOptions = useMemo(() => dataset.dimensions.filter((dimension) => dimension !== 'timestamp'), [dataset])
-	const chartSeries = useMemo<Array<MultiSeriesChart2SeriesConfig>>(() => {
-		return stackOptions.map((seriesName, index) => ({
-			name: seriesName,
-			type: chartType === 'volume24h' ? 'bar' : 'line',
-			encode: { x: 'timestamp', y: seriesName },
-			color: CHART_COLORS[index % CHART_COLORS.length],
-			...(chartType !== 'volume24h' ? { showSymbol: true, symbolSize: 7 } : {})
-		}))
-	}, [chartType, stackOptions])
+	const chartSeries = useMemo<Array<MultiSeriesChart2SeriesConfig>>(
+		() => buildRWAPerpsOverviewChartSeries({ chartType, stackOptions }),
+		[chartType, stackOptions]
+	)
 	const selectedStacksQ = router.query[STACKS_QUERY_KEY] as string | string[] | undefined
 	const excludeStacksQ = router.query[EXCLUDE_STACKS_QUERY_KEY] as string | string[] | undefined
 	const selectedStacks = useMemo(

@@ -1,5 +1,11 @@
 import { MCP_SERVER } from '~/constants'
-import type { AlertProposedData, ChartConfiguration, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
+import type {
+	AlertProposedData,
+	ChartConfiguration,
+	DashboardArtifact,
+	MessageMetadata,
+	ToolExecution
+} from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -30,6 +36,7 @@ export interface AgenticSSECallbacks {
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
+	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
 	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
@@ -71,6 +78,28 @@ interface CsvExportEvent {
 
 interface AlertProposedEvent extends AlertProposedData {
 	type: 'alert_proposed'
+}
+
+interface DashboardEvent {
+	type: 'dashboard'
+	dashboard_id?: string
+	dashboardConfig?: {
+		dashboardName?: string
+		items?: any[]
+		timePeriod?: string
+		sourceDashboardId?: string
+	}
+	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	content?: {
+		dashboard_id?: string
+		dashboardConfig?: {
+			dashboardName?: string
+			items?: any[]
+			timePeriod?: string
+			sourceDashboardId?: string
+		}
+		chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	}
 }
 
 interface CompactionEvent {
@@ -131,6 +160,7 @@ type AgenticSSEEvent =
 	| ChartsEvent
 	| CsvExportEvent
 	| AlertProposedEvent
+	| DashboardEvent
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
 	| CompactionEvent
 	| ({ type: 'tool_execution' } & ToolExecution)
@@ -170,12 +200,14 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
 	quotedText?: string
 	isSuggestedQuestion?: boolean
+	blockedSkills?: string[]
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -195,8 +227,8 @@ async function getResponseErrorMessage(response: Response, fallback: string) {
 	return fallback
 }
 
-// Parse the backend SSE stream line-by-line and fan each event out to the UI callbacks.
-function parseSSEStream(
+/** @internal Exported for testing only. */
+export function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
 	abortSignal?: AbortSignal,
@@ -233,6 +265,25 @@ function parseSSEStream(
 				case 'alert_proposed':
 					callbacks.onAlertProposed?.(data)
 					break
+				case 'dashboard': {
+					const config = data.dashboardConfig || data.content?.dashboardConfig
+					const chartData = data.chartData || data.content?.chartData
+					if (config && callbacks.onDashboard) {
+						const stableId =
+							data.dashboard_id ||
+							data.content?.dashboard_id ||
+							`dashboard_${config.dashboardName || ''}_${config.sourceDashboardId || ''}_${config.items?.length ?? 0}`
+						callbacks.onDashboard({
+							id: stableId,
+							dashboardName: config.dashboardName || 'Dashboard',
+							items: config.items || [],
+							timePeriod: config.timePeriod,
+							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
+							...(chartData && { chartData })
+						})
+					}
+					break
+				}
 				case 'spawn_progress':
 					callbacks.onSpawnProgress(data)
 					break
@@ -330,12 +381,14 @@ export async function fetchAgenticResponse({
 	callbacks,
 	abortSignal,
 	researchMode,
+	enablePremiumTools,
 	entities,
 	images,
 	pageContext,
 	customInstructions,
 	quotedText,
 	isSuggestedQuestion,
+	blockedSkills,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -347,6 +400,7 @@ export async function fetchAgenticResponse({
 		stream: true
 		sessionId?: string
 		researchMode?: true
+		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
@@ -354,9 +408,11 @@ export async function fetchAgenticResponse({
 		customInstructions?: string
 		quotedText?: string
 		isSuggestedQuestion?: true
+		blockedSkills?: string[]
 	} = {
 		message,
-		stream: true
+		stream: true,
+		enablePremiumTools
 	}
 
 	if (sessionId) {
@@ -395,6 +451,10 @@ export async function fetchAgenticResponse({
 
 	if (isSuggestedQuestion) {
 		requestBody.isSuggestedQuestion = true
+	}
+
+	if (blockedSkills && blockedSkills.length > 0) {
+		requestBody.blockedSkills = blockedSkills
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {

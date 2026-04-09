@@ -2,12 +2,32 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { FaqItem } from '~/containers/Subscription/types'
 
-export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
+function FaqAnswer({ text, onStartTrial }: { text: string; onStartTrial?: () => void }) {
+	const phrase = '7-day free trials'
+	const idx = text.indexOf(phrase)
+	if (idx === -1 || !onStartTrial) return <>{text}</>
+
+	return (
+		<>
+			{text.slice(0, idx)}
+			<button
+				type="button"
+				onClick={onStartTrial}
+				className="text-(--sub-brand-primary) underline dark:text-(--sub-brand-secondary)"
+			>
+				{phrase}
+			</button>
+			{text.slice(idx + phrase.length)}
+		</>
+	)
+}
+
+export function SubscriptionFaqBlock({ faqItems, onStartTrial }: { faqItems: FaqItem[]; onStartTrial?: () => void }) {
 	const [expandedIndex, setExpandedIndex] = useState<number | null>(0)
 
 	return (
-		<div className="mt-16 w-full md:mt-32 md:w-[384px]">
-			<h2 className="text-center text-2xl leading-8 font-semibold text-(--sub-text-navy-900) md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
+		<div className="mt-16 w-full md:mt-12 md:w-[384px]">
+			<h2 className="text-center text-[24px] leading-8 font-semibold text-(--sub-text-navy-900) md:text-[22px] md:leading-7 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 				Frequently Asked Questions
 			</h2>
 			<div className="mt-7 md:mt-9 md:flex md:flex-col md:gap-4">
@@ -29,7 +49,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								onClick={() => setExpandedIndex(isExpanded ? null : index)}
 								className="flex w-full items-center justify-between gap-4 text-left"
 							>
-								<p className="text-sm leading-5 text-(--sub-text-navy-900) md:text-base md:leading-6 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
+								<p className="text-[16px] leading-6 text-(--sub-text-navy-900) md:text-[15px] md:leading-5 md:text-(--sub-ink-primary) dark:text-white dark:md:text-white">
 									{item.question}
 								</p>
 								<Icon
@@ -46,8 +66,8 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
 							>
 								<div className="overflow-hidden">
-									<p className="pt-2 text-sm leading-6 text-(--sub-text-secondary) md:text-[15px] md:leading-7 dark:text-(--sub-text-secondary-dark)">
-										{item.answer}
+									<p className="pt-2 text-[15px] leading-6 text-(--sub-text-secondary) md:text-[14px] md:leading-5 dark:text-(--sub-text-secondary-dark)">
+										<FaqAnswer text={item.answer} onStartTrial={onStartTrial} />
 									</p>
 								</div>
 							</div>

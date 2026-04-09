@@ -208,7 +208,10 @@ interface ProDashboardEditorActionsContextType {
 			| 'fees'
 			| 'rwa'
 			| 'rwa-chains'
-			| 'rwa-selected-chain',
+			| 'rwa-selected-chain'
+			| 'equities'
+			| 'equities-financials'
+			| 'equities-filings',
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean,
@@ -281,21 +284,27 @@ const ProDashboardServerAppMetadataContext = createContext<
 
 export function ProDashboardAPIProvider({
 	children,
-	initialDashboardId
+	initialDashboardId,
+	initialItems
 }: {
 	children: ReactNode
 	initialDashboardId?: string
+	initialItems?: DashboardItemConfig[]
 }) {
 	const stream = useDashboardStream(initialDashboardId)
 	const streamDone = !initialDashboardId || stream.isDone
 	const { hasActiveSubscription } = useAuthContext()
 	const proxyAuthToken = hasActiveSubscription && pb.authStore.isValid ? pb.authStore.token : null
 
-	// Wrap in StreamDoneContext FIRST so all hooks inside the inner component read the correct value
 	return (
 		<StreamDoneContext.Provider value={streamDone}>
 			<ProxyAuthTokenContext.Provider value={proxyAuthToken}>
-				<ProDashboardAPIProviderInner stream={stream} streamDone={streamDone} initialDashboardId={initialDashboardId}>
+				<ProDashboardAPIProviderInner
+					stream={stream}
+					streamDone={streamDone}
+					initialDashboardId={initialDashboardId}
+					initialItems={initialItems}
+				>
 					{children}
 				</ProDashboardAPIProviderInner>
 			</ProxyAuthTokenContext.Provider>
@@ -307,12 +316,14 @@ function ProDashboardAPIProviderInner({
 	children,
 	stream,
 	streamDone,
-	initialDashboardId
+	initialDashboardId,
+	initialItems
 }: {
 	children: ReactNode
 	stream: ReturnType<typeof useDashboardStream>
 	streamDone: boolean
 	initialDashboardId?: string
+	initialItems?: DashboardItemConfig[]
 }) {
 	const queryClient = useQueryClient()
 
@@ -320,7 +331,6 @@ function ProDashboardAPIProviderInner({
 	const { canCreateDashboard, isFreeUser } = useFreeTierStatus()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains()
 
-	// Seed dashboard into cache with auth-aware key when stream delivers it
 	const dashboardQueryKey = useMemo(
 		() => ['pro-dashboard', 'dashboard', initialDashboardId, isAuthenticated, user?.id],
 		[initialDashboardId, isAuthenticated, user?.id]
@@ -335,7 +345,14 @@ function ProDashboardAPIProviderInner({
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
 	const chains = rawChains as Chain[]
 
-	const [state, dispatch] = useReducer(dashboardReducer, initialDashboardId, initDashboardState)
+	const initArg = initialItems?.length ? { dashboardId: initialDashboardId, items: initialItems } : initialDashboardId
+	const [state, dispatch] = useReducer(dashboardReducer, initArg, initDashboardState)
+
+	useEffect(() => {
+		if (initialItems && initialItems.length > 0) {
+			dispatch({ type: 'SET_ITEMS', payload: initialItems })
+		}
+	}, [initialItems])
 
 	const {
 		items,
@@ -951,7 +968,7 @@ function ProDashboardAPIProviderInner({
 		const resolveChartItem = (chartItem: ChartConfig) => {
 			const query = queryById.get(chartItem.id)
 			const data = query?.data ?? EMPTY_CHART_DATA
-			const isLoading = (query?.isLoading ?? false) || (!streamDone && !query?.data)
+			const isLoading = !query || (query?.isLoading ?? false) || (!streamDone && !query?.data)
 			const hasError = query?.isError ?? false
 			const refetch = query?.refetch ?? NOOP
 			return {

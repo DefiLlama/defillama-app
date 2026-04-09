@@ -43,7 +43,7 @@ const getTimezoneLabel = (timezone: string): string => {
 		const parts = formatter.formatToParts(new Date())
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')
 		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'GMT+').replace('+-', '-').replace('++', '+')
+			return tzPart.value.replace('GMT', 'UTC')
 		}
 	} catch {}
 	return timezone.split('/').pop()?.replace(/_/g, ' ') || timezone
@@ -77,6 +77,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
 		}) => {
 			const response = await authorizedFetch(`${MCP_SERVER}/alerts`, {
 				method: 'POST',
@@ -106,7 +107,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 			messageId,
 			alertId,
 			title: title.trim(),
-			alertConfig: { frequency, hour, dayOfWeek, timezone }
+			alertConfig: { frequency, hour, dayOfWeek, timezone },
+			delivery_channel: alertIntent.deliveryChannel || 'email'
 		})
 	}
 
@@ -204,9 +206,9 @@ export const AlertArtifact = memo(function AlertArtifact({
 					disabled={isSaved}
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
-					{Array.from({ length: 24 }, (_, i) => (
-						<option key={`alert-hour-${i}`} value={i}>
-							{i.toString().padStart(2, '0')}:00
+					{Array.from({ length: 24 }, (_, h) => (
+						<option key={`llamai-alert-h${h}`} value={h}>
+							{h.toString().padStart(2, '0')}:00
 						</option>
 					))}
 				</select>
@@ -252,21 +254,23 @@ export const AlertArtifact = memo(function AlertArtifact({
 					className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 dark:border-[#222324] dark:hover:bg-[#222324]"
 				>
 					<Icon name="mail" className="h-4 w-4" />
-					<span>Send test email</span>
+					<span>Send test alert</span>
 				</button>
 			) : null}
 
 			{testMutation.isPending ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
 					<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-					Sending test email...
+					Sending test alert...
 				</p>
 			) : null}
 
 			{testMutation.isSuccess ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
 					<Icon name="check" className="h-3.5 w-3.5" />
-					Test email sent! Check your inbox
+					{alertIntent.deliveryChannel === 'telegram'
+						? 'Test sent! Check your Telegram'
+						: 'Test sent! Check your inbox'}
 				</p>
 			) : null}
 

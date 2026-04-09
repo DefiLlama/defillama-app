@@ -1,6 +1,5 @@
 import dayjs from 'dayjs'
 import { useMemo, useRef, useState } from 'react'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { Icon } from '~/components/Icon'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -717,12 +716,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				props.tokenCGData.price.ath != null || props.tokenCGData.price.atl != null ? (
 					<MetricSection
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						value={
-							<span className="flex items-center gap-2">
-								<BuyOnLlamaswap chains={props.llamaswapChains} />
-								{props.formatPrice(props.tokenCGData.price.current)}
-							</span>
-						}
+						value={props.formatPrice(props.tokenCGData.price.current)}
 					>
 						<SubMetricRow label="All Time High" value={props.formatPrice(props.tokenCGData.price.ath)} />
 						<SubMetricRow label="All Time Low" value={props.formatPrice(props.tokenCGData.price.atl)} />
@@ -730,12 +724,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				) : (
 					<MetricRow
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						value={
-							<span className="flex items-center gap-2">
-								<BuyOnLlamaswap chains={props.llamaswapChains} />
-								{props.formatPrice(props.tokenCGData.price.current)}
-							</span>
-						}
+						value={props.formatPrice(props.tokenCGData.price.current)}
 					/>
 				)
 			) : null}

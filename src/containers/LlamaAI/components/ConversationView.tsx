@@ -1,4 +1,12 @@
-import { useState, type Dispatch, type RefObject, type SetStateAction } from 'react'
+import {
+	useEffect,
+	useRef,
+	useState,
+	type Dispatch,
+	type RefCallback,
+	type RefObject,
+	type SetStateAction
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -36,6 +44,7 @@ interface ConversationViewProps {
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
+	onReconnectNow: () => void
 	scrollContainerRef: RefObject<HTMLDivElement | null>
 	messagesEndRef: RefObject<HTMLDivElement | null>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
@@ -68,6 +77,14 @@ function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, 
 	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
 }
 
+function getMessageAnchorId(messageId?: string | null) {
+	return messageId ? `msg-${messageId}` : undefined
+}
+
+function getMessageAnchorIdFromHash(hash: string) {
+	return /^#msg-[A-Za-z0-9_-]+$/.test(hash) ? hash.slice(1) : null
+}
+
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
@@ -76,7 +93,9 @@ function ConversationMessageItem({
 	isLlama,
 	isLatestAssistant,
 	onActionClick,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	anchorId,
+	anchorRef
 }: {
 	message: Message
 	nextUserMessage?: string
@@ -86,6 +105,8 @@ function ConversationMessageItem({
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	onTableFullscreenOpen?: () => void
+	anchorId?: string
+	anchorRef?: RefCallback<HTMLDivElement>
 }) {
 	return (
 		<MessageBubble
@@ -97,6 +118,9 @@ function ConversationMessageItem({
 			onActionClick={onActionClick}
 			nextUserMessage={nextUserMessage}
 			onTableFullscreenOpen={onTableFullscreenOpen}
+			anchorId={anchorId}
+			anchorRef={anchorRef}
+			anchorClassName={anchorId ? 'message-anchor' : undefined}
 		/>
 	)
 }
@@ -115,6 +139,7 @@ function ConversationLiveStatus({
 	error,
 	lastFailedPrompt,
 	onRetryLastFailedPrompt,
+	onReconnectNow,
 	isResearchMode,
 	sessionId,
 	readOnly,
@@ -134,6 +159,7 @@ function ConversationLiveStatus({
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
+	onReconnectNow: () => void
 	isResearchMode: boolean
 	sessionId: string | null
 	readOnly: boolean
@@ -154,7 +180,13 @@ function ConversationLiveStatus({
 
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
-					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} isResearchMode />
+					<SpawnProgressCard
+						agents={spawnProgress}
+						startTime={spawnStartTime}
+						isResearchMode
+						recovery={recovery}
+						onReconnect={onReconnectNow}
+					/>
 				) : (
 					<ToolProgressIndicator
 						toolCalls={activeToolCalls}
@@ -180,15 +212,23 @@ function ConversationLiveStatus({
 				</div>
 			) : null}
 
-			{recovery.status === 'reconnecting' ? (
+			{recovery.status === 'reconnecting' && !(spawnProgress.size > 0 && spawnIsResearchMode) ? (
 				<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
 					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
 					<p className="text-sm text-amber-800 dark:text-amber-200">
 						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
 					</p>
-					<p className="text-xs text-amber-700 dark:text-amber-300">
-						Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
-					</p>
+					<div className="flex items-center justify-between">
+						<p className="text-xs text-amber-700 dark:text-amber-300">
+							Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+						</p>
+						<button
+							onClick={onReconnectNow}
+							className="shrink-0 rounded-md bg-amber-200 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
+						>
+							Reconnect now
+						</button>
+					</div>
 				</div>
 			) : null}
 
@@ -200,7 +240,7 @@ function ConversationLiveStatus({
 							onClick={onRetryLastFailedPrompt}
 							className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
 						>
-							Retry
+							Reconnect
 						</button>
 					) : null}
 				</div>
@@ -229,6 +269,7 @@ export function ConversationView({
 	error,
 	lastFailedPrompt,
 	onRetryLastFailedPrompt,
+	onReconnectNow,
 	scrollContainerRef,
 	messagesEndRef,
 	promptInputRef,
@@ -247,6 +288,67 @@ export function ConversationView({
 	onTableFullscreenOpen
 }: ConversationViewProps) {
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
+	const handledAnchorIdRef = useRef<string | null>(null)
+	const highlightTimeoutRef = useRef<number | null>(null)
+	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
+	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
+
+	useEffect(() => {
+		return () => {
+			pendingScrollHighlightRef.current?.()
+			if (highlightTimeoutRef.current !== null) {
+				window.clearTimeout(highlightTimeoutRef.current)
+				highlightTimeoutRef.current = null
+			}
+			handledAnchorIdRef.current = null
+		}
+	}, [])
+
+	const getAnchorRef = (anchorId?: string): RefCallback<HTMLDivElement> | undefined => {
+		if (!anchorId || anchorId !== targetAnchorId) return undefined
+
+		return (node) => {
+			if (!node || handledAnchorIdRef.current === anchorId) return
+			if (window.location.hash !== `#${anchorId}` || node.id !== anchorId) return
+
+			handledAnchorIdRef.current = anchorId
+			requestAnimationFrame(() => {
+				const container = scrollContainerRef.current
+				let fallbackTimer: number | null = null
+				const applyHighlight = () => {
+					if (fallbackTimer !== null) {
+						window.clearTimeout(fallbackTimer)
+					}
+					container?.removeEventListener('scrollend', applyHighlight)
+					pendingScrollHighlightRef.current = null
+					node.classList.remove('anchor-highlight')
+					void node.offsetWidth
+					node.classList.add('anchor-highlight')
+					if (highlightTimeoutRef.current !== null) {
+						window.clearTimeout(highlightTimeoutRef.current)
+					}
+					highlightTimeoutRef.current = window.setTimeout(() => {
+						node.classList.remove('anchor-highlight')
+						highlightTimeoutRef.current = null
+					}, 2000)
+				}
+
+				pendingScrollHighlightRef.current?.()
+				pendingScrollHighlightRef.current = () => {
+					if (fallbackTimer !== null) {
+						window.clearTimeout(fallbackTimer)
+					}
+					container?.removeEventListener('scrollend', applyHighlight)
+					pendingScrollHighlightRef.current = null
+				}
+
+				container?.addEventListener('scrollend', applyHighlight, { once: true })
+				fallbackTimer = window.setTimeout(applyHighlight, 500)
+				node.scrollIntoView({ behavior: 'smooth', block: 'end' })
+			})
+		}
+	}
+
 	const [initialTailSnapshot] = useState(() => getMessageTailSnapshot(messages))
 	const currentTailSnapshot = getMessageTailSnapshot(messages)
 	const hasTailChangedSinceMount =
@@ -314,6 +416,8 @@ export function ConversationView({
 										isLatestAssistant={message.id === lastAssistantId}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 										onTableFullscreenOpen={onTableFullscreenOpen}
+										anchorId={getMessageAnchorId(message.id)}
+										anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
 									/>
 								)
 							})}
@@ -336,6 +440,8 @@ export function ConversationView({
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 											onTableFullscreenOpen={onTableFullscreenOpen}
+											anchorId={getMessageAnchorId(message.id)}
+											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
 										/>
 									))}
 
@@ -354,6 +460,7 @@ export function ConversationView({
 											error={error}
 											lastFailedPrompt={lastFailedPrompt}
 											onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+											onReconnectNow={onReconnectNow}
 											isResearchMode={isResearchMode}
 											sessionId={sessionId}
 											readOnly={readOnly}
@@ -377,6 +484,7 @@ export function ConversationView({
 									error={error}
 									lastFailedPrompt={lastFailedPrompt}
 									onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+									onReconnectNow={onReconnectNow}
 									isResearchMode={isResearchMode}
 									sessionId={sessionId}
 									readOnly={readOnly}

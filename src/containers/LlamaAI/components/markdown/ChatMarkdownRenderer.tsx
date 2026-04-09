@@ -3,16 +3,15 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
+import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
 /** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
@@ -366,7 +365,7 @@ export function ChatMarkdownRenderer({
 		>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
-				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+				rehypePlugins={SANITIZE_REHYPE_PLUGINS}
 				components={markdownComponents}
 			>
 				{processedData.content}

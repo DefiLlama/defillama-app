@@ -70,7 +70,8 @@ function buildSeries({
 	expandTo100Percent,
 	solidChartAreaStyle,
 	isThemeDark,
-	hallmarks
+	hallmarks,
+	dataset
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
@@ -78,6 +79,7 @@ function buildSeries({
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
 	hallmarks: IMultiSeriesChart2Props['hallmarks']
+	dataset: IMultiSeriesChart2Props['dataset']
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -153,7 +155,24 @@ function buildSeries({
 	}
 
 	if (hallmarks && out.length > 0) {
-		out[0].markLine = buildHallmarksMarkLine({ hallmarks, isThemeDark })
+		// Attach hallmark markLine to the series with the highest max value so that
+		// yAxis:'max' resolves to the tallest series and the line spans the full chart.
+		let targetIdx = 0
+		let bestMax = -Infinity
+		for (let i = 0; i < out.length; i++) {
+			const enc = out[i].encode
+			const yDim = enc?.y
+			if (yDim != null && dataset?.source) {
+				for (const row of dataset.source) {
+					const val = Number(row[yDim])
+					if (val > bestMax) {
+						bestMax = val
+						targetIdx = i
+					}
+				}
+			}
+		}
+		out[targetIdx].markLine = buildHallmarksMarkLine({ hallmarks, isThemeDark })
 	}
 
 	if (someSeriesHasYAxisIndex) {
@@ -546,9 +565,10 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			expandTo100Percent,
 			solidChartAreaStyle,
 			isThemeDark,
-			hallmarks
+			hallmarks,
+			dataset
 		})
-	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts])
+	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts, dataset])
 
 	const seriesSymbols = useMemo(() => {
 		const map = new Map<string, string>()

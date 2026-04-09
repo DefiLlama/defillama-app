@@ -1,3 +1,5 @@
+import type { DashboardItemConfig } from '~/containers/ProDashboard/types'
+
 export interface ChartConfiguration {
 	id: string
 	datasetName?: string
@@ -93,9 +95,21 @@ export interface AlertProposedData {
 		hour: number
 		timezone: string
 		dayOfWeek?: number
+		deliveryChannel?: 'email' | 'telegram'
 	}
 	schedule_expression: string
 	next_run_at: string
+}
+
+export type DashboardItem = DashboardItemConfig
+
+export interface DashboardArtifact {
+	id: string
+	dashboardName: string
+	items: DashboardItem[]
+	timePeriod?: string
+	sourceDashboardId?: string
+	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
 }
 
 export type JsonPrimitive = string | number | boolean | null
@@ -125,6 +139,7 @@ export interface AlertIntent {
 	hour: number
 	timezone: string
 	dayOfWeek?: number
+	deliveryChannel?: 'email' | 'telegram'
 	toolExecutions: Array<{
 		toolName: string
 		arguments: JsonObject
@@ -203,6 +218,7 @@ export interface Message {
 	citations?: string[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
+	dashboards?: DashboardArtifact[]
 	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
 	id?: string
 	timestamp?: number

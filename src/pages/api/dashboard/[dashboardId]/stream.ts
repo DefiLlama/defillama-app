@@ -478,6 +478,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			)
 		}
 
+		// Equities table data — stream companies list, statements, and filings
+		const hasEquitiesCompaniesTable = items.some(
+			(item: any) => item.kind === 'table' && item.datasetType === 'equities'
+		)
+		const equitiesFinancialsItems = items.filter(
+			(item: any) => item.kind === 'table' && item.datasetType === 'equities-financials'
+		)
+		const equitiesFilingsItems = items.filter(
+			(item: any) => item.kind === 'table' && item.datasetType === 'equities-filings'
+		)
+
+		if (hasEquitiesCompaniesTable) {
+			phase2Promises.push(
+				(async () => {
+					const { fetchEquitiesCompanies } = await import('~/containers/Equities/api')
+					const data = await withTimeout(fetchEquitiesCompanies(), 15_000)
+					if (data) {
+						writeLine({ type: 'equitiesCompaniesData', data })
+					}
+				})().catch(() => {})
+			)
+		}
+
+		const seenEquitiesStatementsTickers = new Set<string>()
+		for (const item of equitiesFinancialsItems) {
+			const ticker = (item as any).datasetChain
+			if (ticker && !seenEquitiesStatementsTickers.has(ticker)) {
+				seenEquitiesStatementsTickers.add(ticker)
+				phase2Promises.push(
+					(async () => {
+						const { fetchEquitiesStatements } = await import('~/containers/Equities/api')
+						const data = await withTimeout(fetchEquitiesStatements(ticker), 15_000)
+						if (data) {
+							writeLine({ type: 'equitiesStatementsData', ticker, data })
+						}
+					})().catch(() => {})
+				)
+			}
+		}
+
+		const seenEquitiesFilingsTickers = new Set<string>()
+		for (const item of equitiesFilingsItems) {
+			const ticker = (item as any).datasetChain
+			if (ticker && !seenEquitiesFilingsTickers.has(ticker)) {
+				seenEquitiesFilingsTickers.add(ticker)
+				phase2Promises.push(
+					(async () => {
+						const { fetchEquitiesFilings } = await import('~/containers/Equities/api')
+						const data = await withTimeout(fetchEquitiesFilings(ticker), 15_000)
+						if (data) {
+							writeLine({ type: 'equitiesFilingsData', ticker, data })
+						}
+					})().catch(() => {})
+				)
+			}
+		}
+
 		// Emission data — stream per task
 		const emissionTasks: Array<{
 			key: string

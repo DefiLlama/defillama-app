@@ -4,6 +4,7 @@ import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
+import { sanitizeAlertSummary, sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -18,6 +19,23 @@ interface Alert {
 	enabled: boolean
 	run_count: number
 	created_at: string
+	delivery_channel?: 'email' | 'telegram'
+	condition?: string | null
+}
+
+interface AlertExecution {
+	id: string
+	executed_at: string
+	status: string
+	duration_ms: number
+	chart_count: number
+}
+
+interface AlertExecutionDetail extends AlertExecution {
+	alertTitle: string
+	generated_summary: string | null
+	generated_charts: { id: string; type: string; title: string; url: string }[] | null
+	citations: string[] | null
 }
 
 interface AlertsModalProps {
@@ -27,33 +45,33 @@ interface AlertsModalProps {
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const BLOCKED_HOURS_UTC = [0, 1, 2]
 const GMT_OFFSETS = [
-	{ label: 'GMT-12', value: 'Etc/GMT+12' },
-	{ label: 'GMT-11', value: 'Etc/GMT+11' },
-	{ label: 'GMT-10', value: 'Etc/GMT+10' },
-	{ label: 'GMT-9', value: 'Etc/GMT+9' },
-	{ label: 'GMT-8', value: 'Etc/GMT+8' },
-	{ label: 'GMT-7', value: 'Etc/GMT+7' },
-	{ label: 'GMT-6', value: 'Etc/GMT+6' },
-	{ label: 'GMT-5', value: 'Etc/GMT+5' },
-	{ label: 'GMT-4', value: 'Etc/GMT+4' },
-	{ label: 'GMT-3', value: 'Etc/GMT+3' },
-	{ label: 'GMT-2', value: 'Etc/GMT+2' },
-	{ label: 'GMT-1', value: 'Etc/GMT+1' },
-	{ label: 'GMT+0 (UTC)', value: 'UTC' },
-	{ label: 'GMT+1', value: 'Etc/GMT-1' },
-	{ label: 'GMT+2', value: 'Etc/GMT-2' },
-	{ label: 'GMT+3', value: 'Etc/GMT-3' },
-	{ label: 'GMT+4', value: 'Etc/GMT-4' },
-	{ label: 'GMT+5', value: 'Etc/GMT-5' },
-	{ label: 'GMT+6', value: 'Etc/GMT-6' },
-	{ label: 'GMT+7', value: 'Etc/GMT-7' },
-	{ label: 'GMT+8', value: 'Etc/GMT-8' },
-	{ label: 'GMT+9', value: 'Etc/GMT-9' },
-	{ label: 'GMT+10', value: 'Etc/GMT-10' },
-	{ label: 'GMT+11', value: 'Etc/GMT-11' },
-	{ label: 'GMT+12', value: 'Etc/GMT-12' },
-	{ label: 'GMT+13', value: 'Etc/GMT-13' },
-	{ label: 'GMT+14', value: 'Etc/GMT-14' }
+	{ label: 'UTC-12', value: 'Etc/GMT+12' },
+	{ label: 'UTC-11', value: 'Etc/GMT+11' },
+	{ label: 'UTC-10', value: 'Etc/GMT+10' },
+	{ label: 'UTC-9', value: 'Etc/GMT+9' },
+	{ label: 'UTC-8', value: 'Etc/GMT+8' },
+	{ label: 'UTC-7', value: 'Etc/GMT+7' },
+	{ label: 'UTC-6', value: 'Etc/GMT+6' },
+	{ label: 'UTC-5', value: 'Etc/GMT+5' },
+	{ label: 'UTC-4', value: 'Etc/GMT+4' },
+	{ label: 'UTC-3', value: 'Etc/GMT+3' },
+	{ label: 'UTC-2', value: 'Etc/GMT+2' },
+	{ label: 'UTC-1', value: 'Etc/GMT+1' },
+	{ label: 'UTC', value: 'UTC' },
+	{ label: 'UTC+1', value: 'Etc/GMT-1' },
+	{ label: 'UTC+2', value: 'Etc/GMT-2' },
+	{ label: 'UTC+3', value: 'Etc/GMT-3' },
+	{ label: 'UTC+4', value: 'Etc/GMT-4' },
+	{ label: 'UTC+5', value: 'Etc/GMT-5' },
+	{ label: 'UTC+6', value: 'Etc/GMT-6' },
+	{ label: 'UTC+7', value: 'Etc/GMT-7' },
+	{ label: 'UTC+8', value: 'Etc/GMT-8' },
+	{ label: 'UTC+9', value: 'Etc/GMT-9' },
+	{ label: 'UTC+10', value: 'Etc/GMT-10' },
+	{ label: 'UTC+11', value: 'Etc/GMT-11' },
+	{ label: 'UTC+12', value: 'Etc/GMT-12' },
+	{ label: 'UTC+13', value: 'Etc/GMT-13' },
+	{ label: 'UTC+14', value: 'Etc/GMT-14' }
 ]
 const ALERTS_QUERY_KEY = 'llamaai-alerts'
 
@@ -188,7 +206,7 @@ const getTimezoneLabel = (timezone: string): string => {
 		const parts = formatter.formatToParts(now)
 		const tzPart = parts.find((p) => p.type === 'timeZoneName')
 		if (tzPart?.value) {
-			return tzPart.value.replace('GMT', 'GMT+').replace('+-', '-').replace('++', '+')
+			return tzPart.value.replace('GMT', 'UTC')
 		}
 	} catch {}
 	return timezone
@@ -290,29 +308,75 @@ interface AlertRowProps {
 const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const { authorizedFetch, user } = useAuthContext()
 	const queryClient = useQueryClient()
-	const [title, setTitle] = useState(alert.title)
+	const parsedSchedule = parseScheduleExpression(alert.schedule_expression)
+	const initialTimezone = parsedSchedule.timezone ?? getUserTimezone()
+	const deliveryChannelId = `alert-delivery-channel-${alert.id}`
+	const conditionId = `alert-condition-${alert.id}`
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(
 		alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily'
 	)
-	const parsedSchedule = parseScheduleExpression(alert.schedule_expression)
-	const initialTimezone = parsedSchedule.timezone ?? getUserTimezone()
 	const [timezone, setTimezone] = useState(() => initialTimezone)
-	const [hour, setHour] = useState(() => {
-		const initialHour = parsedSchedule.hour ?? 9
-		return getValidHourForTimezone(initialHour, initialTimezone)
-	})
-	const [dayOfWeek, setDayOfWeek] = useState(() => {
-		return parsedSchedule.dayOfWeek ?? 1
-	})
-	const [isEditing, setIsEditing] = useState(false)
-	const [isDeleting, setIsDeleting] = useState(false)
+	const [hourDefault, setHourDefault] = useState(() =>
+		getValidHourForTimezone(parsedSchedule.hour ?? 9, initialTimezone)
+	)
+	const [mode, setMode] = useState<'view' | 'editing' | 'deleting'>('view')
+	const [showExecutions, setShowExecutions] = useState(false)
+	const [selectedExecId, setSelectedExecId] = useState<string | null>(null)
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const blockedHours = getBlockedLocalHours(timezone)
 
+	const executionsQuery = useQuery<AlertExecution[]>({
+		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions'],
+		queryFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions`)
+			if (!res?.ok) throw new Error('Failed to fetch executions')
+			const data = await res.json()
+			return data.executions ?? []
+		},
+		enabled: showExecutions && !!authorizedFetch
+	})
+
+	const execDetailQuery = useQuery<AlertExecutionDetail>({
+		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions', selectedExecId],
+		queryFn: async () => {
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions/${selectedExecId}`)
+			if (!res?.ok) throw new Error('Failed to fetch execution detail')
+			return res.json()
+		},
+		enabled: !!selectedExecId && !!authorizedFetch
+	})
+
+	const handleToggleExecutions = () => {
+		const next = !showExecutions
+		setShowExecutions(next)
+		if (!next) setSelectedExecId(null)
+	}
+
 	const handleTimezoneChange = (nextTimezone: string) => {
 		setTimezone(nextTimezone)
-		setHour((currentHour) => getValidHourForTimezone(currentHour, nextTimezone))
+		setHourDefault((current) => getValidHourForTimezone(current, nextTimezone))
+	}
+
+	const resetEditingState = () => {
+		const nextParsedSchedule = parseScheduleExpression(alert.schedule_expression)
+		const nextTimezone = nextParsedSchedule.timezone ?? getUserTimezone()
+		setFrequency(alert.schedule_expression.includes('Weekly') ? 'weekly' : 'daily')
+		setTimezone(nextTimezone)
+		setHourDefault(getValidHourForTimezone(nextParsedSchedule.hour ?? 9, nextTimezone))
+	}
+
+	const getConditionUpdate = (nextCondition: string) => {
+		const trimmedCondition = nextCondition.trim()
+		if (trimmedCondition) {
+			return { shouldInclude: true, value: trimmedCondition }
+		}
+
+		if (typeof alert.condition !== 'undefined') {
+			return { shouldInclude: true, value: null }
+		}
+
+		return { shouldInclude: false, value: null }
 	}
 
 	const toggleAlertMutation = useMutation<
@@ -382,7 +446,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 		},
 		onSuccess: () => {
-			setIsDeleting(false)
+			switchMode('view')
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
@@ -396,26 +460,35 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
+			condition: string
 		}
 	>({
 		mutationFn: async ({
 			alertId,
 			title: nextTitle,
-			alertConfig
+			alertConfig,
+			delivery_channel,
+			condition: nextCondition
 		}: {
 			alertId: string
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
+			delivery_channel: 'email' | 'telegram'
+			condition: string
 		}) => {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
+			const conditionUpdate = getConditionUpdate(nextCondition)
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					title: nextTitle,
-					alertConfig
+					alertConfig,
+					delivery_channel,
+					...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
 				})
 			})
 			if (!res) throw new Error('Not authenticated')
@@ -424,7 +497,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 			return alertConfig
 		},
-		onSuccess: (_data, { alertId, title: nextTitle, alertConfig }) => {
+		onSuccess: (_data, { alertId, title: nextTitle, alertConfig, delivery_channel, condition: nextCondition }) => {
+			const conditionUpdate = getConditionUpdate(nextCondition)
 			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
@@ -433,15 +507,33 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
 				if (!old) return []
 				return old.map((item) =>
-					item.id === alertId ? { ...item, title: nextTitle, schedule_expression: newExpression } : item
+					item.id === alertId
+						? {
+								...item,
+								title: nextTitle,
+								schedule_expression: newExpression,
+								delivery_channel,
+								...(conditionUpdate.shouldInclude ? { condition: conditionUpdate.value } : {})
+							}
+						: item
 				)
 			})
-			setIsEditing(false)
+			switchMode('view')
 		},
 		onSettled: () => {
 			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
+
+	const switchMode = (next: 'view' | 'editing' | 'deleting') => {
+		toggleAlertMutation.reset()
+		updateAlertMutation.reset()
+		deleteAlertMutation.reset()
+		if (next === 'editing') {
+			resetEditingState()
+		}
+		setMode(next)
+	}
 
 	const toggleErrorMessage = toggleAlertMutation.error?.message
 	const updateErrorMessage = updateAlertMutation.error?.message
@@ -459,19 +551,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		return 'soon'
 	}
 
-	if (isDeleting) {
+	if (mode === 'deleting') {
 		return (
 			<div className="flex flex-col gap-2 border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 				<div className="flex items-center justify-between gap-3">
 					<p className="text-sm text-[#666] dark:text-[#919296]">Delete "{alert.title}"?</p>
 					<div className="flex gap-2">
 						<button
-							onClick={() => {
-								toggleAlertMutation.reset()
-								updateAlertMutation.reset()
-								deleteAlertMutation.reset()
-								setIsDeleting(false)
-							}}
+							onClick={() => switchMode('view')}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#f7f7f7] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel
@@ -489,6 +576,91 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		)
 	}
 
+	const formatExecDate = (iso: string) => {
+		const d = new Date(iso)
+		return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+	}
+
+	const formatDuration = (ms: number) => (ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(1)}s`)
+
+	const channelLabel = (alert.delivery_channel || 'email') === 'telegram' ? 'Telegram' : 'Email'
+
+	const selectedExec = execDetailQuery.data
+	if (selectedExec) {
+		const charts = selectedExec.generated_charts || []
+		return (
+			<div className="border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+				<button
+					onClick={() => setSelectedExecId(null)}
+					className="mb-3 flex items-center gap-1 text-xs text-[#2172E5] hover:underline"
+				>
+					<Icon name="arrow-left" className="h-3 w-3" />
+					Back to executions
+				</button>
+				<div className="mb-2 flex items-center justify-between">
+					<span className="text-xs text-[#666] dark:text-[#919296]">{formatExecDate(selectedExec.executed_at)}</span>
+					<span
+						className={`rounded px-1.5 py-0.5 text-[10px] ${selectedExec.status === 'success' || selectedExec.status === 'test' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-500'}`}
+					>
+						{selectedExec.status}
+					</span>
+				</div>
+				{selectedExec.generated_summary ? (
+					<div
+						className="prose prose-sm max-w-none text-sm text-black dark:text-white dark:prose-invert [&_img]:my-2 [&_img]:max-w-full [&_img]:rounded-lg"
+						dangerouslySetInnerHTML={{
+							__html: sanitizeAlertSummary(selectedExec.generated_summary, charts)
+						}}
+					/>
+				) : (
+					<p className="text-xs text-[#999]">No content available.</p>
+				)}
+				{charts.length > 0
+					? charts
+							.filter((c) => sanitizeUrl(c.url) && !selectedExec.generated_summary?.includes(`[CHART:${c.id}]`))
+							.map((c) => (
+								<img
+									key={c.id}
+									src={sanitizeUrl(c.url)!}
+									alt={c.title || 'Chart'}
+									className="my-2 max-w-full rounded-lg"
+								/>
+							))
+					: null}
+				{selectedExec.citations?.length ? (
+					<div className="mt-3 border-t border-[#e6e6e6] pt-2 dark:border-[#333]">
+						<p className="mb-1 text-[10px] font-medium text-[#999]">Sources</p>
+						<ol className="list-decimal pl-4">
+							{selectedExec.citations.map((url) => {
+								const sanitizedCitationUrl = sanitizeUrl(url)
+								const hostname = sanitizedCitationUrl
+									? new URL(sanitizedCitationUrl).hostname.replace('www.', '')
+									: null
+
+								return (
+									<li key={url} className="text-[10px]">
+										{sanitizedCitationUrl ? (
+											<a
+												href={sanitizedCitationUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-[#2172E5] hover:underline"
+											>
+												{hostname || sanitizedCitationUrl}
+											</a>
+										) : (
+											<span className="break-all text-[#666] dark:text-[#919296]">{url}</span>
+										)}
+									</li>
+								)
+							})}
+						</ol>
+					</div>
+				) : null}
+			</div>
+		)
+	}
+
 	return (
 		<div className="border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 			<div className="flex items-start justify-between gap-3">
@@ -501,31 +673,38 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					</div>
 					<p className="mt-0.5 text-xs text-[#666] dark:text-[#919296]">
 						{formatScheduleExpression(alert.schedule_expression)}
+						<span className="ml-1.5 inline-flex items-center gap-1 rounded bg-[#f0f0f0] px-1.5 py-0.5 text-[10px] dark:bg-[#333]">
+							{channelLabel}
+						</span>
 					</p>
+					{alert.condition ? (
+						<p className="mt-0.5 truncate text-[10px] text-amber-600 dark:text-amber-400">
+							Condition: {alert.condition}
+						</p>
+					) : null}
 					<p className="mt-1 text-[10px] text-[#999] dark:text-[#666]">
 						{alert.enabled ? `Next run ${formatNextRun(alert.next_run_at)}` : 'Paused'} · {alert.run_count} runs
 					</p>
 				</div>
 				<div className="flex shrink-0 items-center gap-1">
+					{alert.run_count > 0 ? (
+						<button
+							onClick={handleToggleExecutions}
+							className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${showExecutions ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+							title="View history"
+						>
+							<Icon name="clock" className="h-3.5 w-3.5" />
+						</button>
+					) : null}
 					<button
-						onClick={() => {
-							toggleAlertMutation.reset()
-							updateAlertMutation.reset()
-							deleteAlertMutation.reset()
-							setIsEditing((current) => !current)
-						}}
-						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${isEditing ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
+						onClick={() => switchMode(mode === 'editing' ? 'view' : 'editing')}
+						className={`flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#333] dark:hover:text-white ${mode === 'editing' ? 'bg-[#f7f7f7] text-black dark:bg-[#333] dark:text-white' : ''}`}
 						title="Edit"
 					>
 						<Icon name="pencil" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={() => {
-							toggleAlertMutation.reset()
-							updateAlertMutation.reset()
-							deleteAlertMutation.reset()
-							setIsDeleting(true)
-						}}
+						onClick={() => switchMode('deleting')}
 						className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] hover:bg-red-500/10 hover:text-red-500 dark:text-[#919296]"
 						title="Delete"
 					>
@@ -546,19 +725,91 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				</div>
 			</div>
 
-			{toggleErrorMessage && !isEditing ? <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p> : null}
+			{toggleErrorMessage && mode !== 'editing' ? (
+				<p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p>
+			) : null}
 
-			{isEditing ? (
-				<div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
+			{showExecutions ? (
+				<div className="mt-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
+					<p className="mb-2 text-xs font-medium text-[#666] dark:text-[#919296]">Execution History</p>
+					{executionsQuery.isLoading ? (
+						<div className="flex justify-center py-4">
+							<LoadingSpinner size={16} />
+						</div>
+					) : executionsQuery.isError ? (
+						<p className="text-center text-xs text-red-500">
+							{executionsQuery.error.message || 'Failed to load executions.'}
+						</p>
+					) : !executionsQuery.data || executionsQuery.data.length === 0 ? (
+						<p className="text-center text-xs text-[#999]">No executions yet.</p>
+					) : (
+						<div className="flex flex-col gap-1">
+							{executionsQuery.data.map((exec) => (
+								<button
+									key={exec.id}
+									onClick={() => setSelectedExecId(exec.id)}
+									disabled={execDetailQuery.isLoading}
+									className="flex items-center justify-between rounded-md px-2 py-1.5 text-left hover:bg-white dark:hover:bg-[#222]"
+								>
+									<div>
+										<span className="text-xs text-black dark:text-white">{formatExecDate(exec.executed_at)}</span>
+										<span className="ml-2 text-[10px] text-[#999]">{formatDuration(exec.duration_ms)}</span>
+									</div>
+									<span
+										className={`rounded px-1.5 py-0.5 text-[10px] ${exec.status === 'success' || exec.status === 'test' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-red-500/10 text-red-500'}`}
+									>
+										{exec.status}
+									</span>
+								</button>
+							))}
+						</div>
+					)}
+					{execDetailQuery.isLoading ? (
+						<div className="mt-2 flex justify-center">
+							<LoadingSpinner size={16} />
+						</div>
+					) : execDetailQuery.isError ? (
+						<p className="mt-2 text-xs text-red-500">
+							{execDetailQuery.error.message || 'Failed to load execution detail.'}
+						</p>
+					) : null}
+				</div>
+			) : null}
+
+			{mode === 'editing' ? (
+				<form
+					onSubmit={(e) => {
+						e.preventDefault()
+						const fd = new FormData(e.currentTarget)
+						const titleValue = (fd.get('title') as string).trim()
+						if (!titleValue) return
+						trackUmamiEvent('llamaai-alert-edit')
+						updateAlertMutation.mutate({
+							alertId: alert.id,
+							title: titleValue,
+							alertConfig: {
+								frequency: fd.get('frequency') as 'daily' | 'weekly',
+								hour: Number(fd.get('hour')),
+								dayOfWeek: Number(fd.get('dayOfWeek')),
+								timezone: fd.get('timezone') as string
+							},
+							delivery_channel: fd.get('delivery_channel') as 'email' | 'telegram',
+							condition: fd.get('condition') as string
+						})
+					}}
+					className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]"
+				>
 					<input
-						value={title}
-						onChange={(e) => setTitle(e.target.value)}
+						name="title"
+						defaultValue={alert.title}
+						required
 						placeholder="Alert title"
 						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 					/>
 					<div className="flex flex-wrap items-center gap-2">
 						<select
-							value={frequency}
+							name="frequency"
+							defaultValue={frequency}
 							onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
@@ -567,8 +818,8 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</select>
 						{frequency === 'weekly' ? (
 							<select
-								value={dayOfWeek}
-								onChange={(e) => setDayOfWeek(Number(e.target.value))}
+								name="dayOfWeek"
+								defaultValue={parsedSchedule.dayOfWeek ?? 1}
 								className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 							>
 								{DAYS_OF_WEEK.map((day, idx) => (
@@ -577,22 +828,26 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 									</option>
 								))}
 							</select>
-						) : null}
+						) : (
+							<input type="hidden" name="dayOfWeek" value={1} />
+						)}
 						<span className="text-sm text-(--text3)">at</span>
 						<select
 							key={`hour-${timezone}`}
-							value={hour}
-							onChange={(e) => setHour(Number(e.target.value))}
+							name="hour"
+							defaultValue={hourDefault}
+							onChange={(e) => setHourDefault(Number(e.target.value))}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
-							{Array.from({ length: 24 }, (_, i) => (
-								<option key={`hour-${i}`} value={i} disabled={blockedHours.includes(i)}>
-									{i.toString().padStart(2, '0')}:00{blockedHours.includes(i) ? ' (blocked)' : ''}
+							{Array.from({ length: 24 }, (_, h) => (
+								<option key={h} value={h} disabled={blockedHours.includes(h)}>
+									{h.toString().padStart(2, '0')}:00{blockedHours.includes(h) ? ' (blocked)' : ''}
 								</option>
 							))}
 						</select>
 						<select
-							value={timezone}
+							name="timezone"
+							defaultValue={timezone}
 							onChange={(e) => handleTimezoneChange(e.target.value)}
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
@@ -603,28 +858,43 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							))}
 						</select>
 					</div>
+					<div className="flex items-center gap-2">
+						<label htmlFor={deliveryChannelId} className="text-sm text-(--text3)">
+							Deliver via
+						</label>
+						<select
+							id={deliveryChannelId}
+							name="delivery_channel"
+							defaultValue={alert.delivery_channel || 'email'}
+							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+						>
+							<option value="email">Email</option>
+							<option value="telegram">Telegram</option>
+						</select>
+					</div>
+					<div className="flex flex-col gap-1">
+						<label htmlFor={conditionId} className="text-sm text-(--text3)">
+							Condition
+						</label>
+						<input
+							id={conditionId}
+							name="condition"
+							defaultValue={alert.condition || ''}
+							placeholder="Condition (e.g. only send if TVL drops below $1B)"
+							className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
+						/>
+					</div>
 					<div className="flex justify-end gap-2">
 						<button
-							onClick={() => {
-								toggleAlertMutation.reset()
-								updateAlertMutation.reset()
-								deleteAlertMutation.reset()
-								setIsEditing(false)
-							}}
+							type="button"
+							onClick={() => switchMode('view')}
 							className="rounded-md px-3 py-1.5 text-xs text-[#666] hover:bg-[#eee] dark:text-[#919296] dark:hover:bg-[#333]"
 						>
 							Cancel
 						</button>
 						<button
-							onClick={() => {
-								trackUmamiEvent('llamaai-alert-edit')
-								updateAlertMutation.mutate({
-									alertId: alert.id,
-									title,
-									alertConfig: { frequency, hour, dayOfWeek, timezone }
-								})
-							}}
-							disabled={updateAlertMutation.isPending || !title.trim()}
+							type="submit"
+							disabled={updateAlertMutation.isPending}
 							className="flex items-center gap-1.5 rounded-md bg-[#2172E5] px-3 py-1.5 text-xs text-white hover:bg-[#1a5cc7] disabled:opacity-50"
 						>
 							{updateAlertMutation.isPending ? (
@@ -636,7 +906,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</button>
 					</div>
 					{updateErrorMessage ? <p className="text-center text-xs text-red-500">{updateErrorMessage}</p> : null}
-				</div>
+				</form>
 			) : null}
 		</div>
 	)

@@ -48,12 +48,16 @@ function PlanGridBottomOutline({ left, width }: { left: number; width: number })
 
 /* ── ComparisonPlanHead ────────────────────────────────────────────── */
 
+const PLAN_TIER: Record<PlanKey, number> = { free: 0, pro: 1, api: 2, enterprise: 3 }
+
 function ComparisonPlanHead({
 	plan,
 	billingCycle,
 	isFirst,
 	isLast,
 	isSelected,
+	isCurrentPlan,
+	isLowerTier,
 	onAction
 }: {
 	plan: PlanKey
@@ -61,6 +65,8 @@ function ComparisonPlanHead({
 	isFirst: boolean
 	isLast: boolean
 	isSelected: boolean
+	isCurrentPlan: boolean
+	isLowerTier: boolean
 	onAction?: (plan: PlanKey) => void
 }) {
 	const meta = PLAN_META_BY_CYCLE[billingCycle][plan]
@@ -92,13 +98,19 @@ function ComparisonPlanHead({
 						) : null}
 					</div>
 				</div>
-				<button
-					type="button"
-					className={`h-7 rounded-[6px] border px-2 text-[10px] leading-3 md:h-8 md:rounded-lg md:text-xs ${btnStyle}`}
-					onClick={() => onAction?.(plan)}
-				>
-					{meta.action}
-				</button>
+				{isCurrentPlan || isLowerTier ? (
+					<p className="text-center text-[10px] leading-7 font-medium text-(--sub-brand-primary) md:text-xs dark:text-(--sub-brand-secondary)">
+						{isCurrentPlan ? 'Current Plan' : 'Unlocked'}
+					</p>
+				) : (
+					<button
+						type="button"
+						className={`h-7 rounded-[6px] border px-2 text-[10px] leading-3 md:h-8 md:rounded-lg md:text-xs ${btnStyle}`}
+						onClick={() => onAction?.(plan)}
+					>
+						{meta.action}
+					</button>
+				)}
 			</div>
 		</div>
 	)
@@ -141,12 +153,14 @@ export function SubscriptionComparisonSection({
 	comparisonSections,
 	billingCycle,
 	selectedPlan,
+	currentPlan = null,
 	onPlanAction
 }: {
 	planOrder: PlanKey[]
 	comparisonSections: ComparisonSection[]
 	billingCycle: BillingCycle
 	selectedPlan: PlanKey
+	currentPlan?: PlanKey | null
 	onPlanAction?: (plan: PlanKey) => void
 }) {
 	const bodyScrollRef = useRef<HTMLDivElement>(null)
@@ -216,6 +230,10 @@ export function SubscriptionComparisonSection({
 											isFirst={index === 0}
 											isLast={index === planOrder.length - 1}
 											isSelected={plan === selectedPlan}
+											isCurrentPlan={plan === currentPlan}
+											isLowerTier={
+												currentPlan != null && currentPlan !== 'free' && PLAN_TIER[plan] < PLAN_TIER[currentPlan]
+											}
 											onAction={onPlanAction}
 										/>
 									))}
@@ -308,6 +326,7 @@ export function SubscriptionComparisonSection({
 																isSelected={plan === selectedPlan}
 																hideBorderLeft={prevPlan === selectedPlan}
 																className={`${rowCellDividerClassName} ${lastRowCls}`.trim() || undefined}
+																tooltip={row.tooltips?.[plan]}
 															/>
 														)
 													})}

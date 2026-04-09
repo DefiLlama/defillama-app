@@ -20,7 +20,6 @@ import {
 	consumePendingSuggestedFlag
 } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
-import { MCP_SERVER } from '~/constants'
 import { LlamaAIChromeContext, useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
 import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
@@ -36,6 +35,11 @@ import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingSta
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import {
+	isTemporaryConnectivityError,
+	RECOVERY_ATTEMPT_DELAYS_MS,
+	RECOVERY_GRACE_MS
+} from '~/containers/LlamaAI/connectionErrors'
+import {
 	checkActiveExecution,
 	fetchAgenticResponse,
 	resumeAgenticStream,
@@ -43,6 +47,7 @@ import {
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
+import { useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -59,8 +64,14 @@ import {
 	type StreamBuffer,
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
-import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
+import type {
+	AlertProposedData,
+	ChartConfiguration,
+	DashboardArtifact,
+	DashboardItem,
+	Message,
+	ToolExecution
+} from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -70,6 +81,10 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
+const DashboardPanel = lazy(() =>
+	import('~/containers/LlamaAI/components/DashboardPanel').then((m) => ({ default: m.DashboardPanel }))
+)
+
 interface PersistedAlertIntent {
 	frequency?: 'daily' | 'weekly'
 	hour?: number
@@ -77,6 +92,7 @@ interface PersistedAlertIntent {
 	dayOfWeek?: number
 	dataQuery?: string
 	title?: string
+	deliveryChannel?: 'email' | 'telegram'
 }
 
 interface PersistedToolExecution extends ToolExecution {
@@ -90,6 +106,13 @@ interface PersistedMessageMetadata {
 	savedAlertId?: string
 	savedAlertIds?: string[]
 	quotedText?: string
+	dashboardConfig?: {
+		dashboardName?: string
+		items?: DashboardItem[]
+		timePeriod?: string
+		sourceDashboardId?: string
+	}
+	deliveryChannel?: 'email' | 'telegram'
 }
 
 interface PersistedMessage {
@@ -145,19 +168,6 @@ interface UsageLimitError extends Error {
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
-const RECOVERY_GRACE_MS = 20000
-const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 2000, 4000, 8000, 14000] as const
-const CONNECTIVITY_ERROR_PATTERNS = [
-	'failed to fetch',
-	'networkerror',
-	'network error',
-	'load failed',
-	'err_network_changed',
-	'network changed',
-	'err_name_not_resolved',
-	'name not resolved',
-	'stream heartbeat timeout'
-] as const
 
 type RecoveryController = {
 	id: number
@@ -173,18 +183,75 @@ type RecoveryController = {
 	streamAttached: boolean
 }
 
+type DashboardPanelState = {
+	isOpen: boolean
+	mountedConfig: DashboardArtifact | null
+	versions: DashboardArtifact[]
+	versionIndex: number
+}
+
+type DashboardPanelAction =
+	| { type: 'APPEND'; value: DashboardArtifact }
+	| { type: 'RESTORE'; value: DashboardArtifact[] }
+	| { type: 'RESET' }
+	| { type: 'TOGGLE' }
+	| { type: 'SELECT_VERSION'; value: number }
+	| { type: 'CLOSE' }
+	| { type: 'UNMOUNT' }
+
+const INITIAL_DASHBOARD_PANEL_STATE: DashboardPanelState = {
+	isOpen: false,
+	mountedConfig: null,
+	versions: [],
+	versionIndex: 0
+}
+
+function dashboardPanelReducer(state: DashboardPanelState, action: DashboardPanelAction): DashboardPanelState {
+	switch (action.type) {
+		case 'APPEND': {
+			const versions = [...state.versions, action.value]
+			return {
+				isOpen: true,
+				mountedConfig: action.value,
+				versions,
+				versionIndex: versions.length - 1
+			}
+		}
+		case 'RESTORE':
+			return {
+				isOpen: false,
+				mountedConfig: null,
+				versions: action.value,
+				versionIndex: action.value.length > 0 ? action.value.length - 1 : 0
+			}
+		case 'RESET':
+			return INITIAL_DASHBOARD_PANEL_STATE
+		case 'TOGGLE':
+			return {
+				...state,
+				isOpen: !state.isOpen,
+				mountedConfig: state.isOpen ? state.mountedConfig : (state.versions[state.versionIndex] ?? null)
+			}
+		case 'SELECT_VERSION':
+			if (action.value < 0 || action.value >= state.versions.length) return state
+			return {
+				...state,
+				mountedConfig: state.isOpen ? (state.versions[action.value] ?? null) : state.mountedConfig,
+				versionIndex: action.value
+			}
+		case 'CLOSE':
+			return { ...state, isOpen: false }
+		case 'UNMOUNT':
+			if (state.isOpen) return state
+			return { ...state, mountedConfig: null }
+		default:
+			return state
+	}
+}
+
 function getErrorMessage(error: unknown): string {
 	if (error instanceof Error) return error.message
 	return String(error)
-}
-
-function isTemporaryConnectivityError(error: unknown): boolean {
-	if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-		return true
-	}
-
-	const message = getErrorMessage(error).toLowerCase()
-	return CONNECTIVITY_ERROR_PATTERNS.some((pattern) => message.includes(pattern))
 }
 
 // Normalize older persisted tool payloads that may still use `toolName`.
@@ -197,6 +264,7 @@ function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 
 // Convert a persisted API message into the UI message shape used by the chat view.
 function mapPersistedMessage(message: PersistedMessage): Message {
+	const dashboardConfig = message.metadata?.dashboardConfig
 	return {
 		role: message.role,
 		content: message.content,
@@ -204,6 +272,41 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
+		dashboards: dashboardConfig
+			? [
+					(() => {
+						const restoredDashboardIdSuffix =
+							message.messageId ??
+							(typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+								? crypto.randomUUID()
+								: `unknown_${Date.now()}_${Math.random().toString(36).slice(2)}`)
+						const artifact: DashboardArtifact = {
+							id: `dashboard_restored_${restoredDashboardIdSuffix}`,
+							dashboardName: dashboardConfig.dashboardName || 'Dashboard',
+							items: dashboardConfig.items ?? [],
+							timePeriod: dashboardConfig.timePeriod,
+							sourceDashboardId: dashboardConfig.sourceDashboardId
+						}
+						const chartRefs = (dashboardConfig.items ?? []).filter(
+							(item): item is Extract<DashboardItem, { kind: 'llamaai-chart' }> & { chartRef: string } =>
+								item.kind === 'llamaai-chart' && typeof item.chartRef === 'string'
+						)
+						if (chartRefs.length > 0 && message.chartData && message.charts) {
+							const chartConfigMap = new Map(message.charts.map((chart) => [chart.id, chart]))
+							const bundled: NonNullable<DashboardArtifact['chartData']> = {}
+							for (const item of chartRefs) {
+								const data = (message.chartData as Record<string, unknown[]>)[item.chartRef]
+								const config = chartConfigMap.get(item.chartRef)
+								if (data && config) {
+									bundled[item.chartRef] = { config, data, toolChain: [] }
+								}
+							}
+							if (Object.keys(bundled).length > 0) artifact.chartData = bundled
+						}
+						return artifact
+					})()
+				]
+			: undefined,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
 			metadata: message.metadata,
@@ -317,7 +420,8 @@ function buildRestoredAlerts({
 				frequency: metadata.alertIntent.frequency || 'daily',
 				hour: metadata.alertIntent.hour ?? 9,
 				timezone: metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: metadata.alertIntent.dayOfWeek
+				dayOfWeek: metadata.alertIntent.dayOfWeek,
+				deliveryChannel: metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
 			},
 			schedule_expression: '',
 			next_run_at: ''
@@ -357,6 +461,7 @@ function appendBufferedAssistantMessage(
 		buffer.charts.length > 0 ||
 		buffer.csvExports.length > 0 ||
 		buffer.alerts.length > 0 ||
+		buffer.dashboards.length > 0 ||
 		buffer.citations.length > 0 ||
 		buffer.toolExecutions.length > 0 ||
 		buffer.thinking
@@ -427,6 +532,7 @@ function createAgenticCallbacks({
 	onSessionId,
 	onTitle,
 	onTokenLimit,
+	onDashboardArtifact,
 	appendMessage,
 	notify
 }: {
@@ -439,6 +545,7 @@ function createAgenticCallbacks({
 	onSessionId?: (sessionId: string) => void
 	onTitle?: (title: string) => void
 	onTokenLimit?: () => void
+	onDashboardArtifact?: (dashboard: DashboardArtifact) => void
 	appendMessage: (message: Message) => void
 	notify: () => void
 }): AgenticSSECallbacks {
@@ -468,6 +575,12 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.alerts.push(data)
 			dispatch({ type: 'APPEND_ALERT', value: data })
+		},
+		onDashboard: (dashboard) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.dashboards.push(dashboard)
+			dispatch({ type: 'APPEND_DASHBOARD', value: dashboard })
+			onDashboardArtifact?.(dashboard)
 		},
 		onCitations: (citations) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -552,6 +665,7 @@ function createAgenticCallbacks({
 
 export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+	const isMobileChatView = useMedia('(max-width: 1023px)')
 
 	const getAuthorizedFetchInput = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
 		if (!(input instanceof Request)) {
@@ -599,13 +713,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[authorizedFetch, getAuthorizedFetchInput]
 	)
 	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
-	const authorizedFetchStrict = useCallback<typeof fetch>(
-		async (input, init) => {
-			const request = getAuthorizedFetchInput(input, init)
-			return assertResponse(await authorizedFetch(request.url, request.init), 'Authorized request failed')
-		},
-		[authorizedFetch, getAuthorizedFetchInput]
-	)
 	const isLlama = !!user?.flags?.is_llama
 	const {
 		sessions,
@@ -642,16 +749,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [quotedText, setQuotedText] = useState<string | null>(null)
+	const [
+		{
+			isOpen: dashboardPanelIsOpen,
+			mountedConfig: dashboardPanelMountedConfig,
+			versions: dashboardVersions,
+			versionIndex: dashboardVersionIndex
+		},
+		dispatchDashboardPanel
+	] = useReducer(dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
-	const [customInstructions, setCustomInstructions] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
-	)
-	const [enableMemory, setEnableMemory] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
-	)
-	const [hackerMode, setHackerMode] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
-	)
+	const { settings, actions } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -710,7 +818,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
 	const effectiveMessages = sharedMessages ?? messages
 	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
-	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
+	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
+	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
 	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
@@ -718,6 +827,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 	const shouldAnimateConversationTransition =
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+	const shouldStartDetachedForAnchor =
+		Boolean(sharedSession) && readOnly && typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
+
+	useEffect(() => {
+		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
+		return () => clearTimeout(timer)
+	}, [dashboardPanelIsOpen, dashboardPanelMountedConfig])
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -777,30 +893,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingToolExecutions
 	])
 
-	// Hydrate per-user settings once auth is ready.
-	useEffect(() => {
-		if (!user) return
-		authorizedFetchStrict(`${MCP_SERVER}/user-settings`)
-			.then((res) => (res.ok ? res.json() : null))
-			.then((data) => {
-				const serverValue = data?.settings?.customInstructions
-				if (typeof serverValue === 'string') {
-					setCustomInstructions(serverValue)
-					localStorage.setItem('llamaai-custom-instructions', serverValue)
-				}
-				if (typeof data?.settings?.enableMemory === 'boolean') {
-					setEnableMemory(data.settings.enableMemory)
-					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
-				}
-				if (typeof data?.settings?.hackerMode === 'boolean') {
-					setHackerMode(data.settings.hackerMode)
-					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
-					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
-				}
-			})
-			.catch(() => {})
-	}, [user, authorizedFetchStrict])
-
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || isStreaming) return
@@ -854,7 +946,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		hasMessages,
 		paginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
-		keyboardOpen
+		keyboardOpen,
+		startDetached: shouldStartDetachedForAnchor
 	})
 
 	// Trigger the sidebar open/close animation before toggling visibility.
@@ -863,14 +956,32 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		toggleSidebar()
 	}, [toggleSidebar])
 
+	const toggleDashboardPanel = useCallback(() => {
+		dispatchDashboardPanel({ type: 'TOGGLE' })
+	}, [])
+
+	const handleDashboardVersionChange = useCallback((index: number) => {
+		dispatchDashboardPanel({ type: 'SELECT_VERSION', value: index })
+	}, [])
+
+	const handleDashboardClose = useCallback(() => {
+		dispatchDashboardPanel({ type: 'CLOSE' })
+	}, [])
+
+	const handleDashboardExited = useCallback(() => {
+		dispatchDashboardPanel({ type: 'UNMOUNT' })
+	}, [])
+
 	const chromeValue = useMemo(
 		() => ({
 			toggleSidebar: handleSidebarToggle,
 			hideSidebar,
 			toggleFullscreen,
-			isFullscreen
+			isFullscreen,
+			toggleDashboardPanel,
+			isDashboardPanelOpen: dashboardPanelIsOpen
 		}),
-		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen]
+		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen, toggleDashboardPanel, dashboardPanelIsOpen]
 	)
 
 	// Append one message to the live conversation state.
@@ -969,6 +1080,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						toolCallIdRef,
 						appendMessage,
 						notify,
+						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 						onTokenLimit: () => setShowTokenLimitModal(true),
 						onTitle: (title) => {
 							setSessionTitle(title)
@@ -1041,6 +1153,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				toolCallIdRef,
 				appendMessage,
 				notify,
+				onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 				onTokenLimit: () => setShowTokenLimitModal(true),
 				onTitle: (title) => {
 					setSessionTitle(title)
@@ -1077,7 +1190,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					})
 					dispatchStream({ type: 'RESET_STREAM' })
 				})
-				.finally(() => {
+				.then(() => {
 					const recoveryController = recoveryControllerRef.current
 					if (recoveryController?.sessionId === targetSessionId && recoveryController.streamAttached) {
 						clearRecoveryController()
@@ -1112,6 +1225,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
+
+			const allDashboards = restored.flatMap((m) => m.dashboards || [])
+			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
 			attach()
@@ -1214,11 +1330,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			if (Date.now() >= latest.startedAt + RECOVERY_GRACE_MS) {
 				exhaustRecovery(latest)
 			}
-		})().finally(() => {
-			const latest = recoveryControllerRef.current
-			if (!latest || latest.id !== recoveryId) return
-			latest.attemptInFlight = false
-		})
+		})().then(
+			() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== recoveryId) return
+				latest.attemptInFlight = false
+			},
+			() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== recoveryId) return
+				latest.attemptInFlight = false
+			}
+		)
 	})
 
 	useEffect(() => {
@@ -1242,11 +1365,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				existing.buffer = buffer
 				existing.failedRequest = failedRequest
 				existing.lastErrorMessage = getErrorMessage(recoveryError)
+				existing.attemptInFlight = false
 				dispatchStream({
 					type: 'UPDATE_RECOVERY',
 					attemptCount: existing.attemptCount,
 					lastErrorMessage: existing.lastErrorMessage
 				})
+				queueRecoveryAttempt(existing.id, 0)
 				return true
 			}
 
@@ -1333,6 +1458,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
+		dispatchDashboardPanel({ type: 'RESET' })
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
@@ -1473,8 +1599,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						images: images?.length ? images : undefined,
 						pageContext,
 						quotedText: currentQuotedText || undefined,
-						customInstructions: customInstructions || undefined,
+						customInstructions: settings.customInstructions || undefined,
+						enablePremiumTools: settings.enablePremiumTools,
 						isSuggestedQuestion,
+						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
 						eventCounter,
@@ -1487,6 +1615,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							toolCallIdRef,
 							appendMessage,
 							notify,
+							onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 							onTokenLimit: () => setShowTokenLimitModal(true),
 							onSessionId: (id) => {
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1561,7 +1690,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && isTemporaryConnectivityError(err) && eventCounter.count > 0) {
+							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -1583,7 +1712,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							dispatchStream({ type: 'RESET_STREAM' })
 							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 						})
-						.finally(() => {
+						.then(() => {
 							if (isActiveRequest(activeRequestIdRef, requestId)) {
 								abortControllerRef.current = null
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
@@ -1611,7 +1740,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			researchModalStore,
 			requestPermission,
 			notify,
-			customInstructions,
+			settings.customInstructions,
+			settings.enablePremiumTools,
 			appendMessage,
 			abortActiveRequest,
 			startRecoveryCycle,
@@ -1620,7 +1750,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			attach,
 			shouldShowLanding,
 			triggerPromptTransition,
-			quotedText
+			quotedText,
+			isMobileChatView
 		]
 	)
 
@@ -1638,6 +1769,19 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		},
 		[isStreaming, handleSubmit]
 	)
+
+	// Immediately attempt to reconnect to a running or completed server-side execution.
+	// Works during active recovery (doesn't require lastFailedRequest).
+	const handleReconnectNow = useCallback(() => {
+		const controller = recoveryControllerRef.current
+		if (controller) {
+			attemptRecoveryForController(controller.id)
+			return
+		}
+		if (sessionId) {
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}
+	}, [sessionId, resumeRunningExecution])
 
 	// Retry the last failed prompt submission with the same prompt, images, and page context.
 	const handleRetryLastFailedPrompt = useCallback(() => {
@@ -1683,10 +1827,27 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [initialSessionId, sharedSession])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
+	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
+	// (setTimeout timers are frozen during sleep but wall clock advances).
 	const reconnectVisibleExecutionEvent = useEffectEvent(() => {
+		if (readOnly) return
 		const controller = recoveryControllerRef.current
-		if (!controller || readOnly) return
-		attemptRecoveryForController(controller.id)
+		if (controller) {
+			controller.startedAt = Date.now()
+			if (controller.expiryTimerId !== null) {
+				window.clearTimeout(controller.expiryTimerId)
+			}
+			controller.expiryTimerId = window.setTimeout(() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== controller.id || latest.attemptInFlight || latest.streamAttached) return
+				exhaustRecovery(latest)
+			}, RECOVERY_GRACE_MS)
+			attemptRecoveryForController(controller.id)
+			return
+		}
+		if (sessionId && !isStreaming && error) {
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}
 	})
 
 	useEffect(() => {
@@ -1695,9 +1856,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				reconnectVisibleExecutionEvent()
 			}
 		}
+		const onPageShow = (e: PageTransitionEvent) => {
+			if (e.persisted) {
+				reconnectVisibleExecutionEvent()
+			}
+		}
 
 		document.addEventListener('visibilitychange', onVisibilityChange)
-		return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+		window.addEventListener('pageshow', onPageShow)
+		return () => {
+			document.removeEventListener('visibilitychange', onVisibilityChange)
+			window.removeEventListener('pageshow', onPageShow)
+		}
 	}, [])
 
 	useEffect(() => {
@@ -1708,6 +1878,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		window.addEventListener('online', onOnline)
 		return () => window.removeEventListener('online', onOnline)
 	}, [])
+
+	// After recovery exhausts, periodically check if the server-side execution completed
+	// so we can restore the result without requiring user interaction.
+	useEffect(() => {
+		if (isStreaming || !error || !sessionId || readOnly) return
+		const intervalId = window.setInterval(() => {
+			if (document.hidden) return
+			void resumeRunningExecution({ targetSessionId: sessionId })
+		}, 30_000)
+		return () => window.clearInterval(intervalId)
+	}, [isStreaming, error, sessionId, readOnly, resumeRunningExecution])
 
 	// Mirror route param updates into a ref so the restore effect can consume them once.
 	useEffect(() => {
@@ -1782,7 +1963,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							isUpdatingTitle={isUpdatingTitle}
 							shouldAnimate={shouldAnimateSidebar}
 							onOpenSettings={settingsModalStore.show}
-							hasCustomInstructions={customInstructions.trim().length > 0}
+							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							onBulkDelete={bulkDeleteSessions}
 							onPinSession={pinSession}
 						/>
@@ -1797,7 +1978,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<ChatControls
 							handleNewChat={handleNewChat}
 							onOpenSettings={settingsModalStore.show}
-							hasCustomInstructions={customInstructions.trim().length > 0}
+							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							sessionTitle={effectiveSessionTitle}
 						/>
 					) : null}
@@ -1851,6 +2032,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									error={visibleError}
 									lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 									onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+									onReconnectNow={handleReconnectNow}
 									scrollContainerRef={scrollContainerRef}
 									messagesEndRef={messagesEndRef}
 									promptInputRef={promptInputRef}
@@ -1907,6 +2089,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							error={visibleError}
 							lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 							onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+							onReconnectNow={handleReconnectNow}
 							scrollContainerRef={scrollContainerRef}
 							messagesEndRef={messagesEndRef}
 							promptInputRef={promptInputRef}
@@ -1926,6 +2109,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						/>
 					)}
 				</div>
+				{dashboardVersions.length > 0 ? (
+					<Suspense fallback={null}>
+						<DashboardPanel
+							config={dashboardPanelMountedConfig}
+							isOpen={dashboardPanelIsOpen}
+							versions={dashboardVersions}
+							versionIndex={dashboardVersionIndex}
+							onVersionChange={handleDashboardVersionChange}
+							onClose={handleDashboardClose}
+							onExited={handleDashboardExited}
+							sessionId={sessionId}
+						/>
+					</Suspense>
+				) : null}
 				{!readOnly ? (
 					<TextSelectionPopup
 						onSelect={(text) => {
@@ -1953,18 +2150,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
 				) : null}
-				{!readOnly ? (
-					<SettingsModal
-						dialogStore={settingsModalStore}
-						customInstructions={customInstructions}
-						onCustomInstructionsChange={setCustomInstructions}
-						enableMemory={enableMemory}
-						onEnableMemoryChange={setEnableMemory}
-						hackerMode={hackerMode}
-						onHackerModeChange={setHackerMode}
-						fetchFn={authorizedFetchStrict}
-					/>
-				) : null}
+				{!readOnly ? <SettingsModal dialogStore={settingsModalStore} settings={settings} actions={actions} /> : null}
 			</div>
 		</LlamaAIChromeContext.Provider>
 	)

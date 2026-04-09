@@ -45,7 +45,7 @@ const CHART_VIEW_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartView>> 
 
 const CHART_METRIC_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartMetricKey>> = [
 	{ key: 'openInterest', name: 'Open Interest' },
-	{ key: 'volume24h', name: '24h Volume' },
+	{ key: 'volume24h', name: 'Volume' },
 	{ key: 'markets', name: 'Markets' }
 ]
 

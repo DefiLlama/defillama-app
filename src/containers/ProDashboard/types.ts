@@ -33,6 +33,7 @@ export interface TextConfig {
 	title?: string
 	content: string
 	colSpan?: StoredColSpan
+	allowHtml?: boolean
 }
 
 export type MetricAggregator =
@@ -206,8 +207,11 @@ export interface IncomeStatementConfig {
 export interface LlamaAIChartConfig {
 	id: string
 	kind: 'llamaai-chart'
-	savedChartId: string
+	savedChartId?: string
+	chartRef?: string
 	title?: string
+	inlineChartConfig?: import('~/containers/LlamaAI/types').ChartConfiguration
+	inlineChartData?: Record<string, any[]>
 	colSpan?: StoredColSpan
 }
 
@@ -465,6 +469,9 @@ export interface ProtocolsTableConfig {
 		| 'rwa'
 		| 'rwa-chains'
 		| 'rwa-selected-chain'
+		| 'equities'
+		| 'equities-financials'
+		| 'equities-filings'
 	datasetChain?: string
 	tokenSymbols?: string[]
 	includeCex?: boolean
