@@ -263,7 +263,7 @@ function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 }
 
 // Convert a persisted API message into the UI message shape used by the chat view.
-function mapPersistedMessage(message: PersistedMessage): Message {
+function mapPersistedMessage(message: PersistedMessage, index?: number): Message {
 	const dashboardConfig = message.metadata?.dashboardConfig
 	return {
 		role: message.role,
@@ -318,7 +318,7 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
 		messageMetadata: message.messageMetadata,
-		id: message.messageId,
+		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
 		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
 	}
 }
@@ -326,7 +326,7 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 // Map an entire persisted message list into renderable chat messages.
 function mapPersistedMessages(messages: PersistedMessage[] | undefined): Message[] {
 	if (!messages || messages.length === 0) return []
-	return messages.map(mapPersistedMessage)
+	return messages.map((msg, i) => mapPersistedMessage(msg, i))
 }
 
 // Capture the current scroll height so older messages can be prepended without jumping the viewport.
@@ -364,7 +364,7 @@ function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: numb
 }
 
 // Shared/public sessions use a slightly different payload shape, so normalize them separately.
-function mapSharedSessionMessage(message: SharedSessionMessage): Message {
+function mapSharedSessionMessage(message: SharedSessionMessage, index?: number): Message {
 	return {
 		role: message.role,
 		content: message.content || undefined,
@@ -388,7 +388,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage): Message {
 		images: message.images,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
-		id: message.messageId
+		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
 	}
 }
 
@@ -815,7 +815,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		rateLimitDetails
 	} = streamState
 
-	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
+	const sharedMessages = useMemo(
+		() => sharedSession?.messages.map((msg, i) => mapSharedSessionMessage(msg, i)) ?? null,
+		[sharedSession]
+	)
 	const effectiveMessages = sharedMessages ?? messages
 	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
 	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
@@ -978,10 +981,19 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			hideSidebar,
 			toggleFullscreen,
 			isFullscreen,
+			sidebarVisible,
 			toggleDashboardPanel,
 			isDashboardPanelOpen: dashboardPanelIsOpen
 		}),
-		[handleSidebarToggle, hideSidebar, toggleFullscreen, isFullscreen, toggleDashboardPanel, dashboardPanelIsOpen]
+		[
+			handleSidebarToggle,
+			hideSidebar,
+			toggleFullscreen,
+			isFullscreen,
+			sidebarVisible,
+			toggleDashboardPanel,
+			dashboardPanelIsOpen
+		]
 	)
 
 	// Append one message to the live conversation state.
@@ -1580,7 +1592,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							role: 'user',
 							content: trimmed,
 							images: userImages?.length ? userImages : undefined,
-							quotedText: currentQuotedText || undefined
+							quotedText: currentQuotedText || undefined,
+							id: `local-${prev.length}`
 						}
 					])
 					attach()
@@ -1782,7 +1795,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// Immediately attempt to reconnect to a running or completed server-side execution.
 	// Works during active recovery (doesn't require lastFailedRequest).
-	const handleReconnectNow = useCallback(() => {
+	const handleReconnectNow = useEffectEvent(() => {
 		const controller = recoveryControllerRef.current
 		if (controller) {
 			attemptRecoveryForController(controller.id)
@@ -1791,7 +1804,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		if (sessionId) {
 			void resumeRunningExecution({ targetSessionId: sessionId })
 		}
-	}, [sessionId, resumeRunningExecution])
+	})
 
 	// Retry the last failed prompt submission with the same prompt, images, and page context.
 	const handleRetryLastFailedPrompt = useCallback(() => {

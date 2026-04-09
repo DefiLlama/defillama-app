@@ -341,7 +341,8 @@ function MessageContentBlock({
 	onActionClick,
 	nextUserMessage,
 	hackerMode,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	messageId
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -351,6 +352,7 @@ function MessageContentBlock({
 	nextUserMessage?: string
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
+	messageId?: string
 }) {
 	if (block.type === 'action-group') {
 		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
@@ -364,6 +366,7 @@ function MessageContentBlock({
 				isStreaming={isStreaming}
 				hackerMode={hackerMode}
 				onTableFullscreenOpen={onTableFullscreenOpen}
+				messageId={messageId}
 			/>
 		)
 	}
@@ -415,6 +418,7 @@ function InlineContent({
 						nextUserMessage={nextUserMessage}
 						hackerMode={hackerMode}
 						onTableFullscreenOpen={onTableFullscreenOpen}
+						messageId={message.id}
 					/>
 				</div>
 			))}

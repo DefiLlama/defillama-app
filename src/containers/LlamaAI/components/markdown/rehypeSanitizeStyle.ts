@@ -1,4 +1,4 @@
-import type { Root, Element } from 'hast'
+import type { Element, Root } from 'hast'
 import { visit } from 'unist-util-visit'
 
 /**
