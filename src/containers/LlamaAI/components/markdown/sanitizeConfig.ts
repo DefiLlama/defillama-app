@@ -75,9 +75,11 @@ const SVG_ATTRS = [
 
 export const SANITIZE_SCHEMA = {
 	...defaultSchema,
-	tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS],
+	tagNames: [...(defaultSchema.tagNames ?? []), ...SVG_TAGS, 'citation-badge'],
 	attributes: {
 		...defaultSchema.attributes,
+		a: [...(defaultSchema.attributes?.a ?? []), 'data-footnote-backref'],
+		'citation-badge': ['href'],
 		'*': [...(defaultSchema.attributes?.['*'] ?? []), 'style', 'className', ...SVG_ATTRS]
 	}
 }
