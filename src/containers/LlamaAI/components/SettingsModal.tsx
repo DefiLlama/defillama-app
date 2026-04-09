@@ -1,7 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { type LlamaAISettings, type LlamaAISettingsActions } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import {
+	type LlamaAISettings,
+	type LlamaAISettingsActions,
+	type ModelOption
+} from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -25,6 +29,7 @@ interface SettingsModalProps {
 	dialogStore: Ariakit.DialogStore
 	settings: LlamaAISettings
 	actions: LlamaAISettingsActions
+	availableModels?: ModelOption[]
 }
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -44,7 +49,12 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
 	}
 }
 
-export const SettingsModal = memo(function SettingsModal({ dialogStore, settings, actions }: SettingsModalProps) {
+export const SettingsModal = memo(function SettingsModal({
+	dialogStore,
+	settings,
+	actions,
+	availableModels
+}: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const [isDark] = useDarkModeManager()
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -64,8 +74,10 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 		}
 		draftValueRef.current = settings.customInstructions
 		baselineRef.current = settings.customInstructions.trim()
-		setCharCount(settings.customInstructions.length)
-		dispatch({ type: 'MARK_CLEAN' })
+		queueMicrotask(() => {
+			setCharCount(settings.customInstructions.length)
+			dispatch({ type: 'MARK_CLEAN' })
+		})
 	}, [isOpen, modalState.status, settings.customInstructions])
 
 	const syncDirtyState = useCallback(() => {
@@ -150,6 +162,13 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 		trackUmamiEvent('llamaai-hacker-mode-toggle')
 		void actions.setHackerMode(!settings.hackerMode)
 	}, [actions, settings.hackerMode])
+
+	const handleModelChange = useCallback(
+		(e: React.ChangeEvent<HTMLSelectElement>) => {
+			void actions.setModel(e.target.value)
+		},
+		[actions]
+	)
 
 	const showClear = modalState.status === 'open_dirty' || settings.customInstructions.trim().length > 0
 
@@ -320,6 +339,30 @@ export const SettingsModal = memo(function SettingsModal({ dialogStore, settings
 									/>
 								</div>
 							</button>
+						</section>
+					) : null}
+
+					{availableModels && availableModels.length > 0 ? (
+						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+							<div className="flex flex-col gap-1.5">
+								<label htmlFor="llamaai-model-select" className="text-sm font-medium text-[#1a1a1a] dark:text-white">
+									Model
+								</label>
+								<p className="text-xs text-[#777] dark:text-[#919296]">Override the AI model used for responses.</p>
+								<select
+									id="llamaai-model-select"
+									value={settings.model}
+									onChange={handleModelChange}
+									className="mt-1 w-full rounded-lg border border-[#e6e6e6] bg-[#fafafa] px-3 py-2 text-sm text-[#1a1a1a] transition-colors outline-none focus:border-[#1853A8] dark:border-[#39393E] dark:bg-[#1a1b1c] dark:text-white dark:focus:border-[#4B86DB]"
+								>
+									<option value="">Default (Sonnet 4.6)</option>
+									{availableModels.map((m) => (
+										<option key={m.id} value={m.id}>
+											{m.label}
+										</option>
+									))}
+								</select>
+							</div>
 						</section>
 					) : null}
 				</div>

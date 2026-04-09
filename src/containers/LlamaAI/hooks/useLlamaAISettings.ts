@@ -9,6 +9,7 @@ export const LLAMA_AI_CUSTOM_INSTRUCTIONS_KEY = 'llamaai-custom-instructions'
 export const LLAMA_AI_ENABLE_MEMORY_KEY = 'llamaai-enable-memory'
 export const LLAMA_AI_ENABLE_PREMIUM_TOOLS_KEY = 'llamaai-enable-premium-tools'
 export const LLAMA_AI_HACKER_MODE_KEY = 'llamaai-hacker-mode'
+export const LLAMA_AI_MODEL_KEY = 'llamaai-model'
 const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
 
 export interface LlamaAISettings {
@@ -16,6 +17,7 @@ export interface LlamaAISettings {
 	enableMemory: boolean
 	enablePremiumTools: boolean
 	hackerMode: boolean
+	model: string
 }
 
 export interface LlamaAISettingsActions {
@@ -23,17 +25,29 @@ export interface LlamaAISettingsActions {
 	setEnableMemory: (value: boolean) => Promise<void>
 	setEnablePremiumTools: (value: boolean) => Promise<void>
 	setHackerMode: (value: boolean) => Promise<void>
+	setModel: (value: string) => Promise<void>
 }
 
 type LlamaAISettingKey = keyof LlamaAISettings
 type LlamaAISettingsUpdate = Partial<LlamaAISettings>
 type StoredLlamaAISettings = Partial<LlamaAISettings> | null
 
+export interface ModelOption {
+	id: string
+	label: string
+}
+
+interface SettingsQueryResult {
+	settings: StoredLlamaAISettings
+	availableModels: ModelOption[]
+}
+
 const DEFAULT_SETTINGS: LlamaAISettings = {
 	customInstructions: '',
 	enableMemory: true,
 	enablePremiumTools: true,
-	hackerMode: false
+	hackerMode: false,
+	model: ''
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -52,6 +66,8 @@ function readStoredValue<K extends LlamaAISettingKey>(key: K, value: string | nu
 			return parseTrueByDefault(value) as LlamaAISettings[K]
 		case 'hackerMode':
 			return parseFalseByDefault(value) as LlamaAISettings[K]
+		case 'model':
+			return (value ?? DEFAULT_SETTINGS.model) as LlamaAISettings[K]
 	}
 }
 
@@ -75,6 +91,15 @@ function writeStoredValue<K extends LlamaAISettingKey>(key: K, value: LlamaAISet
 		case 'hackerMode':
 			setStorageItem(LLAMA_AI_HACKER_MODE_KEY, String(value))
 			return
+		case 'model': {
+			const nextModel = String(value).trim()
+			if (nextModel.length === 0) {
+				removeStorageItem(LLAMA_AI_MODEL_KEY)
+			} else {
+				setStorageItem(LLAMA_AI_MODEL_KEY, nextModel)
+			}
+			return
+		}
 	}
 }
 
@@ -113,6 +138,9 @@ function normalizeServerSettings(value: unknown): LlamaAISettingsUpdate {
 	if (typeof value.hackerMode === 'boolean') {
 		normalized.hackerMode = value.hackerMode
 	}
+	if (typeof value.model === 'string') {
+		normalized.model = value.model
+	}
 	return normalized
 }
 
@@ -126,6 +154,8 @@ function getStorageKey(setting: LlamaAISettingKey) {
 			return LLAMA_AI_ENABLE_PREMIUM_TOOLS_KEY
 		case 'hackerMode':
 			return LLAMA_AI_HACKER_MODE_KEY
+		case 'model':
+			return LLAMA_AI_MODEL_KEY
 	}
 }
 
@@ -147,33 +177,30 @@ export function useLlamaAISettings() {
 	const enableMemory = useLlamaAISetting('enableMemory')
 	const enablePremiumTools = useLlamaAISetting('enablePremiumTools')
 	const hackerMode = useLlamaAISetting('hackerMode')
-
-	const settings = useMemo<LlamaAISettings>(
-		() => ({
-			customInstructions,
-			enableMemory,
-			enablePremiumTools,
-			hackerMode
-		}),
-		[customInstructions, enableMemory, enablePremiumTools, hackerMode]
-	)
+	const model = useLlamaAISetting('model')
 
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
-		queryFn: async (): Promise<StoredLlamaAISettings> => {
-			if (!authorizedFetch || !isAuthenticated || !userId) return null
+		queryFn: async (): Promise<SettingsQueryResult> => {
+			if (!authorizedFetch || !isAuthenticated || !userId) return { settings: null, availableModels: [] }
 			const response = await authorizedFetch(`${MCP_SERVER}/user-settings`)
-			if (!response?.ok) return null
-			const data = (await response.json().catch(() => null)) as { settings?: unknown } | null
-			return normalizeServerSettings(data?.settings)
+			if (!response?.ok) return { settings: null, availableModels: [] }
+			const data = (await response.json().catch(() => null)) as {
+				settings?: unknown
+				availableModels?: ModelOption[]
+			} | null
+			return {
+				settings: normalizeServerSettings(data?.settings),
+				availableModels: Array.isArray(data?.availableModels) ? data.availableModels : []
+			}
 		},
 		enabled: isAuthenticated && !!userId,
 		staleTime: 5 * 60 * 1000
 	})
 
 	useEffect(() => {
-		if (!settingsQuery.data) return
-		applyStoredSettings(settingsQuery.data)
+		if (!settingsQuery.data?.settings) return
+		applyStoredSettings(settingsQuery.data.settings)
 	}, [settingsQuery.data])
 
 	useEffect(() => {
@@ -197,9 +224,10 @@ export function useLlamaAISettings() {
 		onMutate: async (update) => {
 			await queryClient.cancelQueries({ queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId] })
 			applyStoredSettings(update)
-			queryClient.setQueryData<StoredLlamaAISettings>([...LLAMA_AI_SETTINGS_QUERY_KEY, userId], (previous) =>
-				mergeDefinedSettings(previous, update)
-			)
+			queryClient.setQueryData<SettingsQueryResult>([...LLAMA_AI_SETTINGS_QUERY_KEY, userId], (previous) => ({
+				settings: mergeDefinedSettings(previous?.settings ?? null, update),
+				availableModels: previous?.availableModels ?? []
+			}))
 		},
 		onError: (error) => {
 			console.error('[llama-ai] failed to persist settings:', getErrorMessage(error))
@@ -224,14 +252,33 @@ export function useLlamaAISettings() {
 			setCustomInstructions: async (value: string) => persistSettings({ customInstructions: value.trim() }),
 			setEnableMemory: async (value: boolean) => persistSettings({ enableMemory: value }),
 			setEnablePremiumTools: async (value: boolean) => persistSettings({ enablePremiumTools: value }),
-			setHackerMode: async (value: boolean) => persistSettings({ hackerMode: value })
+			setHackerMode: async (value: boolean) => persistSettings({ hackerMode: value }),
+			setModel: async (value: string) => persistSettings({ model: value })
 		}),
 		[persistSettings]
 	)
 
+	const availableModels = useMemo(
+		() => settingsQuery.data?.availableModels ?? [],
+		[settingsQuery.data?.availableModels]
+	)
+
+	const settings = useMemo<LlamaAISettings>(() => {
+		const normalizedModel =
+			model === '' || availableModels.length === 0 || availableModels.some((m) => m.id === model) ? model : ''
+		return {
+			customInstructions,
+			enableMemory,
+			enablePremiumTools,
+			hackerMode,
+			model: normalizedModel
+		}
+	}, [customInstructions, enableMemory, enablePremiumTools, hackerMode, model, availableModels])
+
 	return {
 		settings,
 		actions,
+		availableModels,
 		queryState: settingsQuery
 	}
 }

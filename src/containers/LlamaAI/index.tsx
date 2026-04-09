@@ -759,7 +759,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		dispatchDashboardPanel
 	] = useReducer(dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
-	const { settings, actions } = useLlamaAISettings()
+	const { settings, actions, availableModels } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -1622,6 +1622,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						quotedText: currentQuotedText || undefined,
 						customInstructions: settings.customInstructions || undefined,
 						enablePremiumTools: settings.enablePremiumTools,
+						model: settings.model || undefined,
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						abortSignal: controller.signal,
@@ -1772,7 +1773,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			shouldShowLanding,
 			triggerPromptTransition,
 			quotedText,
-			isMobileChatView
+			isMobileChatView,
+			settings.model
 		]
 	)
 
@@ -2171,7 +2173,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
 				) : null}
-				{!readOnly ? <SettingsModal dialogStore={settingsModalStore} settings={settings} actions={actions} /> : null}
+				{!readOnly ? (
+					<SettingsModal
+						dialogStore={settingsModalStore}
+						settings={settings}
+						actions={actions}
+						availableModels={availableModels}
+					/>
+				) : null}
 			</div>
 		</LlamaAIChromeContext.Provider>
 	)

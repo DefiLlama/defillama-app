@@ -208,6 +208,7 @@ interface FetchAgenticResponseParams {
 	quotedText?: string
 	isSuggestedQuestion?: boolean
 	blockedSkills?: string[]
+	model?: string
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -389,6 +390,7 @@ export async function fetchAgenticResponse({
 	quotedText,
 	isSuggestedQuestion,
 	blockedSkills,
+	model,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -409,6 +411,7 @@ export async function fetchAgenticResponse({
 		quotedText?: string
 		isSuggestedQuestion?: true
 		blockedSkills?: string[]
+		model?: string
 	} = {
 		message,
 		stream: true,
@@ -455,6 +458,10 @@ export async function fetchAgenticResponse({
 
 	if (blockedSkills && blockedSkills.length > 0) {
 		requestBody.blockedSkills = blockedSkills
+	}
+
+	if (model) {
+		requestBody.model = model
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {

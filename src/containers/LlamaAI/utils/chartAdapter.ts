@@ -729,19 +729,32 @@ export function adaptCandlestickData(
 	const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
 	const bbLower = keys.find((k) => k.includes('_bb_lower'))
 	if (bbUpper && bbMiddle && bbLower) {
-		indicators.push({
-			name: 'BBands',
-			category: 'overlay',
-			data: [],
-			values: rawData.map((r: any) => [
-				getTs(r),
-				{
-					upper: parseFloat(r[bbUpper] || 0),
-					middle: parseFloat(r[bbMiddle] || 0),
-					lower: parseFloat(r[bbLower] || 0)
-				}
-			])
+		const hasValidBB = rawData.some((r: any) => {
+			const u = parseFloat(r[bbUpper])
+			const m = parseFloat(r[bbMiddle])
+			const l = parseFloat(r[bbLower])
+			return (Number.isFinite(u) && u !== 0) || (Number.isFinite(m) && m !== 0) || (Number.isFinite(l) && l !== 0)
 		})
+		if (hasValidBB) {
+			indicators.push({
+				name: 'BBands',
+				category: 'overlay',
+				data: [],
+				values: rawData.map((r: any) => {
+					const u = r[bbUpper] != null ? parseFloat(r[bbUpper]) : NaN
+					const m = r[bbMiddle] != null ? parseFloat(r[bbMiddle]) : NaN
+					const l = r[bbLower] != null ? parseFloat(r[bbLower]) : NaN
+					return [
+						getTs(r),
+						{
+							upper: Number.isFinite(u) && u !== 0 ? u : null,
+							middle: Number.isFinite(m) && m !== 0 ? m : null,
+							lower: Number.isFinite(l) && l !== 0 ? l : null
+						}
+					]
+				})
+			})
+		}
 	}
 
 	const maFields = keys.filter((k) => /^(sma|ema|dema|tema|wma|vwap)_?\d*$/i.test(k))
@@ -772,33 +785,54 @@ export function adaptCandlestickData(
 	const signalField = keys.find((k) => k === 'macd_signal')
 	const histField = keys.find((k) => k === 'macd_histogram')
 	if (macdField || signalField || histField) {
-		indicators.push({
-			name: 'MACD',
-			category: 'panel',
-			data: [],
-			values: rawData.map((r: any) => [
-				getTs(r),
-				{
-					macd: parseFloat(r[macdField as string] || 0),
-					signal: parseFloat(r[signalField as string] || 0),
-					histogram: parseFloat(r[histField as string] || 0)
-				}
-			])
+		const hasValidMACD = rawData.some((r: any) => {
+			const m = parseFloat(r[macdField as string])
+			const s = parseFloat(r[signalField as string])
+			const h = parseFloat(r[histField as string])
+			return Number.isFinite(m) || Number.isFinite(s) || Number.isFinite(h)
 		})
+		if (hasValidMACD) {
+			indicators.push({
+				name: 'MACD',
+				category: 'panel',
+				data: [],
+				values: rawData.map((r: any) => {
+					const mv = r[macdField as string] != null ? parseFloat(r[macdField as string]) : NaN
+					const sv = r[signalField as string] != null ? parseFloat(r[signalField as string]) : NaN
+					const hv = r[histField as string] != null ? parseFloat(r[histField as string]) : NaN
+					return [
+						getTs(r),
+						{
+							macd: Number.isFinite(mv) ? mv : null,
+							signal: Number.isFinite(sv) ? sv : null,
+							histogram: Number.isFinite(hv) ? hv : null
+						}
+					]
+				})
+			})
+		}
 	}
 
 	const stochK = keys.find((k) => k === 'stoch_k')
 	const stochD = keys.find((k) => k === 'stoch_d')
 	if (stochK || stochD) {
-		indicators.push({
-			name: 'Stoch',
-			category: 'panel',
-			data: [],
-			values: rawData.map((r: any) => [
-				getTs(r),
-				{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
-			])
+		const hasValidStoch = rawData.some((r: any) => {
+			const k = parseFloat(r[stochK as string])
+			const d = parseFloat(r[stochD as string])
+			return Number.isFinite(k) || Number.isFinite(d)
 		})
+		if (hasValidStoch) {
+			indicators.push({
+				name: 'Stoch',
+				category: 'panel',
+				data: [],
+				values: rawData.map((r: any) => {
+					const k = r[stochK as string] != null ? parseFloat(r[stochK as string]) : NaN
+					const d = r[stochD as string] != null ? parseFloat(r[stochD as string]) : NaN
+					return [getTs(r), { k: Number.isFinite(k) ? k : null, d: Number.isFinite(d) ? d : null }]
+				})
+			})
+		}
 	}
 
 	return { data, indicators }

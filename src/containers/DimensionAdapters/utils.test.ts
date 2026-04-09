@@ -394,7 +394,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 			selectedProtocols: ['Hyperliquid', 'dYdX'],
 			groupBy: 'weekly',
 			chartData: lineBackedChartData,
-			seriesType: 'line'
+			seriesType: 'dominance'
 		})
 
 		expect(presentation.kind).toBe('hbar')
