@@ -161,6 +161,30 @@ export const definitions = {
       "change7dover7d": "Change of last 7 days volume over the previous 7 days volume",
     }
   },
+  "dexsNotional": {
+    "common": "Notional volume of all trades on protocol",
+    "protocol": {
+      "24h": "Notional volume of all trades on protocol in the last 24 hours",
+      "7d": "Notional volume of all trades on protocol in the last 7 days",
+      "30d": "Notional volume of all trades on protocol in the last 30 days",
+      "cumulative": "Total notional volume of all trades on protocol since the DEX was launched",
+      "annualized": "Total notional volume of all trades on protocol in the last 30 days, multiplied by 12 to annualize it",
+      "change1d": "Day-over-day percentage change in notional volume of all trades on protocol",
+      "change7d": "Week-over-week percentage change in notional volume of all trades on protocol",
+      "change1m": "Month-over-month percentage change in notional volume of all trades on protocol",
+      "change7dover7d": "Change of last 7 days notional volume over the previous 7 days notional volume",
+      "change30dover30d": "Change of last 30 days notional volume over the previous 30 days notional volume",
+      "average1y": "Average monthly notional volume of all trades on protocol in the last 12 months",
+      "marketShare24h": "Share of total 24 hours spot notional volume across tracked protocols",
+      "marketShare7d": "Share of total 7 days spot notional volume across tracked protocols"
+    },
+    "chain": {
+      "24h": "Notional volume of all trades on all protocols on the chain in the last 24 hours. Updated daily at 00:00 UTC",
+      "7d": "Notional volume of all trades on all protocols on the chain in the last 7 days. Updated daily at 00:00 UTC",
+      "30d": "Notional volume of all trades on all protocols on the chain in the last 30 days. Updated daily at 00:00 UTC",
+      "change7dover7d": "Change of last 7 days notional volume over the previous 7 days notional volume",
+    }
+  },
   "dexAggregators": {
     "common": "Volume of all spot token swaps routed through the DEX aggregator",
     "protocol": {

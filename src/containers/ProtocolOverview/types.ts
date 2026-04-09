@@ -9,6 +9,7 @@ import { protocolCharts, type ProtocolChartsLabels } from './constants'
 export interface IProtocolPageMetrics {
 	tvl: boolean
 	dexs: boolean
+	dexsNotionalVolume: boolean
 	perps: boolean
 	openInterest: boolean
 	optionsPremiumVolume: boolean
@@ -87,6 +88,7 @@ export interface IProtocolOverviewPageData {
 	bribeRevenue: IAdapterOverview | null
 	tokenTax: IAdapterOverview | null
 	dexVolume: IAdapterOverview | null
+	dexNotionalVolume: IAdapterOverview | null
 	dexAggregatorVolume: IAdapterOverview | null
 	perpVolume: IAdapterOverview | null
 	openInterest: IAdapterOverview | null

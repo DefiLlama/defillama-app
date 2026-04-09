@@ -37,6 +37,12 @@ export const ADAPTER_CHART_DESCRIPTORS = [
 		methodologyKey: 'dexs'
 	},
 	{
+		label: 'DEX Notional Volume',
+		chartRequest: { adapterType: 'dexs', dataType: 'dailyNotionalVolume' },
+		metricsRequest: { adapterType: 'dexs', dataType: 'dailyNotionalVolume' },
+		methodologyKey: 'dexsNotionalVolume'
+	},
+	{
 		label: 'Perp Volume',
 		chartRequest: { adapterType: 'derivatives' },
 		metricsRequest: { adapterType: 'derivatives' },

@@ -13,6 +13,7 @@ interface IBuildAvailableChartsParams {
 	hasRevenue: boolean
 	hasHoldersRevenue: boolean
 	hasDexVolume: boolean
+	hasDexNotionalVolume: boolean
 	hasPerpVolume: boolean
 	hasOpenInterest: boolean
 	hasOptionsPremiumVolume: boolean
@@ -49,6 +50,7 @@ export function buildAvailableCharts(params: IBuildAvailableChartsParams): Proto
 	if (params.hasRevenue) charts.push('Revenue')
 	if (params.hasHoldersRevenue) charts.push('Holders Revenue')
 	if (params.hasDexVolume) charts.push('DEX Volume')
+	if (params.hasDexNotionalVolume) charts.push('DEX Notional Volume')
 	if (params.hasPerpVolume) charts.push('Perp Volume')
 	if (params.hasOpenInterest) charts.push('Open Interest')
 	if (params.hasOptionsPremiumVolume) charts.push('Options Premium Volume')

@@ -12,6 +12,7 @@ const PROTOCOL_TO_DASHBOARD_CHART_TYPE: Record<ProtocolChartsLabels, string | nu
 	Revenue: 'revenue',
 	'Holders Revenue': 'holdersRevenue',
 	'DEX Volume': 'volume',
+	'DEX Notional Volume': 'dexsNotionalVolume',
 	'Perp Volume': 'perps',
 	'Open Interest': 'openInterest',
 	'Options Premium Volume': 'optionsPremium',
