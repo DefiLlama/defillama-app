@@ -2,11 +2,7 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import {
-	isInvestorsEnabled,
-	INVESTORS_PROJECTS,
-	INVESTORS_PROTOCOL_IDS
-} from '~/containers/Investors/config'
+import { isInvestorsEnabled, INVESTORS_PROJECTS, INVESTORS_PROTOCOL_IDS } from '~/containers/Investors/config'
 import { Logo } from '~/containers/Investors/Logo'
 import { fetchCustomServerData } from '~/containers/Investors/serverDataRegistry'
 
