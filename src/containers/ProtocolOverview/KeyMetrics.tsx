@@ -373,14 +373,21 @@ interface MetricConfig {
 	emissionsAllTime?: number | null
 }
 
+type ChainBreakdownMap = Record<
+	string,
+	{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
+> | null
+
 const buildMetrics = (
 	data: MetricConfig,
 	defs: MetricDefinition,
 	label: string,
-	isIncentives = false
-): Array<{ name: string; tooltipContent?: string; value: number }> => {
-	const metrics = []
+	isIncentives = false,
+	chainBreakdown?: ChainBreakdownMap
+): VolumeMetric[] => {
+	const metrics: VolumeMetric[] = []
 	const prefix = isIncentives ? 'Incentives' : label
+	const cb = chainBreakdown ?? null
 
 	if (isIncentives) {
 		if (data.emissions30d != null) {
@@ -407,16 +414,36 @@ const buildMetrics = (
 				tooltipContent: defs?.annualized,
 				value: data.total30d * ANNUALIZATION_FACTOR
 			})
-			metrics.push({ name: `${label} 30d`, tooltipContent: defs?.['30d'], value: data.total30d })
+			metrics.push({
+				name: `${label} 30d`,
+				tooltipContent: defs?.['30d'],
+				value: data.total30d,
+				chainBreakdown: cb ? extractChainValues(cb, 'total30d') : null
+			})
 		}
 		if (data.total7d != null) {
-			metrics.push({ name: `${label} 7d`, tooltipContent: defs?.['7d'], value: data.total7d })
+			metrics.push({
+				name: `${label} 7d`,
+				tooltipContent: defs?.['7d'],
+				value: data.total7d,
+				chainBreakdown: cb ? extractChainValues(cb, 'total7d') : null
+			})
 		}
 		if (data.total24h != null) {
-			metrics.push({ name: `${label} 24h`, tooltipContent: defs?.['24h'], value: data.total24h })
+			metrics.push({
+				name: `${label} 24h`,
+				tooltipContent: defs?.['24h'],
+				value: data.total24h,
+				chainBreakdown: cb ? extractChainValues(cb, 'total24h') : null
+			})
 		}
 		if (data.totalAllTime != null) {
-			metrics.push({ name: `Cumulative ${label}`, tooltipContent: defs?.cumulative, value: data.totalAllTime })
+			metrics.push({
+				name: `Cumulative ${label}`,
+				tooltipContent: defs?.cumulative,
+				value: data.totalAllTime,
+				chainBreakdown: cb ? extractChainValues(cb, 'totalAllTime') : null
+			})
 		}
 	}
 
@@ -429,7 +456,7 @@ function Fees(props: IKeyMetricsProps) {
 	const adjusted = getAdjustedTotals(props.fees, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 	if (!adjusted) return null
 
-	const metrics = buildMetrics(adjusted, definitions.fees.protocol, 'Fees')
+	const metrics = buildMetrics(adjusted, definitions.fees.protocol, 'Fees', false, props.fees?.chainBreakdown)
 	if (metrics.length === 0) return null
 
 	return (
@@ -450,7 +477,7 @@ function Revenue(props: IKeyMetricsProps) {
 	const adjusted = getAdjustedTotals(props.revenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 	if (!adjusted) return null
 
-	const metrics = buildMetrics(adjusted, definitions.revenue.protocol, 'Revenue')
+	const metrics = buildMetrics(adjusted, definitions.revenue.protocol, 'Revenue', false, props.revenue?.chainBreakdown)
 	if (metrics.length === 0) return null
 
 	return (
@@ -471,7 +498,13 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	const adjusted = getAdjustedTotals(props.holdersRevenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 	if (!adjusted) return null
 
-	const metrics = buildMetrics(adjusted, definitions.holdersRevenue.protocol, 'Holders Revenue')
+	const metrics = buildMetrics(
+		adjusted,
+		definitions.holdersRevenue.protocol,
+		'Holders Revenue',
+		false,
+		props.holdersRevenue?.chainBreakdown
+	)
 	if (metrics.length === 0) return null
 
 	return (
