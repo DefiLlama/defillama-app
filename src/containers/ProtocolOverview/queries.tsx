@@ -1037,6 +1037,19 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 		return null
 	}
 
+	let chainBreakdown: Record<
+		string,
+		{ total24h: number; total7d: number; total30d: number; totalAllTime: number }
+	> | null = null
+	if (data.chainBreakdown) {
+		const slim: typeof chainBreakdown & {} = {}
+		for (const chain in data.chainBreakdown) {
+			const v = data.chainBreakdown[chain]
+			slim[chain] = { total24h: v.total24h, total7d: v.total7d, total30d: v.total30d, totalAllTime: v.totalAllTime }
+		}
+		chainBreakdown = slim
+	}
+
 	const commonMethodologyMap = commonMethodology as Record<string, string>
 
 	if (data.childProtocols?.length) {
@@ -1076,7 +1089,8 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 								: null,
 							methodologyURL: topChildMethodology?.[2] ?? null
 						}),
-			defaultChartView: data.defaultChartView ?? 'daily'
+			defaultChartView: data.defaultChartView ?? 'daily',
+			chainBreakdown
 		}
 	}
 
@@ -1089,7 +1103,8 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 			? (data.methodology?.[methodologyKey] ?? commonMethodologyMap[methodologyKey] ?? null)
 			: null,
 		methodologyURL: data.methodologyURL ?? null,
-		defaultChartView: data.defaultChartView ?? 'daily'
+		defaultChartView: data.defaultChartView ?? 'daily',
+		chainBreakdown
 	}
 }
 

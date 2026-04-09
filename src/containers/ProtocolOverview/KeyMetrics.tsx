@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
+import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum } from '~/utils'
@@ -114,8 +114,24 @@ const STANDARD_METRICS: StandardMetricConfig[] = [
 
 const ANNUALIZATION_FACTOR = 12.2
 
+interface VolumeMetric {
+	name: string
+	tooltipContent?: string
+	value: number
+	chainBreakdown?: Record<string, number> | null
+}
+
 function buildStandardVolumeMetrics(
-	data: { total30d?: number | null; total7d?: number | null; total24h?: number | null; totalAllTime?: number | null },
+	data: {
+		total30d?: number | null
+		total7d?: number | null
+		total24h?: number | null
+		totalAllTime?: number | null
+		chainBreakdown?: Record<
+			string,
+			{ total24h: number; total7d: number; total30d: number; totalAllTime: number }
+		> | null
+	},
 	definitionKey: string,
 	label: string
 ) {
@@ -124,22 +140,49 @@ function buildStandardVolumeMetrics(
 		typeof entry === 'object' && entry !== null && 'protocol' in entry
 			? (entry as { protocol: Record<string, string> }).protocol
 			: undefined
-	const metrics = []
+	const cb = data.chainBreakdown
+	const metrics: VolumeMetric[] = []
 
 	if (data.total30d != null) {
-		metrics.push({ name: `${label} 30d`, tooltipContent: defs?.['30d'], value: data.total30d })
+		metrics.push({
+			name: `${label} 30d`,
+			tooltipContent: defs?.['30d'],
+			value: data.total30d,
+			chainBreakdown: cb ? extractChainValues(cb, 'total30d') : null
+		})
 	}
 	if (data.total7d != null) {
-		metrics.push({ name: `${label} 7d`, tooltipContent: defs?.['7d'], value: data.total7d })
+		metrics.push({
+			name: `${label} 7d`,
+			tooltipContent: defs?.['7d'],
+			value: data.total7d,
+			chainBreakdown: cb ? extractChainValues(cb, 'total7d') : null
+		})
 	}
 	if (data.total24h != null) {
-		metrics.push({ name: `${label} 24h`, tooltipContent: defs?.['24h'], value: data.total24h })
+		metrics.push({
+			name: `${label} 24h`,
+			tooltipContent: defs?.['24h'],
+			value: data.total24h,
+			chainBreakdown: cb ? extractChainValues(cb, 'total24h') : null
+		})
 	}
 	if (data.totalAllTime != null) {
 		metrics.push({ name: `Cumulative ${label}`, tooltipContent: defs?.['cumulative'], value: data.totalAllTime })
 	}
 
 	return metrics
+}
+
+function extractChainValues(
+	cb: Record<string, { total24h: number; total7d: number; total30d: number; totalAllTime: number }>,
+	key: 'total24h' | 'total7d' | 'total30d'
+): Record<string, number> {
+	const result: Record<string, number> = {}
+	for (const chain in cb) {
+		result[chain] = cb[chain][key]
+	}
+	return result
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {
@@ -211,7 +254,10 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 							{
 								name: 'Open Interest',
 								tooltipContent: definitions.openInterest.protocol,
-								value: props.openInterest.total24h
+								value: props.openInterest.total24h,
+								chainBreakdown: props.openInterest.chainBreakdown
+									? extractChainValues(props.openInterest.chainBreakdown, 'total24h')
+									: null
 							}
 						]}
 						protocolName={props.name}
@@ -581,6 +627,7 @@ const SmolStats = ({
 		name: string
 		tooltipContent?: string | null
 		value: string | number
+		chainBreakdown?: Record<string, number> | null
 	}>
 	protocolName: string
 	category: string
@@ -592,7 +639,7 @@ const SmolStats = ({
 
 	if (data.length === 0) return null
 
-	if (data.length === 1) {
+	if (data.length === 1 && !data[0].chainBreakdown) {
 		return (
 			<MetricRow
 				label={data[0].name}
@@ -609,16 +656,76 @@ const SmolStats = ({
 			value={formatPrice(data[0].value)}
 			defaultOpen={openSmolStatsSummaryByDefault}
 		>
+			{data[0].chainBreakdown ? (
+				<SubMetricSection key={`${data[0].name}-chains-${protocolName}`} label={`${data[0].name} by chain`}>
+					{renderChainRows({
+						chains: data[0].chainBreakdown,
+						protocolName,
+						formatPrice,
+						keySuffix: data[0].name
+					})}
+				</SubMetricSection>
+			) : null}
 			{restOfData.map((metric) => (
-				<SubMetricRow
+				<ChainBreakdownMetricRow
 					key={`${metric.name}-${metric.value}-${protocolName}`}
-					label={metric.name}
-					tooltip={metric.tooltipContent ?? undefined}
-					value={formatPrice(metric.value)}
+					metric={metric}
+					protocolName={protocolName}
+					formatPrice={formatPrice}
 				/>
 			))}
 		</MetricSection>
 	)
+}
+
+function ChainBreakdownMetricRow({
+	metric,
+	protocolName,
+	formatPrice
+}: {
+	metric: {
+		name: string
+		tooltipContent?: string | null
+		value: string | number
+		chainBreakdown?: Record<string, number> | null
+	}
+	protocolName: string
+	formatPrice: (value: number | string | null) => string | number | null
+}) {
+	if (!metric.chainBreakdown) {
+		return (
+			<SubMetricRow
+				label={metric.name}
+				tooltip={metric.tooltipContent ?? undefined}
+				value={formatPrice(metric.value)}
+			/>
+		)
+	}
+	return (
+		<SubMetricSection label={metric.name} value={formatPrice(metric.value)}>
+			{renderChainRows({ chains: metric.chainBreakdown, protocolName, formatPrice, keySuffix: metric.name })}
+		</SubMetricSection>
+	)
+}
+
+function renderChainRows({
+	chains,
+	protocolName,
+	formatPrice,
+	keySuffix
+}: {
+	chains: Record<string, number>
+	protocolName: string
+	formatPrice: (value: number | string | null) => string | number | null
+	keySuffix: string
+}) {
+	const rows = []
+	for (const chain in chains) {
+		rows.push(
+			<SubMetricRow key={`${chain}-${keySuffix}-${protocolName}`} label={chain} value={formatPrice(chains[chain])} />
+		)
+	}
+	return rows
 }
 
 const Treasury = (props: IKeyMetricsProps) => {
