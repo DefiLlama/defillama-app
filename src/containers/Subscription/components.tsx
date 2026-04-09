@@ -1,4 +1,5 @@
 import { Icon } from '~/components/Icon'
+import { QuestionHelper } from '~/components/QuestionHelper'
 import type {
 	Availability,
 	BillingCycle,
@@ -216,9 +217,16 @@ function PricingCardCta({
 					<button type="button" className={outlineBtnCls} onClick={onStartTrial}>
 						Free trial for 7 days
 					</button>
-					<p className="text-center text-[11px] leading-4 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
-						Trial includes 3 deep research questions/day and 1 CSV download
-					</p>
+					<div className="flex flex-col items-center gap-1 text-center text-[11px] leading-4 text-(--sub-text-slate-400) dark:text-(--sub-text-muted)">
+						<p>Trial includes 3 deep research questions/day</p>
+						<div className="flex items-center justify-center gap-1">
+							<span>CSV downloads are not included in trial</span>
+							<QuestionHelper
+								text="CSV downloads are available only with a paid Pro subscription."
+								className="shrink-0"
+							/>
+						</div>
+					</div>
 				</>
 			) : null}
 			{card.secondaryCta && billingCycle === 'monthly' ? (

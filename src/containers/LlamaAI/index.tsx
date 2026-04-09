@@ -1099,7 +1099,15 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						from: replayFrom,
 						eventCounter: replayEventCounter
 					})
-						.then(() => true)
+						.then(() => {
+							// Clear the recovery controller so that tab-return / visibility-change
+							// handlers don't re-trigger a replay for the already-completed execution.
+							const rc = recoveryControllerRef.current
+							if (rc?.sessionId === targetSessionId) {
+								clearRecoveryController()
+							}
+							return true
+						})
 						.catch(() => {
 							// Buffer expired — reset streaming state so the UI doesn't get stuck.
 							if (resetStream) {

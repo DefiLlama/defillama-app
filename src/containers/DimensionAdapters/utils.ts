@@ -565,7 +565,7 @@ export function mergeNamedDimensionChartDataset({
 	}
 }
 
-export type ChainsByAdapterChartKind = 'bar' | 'line' | 'treemap' | 'hbar'
+export type ChainsByAdapterChartKind = 'bar' | 'dominance' | 'treemap' | 'hbar'
 export type ChainsByAdapterValueMode = 'absolute' | 'relative'
 export type ChainsByAdapterBarLayout = 'stacked' | 'separate'
 
@@ -577,7 +577,7 @@ export type ChainsByAdapterChartState =
 			groupBy: ChartTimeGroupingWithCumulative
 	  }
 	| {
-			chartKind: 'line'
+			chartKind: 'dominance'
 			groupBy: ChartTimeGroupingWithCumulative
 	  }
 	| {
@@ -611,8 +611,8 @@ type ChainsByAdapterBarPresentation = {
 	groupBy: ChartTimeGroupingWithCumulative
 }
 
-type ChainsByAdapterLinePresentation = {
-	kind: 'line'
+type ChainsByAdapterDominancePresentation = {
+	kind: 'dominance'
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesChart2SeriesConfig[]
 	groupBy: ChartTimeGroupingWithCumulative
@@ -630,13 +630,13 @@ type ChainsByAdapterHBarPresentation = {
 
 export type ChainsByAdapterChartPresentation =
 	| ChainsByAdapterBarPresentation
-	| ChainsByAdapterLinePresentation
+	| ChainsByAdapterDominancePresentation
 	| ChainsByAdapterTreemapPresentation
 	| ChainsByAdapterHBarPresentation
 
 type ChainsByAdapterBarState = Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
-type ChainsByAdapterLineState = Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
-type LatestValueSeriesType = 'bar' | 'line'
+type ChainsByAdapterDominanceState = Extract<ChainsByAdapterChartState, { chartKind: 'dominance' }>
+type LatestValueSeriesType = 'bar' | 'dominance'
 
 const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGroupingWithCumulative = 'daily'
 const VALID_GROUPINGS = new Set<ChartTimeGroupingWithCumulative>([
@@ -702,9 +702,9 @@ export function normalizeChainsByAdapterChartState({
 	const normalizedGroupBy = groupByParam?.toLowerCase()
 
 	const normalizedChartKind = chartKindParam?.toLowerCase()
-	if (normalizedChartKind === 'line') {
+	if (normalizedChartKind === 'dominance' || normalizedChartKind === 'line') {
 		return {
-			chartKind: 'line',
+			chartKind: 'dominance',
 			groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
 		}
 	}
@@ -719,7 +719,7 @@ export function normalizeChainsByAdapterChartState({
 	}
 	if (legacyChartTypeParam?.toLowerCase() === 'dominance') {
 		return {
-			chartKind: 'line',
+			chartKind: 'dominance',
 			groupBy: toValidChartGrouping(normalizedGroupBy) ?? DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY
 		}
 	}
@@ -974,7 +974,7 @@ function buildBarPresentation({
 	}
 }
 
-function buildLinePresentation({
+function buildDominancePresentation({
 	topSeries,
 	topSeriesNames,
 	topColorBySeriesName,
@@ -983,8 +983,8 @@ function buildLinePresentation({
 	topSeries: Map<string, Array<[number, number]>>
 	topSeriesNames: string[]
 	topColorBySeriesName: Record<string, string>
-	state: ChainsByAdapterLineState
-}): ChainsByAdapterLinePresentation {
+	state: ChainsByAdapterDominanceState
+}): ChainsByAdapterDominancePresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
 	for (const seriesName of topSeriesNames) {
@@ -1003,7 +1003,7 @@ function buildLinePresentation({
 	const relativeDataset = normalizeDatasetToPercent(groupedDataset, topSeriesNames)
 
 	return {
-		kind: 'line',
+		kind: 'dominance',
 		dataset: relativeDataset,
 		charts: topSeriesNames.map((seriesName) => ({
 			type: 'line',
@@ -1239,12 +1239,12 @@ export function buildChainsByAdapterChartPresentation({
 				data: buildHBarPresentation({ selectedNames: selectedChains, latestRows })
 			}
 		}
-		case 'line': {
+		case 'dominance': {
 			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
 				chartData,
 				selectedNames: selectedChains
 			})
-			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+			return buildDominancePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
 		}
 		case 'bar': {
 			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
@@ -1265,8 +1265,8 @@ export function buildAdapterByChainBreakdownPresentation({
 }: {
 	chartData: MultiSeriesChart2Dataset
 	selectedProtocols: string[]
-	state: ChainsByAdapterBarState | ChainsByAdapterLineState
-}): ChainsByAdapterBarPresentation | ChainsByAdapterLinePresentation {
+	state: ChainsByAdapterBarState | ChainsByAdapterDominanceState
+}): ChainsByAdapterBarPresentation | ChainsByAdapterDominancePresentation {
 	const latestRows = buildLatestValueRowsFromChartData({
 		chartData,
 		selectedNames: selectedProtocols,
@@ -1290,8 +1290,8 @@ export function buildAdapterByChainBreakdownPresentation({
 	const topColorBySeriesName = Object.fromEntries(orderedSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
 
 	switch (state.chartKind) {
-		case 'line':
-			return buildLinePresentation({ topSeries, topSeriesNames: orderedSeriesNames, topColorBySeriesName, state })
+		case 'dominance':
+			return buildDominancePresentation({ topSeries, topSeriesNames: orderedSeriesNames, topColorBySeriesName, state })
 		case 'bar':
 			return buildBarPresentation({ topSeries, topSeriesNames: orderedSeriesNames, topColorBySeriesName, state })
 		default:

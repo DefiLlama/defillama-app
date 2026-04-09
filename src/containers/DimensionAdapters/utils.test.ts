@@ -82,12 +82,12 @@ describe('normalizeChainsByAdapterChartState', () => {
 		})
 	})
 
-	it('maps legacy dominance URLs to line mode and preserves cumulative grouping', () => {
+	it('maps legacy dominance URLs to dominance mode and preserves cumulative grouping', () => {
 		expect(
 			normalizeChainsByAdapterChartState({
 				legacyChartTypeParam: 'dominance'
 			})
-		).toEqual({ chartKind: 'line', groupBy: 'daily' })
+		).toEqual({ chartKind: 'dominance', groupBy: 'daily' })
 
 		expect(
 			normalizeChainsByAdapterChartState({
@@ -102,13 +102,13 @@ describe('normalizeChainsByAdapterChartState', () => {
 
 		expect(
 			normalizeChainsByAdapterChartState({
-				chartKindParam: 'line',
+				chartKindParam: 'dominance',
 				groupByParam: 'cumulative'
 			})
-		).toEqual({ chartKind: 'line', groupBy: 'cumulative' })
+		).toEqual({ chartKind: 'dominance', groupBy: 'cumulative' })
 	})
 
-	it('ignores bar-only params for treemap and line modes', () => {
+	it('accepts legacy line chartKind params and ignores bar-only params for treemap and dominance modes', () => {
 		expect(
 			normalizeChainsByAdapterChartState({
 				chartKindParam: 'treemap',
@@ -125,7 +125,7 @@ describe('normalizeChainsByAdapterChartState', () => {
 				barLayoutParam: 'separate',
 				groupByParam: 'yearly'
 			})
-		).toEqual({ chartKind: 'line', groupBy: 'yearly' })
+		).toEqual({ chartKind: 'dominance', groupBy: 'yearly' })
 
 		expect(
 			normalizeChainsByAdapterChartState({
@@ -224,11 +224,11 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state: { chartKind: 'line', groupBy: 'weekly' }
+			state: { chartKind: 'dominance', groupBy: 'weekly' }
 		})
 
-		expect(presentation.kind).toBe('line')
-		if (presentation.kind !== 'line') return
+		expect(presentation.kind).toBe('dominance')
+		if (presentation.kind !== 'dominance') return
 
 		expect(presentation.groupBy).toBe('weekly')
 		expect(presentation.charts.every((chart) => chart.type === 'line' && chart.hideAreaStyle == null)).toBe(true)
@@ -379,7 +379,7 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[2].value).toBe(20)
 	})
 
-	it('sums rolling-window values for line-backed latest-value charts (weekly = last 7 days)', () => {
+	it('sums rolling-window values for dominance-backed latest-value charts (weekly = last 7 days)', () => {
 		const lineBackedChartData = {
 			dimensions: ['timestamp', 'Hyperliquid', 'dYdX'],
 			source: [
@@ -523,7 +523,7 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 		expect(presentation.dataset.source.at(-1)?.['Protocol 10']).toBe(1)
 	})
 
-	it('ranks cumulative line series by cumulative totals without collapsing overflow into Others', () => {
+	it('ranks cumulative dominance series by cumulative totals without collapsing overflow into Others', () => {
 		const selectedProtocols = ['History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)]
 		const cumulativeLineChartData = {
 			dimensions: ['timestamp', 'History Giant', ...Array.from({ length: 10 }, (_, index) => `Protocol ${index + 1}`)],
@@ -543,13 +543,13 @@ describe('buildAdapterByChainBreakdownPresentation', () => {
 			chartData: cumulativeLineChartData,
 			selectedProtocols,
 			state: {
-				chartKind: 'line',
+				chartKind: 'dominance',
 				groupBy: 'cumulative'
 			}
 		})
 
-		expect(presentation.kind).toBe('line')
-		if (presentation.kind !== 'line') return
+		expect(presentation.kind).toBe('dominance')
+		if (presentation.kind !== 'dominance') return
 
 		expect(presentation.charts.map((chart) => chart.name)).toEqual(selectedProtocols)
 		expect(presentation.charts).toHaveLength(11)

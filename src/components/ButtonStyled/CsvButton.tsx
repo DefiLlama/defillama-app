@@ -1,13 +1,10 @@
 import * as Ariakit from '@ariakit/react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, type ReactNode, Suspense, useCallback, useReducer } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { TrialCsvLimitModal } from '~/components/TrialCsvLimitModal'
-import { AUTH_SERVER } from '~/constants'
-import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -58,24 +55,18 @@ function normalizeCsvFilename(filename: string): string {
 interface CSVDownloadButtonState {
 	staticLoading: boolean
 	shouldRenderModal: boolean
-	trialConfirmOpen: boolean
 	trialCsvLimitOpen: boolean
-	trialLoading: boolean
 }
 
 type CSVDownloadButtonAction =
 	| { type: 'setStaticLoading'; value: boolean }
 	| { type: 'setShouldRenderModal'; value: boolean }
-	| { type: 'setTrialConfirmOpen'; value: boolean }
 	| { type: 'setTrialCsvLimitOpen'; value: boolean }
-	| { type: 'setTrialLoading'; value: boolean }
 
 const initialCSVDownloadButtonState: CSVDownloadButtonState = {
 	staticLoading: false,
 	shouldRenderModal: false,
-	trialConfirmOpen: false,
-	trialCsvLimitOpen: false,
-	trialLoading: false
+	trialCsvLimitOpen: false
 }
 
 function csvDownloadButtonReducer(
@@ -87,12 +78,8 @@ function csvDownloadButtonReducer(
 			return { ...state, staticLoading: action.value }
 		case 'setShouldRenderModal':
 			return { ...state, shouldRenderModal: action.value }
-		case 'setTrialConfirmOpen':
-			return { ...state, trialConfirmOpen: action.value }
 		case 'setTrialCsvLimitOpen':
 			return { ...state, trialCsvLimitOpen: action.value }
-		case 'setTrialLoading':
-			return { ...state, trialLoading: action.value }
 		default:
 			return state
 	}
@@ -102,21 +89,19 @@ function csvDownloadButtonReducer(
 export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const { className, replaceClassName, smol, children } = props
 	const [state, dispatch] = useReducer(csvDownloadButtonReducer, initialCSVDownloadButtonState)
-	const { staticLoading, shouldRenderModal, trialConfirmOpen, trialCsvLimitOpen, trialLoading } = state
-	const { isAuthenticated, loaders, hasActiveSubscription, isTrial, user, authorizedFetch } = useAuthContext()
-	const queryClient = useQueryClient()
+	const { staticLoading, shouldRenderModal, trialCsvLimitOpen } = state
+	const { isAuthenticated, loaders, hasActiveSubscription, isTrial } = useAuthContext()
 	const isOnClickMode = hasOnClick(props)
 	const onClickLoading = isOnClickMode ? props.isLoading : false
 	const onClickHandler = isOnClickMode ? props.onClick : undefined
 	const prepareCsv = hasPrepareCsv(props) ? props.prepareCsv : undefined
-	const isLoading = !!(loaders.userLoading || onClickLoading || staticLoading || trialLoading)
+	const isLoading = !!(loaders.userLoading || onClickLoading || staticLoading)
 	const subscribeModalStore = Ariakit.useDialogStore({
 		open: shouldRenderModal,
 		setOpen: (value) => dispatch({ type: 'setShouldRenderModal', value })
 	})
 	const isClient = useIsClient()
 	const router = useRouter()
-	const csvDownloadCount = typeof user?.flags?.csvDownload === 'number' ? user.flags.csvDownload : 0
 
 	const runDownload = useCallback(
 		async (forceLoading = false) => {
@@ -154,48 +139,11 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		[onClickHandler, prepareCsv]
 	)
 
-	const trackCsvDownloadMutation = useMutation({
-		mutationFn: async () => {
-			const response = await authorizedFetch(`${AUTH_SERVER}/user/track-csv-download`, { method: 'POST' })
-			if (!response?.ok) {
-				throw new Error('Failed to track CSV download')
-			}
-		},
-		onSuccess: () => {
-			void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
-		}
-	})
-
-	const { mutateAsync: trackCsvDownload } = trackCsvDownloadMutation
-
-	const handleTrialConfirm = useCallback(async () => {
-		dispatch({ type: 'setTrialLoading', value: true })
-		await runDownload(true)
-			.then(async (downloaded) => {
-				if (!downloaded) return
-				await trackCsvDownload().catch((error) => {
-					toast.error('CSV downloaded, but failed to record usage. Please refresh the page.')
-					console.log(error)
-				})
-			})
-			.catch((error) => {
-				toast.error('Failed to download CSV')
-				console.log(error)
-			})
-			.finally(() => {
-				dispatch({ type: 'setTrialLoading', value: false })
-			})
-	}, [runDownload, trackCsvDownload])
-
 	const handleButtonClick = useCallback(async () => {
 		if (isLoading) return
 
 		if (isTrial) {
-			if (csvDownloadCount >= 1) {
-				dispatch({ type: 'setTrialCsvLimitOpen', value: true })
-				return
-			}
-			dispatch({ type: 'setTrialConfirmOpen', value: true })
+			dispatch({ type: 'setTrialCsvLimitOpen', value: true })
 			return
 		}
 
@@ -207,7 +155,6 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		setSignupSource('csv')
 		subscribeModalStore.show()
 	}, [
-		csvDownloadCount,
 		hasActiveSubscription,
 		isAuthenticated,
 		isLoading,
@@ -253,20 +200,6 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 				<TrialCsvLimitModal
 					isOpen={trialCsvLimitOpen}
 					onClose={() => dispatch({ type: 'setTrialCsvLimitOpen', value: false })}
-				/>
-			) : null}
-			{trialConfirmOpen ? (
-				<ConfirmationModal
-					isOpen={trialConfirmOpen}
-					onClose={() => dispatch({ type: 'setTrialConfirmOpen', value: false })}
-					onConfirm={() => {
-						void handleTrialConfirm()
-					}}
-					title="Trial CSV download"
-					message="Trial accounts get 1 CSV download. Do you want to use it now?"
-					confirmText="Download"
-					cancelText="Cancel"
-					confirmButtonClass="bg-(--primary) hover:opacity-90 text-white"
 				/>
 			) : null}
 		</>
