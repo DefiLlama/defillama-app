@@ -74,8 +74,10 @@ export const SettingsModal = memo(function SettingsModal({
 		}
 		draftValueRef.current = settings.customInstructions
 		baselineRef.current = settings.customInstructions.trim()
-		setCharCount(settings.customInstructions.length)
-		dispatch({ type: 'MARK_CLEAN' })
+		queueMicrotask(() => {
+			setCharCount(settings.customInstructions.length)
+			dispatch({ type: 'MARK_CLEAN' })
+		})
 	}, [isOpen, modalState.status, settings.customInstructions])
 
 	const syncDirtyState = useCallback(() => {

@@ -179,17 +179,6 @@ export function useLlamaAISettings() {
 	const hackerMode = useLlamaAISetting('hackerMode')
 	const model = useLlamaAISetting('model')
 
-	const settings = useMemo<LlamaAISettings>(
-		() => ({
-			customInstructions,
-			enableMemory,
-			enablePremiumTools,
-			hackerMode,
-			model
-		}),
-		[customInstructions, enableMemory, enablePremiumTools, hackerMode, model]
-	)
-
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
 		queryFn: async (): Promise<SettingsQueryResult> => {
@@ -269,7 +258,22 @@ export function useLlamaAISettings() {
 		[persistSettings]
 	)
 
-	const availableModels = settingsQuery.data?.availableModels ?? []
+	const availableModels = useMemo(
+		() => settingsQuery.data?.availableModels ?? [],
+		[settingsQuery.data?.availableModels]
+	)
+
+	const settings = useMemo<LlamaAISettings>(() => {
+		const normalizedModel =
+			model === '' || availableModels.length === 0 || availableModels.some((m) => m.id === model) ? model : ''
+		return {
+			customInstructions,
+			enableMemory,
+			enablePremiumTools,
+			hackerMode,
+			model: normalizedModel
+		}
+	}, [customInstructions, enableMemory, enablePremiumTools, hackerMode, model, availableModels])
 
 	return {
 		settings,
