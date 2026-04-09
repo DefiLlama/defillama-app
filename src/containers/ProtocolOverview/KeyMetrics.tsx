@@ -129,7 +129,7 @@ function buildStandardVolumeMetrics(
 		totalAllTime?: number | null
 		chainBreakdown?: Record<
 			string,
-			{ total24h: number; total7d: number; total30d: number; totalAllTime: number }
+			{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
 		> | null
 	},
 	definitionKey: string,
@@ -180,14 +180,22 @@ function buildStandardVolumeMetrics(
 }
 
 function extractChainValues(
-	cb: Record<string, { total24h: number; total7d: number; total30d: number; totalAllTime: number }>,
+	cb: Record<
+		string,
+		{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
+	>,
 	key: 'total24h' | 'total7d' | 'total30d' | 'totalAllTime'
-): Record<string, number> {
+): Record<string, number> | null {
 	const result: Record<string, number> = {}
+	let hasAny = false
 	for (const chain in cb) {
-		result[chain] = cb[chain][key]
+		const val = cb[chain][key]
+		if (val != null) {
+			result[chain] = val
+			hasAny = true
+		}
 	}
-	return result
+	return hasAny ? result : null
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {

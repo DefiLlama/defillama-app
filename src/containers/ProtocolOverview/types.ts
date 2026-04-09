@@ -51,7 +51,10 @@ interface IAdapterOverview {
 	breakdownMethodology?: Record<string, string> | null
 	childMethodologies?: Array<[string, string | null, string | null]>
 	defaultChartView?: ChartTimeGrouping
-	chainBreakdown?: Record<string, { total24h: number; total7d: number; total30d: number; totalAllTime: number }> | null
+	chainBreakdown?: Record<
+		string,
+		{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
+	> | null
 }
 
 export type IProtocolOverviewChartSeries = IProtocolNumericSeries

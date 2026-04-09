@@ -1040,13 +1040,18 @@ function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMet
 
 	let chainBreakdown: Record<
 		string,
-		{ total24h: number; total7d: number; total30d: number; totalAllTime: number }
+		{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
 	> | null = null
 	if (data.chainBreakdown) {
 		const slim: typeof chainBreakdown & {} = {}
 		for (const chain in data.chainBreakdown) {
 			const v = data.chainBreakdown[chain]
-			slim[chain] = { total24h: v.total24h, total7d: v.total7d, total30d: v.total30d, totalAllTime: v.totalAllTime }
+			slim[chain] = {
+				total24h: v.total24h ?? null,
+				total7d: v.total7d ?? null,
+				total30d: v.total30d ?? null,
+				totalAllTime: v.totalAllTime ?? null
+			}
 		}
 		chainBreakdown = Object.keys(slim).length === 0 ? null : slim
 	}
