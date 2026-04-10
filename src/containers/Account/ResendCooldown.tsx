@@ -49,7 +49,12 @@ export const ResendCooldown = forwardRef<ResendCooldownHandle, ResendCooldownPro
 			{secondsLeft > 0 ? (
 				<span className="text-(--sub-text-muted)">Resend in {secondsLeft}s</span>
 			) : (
-				<button type="button" onClick={onResend} disabled={disabled} className="text-(--sub-brand-secondary) underline disabled:opacity-50">
+				<button
+					type="button"
+					onClick={onResend}
+					disabled={disabled}
+					className="text-(--sub-brand-secondary) underline disabled:opacity-50"
+				>
 					Resend
 				</button>
 			)}
