@@ -60,12 +60,12 @@ const baseMarket = {
 	cumulativeFunding: 10,
 	referenceAsset: 'Meta',
 	referenceAssetGroup: 'Equities',
-	assetClass: ['Single stock synthetic perp'],
+	assetClass: ['Stock Perp'],
 	parentPlatform: 'trade[XYZ]',
 	pair: null,
 	marginAsset: 'USDC',
 	settlementAsset: 'USDC',
-	category: ['RWA Perpetuals'],
+	category: ['RWA Perps'],
 	issuer: 'XYZ',
 	website: ['https://trade.xyz/'],
 	oracleProvider: 'Pyth equity feed',
@@ -97,7 +97,7 @@ beforeEach(() => {
 	fetchRWAPerpsList.mockResolvedValue({
 		contracts: ['xyz:META', 'flx:GOLD'],
 		venues: ['xyz', 'flx'],
-		categories: ['RWA Perpetuals', 'Commodities'],
+		categories: ['RWA Perps', 'Gold & Commodities'],
 		total: 2
 	})
 	fetchRWAPerpsStats.mockResolvedValue({
@@ -110,8 +110,8 @@ beforeEach(() => {
 			flx: { openInterest: 100, volume24h: 40, markets: 1 }
 		},
 		byCategory: {
-			'RWA Perpetuals': { openInterest: 300, volume24h: 170, markets: 2 },
-			Commodities: { openInterest: 50, volume24h: 30, markets: 1 }
+			'RWA Perps': { openInterest: 300, volume24h: 170, markets: 2 },
+			'Gold & Commodities': { openInterest: 50, volume24h: 30, markets: 1 }
 		},
 		lastUpdated: '2026-04-01T00:00:00.000Z'
 	})
@@ -122,8 +122,8 @@ beforeEach(() => {
 			contract: 'flx:GOLD',
 			venue: 'flx',
 			openInterest: 20,
-			category: ['Commodities'],
-			assetClass: ['Commodity synthetic perp']
+			category: ['Gold & Commodities'],
+			assetClass: ['Commodity Perp']
 		},
 		{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', openInterest: 120 },
 		{
@@ -148,12 +148,12 @@ beforeEach(() => {
 		}
 	])
 	fetchRWAPerpsCategoryChart.mockImplementation(async (category: string) => {
-		if (category === 'RWA Perpetuals') {
+		if (category === 'RWA Perps') {
 			return [
 				{
 					...baseMarket,
 					id: 'xyz:meta',
-					category: ['RWA Perpetuals'],
+					category: ['RWA Perps'],
 					timestamp: 1774483200,
 					openInterest: 120,
 					volume24h: 70
@@ -162,7 +162,7 @@ beforeEach(() => {
 					...baseMarket,
 					id: 'xyz:nvda',
 					contract: 'xyz:NVDA',
-					category: ['RWA Perpetuals'],
+					category: ['RWA Perps'],
 					timestamp: 1774569600,
 					openInterest: 180,
 					volume24h: 100
@@ -175,7 +175,7 @@ beforeEach(() => {
 				...baseMarket,
 				id: 'flx:gold',
 				contract: 'flx:GOLD',
-				category: ['Commodities'],
+				category: ['Gold & Commodities'],
 				venue: 'flx',
 				timestamp: 1774569600,
 				openInterest: 50,
@@ -207,7 +207,7 @@ beforeEach(() => {
 				contract: 'flx:GOLD',
 				referenceAsset: 'Gold',
 				venue: 'flx',
-				assetClass: ['Commodity synthetic perp'],
+				assetClass: ['Commodity Perp'],
 				timestamp: 1774569600,
 				openInterest: 100,
 				volume24h: 40
@@ -352,10 +352,10 @@ describe('perps overview queries', () => {
 			})
 		).resolves.toEqual({
 			source: [
-				{ timestamp: 1774483200000, 'Single stock synthetic perp': 120 },
-				{ timestamp: 1774569600000, 'Single stock synthetic perp': 130, 'Commodity synthetic perp': 100 }
+				{ timestamp: 1774483200000, 'Stock Perp': 120 },
+				{ timestamp: 1774569600000, 'Stock Perp': 130, 'Commodity Perp': 100 }
 			],
-			dimensions: ['timestamp', 'Single stock synthetic perp', 'Commodity synthetic perp']
+			dimensions: ['timestamp', 'Stock Perp', 'Commodity Perp']
 		})
 	})
 
@@ -448,12 +448,12 @@ describe('perps overview helpers', () => {
 		expect(
 			toRWAPerpsBreakdownChartDataset({
 				rows: [
-					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', category: ['RWA Perpetuals'], timestamp: 1774483200 },
+					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', category: ['RWA Perps'], timestamp: 1774483200 },
 					{
 						...baseMarket,
 						id: 'flx:gold',
 						venue: 'flx',
-						category: ['Commodities'],
+						category: ['Gold & Commodities'],
 						timestamp: 1774483200,
 						openInterest: 20
 					}
@@ -471,26 +471,26 @@ describe('perps overview helpers', () => {
 		expect(
 			toRWAPerpsBreakdownChartDataset({
 				rows: [
-					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', category: ['RWA Perpetuals'], timestamp: 1774483200 },
+					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', category: ['RWA Perps'], timestamp: 1774483200 },
 					{
 						...baseMarket,
 						id: 'xyz:nvda',
 						venue: 'xyz',
-						category: ['RWA Perpetuals'],
+						category: ['RWA Perps'],
 						timestamp: 1774483200
 					},
 					{
 						...baseMarket,
 						id: 'flx:gold',
 						venue: 'flx',
-						category: ['Commodities'],
+						category: ['Gold & Commodities'],
 						timestamp: 1774483200
 					},
 					{
 						...baseMarket,
 						id: 'flx:oil',
 						venue: 'flx',
-						category: ['Commodities'],
+						category: ['Gold & Commodities'],
 						timestamp: 1774569600
 					}
 				],

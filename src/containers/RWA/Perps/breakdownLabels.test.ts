@@ -17,7 +17,7 @@ const baseRow = {
 	venue: 'xyz',
 	referenceAsset: 'Meta',
 	referenceAssetGroup: 'Equities',
-	assetClass: ['Single stock synthetic perp']
+	assetClass: ['Stock Perp']
 }
 
 describe('breakdownLabels', () => {
@@ -40,7 +40,7 @@ describe('breakdownLabels', () => {
 		expect(getRWAPerpsSharedBreakdownLabel(baseRow, 'venue')).toBe('xyz')
 		expect(getRWAPerpsSharedBreakdownLabel(baseRow, 'assetGroup')).toBe('Equities')
 		expect(getRWAPerpsOverviewBreakdownLabel(baseRow, 'baseAsset')).toBe('Meta')
-		expect(getRWAPerpsVenueBreakdownLabel(baseRow, 'assetClass')).toBe('Single stock synthetic perp')
+		expect(getRWAPerpsVenueBreakdownLabel(baseRow, 'assetClass')).toBe('Stock Perp')
 		expect(getRWAPerpsOverviewSnapshotBreakdownLabel({ ...baseRow, category: [], id: 'x' } as any, 'contract')).toBe(
 			'xyz:META'
 		)

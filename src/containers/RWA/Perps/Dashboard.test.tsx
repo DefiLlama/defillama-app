@@ -80,12 +80,12 @@ const overviewData = {
 			cumulativeFunding: 10,
 			referenceAsset: 'Meta',
 			referenceAssetGroup: 'Equities',
-			assetClass: ['Single stock synthetic perp'],
+			assetClass: ['Stock Perp'],
 			parentPlatform: 'trade[XYZ]',
 			pair: '',
 			marginAsset: 'USDC',
 			settlementAsset: 'USDC',
-			category: ['RWA Perpetuals'],
+			category: ['RWA Perps'],
 			issuer: 'XYZ',
 			website: ['https://trade.xyz/'],
 			oracleProvider: 'Pyth equity feed',
@@ -241,8 +241,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		}
 		queryState = {
 			data: {
-				source: [{ timestamp: 1774483200000, 'Single stock synthetic perp': 100 }],
-				dimensions: ['timestamp', 'Single stock synthetic perp']
+				source: [{ timestamp: 1774483200000, 'Stock Perp': 100 }],
+				dimensions: ['timestamp', 'Stock Perp']
 			},
 			isLoading: false,
 			error: null

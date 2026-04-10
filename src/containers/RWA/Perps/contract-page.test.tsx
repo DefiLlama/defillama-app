@@ -53,7 +53,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		venue: 'xyz',
 		baseAsset: 'Meta',
 		baseAssetGroup: 'Equities',
-		assetClass: 'Single stock synthetic perp',
+		assetClass: 'Stock Perp',
 		rwaClassification: 'Programmable Finance',
 		accessModel: 'Permissionless',
 		parentPlatform: 'trade[XYZ]',
@@ -61,7 +61,7 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		website: 'https://trade.xyz/',
 		oracleProvider: 'Pyth',
 		description: null,
-		categories: ['RWA Perpetuals']
+		categories: ['RWA Perps']
 	},
 	market: {
 		id: 'xyz:meta',
@@ -77,12 +77,12 @@ const TEST_CONTRACT: IRWAPerpsContractData = {
 		cumulativeFunding: 1,
 		referenceAsset: 'Meta',
 		referenceAssetGroup: 'Equities',
-		assetClass: ['Single stock synthetic perp'],
+		assetClass: ['Stock Perp'],
 		parentPlatform: 'trade[XYZ]',
 		pair: null,
 		marginAsset: 'USDC',
 		settlementAsset: 'USDC',
-		category: ['RWA Perpetuals'],
+		category: ['RWA Perps'],
 		issuer: 'XYZ',
 		website: ['https://trade.xyz/'],
 		oracleProvider: 'Pyth',

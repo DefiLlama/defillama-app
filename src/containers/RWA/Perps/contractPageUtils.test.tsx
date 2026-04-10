@@ -16,7 +16,7 @@ const baseContract: IRWAPerpsContractData = {
 		venue: 'xyz',
 		baseAsset: 'Meta',
 		baseAssetGroup: 'Equities',
-		assetClass: 'Single stock synthetic perp',
+		assetClass: 'Stock Perp',
 		rwaClassification: 'Programmable Finance',
 		accessModel: 'Permissionless',
 		parentPlatform: 'trade[XYZ]',
@@ -24,7 +24,7 @@ const baseContract: IRWAPerpsContractData = {
 		website: 'https://trade.xyz/',
 		oracleProvider: 'Pyth equity feed',
 		description: null,
-		categories: ['RWA Perpetuals']
+		categories: ['RWA Perps']
 	},
 	market: {
 		id: 'xyz:meta',
@@ -40,12 +40,12 @@ const baseContract: IRWAPerpsContractData = {
 		cumulativeFunding: 10,
 		referenceAsset: 'Meta',
 		referenceAssetGroup: 'Equities',
-		assetClass: ['Single stock synthetic perp'],
+		assetClass: ['Stock Perp'],
 		parentPlatform: 'trade[XYZ]',
 		pair: 'META-USD',
 		marginAsset: 'USDC',
 		settlementAsset: 'USDC',
-		category: ['RWA Perpetuals'],
+		category: ['RWA Perps'],
 		issuer: 'XYZ',
 		website: ['https://trade.xyz/'],
 		oracleProvider: 'Pyth equity feed',
@@ -163,6 +163,7 @@ describe('buildRWAPerpsContractInfoRows', () => {
 		})
 		expect(rows.find((row) => row.label === 'Base Asset')).toEqual({
 			label: 'Base Asset',
+			tooltip: 'Reference asset, fund, index, or benchmark the perpetual contract tracks.',
 			value: 'Meta Platforms'
 		})
 	})
