@@ -1,9 +1,10 @@
 import * as Ariakit from '@ariakit/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER } from '~/constants'
 import pb from '~/utils/pocketbase'
+import { ResendCooldown, type ResendCooldownHandle } from './ResendCooldown'
 
 interface SwitchToEmailModalProps {
 	isOpen: boolean
@@ -23,6 +24,7 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 	const [isLoading, setIsLoading] = useState(false)
 	const [showPassword, setShowPassword] = useState(false)
 	const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
+	const resendRef = useRef<ResendCooldownHandle>(null)
 
 	const resetState = () => {
 		setStep('email')
@@ -63,6 +65,7 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 				throw new Error(errorData?.error || errorData?.message || 'Failed to send verification code')
 			}
 
+			resendRef.current?.start()
 			setStep('confirm')
 		} catch (err: any) {
 			setError(err.message || 'Failed to send verification code. Please try again.')
@@ -138,6 +141,7 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 				throw new Error(errorData?.error || errorData?.message || 'Failed to resend verification code')
 			}
 
+			resendRef.current?.start()
 			toast.success('Verification code resent!')
 		} catch (err: any) {
 			setError(err.message || 'Failed to resend verification code.')
@@ -321,17 +325,7 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 								{isLoading ? 'Switching...' : 'Complete Switch'}
 							</button>
 
-							<div className="flex items-center gap-1 text-sm leading-[21px]">
-								<span className="text-(--sub-text-muted)">Didn't receive the code?</span>
-								<button
-									type="button"
-									onClick={handleResendOtp}
-									disabled={isLoading}
-									className="text-(--sub-brand-secondary) underline disabled:opacity-50"
-								>
-									Resend
-								</button>
-							</div>
+							<ResendCooldown ref={resendRef} onResend={handleResendOtp} disabled={isLoading} />
 						</form>
 					</div>
 				)}
