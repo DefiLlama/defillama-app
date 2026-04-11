@@ -215,6 +215,7 @@ export interface Message {
 	content?: string
 	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
 	csvExports?: CsvExport[]
+	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
 	citations?: string[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]

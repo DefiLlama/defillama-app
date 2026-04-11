@@ -243,6 +243,7 @@ export function ResponseControls({
 			convertedContent = convertedContent
 				.replace(/\[CHART:[^\]]+\]\n?/g, '')
 				.replace(/\[CSV:[^\]]+\]\n?/g, '')
+				.replace(/\[MD:[^\]]+\]\n?/g, '')
 				.replace(/\[ACTION:[^\]]+\]\n?/g, '')
 				.replace(/\[DASHBOARD:[^\]]+\]\n?/g, '')
 				.replace(/\[REPORT_START\]\n?/g, '')

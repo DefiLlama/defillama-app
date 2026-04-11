@@ -7,6 +7,7 @@ import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRende
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
+import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/MarkdownExportArtifact'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
 	ThinkingPanel,
@@ -282,7 +283,7 @@ function ArtifactBlockRenderer({
 	isStreaming,
 	sessionId
 }: {
-	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'alert' | 'dashboard' }>
+	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' }>
 	artifact?: ArtifactRecord
 	isStreaming: boolean
 	sessionId?: string | null
@@ -306,6 +307,21 @@ function ArtifactBlockRenderer({
 					title: artifact.title,
 					url: artifact.url,
 					rowCount: artifact.rowCount,
+					filename: artifact.filename
+				}}
+			/>
+		)
+	}
+
+	if (block.type === 'md') {
+		if (!artifact || isStreaming) return null
+		if (artifact.type !== 'md') return null
+		return (
+			<MarkdownExportArtifact
+				mdExport={{
+					id: artifact.id,
+					title: artifact.title,
+					url: artifact.url,
 					filename: artifact.filename
 				}}
 			/>
