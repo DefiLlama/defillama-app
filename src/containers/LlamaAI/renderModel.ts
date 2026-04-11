@@ -266,6 +266,10 @@ export function parseMessageToRenderModel(
 				blocks.push({ type: 'csv', key: `csv-${artifactId}-fallback`, artifactId })
 				continue
 			}
+			if (artifact.type === 'md') {
+				blocks.push({ type: 'md', key: `md-${artifactId}-fallback`, artifactId })
+				continue
+			}
 			if (artifact.type === 'dashboard') {
 				blocks.push({ type: 'dashboard', key: `dashboard-${artifactId}-fallback`, artifactId })
 				continue

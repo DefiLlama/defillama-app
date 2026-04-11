@@ -245,6 +245,7 @@ export function ResponseControls({
 				.replace(/\[CSV:[^\]]+\]\n?/g, '')
 				.replace(/\[MD:[^\]]+\]\n?/g, '')
 				.replace(/\[ACTION:[^\]]+\]\n?/g, '')
+				.replace(/\[ALERT:[^\]]+\]\n?/g, '')
 				.replace(/\[DASHBOARD:[^\]]+\]\n?/g, '')
 				.replace(/\[REPORT_START\]\n?/g, '')
 				.trim()

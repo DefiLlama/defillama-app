@@ -381,7 +381,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 					]
 				: undefined,
 		csvExports: message.csvExports,
-		mdExports: (message as any).mdExports,
+		mdExports: message.metadata?.mdExports,
 		citations: message.citations,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,

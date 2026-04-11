@@ -1,4 +1,5 @@
 import { Icon } from '~/components/Icon'
+import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 interface MarkdownExportArtifactProps {
 	mdExport: {
@@ -10,9 +11,12 @@ interface MarkdownExportArtifactProps {
 }
 
 export function MarkdownExportArtifact({ mdExport }: MarkdownExportArtifactProps) {
+	const safeUrl = sanitizeUrl(mdExport.url)
+	if (!safeUrl) return null
+
 	return (
 		<a
-			href={mdExport.url}
+			href={safeUrl}
 			download={mdExport.filename}
 			className="flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 transition-colors hover:border-[#2172E5] hover:bg-[#2172E5]/5 dark:border-[#222324] dark:bg-[#181A1C] dark:hover:border-[#2172E5]"
 		>

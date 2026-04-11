@@ -14,7 +14,6 @@ const ACCEPTED_TYPES = new Set([
 	'image/webp',
 	'application/pdf',
 	'text/csv',
-	'application/vnd.ms-excel',
 	'text/markdown',
 	'text/plain'
 ])
@@ -115,7 +114,7 @@ export function useImageUpload({
 					queueMicrotask(() => {
 						errorToast({
 							title: 'Unsupported file type',
-							description: 'Supported formats: PNG, JPEG, GIF, WebP, PDF, CSV, XLS, MD, TXT'
+							description: 'Supported formats: PNG, JPEG, GIF, WebP, PDF, CSV, MD, TXT'
 						})
 					})
 				}
