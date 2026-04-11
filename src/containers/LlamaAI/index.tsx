@@ -557,6 +557,10 @@ function createAgenticCallbacks({
 				dispatch({ type: 'CLEAR_ACTIVITY' })
 			}
 			buffer.text += content
+			const reportIdx = buffer.text.indexOf('[REPORT_START]')
+			if (reportIdx !== -1) {
+				buffer.text = buffer.text.slice(reportIdx + '[REPORT_START]'.length).trimStart()
+			}
 			dispatch({ type: 'APPEND_TOKEN', value: content })
 		},
 		onCharts: (charts, chartData) => {

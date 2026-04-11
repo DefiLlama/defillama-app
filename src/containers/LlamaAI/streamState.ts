@@ -171,8 +171,14 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, lastFailedRequest: action.value }
 		case 'SET_RATE_LIMIT_DETAILS':
 			return { ...state, rateLimitDetails: action.value }
-		case 'APPEND_TOKEN':
-			return { ...state, text: state.text + action.value }
+		case 'APPEND_TOKEN': {
+			let newText = state.text + action.value
+			const reportIdx = newText.indexOf('[REPORT_START]')
+			if (reportIdx !== -1) {
+				newText = newText.slice(reportIdx + '[REPORT_START]'.length).trimStart()
+			}
+			return { ...state, text: newText }
+		}
 		case 'APPEND_CHARTS':
 			return { ...state, charts: [...state.charts, action.value] }
 		case 'APPEND_CSV_EXPORTS':

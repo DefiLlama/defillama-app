@@ -73,7 +73,10 @@ interface ParsedContent {
  * Placeholders follow the format [CHART:id], [CSV:id], and [ALERT:id].
  */
 export function parseArtifactPlaceholders(content: string): ParsedContent {
-	content = content.replace(/\[REPORT_START\]\n?/g, '')
+	const reportStartIdx = content.indexOf('[REPORT_START]')
+	if (reportStartIdx !== -1) {
+		content = content.slice(reportStartIdx + '[REPORT_START]'.length).trimStart()
+	}
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g

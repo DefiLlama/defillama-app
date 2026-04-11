@@ -239,7 +239,14 @@ export function ResponseControls({
 		if (!content) return
 		trackUmamiEvent('llamaai-copy-response')
 		try {
-			const convertedContent = convertLlamaLinksToDefillama(content)
+			let convertedContent = convertLlamaLinksToDefillama(content)
+			convertedContent = convertedContent
+				.replace(/\[CHART:[^\]]+\]\n?/g, '')
+				.replace(/\[CSV:[^\]]+\]\n?/g, '')
+				.replace(/\[ACTION:[^\]]+\]\n?/g, '')
+				.replace(/\[DASHBOARD:[^\]]+\]\n?/g, '')
+				.replace(/\[REPORT_START\]\n?/g, '')
+				.trim()
 			await navigator.clipboard.writeText(convertedContent)
 			dispatch({ type: 'setCopied', value: true })
 			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
