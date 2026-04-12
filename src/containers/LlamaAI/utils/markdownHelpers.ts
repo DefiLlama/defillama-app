@@ -53,13 +53,14 @@ interface ActionPlaceholderData {
 }
 
 type ArtifactMatch =
-	| { index: number; length: number; type: 'chart' | 'csv' | 'alert' | 'dashboard'; id: string }
+	| { index: number; length: number; type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard'; id: string }
 	| { index: number; length: number; type: 'action'; id: ActionPlaceholderData }
 
 export type ContentPart =
 	| { type: 'text'; content: string }
 	| { type: 'chart'; chartId: string }
 	| { type: 'csv'; csvId: string }
+	| { type: 'md'; mdId: string }
 	| { type: 'alert'; alertId: string }
 	| { type: 'dashboard'; dashboardId: string }
 	| { type: 'action'; actionLabel: string; actionMessage: string }
@@ -73,9 +74,13 @@ interface ParsedContent {
  * Placeholders follow the format [CHART:id], [CSV:id], and [ALERT:id].
  */
 export function parseArtifactPlaceholders(content: string): ParsedContent {
-	content = content.replace(/\[REPORT_START\]\n?/g, '')
+	const reportStartIdx = content.indexOf('[REPORT_START]')
+	if (reportStartIdx !== -1) {
+		content = content.slice(reportStartIdx + '[REPORT_START]'.length).trimStart()
+	}
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
+	const mdPlaceholderPattern = /\[MD:([^\]]+)\]/g
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
 	const dashboardPlaceholderPattern = /\[DASHBOARD:([^\]]+)\]/g
 	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
@@ -89,6 +94,9 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	}
 	while ((match = csvPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
+	}
+	while ((match = mdPlaceholderPattern.exec(content)) !== null) {
+		allMatches.push({ index: match.index, length: match[0].length, type: 'md', id: match[1] })
 	}
 	while ((match = alertPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
@@ -120,6 +128,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			parts.push({ type: 'chart', chartId: m.id })
 		} else if (m.type === 'csv') {
 			parts.push({ type: 'csv', csvId: m.id })
+		} else if (m.type === 'md') {
+			parts.push({ type: 'md', mdId: m.id })
 		} else if (m.type === 'dashboard') {
 			parts.push({ type: 'dashboard', dashboardId: m.id })
 		} else {

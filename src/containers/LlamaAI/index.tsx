@@ -113,6 +113,8 @@ interface PersistedMessageMetadata {
 		sourceDashboardId?: string
 	}
 	deliveryChannel?: 'email' | 'telegram'
+	mdExports?: Array<{ id: string; title: string; url: string; filename: string }>
+	x402_cost_usd?: string
 }
 
 interface PersistedMessage {
@@ -272,6 +274,7 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
+		mdExports: message.metadata?.mdExports,
 		dashboards: dashboardConfig
 			? [
 					(() => {
@@ -378,6 +381,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 					]
 				: undefined,
 		csvExports: message.csvExports,
+		mdExports: message.metadata?.mdExports,
 		citations: message.citations,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
@@ -460,6 +464,7 @@ function appendBufferedAssistantMessage(
 		buffer.text ||
 		buffer.charts.length > 0 ||
 		buffer.csvExports.length > 0 ||
+		buffer.mdExports.length > 0 ||
 		buffer.alerts.length > 0 ||
 		buffer.dashboards.length > 0 ||
 		buffer.citations.length > 0 ||
@@ -557,6 +562,10 @@ function createAgenticCallbacks({
 				dispatch({ type: 'CLEAR_ACTIVITY' })
 			}
 			buffer.text += content
+			const reportIdx = buffer.text.indexOf('[REPORT_START]')
+			if (reportIdx !== -1) {
+				buffer.text = buffer.text.slice(reportIdx + '[REPORT_START]'.length).trimStart()
+			}
 			dispatch({ type: 'APPEND_TOKEN', value: content })
 		},
 		onCharts: (charts, chartData) => {
@@ -570,6 +579,11 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.csvExports.push(...exports)
 			dispatch({ type: 'APPEND_CSV_EXPORTS', value: exports })
+		},
+		onMdExport: (exports) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.mdExports.push(...exports)
+			dispatch({ type: 'APPEND_MD_EXPORTS', value: exports })
 		},
 		onAlertProposed: (data) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -800,6 +814,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		text: streamingText,
 		charts: streamingCharts,
 		csvExports: streamingCsvExports,
+		mdExports: streamingMdExports,
 		alerts: streamingAlerts,
 		citations: streamingCitations,
 		toolExecutions: streamingToolExecutions,
@@ -874,6 +889,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			streamingText ||
 			streamingCharts.length > 0 ||
 			streamingCsvExports.length > 0 ||
+			streamingMdExports.length > 0 ||
 			streamingAlerts.length > 0 ||
 			streamingCitations.length > 0
 		if (!hasContent) return null
@@ -882,6 +898,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			content: streamingText || undefined,
 			charts: streamingCharts.length > 0 ? streamingCharts : undefined,
 			csvExports: streamingCsvExports.length > 0 ? streamingCsvExports : undefined,
+			mdExports: streamingMdExports.length > 0 ? streamingMdExports : undefined,
 			alerts: streamingAlerts.length > 0 ? streamingAlerts : undefined,
 			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
 			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined
@@ -891,6 +908,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingText,
 		streamingCharts,
 		streamingCsvExports,
+		streamingMdExports,
 		streamingAlerts,
 		streamingCitations,
 		streamingToolExecutions

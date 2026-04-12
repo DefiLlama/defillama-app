@@ -26,13 +26,26 @@ export type AlertArtifactRecord = {
 	savedAlertIds?: string[]
 }
 
+export type MdArtifactRecord = {
+	type: 'md'
+	id: string
+	title: string
+	url: string
+	filename: string
+}
+
 export type DashboardArtifactRecord = {
 	type: 'dashboard'
 	id: string
 	dashboard: DashboardArtifact
 }
 
-export type ArtifactRecord = ChartArtifactRecord | CsvArtifactRecord | AlertArtifactRecord | DashboardArtifactRecord
+export type ArtifactRecord =
+	| ChartArtifactRecord
+	| CsvArtifactRecord
+	| MdArtifactRecord
+	| AlertArtifactRecord
+	| DashboardArtifactRecord
 
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
@@ -41,6 +54,7 @@ export type MessageRenderBlock =
 	| { type: 'sources'; key: string; citations: string[] }
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
+	| { type: 'md'; key: string; artifactId: string }
 	| { type: 'alert'; key: string; artifactId: string }
 	| { type: 'dashboard'; key: string; artifactId: string }
 	| { type: 'action-group'; key: string; actions: Array<{ label: string; message: string }> }
@@ -73,6 +87,16 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 			url: csv.url,
 			rowCount: csv.rowCount,
 			filename: csv.filename
+		})
+	}
+
+	for (const md of message.mdExports ?? []) {
+		artifacts.set(md.id, {
+			type: 'md',
+			id: md.id,
+			title: md.title,
+			url: md.url,
+			filename: md.filename
 		})
 	}
 
@@ -176,6 +200,17 @@ export function parseMessageToRenderModel(
 			continue
 		}
 
+		if (part.type === 'md') {
+			if (usedArtifactIds.has(part.mdId)) continue
+			usedArtifactIds.add(part.mdId)
+			blocks.push({
+				type: 'md',
+				key: `md-${part.mdId}-${blocks.length}`,
+				artifactId: part.mdId
+			})
+			continue
+		}
+
 		if (part.type === 'alert') {
 			if (usedArtifactIds.has(part.alertId)) continue
 			usedArtifactIds.add(part.alertId)
@@ -229,6 +264,10 @@ export function parseMessageToRenderModel(
 			}
 			if (artifact.type === 'csv') {
 				blocks.push({ type: 'csv', key: `csv-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			if (artifact.type === 'md') {
+				blocks.push({ type: 'md', key: `md-${artifactId}-fallback`, artifactId })
 				continue
 			}
 			if (artifact.type === 'dashboard') {

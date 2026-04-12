@@ -16,6 +16,13 @@ export interface CsvExport {
 	filename: string
 }
 
+export interface MdExport {
+	id: string
+	title: string
+	url: string
+	filename: string
+}
+
 export interface SpawnProgressData {
 	agentId: string
 	status: 'started' | 'thinking' | 'tool_call' | 'completed' | 'error'
@@ -35,6 +42,7 @@ export interface AgenticSSECallbacks {
 	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
+	onMdExport?: (exports: MdExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
 	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
@@ -74,6 +82,11 @@ interface ChartsEvent {
 interface CsvExportEvent {
 	type: 'csv_export'
 	exports?: CsvExport[]
+}
+
+interface MdExportEvent {
+	type: 'md_export'
+	exports?: MdExport[]
 }
 
 interface AlertProposedEvent extends AlertProposedData {
@@ -159,6 +172,7 @@ type AgenticSSEEvent =
 	| ResponseChunkEvent
 	| ChartsEvent
 	| CsvExportEvent
+	| MdExportEvent
 	| AlertProposedEvent
 	| DashboardEvent
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
@@ -262,6 +276,9 @@ export function parseSSEStream(
 					break
 				case 'csv_export':
 					callbacks.onCsvExport?.(data.exports || [])
+					break
+				case 'md_export':
+					callbacks.onMdExport?.(data.exports || [])
 					break
 				case 'alert_proposed':
 					callbacks.onAlertProposed?.(data)
