@@ -72,6 +72,7 @@ export interface StreamBuffer {
 	toolExecutions: ToolExecution[]
 	thinking: string
 	hasStartedText: boolean
+	hasReportStarted: boolean
 	spawnStarted: boolean
 	receivedEventCount: number
 	messageMetadata?: MessageMetadata
@@ -84,6 +85,7 @@ export type StreamAction =
 	| { type: 'SET_ERROR'; value: string | null }
 	| { type: 'SET_LAST_FAILED_REQUEST'; value: FailedRequest | null }
 	| { type: 'SET_RATE_LIMIT_DETAILS'; value: RateLimitDetails | null }
+	| { type: 'REPLACE_STREAM_TEXT'; value: string }
 	| { type: 'APPEND_TOKEN'; value: string }
 	| { type: 'APPEND_CHARTS'; value: ChartSet }
 	| { type: 'APPEND_CSV_EXPORTS'; value: CsvExport[] }
@@ -150,6 +152,7 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	toolExecutions: [],
 	thinking: '',
 	hasStartedText: false,
+	hasReportStarted: false,
 	spawnStarted: false,
 	receivedEventCount: 0
 })
@@ -176,14 +179,10 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, lastFailedRequest: action.value }
 		case 'SET_RATE_LIMIT_DETAILS':
 			return { ...state, rateLimitDetails: action.value }
-		case 'APPEND_TOKEN': {
-			let newText = state.text + action.value
-			const reportIdx = newText.indexOf('[REPORT_START]')
-			if (reportIdx !== -1) {
-				newText = newText.slice(reportIdx + '[REPORT_START]'.length).trimStart()
-			}
-			return { ...state, text: newText }
-		}
+		case 'REPLACE_STREAM_TEXT':
+			return { ...state, text: action.value }
+		case 'APPEND_TOKEN':
+			return { ...state, text: state.text + action.value }
 		case 'APPEND_CHARTS':
 			return { ...state, charts: [...state.charts, action.value] }
 		case 'APPEND_CSV_EXPORTS':

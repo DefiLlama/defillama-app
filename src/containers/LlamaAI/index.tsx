@@ -527,6 +527,8 @@ function createRequestSettleState(requestId: number): Exclude<RequestSettleState
 }
 
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
+const REPORT_START_MARKER = '[REPORT_START]'
+
 function createAgenticCallbacks({
 	requestId,
 	activeRequestIdRef,
@@ -557,16 +559,28 @@ function createAgenticCallbacks({
 	return {
 		onToken: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			const prevVisibleText = buffer.hasReportStarted ? buffer.text : ''
+			buffer.text += content
+			if (!buffer.hasReportStarted) {
+				const reportIdx = buffer.text.indexOf(REPORT_START_MARKER)
+				if (reportIdx !== -1) {
+					buffer.text = buffer.text.slice(reportIdx + REPORT_START_MARKER.length).trimStart()
+					buffer.hasReportStarted = true
+				}
+			}
+			const nextVisibleText = buffer.hasReportStarted ? buffer.text : ''
+			if (nextVisibleText === prevVisibleText) return
+			if (!buffer.hasStartedText && nextVisibleText.trim().length === 0) return
+			const shouldReplaceText = !buffer.hasStartedText || !nextVisibleText.startsWith(prevVisibleText)
+			if (shouldReplaceText) {
+				dispatch({ type: 'REPLACE_STREAM_TEXT', value: nextVisibleText })
+			} else {
+				dispatch({ type: 'APPEND_TOKEN', value: nextVisibleText.slice(prevVisibleText.length) })
+			}
 			if (!buffer.hasStartedText) {
 				buffer.hasStartedText = true
 				dispatch({ type: 'CLEAR_ACTIVITY' })
 			}
-			buffer.text += content
-			const reportIdx = buffer.text.indexOf('[REPORT_START]')
-			if (reportIdx !== -1) {
-				buffer.text = buffer.text.slice(reportIdx + '[REPORT_START]'.length).trimStart()
-			}
-			dispatch({ type: 'APPEND_TOKEN', value: content })
 		},
 		onCharts: (charts, chartData) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
