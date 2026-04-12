@@ -64,6 +64,24 @@ function getZeroBaselineYAxisMin(extent: AxisExtent) {
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
+function createHatchPattern(color: string, opacity: number): { image: HTMLCanvasElement; repeat: 'repeat' } | null {
+	if (typeof document === 'undefined') return null
+	const size = 8
+	const canvas = document.createElement('canvas')
+	canvas.width = size
+	canvas.height = size
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return null
+	ctx.strokeStyle = color
+	ctx.globalAlpha = opacity
+	ctx.lineWidth = 1.5
+	ctx.beginPath()
+	ctx.moveTo(0, size)
+	ctx.lineTo(size, 0)
+	ctx.stroke()
+	return { image: canvas, repeat: 'repeat' }
+}
+
 function buildSeries({
 	effectiveCharts,
 	selectedCharts,
@@ -144,11 +162,21 @@ function buildSeries({
 		}
 
 		if (chart.isTBD) {
-			base.itemStyle = { ...base.itemStyle, opacity: 0.2 }
+			const hatch = createHatchPattern(resolvedColor, 0.4)
+			base.itemStyle = { ...base.itemStyle, opacity: 0.3 }
 			if (base.areaStyle) {
-				base.areaStyle = { ...base.areaStyle, opacity: 0.1 }
+				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
 			}
-			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5 }
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
+
+			base.endLabel = {
+				show: true,
+				formatter: 'TBD',
+				fontSize: 16,
+				fontWeight: 'bold',
+				color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+				offset: [-40, 10]
+			}
 		}
 
 		out.push(base)
