@@ -27,6 +27,17 @@ import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
+const getVolumeLabel = (effectiveCategory: string | null) => {
+	switch (effectiveCategory) {
+		case 'Dexs':
+			return 'DEX Volume'
+		case 'DEX Aggregators':
+			return 'DEX Aggregator Volume'
+		default:
+			return 'Volume'
+	}
+}
+
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
 	const namePrefix = name ? `${name}-` : ''
@@ -271,37 +282,12 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						) : null}
 						{props.dexVolume7d != null ? (
 							<>
-								{props.effectiveCategory === 'Dexs' ? (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<Tooltip
-											content={definitions.dexs.protocol['7d']}
-											className="font-normal text-(--text-label) underline decoration-dotted"
-										>
-											DEX Volume (7d)
-										</Tooltip>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								) : props.effectiveCategory === 'DEX Aggregators' || props.effectiveCategory === 'DEX Aggregator' ? (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<Tooltip
-											content={definitions.dexAggregators.protocol['7d']}
-											className="font-normal text-(--text-label) underline decoration-dotted"
-										>
-											DEX Aggregator Volume (7d)
-										</Tooltip>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								) : props.effectiveCategory === 'Prediction Market' ? (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<span className="font-normal text-(--text-label)">Prediction Market Volume (7d)</span>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								) : (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<span className="font-normal text-(--text-label)">Volume (7d)</span>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								)}
+								<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+									<span className="font-normal text-(--text-label)">
+										{getVolumeLabel(props.effectiveCategory)} (7d)
+									</span>
+									<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
+								</p>
 							</>
 						) : null}
 						{props.perpVolume7d != null ? (

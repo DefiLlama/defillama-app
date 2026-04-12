@@ -1,5 +1,5 @@
 import { fetchCoinGeckoExchanges, fetchCoinGeckoSimplePrice } from '~/api/coingecko'
-import { V2_SERVER_URL } from '~/constants'
+import { DIMENSIONS_OVERVIEW_API, V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
@@ -16,19 +16,27 @@ import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
 export async function fetchAdapterChainMetrics({
 	adapterType,
 	chain,
-	dataType
+	dataType,
+	category
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	category?: string
 }): Promise<IAdapterChainMetrics> {
-	let metricsUrl = `${V2_SERVER_URL}/metrics/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	const metricsUrl = new URL(
+		`${V2_SERVER_URL}/metrics/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	)
 
 	if (dataType) {
-		metricsUrl += `?dataType=${dataType}`
+		metricsUrl.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChainMetrics>(metricsUrl, { timeout: 30_000 })
+	if (category) {
+		metricsUrl.searchParams.set('category', category)
+	}
+
+	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), { timeout: 30_000 })
 }
 
 /**
@@ -58,12 +66,34 @@ export async function fetchAdapterProtocolMetrics({
 export async function fetchAdapterChainChartData({
 	adapterType,
 	chain,
-	dataType
+	dataType,
+	category
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	category?: string
 }): Promise<IAdapterChart> {
+	if (category) {
+		const overviewUrl = new URL(
+			`${DIMENSIONS_OVERVIEW_API}/${adapterType}${chain && chain !== 'All' ? `/${slug(chain)}` : ''}`
+		)
+
+		overviewUrl.searchParams.set('excludeTotalDataChart', 'false')
+		overviewUrl.searchParams.set('excludeTotalDataChartBreakdown', 'true')
+		overviewUrl.searchParams.set('category', category)
+
+		if (dataType) {
+			overviewUrl.searchParams.set('dataType', dataType)
+		}
+
+		const overviewData = await fetchJson<{ totalDataChart?: IAdapterChart }>(overviewUrl.toString(), {
+			timeout: 30_000
+		})
+
+		return overviewData.totalDataChart ?? []
+	}
+
 	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 	if (dataType === 'dailyEarnings') {
@@ -71,11 +101,17 @@ export async function fetchAdapterChainChartData({
 		totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}`
 	}
 
+	const totalDataChart = new URL(totalDataChartUrl)
+
 	if (dataType) {
-		totalDataChartUrl += `?dataType=${dataType}`
+		totalDataChart.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
+	if (category) {
+		totalDataChart.searchParams.set('category', category)
+	}
+
+	return fetchJson<IAdapterChart>(totalDataChart.toString(), { timeout: 30_000 })
 }
 
 /**

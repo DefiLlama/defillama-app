@@ -216,6 +216,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Prediction Market': {
 		description: 'Protocols that allow you to wager/bet/buy in future results',
 		defaultChart: 'dexVolume',
+		metrics: { dexVolume: true },
 		headingLabel: 'Prediction Markets',
 		seoLabel: 'Prediction Markets',
 		seoBaseTitle: 'Top Crypto Prediction Markets - TVL, Volume, & Revenue',
@@ -663,6 +664,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Crypto Card Issuer': {
 		description:
 			'Protocols that issue crypto-linked debit or credit cards for spending through traditional payment networks',
+		metrics: { dexVolume: true },
 		headingLabel: 'Crypto Card Issuers',
 		seoLabel: 'Crypto Card Issuers',
 		seoTitleSuffix: 'Rankings',
