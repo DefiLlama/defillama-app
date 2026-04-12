@@ -898,6 +898,12 @@
       "route": "https://investors.defillama.com",
       "category": "Tools",
       "description": "Institutional-grade DeFi analytics and research tools for investors"
+    },
+    {
+      "name": "Funding Rate Arbitrage Scanner",
+      "route": "https://perpia.xyz",
+      "category": "Tools",
+      "description": "Cross-venue funding rate arbitrage scanner. 25+ CEX & DEX perps, net APR, backtester, Telegram alerts, position tracking."
     }
   ],
   "Main": [
