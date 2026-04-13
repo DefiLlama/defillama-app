@@ -91,6 +91,7 @@ export interface IRWAPerpsVenuePageData {
 	totals: {
 		openInterest: number
 		volume24h: number
+		volume24hChange24h: number | null
 		markets: number
 		protocolFees24h: number
 	}

@@ -396,7 +396,7 @@ describe('perps overview queries', () => {
 			venue: 'xyz',
 			totals: {
 				openInterest: 250,
-				volume24h: 160,
+				volume24h: 90,
 				markets: 2,
 				protocolFees24h: 12
 			},
@@ -406,6 +406,7 @@ describe('perps overview queries', () => {
 				{ label: 'flx', to: '/rwa/perps/venue/flx' }
 			]
 		})
+		expect(result?.totals.volume24hChange24h).toBeCloseTo(200 / 7, 10)
 		expect(result?.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
 	})
 

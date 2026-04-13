@@ -398,9 +398,12 @@ export async function getRWAPerpsBreakdownChartDataset({
 export async function getRWAPerpsVenueBreakdownChartDataset({
 	venue,
 	breakdown,
-	key
-}: IRWAPerpsVenueBreakdownRequest): Promise<MultiSeriesChart2Dataset> {
-	const rows = await fetchRWAPerpsVenueChart(venue)
+	key,
+	rows: preloadedRows
+}: IRWAPerpsVenueBreakdownRequest & {
+	rows?: IRWAPerpsAggregateHistoricalPoint[] | null
+}): Promise<MultiSeriesChart2Dataset> {
+	const rows = preloadedRows !== undefined ? preloadedRows : await fetchRWAPerpsVenueChart(venue)
 	return toParameterizedBreakdownChartDataset({
 		rows,
 		breakdown,
@@ -455,10 +458,11 @@ export async function getRWAPerpsVenuePage({
 	venue: string
 	activeView?: RWAPerpsChartView
 }): Promise<IRWAPerpsVenuePageData | null> {
-	const [list, stats, venueResponse] = await Promise.all([
+	const [list, stats, venueResponse, venueChartRows] = await Promise.all([
 		fetchRWAPerpsList(),
 		fetchRWAPerpsStats(),
-		fetchRWAPerpsMarketsByVenue(venue).catch(() => null)
+		fetchRWAPerpsMarketsByVenue(venue).catch(() => null),
+		fetchRWAPerpsVenueChart(venue).catch(() => [] as IRWAPerpsAggregateHistoricalPoint[])
 	])
 
 	if (!list || !stats || !venueResponse) return null
@@ -471,11 +475,14 @@ export async function getRWAPerpsVenuePage({
 		? await getRWAPerpsVenueBreakdownChartDataset({
 				venue,
 				breakdown: 'baseAsset',
-				key: 'openInterest'
+				key: 'openInterest',
+				rows: venueChartRows
 			})
 		: EMPTY_CHART_DATASET
 
 	const statsBucket = stats.byVenue?.[venue]
+	const volume24hSnapshotTotals = getSnapshotTotals(venueChartRows, 'volume24h')
+	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
 
 	return {
 		venue,
@@ -487,7 +494,8 @@ export async function getRWAPerpsVenuePage({
 		],
 		totals: {
 			openInterest: safeNumber(statsBucket?.openInterest),
-			volume24h: safeNumber(statsBucket?.volume24h),
+			volume24h: totalVolume24h,
+			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
 			markets: safeNumber(statsBucket?.markets ?? markets.length),
 			protocolFees24h: sumProtocolFees24h(markets)
 		}

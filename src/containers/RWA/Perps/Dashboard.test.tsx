@@ -129,6 +129,7 @@ const venueData = {
 	totals: {
 		openInterest: 100,
 		volume24h: 50,
+		volume24hChange24h: -10,
 		markets: 1,
 		protocolFees24h: 1
 	}
@@ -316,10 +317,10 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('-10.00%')
 	})
 
-	it('does not render overview delta text on venue stat cards', () => {
+	it('renders 24h volume change on venue stat cards but not open interest change', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
 		expect(html).not.toContain('+25.00%')
-		expect(html).not.toContain('-10.00%')
+		expect(html).toContain('-10.00%')
 	})
 })

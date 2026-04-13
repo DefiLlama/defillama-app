@@ -666,6 +666,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		chartState.view === 'timeSeries' && shouldUseInitialTimeSeriesDataset
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
+
 	const timeSeriesCharts = useMemo(
 		() =>
 			buildRWAPerpsTimeSeriesCharts({
@@ -843,7 +844,8 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 					{
 						label: d.volume24h.label,
 						tooltip: d.volume24h.description,
-						value: formattedNum(props.data.totals.volume24h, true)
+						value: formattedNum(props.data.totals.volume24h, true),
+						change: props.data.totals.volume24hChange24h
 					},
 					{
 						label: d.markets.label,

@@ -68,6 +68,7 @@ describe('rwa perps venue page', () => {
 			totals: {
 				openInterest: 1,
 				volume24h: 2,
+				volume24hChange24h: null,
 				markets: 3,
 				protocolFees24h: 4
 			}
