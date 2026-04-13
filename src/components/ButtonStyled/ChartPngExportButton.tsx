@@ -10,7 +10,7 @@ import { downloadDataURL } from '~/utils/download'
 
 // --- Shared profile type (single source of truth) ---
 
-export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap' | 'treemapNormalized'
+export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap' | 'treemapNormalized' | 'hbar'
 
 // --- Constants ---
 
@@ -335,8 +335,9 @@ function adjustSeriesForExport(opts: {
 	title: string | undefined
 	expandLegend: boolean | undefined
 	pngProfile?: PngExportProfile
+	exportHeight?: number
 }): any[] {
-	const { flags, layout, isDark, title, expandLegend, pngProfile } = opts
+	const { flags, layout, isDark, title, expandLegend, pngProfile, exportHeight } = opts
 	let series = [...opts.series]
 
 	// Scatter: strip image:// symbols and scale labels for export
@@ -433,7 +434,7 @@ function adjustSeriesForExport(opts: {
 	if (flags.isHorizontalBarChart) {
 		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
 		const bottomPadding = expandLegend ? 32 : 16
-		const plotHeight = Math.max(1, IMAGE_EXPORT_HEIGHT - layout.gridTop - bottomPadding)
+		const plotHeight = Math.max(1, (exportHeight ?? IMAGE_EXPORT_HEIGHT) - layout.gridTop - bottomPadding)
 		const bandHeight = categoryCount > 0 ? plotHeight / categoryCount : plotHeight
 		const barStacks = new Set(series.filter((s: any) => s?.type === 'bar').map((s: any) => s.stack ?? s.name ?? ''))
 		const barSeriesCount = Math.max(1, barStacks.size)
@@ -660,15 +661,26 @@ async function renderClonedChartExport(
 	const { echarts: echartsCore } = await import('./chartExportEcharts')
 	const currentOptions = originalChart.getOption()
 
+	const flags = detectSeriesFlags(currentOptions)
+	let exportHeight = IMAGE_EXPORT_HEIGHT
+	if (pngProfile === 'hbar' && flags.isHorizontalBarChart) {
+		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
+		if (categoryCount > 0) {
+			const minBarHeight = 36
+			exportHeight = Math.max(IMAGE_EXPORT_HEIGHT, categoryCount * minBarHeight + 120)
+		}
+	}
+
+	tempContainer.style.height = `${exportHeight}px`
+
 	const tempChart = echartsCore.init(tempContainer, null, {
 		width: IMAGE_EXPORT_WIDTH,
-		height: IMAGE_EXPORT_HEIGHT,
+		height: exportHeight,
 		renderer: 'canvas'
 	})
 
 	try {
 		const iconBase64 = iconUrl ? await loadCircularIcon(iconUrl) : null
-		const flags = detectSeriesFlags(currentOptions)
 
 		// Treemap labels rely on local rich-text sizing; a global boost makes them too large.
 		if (!flags.isTreemapChart) {
@@ -702,7 +714,8 @@ async function renderClonedChartExport(
 			isDark,
 			title,
 			expandLegend,
-			pngProfile
+			pngProfile,
+			exportHeight
 		})
 
 		currentOptions.title = buildExportTitle({ title, iconBase64, isDark })
