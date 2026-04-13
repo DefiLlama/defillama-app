@@ -91,6 +91,11 @@
 			"Actively-managed strategy vault": "Vault tokens representing deposits into a discretionary, manager-directed strategy that may allocate across RWAs and other onchain yield sources, and that issue a receipt token."
 		}
 	},
+	"assetGroup": {
+		"label": "Asset Group",
+		"description": "Grouping of the reference asset by broad economic family, such as equities, ETFs, bonds, or commodities.",
+		"values": {}
+	},
 	"onChainMcap": {
 		"label": "Onchain Marketcap",
 		"description": "Total USD value of token supply present onchain across tracked chains, including issuer, treasury, custodial, idle, and DeFi-held balances."

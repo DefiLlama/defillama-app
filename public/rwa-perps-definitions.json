@@ -34,7 +34,8 @@
 	},
 	"assetGroup": {
 		"label": "Asset Group",
-		"description": "Grouping of the reference asset by broad economic family, such as equities, ETFs, bonds, or commodities."
+		"description": "Grouping of the reference asset by broad economic family, such as equities, ETFs, bonds, or commodities.",
+		"values": {}
 	},
 	"assetClass": {
 		"label": "Asset Class",

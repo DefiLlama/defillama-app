@@ -118,15 +118,13 @@ export function TableWithSearch<T extends RowData>({
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
 	const columnsOptions = React.useMemo(
 		() =>
-			columns
-				.map((column) => {
-					const key = column.id ?? ('accessorKey' in column ? String(column.accessorKey) : '')
-					if (!key) return null
-					const name = typeof column.header === 'function' ? key : column.header != null ? String(column.header) : key
-					const help = column.meta?.headerHelperText ?? undefined
-					return { key, name, help }
-				})
-				.filter((column): column is { key: string; name: string; help: string | undefined } => column !== null),
+			columns.flatMap((column) => {
+				const key = column.id ?? ('accessorKey' in column ? String(column.accessorKey) : '')
+				if (!key) return []
+				const name = typeof column.header === 'function' ? key : column.header != null ? String(column.header) : key
+				const help = column.meta?.headerHelperText ?? undefined
+				return [{ key, name, help }]
+			}),
 		[columns]
 	)
 	const selectedColumns = instance
