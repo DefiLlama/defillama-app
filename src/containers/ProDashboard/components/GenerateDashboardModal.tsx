@@ -191,17 +191,64 @@ export function GenerateDashboardModal({
 			return
 		}
 
-		let data: any
-		try {
-			data = await response.json()
-		} catch (error) {
-			console.error('Failed to parse dashboard response:', error)
-			toast.error('Invalid response format from AI service')
+		const reader = response.body?.getReader()
+		if (!reader) {
+			toast.error('Failed to read response stream')
 			setIsLoading(false)
 			return
 		}
 
-		if (!data.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
+		let data: any = null
+		try {
+			const decoder = new TextDecoder()
+			let lineBuffer = ''
+
+			while (true) {
+				const { done, value } = await reader.read()
+				if (done) {
+					if (lineBuffer.trim()) {
+						const line = lineBuffer.trim()
+						if (line.startsWith('data: ')) {
+							try {
+								const event = JSON.parse(line.slice(6))
+								if (event.type === 'dashboard_complete') data = event
+							} catch {}
+						}
+					}
+					break
+				}
+
+				const chunk = decoder.decode(value, { stream: true })
+				lineBuffer += chunk
+				const lines = lineBuffer.split('\n')
+
+				if (lines.length > 0 && !chunk.endsWith('\n')) {
+					lineBuffer = lines.pop() || ''
+				} else {
+					lineBuffer = ''
+				}
+
+				for (const line of lines) {
+					if (!line.startsWith('data: ')) continue
+					try {
+						const event = JSON.parse(line.slice(6))
+						if (event.type === 'dashboard_complete') {
+							data = event
+						} else if (event.type === 'error') {
+							toast.error(event.message || 'Failed to generate dashboard')
+							setIsLoading(false)
+							return
+						}
+					} catch {}
+				}
+			}
+		} finally {
+			try {
+				reader.releaseLock()
+			} catch {}
+		}
+
+		if (!data?.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
 			toast.error('Invalid response format from AI service')
 			setIsLoading(false)
 			return
