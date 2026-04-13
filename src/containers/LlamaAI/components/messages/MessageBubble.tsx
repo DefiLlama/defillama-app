@@ -294,7 +294,7 @@ function ArtifactBlockRenderer({
 			return isStreaming ? <StreamingChartPlaceholder /> : null
 		}
 		if (artifact.type !== 'chart') return null
-		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} sessionId={sessionId} />
+		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} />
 	}
 
 	if (block.type === 'csv') {
