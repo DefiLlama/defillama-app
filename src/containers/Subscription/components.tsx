@@ -232,14 +232,15 @@ function PricingCardCta({
 							{loading === 'stripe' ? 'Processing...' : card.primaryCta}
 						</button>
 					</div>
-					<div className="rounded-[10px] border border-(--sub-border-slate-100) px-3 py-2.5 text-[12px] leading-4 text-(--sub-text-slate-600) dark:border-(--sub-border-strong) dark:text-(--sub-text-muted) sm:rounded-lg sm:px-2.5 sm:py-2 sm:text-[11px]">
+					<div className="rounded-[10px] border border-(--sub-border-slate-100) px-3 py-2.5 text-[12px] leading-4 text-(--sub-text-slate-600) sm:rounded-lg sm:px-2.5 sm:py-2 sm:text-[11px] dark:border-(--sub-border-strong) dark:text-(--sub-text-muted)">
 						<p className="font-medium text-emerald-600 dark:text-emerald-400">Free trial differences:</p>
 						<ul className="mt-1 flex flex-col gap-0.5">
 							<li>• 3 deep research questions/day (vs 5)</li>
 							<li>• No CSV downloads — paid Pro only</li>
 						</ul>
 						<p className="mt-1.5 text-[11px] sm:text-[10px]">
-							No charge for 7 days — converts to {card.priceMain}{card.priceUnit} after
+							No charge for 7 days — converts to {card.priceMain}
+							{card.priceUnit} after
 						</p>
 					</div>
 					{card.secondaryCta && billingCycle === 'monthly' ? (

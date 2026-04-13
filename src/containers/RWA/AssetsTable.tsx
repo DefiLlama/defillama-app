@@ -86,7 +86,11 @@ export function RWAAssetsTable({
 		() =>
 			columns.map((c: any) => {
 				const headerName = typeof c.header === 'function' ? (c.id ?? (c.accessorKey as string)) : (c.header as string)
-				return { name: headerName, key: c.id ?? (c.accessorKey as string) }
+				return {
+					name: headerName,
+					key: c.id ?? (c.accessorKey as string),
+					help: c.meta?.headerHelperText as string | undefined
+				}
 			}),
 		[]
 	)
