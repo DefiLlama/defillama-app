@@ -117,7 +117,7 @@ const overviewColumns = [
 			</BasicLink>
 		),
 		meta: { headerHelperText: d.venue.description },
-		size: 108
+		size: 168
 	}),
 	overviewColumnHelper.accessor((row) => row.referenceAsset ?? '', {
 		id: 'baseAsset',
