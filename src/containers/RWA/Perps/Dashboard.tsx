@@ -33,6 +33,8 @@ import {
 	getRWAPerpsChartBreakdownQueryValue,
 	getRWAPerpsChartMetricLabel,
 	getRWAPerpsChartMetricOptions,
+	getRWAPerpsTimeSeriesModeOptions,
+	getRWAPerpsTimeSeriesModeQueryValue,
 	getRWAPerpsChartMetricQueryValue,
 	getRWAPerpsTreemapNestedByLabel,
 	getRWAPerpsTreemapNestedByOptions,
@@ -41,6 +43,7 @@ import {
 	getRWAPerpsChartViewQueryValue,
 	parseRWAPerpsChartState,
 	setRWAPerpsChartBreakdown,
+	setRWAPerpsTimeSeriesMode,
 	setRWAPerpsTreemapNestedBy,
 	setRWAPerpsChartView
 } from './chartState'
@@ -48,6 +51,7 @@ import { perpsDefinitions as d } from './definitions'
 import {
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
+	groupRWAPerpsTimeSeriesDataset,
 	hasEnoughTimeSeriesHistory
 } from './queries'
 import { buildRWAPerpsTreemapTreeData } from './treemap'
@@ -546,10 +550,12 @@ const venueColumnVisibility: VisibilityState = {
 
 export function buildRWAPerpsTimeSeriesCharts({
 	metric,
-	dimensions
+	dimensions,
+	timeSeriesMode
 }: {
 	metric: 'openInterest' | 'volume24h' | 'markets'
 	dimensions: string[]
+	timeSeriesMode: 'grouped' | 'breakdown'
 }): Array<MultiSeriesChart2SeriesConfig> {
 	const seriesKeys = dimensions.filter((dimension) => dimension !== 'timestamp')
 
@@ -558,7 +564,7 @@ export function buildRWAPerpsTimeSeriesCharts({
 		type: metric === 'volume24h' ? 'bar' : 'line',
 		encode: { x: 'timestamp', y: seriesName },
 		color: CHART_COLORS[index % CHART_COLORS.length],
-		stack: 'A'
+		...(timeSeriesMode === 'breakdown' ? { stack: 'A' } : {})
 	}))
 }
 
@@ -617,6 +623,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric, d)
 	const chartMetricOptions = getRWAPerpsChartMetricOptions(d)
 	const chartViewOptions = getRWAPerpsChartViewOptions()
+	const timeSeriesModeOptions = getRWAPerpsTimeSeriesModeOptions()
 	const chartBreakdownOptions = getRWAPerpsChartBreakdownOptions({ ...chartState, labels: d })
 	const showBreakdownSelect = chartBreakdownOptions.length > 1
 	const treemapBreakdown = chartState.breakdown as RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
@@ -662,19 +669,20 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		enabled: chartState.view === 'timeSeries' && !shouldUseInitialTimeSeriesDataset
 	})
 
-	const selectedTimeSeriesDataset =
+	const rawTimeSeriesDataset =
 		chartState.view === 'timeSeries' && shouldUseInitialTimeSeriesDataset
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
+	const selectedTimeSeriesDataset =
+		chartState.timeSeriesMode === 'grouped'
+			? groupRWAPerpsTimeSeriesDataset(rawTimeSeriesDataset)
+			: rawTimeSeriesDataset
 
-	const timeSeriesCharts = useMemo(
-		() =>
-			buildRWAPerpsTimeSeriesCharts({
-				metric: chartState.metric,
-				dimensions: selectedTimeSeriesDataset.dimensions
-			}),
-		[chartState.metric, selectedTimeSeriesDataset.dimensions]
-	)
+	const timeSeriesCharts = buildRWAPerpsTimeSeriesCharts({
+		metric: chartState.metric,
+		dimensions: selectedTimeSeriesDataset.dimensions,
+		timeSeriesMode: chartState.timeSeriesMode
+	})
 
 	const snapshotBreakdownRows = useMemo(
 		() =>
@@ -756,7 +764,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const treemapValueLabel = chartState.metric === 'volume24h' ? 'Daily Volume' : chartMetricLabel
 	const valueSymbol = chartState.metric === 'markets' ? '' : '$'
 	const pageLabel = props.mode === 'overview' ? 'RWA Perps' : `${props.data.venue} RWA Perps`
-	const timeSeriesFilename = `${props.mode === 'overview' ? 'rwa-perps-overview' : `rwa-perps-venue-${props.data.venue}`}-time-series-${chartState.metric}-${chartState.breakdown}`
+	const timeSeriesFilename = `${props.mode === 'overview' ? 'rwa-perps-overview' : `rwa-perps-venue-${props.data.venue}`}-time-series-${chartState.metric}-${chartState.breakdown}-${chartState.timeSeriesMode}`
 	const nonTimeSeriesFilename = `${props.mode === 'overview' ? 'rwa-perps-overview' : `rwa-perps-venue-${props.data.venue}`}-${chartState.view}-${chartState.metric}-${chartState.breakdown}`
 
 	const onSelectView = (value: string | string[]) => {
@@ -779,6 +787,14 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState) : undefined,
 			nonTimeSeriesChartBreakdown:
 				nextState.view === 'timeSeries' ? undefined : getRWAPerpsChartBreakdownQueryValue(nextState)
+		})
+	}
+
+	const onSelectTimeSeriesMode = (value: string | string[]) => {
+		const selectedTimeSeriesMode = (Array.isArray(value) ? value[0] : value) as typeof chartState.timeSeriesMode
+		const nextState = setRWAPerpsTimeSeriesMode(chartState, selectedTimeSeriesMode)
+		void pushShallowQuery(router, {
+			timeSeriesMode: getRWAPerpsTimeSeriesModeQueryValue(nextState.timeSeriesMode)
 		})
 	}
 
@@ -899,6 +915,17 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 								variant="filter"
 							/>
 						) : null}
+						<Select
+							allValues={timeSeriesModeOptions}
+							selectedValues={chartState.timeSeriesMode}
+							setSelectedValues={onSelectTimeSeriesMode}
+							label={
+								timeSeriesModeOptions.find((option) => option.key === chartState.timeSeriesMode)?.name ??
+								timeSeriesModeOptions[0].name
+							}
+							labelType="none"
+							variant="filter"
+						/>
 						<ChartExportButtons
 							chartInstance={timeSeriesChartInstance}
 							filename={timeSeriesFilename}

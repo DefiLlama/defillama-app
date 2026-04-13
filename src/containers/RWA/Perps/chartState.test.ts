@@ -3,6 +3,8 @@ import {
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsChartBreakdownOptions,
 	getRWAPerpsChartMetricOptions,
+	getRWAPerpsTimeSeriesModeOptions,
+	getRWAPerpsTimeSeriesModeQueryValue,
 	getRWAPerpsTreemapNestedByOptions,
 	parseRWAPerpsChartState,
 	setRWAPerpsChartView
@@ -31,11 +33,13 @@ describe('parseRWAPerpsChartState', () => {
 		expect(overviewState).toMatchObject({
 			view: 'treemap',
 			breakdown: 'assetGroup',
+			timeSeriesMode: 'grouped',
 			treemapNestedBy: 'baseAsset'
 		})
 		expect(venueState).toMatchObject({
 			view: 'treemap',
 			breakdown: 'assetGroup',
+			timeSeriesMode: 'grouped',
 			treemapNestedBy: 'baseAsset'
 		})
 	})
@@ -93,6 +97,18 @@ describe('parseRWAPerpsChartState', () => {
 			treemapNestedBy: 'contract'
 		})
 	})
+
+	it('parses a valid time-series mode query', () => {
+		const state = parseRWAPerpsChartState(
+			{
+				chartView: 'timeSeries',
+				timeSeriesMode: 'breakdown'
+			},
+			'overview'
+		)
+
+		expect(state.timeSeriesMode).toBe('breakdown')
+	})
 })
 
 describe('perps chartState options', () => {
@@ -111,6 +127,18 @@ describe('perps chartState options', () => {
 			{ key: 'volume24h', name: 'Volume' },
 			{ key: 'markets', name: 'Markets' }
 		])
+	})
+
+	it('exposes grouped and breakdown time-series mode options', () => {
+		expect(getRWAPerpsTimeSeriesModeOptions()).toEqual([
+			{ key: 'grouped', name: 'Grouped' },
+			{ key: 'breakdown', name: 'Breakdown' }
+		])
+	})
+
+	it('omits the default grouped time-series mode from the query', () => {
+		expect(getRWAPerpsTimeSeriesModeQueryValue('grouped')).toBeUndefined()
+		expect(getRWAPerpsTimeSeriesModeQueryValue('breakdown')).toBe('breakdown')
 	})
 
 	it('exposes the intended overview grouping matrix', () => {
@@ -231,6 +259,7 @@ describe('perps chartState options', () => {
 				view: 'pie',
 				metric: 'openInterest',
 				breakdown: 'assetClass',
+				timeSeriesMode: 'grouped',
 				treemapNestedBy: 'baseAsset'
 			},
 			'treemap'

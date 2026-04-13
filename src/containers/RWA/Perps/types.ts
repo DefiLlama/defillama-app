@@ -44,6 +44,7 @@ export type IRWAPerpsTimeSeriesRow = IRWAPerpsMarket | IRWAPerpsAggregateHistori
 
 export type RWAPerpsChartMetricKey = 'openInterest' | 'volume24h' | 'markets'
 export type RWAPerpsChartView = 'timeSeries' | 'pie' | 'treemap' | 'hbar'
+export type RWAPerpsTimeSeriesMode = 'grouped' | 'breakdown'
 export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'baseAsset' | 'contract'
 
 export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
