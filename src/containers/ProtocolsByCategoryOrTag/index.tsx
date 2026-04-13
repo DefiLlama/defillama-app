@@ -521,86 +521,23 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	}),
 	dex_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
 		id: 'dex_volume_7d',
-		header: 'DEX Volume 7d',
+		header: 'Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
 		size: 140
 	}),
 	dex_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
 		id: 'dex_volume_30d',
-		header: 'DEX Volume 30d',
+		header: 'Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
 		size: 148
 	}),
 	dex_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
 		id: 'dex_volume_24h',
-		header: 'DEX Volume 24h',
+		header: 'Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
-		size: 148
-	}),
-	dex_aggregator_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
-		id: 'dex_aggregator_volume_7d',
-		header: 'DEX Aggregator Volume 7d',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['7d'] },
-		size: 140
-	}),
-	dex_aggregator_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
-		id: 'dex_aggregator_volume_30d',
-		header: 'DEX Aggregator Volume 30d',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['30d'] },
-		size: 148
-	}),
-	dex_aggregator_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
-		id: 'dex_aggregator_volume_24h',
-		header: 'DEX Aggregator Volume 24h',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['24h'] },
-		size: 148
-	}),
-	prediction_market_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
-		id: 'prediction_market_volume_7d',
-		header: 'Volume 7d',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 140
-	}),
-	prediction_market_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
-		id: 'prediction_market_volume_30d',
-		header: 'Volume 30d',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
-	}),
-	prediction_market_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
-		id: 'prediction_market_volume_24h',
-		header: 'Volume 24h',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
-	}),
-	crypto_card_issuer_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
-		id: 'crypto_card_issuer_volume_7d',
-		header: 'Volume 7d',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 140
-	}),
-	crypto_card_issuer_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
-		id: 'crypto_card_issuer_volume_30d',
-		header: 'Volume 30d',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
-	}),
-	crypto_card_issuer_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
-		id: 'crypto_card_issuer_volume_24h',
-		header: 'Volume 24h',
-		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
 		size: 148
 	}),
 	options_premium_7d: columnHelper.accessor((p) => p.optionsPremium?.total7d, {

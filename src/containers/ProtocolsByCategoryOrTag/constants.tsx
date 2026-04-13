@@ -223,8 +223,21 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		seoTitleSuffix: 'Rankings',
 		tableHeader: 'Market Rankings',
 		searchPlaceholder: 'Search markets...',
-		columns: ['name', 'tvl', 'fees_7d', 'revenue_7d', 'mcap/tvl', 'fees_30d', 'revenue_30d', 'fees_24h', 'revenue_24h'],
-		defaultSort: 'tvl'
+		columns: [
+			'name',
+			'tvl',
+			'dex_volume_7d',
+			'fees_7d',
+			'revenue_7d',
+			'mcap/tvl',
+			'dex_volume_30d',
+			'fees_30d',
+			'revenue_30d',
+			'dex_volume_24h',
+			'fees_24h',
+			'revenue_24h'
+		],
+		defaultSort: 'dex_volume_7d'
 	},
 	'Algo-Stables': { description: 'Protocols that provide algorithmic coins to stablecoins' },
 	'NFT Marketplace': {
@@ -316,18 +329,18 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		columns: [
 			'name',
 			'tvl',
-			'dex_aggregator_volume_7d',
+			'dex_volume_7d',
 			'fees_7d',
 			'revenue_7d',
 			'mcap/tvl',
-			'dex_aggregator_volume_30d',
+			'dex_volume_30d',
 			'fees_30d',
 			'revenue_30d',
-			'dex_aggregator_volume_24h',
+			'dex_volume_24h',
 			'fees_24h',
 			'revenue_24h'
 		],
-		defaultSort: 'dex_aggregator_volume_7d'
+		defaultSort: 'dex_volume_7d'
 	},
 	'DEX Aggregators': {
 		description:
@@ -341,18 +354,18 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		columns: [
 			'name',
 			'tvl',
-			'dex_aggregator_volume_7d',
+			'dex_volume_7d',
 			'fees_7d',
 			'revenue_7d',
 			'mcap/tvl',
-			'dex_aggregator_volume_30d',
+			'dex_volume_30d',
 			'fees_30d',
 			'revenue_30d',
-			'dex_aggregator_volume_24h',
+			'dex_volume_24h',
 			'fees_24h',
 			'revenue_24h'
 		],
-		defaultSort: 'dex_aggregator_volume_7d'
+		defaultSort: 'dex_volume_7d'
 	},
 	Restaking: {
 		description: 'Protocols that allow you to stake the same ETH natively and in others protocols',
@@ -670,7 +683,21 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		seoTitleSuffix: 'Rankings',
 		tableHeader: 'Issuer Rankings',
 		searchPlaceholder: 'Search Issuers...',
-		columns: ['name', 'tvl', 'fees_7d', 'revenue_7d', 'mcap/tvl', 'fees_30d', 'revenue_30d', 'fees_24h', 'revenue_24h']
+		columns: [
+			'name',
+			'tvl',
+			'dex_volume_7d',
+			'fees_7d',
+			'revenue_7d',
+			'mcap/tvl',
+			'dex_volume_30d',
+			'fees_30d',
+			'revenue_30d',
+			'dex_volume_24h',
+			'fees_24h',
+			'revenue_24h'
+		],
+		defaultSort: 'dex_volume_7d'
 	}
 }
 

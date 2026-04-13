@@ -1,5 +1,5 @@
 import { fetchCoinGeckoExchanges, fetchCoinGeckoSimplePrice } from '~/api/coingecko'
-import { DIMENSIONS_OVERVIEW_API, V2_SERVER_URL } from '~/constants'
+import { V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
@@ -74,26 +74,6 @@ export async function fetchAdapterChainChartData({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	category?: string
 }): Promise<IAdapterChart> {
-	if (category) {
-		const overviewUrl = new URL(
-			`${DIMENSIONS_OVERVIEW_API}/${adapterType}${chain && chain !== 'All' ? `/${slug(chain)}` : ''}`
-		)
-
-		overviewUrl.searchParams.set('excludeTotalDataChart', 'false')
-		overviewUrl.searchParams.set('excludeTotalDataChartBreakdown', 'true')
-		overviewUrl.searchParams.set('category', category)
-
-		if (dataType) {
-			overviewUrl.searchParams.set('dataType', dataType)
-		}
-
-		const overviewData = await fetchJson<{ totalDataChart?: IAdapterChart }>(overviewUrl.toString(), {
-			timeout: 30_000
-		})
-
-		return overviewData.totalDataChart ?? []
-	}
-
 	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 	if (dataType === 'dailyEarnings') {

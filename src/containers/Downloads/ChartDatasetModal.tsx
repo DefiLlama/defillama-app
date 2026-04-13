@@ -454,7 +454,9 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 		const filename = `${dataset.slug}_combined.csv`
 		downloadCSV(filename, merged, { addTimestamp: true })
 		if (failed.length > 0) {
-			toast.success(`Downloaded ${filename} — skipped ${failed.length} failed (${failed.map((f) => f.label).join(', ')})`)
+			toast.success(
+				`Downloaded ${filename} — skipped ${failed.length} failed (${failed.map((f) => f.label).join(', ')})`
+			)
 		} else {
 			toast.success(`Downloaded ${filename}`)
 		}
@@ -483,7 +485,10 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 				toast.error('No rows to download')
 				return
 			}
-			const allRows: string[][] = [parsed.headers, ...parsed.rows.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))]
+			const allRows: string[][] = [
+				parsed.headers,
+				...parsed.rows.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
+			]
 			downloadCSV(filename, allRows, { addTimestamp: false })
 			toast.success(`Downloaded ${filename}`)
 		},
@@ -985,11 +990,7 @@ function MultiOptionPickerPopover({
 	const capHit = selected.length >= maxSelections
 
 	const triggerText =
-		selected.length === 0
-			? `Select ${label}`
-			: selected.length === 1
-				? `1 ${label}`
-				: `${selected.length} ${label}s`
+		selected.length === 0 ? `Select ${label}` : selected.length === 1 ? `1 ${label}` : `${selected.length} ${label}s`
 
 	return (
 		<Ariakit.PopoverProvider store={popoverStore}>
@@ -997,9 +998,7 @@ function MultiOptionPickerPopover({
 				<Icon name="chevron-down" className="h-3.5 w-3.5" />
 				<span>{triggerText}</span>
 				{selected.length > 0 ? (
-					<span className="rounded bg-(--primary) px-1 text-[10px] font-semibold text-white">
-						{selected.length}
-					</span>
+					<span className="rounded bg-(--primary) px-1 text-[10px] font-semibold text-white">{selected.length}</span>
 				) : null}
 			</Ariakit.PopoverDisclosure>
 			<Ariakit.Popover
