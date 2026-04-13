@@ -215,6 +215,25 @@ export function hasEnoughTimeSeriesHistory(dataset: MultiSeriesChart2Dataset) {
 	return uniqueTimestamps.size >= 2 && dataset.dimensions.some((dimension) => dimension !== 'timestamp')
 }
 
+export function groupRWAPerpsTimeSeriesDataset(dataset: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset {
+	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp')
+	if (dataset.source.length === 0 || seriesDimensions.length === 0) return EMPTY_CHART_DATASET
+
+	return {
+		source: ensureChronologicalRows(
+			dataset.source.map((row) => ({
+				timestamp: row.timestamp,
+				Total: seriesDimensions.reduce((sum, dimension) => {
+					const value = row[dimension]
+					const numericValue = typeof value === 'number' ? value : Number(value)
+					return Number.isFinite(numericValue) ? sum + numericValue : sum
+				}, 0)
+			}))
+		),
+		dimensions: ['timestamp', 'Total']
+	}
+}
+
 function assertHasVenueBuckets(stats: IRWAPerpsStatsResponse | null): asserts stats is IRWAPerpsStatsResponse {
 	if (!stats?.byVenue || Object.keys(stats.byVenue).length === 0) {
 		throw new Error('Failed to get RWA perps venue stats')

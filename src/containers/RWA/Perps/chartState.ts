@@ -7,6 +7,7 @@ import type {
 	RWAPerpsOverviewNonTimeSeriesBreakdown,
 	RWAPerpsOverviewTimeSeriesBreakdown,
 	RWAPerpsOverviewTreemapBreakdown,
+	RWAPerpsTimeSeriesMode,
 	RWAPerpsTreemapNestedBy,
 	RWAPerpsVenueNonTimeSeriesBreakdown,
 	RWAPerpsVenueTimeSeriesBreakdown,
@@ -28,6 +29,7 @@ export type RWAPerpsChartState = {
 	view: RWAPerpsChartView
 	metric: RWAPerpsChartMetricKey
 	breakdown: RWAPerpsChartBreakdown
+	timeSeriesMode: RWAPerpsTimeSeriesMode
 	treemapNestedBy: RWAPerpsTreemapNestedBy
 }
 
@@ -51,6 +53,11 @@ const CHART_VIEW_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsChartView>> 
 	{ key: 'pie', name: 'Pie Chart' },
 	{ key: 'treemap', name: 'Treemap Chart' },
 	{ key: 'hbar', name: 'HBar Chart' }
+]
+
+const TIME_SERIES_MODE_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsTimeSeriesMode>> = [
+	{ key: 'grouped', name: 'Grouped' },
+	{ key: 'breakdown', name: 'Breakdown' }
 ]
 
 const CHART_METRIC_KEYS: ReadonlyArray<RWAPerpsChartMetricKey> = ['openInterest', 'volume24h', 'markets']
@@ -110,8 +117,10 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 
 export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'treemap'
 const DEFAULT_CHART_METRIC: RWAPerpsChartMetricKey = 'openInterest'
+const DEFAULT_TIME_SERIES_MODE: RWAPerpsTimeSeriesMode = 'grouped'
 const VALID_CHART_VIEWS = new Set<RWAPerpsChartView>(CHART_VIEW_OPTIONS.map((option) => option.key))
 const VALID_CHART_METRICS = new Set<RWAPerpsChartMetricKey>(CHART_METRIC_KEYS)
+const VALID_TIME_SERIES_MODES = new Set<RWAPerpsTimeSeriesMode>(TIME_SERIES_MODE_OPTIONS.map((option) => option.key))
 
 function assert(condition: unknown, message: string): asserts condition {
 	if (!condition) {
@@ -121,6 +130,10 @@ function assert(condition: unknown, message: string): asserts condition {
 
 export function getRWAPerpsChartViewOptions() {
 	return CHART_VIEW_OPTIONS
+}
+
+export function getRWAPerpsTimeSeriesModeOptions() {
+	return TIME_SERIES_MODE_OPTIONS
 }
 
 export function getRWAPerpsChartMetricOptions(labels: RWAPerpsChartLabels) {
@@ -208,13 +221,14 @@ export function parseRWAPerpsChartState(query: ParsedUrlQuery, mode: RWAPerpsCha
 	const view = normalizeChartView(readSingleQueryValue(query.chartView))
 	const metric = normalizeChartMetric(readSingleQueryValue(query.chartType))
 	const breakdown = normalizeBreakdown(mode, view, readSingleQueryValue(query[getBreakdownQueryKey(view)]))
+	const timeSeriesMode = normalizeTimeSeriesMode(readSingleQueryValue(query.timeSeriesMode))
 	const treemapNestedBy = normalizeTreemapNestedBy(
 		mode,
 		view === 'treemap' ? (breakdown as RWAPerpsTreemapBreakdown) : getDefaultRWAPerpsChartBreakdown(mode, 'treemap'),
 		readSingleQueryValue(query.treemapNestedBy)
 	)
 
-	return { mode, view, metric, breakdown, treemapNestedBy }
+	return { mode, view, metric, breakdown, timeSeriesMode, treemapNestedBy }
 }
 
 export function setRWAPerpsChartView(state: RWAPerpsChartState, view: RWAPerpsChartView): RWAPerpsChartState {
@@ -263,12 +277,23 @@ export function setRWAPerpsTreemapNestedBy(
 	return { ...state, treemapNestedBy: nestedBy }
 }
 
+export function setRWAPerpsTimeSeriesMode(
+	state: RWAPerpsChartState,
+	timeSeriesMode: RWAPerpsTimeSeriesMode
+): RWAPerpsChartState {
+	return { ...state, timeSeriesMode }
+}
+
 export function getRWAPerpsChartViewQueryValue(view: RWAPerpsChartView) {
 	return view === DEFAULT_CHART_VIEW ? undefined : view
 }
 
 export function getRWAPerpsChartMetricQueryValue(metric: RWAPerpsChartMetricKey) {
 	return metric === DEFAULT_CHART_METRIC ? undefined : metric
+}
+
+export function getRWAPerpsTimeSeriesModeQueryValue(timeSeriesMode: RWAPerpsTimeSeriesMode) {
+	return timeSeriesMode === DEFAULT_TIME_SERIES_MODE ? undefined : timeSeriesMode
 }
 
 export function getRWAPerpsChartBreakdownQueryValue(state: RWAPerpsChartState) {
@@ -305,6 +330,14 @@ function normalizeChartView(value: string | undefined): RWAPerpsChartView {
 function normalizeChartMetric(value: string | undefined): RWAPerpsChartMetricKey {
 	if (value && VALID_CHART_METRICS.has(value as RWAPerpsChartMetricKey)) return value as RWAPerpsChartMetricKey
 	return DEFAULT_CHART_METRIC
+}
+
+function normalizeTimeSeriesMode(value: string | undefined): RWAPerpsTimeSeriesMode {
+	if (value && VALID_TIME_SERIES_MODES.has(value as RWAPerpsTimeSeriesMode)) {
+		return value as RWAPerpsTimeSeriesMode
+	}
+
+	return DEFAULT_TIME_SERIES_MODE
 }
 
 function normalizeBreakdown(

@@ -276,18 +276,33 @@ describe('RWAPerpsDashboard treemap controls', () => {
 	})
 
 	it('renders the time-series metric switch labels from metric option names', () => {
+		routerQuery = { chartView: 'timeSeries' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Open Interest')
 		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
+		expect(html).toContain('Grouped')
+		expect(html).toContain('Base Asset')
+	})
+
+	it('renders the breakdown time-series mode label when selected', () => {
+		routerQuery = {
+			chartView: 'timeSeries',
+			timeSeriesMode: 'breakdown'
+		}
+
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Breakdown')
 	})
 
 	it('builds bar-series configs for time-series volume', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'volume24h',
-				dimensions: ['timestamp', 'Meta', 'NVIDIA']
+				dimensions: ['timestamp', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([
 			{ name: 'Meta', type: 'bar', stack: 'A' },
@@ -299,15 +314,34 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
-				dimensions: ['timestamp', 'Meta']
+				dimensions: ['timestamp', 'Meta'],
+				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([{ name: 'Meta', type: 'line', stack: 'A' }])
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
-				dimensions: ['timestamp', 'Meta']
+				dimensions: ['timestamp', 'Meta'],
+				timeSeriesMode: 'breakdown'
 			})[0]
 		).not.toHaveProperty('showSymbol')
+	})
+
+	it('builds a single non-stacked grouped time-series series', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Total'],
+				timeSeriesMode: 'grouped'
+			})
+		).toEqual([
+			{
+				name: 'Total',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: expect.any(String)
+			}
+		])
 	})
 
 	it('renders 24h changes inline on the overview open interest and volume cards', () => {

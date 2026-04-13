@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
+	groupRWAPerpsTimeSeriesDataset,
 	hasEnoughTimeSeriesHistory,
 	getRWAPerpsBreakdownChartDataset,
 	getRWAPerpsContractData,
@@ -740,6 +741,24 @@ describe('perps overview helpers', () => {
 				key: 'openInterest'
 			}).dimensions
 		).toEqual(['timestamp', 'alpha', 'beta', 'gamma'])
+	})
+
+	it('groups multi-series datasets into a single total series', () => {
+		expect(
+			groupRWAPerpsTimeSeriesDataset({
+				source: [
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+				],
+				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
+			})
+		).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Total: 105 },
+				{ timestamp: 1774569600000, Total: 100 }
+			],
+			dimensions: ['timestamp', 'Total']
+		})
 	})
 })
 
