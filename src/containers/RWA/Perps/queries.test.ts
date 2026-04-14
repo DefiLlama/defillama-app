@@ -408,7 +408,7 @@ describe('getRWAPerpsContractData', () => {
 })
 
 describe('perps overview queries', () => {
-	it('builds the overview page model with totals, sorted markets, and no preloaded chart for the default treemap view', async () => {
+	it('builds the overview page model with totals, sorted markets, and no preloaded chart for the default hbar view', async () => {
 		const result = await getRWAPerpsOverview()
 
 		expect(result).toMatchObject({

@@ -172,12 +172,13 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('reset')
 	})
 
-	it('shows treemap by default when no chart view is provided', () => {
+	it('shows hbar by default when no chart view is provided on the overview page', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Asset Group')
-		expect(html).toContain('Nested by: Base Asset')
-		expect(html).toContain('reset')
+		expect(html).toContain('HBar Chart')
+		expect(html).not.toContain('Nested by:')
+		expect(html).not.toContain('reset')
 	})
 
 	it('hides the treemap nested-grouping selector when parent grouping is Contract', () => {

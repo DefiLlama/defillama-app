@@ -234,6 +234,7 @@ async function buildRWAAssetRoutes() {
 	if (rwaList?.categories) {
 		for (const category of rwaList.categories) {
 			const categorySlug = rwaSlug(category)
+			if (categorySlug === 'rwa-perps') continue
 			if (categorySlug) routes.push(`rwa/category/${categorySlug}`)
 		}
 	}

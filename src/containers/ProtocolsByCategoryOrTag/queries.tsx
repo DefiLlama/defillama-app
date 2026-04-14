@@ -12,6 +12,7 @@ import type { IChainMetadata } from '~/utils/metadata/types'
 import { fetchCategoriesSummary, fetchCategoryChart, fetchTagChart } from './api'
 import {
 	categoriesPageExcludedExtraTvls,
+	getProtocolCategoryChartMetricLabel,
 	getProtocolCategoryChartMetrics,
 	protocolCategoryConfig,
 	type ProtocolCategoryChartMetric,
@@ -42,18 +43,6 @@ type GetProtocolsByCategoryOrTagParams = {
 	  }
 )
 
-const CHART_METRIC_LABELS: Record<ProtocolCategoryChartMetric, string> = {
-	tvl: 'TVL',
-	dexVolume: 'DEX Volume',
-	dexAggregatorsVolume: 'DEX Aggregator Volume',
-	perpVolume: 'Perp Volume',
-	openInterest: 'Open Interest',
-	optionsPremiumVolume: 'Options Premium Volume',
-	optionsNotionalVolume: 'Options Notional Volume',
-	borrowed: 'Borrowed',
-	staking: 'Staking TVL'
-}
-
 const CHART_METRIC_SERIES_TYPE: Record<ProtocolCategoryChartMetric, 'line' | 'bar'> = {
 	tvl: 'line',
 	dexVolume: 'bar',
@@ -79,6 +68,8 @@ const CHART_METRIC_Y_AXIS_INDEX: Record<ProtocolCategoryChartMetric, number> = {
 }
 
 const FALLBACK_CHART_METRICS: ProtocolCategoryChartMetric[] = ['tvl']
+
+type AdapterMetricProtocol = IAdapterChainMetrics['protocols'][number]
 
 const normalizeChartTimestamp = (timestamp: number) => (timestamp < 1e12 ? timestamp * 1e3 : timestamp)
 
@@ -109,7 +100,82 @@ const createTimeSeriesMapFromRecord = (
 	return chartMap
 }
 
-const buildCategoryCharts = ({
+export const createFallbackProtocolFromAdapter = ({
+	protocol,
+	category,
+	tag
+}: {
+	protocol: AdapterMetricProtocol
+	category?: string
+	tag?: string
+}): ProtocolLite => ({
+	name: protocol.displayName || protocol.name,
+	symbol: '',
+	logo: protocol.logo ?? '',
+	url: '',
+	category: category ?? protocol.category ?? '',
+	tags: tag ? [tag] : [],
+	chains: protocol.chains ?? [],
+	chainTvls: {},
+	tvl: 0,
+	tvlPrevDay: 0,
+	tvlPrevWeek: 0,
+	tvlPrevMonth: 0,
+	mcap: null,
+	defillamaId: protocol.defillamaId,
+	parentProtocol: protocol.parentProtocol ?? undefined,
+	slug: protocol.slug
+})
+
+export function mergeProtocolsWithAdapterFallback({
+	protocols,
+	parentProtocols,
+	adapterProtocols,
+	category,
+	tag
+}: {
+	protocols: Array<ProtocolLite>
+	parentProtocols: Array<ParentProtocolLite>
+	adapterProtocols: Array<AdapterMetricProtocol>
+	category?: string
+	tag?: string
+}): { protocols: Array<ProtocolLite>; parentProtocols: Array<ParentProtocolLite> } {
+	const mergedProtocols = [...protocols]
+	const protocolIds = new Set(protocols.map((protocol) => String(protocol.defillamaId)))
+	const parentProtocolsMap = new Map(parentProtocols.map((parentProtocol) => [parentProtocol.id, parentProtocol]))
+
+	for (const protocol of adapterProtocols) {
+		if (!protocolIds.has(String(protocol.defillamaId))) {
+			mergedProtocols.push(createFallbackProtocolFromAdapter({ protocol, category, tag }))
+			protocolIds.add(String(protocol.defillamaId))
+		}
+
+		if (!protocol.parentProtocol) continue
+
+		const existingParentProtocol = parentProtocolsMap.get(protocol.parentProtocol)
+		if (existingParentProtocol) {
+			existingParentProtocol.chains = Array.from(
+				new Set([...(existingParentProtocol.chains ?? []), ...(protocol.chains ?? [])])
+			)
+			continue
+		}
+
+		parentProtocolsMap.set(protocol.parentProtocol, {
+			id: protocol.parentProtocol,
+			name: protocol.parentProtocol.replace(/^parent#/, '') || protocol.parentProtocol,
+			chains: Array.from(new Set(protocol.chains ?? [])),
+			mcap: null
+		})
+	}
+
+	return {
+		protocols: mergedProtocols,
+		parentProtocols: Array.from(parentProtocolsMap.values())
+	}
+}
+
+export const buildCategoryCharts = ({
+	effectiveCategory,
 	metrics,
 	tvlChartData,
 	dexVolumeChartData,
@@ -121,6 +187,7 @@ const buildCategoryCharts = ({
 	borrowedChartData,
 	stakingChartData
 }: {
+	effectiveCategory: string | null
 	metrics: ProtocolCategoryChartMetric[]
 	tvlChartData: Array<[number, number | null]>
 	dexVolumeChartData: Array<[number, number]> | null
@@ -158,11 +225,12 @@ const buildCategoryCharts = ({
 	}
 
 	const sortedTimestamps = Array.from(timestamps).sort((a, b) => a - b)
-	const dimensions = ['timestamp', ...finalMetrics.map((metric) => CHART_METRIC_LABELS[metric])]
+	const metricLabels = finalMetrics.map((metric) => getProtocolCategoryChartMetricLabel(metric, effectiveCategory))
+	const dimensions = ['timestamp', ...metricLabels]
 	const source = sortedTimestamps.map((timestamp) => {
 		const row: Record<string, number | null> = { timestamp }
-		for (const metric of finalMetrics) {
-			const dimension = CHART_METRIC_LABELS[metric]
+		for (const [index, metric] of finalMetrics.entries()) {
+			const dimension = metricLabels[index]
 			row[dimension] = chartMapsByMetric[metric].get(timestamp) ?? null
 		}
 		return row
@@ -174,7 +242,7 @@ const buildCategoryCharts = ({
 			dimensions
 		},
 		charts: finalMetrics.map((metric, index) => {
-			const dimension = CHART_METRIC_LABELS[metric]
+			const dimension = metricLabels[index]
 			return {
 				type: CHART_METRIC_SERIES_TYPE[metric],
 				name: dimension,
@@ -404,6 +472,22 @@ export async function getProtocolsByCategoryOrTag(
 
 	const chainsLookupKey = tag ?? category
 	const chains = chainsLookupKey ? (chainsByCategoriesOrTags?.[chainsLookupKey] ?? []) : []
+	const adapterProtocols = [
+		...(feesData?.protocols ?? []),
+		...(revenueData?.protocols ?? []),
+		...(dexVolumeData?.protocols ?? []),
+		...(perpVolumeData?.protocols ?? []),
+		...(openInterestData?.protocols ?? []),
+		...(optionsPremiumData?.protocols ?? []),
+		...(optionsNotionalData?.protocols ?? [])
+	]
+	const { protocols: mergedProtocols, parentProtocols: mergedParentProtocols } = mergeProtocolsWithAdapterFallback({
+		protocols,
+		parentProtocols,
+		adapterProtocols,
+		category,
+		tag
+	})
 
 	const adapterDataStore: Record<string, AdapterProtocolData> = {}
 	const getOrCreateAdapterProtocolData = ({
@@ -513,7 +597,7 @@ export async function getProtocolsByCategoryOrTag(
 	const protocolsStore: Record<string, ProtocolTableRow> = {}
 	const parentProtocolsStore: Record<string, Array<ProtocolTableRow>> = {}
 
-	for (const protocol of protocols) {
+	for (const protocol of mergedProtocols) {
 		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category === category
 		if (!isProtocolInCategoryOrTag) continue
 
@@ -584,7 +668,7 @@ export async function getProtocolsByCategoryOrTag(
 		const finalData: ProtocolTableRow = {
 			name: protocol.name,
 			slug: slug(protocol.name),
-			logo: tokenIconUrl(protocol.name),
+			logo: protocol.logo || tokenIconUrl(protocol.name),
 			chains: Array.from(new Set([...(adapterProtocolData?.chains ?? []), ...protocol.chains])),
 			tvl,
 			extraTvls,
@@ -632,7 +716,7 @@ export async function getProtocolsByCategoryOrTag(
 	}
 
 	const finalProtocols: Array<ProtocolTableRow> = Object.values(protocolsStore)
-	for (const parentProtocol of parentProtocols) {
+	for (const parentProtocol of mergedParentProtocols) {
 		const childProtocols = parentProtocolsStore[parentProtocol.id]
 		if (childProtocols == null) continue
 
@@ -676,7 +760,7 @@ export async function getProtocolsByCategoryOrTag(
 		finalProtocols.push({
 			name: parentProtocol.name,
 			slug: slug(parentProtocol.name),
-			logo: tokenIconUrl(parentProtocol.name),
+			logo: parentProtocol.logo || tokenIconUrl(parentProtocol.name),
 			chains: parentProtocol.chains,
 			mcap: parentProtocol.mcap ?? null,
 			tvl,
@@ -723,6 +807,7 @@ export async function getProtocolsByCategoryOrTag(
 	const startIndex = tvlChart.findIndex(([, tvl]) => tvl != null)
 	const filteredTvlChart = startIndex >= 0 ? tvlChart.slice(startIndex) : tvlChart
 	const categoryCharts = buildCategoryCharts({
+		effectiveCategory,
 		metrics: chartMetrics,
 		tvlChartData: filteredTvlChart,
 		dexVolumeChartData,

@@ -140,7 +140,7 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 	}
 }
 
-export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'treemap'
+export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'hbar'
 const DEFAULT_CHART_METRIC: RWAPerpsChartMetricKey = 'openInterest'
 const DEFAULT_TIME_SERIES_MODE: RWAPerpsTimeSeriesMode = 'grouped'
 const VALID_CHART_VIEWS = new Set<RWAPerpsChartView>(CHART_VIEW_OPTIONS.map((option) => option.key))

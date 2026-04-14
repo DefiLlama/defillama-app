@@ -27,6 +27,8 @@ import type { IRWAAssetsOverview } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
+import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
+import { rwaSlug } from './rwaSlug'
 
 export function RWAAssetsTable({
 	assets,
@@ -152,6 +154,9 @@ export function RWAAssetsTable({
 
 type AssetRow = IRWAAssetsOverview['assets'][0]
 const columnHelper = createColumnHelper<AssetRow>()
+const PLATFORM_COLUMN_HELP = 'Platform associated with issuance, custody, trading, or management of the asset.'
+
+const formatAssetPlatforms = (asset: AssetRow) => getRwaPlatforms(asset.parentPlatform).join(', ')
 
 const columns = [
 	columnHelper.accessor((asset) => asset.assetName ?? asset.ticker, {
@@ -264,6 +269,40 @@ const columns = [
 			meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }
 		}
 	),
+	columnHelper.accessor((asset) => formatAssetPlatforms(asset), {
+		id: 'platform',
+		header: 'Platform',
+		cell: (info) => {
+			const platforms = getRwaPlatforms(info.row.original.parentPlatform)
+			const value = platforms.join(', ')
+
+			if (platforms.length === 1 && platforms[0] !== UNKNOWN_PLATFORM) {
+				return (
+					<BasicLink
+						href={`/rwa/platform/${rwaSlug(platforms[0])}`}
+						className="overflow-hidden text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+					>
+						{value}
+					</BasicLink>
+				)
+			}
+
+			return (
+				<Tooltip
+					content={value}
+					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+				>
+					{value}
+				</Tooltip>
+			)
+		},
+		size: 180,
+		enableSorting: false,
+		meta: {
+			align: 'end',
+			headerHelperText: PLATFORM_COLUMN_HELP
+		}
+	}),
 	columnHelper.accessor((asset) => asset.category, {
 		id: 'category',
 		header: definitions.category.label,

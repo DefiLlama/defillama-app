@@ -494,6 +494,15 @@
       ]
     },
     {
+      "name": "RWA: Perps",
+      "route": "/rwa/perps",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps",
+      "tags": [
+        "New"
+      ]
+    },
+    {
       "name": "RWA by Chain",
       "route": "/rwa/chains",
       "category": "RWA",
@@ -510,6 +519,24 @@
       "route": "/rwa/platforms",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
+      "name": "RWA by Asset Group",
+      "route": "/rwa/asset-groups",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by asset group"
+    },
+    {
+      "name": "RWA Perps by Venue",
+      "route": "/rwa/perps/venues",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps by venue"
+    },
+    {
+      "name": "RWA Perps by Asset Group",
+      "route": "/rwa/perps/asset-groups",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps by asset group"
     },
     {
       "name": "Bridges by Volume",

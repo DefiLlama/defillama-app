@@ -1,11 +1,7 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { fetchProtocolTokenLiquidityChart } from '~/api'
-import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
-import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { fetchJson } from '~/utils/async'
-import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import type {
 	IProtocolChainBreakdownChart,
 	IProtocolChartV2Params,
@@ -39,6 +35,16 @@ type IProtocolChartQueryKey = [
 	string | undefined
 ]
 
+const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
+	const searchParams = new URLSearchParams()
+	for (const [key, value] of Object.entries(params)) {
+		if (value != null) {
+			searchParams.set(key, value)
+		}
+	}
+	return `/api/charts/protocol?${searchParams.toString()}`
+}
+
 const getProtocolChartQueryOptions = ({
 	source,
 	protocol,
@@ -57,9 +63,15 @@ const getProtocolChartQueryOptions = ({
 	return {
 		queryKey: ['protocol-overview', chartKey, protocol, key, currency, breakdownType],
 		queryFn: () =>
-			source === 'tvl'
-				? fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType })
-				: fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
+			fetchJson<IProtocolChartQueryData>(
+				buildProtocolChartApiUrl({
+					kind: source,
+					protocol: protocol!,
+					key,
+					currency,
+					breakdownType
+				})
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -93,7 +105,14 @@ export const useFetchProtocolActivityChart = ({
 	return useQuery({
 		queryKey: ['protocol-overview', queryKey, protocol],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({ adapterType, protocol: protocol!, dataType })
+			fetchJson<Array<[number, number]>>(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType,
+					protocol: protocol!,
+					dataType
+				})
+			)
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -107,7 +126,7 @@ export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
 		queryKey: ['protocol-overview', 'token-liquidity', token],
-		queryFn: () => fetchProtocolTokenLiquidityChart(token!),
+		queryFn: () => fetchJson(buildProtocolChartApiUrl({ kind: 'token-liquidity', protocolId: token! })),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -120,18 +139,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	return useQuery({
 		queryKey: ['protocol-overview', 'median-apy', protocolName],
 		queryFn: () =>
-			fetchJson(`${YIELD_PROJECT_MEDIAN_API}/${protocolName}`)
-				.then((values: { data: Array<{ timestamp: string; medianAPY: number; [key: string]: unknown }> } | null) => {
-					return values && values.data.length > 0
-						? values.data.map((item: { timestamp: string; medianAPY: number; [key: string]: unknown }) => ({
-								...item,
-								date: Math.floor(new Date(item.timestamp).getTime() / 1000)
-							}))
-						: null
-				})
-				.catch(() => {
-					return []
-				}),
+			fetchJson(buildProtocolChartApiUrl({ kind: 'median-apy', protocol: protocolName! })).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
