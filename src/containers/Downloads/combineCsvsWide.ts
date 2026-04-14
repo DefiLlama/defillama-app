@@ -24,7 +24,7 @@ export function combineCsvsWide(items: CsvItem[]): string[][] {
 		const dateIndex = headers.indexOf('date')
 		const nonDateIndices: number[] = []
 		const outputHeaders: string[] = []
-		headers.forEach((header, index) => {
+		headers.forEach((_, index) => {
 			if (index === dateIndex) return
 			nonDateIndices.push(index)
 		})

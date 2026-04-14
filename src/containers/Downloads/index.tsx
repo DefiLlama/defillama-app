@@ -13,6 +13,7 @@ import {
 import { ChartDatasetModal } from './ChartDatasetModal'
 import { DatasetPreviewModal } from './DatasetPreviewModal'
 import { datasets, datasetCategories, type DatasetDefinition } from './datasets'
+import { MultiMetricModal } from './MultiMetricModal'
 
 const TABS = ['Datasets', 'Time Series'] as const
 type Tab = (typeof TABS)[number]
@@ -25,6 +26,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 	const [previewDataset, setPreviewDataset] = useState<DatasetDefinition | null>(null)
 	const [previewChartDataset, setPreviewChartDataset] = useState<ChartDatasetDefinition | null>(null)
 	const [trialLimitOpen, setTrialLimitOpen] = useState(false)
+	const [combineModalOpen, setCombineModalOpen] = useState(false)
 
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearch = useDeferredValue(searchValue)
@@ -264,6 +266,34 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 				</div>
 			) : (
 				<div className="flex flex-col gap-8">
+					<button
+						type="button"
+						onClick={() => {
+							if (isTrial) {
+								setTrialLimitOpen(true)
+								return
+							}
+							setCombineModalOpen(true)
+						}}
+						className="group relative flex items-start justify-between gap-4 overflow-hidden rounded-xl border border-(--primary)/30 bg-gradient-to-br from-(--primary)/[0.08] to-(--primary)/[0.02] p-4 text-left transition-all hover:border-(--primary)/60 hover:from-(--primary)/[0.12] hover:to-(--primary)/[0.04]"
+					>
+						<div className="flex items-start gap-3">
+							<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-(--primary)/15">
+								<Icon name="layers" className="h-5 w-5 text-(--primary)" />
+							</div>
+							<div className="flex flex-col gap-0.5">
+								<p className="font-medium text-(--text-primary)">Combine multiple metrics</p>
+								<p className="text-sm text-(--text-secondary)">
+									Pick a protocol or chain, mix any of its metrics — TVL, fees, volume, revenue — into a single CSV.
+								</p>
+							</div>
+						</div>
+						<span className="mt-1 inline-flex shrink-0 items-center gap-1 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-medium text-white shadow-sm transition-transform group-hover:translate-x-0.5">
+							Open builder
+							<Icon name="arrow-up-right" className="h-3.5 w-3.5" />
+						</span>
+					</button>
+
 					{filteredChartsByCategory.map(({ category, items }) => (
 						<section key={`chart-${category}`} className="flex flex-col gap-3">
 							<h2 className="text-lg font-semibold text-(--text-primary)">{category}</h2>
@@ -318,6 +348,15 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					)}
 				</div>
 			)}
+
+			{combineModalOpen ? (
+				<MultiMetricModal
+					chartOptionsMap={chartOptionsMap}
+					authorizedFetch={authorizedFetch}
+					isPreview={isPreview}
+					onClose={() => setCombineModalOpen(false)}
+				/>
+			) : null}
 
 			{previewChartDataset && (
 				<ChartDatasetModal
