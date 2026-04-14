@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const pageName = ['RWA', 'Perps']
+const pageName = ['RWA Perps']
 
 export default function RWAPerpsContractDetailPage({ contract }: InferGetStaticPropsType<typeof getStaticProps>) {
 	const canonicalContract = encodeURIComponent(contract.contract.contract)

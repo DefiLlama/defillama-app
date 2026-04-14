@@ -555,28 +555,14 @@ describe('perps overview queries', () => {
 				estimatedProtocolFees24h: 7
 			}
 		])
-		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce(
-			toRWAPerpsBreakdownChartDataset({
-				breakdown: 'baseAsset',
-				key: 'openInterest',
-				rows: [
-					{ timestamp: 1774483200, label: 'Meta', value: 120 },
-					{ timestamp: 1774569600, label: 'Meta', value: 100 },
-					{ timestamp: 1774569600, label: 'NVIDIA', value: 30 }
-				]
-			})
-		)
-		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce(
-			toRWAPerpsBreakdownChartDataset({
-				breakdown: 'baseAsset',
-				key: 'volume24h',
-				rows: [
-					{ timestamp: 1774483200, label: 'Meta', value: 30 },
-					{ timestamp: 1774569600, label: 'Meta', value: 50 },
-					{ timestamp: 1774569600, label: 'NVIDIA', value: 40 }
-				]
-			})
-		)
+		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce([
+			{ timestamp: 1774483200, Meta: 120 },
+			{ timestamp: 1774569600, Meta: 100, NVIDIA: 30 }
+		])
+		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce([
+			{ timestamp: 1774483200, Meta: 30 },
+			{ timestamp: 1774569600, Meta: 50, NVIDIA: 40 }
+		])
 
 		const result = await getRWAPerpsVenuePage({ venue: 'xyz-exchange' })
 

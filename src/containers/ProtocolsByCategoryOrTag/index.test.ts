@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('../../public/definitions', () => ({
+vi.mock('~/public/definitions', () => ({
 	definitions: {
 		dexs: {
 			protocol: {
