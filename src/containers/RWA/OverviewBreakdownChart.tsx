@@ -202,6 +202,7 @@ export function RWAOverviewBreakdownChart({
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={dataset}
+						stacked
 						showTotalInTooltip
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}

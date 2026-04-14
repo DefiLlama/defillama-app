@@ -708,6 +708,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
 										dataset={deferredSelectedTimeSeriesDataset}
+										stacked
 										hideDefaultLegend={false}
 										showTotalInTooltip
 										onReady={handleMultiSeriesChart2Ready}

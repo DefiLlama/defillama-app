@@ -52,6 +52,7 @@ import {
 	buildRWAPerpsAssetGroupSnapshotBreakdownTotals,
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
+	appendRWAPerpsTimeSeriesDatasetTotal,
 	groupRWAPerpsTimeSeriesDataset,
 	hasEnoughTimeSeriesHistory
 } from './queries'
@@ -131,12 +132,12 @@ const overviewColumns = [
 		meta: { headerHelperText: d.venue.description },
 		size: 168
 	}),
-	overviewColumnHelper.accessor((row) => row.referenceAsset ?? '', {
-		id: 'baseAsset',
-		header: d.baseAsset.label,
+	overviewColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
+		id: 'assetClass',
+		header: d.assetClass.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.baseAsset.description },
-		size: 140
+		meta: { headerHelperText: d.assetClass.description },
+		size: 176
 	}),
 	overviewColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
 		id: 'baseAssetGroup',
@@ -156,12 +157,12 @@ const overviewColumns = [
 		meta: { headerHelperText: d.assetGroup.description },
 		size: 136
 	}),
-	overviewColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
-		id: 'assetClass',
-		header: d.assetClass.label,
+	overviewColumnHelper.accessor((row) => row.referenceAsset ?? '', {
+		id: 'baseAsset',
+		header: d.baseAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.assetClass.description },
-		size: 176
+		meta: { headerHelperText: d.baseAsset.description },
+		size: 140
 	}),
 	overviewColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
 		id: 'category',
@@ -547,7 +548,16 @@ const venueColumns = [
 	})
 ]
 
-const assetGroupColumns = overviewColumns.filter((column) => column.id !== 'baseAssetGroup')
+const assetGroupPriorityColumns = ['contract', 'venue', 'baseAsset', 'assetClass'] as const
+
+const assetGroupColumns = [
+	...assetGroupPriorityColumns.flatMap((columnId) => overviewColumns.filter((column) => column.id === columnId)),
+	...overviewColumns.filter(
+		(column) =>
+			column.id !== 'baseAssetGroup' &&
+			!assetGroupPriorityColumns.includes(column.id as (typeof assetGroupPriorityColumns)[number])
+	)
+]
 
 const overviewColumnVisibility: VisibilityState = {
 	category: false,
@@ -585,23 +595,44 @@ const assetGroupColumnVisibility: VisibilityState = {
 	baseAssetGroup: false
 }
 
+function getLegendSeriesNames(seriesNames: string[]) {
+	if (!seriesNames.includes('Total')) return seriesNames
+	return ['Total', ...seriesNames.filter((name) => name !== 'Total')]
+}
+
 export function buildRWAPerpsTimeSeriesCharts({
 	metric,
 	dimensions,
-	timeSeriesMode: _timeSeriesMode
+	timeSeriesMode
 }: {
 	metric: 'openInterest' | 'volume24h' | 'markets'
 	dimensions: string[]
 	timeSeriesMode: 'grouped' | 'breakdown'
 }): Array<MultiSeriesChart2SeriesConfig> {
+	const seriesType: MultiSeriesChart2SeriesConfig['type'] = metric === 'volume24h' ? 'bar' : 'line'
 	const seriesKeys = dimensions.filter((dimension) => dimension !== 'timestamp')
+	const hasTotalOverlay = timeSeriesMode === 'breakdown' && metric !== 'volume24h' && seriesKeys.includes('Total')
+	const breakdownSeries = seriesKeys.filter((seriesName) => !(hasTotalOverlay && seriesName === 'Total'))
 
-	return seriesKeys.map((seriesName, index) => ({
-		name: seriesName,
-		type: metric === 'volume24h' ? 'bar' : 'line',
-		encode: { x: 'timestamp', y: seriesName },
-		color: CHART_COLORS[index % CHART_COLORS.length]
-	}))
+	return [
+		...breakdownSeries.map((seriesName, index) => ({
+			name: seriesName,
+			type: seriesType,
+			encode: { x: 'timestamp', y: seriesName },
+			color: CHART_COLORS[(index + (hasTotalOverlay ? 1 : 0)) % CHART_COLORS.length]
+		})),
+		...(hasTotalOverlay
+			? [
+					{
+						name: 'Total',
+						type: 'line' as const,
+						encode: { x: 'timestamp', y: 'Total' },
+						color: CHART_COLORS[0],
+						hideAreaStyle: true
+					}
+				]
+			: [])
+	]
 }
 
 const StatCard = ({
@@ -721,16 +752,23 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		chartState.view === 'timeSeries' && shouldUseInitialTimeSeriesDataset
 			? initialChartDataset
 			: (timeSeriesQuery.data ?? EMPTY_DATASET)
+	const shouldShowTotalOverlay = chartState.timeSeriesMode === 'breakdown' && chartState.metric !== 'volume24h'
 	const selectedTimeSeriesDataset =
 		chartState.timeSeriesMode === 'grouped'
 			? groupRWAPerpsTimeSeriesDataset(rawTimeSeriesDataset)
-			: rawTimeSeriesDataset
+			: shouldShowTotalOverlay
+				? appendRWAPerpsTimeSeriesDatasetTotal(rawTimeSeriesDataset)
+				: rawTimeSeriesDataset
 
 	const timeSeriesCharts = buildRWAPerpsTimeSeriesCharts({
 		metric: chartState.metric,
 		dimensions: selectedTimeSeriesDataset.dimensions,
 		timeSeriesMode: chartState.timeSeriesMode
 	})
+	const timeSeriesLegendNames = useMemo(
+		() => getLegendSeriesNames(timeSeriesCharts.map((series) => series.name)),
+		[timeSeriesCharts]
+	)
 
 	const snapshotBreakdownRows = useMemo(
 		() =>
@@ -1018,7 +1056,9 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 							<MultiSeriesChart2
 								dataset={deferredTimeSeriesDataset}
 								charts={timeSeriesCharts}
-								showTotalInTooltip
+								chartOptions={{ legend: { data: timeSeriesLegendNames } }}
+								hideDefaultLegend={false}
+								showTotalInTooltip={!deferredTimeSeriesDataset.dimensions.includes('Total')}
 								valueSymbol={valueSymbol}
 								onReady={handleTimeSeriesChartReady}
 							/>

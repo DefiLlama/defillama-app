@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { CHART_COLORS } from '~/constants/colors'
 import { buildRWAPerpsTimeSeriesCharts, RWAPerpsDashboard } from './Dashboard'
 
 let routerQuery: Record<string, string> = {}
@@ -234,9 +235,9 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(lastTableWithSearchProps.columns.slice(0, 5).map((column: any) => column.header)).toEqual([
 			'Contract',
 			'Venue',
-			'Base Asset',
+			'Asset Class',
 			'Asset Group',
-			'Asset Class'
+			'Base Asset'
 		])
 	})
 
@@ -376,6 +377,65 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				type: 'line',
 				encode: { x: 'timestamp', y: 'Total' },
 				color: expect.any(String)
+			}
+		])
+	})
+
+	it('adds a plain total overlay line for breakdown line charts', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Meta',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			},
+			{
+				name: 'Total',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0],
+				hideAreaStyle: true
+			}
+		])
+	})
+
+	it('does not add a total overlay line for breakdown bar charts', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'volume24h',
+				dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Total',
+				type: 'bar',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0]
+			},
+			{
+				name: 'Meta',
+				type: 'bar',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'bar',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
 			}
 		])
 	})

@@ -13,7 +13,11 @@ import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import { perpsDefinitions as d } from './definitions'
-import { groupRWAPerpsTimeSeriesDataset, hasEnoughTimeSeriesHistory } from './queries'
+import {
+	appendRWAPerpsTimeSeriesDatasetTotal,
+	groupRWAPerpsTimeSeriesDataset,
+	hasEnoughTimeSeriesHistory
+} from './queries'
 import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey, RWAPerpsTimeSeriesMode } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -33,6 +37,11 @@ const TIME_SERIES_MODE_OPTIONS: Array<{ key: RWAPerpsTimeSeriesMode; label: stri
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
 const STACKS_QUERY_KEY = 'stacks'
 const EXCLUDE_STACKS_QUERY_KEY: ExcludeQueryKey = 'excludeStacks'
+
+function getLegendSeriesNames(seriesNames: string[]) {
+	if (!seriesNames.includes('Total')) return seriesNames
+	return ['Total', ...seriesNames.filter((name) => name !== 'Total')]
+}
 
 function isChartMetricKey(value: string): value is RWAPerpsChartMetricKey {
 	return VALID_CHART_TYPES.has(value as RWAPerpsChartMetricKey)
@@ -91,17 +100,36 @@ function fetchOverviewBreakdownDataset(request: IRWAPerpsOverviewBreakdownReques
 
 export function buildRWAPerpsOverviewChartSeries({
 	chartType,
-	stackOptions
+	stackOptions,
+	timeSeriesMode
 }: {
 	chartType: RWAPerpsChartMetricKey
 	stackOptions: string[]
+	timeSeriesMode: RWAPerpsTimeSeriesMode
 }): Array<MultiSeriesChart2SeriesConfig> {
-	return stackOptions.map((seriesName, index) => ({
-		name: seriesName,
-		type: chartType === 'volume24h' ? 'bar' : 'line',
-		encode: { x: 'timestamp', y: seriesName },
-		color: CHART_COLORS[index % CHART_COLORS.length]
-	}))
+	const seriesType: MultiSeriesChart2SeriesConfig['type'] = chartType === 'volume24h' ? 'bar' : 'line'
+	const hasTotalOverlay = timeSeriesMode === 'breakdown' && chartType !== 'volume24h' && stackOptions.includes('Total')
+	const breakdownSeries = stackOptions.filter((seriesName) => !(hasTotalOverlay && seriesName === 'Total'))
+
+	return [
+		...breakdownSeries.map((seriesName, index) => ({
+			name: seriesName,
+			type: seriesType,
+			encode: { x: 'timestamp', y: seriesName },
+			color: CHART_COLORS[(index + (hasTotalOverlay ? 1 : 0)) % CHART_COLORS.length]
+		})),
+		...(hasTotalOverlay
+			? [
+					{
+						name: 'Total',
+						type: 'line' as const,
+						encode: { x: 'timestamp', y: 'Total' },
+						color: CHART_COLORS[0],
+						hideAreaStyle: true
+					}
+				]
+			: [])
+	]
 }
 
 export function RWAPerpsOverviewChart({
@@ -126,13 +154,27 @@ export function RWAPerpsOverviewChart({
 		enabled: !isDefaultState
 	})
 	const rawDataset = isDefaultState ? initialChartDataset : (data ?? EMPTY_DATASET)
-	const dataset = timeSeriesMode === 'grouped' ? groupRWAPerpsTimeSeriesDataset(rawDataset) : rawDataset
+	const stackOptions = useMemo(
+		() => rawDataset.dimensions.filter((dimension) => dimension !== 'timestamp'),
+		[rawDataset]
+	)
+	const shouldShowTotalOverlay = timeSeriesMode === 'breakdown' && chartType !== 'volume24h'
+	const dataset =
+		timeSeriesMode === 'grouped'
+			? groupRWAPerpsTimeSeriesDataset(rawDataset)
+			: shouldShowTotalOverlay
+				? appendRWAPerpsTimeSeriesDatasetTotal(rawDataset)
+				: rawDataset
 	const hasTimeSeriesHistory = useMemo(() => hasEnoughTimeSeriesHistory(dataset), [dataset])
 	const showLoadingState = !isDefaultState && isLoading
-	const stackOptions = useMemo(() => dataset.dimensions.filter((dimension) => dimension !== 'timestamp'), [dataset])
 	const chartSeries = useMemo<Array<MultiSeriesChart2SeriesConfig>>(
-		() => buildRWAPerpsOverviewChartSeries({ chartType, stackOptions }),
-		[chartType, stackOptions]
+		() =>
+			buildRWAPerpsOverviewChartSeries({
+				chartType,
+				stackOptions: dataset.dimensions.filter((dimension) => dimension !== 'timestamp'),
+				timeSeriesMode
+			}),
+		[chartType, dataset.dimensions, timeSeriesMode]
 	)
 	const selectedStacksQ = router.query[STACKS_QUERY_KEY] as string | string[] | undefined
 	const excludeStacksQ = router.query[EXCLUDE_STACKS_QUERY_KEY] as string | string[] | undefined
@@ -145,7 +187,18 @@ export function RWAPerpsOverviewChart({
 			}),
 		[excludeStacksQ, selectedStacksQ, stackOptions]
 	)
-	const selectedStacksSet = useMemo(() => new Set(selectedStacks), [selectedStacks])
+	const showStackSelect = timeSeriesMode === 'breakdown' && stackOptions.length > 1
+	const visibleCharts = useMemo(
+		() => (shouldShowTotalOverlay ? new Set(['Total', ...selectedStacks]) : undefined),
+		[selectedStacks, shouldShowTotalOverlay]
+	)
+	const legendSeriesNames = useMemo(
+		() =>
+			getLegendSeriesNames(
+				chartSeries.map((series) => series.name).filter((name) => (visibleCharts ? visibleCharts.has(name) : true))
+			),
+		[chartSeries, visibleCharts]
+	)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onSelectChartType = (nextChartType: RWAPerpsChartMetricKey) => {
@@ -184,7 +237,7 @@ export function RWAPerpsOverviewChart({
 					labelType="none"
 					variant="filter"
 				/>
-				{stackOptions.length > 1 ? (
+				{showStackSelect ? (
 					<SelectWithCombobox
 						allValues={stackOptions}
 						selectedValues={selectedStacks}
@@ -222,8 +275,10 @@ export function RWAPerpsOverviewChart({
 					<MultiSeriesChart2
 						dataset={dataset}
 						charts={chartSeries}
-						showTotalInTooltip
-						selectedCharts={selectedStacksSet}
+						chartOptions={{ legend: { data: legendSeriesNames } }}
+						hideDefaultLegend={false}
+						showTotalInTooltip={!dataset.dimensions.includes('Total')}
+						selectedCharts={visibleCharts}
 						onReady={handleChartReady}
 						valueSymbol={chartType === 'markets' ? '' : '$'}
 					/>

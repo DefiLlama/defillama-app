@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
 import {
+	appendRWAPerpsTimeSeriesDatasetTotal,
 	buildRWAPerpsAssetGroupSnapshotBreakdownTotals,
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
@@ -892,6 +893,24 @@ describe('perps overview helpers', () => {
 				{ timestamp: 1774569600000, Total: 100 }
 			],
 			dimensions: ['timestamp', 'Total']
+		})
+	})
+
+	it('appends a total overlay while preserving the original breakdown series', () => {
+		expect(
+			appendRWAPerpsTimeSeriesDatasetTotal({
+				source: [
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+				],
+				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
+			})
+		).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined, Total: 105 },
+				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null, Total: 100 }
+			],
+			dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA', 'Gold']
 		})
 	})
 })

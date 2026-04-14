@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { CHART_COLORS } from '~/constants/colors'
 import {
 	buildRWAPerpsOverviewChartSeries,
 	getRWAPerpsOverviewChartType,
@@ -62,7 +63,8 @@ describe('OverviewChart helpers', () => {
 	it('builds line series without point markers for non-volume metrics', () => {
 		const series = buildRWAPerpsOverviewChartSeries({
 			chartType: 'openInterest',
-			stackOptions: ['Meta']
+			stackOptions: ['Meta'],
+			timeSeriesMode: 'breakdown'
 		})
 
 		expect(series).toMatchObject([{ name: 'Meta', type: 'line' }])
@@ -73,7 +75,8 @@ describe('OverviewChart helpers', () => {
 		expect(
 			buildRWAPerpsOverviewChartSeries({
 				chartType: 'volume24h',
-				stackOptions: ['Meta', 'NVIDIA']
+				stackOptions: ['Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([
 			{ name: 'Meta', type: 'bar' },
@@ -85,8 +88,68 @@ describe('OverviewChart helpers', () => {
 		expect(
 			buildRWAPerpsOverviewChartSeries({
 				chartType: 'markets',
-				stackOptions: ['Total']
+				stackOptions: ['Total'],
+				timeSeriesMode: 'grouped'
 			})
 		).toMatchObject([{ name: 'Total', type: 'line' }])
+	})
+
+	it('adds a plain total line ahead of the breakdown color scale for breakdown line charts', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'openInterest',
+				stackOptions: ['Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Meta',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			},
+			{
+				name: 'Total',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0],
+				hideAreaStyle: true
+			}
+		])
+	})
+
+	it('does not add a total overlay to breakdown bar charts', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'volume24h',
+				stackOptions: ['Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Total',
+				type: 'bar',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0]
+			},
+			{
+				name: 'Meta',
+				type: 'bar',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'bar',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			}
+		])
 	})
 })

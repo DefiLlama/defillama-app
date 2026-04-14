@@ -177,6 +177,27 @@ export function groupRWAPerpsTimeSeriesDataset(dataset: MultiSeriesChart2Dataset
 	}
 }
 
+export function appendRWAPerpsTimeSeriesDatasetTotal(dataset: MultiSeriesChart2Dataset): MultiSeriesChart2Dataset {
+	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
+	if (dataset.source.length === 0) return EMPTY_CHART_DATASET
+	if (seriesDimensions.length === 0) return dataset
+
+	return {
+		source: ensureChronologicalRows(
+			dataset.source.map((row) => ({
+				...row,
+				timestamp: row.timestamp,
+				Total: seriesDimensions.reduce((sum, dimension) => {
+					const value = row[dimension]
+					const numericValue = typeof value === 'number' ? value : Number(value)
+					return Number.isFinite(numericValue) ? sum + numericValue : sum
+				}, 0)
+			}))
+		),
+		dimensions: ['timestamp', 'Total', ...seriesDimensions]
+	}
+}
+
 function assertHasVenueBuckets(stats: IRWAPerpsStatsResponse | null): asserts stats is IRWAPerpsStatsResponse {
 	if (!stats?.byVenue) {
 		throw new Error('Failed to get RWA perps venue stats')
