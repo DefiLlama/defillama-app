@@ -3,7 +3,7 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { toBreakdownChartDataset } from './breakdownDataset'
 
 describe('rwa breakdownDataset', () => {
-	it.each([null, []])('returns an empty dataset when toBreakdownChartDataset receives %j', (rows) => {
+	it.each([[null], [[]]])('returns an empty dataset when toBreakdownChartDataset receives %j', (rows) => {
 		expect(toBreakdownChartDataset(rows)).toEqual({
 			source: [],
 			dimensions: ['timestamp']
