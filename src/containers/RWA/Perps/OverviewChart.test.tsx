@@ -52,7 +52,19 @@ describe('OverviewChart helpers', () => {
 			stackOptions: ['Meta']
 		})
 
-		expect(series).toMatchObject([{ name: 'Meta', type: 'line' }])
+		expect(series).toMatchObject([{ name: 'Meta', type: 'line', stack: 'A' }])
 		expect(series[0]).not.toHaveProperty('showSymbol')
+	})
+
+	it('builds stacked bar series for volume charts', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'volume24h',
+				stackOptions: ['Meta', 'NVIDIA']
+			})
+		).toMatchObject([
+			{ name: 'Meta', type: 'bar', stack: 'A' },
+			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+		])
 	})
 })

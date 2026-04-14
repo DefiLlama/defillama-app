@@ -85,7 +85,8 @@ export function buildRWAPerpsOverviewChartSeries({
 		name: seriesName,
 		type: chartType === 'volume24h' ? 'bar' : 'line',
 		encode: { x: 'timestamp', y: seriesName },
-		color: CHART_COLORS[index % CHART_COLORS.length]
+		color: CHART_COLORS[index % CHART_COLORS.length],
+		stack: 'A'
 	}))
 }
 
