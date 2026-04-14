@@ -25,15 +25,11 @@ export async function fetchAdapterChainMetrics({
 	category?: string
 }): Promise<IAdapterChainMetrics> {
 	const metricsUrl = new URL(
-		`${V2_SERVER_URL}/metrics/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+		`${V2_SERVER_URL}/metrics/${adapterType}${category ? `/category/${slug(category)}` : ''}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 	)
 
 	if (dataType) {
 		metricsUrl.searchParams.set('dataType', dataType)
-	}
-
-	if (category) {
-		metricsUrl.searchParams.set('category', category)
 	}
 
 	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), { timeout: 30_000 })
@@ -74,7 +70,7 @@ export async function fetchAdapterChainChartData({
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
 	category?: string
 }): Promise<IAdapterChart> {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${category ? `/category/${slug(category)}` : ''}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 	if (dataType === 'dailyEarnings') {
 		// earnings do not filter by chain at fetch time
@@ -85,10 +81,6 @@ export async function fetchAdapterChainChartData({
 
 	if (dataType) {
 		totalDataChart.searchParams.set('dataType', dataType)
-	}
-
-	if (category) {
-		totalDataChart.searchParams.set('category', category)
 	}
 
 	return fetchJson<IAdapterChart>(totalDataChart.toString(), { timeout: 30_000 })
