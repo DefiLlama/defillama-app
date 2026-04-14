@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
@@ -125,14 +126,11 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 				queryKey: ['multi-metric', slug, paramType, datasetValue, isPreview] as const,
 				queryFn: async () => {
 					if (!datasetValue) throw new Error(`Not available for this ${PARAM_LABELS[paramType].singular}`)
-					const url = `/api/downloads/chart/${slug}?param=${encodeURIComponent(datasetValue)}`
-					const resp = await authorizedFetch(url)
-					if (!resp.ok) {
-						let msg = `Request failed (${resp.status})`
-						try {
-							const body = await resp.json()
-							if (body && typeof body.error === 'string') msg = body.error
-						} catch {}
+					const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+					const url = `/api/downloads/chart/${slug}?param=${encodeURIComponent(datasetValue)}${nonce}`
+					const resp = isPreview ? await fetch(url) : await authorizedFetch(url)
+					if (!resp || !resp.ok) {
+						const msg = (await resp?.json().catch(() => null))?.error ?? `Download failed (${resp?.status})`
 						throw new Error(msg)
 					}
 					return await resp.text()
@@ -398,7 +396,7 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 							) : !parsedActive || parsedActive.rows.length === 0 ? (
 								<CenteredHint icon="eye-off" text="No data" />
 							) : (
-								<PreviewTable parsed={parsedActive} />
+								<PreviewTable parsed={parsedActive} isPreview={isPreview} />
 							)}
 						</div>
 
@@ -656,11 +654,12 @@ function CenteredHint({ icon, text }: { icon: IIcon['name']; text: string }) {
 	)
 }
 
-function PreviewTable({ parsed }: { parsed: { headers: string[]; rows: ParsedCsvRow[] } }) {
+function PreviewTable({ parsed, isPreview }: { parsed: { headers: string[]; rows: ParsedCsvRow[] }; isPreview: boolean }) {
 	const { headers, rows } = parsed
 	const display = rows.slice(0, PREVIEW_ROWS)
+	const filler = isPreview && display.length > 0 ? [...display, ...display] : []
 	return (
-		<div className="relative thin-scrollbar min-h-0 flex-1 overflow-auto">
+		<div className={`relative thin-scrollbar min-h-0 flex-1 ${isPreview ? 'overflow-x-auto overflow-y-hidden' : 'overflow-auto'}`}>
 			<table className="w-full text-xs">
 				<thead className="sticky top-0 z-10 bg-(--cards-bg)">
 					<tr>
@@ -692,12 +691,60 @@ function PreviewTable({ parsed }: { parsed: { headers: string[]; rows: ParsedCsv
 							))}
 						</tr>
 					))}
+					{filler.map((row, rowIdx) => (
+						<tr
+							key={`filler-${rowIdx}`}
+							className={`border-b border-(--divider)/40 last:border-b-0 ${
+								(display.length + rowIdx) % 2 === 1 ? 'bg-(--bg-primary)/40' : ''
+							}`}
+						>
+							{headers.map((_, i) => (
+								<td
+									key={i}
+									className={`px-3 py-1.5 whitespace-nowrap text-(--text-primary) ${i === 0 ? '' : 'tabular-nums'}`}
+								>
+									{row.values[i] ?? ''}
+								</td>
+							))}
+						</tr>
+					))}
 				</tbody>
 			</table>
-			{rows.length > PREVIEW_ROWS ? (
+			{!isPreview && rows.length > PREVIEW_ROWS ? (
 				<p className="border-t border-(--divider) bg-(--cards-bg) px-3 py-2 text-[11px] text-(--text-tertiary)">
 					Showing first {PREVIEW_ROWS.toLocaleString()} of {rows.length.toLocaleString()} rows · download for full data
 				</p>
+			) : null}
+			{isPreview ? (
+				<>
+					<div
+						className="pointer-events-none absolute inset-x-0 bottom-0 z-40"
+						style={{
+							top: '20%',
+							backdropFilter: 'blur(4px)',
+							WebkitBackdropFilter: 'blur(4px)',
+							maskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)',
+							WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 35%)'
+						}}
+					/>
+					<div className="absolute inset-x-0 bottom-0 z-50 border-t border-(--divider) bg-(--cards-bg) px-6 py-5">
+						<div className="mx-auto flex max-w-lg flex-col items-center gap-3 text-center">
+							<p className="text-sm font-semibold text-(--text-primary)">
+								This is a preview — subscribe to download full datasets
+							</p>
+							<p className="text-xs text-(--text-tertiary)">
+								Get access to all rows, all columns, and unlimited CSV downloads
+							</p>
+							<Link
+								href="/subscribe"
+								className="mt-1 inline-flex items-center gap-2 rounded-lg bg-(--primary) px-8 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90"
+							>
+								<Icon name="arrow-up-right" className="h-4 w-4" />
+								Subscribe
+							</Link>
+						</div>
+					</div>
+				</>
 			) : null}
 		</div>
 	)
