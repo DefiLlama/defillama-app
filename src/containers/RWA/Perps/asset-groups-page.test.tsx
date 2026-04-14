@@ -1,3 +1,4 @@
+import type { GetStaticPropsContext } from 'next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 afterEach(() => {
@@ -51,8 +52,9 @@ function setupPageModule({
 describe('rwa perps asset-groups page', () => {
 	it('builds asset-group links from metadata', async () => {
 		const page = await setupPageModule({ assetGroups: ['US Equities', 'Commodities'] })
+		const context = {} as unknown as GetStaticPropsContext
 
-		await expect(page.getStaticProps()).resolves.toEqual({
+		await expect(page.getStaticProps(context)).resolves.toEqual({
 			props: {
 				assetGroups: [],
 				initialChartDataset: { source: [], dimensions: ['timestamp'] },

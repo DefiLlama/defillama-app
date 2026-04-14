@@ -81,8 +81,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const chartState = parseRwaChartState(router.query, chartMode)
 	const chartTypeKey = chartState.metric
 	const chartView = chartState.view
+	const rawTimeSeriesBreakdownQuery = router.query.timeSeriesChartBreakdown
+	const isTotalTimeSeriesSelected =
+		chartView === 'timeSeries' &&
+		(Array.isArray(rawTimeSeriesBreakdownQuery) ? rawTimeSeriesBreakdownQuery[0] : rawTimeSeriesBreakdownQuery) ===
+			'total'
 	const timeSeriesBreakdown =
-		chartView === 'timeSeries' ? chartState.breakdown : getDefaultChartBreakdown(chartMode, 'timeSeries')
+		chartView === 'timeSeries'
+			? isTotalTimeSeriesSelected
+				? 'total'
+				: chartState.breakdown
+			: getDefaultChartBreakdown(chartMode, 'timeSeries')
 	const nonTimeSeriesBreakdown =
 		chartView === 'timeSeries' ? getDefaultChartBreakdown(chartMode, 'pie') : chartState.breakdown
 
@@ -469,14 +478,26 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		/>
 	)
 	const chartBreakdownOptions = getChartBreakdownOptions(chartState)
-	const chartBreakdownLabel = getBreakdownLabel(chartState.breakdown)
+	const timeSeriesChartBreakdownOptions =
+		chartView === 'timeSeries'
+			? ([{ key: 'total', name: 'Total' }, ...chartBreakdownOptions] as const)
+			: chartBreakdownOptions
+	const chartBreakdownLabel =
+		chartView === 'timeSeries' && isTotalTimeSeriesSelected ? 'Total' : getBreakdownLabel(chartState.breakdown)
 	const timeSeriesChartBreakdownSwitch = (
 		<Select
-			allValues={chartBreakdownOptions}
-			selectedValues={chartState.breakdown}
+			allValues={timeSeriesChartBreakdownOptions}
+			selectedValues={isTotalTimeSeriesSelected ? 'total' : chartState.breakdown}
 			setSelectedValues={(value) => {
-				const nextBreakdown = getSelectedFilterValue(value) as RWAChartState['breakdown']
-				const nextState = setChartBreakdown(chartState, nextBreakdown)
+				const nextBreakdown = getSelectedFilterValue(value)
+				if (nextBreakdown === 'total') {
+					void pushShallowQuery(router, {
+						timeSeriesChartBreakdown: 'total'
+					})
+					return
+				}
+
+				const nextState = setChartBreakdown(chartState, nextBreakdown as RWAChartState['breakdown'])
 				void pushShallowQuery(router, {
 					timeSeriesChartBreakdown: getChartBreakdownQueryValue(nextState)
 				})
@@ -766,8 +787,10 @@ function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
 }
 
-const getRwaChartAggregationMode = (state: RWAChartBreakdown): RWAChartAggregationMode => {
+const getRwaChartAggregationMode = (state: RWAChartBreakdown | 'total'): RWAChartAggregationMode => {
 	switch (state) {
+		case 'total':
+			return state
 		case 'assetGroup':
 		case 'category':
 		case 'assetClass':

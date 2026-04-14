@@ -1,15 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchRWAPerpsContractBreakdownChartData } from '~/containers/RWA/Perps/api'
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
-import { parseChartMetricKey } from '~/containers/RWA/Perps/requestParsers'
+import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsContractBreakdownRequest } from '~/containers/RWA/Perps/types'
-
-function parseOptionalTarget(value: string | string[] | undefined): string | null | undefined {
-	if (value == null) return undefined
-	if (Array.isArray(value)) return null
-	const trimmed = value.trim()
-	return trimmed.length > 0 ? trimmed : null
-}
 
 export function parseContractBreakdownRequest(
 	req: Pick<NextApiRequest, 'query'>

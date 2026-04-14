@@ -34,7 +34,6 @@ import {
 	getRWAPerpsChartBreakdownQueryValue,
 	getRWAPerpsChartMetricLabel,
 	getRWAPerpsChartMetricOptions,
-	getRWAPerpsTimeSeriesModeOptions,
 	getRWAPerpsTimeSeriesModeQueryValue,
 	getRWAPerpsChartMetricQueryValue,
 	getRWAPerpsTreemapNestedByLabel,
@@ -665,8 +664,11 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric, d)
 	const chartMetricOptions = getRWAPerpsChartMetricOptions(d)
 	const chartViewOptions = getRWAPerpsChartViewOptions()
-	const timeSeriesModeOptions = getRWAPerpsTimeSeriesModeOptions()
 	const chartBreakdownOptions = getRWAPerpsChartBreakdownOptions({ ...chartState, labels: d })
+	const timeSeriesBreakdownOptions =
+		chartState.view === 'timeSeries'
+			? ([{ key: 'total', name: 'Total' }, ...chartBreakdownOptions] as const)
+			: chartBreakdownOptions
 	const showBreakdownSelect = chartBreakdownOptions.length > 1
 	const treemapBreakdown = chartState.breakdown as
 		| RWAPerpsOverviewTreemapBreakdown
@@ -675,7 +677,10 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const treemapNestedByOptions = getRWAPerpsTreemapNestedByOptions(props.mode, treemapBreakdown, d)
 	const showTreemapNestedBySelect = chartState.view === 'treemap' && treemapNestedByOptions.length > 1
 	const treemapNestedByLabel = getRWAPerpsTreemapNestedByLabel(chartState.treemapNestedBy, d)
-	const breakdownLabel = getRWAPerpsBreakdownLabel(chartState.breakdown, d)
+	const breakdownLabel =
+		chartState.view === 'timeSeries' && chartState.timeSeriesMode === 'grouped'
+			? 'Total'
+			: getRWAPerpsBreakdownLabel(chartState.breakdown, d)
 	const isOverviewMode = props.mode === 'overview'
 	const isVenueMode = props.mode === 'venue'
 	const isAssetGroupMode = props.mode === 'assetGroup'
@@ -839,21 +844,34 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	}
 
 	const onSelectBreakdown = (value: string | string[]) => {
-		const selectedBreakdown = (Array.isArray(value) ? value[0] : value) as typeof chartState.breakdown
-		const nextState = setRWAPerpsChartBreakdown(chartState, selectedBreakdown)
+		const selectedBreakdown = Array.isArray(value) ? value[0] : value
+		if (chartState.view === 'timeSeries') {
+			if (selectedBreakdown === 'total') {
+				const nextState = setRWAPerpsTimeSeriesMode(chartState, 'grouped')
+				void pushShallowQuery(router, {
+					timeSeriesChartBreakdown: getRWAPerpsChartBreakdownQueryValue(nextState),
+					timeSeriesMode: getRWAPerpsTimeSeriesModeQueryValue(nextState.timeSeriesMode)
+				})
+				return
+			}
+
+			const nextState = setRWAPerpsTimeSeriesMode(
+				setRWAPerpsChartBreakdown(chartState, selectedBreakdown as typeof chartState.breakdown),
+				'breakdown'
+			)
+			void pushShallowQuery(router, {
+				timeSeriesChartBreakdown: getRWAPerpsChartBreakdownQueryValue(nextState),
+				timeSeriesMode: getRWAPerpsTimeSeriesModeQueryValue(nextState.timeSeriesMode)
+			})
+			return
+		}
+
+		const nextState = setRWAPerpsChartBreakdown(chartState, selectedBreakdown as typeof chartState.breakdown)
 		void pushShallowQuery(router, {
 			timeSeriesChartBreakdown:
 				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState) : undefined,
 			nonTimeSeriesChartBreakdown:
 				nextState.view === 'timeSeries' ? undefined : getRWAPerpsChartBreakdownQueryValue(nextState)
-		})
-	}
-
-	const onSelectTimeSeriesMode = (value: string | string[]) => {
-		const selectedTimeSeriesMode = (Array.isArray(value) ? value[0] : value) as typeof chartState.timeSeriesMode
-		const nextState = setRWAPerpsTimeSeriesMode(chartState, selectedTimeSeriesMode)
-		void pushShallowQuery(router, {
-			timeSeriesMode: getRWAPerpsTimeSeriesModeQueryValue(nextState.timeSeriesMode)
 		})
 	}
 
@@ -967,25 +985,14 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 						/>
 						{showBreakdownSelect ? (
 							<Select
-								allValues={chartBreakdownOptions}
-								selectedValues={chartState.breakdown}
+								allValues={timeSeriesBreakdownOptions}
+								selectedValues={chartState.timeSeriesMode === 'grouped' ? 'total' : chartState.breakdown}
 								setSelectedValues={onSelectBreakdown}
 								label={breakdownLabel}
 								labelType="none"
 								variant="filter"
 							/>
 						) : null}
-						<Select
-							allValues={timeSeriesModeOptions}
-							selectedValues={chartState.timeSeriesMode}
-							setSelectedValues={onSelectTimeSeriesMode}
-							label={
-								timeSeriesModeOptions.find((option) => option.key === chartState.timeSeriesMode)?.name ??
-								timeSeriesModeOptions[0].name
-							}
-							labelType="none"
-							variant="filter"
-						/>
 						<ChartExportButtons
 							chartInstance={timeSeriesChartInstance}
 							filename={timeSeriesFilename}

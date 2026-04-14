@@ -11,7 +11,7 @@ export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
-export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform' | 'assetGroup'
+export type RWAChartAggregationMode = 'total' | 'category' | 'assetClass' | 'assetName' | 'platform' | 'assetGroup'
 
 function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
@@ -37,6 +37,9 @@ function buildTickerGroupMapping(
 
 		let weightedGroups: ReturnType<typeof computeWeightedGroups>
 		switch (mode) {
+			case 'total':
+				weightedGroups = computeWeightedGroups(['Total'])
+				break
 			case 'category':
 				weightedGroups = computeWeightedGroups(asset.category)
 				break

@@ -1,19 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchRWAPerpsOverviewBreakdownChartData } from '~/containers/RWA/Perps/api'
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
-import { parseChartMetricKey } from '~/containers/RWA/Perps/requestParsers'
+import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsOverviewBreakdownRequest } from '~/containers/RWA/Perps/types'
 
 type ParsedOverviewBreakdownRequest = IRWAPerpsOverviewBreakdownRequest & {
 	venue?: string
 	assetGroup?: string
-}
-
-function parseOptionalTarget(value: string | string[] | undefined): string | null | undefined {
-	if (value == null) return undefined
-	if (Array.isArray(value)) return null
-	const trimmed = value.trim()
-	return trimmed.length > 0 ? trimmed : null
 }
 
 export function parseOverviewBreakdownRequest(

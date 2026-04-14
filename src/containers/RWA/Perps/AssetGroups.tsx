@@ -9,16 +9,7 @@ import { perpsDefinitions as d } from './definitions'
 import { RWAPerpsOverviewChart } from './OverviewChart'
 import type { IRWAPerpsAssetGroupsOverviewRow } from './types'
 
-type RWAPerpsAssetGroupsTableRow = {
-	assetGroup: string
-	openInterest: number
-	openInterestShare: number
-	volume24h: number
-	volume24hShare: number
-	markets: number
-}
-
-const columnHelper = createColumnHelper<RWAPerpsAssetGroupsTableRow>()
+const columnHelper = createColumnHelper<IRWAPerpsAssetGroupsOverviewRow>()
 
 const columns = [
 	columnHelper.accessor('assetGroup', {

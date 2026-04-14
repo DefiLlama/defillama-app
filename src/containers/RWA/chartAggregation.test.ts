@@ -36,6 +36,25 @@ const assets: IRWAAssetsOverview['assets'] = [
 ]
 
 describe('aggregateRwaMetricData', () => {
+	it('aggregates all ticker series into a single Total series when total mode is selected', () => {
+		expect(
+			aggregateRwaMetricData(
+				assets,
+				[
+					{ timestamp: 1, AAA: 100, BBB: 90, CCC: 50 },
+					{ timestamp: 2, AAA: 120, BBB: 80, CCC: 40 }
+				],
+				'total'
+			)
+		).toEqual({
+			source: [
+				{ timestamp: 1, Total: 240 },
+				{ timestamp: 2, Total: 240 }
+			],
+			dimensions: ['timestamp', 'Total']
+		})
+	})
+
 	it('aggregates platform series for scalar, array, and missing parentPlatform values', () => {
 		expect(
 			aggregateRwaMetricData(

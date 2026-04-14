@@ -307,19 +307,21 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('Open Interest')
 		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
-		expect(html).toContain('Grouped')
-		expect(html).toContain('Asset Group')
+		expect(html).toContain('Total')
+		expect(html).not.toContain('Grouped')
+		expect(html).not.toContain('Breakdown')
 	})
 
-	it('renders the breakdown time-series mode label when selected', () => {
+	it('renders the selected time-series breakdown label when selected', () => {
 		routerQuery = {
 			chartView: 'timeSeries',
+			timeSeriesChartBreakdown: 'baseAsset',
 			timeSeriesMode: 'breakdown'
 		}
 
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Breakdown')
+		expect(html).toContain('Base Asset')
 	})
 
 	it('builds bar-series configs for time-series volume', () => {
