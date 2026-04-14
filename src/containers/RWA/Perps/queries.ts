@@ -211,7 +211,7 @@ function assertHasVenueBuckets(stats: IRWAPerpsStatsResponse | null): asserts st
 }
 
 function toVenueDetailLink(venue: string) {
-	return `/rwa/perps/venue/${encodeURIComponent(venue)}`
+	return `/rwa/perps/venue/${rwaSlug(venue)}`
 }
 
 function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
@@ -447,42 +447,42 @@ export async function getRWAPerpsVenuePage({
 	venue: string
 	activeView?: RWAPerpsChartView
 }): Promise<IRWAPerpsVenuePageData | null> {
-	const [list, stats, venueResponse] = await Promise.all([
-		fetchRWAPerpsList(),
-		fetchRWAPerpsStats(),
-		fetchRWAPerpsMarketsByVenue(venue).catch(() => null)
-	])
+	const [list, stats] = await Promise.all([fetchRWAPerpsList(), fetchRWAPerpsStats()])
+	if (!list || !stats) return null
 
-	if (!list || !stats || !venueResponse) return null
-	if (!list.venues.includes(venue)) return null
+	const resolvedVenue = list.venues.find((item) => rwaSlug(item) === rwaSlug(venue))
+	if (!resolvedVenue) return null
+
+	const venueResponse = await fetchRWAPerpsMarketsByVenue(resolvedVenue).catch(() => null)
+	if (!venueResponse) return null
 
 	const markets = venueResponse
 	if (markets.length === 0) return null
 
 	const [openInterestChartRows, volume24hChartRows, initialChartDataset] = await Promise.all([
 		getRequiredOverviewBreakdownRows({
-			venue,
+			venue: resolvedVenue,
 			breakdown: 'baseAsset',
 			key: 'openInterest'
 		}),
 		getRequiredOverviewBreakdownRows({
-			venue,
+			venue: resolvedVenue,
 			breakdown: 'baseAsset',
 			key: 'volume24h'
 		}),
 		shouldPreloadInitialChartDataset(activeView)
-			? getInitialTimeSeriesDataset({ mode: 'venue', venue })
+			? getInitialTimeSeriesDataset({ mode: 'venue', venue: resolvedVenue })
 			: EMPTY_CHART_DATASET
 	])
 
-	const statsBucket = stats.byVenue?.[venue]
+	const statsBucket = stats.byVenue?.[resolvedVenue]
 	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
 	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
 	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
 	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
 
 	return {
-		venue,
+		venue: resolvedVenue,
 		markets: sortMarketsByOpenInterest(markets),
 		initialChartDataset,
 		venueLinks: [

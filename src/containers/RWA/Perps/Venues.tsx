@@ -3,6 +3,7 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { formattedNum } from '~/utils'
 import { perpsDefinitions as d } from './definitions'
 import { RWAPerpsOverviewChart } from './OverviewChart'
@@ -28,7 +29,7 @@ const columns = [
 			<span className="flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 				<BasicLink
-					href={`/rwa/perps/venue/${encodeURIComponent(info.getValue())}`}
+					href={`/rwa/perps/venue/${rwaSlug(info.getValue())}`}
 					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 				>
 					{info.getValue()}

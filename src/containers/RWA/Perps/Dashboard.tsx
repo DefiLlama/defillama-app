@@ -123,7 +123,7 @@ const overviewColumns = [
 		header: d.venue.label,
 		cell: (info) => (
 			<BasicLink
-				href={`/rwa/perps/venue/${encodeURIComponent(info.getValue())}`}
+				href={`/rwa/perps/venue/${rwaSlug(info.getValue())}`}
 				className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 			>
 				{info.getValue()}

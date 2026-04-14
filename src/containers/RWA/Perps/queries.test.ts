@@ -520,6 +520,74 @@ describe('perps overview queries', () => {
 		expect(result?.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
 	})
 
+	it('resolves venue slugs back to the canonical venue name', async () => {
+		fetchRWAPerpsList.mockResolvedValueOnce({
+			contracts: [],
+			venues: ['XYZ Exchange'],
+			categories: [],
+			assetGroups: [],
+			total: 1
+		})
+		fetchRWAPerpsStats.mockResolvedValueOnce({
+			totalOpenInterest: 130,
+			totalVolume24h: 90,
+			totalMarkets: 2,
+			totalCumulativeFunding: 0,
+			byVenue: {
+				'XYZ Exchange': {
+					openInterest: 130,
+					volume24h: 90,
+					markets: 2
+				}
+			},
+			byAssetGroup: {}
+		})
+		fetchRWAPerpsMarketsByVenue.mockResolvedValueOnce([
+			{ ...baseMarket, id: 'xyz:meta', venue: 'XYZ Exchange', estimatedProtocolFees24h: 5 },
+			{
+				...baseMarket,
+				id: 'xyz:nvda',
+				contract: 'xyz:NVDA',
+				venue: 'XYZ Exchange',
+				referenceAsset: 'NVIDIA',
+				openInterest: 30,
+				volume24h: 40,
+				estimatedProtocolFees24h: 7
+			}
+		])
+		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce(
+			toRWAPerpsBreakdownChartDataset({
+				breakdown: 'baseAsset',
+				key: 'openInterest',
+				rows: [
+					{ timestamp: 1774483200, label: 'Meta', value: 120 },
+					{ timestamp: 1774569600, label: 'Meta', value: 100 },
+					{ timestamp: 1774569600, label: 'NVIDIA', value: 30 }
+				]
+			})
+		)
+		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce(
+			toRWAPerpsBreakdownChartDataset({
+				breakdown: 'baseAsset',
+				key: 'volume24h',
+				rows: [
+					{ timestamp: 1774483200, label: 'Meta', value: 30 },
+					{ timestamp: 1774569600, label: 'Meta', value: 50 },
+					{ timestamp: 1774569600, label: 'NVIDIA', value: 40 }
+				]
+			})
+		)
+
+		const result = await getRWAPerpsVenuePage({ venue: 'xyz-exchange' })
+
+		expect(fetchRWAPerpsMarketsByVenue).toHaveBeenCalledWith('XYZ Exchange')
+		expect(result?.venue).toBe('XYZ Exchange')
+		expect(result?.venueLinks).toEqual([
+			{ label: 'All', to: '/rwa/perps/venues' },
+			{ label: 'XYZ Exchange', to: '/rwa/perps/venue/xyz-exchange' }
+		])
+	})
+
 	it('preloads the venue time-series dataset when the active view is timeSeries', async () => {
 		const result = await getRWAPerpsVenuePage({ venue: 'xyz', activeView: 'timeSeries' })
 

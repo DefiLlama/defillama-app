@@ -43,11 +43,11 @@ function setupPageModule({ venues = ['xyz'], data = null }: { venues?: string[];
 }
 
 describe('rwa perps venue page', () => {
-	it('getStaticPaths returns raw venue identifiers without slug conversion', async () => {
-		const page = await setupPageModule({ venues: ['xyz', 'flx'] })
+	it('getStaticPaths returns venue slugs', async () => {
+		const page = await setupPageModule({ venues: ['xyz venue', 'flx'] })
 
 		await expect(page.getStaticPaths()).resolves.toEqual({
-			paths: [{ params: { venue: 'xyz' } }, { params: { venue: 'flx' } }],
+			paths: [{ params: { venue: 'xyz-venue' } }, { params: { venue: 'flx' } }],
 			fallback: 'blocking'
 		})
 	})
@@ -62,7 +62,7 @@ describe('rwa perps venue page', () => {
 
 	it('getStaticProps returns props for a known venue', async () => {
 		const data = {
-			venue: 'xyz',
+			venue: 'xyz venue',
 			markets: [],
 			initialChartDataset: { source: [], dimensions: ['timestamp'] },
 			venueLinks: [{ label: 'All', to: '/rwa/perps/venues' }],
@@ -74,9 +74,9 @@ describe('rwa perps venue page', () => {
 				protocolFees24h: 4
 			}
 		}
-		const page = await setupPageModule({ venues: ['xyz'], data })
+		const page = await setupPageModule({ venues: ['xyz venue'], data })
 
-		await expect(page.getStaticProps({ params: { venue: 'xyz' } } as never)).resolves.toEqual({
+		await expect(page.getStaticProps({ params: { venue: 'xyz-venue' } } as never)).resolves.toEqual({
 			props: { data },
 			revalidate: 123
 		})
