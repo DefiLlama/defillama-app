@@ -65,19 +65,19 @@ describe('OverviewChart helpers', () => {
 			stackOptions: ['Meta']
 		})
 
-		expect(series).toMatchObject([{ name: 'Meta', type: 'line', stack: 'A' }])
+		expect(series).toMatchObject([{ name: 'Meta', type: 'line' }])
 		expect(series[0]).not.toHaveProperty('showSymbol')
 	})
 
-	it('builds stacked bar series for volume charts', () => {
+	it('builds bar series for volume charts', () => {
 		expect(
 			buildRWAPerpsOverviewChartSeries({
 				chartType: 'volume24h',
 				stackOptions: ['Meta', 'NVIDIA']
 			})
 		).toMatchObject([
-			{ name: 'Meta', type: 'bar', stack: 'A' },
-			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+			{ name: 'Meta', type: 'bar' },
+			{ name: 'NVIDIA', type: 'bar' }
 		])
 	})
 
@@ -87,6 +87,6 @@ describe('OverviewChart helpers', () => {
 				chartType: 'markets',
 				stackOptions: ['Total']
 			})
-		).toMatchObject([{ name: 'Total', type: 'line', stack: 'A' }])
+		).toMatchObject([{ name: 'Total', type: 'line' }])
 	})
 })

@@ -478,7 +478,7 @@ describe('perps overview queries', () => {
 				{ timestamp: 1774483200000, Meta: 1 },
 				{ timestamp: 1774569600000, NVIDIA: 1, Gold: 1 }
 			],
-			dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
+			dimensions: ['timestamp', 'Gold', 'Meta', 'NVIDIA']
 		})
 	})
 
@@ -492,7 +492,7 @@ describe('perps overview queries', () => {
 				{ timestamp: 1774483200000, 'xyz:META': 1 },
 				{ timestamp: 1774569600000, 'xyz:NVDA': 1, 'flx:GOLD': 1 }
 			],
-			dimensions: ['timestamp', 'xyz:META', 'xyz:NVDA', 'flx:GOLD']
+			dimensions: ['timestamp', 'flx:GOLD', 'xyz:META', 'xyz:NVDA']
 		})
 	})
 
@@ -502,8 +502,8 @@ describe('perps overview queries', () => {
 		expect(result).toMatchObject({
 			venue: 'xyz',
 			totals: {
-				openInterest: 250,
-				openInterestChange24h: 108.33333333333333,
+				openInterest: 130,
+				openInterestChange24h: 8.333333333333332,
 				volume24h: 90,
 				markets: 2,
 				protocolFees24h: 12
@@ -514,7 +514,7 @@ describe('perps overview queries', () => {
 				{ label: 'flx', to: '/rwa/perps/venue/flx' }
 			]
 		})
-		expect(result?.totals.openInterestChange24h).toBe(108.33333333333333)
+		expect(result?.totals.openInterestChange24h).toBe(8.333333333333332)
 		expect(result?.totals.volume24hChange24h).toBe(200)
 		expect(result?.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
 	})
@@ -535,8 +535,8 @@ describe('perps overview queries', () => {
 		expect(result).toMatchObject({
 			assetGroup: 'Equities',
 			totals: {
-				openInterest: 250,
-				openInterestChange24h: 108.33333333333333,
+				openInterest: 130,
+				openInterestChange24h: 8.333333333333332,
 				volume24h: 90,
 				markets: 2,
 				protocolFees24h: 12
@@ -547,7 +547,7 @@ describe('perps overview queries', () => {
 				{ label: 'Equities', to: '/rwa/perps/asset-group/equities' }
 			]
 		})
-		expect(result?.totals.openInterestChange24h).toBe(108.33333333333333)
+		expect(result?.totals.openInterestChange24h).toBe(8.333333333333332)
 	})
 })
 

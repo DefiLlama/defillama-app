@@ -709,7 +709,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									<MultiSeriesChart2
 										dataset={deferredSelectedTimeSeriesDataset}
 										hideDefaultLegend={false}
-										stacked
 										showTotalInTooltip
 										onReady={handleMultiSeriesChart2Ready}
 									/>

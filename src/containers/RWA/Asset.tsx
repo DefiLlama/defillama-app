@@ -829,29 +829,24 @@ const NATIVE_YIELD_CHARTS = [
 const BASE_TIME_SERIES_CHARTS: Array<{
 	type: 'line' | 'bar'
 	name: string
-	stack: string
 	encode: { x: number | Array<number> | string | Array<string>; y: number | Array<number> | string | Array<string> }
 	color?: string
 }> = [
-	// Use distinct stack keys so ECharts doesn't cumulatively stack these series.
 	{
 		type: 'line',
 		name: 'DeFi Active TVL',
-		stack: 'defiActiveTvl',
 		encode: { x: 'timestamp', y: 'DeFi Active TVL' },
 		color: CHART_COLORS[0]
 	},
 	{
 		type: 'line',
 		name: 'Active Mcap',
-		stack: 'activeMcap',
 		encode: { x: 'timestamp', y: 'Active Mcap' },
 		color: CHART_COLORS[1]
 	},
 	{
 		type: 'line',
 		name: 'Onchain Mcap',
-		stack: 'onchainMcap',
 		encode: { x: 'timestamp', y: 'Onchain Mcap' },
 		color: CHART_COLORS[2]
 	}

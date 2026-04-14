@@ -334,8 +334,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([
-			{ name: 'Meta', type: 'bar', stack: 'A' },
-			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+			{ name: 'Meta', type: 'bar', encode: { x: 'timestamp', y: 'Meta' }, color: expect.any(String) },
+			{ name: 'NVIDIA', type: 'bar', encode: { x: 'timestamp', y: 'NVIDIA' }, color: expect.any(String) }
 		])
 	})
 
@@ -346,7 +346,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				dimensions: ['timestamp', 'Meta'],
 				timeSeriesMode: 'breakdown'
 			})
-		).toMatchObject([{ name: 'Meta', type: 'line', stack: 'A' }])
+		).toMatchObject([{ name: 'Meta', type: 'line', encode: { x: 'timestamp', y: 'Meta' }, color: expect.any(String) }])
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
@@ -354,9 +354,16 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				timeSeriesMode: 'breakdown'
 			})[0]
 		).not.toHaveProperty('showSymbol')
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Meta'],
+				timeSeriesMode: 'breakdown'
+			})[0]
+		).not.toHaveProperty('stack')
 	})
 
-	it('builds a stacked grouped time-series series for total mode', () => {
+	it('builds a grouped time-series series for total mode', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
@@ -368,8 +375,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				name: 'Total',
 				type: 'line',
 				encode: { x: 'timestamp', y: 'Total' },
-				color: expect.any(String),
-				stack: 'A'
+				color: expect.any(String)
 			}
 		])
 	})

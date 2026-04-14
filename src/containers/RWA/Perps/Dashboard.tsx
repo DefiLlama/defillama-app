@@ -600,8 +600,7 @@ export function buildRWAPerpsTimeSeriesCharts({
 		name: seriesName,
 		type: metric === 'volume24h' ? 'bar' : 'line',
 		encode: { x: 'timestamp', y: seriesName },
-		color: CHART_COLORS[index % CHART_COLORS.length],
-		stack: 'A'
+		color: CHART_COLORS[index % CHART_COLORS.length]
 	}))
 }
 

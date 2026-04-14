@@ -100,8 +100,7 @@ export function buildRWAPerpsOverviewChartSeries({
 		name: seriesName,
 		type: chartType === 'volume24h' ? 'bar' : 'line',
 		encode: { x: 'timestamp', y: seriesName },
-		color: CHART_COLORS[index % CHART_COLORS.length],
-		stack: 'A'
+		color: CHART_COLORS[index % CHART_COLORS.length]
 	}))
 }
 
@@ -223,7 +222,6 @@ export function RWAPerpsOverviewChart({
 					<MultiSeriesChart2
 						dataset={dataset}
 						charts={chartSeries}
-						stacked
 						showTotalInTooltip
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}
