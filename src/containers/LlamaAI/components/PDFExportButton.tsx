@@ -8,7 +8,7 @@ import { Tooltip } from '~/components/Tooltip'
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 
@@ -74,7 +74,7 @@ export function PDFExportButton({ sessionId, messageId, exportType, className }:
 					requestBody.messageId = messageId
 				}
 
-				const response = await authorizedFetch(`${MCP_SERVER}/export/pdf`, {
+				const response = await authorizedFetch(`${AI_SERVER}/export/pdf`, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'

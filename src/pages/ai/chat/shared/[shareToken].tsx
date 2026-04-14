@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -43,7 +43,7 @@ export const getServerSideProps = async ({ params }: { params: { shareToken: str
 
 	let sessionTitle: string | null = null
 	try {
-		const data = await fetchJson<SharedSession>(`${MCP_SERVER}/user/public/${shareToken}`)
+		const data = await fetchJson<SharedSession>(`${AI_SERVER}/user/public/${shareToken}`)
 		sessionTitle = data?.session?.title || null
 	} catch {
 		// Session might not exist or be private — page will handle the error state
@@ -59,7 +59,7 @@ async function getSharedSession(shareToken: string) {
 		if (!shareToken) {
 			return null
 		}
-		return await fetchJson<SharedSession>(`${MCP_SERVER}/user/public/${shareToken}`)
+		return await fetchJson<SharedSession>(`${AI_SERVER}/user/public/${shareToken}`)
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch shared session')
 	}
@@ -69,7 +69,7 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 	const router = useRouter()
 	const shareToken = (router.query.shareToken as string) || ssrToken
 
-	const ogImageUrl = `${MCP_SERVER}/user/og/${shareToken}`
+	const ogImageUrl = `${AI_SERVER}/user/og/${shareToken}`
 	const title = sessionTitle || 'AI Crypto Analysis - LlamaAI'
 	const description = sessionTitle
 		? `${sessionTitle} — AI-powered DeFi analysis by LlamaAI`

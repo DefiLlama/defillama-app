@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import type { DashboardItemConfig } from '../types'
 import { sanitizeItemsForAPI } from '../utils/dashboardUtils'
@@ -165,7 +165,7 @@ export function GenerateDashboardModal({
 		setIsLoading(true)
 		let response: Response | null | undefined
 		try {
-			response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
+			response = await authorizedFetch(`${AI_SERVER}/dashboard-creator`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
@@ -57,7 +57,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const { mutate: toggleVisibility, isPending: isTogglingVisibility } = useMutation({
 		mutationFn: async () => {
 			const response = assertResponse(
-				await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
+				await authorizedFetch(`${AI_SERVER}/user/sessions/${session.sessionId}/share`, {
 					method: 'PUT'
 				}),
 				'Failed to update session visibility'

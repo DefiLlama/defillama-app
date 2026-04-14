@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo } from 'react'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { removeStorageItem, setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { getErrorMessage } from '~/utils/error'
@@ -183,7 +183,7 @@ export function useLlamaAISettings() {
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
 		queryFn: async (): Promise<SettingsQueryResult> => {
 			if (!authorizedFetch || !isAuthenticated || !userId) return { settings: null, availableModels: [] }
-			const response = await authorizedFetch(`${MCP_SERVER}/user-settings`)
+			const response = await authorizedFetch(`${AI_SERVER}/user-settings`)
 			if (!response?.ok) return { settings: null, availableModels: [] }
 			const data = (await response.json().catch(() => null)) as {
 				settings?: unknown
@@ -211,7 +211,7 @@ export function useLlamaAISettings() {
 	const persistSettingsMutation = useMutation({
 		mutationFn: async (update: LlamaAISettingsUpdate) => {
 			if (!authorizedFetch || !isAuthenticated || !userId) return update
-			const response = await authorizedFetch(`${MCP_SERVER}/user-settings`, {
+			const response = await authorizedFetch(`${AI_SERVER}/user-settings`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ settings: update })

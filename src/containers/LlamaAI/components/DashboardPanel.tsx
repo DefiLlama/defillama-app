@@ -3,7 +3,7 @@ import Router from 'next/router'
 import { memo, useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
@@ -62,7 +62,7 @@ function DashboardPanelInner({
 					item.kind === 'llamaai-chart' && typeof item.chartRef === 'string' && !item.savedChartId
 			)
 			if (chartRefItems.length > 0 && sessionId) {
-				const promoteRes = await authorizedFetch(`${MCP_SERVER}/agentic/promote-charts`, {
+				const promoteRes = await authorizedFetch(`${AI_SERVER}/agentic/promote-charts`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ sessionId, chartRefs: chartRefItems.map((item) => item.chartRef) })

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { startTransition, type KeyboardEvent, useCallback, useDeferredValue, useId, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { type Dashboard, dashboardAPI } from '~/containers/ProDashboard/services/DashboardAPI'
 import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
@@ -135,7 +135,7 @@ async function buildChartToAdd({
 		let savedChartId: string
 
 		if (llamaAIChart.sessionId) {
-			const res = await authorizedFetch(`${MCP_SERVER}/agentic/save-chart`, {
+			const res = await authorizedFetch(`${AI_SERVER}/agentic/save-chart`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -150,7 +150,7 @@ async function buildChartToAdd({
 			const data = await res.json()
 			savedChartId = data.id
 		} else {
-			const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
+			const res = await authorizedFetch(`${AI_SERVER}/charts`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ messageId: llamaAIChart.messageId, chartId: llamaAIChart.chartId })

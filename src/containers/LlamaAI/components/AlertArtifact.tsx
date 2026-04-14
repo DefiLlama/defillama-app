@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { memo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import type { AlertIntent } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -79,7 +79,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
 			delivery_channel: 'email' | 'telegram'
 		}) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/alerts`, {
+			const response = await authorizedFetch(`${AI_SERVER}/alerts`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
@@ -94,7 +94,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 	const testMutation = useMutation({
 		mutationFn: async (dbId: string) => {
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${dbId}/test`, { method: 'POST' })
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${dbId}/test`, { method: 'POST' })
 			assertResponse(res, 'Test failed')
 			const data: { success: boolean; error?: string } = await res!.json()
 			if (!data.success) throw new Error(data.error ?? 'Test failed')
