@@ -139,9 +139,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	return useQuery({
 		queryKey: ['protocol-overview', 'median-apy', protocolName],
 		queryFn: () =>
-			fetchJson(buildProtocolChartApiUrl({ kind: 'median-apy', protocol: protocolName! })).catch(() => {
-				return []
-			}),
+			fetchJson(buildProtocolChartApiUrl({ kind: 'median-apy', protocol: protocolName! })).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
