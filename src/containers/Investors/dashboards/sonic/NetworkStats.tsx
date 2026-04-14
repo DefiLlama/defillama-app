@@ -220,7 +220,7 @@ export default function NetworkStats() {
 			{/* Network Vitals */}
 			<div className="flex flex-col gap-4">
 				<SectionHeader>Network</SectionHeader>
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+				<div className="grid grid-cols-3 gap-4">
 					<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
 						<span className="text-xs font-medium tracking-wide text-(--text-label)">Latest Block</span>
 						<span className="text-2xl font-semibold tabular-nums text-(--text-primary)">
@@ -239,13 +239,7 @@ export default function NetworkStats() {
 							<span className="text-2xl font-semibold text-(--text-primary)">{data.network.price.formatted}</span>
 						</div>
 					)}
-					{data.network.totalSupply && (
-						<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-							<span className="text-xs font-medium tracking-wide text-(--text-label)">Total Supply</span>
-							<span className="text-2xl font-semibold text-(--text-primary)">{data.network.totalSupply.formatted}</span>
-						</div>
-					)}
-				</div>
+					</div>
 			</div>
 
 			{/* Recent Blocks */}
@@ -300,38 +294,26 @@ export default function NetworkStats() {
 				</div>
 			)}
 
-			{/* Tokenomics & Fees */}
-			{(data.tokenomics || data.fees || data.epoch) && (
+			{/* Fees & Epoch */}
+			{(data.fees || data.epoch) && (
 				<div className="flex flex-col gap-4">
-					<SectionHeader>Tokenomics & Fees</SectionHeader>
+					<SectionHeader>Fees & Epoch</SectionHeader>
 					<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg)">
-						<div className="grid grid-cols-1 divide-y divide-(--cards-border) sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-							<div className="flex flex-col divide-y divide-(--cards-border)">
-								{data.tokenomics && (
-									<>
-										<InfoRow label="Initial Supply" value={data.tokenomics.initialSupply.formatted} />
-										<InfoRow label="Net Issuance" value={data.tokenomics.netIssuance.formatted} />
-										<InfoRow label="Permanent Burn / Day" value={data.tokenomics.burnPerDay.formatted} />
-										<InfoRow label="Permanent Burn / Year" value={data.tokenomics.burnPerYear.formatted} />
-									</>
-								)}
-							</div>
-							<div className="flex flex-col divide-y divide-(--cards-border)">
-								{data.fees && (
-									<>
-										<InfoRow label="Fees / Day" value={data.fees.feesPerDay.formatted} />
-										<InfoRow label="FeeM / Day" value={data.fees.feeMPerDay.formatted} />
-										<InfoRow label="Validator Fees / Day" value={data.fees.validatorFeesPerDay.formatted} />
-										<InfoRow label="Burn Rate" value={data.fees.burnRate.formatted} />
-									</>
-								)}
-								{data.epoch && (
-									<>
-										<InfoRow label="Current Epoch" value={data.epoch.current.formatted} />
-										<InfoRow label="Avg Epoch Duration" value={data.epoch.avgDuration.formatted} />
-									</>
-								)}
-							</div>
+						<div className="flex flex-col divide-y divide-(--cards-border)">
+							{data.fees && (
+								<>
+									<InfoRow label="Fees / Day" value={data.fees.feesPerDay.formatted} />
+									<InfoRow label="FeeM / Day" value={data.fees.feeMPerDay.formatted} />
+									<InfoRow label="Validator Fees / Day" value={data.fees.validatorFeesPerDay.formatted} />
+									<InfoRow label="Burn Rate" value={data.fees.burnRate.formatted} />
+								</>
+							)}
+							{data.epoch && (
+								<>
+									<InfoRow label="Current Epoch" value={data.epoch.current.formatted} />
+									<InfoRow label="Avg Epoch Duration" value={data.epoch.avgDuration.formatted} />
+								</>
+							)}
 						</div>
 					</div>
 				</div>
