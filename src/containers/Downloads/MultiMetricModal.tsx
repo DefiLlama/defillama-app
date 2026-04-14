@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
+import Link from 'next/link'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon, type IIcon } from '~/components/Icon'
@@ -654,12 +654,20 @@ function CenteredHint({ icon, text }: { icon: IIcon['name']; text: string }) {
 	)
 }
 
-function PreviewTable({ parsed, isPreview }: { parsed: { headers: string[]; rows: ParsedCsvRow[] }; isPreview: boolean }) {
+function PreviewTable({
+	parsed,
+	isPreview
+}: {
+	parsed: { headers: string[]; rows: ParsedCsvRow[] }
+	isPreview: boolean
+}) {
 	const { headers, rows } = parsed
 	const display = rows.slice(0, PREVIEW_ROWS)
 	const filler = isPreview && display.length > 0 ? [...display, ...display] : []
 	return (
-		<div className={`relative thin-scrollbar min-h-0 flex-1 ${isPreview ? 'overflow-x-auto overflow-y-hidden' : 'overflow-auto'}`}>
+		<div
+			className={`relative thin-scrollbar min-h-0 flex-1 ${isPreview ? 'overflow-x-auto overflow-y-hidden' : 'overflow-auto'}`}
+		>
 			<table className="w-full text-xs">
 				<thead className="sticky top-0 z-10 bg-(--cards-bg)">
 					<tr>

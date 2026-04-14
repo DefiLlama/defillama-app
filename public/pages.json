@@ -494,6 +494,12 @@
       ]
     },
     {
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
       "name": "RWA: Perps",
       "route": "/rwa/perps",
       "category": "RWA",
@@ -501,12 +507,6 @@
       "tags": [
         "New"
       ]
-    },
-    {
-      "name": "RWA by Chain",
-      "route": "/rwa/chains",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by chain"
     },
     {
       "name": "RWA by Category",

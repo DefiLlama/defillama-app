@@ -1,11 +1,15 @@
 import type { ProtocolChartsQueryParams } from '~/containers/ProtocolOverview/constants'
 import { capitalizeFirstLetter } from '~/utils'
+import type { ICategoriesAndTags, ICategoriesAndTagsConfig } from '~/utils/metadata/types'
 
 export type ProtocolCategoryChartMetric =
 	| 'tvl'
 	| 'dexVolume'
 	| 'dexAggregatorsVolume'
 	| 'perpVolume'
+	| 'perpsAggregatorsVolume'
+	| 'bridgeAggregatorsVolume'
+	| 'normalizedVolume'
 	| 'openInterest'
 	| 'optionsPremiumVolume'
 	| 'optionsNotionalVolume'
@@ -14,9 +18,14 @@ export type ProtocolCategoryChartMetric =
 
 export interface ProtocolCategoryMetrics {
 	tvl?: boolean
+	fees?: boolean
+	revenue?: boolean
 	dexVolume?: boolean
 	dexAggregatorsVolume?: boolean
 	perpVolume?: boolean
+	perpsAggregatorsVolume?: boolean
+	bridgeAggregatorsVolume?: boolean
+	normalizedVolume?: boolean
 	openInterest?: boolean
 	optionsPremiumVolume?: boolean
 	optionsNotionalVolume?: boolean
@@ -33,22 +42,8 @@ export interface ProtocolCategoryConfig {
 	seoTitleSuffix?: string
 	tableHeader?: string
 	searchPlaceholder?: string
-	metrics?: ProtocolCategoryMetrics
-	columns?: string[]
 	defaultSort?: string
 }
-
-const DEFAULT_COLUMNS = [
-	'name',
-	'tvl',
-	'fees_7d',
-	'revenue_7d',
-	'mcap/tvl',
-	'fees_30d',
-	'revenue_30d',
-	'fees_24h',
-	'revenue_24h'
-]
 
 const DEFAULT_DEX_VOLUME_LABEL = 'DEX Volume'
 
@@ -64,23 +59,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	Dexs: {
 		description: 'Protocols where you can swap/trade cryptocurrency',
 		defaultChart: 'dexVolume',
-		seoBaseTitle: 'Crypto DEX Protocols - Volume, TVL, Fees, & Revenue',
-		metrics: { dexVolume: true },
-		columns: [
-			'name',
-			'tvl',
-			'dex_volume_7d',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'dex_volume_30d',
-			'fees_30d',
-			'revenue_30d',
-			'dex_volume_24h',
-			'fees_24h',
-			'revenue_24h'
-		],
-		defaultSort: 'prediction_volume_7d'
+		seoBaseTitle: 'Crypto DEX Protocols - Volume, TVL, Fees, & Revenue'
 	},
 	Yield: {
 		description: 'Protocols that pay you a reward for your staking/LP on their platform',
@@ -88,22 +67,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	},
 	Lending: {
 		description: 'Protocols that allow users to borrow and lend assets',
-		seoBaseTitle: 'DeFi Lending Protocols - TVL, Fees, & Revenue',
-		metrics: { borrowed: true },
-		columns: [
-			'name',
-			'tvl',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'fees_30d',
-			'revenue_30d',
-			'fees_24h',
-			'revenue_24h',
-			'borrowed',
-			'supplied',
-			'supplied/tvl'
-		]
+		seoBaseTitle: 'DeFi Lending Protocols - TVL, Fees, & Revenue'
 	},
 	'Cross Chain Bridge': {
 		description:
@@ -133,22 +97,6 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		description: 'Protocols for betting with leverage',
 		defaultChart: 'perpVolume',
 		seoBaseTitle: 'Crypto Derivatives Protocols - Volume, Fees, & Revenue',
-		metrics: { perpVolume: true, openInterest: true },
-		columns: [
-			'name',
-			'perp_volume_24h',
-			'openInterest',
-			'perp_volume_7d',
-			'perp_volume_30d',
-			'tvl',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'fees_30d',
-			'revenue_30d',
-			'fees_24h',
-			'revenue_24h'
-		],
 		defaultSort: 'perp_volume_24h'
 	},
 	Payments: {
@@ -192,24 +140,6 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		description: 'Protocols that give you the right to buy an asset at a fixed price',
 		defaultChart: 'optionsPremiumVolume',
 		seoBaseTitle: 'DeFi Options Protocols - TVL, Volume, Fees, & Revenue',
-		metrics: { optionsPremiumVolume: true, optionsNotionalVolume: true },
-		columns: [
-			'name',
-			'tvl',
-			'options_premium_7d',
-			'options_notional_7d',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'options_premium_30d',
-			'options_notional_30d',
-			'fees_30d',
-			'revenue_30d',
-			'options_premium_24h',
-			'options_notional_24h',
-			'fees_24h',
-			'revenue_24h'
-		],
 		defaultSort: 'options_premium_7d'
 	},
 	Launchpad: {
@@ -226,27 +156,12 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Prediction Market': {
 		description: 'Protocols that allow you to wager/bet/buy in future results',
 		defaultChart: 'dexVolume',
-		metrics: { dexVolume: true },
 		headingLabel: 'Prediction Markets',
 		seoLabel: 'Prediction Markets',
 		seoBaseTitle: 'Top Crypto Prediction Markets - TVL, Volume, & Revenue',
 		seoTitleSuffix: 'Rankings',
 		tableHeader: 'Market Rankings',
 		searchPlaceholder: 'Search markets...',
-		columns: [
-			'name',
-			'tvl',
-			'prediction_volume_7d',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'prediction_volume_30d',
-			'fees_30d',
-			'revenue_30d',
-			'prediction_volume_24h',
-			'fees_24h',
-			'revenue_24h'
-		],
 		defaultSort: 'prediction_volume_7d'
 	},
 	'Algo-Stables': { description: 'Protocols that provide algorithmic coins to stablecoins' },
@@ -282,8 +197,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Liquid Staking': {
 		description:
 			'Protocols that enable you to earn staking rewards on your tokens while also providing a tradeable and liquid receipt for your staked position',
-		seoBaseTitle: 'Liquid Staking Protocols - TVL, Fees, & Revenue',
-		metrics: { staking: true }
+		seoBaseTitle: 'Liquid Staking Protocols - TVL, Fees, & Revenue'
 	},
 	Oracle: {
 		description: 'Protocols that connect data from the outside world (off-chain) with the blockchain world (Onchain)',
@@ -335,21 +249,6 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		seoLabel: 'DEX Aggregators',
 		seoBaseTitle: 'Crypto DEX Aggregator Protocols - Volume, TVL, & Fees',
 		searchPlaceholder: 'Search DEX aggregators...',
-		metrics: { dexAggregatorsVolume: true },
-		columns: [
-			'name',
-			'tvl',
-			'dex_aggregator_volume_7d',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'dex_aggregator_volume_30d',
-			'fees_30d',
-			'revenue_30d',
-			'dex_aggregator_volume_24h',
-			'fees_24h',
-			'revenue_24h'
-		],
 		defaultSort: 'dex_aggregator_volume_7d'
 	},
 	Restaking: {
@@ -593,24 +492,6 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	Interface: {
 		description: 'Projects that provide a user interface to interact with external protocols',
 		defaultChart: 'perpVolume',
-		metrics: { perpVolume: true, dexVolume: true },
-		columns: [
-			'name',
-			'perp_volume_24h',
-			'spot_volume_24h',
-			'perp_volume_7d',
-			'spot_volume_7d',
-			'perp_volume_30d',
-			'spot_volume_30d',
-			'tvl',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'fees_30d',
-			'revenue_30d',
-			'fees_24h',
-			'revenue_24h'
-		],
 		defaultSort: 'perp_volume_24h'
 	},
 	'Video Infrastructure': {
@@ -666,26 +547,11 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Crypto Card Issuer': {
 		description:
 			'Protocols that issue crypto-linked debit or credit cards for spending through traditional payment networks',
-		metrics: { dexVolume: true },
 		headingLabel: 'Crypto Card Issuers',
 		seoLabel: 'Crypto Card Issuers',
 		seoTitleSuffix: 'Rankings',
 		tableHeader: 'Issuer Rankings',
 		searchPlaceholder: 'Search Issuers...',
-		columns: [
-			'name',
-			'tvl',
-			'payment_volume_7d',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'payment_volume_30d',
-			'fees_30d',
-			'revenue_30d',
-			'payment_volume_24h',
-			'fees_24h',
-			'revenue_24h'
-		],
 		defaultSort: 'payment_volume_7d'
 	}
 }
@@ -715,6 +581,12 @@ export function getProtocolCategoryChartMetricLabel(
 			return 'DEX Aggregator Volume'
 		case 'perpVolume':
 			return 'Perp Volume'
+		case 'perpsAggregatorsVolume':
+			return 'Perp Aggregator Volume'
+		case 'bridgeAggregatorsVolume':
+			return 'Bridge Aggregator Volume'
+		case 'normalizedVolume':
+			return 'Normalized Volume'
 		case 'openInterest':
 			return 'Open Interest'
 		case 'optionsPremiumVolume':
@@ -729,6 +601,112 @@ export function getProtocolCategoryChartMetricLabel(
 }
 
 export const categoriesPageExcludedExtraTvls = new Set<string>(['doublecounted', 'liquidstaking'])
+
+const LEGACY_CATEGORY_CAPABILITIES: Record<string, Partial<ProtocolCategoryMetrics>> = {
+	Lending: { borrowed: true },
+	'Liquid Staking': { staking: true },
+	Options: { optionsPremiumVolume: true, optionsNotionalVolume: true }
+}
+
+const DEFAULT_DEX_COLUMN_IDS = ['dex_volume_7d', 'dex_volume_30d', 'dex_volume_24h']
+
+const DEX_COLUMN_IDS_BY_CATEGORY: Record<string, string[]> = {
+	'DEX Aggregator': ['dex_aggregator_volume_7d', 'dex_aggregator_volume_30d', 'dex_aggregator_volume_24h'],
+	'Prediction Market': ['prediction_volume_7d', 'prediction_volume_30d', 'prediction_volume_24h'],
+	'Crypto Card Issuer': ['payment_volume_7d', 'payment_volume_30d', 'payment_volume_24h'],
+	Interface: ['spot_volume_7d', 'spot_volume_30d', 'spot_volume_24h']
+}
+
+type TimedMetricColumnGroups = {
+	'30d': string[]
+	'7d': string[]
+	'24h': string[]
+}
+
+const EMPTY_TIMED_METRIC_COLUMN_GROUPS: TimedMetricColumnGroups = {
+	'30d': [],
+	'7d': [],
+	'24h': []
+}
+
+const groupTimedColumns = (columns: string[]): TimedMetricColumnGroups => {
+	return columns.reduce<TimedMetricColumnGroups>(
+		(acc, columnId) => {
+			if (columnId.endsWith('_30d')) acc['30d'].push(columnId)
+			if (columnId.endsWith('_7d')) acc['7d'].push(columnId)
+			if (columnId.endsWith('_24h')) acc['24h'].push(columnId)
+			return acc
+		},
+		{
+			'30d': [],
+			'7d': [],
+			'24h': []
+		}
+	)
+}
+
+const DEFAULT_SORT_PRIORITY = [
+	'perp_aggregator_volume_7d',
+	'perp_volume_7d',
+	'bridge_aggregator_volume_7d',
+	'normalized_volume_7d',
+	'dex_aggregator_volume_7d',
+	'spot_volume_7d',
+	'payment_volume_7d',
+	'prediction_volume_7d',
+	'dex_volume_7d',
+	'options_premium_7d',
+	'options_notional_7d',
+	'openInterest',
+	'borrowed',
+	'fees_7d',
+	'revenue_7d',
+	'tvl'
+]
+
+export function resolveProtocolCategoryDataConfig({
+	categoriesAndTags,
+	category,
+	tag,
+	tagCategory
+}: {
+	categoriesAndTags: ICategoriesAndTags
+	category?: string | null
+	tag?: string | null
+	tagCategory?: string | null
+}): ICategoriesAndTagsConfig | null {
+	if (category) return categoriesAndTags.configs[category] ?? null
+	if (!tag) return null
+	return categoriesAndTags.configs[tag] ?? (tagCategory ? (categoriesAndTags.configs[tagCategory] ?? null) : null)
+}
+
+export function getProtocolCategoryCapabilities({
+	dataConfig,
+	effectiveCategory
+}: {
+	dataConfig: ICategoriesAndTagsConfig | null
+	effectiveCategory: string | null
+}): ProtocolCategoryMetrics {
+	const legacyCapabilities = effectiveCategory ? LEGACY_CATEGORY_CAPABILITIES[effectiveCategory] : null
+	const hasPerpsAggregatorsDimAgg = Boolean(dataConfig?.dimAgg?.['aggregator-derivatives'])
+
+	return {
+		tvl: true,
+		fees: dataConfig?.fees ?? false,
+		revenue: dataConfig?.revenue ?? false,
+		dexVolume: dataConfig?.dexs ?? false,
+		dexAggregatorsVolume: dataConfig?.dexAggregators ?? false,
+		perpVolume: dataConfig?.perps ?? false,
+		perpsAggregatorsVolume: dataConfig?.perpsAggregators ?? hasPerpsAggregatorsDimAgg,
+		bridgeAggregatorsVolume: dataConfig?.bridgeAggregators ?? false,
+		normalizedVolume: dataConfig?.normalizedVolume ?? false,
+		openInterest: dataConfig?.openInterest ?? legacyCapabilities?.openInterest ?? false,
+		optionsPremiumVolume: dataConfig?.optionsPremiumVolume ?? legacyCapabilities?.optionsPremiumVolume ?? false,
+		optionsNotionalVolume: dataConfig?.optionsNotionalVolume ?? legacyCapabilities?.optionsNotionalVolume ?? false,
+		borrowed: legacyCapabilities?.borrowed ?? false,
+		staking: legacyCapabilities?.staking ?? false
+	}
+}
 
 export function getProtocolCategoryPresentation({
 	label,
@@ -790,15 +768,18 @@ export function getProtocolCategoryPresentation({
 	}
 }
 
-export function getProtocolCategoryChartMetrics(effectiveCategory: string | null): ProtocolCategoryChartMetric[] {
-	if (!effectiveCategory) return ['tvl']
-	const m = protocolCategoryConfig[effectiveCategory]?.metrics
-	if (!m) return ['tvl']
+export function getProtocolCategoryChartMetrics(
+	metrics?: ProtocolCategoryMetrics | null
+): ProtocolCategoryChartMetric[] {
+	const m = metrics ?? { tvl: true }
 	const result: ProtocolCategoryChartMetric[] = []
 	if (m.tvl !== false) result.push('tvl')
 	if (m.dexVolume) result.push('dexVolume')
 	if (m.dexAggregatorsVolume) result.push('dexAggregatorsVolume')
 	if (m.perpVolume) result.push('perpVolume')
+	if (m.perpsAggregatorsVolume) result.push('perpsAggregatorsVolume')
+	if (m.bridgeAggregatorsVolume) result.push('bridgeAggregatorsVolume')
+	if (m.normalizedVolume) result.push('normalizedVolume')
 	if (m.openInterest) result.push('openInterest')
 	if (m.optionsPremiumVolume) result.push('optionsPremiumVolume')
 	if (m.optionsNotionalVolume) result.push('optionsNotionalVolume')
@@ -807,12 +788,105 @@ export function getProtocolCategoryChartMetrics(effectiveCategory: string | null
 	return result.length > 0 ? result : ['tvl']
 }
 
-export function getProtocolCategoryColumns(effectiveCategory: string | null): string[] {
-	if (!effectiveCategory) return DEFAULT_COLUMNS
-	return protocolCategoryConfig[effectiveCategory]?.columns ?? DEFAULT_COLUMNS
+export function getProtocolCategoryColumns({
+	effectiveCategory,
+	metrics
+}: {
+	effectiveCategory: string | null
+	metrics: ProtocolCategoryMetrics
+}): string[] {
+	const timedMetricGroups: TimedMetricColumnGroups[] = []
+
+	if (metrics.perpVolume) {
+		timedMetricGroups.push(groupTimedColumns(['perp_volume_7d', 'perp_volume_30d', 'perp_volume_24h']))
+	}
+
+	if (metrics.perpsAggregatorsVolume) {
+		timedMetricGroups.push(
+			groupTimedColumns(['perp_aggregator_volume_7d', 'perp_aggregator_volume_30d', 'perp_aggregator_volume_24h'])
+		)
+	}
+
+	if (metrics.bridgeAggregatorsVolume) {
+		timedMetricGroups.push(
+			groupTimedColumns(['bridge_aggregator_volume_7d', 'bridge_aggregator_volume_30d', 'bridge_aggregator_volume_24h'])
+		)
+	}
+
+	if (metrics.normalizedVolume) {
+		timedMetricGroups.push(
+			groupTimedColumns(['normalized_volume_7d', 'normalized_volume_30d', 'normalized_volume_24h'])
+		)
+	}
+
+	if (metrics.dexAggregatorsVolume) {
+		timedMetricGroups.push(
+			groupTimedColumns(['dex_aggregator_volume_7d', 'dex_aggregator_volume_30d', 'dex_aggregator_volume_24h'])
+		)
+	}
+
+	if (metrics.dexVolume) {
+		timedMetricGroups.push(
+			groupTimedColumns(
+				effectiveCategory
+					? (DEX_COLUMN_IDS_BY_CATEGORY[effectiveCategory] ?? DEFAULT_DEX_COLUMN_IDS)
+					: DEFAULT_DEX_COLUMN_IDS
+			)
+		)
+	}
+
+	if (metrics.optionsPremiumVolume) {
+		timedMetricGroups.push(groupTimedColumns(['options_premium_7d', 'options_premium_30d', 'options_premium_24h']))
+	}
+
+	if (metrics.optionsNotionalVolume) {
+		timedMetricGroups.push(groupTimedColumns(['options_notional_7d', 'options_notional_30d', 'options_notional_24h']))
+	}
+
+	if (metrics.fees) {
+		timedMetricGroups.push(groupTimedColumns(['fees_7d', 'fees_30d', 'fees_24h']))
+	}
+
+	if (metrics.revenue) {
+		timedMetricGroups.push(groupTimedColumns(['revenue_7d', 'revenue_30d', 'revenue_24h']))
+	}
+
+	const groupedTimedColumns = timedMetricGroups.reduce<TimedMetricColumnGroups>(
+		(acc, group) => ({
+			'30d': [...acc['30d'], ...group['30d']],
+			'7d': [...acc['7d'], ...group['7d']],
+			'24h': [...acc['24h'], ...group['24h']]
+		}),
+		{ ...EMPTY_TIMED_METRIC_COLUMN_GROUPS }
+	)
+
+	const columnIds = ['name', 'tvl']
+
+	if (metrics.borrowed) {
+		columnIds.push('borrowed', 'supplied', 'supplied/tvl')
+	}
+
+	columnIds.push(...groupedTimedColumns['30d'])
+
+	if (metrics.openInterest) {
+		columnIds.push('openInterest')
+	}
+
+	columnIds.push(...groupedTimedColumns['7d'], ...groupedTimedColumns['24h'], 'mcap/tvl')
+
+	return Array.from(new Set(columnIds))
 }
 
-export function getProtocolCategoryDefaultSort(effectiveCategory: string | null): string {
-	if (!effectiveCategory) return 'tvl'
-	return protocolCategoryConfig[effectiveCategory]?.defaultSort ?? 'tvl'
+export function getProtocolCategoryDefaultSort({
+	effectiveCategory,
+	metrics
+}: {
+	effectiveCategory: string | null
+	metrics: ProtocolCategoryMetrics
+}): string {
+	const defaultSort = effectiveCategory ? protocolCategoryConfig[effectiveCategory]?.defaultSort : null
+	if (defaultSort) return defaultSort
+
+	const visibleColumns = new Set(getProtocolCategoryColumns({ effectiveCategory, metrics }))
+	return DEFAULT_SORT_PRIORITY.find((columnId) => visibleColumns.has(columnId)) ?? 'tvl'
 }

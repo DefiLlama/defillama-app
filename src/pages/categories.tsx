@@ -11,7 +11,8 @@ const pageName = ['Protocol Categories']
 const finalTvlOptions = tvlOptions.filter((option) => !categoriesPageExcludedExtraTvls.has(option.key))
 
 export const getStaticProps = withPerformanceLogging('categories', async () => {
-	const pageData = await getProtocolsCategoriesPageData()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const pageData = await getProtocolsCategoriesPageData({ categoriesAndTags: metadataCache.categoriesAndTags })
 
 	return {
 		props: pageData,

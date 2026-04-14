@@ -89,10 +89,29 @@ export interface ICexItem {
 	auditLink?: string | null
 }
 
+export interface ICategoriesAndTagsConfig {
+	category: string
+	chains: Array<string>
+	slug: string
+	dimAgg?: Record<string, unknown>
+	bridgeAggregators?: boolean
+	dexAggregators?: boolean
+	dexs?: boolean
+	fees?: boolean
+	normalizedVolume?: boolean
+	openInterest?: boolean
+	optionsNotionalVolume?: boolean
+	optionsPremiumVolume?: boolean
+	perps?: boolean
+	perpsAggregators?: boolean
+	revenue?: boolean
+}
+
 export interface ICategoriesAndTags {
 	categories: Array<string>
 	tags: Array<string>
 	tagCategoryMap: Record<string, string>
+	configs: Record<string, ICategoriesAndTagsConfig>
 }
 
 export interface IRWAList {

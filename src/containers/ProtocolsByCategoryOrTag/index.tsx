@@ -1,5 +1,5 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { Fragment, lazy, Suspense, useDeferredValue, useMemo, useState, type ReactNode } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import {
 	ChartGroupingSelector,
@@ -9,6 +9,7 @@ import {
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -16,8 +17,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { definitions } from '~/public/definitions'
 import { formatNum, formattedNum } from '~/utils'
+import { definitions } from '../../../public/definitions'
 import {
 	getProtocolCategoryDexVolumeLabel,
 	getProtocolCategoryColumns,
@@ -28,9 +29,26 @@ import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
+type SummaryMetricEntry = {
+	key: string
+	sortValue: number
+	content: ReactNode
+}
+
+const getSectionSortValue = (
+	metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][keyof IProtocolByCategoryOrTagPageData['summaryMetrics']]
+) => {
+	if (metric?.total7d != null) return metric.total7d
+	if (metric?.total24h != null) return metric.total24h
+	if (metric?.total30d != null) return metric.total30d
+	return null
+}
+
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
 	const namePrefix = name ? `${name}-` : ''
+	const dexVolumeLabel = getProtocolCategoryDexVolumeLabel(props.effectiveCategory)
+	const showDexVolumeTooltip = dexVolumeLabel === 'DEX Volume'
 	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>('daily')
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const categoryPresentation = useMemo(
@@ -101,13 +119,19 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const chartSeries = useMemo(() => charts.charts ?? [], [charts.charts])
 
 	const categoryColumns = useMemo(() => {
-		return getColumnsForCategory(props.effectiveCategory)
-	}, [props.effectiveCategory])
+		return getColumnsForCategory({
+			effectiveCategory: props.effectiveCategory,
+			metrics: props.capabilities
+		})
+	}, [props.effectiveCategory, props.capabilities])
 
 	const sortingState = useMemo(() => {
-		const sortId = getProtocolCategoryDefaultSort(props.effectiveCategory)
+		const sortId = getProtocolCategoryDefaultSort({
+			effectiveCategory: props.effectiveCategory,
+			metrics: props.capabilities
+		})
 		return [{ id: sortId, desc: true }]
-	}, [props.effectiveCategory])
+	}, [props.effectiveCategory, props.capabilities])
 
 	const hasBarCharts = useMemo(() => {
 		return chartSeries.some((series) => {
@@ -200,6 +224,165 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const deferredGroupedCharts = useDeferredValue(groupedCharts)
 
 	const chartGroupBy = groupBy
+	const sortedSummaryEntries = useMemo(() => {
+		const entries: SummaryMetricEntry[] = []
+		const latestTvl = charts.dataset?.source[charts.dataset?.source.length - 1]?.TVL
+		const tvlValue = typeof latestTvl === 'number' ? latestTvl : Number(latestTvl ?? NaN)
+
+		if (Number.isFinite(tvlValue)) {
+			entries.push({
+				key: 'tvl',
+				sortValue: tvlValue,
+				content: (
+					<MetricRow
+						label="Total Value Locked"
+						tooltip="Sum of value of all coins held in smart contracts of all the protocols on the chain"
+						value={formattedNum(tvlValue, true)}
+					/>
+				)
+			})
+		}
+
+		const pushSection = ({
+			key,
+			label,
+			metric,
+			primaryTooltip,
+			subtooltips
+		}: {
+			key: string
+			label: string
+			metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][keyof IProtocolByCategoryOrTagPageData['summaryMetrics']]
+			primaryTooltip?: string
+			subtooltips?: Partial<Record<'24h' | '30d', string>>
+		}) => {
+			const sortValue = getSectionSortValue(metric)
+			if (sortValue == null) return
+
+			entries.push({
+				key,
+				sortValue,
+				content: (
+					<SummaryMetricSection
+						label={label}
+						metric={metric}
+						primaryTooltip={primaryTooltip}
+						subtooltips={subtooltips}
+					/>
+				)
+			})
+		}
+
+		pushSection({
+			key: 'fees',
+			label: 'Fees',
+			metric: props.summaryMetrics.fees,
+			primaryTooltip: definitions.fees.chain['7d'],
+			subtooltips: { '24h': definitions.fees.chain['24h'], '30d': definitions.fees.chain['30d'] }
+		})
+		pushSection({
+			key: 'revenue',
+			label: 'Revenue',
+			metric: props.summaryMetrics.revenue,
+			primaryTooltip: definitions.revenue.chain['7d'],
+			subtooltips: { '24h': definitions.revenue.chain['24h'], '30d': definitions.revenue.chain['30d'] }
+		})
+		pushSection({
+			key: 'dexVolume',
+			label: dexVolumeLabel,
+			metric: props.summaryMetrics.dexVolume,
+			primaryTooltip: showDexVolumeTooltip ? definitions.dexs.chain['7d'] : undefined,
+			subtooltips: showDexVolumeTooltip
+				? { '24h': definitions.dexs.chain['24h'], '30d': definitions.dexs.chain['30d'] }
+				: undefined
+		})
+		pushSection({
+			key: 'dexAggregatorsVolume',
+			label: 'DEX Aggregator Volume',
+			metric: props.summaryMetrics.dexAggregatorsVolume,
+			primaryTooltip: definitions.dexAggregators.chain['7d'],
+			subtooltips: {
+				'24h': definitions.dexAggregators.chain['24h'],
+				'30d': definitions.dexAggregators.chain['30d']
+			}
+		})
+		pushSection({
+			key: 'perpVolume',
+			label: 'Perp Volume',
+			metric: props.summaryMetrics.perpVolume,
+			primaryTooltip: definitions.perps.protocol['7d'],
+			subtooltips: { '24h': definitions.perps.protocol['24h'], '30d': definitions.perps.protocol['30d'] }
+		})
+		pushSection({
+			key: 'perpsAggregatorsVolume',
+			label: 'Perp Aggregator Volume',
+			metric: props.summaryMetrics.perpsAggregatorsVolume,
+			primaryTooltip: definitions.perpsAggregators.protocol['7d'],
+			subtooltips: {
+				'24h': definitions.perpsAggregators.protocol['24h'],
+				'30d': definitions.perpsAggregators.protocol['30d']
+			}
+		})
+		pushSection({
+			key: 'bridgeAggregatorsVolume',
+			label: 'Bridge Aggregator Volume',
+			metric: props.summaryMetrics.bridgeAggregatorsVolume,
+			primaryTooltip: definitions.bridgeAggregators.chain['7d'],
+			subtooltips: {
+				'24h': definitions.bridgeAggregators.chain['24h'],
+				'30d': definitions.bridgeAggregators.chain['30d']
+			}
+		})
+		pushSection({
+			key: 'normalizedVolume',
+			label: 'Normalized Volume',
+			metric: props.summaryMetrics.normalizedVolume,
+			primaryTooltip: definitions.normalizedVolume.protocol['7d'],
+			subtooltips: {
+				'24h': definitions.normalizedVolume.protocol['24h'],
+				'30d': definitions.normalizedVolume.protocol['30d']
+			}
+		})
+
+		if (props.summaryMetrics.openInterest?.total24h != null) {
+			entries.push({
+				key: 'openInterest',
+				sortValue: props.summaryMetrics.openInterest.total24h,
+				content: (
+					<MetricRow
+						label="Open Interest"
+						tooltip={definitions.openInterest.common}
+						value={formattedNum(props.summaryMetrics.openInterest.total24h, true)}
+					/>
+				)
+			})
+		}
+
+		pushSection({
+			key: 'optionsPremiumVolume',
+			label: 'Premium Volume',
+			metric: props.summaryMetrics.optionsPremiumVolume,
+			primaryTooltip: definitions.optionsPremium.protocol['7d'],
+			subtooltips: {
+				'24h': definitions.optionsPremium.protocol['24h'],
+				'30d': definitions.optionsPremium.protocol['30d']
+			}
+		})
+		pushSection({
+			key: 'optionsNotionalVolume',
+			label: 'Notional Volume',
+			metric: props.summaryMetrics.optionsNotionalVolume,
+			primaryTooltip: definitions.optionsNotional.protocol['7d'],
+			subtooltips: {
+				'24h': definitions.optionsNotional.protocol['24h'],
+				'30d': definitions.optionsNotional.protocol['30d']
+			}
+		})
+
+		return entries
+			.sort((a, b) => b.sortValue - a.sortValue)
+			.map((entry) => <Fragment key={entry.key}>{entry.content}</Fragment>)
+	}, [charts.dataset, dexVolumeLabel, props.summaryMetrics, showDexVolumeTooltip])
 
 	return (
 		<>
@@ -211,96 +394,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					) : (
 						<h1 className="text-lg font-semibold">{`${categoryPresentation.headingLabel} on ${props.chain}`}</h1>
 					)}
-					<div className="mb-auto flex flex-1 flex-col gap-2">
-						{props.charts.dataset?.source.length > 0 ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content="Sum of value of all coins held in smart contracts of all the protocols on the chain"
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Total Value Locked
-								</Tooltip>
-
-								<span className="text-right font-jetbrains">
-									{formattedNum(charts.dataset?.source[charts.dataset?.source.length - 1]?.TVL, true)}
-								</span>
-							</p>
-						) : null}
-						{props.optionsPremium7d != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={definitions.optionsPremium.chain['7d']}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Premium Volume (7d)
-								</Tooltip>
-								<span className="text-right font-jetbrains">{formattedNum(props.optionsPremium7d, true)}</span>
-							</p>
-						) : null}
-						{props.optionsNotional7d != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={definitions.optionsNotional.chain['7d']}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Notional Volume (7d)
-								</Tooltip>
-								<span className="text-right font-jetbrains">{formattedNum(props.optionsNotional7d, true)}</span>
-							</p>
-						) : null}
-						{props.fees7d != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={definitions.fees.chain['7d']}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Fees (7d)
-								</Tooltip>
-								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
-							</p>
-						) : null}
-						{props.revenue7d != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={definitions.revenue.chain['7d']}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Revenue (7d)
-								</Tooltip>
-								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
-							</p>
-						) : null}
-						{props.perpVolume7d != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={definitions.perps.protocol['7d']}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Perp Volume (7d)
-								</Tooltip>
-								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
-							</p>
-						) : null}
-						{props.dexVolume7d != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<span className="font-normal text-(--text-label)">
-									{getProtocolCategoryDexVolumeLabel(props.effectiveCategory)} (7d)
-								</span>
-								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-							</p>
-						) : null}
-						{props.openInterest != null ? (
-							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-								<Tooltip
-									content={definitions.openInterest.common}
-									className="font-normal text-(--text-label) underline decoration-dotted"
-								>
-									Open Interest
-								</Tooltip>
-								<span className="text-right font-jetbrains">{formattedNum(props.openInterest, true)}</span>
-							</p>
-						) : null}
-					</div>
+					<div className="mb-auto flex flex-1 flex-col">{sortedSummaryEntries}</div>
 				</div>
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
@@ -340,6 +434,43 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				csvFileName={`defillama-${namePrefix}${props.chain || 'all'}-protocols`}
 			/>
 		</>
+	)
+}
+
+function SummaryMetricSection({
+	label,
+	metric,
+	primaryTooltip,
+	subtooltips
+}: {
+	label: string
+	metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][keyof IProtocolByCategoryOrTagPageData['summaryMetrics']]
+	primaryTooltip?: string
+	subtooltips?: Partial<Record<'24h' | '30d', string>>
+}) {
+	if (!metric?.total7d && !metric?.total24h && !metric?.total30d) return null
+
+	return (
+		<MetricSection
+			label={`${label} (7d)`}
+			tooltip={primaryTooltip ?? null}
+			value={metric.total7d != null ? formattedNum(metric.total7d, true) : '—'}
+		>
+			{metric.total24h != null ? (
+				<SubMetricRow
+					label={`${label} (24h)`}
+					tooltip={subtooltips?.['24h']}
+					value={formattedNum(metric.total24h, true)}
+				/>
+			) : null}
+			{metric.total30d != null ? (
+				<SubMetricRow
+					label={`${label} (30d)`}
+					tooltip={subtooltips?.['30d']}
+					value={formattedNum(metric.total30d, true)}
+				/>
+			) : null}
+		</MetricSection>
 	)
 }
 
@@ -501,6 +632,69 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		meta: { align: 'end', headerHelperText: definitions.perps.protocol['30d'] },
 		size: 160
 	}),
+	perp_aggregator_volume_24h: columnHelper.accessor((p) => p.perpsAggregatorsVolume?.total24h, {
+		id: 'perp_aggregator_volume_24h',
+		header: 'Perp Aggregator Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.perpsAggregators.protocol['24h'] },
+		size: 220
+	}),
+	perp_aggregator_volume_7d: columnHelper.accessor((p) => p.perpsAggregatorsVolume?.total7d, {
+		id: 'perp_aggregator_volume_7d',
+		header: 'Perp Aggregator Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.perpsAggregators.protocol['7d'] },
+		size: 220
+	}),
+	perp_aggregator_volume_30d: columnHelper.accessor((p) => p.perpsAggregatorsVolume?.total30d, {
+		id: 'perp_aggregator_volume_30d',
+		header: 'Perp Aggregator Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.perpsAggregators.protocol['30d'] },
+		size: 220
+	}),
+	bridge_aggregator_volume_24h: columnHelper.accessor((p) => p.bridgeAggregatorsVolume?.total24h, {
+		id: 'bridge_aggregator_volume_24h',
+		header: 'Bridge Aggregator Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['24h'] },
+		size: 220
+	}),
+	bridge_aggregator_volume_7d: columnHelper.accessor((p) => p.bridgeAggregatorsVolume?.total7d, {
+		id: 'bridge_aggregator_volume_7d',
+		header: 'Bridge Aggregator Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['7d'] },
+		size: 220
+	}),
+	bridge_aggregator_volume_30d: columnHelper.accessor((p) => p.bridgeAggregatorsVolume?.total30d, {
+		id: 'bridge_aggregator_volume_30d',
+		header: 'Bridge Aggregator Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['30d'] },
+		size: 220
+	}),
+	normalized_volume_24h: columnHelper.accessor((p) => p.normalizedVolume?.total24h, {
+		id: 'normalized_volume_24h',
+		header: 'Normalized Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.normalizedVolume.protocol['24h'] },
+		size: 190
+	}),
+	normalized_volume_7d: columnHelper.accessor((p) => p.normalizedVolume?.total7d, {
+		id: 'normalized_volume_7d',
+		header: 'Normalized Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.normalizedVolume.protocol['7d'] },
+		size: 190
+	}),
+	normalized_volume_30d: columnHelper.accessor((p) => p.normalizedVolume?.total30d, {
+		id: 'normalized_volume_30d',
+		header: 'Normalized Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.normalizedVolume.protocol['30d'] },
+		size: 190
+	}),
 	openInterest: columnHelper.accessor((p) => p.openInterest?.total24h, {
 		id: 'openInterest',
 		header: 'Open Interest',
@@ -529,88 +723,88 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
 		size: 148
 	}),
-	dex_aggregator_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+	dex_aggregator_volume_7d: columnHelper.accessor((p) => p.dexAggregatorsVolume?.total7d, {
 		id: 'dex_aggregator_volume_7d',
 		header: 'DEX Aggregator Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['7d'] },
 		size: 220
 	}),
-	dex_aggregator_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+	dex_aggregator_volume_30d: columnHelper.accessor((p) => p.dexAggregatorsVolume?.total30d, {
 		id: 'dex_aggregator_volume_30d',
 		header: 'DEX Aggregator Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['30d'] },
 		size: 220
 	}),
-	dex_aggregator_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+	dex_aggregator_volume_24h: columnHelper.accessor((p) => p.dexAggregatorsVolume?.total24h, {
 		id: 'dex_aggregator_volume_24h',
 		header: 'DEX Aggregator Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['24h'] },
 		size: 220
 	}),
 	prediction_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
 		id: 'prediction_volume_7d',
 		header: 'Prediction Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		meta: { align: 'end' },
 		size: 180
 	}),
 	prediction_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
 		id: 'prediction_volume_30d',
 		header: 'Prediction Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		meta: { align: 'end' },
 		size: 195
 	}),
 	prediction_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
 		id: 'prediction_volume_24h',
 		header: 'Prediction Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		meta: { align: 'end' },
 		size: 195
 	}),
 	payment_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
 		id: 'payment_volume_7d',
 		header: 'Payment Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		meta: { align: 'end' },
 		size: 180
 	}),
 	payment_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
 		id: 'payment_volume_30d',
 		header: 'Payment Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		meta: { align: 'end' },
 		size: 180
 	}),
 	payment_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
 		id: 'payment_volume_24h',
 		header: 'Payment Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		meta: { align: 'end' },
 		size: 180
 	}),
 	spot_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
 		id: 'spot_volume_7d',
 		header: 'Spot Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		meta: { align: 'end' },
 		size: 160
 	}),
 	spot_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
 		id: 'spot_volume_30d',
 		header: 'Spot Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		meta: { align: 'end' },
 		size: 160
 	}),
 	spot_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
 		id: 'spot_volume_24h',
 		header: 'Spot Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		meta: { align: 'end' },
 		size: 160
 	}),
 	options_premium_7d: columnHelper.accessor((p) => p.optionsPremium?.total7d, {
@@ -678,7 +872,13 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	})
 }
 
-export function getColumnsForCategory(effectiveCategory: string | null) {
-	const columnIds = getProtocolCategoryColumns(effectiveCategory)
+export function getColumnsForCategory({
+	effectiveCategory,
+	metrics
+}: {
+	effectiveCategory: string | null
+	metrics: IProtocolByCategoryOrTagPageData['capabilities']
+}) {
+	const columnIds = getProtocolCategoryColumns({ effectiveCategory, metrics })
 	return columnIds.map((id) => COLUMN_REGISTRY[id]).filter(Boolean)
 }
