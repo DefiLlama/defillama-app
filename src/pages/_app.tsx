@@ -10,6 +10,7 @@ import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
+import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
 NProgress.configure({ showSpinner: false })
@@ -123,6 +124,7 @@ function App({ Component, pageProps }: AppProps) {
 		}
 	}, [])
 
+	useAuthBridge()
 	useUmamiIdentityTracker()
 
 	return (
