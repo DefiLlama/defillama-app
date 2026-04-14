@@ -190,6 +190,7 @@ export function RWAPerpsOverviewChart({
 						dataset={dataset}
 						charts={chartSeries}
 						stacked
+						solidChartAreaStyle
 						showTotalInTooltip
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}

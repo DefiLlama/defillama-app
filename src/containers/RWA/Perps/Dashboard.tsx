@@ -588,7 +588,7 @@ const assetGroupColumnVisibility: VisibilityState = {
 export function buildRWAPerpsTimeSeriesCharts({
 	metric,
 	dimensions,
-	timeSeriesMode
+	timeSeriesMode: _timeSeriesMode
 }: {
 	metric: 'openInterest' | 'volume24h' | 'markets'
 	dimensions: string[]
@@ -601,7 +601,7 @@ export function buildRWAPerpsTimeSeriesCharts({
 		type: metric === 'volume24h' ? 'bar' : 'line',
 		encode: { x: 'timestamp', y: seriesName },
 		color: CHART_COLORS[index % CHART_COLORS.length],
-		...(timeSeriesMode === 'breakdown' ? { stack: 'A' } : {})
+		stack: 'A'
 	}))
 }
 
@@ -931,7 +931,8 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				{
 					label: d.openInterest.label,
 					tooltip: d.openInterest.description,
-					value: formattedNum(props.data.totals.openInterest, true)
+					value: formattedNum(props.data.totals.openInterest, true),
+					change: props.data.totals.openInterestChange24h
 				},
 				{
 					label: d.volume24h.label,
@@ -1018,6 +1019,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 							<MultiSeriesChart2
 								dataset={deferredTimeSeriesDataset}
 								charts={timeSeriesCharts}
+								solidChartAreaStyle
 								showTotalInTooltip
 								valueSymbol={valueSymbol}
 								onReady={handleTimeSeriesChartReady}

@@ -438,7 +438,12 @@ export async function getRWAPerpsVenuePage({
 	const markets = venueResponse
 	if (markets.length === 0) return null
 
-	const [volume24hChartRows, initialChartDataset] = await Promise.all([
+	const [openInterestChartRows, volume24hChartRows, initialChartDataset] = await Promise.all([
+		getRequiredOverviewBreakdownRows({
+			venue,
+			breakdown: 'baseAsset',
+			key: 'openInterest'
+		}),
 		getRequiredOverviewBreakdownRows({
 			venue,
 			breakdown: 'baseAsset',
@@ -450,7 +455,9 @@ export async function getRWAPerpsVenuePage({
 	])
 
 	const statsBucket = stats.byVenue?.[venue]
+	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
 	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
+	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
 	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
 
 	return {
@@ -462,7 +469,8 @@ export async function getRWAPerpsVenuePage({
 			...list.venues.map((item) => ({ label: item, to: toVenueDetailLink(item) }))
 		],
 		totals: {
-			openInterest: safeNumber(statsBucket?.openInterest),
+			openInterest: totalOpenInterest,
+			openInterestChange24h: getPercentChange(totalOpenInterest, openInterestSnapshotTotals.previousTotal),
 			volume24h: totalVolume24h,
 			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
 			markets: safeNumber(statsBucket?.markets ?? markets.length),
@@ -514,7 +522,12 @@ export async function getRWAPerpsAssetGroupPage({
 	const markets = await fetchRWAPerpsMarketsByAssetGroup(resolvedAssetGroup).catch(() => null)
 	if (!markets?.length) return null
 
-	const [volume24hChartRows, initialChartDataset] = await Promise.all([
+	const [openInterestChartRows, volume24hChartRows, initialChartDataset] = await Promise.all([
+		getRequiredOverviewBreakdownRows({
+			assetGroup: resolvedAssetGroup,
+			breakdown: 'baseAsset',
+			key: 'openInterest'
+		}),
 		getRequiredOverviewBreakdownRows({
 			assetGroup: resolvedAssetGroup,
 			breakdown: 'baseAsset',
@@ -526,7 +539,9 @@ export async function getRWAPerpsAssetGroupPage({
 	])
 
 	const statsBucket = stats.byAssetGroup?.[resolvedAssetGroup]
+	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
 	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
+	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
 	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
 
 	return {
@@ -538,7 +553,8 @@ export async function getRWAPerpsAssetGroupPage({
 			...list.assetGroups.map((item) => ({ label: item, to: toAssetGroupDetailLink(item) }))
 		],
 		totals: {
-			openInterest: safeNumber(statsBucket?.openInterest),
+			openInterest: totalOpenInterest,
+			openInterestChange24h: getPercentChange(totalOpenInterest, openInterestSnapshotTotals.previousTotal),
 			volume24h: totalVolume24h,
 			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
 			markets: safeNumber(statsBucket?.markets ?? markets.length),

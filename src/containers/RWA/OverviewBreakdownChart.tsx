@@ -203,6 +203,7 @@ export function RWAOverviewBreakdownChart({
 					<MultiSeriesChart2
 						dataset={dataset}
 						stacked
+						solidChartAreaStyle
 						showTotalInTooltip
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}

@@ -128,6 +128,7 @@ const venueData = {
 	venueLinks: [{ label: 'All', to: '/rwa/perps/venues' }],
 	totals: {
 		openInterest: 100,
+		openInterestChange24h: 25,
 		volume24h: 50,
 		volume24hChange24h: -10,
 		markets: 1,
@@ -142,6 +143,7 @@ const assetGroupData = {
 	assetGroupLinks: [{ label: 'All', to: '/rwa/perps/asset-groups' }],
 	totals: {
 		openInterest: 100,
+		openInterestChange24h: 25,
 		volume24h: 50,
 		volume24hChange24h: -10,
 		markets: 1,
@@ -354,7 +356,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		).not.toHaveProperty('showSymbol')
 	})
 
-	it('builds a single non-stacked grouped time-series series', () => {
+	it('builds a stacked grouped time-series series for total mode', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
@@ -366,7 +368,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				name: 'Total',
 				type: 'line',
 				encode: { x: 'timestamp', y: 'Total' },
-				color: expect.any(String)
+				color: expect.any(String),
+				stack: 'A'
 			}
 		])
 	})
@@ -378,10 +381,10 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('-10.00%')
 	})
 
-	it('renders 24h volume change on venue stat cards but not open interest change', () => {
+	it('renders 24h open interest and volume changes on venue stat cards', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
-		expect(html).not.toContain('+25.00%')
+		expect(html).toContain('+25.00%')
 		expect(html).toContain('-10.00%')
 	})
 })

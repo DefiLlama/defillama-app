@@ -496,6 +496,7 @@ describe('perps overview queries', () => {
 			venue: 'xyz',
 			totals: {
 				openInterest: 250,
+				openInterestChange24h: 108.33333333333333,
 				volume24h: 90,
 				markets: 2,
 				protocolFees24h: 12
@@ -506,6 +507,7 @@ describe('perps overview queries', () => {
 				{ label: 'flx', to: '/rwa/perps/venue/flx' }
 			]
 		})
+		expect(result?.totals.openInterestChange24h).toBe(108.33333333333333)
 		expect(result?.totals.volume24hChange24h).toBe(200)
 		expect(result?.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
 	})
@@ -527,6 +529,7 @@ describe('perps overview queries', () => {
 			assetGroup: 'Equities',
 			totals: {
 				openInterest: 250,
+				openInterestChange24h: 108.33333333333333,
 				volume24h: 90,
 				markets: 2,
 				protocolFees24h: 12
@@ -537,6 +540,7 @@ describe('perps overview queries', () => {
 				{ label: 'Equities', to: '/rwa/perps/asset-group/equities' }
 			]
 		})
+		expect(result?.totals.openInterestChange24h).toBe(108.33333333333333)
 	})
 })
 

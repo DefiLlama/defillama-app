@@ -106,6 +106,7 @@ export interface IRWAPerpsVenuePageData {
 	venueLinks: IRWAPerpsNavLink[]
 	totals: {
 		openInterest: number
+		openInterestChange24h: number | null
 		volume24h: number
 		volume24hChange24h: number | null
 		markets: number
@@ -120,6 +121,7 @@ export interface IRWAPerpsAssetGroupPageData {
 	assetGroupLinks: IRWAPerpsNavLink[]
 	totals: {
 		openInterest: number
+		openInterestChange24h: number | null
 		volume24h: number
 		volume24hChange24h: number | null
 		markets: number
