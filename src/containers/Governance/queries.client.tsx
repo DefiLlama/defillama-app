@@ -120,7 +120,12 @@ export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | n
 	const isEnabled = governanceApis != null && governanceApis.length > 0
 	return useQuery({
 		queryKey: ['governance', 'protocol', JSON.stringify(governanceApis)],
-		queryFn: isEnabled ? () => fetchAndFormatGovernanceData(governanceApis) : () => Promise.resolve(null),
+		queryFn: isEnabled
+			? () =>
+					fetchJson<GovernanceDataEntry[]>(
+						`/api/charts/protocol?kind=governance&apis=${encodeURIComponent(JSON.stringify(governanceApis))}`
+					)
+			: () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

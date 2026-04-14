@@ -9,10 +9,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import {
-	fetchProtocolOverviewMetrics,
-	fetchProtocolTreasuryTokenBreakdownChart
-} from '~/containers/ProtocolOverview/api'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
@@ -20,6 +17,7 @@ import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/usePro
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
+import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -284,7 +282,10 @@ export default function Protocols(props: TreasuryPageProps) {
 
 	const { data: ownTokensBreakdown } = useQuery({
 		queryKey: ['protocol-overview', 'treasury-own-tokens', protocol],
-		queryFn: () => fetchProtocolTreasuryTokenBreakdownChart({ protocol, key: 'OwnTokens' }),
+		queryFn: () =>
+			fetchJson(
+				`/api/charts/protocol?kind=treasury&protocol=${encodeURIComponent(protocol)}&key=${encodeURIComponent('OwnTokens')}&breakdownType=${encodeURIComponent('token-breakdown')}`
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
