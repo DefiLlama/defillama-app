@@ -19,6 +19,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { definitions } from '~/public/definitions'
 import { formatNum, formattedNum } from '~/utils'
 import {
+	getProtocolCategoryDexVolumeLabel,
 	getProtocolCategoryColumns,
 	getProtocolCategoryDefaultSort,
 	getProtocolCategoryPresentation
@@ -26,17 +27,6 @@ import {
 import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-const getVolumeLabel = (effectiveCategory: string | null) => {
-	switch (effectiveCategory) {
-		case 'Dexs':
-			return 'DEX Volume'
-		case 'DEX Aggregators':
-			return 'DEX Aggregator Volume'
-		default:
-			return 'Volume'
-	}
-}
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
@@ -280,16 +270,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						) : null}
-						{props.dexVolume7d != null ? (
-							<>
-								<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-									<span className="font-normal text-(--text-label)">
-										{getVolumeLabel(props.effectiveCategory)} (7d)
-									</span>
-									<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-								</p>
-							</>
-						) : null}
 						{props.perpVolume7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
@@ -299,6 +279,14 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									Perp Volume (7d)
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
+							</p>
+						) : null}
+						{props.dexVolume7d != null ? (
+							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+								<span className="font-normal text-(--text-label)">
+									{getProtocolCategoryDexVolumeLabel(props.effectiveCategory)} (7d)
+								</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						) : null}
 						{props.openInterest != null ? (
@@ -521,24 +509,108 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	}),
 	dex_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
 		id: 'dex_volume_7d',
-		header: 'Volume 7d',
+		header: 'DEX Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
 		size: 140
 	}),
 	dex_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
 		id: 'dex_volume_30d',
-		header: 'Volume 30d',
+		header: 'DEX Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
 		size: 148
 	}),
 	dex_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
 		id: 'dex_volume_24h',
-		header: 'Volume 24h',
+		header: 'DEX Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
 		size: 148
+	}),
+	dex_aggregator_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'dex_aggregator_volume_7d',
+		header: 'DEX Aggregator Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 220
+	}),
+	dex_aggregator_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'dex_aggregator_volume_30d',
+		header: 'DEX Aggregator Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 220
+	}),
+	dex_aggregator_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'dex_aggregator_volume_24h',
+		header: 'DEX Aggregator Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 220
+	}),
+	prediction_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'prediction_volume_7d',
+		header: 'Prediction Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 180
+	}),
+	prediction_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'prediction_volume_30d',
+		header: 'Prediction Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 195
+	}),
+	prediction_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'prediction_volume_24h',
+		header: 'Prediction Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 195
+	}),
+	payment_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'payment_volume_7d',
+		header: 'Payment Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 180
+	}),
+	payment_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'payment_volume_30d',
+		header: 'Payment Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 180
+	}),
+	payment_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'payment_volume_24h',
+		header: 'Payment Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 180
+	}),
+	spot_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'spot_volume_7d',
+		header: 'Spot Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 160
+	}),
+	spot_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'spot_volume_30d',
+		header: 'Spot Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 160
+	}),
+	spot_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'spot_volume_24h',
+		header: 'Spot Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 160
 	}),
 	options_premium_7d: columnHelper.accessor((p) => p.optionsPremium?.total7d, {
 		id: 'options_premium_7d',
@@ -605,7 +677,7 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	})
 }
 
-function getColumnsForCategory(effectiveCategory: string | null) {
+export function getColumnsForCategory(effectiveCategory: string | null) {
 	const columnIds = getProtocolCategoryColumns(effectiveCategory)
 	return columnIds.map((id) => COLUMN_REGISTRY[id]).filter(Boolean)
 }

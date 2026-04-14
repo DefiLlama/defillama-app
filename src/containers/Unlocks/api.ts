@@ -120,7 +120,11 @@ export async function fetchProtocolEmission(protocolName: string): Promise<Proto
 	if (!protocolName) return null
 	const encodedProtocolName = encodeURIComponent(protocolName)
 	try {
-		const raw = await fetchJson<unknown>(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`)
+		const url =
+			typeof window !== 'undefined'
+				? `/api/emission/${encodedProtocolName}`
+				: `${PROTOCOL_EMISSION_API}/${encodedProtocolName}`
+		const raw = await fetchJson<unknown>(url)
 		return parseProtocolEmissionApiResponse(raw)
 	} catch (error) {
 		console.error(`Failed to fetch protocol emission for ${protocolName}:`, error)
