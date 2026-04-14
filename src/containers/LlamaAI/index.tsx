@@ -968,14 +968,29 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleLoadNewerMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasNewer || paginationState.isLoadingNewer || isStreaming) return
 
+		const requestId = beginRequest(
+			activeRequestIdRef,
+			activeRequestKindRef,
+			activeSessionIdRef,
+			'pagination',
+			sessionId
+		)
 		setPaginationError(null)
 		setPaginationState((prev) => ({ ...prev, isLoadingNewer: true }))
 		const result = await loadNewerMessages(sessionId, paginationState.newerCursor!).catch(() => {
-			setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
-			setPaginationError('Failed to load newer messages')
+			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+				setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
+				setPaginationError('Failed to load newer messages')
+			}
+			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return null
 		})
 		if (!result) return
+		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
+			setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
+			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+			return
+		}
 
 		const newer = mapPersistedMessages(result.messages)
 		setMessages((prev) => [...prev, ...newer])
@@ -986,6 +1001,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			hasNewer: result.pagination?.hasNewer ?? false,
 			newerCursor: result.pagination?.newerCursor ?? null
 		}))
+		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 	}, [sessionId, paginationState, loadNewerMessages, isStreaming])
 
 	// Expose the load-more callback through a stable event wrapper for the scroll listener.
