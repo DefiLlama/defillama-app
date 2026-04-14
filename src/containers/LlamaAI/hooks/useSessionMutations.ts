@@ -38,11 +38,25 @@ export function useSessionMutations() {
 
 	// Shared restore mutation backs both full-session restore and paginated older-message loading.
 	const restoreSessionMutation = useMutation({
-		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
+		mutationFn: async ({
+			sessionId,
+			limit,
+			cursor,
+			around,
+			afterSequence
+		}: {
+			sessionId: string
+			limit?: number
+			cursor?: number
+			around?: string
+			afterSequence?: number
+		}) => {
 			try {
 				const params = new URLSearchParams()
 				if (limit !== undefined) params.append('limit', limit.toString())
 				if (cursor !== undefined) params.append('cursor', cursor.toString())
+				if (around) params.append('around', around)
+				if (afterSequence !== undefined) params.append('afterSequence', afterSequence.toString())
 
 				const url = `${AI_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
 				const response = await authorizedFetch(url)
@@ -251,16 +265,22 @@ export function useSessionMutations() {
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
-		async (sessionId: string, limit: number = 10) => {
+		async (sessionId: string, limit: number = 10, around?: string) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
+				const result = await restoreSessionMutation.mutateAsync({
+					sessionId,
+					limit: around ? 20 : limit,
+					around
+				})
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
 						hasMore: result.hasMore ?? false,
 						isLoadingMore: false,
 						cursor: result.nextCursor,
-						totalMessages: result.totalMessages
+						totalMessages: result.totalMessages,
+						hasNewer: result.hasNewer ?? false,
+						newerCursor: result.newerCursor
 					},
 					streaming: result.streaming
 				}
@@ -294,11 +314,31 @@ export function useSessionMutations() {
 		[restoreSessionMutation]
 	)
 
+	const loadNewerMessages = useCallback(
+		async (sessionId: string, afterSequence: number) => {
+			try {
+				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, afterSequence })
+				return {
+					messages: result.messages || result.conversationHistory || [],
+					pagination: {
+						hasNewer: result.hasNewer ?? false,
+						newerCursor: result.newerCursor
+					}
+				}
+			} catch (error) {
+				console.error('[llama-ai] [loadNewerMessages] failed:', getErrorMessage(error))
+				throw new Error(`Failed to load newer messages: ${getErrorMessage(error)}`)
+			}
+		},
+		[restoreSessionMutation]
+	)
+
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
+		loadNewerMessages,
 		deleteSession: deleteSessionMutation.mutateAsync,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		isCreatingSession: createSessionMutation.isPending,

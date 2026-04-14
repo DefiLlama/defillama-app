@@ -249,3 +249,17 @@ export interface SpawnAgentStatus {
 	chartCount?: number
 	findingsPreview?: string
 }
+
+export interface SearchMatch {
+	message_id: string | null
+	source_type: 'session_title' | 'user_message' | 'assistant_chunk'
+	content_preview: string
+	score: number
+}
+
+export interface SearchResult {
+	session_id: string
+	session_title: string | null
+	last_activity: string | null
+	matches: SearchMatch[]
+}

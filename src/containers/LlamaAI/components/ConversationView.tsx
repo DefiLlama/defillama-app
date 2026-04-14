@@ -347,7 +347,7 @@ export function ConversationView({
 
 				container?.addEventListener('scrollend', applyHighlight, { once: true })
 				fallbackTimer = window.setTimeout(applyHighlight, 500)
-				node.scrollIntoView({ behavior: 'smooth', block: 'end' })
+				node.scrollIntoView({ behavior: 'smooth', block: 'start' })
 			})
 		}
 	}

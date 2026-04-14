@@ -154,7 +154,7 @@ interface SharedSessionMessage {
 
 interface SessionRestoreResult {
 	messages?: PersistedMessage[]
-	pagination?: { hasMore?: boolean; cursor?: number | null }
+	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
 }
 
 interface RestoreSessionSnapshotResult {
@@ -354,15 +354,21 @@ function restoreScrollPosition(snapshot: { container: HTMLDivElement | null; pre
 }
 
 // Keep pagination state shape consistent across restore and load-more responses.
-function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: number | null } | undefined): {
+function normalizePaginationState(
+	pagination: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null } | undefined
+): {
 	hasMore: boolean
 	cursor: number | null
 	isLoadingMore: false
+	hasNewer?: boolean
+	newerCursor?: number | null
 } {
 	return {
 		hasMore: pagination?.hasMore || false,
 		cursor: pagination?.cursor ?? null,
-		isLoadingMore: false
+		isLoadingMore: false,
+		hasNewer: pagination?.hasNewer ?? false,
+		newerCursor: pagination?.newerCursor ?? null
 	}
 }
 
@@ -740,6 +746,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
+		loadNewerMessages,
 		deleteSession,
 		updateSessionTitle,
 		isDeletingSession,
@@ -795,6 +802,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		hasMore: boolean
 		cursor: number | null
 		isLoadingMore: boolean
+		hasNewer?: boolean
+		newerCursor?: number | null
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
 	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
@@ -1249,14 +1258,24 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	)
 
 	const restoreSessionSnapshot = useCallback(
-		async (targetSessionId: string, expectedRequestId: number): Promise<RestoreSessionSnapshotResult> => {
-			const result = await restoreSession(targetSessionId).catch(() => null as SessionRestoreResult | null)
+		async (
+			targetSessionId: string,
+			expectedRequestId: number,
+			options?: { around?: string }
+		): Promise<RestoreSessionSnapshotResult> => {
+			const result = await restoreSession(targetSessionId, 10, options?.around).catch(
+				() => null as SessionRestoreResult | null
+			)
 			if (!result || activeRequestIdRef.current !== expectedRequestId) {
 				return { restored: false, recoveredResponse: false }
 			}
 
 			const restored: Message[] = (result.messages || []).map(mapPersistedMessage)
 			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
+
+			if (options?.around) {
+				window.location.hash = `msg-${options.around}`
+			}
 
 			setMessages(restored)
 			setConversationViewResetKey((current) => current + 1)
@@ -1272,13 +1291,16 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
-				isLoadingMore: false
+				isLoadingMore: false,
+				hasNewer: result.pagination?.hasNewer ?? false,
+				newerCursor: result.pagination?.newerCursor ?? null
 			})
 			setViewError(null)
 			setPaginationError(null)
 			dispatchStream({ type: 'SET_ERROR', value: null })
 			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 			dispatchStream({ type: 'RESET_RECOVERY' })
+
 			return { restored: true, recoveredResponse }
 		},
 		[attach, restoreSession, sessions]
@@ -1506,8 +1528,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
-		async (selectedSessionId: string) => {
-			if (selectedSessionId === restoredSessionIdRef.current && selectedSessionId === sessionId) return
+		async (selectedSessionId: string, options?: { around?: string }) => {
+			if (selectedSessionId === restoredSessionIdRef.current && selectedSessionId === sessionId && !options?.around)
+				return
 			setRestoringSessionId(selectedSessionId)
 			await abortActiveRequest()
 			clearConversationRuntimeState()
@@ -1519,7 +1542,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
-			const { restored: restoredOk, recoveredResponse } = await restoreSessionSnapshot(selectedSessionId, requestId)
+			const { restored: restoredOk, recoveredResponse } = await restoreSessionSnapshot(
+				selectedSessionId,
+				requestId,
+				options
+			)
 
 			if (!restoredOk) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1530,7 +1557,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			}
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
+			window.history.replaceState(
+				null,
+				'',
+				`/ai/chat/${selectedSessionId}${options?.around ? `#msg-${options.around}` : ''}`
+			)
 			setRestoringSessionId(null)
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1567,6 +1598,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			resumeRunningExecution,
 			startRecoveryCycle
 		]
+	)
+
+	const handleSearchMatchClick = useCallback(
+		(sessionId: string, messageId: string) => {
+			void handleSessionSelect(sessionId, { around: messageId })
+		},
+		[handleSessionSelect]
 	)
 
 	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
@@ -2007,6 +2045,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							onBulkDelete={bulkDeleteSessions}
 							onPinSession={pinSession}
+							onSearchMatchClick={handleSearchMatchClick}
 						/>
 						<div className="flex min-h-11 lg:hidden" />
 					</>
