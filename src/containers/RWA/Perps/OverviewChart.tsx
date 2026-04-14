@@ -4,6 +4,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
+import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/Select/types'
 import { CHART_COLORS } from '~/constants/colors'
@@ -12,8 +13,8 @@ import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import { perpsDefinitions as d } from './definitions'
-import { hasEnoughTimeSeriesHistory } from './queries'
-import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey } from './types'
+import { groupRWAPerpsTimeSeriesDataset, hasEnoughTimeSeriesHistory } from './queries'
+import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey, RWAPerpsTimeSeriesMode } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -25,6 +26,10 @@ const CHART_TYPE_OPTIONS: Array<{ key: RWAPerpsChartMetricKey; label: string }> 
 
 const VALID_CHART_TYPES = new Set<RWAPerpsChartMetricKey>(CHART_TYPE_OPTIONS.map(({ key }) => key))
 const DEFAULT_CHART_TYPE: RWAPerpsChartMetricKey = 'openInterest'
+const TIME_SERIES_MODE_OPTIONS: Array<{ key: RWAPerpsTimeSeriesMode; label: string }> = [
+	{ key: 'grouped', label: 'Total' },
+	{ key: 'breakdown', label: 'Breakdown' }
+]
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
 const STACKS_QUERY_KEY = 'stacks'
 const EXCLUDE_STACKS_QUERY_KEY: ExcludeQueryKey = 'excludeStacks'
@@ -40,6 +45,16 @@ export function getRWAPerpsOverviewChartType(chartTypeQuery: string | undefined)
 export function getRWAPerpsOverviewChartTypeQueryPatch(nextChartType: RWAPerpsChartMetricKey) {
 	return {
 		chartType: nextChartType === DEFAULT_CHART_TYPE ? undefined : nextChartType
+	}
+}
+
+export function getRWAPerpsOverviewTimeSeriesMode(timeSeriesModeQuery: string | undefined): RWAPerpsTimeSeriesMode {
+	return timeSeriesModeQuery === 'breakdown' ? 'breakdown' : 'grouped'
+}
+
+export function getRWAPerpsOverviewTimeSeriesModeQueryPatch(nextTimeSeriesMode: RWAPerpsTimeSeriesMode) {
+	return {
+		timeSeriesMode: nextTimeSeriesMode === 'grouped' ? undefined : nextTimeSeriesMode
 	}
 }
 
@@ -101,6 +116,7 @@ export function RWAPerpsOverviewChart({
 }) {
 	const router = useRouter()
 	const chartType = getRWAPerpsOverviewChartType(readSingleQueryValue(router.query.chartType))
+	const timeSeriesMode = getRWAPerpsOverviewTimeSeriesMode(readSingleQueryValue(router.query.timeSeriesMode))
 	const isDefaultState = chartType === DEFAULT_CHART_TYPE
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['rwa-perps-overview-breakdown', breakdown, chartType],
@@ -110,7 +126,8 @@ export function RWAPerpsOverviewChart({
 		retry: 1,
 		enabled: !isDefaultState
 	})
-	const dataset = isDefaultState ? initialChartDataset : (data ?? EMPTY_DATASET)
+	const rawDataset = isDefaultState ? initialChartDataset : (data ?? EMPTY_DATASET)
+	const dataset = timeSeriesMode === 'grouped' ? groupRWAPerpsTimeSeriesDataset(rawDataset) : rawDataset
 	const hasTimeSeriesHistory = useMemo(() => hasEnoughTimeSeriesHistory(dataset), [dataset])
 	const showLoadingState = !isDefaultState && isLoading
 	const stackOptions = useMemo(() => dataset.dimensions.filter((dimension) => dimension !== 'timestamp'), [dataset])
@@ -136,6 +153,15 @@ export function RWAPerpsOverviewChart({
 		void pushShallowQuery(router, getRWAPerpsOverviewChartTypeQueryPatch(nextChartType))
 	}
 
+	const onSelectTimeSeriesMode = (nextTimeSeriesMode: string | string[]) => {
+		void pushShallowQuery(
+			router,
+			getRWAPerpsOverviewTimeSeriesModeQueryPatch(
+				(Array.isArray(nextTimeSeriesMode) ? nextTimeSeriesMode[0] : nextTimeSeriesMode) as RWAPerpsTimeSeriesMode
+			)
+		)
+	}
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3 pb-0">
@@ -151,6 +177,14 @@ export function RWAPerpsOverviewChart({
 						</button>
 					))}
 				</div>
+				<Select
+					allValues={TIME_SERIES_MODE_OPTIONS.map(({ key, label }) => ({ key, name: label }))}
+					selectedValues={timeSeriesMode}
+					setSelectedValues={onSelectTimeSeriesMode}
+					label={TIME_SERIES_MODE_OPTIONS.find(({ key }) => key === timeSeriesMode)?.label ?? 'Total'}
+					labelType="none"
+					variant="filter"
+				/>
 				{stackOptions.length > 1 ? (
 					<SelectWithCombobox
 						allValues={stackOptions}
@@ -166,7 +200,7 @@ export function RWAPerpsOverviewChart({
 				) : null}
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
-					filename={`rwa-perps-overview-breakdown-${breakdown}-${chartType}`}
+					filename={`rwa-perps-overview-breakdown-${breakdown}-${chartType}-${timeSeriesMode}`}
 					title={`RWA Perps ${CHART_TYPE_OPTIONS.find((option) => option.key === chartType)?.label ?? 'Breakdown'}`}
 					smol
 				/>

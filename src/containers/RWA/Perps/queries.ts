@@ -483,7 +483,7 @@ export async function getRWAPerpsVenuesOverview(): Promise<IRWAPerpsVenuesOvervi
 	const stats = await fetchRWAPerpsStats()
 	assertHasVenueBuckets(stats)
 	const initialChartDataset = await getRWAPerpsBreakdownChartDataset({
-		breakdown: 'baseAsset',
+		breakdown: 'venue',
 		key: 'openInterest'
 	})
 

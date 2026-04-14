@@ -222,6 +222,13 @@ beforeEach(() => {
 			]
 		}
 
+		if (target === 'all' && key === 'openInterest' && breakdown === 'venue') {
+			return [
+				{ timestamp: 1774483200000, xyz: 120 },
+				{ timestamp: 1774569600000, xyz: 250, flx: 100 }
+			]
+		}
+
 		if (target === 'all' && key === 'markets' && breakdown === 'baseAsset') {
 			return [
 				{ timestamp: 1774483200000, Meta: 1 },
@@ -564,7 +571,10 @@ describe('perps overview helpers', () => {
 					volume24hShare: 40 / 200,
 					markets: 1
 				}
-			]
+			],
+			initialChartDataset: {
+				dimensions: ['timestamp', 'xyz', 'flx']
+			}
 		})
 	})
 
