@@ -804,6 +804,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		isLoadingMore: boolean
 		hasNewer?: boolean
 		newerCursor?: number | null
+		isLoadingNewer?: boolean
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
 	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
@@ -854,8 +855,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 	const shouldAnimateConversationTransition =
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
-	const shouldStartDetachedForAnchor =
-		Boolean(sharedSession) && readOnly && typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
+	const shouldStartDetachedForAnchor = typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
 
 	useEffect(() => {
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
@@ -964,9 +964,37 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 	}, [sessionId, paginationState, loadMoreMessages, isStreaming])
 
+	// Load newer messages when the user reaches the bottom of a mid-conversation restore window.
+	const handleLoadNewerMessages = useCallback(async () => {
+		if (!sessionId || !paginationState.hasNewer || paginationState.isLoadingNewer || isStreaming) return
+
+		setPaginationError(null)
+		setPaginationState((prev) => ({ ...prev, isLoadingNewer: true }))
+		const result = await loadNewerMessages(sessionId, paginationState.newerCursor!).catch(() => {
+			setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
+			setPaginationError('Failed to load newer messages')
+			return null
+		})
+		if (!result) return
+
+		const newer = mapPersistedMessages(result.messages)
+		setMessages((prev) => [...prev, ...newer])
+
+		setPaginationState((prev) => ({
+			...prev,
+			isLoadingNewer: false,
+			hasNewer: result.pagination?.hasNewer ?? false,
+			newerCursor: result.pagination?.newerCursor ?? null
+		}))
+	}, [sessionId, paginationState, loadNewerMessages, isStreaming])
+
 	// Expose the load-more callback through a stable event wrapper for the scroll listener.
 	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
 		void handleLoadMoreMessages()
+	})
+
+	const handleLoadNewerMessagesEvent = useEffectEvent(() => {
+		void handleLoadNewerMessages()
 	})
 
 	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
@@ -976,6 +1004,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		hasMessages,
 		paginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
+		onLoadNewerMessages: handleLoadNewerMessagesEvent,
 		keyboardOpen,
 		startDetached: shouldStartDetachedForAnchor
 	})
@@ -1287,7 +1316,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
-			attach()
+			if (!options?.around) {
+				attach()
+			}
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
@@ -1975,13 +2006,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [initialSessionId])
 
 	// Restore the requested session as soon as the routed session id becomes available.
+	// If the URL contains a #msg-<id> hash, extract it and pass as the `around` anchor
+	// so the restore window centers on that message instead of loading from the bottom.
 	useEffect(() => {
 		const nextSessionId = pendingInitialSessionIdRef.current
 		if (!nextSessionId) return
 
 		pendingInitialSessionIdRef.current = undefined
 		restoredSessionIdRef.current = null
-		void handleSessionSelect(nextSessionId)
+		const hash = typeof window !== 'undefined' ? window.location.hash : ''
+		const anchorMatch = hash.match(/^#msg-(.+)$/)
+		void handleSessionSelect(nextSessionId, anchorMatch ? { around: anchorMatch[1] } : undefined)
 	}, [initialSessionId, handleSessionSelect])
 
 	// Shared/public sessions are read-only snapshots, so they should never create a fake local session.
