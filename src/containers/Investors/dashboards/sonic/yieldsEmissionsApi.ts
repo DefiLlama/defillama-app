@@ -19,6 +19,29 @@ export interface YieldPool {
 	apyReward: number | null
 }
 
+interface BurnData {
+	price: number
+	gasPrice: number
+	totalSupply: number
+	initialSupply: number
+	netIssuance: number
+	feesPerDay: number
+	permanentBurnPerDay: number
+	permanentBurnPerYear: number
+	feeMPerDay: number
+	validatorFeesPerDay: number
+	burnRatePercent: number
+	feeDistribution: {
+		feeMPercent: number
+		burntPercent: number
+		validatorPercent: number
+	}
+	currentEpoch: number
+	lastEpochFee: number
+	lastEpochEndTime: number
+	avgEpochDuration: number
+}
+
 interface YieldsEmissionsAPIResponse {
 	yields: {
 		pools: YieldPool[]
@@ -41,10 +64,18 @@ interface YieldsEmissionsAPIResponse {
 			name: string
 		}
 	}
+	burn: BurnData | null
 }
 
 function parseDateToUnix(dateStr: string): number {
 	return Math.floor(new Date(dateStr + 'T00:00:00Z').getTime() / 1000)
+}
+
+function formatBurnNumber(n: number): string {
+	if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`
+	if (n >= 1e6) return `${(n / 1e6).toFixed(2)}M`
+	if (n >= 1e3) return `${(n / 1e3).toFixed(1)}K`
+	return n.toLocaleString('en-US')
 }
 
 function transformTimeSeries(
@@ -85,6 +116,28 @@ export function useYieldsEmissionsData() {
 		const emissionsStacks = d.emissions.emissionsChart.series.map((s) => s.name)
 		const emissionsColors = assignColors(emissionsStacks)
 
+		// Burn data
+		const burn = d.burn
+			? {
+					permanentBurnPerDay: {
+						value: d.burn.permanentBurnPerDay,
+						formatted: `${formatBurnNumber(d.burn.permanentBurnPerDay)} S`
+					},
+					permanentBurnPerYear: {
+						value: d.burn.permanentBurnPerYear,
+						formatted: `${formatBurnNumber(d.burn.permanentBurnPerYear)} S`
+					},
+					burnRate: {
+						value: d.burn.burnRatePercent,
+						formatted: `${(d.burn.burnRatePercent * 100).toFixed(2)}%`
+					},
+					feesPerDay: {
+						value: d.burn.feesPerDay,
+						formatted: `${formatBurnNumber(d.burn.feesPerDay)} S`
+					}
+				}
+			: null
+
 		return {
 			data: {
 				emissions: {
@@ -97,7 +150,8 @@ export function useYieldsEmissionsData() {
 				yields: {
 					pools: d.yields.pools,
 					kpis: d.yields.kpis
-				}
+				},
+				burn
 			},
 			isLoading: false
 		}

@@ -80,6 +80,13 @@ interface EcosystemAPIResponse {
 	}
 }
 
+function formatUsdValue(n: number): string {
+	if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`
+	if (n >= 1e6) return `$${(n / 1e6).toFixed(2)}M`
+	if (n >= 1e3) return `$${(n / 1e3).toFixed(1)}K`
+	return `$${n.toFixed(2)}`
+}
+
 function parseDateToUnix(dateStr: string): number {
 	return Math.floor(new Date(dateStr + 'T00:00:00Z').getTime() / 1000)
 }
@@ -139,6 +146,24 @@ export function useEcosystemData() {
 		const stableStacks = stableSeries.map((s) => s.name)
 		const stableColors = assignColors(stableStacks)
 
+		// Stablecoin breakdown by individual coin
+		const latestIdx = d.stablecoins.stablecoinChart.dates.length - 1
+		const stableBreakdown = stableSeries
+			.map((s) => {
+				const latestValue = latestIdx >= 0 ? (s.data[latestIdx] ?? 0) : 0
+				return { name: s.name, value: latestValue }
+			})
+			.filter((item) => item.value > 0)
+			.sort((a, b) => b.value - a.value)
+		const stableBreakdownTotal = stableBreakdown.reduce((sum, item) => sum + item.value, 0)
+		const stableBreakdownWithPct = stableBreakdown.map((item) => ({
+			...item,
+			formatted: formatUsdValue(item.value),
+			pct: stableBreakdownTotal > 0 ? ((item.value / stableBreakdownTotal) * 100).toFixed(1) : '0'
+		}))
+		const stablePieData = stableBreakdown.map((item) => ({ name: item.name, value: item.value }))
+		const stablePieColors = assignColors(stableBreakdown.map((item) => item.name))
+
 		// Chain Assets — skip "total" category
 		const assetCategories = d.chainAssets.assetBreakdown.categories.filter((c) => c.name !== 'total')
 		const assetPieData = assetCategories.map((c) => ({ name: c.name, value: c.value }))
@@ -171,7 +196,12 @@ export function useEcosystemData() {
 					stacks: stableStacks,
 					colors: stableColors,
 					kpis: d.stablecoins.kpis,
-					title: d.stablecoins.stablecoinChart.title
+					title: d.stablecoins.stablecoinChart.title,
+					breakdown: stableBreakdownWithPct,
+					pieData: stablePieData,
+					pieColors: stablePieColors,
+					breakdownTotal: stableBreakdownTotal,
+					breakdownTotalFormatted: formatUsdValue(stableBreakdownTotal)
 				},
 				chainAssets: {
 					categories: assetCategories,

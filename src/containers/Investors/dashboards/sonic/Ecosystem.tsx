@@ -384,6 +384,49 @@ export default function Ecosystem() {
 				</ChartCard>
 			</div>
 
+			{/* Stablecoin Supply Breakdown */}
+			{data.stablecoins.breakdown.length > 0 && (
+				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
+					<h3 className="mb-4 text-sm font-medium text-(--text-label)">Stablecoin Supply Breakdown</h3>
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div className="min-h-[320px]">
+							<PieChart
+								chartData={data.stablecoins.pieData}
+								stackColors={data.stablecoins.pieColors}
+								radius={['40%', '70%']}
+								height="320px"
+								valueSymbol="$"
+							/>
+						</div>
+						<div>
+							<div className="max-h-[400px] overflow-y-auto">
+								{data.stablecoins.breakdown.map((coin) => {
+									const color = data.stablecoins.pieColors[coin.name] || '#8b949e'
+									return (
+										<div
+											key={coin.name}
+											className="flex items-center gap-2 border-b border-(--cards-border) py-2.5 last:border-b-0"
+										>
+											<span
+												className="inline-block h-2 w-2 shrink-0 rounded-full"
+												style={{ background: color }}
+											/>
+											<span className="min-w-0 flex-1 truncate text-sm text-(--text-primary)">{coin.name}</span>
+											<span className="shrink-0 text-sm font-semibold text-(--text-primary)">{coin.formatted}</span>
+											<span className="w-12 shrink-0 text-right text-xs text-(--text-label)">{coin.pct}%</span>
+										</div>
+									)
+								})}
+							</div>
+							<div className="mt-3 flex items-center justify-between border-t border-(--cards-border) pt-3">
+								<span className="text-sm text-(--text-label)">Total</span>
+								<span className="text-sm font-bold text-(--text-primary)">{data.stablecoins.breakdownTotalFormatted}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Chain Assets */}
 			<div className="flex flex-col gap-4">
 				<SectionHeader>Chain Assets</SectionHeader>
