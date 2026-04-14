@@ -277,6 +277,36 @@ export default function FeeM() {
 
 	return (
 		<div className="flex flex-col gap-6">
+			{/* FeeM Introduction */}
+			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5">
+				<p className="text-sm leading-relaxed text-(--text-secondary)">
+					FeeM lets builders earn directly from the transaction activity they generate on Sonic. It creates a built-in
+					revenue stream at the network layer, allowing apps to capture value from usage without needing a separate
+					chain.
+				</p>
+				<h3 className="mt-4 text-xs font-semibold tracking-wider text-(--text-label) uppercase">Fee Distribution</h3>
+				<div className="mt-3 flex h-10 overflow-hidden rounded-lg">
+					<div className="flex items-center justify-center" style={{ width: '90%', background: '#3b5d88' }}>
+						<span className="text-sm font-bold text-white">90%</span>
+					</div>
+					<div className="flex items-center justify-center" style={{ width: '10%', background: '#7f6562' }}>
+						<span className="text-[10px] font-bold text-white">10%</span>
+					</div>
+				</div>
+				<div className="mt-2.5 flex items-start text-sm">
+					<div className="flex-1">
+						<span className="font-medium text-(--text-primary)">App / Builder</span>
+						<span className="ml-2 text-xs text-(--text-label)">
+							Direct revenue, app incentives, or gas subsidies
+						</span>
+					</div>
+					<div className="text-right" style={{ minWidth: '80px' }}>
+						<span className="font-medium text-(--text-primary)">Validators</span>
+						<span className="ml-2 text-xs text-(--text-label)">50% burned</span>
+					</div>
+				</div>
+			</div>
+
 			{/* Global KPIs */}
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 				<KpiCard label="Total Contracts" value={data.globalKpis.totalContracts.formatted} />

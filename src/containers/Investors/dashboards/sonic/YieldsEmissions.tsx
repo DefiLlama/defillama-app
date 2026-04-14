@@ -124,6 +124,32 @@ export default function YieldsEmissions() {
 				</ChartCard>
 			</div>
 
+			{/* Burns */}
+			{data.burn && (
+				<div className="flex flex-col gap-4">
+					<div className="flex items-center justify-between">
+						<SectionHeader>S Token Burns</SectionHeader>
+						<a
+							href="https://burn.soniclabs.com"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="inline-flex items-center gap-1 text-sm font-medium text-(--sl-accent) transition-colors hover:underline"
+						>
+							View Burn Counter
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-3 w-3">
+								<path d="M7 17L17 7M17 7H7M17 7v10" />
+							</svg>
+						</a>
+					</div>
+					<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+						<KpiCard label="Permanent Burn / Day" value={data.burn.permanentBurnPerDay.formatted} />
+						<KpiCard label="Permanent Burn / Year" value={data.burn.permanentBurnPerYear.formatted} />
+						<KpiCard label="Burn Rate" value={data.burn.burnRate.formatted} />
+						<KpiCard label="Fees / Day" value={data.burn.feesPerDay.formatted} />
+					</div>
+				</div>
+			)}
+
 			{/* Yield Pools */}
 			<div className="flex flex-col gap-4">
 				<SectionHeader>Yield Pools</SectionHeader>
