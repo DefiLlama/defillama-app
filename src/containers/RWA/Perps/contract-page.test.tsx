@@ -23,6 +23,7 @@ function setupPageModule({
 				contracts,
 				venues: [],
 				categories: [],
+				assetGroups: [],
 				total: contracts.length
 			}
 		}

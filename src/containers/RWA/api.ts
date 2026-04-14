@@ -1,3 +1,4 @@
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
@@ -90,22 +91,17 @@ function normalizeRWABreakdownChartRows(rows: IRWABreakdownChartResponse): IRWAB
 	const normalizedRows: IRWABreakdownChartResponse = []
 
 	for (const row of rows ?? []) {
-		const timestampRaw = Number(row.timestamp)
-		if (!Number.isFinite(timestampRaw)) continue
+		const normalizedRow: IRWABreakdownChartRow = { timestamp: toUnixMsTimestamp(Number(row.timestamp)) }
 
-		const normalizedRow: IRWABreakdownChartRow = { timestamp: toUnixMsTimestamp(timestampRaw) }
-
-		for (const [key, value] of Object.entries(row)) {
+		for (const key in row) {
 			if (key === 'timestamp') continue
-			const numericValue = Number(value)
-			if (!Number.isFinite(numericValue)) continue
-			normalizedRow[key] = numericValue
+			normalizedRow[key] = row[key]
 		}
 
 		normalizedRows.push(normalizedRow)
 	}
 
-	return normalizedRows.toSorted((a, b) => a.timestamp - b.timestamp)
+	return ensureChronologicalRows(normalizedRows)
 }
 
 /**

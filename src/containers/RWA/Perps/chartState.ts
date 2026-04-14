@@ -1,6 +1,9 @@
 import type { ParsedUrlQuery } from 'querystring'
 import { readSingleQueryValue } from '~/utils/routerQuery'
 import type {
+	RWAPerpsAssetGroupNonTimeSeriesBreakdown,
+	RWAPerpsAssetGroupTimeSeriesBreakdown,
+	RWAPerpsAssetGroupTreemapBreakdown,
 	RWAPerpsChartMetricKey,
 	RWAPerpsChartMode,
 	RWAPerpsChartView,
@@ -14,11 +17,18 @@ import type {
 	RWAPerpsVenueTreemapBreakdown
 } from './types'
 
-export type RWAPerpsTimeSeriesBreakdown = RWAPerpsOverviewTimeSeriesBreakdown | RWAPerpsVenueTimeSeriesBreakdown
+export type RWAPerpsTimeSeriesBreakdown =
+	| RWAPerpsOverviewTimeSeriesBreakdown
+	| RWAPerpsVenueTimeSeriesBreakdown
+	| RWAPerpsAssetGroupTimeSeriesBreakdown
 export type RWAPerpsNonTimeSeriesBreakdown =
 	| RWAPerpsOverviewNonTimeSeriesBreakdown
 	| RWAPerpsVenueNonTimeSeriesBreakdown
-export type RWAPerpsTreemapBreakdown = RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
+	| RWAPerpsAssetGroupNonTimeSeriesBreakdown
+export type RWAPerpsTreemapBreakdown =
+	| RWAPerpsOverviewTreemapBreakdown
+	| RWAPerpsVenueTreemapBreakdown
+	| RWAPerpsAssetGroupTreemapBreakdown
 export type RWAPerpsChartBreakdown =
 	| RWAPerpsTimeSeriesBreakdown
 	| RWAPerpsNonTimeSeriesBreakdown
@@ -63,18 +73,21 @@ const TIME_SERIES_MODE_OPTIONS: ReadonlyArray<RWAPerpsChartOption<RWAPerpsTimeSe
 const CHART_METRIC_KEYS: ReadonlyArray<RWAPerpsChartMetricKey> = ['openInterest', 'volume24h', 'markets']
 
 const TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTimeSeriesBreakdown[]> = {
-	overview: ['baseAsset', 'venue', 'assetClass', 'contract'],
-	venue: ['baseAsset', 'contract', 'assetClass']
+	overview: ['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'],
+	venue: ['assetGroup', 'baseAsset', 'contract', 'assetClass'],
+	assetGroup: ['baseAsset', 'venue', 'assetClass', 'contract']
 }
 
 const NON_TIME_SERIES_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsNonTimeSeriesBreakdown[]> = {
 	overview: ['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'],
-	venue: ['assetGroup', 'baseAsset', 'contract', 'assetClass']
+	venue: ['assetGroup', 'baseAsset', 'contract', 'assetClass'],
+	assetGroup: ['baseAsset', 'venue', 'assetClass', 'contract']
 }
 
 const TREEMAP_BREAKDOWNS: Record<RWAPerpsChartMode, readonly RWAPerpsTreemapBreakdown[]> = {
 	overview: ['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'],
-	venue: ['assetGroup', 'baseAsset', 'assetClass', 'contract']
+	venue: ['assetGroup', 'baseAsset', 'assetClass', 'contract'],
+	assetGroup: ['baseAsset', 'venue', 'assetClass', 'contract']
 }
 
 const TREEMAP_NESTED_BY_OPTIONS: Record<
@@ -90,6 +103,12 @@ const TREEMAP_NESTED_BY_OPTIONS: Record<
 	},
 	venue: {
 		assetGroup: ['none', 'baseAsset', 'assetClass', 'contract'],
+		assetClass: ['none', 'baseAsset', 'contract'],
+		baseAsset: ['none', 'contract'],
+		contract: ['none']
+	},
+	assetGroup: {
+		venue: ['none', 'baseAsset', 'assetClass', 'contract'],
 		assetClass: ['none', 'baseAsset', 'contract'],
 		baseAsset: ['none', 'contract'],
 		contract: ['none']
@@ -109,6 +128,12 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 	},
 	venue: {
 		assetGroup: 'baseAsset',
+		assetClass: 'baseAsset',
+		baseAsset: 'contract',
+		contract: 'none'
+	},
+	assetGroup: {
+		venue: 'baseAsset',
 		assetClass: 'baseAsset',
 		baseAsset: 'contract',
 		contract: 'none'

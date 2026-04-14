@@ -2,45 +2,53 @@ import { describe, expect, it } from 'vitest'
 import { parseOverviewBreakdownRequest } from '~/pages/api/rwa/perps/overview-breakdown'
 
 describe('parseOverviewBreakdownRequest', () => {
-	it('accepts venue requests', () => {
+	it('accepts overview requests without a target', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
-					breakdown: 'venue',
-					key: 'volume24h'
-				}
-			})
-		).toEqual({
-			breakdown: 'venue',
-			key: 'volume24h'
-		})
-	})
-
-	it('accepts regrouped overview requests', () => {
-		expect(
-			parseOverviewBreakdownRequest({
-				query: {
-					breakdown: 'assetClass',
+					breakdown: 'assetGroup',
 					key: 'openInterest'
 				}
 			})
 		).toEqual({
-			breakdown: 'assetClass',
+			breakdown: 'assetGroup',
 			key: 'openInterest'
 		})
+	})
 
+	it('accepts venue-targeted requests', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
+					venue: ' xyz ',
 					breakdown: 'baseAsset',
+					key: 'volume24h'
+				}
+			})
+		).toEqual({
+			venue: 'xyz',
+			breakdown: 'baseAsset',
+			key: 'volume24h'
+		})
+	})
+
+	it('accepts asset-group-targeted requests', () => {
+		expect(
+			parseOverviewBreakdownRequest({
+				query: {
+					assetGroup: 'US Equities',
+					breakdown: 'venue',
 					key: 'markets'
 				}
 			})
 		).toEqual({
-			breakdown: 'baseAsset',
+			assetGroup: 'US Equities',
+			breakdown: 'venue',
 			key: 'markets'
 		})
+	})
 
+	it('rejects contract breakdowns and invalid target combinations', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
@@ -48,31 +56,14 @@ describe('parseOverviewBreakdownRequest', () => {
 					key: 'markets'
 				}
 			})
-		).toEqual({
-			breakdown: 'contract',
-			key: 'markets'
-		})
-	})
+		).toBeNull()
 
-	it('accepts markets requests', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
-					breakdown: 'venue',
-					key: 'markets'
-				}
-			})
-		).toEqual({
-			breakdown: 'venue',
-			key: 'markets'
-		})
-	})
-
-	it('rejects invalid query params', () => {
-		expect(
-			parseOverviewBreakdownRequest({
-				query: {
-					breakdown: 'asset',
+					venue: 'xyz',
+					assetGroup: 'US Equities',
+					breakdown: 'baseAsset',
 					key: 'openInterest'
 				}
 			})
@@ -81,8 +72,9 @@ describe('parseOverviewBreakdownRequest', () => {
 		expect(
 			parseOverviewBreakdownRequest({
 				query: {
-					breakdown: 'venue',
-					key: 'activeMcap'
+					venue: '   ',
+					breakdown: 'baseAsset',
+					key: 'openInterest'
 				}
 			})
 		).toBeNull()

@@ -135,6 +135,20 @@ const venueData = {
 	}
 }
 
+const assetGroupData = {
+	assetGroup: 'Equities',
+	markets: overviewData.markets,
+	initialChartDataset: overviewData.initialChartDataset,
+	assetGroupLinks: [{ label: 'All', to: '/rwa/perps/asset-groups' }],
+	totals: {
+		openInterest: 100,
+		volume24h: 50,
+		volume24hChange24h: -10,
+		markets: 1,
+		protocolFees24h: 1
+	}
+}
+
 describe('RWAPerpsDashboard treemap controls', () => {
 	beforeEach(() => {
 		routerQuery = {}
@@ -235,6 +249,17 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		])
 	})
 
+	it('shows asset-group detail tables with the venue column restored', () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="assetGroup" data={assetGroupData} />)
+
+		expect(lastTableWithSearchProps.columns.slice(0, 4).map((column: any) => column.header)).toEqual([
+			'Contract',
+			'Venue',
+			'Base Asset',
+			'Asset Class'
+		])
+	})
+
 	it('shows an explicit empty state when time-series data only has a single timestamp', () => {
 		routerQuery = {
 			chartView: 'timeSeries',
@@ -283,7 +308,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
 		expect(html).toContain('Grouped')
-		expect(html).toContain('Base Asset')
+		expect(html).toContain('Asset Group')
 	})
 
 	it('renders the breakdown time-series mode label when selected', () => {

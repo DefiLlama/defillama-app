@@ -2,7 +2,8 @@ import { ButtonLink } from '~/components/Link'
 
 const tabs = [
 	{ id: 'overview', name: 'Overview', route: '/rwa/perps' },
-	{ id: 'venues', name: 'Venues', route: '/rwa/perps/venues' }
+	{ id: 'venues', name: 'Venues', route: '/rwa/perps/venues' },
+	{ id: 'assetGroups', name: 'Asset Groups', route: '/rwa/perps/asset-groups' }
 ] as const
 
 export type RWAPerpsTab = (typeof tabs)[number]['id']

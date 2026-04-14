@@ -1,7 +1,7 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import type { IRWAPerpsAggregateHistoricalPoint, IRWAPerpsMarket, IRWAPerpsMarketChartPoint } from './api.types'
+import type { IRWAPerpsMarket, IRWAPerpsMarketChartPoint } from './api.types'
 
-interface IRWAPerpsNavLink {
+export interface IRWAPerpsNavLink {
 	label: string
 	to: string
 }
@@ -40,34 +40,49 @@ export interface IRWAPerpsContractData {
 	fundingHistory: IRWAPerpsContractFundingHistoryPoint[] | null
 }
 
-export type IRWAPerpsTimeSeriesRow = IRWAPerpsMarket | IRWAPerpsAggregateHistoricalPoint
-
 export type RWAPerpsChartMetricKey = 'openInterest' | 'volume24h' | 'markets'
 export type RWAPerpsChartView = 'timeSeries' | 'pie' | 'treemap' | 'hbar'
 export type RWAPerpsTimeSeriesMode = 'grouped' | 'breakdown'
 export type RWAPerpsTreemapNestedBy = 'none' | 'venue' | 'assetClass' | 'baseAsset' | 'contract'
 
-export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
-export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewBreakdown = 'venue' | 'assetClass' | 'assetGroup' | 'baseAsset' | 'contract'
+export type RWAPerpsOverviewTimeSeriesBreakdown = 'venue' | 'assetClass' | 'assetGroup' | 'baseAsset' | 'contract'
 export type RWAPerpsOverviewNonTimeSeriesBreakdown = 'assetGroup' | 'venue' | 'assetClass' | 'baseAsset' | 'contract'
 export type RWAPerpsOverviewTreemapBreakdown = 'venue' | 'assetClass' | 'baseAsset' | 'assetGroup' | 'contract'
-export type RWAPerpsVenueBreakdown = 'baseAsset' | 'contract' | 'assetClass'
-export type RWAPerpsVenueTimeSeriesBreakdown = 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsVenueBreakdown = 'assetGroup' | 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsVenueTimeSeriesBreakdown = 'assetGroup' | 'baseAsset' | 'contract' | 'assetClass'
 export type RWAPerpsVenueNonTimeSeriesBreakdown = 'assetGroup' | 'baseAsset' | 'contract' | 'assetClass'
 export type RWAPerpsVenueTreemapBreakdown = 'assetClass' | 'baseAsset' | 'assetGroup' | 'contract'
+export type RWAPerpsAssetGroupBreakdown = 'venue' | 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsAssetGroupTimeSeriesBreakdown = 'venue' | 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsAssetGroupNonTimeSeriesBreakdown = 'venue' | 'baseAsset' | 'contract' | 'assetClass'
+export type RWAPerpsAssetGroupTreemapBreakdown = 'venue' | 'baseAsset' | 'assetClass' | 'contract'
 export type RWAPerpsOverviewSnapshotBreakdown = RWAPerpsOverviewNonTimeSeriesBreakdown
 export type RWAPerpsVenueSnapshotBreakdown = RWAPerpsVenueNonTimeSeriesBreakdown
-export type RWAPerpsChartMode = 'overview' | 'venue'
+export type RWAPerpsAssetGroupSnapshotBreakdown = RWAPerpsAssetGroupNonTimeSeriesBreakdown
+export type RWAPerpsChartMode = 'overview' | 'venue' | 'assetGroup'
 
 export interface IRWAPerpsOverviewBreakdownRequest {
-	breakdown: RWAPerpsOverviewBreakdown
+	breakdown: Exclude<RWAPerpsOverviewBreakdown, 'contract'>
 	key: RWAPerpsChartMetricKey
 }
 
 export interface IRWAPerpsVenueBreakdownRequest {
 	venue: string
-	breakdown: RWAPerpsVenueBreakdown
+	breakdown: Exclude<RWAPerpsVenueBreakdown, 'contract'>
 	key: RWAPerpsChartMetricKey
+}
+
+export interface IRWAPerpsAssetGroupBreakdownRequest {
+	assetGroup: string
+	breakdown: Exclude<RWAPerpsAssetGroupBreakdown, 'contract'>
+	key: RWAPerpsChartMetricKey
+}
+
+export interface IRWAPerpsContractBreakdownRequest {
+	key: RWAPerpsChartMetricKey
+	venue?: string
+	assetGroup?: string
 }
 
 export interface IRWAPerpsOverviewPageData {
@@ -98,6 +113,20 @@ export interface IRWAPerpsVenuePageData {
 	}
 }
 
+export interface IRWAPerpsAssetGroupPageData {
+	assetGroup: string
+	markets: IRWAPerpsMarket[]
+	initialChartDataset: MultiSeriesChart2Dataset
+	assetGroupLinks: IRWAPerpsNavLink[]
+	totals: {
+		openInterest: number
+		volume24h: number
+		volume24hChange24h: number | null
+		markets: number
+		protocolFees24h: number
+	}
+}
+
 export interface IRWAPerpsVenuesOverviewRow {
 	venue: string
 	openInterest: number
@@ -109,5 +138,19 @@ export interface IRWAPerpsVenuesOverviewRow {
 
 export interface IRWAPerpsVenuesOverview {
 	rows: IRWAPerpsVenuesOverviewRow[]
+	initialChartDataset: MultiSeriesChart2Dataset
+}
+
+export interface IRWAPerpsAssetGroupsOverviewRow {
+	assetGroup: string
+	openInterest: number
+	openInterestShare: number
+	volume24h: number
+	volume24hShare: number
+	markets: number
+}
+
+export interface IRWAPerpsAssetGroupsOverview {
+	rows: IRWAPerpsAssetGroupsOverviewRow[]
 	initialChartDataset: MultiSeriesChart2Dataset
 }

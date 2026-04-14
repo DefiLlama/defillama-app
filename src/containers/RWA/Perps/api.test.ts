@@ -26,13 +26,26 @@ describe('rwa perps api urls', () => {
 		await api.fetchRWAPerpsMarketById('xyz:META/2026')
 		await api.fetchRWAPerpsMarketsByContract('xyz:META/2026')
 		await api.fetchRWAPerpsMarketsByVenue('my venue')
+		await api.fetchRWAPerpsMarketsByAssetGroup('US Equities')
 		await api.fetchRWAPerpsVenueChart('venue/one')
+		await api.fetchRWAPerpsOverviewBreakdownChartData({
+			breakdown: 'assetGroup',
+			key: 'openInterest',
+			venue: 'xyz'
+		})
+		await api.fetchRWAPerpsContractBreakdownChartData({
+			key: 'markets',
+			assetGroup: 'US Equities'
+		})
 
 		expect(fetchJson.mock.calls).toEqual([
-			['https://example.com/rwa-perps/market/xyz%3AMETA%2F2026'],
-			['https://example.com/rwa-perps/contract/xyz%3AMETA%2F2026'],
-			['https://example.com/rwa-perps/venue/my%20venue'],
-			['https://example.com/rwa-perps/chart/venue/venue%2Fone']
+			['https://example.com/rwa-perps/market/xyz%3AMETA%2F2026?zz=12'],
+			['https://example.com/rwa-perps/contract/xyz%3AMETA%2F2026?zz=12'],
+			['https://example.com/rwa-perps/venue/my%20venue?zz=12'],
+			['https://example.com/rwa-perps/assetGroup/US%20Equities?zz=12'],
+			['https://example.com/rwa-perps/chart/venue/venue%2Fone?zz=12'],
+			['https://example.com/rwa-perps/chart/overview-breakdown?breakdown=assetGroup&key=openInterest&venue=xyz'],
+			['https://example.com/rwa-perps/chart/contract-breakdown?key=markets&assetGroup=US+Equities']
 		])
 	})
 
@@ -43,8 +56,8 @@ describe('rwa perps api urls', () => {
 		await api.fetchRWAPerpsFundingHistory('xyz:META')
 
 		expect(fetchJson.mock.calls).toEqual([
-			['https://example.com/rwa-perps/funding/xyz%3AMETA?startTime=10&endTime=20'],
-			['https://example.com/rwa-perps/funding/xyz%3AMETA']
+			['https://example.com/rwa-perps/funding/xyz%3AMETA?startTime=10&endTime=20&zz=12'],
+			['https://example.com/rwa-perps/funding/xyz%3AMETA?zz=12']
 		])
 	})
 })

@@ -29,6 +29,7 @@ describe('parseRWAPerpsChartState', () => {
 	it('defaults to treemap when no chart view is provided', () => {
 		const overviewState = parseRWAPerpsChartState({}, 'overview')
 		const venueState = parseRWAPerpsChartState({}, 'venue')
+		const assetGroupState = parseRWAPerpsChartState({}, 'assetGroup')
 
 		expect(overviewState).toMatchObject({
 			view: 'treemap',
@@ -41,6 +42,12 @@ describe('parseRWAPerpsChartState', () => {
 			breakdown: 'assetGroup',
 			timeSeriesMode: 'grouped',
 			treemapNestedBy: 'baseAsset'
+		})
+		expect(assetGroupState).toMatchObject({
+			view: 'treemap',
+			breakdown: 'baseAsset',
+			timeSeriesMode: 'grouped',
+			treemapNestedBy: 'contract'
 		})
 	})
 
@@ -113,12 +120,15 @@ describe('parseRWAPerpsChartState', () => {
 
 describe('perps chartState options', () => {
 	it('uses the expected defaults for each page/view', () => {
-		expect(getDefaultRWAPerpsChartBreakdown('overview', 'timeSeries')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('overview', 'timeSeries')).toBe('assetGroup')
 		expect(getDefaultRWAPerpsChartBreakdown('overview', 'pie')).toBe('assetGroup')
 		expect(getDefaultRWAPerpsChartBreakdown('overview', 'treemap')).toBe('assetGroup')
-		expect(getDefaultRWAPerpsChartBreakdown('venue', 'timeSeries')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('venue', 'timeSeries')).toBe('assetGroup')
 		expect(getDefaultRWAPerpsChartBreakdown('venue', 'pie')).toBe('assetGroup')
 		expect(getDefaultRWAPerpsChartBreakdown('venue', 'treemap')).toBe('assetGroup')
+		expect(getDefaultRWAPerpsChartBreakdown('assetGroup', 'timeSeries')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('assetGroup', 'pie')).toBe('baseAsset')
+		expect(getDefaultRWAPerpsChartBreakdown('assetGroup', 'treemap')).toBe('baseAsset')
 	})
 
 	it('exposes chart metric options with key/name pairs', () => {
@@ -148,7 +158,7 @@ describe('perps chartState options', () => {
 				view: 'timeSeries',
 				labels: chartLabels
 			}).map(({ key }) => key)
-		).toEqual(['baseAsset', 'venue', 'assetClass', 'contract'])
+		).toEqual(['assetGroup', 'baseAsset', 'venue', 'assetClass', 'contract'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
@@ -174,7 +184,7 @@ describe('perps chartState options', () => {
 				view: 'timeSeries',
 				labels: chartLabels
 			}).map(({ key }) => key)
-		).toEqual(['baseAsset', 'contract', 'assetClass'])
+		).toEqual(['assetGroup', 'baseAsset', 'contract', 'assetClass'])
 
 		expect(
 			getRWAPerpsChartBreakdownOptions({
@@ -191,6 +201,32 @@ describe('perps chartState options', () => {
 				labels: chartLabels
 			}).map(({ key }) => key)
 		).toEqual(['assetGroup', 'baseAsset', 'assetClass', 'contract'])
+	})
+
+	it('exposes the intended asset-group grouping matrix', () => {
+		expect(
+			getRWAPerpsChartBreakdownOptions({
+				mode: 'assetGroup',
+				view: 'timeSeries',
+				labels: chartLabels
+			}).map(({ key }) => key)
+		).toEqual(['baseAsset', 'venue', 'assetClass', 'contract'])
+
+		expect(
+			getRWAPerpsChartBreakdownOptions({
+				mode: 'assetGroup',
+				view: 'pie',
+				labels: chartLabels
+			}).map(({ key }) => key)
+		).toEqual(['baseAsset', 'venue', 'assetClass', 'contract'])
+
+		expect(
+			getRWAPerpsChartBreakdownOptions({
+				mode: 'assetGroup',
+				view: 'treemap',
+				labels: chartLabels
+			}).map(({ key }) => key)
+		).toEqual(['baseAsset', 'venue', 'assetClass', 'contract'])
 	})
 
 	it('returns nested-group options keyed by treemap parent group', () => {
@@ -234,6 +270,16 @@ describe('perps chartState options', () => {
 			'contract'
 		])
 		expect(getRWAPerpsTreemapNestedByOptions('venue', 'contract', chartLabels).map(({ key }) => key)).toEqual(['none'])
+		expect(getRWAPerpsTreemapNestedByOptions('assetGroup', 'venue', chartLabels).map(({ key }) => key)).toEqual([
+			'none',
+			'baseAsset',
+			'assetClass',
+			'contract'
+		])
+		expect(getRWAPerpsTreemapNestedByOptions('assetGroup', 'baseAsset', chartLabels).map(({ key }) => key)).toEqual([
+			'none',
+			'contract'
+		])
 	})
 
 	it('defaults asset-group treemaps to nested base assets', () => {

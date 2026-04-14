@@ -2,6 +2,7 @@ import { RWA_PERPS_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	IRWAPerpsAggregateHistoricalPoint,
+	IRWAPerpsBreakdownChartResponse,
 	IRWAPerpsFundingHistoryParams,
 	IRWAPerpsFundingHistoryPoint,
 	IRWAPerpsIdMapResponse,
@@ -10,6 +11,7 @@ import type {
 	IRWAPerpsMarketChartPoint,
 	IRWAPerpsStatsResponse
 } from './api.types'
+import { normalizeRWAPerpsBreakdownChartRows } from './breakdownDataset'
 
 function encodeRWAPerpsPathSegment(value: string): string {
 	return encodeURIComponent(value)
@@ -85,6 +87,14 @@ export async function fetchRWAPerpsMarketsByVenue(venue: string): Promise<IRWAPe
 }
 
 /**
+ * Fetch all markets for an asset group.
+ */
+export async function fetchRWAPerpsMarketsByAssetGroup(assetGroup: string): Promise<IRWAPerpsMarket[]> {
+	const encodedAssetGroup = encodeRWAPerpsPathSegment(assetGroup)
+	return fetchJson<IRWAPerpsMarket[]>(`${RWA_PERPS_SERVER_URL}/assetGroup/${encodedAssetGroup}?zz=12`)
+}
+
+/**
  * Fetch the historical time-series for one market.
  */
 export async function fetchRWAPerpsMarketChart(id: string): Promise<IRWAPerpsMarketChartPoint[]> {
@@ -98,6 +108,53 @@ export async function fetchRWAPerpsMarketChart(id: string): Promise<IRWAPerpsMar
 export async function fetchRWAPerpsVenueChart(venue: string): Promise<IRWAPerpsAggregateHistoricalPoint[]> {
 	const encodedVenue = encodeRWAPerpsPathSegment(venue)
 	return fetchJson<IRWAPerpsAggregateHistoricalPoint[]>(`${RWA_PERPS_SERVER_URL}/chart/venue/${encodedVenue}?zz=12`)
+}
+
+type IRWAPerpsBreakdownChartParams = {
+	key: 'openInterest' | 'volume24h' | 'markets'
+	venue?: string
+	assetGroup?: string
+}
+
+export async function fetchRWAPerpsOverviewBreakdownChartData(
+	params: IRWAPerpsBreakdownChartParams & { breakdown: 'venue' | 'assetGroup' | 'assetClass' | 'baseAsset' }
+): Promise<IRWAPerpsBreakdownChartResponse | null> {
+	const searchParams = new URLSearchParams({
+		breakdown: params.breakdown,
+		key: params.key
+	})
+
+	if (params.venue) searchParams.set('venue', params.venue)
+	if (params.assetGroup) searchParams.set('assetGroup', params.assetGroup)
+
+	return fetchJson<IRWAPerpsBreakdownChartResponse>(
+		`${RWA_PERPS_SERVER_URL}/chart/overview-breakdown?${searchParams.toString()}`
+	)
+		.then((rows) => normalizeRWAPerpsBreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error('Failed to fetch RWA perps overview breakdown chart data:', error)
+			return null
+		})
+}
+
+export async function fetchRWAPerpsContractBreakdownChartData(
+	params: IRWAPerpsBreakdownChartParams
+): Promise<IRWAPerpsBreakdownChartResponse | null> {
+	const searchParams = new URLSearchParams({
+		key: params.key
+	})
+
+	if (params.venue) searchParams.set('venue', params.venue)
+	if (params.assetGroup) searchParams.set('assetGroup', params.assetGroup)
+
+	return fetchJson<IRWAPerpsBreakdownChartResponse>(
+		`${RWA_PERPS_SERVER_URL}/chart/contract-breakdown?${searchParams.toString()}`
+	)
+		.then((rows) => normalizeRWAPerpsBreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error('Failed to fetch RWA perps contract breakdown chart data:', error)
+			return null
+		})
 }
 
 /**

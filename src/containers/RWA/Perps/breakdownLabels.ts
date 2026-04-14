@@ -1,6 +1,5 @@
 import type { IRWAPerpsMarket } from './api.types'
 import type {
-	IRWAPerpsTimeSeriesRow,
 	RWAPerpsOverviewBreakdown,
 	RWAPerpsOverviewSnapshotBreakdown,
 	RWAPerpsOverviewTreemapBreakdown,
@@ -13,7 +12,7 @@ export const UNKNOWN_BREAKDOWN_LABEL = 'Unknown'
 
 type SharedBreakdown = RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
 
-type SharedBreakdownRow = Pick<IRWAPerpsTimeSeriesRow, 'contract' | 'venue' | 'referenceAsset' | 'assetClass'> & {
+type SharedBreakdownRow = Pick<IRWAPerpsMarket, 'contract' | 'venue' | 'referenceAsset' | 'assetClass'> & {
 	referenceAssetGroup?: string | null
 }
 

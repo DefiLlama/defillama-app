@@ -13,7 +13,7 @@ import { getErrorMessage } from '~/utils/error'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import { perpsDefinitions as d } from './definitions'
 import { hasEnoughTimeSeriesHistory } from './queries'
-import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey, RWAPerpsOverviewBreakdown } from './types'
+import type { IRWAPerpsOverviewBreakdownRequest, RWAPerpsChartMetricKey } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -94,7 +94,7 @@ export function RWAPerpsOverviewChart({
 	initialChartDataset,
 	stackLabel
 }: {
-	breakdown: RWAPerpsOverviewBreakdown
+	breakdown: IRWAPerpsOverviewBreakdownRequest['breakdown']
 	initialChartDataset: MultiSeriesChart2Dataset
 	stackLabel: string
 }) {

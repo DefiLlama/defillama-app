@@ -160,6 +160,7 @@ export async function fetchCoreMetadata({
 				contracts: [],
 				venues: [],
 				categories: [],
+				assetGroups: [],
 				total: 0
 			}),
 			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
