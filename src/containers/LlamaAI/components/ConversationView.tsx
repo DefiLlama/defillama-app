@@ -40,6 +40,7 @@ interface ConversationViewProps {
 		hasMore: boolean
 		cursor: number | null
 		isLoadingMore: boolean
+		isLoadingNewer?: boolean
 	}
 	paginationError: string | null
 	recovery: RecoveryState
@@ -347,7 +348,7 @@ export function ConversationView({
 
 				container?.addEventListener('scrollend', applyHighlight, { once: true })
 				fallbackTimer = window.setTimeout(applyHighlight, 500)
-				node.scrollIntoView({ behavior: 'smooth', block: 'end' })
+				node.scrollIntoView({ behavior: 'smooth', block: 'start' })
 			})
 		}
 	}
@@ -428,6 +429,12 @@ export function ConversationView({
 										/>
 									)
 								})}
+
+								{paginationState.isLoadingNewer ? (
+									<div className="flex justify-center py-2">
+										<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading newer messages...</p>
+									</div>
+								) : null}
 
 								{shouldSpaceLastExchange ? (
 									<div
