@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/perps/asset-groups`, a
 	}
 })
 
-const pageName = ['RWA Perps', 'Asset Groups']
+const pageName = ['RWA Perps']
 
 export default function RWAPerpsAssetGroupsPage({
 	assetGroups,

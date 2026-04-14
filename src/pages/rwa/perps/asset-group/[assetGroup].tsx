@@ -47,7 +47,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const pageName = ['RWA Perps', 'Asset Groups']
+const pageName = ['RWA Perps']
 
 export default function RWAPerpsAssetGroupPage({ data }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
