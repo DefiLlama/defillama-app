@@ -21,11 +21,7 @@ function SourceBadge({ type }: { type: SearchMatch['source_type'] }) {
 			: type === 'session_title'
 				? 'bg-[#8B5CF6]/10 text-[#8B5CF6] dark:bg-[#A78BFA]/15 dark:text-[#A78BFA]'
 				: 'bg-[#666]/10 text-[#666] dark:bg-[#919296]/15 dark:text-[#919296]'
-	return (
-		<span className={`shrink-0 rounded px-1 py-0.5 text-[9px] font-medium ${colorClass}`}>
-			{label}
-		</span>
-	)
+	return <span className={`shrink-0 rounded px-1 py-0.5 text-[9px] font-medium ${colorClass}`}>{label}</span>
 }
 
 export const SearchResults = memo(function SearchResults({
