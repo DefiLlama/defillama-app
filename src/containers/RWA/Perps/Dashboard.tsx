@@ -1019,7 +1019,6 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 							<MultiSeriesChart2
 								dataset={deferredTimeSeriesDataset}
 								charts={timeSeriesCharts}
-								solidChartAreaStyle
 								showTotalInTooltip
 								valueSymbol={valueSymbol}
 								onReady={handleTimeSeriesChartReady}

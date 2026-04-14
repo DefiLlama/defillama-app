@@ -33,19 +33,24 @@ export function toRWAPerpsBreakdownChartDataset(
 	if (!rows || rows.length === 0) return { source: [], dimensions: ['timestamp'] }
 
 	const source = normalizeRWAPerpsBreakdownChartRows(rows)
-	const seenSeries = new Set<string>()
+	const latestValueBySeries = new Map<string, number>()
 
-	for (const row of source) {
+	for (let rowIndex = source.length - 1; rowIndex >= 0; rowIndex--) {
+		const row = source[rowIndex]
 		for (const series in row) {
-			if (series !== 'timestamp') {
-				seenSeries.add(series)
-			}
+			if (series === 'timestamp' || latestValueBySeries.has(series)) continue
+			const numericValue = Number(row[series])
+			latestValueBySeries.set(series, Number.isFinite(numericValue) ? numericValue : 0)
 		}
 	}
 
+	const sortedSeries = [...latestValueBySeries.entries()]
+		.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+		.map(([series]) => series)
+
 	return {
 		source,
-		dimensions: ['timestamp', ...seenSeries]
+		dimensions: ['timestamp', ...sortedSeries]
 	}
 }
 

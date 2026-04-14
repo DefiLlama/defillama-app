@@ -431,7 +431,6 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							charts={timeSeriesCharts}
 							dataset={asset.chartDataset}
 							hideDefaultLegend={false}
-							solidChartAreaStyle
 							exportButtons={{
 								png: true,
 								csv: true,
@@ -761,7 +760,6 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										dataset={nativeYieldDataset ?? { source: [], dimensions: [] }}
 										valueSymbol="%"
 										hideDefaultLegend={false}
-										solidChartAreaStyle
 										exportButtons="hidden"
 										onReady={onNativeYieldChartReady}
 										containerClassName="flex-1 min-h-[360px]"

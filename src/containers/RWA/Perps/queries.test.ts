@@ -841,7 +841,7 @@ describe('perps overview helpers', () => {
 				{ timestamp: 1774483200000, Meta: 120 },
 				{ timestamp: 1774569600000, NVIDIA: 130 }
 			],
-			dimensions: ['timestamp', 'Meta', 'NVIDIA']
+			dimensions: ['timestamp', 'NVIDIA', 'Meta']
 		})
 
 		await expect(
@@ -854,11 +854,11 @@ describe('perps overview helpers', () => {
 				{ timestamp: 1774483200000, 'xyz:META': 120 },
 				{ timestamp: 1774569600000, 'xyz:NVDA': 130 }
 			],
-			dimensions: ['timestamp', 'xyz:META', 'xyz:NVDA']
+			dimensions: ['timestamp', 'xyz:NVDA', 'xyz:META']
 		})
 	})
 
-	it('keeps series in first-seen order from the server rows', () => {
+	it('orders series by latest available value instead of first-seen row order', () => {
 		expect(
 			toRWAPerpsBreakdownChartDataset([
 				{ timestamp: 1774483200000, alpha: 100, beta: 80, gamma: 60 },

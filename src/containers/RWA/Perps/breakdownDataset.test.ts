@@ -13,8 +13,17 @@ describe('rwa perps breakdownDataset', () => {
 				{ timestamp: 1774483200000, Meta: 120 },
 				{ timestamp: 1774569600000, NVIDIA: 130 }
 			],
-			dimensions: ['timestamp', 'Meta', 'NVIDIA']
+			dimensions: ['timestamp', 'NVIDIA', 'Meta']
 		})
+	})
+
+	it('orders series dimensions by latest available value descending', () => {
+		expect(
+			toRWAPerpsBreakdownChartDataset([
+				{ timestamp: 1774483200000, alpha: 100, beta: 80, gamma: 60 },
+				{ timestamp: 1774569600000, alpha: 90, beta: 90 }
+			]).dimensions
+		).toEqual(['timestamp', 'alpha', 'beta', 'gamma'])
 	})
 
 	it('uses the newest timestamps for snapshot totals even when rows are unsorted', () => {

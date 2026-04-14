@@ -338,7 +338,6 @@ function RWAPerpsContractChartPanel({ contract }: { contract: IRWAPerpsContractD
 						dataset={deferredChartSpec.dataset}
 						charts={deferredChartSpec.charts}
 						groupBy={groupBy}
-						solidChartAreaStyle
 						valueSymbol="$"
 						onReady={handleChartReady}
 					/>
