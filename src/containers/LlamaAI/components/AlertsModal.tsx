@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { sanitizeAlertSummary, sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -235,7 +235,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
+			const res = await authorizedFetch(`${AI_SERVER}/alerts`)
 			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to fetch alerts')
@@ -329,7 +329,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const executionsQuery = useQuery<AlertExecution[]>({
 		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions'],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions`)
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alert.id}/executions`)
 			if (!res?.ok) throw new Error('Failed to fetch executions')
 			const data = await res.json()
 			return data.executions ?? []
@@ -340,7 +340,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	const execDetailQuery = useQuery<AlertExecutionDetail>({
 		queryKey: [ALERTS_QUERY_KEY, alert.id, 'executions', selectedExecId],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alert.id}/executions/${selectedExecId}`)
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alert.id}/executions/${selectedExecId}`)
 			if (!res?.ok) throw new Error('Failed to fetch execution detail')
 			return res.json()
 		},
@@ -389,7 +389,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, {
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ enabled })
@@ -424,7 +424,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
 			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to delete alert')
@@ -481,7 +481,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				throw new Error('Not authenticated')
 			}
 			const conditionUpdate = getConditionUpdate(nextCondition)
-			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, {
+			const res = await authorizedFetch(`${AI_SERVER}/alerts/${alertId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({

@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { setPendingPrompt, setPendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
 import { SEO } from '~/components/SEO'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import type { LandingQuestion } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -377,7 +377,7 @@ const CATEGORY_TAGS: Record<string, string> = {
 export const getStaticProps = withPerformanceLogging('ai', async () => {
 	let landingQuestions: LandingQuestion[] = []
 	try {
-		const res = await fetch(`${MCP_SERVER}/suggested-questions/landing`)
+		const res = await fetch(`${AI_SERVER}/suggested-questions/landing`)
 		if (res.ok) {
 			const data = await res.json()
 			if (data?.questions?.length) {

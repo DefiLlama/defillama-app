@@ -1,4 +1,4 @@
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import type { EntityQuestionsResponse } from '~/containers/LlamaAI/types'
 import { fetchJson } from '~/utils/async'
 
@@ -13,14 +13,14 @@ export async function fetchEntityQuestions(
 	try {
 		let data: EntityQuestionsResponse
 		if (context) {
-			data = await fetchJson<EntityQuestionsResponse>(`${MCP_SERVER}/suggested-questions`, {
+			data = await fetchJson<EntityQuestionsResponse>(`${AI_SERVER}/suggested-questions`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ entity: entitySlug, entityType, context })
 			})
 		} else {
 			data = await fetchJson<EntityQuestionsResponse>(
-				`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
+				`${AI_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
 			)
 		}
 		return { questions: data.questions ?? [], suggestGlobal: data.suggestGlobal ?? false }

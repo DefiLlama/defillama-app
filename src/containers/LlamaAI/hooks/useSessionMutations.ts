@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { SESSIONS_QUERY_KEY, type SessionListData } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
@@ -16,7 +16,7 @@ export function useSessionMutations() {
 	const createSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
 			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`, {
+				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ sessionId, title })
@@ -44,7 +44,7 @@ export function useSessionMutations() {
 				if (limit !== undefined) params.append('limit', limit.toString())
 				if (cursor !== undefined) params.append('cursor', cursor.toString())
 
-				const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
+				const url = `${AI_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
 				const response = await authorizedFetch(url)
 					.then((res) => assertResponse(res, 'Failed to restore session'))
 					.then(handleSimpleFetchResponse)
@@ -62,7 +62,7 @@ export function useSessionMutations() {
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
 			try {
-				await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
+				await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
 					.then((res) => assertResponse(res, 'Failed to delete session'))
@@ -104,7 +104,7 @@ export function useSessionMutations() {
 
 	const bulkDeleteSessionsMutation = useMutation({
 		mutationFn: async (sessionIds: string[]) => {
-			await authorizedFetch(`${MCP_SERVER}/user/sessions/bulk`, {
+			await authorizedFetch(`${AI_SERVER}/user/sessions/bulk`, {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ sessionIds })
@@ -138,7 +138,7 @@ export function useSessionMutations() {
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/title`, {
+			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/title`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
@@ -186,7 +186,7 @@ export function useSessionMutations() {
 
 	const pinSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/pin`, {
+			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/pin`, {
 				method: 'PUT'
 			})
 				.then((res) => assertResponse(res, 'Failed to toggle pin'))

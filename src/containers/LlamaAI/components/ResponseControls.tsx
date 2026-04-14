@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { FeedbackForm } from '~/containers/LlamaAI/components/FeedbackForm'
 import { PDFExportButton } from '~/containers/LlamaAI/components/PDFExportButton'
 import { ShareModalContent, type ShareData } from '~/containers/LlamaAI/components/ShareModalContent'
@@ -169,7 +169,7 @@ export function ResponseControls({
 		isPending: isSharing
 	} = useMutation<ShareData>({
 		mutationFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/share`, {
+			const res = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/share`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ forcePublic: true })

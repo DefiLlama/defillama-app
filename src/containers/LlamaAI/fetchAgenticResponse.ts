@@ -1,4 +1,4 @@
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import type {
 	AlertProposedData,
 	ChartConfiguration,
@@ -481,7 +481,7 @@ export async function fetchAgenticResponse({
 		requestBody.model = model
 	}
 
-	const response = await doFetch(`${MCP_SERVER}/agentic`, {
+	const response = await doFetch(`${AI_SERVER}/agentic`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
@@ -524,7 +524,7 @@ export async function fetchAgenticResponse({
 
 export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
 	try {
-		await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stop/${encodeURIComponent(sessionId)}`, { method: 'POST' })
+		await (fetchFn || fetch)(`${AI_SERVER}/agentic/stop/${encodeURIComponent(sessionId)}`, { method: 'POST' })
 	} catch {}
 }
 
@@ -534,7 +534,7 @@ export async function checkActiveExecution(
 	fetchFn?: typeof fetch
 ): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string; hasResult?: boolean }> {
 	try {
-		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
+		const res = await (fetchFn || fetch)(`${AI_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
 		if (!res) {
 			throw new Error('Failed to check active execution: no response received')
 		}
@@ -596,8 +596,8 @@ export async function resumeAgenticStream({
 }) {
 	const url =
 		from != null
-			? `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
-			: `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
+			? `${AI_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
+			: `${AI_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
 	const res = await (fetchFn || fetch)(url, {
 		signal: abortSignal
 	})

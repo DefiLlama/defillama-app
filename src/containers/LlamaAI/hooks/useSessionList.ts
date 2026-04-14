@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import type { ChatSession, ResearchUsage } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -26,7 +26,7 @@ export function useSessionList() {
 		queryFn: async (): Promise<SessionListData> => {
 			try {
 				if (!user) return { sessions: [], usage: null }
-				const responseData = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
+				const responseData = await authorizedFetch(`${AI_SERVER}/user/sessions`)
 					.then((response) => assertResponse(response, 'Failed to fetch sessions'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())

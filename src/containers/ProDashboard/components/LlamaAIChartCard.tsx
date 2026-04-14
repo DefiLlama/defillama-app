@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import type { LlamaAIChartConfig } from '../types'
@@ -20,7 +20,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const { data, isLoading, error, refetch } = useQuery({
 		queryKey,
 		queryFn: async () => {
-			const url = `${MCP_SERVER}/charts/${config.savedChartId}`
+			const url = `${AI_SERVER}/charts/${config.savedChartId}`
 			const res = user ? await authorizedFetch(url) : await fetch(url)
 			if (!res?.ok) throw new Error('Failed to load chart')
 			return res.json()
@@ -32,7 +32,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 
 	const refreshMutation = useMutation({
 		mutationFn: async () => {
-			const res = await fetch(`${MCP_SERVER}/charts/${config.savedChartId}?refresh=false`)
+			const res = await fetch(`${AI_SERVER}/charts/${config.savedChartId}?refresh=false`)
 			if (!res?.ok) {
 				throw new Error(`Refresh failed${res ? ` (${res.status})` : ''}`)
 			}
