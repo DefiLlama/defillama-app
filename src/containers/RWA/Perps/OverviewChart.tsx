@@ -115,6 +115,7 @@ export function buildRWAPerpsOverviewChartSeries({
 		...breakdownSeries.map((seriesName, index) => ({
 			name: seriesName,
 			type: seriesType,
+			...(chartType === 'volume24h' ? { stack: 'A' } : {}),
 			encode: { x: 'timestamp', y: seriesName },
 			color: CHART_COLORS[(index + (hasTotalOverlay ? 1 : 0)) % CHART_COLORS.length]
 		})),

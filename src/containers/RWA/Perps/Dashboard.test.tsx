@@ -335,8 +335,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([
-			{ name: 'Meta', type: 'bar', encode: { x: 'timestamp', y: 'Meta' }, color: expect.any(String) },
-			{ name: 'NVIDIA', type: 'bar', encode: { x: 'timestamp', y: 'NVIDIA' }, color: expect.any(String) }
+			{ name: 'Meta', type: 'bar', stack: 'A', encode: { x: 'timestamp', y: 'Meta' }, color: expect.any(String) },
+			{ name: 'NVIDIA', type: 'bar', stack: 'A', encode: { x: 'timestamp', y: 'NVIDIA' }, color: expect.any(String) }
 		])
 	})
 
@@ -422,18 +422,21 @@ describe('RWAPerpsDashboard treemap controls', () => {
 			{
 				name: 'Total',
 				type: 'bar',
+				stack: 'A',
 				encode: { x: 'timestamp', y: 'Total' },
 				color: CHART_COLORS[0]
 			},
 			{
 				name: 'Meta',
 				type: 'bar',
+				stack: 'A',
 				encode: { x: 'timestamp', y: 'Meta' },
 				color: CHART_COLORS[1]
 			},
 			{
 				name: 'NVIDIA',
 				type: 'bar',
+				stack: 'A',
 				encode: { x: 'timestamp', y: 'NVIDIA' },
 				color: CHART_COLORS[2]
 			}
