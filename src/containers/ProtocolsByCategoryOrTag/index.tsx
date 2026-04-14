@@ -336,6 +336,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header={categoryPresentation.tableHeader}
 				sortingState={sortingState}
+				showColumnSelect
 				csvFileName={`defillama-${namePrefix}${props.chain || 'all'}-protocols`}
 			/>
 		</>
