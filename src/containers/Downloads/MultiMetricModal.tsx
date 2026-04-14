@@ -44,11 +44,7 @@ interface MultiMetricModalProps {
 	isPreview: boolean
 }
 
-function resolveDatasetValue(
-	paramValue: string,
-	paramType: ParamType,
-	datasetOptions: ParamOption[]
-): string | null {
+function resolveDatasetValue(paramValue: string, paramType: ParamType, datasetOptions: ParamOption[]): string | null {
 	if (paramType === 'protocol') {
 		// All protocol datasets share the toSlug(p.name) convention.
 		return datasetOptions.find((o) => o.value === paramValue)?.value ?? null
@@ -85,26 +81,15 @@ function metricDisplayName(dataset: ChartDatasetDefinition): string {
 	return dataset.name.replace(/^Protocol\s+/i, '')
 }
 
-export function MultiMetricModal({
-	chartOptionsMap,
-	authorizedFetch,
-	onClose,
-	isPreview
-}: MultiMetricModalProps) {
+export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, isPreview }: MultiMetricModalProps) {
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const [paramType, setParamType] = useState<ParamType>('protocol')
 	const [param, setParam] = useState<ParamOption | null>(null)
 	const [selectedMetrics, setSelectedMetrics] = useState<string[]>([])
 	const [activeMetric, setActiveMetric] = useState<string | null>(null)
 
-	const protocolOptions = useMemo<ParamOption[]>(
-		() => chartOptionsMap['protocol-tvl-chart'] ?? [],
-		[chartOptionsMap]
-	)
-	const chainOptions = useMemo<ParamOption[]>(
-		() => chartOptionsMap['chain-tvl-chart'] ?? [],
-		[chartOptionsMap]
-	)
+	const protocolOptions = useMemo<ParamOption[]>(() => chartOptionsMap['protocol-tvl-chart'] ?? [], [chartOptionsMap])
+	const chainOptions = useMemo<ParamOption[]>(() => chartOptionsMap['chain-tvl-chart'] ?? [], [chartOptionsMap])
 	const paramOptions = paramType === 'protocol' ? protocolOptions : chainOptions
 
 	const availableMetrics = useMemo(() => {
@@ -168,7 +153,7 @@ export function MultiMetricModal({
 	const activeCsvText = (activeQuery?.data as string | undefined) ?? undefined
 	const activeLoading = !!activeQuery?.isLoading
 	const activeError = activeQuery?.error
-	const activeDataset = activeMetric ? chartDatasetsBySlug.get(activeMetric) ?? null : null
+	const activeDataset = activeMetric ? (chartDatasetsBySlug.get(activeMetric) ?? null) : null
 
 	const parsedActive = useMemo(() => (activeCsvText ? parseCsv(activeCsvText) : null), [activeCsvText])
 
@@ -287,13 +272,11 @@ export function MultiMetricModal({
 	const isBulk = selectedMetrics.length > 1
 	const hasSelection = selectedMetrics.length > 0
 	const downloadLabel = isBulk ? 'Download combined' : 'Download CSV'
-	const topBarDownloadDisabled = !isPreview && (
-		!param ||
-		!hasSelection ||
-		(isBulk
-			? loadingCount === selectedMetrics.length || readyCount === 0
-			: activeLoading || !activeCsvText)
-	)
+	const topBarDownloadDisabled =
+		!isPreview &&
+		(!param ||
+			!hasSelection ||
+			(isBulk ? loadingCount === selectedMetrics.length || readyCount === 0 : activeLoading || !activeCsvText))
 
 	const headerSubtitle = (() => {
 		if (!param) return `${PARAM_LABELS[paramType].verb} to begin`
@@ -315,10 +298,7 @@ export function MultiMetricModal({
 		return ''
 	})()
 
-	const suggestions = useMemo(
-		() => paramOptions.slice(0, SUGGESTED_COUNT),
-		[paramOptions]
-	)
+	const suggestions = useMemo(() => paramOptions.slice(0, SUGGESTED_COUNT), [paramOptions])
 
 	return (
 		<>
@@ -338,9 +318,7 @@ export function MultiMetricModal({
 						<div className="flex items-center gap-3 px-4 py-2.5">
 							<div className="mr-auto min-w-0">
 								<div className="flex items-center gap-2">
-									<h2 className="truncate text-base font-semibold">
-										{param ? param.label : 'Combined report'}
-									</h2>
+									<h2 className="truncate text-base font-semibold">{param ? param.label : 'Combined report'}</h2>
 									<span className="rounded-full bg-(--primary)/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-(--primary) uppercase">
 										Combined
 									</span>
@@ -391,9 +369,7 @@ export function MultiMetricModal({
 								/>
 							) : null}
 
-							{isPreview ? (
-								<p className="ml-auto text-[11px] text-(--text-tertiary)">Preview — last 10 rows</p>
-							) : null}
+							{isPreview ? <p className="ml-auto text-[11px] text-(--text-tertiary)">Preview — last 10 rows</p> : null}
 						</div>
 					</div>
 
@@ -428,11 +404,9 @@ export function MultiMetricModal({
 
 						{param && hasSelection ? (
 							<MetricsSidebar
-								selectedMetrics={
-									selectedMetrics
-										.map((slug) => chartDatasetsBySlug.get(slug))
-										.filter((d): d is ChartDatasetDefinition => !!d)
-								}
+								selectedMetrics={selectedMetrics
+									.map((slug) => chartDatasetsBySlug.get(slug))
+									.filter((d): d is ChartDatasetDefinition => !!d)}
 								csvQueries={csvQueries as ReadonlyArray<CsvQueryStatus>}
 								activeMetric={activeMetric}
 								onSetActive={handleSetActive}
@@ -520,9 +494,7 @@ function ParamPickerEmpty({
 					<Icon name="layers" className="h-5 w-5 text-(--primary)" />
 				</div>
 				<div className="flex flex-col gap-1">
-					<p className="text-base font-medium text-(--text-primary)">
-						Choose a {labels.singular} to begin
-					</p>
+					<p className="text-base font-medium text-(--text-primary)">Choose a {labels.singular} to begin</p>
 					<p className="text-xs text-(--text-tertiary)">
 						Pick a {labels.singular} — we&rsquo;ll show its available metrics so you can combine them.
 					</p>
@@ -532,7 +504,7 @@ function ParamPickerEmpty({
 
 				<div className="w-full">
 					<Ariakit.PopoverProvider store={popoverStore}>
-						<Ariakit.PopoverDisclosure className="group flex w-full items-center justify-between gap-3 rounded-lg border border-(--form-control-border) bg-(--bg-primary) px-3.5 py-2.5 text-sm transition-colors hover:border-(--primary)/50 focus:border-(--primary) focus:outline-none focus:ring-2 focus:ring-(--primary)/20">
+						<Ariakit.PopoverDisclosure className="group flex w-full items-center justify-between gap-3 rounded-lg border border-(--form-control-border) bg-(--bg-primary) px-3.5 py-2.5 text-sm transition-colors hover:border-(--primary)/50 focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/20 focus:outline-none">
 							<span className="flex items-center gap-2 text-(--text-tertiary)">
 								<Icon name="search" className="h-4 w-4" />
 								Search a {labels.singular}
@@ -688,7 +660,7 @@ function PreviewTable({ parsed }: { parsed: { headers: string[]; rows: ParsedCsv
 	const { headers, rows } = parsed
 	const display = rows.slice(0, PREVIEW_ROWS)
 	return (
-		<div className="thin-scrollbar relative min-h-0 flex-1 overflow-auto">
+		<div className="relative thin-scrollbar min-h-0 flex-1 overflow-auto">
 			<table className="w-full text-xs">
 				<thead className="sticky top-0 z-10 bg-(--cards-bg)">
 					<tr>
@@ -713,9 +685,7 @@ function PreviewTable({ parsed }: { parsed: { headers: string[]; rows: ParsedCsv
 							{headers.map((_, i) => (
 								<td
 									key={i}
-									className={`px-3 py-1.5 whitespace-nowrap text-(--text-primary) ${
-										i === 0 ? '' : 'tabular-nums'
-									}`}
+									className={`px-3 py-1.5 whitespace-nowrap text-(--text-primary) ${i === 0 ? '' : 'tabular-nums'}`}
 								>
 									{row.values[i] ?? ''}
 								</td>
@@ -767,9 +737,7 @@ function MetricsSidebar({
 		<aside className="hidden w-72 shrink-0 flex-col border-l border-(--divider) bg-(--bg-primary) sm:flex">
 			<div className="flex items-center justify-between gap-2 border-b border-(--divider) px-3 py-2">
 				<div className="min-w-0">
-					<p className="text-xs font-semibold text-(--text-primary)">
-						Selected metrics ({selectedMetrics.length})
-					</p>
+					<p className="text-xs font-semibold text-(--text-primary)">Selected metrics ({selectedMetrics.length})</p>
 					{loadingCount > 0 ? (
 						<p className="text-[10px] text-(--text-tertiary)">
 							Ready {readyCount}/{selectedMetrics.length}
@@ -906,9 +874,7 @@ function ParamPickerPopover({
 		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure
 				className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${
-					value
-						? 'border-(--divider) text-(--text-secondary)'
-						: 'border-(--primary)/40 text-(--primary)'
+					value ? 'border-(--divider) text-(--text-secondary)' : 'border-(--primary)/40 text-(--primary)'
 				}`}
 			>
 				<Icon name="chevron-down" className="h-3.5 w-3.5" />
@@ -1025,9 +991,7 @@ function MetricMultiPickerPopover({
 				<Icon name="chevron-down" className="h-3.5 w-3.5" />
 				<span>{triggerLabel}</span>
 				{selected.length > 0 ? (
-					<span className="rounded bg-(--primary) px-1 text-[10px] font-semibold text-white">
-						{selected.length}
-					</span>
+					<span className="rounded bg-(--primary) px-1 text-[10px] font-semibold text-white">{selected.length}</span>
 				) : null}
 			</Ariakit.PopoverDisclosure>
 			<Ariakit.Popover

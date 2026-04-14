@@ -3,15 +3,10 @@ import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { CACHE_SERVER } from '~/constants'
-import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
-import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
-import { fetchRaises } from '~/containers/Raises/api'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
-import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getPercentChange, slug } from '~/utils'
+import { getPercentChange } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
 
@@ -59,6 +54,16 @@ const normalizeActivityChart = (values: Array<[number, number]> | null): Array<[
 	values && values.length > 0
 		? values.map(([date, value]): [number, number] => [date * 1e3, +value]).sort((a, b) => a[0] - b[0])
 		: null
+
+const buildChainChartApiUrl = (params: Record<string, string | undefined>) => {
+	const searchParams = new URLSearchParams()
+	for (const [key, value] of Object.entries(params)) {
+		if (value != null) {
+			searchParams.set(key, value)
+		}
+	}
+	return `/api/charts/chain?${searchParams.toString()}`
+}
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -110,7 +115,7 @@ export const useFetchChainChartData = ({
 	}>({
 		queryKey: ['chain-overview', 'price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then((res) => {
+			fetchJson(`/api/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then((res) => {
 				if (!res.data?.prices?.length) return null
 
 				const store = {}
@@ -130,10 +135,7 @@ export const useFetchChainChartData = ({
 	const { data: chainFeesDataChart = null, isLoading: fetchingChainFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'chain-fees', selectedChain],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
-				adapterType: 'fees',
-				protocol: selectedChain
-			}),
+			fetchJson(buildChainChartApiUrl({ kind: 'adapter-protocol', adapterType: 'fees', protocol: selectedChain })),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -144,11 +146,14 @@ export const useFetchChainChartData = ({
 	const { data: chainRevenueDataChart = null, isLoading: fetchingChainRevenue } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'chain-revenue', selectedChain],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
-				adapterType: 'fees',
-				protocol: selectedChain,
-				dataType: 'dailyRevenue'
-			}),
+			fetchJson(
+				buildChainChartApiUrl({
+					kind: 'adapter-protocol',
+					adapterType: 'fees',
+					protocol: selectedChain,
+					dataType: 'dailyRevenue'
+				})
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -159,10 +164,7 @@ export const useFetchChainChartData = ({
 	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'dex-volume', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				chain: selectedChain,
-				adapterType: 'dexs'
-			}),
+			fetchJson(buildChainChartApiUrl({ kind: 'adapter-chain', chain: selectedChain, adapterType: 'dexs' })),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -173,10 +175,7 @@ export const useFetchChainChartData = ({
 	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'perp-volume', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				chain: selectedChain,
-				adapterType: 'derivatives'
-			}),
+			fetchJson(buildChainChartApiUrl({ kind: 'adapter-chain', chain: selectedChain, adapterType: 'derivatives' })),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -187,11 +186,14 @@ export const useFetchChainChartData = ({
 	const { data: chainAppFeesDataChart = null, isLoading: fetchingChainAppFees } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'app-fees', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				adapterType: 'fees',
-				chain: selectedChain,
-				dataType: 'dailyAppFees'
-			}),
+			fetchJson(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'fees',
+					chain: selectedChain,
+					dataType: 'dailyAppFees'
+				})
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -204,11 +206,14 @@ export const useFetchChainChartData = ({
 	>({
 		queryKey: ['chain-overview', 'app-revenue', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				adapterType: 'fees',
-				chain: selectedChain,
-				dataType: 'dailyAppRevenue'
-			}),
+			fetchJson(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'fees',
+					chain: selectedChain,
+					dataType: 'dailyAppRevenue'
+				})
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -228,10 +233,13 @@ export const useFetchChainChartData = ({
 	> | null>({
 		queryKey: ['chain-overview', 'active-addresses', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				adapterType: 'active-users',
-				chain: selectedChain
-			})
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'active-users',
+					chain: selectedChain
+				})
+			)
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -243,10 +251,13 @@ export const useFetchChainChartData = ({
 	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['chain-overview', 'new-addresses', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				adapterType: 'new-users',
-				chain: selectedChain
-			})
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'new-users',
+					chain: selectedChain
+				})
+			)
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -258,11 +269,14 @@ export const useFetchChainChartData = ({
 	const { data: transactionsData = null, isLoading: fetchingTransactions } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['chain-overview', 'transactions', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				adapterType: 'active-users',
-				chain: selectedChain,
-				dataType: 'dailyTransactionsCount'
-			})
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'active-users',
+					chain: selectedChain,
+					dataType: 'dailyTransactionsCount'
+				})
+			)
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -274,11 +288,14 @@ export const useFetchChainChartData = ({
 	const { data: gasUsedData = null, isLoading: fetchingGasUsed } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['chain-overview', 'gas-used', selectedChain],
 		queryFn: () =>
-			fetchAdapterChainChartData({
-				adapterType: 'active-users',
-				chain: selectedChain,
-				dataType: 'dailyGasUsed'
-			})
+			fetchJson<Array<[number, number]>>(
+				buildChainChartApiUrl({
+					kind: 'adapter-chain',
+					adapterType: 'active-users',
+					chain: selectedChain,
+					dataType: 'dailyGasUsed'
+				})
+			)
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
@@ -290,7 +307,9 @@ export const useFetchChainChartData = ({
 	const isBridgedTvlEnabled = toggledChartsSet.has('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
 		queryKey: ['chain-overview', 'bridged-tvl', selectedChain],
-		queryFn: isBridgedTvlEnabled ? () => fetchChainAssetsChart(selectedChain) : () => null,
+		queryFn: isBridgedTvlEnabled
+			? () => fetchJson(buildChainChartApiUrl({ kind: 'bridged-tvl', chain: selectedChain }))
+			: () => null,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -300,21 +319,7 @@ export const useFetchChainChartData = ({
 	const isRaisesEnabled = toggledChartsSet.has('Raises')
 	const { data: raisesData = null, isLoading: fetchingRaises } = useQuery<Array<[number, number]>>({
 		queryKey: ['chain-overview', 'raises'],
-		queryFn: () =>
-			fetchRaises().then((data) => {
-				const store = (data?.raises ?? []).reduce(
-					(acc, curr) => {
-						acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-						return acc
-					},
-					{} as Record<string, number>
-				)
-				const chart = []
-				for (const date in store) {
-					chart.push([+date * 1e3, store[date] * 1e6])
-				}
-				return chart
-			}),
+		queryFn: () => fetchJson(buildChainChartApiUrl({ kind: 'raises' })),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -325,13 +330,7 @@ export const useFetchChainChartData = ({
 	const { data: chainIncentivesData = null, isLoading: fetchingChainIncentives } = useQuery({
 		queryKey: ['chain-overview', 'token-incentives', selectedChain],
 		queryFn: () =>
-			getProtocolUnlockUsdChart(slug(selectedChain))
-				.then((chart) => {
-					if (!chart) return null
-					const nonZeroIndex = chart.findIndex(([_, value]) => value > 0)
-					return chart.slice(nonZeroIndex)
-				})
-				.catch(() => null),
+			fetchJson(buildChainChartApiUrl({ kind: 'token-incentives', protocol: selectedChain })).catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

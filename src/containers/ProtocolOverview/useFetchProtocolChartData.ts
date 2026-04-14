@@ -1,32 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { fetchProtocolTokenLiquidityChart } from '~/api'
 import type { DenominationPriceHistory } from '~/api/coingecko.types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart, getBucketTimestampSec } from '~/components/ECharts/utils'
-import { CACHE_SERVER, oracleProtocols } from '~/constants'
-import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
-import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
+import { oracleProtocols } from '~/constants'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
-import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
-import { fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import {
 	useFetchProtocolActivityChart,
 	useFetchProtocolMedianAPY,
 	useFetchProtocolTVLChart
 } from '~/containers/ProtocolOverview/queries.client'
 import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
-import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { fetchProtocolTreasuryChart } from './api'
 import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL } from './chartDescriptors'
-import {
-	normalizeBridgeVolumeToChartMs,
-	normalizeSeriesToMilliseconds,
-	normalizeSeriesToSeconds
-} from './chartSeries.utils'
+import { normalizeSeriesToMilliseconds, normalizeSeriesToSeconds } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { usePrefetchedProtocolChartQuery } from './usePrefetchedProtocolChartQuery'
@@ -204,6 +193,16 @@ const buildUsdInflowsFromTvlChart = (tvlChart: Array<[number, number | null]>): 
 	return inflows.length > 0 ? inflows : null
 }
 
+const buildProtocolChartApiUrl = (params: Record<string, string | undefined>) => {
+	const searchParams = new URLSearchParams()
+	for (const [key, value] of Object.entries(params)) {
+		if (value != null) {
+			searchParams.set(key, value)
+		}
+	}
+	return `/api/charts/protocol?${searchParams.toString()}`
+}
+
 export const useFetchProtocolChartData = ({
 	name,
 	id: protocolId,
@@ -266,7 +265,7 @@ export const useFetchProtocolChartData = ({
 	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'denomination-price-history', denominationGeckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/cgchart/${denominationGeckoId}?fullChart=true`).then(
+			fetchJson(`/api/charts/coingecko/${encodeURIComponent(denominationGeckoId!)}?fullChart=true`).then(
 				(res: { data?: { prices?: Array<[number, number]> } }) => {
 					if (!res.data?.prices?.length) return null
 					const store: Record<string, number> = {}
@@ -287,7 +286,7 @@ export const useFetchProtocolChartData = ({
 		useQuery<DenominationPriceHistory | null>({
 			queryKey: ['protocol-overview', protocolSlug, 'token-price-history', geckoId],
 			queryFn: () =>
-				fetchJson(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).then(
+				fetchJson(`/api/charts/coingecko/${encodeURIComponent(geckoId!)}?fullChart=true`).then(
 					(res: { data?: DenominationPriceHistory }) => (res.data?.prices?.length ? res.data : null)
 				),
 			staleTime: 60 * 60 * 1000,
@@ -306,9 +305,9 @@ export const useFetchProtocolChartData = ({
 	const { data: tokenTotalSupply = null, isLoading: fetchingTokenTotalSupply } = useQuery<number | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-supply', geckoId],
 		queryFn: () =>
-			fetchJson(`${CACHE_SERVER}/supply/${geckoId}`).then(
-				(res: { data?: { total_supply?: number } }) => res.data?.['total_supply'] ?? null
-			),
+			fetchJson<{ totalSupply: number | null }>(
+				`/api/charts/coingecko/${encodeURIComponent(geckoId!)}?kind=supply`
+			).then((res) => res.totalSupply ?? null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -318,7 +317,7 @@ export const useFetchProtocolChartData = ({
 		[string | number, number]
 	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-liquidity', protocolId],
-		queryFn: () => fetchProtocolTokenLiquidityChart(protocolId),
+		queryFn: () => fetchJson(buildProtocolChartApiUrl({ kind: 'token-liquidity', protocolId })),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -446,10 +445,14 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'fees'],
 		enabled: isFeesEnabled,
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
-				...feesDescriptor!.chartRequest,
-				protocol: name
-			})
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: feesDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: feesDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
@@ -459,10 +462,14 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'revenue'],
 		enabled: isRevenueEnabled,
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
-				...revenueDescriptor!.chartRequest,
-				protocol: name
-			})
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: revenueDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: revenueDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isHoldersRevenueEnabled = !!(
@@ -476,10 +483,14 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
 		enabled: isHoldersRevenueEnabled,
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
-				...holdersRevenueDescriptor!.chartRequest,
-				protocol: name
-			})
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: holdersRevenueDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: holdersRevenueDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isBribesEnabled = !!(
@@ -492,11 +503,14 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'bribes'],
 		queryFn: () =>
 			isBribesEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'fees',
-						dataType: 'dailyBribesRevenue',
-						protocol: name
-					})
+				? fetchJson(
+						buildProtocolChartApiUrl({
+							kind: 'adapter',
+							adapterType: 'fees',
+							dataType: 'dailyBribesRevenue',
+							protocol: name
+						})
+					)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -514,11 +528,14 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'token-taxes'],
 		queryFn: () =>
 			isTokenTaxesEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'fees',
-						dataType: 'dailyTokenTaxes',
-						protocol: name
-					})
+				? fetchJson(
+						buildProtocolChartApiUrl({
+							kind: 'adapter',
+							adapterType: 'fees',
+							dataType: 'dailyTokenTaxes',
+							protocol: name
+						})
+					)
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -532,7 +549,15 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
 		enabled: isDexVolumeEnabled,
-		queryFn: () => fetchAdapterProtocolChartData({ ...dexVolumeDescriptor!.chartRequest, protocol: name })
+		queryFn: () =>
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: dexVolumeDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: dexVolumeDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isDexNotionalVolumeEnabled = !!(
@@ -545,7 +570,15 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-notional-volume'],
 		enabled: isDexNotionalVolumeEnabled,
-		queryFn: () => fetchAdapterProtocolChartData({ ...dexNotionalVolumeDescriptor!.chartRequest, protocol: name })
+		queryFn: () =>
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: dexNotionalVolumeDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: dexNotionalVolumeDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
@@ -554,7 +587,15 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
 		enabled: isPerpsVolumeEnabled,
-		queryFn: () => fetchAdapterProtocolChartData({ ...perpVolumeDescriptor!.chartRequest, protocol: name })
+		queryFn: () =>
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: perpVolumeDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: perpVolumeDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
@@ -563,7 +604,15 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
 		enabled: isOpenInterestEnabled,
-		queryFn: () => fetchAdapterProtocolChartData({ ...openInterestDescriptor!.chartRequest, protocol: name })
+		queryFn: () =>
+			fetchJson(
+				buildProtocolChartApiUrl({
+					kind: 'adapter',
+					adapterType: openInterestDescriptor!.chartRequest.adapterType,
+					protocol: name,
+					dataType: openInterestDescriptor!.chartRequest.dataType
+				})
+			)
 	})
 
 	const isOptionsPremiumVolumeEnabled = !!(
@@ -577,7 +626,15 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
 			enabled: isOptionsPremiumVolumeEnabled,
-			queryFn: () => fetchAdapterProtocolChartData({ ...optionsPremiumDescriptor!.chartRequest, protocol: name })
+			queryFn: () =>
+				fetchJson(
+					buildProtocolChartApiUrl({
+						kind: 'adapter',
+						adapterType: optionsPremiumDescriptor!.chartRequest.adapterType,
+						protocol: name,
+						dataType: optionsPremiumDescriptor!.chartRequest.dataType
+					})
+				)
 		})
 
 	const isOptionsNotionalVolumeEnabled = !!(
@@ -591,7 +648,15 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 			enabled: isOptionsNotionalVolumeEnabled,
-			queryFn: () => fetchAdapterProtocolChartData({ ...optionsNotionalDescriptor!.chartRequest, protocol: name })
+			queryFn: () =>
+				fetchJson(
+					buildProtocolChartApiUrl({
+						kind: 'adapter',
+						adapterType: optionsNotionalDescriptor!.chartRequest.adapterType,
+						protocol: name,
+						dataType: optionsNotionalDescriptor!.chartRequest.dataType
+					})
+				)
 		})
 
 	const isDexAggregatorsVolumeEnabled = !!(
@@ -605,7 +670,15 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
 			enabled: isDexAggregatorsVolumeEnabled,
-			queryFn: () => fetchAdapterProtocolChartData({ ...dexAggregatorsDescriptor!.chartRequest, protocol: name })
+			queryFn: () =>
+				fetchJson(
+					buildProtocolChartApiUrl({
+						kind: 'adapter',
+						adapterType: dexAggregatorsDescriptor!.chartRequest.adapterType,
+						protocol: name,
+						dataType: dexAggregatorsDescriptor!.chartRequest.dataType
+					})
+				)
 		})
 
 	const isPerpsAggregatorsVolumeEnabled = !!(
@@ -619,7 +692,15 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
 			enabled: isPerpsAggregatorsVolumeEnabled,
-			queryFn: () => fetchAdapterProtocolChartData({ ...perpsAggregatorsDescriptor!.chartRequest, protocol: name })
+			queryFn: () =>
+				fetchJson(
+					buildProtocolChartApiUrl({
+						kind: 'adapter',
+						adapterType: perpsAggregatorsDescriptor!.chartRequest.adapterType,
+						protocol: name,
+						dataType: perpsAggregatorsDescriptor!.chartRequest.dataType
+					})
+				)
 		})
 
 	const isBridgeAggregatorsVolumeEnabled = !!(
@@ -633,7 +714,15 @@ export const useFetchProtocolChartData = ({
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
 			enabled: isBridgeAggregatorsVolumeEnabled,
-			queryFn: () => fetchAdapterProtocolChartData({ ...bridgeAggregatorsDescriptor!.chartRequest, protocol: name })
+			queryFn: () =>
+				fetchJson(
+					buildProtocolChartApiUrl({
+						kind: 'adapter',
+						adapterType: bridgeAggregatorsDescriptor!.chartRequest.adapterType,
+						protocol: name,
+						dataType: bridgeAggregatorsDescriptor!.chartRequest.dataType
+					})
+				)
 		})
 
 	const isUnlocksEnabled = !!(
@@ -646,24 +735,10 @@ export const useFetchProtocolChartData = ({
 		unlockUsdChart: Array<[string | number, number]> | null
 	} | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'unlocks'],
-		queryFn: async () => {
-			if (!isUnlocksEnabled) return null
-			const result = await getProtocolEmissionsCharts(slug(name))
-			return {
-				...result,
-				unlockUsdChart: Array.isArray(result.unlockUsdChart)
-					? result.unlockUsdChart
-							.filter(
-								(item): item is [string | number, string | number] =>
-									Array.isArray(item) &&
-									item.length >= 2 &&
-									Number.isFinite(Number(item[0])) &&
-									Number.isFinite(Number(item[1]))
-							)
-							.map((item): [number, number] => [Number(item[0]), Number(item[1])])
-					: null
-			}
-		},
+		queryFn: () =>
+			isUnlocksEnabled
+				? fetchJson(buildProtocolChartApiUrl({ kind: 'unlocks', protocol: name }))
+				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
@@ -677,7 +752,9 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		enabled: isTreasuryEnabled,
 		queryFn: () =>
-			fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((chart) => normalizeSeriesToMilliseconds(chart))
+			fetchJson<Array<[number, number]> | null>(
+				buildProtocolChartApiUrl({ kind: 'treasury', protocol: protocolSlug })
+			).then((chart) => (chart ? normalizeSeriesToMilliseconds(chart) : null))
 	})
 
 	const isUsdInflowsEnabled = !!(toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady)
@@ -703,9 +780,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-volume'],
 		enabled: isBridgeVolumeEnabled,
 		queryFn: () =>
-			fetchBridgeVolumeBySlug(slug(name))
-				.then((data) => normalizeBridgeVolumeToChartMs(data.dailyVolumes))
-				.catch(() => null)
+			fetchJson<Array<[number, number]> | null>(buildProtocolChartApiUrl({ kind: 'bridge-volume', protocol: name }))
 	})
 
 	const isTvsEnabled = !!(toggledMetrics.tvs === 'true' && isRouterReady && availableCharts.includes('TVS'))
@@ -715,8 +790,10 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'tvs'],
 		enabled: isTvsEnabled,
 		queryFn: () =>
-			fetchOracleProtocolChart({ protocol: oracleProtocolName })
-				.then((chart) => normalizeSeriesToSeconds(chart))
+			fetchJson<Array<[number, number]> | null>(
+				buildProtocolChartApiUrl({ kind: 'oracle-chart', protocol: oracleProtocolName })
+			)
+				.then((chart) => (chart ? normalizeSeriesToSeconds(chart) : null))
 				.catch(() => null)
 	})
 
@@ -766,13 +843,9 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'nft-volume'],
 		queryFn: () =>
 			isNftVolumeEnabled
-				? fetchNftMarketplaceVolumes()
-						.then((r) =>
-							r
-								.filter((item) => slug(item.exchangeName) === slug(name))
-								.map(({ day, sumUsd }): [number, number] => [new Date(day).getTime(), sumUsd])
-						)
-						.catch((): Array<[number, number]> => [])
+				? fetchJson<Array<[number, number]> | null>(
+						buildProtocolChartApiUrl({ kind: 'nft-volume', protocol: name })
+					).catch((): Array<[number, number]> => [])
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
