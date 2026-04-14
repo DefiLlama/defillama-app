@@ -22,7 +22,7 @@ const columnHelper = createColumnHelper<RWAPerpsVenuesTableRow>()
 const columns = [
 	columnHelper.accessor('venue', {
 		id: 'venue',
-		header: d.venue.label,
+		header: 'Name',
 		enableSorting: false,
 		cell: (info) => (
 			<span className="flex items-center gap-2">

@@ -14,7 +14,7 @@ const columnHelper = createColumnHelper<IRWAPerpsAssetGroupsOverviewRow>()
 const columns = [
 	columnHelper.accessor('assetGroup', {
 		id: 'assetGroup',
-		header: d.assetGroup.label,
+		header: 'Name',
 		enableSorting: false,
 		cell: (info) => (
 			<span className="flex items-center gap-2">

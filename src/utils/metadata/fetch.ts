@@ -119,13 +119,13 @@ export async function fetchCoreMetadata({
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
 
-	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=12`
-	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=12`
-	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=12`
-	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=12`
-	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=12`
-	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=12`
-	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=12`
+	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=13`
+	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=13`
+	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=13`
+	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=13`
+	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=13`
+	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=13`
+	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=13`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
 	const isDev = process.env.NODE_ENV === 'development'
