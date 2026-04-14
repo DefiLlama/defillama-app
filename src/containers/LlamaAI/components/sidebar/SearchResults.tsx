@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { Icon } from '~/components/Icon'
-import type { SearchResult } from '~/containers/LlamaAI/types'
+import type { SearchMatch, SearchResult } from '~/containers/LlamaAI/types'
 
 function formatTimeAgo(dateStr: string | null) {
 	if (!dateStr) return ''
@@ -13,17 +13,17 @@ function formatTimeAgo(dateStr: string | null) {
 	return `${Math.floor(days / 30)}mo ago`
 }
 
-function SourceBadge({ type }: { type: string }) {
-	const isUser = type === 'user_message'
+function SourceBadge({ type }: { type: SearchMatch['source_type'] }) {
+	const label = type === 'user_message' ? 'You' : type === 'session_title' ? 'Title' : 'AI'
+	const colorClass =
+		type === 'user_message'
+			? 'bg-[#1853A8]/10 text-[#1853A8] dark:bg-[#4B86DB]/15 dark:text-[#4B86DB]'
+			: type === 'session_title'
+				? 'bg-[#8B5CF6]/10 text-[#8B5CF6] dark:bg-[#A78BFA]/15 dark:text-[#A78BFA]'
+				: 'bg-[#666]/10 text-[#666] dark:bg-[#919296]/15 dark:text-[#919296]'
 	return (
-		<span
-			className={`shrink-0 rounded px-1 py-0.5 text-[9px] font-medium ${
-				isUser
-					? 'bg-[#1853A8]/10 text-[#1853A8] dark:bg-[#4B86DB]/15 dark:text-[#4B86DB]'
-					: 'bg-[#666]/10 text-[#666] dark:bg-[#919296]/15 dark:text-[#919296]'
-			}`}
-		>
-			{isUser ? 'You' : 'AI'}
+		<span className={`shrink-0 rounded px-1 py-0.5 text-[9px] font-medium ${colorClass}`}>
+			{label}
 		</span>
 	)
 }
@@ -77,7 +77,7 @@ export const SearchResults = memo(function SearchResults({
 							.filter((m) => m.message_id)
 							.map((match, i) => (
 								<button
-									key={match.message_id || i}
+									key={`${result.session_id}-${match.message_id}-${i}`}
 									type="button"
 									onClick={() => match.message_id && onMatchClick(result.session_id, match.message_id)}
 									className="flex items-start gap-1.5 rounded px-1.5 py-1 text-left transition-colors hover:bg-[#e8e8e8] dark:hover:bg-[#2a2a2b]"

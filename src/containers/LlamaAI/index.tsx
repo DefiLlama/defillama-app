@@ -1601,8 +1601,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	)
 
 	const handleSearchMatchClick = useCallback(
-		(sessionId: string, messageId: string) => {
-			void handleSessionSelect(sessionId, { around: messageId })
+		(targetSessionId: string, messageId: string) => {
+			void handleSessionSelect(targetSessionId, { around: messageId })
 		},
 		[handleSessionSelect]
 	)

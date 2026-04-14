@@ -51,6 +51,7 @@ export function useSemanticSearch() {
 
 	useEffect(() => {
 		if (debounceRef.current) clearTimeout(debounceRef.current)
+		abortRef.current?.abort()
 
 		if (!query.trim()) {
 			setResults([])
@@ -63,6 +64,7 @@ export function useSemanticSearch() {
 
 		return () => {
 			if (debounceRef.current) clearTimeout(debounceRef.current)
+			abortRef.current?.abort()
 		}
 	}, [query, search])
 
