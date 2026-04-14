@@ -162,11 +162,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
 			const data = await getBridgeOverviewPageData(chain)
 				.then((pageData) =>
-					pageData?.chainVolumeData?.map((volume) => [
-						volume?.date ?? null,
-						volume?.Deposits ?? null,
-						volume?.Withdrawals ?? null
-					])
+					pageData?.chainVolumeData
+						? pageData.chainVolumeData.map((volume) => [
+								volume?.date ?? null,
+								volume?.Deposits ?? null,
+								volume?.Withdrawals ?? null
+							])
+						: null
 				)
 				.catch((error) => {
 					console.log(error)
