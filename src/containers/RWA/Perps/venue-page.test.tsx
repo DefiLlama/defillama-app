@@ -15,6 +15,7 @@ function setupPageModule({ venues = ['xyz'], data = null }: { venues?: string[];
 				contracts: [],
 				venues,
 				categories: [],
+				assetGroups: [],
 				total: venues.length
 			}
 		}

@@ -281,7 +281,7 @@ function ArtifactBlockRenderer({
 	block,
 	artifact,
 	isStreaming,
-	sessionId
+	sessionId: _sessionId
 }: {
 	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' }>
 	artifact?: ArtifactRecord

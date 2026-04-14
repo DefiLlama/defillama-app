@@ -27,7 +27,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/perps/venues`, async (
 	}
 })
 
-const pageName = ['RWA Perps', 'Venues']
+const pageName = ['RWA Perps']
 
 export default function RWAPerpsVenuesPage({
 	venues,

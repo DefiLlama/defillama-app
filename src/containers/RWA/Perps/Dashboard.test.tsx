@@ -128,6 +128,22 @@ const venueData = {
 	venueLinks: [{ label: 'All', to: '/rwa/perps/venues' }],
 	totals: {
 		openInterest: 100,
+		openInterestChange24h: 25,
+		volume24h: 50,
+		volume24hChange24h: -10,
+		markets: 1,
+		protocolFees24h: 1
+	}
+}
+
+const assetGroupData = {
+	assetGroup: 'Equities',
+	markets: overviewData.markets,
+	initialChartDataset: overviewData.initialChartDataset,
+	assetGroupLinks: [{ label: 'All', to: '/rwa/perps/asset-groups' }],
+	totals: {
+		openInterest: 100,
+		openInterestChange24h: 25,
 		volume24h: 50,
 		volume24hChange24h: -10,
 		markets: 1,
@@ -235,6 +251,17 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		])
 	})
 
+	it('shows asset-group detail tables with the venue column restored', () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="assetGroup" data={assetGroupData} />)
+
+		expect(lastTableWithSearchProps.columns.slice(0, 4).map((column: any) => column.header)).toEqual([
+			'Contract',
+			'Venue',
+			'Base Asset',
+			'Asset Class'
+		])
+	})
+
 	it('shows an explicit empty state when time-series data only has a single timestamp', () => {
 		routerQuery = {
 			chartView: 'timeSeries',
@@ -282,19 +309,21 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('Open Interest')
 		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
-		expect(html).toContain('Grouped')
-		expect(html).toContain('Base Asset')
+		expect(html).toContain('Total')
+		expect(html).not.toContain('Grouped')
+		expect(html).not.toContain('Breakdown')
 	})
 
-	it('renders the breakdown time-series mode label when selected', () => {
+	it('renders the selected time-series breakdown label when selected', () => {
 		routerQuery = {
 			chartView: 'timeSeries',
+			timeSeriesChartBreakdown: 'baseAsset',
 			timeSeriesMode: 'breakdown'
 		}
 
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Breakdown')
+		expect(html).toContain('Base Asset')
 	})
 
 	it('builds bar-series configs for time-series volume', () => {
@@ -327,7 +356,7 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		).not.toHaveProperty('showSymbol')
 	})
 
-	it('builds a single non-stacked grouped time-series series', () => {
+	it('builds a stacked grouped time-series series for total mode', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
@@ -339,7 +368,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				name: 'Total',
 				type: 'line',
 				encode: { x: 'timestamp', y: 'Total' },
-				color: expect.any(String)
+				color: expect.any(String),
+				stack: 'A'
 			}
 		])
 	})
@@ -351,10 +381,10 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('-10.00%')
 	})
 
-	it('renders 24h volume change on venue stat cards but not open interest change', () => {
+	it('renders 24h open interest and volume changes on venue stat cards', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
-		expect(html).not.toContain('+25.00%')
+		expect(html).toContain('+25.00%')
 		expect(html).toContain('-10.00%')
 	})
 })

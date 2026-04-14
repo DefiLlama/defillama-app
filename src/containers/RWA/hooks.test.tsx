@@ -103,14 +103,19 @@ describe('useRwaChartDataset', () => {
 	it('regroups cached ticker rows without changing the fetch key', () => {
 		const categoryMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'category' }))
 		const platformMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'platform' }))
+		const totalMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'total' }))
 
 		expect(categoryMarkup).toContain('timestamp|Treasuries|Private Credit')
 		expect(platformMarkup).toContain('timestamp|Centrifuge|Maple')
-		expect(useQueryMock).toHaveBeenCalledTimes(2)
+		expect(totalMarkup).toContain('timestamp|Total')
+		expect(useQueryMock).toHaveBeenCalledTimes(3)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
 			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+		})
+		expect(useQueryMock.mock.calls[2][0]).toMatchObject({
 			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 	})

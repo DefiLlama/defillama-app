@@ -3,39 +3,31 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { formattedNum } from '~/utils'
 import { perpsDefinitions as d } from './definitions'
 import { RWAPerpsOverviewChart } from './OverviewChart'
-import type { IRWAPerpsVenuesOverviewRow } from './types'
+import type { IRWAPerpsAssetGroupsOverviewRow } from './types'
 
-type RWAPerpsVenuesTableRow = {
-	venue: string
-	openInterest: number
-	openInterestShare: number
-	volume24h: number
-	volume24hShare: number
-	markets: number
-}
-
-const columnHelper = createColumnHelper<RWAPerpsVenuesTableRow>()
+const columnHelper = createColumnHelper<IRWAPerpsAssetGroupsOverviewRow>()
 
 const columns = [
-	columnHelper.accessor('venue', {
-		id: 'venue',
+	columnHelper.accessor('assetGroup', {
+		id: 'assetGroup',
 		header: 'Name',
 		enableSorting: false,
 		cell: (info) => (
 			<span className="flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 				<BasicLink
-					href={`/rwa/perps/venue/${encodeURIComponent(info.getValue())}`}
+					href={`/rwa/perps/asset-group/${rwaSlug(info.getValue())}`}
 					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 				>
 					{info.getValue()}
 				</BasicLink>
 			</span>
 		),
-		meta: { headerHelperText: d.venue.description },
+		meta: { headerHelperText: d.assetGroup.description },
 		size: 220
 	}),
 	columnHelper.accessor('openInterest', {
@@ -76,33 +68,33 @@ const columns = [
 ]
 
 const columnSizes: ColumnSizesByBreakpoint = {
-	0: { venue: 160 },
-	640: { venue: 220 }
+	0: { assetGroup: 160 },
+	640: { assetGroup: 220 }
 }
 
-export function RWAPerpsVenuesOverview({
-	venues,
+export function RWAPerpsAssetGroupsOverview({
+	assetGroups,
 	initialChartDataset
 }: {
-	venues: IRWAPerpsVenuesOverviewRow[]
+	assetGroups: IRWAPerpsAssetGroupsOverviewRow[]
 	initialChartDataset: MultiSeriesChart2Dataset
 }) {
 	return (
 		<div className="flex flex-col gap-2">
 			<RWAPerpsOverviewChart
-				breakdown="baseAsset"
+				breakdown="assetGroup"
 				initialChartDataset={initialChartDataset}
-				stackLabel={d.baseAsset.label}
+				stackLabel={d.assetGroup.label}
 			/>
 			<TableWithSearch
-				data={venues}
+				data={assetGroups}
 				columns={columns}
-				placeholder="Search venues..."
-				columnToSearch="venue"
-				header="Venues"
+				placeholder="Search asset groups..."
+				columnToSearch="assetGroup"
+				header="Asset Groups"
 				headingAs="h1"
 				columnSizes={columnSizes}
-				csvFileName="rwa-perps-venues.csv"
+				csvFileName="rwa-perps-asset-groups.csv"
 				sortingState={[{ id: 'openInterest', desc: true }]}
 			/>
 		</div>

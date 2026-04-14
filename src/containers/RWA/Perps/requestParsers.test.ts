@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseChartMetricKey } from './requestParsers'
+import { parseChartMetricKey, parseOptionalTarget } from './requestParsers'
 
 describe('parseChartMetricKey', () => {
 	it('accepts the supported metric keys', () => {
@@ -12,5 +12,20 @@ describe('parseChartMetricKey', () => {
 		expect(parseChartMetricKey(undefined)).toBeNull()
 		expect(parseChartMetricKey(['openInterest'])).toBeNull()
 		expect(parseChartMetricKey('activeMcap')).toBeNull()
+	})
+})
+
+describe('parseOptionalTarget', () => {
+	it('trims valid string values', () => {
+		expect(parseOptionalTarget(' xyz ')).toBe('xyz')
+	})
+
+	it('returns undefined for missing values', () => {
+		expect(parseOptionalTarget(undefined)).toBeUndefined()
+	})
+
+	it('rejects arrays and blank strings', () => {
+		expect(parseOptionalTarget(['xyz'])).toBeNull()
+		expect(parseOptionalTarget('   ')).toBeNull()
 	})
 })
