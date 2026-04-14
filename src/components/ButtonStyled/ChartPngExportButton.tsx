@@ -597,20 +597,12 @@ async function exportTreemapWithZoom(
 		const imageAspect = chartImg.width / Math.max(1, chartImg.height)
 		const isPortraitCapture = imageAspect < 1
 		const exportWidth = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_WIDTH : IMAGE_EXPORT_WIDTH
+		const exportHeight = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : IMAGE_EXPORT_HEIGHT
 
 		const titleText = title || ''
-		let chartTop = 12
-		const titleHeight = titleText ? 40 : 0
-		if (titleText) {
-			chartTop = 52
-		}
+		const chartTop = titleText ? 52 : 12
 
 		const chartAreaW = exportWidth - 24
-		const naturalChartAreaH = Math.round(chartAreaW / Math.max(imageAspect, 0.0001))
-		const exportHeight = Math.max(
-			isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : 0,
-			titleHeight + naturalChartAreaH + 24
-		)
 		const dpr = 2
 		const canvas = document.createElement('canvas')
 		canvas.width = exportWidth * dpr
