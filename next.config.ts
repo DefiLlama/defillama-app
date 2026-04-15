@@ -119,11 +119,6 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
-				source: '/liquidations',
-				destination: '/liquidations/eth',
-				permanent: false
-			},
-			{
 				source: '/yields/optimizer',
 				destination: '/borrow',
 				permanent: true

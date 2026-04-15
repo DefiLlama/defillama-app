@@ -84,13 +84,6 @@
       "oldName": "Forks"
     },
     {
-      "name": "Active Loans by Protocol",
-      "route": "/active-loans",
-      "category": "Total Value Locked",
-      "description": "Sum of value currently borrowed across all active loans on a lending protocol",
-      "tab": "Protocols"
-    },
-    {
       "name": "Total Staked by Protocol",
       "route": "/total-staked",
       "category": "Total Value Locked",
@@ -102,6 +95,13 @@
       "route": "/pool2",
       "category": "Total Value Locked",
       "description": "Total value locked in pool2 of a protocol",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Active Loans by Protocol",
+      "route": "/active-loans",
+      "category": "Total Value Locked",
+      "description": "Sum of value currently borrowed across all active loans on a lending protocol",
       "tab": "Protocols"
     },
     {
@@ -494,6 +494,12 @@
       ]
     },
     {
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
       "name": "RWA: Perps",
       "route": "/rwa/perps",
       "category": "RWA",
@@ -501,12 +507,6 @@
       "tags": [
         "New"
       ]
-    },
-    {
-      "name": "RWA by Chain",
-      "route": "/rwa/chains",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by chain"
     },
     {
       "name": "RWA by Category",
@@ -815,20 +815,20 @@
       "oldName": "Watchlist"
     },
     {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets",
-      "oldCategory": "Borrow Aggregator",
-      "oldName": "Advanced"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama",
       "tab": "Protocols",
       "oldName": "Directory"
+    },
+    {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets",
+      "oldCategory": "Borrow Aggregator",
+      "oldName": "Advanced"
     },
     {
       "name": "Transactions by Bridge",
