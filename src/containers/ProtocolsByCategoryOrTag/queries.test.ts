@@ -115,6 +115,37 @@ const makeAdapterProtocol = ({
 		linkedProtocols: []
 	}) as IAdapterChainMetrics['protocols'][number]
 
+const makeProtocolLite = ({
+	defillamaId,
+	name,
+	category = 'Interface',
+	chains,
+	chainTvls,
+	parentProtocol
+}: {
+	defillamaId: string
+	name: string
+	category?: string
+	chains: Array<string>
+	chainTvls: ProtocolLite['chainTvls']
+	parentProtocol?: string
+}): ProtocolLite => ({
+	name,
+	symbol: name.slice(0, 3).toUpperCase(),
+	logo: '',
+	url: '',
+	category,
+	chains,
+	chainTvls,
+	tvl: Object.values(chainTvls).reduce((sum, point) => sum + (point.tvl ?? 0), 0),
+	tvlPrevDay: 0,
+	tvlPrevWeek: 0,
+	tvlPrevMonth: 0,
+	mcap: null,
+	defillamaId,
+	...(parentProtocol ? { parentProtocol } : {})
+})
+
 const categoriesAndTags: ICategoriesAndTags = {
 	categories: ['Interface', 'Dexs'],
 	tags: ['StableSwap'],
@@ -485,8 +516,8 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 		expect(hybrid?.perpsAggregatorsVolume?.total24h).toBe(12)
 		expect(hybrid?.bridgeAggregatorsVolume?.total24h).toBe(7)
 		expect(hybrid?.normalizedVolume?.total24h).toBe(50)
-		expect(hybrid?.optionsPremium?.total24h).toBe(4)
-		expect(hybrid?.optionsNotional?.total24h).toBe(9)
+		expect(hybrid?.optionsPremiumVolume?.total24h).toBe(4)
+		expect(hybrid?.optionsNotionalVolume?.total24h).toBe(9)
 
 		const parent = result.protocols.find((protocol) => protocol.name === 'Interface Suite')
 		expect(parent?.subRows?.map((row) => row.name)).toEqual(['Interface Child A', 'Interface Child B'])
@@ -555,5 +586,92 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 			})
 		)
 		expect(result.summaryMetrics.fees?.total7d).toBe(50)
+	})
+
+	it('aggregates parent rows from chain-filtered children on chain pages', async () => {
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [
+				makeProtocolLite({
+					defillamaId: 'child-a',
+					name: 'Interface Child A',
+					chains: ['Ethereum'],
+					parentProtocol: 'parent#Interface Suite',
+					chainTvls: {
+						Ethereum: { tvl: 20, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }
+					}
+				}),
+				makeProtocolLite({
+					defillamaId: 'child-b',
+					name: 'Interface Child B',
+					chains: ['Arbitrum'],
+					parentProtocol: 'parent#Interface Suite',
+					chainTvls: {
+						Arbitrum: { tvl: 30, tvlPrevDay: 0, tvlPrevWeek: 0, tvlPrevMonth: 0 }
+					}
+				})
+			],
+			parentProtocols: [
+				{
+					id: 'parent#Interface Suite',
+					name: 'Interface Suite',
+					chains: ['Ethereum', 'Arbitrum'],
+					mcap: null
+				}
+			],
+			chains: []
+		})
+
+		fetchAdapterChainMetricsMock.mockImplementation(async ({ adapterType, category }) => {
+			if (adapterType === 'dexs' && category === 'interface') {
+				return makeAdapterMetrics([
+					{
+						...makeAdapterProtocol({
+							defillamaId: 'child-a',
+							name: 'Interface Child A',
+							parentProtocol: 'parent#Interface Suite',
+							total24h: 20,
+							total7d: 140,
+							total30d: 600
+						}),
+						chains: ['Ethereum']
+					},
+					{
+						...makeAdapterProtocol({
+							defillamaId: 'child-b',
+							name: 'Interface Child B',
+							parentProtocol: 'parent#Interface Suite',
+							total24h: 30,
+							total7d: 210,
+							total30d: 900
+						}),
+						chains: ['Arbitrum']
+					}
+				])
+			}
+
+			return makeAdapterMetrics([])
+		})
+
+		const result = await getProtocolsByCategoryOrTag({
+			kind: 'category',
+			category: 'Interface',
+			chain: 'Ethereum',
+			categoriesAndTags,
+			chainMetadata: {
+				ethereum: {
+					name: 'Ethereum',
+					id: '1',
+					dexs: true
+				}
+			}
+		})
+
+		expect(result).not.toBeNull()
+		if (!result) return
+
+		expect(result.protocols.map((protocol) => protocol.name)).toEqual(['Interface Child A'])
+		expect(result.protocols[0]?.subRows).toBeUndefined()
+		expect(result.protocols[0]?.dexVolume?.total24h).toBe(20)
+		expect(result.summaryMetrics.dexVolume?.total24h).toBe(20)
 	})
 })

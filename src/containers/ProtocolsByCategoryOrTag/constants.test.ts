@@ -179,6 +179,19 @@ describe('ProtocolsByCategoryOrTag constants', () => {
 		).toBe('dex_volume_7d')
 	})
 
+	it('falls back when the configured default sort is not visible for the resolved metrics', () => {
+		expect(
+			getProtocolCategoryDefaultSort({
+				effectiveCategory: 'Interface',
+				metrics: {
+					tvl: true,
+					fees: true,
+					revenue: true
+				}
+			})
+		).toBe('fees_7d')
+	})
+
 	it('prefers cache-driven options capabilities before legacy category fallback', () => {
 		const capabilities = getProtocolCategoryCapabilities({
 			dataConfig: categoriesAndTags.configs.Options,

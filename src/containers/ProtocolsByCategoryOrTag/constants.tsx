@@ -884,9 +884,9 @@ export function getProtocolCategoryDefaultSort({
 	effectiveCategory: string | null
 	metrics: ProtocolCategoryMetrics
 }): string {
-	const defaultSort = effectiveCategory ? protocolCategoryConfig[effectiveCategory]?.defaultSort : null
-	if (defaultSort) return defaultSort
-
 	const visibleColumns = new Set(getProtocolCategoryColumns({ effectiveCategory, metrics }))
+	const defaultSort = effectiveCategory ? protocolCategoryConfig[effectiveCategory]?.defaultSort : null
+	if (defaultSort && visibleColumns.has(defaultSort)) return defaultSort
+
 	return DEFAULT_SORT_PRIORITY.find((columnId) => visibleColumns.has(columnId)) ?? 'tvl'
 }

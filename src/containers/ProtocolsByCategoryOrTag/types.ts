@@ -31,8 +31,8 @@ interface IProtocolByCategory {
 	bridgeAggregatorsVolume?: IProtocolMetricTotals | null
 	normalizedVolume?: IProtocolMetricTotals | null
 	openInterest?: IProtocolOpenInterestTotals | null
-	optionsPremium?: IProtocolMetricTotals | null
-	optionsNotional?: IProtocolMetricTotals | null
+	optionsPremiumVolume?: IProtocolMetricTotals | null
+	optionsNotionalVolume?: IProtocolMetricTotals | null
 	tags: Array<string>
 	borrowed?: number | null
 	supplied?: number | null

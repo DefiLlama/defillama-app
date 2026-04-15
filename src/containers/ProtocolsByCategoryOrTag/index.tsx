@@ -807,42 +807,42 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		meta: { align: 'end' },
 		size: 160
 	}),
-	options_premium_7d: columnHelper.accessor((p) => p.optionsPremium?.total7d, {
+	options_premium_7d: columnHelper.accessor((p) => p.optionsPremiumVolume?.total7d, {
 		id: 'options_premium_7d',
 		header: 'Premium Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['7d'] },
 		size: 180
 	}),
-	options_premium_30d: columnHelper.accessor((p) => p.optionsPremium?.total30d, {
+	options_premium_30d: columnHelper.accessor((p) => p.optionsPremiumVolume?.total30d, {
 		id: 'options_premium_30d',
 		header: 'Premium Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['30d'] },
 		size: 180
 	}),
-	options_premium_24h: columnHelper.accessor((p) => p.optionsPremium?.total24h, {
+	options_premium_24h: columnHelper.accessor((p) => p.optionsPremiumVolume?.total24h, {
 		id: 'options_premium_24h',
 		header: 'Premium Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.optionsPremium.protocol['24h'] },
 		size: 180
 	}),
-	options_notional_7d: columnHelper.accessor((p) => p.optionsNotional?.total7d, {
+	options_notional_7d: columnHelper.accessor((p) => p.optionsNotionalVolume?.total7d, {
 		id: 'options_notional_7d',
 		header: 'Notional Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.optionsNotional.protocol['7d'] },
 		size: 180
 	}),
-	options_notional_30d: columnHelper.accessor((p) => p.optionsNotional?.total30d, {
+	options_notional_30d: columnHelper.accessor((p) => p.optionsNotionalVolume?.total30d, {
 		id: 'options_notional_30d',
 		header: 'Notional Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.optionsNotional.protocol['30d'] },
 		size: 180
 	}),
-	options_notional_24h: columnHelper.accessor((p) => p.optionsNotional?.total24h, {
+	options_notional_24h: columnHelper.accessor((p) => p.optionsNotionalVolume?.total24h, {
 		id: 'options_notional_24h',
 		header: 'Notional Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),

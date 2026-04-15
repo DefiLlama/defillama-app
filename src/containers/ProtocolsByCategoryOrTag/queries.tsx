@@ -300,8 +300,8 @@ type AdapterProtocolData = {
 	bridgeAggregatorsVolume?: ProtocolMetricTotals
 	normalizedVolume?: ProtocolMetricTotals
 	openInterest?: OpenInterestTotals
-	optionsPremium?: ProtocolMetricTotals
-	optionsNotional?: ProtocolMetricTotals
+	optionsPremiumVolume?: ProtocolMetricTotals
+	optionsNotionalVolume?: ProtocolMetricTotals
 }
 
 type ChainTvlPoint = {
@@ -695,7 +695,7 @@ export async function getProtocolsByCategoryOrTag(
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.optionsPremium = toProtocolMetricTotals(protocol)
+		adapterData.optionsPremiumVolume = toProtocolMetricTotals(protocol)
 	}
 
 	for (const protocol of optionsNotionalData?.protocols ?? []) {
@@ -703,11 +703,13 @@ export async function getProtocolsByCategoryOrTag(
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.optionsNotional = toProtocolMetricTotals(protocol)
+		adapterData.optionsNotionalVolume = toProtocolMetricTotals(protocol)
 	}
 
 	const protocolsStore: Record<string, ProtocolTableRow> = {}
 	const parentProtocolsStore: Record<string, Array<ProtocolTableRow>> = {}
+	const isVisibleOnSelectedChain = (protocolChains: Array<string>) =>
+		!chain || protocolChains.includes(currentChainMetadata.name)
 
 	for (const protocol of mergedProtocols) {
 		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category === category
@@ -795,10 +797,12 @@ export async function getProtocolsByCategoryOrTag(
 			bridgeAggregatorsVolume: adapterProtocolData?.bridgeAggregatorsVolume ?? null,
 			normalizedVolume: adapterProtocolData?.normalizedVolume ?? null,
 			openInterest: adapterProtocolData?.openInterest ?? null,
-			optionsPremium: adapterProtocolData?.optionsPremium ?? null,
-			optionsNotional: adapterProtocolData?.optionsNotional ?? null,
+			optionsPremiumVolume: adapterProtocolData?.optionsPremiumVolume ?? null,
+			optionsNotionalVolume: adapterProtocolData?.optionsNotionalVolume ?? null,
 			tags: protocol.tags ?? []
 		}
+
+		if (!isVisibleOnSelectedChain(finalData.chains)) continue
 
 		if (protocol.parentProtocol) {
 			parentProtocolsStore[protocol.parentProtocol] = [
@@ -842,8 +846,8 @@ export async function getProtocolsByCategoryOrTag(
 		const perpsAggregatorsVolume = sumMetricTotals({ rows, selector: (row) => row.perpsAggregatorsVolume })
 		const bridgeAggregatorsVolume = sumMetricTotals({ rows, selector: (row) => row.bridgeAggregatorsVolume })
 		const normalizedVolume = sumMetricTotals({ rows, selector: (row) => row.normalizedVolume })
-		const optionsPremiumVolume = sumMetricTotals({ rows, selector: (row) => row.optionsPremium })
-		const optionsNotionalVolume = sumMetricTotals({ rows, selector: (row) => row.optionsNotional })
+		const optionsPremiumVolume = sumMetricTotals({ rows, selector: (row) => row.optionsPremiumVolume })
+		const optionsNotionalVolume = sumMetricTotals({ rows, selector: (row) => row.optionsNotionalVolume })
 		const openInterest = rows.reduce<OpenInterestTotals>(
 			(acc, row) => ({
 				total24h: (acc.total24h ?? 0) + (row.openInterest?.total24h ?? 0),
@@ -881,7 +885,9 @@ export async function getProtocolsByCategoryOrTag(
 
 	const finalProtocols: Array<ProtocolTableRow> = Object.values(protocolsStore)
 	for (const parentProtocol of mergedParentProtocols) {
-		const childProtocols = parentProtocolsStore[parentProtocol.id]
+		const childProtocols = parentProtocolsStore[parentProtocol.id]?.filter((row) =>
+			isVisibleOnSelectedChain(row.chains)
+		)
 		if (childProtocols == null) continue
 
 		if (childProtocols.length === 1) {
@@ -932,8 +938,14 @@ export async function getProtocolsByCategoryOrTag(
 				total30d: 0
 			}
 		)
-		const optionsPremium = sumMetricTotals({ rows: childProtocols, selector: (row) => row.optionsPremium })
-		const optionsNotional = sumMetricTotals({ rows: childProtocols, selector: (row) => row.optionsNotional })
+		const optionsPremiumVolume = sumMetricTotals({
+			rows: childProtocols,
+			selector: (row) => row.optionsPremiumVolume
+		})
+		const optionsNotionalVolume = sumMetricTotals({
+			rows: childProtocols,
+			selector: (row) => row.optionsNotionalVolume
+		})
 
 		finalProtocols.push({
 			name: parentProtocol.name,
@@ -971,14 +983,16 @@ export async function getProtocolsByCategoryOrTag(
 					: normalizedVolume,
 			openInterest:
 				openInterest.total24h === 0 && openInterest.total7d === 0 && openInterest.total30d === 0 ? null : openInterest,
-			optionsPremium:
-				optionsPremium.total24h === 0 && optionsPremium.total7d === 0 && optionsPremium.total30d === 0
+			optionsPremiumVolume:
+				optionsPremiumVolume.total24h === 0 && optionsPremiumVolume.total7d === 0 && optionsPremiumVolume.total30d === 0
 					? null
-					: optionsPremium,
-			optionsNotional:
-				optionsNotional.total24h === 0 && optionsNotional.total7d === 0 && optionsNotional.total30d === 0
+					: optionsPremiumVolume,
+			optionsNotionalVolume:
+				optionsNotionalVolume.total24h === 0 &&
+				optionsNotionalVolume.total7d === 0 &&
+				optionsNotionalVolume.total30d === 0
 					? null
-					: optionsNotional,
+					: optionsNotionalVolume,
 			subRows: childProtocols.toSorted((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)),
 			tags: Array.from(new Set(childProtocols.flatMap((row) => row.tags ?? [])))
 		})
@@ -1022,9 +1036,7 @@ export async function getProtocolsByCategoryOrTag(
 		stakingChartData: extraTvlCharts.staking
 	})
 
-	const filteredProtocols = (
-		chain ? finalProtocols.filter((protocol) => protocol.chains.includes(currentChainMetadata.name)) : finalProtocols
-	).sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0))
+	const filteredProtocols = finalProtocols.toSorted((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0))
 
 	const summaryMetrics = getSummaryMetricsFromRows(filteredProtocols)
 
