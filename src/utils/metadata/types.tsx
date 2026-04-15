@@ -96,7 +96,7 @@ export interface ICategoriesAndTags {
 }
 
 export interface IRWAList {
-	tickers: Array<string>
+	canonicalMarketIds: Array<string>
 	platforms: Array<string>
 	chains: Array<string>
 	categories: Array<string>

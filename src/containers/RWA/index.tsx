@@ -17,7 +17,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview, RWATickerChartTarget } from './api.types'
+import type { IRWAAssetsOverview, RWAAssetChartTarget } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
 import { emptyChartDatasets, type RWAChartAggregationMode } from './chartAggregation'
 import {
@@ -178,7 +178,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
-	const chartTarget = getTickerChartTarget(props)
+	const chartTarget = getAssetChartTarget(props)
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
 		selectedMetric: chartTypeKey,
 		initialDataset: initialChartDataset[chartTypeKey],
@@ -804,7 +804,7 @@ const getRwaChartAggregationMode = (state: RWAChartBreakdown | 'total'): RWAChar
 	}
 }
 
-const getTickerChartTarget = (props: IRWAAssetsOverview): RWATickerChartTarget => {
+const getAssetChartTarget = (props: IRWAAssetsOverview): RWAAssetChartTarget => {
 	if (props.assetGroupSlug) return { kind: 'assetGroup', slug: props.assetGroupSlug }
 	if (props.categorySlug) return { kind: 'category', slug: props.categorySlug }
 	if (props.platformSlug) return { kind: 'platform', slug: props.platformSlug }

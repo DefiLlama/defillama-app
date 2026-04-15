@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRWAAssetsOverview } from './api.types'
 import type { RWAChartAggregationMode } from './chartAggregation'
 import {
-	getRwaTickerChartQueryKey,
+	getRwaAssetChartQueryKey,
 	hasActiveChartFilters,
 	resolveRWAOverviewInclusionFlag,
+	useRWAAssetCategoryPieChartData,
 	useRwaAssetGroupPieChartData,
 	useRwaChartDataset
 } from './hooks'
@@ -25,6 +26,7 @@ vi.mock('~/utils/async', () => ({
 const assets: IRWAAssetsOverview['assets'] = [
 	{
 		id: '1',
+		canonicalMarketId: 'ondo/usdy',
 		ticker: 'AAA',
 		assetName: 'Alpha',
 		category: ['Treasuries'],
@@ -36,6 +38,7 @@ const assets: IRWAAssetsOverview['assets'] = [
 	},
 	{
 		id: '2',
+		canonicalMarketId: 'superstate/ustb',
 		ticker: 'BBB',
 		assetName: 'Beta',
 		category: ['Private Credit'],
@@ -49,12 +52,14 @@ const assets: IRWAAssetsOverview['assets'] = [
 
 function DatasetProbe({
 	mode,
+	chartAssets = assets,
 	initialDataset = { source: [], dimensions: ['timestamp'] },
 	includeStablecoins = false,
 	includeGovernance = false,
 	useInitialDataset = false
 }: {
 	mode: RWAChartAggregationMode
+	chartAssets?: IRWAAssetsOverview['assets']
 	initialDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] }
 	includeStablecoins?: boolean
 	includeGovernance?: boolean
@@ -63,7 +68,7 @@ function DatasetProbe({
 	const { chartDataset } = useRwaChartDataset({
 		selectedMetric: 'onChainMcap',
 		initialDataset,
-		filteredAssets: assets,
+		filteredAssets: chartAssets,
 		mode,
 		target: { kind: 'all' },
 		includeStablecoins,
@@ -82,6 +87,29 @@ function AssetGroupProbe({ enabled, chartAssets }: { enabled: boolean; chartAsse
 	})
 }
 
+function CategoryProbe({
+	enabled,
+	chartAssets,
+	categories,
+	selectedCategories
+}: {
+	enabled: boolean
+	chartAssets: IRWAAssetsOverview['assets']
+	categories: string[]
+	selectedCategories: string[]
+}) {
+	const result = useRWAAssetCategoryPieChartData({
+		enabled,
+		assets: chartAssets,
+		categories,
+		selectedCategories
+	})
+	return React.createElement('script', {
+		type: 'application/json',
+		dangerouslySetInnerHTML: { __html: JSON.stringify(result) }
+	})
+}
+
 function readJsonMarkup(markup: string) {
 	const match = markup.match(/<script type="application\/json">([\s\S]*)<\/script>/)
 	expect(match?.[1]).toBeTruthy()
@@ -93,11 +121,11 @@ describe('useRwaChartDataset', () => {
 		useQueryMock.mockReset()
 		fetchJsonMock.mockReset()
 		useQueryMock.mockReturnValue({
-			data: [{ timestamp: 1, AAA: 100, BBB: 80 }],
+			data: [{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 80 }],
 			isLoading: false,
 			error: null
 		})
-		fetchJsonMock.mockResolvedValue([{ timestamp: 1, AAA: 100, BBB: 80 }])
+		fetchJsonMock.mockResolvedValue([{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 80 }])
 	})
 
 	it('regroups cached ticker rows without changing the fetch key', () => {
@@ -110,13 +138,13 @@ describe('useRwaChartDataset', () => {
 		expect(totalMarkup).toContain('timestamp|Total')
 		expect(useQueryMock).toHaveBeenCalledTimes(3)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[2][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 	})
 
@@ -125,14 +153,44 @@ describe('useRwaChartDataset', () => {
 		renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'category', includeStablecoins: true }))
 
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', true, false)
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', true, false)
 		})
 	})
 
-	it('passes the resolved inclusion flags to the ticker-breakdown fetcher', async () => {
+	it('uses the primary category when regrouping category chart rows', () => {
+		const multiCategoryAssets: IRWAAssetsOverview['assets'] = [
+			{
+				id: '1',
+				canonicalMarketId: 'ondo/usdy',
+				ticker: 'AAA',
+				assetName: 'Alpha',
+				category: ['Treasuries', 'Private Credit'],
+				parentPlatform: 'Centrifuge',
+				trueRWA: false,
+				onChainMcap: null,
+				activeMcap: null,
+				defiActiveTvl: null
+			}
+		]
+
+		useQueryMock.mockReturnValueOnce({
+			data: [{ timestamp: 1, 'ondo/usdy': 100 }],
+			isLoading: false,
+			error: null
+		})
+
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, { mode: 'category', chartAssets: multiCategoryAssets })
+		)
+
+		expect(markup).toContain('timestamp|Treasuries')
+		expect(markup).not.toContain('Private Credit')
+	})
+
+	it('passes the resolved inclusion flags to the asset-breakdown fetcher', async () => {
 		let capturedOptions: { queryFn: () => Promise<unknown> } | undefined
 		useQueryMock.mockImplementation((options: { queryFn: () => Promise<unknown> }) => {
 			capturedOptions = options
@@ -154,7 +212,7 @@ describe('useRwaChartDataset', () => {
 		await capturedOptions?.queryFn()
 
 		expect(fetchJsonMock).toHaveBeenCalledWith(
-			'/api/rwa/ticker-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
+			'/api/rwa/asset-breakdown?key=onChainMcap&includeStablecoin=true&includeGovernance=false'
 		)
 	})
 
@@ -179,7 +237,7 @@ describe('useRwaChartDataset', () => {
 		expect(markup).toContain('timestamp|Prerendered')
 		expect(useQueryMock).toHaveBeenCalledTimes(1)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
-			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),
 			enabled: false
 		})
 	})
@@ -268,5 +326,39 @@ describe('useRwaAssetGroupPieChartData', () => {
 		expect(data.assetGroupOnChainMcapPieChartData).toEqual([])
 		expect(data.assetGroupActiveMcapPieChartData).toEqual([])
 		expect(data.assetGroupDefiActiveTvlPieChartData).toEqual([])
+	})
+})
+
+describe('useRWAAssetCategoryPieChartData', () => {
+	it('attributes category totals only to the primary category', () => {
+		const chartAssets: IRWAAssetsOverview['assets'] = [
+			{
+				id: '1',
+				canonicalMarketId: 'ondo/usdy',
+				ticker: 'AAA',
+				assetName: 'Alpha',
+				category: ['Treasuries', 'Private Credit'],
+				parentPlatform: 'Centrifuge',
+				trueRWA: false,
+				onChainMcap: { total: 100, breakdown: [] },
+				activeMcap: { total: 90, breakdown: [] },
+				defiActiveTvl: { total: 30, breakdown: [] }
+			}
+		]
+
+		const data = readJsonMarkup(
+			renderToStaticMarkup(
+				React.createElement(CategoryProbe, {
+					enabled: true,
+					chartAssets,
+					categories: ['Treasuries', 'Private Credit'],
+					selectedCategories: ['Treasuries', 'Private Credit']
+				})
+			)
+		)
+
+		expect(data.assetCategoryOnChainMcapPieChartData).toEqual([{ name: 'Treasuries', value: 100 }])
+		expect(data.assetCategoryActiveMcapPieChartData).toEqual([{ name: 'Treasuries', value: 90 }])
+		expect(data.assetCategoryDefiActiveTvlPieChartData).toEqual([{ name: 'Treasuries', value: 30 }])
 	})
 })

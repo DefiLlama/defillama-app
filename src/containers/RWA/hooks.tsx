@@ -13,7 +13,7 @@ import {
 	isTrueQueryParam,
 	pushShallowQuery
 } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWATickerChartTarget } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWAAssetChartTarget } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	aggregateRwaMetricData,
@@ -22,7 +22,7 @@ import {
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import { getDefaultRWAOverviewInclusion, getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
-import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
+import { computeWeightedGroups, getPrimaryRwaCategory, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
@@ -751,15 +751,14 @@ export function useRWAAssetCategoryPieChartData({
 		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const { value: category, weight } of computeWeightedGroups(asset.category)) {
-				if (!category || !selectedCategoriesSet.has(category)) continue
+			const primaryCategory = getPrimaryRwaCategory(asset.category)
+			if (!primaryCategory || !selectedCategoriesSet.has(primaryCategory)) continue
 
-				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += (asset.onChainMcap?.total ?? 0) * weight
-				prev.active += (asset.activeMcap?.total ?? 0) * weight
-				prev.defi += (asset.defiActiveTvl?.total ?? 0) * weight
-				categoryTotals.set(category, prev)
-			}
+			const prev = categoryTotals.get(primaryCategory) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
+			categoryTotals.set(primaryCategory, prev)
 		}
 
 		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
@@ -1232,14 +1231,14 @@ export function hasActiveChartFilters(
 	return false
 }
 
-export function getRwaTickerChartQueryKey(
-	target: RWATickerChartTarget,
+export function getRwaAssetChartQueryKey(
+	target: RWAAssetChartTarget,
 	selectedMetric: RWAChartMetricKey,
 	includeStablecoins: boolean,
 	includeGovernance: boolean
 ) {
 	return [
-		'rwa-ticker-chart',
+		'rwa-asset-chart',
 		target.kind,
 		target.kind === 'all' ? 'all' : target.slug,
 		selectedMetric,
@@ -1258,9 +1257,9 @@ function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
 }
 
-async function fetchRwaTickerChartData(params: {
+async function fetchRwaAssetChartData(params: {
 	key: RWAChartMetricKey
-	target: RWATickerChartTarget
+	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
 }): Promise<IRWAChartMetricRows> {
@@ -1287,7 +1286,7 @@ async function fetchRwaTickerChartData(params: {
 			assertNever(params.target)
 	}
 
-	return fetchJson<IRWAChartMetricRows>(`/api/rwa/ticker-breakdown?${searchParams.toString()}`)
+	return fetchJson<IRWAChartMetricRows>(`/api/rwa/asset-breakdown?${searchParams.toString()}`)
 }
 
 export function useRwaChartDataset({
@@ -1304,7 +1303,7 @@ export function useRwaChartDataset({
 	initialDataset: RWAChartDataset
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
-	target: RWATickerChartTarget
+	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
 	useInitialDataset: boolean
@@ -1314,13 +1313,13 @@ export function useRwaChartDataset({
 	chartError: string | null
 } {
 	const {
-		data: tickerRows,
+		data: assetRows,
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: getRwaTickerChartQueryKey(target, selectedMetric, includeStablecoins, includeGovernance),
+		queryKey: getRwaAssetChartQueryKey(target, selectedMetric, includeStablecoins, includeGovernance),
 		queryFn: () =>
-			fetchRwaTickerChartData({
+			fetchRwaAssetChartData({
 				key: selectedMetric,
 				target,
 				includeStablecoins,
@@ -1336,9 +1335,9 @@ export function useRwaChartDataset({
 
 	const chartDataset = useMemo(() => {
 		if (useInitialDataset) return initialDataset
-		if (!tickerRows) return emptyChartDataset()
-		return aggregateRwaMetricData(filteredAssets, tickerRows, mode)
-	}, [useInitialDataset, initialDataset, tickerRows, filteredAssets, mode])
+		if (!assetRows) return emptyChartDataset()
+		return aggregateRwaMetricData(filteredAssets, assetRows, mode)
+	}, [useInitialDataset, initialDataset, assetRows, filteredAssets, mode])
 
 	return {
 		chartDataset,

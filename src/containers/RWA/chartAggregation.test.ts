@@ -5,6 +5,7 @@ import { aggregateRwaMetricData } from './chartAggregation'
 const assets: IRWAAssetsOverview['assets'] = [
 	{
 		id: '1',
+		canonicalMarketId: 'ondo/usdy',
 		ticker: 'AAA',
 		assetName: 'Alpha',
 		parentPlatform: 'Centrifuge',
@@ -15,6 +16,7 @@ const assets: IRWAAssetsOverview['assets'] = [
 	},
 	{
 		id: '2',
+		canonicalMarketId: 'superstate/ustb',
 		ticker: 'BBB',
 		assetName: 'Beta',
 		parentPlatform: ['Centrifuge', 'Maple'],
@@ -25,6 +27,7 @@ const assets: IRWAAssetsOverview['assets'] = [
 	},
 	{
 		id: '3',
+		canonicalMarketId: 'blackrock/buidl',
 		ticker: 'CCC',
 		assetName: 'Gamma',
 		parentPlatform: null,
@@ -36,13 +39,13 @@ const assets: IRWAAssetsOverview['assets'] = [
 ]
 
 describe('aggregateRwaMetricData', () => {
-	it('aggregates all ticker series into a single Total series when total mode is selected', () => {
+	it('aggregates all asset series into a single Total series when total mode is selected', () => {
 		expect(
 			aggregateRwaMetricData(
 				assets,
 				[
-					{ timestamp: 1, AAA: 100, BBB: 90, CCC: 50 },
-					{ timestamp: 2, AAA: 120, BBB: 80, CCC: 40 }
+					{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 90, 'blackrock/buidl': 50 },
+					{ timestamp: 2, 'ondo/usdy': 120, 'superstate/ustb': 80, 'blackrock/buidl': 40 }
 				],
 				'total'
 			)
@@ -60,8 +63,8 @@ describe('aggregateRwaMetricData', () => {
 			aggregateRwaMetricData(
 				assets,
 				[
-					{ timestamp: 1, AAA: 100, BBB: 90, CCC: 50 },
-					{ timestamp: 2, AAA: 120, BBB: 80, CCC: 40 }
+					{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 90, 'blackrock/buidl': 50 },
+					{ timestamp: 2, 'ondo/usdy': 120, 'superstate/ustb': 80, 'blackrock/buidl': 40 }
 				],
 				'platform'
 			)
@@ -80,6 +83,7 @@ describe('aggregateRwaMetricData', () => {
 				[
 					{
 						id: '1',
+						canonicalMarketId: 'circle/usdc',
 						ticker: 'AAA',
 						assetName: 'Alpha',
 						assetGroup: 'Stablecoins',
@@ -91,6 +95,7 @@ describe('aggregateRwaMetricData', () => {
 					},
 					{
 						id: '2',
+						canonicalMarketId: 'unknown/asset',
 						ticker: 'BBB',
 						assetName: 'Beta',
 						assetGroup: null,
@@ -101,7 +106,7 @@ describe('aggregateRwaMetricData', () => {
 						defiActiveTvl: null
 					}
 				],
-				[{ timestamp: 1, AAA: 100, BBB: 50 }],
+				[{ timestamp: 1, 'circle/usdc': 100, 'unknown/asset': 50 }],
 				'assetGroup'
 			)
 		).toEqual({

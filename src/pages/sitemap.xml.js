@@ -212,10 +212,9 @@ async function buildRWAAssetRoutes() {
 	const metadataModule = await import('~/utils/metadata')
 	await metadataModule.refreshMetadataIfStale()
 	const rwaList = metadataModule.default.rwaList
-	if (rwaList?.tickers) {
-		for (const ticker of rwaList.tickers) {
-			const tickerSlug = rwaSlug(ticker)
-			if (tickerSlug) routes.push(`rwa/asset/${tickerSlug}`)
+	if (rwaList?.canonicalMarketIds) {
+		for (const canonicalMarketId of rwaList.canonicalMarketIds) {
+			if (canonicalMarketId) routes.push(`rwa/asset/${encodeURIComponent(canonicalMarketId)}`)
 		}
 	}
 	if (rwaList?.platforms) {

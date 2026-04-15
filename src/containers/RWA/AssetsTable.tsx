@@ -22,7 +22,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { formatNum, formattedNum, slug } from '~/utils'
+import { formatNum, formattedNum } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
@@ -168,13 +168,13 @@ const columns = [
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<span className="-my-1.5 flex flex-col overflow-hidden">
-						{info.row.original.ticker ? (
+						{info.row.original.canonicalMarketId ? (
 							<>
 								<BasicLink
-									href={`/rwa/asset/${slug(info.row.original.ticker)}`}
+									href={`/rwa/asset/${encodeURIComponent(info.row.original.canonicalMarketId)}`}
 									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
-									{info.row.original.assetName ?? info.row.original.ticker}
+									{info.row.original.assetName ?? info.row.original.canonicalMarketId}
 								</BasicLink>
 								{info.row.original.assetName ? (
 									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>

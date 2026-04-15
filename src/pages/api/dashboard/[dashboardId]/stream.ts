@@ -372,16 +372,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					(async () => {
 						let data: any = null
 						if (resolvedChain !== 'All') {
-							const tickerData = await withTimeout(
-								rwaApi.fetchRWAChartDataByTicker({
+							const assetData = await withTimeout(
+								rwaApi.fetchRWAChartDataByAsset({
 									target: { kind: 'chain', slug: resolvedChain },
 									includeStablecoins: false,
 									includeGovernance: false
 								}),
 								10_000
 							)
-							if (tickerData) {
-								const rows = (tickerData as any)[metric || 'activeMcap'] ?? null
+							if (assetData) {
+								const rows = (assetData as any)[metric || 'activeMcap'] ?? null
 								if (rows) {
 									data = rows.map((row: any) => ({
 										...row,
