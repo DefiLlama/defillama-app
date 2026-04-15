@@ -156,12 +156,17 @@ export function MultiMetricModal({
 	}, [param, paramType, chartOptionsMap])
 
 	useEffect(() => {
+		// Skip pruning before param is set. Otherwise, on the same post-commit pass that the
+		// "apply initial config" effect fires `setSelectedMetrics([...saved])`, this effect's
+		// closure still has the pre-apply `availableMetrics = []`, and would wipe the queued
+		// update back to [] — causing saved multi-metric presets to open with no metrics.
+		if (!param) return
 		const availableSet = new Set(availableMetrics.map((m) => m.slug))
 		setSelectedMetrics((prev) => {
 			const next = prev.filter((slug) => availableSet.has(slug))
 			return next.length === prev.length ? prev : next
 		})
-	}, [availableMetrics])
+	}, [param, availableMetrics])
 
 	useEffect(() => {
 		setActiveMetric((cur) => {
