@@ -1,0 +1,64 @@
+import { useEffect } from 'react'
+import { checkParentAuth } from '~/utils/checkParentAuth'
+
+// Only runs on the IR site (NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID is set).
+const IS_IR_SITE = !!process.env.NEXT_PUBLIC_SUPERLUMINAL_DASHBOARD_ID
+
+const SESSION_KEY = 'ir-parent-auth-tracked'
+const UMAMI_RETRY_INTERVAL_MS = 500
+const MAX_UMAMI_RETRIES = 10
+
+export function useParentAuthTracker() {
+	useEffect(() => {
+		if (!IS_IR_SITE) return
+		if (typeof window === 'undefined') return
+		if (sessionStorage.getItem(SESSION_KEY)) {
+			console.log('[auth-tracker] already tracked this session:', sessionStorage.getItem(SESSION_KEY))
+			return
+		}
+
+		let cancelled = false
+		let intervalId: number | null = null
+
+		checkParentAuth().then((user) => {
+			if (cancelled) return
+			if (!user) {
+				console.log('[auth-tracker] no parent auth detected')
+				return
+			}
+
+			console.log('[auth-tracker] authenticated user:', user.id)
+			sessionStorage.setItem(SESSION_KEY, user.id ?? 'unknown')
+
+			const trackVisit = (): boolean => {
+				const umami = window.umami
+				if (!umami) return false
+
+				umami.identify(user.id ?? 'unknown')
+				umami.track('ir-authenticated-visit', {
+					userId: user.id
+				})
+				return true
+			}
+
+			if (trackVisit()) return
+
+			let retries = 0
+			intervalId = window.setInterval(() => {
+				if (trackVisit() || ++retries >= MAX_UMAMI_RETRIES) {
+					if (intervalId !== null) {
+						window.clearInterval(intervalId)
+						intervalId = null
+					}
+				}
+			}, UMAMI_RETRY_INTERVAL_MS)
+		})
+
+		return () => {
+			cancelled = true
+			if (intervalId !== null) {
+				window.clearInterval(intervalId)
+			}
+		}
+	}, [])
+}
