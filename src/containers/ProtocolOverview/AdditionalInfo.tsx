@@ -7,6 +7,7 @@ import { Menu } from '~/components/Menu'
 import { MetricRow } from '~/components/MetricPrimitives'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { formattedNum, slug } from '~/utils'
@@ -146,23 +147,25 @@ function Users(props: IProtocolOverviewPageData) {
 	)
 }
 
-const ProtocolInfo = (props: IProtocolOverviewPageData) => {
+export const ProtocolInfo = (props: IProtocolOverviewPageData) => {
+	const categoryHref = props.category ? getCategoryRoute(slug(props.category)) : null
+
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<SectionHeader id="protocol-information">
 				{props.isCEX ? 'Exchange Information' : 'Protocol Information'}
 			</SectionHeader>
 			{props.description ? <p>{props.description}</p> : null}
-			{props.category ? (
-				<p className="flex items-center gap-1">
-					<span>Category:</span>
+			{props.category && categoryHref ? (
+				<div className="flex flex-wrap items-center gap-2">
+					<span className="text-sm font-medium text-(--text-label)">Category</span>
 					<BasicLink
-						href={props.category === 'RWA' ? '/rwa' : `/protocols/${slug(props.category)}`}
-						className="hover:underline"
+						href={categoryHref}
+						className="inline-flex items-center rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 					>
 						{props.category}
 					</BasicLink>
-				</p>
+				</div>
 			) : null}
 			{props.tags?.length ? <p className="flex items-center gap-1">Sub Category: {props.tags.join(', ')}</p> : null}
 
