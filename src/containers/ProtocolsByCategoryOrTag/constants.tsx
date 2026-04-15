@@ -93,16 +93,16 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		columns: [
 			'name',
 			'tvl',
+			'borrowed',
+			'supplied',
+			'supplied/tvl',
 			'fees_7d',
 			'revenue_7d',
 			'mcap/tvl',
 			'fees_30d',
 			'revenue_30d',
 			'fees_24h',
-			'revenue_24h',
-			'borrowed',
-			'supplied',
-			'supplied/tvl'
+			'revenue_24h'
 		]
 	},
 	'Cross Chain Bridge': {

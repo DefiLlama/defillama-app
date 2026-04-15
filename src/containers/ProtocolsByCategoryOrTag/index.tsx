@@ -660,7 +660,7 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		header: 'Active Loans',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: 'Total amount currently borrowed from the protocol' },
-		size: 100
+		size: 140
 	}),
 	supplied: columnHelper.accessor((p) => p.supplied, {
 		id: 'supplied',
