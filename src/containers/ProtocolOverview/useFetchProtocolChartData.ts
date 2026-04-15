@@ -1179,7 +1179,7 @@ export const useFetchProtocolChartData = ({
 			const borrowedChartData = Object.entries(extraTvlCharts.charts.borrowed).map(
 				([date, value]) => [+date * 1e3, value] as [number, number]
 			)
-			charts['Borrowed'] = formatLineChart({
+			charts['Active Loans'] = formatLineChart({
 				data: borrowedChartData,
 				groupBy,
 				dateInMs: true,

@@ -23,7 +23,7 @@ const PROTOCOL_TO_DASHBOARD_CHART_TYPE: Record<ProtocolChartsLabels, string | nu
 	Unlocks: 'unlocks',
 	Incentives: 'incentives',
 	Staking: null,
-	Borrowed: 'borrowed',
+	'Active Loans': 'borrowed',
 	'Median APY': 'medianApy',
 	'USD Inflows': 'stablecoinInflows',
 	Treasury: 'treasury',

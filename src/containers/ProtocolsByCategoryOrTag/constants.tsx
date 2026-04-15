@@ -722,7 +722,7 @@ export function getProtocolCategoryChartMetricLabel(
 		case 'optionsNotionalVolume':
 			return 'Options Notional Volume'
 		case 'borrowed':
-			return 'Borrowed'
+			return 'Active Loans'
 		case 'staking':
 			return 'Staking TVL'
 	}

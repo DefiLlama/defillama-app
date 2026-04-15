@@ -62,7 +62,7 @@ export function buildAvailableCharts(params: IBuildAvailableChartsParams): Proto
 	if (params.hasUnlocks) charts.push('Unlocks')
 	if (params.hasIncentives) charts.push('Incentives')
 	if (params.hasStaking) charts.push('Staking')
-	if (params.hasBorrowed) charts.push('Borrowed')
+	if (params.hasBorrowed) charts.push('Active Loans')
 	if (params.hasUsdInflows) charts.push('USD Inflows')
 	if (params.hasTreasury) charts.push('Treasury')
 	if (params.hasMedianApy) charts.push('Median APY')
@@ -110,7 +110,7 @@ export function buildDefaultToggledCharts({
 			const hasStaking = (currentChainTvls?.staking ?? 0) > 0
 			if (hasStaking) pushUniqueIfAvailable('Staking')
 			const hasBorrowed = (currentChainTvls?.borrowed ?? 0) > 0
-			if (!hasStaking && hasBorrowed) pushUniqueIfAvailable('Borrowed')
+			if (!hasStaking && hasBorrowed) pushUniqueIfAvailable('Active Loans')
 		} else {
 			pushUniqueIfAvailable(isCEX ? 'Total Assets' : 'TVL')
 		}
