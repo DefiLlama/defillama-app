@@ -10,6 +10,7 @@ import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
+import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
 NProgress.configure({ showSpinner: false })
@@ -125,6 +126,7 @@ function App({ Component, pageProps }: AppProps) {
 
 	const { hasActiveSubscription } = useAuthContext()
 
+	useParentAuthTracker()
 	useUmamiIdentityTracker()
 
 	return (
