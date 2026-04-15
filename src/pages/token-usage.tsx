@@ -19,7 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
-import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
+import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
@@ -145,7 +145,7 @@ export default function Tokens() {
 const fetchProtocols = async (tokenSymbol: string | null): Promise<TokenUsagePageRow[] | null> => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetchProtocolsByToken(tokenSymbol)
+		const data = await fetchProtocolsByTokenClient(tokenSymbol)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]
