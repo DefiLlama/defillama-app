@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { IProtocolByCategoryOrTagPageData } from './types'
 
+let lastTableWithSearchProps: any = null
+
 vi.mock('~/components/ButtonStyled/ChartExportButtons', () => ({
 	ChartExportButtons: () => null
 }))
@@ -18,7 +20,10 @@ vi.mock('~/components/RowLinksWithDropdown', () => ({
 }))
 
 vi.mock('~/components/Table/TableWithSearch', () => ({
-	TableWithSearch: () => null
+	TableWithSearch: (props: any) => {
+		lastTableWithSearchProps = props
+		return null
+	}
 }))
 
 vi.mock('~/hooks/useGetChartInstance', () => ({
@@ -89,7 +94,7 @@ vi.mock('../../../public/definitions', () => ({
 import { ProtocolsByCategoryOrTag, getColumnsForCategory } from './index'
 
 describe('ProtocolsByCategoryOrTag', () => {
-	it('uses derived spot-volume headers for Interface pages', () => {
+	it('uses the fixed widths for resized ranking columns', () => {
 		const columns = getColumnsForCategory({
 			effectiveCategory: 'Interface',
 			metrics: {
@@ -98,50 +103,20 @@ describe('ProtocolsByCategoryOrTag', () => {
 				revenue: true,
 				dexVolume: true,
 				dexAggregatorsVolume: true,
-				perpVolume: true,
 				perpsAggregatorsVolume: true,
-				bridgeAggregatorsVolume: true,
-				normalizedVolume: true,
-				openInterest: true
+				bridgeAggregatorsVolume: true
 			}
 		})
-		const headers = columns.map((column) => column.header)
 
-		expect(headers).toEqual([
-			'Name',
-			'TVL',
-			'Perp Volume 30d',
-			'Perp Aggregator Volume 30d',
-			'Bridge Aggregator Volume 30d',
-			'Normalized Volume 30d',
-			'DEX Aggregator Volume 30d',
-			'Spot Volume 30d',
-			'Fees 30d',
-			'Revenue 30d',
-			'Open Interest',
-			'Perp Volume 7d',
-			'Perp Aggregator Volume 7d',
-			'Bridge Aggregator Volume 7d',
-			'Normalized Volume 7d',
-			'DEX Aggregator Volume 7d',
-			'Spot Volume 7d',
-			'Fees 7d',
-			'Revenue 7d',
-			'Perp Volume 24h',
-			'Perp Aggregator Volume 24h',
-			'Bridge Aggregator Volume 24h',
-			'Normalized Volume 24h',
-			'DEX Aggregator Volume 24h',
-			'Spot Volume 24h',
-			'Fees 24h',
-			'Revenue 24h',
-			'Mcap/TVL'
-		])
-		expect(columns.find((column) => column.id === 'spot_volume_7d')?.meta?.headerHelperText).toBeUndefined()
-		expect(columns.find((column) => column.id === 'dex_aggregator_volume_7d')?.meta?.headerHelperText).toBe('7d')
+		expect(columns.find((column) => column.id === 'dex_aggregator_volume_7d')?.size).toBe(230)
+		expect(columns.find((column) => column.id === 'perp_aggregator_volume_7d')?.size).toBe(230)
+		expect(columns.find((column) => column.id === 'bridge_aggregator_volume_7d')?.size).toBe(230)
+		expect(columns.find((column) => column.id === 'fees_7d')?.size).toBe(100)
+		expect(columns.find((column) => column.id === 'revenue_7d')?.size).toBe(125)
 	})
 
 	it('renders metric sections with nested 24h and 30d rows', () => {
+		lastTableWithSearchProps = null
 		const props: IProtocolByCategoryOrTagPageData = {
 			protocols: [],
 			category: 'Dexs',
@@ -188,6 +163,7 @@ describe('ProtocolsByCategoryOrTag', () => {
 	})
 
 	it('sorts summary metrics by their primary dollar value', () => {
+		lastTableWithSearchProps = null
 		const props: IProtocolByCategoryOrTagPageData = {
 			protocols: [],
 			category: 'Prediction Market',
@@ -227,6 +203,7 @@ describe('ProtocolsByCategoryOrTag', () => {
 	})
 
 	it('does not attach a generic dex tooltip to relabeled dex metrics', () => {
+		lastTableWithSearchProps = null
 		const props: IProtocolByCategoryOrTagPageData = {
 			protocols: [],
 			category: 'Interface',
@@ -255,5 +232,118 @@ describe('ProtocolsByCategoryOrTag', () => {
 
 		expect(html).toContain('Spot Volume (7d)')
 		expect(html).not.toContain('title="7d"')
+	})
+
+	it('orders ranking columns to match the summary metric order', () => {
+		lastTableWithSearchProps = null
+
+		const props: IProtocolByCategoryOrTagPageData = {
+			protocols: [],
+			category: 'Interface',
+			tag: null,
+			effectiveCategory: 'Interface',
+			capabilities: {
+				tvl: true,
+				fees: true,
+				revenue: true,
+				dexVolume: true,
+				dexAggregatorsVolume: true,
+				perpsAggregatorsVolume: true,
+				bridgeAggregatorsVolume: true
+			},
+			chains: [],
+			chain: 'All',
+			charts: {
+				dataset: {
+					source: [{ timestamp: 1710000000000, TVL: 5_850_000 }],
+					dimensions: ['timestamp', 'TVL']
+				},
+				charts: []
+			},
+			summaryMetrics: {
+				fees: { total24h: 100_000, total7d: 1_060_000, total30d: 4_400_000 },
+				revenue: { total24h: 80_000, total7d: 1_000_000, total30d: 4_000_000 },
+				dexVolume: { total24h: 7_000_000, total7d: 56_270_000, total30d: 210_000_000 },
+				dexAggregatorsVolume: { total24h: 900_000_000, total7d: 10_490_000_000, total30d: 38_000_000_000 },
+				perpsAggregatorsVolume: { total24h: 75_000_000, total7d: 869_250_000, total30d: 3_200_000_000 },
+				bridgeAggregatorsVolume: { total24h: 21_000_000, total7d: 233_550_000, total30d: 940_000_000 }
+			},
+			extraTvlCharts: {}
+		}
+
+		renderToStaticMarkup(React.createElement(ProtocolsByCategoryOrTag, props))
+
+		expect(lastTableWithSearchProps?.columns.map((column: { header: string }) => column.header)).toEqual([
+			'Name',
+			'DEX Aggregator Volume 30d',
+			'Perp Aggregator Volume 30d',
+			'Bridge Aggregator Volume 30d',
+			'Spot Volume 30d',
+			'TVL',
+			'Fees 30d',
+			'Revenue 30d',
+			'Perp Aggregator Volume 7d',
+			'Bridge Aggregator Volume 7d',
+			'DEX Aggregator Volume 7d',
+			'Spot Volume 7d',
+			'Fees 7d',
+			'Revenue 7d',
+			'Perp Aggregator Volume 24h',
+			'Bridge Aggregator Volume 24h',
+			'DEX Aggregator Volume 24h',
+			'Spot Volume 24h',
+			'Fees 24h',
+			'Revenue 24h',
+			'Mcap/TVL'
+		])
+	})
+
+	it('keeps ranked summary metrics ahead of unranked visible metrics on Dexs pages', () => {
+		lastTableWithSearchProps = null
+
+		const props: IProtocolByCategoryOrTagPageData = {
+			protocols: [],
+			category: 'Dexs',
+			tag: null,
+			effectiveCategory: 'Dexs',
+			capabilities: {
+				tvl: true,
+				fees: true,
+				revenue: true,
+				dexVolume: true,
+				dexAggregatorsVolume: true,
+				perpVolume: true
+			},
+			chains: [],
+			chain: 'All',
+			charts: {
+				dataset: {
+					source: [{ timestamp: 1710000000000, TVL: 13_138_000_000 }],
+					dimensions: ['timestamp', 'TVL']
+				},
+				charts: []
+			},
+			summaryMetrics: {
+				fees: { total24h: 1_000_000, total7d: 29_870_000, total30d: 120_000_000 },
+				revenue: { total24h: 200_000, total7d: 7_100_000, total30d: 31_000_000 },
+				dexVolume: { total24h: 5_300_000_000, total7d: 37_446_000_000, total30d: 145_000_000_000 },
+				dexAggregatorsVolume: { total24h: 201, total7d: 201, total30d: 201 },
+				perpVolume: { total24h: null, total7d: null, total30d: null }
+			},
+			extraTvlCharts: {}
+		}
+
+		renderToStaticMarkup(React.createElement(ProtocolsByCategoryOrTag, props))
+
+		expect(lastTableWithSearchProps?.sortingState).toEqual([{ id: 'dex_volume_30d', desc: true }])
+		expect(lastTableWithSearchProps?.columns.slice(0, 7).map((column: { header: string }) => column.header)).toEqual([
+			'Name',
+			'DEX Volume 30d',
+			'TVL',
+			'Fees 30d',
+			'Revenue 30d',
+			'DEX Aggregator Volume 30d',
+			'Perp Volume 30d'
+		])
 	})
 })

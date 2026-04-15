@@ -22,7 +22,6 @@ import { definitions } from '../../../public/definitions'
 import {
 	getProtocolCategoryDexVolumeLabel,
 	getProtocolCategoryColumns,
-	getProtocolCategoryDefaultSort,
 	getProtocolCategoryPresentation
 } from './constants'
 import type { IProtocolByCategoryOrTagPageData } from './types'
@@ -33,14 +32,50 @@ type SummaryMetricEntry = {
 	key: string
 	sortValue: number
 	content: ReactNode
+	leadingColumnId: string
 }
 
-const getSectionSortValue = (
+type SummaryMetricPeriod = '7d' | '24h' | '30d'
+type TimedColumnIds = Record<SummaryMetricPeriod, string>
+type TimedSummaryMetricKey = Exclude<keyof IProtocolByCategoryOrTagPageData['summaryMetrics'], 'openInterest'>
+type TimedSummaryMetricDescriptor = {
+	type: 'timed'
+	key: TimedSummaryMetricKey
+	label: string
+	metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][TimedSummaryMetricKey]
+	tooltips?: Partial<Record<SummaryMetricPeriod, string>>
+	columns: TimedColumnIds
+}
+type StaticSummaryMetricDescriptor = {
+	type: 'static'
+	key: 'openInterest'
+	label: 'Open Interest'
+	value: number | null
+	tooltip: string
+	columnId: 'openInterest'
+}
+type SummaryMetricDescriptor = TimedSummaryMetricDescriptor | StaticSummaryMetricDescriptor
+
+const NON_SUMMARY_LEADING_COLUMN_IDS = ['borrowed', 'supplied', 'supplied/tvl'] as const
+const getDexVolumeColumnIds = (effectiveCategory: string | null): TimedColumnIds => {
+	switch (effectiveCategory) {
+		case 'Interface':
+			return { '30d': 'spot_volume_30d', '7d': 'spot_volume_7d', '24h': 'spot_volume_24h' }
+		case 'Prediction Market':
+			return { '30d': 'prediction_volume_30d', '7d': 'prediction_volume_7d', '24h': 'prediction_volume_24h' }
+		case 'Crypto Card Issuer':
+			return { '30d': 'payment_volume_30d', '7d': 'payment_volume_7d', '24h': 'payment_volume_24h' }
+		default:
+			return { '30d': 'dex_volume_30d', '7d': 'dex_volume_7d', '24h': 'dex_volume_24h' }
+	}
+}
+
+const getPrimarySectionMetric = (
 	metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][keyof IProtocolByCategoryOrTagPageData['summaryMetrics']]
 ) => {
-	if (metric?.total7d != null) return metric.total7d
-	if (metric?.total24h != null) return metric.total24h
-	if (metric?.total30d != null) return metric.total30d
+	if (metric?.total7d != null) return { period: '7d' as const, value: metric.total7d }
+	if (metric?.total24h != null) return { period: '24h' as const, value: metric.total24h }
+	if (metric?.total30d != null) return { period: '30d' as const, value: metric.total30d }
 	return null
 }
 
@@ -117,21 +152,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	}, [tvlSettings, props.protocols, props.charts, props.extraTvlCharts, props.effectiveCategory])
 
 	const chartSeries = useMemo(() => charts.charts ?? [], [charts.charts])
-
-	const categoryColumns = useMemo(() => {
-		return getColumnsForCategory({
-			effectiveCategory: props.effectiveCategory,
-			metrics: props.capabilities
-		})
-	}, [props.effectiveCategory, props.capabilities])
-
-	const sortingState = useMemo(() => {
-		const sortId = getProtocolCategoryDefaultSort({
-			effectiveCategory: props.effectiveCategory,
-			metrics: props.capabilities
-		})
-		return [{ id: sortId, desc: true }]
-	}, [props.effectiveCategory, props.capabilities])
 
 	const hasBarCharts = useMemo(() => {
 		return chartSeries.some((series) => {
@@ -224,165 +244,281 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	const deferredGroupedCharts = useDeferredValue(groupedCharts)
 
 	const chartGroupBy = groupBy
-	const sortedSummaryEntries = useMemo(() => {
-		const entries: SummaryMetricEntry[] = []
+	const latestTvlValue = useMemo(() => {
 		const latestTvl = charts.dataset?.source[charts.dataset?.source.length - 1]?.TVL
 		const tvlValue = typeof latestTvl === 'number' ? latestTvl : Number(latestTvl ?? NaN)
+		return Number.isFinite(tvlValue) ? tvlValue : null
+	}, [charts.dataset])
+	const summaryMetricDescriptors = useMemo<SummaryMetricDescriptor[]>(() => {
+		return [
+			{
+				type: 'timed',
+				key: 'dexAggregatorsVolume',
+				label: 'DEX Aggregator Volume',
+				metric: props.summaryMetrics.dexAggregatorsVolume,
+				tooltips: {
+					'7d': definitions.dexAggregators.chain['7d'],
+					'24h': definitions.dexAggregators.chain['24h'],
+					'30d': definitions.dexAggregators.chain['30d']
+				},
+				columns: {
+					'30d': 'dex_aggregator_volume_30d',
+					'7d': 'dex_aggregator_volume_7d',
+					'24h': 'dex_aggregator_volume_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'perpsAggregatorsVolume',
+				label: 'Perp Aggregator Volume',
+				metric: props.summaryMetrics.perpsAggregatorsVolume,
+				tooltips: {
+					'7d': definitions.perpsAggregators.protocol['7d'],
+					'24h': definitions.perpsAggregators.protocol['24h'],
+					'30d': definitions.perpsAggregators.protocol['30d']
+				},
+				columns: {
+					'30d': 'perp_aggregator_volume_30d',
+					'7d': 'perp_aggregator_volume_7d',
+					'24h': 'perp_aggregator_volume_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'bridgeAggregatorsVolume',
+				label: 'Bridge Aggregator Volume',
+				metric: props.summaryMetrics.bridgeAggregatorsVolume,
+				tooltips: {
+					'7d': definitions.bridgeAggregators.chain['7d'],
+					'24h': definitions.bridgeAggregators.chain['24h'],
+					'30d': definitions.bridgeAggregators.chain['30d']
+				},
+				columns: {
+					'30d': 'bridge_aggregator_volume_30d',
+					'7d': 'bridge_aggregator_volume_7d',
+					'24h': 'bridge_aggregator_volume_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'normalizedVolume',
+				label: 'Normalized Volume',
+				metric: props.summaryMetrics.normalizedVolume,
+				tooltips: {
+					'7d': definitions.normalizedVolume.protocol['7d'],
+					'24h': definitions.normalizedVolume.protocol['24h'],
+					'30d': definitions.normalizedVolume.protocol['30d']
+				},
+				columns: {
+					'30d': 'normalized_volume_30d',
+					'7d': 'normalized_volume_7d',
+					'24h': 'normalized_volume_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'dexVolume',
+				label: dexVolumeLabel,
+				metric: props.summaryMetrics.dexVolume,
+				tooltips: showDexVolumeTooltip
+					? {
+							'7d': definitions.dexs.chain['7d'],
+							'24h': definitions.dexs.chain['24h'],
+							'30d': definitions.dexs.chain['30d']
+						}
+					: undefined,
+				columns: getDexVolumeColumnIds(props.effectiveCategory)
+			},
+			{
+				type: 'timed',
+				key: 'perpVolume',
+				label: 'Perp Volume',
+				metric: props.summaryMetrics.perpVolume,
+				tooltips: {
+					'7d': definitions.perps.protocol['7d'],
+					'24h': definitions.perps.protocol['24h'],
+					'30d': definitions.perps.protocol['30d']
+				},
+				columns: {
+					'30d': 'perp_volume_30d',
+					'7d': 'perp_volume_7d',
+					'24h': 'perp_volume_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'optionsPremiumVolume',
+				label: 'Premium Volume',
+				metric: props.summaryMetrics.optionsPremiumVolume,
+				tooltips: {
+					'7d': definitions.optionsPremium.protocol['7d'],
+					'24h': definitions.optionsPremium.protocol['24h'],
+					'30d': definitions.optionsPremium.protocol['30d']
+				},
+				columns: {
+					'30d': 'options_premium_30d',
+					'7d': 'options_premium_7d',
+					'24h': 'options_premium_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'optionsNotionalVolume',
+				label: 'Notional Volume',
+				metric: props.summaryMetrics.optionsNotionalVolume,
+				tooltips: {
+					'7d': definitions.optionsNotional.protocol['7d'],
+					'24h': definitions.optionsNotional.protocol['24h'],
+					'30d': definitions.optionsNotional.protocol['30d']
+				},
+				columns: {
+					'30d': 'options_notional_30d',
+					'7d': 'options_notional_7d',
+					'24h': 'options_notional_24h'
+				}
+			},
+			{
+				type: 'timed',
+				key: 'fees',
+				label: 'Fees',
+				metric: props.summaryMetrics.fees,
+				tooltips: {
+					'7d': definitions.fees.chain['7d'],
+					'24h': definitions.fees.chain['24h'],
+					'30d': definitions.fees.chain['30d']
+				},
+				columns: { '30d': 'fees_30d', '7d': 'fees_7d', '24h': 'fees_24h' }
+			},
+			{
+				type: 'timed',
+				key: 'revenue',
+				label: 'Revenue',
+				metric: props.summaryMetrics.revenue,
+				tooltips: {
+					'7d': definitions.revenue.chain['7d'],
+					'24h': definitions.revenue.chain['24h'],
+					'30d': definitions.revenue.chain['30d']
+				},
+				columns: { '30d': 'revenue_30d', '7d': 'revenue_7d', '24h': 'revenue_24h' }
+			},
+			{
+				type: 'static',
+				key: 'openInterest',
+				label: 'Open Interest',
+				value: props.summaryMetrics.openInterest?.total24h ?? null,
+				tooltip: definitions.openInterest.common,
+				columnId: 'openInterest'
+			}
+		]
+	}, [dexVolumeLabel, props.effectiveCategory, props.summaryMetrics, showDexVolumeTooltip])
+	const rankedSummaryEntries = useMemo<SummaryMetricEntry[]>(() => {
+		const entries: SummaryMetricEntry[] = []
 
-		if (Number.isFinite(tvlValue)) {
+		if (latestTvlValue != null) {
 			entries.push({
 				key: 'tvl',
-				sortValue: tvlValue,
+				sortValue: latestTvlValue,
+				leadingColumnId: 'tvl',
 				content: (
 					<MetricRow
 						label="Total Value Locked"
 						tooltip="Sum of value of all coins held in smart contracts of all the protocols on the chain"
-						value={formattedNum(tvlValue, true)}
+						value={formattedNum(latestTvlValue, true)}
 					/>
 				)
 			})
 		}
 
-		const pushSection = ({
-			key,
-			label,
-			metric,
-			primaryTooltip,
-			subtooltips
-		}: {
-			key: string
-			label: string
-			metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][keyof IProtocolByCategoryOrTagPageData['summaryMetrics']]
-			primaryTooltip?: string
-			subtooltips?: Partial<Record<'24h' | '30d', string>>
-		}) => {
-			const sortValue = getSectionSortValue(metric)
-			if (sortValue == null) return
+		for (const descriptor of summaryMetricDescriptors) {
+			if (descriptor.type === 'timed') {
+				const primaryMetric = getPrimarySectionMetric(descriptor.metric)
+				if (primaryMetric == null) continue
+
+				entries.push({
+					key: descriptor.key,
+					sortValue: primaryMetric.value,
+					leadingColumnId: descriptor.columns['30d'],
+					content: (
+						<SummaryMetricSection label={descriptor.label} metric={descriptor.metric} tooltips={descriptor.tooltips} />
+					)
+				})
+				continue
+			}
+
+			if (descriptor.value == null) continue
 
 			entries.push({
-				key,
-				sortValue,
-				content: (
-					<SummaryMetricSection
-						label={label}
-						metric={metric}
-						primaryTooltip={primaryTooltip}
-						subtooltips={subtooltips}
-					/>
-				)
-			})
-		}
-
-		pushSection({
-			key: 'fees',
-			label: 'Fees',
-			metric: props.summaryMetrics.fees,
-			primaryTooltip: definitions.fees.chain['7d'],
-			subtooltips: { '24h': definitions.fees.chain['24h'], '30d': definitions.fees.chain['30d'] }
-		})
-		pushSection({
-			key: 'revenue',
-			label: 'Revenue',
-			metric: props.summaryMetrics.revenue,
-			primaryTooltip: definitions.revenue.chain['7d'],
-			subtooltips: { '24h': definitions.revenue.chain['24h'], '30d': definitions.revenue.chain['30d'] }
-		})
-		pushSection({
-			key: 'dexVolume',
-			label: dexVolumeLabel,
-			metric: props.summaryMetrics.dexVolume,
-			primaryTooltip: showDexVolumeTooltip ? definitions.dexs.chain['7d'] : undefined,
-			subtooltips: showDexVolumeTooltip
-				? { '24h': definitions.dexs.chain['24h'], '30d': definitions.dexs.chain['30d'] }
-				: undefined
-		})
-		pushSection({
-			key: 'dexAggregatorsVolume',
-			label: 'DEX Aggregator Volume',
-			metric: props.summaryMetrics.dexAggregatorsVolume,
-			primaryTooltip: definitions.dexAggregators.chain['7d'],
-			subtooltips: {
-				'24h': definitions.dexAggregators.chain['24h'],
-				'30d': definitions.dexAggregators.chain['30d']
-			}
-		})
-		pushSection({
-			key: 'perpVolume',
-			label: 'Perp Volume',
-			metric: props.summaryMetrics.perpVolume,
-			primaryTooltip: definitions.perps.protocol['7d'],
-			subtooltips: { '24h': definitions.perps.protocol['24h'], '30d': definitions.perps.protocol['30d'] }
-		})
-		pushSection({
-			key: 'perpsAggregatorsVolume',
-			label: 'Perp Aggregator Volume',
-			metric: props.summaryMetrics.perpsAggregatorsVolume,
-			primaryTooltip: definitions.perpsAggregators.protocol['7d'],
-			subtooltips: {
-				'24h': definitions.perpsAggregators.protocol['24h'],
-				'30d': definitions.perpsAggregators.protocol['30d']
-			}
-		})
-		pushSection({
-			key: 'bridgeAggregatorsVolume',
-			label: 'Bridge Aggregator Volume',
-			metric: props.summaryMetrics.bridgeAggregatorsVolume,
-			primaryTooltip: definitions.bridgeAggregators.chain['7d'],
-			subtooltips: {
-				'24h': definitions.bridgeAggregators.chain['24h'],
-				'30d': definitions.bridgeAggregators.chain['30d']
-			}
-		})
-		pushSection({
-			key: 'normalizedVolume',
-			label: 'Normalized Volume',
-			metric: props.summaryMetrics.normalizedVolume,
-			primaryTooltip: definitions.normalizedVolume.protocol['7d'],
-			subtooltips: {
-				'24h': definitions.normalizedVolume.protocol['24h'],
-				'30d': definitions.normalizedVolume.protocol['30d']
-			}
-		})
-
-		if (props.summaryMetrics.openInterest?.total24h != null) {
-			entries.push({
-				key: 'openInterest',
-				sortValue: props.summaryMetrics.openInterest.total24h,
+				key: descriptor.key,
+				sortValue: descriptor.value,
+				leadingColumnId: descriptor.columnId,
 				content: (
 					<MetricRow
-						label="Open Interest"
-						tooltip={definitions.openInterest.common}
-						value={formattedNum(props.summaryMetrics.openInterest.total24h, true)}
+						label={descriptor.label}
+						tooltip={descriptor.tooltip}
+						value={formattedNum(descriptor.value, true)}
 					/>
 				)
 			})
 		}
 
-		pushSection({
-			key: 'optionsPremiumVolume',
-			label: 'Premium Volume',
-			metric: props.summaryMetrics.optionsPremiumVolume,
-			primaryTooltip: definitions.optionsPremium.protocol['7d'],
-			subtooltips: {
-				'24h': definitions.optionsPremium.protocol['24h'],
-				'30d': definitions.optionsPremium.protocol['30d']
-			}
+		return entries.sort((a, b) => b.sortValue - a.sortValue)
+	}, [latestTvlValue, summaryMetricDescriptors])
+	const categoryColumns = useMemo(() => {
+		const baseColumnIds = getProtocolCategoryColumns({
+			effectiveCategory: props.effectiveCategory,
+			metrics: props.capabilities
 		})
-		pushSection({
-			key: 'optionsNotionalVolume',
-			label: 'Notional Volume',
-			metric: props.summaryMetrics.optionsNotionalVolume,
-			primaryTooltip: definitions.optionsNotional.protocol['7d'],
-			subtooltips: {
-				'24h': definitions.optionsNotional.protocol['24h'],
-				'30d': definitions.optionsNotional.protocol['30d']
-			}
-		})
+		const visibleColumnIds = new Set(baseColumnIds)
+		const usedColumnIds = new Set<string>()
+		const orderedColumnIds: string[] = []
 
-		return entries
-			.sort((a, b) => b.sortValue - a.sortValue)
-			.map((entry) => <Fragment key={entry.key}>{entry.content}</Fragment>)
-	}, [charts.dataset, dexVolumeLabel, props.summaryMetrics, showDexVolumeTooltip])
+		const pushColumnId = (columnId: string) => {
+			if (!visibleColumnIds.has(columnId) || usedColumnIds.has(columnId)) return
+			usedColumnIds.add(columnId)
+			orderedColumnIds.push(columnId)
+		}
+
+		pushColumnId('name')
+		for (const columnId of NON_SUMMARY_LEADING_COLUMN_IDS) {
+			pushColumnId(columnId)
+		}
+		for (const entry of rankedSummaryEntries) {
+			pushColumnId(entry.leadingColumnId)
+		}
+		for (const columnId of baseColumnIds) {
+			if (!columnId.endsWith('_30d')) continue
+			pushColumnId(columnId)
+		}
+		for (const columnId of baseColumnIds) {
+			if (
+				columnId.endsWith('_30d') ||
+				columnId.endsWith('_7d') ||
+				columnId.endsWith('_24h') ||
+				columnId === 'mcap/tvl'
+			) {
+				continue
+			}
+			pushColumnId(columnId)
+		}
+		for (const columnId of baseColumnIds) {
+			if (!columnId.endsWith('_7d')) continue
+			pushColumnId(columnId)
+		}
+		for (const columnId of baseColumnIds) {
+			if (!columnId.endsWith('_24h')) continue
+			pushColumnId(columnId)
+		}
+		pushColumnId('mcap/tvl')
+
+		return orderedColumnIds.flatMap((id) => (COLUMN_REGISTRY[id] ? [COLUMN_REGISTRY[id]] : []))
+	}, [props.effectiveCategory, props.capabilities, rankedSummaryEntries])
+	const sortingState = useMemo(() => {
+		const firstSortableColumn = categoryColumns.find((column) => {
+			return column.id !== 'name' && column.enableSorting !== false
+		})
+		const sortId = firstSortableColumn?.id ?? 'tvl'
+		return [{ id: sortId, desc: true }]
+	}, [categoryColumns])
 
 	return (
 		<>
@@ -394,7 +530,11 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					) : (
 						<h1 className="text-lg font-semibold">{`${categoryPresentation.headingLabel} on ${props.chain}`}</h1>
 					)}
-					<div className="mb-auto flex flex-1 flex-col">{sortedSummaryEntries}</div>
+					<div className="mb-auto flex flex-1 flex-col">
+						{rankedSummaryEntries.map((entry) => (
+							<Fragment key={entry.key}>{entry.content}</Fragment>
+						))}
+					</div>
 				</div>
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
@@ -440,33 +580,32 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 function SummaryMetricSection({
 	label,
 	metric,
-	primaryTooltip,
-	subtooltips
+	tooltips
 }: {
 	label: string
 	metric: IProtocolByCategoryOrTagPageData['summaryMetrics'][keyof IProtocolByCategoryOrTagPageData['summaryMetrics']]
-	primaryTooltip?: string
-	subtooltips?: Partial<Record<'24h' | '30d', string>>
+	tooltips?: Partial<Record<SummaryMetricPeriod, string>>
 }) {
-	if (!metric?.total7d && !metric?.total24h && !metric?.total30d) return null
+	const primaryMetric = getPrimarySectionMetric(metric)
+	if (primaryMetric == null) return null
 
 	return (
 		<MetricSection
-			label={`${label} (7d)`}
-			tooltip={primaryTooltip ?? null}
-			value={metric.total7d != null ? formattedNum(metric.total7d, true) : '—'}
+			label={`${label} (${primaryMetric.period})`}
+			tooltip={tooltips?.[primaryMetric.period] ?? null}
+			value={formattedNum(primaryMetric.value, true)}
 		>
-			{metric.total24h != null ? (
+			{primaryMetric.period !== '24h' && metric.total24h != null ? (
 				<SubMetricRow
 					label={`${label} (24h)`}
-					tooltip={subtooltips?.['24h']}
+					tooltip={tooltips?.['24h']}
 					value={formattedNum(metric.total24h, true)}
 				/>
 			) : null}
-			{metric.total30d != null ? (
+			{primaryMetric.period !== '30d' && metric.total30d != null ? (
 				<SubMetricRow
 					label={`${label} (30d)`}
-					tooltip={subtooltips?.['30d']}
+					tooltip={tooltips?.['30d']}
 					value={formattedNum(metric.total30d, true)}
 				/>
 			) : null}
@@ -567,7 +706,7 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		header: 'Mcap/TVL',
 		cell: (info) => (info.getValue() != null ? info.getValue() : null),
 		meta: { align: 'end', headerHelperText: 'Market cap / TVL ratio' },
-		size: 110
+		size: 120
 	}),
 	fees_7d: columnHelper.accessor((p) => p.fees?.total7d, {
 		id: 'fees_7d',
@@ -581,35 +720,35 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		header: 'Revenue 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.revenue.protocol['7d'] },
-		size: 128
+		size: 125
 	}),
 	fees_30d: columnHelper.accessor((p) => p.fees?.total30d, {
 		id: 'fees_30d',
 		header: 'Fees 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.fees.protocol['30d'] },
-		size: 100
+		size: 110
 	}),
 	revenue_30d: columnHelper.accessor((p) => p.revenue?.total30d, {
 		id: 'revenue_30d',
 		header: 'Revenue 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.revenue.protocol['30d'] },
-		size: 128
+		size: 135
 	}),
 	fees_24h: columnHelper.accessor((p) => p.fees?.total24h, {
 		id: 'fees_24h',
 		header: 'Fees 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.fees.protocol['24h'] },
-		size: 100
+		size: 110
 	}),
 	revenue_24h: columnHelper.accessor((p) => p.revenue?.total24h, {
 		id: 'revenue_24h',
 		header: 'Revenue 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.revenue.protocol['24h'] },
-		size: 128
+		size: 135
 	}),
 	perp_volume_24h: columnHelper.accessor((p) => p.perpVolume?.total24h, {
 		id: 'perp_volume_24h',
@@ -637,42 +776,42 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		header: 'Perp Aggregator Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.perpsAggregators.protocol['24h'] },
-		size: 220
+		size: 250
 	}),
 	perp_aggregator_volume_7d: columnHelper.accessor((p) => p.perpsAggregatorsVolume?.total7d, {
 		id: 'perp_aggregator_volume_7d',
 		header: 'Perp Aggregator Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.perpsAggregators.protocol['7d'] },
-		size: 220
+		size: 230
 	}),
 	perp_aggregator_volume_30d: columnHelper.accessor((p) => p.perpsAggregatorsVolume?.total30d, {
 		id: 'perp_aggregator_volume_30d',
 		header: 'Perp Aggregator Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.perpsAggregators.protocol['30d'] },
-		size: 220
+		size: 250
 	}),
 	bridge_aggregator_volume_24h: columnHelper.accessor((p) => p.bridgeAggregatorsVolume?.total24h, {
 		id: 'bridge_aggregator_volume_24h',
 		header: 'Bridge Aggregator Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['24h'] },
-		size: 220
+		size: 250
 	}),
 	bridge_aggregator_volume_7d: columnHelper.accessor((p) => p.bridgeAggregatorsVolume?.total7d, {
 		id: 'bridge_aggregator_volume_7d',
 		header: 'Bridge Aggregator Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['7d'] },
-		size: 220
+		size: 230
 	}),
 	bridge_aggregator_volume_30d: columnHelper.accessor((p) => p.bridgeAggregatorsVolume?.total30d, {
 		id: 'bridge_aggregator_volume_30d',
 		header: 'Bridge Aggregator Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.bridgeAggregators.protocol['30d'] },
-		size: 220
+		size: 250
 	}),
 	normalized_volume_24h: columnHelper.accessor((p) => p.normalizedVolume?.total24h, {
 		id: 'normalized_volume_24h',
@@ -728,21 +867,21 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		header: 'DEX Aggregator Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['7d'] },
-		size: 220
+		size: 230
 	}),
 	dex_aggregator_volume_30d: columnHelper.accessor((p) => p.dexAggregatorsVolume?.total30d, {
 		id: 'dex_aggregator_volume_30d',
 		header: 'DEX Aggregator Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['30d'] },
-		size: 220
+		size: 250
 	}),
 	dex_aggregator_volume_24h: columnHelper.accessor((p) => p.dexAggregatorsVolume?.total24h, {
 		id: 'dex_aggregator_volume_24h',
 		header: 'DEX Aggregator Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['24h'] },
-		size: 220
+		size: 250
 	}),
 	prediction_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
 		id: 'prediction_volume_7d',
@@ -880,5 +1019,5 @@ export function getColumnsForCategory({
 	metrics: IProtocolByCategoryOrTagPageData['capabilities']
 }) {
 	const columnIds = getProtocolCategoryColumns({ effectiveCategory, metrics })
-	return columnIds.map((id) => COLUMN_REGISTRY[id]).filter(Boolean)
+	return columnIds.flatMap((id) => (COLUMN_REGISTRY[id] ? [COLUMN_REGISTRY[id]] : []))
 }
