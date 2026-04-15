@@ -1,19 +1,18 @@
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import type { ProtocolCategoryMetrics } from './constants'
 
-interface IProtocolMetricTotals {
+export interface IProtocolMetricTotals {
 	total24h: number | null
 	total7d: number | null
 	total30d: number | null
 }
 
-interface IProtocolPerpMetricTotals extends IProtocolMetricTotals {
+export interface IProtocolPerpMetricTotals extends IProtocolMetricTotals {
 	doublecounted?: boolean
 	zeroFeePerp?: boolean
 }
 
-interface IProtocolOpenInterestTotals {
-	total24h: number | null
-}
+export interface IProtocolOpenInterestTotals extends IProtocolMetricTotals {}
 
 interface IProtocolByCategory {
 	name: string
@@ -26,10 +25,14 @@ interface IProtocolByCategory {
 	fees?: IProtocolMetricTotals | null
 	revenue?: IProtocolMetricTotals | null
 	dexVolume?: IProtocolMetricTotals | null
+	dexAggregatorsVolume?: IProtocolMetricTotals | null
 	perpVolume?: IProtocolPerpMetricTotals | null
+	perpsAggregatorsVolume?: IProtocolMetricTotals | null
+	bridgeAggregatorsVolume?: IProtocolMetricTotals | null
+	normalizedVolume?: IProtocolMetricTotals | null
 	openInterest?: IProtocolOpenInterestTotals | null
-	optionsPremium?: IProtocolMetricTotals | null
-	optionsNotional?: IProtocolMetricTotals | null
+	optionsPremiumVolume?: IProtocolMetricTotals | null
+	optionsNotionalVolume?: IProtocolMetricTotals | null
 	tags: Array<string>
 	borrowed?: number | null
 	supplied?: number | null
@@ -45,16 +48,23 @@ export interface IProtocolByCategoryOrTagPageData {
 	category: string | null
 	tag: string | null
 	effectiveCategory: string | null
+	capabilities: ProtocolCategoryMetrics
 	chains: Array<{ label: string; to: string }>
 	chain: string
 	charts: { dataset: IMultiSeriesChart2Props['dataset']; charts: NonNullable<IMultiSeriesChart2Props['charts']> }
-	fees7d: number | null
-	revenue7d: number | null
-	dexVolume7d: number | null
-	perpVolume7d: number | null
-	openInterest: number | null
-	optionsPremium7d: number | null
-	optionsNotional7d: number | null
+	summaryMetrics: {
+		fees?: IProtocolMetricTotals | null
+		revenue?: IProtocolMetricTotals | null
+		dexVolume?: IProtocolMetricTotals | null
+		dexAggregatorsVolume?: IProtocolMetricTotals | null
+		perpVolume?: IProtocolMetricTotals | null
+		perpsAggregatorsVolume?: IProtocolMetricTotals | null
+		bridgeAggregatorsVolume?: IProtocolMetricTotals | null
+		normalizedVolume?: IProtocolMetricTotals | null
+		openInterest?: IProtocolOpenInterestTotals | null
+		optionsPremiumVolume?: IProtocolMetricTotals | null
+		optionsNotionalVolume?: IProtocolMetricTotals | null
+	}
 	extraTvlCharts: Record<string, Record<string | number, number | null>>
 }
 

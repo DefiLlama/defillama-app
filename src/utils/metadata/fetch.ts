@@ -145,7 +145,8 @@ export async function fetchCoreMetadata({
 			fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
 				categories: [],
 				tags: [],
-				tagCategoryMap: {}
+				tagCategoryMap: {},
+				configs: {}
 			}),
 			fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
 			fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {

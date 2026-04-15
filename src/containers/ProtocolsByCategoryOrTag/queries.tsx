@@ -8,17 +8,20 @@ import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorag
 import { getNDistinctColors, getPercentChange, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
-import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ICategoriesAndTags, IChainMetadata } from '~/utils/metadata/types'
 import { fetchCategoriesSummary, fetchCategoryChart, fetchTagChart } from './api'
 import {
 	categoriesPageExcludedExtraTvls,
+	getProtocolCategoryCapabilities,
 	getProtocolCategoryChartMetricLabel,
 	getProtocolCategoryChartMetrics,
 	protocolCategoryConfig,
+	resolveProtocolCategoryDataConfig,
 	type ProtocolCategoryChartMetric,
 	type ProtocolCategoryMetrics
 } from './constants'
 import type {
+	IProtocolMetricTotals,
 	IProtocolByCategoryOrTagPageData,
 	IProtocolsCategoriesExtraTvlPoint,
 	IProtocolsCategoriesPageData,
@@ -27,6 +30,7 @@ import type {
 
 type GetProtocolsByCategoryOrTagParams = {
 	chain?: string
+	categoriesAndTags: ICategoriesAndTags
 	chainMetadata: Record<string, IChainMetadata>
 } & (
 	| {
@@ -48,6 +52,9 @@ const CHART_METRIC_SERIES_TYPE: Record<ProtocolCategoryChartMetric, 'line' | 'ba
 	dexVolume: 'bar',
 	dexAggregatorsVolume: 'bar',
 	perpVolume: 'bar',
+	perpsAggregatorsVolume: 'bar',
+	bridgeAggregatorsVolume: 'bar',
+	normalizedVolume: 'bar',
 	openInterest: 'line',
 	optionsPremiumVolume: 'bar',
 	optionsNotionalVolume: 'bar',
@@ -60,6 +67,9 @@ const CHART_METRIC_Y_AXIS_INDEX: Record<ProtocolCategoryChartMetric, number> = {
 	dexVolume: 1,
 	dexAggregatorsVolume: 1,
 	perpVolume: 1,
+	perpsAggregatorsVolume: 1,
+	bridgeAggregatorsVolume: 1,
+	normalizedVolume: 1,
 	openInterest: 1,
 	optionsPremiumVolume: 1,
 	optionsNotionalVolume: 1,
@@ -181,6 +191,9 @@ export const buildCategoryCharts = ({
 	dexVolumeChartData,
 	dexAggregatorsVolumeChartData,
 	perpVolumeChartData,
+	perpsAggregatorsVolumeChartData,
+	bridgeAggregatorsVolumeChartData,
+	normalizedVolumeChartData,
 	openInterestChartData,
 	optionsPremiumVolumeChartData,
 	optionsNotionalVolumeChartData,
@@ -193,6 +206,9 @@ export const buildCategoryCharts = ({
 	dexVolumeChartData: Array<[number, number]> | null
 	dexAggregatorsVolumeChartData: Array<[number, number]> | null
 	perpVolumeChartData: Array<[number, number]> | null
+	perpsAggregatorsVolumeChartData: Array<[number, number]> | null
+	bridgeAggregatorsVolumeChartData: Array<[number, number]> | null
+	normalizedVolumeChartData: Array<[number, number]> | null
 	openInterestChartData: Array<[number, number]> | null
 	optionsPremiumVolumeChartData: Array<[number, number]> | null
 	optionsNotionalVolumeChartData: Array<[number, number]> | null
@@ -204,6 +220,9 @@ export const buildCategoryCharts = ({
 		dexVolume: createTimeSeriesMap(dexVolumeChartData),
 		dexAggregatorsVolume: createTimeSeriesMap(dexAggregatorsVolumeChartData),
 		perpVolume: createTimeSeriesMap(perpVolumeChartData),
+		perpsAggregatorsVolume: createTimeSeriesMap(perpsAggregatorsVolumeChartData),
+		bridgeAggregatorsVolume: createTimeSeriesMap(bridgeAggregatorsVolumeChartData),
+		normalizedVolume: createTimeSeriesMap(normalizedVolumeChartData),
 		openInterest: createTimeSeriesMap(openInterestChartData),
 		optionsPremiumVolume: createTimeSeriesMap(optionsPremiumVolumeChartData),
 		optionsNotionalVolume: createTimeSeriesMap(optionsNotionalVolumeChartData),
@@ -268,19 +287,21 @@ type PerpMetricTotals = ProtocolMetricTotals & {
 	zeroFeePerp?: boolean
 }
 
-type OpenInterestTotals = {
-	total24h: number | null
-}
+type OpenInterestTotals = ProtocolMetricTotals
 
 type AdapterProtocolData = {
 	chains: Array<string>
 	fees?: ProtocolMetricTotals
 	revenue?: ProtocolMetricTotals
 	dexVolume?: ProtocolMetricTotals
+	dexAggregatorsVolume?: ProtocolMetricTotals
 	perpVolume?: PerpMetricTotals
+	perpsAggregatorsVolume?: ProtocolMetricTotals
+	bridgeAggregatorsVolume?: ProtocolMetricTotals
+	normalizedVolume?: ProtocolMetricTotals
 	openInterest?: OpenInterestTotals
-	optionsPremium?: ProtocolMetricTotals
-	optionsNotional?: ProtocolMetricTotals
+	optionsPremiumVolume?: ProtocolMetricTotals
+	optionsNotionalVolume?: ProtocolMetricTotals
 }
 
 type ChainTvlPoint = {
@@ -293,24 +314,36 @@ type ChainTvlPoint = {
 export async function getProtocolsByCategoryOrTag(
 	params: GetProtocolsByCategoryOrTagParams
 ): Promise<IProtocolByCategoryOrTagPageData | null> {
-	const { chain, chainMetadata } = params
+	const { chain, chainMetadata, categoriesAndTags } = params
 	const category = params.kind === 'category' ? params.category : undefined
 	const tag = params.kind === 'tag' ? params.tag : undefined
 	// For tag pages, we use the tag's parent category for category-specific logic.
 	const effectiveCategory = params.kind === 'category' ? params.category : params.tagCategory
 	const dimensionCategory = slug(category ?? tag ?? '')
-	const config = effectiveCategory ? protocolCategoryConfig[effectiveCategory] : null
-	const categoryMetrics: ProtocolCategoryMetrics | undefined = config?.metrics
-	const chartMetrics = getProtocolCategoryChartMetrics(effectiveCategory)
+	const dataConfig = resolveProtocolCategoryDataConfig({
+		categoriesAndTags,
+		category,
+		tag,
+		tagCategory: params.kind === 'tag' ? params.tagCategory : null
+	})
+	const capabilities: ProtocolCategoryMetrics = getProtocolCategoryCapabilities({
+		dataConfig,
+		effectiveCategory
+	})
+	const chartMetrics = getProtocolCategoryChartMetrics(capabilities)
 
 	const currentChainMetadata: IChainMetadata = chain
 		? chainMetadata[slug(chain)]
 		: {
 				name: 'All',
 				fees: true,
+				revenue: true,
 				dexs: true,
 				dexAggregators: true,
 				perps: true,
+				perpsAggregators: true,
+				bridgeAggregators: true,
+				normalizedVolume: true,
 				openInterest: true,
 				optionsPremiumVolume: true,
 				optionsNotionalVolume: true,
@@ -326,7 +359,11 @@ export async function getProtocolsByCategoryOrTag(
 		feesData,
 		revenueData,
 		dexVolumeData,
+		dexAggregatorsVolumeData,
 		perpVolumeData,
+		perpsAggregatorsVolumeData,
+		bridgeAggregatorsVolumeData,
+		normalizedVolumeData,
 		openInterestData,
 		optionsPremiumData,
 		optionsNotionalData,
@@ -334,12 +371,19 @@ export async function getProtocolsByCategoryOrTag(
 		dexVolumeChartData,
 		dexAggregatorsVolumeChartData,
 		perpVolumeChartData,
+		perpsAggregatorsVolumeChartData,
+		bridgeAggregatorsVolumeChartData,
+		normalizedVolumeChartData,
 		openInterestChartData,
 		optionsPremiumVolumeChartData,
 		optionsNotionalVolumeChartData,
 		chainsByCategoriesOrTags
 	]: [
 		{ protocols: Array<ProtocolLite>; parentProtocols: Array<ParentProtocolLite> },
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
@@ -354,17 +398,20 @@ export async function getProtocolsByCategoryOrTag(
 		Array<[number, number]> | null,
 		Array<[number, number]> | null,
 		Array<[number, number]> | null,
+		Array<[number, number]> | null,
+		Array<[number, number]> | null,
+		Array<[number, number]> | null,
 		Record<string, Array<string>> | null
 	] = await Promise.all([
 		fetchProtocols(),
-		currentChainMetadata?.fees
+		capabilities.fees && currentChainMetadata?.fees
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
 					category: dimensionCategory
 				})
 			: null,
-		currentChainMetadata?.fees
+		capabilities.revenue && (currentChainMetadata?.revenue ?? currentChainMetadata?.fees)
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'fees',
@@ -372,27 +419,50 @@ export async function getProtocolsByCategoryOrTag(
 					category: dimensionCategory
 				})
 			: null,
-		categoryMetrics?.dexVolume && currentChainMetadata?.dexs
+		capabilities.dexVolume && currentChainMetadata?.dexs
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
 					category: dimensionCategory
 				})
-			: categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
-				? fetchAdapterChainMetrics({
-						chain: chain ?? 'All',
-						adapterType: 'aggregators',
-						category: dimensionCategory
-					})
-				: null,
-		categoryMetrics?.perpVolume && currentChainMetadata?.perps
+			: null,
+		capabilities.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
+			? fetchAdapterChainMetrics({
+					chain: chain ?? 'All',
+					adapterType: 'aggregators',
+					category: dimensionCategory
+				})
+			: null,
+		capabilities.perpVolume && currentChainMetadata?.perps
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
 					category: dimensionCategory
 				})
 			: null,
-		categoryMetrics?.openInterest && currentChainMetadata?.openInterest
+		capabilities.perpsAggregatorsVolume && currentChainMetadata?.perpsAggregators
+			? fetchAdapterChainMetrics({
+					chain: chain ?? 'All',
+					adapterType: 'aggregator-derivatives',
+					category: dimensionCategory
+				})
+			: null,
+		capabilities.bridgeAggregatorsVolume && currentChainMetadata?.bridgeAggregators
+			? fetchAdapterChainMetrics({
+					chain: chain ?? 'All',
+					adapterType: 'bridge-aggregators',
+					category: dimensionCategory
+				})
+			: null,
+		capabilities.normalizedVolume && currentChainMetadata?.normalizedVolume
+			? fetchAdapterChainMetrics({
+					chain: chain ?? 'All',
+					adapterType: 'normalized-volume',
+					dataType: 'dailyNormalizedVolume',
+					category: dimensionCategory
+				})
+			: null,
+		capabilities.openInterest && currentChainMetadata?.openInterest
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -403,7 +473,7 @@ export async function getProtocolsByCategoryOrTag(
 					return null
 				})
 			: null,
-		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
+		capabilities.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -411,7 +481,7 @@ export async function getProtocolsByCategoryOrTag(
 					category: dimensionCategory
 				})
 			: null,
-		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
+		capabilities.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -420,28 +490,50 @@ export async function getProtocolsByCategoryOrTag(
 				})
 			: null,
 		tag ? fetchTagChart({ tag, chain }) : fetchCategoryChart({ category: category ?? '', chain }),
-		categoryMetrics?.dexVolume && currentChainMetadata?.dexs
+		capabilities.dexVolume && currentChainMetadata?.dexs
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'dexs',
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
+		capabilities.dexAggregatorsVolume && currentChainMetadata?.dexAggregators
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'aggregators',
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.perpVolume && currentChainMetadata?.perps
+		capabilities.perpVolume && currentChainMetadata?.perps
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'derivatives',
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.openInterest && currentChainMetadata?.openInterest
+		capabilities.perpsAggregatorsVolume && currentChainMetadata?.perpsAggregators
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'aggregator-derivatives',
+					category: dimensionCategory
+				}).catch(() => null)
+			: null,
+		capabilities.bridgeAggregatorsVolume && currentChainMetadata?.bridgeAggregators
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'bridge-aggregators',
+					category: dimensionCategory
+				}).catch(() => null)
+			: null,
+		capabilities.normalizedVolume && currentChainMetadata?.normalizedVolume
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'normalized-volume',
+					dataType: 'dailyNormalizedVolume',
+					category: dimensionCategory
+				}).catch(() => null)
+			: null,
+		capabilities.openInterest && currentChainMetadata?.openInterest
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
@@ -449,7 +541,7 @@ export async function getProtocolsByCategoryOrTag(
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
+		capabilities.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -457,7 +549,7 @@ export async function getProtocolsByCategoryOrTag(
 					category: dimensionCategory
 				}).catch(() => null)
 			: null,
-		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
+		capabilities.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
 					adapterType: 'options',
@@ -476,7 +568,11 @@ export async function getProtocolsByCategoryOrTag(
 		...(feesData?.protocols ?? []),
 		...(revenueData?.protocols ?? []),
 		...(dexVolumeData?.protocols ?? []),
+		...(dexAggregatorsVolumeData?.protocols ?? []),
 		...(perpVolumeData?.protocols ?? []),
+		...(perpsAggregatorsVolumeData?.protocols ?? []),
+		...(bridgeAggregatorsVolumeData?.protocols ?? []),
+		...(normalizedVolumeData?.protocols ?? []),
 		...(openInterestData?.protocols ?? []),
 		...(optionsPremiumData?.protocols ?? []),
 		...(optionsNotionalData?.protocols ?? [])
@@ -510,16 +606,18 @@ export async function getProtocolsByCategoryOrTag(
 		return newData
 	}
 
+	const toProtocolMetricTotals = (protocol: AdapterMetricProtocol): ProtocolMetricTotals => ({
+		total24h: protocol.total24h ?? null,
+		total7d: protocol.total7d ?? null,
+		total30d: protocol.total30d ?? null
+	})
+
 	for (const protocol of feesData?.protocols ?? []) {
 		const adapterData = getOrCreateAdapterProtocolData({
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.fees = {
-			total24h: protocol.total24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
-		}
+		adapterData.fees = toProtocolMetricTotals(protocol)
 	}
 
 	for (const protocol of revenueData?.protocols ?? []) {
@@ -527,11 +625,7 @@ export async function getProtocolsByCategoryOrTag(
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.revenue = {
-			total24h: protocol.total24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
-		}
+		adapterData.revenue = toProtocolMetricTotals(protocol)
 	}
 
 	for (const protocol of dexVolumeData?.protocols ?? []) {
@@ -539,11 +633,15 @@ export async function getProtocolsByCategoryOrTag(
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.dexVolume = {
-			total24h: protocol.total24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
-		}
+		adapterData.dexVolume = toProtocolMetricTotals(protocol)
+	}
+
+	for (const protocol of dexAggregatorsVolumeData?.protocols ?? []) {
+		const adapterData = getOrCreateAdapterProtocolData({
+			protocolId: protocol.defillamaId,
+			protocolChains: protocol.chains
+		})
+		adapterData.dexAggregatorsVolume = toProtocolMetricTotals(protocol)
 	}
 
 	for (const protocol of perpVolumeData?.protocols ?? []) {
@@ -560,14 +658,36 @@ export async function getProtocolsByCategoryOrTag(
 		}
 	}
 
+	for (const protocol of perpsAggregatorsVolumeData?.protocols ?? []) {
+		const adapterData = getOrCreateAdapterProtocolData({
+			protocolId: protocol.defillamaId,
+			protocolChains: protocol.chains
+		})
+		adapterData.perpsAggregatorsVolume = toProtocolMetricTotals(protocol)
+	}
+
+	for (const protocol of bridgeAggregatorsVolumeData?.protocols ?? []) {
+		const adapterData = getOrCreateAdapterProtocolData({
+			protocolId: protocol.defillamaId,
+			protocolChains: protocol.chains
+		})
+		adapterData.bridgeAggregatorsVolume = toProtocolMetricTotals(protocol)
+	}
+
+	for (const protocol of normalizedVolumeData?.protocols ?? []) {
+		const adapterData = getOrCreateAdapterProtocolData({
+			protocolId: protocol.defillamaId,
+			protocolChains: protocol.chains
+		})
+		adapterData.normalizedVolume = toProtocolMetricTotals(protocol)
+	}
+
 	for (const protocol of openInterestData?.protocols ?? []) {
 		const adapterData = getOrCreateAdapterProtocolData({
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.openInterest = {
-			total24h: protocol.total24h ?? null
-		}
+		adapterData.openInterest = toProtocolMetricTotals(protocol)
 	}
 
 	for (const protocol of optionsPremiumData?.protocols ?? []) {
@@ -575,11 +695,7 @@ export async function getProtocolsByCategoryOrTag(
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.optionsPremium = {
-			total24h: protocol.total24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
-		}
+		adapterData.optionsPremiumVolume = toProtocolMetricTotals(protocol)
 	}
 
 	for (const protocol of optionsNotionalData?.protocols ?? []) {
@@ -587,15 +703,13 @@ export async function getProtocolsByCategoryOrTag(
 			protocolId: protocol.defillamaId,
 			protocolChains: protocol.chains
 		})
-		adapterData.optionsNotional = {
-			total24h: protocol.total24h ?? null,
-			total7d: protocol.total7d ?? null,
-			total30d: protocol.total30d ?? null
-		}
+		adapterData.optionsNotionalVolume = toProtocolMetricTotals(protocol)
 	}
 
 	const protocolsStore: Record<string, ProtocolTableRow> = {}
 	const parentProtocolsStore: Record<string, Array<ProtocolTableRow>> = {}
+	const isVisibleOnSelectedChain = (protocolChains: Array<string>) =>
+		!chain || protocolChains.includes(currentChainMetadata.name)
 
 	for (const protocol of mergedProtocols) {
 		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category === category
@@ -677,12 +791,18 @@ export async function getProtocolsByCategoryOrTag(
 			fees: adapterProtocolData?.fees ?? null,
 			revenue: adapterProtocolData?.revenue ?? null,
 			dexVolume: adapterProtocolData?.dexVolume ?? null,
+			dexAggregatorsVolume: adapterProtocolData?.dexAggregatorsVolume ?? null,
 			perpVolume: adapterProtocolData?.perpVolume ?? null,
+			perpsAggregatorsVolume: adapterProtocolData?.perpsAggregatorsVolume ?? null,
+			bridgeAggregatorsVolume: adapterProtocolData?.bridgeAggregatorsVolume ?? null,
+			normalizedVolume: adapterProtocolData?.normalizedVolume ?? null,
 			openInterest: adapterProtocolData?.openInterest ?? null,
-			optionsPremium: adapterProtocolData?.optionsPremium ?? null,
-			optionsNotional: adapterProtocolData?.optionsNotional ?? null,
+			optionsPremiumVolume: adapterProtocolData?.optionsPremiumVolume ?? null,
+			optionsNotionalVolume: adapterProtocolData?.optionsNotionalVolume ?? null,
 			tags: protocol.tags ?? []
 		}
+
+		if (!isVisibleOnSelectedChain(finalData.chains)) continue
 
 		if (protocol.parentProtocol) {
 			parentProtocolsStore[protocol.parentProtocol] = [
@@ -715,9 +835,59 @@ export async function getProtocolsByCategoryOrTag(
 		)
 	}
 
+	const getSummaryMetricsFromRows = (
+		rows: Array<ProtocolTableRow>
+	): IProtocolByCategoryOrTagPageData['summaryMetrics'] => {
+		const fees = sumMetricTotals({ rows, selector: (row) => row.fees })
+		const revenue = sumMetricTotals({ rows, selector: (row) => row.revenue })
+		const dexVolume = sumMetricTotals({ rows, selector: (row) => row.dexVolume })
+		const dexAggregatorsVolume = sumMetricTotals({ rows, selector: (row) => row.dexAggregatorsVolume })
+		const perpVolume = sumMetricTotals({ rows, selector: (row) => row.perpVolume })
+		const perpsAggregatorsVolume = sumMetricTotals({ rows, selector: (row) => row.perpsAggregatorsVolume })
+		const bridgeAggregatorsVolume = sumMetricTotals({ rows, selector: (row) => row.bridgeAggregatorsVolume })
+		const normalizedVolume = sumMetricTotals({ rows, selector: (row) => row.normalizedVolume })
+		const optionsPremiumVolume = sumMetricTotals({ rows, selector: (row) => row.optionsPremiumVolume })
+		const optionsNotionalVolume = sumMetricTotals({ rows, selector: (row) => row.optionsNotionalVolume })
+		const openInterest = rows.reduce<OpenInterestTotals>(
+			(acc, row) => ({
+				total24h: (acc.total24h ?? 0) + (row.openInterest?.total24h ?? 0),
+				total7d: (acc.total7d ?? 0) + (row.openInterest?.total7d ?? 0),
+				total30d: (acc.total30d ?? 0) + (row.openInterest?.total30d ?? 0)
+			}),
+			{
+				total24h: 0,
+				total7d: 0,
+				total30d: 0
+			}
+		)
+
+		const toNullableTotals = (totals: IProtocolMetricTotals) =>
+			totals.total24h === 0 && totals.total7d === 0 && totals.total30d === 0 ? null : totals
+
+		return {
+			fees: capabilities.fees ? toNullableTotals(fees) : null,
+			revenue: capabilities.revenue ? toNullableTotals(revenue) : null,
+			dexVolume: capabilities.dexVolume ? toNullableTotals(dexVolume) : null,
+			dexAggregatorsVolume: capabilities.dexAggregatorsVolume ? toNullableTotals(dexAggregatorsVolume) : null,
+			perpVolume: capabilities.perpVolume ? toNullableTotals(perpVolume) : null,
+			perpsAggregatorsVolume: capabilities.perpsAggregatorsVolume ? toNullableTotals(perpsAggregatorsVolume) : null,
+			bridgeAggregatorsVolume: capabilities.bridgeAggregatorsVolume ? toNullableTotals(bridgeAggregatorsVolume) : null,
+			normalizedVolume: capabilities.normalizedVolume ? toNullableTotals(normalizedVolume) : null,
+			openInterest:
+				capabilities.openInterest &&
+				!(openInterest.total24h === 0 && openInterest.total7d === 0 && openInterest.total30d === 0)
+					? openInterest
+					: null,
+			optionsPremiumVolume: capabilities.optionsPremiumVolume ? toNullableTotals(optionsPremiumVolume) : null,
+			optionsNotionalVolume: capabilities.optionsNotionalVolume ? toNullableTotals(optionsNotionalVolume) : null
+		}
+	}
+
 	const finalProtocols: Array<ProtocolTableRow> = Object.values(protocolsStore)
 	for (const parentProtocol of mergedParentProtocols) {
-		const childProtocols = parentProtocolsStore[parentProtocol.id]
+		const childProtocols = parentProtocolsStore[parentProtocol.id]?.filter((row) =>
+			isVisibleOnSelectedChain(row.chains)
+		)
 		if (childProtocols == null) continue
 
 		if (childProtocols.length === 1) {
@@ -745,17 +915,37 @@ export async function getProtocolsByCategoryOrTag(
 		const fees = sumMetricTotals({ rows: childProtocols, selector: (row) => row.fees })
 		const revenue = sumMetricTotals({ rows: childProtocols, selector: (row) => row.revenue })
 		const dexVolume = sumMetricTotals({ rows: childProtocols, selector: (row) => row.dexVolume })
+		const dexAggregatorsVolume = sumMetricTotals({ rows: childProtocols, selector: (row) => row.dexAggregatorsVolume })
 		const perpVolume = sumMetricTotals({ rows: childProtocols, selector: (row) => row.perpVolume })
+		const perpsAggregatorsVolume = sumMetricTotals({
+			rows: childProtocols,
+			selector: (row) => row.perpsAggregatorsVolume
+		})
+		const bridgeAggregatorsVolume = sumMetricTotals({
+			rows: childProtocols,
+			selector: (row) => row.bridgeAggregatorsVolume
+		})
+		const normalizedVolume = sumMetricTotals({ rows: childProtocols, selector: (row) => row.normalizedVolume })
 		const openInterest = childProtocols.reduce<OpenInterestTotals>(
 			(acc, row) => ({
-				total24h: (acc.total24h ?? 0) + (row.openInterest?.total24h ?? 0)
+				total24h: (acc.total24h ?? 0) + (row.openInterest?.total24h ?? 0),
+				total7d: (acc.total7d ?? 0) + (row.openInterest?.total7d ?? 0),
+				total30d: (acc.total30d ?? 0) + (row.openInterest?.total30d ?? 0)
 			}),
 			{
-				total24h: 0
+				total24h: 0,
+				total7d: 0,
+				total30d: 0
 			}
 		)
-		const optionsPremium = sumMetricTotals({ rows: childProtocols, selector: (row) => row.optionsPremium })
-		const optionsNotional = sumMetricTotals({ rows: childProtocols, selector: (row) => row.optionsNotional })
+		const optionsPremiumVolume = sumMetricTotals({
+			rows: childProtocols,
+			selector: (row) => row.optionsPremiumVolume
+		})
+		const optionsNotionalVolume = sumMetricTotals({
+			rows: childProtocols,
+			selector: (row) => row.optionsNotionalVolume
+		})
 
 		finalProtocols.push({
 			name: parentProtocol.name,
@@ -769,17 +959,40 @@ export async function getProtocolsByCategoryOrTag(
 			fees: fees.total24h === 0 && fees.total7d === 0 && fees.total30d === 0 ? null : fees,
 			revenue: revenue.total24h === 0 && revenue.total7d === 0 && revenue.total30d === 0 ? null : revenue,
 			dexVolume: dexVolume.total24h === 0 && dexVolume.total7d === 0 && dexVolume.total30d === 0 ? null : dexVolume,
+			dexAggregatorsVolume:
+				dexAggregatorsVolume.total24h === 0 && dexAggregatorsVolume.total7d === 0 && dexAggregatorsVolume.total30d === 0
+					? null
+					: dexAggregatorsVolume,
 			perpVolume:
 				perpVolume.total24h === 0 && perpVolume.total7d === 0 && perpVolume.total30d === 0 ? null : perpVolume,
-			openInterest: openInterest.total24h === 0 ? null : openInterest,
-			optionsPremium:
-				optionsPremium.total24h === 0 && optionsPremium.total7d === 0 && optionsPremium.total30d === 0
+			perpsAggregatorsVolume:
+				perpsAggregatorsVolume.total24h === 0 &&
+				perpsAggregatorsVolume.total7d === 0 &&
+				perpsAggregatorsVolume.total30d === 0
 					? null
-					: optionsPremium,
-			optionsNotional:
-				optionsNotional.total24h === 0 && optionsNotional.total7d === 0 && optionsNotional.total30d === 0
+					: perpsAggregatorsVolume,
+			bridgeAggregatorsVolume:
+				bridgeAggregatorsVolume.total24h === 0 &&
+				bridgeAggregatorsVolume.total7d === 0 &&
+				bridgeAggregatorsVolume.total30d === 0
 					? null
-					: optionsNotional,
+					: bridgeAggregatorsVolume,
+			normalizedVolume:
+				normalizedVolume.total24h === 0 && normalizedVolume.total7d === 0 && normalizedVolume.total30d === 0
+					? null
+					: normalizedVolume,
+			openInterest:
+				openInterest.total24h === 0 && openInterest.total7d === 0 && openInterest.total30d === 0 ? null : openInterest,
+			optionsPremiumVolume:
+				optionsPremiumVolume.total24h === 0 && optionsPremiumVolume.total7d === 0 && optionsPremiumVolume.total30d === 0
+					? null
+					: optionsPremiumVolume,
+			optionsNotionalVolume:
+				optionsNotionalVolume.total24h === 0 &&
+				optionsNotionalVolume.total7d === 0 &&
+				optionsNotionalVolume.total30d === 0
+					? null
+					: optionsNotionalVolume,
 			subRows: childProtocols.toSorted((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)),
 			tags: Array.from(new Set(childProtocols.flatMap((row) => row.tags ?? [])))
 		})
@@ -813,6 +1026,9 @@ export async function getProtocolsByCategoryOrTag(
 		dexVolumeChartData,
 		dexAggregatorsVolumeChartData,
 		perpVolumeChartData,
+		perpsAggregatorsVolumeChartData,
+		bridgeAggregatorsVolumeChartData,
+		normalizedVolumeChartData,
 		openInterestChartData,
 		optionsPremiumVolumeChartData,
 		optionsNotionalVolumeChartData,
@@ -820,31 +1036,15 @@ export async function getProtocolsByCategoryOrTag(
 		stakingChartData: extraTvlCharts.staking
 	})
 
-	let fees7d = 0
-	let revenue7d = 0
-	let dexVolume7d = 0
-	let perpVolume7d = 0
-	let openInterest = 0
-	let optionsPremium7d = 0
-	let optionsNotional7d = 0
+	const filteredProtocols = finalProtocols.toSorted((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0))
 
-	for (const protocol of finalProtocols) {
-		fees7d += protocol.fees?.total7d ?? 0
-		revenue7d += protocol.revenue?.total7d ?? 0
-		dexVolume7d += protocol.dexVolume?.total7d ?? 0
-		perpVolume7d += protocol.perpVolume?.total7d ?? 0
-		openInterest += protocol.openInterest?.total24h ?? 0
-		optionsPremium7d += protocol.optionsPremium?.total7d ?? 0
-		optionsNotional7d += protocol.optionsNotional?.total7d ?? 0
-	}
+	const summaryMetrics = getSummaryMetricsFromRows(filteredProtocols)
 
 	return {
+		capabilities,
 		charts: categoryCharts,
 		chain: currentChainMetadata?.name ?? 'All',
-		protocols: (chain
-			? finalProtocols.filter((p) => p.chains.includes(currentChainMetadata.name))
-			: finalProtocols
-		).sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)),
+		protocols: filteredProtocols,
 		category: category ?? null,
 		tag: tag ?? null,
 		effectiveCategory,
@@ -852,13 +1052,7 @@ export async function getProtocolsByCategoryOrTag(
 			{ label: 'All', to: `/protocols/${slug(category ?? tag)}` },
 			...chains.map((c) => ({ label: c, to: `/protocols/${slug(category ?? tag)}/${slug(c)}` }))
 		],
-		fees7d: fees7d > 0 ? fees7d : null,
-		revenue7d: revenue7d > 0 ? revenue7d : null,
-		dexVolume7d: dexVolume7d > 0 ? dexVolume7d : null,
-		perpVolume7d: perpVolume7d > 0 ? perpVolume7d : null,
-		openInterest: openInterest > 0 ? openInterest : null,
-		optionsPremium7d: optionsPremium7d > 0 ? optionsPremium7d : null,
-		optionsNotional7d: optionsNotional7d > 0 ? optionsNotional7d : null,
+		summaryMetrics,
 		extraTvlCharts
 	}
 }
@@ -956,7 +1150,11 @@ function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories'])
 	return []
 }
 
-export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCategoriesPageData> {
+export async function getProtocolsCategoriesPageData({
+	categoriesAndTags
+}: {
+	categoriesAndTags: ICategoriesAndTags
+}): Promise<IProtocolsCategoriesPageData> {
 	const [{ protocols }, revenueData, { chart, categories }]: [
 		ProtocolsResponse,
 		IAdapterChainMetrics | null,
@@ -1057,6 +1255,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		}
 	}
 
+	const categoryKeysFromMetadata = categoriesAndTags.categories
 	const categoryKeysFromApi = getCategoryKeysFromApi(categories)
 	const fallbackCategoryKeysFromRows = Array.from(categoryRows.keys())
 	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) => {
@@ -1068,9 +1267,11 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	})
 	const categoryKeys = Array.from(
 		new Set(
-			categoryKeysFromApi.length > 0
-				? categoryKeysFromApi
-				: [...fallbackCategoryKeysFromRows, ...fallbackCategoryKeysFromChart]
+			categoryKeysFromMetadata.length > 0
+				? categoryKeysFromMetadata
+				: categoryKeysFromApi.length > 0
+					? categoryKeysFromApi
+					: [...fallbackCategoryKeysFromRows, ...fallbackCategoryKeysFromChart]
 		)
 	)
 	for (const categoryName of categoryKeys) {
