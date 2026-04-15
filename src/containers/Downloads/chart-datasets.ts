@@ -151,7 +151,7 @@ const extractRWACategoryRows = (json: any): Array<Record<string, unknown>> => {
 		})
 }
 
-const extractRWATickerBreakdownRows = (json: any): Array<Record<string, unknown>> => {
+const extractRWAAssetBreakdownRows = (json: any): Array<Record<string, unknown>> => {
 	if (!json || typeof json !== 'object' || Array.isArray(json)) return []
 	const onChainMcap: any[] = json.onChainMcap ?? []
 	if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
@@ -266,24 +266,24 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 				if (!resp.ok) return []
 				return extractRWACategoryRows(await resp.json())
 			}
-			const [tickerResp, assetsResp] = await Promise.all([
-				fetch(`${RWA_SERVER_URL}/chart/chain/${param}/ticker-breakdown`),
+			const [assetResp, assetsResp] = await Promise.all([
+				fetch(`${RWA_SERVER_URL}/chart/chain/${param}/asset-breakdown`),
 				fetch(`${RWA_SERVER_URL}/current?z=0`)
 			])
-			if (!tickerResp.ok || !assetsResp.ok) return []
-			const tickerData = await tickerResp.json()
+			if (!assetResp.ok || !assetsResp.ok) return []
+			const assetData = await assetResp.json()
 			const assets: any[] = await assetsResp.json()
-			const tickerToCategory = new Map<string, string>()
+			const assetToCategory = new Map<string, string>()
 			if (Array.isArray(assets)) {
 				for (const a of assets) {
-					const ticker = a?.ticker
+					const canonicalMarketId = a?.canonicalMarketId
 					const cats = a?.category
-					if (typeof ticker === 'string' && Array.isArray(cats) && cats.length > 0) {
-						tickerToCategory.set(ticker, cats[0])
+					if (typeof canonicalMarketId === 'string' && Array.isArray(cats) && cats.length > 0) {
+						assetToCategory.set(canonicalMarketId, cats[0])
 					}
 				}
 			}
-			const onChainMcap: any[] = tickerData?.onChainMcap ?? []
+			const onChainMcap: any[] = assetData?.onChainMcap ?? []
 			if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
 			return onChainMcap
 				.filter((item: any) => item && item.timestamp != null)
@@ -292,7 +292,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 					const catTotals = new Map<string, number>()
 					for (const [key, val] of Object.entries(item)) {
 						if (key === 'timestamp') continue
-						const cat = tickerToCategory.get(key) ?? 'Other'
+						const cat = assetToCategory.get(key) ?? 'Other'
 						catTotals.set(cat, (catTotals.get(cat) ?? 0) + (Number(val) || 0))
 					}
 					for (const [cat, total] of catTotals) {
@@ -305,7 +305,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 	{
 		slug: 'rwa-chain-chart',
 		name: 'RWA by Chain',
-		description: 'Historical per-ticker RWA on-chain mcap for a specific chain',
+		description: 'Historical per-asset RWA on-chain mcap for a specific chain',
 		category: 'RWA',
 		paramType: 'chain',
 		paramLabel: 'Chain',
@@ -328,8 +328,8 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 			}
 			return [...chainMcap.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: c }))
 		},
-		buildUrl: (param: string) => `${RWA_SERVER_URL}/chart/chain/${param}/ticker-breakdown`,
-		extractRows: extractRWATickerBreakdownRows
+		buildUrl: (param: string) => `${RWA_SERVER_URL}/chart/chain/${param}/asset-breakdown`,
+		extractRows: extractRWAAssetBreakdownRows
 	},
 
 	{

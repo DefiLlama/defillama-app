@@ -22,6 +22,10 @@ export const computeWeightedGroups = (values: Array<string> | null | undefined):
 	return groups.map((value) => ({ value, weight }))
 }
 
+export const getPrimaryRwaCategory = (values: Array<string> | null | undefined): string | null => {
+	return toUniqueNonEmptyValues(values)[0] ?? null
+}
+
 export const getRwaPlatforms = (value: RWAParentPlatform): string[] => {
 	const values = typeof value === 'string' ? [value] : Array.isArray(value) ? value : []
 	const seen = new Set<string>()

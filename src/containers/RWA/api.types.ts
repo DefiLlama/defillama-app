@@ -10,6 +10,7 @@ type RWAHoldersByChain = Record<string, string[]>
 // Raw API response types
 export interface IFetchedRWAProject {
 	id: string
+	canonicalMarketId?: string | null
 	ticker: string
 	assetName?: string | null
 	assetGroup?: string | null
@@ -165,7 +166,7 @@ export interface IRWAAssetsOverview {
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
 export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
-export type RWATickerChartTarget =
+export type RWAAssetChartTarget =
 	| { kind: 'all' }
 	| { kind: 'chain'; slug: string }
 	| { kind: 'category'; slug: string }
@@ -177,7 +178,7 @@ export type IRWAInitialChartDataset = Record<
 	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
 >
 
-export interface IRWAChartDataByTicker {
+export interface IRWAChartDataByAsset {
 	onChainMcap: IRWAChartMetricRows
 	activeMcap: IRWAChartMetricRows
 	defiActiveTvl: IRWAChartMetricRows

@@ -9,14 +9,14 @@ import {
 	fetchRWACategoryBreakdownChartData,
 	fetchRWAPlatformBreakdownChartData,
 	fetchRWAStats,
-	fetchRWAChartDataByTicker,
+	fetchRWAChartDataByAsset,
 	fetchRWAAssetDataById,
 	fetchRWAAssetChartData,
 	toUnixMsTimestamp
 } from './api'
 import type {
 	IFetchedRWAProject,
-	IRWAChartDataByTicker,
+	IRWAChartDataByAsset,
 	IRWAProject,
 	IRWAAssetsOverview,
 	IRWAAssetData,
@@ -28,7 +28,7 @@ import type {
 	IRWAPlatformsOverviewRow,
 	IRWAAssetGroupsOverview,
 	IRWAAssetGroupsOverviewRow,
-	RWATickerChartTarget
+	RWAAssetChartTarget
 } from './api.types'
 import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from './assetGroup'
 import { toBreakdownChartDataset } from './breakdownDataset'
@@ -40,7 +40,7 @@ import {
 } from './chartAggregation'
 import { getDefaultRWAOverviewInclusion, type RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
-import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
+import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
@@ -210,7 +210,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform) + Number(!!selectedAssetGroup)
 		if (selectedCount > 1) return null
 
-		const target: RWATickerChartTarget = selectedChain
+		const target: RWAAssetChartTarget = selectedChain
 			? { kind: 'chain', slug: selectedChain }
 			: selectedCategory
 				? { kind: 'category', slug: selectedCategory }
@@ -228,9 +228,9 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					: 'chain'
 		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
 
-		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByTicker | null] = await Promise.all([
+		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByAsset | null] = await Promise.all([
 			fetchRWAActiveTVLs(),
-			fetchRWAChartDataByTicker({
+			fetchRWAChartDataByAsset({
 				target,
 				includeStablecoins: defaultInclusion.includeStablecoins,
 				includeGovernance: defaultInclusion.includeGovernance
@@ -247,7 +247,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			? appendUnknownRwaAssetGroup(params.rwaList.assetGroups)
 			: params.rwaList.assetGroups
 
-		const chartDataMs: IRWAChartDataByTicker | null = chartData
+		const chartDataMs: IRWAChartDataByAsset | null = chartData
 			? {
 					onChainMcap: ensureChronologicalRows(
 						(chartData.onChainMcap ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
@@ -503,10 +503,9 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 						assetClasses.set(assetClass, (assetClasses.get(assetClass) ?? 0) + effectiveOnChainMcap)
 					}
 				}
-				for (const category of asset.category ?? []) {
-					if (category) {
-						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMcap)
-					}
+				const primaryCategory = getPrimaryRwaCategory(asset.category)
+				if (primaryCategory) {
+					categories.set(primaryCategory, (categories.get(primaryCategory) ?? 0) + effectiveOnChainMcap)
 				}
 				for (const platform of getRwaPlatforms(asset.parentPlatform)) {
 					if (platform === UNKNOWN_PLATFORM) continue
@@ -1023,7 +1022,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 
 		return {
 			...data,
-			slug: rwaSlug(data.ticker),
+			slug: data.canonicalMarketId ?? data.id,
 			trueRWA: isTrueRWA,
 			rwaClassification: isTrueRWA ? 'RWA' : (data.rwaClassification ?? null),
 			rwaClassificationDescription,
