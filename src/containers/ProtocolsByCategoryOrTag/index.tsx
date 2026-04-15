@@ -83,7 +83,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				const timestamp = row.timestamp
 
 				if (shouldMirrorBorrowedChart) {
-					return { ...row, timestamp, TVL: nextTvlValue, Borrowed: nextTvlValue }
+					return { ...row, timestamp, TVL: nextTvlValue, 'Active Loans': nextTvlValue }
 				}
 
 				return { ...row, timestamp, TVL: nextTvlValue }

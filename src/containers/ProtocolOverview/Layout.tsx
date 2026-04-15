@@ -187,7 +187,7 @@ export function ProtocolOverviewLayout({
 		>
 			{category === 'Uncollateralized Lending' || category === 'RWA Lending' ? (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
-					Active loans are not included into TVL by default, to include them toggle Active Loans. For more info on this
+					Active loans are not included in TVL by default, to include them toggle Active Loans. For more info on this
 					click{' '}
 					<a
 						href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/6163"
