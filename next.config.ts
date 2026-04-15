@@ -644,6 +644,14 @@ const nextConfig: NextConfig = {
 	headers() {
 		return [
 			{
+				source: '/.well-known/apple-app-site-association',
+				headers: [{ key: 'Content-Type', value: 'application/json' }]
+			},
+			{
+				source: '/.well-known/assetlinks.json',
+				headers: [{ key: 'Content-Type', value: 'application/json' }]
+			},
+			{
 				source: '/chart/:slug*', // Matches all /chart pages
 				headers: [
 					{
