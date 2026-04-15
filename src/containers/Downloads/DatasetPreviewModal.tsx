@@ -11,6 +11,7 @@ import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { downloadCSV } from '~/utils/download'
 import type { DatasetDefinition, DatasetExcludeToggle } from './datasets'
+import { RowLimitPicker } from './RowLimitPicker'
 import {
 	applyDatasetConfig,
 	defaultPresetName,
@@ -265,6 +266,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
+	const [rowLimit, setRowLimit] = useState<number | null>(initialConfig?.rowLimit ?? null)
 	const [selectedChain, setSelectedChain] = useState<string | null>(initialConfig?.chain ?? null)
 	const [excludeState, setExcludeState] = useState<Record<string, boolean>>(() => {
 		const initial: Record<string, boolean> = {}
@@ -334,8 +336,9 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		setSearch('')
 		setSortState(null)
 		setSelectedChain(initialConfig?.chain ?? null)
+		setRowLimit(initialConfig?.rowLimit ?? null)
 		initialConfigAppliedRef.current = false
-	}, [dataset.slug, initialConfig?.id, initialConfig?.chain])
+	}, [dataset.slug, initialConfig?.id, initialConfig?.chain, initialConfig?.rowLimit])
 
 	useEffect(() => {
 		if (headers.length === 0 || selectedColumns !== null) return
@@ -449,6 +452,11 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		})
 	}, [columnMeta, filteredRows, sortState])
 
+	const displayedRows = useMemo(
+		() => (rowLimit && rowLimit > 0 ? sortedRows.slice(0, rowLimit) : sortedRows),
+		[sortedRows, rowLimit]
+	)
+
 	const tableWidth = useMemo(() => columnMeta.reduce((total, column) => total + column.width, 0), [columnMeta])
 	const gridTemplate = useMemo(
 		() => columnMeta.map((column) => `minmax(${column.width}px, 1fr)`).join(' '),
@@ -482,7 +490,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	}, [updateScrollShadows, hasData])
 
 	const rowVirtualizer = useVirtualizer({
-		count: sortedRows.length,
+		count: displayedRows.length,
 		getScrollElement: () => tableContainerRef.current,
 		estimateSize: () => ROW_HEIGHT,
 		overscan: 10
@@ -527,7 +535,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			toast.error('Select at least one column')
 			return
 		}
-		const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
+		const csvRows = buildSelectedCsvRows(columnMeta, cols, displayedRows)
 		if (csvRows.length <= 1) {
 			toast.error('No rows to download')
 			return
@@ -541,7 +549,8 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			selectedColumns: cols,
 			sort: sortState,
 			chain: selectedChain,
-			exclude: excludeState
+			exclude: excludeState,
+			rowLimit
 		})
 		recordRecent({
 			...configBase,
@@ -554,12 +563,13 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		dataset.name,
 		columnMeta,
 		cols,
-		sortedRows,
+		displayedRows,
 		selectedCount,
 		headers,
 		sortState,
 		selectedChain,
 		excludeState,
+		rowLimit,
 		recordRecent
 	])
 
@@ -571,7 +581,8 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 				selectedColumns: cols,
 				sort: sortState,
 				chain: selectedChain,
-				exclude: excludeState
+				exclude: excludeState,
+				rowLimit
 			})
 			saveDownload(
 				{
@@ -585,7 +596,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			setShowSaveDialog(false)
 			toast.success(`Saved preset "${name}"`)
 		},
-		[dataset.slug, headers, cols, sortState, selectedChain, excludeState, saveDownload]
+		[dataset.slug, headers, cols, sortState, selectedChain, excludeState, rowLimit, saveDownload]
 	)
 
 	const suggestedPresetName = useMemo(() => {
@@ -596,10 +607,11 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			selectedColumns: cols,
 			sort: sortState,
 			chain: selectedChain,
-			exclude: excludeState
+			exclude: excludeState,
+			rowLimit
 		})
 		return defaultPresetName(configBase, dataset.name)
-	}, [dataset.slug, dataset.name, headers, selectedColumns, cols, sortState, selectedChain, excludeState])
+	}, [dataset.slug, dataset.name, headers, selectedColumns, cols, sortState, selectedChain, excludeState, rowLimit])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
@@ -608,7 +620,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			toast.error('Select at least one column')
 			return
 		}
-		const tsv = buildTsvString(columnMeta, cols, sortedRows)
+		const tsv = buildTsvString(columnMeta, cols, displayedRows)
 		if (!tsv) {
 			toast.error('No data to copy')
 			return
@@ -619,7 +631,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		} catch {
 			toast.error('Failed to copy')
 		}
-	}, [columnMeta, cols, sortedRows, selectedCount])
+	}, [columnMeta, cols, displayedRows, selectedCount])
 
 	const activeSortDirection = sortState ? sortState.direction : false
 	const allSelected = headers.length > 0 && cols.size === headers.length
@@ -646,7 +658,14 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 										? 'Loading...'
 										: error
 											? 'Error'
-											: `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`}
+											: (() => {
+													const isLimited =
+														rowLimit !== null && rowLimit > 0 && displayedRows.length < sortedRows.length
+													const rowsLabel = isLimited
+														? `${displayedRows.length.toLocaleString()} of ${sortedRows.length.toLocaleString()} rows`
+														: `${sortedRows.length.toLocaleString()} rows`
+													return `${rowsLabel} · ${selectedCount}/${headers.length} cols selected`
+												})()}
 								</p>
 							</div>
 
@@ -748,6 +767,8 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 											onToggle={toggleColumn}
 											onToggleAll={toggleAll}
 										/>
+
+										<RowLimitPicker value={rowLimit} totalRows={sortedRows.length} onChange={setRowLimit} />
 
 										<button
 											type="button"
@@ -859,7 +880,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 									}}
 								>
 									{rowVirtualizer.getVirtualItems().map((virtualRow) => {
-										const row = sortedRows[virtualRow.index]
+										const row = displayedRows[virtualRow.index]
 										const isOdd = virtualRow.index % 2 === 1
 										return (
 											<div

@@ -11,9 +11,12 @@ import { slug as toSlug } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { chartDatasets, chartDatasetsBySlug, type ChartDatasetDefinition, type ChartOptionsMap } from './chart-datasets'
 import { combineCsvsWide, type CsvItem } from './combineCsvsWide'
+import { filterCsvByDateRange, filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
+import { DateRangePicker } from './DateRangePicker'
 import {
 	applyMultiMetricConfig,
+	type DateRangeConfig,
 	defaultPresetName,
 	extractMultiMetricConfig,
 	generatePresetId,
@@ -106,8 +109,14 @@ export function MultiMetricModal({
 	const [param, setParam] = useState<ParamOption | null>(null)
 	const [selectedMetrics, setSelectedMetrics] = useState<string[]>([])
 	const [activeMetric, setActiveMetric] = useState<string | null>(null)
+	const [dateRange, setDateRange] = useState<DateRangeConfig | null>(initialConfig?.dateRange ?? null)
 	const [showSaveDialog, setShowSaveDialog] = useState(false)
 	const initialAppliedRef = useRef(false)
+
+	useEffect(() => {
+		setDateRange(initialConfig?.dateRange ?? null)
+		initialAppliedRef.current = false
+	}, [initialConfig?.id, initialConfig?.dateRange])
 
 	const protocolOptions = useMemo<ParamOption[]>(() => chartOptionsMap['protocol-tvl-chart'] ?? [], [chartOptionsMap])
 	const chainOptions = useMemo<ParamOption[]>(() => chartOptionsMap['chain-tvl-chart'] ?? [], [chartOptionsMap])
@@ -199,6 +208,27 @@ export function MultiMetricModal({
 
 	const parsedActive = useMemo(() => (activeCsvText ? parseCsv(activeCsvText) : null), [activeCsvText])
 
+	const activeDateColIndex = useMemo(() => parsedActive?.headers.indexOf('date') ?? -1, [parsedActive])
+
+	const dateBounds = useMemo(() => {
+		if (!parsedActive || activeDateColIndex < 0) return { min: undefined, max: undefined } as const
+		let min: string | undefined
+		let max: string | undefined
+		for (const row of parsedActive.rows) {
+			const d = row.values[activeDateColIndex]
+			if (!d) continue
+			if (min === undefined || d < min) min = d
+			if (max === undefined || d > max) max = d
+		}
+		return { min, max } as const
+	}, [parsedActive, activeDateColIndex])
+
+	const parsedActiveFiltered = useMemo(() => {
+		if (!parsedActive) return null
+		const filtered = filterParsedRowsByDateRange(parsedActive.rows, activeDateColIndex, dateRange)
+		return { headers: parsedActive.headers, rows: filtered }
+	}, [parsedActive, activeDateColIndex, dateRange])
+
 	const readyCount = csvQueries.filter((q) => typeof q.data === 'string').length
 	const loadingCount = csvQueries.filter((q) => q.isLoading).length
 
@@ -260,7 +290,7 @@ export function MultiMetricModal({
 			toast.error('No data ready to download')
 			return
 		}
-		const merged = combineCsvsWide(ready)
+		const merged = combineCsvsWide(ready, dateRange)
 		if (merged.length <= 1) {
 			toast.error('No rows to download')
 			return
@@ -277,7 +307,8 @@ export function MultiMetricModal({
 			paramType,
 			param: param.value,
 			paramLabel: param.label,
-			metrics: selectedMetrics
+			metrics: selectedMetrics,
+			dateRange
 		})
 		recordRecent({
 			...configBase,
@@ -285,7 +316,7 @@ export function MultiMetricModal({
 			name: defaultPresetName(configBase),
 			createdAt: Date.now()
 		})
-	}, [csvQueries, selectedMetrics, param, paramType, recordRecent])
+	}, [csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent])
 
 	const handleDownloadSingle = useCallback(
 		(slug: string) => {
@@ -301,14 +332,16 @@ export function MultiMetricModal({
 			const dataset = chartDatasetsBySlug.get(slug)
 			if (!dataset) return
 			const filename = `${paramSlugForFilename(param.value)}_${shortMetricName(dataset)}.csv`
-			downloadCSV(filename, data, { addTimestamp: true })
+			const payload = filterCsvByDateRange(data, dateRange)
+			downloadCSV(filename, payload, { addTimestamp: true })
 			toast.success(`Downloaded ${filename}`)
 
 			const configBase = extractMultiMetricConfig({
 				paramType,
 				param: param.value,
 				paramLabel: param.label,
-				metrics: [slug]
+				metrics: [slug],
+				dateRange
 			})
 			recordRecent({
 				...configBase,
@@ -317,7 +350,7 @@ export function MultiMetricModal({
 				createdAt: Date.now()
 			})
 		},
-		[csvQueries, selectedMetrics, param, paramType, recordRecent]
+		[csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent]
 	)
 
 	const handleSubscribeClick = useCallback(() => {
@@ -332,7 +365,8 @@ export function MultiMetricModal({
 				paramType,
 				param: param.value,
 				paramLabel: param.label,
-				metrics: selectedMetrics
+				metrics: selectedMetrics,
+				dateRange
 			})
 			saveDownload(
 				{
@@ -346,7 +380,7 @@ export function MultiMetricModal({
 			setShowSaveDialog(false)
 			toast.success(`Saved preset "${name}"`)
 		},
-		[param, paramType, selectedMetrics, saveDownload]
+		[param, paramType, selectedMetrics, dateRange, saveDownload]
 	)
 
 	const suggestedPresetName = useMemo(() => {
@@ -355,10 +389,11 @@ export function MultiMetricModal({
 			paramType,
 			param: param.value,
 			paramLabel: param.label,
-			metrics: selectedMetrics
+			metrics: selectedMetrics,
+			dateRange
 		})
 		return defaultPresetName(configBase)
-	}, [param, paramType, selectedMetrics])
+	}, [param, paramType, selectedMetrics, dateRange])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
@@ -383,6 +418,10 @@ export function MultiMetricModal({
 			!hasSelection ||
 			(isBulk ? loadingCount === selectedMetrics.length || readyCount === 0 : activeLoading || !activeCsvText))
 
+	const activeTotalRows = parsedActive?.rows.length ?? 0
+	const activeFilteredRows = parsedActiveFiltered?.rows.length ?? 0
+	const filterActive = !!dateRange
+
 	const headerSubtitle = (() => {
 		if (!param) return `${PARAM_LABELS[paramType].verb} to begin`
 		if (!hasSelection) {
@@ -398,7 +437,10 @@ export function MultiMetricModal({
 		}
 		if (activeError) return 'Error loading metric'
 		if (parsedActive) {
-			return `${parsedActive.rows.length.toLocaleString()} rows · ${parsedActive.headers.length} cols`
+			const rowsLabel = filterActive
+				? `${activeFilteredRows.toLocaleString()} of ${activeTotalRows.toLocaleString()} rows`
+				: `${activeTotalRows.toLocaleString()} rows`
+			return `${rowsLabel} · ${parsedActive.headers.length} cols`
 		}
 		return ''
 	})()
@@ -486,6 +528,15 @@ export function MultiMetricModal({
 								/>
 							) : null}
 
+							{param && hasSelection && !isPreview ? (
+								<DateRangePicker
+									value={dateRange}
+									onChange={setDateRange}
+									minDate={dateBounds.min}
+									maxDate={dateBounds.max}
+								/>
+							) : null}
+
 							{isPreview ? <p className="ml-auto text-[11px] text-(--text-tertiary)">Preview — last 10 rows</p> : null}
 						</div>
 					</div>
@@ -514,8 +565,22 @@ export function MultiMetricModal({
 								<CenteredError error={activeError} />
 							) : !parsedActive || parsedActive.rows.length === 0 ? (
 								<CenteredHint icon="eye-off" text="No data" />
+							) : !parsedActiveFiltered || parsedActiveFiltered.rows.length === 0 ? (
+								<div className="flex flex-1 items-center justify-center">
+									<div className="flex flex-col items-center gap-2 text-center">
+										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+										<p className="text-sm text-(--text-secondary)">No rows in selected date range</p>
+										<button
+											type="button"
+											onClick={() => setDateRange(null)}
+											className="mt-1 rounded-md border border-(--divider) px-3 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+										>
+											Clear date range
+										</button>
+									</div>
+								</div>
 							) : (
-								<PreviewTable parsed={parsedActive} isPreview={isPreview} />
+								<PreviewTable parsed={parsedActiveFiltered} isPreview={isPreview} />
 							)}
 						</div>
 

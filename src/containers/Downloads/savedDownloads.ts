@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { chartDatasetsBySlug, type ChartDatasetDefinition } from './chart-datasets'
 import type { DatasetDefinition } from './datasets'
 
@@ -9,6 +10,12 @@ export interface SavedSort {
 	column: string
 	dir: SavedSortDir
 }
+
+export type DateRangePreset = '7d' | '30d' | '90d' | '1y' | 'ytd' | 'all'
+
+// Relative presets re-apply against "now" every time the config runs — a preset saved
+// as "last 7 days" keeps rolling. Custom windows are absolute, for frozen reports.
+export type DateRangeConfig = { kind: 'preset'; preset: DateRangePreset } | { kind: 'custom'; from: string; to: string } // ISO YYYY-MM-DD, inclusive
 
 interface SavedDownloadBase {
 	id: string
@@ -24,6 +31,7 @@ export interface DatasetSavedConfig extends SavedDownloadBase {
 	sort?: SavedSort
 	chain?: string
 	exclude?: Record<string, boolean>
+	rowLimit?: number
 }
 
 export interface ChartSavedConfig extends SavedDownloadBase {
@@ -33,6 +41,7 @@ export interface ChartSavedConfig extends SavedDownloadBase {
 	paramLabels?: string[]
 	columns?: string[]
 	sort?: SavedSort
+	dateRange?: DateRangeConfig
 }
 
 export interface MultiMetricSavedConfig extends SavedDownloadBase {
@@ -41,6 +50,7 @@ export interface MultiMetricSavedConfig extends SavedDownloadBase {
 	param: string
 	paramLabel?: string
 	metrics: string[]
+	dateRange?: DateRangeConfig
 }
 
 export type SavedDownload = DatasetSavedConfig | ChartSavedConfig | MultiMetricSavedConfig
@@ -72,6 +82,7 @@ export interface DatasetExtractInput {
 	sort?: { index: number; direction: SavedSortDir } | null
 	chain?: string | null
 	exclude?: Record<string, boolean>
+	rowLimit?: number | null
 }
 
 export function extractDatasetConfig(input: DatasetExtractInput): DatasetInput {
@@ -83,13 +94,15 @@ export function extractDatasetConfig(input: DatasetExtractInput): DatasetInput {
 			? { column: input.headers[input.sort.index], dir: input.sort.direction }
 			: undefined
 	const exclude = input.exclude && Object.keys(input.exclude).length > 0 ? { ...input.exclude } : undefined
+	const rowLimit = input.rowLimit && input.rowLimit > 0 ? input.rowLimit : undefined
 	return {
 		kind: 'dataset',
 		slug: input.slug,
 		columns,
 		...(sort ? { sort } : {}),
 		...(input.chain ? { chain: input.chain } : {}),
-		...(exclude ? { exclude } : {})
+		...(exclude ? { exclude } : {}),
+		...(rowLimit ? { rowLimit } : {})
 	}
 }
 
@@ -99,6 +112,7 @@ export interface ChartExtractInput {
 	selectedParams: Array<{ label: string; value: string }>
 	selectedColumns: Set<number> | null
 	sort?: { index: number; direction: SavedSortDir } | null
+	dateRange?: DateRangeConfig | null
 }
 
 export function extractChartConfig(input: ChartExtractInput): ChartInput {
@@ -114,13 +128,15 @@ export function extractChartConfig(input: ChartExtractInput): ChartInput {
 			: undefined
 	const labels = input.selectedParams.map((p) => p.label)
 	const hasUsefulLabels = labels.some((label, i) => label && label !== input.selectedParams[i].value)
+	const dateRange = normalizeDateRange(input.dateRange ?? null)
 	return {
 		kind: 'chart',
 		slug: input.slug,
 		params: input.selectedParams.map((p) => p.value),
 		...(hasUsefulLabels ? { paramLabels: labels } : {}),
 		...(columns ? { columns } : {}),
-		...(sort ? { sort } : {})
+		...(sort ? { sort } : {}),
+		...(dateRange ? { dateRange } : {})
 	}
 }
 
@@ -129,16 +145,28 @@ export interface MultiMetricExtractInput {
 	param: string
 	paramLabel?: string
 	metrics: string[]
+	dateRange?: DateRangeConfig | null
 }
 
 export function extractMultiMetricConfig(input: MultiMetricExtractInput): MultiMetricInput {
+	const dateRange = normalizeDateRange(input.dateRange ?? null)
 	return {
 		kind: 'multiMetric',
 		paramType: input.paramType,
 		param: input.param,
 		...(input.paramLabel ? { paramLabel: input.paramLabel } : {}),
-		metrics: input.metrics.slice()
+		metrics: input.metrics.slice(),
+		...(dateRange ? { dateRange } : {})
 	}
+}
+
+// "all" is the default / no-filter state — drop it at save time so saved configs,
+// default-named configs, and dedup all treat unset and `all` as equivalent.
+function normalizeDateRange(range: DateRangeConfig | null): DateRangeConfig | null {
+	if (!range) return null
+	if (range.kind === 'preset' && range.preset === 'all') return null
+	if (range.kind === 'custom' && (!range.from || !range.to)) return null
+	return range
 }
 
 // --- Apply helpers: map a saved config onto current schema, surfacing drift ---
@@ -148,6 +176,7 @@ export interface AppliedDatasetConfig {
 	sort: { index: number; direction: SavedSortDir } | null
 	chain: string | null
 	exclude: Record<string, boolean>
+	rowLimit: number | null
 	missingColumns: string[]
 	missingSortColumn: string | null
 }
@@ -188,6 +217,7 @@ export function applyDatasetConfig(config: DatasetSavedConfig, headers: string[]
 		sort,
 		chain: config.chain ?? null,
 		exclude: config.exclude ? { ...config.exclude } : {},
+		rowLimit: config.rowLimit && config.rowLimit > 0 ? config.rowLimit : null,
 		missingColumns,
 		missingSortColumn
 	}
@@ -299,6 +329,66 @@ function formatListWithOverflow(items: string[], max: number = MAX_LISTED_ITEMS)
 	return `${items.slice(0, max).join(', ')} +${items.length - max}`
 }
 
+// Short label used in preset names & describe strings. "Last 7d", "YTD", "Jan 1 – Mar 31".
+export function formatDateRangeShort(range: DateRangeConfig): string {
+	if (range.kind === 'preset') {
+		switch (range.preset) {
+			case '7d':
+				return 'Last 7d'
+			case '30d':
+				return 'Last 30d'
+			case '90d':
+				return 'Last 90d'
+			case '1y':
+				return 'Last 1y'
+			case 'ytd':
+				return 'YTD'
+			case 'all':
+				return 'All time'
+		}
+	}
+	const from = dayjs(range.from)
+	const to = dayjs(range.to)
+	if (!from.isValid() || !to.isValid()) return 'Custom range'
+	const fy = from.year()
+	const ty = to.year()
+	const cy = dayjs().year()
+	if (fy === ty) {
+		if (fy === cy) return `${from.format('MMM D')} – ${to.format('MMM D')}`
+		return `${from.format('MMM D')} – ${to.format("MMM D 'YY")}`
+	}
+	return `${from.format("MMM D 'YY")} – ${to.format("MMM D 'YY")}`
+}
+
+// Longer label used in the picker trigger when a filter is active.
+export function formatDateRangeLong(range: DateRangeConfig): string {
+	if (range.kind === 'preset') {
+		switch (range.preset) {
+			case '7d':
+				return 'Last 7 days'
+			case '30d':
+				return 'Last 30 days'
+			case '90d':
+				return 'Last 90 days'
+			case '1y':
+				return 'Last 1 year'
+			case 'ytd':
+				return 'Year to date'
+			case 'all':
+				return 'All time'
+		}
+	}
+	const from = dayjs(range.from)
+	const to = dayjs(range.to)
+	if (!from.isValid() || !to.isValid()) return 'Custom range'
+	const fy = from.year()
+	const ty = to.year()
+	const cy = dayjs().year()
+	if (fy === ty && fy === cy) return `${from.format('MMM D')} – ${to.format('MMM D')}`
+	if (fy === ty) return `${from.format('MMM D')} – ${to.format('MMM D, YYYY')}`
+	return `${from.format('MMM D, YYYY')} – ${to.format('MMM D, YYYY')}`
+}
+
 function prettyMetricName(slug: string): string {
 	const d = chartDatasetsBySlug.get(slug)
 	if (!d) return slug
@@ -325,17 +415,24 @@ export function defaultPresetName(config: SavedDownloadInput, datasetLabel?: str
 		if (config.columns.length > 0 && config.columns.length <= MAX_LISTED_ITEMS) {
 			modifiers.push(config.columns.join(', '))
 		}
+		if (config.rowLimit && config.rowLimit > 0) {
+			modifiers.push(`Top ${config.rowLimit.toLocaleString()}`)
+		}
 		return modifiers.length > 0 ? `${base} — ${modifiers.join(' · ')}` : base
 	}
 	if (config.kind === 'chart') {
 		const base = datasetLabel ?? config.slug
-		if (config.params.length === 0) return base
-		return `${base} — ${formatListWithOverflow(chartParamDisplayLabels(config))}`
+		const parts: string[] = []
+		if (config.params.length > 0) parts.push(formatListWithOverflow(chartParamDisplayLabels(config)))
+		if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange))
+		return parts.length > 0 ? `${base} — ${parts.join(' · ')}` : base
 	}
 	// multiMetric
 	const who = config.paramLabel ?? config.param
-	if (config.metrics.length === 0) return who
-	return `${who} — ${formatListWithOverflow(config.metrics.map(prettyMetricName))}`
+	const parts: string[] = []
+	if (config.metrics.length > 0) parts.push(formatListWithOverflow(config.metrics.map(prettyMetricName)))
+	if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange))
+	return parts.length > 0 ? `${who} — ${parts.join(' · ')}` : who
 }
 
 export function describeSavedConfig(config: SavedDownload): string {
@@ -352,6 +449,10 @@ export function describeSavedConfig(config: SavedDownload): string {
 				.map(([k]) => `excl. ${k}`)
 			parts.push(...active)
 		}
+		// Only show rowLimit here when the name didn't already include it (see defaultPresetName).
+		// Duplicating it in the name+description reads noisy, but users rename presets, so we
+		// still surface it here for safety.
+		if (config.rowLimit && config.rowLimit > 0) parts.push(`top ${config.rowLimit.toLocaleString()}`)
 		return parts.join(' · ')
 	}
 	if (config.kind === 'chart') {
@@ -364,13 +465,16 @@ export function describeSavedConfig(config: SavedDownload): string {
 			parts.push(`${config.columns.length} col${config.columns.length === 1 ? '' : 's'} selected`)
 		}
 		if (config.sort) parts.push(`${config.sort.column} ${config.sort.dir}`)
+		if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange).toLowerCase())
 		return parts.join(' · ')
 	}
 	// multiMetric — name lists metrics; only show count when it overflowed.
+	const parts: string[] = []
 	if (config.metrics.length > MAX_LISTED_ITEMS) {
-		return `${config.metrics.length} metrics combined`
+		parts.push(`${config.metrics.length} metrics combined`)
 	}
-	return ''
+	if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange).toLowerCase())
+	return parts.join(' · ')
 }
 
 export function lookupDatasetLabel(slug: string, datasetMap: Map<string, DatasetDefinition>): string | undefined {
@@ -398,6 +502,7 @@ export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolea
 		if (JSON.stringify(sortedArray(a.columns)) !== JSON.stringify(sortedArray(b.columns))) return false
 		if (JSON.stringify(a.sort ?? null) !== JSON.stringify(b.sort ?? null)) return false
 		if (JSON.stringify(a.exclude ?? null) !== JSON.stringify(b.exclude ?? null)) return false
+		if ((a.rowLimit ?? null) !== (b.rowLimit ?? null)) return false
 		return true
 	}
 	if (a.kind === 'chart' && b.kind === 'chart') {
@@ -409,12 +514,14 @@ export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolea
 		)
 			return false
 		if (JSON.stringify(a.sort ?? null) !== JSON.stringify(b.sort ?? null)) return false
+		if (JSON.stringify(a.dateRange ?? null) !== JSON.stringify(b.dateRange ?? null)) return false
 		return true
 	}
 	if (a.kind === 'multiMetric' && b.kind === 'multiMetric') {
 		if (a.paramType !== b.paramType) return false
 		if (a.param !== b.param) return false
 		if (JSON.stringify(sortedArray(a.metrics)) !== JSON.stringify(sortedArray(b.metrics))) return false
+		if (JSON.stringify(a.dateRange ?? null) !== JSON.stringify(b.dateRange ?? null)) return false
 		return true
 	}
 	return false

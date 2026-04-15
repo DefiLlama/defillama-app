@@ -12,11 +12,14 @@ import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { downloadCSV } from '~/utils/download'
 import type { ChartDatasetDefinition } from './chart-datasets'
 import { combineCsvsWide } from './combineCsvsWide'
+import { filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
+import { DateRangePicker } from './DateRangePicker'
 import {
 	applyChartColumnsAndSort,
 	applyChartParams,
 	type ChartSavedConfig,
+	type DateRangeConfig,
 	defaultPresetName,
 	extractChartConfig,
 	generatePresetId
@@ -215,12 +218,19 @@ export function ChartDatasetModal({
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
+	const [dateRange, setDateRange] = useState<DateRangeConfig | null>(initialConfig?.dateRange ?? null)
 	const [showSaveDialog, setShowSaveDialog] = useState(false)
 	const initialParamsAppliedRef = useRef(false)
 	const initialColumnsAppliedRef = useRef(false)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
+
+	useEffect(() => {
+		setDateRange(initialConfig?.dateRange ?? null)
+		initialParamsAppliedRef.current = false
+		initialColumnsAppliedRef.current = false
+	}, [initialConfig?.id, initialConfig?.dateRange])
 
 	// Apply saved params once options are loaded.
 	useEffect(() => {
@@ -354,12 +364,32 @@ export function ChartDatasetModal({
 
 	const selectedCount = useMemo(() => columnMeta.filter((c) => cols.has(c.index)).length, [columnMeta, cols])
 
+	const dateColIndex = useMemo(() => headers.indexOf('date'), [headers])
+
+	const dateBounds = useMemo(() => {
+		if (dateColIndex < 0 || rows.length === 0) return { min: undefined, max: undefined } as const
+		let min: string | undefined
+		let max: string | undefined
+		for (const row of rows) {
+			const d = row.values[dateColIndex]
+			if (!d) continue
+			if (min === undefined || d < min) min = d
+			if (max === undefined || d > max) max = d
+		}
+		return { min, max } as const
+	}, [rows, dateColIndex])
+
+	const dateFilteredRows = useMemo(
+		() => filterParsedRowsByDateRange(rows, dateColIndex, dateRange),
+		[rows, dateColIndex, dateRange]
+	)
+
 	const filteredRows = useMemo(() => {
-		if (deferredSearch.length === 0) return rows
-		return rows.filter((row) =>
+		if (deferredSearch.length === 0) return dateFilteredRows
+		return dateFilteredRows.filter((row) =>
 			columnMeta.some((column) => (row.values[column.index] ?? '').toLowerCase().includes(deferredSearch))
 		)
-	}, [columnMeta, deferredSearch, rows])
+	}, [columnMeta, deferredSearch, dateFilteredRows])
 
 	const sortedRows = useMemo(() => {
 		if (!sortState) return filteredRows
@@ -516,7 +546,7 @@ export function ChartDatasetModal({
 			toast.error('No data available to download')
 			return
 		}
-		const merged = combineCsvsWide(ready)
+		const merged = combineCsvsWide(ready, dateRange)
 		if (merged.length <= 1) {
 			toast.error('No rows to download')
 			return
@@ -536,7 +566,8 @@ export function ChartDatasetModal({
 			headers,
 			selectedParams,
 			selectedColumns: cols,
-			sort: sortState
+			sort: sortState,
+			dateRange
 		})
 		recordRecent({
 			...configBase,
@@ -544,7 +575,7 @@ export function ChartDatasetModal({
 			name: defaultPresetName(configBase, dataset.name),
 			createdAt: Date.now()
 		})
-	}, [csvQueries, selectedParams, dataset.slug, dataset.name, headers, cols, sortState, recordRecent])
+	}, [csvQueries, selectedParams, dataset.slug, dataset.name, headers, cols, sortState, dateRange, recordRecent])
 
 	const handleDownloadSingle = useCallback(
 		(param: ParamOption) => {
@@ -561,7 +592,7 @@ export function ChartDatasetModal({
 			let downloadedCols: Set<number> | null = null
 			let downloadedSort: SortState | null = null
 
-			if (param.value === activePreviewValue && selectedCount > 0) {
+			if (param.value === activePreviewValue && selectedCount > 0 && deferredSearch.length === 0) {
 				const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
 				if (csvRows.length > 1) {
 					downloadCSV(filename, csvRows, { addTimestamp: false })
@@ -573,13 +604,15 @@ export function ChartDatasetModal({
 			}
 			if (downloadedHeaders === null) {
 				const parsed = parseCsv(query.data)
-				if (parsed.rows.length === 0) {
+				const parsedDateIdx = parsed.headers.indexOf('date')
+				const rowsForDownload = filterParsedRowsByDateRange(parsed.rows, parsedDateIdx, dateRange)
+				if (rowsForDownload.length === 0) {
 					toast.error('No rows to download')
 					return
 				}
 				const allRows: string[][] = [
 					parsed.headers,
-					...parsed.rows.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
+					...rowsForDownload.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
 				]
 				downloadCSV(filename, allRows, { addTimestamp: false })
 				toast.success(`Downloaded ${filename}`)
@@ -591,7 +624,8 @@ export function ChartDatasetModal({
 				headers: downloadedHeaders,
 				selectedParams: [param],
 				selectedColumns: downloadedCols,
-				sort: downloadedSort
+				sort: downloadedSort,
+				dateRange
 			})
 			recordRecent({
 				...configBase,
@@ -605,11 +639,13 @@ export function ChartDatasetModal({
 			selectedParams,
 			activePreviewValue,
 			selectedCount,
+			deferredSearch,
 			columnMeta,
 			cols,
 			sortedRows,
 			headers,
 			sortState,
+			dateRange,
 			dataset.slug,
 			dataset.name,
 			recordRecent
@@ -638,7 +674,8 @@ export function ChartDatasetModal({
 				headers,
 				selectedParams,
 				selectedColumns: cols,
-				sort: sortState
+				sort: sortState,
+				dateRange
 			})
 			recordRecent({
 				...configBase,
@@ -660,6 +697,7 @@ export function ChartDatasetModal({
 		dataset.name,
 		headers,
 		sortState,
+		dateRange,
 		recordRecent,
 		handleDownloadCombined
 	])
@@ -671,7 +709,8 @@ export function ChartDatasetModal({
 				headers,
 				selectedParams,
 				selectedColumns: cols,
-				sort: sortState
+				sort: sortState,
+				dateRange
 			})
 			saveDownload(
 				{
@@ -685,7 +724,7 @@ export function ChartDatasetModal({
 			setShowSaveDialog(false)
 			toast.success(`Saved preset "${name}"`)
 		},
-		[dataset.slug, headers, selectedParams, cols, sortState, saveDownload]
+		[dataset.slug, headers, selectedParams, cols, sortState, dateRange, saveDownload]
 	)
 
 	const suggestedPresetName = useMemo(() => {
@@ -695,10 +734,11 @@ export function ChartDatasetModal({
 			headers,
 			selectedParams,
 			selectedColumns: cols,
-			sort: sortState
+			sort: sortState,
+			dateRange
 		})
 		return defaultPresetName(configBase, dataset.name)
-	}, [dataset.slug, dataset.name, headers, selectedParams, cols, sortState])
+	}, [dataset.slug, dataset.name, headers, selectedParams, cols, sortState, dateRange])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
@@ -723,6 +763,11 @@ export function ChartDatasetModal({
 	const activeSortDirection = sortState ? sortState.direction : false
 	const allSelected = headers.length > 0 && cols.size === headers.length
 
+	const hasActiveFilter = !!dateRange || deferredSearch.length > 0
+	const rowsCountLabel = hasActiveFilter
+		? `${sortedRows.length.toLocaleString()} of ${rows.length.toLocaleString()} rows`
+		: `${sortedRows.length.toLocaleString()} rows`
+
 	const headerSubtitle = (() => {
 		if (!hasSelection) {
 			return `Select ${dataset.paramLabel.toLowerCase()}(s) to preview`
@@ -730,14 +775,14 @@ export function ChartDatasetModal({
 		if (isBulk) {
 			if (loadingCount > 0) return `Loading ${readyCount}/${selectedParams.length}...`
 			if (selectedParam && headers.length > 0) {
-				return `${sortedRows.length.toLocaleString()} rows · previewing ${selectedParam.label}`
+				return `${rowsCountLabel} · previewing ${selectedParam.label}`
 			}
 			return `${selectedParams.length} selected`
 		}
 		if (dataLoading) return 'Loading...'
 		if (dataError) return 'Error'
 		if (headers.length > 0) {
-			return `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`
+			return `${rowsCountLabel} · ${selectedCount}/${headers.length} cols selected`
 		}
 		return ''
 	})()
@@ -837,6 +882,15 @@ export function ChartDatasetModal({
 								maxSelections={MAX_PARAMS}
 							/>
 
+							{hasSelection && !isPreview ? (
+								<DateRangePicker
+									value={dateRange}
+									onChange={setDateRange}
+									minDate={dateBounds.min}
+									maxDate={dateBounds.max}
+								/>
+							) : null}
+
 							{hasData && !isPreview ? (
 								<>
 									<label className="relative min-w-0 flex-1">
@@ -916,7 +970,22 @@ export function ChartDatasetModal({
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
 										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
-										<p className="text-sm text-(--text-secondary)">No matching rows</p>
+										<p className="text-sm text-(--text-secondary)">
+											{dateRange && rows.length > 0
+												? 'No rows in selected date range'
+												: deferredSearch.length > 0
+													? 'No rows match your search'
+													: 'No matching rows'}
+										</p>
+										{dateRange && rows.length > 0 ? (
+											<button
+												type="button"
+												onClick={() => setDateRange(null)}
+												className="mt-1 rounded-md border border-(--divider) px-3 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+											>
+												Clear date range
+											</button>
+										) : null}
 									</div>
 								</div>
 							) : (
