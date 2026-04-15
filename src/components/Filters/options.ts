@@ -18,9 +18,9 @@ export const tvlOptions: Array<ToggleOption<TvlSettingsKey>> = [
 		help: 'Include governance tokens'
 	},
 	{
-		name: 'Borrows',
+		name: 'Active Loans',
 		key: TVL_SETTINGS.BORROWED,
-		help: 'Include borrowed coins in lending protocols'
+		help: 'Include active loans in lending protocols'
 	},
 	{
 		name: 'Double Count',

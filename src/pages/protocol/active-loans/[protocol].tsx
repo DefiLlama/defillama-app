@@ -116,13 +116,13 @@ function TokensBreakdownPieChartCard({
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
-	const exportFilenameBase = `${slug(protocolName)}-borrowed-tokens-breakdown-usd`
-	const exportTitle = `${protocolName} Borrowed Tokens Breakdown (USD)`
+	const exportFilenameBase = `${slug(protocolName)}-active-loans-tokens-breakdown-usd`
+	const exportTitle = `${protocolName} Active Loans Tokens Breakdown (USD)`
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h2 className="mr-auto text-base font-semibold">Borrowed Tokens Breakdown (USD)</h2>
+				<h2 className="mr-auto text-base font-semibold">Active Loans Tokens Breakdown (USD)</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -144,7 +144,7 @@ function TokensBreakdownPieChartCard({
 }
 
 export const getStaticProps = withPerformanceLogging(
-	'protocol/borrowed/[protocol]',
+	'protocol/active-loans/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
 			return { notFound: true }
@@ -172,8 +172,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const seoTitle = `${protocolData.name} Borrowed Assets & Lending - DefiLlama`
-		const seoDescription = `Monitor ${protocolData.name} total borrowed assets, utilization rates, and lending pools on DefiLlama.`
+		const seoTitle = `${protocolData.name} Active Loans & Lending - DefiLlama`
+		const seoDescription = `Monitor ${protocolData.name} active loans, utilization rates, and lending pools on DefiLlama.`
 
 		const toggleOptions = []
 
@@ -204,9 +204,6 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export const getStaticPaths = () => {
-	// When this is true (in preview environments) don't
-	// prerender any static pages
-	// (faster builds, but slower initial page load)
 	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
@@ -217,7 +214,7 @@ export const getStaticPaths = () => {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function ActiveLoansProtocol(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const protocol = slug(props.name ?? '')
 	const {
 		isLoading,
@@ -256,7 +253,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
-				<h1 className="text-xl font-bold">{props.name} Borrowed TVL</h1>
+				<h1 className="text-xl font-bold">{props.name} Active Loans</h1>
 			</div>
 			{isLoading ? (
 				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -271,13 +268,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					{borrowedByChainDataset && chainsUnique.length > 1 ? (
 						<MultiSeriesChartCard
 							key={`${chainsUnique.join('|')}:borrowed-by-chain`}
-							title="Borrowed by Chain"
+							title="Active Loans by Chain"
 							protocolName={props.name}
 							allSeries={chainsUnique}
 							seriesLabel="Chain"
 							dataset={borrowedByChainDataset}
 							charts={borrowedByChainCharts}
-							exportSuffix="borrowed-by-chain"
+							exportSuffix="active-loans-by-chain"
 							valueSymbol="$"
 						/>
 					) : null}
@@ -285,13 +282,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					{tokenUSDDataset && tokensUnique?.length > 0 ? (
 						<MultiSeriesChartCard
 							key={`${tokensUnique.join('|')}:borrowed-by-token-usd`}
-							title="Borrowed by Token (USD)"
+							title="Active Loans by Token (USD)"
 							protocolName={props.name}
 							allSeries={tokensUnique}
 							seriesLabel="Token"
 							dataset={tokenUSDDataset}
 							charts={tokenUSDCharts}
-							exportSuffix="borrowed-by-token-usd"
+							exportSuffix="active-loans-by-token-usd"
 							valueSymbol="$"
 						/>
 					) : null}
@@ -307,13 +304,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					{tokenRawDataset && tokensUnique?.length > 0 ? (
 						<MultiSeriesChartCard
 							key={`${tokensUnique.join('|')}:borrowed-by-token-raw`}
-							title="Borrowed by Token (Raw Quantities)"
+							title="Active Loans by Token (Raw Quantities)"
 							protocolName={props.name}
 							allSeries={tokensUnique}
 							seriesLabel="Token"
 							dataset={tokenRawDataset}
 							charts={tokenRawCharts}
-							exportSuffix="borrowed-by-token-raw"
+							exportSuffix="active-loans-by-token-raw"
 							valueSymbol=""
 						/>
 					) : null}

@@ -786,7 +786,7 @@ export const getProtocolOverviewPageData = async ({
 			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'staking' })
 				.then((data) => normalizeChartPointsToMs(data))
 				.catch(() => null),
-		Borrowed: () =>
+		'Active Loans': () =>
 			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' })
 				.then((data) => normalizeChartPointsToMs(data))
 				.catch(() => null),

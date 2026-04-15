@@ -302,7 +302,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					/>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<MetricRow label="Borrowed" value={props.formatPrice(props.currentTvlByChain.borrowed)} />
+					<MetricRow label="Active Loans" value={props.formatPrice(props.currentTvlByChain.borrowed)} />
 				) : null}
 				<TokenLiquidity {...props} />
 				<Treasury {...props} />

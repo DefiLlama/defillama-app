@@ -15,7 +15,7 @@ const tabs = {
 	information: { id: 'information', name: 'Information', route: '/protocol' },
 	assets: { id: 'assets', name: 'Assets', route: '/protocol/assets' },
 	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },
-	borrowed: { id: 'borrowed', name: 'Borrowed', route: '/protocol/borrowed' },
+	borrowed: { id: 'borrowed', name: 'Active Loans', route: '/protocol/active-loans' },
 	stablecoins: { id: 'stablecoins', name: 'Stablecoin Info', route: '/protocol/stablecoins' },
 	bridges: { id: 'bridges', name: 'Bridge Info', route: '/protocol/bridges' },
 	treasury: { id: 'treasury', name: 'Treasury', route: '/protocol/treasury' },
@@ -39,6 +39,7 @@ const tabs = {
 
 const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
 	information: '/protocol',
+	borrowed: '/protocol/active-loans',
 	unlocks: '/unlocks',
 	governance: '/governance',
 	forks: '/forks'
@@ -186,7 +187,7 @@ export function ProtocolOverviewLayout({
 		>
 			{category === 'Uncollateralized Lending' || category === 'RWA Lending' ? (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
-					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
+					Active loans are not included in TVL by default, to include them toggle Active Loans. For more info on this
 					click{' '}
 					<a
 						href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/6163"

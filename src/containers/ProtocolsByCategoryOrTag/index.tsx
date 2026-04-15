@@ -83,7 +83,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				const timestamp = row.timestamp
 
 				if (shouldMirrorBorrowedChart) {
-					return { ...row, timestamp, TVL: nextTvlValue, Borrowed: nextTvlValue }
+					return { ...row, timestamp, TVL: nextTvlValue, 'Active Loans': nextTvlValue }
 				}
 
 				return { ...row, timestamp, TVL: nextTvlValue }
@@ -657,10 +657,10 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	}),
 	borrowed: columnHelper.accessor((p) => p.borrowed, {
 		id: 'borrowed',
-		header: 'Borrowed',
+		header: 'Active Loans',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: 'Total amount borrowed from the protocol' },
-		size: 100
+		meta: { align: 'end', headerHelperText: 'Total amount currently borrowed from the protocol' },
+		size: 140
 	}),
 	supplied: columnHelper.accessor((p) => p.supplied, {
 		id: 'supplied',

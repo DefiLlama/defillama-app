@@ -8,7 +8,6 @@ import { slug } from '~/utils'
 const baseUrl = `https://defillama.com`
 // const protocolTabRoutes = [
 // 	{ prefix: 'protocol/tvl', hasMetric: (meta) => meta.tvl },
-// 	{ prefix: 'protocol/borrowed', hasMetric: (meta) => meta.borrowed },
 // 	{ prefix: 'protocol/stablecoins', hasMetric: (meta) => meta.stablecoins },
 // 	{ prefix: 'protocol/bridges', hasMetric: (meta) => meta.bridge },
 // 	{ prefix: 'protocol/treasury', hasMetric: (meta) => meta.treasury },

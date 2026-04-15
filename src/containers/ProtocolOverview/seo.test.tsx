@@ -5,6 +5,8 @@ import type { IProtocolPageMetrics } from './types'
 
 const canonicalProtocolAaveRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/aave")[^>]*\/?>/
+const canonicalProtocolActiveLoansAaveRegex =
+	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/active-loans\/aave")[^>]*\/?>/
 const canonicalProtocolDefiSwapRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/defi-swap")[^>]*\/?>/
 const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="noindex")[^>]*\/?>/
@@ -265,6 +267,27 @@ describe('ProtocolOverviewLayout SEO', () => {
 
 		expect(markup).toMatch(robotsNoindexRegex)
 		expect(markup).not.toMatch(canonicalProtocolAaveRegex)
+	})
+
+	it('keeps the active loans tab indexable with the new canonical URL', async () => {
+		setupLayoutMocks()
+
+		const { ProtocolOverviewLayout } = await import('./Layout')
+		const markup = renderToStaticMarkup(
+			React.createElement(
+				ProtocolOverviewLayout as React.ComponentType<any>,
+				{
+					name: 'Aave',
+					category: 'Lending',
+					metrics: { ...metrics, borrowed: true },
+					tab: 'borrowed'
+				},
+				null
+			)
+		)
+
+		expect(markup).toMatch(canonicalProtocolActiveLoansAaveRegex)
+		expect(markup).not.toMatch(robotsNoindexRegex)
 	})
 })
 

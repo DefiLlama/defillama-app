@@ -19,7 +19,7 @@ export const getStaticPaths = () => {
 }
 
 export const getStaticProps = withPerformanceLogging(
-	`total-borrowed/chain/[chain]`,
+	`active-loans/chain/[chain]`,
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		const chain = slug(params.chain)
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -42,14 +42,14 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
+const pageName = ['Protocols', 'ranked by', 'Active Loans']
 
-export default function TotalBorrowedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function ActiveLoansByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Total Borrowed in DeFi on ${props.chain} - DefiLlama`}
-			description={`Track total value borrowed across DeFi lending protocols on ${props.chain}. Compare borrowed TVL by protocol on DefiLlama.`}
-			canonicalUrl={`/total-borrowed/chain/${slug(props.chain)}`}
+			title={`Active Loans in DeFi on ${props.chain} - DefiLlama`}
+			description={`Track active loans across DeFi lending protocols on ${props.chain}. Compare active loan value by protocol on DefiLlama.`}
+			canonicalUrl={`/active-loans/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ExtraTvlByChain {...props} />

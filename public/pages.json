@@ -84,8 +84,8 @@
       "oldName": "Forks"
     },
     {
-      "name": "Total Borrowed by Protocol",
-      "route": "/total-borrowed",
+      "name": "Active Loans by Protocol",
+      "route": "/active-loans",
       "category": "Total Value Locked",
       "description": "Sum of value currently borrowed across all active loans on a lending protocol",
       "tab": "Protocols"
