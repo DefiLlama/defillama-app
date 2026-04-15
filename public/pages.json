@@ -982,7 +982,8 @@
     {
       "name": "Investor Relations",
       "route": "https://investors.defillama.com",
-      "icon": "trending-up"
+      "icon": "trending-up",
+      "isNew": true
     }
   ],
   "Premium": [

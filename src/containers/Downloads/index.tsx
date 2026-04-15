@@ -594,7 +594,7 @@ function RecentDownloadsStrip({
 				<div className="flex items-baseline gap-2">
 					<Icon name="clock" className="h-3 w-3 self-center text-(--text-tertiary)" />
 					<h2 className="text-[11px] font-semibold tracking-[0.14em] text-(--text-tertiary) uppercase">Recent</h2>
-					<span className="text-[11px] tabular-nums text-(--text-tertiary)/70">
+					<span className="text-[11px] text-(--text-tertiary)/70 tabular-nums">
 						{items.length === 1 ? '1 run' : `${items.length} runs`}
 					</span>
 				</div>
@@ -606,7 +606,7 @@ function RecentDownloadsStrip({
 					Clear all
 				</button>
 			</header>
-			<div className="thin-scrollbar flex overflow-x-auto border-y border-(--divider)">
+			<div className="flex thin-scrollbar overflow-x-auto border-y border-(--divider)">
 				<ul className="flex min-w-full gap-0">
 					{items.map((preset, i) => {
 						const style = kindStyle(preset.kind)
@@ -640,7 +640,7 @@ function RecentDownloadsStrip({
 										) : null}
 									</span>
 									<span className="truncate text-xs font-medium text-(--text-primary)">{preset.name}</span>
-									<span className="flex items-center justify-between gap-2 text-[11px] tabular-nums text-(--text-tertiary)">
+									<span className="flex items-center justify-between gap-2 text-[11px] text-(--text-tertiary) tabular-nums">
 										<span className="truncate">{dayjs(preset.createdAt).fromNow()}</span>
 										<Icon
 											name="arrow-up-right"
@@ -696,7 +696,7 @@ function SavedDownloadsContent({
 				<p className="text-[11px] font-semibold tracking-[0.14em] text-(--text-tertiary) uppercase">
 					{savedDownloads.length} {savedDownloads.length === 1 ? 'preset' : 'presets'}
 				</p>
-				<p className="flex items-center gap-3 text-[11px] tabular-nums text-(--text-tertiary)">
+				<p className="flex items-center gap-3 text-[11px] text-(--text-tertiary) tabular-nums">
 					{bucketCounts.dataset > 0 ? (
 						<span className="flex items-center gap-1.5">
 							<span className={`h-1.5 w-1.5 rounded-full ${KIND_STYLES.dataset.accent}`} aria-hidden="true" />
@@ -758,9 +758,7 @@ function SavedEmptyState() {
 		<div className="relative overflow-hidden rounded-xl border border-dashed border-(--divider) bg-(--bg-primary)/40">
 			<div className="flex flex-col gap-4 px-8 py-10 sm:flex-row sm:items-center sm:gap-8">
 				<div className="flex flex-col gap-1.5 sm:max-w-sm">
-					<p className="text-[11px] font-semibold tracking-[0.14em] text-(--text-tertiary) uppercase">
-						No presets yet
-					</p>
+					<p className="text-[11px] font-semibold tracking-[0.14em] text-(--text-tertiary) uppercase">No presets yet</p>
 					<p className="text-base font-medium text-(--text-primary)">
 						Save a configuration to run it again in one click.
 					</p>
@@ -774,16 +772,8 @@ function SavedEmptyState() {
 					</p>
 				</div>
 				<div className="flex-1 opacity-60">
-					<MockSavedRow
-						kind="dataset"
-						title="Chains TVL — name, tvl, chainId"
-						sub="Chains TVL · tvl desc"
-					/>
-					<MockSavedRow
-						kind="multiMetric"
-						title="Aave V3 — TVL, Fees, Revenue +3"
-						sub="Aave V3 · 6 metrics combined"
-					/>
+					<MockSavedRow kind="dataset" title="Chains TVL — name, tvl, chainId" sub="Chains TVL · tvl desc" />
+					<MockSavedRow kind="multiMetric" title="Aave V3 — TVL, Fees, Revenue +3" sub="Aave V3 · 6 metrics combined" />
 				</div>
 			</div>
 		</div>
@@ -878,13 +868,13 @@ function SavedDownloadRow({
 			 * reserving blank space when the row is idle.
 			 */}
 			<div className="relative flex h-8 shrink-0 items-center justify-end pl-2 sm:min-w-[12rem]">
-				<span className="text-[11px] tabular-nums text-(--text-tertiary) transition-opacity sm:group-hover:opacity-0 sm:group-focus-within:opacity-0">
+				<span className="text-[11px] text-(--text-tertiary) tabular-nums transition-opacity sm:group-focus-within:opacity-0 sm:group-hover:opacity-0">
 					<span className="hidden text-(--text-tertiary)/60 sm:inline">{timestamp.prefix} </span>
 					{timestamp.value}
 				</span>
 
 				{/* Desktop: hover-revealed actions overlay the timestamp */}
-				<div className="absolute inset-y-0 right-0 hidden items-center gap-0.5 pl-2 opacity-0 transition-opacity sm:flex sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+				<div className="absolute inset-y-0 right-0 hidden items-center gap-0.5 pl-2 opacity-0 transition-opacity sm:flex sm:group-focus-within:opacity-100 sm:group-hover:opacity-100">
 					<button
 						type="button"
 						data-row-action
