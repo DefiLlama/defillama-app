@@ -1,16 +1,25 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import Link from 'next/link'
-import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon, type IIcon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { slug as toSlug } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { chartDatasets, chartDatasetsBySlug, type ChartDatasetDefinition, type ChartOptionsMap } from './chart-datasets'
 import { combineCsvsWide, type CsvItem } from './combineCsvsWide'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
+import {
+	applyMultiMetricConfig,
+	defaultPresetName,
+	extractMultiMetricConfig,
+	generatePresetId,
+	type MultiMetricSavedConfig
+} from './savedDownloads'
+import { SavePresetDialog } from './SavePresetDialog'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -43,6 +52,7 @@ interface MultiMetricModalProps {
 	authorizedFetch: (url: string, options?: RequestInit) => Promise<Response>
 	onClose: () => void
 	isPreview: boolean
+	initialConfig?: MultiMetricSavedConfig
 }
 
 function resolveDatasetValue(paramValue: string, paramType: ParamType, datasetOptions: ParamOption[]): string | null {
@@ -82,16 +92,50 @@ function metricDisplayName(dataset: ChartDatasetDefinition): string {
 	return dataset.name.replace(/^Protocol\s+/i, '')
 }
 
-export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, isPreview }: MultiMetricModalProps) {
+export function MultiMetricModal({
+	chartOptionsMap,
+	authorizedFetch,
+	onClose,
+	isPreview,
+	initialConfig
+}: MultiMetricModalProps) {
 	const subscribeModalStore = Ariakit.useDialogStore()
-	const [paramType, setParamType] = useState<ParamType>('protocol')
+	const { savedDownloads, saveDownload } = useSavedDownloads()
+	const { recordRecent } = useRecentDownloads()
+	const [paramType, setParamType] = useState<ParamType>(initialConfig?.paramType ?? 'protocol')
 	const [param, setParam] = useState<ParamOption | null>(null)
 	const [selectedMetrics, setSelectedMetrics] = useState<string[]>([])
 	const [activeMetric, setActiveMetric] = useState<string | null>(null)
+	const [showSaveDialog, setShowSaveDialog] = useState(false)
+	const initialAppliedRef = useRef(false)
 
 	const protocolOptions = useMemo<ParamOption[]>(() => chartOptionsMap['protocol-tvl-chart'] ?? [], [chartOptionsMap])
 	const chainOptions = useMemo<ParamOption[]>(() => chartOptionsMap['chain-tvl-chart'] ?? [], [chartOptionsMap])
 	const paramOptions = paramType === 'protocol' ? protocolOptions : chainOptions
+
+	// Apply initial config once options are loaded.
+	useEffect(() => {
+		if (!initialConfig || initialAppliedRef.current) return
+		const opts = initialConfig.paramType === 'protocol' ? protocolOptions : chainOptions
+		if (opts.length === 0) return
+		const validSlugs = new Set(chartDatasets.map((d) => d.slug))
+		const applied = applyMultiMetricConfig(initialConfig, opts, validSlugs)
+		if (applied.missingParam) {
+			toast(`Saved ${initialConfig.paramType} "${initialConfig.paramLabel ?? initialConfig.param}" no longer available`)
+			initialAppliedRef.current = true
+			return
+		}
+		setParam(applied.param)
+		setSelectedMetrics(applied.metrics)
+		initialAppliedRef.current = true
+		if (applied.missingMetrics.length > 0) {
+			toast(
+				`${applied.missingMetrics.length} saved metric${
+					applied.missingMetrics.length === 1 ? '' : 's'
+				} no longer available`
+			)
+		}
+	}, [initialConfig, protocolOptions, chainOptions])
 
 	const availableMetrics = useMemo(() => {
 		if (!param) return []
@@ -228,7 +272,20 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 		} else {
 			toast.success(`Downloaded ${filename}`)
 		}
-	}, [csvQueries, selectedMetrics, param])
+
+		const configBase = extractMultiMetricConfig({
+			paramType,
+			param: param.value,
+			paramLabel: param.label,
+			metrics: selectedMetrics
+		})
+		recordRecent({
+			...configBase,
+			id: generatePresetId(),
+			name: defaultPresetName(configBase),
+			createdAt: Date.now()
+		})
+	}, [csvQueries, selectedMetrics, param, paramType, recordRecent])
 
 	const handleDownloadSingle = useCallback(
 		(slug: string) => {
@@ -246,14 +303,64 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 			const filename = `${paramSlugForFilename(param.value)}_${shortMetricName(dataset)}.csv`
 			downloadCSV(filename, data, { addTimestamp: true })
 			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractMultiMetricConfig({
+				paramType,
+				param: param.value,
+				paramLabel: param.label,
+				metrics: [slug]
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase),
+				createdAt: Date.now()
+			})
 		},
-		[csvQueries, selectedMetrics, param]
+		[csvQueries, selectedMetrics, param, paramType, recordRecent]
 	)
 
 	const handleSubscribeClick = useCallback(() => {
 		setSignupSource('downloads')
 		subscribeModalStore.show()
 	}, [subscribeModalStore])
+
+	const handleSavePreset = useCallback(
+		(name: string, replaceExisting: boolean) => {
+			if (!param) return
+			const configBase = extractMultiMetricConfig({
+				paramType,
+				param: param.value,
+				paramLabel: param.label,
+				metrics: selectedMetrics
+			})
+			saveDownload(
+				{
+					...configBase,
+					id: generatePresetId(),
+					name,
+					createdAt: Date.now()
+				},
+				{ replaceByName: replaceExisting }
+			)
+			setShowSaveDialog(false)
+			toast.success(`Saved preset "${name}"`)
+		},
+		[param, paramType, selectedMetrics, saveDownload]
+	)
+
+	const suggestedPresetName = useMemo(() => {
+		if (!param) return ''
+		const configBase = extractMultiMetricConfig({
+			paramType,
+			param: param.value,
+			paramLabel: param.label,
+			metrics: selectedMetrics
+		})
+		return defaultPresetName(configBase)
+	}, [param, paramType, selectedMetrics])
+
+	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
 	const handleTopBarDownload = useCallback(() => {
 		if (isPreview) {
@@ -323,6 +430,18 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 								</div>
 								<p className="truncate text-xs text-(--text-tertiary)">{headerSubtitle}</p>
 							</div>
+
+							{param && hasSelection && !isPreview ? (
+								<button
+									type="button"
+									onClick={() => setShowSaveDialog(true)}
+									className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) sm:flex"
+									title="Save as preset"
+								>
+									<Icon name="bookmark" className="h-3.5 w-3.5" />
+									<span className="hidden lg:inline">Save preset</span>
+								</button>
+							) : null}
 
 							{param && hasSelection ? (
 								<button
@@ -426,6 +545,14 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 				<Suspense fallback={null}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
+			) : null}
+			{showSaveDialog ? (
+				<SavePresetDialog
+					suggestedName={suggestedPresetName}
+					existingNames={existingPresetNames}
+					onSave={handleSavePreset}
+					onClose={() => setShowSaveDialog(false)}
+				/>
 			) : null}
 		</>
 	)

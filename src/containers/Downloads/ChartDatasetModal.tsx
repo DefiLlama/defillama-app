@@ -8,10 +8,20 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { downloadCSV } from '~/utils/download'
 import type { ChartDatasetDefinition } from './chart-datasets'
 import { combineCsvsWide } from './combineCsvsWide'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
+import {
+	applyChartColumnsAndSort,
+	applyChartParams,
+	type ChartSavedConfig,
+	defaultPresetName,
+	extractChartConfig,
+	generatePresetId
+} from './savedDownloads'
+import { SavePresetDialog } from './SavePresetDialog'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -184,19 +194,49 @@ interface Props {
 	onClose: () => void
 	isTrial?: boolean
 	isPreview?: boolean
+	initialConfig?: ChartSavedConfig
 }
 
-export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, isTrial, isPreview }: Props) {
+export function ChartDatasetModal({
+	dataset,
+	options,
+	authorizedFetch,
+	onClose,
+	isTrial,
+	isPreview,
+	initialConfig
+}: Props) {
 	const queryClient = useQueryClient()
 	const subscribeModalStore = Ariakit.useDialogStore()
+	const { savedDownloads, saveDownload } = useSavedDownloads()
+	const { recordRecent } = useRecentDownloads()
 	const [selectedParams, setSelectedParams] = useState<Array<ParamOption>>([])
 	const [activePreviewValue, setActivePreviewValue] = useState<string | null>(null)
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
+	const [showSaveDialog, setShowSaveDialog] = useState(false)
+	const initialParamsAppliedRef = useRef(false)
+	const initialColumnsAppliedRef = useRef(false)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
+
+	// Apply saved params once options are loaded.
+	useEffect(() => {
+		if (!initialConfig || initialParamsAppliedRef.current) return
+		if (options.length === 0) return
+		const { params, missingParams } = applyChartParams(initialConfig, options)
+		setSelectedParams(params)
+		initialParamsAppliedRef.current = true
+		if (missingParams.length > 0) {
+			toast(
+				`${missingParams.length} saved ${dataset.paramLabel.toLowerCase()}${
+					missingParams.length === 1 ? '' : 's'
+				} no longer available`
+			)
+		}
+	}, [initialConfig, options, dataset.paramLabel])
 
 	const selectedParam = useMemo(
 		() => selectedParams.find((p) => p.value === activePreviewValue) ?? null,
@@ -255,16 +295,46 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 	}, [activePreviewValue])
 
 	useEffect(() => {
-		if (headers.length > 0 && selectedColumns === null) {
-			setSelectedColumns(new Set(headers.map((_, i) => i)))
-			if (sortState === null) {
+		if (headers.length === 0 || selectedColumns !== null) return
+
+		if (initialConfig && !initialColumnsAppliedRef.current) {
+			const {
+				selectedColumns: appliedCols,
+				sort,
+				missingColumns,
+				missingSortColumn
+			} = applyChartColumnsAndSort(initialConfig, headers)
+			setSelectedColumns(appliedCols ?? new Set(headers.map((_, i) => i)))
+			if (sort) {
+				setSortState(sort)
+			} else if (sortState === null) {
 				const dateIndex = headers.indexOf('date')
 				if (dateIndex !== -1) {
 					setSortState({ index: dateIndex, direction: 'desc' })
 				}
 			}
+			initialColumnsAppliedRef.current = true
+			if (missingColumns.length > 0) {
+				toast(
+					`${missingColumns.length} saved column${
+						missingColumns.length === 1 ? '' : 's'
+					} no longer available: ${missingColumns.slice(0, 3).join(', ')}${missingColumns.length > 3 ? '…' : ''}`
+				)
+			}
+			if (missingSortColumn) {
+				toast(`Saved sort column "${missingSortColumn}" no longer available`)
+			}
+			return
 		}
-	}, [headers, selectedColumns, sortState])
+
+		setSelectedColumns(new Set(headers.map((_, i) => i)))
+		if (sortState === null) {
+			const dateIndex = headers.indexOf('date')
+			if (dateIndex !== -1) {
+				setSortState({ index: dateIndex, direction: 'desc' })
+			}
+		}
+	}, [headers, selectedColumns, sortState, initialConfig])
 
 	const cols = selectedColumns ?? EMPTY_SELECTION
 
@@ -460,7 +530,21 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 		} else {
 			toast.success(`Downloaded ${filename}`)
 		}
-	}, [csvQueries, selectedParams, dataset.slug])
+
+		const configBase = extractChartConfig({
+			slug: dataset.slug,
+			headers,
+			selectedParams,
+			selectedColumns: cols,
+			sort: sortState
+		})
+		recordRecent({
+			...configBase,
+			id: generatePresetId(),
+			name: defaultPresetName(configBase, dataset.name),
+			createdAt: Date.now()
+		})
+	}, [csvQueries, selectedParams, dataset.slug, dataset.name, headers, cols, sortState, recordRecent])
 
 	const handleDownloadSingle = useCallback(
 		(param: ParamOption) => {
@@ -472,27 +556,64 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 				return
 			}
 			const filename = `${dataset.slug}_${param.value}.csv`
+
+			let downloadedHeaders: string[] | null = null
+			let downloadedCols: Set<number> | null = null
+			let downloadedSort: SortState | null = null
+
 			if (param.value === activePreviewValue && selectedCount > 0) {
 				const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
 				if (csvRows.length > 1) {
 					downloadCSV(filename, csvRows, { addTimestamp: false })
 					toast.success(`Downloaded ${filename}`)
-					return
+					downloadedHeaders = headers
+					downloadedCols = cols
+					downloadedSort = sortState
 				}
 			}
-			const parsed = parseCsv(query.data)
-			if (parsed.rows.length === 0) {
-				toast.error('No rows to download')
-				return
+			if (downloadedHeaders === null) {
+				const parsed = parseCsv(query.data)
+				if (parsed.rows.length === 0) {
+					toast.error('No rows to download')
+					return
+				}
+				const allRows: string[][] = [
+					parsed.headers,
+					...parsed.rows.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
+				]
+				downloadCSV(filename, allRows, { addTimestamp: false })
+				toast.success(`Downloaded ${filename}`)
+				downloadedHeaders = parsed.headers
 			}
-			const allRows: string[][] = [
-				parsed.headers,
-				...parsed.rows.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
-			]
-			downloadCSV(filename, allRows, { addTimestamp: false })
-			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers: downloadedHeaders,
+				selectedParams: [param],
+				selectedColumns: downloadedCols,
+				sort: downloadedSort
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
 		},
-		[csvQueries, selectedParams, activePreviewValue, selectedCount, columnMeta, cols, sortedRows, dataset.slug]
+		[
+			csvQueries,
+			selectedParams,
+			activePreviewValue,
+			selectedCount,
+			columnMeta,
+			cols,
+			sortedRows,
+			headers,
+			sortState,
+			dataset.slug,
+			dataset.name,
+			recordRecent
+		]
 	)
 
 	const handleDownload = useCallback(() => {
@@ -511,10 +632,75 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 			const filename = `${dataset.slug}_${selectedParam.value}.csv`
 			downloadCSV(filename, csvRows, { addTimestamp: false })
 			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers,
+				selectedParams,
+				selectedColumns: cols,
+				sort: sortState
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
 			return
 		}
 		handleDownloadCombined()
-	}, [selectedParams, selectedParam, selectedCount, columnMeta, cols, sortedRows, dataset.slug, handleDownloadCombined])
+	}, [
+		selectedParams,
+		selectedParam,
+		selectedCount,
+		columnMeta,
+		cols,
+		sortedRows,
+		dataset.slug,
+		dataset.name,
+		headers,
+		sortState,
+		recordRecent,
+		handleDownloadCombined
+	])
+
+	const handleSavePreset = useCallback(
+		(name: string, replaceExisting: boolean) => {
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers,
+				selectedParams,
+				selectedColumns: cols,
+				sort: sortState
+			})
+			saveDownload(
+				{
+					...configBase,
+					id: generatePresetId(),
+					name,
+					createdAt: Date.now()
+				},
+				{ replaceByName: replaceExisting }
+			)
+			setShowSaveDialog(false)
+			toast.success(`Saved preset "${name}"`)
+		},
+		[dataset.slug, headers, selectedParams, cols, sortState, saveDownload]
+	)
+
+	const suggestedPresetName = useMemo(() => {
+		if (selectedParams.length === 0) return ''
+		const configBase = extractChartConfig({
+			slug: dataset.slug,
+			headers,
+			selectedParams,
+			selectedColumns: cols,
+			sort: sortState
+		})
+		return defaultPresetName(configBase, dataset.name)
+	}, [dataset.slug, dataset.name, headers, selectedParams, cols, sortState])
+
+	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
 	const handleCopy = useCallback(async () => {
 		if (selectedCount === 0) {
@@ -602,6 +788,19 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 										>
 											<Icon name="clipboard" className="h-3.5 w-3.5" />
 											<span className="hidden lg:inline">Copy</span>
+										</button>
+									) : null}
+
+									{!isPreview ? (
+										<button
+											type="button"
+											onClick={() => setShowSaveDialog(true)}
+											disabled={!hasSelection}
+											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+											title="Save as preset"
+										>
+											<Icon name="bookmark" className="h-3.5 w-3.5" />
+											<span className="hidden lg:inline">Save preset</span>
 										</button>
 									) : null}
 
@@ -900,6 +1099,14 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 				<Suspense fallback={null}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
+			) : null}
+			{showSaveDialog ? (
+				<SavePresetDialog
+					suggestedName={suggestedPresetName}
+					existingNames={existingPresetNames}
+					onSave={handleSavePreset}
+					onClose={() => setShowSaveDialog(false)}
+				/>
 			) : null}
 		</>
 	)
