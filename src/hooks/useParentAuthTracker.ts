@@ -8,15 +8,23 @@ const MAX_UMAMI_RETRIES = 10
 export function useParentAuthTracker() {
 	useEffect(() => {
 		if (typeof window === 'undefined') return
-		if (sessionStorage.getItem(SESSION_KEY)) return
+		if (sessionStorage.getItem(SESSION_KEY)) {
+			console.log('already tracked this session:', sessionStorage.getItem(SESSION_KEY))
+			return
+		}
 
 		let cancelled = false
 		let intervalId: number | null = null
 
 		checkParentAuth().then((user) => {
-			if (cancelled || !user) return
+			if (cancelled) return
+			if (!user) {
+				console.log(' no parent auth detected')
+				return
+			}
 
-			sessionStorage.setItem(SESSION_KEY, '1')
+			console.log('authenticated user')
+			sessionStorage.setItem(SESSION_KEY, user.id ?? 'unknown')
 
 			const trackVisit = (): boolean => {
 				const umami = window.umami
@@ -24,9 +32,7 @@ export function useParentAuthTracker() {
 
 				umami.identify(user.id ?? 'unknown')
 				umami.track('ir-authenticated-visit', {
-					userId: user.id,
-					email: user.email,
-					hasActiveSubscription: user.hasActiveSubscription
+					userId: user.id
 				})
 				return true
 			}

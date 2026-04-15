@@ -2,22 +2,8 @@
 // Loads a hidden <iframe> pointing at the parent's /auth-bridge page,
 // then uses postMessage to read PocketBase auth from the parent's
 // localStorage.
-//
-// Usage:
-//   const user = await checkParentAuth();
-//   if (user) console.log("Logged in on parent:", user.email);
-//
-// Copy this file into any child service that needs to check
-// whether the visitor is logged in on the parent site.
-
 export interface ParentUser {
 	id: string | null
-	email: string | null
-	name: string | null
-	avatar: string | null
-	hasActiveSubscription: boolean
-	/** PocketBase JWT – lets the child make authenticated API calls on behalf of the user */
-	token: string
 }
 
 interface AuthResponse {
@@ -25,18 +11,12 @@ interface AuthResponse {
 	user: ParentUser | null
 }
 
-// ── Configuration ───────────────────────────────────────────────
-// Flip these when switching between local dev and production.
-
 /** Origin of the parent site (scheme + host + port, no trailing slash). */
-const PARENT_ORIGIN =
-	process.env.NEXT_PUBLIC_PARENT_ORIGIN ??
-	(process.env.NODE_ENV === 'development' ? 'http://lvh.me:3000' : 'https://defillama.com')
+const PARENT_ORIGIN = process.env.NEXT_PUBLIC_PARENT_ORIGIN ?? 'https://defillama.com'
 
 /** Full URL of the bridge page served by the parent. */
 const BRIDGE_URL = `${PARENT_ORIGIN}/auth-bridge`
 
-/** How long to wait (ms) before giving up on the parent response. */
 const TIMEOUT_MS = 3_000
 
 // ── Public API ──────────────────────────────────────────────────
@@ -55,7 +35,10 @@ export function checkParentAuth(): Promise<ParentUser | null> {
 		iframe.src = BRIDGE_URL
 		iframe.style.display = 'none'
 
+		console.log('[auth-bridge] connecting to parent at', BRIDGE_URL)
+
 		const timeout = setTimeout(() => {
+			console.warn('[auth-bridge] timeout — parent did not respond within', TIMEOUT_MS, 'ms')
 			cleanup()
 			resolve(null)
 		}, TIMEOUT_MS)
@@ -65,11 +48,13 @@ export function checkParentAuth(): Promise<ParentUser | null> {
 
 			// Wait for React inside the iframe to hydrate and signal readiness
 			if (e.data?.type === 'bridge-ready') {
+				console.log('[auth-bridge] parent is ready, sending auth-check')
 				iframe.contentWindow?.postMessage({ type: 'auth-check' }, PARENT_ORIGIN)
 				return
 			}
 
 			if (e.data?.type === 'auth-response') {
+				console.log('[auth-bridge] got response:', e.data.user ? `userId=${e.data.user.id}` : 'not logged in')
 				cleanup()
 				resolve((e.data as AuthResponse).user)
 			}
