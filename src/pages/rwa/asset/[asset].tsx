@@ -28,7 +28,9 @@ export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	return {
-		paths: rwaList.canonicalMarketIds.slice(0, 10).map((canonicalMarketId) => ({ params: { asset: canonicalMarketId } })),
+		paths: rwaList.canonicalMarketIds
+			.slice(0, 10)
+			.map((canonicalMarketId) => ({ params: { asset: canonicalMarketId } })),
 		fallback: 'blocking'
 	}
 }

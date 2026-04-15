@@ -182,7 +182,9 @@ describe('useRwaChartDataset', () => {
 			error: null
 		})
 
-		const markup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'category', chartAssets: multiCategoryAssets }))
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, { mode: 'category', chartAssets: multiCategoryAssets })
+		)
 
 		expect(markup).toContain('timestamp|Treasuries')
 		expect(markup).not.toContain('Private Credit')
