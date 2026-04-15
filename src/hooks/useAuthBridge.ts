@@ -7,15 +7,7 @@ import { useEffect } from 'react'
 // Mounted once in _app.tsx — every page on the parent becomes a
 // valid iframe target for the child's auth check.
 
-const ALLOWED_ORIGINS: string[] = [
-	// production – add child subdomains here
-	'https://swap.defillama.com',
-	'https://investors.defillama.com',
-	// local testing — use lvh.me so both share eTLD+1 (avoids storage partitioning)
-	'http://child.lvh.me:3001',
-	'http://child.lvh.me:5500',
-	'http://child.lvh.me:8080'
-]
+const ALLOWED_ORIGINS: string[] = ['https://investors.defillama.com']
 
 function isAllowedOrigin(origin: string): boolean {
 	if (ALLOWED_ORIGINS.includes(origin)) return true
@@ -44,12 +36,7 @@ function handleAuthCheck(e: MessageEvent) {
 
 	if (parsed?.token) {
 		response.user = {
-			id: parsed.record?.id ?? null,
-			email: parsed.record?.email ?? null,
-			name: parsed.record?.name ?? null,
-			avatar: parsed.record?.avatar ?? null,
-			hasActiveSubscription: !!parsed.record?.has_active_subscription,
-			token: parsed.token
+			id: parsed.record?.id ?? null
 		}
 	}
 
