@@ -166,7 +166,7 @@ const columns = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${value}`} />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					{href ? (
 						<BasicLink
 							href={href}
