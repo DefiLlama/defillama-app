@@ -635,7 +635,7 @@ function createColumns(includeRwaPerps: boolean) {
 			header: definitions.kycForMintRedeem.label,
 			cell: (info) => (
 				<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
-					{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+					{info.getValue() ? (info.getValue() ? 'Yes' : 'No') : null}
 				</span>
 			),
 			meta: {
