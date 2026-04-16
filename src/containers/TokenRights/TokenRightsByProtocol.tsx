@@ -223,7 +223,7 @@ export function TokenRightsByProtocol({
 							title="Primary Value Accrual"
 							tooltip="The main mechanism by which value accrues to token holders"
 						>
-							{valueAccrual.primary !== null ? (
+							{valueAccrual.primary !== null && valueAccrual.primary !== 'N/A' ? (
 								<span className="text-xs font-semibold tracking-wider uppercase">{valueAccrual.primary}</span>
 							) : null}
 							{valueAccrual.details !== null ? (
