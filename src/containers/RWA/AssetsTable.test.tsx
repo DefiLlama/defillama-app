@@ -93,18 +93,18 @@ describe('RWAAssetsTable', () => {
 		})
 	})
 
-	it('switches metric headers and uses perps metrics when the perps toggle is on', () => {
+	it('uses OI in the active mcap column when the perps toggle is on', () => {
 		expect(getMetricColumnHeaders(true)).toEqual({
-			active: 'Active Mcap or 24h Volume',
-			onChain: 'Onchain Mcap or 30d Volume',
-			defi: 'Defi Active TVL or OI'
+			active: 'Active Mcap or OI',
+			onChain: 'Onchain Marketcap',
+			defi: 'DeFi Active TVL'
 		})
 
 		expect(getActiveMetricValue(createSpotAsset())).toBe(100)
 		expect(getOnChainMetricValue(createSpotAsset())).toBe(200)
 		expect(getDefiMetricValue(createSpotAsset())).toBe(25)
-		expect(getActiveMetricValue(createPerpsAsset())).toBe(111)
-		expect(getOnChainMetricValue(createPerpsAsset())).toBe(222)
-		expect(getDefiMetricValue(createPerpsAsset())).toBe(333)
+		expect(getActiveMetricValue(createPerpsAsset())).toBe(333)
+		expect(getOnChainMetricValue(createPerpsAsset())).toBeNull()
+		expect(getDefiMetricValue(createPerpsAsset())).toBeNull()
 	})
 })

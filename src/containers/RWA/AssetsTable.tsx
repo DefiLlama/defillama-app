@@ -166,18 +166,14 @@ function assertNever(value: never): never {
 
 const formatAssetPlatforms = (asset: AssetRow) => getRwaPlatforms(asset.parentPlatform).join(', ')
 
-const MIXED_ACTIVE_HEADER = 'Active Mcap or 24h Volume'
-const MIXED_ONCHAIN_HEADER = 'Onchain Mcap or 30d Volume'
-const MIXED_DEFI_HEADER = 'Defi Active TVL or OI'
-const MIXED_ACTIVE_HELP = `${definitions.activeMcap.description} For perps rows, this column shows 24h volume.`
-const MIXED_ONCHAIN_HELP = `${definitions.onChainMcap.description} For perps rows, this column shows 30d volume.`
-const MIXED_DEFI_HELP = `${definitions.defiActiveTvl.description} For perps rows, this column shows open interest.`
+const MIXED_ACTIVE_HEADER = 'Active Mcap or OI'
+const MIXED_ACTIVE_HELP = `${definitions.activeMcap.description} For perps rows, this column shows open interest.`
 
 export function getMetricColumnHeaders(includeRwaPerps: boolean) {
 	return {
 		active: includeRwaPerps ? MIXED_ACTIVE_HEADER : definitions.activeMcap.label,
-		onChain: includeRwaPerps ? MIXED_ONCHAIN_HEADER : definitions.onChainMcap.label,
-		defi: includeRwaPerps ? MIXED_DEFI_HEADER : definitions.defiActiveTvl.label
+		onChain: definitions.onChainMcap.label,
+		defi: definitions.defiActiveTvl.label
 	}
 }
 
@@ -186,7 +182,7 @@ export function getActiveMetricValue(asset: AssetRow): number | null {
 		case 'spot':
 			return asset.activeMcap?.total ?? null
 		case 'perps':
-			return asset.volume24h
+			return asset.openInterest
 		default:
 			return assertNever(asset)
 	}
@@ -197,7 +193,7 @@ export function getOnChainMetricValue(asset: AssetRow): number | null {
 		case 'spot':
 			return asset.onChainMcap?.total ?? null
 		case 'perps':
-			return asset.volume30d
+			return null
 		default:
 			return assertNever(asset)
 	}
@@ -208,7 +204,7 @@ export function getDefiMetricValue(asset: AssetRow): number | null {
 		case 'spot':
 			return asset.defiActiveTvl?.total ?? null
 		case 'perps':
-			return asset.openInterest
+			return null
 		default:
 			return assertNever(asset)
 	}
@@ -305,11 +301,11 @@ function createColumns(includeRwaPerps: boolean) {
 				headerHelperText: includeRwaPerps ? MIXED_ACTIVE_HELP : definitions.activeMcap.description,
 				align: 'end'
 			},
-			size: includeRwaPerps ? 224 : 168
+			size: 168
 		}),
 		columnHelper.accessor((asset) => getOnChainMetricValue(asset) ?? undefined, {
 			id: 'onChainMcap.total',
-			header: includeRwaPerps ? MIXED_ONCHAIN_HEADER : definitions.onChainMcap.label,
+			header: definitions.onChainMcap.label,
 			cell: (info) => (
 				<MixedMetricCell
 					asset={info.row.original}
@@ -318,15 +314,15 @@ function createColumns(includeRwaPerps: boolean) {
 					description={definitions.onChainMcap.description}
 				/>
 			),
-			size: includeRwaPerps ? 240 : 168,
+			size: 168,
 			meta: {
-				headerHelperText: includeRwaPerps ? MIXED_ONCHAIN_HELP : definitions.onChainMcap.description,
+				headerHelperText: definitions.onChainMcap.description,
 				align: 'end'
 			}
 		}),
 		columnHelper.accessor((asset) => getDefiMetricValue(asset) ?? undefined, {
 			id: 'defiActiveTvl.total',
-			header: includeRwaPerps ? MIXED_DEFI_HEADER : definitions.defiActiveTvl.label,
+			header: definitions.defiActiveTvl.label,
 			cell: (info) => (
 				<MixedMetricCell
 					asset={info.row.original}
@@ -336,10 +332,10 @@ function createColumns(includeRwaPerps: boolean) {
 				/>
 			),
 			meta: {
-				headerHelperText: includeRwaPerps ? MIXED_DEFI_HELP : definitions.defiActiveTvl.description,
+				headerHelperText: definitions.defiActiveTvl.description,
 				align: 'end'
 			},
-			size: includeRwaPerps ? 180 : 168
+			size: 168
 		}),
 		columnHelper.accessor(
 			(asset) =>
@@ -383,7 +379,7 @@ function createColumns(includeRwaPerps: boolean) {
 					</Tooltip>
 				)
 			},
-			size: 180,
+			size: 168,
 			enableSorting: false,
 			meta: {
 				align: 'end',
@@ -583,7 +579,7 @@ function createColumns(includeRwaPerps: boolean) {
 					</span>
 				)
 			},
-			size: 120,
+			size: 168,
 			enableSorting: false,
 			meta: {
 				align: 'end',
