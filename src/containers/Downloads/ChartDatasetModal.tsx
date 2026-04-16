@@ -234,7 +234,7 @@ export function ChartDatasetModal({
 
 	const supportsBreakdown = dataset.paramType === 'protocol' && !!dataset.categoryBreakdown
 	const isCategoryMode = supportsBreakdown && selectedCategory !== null
-	const maxSelections = supportsBreakdown ? Number.POSITIVE_INFINITY : MAX_PARAMS
+	const maxSelections = isCategoryMode ? Number.POSITIVE_INFINITY : MAX_PARAMS
 
 	useEffect(() => {
 		setDateRange(initialConfig?.dateRange ?? null)
@@ -306,27 +306,28 @@ export function ChartDatasetModal({
 	}, [supportsBreakdown, selectedCategory])
 
 	const perProtocolQueries = useQueries({
-		queries: isCategoryMode
-			? []
-			: selectedParams.map((param) => ({
-					queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
-					queryFn: async () => {
-						const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-						const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
-						const response = isPreview ? await fetch(url) : await authorizedFetch(url)
-						if (!response || !response.ok) {
-							const errorData = await response?.json().catch(() => null)
-							throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
-						}
-						if (isTrial) {
-							void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
-						}
-						return response.text()
-					},
-					staleTime: 5 * 60 * 1000,
-					refetchOnWindowFocus: false,
-					retry: 1
-				}))
+		queries:
+			isCategoryMode || selectedParams.length > MAX_PARAMS
+				? []
+				: selectedParams.map((param) => ({
+						queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
+						queryFn: async () => {
+							const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+							const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
+							const response = isPreview ? await fetch(url) : await authorizedFetch(url)
+							if (!response || !response.ok) {
+								const errorData = await response?.json().catch(() => null)
+								throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
+							}
+							if (isTrial) {
+								void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+							}
+							return response.text()
+						},
+						staleTime: 5 * 60 * 1000,
+						refetchOnWindowFocus: false,
+						retry: 1
+					}))
 	})
 
 	const breakdownQuery = useQuery({
@@ -696,6 +697,9 @@ export function ChartDatasetModal({
 
 	const handleClearParams = useCallback(() => {
 		if (isCategoryMode) {
+			setSelectedParams([])
+			setSelectedColumns(null)
+			setSortState(null)
 			setSelectedCategory(null)
 			return
 		}
@@ -721,6 +725,18 @@ export function ChartDatasetModal({
 	const handleSetActive = useCallback((value: string) => {
 		setActivePreviewValue(value)
 	}, [])
+
+	const handleSelectCategory = useCallback(
+		(cat: string | null) => {
+			if (cat === null && isCategoryMode) {
+				setSelectedParams([])
+				setSelectedColumns(null)
+				setSortState(null)
+			}
+			setSelectedCategory(cat)
+		},
+		[isCategoryMode]
+	)
 
 	const handleDownloadCombined = useCallback(() => {
 		if (isCategoryMode) {
@@ -1196,18 +1212,25 @@ export function ChartDatasetModal({
 								<CategoryPickerPopover
 									categories={protocolCategories}
 									selected={selectedCategory}
-									onSelect={setSelectedCategory}
+									onSelect={handleSelectCategory}
 								/>
 							) : null}
-							<MultiOptionPickerPopover
-								label={dataset.paramLabel}
-								options={filteredOptions}
-								selected={selectedParams}
-								onToggle={handleToggleParam}
-								onClearAll={handleClearParams}
-								onAddMultiple={handleAddMultipleParams}
-								maxSelections={maxSelections}
-							/>
+							{!isCategoryMode ? (
+								<MultiOptionPickerPopover
+									label={dataset.paramLabel}
+									options={filteredOptions}
+									selected={selectedParams}
+									onToggle={handleToggleParam}
+									onClearAll={handleClearParams}
+									onAddMultiple={handleAddMultipleParams}
+									maxSelections={maxSelections}
+								/>
+							) : (
+								<span className="flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--link-hover-bg) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary)">
+									<Icon name="layers" className="h-3.5 w-3.5" />
+									{selectedParams.length} protocols
+								</span>
+							)}
 
 							{hasSelection && !isPreview ? (
 								<DateRangePicker
