@@ -41,9 +41,18 @@ interface TokenRightsByProtocolProps {
 	symbol: string | null
 	tokenRightsData: ITokenRightsData
 	raises: IProtocolRaise[] | null
+	showHeader?: boolean
+	headerVariant?: 'protocol' | 'embedded'
 }
 
-export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }: TokenRightsByProtocolProps) {
+export function TokenRightsByProtocol({
+	name,
+	symbol,
+	tokenRightsData,
+	raises,
+	showHeader = true,
+	headerVariant = 'protocol'
+}: TokenRightsByProtocolProps) {
 	const { overview, governance, decisions, economic, valueAccrual, alignment, resources } = tokenRightsData
 
 	const hasOwnershipContent =
@@ -58,21 +67,38 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 
 	return (
 		<div className="grid grid-cols-1 gap-2">
-			{/* Header */}
-			<header className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo name={name} kind="token" size={24} alt={`Logo of ${name}`} />
-				<h1 className="text-xl font-bold">{symbol ? `$${symbol}` : name} Token Rights</h1>
-				{overview.lastUpdated ? (
-					<span className="ml-auto text-xs text-(--text-secondary)">
-						Updated{' '}
-						{new Date(overview.lastUpdated).toLocaleDateString(undefined, {
-							day: '2-digit',
-							month: 'short',
-							year: 'numeric'
-						})}
-					</span>
-				) : null}
-			</header>
+			{showHeader ? (
+				headerVariant === 'embedded' ? (
+					<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<h1 className="text-xl font-bold">Token Rights and Value Accrual</h1>
+						{overview.lastUpdated ? (
+							<span className="ml-auto text-xs text-(--text-secondary)">
+								Updated{' '}
+								{new Date(overview.lastUpdated).toLocaleDateString(undefined, {
+									day: '2-digit',
+									month: 'short',
+									year: 'numeric'
+								})}
+							</span>
+						) : null}
+					</div>
+				) : (
+					<header className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+						<TokenLogo name={name} kind="token" size={24} alt={`Logo of ${name}`} />
+						<h1 className="text-xl font-bold">{symbol ? `$${symbol}` : name} Token Rights</h1>
+						{overview.lastUpdated ? (
+							<span className="ml-auto text-xs text-(--text-secondary)">
+								Updated{' '}
+								{new Date(overview.lastUpdated).toLocaleDateString(undefined, {
+									day: '2-digit',
+									month: 'short',
+									year: 'numeric'
+								})}
+							</span>
+						) : null}
+					</header>
+				)
+			) : null}
 
 			<div className="grid gap-2 xl:grid-cols-2">
 				{/* ── Left column ── */}
