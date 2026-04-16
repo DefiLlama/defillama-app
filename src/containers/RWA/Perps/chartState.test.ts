@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	DEFAULT_CHART_VIEW,
+	getDefaultRWAPerpsChartView,
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsChartBreakdownOptions,
 	getRWAPerpsChartMetricOptions,
@@ -27,25 +28,25 @@ describe('parseRWAPerpsChartState', () => {
 		expect(state.view).toBe('hbar')
 	})
 
-	it('defaults all pages to hbar when no chart view is provided', () => {
+	it('defaults all pages to time series when no chart view is provided', () => {
 		const overviewState = parseRWAPerpsChartState({}, 'overview')
 		const venueState = parseRWAPerpsChartState({}, 'venue')
 		const assetGroupState = parseRWAPerpsChartState({}, 'assetGroup')
 
 		expect(overviewState).toMatchObject({
-			view: 'hbar',
+			view: 'timeSeries',
 			breakdown: 'assetGroup',
 			timeSeriesMode: 'grouped',
 			treemapNestedBy: 'baseAsset'
 		})
 		expect(venueState).toMatchObject({
-			view: 'hbar',
+			view: 'timeSeries',
 			breakdown: 'assetGroup',
 			timeSeriesMode: 'grouped',
 			treemapNestedBy: 'baseAsset'
 		})
 		expect(assetGroupState).toMatchObject({
-			view: 'hbar',
+			view: 'timeSeries',
 			breakdown: 'baseAsset',
 			timeSeriesMode: 'grouped',
 			treemapNestedBy: 'contract'
@@ -120,8 +121,14 @@ describe('parseRWAPerpsChartState', () => {
 })
 
 describe('perps chartState options', () => {
-	it('uses hbar as the shared default chart view', () => {
-		expect(DEFAULT_CHART_VIEW).toBe('hbar')
+	it('uses time series as the shared default chart view', () => {
+		expect(DEFAULT_CHART_VIEW).toBe('timeSeries')
+	})
+
+	it('uses time series as the default chart view for every perps page', () => {
+		expect(getDefaultRWAPerpsChartView('overview')).toBe('timeSeries')
+		expect(getDefaultRWAPerpsChartView('venue')).toBe('timeSeries')
+		expect(getDefaultRWAPerpsChartView('assetGroup')).toBe('timeSeries')
 	})
 
 	it('uses the expected defaults for each page/view', () => {

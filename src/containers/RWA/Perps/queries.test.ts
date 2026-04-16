@@ -408,7 +408,7 @@ describe('getRWAPerpsContractData', () => {
 })
 
 describe('perps overview queries', () => {
-	it('builds the overview page model with totals, sorted markets, and no preloaded chart for the default hbar view', async () => {
+	it('builds the overview page model with totals, sorted markets, and a preloaded chart for the default time-series view', async () => {
 		const result = await getRWAPerpsOverview()
 
 		expect(result).toMatchObject({
@@ -423,7 +423,13 @@ describe('perps overview queries', () => {
 			},
 			markets: [{ id: 'xyz:nvda' }, { id: 'xyz:meta' }, { id: 'flx:gold' }]
 		})
-		expect(result.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
+		expect(result.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Commodities: 100, Equities: 130 }
+			],
+			dimensions: ['timestamp', 'Equities', 'Commodities']
+		})
 	})
 
 	it('preloads the overview time-series dataset when the active view is timeSeries', async () => {
@@ -497,7 +503,7 @@ describe('perps overview queries', () => {
 		})
 	})
 
-	it('builds the venue page model with links and aggregated protocol fees', async () => {
+	it('builds the venue page model with links, aggregated protocol fees, and a preloaded default time-series chart', async () => {
 		const result = await getRWAPerpsVenuePage({ venue: 'xyz' })
 
 		expect(result).toMatchObject({
@@ -517,7 +523,13 @@ describe('perps overview queries', () => {
 		})
 		expect(result?.totals.openInterestChange24h).toBe(8.333333333333332)
 		expect(result?.totals.volume24hChange24h).toBe(200)
-		expect(result?.initialChartDataset).toEqual({ source: [], dimensions: ['timestamp'] })
+		expect(result?.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130 }
+			],
+			dimensions: ['timestamp', 'Equities']
+		})
 	})
 
 	it('resolves venue slugs back to the canonical venue name', async () => {
@@ -584,7 +596,7 @@ describe('perps overview queries', () => {
 		await expect(getRWAPerpsVenuePage({ venue: 'missing' })).resolves.toBeNull()
 	})
 
-	it('builds the asset-group page model and overview rows', async () => {
+	it('builds the asset-group page model, overview rows, and a preloaded default time-series chart', async () => {
 		const result = await getRWAPerpsAssetGroupPage({ assetGroup: 'equities' })
 
 		expect(result).toMatchObject({
@@ -603,6 +615,13 @@ describe('perps overview queries', () => {
 			]
 		})
 		expect(result?.totals.openInterestChange24h).toBe(8.333333333333332)
+		expect(result?.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Meta: 120 },
+				{ timestamp: 1774569600000, NVIDIA: 130 }
+			],
+			dimensions: ['timestamp', 'NVIDIA', 'Meta']
+		})
 	})
 })
 

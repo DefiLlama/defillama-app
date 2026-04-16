@@ -172,11 +172,11 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('reset')
 	})
 
-	it('shows hbar by default when no chart view is provided on the overview page', () => {
+	it('shows time series by default when no chart view is provided on the overview page', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Asset Group')
-		expect(html).toContain('HBar Chart')
+		expect(html).toContain('Time Series Chart')
+		expect(html).toContain('Total')
 		expect(html).not.toContain('Nested by:')
 		expect(html).not.toContain('reset')
 	})

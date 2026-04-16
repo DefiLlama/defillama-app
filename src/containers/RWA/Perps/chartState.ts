@@ -140,7 +140,7 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 	}
 }
 
-export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'hbar'
+export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'timeSeries'
 const DEFAULT_CHART_METRIC: RWAPerpsChartMetricKey = 'openInterest'
 const DEFAULT_TIME_SERIES_MODE: RWAPerpsTimeSeriesMode = 'grouped'
 const VALID_CHART_VIEWS = new Set<RWAPerpsChartView>(CHART_VIEW_OPTIONS.map((option) => option.key))
@@ -159,6 +159,10 @@ export function getRWAPerpsChartViewOptions() {
 
 export function getRWAPerpsTimeSeriesModeOptions() {
 	return TIME_SERIES_MODE_OPTIONS
+}
+
+export function getDefaultRWAPerpsChartView(_mode: RWAPerpsChartMode): RWAPerpsChartView {
+	return DEFAULT_CHART_VIEW
 }
 
 export function getRWAPerpsChartMetricOptions(labels: RWAPerpsChartLabels) {
@@ -243,7 +247,7 @@ export function getRWAPerpsTreemapNestedByOptions(
 }
 
 export function parseRWAPerpsChartState(query: ParsedUrlQuery, mode: RWAPerpsChartMode): RWAPerpsChartState {
-	const view = normalizeChartView(readSingleQueryValue(query.chartView))
+	const view = normalizeChartView(mode, readSingleQueryValue(query.chartView))
 	const metric = normalizeChartMetric(readSingleQueryValue(query.chartType))
 	const breakdown = normalizeBreakdown(mode, view, readSingleQueryValue(query[getBreakdownQueryKey(view)]))
 	const timeSeriesMode = normalizeTimeSeriesMode(readSingleQueryValue(query.timeSeriesMode))
@@ -313,6 +317,10 @@ export function getRWAPerpsChartViewQueryValue(view: RWAPerpsChartView) {
 	return view === DEFAULT_CHART_VIEW ? undefined : view
 }
 
+export function getRWAPerpsChartViewQueryValueForMode(_mode: RWAPerpsChartMode, view: RWAPerpsChartView) {
+	return view === DEFAULT_CHART_VIEW ? undefined : view
+}
+
 export function getRWAPerpsChartMetricQueryValue(metric: RWAPerpsChartMetricKey) {
 	return metric === DEFAULT_CHART_METRIC ? undefined : metric
 }
@@ -346,10 +354,10 @@ function getBreakdownQueryKey(view: RWAPerpsChartView): 'timeSeriesChartBreakdow
 	return view === 'timeSeries' ? 'timeSeriesChartBreakdown' : 'nonTimeSeriesChartBreakdown'
 }
 
-function normalizeChartView(value: string | undefined): RWAPerpsChartView {
+function normalizeChartView(mode: RWAPerpsChartMode, value: string | undefined): RWAPerpsChartView {
 	if (value === 'bar') return 'hbar'
 	if (value && VALID_CHART_VIEWS.has(value as RWAPerpsChartView)) return value as RWAPerpsChartView
-	return DEFAULT_CHART_VIEW
+	return getDefaultRWAPerpsChartView(mode)
 }
 
 function normalizeChartMetric(value: string | undefined): RWAPerpsChartMetricKey {

@@ -23,7 +23,7 @@ import type {
 } from './api.types'
 import { getRWAPerpsBreakdownChartSnapshotTotals, toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
 import { getRWAPerpsOverviewSnapshotBreakdownLabel, getRWAPerpsVenueSnapshotBreakdownLabel } from './breakdownLabels'
-import { DEFAULT_CHART_VIEW, getDefaultRWAPerpsChartBreakdown } from './chartState'
+import { DEFAULT_CHART_VIEW, getDefaultRWAPerpsChartBreakdown, getDefaultRWAPerpsChartView } from './chartState'
 import type {
 	IRWAPerpsAssetGroupBreakdownRequest,
 	IRWAPerpsAssetGroupPageData,
@@ -397,7 +397,7 @@ async function getInitialTimeSeriesDataset({
 }
 
 export async function getRWAPerpsOverview({
-	activeView = DEFAULT_CHART_VIEW
+	activeView = getDefaultRWAPerpsChartView('overview')
 }: {
 	activeView?: RWAPerpsChartView
 } = {}): Promise<IRWAPerpsOverviewPageData> {
