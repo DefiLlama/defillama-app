@@ -310,6 +310,44 @@ function makeDimensionChainChart(opts: {
 	}
 }
 
+const extractOverviewCategoryOptions = (json: any): Array<{ label: string; value: string }> => {
+	const protocols: any[] = json?.protocols ?? []
+	const catTotals = new Map<string, number>()
+	for (const p of protocols) {
+		const c = p?.category
+		if (typeof c === 'string' && c) {
+			catTotals.set(c, (catTotals.get(c) || 0) + (Number(p?.total24h) || 0))
+		}
+	}
+	return [...catTotals.entries()]
+		.sort(([, a], [, b]) => b - a)
+		.map(([c]) => ({ label: c, value: toSlug(c) }))
+}
+
+function makeDimensionCategoryChart(opts: {
+	slug: string
+	name: string
+	description: string
+	category: string
+	adapterType: string
+	dataType?: string
+}): ChartDatasetDefinition {
+	const dtParam = opts.dataType ? `&dataType=${opts.dataType}` : ''
+	const dtChartParam = opts.dataType ? `?dataType=${opts.dataType}` : ''
+	return {
+		slug: opts.slug,
+		name: opts.name,
+		description: opts.description,
+		category: opts.category,
+		paramType: 'protocol',
+		paramLabel: 'Category',
+		optionsUrl: `${SERVER_URL}/overview/${opts.adapterType}?${OVERVIEW_QS}${dtParam}`,
+		extractOptions: extractOverviewCategoryOptions,
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/${opts.adapterType}/category/${param}${dtChartParam}`,
+		extractRows: extractTimestampValuePairs
+	}
+}
+
 export const chartDatasets: ChartDatasetDefinition[] = [
 	{
 		slug: 'rwa-category-chart',
@@ -711,6 +749,21 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		adapterType: 'fees',
 		dataType: 'dailyTokenTaxes'
 	}),
+	makeDimensionCategoryChart({
+		slug: 'category-fees-chart',
+		name: 'Category Fees',
+		description: 'Historical daily fees for a specific protocol category',
+		category: 'Fees & Revenue',
+		adapterType: 'fees'
+	}),
+	makeDimensionCategoryChart({
+		slug: 'category-revenue-chart',
+		name: 'Category Revenue',
+		description: 'Historical daily revenue for a specific protocol category',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyRevenue'
+	}),
 
 	makeDimensionProtocolChart({
 		slug: 'protocol-dex-volume-chart',
@@ -829,6 +882,20 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		description: 'Historical daily bridge aggregator volume for a specific chain',
 		category: 'Volume',
 		adapterType: 'bridge-aggregators'
+	}),
+	makeDimensionCategoryChart({
+		slug: 'category-dex-volume-chart',
+		name: 'Category DEX Volume',
+		description: 'Historical daily DEX trading volume for a specific protocol category',
+		category: 'Volume',
+		adapterType: 'dexs'
+	}),
+	makeDimensionCategoryChart({
+		slug: 'category-perps-volume-chart',
+		name: 'Category Perps Volume',
+		description: 'Historical daily perpetual derivatives volume for a specific protocol category',
+		category: 'Volume',
+		adapterType: 'derivatives'
 	}),
 
 	{
