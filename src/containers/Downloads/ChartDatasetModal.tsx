@@ -82,6 +82,8 @@ interface SortState {
 interface ParamOption {
 	label: string
 	value: string
+	category?: string
+	isChild?: boolean
 }
 
 function parseNumericValue(value: string): number | null {
@@ -220,6 +222,7 @@ export function ChartDatasetModal({
 	const [sortState, setSortState] = useState<SortState | null>(null)
 	const [dateRange, setDateRange] = useState<DateRangeConfig | null>(initialConfig?.dateRange ?? null)
 	const [showSaveDialog, setShowSaveDialog] = useState(false)
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 	const initialParamsAppliedRef = useRef(false)
 	const initialColumnsAppliedRef = useRef(false)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
@@ -247,6 +250,20 @@ export function ChartDatasetModal({
 			)
 		}
 	}, [initialConfig, options, dataset.paramLabel])
+
+	const protocolCategories = useMemo(() => {
+		if (dataset.paramType !== 'protocol') return []
+		const cats = new Map<string, number>()
+		for (const opt of options) {
+			if (opt.category) cats.set(opt.category, (cats.get(opt.category) ?? 0) + 1)
+		}
+		return [...cats.entries()].sort((a, b) => b[1] - a[1])
+	}, [options, dataset.paramType])
+
+	const filteredOptions = useMemo(() => {
+		if (!selectedCategory) return options
+		return options.filter((o) => o.category === selectedCategory)
+	}, [options, selectedCategory])
 
 	const selectedParam = useMemo(
 		() => selectedParams.find((p) => p.value === activePreviewValue) ?? null,
@@ -523,6 +540,22 @@ export function ChartDatasetModal({
 	const handleClearParams = useCallback(() => {
 		setSelectedParams([])
 	}, [])
+
+	const handleAddMultipleParams = useCallback(
+		(opts: ParamOption[]) => {
+			setSelectedParams((prev) => {
+				const existing = new Set(prev.map((p) => p.value))
+				const toAdd = opts.filter((o) => !existing.has(o.value))
+				const combined = [...prev, ...toAdd]
+				if (combined.length > MAX_PARAMS) {
+					toast.error(`Can only add ${MAX_PARAMS - prev.length} more (max ${MAX_PARAMS})`)
+					return [...prev, ...toAdd.slice(0, MAX_PARAMS - prev.length)]
+				}
+				return combined
+			})
+		},
+		[]
+	)
 
 	const handleSetActive = useCallback((value: string) => {
 		setActivePreviewValue(value)
@@ -873,12 +906,20 @@ export function ChartDatasetModal({
 						</div>
 
 						<div className="flex flex-wrap items-center gap-2 border-t border-(--divider) px-4 py-2">
+							{protocolCategories.length > 0 ? (
+								<CategoryPickerPopover
+									categories={protocolCategories}
+									selected={selectedCategory}
+									onSelect={setSelectedCategory}
+								/>
+							) : null}
 							<MultiOptionPickerPopover
 								label={dataset.paramLabel}
-								options={options}
+								options={filteredOptions}
 								selected={selectedParams}
 								onToggle={handleToggleParam}
 								onClearAll={handleClearParams}
+								onAddMultiple={handleAddMultipleParams}
 								maxSelections={MAX_PARAMS}
 							/>
 
@@ -1235,12 +1276,95 @@ function PlaceholderRows({
 	)
 }
 
+function CategoryPickerPopover({
+	categories,
+	selected,
+	onSelect
+}: {
+	categories: Array<[string, number]>
+	selected: string | null
+	onSelect: (cat: string | null) => void
+}) {
+	const [search, setSearch] = useState('')
+	const deferred = useDeferredValue(search.trim().toLowerCase())
+
+	const filtered = useMemo(() => {
+		if (!deferred) return categories
+		return categories.filter(([cat]) => cat.toLowerCase().includes(deferred))
+	}, [categories, deferred])
+
+	return (
+		<Ariakit.PopoverProvider>
+			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
+				<Icon name="tag" className="h-3.5 w-3.5" />
+				<span>{selected ?? 'All categories'}</span>
+				{selected ? (
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation()
+							onSelect(null)
+						}}
+						className="rounded-full p-0.5 hover:bg-(--link-hover-bg)"
+					>
+						<Icon name="x" className="h-2.5 w-2.5" />
+					</button>
+				) : null}
+			</Ariakit.PopoverDisclosure>
+			<Ariakit.Popover
+				gutter={6}
+				portal
+				unmountOnHide
+				className="z-[60] flex max-h-80 w-64 flex-col overflow-hidden rounded-lg border border-(--divider) bg-(--cards-bg) shadow-xl"
+			>
+				<div className="border-b border-(--divider) px-3 py-2">
+					<input
+						value={search}
+						onChange={(e) => setSearch(e.currentTarget.value)}
+						placeholder="Search categories..."
+						className="w-full rounded-md border border-(--divider) bg-transparent px-2.5 py-1.5 text-xs outline-none placeholder:text-(--text-tertiary) focus:border-(--primary)"
+						autoFocus
+					/>
+				</div>
+				<div className="thin-scrollbar flex-1 overflow-auto py-1">
+					<button
+						type="button"
+						onClick={() => onSelect(null)}
+						className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
+							selected === null ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'
+						}`}
+					>
+						All categories
+					</button>
+					{filtered.map(([cat, count]) => (
+						<button
+							key={cat}
+							type="button"
+							onClick={() => onSelect(cat)}
+							className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
+								selected === cat ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'
+							}`}
+						>
+							<span className="truncate">{cat}</span>
+							<span className="shrink-0 text-(--text-tertiary)">{count}</span>
+						</button>
+					))}
+					{filtered.length === 0 ? (
+						<p className="px-3 py-2 text-xs text-(--text-tertiary)">No categories match</p>
+					) : null}
+				</div>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
+	)
+}
+
 function MultiOptionPickerPopover({
 	label,
 	options,
 	selected,
 	onToggle,
 	onClearAll,
+	onAddMultiple,
 	maxSelections
 }: {
 	label: string
@@ -1248,6 +1372,7 @@ function MultiOptionPickerPopover({
 	selected: Array<ParamOption>
 	onToggle: (option: ParamOption) => void
 	onClearAll: () => void
+	onAddMultiple: (options: ParamOption[]) => void
 	maxSelections: number
 }) {
 	const popoverStore = Ariakit.usePopoverStore()
@@ -1264,6 +1389,12 @@ function MultiOptionPickerPopover({
 	}, [options, deferredOptionSearch])
 
 	const capHit = selected.length >= maxSelections
+
+	const unselectedInView = useMemo(
+		() => filtered.filter((o) => !selectedValues.has(o.value)),
+		[filtered, selectedValues]
+	)
+	const canAddAll = unselectedInView.length > 0 && selected.length + unselectedInView.length <= maxSelections
 
 	const triggerText =
 		selected.length === 0 ? `Select ${label}` : selected.length === 1 ? `1 ${label}` : `${selected.length} ${label}s`
@@ -1287,11 +1418,22 @@ function MultiOptionPickerPopover({
 					<span className="text-xs font-medium text-(--text-secondary)">
 						{selected.length}/{maxSelections} selected
 					</span>
-					{selected.length > 0 ? (
-						<button type="button" onClick={onClearAll} className="text-xs text-(--primary) hover:underline">
-							Clear all
-						</button>
-					) : null}
+					<div className="flex items-center gap-2">
+						{canAddAll ? (
+							<button
+								type="button"
+								onClick={() => onAddMultiple(unselectedInView)}
+								className="text-xs text-(--primary) hover:underline"
+							>
+								Add all ({unselectedInView.length})
+							</button>
+						) : null}
+						{selected.length > 0 ? (
+							<button type="button" onClick={onClearAll} className="text-xs text-(--primary) hover:underline">
+								Clear all
+							</button>
+						) : null}
+					</div>
 				</div>
 				<div className="border-b border-(--divider) px-3 py-2">
 					<input
@@ -1316,9 +1458,9 @@ function MultiOptionPickerPopover({
 									disabled={disabled}
 									onClick={() => onToggle(opt)}
 									title={disabled ? `Max ${maxSelections} items` : undefined}
-									className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 ${
+									className={`flex w-full items-center gap-2.5 py-1.5 pr-3 text-left text-xs transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 ${
 										isSelected ? 'text-(--text-primary)' : 'text-(--text-secondary)'
-									}`}
+									} ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 								>
 									<span
 										className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${

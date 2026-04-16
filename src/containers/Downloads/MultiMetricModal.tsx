@@ -35,6 +35,8 @@ const SUGGESTED_COUNT = 8
 export interface ParamOption {
 	label: string
 	value: string
+	category?: string
+	isChild?: boolean
 }
 
 export type ParamType = 'protocol' | 'chain'
@@ -79,6 +81,18 @@ function resolveDatasetValue(paramValue: string, paramType: ParamType, datasetOp
 function paramSlugForFilename(value: string): string {
 	const s = toSlug(value)
 	return s || 'combined'
+}
+
+const METRIC_CATEGORY_ORDER: Record<string, number> = {
+	TVL: 0,
+	'Fees & Revenue': 1,
+	RWA: 9
+}
+
+function metricSortWeight(slug: string): number {
+	const dataset = chartDatasetsBySlug.get(slug)
+	if (!dataset) return 2
+	return METRIC_CATEGORY_ORDER[dataset.category] ?? 2
 }
 
 function shortMetricName(dataset: ChartDatasetDefinition): string {
@@ -276,7 +290,7 @@ export function MultiMetricModal({
 
 	const handleDownloadCombined = useCallback(() => {
 		if (!param) return
-		const ready: CsvItem[] = []
+		const readyWithSlug: Array<CsvItem & { slug: string }> = []
 		const failed: Array<{ slug: string; name: string }> = []
 		csvQueries.forEach((query, i) => {
 			const slug = selectedMetrics[i]
@@ -285,16 +299,18 @@ export function MultiMetricModal({
 			if (!dataset) return
 			const data = query.data as unknown
 			if (typeof data === 'string') {
-				ready.push({ label: dataset.name, value: shortMetricName(dataset), csvText: data })
+				readyWithSlug.push({ label: dataset.name, value: shortMetricName(dataset), csvText: data, slug })
 				return
 			}
 			const err = (query as { error?: unknown }).error
 			if (err) failed.push({ slug, name: dataset.name })
 		})
-		if (ready.length === 0) {
+		if (readyWithSlug.length === 0) {
 			toast.error('No data ready to download')
 			return
 		}
+		readyWithSlug.sort((a, b) => metricSortWeight(a.slug) - metricSortWeight(b.slug))
+		const ready: CsvItem[] = readyWithSlug
 		const merged = combineCsvsWide(ready, dateRange)
 		if (merged.length <= 1) {
 			toast.error('No rows to download')
@@ -738,7 +754,7 @@ function ParamPickerEmpty({
 												setSearch('')
 												popoverStore.hide()
 											}}
-											className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+											className={`flex w-full items-center gap-2 py-1.5 pr-3 text-left text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 										>
 											<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--text-tertiary)/30" />
 											<span className="truncate">{opt.label}</span>
@@ -1171,9 +1187,9 @@ function ParamPickerPopover({
 										setSearch('')
 										popoverStore.hide()
 									}}
-									className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
+									className={`flex w-full items-center gap-2 py-1.5 pr-3 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
 										isSelected ? 'text-(--text-primary)' : 'text-(--text-secondary)'
-									}`}
+									} ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 								>
 									<span
 										className={`h-1.5 w-1.5 shrink-0 rounded-full transition-colors ${

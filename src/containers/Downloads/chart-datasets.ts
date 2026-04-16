@@ -24,13 +24,96 @@ export interface ChartDatasetDefinition {
 
 const OVERVIEW_QS = 'excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true'
 
-const extractOverviewProtocolOptions = (json: any): Array<{ label: string; value: string }> => {
+type ProtocolOption = { label: string; value: string; category?: string; isChild?: boolean }
+
+/**
+ * Group protocols by parent, following the same pattern as ProDashboard.
+ *
+ * The `parentProtocols` array from the API provides parent entries (id, name).
+ * Children reference their parent via `parentProtocol` field.
+ * We create synthetic parent entries with aggregated sort values,
+ * merge them with solo protocols, and nest children underneath.
+ */
+function groupProtocolOptions(
+	json: any,
+	sortValue: (p: any) => number,
+	labelFn: (p: any) => string
+): ProtocolOption[] {
 	const protocols: any[] = json?.protocols ?? []
-	return protocols
-		.filter((p: any) => p?.name)
-		.sort((a: any, b: any) => (Number(b?.total24h) || 0) - (Number(a?.total24h) || 0))
-		.map((p: any) => ({ label: p.displayName || p.name, value: toSlug(p.name) }))
+	const parentProtocols: any[] = Array.isArray(json?.parentProtocols) ? json.parentProtocols : []
+
+	const filtered = protocols.filter((p: any) => p?.name)
+
+	// Aggregate child sort values per parent
+	const parentTotals = new Map<string, number>()
+	const childrenByParentId = new Map<string, any[]>()
+
+	for (const p of filtered) {
+		if (p.parentProtocol) {
+			parentTotals.set(p.parentProtocol, (parentTotals.get(p.parentProtocol) || 0) + sortValue(p))
+			const arr = childrenByParentId.get(p.parentProtocol) || []
+			arr.push(p)
+			childrenByParentId.set(p.parentProtocol, arr)
+		}
+	}
+
+	// Build synthetic parent entries from the parentProtocols array
+	const matchedParentIds = new Set<string>()
+	const syntheticParents = parentProtocols
+		.filter((pp: any) => childrenByParentId.has(pp.id))
+		.map((pp: any) => {
+			matchedParentIds.add(pp.id)
+			return {
+				name: pp.name,
+				id: pp.id,
+				category: childrenByParentId.get(pp.id)?.[0]?.category ?? undefined,
+				_syntheticTvl: parentTotals.get(pp.id) || 0,
+				parentProtocol: null
+			}
+		})
+
+	// Children whose parent isn't in parentProtocols (e.g. overview APIs) — treat as top-level
+	const orphanedChildren = filtered.filter(
+		(p: any) => p.parentProtocol && !matchedParentIds.has(p.parentProtocol)
+	)
+
+	// Merge: solo protocols + synthetic parents + orphaned children, then sort
+	const parentsOrSolo = [
+		...filtered.filter((p: any) => !p.parentProtocol),
+		...syntheticParents,
+		...orphanedChildren
+	]
+	parentsOrSolo.sort((a, b) => (b._syntheticTvl ?? sortValue(b)) - (a._syntheticTvl ?? sortValue(a)))
+
+	const options: ProtocolOption[] = []
+	for (const parent of parentsOrSolo) {
+		options.push({
+			label: labelFn(parent),
+			value: toSlug(parent.name),
+			category: parent.category ?? undefined
+		})
+		const children = childrenByParentId.get(parent.id) || []
+		if (children.length > 0) {
+			children.sort((a: any, b: any) => sortValue(b) - sortValue(a))
+			for (const child of children) {
+				options.push({
+					label: labelFn(child),
+					value: toSlug(child.name),
+					category: child.category ?? undefined,
+					isChild: true
+				})
+			}
+		}
+	}
+
+	return options
 }
+
+const extractOverviewProtocolOptions = (json: any): ProtocolOption[] =>
+	groupProtocolOptions(json, (p) => Number(p?.total24h) || 0, (p) => p.displayName || p.name)
+
+const extractLiteProtocolOptions = (json: any): ProtocolOption[] =>
+	groupProtocolOptions(json, (p) => Number(p?.tvlUsd ?? p?.tvl) || 0, (p) => p.name)
 
 const extractOverviewChainOptions = (json: any): Array<{ label: string; value: string }> => {
 	const chains: string[] = json?.allChains ?? []
@@ -305,7 +388,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 	{
 		slug: 'rwa-chain-chart',
 		name: 'RWA by Chain',
-		description: 'Historical per-asset RWA on-chain mcap for a specific chain',
+		description: 'Historical total RWA on-chain mcap for a specific chain',
 		category: 'RWA',
 		paramType: 'chain',
 		paramLabel: 'Chain',
@@ -329,7 +412,21 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 			return [...chainMcap.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: c }))
 		},
 		buildUrl: (param: string) => `${RWA_SERVER_URL}/chart/chain/${param}/asset-breakdown`,
-		extractRows: extractRWAAssetBreakdownRows
+		extractRows: (json) => {
+			if (!json || typeof json !== 'object' || Array.isArray(json)) return []
+			const onChainMcap: any[] = json.onChainMcap ?? []
+			if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
+			return onChainMcap
+				.filter((item: any) => item && item.timestamp != null)
+				.map((item: any) => {
+					let total = 0
+					for (const [key, val] of Object.entries(item)) {
+						if (key === 'timestamp') continue
+						if (typeof val === 'number' && Number.isFinite(val)) total += val
+					}
+					return { date: item.timestamp, value: total }
+				})
+		}
 	},
 
 	{
@@ -429,14 +526,20 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		paramType: 'protocol',
 		paramLabel: 'Protocol',
 		optionsUrl: `${SERVER_URL}/lite/protocols2?b=2`,
-		extractOptions: (json) => {
-			const protocols: any[] = json?.protocols ?? []
-			return protocols
-				.filter((p: any) => p?.name)
-				.sort((a: any, b: any) => (Number(b?.tvlUsd ?? b?.tvl) || 0) - (Number(a?.tvlUsd ?? a?.tvl) || 0))
-				.map((p: any) => ({ label: p.name, value: toSlug(p.name) }))
-		},
+		extractOptions: extractLiteProtocolOptions,
 		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/tvl/protocol/${param}`,
+		extractRows: extractTimestampValuePairs
+	},
+	{
+		slug: 'protocol-active-loans-chart',
+		name: 'Protocol Active Loans',
+		description: 'Historical active loans (borrowed) timeseries for a specific protocol',
+		category: 'TVL',
+		paramType: 'protocol',
+		paramLabel: 'Protocol',
+		optionsUrl: `${SERVER_URL}/lite/protocols2?b=2`,
+		extractOptions: extractLiteProtocolOptions,
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/tvl/protocol/${param}?key=borrowed`,
 		extractRows: extractTimestampValuePairs
 	},
 	{
@@ -792,7 +895,10 @@ export const chartDatasetsBySlug = new Map(chartDatasets.map((d) => [d.slug, d])
 
 export const chartDatasetCategories = [...new Set(chartDatasets.map((d) => d.category))]
 
-export type ChartOptionsMap = Record<string, Array<{ label: string; value: string }>>
+export type ChartOptionsMap = Record<
+	string,
+	Array<{ label: string; value: string; category?: string; isChild?: boolean }>
+>
 
 export async function fetchAllChartOptions(): Promise<ChartOptionsMap> {
 	const urlToDatasets = new Map<string, ChartDatasetDefinition[]>()
