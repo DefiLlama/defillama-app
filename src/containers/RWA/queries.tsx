@@ -17,7 +17,6 @@ import {
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByAsset,
-	IRWAProject,
 	IRWAAssetsOverview,
 	IRWAAssetData,
 	IRWAChainsOverview,
@@ -28,6 +27,8 @@ import type {
 	IRWAPlatformsOverviewRow,
 	IRWAAssetGroupsOverview,
 	IRWAAssetGroupsOverviewRow,
+	RWAPerpsOverviewAsset,
+	RWASpotOverviewAsset,
 	RWAAssetChartTarget
 } from './api.types'
 import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from './assetGroup'
@@ -46,6 +47,8 @@ import {
 } from './constants'
 import { definitions } from './definitions'
 import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
+import { fetchRWAPerpsCurrent } from './Perps/api'
+import type { IRWAPerpsMarket } from './Perps/api.types'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
@@ -233,19 +236,26 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					: 'chain'
 		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
 
-		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByAsset | null] = await Promise.all([
-			fetchRWAActiveTVLs(),
-			fetchRWAChartDataByAsset({
-				target,
-				includeStablecoins: defaultInclusion.includeStablecoins,
-				includeGovernance: defaultInclusion.includeGovernance
-			})
-		])
+		const [data, perpsMarkets, chartData]: [Array<IFetchedRWAProject>, IRWAPerpsMarket[], IRWAChartDataByAsset | null] =
+			await Promise.all([
+				fetchRWAActiveTVLs(),
+				fetchRWAPerpsCurrent(),
+				fetchRWAChartDataByAsset({
+					target,
+					includeStablecoins: defaultInclusion.includeStablecoins,
+					includeGovernance: defaultInclusion.includeGovernance
+				})
+			])
 
 		assert(data, 'Failed to get RWA assets list')
+		assert(perpsMarkets, 'Failed to get RWA perps markets')
 		const filteredData = data.filter(
 			(item) => !(item.category ?? []).some((category) => !isCategoryIncludedInStandardRwaOverview(category))
 		)
+		const filteredPerpsMarkets = perpsMarkets.map((market) => ({
+			...market,
+			category: (market.category ?? []).filter((category) => isCategoryIncludedInStandardRwaOverview(category))
+		}))
 		const hasUnknownAssetGroup = filteredData.some(
 			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP
 		)
@@ -292,16 +302,11 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		// `selectedCategory` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
-			for (const item of filteredData) {
-				if (item.category) {
-					for (const c of item.category) {
-						if (rwaSlug(c) === selectedCategory) {
-							actualCategoryName = c
-							break
-						}
-					}
+			for (const category of filterCategoriesForStandardRwaOverview(params.rwaList.categories)) {
+				if (rwaSlug(category) === selectedCategory) {
+					actualCategoryName = category
+					break
 				}
-				if (actualCategoryName) break
 			}
 			if (!actualCategoryName) {
 				return null
@@ -310,9 +315,8 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
-			for (const item of filteredData) {
-				const platform = getRealRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
-				if (platform) {
+			for (const platform of params.rwaList.platforms) {
+				if (rwaSlug(platform) === selectedPlatform) {
 					actualPlatformName = platform
 					break
 				}
@@ -338,7 +342,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			}
 		}
 
-		const assets: Array<IRWAProject> = []
+		const assets: IRWAAssetsOverview['assets'] = []
 		const types = new Map<string, number>()
 		const assetClasses = new Map<string, number>()
 		const rwaClassifications = new Map<string, number>()
@@ -413,11 +417,37 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 							...item.category.filter((c) => c && rwaSlug(c) !== selectedCategory)
 						]
 					: (item.category ?? null)
-			const asset: IRWAProject = {
-				...item,
-				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
-				trueRWA: isTrueRWA,
+			const asset: RWASpotOverviewAsset = {
+				id: item.id,
+				kind: 'spot',
+				detailHref: item.canonicalMarketId ? `/rwa/asset/${encodeURIComponent(item.canonicalMarketId)}` : '',
+				canonicalMarketId: item.canonicalMarketId ?? '',
+				assetName: item.assetName ?? '',
+				ticker: item.ticker,
+				primaryChain: item.primaryChain ?? null,
+				chain: item.chain ?? null,
+				price: item.price ?? null,
+				openInterest: null,
+				volume24h: null,
+				volume30d: null,
+				assetGroup: item.assetGroup ?? null,
+				parentPlatform: item.parentPlatform ?? null,
 				category: sortedCategories,
+				assetClass: item.assetClass ?? null,
+				accessModel: item.accessModel ?? null,
+				type: item.type ?? null,
+				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
+				issuer: item.issuer ?? null,
+				redeemable: item.redeemable ?? null,
+				attestations: item.attestations ?? null,
+				cexListed: item.cexListed ?? null,
+				kycForMintRedeem: item.kycForMintRedeem ?? null,
+				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold ?? null,
+				transferable: item.transferable ?? null,
+				selfCustody: item.selfCustody ?? null,
+				stablecoin: item.stablecoin ?? null,
+				governance: item.governance ?? null,
+				trueRWA: isTrueRWA,
 				onChainMcap: onChainMcapBreakdown
 					? {
 							total: effectiveOnChainMcap,
@@ -544,6 +574,92 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					}
 					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainMcap)
 				}
+			}
+		}
+
+		for (const market of filteredPerpsMarkets) {
+			if (selectedChain) {
+				continue
+			}
+
+			const asset: RWAPerpsOverviewAsset = {
+				id: market.id,
+				kind: 'perps',
+				detailHref: `/rwa/perps/contract/${encodeURIComponent(market.contract)}`,
+				contract: market.contract,
+				assetName: market.referenceAsset ?? market.contract,
+				ticker: market.contract,
+				primaryChain: null,
+				chain: null,
+				price: market.price,
+				openInterest: market.openInterest,
+				volume24h: market.volume24h,
+				volume30d: market.volume30d,
+				assetGroup: market.referenceAssetGroup,
+				parentPlatform: market.parentPlatform,
+				category: market.category,
+				assetClass: market.assetClass,
+				accessModel: market.accessModel,
+				type: 'Perp',
+				rwaClassification: market.rwaClassification,
+				issuer: market.issuer,
+				redeemable: null,
+				attestations: null,
+				cexListed: null,
+				kycForMintRedeem: null,
+				kycAllowlistedWhitelistedToTransferHold: null,
+				transferable: null,
+				selfCustody: null,
+				stablecoin: null,
+				governance: null,
+				trueRWA: false,
+				onChainMcap: null,
+				activeMcap: null,
+				defiActiveTvl: null,
+				defiActiveTvlByChain: null
+			}
+			const hasCategoryMatch = selectedCategory
+				? (asset.category ?? []).some((category) => rwaSlug(category) === selectedCategory)
+				: true
+			const hasPlatformMatch = selectedPlatform
+				? getRealRwaPlatforms(asset.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
+				: true
+			const hasAssetGroupMatch = selectedAssetGroup
+				? rwaSlug(normalizeRwaAssetGroup(asset.assetGroup)) === selectedAssetGroup
+				: true
+
+			if (!hasCategoryMatch || !hasPlatformMatch || !hasAssetGroupMatch || ASSETS_TO_EXCLUDE.has(asset.assetName)) {
+				continue
+			}
+
+			assets.push(asset)
+			if (selectedPlatform) {
+				assetNames.set(asset.assetName, assetNames.get(asset.assetName) ?? 0)
+			}
+			if (asset.type) {
+				types.set(asset.type, types.get(asset.type) ?? 0)
+			}
+			for (const assetClass of asset.assetClass ?? []) {
+				assetClasses.set(assetClass, assetClasses.get(assetClass) ?? 0)
+			}
+			const primaryCategory = getPrimaryRwaCategory(asset.category)
+			if (primaryCategory) {
+				categories.set(primaryCategory, categories.get(primaryCategory) ?? 0)
+			}
+			for (const platform of getRwaPlatforms(asset.parentPlatform)) {
+				if (platform === UNKNOWN_PLATFORM) continue
+				platforms.set(platform, platforms.get(platform) ?? 0)
+			}
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
+			assetGroups.set(assetGroup, assetGroups.get(assetGroup) ?? 0)
+			if (asset.rwaClassification) {
+				rwaClassifications.set(asset.rwaClassification, rwaClassifications.get(asset.rwaClassification) ?? 0)
+			}
+			if (asset.accessModel) {
+				accessModels.set(asset.accessModel, accessModels.get(asset.accessModel) ?? 0)
+			}
+			if (asset.issuer) {
+				issuers.set(asset.issuer, issuers.get(asset.issuer) ?? 0)
 			}
 		}
 

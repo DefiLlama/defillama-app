@@ -8,6 +8,7 @@ import {
 	hasActiveChartFilters,
 	resolveRWAOverviewInclusionFlag,
 	useRWAAssetCategoryPieChartData,
+	useFilteredRwaAssets,
 	useRwaAssetGroupPieChartData,
 	useRwaChartDataset
 } from './hooks'
@@ -23,31 +24,99 @@ vi.mock('~/utils/async', () => ({
 	fetchJson: (...args: unknown[]) => fetchJsonMock(...args)
 }))
 
-const assets: IRWAAssetsOverview['assets'] = [
-	{
+function createSpotAsset(
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>>
+): Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }> {
+	return {
 		id: '1',
+		kind: 'spot',
+		detailHref: '/rwa/asset/ondo%2Fusdy',
 		canonicalMarketId: 'ondo/usdy',
 		ticker: 'AAA',
 		assetName: 'Alpha',
-		category: ['Treasuries'],
-		parentPlatform: 'Centrifuge',
+		primaryChain: null,
+		chain: null,
+		price: null,
+		openInterest: null,
+		volume24h: null,
+		volume30d: null,
+		assetGroup: null,
+		parentPlatform: null,
+		category: null,
+		assetClass: null,
+		accessModel: null,
+		type: null,
+		rwaClassification: null,
+		issuer: null,
+		redeemable: null,
+		attestations: null,
+		cexListed: null,
+		kycForMintRedeem: null,
+		kycAllowlistedWhitelistedToTransferHold: null,
+		transferable: null,
+		selfCustody: null,
+		stablecoin: null,
+		governance: null,
 		trueRWA: false,
 		onChainMcap: null,
 		activeMcap: null,
-		defiActiveTvl: null
-	},
-	{
+		defiActiveTvl: null,
+		...overrides
+	}
+}
+
+function createPerpsAsset(
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>>
+): Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }> {
+	return {
+		id: 'perps-1',
+		kind: 'perps',
+		detailHref: '/rwa/perps/contract/xyz%3Aalpha',
+		contract: 'xyz:alpha',
+		ticker: 'xyz:alpha',
+		assetName: 'Alpha Perp',
+		primaryChain: null,
+		chain: null,
+		price: 1,
+		openInterest: 1,
+		volume24h: 2,
+		volume30d: 3,
+		assetGroup: null,
+		parentPlatform: null,
+		category: null,
+		assetClass: null,
+		accessModel: null,
+		type: 'Perp',
+		rwaClassification: null,
+		issuer: null,
+		redeemable: null,
+		attestations: null,
+		cexListed: null,
+		kycForMintRedeem: null,
+		kycAllowlistedWhitelistedToTransferHold: null,
+		transferable: null,
+		selfCustody: null,
+		stablecoin: null,
+		governance: null,
+		trueRWA: false,
+		onChainMcap: null,
+		activeMcap: null,
+		defiActiveTvl: null,
+		...overrides
+	}
+}
+
+const assets: IRWAAssetsOverview['assets'] = [
+	createSpotAsset({ id: '1', category: ['Treasuries'], parentPlatform: 'Centrifuge' }),
+	createSpotAsset({
 		id: '2',
 		canonicalMarketId: 'superstate/ustb',
+		detailHref: '/rwa/asset/superstate%2Fustb',
 		ticker: 'BBB',
 		assetName: 'Beta',
 		category: ['Private Credit'],
-		parentPlatform: 'Maple',
-		trueRWA: false,
-		onChainMcap: null,
-		activeMcap: null,
-		defiActiveTvl: null
-	}
+		parentPlatform: 'Maple'
+	})
 ]
 
 function DatasetProbe({
@@ -110,6 +179,54 @@ function CategoryProbe({
 	})
 }
 
+function FilteredAssetsProbe({
+	chartAssets,
+	includeRwaPerps
+}: {
+	chartAssets: IRWAAssetsOverview['assets']
+	includeRwaPerps: boolean
+}) {
+	const result = useFilteredRwaAssets({
+		assets: chartAssets,
+		isPlatformMode: false,
+		selectedAssetNames: [],
+		selectedTypes: ['Unknown', 'Perp'],
+		selectedCategories: ['Treasuries'],
+		selectedPlatforms: ['Centrifuge'],
+		selectedAssetGroups: ['Unknown'],
+		selectedAssetClasses: [],
+		selectedRwaClassifications: [],
+		selectedAccessModels: [],
+		selectedIssuers: [],
+		selectedRedeemableStates: ['yes', 'no', 'unknown'],
+		selectedAttestationsStates: ['yes', 'no', 'unknown'],
+		selectedCexListedStates: ['yes', 'no', 'unknown'],
+		selectedKycForMintRedeemStates: ['yes', 'no', 'unknown'],
+		selectedKycAllowlistedWhitelistedToTransferHoldStates: ['yes', 'no', 'unknown'],
+		selectedTransferableStates: ['yes', 'no', 'unknown'],
+		selectedSelfCustodyStates: ['yes', 'no', 'unknown'],
+		includeStablecoins: true,
+		includeGovernance: true,
+		includeRwaPerps,
+		minDefiActiveTvlToOnChainMcapPct: null,
+		maxDefiActiveTvlToOnChainMcapPct: null,
+		minActiveMcapToOnChainMcapPct: null,
+		maxActiveMcapToOnChainMcapPct: null,
+		minDefiActiveTvlToActiveMcapPct: null,
+		maxDefiActiveTvlToActiveMcapPct: null
+	})
+
+	return React.createElement('script', {
+		type: 'application/json',
+		dangerouslySetInnerHTML: {
+			__html: JSON.stringify({
+				kinds: result.filteredAssets.map((asset) => asset.kind),
+				totalOpenInterest: result.totalOpenInterest
+			})
+		}
+	})
+}
+
 function readJsonMarkup(markup: string) {
 	const match = markup.match(/<script type="application\/json">([\s\S]*)<\/script>/)
 	expect(match?.[1]).toBeTruthy()
@@ -162,18 +279,10 @@ describe('useRwaChartDataset', () => {
 
 	it('uses the primary category when regrouping category chart rows', () => {
 		const multiCategoryAssets: IRWAAssetsOverview['assets'] = [
-			{
-				id: '1',
-				canonicalMarketId: 'ondo/usdy',
-				ticker: 'AAA',
-				assetName: 'Alpha',
+			createSpotAsset({
 				category: ['Treasuries', 'Private Credit'],
-				parentPlatform: 'Centrifuge',
-				trueRWA: false,
-				onChainMcap: null,
-				activeMcap: null,
-				defiActiveTvl: null
-			}
+				parentPlatform: 'Centrifuge'
+			})
 		]
 
 		useQueryMock.mockReturnValueOnce({
@@ -299,33 +408,49 @@ describe('hasActiveChartFilters', () => {
 	})
 })
 
+describe('useFilteredRwaAssets', () => {
+	it('filters perps rows when the RWA Perps toggle is disabled', () => {
+		const chartAssets: IRWAAssetsOverview['assets'] = [
+			createSpotAsset({ onChainMcap: { total: 100, breakdown: [] } }),
+			createPerpsAsset()
+		]
+
+		expect(
+			readJsonMarkup(
+				renderToStaticMarkup(React.createElement(FilteredAssetsProbe, { chartAssets, includeRwaPerps: true }))
+			)
+		).toEqual({ kinds: ['spot', 'perps'], totalOpenInterest: 1 })
+		expect(
+			readJsonMarkup(
+				renderToStaticMarkup(React.createElement(FilteredAssetsProbe, { chartAssets, includeRwaPerps: false }))
+			)
+		).toEqual({ kinds: ['spot'], totalOpenInterest: 0 })
+	})
+})
+
 describe('useRwaAssetGroupPieChartData', () => {
 	it('groups assets by normalized asset group and keeps Unknown', () => {
 		const chartAssets: IRWAAssetsOverview['assets'] = [
-			{
-				id: '1',
-				ticker: 'AAA',
-				assetName: 'Alpha',
+			createSpotAsset({
 				assetGroup: 'Stablecoins',
 				category: ['Treasuries'],
 				parentPlatform: 'Centrifuge',
-				trueRWA: false,
 				onChainMcap: { total: 100, breakdown: [] },
 				activeMcap: { total: 90, breakdown: [] },
 				defiActiveTvl: { total: 30, breakdown: [] }
-			},
-			{
+			}),
+			createSpotAsset({
 				id: '2',
+				canonicalMarketId: 'superstate/ustb',
+				detailHref: '/rwa/asset/superstate%2Fustb',
 				ticker: 'BBB',
 				assetName: 'Beta',
-				assetGroup: null,
 				category: ['Private Credit'],
 				parentPlatform: 'Maple',
-				trueRWA: false,
 				onChainMcap: { total: 50, breakdown: [] },
 				activeMcap: { total: 20, breakdown: [] },
 				defiActiveTvl: { total: 10, breakdown: [] }
-			}
+			})
 		]
 
 		const data = readJsonMarkup(
@@ -358,18 +483,13 @@ describe('useRwaAssetGroupPieChartData', () => {
 describe('useRWAAssetCategoryPieChartData', () => {
 	it('attributes category totals only to the primary category', () => {
 		const chartAssets: IRWAAssetsOverview['assets'] = [
-			{
-				id: '1',
-				canonicalMarketId: 'ondo/usdy',
-				ticker: 'AAA',
-				assetName: 'Alpha',
+			createSpotAsset({
 				category: ['Treasuries', 'Private Credit'],
 				parentPlatform: 'Centrifuge',
-				trueRWA: false,
 				onChainMcap: { total: 100, breakdown: [] },
 				activeMcap: { total: 90, breakdown: [] },
 				defiActiveTvl: { total: 30, breakdown: [] }
-			}
+			})
 		]
 
 		const data = readJsonMarkup(

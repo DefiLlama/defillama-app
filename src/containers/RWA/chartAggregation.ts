@@ -69,8 +69,9 @@ function buildAssetGroupMapping(
 	const assetToGroups = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
+		if (asset.kind !== 'spot') continue
+
 		const assetKey = asset.canonicalMarketId
-		if (!assetKey) continue
 
 		let weightedGroups: ReturnType<typeof computeWeightedGroups>
 		switch (mode) {
