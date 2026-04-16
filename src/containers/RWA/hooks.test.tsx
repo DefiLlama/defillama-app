@@ -2,6 +2,7 @@ import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRWAAssetsOverview, IRWAInitialChartDatasetRow } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import type { RWAChartAggregationMode } from './chartAggregation'
 import {
 	getRwaAssetChartQueryKey,
@@ -195,14 +196,29 @@ function FilteredAssetsProbe({
 	chartAssets: IRWAAssetsOverview['assets']
 	includeRwaPerps: boolean
 }) {
+	const selectedCategories = Array.from(new Set(chartAssets.flatMap((asset) => asset.category ?? [])))
+	const selectedPlatforms = Array.from(
+		new Set(
+			chartAssets.flatMap((asset) => {
+				const platformRaw = asset.parentPlatform as unknown
+				const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+
+				return platformCandidates.filter(
+					(platform): platform is string => typeof platform === 'string' && platform.length > 0
+				)
+			})
+		)
+	)
+	const selectedAssetGroups = Array.from(new Set(chartAssets.map((asset) => normalizeRwaAssetGroup(asset.assetGroup))))
+
 	const result = useFilteredRwaAssets({
 		assets: chartAssets,
 		isPlatformMode: false,
 		selectedAssetNames: [],
 		selectedTypes: ['Unknown', 'Perp'],
-		selectedCategories: ['Treasuries'],
-		selectedPlatforms: ['Centrifuge'],
-		selectedAssetGroups: ['Unknown'],
+		selectedCategories,
+		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses: [],
 		selectedRwaClassifications: [],
 		selectedAccessModels: [],

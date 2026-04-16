@@ -23,7 +23,7 @@ import type {
 } from './api.types'
 import { getRWAPerpsBreakdownChartSnapshotTotals, toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
 import { getRWAPerpsOverviewSnapshotBreakdownLabel, getRWAPerpsVenueSnapshotBreakdownLabel } from './breakdownLabels'
-import { DEFAULT_CHART_VIEW, getDefaultRWAPerpsChartBreakdown, getDefaultRWAPerpsChartView } from './chartState'
+import { getDefaultRWAPerpsChartBreakdown, getDefaultRWAPerpsChartView } from './chartState'
 import type {
 	IRWAPerpsAssetGroupBreakdownRequest,
 	IRWAPerpsAssetGroupPageData,
@@ -442,7 +442,7 @@ export async function getRWAPerpsOverview({
 
 export async function getRWAPerpsVenuePage({
 	venue,
-	activeView = DEFAULT_CHART_VIEW
+	activeView = getDefaultRWAPerpsChartView('venue')
 }: {
 	venue: string
 	activeView?: RWAPerpsChartView
@@ -529,7 +529,7 @@ export async function getRWAPerpsVenuesOverview(): Promise<IRWAPerpsVenuesOvervi
 
 export async function getRWAPerpsAssetGroupPage({
 	assetGroup,
-	activeView = DEFAULT_CHART_VIEW
+	activeView = getDefaultRWAPerpsChartView('assetGroup')
 }: {
 	assetGroup: string
 	activeView?: RWAPerpsChartView

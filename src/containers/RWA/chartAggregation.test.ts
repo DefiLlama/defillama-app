@@ -259,6 +259,24 @@ describe('buildRwaOpenInterestDataset', () => {
 			dimensions: ['timestamp', 'RWA Perps OI']
 		})
 	})
+
+	it('preserves all-zero RWA Perps OI series when the source contains real zero values', () => {
+		expect(
+			buildRwaOpenInterestDataset([createPerpsAsset({ contract: 'xyz:alpha' })], {
+				source: [
+					{ timestamp: 1, 'xyz:alpha': 0 },
+					{ timestamp: 2, 'xyz:alpha': 0 }
+				],
+				dimensions: ['timestamp', 'xyz:alpha']
+			})
+		).toEqual({
+			source: [
+				{ timestamp: 1, 'RWA Perps OI': 0 },
+				{ timestamp: 2, 'RWA Perps OI': 0 }
+			],
+			dimensions: ['timestamp', 'RWA Perps OI']
+		})
+	})
 })
 
 describe('mergeRwaChartDatasets', () => {

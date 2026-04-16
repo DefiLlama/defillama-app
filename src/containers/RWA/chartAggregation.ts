@@ -112,6 +112,7 @@ export function buildRwaOpenInterestDataset(
 
 	if (contracts.size === 0 || dataset.source.length === 0) return emptyChartDataset()
 
+	let hasOpenInterestData = false
 	const source = dataset.source.map((row) => {
 		let totalOpenInterest = 0
 
@@ -119,6 +120,7 @@ export function buildRwaOpenInterestDataset(
 			const value = row[contract]
 			const numericValue = typeof value === 'number' ? value : Number(value)
 			if (Number.isFinite(numericValue)) {
+				hasOpenInterestData = true
 				totalOpenInterest += numericValue
 			}
 		}
@@ -129,7 +131,7 @@ export function buildRwaOpenInterestDataset(
 		}
 	})
 
-	if (!source.some((row) => row[RWA_OPEN_INTEREST_SERIES_LABEL] > 0)) {
+	if (!hasOpenInterestData) {
 		return emptyChartDataset()
 	}
 

@@ -5,6 +5,7 @@ import {
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsChartBreakdownOptions,
 	getRWAPerpsChartMetricOptions,
+	getRWAPerpsChartViewQueryValueForMode,
 	getRWAPerpsTimeSeriesModeOptions,
 	getRWAPerpsTimeSeriesModeQueryValue,
 	getRWAPerpsTreemapNestedByOptions,
@@ -129,6 +130,11 @@ describe('perps chartState options', () => {
 		expect(getDefaultRWAPerpsChartView('overview')).toBe('timeSeries')
 		expect(getDefaultRWAPerpsChartView('venue')).toBe('timeSeries')
 		expect(getDefaultRWAPerpsChartView('assetGroup')).toBe('timeSeries')
+		expect(getRWAPerpsChartViewQueryValueForMode('overview', getDefaultRWAPerpsChartView('overview'))).toBe(undefined)
+		expect(getRWAPerpsChartViewQueryValueForMode('venue', getDefaultRWAPerpsChartView('venue'))).toBe(undefined)
+		expect(getRWAPerpsChartViewQueryValueForMode('assetGroup', getDefaultRWAPerpsChartView('assetGroup'))).toBe(
+			undefined
+		)
 	})
 
 	it('uses the expected defaults for each page/view', () => {

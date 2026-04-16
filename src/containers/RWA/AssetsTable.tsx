@@ -388,7 +388,7 @@ function createColumns(includeRwaPerps: boolean) {
 				headerHelperText: PLATFORM_COLUMN_HELP
 			}
 		}),
-		columnHelper.accessor((asset) => asset.category ?? undefined, {
+		columnHelper.accessor((asset) => getAssetCategoryLabels(asset).join(', ') || undefined, {
 			id: 'category',
 			header: definitions.category.label,
 			cell: (info) => {
@@ -649,7 +649,7 @@ function createColumns(includeRwaPerps: boolean) {
 			header: definitions.kycAllowlistedWhitelistedToTransferHold.label,
 			cell: (info) => (
 				<span className={info.getValue() ? 'text-(--warning)' : 'text-(--success)'}>
-					{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+					{info.getValue() ? (info.getValue() ? 'Yes' : 'No') : null}
 				</span>
 			),
 			meta: {

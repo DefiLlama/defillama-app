@@ -143,6 +143,11 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'timeSeries'
 const DEFAULT_CHART_METRIC: RWAPerpsChartMetricKey = 'openInterest'
 const DEFAULT_TIME_SERIES_MODE: RWAPerpsTimeSeriesMode = 'grouped'
+const DEFAULT_CHART_VIEW_BY_MODE: Record<RWAPerpsChartMode, RWAPerpsChartView> = {
+	overview: DEFAULT_CHART_VIEW,
+	venue: DEFAULT_CHART_VIEW,
+	assetGroup: DEFAULT_CHART_VIEW
+}
 const VALID_CHART_VIEWS = new Set<RWAPerpsChartView>(CHART_VIEW_OPTIONS.map((option) => option.key))
 const VALID_CHART_METRICS = new Set<RWAPerpsChartMetricKey>(CHART_METRIC_KEYS)
 const VALID_TIME_SERIES_MODES = new Set<RWAPerpsTimeSeriesMode>(TIME_SERIES_MODE_OPTIONS.map((option) => option.key))
@@ -161,8 +166,8 @@ export function getRWAPerpsTimeSeriesModeOptions() {
 	return TIME_SERIES_MODE_OPTIONS
 }
 
-export function getDefaultRWAPerpsChartView(_mode: RWAPerpsChartMode): RWAPerpsChartView {
-	return DEFAULT_CHART_VIEW
+export function getDefaultRWAPerpsChartView(mode: RWAPerpsChartMode): RWAPerpsChartView {
+	return DEFAULT_CHART_VIEW_BY_MODE[mode] ?? DEFAULT_CHART_VIEW
 }
 
 export function getRWAPerpsChartMetricOptions(labels: RWAPerpsChartLabels) {
@@ -317,8 +322,8 @@ export function getRWAPerpsChartViewQueryValue(view: RWAPerpsChartView) {
 	return view === DEFAULT_CHART_VIEW ? undefined : view
 }
 
-export function getRWAPerpsChartViewQueryValueForMode(_mode: RWAPerpsChartMode, view: RWAPerpsChartView) {
-	return view === DEFAULT_CHART_VIEW ? undefined : view
+export function getRWAPerpsChartViewQueryValueForMode(mode: RWAPerpsChartMode, view: RWAPerpsChartView) {
+	return view === getDefaultRWAPerpsChartView(mode) ? undefined : view
 }
 
 export function getRWAPerpsChartMetricQueryValue(metric: RWAPerpsChartMetricKey) {
