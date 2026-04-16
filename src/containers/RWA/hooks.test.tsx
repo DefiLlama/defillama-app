@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { IRWAAssetsOverview } from './api.types'
+import type { IRWAAssetsOverview, IRWAInitialChartDatasetRow } from './api.types'
 import type { RWAChartAggregationMode } from './chartAggregation'
 import {
 	getRwaAssetChartQueryKey,
@@ -26,7 +26,7 @@ vi.mock('~/utils/async', () => ({
 }))
 
 function createSpotAsset(
-	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>>
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>> = {}
 ): Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }> {
 	return {
 		id: '1',
@@ -67,7 +67,7 @@ function createSpotAsset(
 }
 
 function createPerpsAsset(
-	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>>
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>> = {}
 ): Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }> {
 	return {
 		id: 'perps-1',
@@ -133,8 +133,8 @@ function DatasetProbe({
 }: {
 	mode: RWAChartAggregationMode
 	chartAssets?: IRWAAssetsOverview['assets']
-	initialDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] }
-	initialOpenInterestDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] } | null
+	initialDataset?: { source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
+	initialOpenInterestDataset?: { source: IRWAInitialChartDatasetRow[]; dimensions: string[] } | null
 	selectedMetric?: 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 	includeStablecoins?: boolean
 	includeGovernance?: boolean

@@ -3,7 +3,7 @@ import type { IRWAAssetsOverview } from './api.types'
 import { getActiveMetricValue, getDefiMetricValue, getMetricColumnHeaders, getOnChainMetricValue } from './AssetsTable'
 
 function createSpotAsset(
-	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>>
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>> = {}
 ): Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }> {
 	return {
 		id: '1',
@@ -44,7 +44,7 @@ function createSpotAsset(
 }
 
 function createPerpsAsset(
-	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>>
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>> = {}
 ): Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }> {
 	return {
 		id: 'perps-1',

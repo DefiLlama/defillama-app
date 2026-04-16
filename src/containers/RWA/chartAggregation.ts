@@ -179,6 +179,7 @@ function buildAssetGroupMapping(
 		if (asset.kind !== 'spot') continue
 
 		const assetKey = asset.canonicalMarketId
+		if (!assetKey) continue
 
 		let weightedGroups: ReturnType<typeof computeWeightedGroups>
 		switch (mode) {

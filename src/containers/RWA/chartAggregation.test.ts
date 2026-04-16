@@ -10,7 +10,7 @@ import {
 } from './chartAggregation'
 
 function createSpotAsset(
-	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>>
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }>> = {}
 ): Extract<IRWAAssetsOverview['assets'][number], { kind: 'spot' }> {
 	return {
 		id: '1',
@@ -51,7 +51,7 @@ function createSpotAsset(
 }
 
 function createPerpsAsset(
-	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>>
+	overrides: Partial<Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }>> = {}
 ): Extract<IRWAAssetsOverview['assets'][number], { kind: 'perps' }> {
 	return {
 		id: 'perps-1',
@@ -163,6 +163,11 @@ describe('aggregateRwaMetricData', () => {
 						ticker: 'BBB',
 						assetName: 'Beta',
 						parentPlatform: 'Maple'
+					}),
+					createPerpsAsset({
+						id: 'perps-2',
+						contract: 'unknown/asset',
+						assetGroup: 'Stablecoins'
 					})
 				],
 				[{ timestamp: 1, 'circle/usdc': 100, 'unknown/asset': 50 }],

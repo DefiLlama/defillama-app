@@ -229,6 +229,8 @@ function MixedMetricCell({
 }
 
 function createColumns(includeRwaPerps: boolean) {
+	const metricHeaders = getMetricColumnHeaders(includeRwaPerps)
+
 	return [
 		columnHelper.accessor((asset) => asset.assetName ?? asset.ticker, {
 			id: 'name',
@@ -288,7 +290,7 @@ function createColumns(includeRwaPerps: boolean) {
 		}),
 		columnHelper.accessor((asset) => getActiveMetricValue(asset) ?? undefined, {
 			id: 'activeMcap.total',
-			header: includeRwaPerps ? MIXED_ACTIVE_HEADER : definitions.activeMcap.label,
+			header: metricHeaders.active,
 			cell: (info) => (
 				<MixedMetricCell
 					asset={info.row.original}
@@ -305,7 +307,7 @@ function createColumns(includeRwaPerps: boolean) {
 		}),
 		columnHelper.accessor((asset) => getOnChainMetricValue(asset) ?? undefined, {
 			id: 'onChainMcap.total',
-			header: definitions.onChainMcap.label,
+			header: metricHeaders.onChain,
 			cell: (info) => (
 				<MixedMetricCell
 					asset={info.row.original}
@@ -322,7 +324,7 @@ function createColumns(includeRwaPerps: boolean) {
 		}),
 		columnHelper.accessor((asset) => getDefiMetricValue(asset) ?? undefined, {
 			id: 'defiActiveTvl.total',
-			header: definitions.defiActiveTvl.label,
+			header: metricHeaders.defi,
 			cell: (info) => (
 				<MixedMetricCell
 					asset={info.row.original}

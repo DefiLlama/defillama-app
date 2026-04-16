@@ -245,7 +245,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			IRWAPerpsBreakdownChartResponse | null
 		] = await Promise.all([
 			fetchRWAActiveTVLs(),
-			fetchRWAPerpsCurrent(),
+			fetchRWAPerpsCurrent().catch(() => []),
 			fetchRWAChartDataByAsset({
 				target,
 				includeStablecoins: defaultInclusion.includeStablecoins,
@@ -255,7 +255,6 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		])
 
 		assert(data, 'Failed to get RWA assets list')
-		assert(perpsMarkets, 'Failed to get RWA perps markets')
 		const filteredData = data.filter(
 			(item) => !(item.category ?? []).some((category) => !isCategoryIncludedInStandardRwaOverview(category))
 		)
@@ -322,7 +321,14 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
-			for (const platform of params.rwaList.platforms) {
+			const platformCandidates = new Set(params.rwaList.platforms)
+			for (const market of filteredPerpsMarkets) {
+				for (const platform of getRealRwaPlatforms(market.parentPlatform)) {
+					platformCandidates.add(platform)
+				}
+			}
+
+			for (const platform of platformCandidates) {
 				if (rwaSlug(platform) === selectedPlatform) {
 					actualPlatformName = platform
 					break
