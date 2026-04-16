@@ -524,6 +524,19 @@ function Filters({
 				Reset filters
 			</button>
 			<BasicLink
+				href="https://forms.defillama.com/rwa-submission"
+				target="_blank"
+				rel="noopener noreferrer"
+				className={
+					nestedMenu
+						? 'relative flex w-full cursor-pointer flex-row-reverse flex-nowrap items-center justify-between gap-2 rounded-md px-3 py-2 text-(--text-primary) hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-40'
+						: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+				}
+			>
+				<Icon name="external-link" height={14} width={14} />
+				<span>List Your Assets</span>
+			</BasicLink>
+			<BasicLink
 				href="https://docs.llama.fi/real-world-assets/real-world-assets"
 				target="_blank"
 				rel="noopener noreferrer"
