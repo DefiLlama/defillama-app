@@ -38,7 +38,12 @@ import {
 	applyDefaultAssetFilters,
 	type RWAChartAggregationMode
 } from './chartAggregation'
-import { getDefaultRWAOverviewInclusion, type RWAOverviewMode } from './constants'
+import {
+	filterCategoriesForStandardRwaOverview,
+	getDefaultRWAOverviewInclusion,
+	isCategoryIncludedInStandardRwaOverview,
+	type RWAOverviewMode
+} from './constants'
 import { definitions } from './definitions'
 import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
@@ -238,7 +243,10 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		])
 
 		assert(data, 'Failed to get RWA assets list')
-		const hasUnknownAssetGroup = data.some(
+		const filteredData = data.filter(
+			(item) => !(item.category ?? []).some((category) => !isCategoryIncludedInStandardRwaOverview(category))
+		)
+		const hasUnknownAssetGroup = filteredData.some(
 			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP
 		)
 		// Only expose the synthetic Unknown filter/route when the current dataset actually contains
@@ -265,7 +273,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		// while still filtering breakdown keys by slug for robustness.
 		let actualChainName: string | null = null
 		if (selectedChain) {
-			for (const item of data) {
+			for (const item of filteredData) {
 				if (item.chain) {
 					for (const c of item.chain) {
 						if (rwaSlug(c) === selectedChain) {
@@ -284,7 +292,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		// `selectedCategory` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
-			for (const item of data) {
+			for (const item of filteredData) {
 				if (item.category) {
 					for (const c of item.category) {
 						if (rwaSlug(c) === selectedCategory) {
@@ -302,7 +310,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
-			for (const item of data) {
+			for (const item of filteredData) {
 				const platform = getRealRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
 				if (platform) {
 					actualPlatformName = platform
@@ -357,7 +365,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		let totalActiveMcapStablecoinsAndGovernance = 0
 		let totalDeFiActiveTvlStablecoinsAndGovernance = 0
 
-		for (const item of data) {
+		for (const item of filteredData) {
 			const onChainMcapBreakdown = isEmptyObject(item.onChainMcap) ? null : (item.onChainMcap ?? null)
 			const activeMcapBreakdown = isEmptyObject(item.activeMcap) ? null : (item.activeMcap ?? null)
 			const defiActiveTvlBreakdown = isEmptyObject(item.defiActiveTvl) ? null : (item.defiActiveTvl ?? null)
@@ -569,7 +577,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			label: chain,
 			to: `/rwa/chain/${rwaSlug(chain)}`
 		}))
-		const categoryNavValues = params.rwaList.categories.map((category) => ({
+		const categoryNavValues = filterCategoriesForStandardRwaOverview(params.rwaList.categories).map((category) => ({
 			label: category,
 			to: `/rwa/category/${rwaSlug(category)}`
 		}))
@@ -742,6 +750,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 
 	const rows: IRWACategoriesOverviewRow[] = []
 	for (const category in data.byCategory) {
+		if (!isCategoryIncludedInStandardRwaOverview(category)) continue
 		rows.push({
 			category,
 			...data.byCategory[category]

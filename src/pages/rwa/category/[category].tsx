@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
+import { filterCategoriesForStandardRwaOverview } from '~/containers/RWA/constants'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { RWATabNav } from '~/containers/RWA/TabNav'
@@ -22,7 +23,9 @@ export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	return {
-		paths: rwaList.categories.slice(0, 10).map((category) => ({ params: { category: rwaSlug(category) } })),
+		paths: filterCategoriesForStandardRwaOverview(rwaList.categories)
+			.slice(0, 10)
+			.map((category) => ({ params: { category: rwaSlug(category) } })),
 		fallback: 'blocking'
 	}
 }
@@ -39,7 +42,7 @@ export const getStaticProps = withPerformanceLogging(
 		let categoryName = null
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const rwaList = metadataCache.rwaList
-		for (const category of rwaList.categories) {
+		for (const category of filterCategoriesForStandardRwaOverview(rwaList.categories)) {
 			if (rwaSlug(category) === categorySlug) {
 				categoryName = category
 				break
