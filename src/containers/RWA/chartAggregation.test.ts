@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview } from './api.types'
 import {
 	aggregateRwaMetricData,
 	appendRwaChartDatasetTotal,
 	buildRwaOpenInterestDataset,
+	getRwaChartSeriesColorSlots,
+	getRwaReservedSeriesColorSlot,
 	mergeRwaChartDatasets,
 	renameRwaChartDatasetTotal,
+	sortRwaChartSeriesLabels,
 	selectRwaChartDatasetSeries
 } from './chartAggregation'
 
@@ -295,6 +299,30 @@ describe('mergeRwaChartDatasets', () => {
 		).toEqual({
 			source: [{ timestamp: 1, 'Total Active Mcap': 100, Treasuries: 100, 'RWA Perps OI': 25 }],
 			dimensions: ['timestamp', 'Total Active Mcap', 'Treasuries', 'RWA Perps OI']
+		})
+	})
+})
+
+describe('RWA chart series color reservation', () => {
+	it('orders Total first and RWA Perps OI second', () => {
+		expect(sortRwaChartSeriesLabels(['Treasuries', 'RWA Perps OI', 'Total Active Mcap', 'Credit'])).toEqual([
+			'Total Active Mcap',
+			'RWA Perps OI',
+			'Treasuries',
+			'Credit'
+		])
+	})
+
+	it('keeps CHART_COLORS[0] and CHART_COLORS[1] reserved for Total and RWA Perps OI', () => {
+		expect(CHART_COLORS[getRwaReservedSeriesColorSlot('Total Active Mcap') ?? -1]).toBe(CHART_COLORS[0])
+		expect(CHART_COLORS[getRwaReservedSeriesColorSlot('RWA Perps OI') ?? -1]).toBe(CHART_COLORS[1])
+		expect(getRwaReservedSeriesColorSlot('Treasuries')).toBeNull()
+	})
+
+	it('starts non-reserved series at CHART_COLORS[2] even when only RWA Perps OI is present', () => {
+		expect(getRwaChartSeriesColorSlots(['Treasuries', 'RWA Perps OI'])).toEqual({
+			'RWA Perps OI': 1,
+			Treasuries: 2
 		})
 	})
 })

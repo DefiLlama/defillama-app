@@ -20,7 +20,13 @@ import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview, RWAAssetChartTarget } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
-import { emptyChartDatasets, type RWAChartAggregationMode } from './chartAggregation'
+import {
+	emptyChartDatasets,
+	getRwaChartSeriesColorSlots,
+	getRwaReservedSeriesColorSlot,
+	sortRwaChartSeriesLabels,
+	type RWAChartAggregationMode
+} from './chartAggregation'
 import {
 	createRwaChartModeState,
 	getBreakdownLabel,
@@ -817,23 +823,19 @@ function assertNever(value: never): never {
 }
 
 function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
-	const seriesDimensions = dimensions
-		.filter((dimension) => dimension !== 'timestamp')
-		.sort((a, b) => {
-			const aRank = a.startsWith('Total ') ? 0 : a === 'RWA Perps OI' ? 1 : 2
-			const bRank = b.startsWith('Total ') ? 0 : b === 'RWA Perps OI' ? 1 : 2
-			if (aRank !== bRank) return aRank - bRank
-			return 0
-		})
+	const seriesDimensions = sortRwaChartSeriesLabels(dimensions.filter((dimension) => dimension !== 'timestamp'))
+	const colorSlots = getRwaChartSeriesColorSlots(seriesDimensions)
 
-	return seriesDimensions.map((name, index) => {
-		const isTotalSeries = name.startsWith('Total ') || name === 'RWA Perps OI'
+	return seriesDimensions.map((name) => {
+		const reservedColorSlot = getRwaReservedSeriesColorSlot(name)
+		const colorSlot = colorSlots[name]
+		const isTotalSeries = reservedColorSlot !== null
 
 		return {
 			type: 'line',
 			name,
 			encode: { x: 'timestamp', y: name },
-			color: CHART_COLORS[index % CHART_COLORS.length],
+			color: CHART_COLORS[colorSlot % CHART_COLORS.length],
 			...(isTotalSeries
 				? {
 						hideAreaStyle: true

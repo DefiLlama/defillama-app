@@ -58,6 +58,37 @@ export function getRwaChartTotalLabel(metric: RWAChartMetricKey): string {
 	}
 }
 
+export function isRwaTotalSeriesLabel(label: string): boolean {
+	return label.startsWith('Total ')
+}
+
+export function sortRwaChartSeriesLabels(labels: string[]): string[] {
+	const totalSeries = labels.filter(isRwaTotalSeriesLabel)
+	const hasOpenInterestSeries = labels.includes(RWA_OPEN_INTEREST_SERIES_LABEL)
+	const otherSeries = labels.filter(
+		(label) => !isRwaTotalSeriesLabel(label) && label !== RWA_OPEN_INTEREST_SERIES_LABEL
+	)
+
+	return [...totalSeries, ...(hasOpenInterestSeries ? [RWA_OPEN_INTEREST_SERIES_LABEL] : []), ...otherSeries]
+}
+
+export function getRwaReservedSeriesColorSlot(label: string): number | null {
+	if (isRwaTotalSeriesLabel(label)) return 0
+	if (label === RWA_OPEN_INTEREST_SERIES_LABEL) return 1
+	return null
+}
+
+export function getRwaChartSeriesColorSlots(labels: string[]): Record<string, number> {
+	const colorSlots: Record<string, number> = {}
+	let nextNonReservedColorSlot = 2
+
+	for (const label of sortRwaChartSeriesLabels(labels)) {
+		colorSlots[label] = getRwaReservedSeriesColorSlot(label) ?? nextNonReservedColorSlot++
+	}
+
+	return colorSlots
+}
+
 export function renameRwaChartDatasetTotal(dataset: RWAChartDataset, metric: RWAChartMetricKey): RWAChartDataset {
 	if (!dataset.dimensions.includes('Total') && !dataset.source.some((row) => row.Total != null)) {
 		return dataset
