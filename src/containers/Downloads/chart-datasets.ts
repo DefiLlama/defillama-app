@@ -34,11 +34,7 @@ type ProtocolOption = { label: string; value: string; category?: string; isChild
  * We create synthetic parent entries with aggregated sort values,
  * merge them with solo protocols, and nest children underneath.
  */
-function groupProtocolOptions(
-	json: any,
-	sortValue: (p: any) => number,
-	labelFn: (p: any) => string
-): ProtocolOption[] {
+function groupProtocolOptions(json: any, sortValue: (p: any) => number, labelFn: (p: any) => string): ProtocolOption[] {
 	const protocols: any[] = json?.protocols ?? []
 	const parentProtocols: any[] = Array.isArray(json?.parentProtocols) ? json.parentProtocols : []
 
@@ -73,16 +69,10 @@ function groupProtocolOptions(
 		})
 
 	// Children whose parent isn't in parentProtocols (e.g. overview APIs) — treat as top-level
-	const orphanedChildren = filtered.filter(
-		(p: any) => p.parentProtocol && !matchedParentIds.has(p.parentProtocol)
-	)
+	const orphanedChildren = filtered.filter((p: any) => p.parentProtocol && !matchedParentIds.has(p.parentProtocol))
 
 	// Merge: solo protocols + synthetic parents + orphaned children, then sort
-	const parentsOrSolo = [
-		...filtered.filter((p: any) => !p.parentProtocol),
-		...syntheticParents,
-		...orphanedChildren
-	]
+	const parentsOrSolo = [...filtered.filter((p: any) => !p.parentProtocol), ...syntheticParents, ...orphanedChildren]
 	parentsOrSolo.sort((a, b) => (b._syntheticTvl ?? sortValue(b)) - (a._syntheticTvl ?? sortValue(a)))
 
 	const options: ProtocolOption[] = []
@@ -110,10 +100,18 @@ function groupProtocolOptions(
 }
 
 const extractOverviewProtocolOptions = (json: any): ProtocolOption[] =>
-	groupProtocolOptions(json, (p) => Number(p?.total24h) || 0, (p) => p.displayName || p.name)
+	groupProtocolOptions(
+		json,
+		(p) => Number(p?.total24h) || 0,
+		(p) => p.displayName || p.name
+	)
 
 const extractLiteProtocolOptions = (json: any): ProtocolOption[] =>
-	groupProtocolOptions(json, (p) => Number(p?.tvlUsd ?? p?.tvl) || 0, (p) => p.name)
+	groupProtocolOptions(
+		json,
+		(p) => Number(p?.tvlUsd ?? p?.tvl) || 0,
+		(p) => p.name
+	)
 
 const extractOverviewChainOptions = (json: any): Array<{ label: string; value: string }> => {
 	const chains: string[] = json?.allChains ?? []
@@ -319,9 +317,7 @@ const extractOverviewCategoryOptions = (json: any): Array<{ label: string; value
 			catTotals.set(c, (catTotals.get(c) || 0) + (Number(p?.total24h) || 0))
 		}
 	}
-	return [...catTotals.entries()]
-		.sort(([, a], [, b]) => b - a)
-		.map(([c]) => ({ label: c, value: toSlug(c) }))
+	return [...catTotals.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: toSlug(c) }))
 }
 
 function makeDimensionCategoryChart(opts: {

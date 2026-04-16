@@ -541,21 +541,18 @@ export function ChartDatasetModal({
 		setSelectedParams([])
 	}, [])
 
-	const handleAddMultipleParams = useCallback(
-		(opts: ParamOption[]) => {
-			setSelectedParams((prev) => {
-				const existing = new Set(prev.map((p) => p.value))
-				const toAdd = opts.filter((o) => !existing.has(o.value))
-				const combined = [...prev, ...toAdd]
-				if (combined.length > MAX_PARAMS) {
-					toast.error(`Can only add ${MAX_PARAMS - prev.length} more (max ${MAX_PARAMS})`)
-					return [...prev, ...toAdd.slice(0, MAX_PARAMS - prev.length)]
-				}
-				return combined
-			})
-		},
-		[]
-	)
+	const handleAddMultipleParams = useCallback((opts: ParamOption[]) => {
+		setSelectedParams((prev) => {
+			const existing = new Set(prev.map((p) => p.value))
+			const toAdd = opts.filter((o) => !existing.has(o.value))
+			const combined = [...prev, ...toAdd]
+			if (combined.length > MAX_PARAMS) {
+				toast.error(`Can only add ${MAX_PARAMS - prev.length} more (max ${MAX_PARAMS})`)
+				return [...prev, ...toAdd.slice(0, MAX_PARAMS - prev.length)]
+			}
+			return combined
+		})
+	}, [])
 
 	const handleSetActive = useCallback((value: string) => {
 		setActivePreviewValue(value)

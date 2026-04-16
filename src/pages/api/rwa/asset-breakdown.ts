@@ -49,15 +49,8 @@ export function buildAssetBreakdownUrl(request: RWAAssetBreakdownRequest): strin
 	return `${pathname}?${searchParams.toString()}`
 }
 
-function normalizeAssetBreakdownData(raw: IRWAChartDataByAsset): IRWAChartDataByAsset {
-	const normalize = (rows: IRWAChartDataByAsset['onChainMcap']) =>
-		ensureChronologicalRows((rows ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) })))
-
-	return {
-		onChainMcap: normalize(raw.onChainMcap),
-		activeMcap: normalize(raw.activeMcap),
-		defiActiveTvl: normalize(raw.defiActiveTvl)
-	}
+export function normalizeAssetBreakdownRows(rows: IRWAChartMetricRows): IRWAChartMetricRows {
+	return ensureChronologicalRows((rows ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) })))
 }
 
 function assertNever(value: never): never {
@@ -122,19 +115,6 @@ export function parseAssetBreakdownRequest(req: Pick<NextApiRequest, 'query'>): 
 	}
 }
 
-function getMetricRows(data: IRWAChartDataByAsset, key: RWAChartMetricKey): IRWAChartMetricRows {
-	switch (key) {
-		case 'onChainMcap':
-			return data.onChainMcap
-		case 'activeMcap':
-			return data.activeMcap
-		case 'defiActiveTvl':
-			return data.defiActiveTvl
-		default:
-			return assertNever(key)
-	}
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' })
@@ -150,8 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const raw = await fetchJson<IRWAChartDataByAsset>(buildAssetBreakdownUrl(request), {
 			timeout: 30_000
 		})
-		const normalized = normalizeAssetBreakdownData(raw)
-		const rows = getMetricRows(normalized, request.key)
+		const rows = normalizeAssetBreakdownRows(raw[request.key] ?? [])
 
 		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
 		return res.status(200).json(rows)

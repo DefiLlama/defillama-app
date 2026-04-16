@@ -34,8 +34,8 @@ import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetG
 import { toBreakdownChartDataset } from './breakdownDataset'
 import {
 	aggregateRwaMetricData,
+	appendRwaChartDatasetTotal,
 	applyDefaultAssetFilters,
-	emptyChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import { getDefaultRWAOverviewInclusion, type RWAOverviewMode } from './constants'
@@ -595,9 +595,15 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		})
 		const initialChartDataset = chartDataMs
 			? {
-					onChainMcap: emptyChartDataset(),
-					activeMcap: aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode),
-					defiActiveTvl: emptyChartDataset()
+					onChainMcap: appendRwaChartDatasetTotal(
+						aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.onChainMcap, aggregationMode)
+					),
+					activeMcap: appendRwaChartDatasetTotal(
+						aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode)
+					),
+					defiActiveTvl: appendRwaChartDatasetTotal(
+						aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.defiActiveTvl, aggregationMode)
+					)
 				}
 			: null
 

@@ -7,7 +7,8 @@ import type {
 	IHBarChartProps,
 	IMultiSeriesChart2Props,
 	IPieChartProps,
-	ITreemapChartProps
+	ITreemapChartProps,
+	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -188,9 +189,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		includeStablecoins,
 		includeGovernance,
 		useInitialDataset:
-			chartTypeKey === 'activeMcap' &&
 			!activeFilters &&
-			timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries')
+			(timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries') || timeSeriesBreakdown === 'total')
 	})
 
 	const {
@@ -389,6 +389,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
 	const selectedTimeSeriesDataset = chartDataset
+	const timeSeriesCharts = useMemo<Array<MultiSeriesChart2SeriesConfig>>(
+		() => buildRwaTimeSeriesCharts(selectedTimeSeriesDataset.dimensions),
+		[selectedTimeSeriesDataset.dimensions]
+	)
 	const selectedPieChartData =
 		chartTypeKey === 'onChainMcap'
 			? onChainPieChartData
@@ -708,9 +712,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
 										dataset={deferredSelectedTimeSeriesDataset}
-										stacked
+										charts={timeSeriesCharts}
 										hideDefaultLegend={false}
-										showTotalInTooltip
+										showTotalInTooltip={!deferredSelectedTimeSeriesDataset.dimensions.includes('Total')}
 										onReady={handleMultiSeriesChart2Ready}
 									/>
 								</Suspense>
@@ -785,6 +789,26 @@ const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
 
 function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
+}
+
+function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
+	const seriesDimensions = dimensions.filter((dimension) => dimension !== 'timestamp')
+
+	return seriesDimensions.map((name, index) => {
+		const isTotalSeries = name === 'Total'
+
+		return {
+			type: 'line',
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: CHART_COLORS[index % CHART_COLORS.length],
+			...(isTotalSeries
+				? {
+						hideAreaStyle: true
+					}
+				: {})
+		}
+	})
 }
 
 const getRwaChartAggregationMode = (state: RWAChartBreakdown | 'total'): RWAChartAggregationMode => {

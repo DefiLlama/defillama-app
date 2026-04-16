@@ -17,7 +17,9 @@ import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWAAss
 import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	aggregateRwaMetricData,
+	appendRwaChartDatasetTotal,
 	emptyChartDataset,
+	selectRwaChartDatasetSeries,
 	type RWAChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
@@ -1334,9 +1336,14 @@ export function useRwaChartDataset({
 	assert(initialDataset.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 
 	const chartDataset = useMemo(() => {
-		if (useInitialDataset) return initialDataset
+		if (useInitialDataset) {
+			return mode === 'total'
+				? selectRwaChartDatasetSeries(initialDataset, ['Total'])
+				: appendRwaChartDatasetTotal(initialDataset)
+		}
 		if (!assetRows) return emptyChartDataset()
-		return aggregateRwaMetricData(filteredAssets, assetRows, mode)
+		const dataset = aggregateRwaMetricData(filteredAssets, assetRows, mode)
+		return mode === 'total' ? dataset : appendRwaChartDatasetTotal(dataset)
 	}, [useInitialDataset, initialDataset, assetRows, filteredAssets, mode])
 
 	return {

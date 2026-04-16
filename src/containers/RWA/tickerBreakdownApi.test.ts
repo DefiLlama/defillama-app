@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildAssetBreakdownUrl, parseAssetBreakdownRequest } from '~/pages/api/rwa/asset-breakdown'
+import {
+	buildAssetBreakdownUrl,
+	normalizeAssetBreakdownRows,
+	parseAssetBreakdownRequest
+} from '~/pages/api/rwa/asset-breakdown'
 
 describe('parseAssetBreakdownRequest', () => {
 	it('rejects requests when inclusion flags are omitted', () => {
@@ -42,5 +46,19 @@ describe('buildAssetBreakdownUrl', () => {
 				includeGovernance: true
 			})
 		).toContain('/chart/category/rwa-yield-wrapper/asset-breakdown?includeStablecoin=false&includeGovernance=true')
+	})
+})
+
+describe('normalizeAssetBreakdownRows', () => {
+	it('normalizes timestamps and sorts rows chronologically for the requested metric', () => {
+		expect(
+			normalizeAssetBreakdownRows([
+				{ timestamp: 2, alpha: 20 },
+				{ timestamp: 1, alpha: 10 }
+			])
+		).toEqual([
+			{ timestamp: 1000, alpha: 10 },
+			{ timestamp: 2000, alpha: 20 }
+		])
 	})
 })

@@ -133,8 +133,8 @@ describe('useRwaChartDataset', () => {
 		const platformMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'platform' }))
 		const totalMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'total' }))
 
-		expect(categoryMarkup).toContain('timestamp|Treasuries|Private Credit')
-		expect(platformMarkup).toContain('timestamp|Centrifuge|Maple')
+		expect(categoryMarkup).toContain('timestamp|Total|Treasuries|Private Credit')
+		expect(platformMarkup).toContain('timestamp|Total|Centrifuge|Maple')
 		expect(totalMarkup).toContain('timestamp|Total')
 		expect(useQueryMock).toHaveBeenCalledTimes(3)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
@@ -186,7 +186,7 @@ describe('useRwaChartDataset', () => {
 			React.createElement(DatasetProbe, { mode: 'category', chartAssets: multiCategoryAssets })
 		)
 
-		expect(markup).toContain('timestamp|Treasuries')
+		expect(markup).toContain('timestamp|Total|Treasuries')
 		expect(markup).not.toContain('Private Credit')
 	})
 
@@ -227,14 +227,40 @@ describe('useRwaChartDataset', () => {
 			React.createElement(DatasetProbe, {
 				mode: 'category',
 				initialDataset: {
-					source: [{ timestamp: 1 }],
+					source: [{ timestamp: 1, Prerendered: 100, Total: 100 }],
 					dimensions: ['timestamp', 'Prerendered']
 				},
 				useInitialDataset: true
 			})
 		)
 
-		expect(markup).toContain('timestamp|Prerendered')
+		expect(markup).toContain('timestamp|Total|Prerendered')
+		expect(useQueryMock).toHaveBeenCalledTimes(1)
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),
+			enabled: false
+		})
+	})
+
+	it('reuses the prerendered dataset for Total by projecting the hidden Total column', () => {
+		useQueryMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			error: null
+		})
+
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, {
+				mode: 'total',
+				initialDataset: {
+					source: [{ timestamp: 1, Treasuries: 100, Total: 100 }],
+					dimensions: ['timestamp', 'Treasuries']
+				},
+				useInitialDataset: true
+			})
+		)
+
+		expect(markup).toContain('timestamp|Total')
 		expect(useQueryMock).toHaveBeenCalledTimes(1)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),

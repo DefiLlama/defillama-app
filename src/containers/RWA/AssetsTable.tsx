@@ -195,6 +195,15 @@ const columns = [
 		},
 		size: 240
 	}),
+	columnHelper.accessor((asset) => asset.price, {
+		id: 'price',
+		header: 'Token Price',
+		cell: (info) => (info.getValue() != null ? <span>{formattedNum(info.getValue(), true)}</span> : null),
+		size: 120,
+		meta: {
+			align: 'end'
+		}
+	}),
 	columnHelper.accessor((asset) => normalizeRwaAssetGroup(asset.assetGroup), {
 		id: 'assetGroup',
 		header: 'Asset Group',
@@ -483,15 +492,6 @@ const columns = [
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.rwaClassification.description
-		}
-	}),
-	columnHelper.accessor((asset) => asset.price, {
-		id: 'price',
-		header: 'Token Price',
-		cell: (info) => (info.getValue() != null ? <span>{formattedNum(info.getValue(), true)}</span> : null),
-		size: 168,
-		meta: {
-			align: 'end'
 		}
 	}),
 	columnHelper.accessor((asset) => asset.issuer, {

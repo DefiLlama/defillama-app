@@ -25,6 +25,43 @@ export function emptyChartDatasets(): RWAChartDatasetsByMetric {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
+export function appendRwaChartDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
+	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
+	if (dataset.source.length === 0) return emptyChartDataset()
+	if (seriesDimensions.length === 0) return dataset
+
+	return {
+		source: dataset.source.map((row) => ({
+			...row,
+			Total: seriesDimensions.reduce((sum, dimension) => {
+				const value = row[dimension]
+				const numericValue = typeof value === 'number' ? value : Number(value)
+				return Number.isFinite(numericValue) ? sum + numericValue : sum
+			}, 0)
+		})),
+		dimensions: ['timestamp', 'Total', ...seriesDimensions]
+	}
+}
+
+export function selectRwaChartDatasetSeries(dataset: RWAChartDataset, seriesDimensions: string[]): RWAChartDataset {
+	const allowedSeries = new Set(seriesDimensions)
+	const dimensions = dataset.dimensions.filter((dimension) => dimension === 'timestamp' || allowedSeries.has(dimension))
+	for (const dimension of seriesDimensions) {
+		if (
+			dimension !== 'timestamp' &&
+			dataset.source.some((row) => row[dimension] != null) &&
+			!dimensions.includes(dimension)
+		) {
+			dimensions.push(dimension)
+		}
+	}
+
+	return {
+		source: dataset.source,
+		dimensions
+	}
+}
+
 function buildAssetGroupMapping(
 	assets: IRWAAssetsOverview['assets'],
 	mode: RWAChartAggregationMode

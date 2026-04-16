@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { IRWAAssetsOverview } from './api.types'
-import { aggregateRwaMetricData } from './chartAggregation'
+import { aggregateRwaMetricData, appendRwaChartDatasetTotal, selectRwaChartDatasetSeries } from './chartAggregation'
 
 const assets: IRWAAssetsOverview['assets'] = [
 	{
@@ -112,6 +112,43 @@ describe('aggregateRwaMetricData', () => {
 		).toEqual({
 			source: [{ timestamp: 1, Stablecoins: 100, Unknown: 50 }],
 			dimensions: ['timestamp', 'Stablecoins', 'Unknown']
+		})
+	})
+})
+
+describe('appendRwaChartDatasetTotal', () => {
+	it('adds a Total column and promotes it to the first visible series dimension', () => {
+		expect(
+			appendRwaChartDatasetTotal({
+				source: [
+					{ timestamp: 1, Treasuries: 100, Credit: 40 },
+					{ timestamp: 2, Treasuries: 90, Credit: 60 }
+				],
+				dimensions: ['timestamp', 'Treasuries', 'Credit']
+			})
+		).toEqual({
+			source: [
+				{ timestamp: 1, Treasuries: 100, Credit: 40, Total: 140 },
+				{ timestamp: 2, Treasuries: 90, Credit: 60, Total: 150 }
+			],
+			dimensions: ['timestamp', 'Total', 'Treasuries', 'Credit']
+		})
+	})
+})
+
+describe('selectRwaChartDatasetSeries', () => {
+	it('projects a dataset down to the requested series dimensions', () => {
+		expect(
+			selectRwaChartDatasetSeries(
+				{
+					source: [{ timestamp: 1, Treasuries: 100, Credit: 40, Total: 140 }],
+					dimensions: ['timestamp', 'Treasuries', 'Credit']
+				},
+				['Total']
+			)
+		).toEqual({
+			source: [{ timestamp: 1, Treasuries: 100, Credit: 40, Total: 140 }],
+			dimensions: ['timestamp', 'Total']
 		})
 	})
 })
