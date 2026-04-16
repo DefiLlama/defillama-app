@@ -1,9 +1,13 @@
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
+import { useCallback, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 
@@ -68,6 +72,9 @@ async function getSharedSession(shareToken: string) {
 export default function SharedConversationPage({ shareToken: ssrToken, sessionTitle }: PageProps) {
 	const router = useRouter()
 	const shareToken = (router.query.shareToken as string) || ssrToken
+	const { user } = useAuthContext()
+	const [pendingMessage, setPendingMessage] = useState<string | null>(null)
+	const signInDialogStore = Ariakit.useDialogStore()
 
 	const ogImageUrl = `${AI_SERVER}/user/og/${shareToken}`
 	const title = sessionTitle || 'AI Crypto Analysis - LlamaAI'
@@ -87,6 +94,19 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 		refetchOnWindowFocus: false,
 		retry: false
 	})
+
+	// Unauth user submitting: save message + show login. After login, the
+	// `initialPrompt` below auto-fires AgenticChat's in-place fork.
+	const handleForkSubmit = useCallback(
+		(prompt: string) => {
+			setPendingMessage(prompt)
+			signInDialogStore.show()
+		},
+		[signInDialogStore]
+	)
+
+	// After login, hand the saved message to AgenticChat as initialPrompt so it auto-submits in-place.
+	const initialPrompt = user && pendingMessage ? pendingMessage : undefined
 
 	if (isLoading || !router.isReady) {
 		return (
@@ -125,13 +145,19 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 	}
 
 	return (
-		<Layout title={title} description={description} canonicalUrl={null} noIndex={true}>
+		<Layout title={title} description={description} canonicalUrl={null} noIndex={true} hideDesktopSearchLlamaAiButton>
 			<Head>
 				<meta property="og:image" content={ogImageUrl} />
 				<meta name="twitter:card" content="summary_large_image" />
 				<meta name="twitter:image" content={ogImageUrl} />
 			</Head>
-			<AgenticChat sharedSession={session as any} readOnly />
+			<AgenticChat
+				sharedSession={session as any}
+				shareToken={shareToken}
+				onForkSubmit={handleForkSubmit}
+				initialPrompt={initialPrompt}
+			/>
+			<SignInModal store={signInDialogStore} hideWhenAuthenticated={false} />
 		</Layout>
 	)
 }

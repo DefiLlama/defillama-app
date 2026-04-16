@@ -223,6 +223,7 @@ interface FetchAgenticResponseParams {
 	isSuggestedQuestion?: boolean
 	blockedSkills?: string[]
 	model?: string
+	shareToken?: string
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -408,6 +409,7 @@ export async function fetchAgenticResponse({
 	isSuggestedQuestion,
 	blockedSkills,
 	model,
+	shareToken,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -479,6 +481,10 @@ export async function fetchAgenticResponse({
 
 	if (model) {
 		requestBody.model = model
+	}
+
+	if (shareToken) {
+		;(requestBody as any).shareToken = shareToken
 	}
 
 	const response = await doFetch(`${AI_SERVER}/agentic`, {
