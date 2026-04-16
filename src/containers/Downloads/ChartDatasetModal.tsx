@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQueries, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import Link from 'next/link'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
@@ -9,6 +9,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
+import { slug as toSlug } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import type { ChartDatasetDefinition } from './chart-datasets'
 import { combineCsvsWide } from './combineCsvsWide'
@@ -225,9 +226,15 @@ export function ChartDatasetModal({
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 	const initialParamsAppliedRef = useRef(false)
 	const initialColumnsAppliedRef = useRef(false)
+	const wasInCategoryModeRef = useRef(false)
+	const alignedCategoryRef = useRef<string | null>(null)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
+
+	const supportsBreakdown = dataset.paramType === 'protocol' && !!dataset.categoryBreakdown
+	const isCategoryMode = supportsBreakdown && selectedCategory !== null
+	const maxSelections = supportsBreakdown ? Number.POSITIVE_INFINITY : MAX_PARAMS
 
 	useEffect(() => {
 		setDateRange(initialConfig?.dateRange ?? null)
@@ -239,6 +246,11 @@ export function ChartDatasetModal({
 	useEffect(() => {
 		if (!initialConfig || initialParamsAppliedRef.current) return
 		if (options.length === 0) return
+		if (initialConfig.categoryBreakdown && supportsBreakdown) {
+			setSelectedCategory(initialConfig.categoryBreakdown.category)
+			initialParamsAppliedRef.current = true
+			return
+		}
 		const { params, missingParams } = applyChartParams(initialConfig, options)
 		setSelectedParams(params)
 		initialParamsAppliedRef.current = true
@@ -249,7 +261,7 @@ export function ChartDatasetModal({
 				} no longer available`
 			)
 		}
-	}, [initialConfig, options, dataset.paramLabel])
+	}, [initialConfig, options, dataset.paramLabel, supportsBreakdown])
 
 	const protocolCategories = useMemo(() => {
 		if (dataset.paramType !== 'protocol') return []
@@ -270,37 +282,102 @@ export function ChartDatasetModal({
 		[selectedParams, activePreviewValue]
 	)
 
-	const csvQueries = useQueries({
-		queries: selectedParams.map((param) => ({
-			queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
-			queryFn: async () => {
-				const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-				const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
-				const response = isPreview ? await fetch(url) : await authorizedFetch(url)
-				if (!response || !response.ok) {
-					const errorData = await response?.json().catch(() => null)
-					throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
-				}
-				if (isTrial) {
-					void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
-				}
-				return response.text()
-			},
-			staleTime: 5 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 1
-		}))
+	useEffect(() => {
+		if (!supportsBreakdown) return
+		if (selectedCategory === null) return
+		const inCategory = options.filter((o) => o.category === selectedCategory)
+		setSelectedParams(inCategory)
+		setSelectedColumns(null)
+		setSortState(null)
+	}, [supportsBreakdown, selectedCategory, options])
+
+	useEffect(() => {
+		if (!supportsBreakdown) return
+		if (selectedCategory !== null) {
+			wasInCategoryModeRef.current = true
+			return
+		}
+		if (wasInCategoryModeRef.current) {
+			wasInCategoryModeRef.current = false
+			setSelectedParams([])
+			setSelectedColumns(null)
+			setSortState(null)
+		}
+	}, [supportsBreakdown, selectedCategory])
+
+	const perProtocolQueries = useQueries({
+		queries: isCategoryMode
+			? []
+			: selectedParams.map((param) => ({
+					queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
+					queryFn: async () => {
+						const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+						const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
+						const response = isPreview ? await fetch(url) : await authorizedFetch(url)
+						if (!response || !response.ok) {
+							const errorData = await response?.json().catch(() => null)
+							throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
+						}
+						if (isTrial) {
+							void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+						}
+						return response.text()
+					},
+					staleTime: 5 * 60 * 1000,
+					refetchOnWindowFocus: false,
+					retry: 1
+				}))
+	})
+
+	const breakdownQuery = useQuery({
+		queryKey: ['chart-breakdown', dataset.slug, selectedCategory, isPreview] as const,
+		queryFn: async () => {
+			const cat = selectedCategory
+			if (!cat) throw new Error('No category selected')
+			const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+			const url = `/api/downloads/chart-breakdown/${dataset.slug}?category=${encodeURIComponent(cat)}${nonce}`
+			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
+			if (!response || !response.ok) {
+				const errorData = await response?.json().catch(() => null)
+				throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
+			}
+			if (isTrial) {
+				void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+			}
+			return response.text()
+		},
+		enabled: isCategoryMode,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1
 	})
 
 	const activeQueryIndex = useMemo(
-		() => selectedParams.findIndex((p) => p.value === activePreviewValue),
-		[selectedParams, activePreviewValue]
+		() => (isCategoryMode ? -1 : selectedParams.findIndex((p) => p.value === activePreviewValue)),
+		[isCategoryMode, selectedParams, activePreviewValue]
 	)
 
-	const activeQuery = activeQueryIndex >= 0 ? csvQueries[activeQueryIndex] : null
-	const csvText = (activeQuery?.data as string | undefined) ?? undefined
-	const dataLoading = activeQuery?.isLoading ?? false
-	const dataError = activeQuery?.error ?? null
+	const activeQuery = activeQueryIndex >= 0 ? perProtocolQueries[activeQueryIndex] : null
+
+	const csvText = isCategoryMode
+		? ((breakdownQuery.data as string | undefined) ?? undefined)
+		: ((activeQuery?.data as string | undefined) ?? undefined)
+	const dataLoading = isCategoryMode ? breakdownQuery.isLoading : (activeQuery?.isLoading ?? false)
+	const dataError = isCategoryMode ? breakdownQuery.error : (activeQuery?.error ?? null)
+
+	const categorySyntheticQueries = useMemo<ReadonlyArray<CsvQueryStatus>>(() => {
+		if (!isCategoryMode) return []
+		const ready = !!breakdownQuery.data
+		const loading = breakdownQuery.isLoading
+		const err = breakdownQuery.error
+		return selectedParams.map((p) => ({
+			data: ready ? p.value : undefined,
+			isLoading: loading,
+			error: err
+		}))
+	}, [isCategoryMode, selectedParams, breakdownQuery.data, breakdownQuery.isLoading, breakdownQuery.error])
+
+	const csvQueries = isCategoryMode ? categorySyntheticQueries : perProtocolQueries
 
 	const { headers, rows } = useMemo(() => {
 		if (!csvText) return { headers: [] as string[], rows: [] as PreviewRow[] }
@@ -308,18 +385,46 @@ export function ChartDatasetModal({
 	}, [csvText])
 
 	useEffect(() => {
+		if (!isCategoryMode) {
+			alignedCategoryRef.current = null
+			return
+		}
+		if (!csvText || headers.length === 0) return
+		if (alignedCategoryRef.current === selectedCategory) return
+
+		const optionBySlug = new Map<string, ParamOption>()
+		for (const opt of options) optionBySlug.set(opt.value, opt)
+
+		const chipsFromCsv: ParamOption[] = []
+		for (const h of headers) {
+			if (h === 'date') continue
+			const slug = toSlug(h)
+			const existing = optionBySlug.get(slug)
+			chipsFromCsv.push(existing ?? { label: h, value: slug, category: selectedCategory ?? undefined })
+		}
+
+		setSelectedParams(chipsFromCsv)
+		alignedCategoryRef.current = selectedCategory
+	}, [isCategoryMode, csvText, headers, options, selectedCategory])
+
+	useEffect(() => {
+		if (isCategoryMode) {
+			setActivePreviewValue(null)
+			return
+		}
 		setActivePreviewValue((cur) => {
 			if (selectedParams.length === 0) return null
 			if (cur && selectedParams.some((p) => p.value === cur)) return cur
 			return selectedParams[0].value
 		})
-	}, [selectedParams])
+	}, [isCategoryMode, selectedParams])
 
 	useEffect(() => {
+		if (isCategoryMode) return
 		setSelectedColumns(null)
 		setSearch('')
 		setSortState(null)
-	}, [activePreviewValue])
+	}, [isCategoryMode, activePreviewValue])
 
 	useEffect(() => {
 		if (headers.length === 0 || selectedColumns !== null) return
@@ -368,7 +473,10 @@ export function ChartDatasetModal({
 	const columnMeta = useMemo(() => {
 		return headers.map<ColumnMeta>((header, index) => {
 			const values = rows.map((row) => row.values[index] ?? '')
-			const kind = detectColumnKind(header, values)
+			let kind = detectColumnKind(header, values)
+			if (isCategoryMode && header !== 'date') {
+				kind = 'currency'
+			}
 			return {
 				index,
 				header,
@@ -377,7 +485,7 @@ export function ChartDatasetModal({
 				width: getColumnWidth(header, kind, values, index === 0)
 			}
 		})
-	}, [headers, rows])
+	}, [headers, rows, isCategoryMode])
 
 	const selectedCount = useMemo(() => columnMeta.filter((c) => cols.has(c.index)).length, [columnMeta, cols])
 
@@ -451,9 +559,10 @@ export function ChartDatasetModal({
 	const tableWidth = useMemo(() => columnMeta.reduce((t, c) => t + c.width, 0), [columnMeta])
 	const gridTemplate = useMemo(() => columnMeta.map((c) => `minmax(${c.width}px, 1fr)`).join(' '), [columnMeta])
 
-	const hasData = !dataLoading && !dataError && headers.length > 0 && !!selectedParam
-	const hasSelection = selectedParams.length > 0
-	const isBulk = selectedParams.length > 1
+	const hasPreviewTarget = isCategoryMode ? true : !!selectedParam
+	const hasData = !dataLoading && !dataError && headers.length > 0 && hasPreviewTarget
+	const hasSelection = isCategoryMode || selectedParams.length > 0
+	const isBulk = !isCategoryMode && selectedParams.length > 1
 
 	const readyCount = useMemo(() => csvQueries.filter((q) => !!q.data).length, [csvQueries])
 	const loadingCount = useMemo(() => csvQueries.filter((q) => q.isLoading).length, [csvQueries])
@@ -517,48 +626,135 @@ export function ChartDatasetModal({
 		})
 	}, [])
 
+	const findBreakdownColumnIndex = useCallback(
+		(paramValue: string): number => {
+			for (let i = 0; i < headers.length; i++) {
+				const h = headers[i]
+				if (h === 'date') continue
+				if (toSlug(h) === paramValue) return i
+			}
+			return -1
+		},
+		[headers]
+	)
+
 	const handleToggleParam = useCallback(
 		(opt: ParamOption) => {
 			const exists = selectedParams.some((p) => p.value === opt.value)
 			if (exists) {
 				setSelectedParams((prev) => prev.filter((p) => p.value !== opt.value))
+				if (isCategoryMode) {
+					const idx = findBreakdownColumnIndex(opt.value)
+					if (idx >= 0) {
+						setSelectedColumns((prev) => {
+							if (!prev) return prev
+							const next = new Set(prev)
+							next.delete(idx)
+							return next
+						})
+					}
+				}
 				return
 			}
-			if (selectedParams.length >= MAX_PARAMS) {
-				toast.error(`Max ${MAX_PARAMS} items — remove one first`)
+			if (selectedParams.length >= maxSelections) {
+				toast.error(`Max ${maxSelections} items — remove one first`)
 				return
 			}
 			setSelectedParams((prev) => [...prev, opt])
+			if (isCategoryMode) {
+				const idx = findBreakdownColumnIndex(opt.value)
+				if (idx >= 0) {
+					setSelectedColumns((prev) => {
+						if (!prev) return prev
+						const next = new Set(prev)
+						next.add(idx)
+						return next
+					})
+				}
+			}
 		},
-		[selectedParams]
+		[selectedParams, isCategoryMode, maxSelections, findBreakdownColumnIndex]
 	)
 
-	const handleRemoveParam = useCallback((value: string) => {
-		setSelectedParams((prev) => prev.filter((p) => p.value !== value))
-	}, [])
+	const handleRemoveParam = useCallback(
+		(value: string) => {
+			setSelectedParams((prev) => prev.filter((p) => p.value !== value))
+			if (isCategoryMode) {
+				const idx = findBreakdownColumnIndex(value)
+				if (idx >= 0) {
+					setSelectedColumns((prev) => {
+						if (!prev) return prev
+						const next = new Set(prev)
+						next.delete(idx)
+						return next
+					})
+				}
+			}
+		},
+		[isCategoryMode, findBreakdownColumnIndex]
+	)
 
 	const handleClearParams = useCallback(() => {
+		if (isCategoryMode) {
+			setSelectedCategory(null)
+			return
+		}
 		setSelectedParams([])
-	}, [])
+	}, [isCategoryMode])
 
-	const handleAddMultipleParams = useCallback((opts: ParamOption[]) => {
-		setSelectedParams((prev) => {
-			const existing = new Set(prev.map((p) => p.value))
-			const toAdd = opts.filter((o) => !existing.has(o.value))
-			const combined = [...prev, ...toAdd]
-			if (combined.length > MAX_PARAMS) {
-				toast.error(`Can only add ${MAX_PARAMS - prev.length} more (max ${MAX_PARAMS})`)
-				return [...prev, ...toAdd.slice(0, MAX_PARAMS - prev.length)]
-			}
-			return combined
-		})
-	}, [])
+	const handleAddMultipleParams = useCallback(
+		(opts: ParamOption[]) => {
+			setSelectedParams((prev) => {
+				const existing = new Set(prev.map((p) => p.value))
+				const toAdd = opts.filter((o) => !existing.has(o.value))
+				const combined = [...prev, ...toAdd]
+				if (combined.length > maxSelections) {
+					toast.error(`Can only add ${maxSelections - prev.length} more (max ${maxSelections})`)
+					return [...prev, ...toAdd.slice(0, maxSelections - prev.length)]
+				}
+				return combined
+			})
+		},
+		[maxSelections]
+	)
 
 	const handleSetActive = useCallback((value: string) => {
 		setActivePreviewValue(value)
 	}, [])
 
 	const handleDownloadCombined = useCallback(() => {
+		if (isCategoryMode) {
+			if (selectedCount === 0) {
+				toast.error('Select at least one column')
+				return
+			}
+			const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
+			if (csvRows.length <= 1) {
+				toast.error('No rows to download')
+				return
+			}
+			const filename = `${dataset.slug}_${toSlug(selectedCategory!)}.csv`
+			downloadCSV(filename, csvRows, { addTimestamp: false })
+			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers,
+				selectedParams,
+				selectedColumns: cols,
+				sort: sortState,
+				dateRange,
+				categoryBreakdown: { category: selectedCategory! }
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
+			return
+		}
+
 		const ready: Array<{ label: string; value: string; csvText: string }> = []
 		const failed: Array<ParamOption> = []
 		csvQueries.forEach((query, i) => {
@@ -605,10 +801,71 @@ export function ChartDatasetModal({
 			name: defaultPresetName(configBase, dataset.name),
 			createdAt: Date.now()
 		})
-	}, [csvQueries, selectedParams, dataset.slug, dataset.name, headers, cols, sortState, dateRange, recordRecent])
+	}, [
+		isCategoryMode,
+		selectedCategory,
+		selectedCount,
+		columnMeta,
+		sortedRows,
+		csvQueries,
+		selectedParams,
+		dataset.slug,
+		dataset.name,
+		headers,
+		cols,
+		sortState,
+		dateRange,
+		recordRecent
+	])
 
 	const handleDownloadSingle = useCallback(
 		(param: ParamOption) => {
+			if (isCategoryMode) {
+				if (!csvText) {
+					toast.error('Data not loaded yet')
+					return
+				}
+				const parsed = parseCsv(csvText)
+				const parsedDateIdx = parsed.headers.indexOf('date')
+				const parsedColIdx = parsed.headers.findIndex((h, i) => i !== parsedDateIdx && toSlug(h) === param.value)
+				if (parsedColIdx < 0) {
+					toast.error(`No data for ${param.label}`)
+					return
+				}
+				const rowsForDownload = filterParsedRowsByDateRange(parsed.rows, parsedDateIdx, dateRange)
+				const outHeader = ['date', parsed.headers[parsedColIdx]]
+				const allRows: string[][] = [outHeader]
+				for (const r of rowsForDownload) {
+					const date = r.values[parsedDateIdx] ?? ''
+					const value = r.values[parsedColIdx] ?? ''
+					if (!date) continue
+					allRows.push([date, value])
+				}
+				if (allRows.length <= 1) {
+					toast.error('No rows to download')
+					return
+				}
+				const filename = `${dataset.slug}_${param.value}.csv`
+				downloadCSV(filename, allRows, { addTimestamp: false })
+				toast.success(`Downloaded ${filename}`)
+
+				const configBase = extractChartConfig({
+					slug: dataset.slug,
+					headers: outHeader,
+					selectedParams: [param],
+					selectedColumns: null,
+					sort: null,
+					dateRange
+				})
+				recordRecent({
+					...configBase,
+					id: generatePresetId(),
+					name: defaultPresetName(configBase, dataset.name),
+					createdAt: Date.now()
+				})
+				return
+			}
+
 			const idx = selectedParams.findIndex((p) => p.value === param.value)
 			if (idx < 0) return
 			const query = csvQueries[idx]
@@ -665,6 +922,8 @@ export function ChartDatasetModal({
 			})
 		},
 		[
+			isCategoryMode,
+			csvText,
 			csvQueries,
 			selectedParams,
 			activePreviewValue,
@@ -683,6 +942,10 @@ export function ChartDatasetModal({
 	)
 
 	const handleDownload = useCallback(() => {
+		if (isCategoryMode) {
+			handleDownloadCombined()
+			return
+		}
 		if (selectedParams.length === 0) return
 		if (selectedParams.length === 1) {
 			if (!selectedParam) return
@@ -717,6 +980,7 @@ export function ChartDatasetModal({
 		}
 		handleDownloadCombined()
 	}, [
+		isCategoryMode,
 		selectedParams,
 		selectedParam,
 		selectedCount,
@@ -740,7 +1004,8 @@ export function ChartDatasetModal({
 				selectedParams,
 				selectedColumns: cols,
 				sort: sortState,
-				dateRange
+				dateRange,
+				categoryBreakdown: isCategoryMode && selectedCategory ? { category: selectedCategory } : null
 			})
 			saveDownload(
 				{
@@ -754,21 +1019,32 @@ export function ChartDatasetModal({
 			setShowSaveDialog(false)
 			toast.success(`Saved preset "${name}"`)
 		},
-		[dataset.slug, headers, selectedParams, cols, sortState, dateRange, saveDownload]
+		[dataset.slug, headers, selectedParams, cols, sortState, dateRange, isCategoryMode, selectedCategory, saveDownload]
 	)
 
 	const suggestedPresetName = useMemo(() => {
-		if (selectedParams.length === 0) return ''
+		if (!isCategoryMode && selectedParams.length === 0) return ''
 		const configBase = extractChartConfig({
 			slug: dataset.slug,
 			headers,
 			selectedParams,
 			selectedColumns: cols,
 			sort: sortState,
-			dateRange
+			dateRange,
+			categoryBreakdown: isCategoryMode && selectedCategory ? { category: selectedCategory } : null
 		})
 		return defaultPresetName(configBase, dataset.name)
-	}, [dataset.slug, dataset.name, headers, selectedParams, cols, sortState, dateRange])
+	}, [
+		dataset.slug,
+		dataset.name,
+		headers,
+		selectedParams,
+		cols,
+		sortState,
+		dateRange,
+		isCategoryMode,
+		selectedCategory
+	])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
@@ -799,6 +1075,16 @@ export function ChartDatasetModal({
 		: `${sortedRows.length.toLocaleString()} rows`
 
 	const headerSubtitle = (() => {
+		if (isCategoryMode) {
+			if (dataLoading) return `Loading ${selectedCategory} breakdown...`
+			if (dataError) return 'Error'
+			if (headers.length > 0) {
+				const protocolCols = Math.max(0, headers.length - 1)
+				const selectedProtocolCols = Math.max(0, selectedCount - (headers.includes('date') ? 1 : 0))
+				return `${rowsCountLabel} · ${selectedProtocolCols}/${protocolCols} protocols · ${selectedCategory}`
+			}
+			return `${selectedParams.length} protocols in ${selectedCategory}`
+		}
 		if (!hasSelection) {
 			return `Select ${dataset.paramLabel.toLowerCase()}(s) to preview`
 		}
@@ -817,10 +1103,13 @@ export function ChartDatasetModal({
 		return ''
 	})()
 
-	const downloadLabel = isBulk ? 'Download Combined' : 'Download'
+	const downloadLabel = isCategoryMode ? 'Download' : isBulk ? 'Download Combined' : 'Download'
 	const topBarDownloadDisabled = (() => {
 		if (isPreview) return false
 		if (!hasSelection) return true
+		if (isCategoryMode) {
+			return dataLoading || !csvText || selectedCount === 0
+		}
 		if (isBulk) {
 			return loadingCount === selectedParams.length || readyCount === 0
 		}
@@ -917,7 +1206,7 @@ export function ChartDatasetModal({
 								onToggle={handleToggleParam}
 								onClearAll={handleClearParams}
 								onAddMultiple={handleAddMultipleParams}
-								maxSelections={MAX_PARAMS}
+								maxSelections={maxSelections}
 							/>
 
 							{hasSelection && !isPreview ? (
@@ -972,7 +1261,7 @@ export function ChartDatasetModal({
 
 					<div className="flex min-h-0 flex-1">
 						<div className="relative flex min-w-0 flex-1 flex-col">
-							{!selectedParam ? (
+							{!hasPreviewTarget ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
 										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
@@ -1413,7 +1702,9 @@ function MultiOptionPickerPopover({
 			>
 				<div className="flex items-center justify-between gap-2 border-b border-(--divider) px-3 py-2">
 					<span className="text-xs font-medium text-(--text-secondary)">
-						{selected.length}/{maxSelections} selected
+						{Number.isFinite(maxSelections)
+							? `${selected.length}/${maxSelections} selected`
+							: `${selected.length} selected`}
 					</span>
 					<div className="flex items-center gap-2">
 						{canAddAll ? (

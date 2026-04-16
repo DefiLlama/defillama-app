@@ -8,6 +8,8 @@ import {
 } from '~/constants'
 import { slug as toSlug } from '~/utils'
 
+export type CategoryBreakdownKind = { kind: 'tvl' } | { kind: 'dimension'; adapterType: string; dataType?: string }
+
 export interface ChartDatasetDefinition {
 	slug: string
 	name: string
@@ -20,6 +22,7 @@ export interface ChartDatasetDefinition {
 	buildUrl: (param: string) => string
 	extractRows: (json: any) => Array<Record<string, unknown>>
 	customFetch?: (param: string) => Promise<Array<Record<string, unknown>>>
+	categoryBreakdown?: CategoryBreakdownKind
 }
 
 const OVERVIEW_QS = 'excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true'
@@ -277,7 +280,8 @@ function makeDimensionProtocolChart(opts: {
 		optionsUrl: `${SERVER_URL}/overview/${opts.adapterType}?${OVERVIEW_QS}${dtParam}`,
 		extractOptions: extractOverviewProtocolOptions,
 		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/${opts.adapterType}/protocol/${param}${dtChartParam}`,
-		extractRows: extractTimestampValuePairs
+		extractRows: extractTimestampValuePairs,
+		categoryBreakdown: { kind: 'dimension', adapterType: opts.adapterType, dataType: opts.dataType }
 	}
 }
 
@@ -562,7 +566,8 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		optionsUrl: `${SERVER_URL}/lite/protocols2?b=2`,
 		extractOptions: extractLiteProtocolOptions,
 		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/tvl/protocol/${param}`,
-		extractRows: extractTimestampValuePairs
+		extractRows: extractTimestampValuePairs,
+		categoryBreakdown: { kind: 'tvl' }
 	},
 	{
 		slug: 'protocol-active-loans-chart',
