@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { IProtocolRaise } from '~/containers/ProtocolOverview/api.types'
+import { formatRaiseAmount } from '~/containers/Raises/utils'
 import { formattedNum } from '~/utils'
 import type { ITokenRightsData, ITokenRightsParsedLink } from './api.types'
 
@@ -62,8 +63,10 @@ export function TokenRightsByProtocol({
 		alignment.associatedEntities.length > 0 ||
 		alignment.ipAndBrand !== null ||
 		alignment.domain !== null ||
-		alignment.equityStatement !== null ||
 		alignment.links.length > 0
+
+	const hasPrimaryValueAccrual = valueAccrual.primary !== null || valueAccrual.details !== null
+	const hasEquityStatement = alignment.equityStatement !== null
 
 	return (
 		<div className="grid grid-cols-1 gap-2">
@@ -100,15 +103,15 @@ export function TokenRightsByProtocol({
 				)
 			) : null}
 
-			<div className="grid gap-2 xl:grid-cols-2">
+			<div className="grid gap-3 xl:grid-cols-2">
 				{/* ── Left column ── */}
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-col gap-3">
 					{/* Overview */}
 					<SectionCard title="Overview">
 						<dl className="divide-y divide-(--cards-border) empty:hidden">
 							{overview.tokens.length > 0 ? (
 								<KeyValueRow label="Token(s)">
-									<span className="text-right text-sm">{overview.tokens.join(', ')}</span>
+									<PillList items={overview.tokens} category="tokens" highlight />
 								</KeyValueRow>
 							) : null}
 							{overview.tokenTypes.length > 0 ? (
@@ -118,7 +121,7 @@ export function TokenRightsByProtocol({
 							) : null}
 							{overview.utility !== null ? (
 								<KeyValueRow label="Utility">
-									<span className="text-sm">{overview.utility}</span>
+									<PillList items={[overview.utility]} category="utility" />
 								</KeyValueRow>
 							) : null}
 						</dl>
@@ -214,7 +217,30 @@ export function TokenRightsByProtocol({
 				</div>
 
 				{/* ── Right column ── */}
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-col gap-3">
+					{hasPrimaryValueAccrual ? (
+						<GreenCard
+							title="Primary Value Accrual"
+							tooltip="The main mechanism by which value accrues to token holders"
+						>
+							{valueAccrual.primary !== null ? (
+								<span className="text-xs font-semibold tracking-wider uppercase">{valueAccrual.primary}</span>
+							) : null}
+							{valueAccrual.details !== null ? (
+								<p className="text-sm text-(--text-secondary)">{valueAccrual.details}</p>
+							) : null}
+						</GreenCard>
+					) : null}
+
+					{hasEquityStatement ? (
+						<GreenCard
+							title="Equity Statement"
+							tooltip="Protocol statement on the relationship between equity and token holders, and how value ultimately flows or may flow in the future"
+						>
+							<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
+						</GreenCard>
+					) : null}
+
 					{/* Economic Rights & Value Accrual */}
 					<SectionCard title="Economic Rights" badge="Value Capture">
 						{economic.summary !== null ? <p className="text-sm text-(--text-secondary)">{economic.summary}</p> : null}
@@ -235,16 +261,6 @@ export function TokenRightsByProtocol({
 							status={valueAccrual.burns.status}
 							details={valueAccrual.burns.details}
 						/>
-						{valueAccrual.primary !== null || valueAccrual.details !== null ? (
-							<QuotedBlock title="Primary Value Accrual">
-								{valueAccrual.primary !== null ? (
-									<span className="text-sm font-semibold">{valueAccrual.primary}</span>
-								) : null}
-								{valueAccrual.details !== null ? (
-									<p className="text-sm text-(--text-secondary)">{valueAccrual.details}</p>
-								) : null}
-							</QuotedBlock>
-						) : null}
 						<InlineLinks links={economic.links} />
 					</SectionCard>
 
@@ -275,20 +291,15 @@ export function TokenRightsByProtocol({
 								) : null}
 								{alignment.ipAndBrand !== null ? (
 									<KeyValueRow label="IP & Brand" tooltip={TOOLTIPS['IP & Brand']}>
-										<span className="text-right text-sm">{alignment.ipAndBrand}</span>
+										<PillList items={[alignment.ipAndBrand]} category="ipAndBrand" />
 									</KeyValueRow>
 								) : null}
 								{alignment.domain !== null ? (
 									<KeyValueRow label="Domain" tooltip={TOOLTIPS['Domain']}>
-										<span className="text-right text-sm">{alignment.domain}</span>
+										<PillList items={[alignment.domain]} category="domain" />
 									</KeyValueRow>
 								) : null}
 							</dl>
-							{alignment.equityStatement !== null ? (
-								<QuotedBlock title="Equity Statement">
-									<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
-								</QuotedBlock>
-							) : null}
 							<InlineLinks links={alignment.links} />
 						</SectionCard>
 					) : null}
@@ -319,7 +330,7 @@ function toneClasses(tone: StatusTone) {
 
 function SectionCard({ title, badge, children }: { title: string; badge?: string; children: ReactNode }) {
 	return (
-		<section className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+		<section className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 			<div className="flex items-center justify-between">
 				<h2 className="text-base font-semibold">{title}</h2>
 				{badge ? (
@@ -331,9 +342,24 @@ function SectionCard({ title, badge, children }: { title: string; badge?: string
 	)
 }
 
+function GreenCard({ title, tooltip, children }: { title: string; tooltip: string; children: ReactNode }) {
+	return (
+		<section className="flex flex-col gap-3 rounded-md border border-green-600/30 bg-green-600/10 p-3">
+			<Tooltip
+				content={tooltip}
+				render={<h2 />}
+				className="w-fit text-base font-semibold text-green-700 underline decoration-dotted dark:text-green-400"
+			>
+				{title}
+			</Tooltip>
+			{children}
+		</section>
+	)
+}
+
 function KeyValueRow({ label, tooltip, children }: { label: string; tooltip?: string; children: ReactNode }) {
 	return (
-		<div className="flex items-center justify-between gap-4 py-2">
+		<div className="flex items-center justify-between gap-4 py-2.5">
 			{tooltip ? (
 				<Tooltip
 					content={tooltip}
@@ -371,9 +397,7 @@ function PillList({ items, category, highlight }: { items: string[]; category: s
 
 function StatusBadge({ label, tone }: { label: string; tone: StatusTone }) {
 	return (
-		<span
-			className={`inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-medium ${toneClasses(tone)}`}
-		>
+		<span className={`inline-flex w-fit items-center rounded-full border px-2.5 py-0.5 text-sm ${toneClasses(tone)}`}>
 			{label}
 		</span>
 	)
@@ -399,15 +423,6 @@ function InlineLinks({ links }: { links: ITokenRightsParsedLink[] }) {
 	)
 }
 
-function QuotedBlock({ title, children }: { title: string; children: ReactNode }) {
-	return (
-		<aside className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-			<h3 className="text-xs font-medium tracking-wider text-(--text-label) uppercase">{title}</h3>
-			{children}
-		</aside>
-	)
-}
-
 // ---------------------------------------------------------------------------
 // Domain-specific rows
 // ---------------------------------------------------------------------------
@@ -428,14 +443,14 @@ function DecisionRow({
 	details: string | null
 }) {
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-white/2 p-3 dark:bg-white/3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				{tooltip ? (
-					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-bold underline decoration-dotted">
 						{label}
 					</Tooltip>
 				) : (
-					<h3 className="text-sm font-semibold">{label}</h3>
+					<h3 className="text-sm font-bold">{label}</h3>
 				)}
 				<PillList items={tokens} category={label} highlight />
 			</div>
@@ -457,14 +472,14 @@ function TokenActionRow({
 }) {
 	const isNA = isNATokens(tokens)
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-white/2 p-3 dark:bg-white/3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				{tooltip ? (
-					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-bold underline decoration-dotted">
 						{label}
 					</Tooltip>
 				) : (
-					<h3 className="text-sm font-semibold">{label}</h3>
+					<h3 className="text-sm font-bold">{label}</h3>
 				)}
 				{isNA ? <StatusBadge label="N/A" tone="neutral" /> : <PillList items={tokens} category={label} highlight />}
 			</div>
@@ -476,14 +491,14 @@ function TokenActionRow({
 function BurnsRow({ tooltip, status, details }: { tooltip?: string; status: string; details: string | null }) {
 	const tone: StatusTone = status === 'Active' ? 'positive' : 'neutral'
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-white/2 p-3 dark:bg-white/3">
 			<div className="flex items-center justify-between gap-2">
 				{tooltip ? (
-					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-bold underline decoration-dotted">
 						Burns
 					</Tooltip>
 				) : (
-					<h3 className="text-sm font-semibold">Burns</h3>
+					<h3 className="text-sm font-bold">Burns</h3>
 				)}
 				<StatusBadge label={status} tone={tone} />
 			</div>
@@ -495,14 +510,14 @@ function BurnsRow({ tooltip, status, details }: { tooltip?: string; status: stri
 function FeeSwitchRow({ tooltip, status, details }: { tooltip?: string; status: string; details: string | null }) {
 	const tone = feeSwitchTone(status)
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-white/2 p-3 dark:bg-white/3">
 			<div className="flex items-center justify-between gap-2">
 				{tooltip ? (
-					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-bold underline decoration-dotted">
 						Fee Switch
 					</Tooltip>
 				) : (
-					<h3 className="text-sm font-semibold">Fee Switch</h3>
+					<h3 className="text-sm font-bold">Fee Switch</h3>
 				)}
 				<StatusBadge label={status} tone={tone} />
 			</div>
@@ -515,7 +530,7 @@ function RaiseHistorySection({ tooltip, raises }: { tooltip?: string; raises: IP
 	const totalAmount = raises.reduce((sum, r) => sum + (r.amount || 0), 0)
 
 	return (
-		<div className="flex flex-col gap-2">
+		<div className="flex flex-col gap-3">
 			<div className="flex items-center justify-between">
 				{tooltip ? (
 					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
@@ -532,46 +547,49 @@ function RaiseHistorySection({ tooltip, raises }: { tooltip?: string; raises: IP
 				<table className="w-full text-left text-sm">
 					<thead>
 						<tr className="border-b border-(--cards-border) text-xs font-medium tracking-wider text-(--text-label) uppercase">
-							<th className="pr-4 pb-2">Date</th>
-							<th className="pr-4 pb-2 text-right">Amount</th>
-							<th className="pr-4 pb-2">Round</th>
-							<th className="pr-4 pb-2">Lead Investor</th>
-							<th className="pr-4 pb-2 text-right">Valuation</th>
-							<th className="w-8 pb-2" />
+							<th className="pr-4 pb-3">Date</th>
+							<th className="pr-4 pb-3 text-right">Amount</th>
+							<th className="pr-4 pb-3">Round</th>
+							<th className="pr-4 pb-3 text-right">Valuation</th>
+							<th className="w-8 pb-3" />
 						</tr>
 					</thead>
 					<tbody>
-						{raises.map((r, i) => (
-							<tr key={`${r.date}-${r.round}-${i}`} className="border-b border-(--cards-border) last:border-0">
-								<td className="py-2 pr-4 whitespace-nowrap">
-									{r.date
-										? new Date(r.date * 1000).toLocaleDateString(undefined, {
-												day: '2-digit',
-												month: 'short',
-												year: 'numeric'
-											})
-										: '—'}
-								</td>
-								<td className="py-2 pr-4 text-right font-jetbrains whitespace-nowrap tabular-nums">
-									{r.amount ? formattedNum(r.amount * 1_000_000, true) : '—'}
-								</td>
-								<td className="py-2 pr-4 whitespace-nowrap">{r.round || '—'}</td>
-								<td className="py-2 pr-4 whitespace-nowrap">{r.leadInvestors?.join(', ') || '—'}</td>
-								<td className="py-2 pr-4 text-right whitespace-nowrap">{r.valuation || '—'}</td>
-								<td className="py-2">
-									{r.source ? (
-										<a
-											href={r.source}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="text-(--text-secondary) hover:text-(--text-primary)"
-										>
-											<Icon name="external-link" className="h-3.5 w-3.5" />
-										</a>
-									) : null}
-								</td>
-							</tr>
-						))}
+						{raises.map((r, i) => {
+							const valuation = formatRaiseAmount(r.valuation)
+							return (
+								<tr key={`${r.date}-${r.round}-${i}`} className="border-b border-(--cards-border) last:border-0">
+									<td className="py-2.5 pr-4 whitespace-nowrap">
+										{r.date
+											? new Date(r.date * 1000).toLocaleDateString(undefined, {
+													day: '2-digit',
+													month: 'short',
+													year: 'numeric'
+												})
+											: '—'}
+									</td>
+									<td className="py-2.5 pr-4 text-right font-jetbrains whitespace-nowrap tabular-nums">
+										{r.amount ? formattedNum(r.amount * 1_000_000, true) : '—'}
+									</td>
+									<td className="py-2.5 pr-4 whitespace-nowrap">{r.round || '—'}</td>
+									<td className="py-2.5 pr-4 text-right font-jetbrains whitespace-nowrap tabular-nums">
+										{valuation != null ? formattedNum(valuation, true) : '—'}
+									</td>
+									<td className="py-2.5">
+										{r.source ? (
+											<a
+												href={r.source}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-(--text-secondary) hover:text-(--text-primary)"
+											>
+												<Icon name="external-link" className="h-3.5 w-3.5" />
+											</a>
+										) : null}
+									</td>
+								</tr>
+							)
+						})}
 					</tbody>
 				</table>
 			</div>
