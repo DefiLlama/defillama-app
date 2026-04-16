@@ -37,6 +37,7 @@ import {
 	aggregateRwaMetricData,
 	appendRwaChartDatasetTotal,
 	applyDefaultAssetFilters,
+	buildRwaOpenInterestDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import {
@@ -47,8 +48,9 @@ import {
 } from './constants'
 import { definitions } from './definitions'
 import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
-import { fetchRWAPerpsCurrent } from './Perps/api'
-import type { IRWAPerpsMarket } from './Perps/api.types'
+import { fetchRWAPerpsContractBreakdownChartData, fetchRWAPerpsCurrent } from './Perps/api'
+import type { IRWAPerpsBreakdownChartResponse, IRWAPerpsMarket } from './Perps/api.types'
+import { toRWAPerpsBreakdownChartDataset } from './Perps/breakdownDataset'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
@@ -236,16 +238,21 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					: 'chain'
 		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
 
-		const [data, perpsMarkets, chartData]: [Array<IFetchedRWAProject>, IRWAPerpsMarket[], IRWAChartDataByAsset | null] =
-			await Promise.all([
-				fetchRWAActiveTVLs(),
-				fetchRWAPerpsCurrent(),
-				fetchRWAChartDataByAsset({
-					target,
-					includeStablecoins: defaultInclusion.includeStablecoins,
-					includeGovernance: defaultInclusion.includeGovernance
-				})
-			])
+		const [data, perpsMarkets, chartData, openInterestChartRows]: [
+			Array<IFetchedRWAProject>,
+			IRWAPerpsMarket[],
+			IRWAChartDataByAsset | null,
+			IRWAPerpsBreakdownChartResponse | null
+		] = await Promise.all([
+			fetchRWAActiveTVLs(),
+			fetchRWAPerpsCurrent(),
+			fetchRWAChartDataByAsset({
+				target,
+				includeStablecoins: defaultInclusion.includeStablecoins,
+				includeGovernance: defaultInclusion.includeGovernance
+			}),
+			selectedChain ? Promise.resolve(null) : fetchRWAPerpsContractBreakdownChartData({ key: 'openInterest' })
+		])
 
 		assert(data, 'Failed to get RWA assets list')
 		assert(perpsMarkets, 'Failed to get RWA perps markets')
@@ -730,6 +737,10 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					)
 				}
 			: null
+		const initialOpenInterestChartDataset =
+			selectedChain || openInterestChartRows == null
+				? null
+				: buildRwaOpenInterestDataset(defaultFilteredAssets, toRWAPerpsBreakdownChartDataset(openInterestChartRows))
 
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
@@ -818,6 +829,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				}
 			},
 			initialChartDataset,
+			initialOpenInterestChartDataset,
 			chainSlug: selectedChain ?? null,
 			categorySlug: selectedCategory ?? null,
 			platformSlug: selectedPlatform ?? null,

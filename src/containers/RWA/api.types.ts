@@ -210,6 +210,7 @@ export interface IRWAAssetsOverview {
 		}
 	}
 	initialChartDataset: IRWAInitialChartDataset | null
+	initialOpenInterestChartDataset: IRWAInitialTimeSeriesDataset | null
 	chainSlug: string | null
 	categorySlug: string | null
 	platformSlug: string | null
@@ -217,6 +218,10 @@ export interface IRWAAssetsOverview {
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+export type IRWAInitialTimeSeriesDataset = {
+	source: IRWAInitialChartDatasetRow[]
+	dimensions: string[]
+}
 export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
 export type RWAAssetChartTarget =
@@ -226,10 +231,7 @@ export type RWAAssetChartTarget =
 	| { kind: 'platform'; slug: string }
 	| { kind: 'assetGroup'; slug: string }
 
-export type IRWAInitialChartDataset = Record<
-	RWAChartMetricKey,
-	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
->
+export type IRWAInitialChartDataset = Record<RWAChartMetricKey, IRWAInitialTimeSeriesDataset>
 
 export interface IRWAChartDataByAsset {
 	onChainMcap: IRWAChartMetricRows

@@ -5,6 +5,7 @@ import type { IRWAAssetsOverview } from './api.types'
 import type { RWAChartAggregationMode } from './chartAggregation'
 import {
 	getRwaAssetChartQueryKey,
+	getRwaOpenInterestChartQueryKey,
 	hasActiveChartFilters,
 	resolveRWAOverviewInclusionFlag,
 	useRWAAssetCategoryPieChartData,
@@ -123,25 +124,33 @@ function DatasetProbe({
 	mode,
 	chartAssets = assets,
 	initialDataset = { source: [], dimensions: ['timestamp'] },
+	initialOpenInterestDataset = null,
+	selectedMetric = 'onChainMcap',
 	includeStablecoins = false,
 	includeGovernance = false,
+	includeRwaPerps = false,
 	useInitialDataset = false
 }: {
 	mode: RWAChartAggregationMode
 	chartAssets?: IRWAAssetsOverview['assets']
 	initialDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] }
+	initialOpenInterestDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] } | null
+	selectedMetric?: 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 	includeStablecoins?: boolean
 	includeGovernance?: boolean
+	includeRwaPerps?: boolean
 	useInitialDataset?: boolean
 }) {
 	const { chartDataset } = useRwaChartDataset({
-		selectedMetric: 'onChainMcap',
+		selectedMetric,
 		initialDataset,
+		initialOpenInterestDataset,
 		filteredAssets: chartAssets,
 		mode,
 		target: { kind: 'all' },
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		useInitialDataset
 	})
 
@@ -237,10 +246,23 @@ describe('useRwaChartDataset', () => {
 	beforeEach(() => {
 		useQueryMock.mockReset()
 		fetchJsonMock.mockReset()
-		useQueryMock.mockReturnValue({
-			data: [{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 80 }],
-			isLoading: false,
-			error: null
+		useQueryMock.mockImplementation((options: { queryKey: unknown[] }) => {
+			if (options.queryKey[0] === 'rwa-perps-open-interest-chart') {
+				return {
+					data: {
+						source: [{ timestamp: 1, 'xyz:alpha': 20, 'xyz:beta': 10 }],
+						dimensions: ['timestamp', 'xyz:alpha', 'xyz:beta']
+					},
+					isLoading: false,
+					error: null
+				}
+			}
+
+			return {
+				data: [{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 80 }],
+				isLoading: false,
+				error: null
+			}
 		})
 		fetchJsonMock.mockResolvedValue([{ timestamp: 1, 'ondo/usdy': 100, 'superstate/ustb': 80 }])
 	})
@@ -250,15 +272,16 @@ describe('useRwaChartDataset', () => {
 		const platformMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'platform' }))
 		const totalMarkup = renderToStaticMarkup(React.createElement(DatasetProbe, { mode: 'total' }))
 
-		expect(categoryMarkup).toContain('timestamp|Total|Treasuries|Private Credit')
-		expect(platformMarkup).toContain('timestamp|Total|Centrifuge|Maple')
-		expect(totalMarkup).toContain('timestamp|Total')
-		expect(useQueryMock).toHaveBeenCalledTimes(3)
+		expect(categoryMarkup).toContain('timestamp|Total Onchain Mcap|Treasuries|Private Credit')
+		expect(platformMarkup).toContain('timestamp|Total Onchain Mcap|Centrifuge|Maple')
+		expect(totalMarkup).toContain('timestamp|Total Onchain Mcap')
+		expect(useQueryMock).toHaveBeenCalledTimes(6)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
-			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
+			queryKey: getRwaOpenInterestChartQueryKey(),
+			enabled: false
 		})
 		expect(useQueryMock.mock.calls[2][0]).toMatchObject({
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
@@ -273,6 +296,10 @@ describe('useRwaChartDataset', () => {
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false)
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaOpenInterestChartQueryKey(),
+			enabled: false
+		})
+		expect(useQueryMock.mock.calls[2][0]).toMatchObject({
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', true, false)
 		})
 	})
@@ -295,14 +322,16 @@ describe('useRwaChartDataset', () => {
 			React.createElement(DatasetProbe, { mode: 'category', chartAssets: multiCategoryAssets })
 		)
 
-		expect(markup).toContain('timestamp|Total|Treasuries')
+		expect(markup).toContain('timestamp|Total Onchain Mcap|Treasuries')
 		expect(markup).not.toContain('Private Credit')
 	})
 
 	it('passes the resolved inclusion flags to the asset-breakdown fetcher', async () => {
 		let capturedOptions: { queryFn: () => Promise<unknown> } | undefined
-		useQueryMock.mockImplementation((options: { queryFn: () => Promise<unknown> }) => {
-			capturedOptions = options
+		useQueryMock.mockImplementation((options: { queryKey: unknown[]; queryFn: () => Promise<unknown> }) => {
+			if (options.queryKey[0] === 'rwa-asset-chart') {
+				capturedOptions = options
+			}
 			return {
 				data: undefined,
 				isLoading: false,
@@ -343,10 +372,52 @@ describe('useRwaChartDataset', () => {
 			})
 		)
 
-		expect(markup).toContain('timestamp|Total|Prerendered')
-		expect(useQueryMock).toHaveBeenCalledTimes(1)
+		expect(markup).toContain('timestamp|Total Onchain Mcap|Prerendered')
+		expect(useQueryMock).toHaveBeenCalledTimes(2)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),
+			enabled: false
+		})
+		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaOpenInterestChartQueryKey(),
+			enabled: false
+		})
+	})
+
+	it('uses the prerendered RWA Perps OI dataset without runtime fetching in the default state', () => {
+		useQueryMock.mockImplementation((options: { queryKey: unknown[] }) => ({
+			data: undefined,
+			isLoading: false,
+			error: null,
+			queryKey: options.queryKey
+		}))
+
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, {
+				mode: 'category',
+				chartAssets: [createSpotAsset(), createPerpsAsset()],
+				initialDataset: {
+					source: [{ timestamp: 1, Treasuries: 100, Total: 100 }],
+					dimensions: ['timestamp', 'Treasuries']
+				},
+				initialOpenInterestDataset: {
+					source: [{ timestamp: 1, 'RWA Perps OI': 25 }],
+					dimensions: ['timestamp', 'RWA Perps OI']
+				},
+				selectedMetric: 'activeMcap',
+				includeRwaPerps: true,
+				useInitialDataset: true
+			})
+		)
+
+		expect(markup).toContain('timestamp|Total Active Mcap|Treasuries|RWA Perps OI')
+		expect(useQueryMock).toHaveBeenCalledTimes(2)
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'activeMcap', false, false),
+			enabled: false
+		})
+		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaOpenInterestChartQueryKey(),
 			enabled: false
 		})
 	})
@@ -369,11 +440,43 @@ describe('useRwaChartDataset', () => {
 			})
 		)
 
-		expect(markup).toContain('timestamp|Total')
-		expect(useQueryMock).toHaveBeenCalledTimes(1)
+		expect(markup).toContain('timestamp|Total Onchain Mcap')
+		expect(useQueryMock).toHaveBeenCalledTimes(2)
 		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
 			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'onChainMcap', false, false),
 			enabled: false
+		})
+		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaOpenInterestChartQueryKey(),
+			enabled: false
+		})
+	})
+
+	it('overlays filtered RWA Perps OI on the selected chart metric', () => {
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, {
+				mode: 'category',
+				chartAssets: [
+					createSpotAsset({
+						onChainMcap: { total: 100, breakdown: [] },
+						category: ['Treasuries'],
+						parentPlatform: 'Centrifuge'
+					}),
+					createPerpsAsset({ contract: 'xyz:alpha', category: ['Treasuries'], parentPlatform: 'Centrifuge' })
+				],
+				selectedMetric: 'defiActiveTvl',
+				includeRwaPerps: true
+			})
+		)
+
+		expect(markup).toContain('timestamp|Total DeFi Active TVL|Treasuries|RWA Perps OI')
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaAssetChartQueryKey({ kind: 'all' }, 'defiActiveTvl', false, false),
+			enabled: true
+		})
+		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
+			queryKey: getRwaOpenInterestChartQueryKey(),
+			enabled: true
 		})
 	})
 })
@@ -395,6 +498,7 @@ describe('hasActiveChartFilters', () => {
 		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, 'category', 'rwa-yield-wrapper')).toBe(false)
 		expect(hasActiveChartFilters({ includeGovernance: 'true' }, 'category', 'rwa-yield-wrapper')).toBe(false)
 		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, 'chain', null)).toBe(false)
+		expect(hasActiveChartFilters({ includeRwaPerps: 'false' }, 'chain', null)).toBe(false)
 	})
 
 	it('treats inclusion params as active when they override the current defaults', () => {

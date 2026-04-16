@@ -11,6 +11,7 @@ const fetchRWAAssetGroupBreakdownChartDataMock = vi.fn()
 const fetchRWAAssetDataByIdMock = vi.fn()
 const fetchRWAAssetChartDataMock = vi.fn()
 const fetchRWAPerpsCurrentMock = vi.fn()
+const fetchRWAPerpsContractBreakdownChartDataMock = vi.fn()
 
 vi.mock('./api', () => ({
 	fetchRWAActiveTVLs: (...args: unknown[]) => fetchRWAActiveTVLsMock(...args),
@@ -26,7 +27,8 @@ vi.mock('./api', () => ({
 }))
 
 vi.mock('./Perps/api', () => ({
-	fetchRWAPerpsCurrent: (...args: unknown[]) => fetchRWAPerpsCurrentMock(...args)
+	fetchRWAPerpsCurrent: (...args: unknown[]) => fetchRWAPerpsCurrentMock(...args),
+	fetchRWAPerpsContractBreakdownChartData: (...args: unknown[]) => fetchRWAPerpsContractBreakdownChartDataMock(...args)
 }))
 
 describe('rwa queries', () => {
@@ -41,6 +43,7 @@ describe('rwa queries', () => {
 		fetchRWAAssetDataByIdMock.mockReset()
 		fetchRWAAssetChartDataMock.mockReset()
 		fetchRWAPerpsCurrentMock.mockReset()
+		fetchRWAPerpsContractBreakdownChartDataMock.mockReset()
 		fetchRWAChartDataByAssetMock.mockResolvedValue(null)
 		fetchRWAChainBreakdownChartDataMock.mockResolvedValue([])
 		fetchRWACategoryBreakdownChartDataMock.mockResolvedValue([])
@@ -49,6 +52,7 @@ describe('rwa queries', () => {
 		fetchRWAAssetDataByIdMock.mockResolvedValue(null)
 		fetchRWAAssetChartDataMock.mockResolvedValue(null)
 		fetchRWAPerpsCurrentMock.mockResolvedValue([])
+		fetchRWAPerpsContractBreakdownChartDataMock.mockResolvedValue([])
 	})
 
 	it('excludes assets tagged as RWA Perps from the standard rwa overview', async () => {
@@ -156,6 +160,7 @@ describe('rwa queries', () => {
 				estimatedProtocolFeesAllTime: 0
 			}
 		])
+		fetchRWAPerpsContractBreakdownChartDataMock.mockResolvedValue([{ timestamp: 1_000, 'xyz:usdy': 10 }])
 
 		const result = await getRWAAssetsOverview({
 			rwaList: {
@@ -182,6 +187,10 @@ describe('rwa queries', () => {
 			onChainMcap: null,
 			activeMcap: null,
 			defiActiveTvl: null
+		})
+		expect(result?.initialOpenInterestChartDataset).toEqual({
+			source: [{ timestamp: 1_000_000, 'RWA Perps OI': 10 }],
+			dimensions: ['timestamp', 'RWA Perps OI']
 		})
 		expect(result?.types).toContain('Perp')
 		expect(result?.platforms).toContain('Ondo')

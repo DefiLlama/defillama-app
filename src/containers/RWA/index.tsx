@@ -193,11 +193,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
 		selectedMetric: chartTypeKey,
 		initialDataset: initialChartDataset[chartTypeKey],
+		initialOpenInterestDataset: props.initialOpenInterestChartDataset,
 		filteredAssets,
 		mode: getRwaChartAggregationMode(timeSeriesBreakdown),
 		target: chartTarget,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		useInitialDataset:
 			!activeFilters &&
 			(timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries') || timeSeriesBreakdown === 'total')
@@ -815,10 +817,17 @@ function assertNever(value: never): never {
 }
 
 function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
-	const seriesDimensions = dimensions.filter((dimension) => dimension !== 'timestamp')
+	const seriesDimensions = dimensions
+		.filter((dimension) => dimension !== 'timestamp')
+		.sort((a, b) => {
+			const aRank = a.startsWith('Total ') ? 0 : a === 'RWA Perps OI' ? 1 : 2
+			const bRank = b.startsWith('Total ') ? 0 : b === 'RWA Perps OI' ? 1 : 2
+			if (aRank !== bRank) return aRank - bRank
+			return 0
+		})
 
 	return seriesDimensions.map((name, index) => {
-		const isTotalSeries = name === 'Total'
+		const isTotalSeries = name.startsWith('Total ') || name === 'RWA Perps OI'
 
 		return {
 			type: 'line',

@@ -18,7 +18,10 @@ import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	aggregateRwaMetricData,
 	appendRwaChartDatasetTotal,
+	buildRwaOpenInterestDataset,
 	emptyChartDataset,
+	mergeRwaChartDatasets,
+	renameRwaChartDatasetTotal,
 	selectRwaChartDatasetSeries,
 	type RWAChartDataset,
 	type RWAChartAggregationMode
@@ -1253,7 +1256,6 @@ export function hasActiveChartFilters(
 			continue
 		}
 		if (key === 'includeRwaPerps') {
-			if (hasActiveInclusionOverride(query.includeRwaPerps, true)) return true
 			continue
 		}
 		if (key in query) return true
@@ -1275,6 +1277,10 @@ export function getRwaAssetChartQueryKey(
 		includeStablecoins,
 		includeGovernance
 	] as const
+}
+
+export function getRwaOpenInterestChartQueryKey() {
+	return ['rwa-perps-open-interest-chart'] as const
 }
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -1319,23 +1325,31 @@ async function fetchRwaAssetChartData(params: {
 	return fetchJson<IRWAChartMetricRows>(`/api/rwa/asset-breakdown?${searchParams.toString()}`)
 }
 
+async function fetchRwaOpenInterestChartData(): Promise<RWAChartDataset> {
+	return fetchJson<RWAChartDataset>('/api/rwa/perps/contract-breakdown?key=openInterest')
+}
+
 export function useRwaChartDataset({
 	selectedMetric,
 	initialDataset,
+	initialOpenInterestDataset,
 	filteredAssets,
 	mode,
 	target,
 	includeStablecoins,
 	includeGovernance,
+	includeRwaPerps,
 	useInitialDataset
 }: {
 	selectedMetric: RWAChartMetricKey
 	initialDataset: RWAChartDataset
+	initialOpenInterestDataset: RWAChartDataset | null
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
 	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
+	includeRwaPerps: boolean
 	useInitialDataset: boolean
 }): {
 	chartDataset: RWAChartDataset
@@ -1358,25 +1372,62 @@ export function useRwaChartDataset({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: !useInitialDataset
+		enabled: !useInitialDataset && filteredAssets.some((asset) => asset.kind === 'spot')
+	})
+	const {
+		data: openInterestRows,
+		isLoading: isOpenInterestLoading,
+		error: openInterestError
+	} = useQuery({
+		queryKey: getRwaOpenInterestChartQueryKey(),
+		queryFn: () => fetchRwaOpenInterestChartData(),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !useInitialDataset && includeRwaPerps && filteredAssets.some((asset) => asset.kind === 'perps')
 	})
 
 	assert(initialDataset.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 
 	const chartDataset = useMemo(() => {
-		if (useInitialDataset) {
-			return mode === 'total'
-				? selectRwaChartDatasetSeries(initialDataset, ['Total'])
-				: appendRwaChartDatasetTotal(initialDataset)
-		}
-		if (!assetRows) return emptyChartDataset()
-		const dataset = aggregateRwaMetricData(filteredAssets, assetRows, mode)
-		return mode === 'total' ? dataset : appendRwaChartDatasetTotal(dataset)
-	}, [useInitialDataset, initialDataset, assetRows, filteredAssets, mode])
+		const spotDataset = (() => {
+			if (useInitialDataset) {
+				const dataset =
+					mode === 'total'
+						? selectRwaChartDatasetSeries(initialDataset, ['Total'])
+						: appendRwaChartDatasetTotal(initialDataset)
+				return renameRwaChartDatasetTotal(dataset, selectedMetric)
+			}
+			if (!assetRows) return emptyChartDataset()
+			const dataset = aggregateRwaMetricData(filteredAssets, assetRows, mode)
+			const datasetWithTotal = mode === 'total' ? dataset : appendRwaChartDatasetTotal(dataset)
+			return renameRwaChartDatasetTotal(datasetWithTotal, selectedMetric)
+		})()
+
+		if (!includeRwaPerps) return spotDataset
+
+		const openInterestDataset = useInitialDataset
+			? (initialOpenInterestDataset ?? emptyChartDataset())
+			: openInterestRows
+				? buildRwaOpenInterestDataset(filteredAssets, openInterestRows)
+				: emptyChartDataset()
+
+		return mergeRwaChartDatasets(spotDataset, openInterestDataset)
+	}, [
+		useInitialDataset,
+		initialDataset,
+		initialOpenInterestDataset,
+		assetRows,
+		openInterestRows,
+		filteredAssets,
+		mode,
+		selectedMetric,
+		includeRwaPerps
+	])
 
 	return {
 		chartDataset,
-		isChartLoading: !useInitialDataset && isLoading,
-		chartError: error ? getErrorMessage(error) : null
+		isChartLoading: !useInitialDataset && (isLoading || isOpenInterestLoading),
+		chartError: error ? getErrorMessage(error) : openInterestError ? getErrorMessage(openInterestError) : null
 	}
 }
