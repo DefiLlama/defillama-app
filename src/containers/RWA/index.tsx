@@ -57,6 +57,7 @@ import {
 	useRwaChartDataset,
 	hasActiveChartFilters
 } from './hooks'
+import { perpsDefinitions } from './Perps/definitions'
 import { rwaSlug } from './rwaSlug'
 import { buildRwaNestedTreemapTreeData, buildRwaTreemapTreeData, canBuildRwaNestedTreemap } from './treemap'
 
@@ -121,11 +122,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		setDefiActiveTvlToOnChainMcapPctRange,
 		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
+		setIncludeRwaPerps,
 		setRedeemableStates,
 		setAttestationsStates,
 		setCexListedStates,
@@ -147,35 +150,42 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		mode
 	})
 
-	const { filteredAssets, totalOnChainMcap, totalActiveMcap, totalOnChainDeFiActiveTvl, totalIssuersCount } =
-		useFilteredRwaAssets({
-			assets: props.assets,
-			isPlatformMode,
-			selectedAssetNames,
-			selectedCategories,
-			selectedPlatforms,
-			selectedAssetGroups,
-			selectedAssetClasses,
-			selectedRwaClassifications,
-			selectedAccessModels,
-			selectedIssuers,
-			selectedTypes,
-			selectedRedeemableStates,
-			selectedAttestationsStates,
-			selectedCexListedStates,
-			selectedKycForMintRedeemStates,
-			selectedKycAllowlistedWhitelistedToTransferHoldStates,
-			selectedTransferableStates,
-			selectedSelfCustodyStates,
-			includeStablecoins,
-			includeGovernance,
-			minDefiActiveTvlToOnChainMcapPct,
-			maxDefiActiveTvlToOnChainMcapPct,
-			minActiveMcapToOnChainMcapPct,
-			maxActiveMcapToOnChainMcapPct,
-			minDefiActiveTvlToActiveMcapPct,
-			maxDefiActiveTvlToActiveMcapPct
-		})
+	const {
+		filteredAssets,
+		totalOnChainMcap,
+		totalActiveMcap,
+		totalOnChainDeFiActiveTvl,
+		totalOpenInterest,
+		totalIssuersCount
+	} = useFilteredRwaAssets({
+		assets: props.assets,
+		isPlatformMode,
+		selectedAssetNames,
+		selectedCategories,
+		selectedPlatforms,
+		selectedAssetGroups,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		selectedTypes,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
+		includeStablecoins,
+		includeGovernance,
+		includeRwaPerps,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct
+	})
 
 	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
@@ -183,11 +193,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
 		selectedMetric: chartTypeKey,
 		initialDataset: initialChartDataset[chartTypeKey],
+		initialOpenInterestDataset: props.initialOpenInterestChartDataset,
 		filteredAssets,
 		mode: getRwaChartAggregationMode(timeSeriesBreakdown),
 		target: chartTarget,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		useInitialDataset:
 			!activeFilters &&
 			(timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries') || timeSeriesBreakdown === 'total')
@@ -631,7 +643,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					minDefiActiveTvlToActiveMcapPct,
 					maxDefiActiveTvlToActiveMcapPct,
 					includeStablecoins,
-					includeGovernance
+					includeGovernance,
+					includeRwaPerps
 				}}
 				actions={{
 					setDefiActiveTvlToOnChainMcapPctRange,
@@ -639,6 +652,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					setDefiActiveTvlToActiveMcapPctRange,
 					setIncludeStablecoins,
 					setIncludeGovernance,
+					setIncludeRwaPerps,
 					setRedeemableStates,
 					setAttestationsStates,
 					setCexListedStates,
@@ -676,6 +690,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
+				{includeRwaPerps ? (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+						<Tooltip
+							content={perpsDefinitions.totalOpenInterest.description}
+							className="text-(--text-label) underline decoration-dotted"
+						>
+							RWA Perps OI
+						</Tooltip>
+						<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOpenInterest, true)}</span>
+					</p>
+				) : null}
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
 						content={definitions.totalAssetIssuers.description}
@@ -775,7 +800,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					) : null}
 				</>
 			) : null}
-			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} />
+			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} includeRwaPerps={includeRwaPerps} />
 		</>
 	)
 }
@@ -792,10 +817,17 @@ function assertNever(value: never): never {
 }
 
 function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
-	const seriesDimensions = dimensions.filter((dimension) => dimension !== 'timestamp')
+	const seriesDimensions = dimensions
+		.filter((dimension) => dimension !== 'timestamp')
+		.sort((a, b) => {
+			const aRank = a.startsWith('Total ') ? 0 : a === 'RWA Perps OI' ? 1 : 2
+			const bRank = b.startsWith('Total ') ? 0 : b === 'RWA Perps OI' ? 1 : 2
+			if (aRank !== bRank) return aRank - bRank
+			return 0
+		})
 
 	return seriesDimensions.map((name, index) => {
-		const isTotalSeries = name === 'Total'
+		const isTotalSeries = name.startsWith('Total ') || name === 'RWA Perps OI'
 
 		return {
 			type: 'line',

@@ -40,7 +40,7 @@ import {
 	getRWAPerpsTreemapNestedByOptions,
 	getRWAPerpsTreemapNestedByQueryValue,
 	getRWAPerpsChartViewOptions,
-	getRWAPerpsChartViewQueryValue,
+	getRWAPerpsChartViewQueryValueForMode,
 	parseRWAPerpsChartState,
 	setRWAPerpsChartBreakdown,
 	setRWAPerpsTimeSeriesMode,
@@ -873,7 +873,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		const selectedView = (Array.isArray(value) ? value[0] : value) as typeof chartState.view
 		const nextState = setRWAPerpsChartView(chartState, selectedView)
 		void pushShallowQuery(router, {
-			chartView: getRWAPerpsChartViewQueryValue(nextState.view),
+			chartView: getRWAPerpsChartViewQueryValueForMode(props.mode, nextState.view),
 			timeSeriesChartBreakdown:
 				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState) : undefined,
 			nonTimeSeriesChartBreakdown:

@@ -10,6 +10,8 @@ const fetchRWAPlatformBreakdownChartDataMock = vi.fn()
 const fetchRWAAssetGroupBreakdownChartDataMock = vi.fn()
 const fetchRWAAssetDataByIdMock = vi.fn()
 const fetchRWAAssetChartDataMock = vi.fn()
+const fetchRWAPerpsCurrentMock = vi.fn()
+const fetchRWAPerpsContractBreakdownChartDataMock = vi.fn()
 
 vi.mock('./api', () => ({
 	fetchRWAActiveTVLs: (...args: unknown[]) => fetchRWAActiveTVLsMock(...args),
@@ -24,6 +26,11 @@ vi.mock('./api', () => ({
 	toUnixMsTimestamp: (timestamp: number) => timestamp
 }))
 
+vi.mock('./Perps/api', () => ({
+	fetchRWAPerpsCurrent: (...args: unknown[]) => fetchRWAPerpsCurrentMock(...args),
+	fetchRWAPerpsContractBreakdownChartData: (...args: unknown[]) => fetchRWAPerpsContractBreakdownChartDataMock(...args)
+}))
+
 describe('rwa queries', () => {
 	beforeEach(() => {
 		fetchRWAActiveTVLsMock.mockReset()
@@ -35,6 +42,8 @@ describe('rwa queries', () => {
 		fetchRWAAssetGroupBreakdownChartDataMock.mockReset()
 		fetchRWAAssetDataByIdMock.mockReset()
 		fetchRWAAssetChartDataMock.mockReset()
+		fetchRWAPerpsCurrentMock.mockReset()
+		fetchRWAPerpsContractBreakdownChartDataMock.mockReset()
 		fetchRWAChartDataByAssetMock.mockResolvedValue(null)
 		fetchRWAChainBreakdownChartDataMock.mockResolvedValue([])
 		fetchRWACategoryBreakdownChartDataMock.mockResolvedValue([])
@@ -42,6 +51,8 @@ describe('rwa queries', () => {
 		fetchRWAAssetGroupBreakdownChartDataMock.mockResolvedValue([])
 		fetchRWAAssetDataByIdMock.mockResolvedValue(null)
 		fetchRWAAssetChartDataMock.mockResolvedValue(null)
+		fetchRWAPerpsCurrentMock.mockResolvedValue([])
+		fetchRWAPerpsContractBreakdownChartDataMock.mockResolvedValue([])
 	})
 
 	it('excludes assets tagged as RWA Perps from the standard rwa overview', async () => {
@@ -88,6 +99,193 @@ describe('rwa queries', () => {
 		expect(result?.categories).toEqual(['Treasuries'])
 		expect(result?.categoryValues).toEqual([{ name: 'Treasuries', value: 100 }])
 		expect(result?.categoryLinks).toEqual([])
+	})
+
+	it('merges perps contracts into the overview rows', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([
+			{
+				id: 'treasury-1',
+				canonicalMarketId: 'ondo/usdy',
+				ticker: 'USDY',
+				assetName: 'Ondo USDY',
+				category: ['Treasuries'],
+				assetGroup: 'Treasuries',
+				parentPlatform: 'Ondo',
+				onChainMcap: { Ethereum: 100 },
+				activeMcap: { Ethereum: 90 },
+				defiActiveTvl: { Ethereum: { Aave: 20 } }
+			}
+		])
+		fetchRWAPerpsCurrentMock.mockResolvedValue([
+			{
+				id: 'perps-1',
+				timestamp: 1,
+				contract: 'xyz:usdy',
+				venue: 'xyz',
+				openInterest: 10,
+				volume24h: 20,
+				price: 1.01,
+				priceChange24h: 0,
+				fundingRate: 0,
+				premium: 0,
+				cumulativeFunding: 0,
+				referenceAsset: 'Ondo USDY',
+				referenceAssetGroup: 'Treasuries',
+				assetClass: ['Bonds'],
+				parentPlatform: 'Ondo',
+				pair: null,
+				marginAsset: null,
+				settlementAsset: null,
+				category: ['RWA Perps', 'Treasuries'],
+				issuer: 'Ondo',
+				website: null,
+				oracleProvider: null,
+				description: null,
+				accessModel: 'Permissioned',
+				rwaClassification: 'RWA',
+				makerFeeRate: 0,
+				takerFeeRate: 0,
+				deployerFeeShare: 0,
+				oraclePx: 0,
+				midPx: 0,
+				prevDayPx: 0,
+				maxLeverage: 0,
+				szDecimals: 0,
+				volume7d: 0,
+				volume30d: 0,
+				volumeAllTime: 0,
+				estimatedProtocolFees24h: 0,
+				estimatedProtocolFees7d: 0,
+				estimatedProtocolFees30d: 0,
+				estimatedProtocolFeesAllTime: 0
+			}
+		])
+		fetchRWAPerpsContractBreakdownChartDataMock.mockResolvedValue([{ timestamp: 1_000, 'xyz:usdy': 10 }])
+
+		const result = await getRWAAssetsOverview({
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['Treasuries', 'RWA Perps'],
+				platforms: ['Ondo'],
+				assetGroups: ['Treasuries']
+			} as never
+		})
+
+		expect(result?.assets.map((asset) => asset.kind)).toEqual(['spot', 'perps'])
+		expect(result?.assets[0]).toMatchObject({
+			kind: 'spot',
+			detailHref: '/rwa/asset/ondo%2Fusdy'
+		})
+		expect(result?.assets[1]).toMatchObject({
+			kind: 'perps',
+			detailHref: '/rwa/perps/contract/xyz%3Ausdy',
+			assetName: 'Ondo USDY',
+			category: ['Treasuries'],
+			openInterest: 10,
+			volume24h: 20,
+			volume30d: 0,
+			onChainMcap: null,
+			activeMcap: null,
+			defiActiveTvl: null
+		})
+		expect(result?.initialOpenInterestChartDataset).toEqual({
+			source: [{ timestamp: 1_000_000, 'RWA Perps OI': 10 }],
+			dimensions: ['timestamp', 'RWA Perps OI']
+		})
+		expect(result?.types).toContain('Perp')
+		expect(result?.platforms).toContain('Ondo')
+		expect(result?.assetGroups).toContain('Treasuries')
+	})
+
+	it('falls back to the spot overview when the perps markets request fails', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([
+			{
+				id: 'treasury-1',
+				canonicalMarketId: 'ondo/usdy',
+				ticker: 'USDY',
+				assetName: 'Ondo USDY',
+				category: ['Treasuries'],
+				assetGroup: 'Treasuries',
+				parentPlatform: 'Ondo',
+				onChainMcap: { Ethereum: 100 },
+				activeMcap: { Ethereum: 90 },
+				defiActiveTvl: { Ethereum: { Aave: 20 } }
+			}
+		])
+		fetchRWAPerpsCurrentMock.mockRejectedValue(new Error('temporary outage'))
+
+		const result = await getRWAAssetsOverview({
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['Treasuries'],
+				platforms: ['Ondo'],
+				assetGroups: ['Treasuries']
+			} as never
+		})
+
+		expect(result?.assets.map((asset) => asset.kind)).toEqual(['spot'])
+		expect(result?.platforms).toEqual(['Ondo'])
+	})
+
+	it('resolves perps-only platform slugs on platform overview routes', async () => {
+		fetchRWAActiveTVLsMock.mockResolvedValue([])
+		fetchRWAPerpsCurrentMock.mockResolvedValue([
+			{
+				id: 'perps-1',
+				timestamp: 1,
+				contract: 'xyz:gold',
+				venue: 'xyz',
+				openInterest: 10,
+				volume24h: 20,
+				price: 1.01,
+				priceChange24h: 0,
+				fundingRate: 0,
+				premium: 0,
+				cumulativeFunding: 0,
+				referenceAsset: 'Gold',
+				referenceAssetGroup: 'Commodities',
+				assetClass: ['Commodities'],
+				parentPlatform: 'Trade[XYZ]',
+				pair: null,
+				marginAsset: null,
+				settlementAsset: null,
+				category: ['Commodities'],
+				issuer: 'XYZ',
+				website: null,
+				oracleProvider: null,
+				description: null,
+				accessModel: 'Permissionless',
+				rwaClassification: 'RWA',
+				makerFeeRate: 0,
+				takerFeeRate: 0,
+				deployerFeeShare: 0,
+				oraclePx: 0,
+				midPx: 0,
+				prevDayPx: 0,
+				maxLeverage: 0,
+				szDecimals: 0,
+				volume7d: 0,
+				volume30d: 0,
+				volumeAllTime: 0,
+				estimatedProtocolFees24h: 0,
+				estimatedProtocolFees7d: 0,
+				estimatedProtocolFees30d: 0,
+				estimatedProtocolFeesAllTime: 0
+			}
+		])
+
+		const result = await getRWAAssetsOverview({
+			platform: 'trade-xyz',
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['Commodities'],
+				platforms: [],
+				assetGroups: ['Commodities']
+			} as never
+		})
+
+		expect(result?.selectedPlatform).toBe('Trade[XYZ]')
+		expect(result?.assets.map((asset) => asset.kind)).toEqual(['perps'])
 	})
 
 	it('excludes the RWA Perps bucket from category overview rows', async () => {
