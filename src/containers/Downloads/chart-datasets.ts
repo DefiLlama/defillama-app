@@ -116,6 +116,34 @@ const extractLiteProtocolOptions = (json: any): ProtocolOption[] =>
 		(p) => p.name
 	)
 
+function sumBorrowedTvl(chainTvls: unknown): number {
+	if (!chainTvls || typeof chainTvls !== 'object' || Array.isArray(chainTvls)) return 0
+	let total = 0
+	for (const [key, entry] of Object.entries(chainTvls as Record<string, any>)) {
+		if (!key.endsWith('-borrowed')) continue
+		const tvl = entry && typeof entry === 'object' ? Number(entry.tvl) : Number(entry)
+		if (Number.isFinite(tvl) && tvl > 0) total += tvl
+	}
+	return total
+}
+
+const extractActiveLoansProtocolOptions = (json: any): ProtocolOption[] => {
+	const protocols: any[] = json?.protocols ?? []
+	const withBorrowed = protocols.filter((p) => sumBorrowedTvl(p?.chainTvls) > 0)
+	const parentIdsWithBorrowed = new Set<string>()
+	for (const p of withBorrowed) {
+		if (p?.parentProtocol) parentIdsWithBorrowed.add(p.parentProtocol)
+	}
+	const parentProtocols: any[] = Array.isArray(json?.parentProtocols)
+		? json.parentProtocols.filter((pp: any) => parentIdsWithBorrowed.has(pp?.id))
+		: []
+	return groupProtocolOptions(
+		{ protocols: withBorrowed, parentProtocols },
+		(p) => sumBorrowedTvl(p?.chainTvls),
+		(p) => p.name
+	)
+}
+
 const extractOverviewChainOptions = (json: any): Array<{ label: string; value: string }> => {
 	const chains: string[] = json?.allChains ?? []
 	return [
@@ -577,7 +605,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		paramType: 'protocol',
 		paramLabel: 'Protocol',
 		optionsUrl: `${SERVER_URL}/lite/protocols2?b=2`,
-		extractOptions: extractLiteProtocolOptions,
+		extractOptions: extractActiveLoansProtocolOptions,
 		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/tvl/protocol/${param}?key=borrowed`,
 		extractRows: extractTimestampValuePairs
 	},

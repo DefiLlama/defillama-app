@@ -264,13 +264,13 @@ export function ChartDatasetModal({
 	}, [initialConfig, options, dataset.paramLabel, supportsBreakdown])
 
 	const protocolCategories = useMemo(() => {
-		if (dataset.paramType !== 'protocol') return []
+		if (!supportsBreakdown) return []
 		const cats = new Map<string, number>()
 		for (const opt of options) {
 			if (opt.category) cats.set(opt.category, (cats.get(opt.category) ?? 0) + 1)
 		}
 		return [...cats.entries()].sort((a, b) => b[1] - a[1])
-	}, [options, dataset.paramType])
+	}, [options, supportsBreakdown])
 
 	const filteredOptions = useMemo(() => {
 		if (!selectedCategory) return options
