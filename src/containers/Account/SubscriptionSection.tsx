@@ -11,6 +11,7 @@ import { CancelSubscriptionModal } from './CancelSubscriptionModal'
 import { EndTrialModal } from './EndTrialModal'
 import { ExternalDataBalanceCard } from './ExternalDataBalanceCard'
 import { SubscriptionCard } from './SubscriptionCard'
+import { useTeam } from './Team/useTeam'
 import { TrialSubscriptionCard } from './TrialSubscriptionCard'
 import { TrialUpgradeBanner } from './TrialUpgradeBanner'
 
@@ -177,8 +178,44 @@ function LegacyWarning() {
 	)
 }
 
+function getTeamSubLabel(type: string | null): string {
+	if (type === 'api') return 'API'
+	if (type === 'llamafeed') return 'Pro'
+	return ''
+}
+
+function TeamSubscriptionBanner({ teamName, subscriptionType }: { teamName: string; subscriptionType: string | null }) {
+	const hasAssigned = subscriptionType !== null
+
+	return (
+		<div className="flex flex-col gap-3 rounded-2xl border border-(--sub-border-slate-100) bg-white p-4 dark:border-(--sub-border-strong) dark:bg-(--sub-surface-dark)">
+			<div className="flex items-center gap-2">
+				<Icon name="users" height={20} width={20} className="text-(--sub-ink-primary) dark:text-white" />
+				<span className="text-sm font-medium text-(--sub-ink-primary) dark:text-white">Team Subscription</span>
+			</div>
+			{hasAssigned ? (
+				<p className="text-sm text-(--sub-text-muted)">
+					Your{' '}
+					<span className="font-medium text-(--sub-ink-primary) dark:text-white">
+						{getTeamSubLabel(subscriptionType)}
+					</span>{' '}
+					subscription is managed by{' '}
+					<span className="font-medium text-(--sub-ink-primary) dark:text-white">{teamName}</span>. Go to the Team tab
+					to view details.
+				</p>
+			) : (
+				<p className="text-sm text-(--sub-text-muted)">
+					You're a member of <span className="font-medium text-(--sub-ink-primary) dark:text-white">{teamName}</span>.
+					Contact your team admin to be assigned a subscription.
+				</p>
+			)}
+		</div>
+	)
+}
+
 export function SubscriptionSection() {
 	const { isTrial: isTrialFromAuth, hasActiveSubscription } = useAuthContext()
+	const { team } = useTeam()
 
 	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
@@ -206,6 +243,11 @@ export function SubscriptionSection() {
 		isEndTrialLoading,
 		isSubscriptionLoading
 	} = useSubscribe()
+
+	// Team member guard: show banner instead of individual subscription controls
+	if (team && !team.isAdmin) {
+		return <TeamSubscriptionBanner teamName={team.name} subscriptionType={team.subscriptionType} />
+	}
 
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active'
