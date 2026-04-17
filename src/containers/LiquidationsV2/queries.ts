@@ -103,6 +103,10 @@ function getChainLinks(
 ): NavLink[] {
 	const chainRefs = sortByName(chainIds.map((chainId) => getChainRef(chainId, chainMetadata)))
 
+	return getChainLinksFromRefs(protocol, chainRefs)
+}
+
+function getChainLinksFromRefs(protocol: LiquidationsProtocolRef, chainRefs: LiquidationsChainRef[]): NavLink[] {
 	return [
 		{ label: 'All Chains', to: `/liquidations/${protocol.slug}` },
 		...chainRefs.map((chain) => ({ label: chain.name, to: `/liquidations/${protocol.slug}/${chain.slug}` }))
@@ -208,7 +212,7 @@ function buildLiquidationsDistributionChart(
 						seriesByKey.set(key, series)
 					}
 
-					const binIndex = binSize === 0 ? 0 : Math.min(binCount - 1, Math.floor(position.liqPrice / binSize))
+					const binIndex = Math.min(binCount - 1, Math.floor(position.liqPrice / binSize))
 					series.usd[binIndex] += position.collateralAmountUsd
 					series.amount[binIndex] += position.collateralAmount
 					series.totalUsd += position.collateralAmountUsd
@@ -401,6 +405,7 @@ export async function getLiquidationsProtocolPageData(
 	protocolParam: string,
 	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsProtocolPageProps | null> {
+	const blockExplorersPromise = fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	const protocolsResponse = await fetchProtocolsList()
 	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 	const protocolId = resolveProtocolId(protocolParam, protocolsResponse.protocols, protocolMetadataLookup)
@@ -411,12 +416,13 @@ export async function getLiquidationsProtocolPageData(
 
 	const [protocolResponse, blockExplorers] = await Promise.all([
 		fetchProtocolLiquidations(protocolId),
-		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
+		blockExplorersPromise
 	])
 	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
 	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
 	const chainIds = Object.keys(protocolResponse.data)
-	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
+	const chainRefs = sortByName(chainIds.map((chainId) => getChainRef(chainId, metadataCache.chainMetadata)))
+	const chainLinks = getChainLinksFromRefs(protocol, chainRefs)
 	const ownerBlockExplorers = filterBlockExplorersForChains({
 		blockExplorers,
 		chainIds,
@@ -427,11 +433,8 @@ export async function getLiquidationsProtocolPageData(
 	const chainRows: ProtocolChainRow[] = []
 	let totalCollateralUsd = 0
 
-	for (const chainId of sortByName(chainIds.map((id) => getChainRef(id, metadataCache.chainMetadata))).map(
-		(chain) => chain.id
-	)) {
-		const chain = getChainRef(chainId, metadataCache.chainMetadata)
-		const rawPositions = protocolResponse.data[chainId]
+	for (const chain of chainRefs) {
+		const rawPositions = protocolResponse.data[chain.id]
 		const chainPositions = normalizePositions(protocol, chain, rawPositions)
 		chartPositions.push(...chainPositions)
 		const chainCollateralUsd = sumCollateralUsd(rawPositions)
@@ -471,6 +474,7 @@ export async function getLiquidationsChainPageData(
 	chainParam: string,
 	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsChainPageProps | null> {
+	const blockExplorersPromise = fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	const protocolsResponse = await fetchProtocolsList()
 	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 	const protocolId = resolveProtocolId(protocolParam, protocolsResponse.protocols, protocolMetadataLookup)
@@ -489,7 +493,7 @@ export async function getLiquidationsChainPageData(
 
 	const [chainResponse, blockExplorers] = await Promise.all([
 		fetchProtocolChainLiquidations(protocolId, chainId),
-		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
+		blockExplorersPromise
 	])
 	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
 	const chain = getChainRef(chainId, metadataCache.chainMetadata)
