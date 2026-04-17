@@ -29,6 +29,33 @@ type EventHoverState = {
 	hoveredEventDate: number | null
 }
 
+function getSortedSeriesTimeBounds(data: Array<[number, number] | unknown>) {
+	let min: number | undefined
+	let max: number | undefined
+
+	for (let index = 0; index < data.length; index++) {
+		const point = data[index]
+		if (!Array.isArray(point)) continue
+		const timestamp = point[0]
+		if (typeof timestamp === 'number' && Number.isFinite(timestamp)) {
+			min = timestamp
+			break
+		}
+	}
+
+	for (let index = data.length - 1; index >= 0; index--) {
+		const point = data[index]
+		if (!Array.isArray(point)) continue
+		const timestamp = point[0]
+		if (typeof timestamp === 'number' && Number.isFinite(timestamp)) {
+			max = timestamp
+			break
+		}
+	}
+
+	return { min, max }
+}
+
 function attachEventHoverHandlers({
 	instance,
 	eventRailData,
@@ -321,13 +348,9 @@ export default function ProtocolChart({
 		if (shouldShowEventRail) {
 			for (const s of series) {
 				const data = (s.data ?? []) as Array<[number, number] | unknown>
-				for (const point of data) {
-					const ts = Array.isArray(point) ? (point[0] as number | undefined) : undefined
-					if (typeof ts === 'number' && Number.isFinite(ts)) {
-						if (ts < timeRangeMin) timeRangeMin = ts
-						if (ts > timeRangeMax) timeRangeMax = ts
-					}
-				}
+				const { min, max } = getSortedSeriesTimeBounds(data)
+				if (typeof min === 'number' && min < timeRangeMin) timeRangeMin = min
+				if (typeof max === 'number' && max > timeRangeMax) timeRangeMax = max
 			}
 		}
 		const hasTimeRange = Number.isFinite(timeRangeMin) && Number.isFinite(timeRangeMax) && timeRangeMin < timeRangeMax
