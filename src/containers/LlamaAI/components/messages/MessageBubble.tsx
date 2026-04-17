@@ -745,7 +745,7 @@ export function MessageBubble({
 	}
 
 	return (
-		<div id={anchorId} ref={anchorRef} className={`group/msg ${anchorClassName ?? ''}`}>
+		<div id={anchorId} ref={anchorRef} className={`group/msg flex flex-col gap-2.5 ${anchorClassName ?? ''}`}>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}

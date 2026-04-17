@@ -253,6 +253,23 @@ function buildMultiYAxis({
 	let prevOffset = 0
 	for (let i = 0; i <= maxIndex; i++) {
 		const isPrimary = i === 0
+		const baseAxis = Array.isArray(yAxis) && yAxis.length > 0 ? (yAxis[i] ?? yAxis[0] ?? {}) : (yAxis ?? {})
+		const baseAxisLabel =
+			baseAxis?.axisLabel && typeof baseAxis.axisLabel === 'object' && !Array.isArray(baseAxis.axisLabel)
+				? baseAxis.axisLabel
+				: {}
+		const baseAxisLine =
+			baseAxis?.axisLine && typeof baseAxis.axisLine === 'object' && !Array.isArray(baseAxis.axisLine)
+				? baseAxis.axisLine
+				: {}
+		const baseAxisLineStyle =
+			baseAxisLine?.lineStyle && typeof baseAxisLine.lineStyle === 'object' && !Array.isArray(baseAxisLine.lineStyle)
+				? baseAxisLine.lineStyle
+				: {}
+		const existingFormatter =
+			typeof baseAxisLabel.formatter === 'function' || typeof baseAxisLabel.formatter === 'string'
+				? baseAxisLabel.formatter
+				: null
 		// Primary axis is intentionally not auto-colored from series colors (can be misleading when multiple series share axis 0).
 		// But if the caller explicitly assigns a unique color to that axis via charts config, apply it.
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
@@ -260,21 +277,23 @@ function buildMultiYAxis({
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
 
 		out.push({
-			...yAxis,
+			...baseAxis,
 			position: isPrimary ? 'left' : 'right',
 			alignTicks: true,
 			offset,
 			axisLine: {
+				...baseAxisLine,
 				show: !isPrimary,
 				lineStyle: {
+					...baseAxisLineStyle,
 					type: [5, 10],
 					dashOffset: 5,
 					...(axisColor ? { color: axisColor } : {})
 				}
 			},
 			axisLabel: {
-				...yAxis.axisLabel,
-				formatter: (value: number) => formatAxisLabel(value, axisSymbol),
+				...baseAxisLabel,
+				formatter: existingFormatter ?? ((value: number) => formatAxisLabel(value, axisSymbol)),
 				...(axisColor ? { color: axisColor } : {})
 			},
 			...(expandTo100Percent ? { max: 100, min: 0 } : {})
@@ -706,6 +725,15 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			) {
 				mergedChartSettings.dataZoom = mergedChartSettings.dataZoom.map((zoomOption: any) =>
 					mergeDeep(zoomOption, chartOptions.dataZoom)
+				)
+				continue
+			}
+			if (option === 'yAxis' && Array.isArray(chartOptions.yAxis)) {
+				const baseAxes = Array.isArray(mergedChartSettings.yAxis)
+					? mergedChartSettings.yAxis
+					: [mergedChartSettings.yAxis ?? {}]
+				mergedChartSettings.yAxis = chartOptions.yAxis.map((axisOption: any, index: number) =>
+					mergeDeep(baseAxes[index] ?? baseAxes[0] ?? {}, axisOption)
 				)
 				continue
 			}

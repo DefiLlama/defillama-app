@@ -178,7 +178,6 @@ function decodeTableRef(s: string): QueryTableRef | null {
 	}
 	return null
 }
-
 export function decodeDownloadConfig(query: Record<string, string | string[] | undefined>): SavedDownloadInput | null {
 	const kind = firstStr(query.k)
 	if (!kind) return null

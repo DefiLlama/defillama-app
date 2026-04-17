@@ -22,6 +22,7 @@ export interface ChartConfiguration {
 			position: 'left' | 'right'
 			scale?: 'linear' | 'log'
 			valueSymbol?: string
+			min?: number | 'dataMin'
 		}>
 	}
 
