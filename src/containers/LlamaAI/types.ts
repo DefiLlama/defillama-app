@@ -78,6 +78,7 @@ export interface ChatSession {
 	shareToken?: string
 	isPinned?: boolean
 	pinnedAt?: string
+	forkedFromShareToken?: string | null
 }
 
 export interface ResearchUsage {
