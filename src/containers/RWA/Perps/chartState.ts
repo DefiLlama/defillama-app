@@ -142,7 +142,7 @@ const DEFAULT_TREEMAP_NESTED_BY: Record<
 
 export const DEFAULT_CHART_VIEW: RWAPerpsChartView = 'timeSeries'
 const DEFAULT_CHART_METRIC: RWAPerpsChartMetricKey = 'openInterest'
-const DEFAULT_TIME_SERIES_MODE: RWAPerpsTimeSeriesMode = 'grouped'
+const DEFAULT_TIME_SERIES_MODE: RWAPerpsTimeSeriesMode = 'breakdown'
 const DEFAULT_CHART_VIEW_BY_MODE: Record<RWAPerpsChartMode, RWAPerpsChartView> = {
 	overview: DEFAULT_CHART_VIEW,
 	venue: DEFAULT_CHART_VIEW,

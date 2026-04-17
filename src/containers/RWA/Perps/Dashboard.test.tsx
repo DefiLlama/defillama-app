@@ -172,11 +172,11 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('reset')
 	})
 
-	it('shows time series by default when no chart view is provided on the overview page', () => {
+	it('shows the asset-group time-series breakdown by default on the overview page', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Time Series Chart')
-		expect(html).toContain('Total')
+		expect(html).toContain('Asset Group')
 		expect(html).not.toContain('Nested by:')
 		expect(html).not.toContain('reset')
 	})
@@ -311,9 +311,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('Open Interest')
 		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
+		expect(html).toContain('Asset Group')
 		expect(html).toContain('Total')
-		expect(html).not.toContain('Grouped')
-		expect(html).not.toContain('Breakdown')
 	})
 
 	it('renders the selected time-series breakdown label when selected', () => {

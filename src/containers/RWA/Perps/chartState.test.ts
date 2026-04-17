@@ -37,19 +37,19 @@ describe('parseRWAPerpsChartState', () => {
 		expect(overviewState).toMatchObject({
 			view: 'timeSeries',
 			breakdown: 'assetGroup',
-			timeSeriesMode: 'grouped',
+			timeSeriesMode: 'breakdown',
 			treemapNestedBy: 'baseAsset'
 		})
 		expect(venueState).toMatchObject({
 			view: 'timeSeries',
 			breakdown: 'assetGroup',
-			timeSeriesMode: 'grouped',
+			timeSeriesMode: 'breakdown',
 			treemapNestedBy: 'baseAsset'
 		})
 		expect(assetGroupState).toMatchObject({
 			view: 'timeSeries',
 			breakdown: 'baseAsset',
-			timeSeriesMode: 'grouped',
+			timeSeriesMode: 'breakdown',
 			treemapNestedBy: 'contract'
 		})
 	})
@@ -164,9 +164,9 @@ describe('perps chartState options', () => {
 		])
 	})
 
-	it('omits the default grouped time-series mode from the query', () => {
-		expect(getRWAPerpsTimeSeriesModeQueryValue('grouped')).toBeUndefined()
-		expect(getRWAPerpsTimeSeriesModeQueryValue('breakdown')).toBe('breakdown')
+	it('omits the default breakdown time-series mode from the query', () => {
+		expect(getRWAPerpsTimeSeriesModeQueryValue('breakdown')).toBeUndefined()
+		expect(getRWAPerpsTimeSeriesModeQueryValue('grouped')).toBe('grouped')
 	})
 
 	it('exposes the intended overview grouping matrix', () => {
