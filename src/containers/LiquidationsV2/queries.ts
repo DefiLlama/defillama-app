@@ -1,4 +1,7 @@
+import { fetchBlockExplorers } from '~/api'
+import type { BlockExplorersResponse } from '~/api/types'
 import { slug } from '~/utils'
+import { findBlockExplorerChain } from '~/utils/blockExplorers'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchAllLiquidations,
@@ -120,7 +123,7 @@ function normalizePositions(
 		chainSlug: chain.slug,
 		owner: position.owner,
 		ownerName: position.extra?.displayName ?? position.owner,
-		ownerUrl: position.extra?.url ?? null,
+		ownerUrlOverride: position.extra?.url ?? null,
 		liqPrice: position.liqPrice,
 		collateral: position.collateral,
 		collateralAmount: position.collateralAmount,
@@ -288,6 +291,26 @@ function resolveChainId(
 	return null
 }
 
+function filterBlockExplorersForChains({
+	blockExplorers,
+	chainIds,
+	chainMetadata
+}: {
+	blockExplorers: BlockExplorersResponse
+	chainIds: string[]
+	chainMetadata: Record<string, IChainMetadata>
+}): BlockExplorersResponse {
+	return blockExplorers.filter((entry) =>
+		chainIds.some(
+			(chainId) =>
+				findBlockExplorerChain([entry], {
+					chainId,
+					chainName: getChainRef(chainId, chainMetadata).name
+				}) != null
+		)
+	)
+}
+
 export async function getLiquidationsOverviewPageData(
 	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsOverviewPageProps> {
@@ -386,11 +409,19 @@ export async function getLiquidationsProtocolPageData(
 		return null
 	}
 
-	const protocolResponse = await fetchProtocolLiquidations(protocolId)
+	const [protocolResponse, blockExplorers] = await Promise.all([
+		fetchProtocolLiquidations(protocolId),
+		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
+	])
 	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
 	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
 	const chainIds = Object.keys(protocolResponse.data)
 	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
+	const ownerBlockExplorers = filterBlockExplorersForChains({
+		blockExplorers,
+		chainIds,
+		chainMetadata: metadataCache.chainMetadata
+	})
 	const chartPositions: LiquidationPosition[] = []
 	const positions: LiquidationPosition[] = []
 	const chainRows: ProtocolChainRow[] = []
@@ -430,6 +461,7 @@ export async function getLiquidationsProtocolPageData(
 		totalCollateralUsd,
 		distributionChart: buildLiquidationsDistributionChart(chartPositions),
 		chainRows: sortByCountAndName(chainRows),
+		ownerBlockExplorers,
 		positions
 	}
 }
@@ -455,11 +487,19 @@ export async function getLiquidationsChainPageData(
 		return null
 	}
 
-	const chainResponse = await fetchProtocolChainLiquidations(protocolId, chainId)
+	const [chainResponse, blockExplorers] = await Promise.all([
+		fetchProtocolChainLiquidations(protocolId, chainId),
+		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
+	])
 	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
 	const chain = getChainRef(chainId, metadataCache.chainMetadata)
 	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
 	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
+	const ownerBlockExplorers = filterBlockExplorersForChains({
+		blockExplorers,
+		chainIds: [chainId],
+		chainMetadata: metadataCache.chainMetadata
+	})
 	const positions = normalizePositions(protocol, chain, chainResponse.data)
 	const chainRows: ProtocolChainRow[] = []
 
@@ -495,6 +535,7 @@ export async function getLiquidationsChainPageData(
 		totalCollateralUsd: sumCollateralUsd(chainResponse.data),
 		distributionChart: buildLiquidationsDistributionChart(positions),
 		chainRows: sortByCountAndName(chainRows),
+		ownerBlockExplorers,
 		positions
 	}
 }

@@ -1,3 +1,5 @@
+import type { BlockExplorersResponse } from '~/api/types'
+
 interface RawLiquidationOwnerExtra {
 	displayName?: string
 	url?: string
@@ -73,7 +75,7 @@ export interface LiquidationPosition {
 	chainSlug: string
 	owner: string
 	ownerName: string
-	ownerUrl: string | null
+	ownerUrlOverride: string | null
 	liqPrice: number
 	collateral: string
 	collateralAmount: number
@@ -154,6 +156,7 @@ export interface LiquidationsProtocolPageProps {
 	totalCollateralUsd: number
 	distributionChart: LiquidationsDistributionChartData
 	chainRows: ProtocolChainRow[]
+	ownerBlockExplorers: BlockExplorersResponse
 	positions: LiquidationPosition[]
 }
 
@@ -172,5 +175,6 @@ export interface LiquidationsChainPageProps {
 	totalCollateralUsd: number
 	distributionChart: LiquidationsDistributionChartData
 	chainRows: ProtocolChainRow[]
+	ownerBlockExplorers: BlockExplorersResponse
 	positions: LiquidationPosition[]
 }

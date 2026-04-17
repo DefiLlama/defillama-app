@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('~/api', () => ({
+	fetchBlockExplorers: vi.fn()
+}))
+
 vi.mock('./api', () => ({
 	fetchProtocolsList: vi.fn(),
 	fetchAllLiquidations: vi.fn(),
@@ -7,6 +11,7 @@ vi.mock('./api', () => ({
 	fetchProtocolChainLiquidations: vi.fn()
 }))
 
+import { fetchBlockExplorers } from '~/api'
 import {
 	fetchAllLiquidations,
 	fetchProtocolChainLiquidations,
@@ -23,6 +28,7 @@ const mockedFetchProtocolsList = vi.mocked(fetchProtocolsList)
 const mockedFetchAllLiquidations = vi.mocked(fetchAllLiquidations)
 const mockedFetchProtocolLiquidations = vi.mocked(fetchProtocolLiquidations)
 const mockedFetchProtocolChainLiquidations = vi.mocked(fetchProtocolChainLiquidations)
+const mockedFetchBlockExplorers = vi.mocked(fetchBlockExplorers)
 
 const metadata = {
 	protocolMetadata: {
@@ -39,6 +45,26 @@ const metadata = {
 
 beforeEach(() => {
 	vi.clearAllMocks()
+	mockedFetchBlockExplorers.mockResolvedValue([
+		{
+			displayName: 'Arbitrum',
+			llamaChainId: 'arbitrum',
+			evmChainId: 42161,
+			blockExplorers: [{ name: 'Arbiscan', url: 'https://arbiscan.io' }]
+		},
+		{
+			displayName: 'Ethereum',
+			llamaChainId: 'ethereum',
+			evmChainId: 1,
+			blockExplorers: [{ name: 'Etherscan', url: 'https://etherscan.io' }]
+		},
+		{
+			displayName: 'Polygon',
+			llamaChainId: 'polygon',
+			evmChainId: 137,
+			blockExplorers: [{ name: 'Polygonscan', url: 'https://polygonscan.com' }]
+		}
+	])
 })
 
 describe('LiquidationsV2 queries', () => {
@@ -153,6 +179,7 @@ describe('LiquidationsV2 queries', () => {
 		expect(data?.collateralCount).toBe(2)
 		expect(data?.totalCollateralUsd).toBe(3000)
 		expect(data?.chainLinks.map((link) => link.label)).toEqual(['All Chains', 'Arbitrum One', 'Ethereum'])
+		expect(data?.ownerBlockExplorers.map((entry) => entry.llamaChainId)).toEqual(['arbitrum', 'ethereum'])
 		expect(data?.positions[0]).toEqual({
 			protocolId: 'maker',
 			protocolName: 'Sky',
@@ -162,7 +189,7 @@ describe('LiquidationsV2 queries', () => {
 			chainSlug: 'arbitrum-one',
 			owner: '0x1',
 			ownerName: 'alice',
-			ownerUrl: 'https://example.com/1',
+			ownerUrlOverride: 'https://example.com/1',
 			liqPrice: 1,
 			collateral: 'ethereum:eth',
 			collateralAmount: 10,
@@ -222,6 +249,7 @@ describe('LiquidationsV2 queries', () => {
 		expect(data?.chainName).toBe('Arbitrum One')
 		expect(data?.chainSlug).toBe('arbitrum-one')
 		expect(data?.chainLinks.map((link) => link.label)).toEqual(['All Chains', 'Arbitrum One', 'Ethereum'])
+		expect(data?.ownerBlockExplorers.map((entry) => entry.llamaChainId)).toEqual(['arbitrum'])
 	})
 
 	it('returns null for an invalid chain', async () => {

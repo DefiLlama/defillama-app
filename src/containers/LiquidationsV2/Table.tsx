@@ -1,10 +1,14 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import { matchSorter } from 'match-sorter'
+import * as React from 'react'
+import type { BlockExplorersResponse } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import type { LiquidationPosition, OverviewChainRow, OverviewProtocolRow, ProtocolChainRow } from './api.types'
+import { LiquidationsExplorerProvider, LiquidationsOwnerLink } from './OwnerLink'
 
 interface LiquidationsTableProps {
 	embedded?: boolean
@@ -16,9 +20,14 @@ const overviewChainColumnHelper = createColumnHelper<OverviewChainRow>()
 const protocolChainColumnHelper = createColumnHelper<ProtocolChainRow>()
 const positionColumnHelper = createColumnHelper<LiquidationPosition>()
 
-function shorten(value: string): string {
-	if (value.length <= 18) return value
-	return `${value.slice(0, 8)}...${value.slice(-6)}`
+export function filterLiquidationPositions(rows: LiquidationPosition[], searchValue: string): LiquidationPosition[] {
+	const searchTerm = searchValue.trim()
+	if (!searchTerm) return rows
+
+	return matchSorter(rows, searchTerm, {
+		keys: ['protocolName', 'protocolSlug', 'chainName', 'chainSlug', 'ownerName', 'owner', 'collateral'],
+		threshold: matchSorter.rankings.CONTAINS
+	})
 }
 
 const protocolColumns = [
@@ -51,6 +60,7 @@ const protocolColumns = [
 	protocolColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
 		header: 'Tokens',
+		size: 80,
 		meta: { align: 'end' }
 	}),
 	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
@@ -89,6 +99,7 @@ const overviewChainColumns = [
 	overviewChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
 		header: 'Tokens',
+		size: 80,
 		meta: { align: 'end' }
 	}),
 	overviewChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
@@ -127,6 +138,7 @@ const protocolChainColumns = [
 	protocolChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
 		header: 'Tokens',
+		size: 80,
 		meta: { align: 'end' }
 	}),
 	protocolChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
@@ -177,25 +189,13 @@ const positionColumns = [
 		id: 'ownerName',
 		header: 'Owner',
 		enableSorting: false,
-		cell: ({ row, getValue }) =>
-			row.original.ownerUrl ? (
-				<a
-					href={row.original.ownerUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="flex items-center gap-1 hover:underline"
-				>
-					<span>{shorten(getValue())}</span>
-					<Icon name="external-link" height={12} width={12} />
-				</a>
-			) : (
-				<span>{shorten(getValue())}</span>
-			)
+		cell: ({ row }) => <LiquidationsOwnerLink position={row.original} />
 	}),
 	positionColumnHelper.accessor((row) => row.collateral ?? undefined, {
 		id: 'collateral',
-		header: 'Collateral ID',
+		header: 'Token',
 		enableSorting: false,
+		size: 80,
 		meta: { align: 'end' }
 	}),
 	positionColumnHelper.accessor((row) => row.collateralAmountUsd ?? undefined, {
@@ -280,21 +280,50 @@ export function LiquidationsProtocolChainsTable({
 
 export function LiquidationsPositionsTable({
 	rows,
+	ownerBlockExplorers,
 	header,
 	embedded = false,
 	leadingControls = null
-}: { rows: LiquidationPosition[]; header: string } & LiquidationsTableProps) {
+}: {
+	rows: LiquidationPosition[]
+	ownerBlockExplorers: BlockExplorersResponse
+	header: string
+} & LiquidationsTableProps) {
+	const [searchValue, setSearchValue] = React.useState('')
+	const deferredSearchValue = React.useDeferredValue(searchValue)
+	const filteredRows = React.useMemo(
+		() => filterLiquidationPositions(rows, deferredSearchValue),
+		[rows, deferredSearchValue]
+	)
+
 	return (
-		<TableWithSearch
-			data={rows}
-			columns={positionColumns}
-			header={embedded ? null : header}
-			leadingControls={leadingControls}
-			columnToSearch="ownerName"
-			placeholder="Search owners..."
-			csvFileName="liquidations-v2-positions"
-			embedded={embedded}
-			sortingState={[{ id: 'collateralAmountUsd', desc: true }]}
-		/>
+		<LiquidationsExplorerProvider blockExplorers={ownerBlockExplorers}>
+			<TableWithSearch
+				data={filteredRows}
+				columns={positionColumns}
+				header={embedded ? null : header}
+				leadingControls={leadingControls}
+				customFilters={
+					<label className="relative w-full max-w-full sm:max-w-[280px]">
+						<span className="sr-only">Search columns</span>
+						<Icon
+							name="search"
+							height={16}
+							width={16}
+							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+						/>
+						<input
+							value={searchValue}
+							onInput={(e) => setSearchValue(e.currentTarget.value)}
+							placeholder="Search columns..."
+							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
+						/>
+					</label>
+				}
+				csvFileName="liquidations-v2-positions"
+				embedded={embedded}
+				sortingState={[{ id: 'collateralAmountUsd', desc: true }]}
+			/>
+		</LiquidationsExplorerProvider>
 	)
 }

@@ -46,6 +46,7 @@ export function LiquidationsProtocolPage(props: LiquidationsProtocolPageProps) {
 				) : (
 					<LiquidationsPositionsTable
 						rows={props.positions}
+						ownerBlockExplorers={props.ownerBlockExplorers}
 						header="Positions"
 						embedded
 						leadingControls={

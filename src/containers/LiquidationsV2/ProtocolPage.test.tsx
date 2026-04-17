@@ -39,6 +39,7 @@ describe('LiquidationsProtocolPage', () => {
 				totalCollateralUsd={5000000}
 				distributionChart={{ tokens: [] }}
 				chainRows={[]}
+				ownerBlockExplorers={[]}
 				positions={[]}
 			/>
 		)
