@@ -272,7 +272,9 @@ function buildMultiYAxis({
 		// But if the caller explicitly assigns a unique color to that axis via charts config, apply it.
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
 		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
-		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
+		// 72px is wide enough for dollar-formatted labels like "$2.413B" without colliding
+		// with the inner right axis. Narrower values (e.g. percentages) only leave extra breathing room.
+		const offset = noOffset || i < 2 ? 0 : prevOffset + 72
 
 		out.push({
 			...yAxis,
