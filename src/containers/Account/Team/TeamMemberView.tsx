@@ -8,7 +8,7 @@ import { useTeam } from './useTeam'
 function getSubscriptionLabel(type: string | null): string {
 	if (type === 'api') return 'API'
 	if (type === 'llamafeed') return 'Pro'
-	return 'Not assigned'
+	return 'No subscription assigned'
 }
 
 function ReadOnlyMemberRow({ member, isCurrentUser }: { member: TeamMember; isCurrentUser: boolean }) {
