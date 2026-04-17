@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQueries, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import Link from 'next/link'
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
@@ -8,10 +8,24 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
+import { slug as toSlug } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import type { ChartDatasetDefinition } from './chart-datasets'
 import { combineCsvsWide } from './combineCsvsWide'
+import { filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
+import { DateRangePicker } from './DateRangePicker'
+import {
+	applyChartColumnsAndSort,
+	applyChartParams,
+	type ChartSavedConfig,
+	type DateRangeConfig,
+	defaultPresetName,
+	extractChartConfig,
+	generatePresetId
+} from './savedDownloads'
+import { SavePresetDialog } from './SavePresetDialog'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -69,6 +83,8 @@ interface SortState {
 interface ParamOption {
 	label: string
 	value: string
+	category?: string
+	isChild?: boolean
 }
 
 function parseNumericValue(value: string): number | null {
@@ -184,56 +200,185 @@ interface Props {
 	onClose: () => void
 	isTrial?: boolean
 	isPreview?: boolean
+	initialConfig?: ChartSavedConfig
 }
 
-export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, isTrial, isPreview }: Props) {
+export function ChartDatasetModal({
+	dataset,
+	options,
+	authorizedFetch,
+	onClose,
+	isTrial,
+	isPreview,
+	initialConfig
+}: Props) {
 	const queryClient = useQueryClient()
 	const subscribeModalStore = Ariakit.useDialogStore()
+	const { savedDownloads, saveDownload } = useSavedDownloads()
+	const { recordRecent } = useRecentDownloads()
 	const [selectedParams, setSelectedParams] = useState<Array<ParamOption>>([])
 	const [activePreviewValue, setActivePreviewValue] = useState<string | null>(null)
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
+	const [dateRange, setDateRange] = useState<DateRangeConfig | null>(initialConfig?.dateRange ?? null)
+	const [showSaveDialog, setShowSaveDialog] = useState(false)
+	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+	const initialParamsAppliedRef = useRef(false)
+	const initialColumnsAppliedRef = useRef(false)
+	const wasInCategoryModeRef = useRef(false)
+	const alignedCategoryRef = useRef<string | null>(null)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
+
+	const supportsBreakdown = dataset.paramType === 'protocol' && !!dataset.categoryBreakdown
+	const isCategoryMode = supportsBreakdown && selectedCategory !== null
+	const maxSelections = isCategoryMode ? Number.POSITIVE_INFINITY : MAX_PARAMS
+
+	useEffect(() => {
+		setDateRange(initialConfig?.dateRange ?? null)
+		initialParamsAppliedRef.current = false
+		initialColumnsAppliedRef.current = false
+	}, [initialConfig?.id, initialConfig?.dateRange])
+
+	// Apply saved params once options are loaded.
+	useEffect(() => {
+		if (!initialConfig || initialParamsAppliedRef.current) return
+		if (options.length === 0) return
+		if (initialConfig.categoryBreakdown && supportsBreakdown) {
+			setSelectedCategory(initialConfig.categoryBreakdown.category)
+			initialParamsAppliedRef.current = true
+			return
+		}
+		const { params, missingParams } = applyChartParams(initialConfig, options)
+		setSelectedParams(params)
+		initialParamsAppliedRef.current = true
+		if (missingParams.length > 0) {
+			toast(
+				`${missingParams.length} saved ${dataset.paramLabel.toLowerCase()}${
+					missingParams.length === 1 ? '' : 's'
+				} no longer available`
+			)
+		}
+	}, [initialConfig, options, dataset.paramLabel, supportsBreakdown])
+
+	const protocolCategories = useMemo(() => {
+		if (!supportsBreakdown) return []
+		const cats = new Map<string, number>()
+		for (const opt of options) {
+			if (opt.category) cats.set(opt.category, (cats.get(opt.category) ?? 0) + 1)
+		}
+		return [...cats.entries()].sort((a, b) => b[1] - a[1])
+	}, [options, supportsBreakdown])
+
+	const filteredOptions = useMemo(() => {
+		if (!selectedCategory) return options
+		return options.filter((o) => o.category === selectedCategory)
+	}, [options, selectedCategory])
 
 	const selectedParam = useMemo(
 		() => selectedParams.find((p) => p.value === activePreviewValue) ?? null,
 		[selectedParams, activePreviewValue]
 	)
 
-	const csvQueries = useQueries({
-		queries: selectedParams.map((param) => ({
-			queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
-			queryFn: async () => {
-				const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
-				const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
-				const response = isPreview ? await fetch(url) : await authorizedFetch(url)
-				if (!response || !response.ok) {
-					const errorData = await response?.json().catch(() => null)
-					throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
-				}
-				if (isTrial) {
-					void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
-				}
-				return response.text()
-			},
-			staleTime: 5 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 1
-		}))
+	useEffect(() => {
+		if (!supportsBreakdown) return
+		if (selectedCategory === null) return
+		const inCategory = options.filter((o) => o.category === selectedCategory)
+		setSelectedParams(inCategory)
+		setSelectedColumns(null)
+		setSortState(null)
+	}, [supportsBreakdown, selectedCategory, options])
+
+	useEffect(() => {
+		if (!supportsBreakdown) return
+		if (selectedCategory !== null) {
+			wasInCategoryModeRef.current = true
+			return
+		}
+		if (wasInCategoryModeRef.current) {
+			wasInCategoryModeRef.current = false
+			setSelectedParams([])
+			setSelectedColumns(null)
+			setSortState(null)
+		}
+	}, [supportsBreakdown, selectedCategory])
+
+	const perProtocolQueries = useQueries({
+		queries:
+			isCategoryMode || selectedParams.length > MAX_PARAMS
+				? []
+				: selectedParams.map((param) => ({
+						queryKey: ['chart-preview', dataset.slug, param.value, isPreview] as const,
+						queryFn: async () => {
+							const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+							const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(param.value)}${nonce}`
+							const response = isPreview ? await fetch(url) : await authorizedFetch(url)
+							if (!response || !response.ok) {
+								const errorData = await response?.json().catch(() => null)
+								throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
+							}
+							if (isTrial) {
+								void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+							}
+							return response.text()
+						},
+						staleTime: 5 * 60 * 1000,
+						refetchOnWindowFocus: false,
+						retry: 1
+					}))
+	})
+
+	const breakdownQuery = useQuery({
+		queryKey: ['chart-breakdown', dataset.slug, selectedCategory, isPreview] as const,
+		queryFn: async () => {
+			const cat = selectedCategory
+			if (!cat) throw new Error('No category selected')
+			const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+			const url = `/api/downloads/chart-breakdown/${dataset.slug}?category=${encodeURIComponent(cat)}${nonce}`
+			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
+			if (!response || !response.ok) {
+				const errorData = await response?.json().catch(() => null)
+				throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
+			}
+			if (isTrial) {
+				void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+			}
+			return response.text()
+		},
+		enabled: isCategoryMode,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1
 	})
 
 	const activeQueryIndex = useMemo(
-		() => selectedParams.findIndex((p) => p.value === activePreviewValue),
-		[selectedParams, activePreviewValue]
+		() => (isCategoryMode ? -1 : selectedParams.findIndex((p) => p.value === activePreviewValue)),
+		[isCategoryMode, selectedParams, activePreviewValue]
 	)
 
-	const activeQuery = activeQueryIndex >= 0 ? csvQueries[activeQueryIndex] : null
-	const csvText = (activeQuery?.data as string | undefined) ?? undefined
-	const dataLoading = activeQuery?.isLoading ?? false
-	const dataError = activeQuery?.error ?? null
+	const activeQuery = activeQueryIndex >= 0 ? perProtocolQueries[activeQueryIndex] : null
+
+	const csvText = isCategoryMode
+		? ((breakdownQuery.data as string | undefined) ?? undefined)
+		: ((activeQuery?.data as string | undefined) ?? undefined)
+	const dataLoading = isCategoryMode ? breakdownQuery.isLoading : (activeQuery?.isLoading ?? false)
+	const dataError = isCategoryMode ? breakdownQuery.error : (activeQuery?.error ?? null)
+
+	const categorySyntheticQueries = useMemo<ReadonlyArray<CsvQueryStatus>>(() => {
+		if (!isCategoryMode) return []
+		const ready = !!breakdownQuery.data
+		const loading = breakdownQuery.isLoading
+		const err = breakdownQuery.error
+		return selectedParams.map((p) => ({
+			data: ready ? p.value : undefined,
+			isLoading: loading,
+			error: err
+		}))
+	}, [isCategoryMode, selectedParams, breakdownQuery.data, breakdownQuery.isLoading, breakdownQuery.error])
+
+	const csvQueries = isCategoryMode ? categorySyntheticQueries : perProtocolQueries
 
 	const { headers, rows } = useMemo(() => {
 		if (!csvText) return { headers: [] as string[], rows: [] as PreviewRow[] }
@@ -241,37 +386,98 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 	}, [csvText])
 
 	useEffect(() => {
+		if (!isCategoryMode) {
+			alignedCategoryRef.current = null
+			return
+		}
+		if (!csvText || headers.length === 0) return
+		if (alignedCategoryRef.current === selectedCategory) return
+
+		const optionBySlug = new Map<string, ParamOption>()
+		for (const opt of options) optionBySlug.set(opt.value, opt)
+
+		const chipsFromCsv: ParamOption[] = []
+		for (const h of headers) {
+			if (h === 'date') continue
+			const slug = toSlug(h)
+			const existing = optionBySlug.get(slug)
+			chipsFromCsv.push(existing ?? { label: h, value: slug, category: selectedCategory ?? undefined })
+		}
+
+		setSelectedParams(chipsFromCsv)
+		alignedCategoryRef.current = selectedCategory
+	}, [isCategoryMode, csvText, headers, options, selectedCategory])
+
+	useEffect(() => {
+		if (isCategoryMode) {
+			setActivePreviewValue(null)
+			return
+		}
 		setActivePreviewValue((cur) => {
 			if (selectedParams.length === 0) return null
 			if (cur && selectedParams.some((p) => p.value === cur)) return cur
 			return selectedParams[0].value
 		})
-	}, [selectedParams])
+	}, [isCategoryMode, selectedParams])
 
 	useEffect(() => {
+		if (isCategoryMode) return
 		setSelectedColumns(null)
 		setSearch('')
 		setSortState(null)
-	}, [activePreviewValue])
+	}, [isCategoryMode, activePreviewValue])
 
 	useEffect(() => {
-		if (headers.length > 0 && selectedColumns === null) {
-			setSelectedColumns(new Set(headers.map((_, i) => i)))
-			if (sortState === null) {
+		if (headers.length === 0 || selectedColumns !== null) return
+
+		if (initialConfig && !initialColumnsAppliedRef.current) {
+			const {
+				selectedColumns: appliedCols,
+				sort,
+				missingColumns,
+				missingSortColumn
+			} = applyChartColumnsAndSort(initialConfig, headers)
+			setSelectedColumns(appliedCols ?? new Set(headers.map((_, i) => i)))
+			if (sort) {
+				setSortState(sort)
+			} else if (sortState === null) {
 				const dateIndex = headers.indexOf('date')
 				if (dateIndex !== -1) {
 					setSortState({ index: dateIndex, direction: 'desc' })
 				}
 			}
+			initialColumnsAppliedRef.current = true
+			if (missingColumns.length > 0) {
+				toast(
+					`${missingColumns.length} saved column${
+						missingColumns.length === 1 ? '' : 's'
+					} no longer available: ${missingColumns.slice(0, 3).join(', ')}${missingColumns.length > 3 ? '…' : ''}`
+				)
+			}
+			if (missingSortColumn) {
+				toast(`Saved sort column "${missingSortColumn}" no longer available`)
+			}
+			return
 		}
-	}, [headers, selectedColumns, sortState])
+
+		setSelectedColumns(new Set(headers.map((_, i) => i)))
+		if (sortState === null) {
+			const dateIndex = headers.indexOf('date')
+			if (dateIndex !== -1) {
+				setSortState({ index: dateIndex, direction: 'desc' })
+			}
+		}
+	}, [headers, selectedColumns, sortState, initialConfig])
 
 	const cols = selectedColumns ?? EMPTY_SELECTION
 
 	const columnMeta = useMemo(() => {
 		return headers.map<ColumnMeta>((header, index) => {
 			const values = rows.map((row) => row.values[index] ?? '')
-			const kind = detectColumnKind(header, values)
+			let kind = detectColumnKind(header, values)
+			if (isCategoryMode && header !== 'date') {
+				kind = 'currency'
+			}
 			return {
 				index,
 				header,
@@ -280,16 +486,36 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 				width: getColumnWidth(header, kind, values, index === 0)
 			}
 		})
-	}, [headers, rows])
+	}, [headers, rows, isCategoryMode])
 
 	const selectedCount = useMemo(() => columnMeta.filter((c) => cols.has(c.index)).length, [columnMeta, cols])
 
+	const dateColIndex = useMemo(() => headers.indexOf('date'), [headers])
+
+	const dateBounds = useMemo(() => {
+		if (dateColIndex < 0 || rows.length === 0) return { min: undefined, max: undefined } as const
+		let min: string | undefined
+		let max: string | undefined
+		for (const row of rows) {
+			const d = row.values[dateColIndex]
+			if (!d) continue
+			if (min === undefined || d < min) min = d
+			if (max === undefined || d > max) max = d
+		}
+		return { min, max } as const
+	}, [rows, dateColIndex])
+
+	const dateFilteredRows = useMemo(
+		() => filterParsedRowsByDateRange(rows, dateColIndex, dateRange),
+		[rows, dateColIndex, dateRange]
+	)
+
 	const filteredRows = useMemo(() => {
-		if (deferredSearch.length === 0) return rows
-		return rows.filter((row) =>
+		if (deferredSearch.length === 0) return dateFilteredRows
+		return dateFilteredRows.filter((row) =>
 			columnMeta.some((column) => (row.values[column.index] ?? '').toLowerCase().includes(deferredSearch))
 		)
-	}, [columnMeta, deferredSearch, rows])
+	}, [columnMeta, deferredSearch, dateFilteredRows])
 
 	const sortedRows = useMemo(() => {
 		if (!sortState) return filteredRows
@@ -334,9 +560,10 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 	const tableWidth = useMemo(() => columnMeta.reduce((t, c) => t + c.width, 0), [columnMeta])
 	const gridTemplate = useMemo(() => columnMeta.map((c) => `minmax(${c.width}px, 1fr)`).join(' '), [columnMeta])
 
-	const hasData = !dataLoading && !dataError && headers.length > 0 && !!selectedParam
-	const hasSelection = selectedParams.length > 0
-	const isBulk = selectedParams.length > 1
+	const hasPreviewTarget = isCategoryMode ? true : !!selectedParam
+	const hasData = !dataLoading && !dataError && headers.length > 0 && hasPreviewTarget
+	const hasSelection = isCategoryMode || selectedParams.length > 0
+	const isBulk = !isCategoryMode && selectedParams.length > 1
 
 	const readyCount = useMemo(() => csvQueries.filter((q) => !!q.data).length, [csvQueries])
 	const loadingCount = useMemo(() => csvQueries.filter((q) => q.isLoading).length, [csvQueries])
@@ -400,35 +627,150 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 		})
 	}, [])
 
+	const findBreakdownColumnIndex = useCallback(
+		(paramValue: string): number => {
+			for (let i = 0; i < headers.length; i++) {
+				const h = headers[i]
+				if (h === 'date') continue
+				if (toSlug(h) === paramValue) return i
+			}
+			return -1
+		},
+		[headers]
+	)
+
 	const handleToggleParam = useCallback(
 		(opt: ParamOption) => {
 			const exists = selectedParams.some((p) => p.value === opt.value)
 			if (exists) {
 				setSelectedParams((prev) => prev.filter((p) => p.value !== opt.value))
+				if (isCategoryMode) {
+					const idx = findBreakdownColumnIndex(opt.value)
+					if (idx >= 0) {
+						setSelectedColumns((prev) => {
+							if (!prev) return prev
+							const next = new Set(prev)
+							next.delete(idx)
+							return next
+						})
+					}
+				}
 				return
 			}
-			if (selectedParams.length >= MAX_PARAMS) {
-				toast.error(`Max ${MAX_PARAMS} items — remove one first`)
+			if (selectedParams.length >= maxSelections) {
+				toast.error(`Max ${maxSelections} items — remove one first`)
 				return
 			}
 			setSelectedParams((prev) => [...prev, opt])
+			if (isCategoryMode) {
+				const idx = findBreakdownColumnIndex(opt.value)
+				if (idx >= 0) {
+					setSelectedColumns((prev) => {
+						if (!prev) return prev
+						const next = new Set(prev)
+						next.add(idx)
+						return next
+					})
+				}
+			}
 		},
-		[selectedParams]
+		[selectedParams, isCategoryMode, maxSelections, findBreakdownColumnIndex]
 	)
 
-	const handleRemoveParam = useCallback((value: string) => {
-		setSelectedParams((prev) => prev.filter((p) => p.value !== value))
-	}, [])
+	const handleRemoveParam = useCallback(
+		(value: string) => {
+			setSelectedParams((prev) => prev.filter((p) => p.value !== value))
+			if (isCategoryMode) {
+				const idx = findBreakdownColumnIndex(value)
+				if (idx >= 0) {
+					setSelectedColumns((prev) => {
+						if (!prev) return prev
+						const next = new Set(prev)
+						next.delete(idx)
+						return next
+					})
+				}
+			}
+		},
+		[isCategoryMode, findBreakdownColumnIndex]
+	)
 
 	const handleClearParams = useCallback(() => {
+		if (isCategoryMode) {
+			setSelectedParams([])
+			setSelectedColumns(null)
+			setSortState(null)
+			setSelectedCategory(null)
+			return
+		}
 		setSelectedParams([])
-	}, [])
+	}, [isCategoryMode])
+
+	const handleAddMultipleParams = useCallback(
+		(opts: ParamOption[]) => {
+			setSelectedParams((prev) => {
+				const existing = new Set(prev.map((p) => p.value))
+				const toAdd = opts.filter((o) => !existing.has(o.value))
+				const combined = [...prev, ...toAdd]
+				if (combined.length > maxSelections) {
+					toast.error(`Can only add ${maxSelections - prev.length} more (max ${maxSelections})`)
+					return [...prev, ...toAdd.slice(0, maxSelections - prev.length)]
+				}
+				return combined
+			})
+		},
+		[maxSelections]
+	)
 
 	const handleSetActive = useCallback((value: string) => {
 		setActivePreviewValue(value)
 	}, [])
 
+	const handleSelectCategory = useCallback(
+		(cat: string | null) => {
+			if (cat === null && isCategoryMode) {
+				setSelectedParams([])
+				setSelectedColumns(null)
+				setSortState(null)
+			}
+			setSelectedCategory(cat)
+		},
+		[isCategoryMode]
+	)
+
 	const handleDownloadCombined = useCallback(() => {
+		if (isCategoryMode) {
+			if (selectedCount === 0) {
+				toast.error('Select at least one column')
+				return
+			}
+			const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
+			if (csvRows.length <= 1) {
+				toast.error('No rows to download')
+				return
+			}
+			const filename = `${dataset.slug}_${toSlug(selectedCategory!)}.csv`
+			downloadCSV(filename, csvRows, { addTimestamp: false })
+			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers,
+				selectedParams,
+				selectedColumns: cols,
+				sort: sortState,
+				dateRange,
+				categoryBreakdown: { category: selectedCategory! }
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
+			return
+		}
+
 		const ready: Array<{ label: string; value: string; csvText: string }> = []
 		const failed: Array<ParamOption> = []
 		csvQueries.forEach((query, i) => {
@@ -446,7 +788,7 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 			toast.error('No data available to download')
 			return
 		}
-		const merged = combineCsvsWide(ready)
+		const merged = combineCsvsWide(ready, dateRange)
 		if (merged.length <= 1) {
 			toast.error('No rows to download')
 			return
@@ -460,10 +802,86 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 		} else {
 			toast.success(`Downloaded ${filename}`)
 		}
-	}, [csvQueries, selectedParams, dataset.slug])
+
+		const configBase = extractChartConfig({
+			slug: dataset.slug,
+			headers,
+			selectedParams,
+			selectedColumns: cols,
+			sort: sortState,
+			dateRange
+		})
+		recordRecent({
+			...configBase,
+			id: generatePresetId(),
+			name: defaultPresetName(configBase, dataset.name),
+			createdAt: Date.now()
+		})
+	}, [
+		isCategoryMode,
+		selectedCategory,
+		selectedCount,
+		columnMeta,
+		sortedRows,
+		csvQueries,
+		selectedParams,
+		dataset.slug,
+		dataset.name,
+		headers,
+		cols,
+		sortState,
+		dateRange,
+		recordRecent
+	])
 
 	const handleDownloadSingle = useCallback(
 		(param: ParamOption) => {
+			if (isCategoryMode) {
+				if (!csvText) {
+					toast.error('Data not loaded yet')
+					return
+				}
+				const parsed = parseCsv(csvText)
+				const parsedDateIdx = parsed.headers.indexOf('date')
+				const parsedColIdx = parsed.headers.findIndex((h, i) => i !== parsedDateIdx && toSlug(h) === param.value)
+				if (parsedColIdx < 0) {
+					toast.error(`No data for ${param.label}`)
+					return
+				}
+				const rowsForDownload = filterParsedRowsByDateRange(parsed.rows, parsedDateIdx, dateRange)
+				const outHeader = ['date', parsed.headers[parsedColIdx]]
+				const allRows: string[][] = [outHeader]
+				for (const r of rowsForDownload) {
+					const date = r.values[parsedDateIdx] ?? ''
+					const value = r.values[parsedColIdx] ?? ''
+					if (!date) continue
+					allRows.push([date, value])
+				}
+				if (allRows.length <= 1) {
+					toast.error('No rows to download')
+					return
+				}
+				const filename = `${dataset.slug}_${param.value}.csv`
+				downloadCSV(filename, allRows, { addTimestamp: false })
+				toast.success(`Downloaded ${filename}`)
+
+				const configBase = extractChartConfig({
+					slug: dataset.slug,
+					headers: outHeader,
+					selectedParams: [param],
+					selectedColumns: null,
+					sort: null,
+					dateRange
+				})
+				recordRecent({
+					...configBase,
+					id: generatePresetId(),
+					name: defaultPresetName(configBase, dataset.name),
+					createdAt: Date.now()
+				})
+				return
+			}
+
 			const idx = selectedParams.findIndex((p) => p.value === param.value)
 			if (idx < 0) return
 			const query = csvQueries[idx]
@@ -472,30 +890,78 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 				return
 			}
 			const filename = `${dataset.slug}_${param.value}.csv`
-			if (param.value === activePreviewValue && selectedCount > 0) {
+
+			let downloadedHeaders: string[] | null = null
+			let downloadedCols: Set<number> | null = null
+			let downloadedSort: SortState | null = null
+
+			if (param.value === activePreviewValue && selectedCount > 0 && deferredSearch.length === 0) {
 				const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
 				if (csvRows.length > 1) {
 					downloadCSV(filename, csvRows, { addTimestamp: false })
 					toast.success(`Downloaded ${filename}`)
-					return
+					downloadedHeaders = headers
+					downloadedCols = cols
+					downloadedSort = sortState
 				}
 			}
-			const parsed = parseCsv(query.data)
-			if (parsed.rows.length === 0) {
-				toast.error('No rows to download')
-				return
+			if (downloadedHeaders === null) {
+				const parsed = parseCsv(query.data)
+				const parsedDateIdx = parsed.headers.indexOf('date')
+				const rowsForDownload = filterParsedRowsByDateRange(parsed.rows, parsedDateIdx, dateRange)
+				if (rowsForDownload.length === 0) {
+					toast.error('No rows to download')
+					return
+				}
+				const allRows: string[][] = [
+					parsed.headers,
+					...rowsForDownload.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
+				]
+				downloadCSV(filename, allRows, { addTimestamp: false })
+				toast.success(`Downloaded ${filename}`)
+				downloadedHeaders = parsed.headers
 			}
-			const allRows: string[][] = [
-				parsed.headers,
-				...parsed.rows.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
-			]
-			downloadCSV(filename, allRows, { addTimestamp: false })
-			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers: downloadedHeaders,
+				selectedParams: [param],
+				selectedColumns: downloadedCols,
+				sort: downloadedSort,
+				dateRange
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
 		},
-		[csvQueries, selectedParams, activePreviewValue, selectedCount, columnMeta, cols, sortedRows, dataset.slug]
+		[
+			isCategoryMode,
+			csvText,
+			csvQueries,
+			selectedParams,
+			activePreviewValue,
+			selectedCount,
+			deferredSearch,
+			columnMeta,
+			cols,
+			sortedRows,
+			headers,
+			sortState,
+			dateRange,
+			dataset.slug,
+			dataset.name,
+			recordRecent
+		]
 	)
 
 	const handleDownload = useCallback(() => {
+		if (isCategoryMode) {
+			handleDownloadCombined()
+			return
+		}
 		if (selectedParams.length === 0) return
 		if (selectedParams.length === 1) {
 			if (!selectedParam) return
@@ -511,10 +977,92 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 			const filename = `${dataset.slug}_${selectedParam.value}.csv`
 			downloadCSV(filename, csvRows, { addTimestamp: false })
 			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers,
+				selectedParams,
+				selectedColumns: cols,
+				sort: sortState,
+				dateRange
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
 			return
 		}
 		handleDownloadCombined()
-	}, [selectedParams, selectedParam, selectedCount, columnMeta, cols, sortedRows, dataset.slug, handleDownloadCombined])
+	}, [
+		isCategoryMode,
+		selectedParams,
+		selectedParam,
+		selectedCount,
+		columnMeta,
+		cols,
+		sortedRows,
+		dataset.slug,
+		dataset.name,
+		headers,
+		sortState,
+		dateRange,
+		recordRecent,
+		handleDownloadCombined
+	])
+
+	const handleSavePreset = useCallback(
+		(name: string, replaceExisting: boolean) => {
+			const configBase = extractChartConfig({
+				slug: dataset.slug,
+				headers,
+				selectedParams,
+				selectedColumns: cols,
+				sort: sortState,
+				dateRange,
+				categoryBreakdown: isCategoryMode && selectedCategory ? { category: selectedCategory } : null
+			})
+			saveDownload(
+				{
+					...configBase,
+					id: generatePresetId(),
+					name,
+					createdAt: Date.now()
+				},
+				{ replaceByName: replaceExisting }
+			)
+			setShowSaveDialog(false)
+			toast.success(`Saved preset "${name}"`)
+		},
+		[dataset.slug, headers, selectedParams, cols, sortState, dateRange, isCategoryMode, selectedCategory, saveDownload]
+	)
+
+	const suggestedPresetName = useMemo(() => {
+		if (!isCategoryMode && selectedParams.length === 0) return ''
+		const configBase = extractChartConfig({
+			slug: dataset.slug,
+			headers,
+			selectedParams,
+			selectedColumns: cols,
+			sort: sortState,
+			dateRange,
+			categoryBreakdown: isCategoryMode && selectedCategory ? { category: selectedCategory } : null
+		})
+		return defaultPresetName(configBase, dataset.name)
+	}, [
+		dataset.slug,
+		dataset.name,
+		headers,
+		selectedParams,
+		cols,
+		sortState,
+		dateRange,
+		isCategoryMode,
+		selectedCategory
+	])
+
+	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
 	const handleCopy = useCallback(async () => {
 		if (selectedCount === 0) {
@@ -537,29 +1085,47 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 	const activeSortDirection = sortState ? sortState.direction : false
 	const allSelected = headers.length > 0 && cols.size === headers.length
 
+	const hasActiveFilter = !!dateRange || deferredSearch.length > 0
+	const rowsCountLabel = hasActiveFilter
+		? `${sortedRows.length.toLocaleString()} of ${rows.length.toLocaleString()} rows`
+		: `${sortedRows.length.toLocaleString()} rows`
+
 	const headerSubtitle = (() => {
+		if (isCategoryMode) {
+			if (dataLoading) return `Loading ${selectedCategory} breakdown...`
+			if (dataError) return 'Error'
+			if (headers.length > 0) {
+				const protocolCols = Math.max(0, headers.length - 1)
+				const selectedProtocolCols = Math.max(0, selectedCount - (headers.includes('date') ? 1 : 0))
+				return `${rowsCountLabel} · ${selectedProtocolCols}/${protocolCols} protocols · ${selectedCategory}`
+			}
+			return `${selectedParams.length} protocols in ${selectedCategory}`
+		}
 		if (!hasSelection) {
 			return `Select ${dataset.paramLabel.toLowerCase()}(s) to preview`
 		}
 		if (isBulk) {
 			if (loadingCount > 0) return `Loading ${readyCount}/${selectedParams.length}...`
 			if (selectedParam && headers.length > 0) {
-				return `${sortedRows.length.toLocaleString()} rows · previewing ${selectedParam.label}`
+				return `${rowsCountLabel} · previewing ${selectedParam.label}`
 			}
 			return `${selectedParams.length} selected`
 		}
 		if (dataLoading) return 'Loading...'
 		if (dataError) return 'Error'
 		if (headers.length > 0) {
-			return `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`
+			return `${rowsCountLabel} · ${selectedCount}/${headers.length} cols selected`
 		}
 		return ''
 	})()
 
-	const downloadLabel = isBulk ? 'Download Combined' : 'Download'
+	const downloadLabel = isCategoryMode ? 'Download' : isBulk ? 'Download Combined' : 'Download'
 	const topBarDownloadDisabled = (() => {
 		if (isPreview) return false
 		if (!hasSelection) return true
+		if (isCategoryMode) {
+			return dataLoading || !csvText || selectedCount === 0
+		}
 		if (isBulk) {
 			return loadingCount === selectedParams.length || readyCount === 0
 		}
@@ -605,6 +1171,19 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 										</button>
 									) : null}
 
+									{!isPreview ? (
+										<button
+											type="button"
+											onClick={() => setShowSaveDialog(true)}
+											disabled={!hasSelection}
+											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+											title="Save as preset"
+										>
+											<Icon name="bookmark" className="h-3.5 w-3.5" />
+											<span className="hidden lg:inline">Save preset</span>
+										</button>
+									) : null}
+
 									<button
 										type="button"
 										onClick={() =>
@@ -629,14 +1208,38 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 						</div>
 
 						<div className="flex flex-wrap items-center gap-2 border-t border-(--divider) px-4 py-2">
-							<MultiOptionPickerPopover
-								label={dataset.paramLabel}
-								options={options}
-								selected={selectedParams}
-								onToggle={handleToggleParam}
-								onClearAll={handleClearParams}
-								maxSelections={MAX_PARAMS}
-							/>
+							{protocolCategories.length > 0 ? (
+								<CategoryPickerPopover
+									categories={protocolCategories}
+									selected={selectedCategory}
+									onSelect={handleSelectCategory}
+								/>
+							) : null}
+							{!isCategoryMode ? (
+								<MultiOptionPickerPopover
+									label={dataset.paramLabel}
+									options={filteredOptions}
+									selected={selectedParams}
+									onToggle={handleToggleParam}
+									onClearAll={handleClearParams}
+									onAddMultiple={handleAddMultipleParams}
+									maxSelections={maxSelections}
+								/>
+							) : (
+								<span className="flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--link-hover-bg) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary)">
+									<Icon name="layers" className="h-3.5 w-3.5" />
+									{selectedParams.length} protocols
+								</span>
+							)}
+
+							{hasSelection && !isPreview ? (
+								<DateRangePicker
+									value={dateRange}
+									onChange={setDateRange}
+									minDate={dateBounds.min}
+									maxDate={dateBounds.max}
+								/>
+							) : null}
 
 							{hasData && !isPreview ? (
 								<>
@@ -681,7 +1284,7 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 
 					<div className="flex min-h-0 flex-1">
 						<div className="relative flex min-w-0 flex-1 flex-col">
-							{!selectedParam ? (
+							{!hasPreviewTarget ? (
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
 										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
@@ -717,7 +1320,22 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 								<div className="flex flex-1 items-center justify-center">
 									<div className="flex flex-col items-center gap-2 text-center">
 										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
-										<p className="text-sm text-(--text-secondary)">No matching rows</p>
+										<p className="text-sm text-(--text-secondary)">
+											{dateRange && rows.length > 0
+												? 'No rows in selected date range'
+												: deferredSearch.length > 0
+													? 'No rows match your search'
+													: 'No matching rows'}
+										</p>
+										{dateRange && rows.length > 0 ? (
+											<button
+												type="button"
+												onClick={() => setDateRange(null)}
+												className="mt-1 rounded-md border border-(--divider) px-3 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+											>
+												Clear date range
+											</button>
+										) : null}
 									</div>
 								</div>
 							) : (
@@ -901,6 +1519,14 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
 			) : null}
+			{showSaveDialog ? (
+				<SavePresetDialog
+					suggestedName={suggestedPresetName}
+					existingNames={existingPresetNames}
+					onSave={handleSavePreset}
+					onClose={() => setShowSaveDialog(false)}
+				/>
+			) : null}
 		</>
 	)
 }
@@ -959,12 +1585,95 @@ function PlaceholderRows({
 	)
 }
 
+function CategoryPickerPopover({
+	categories,
+	selected,
+	onSelect
+}: {
+	categories: Array<[string, number]>
+	selected: string | null
+	onSelect: (cat: string | null) => void
+}) {
+	const [search, setSearch] = useState('')
+	const deferred = useDeferredValue(search.trim().toLowerCase())
+
+	const filtered = useMemo(() => {
+		if (!deferred) return categories
+		return categories.filter(([cat]) => cat.toLowerCase().includes(deferred))
+	}, [categories, deferred])
+
+	return (
+		<Ariakit.PopoverProvider>
+			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
+				<Icon name="tag" className="h-3.5 w-3.5" />
+				<span>{selected ?? 'All categories'}</span>
+				{selected ? (
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation()
+							onSelect(null)
+						}}
+						className="rounded-full p-0.5 hover:bg-(--link-hover-bg)"
+					>
+						<Icon name="x" className="h-2.5 w-2.5" />
+					</button>
+				) : null}
+			</Ariakit.PopoverDisclosure>
+			<Ariakit.Popover
+				gutter={6}
+				portal
+				unmountOnHide
+				className="z-[60] flex max-h-80 w-64 flex-col overflow-hidden rounded-lg border border-(--divider) bg-(--cards-bg) shadow-xl"
+			>
+				<div className="border-b border-(--divider) px-3 py-2">
+					<input
+						value={search}
+						onChange={(e) => setSearch(e.currentTarget.value)}
+						placeholder="Search categories..."
+						className="w-full rounded-md border border-(--divider) bg-transparent px-2.5 py-1.5 text-xs outline-none placeholder:text-(--text-tertiary) focus:border-(--primary)"
+						autoFocus
+					/>
+				</div>
+				<div className="thin-scrollbar flex-1 overflow-auto py-1">
+					<button
+						type="button"
+						onClick={() => onSelect(null)}
+						className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
+							selected === null ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'
+						}`}
+					>
+						All categories
+					</button>
+					{filtered.map(([cat, count]) => (
+						<button
+							key={cat}
+							type="button"
+							onClick={() => onSelect(cat)}
+							className={`flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
+								selected === cat ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'
+							}`}
+						>
+							<span className="truncate">{cat}</span>
+							<span className="shrink-0 text-(--text-tertiary)">{count}</span>
+						</button>
+					))}
+					{filtered.length === 0 ? (
+						<p className="px-3 py-2 text-xs text-(--text-tertiary)">No categories match</p>
+					) : null}
+				</div>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
+	)
+}
+
 function MultiOptionPickerPopover({
 	label,
 	options,
 	selected,
 	onToggle,
 	onClearAll,
+	onAddMultiple,
 	maxSelections
 }: {
 	label: string
@@ -972,6 +1681,7 @@ function MultiOptionPickerPopover({
 	selected: Array<ParamOption>
 	onToggle: (option: ParamOption) => void
 	onClearAll: () => void
+	onAddMultiple: (options: ParamOption[]) => void
 	maxSelections: number
 }) {
 	const popoverStore = Ariakit.usePopoverStore()
@@ -988,6 +1698,12 @@ function MultiOptionPickerPopover({
 	}, [options, deferredOptionSearch])
 
 	const capHit = selected.length >= maxSelections
+
+	const unselectedInView = useMemo(
+		() => filtered.filter((o) => !selectedValues.has(o.value)),
+		[filtered, selectedValues]
+	)
+	const canAddAll = unselectedInView.length > 0 && selected.length + unselectedInView.length <= maxSelections
 
 	const triggerText =
 		selected.length === 0 ? `Select ${label}` : selected.length === 1 ? `1 ${label}` : `${selected.length} ${label}s`
@@ -1009,13 +1725,26 @@ function MultiOptionPickerPopover({
 			>
 				<div className="flex items-center justify-between gap-2 border-b border-(--divider) px-3 py-2">
 					<span className="text-xs font-medium text-(--text-secondary)">
-						{selected.length}/{maxSelections} selected
+						{Number.isFinite(maxSelections)
+							? `${selected.length}/${maxSelections} selected`
+							: `${selected.length} selected`}
 					</span>
-					{selected.length > 0 ? (
-						<button type="button" onClick={onClearAll} className="text-xs text-(--primary) hover:underline">
-							Clear all
-						</button>
-					) : null}
+					<div className="flex items-center gap-2">
+						{canAddAll ? (
+							<button
+								type="button"
+								onClick={() => onAddMultiple(unselectedInView)}
+								className="text-xs text-(--primary) hover:underline"
+							>
+								Add all ({unselectedInView.length})
+							</button>
+						) : null}
+						{selected.length > 0 ? (
+							<button type="button" onClick={onClearAll} className="text-xs text-(--primary) hover:underline">
+								Clear all
+							</button>
+						) : null}
+					</div>
 				</div>
 				<div className="border-b border-(--divider) px-3 py-2">
 					<input
@@ -1040,9 +1769,9 @@ function MultiOptionPickerPopover({
 									disabled={disabled}
 									onClick={() => onToggle(opt)}
 									title={disabled ? `Max ${maxSelections} items` : undefined}
-									className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 ${
+									className={`flex w-full items-center gap-2.5 py-1.5 pr-3 text-left text-xs transition-colors hover:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40 ${
 										isSelected ? 'text-(--text-primary)' : 'text-(--text-secondary)'
-									}`}
+									} ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 								>
 									<span
 										className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${

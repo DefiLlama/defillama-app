@@ -17,10 +17,35 @@ import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { getNDistinctColors, slug } from '~/utils'
-import { fetchAdapterProtocolChartDataByBreakdownType } from './api'
+import { fetchJson } from '~/utils/async'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+
+const buildAdapterProtocolBreakdownApiUrl = ({
+	adapterType,
+	protocol,
+	dataType,
+	type
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	protocol: string
+	dataType?: `${ADAPTER_DATA_TYPES}`
+	type: 'chain' | 'version'
+}) => {
+	const searchParams = new URLSearchParams({
+		kind: 'adapter-breakdown',
+		adapterType,
+		protocol,
+		type
+	})
+
+	if (dataType) {
+		searchParams.set('dataType', dataType)
+	}
+
+	return `/api/charts/protocol?${searchParams.toString()}`
+}
 
 export const DimensionProtocolChartByType = ({
 	protocolName,
@@ -46,12 +71,14 @@ export const DimensionProtocolChartByType = ({
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['dimension-adapter-chart-breakdown', protocolName, adapterType, dataType ?? null, chartType],
 		queryFn: () =>
-			fetchAdapterProtocolChartDataByBreakdownType({
-				adapterType,
-				protocol: protocolName,
-				dataType,
-				type: chartType
-			}),
+			fetchJson<Array<[number, Record<string, number>]>>(
+				buildAdapterProtocolBreakdownApiUrl({
+					adapterType,
+					protocol: protocolName,
+					dataType,
+					type: chartType
+				})
+			),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0
@@ -73,12 +100,14 @@ export const DimensionProtocolChartByType = ({
 		],
 		queryFn: feesSettings.bribes
 			? () =>
-					fetchAdapterProtocolChartDataByBreakdownType({
-						adapterType,
-						protocol: protocolName,
-						dataType: 'dailyBribesRevenue',
-						type: chartType
-					})
+					fetchJson<Array<[number, Record<string, number>]>>(
+						buildAdapterProtocolBreakdownApiUrl({
+							adapterType,
+							protocol: protocolName,
+							dataType: 'dailyBribesRevenue',
+							type: chartType
+						})
+					)
 			: () => Promise.resolve(null),
 		enabled: !!(metadata?.bribeRevenue && feesSettings.bribes),
 		staleTime: 60 * 60 * 1000,
@@ -102,12 +131,14 @@ export const DimensionProtocolChartByType = ({
 		],
 		queryFn: feesSettings.tokentax
 			? () =>
-					fetchAdapterProtocolChartDataByBreakdownType({
-						adapterType,
-						protocol: protocolName,
-						dataType: 'dailyTokenTaxes',
-						type: chartType
-					})
+					fetchJson<Array<[number, Record<string, number>]>>(
+						buildAdapterProtocolBreakdownApiUrl({
+							adapterType,
+							protocol: protocolName,
+							dataType: 'dailyTokenTaxes',
+							type: chartType
+						})
+					)
 			: () => Promise.resolve(null),
 		enabled: !!(metadata?.tokenTax && feesSettings.tokentax),
 		staleTime: 60 * 60 * 1000,

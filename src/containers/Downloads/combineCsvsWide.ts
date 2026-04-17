@@ -1,4 +1,6 @@
+import { resolveDateRange } from './csvDateFilter'
 import { parseCsv } from './csvParse'
+import type { DateRangeConfig } from './savedDownloads'
 
 export interface CsvItem {
 	label: string
@@ -13,11 +15,15 @@ export interface CsvItem {
  * - If an item has exactly one non-date column, that column is renamed to `item.value`.
  * - If an item has multiple non-date columns, each is prefixed with `${item.value}_`.
  * - Missing cells (a date present in one item but not another) become empty strings.
+ * - When `range` is provided, dates outside [from, to] are dropped before merging.
  *
  * Returns a `string[][]` where the first row is the header and subsequent rows are data.
  */
-export function combineCsvsWide(items: CsvItem[]): string[][] {
+export function combineCsvsWide(items: CsvItem[], range?: DateRangeConfig | null): string[][] {
 	if (items.length === 0) return []
+
+	const window = resolveDateRange(range ?? null)
+	const inRange = (date: string) => !window || (date >= window.from && date <= window.to)
 
 	const parsed = items.map((item) => {
 		const { headers, rows } = parseCsv(item.csvText)
@@ -37,6 +43,7 @@ export function combineCsvsWide(items: CsvItem[]): string[][] {
 			for (const row of rows) {
 				const dateKey = row.values[dateIndex] ?? ''
 				if (!dateKey) continue
+				if (!inRange(dateKey)) continue
 				byDate.set(
 					dateKey,
 					nonDateIndices.map((i) => row.values[i] ?? '')

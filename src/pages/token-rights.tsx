@@ -8,6 +8,7 @@ import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { findTokenDirectoryRecordByDefiLlamaId, readTokenDirectory } from '~/utils/tokenDirectory'
 
 interface TokenRightsListItem {
 	name: string
@@ -16,9 +17,10 @@ interface TokenRightsListItem {
 }
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
-	const [entries, metadataCache] = await Promise.all([
+	const [entries, metadataCache, tokenDirectory] = await Promise.all([
 		fetchTokenRightsData(),
-		import('~/utils/metadata').then((m) => m.default)
+		import('~/utils/metadata').then((m) => m.default),
+		readTokenDirectory()
 	])
 
 	const { protocolMetadata } = metadataCache as { protocolMetadata: Record<string, IProtocolMetadata> }
@@ -28,11 +30,12 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 	for (const entry of entries) {
 		const name = resolveDisplayName(entry, protocolMetadata)
 		if (!name) continue
+		const tokenRecord = findTokenDirectoryRecordByDefiLlamaId(tokenDirectory, entry['DefiLlama ID'])
 
 		protocols.push({
 			name,
 			logo: tokenIconUrl(name),
-			href: `/protocol/token-rights/${slug(name)}`
+			href: tokenRecord?.route ?? `/protocol/token-rights/${slug(name)}`
 		})
 	}
 

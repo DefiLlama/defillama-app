@@ -1,16 +1,28 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import Link from 'next/link'
-import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon, type IIcon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { slug as toSlug } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { chartDatasets, chartDatasetsBySlug, type ChartDatasetDefinition, type ChartOptionsMap } from './chart-datasets'
 import { combineCsvsWide, type CsvItem } from './combineCsvsWide'
+import { filterCsvByDateRange, filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
+import { DateRangePicker } from './DateRangePicker'
+import {
+	applyMultiMetricConfig,
+	type DateRangeConfig,
+	defaultPresetName,
+	extractMultiMetricConfig,
+	generatePresetId,
+	type MultiMetricSavedConfig
+} from './savedDownloads'
+import { SavePresetDialog } from './SavePresetDialog'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -23,6 +35,8 @@ const SUGGESTED_COUNT = 8
 export interface ParamOption {
 	label: string
 	value: string
+	category?: string
+	isChild?: boolean
 }
 
 export type ParamType = 'protocol' | 'chain'
@@ -43,6 +57,7 @@ interface MultiMetricModalProps {
 	authorizedFetch: (url: string, options?: RequestInit) => Promise<Response>
 	onClose: () => void
 	isPreview: boolean
+	initialConfig?: MultiMetricSavedConfig
 }
 
 function resolveDatasetValue(paramValue: string, paramType: ParamType, datasetOptions: ParamOption[]): string | null {
@@ -68,6 +83,18 @@ function paramSlugForFilename(value: string): string {
 	return s || 'combined'
 }
 
+const METRIC_CATEGORY_ORDER: Record<string, number> = {
+	TVL: 0,
+	'Fees & Revenue': 1,
+	RWA: 9
+}
+
+function metricSortWeight(slug: string): number {
+	const dataset = chartDatasetsBySlug.get(slug)
+	if (!dataset) return 2
+	return METRIC_CATEGORY_ORDER[dataset.category] ?? 2
+}
+
 function shortMetricName(dataset: ChartDatasetDefinition): string {
 	return dataset.name
 		.replace(/^(Protocol|Chain)\s+/i, '')
@@ -82,16 +109,56 @@ function metricDisplayName(dataset: ChartDatasetDefinition): string {
 	return dataset.name.replace(/^Protocol\s+/i, '')
 }
 
-export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, isPreview }: MultiMetricModalProps) {
+export function MultiMetricModal({
+	chartOptionsMap,
+	authorizedFetch,
+	onClose,
+	isPreview,
+	initialConfig
+}: MultiMetricModalProps) {
 	const subscribeModalStore = Ariakit.useDialogStore()
-	const [paramType, setParamType] = useState<ParamType>('protocol')
+	const { savedDownloads, saveDownload } = useSavedDownloads()
+	const { recordRecent } = useRecentDownloads()
+	const [paramType, setParamType] = useState<ParamType>(initialConfig?.paramType ?? 'protocol')
 	const [param, setParam] = useState<ParamOption | null>(null)
 	const [selectedMetrics, setSelectedMetrics] = useState<string[]>([])
 	const [activeMetric, setActiveMetric] = useState<string | null>(null)
+	const [dateRange, setDateRange] = useState<DateRangeConfig | null>(initialConfig?.dateRange ?? null)
+	const [showSaveDialog, setShowSaveDialog] = useState(false)
+	const initialAppliedRef = useRef(false)
+
+	useEffect(() => {
+		setDateRange(initialConfig?.dateRange ?? null)
+		initialAppliedRef.current = false
+	}, [initialConfig?.id, initialConfig?.dateRange])
 
 	const protocolOptions = useMemo<ParamOption[]>(() => chartOptionsMap['protocol-tvl-chart'] ?? [], [chartOptionsMap])
 	const chainOptions = useMemo<ParamOption[]>(() => chartOptionsMap['chain-tvl-chart'] ?? [], [chartOptionsMap])
 	const paramOptions = paramType === 'protocol' ? protocolOptions : chainOptions
+
+	// Apply initial config once options are loaded.
+	useEffect(() => {
+		if (!initialConfig || initialAppliedRef.current) return
+		const opts = initialConfig.paramType === 'protocol' ? protocolOptions : chainOptions
+		if (opts.length === 0) return
+		const validSlugs = new Set(chartDatasets.map((d) => d.slug))
+		const applied = applyMultiMetricConfig(initialConfig, opts, validSlugs)
+		if (applied.missingParam) {
+			toast(`Saved ${initialConfig.paramType} "${initialConfig.paramLabel ?? initialConfig.param}" no longer available`)
+			initialAppliedRef.current = true
+			return
+		}
+		setParam(applied.param)
+		setSelectedMetrics(applied.metrics)
+		initialAppliedRef.current = true
+		if (applied.missingMetrics.length > 0) {
+			toast(
+				`${applied.missingMetrics.length} saved metric${
+					applied.missingMetrics.length === 1 ? '' : 's'
+				} no longer available`
+			)
+		}
+	}, [initialConfig, protocolOptions, chainOptions])
 
 	const availableMetrics = useMemo(() => {
 		if (!param) return []
@@ -103,12 +170,17 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 	}, [param, paramType, chartOptionsMap])
 
 	useEffect(() => {
+		// Skip pruning before param is set. Otherwise, on the same post-commit pass that the
+		// "apply initial config" effect fires `setSelectedMetrics([...saved])`, this effect's
+		// closure still has the pre-apply `availableMetrics = []`, and would wipe the queued
+		// update back to [] — causing saved multi-metric presets to open with no metrics.
+		if (!param) return
 		const availableSet = new Set(availableMetrics.map((m) => m.slug))
 		setSelectedMetrics((prev) => {
 			const next = prev.filter((slug) => availableSet.has(slug))
 			return next.length === prev.length ? prev : next
 		})
-	}, [availableMetrics])
+	}, [param, availableMetrics])
 
 	useEffect(() => {
 		setActiveMetric((cur) => {
@@ -155,6 +227,27 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 
 	const parsedActive = useMemo(() => (activeCsvText ? parseCsv(activeCsvText) : null), [activeCsvText])
 
+	const activeDateColIndex = useMemo(() => parsedActive?.headers.indexOf('date') ?? -1, [parsedActive])
+
+	const dateBounds = useMemo(() => {
+		if (!parsedActive || activeDateColIndex < 0) return { min: undefined, max: undefined } as const
+		let min: string | undefined
+		let max: string | undefined
+		for (const row of parsedActive.rows) {
+			const d = row.values[activeDateColIndex]
+			if (!d) continue
+			if (min === undefined || d < min) min = d
+			if (max === undefined || d > max) max = d
+		}
+		return { min, max } as const
+	}, [parsedActive, activeDateColIndex])
+
+	const parsedActiveFiltered = useMemo(() => {
+		if (!parsedActive) return null
+		const filtered = filterParsedRowsByDateRange(parsedActive.rows, activeDateColIndex, dateRange)
+		return { headers: parsedActive.headers, rows: filtered }
+	}, [parsedActive, activeDateColIndex, dateRange])
+
 	const readyCount = csvQueries.filter((q) => typeof q.data === 'string').length
 	const loadingCount = csvQueries.filter((q) => q.isLoading).length
 
@@ -197,7 +290,7 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 
 	const handleDownloadCombined = useCallback(() => {
 		if (!param) return
-		const ready: CsvItem[] = []
+		const readyWithSlug: Array<CsvItem & { slug: string }> = []
 		const failed: Array<{ slug: string; name: string }> = []
 		csvQueries.forEach((query, i) => {
 			const slug = selectedMetrics[i]
@@ -206,17 +299,19 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 			if (!dataset) return
 			const data = query.data as unknown
 			if (typeof data === 'string') {
-				ready.push({ label: dataset.name, value: shortMetricName(dataset), csvText: data })
+				readyWithSlug.push({ label: dataset.name, value: shortMetricName(dataset), csvText: data, slug })
 				return
 			}
 			const err = (query as { error?: unknown }).error
 			if (err) failed.push({ slug, name: dataset.name })
 		})
-		if (ready.length === 0) {
+		if (readyWithSlug.length === 0) {
 			toast.error('No data ready to download')
 			return
 		}
-		const merged = combineCsvsWide(ready)
+		readyWithSlug.sort((a, b) => metricSortWeight(a.slug) - metricSortWeight(b.slug))
+		const ready: CsvItem[] = readyWithSlug
+		const merged = combineCsvsWide(ready, dateRange)
 		if (merged.length <= 1) {
 			toast.error('No rows to download')
 			return
@@ -228,7 +323,21 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 		} else {
 			toast.success(`Downloaded ${filename}`)
 		}
-	}, [csvQueries, selectedMetrics, param])
+
+		const configBase = extractMultiMetricConfig({
+			paramType,
+			param: param.value,
+			paramLabel: param.label,
+			metrics: selectedMetrics,
+			dateRange
+		})
+		recordRecent({
+			...configBase,
+			id: generatePresetId(),
+			name: defaultPresetName(configBase),
+			createdAt: Date.now()
+		})
+	}, [csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent])
 
 	const handleDownloadSingle = useCallback(
 		(slug: string) => {
@@ -244,16 +353,70 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 			const dataset = chartDatasetsBySlug.get(slug)
 			if (!dataset) return
 			const filename = `${paramSlugForFilename(param.value)}_${shortMetricName(dataset)}.csv`
-			downloadCSV(filename, data, { addTimestamp: true })
+			const payload = filterCsvByDateRange(data, dateRange)
+			downloadCSV(filename, payload, { addTimestamp: true })
 			toast.success(`Downloaded ${filename}`)
+
+			const configBase = extractMultiMetricConfig({
+				paramType,
+				param: param.value,
+				paramLabel: param.label,
+				metrics: [slug],
+				dateRange
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase),
+				createdAt: Date.now()
+			})
 		},
-		[csvQueries, selectedMetrics, param]
+		[csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent]
 	)
 
 	const handleSubscribeClick = useCallback(() => {
 		setSignupSource('downloads')
 		subscribeModalStore.show()
 	}, [subscribeModalStore])
+
+	const handleSavePreset = useCallback(
+		(name: string, replaceExisting: boolean) => {
+			if (!param) return
+			const configBase = extractMultiMetricConfig({
+				paramType,
+				param: param.value,
+				paramLabel: param.label,
+				metrics: selectedMetrics,
+				dateRange
+			})
+			saveDownload(
+				{
+					...configBase,
+					id: generatePresetId(),
+					name,
+					createdAt: Date.now()
+				},
+				{ replaceByName: replaceExisting }
+			)
+			setShowSaveDialog(false)
+			toast.success(`Saved preset "${name}"`)
+		},
+		[param, paramType, selectedMetrics, dateRange, saveDownload]
+	)
+
+	const suggestedPresetName = useMemo(() => {
+		if (!param) return ''
+		const configBase = extractMultiMetricConfig({
+			paramType,
+			param: param.value,
+			paramLabel: param.label,
+			metrics: selectedMetrics,
+			dateRange
+		})
+		return defaultPresetName(configBase)
+	}, [param, paramType, selectedMetrics, dateRange])
+
+	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
 	const handleTopBarDownload = useCallback(() => {
 		if (isPreview) {
@@ -276,6 +439,10 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 			!hasSelection ||
 			(isBulk ? loadingCount === selectedMetrics.length || readyCount === 0 : activeLoading || !activeCsvText))
 
+	const activeTotalRows = parsedActive?.rows.length ?? 0
+	const activeFilteredRows = parsedActiveFiltered?.rows.length ?? 0
+	const filterActive = !!dateRange
+
 	const headerSubtitle = (() => {
 		if (!param) return `${PARAM_LABELS[paramType].verb} to begin`
 		if (!hasSelection) {
@@ -291,7 +458,10 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 		}
 		if (activeError) return 'Error loading metric'
 		if (parsedActive) {
-			return `${parsedActive.rows.length.toLocaleString()} rows · ${parsedActive.headers.length} cols`
+			const rowsLabel = filterActive
+				? `${activeFilteredRows.toLocaleString()} of ${activeTotalRows.toLocaleString()} rows`
+				: `${activeTotalRows.toLocaleString()} rows`
+			return `${rowsLabel} · ${parsedActive.headers.length} cols`
 		}
 		return ''
 	})()
@@ -323,6 +493,18 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 								</div>
 								<p className="truncate text-xs text-(--text-tertiary)">{headerSubtitle}</p>
 							</div>
+
+							{param && hasSelection && !isPreview ? (
+								<button
+									type="button"
+									onClick={() => setShowSaveDialog(true)}
+									className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) sm:flex"
+									title="Save as preset"
+								>
+									<Icon name="bookmark" className="h-3.5 w-3.5" />
+									<span className="hidden lg:inline">Save preset</span>
+								</button>
+							) : null}
 
 							{param && hasSelection ? (
 								<button
@@ -367,6 +549,15 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 								/>
 							) : null}
 
+							{param && hasSelection && !isPreview ? (
+								<DateRangePicker
+									value={dateRange}
+									onChange={setDateRange}
+									minDate={dateBounds.min}
+									maxDate={dateBounds.max}
+								/>
+							) : null}
+
 							{isPreview ? <p className="ml-auto text-[11px] text-(--text-tertiary)">Preview — last 10 rows</p> : null}
 						</div>
 					</div>
@@ -395,8 +586,22 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 								<CenteredError error={activeError} />
 							) : !parsedActive || parsedActive.rows.length === 0 ? (
 								<CenteredHint icon="eye-off" text="No data" />
+							) : !parsedActiveFiltered || parsedActiveFiltered.rows.length === 0 ? (
+								<div className="flex flex-1 items-center justify-center">
+									<div className="flex flex-col items-center gap-2 text-center">
+										<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+										<p className="text-sm text-(--text-secondary)">No rows in selected date range</p>
+										<button
+											type="button"
+											onClick={() => setDateRange(null)}
+											className="mt-1 rounded-md border border-(--divider) px-3 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+										>
+											Clear date range
+										</button>
+									</div>
+								</div>
 							) : (
-								<PreviewTable parsed={parsedActive} isPreview={isPreview} />
+								<PreviewTable parsed={parsedActiveFiltered} isPreview={isPreview} />
 							)}
 						</div>
 
@@ -426,6 +631,14 @@ export function MultiMetricModal({ chartOptionsMap, authorizedFetch, onClose, is
 				<Suspense fallback={null}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
+			) : null}
+			{showSaveDialog ? (
+				<SavePresetDialog
+					suggestedName={suggestedPresetName}
+					existingNames={existingPresetNames}
+					onSave={handleSavePreset}
+					onClose={() => setShowSaveDialog(false)}
+				/>
 			) : null}
 		</>
 	)
@@ -541,7 +754,7 @@ function ParamPickerEmpty({
 												setSearch('')
 												popoverStore.hide()
 											}}
-											className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+											className={`flex w-full items-center gap-2 py-1.5 pr-3 text-left text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 										>
 											<span className="h-1.5 w-1.5 shrink-0 rounded-full bg-(--text-tertiary)/30" />
 											<span className="truncate">{opt.label}</span>
@@ -974,9 +1187,9 @@ function ParamPickerPopover({
 										setSearch('')
 										popoverStore.hide()
 									}}
-									className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
+									className={`flex w-full items-center gap-2 py-1.5 pr-3 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${
 										isSelected ? 'text-(--text-primary)' : 'text-(--text-secondary)'
-									}`}
+									} ${opt.isChild ? 'pl-7' : 'pl-3'}`}
 								>
 									<span
 										className={`h-1.5 w-1.5 shrink-0 rounded-full transition-colors ${

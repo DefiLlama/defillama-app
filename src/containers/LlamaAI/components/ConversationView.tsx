@@ -70,6 +70,7 @@ interface ConversationViewProps {
 	quotedText?: string | null
 	onClearQuotedText?: () => void
 	onTableFullscreenOpen?: () => void
+	onShare?: (messageId?: string) => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -91,6 +92,7 @@ function getMessageAnchorIdFromHash(hash: string) {
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
+	onShare,
 	sessionId,
 	readOnly,
 	isLlama,
@@ -102,6 +104,7 @@ function ConversationMessageItem({
 }: {
 	message: Message
 	nextUserMessage?: string
+	onShare?: (messageId?: string) => void
 	sessionId: string | null
 	readOnly: boolean
 	isLlama: boolean
@@ -120,6 +123,7 @@ function ConversationMessageItem({
 			isLatestAssistant={isLatestAssistant}
 			onActionClick={onActionClick}
 			nextUserMessage={nextUserMessage}
+			onShare={onShare}
 			onTableFullscreenOpen={onTableFullscreenOpen}
 			anchorId={anchorId}
 			anchorRef={anchorRef}
@@ -288,7 +292,8 @@ export function ConversationView({
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	onShare
 }: ConversationViewProps) {
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
@@ -418,6 +423,7 @@ export function ConversationView({
 											key={message.id || `msg-${index}`}
 											message={message}
 											nextUserMessage={nextUserMessage}
+											onShare={onShare}
 											sessionId={sessionId}
 											readOnly={readOnly}
 											isLlama={isLlama}
@@ -448,6 +454,7 @@ export function ConversationView({
 											<ConversationMessageItem
 												key={message.id || `exchange-${i}`}
 												message={message}
+												onShare={onShare}
 												sessionId={sessionId}
 												readOnly={readOnly}
 												isLlama={isLlama}

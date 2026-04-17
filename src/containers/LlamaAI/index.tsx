@@ -30,6 +30,7 @@ import {
 } from '~/containers/LlamaAI/components/ConversationView'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
+import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
@@ -406,6 +407,9 @@ interface AgenticChatProps {
 	initialSessionId?: string
 	sharedSession?: SharedSession
 	readOnly?: boolean
+	onForkSubmit?: (prompt: string) => void
+	initialPrompt?: string
+	shareToken?: string
 }
 
 // Rebuild alert artifacts from persisted assistant metadata when restoring a session.
@@ -683,9 +687,21 @@ function createAgenticCallbacks({
 	}
 }
 
-export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
+export function AgenticChat({
+	initialSessionId,
+	sharedSession,
+	readOnly = false,
+	onForkSubmit,
+	initialPrompt,
+	shareToken
+}: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+	const hasUser = !!user
 	const isMobileChatView = useMedia('(max-width: 1023px)')
+
+	// Send shareToken only on the first agentic request so the backend can copy shared messages.
+	// Uses a "consumed" flag so we always read the current prop but only forward it once per mount.
+	const shareTokenConsumedRef = useRef(false)
 
 	const getAuthorizedFetchInput = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
 		if (!(input instanceof Request)) {
@@ -780,6 +796,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		dispatchDashboardPanel
 	] = useReducer(dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
+	const [showShareModal, setShowShareModal] = useState(false)
+	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
 	const { settings, actions, availableModels } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
@@ -844,8 +862,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		() => sharedSession?.messages.map((msg, i) => mapSharedSessionMessage(msg, i)) ?? null,
 		[sharedSession]
 	)
-	const effectiveMessages = sharedMessages ?? messages
-	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
+	const forkedFromShared = sharedSession && sessionId
+	const effectiveMessages = (forkedFromShared ? null : sharedMessages) ?? messages
+	const effectiveSessionId = (forkedFromShared ? sessionId : sharedSession?.session.sessionId) ?? sessionId
 	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
 	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
@@ -873,6 +892,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		clearPromptTransitionTimer()
 		setPromptTransitionMode('idle')
 	}, [clearPromptTransitionTimer])
+
+	const openShareModal = useCallback((messageId?: string) => {
+		setShareTargetMessageId(messageId ?? null)
+		setShowShareModal(true)
+	}, [])
+
+	const setShareModalOpen = useCallback((nextOpen: boolean) => {
+		setShowShareModal(nextOpen)
+		if (!nextOpen) {
+			setShareTargetMessageId(null)
+		}
+	}, [])
 
 	const triggerPromptTransition = useCallback(
 		(mode: PromptTransitionMode) => {
@@ -1666,6 +1697,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			const trimmed = prompt.trim()
 			const hasImages = images && images.length > 0
 			if ((!trimmed && !hasImages) || isStreaming || promptSubmissionLockRef.current) return
+
+			// Shared session: fork in-place — seed messages + sessionId, then continue with normal submit flow
+			if (sharedSession && !sessionId) {
+				if (!hasUser) {
+					onForkSubmit?.(trimmed)
+					return
+				}
+			}
 			triggerPromptTransition(shouldShowLanding ? 'landing' : 'conversation')
 			promptSubmissionLockRef.current = true
 
@@ -1679,7 +1718,16 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 					let currentSessionId = sessionId
 
-					if (isFirstMessageRef.current && !currentSessionId) {
+					// Fork shared session in-place: seed messages, create session, update URL
+					if (sharedSession && !currentSessionId) {
+						currentSessionId = createFakeSession()
+						setSessionId(currentSessionId)
+						setSessionTitle(sharedSession.session.title)
+						const seeded = sharedSession.messages.map((msg, i) => mapSharedSessionMessage(msg, i))
+						setMessages(seeded)
+						isFirstMessageRef.current = false
+						window.history.replaceState(null, '', `/ai/chat/${currentSessionId}`)
+					} else if (isFirstMessageRef.current && !currentSessionId) {
 						currentSessionId = createFakeSession()
 						setSessionId(currentSessionId)
 						isFirstMessageRef.current = false
@@ -1715,6 +1763,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					activeRequestSettleRef.current = settleState
 
 					const eventCounter = { count: 0 }
+					const currentShareToken = !shareTokenConsumedRef.current ? shareToken : undefined
+					if (currentShareToken) shareTokenConsumedRef.current = true
+
 					void fetchAgenticResponse({
 						message: trimmed,
 						sessionId: currentSessionId,
@@ -1728,6 +1779,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						model: settings.model || undefined,
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
+						shareToken: currentShareToken,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
 						eventCounter,
@@ -1877,7 +1929,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			triggerPromptTransition,
 			quotedText,
 			isMobileChatView,
-			settings.model
+			settings.model,
+			sharedSession,
+			shareToken,
+			hasUser,
+			onForkSubmit
 		]
 	)
 
@@ -2041,7 +2097,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		isFirstMessageRef.current = false
 	}, [sharedSession])
 
-	if (!user && !readOnly) {
+	// Auto-send the initial prompt after a forked session finishes restoring.
+	const initialPromptSentRef = useRef(false)
+	useEffect(() => {
+		if (!initialPrompt || initialPromptSentRef.current) return
+		if (restoringSessionId) return
+		initialPromptSentRef.current = true
+		const frameId = window.requestAnimationFrame(() => {
+			handleSubmit(initialPrompt)
+		})
+
+		return () => {
+			window.cancelAnimationFrame(frameId)
+		}
+	}, [initialPrompt, restoringSessionId, handleSubmit])
+
+	if (!user && !readOnly && !sharedSession) {
 		return (
 			<>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
@@ -2111,7 +2182,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							onOpenSettings={settingsModalStore.show}
 							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							sessionTitle={effectiveSessionTitle}
+							canShare={!sharedSession && effectiveMessages.length > 0}
+							onShare={() => openShareModal()}
 						/>
+					) : null}
+					{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
+						<button
+							onClick={() => openShareModal()}
+							data-umami-event="llamaai-share-modal-open"
+							data-umami-event-source="header_controls"
+							className="absolute top-2.5 right-2.5 z-10 hidden items-center gap-1.5 rounded-md border border-[#e6e6e6] px-3 py-1.5 text-xs font-medium text-[#444] transition-colors hover:bg-[#f7f7f7] lg:flex dark:border-[#333] dark:text-[#ccc] dark:hover:bg-[#222324]"
+						>
+							<Icon name="share" height={14} width={14} />
+							Share
+						</button>
 					) : null}
 					{restoringSessionId && !hasMessages ? (
 						<LoadingConversationState />
@@ -2180,6 +2264,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									quotedText={quotedText}
 									onClearQuotedText={() => setQuotedText(null)}
 									onTableFullscreenOpen={hideSidebar}
+									onShare={openShareModal}
 								/>
 							</div>
 						</div>
@@ -2237,6 +2322,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							quotedText={quotedText}
 							onClearQuotedText={() => setQuotedText(null)}
 							onTableFullscreenOpen={hideSidebar}
+							onShare={openShareModal}
 						/>
 					)}
 				</div>
@@ -2275,6 +2361,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				{!readOnly ? (
 					<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
 				) : null}
+				{!readOnly && showShareModal ? (
+					<ShareModal
+						open={true}
+						setOpen={setShareModalOpen}
+						sessionId={effectiveSessionId}
+						messageId={shareTargetMessageId}
+					/>
+				) : null}
 				{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
 				{shouldRenderSubscribeModal ? (
 					<Suspense fallback={<></>}>
@@ -2298,12 +2392,16 @@ const ChatControls = memo(function ChatControls({
 	handleNewChat,
 	onOpenSettings,
 	hasCustomInstructions,
-	sessionTitle
+	sessionTitle,
+	canShare,
+	onShare
 }: {
 	handleNewChat: () => void
 	onOpenSettings: () => void
 	hasCustomInstructions: boolean
 	sessionTitle: string | null
+	canShare: boolean
+	onShare: () => void
 }) {
 	const isMobile = useMedia('(max-width: 1023px)')
 	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
@@ -2325,7 +2423,7 @@ const ChatControls = memo(function ChatControls({
 	return (
 		<div className="llamaai-chat-controls">
 			<nav
-				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
+				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
 				aria-label="Chat controls"
 			>
 				<Tooltip
@@ -2346,11 +2444,22 @@ const ChatControls = memo(function ChatControls({
 				<Tooltip
 					content="New Chat"
 					render={<button onClick={handleNewChat} />}
-					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue) max-lg:ml-auto"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span className="sr-only">New Chat</span>
 				</Tooltip>
+				{canShare ? (
+					<button
+						onClick={onShare}
+						data-umami-event="llamaai-share-modal-open"
+						data-umami-event-source="header_controls"
+						className="flex h-6 items-center gap-1 rounded-sm bg-(--old-blue)/12 px-2 text-[11px] text-(--old-blue) transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:hidden"
+					>
+						<Icon name="share" height={12} width={12} />
+						Share
+					</button>
+				) : null}
 				{!isMobile ? (
 					<Tooltip
 						content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}

@@ -186,16 +186,17 @@ function extractChainValues(
 	>,
 	key: 'total24h' | 'total7d' | 'total30d' | 'totalAllTime'
 ): Record<string, number> | null {
-	const result: Record<string, number> = {}
-	let hasAny = false
+	const sortedEntries: Array<[string, number]> = []
 	for (const chain in cb) {
-		const val = cb[chain][key]
-		if (val != null) {
-			result[chain] = val
-			hasAny = true
+		const value = cb[chain][key]
+		if (value != null) {
+			sortedEntries.push([chain, value])
 		}
 	}
-	return hasAny ? result : null
+
+	sortedEntries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+
+	return sortedEntries.length > 0 ? Object.fromEntries(sortedEntries) : null
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {

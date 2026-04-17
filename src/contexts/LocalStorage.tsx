@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useSyncExternalStore } from 'react'
+import { MAX_RECENT_DOWNLOADS, sameSavedConfigShape, type SavedDownload } from '~/containers/Downloads/savedDownloads'
 import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
@@ -21,6 +22,8 @@ const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
+const SAVED_DOWNLOADS = 'SAVED_DOWNLOADS' as const
+const RECENT_DOWNLOADS = 'RECENT_DOWNLOADS' as const
 
 export const WATCHLIST_KEYS = {
 	DEFI_WATCHLIST: 'DEFI_WATCHLIST',
@@ -105,13 +108,6 @@ export const CHAINS_CATEGORY_GROUP_SETTINGS = [
 	}
 ] as const
 
-// LIQUIDATIONS
-export const LIQS_SETTINGS = {
-	LIQS_USING_USD: 'LIQS_USING_USD',
-	LIQS_SHOWING_INSPECTOR: 'LIQS_SHOWING_INSPECTOR',
-	LIQS_CUMULATIVE: 'LIQS_CUMULATIVE'
-} as const
-
 // BRIDGES
 const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
 
@@ -119,17 +115,10 @@ export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
 export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
 type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
-type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
 type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
 type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
 
-type SettingKey =
-	| TvlSettingsKey
-	| FeesSettingKey
-	| NftSettingKey
-	| LiquidationsSettingKey
-	| BridgesSettingKey
-	| ChainsCategoryGroupKey
+type SettingKey = TvlSettingsKey | FeesSettingKey | NftSettingKey | BridgesSettingKey | ChainsCategoryGroupKey
 
 type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 	? TvlSettingsKey
@@ -141,11 +130,9 @@ type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 				? ChainsCategoryGroupKey
 				: T extends 'nfts'
 					? NftSettingKey
-					: T extends 'liquidations'
-						? LiquidationsSettingKey
-						: T extends 'bridges'
-							? BridgesSettingKey
-							: string
+					: T extends 'bridges'
+						? BridgesSettingKey
+						: string
 
 type YieldFilterValue = string | number | boolean
 type YieldSavedFilter = Record<string, YieldFilterValue>
@@ -175,6 +162,8 @@ export type AppStorage = SettingsStore & {
 	[DEFI_SELECTED_PORTFOLIO]?: string
 	[YIELDS_SELECTED_PORTFOLIO]?: string
 	[CHAINS_SELECTED_PORTFOLIO]?: string
+	[SAVED_DOWNLOADS]?: SavedDownload[]
+	[RECENT_DOWNLOADS]?: SavedDownload[]
 	tableViews?: CustomView[]
 }
 
@@ -185,7 +174,6 @@ export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
 const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
 export const FEES_SETTINGS_KEYS_SET = new Set<string>(FEES_SETTINGS_KEYS)
 const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
-const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
 const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
 
 export const isTvlSettingsKey = (value: string): value is TvlSettingsKey => TVL_SETTINGS_KEYS_SET.has(value)
@@ -323,7 +311,6 @@ type TSETTINGTYPE =
 	| 'tvl_chains'
 	| 'stablecoins'
 	| 'nfts'
-	| 'liquidations'
 	| 'bridges'
 	| 'dimension_chart_interval'
 	| 'compare_chains'
@@ -340,8 +327,6 @@ function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 			return CHAINS_CATEGORY_GROUP_KEYS as KeysFor<T>[]
 		case 'nfts':
 			return NFT_SETTINGS_KEYS as KeysFor<T>[]
-		case 'liquidations':
-			return LIQS_SETTINGS_KEYS as KeysFor<T>[]
 		case 'bridges':
 			return BRIDGES_SETTINGS_KEYS as KeysFor<T>[]
 		default:
@@ -608,6 +593,128 @@ export function useCustomColumns() {
 		addCustomColumn,
 		editCustomColumn,
 		deleteCustomColumn
+	}
+}
+
+export function useSavedDownloads() {
+	const snapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => {
+			const store = readAppStorage()
+			const list = store[SAVED_DOWNLOADS]
+			return list ? JSON.stringify(list) : '[]'
+		},
+		() => '[]'
+	)
+
+	const savedDownloads = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as SavedDownload[]
+		} catch {
+			return [] as SavedDownload[]
+		}
+	}, [snapshot])
+
+	function setList(next: SavedDownload[]) {
+		writeAppStorage({ ...readAppStorage(), [SAVED_DOWNLOADS]: next })
+	}
+
+	function saveDownload(config: SavedDownload, options?: { replaceByName?: boolean }) {
+		const current = (readAppStorage()[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		if (options?.replaceByName) {
+			const without = current.filter((c) => c.name !== config.name)
+			setList([config, ...without])
+			return
+		}
+		setList([config, ...current])
+	}
+
+	function updateDownload(id: string, patch: Partial<SavedDownload>) {
+		const current = (readAppStorage()[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		const next = current.map((c) => (c.id === id ? ({ ...c, ...patch } as SavedDownload) : c))
+		setList(next)
+	}
+
+	function deleteDownload(id: string) {
+		const current = (readAppStorage()[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		setList(current.filter((c) => c.id !== id))
+	}
+
+	function renameDownload(id: string, name: string) {
+		updateDownload(id, { name } as Partial<SavedDownload>)
+	}
+
+	function markRun(id: string) {
+		updateDownload(id, { lastRunAt: Date.now() } as Partial<SavedDownload>)
+	}
+
+	return {
+		savedDownloads,
+		saveDownload,
+		updateDownload,
+		deleteDownload,
+		renameDownload,
+		markRun
+	}
+}
+
+export function useRecentDownloads() {
+	const snapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => {
+			const store = readAppStorage()
+			const list = store[RECENT_DOWNLOADS]
+			return list ? JSON.stringify(list) : '[]'
+		},
+		() => '[]'
+	)
+
+	const recentDownloads = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as SavedDownload[]
+		} catch {
+			return [] as SavedDownload[]
+		}
+	}, [snapshot])
+
+	function setList(next: SavedDownload[]) {
+		writeAppStorage({ ...readAppStorage(), [RECENT_DOWNLOADS]: next })
+	}
+
+	function recordRecent(config: SavedDownload) {
+		const store = readAppStorage()
+		const currentRecents = (store[RECENT_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		const dedupedRecents = currentRecents.filter((c) => !sameSavedConfigShape(c, config))
+		const nextRecents = [config, ...dedupedRecents].slice(0, MAX_RECENT_DOWNLOADS)
+
+		// Every real download flows through recordRecent, so use it to bump lastRunAt
+		// on any saved preset whose shape matches — handles saved/recent/ad-hoc uniformly.
+		const currentSaved = (store[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		const now = Date.now()
+		let savedChanged = false
+		const nextSaved = currentSaved.map((s) => {
+			if (sameSavedConfigShape(s, config)) {
+				savedChanged = true
+				return { ...s, lastRunAt: now }
+			}
+			return s
+		})
+
+		writeAppStorage({
+			...store,
+			[RECENT_DOWNLOADS]: nextRecents,
+			...(savedChanged ? { [SAVED_DOWNLOADS]: nextSaved } : {})
+		})
+	}
+
+	function clearRecents() {
+		setList([])
+	}
+
+	return {
+		recentDownloads,
+		recordRecent,
+		clearRecents
 	}
 }
 

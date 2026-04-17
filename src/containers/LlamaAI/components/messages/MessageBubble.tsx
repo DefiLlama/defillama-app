@@ -671,6 +671,7 @@ export function MessageBubble({
 	isLatestAssistant = false,
 	onActionClick,
 	nextUserMessage,
+	onShare,
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef,
@@ -684,6 +685,7 @@ export function MessageBubble({
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	onShare?: (messageId?: string) => void
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
@@ -760,6 +762,7 @@ export function MessageBubble({
 				<ResponseControls
 					messageId={message.id}
 					content={message.content}
+					onShare={onShare}
 					sessionId={sessionId}
 					readOnly={readOnly}
 					messageMetadata={message.messageMetadata}

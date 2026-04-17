@@ -365,20 +365,19 @@ function createTooltipFormatter({
 		const chartdate = Number.isFinite(axisValue) ? formatTooltipChartDate(axisValue, groupBy) : ''
 
 		const vals = items
-			.map((item) => {
+			.flatMap((item) => {
 				const name = item?.seriesName
-				if (!name) return null
+				if (!name) return []
 
 				const rawValue = getTooltipRawYValue(item, name)
 				const value =
 					rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
-				if (value == null || Number.isNaN(value)) return null
+				if (value == null || Number.isNaN(value)) return []
 
 				const symbol = seriesSymbols?.get(name) ?? valueSymbol
 				const hasOverride = seriesSymbols?.has(name) ?? false
-				return [item.marker, name, value, symbol, hasOverride] as const
+				return [[item.marker, name, value, symbol, hasOverride] as const]
 			})
-			.filter(Boolean)
 			// Series with per-series symbol overrides (e.g. Price, Market Cap) sort to the top,
 			// then by value descending within each group.
 			.sort((a, b) => {
@@ -644,6 +643,18 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		// override default chart settings
 		for (const option in chartOptions) {
 			if (option === 'overrides') continue
+			if (
+				option === 'dataZoom' &&
+				Array.isArray(mergedChartSettings.dataZoom) &&
+				chartOptions.dataZoom &&
+				typeof chartOptions.dataZoom === 'object' &&
+				!Array.isArray(chartOptions.dataZoom)
+			) {
+				mergedChartSettings.dataZoom = mergedChartSettings.dataZoom.map((zoomOption: any) =>
+					mergeDeep(zoomOption, chartOptions.dataZoom)
+				)
+				continue
+			}
 			if (mergedChartSettings[option]) {
 				mergedChartSettings[option] = mergeDeep(mergedChartSettings[option], chartOptions[option])
 			} else {

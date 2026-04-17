@@ -4,14 +4,14 @@ import { fetchJson } from '~/utils/async'
 import type {
 	IFetchedRWAProject,
 	IRWAStatsResponse,
-	IRWAChartDataByTicker,
+	IRWAChartDataByAsset,
 	IRWAAssetData,
 	IRWABreakdownChartParams,
 	IRWABreakdownChartResponse,
 	IRWABreakdownChartRow,
 	RWAAssetChartDimension,
 	RWAAssetChartRow,
-	RWATickerChartTarget
+	RWAAssetChartTarget
 } from './api.types'
 
 export function toUnixMsTimestamp(ts: number): number {
@@ -46,15 +46,15 @@ export async function fetchRWAAssetDataById(assetId: string): Promise<IFetchedRW
 	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
 }
 
-export async function fetchRWAChartDataByTicker({
+export async function fetchRWAChartDataByAsset({
 	target,
 	includeStablecoins,
 	includeGovernance
 }: {
-	target: RWATickerChartTarget
+	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
-}): Promise<IRWAChartDataByTicker | null> {
+}): Promise<IRWAChartDataByAsset | null> {
 	let chartUrl = `${RWA_SERVER_URL}/chart/chain/all`
 
 	switch (target.kind) {
@@ -81,8 +81,8 @@ export async function fetchRWAChartDataByTicker({
 		includeGovernance: String(includeGovernance)
 	})
 
-	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown?${searchParams.toString()}`).catch((error) => {
-		console.error('Failed to fetch RWA chart data by ticker:', error)
+	return fetchJson<IRWAChartDataByAsset>(`${chartUrl}/asset-breakdown?${searchParams.toString()}`).catch((error) => {
+		console.error('Failed to fetch RWA chart data by asset:', error)
 		return null
 	})
 }

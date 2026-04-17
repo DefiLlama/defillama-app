@@ -1,5 +1,6 @@
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWACategories } from '~/containers/RWA/Categories'
+import { filterCategoriesForStandardRwaOverview } from '~/containers/RWA/constants'
 import { getRWACategoriesOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { RWATabNav } from '~/containers/RWA/TabNav'
@@ -16,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () 
 		throw new Error('categories not found in RWA list')
 	}
 
-	const categoryLinks = rwaList.categories.map((category) => ({
+	const categoryLinks = filterCategoriesForStandardRwaOverview(rwaList.categories).map((category) => ({
 		label: category,
 		to: `/rwa/category/${rwaSlug(category)}`
 	}))

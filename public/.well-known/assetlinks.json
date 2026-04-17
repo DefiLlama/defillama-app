@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.get_login_creds"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.defillama.defillama",
+      "sha256_cert_fingerprints": ["REPLACE_WITH_RELEASE_SHA256_CERT_FINGERPRINT"]
+    }
+  }
+]

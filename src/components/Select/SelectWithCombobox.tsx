@@ -13,6 +13,7 @@ interface ISelectWithComboboxBase {
 	allValues: SelectValues
 	selectedValues: Array<string>
 	label: string
+	singleSelect?: boolean
 	nestedMenu?: boolean
 	labelType?: 'regular' | 'smol' | 'none'
 	variant?: SelectTriggerVariant
@@ -46,6 +47,7 @@ export function SelectWithCombobox({
 	selectedValues,
 	setSelectedValues: setSelectedValuesProp,
 	label,
+	singleSelect = false,
 	nestedMenu,
 	labelType,
 	variant,
@@ -62,7 +64,7 @@ export function SelectWithCombobox({
 }: ISelectWithCombobox) {
 	const router = useRouter()
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
-	const showCheckboxes = Array.isArray(selectedValues)
+	const showCheckboxes = Array.isArray(selectedValues) && !singleSelect
 
 	const isStringValue = React.useCallback((value: string | SelectOption): value is string => {
 		return typeof value === 'string'
@@ -102,6 +104,18 @@ export function SelectWithCombobox({
 		? (value: string) =>
 				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), [value], defaultSelectedValues)
 		: (value: string) => setSelectedValuesFromState([value])
+	const providerValue = singleSelect ? (selectedValues[0] ?? '') : selectedValues
+	const normalizeNextValues = React.useCallback(
+		(values: string[] | string) => {
+			if (singleSelect) {
+				if (typeof values === 'string') return values ? [values] : []
+				return values.slice(0, 1)
+			}
+
+			return Array.isArray(values) ? values : values ? [values] : []
+		},
+		[singleSelect]
+	)
 
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
@@ -162,10 +176,11 @@ export function SelectWithCombobox({
 				}}
 			>
 				<Ariakit.SelectProvider
-					value={selectedValues}
+					value={providerValue}
 					setValue={(values) => {
-						setSelectedValues(values)
-						onValuesChange?.(values, label)
+						const nextValues = normalizeNextValues(values)
+						setSelectedValues(nextValues)
+						onValuesChange?.(nextValues, label)
 					}}
 				>
 					<NestedMenu label={label} render={<Ariakit.Select />}>
@@ -243,10 +258,11 @@ export function SelectWithCombobox({
 			}}
 		>
 			<Ariakit.SelectProvider
-				value={selectedValues}
+				value={providerValue}
 				setValue={(values) => {
-					setSelectedValues(values)
-					onValuesChange?.(values, label)
+					const nextValues = normalizeNextValues(values)
+					setSelectedValues(nextValues)
+					onValuesChange?.(nextValues, label)
 				}}
 			>
 				<Ariakit.Select
@@ -265,9 +281,11 @@ export function SelectWithCombobox({
 						<>
 							<span>{label}: </span>
 							<span className="text-(--link)">
-								{selectedValues.length > 2
-									? `${selectedValues[0]} + ${selectedValues.length - 1} others`
-									: selectedValues.join(', ')}
+								{singleSelect
+									? selectedValues[0]
+									: selectedValues.length > 2
+										? `${selectedValues[0]} + ${selectedValues.length - 1} others`
+										: selectedValues.join(', ')}
 							</span>
 						</>
 					) : (

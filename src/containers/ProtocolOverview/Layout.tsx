@@ -217,17 +217,28 @@ export function ProtocolOverviewLayout({
 			))}
 
 			{name === 'Spark' ? (
-				<Announcement announcementId="spark-investor-relations" version="1">
-					View Spark's{' '}
-					<a
-						href={`https://investors.defillama.com/spark${user?.id ? `?referrer=${user.id}` : ''}`}
-						target="_blank"
-						rel="noopener"
-						className="underline"
-					>
-						investor relations
-					</a>{' '}
-					dashboard for more in depth analytics and investor reports.
+				<Announcement
+					announcementId="spark-investor-relations"
+					version="2026-04-15"
+					className="border border-[#ffb27a] bg-[linear-gradient(90deg,rgba(255,244,234,0.98),rgba(255,232,213,0.98)_38%,rgba(255,219,225,0.95)_100%)] text-[#7a3d0c] shadow-[0_8px_20px_rgba(255,142,43,0.14)] dark:border-[#8f4e1e] dark:bg-[linear-gradient(90deg,rgba(66,43,27,0.96),rgba(81,35,33,0.94)_55%,rgba(94,26,40,0.94)_100%)] dark:text-[#ffe8d5]"
+					contentClassName="text-center"
+				>
+					<span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-2 py-0.5 text-xs font-semibold text-[#8d4c12] shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-[#ffd2aa]">
+							<TokenLogo name={name} kind="token" size={14} alt={`Logo of ${name}`} />
+							Spark IR
+						</span>
+						<span>View Spark&apos;s</span>
+						<a
+							href={`https://investors.defillama.com/spark${user?.id ? `?referrer=${user.id}` : ''}`}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="underline decoration-2 underline-offset-[3px]"
+						>
+							investor relations dashboard
+						</a>
+						<span className="opacity-90">for deeper analytics and investor reports.</span>
+					</span>
 				</Announcement>
 			) : null}
 

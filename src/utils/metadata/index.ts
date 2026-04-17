@@ -40,7 +40,7 @@ const metadataCache: {
 	protocolMetadata,
 	categoriesAndTags,
 	cexs,
-	rwaList,
+	rwaList: rwaList as IRWAList,
 	rwaPerpsList: {
 		...(rwaPerpsList as IRWAPerpsList),
 		assetGroups: (rwaPerpsList as IRWAPerpsList).assetGroups ?? []
