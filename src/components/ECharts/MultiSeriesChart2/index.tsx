@@ -327,6 +327,33 @@ function getTooltipRawYValue(item: any, seriesName: string): any {
 	return item?.value
 }
 
+type TooltipValueRow = readonly [marker: string, name: string, value: number, symbol: string, hasOverride: boolean]
+
+function compareTooltipRows(a: TooltipValueRow, b: TooltipValueRow) {
+	if (a[4] !== b[4]) return a[4] ? -1 : 1
+	return b[2] - a[2]
+}
+
+function insertTopTooltipValue(rows: TooltipValueRow[], nextRow: TooltipValueRow, limit: number) {
+	if (!Number.isFinite(limit) || limit <= 0) return
+
+	let insertAt = rows.length
+	for (let i = 0; i < rows.length; i++) {
+		if (rows[i][2] < nextRow[2]) {
+			insertAt = i
+			break
+		}
+	}
+
+	if (insertAt === rows.length) {
+		if (rows.length < limit) rows.push(nextRow)
+		return
+	}
+
+	rows.splice(insertAt, 0, nextRow)
+	if (rows.length > limit) rows.pop()
+}
+
 function createTooltipFormatter({
 	groupBy,
 	valueSymbol,
@@ -349,34 +376,49 @@ function createTooltipFormatter({
 		const axisValue = getAxisValueFromTooltipParams(items[0])
 		const chartdate = Number.isFinite(axisValue) ? formatTooltipChartDate(axisValue, groupBy) : ''
 
-		const vals = items
-			.flatMap((item) => {
-				const name = item?.seriesName
-				if (!name) return []
-
-				const rawValue = getTooltipRawYValue(item, name)
-				const value =
-					rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
-				if (value == null || Number.isNaN(value)) return []
-
-				const symbol = seriesSymbols?.get(name) ?? valueSymbol
-				const hasOverride = seriesSymbols?.has(name) ?? false
-				return [[item.marker, name, value, symbol, hasOverride] as const]
-			})
-			// Series with per-series symbol overrides (e.g. Price, Market Cap) sort to the top,
-			// then by value descending within each group.
-			.sort((a, b) => {
-				if (a[4] !== b[4]) return a[4] ? -1 : 1
-				return b[2] - a[2]
-			})
-
 		const cap = maxItems == null ? 30 : Number(maxItems)
 		const shouldCap = Number.isFinite(cap) && cap > 0
-		const cappedVals = shouldCap && vals.length > cap ? vals.slice(0, cap) : vals
-		const remaining = shouldCap && vals.length > cap ? vals.length - cap : 0
-		const total = vals.reduce((sum, curr) => (curr[4] ? sum : sum + curr[2]), 0)
+		let total = 0
+		let totalCount = 0
+		let vals: TooltipValueRow[] = []
+		const topOverrideVals: TooltipValueRow[] = []
+		const topStandardVals: TooltipValueRow[] = []
+
+		for (const item of items) {
+			const name = item?.seriesName
+			if (!name) continue
+
+			const rawValue = getTooltipRawYValue(item, name)
+			const value =
+				rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+			if (value == null || Number.isNaN(value)) continue
+
+			const hasOverride = seriesSymbols?.has(name) ?? false
+			const nextRow = [item.marker, name, value, seriesSymbols?.get(name) ?? valueSymbol, hasOverride] as const
+
+			totalCount += 1
+			if (!hasOverride) total += value
+
+			if (!shouldCap) {
+				vals.push(nextRow)
+				continue
+			}
+
+			insertTopTooltipValue(hasOverride ? topOverrideVals : topStandardVals, nextRow, cap)
+		}
+
+		if (!shouldCap) {
+			vals.sort(compareTooltipRows)
+		}
+
+		const cappedVals = shouldCap
+			? topOverrideVals.length >= cap
+				? topOverrideVals.slice(0, cap)
+				: [...topOverrideVals, ...topStandardVals.slice(0, Math.max(0, cap - topOverrideVals.length))]
+			: vals
+		const remaining = shouldCap ? Math.max(0, totalCount - cappedVals.length) : 0
 		const totalLine =
-			showTotalInTooltip && vals.length > 0
+			showTotalInTooltip && totalCount > 0
 				? `<li style="list-style:none;font-weight:600;">Total: ${formatAxisLabel(total, valueSymbol)}</li>`
 				: ''
 
@@ -426,6 +468,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const eventHoverCleanupRef = useRef<(() => void) | null>(null)
+	const globalOutCleanupRef = useRef<(() => void) | null>(null)
 	// Per-component tooltip size cache (used by tooltip.position). Keeping this in a ref avoids
 	// recreating it on effect re-runs and prevents cross-chart interference.
 	const tooltipSizeCacheRef = useRef<{ w: number; h: number; updatedAt: number } | null>(null)
@@ -615,16 +659,33 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	})
 
 	useEffect(() => {
-		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
-		if (shouldEnableCSVDownload || shouldEnableImageExport) {
-			handleChartReady(instance)
-		}
-
 		emitReady(instance)
+
+		return () => {
+			globalOutCleanupRef.current?.()
+			globalOutCleanupRef.current = null
+			eventHoverCleanupRef.current?.()
+			eventHoverCleanupRef.current = null
+			chartRef.current = null
+			tooltipSizeCacheRef.current = null
+			instance.dispose()
+			handleChartReady(null)
+			emitReady(null)
+		}
+	}, [id, handleChartReady])
+
+	useEffect(() => {
+		handleChartReady(shouldEnableCSVDownload || shouldEnableImageExport ? chartRef.current : null)
+	}, [handleChartReady, shouldEnableCSVDownload, shouldEnableImageExport])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		const el = document.getElementById(id)
+		if (!instance || !el) return
 
 		// avoid mutating memoized defaults
 		const mergedChartSettings: any = { ...defaultChartSettings }
@@ -844,19 +905,24 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			: series
 		const finalGraphic = shouldShowEventRail ? mergeGraphicWithEventMarkLinePlaceholder(graphic, isThemeDark) : graphic
 
-		instance.setOption({
-			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
-			graphic: finalGraphic,
-			tooltip: tooltipConfig,
-			grid: finalGrid,
-			xAxis: finalXAxis,
-			yAxis: finalYAxisWithEvents,
-			...(shouldHideDataZoom ? {} : { dataZoom }),
-			...(chartOptions?.toolbox ? { toolbox: chartOptions.toolbox } : {}),
-			series: finalSeries,
-			dataset: datasetForOption
-		})
-		const detachEventHoverHandlers = attachEventHoverHandlers({
+		instance.setOption(
+			{
+				...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
+				graphic: finalGraphic,
+				tooltip: tooltipConfig,
+				grid: finalGrid,
+				xAxis: finalXAxis,
+				yAxis: finalYAxisWithEvents,
+				...(shouldHideDataZoom ? {} : { dataZoom }),
+				...(chartOptions?.toolbox ? { toolbox: chartOptions.toolbox } : {}),
+				series: finalSeries,
+				dataset: datasetForOption
+			},
+			{ notMerge: true, lazyUpdate: true }
+		)
+
+		eventHoverCleanupRef.current?.()
+		eventHoverCleanupRef.current = attachEventHoverHandlers({
 			instance,
 			eventRailData: shouldShowEventRail ? eventRailData : [],
 			hoverState,
@@ -872,6 +938,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				}
 			}
 		})
+
+		globalOutCleanupRef.current?.()
+		globalOutCleanupRef.current = null
 
 		if (alwaysShowTooltip && series.length > 0 && datasetLength > 0) {
 			const dataIndex = datasetLength - 1
@@ -891,25 +960,11 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 			const onGlobalOut = () => showTip()
 			instance.on('globalout', onGlobalOut)
-
-			return () => {
+			globalOutCleanupRef.current = () => {
 				instance.off('globalout', onGlobalOut)
-				detachEventHoverHandlers()
-				chartRef.current = null
-				tooltipSizeCacheRef.current = null
-				instance.dispose()
-				handleChartReady(null)
-				emitReady(null)
 			}
-		}
-
-		return () => {
-			detachEventHoverHandlers()
-			chartRef.current = null
-			tooltipSizeCacheRef.current = null
-			instance.dispose()
-			handleChartReady(null)
-			emitReady(null)
+		} else {
+			instance.dispatchAction({ type: 'hideTip' })
 		}
 	}, [
 		id,
@@ -927,10 +982,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		eventRailData,
 		tooltipGroupBy,
 		isThemeDark,
-		effectiveCharts,
-		handleChartReady,
-		shouldEnableCSVDownload,
-		shouldEnableImageExport
+		effectiveCharts
 	])
 
 	return (

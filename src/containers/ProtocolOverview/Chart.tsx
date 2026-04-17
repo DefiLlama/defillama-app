@@ -1,7 +1,7 @@
 import { CustomChart } from 'echarts/charts'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import {
 	attachEventHoverHandlers,
 	buildEventRailData,
@@ -43,6 +43,7 @@ export default function ProtocolChart({
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const eventHoverCleanupRef = useRef<(() => void) | null>(null)
 	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
 
 	// Stable resize listener - never re-attaches when dependencies change
@@ -156,15 +157,29 @@ export default function ProtocolChart({
 		}
 	}, [chartData, chartColors, isThemeDark, isCumulative, rangeHallmarks])
 
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
+
 	useEffect(() => {
-		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
-		if (onReady) {
-			onReady(instance)
+		emitReady(instance)
+
+		return () => {
+			eventHoverCleanupRef.current?.()
+			eventHoverCleanupRef.current = null
+			chartRef.current = null
+			instance.dispose()
+			emitReady(null)
 		}
+	}, [id])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance) return
 
 		const mergedSettings = { ...defaultChartSettings } as Record<string, unknown>
 		if (chartOptions) {
@@ -238,16 +253,21 @@ export default function ProtocolChart({
 
 		const finalGraphic = shouldShowEventRail ? mergeGraphicWithEventMarkLinePlaceholder(graphic, isThemeDark) : graphic
 
-		instance.setOption({
-			graphic: finalGraphic,
-			tooltip,
-			grid: finalGrid,
-			xAxis: finalXAxis,
-			yAxis: finalYAxisWithEvents,
-			...(shouldHideDataZoom ? {} : { dataZoom: finalDataZoom }),
-			series: finalSeries
-		})
-		const detachEventHoverHandlers = attachEventHoverHandlers({
+		instance.setOption(
+			{
+				graphic: finalGraphic,
+				tooltip,
+				grid: finalGrid,
+				xAxis: finalXAxis,
+				yAxis: finalYAxisWithEvents,
+				...(shouldHideDataZoom ? {} : { dataZoom: finalDataZoom }),
+				series: finalSeries
+			},
+			{ notMerge: true, lazyUpdate: true }
+		)
+
+		eventHoverCleanupRef.current?.()
+		eventHoverCleanupRef.current = attachEventHoverHandlers({
 			instance,
 			eventRailData: shouldShowEventRail ? eventRailData : [],
 			hoverState,
@@ -263,17 +283,7 @@ export default function ProtocolChart({
 				}
 			}
 		})
-
-		return () => {
-			detachEventHoverHandlers()
-			chartRef.current = null
-			instance.dispose()
-			if (onReady) {
-				onReady(null)
-			}
-		}
 	}, [
-		id,
 		defaultChartSettings,
 		series,
 		chartOptions,
@@ -284,7 +294,6 @@ export default function ProtocolChart({
 		eventRailData,
 		isThemeDark,
 		tooltipGroupBy,
-		onReady,
 		hideDataZoom
 	])
 
