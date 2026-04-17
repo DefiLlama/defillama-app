@@ -203,7 +203,10 @@ const YIELD_METRIC_DEFS: Record<string, YieldMetricDef> = {
 	}
 }
 
-const PRICE_CHART_COLORS = ['#a855f7', '#f97316', '#06b6d4', '#84cc16']
+// Picked to not collide with the fixed metric palette above:
+//   Supplied (#06b6d4), Available (#84cc16), APY (#fd3c99), TVL (#4f8fea),
+//   TVL Change (#14b8a6), Net Borrow (#eab308), Utilization (#ef4444), Borrowed (#ec4899)
+const PRICE_CHART_COLORS = ['#a855f7', '#f97316', '#0369a1', '#4f46e5']
 
 const HOLDER_DONUT_RADIUS: [string, string] = ['45%', '75%']
 
@@ -1021,6 +1024,11 @@ const PageView = (_props) => {
 		netBorrowApyDataset.source.length > 0 ||
 		poolLiquidityDataset.source.length > 0
 
+	const loadingPriceCount = useMemo(
+		() => Object.values(priceStatus).filter((s) => s === 'loading').length,
+		[priceStatus]
+	)
+
 	if (!isReady || isLoading) {
 		return (
 			<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -1101,7 +1109,7 @@ const PageView = (_props) => {
 
 				<div className="col-span-2 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<div className="flex flex-wrap items-center justify-start gap-2">
-						{availableMetricIds.length > 2 ? (
+						{availableMetricIds.length > toggledMetricIds.length ? (
 							<Ariakit.DialogProvider store={metricsDialogStore}>
 								<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
 									<span>Add Metrics</span>
@@ -1172,7 +1180,7 @@ const PageView = (_props) => {
 										: undefined
 							return (
 								<label
-									className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
+									className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm"
 									key={`active-metric-${metricId}`}
 									title={title}
 								>
@@ -1203,6 +1211,11 @@ const PageView = (_props) => {
 								</label>
 							)
 						})}
+						{loadingPriceCount > 0 ? (
+							<span className="flex animate-pulse items-center gap-1 text-xs text-(--text-disabled)" aria-live="polite">
+								Loading {loadingPriceCount} price series…
+							</span>
+						) : null}
 						<div className="ml-auto flex flex-wrap justify-end gap-1">
 							<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 							<ChartExportButtons
