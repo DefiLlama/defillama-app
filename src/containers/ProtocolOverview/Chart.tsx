@@ -1,4 +1,4 @@
-import { ScatterChart } from 'echarts/charts'
+import { CustomChart } from 'echarts/charts'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
@@ -18,7 +18,7 @@ const customOffsets: Record<string, number> = {
 	'NFT Volume': 65
 }
 
-echarts.use([MarkAreaComponent, ScatterChart])
+echarts.use([MarkAreaComponent, CustomChart])
 
 type AxisExtent = {
 	min?: number
@@ -30,15 +30,14 @@ function getZeroBaselineYAxisMin(extent: AxisExtent) {
 
 const EVENT_DOT_SIZE = 16
 // Square body with a pointed "arrow" on top (path bounds 0..100 on both axes).
-const EVENT_DOT_SYMBOL = 'path://M50 0 L72 22 L100 22 L100 100 L0 100 L0 22 L28 22 Z'
+const EVENT_DOT_PATH = 'M50 0 L72 22 L100 22 L100 100 L0 100 L0 22 L28 22 Z'
 // 5-point star (path bounds 0..100), centered.
-const EVENT_STAR_SYMBOL = 'path://M50 12 L62 42 L94 42 L68 61 L78 92 L50 73 L22 92 L32 61 L6 42 L38 42 Z'
+const EVENT_STAR_PATH = 'M50 12 L62 42 L94 42 L68 61 L78 92 L50 73 L22 92 L32 61 L6 42 L38 42 Z'
 // Anatomical skull: wide rounded cranium with cheekbones narrowing into a
 // smaller jaw that carries three teeth notches. Eye sockets and nose are
 // traced in the opposite winding direction so (under non-zero fill rule)
 // they punch transparent cut-outs that show the badge color through them.
-const EVENT_SKULL_SYMBOL =
-	'path://' +
+const EVENT_SKULL_PATH =
 	// skull silhouette (CW)
 	'M50 6C74 6 86 24 86 40' +
 	'L86 50C86 56 82 60 76 60' +
@@ -62,10 +61,12 @@ const EVENT_ICON_SIZE = 12
 // square body — not the tip — of the badge. The badge body starts at y=22 of
 // the path (out of 100), so its visual center is around 61% down.
 const EVENT_STAR_Y_FRACTION = 0.61
-const EVENT_STRIP_HEIGHT = 22
-const EVENT_STRIP_TOP_GAP = 4 // between x-axis labels and strip
-const EVENT_STRIP_BOTTOM_WITH_ZOOM = 58
-const EVENT_STRIP_BOTTOM_NO_ZOOM = 8
+const EVENT_ICON_Y_OFFSET = EVENT_DOT_SIZE * EVENT_STAR_Y_FRACTION - EVENT_ICON_SIZE / 2
+const EVENT_STRIP_VERTICAL_PADDING = 2
+const EVENT_STRIP_HEIGHT = EVENT_DOT_SIZE + EVENT_STRIP_VERTICAL_PADDING * 2
+const EVENT_STRIP_TOP_GAP = 2 // between x-axis labels and strip
+const EVENT_STRIP_BOTTOM_WITH_ZOOM = 60
+const EVENT_STRIP_BOTTOM_NO_ZOOM = 6
 const MAIN_GRID_BOTTOM_WITH_ZOOM_NO_EVENTS = 68
 const MAIN_GRID_BOTTOM_WITH_ZOOM_EVENTS = EVENT_STRIP_BOTTOM_WITH_ZOOM + EVENT_STRIP_HEIGHT + EVENT_STRIP_TOP_GAP
 const MAIN_GRID_BOTTOM_NO_ZOOM_NO_EVENTS = 12
@@ -75,21 +76,15 @@ type EventRailDatum = {
 	value: [number, number]
 	fullText: string
 	eventDate: number
+	iconPath: string
 	rangeStart?: number
 	rangeEnd?: number
 	iconColor: string
-	isDanger: boolean
 	itemStyle: {
 		color: string
 		borderColor: string
 		borderWidth: number
 	}
-}
-
-type EventStarDatum = {
-	value: [number, number]
-	symbol: string
-	itemStyle: { color: string }
 }
 
 const DANGER_KEYWORDS = ['depeg', 'hack', 'exploit']
@@ -166,14 +161,15 @@ function buildEventRailData({
 	].sort((a, b) => a.timestamp - b.timestamp)
 
 	const events: EventRailDatum[] = sortedEvents.map((event) => {
+		const isDanger = isDangerLabel(event.fullText)
 		const palette = getEventDotPalette(event.fullText, isThemeDark, event.isRange)
 
 		return {
 			value: [event.timestamp, 0],
 			fullText: event.fullText,
 			eventDate: event.timestamp,
+			iconPath: isDanger ? EVENT_SKULL_PATH : EVENT_STAR_PATH,
 			iconColor: palette.icon,
-			isDanger: isDangerLabel(event.fullText),
 			...(event.isRange ? { rangeStart: event.rangeStart, rangeEnd: event.rangeEnd } : {}),
 			itemStyle: {
 				color: palette.fill,
@@ -184,6 +180,11 @@ function buildEventRailData({
 	})
 
 	return { events }
+}
+
+function getEventStripCenterY(chartHeight: number, shouldHideDataZoom: boolean) {
+	const stripBottom = shouldHideDataZoom ? EVENT_STRIP_BOTTOM_NO_ZOOM : EVENT_STRIP_BOTTOM_WITH_ZOOM
+	return chartHeight - stripBottom - EVENT_STRIP_HEIGHT / 2
 }
 
 export default function ProtocolChart({
@@ -220,15 +221,10 @@ export default function ProtocolChart({
 		groupBy: tooltipGroupBy
 	})
 
-	const { eventRailData, eventStarData } = useMemo(() => {
-		const { events } = buildEventRailData({ hallmarks, rangeHallmarks, isThemeDark })
-		const stars: EventStarDatum[] = events.map((event) => ({
-			value: event.value,
-			symbol: event.isDanger ? EVENT_SKULL_SYMBOL : EVENT_STAR_SYMBOL,
-			itemStyle: { color: event.iconColor }
-		}))
-		return { eventRailData: events, eventStarData: stars }
-	}, [hallmarks, rangeHallmarks, isThemeDark])
+	const eventRailData = useMemo(
+		() => buildEventRailData({ hallmarks, rangeHallmarks, isThemeDark }).events,
+		[hallmarks, rangeHallmarks, isThemeDark]
+	)
 
 	const { series, allYAxis } = useMemo(() => {
 		const uniqueYAxis = new Set()
@@ -737,64 +733,87 @@ export default function ProtocolChart({
 			outerBoundsMode: 'same',
 			outerBoundsContain: 'axisLabel'
 		}
-		const eventStripBottom = shouldHideDataZoom ? EVENT_STRIP_BOTTOM_NO_ZOOM : EVENT_STRIP_BOTTOM_WITH_ZOOM
-		const eventGrid = {
-			left: 12,
-			right: 12,
-			bottom: eventStripBottom,
-			height: EVENT_STRIP_HEIGHT,
-			// Share the same outer bounds resolution as the main grid so both
-			// reserve space for the y-axis labels consistently. The runtime
-			// sync below still fine-tunes it to the exact pixel.
-			outerBoundsMode: 'same',
-			outerBoundsContain: 'axisLabel'
-		}
-		const finalGrid = shouldShowEventRail ? [mainGrid, eventGrid] : mainGrid
-
-		const mainXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
-		const eventXAxis = {
-			type: 'time',
-			gridIndex: 1,
-			show: false,
-			axisPointer: { show: false },
-			axisTick: { show: false },
-			axisLabel: { show: false },
-			axisLine: { show: false },
-			splitLine: { show: false },
-			...(hasTimeRange ? { min: timeRangeMin, max: timeRangeMax } : {})
-		}
-		const finalXAxis = shouldShowEventRail ? [mainXAxis, eventXAxis] : mainXAxis
+		const finalGrid = mainGrid
+		const finalXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
 
 		const eventStripYAxis = {
 			type: 'value',
-			gridIndex: 1,
 			min: -1,
 			max: 1,
-			show: false
+			show: false,
+			scale: true
 		}
+		const eventStripYAxisIndex = finalYAxis.length
 		const finalYAxisWithEvents = shouldShowEventRail ? [...finalYAxis, eventStripYAxis] : finalYAxis
+		const finalDataZoom = dataZoom
 
-		const finalDataZoom =
-			shouldShowEventRail && Array.isArray(dataZoom)
-				? (dataZoom as Array<Record<string, unknown>>).map((dz) => ({ ...dz, xAxisIndex: [0, 1] }))
-				: dataZoom
+		const renderEventRailItem = (
+			params: { dataIndex: number },
+			api: { coord: (value: [number, number]) => number[]; getHeight: () => number }
+		) => {
+			const event = eventRailData[params.dataIndex]
+			if (!event) return
 
-		const starOffsetPx = (EVENT_STAR_Y_FRACTION - 0.5) * EVENT_DOT_SIZE
+			const [x] = api.coord([event.eventDate, 0])
+			if (!Number.isFinite(x)) return
+
+			const centerY = getEventStripCenterY(api.getHeight(), shouldHideDataZoom)
+
+			return {
+				type: 'group',
+				x: x - EVENT_DOT_SIZE / 2,
+				y: centerY - EVENT_DOT_SIZE / 2,
+				cursor: 'pointer',
+				children: [
+					{
+						type: 'path',
+						shape: {
+							pathData: EVENT_DOT_PATH,
+							x: 0,
+							y: 0,
+							width: EVENT_DOT_SIZE,
+							height: EVENT_DOT_SIZE,
+							layout: 'cover'
+						},
+						style: {
+							fill: event.itemStyle.color,
+							stroke: event.itemStyle.borderColor,
+							lineWidth: event.itemStyle.borderWidth
+						}
+					},
+					{
+						type: 'path',
+						shape: {
+							pathData: event.iconPath,
+							x: (EVENT_DOT_SIZE - EVENT_ICON_SIZE) / 2,
+							y: EVENT_ICON_Y_OFFSET,
+							width: EVENT_ICON_SIZE,
+							height: EVENT_ICON_SIZE,
+							layout: 'cover'
+						},
+						style: {
+							fill: event.iconColor
+						}
+					}
+				]
+			}
+		}
+
 		const finalSeries = shouldShowEventRail
 			? [
 					...series,
 					{
 						name: 'Events',
-						type: 'scatter',
-						xAxisIndex: 1,
-						yAxisIndex: finalYAxis.length,
+						type: 'custom',
+						renderItem: renderEventRailItem,
+						clip: false,
+						xAxisIndex: 0,
+						yAxisIndex: eventStripYAxisIndex,
 						data: eventRailData,
-						symbol: EVENT_DOT_SYMBOL,
-						symbolSize: EVENT_DOT_SIZE,
-						symbolKeepAspect: true,
 						z: 20,
-						animationDuration: 0,
-						animationDurationUpdate: 0,
+						silent: false,
+						animation: false,
+						encode: { x: 0, y: 1 },
 						tooltip: {
 							trigger: 'item',
 							formatter: (params: { data?: EventRailDatum }) => {
@@ -811,28 +830,8 @@ export default function ProtocolChart({
 							}
 						},
 						emphasis: {
-							scale: 1.15,
-							itemStyle: {
-								borderWidth: 2,
-								shadowBlur: 6,
-								shadowColor: isThemeDark ? 'rgba(0,0,0,0.45)' : 'rgba(15,23,42,0.2)'
-							}
+							disabled: true
 						}
-					},
-					{
-						name: 'EventIcons',
-						type: 'scatter',
-						xAxisIndex: 1,
-						yAxisIndex: finalYAxis.length,
-						data: eventStarData,
-						symbolSize: EVENT_ICON_SIZE,
-						symbolKeepAspect: true,
-						symbolOffset: [0, starOffsetPx],
-						z: 21,
-						silent: true,
-						animation: false,
-						tooltip: { show: false },
-						emphasis: { disabled: true }
 					}
 				]
 			: series
@@ -846,49 +845,7 @@ export default function ProtocolChart({
 			...(shouldHideDataZoom ? {} : { dataZoom: finalDataZoom }),
 			series: finalSeries
 		})
-
-		let syncScheduled = false
 		let disposed = false
-		const syncEventGridToMainPlot = () => {
-			if (!shouldShowEventRail || disposed) return
-			if (syncScheduled) return
-			syncScheduled = true
-			requestAnimationFrame(() => {
-				syncScheduled = false
-				if (disposed) return
-				const internal = instance as unknown as {
-					getModel: () => {
-						getComponent: (
-							type: string,
-							index: number
-						) => { coordinateSystem?: { getRect?: () => { x: number; width: number } } } | undefined
-					}
-				}
-				const rect = internal.getModel?.().getComponent?.('grid', 0)?.coordinateSystem?.getRect?.()
-				if (!rect || !Number.isFinite(rect.x) || !Number.isFinite(rect.width) || rect.width <= 0) return
-
-				const currentOption = instance.getOption() as { grid?: Array<Record<string, unknown>> }
-				const currentEventGrid = currentOption.grid?.[1]
-				if (!currentEventGrid) return
-				if (currentEventGrid.left === rect.x && currentEventGrid.width === rect.width) return
-
-				const { right: _omitRight, ...rest } = currentEventGrid as {
-					right?: unknown
-					[key: string]: unknown
-				}
-				instance.setOption({
-					grid: [currentOption.grid![0], { ...rest, left: rect.x, width: rect.width }]
-				})
-			})
-		}
-		// 'finished' fires after render settles, but during an active zoom
-		// the main grid's x/width can shift every tick (y-axis labels change
-		// width as the visible value range changes). Hook 'datazoom' too so
-		// the event strip tracks the main plot live instead of snapping into
-		// place after the user stops zooming.
-		instance.on('finished', syncEventGridToMainPlot)
-		instance.on('datazoom', syncEventGridToMainPlot)
-		syncEventGridToMainPlot()
 
 		// Show the dashed markLine only while the user is hovering an event icon.
 		const hasPointEvents = shouldShowEventRail && eventRailData.some((e) => e.rangeStart == null)
@@ -930,8 +887,6 @@ export default function ProtocolChart({
 				instance.off('mouseover', handleEventMouseOver)
 				instance.off('mouseout', handleEventMouseOut)
 			}
-			instance.off('finished', syncEventGridToMainPlot)
-			instance.off('datazoom', syncEventGridToMainPlot)
 			chartRef.current = null
 			instance.dispose()
 			if (onReady) {
@@ -948,7 +903,6 @@ export default function ProtocolChart({
 		allYAxis,
 		rangeHallmarks,
 		eventRailData,
-		eventStarData,
 		isThemeDark,
 		tooltipGroupBy,
 		onReady,

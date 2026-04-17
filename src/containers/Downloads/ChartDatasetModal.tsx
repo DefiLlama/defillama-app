@@ -743,20 +743,71 @@ export function ChartDatasetModal({
 		[isCategoryMode]
 	)
 
-	const handleDownloadCombined = useCallback((format: DownloadFormat = 'csv') => {
-		if (isCategoryMode) {
-			if (selectedCount === 0) {
-				toast.error('Select at least one column')
+	const handleDownloadCombined = useCallback(
+		(format: DownloadFormat = 'csv') => {
+			if (isCategoryMode) {
+				if (selectedCount === 0) {
+					toast.error('Select at least one column')
+					return
+				}
+				const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
+				if (csvRows.length <= 1) {
+					toast.error('No rows to download')
+					return
+				}
+				const filename = `${dataset.slug}_${toSlug(selectedCategory!)}.${format}`
+				downloadTabular(format, filename, csvRows, { addTimestamp: false })
+				toast.success(`Downloaded ${filename}`)
+
+				const configBase = extractChartConfig({
+					slug: dataset.slug,
+					headers,
+					selectedParams,
+					selectedColumns: cols,
+					sort: sortState,
+					dateRange,
+					categoryBreakdown: { category: selectedCategory! }
+				})
+				recordRecent({
+					...configBase,
+					id: generatePresetId(),
+					name: defaultPresetName(configBase, dataset.name),
+					createdAt: Date.now()
+				})
 				return
 			}
-			const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
-			if (csvRows.length <= 1) {
+
+			const ready: Array<{ label: string; value: string; csvText: string }> = []
+			const failed: Array<ParamOption> = []
+			csvQueries.forEach((query, i) => {
+				const p = selectedParams[i]
+				if (!p) return
+				const data = query.data as unknown
+				if (typeof data === 'string') {
+					ready.push({ label: p.label, value: p.value, csvText: data })
+					return
+				}
+				const err = (query as { error?: unknown }).error
+				if (err) failed.push(p)
+			})
+			if (ready.length === 0) {
+				toast.error('No data available to download')
+				return
+			}
+			const merged = combineCsvsWide(ready, dateRange)
+			if (merged.length <= 1) {
 				toast.error('No rows to download')
 				return
 			}
-			const filename = `${dataset.slug}_${toSlug(selectedCategory!)}.${format}`
-			downloadTabular(format, filename, csvRows, { addTimestamp: false })
-			toast.success(`Downloaded ${filename}`)
+			const filename = `${dataset.slug}_combined.${format}`
+			downloadTabular(format, filename, merged, { addTimestamp: true })
+			if (failed.length > 0) {
+				toast.success(
+					`Downloaded ${filename} — skipped ${failed.length} failed (${failed.map((f) => f.label).join(', ')})`
+				)
+			} else {
+				toast.success(`Downloaded ${filename}`)
+			}
 
 			const configBase = extractChartConfig({
 				slug: dataset.slug,
@@ -764,8 +815,7 @@ export function ChartDatasetModal({
 				selectedParams,
 				selectedColumns: cols,
 				sort: sortState,
-				dateRange,
-				categoryBreakdown: { category: selectedCategory! }
+				dateRange
 			})
 			recordRecent({
 				...configBase,
@@ -773,71 +823,24 @@ export function ChartDatasetModal({
 				name: defaultPresetName(configBase, dataset.name),
 				createdAt: Date.now()
 			})
-			return
-		}
-
-		const ready: Array<{ label: string; value: string; csvText: string }> = []
-		const failed: Array<ParamOption> = []
-		csvQueries.forEach((query, i) => {
-			const p = selectedParams[i]
-			if (!p) return
-			const data = query.data as unknown
-			if (typeof data === 'string') {
-				ready.push({ label: p.label, value: p.value, csvText: data })
-				return
-			}
-			const err = (query as { error?: unknown }).error
-			if (err) failed.push(p)
-		})
-		if (ready.length === 0) {
-			toast.error('No data available to download')
-			return
-		}
-		const merged = combineCsvsWide(ready, dateRange)
-		if (merged.length <= 1) {
-			toast.error('No rows to download')
-			return
-		}
-		const filename = `${dataset.slug}_combined.${format}`
-		downloadTabular(format, filename, merged, { addTimestamp: true })
-		if (failed.length > 0) {
-			toast.success(
-				`Downloaded ${filename} — skipped ${failed.length} failed (${failed.map((f) => f.label).join(', ')})`
-			)
-		} else {
-			toast.success(`Downloaded ${filename}`)
-		}
-
-		const configBase = extractChartConfig({
-			slug: dataset.slug,
-			headers,
+		},
+		[
+			isCategoryMode,
+			selectedCategory,
+			selectedCount,
+			columnMeta,
+			sortedRows,
+			csvQueries,
 			selectedParams,
-			selectedColumns: cols,
-			sort: sortState,
-			dateRange
-		})
-		recordRecent({
-			...configBase,
-			id: generatePresetId(),
-			name: defaultPresetName(configBase, dataset.name),
-			createdAt: Date.now()
-		})
-	}, [
-		isCategoryMode,
-		selectedCategory,
-		selectedCount,
-		columnMeta,
-		sortedRows,
-		csvQueries,
-		selectedParams,
-		dataset.slug,
-		dataset.name,
-		headers,
-		cols,
-		sortState,
-		dateRange,
-		recordRecent
-	])
+			dataset.slug,
+			dataset.name,
+			headers,
+			cols,
+			sortState,
+			dateRange,
+			recordRecent
+		]
+	)
 
 	const handleDownloadSingle = useCallback(
 		(param: ParamOption, format: DownloadFormat = 'csv') => {
@@ -962,60 +965,63 @@ export function ChartDatasetModal({
 		]
 	)
 
-	const handleDownload = useCallback((format: DownloadFormat = 'csv') => {
-		if (isCategoryMode) {
-			handleDownloadCombined(format)
-			return
-		}
-		if (selectedParams.length === 0) return
-		if (selectedParams.length === 1) {
-			if (!selectedParam) return
-			if (selectedCount === 0) {
-				toast.error('Select at least one column')
+	const handleDownload = useCallback(
+		(format: DownloadFormat = 'csv') => {
+			if (isCategoryMode) {
+				handleDownloadCombined(format)
 				return
 			}
-			const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
-			if (csvRows.length <= 1) {
-				toast.error('No rows to download')
-				return
-			}
-			const filename = `${dataset.slug}_${selectedParam.value}.${format}`
-			downloadTabular(format, filename, csvRows, { addTimestamp: false })
-			toast.success(`Downloaded ${filename}`)
+			if (selectedParams.length === 0) return
+			if (selectedParams.length === 1) {
+				if (!selectedParam) return
+				if (selectedCount === 0) {
+					toast.error('Select at least one column')
+					return
+				}
+				const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
+				if (csvRows.length <= 1) {
+					toast.error('No rows to download')
+					return
+				}
+				const filename = `${dataset.slug}_${selectedParam.value}.${format}`
+				downloadTabular(format, filename, csvRows, { addTimestamp: false })
+				toast.success(`Downloaded ${filename}`)
 
-			const configBase = extractChartConfig({
-				slug: dataset.slug,
-				headers,
-				selectedParams,
-				selectedColumns: cols,
-				sort: sortState,
-				dateRange
-			})
-			recordRecent({
-				...configBase,
-				id: generatePresetId(),
-				name: defaultPresetName(configBase, dataset.name),
-				createdAt: Date.now()
-			})
-			return
-		}
-		handleDownloadCombined(format)
-	}, [
-		isCategoryMode,
-		selectedParams,
-		selectedParam,
-		selectedCount,
-		columnMeta,
-		cols,
-		sortedRows,
-		dataset.slug,
-		dataset.name,
-		headers,
-		sortState,
-		dateRange,
-		recordRecent,
-		handleDownloadCombined
-	])
+				const configBase = extractChartConfig({
+					slug: dataset.slug,
+					headers,
+					selectedParams,
+					selectedColumns: cols,
+					sort: sortState,
+					dateRange
+				})
+				recordRecent({
+					...configBase,
+					id: generatePresetId(),
+					name: defaultPresetName(configBase, dataset.name),
+					createdAt: Date.now()
+				})
+				return
+			}
+			handleDownloadCombined(format)
+		},
+		[
+			isCategoryMode,
+			selectedParams,
+			selectedParam,
+			selectedCount,
+			columnMeta,
+			cols,
+			sortedRows,
+			dataset.slug,
+			dataset.name,
+			headers,
+			sortState,
+			dateRange,
+			recordRecent,
+			handleDownloadCombined
+		]
+	)
 
 	const handleSavePreset = useCallback(
 		(name: string, replaceExisting: boolean) => {
