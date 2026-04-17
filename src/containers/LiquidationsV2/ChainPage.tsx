@@ -7,12 +7,13 @@ import { LiquidationsPositionsTable, LiquidationsProtocolChainsTable } from './T
 import { LiquidationsTableTabs } from './TableTabs'
 
 const CHAIN_TABS = [
-	{ id: 'chains', label: 'Chains' },
-	{ id: 'positions', label: 'Positions' }
+	{ id: 'positions', label: 'Positions' },
+	{ id: 'chains', label: 'Chains' }
 ] as const
 
 export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 	const [activeTab, setActiveTab] = React.useState<(typeof CHAIN_TABS)[number]['id']>('positions')
+	const handleSetActiveTab = React.useCallback((id: (typeof CHAIN_TABS)[number]['id']) => setActiveTab(id), [])
 
 	return (
 		<>
@@ -46,7 +47,7 @@ export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 						rows={props.chainRows}
 						embedded
 						leadingControls={
-							<LiquidationsTableTabs tabs={CHAIN_TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+							<LiquidationsTableTabs tabs={CHAIN_TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 						}
 					/>
 				) : (
@@ -56,7 +57,7 @@ export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 						header="Positions"
 						embedded
 						leadingControls={
-							<LiquidationsTableTabs tabs={CHAIN_TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+							<LiquidationsTableTabs tabs={CHAIN_TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 						}
 					/>
 				)}

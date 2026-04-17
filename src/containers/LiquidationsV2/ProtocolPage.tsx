@@ -13,6 +13,7 @@ const PROTOCOL_TABS = [
 
 export function LiquidationsProtocolPage(props: LiquidationsProtocolPageProps) {
 	const [activeTab, setActiveTab] = React.useState<(typeof PROTOCOL_TABS)[number]['id']>('chains')
+	const handleSetActiveTab = React.useCallback((id: (typeof PROTOCOL_TABS)[number]['id']) => setActiveTab(id), [])
 
 	return (
 		<>
@@ -42,7 +43,7 @@ export function LiquidationsProtocolPage(props: LiquidationsProtocolPageProps) {
 						rows={props.chainRows}
 						embedded
 						leadingControls={
-							<LiquidationsTableTabs tabs={PROTOCOL_TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+							<LiquidationsTableTabs tabs={PROTOCOL_TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 						}
 					/>
 				) : (
@@ -52,7 +53,7 @@ export function LiquidationsProtocolPage(props: LiquidationsProtocolPageProps) {
 						header="Positions"
 						embedded
 						leadingControls={
-							<LiquidationsTableTabs tabs={PROTOCOL_TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+							<LiquidationsTableTabs tabs={PROTOCOL_TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 						}
 					/>
 				)}

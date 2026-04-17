@@ -6,6 +6,7 @@ import {
 	getLiquidationsChartMetric,
 	getLiquidationsChartMetricQueryPatch,
 	getLiquidationsChartTokenQueryPatch,
+	getTooltipValue,
 	getLiquidationsChartView,
 	resolveLiquidationsChartTokenKey
 } from './LiquidationsDistributionChart'
@@ -189,5 +190,31 @@ describe('LiquidationsDistributionChart helpers', () => {
 		expect(getLiquidationsChartBreakdownQueryPatch('chain')).toEqual({ breakdown: 'chain' })
 		expect(getLiquidationsChartTokenQueryPatch('WBTC', 'WBTC')).toEqual({ token: undefined })
 		expect(getLiquidationsChartTokenQueryPatch('ethereum:eth', 'WBTC')).toEqual({ token: 'ethereum:eth' })
+	})
+
+	it('reads tooltip values using the encoded dataset key before label-based fallbacks', () => {
+		expect(
+			getTooltipValue({
+				seriesName: 'Ethereum',
+				encode: { y: 'ethereum-mainnet' },
+				data: {
+					'ethereum-mainnet': 123,
+					Ethereum: 456
+				}
+			})
+		).toBe(123)
+	})
+
+	it('falls back to object-shaped tooltip values and series id when needed', () => {
+		expect(
+			getTooltipValue({
+				seriesName: 'Ethereum',
+				seriesId: 'series-ethereum',
+				encode: { y: ['missing-key'] },
+				value: {
+					'series-ethereum': 789
+				}
+			})
+		).toBe(789)
 	})
 })

@@ -367,15 +367,15 @@ export function LiquidationsDistributionChart({
 						})
 						.filter((row): row is string => typeof row === 'string')
 						.join('')
-					const totalBlock = `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid rgba(255, 255, 255, 0.08); font-size:12px;">
+					const totalBlock = `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid var(--cards-border); font-size:12px;">
 						<span style="color:var(--text-label);">Total</span>
 						<span style="color:var(--text-primary); font-weight:600; font-variant-numeric:tabular-nums;">${totalLabel}</span>
 					</div>`
 
-					return `<div style="min-width:220px; background:linear-gradient(180deg, rgba(24, 27, 34, 0.98) 0%, rgba(16, 18, 24, 0.98) 100%); border:1px solid rgba(93, 111, 158, 0.45); box-shadow:0 18px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03) inset; backdrop-filter:blur(10px); color:var(--text-primary); border-radius:10px; padding:12px 14px; font-size:12px; line-height:1.45;">
+					return `<div style="min-width:220px; background:var(--cards-bg); border:1px solid var(--cards-border); box-shadow:0 18px 48px var(--tooltip-shadow, rgba(0, 0, 0, 0.24)); backdrop-filter:blur(10px); color:var(--text-primary); border-radius:10px; padding:12px 14px; font-size:12px; line-height:1.45;">
 						<div style="margin-bottom:8px;">
-							<div style="font-size:11px; color:rgba(201, 208, 224, 0.72); text-transform:uppercase; letter-spacing:0.08em;">Liq Price</div>
-							<div style="font-size:15px; font-weight:600; color:#f8fafc;">${axisLabel}</div>
+							<div style="font-size:11px; color:var(--text-label); text-transform:uppercase; letter-spacing:0.08em;">Liq Price</div>
+							<div style="font-size:15px; font-weight:600; color:var(--text-primary);">${axisLabel}</div>
 						</div>
 						<div style="display:flex; flex-direction:column; gap:6px;">
 							${rows}
@@ -478,20 +478,54 @@ export function LiquidationsDistributionChart({
 	)
 }
 
-function getTooltipValue(param: Record<string, unknown>): number {
-	const seriesName = typeof param.seriesName === 'string' ? param.seriesName : null
+function getTooltipRowKey(param: Record<string, unknown>): string | number | null {
+	if (!isRecord(param.encode)) return null
 
-	if (isRecord(param.data) && seriesName) {
-		const value = param.data[seriesName]
-		return typeof value === 'number' ? value : 0
+	const encodeY = param.encode.y
+	if (Array.isArray(encodeY)) {
+		const first = encodeY[0]
+		return typeof first === 'string' || typeof first === 'number' ? first : null
+	}
+
+	return typeof encodeY === 'string' || typeof encodeY === 'number' ? encodeY : null
+}
+
+function getNumericValue(record: Record<string, unknown>, keys: Array<string | number | null>): number | null {
+	for (const key of keys) {
+		if (key == null) continue
+		const value = record[String(key)]
+		if (typeof value === 'number') return value
+		const numeric = Number(value)
+		if (Number.isFinite(numeric)) return numeric
+	}
+
+	return null
+}
+
+export function getTooltipValue(param: Record<string, unknown>): number {
+	const dataKey = getTooltipRowKey(param)
+	const seriesName = typeof param.seriesName === 'string' ? param.seriesName : null
+	const seriesId = typeof param.seriesId === 'string' ? param.seriesId : null
+
+	if (isRecord(param.data)) {
+		const value = getNumericValue(param.data, [dataKey, seriesId, seriesName])
+		if (value !== null) return value
+	}
+
+	if (isRecord(param.value)) {
+		const value = getNumericValue(param.value, [dataKey, seriesId, seriesName])
+		if (value !== null) return value
 	}
 
 	if (Array.isArray(param.value)) {
-		const encodeY = isRecord(param.encode) ? param.encode.y : undefined
-		const yIndex = typeof encodeY === 'number' ? encodeY : 1
+		const yIndex = typeof dataKey === 'number' ? dataKey : 1
 		const value = param.value[yIndex]
-		return typeof value === 'number' ? value : 0
+		if (typeof value === 'number') return value
+		const numeric = Number(value)
+		return Number.isFinite(numeric) ? numeric : 0
 	}
 
-	return typeof param.value === 'number' ? param.value : 0
+	if (typeof param.value === 'number') return param.value
+	const numeric = Number(param.value)
+	return Number.isFinite(numeric) ? numeric : 0
 }

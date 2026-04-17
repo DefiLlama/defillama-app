@@ -13,6 +13,7 @@ const OVERVIEW_TABS = [
 
 export function LiquidationsOverview(props: LiquidationsOverviewPageProps) {
 	const [activeTab, setActiveTab] = React.useState<(typeof OVERVIEW_TABS)[number]['id']>('protocols')
+	const handleSetActiveTab = React.useCallback((id: (typeof OVERVIEW_TABS)[number]['id']) => setActiveTab(id), [])
 
 	return (
 		<>
@@ -41,7 +42,7 @@ export function LiquidationsOverview(props: LiquidationsOverviewPageProps) {
 						rows={props.protocolRows}
 						embedded
 						leadingControls={
-							<LiquidationsTableTabs tabs={OVERVIEW_TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+							<LiquidationsTableTabs tabs={OVERVIEW_TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 						}
 					/>
 				) : (
@@ -49,7 +50,7 @@ export function LiquidationsOverview(props: LiquidationsOverviewPageProps) {
 						rows={props.chainRows}
 						embedded
 						leadingControls={
-							<LiquidationsTableTabs tabs={OVERVIEW_TABS} activeTab={activeTab} setActiveTab={setActiveTab} />
+							<LiquidationsTableTabs tabs={OVERVIEW_TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
 						}
 					/>
 				)}

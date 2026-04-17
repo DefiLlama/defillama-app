@@ -508,14 +508,13 @@ export async function getLiquidationsChainPageData(
 	)) {
 		const currentChain = getChainRef(currentChainId, metadataCache.chainMetadata)
 		const rawPositions = protocolResponse.data[currentChainId]
-		const chainPositions = normalizePositions(protocol, currentChain, rawPositions)
 		chainRows.push({
 			...currentChain,
 			protocolId: protocol.id,
 			protocolName: protocol.name,
 			protocolSlug: protocol.slug,
-			positionCount: chainPositions.length,
-			collateralCount: getCollateralCount(chainPositions),
+			positionCount: rawPositions.length,
+			collateralCount: getCollateralCount(rawPositions),
 			totalCollateralUsd: sumCollateralUsd(rawPositions)
 		})
 	}

@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { LiquidationsProtocolPage } from '~/containers/LiquidationsV2/ProtocolPage'
 import { getLiquidationsProtocolPageData } from '~/containers/LiquidationsV2/queries'
 import Layout from '~/layout'
@@ -7,13 +6,6 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = () => {
-	if (SKIP_BUILD_STATIC_GENERATION) {
-		return {
-			paths: [],
-			fallback: 'blocking'
-		}
-	}
-
 	return {
 		paths: [],
 		fallback: 'blocking'

@@ -305,7 +305,7 @@ export function LiquidationsPositionsTable({
 				leadingControls={leadingControls}
 				customFilters={
 					<label className="relative w-full max-w-full sm:max-w-[280px]">
-						<span className="sr-only">Search columns</span>
+						<span className="sr-only">Search positions</span>
 						<Icon
 							name="search"
 							height={16}
@@ -313,9 +313,8 @@ export function LiquidationsPositionsTable({
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={searchValue}
 							onInput={(e) => setSearchValue(e.currentTarget.value)}
-							placeholder="Search columns..."
+							placeholder="Search positions by protocol, chain, owner, or collateral"
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>

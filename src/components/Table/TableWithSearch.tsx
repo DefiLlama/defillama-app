@@ -150,10 +150,19 @@ export function TableWithSearch<T extends RowData>({
 
 	const controls = (
 		<div className="flex w-full flex-wrap items-center justify-end gap-3 p-3">
-			{leadingControls ? (
-				<div className="mr-auto flex items-center overflow-x-auto">{leadingControls}</div>
-			) : header ? (
-				<HeadingTag className="mr-auto text-lg font-semibold">{header}</HeadingTag>
+			{leadingControls || header ? (
+				<div className="mr-auto flex items-center gap-3 overflow-x-auto">
+					{leadingControls ? <div className="flex items-center overflow-x-auto">{leadingControls}</div> : null}
+					{header ? (
+						<HeadingTag
+							className={
+								leadingControls ? 'text-sm font-medium whitespace-nowrap text-(--text-label)' : 'text-lg font-semibold'
+							}
+						>
+							{header}
+						</HeadingTag>
+					) : null}
+				</div>
 			) : null}
 			{columnToSearch ? (
 				<label
