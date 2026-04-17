@@ -347,7 +347,7 @@ function createColumns(includeRwaPerps: boolean) {
 					? undefined
 					: (Number(asset.defiActiveTvl.total) / Number(asset.activeMcap.total)) * 100,
 			{
-				header: 'Utilization',
+				header: 'DeFi Utilization',
 				cell: (info) => (info.getValue() != null ? `${formatNum(info.getValue(), 2)}%` : null),
 				id: 'utilization',
 				size: 120,
