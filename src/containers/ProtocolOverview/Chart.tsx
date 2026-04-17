@@ -23,7 +23,7 @@ import type { IProtocolCoreChartProps } from './types'
 echarts.use([MarkAreaComponent, CustomChart])
 
 const PRIMARY_SERIES_ID_PREFIX = 'protocol-chart-series-'
-const EVENT_MARKLINE_SERIES_ID = 'protocol-chart-event-markline'
+const EVENT_MARKLINE_GRAPHIC_ID = 'protocol-chart-event-markline'
 
 type EventHoverState = {
 	hoveredEventDate: number | null
@@ -32,15 +32,33 @@ type EventHoverState = {
 function attachEventHoverHandlers({
 	instance,
 	eventRailData,
-	hoverState
+	hoverState,
+	getEventMarkLineShape
 }: {
 	instance: echarts.ECharts
 	eventRailData: EventRailDatum[]
 	hoverState: EventHoverState
+	getEventMarkLineShape: (eventDate: number) => { x1: number; y1: number; x2: number; y2: number } | null
 }) {
 	let disposed = false
 	let activeMarkLineEventDate: number | null = null
 	let clearMarkLineTimer: ReturnType<typeof setTimeout> | null = null
+
+	const setEventMarkLineGraphic = (eventDate: number) => {
+		const shape = getEventMarkLineShape(eventDate)
+		if (!shape) return
+
+		instance.setOption({
+			graphic: [
+				{
+					id: EVENT_MARKLINE_GRAPHIC_ID,
+					type: 'line',
+					shape,
+					invisible: false
+				}
+			]
+		})
+	}
 
 	const refreshEventRail = () => {
 		instance.setOption({
@@ -52,7 +70,7 @@ function attachEventHoverHandlers({
 		if (disposed || activeMarkLineEventDate == null) return
 		activeMarkLineEventDate = null
 		instance.setOption({
-			series: [{ id: EVENT_MARKLINE_SERIES_ID, markLine: { data: [] } }]
+			graphic: [{ id: EVENT_MARKLINE_GRAPHIC_ID, invisible: true }]
 		})
 	}
 
@@ -98,21 +116,7 @@ function attachEventHoverHandlers({
 		if (activeMarkLineEventDate === event.eventDate) return
 
 		activeMarkLineEventDate = event.eventDate
-		instance.setOption({
-			series: [
-				{
-					id: EVENT_MARKLINE_SERIES_ID,
-					markLine: {
-						data: [
-							[
-								{ name: event.fullText, xAxis: event.eventDate, yAxis: 0 },
-								{ xAxis: event.eventDate, yAxis: 'max' }
-							]
-						]
-					}
-				}
-			]
-		})
+		setEventMarkLineGraphic(event.eventDate)
 	}
 
 	const handleEventMouseOut = (params: { seriesName?: string }) => {
@@ -126,15 +130,21 @@ function attachEventHoverHandlers({
 	}
 
 	return () => {
-		disposed = true
 		if (clearMarkLineTimer != null) {
 			clearTimeout(clearMarkLineTimer)
 			clearMarkLineTimer = null
+		}
+		if (activeMarkLineEventDate != null) {
+			instance.setOption({
+				graphic: [{ id: EVENT_MARKLINE_GRAPHIC_ID, invisible: true }]
+			})
+			activeMarkLineEventDate = null
 		}
 		if (hasPointEvents) {
 			instance.off('mouseover', handleEventMouseOver)
 			instance.off('mouseout', handleEventMouseOut)
 		}
+		disposed = true
 	}
 }
 
@@ -305,7 +315,6 @@ export default function ProtocolChart({
 
 		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
 		const shouldShowEventRail = eventRailData.length > 0
-		const shouldShowEventMarkLine = series.length > 0 && eventRailData.some((event) => event.rangeStart == null)
 
 		let timeRangeMin = Infinity
 		let timeRangeMax = -Infinity
@@ -434,49 +443,9 @@ export default function ProtocolChart({
 			}
 		}
 
-		const eventMarkLineSeries = shouldShowEventMarkLine
-			? {
-					id: EVENT_MARKLINE_SERIES_ID,
-					name: 'EventHoverMarkLine',
-					type: 'line',
-					xAxisIndex: 0,
-					yAxisIndex: series[0]?.yAxisIndex,
-					data: [],
-					symbol: 'none',
-					showSymbol: false,
-					silent: true,
-					animation: false,
-					tooltip: { show: false },
-					lineStyle: {
-						opacity: 0
-					},
-					itemStyle: {
-						opacity: 0
-					},
-					z: -1,
-					emphasis: {
-						disabled: true
-					},
-					markLine: {
-						silent: true,
-						animation: false,
-						symbol: ['none', 'none'],
-						label: { show: false },
-						emphasis: { label: { show: false } },
-						lineStyle: {
-							color: isThemeDark ? 'rgba(148, 163, 184, 0.7)' : 'rgba(71, 85, 105, 0.55)',
-							type: 'dashed',
-							width: 1
-						},
-						data: []
-					}
-				}
-			: null
-
 		const finalSeries = shouldShowEventRail
 			? [
 					...series,
-					...(eventMarkLineSeries ? [eventMarkLineSeries] : []),
 					{
 						id: EVENT_RAIL_LAYOUT.seriesId,
 						name: 'Events',
@@ -512,8 +481,27 @@ export default function ProtocolChart({
 				]
 			: series
 
+		const finalGraphic = shouldShowEventRail
+			? [
+					...(Array.isArray(graphic) ? graphic : graphic ? [graphic] : []),
+					{
+						id: EVENT_MARKLINE_GRAPHIC_ID,
+						type: 'line',
+						silent: true,
+						z: 15,
+						invisible: true,
+						shape: { x1: 0, y1: 0, x2: 0, y2: 0 },
+						style: {
+							stroke: isThemeDark ? 'rgba(148, 163, 184, 0.7)' : 'rgba(71, 85, 105, 0.55)',
+							lineWidth: 1,
+							lineDash: [6, 4]
+						}
+					}
+				]
+			: graphic
+
 		instance.setOption({
-			graphic,
+			graphic: finalGraphic,
 			tooltip,
 			grid: finalGrid,
 			xAxis: finalXAxis,
@@ -524,7 +512,18 @@ export default function ProtocolChart({
 		const detachEventHoverHandlers = attachEventHoverHandlers({
 			instance,
 			eventRailData: shouldShowEventRail ? eventRailData : [],
-			hoverState
+			hoverState,
+			getEventMarkLineShape: (eventDate) => {
+				const x = instance.convertToPixel({ xAxisIndex: 0 }, eventDate)
+				if (!Number.isFinite(x)) return null
+
+				return {
+					x1: x,
+					y1: Number(mainGrid.top),
+					x2: x,
+					y2: instance.getHeight() - mainGridBottom
+				}
+			}
 		})
 
 		return () => {
