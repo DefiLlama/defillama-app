@@ -380,6 +380,7 @@ function createTooltipFormatter({
 		const shouldCap = Number.isFinite(cap) && cap > 0
 		let total = 0
 		let totalCount = 0
+		let standardCount = 0
 		let vals: TooltipValueRow[] = []
 		const topOverrideVals: TooltipValueRow[] = []
 		const topStandardVals: TooltipValueRow[] = []
@@ -397,7 +398,10 @@ function createTooltipFormatter({
 			const nextRow = [item.marker, name, value, seriesSymbols?.get(name) ?? valueSymbol, hasOverride] as const
 
 			totalCount += 1
-			if (!hasOverride) total += value
+			if (!hasOverride) {
+				total += value
+				standardCount += 1
+			}
 
 			if (!shouldCap) {
 				vals.push(nextRow)
@@ -418,7 +422,7 @@ function createTooltipFormatter({
 			: vals
 		const remaining = shouldCap ? Math.max(0, totalCount - cappedVals.length) : 0
 		const totalLine =
-			showTotalInTooltip && totalCount > 0
+			showTotalInTooltip && standardCount > 0
 				? `<li style="list-style:none;font-weight:600;">Total: ${formatAxisLabel(total, valueSymbol)}</li>`
 				: ''
 

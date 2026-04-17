@@ -74,6 +74,13 @@ export const EVENT_RAIL_LAYOUT = {
 	markLineGraphicId: EVENT_MARKLINE_GRAPHIC_ID
 } as const
 
+const RANGE_TOOLTIP_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+	year: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
+	timeZone: 'UTC'
+})
+
 function isDangerLabel(label: string) {
 	const normalized = label.toLowerCase()
 	return DANGER_KEYWORDS.some((keyword) => normalized.includes(keyword))
@@ -123,6 +130,10 @@ function getEventDotPalette(label: string, isThemeDark: boolean, isRange = false
 				border: 'rgba(100, 116, 139, 1)',
 				icon: 'rgba(30, 41, 59, 1)'
 			}
+}
+
+function formatRangeTooltipDate(value: number) {
+	return RANGE_TOOLTIP_DATE_FORMATTER.format(new Date(value))
 }
 
 export function buildEventRailData({
@@ -386,7 +397,7 @@ export function createEventRailSeries({
 				const header = formatTooltipChartDate(event.eventDate, tooltipGroupBy)
 				const rangeLine =
 					event.rangeStart != null && event.rangeEnd != null
-						? `<li style="list-style:none;opacity:0.7;">${new Date(event.rangeStart).toLocaleDateString()} - ${new Date(event.rangeEnd).toLocaleDateString()}</li>`
+						? `<li style="list-style:none;opacity:0.7;">${formatRangeTooltipDate(event.rangeStart)} - ${formatRangeTooltipDate(event.rangeEnd)}</li>`
 						: ''
 
 				return `${header}<li style="list-style:none;font-weight:600;">${event.fullText}</li>${rangeLine}`
@@ -412,10 +423,14 @@ export function attachEventHoverHandlers({
 	let disposed = false
 	let activeMarkLineEventDate: number | null = null
 	let clearMarkLineTimer: ReturnType<typeof setTimeout> | null = null
+	let activeMarkLineShapeKey: string | null = null
 
 	const setEventMarkLineGraphic = (eventDate: number) => {
 		const shape = getEventMarkLineShape(eventDate)
 		if (!shape) return
+		const nextShapeKey = `${shape.x1}:${shape.y1}:${shape.x2}:${shape.y2}`
+		if (activeMarkLineShapeKey === nextShapeKey) return
+		activeMarkLineShapeKey = nextShapeKey
 
 		instance.setOption({
 			graphic: [
@@ -428,6 +443,11 @@ export function attachEventHoverHandlers({
 		})
 	}
 
+	const syncActiveEventMarkLine = () => {
+		if (disposed || activeMarkLineEventDate == null) return
+		setEventMarkLineGraphic(activeMarkLineEventDate)
+	}
+
 	const refreshEventRail = () => {
 		instance.setOption({
 			series: [{ id: EVENT_RAIL_SERIES_ID, data: eventRailData }]
@@ -437,6 +457,7 @@ export function attachEventHoverHandlers({
 	const clearEventMarkLineOnly = () => {
 		if (disposed || activeMarkLineEventDate == null) return
 		activeMarkLineEventDate = null
+		activeMarkLineShapeKey = null
 		instance.setOption({
 			graphic: [{ id: EVENT_MARKLINE_GRAPHIC_ID, invisible: true }]
 		})
@@ -458,6 +479,7 @@ export function attachEventHoverHandlers({
 		}, 40)
 	}
 
+	const hasEvents = eventRailData.length > 0
 	const hasPointEvents = eventRailData.some((event) => event.rangeStart == null)
 	const handleEventMouseOver = (params: { seriesName?: string; data?: unknown }) => {
 		if (disposed || params.seriesName !== 'Events') return
@@ -492,9 +514,13 @@ export function attachEventHoverHandlers({
 		scheduleClearEventMarkLine()
 	}
 
-	if (hasPointEvents) {
+	if (hasEvents) {
 		instance.on('mouseover', handleEventMouseOver)
 		instance.on('mouseout', handleEventMouseOut)
+	}
+	if (hasPointEvents) {
+		instance.on('datazoom', syncActiveEventMarkLine)
+		instance.on('finished', syncActiveEventMarkLine)
 	}
 
 	return () => {
@@ -507,10 +533,15 @@ export function attachEventHoverHandlers({
 				graphic: [{ id: EVENT_MARKLINE_GRAPHIC_ID, invisible: true }]
 			})
 			activeMarkLineEventDate = null
+			activeMarkLineShapeKey = null
 		}
-		if (hasPointEvents) {
+		if (hasEvents) {
 			instance.off('mouseover', handleEventMouseOver)
 			instance.off('mouseout', handleEventMouseOut)
+		}
+		if (hasPointEvents) {
+			instance.off('datazoom', syncActiveEventMarkLine)
+			instance.off('finished', syncActiveEventMarkLine)
 		}
 		disposed = true
 	}

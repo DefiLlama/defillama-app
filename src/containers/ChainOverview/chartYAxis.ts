@@ -17,6 +17,7 @@ type AxisConfig = {
 	resolveColor?: (context: AxisBuilderContext) => string
 }
 
+// Add per-label offset overrides here if a chain metric needs extra y-axis spacing.
 const CUSTOM_OFFSETS: Partial<Record<ChainChartLabels, number>> = {}
 
 const DASHED_AXIS_LINE_STYLE = {
