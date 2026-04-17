@@ -1,9 +1,7 @@
 import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { fetchCoinsChart } from '~/api'
 import { useBlockExplorers } from '~/api/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -30,7 +28,8 @@ import {
 	useYieldPoolData,
 	useVolatility,
 	useHolderHistory,
-	useHolderStats
+	useHolderStats,
+	useYieldTokenPrices
 } from '~/containers/Yields/queries/client'
 import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import {
@@ -45,6 +44,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
+import { toDimensionsSlug } from '~/utils/chainNormalizer'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = lazy(
@@ -205,12 +205,6 @@ const YIELD_METRIC_DEFS: Record<string, YieldMetricDef> = {
 }
 
 const PRICE_CHART_COLORS = ['#a855f7', '#f97316', '#06b6d4', '#84cc16']
-
-const PRICE_CHAIN_MAPPING: Record<string, string> = {
-	binance: 'bsc',
-	avalanche: 'avax',
-	gnosis: 'xdai'
-}
 
 const HOLDER_DONUT_RADIUS: [string, string] = ['45%', '75%']
 
@@ -672,8 +666,7 @@ const PageView = (_props) => {
 	const priceMetrics = useMemo(() => {
 		const tokens = poolData.underlyingTokens as string[] | undefined
 		const symbols = (poolData.symbol as string)?.split('-') ?? []
-		const rawChain = (poolData.chain as string)?.toLowerCase() ?? ''
-		const chain = PRICE_CHAIN_MAPPING[rawChain] ?? rawChain
+		const chain = toDimensionsSlug(poolData.chain as string)
 		if (!tokens?.length || !chain) return []
 
 		return tokens
@@ -744,33 +737,7 @@ const PageView = (_props) => {
 		[priceMetrics, toggledMetricIds]
 	)
 
-	const priceQueries = useQuery({
-		queryKey: ['yield-pool-prices', toggledPriceMetrics.map((p) => p.coinId)],
-		queryFn: async () => {
-			const results: Record<string, Array<{ timestamp: number; price: number }>> = {}
-			const now = Math.floor(Date.now() / 1000)
-			const oneYearAgo = now - 365 * 86400
-			await Promise.all(
-				toggledPriceMetrics.map(async (pm) => {
-					try {
-						const resp = await fetchCoinsChart({ coin: pm.coinId, start: oneYearAgo, span: 365 })
-						const prices = resp?.coins?.[pm.coinId]?.prices
-						if (prices?.length) {
-							results[pm.metricId] = prices
-								.filter((p) => p.timestamp != null && p.price != null)
-								.map((p) => ({ timestamp: p.timestamp! * 1000, price: p.price! }))
-						}
-					} catch {
-						// skip failed price fetches
-					}
-				})
-			)
-			return results
-		},
-		enabled: toggledPriceMetrics.length > 0,
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false
-	})
+	const priceData = useYieldTokenPrices(toggledPriceMetrics)
 
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
@@ -863,7 +830,7 @@ const PageView = (_props) => {
 				existing['Net Borrow APY'] =
 					el.apyBaseBorrow == null && el.apyRewardBorrow == null
 						? null
-						: Number((-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2))
+						: Number(((el.apyRewardBorrow ?? 0) - (el.apyBaseBorrow ?? 0)).toFixed(2))
 				existing['Supplied'] = el.totalSupplyUsd ?? null
 				existing['Borrowed'] = el.totalBorrowUsd ?? null
 				existing['Utilization Rate'] =
@@ -871,13 +838,13 @@ const PageView = (_props) => {
 						? Number(((el.totalBorrowUsd / el.totalSupplyUsd) * 100).toFixed(2))
 						: null
 				existing['Available'] =
-					category === 'CDP' && el.debtCeilingUsd
-						? el.debtCeilingUsd - el.totalBorrowUsd
-						: category === 'CDP'
-							? null
-							: el.totalSupplyUsd == null && el.totalBorrowUsd == null
-								? null
-								: el.totalSupplyUsd - el.totalBorrowUsd
+					category === 'CDP'
+						? el.debtCeilingUsd != null && el.totalBorrowUsd != null
+							? el.debtCeilingUsd - el.totalBorrowUsd
+							: null
+						: el.totalSupplyUsd != null && el.totalBorrowUsd != null
+							? el.totalSupplyUsd - el.totalBorrowUsd
+							: null
 				existing['_borrowBase'] = el.apyBaseBorrow == null ? null : -Number(Number(el.apyBaseBorrow).toFixed(2))
 				existing['_borrowReward'] = el.apyRewardBorrow != null ? Number(Number(el.apyRewardBorrow).toFixed(2)) : null
 				dayMap.set(ts, existing)
@@ -952,8 +919,7 @@ const PageView = (_props) => {
 			}
 		}
 
-		const priceData = priceQueries.data
-		const hasPriceData = priceData && Object.keys(priceData).length > 0
+		const hasPriceData = Object.keys(priceData).length > 0
 
 		// Build price lookup maps (timestamp -> price) for each toggled price metric
 		const priceMaps = new Map<string, Map<number, number>>()
@@ -990,7 +956,7 @@ const PageView = (_props) => {
 			combinedDataset: { source, dimensions } as MultiSeriesChart2Dataset,
 			combinedCharts: toggledMetricIds.map((id) => allMetricDefs[id].chart)
 		}
-	}, [fullSortedSource, toggledMetricIds, priceQueries.data, allMetricDefs])
+	}, [fullSortedSource, toggledMetricIds, priceData, allMetricDefs])
 
 	const deferredCombinedDataset = useDeferredValue(combinedDataset)
 	const deferredCombinedCharts = useDeferredValue(combinedCharts)
