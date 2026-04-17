@@ -112,5 +112,6 @@ describe('KeyMetrics', () => {
 		expect(markup).toContain('Base')
 		expect(markup).toContain('$120')
 		expect(markup).toContain('$180')
+		expect(markup.indexOf('Base')).toBeLessThan(markup.indexOf('Ethereum'))
 	})
 })

@@ -13,7 +13,6 @@ import { fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from '~/containers/ProtocolOverview/api'
 import { normalizeBridgeVolumeToChartMs } from '~/containers/ProtocolOverview/chartSeries.utils'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
-import { parseAdapterBreakdownRequest } from '~/server/api/protocolCharts'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -22,6 +21,20 @@ const SUCCESS_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600
 const NO_STORE_CACHE_CONTROL = 'no-store'
 const VALID_ADAPTER_TYPES = new Set<string>(Object.values(ADAPTER_TYPES))
 const VALID_ADAPTER_DATA_TYPES = new Set<string>(Object.values(ADAPTER_DATA_TYPES))
+const VALID_ADAPTER_BREAKDOWN_TYPES = new Set<AdapterBreakdownType>(['chain', 'version'])
+
+type AdapterBreakdownType = Parameters<typeof fetchAdapterProtocolChartDataByBreakdownType>[0]['type']
+type AdapterBreakdownRequest =
+	| {
+			ok: true
+			value: {
+				adapterType: `${ADAPTER_TYPES}`
+				protocol: string
+				type: AdapterBreakdownType
+				dataType?: `${ADAPTER_DATA_TYPES}`
+			}
+	  }
+	| { ok: false; error: string }
 
 const getQueryParam = (value: string | string[] | undefined): string | undefined =>
 	Array.isArray(value) ? value[0] : value
@@ -41,6 +54,8 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 
 const isValidAdapterType = (value: string): value is `${ADAPTER_TYPES}` => VALID_ADAPTER_TYPES.has(value)
 const isValidAdapterDataType = (value: string): value is `${ADAPTER_DATA_TYPES}` => VALID_ADAPTER_DATA_TYPES.has(value)
+const isValidAdapterBreakdownType = (value: string): value is AdapterBreakdownType =>
+	VALID_ADAPTER_BREAKDOWN_TYPES.has(value as AdapterBreakdownType)
 
 const parseStringArrayParam = (value: string | undefined): string[] | null => {
 	if (!value) return null
@@ -50,6 +65,40 @@ const parseStringArrayParam = (value: string | undefined): string[] | null => {
 		return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : null
 	} catch {
 		return null
+	}
+}
+
+const parseAdapterBreakdownRequest = (params: {
+	adapterType?: string
+	protocol?: string
+	type?: string
+	dataType?: string
+}): AdapterBreakdownRequest => {
+	const { adapterType, protocol, type, dataType } = params
+
+	if (!adapterType || !protocol || !type) {
+		return { ok: false, error: 'adapterType, protocol, and type parameters are required' }
+	}
+	if (!isValidAdapterType(adapterType)) {
+		return { ok: false, error: `Invalid adapterType: ${adapterType}` }
+	}
+	if (!isValidAdapterBreakdownType(type)) {
+		return { ok: false, error: `Invalid type: ${type}` }
+	}
+
+	const validatedDataType = dataType && isValidAdapterDataType(dataType) ? dataType : undefined
+	if (dataType && !validatedDataType) {
+		return { ok: false, error: `Invalid dataType: ${dataType}` }
+	}
+
+	return {
+		ok: true,
+		value: {
+			adapterType,
+			protocol,
+			type,
+			...(validatedDataType ? { dataType: validatedDataType } : {})
+		}
 	}
 }
 
