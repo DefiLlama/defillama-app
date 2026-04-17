@@ -263,21 +263,21 @@ const extractRWACategoryRows = (json: any): Array<Record<string, unknown>> => {
 		})
 }
 
-const extractRWAAssetBreakdownRows = (json: any): Array<Record<string, unknown>> => {
-	if (!json || typeof json !== 'object' || Array.isArray(json)) return []
-	const onChainMcap: any[] = json.onChainMcap ?? []
-	if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
-	return onChainMcap
-		.filter((item: any) => item && item.timestamp != null)
-		.map((item: any) => {
-			const row: Record<string, unknown> = { date: item.timestamp }
-			for (const [key, val] of Object.entries(item)) {
-				if (key === 'timestamp') continue
-				row[key] = val
-			}
-			return row
-		})
-}
+// const extractRWAAssetBreakdownRows = (json: any): Array<Record<string, unknown>> => {
+// 	if (!json || typeof json !== 'object' || Array.isArray(json)) return []
+// 	const onChainMcap: any[] = json.onChainMcap ?? []
+// 	if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
+// 	return onChainMcap
+// 		.filter((item: any) => item && item.timestamp != null)
+// 		.map((item: any) => {
+// 			const row: Record<string, unknown> = { date: item.timestamp }
+// 			for (const [key, val] of Object.entries(item)) {
+// 				if (key === 'timestamp') continue
+// 				row[key] = val
+// 			}
+// 			return row
+// 		})
+// }
 
 function sumRecord(rec: unknown): number {
 	if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return 0

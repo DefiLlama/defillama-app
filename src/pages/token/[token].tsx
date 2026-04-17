@@ -32,9 +32,6 @@ export const getStaticProps = withPerformanceLogging(
 		const normalizedToken = slug(token)
 		const tokens = await readTokenDirectory()
 		const record = tokens[normalizedToken]
-		if (normalizedToken === 'sui') {
-			record.tokenRights = true
-		}
 
 		if (!record) {
 			return {

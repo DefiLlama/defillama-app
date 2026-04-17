@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { TokenDirectory } from '~/utils/tokenDirectory'
 
 afterEach(() => {
 	vi.clearAllMocks()
@@ -10,7 +11,7 @@ function setupPageModule({
 	tokenRightsEntries = [],
 	protocolMetadata = {}
 }: {
-	tokensJson?: Record<string, { name: string; symbol: string; protocolId?: string; chainId?: string; route?: string }>
+	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
 } = {}) {
@@ -74,7 +75,7 @@ describe('token rights page', () => {
 			}
 		})
 
-		await expect(page.getStaticProps()).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
 			props: {
 				protocols: [
 					{ name: 'Ethereum', logo: 'icon:Ethereum', href: '/token/ETH' },
@@ -95,7 +96,7 @@ describe('token rights page', () => {
 			tokenRightsEntries: [{ 'Protocol Name': 'Missing ID', 'DefiLlama ID': '' }]
 		})
 
-		await expect(page.getStaticProps()).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
 			props: {
 				protocols: []
 			},
