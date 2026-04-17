@@ -20,9 +20,7 @@ export function AssignSubscriptionModal({ isOpen, onClose, member }: AssignSubsc
 	const { teamSubscriptions, assignMemberMutation } = useTeam()
 	const [selectedType, setSelectedType] = useState<string>('')
 
-	const availableSubscriptions = teamSubscriptions.filter(
-		(sub: TeamSubscription) => sub.seats.availableSeats > 0
-	)
+	const availableSubscriptions = teamSubscriptions.filter((sub: TeamSubscription) => sub.seats.availableSeats > 0)
 
 	const handleAssign = async () => {
 		if (!selectedType) return

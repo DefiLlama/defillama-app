@@ -8,10 +8,7 @@ import { STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import type { PurchaseSeatsResponse, TeamSubscription } from './types'
 import { useTeam } from './useTeam'
 
-function getExistingInterval(
-	subscriptions: TeamSubscription[],
-	type: 'api' | 'llamafeed'
-): 'month' | 'year' | null {
+function getExistingInterval(subscriptions: TeamSubscription[], type: 'api' | 'llamafeed'): 'month' | 'year' | null {
 	const existing = subscriptions.find(
 		(sub) => sub.type === type && (sub.status === undefined || sub.status === 'active')
 	)
@@ -232,9 +229,7 @@ export function PurchaseSeatsModal({ isOpen, onClose }: PurchaseSeatsModalProps)
 									<Icon name="sparkles" height={12} width={12} className="mt-1 shrink-0 text-(--sub-text-muted)" />
 									<p className="text-xs leading-5 text-(--sub-text-muted)">
 										Switch to yearly billing and get 2 months free — save $
-										{(
-											(subscriptionType === 'api' ? 300 * 12 - 3000 : 49 * 12 - 490) * seatCount
-										).toLocaleString()}
+										{((subscriptionType === 'api' ? 300 * 12 - 3000 : 49 * 12 - 490) * seatCount).toLocaleString()}
 										/year on these seats.
 									</p>
 								</div>

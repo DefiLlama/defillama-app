@@ -235,14 +235,8 @@ function YearlyTip({ subscriptions }: { subscriptions: TeamSubscription[] }) {
 	const monthlySubs = subscriptions.filter((sub) => isRenewingSub(sub) && sub.billingInterval === 'month')
 	if (monthlySubs.length === 0) return null
 
-	const monthlyTotal = monthlySubs.reduce(
-		(acc, sub) => acc + getUnitPrice(sub.type, 'month') * sub.seats.seatCount,
-		0
-	)
-	const yearlyTotal = monthlySubs.reduce(
-		(acc, sub) => acc + getUnitPrice(sub.type, 'year') * sub.seats.seatCount,
-		0
-	)
+	const monthlyTotal = monthlySubs.reduce((acc, sub) => acc + getUnitPrice(sub.type, 'month') * sub.seats.seatCount, 0)
+	const yearlyTotal = monthlySubs.reduce((acc, sub) => acc + getUnitPrice(sub.type, 'year') * sub.seats.seatCount, 0)
 	const savings = monthlyTotal * 12 - yearlyTotal
 
 	return (

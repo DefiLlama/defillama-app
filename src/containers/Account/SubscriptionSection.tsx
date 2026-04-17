@@ -243,7 +243,7 @@ export function SubscriptionSection() {
 	} = useSubscribe()
 
 	const isTeamMember = Boolean(team && !team.isAdmin)
-	const teamAssignedType = isTeamMember ? team?.subscriptionType ?? null : null
+	const teamAssignedType = isTeamMember ? (team?.subscriptionType ?? null) : null
 
 	// Team member guard: hide personal billing controls. Still render the feature cards
 	// (API access, usage, external-data balance) that the assigned subscription unlocks.

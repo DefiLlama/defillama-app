@@ -54,9 +54,7 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 	const isCanceling = subscription.canceledAtPeriodEnd === true || cancelAt !== null
 	// When canceling, lock the floor at the current count — only increases (which undo
 	// the pending cancel) are allowed.
-	const minSeats = isCanceling
-		? subscription.seats.seatCount
-		: Math.max(1, subscription.seats.occupiedSeats)
+	const minSeats = isCanceling ? subscription.seats.seatCount : Math.max(1, subscription.seats.occupiedSeats)
 	const isAtOccupiedFloor =
 		!isCanceling && seatCount <= subscription.seats.occupiedSeats && subscription.seats.occupiedSeats > 0
 	const decrementDisabled = seatCount <= minSeats
@@ -112,8 +110,8 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 						<div className="flex items-start gap-2 rounded-lg border border-(--error)/30 bg-(--error)/5 p-3">
 							<Icon name="alert-triangle" height={14} width={14} className="mt-0.5 shrink-0 text-(--error)" />
 							<p className="text-xs leading-5 text-(--sub-ink-primary) dark:text-white">
-								This subscription is scheduled to cancel on {formatCancelDate(cancelAt)}. Increasing the seat count
-								will resume billing and undo the pending cancellation.
+								This subscription is scheduled to cancel on {formatCancelDate(cancelAt)}. Increasing the seat count will
+								resume billing and undo the pending cancellation.
 							</p>
 						</div>
 					) : null}
@@ -177,7 +175,9 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 						<div className="flex flex-col gap-2 rounded-lg bg-(--sub-brand-primary)/5 p-3">
 							<div className="flex items-center justify-between">
 								<span className="text-sm text-(--sub-text-muted)">
-									{diff > 0 ? `Adding ${diff} seat${diff === 1 ? '' : 's'}` : `Removing ${-diff} seat${-diff === 1 ? '' : 's'}`}
+									{diff > 0
+										? `Adding ${diff} seat${diff === 1 ? '' : 's'}`
+										: `Removing ${-diff} seat${-diff === 1 ? '' : 's'}`}
 								</span>
 								<span className="text-sm font-semibold text-(--sub-ink-primary) dark:text-white">
 									{diff > 0 ? '+' : '−'}${(unitPrice.amount * Math.abs(diff)).toLocaleString()}
