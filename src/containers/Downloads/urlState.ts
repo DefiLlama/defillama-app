@@ -4,6 +4,8 @@ import type {
 	DateRangeConfig,
 	DateRangePreset,
 	MultiMetricInput,
+	QueryInput,
+	QueryTableRef,
 	SavedDownloadInput,
 	SavedParamType,
 	SavedSort
@@ -122,6 +124,12 @@ export function encodeDownloadConfig(input: SavedDownloadInput): Record<string, 
 		if (input.categoryBreakdown) q.cb = input.categoryBreakdown.category
 		return q
 	}
+	if (input.kind === 'query') {
+		q.k = 'query'
+		q.q = input.sql
+		if (input.tables.length > 0) q.tbls = joinEscaped(input.tables.map(encodeTableRef))
+		return q
+	}
 	// multiMetric
 	q.k = 'multi'
 	q.pt = input.paramType
@@ -130,6 +138,45 @@ export function encodeDownloadConfig(input: SavedDownloadInput): Record<string, 
 	if (input.metrics.length > 0) q.mt = joinEscaped(input.metrics)
 	if (input.dateRange) q.dr = encodeDateRange(input.dateRange)
 	return q
+}
+
+function encodeTableRef(ref: QueryTableRef): string {
+	// Colons separate parts. Any raw colon in slug/param is escaped as \:
+	const esc = (s: string) => s.replace(/\\/g, '\\\\').replace(/:/g, '\\:')
+	if (ref.kind === 'dataset') return `d:${esc(ref.slug)}`
+	return `c:${esc(ref.slug)}:${esc(ref.param)}`
+}
+
+function decodeTableRef(s: string): QueryTableRef | null {
+	// Split on unescaped ':' only.
+	const parts: string[] = []
+	let buf = ''
+	let i = 0
+	while (i < s.length) {
+		const ch = s[i]
+		if (ch === '\\' && i + 1 < s.length) {
+			buf += s[i + 1]
+			i += 2
+			continue
+		}
+		if (ch === ':') {
+			parts.push(buf)
+			buf = ''
+			i += 1
+			continue
+		}
+		buf += ch
+		i += 1
+	}
+	parts.push(buf)
+	const kind = parts[0]
+	if (kind === 'd' && parts.length === 2 && parts[1]) {
+		return { kind: 'dataset', slug: parts[1] }
+	}
+	if (kind === 'c' && parts.length === 3 && parts[1] && parts[2]) {
+		return { kind: 'chart', slug: parts[1], param: parts[2] }
+	}
+	return null
 }
 
 export function decodeDownloadConfig(
@@ -212,6 +259,21 @@ export function decodeDownloadConfig(
 			metrics: mt ? splitEscaped(mt) : [],
 			...(dateRange ? { dateRange } : {})
 		}
+		return config
+	}
+
+	if (kind === 'query') {
+		const sql = firstStr(query.q)
+		if (!sql) return null
+		const tbls = firstStr(query.tbls)
+		const refs: QueryTableRef[] = []
+		if (tbls) {
+			for (const encoded of splitEscaped(tbls)) {
+				const ref = decodeTableRef(encoded)
+				if (ref) refs.push(ref)
+			}
+		}
+		const config: QueryInput = { kind: 'query', sql, tables: refs }
 		return config
 	}
 
