@@ -132,9 +132,7 @@ export function encodeDownloadConfig(input: SavedDownloadInput): Record<string, 
 	return q
 }
 
-export function decodeDownloadConfig(
-	query: Record<string, string | string[] | undefined>
-): SavedDownloadInput | null {
+export function decodeDownloadConfig(query: Record<string, string | string[] | undefined>): SavedDownloadInput | null {
 	const kind = firstStr(query.k)
 	if (!kind) return null
 

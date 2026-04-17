@@ -769,10 +769,7 @@ export function DatasetPreviewModal({
 											<span className="hidden sm:inline">Download</span>
 										</button>
 									) : (
-										<FormatSplitButton
-											onDownload={(fmt) => handleDownload(fmt)}
-											disabled={selectedCount === 0}
-										/>
+										<FormatSplitButton onDownload={(fmt) => handleDownload(fmt)} disabled={selectedCount === 0} />
 									)}
 								</>
 							) : null}
