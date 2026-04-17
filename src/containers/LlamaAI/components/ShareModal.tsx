@@ -29,21 +29,6 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId }:
 
 	const { authorizedFetch } = useAuthContext()
 
-	useEffect(() => {
-		if (open) {
-			setShareResult(null)
-			setCopied(false)
-			shareMutation.reset()
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [open])
-
-	useEffect(() => {
-		return () => {
-			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
-		}
-	}, [])
-
 	const shareMutation = useMutation<ShareResult>({
 		mutationFn: async () => {
 			if (!sessionId) throw new Error('No session to share')
@@ -71,7 +56,14 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId }:
 		}
 	})
 
-	const shareLink = shareResult?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareResult.shareToken}` : ''
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
+		}
+	}, [])
+
+	const origin = typeof window === 'undefined' ? '' : window.location.origin
+	const shareLink = shareResult?.shareToken && origin ? `${origin}/ai/chat/shared/${shareResult.shareToken}` : ''
 
 	const handleCopyLink = useCallback(async () => {
 		if (!shareLink) return

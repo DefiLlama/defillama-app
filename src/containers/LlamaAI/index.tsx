@@ -696,6 +696,7 @@ export function AgenticChat({
 	shareToken
 }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+	const hasUser = !!user
 	const isMobileChatView = useMedia('(max-width: 1023px)')
 
 	// Send shareToken only on the first agentic request so the backend can copy shared messages.
@@ -1686,7 +1687,7 @@ export function AgenticChat({
 
 			// Shared session: fork in-place — seed messages + sessionId, then continue with normal submit flow
 			if (sharedSession && !sessionId) {
-				if (!user) {
+				if (!hasUser) {
 					onForkSubmit?.(trimmed)
 					return
 				}
@@ -1915,7 +1916,11 @@ export function AgenticChat({
 			triggerPromptTransition,
 			quotedText,
 			isMobileChatView,
-			settings.model
+			settings.model,
+			sharedSession,
+			shareToken,
+			hasUser,
+			onForkSubmit
 		]
 	)
 
@@ -2085,7 +2090,13 @@ export function AgenticChat({
 		if (!initialPrompt || initialPromptSentRef.current) return
 		if (restoringSessionId) return
 		initialPromptSentRef.current = true
-		handleSubmit(initialPrompt)
+		const frameId = window.requestAnimationFrame(() => {
+			handleSubmit(initialPrompt)
+		})
+
+		return () => {
+			window.cancelAnimationFrame(frameId)
+		}
 	}, [initialPrompt, restoringSessionId, handleSubmit])
 
 	if (!user && !readOnly && !sharedSession) {
@@ -2335,8 +2346,8 @@ export function AgenticChat({
 				{!readOnly ? (
 					<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
 				) : null}
-				{!readOnly ? (
-					<ShareModal open={showShareModal} setOpen={setShowShareModal} sessionId={effectiveSessionId} />
+				{!readOnly && showShareModal ? (
+					<ShareModal open={true} setOpen={setShowShareModal} sessionId={effectiveSessionId} />
 				) : null}
 				{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
 				{shouldRenderSubscribeModal ? (

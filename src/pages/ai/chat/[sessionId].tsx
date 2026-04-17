@@ -36,8 +36,26 @@ export default function SessionPage() {
 		const p = typeof promptParam === 'string' ? promptParam : undefined
 		const st = typeof shareTokenParam === 'string' ? shareTokenParam : undefined
 		if (!p && !st) return
-		setPendingForSession({ sessionId: resolvedSessionId, prompt: p, shareToken: st })
-		router.replace(`/ai/chat/${resolvedSessionId}`, undefined, { shallow: true })
+
+		let cancelled = false
+		let clearFrameId = 0
+		const frameId = window.requestAnimationFrame(() => {
+			if (cancelled) return
+
+			setPendingForSession({ sessionId: resolvedSessionId, prompt: p, shareToken: st })
+			window.history.replaceState(window.history.state, '', `/ai/chat/${resolvedSessionId}`)
+			clearFrameId = window.requestAnimationFrame(() => {
+				if (!cancelled) {
+					setPendingForSession(null)
+				}
+			})
+		})
+
+		return () => {
+			cancelled = true
+			window.cancelAnimationFrame(frameId)
+			window.cancelAnimationFrame(clearFrameId)
+		}
 	}, [router.isReady, promptParam, shareTokenParam, resolvedSessionId, router])
 
 	const initialPrompt = pendingForSession?.sessionId === resolvedSessionId ? pendingForSession.prompt : undefined

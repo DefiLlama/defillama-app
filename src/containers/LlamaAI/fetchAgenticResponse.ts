@@ -431,6 +431,7 @@ export async function fetchAgenticResponse({
 		isSuggestedQuestion?: true
 		blockedSkills?: string[]
 		model?: string
+		shareToken?: string
 	} = {
 		message,
 		stream: true,
@@ -484,7 +485,7 @@ export async function fetchAgenticResponse({
 	}
 
 	if (shareToken) {
-		;(requestBody as any).shareToken = shareToken
+		requestBody.shareToken = shareToken
 	}
 
 	const response = await doFetch(`${AI_SERVER}/agentic`, {
