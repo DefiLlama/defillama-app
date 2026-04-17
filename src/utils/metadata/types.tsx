@@ -1,6 +1,7 @@
 export interface IChainMetadata {
 	stablecoins?: boolean
 	dexs?: boolean
+	dexsNotionalVolume?: boolean
 	name: string
 	activeLiquidity?: boolean
 	fees?: boolean
@@ -42,6 +43,7 @@ export interface IProtocolMetadata {
 	revenue?: boolean
 	holdersRevenue?: boolean
 	dexs?: boolean
+	dexsNotionalVolume?: boolean
 	perps?: boolean
 	openInterest?: boolean
 	normalizedVolume?: boolean
@@ -94,7 +96,7 @@ export interface ICategoriesAndTags {
 }
 
 export interface IRWAList {
-	tickers: Array<string>
+	canonicalMarketIds: Array<string>
 	platforms: Array<string>
 	chains: Array<string>
 	categories: Array<string>
@@ -106,6 +108,7 @@ export interface IRWAPerpsList {
 	contracts: Array<string>
 	venues: Array<string>
 	categories: Array<string>
+	assetGroups: Array<string>
 	total: number
 }
 

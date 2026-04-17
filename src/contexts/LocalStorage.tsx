@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useSyncExternalStore } from 'react'
+import { MAX_RECENT_DOWNLOADS, sameSavedConfigShape, type SavedDownload } from '~/containers/Downloads/savedDownloads'
 import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
@@ -21,6 +22,8 @@ const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
+const SAVED_DOWNLOADS = 'SAVED_DOWNLOADS' as const
+const RECENT_DOWNLOADS = 'RECENT_DOWNLOADS' as const
 
 export const WATCHLIST_KEYS = {
 	DEFI_WATCHLIST: 'DEFI_WATCHLIST',
@@ -175,6 +178,8 @@ export type AppStorage = SettingsStore & {
 	[DEFI_SELECTED_PORTFOLIO]?: string
 	[YIELDS_SELECTED_PORTFOLIO]?: string
 	[CHAINS_SELECTED_PORTFOLIO]?: string
+	[SAVED_DOWNLOADS]?: SavedDownload[]
+	[RECENT_DOWNLOADS]?: SavedDownload[]
 	tableViews?: CustomView[]
 }
 
@@ -608,6 +613,128 @@ export function useCustomColumns() {
 		addCustomColumn,
 		editCustomColumn,
 		deleteCustomColumn
+	}
+}
+
+export function useSavedDownloads() {
+	const snapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => {
+			const store = readAppStorage()
+			const list = store[SAVED_DOWNLOADS]
+			return list ? JSON.stringify(list) : '[]'
+		},
+		() => '[]'
+	)
+
+	const savedDownloads = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as SavedDownload[]
+		} catch {
+			return [] as SavedDownload[]
+		}
+	}, [snapshot])
+
+	function setList(next: SavedDownload[]) {
+		writeAppStorage({ ...readAppStorage(), [SAVED_DOWNLOADS]: next })
+	}
+
+	function saveDownload(config: SavedDownload, options?: { replaceByName?: boolean }) {
+		const current = (readAppStorage()[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		if (options?.replaceByName) {
+			const without = current.filter((c) => c.name !== config.name)
+			setList([config, ...without])
+			return
+		}
+		setList([config, ...current])
+	}
+
+	function updateDownload(id: string, patch: Partial<SavedDownload>) {
+		const current = (readAppStorage()[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		const next = current.map((c) => (c.id === id ? ({ ...c, ...patch } as SavedDownload) : c))
+		setList(next)
+	}
+
+	function deleteDownload(id: string) {
+		const current = (readAppStorage()[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		setList(current.filter((c) => c.id !== id))
+	}
+
+	function renameDownload(id: string, name: string) {
+		updateDownload(id, { name } as Partial<SavedDownload>)
+	}
+
+	function markRun(id: string) {
+		updateDownload(id, { lastRunAt: Date.now() } as Partial<SavedDownload>)
+	}
+
+	return {
+		savedDownloads,
+		saveDownload,
+		updateDownload,
+		deleteDownload,
+		renameDownload,
+		markRun
+	}
+}
+
+export function useRecentDownloads() {
+	const snapshot = useSyncExternalStore(
+		subscribeToLocalStorage,
+		() => {
+			const store = readAppStorage()
+			const list = store[RECENT_DOWNLOADS]
+			return list ? JSON.stringify(list) : '[]'
+		},
+		() => '[]'
+	)
+
+	const recentDownloads = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as SavedDownload[]
+		} catch {
+			return [] as SavedDownload[]
+		}
+	}, [snapshot])
+
+	function setList(next: SavedDownload[]) {
+		writeAppStorage({ ...readAppStorage(), [RECENT_DOWNLOADS]: next })
+	}
+
+	function recordRecent(config: SavedDownload) {
+		const store = readAppStorage()
+		const currentRecents = (store[RECENT_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		const dedupedRecents = currentRecents.filter((c) => !sameSavedConfigShape(c, config))
+		const nextRecents = [config, ...dedupedRecents].slice(0, MAX_RECENT_DOWNLOADS)
+
+		// Every real download flows through recordRecent, so use it to bump lastRunAt
+		// on any saved preset whose shape matches — handles saved/recent/ad-hoc uniformly.
+		const currentSaved = (store[SAVED_DOWNLOADS] as SavedDownload[] | undefined) ?? []
+		const now = Date.now()
+		let savedChanged = false
+		const nextSaved = currentSaved.map((s) => {
+			if (sameSavedConfigShape(s, config)) {
+				savedChanged = true
+				return { ...s, lastRunAt: now }
+			}
+			return s
+		})
+
+		writeAppStorage({
+			...store,
+			[RECENT_DOWNLOADS]: nextRecents,
+			...(savedChanged ? { [SAVED_DOWNLOADS]: nextSaved } : {})
+		})
+	}
+
+	function clearRecents() {
+		setList([])
+	}
+
+	return {
+		recentDownloads,
+		recordRecent,
+		clearRecents
 	}
 }
 

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { PremiumFeatureGate } from '../PremiumFeatureGate'
 
@@ -30,7 +30,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['pro-dashboard', 'saved-charts-list', user?.id],
 		queryFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/charts`)
+			const res = await authorizedFetch(`${AI_SERVER}/charts`)
 			if (!res.ok) throw new Error('Failed to load charts')
 			const json = await res.json()
 			return json.charts as SavedChart[]
@@ -41,7 +41,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 
 	const deleteMutation = useMutation({
 		mutationFn: async (chartId: string) => {
-			const res = await authorizedFetch(`${MCP_SERVER}/charts/${chartId}`, { method: 'DELETE' })
+			const res = await authorizedFetch(`${AI_SERVER}/charts/${chartId}`, { method: 'DELETE' })
 			if (!res.ok) throw new Error('Failed to delete chart')
 		},
 		onSuccess: (_, chartId) => {

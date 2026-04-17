@@ -10,6 +10,7 @@ type RWAHoldersByChain = Record<string, string[]>
 // Raw API response types
 export interface IFetchedRWAProject {
 	id: string
+	canonicalMarketId?: string | null
 	ticker: string
 	assetName?: string | null
 	assetGroup?: string | null
@@ -106,8 +107,61 @@ export interface IRWAProject extends Omit<IFetchedRWAProject, 'onChainMcap' | 'a
 	} | null
 }
 
+export type RWAOverviewMetric = {
+	total: number
+	breakdown: Array<[string, number]>
+} | null
+
+export type RWAOverviewAssetBase = {
+	id: string
+	kind: 'spot' | 'perps'
+	detailHref: string
+	assetName: string
+	ticker: string
+	primaryChain: string | null
+	chain: string[] | null
+	price: number | null
+	openInterest: number | null
+	volume24h: number | null
+	volume30d: number | null
+	assetGroup: string | null
+	parentPlatform: string | string[] | null
+	category: string[] | null
+	assetClass: string[] | null
+	accessModel: string | null
+	type: string | null
+	rwaClassification: string | null
+	issuer: string | null
+	redeemable: boolean | null
+	attestations: boolean | null
+	cexListed: boolean | null
+	kycForMintRedeem: boolean | null
+	kycAllowlistedWhitelistedToTransferHold: boolean | null
+	transferable: boolean | null
+	selfCustody: boolean | null
+	stablecoin: boolean | null
+	governance: boolean | null
+	trueRWA: boolean
+	onChainMcap: RWAOverviewMetric
+	activeMcap: RWAOverviewMetric
+	defiActiveTvl: RWAOverviewMetric
+	defiActiveTvlByChain?: RWAOverviewMetric
+}
+
+export type RWASpotOverviewAsset = RWAOverviewAssetBase & {
+	kind: 'spot'
+	canonicalMarketId: string
+}
+
+export type RWAPerpsOverviewAsset = RWAOverviewAssetBase & {
+	kind: 'perps'
+	contract: string
+}
+
+export type RWAOverviewAsset = RWASpotOverviewAsset | RWAPerpsOverviewAsset
+
 export interface IRWAAssetsOverview {
-	assets: Array<IRWAProject>
+	assets: Array<RWAOverviewAsset>
 	types: Array<string>
 	typeOptions: Array<{ key: string; name: string; help?: string }>
 	assetClasses: Array<string>
@@ -156,6 +210,7 @@ export interface IRWAAssetsOverview {
 		}
 	}
 	initialChartDataset: IRWAInitialChartDataset | null
+	initialOpenInterestChartDataset: IRWAInitialTimeSeriesDataset | null
 	chainSlug: string | null
 	categorySlug: string | null
 	platformSlug: string | null
@@ -163,21 +218,22 @@ export interface IRWAAssetsOverview {
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+export type IRWAInitialTimeSeriesDataset = {
+	source: IRWAInitialChartDatasetRow[]
+	dimensions: string[]
+}
 export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
-export type RWATickerChartTarget =
+export type RWAAssetChartTarget =
 	| { kind: 'all' }
 	| { kind: 'chain'; slug: string }
 	| { kind: 'category'; slug: string }
 	| { kind: 'platform'; slug: string }
 	| { kind: 'assetGroup'; slug: string }
 
-export type IRWAInitialChartDataset = Record<
-	RWAChartMetricKey,
-	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
->
+export type IRWAInitialChartDataset = Record<RWAChartMetricKey, IRWAInitialTimeSeriesDataset>
 
-export interface IRWAChartDataByTicker {
+export interface IRWAChartDataByAsset {
 	onChainMcap: IRWAChartMetricRows
 	activeMcap: IRWAChartMetricRows
 	defiActiveTvl: IRWAChartMetricRows

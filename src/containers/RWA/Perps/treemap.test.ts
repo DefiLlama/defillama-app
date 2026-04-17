@@ -15,12 +15,12 @@ const baseMarket = {
 	cumulativeFunding: 10,
 	referenceAsset: 'Meta',
 	referenceAssetGroup: 'Equities',
-	assetClass: ['Single stock synthetic perp'],
+	assetClass: ['Stock Perp'],
 	parentPlatform: 'trade[XYZ]',
 	pair: '',
 	marginAsset: 'USDC',
 	settlementAsset: 'USDC',
-	category: ['RWA Perpetuals'],
+	category: ['RWA Perps'],
 	issuer: 'XYZ',
 	website: ['https://trade.xyz/'],
 	oracleProvider: 'Pyth equity feed',
@@ -49,14 +49,14 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'overview',
 			markets: [
-				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', assetClass: ['Single stock synthetic perp'] },
+				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', assetClass: ['Stock Perp'] },
 				{
 					...baseMarket,
 					id: 'xyz:gold',
 					contract: 'xyz:GOLD',
 					referenceAsset: 'Gold',
 					venue: 'xyz',
-					assetClass: ['Commodity synthetic perp'],
+					assetClass: ['Commodity Perp'],
 					openInterest: 50
 				},
 				{
@@ -65,7 +65,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					contract: 'flx:TSLA',
 					referenceAsset: 'Tesla',
 					venue: 'flx',
-					assetClass: ['Single stock synthetic perp'],
+					assetClass: ['Stock Perp'],
 					openInterest: 75
 				}
 			],
@@ -78,10 +78,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			name: 'xyz',
 			path: 'Venue/xyz'
 		})
-		expect(tree[0].children?.map((child) => child.name)).toEqual([
-			'Single stock synthetic perp',
-			'Commodity synthetic perp'
-		])
+		expect(tree[0].children?.map((child) => child.name)).toEqual(['Stock Perp', 'Commodity Perp'])
 	})
 
 	it('builds overview nested tree data by venue -> contract', () => {
@@ -129,8 +126,8 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		})
 
 		expect(tree).toEqual([
-			expect.objectContaining({ name: 'xyz', path: 'xyz' }),
-			expect.objectContaining({ name: 'flx', path: 'flx' })
+			expect.objectContaining({ name: 'xyz', path: 'Venue/xyz' }),
+			expect.objectContaining({ name: 'flx', path: 'Venue/flx' })
 		])
 	})
 
@@ -142,7 +139,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					...baseMarket,
 					id: 'xyz:meta',
 					venue: 'xyz',
-					assetClass: ['Single stock synthetic perp'],
+					assetClass: ['Stock Perp'],
 					referenceAsset: 'Meta',
 					contract: 'xyz:META'
 				},
@@ -151,7 +148,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					id: 'xyz:nvda',
 					contract: 'xyz:NVDA',
 					venue: 'xyz',
-					assetClass: ['Single stock synthetic perp'],
+					assetClass: ['Stock Perp'],
 					referenceAsset: 'NVIDIA',
 					openInterest: 150
 				}
@@ -162,8 +159,8 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		})
 
 		expect(tree[0]).toMatchObject({
-			name: 'Single stock synthetic perp',
-			path: 'Asset Class/Single stock synthetic perp'
+			name: 'Stock Perp',
+			path: 'Asset Class/Stock Perp'
 		})
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:NVDA', 'xyz:META'])
 	})
@@ -187,6 +184,40 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:META', 'flx:META'])
 	})
 
+	it('builds overview nested tree data by asset group -> base asset', () => {
+		const tree = buildRWAPerpsTreemapTreeData({
+			mode: 'overview',
+			markets: [
+				{ ...baseMarket, id: 'xyz:meta', referenceAssetGroup: 'Equities', referenceAsset: 'Meta', openInterest: 100 },
+				{
+					...baseMarket,
+					id: 'xyz:nvda',
+					contract: 'xyz:NVDA',
+					referenceAssetGroup: 'Equities',
+					referenceAsset: 'NVIDIA',
+					openInterest: 150
+				},
+				{
+					...baseMarket,
+					id: 'xyz:gold',
+					contract: 'xyz:GOLD',
+					referenceAssetGroup: 'Commodities',
+					referenceAsset: 'Gold',
+					openInterest: 50
+				}
+			],
+			metric: 'openInterest',
+			parentGrouping: 'assetGroup',
+			nestedBy: 'baseAsset'
+		})
+
+		expect(tree[0]).toMatchObject({
+			name: 'Equities',
+			path: 'Asset Group/Equities'
+		})
+		expect(tree[0].children?.map((child) => child.name)).toEqual(['NVIDIA', 'Meta'])
+	})
+
 	it('builds venue detail nested trees by asset class -> contract', () => {
 		const tree = buildRWAPerpsTreemapTreeData({
 			mode: 'venue',
@@ -195,7 +226,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					...baseMarket,
 					id: 'xyz:meta',
 					venue: 'xyz',
-					assetClass: ['Single stock synthetic perp'],
+					assetClass: ['Stock Perp'],
 					referenceAsset: 'Meta',
 					contract: 'xyz:META'
 				},
@@ -204,7 +235,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					id: 'xyz:nvda',
 					contract: 'xyz:NVDA',
 					venue: 'xyz',
-					assetClass: ['Single stock synthetic perp'],
+					assetClass: ['Stock Perp'],
 					referenceAsset: 'NVIDIA',
 					openInterest: 150
 				},
@@ -213,7 +244,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					id: 'xyz:gold',
 					contract: 'xyz:GOLD',
 					venue: 'xyz',
-					assetClass: ['Commodity synthetic perp'],
+					assetClass: ['Commodity Perp'],
 					referenceAsset: 'Gold',
 					openInterest: 50
 				}
@@ -225,8 +256,8 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		})
 
 		expect(tree[0]).toMatchObject({
-			name: 'Single stock synthetic perp',
-			path: 'xyz/Single stock synthetic perp'
+			name: 'Stock Perp',
+			path: 'xyz/Stock Perp'
 		})
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:NVDA', 'xyz:META'])
 	})
@@ -249,6 +280,33 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			path: 'xyz/Meta'
 		})
 		expect(tree[0].children?.map((child) => child.name)).toEqual(['xyz:META', 'xyz:META-2'])
+	})
+
+	it('builds venue detail nested trees by asset group -> base asset', () => {
+		const tree = buildRWAPerpsTreemapTreeData({
+			mode: 'venue',
+			markets: [
+				{ ...baseMarket, id: 'xyz:meta', referenceAssetGroup: 'Equities', referenceAsset: 'Meta', openInterest: 100 },
+				{
+					...baseMarket,
+					id: 'xyz:nvda',
+					contract: 'xyz:NVDA',
+					referenceAssetGroup: 'Equities',
+					referenceAsset: 'NVIDIA',
+					openInterest: 80
+				}
+			],
+			metric: 'openInterest',
+			parentGrouping: 'assetGroup',
+			nestedBy: 'baseAsset',
+			venueLabel: 'xyz'
+		})
+
+		expect(tree[0]).toMatchObject({
+			name: 'Equities',
+			path: 'xyz/Equities'
+		})
+		expect(tree[0].children?.map((child) => child.name)).toEqual(['Meta', 'NVIDIA'])
 	})
 
 	it('keeps markets metric as numeric counts in flat trees', () => {
@@ -298,8 +356,26 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 		})
 
 		expect(tree).toEqual([
-			expect.objectContaining({ name: 'xyz:GOLD', path: 'xyz:GOLD' }),
-			expect.objectContaining({ name: 'flx:GOLD', path: 'flx:GOLD' })
+			expect.objectContaining({ name: 'xyz:GOLD', path: 'Contract/xyz:GOLD' }),
+			expect.objectContaining({ name: 'flx:GOLD', path: 'Contract/flx:GOLD' })
+		])
+	})
+
+	it('keeps a stable root label for flat base-asset treemaps', () => {
+		const tree = buildRWAPerpsTreemapTreeData({
+			mode: 'overview',
+			markets: [
+				{ ...baseMarket, id: 'xyz:meta', referenceAsset: 'Meta', openInterest: 100 },
+				{ ...baseMarket, id: 'xyz:nvda', contract: 'xyz:NVDA', referenceAsset: 'NVIDIA', openInterest: 80 }
+			],
+			metric: 'markets',
+			parentGrouping: 'baseAsset',
+			nestedBy: 'none'
+		})
+
+		expect(tree).toEqual([
+			expect.objectContaining({ name: 'Meta', path: 'Base Asset/Meta' }),
+			expect.objectContaining({ name: 'NVIDIA', path: 'Base Asset/NVIDIA' })
 		])
 	})
 
@@ -311,7 +387,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					...baseMarket,
 					id: 'xyz:meta',
 					venue: 'xyz',
-					assetClass: ['Single stock synthetic perp'],
+					assetClass: ['Stock Perp'],
 					openInterest: 100
 				},
 				{
@@ -320,7 +396,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 					contract: 'xyz:GOLD',
 					venue: 'xyz',
 					referenceAsset: 'Gold',
-					assetClass: ['Commodity synthetic perp'],
+					assetClass: ['Commodity Perp'],
 					openInterest: 50
 				},
 				{
@@ -342,7 +418,7 @@ describe('buildRWAPerpsTreemapTreeData', () => {
 			value: [150, 66.67, 66.67]
 		})
 		expect(tree[0].children?.[0]).toMatchObject({
-			name: 'Single stock synthetic perp',
+			name: 'Stock Perp',
 			value: [100, 66.67, 44.44]
 		})
 	})

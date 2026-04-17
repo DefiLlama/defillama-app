@@ -2,11 +2,12 @@
  * Utility functions for markdown processing in LlamaAI.
  */
 
+import DOMPurify from 'dompurify'
+
 /**
- * Allowed URL protocols for citation links.
- * Prevents dangerous schemes like javascript:, data:, etc.
+ * Only allow secure external links in user-generated citations and artifacts.
  */
-const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
+const ALLOWED_PROTOCOLS = ['https:']
 
 /**
  * Validate and sanitize a URL for safe use in href attributes.
@@ -15,26 +16,28 @@ const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
 export function sanitizeUrl(url: string): string | null {
 	if (!url || typeof url !== 'string') return null
 
-	// Trim whitespace
 	const trimmed = url.trim()
 	if (!trimmed) return null
 
 	try {
-		// Try to parse as absolute URL
 		const parsed = new URL(trimmed)
 
-		// Check if protocol is whitelisted
 		if (!ALLOWED_PROTOCOLS.includes(parsed.protocol)) {
 			return null
 		}
 
-		// Return the href (properly encoded by URL constructor)
+		if (parsed.username || parsed.password) {
+			return null
+		}
+
 		return parsed.href
 	} catch {
-		// If parsing fails, try prepending https:// for URLs that look like domains
 		if (/^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}/.test(trimmed) && !trimmed.includes(' ')) {
 			try {
 				const withProtocol = new URL(`https://${trimmed}`)
+				if (withProtocol.username || withProtocol.password) {
+					return null
+				}
 				return withProtocol.href
 			} catch {
 				return null
@@ -50,14 +53,16 @@ interface ActionPlaceholderData {
 }
 
 type ArtifactMatch =
-	| { index: number; length: number; type: 'chart' | 'csv' | 'alert'; id: string }
+	| { index: number; length: number; type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard'; id: string }
 	| { index: number; length: number; type: 'action'; id: ActionPlaceholderData }
 
 export type ContentPart =
 	| { type: 'text'; content: string }
 	| { type: 'chart'; chartId: string }
 	| { type: 'csv'; csvId: string }
+	| { type: 'md'; mdId: string }
 	| { type: 'alert'; alertId: string }
+	| { type: 'dashboard'; dashboardId: string }
 	| { type: 'action'; actionLabel: string; actionMessage: string }
 
 interface ParsedContent {
@@ -69,10 +74,15 @@ interface ParsedContent {
  * Placeholders follow the format [CHART:id], [CSV:id], and [ALERT:id].
  */
 export function parseArtifactPlaceholders(content: string): ParsedContent {
-	content = content.replace(/\[REPORT_START\]\n?/g, '')
+	const reportStartIdx = content.indexOf('[REPORT_START]')
+	if (reportStartIdx !== -1) {
+		content = content.slice(reportStartIdx + '[REPORT_START]'.length).trimStart()
+	}
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
+	const mdPlaceholderPattern = /\[MD:([^\]]+)\]/g
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
+	const dashboardPlaceholderPattern = /\[DASHBOARD:([^\]]+)\]/g
 	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
 	const parts: ContentPart[] = []
 
@@ -85,8 +95,14 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	while ((match = csvPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
 	}
+	while ((match = mdPlaceholderPattern.exec(content)) !== null) {
+		allMatches.push({ index: match.index, length: match[0].length, type: 'md', id: match[1] })
+	}
 	while ((match = alertPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
+	}
+	while ((match = dashboardPlaceholderPattern.exec(content)) !== null) {
+		allMatches.push({ index: match.index, length: match[0].length, type: 'dashboard', id: match[1] })
 	}
 	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
 		const actionLabel = match[1].trim()
@@ -112,6 +128,10 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			parts.push({ type: 'chart', chartId: m.id })
 		} else if (m.type === 'csv') {
 			parts.push({ type: 'csv', csvId: m.id })
+		} else if (m.type === 'md') {
+			parts.push({ type: 'md', mdId: m.id })
+		} else if (m.type === 'dashboard') {
+			parts.push({ type: 'dashboard', dashboardId: m.id })
 		} else {
 			parts.push({ type: 'alert', alertId: m.id })
 		}
@@ -130,16 +150,23 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 }
 
 /**
- * Process citation markers in text and convert to HTML anchor tags.
- * Supports ranges like [1-3] and comma-separated values like [1, 3, 5].
+ * Process citation markers in text and convert to citation-badge tags.
+ * Supports ranges like [1-3], footnotes like [^1], and model-style markers like \u30101\u2020source\u3011.
  */
 export function processCitationMarkers(text: string, citations?: string[]): string {
+	const citationSequencePattern = String.raw`\d+(?:(?:\s*-\s*\d+)|(?:\s*,\s*\d+))*`
+	const citationMarkerRegex = new RegExp(
+		String.raw`(?:\[(?:\^\s*)?(${citationSequencePattern})\s*\]|【\s*(${citationSequencePattern})(?:\s*†[^】]*)?\s*】)`,
+		'g'
+	)
+
 	if (!citations || citations.length === 0) {
 		// Remove citation markers if no citations available
-		return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, '')
+		return text.replace(citationMarkerRegex, '')
 	}
 
-	return text.replace(/\[(\d+(?:(?:-\d+)|(?:,\s*\d+))*)\]/g, (_, nums) => {
+	return text.replace(citationMarkerRegex, (_match, bracketNums?: string, modelNums?: string) => {
+		const nums = bracketNums ?? modelNums ?? ''
 		const parts = nums.split(',').map((p: string) => p.trim())
 		const expandedNums: number[] = []
 
@@ -161,17 +188,17 @@ export function processCitationMarkers(text: string, citations?: string[]): stri
 				const rawUrl = citations[idx]
 
 				if (!rawUrl) {
-					return `<span class="citation-badge">${num}</span>`
+					return `<citation-badge>${num}</citation-badge>`
 				}
 
 				// Validate and sanitize the URL to prevent XSS
 				const safeUrl = sanitizeUrl(rawUrl)
 				if (safeUrl) {
-					return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
+					return `<citation-badge href="${safeUrl}">${num}</citation-badge>`
 				}
 
 				// URL is unsafe or malformed - render as non-clickable span
-				return `<span class="citation-badge">${num}</span>`
+				return `<citation-badge>${num}</citation-badge>`
 			})
 			.join('')
 	})
@@ -191,4 +218,63 @@ export function extractLlamaLinks(content: string): Map<string, string> {
 	}
 
 	return linkMap
+}
+
+const SANITIZE_ALLOWED_TAGS = [
+	'p',
+	'br',
+	'b',
+	'i',
+	'em',
+	'strong',
+	'a',
+	'ul',
+	'ol',
+	'li',
+	'h1',
+	'h2',
+	'h3',
+	'h4',
+	'h5',
+	'h6',
+	'img',
+	'span',
+	'div',
+	'table',
+	'thead',
+	'tbody',
+	'tr',
+	'th',
+	'td',
+	'blockquote',
+	'code',
+	'pre',
+	'hr',
+	'sup',
+	'sub'
+]
+
+const SANITIZE_ALLOWED_ATTR = ['href', 'target', 'rel', 'src', 'alt', 'width', 'height', 'class']
+
+const CHART_PLACEHOLDER_REGEX = /\[CHART:([^\]]+)\]/g
+
+interface ChartRef {
+	id: string
+	url: string
+	title: string
+}
+
+export function sanitizeAlertSummary(html: string, charts: ChartRef[]): string {
+	const expanded = html.replace(CHART_PLACEHOLDER_REGEX, (_, chartId: string) => {
+		const chart = charts.find((c) => c.id === chartId)
+		if (!chart?.url) return ''
+		const safeUrl = sanitizeUrl(chart.url)
+		if (!safeUrl) return ''
+		const alt = (chart.title || 'Chart').replace(/"/g, '&quot;')
+		return `<img src="${safeUrl}" alt="${alt}" />`
+	})
+	return DOMPurify.sanitize(expanded, {
+		ALLOWED_TAGS: SANITIZE_ALLOWED_TAGS,
+		ALLOWED_ATTR: SANITIZE_ALLOWED_ATTR
+	})
 }

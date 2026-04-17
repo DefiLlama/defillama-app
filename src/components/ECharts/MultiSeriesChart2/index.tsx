@@ -64,13 +64,32 @@ function getZeroBaselineYAxisMin(extent: AxisExtent) {
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
+function createHatchPattern(color: string, opacity: number): { image: HTMLCanvasElement; repeat: 'repeat' } | null {
+	if (typeof document === 'undefined') return null
+	const size = 8
+	const canvas = document.createElement('canvas')
+	canvas.width = size
+	canvas.height = size
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return null
+	ctx.strokeStyle = color
+	ctx.globalAlpha = opacity
+	ctx.lineWidth = 1.5
+	ctx.beginPath()
+	ctx.moveTo(0, size)
+	ctx.lineTo(size, 0)
+	ctx.stroke()
+	return { image: canvas, repeat: 'repeat' }
+}
+
 function buildSeries({
 	effectiveCharts,
 	selectedCharts,
 	expandTo100Percent,
 	solidChartAreaStyle,
 	isThemeDark,
-	hallmarks
+	hallmarks,
+	dataset
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
@@ -78,6 +97,7 @@ function buildSeries({
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
 	hallmarks: IMultiSeriesChart2Props['hallmarks']
+	dataset: IMultiSeriesChart2Props['dataset']
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -142,18 +162,45 @@ function buildSeries({
 		}
 
 		if (chart.isTBD) {
-			base.itemStyle = { ...base.itemStyle, opacity: 0.2 }
+			const hatch = createHatchPattern(resolvedColor, 0.4)
+			base.itemStyle = { ...base.itemStyle, opacity: 0.3 }
 			if (base.areaStyle) {
-				base.areaStyle = { ...base.areaStyle, opacity: 0.1 }
+				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
 			}
-			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5 }
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
+
+			base.endLabel = {
+				show: true,
+				formatter: 'TBD',
+				fontSize: 16,
+				fontWeight: 'bold',
+				color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+				offset: [-40, 10]
+			}
 		}
 
 		out.push(base)
 	}
 
 	if (hallmarks && out.length > 0) {
-		out[0].markLine = buildHallmarksMarkLine({ hallmarks, isThemeDark })
+		// Attach hallmark markLine to the series with the highest max value so that
+		// yAxis:'max' resolves to the tallest series and the line spans the full chart.
+		let targetIdx = 0
+		let bestMax = -Infinity
+		for (let i = 0; i < out.length; i++) {
+			const enc = out[i].encode
+			const yDim = enc?.y
+			if (yDim != null && dataset?.source) {
+				for (const row of dataset.source) {
+					const val = Number(row[yDim])
+					if (val > bestMax) {
+						bestMax = val
+						targetIdx = i
+					}
+				}
+			}
+		}
+		out[targetIdx].markLine = buildHallmarksMarkLine({ hallmarks, isThemeDark })
 	}
 
 	if (someSeriesHasYAxisIndex) {
@@ -546,9 +593,10 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			expandTo100Percent,
 			solidChartAreaStyle,
 			isThemeDark,
-			hallmarks
+			hallmarks,
+			dataset
 		})
-	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts])
+	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts, dataset])
 
 	const seriesSymbols = useMemo(() => {
 		const map = new Map<string, string>()

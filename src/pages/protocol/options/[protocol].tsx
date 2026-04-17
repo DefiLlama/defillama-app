@@ -16,6 +16,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { formatAdapterData } from '~/containers/ProtocolOverview/formatAdapterData'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
@@ -81,19 +82,15 @@ export const getStaticProps = withPerformanceLogging(
 		const seoTitle = `${protocolData.name} Options Trading Volume - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} options premium and notional trading volume with historical charts on DefiLlama.`
 
-		const optionsPremiumVolume: IProtocolOverviewPageData['optionsPremiumVolume'] = {
-			total24h: premiumVolumeData?.total24h ?? null,
-			total7d: premiumVolumeData?.total7d ?? null,
-			total30d: premiumVolumeData?.total30d ?? null,
-			totalAllTime: premiumVolumeData?.totalAllTime ?? null
-		}
+		const optionsPremiumVolume: IProtocolOverviewPageData['optionsPremiumVolume'] = formatAdapterData({
+			data: premiumVolumeData,
+			methodologyKey: 'optionsPremiumVolume'
+		})
 
-		const optionsNotionalVolume: IProtocolOverviewPageData['optionsNotionalVolume'] = {
-			total24h: notionalVolumeData?.total24h ?? null,
-			total7d: notionalVolumeData?.total7d ?? null,
-			total30d: notionalVolumeData?.total30d ?? null,
-			totalAllTime: notionalVolumeData?.totalAllTime ?? null
-		}
+		const optionsNotionalVolume: IProtocolOverviewPageData['optionsNotionalVolume'] = formatAdapterData({
+			data: notionalVolumeData,
+			methodologyKey: 'optionsNotionalVolume'
+		})
 
 		const linkedProtocolsSet = new Set([
 			...(premiumVolumeData?.linkedProtocols ?? []).slice(1),
@@ -142,7 +139,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				hallmarks,
-				defaultChartView: premiumVolumeData?.defaultChartView ?? notionalVolumeData?.defaultChartView ?? 'daily',
+				defaultChartView: optionsPremiumVolume?.defaultChartView ?? optionsNotionalVolume?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
 			},

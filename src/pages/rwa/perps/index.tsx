@@ -1,4 +1,5 @@
 import type { InferGetStaticPropsType } from 'next'
+import { getDefaultRWAPerpsChartView } from '~/containers/RWA/Perps/chartState'
 import { RWAPerpsDashboard } from '~/containers/RWA/Perps/Dashboard'
 import { getRWAPerpsOverview } from '~/containers/RWA/Perps/queries'
 import { RWAPerpsTabNav } from '~/containers/RWA/Perps/TabNav'
@@ -7,7 +8,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/perps/index`, async () => {
-	const data = await getRWAPerpsOverview()
+	const data = await getRWAPerpsOverview({ activeView: getDefaultRWAPerpsChartView('overview') })
 
 	return {
 		props: { data },

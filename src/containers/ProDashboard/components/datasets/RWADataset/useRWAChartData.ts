@@ -13,7 +13,7 @@ import {
 	fetchRWACategoryBreakdownChartData,
 	fetchRWAPlatformBreakdownChartData,
 	fetchRWAAssetGroupBreakdownChartData,
-	fetchRWAChartDataByTicker,
+	fetchRWAChartDataByAsset,
 	toUnixMsTimestamp
 } from '~/containers/RWA/api'
 import type { IFetchedRWAProject } from '~/containers/RWA/api.types'
@@ -71,13 +71,13 @@ export function useRWABreakdownChartData(
 					const proxyData = await fetchRWABreakdownViaProxy(actualBreakdown, metric, authToken, chain)
 					return normalizeTimestamps(proxyData)
 				}
-				const tickerData = await fetchRWAChartDataByTicker({
+				const assetData = await fetchRWAChartDataByAsset({
 					target: { kind: 'chain', slug: chain },
 					includeStablecoins: false,
 					includeGovernance: false
 				})
-				if (!tickerData) return null
-				return normalizeTimestamps(tickerData[metric] ?? null)
+				if (!assetData) return null
+				return normalizeTimestamps(assetData[metric] ?? null)
 			}
 
 			if (authToken) {

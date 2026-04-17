@@ -1,7 +1,7 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -10,6 +10,8 @@ import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
 import { fetchCexInflowsProxy } from './api'
 import { DateFilter } from './DateFilter'
 import type { ICex } from './types'
+
+type CexRow = ICex & { customRange: number | null }
 
 const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
 
@@ -54,30 +56,31 @@ function CustomRangeCell({ cexSlug, coin }: { cexSlug: string | null; coin: stri
 
 export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	const router = useRouter()
-	const queryClient = useQueryClient()
 	const { authorizedFetch } = useAuthContext()
 
 	const startDate = getDateTimestamp(router.query.startDate)
 	const endDate = getDateTimestamp(router.query.endDate)
 
-	useEffect(() => {
-		if (!startDate || !endDate) return
-		for (const c of cexs) {
-			if (c.slug == null) continue
-			const cexSlug = c.slug
-			const coin = c.coin ?? ''
-			void queryClient.prefetchQuery({
-				queryKey: ['cex-inflows', cexSlug, startDate, endDate],
-				queryFn: () => fetchCexInflowsProxy(cexSlug, startDate / 1e3, endDate / 1e3, coin, authorizedFetch),
-				staleTime: 60 * 60 * 1000
-			})
-		}
-	}, [startDate, endDate, cexs, queryClient, authorizedFetch])
+	const queries = useQueries({
+		queries: cexs.map((c) => ({
+			queryKey: ['cex-inflows', c.slug ?? null, startDate, endDate],
+			queryFn: () => fetchCexInflowsProxy(c.slug!, startDate! / 1e3, endDate! / 1e3, c.coin ?? '', authorizedFetch),
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			enabled: !!c.slug && !!startDate && !!endDate,
+			retry: false
+		}))
+	})
+
+	const enrichedData = useMemo<CexRow[]>(
+		() => cexs.map((c, i) => ({ ...c, customRange: queries[i]?.data?.outflows ?? null })),
+		[cexs, queries]
+	)
 
 	return (
 		<>
 			<TableWithSearch
-				data={cexs}
+				data={enrichedData}
 				columns={columns}
 				columnToSearch={'name'}
 				placeholder={'Search exchange...'}
@@ -93,7 +96,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	)
 }
 
-const columnHelper = createColumnHelper<ICex>()
+const columnHelper = createColumnHelper<CexRow>()
 
 const columns = [
 	columnHelper.accessor('name', {
@@ -238,8 +241,7 @@ const columns = [
 			headerHelperText: 'Open Interest / Clean Assets'
 		}
 	}),
-	columnHelper.display({
-		id: 'customRange',
+	columnHelper.accessor('customRange', {
 		header: 'Custom range Inflows',
 		size: 200,
 		cell: ({ row }) => <CustomRangeCell cexSlug={row.original.slug ?? null} coin={row.original.coin ?? null} />,

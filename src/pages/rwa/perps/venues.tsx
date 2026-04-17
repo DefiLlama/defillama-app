@@ -3,6 +3,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { getRWAPerpsVenuesOverview } from '~/containers/RWA/Perps/queries'
 import { RWAPerpsTabNav } from '~/containers/RWA/Perps/TabNav'
 import { RWAPerpsVenuesOverview } from '~/containers/RWA/Perps/Venues'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -19,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/perps/venues`, async (
 				{ label: 'All', to: '/rwa/perps/venues' },
 				...metadataCache.rwaPerpsList.venues.map((venue) => ({
 					label: venue,
-					to: `/rwa/perps/venue/${encodeURIComponent(venue)}`
+					to: `/rwa/perps/venue/${rwaSlug(venue)}`
 				}))
 			]
 		},
@@ -27,7 +28,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/perps/venues`, async (
 	}
 })
 
-const pageName = ['RWA Perps', 'Venues']
+const pageName = ['RWA Perps']
 
 export default function RWAPerpsVenuesPage({
 	venues,

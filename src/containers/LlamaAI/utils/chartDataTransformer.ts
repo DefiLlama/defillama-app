@@ -145,22 +145,33 @@ export class ChartDataTransformer {
 		}
 
 		const hasSecondaryAxis = transformedChart.seriesMeta.some((series) => (series.yAxisIndex ?? 0) > 0)
-		const percentageChartOptions: Record<string, any> | undefined =
-			state.percentage && capabilities.allowPercentage
-				? {
-						...(!hasSecondaryAxis
-							? {
-									yAxis: {
-										max: 100,
-										min: 0,
-										axisLabel: {
-											formatter: '{value}%'
-										}
-									}
+		const isPercentage = state.percentage && capabilities.allowPercentage
+		// Clamp axis to 0-100 only when all percentage values fall within that range
+		// (i.e. classic share-of-total with no negative source values).
+		const canClampAxis =
+			isPercentage &&
+			!hasSecondaryAxis &&
+			transformedChart.props.dataset.source.every((row) =>
+				transformedChart.seriesMeta
+					.filter((s) => (s.yAxisIndex ?? 0) === 0)
+					.every((s) => {
+						const v = row[s.name]
+						return typeof v !== 'number' || (v >= 0 && v <= 100)
+					})
+			)
+		const percentageChartOptions: Record<string, any> | undefined = isPercentage
+			? {
+					grid: { top: 24, right: 12, bottom: 68, left: 12 },
+					...(!hasSecondaryAxis
+						? {
+								yAxis: {
+									...(canClampAxis ? { max: 100, min: 0 } : {}),
+									axisLabel: { formatter: '{value}%' }
 								}
-							: {})
-					}
-				: undefined
+							}
+						: {})
+				}
+			: undefined
 
 		return {
 			...transformedChart,
@@ -304,21 +315,31 @@ export class ChartDataTransformer {
 
 		const primarySeriesNames = new Set(primarySeries.map((series) => series.name))
 
+		// Use sum-of-absolutes as denominator so negative values produce signed
+		// percentages (e.g. -200M / 700M → -28.6%).  For all-positive data this
+		// is identical to a plain sum.
 		nextChart.props.dataset.source = nextChart.props.dataset.source.map((row) => {
 			const nextRow = { ...row }
-			const total = primarySeries.reduce((sum, series) => {
+			const absTotal = primarySeries.reduce((sum, series) => {
 				const value = nextRow[series.name]
-				return sum + (typeof value === 'number' && !Number.isNaN(value) ? value : 0)
+				return sum + (typeof value === 'number' && !Number.isNaN(value) ? Math.abs(value) : 0)
 			}, 0)
 
 			for (const series of primarySeries) {
 				const value = nextRow[series.name]
 				const numericValue = typeof value === 'number' && !Number.isNaN(value) ? value : 0
-				nextRow[series.name] = total > 0 ? (numericValue / total) * 100 : 0
+				nextRow[series.name] = absTotal > 0 ? (numericValue / absTotal) * 100 : 0
 			}
 
 			return nextRow
 		})
+
+		const allPositive = nextChart.props.dataset.source.every((row) =>
+			primarySeries.every((s) => {
+				const v = row[s.name]
+				return typeof v !== 'number' || v >= 0
+			})
+		)
 
 		nextChart.props.charts =
 			nextChart.props.charts?.map((series) => {
@@ -329,7 +350,7 @@ export class ChartDataTransformer {
 					...rest,
 					type: 'line' as const,
 					valueSymbol: '%',
-					...(shouldStack ? { stack: 'total' } : { hideAreaStyle: true })
+					...(shouldStack && allPositive ? { stack: 'total' } : { hideAreaStyle: true })
 				}
 			}) ?? []
 

@@ -1,115 +1,176 @@
 import * as Ariakit from '@ariakit/react'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import {
+	type LlamaAISettings,
+	type LlamaAISettingsActions,
+	type ModelOption
+} from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
-const STORAGE_KEY = 'llamaai-custom-instructions'
-const MEMORY_STORAGE_KEY = 'llamaai-enable-memory'
-const HACKER_MODE_KEY = 'llamaai-hacker-mode'
 const MAX_LENGTH = 500
+
+type ModalStatus = 'closed' | 'open_clean' | 'open_dirty' | 'committing'
+
+type ModalAction =
+	| { type: 'OPEN' }
+	| { type: 'MARK_DIRTY' }
+	| { type: 'MARK_CLEAN' }
+	| { type: 'COMMIT_START' }
+	| { type: 'COMMIT_DONE' }
+	| { type: 'CLOSE' }
+
+interface ModalState {
+	status: ModalStatus
+}
 
 interface SettingsModalProps {
 	dialogStore: Ariakit.DialogStore
-	customInstructions: string
-	onCustomInstructionsChange: (value: string) => void
-	enableMemory: boolean
-	onEnableMemoryChange: (value: boolean) => void
-	hackerMode: boolean
-	onHackerModeChange: (value: boolean) => void
-	fetchFn?: typeof fetch
+	settings: LlamaAISettings
+	actions: LlamaAISettingsActions
+	availableModels?: ModelOption[]
 }
 
-async function saveSettingsToServer(fetchFn: typeof fetch, settings: Record<string, any>) {
-	try {
-		await fetchFn(`${MCP_SERVER}/user-settings`, {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ settings })
-		})
-	} catch {}
+function modalReducer(state: ModalState, action: ModalAction): ModalState {
+	switch (action.type) {
+		case 'OPEN':
+			return { status: 'open_clean' }
+		case 'MARK_DIRTY':
+			return state.status === 'open_dirty' ? state : { status: 'open_dirty' }
+		case 'MARK_CLEAN':
+			return state.status === 'open_clean' ? state : { status: 'open_clean' }
+		case 'COMMIT_START':
+			return { status: 'committing' }
+		case 'COMMIT_DONE':
+			return { status: 'open_clean' }
+		case 'CLOSE':
+			return { status: 'closed' }
+	}
 }
 
 export const SettingsModal = memo(function SettingsModal({
 	dialogStore,
-	customInstructions,
-	onCustomInstructionsChange,
-	enableMemory,
-	onEnableMemoryChange,
-	hackerMode,
-	onHackerModeChange,
-	fetchFn
+	settings,
+	actions,
+	availableModels
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const [isDark] = useDarkModeManager()
-	const [draft, setDraft] = useState(customInstructions)
-	const [memoryDraft, setMemoryDraft] = useState(enableMemory)
-	const [hackerDraft, setHackerDraft] = useState(hackerMode)
+	const textareaRef = useRef<HTMLTextAreaElement>(null)
+	const baselineRef = useRef(settings.customInstructions.trim())
+	const draftValueRef = useRef(settings.customInstructions)
+	const latestCustomInstructionsRef = useRef(settings.customInstructions)
+	const wasOpenRef = useRef(false)
+	const [modalState, dispatch] = useReducer(modalReducer, { status: 'closed' })
+	const [charCount, setCharCount] = useState(settings.customInstructions.length)
 
 	useEffect(() => {
-		if (!isOpen) return
-		trackUmamiEvent('llamaai-settings-open')
-		let cancelled = false
+		latestCustomInstructionsRef.current = settings.customInstructions
+		if (!isOpen || modalState.status === 'open_dirty') return
 
+		if (textareaRef.current) {
+			textareaRef.current.value = settings.customInstructions
+		}
+		draftValueRef.current = settings.customInstructions
+		baselineRef.current = settings.customInstructions.trim()
 		queueMicrotask(() => {
-			if (cancelled) return
-			setDraft(customInstructions)
-			setMemoryDraft(enableMemory)
-			setHackerDraft(hackerMode)
+			setCharCount(settings.customInstructions.length)
+			dispatch({ type: 'MARK_CLEAN' })
 		})
+	}, [isOpen, modalState.status, settings.customInstructions])
 
-		return () => {
-			cancelled = true
-		}
-	}, [isOpen, customInstructions, enableMemory, hackerMode])
+	const syncDirtyState = useCallback(() => {
+		draftValueRef.current = textareaRef.current?.value ?? draftValueRef.current
+		setCharCount(draftValueRef.current.length)
+		const nextValue = draftValueRef.current.trim()
+		dispatch({ type: nextValue === baselineRef.current ? 'MARK_CLEAN' : 'MARK_DIRTY' })
+	}, [])
 
-	const save = useCallback(() => {
-		const trimmed = draft.trim()
-		if (trimmed === customInstructions.trim()) return
-		trackUmamiEvent('llamaai-custom-instructions-save')
-		onCustomInstructionsChange(trimmed)
-		localStorage.setItem(STORAGE_KEY, trimmed)
-		if (fetchFn) {
-			void saveSettingsToServer(fetchFn, { customInstructions: trimmed })
-		}
-	}, [draft, customInstructions, onCustomInstructionsChange, fetchFn])
+	const commitDraft = useCallback(
+		async ({ closeAfterCommit = false }: { closeAfterCommit?: boolean } = {}) => {
+			draftValueRef.current = textareaRef.current?.value ?? draftValueRef.current
+			const nextValue = draftValueRef.current.trim()
+			if (nextValue === baselineRef.current) {
+				if (closeAfterCommit) {
+					dispatch({ type: 'CLOSE' })
+				}
+				return
+			}
+
+			dispatch({ type: 'COMMIT_START' })
+			trackUmamiEvent('llamaai-custom-instructions-save')
+			await actions.setCustomInstructions(nextValue)
+			baselineRef.current = nextValue
+			if (closeAfterCommit) {
+				dispatch({ type: 'CLOSE' })
+			} else {
+				dispatch({ type: 'COMMIT_DONE' })
+			}
+		},
+		[actions]
+	)
 
 	useEffect(() => {
-		if (!isOpen && draft !== customInstructions) save()
-	}, [isOpen, draft, customInstructions, save])
+		if (isOpen) {
+			wasOpenRef.current = true
+			trackUmamiEvent('llamaai-settings-open')
+			let cancelled = false
+
+			queueMicrotask(() => {
+				if (cancelled) return
+				const nextValue = latestCustomInstructionsRef.current
+				if (textareaRef.current) {
+					textareaRef.current.value = nextValue
+				}
+				draftValueRef.current = nextValue
+				baselineRef.current = nextValue.trim()
+				setCharCount(nextValue.length)
+				dispatch({ type: 'OPEN' })
+			})
+
+			return () => {
+				cancelled = true
+			}
+		}
+
+		if (!wasOpenRef.current) return
+		wasOpenRef.current = false
+		void commitDraft({ closeAfterCommit: true })
+	}, [commitDraft, isOpen])
 
 	const handleClear = useCallback(() => {
-		setDraft('')
-		onCustomInstructionsChange('')
-		localStorage.removeItem(STORAGE_KEY)
-		if (fetchFn) {
-			void saveSettingsToServer(fetchFn, { customInstructions: '' })
+		if (textareaRef.current) {
+			textareaRef.current.value = ''
 		}
-	}, [onCustomInstructionsChange, fetchFn])
+		draftValueRef.current = ''
+		syncDirtyState()
+		void commitDraft()
+	}, [commitDraft, syncDirtyState])
 
 	const handleMemoryToggle = useCallback(() => {
-		const next = !memoryDraft
 		trackUmamiEvent('llamaai-memory-toggle')
-		setMemoryDraft(next)
-		onEnableMemoryChange(next)
-		localStorage.setItem(MEMORY_STORAGE_KEY, String(next))
-		if (fetchFn) {
-			void saveSettingsToServer(fetchFn, { enableMemory: next })
-		}
-	}, [memoryDraft, onEnableMemoryChange, fetchFn])
+		void actions.setEnableMemory(!settings.enableMemory)
+	}, [actions, settings.enableMemory])
+
+	const handlePremiumToolsToggle = useCallback(() => {
+		trackUmamiEvent('llamaai-premium-tools-toggle')
+		void actions.setEnablePremiumTools(!settings.enablePremiumTools)
+	}, [actions, settings.enablePremiumTools])
 
 	const handleHackerToggle = useCallback(() => {
-		const next = !hackerDraft
 		trackUmamiEvent('llamaai-hacker-mode-toggle')
-		setHackerDraft(next)
-		onHackerModeChange(next)
-		localStorage.setItem(HACKER_MODE_KEY, String(next))
-		window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
-		if (fetchFn) {
-			void saveSettingsToServer(fetchFn, { hackerMode: next })
-		}
-	}, [hackerDraft, onHackerModeChange, fetchFn])
+		void actions.setHackerMode(!settings.hackerMode)
+	}, [actions, settings.hackerMode])
+
+	const handleModelChange = useCallback(
+		(e: React.ChangeEvent<HTMLSelectElement>) => {
+			void actions.setModel(e.target.value)
+		},
+		[actions]
+	)
+
+	const showClear = modalState.status === 'open_dirty' || settings.customInstructions.trim().length > 0
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
@@ -140,7 +201,7 @@ export const SettingsModal = memo(function SettingsModal({
 							>
 								Custom Instructions
 							</label>
-							{draft.trim().length > 0 ? (
+							{showClear ? (
 								<button
 									type="button"
 									onClick={handleClear}
@@ -154,14 +215,16 @@ export const SettingsModal = memo(function SettingsModal({
 							Tell LlamaAI how to respond. These apply to every conversation.
 						</p>
 						<textarea
+							ref={textareaRef}
 							id="llamaai-custom-instructions"
-							value={draft}
-							onChange={(e) => setDraft(e.target.value.slice(0, MAX_LENGTH))}
-							onBlur={save}
+							defaultValue={settings.customInstructions}
+							maxLength={MAX_LENGTH}
+							onBlur={() => void commitDraft()}
+							onInput={syncDirtyState}
 							onKeyDown={(e) => {
 								if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-									save()
-									dialogStore.hide()
+									e.preventDefault()
+									void commitDraft().then(() => dialogStore.hide())
 								}
 							}}
 							placeholder="e.g., Be concise and lead with numbers. Always include % changes."
@@ -170,7 +233,7 @@ export const SettingsModal = memo(function SettingsModal({
 						/>
 						<div className="flex items-center justify-between text-[11px] text-[#999] dark:text-[#666]">
 							<p className="m-0">
-								{draft.length}/{MAX_LENGTH}
+								{charCount}/{MAX_LENGTH} characters
 							</p>
 							<p className="m-0 hidden sm:inline">⌘+Enter to save &amp; close</p>
 						</div>
@@ -180,7 +243,7 @@ export const SettingsModal = memo(function SettingsModal({
 						<button
 							type="button"
 							role="switch"
-							aria-checked={memoryDraft}
+							aria-checked={settings.enableMemory}
 							aria-label="Remember my preferences"
 							onClick={handleMemoryToggle}
 							className="flex w-full items-center justify-between"
@@ -193,12 +256,42 @@ export const SettingsModal = memo(function SettingsModal({
 							</div>
 							<div
 								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-									memoryDraft ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+									settings.enableMemory ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
 								}`}
 							>
 								<div
 									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-										memoryDraft ? 'translate-x-4' : 'translate-x-0.5'
+										settings.enableMemory ? 'translate-x-4' : 'translate-x-0.5'
+									}`}
+								/>
+							</div>
+						</button>
+					</section>
+
+					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+						<button
+							type="button"
+							role="switch"
+							aria-checked={settings.enablePremiumTools}
+							aria-label="Premium data tools"
+							onClick={handlePremiumToolsToggle}
+							className="flex w-full items-center justify-between"
+						>
+							<div className="flex flex-col gap-0.5 text-left">
+								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Premium data tools</p>
+								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
+									Enable paid tools like X/Twitter data, people search, and smart money analytics. Uses your external
+									data balance
+								</p>
+							</div>
+							<div
+								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
+									settings.enablePremiumTools ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+								}`}
+							>
+								<div
+									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+										settings.enablePremiumTools ? 'translate-x-4' : 'translate-x-0.5'
 									}`}
 								/>
 							</div>
@@ -210,7 +303,7 @@ export const SettingsModal = memo(function SettingsModal({
 							<button
 								type="button"
 								role="switch"
-								aria-checked={hackerDraft}
+								aria-checked={settings.hackerMode}
 								aria-label="Hacker Mode"
 								onClick={handleHackerToggle}
 								className="flex w-full items-center justify-between"
@@ -220,12 +313,12 @@ export const SettingsModal = memo(function SettingsModal({
 									<div className="flex flex-col gap-0.5">
 										<p
 											className={`m-0 text-sm font-medium ${
-												hackerDraft
+												settings.hackerMode
 													? 'font-mono text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
 													: 'text-[#1a1a1a] dark:text-white'
 											}`}
 										>
-											{hackerDraft ? '> hacker_mode --active' : 'Hacker Mode'}
+											{settings.hackerMode ? '> hacker_mode --active' : 'Hacker Mode'}
 										</p>
 										<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
 											Watch the llama hack through your questions in green.
@@ -234,16 +327,42 @@ export const SettingsModal = memo(function SettingsModal({
 								</div>
 								<div
 									className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-										hackerDraft ? 'bg-[#00ff41] shadow-[0_0_8px_rgba(0,255,65,0.4)]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+										settings.hackerMode
+											? 'bg-[#00ff41] shadow-[0_0_8px_rgba(0,255,65,0.4)]'
+											: 'bg-[#d1d1d1] dark:bg-[#555]'
 									}`}
 								>
 									<div
 										className={`absolute top-0.5 h-4 w-4 rounded-full shadow transition-transform ${
-											hackerDraft ? 'translate-x-4 bg-[#0d0d0d]' : 'translate-x-0.5 bg-white'
+											settings.hackerMode ? 'translate-x-4 bg-[#0d0d0d]' : 'translate-x-0.5 bg-white'
 										}`}
 									/>
 								</div>
 							</button>
+						</section>
+					) : null}
+
+					{availableModels && availableModels.length > 0 ? (
+						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+							<div className="flex flex-col gap-1.5">
+								<label htmlFor="llamaai-model-select" className="text-sm font-medium text-[#1a1a1a] dark:text-white">
+									Model
+								</label>
+								<p className="text-xs text-[#777] dark:text-[#919296]">Override the AI model used for responses.</p>
+								<select
+									id="llamaai-model-select"
+									value={settings.model}
+									onChange={handleModelChange}
+									className="mt-1 w-full rounded-lg border border-[#e6e6e6] bg-[#fafafa] px-3 py-2 text-sm text-[#1a1a1a] transition-colors outline-none focus:border-[#1853A8] dark:border-[#39393E] dark:bg-[#1a1b1c] dark:text-white dark:focus:border-[#4B86DB]"
+								>
+									<option value="">Default (Sonnet 4.6)</option>
+									{availableModels.map((m) => (
+										<option key={m.id} value={m.id}>
+											{m.label}
+										</option>
+									))}
+								</select>
+							</div>
 						</section>
 					) : null}
 				</div>

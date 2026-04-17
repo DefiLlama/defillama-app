@@ -1,5 +1,5 @@
 import { CHART_COLORS } from '~/constants/colors'
-import type { IRWAAssetsOverview, IRWAProject } from './api.types'
+import type { IRWAAssetsOverview } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
 import type { RWAChartMetric, RwaTreemapNestedBy, RwaTreemapParentGrouping } from './chartState'
 import { computeWeightedGroups } from './grouping'
@@ -15,6 +15,7 @@ export type RwaTreemapNode = {
 }
 
 const TREEMAP_COLORS = CHART_COLORS
+type RWAAsset = IRWAAssetsOverview['assets'][number]
 
 export const buildRwaTreemapTreeData = (pieData: RwaPieChartDatum[], breakdownLabel: string): RwaTreemapNode[] => {
 	const totalsByLabel = new Map<string, number>()
@@ -62,7 +63,7 @@ export const canBuildRwaNestedTreemap = ({
 	return true
 }
 
-const getRwaMetricValue = (asset: IRWAProject, metric: RWAChartMetric): number => {
+const getRwaMetricValue = (asset: RWAAsset, metric: RWAChartMetric): number => {
 	if (metric === 'activeMcap') return asset.activeMcap?.total ?? 0
 	if (metric === 'defiActiveTvl') return asset.defiActiveTvl?.total ?? 0
 	return asset.onChainMcap?.total ?? 0
@@ -70,7 +71,7 @@ const getRwaMetricValue = (asset: IRWAProject, metric: RWAChartMetric): number =
 
 type RwaMetricByChainRow = { label: string; value: number }
 
-const getRwaMetricBreakdownByChain = (asset: IRWAProject, metric: RWAChartMetric): RwaMetricByChainRow[] => {
+const getRwaMetricBreakdownByChain = (asset: RWAAsset, metric: RWAChartMetric): RwaMetricByChainRow[] => {
 	const breakdown =
 		metric === 'activeMcap'
 			? asset.activeMcap?.breakdown
@@ -126,7 +127,7 @@ const normalizeLabelsBySlug = (values: Array<string | null | undefined>, fallbac
 }
 
 const getAssetGroupsByGrouping = (
-	asset: IRWAProject,
+	asset: RWAAsset,
 	grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy
 ): string[] => {
 	switch (grouping) {
@@ -150,9 +151,11 @@ const getAssetGroupsByGrouping = (
 		}
 		case 'chain':
 		default: {
+			if (asset.kind === 'perps') return ['Unknown']
+
 			const chains = [
-				...(asset.chain ?? []),
-				typeof asset.primaryChain === 'string' ? asset.primaryChain : null
+				...(asset.kind === 'spot' ? (asset.chain ?? []) : []),
+				asset.kind === 'spot' && typeof asset.primaryChain === 'string' ? asset.primaryChain : null
 			] as Array<string | null | undefined>
 			return normalizeLabelsBySlug(chains, 'Unknown')
 		}
@@ -160,7 +163,7 @@ const getAssetGroupsByGrouping = (
 }
 
 const getWeightedAssetGroupsByGrouping = (
-	asset: IRWAProject,
+	asset: RWAAsset,
 	grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy
 ): Array<{ label: string; weight: number }> => {
 	return computeWeightedGroups(getAssetGroupsByGrouping(asset, grouping)).map(({ value, weight }) => ({

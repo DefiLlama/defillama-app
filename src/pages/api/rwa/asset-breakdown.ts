@@ -3,39 +3,39 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_SERVER_URL } from '~/constants'
 import { toUnixMsTimestamp } from '~/containers/RWA/api'
 import type {
-	IRWAChartDataByTicker,
+	IRWAChartDataByAsset,
 	IRWAChartMetricRows,
 	RWAChartMetricKey,
-	RWATickerChartTarget
+	RWAAssetChartTarget
 } from '~/containers/RWA/api.types'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchJson } from '~/utils/async'
 
-type RWATickerBreakdownRequest = {
-	target: RWATickerChartTarget
+type RWAAssetBreakdownRequest = {
+	target: RWAAssetChartTarget
 	key: RWAChartMetricKey
 	includeStablecoin: boolean
 	includeGovernance: boolean
 }
 
-export function buildTickerBreakdownUrl(request: RWATickerBreakdownRequest): string {
+export function buildAssetBreakdownUrl(request: RWAAssetBreakdownRequest): string {
 	let pathname: string
 
 	switch (request.target.kind) {
 		case 'all':
-			pathname = `${RWA_SERVER_URL}/chart/chain/all/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/chain/all/asset-breakdown`
 			break
 		case 'chain':
-			pathname = `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(request.target.slug))}/asset-breakdown`
 			break
 		case 'category':
-			pathname = `${RWA_SERVER_URL}/chart/category/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/category/${encodeURIComponent(rwaSlug(request.target.slug))}/asset-breakdown`
 			break
 		case 'platform':
-			pathname = `${RWA_SERVER_URL}/chart/platform/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/platform/${encodeURIComponent(rwaSlug(request.target.slug))}/asset-breakdown`
 			break
 		case 'assetGroup':
-			pathname = `${RWA_SERVER_URL}/chart/assetGroup/${encodeURIComponent(rwaSlug(request.target.slug))}/ticker-breakdown`
+			pathname = `${RWA_SERVER_URL}/chart/assetGroup/${encodeURIComponent(rwaSlug(request.target.slug))}/asset-breakdown`
 			break
 		default:
 			return assertNever(request.target)
@@ -49,15 +49,8 @@ export function buildTickerBreakdownUrl(request: RWATickerBreakdownRequest): str
 	return `${pathname}?${searchParams.toString()}`
 }
 
-function normalizeTickerBreakdownData(raw: IRWAChartDataByTicker): IRWAChartDataByTicker {
-	const normalize = (rows: IRWAChartDataByTicker['onChainMcap']) =>
-		ensureChronologicalRows((rows ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) })))
-
-	return {
-		onChainMcap: normalize(raw.onChainMcap),
-		activeMcap: normalize(raw.activeMcap),
-		defiActiveTvl: normalize(raw.defiActiveTvl)
-	}
+export function normalizeAssetBreakdownRows(rows: IRWAChartMetricRows): IRWAChartMetricRows {
+	return ensureChronologicalRows((rows ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) })))
 }
 
 function assertNever(value: never): never {
@@ -70,7 +63,7 @@ function parseChartMetricKey(value: string | string[] | undefined): RWAChartMetr
 	return null
 }
 
-function parseTarget(req: Pick<NextApiRequest, 'query'>): RWATickerChartTarget | null {
+function parseTarget(req: Pick<NextApiRequest, 'query'>): RWAAssetChartTarget | null {
 	const rawChain = req.query.chain
 	const rawCategory = req.query.category
 	const rawPlatform = req.query.platform
@@ -104,7 +97,7 @@ function parseBooleanFlag(value: string | string[] | undefined): boolean | null 
 	return null
 }
 
-export function parseTickerBreakdownRequest(req: Pick<NextApiRequest, 'query'>): RWATickerBreakdownRequest | null {
+export function parseAssetBreakdownRequest(req: Pick<NextApiRequest, 'query'>): RWAAssetBreakdownRequest | null {
 	const target = parseTarget(req)
 	const key = parseChartMetricKey(req.query.key)
 	const includeStablecoin = parseBooleanFlag(req.query.includeStablecoin)
@@ -122,41 +115,27 @@ export function parseTickerBreakdownRequest(req: Pick<NextApiRequest, 'query'>):
 	}
 }
 
-function getMetricRows(data: IRWAChartDataByTicker, key: RWAChartMetricKey): IRWAChartMetricRows {
-	switch (key) {
-		case 'onChainMcap':
-			return data.onChainMcap
-		case 'activeMcap':
-			return data.activeMcap
-		case 'defiActiveTvl':
-			return data.defiActiveTvl
-		default:
-			return assertNever(key)
-	}
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
 
-	const request = parseTickerBreakdownRequest(req)
+	const request = parseAssetBreakdownRequest(req)
 
 	if (request == null) {
 		return res.status(400).json({ error: 'Invalid query parameters' })
 	}
 
 	try {
-		const raw = await fetchJson<IRWAChartDataByTicker>(buildTickerBreakdownUrl(request), {
+		const raw = await fetchJson<IRWAChartDataByAsset>(buildAssetBreakdownUrl(request), {
 			timeout: 30_000
 		})
-		const normalized = normalizeTickerBreakdownData(raw)
-		const rows = getMetricRows(normalized, request.key)
+		const rows = normalizeAssetBreakdownRows(raw[request.key] ?? [])
 
 		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
 		return res.status(200).json(rows)
 	} catch (error) {
-		console.error('RWA ticker-breakdown proxy error:', error)
+		console.error('RWA asset-breakdown proxy error:', error)
 		return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 	}
 }

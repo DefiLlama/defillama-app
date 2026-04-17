@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { createAnnouncementDismissalToken, dismissAnnouncement, isAnnouncementDismissed } from '~/utils/cookies'
@@ -8,12 +9,16 @@ type DismissibleAnnouncementProps = {
 	version: string
 	notCancellable?: false
 	warning?: boolean
+	className?: string
+	contentClassName?: string
 }
 
 type PermanentAnnouncementProps = {
 	children: React.ReactNode
 	notCancellable: true
 	warning?: boolean
+	className?: string
+	contentClassName?: string
 	announcementId?: never
 	version?: never
 }
@@ -21,7 +26,7 @@ type PermanentAnnouncementProps = {
 type AnnouncementProps = DismissibleAnnouncementProps | PermanentAnnouncementProps
 
 export function Announcement(props: AnnouncementProps) {
-	const { children, notCancellable, warning = false } = props
+	const { children, notCancellable, warning = false, className, contentClassName } = props
 	const dismissalToken = props.notCancellable
 		? null
 		: createAnnouncementDismissalToken(props.announcementId, props.version)
@@ -47,19 +52,17 @@ export function Announcement(props: AnnouncementProps) {
 
 	return (
 		<div
-			className={[
-				'flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm',
-				warning ? 'text-amber-900 dark:text-amber-200' : '',
+			className={clsx(
+				'flex min-h-[38px] items-center justify-between gap-2 rounded-md p-1.5 text-sm',
+				className ?? clsx('border border-(--link-bg) bg-(--link-bg)', warning && 'text-amber-900 dark:text-amber-200'),
 				dismissalToken ? `announcement-token--${dismissalToken}` : ''
-			]
-				.filter(Boolean)
-				.join(' ')}
+			)}
 			style={wrapperStyle}
 		>
-			<span className="flex-1 text-center">{children}</span>
+			<div className={clsx('flex-1 text-center', contentClassName)}>{children}</div>
 			{!notCancellable ? (
 				<button
-					className="flex h-6 w-6 shrink-0 items-center justify-center self-start rounded-md hover:bg-(--bg-input)"
+					className="flex h-6 w-6 shrink-0 items-center justify-center self-center rounded-md hover:bg-(--bg-input)"
 					onClick={closeAnnouncement}
 				>
 					<Icon name="x" height={16} width={16} />

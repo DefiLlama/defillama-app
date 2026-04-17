@@ -40,8 +40,11 @@ const metadataCache: {
 	protocolMetadata,
 	categoriesAndTags,
 	cexs,
-	rwaList,
-	rwaPerpsList,
+	rwaList: rwaList as IRWAList,
+	rwaPerpsList: {
+		...(rwaPerpsList as IRWAPerpsList),
+		assetGroups: (rwaPerpsList as IRWAPerpsList).assetGroups ?? []
+	},
 	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],

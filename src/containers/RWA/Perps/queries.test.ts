@@ -1,49 +1,57 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
 import {
+	appendRWAPerpsTimeSeriesDatasetTotal,
+	buildRWAPerpsAssetGroupSnapshotBreakdownTotals,
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
+	groupRWAPerpsTimeSeriesDataset,
 	hasEnoughTimeSeriesHistory,
+	getRWAPerpsAssetGroupPage,
+	getRWAPerpsAssetGroupsOverview,
 	getRWAPerpsBreakdownChartDataset,
+	getRWAPerpsContractBreakdownChartDataset,
 	getRWAPerpsContractData,
 	getRWAPerpsOverview,
-	getRWAPerpsVenueBreakdownChartDataset,
 	getRWAPerpsVenuePage,
-	getRWAPerpsVenuesOverview,
-	toRWAPerpsBreakdownChartDataset
+	getRWAPerpsVenuesOverview
 } from './queries'
 import { buildRWAPerpsTreemapTreeData } from './treemap'
 
 const {
+	fetchRWAPerpsContractBreakdownChartData,
 	fetchRWAPerpsMarketsByContract,
 	fetchRWAPerpsMarketChart,
 	fetchRWAPerpsFundingHistory,
+	fetchRWAPerpsOverviewBreakdownChartData,
 	fetchRWAPerpsStats,
-	fetchRWAPerpsCategoryChart,
-	fetchRWAPerpsVenueChart,
 	fetchRWAPerpsCurrent,
 	fetchRWAPerpsList,
+	fetchRWAPerpsMarketsByAssetGroup,
 	fetchRWAPerpsMarketsByVenue
 } = vi.hoisted(() => ({
+	fetchRWAPerpsContractBreakdownChartData: vi.fn(),
 	fetchRWAPerpsMarketsByContract: vi.fn(),
 	fetchRWAPerpsMarketChart: vi.fn(),
 	fetchRWAPerpsFundingHistory: vi.fn(),
+	fetchRWAPerpsOverviewBreakdownChartData: vi.fn(),
 	fetchRWAPerpsStats: vi.fn(),
-	fetchRWAPerpsCategoryChart: vi.fn(),
-	fetchRWAPerpsVenueChart: vi.fn(),
 	fetchRWAPerpsCurrent: vi.fn(),
 	fetchRWAPerpsList: vi.fn(),
+	fetchRWAPerpsMarketsByAssetGroup: vi.fn(),
 	fetchRWAPerpsMarketsByVenue: vi.fn()
 }))
 
 vi.mock('./api', () => ({
+	fetchRWAPerpsContractBreakdownChartData,
 	fetchRWAPerpsMarketsByContract,
 	fetchRWAPerpsMarketChart,
 	fetchRWAPerpsFundingHistory,
+	fetchRWAPerpsOverviewBreakdownChartData,
 	fetchRWAPerpsStats,
-	fetchRWAPerpsCategoryChart,
-	fetchRWAPerpsVenueChart,
 	fetchRWAPerpsCurrent,
 	fetchRWAPerpsList,
+	fetchRWAPerpsMarketsByAssetGroup,
 	fetchRWAPerpsMarketsByVenue
 }))
 
@@ -60,12 +68,12 @@ const baseMarket = {
 	cumulativeFunding: 10,
 	referenceAsset: 'Meta',
 	referenceAssetGroup: 'Equities',
-	assetClass: ['Single stock synthetic perp'],
+	assetClass: ['Stock Perp'],
 	parentPlatform: 'trade[XYZ]',
 	pair: null,
 	marginAsset: 'USDC',
 	settlementAsset: 'USDC',
-	category: ['RWA Perpetuals'],
+	category: ['RWA Perps'],
 	issuer: 'XYZ',
 	website: ['https://trade.xyz/'],
 	oracleProvider: 'Pyth equity feed',
@@ -97,7 +105,8 @@ beforeEach(() => {
 	fetchRWAPerpsList.mockResolvedValue({
 		contracts: ['xyz:META', 'flx:GOLD'],
 		venues: ['xyz', 'flx'],
-		categories: ['RWA Perpetuals', 'Commodities'],
+		categories: ['RWA Perps', 'Gold & Commodities'],
+		assetGroups: ['Commodities', 'Equities'],
 		total: 2
 	})
 	fetchRWAPerpsStats.mockResolvedValue({
@@ -110,8 +119,12 @@ beforeEach(() => {
 			flx: { openInterest: 100, volume24h: 40, markets: 1 }
 		},
 		byCategory: {
-			'RWA Perpetuals': { openInterest: 300, volume24h: 170, markets: 2 },
-			Commodities: { openInterest: 50, volume24h: 30, markets: 1 }
+			'RWA Perps': { openInterest: 300, volume24h: 170, markets: 2 },
+			'Gold & Commodities': { openInterest: 50, volume24h: 30, markets: 1 }
+		},
+		byAssetGroup: {
+			Equities: { openInterest: 250, volume24h: 160, markets: 2 },
+			Commodities: { openInterest: 100, volume24h: 40, markets: 1 }
 		},
 		lastUpdated: '2026-04-01T00:00:00.000Z'
 	})
@@ -122,8 +135,8 @@ beforeEach(() => {
 			contract: 'flx:GOLD',
 			venue: 'flx',
 			openInterest: 20,
-			category: ['Commodities'],
-			assetClass: ['Commodity synthetic perp']
+			category: ['Gold & Commodities'],
+			assetClass: ['Commodity Perp']
 		},
 		{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', openInterest: 120 },
 		{
@@ -147,55 +160,18 @@ beforeEach(() => {
 			estimatedProtocolFees24h: 7
 		}
 	])
-	fetchRWAPerpsCategoryChart.mockImplementation(async (category: string) => {
-		if (category === 'RWA Perpetuals') {
+	fetchRWAPerpsMarketsByAssetGroup.mockImplementation(async (assetGroup: string) => {
+		if (assetGroup === 'Equities') {
 			return [
-				{
-					...baseMarket,
-					id: 'xyz:meta',
-					category: ['RWA Perpetuals'],
-					timestamp: 1774483200,
-					openInterest: 120,
-					volume24h: 70
-				},
-				{
-					...baseMarket,
-					id: 'xyz:nvda',
-					contract: 'xyz:NVDA',
-					category: ['RWA Perpetuals'],
-					timestamp: 1774569600,
-					openInterest: 180,
-					volume24h: 100
-				}
-			]
-		}
-
-		return [
-			{
-				...baseMarket,
-				id: 'flx:gold',
-				contract: 'flx:GOLD',
-				category: ['Commodities'],
-				venue: 'flx',
-				timestamp: 1774569600,
-				openInterest: 50,
-				volume24h: 30
-			}
-		]
-	})
-	fetchRWAPerpsVenueChart.mockImplementation(async (venue: string) => {
-		if (venue === 'xyz') {
-			return [
-				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', timestamp: 1774483200, openInterest: 120, volume24h: 70 },
+				{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', referenceAsset: 'Meta', estimatedProtocolFees24h: 5 },
 				{
 					...baseMarket,
 					id: 'xyz:nvda',
 					contract: 'xyz:NVDA',
 					referenceAsset: 'NVIDIA',
 					venue: 'xyz',
-					timestamp: 1774569600,
-					openInterest: 130,
-					volume24h: 90
+					openInterest: 180,
+					estimatedProtocolFees24h: 7
 				}
 			]
 		}
@@ -206,12 +182,130 @@ beforeEach(() => {
 				id: 'flx:gold',
 				contract: 'flx:GOLD',
 				referenceAsset: 'Gold',
+				referenceAssetGroup: 'Commodities',
 				venue: 'flx',
-				assetClass: ['Commodity synthetic perp'],
-				timestamp: 1774569600,
-				openInterest: 100,
-				volume24h: 40
+				openInterest: 20,
+				assetClass: ['Commodity Perp'],
+				estimatedProtocolFees24h: 2
 			}
+		]
+	})
+	fetchRWAPerpsOverviewBreakdownChartData.mockImplementation(async (request: any) => {
+		const target = request.assetGroup ?? request.venue ?? 'all'
+		const key = request.key
+		const breakdown = request.breakdown
+
+		if (target === 'all' && key === 'openInterest' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 120 },
+				{ timestamp: 1774569600000, NVIDIA: 130, Gold: 100 }
+			]
+		}
+
+		if (target === 'all' && key === 'volume24h' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 70 },
+				{ timestamp: 1774569600000, NVIDIA: 90, Gold: 40 }
+			]
+		}
+
+		if (target === 'all' && key === 'openInterest' && breakdown === 'assetClass') {
+			return [
+				{ timestamp: 1774483200000, 'Stock Perp': 120 },
+				{ timestamp: 1774569600000, 'Stock Perp': 130, 'Commodity Perp': 100 }
+			]
+		}
+
+		if (target === 'all' && key === 'openInterest' && breakdown === 'assetGroup') {
+			return [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130, Commodities: 100 }
+			]
+		}
+
+		if (target === 'all' && key === 'openInterest' && breakdown === 'venue') {
+			return [
+				{ timestamp: 1774483200000, xyz: 120 },
+				{ timestamp: 1774569600000, xyz: 250, flx: 100 }
+			]
+		}
+
+		if (target === 'all' && key === 'markets' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 1 },
+				{ timestamp: 1774569600000, NVIDIA: 1, Gold: 1 }
+			]
+		}
+
+		if (target === 'all' && key === 'markets' && breakdown === 'assetGroup') {
+			return [
+				{ timestamp: 1774483200000, Equities: 1 },
+				{ timestamp: 1774569600000, Equities: 1, Commodities: 1 }
+			]
+		}
+
+		if (target === 'xyz' && key === 'openInterest' && breakdown === 'assetGroup') {
+			return [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130 }
+			]
+		}
+
+		if (target === 'xyz' && key === 'openInterest' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 120 },
+				{ timestamp: 1774569600000, NVIDIA: 130 }
+			]
+		}
+
+		if (target === 'xyz' && key === 'volume24h' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 30 },
+				{ timestamp: 1774569600000, NVIDIA: 90 }
+			]
+		}
+
+		if (target === 'Equities' && key === 'volume24h' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 30 },
+				{ timestamp: 1774569600000, NVIDIA: 90 }
+			]
+		}
+
+		if (target === 'Equities' && key === 'openInterest' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, Meta: 120 },
+				{ timestamp: 1774569600000, NVIDIA: 130 }
+			]
+		}
+
+		if (target === 'Equities' && key === 'markets' && breakdown === 'venue') {
+			return [
+				{ timestamp: 1774483200000, xyz: 1 },
+				{ timestamp: 1774569600000, xyz: 1 }
+			]
+		}
+
+		return []
+	})
+	fetchRWAPerpsContractBreakdownChartData.mockImplementation(async (request: any) => {
+		if (request.venue === 'xyz' && request.key === 'openInterest') {
+			return [
+				{ timestamp: 1774483200000, 'xyz:META': 120 },
+				{ timestamp: 1774569600000, 'xyz:NVDA': 130 }
+			]
+		}
+
+		if (request.key === 'markets') {
+			return [
+				{ timestamp: 1774483200000, 'xyz:META': 1 },
+				{ timestamp: 1774569600000, 'xyz:NVDA': 1, 'flx:GOLD': 1 }
+			]
+		}
+
+		return [
+			{ timestamp: 1774483200000, 'xyz:META': 120 },
+			{ timestamp: 1774569600000, 'xyz:NVDA': 130, 'flx:GOLD': 100 }
 		]
 	})
 	fetchRWAPerpsMarketChart.mockResolvedValue([
@@ -314,7 +408,7 @@ describe('getRWAPerpsContractData', () => {
 })
 
 describe('perps overview queries', () => {
-	it('builds the overview page model with totals, sorted markets, and default chart data', async () => {
+	it('builds the overview page model with totals, sorted markets, and a preloaded chart for the default time-series view', async () => {
 		const result = await getRWAPerpsOverview()
 
 		expect(result).toMatchObject({
@@ -331,10 +425,22 @@ describe('perps overview queries', () => {
 		})
 		expect(result.initialChartDataset).toEqual({
 			source: [
-				{ timestamp: 1774483200000, Meta: 120 },
-				{ timestamp: 1774569600000, Gold: 100, NVIDIA: 130 }
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Commodities: 100, Equities: 130 }
 			],
-			dimensions: ['timestamp', 'NVIDIA', 'Meta', 'Gold']
+			dimensions: ['timestamp', 'Equities', 'Commodities']
+		})
+	})
+
+	it('preloads the overview time-series dataset when the active view is timeSeries', async () => {
+		const result = await getRWAPerpsOverview({ activeView: 'timeSeries' })
+
+		expect(result.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Commodities: 100, Equities: 130 }
+			],
+			dimensions: ['timestamp', 'Equities', 'Commodities']
 		})
 	})
 
@@ -346,10 +452,25 @@ describe('perps overview queries', () => {
 			})
 		).resolves.toEqual({
 			source: [
-				{ timestamp: 1774483200000, 'Single stock synthetic perp': 120 },
-				{ timestamp: 1774569600000, 'Single stock synthetic perp': 130, 'Commodity synthetic perp': 100 }
+				{ timestamp: 1774483200000, 'Stock Perp': 120 },
+				{ timestamp: 1774569600000, 'Stock Perp': 130, 'Commodity Perp': 100 }
 			],
-			dimensions: ['timestamp', 'Single stock synthetic perp', 'Commodity synthetic perp']
+			dimensions: ['timestamp', 'Stock Perp', 'Commodity Perp']
+		})
+	})
+
+	it('builds regrouped overview time-series datasets for asset groups', async () => {
+		await expect(
+			getRWAPerpsBreakdownChartDataset({
+				breakdown: 'assetGroup',
+				key: 'openInterest'
+			})
+		).resolves.toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130, Commodities: 100 }
+			],
+			dimensions: ['timestamp', 'Equities', 'Commodities']
 		})
 	})
 
@@ -368,10 +489,9 @@ describe('perps overview queries', () => {
 		})
 	})
 
-	it('builds regrouped overview time-series datasets for raw contracts', async () => {
+	it('builds overview contract time-series datasets from the dedicated contract endpoint', async () => {
 		await expect(
-			getRWAPerpsBreakdownChartDataset({
-				breakdown: 'contract',
+			getRWAPerpsContractBreakdownChartDataset({
 				key: 'markets'
 			})
 		).resolves.toEqual({
@@ -383,14 +503,15 @@ describe('perps overview queries', () => {
 		})
 	})
 
-	it('builds the venue page model with links and aggregated protocol fees', async () => {
+	it('builds the venue page model with links, aggregated protocol fees, and a preloaded default time-series chart', async () => {
 		const result = await getRWAPerpsVenuePage({ venue: 'xyz' })
 
 		expect(result).toMatchObject({
 			venue: 'xyz',
 			totals: {
-				openInterest: 250,
-				volume24h: 160,
+				openInterest: 130,
+				openInterestChange24h: 8.333333333333332,
+				volume24h: 90,
 				markets: 2,
 				protocolFees24h: 12
 			},
@@ -400,11 +521,107 @@ describe('perps overview queries', () => {
 				{ label: 'flx', to: '/rwa/perps/venue/flx' }
 			]
 		})
-		expect(result?.initialChartDataset.dimensions).toEqual(['timestamp', 'NVIDIA', 'Meta'])
+		expect(result?.totals.openInterestChange24h).toBe(8.333333333333332)
+		expect(result?.totals.volume24hChange24h).toBe(200)
+		expect(result?.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130 }
+			],
+			dimensions: ['timestamp', 'Equities']
+		})
+	})
+
+	it('resolves venue slugs back to the canonical venue name', async () => {
+		fetchRWAPerpsList.mockResolvedValueOnce({
+			contracts: [],
+			venues: ['XYZ Exchange'],
+			categories: [],
+			assetGroups: [],
+			total: 1
+		})
+		fetchRWAPerpsStats.mockResolvedValueOnce({
+			totalOpenInterest: 130,
+			totalVolume24h: 90,
+			totalMarkets: 2,
+			totalCumulativeFunding: 0,
+			byVenue: {
+				'XYZ Exchange': {
+					openInterest: 130,
+					volume24h: 90,
+					markets: 2
+				}
+			},
+			byAssetGroup: {}
+		})
+		fetchRWAPerpsMarketsByVenue.mockResolvedValueOnce([
+			{ ...baseMarket, id: 'xyz:meta', venue: 'XYZ Exchange', estimatedProtocolFees24h: 5 },
+			{
+				...baseMarket,
+				id: 'xyz:nvda',
+				contract: 'xyz:NVDA',
+				venue: 'XYZ Exchange',
+				referenceAsset: 'NVIDIA',
+				openInterest: 30,
+				volume24h: 40,
+				estimatedProtocolFees24h: 7
+			}
+		])
+		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce([
+			{ timestamp: 1774483200, Meta: 120 },
+			{ timestamp: 1774569600, Meta: 100, NVIDIA: 30 }
+		])
+		fetchRWAPerpsOverviewBreakdownChartData.mockResolvedValueOnce([
+			{ timestamp: 1774483200, Meta: 30 },
+			{ timestamp: 1774569600, Meta: 50, NVIDIA: 40 }
+		])
+
+		const result = await getRWAPerpsVenuePage({ venue: 'xyz-exchange' })
+
+		expect(fetchRWAPerpsMarketsByVenue).toHaveBeenCalledWith('XYZ Exchange')
+		expect(result?.venue).toBe('XYZ Exchange')
+		expect(result?.venueLinks).toEqual([
+			{ label: 'All', to: '/rwa/perps/venues' },
+			{ label: 'XYZ Exchange', to: '/rwa/perps/venue/xyz-exchange' }
+		])
+	})
+
+	it('preloads the venue time-series dataset when the active view is timeSeries', async () => {
+		const result = await getRWAPerpsVenuePage({ venue: 'xyz', activeView: 'timeSeries' })
+
+		expect(result?.initialChartDataset.dimensions).toEqual(['timestamp', 'Equities'])
 	})
 
 	it('returns null for an unknown venue', async () => {
 		await expect(getRWAPerpsVenuePage({ venue: 'missing' })).resolves.toBeNull()
+	})
+
+	it('builds the asset-group page model, overview rows, and a preloaded default time-series chart', async () => {
+		const result = await getRWAPerpsAssetGroupPage({ assetGroup: 'equities' })
+
+		expect(result).toMatchObject({
+			assetGroup: 'Equities',
+			totals: {
+				openInterest: 130,
+				openInterestChange24h: 8.333333333333332,
+				volume24h: 90,
+				markets: 2,
+				protocolFees24h: 12
+			},
+			assetGroupLinks: [
+				{ label: 'All', to: '/rwa/perps/asset-groups' },
+				{ label: 'Commodities', to: '/rwa/perps/asset-group/commodities' },
+				{ label: 'Equities', to: '/rwa/perps/asset-group/equities' }
+			]
+		})
+		expect(result?.totals.openInterestChange24h).toBe(8.333333333333332)
+		expect(result?.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Meta: 120 },
+				{ timestamp: 1774569600000, NVIDIA: 130 }
+			],
+			dimensions: ['timestamp', 'NVIDIA', 'Meta']
+		})
 	})
 })
 
@@ -428,28 +645,38 @@ describe('perps overview helpers', () => {
 					volume24hShare: 40 / 200,
 					markets: 1
 				}
+			],
+			initialChartDataset: {
+				dimensions: ['timestamp', 'xyz', 'flx']
+			}
+		})
+	})
+
+	it('maps asset-group stats into rows sorted by open interest', async () => {
+		await expect(getRWAPerpsAssetGroupsOverview()).resolves.toMatchObject({
+			rows: [
+				{
+					assetGroup: 'Equities',
+					openInterest: 250,
+					openInterestShare: 250 / 350,
+					volume24h: 160,
+					volume24hShare: 160 / 200,
+					markets: 2
+				},
+				{
+					assetGroup: 'Commodities',
+					openInterest: 100,
+					openInterestShare: 100 / 350,
+					volume24h: 40,
+					volume24hShare: 40 / 200,
+					markets: 1
+				}
 			]
 		})
 	})
 
 	it('aggregates overview chart rows by timestamp into a multi-series dataset', () => {
-		expect(
-			toRWAPerpsBreakdownChartDataset({
-				rows: [
-					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', category: ['RWA Perpetuals'], timestamp: 1774483200 },
-					{
-						...baseMarket,
-						id: 'flx:gold',
-						venue: 'flx',
-						category: ['Commodities'],
-						timestamp: 1774483200,
-						openInterest: 20
-					}
-				],
-				breakdown: 'venue',
-				key: 'openInterest'
-			})
-		).toEqual({
+		expect(toRWAPerpsBreakdownChartDataset([{ timestamp: 1774483200000, xyz: 100, flx: 20 }])).toEqual({
 			source: [{ timestamp: 1774483200000, xyz: 100, flx: 20 }],
 			dimensions: ['timestamp', 'xyz', 'flx']
 		})
@@ -457,34 +684,10 @@ describe('perps overview helpers', () => {
 
 	it('counts markets per timestamp when building overview markets datasets', () => {
 		expect(
-			toRWAPerpsBreakdownChartDataset({
-				rows: [
-					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', category: ['RWA Perpetuals'], timestamp: 1774483200 },
-					{
-						...baseMarket,
-						id: 'xyz:nvda',
-						venue: 'xyz',
-						category: ['RWA Perpetuals'],
-						timestamp: 1774483200
-					},
-					{
-						...baseMarket,
-						id: 'flx:gold',
-						venue: 'flx',
-						category: ['Commodities'],
-						timestamp: 1774483200
-					},
-					{
-						...baseMarket,
-						id: 'flx:oil',
-						venue: 'flx',
-						category: ['Commodities'],
-						timestamp: 1774569600
-					}
-				],
-				breakdown: 'venue',
-				key: 'markets'
-			})
+			toRWAPerpsBreakdownChartDataset([
+				{ timestamp: 1774483200000, xyz: 2, flx: 1 },
+				{ timestamp: 1774569600000, flx: 1 }
+			])
 		).toEqual({
 			source: [
 				{ timestamp: 1774483200000, xyz: 2, flx: 1 },
@@ -577,6 +780,66 @@ describe('perps overview helpers', () => {
 			{ name: 'xyz:META', value: 1 },
 			{ name: 'xyz:NVDA', value: 1 }
 		])
+
+		expect(
+			buildRWAPerpsOverviewSnapshotBreakdownTotals({
+				rows: [
+					{ ...baseMarket, id: 'xyz:meta', referenceAssetGroup: 'Equities', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'xyz:gold',
+						contract: 'xyz:GOLD',
+						referenceAssetGroup: 'Commodities',
+						referenceAsset: 'Gold',
+						openInterest: 50
+					}
+				],
+				breakdown: 'assetGroup',
+				key: 'openInterest'
+			})
+		).toEqual([
+			{ name: 'Equities', value: 100 },
+			{ name: 'Commodities', value: 50 }
+		])
+
+		expect(
+			buildRWAPerpsVenueSnapshotBreakdownTotals({
+				rows: [
+					{ ...baseMarket, id: 'xyz:meta', referenceAssetGroup: 'Equities', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'xyz:gold',
+						contract: 'xyz:GOLD',
+						referenceAssetGroup: 'Commodities',
+						referenceAsset: 'Gold',
+						openInterest: 50
+					}
+				],
+				breakdown: 'assetGroup',
+				key: 'markets'
+			})
+		).toEqual([
+			{ name: 'Commodities', value: 1 },
+			{ name: 'Equities', value: 1 }
+		])
+
+		expect(
+			buildRWAPerpsAssetGroupSnapshotBreakdownTotals({
+				rows: [
+					{ ...baseMarket, id: 'xyz:meta', venue: 'xyz', referenceAsset: 'Meta' },
+					{
+						...baseMarket,
+						id: 'xyz:nvda',
+						contract: 'xyz:NVDA',
+						venue: 'xyz',
+						referenceAsset: 'NVIDIA',
+						openInterest: 150
+					}
+				],
+				breakdown: 'venue',
+				key: 'openInterest'
+			})
+		).toEqual([{ name: 'xyz', value: 250 }])
 	})
 
 	it('keeps treemap group labels aligned with snapshot and time-series breakdown labels', () => {
@@ -619,16 +882,11 @@ describe('perps overview helpers', () => {
 			}).map((item) => item.name)
 		).toEqual(['Unknown', 'flx'])
 
-		expect(
-			toRWAPerpsBreakdownChartDataset({
-				rows: [
-					{ ...rows[0], timestamp: 1774483200 },
-					{ ...rows[1], timestamp: 1774483200 }
-				],
-				breakdown: 'baseAsset',
-				key: 'openInterest'
-			}).dimensions
-		).toEqual(['timestamp', 'META', 'Unknown'])
+		expect(toRWAPerpsBreakdownChartDataset([{ timestamp: 1774483200000, META: 100, Unknown: 50 }]).dimensions).toEqual([
+			'timestamp',
+			'META',
+			'Unknown'
+		])
 
 		expect(
 			buildRWAPerpsTreemapTreeData({
@@ -641,9 +899,23 @@ describe('perps overview helpers', () => {
 		).toEqual(['META', 'Unknown'])
 	})
 
-	it('builds venue time-series datasets for arbitrary venue breakdowns', async () => {
+	it('builds target-aware time-series datasets for venue and contract requests', async () => {
 		await expect(
-			getRWAPerpsVenueBreakdownChartDataset({
+			getRWAPerpsBreakdownChartDataset({
+				venue: 'xyz',
+				breakdown: 'assetGroup',
+				key: 'openInterest'
+			})
+		).resolves.toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130 }
+			],
+			dimensions: ['timestamp', 'Equities']
+		})
+
+		await expect(
+			getRWAPerpsBreakdownChartDataset({
 				venue: 'xyz',
 				breakdown: 'baseAsset',
 				key: 'openInterest'
@@ -657,9 +929,8 @@ describe('perps overview helpers', () => {
 		})
 
 		await expect(
-			getRWAPerpsVenueBreakdownChartDataset({
+			getRWAPerpsContractBreakdownChartDataset({
 				venue: 'xyz',
-				breakdown: 'contract',
 				key: 'openInterest'
 			})
 		).resolves.toEqual({
@@ -671,20 +942,49 @@ describe('perps overview helpers', () => {
 		})
 	})
 
-	it('sorts series by latest value and breaks ties alphabetically', () => {
+	it('orders series by latest available value instead of first-seen row order', () => {
 		expect(
-			toRWAPerpsBreakdownChartDataset({
-				rows: [
-					{ ...baseMarket, id: 'a:1', venue: 'alpha', timestamp: 1774483200, openInterest: 100 },
-					{ ...baseMarket, id: 'b:1', venue: 'beta', timestamp: 1774483200, openInterest: 80 },
-					{ ...baseMarket, id: 'c:1', venue: 'gamma', timestamp: 1774483200, openInterest: 60 },
-					{ ...baseMarket, id: 'a:2', venue: 'alpha', timestamp: 1774569600, openInterest: 90 },
-					{ ...baseMarket, id: 'b:2', venue: 'beta', timestamp: 1774569600, openInterest: 90 }
-				],
-				breakdown: 'venue',
-				key: 'openInterest'
-			}).dimensions
+			toRWAPerpsBreakdownChartDataset([
+				{ timestamp: 1774483200000, alpha: 100, beta: 80, gamma: 60 },
+				{ timestamp: 1774569600000, alpha: 90, beta: 90 }
+			]).dimensions
 		).toEqual(['timestamp', 'alpha', 'beta', 'gamma'])
+	})
+
+	it('groups multi-series datasets into a single total series', () => {
+		expect(
+			groupRWAPerpsTimeSeriesDataset({
+				source: [
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+				],
+				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
+			})
+		).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Total: 105 },
+				{ timestamp: 1774569600000, Total: 100 }
+			],
+			dimensions: ['timestamp', 'Total']
+		})
+	})
+
+	it('appends a total overlay while preserving the original breakdown series', () => {
+		expect(
+			appendRWAPerpsTimeSeriesDatasetTotal({
+				source: [
+					{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null },
+					{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined }
+				],
+				dimensions: ['timestamp', 'Meta', 'NVIDIA', 'Gold']
+			})
+		).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined, Total: 105 },
+				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null, Total: 100 }
+			],
+			dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA', 'Gold']
+		})
 	})
 })
 

@@ -1,13 +1,10 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { matchSorter } from 'match-sorter'
 import {
 	type CSSProperties,
 	lazy,
 	memo,
 	Suspense,
-	startTransition,
 	useCallback,
-	useDeferredValue,
 	useEffect,
 	useEffectEvent,
 	useMemo,
@@ -19,6 +16,8 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
+import { SearchResults } from '~/containers/LlamaAI/components/sidebar/SearchResults'
+import { useSemanticSearch } from '~/containers/LlamaAI/hooks/useSemanticSearch'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -43,6 +42,7 @@ interface AgenticSidebarProps {
 	hasCustomInstructions?: boolean
 	onBulkDelete?: (sessionIds: string[]) => Promise<void>
 	onPinSession?: (sessionId: string) => Promise<void>
+	onSearchMatchClick?: (sessionId: string, messageId: string) => void
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -138,7 +138,8 @@ export function AgenticSidebar({
 	onOpenSettings,
 	hasCustomInstructions,
 	onBulkDelete,
-	onPinSession
+	onPinSession,
+	onSearchMatchClick
 }: AgenticSidebarProps) {
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -150,8 +151,13 @@ export function AgenticSidebar({
 	const { balance, totalAvailable } = useAiBalance()
 	const { hasActiveSubscription } = useAuthContext()
 	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
-	const [searchQuery, setSearchQuery] = useState('')
-	const deferredSearchQuery = useDeferredValue(searchQuery)
+	const {
+		query: searchQuery,
+		setQuery: setSearchQuery,
+		results: searchResults,
+		isSearching,
+		clear: clearSearch
+	} = useSemanticSearch()
 
 	const toggleSelect = useCallback((sessionId: string) => {
 		setSelectedSessionIds((prev) => {
@@ -206,12 +212,9 @@ export function AgenticSidebar({
 	const [nowMs] = useState(() => Date.now())
 
 	const filteredSessions = useMemo(() => {
-		if (!deferredSearchQuery.trim()) return sessions
-		return matchSorter(sessions, deferredSearchQuery.trim(), {
-			keys: ['title'],
-			threshold: matchSorter.rankings.CONTAINS
-		})
-	}, [sessions, deferredSearchQuery])
+		if (!searchQuery.trim()) return sessions
+		return sessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
+	}, [sessions, searchQuery])
 
 	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
 		const pinned = filteredSessions
@@ -358,13 +361,16 @@ export function AgenticSidebar({
 						<input
 							type="text"
 							value={searchQuery}
-							onChange={(e) => startTransition(() => setSearchQuery(e.target.value))}
+							onChange={(e) => setSearchQuery(e.target.value)}
 							placeholder="Search"
 							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
 						/>
+						{isSearching ? (
+							<Icon name="search" height={11} width={11} className="mr-1.5 shrink-0 animate-pulse text-[#999]" />
+						) : null}
 						{searchQuery ? (
 							<button
-								onClick={() => startTransition(() => setSearchQuery(''))}
+								onClick={() => clearSearch()}
 								className="mr-1.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#ccc] text-white transition-colors hover:bg-[#999] dark:bg-[#444] dark:hover:bg-[#666]"
 							>
 								<Icon name="x" height={8} width={8} />
@@ -391,7 +397,21 @@ export function AgenticSidebar({
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						You don't have any chats yet
 					</p>
-				) : filteredSessions.length === 0 && searchQuery.trim() ? (
+				) : searchQuery.trim() && (searchResults.length > 0 || isSearching) ? (
+					<SearchResults
+						results={searchResults}
+						isSearching={isSearching}
+						query={searchQuery}
+						onMatchClick={(sessionId, messageId) => {
+							clearSearch()
+							onSearchMatchClick?.(sessionId, messageId)
+						}}
+						onSessionClick={(sessionId) => {
+							clearSearch()
+							onSessionSelect(sessionId)
+						}}
+					/>
+				) : filteredSessions.length === 0 && searchQuery.trim() && !isSearching && searchResults.length === 0 ? (
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						No chats matching &ldquo;{searchQuery}&rdquo;
 					</p>

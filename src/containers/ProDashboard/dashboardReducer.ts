@@ -53,10 +53,20 @@ const INITIAL_DASHBOARD_STATE: DashboardState = {
 	showIterateDashboardModal: false
 }
 
-export function initDashboardState(initialDashboardId?: string): DashboardState {
+export function initDashboardState(
+	arg?: string | { dashboardId?: string; items?: DashboardItemConfig[] }
+): DashboardState {
+	if (typeof arg === 'object' && arg !== null) {
+		return {
+			...INITIAL_DASHBOARD_STATE,
+			dashboardId: arg.dashboardId || null,
+			...(arg.items?.length ? { items: arg.items } : {})
+		}
+	}
+	const id = typeof arg === 'string' ? arg : null
 	return {
 		...INITIAL_DASHBOARD_STATE,
-		dashboardId: initialDashboardId || null
+		dashboardId: id
 	}
 }
 

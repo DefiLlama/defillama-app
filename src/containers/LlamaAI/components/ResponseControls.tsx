@@ -1,20 +1,12 @@
 import * as Ariakit from '@ariakit/react'
-import { useMutation } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useReducer, useRef } from 'react'
-import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { MCP_SERVER } from '~/constants'
 import { FeedbackForm } from '~/containers/LlamaAI/components/FeedbackForm'
 import { PDFExportButton } from '~/containers/LlamaAI/components/PDFExportButton'
-import { ShareModalContent, type ShareData } from '~/containers/LlamaAI/components/ShareModalContent'
 import type { MessageMetadata } from '~/containers/LlamaAI/types'
-import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { handleSimpleFetchResponse } from '~/utils/async'
 
 interface ResponseControlsProps {
 	messageId?: string
@@ -24,6 +16,7 @@ interface ResponseControlsProps {
 	readOnly?: boolean
 	messageMetadata?: MessageMetadata
 	isLatest?: boolean
+	onShare?: (messageId?: string) => void
 }
 
 type Rating = 'good' | 'bad' | null
@@ -31,7 +24,6 @@ type Rating = 'good' | 'bad' | null
 interface ResponseControlsState {
 	copied: boolean
 	showFeedback: boolean
-	showShareModal: boolean
 	selectedRating: Rating
 	submittedRating: Rating
 }
@@ -39,7 +31,6 @@ interface ResponseControlsState {
 type ResponseControlsAction =
 	| { type: 'setCopied'; value: boolean }
 	| { type: 'setShowFeedback'; value: boolean }
-	| { type: 'setShowShareModal'; value: boolean }
 	| { type: 'setSelectedRating'; value: Rating }
 	| { type: 'setSubmittedRating'; value: Rating }
 	| { type: 'openFeedbackWithRating'; value: Rating }
@@ -47,7 +38,6 @@ type ResponseControlsAction =
 const createInitialState = (initialRating: Rating): ResponseControlsState => ({
 	copied: false,
 	showFeedback: false,
-	showShareModal: false,
 	selectedRating: initialRating,
 	submittedRating: initialRating
 })
@@ -58,8 +48,6 @@ function responseControlsReducer(state: ResponseControlsState, action: ResponseC
 			return { ...state, copied: action.value }
 		case 'setShowFeedback':
 			return { ...state, showFeedback: action.value }
-		case 'setShowShareModal':
-			return { ...state, showShareModal: action.value }
 		case 'setSelectedRating':
 			return { ...state, selectedRating: action.value }
 		case 'setSubmittedRating':
@@ -114,33 +102,6 @@ const FeedbackDialog = memo(function FeedbackDialog({
 	)
 })
 
-interface ShareDialogProps {
-	open: boolean
-	setOpen: (value: boolean) => void
-	shareData?: ShareData
-}
-
-const ShareDialog = memo(function ShareDialog({ open, setOpen, shareData }: ShareDialogProps) {
-	return (
-		<Ariakit.DialogProvider open={open} setOpen={setOpen}>
-			<Ariakit.Dialog
-				className="dialog w-full gap-0 border border-(--cards-border) bg-(--cards-bg) p-4 shadow-2xl max-sm:drawer sm:max-w-md"
-				unmountOnHide
-				portal
-				hideOnInteractOutside
-			>
-				<div className="mb-4 flex items-center justify-between">
-					<Ariakit.DialogHeading className="text-lg font-semibold">Share Conversation</Ariakit.DialogHeading>
-					<Ariakit.DialogDismiss className="-m-2 rounded p-2 hover:bg-[#e6e6e6] dark:hover:bg-[#222324]">
-						<Icon name="x" height={16} width={16} />
-					</Ariakit.DialogDismiss>
-				</div>
-				<ShareModalContent shareData={shareData} />
-			</Ariakit.Dialog>
-		</Ariakit.DialogProvider>
-	)
-})
-
 export function ResponseControls({
 	messageId,
 	content,
@@ -148,10 +109,11 @@ export function ResponseControls({
 	sessionId,
 	readOnly = false,
 	messageMetadata,
-	isLatest = false
+	isLatest = false,
+	onShare
 }: ResponseControlsProps) {
 	const [state, dispatch] = useReducer(responseControlsReducer, initialRating || null, createInitialState)
-	const { copied, showFeedback, showShareModal, selectedRating, submittedRating } = state
+	const { copied, showFeedback, selectedRating, submittedRating } = state
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	useEffect(() => {
@@ -160,47 +122,11 @@ export function ResponseControls({
 		}
 	}, [])
 
-	const { authorizedFetch } = useAuthContext()
-
-	const {
-		data: shareData,
-		mutate: shareSession,
-		isPending: isSharing
-	} = useMutation<ShareData>({
-		mutationFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/share`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ forcePublic: true })
-			})
-				.then((response) => assertResponse(response, 'Failed to share session'))
-				.then(handleSimpleFetchResponse)
-				.then((res: Response) => res.json())
-
-			return res
-		},
-		onSuccess: (data) => {
-			if (data.shareToken) {
-				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
-				void navigator.clipboard.writeText(shareLink)
-				dispatch({ type: 'setShowShareModal', value: true })
-			}
-		},
-		onError: (err) => {
-			toast.error('Failed to fetch session id')
-			console.log(err)
-		}
-	})
-
 	const isRatedAsGood = submittedRating === 'good'
 	const isRatedAsBad = submittedRating === 'bad'
 
 	const setShowFeedback = useCallback((value: boolean) => {
 		dispatch({ type: 'setShowFeedback', value })
-	}, [])
-
-	const setShowShareModal = useCallback((value: boolean) => {
-		dispatch({ type: 'setShowShareModal', value })
 	}, [])
 
 	const setSelectedRating = useCallback((value: Rating) => {
@@ -229,16 +155,20 @@ export function ResponseControls({
 		handleOpenFeedbackWithRating(null)
 	}, [handleOpenFeedbackWithRating])
 
-	const handleShareSession = useCallback(() => {
-		trackUmamiEvent('llamaai-share-conversation')
-		shareSession()
-	}, [shareSession])
-
 	const handleCopy = useCallback(async () => {
 		if (!content) return
 		trackUmamiEvent('llamaai-copy-response')
 		try {
-			const convertedContent = convertLlamaLinksToDefillama(content)
+			let convertedContent = convertLlamaLinksToDefillama(content)
+			convertedContent = convertedContent
+				.replace(/\[CHART:[^\]]+\]\n?/g, '')
+				.replace(/\[CSV:[^\]]+\]\n?/g, '')
+				.replace(/\[MD:[^\]]+\]\n?/g, '')
+				.replace(/\[ACTION:[^\]]+\]\n?/g, '')
+				.replace(/\[ALERT:[^\]]+\]\n?/g, '')
+				.replace(/\[DASHBOARD:[^\]]+\]\n?/g, '')
+				.replace(/\[REPORT_START\]\n?/g, '')
+				.trim()
 			await navigator.clipboard.writeText(convertedContent)
 			dispatch({ type: 'setCopied', value: true })
 			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current)
@@ -293,16 +223,6 @@ export function ResponseControls({
 							<span className="sr-only">Thumbs Down</span>
 						</Tooltip>
 					</>
-				) : null}
-				{sessionId && !readOnly ? (
-					<Tooltip
-						content="Share"
-						render={<button onClick={handleShareSession} disabled={isSharing || showShareModal} />}
-						className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
-					>
-						{isSharing ? <LoadingSpinner size={16} /> : <Icon name="share" height={16} width={16} />}
-						<span className="sr-only">Share</span>
-					</Tooltip>
 				) : null}
 				{content && sessionId && !readOnly ? (
 					<PDFExportButton
@@ -361,6 +281,16 @@ export function ResponseControls({
 						<span className="sr-only">Provide Feedback</span>
 					</Tooltip>
 				) : null}
+				{sessionId && !readOnly && onShare ? (
+					<Tooltip
+						content="Share"
+						render={<button onClick={() => onShare(messageId)} />}
+						className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
+					>
+						<Icon name="share" height={16} width={16} />
+						<span className="sr-only">Share</span>
+					</Tooltip>
+				) : null}
 			</div>
 			<FeedbackDialog
 				open={showFeedback}
@@ -370,7 +300,6 @@ export function ResponseControls({
 				setSelectedRating={setSelectedRating}
 				onRatingSubmitted={setSubmittedRating}
 			/>
-			<ShareDialog open={showShareModal} setOpen={setShowShareModal} shareData={shareData} />
 		</>
 	)
 }

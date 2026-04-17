@@ -35,7 +35,8 @@ export async function fetchCoins(query: string, limit: number = 10): Promise<Ent
 		limit,
 		offset: 0,
 		q: query,
-		filter: [['type = "Token Usage"']]
+		filter: [['type = "Token Usage"']],
+		sort: ['mcapRank:asc']
 	})
 
 	// Transform coin results to standard format

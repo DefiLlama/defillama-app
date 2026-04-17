@@ -47,6 +47,7 @@ export interface IRWAPerpsAggregateHistoricalPoint {
 	contract: string
 	venue: string
 	referenceAsset: string | null
+	referenceAssetGroup: string | null
 	assetClass: string[] | null
 	category: string[]
 	openInterest: number
@@ -68,6 +69,7 @@ export interface IRWAPerpsListResponse {
 	contracts: string[]
 	venues: string[]
 	categories: string[]
+	assetGroups: string[]
 	total: number
 }
 
@@ -84,8 +86,12 @@ export interface IRWAPerpsStatsResponse {
 	totalCumulativeFunding: number
 	byVenue: Record<string, IRWAPerpsStatsBucket>
 	byCategory: Record<string, IRWAPerpsStatsBucket>
+	byAssetGroup: Record<string, IRWAPerpsStatsBucket>
 	lastUpdated: string
 }
+
+export type IRWAPerpsBreakdownChartRow = { timestamp: number } & Record<string, number>
+export type IRWAPerpsBreakdownChartResponse = IRWAPerpsBreakdownChartRow[]
 
 export type IRWAPerpsIdMapResponse = Record<string, string>
 

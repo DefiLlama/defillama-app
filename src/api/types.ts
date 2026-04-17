@@ -121,6 +121,7 @@ export interface SearchQuery {
 	offset: number
 	q: string
 	filter?: Array<string | string[]>
+	sort?: string[]
 }
 
 interface BlockExplorerLink {

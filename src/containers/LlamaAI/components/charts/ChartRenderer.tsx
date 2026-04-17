@@ -1,5 +1,4 @@
 import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
-import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
 import { ChartControls } from '~/containers/LlamaAI/components/charts/ChartControls'
@@ -14,7 +13,6 @@ import {
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
 import { ChartDataTransformer } from '~/containers/LlamaAI/utils/chartDataTransformer'
 import { buildRenderPlan, type ChartRenderPlan } from '~/containers/LlamaAI/utils/chartRenderPlan'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
@@ -30,14 +28,12 @@ interface ChartRendererProps {
 	hasError?: boolean
 	chartTypes?: string[]
 	resizeTrigger?: number
-	sessionId?: string | null
 }
 
 interface SingleChartProps {
 	config: ChartConfiguration
 	data: any[]
 	isActive: boolean
-	sessionId?: string | null
 	title?: string
 }
 
@@ -135,42 +131,28 @@ function ChartExportButtonsSlot({
 	chartInstance,
 	exportModel,
 	renderPlan,
-	chartTitle,
-	sessionId,
-	config
+	chartTitle
 }: {
 	chartInstance: () => any
 	exportModel: ChartRenderPlan['exportModel']
 	renderPlan: ChartRenderPlan
 	chartTitle: string | undefined
-	sessionId?: string | null
-	config: ChartConfiguration
 }) {
-	const { hasActiveSubscription } = useAuthContext()
 	const prepareCsvDirect = useMemo(
 		() => (exportModel ? () => ({ filename: exportModel.csvFilename, rows: exportModel.csvRows }) : undefined),
 		[exportModel]
 	)
 
 	return (
-		<>
-			{sessionId && hasActiveSubscription ? (
-				<AddToDashboardButton
-					chartConfig={null}
-					llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
-					smol
-				/>
-			) : null}
-			<ChartExportButtons
-				chartInstance={chartInstance}
-				filename={renderPlan.filename}
-				title={chartTitle}
-				smol
-				showCsv={!!exportModel}
-				prepareCsvDirect={prepareCsvDirect}
-				pngProfile={exportModel?.pngProfile}
-			/>
-		</>
+		<ChartExportButtons
+			chartInstance={chartInstance}
+			filename={renderPlan.filename}
+			title={chartTitle}
+			smol
+			showCsv={!!exportModel}
+			prepareCsvDirect={prepareCsvDirect}
+			pngProfile={exportModel?.pngProfile}
+		/>
 	)
 }
 
@@ -185,7 +167,7 @@ function tryBuildPresentation(config: ChartConfiguration, data: any[], chartStat
 	}
 }
 
-function SingleChart({ config, data, isActive, sessionId, title }: SingleChartProps) {
+function SingleChart({ config, data, isActive, title }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const handleStackedChange = useCallback((stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }), [])
@@ -275,8 +257,6 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 					exportModel={exportModel}
 					renderPlan={renderPlan}
 					chartTitle={chartTitle}
-					sessionId={sessionId}
-					config={config}
 				/>
 			</ChartControls>
 			{chartContent}
@@ -310,10 +290,9 @@ export function ChartRenderer({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0,
-	sessionId
+	resizeTrigger = 0
 }: ChartRendererProps) {
-	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId }} />
+	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger }} />
 }
 
 function ChartRendererImpl({
@@ -322,8 +301,7 @@ function ChartRendererImpl({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0,
-	sessionId
+	resizeTrigger = 0
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
@@ -395,7 +373,6 @@ function ChartRendererImpl({
 					config={chart}
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
-					sessionId={sessionId}
 					title={chart.title}
 				/>
 			))}
@@ -408,7 +385,6 @@ const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
 		prev.isLoading === next.isLoading &&
 		prev.hasError === next.hasError &&
 		prev.resizeTrigger === next.resizeTrigger &&
-		prev.sessionId === next.sessionId &&
 		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
 		areChartsEqual(prev.charts, next.charts) &&
 		areChartDataEqual(prev.chartData, next.chartData)

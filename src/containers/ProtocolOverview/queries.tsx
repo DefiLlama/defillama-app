@@ -7,7 +7,6 @@ import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
-import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
 import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
@@ -19,7 +18,6 @@ import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
@@ -36,6 +34,7 @@ import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
 import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
 import type { ProtocolChartsLabels } from './constants'
 import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
+import { formatAdapterData } from './formatAdapterData'
 import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 
@@ -78,6 +77,7 @@ export const getProtocolMetricFlags = ({
 	return {
 		tvl: !!metadata.tvl,
 		dexs: !!metadata.dexs,
+		dexsNotionalVolume: !!metadata.dexsNotionalVolume,
 		perps: !!metadata.perps,
 		openInterest: !!metadata.openInterest,
 		optionsPremiumVolume: !!metadata.optionsPremiumVolume,
@@ -144,6 +144,7 @@ export const getProtocolOverviewPageData = async ({
 		bribesData,
 		tokenTaxData,
 		dexVolumeData,
+		dexNotionalVolumeData,
 		dexAggregatorVolumeData,
 		perpVolumeData,
 		openInterestData,
@@ -173,6 +174,7 @@ export const getProtocolOverviewPageData = async ({
 	]: [
 		IProtocolDataExtended | null,
 		IProtocolValueChart,
+		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
@@ -280,6 +282,15 @@ export const getProtocolOverviewPageData = async ({
 					protocol: currentProtocolMetadata.displayName ?? ''
 				})
 					.then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.dexsNotionalVolume
+			? fetchAdapterProtocolMetrics({
+					adapterType: 'dexs',
+					dataType: 'dailyNotionalVolume',
+					protocol: currentProtocolMetadata.displayName ?? ''
+				})
+					.then((data) => formatAdapterData({ data, methodologyKey: 'dexsNotionalVolume' }))
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators
@@ -559,6 +570,7 @@ export const getProtocolOverviewPageData = async ({
 		holdersRevenueData?.totalAllTime ||
 		incentives ||
 		dexVolumeData?.totalAllTime ||
+		dexNotionalVolumeData?.totalAllTime ||
 		perpVolumeData?.totalAllTime ||
 		dexAggregatorVolumeData?.totalAllTime ||
 		perpAggregatorVolumeData?.totalAllTime ||
@@ -692,6 +704,7 @@ export const getProtocolOverviewPageData = async ({
 		hasRevenue: Boolean(revenueData),
 		hasHoldersRevenue: Boolean(holdersRevenueData),
 		hasDexVolume: Boolean(dexVolumeData),
+		hasDexNotionalVolume: Boolean(dexNotionalVolumeData),
 		hasPerpVolume: Boolean(perpVolumeData),
 		hasOpenInterest: Boolean(openInterestData),
 		hasOptionsPremiumVolume: Boolean(optionsPremiumVolumeData),
@@ -772,7 +785,7 @@ export const getProtocolOverviewPageData = async ({
 			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'staking' })
 				.then((data) => normalizeChartPointsToMs(data))
 				.catch(() => null),
-		Borrowed: () =>
+		'Active Loans': () =>
 			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' })
 				.then((data) => normalizeChartPointsToMs(data))
 				.catch(() => null),
@@ -927,6 +940,7 @@ export const getProtocolOverviewPageData = async ({
 		bribeRevenue: bribesData,
 		tokenTax: tokenTaxData,
 		dexVolume: dexVolumeData,
+		dexNotionalVolume: dexNotionalVolumeData,
 		dexAggregatorVolume: dexAggregatorVolumeData,
 		perpVolume: perpVolumeData,
 		openInterest: openInterestData,
@@ -1002,6 +1016,7 @@ export const getProtocolOverviewPageData = async ({
 			bribesData?.defaultChartView ??
 			tokenTaxData?.defaultChartView ??
 			dexVolumeData?.defaultChartView ??
+			dexNotionalVolumeData?.defaultChartView ??
 			dexAggregatorVolumeData?.defaultChartView ??
 			perpVolumeData?.defaultChartView ??
 			perpAggregatorVolumeData?.defaultChartView ??
@@ -1015,77 +1030,6 @@ export const getProtocolOverviewPageData = async ({
 		oracleTvs,
 		llamaswapChains
 	}
-}
-
-function formatAdapterData({ data, methodologyKey }: { data: IAdapterProtocolMetrics; methodologyKey?: string }) {
-	if (!data) {
-		return null
-	}
-
-	const commonMethodologyMap = commonMethodology as Record<string, string>
-
-	if (data.childProtocols?.length) {
-		const childProtocols = data.childProtocols
-		const childMethodologies: Array<[string, string | null, string | null]> = []
-		for (const childProtocol of childProtocols) {
-			if (methodologyKey && !commonMethodologyMap[methodologyKey]) {
-				childMethodologies.push([
-					childProtocol.displayName,
-					childProtocol.methodology?.[methodologyKey] ?? null,
-					childProtocol.methodologyURL ?? null
-				])
-			}
-		}
-
-		const areMethodologiesDifferent = new Set(childMethodologies.map((m) => m[1])).size > 1
-		const topChildMethodology =
-			childProtocols.length > 1 ? childMethodologies.find((m) => m[0] === childProtocols[0].displayName) : null
-
-		return {
-			total24h: data.total24h ?? null,
-			total7d: data.total7d ?? null,
-			total30d: data.total30d ?? null,
-			totalAllTime: data.totalAllTime ?? null,
-			...(methodologyKey === 'HoldersRevenue'
-				? {
-						methodology: methodologyKey
-							? (childMethodologies.find((m) => m[1] != null)?.[1] ?? commonMethodologyMap[methodologyKey] ?? null)
-							: null,
-						methodologyURL: childMethodologies.find((m) => m[2] != null)?.[2] ?? null
-					}
-				: areMethodologiesDifferent
-					? { childMethodologies: childMethodologies.filter((m) => !!(m[1] || m[2])) }
-					: {
-							methodology: methodologyKey
-								? (topChildMethodology?.[1] ?? commonMethodologyMap[methodologyKey] ?? null)
-								: null,
-							methodologyURL: topChildMethodology?.[2] ?? null
-						}),
-			defaultChartView: data.defaultChartView ?? 'daily'
-		}
-	}
-
-	return {
-		total24h: data.total24h ?? null,
-		total7d: data.total7d ?? null,
-		total30d: data.total30d ?? null,
-		totalAllTime: data.totalAllTime ?? null,
-		methodology: methodologyKey
-			? (data.methodology?.[methodologyKey] ?? commonMethodologyMap[methodologyKey] ?? null)
-			: null,
-		methodologyURL: data.methodologyURL ?? null,
-		defaultChartView: data.defaultChartView ?? 'daily'
-	}
-}
-
-const commonMethodology = {
-	dexs: definitions.dexs.common,
-	dexAggregators: definitions.dexAggregators.common,
-	perps: definitions.perps.common,
-	perpsAggregators: definitions.perpsAggregators.common,
-	bridgeAggregators: definitions.bridgeAggregators.common,
-	optionsPremiumVolume: definitions.optionsPremium.common,
-	optionsNotionalVolume: definitions.optionsNotional.common
 }
 
 const fetchArticles = async ({ tags = '', size = 2 }) => {

@@ -15,6 +15,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { formatAdapterData } from '~/containers/ProtocolOverview/formatAdapterData'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
@@ -70,12 +71,10 @@ export const getStaticProps = withPerformanceLogging(
 		const seoTitle = `${protocolData.name} Perpetual Futures Volume - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} perpetual futures trading volume with daily and cumulative breakdowns on DefiLlama.`
 
-		const perpVolume: IProtocolOverviewPageData['perpVolume'] = {
-			total24h: adapterData.total24h ?? null,
-			total7d: adapterData.total7d ?? null,
-			total30d: adapterData.total30d ?? null,
-			totalAllTime: adapterData.totalAllTime ?? null
-		}
+		const perpVolume: IProtocolOverviewPageData['perpVolume'] = formatAdapterData({
+			data: adapterData,
+			methodologyKey: 'perps'
+		})
 
 		const linkedProtocolsSet = new Set((adapterData?.linkedProtocols ?? []).slice(1))
 		const linkedProtocolsWithAdapterData = []
@@ -112,7 +111,7 @@ export const getStaticProps = withPerformanceLogging(
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				hallmarks,
-				defaultChartView: adapterData?.defaultChartView ?? 'daily',
+				defaultChartView: perpVolume?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
 			},

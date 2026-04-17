@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { CHART_COLORS } from '~/constants/colors'
 import { buildRWAPerpsTimeSeriesCharts, RWAPerpsDashboard } from './Dashboard'
 
 let routerQuery: Record<string, string> = {}
@@ -80,12 +81,12 @@ const overviewData = {
 			cumulativeFunding: 10,
 			referenceAsset: 'Meta',
 			referenceAssetGroup: 'Equities',
-			assetClass: ['Single stock synthetic perp'],
+			assetClass: ['Stock Perp'],
 			parentPlatform: 'trade[XYZ]',
 			pair: '',
 			marginAsset: 'USDC',
 			settlementAsset: 'USDC',
-			category: ['RWA Perpetuals'],
+			category: ['RWA Perps'],
 			issuer: 'XYZ',
 			website: ['https://trade.xyz/'],
 			oracleProvider: 'Pyth equity feed',
@@ -128,7 +129,24 @@ const venueData = {
 	venueLinks: [{ label: 'All', to: '/rwa/perps/venues' }],
 	totals: {
 		openInterest: 100,
+		openInterestChange24h: 25,
 		volume24h: 50,
+		volume24hChange24h: -10,
+		markets: 1,
+		protocolFees24h: 1
+	}
+}
+
+const assetGroupData = {
+	assetGroup: 'Equities',
+	markets: overviewData.markets,
+	initialChartDataset: overviewData.initialChartDataset,
+	assetGroupLinks: [{ label: 'All', to: '/rwa/perps/asset-groups' }],
+	totals: {
+		openInterest: 100,
+		openInterestChange24h: 25,
+		volume24h: 50,
+		volume24hChange24h: -10,
 		markets: 1,
 		protocolFees24h: 1
 	}
@@ -149,9 +167,18 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		routerQuery = { chartView: 'treemap' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Base Asset')
-		expect(html).toContain('Nested by: Contract')
+		expect(html).toContain('Asset Group')
+		expect(html).toContain('Nested by: Base Asset')
 		expect(html).toContain('reset')
+	})
+
+	it('shows the asset-group time-series breakdown by default on the overview page', () => {
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Time Series Chart')
+		expect(html).toContain('Asset Group')
+		expect(html).not.toContain('Nested by:')
+		expect(html).not.toContain('reset')
 	})
 
 	it('hides the treemap nested-grouping selector when parent grouping is Contract', () => {
@@ -172,6 +199,15 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('reset')
 	})
 
+	it('shows asset-group treemap controls with a base-asset nested default', () => {
+		routerQuery = { chartView: 'treemap', nonTimeSeriesChartBreakdown: 'assetGroup' }
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Asset Group')
+		expect(html).toContain('Nested by: Base Asset')
+		expect(html).toContain('reset')
+	})
+
 	it('keeps the no-grouping treemap state selectable for Base Asset breakdowns', () => {
 		routerQuery = {
 			chartView: 'treemap',
@@ -189,26 +225,42 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		routerQuery = { chartView: 'pie' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(html).toContain('Base Asset')
+		expect(html).toContain('Asset Group')
 		expect(html).not.toContain('Nested by:')
 		expect(html).not.toContain('reset')
 	})
 
-	it('keeps Contract and Base Asset as the first overview table columns', () => {
+	it('keeps the requested overview table column order', () => {
 		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
-		expect(lastTableWithSearchProps.columns.slice(0, 2).map((column: any) => column.header)).toEqual([
+		expect(lastTableWithSearchProps.columns.slice(0, 5).map((column: any) => column.header)).toEqual([
 			'Contract',
+			'Venue',
+			'Asset Class',
+			'Asset Group',
 			'Base Asset'
 		])
 	})
 
-	it('keeps Contract and Base Asset as the first venue table columns', () => {
+	it('keeps the requested venue table column order', () => {
 		renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
-		expect(lastTableWithSearchProps.columns.slice(0, 2).map((column: any) => column.header)).toEqual([
+		expect(lastTableWithSearchProps.columns.slice(0, 4).map((column: any) => column.header)).toEqual([
 			'Contract',
-			'Base Asset'
+			'Base Asset',
+			'Asset Group',
+			'Asset Class'
+		])
+	})
+
+	it('shows asset-group detail tables with the venue column restored', () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="assetGroup" data={assetGroupData} />)
+
+		expect(lastTableWithSearchProps.columns.slice(0, 4).map((column: any) => column.header)).toEqual([
+			'Contract',
+			'Venue',
+			'Base Asset',
+			'Asset Class'
 		])
 	})
 
@@ -219,8 +271,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		}
 		queryState = {
 			data: {
-				source: [{ timestamp: 1774483200000, 'Single stock synthetic perp': 100 }],
-				dimensions: ['timestamp', 'Single stock synthetic perp']
+				source: [{ timestamp: 1774483200000, 'Stock Perp': 100 }],
+				dimensions: ['timestamp', 'Stock Perp']
 			},
 			isLoading: false,
 			error: null
@@ -232,23 +284,59 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).not.toContain('timeseries')
 	})
 
+	it('renders fetched default time-series data when no server-preloaded dataset is available', () => {
+		routerQuery = { chartView: 'timeSeries' }
+		queryState = {
+			data: {
+				source: [
+					{ timestamp: 1774483200000, Meta: 100 },
+					{ timestamp: 1774569600000, Meta: 120 }
+				],
+				dimensions: ['timestamp', 'Meta']
+			},
+			isLoading: false,
+			error: null
+		}
+
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).not.toContain('Only a single snapshot is available')
+		expect(html).toContain('min-h-[360px]')
+	})
+
 	it('renders the time-series metric switch labels from metric option names', () => {
+		routerQuery = { chartView: 'timeSeries' }
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
 
 		expect(html).toContain('Open Interest')
 		expect(html).toContain('Volume')
 		expect(html).toContain('Markets')
+		expect(html).toContain('Asset Group')
+		expect(html).toContain('Total')
+	})
+
+	it('renders the selected time-series breakdown label when selected', () => {
+		routerQuery = {
+			chartView: 'timeSeries',
+			timeSeriesChartBreakdown: 'baseAsset',
+			timeSeriesMode: 'breakdown'
+		}
+
+		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(html).toContain('Base Asset')
 	})
 
 	it('builds bar-series configs for time-series volume', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'volume24h',
-				dimensions: ['timestamp', 'Meta', 'NVIDIA']
+				dimensions: ['timestamp', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
 			})
 		).toMatchObject([
-			{ name: 'Meta', type: 'bar', stack: 'A' },
-			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+			{ name: 'Meta', type: 'bar', stack: 'A', encode: { x: 'timestamp', y: 'Meta' }, color: expect.any(String) },
+			{ name: 'NVIDIA', type: 'bar', stack: 'A', encode: { x: 'timestamp', y: 'NVIDIA' }, color: expect.any(String) }
 		])
 	})
 
@@ -256,15 +344,103 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
-				dimensions: ['timestamp', 'Meta']
+				dimensions: ['timestamp', 'Meta'],
+				timeSeriesMode: 'breakdown'
 			})
-		).toMatchObject([{ name: 'Meta', type: 'line', stack: 'A' }])
+		).toMatchObject([{ name: 'Meta', type: 'line', encode: { x: 'timestamp', y: 'Meta' }, color: expect.any(String) }])
 		expect(
 			buildRWAPerpsTimeSeriesCharts({
 				metric: 'openInterest',
-				dimensions: ['timestamp', 'Meta']
+				dimensions: ['timestamp', 'Meta'],
+				timeSeriesMode: 'breakdown'
 			})[0]
 		).not.toHaveProperty('showSymbol')
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Meta'],
+				timeSeriesMode: 'breakdown'
+			})[0]
+		).not.toHaveProperty('stack')
+	})
+
+	it('builds a grouped time-series series for total mode', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Total'],
+				timeSeriesMode: 'grouped'
+			})
+		).toEqual([
+			{
+				name: 'Total',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: expect.any(String)
+			}
+		])
+	})
+
+	it('adds a plain total overlay line for breakdown line charts', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'openInterest',
+				dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Meta',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			},
+			{
+				name: 'Total',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0],
+				hideAreaStyle: true
+			}
+		])
+	})
+
+	it('does not add a total overlay line for breakdown bar charts', () => {
+		expect(
+			buildRWAPerpsTimeSeriesCharts({
+				metric: 'volume24h',
+				dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Total',
+				type: 'bar',
+				stack: 'A',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0]
+			},
+			{
+				name: 'Meta',
+				type: 'bar',
+				stack: 'A',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'bar',
+				stack: 'A',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			}
+		])
 	})
 
 	it('renders 24h changes inline on the overview open interest and volume cards', () => {
@@ -274,10 +450,10 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		expect(html).toContain('-10.00%')
 	})
 
-	it('does not render overview delta text on venue stat cards', () => {
+	it('renders 24h open interest and volume changes on venue stat cards', () => {
 		const html = renderToStaticMarkup(<RWAPerpsDashboard mode="venue" data={venueData} />)
 
-		expect(html).not.toContain('+25.00%')
-		expect(html).not.toContain('-10.00%')
+		expect(html).toContain('+25.00%')
+		expect(html).toContain('-10.00%')
 	})
 })

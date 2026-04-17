@@ -8,8 +8,18 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
+import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { downloadCSV } from '~/utils/download'
 import type { DatasetDefinition, DatasetExcludeToggle } from './datasets'
+import { RowLimitPicker } from './RowLimitPicker'
+import {
+	applyDatasetConfig,
+	defaultPresetName,
+	type DatasetSavedConfig,
+	extractDatasetConfig,
+	generatePresetId
+} from './savedDownloads'
+import { SavePresetDialog } from './SavePresetDialog'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -245,22 +255,33 @@ interface Props {
 	onClose: () => void
 	isTrial?: boolean
 	isPreview?: boolean
+	initialConfig?: DatasetSavedConfig
 }
 
-export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial, isPreview }: Props) {
+export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial, isPreview, initialConfig }: Props) {
 	const queryClient = useQueryClient()
 	const subscribeModalStore = Ariakit.useDialogStore()
+	const { savedDownloads, saveDownload } = useSavedDownloads()
+	const { recordRecent } = useRecentDownloads()
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
-	const [selectedChain, setSelectedChain] = useState<string | null>(null)
+	const [rowLimit, setRowLimit] = useState<number | null>(initialConfig?.rowLimit ?? null)
+	const [selectedChain, setSelectedChain] = useState<string | null>(initialConfig?.chain ?? null)
 	const [excludeState, setExcludeState] = useState<Record<string, boolean>>(() => {
 		const initial: Record<string, boolean> = {}
 		for (const toggle of dataset.excludeToggles ?? []) {
 			initial[toggle.field] = toggle.defaultExclude ?? false
 		}
+		if (initialConfig?.exclude) {
+			for (const [k, v] of Object.entries(initialConfig.exclude)) {
+				initial[k] = v
+			}
+		}
 		return initial
 	})
+	const [showSaveDialog, setShowSaveDialog] = useState(false)
+	const initialConfigAppliedRef = useRef(false)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
@@ -314,23 +335,45 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		setSelectedColumns(null)
 		setSearch('')
 		setSortState(null)
-		setSelectedChain(null)
-	}, [dataset.slug])
+		setSelectedChain(initialConfig?.chain ?? null)
+		setRowLimit(initialConfig?.rowLimit ?? null)
+		initialConfigAppliedRef.current = false
+	}, [dataset.slug, initialConfig?.id, initialConfig?.chain, initialConfig?.rowLimit])
 
 	useEffect(() => {
-		if (headers.length > 0 && selectedColumns === null) {
-			setSelectedColumns(new Set(headers.map((_, index) => index)))
+		if (headers.length === 0 || selectedColumns !== null) return
 
-			if (dataset.defaultSortField && sortState === null) {
-				const sortIndex = headers.indexOf(dataset.defaultSortField)
-				if (sortIndex !== -1) {
-					const values = rows.map((row) => row.values[sortIndex] ?? '')
-					const kind = detectColumnKind(dataset.defaultSortField, values)
-					setSortState({ index: sortIndex, direction: getInitialSortDirection(kind) })
-				}
+		if (initialConfig && !initialConfigAppliedRef.current) {
+			const applied = applyDatasetConfig(initialConfig, headers)
+			setSelectedColumns(applied.selectedColumns)
+			setSortState(applied.sort)
+			initialConfigAppliedRef.current = true
+			if (applied.missingColumns.length > 0) {
+				toast(
+					`${applied.missingColumns.length} saved column${
+						applied.missingColumns.length === 1 ? '' : 's'
+					} no longer available: ${applied.missingColumns.slice(0, 3).join(', ')}${
+						applied.missingColumns.length > 3 ? '…' : ''
+					}`
+				)
+			}
+			if (applied.missingSortColumn) {
+				toast(`Saved sort column "${applied.missingSortColumn}" no longer available`)
+			}
+			return
+		}
+
+		setSelectedColumns(new Set(headers.map((_, index) => index)))
+
+		if (dataset.defaultSortField && sortState === null) {
+			const sortIndex = headers.indexOf(dataset.defaultSortField)
+			if (sortIndex !== -1) {
+				const values = rows.map((row) => row.values[sortIndex] ?? '')
+				const kind = detectColumnKind(dataset.defaultSortField, values)
+				setSortState({ index: sortIndex, direction: getInitialSortDirection(kind) })
 			}
 		}
-	}, [headers, selectedColumns, dataset.defaultSortField, rows, sortState])
+	}, [headers, selectedColumns, dataset.defaultSortField, rows, sortState, initialConfig])
 
 	const cols = selectedColumns ?? EMPTY_SELECTION
 
@@ -409,6 +452,11 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		})
 	}, [columnMeta, filteredRows, sortState])
 
+	const displayedRows = useMemo(
+		() => (rowLimit && rowLimit > 0 ? sortedRows.slice(0, rowLimit) : sortedRows),
+		[sortedRows, rowLimit]
+	)
+
 	const tableWidth = useMemo(() => columnMeta.reduce((total, column) => total + column.width, 0), [columnMeta])
 	const gridTemplate = useMemo(
 		() => columnMeta.map((column) => `minmax(${column.width}px, 1fr)`).join(' '),
@@ -442,7 +490,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	}, [updateScrollShadows, hasData])
 
 	const rowVirtualizer = useVirtualizer({
-		count: sortedRows.length,
+		count: displayedRows.length,
 		getScrollElement: () => tableContainerRef.current,
 		estimateSize: () => ROW_HEIGHT,
 		overscan: 10
@@ -487,21 +535,92 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			toast.error('Select at least one column')
 			return
 		}
-		const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
+		const csvRows = buildSelectedCsvRows(columnMeta, cols, displayedRows)
 		if (csvRows.length <= 1) {
 			toast.error('No rows to download')
 			return
 		}
 		downloadCSV(`${dataset.slug}.csv`, csvRows, { addTimestamp: false })
 		toast.success(`Downloaded ${dataset.slug}.csv`)
-	}, [dataset.slug, columnMeta, cols, sortedRows, selectedCount])
+
+		const configBase = extractDatasetConfig({
+			slug: dataset.slug,
+			headers,
+			selectedColumns: cols,
+			sort: sortState,
+			chain: selectedChain,
+			exclude: excludeState,
+			rowLimit
+		})
+		recordRecent({
+			...configBase,
+			id: generatePresetId(),
+			name: defaultPresetName(configBase, dataset.name),
+			createdAt: Date.now()
+		})
+	}, [
+		dataset.slug,
+		dataset.name,
+		columnMeta,
+		cols,
+		displayedRows,
+		selectedCount,
+		headers,
+		sortState,
+		selectedChain,
+		excludeState,
+		rowLimit,
+		recordRecent
+	])
+
+	const handleSavePreset = useCallback(
+		(name: string, replaceExisting: boolean) => {
+			const configBase = extractDatasetConfig({
+				slug: dataset.slug,
+				headers,
+				selectedColumns: cols,
+				sort: sortState,
+				chain: selectedChain,
+				exclude: excludeState,
+				rowLimit
+			})
+			saveDownload(
+				{
+					...configBase,
+					id: generatePresetId(),
+					name,
+					createdAt: Date.now()
+				},
+				{ replaceByName: replaceExisting }
+			)
+			setShowSaveDialog(false)
+			toast.success(`Saved preset "${name}"`)
+		},
+		[dataset.slug, headers, cols, sortState, selectedChain, excludeState, rowLimit, saveDownload]
+	)
+
+	const suggestedPresetName = useMemo(() => {
+		if (headers.length === 0 || !selectedColumns) return ''
+		const configBase = extractDatasetConfig({
+			slug: dataset.slug,
+			headers,
+			selectedColumns: cols,
+			sort: sortState,
+			chain: selectedChain,
+			exclude: excludeState,
+			rowLimit
+		})
+		return defaultPresetName(configBase, dataset.name)
+	}, [dataset.slug, dataset.name, headers, selectedColumns, cols, sortState, selectedChain, excludeState, rowLimit])
+
+	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
 	const handleCopy = useCallback(async () => {
 		if (selectedCount === 0) {
 			toast.error('Select at least one column')
 			return
 		}
-		const tsv = buildTsvString(columnMeta, cols, sortedRows)
+		const tsv = buildTsvString(columnMeta, cols, displayedRows)
 		if (!tsv) {
 			toast.error('No data to copy')
 			return
@@ -512,7 +631,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		} catch {
 			toast.error('Failed to copy')
 		}
-	}, [columnMeta, cols, sortedRows, selectedCount])
+	}, [columnMeta, cols, displayedRows, selectedCount])
 
 	const activeSortDirection = sortState ? sortState.direction : false
 	const allSelected = headers.length > 0 && cols.size === headers.length
@@ -539,7 +658,14 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 										? 'Loading...'
 										: error
 											? 'Error'
-											: `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`}
+											: (() => {
+													const isLimited =
+														rowLimit !== null && rowLimit > 0 && displayedRows.length < sortedRows.length
+													const rowsLabel = isLimited
+														? `${displayedRows.length.toLocaleString()} of ${sortedRows.length.toLocaleString()} rows`
+														: `${sortedRows.length.toLocaleString()} rows`
+													return `${rowsLabel} · ${selectedCount}/${headers.length} cols selected`
+												})()}
 								</p>
 							</div>
 
@@ -557,6 +683,19 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 										<Icon name="clipboard" className="h-3.5 w-3.5" />
 										<span className="hidden lg:inline">Copy</span>
 									</button>
+
+									{!isPreview ? (
+										<button
+											type="button"
+											onClick={() => setShowSaveDialog(true)}
+											disabled={selectedCount === 0}
+											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+											title="Save as preset"
+										>
+											<Icon name="bookmark" className="h-3.5 w-3.5" />
+											<span className="hidden lg:inline">Save preset</span>
+										</button>
+									) : null}
 
 									<button
 										type="button"
@@ -628,6 +767,8 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 											onToggle={toggleColumn}
 											onToggleAll={toggleAll}
 										/>
+
+										<RowLimitPicker value={rowLimit} totalRows={sortedRows.length} onChange={setRowLimit} />
 
 										<button
 											type="button"
@@ -739,7 +880,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 									}}
 								>
 									{rowVirtualizer.getVirtualItems().map((virtualRow) => {
-										const row = sortedRows[virtualRow.index]
+										const row = displayedRows[virtualRow.index]
 										const isOdd = virtualRow.index % 2 === 1
 										return (
 											<div
@@ -833,6 +974,14 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 				<Suspense fallback={null}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />
 				</Suspense>
+			) : null}
+			{showSaveDialog ? (
+				<SavePresetDialog
+					suggestedName={suggestedPresetName}
+					existingNames={existingPresetNames}
+					onSave={handleSavePreset}
+					onClose={() => setShowSaveDialog(false)}
+				/>
 			) : null}
 		</>
 	)

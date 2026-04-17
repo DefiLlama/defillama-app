@@ -50,6 +50,16 @@ const DEFAULT_COLUMNS = [
 	'revenue_24h'
 ]
 
+const DEFAULT_DEX_VOLUME_LABEL = 'DEX Volume'
+
+const DEX_VOLUME_LABEL_BY_CATEGORY: Record<string, string> = {
+	Dexs: DEFAULT_DEX_VOLUME_LABEL,
+	'DEX Aggregator': 'DEX Aggregator Volume',
+	'Prediction Market': 'Prediction Volume',
+	'Crypto Card Issuer': 'Payment Volume',
+	Interface: 'Spot Volume'
+}
+
 export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	Dexs: {
 		description: 'Protocols where you can swap/trade cryptocurrency',
@@ -70,7 +80,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 			'fees_24h',
 			'revenue_24h'
 		],
-		defaultSort: 'dex_volume_7d'
+		defaultSort: 'prediction_volume_7d'
 	},
 	Yield: {
 		description: 'Protocols that pay you a reward for your staking/LP on their platform',
@@ -83,16 +93,16 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		columns: [
 			'name',
 			'tvl',
+			'borrowed',
+			'supplied',
+			'supplied/tvl',
 			'fees_7d',
 			'revenue_7d',
 			'mcap/tvl',
 			'fees_30d',
 			'revenue_30d',
 			'fees_24h',
-			'revenue_24h',
-			'borrowed',
-			'supplied',
-			'supplied/tvl'
+			'revenue_24h'
 		]
 	},
 	'Cross Chain Bridge': {
@@ -216,14 +226,28 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Prediction Market': {
 		description: 'Protocols that allow you to wager/bet/buy in future results',
 		defaultChart: 'dexVolume',
+		metrics: { dexVolume: true },
 		headingLabel: 'Prediction Markets',
 		seoLabel: 'Prediction Markets',
 		seoBaseTitle: 'Top Crypto Prediction Markets - TVL, Volume, & Revenue',
 		seoTitleSuffix: 'Rankings',
 		tableHeader: 'Market Rankings',
 		searchPlaceholder: 'Search markets...',
-		columns: ['name', 'tvl', 'fees_7d', 'revenue_7d', 'mcap/tvl', 'fees_30d', 'revenue_30d', 'fees_24h', 'revenue_24h'],
-		defaultSort: 'tvl'
+		columns: [
+			'name',
+			'tvl',
+			'prediction_volume_7d',
+			'fees_7d',
+			'revenue_7d',
+			'mcap/tvl',
+			'prediction_volume_30d',
+			'fees_30d',
+			'revenue_30d',
+			'prediction_volume_24h',
+			'fees_24h',
+			'revenue_24h'
+		],
+		defaultSort: 'prediction_volume_7d'
 	},
 	'Algo-Stables': { description: 'Protocols that provide algorithmic coins to stablecoins' },
 	'NFT Marketplace': {
@@ -304,31 +328,6 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		defaultSort: 'revenue_7d'
 	},
 	'DEX Aggregator': {
-		description:
-			'A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage',
-		defaultChart: 'dexAggregatorVolume',
-		headingLabel: 'DEX Aggregators',
-		seoLabel: 'DEX Aggregators',
-		seoBaseTitle: 'Crypto DEX Aggregator Protocols - Volume, TVL, & Fees',
-		searchPlaceholder: 'Search DEX aggregators...',
-		metrics: { dexAggregatorsVolume: true },
-		columns: [
-			'name',
-			'tvl',
-			'dex_aggregator_volume_7d',
-			'fees_7d',
-			'revenue_7d',
-			'mcap/tvl',
-			'dex_aggregator_volume_30d',
-			'fees_30d',
-			'revenue_30d',
-			'dex_aggregator_volume_24h',
-			'fees_24h',
-			'revenue_24h'
-		],
-		defaultSort: 'dex_aggregator_volume_7d'
-	},
-	'DEX Aggregators': {
 		description:
 			'A platform that sources liquidity from various decentralized exchanges to provide optimal trade execution in terms of price and slippage',
 		defaultChart: 'dexAggregatorVolume',
@@ -594,12 +593,16 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	Interface: {
 		description: 'Projects that provide a user interface to interact with external protocols',
 		defaultChart: 'perpVolume',
-		metrics: { perpVolume: true },
+		metrics: { perpVolume: true, dexVolume: true },
 		columns: [
 			'name',
 			'perp_volume_24h',
+			'spot_volume_24h',
 			'perp_volume_7d',
+			'spot_volume_7d',
 			'perp_volume_30d',
+			'spot_volume_30d',
+			'tvl',
 			'fees_7d',
 			'revenue_7d',
 			'mcap/tvl',
@@ -663,12 +666,65 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 	'Crypto Card Issuer': {
 		description:
 			'Protocols that issue crypto-linked debit or credit cards for spending through traditional payment networks',
+		metrics: { dexVolume: true },
 		headingLabel: 'Crypto Card Issuers',
 		seoLabel: 'Crypto Card Issuers',
 		seoTitleSuffix: 'Rankings',
 		tableHeader: 'Issuer Rankings',
 		searchPlaceholder: 'Search Issuers...',
-		columns: ['name', 'tvl', 'fees_7d', 'revenue_7d', 'mcap/tvl', 'fees_30d', 'revenue_30d', 'fees_24h', 'revenue_24h']
+		columns: [
+			'name',
+			'tvl',
+			'payment_volume_7d',
+			'fees_7d',
+			'revenue_7d',
+			'mcap/tvl',
+			'payment_volume_30d',
+			'fees_30d',
+			'revenue_30d',
+			'payment_volume_24h',
+			'fees_24h',
+			'revenue_24h'
+		],
+		defaultSort: 'payment_volume_7d'
+	}
+}
+
+export function getProtocolCategoryDexVolumeLabel(effectiveCategory: string | null): string {
+	if (!effectiveCategory) return DEFAULT_DEX_VOLUME_LABEL
+	return DEX_VOLUME_LABEL_BY_CATEGORY[effectiveCategory] ?? DEFAULT_DEX_VOLUME_LABEL
+}
+
+export function getProtocolCategoryDexVolumeColumnLabel(
+	effectiveCategory: string | null,
+	period: '24h' | '7d' | '30d'
+): string {
+	return `${getProtocolCategoryDexVolumeLabel(effectiveCategory)} ${period}`
+}
+
+export function getProtocolCategoryChartMetricLabel(
+	metric: ProtocolCategoryChartMetric,
+	effectiveCategory: string | null
+): string {
+	switch (metric) {
+		case 'tvl':
+			return 'TVL'
+		case 'dexVolume':
+			return getProtocolCategoryDexVolumeLabel(effectiveCategory)
+		case 'dexAggregatorsVolume':
+			return 'DEX Aggregator Volume'
+		case 'perpVolume':
+			return 'Perp Volume'
+		case 'openInterest':
+			return 'Open Interest'
+		case 'optionsPremiumVolume':
+			return 'Options Premium Volume'
+		case 'optionsNotionalVolume':
+			return 'Options Notional Volume'
+		case 'borrowed':
+			return 'Active Loans'
+		case 'staking':
+			return 'Staking TVL'
 	}
 }
 

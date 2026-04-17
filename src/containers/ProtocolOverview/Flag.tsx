@@ -82,9 +82,7 @@ export function Flag({
 
 			<Ariakit.Dialog className="dialog" unmountOnHide store={dialogStore}>
 				{isLending ? (
-					<p className="text-center text-red-500">
-						For lending protocols TVL doesn't include borrowed coins by default
-					</p>
+					<p className="text-center text-red-500">For lending protocols TVL doesn't include active loans by default</p>
 				) : null}
 				<form
 					onSubmit={(e) => {
@@ -131,7 +129,7 @@ export function Flag({
 								<option value="Transactions">Transactions</option>
 								<option value="Gas Used">Gas Used</option>
 								<option value="Staking">Staking</option>
-								<option value="Borrowed">Borrowed</option>
+								<option value="Active Loans">Active Loans</option>
 								<option value="Median APY">Median APY</option>
 								<option value="USD Inflows">USD Inflows</option>
 								<option value="Governance">Governance</option>

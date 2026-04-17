@@ -10,7 +10,7 @@ import { downloadDataURL } from '~/utils/download'
 
 // --- Shared profile type (single source of truth) ---
 
-export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap'
+export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap' | 'treemapNormalized' | 'hbar'
 
 // --- Constants ---
 
@@ -45,6 +45,15 @@ const parsePixelValue = (value: unknown) => {
 const hasSeriesType = (options: Record<string, any>, type: string) =>
 	Array.isArray(options.series) &&
 	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
+
+const formatTreemapCurrency = (rawValue?: number) => {
+	const value = typeof rawValue === 'number' && Number.isFinite(rawValue) ? rawValue : 0
+	const absValue = Math.abs(value)
+	if (absValue >= 1e9) return '$' + (value / 1e9).toFixed(1) + 'B'
+	if (absValue >= 1e6) return '$' + (value / 1e6).toFixed(1) + 'M'
+	if (absValue >= 1e3) return '$' + (value / 1e3).toFixed(0) + 'K'
+	return '$' + value.toFixed(0)
+}
 
 // --- Series flags ---
 
@@ -325,8 +334,10 @@ function adjustSeriesForExport(opts: {
 	isDark: boolean
 	title: string | undefined
 	expandLegend: boolean | undefined
+	pngProfile?: PngExportProfile
+	exportHeight?: number
 }): any[] {
-	const { flags, layout, isDark, title, expandLegend } = opts
+	const { flags, layout, isDark, title, expandLegend, pngProfile, exportHeight } = opts
 	let series = [...opts.series]
 
 	// Scatter: strip image:// symbols and scale labels for export
@@ -423,7 +434,7 @@ function adjustSeriesForExport(opts: {
 	if (flags.isHorizontalBarChart) {
 		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
 		const bottomPadding = expandLegend ? 32 : 16
-		const plotHeight = Math.max(1, IMAGE_EXPORT_HEIGHT - layout.gridTop - bottomPadding)
+		const plotHeight = Math.max(1, (exportHeight ?? IMAGE_EXPORT_HEIGHT) - layout.gridTop - bottomPadding)
 		const bandHeight = categoryCount > 0 ? plotHeight / categoryCount : plotHeight
 		const barStacks = new Set(series.filter((s: any) => s?.type === 'bar').map((s: any) => s.stack ?? s.name ?? ''))
 		const barSeriesCount = Math.max(1, barStacks.size)
@@ -460,13 +471,53 @@ function adjustSeriesForExport(opts: {
 	if (flags.isTreemapChart) {
 		series = series.map((s) => {
 			if (s?.type !== 'treemap') return s
+			const total = Array.isArray(s.data)
+				? s.data.reduce((sum: number, item: any) => {
+						const value =
+							typeof item?.value === 'number'
+								? item.value
+								: Array.isArray(item?.value)
+									? Number(item.value[0] ?? 0)
+									: Number(item?.value ?? 0)
+						return Number.isFinite(value) ? sum + value : sum
+					}, 0)
+				: 0
 			return {
 				...s,
 				top: layout.gridTop,
 				left: 16,
 				right: 16,
 				bottom: 16,
-				breadcrumb: { ...(s?.breadcrumb ?? {}), show: false }
+				breadcrumb: { ...(s?.breadcrumb ?? {}), show: false },
+				...(pngProfile === 'treemapNormalized'
+					? {
+							label: {
+								...(s.label ?? {}),
+								show: true,
+								position: 'insideTopLeft',
+								padding: [4, 6],
+								formatter(params: any) {
+									const rawValue = typeof params?.value === 'number' ? params.value : Number(params?.value ?? 0)
+									const pct = total > 0 ? ((rawValue / total) * 100).toFixed(1) : '0'
+									return `{name|${params.name}}\n{value|${formatTreemapCurrency(rawValue)} (${pct}%)}`
+								},
+								rich: {
+									name: {
+										fontSize: 16,
+										fontWeight: 600,
+										color: '#fff',
+										lineHeight: 22
+									},
+									value: {
+										fontSize: 13,
+										color: 'rgba(255,255,255,0.85)',
+										lineHeight: 18
+									}
+								}
+							},
+							upperLabel: { ...(s.upperLabel ?? {}), show: false }
+						}
+					: {})
 			}
 		})
 	}
@@ -546,20 +597,12 @@ async function exportTreemapWithZoom(
 		const imageAspect = chartImg.width / Math.max(1, chartImg.height)
 		const isPortraitCapture = imageAspect < 1
 		const exportWidth = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_WIDTH : IMAGE_EXPORT_WIDTH
+		const exportHeight = isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : IMAGE_EXPORT_HEIGHT
 
 		const titleText = title || ''
-		let chartTop = 12
-		const titleHeight = titleText ? 40 : 0
-		if (titleText) {
-			chartTop = 52
-		}
+		const chartTop = titleText ? 52 : 12
 
 		const chartAreaW = exportWidth - 24
-		const naturalChartAreaH = Math.round(chartAreaW / Math.max(imageAspect, 0.0001))
-		const exportHeight = Math.max(
-			isPortraitCapture ? TREEMAP_EXPORT_PORTRAIT_HEIGHT : 0,
-			titleHeight + naturalChartAreaH + 24
-		)
 		const dpr = 2
 		const canvas = document.createElement('canvas')
 		canvas.width = exportWidth * dpr
@@ -604,20 +647,32 @@ async function renderClonedChartExport(
 	isDark: boolean,
 	title: string | undefined,
 	iconUrl: string | undefined,
-	expandLegend: boolean | undefined
+	expandLegend: boolean | undefined,
+	pngProfile?: PngExportProfile
 ): Promise<string> {
 	const { echarts: echartsCore } = await import('./chartExportEcharts')
 	const currentOptions = originalChart.getOption()
 
+	const flags = detectSeriesFlags(currentOptions)
+	let exportHeight = IMAGE_EXPORT_HEIGHT
+	if (pngProfile === 'hbar' && flags.isHorizontalBarChart) {
+		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
+		if (categoryCount > 0) {
+			const minBarHeight = 36
+			exportHeight = Math.max(IMAGE_EXPORT_HEIGHT, categoryCount * minBarHeight + 120)
+		}
+	}
+
+	tempContainer.style.height = `${exportHeight}px`
+
 	const tempChart = echartsCore.init(tempContainer, null, {
 		width: IMAGE_EXPORT_WIDTH,
-		height: IMAGE_EXPORT_HEIGHT,
+		height: exportHeight,
 		renderer: 'canvas'
 	})
 
 	try {
 		const iconBase64 = iconUrl ? await loadCircularIcon(iconUrl) : null
-		const flags = detectSeriesFlags(currentOptions)
 
 		// Treemap labels rely on local rich-text sizing; a global boost makes them too large.
 		if (!flags.isTreemapChart) {
@@ -650,7 +705,9 @@ async function renderClonedChartExport(
 			layout,
 			isDark,
 			title,
-			expandLegend
+			expandLegend,
+			pngProfile,
+			exportHeight
 		})
 
 		currentOptions.title = buildExportTitle({ title, iconBase64, isDark })
@@ -747,9 +804,11 @@ export function ChartPngExportButton({
 		}
 		setIsLoading(true)
 
-		const isTreemapExport = pngProfile === 'treemap' || hasSeriesType(_chartInstance.getOption(), 'treemap')
+		const hasTreemapSeries = hasSeriesType(_chartInstance.getOption(), 'treemap')
+		const useDirectTreemapExport =
+			pngProfile === 'treemap' || pngProfile === 'treemapNormalized' || (pngProfile === 'default' && hasTreemapSeries)
 
-		if (isTreemapExport) {
+		if (useDirectTreemapExport) {
 			return await exportTreemapWithZoom(_chartInstance, title, isDark)
 		}
 
@@ -762,7 +821,15 @@ export function ChartPngExportButton({
 		document.body.appendChild(tempContainer)
 
 		try {
-			const dataURL = await renderClonedChartExport(tempContainer, _chartInstance, isDark, title, iconUrl, expandLegend)
+			const dataURL = await renderClonedChartExport(
+				tempContainer,
+				_chartInstance,
+				isDark,
+				title,
+				iconUrl,
+				expandLegend,
+				pngProfile
+			)
 			document.body.removeChild(tempContainer)
 			return dataURL
 		} catch (error) {

@@ -5,6 +5,8 @@ import type { IProtocolPageMetrics } from './types'
 
 const canonicalProtocolAaveRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/aave")[^>]*\/?>/
+const canonicalProtocolActiveLoansAaveRegex =
+	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/active-loans\/aave")[^>]*\/?>/
 const canonicalProtocolDefiSwapRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/defi-swap")[^>]*\/?>/
 const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="noindex")[^>]*\/?>/
@@ -12,6 +14,7 @@ const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="no
 const metrics: IProtocolPageMetrics = {
 	tvl: true,
 	dexs: false,
+	dexsNotionalVolume: false,
 	perps: false,
 	openInterest: false,
 	optionsPremiumVolume: false,
@@ -265,6 +268,27 @@ describe('ProtocolOverviewLayout SEO', () => {
 		expect(markup).toMatch(robotsNoindexRegex)
 		expect(markup).not.toMatch(canonicalProtocolAaveRegex)
 	})
+
+	it('keeps the active loans tab indexable with the new canonical URL', async () => {
+		setupLayoutMocks()
+
+		const { ProtocolOverviewLayout } = await import('./Layout')
+		const markup = renderToStaticMarkup(
+			React.createElement(
+				ProtocolOverviewLayout as React.ComponentType<any>,
+				{
+					name: 'Aave',
+					category: 'Lending',
+					metrics: { ...metrics, borrowed: true },
+					tab: 'borrowed'
+				},
+				null
+			)
+		)
+
+		expect(markup).toMatch(canonicalProtocolActiveLoansAaveRegex)
+		expect(markup).not.toMatch(robotsNoindexRegex)
+	})
 })
 
 describe('ProtocolOverview SEO contract', () => {
@@ -341,5 +365,62 @@ describe('ProtocolOverview SEO contract', () => {
 		renderToStaticMarkup(React.createElement(ProtocolOverview, props))
 
 		expect(capturedTab).toBe('information')
+	})
+})
+
+describe('ProtocolInfo category links', () => {
+	it('renders a category CTA linking back to the category page', async () => {
+		vi.doMock('~/components/Icon', () => ({
+			Icon: () => null
+		}))
+		vi.doMock('~/components/Link', () => ({
+			BasicLink: ({
+				children,
+				href,
+				...props
+			}: {
+				children: React.ReactNode
+				href: string
+			} & Record<string, unknown>) => React.createElement('a', { href, ...props }, children),
+			ButtonLink: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children)
+		}))
+		vi.doMock('~/components/Menu', () => ({
+			Menu: () => null
+		}))
+		vi.doMock('~/components/MetricPrimitives', () => ({
+			MetricRow: () => null
+		}))
+		vi.doMock('~/components/QuestionHelper', () => ({
+			QuestionHelper: () => null
+		}))
+		vi.doMock('~/components/Tooltip', () => ({
+			Tooltip: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
+		}))
+		vi.doMock('~/containers/Subscription/auth', () => ({
+			useAuthContext: () => ({ activePlan: null })
+		}))
+		vi.doMock('~/containers/Subscription/signupSource', () => ({
+			setSignupSource: () => undefined
+		}))
+
+		const { ProtocolInfo } = await vi.importActual<typeof import('./AdditionalInfo')>('./AdditionalInfo')
+		const markup = renderToStaticMarkup(
+			React.createElement(ProtocolInfo, {
+				name: 'Polymarket',
+				description: 'Prediction markets protocol.',
+				category: 'Prediction Market',
+				tags: null,
+				audits: null,
+				website: null,
+				github: null,
+				twitter: null,
+				safeHarbor: false,
+				isCEX: false
+			} as Parameters<typeof ProtocolInfo>[0])
+		)
+
+		expect(markup).toContain('href="/protocols/prediction-market"')
+		expect(markup).toContain('>Prediction Market<')
+		expect(markup).toContain('>Category<')
 	})
 })

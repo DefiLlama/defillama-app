@@ -6,8 +6,9 @@ import {
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
-import { formatBarChart } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
+import { Select } from '~/components/Select/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
@@ -15,6 +16,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { formatAdapterData } from '~/containers/ProtocolOverview/formatAdapterData'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
@@ -49,17 +51,27 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (!metadata || !metadata[1].dexs) {
+		if (!metadata || (!metadata[1].dexs && !metadata[1].dexsNotionalVolume)) {
 			return { notFound: true }
 		}
 
-		const [protocolData, adapterData] = await Promise.all([
+		const [protocolData, volumeData, notionalVolumeData] = await Promise.all([
 			fetchProtocolOverviewMetrics(protocol),
-			getAdapterProtocolOverview({
-				adapterType: 'dexs',
-				protocol: metadata[1].displayName,
-				excludeTotalDataChart: false
-			})
+			metadata[1].dexs
+				? getAdapterProtocolOverview({
+						adapterType: 'dexs',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false
+					}).catch(() => null)
+				: null,
+			metadata[1].dexsNotionalVolume
+				? getAdapterProtocolOverview({
+						adapterType: 'dexs',
+						protocol: metadata[1].displayName,
+						excludeTotalDataChart: false,
+						dataType: 'dailyNotionalVolume'
+					}).catch(() => null)
+				: null
 		])
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
@@ -70,20 +82,26 @@ export const getStaticProps = withPerformanceLogging(
 		const seoTitle = `${protocolData.name} DEX Trading Volume & Stats - DefiLlama`
 		const seoDescription = `Track ${protocolData.name} decentralized exchange trading volume with daily, weekly, and cumulative charts on DefiLlama.`
 
-		const dexVolume: IProtocolOverviewPageData['dexVolume'] = {
-			total24h: adapterData.total24h ?? null,
-			total7d: adapterData.total7d ?? null,
-			total30d: adapterData.total30d ?? null,
-			totalAllTime: adapterData.totalAllTime ?? null
-		}
+		const dexVolume: IProtocolOverviewPageData['dexVolume'] = formatAdapterData({
+			data: volumeData,
+			methodologyKey: volumeData?.methodology?.['Volume'] ? 'Volume' : 'dexs'
+		})
 
-		const linkedProtocolsSet = new Set((adapterData?.linkedProtocols ?? []).slice(1))
+		const dexNotionalVolume: IProtocolOverviewPageData['dexNotionalVolume'] = formatAdapterData({
+			data: notionalVolumeData,
+			methodologyKey: 'dexsNotionalVolume'
+		})
+
+		const linkedProtocolsSet = new Set([
+			...(volumeData?.linkedProtocols ?? []).slice(1),
+			...(notionalVolumeData?.linkedProtocols ?? []).slice(1)
+		])
 		const linkedProtocolsWithAdapterData = []
 		if (protocolData.isParentProtocol) {
 			for (const key in protocolMetadata) {
 				if (linkedProtocolsSet.size === 0) break
 				if (linkedProtocolsSet.has(protocolMetadata[key].displayName)) {
-					if (protocolMetadata[key].dexs) {
+					if (protocolMetadata[key].dexs || protocolMetadata[key].dexsNotionalVolume) {
 						linkedProtocolsWithAdapterData.push(protocolMetadata[key])
 					}
 					linkedProtocolsSet.delete(protocolMetadata[key].displayName)
@@ -91,11 +109,19 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		let chart = (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value] as [number, number])
-		const nonZeroIndex = chart.findIndex(([_date, value]) => value > 0)
-		if (nonZeroIndex !== -1) {
-			chart = chart.slice(nonZeroIndex)
+		const charts: Record<string, Array<[string | number, number]>> = {}
+		if (volumeData?.totalDataChart?.length > 0) {
+			charts['DEX Volume'] = volumeData.totalDataChart
 		}
+		if (notionalVolumeData?.totalDataChart?.length > 0) {
+			charts['Notional Volume'] = notionalVolumeData.totalDataChart
+		}
+
+		const defaultCharts: string[] = []
+		for (const chartName in charts) {
+			defaultCharts.push(chartName)
+		}
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -105,13 +131,15 @@ export const getStaticProps = withPerformanceLogging(
 				metrics,
 				hasKeyMetrics: true,
 				openSmolStatsSummaryByDefault: true,
-				dexVolume,
-				chart,
-				protocolChains: adapterData?.chains ?? [],
+				dexVolume: volumeData && volumeData.totalAllTime ? dexVolume : null,
+				dexNotionalVolume: notionalVolumeData && notionalVolumeData.totalAllTime ? dexNotionalVolume : null,
+				charts,
+				defaultCharts,
+				protocolChains: volumeData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				hallmarks,
-				defaultChartView: adapterData?.defaultChartView ?? 'daily',
+				defaultChartView: dexVolume?.defaultChartView ?? dexNotionalVolume?.defaultChartView ?? 'daily',
 				seoTitle,
 				seoDescription
 			},
@@ -121,9 +149,6 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export const getStaticPaths = () => {
-	// When this is true (in preview environments) don't
-	// prerender any static pages
-	// (faster builds, but slower initial page load)
 	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
@@ -136,31 +161,66 @@ export const getStaticPaths = () => {
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>(props.defaultChartView)
+	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = useMemo(() => {
-		const formattedData = formatBarChart({
-			data: props.chart,
-			groupBy,
-			denominationPriceHistory: null,
-			dateInMs: true
-		})
+		const seriesType = (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar'
+		const seriesData: Record<string, Array<[number, number]>> = {}
+		const chartsConfig = []
+
+		if (charts.includes('DEX Volume')) {
+			seriesData['DEX Volume'] = formatBarChart({
+				data: props.charts['DEX Volume'],
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: false
+			})
+			chartsConfig.push({
+				type: seriesType,
+				name: 'DEX Volume',
+				encode: { x: 'timestamp', y: 'DEX Volume' },
+				color: CHART_COLORS[0],
+				stack: 'DEX Volume'
+			})
+		}
+		if (charts.includes('Notional Volume')) {
+			seriesData['Notional Volume'] = formatBarChart({
+				data: props.charts['Notional Volume'],
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: false
+			})
+			chartsConfig.push({
+				type: seriesType,
+				name: 'Notional Volume',
+				encode: { x: 'timestamp', y: 'Notional Volume' },
+				color: CHART_COLORS[1],
+				stack: 'Notional Volume'
+			})
+		}
+
+		const rowMap = new Map<number, Record<string, number>>()
+		const seriesNames: string[] = []
+		for (const seriesName in seriesData) {
+			seriesNames.push(seriesName)
+		}
+		for (const name of seriesNames) {
+			for (const [timestamp, value] of seriesData[name]) {
+				const row = rowMap.get(timestamp) ?? { timestamp }
+				row[name] = value
+				rowMap.set(timestamp, row)
+			}
+		}
+
 		return {
 			dataset: {
-				source: formattedData.map(([timestamp, value]) => ({ timestamp, 'DEX Volume': value })),
-				dimensions: ['timestamp', 'DEX Volume']
+				source: ensureChronologicalRows(Array.from(rowMap.values())),
+				dimensions: ['timestamp', ...seriesNames]
 			},
-			charts: [
-				{
-					type: (groupBy === 'cumulative' ? 'line' : 'bar') as 'line' | 'bar',
-					name: 'DEX Volume',
-					encode: { x: 'timestamp', y: 'DEX Volume' },
-					color: CHART_COLORS[0],
-					stack: 'DEX Volume'
-				}
-			]
+			charts: chartsConfig
 		}
-	}, [props.chart, groupBy])
+	}, [charts, groupBy, props.charts])
 	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	return (
@@ -191,6 +251,16 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
+						{props.defaultCharts.length > 1 ? (
+							<Select
+								allValues={props.defaultCharts}
+								selectedValues={charts}
+								setSelectedValues={setCharts}
+								label="Charts"
+								variant="filter"
+								labelType="smol"
+							/>
+						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
 							filename={`${props.name}-dex-volume`}

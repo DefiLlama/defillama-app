@@ -13,16 +13,21 @@ import {
 	isTrueQueryParam,
 	pushShallowQuery
 } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWATickerChartTarget } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWAAssetChartTarget } from './api.types'
 import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	aggregateRwaMetricData,
+	appendRwaChartDatasetTotal,
+	buildRwaOpenInterestDataset,
 	emptyChartDataset,
+	mergeRwaChartDatasets,
+	renameRwaChartDatasetTotal,
+	selectRwaChartDatasetSeries,
 	type RWAChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import { getDefaultRWAOverviewInclusion, getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
-import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
+import { computeWeightedGroups, getPrimaryRwaCategory, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
@@ -155,6 +160,7 @@ export const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPct: maxDefiActiveTvlToActiveMcapPctQ,
 		includeStablecoins: stablecoinsQ,
 		includeGovernance: governanceQ,
+		includeRwaPerps: rwaPerpsQ,
 		redeemableStates: redeemableStatesQ,
 		attestationsStates: attestationsStatesQ,
 		cexListedStates: cexListedStatesQ,
@@ -189,7 +195,8 @@ export const useRWATableQueryParams = ({
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
-		includeGovernance
+		includeGovernance,
+		includeRwaPerps
 	} = useMemo(() => {
 		// If query param is 'None', return empty array. If no param, return all (default). Otherwise parse the array.
 		const parseArrayParam = (
@@ -226,6 +233,7 @@ export const useRWATableQueryParams = ({
 
 		const includeStablecoins = resolveRWAOverviewInclusionFlag(stablecoinsQ, defaultInclusion.includeStablecoins)
 		const includeGovernance = resolveRWAOverviewInclusionFlag(governanceQ, defaultInclusion.includeGovernance)
+		const includeRwaPerps = resolveRWAOverviewInclusionFlag(rwaPerpsQ, true)
 
 		// Build selected arrays with correct "exclude" semantics:
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
@@ -348,7 +356,8 @@ export const useRWATableQueryParams = ({
 			minDefiActiveTvlToActiveMcapPct,
 			maxDefiActiveTvlToActiveMcapPct,
 			includeStablecoins,
-			includeGovernance
+			includeGovernance,
+			includeRwaPerps
 		}
 	}, [
 		assetNamesQ,
@@ -384,6 +393,7 @@ export const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPctQ,
 		stablecoinsQ,
 		governanceQ,
+		rwaPerpsQ,
 		defaultInclusion.includeStablecoins,
 		defaultInclusion.includeGovernance,
 		assetNames,
@@ -430,6 +440,12 @@ export const useRWATableQueryParams = ({
 		})
 	}
 
+	const setIncludeRwaPerps = (value: boolean) => {
+		void pushShallowQuery(router, {
+			includeRwaPerps: value ? undefined : 'false'
+		})
+	}
+
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>
 		updateAttributeFilterStatesQuery('redeemableStates', values, router)
 	const setAttestationsStates = (values: RWAAttributeFilterState[]) =>
@@ -470,6 +486,7 @@ export const useRWATableQueryParams = ({
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		setRedeemableStates,
 		setAttestationsStates,
 		setCexListedStates,
@@ -481,7 +498,8 @@ export const useRWATableQueryParams = ({
 		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
-		setIncludeGovernance
+		setIncludeGovernance,
+		setIncludeRwaPerps
 	}
 }
 
@@ -527,6 +545,7 @@ export const useFilteredRwaAssets = ({
 	selectedSelfCustodyStates,
 	includeStablecoins,
 	includeGovernance,
+	includeRwaPerps,
 	minDefiActiveTvlToOnChainMcapPct,
 	maxDefiActiveTvlToOnChainMcapPct,
 	minActiveMcapToOnChainMcapPct,
@@ -554,6 +573,7 @@ export const useFilteredRwaAssets = ({
 	selectedSelfCustodyStates: RWAAttributeFilterState[]
 	includeStablecoins: boolean
 	includeGovernance: boolean
+	includeRwaPerps: boolean
 	minDefiActiveTvlToOnChainMcapPct: number | null
 	maxDefiActiveTvlToOnChainMcapPct: number | null
 	minActiveMcapToOnChainMcapPct: number | null
@@ -569,6 +589,7 @@ export const useFilteredRwaAssets = ({
 		let totalOnChainMcap = 0
 		let totalActiveMcap = 0
 		let totalOnChainDeFiActiveTvl = 0
+		let totalOpenInterest = 0
 		const totalIssuersSet = new Set<string>()
 
 		// In platform mode, allow selecting "None" to show no assets.
@@ -578,6 +599,7 @@ export const useFilteredRwaAssets = ({
 				totalOnChainMcap,
 				totalActiveMcap,
 				totalOnChainDeFiActiveTvl,
+				totalOpenInterest,
 				totalIssuersCount: totalIssuersSet.size
 			}
 
@@ -614,6 +636,9 @@ export const useFilteredRwaAssets = ({
 				continue
 			}
 			if (!includeGovernance && asset.governance) {
+				continue
+			}
+			if (!includeRwaPerps && asset.kind === 'perps') {
 				continue
 			}
 			if (
@@ -683,6 +708,7 @@ export const useFilteredRwaAssets = ({
 				totalOnChainMcap += onChainMcap
 				totalActiveMcap += activeMcap
 				totalOnChainDeFiActiveTvl += defiActiveTvl
+				totalOpenInterest += asset.openInterest ?? 0
 				if (asset.issuer) {
 					totalIssuersSet.add(asset.issuer)
 				}
@@ -694,6 +720,7 @@ export const useFilteredRwaAssets = ({
 			totalOnChainMcap,
 			totalActiveMcap,
 			totalOnChainDeFiActiveTvl,
+			totalOpenInterest,
 			totalIssuersCount: totalIssuersSet.size
 		}
 	}, [
@@ -717,6 +744,7 @@ export const useFilteredRwaAssets = ({
 		selectedSelfCustodyStates,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		minDefiActiveTvlToOnChainMcapPct,
 		maxDefiActiveTvlToOnChainMcapPct,
 		minActiveMcapToOnChainMcapPct,
@@ -751,15 +779,14 @@ export function useRWAAssetCategoryPieChartData({
 		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const { value: category, weight } of computeWeightedGroups(asset.category)) {
-				if (!category || !selectedCategoriesSet.has(category)) continue
+			const primaryCategory = getPrimaryRwaCategory(asset.category)
+			if (!primaryCategory || !selectedCategoriesSet.has(primaryCategory)) continue
 
-				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				prev.onChain += (asset.onChainMcap?.total ?? 0) * weight
-				prev.active += (asset.activeMcap?.total ?? 0) * weight
-				prev.defi += (asset.defiActiveTvl?.total ?? 0) * weight
-				categoryTotals.set(category, prev)
-			}
+			const prev = categoryTotals.get(primaryCategory) ?? { onChain: 0, active: 0, defi: 0 }
+			prev.onChain += asset.onChainMcap?.total ?? 0
+			prev.active += asset.activeMcap?.total ?? 0
+			prev.defi += asset.defiActiveTvl?.total ?? 0
+			categoryTotals.set(primaryCategory, prev)
 		}
 
 		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
@@ -1208,7 +1235,8 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 	'minDefiActiveTvlToActiveMcapPct',
 	'maxDefiActiveTvlToActiveMcapPct',
 	'includeStablecoins',
-	'includeGovernance'
+	'includeGovernance',
+	'includeRwaPerps'
 ])
 
 export function hasActiveChartFilters(
@@ -1227,25 +1255,32 @@ export function hasActiveChartFilters(
 			if (hasActiveInclusionOverride(query.includeGovernance, defaultInclusion.includeGovernance)) return true
 			continue
 		}
+		if (key === 'includeRwaPerps') {
+			continue
+		}
 		if (key in query) return true
 	}
 	return false
 }
 
-export function getRwaTickerChartQueryKey(
-	target: RWATickerChartTarget,
+export function getRwaAssetChartQueryKey(
+	target: RWAAssetChartTarget,
 	selectedMetric: RWAChartMetricKey,
 	includeStablecoins: boolean,
 	includeGovernance: boolean
 ) {
 	return [
-		'rwa-ticker-chart',
+		'rwa-asset-chart',
 		target.kind,
 		target.kind === 'all' ? 'all' : target.slug,
 		selectedMetric,
 		includeStablecoins,
 		includeGovernance
 	] as const
+}
+
+export function getRwaOpenInterestChartQueryKey() {
+	return ['rwa-perps-open-interest-chart'] as const
 }
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -1258,9 +1293,9 @@ function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
 }
 
-async function fetchRwaTickerChartData(params: {
+async function fetchRwaAssetChartData(params: {
 	key: RWAChartMetricKey
-	target: RWATickerChartTarget
+	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
 }): Promise<IRWAChartMetricRows> {
@@ -1287,26 +1322,34 @@ async function fetchRwaTickerChartData(params: {
 			assertNever(params.target)
 	}
 
-	return fetchJson<IRWAChartMetricRows>(`/api/rwa/ticker-breakdown?${searchParams.toString()}`)
+	return fetchJson<IRWAChartMetricRows>(`/api/rwa/asset-breakdown?${searchParams.toString()}`)
+}
+
+async function fetchRwaOpenInterestChartData(): Promise<RWAChartDataset> {
+	return fetchJson<RWAChartDataset>('/api/rwa/perps/contract-breakdown?key=openInterest')
 }
 
 export function useRwaChartDataset({
 	selectedMetric,
 	initialDataset,
+	initialOpenInterestDataset,
 	filteredAssets,
 	mode,
 	target,
 	includeStablecoins,
 	includeGovernance,
+	includeRwaPerps,
 	useInitialDataset
 }: {
 	selectedMetric: RWAChartMetricKey
 	initialDataset: RWAChartDataset
+	initialOpenInterestDataset: RWAChartDataset | null
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
-	target: RWATickerChartTarget
+	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
+	includeRwaPerps: boolean
 	useInitialDataset: boolean
 }): {
 	chartDataset: RWAChartDataset
@@ -1314,13 +1357,13 @@ export function useRwaChartDataset({
 	chartError: string | null
 } {
 	const {
-		data: tickerRows,
+		data: assetRows,
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: getRwaTickerChartQueryKey(target, selectedMetric, includeStablecoins, includeGovernance),
+		queryKey: getRwaAssetChartQueryKey(target, selectedMetric, includeStablecoins, includeGovernance),
 		queryFn: () =>
-			fetchRwaTickerChartData({
+			fetchRwaAssetChartData({
 				key: selectedMetric,
 				target,
 				includeStablecoins,
@@ -1329,20 +1372,62 @@ export function useRwaChartDataset({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: !useInitialDataset
+		enabled: !useInitialDataset && filteredAssets.some((asset) => asset.kind === 'spot')
+	})
+	const {
+		data: openInterestRows,
+		isLoading: isOpenInterestLoading,
+		error: openInterestError
+	} = useQuery({
+		queryKey: getRwaOpenInterestChartQueryKey(),
+		queryFn: () => fetchRwaOpenInterestChartData(),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !useInitialDataset && includeRwaPerps && filteredAssets.some((asset) => asset.kind === 'perps')
 	})
 
 	assert(initialDataset.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 
 	const chartDataset = useMemo(() => {
-		if (useInitialDataset) return initialDataset
-		if (!tickerRows) return emptyChartDataset()
-		return aggregateRwaMetricData(filteredAssets, tickerRows, mode)
-	}, [useInitialDataset, initialDataset, tickerRows, filteredAssets, mode])
+		const spotDataset = (() => {
+			if (useInitialDataset) {
+				const dataset =
+					mode === 'total'
+						? selectRwaChartDatasetSeries(initialDataset, ['Total'])
+						: appendRwaChartDatasetTotal(initialDataset)
+				return renameRwaChartDatasetTotal(dataset, selectedMetric)
+			}
+			if (!assetRows) return emptyChartDataset()
+			const dataset = aggregateRwaMetricData(filteredAssets, assetRows, mode)
+			const datasetWithTotal = mode === 'total' ? dataset : appendRwaChartDatasetTotal(dataset)
+			return renameRwaChartDatasetTotal(datasetWithTotal, selectedMetric)
+		})()
+
+		if (!includeRwaPerps) return spotDataset
+
+		const openInterestDataset = useInitialDataset
+			? (initialOpenInterestDataset ?? emptyChartDataset())
+			: openInterestRows
+				? buildRwaOpenInterestDataset(filteredAssets, openInterestRows)
+				: emptyChartDataset()
+
+		return mergeRwaChartDatasets(spotDataset, openInterestDataset)
+	}, [
+		useInitialDataset,
+		initialDataset,
+		initialOpenInterestDataset,
+		assetRows,
+		openInterestRows,
+		filteredAssets,
+		mode,
+		selectedMetric,
+		includeRwaPerps
+	])
 
 	return {
 		chartDataset,
-		isChartLoading: !useInitialDataset && isLoading,
-		chartError: error ? getErrorMessage(error) : null
+		isChartLoading: !useInitialDataset && (isLoading || isOpenInterestLoading),
+		chartError: error ? getErrorMessage(error) : openInterestError ? getErrorMessage(openInterestError) : null
 	}
 }

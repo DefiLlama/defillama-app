@@ -220,6 +220,31 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
+				source: '/total-borrowed',
+				destination: '/active-loans',
+				permanent: true
+			},
+			{
+				source: '/total-borrowed/chain/:chain',
+				destination: '/active-loans/chain/:chain',
+				permanent: true
+			},
+			{
+				source: '/protocol/borrowed/:protocol',
+				destination: '/protocol/active-loans/:protocol',
+				permanent: true
+			},
+			{
+				source: '/borrowed',
+				destination: '/active-loans',
+				permanent: true
+			},
+			{
+				source: '/borrowed/chain/:chain',
+				destination: '/active-loans/chain/:chain',
+				permanent: true
+			},
+			{
 				source: '/chain',
 				destination: '/chains',
 				permanent: true
@@ -618,6 +643,14 @@ const nextConfig: NextConfig = {
 	},
 	headers() {
 		return [
+			{
+				source: '/.well-known/apple-app-site-association',
+				headers: [{ key: 'Content-Type', value: 'application/json' }]
+			},
+			{
+				source: '/.well-known/assetlinks.json',
+				headers: [{ key: 'Content-Type', value: 'application/json' }]
+			},
 			{
 				source: '/chart/:slug*', // Matches all /chart pages
 				headers: [

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useContext } from 'react'
 import { ProxyAuthTokenContext, StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { fetchTokenUsageViaProxy } from '~/containers/ProDashboard/services/fetchViaProxy'
-import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
+import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 
 export interface TokenUsageData {
 	name: string
@@ -36,7 +36,7 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 				const promises = tokenSymbols.map(async (symbol) => {
 					const data = authToken
 						? await fetchTokenUsageViaProxy(symbol, authToken)
-						: await fetchProtocolsByToken(symbol)
+						: await fetchProtocolsByTokenClient(symbol)
 					return { symbol, data }
 				})
 

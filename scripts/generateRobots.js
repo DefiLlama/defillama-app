@@ -15,6 +15,7 @@ Allow: /
 Sitemap: ${normalizedSiteUrl}/sitemap.xml
 `
 	: `User-agent: *
+Allow: /.well-known/
 Disallow: /
 `
 

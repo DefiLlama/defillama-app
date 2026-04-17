@@ -1,5 +1,7 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
@@ -57,7 +59,32 @@ export const TOOL_LABELS: Record<string, string> = {
 	apollo_org_enrich: 'Enriching org data',
 	clado_linkedin_scrape: 'Scraping LinkedIn profile',
 	clado_contacts_enrich: 'Enriching contact data',
-	feed_enrichment: 'Enriching feed data'
+	feed_enrichment: 'Enriching feed data',
+	generate_dashboard: 'Generating dashboard',
+	dashboard_generation_history: 'Loading dashboard history',
+	load_dashboard: 'Loading dashboard',
+	fetch_ohlcv: 'Fetching price data',
+	fetch_exchange_data: 'Fetching exchange data',
+	get_balance_history: 'Fetching balance history',
+	read_result: 'Reading result',
+	list_results: 'Listing results',
+	x_get_article: 'Reading X article',
+	nansen_smart_money_holdings: 'Fetching smart money holdings',
+	nansen_smart_money_trades: 'Fetching smart money trades',
+	nansen_smart_money_netflow: 'Fetching smart money netflow',
+	nansen_token_screener: 'Screening tokens',
+	nansen_token_holders: 'Fetching token holders',
+	nansen_who_bought_sold: 'Fetching buy/sell data',
+	nansen_flow_intelligence: 'Fetching flow intelligence',
+	nansen_token_trades: 'Fetching token trades',
+	nansen_token_flows: 'Fetching token flows',
+	nansen_pnl_leaderboard: 'Fetching PnL leaderboard',
+	nansen_pm_event_screener: 'Screening prediction events',
+	nansen_pm_market_screener: 'Screening prediction markets',
+	nansen_pm_top_holders: 'Fetching top holders',
+	nansen_pm_trades: 'Fetching market trades',
+	nansen_pm_pnl: 'Fetching market PnL',
+	nansen_pm_ohlcv: 'Fetching market OHLCV'
 }
 
 export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
@@ -114,7 +141,74 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	apollo_org_enrich: { icon: 'search', color: '#a78bfa' },
 	clado_linkedin_scrape: { icon: 'users', color: '#0077b5' },
 	clado_contacts_enrich: { icon: 'users', color: '#0077b5' },
-	feed_enrichment: { icon: 'layers', color: '#8b5cf6' }
+	feed_enrichment: { icon: 'layers', color: '#8b5cf6' },
+	generate_dashboard: { icon: 'layout-grid', color: '#2563eb' },
+	dashboard_generation_history: { icon: 'layout-grid', color: '#6366f1' },
+	load_dashboard: { icon: 'layout-grid', color: '#6366f1' },
+	fetch_ohlcv: { icon: 'bar-chart-2', color: '#f59e0b' },
+	fetch_exchange_data: { icon: 'bar-chart-2', color: '#f97316' },
+	get_balance_history: { icon: 'wallet', color: '#f97316' },
+	read_result: { icon: 'file-text', color: '#94a3b8' },
+	list_results: { icon: 'file-text', color: '#94a3b8' },
+	x_get_article: { icon: 'twitter', color: '#94a3b8' },
+	nansen_smart_money_holdings: { icon: 'trending-up', color: '#2563eb' },
+	nansen_smart_money_trades: { icon: 'trending-up', color: '#2563eb' },
+	nansen_smart_money_netflow: { icon: 'trending-up', color: '#2563eb' },
+	nansen_token_screener: { icon: 'search', color: '#2563eb' },
+	nansen_token_holders: { icon: 'users', color: '#2563eb' },
+	nansen_who_bought_sold: { icon: 'repeat', color: '#2563eb' },
+	nansen_flow_intelligence: { icon: 'activity', color: '#2563eb' },
+	nansen_token_trades: { icon: 'repeat', color: '#2563eb' },
+	nansen_token_flows: { icon: 'activity', color: '#2563eb' },
+	nansen_pnl_leaderboard: { icon: 'trending-up', color: '#2563eb' },
+	nansen_pm_event_screener: { icon: 'activity', color: '#ec4899' },
+	nansen_pm_market_screener: { icon: 'search', color: '#ec4899' },
+	nansen_pm_top_holders: { icon: 'users', color: '#ec4899' },
+	nansen_pm_trades: { icon: 'repeat', color: '#ec4899' },
+	nansen_pm_pnl: { icon: 'trending-up', color: '#ec4899' },
+	nansen_pm_ohlcv: { icon: 'bar-chart-2', color: '#ec4899' }
+}
+
+let currentSecondSnapshot = Math.floor(Date.now() / 1000)
+const currentSecondListeners = new Set<() => void>()
+let currentSecondIntervalId: number | null = null
+
+function notifyCurrentSecondListeners() {
+	for (const listener of currentSecondListeners) {
+		listener()
+	}
+}
+
+function syncCurrentSecondSnapshot() {
+	const nextSecond = Math.floor(Date.now() / 1000)
+	if (nextSecond === currentSecondSnapshot) return
+	currentSecondSnapshot = nextSecond
+	notifyCurrentSecondListeners()
+}
+
+function subscribeToCurrentSecond(listener: () => void) {
+	currentSecondListeners.add(listener)
+	syncCurrentSecondSnapshot()
+
+	if (currentSecondIntervalId === null && typeof window !== 'undefined') {
+		currentSecondIntervalId = window.setInterval(syncCurrentSecondSnapshot, 1000)
+	}
+
+	return () => {
+		currentSecondListeners.delete(listener)
+		if (currentSecondListeners.size === 0 && currentSecondIntervalId !== null) {
+			window.clearInterval(currentSecondIntervalId)
+			currentSecondIntervalId = null
+		}
+	}
+}
+
+function useCurrentSecond() {
+	return useSyncExternalStore(
+		subscribeToCurrentSecond,
+		() => currentSecondSnapshot,
+		() => currentSecondSnapshot
+	)
 }
 
 function formatTime(seconds: number) {
@@ -125,14 +219,7 @@ function formatTime(seconds: number) {
 
 export function useHackerMode() {
 	const [isDark] = useDarkModeManager()
-	const [enabled, setEnabled] = useState(() =>
-		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
-	)
-	useEffect(() => {
-		const handler = () => setEnabled(localStorage.getItem('llamaai-hacker-mode') === 'true')
-		window.addEventListener('llamaai-hacker-mode-changed', handler)
-		return () => window.removeEventListener('llamaai-hacker-mode-changed', handler)
-	}, [])
+	const enabled = useLlamaAISetting('hackerMode')
 	return enabled && isDark
 }
 
@@ -197,8 +284,8 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 				onScroll={syncAutoScrollIntent}
 				className={
 					hackerMode
-						? 'mt-1 max-h-[160px] overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
-						: 'mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
+						? 'mt-1 h-[160px] min-h-[40px] resize-y overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
+						: 'mt-1 h-[120px] min-h-[40px] resize-y overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
 				}
 				style={hackerMode ? { textShadow: '0 0 8px rgba(0,255,65,0.4)' } : undefined}
 			>
@@ -209,17 +296,10 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 }
 
 function ElapsedTimeLabel({ startedAt: serverStartedAt }: { startedAt?: number }) {
-	const [elapsed, setElapsed] = useState(0)
-
-	useEffect(() => {
-		const start = serverStartedAt || Date.now()
-		setElapsed(Math.floor((Date.now() - start) / 1000))
-		const interval = setInterval(() => {
-			setElapsed(Math.floor((Date.now() - start) / 1000))
-		}, 1000)
-
-		return () => clearInterval(interval)
-	}, [serverStartedAt])
+	const currentSecond = useCurrentSecond()
+	const [fallbackStartSecond] = useState(() => Math.floor(Date.now() / 1000))
+	const startSecond = serverStartedAt ? Math.floor(serverStartedAt / 1000) : fallbackStartSecond
+	const elapsed = Math.max(0, currentSecond - startSecond)
 
 	return <span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 }
@@ -347,23 +427,19 @@ export function ToolProgressIndicator({
 export const SpawnProgressCard = memo(function SpawnProgressCard({
 	agents,
 	startTime,
-	isResearchMode
+	isResearchMode,
+	recovery,
+	onReconnect
 }: {
 	agents: Map<string, SpawnAgentStatus>
 	startTime: number
 	isResearchMode?: boolean
+	recovery?: RecoveryState
+	onReconnect?: () => void
 }) {
-	const [elapsed, setElapsed] = useState(() => (startTime ? Math.floor((Date.now() - startTime) / 1000) : 0))
+	const currentSecond = useCurrentSecond()
+	const elapsed = startTime ? Math.max(0, currentSecond - Math.floor(startTime / 1000)) : 0
 	const [isExpanded, setIsExpanded] = useState(true)
-
-	useEffect(() => {
-		if (!startTime) return
-		setElapsed(Math.floor((Date.now() - startTime) / 1000))
-		const interval = setInterval(() => {
-			setElapsed(Math.floor((Date.now() - startTime) / 1000))
-		}, 1000)
-		return () => clearInterval(interval)
-	}, [startTime])
 
 	const agentList = useMemo(() => [...agents.values()], [agents])
 	const completed = agentList.filter((agent) => agent.status === 'completed').length
@@ -471,6 +547,37 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 						</li>
 					))}
 				</ul>
+			) : null}
+
+			{recovery?.status === 'reconnecting' ? (
+				<div className="flex items-center gap-2 border-t border-amber-200 pt-2 dark:border-amber-900/50">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						className="shrink-0 animate-spin text-amber-500"
+					>
+						<path d="M21 12a9 9 0 1 1-6.219-8.56" />
+					</svg>
+					<p className="m-0 flex-1 text-xs text-amber-700 dark:text-amber-300">
+						Connection lost. Reconnecting{recovery.attemptCount > 0 ? ` (attempt ${recovery.attemptCount})` : ''}...
+					</p>
+					{onReconnect ? (
+						<button
+							type="button"
+							onClick={onReconnect}
+							className="shrink-0 rounded-md bg-amber-200 px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700"
+						>
+							Reconnect now
+						</button>
+					) : null}
+				</div>
 			) : null}
 		</section>
 	)

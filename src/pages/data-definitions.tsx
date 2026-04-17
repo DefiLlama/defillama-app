@@ -215,16 +215,19 @@ export default function DataDefinitions() {
 				</p>
 			</Definition>
 
-			<Definition header="Total Borrowed (Borrowed)" id="total-borrowed">
-				<p>
-					<BasicLink className="text-(--blue) hover:underline" href="/total-borrowed">
-						Total funds borrowed
-					</BasicLink>{' '}
-					from DeFi lending protocols. Borrowed funds can also be thought of as total loans issued by a lending
-					protocol. Borrowed is excluded from TVL by default to account for looping strategies which can artificially
-					inflate TVL.
-				</p>
-			</Definition>
+			<div className="contents">
+				<span id="total-borrowed" aria-hidden="true" className="block h-0 overflow-hidden" />
+				<Definition header="Active Loans" id="active-loans">
+					<p>
+						<BasicLink className="text-(--blue) hover:underline" href="/active-loans">
+							Active loans
+						</BasicLink>{' '}
+						from DeFi lending protocols. Active loans can also be thought of as total loans issued by a lending
+						protocol. Active loans are excluded from TVL by default to account for looping strategies which can
+						artificially inflate TVL.
+					</p>
+				</Definition>
+			</div>
 
 			<Definition header="Stablecoins Market Cap" id="stablecoins-market-cap">
 				<p>The total market cap of all stablecoins on a chain.</p>

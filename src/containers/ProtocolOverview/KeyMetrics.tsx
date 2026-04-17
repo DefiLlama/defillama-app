@@ -1,8 +1,7 @@
 import dayjs from 'dayjs'
 import { useMemo, useRef, useState } from 'react'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { Icon } from '~/components/Icon'
-import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
+import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum } from '~/utils'
@@ -27,6 +26,7 @@ type KeyMetricsOptionalFields = Partial<
 		| 'tokenLiquidity'
 		| 'outstandingFDV'
 		| 'dexVolume'
+		| 'dexNotionalVolume'
 		| 'dexAggregatorVolume'
 		| 'perpVolume'
 		| 'perpAggregatorVolume'
@@ -56,6 +56,7 @@ export interface IKeyMetricsProps extends KeyMetricsRequiredFields, KeyMetricsOp
 
 type AdapterOverviewKey =
 	| 'dexVolume'
+	| 'dexNotionalVolume'
 	| 'dexAggregatorVolume'
 	| 'perpVolume'
 	| 'perpAggregatorVolume'
@@ -72,6 +73,12 @@ interface StandardMetricConfig {
 
 const STANDARD_METRICS: StandardMetricConfig[] = [
 	{ dataProp: 'dexVolume', definitionKey: 'dexs', label: 'DEX Volume', dataType: 'DEX Volume' },
+	{
+		dataProp: 'dexNotionalVolume',
+		definitionKey: 'dexsNotional',
+		label: 'DEX Notional Volume',
+		dataType: 'DEX Notional Volume'
+	},
 	{
 		dataProp: 'dexAggregatorVolume',
 		definitionKey: 'dexAggregators',
@@ -107,8 +114,24 @@ const STANDARD_METRICS: StandardMetricConfig[] = [
 
 const ANNUALIZATION_FACTOR = 12.2
 
+interface VolumeMetric {
+	name: string
+	tooltipContent?: string
+	value: number
+	chainBreakdown?: Record<string, number> | null
+}
+
 function buildStandardVolumeMetrics(
-	data: { total30d?: number | null; total7d?: number | null; total24h?: number | null; totalAllTime?: number | null },
+	data: {
+		total30d?: number | null
+		total7d?: number | null
+		total24h?: number | null
+		totalAllTime?: number | null
+		chainBreakdown?: Record<
+			string,
+			{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
+		> | null
+	},
 	definitionKey: string,
 	label: string
 ) {
@@ -117,22 +140,63 @@ function buildStandardVolumeMetrics(
 		typeof entry === 'object' && entry !== null && 'protocol' in entry
 			? (entry as { protocol: Record<string, string> }).protocol
 			: undefined
-	const metrics = []
+	const cb = data.chainBreakdown
+	const metrics: VolumeMetric[] = []
 
 	if (data.total30d != null) {
-		metrics.push({ name: `${label} 30d`, tooltipContent: defs?.['30d'], value: data.total30d })
+		metrics.push({
+			name: `${label} 30d`,
+			tooltipContent: defs?.['30d'],
+			value: data.total30d,
+			chainBreakdown: cb ? extractChainValues(cb, 'total30d') : null
+		})
 	}
 	if (data.total7d != null) {
-		metrics.push({ name: `${label} 7d`, tooltipContent: defs?.['7d'], value: data.total7d })
+		metrics.push({
+			name: `${label} 7d`,
+			tooltipContent: defs?.['7d'],
+			value: data.total7d,
+			chainBreakdown: cb ? extractChainValues(cb, 'total7d') : null
+		})
 	}
 	if (data.total24h != null) {
-		metrics.push({ name: `${label} 24h`, tooltipContent: defs?.['24h'], value: data.total24h })
+		metrics.push({
+			name: `${label} 24h`,
+			tooltipContent: defs?.['24h'],
+			value: data.total24h,
+			chainBreakdown: cb ? extractChainValues(cb, 'total24h') : null
+		})
 	}
 	if (data.totalAllTime != null) {
-		metrics.push({ name: `Cumulative ${label}`, tooltipContent: defs?.['cumulative'], value: data.totalAllTime })
+		metrics.push({
+			name: `Cumulative ${label}`,
+			tooltipContent: defs?.['cumulative'],
+			value: data.totalAllTime,
+			chainBreakdown: cb ? extractChainValues(cb, 'totalAllTime') : null
+		})
 	}
 
 	return metrics
+}
+
+function extractChainValues(
+	cb: Record<
+		string,
+		{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
+	>,
+	key: 'total24h' | 'total7d' | 'total30d' | 'totalAllTime'
+): Record<string, number> | null {
+	const sortedEntries: Array<[string, number]> = []
+	for (const chain in cb) {
+		const value = cb[chain][key]
+		if (value != null) {
+			sortedEntries.push([chain, value])
+		}
+	}
+
+	sortedEntries.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+
+	return sortedEntries.length > 0 ? Object.fromEntries(sortedEntries) : null
 }
 
 export const KeyMetrics = (props: IKeyMetricsProps) => {
@@ -204,7 +268,10 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 							{
 								name: 'Open Interest',
 								tooltipContent: definitions.openInterest.protocol,
-								value: props.openInterest.total24h
+								value: props.openInterest.total24h,
+								chainBreakdown: props.openInterest.chainBreakdown
+									? extractChainValues(props.openInterest.chainBreakdown, 'total24h')
+									: null
 							}
 						]}
 						protocolName={props.name}
@@ -236,7 +303,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					/>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<MetricRow label="Borrowed" value={props.formatPrice(props.currentTvlByChain.borrowed)} />
+					<MetricRow label="Active Loans" value={props.formatPrice(props.currentTvlByChain.borrowed)} />
 				) : null}
 				<TokenLiquidity {...props} />
 				<Treasury {...props} />
@@ -307,14 +374,21 @@ interface MetricConfig {
 	emissionsAllTime?: number | null
 }
 
+type ChainBreakdownMap = Record<
+	string,
+	{ total24h: number | null; total7d: number | null; total30d: number | null; totalAllTime: number | null }
+> | null
+
 const buildMetrics = (
 	data: MetricConfig,
 	defs: MetricDefinition,
 	label: string,
-	isIncentives = false
-): Array<{ name: string; tooltipContent?: string; value: number }> => {
-	const metrics = []
+	isIncentives = false,
+	chainBreakdown?: ChainBreakdownMap
+): VolumeMetric[] => {
+	const metrics: VolumeMetric[] = []
 	const prefix = isIncentives ? 'Incentives' : label
+	const cb = chainBreakdown ?? null
 
 	if (isIncentives) {
 		if (data.emissions30d != null) {
@@ -341,16 +415,36 @@ const buildMetrics = (
 				tooltipContent: defs?.annualized,
 				value: data.total30d * ANNUALIZATION_FACTOR
 			})
-			metrics.push({ name: `${label} 30d`, tooltipContent: defs?.['30d'], value: data.total30d })
+			metrics.push({
+				name: `${label} 30d`,
+				tooltipContent: defs?.['30d'],
+				value: data.total30d,
+				chainBreakdown: cb ? extractChainValues(cb, 'total30d') : null
+			})
 		}
 		if (data.total7d != null) {
-			metrics.push({ name: `${label} 7d`, tooltipContent: defs?.['7d'], value: data.total7d })
+			metrics.push({
+				name: `${label} 7d`,
+				tooltipContent: defs?.['7d'],
+				value: data.total7d,
+				chainBreakdown: cb ? extractChainValues(cb, 'total7d') : null
+			})
 		}
 		if (data.total24h != null) {
-			metrics.push({ name: `${label} 24h`, tooltipContent: defs?.['24h'], value: data.total24h })
+			metrics.push({
+				name: `${label} 24h`,
+				tooltipContent: defs?.['24h'],
+				value: data.total24h,
+				chainBreakdown: cb ? extractChainValues(cb, 'total24h') : null
+			})
 		}
 		if (data.totalAllTime != null) {
-			metrics.push({ name: `Cumulative ${label}`, tooltipContent: defs?.cumulative, value: data.totalAllTime })
+			metrics.push({
+				name: `Cumulative ${label}`,
+				tooltipContent: defs?.cumulative,
+				value: data.totalAllTime,
+				chainBreakdown: cb ? extractChainValues(cb, 'totalAllTime') : null
+			})
 		}
 	}
 
@@ -363,7 +457,7 @@ function Fees(props: IKeyMetricsProps) {
 	const adjusted = getAdjustedTotals(props.fees, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 	if (!adjusted) return null
 
-	const metrics = buildMetrics(adjusted, definitions.fees.protocol, 'Fees')
+	const metrics = buildMetrics(adjusted, definitions.fees.protocol, 'Fees', false, props.fees?.chainBreakdown)
 	if (metrics.length === 0) return null
 
 	return (
@@ -384,7 +478,7 @@ function Revenue(props: IKeyMetricsProps) {
 	const adjusted = getAdjustedTotals(props.revenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 	if (!adjusted) return null
 
-	const metrics = buildMetrics(adjusted, definitions.revenue.protocol, 'Revenue')
+	const metrics = buildMetrics(adjusted, definitions.revenue.protocol, 'Revenue', false, props.revenue?.chainBreakdown)
 	if (metrics.length === 0) return null
 
 	return (
@@ -405,7 +499,13 @@ function HoldersRevenue(props: IKeyMetricsProps) {
 	const adjusted = getAdjustedTotals(props.holdersRevenue, props.bribeRevenue, props.tokenTax, extraTvlsEnabled)
 	if (!adjusted) return null
 
-	const metrics = buildMetrics(adjusted, definitions.holdersRevenue.protocol, 'Holders Revenue')
+	const metrics = buildMetrics(
+		adjusted,
+		definitions.holdersRevenue.protocol,
+		'Holders Revenue',
+		false,
+		props.holdersRevenue?.chainBreakdown
+	)
 	if (metrics.length === 0) return null
 
 	return (
@@ -574,6 +674,7 @@ const SmolStats = ({
 		name: string
 		tooltipContent?: string | null
 		value: string | number
+		chainBreakdown?: Record<string, number> | null
 	}>
 	protocolName: string
 	category: string
@@ -585,7 +686,7 @@ const SmolStats = ({
 
 	if (data.length === 0) return null
 
-	if (data.length === 1) {
+	if (data.length === 1 && !data[0].chainBreakdown) {
 		return (
 			<MetricRow
 				label={data[0].name}
@@ -602,16 +703,76 @@ const SmolStats = ({
 			value={formatPrice(data[0].value)}
 			defaultOpen={openSmolStatsSummaryByDefault}
 		>
+			{data[0].chainBreakdown ? (
+				<SubMetricSection key={`${data[0].name}-chains-${protocolName}`} label={`${data[0].name} by chain`}>
+					{renderChainRows({
+						chains: data[0].chainBreakdown,
+						protocolName,
+						formatPrice,
+						keySuffix: data[0].name
+					})}
+				</SubMetricSection>
+			) : null}
 			{restOfData.map((metric) => (
-				<SubMetricRow
+				<ChainBreakdownMetricRow
 					key={`${metric.name}-${metric.value}-${protocolName}`}
-					label={metric.name}
-					tooltip={metric.tooltipContent ?? undefined}
-					value={formatPrice(metric.value)}
+					metric={metric}
+					protocolName={protocolName}
+					formatPrice={formatPrice}
 				/>
 			))}
 		</MetricSection>
 	)
+}
+
+function ChainBreakdownMetricRow({
+	metric,
+	protocolName,
+	formatPrice
+}: {
+	metric: {
+		name: string
+		tooltipContent?: string | null
+		value: string | number
+		chainBreakdown?: Record<string, number> | null
+	}
+	protocolName: string
+	formatPrice: (value: number | string | null) => string | number | null
+}) {
+	if (!metric.chainBreakdown) {
+		return (
+			<SubMetricRow
+				label={metric.name}
+				tooltip={metric.tooltipContent ?? undefined}
+				value={formatPrice(metric.value)}
+			/>
+		)
+	}
+	return (
+		<SubMetricSection label={metric.name} value={formatPrice(metric.value)}>
+			{renderChainRows({ chains: metric.chainBreakdown, protocolName, formatPrice, keySuffix: metric.name })}
+		</SubMetricSection>
+	)
+}
+
+function renderChainRows({
+	chains,
+	protocolName,
+	formatPrice,
+	keySuffix
+}: {
+	chains: Record<string, number>
+	protocolName: string
+	formatPrice: (value: number | string | null) => string | number | null
+	keySuffix: string
+}) {
+	const rows = []
+	for (const chain in chains) {
+		rows.push(
+			<SubMetricRow key={`${chain}-${keySuffix}-${protocolName}`} label={chain} value={formatPrice(chains[chain])} />
+		)
+	}
+	return rows
 }
 
 const Treasury = (props: IKeyMetricsProps) => {
@@ -717,12 +878,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				props.tokenCGData.price.ath != null || props.tokenCGData.price.atl != null ? (
 					<MetricSection
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						value={
-							<span className="flex items-center gap-2">
-								<BuyOnLlamaswap chains={props.llamaswapChains} />
-								{props.formatPrice(props.tokenCGData.price.current)}
-							</span>
-						}
+						value={props.formatPrice(props.tokenCGData.price.current)}
 					>
 						<SubMetricRow label="All Time High" value={props.formatPrice(props.tokenCGData.price.ath)} />
 						<SubMetricRow label="All Time Low" value={props.formatPrice(props.tokenCGData.price.atl)} />
@@ -730,12 +886,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				) : (
 					<MetricRow
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						value={
-							<span className="flex items-center gap-2">
-								<BuyOnLlamaswap chains={props.llamaswapChains} />
-								{props.formatPrice(props.tokenCGData.price.current)}
-							</span>
-						}
+						value={props.formatPrice(props.tokenCGData.price.current)}
 					/>
 				)
 			) : null}

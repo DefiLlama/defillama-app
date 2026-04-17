@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { buildTickerBreakdownUrl, parseTickerBreakdownRequest } from '~/pages/api/rwa/ticker-breakdown'
+import {
+	buildAssetBreakdownUrl,
+	normalizeAssetBreakdownRows,
+	parseAssetBreakdownRequest
+} from '~/pages/api/rwa/asset-breakdown'
 
-describe('parseTickerBreakdownRequest', () => {
+describe('parseAssetBreakdownRequest', () => {
 	it('rejects requests when inclusion flags are omitted', () => {
 		expect(
-			parseTickerBreakdownRequest({
+			parseAssetBreakdownRequest({
 				query: {
 					category: 'rwa-yield-wrapper',
 					key: 'activeMcap'
@@ -15,7 +19,7 @@ describe('parseTickerBreakdownRequest', () => {
 
 	it('accepts explicit true and false inclusion flags', () => {
 		expect(
-			parseTickerBreakdownRequest({
+			parseAssetBreakdownRequest({
 				query: {
 					platform: 'ondo',
 					key: 'onChainMcap',
@@ -32,15 +36,29 @@ describe('parseTickerBreakdownRequest', () => {
 	})
 })
 
-describe('buildTickerBreakdownUrl', () => {
-	it('forwards both inclusion flags to the upstream ticker-breakdown endpoint', () => {
+describe('buildAssetBreakdownUrl', () => {
+	it('forwards both inclusion flags to the upstream asset-breakdown endpoint', () => {
 		expect(
-			buildTickerBreakdownUrl({
+			buildAssetBreakdownUrl({
 				target: { kind: 'category', slug: 'rwa-yield-wrapper' },
 				key: 'defiActiveTvl',
 				includeStablecoin: false,
 				includeGovernance: true
 			})
-		).toContain('/chart/category/rwa-yield-wrapper/ticker-breakdown?includeStablecoin=false&includeGovernance=true')
+		).toContain('/chart/category/rwa-yield-wrapper/asset-breakdown?includeStablecoin=false&includeGovernance=true')
+	})
+})
+
+describe('normalizeAssetBreakdownRows', () => {
+	it('normalizes timestamps and sorts rows chronologically for the requested metric', () => {
+		expect(
+			normalizeAssetBreakdownRows([
+				{ timestamp: 2, alpha: 20 },
+				{ timestamp: 1, alpha: 10 }
+			])
+		).toEqual([
+			{ timestamp: 1000, alpha: 10 },
+			{ timestamp: 2000, alpha: 20 }
+		])
 	})
 })

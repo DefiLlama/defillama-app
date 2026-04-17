@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import { CHART_COLORS } from '~/constants/colors'
 import {
 	buildRWAPerpsOverviewChartSeries,
 	getRWAPerpsOverviewChartType,
 	getRWAPerpsOverviewChartTypeQueryPatch,
+	getRWAPerpsOverviewTimeSeriesMode,
+	getRWAPerpsOverviewTimeSeriesModeQueryPatch,
 	resolveRWAPerpsOverviewSelectedStacks
 } from './OverviewChart'
 
@@ -16,6 +19,17 @@ describe('OverviewChart helpers', () => {
 	it('builds the expected chart-type query patch', () => {
 		expect(getRWAPerpsOverviewChartTypeQueryPatch('openInterest')).toEqual({ chartType: undefined })
 		expect(getRWAPerpsOverviewChartTypeQueryPatch('volume24h')).toEqual({ chartType: 'volume24h' })
+	})
+
+	it('falls back to total mode for invalid time-series mode values', () => {
+		expect(getRWAPerpsOverviewTimeSeriesMode(undefined)).toBe('grouped')
+		expect(getRWAPerpsOverviewTimeSeriesMode('invalid')).toBe('grouped')
+		expect(getRWAPerpsOverviewTimeSeriesMode('breakdown')).toBe('breakdown')
+	})
+
+	it('builds the expected time-series-mode query patch', () => {
+		expect(getRWAPerpsOverviewTimeSeriesModeQueryPatch('grouped')).toEqual({ timeSeriesMode: undefined })
+		expect(getRWAPerpsOverviewTimeSeriesModeQueryPatch('breakdown')).toEqual({ timeSeriesMode: 'breakdown' })
 	})
 
 	it('prefers explicit selected stacks over excluded stacks and filters unknown values', () => {
@@ -49,10 +63,96 @@ describe('OverviewChart helpers', () => {
 	it('builds line series without point markers for non-volume metrics', () => {
 		const series = buildRWAPerpsOverviewChartSeries({
 			chartType: 'openInterest',
-			stackOptions: ['Meta']
+			stackOptions: ['Meta'],
+			timeSeriesMode: 'breakdown'
 		})
 
 		expect(series).toMatchObject([{ name: 'Meta', type: 'line' }])
 		expect(series[0]).not.toHaveProperty('showSymbol')
+	})
+
+	it('builds bar series for volume charts', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'volume24h',
+				stackOptions: ['Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toMatchObject([
+			{ name: 'Meta', type: 'bar', stack: 'A' },
+			{ name: 'NVIDIA', type: 'bar', stack: 'A' }
+		])
+	})
+
+	it('builds a total series when the grouped dataset only exposes Total', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'markets',
+				stackOptions: ['Total'],
+				timeSeriesMode: 'grouped'
+			})
+		).toMatchObject([{ name: 'Total', type: 'line' }])
+	})
+
+	it('adds a plain total line ahead of the breakdown color scale for breakdown line charts', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'openInterest',
+				stackOptions: ['Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Meta',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			},
+			{
+				name: 'Total',
+				type: 'line',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0],
+				hideAreaStyle: true
+			}
+		])
+	})
+
+	it('does not add a total overlay to breakdown bar charts', () => {
+		expect(
+			buildRWAPerpsOverviewChartSeries({
+				chartType: 'volume24h',
+				stackOptions: ['Total', 'Meta', 'NVIDIA'],
+				timeSeriesMode: 'breakdown'
+			})
+		).toEqual([
+			{
+				name: 'Total',
+				type: 'bar',
+				stack: 'A',
+				encode: { x: 'timestamp', y: 'Total' },
+				color: CHART_COLORS[0]
+			},
+			{
+				name: 'Meta',
+				type: 'bar',
+				stack: 'A',
+				encode: { x: 'timestamp', y: 'Meta' },
+				color: CHART_COLORS[1]
+			},
+			{
+				name: 'NVIDIA',
+				type: 'bar',
+				stack: 'A',
+				encode: { x: 'timestamp', y: 'NVIDIA' },
+				color: CHART_COLORS[2]
+			}
+		])
 	})
 })

@@ -15,7 +15,7 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 
 const METRIC_LABELS: Record<ExtraTvlMetric, { header: string; headerHelperText: string }> = {
 	borrowed: {
-		header: 'Total Borrowed',
+		header: 'Active Loans',
 		headerHelperText: 'Sum of value currently borrowed across all active loans on a Lending protocol'
 	},
 	staking: {

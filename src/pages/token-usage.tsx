@@ -19,7 +19,9 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
-import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
@@ -40,16 +42,25 @@ const columnHelper = createColumnHelper<TokenUsagePageRow>()
 
 export default function Tokens() {
 	const router = useRouter()
+	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
+	const signInDialogStore = Ariakit.useDialogStore()
+
 	const { token, includecex } = router.query
 
 	const tokenSymbol = token ? (typeof token === 'string' ? token : token[0]) : null
 	const includeCentraliseExchanges = includecex === 'true'
 
-	const { data: protocols, isLoading } = useQuery({
+	const {
+		data: protocols,
+		error,
+		isLoading
+	} = useQuery({
 		queryKey: ['token-usage', 'protocols-by-token', tokenSymbol],
-		queryFn: () => fetchProtocols(tokenSymbol),
+		queryFn: () => fetchProtocols(tokenSymbol, authorizedFetch),
 		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: !!tokenSymbol && isAuthenticated && !!hasActiveSubscription
 	})
 
 	const filteredProtocols = useMemo(() => {
@@ -88,14 +99,42 @@ export default function Tokens() {
 
 			<Search />
 
-			<div className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex w-full flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				{isLoading || !router.isReady ? (
-					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
+					<div className="mx-auto flex min-h-[380px] w-full flex-1 items-center justify-center">
 						<LocalLoader />
 					</div>
-				) : !tokenSymbol || !protocols || protocols.length === 0 ? (
-					<div className="mx-auto flex min-h-[380px] w-full items-center justify-center">
-						<p className="text-center text-sm">{!tokenSymbol ? 'No token selected' : 'No protocols found'}</p>
+				) : error ? (
+					<div className="mx-auto flex min-h-[380px] w-full flex-1 items-center justify-center">
+						<p className="text-center text-sm">{error.message}</p>
+					</div>
+				) : !tokenSymbol ? (
+					<div className="mx-auto flex min-h-[380px] w-full flex-1 items-center justify-center">
+						<p className="text-center text-sm">No token selected</p>
+					</div>
+				) : !isAuthenticated || !hasActiveSubscription ? (
+					<div className="mx-auto flex min-h-[380px] w-full flex-1 items-center justify-center">
+						{!isAuthenticated ? (
+							<p className="text-center text-sm">
+								An{' '}
+								<button onClick={signInDialogStore.show} className="underline">
+									active subscription
+								</button>{' '}
+								is required to view token usage.
+							</p>
+						) : (
+							<p className="text-center text-sm">
+								An{' '}
+								<BasicLink href="/subscription" className="underline">
+									active subscription
+								</BasicLink>{' '}
+								is required to view token usage.
+							</p>
+						)}
+					</div>
+				) : !protocols || protocols.length === 0 ? (
+					<div className="mx-auto flex min-h-[380px] w-full flex-1 items-center justify-center">
+						<p className="text-center text-sm">No protocols found</p>
 					</div>
 				) : (
 					<>
@@ -138,14 +177,18 @@ export default function Tokens() {
 					</>
 				)}
 			</div>
+			<SignInModal store={signInDialogStore} hideWhenAuthenticated={false} />
 		</Layout>
 	)
 }
 
-const fetchProtocols = async (tokenSymbol: string | null): Promise<TokenUsagePageRow[] | null> => {
+const fetchProtocols = async (
+	tokenSymbol: string | null,
+	authorizedFetch: (url: string) => Promise<Response | null>
+): Promise<TokenUsagePageRow[] | null> => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetchProtocolsByToken(tokenSymbol)
+		const data = await fetchProtocolsByTokenClient(tokenSymbol, authorizedFetch)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]
@@ -166,7 +209,7 @@ const columns = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${value}`} />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					{href ? (
 						<BasicLink
 							href={href}

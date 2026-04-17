@@ -1,11 +1,13 @@
 import Router from 'next/router'
-import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefCallback } from 'react'
 import { Icon } from '~/components/Icon'
+import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
+import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/MarkdownExportArtifact'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
 	ThinkingPanel,
@@ -18,6 +20,7 @@ import {
 	type ArtifactRecord,
 	type MessageRenderBlock
 } from '~/containers/LlamaAI/renderModel'
+import type { DashboardArtifact } from '~/containers/LlamaAI/types'
 import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
 import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -278,9 +281,9 @@ function ArtifactBlockRenderer({
 	block,
 	artifact,
 	isStreaming,
-	sessionId
+	sessionId: _sessionId
 }: {
-	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'alert' }>
+	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' }>
 	artifact?: ArtifactRecord
 	isStreaming: boolean
 	sessionId?: string | null
@@ -291,7 +294,7 @@ function ArtifactBlockRenderer({
 			return isStreaming ? <StreamingChartPlaceholder /> : null
 		}
 		if (artifact.type !== 'chart') return null
-		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} sessionId={sessionId} />
+		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} />
 	}
 
 	if (block.type === 'csv') {
@@ -308,6 +311,26 @@ function ArtifactBlockRenderer({
 				}}
 			/>
 		)
+	}
+
+	if (block.type === 'md') {
+		if (!artifact || isStreaming) return null
+		if (artifact.type !== 'md') return null
+		return (
+			<MarkdownExportArtifact
+				mdExport={{
+					id: artifact.id,
+					title: artifact.title,
+					url: artifact.url,
+					filename: artifact.filename
+				}}
+			/>
+		)
+	}
+
+	if (block.type === 'dashboard') {
+		if (!artifact || artifact.type !== 'dashboard') return null
+		return <DashboardInlineCard dashboard={artifact.dashboard} />
 	}
 
 	if (!artifact) {
@@ -334,7 +357,8 @@ function MessageContentBlock({
 	onActionClick,
 	nextUserMessage,
 	hackerMode,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	messageId
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -344,6 +368,7 @@ function MessageContentBlock({
 	nextUserMessage?: string
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
+	messageId?: string
 }) {
 	if (block.type === 'action-group') {
 		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
@@ -357,6 +382,7 @@ function MessageContentBlock({
 				isStreaming={isStreaming}
 				hackerMode={hackerMode}
 				onTableFullscreenOpen={onTableFullscreenOpen}
+				messageId={messageId}
 			/>
 		)
 	}
@@ -389,7 +415,7 @@ function InlineContent({
 	showToolDetails?: boolean
 	onTableFullscreenOpen?: () => void
 }) {
-	const includeFallbackArtifacts = !isStreaming || !message.content?.trim()
+	const includeFallbackArtifacts = !isStreaming
 	const { artifactsById, blocks } = useMemo(
 		() => parseMessageToRenderModel(message, { includeFallbackArtifacts }),
 		[includeFallbackArtifacts, message]
@@ -408,6 +434,7 @@ function InlineContent({
 						nextUserMessage={nextUserMessage}
 						hackerMode={hackerMode}
 						onTableFullscreenOpen={onTableFullscreenOpen}
+						messageId={message.id}
 					/>
 				</div>
 			))}
@@ -644,7 +671,11 @@ export function MessageBubble({
 	isLatestAssistant = false,
 	onActionClick,
 	nextUserMessage,
-	onTableFullscreenOpen
+	onShare,
+	onTableFullscreenOpen,
+	anchorId,
+	anchorRef,
+	anchorClassName
 }: {
 	message: Message
 	sessionId: string | null
@@ -654,14 +685,21 @@ export function MessageBubble({
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	onShare?: (messageId?: string) => void
 	onTableFullscreenOpen?: () => void
+	anchorId?: string
+	anchorRef?: RefCallback<HTMLDivElement>
+	anchorClassName?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const hackerMode = useHackerMode()
-
 	if (message.role === 'user') {
 		return (
-			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]">
+			<div
+				id={anchorId}
+				ref={anchorRef}
+				className={`ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425] ${anchorClassName ?? ''}`}
+			>
 				{message.quotedText ? (
 					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
 						<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
@@ -707,7 +745,7 @@ export function MessageBubble({
 	}
 
 	return (
-		<div className="group/msg">
+		<div id={anchorId} ref={anchorRef} className={`group/msg ${anchorClassName ?? ''}`}>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}
@@ -724,6 +762,7 @@ export function MessageBubble({
 				<ResponseControls
 					messageId={message.id}
 					content={message.content}
+					onShare={onShare}
 					sessionId={sessionId}
 					readOnly={readOnly}
 					messageMetadata={message.messageMetadata}
@@ -731,5 +770,58 @@ export function MessageBubble({
 				/>
 			) : null}
 		</div>
+	)
+}
+
+const KIND_LABELS: Record<string, string> = {
+	chart: 'chart',
+	multi: 'multi-chart',
+	metric: 'metric',
+	builder: 'chart builder',
+	text: 'text',
+	table: 'table',
+	'unified-table': 'table',
+	yields: 'yield chart',
+	stablecoins: 'stablecoin chart',
+	'stablecoin-asset': 'stablecoin chart',
+	'advanced-tvl': 'TVL breakdown',
+	'advanced-borrowed': 'borrowed chart',
+	'income-statement': 'income statement',
+	'unlocks-schedule': 'unlock schedule',
+	'unlocks-pie': 'unlock pie',
+	'llamaai-chart': 'AI chart'
+}
+
+function DashboardInlineCard({ dashboard }: { dashboard: DashboardArtifact }) {
+	const { toggleDashboardPanel, isDashboardPanelOpen } = useLlamaAIChrome()
+	const kindCounts: Record<string, number> = {}
+	for (const item of dashboard.items) {
+		const label = KIND_LABELS[item.kind] || item.kind
+		kindCounts[label] = (kindCounts[label] || 0) + 1
+	}
+	const summary = Object.entries(kindCounts)
+		.map(([label, count]) => `${count} ${label}${count > 1 ? 's' : ''}`)
+		.join(' · ')
+
+	return (
+		<button
+			onClick={toggleDashboardPanel}
+			className="my-2 flex w-full items-center gap-3 rounded-lg border border-[#2172e5]/30 bg-[#2172e5]/5 px-3.5 py-2.5 text-left transition-all hover:border-[#2172e5]/50 hover:bg-[#2172e5]/10"
+		>
+			<Icon name="layout-grid" className="h-4 w-4 shrink-0 text-[#2172e5] dark:text-[#4190f7]" />
+			<div className="min-w-0 flex-1">
+				<div className="flex items-center gap-2">
+					<span className="truncate text-sm font-semibold text-[#2172e5] dark:text-[#4190f7]">
+						{dashboard.dashboardName}
+					</span>
+					<span className="shrink-0 text-xs text-[#636e72] dark:text-[#8a8f98]">{dashboard.items.length} items</span>
+				</div>
+				<div className="truncate text-xs text-[#636e72] dark:text-[#8a8f98]">{summary}</div>
+			</div>
+			<Icon
+				name={isDashboardPanelOpen ? 'chevron-right' : 'chevron-left'}
+				className="h-4 w-4 shrink-0 text-[#636e72] dark:text-[#8a8f98]"
+			/>
+		</button>
 	)
 }

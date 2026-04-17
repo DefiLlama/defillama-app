@@ -205,7 +205,7 @@ interface ExtraTvlMetricConfig {
 type ExtraTvlChartKey = 'borrowed' | 'staking' | 'pool2'
 
 const EXTRA_TVL_CONFIG: Record<ExtraTvlMetric, ExtraTvlMetricConfig> = {
-	borrowed: { chartKey: 'borrowed', suffix: '-borrowed', label: 'Total Borrowed', basePath: '/total-borrowed' },
+	borrowed: { chartKey: 'borrowed', suffix: '-borrowed', label: 'Active Loans', basePath: '/active-loans' },
 	staking: { chartKey: 'staking', suffix: '-staking', label: 'Total Staked', basePath: '/total-staked' },
 	pool2: { chartKey: 'pool2', suffix: '-pool2', label: 'Pool2 TVL', basePath: '/pool2' }
 }

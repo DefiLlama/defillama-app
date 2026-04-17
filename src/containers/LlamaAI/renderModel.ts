@@ -1,4 +1,4 @@
-import type { AlertProposedData, ChartConfiguration, Message } from '~/containers/LlamaAI/types'
+import type { AlertProposedData, ChartConfiguration, DashboardArtifact, Message } from '~/containers/LlamaAI/types'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 export type ChartArtifactRecord = {
@@ -26,7 +26,26 @@ export type AlertArtifactRecord = {
 	savedAlertIds?: string[]
 }
 
-export type ArtifactRecord = ChartArtifactRecord | CsvArtifactRecord | AlertArtifactRecord
+export type MdArtifactRecord = {
+	type: 'md'
+	id: string
+	title: string
+	url: string
+	filename: string
+}
+
+export type DashboardArtifactRecord = {
+	type: 'dashboard'
+	id: string
+	dashboard: DashboardArtifact
+}
+
+export type ArtifactRecord =
+	| ChartArtifactRecord
+	| CsvArtifactRecord
+	| MdArtifactRecord
+	| AlertArtifactRecord
+	| DashboardArtifactRecord
 
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
@@ -35,7 +54,9 @@ export type MessageRenderBlock =
 	| { type: 'sources'; key: string; citations: string[] }
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
+	| { type: 'md'; key: string; artifactId: string }
 	| { type: 'alert'; key: string; artifactId: string }
+	| { type: 'dashboard'; key: string; artifactId: string }
 	| { type: 'action-group'; key: string; actions: Array<{ label: string; message: string }> }
 
 type ParsedRenderModel = {
@@ -69,6 +90,16 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 		})
 	}
 
+	for (const md of message.mdExports ?? []) {
+		artifacts.set(md.id, {
+			type: 'md',
+			id: md.id,
+			title: md.title,
+			url: md.url,
+			filename: md.filename
+		})
+	}
+
 	for (const alert of message.alerts ?? []) {
 		artifacts.set(alert.alertId, {
 			type: 'alert',
@@ -78,6 +109,12 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 			messageId: message.id,
 			savedAlertIds: message.savedAlertIds
 		})
+	}
+
+	if (message.dashboards) {
+		for (const dashboard of message.dashboards) {
+			artifacts.set(dashboard.id, { type: 'dashboard', id: dashboard.id, dashboard })
+		}
 	}
 
 	return artifacts
@@ -163,6 +200,17 @@ export function parseMessageToRenderModel(
 			continue
 		}
 
+		if (part.type === 'md') {
+			if (usedArtifactIds.has(part.mdId)) continue
+			usedArtifactIds.add(part.mdId)
+			blocks.push({
+				type: 'md',
+				key: `md-${part.mdId}-${blocks.length}`,
+				artifactId: part.mdId
+			})
+			continue
+		}
+
 		if (part.type === 'alert') {
 			if (usedArtifactIds.has(part.alertId)) continue
 			usedArtifactIds.add(part.alertId)
@@ -170,6 +218,17 @@ export function parseMessageToRenderModel(
 				type: 'alert',
 				key: `alert-${part.alertId}-${blocks.length}`,
 				artifactId: part.alertId
+			})
+			continue
+		}
+
+		if (part.type === 'dashboard') {
+			if (usedArtifactIds.has(part.dashboardId)) continue
+			usedArtifactIds.add(part.dashboardId)
+			blocks.push({
+				type: 'dashboard',
+				key: `dashboard-${part.dashboardId}-${blocks.length}`,
+				artifactId: part.dashboardId
 			})
 		}
 	}
@@ -205,6 +264,14 @@ export function parseMessageToRenderModel(
 			}
 			if (artifact.type === 'csv') {
 				blocks.push({ type: 'csv', key: `csv-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			if (artifact.type === 'md') {
+				blocks.push({ type: 'md', key: `md-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			if (artifact.type === 'dashboard') {
+				blocks.push({ type: 'dashboard', key: `dashboard-${artifactId}-fallback`, artifactId })
 				continue
 			}
 			blocks.push({ type: 'alert', key: `alert-${artifactId}-fallback`, artifactId })

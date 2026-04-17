@@ -1,12 +1,12 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import type { LandingQuestionsResponse, SuggestedQuestionsResponse } from '~/containers/LlamaAI/types'
 
 /** Query key for suggested questions - use for cache invalidation */
 const SUGGESTED_QUESTIONS_QUERY_KEY = ['suggested-questions'] as const
 
 async function fetchSuggestedQuestions(): Promise<SuggestedQuestionsResponse> {
-	const response = await fetch(`${MCP_SERVER}/suggested-questions`)
+	const response = await fetch(`${AI_SERVER}/suggested-questions`)
 	if (!response.ok) {
 		throw new Error('Failed to fetch suggested questions')
 	}
@@ -26,7 +26,7 @@ export function useSuggestedQuestions(enabled: boolean = true): UseQueryResult<S
 }
 
 async function fetchLandingQuestions(): Promise<LandingQuestionsResponse> {
-	const response = await fetch(`${MCP_SERVER}/suggested-questions/landing`)
+	const response = await fetch(`${AI_SERVER}/suggested-questions/landing`)
 	if (!response.ok) {
 		throw new Error('Failed to fetch landing questions')
 	}

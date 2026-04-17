@@ -1,19 +1,70 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { useMemo, useRef } from 'react'
+import { createElement, useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
 import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
+import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
-const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+export function headingSlug(text: string): string {
+	return text
+		.toLowerCase()
+		.replace(/[^\w\s-]/g, '')
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '')
+}
+
+function createHeadingIdFactory(messageId?: string) {
+	const counts = new Map<string, number>()
+
+	return (text: string) => {
+		const slug = headingSlug(text) || 'section'
+		const baseId = messageId ? `${messageId.slice(0, 8)}-${slug}` : slug
+		const occurrence = counts.get(baseId) ?? 0
+		counts.set(baseId, occurrence + 1)
+		return occurrence === 0 ? baseId : `${baseId}-${occurrence}`
+	}
+}
+
+function extractText(children: ReactNode): string {
+	if (typeof children === 'string') return children
+	if (typeof children === 'number') return String(children)
+	if (Array.isArray(children)) return children.map(extractText).join('')
+	if (children && typeof children === 'object' && 'props' in children) {
+		return extractText((children as any).props.children)
+	}
+	return ''
+}
+
+function HeadingWithId({
+	level,
+	messageId,
+	resolveId,
+	children,
+	...props
+}: {
+	level: number
+	messageId?: string
+	resolveId: (text: string) => string
+	children?: ReactNode
+} & Record<string, any>) {
+	const text = extractText(children)
+	const id = resolveId(text)
+	const attrs: Record<string, any> = { ...props, id, 'data-section-heading': true }
+	if (level === 2 && messageId) {
+		attrs['data-section-msg'] = messageId
+	}
+	return createElement(`h${level}`, attrs, children)
+}
 
 /** Match `HBarChart` / `TreemapChart` graphic watermark sizing */
 const TABLE_WATERMARK_HEIGHT = 40
@@ -26,6 +77,7 @@ type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
 type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
+type CitationBadgeProps = { children?: ReactNode; href?: string; node?: unknown }
 
 function normalizeSourceUrl(url: string) {
 	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
@@ -233,6 +285,21 @@ function getSingleTextChild(children: ReactNode): string | null {
 	return typeof children === 'string' ? children : null
 }
 
+function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
+	const className =
+		'mx-px inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline hover:border-[rgba(31,103,210,0.35)] hover:bg-[rgba(31,103,210,0.15)]'
+
+	if (!href) {
+		return <span className={className}>{children}</span>
+	}
+
+	return (
+		<a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+			{children}
+		</a>
+	)
+}
+
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
 	const sourceEntries = useMemo(() => {
 		const seen = new Map<string, number>()
@@ -297,13 +364,15 @@ export function ChatMarkdownRenderer({
 	citations,
 	isStreaming = false,
 	hackerMode = false,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	messageId
 }: {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
+	messageId?: string
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
@@ -311,49 +380,70 @@ export function ChatMarkdownRenderer({
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
-	const markdownComponents = useMemo<Components>(
-		() => ({
-			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
-				const textChild = getSingleTextChild(props.children)
-				if (!props.href && textChild && processedData.linkMap.has(textChild)) {
-					const llamaUrl = processedData.linkMap.get(textChild)
-					return EntityLinkRenderer({ ...props, href: llamaUrl })
-				}
-				return EntityLinkRenderer(props)
-			},
-			table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-				<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
-					{children}
-				</TableWrapper>
-			),
-			th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
-				<th
-					{...props}
-					className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
-				>
-					{children}
-				</th>
-			),
-			td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
-				<td
-					{...props}
-					className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
-				>
-					{children}
-				</td>
-			),
-			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
-				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
-					{children}
-				</ul>
-			),
-			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-				<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
-					{children}
-				</ol>
-			)
-		}),
-		[isStreaming, onTableFullscreenOpen, processedData.linkMap]
+	const resolveHeadingId = createHeadingIdFactory(messageId)
+	const markdownComponents: Components = {
+		h1: ({ node: _node, children, ...props }: any) => (
+			<HeadingWithId level={1} messageId={messageId} resolveId={resolveHeadingId} {...props}>
+				{children}
+			</HeadingWithId>
+		),
+		h2: ({ node: _node, children, ...props }: any) => (
+			<HeadingWithId level={2} messageId={messageId} resolveId={resolveHeadingId} {...props}>
+				{children}
+			</HeadingWithId>
+		),
+		h3: ({ node: _node, children, ...props }: any) => (
+			<HeadingWithId level={3} messageId={messageId} resolveId={resolveHeadingId} {...props}>
+				{children}
+			</HeadingWithId>
+		),
+		a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
+			const textChild = getSingleTextChild(props.children)
+			if (!props.href && textChild && processedData.linkMap.has(textChild)) {
+				const llamaUrl = processedData.linkMap.get(textChild)
+				return EntityLinkRenderer({ ...props, href: llamaUrl })
+			}
+			return EntityLinkRenderer(props)
+		},
+		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
+			<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
+				{children}
+			</TableWrapper>
+		),
+		th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
+			<th
+				{...props}
+				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
+			>
+				{children}
+			</th>
+		),
+		td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
+			<td
+				{...props}
+				className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
+			>
+				{children}
+			</td>
+		),
+		ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
+			<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
+				{children}
+			</ul>
+		),
+		ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
+			<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
+				{children}
+			</ol>
+		)
+	}
+
+	;(markdownComponents as Record<string, any>)['citation-badge'] = ({
+		node: _node,
+		children,
+		...props
+	}: CitationBadgeProps) => (
+		<CitationBadge href={typeof props.href === 'string' ? props.href : undefined}>{children}</CitationBadge>
 	)
 
 	if (!processedData.content.trim()) {
@@ -366,7 +456,7 @@ export function ChatMarkdownRenderer({
 		>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
-				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+				rehypePlugins={SANITIZE_REHYPE_PLUGINS}
 				components={markdownComponents}
 			>
 				{processedData.content}

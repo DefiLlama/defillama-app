@@ -4,6 +4,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
 	resolve: {
 		alias: {
+			'~/public': resolve(__dirname, 'public'),
 			'~': resolve(__dirname, 'src')
 		}
 	},

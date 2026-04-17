@@ -5,6 +5,9 @@ type LlamaAIChrome = {
 	hideSidebar: () => void
 	toggleFullscreen: () => void
 	isFullscreen: boolean
+	sidebarVisible: boolean
+	toggleDashboardPanel: () => void
+	isDashboardPanelOpen: boolean
 }
 
 export const LlamaAIChromeContext = createContext<LlamaAIChrome | null>(null)

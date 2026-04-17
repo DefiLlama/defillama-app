@@ -5,7 +5,7 @@ import { AuthenticationCard } from './AuthenticationCard'
 import { SettingsCard } from './SettingsCard'
 import { SubscriptionSection } from './SubscriptionSection'
 import { UserHeader } from './UserHeader'
-import { isWalletEmail, getWalletAddress, truncateAddress } from './utils'
+import { isWalletEmail, truncateAddress } from './utils'
 
 export function ManageAccount() {
 	const isClient = useIsClient()
@@ -37,7 +37,7 @@ export function ManageAccount() {
 		)
 	}
 
-	const displayName = isWalletEmail(user.email) ? truncateAddress(getWalletAddress(user.email)) : user.email
+	const displayName = isWalletEmail(user.email) ? truncateAddress(user.walletAddress) : user.email
 
 	return (
 		<div className="flex flex-col gap-8">

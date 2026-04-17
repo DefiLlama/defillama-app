@@ -106,7 +106,7 @@ export function buildExportModel(config: ChartConfiguration, adaptedChart: Adapt
 			return {
 				csvRows: [['Category', 'Value'], ...adaptedChart.data.map(([category, value]) => [category, value])],
 				csvFilename,
-				pngProfile: 'default'
+				pngProfile: 'hbar'
 			}
 		default:
 			return null

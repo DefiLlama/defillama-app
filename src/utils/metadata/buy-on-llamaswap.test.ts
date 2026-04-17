@@ -238,6 +238,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-a',
+				symbol: 'TKA',
+				name: 'Token A',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000a1',
 					base: '0x00000000000000000000000000000000000000b1',
@@ -308,6 +310,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-b',
+				symbol: 'TKB',
+				name: 'Token B',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000d1',
 					base: '0x00000000000000000000000000000000000000d2',
@@ -395,10 +399,12 @@ describe('buildProtocolLlamaswapDataset', () => {
 		])
 	})
 
-	it('keeps original CoinGecko platform order for equal or missing pool coverage matches', async () => {
+	it('keeps original CoinGecko platform order for equal pool coverage matches and omits missing matches', async () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'token-c',
+				symbol: 'TKC',
+				name: 'Token C',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000e1',
 					base: '0x00000000000000000000000000000000000000e2',
@@ -447,11 +453,6 @@ describe('buildProtocolLlamaswapDataset', () => {
 				chain: 'base',
 				address: '0x00000000000000000000000000000000000000e2',
 				displayName: 'Base'
-			},
-			{
-				chain: 'arbitrum',
-				address: '0x00000000000000000000000000000000000000e3',
-				displayName: 'Arbitrum'
 			}
 		])
 	})
@@ -460,6 +461,8 @@ describe('buildProtocolLlamaswapDataset', () => {
 		mockedFetchCoinGeckoCoinsList.mockResolvedValue([
 			{
 				id: 'polygon-pos',
+				symbol: 'MATIC',
+				name: 'Polygon',
 				platforms: {
 					ethereum: '0x00000000000000000000000000000000000000f1',
 					'polygon-pos': '0x00000000000000000000000000000000000000f2'

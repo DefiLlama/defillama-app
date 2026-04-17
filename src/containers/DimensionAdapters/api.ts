@@ -16,19 +16,23 @@ import { ADAPTER_TYPES, ADAPTER_DATA_TYPES } from './constants'
 export async function fetchAdapterChainMetrics({
 	adapterType,
 	chain,
-	dataType
+	dataType,
+	category
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	category?: string
 }): Promise<IAdapterChainMetrics> {
-	let metricsUrl = `${V2_SERVER_URL}/metrics/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	const metricsUrl = new URL(
+		`${V2_SERVER_URL}/metrics/${adapterType}${category ? `/category/${slug(category)}` : ''}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	)
 
 	if (dataType) {
-		metricsUrl += `?dataType=${dataType}`
+		metricsUrl.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChainMetrics>(metricsUrl, { timeout: 30_000 })
+	return fetchJson<IAdapterChainMetrics>(metricsUrl.toString(), { timeout: 30_000 })
 }
 
 /**
@@ -58,24 +62,28 @@ export async function fetchAdapterProtocolMetrics({
 export async function fetchAdapterChainChartData({
 	adapterType,
 	chain,
-	dataType
+	dataType,
+	category
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}` | 'dailyEarnings'
+	category?: string
 }): Promise<IAdapterChart> {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}${category ? `/category/${slug(category)}` : ''}${chain && chain !== 'All' ? `/chain/${slug(chain)}` : ''}`
 
 	if (dataType === 'dailyEarnings') {
 		// earnings do not filter by chain at fetch time
 		totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}`
 	}
 
+	const totalDataChart = new URL(totalDataChartUrl)
+
 	if (dataType) {
-		totalDataChartUrl += `?dataType=${dataType}`
+		totalDataChart.searchParams.set('dataType', dataType)
 	}
 
-	return fetchJson<IAdapterChart>(totalDataChartUrl, { timeout: 30_000 })
+	return fetchJson<IAdapterChart>(totalDataChart.toString(), { timeout: 30_000 })
 }
 
 /**

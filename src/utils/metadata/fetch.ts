@@ -119,13 +119,13 @@ export async function fetchCoreMetadata({
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
 
-	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=11`
-	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=11`
-	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=11`
-	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=11`
-	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=11`
-	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=11`
-	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=11`
+	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=14`
+	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=14`
+	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=14`
+	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=14`
+	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=14`
+	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=14`
+	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=14`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
 	const isDev = process.env.NODE_ENV === 'development'
@@ -149,7 +149,7 @@ export async function fetchCoreMetadata({
 			}),
 			fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
 			fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
-				tickers: [],
+				canonicalMarketIds: [],
 				platforms: [],
 				chains: [],
 				categories: [],
@@ -160,6 +160,7 @@ export async function fetchCoreMetadata({
 				contracts: [],
 				venues: [],
 				categories: [],
+				assetGroups: [],
 				total: 0
 			}),
 			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getBridgeOverviewPageData } from './queries.server'
+import { fetchJson } from '~/utils/async'
 
 export const useGetBridgeChartDataByChain = (chain?: string) => {
 	return useQuery({
@@ -7,21 +7,12 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 		queryFn:
 			chain && chain !== 'All'
 				? () =>
-						getBridgeOverviewPageData(chain)
-							.catch(() => null)
-							.then((data) =>
-								data
-									? data?.chainVolumeData?.map((volume) => [
-											volume?.date ?? null,
-											volume?.Deposits ?? null,
-											volume.Withdrawals ?? null
-										])
-									: null
-							)
-							.catch((err) => {
-								console.log(err)
-								return null
-							})
+						fetchJson<Array<[number | null, number | null, number | null]> | null>(
+							`/api/charts/chain?kind=net-inflows&chain=${encodeURIComponent(chain)}`
+						).catch((err) => {
+							console.log(err)
+							return null
+						})
 				: () => null,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

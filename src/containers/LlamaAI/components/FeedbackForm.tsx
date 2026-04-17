@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useDeferredValue, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
@@ -27,7 +27,7 @@ export function FeedbackForm({
 	const { authorizedFetch } = useAuthContext()
 	const { mutate: submitFeedback, isPending: isSubmittingFeedback } = useMutation({
 		mutationFn: async ({ rating, feedback }: { rating: 'good' | 'bad' | null; feedback?: string }) => {
-			const res = await authorizedFetch(`${MCP_SERVER}/user/messages/${messageId}/rate`, {
+			const res = await authorizedFetch(`${AI_SERVER}/user/messages/${messageId}/rate`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ rating, feedback })

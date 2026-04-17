@@ -8,7 +8,6 @@ import { slug } from '~/utils'
 const baseUrl = `https://defillama.com`
 // const protocolTabRoutes = [
 // 	{ prefix: 'protocol/tvl', hasMetric: (meta) => meta.tvl },
-// 	{ prefix: 'protocol/borrowed', hasMetric: (meta) => meta.borrowed },
 // 	{ prefix: 'protocol/stablecoins', hasMetric: (meta) => meta.stablecoins },
 // 	{ prefix: 'protocol/bridges', hasMetric: (meta) => meta.bridge },
 // 	{ prefix: 'protocol/treasury', hasMetric: (meta) => meta.treasury },
@@ -213,10 +212,9 @@ async function buildRWAAssetRoutes() {
 	const metadataModule = await import('~/utils/metadata')
 	await metadataModule.refreshMetadataIfStale()
 	const rwaList = metadataModule.default.rwaList
-	if (rwaList?.tickers) {
-		for (const ticker of rwaList.tickers) {
-			const tickerSlug = rwaSlug(ticker)
-			if (tickerSlug) routes.push(`rwa/asset/${tickerSlug}`)
+	if (rwaList?.canonicalMarketIds) {
+		for (const canonicalMarketId of rwaList.canonicalMarketIds) {
+			if (canonicalMarketId) routes.push(`rwa/asset/${encodeURIComponent(canonicalMarketId)}`)
 		}
 	}
 	if (rwaList?.platforms) {
@@ -234,6 +232,7 @@ async function buildRWAAssetRoutes() {
 	if (rwaList?.categories) {
 		for (const category of rwaList.categories) {
 			const categorySlug = rwaSlug(category)
+			if (categorySlug === 'rwa-perps') continue
 			if (categorySlug) routes.push(`rwa/category/${categorySlug}`)
 		}
 	}

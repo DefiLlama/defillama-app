@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
-import { MCP_SERVER } from '~/constants'
+import { AI_SERVER } from '~/constants'
 import { SESSIONS_QUERY_KEY, type SessionListData } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
@@ -16,7 +16,7 @@ export function useSessionMutations() {
 	const createSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
 			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions`, {
+				const response = await authorizedFetch(`${AI_SERVER}/user/sessions`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ sessionId, title })
@@ -38,13 +38,27 @@ export function useSessionMutations() {
 
 	// Shared restore mutation backs both full-session restore and paginated older-message loading.
 	const restoreSessionMutation = useMutation({
-		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
+		mutationFn: async ({
+			sessionId,
+			limit,
+			cursor,
+			around,
+			afterSequence
+		}: {
+			sessionId: string
+			limit?: number
+			cursor?: number
+			around?: string
+			afterSequence?: number
+		}) => {
 			try {
 				const params = new URLSearchParams()
 				if (limit !== undefined) params.append('limit', limit.toString())
 				if (cursor !== undefined) params.append('cursor', cursor.toString())
+				if (around) params.append('around', around)
+				if (afterSequence !== undefined) params.append('afterSequence', afterSequence.toString())
 
-				const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
+				const url = `${AI_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
 				const response = await authorizedFetch(url)
 					.then((res) => assertResponse(res, 'Failed to restore session'))
 					.then(handleSimpleFetchResponse)
@@ -62,7 +76,7 @@ export function useSessionMutations() {
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
 			try {
-				await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
+				await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
 					.then((res) => assertResponse(res, 'Failed to delete session'))
@@ -104,7 +118,7 @@ export function useSessionMutations() {
 
 	const bulkDeleteSessionsMutation = useMutation({
 		mutationFn: async (sessionIds: string[]) => {
-			await authorizedFetch(`${MCP_SERVER}/user/sessions/bulk`, {
+			await authorizedFetch(`${AI_SERVER}/user/sessions/bulk`, {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ sessionIds })
@@ -138,7 +152,7 @@ export function useSessionMutations() {
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/title`, {
+			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/title`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
@@ -186,7 +200,7 @@ export function useSessionMutations() {
 
 	const pinSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/pin`, {
+			const response = await authorizedFetch(`${AI_SERVER}/user/sessions/${sessionId}/pin`, {
 				method: 'PUT'
 			})
 				.then((res) => assertResponse(res, 'Failed to toggle pin'))
@@ -251,16 +265,22 @@ export function useSessionMutations() {
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
-		async (sessionId: string, limit: number = 10) => {
+		async (sessionId: string, limit: number = 10, around?: string) => {
 			try {
-				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit })
+				const result = await restoreSessionMutation.mutateAsync({
+					sessionId,
+					limit: around ? 20 : limit,
+					around
+				})
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
 						hasMore: result.hasMore ?? false,
 						isLoadingMore: false,
 						cursor: result.nextCursor,
-						totalMessages: result.totalMessages
+						totalMessages: result.totalMessages,
+						hasNewer: result.hasNewer ?? false,
+						newerCursor: result.newerCursor
 					},
 					streaming: result.streaming
 				}
@@ -294,11 +314,31 @@ export function useSessionMutations() {
 		[restoreSessionMutation]
 	)
 
+	const loadNewerMessages = useCallback(
+		async (sessionId: string, afterSequence: number) => {
+			try {
+				const result = await restoreSessionMutation.mutateAsync({ sessionId, limit: 10, afterSequence })
+				return {
+					messages: result.messages || result.conversationHistory || [],
+					pagination: {
+						hasNewer: result.hasNewer ?? false,
+						newerCursor: result.newerCursor
+					}
+				}
+			} catch (error) {
+				console.error('[llama-ai] [loadNewerMessages] failed:', getErrorMessage(error))
+				throw new Error(`Failed to load newer messages: ${getErrorMessage(error)}`)
+			}
+		},
+		[restoreSessionMutation]
+	)
+
 	return {
 		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
+		loadNewerMessages,
 		deleteSession: deleteSessionMutation.mutateAsync,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		isCreatingSession: createSessionMutation.isPending,

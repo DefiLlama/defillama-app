@@ -60,7 +60,7 @@ export const SubMetricRow = ({
 interface MetricSectionProps {
 	label: ReactNode
 	tooltip?: string | null
-	value: ReactNode
+	value?: ReactNode
 	extra?: ReactNode
 	children?: ReactNode
 	defaultOpen?: boolean
@@ -78,10 +78,9 @@ export const MetricSection = ({
 	className = '',
 	valueClassName = 'ml-auto font-jetbrains'
 }: MetricSectionProps) => (
-	<details className={`group ${className}`.trim()} open={defaultOpen}>
-		<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
+	<details className={`group/metric ${className}`.trim()} open={defaultOpen}>
+		<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last/metric:border-none group-open/metric:border-none group-open/metric:font-semibold">
 			{tooltip ? (
-				// MetricSection only supports string tooltips because <summary> uses native title for safe toggling.
 				<span title={tooltip ?? undefined} className="text-(--text-label) underline decoration-dotted">
 					{label}
 				</span>
@@ -92,10 +91,36 @@ export const MetricSection = ({
 				name="chevron-down"
 				height={16}
 				width={16}
-				className="relative top-0.5 -ml-3 transition-transform duration-100 group-open:rotate-180"
+				className="relative top-0.5 -ml-3 transition-transform duration-100 group-open/metric:rotate-180"
 			/>
 			{extra}
-			<span className={valueClassName}>{value}</span>
+			{value != null ? <span className={valueClassName}>{value}</span> : null}
+		</summary>
+		{children ? <div className="mb-3 flex flex-col">{children}</div> : null}
+	</details>
+)
+
+export const SubMetricSection = ({
+	label,
+	value,
+	children,
+	defaultOpen = false
+}: {
+	label: ReactNode
+	value?: ReactNode
+	children?: ReactNode
+	defaultOpen?: boolean
+}) => (
+	<details className="group/sub" open={defaultOpen}>
+		<summary className="flex flex-wrap justify-start gap-4 border-b border-dashed border-(--cards-border) py-1 group-last/sub:border-none group-open/sub:border-none group-open/sub:font-semibold">
+			<span className="text-(--text-label)">{label}</span>
+			<Icon
+				name="chevron-down"
+				height={16}
+				width={16}
+				className="relative top-0.5 -ml-3 transition-transform duration-100 group-open/sub:rotate-180"
+			/>
+			{value != null ? <span className="ml-auto font-jetbrains">{value}</span> : null}
 		</summary>
 		{children ? <div className="mb-3 flex flex-col">{children}</div> : null}
 	</details>

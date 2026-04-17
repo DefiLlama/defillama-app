@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 interface PaginationState {
 	hasMore: boolean
 	isLoadingMore: boolean
+	hasNewer?: boolean
+	isLoadingNewer?: boolean
 }
 
 interface UseChatScrollParams {
@@ -12,13 +14,16 @@ interface UseChatScrollParams {
 	hasMessages: boolean
 	paginationState: PaginationState
 	onLoadMoreMessages: () => void
+	onLoadNewerMessages?: () => void
 	keyboardOpen?: boolean
+	startDetached?: boolean
 }
 
 type ScrollMode = 'attached' | 'detached' | 'reattaching'
 
 const ATTACHED_THRESHOLD_PX = 48
 const TOP_PAGINATION_THRESHOLD_PX = 50
+const BOTTOM_PAGINATION_THRESHOLD_PX = 50
 const STREAM_FOLLOW_INTERVAL_MS = 200
 
 // State machine for chat scroll behavior. Three modes control who owns scrollTop:
@@ -43,11 +48,14 @@ export function useChatScroll({
 	hasMessages,
 	paginationState,
 	onLoadMoreMessages,
-	keyboardOpen
+	onLoadNewerMessages,
+	keyboardOpen,
+	startDetached = false
 }: UseChatScrollParams) {
-	const modeRef = useRef<ScrollMode>('attached')
+	const modeRef = useRef<ScrollMode>(startDetached ? 'detached' : 'attached')
 	const paginationRef = useRef(paginationState)
 	const paginationLoadInFlightRef = useRef(false)
+	const newerPaginationLoadInFlightRef = useRef(false)
 	const lastScrollTopRef = useRef(0)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
@@ -115,6 +123,9 @@ export function useChatScroll({
 		paginationRef.current = paginationState
 		if (!paginationState.isLoadingMore) {
 			paginationLoadInFlightRef.current = false
+		}
+		if (!paginationState.isLoadingNewer) {
+			newerPaginationLoadInFlightRef.current = false
 		}
 	}, [paginationState])
 
@@ -221,12 +232,14 @@ export function useChatScroll({
 				const hasScrollableContent = scrollHeight > clientHeight
 				const currentMode = modeRef.current
 
+				const currentPagination = paginationRef.current
+
 				if (currentMode === 'reattaching' && isScrollingUp && !isAtBottom) {
 					cancelPendingReattach()
 					setMode('detached', container)
 				} else if (currentMode === 'attached' && hasMoved && !isAtBottom) {
 					setMode('detached', container)
-				} else if (currentMode === 'detached' && isAtBottom && !isScrollingUp) {
+				} else if (currentMode === 'detached' && isAtBottom && !isScrollingUp && !currentPagination.hasNewer) {
 					setMode('attached', container)
 				} else {
 					setShowScrollToBottom(currentMode !== 'attached' && hasScrollableContent)
@@ -234,8 +247,9 @@ export function useChatScroll({
 
 				lastScrollTopRef.current = scrollTop
 
-				const currentPagination = paginationRef.current
 				if (
+					currentMode === 'detached' &&
+					isScrollingUp &&
 					scrollTop <= TOP_PAGINATION_THRESHOLD_PX &&
 					!isStreaming &&
 					currentPagination.hasMore &&
@@ -246,6 +260,21 @@ export function useChatScroll({
 					onLoadMoreMessages()
 				}
 
+				const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+				if (
+					currentMode === 'detached' &&
+					!isScrollingUp &&
+					distanceFromBottom <= BOTTOM_PAGINATION_THRESHOLD_PX &&
+					!isStreaming &&
+					currentPagination.hasNewer &&
+					!currentPagination.isLoadingNewer &&
+					!newerPaginationLoadInFlightRef.current &&
+					onLoadNewerMessages
+				) {
+					newerPaginationLoadInFlightRef.current = true
+					onLoadNewerMessages()
+				}
+
 				ticking = false
 			})
 		}
@@ -254,7 +283,15 @@ export function useChatScroll({
 		return () => {
 			container.removeEventListener('scroll', onScroll)
 		}
-	}, [cancelPendingReattach, hasMessages, isStreaming, onLoadMoreMessages, scrollContainerRef, setMode])
+	}, [
+		cancelPendingReattach,
+		hasMessages,
+		isStreaming,
+		onLoadMoreMessages,
+		onLoadNewerMessages,
+		scrollContainerRef,
+		setMode
+	])
 
 	return {
 		attach,

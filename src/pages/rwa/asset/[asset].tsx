@@ -2,10 +2,17 @@ import type { GetStaticPropsContext } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { RWAAssetPage } from '~/containers/RWA/Asset'
 import { getRWAAssetData } from '~/containers/RWA/queries'
-import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+function safeDecodeAssetParam(value: string): string {
+	try {
+		return decodeURIComponent(value)
+	} catch {
+		return value
+	}
+}
 
 export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
@@ -21,7 +28,9 @@ export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	return {
-		paths: rwaList.tickers.slice(0, 10).map((ticker) => ({ params: { asset: rwaSlug(ticker) } })),
+		paths: rwaList.canonicalMarketIds
+			.slice(0, 10)
+			.map((canonicalMarketId) => ({ params: { asset: canonicalMarketId } })),
 		fallback: 'blocking'
 	}
 }
@@ -33,18 +42,11 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const assetSlug = rwaSlug(params.asset)
+		const canonicalMarketId = safeDecodeAssetParam(params.asset)
 
-		let assetId = null
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const rwaList = metadataCache.rwaList
-
-		for (const ticker in rwaList.idMap) {
-			if (rwaSlug(ticker) === assetSlug) {
-				assetId = rwaList.idMap[ticker]
-				break
-			}
-		}
+		const assetId = rwaList.idMap[canonicalMarketId] ?? null
 		if (!assetId) {
 			return { notFound: true }
 		}
@@ -75,7 +77,7 @@ export default function RWAAssetDetailPage({ asset }) {
 			title={`${displayName} - RWA Dashboard & Analytics - DefiLlama`}
 			description={`Overview of the tokenized real-world asset ${displayName}, including supply, blockchain distribution, and platform data. DefiLlama provides transparent, ad-free RWA analytics.`}
 			pageName={pageName}
-			canonicalUrl={`/rwa/asset/${asset.slug}`}
+			canonicalUrl={`/rwa/asset/${encodeURIComponent(asset.slug)}`}
 		>
 			<RWAAssetPage asset={asset} />
 		</Layout>

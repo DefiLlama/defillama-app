@@ -1,5 +1,11 @@
-import { MCP_SERVER } from '~/constants'
-import type { AlertProposedData, ChartConfiguration, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
+import { AI_SERVER } from '~/constants'
+import type {
+	AlertProposedData,
+	ChartConfiguration,
+	DashboardArtifact,
+	MessageMetadata,
+	ToolExecution
+} from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -7,6 +13,13 @@ export interface CsvExport {
 	title: string
 	url: string
 	rowCount: number
+	filename: string
+}
+
+export interface MdExport {
+	id: string
+	title: string
+	url: string
 	filename: string
 }
 
@@ -29,7 +42,9 @@ export interface AgenticSSECallbacks {
 	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
+	onMdExport?: (exports: MdExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
+	onDashboard?: (dashboard: DashboardArtifact) => void
 	onToolExecution?: (data: ToolExecution) => void
 	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
@@ -69,8 +84,35 @@ interface CsvExportEvent {
 	exports?: CsvExport[]
 }
 
+interface MdExportEvent {
+	type: 'md_export'
+	exports?: MdExport[]
+}
+
 interface AlertProposedEvent extends AlertProposedData {
 	type: 'alert_proposed'
+}
+
+interface DashboardEvent {
+	type: 'dashboard'
+	dashboard_id?: string
+	dashboardConfig?: {
+		dashboardName?: string
+		items?: any[]
+		timePeriod?: string
+		sourceDashboardId?: string
+	}
+	chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	content?: {
+		dashboard_id?: string
+		dashboardConfig?: {
+			dashboardName?: string
+			items?: any[]
+			timePeriod?: string
+			sourceDashboardId?: string
+		}
+		chartData?: Record<string, { config: any; data: any[]; toolChain: any[] }>
+	}
 }
 
 interface CompactionEvent {
@@ -130,7 +172,9 @@ type AgenticSSEEvent =
 	| ResponseChunkEvent
 	| ChartsEvent
 	| CsvExportEvent
+	| MdExportEvent
 	| AlertProposedEvent
+	| DashboardEvent
 	| ({ type: 'spawn_progress' } & SpawnProgressData)
 	| CompactionEvent
 	| ({ type: 'tool_execution' } & ToolExecution)
@@ -170,12 +214,16 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	enablePremiumTools: boolean
 	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
 	quotedText?: string
 	isSuggestedQuestion?: boolean
+	blockedSkills?: string[]
+	model?: string
+	shareToken?: string
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -195,8 +243,8 @@ async function getResponseErrorMessage(response: Response, fallback: string) {
 	return fallback
 }
 
-// Parse the backend SSE stream line-by-line and fan each event out to the UI callbacks.
-function parseSSEStream(
+/** @internal Exported for testing only. */
+export function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
 	abortSignal?: AbortSignal,
@@ -230,9 +278,31 @@ function parseSSEStream(
 				case 'csv_export':
 					callbacks.onCsvExport?.(data.exports || [])
 					break
+				case 'md_export':
+					callbacks.onMdExport?.(data.exports || [])
+					break
 				case 'alert_proposed':
 					callbacks.onAlertProposed?.(data)
 					break
+				case 'dashboard': {
+					const config = data.dashboardConfig || data.content?.dashboardConfig
+					const chartData = data.chartData || data.content?.chartData
+					if (config && callbacks.onDashboard) {
+						const stableId =
+							data.dashboard_id ||
+							data.content?.dashboard_id ||
+							`dashboard_${config.dashboardName || ''}_${config.sourceDashboardId || ''}_${config.items?.length ?? 0}`
+						callbacks.onDashboard({
+							id: stableId,
+							dashboardName: config.dashboardName || 'Dashboard',
+							items: config.items || [],
+							timePeriod: config.timePeriod,
+							...(config.sourceDashboardId && { sourceDashboardId: config.sourceDashboardId }),
+							...(chartData && { chartData })
+						})
+					}
+					break
+				}
 				case 'spawn_progress':
 					callbacks.onSpawnProgress(data)
 					break
@@ -330,12 +400,16 @@ export async function fetchAgenticResponse({
 	callbacks,
 	abortSignal,
 	researchMode,
+	enablePremiumTools,
 	entities,
 	images,
 	pageContext,
 	customInstructions,
 	quotedText,
 	isSuggestedQuestion,
+	blockedSkills,
+	model,
+	shareToken,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -347,6 +421,7 @@ export async function fetchAgenticResponse({
 		stream: true
 		sessionId?: string
 		researchMode?: true
+		enablePremiumTools: boolean
 		timezone?: string
 		entities?: Array<{ term: string; slug: string; type?: string }>
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
@@ -354,9 +429,13 @@ export async function fetchAgenticResponse({
 		customInstructions?: string
 		quotedText?: string
 		isSuggestedQuestion?: true
+		blockedSkills?: string[]
+		model?: string
+		shareToken?: string
 	} = {
 		message,
-		stream: true
+		stream: true,
+		enablePremiumTools
 	}
 
 	if (sessionId) {
@@ -397,7 +476,19 @@ export async function fetchAgenticResponse({
 		requestBody.isSuggestedQuestion = true
 	}
 
-	const response = await doFetch(`${MCP_SERVER}/agentic`, {
+	if (blockedSkills && blockedSkills.length > 0) {
+		requestBody.blockedSkills = blockedSkills
+	}
+
+	if (model) {
+		requestBody.model = model
+	}
+
+	if (shareToken) {
+		requestBody.shareToken = shareToken
+	}
+
+	const response = await doFetch(`${AI_SERVER}/agentic`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
@@ -440,7 +531,7 @@ export async function fetchAgenticResponse({
 
 export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
 	try {
-		await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stop/${encodeURIComponent(sessionId)}`, { method: 'POST' })
+		await (fetchFn || fetch)(`${AI_SERVER}/agentic/stop/${encodeURIComponent(sessionId)}`, { method: 'POST' })
 	} catch {}
 }
 
@@ -450,7 +541,7 @@ export async function checkActiveExecution(
 	fetchFn?: typeof fetch
 ): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string; hasResult?: boolean }> {
 	try {
-		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
+		const res = await (fetchFn || fetch)(`${AI_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
 		if (!res) {
 			throw new Error('Failed to check active execution: no response received')
 		}
@@ -512,8 +603,8 @@ export async function resumeAgenticStream({
 }) {
 	const url =
 		from != null
-			? `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
-			: `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
+			? `${AI_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
+			: `${AI_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
 	const res = await (fetchFn || fetch)(url, {
 		signal: abortSignal
 	})

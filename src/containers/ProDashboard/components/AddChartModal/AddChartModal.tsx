@@ -25,7 +25,10 @@ const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
 	'chains',
 	'rwa',
 	'rwa-chains',
-	'rwa-selected-chain'
+	'rwa-selected-chain',
+	'equities',
+	'equities-financials',
+	'equities-filings'
 ]
 const PRIMARY_TABLE_TYPES_SET = new Set(PRIMARY_TABLE_TYPES)
 

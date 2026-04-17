@@ -132,17 +132,17 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 			const rwaApi = await import('~/containers/RWA/api')
 
 			if (chain && chain !== 'All') {
-				const tickerData = await withTimeout(
-					rwaApi.fetchRWAChartDataByTicker({
+				const assetData = await withTimeout(
+					rwaApi.fetchRWAChartDataByAsset({
 						target: { kind: 'chain', slug: chain },
 						includeStablecoins: false,
 						includeGovernance: false
 					}),
 					FETCH_TIMEOUT
 				)
-				if (!tickerData) return null
-				const metricKey = (metric || 'activeMcap') as keyof typeof tickerData
-				return tickerData[metricKey] ?? null
+				if (!assetData) return null
+				const metricKey = (metric || 'activeMcap') as keyof typeof assetData
+				return assetData[metricKey] ?? null
 			}
 
 			const breakdownParams = { key: metric || 'activeMcap', includeStablecoin: false, includeGovernance: false }
@@ -173,6 +173,25 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 		case 'rwaStats': {
 			const { fetchRWAStats } = await import('~/containers/RWA/api')
 			return withTimeout(fetchRWAStats(), FETCH_TIMEOUT)
+		}
+
+		case 'equitiesCompanies': {
+			const { fetchEquitiesCompanies } = await import('~/containers/Equities/api')
+			return withTimeout(fetchEquitiesCompanies(), FETCH_TIMEOUT)
+		}
+
+		case 'equitiesStatements': {
+			const { ticker } = params
+			if (!ticker) throw new Error('Missing ticker param')
+			const { fetchEquitiesStatements } = await import('~/containers/Equities/api')
+			return withTimeout(fetchEquitiesStatements(ticker), FETCH_TIMEOUT)
+		}
+
+		case 'equitiesFilings': {
+			const { ticker } = params
+			if (!ticker) throw new Error('Missing ticker param')
+			const { fetchEquitiesFilings } = await import('~/containers/Equities/api')
+			return withTimeout(fetchEquitiesFilings(ticker), FETCH_TIMEOUT)
 		}
 
 		case 'stablecoinsList': {

@@ -1,16 +1,17 @@
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	IFetchedRWAProject,
 	IRWAStatsResponse,
-	IRWAChartDataByTicker,
+	IRWAChartDataByAsset,
 	IRWAAssetData,
 	IRWABreakdownChartParams,
 	IRWABreakdownChartResponse,
 	IRWABreakdownChartRow,
 	RWAAssetChartDimension,
 	RWAAssetChartRow,
-	RWATickerChartTarget
+	RWAAssetChartTarget
 } from './api.types'
 
 export function toUnixMsTimestamp(ts: number): number {
@@ -45,15 +46,15 @@ export async function fetchRWAAssetDataById(assetId: string): Promise<IFetchedRW
 	return fetchJson<IFetchedRWAProject>(`${RWA_SERVER_URL}/rwa/${encodedAssetId}`)
 }
 
-export async function fetchRWAChartDataByTicker({
+export async function fetchRWAChartDataByAsset({
 	target,
 	includeStablecoins,
 	includeGovernance
 }: {
-	target: RWATickerChartTarget
+	target: RWAAssetChartTarget
 	includeStablecoins: boolean
 	includeGovernance: boolean
-}): Promise<IRWAChartDataByTicker | null> {
+}): Promise<IRWAChartDataByAsset | null> {
 	let chartUrl = `${RWA_SERVER_URL}/chart/chain/all`
 
 	switch (target.kind) {
@@ -80,8 +81,8 @@ export async function fetchRWAChartDataByTicker({
 		includeGovernance: String(includeGovernance)
 	})
 
-	return fetchJson<IRWAChartDataByTicker>(`${chartUrl}/ticker-breakdown?${searchParams.toString()}`).catch((error) => {
-		console.error('Failed to fetch RWA chart data by ticker:', error)
+	return fetchJson<IRWAChartDataByAsset>(`${chartUrl}/asset-breakdown?${searchParams.toString()}`).catch((error) => {
+		console.error('Failed to fetch RWA chart data by asset:', error)
 		return null
 	})
 }
@@ -90,22 +91,17 @@ function normalizeRWABreakdownChartRows(rows: IRWABreakdownChartResponse): IRWAB
 	const normalizedRows: IRWABreakdownChartResponse = []
 
 	for (const row of rows ?? []) {
-		const timestampRaw = Number(row.timestamp)
-		if (!Number.isFinite(timestampRaw)) continue
+		const normalizedRow: IRWABreakdownChartRow = { timestamp: toUnixMsTimestamp(Number(row.timestamp)) }
 
-		const normalizedRow: IRWABreakdownChartRow = { timestamp: toUnixMsTimestamp(timestampRaw) }
-
-		for (const [key, value] of Object.entries(row)) {
+		for (const key in row) {
 			if (key === 'timestamp') continue
-			const numericValue = Number(value)
-			if (!Number.isFinite(numericValue)) continue
-			normalizedRow[key] = numericValue
+			normalizedRow[key] = row[key]
 		}
 
 		normalizedRows.push(normalizedRow)
 	}
 
-	return normalizedRows.toSorted((a, b) => a.timestamp - b.timestamp)
+	return ensureChronologicalRows(normalizedRows)
 }
 
 /**

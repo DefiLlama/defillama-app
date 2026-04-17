@@ -1,5 +1,5 @@
 import { TreemapChart as EChartTreemap } from 'echarts/charts'
-import { GraphicComponent, TooltipComponent } from 'echarts/components'
+import { GraphicComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useRef } from 'react'
@@ -7,7 +7,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 
-echarts.use([TooltipComponent, GraphicComponent, EChartTreemap, CanvasRenderer])
+echarts.use([TooltipComponent, GraphicComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
 
 interface TreeMapBuilderChartProps {
 	data: Array<{
@@ -18,6 +18,9 @@ interface TreeMapBuilderChartProps {
 	height?: string
 	onReady?: (instance: echarts.ECharts | null) => void
 }
+
+// Treemap does not clip to the series box when zoomed; outer padding + overflow:hidden preserves the inset.
+const CHART_INSET_PX = 12
 
 const formatValue = (rawValue?: number) => {
 	const value = typeof rawValue === 'number' && Number.isFinite(rawValue) ? rawValue : 0
@@ -82,6 +85,14 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 
 		const option = {
 			graphic,
+			toolbox: {
+				show: false,
+				feature: {
+					restore: {
+						title: 'Reset'
+					}
+				}
+			},
 			tooltip: {
 				formatter: function (info: any) {
 					const rawValue = typeof info?.value === 'number' && Number.isFinite(info.value) ? info.value : 0
@@ -93,12 +104,14 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 				{
 					type: 'treemap',
 					data: data,
-					left: 12,
-					right: 12,
-					top: 12,
-					bottom: 12,
-					roam: false,
-					nodeClick: false,
+					sort: 'desc',
+					squareRatio: 1,
+					left: 0,
+					right: 0,
+					top: 0,
+					bottom: 0,
+					roam: true,
+					nodeClick: 'zoomToNode',
 					breadcrumb: { show: false },
 					label: {
 						show: true,
@@ -156,5 +169,16 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 		)
 	}
 
-	return <div id={id} style={{ width: '100%', height }} />
+	return (
+		<div
+			className="w-full overflow-hidden"
+			style={{
+				height,
+
+				padding: CHART_INSET_PX
+			}}
+		>
+			<div id={id} className="h-full w-full" />
+		</div>
+	)
 }

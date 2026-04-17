@@ -19,6 +19,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { definitions } from '~/public/definitions'
 import { formatNum, formattedNum } from '~/utils'
 import {
+	getProtocolCategoryDexVolumeLabel,
 	getProtocolCategoryColumns,
 	getProtocolCategoryDefaultSort,
 	getProtocolCategoryPresentation
@@ -82,7 +83,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				const timestamp = row.timestamp
 
 				if (shouldMirrorBorrowedChart) {
-					return { ...row, timestamp, TVL: nextTvlValue, Borrowed: nextTvlValue }
+					return { ...row, timestamp, TVL: nextTvlValue, 'Active Loans': nextTvlValue }
 				}
 
 				return { ...row, timestamp, TVL: nextTvlValue }
@@ -269,41 +270,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
 						) : null}
-						{props.dexVolume7d != null ? (
-							<>
-								{props.effectiveCategory === 'Dexs' ? (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<Tooltip
-											content={definitions.dexs.protocol['7d']}
-											className="font-normal text-(--text-label) underline decoration-dotted"
-										>
-											DEX Volume (7d)
-										</Tooltip>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								) : props.effectiveCategory === 'DEX Aggregators' || props.effectiveCategory === 'DEX Aggregator' ? (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<Tooltip
-											content={definitions.dexAggregators.protocol['7d']}
-											className="font-normal text-(--text-label) underline decoration-dotted"
-										>
-											DEX Aggregator Volume (7d)
-										</Tooltip>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								) : props.effectiveCategory === 'Prediction Market' ? (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<span className="font-normal text-(--text-label)">Prediction Market Volume (7d)</span>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								) : (
-									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
-										<span className="font-normal text-(--text-label)">Volume (7d)</span>
-										<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
-									</p>
-								)}
-							</>
-						) : null}
 						{props.perpVolume7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
@@ -313,6 +279,14 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									Perp Volume (7d)
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
+							</p>
+						) : null}
+						{props.dexVolume7d != null ? (
+							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
+								<span className="font-normal text-(--text-label)">
+									{getProtocolCategoryDexVolumeLabel(props.effectiveCategory)} (7d)
+								</span>
+								<span className="text-right font-jetbrains">{formattedNum(props.dexVolume7d, true)}</span>
 							</p>
 						) : null}
 						{props.openInterest != null ? (
@@ -362,6 +336,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header={categoryPresentation.tableHeader}
 				sortingState={sortingState}
+				showColumnSelect
 				csvFileName={`defillama-${namePrefix}${props.chain || 'all'}-protocols`}
 			/>
 		</>
@@ -558,64 +533,85 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		id: 'dex_aggregator_volume_7d',
 		header: 'DEX Aggregator Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['7d'] },
-		size: 140
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 220
 	}),
 	dex_aggregator_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
 		id: 'dex_aggregator_volume_30d',
 		header: 'DEX Aggregator Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['30d'] },
-		size: 148
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 220
 	}),
 	dex_aggregator_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
 		id: 'dex_aggregator_volume_24h',
 		header: 'DEX Aggregator Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: definitions.dexAggregators.protocol['24h'] },
-		size: 148
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 220
 	}),
-	prediction_market_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
-		id: 'prediction_market_volume_7d',
-		header: 'Volume 7d',
+	prediction_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'prediction_volume_7d',
+		header: 'Prediction Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 140
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 180
 	}),
-	prediction_market_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
-		id: 'prediction_market_volume_30d',
-		header: 'Volume 30d',
+	prediction_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'prediction_volume_30d',
+		header: 'Prediction Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 195
 	}),
-	prediction_market_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
-		id: 'prediction_market_volume_24h',
-		header: 'Volume 24h',
+	prediction_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'prediction_volume_24h',
+		header: 'Prediction Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 195
 	}),
-	crypto_card_issuer_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
-		id: 'crypto_card_issuer_volume_7d',
-		header: 'Volume 7d',
+	payment_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'payment_volume_7d',
+		header: 'Payment Volume 7d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 140
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 180
 	}),
-	crypto_card_issuer_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
-		id: 'crypto_card_issuer_volume_30d',
-		header: 'Volume 30d',
+	payment_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'payment_volume_30d',
+		header: 'Payment Volume 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 180
 	}),
-	crypto_card_issuer_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
-		id: 'crypto_card_issuer_volume_24h',
-		header: 'Volume 24h',
+	payment_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'payment_volume_24h',
+		header: 'Payment Volume 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end' },
-		size: 148
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 180
+	}),
+	spot_volume_7d: columnHelper.accessor((p) => p.dexVolume?.total7d, {
+		id: 'spot_volume_7d',
+		header: 'Spot Volume 7d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['7d'] },
+		size: 160
+	}),
+	spot_volume_30d: columnHelper.accessor((p) => p.dexVolume?.total30d, {
+		id: 'spot_volume_30d',
+		header: 'Spot Volume 30d',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['30d'] },
+		size: 160
+	}),
+	spot_volume_24h: columnHelper.accessor((p) => p.dexVolume?.total24h, {
+		id: 'spot_volume_24h',
+		header: 'Spot Volume 24h',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: { align: 'end', headerHelperText: definitions.dexs.protocol['24h'] },
+		size: 160
 	}),
 	options_premium_7d: columnHelper.accessor((p) => p.optionsPremium?.total7d, {
 		id: 'options_premium_7d',
@@ -661,10 +657,10 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	}),
 	borrowed: columnHelper.accessor((p) => p.borrowed, {
 		id: 'borrowed',
-		header: 'Borrowed',
+		header: 'Active Loans',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		meta: { align: 'end', headerHelperText: 'Total amount borrowed from the protocol' },
-		size: 100
+		meta: { align: 'end', headerHelperText: 'Total amount currently borrowed from the protocol' },
+		size: 140
 	}),
 	supplied: columnHelper.accessor((p) => p.supplied, {
 		id: 'supplied',
@@ -682,7 +678,7 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	})
 }
 
-function getColumnsForCategory(effectiveCategory: string | null) {
+export function getColumnsForCategory(effectiveCategory: string | null) {
 	const columnIds = getProtocolCategoryColumns(effectiveCategory)
 	return columnIds.map((id) => COLUMN_REGISTRY[id]).filter(Boolean)
 }

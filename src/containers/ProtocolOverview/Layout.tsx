@@ -1,9 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { useMemo } from 'react'
+import { Announcement } from '~/components/Announcement'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink, ButtonLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -13,7 +15,7 @@ const tabs = {
 	information: { id: 'information', name: 'Information', route: '/protocol' },
 	assets: { id: 'assets', name: 'Assets', route: '/protocol/assets' },
 	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },
-	borrowed: { id: 'borrowed', name: 'Borrowed', route: '/protocol/borrowed' },
+	borrowed: { id: 'borrowed', name: 'Active Loans', route: '/protocol/active-loans' },
 	stablecoins: { id: 'stablecoins', name: 'Stablecoin Info', route: '/protocol/stablecoins' },
 	bridges: { id: 'bridges', name: 'Bridge Info', route: '/protocol/bridges' },
 	treasury: { id: 'treasury', name: 'Treasury', route: '/protocol/treasury' },
@@ -37,6 +39,7 @@ const tabs = {
 
 const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
 	information: '/protocol',
+	borrowed: '/protocol/active-loans',
 	unlocks: '/unlocks',
 	governance: '/governance',
 	forks: '/forks'
@@ -78,6 +81,8 @@ export function ProtocolOverviewLayout({
 	seoDescription?: string
 	entityQuestions?: string[]
 }) {
+	const { user } = useAuthContext()
+
 	const metricFiltersLabel = useMemo(() => {
 		const hasTvl = toggleOptions?.some((option) => TVL_SETTINGS_KEYS_SET.has(option.key))
 		const hasFees = toggleOptions?.some((option) => FEES_SETTINGS_KEYS_SET.has(option.key))
@@ -182,7 +187,7 @@ export function ProtocolOverviewLayout({
 		>
 			{category === 'Uncollateralized Lending' || category === 'RWA Lending' ? (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
-					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
+					Active loans are not included in TVL by default, to include them toggle Active Loans. For more info on this
 					click{' '}
 					<a
 						href="https://github.com/DefiLlama/DefiLlama-Adapters/discussions/6163"
@@ -210,6 +215,32 @@ export function ProtocolOverviewLayout({
 					{banner.message}
 				</p>
 			))}
+
+			{name === 'Spark' ? (
+				<Announcement
+					announcementId="spark-investor-relations"
+					version="2026-04-15"
+					className="border border-[#ffb27a] bg-[linear-gradient(90deg,rgba(255,244,234,0.98),rgba(255,232,213,0.98)_38%,rgba(255,219,225,0.95)_100%)] text-[#7a3d0c] shadow-[0_8px_20px_rgba(255,142,43,0.14)] dark:border-[#8f4e1e] dark:bg-[linear-gradient(90deg,rgba(66,43,27,0.96),rgba(81,35,33,0.94)_55%,rgba(94,26,40,0.94)_100%)] dark:text-[#ffe8d5]"
+					contentClassName="text-center"
+				>
+					<span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-2 py-0.5 text-xs font-semibold text-[#8d4c12] shadow-sm dark:border-white/10 dark:bg-white/10 dark:text-[#ffd2aa]">
+							<TokenLogo name={name} kind="token" size={14} alt={`Logo of ${name}`} />
+							Spark IR
+						</span>
+						<span>View Spark&apos;s</span>
+						<a
+							href={`https://investors.defillama.com/spark${user?.id ? `?referrer=${user.id}` : ''}`}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="underline decoration-2 underline-offset-[3px]"
+						>
+							investor relations dashboard
+						</a>
+						<span className="opacity-90">for deeper analytics and investor reports.</span>
+					</span>
+				</Announcement>
+			) : null}
 
 			<div className="isolate flex flex-1 flex-col gap-2">
 				<div className="flex w-full overflow-x-auto text-xs font-medium">

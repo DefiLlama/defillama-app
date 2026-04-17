@@ -1,10 +1,10 @@
 import type { IRWAPerpsMarket } from './api.types'
 import type {
-	IRWAPerpsTimeSeriesRow,
 	RWAPerpsOverviewBreakdown,
-	RWAPerpsOverviewNonTimeSeriesBreakdown,
+	RWAPerpsOverviewSnapshotBreakdown,
 	RWAPerpsOverviewTreemapBreakdown,
 	RWAPerpsVenueBreakdown,
+	RWAPerpsVenueSnapshotBreakdown,
 	RWAPerpsVenueTreemapBreakdown
 } from './types'
 
@@ -12,7 +12,9 @@ export const UNKNOWN_BREAKDOWN_LABEL = 'Unknown'
 
 type SharedBreakdown = RWAPerpsOverviewTreemapBreakdown | RWAPerpsVenueTreemapBreakdown
 
-type SharedBreakdownRow = Pick<IRWAPerpsTimeSeriesRow, 'contract' | 'venue' | 'referenceAsset' | 'assetClass'>
+type SharedBreakdownRow = Pick<IRWAPerpsMarket, 'contract' | 'venue' | 'referenceAsset' | 'assetClass'> & {
+	referenceAssetGroup?: string | null
+}
 
 export function normalizeRWAPerpsBreakdownLabel(value: string | null | undefined): string {
 	return value && value.length > 0 ? value : UNKNOWN_BREAKDOWN_LABEL
@@ -32,6 +34,10 @@ export function getRWAPerpsAssetClassBreakdownLabel(row: Pick<SharedBreakdownRow
 	return normalizeRWAPerpsBreakdownLabel(row.assetClass?.[0])
 }
 
+export function getRWAPerpsAssetGroupBreakdownLabel(row: Pick<SharedBreakdownRow, 'referenceAssetGroup'>): string {
+	return normalizeRWAPerpsBreakdownLabel(row.referenceAssetGroup)
+}
+
 export function getRWAPerpsSharedBreakdownLabel(row: SharedBreakdownRow, breakdown: SharedBreakdown): string {
 	switch (breakdown) {
 		case 'venue':
@@ -40,6 +46,8 @@ export function getRWAPerpsSharedBreakdownLabel(row: SharedBreakdownRow, breakdo
 			return getRWAPerpsAssetClassBreakdownLabel(row)
 		case 'baseAsset':
 			return getRWAPerpsBaseAssetBreakdownLabel(row)
+		case 'assetGroup':
+			return getRWAPerpsAssetGroupBreakdownLabel(row)
 		case 'contract':
 			return getRWAPerpsContractBreakdownLabel(row)
 		default:
@@ -60,7 +68,14 @@ export function getRWAPerpsVenueBreakdownLabel(row: SharedBreakdownRow, breakdow
 
 export function getRWAPerpsOverviewSnapshotBreakdownLabel(
 	row: IRWAPerpsMarket,
-	breakdown: RWAPerpsOverviewNonTimeSeriesBreakdown
+	breakdown: RWAPerpsOverviewSnapshotBreakdown
+): string {
+	return getRWAPerpsSharedBreakdownLabel(row, breakdown)
+}
+
+export function getRWAPerpsVenueSnapshotBreakdownLabel(
+	row: IRWAPerpsMarket,
+	breakdown: RWAPerpsVenueSnapshotBreakdown
 ): string {
 	return getRWAPerpsSharedBreakdownLabel(row, breakdown)
 }

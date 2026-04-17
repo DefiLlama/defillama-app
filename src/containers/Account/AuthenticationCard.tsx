@@ -4,21 +4,22 @@ import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { EmailChangeModal } from './EmailChangeModal'
 import { PasswordResetModal } from './PasswordResetModal'
-import { isWalletEmail, getWalletAddress, truncateAddress } from './utils'
+import { SwitchToEmailModal } from './SwitchToEmailModal'
+import { isWalletEmail, truncateAddress } from './utils'
 
 export function AuthenticationCard() {
 	const { user, resetPasswordMutation, resendVerification, loaders } = useAuthContext()
 
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+	const [isSwitchToEmailModalOpen, setIsSwitchToEmailModalOpen] = useState(false)
 	const [passwordCooldownMsg, setPasswordCooldownMsg] = useState('')
 	const passwordResetSentAt = useRef(0)
 	const PASSWORD_COOLDOWN_MS = 60_000
 
 	const walletEmail = isWalletEmail(user?.email)
-	const hasEmailAuth = !!user?.email && !walletEmail
-	const isEmailUnverified = hasEmailAuth && user?.verified === false
-	const walletAddress = walletEmail ? getWalletAddress(user.email) : user?.walletAddress
+	const isEmailUnverified = !walletEmail && user?.verified === false
+	const walletAddress = user?.walletAddress
 	const walletDisplayName = walletAddress ? truncateAddress(walletAddress) : ''
 
 	const handleChangeEmail = () => {
@@ -59,10 +60,6 @@ export function AuthenticationCard() {
 		})
 	}
 
-	const handleActivateEmailAuth = () => {
-		setIsEmailModalOpen(true)
-	}
-
 	const handleResendVerification = () => {
 		if (loaders.resendVerification || !user?.email) return
 		resendVerification(user.email)
@@ -78,35 +75,7 @@ export function AuthenticationCard() {
 
 				<p className="text-xs leading-4 text-(--sub-text-muted)">Manage your authentication methods.</p>
 
-				{hasEmailAuth ? (
-					<div className="flex flex-wrap items-center justify-between gap-3">
-						<div className="flex items-center gap-3">
-							<div className="flex items-center rounded-full bg-(--sub-surface-panel) p-2 dark:bg-(--sub-ink-primary)">
-								<Icon name="mail-rounded" height={20} width={20} className="text-(--sub-ink-primary) dark:text-white" />
-							</div>
-							<div className="flex flex-col gap-1">
-								<span className="text-sm text-(--sub-ink-primary) dark:text-white">{user?.email}</span>
-								<span className="text-xs text-(--sub-text-muted)">Email & Password</span>
-							</div>
-						</div>
-						<div className="flex gap-2">
-							<button
-								onClick={handleChangeEmail}
-								disabled={loaders.changeEmail}
-								className="flex h-8 items-center rounded-lg border border-(--sub-border-muted) px-3 text-xs font-medium text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
-							>
-								Change Email
-							</button>
-							<button
-								onClick={handleChangePassword}
-								disabled={resetPasswordMutation.isPending}
-								className="flex h-8 items-center rounded-lg border border-(--sub-border-muted) px-3 text-xs font-medium text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
-							>
-								Change Password
-							</button>
-						</div>
-					</div>
-				) : (
+				{walletEmail ? (
 					<>
 						<div className="flex items-center gap-3">
 							<div className="flex items-center rounded-full bg-(--sub-surface-panel) p-2 dark:bg-(--sub-ink-primary)">
@@ -120,19 +89,67 @@ export function AuthenticationCard() {
 
 						<div className="flex flex-col gap-1">
 							<div className="flex items-center justify-between">
-								<span className="text-sm text-(--sub-ink-primary) dark:text-white">Email Auth</span>
+								<span className="text-sm text-(--sub-ink-primary) dark:text-white">Enable Email Auth</span>
 								<button
-									onClick={handleActivateEmailAuth}
-									disabled={loaders.addEmail}
-									className="rounded-lg bg-(--sub-brand-primary) px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
+									onClick={() => setIsSwitchToEmailModalOpen(true)}
+									className="flex h-8 items-center rounded-lg border border-(--sub-border-muted) px-3 text-xs font-medium text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
 								>
-									{loaders.addEmail ? 'Adding...' : 'Activate Email Auth'}
+									Enable Email Auth
 								</button>
 							</div>
 							<p className="text-xs leading-4 text-(--sub-text-muted)">
-								Enable email sign-in as an alternative method.
+								Add email &amp; password as another way to log in to your account.
 							</p>
 						</div>
+					</>
+				) : (
+					<>
+						<div className="flex flex-wrap items-center justify-between gap-3">
+							<div className="flex items-center gap-3">
+								<div className="flex items-center rounded-full bg-(--sub-surface-panel) p-2 dark:bg-(--sub-ink-primary)">
+									<Icon
+										name="mail-rounded"
+										height={20}
+										width={20}
+										className="text-(--sub-ink-primary) dark:text-white"
+									/>
+								</div>
+								<div className="flex flex-col gap-1">
+									<span className="text-sm text-(--sub-ink-primary) dark:text-white">{user?.email}</span>
+									<span className="text-xs text-(--sub-text-muted)">Email & Password</span>
+								</div>
+							</div>
+							<div className="flex gap-2">
+								<button
+									onClick={handleChangeEmail}
+									disabled={loaders.changeEmail}
+									className="flex h-8 items-center rounded-lg border border-(--sub-border-muted) px-3 text-xs font-medium text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
+								>
+									Change Email
+								</button>
+								<button
+									onClick={handleChangePassword}
+									disabled={resetPasswordMutation.isPending}
+									className="flex h-8 items-center rounded-lg border border-(--sub-border-muted) px-3 text-xs font-medium text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
+								>
+									Change Password
+								</button>
+							</div>
+						</div>
+
+						{user?.walletAddress && (
+							<div className="flex items-center gap-3">
+								<div className="flex items-center rounded-full bg-(--sub-surface-panel) p-2 dark:bg-(--sub-ink-primary)">
+									<Icon name="wallet" height={20} width={20} className="text-(--sub-ink-primary) dark:text-white" />
+								</div>
+								<div className="flex flex-col gap-1">
+									<span className="text-sm text-(--sub-ink-primary) dark:text-white">
+										{truncateAddress(user.walletAddress)}
+									</span>
+									<span className="text-xs text-(--sub-text-muted)">Wallet Address</span>
+								</div>
+							</div>
+						)}
 					</>
 				)}
 
@@ -170,6 +187,12 @@ export function AuthenticationCard() {
 			/>
 
 			<EmailChangeModal isOpen={isEmailModalOpen} onClose={() => setIsEmailModalOpen(false)} />
+
+			<SwitchToEmailModal
+				isOpen={isSwitchToEmailModalOpen}
+				onClose={() => setIsSwitchToEmailModalOpen(false)}
+				defaultEmail={user?.ethereum_email}
+			/>
 		</>
 	)
 }

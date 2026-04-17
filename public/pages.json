@@ -84,13 +84,6 @@
       "oldName": "Forks"
     },
     {
-      "name": "Total Borrowed by Protocol",
-      "route": "/total-borrowed",
-      "category": "Total Value Locked",
-      "description": "Sum of value currently borrowed across all active loans on a lending protocol",
-      "tab": "Protocols"
-    },
-    {
       "name": "Total Staked by Protocol",
       "route": "/total-staked",
       "category": "Total Value Locked",
@@ -102,6 +95,13 @@
       "route": "/pool2",
       "category": "Total Value Locked",
       "description": "Total value locked in pool2 of a protocol",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Active Loans by Protocol",
+      "route": "/active-loans",
+      "category": "Total Value Locked",
+      "description": "Sum of value currently borrowed across all active loans on a lending protocol",
       "tab": "Protocols"
     },
     {
@@ -200,16 +200,6 @@
       "oldName": "Fees"
     },
     {
-      "name": "Revenue by Chain",
-      "route": "/revenue/chains",
-      "category": "Fees & Revenue",
-      "description": "Subset of fees that the chain collects for itself",
-      "totalTrackedKey": "chainRevenue.chains",
-      "tab": "Chains",
-      "oldCategory": "Fees & Revenue",
-      "oldName": "Revenue (Chains)"
-    },
-    {
       "name": "Holders Revenue by Protocol",
       "route": "/holders-revenue",
       "category": "Fees & Revenue",
@@ -218,6 +208,16 @@
       "tab": "Protocols",
       "oldCategory": "Fees & Revenue",
       "oldName": "Holders Revenue"
+    },
+    {
+      "name": "Revenue by Chain",
+      "route": "/revenue/chains",
+      "category": "Fees & Revenue",
+      "description": "Subset of fees that the chain collects for itself",
+      "totalTrackedKey": "chainRevenue.chains",
+      "tab": "Chains",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "Revenue (Chains)"
     },
     {
       "name": "Fees by Chain",
@@ -500,6 +500,15 @@
       "description": "Overview of all Real World Assets (RWAs) by chain"
     },
     {
+      "name": "RWA: Perps",
+      "route": "/rwa/perps",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps",
+      "tags": [
+        "New"
+      ]
+    },
+    {
       "name": "RWA by Category",
       "route": "/rwa/categories",
       "category": "RWA",
@@ -510,6 +519,24 @@
       "route": "/rwa/platforms",
       "category": "RWA",
       "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
+      "name": "RWA by Asset Group",
+      "route": "/rwa/asset-groups",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by asset group"
+    },
+    {
+      "name": "RWA Perps by Venue",
+      "route": "/rwa/perps/venues",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps by venue"
+    },
+    {
+      "name": "RWA Perps by Asset Group",
+      "route": "/rwa/perps/asset-groups",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) perps by asset group"
     },
     {
       "name": "Bridges by Volume",
@@ -569,41 +596,6 @@
       "oldName": "Equities"
     },
     {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections",
-      "totalTrackedKey": "nfts.collections",
-      "oldCategory": "NFTs",
-      "oldName": "Collections"
-    },
-    {
-      "name": "NFTs: Marketplaces",
-      "route": "/nfts/marketplaces",
-      "category": "NFTs",
-      "description": "Overview of all NFT marketplaces",
-      "totalTrackedKey": "nfts.marketplaces",
-      "oldCategory": "NFTs",
-      "oldName": "Marketplaces"
-    },
-    {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
-      "oldCategory": "NFTs",
-      "oldName": "Earnings"
-    },
-    {
-      "name": "NFT Volume by Chain",
-      "route": "/nfts/chains",
-      "category": "NFTs",
-      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain",
-      "totalTrackedKey": "nfts.chains",
-      "oldCategory": "NFTs",
-      "oldName": "Volume (Chains)"
-    },
-    {
       "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
@@ -627,6 +619,41 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
+    },
+    {
+      "name": "NFTs: Marketplaces",
+      "route": "/nfts/marketplaces",
+      "category": "NFTs",
+      "description": "Overview of all NFT marketplaces",
+      "totalTrackedKey": "nfts.marketplaces",
+      "oldCategory": "NFTs",
+      "oldName": "Marketplaces"
+    },
+    {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections",
+      "totalTrackedKey": "nfts.collections",
+      "oldCategory": "NFTs",
+      "oldName": "Collections"
+    },
+    {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
+      "oldCategory": "NFTs",
+      "oldName": "Earnings"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains",
+      "category": "NFTs",
+      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain",
+      "totalTrackedKey": "nfts.chains",
+      "oldCategory": "NFTs",
+      "oldName": "Volume (Chains)"
     },
     {
       "name": "Raises: Overview",
@@ -765,19 +792,19 @@
       "oldName": "Watchlist"
     },
     {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
-    },
-    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
       "description": "Simple view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Simple"
+    },
+    {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
     },
     {
       "name": "Yields: Watchlist",
@@ -892,6 +919,12 @@
       "keys": [
         "news"
       ]
+    },
+    {
+      "name": "DefiLlama for Investors",
+      "route": "https://investors.defillama.com",
+      "category": "Tools",
+      "description": "Institutional-grade DeFi analytics and research tools for investors"
     }
   ],
   "Main": [
@@ -945,6 +978,12 @@
       "name": "DEX Aggregator",
       "route": "https://swap.defillama.com",
       "icon": "landmark"
+    },
+    {
+      "name": "Investor Relations",
+      "route": "https://investors.defillama.com",
+      "icon": "trending-up",
+      "isNew": true
     }
   ],
   "Premium": [
