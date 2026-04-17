@@ -44,8 +44,9 @@ export default function ChainCoreChart({
 		groupBy: tooltipGroupBy
 	})
 
-	const { series, allYAxis } = useMemo(() => {
+	const { series, allYAxis, barAxisTypes } = useMemo(() => {
 		const uniqueYAxis = new Set<ChainChartLabels>()
+		const barAxisTypes = new Set<ChainChartLabels>()
 		const stacks: ChainChartLabels[] = []
 		for (const stack in chartData) {
 			const chartLabel = stack as ChainChartLabels
@@ -62,6 +63,9 @@ export default function ChainCoreChart({
 
 			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 			type = DISABLED_CUMULATIVE_CHARTS.includes(stack) ? 'bar' : type
+			if (type === 'bar') {
+				barAxisTypes.add(yAxisByChart[stack])
+			}
 
 			const options = {
 				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
@@ -110,7 +114,8 @@ export default function ChainCoreChart({
 
 		return {
 			series,
-			allYAxis: Object.entries(indexByYAxis) as Array<[ChainChartLabels, number | undefined]>
+			allYAxis: Object.entries(indexByYAxis) as Array<[ChainChartLabels, number | undefined]>,
+			barAxisTypes
 		}
 	}, [chartData, isThemeDark, isCumulative])
 
@@ -151,6 +156,7 @@ export default function ChainCoreChart({
 		const finalYAxis = buildChainYAxis({
 			allYAxis,
 			baseYAxis: yAxis,
+			barAxisTypes,
 			chartColors: chainOverviewChartColors,
 			chartsInSeries,
 			isThemeDark
@@ -175,7 +181,7 @@ export default function ChainCoreChart({
 			},
 			{ notMerge: true, lazyUpdate: true }
 		)
-	}, [defaultChartSettings, series, chartOptions, allYAxis, isThemeDark, hideDataZoom])
+	}, [defaultChartSettings, series, chartOptions, allYAxis, barAxisTypes, isThemeDark, hideDataZoom])
 
 	return (
 		<div

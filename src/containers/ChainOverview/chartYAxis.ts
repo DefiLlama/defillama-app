@@ -1,10 +1,7 @@
+import { getAutoFitYAxisMin, getZeroBaselineYAxisMin } from '~/components/ECharts/axisMin'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { formattedNum } from '~/utils'
 import type { ChainChartLabels } from './constants'
-
-type AxisExtent = {
-	min?: number
-}
 
 type AxisBuilderContext = {
 	chartColors: Record<string, string>
@@ -24,10 +21,6 @@ const DASHED_AXIS_LINE_STYLE = {
 	type: [5, 10],
 	dashOffset: 5
 } as const
-
-function getZeroBaselineYAxisMin(extent: AxisExtent) {
-	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
-}
 
 const AXIS_CONFIG_BY_TYPE: Partial<Record<ChainChartLabels, AxisConfig>> = {
 	'Stablecoins Mcap': {
@@ -105,12 +98,14 @@ const AXIS_CONFIG_BY_TYPE: Partial<Record<ChainChartLabels, AxisConfig>> = {
 export function buildChainYAxis({
 	allYAxis,
 	baseYAxis,
+	barAxisTypes,
 	chartColors,
 	chartsInSeries,
 	isThemeDark
 }: {
 	allYAxis: Array<[ChainChartLabels, number | undefined]>
 	baseYAxis: Record<string, unknown>
+	barAxisTypes: ReadonlySet<ChainChartLabels>
 	chartColors: Record<string, string>
 	chartsInSeries: Set<string>
 	isThemeDark: boolean
@@ -120,10 +115,12 @@ export function buildChainYAxis({
 	const noOffset = allYAxis.length < 3
 
 	for (const [type, index] of allYAxis) {
+		const min = barAxisTypes.has(type) ? getZeroBaselineYAxisMin : getAutoFitYAxisMin
+
 		if (type === 'TVL') {
 			finalYAxis.push({
 				...baseYAxis,
-				min: getZeroBaselineYAxisMin
+				min
 			})
 			continue
 		}
@@ -133,7 +130,7 @@ export function buildChainYAxis({
 			...baseYAxis,
 			name: '',
 			type: 'value',
-			min: getZeroBaselineYAxisMin,
+			min,
 			alignTicks: true,
 			offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (CUSTOM_OFFSETS[type] ?? 40)
 		}

@@ -64,8 +64,9 @@ export default function ProtocolChart({
 		[hallmarks, rangeHallmarks, isThemeDark]
 	)
 
-	const { series, allYAxis } = useMemo(() => {
+	const { series, allYAxis, barAxisTypes } = useMemo(() => {
 		const uniqueYAxis = new Set()
+		const barAxisTypes = new Set<ProtocolChartsLabels>()
 		const stacks: ProtocolChartsLabels[] = []
 		for (const stack in chartData) {
 			stacks.push(stack as ProtocolChartsLabels)
@@ -82,6 +83,9 @@ export default function ProtocolChart({
 		const series = stacks.map((stack, index) => {
 			const stackColor = chartColors[stack]
 			const type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			if (type === 'bar') {
+				barAxisTypes.add(yAxisByChart[stack])
+			}
 
 			const options = {
 				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
@@ -153,7 +157,8 @@ export default function ProtocolChart({
 
 		return {
 			series,
-			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
+			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>,
+			barAxisTypes
 		}
 	}, [chartData, chartColors, isThemeDark, isCumulative, rangeHallmarks])
 
@@ -199,6 +204,7 @@ export default function ProtocolChart({
 		const finalYAxis = buildProtocolYAxis({
 			allYAxis,
 			baseYAxis: yAxis,
+			barAxisTypes,
 			chartColors,
 			chartsInSeries,
 			unlockTokenSymbol
@@ -290,6 +296,7 @@ export default function ProtocolChart({
 		unlockTokenSymbol,
 		chartColors,
 		allYAxis,
+		barAxisTypes,
 		rangeHallmarks,
 		eventRailData,
 		isThemeDark,

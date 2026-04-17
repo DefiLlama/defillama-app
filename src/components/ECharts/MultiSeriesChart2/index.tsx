@@ -29,6 +29,11 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
+import {
+	getDefaultYAxisMinForSeriesTypes,
+	getRenderedSeriesTypesByYAxisIndex,
+	getZeroBaselineYAxisMin
+} from '../axisMin'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
@@ -62,14 +67,6 @@ function formatAxisLabel(value: number, symbol: string): string {
 	}
 
 	return formatNum(value, 5, symbol || undefined)
-}
-
-type AxisExtent = {
-	min?: number
-}
-
-function getZeroBaselineYAxisMin(extent: AxisExtent) {
-	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
 }
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
@@ -214,6 +211,7 @@ function buildMultiYAxis({
 	const yAxisIndexToColor = new Map<number, string | undefined>()
 	const yAxisIndexToExplicitColor = new Map<number, string | undefined>()
 	const yAxisIndexToSymbol = new Map<number, string | undefined>()
+	const seriesTypesByAxisIndex = getRenderedSeriesTypesByYAxisIndex(series)
 	let maxIndex = -1
 
 	for (const item of series) {
@@ -275,12 +273,14 @@ function buildMultiYAxis({
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
 		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
+		const min = baseAxis?.min ?? getDefaultYAxisMinForSeriesTypes(seriesTypesByAxisIndex.get(i))
 
 		out.push({
 			...baseAxis,
 			position: isPrimary ? 'left' : 'right',
 			alignTicks: true,
 			offset,
+			...(expandTo100Percent ? { max: 100, min: 0 } : { min }),
 			axisLine: {
 				...baseAxisLine,
 				show: !isPrimary,
@@ -295,8 +295,7 @@ function buildMultiYAxis({
 				...baseAxisLabel,
 				formatter: existingFormatter ?? ((value: number) => formatAxisLabel(value, axisSymbol)),
 				...(axisColor ? { color: axisColor } : {})
-			},
-			...(expandTo100Percent ? { max: 100, min: 0 } : {})
+			}
 		})
 
 		prevOffset = offset
@@ -918,7 +917,12 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				: [
 						{
 							...yAxis,
-							...(expandTo100Percent ? { max: 100, min: 0 } : {})
+							...(expandTo100Percent
+								? { max: 100, min: 0 }
+								: {
+										min:
+											yAxis?.min ?? getDefaultYAxisMinForSeriesTypes(getRenderedSeriesTypesByYAxisIndex(series).get(0))
+									})
 						}
 					]
 		const eventStripYAxisIndex = finalYAxisBase.length

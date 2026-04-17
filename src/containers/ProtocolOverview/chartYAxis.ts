@@ -1,9 +1,6 @@
+import { getAutoFitYAxisMin, getZeroBaselineYAxisMin } from '~/components/ECharts/axisMin'
 import { formattedNum } from '~/utils'
 import type { ProtocolChartsLabels } from './constants'
-
-type AxisExtent = {
-	min?: number
-}
 
 type AxisBuilderContext = {
 	chartColors: Record<string, string>
@@ -27,10 +24,6 @@ const DASHED_AXIS_LINE_STYLE = {
 	type: [5, 10],
 	dashOffset: 5
 } as const
-
-function getZeroBaselineYAxisMin(extent: AxisExtent) {
-	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
-}
 
 const AXIS_CONFIG_BY_TYPE: Partial<Record<ProtocolChartsLabels, AxisConfig>> = {
 	'Token Price': {
@@ -125,12 +118,14 @@ const AXIS_CONFIG_BY_TYPE: Partial<Record<ProtocolChartsLabels, AxisConfig>> = {
 export function buildProtocolYAxis({
 	allYAxis,
 	baseYAxis,
+	barAxisTypes,
 	chartColors,
 	chartsInSeries,
 	unlockTokenSymbol
 }: {
 	allYAxis: Array<[ProtocolChartsLabels, number | undefined]>
 	baseYAxis: Record<string, unknown>
+	barAxisTypes: ReadonlySet<ProtocolChartsLabels>
 	chartColors: Record<string, string>
 	chartsInSeries: Set<string>
 	unlockTokenSymbol: string
@@ -140,10 +135,12 @@ export function buildProtocolYAxis({
 	const noOffset = allYAxis.length < 3
 
 	for (const [type, index] of allYAxis) {
+		const min = barAxisTypes.has(type) ? getZeroBaselineYAxisMin : getAutoFitYAxisMin
+
 		if (type === 'TVL') {
 			finalYAxis.push({
 				...baseYAxis,
-				min: getZeroBaselineYAxisMin
+				min
 			})
 			continue
 		}
@@ -153,7 +150,7 @@ export function buildProtocolYAxis({
 			...baseYAxis,
 			name: '',
 			type: 'value',
-			min: getZeroBaselineYAxisMin,
+			min,
 			alignTicks: true,
 			offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (CUSTOM_OFFSETS[type] ?? 40)
 		}
