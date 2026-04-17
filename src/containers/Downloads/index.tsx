@@ -1,12 +1,14 @@
 import dayjs from 'dayjs'
 import { matchSorter } from 'match-sorter'
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon, type IIcon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { TrialCsvLimitModal } from '~/components/TrialCsvLimitModal'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
+import { useDebouncedCallback } from '~/hooks/useDebounce'
 import {
 	chartDatasets,
 	chartDatasetCategories,
@@ -22,10 +24,13 @@ import {
 	type ChartSavedConfig,
 	type DatasetSavedConfig,
 	describeSavedConfig,
+	generatePresetId,
 	type MultiMetricSavedConfig,
-	type SavedDownload
+	type SavedDownload,
+	type SavedDownloadInput
 } from './savedDownloads'
 import { SavePresetDialog } from './SavePresetDialog'
+import { decodeDownloadConfig, encodeDownloadConfig } from './urlState'
 
 const ALL_TABS = ['Datasets', 'Time Series', 'Saved'] as const
 type Tab = (typeof ALL_TABS)[number]
@@ -51,17 +56,34 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 	const deferredSearch = useDeferredValue(searchValue)
 	const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORY)
 
-	const visibleTabs = useMemo(
-		() => (savedDownloads.length > 0 ? ALL_TABS : ALL_TABS.filter((t) => t !== 'Saved')),
-		[savedDownloads.length]
-	)
+	const router = useRouter()
+	const urlHydratedRef = useRef(false)
 
-	// If the Saved tab is active but no presets remain, fall back to Datasets.
-	useEffect(() => {
-		if (activeTab === 'Saved' && savedDownloads.length === 0) {
-			setActiveTab('Datasets')
-		}
-	}, [activeTab, savedDownloads.length])
+	const clearUrlQuery = useCallback(() => {
+		if (typeof window === 'undefined') return
+		if (Object.keys(router.query).length === 0) return
+		void router.replace({ pathname: router.pathname, query: {} }, undefined, { shallow: true })
+	}, [router])
+
+	const pushQueryNow = useCallback(
+		(cfg: SavedDownloadInput) => {
+			const encoded = encodeDownloadConfig(cfg)
+			const qs = new URLSearchParams(encoded).toString()
+			// Skip sync when the encoded config would produce an unreasonably long URL —
+			// Copy link will still surface a clear error so the user isn't left guessing.
+			if (qs.length > 1800) return
+			void router.replace({ pathname: router.pathname, query: encoded }, undefined, { shallow: true })
+		},
+		[router]
+	)
+	const debouncedPushQuery = useDebouncedCallback(pushQueryNow, 300)
+
+	const handleConfigChange = useCallback(
+		(cfg: SavedDownloadInput) => {
+			debouncedPushQuery(cfg)
+		},
+		[debouncedPushQuery]
+	)
 
 	const isPreview = !isAuthenticated || !hasActiveSubscription
 
@@ -192,6 +214,59 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 		[isAuthenticated, hasActiveSubscription, isTrial]
 	)
 
+	// Hydrate a shared-link config into the matching modal once the router is ready.
+	useEffect(() => {
+		if (!router.isReady || urlHydratedRef.current) return
+		urlHydratedRef.current = true
+		const parsed = decodeDownloadConfig(router.query as Record<string, string | string[] | undefined>)
+		if (!parsed) return
+		if (isAuthenticated && hasActiveSubscription && isTrial) {
+			setTrialLimitOpen(true)
+			return
+		}
+		const now = Date.now()
+		if (parsed.kind === 'dataset') {
+			const ds = datasetsBySlug.get(parsed.slug)
+			if (!ds) return
+			setDatasetInitialConfig({ ...parsed, id: generatePresetId(), name: ds.name, createdAt: now })
+			setPreviewDataset(ds)
+		} else if (parsed.kind === 'chart') {
+			const cd = chartDatasetsBySlug.get(parsed.slug)
+			if (!cd) return
+			setChartInitialConfig({ ...parsed, id: generatePresetId(), name: cd.name, createdAt: now })
+			setPreviewChartDataset(cd)
+		} else {
+			setMultiMetricInitialConfig({
+				...parsed,
+				id: generatePresetId(),
+				name: parsed.paramLabel ?? parsed.param,
+				createdAt: now
+			})
+			setCombineModalOpen(true)
+		}
+	}, [router.isReady, router.query, isAuthenticated, hasActiveSubscription, isTrial])
+
+	const closeDatasetModal = useCallback(() => {
+		setPreviewDataset(null)
+		setDatasetInitialConfig(undefined)
+		debouncedPushQuery.cancel()
+		clearUrlQuery()
+	}, [debouncedPushQuery, clearUrlQuery])
+
+	const closeChartModal = useCallback(() => {
+		setPreviewChartDataset(null)
+		setChartInitialConfig(undefined)
+		debouncedPushQuery.cancel()
+		clearUrlQuery()
+	}, [debouncedPushQuery, clearUrlQuery])
+
+	const closeMultiMetricModal = useCallback(() => {
+		setCombineModalOpen(false)
+		setMultiMetricInitialConfig(undefined)
+		debouncedPushQuery.cancel()
+		clearUrlQuery()
+	}, [debouncedPushQuery, clearUrlQuery])
+
 	const isUserLoading = loaders.userLoading
 
 	return (
@@ -208,7 +283,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			) : null}
 
 			<div className="flex items-center gap-1 rounded-lg border border-(--divider) bg-(--bg-primary) p-1">
-				{visibleTabs.map((tab) => (
+				{ALL_TABS.map((tab) => (
 					<button
 						key={tab}
 						type="button"
@@ -434,10 +509,8 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					authorizedFetch={authorizedFetch}
 					isPreview={isPreview}
 					initialConfig={multiMetricInitialConfig}
-					onClose={() => {
-						setCombineModalOpen(false)
-						setMultiMetricInitialConfig(undefined)
-					}}
+					onClose={closeMultiMetricModal}
+					onConfigChange={handleConfigChange}
 				/>
 			) : null}
 
@@ -446,13 +519,11 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					dataset={previewChartDataset}
 					options={chartOptionsMap[previewChartDataset.slug] ?? []}
 					authorizedFetch={authorizedFetch}
-					onClose={() => {
-						setPreviewChartDataset(null)
-						setChartInitialConfig(undefined)
-					}}
+					onClose={closeChartModal}
 					isTrial={isTrial}
 					isPreview={isPreview}
 					initialConfig={chartInitialConfig}
+					onConfigChange={handleConfigChange}
 				/>
 			)}
 
@@ -460,13 +531,11 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 				<DatasetPreviewModal
 					dataset={previewDataset}
 					authorizedFetch={authorizedFetch}
-					onClose={() => {
-						setPreviewDataset(null)
-						setDatasetInitialConfig(undefined)
-					}}
+					onClose={closeDatasetModal}
 					isTrial={isTrial}
 					isPreview={isPreview}
 					initialConfig={datasetInitialConfig}
+					onConfigChange={handleConfigChange}
 				/>
 			)}
 
@@ -755,41 +824,35 @@ function SavedDownloadsContent({
 
 function SavedEmptyState() {
 	return (
-		<div className="relative overflow-hidden rounded-xl border border-dashed border-(--divider) bg-(--bg-primary)/40">
-			<div className="flex flex-col gap-4 px-8 py-10 sm:flex-row sm:items-center sm:gap-8">
-				<div className="flex flex-col gap-1.5 sm:max-w-sm">
-					<p className="text-[11px] font-semibold tracking-[0.14em] text-(--text-tertiary) uppercase">No presets yet</p>
-					<p className="text-base font-medium text-(--text-primary)">
-						Save a configuration to run it again in one click.
-					</p>
-					<p className="text-xs text-(--text-secondary)">
-						Open a dataset, pick your columns, filters, date range — then click{' '}
-						<span className="inline-flex items-center gap-1 rounded border border-(--divider) bg-(--bg-primary) px-1.5 py-0.5 text-[11px] font-medium text-(--text-primary)">
-							<Icon name="bookmark" className="h-3 w-3" />
-							Save preset
-						</span>{' '}
-						in the modal header.
-					</p>
-				</div>
-				<div className="flex-1 opacity-60">
-					<MockSavedRow kind="dataset" title="Chains TVL — name, tvl, chainId" sub="Chains TVL · tvl desc" />
-					<MockSavedRow kind="multiMetric" title="Aave V3 — TVL, Fees, Revenue +3" sub="Aave V3 · 6 metrics combined" />
-				</div>
+		<div className="flex flex-col items-center gap-4 rounded-xl border border-dashed border-(--divider) bg-(--bg-primary)/40 px-6 py-12 text-center">
+			<div className="flex h-14 w-14 items-center justify-center rounded-full bg-(--primary)/10 text-(--primary)">
+				<svg
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="1.75"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+					className="h-7 w-7"
+					aria-hidden="true"
+				>
+					<path d="M6 3h12v18l-6-4-6 4z" />
+				</svg>
 			</div>
-		</div>
-	)
-}
-
-function MockSavedRow({ kind, title, sub }: { kind: SavedDownload['kind']; title: string; sub: string }) {
-	const style = kindStyle(kind)
-	return (
-		<div className="pointer-events-none flex items-center gap-3 border-t border-(--divider) py-2.5 pr-2 pl-3 first:border-t-0">
-			<span className={`h-5 w-0.5 shrink-0 rounded-full ${style.accent}`} aria-hidden="true" />
-			<div className="flex min-w-0 flex-1 flex-col">
-				<span className="truncate text-xs font-medium text-(--text-primary)">{title}</span>
-				<span className="truncate text-[10px] text-(--text-tertiary)">{sub}</span>
+			<div className="flex flex-col gap-1.5">
+				<h3 className="text-base font-semibold text-(--text-primary)">Pin your first preset</h3>
+				<p className="max-w-sm text-sm text-(--text-secondary)">
+					Save any dataset or chart configuration to run it again from here.
+				</p>
 			</div>
-			<Icon name="arrow-up-right" className="h-3 w-3 shrink-0 text-(--text-tertiary)" />
+			<p className="text-xs text-(--text-tertiary)">
+				Open a dataset, tweak your columns and filters, then click{' '}
+				<span className="inline-flex items-center gap-1 rounded border border-(--divider) bg-(--bg-primary) px-1.5 py-0.5 text-[11px] font-medium text-(--text-primary)">
+					<Icon name="bookmark" className="h-3 w-3" />
+					Save preset
+				</span>
+				.
+			</p>
 		</div>
 	)
 }

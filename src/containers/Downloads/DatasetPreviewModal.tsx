@@ -9,17 +9,20 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
-import { downloadCSV } from '~/utils/download'
+import { downloadTabular, type DownloadFormat } from '~/utils/download'
 import type { DatasetDefinition, DatasetExcludeToggle } from './datasets'
+import { FormatSplitButton } from './FormatSplitButton'
 import { RowLimitPicker } from './RowLimitPicker'
 import {
 	applyDatasetConfig,
 	defaultPresetName,
 	type DatasetSavedConfig,
 	extractDatasetConfig,
-	generatePresetId
+	generatePresetId,
+	type SavedDownloadInput
 } from './savedDownloads'
 import { SavePresetDialog } from './SavePresetDialog'
+import { buildShareUrl } from './urlState'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -256,9 +259,18 @@ interface Props {
 	isTrial?: boolean
 	isPreview?: boolean
 	initialConfig?: DatasetSavedConfig
+	onConfigChange?: (config: SavedDownloadInput) => void
 }
 
-export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial, isPreview, initialConfig }: Props) {
+export function DatasetPreviewModal({
+	dataset,
+	authorizedFetch,
+	onClose,
+	isTrial,
+	isPreview,
+	initialConfig,
+	onConfigChange
+}: Props) {
 	const queryClient = useQueryClient()
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const { savedDownloads, saveDownload } = useSavedDownloads()
@@ -530,48 +542,52 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		})
 	}, [])
 
-	const handleDownload = useCallback(() => {
-		if (selectedCount === 0) {
-			toast.error('Select at least one column')
-			return
-		}
-		const csvRows = buildSelectedCsvRows(columnMeta, cols, displayedRows)
-		if (csvRows.length <= 1) {
-			toast.error('No rows to download')
-			return
-		}
-		downloadCSV(`${dataset.slug}.csv`, csvRows, { addTimestamp: false })
-		toast.success(`Downloaded ${dataset.slug}.csv`)
+	const handleDownload = useCallback(
+		(format: DownloadFormat = 'csv') => {
+			if (selectedCount === 0) {
+				toast.error('Select at least one column')
+				return
+			}
+			const csvRows = buildSelectedCsvRows(columnMeta, cols, displayedRows)
+			if (csvRows.length <= 1) {
+				toast.error('No rows to download')
+				return
+			}
+			const extension = format === 'json' ? 'json' : 'csv'
+			downloadTabular(format, `${dataset.slug}.${extension}`, csvRows, { addTimestamp: false })
+			toast.success(`Downloaded ${dataset.slug}.${extension}`)
 
-		const configBase = extractDatasetConfig({
-			slug: dataset.slug,
+			const configBase = extractDatasetConfig({
+				slug: dataset.slug,
+				headers,
+				selectedColumns: cols,
+				sort: sortState,
+				chain: selectedChain,
+				exclude: excludeState,
+				rowLimit
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase, dataset.name),
+				createdAt: Date.now()
+			})
+		},
+		[
+			dataset.slug,
+			dataset.name,
+			columnMeta,
+			cols,
+			displayedRows,
+			selectedCount,
 			headers,
-			selectedColumns: cols,
-			sort: sortState,
-			chain: selectedChain,
-			exclude: excludeState,
-			rowLimit
-		})
-		recordRecent({
-			...configBase,
-			id: generatePresetId(),
-			name: defaultPresetName(configBase, dataset.name),
-			createdAt: Date.now()
-		})
-	}, [
-		dataset.slug,
-		dataset.name,
-		columnMeta,
-		cols,
-		displayedRows,
-		selectedCount,
-		headers,
-		sortState,
-		selectedChain,
-		excludeState,
-		rowLimit,
-		recordRecent
-	])
+			sortState,
+			selectedChain,
+			excludeState,
+			rowLimit,
+			recordRecent
+		]
+	)
 
 	const handleSavePreset = useCallback(
 		(name: string, replaceExisting: boolean) => {
@@ -599,9 +615,9 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		[dataset.slug, headers, cols, sortState, selectedChain, excludeState, rowLimit, saveDownload]
 	)
 
-	const suggestedPresetName = useMemo(() => {
-		if (headers.length === 0 || !selectedColumns) return ''
-		const configBase = extractDatasetConfig({
+	const currentConfig = useMemo<SavedDownloadInput | null>(() => {
+		if (headers.length === 0 || !selectedColumns) return null
+		return extractDatasetConfig({
 			slug: dataset.slug,
 			headers,
 			selectedColumns: cols,
@@ -610,8 +626,39 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			exclude: excludeState,
 			rowLimit
 		})
-		return defaultPresetName(configBase, dataset.name)
-	}, [dataset.slug, dataset.name, headers, selectedColumns, cols, sortState, selectedChain, excludeState, rowLimit])
+	}, [dataset.slug, headers, selectedColumns, cols, sortState, selectedChain, excludeState, rowLimit])
+
+	useEffect(() => {
+		if (!currentConfig || !onConfigChange) return
+		onConfigChange(currentConfig)
+	}, [currentConfig, onConfigChange])
+
+	const handleCopyLink = useCallback(async () => {
+		if (!currentConfig) {
+			toast.error('Nothing to share yet')
+			return
+		}
+		if (typeof window === 'undefined' || !navigator.clipboard) {
+			toast.error('Clipboard not available')
+			return
+		}
+		try {
+			const url = buildShareUrl(window.location.origin, '/downloads', currentConfig)
+			if (url.length > 2000) {
+				toast.error('Config too large to share — save as preset instead')
+				return
+			}
+			await navigator.clipboard.writeText(url)
+			toast.success('Link copied')
+		} catch {
+			toast.error('Failed to copy link')
+		}
+	}, [currentConfig])
+
+	const suggestedPresetName = useMemo(() => {
+		if (!currentConfig) return ''
+		return defaultPresetName(currentConfig, dataset.name)
+	}, [currentConfig, dataset.name])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
@@ -697,17 +744,36 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 										</button>
 									) : null}
 
-									<button
-										type="button"
-										onClick={() =>
-											isPreview ? (setSignupSource('downloads'), subscribeModalStore.show()) : handleDownload()
-										}
-										disabled={!isPreview && selectedCount === 0}
-										className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
-									>
-										<Icon name="download-cloud" className="h-3.5 w-3.5" />
-										<span className="hidden sm:inline">Download</span>
-									</button>
+									{!isPreview ? (
+										<button
+											type="button"
+											onClick={() => void handleCopyLink()}
+											disabled={!currentConfig}
+											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+											title="Copy shareable link"
+										>
+											<Icon name="link" className="h-3.5 w-3.5" />
+										</button>
+									) : null}
+
+									{isPreview ? (
+										<button
+											type="button"
+											onClick={() => {
+												setSignupSource('downloads')
+												subscribeModalStore.show()
+											}}
+											className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
+										>
+											<Icon name="download-cloud" className="h-3.5 w-3.5" />
+											<span className="hidden sm:inline">Download</span>
+										</button>
+									) : (
+										<FormatSplitButton
+											onDownload={(fmt) => handleDownload(fmt)}
+											disabled={selectedCount === 0}
+										/>
+									)}
 								</>
 							) : null}
 

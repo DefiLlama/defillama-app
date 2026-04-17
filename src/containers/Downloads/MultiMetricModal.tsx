@@ -8,21 +8,24 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { slug as toSlug } from '~/utils'
-import { downloadCSV } from '~/utils/download'
+import { downloadTabular, type DownloadFormat } from '~/utils/download'
 import { chartDatasets, chartDatasetsBySlug, type ChartDatasetDefinition, type ChartOptionsMap } from './chart-datasets'
 import { combineCsvsWide, type CsvItem } from './combineCsvsWide'
 import { filterCsvByDateRange, filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
 import { DateRangePicker } from './DateRangePicker'
+import { FormatSplitButton } from './FormatSplitButton'
 import {
 	applyMultiMetricConfig,
 	type DateRangeConfig,
 	defaultPresetName,
 	extractMultiMetricConfig,
 	generatePresetId,
-	type MultiMetricSavedConfig
+	type MultiMetricSavedConfig,
+	type SavedDownloadInput
 } from './savedDownloads'
 import { SavePresetDialog } from './SavePresetDialog'
+import { buildShareUrl } from './urlState'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -58,6 +61,7 @@ interface MultiMetricModalProps {
 	onClose: () => void
 	isPreview: boolean
 	initialConfig?: MultiMetricSavedConfig
+	onConfigChange?: (config: SavedDownloadInput) => void
 }
 
 function resolveDatasetValue(paramValue: string, paramType: ParamType, datasetOptions: ParamOption[]): string | null {
@@ -114,7 +118,8 @@ export function MultiMetricModal({
 	authorizedFetch,
 	onClose,
 	isPreview,
-	initialConfig
+	initialConfig,
+	onConfigChange
 }: MultiMetricModalProps) {
 	const subscribeModalStore = Ariakit.useDialogStore()
 	const { savedDownloads, saveDownload } = useSavedDownloads()
@@ -288,7 +293,7 @@ export function MultiMetricModal({
 		})
 	}, [])
 
-	const handleDownloadCombined = useCallback(() => {
+	const handleDownloadCombined = useCallback((format: DownloadFormat = 'csv') => {
 		if (!param) return
 		const readyWithSlug: Array<CsvItem & { slug: string }> = []
 		const failed: Array<{ slug: string; name: string }> = []
@@ -316,8 +321,8 @@ export function MultiMetricModal({
 			toast.error('No rows to download')
 			return
 		}
-		const filename = `${paramSlugForFilename(param.value)}_metrics.csv`
-		downloadCSV(filename, merged, { addTimestamp: true })
+		const filename = `${paramSlugForFilename(param.value)}_metrics.${format}`
+		downloadTabular(format, filename, merged, { addTimestamp: true })
 		if (failed.length > 0) {
 			toast.success(`Downloaded ${filename} — skipped ${failed.length} (${failed.map((f) => f.name).join(', ')})`)
 		} else {
@@ -340,7 +345,7 @@ export function MultiMetricModal({
 	}, [csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent])
 
 	const handleDownloadSingle = useCallback(
-		(slug: string) => {
+		(slug: string, format: DownloadFormat = 'csv') => {
 			if (!param) return
 			const idx = selectedMetrics.findIndex((s) => s === slug)
 			if (idx < 0) return
@@ -352,9 +357,12 @@ export function MultiMetricModal({
 			}
 			const dataset = chartDatasetsBySlug.get(slug)
 			if (!dataset) return
-			const filename = `${paramSlugForFilename(param.value)}_${shortMetricName(dataset)}.csv`
+			const filename = `${paramSlugForFilename(param.value)}_${shortMetricName(dataset)}.${format}`
 			const payload = filterCsvByDateRange(data, dateRange)
-			downloadCSV(filename, payload, { addTimestamp: true })
+			// Format toggle needs 2D array; parse the filtered CSV string once.
+			const parsed = parseCsv(payload)
+			const rows2D: string[][] = [parsed.headers, ...parsed.rows.map((r) => r.values)]
+			downloadTabular(format, filename, rows2D, { addTimestamp: true })
 			toast.success(`Downloaded ${filename}`)
 
 			const configBase = extractMultiMetricConfig({
@@ -404,31 +412,65 @@ export function MultiMetricModal({
 		[param, paramType, selectedMetrics, dateRange, saveDownload]
 	)
 
-	const suggestedPresetName = useMemo(() => {
-		if (!param) return ''
-		const configBase = extractMultiMetricConfig({
+	const currentConfig = useMemo<SavedDownloadInput | null>(() => {
+		if (!param) return null
+		return extractMultiMetricConfig({
 			paramType,
 			param: param.value,
 			paramLabel: param.label,
 			metrics: selectedMetrics,
 			dateRange
 		})
-		return defaultPresetName(configBase)
 	}, [param, paramType, selectedMetrics, dateRange])
+
+	useEffect(() => {
+		if (!currentConfig || !onConfigChange) return
+		onConfigChange(currentConfig)
+	}, [currentConfig, onConfigChange])
+
+	const handleCopyLink = useCallback(async () => {
+		if (!currentConfig) {
+			toast.error('Nothing to share yet')
+			return
+		}
+		if (typeof window === 'undefined' || !navigator.clipboard) {
+			toast.error('Clipboard not available')
+			return
+		}
+		try {
+			const url = buildShareUrl(window.location.origin, '/downloads', currentConfig)
+			if (url.length > 2000) {
+				toast.error('Config too large to share — save as preset instead')
+				return
+			}
+			await navigator.clipboard.writeText(url)
+			toast.success('Link copied')
+		} catch {
+			toast.error('Failed to copy link')
+		}
+	}, [currentConfig])
+
+	const suggestedPresetName = useMemo(() => {
+		if (!currentConfig) return ''
+		return defaultPresetName(currentConfig)
+	}, [currentConfig])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
-	const handleTopBarDownload = useCallback(() => {
-		if (isPreview) {
-			handleSubscribeClick()
-			return
-		}
-		if (selectedMetrics.length === 1) {
-			handleDownloadSingle(selectedMetrics[0])
-		} else {
-			handleDownloadCombined()
-		}
-	}, [isPreview, selectedMetrics, handleSubscribeClick, handleDownloadSingle, handleDownloadCombined])
+	const handleTopBarDownload = useCallback(
+		(format: DownloadFormat = 'csv') => {
+			if (isPreview) {
+				handleSubscribeClick()
+				return
+			}
+			if (selectedMetrics.length === 1) {
+				handleDownloadSingle(selectedMetrics[0], format)
+			} else {
+				handleDownloadCombined(format)
+			}
+		},
+		[isPreview, selectedMetrics, handleSubscribeClick, handleDownloadSingle, handleDownloadCombined]
+	)
 
 	const isBulk = selectedMetrics.length > 1
 	const hasSelection = selectedMetrics.length > 0
@@ -506,16 +548,36 @@ export function MultiMetricModal({
 								</button>
 							) : null}
 
-							{param && hasSelection ? (
+							{param && hasSelection && !isPreview ? (
 								<button
 									type="button"
-									onClick={handleTopBarDownload}
-									disabled={topBarDownloadDisabled}
-									className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
+									onClick={() => void handleCopyLink()}
+									disabled={!currentConfig}
+									className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+									title="Copy shareable link"
 								>
-									<Icon name="download-cloud" className="h-3.5 w-3.5" />
-									<span className="hidden sm:inline">{downloadLabel}</span>
+									<Icon name="link" className="h-3.5 w-3.5" />
 								</button>
+							) : null}
+
+							{param && hasSelection ? (
+								isPreview ? (
+									<button
+										type="button"
+										onClick={() => handleTopBarDownload()}
+										disabled={topBarDownloadDisabled}
+										className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
+									>
+										<Icon name="download-cloud" className="h-3.5 w-3.5" />
+										<span className="hidden sm:inline">{downloadLabel}</span>
+									</button>
+								) : (
+									<FormatSplitButton
+										onDownload={(fmt) => handleTopBarDownload(fmt)}
+										disabled={topBarDownloadDisabled}
+										label={downloadLabel}
+									/>
+								)
 							) : null}
 
 							<button

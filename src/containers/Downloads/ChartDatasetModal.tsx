@@ -10,12 +10,13 @@ import { SortIcon } from '~/components/Table/SortIcon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { slug as toSlug } from '~/utils'
-import { downloadCSV } from '~/utils/download'
+import { downloadTabular, type DownloadFormat } from '~/utils/download'
 import type { ChartDatasetDefinition } from './chart-datasets'
 import { combineCsvsWide } from './combineCsvsWide'
 import { filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
 import { DateRangePicker } from './DateRangePicker'
+import { FormatSplitButton } from './FormatSplitButton'
 import {
 	applyChartColumnsAndSort,
 	applyChartParams,
@@ -23,9 +24,11 @@ import {
 	type DateRangeConfig,
 	defaultPresetName,
 	extractChartConfig,
-	generatePresetId
+	generatePresetId,
+	type SavedDownloadInput
 } from './savedDownloads'
 import { SavePresetDialog } from './SavePresetDialog'
+import { buildShareUrl } from './urlState'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -201,6 +204,7 @@ interface Props {
 	isTrial?: boolean
 	isPreview?: boolean
 	initialConfig?: ChartSavedConfig
+	onConfigChange?: (config: SavedDownloadInput) => void
 }
 
 export function ChartDatasetModal({
@@ -210,7 +214,8 @@ export function ChartDatasetModal({
 	onClose,
 	isTrial,
 	isPreview,
-	initialConfig
+	initialConfig,
+	onConfigChange
 }: Props) {
 	const queryClient = useQueryClient()
 	const subscribeModalStore = Ariakit.useDialogStore()
@@ -738,7 +743,7 @@ export function ChartDatasetModal({
 		[isCategoryMode]
 	)
 
-	const handleDownloadCombined = useCallback(() => {
+	const handleDownloadCombined = useCallback((format: DownloadFormat = 'csv') => {
 		if (isCategoryMode) {
 			if (selectedCount === 0) {
 				toast.error('Select at least one column')
@@ -749,8 +754,8 @@ export function ChartDatasetModal({
 				toast.error('No rows to download')
 				return
 			}
-			const filename = `${dataset.slug}_${toSlug(selectedCategory!)}.csv`
-			downloadCSV(filename, csvRows, { addTimestamp: false })
+			const filename = `${dataset.slug}_${toSlug(selectedCategory!)}.${format}`
+			downloadTabular(format, filename, csvRows, { addTimestamp: false })
 			toast.success(`Downloaded ${filename}`)
 
 			const configBase = extractChartConfig({
@@ -793,8 +798,8 @@ export function ChartDatasetModal({
 			toast.error('No rows to download')
 			return
 		}
-		const filename = `${dataset.slug}_combined.csv`
-		downloadCSV(filename, merged, { addTimestamp: true })
+		const filename = `${dataset.slug}_combined.${format}`
+		downloadTabular(format, filename, merged, { addTimestamp: true })
 		if (failed.length > 0) {
 			toast.success(
 				`Downloaded ${filename} — skipped ${failed.length} failed (${failed.map((f) => f.label).join(', ')})`
@@ -835,7 +840,7 @@ export function ChartDatasetModal({
 	])
 
 	const handleDownloadSingle = useCallback(
-		(param: ParamOption) => {
+		(param: ParamOption, format: DownloadFormat = 'csv') => {
 			if (isCategoryMode) {
 				if (!csvText) {
 					toast.error('Data not loaded yet')
@@ -861,8 +866,8 @@ export function ChartDatasetModal({
 					toast.error('No rows to download')
 					return
 				}
-				const filename = `${dataset.slug}_${param.value}.csv`
-				downloadCSV(filename, allRows, { addTimestamp: false })
+				const filename = `${dataset.slug}_${param.value}.${format}`
+				downloadTabular(format, filename, allRows, { addTimestamp: false })
 				toast.success(`Downloaded ${filename}`)
 
 				const configBase = extractChartConfig({
@@ -889,7 +894,7 @@ export function ChartDatasetModal({
 				toast.error('Data not loaded yet')
 				return
 			}
-			const filename = `${dataset.slug}_${param.value}.csv`
+			const filename = `${dataset.slug}_${param.value}.${format}`
 
 			let downloadedHeaders: string[] | null = null
 			let downloadedCols: Set<number> | null = null
@@ -898,7 +903,7 @@ export function ChartDatasetModal({
 			if (param.value === activePreviewValue && selectedCount > 0 && deferredSearch.length === 0) {
 				const csvRows = buildSelectedCsvRows(columnMeta, cols, sortedRows)
 				if (csvRows.length > 1) {
-					downloadCSV(filename, csvRows, { addTimestamp: false })
+					downloadTabular(format, filename, csvRows, { addTimestamp: false })
 					toast.success(`Downloaded ${filename}`)
 					downloadedHeaders = headers
 					downloadedCols = cols
@@ -917,7 +922,7 @@ export function ChartDatasetModal({
 					parsed.headers,
 					...rowsForDownload.map((r) => parsed.headers.map((_, i) => r.values[i] ?? ''))
 				]
-				downloadCSV(filename, allRows, { addTimestamp: false })
+				downloadTabular(format, filename, allRows, { addTimestamp: false })
 				toast.success(`Downloaded ${filename}`)
 				downloadedHeaders = parsed.headers
 			}
@@ -957,9 +962,9 @@ export function ChartDatasetModal({
 		]
 	)
 
-	const handleDownload = useCallback(() => {
+	const handleDownload = useCallback((format: DownloadFormat = 'csv') => {
 		if (isCategoryMode) {
-			handleDownloadCombined()
+			handleDownloadCombined(format)
 			return
 		}
 		if (selectedParams.length === 0) return
@@ -974,8 +979,8 @@ export function ChartDatasetModal({
 				toast.error('No rows to download')
 				return
 			}
-			const filename = `${dataset.slug}_${selectedParam.value}.csv`
-			downloadCSV(filename, csvRows, { addTimestamp: false })
+			const filename = `${dataset.slug}_${selectedParam.value}.${format}`
+			downloadTabular(format, filename, csvRows, { addTimestamp: false })
 			toast.success(`Downloaded ${filename}`)
 
 			const configBase = extractChartConfig({
@@ -994,7 +999,7 @@ export function ChartDatasetModal({
 			})
 			return
 		}
-		handleDownloadCombined()
+		handleDownloadCombined(format)
 	}, [
 		isCategoryMode,
 		selectedParams,
@@ -1038,9 +1043,9 @@ export function ChartDatasetModal({
 		[dataset.slug, headers, selectedParams, cols, sortState, dateRange, isCategoryMode, selectedCategory, saveDownload]
 	)
 
-	const suggestedPresetName = useMemo(() => {
-		if (!isCategoryMode && selectedParams.length === 0) return ''
-		const configBase = extractChartConfig({
+	const currentConfig = useMemo<SavedDownloadInput | null>(() => {
+		if (!isCategoryMode && selectedParams.length === 0) return null
+		return extractChartConfig({
 			slug: dataset.slug,
 			headers,
 			selectedParams,
@@ -1049,18 +1054,39 @@ export function ChartDatasetModal({
 			dateRange,
 			categoryBreakdown: isCategoryMode && selectedCategory ? { category: selectedCategory } : null
 		})
-		return defaultPresetName(configBase, dataset.name)
-	}, [
-		dataset.slug,
-		dataset.name,
-		headers,
-		selectedParams,
-		cols,
-		sortState,
-		dateRange,
-		isCategoryMode,
-		selectedCategory
-	])
+	}, [dataset.slug, headers, selectedParams, cols, sortState, dateRange, isCategoryMode, selectedCategory])
+
+	useEffect(() => {
+		if (!currentConfig || !onConfigChange) return
+		onConfigChange(currentConfig)
+	}, [currentConfig, onConfigChange])
+
+	const handleCopyLink = useCallback(async () => {
+		if (!currentConfig) {
+			toast.error('Nothing to share yet')
+			return
+		}
+		if (typeof window === 'undefined' || !navigator.clipboard) {
+			toast.error('Clipboard not available')
+			return
+		}
+		try {
+			const url = buildShareUrl(window.location.origin, '/downloads', currentConfig)
+			if (url.length > 2000) {
+				toast.error('Config too large to share — save as preset instead')
+				return
+			}
+			await navigator.clipboard.writeText(url)
+			toast.success('Link copied')
+		} catch {
+			toast.error('Failed to copy link')
+		}
+	}, [currentConfig])
+
+	const suggestedPresetName = useMemo(() => {
+		if (!currentConfig) return ''
+		return defaultPresetName(currentConfig, dataset.name)
+	}, [currentConfig, dataset.name])
 
 	const existingPresetNames = useMemo(() => savedDownloads.map((s) => s.name), [savedDownloads])
 
@@ -1184,17 +1210,37 @@ export function ChartDatasetModal({
 										</button>
 									) : null}
 
-									<button
-										type="button"
-										onClick={() =>
-											isPreview ? (setSignupSource('downloads'), subscribeModalStore.show()) : handleDownload()
-										}
-										disabled={topBarDownloadDisabled}
-										className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
-									>
-										<Icon name="download-cloud" className="h-3.5 w-3.5" />
-										<span className="hidden sm:inline">{downloadLabel}</span>
-									</button>
+									{!isPreview ? (
+										<button
+											type="button"
+											onClick={() => void handleCopyLink()}
+											disabled={!currentConfig}
+											className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
+											title="Copy shareable link"
+										>
+											<Icon name="link" className="h-3.5 w-3.5" />
+										</button>
+									) : null}
+
+									{isPreview ? (
+										<button
+											type="button"
+											onClick={() => {
+												setSignupSource('downloads')
+												subscribeModalStore.show()
+											}}
+											className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90"
+										>
+											<Icon name="download-cloud" className="h-3.5 w-3.5" />
+											<span className="hidden sm:inline">{downloadLabel}</span>
+										</button>
+									) : (
+										<FormatSplitButton
+											onDownload={(fmt) => handleDownload(fmt)}
+											disabled={topBarDownloadDisabled}
+											label={downloadLabel}
+										/>
+									)}
 								</>
 							) : null}
 
