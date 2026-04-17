@@ -51,7 +51,6 @@ const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-const EMPTY_CHART_DATA: any[] = []
 
 const BASE_REWARD_BAR_CHARTS: IMultiSeriesChart2Props['charts'] = [
 	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
@@ -682,8 +681,7 @@ const PageView = (_props) => {
 
 	const priceMetricDefs = useMemo(() => {
 		const defs: Record<string, YieldMetricDef> = {}
-		for (let i = 0; i < priceMetrics.length; i++) {
-			const pm = priceMetrics[i]
+		for (const pm of priceMetrics) {
 			defs[pm.metricId] = {
 				queryKey: `price_${pm.symbol.toLowerCase()}`,
 				defaultOn: false,
@@ -693,7 +691,7 @@ const PageView = (_props) => {
 					name: pm.metricId,
 					encode: { x: 'timestamp', y: pm.metricId },
 					color: pm.color,
-					yAxisIndex: 2 + i,
+					yAxisIndex: 2,
 					valueSymbol: '$',
 					hideAreaStyle: true
 				}
@@ -737,22 +735,24 @@ const PageView = (_props) => {
 		[priceMetrics, toggledMetricIds]
 	)
 
-	const priceData = useYieldTokenPrices(toggledPriceMetrics)
+	const { data: priceData, status: priceStatus } = useYieldTokenPrices(toggledPriceMetrics)
 
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
 	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
 
-	// prepare csv data
+	// prepare csv data — mirrors the currently-toggled metrics in the multichart
 	const prepareCsv = () => {
-		if (!chart?.data || !query?.pool) return { filename: `yields`, rows: [] }
-		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
-
-		for (const item of chart?.data ?? EMPTY_CHART_DATA) {
-			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
+		if (!query?.pool || !toggledMetricIds.length || !combinedDataset.source.length) {
+			return { filename: `yields`, rows: [] }
 		}
-
-		return { filename: `${query.pool}`, rows: rows as (string | number | boolean)[][] }
+		const rows: (string | number | boolean | null)[][] = [['DATE', ...toggledMetricIds]]
+		for (const row of combinedDataset.source) {
+			const ts = row.timestamp as number
+			const date = Number.isFinite(ts) ? new Date(ts).toISOString().split('T')[0] : ''
+			rows.push([date, ...toggledMetricIds.map((id) => (row[id] ?? null) as number | null)])
+		}
+		return { filename: `${query.pool}`, rows }
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
@@ -1162,32 +1162,47 @@ const PageView = (_props) => {
 								</Ariakit.Dialog>
 							</Ariakit.DialogProvider>
 						) : null}
-						{toggledMetricIds.map((metricId) => (
-							<label
-								className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
-								key={`active-metric-${metricId}`}
-							>
-								<input
-									type="checkbox"
-									value={metricId}
-									checked={true}
-									onChange={() => {
-										const def = allMetricDefs[metricId]
-										void pushShallowQuery(router, {
-											[def.queryKey]: def.defaultOn ? 'false' : undefined
-										})
-									}}
-									className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
-								/>
-								<span
-									className="flex items-center gap-1 rounded-full border-2 px-2 py-1 text-xs"
-									style={{ borderColor: allMetricDefs[metricId]?.chart.color }}
+						{toggledMetricIds.map((metricId) => {
+							const state = priceStatus[metricId]
+							const title =
+								state === 'error'
+									? `Failed to load ${metricId}`
+									: state === 'empty'
+										? `No price data for ${metricId}`
+										: undefined
+							return (
+								<label
+									className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto"
+									key={`active-metric-${metricId}`}
+									title={title}
 								>
-									<span>{metricId}</span>
-									<Icon name="x" className="h-3.5 w-3.5" />
-								</span>
-							</label>
-						))}
+									<input
+										type="checkbox"
+										value={metricId}
+										checked={true}
+										onChange={() => {
+											const def = allMetricDefs[metricId]
+											void pushShallowQuery(router, {
+												[def.queryKey]: def.defaultOn ? 'false' : undefined
+											})
+										}}
+										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+									/>
+									<span
+										className={`flex items-center gap-1 rounded-full border-2 px-2 py-1 text-xs ${state === 'loading' ? 'animate-pulse' : ''} ${state === 'error' ? 'border-dashed opacity-60' : ''} ${state === 'empty' ? 'opacity-50' : ''}`}
+										style={{ borderColor: allMetricDefs[metricId]?.chart.color }}
+										aria-label={`Remove ${metricId}`}
+									>
+										<span>{metricId}</span>
+										{state === 'error' ? (
+											<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+										) : (
+											<Icon name="x" className="h-3.5 w-3.5" />
+										)}
+									</span>
+								</label>
+							)
+						})}
 						<div className="ml-auto flex flex-wrap justify-end gap-1">
 							<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 							<ChartExportButtons
