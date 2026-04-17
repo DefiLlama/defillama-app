@@ -17,6 +17,7 @@ import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { formatAdapterData } from '~/containers/ProtocolOverview/formatAdapterData'
 import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
@@ -99,40 +100,23 @@ export const getStaticProps = withPerformanceLogging(
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
-		const fees: IProtocolOverviewPageData['fees'] = {
-			total24h: feesData.total24h ?? null,
-			total7d: feesData.total7d ?? null,
-			total30d: feesData.total30d ?? null,
-			totalAllTime: feesData.totalAllTime ?? null
-		}
-
-		const revenue: IProtocolOverviewPageData['revenue'] = {
-			total24h: revenueData?.total24h ?? null,
-			total7d: revenueData?.total7d ?? null,
-			total30d: revenueData?.total30d ?? null,
-			totalAllTime: revenueData?.totalAllTime ?? null
-		}
-
-		const holdersRevenue: IProtocolOverviewPageData['holdersRevenue'] = {
-			total24h: holdersRevenueData?.total24h ?? null,
-			total7d: holdersRevenueData?.total7d ?? null,
-			total30d: holdersRevenueData?.total30d ?? null,
-			totalAllTime: holdersRevenueData?.totalAllTime ?? null
-		}
-
-		const bribeRevenue: IProtocolOverviewPageData['bribeRevenue'] = {
-			total24h: bribeRevenueData?.total24h ?? null,
-			total7d: bribeRevenueData?.total7d ?? null,
-			total30d: bribeRevenueData?.total30d ?? null,
-			totalAllTime: bribeRevenueData?.totalAllTime ?? null
-		}
-
-		const tokenTax: IProtocolOverviewPageData['tokenTax'] = {
-			total24h: tokenTaxData?.total24h ?? null,
-			total7d: tokenTaxData?.total7d ?? null,
-			total30d: tokenTaxData?.total30d ?? null,
-			totalAllTime: tokenTaxData?.totalAllTime ?? null
-		}
+		const fees: IProtocolOverviewPageData['fees'] = formatAdapterData({ data: feesData, methodologyKey: 'Fees' })
+		const revenue: IProtocolOverviewPageData['revenue'] = formatAdapterData({
+			data: revenueData,
+			methodologyKey: 'Revenue'
+		})
+		const holdersRevenue: IProtocolOverviewPageData['holdersRevenue'] = formatAdapterData({
+			data: holdersRevenueData,
+			methodologyKey: 'HoldersRevenue'
+		})
+		const bribeRevenue: IProtocolOverviewPageData['bribeRevenue'] = formatAdapterData({
+			data: bribeRevenueData,
+			methodologyKey: 'BribesRevenue'
+		})
+		const tokenTax: IProtocolOverviewPageData['tokenTax'] = formatAdapterData({
+			data: tokenTaxData,
+			methodologyKey: 'TokenTaxes'
+		})
 
 		const linkedProtocolsSet = new Set((feesData?.linkedProtocols ?? []).slice(1))
 		const linkedProtocolsWithFeesData = []
@@ -228,11 +212,11 @@ export const getStaticProps = withPerformanceLogging(
 					linkedProtocolsWithRevenueData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView:
-					feesData?.defaultChartView ??
-					revenueData?.defaultChartView ??
-					holdersRevenueData?.defaultChartView ??
-					bribeRevenueData?.defaultChartView ??
-					tokenTaxData?.defaultChartView ??
+					fees?.defaultChartView ??
+					revenue?.defaultChartView ??
+					holdersRevenue?.defaultChartView ??
+					bribeRevenue?.defaultChartView ??
+					tokenTax?.defaultChartView ??
 					'daily',
 				toggleOptions,
 				hallmarks,

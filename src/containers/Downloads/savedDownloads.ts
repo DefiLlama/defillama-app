@@ -42,6 +42,7 @@ export interface ChartSavedConfig extends SavedDownloadBase {
 	columns?: string[]
 	sort?: SavedSort
 	dateRange?: DateRangeConfig
+	categoryBreakdown?: { category: string }
 }
 
 export interface MultiMetricSavedConfig extends SavedDownloadBase {
@@ -113,13 +114,17 @@ export interface ChartExtractInput {
 	selectedColumns: Set<number> | null
 	sort?: { index: number; direction: SavedSortDir } | null
 	dateRange?: DateRangeConfig | null
+	categoryBreakdown?: { category: string } | null
 }
 
 export function extractChartConfig(input: ChartExtractInput): ChartInput {
 	const selected = input.selectedColumns
-	const isSinglePreview = input.selectedParams.length === 1
-	const columns =
-		isSinglePreview && selected && selected.size > 0 && selected.size !== input.headers.length
+	const isBreakdown = !!input.categoryBreakdown
+	const columns = isBreakdown
+		? selected && selected.size > 0 && selected.size !== input.headers.length
+			? input.headers.filter((_, i) => selected.has(i))
+			: undefined
+		: input.selectedParams.length === 1 && selected && selected.size > 0 && selected.size !== input.headers.length
 			? input.headers.filter((_, i) => selected.has(i))
 			: undefined
 	const sort =
@@ -129,6 +134,7 @@ export function extractChartConfig(input: ChartExtractInput): ChartInput {
 	const labels = input.selectedParams.map((p) => p.label)
 	const hasUsefulLabels = labels.some((label, i) => label && label !== input.selectedParams[i].value)
 	const dateRange = normalizeDateRange(input.dateRange ?? null)
+	const categoryBreakdown = input.categoryBreakdown ?? undefined
 	return {
 		kind: 'chart',
 		slug: input.slug,
@@ -136,7 +142,8 @@ export function extractChartConfig(input: ChartExtractInput): ChartInput {
 		...(hasUsefulLabels ? { paramLabels: labels } : {}),
 		...(columns ? { columns } : {}),
 		...(sort ? { sort } : {}),
-		...(dateRange ? { dateRange } : {})
+		...(dateRange ? { dateRange } : {}),
+		...(categoryBreakdown ? { categoryBreakdown } : {})
 	}
 }
 
@@ -423,7 +430,11 @@ export function defaultPresetName(config: SavedDownloadInput, datasetLabel?: str
 	if (config.kind === 'chart') {
 		const base = datasetLabel ?? config.slug
 		const parts: string[] = []
-		if (config.params.length > 0) parts.push(formatListWithOverflow(chartParamDisplayLabels(config)))
+		if (config.categoryBreakdown) {
+			parts.push(`${config.categoryBreakdown.category} (all)`)
+		} else if (config.params.length > 0) {
+			parts.push(formatListWithOverflow(chartParamDisplayLabels(config)))
+		}
 		if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange))
 		return parts.length > 0 ? `${base} — ${parts.join(' · ')}` : base
 	}
@@ -457,8 +468,10 @@ export function describeSavedConfig(config: SavedDownload): string {
 	}
 	if (config.kind === 'chart') {
 		const parts: string[] = []
-		// Only note param count when it overflowed the name's "+N" already.
-		if (config.params.length > MAX_LISTED_ITEMS) {
+		if (config.categoryBreakdown) {
+			parts.push('category breakdown')
+		} else if (config.params.length > MAX_LISTED_ITEMS) {
+			// Only note param count when it overflowed the name's "+N" already.
 			parts.push(`${config.params.length} items`)
 		}
 		if (config.columns && config.columns.length > 0) {
@@ -507,7 +520,10 @@ export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolea
 	}
 	if (a.kind === 'chart' && b.kind === 'chart') {
 		if (a.slug !== b.slug) return false
-		if (JSON.stringify(sortedArray(a.params)) !== JSON.stringify(sortedArray(b.params))) return false
+		if ((a.categoryBreakdown?.category ?? null) !== (b.categoryBreakdown?.category ?? null)) return false
+		if (!a.categoryBreakdown && !b.categoryBreakdown) {
+			if (JSON.stringify(sortedArray(a.params)) !== JSON.stringify(sortedArray(b.params))) return false
+		}
 		if (
 			JSON.stringify(a.columns ? sortedArray(a.columns) : null) !==
 			JSON.stringify(b.columns ? sortedArray(b.columns) : null)

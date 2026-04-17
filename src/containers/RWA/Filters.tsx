@@ -48,6 +48,7 @@ const FILTER_QUERY_KEYS = [
 	'maxDefiActiveTvlToActiveMcapPct',
 	'includeStablecoins',
 	'includeGovernance',
+	'includeRwaPerps',
 	'redeemableStates',
 	'attestationsStates',
 	'cexListedStates',
@@ -120,6 +121,7 @@ type RWAFilterSelections = {
 	maxDefiActiveTvlToActiveMcapPct: number | null
 	includeStablecoins: boolean
 	includeGovernance: boolean
+	includeRwaPerps: boolean
 }
 
 type RWAFilterActions = {
@@ -128,6 +130,7 @@ type RWAFilterActions = {
 	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setIncludeStablecoins: (value: boolean) => void
 	setIncludeGovernance: (value: boolean) => void
+	setIncludeRwaPerps: (value: boolean) => void
 	setRedeemableStates: (values: RWAAttributeFilterState[]) => void
 	setAttestationsStates: (values: RWAAttributeFilterState[]) => void
 	setCexListedStates: (values: RWAAttributeFilterState[]) => void
@@ -505,6 +508,17 @@ function Filters({
 				}}
 			>
 				Governance Tokens
+			</Checkbox>
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeRwaPerps"
+				checked={selections.includeRwaPerps}
+				onChange={() => {
+					const next = !selections.includeRwaPerps
+					actions.setIncludeRwaPerps(next)
+				}}
+			>
+				RWA Perps
 			</Checkbox>
 			<button
 				onClick={() => {

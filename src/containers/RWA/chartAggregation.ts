@@ -4,8 +4,10 @@ import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups, getPrimaryRwaCategory, getRwaPlatforms } from './grouping'
 
 export type RWAChartMetric = RWAChartMetricKey
+export const RWA_OPEN_INTEREST_SERIES_LABEL = 'RWA Perps OI'
 
 export type RWAChartRow = { timestamp: number } & Record<string, number>
+type RWAOpenInterestSourceRow = Record<string, number | string>
 
 export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
@@ -25,6 +27,181 @@ export function emptyChartDatasets(): RWAChartDatasetsByMetric {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
+export function appendRwaChartDatasetTotal(dataset: RWAChartDataset): RWAChartDataset {
+	const seriesDimensions = dataset.dimensions.filter((dimension) => dimension !== 'timestamp' && dimension !== 'Total')
+	if (dataset.source.length === 0) return emptyChartDataset()
+	if (seriesDimensions.length === 0) return dataset
+
+	return {
+		source: dataset.source.map((row) => ({
+			...row,
+			Total: seriesDimensions.reduce((sum, dimension) => {
+				const value = row[dimension]
+				const numericValue = typeof value === 'number' ? value : Number(value)
+				return Number.isFinite(numericValue) ? sum + numericValue : sum
+			}, 0)
+		})),
+		dimensions: ['timestamp', 'Total', ...seriesDimensions]
+	}
+}
+
+export function getRwaChartTotalLabel(metric: RWAChartMetricKey): string {
+	switch (metric) {
+		case 'activeMcap':
+			return 'Total Active Mcap'
+		case 'onChainMcap':
+			return 'Total Onchain Mcap'
+		case 'defiActiveTvl':
+			return 'Total DeFi Active TVL'
+		default:
+			return assertNever(metric)
+	}
+}
+
+export function isRwaTotalSeriesLabel(label: string): boolean {
+	return label.startsWith('Total ')
+}
+
+export function sortRwaChartSeriesLabels(labels: string[]): string[] {
+	const totalSeries = labels.filter(isRwaTotalSeriesLabel)
+	const hasOpenInterestSeries = labels.includes(RWA_OPEN_INTEREST_SERIES_LABEL)
+	const otherSeries = labels.filter(
+		(label) => !isRwaTotalSeriesLabel(label) && label !== RWA_OPEN_INTEREST_SERIES_LABEL
+	)
+
+	return [...totalSeries, ...(hasOpenInterestSeries ? [RWA_OPEN_INTEREST_SERIES_LABEL] : []), ...otherSeries]
+}
+
+export function getRwaReservedSeriesColorSlot(label: string): number | null {
+	if (isRwaTotalSeriesLabel(label)) return 0
+	if (label === RWA_OPEN_INTEREST_SERIES_LABEL) return 1
+	return null
+}
+
+export function getRwaChartSeriesColorSlots(labels: string[]): Record<string, number> {
+	const colorSlots: Record<string, number> = {}
+	let nextNonReservedColorSlot = 2
+
+	for (const label of sortRwaChartSeriesLabels(labels)) {
+		colorSlots[label] = getRwaReservedSeriesColorSlot(label) ?? nextNonReservedColorSlot++
+	}
+
+	return colorSlots
+}
+
+export function renameRwaChartDatasetTotal(dataset: RWAChartDataset, metric: RWAChartMetricKey): RWAChartDataset {
+	if (!dataset.dimensions.includes('Total') && !dataset.source.some((row) => row.Total != null)) {
+		return dataset
+	}
+
+	const totalLabel = getRwaChartTotalLabel(metric)
+
+	return {
+		source: dataset.source.map((row) => {
+			if (row.Total == null) return row
+
+			const { Total, ...rest } = row
+
+			return {
+				...rest,
+				[totalLabel]: Total
+			}
+		}),
+		dimensions: dataset.dimensions.map((dimension) => (dimension === 'Total' ? totalLabel : dimension))
+	}
+}
+
+export function selectRwaChartDatasetSeries(dataset: RWAChartDataset, seriesDimensions: string[]): RWAChartDataset {
+	const allowedSeries = new Set(seriesDimensions)
+	const dimensions = dataset.dimensions.filter((dimension) => dimension === 'timestamp' || allowedSeries.has(dimension))
+	for (const dimension of seriesDimensions) {
+		if (
+			dimension !== 'timestamp' &&
+			dataset.source.some((row) => row[dimension] != null) &&
+			!dimensions.includes(dimension)
+		) {
+			dimensions.push(dimension)
+		}
+	}
+
+	return {
+		source: dataset.source,
+		dimensions
+	}
+}
+
+export function buildRwaOpenInterestDataset(
+	assets: IRWAAssetsOverview['assets'],
+	dataset: { source: RWAOpenInterestSourceRow[]; dimensions: string[] }
+): RWAChartDataset {
+	const contracts = new Set(
+		assets
+			.filter((asset) => asset.kind === 'perps')
+			.map((asset) => asset.contract)
+			.filter(Boolean)
+	)
+
+	if (contracts.size === 0 || dataset.source.length === 0) return emptyChartDataset()
+
+	let hasOpenInterestData = false
+	const source = dataset.source.map((row) => {
+		let totalOpenInterest = 0
+
+		for (const contract of contracts) {
+			const value = row[contract]
+			const numericValue = typeof value === 'number' ? value : Number(value)
+			if (Number.isFinite(numericValue)) {
+				hasOpenInterestData = true
+				totalOpenInterest += numericValue
+			}
+		}
+
+		return {
+			timestamp: Number(row.timestamp),
+			[RWA_OPEN_INTEREST_SERIES_LABEL]: totalOpenInterest
+		}
+	})
+
+	if (!hasOpenInterestData) {
+		return emptyChartDataset()
+	}
+
+	return {
+		source,
+		dimensions: ['timestamp', RWA_OPEN_INTEREST_SERIES_LABEL]
+	}
+}
+
+export function mergeRwaChartDatasets(primary: RWAChartDataset, overlay: RWAChartDataset): RWAChartDataset {
+	if (overlay.dimensions.length <= 1 || overlay.source.length === 0) return primary
+	if (primary.dimensions.length <= 1 || primary.source.length === 0) return overlay
+
+	const mergedRows = new Map<number, RWAChartRow>()
+
+	for (const row of primary.source) {
+		mergedRows.set(row.timestamp, { ...row })
+	}
+
+	for (const row of overlay.source) {
+		const existingRow = mergedRows.get(row.timestamp)
+		if (existingRow) {
+			Object.assign(existingRow, row)
+			continue
+		}
+
+		mergedRows.set(row.timestamp, { ...row })
+	}
+
+	return {
+		source: [...mergedRows.values()].sort((a, b) => a.timestamp - b.timestamp),
+		dimensions: [
+			'timestamp',
+			...primary.dimensions.filter((dimension) => dimension !== 'timestamp'),
+			...overlay.dimensions.filter((dimension) => dimension !== 'timestamp' && !primary.dimensions.includes(dimension))
+		]
+	}
+}
+
 function buildAssetGroupMapping(
 	assets: IRWAAssetsOverview['assets'],
 	mode: RWAChartAggregationMode
@@ -32,6 +209,8 @@ function buildAssetGroupMapping(
 	const assetToGroups = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
+		if (asset.kind !== 'spot') continue
+
 		const assetKey = asset.canonicalMarketId
 		if (!assetKey) continue
 

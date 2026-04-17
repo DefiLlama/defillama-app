@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { TokenDirectory } from '~/utils/tokenDirectory'
 
 afterEach(() => {
 	vi.clearAllMocks()
@@ -30,7 +31,7 @@ function setupPageModule({
 		}
 	}
 }: {
-	tokensJson?: Record<string, { name: string; symbol: string; token_nk?: string }>
+	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
 	tokenlist?: Record<string, unknown>
 } = {}) {

@@ -7,7 +7,8 @@ import type {
 	IHBarChartProps,
 	IMultiSeriesChart2Props,
 	IPieChartProps,
-	ITreemapChartProps
+	ITreemapChartProps,
+	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -19,7 +20,13 @@ import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview, RWAAssetChartTarget } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
-import { emptyChartDatasets, type RWAChartAggregationMode } from './chartAggregation'
+import {
+	emptyChartDatasets,
+	getRwaChartSeriesColorSlots,
+	getRwaReservedSeriesColorSlot,
+	sortRwaChartSeriesLabels,
+	type RWAChartAggregationMode
+} from './chartAggregation'
 import {
 	createRwaChartModeState,
 	getBreakdownLabel,
@@ -56,6 +63,7 @@ import {
 	useRwaChartDataset,
 	hasActiveChartFilters
 } from './hooks'
+import { perpsDefinitions } from './Perps/definitions'
 import { rwaSlug } from './rwaSlug'
 import { buildRwaNestedTreemapTreeData, buildRwaTreemapTreeData, canBuildRwaNestedTreemap } from './treemap'
 
@@ -120,11 +128,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		maxDefiActiveTvlToActiveMcapPct,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		setDefiActiveTvlToOnChainMcapPctRange,
 		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
 		setIncludeGovernance,
+		setIncludeRwaPerps,
 		setRedeemableStates,
 		setAttestationsStates,
 		setCexListedStates,
@@ -146,35 +156,42 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		mode
 	})
 
-	const { filteredAssets, totalOnChainMcap, totalActiveMcap, totalOnChainDeFiActiveTvl, totalIssuersCount } =
-		useFilteredRwaAssets({
-			assets: props.assets,
-			isPlatformMode,
-			selectedAssetNames,
-			selectedCategories,
-			selectedPlatforms,
-			selectedAssetGroups,
-			selectedAssetClasses,
-			selectedRwaClassifications,
-			selectedAccessModels,
-			selectedIssuers,
-			selectedTypes,
-			selectedRedeemableStates,
-			selectedAttestationsStates,
-			selectedCexListedStates,
-			selectedKycForMintRedeemStates,
-			selectedKycAllowlistedWhitelistedToTransferHoldStates,
-			selectedTransferableStates,
-			selectedSelfCustodyStates,
-			includeStablecoins,
-			includeGovernance,
-			minDefiActiveTvlToOnChainMcapPct,
-			maxDefiActiveTvlToOnChainMcapPct,
-			minActiveMcapToOnChainMcapPct,
-			maxActiveMcapToOnChainMcapPct,
-			minDefiActiveTvlToActiveMcapPct,
-			maxDefiActiveTvlToActiveMcapPct
-		})
+	const {
+		filteredAssets,
+		totalOnChainMcap,
+		totalActiveMcap,
+		totalOnChainDeFiActiveTvl,
+		totalOpenInterest,
+		totalIssuersCount
+	} = useFilteredRwaAssets({
+		assets: props.assets,
+		isPlatformMode,
+		selectedAssetNames,
+		selectedCategories,
+		selectedPlatforms,
+		selectedAssetGroups,
+		selectedAssetClasses,
+		selectedRwaClassifications,
+		selectedAccessModels,
+		selectedIssuers,
+		selectedTypes,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
+		includeStablecoins,
+		includeGovernance,
+		includeRwaPerps,
+		minDefiActiveTvlToOnChainMcapPct,
+		maxDefiActiveTvlToOnChainMcapPct,
+		minActiveMcapToOnChainMcapPct,
+		maxActiveMcapToOnChainMcapPct,
+		minDefiActiveTvlToActiveMcapPct,
+		maxDefiActiveTvlToActiveMcapPct
+	})
 
 	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
@@ -182,15 +199,16 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
 		selectedMetric: chartTypeKey,
 		initialDataset: initialChartDataset[chartTypeKey],
+		initialOpenInterestDataset: props.initialOpenInterestChartDataset,
 		filteredAssets,
 		mode: getRwaChartAggregationMode(timeSeriesBreakdown),
 		target: chartTarget,
 		includeStablecoins,
 		includeGovernance,
+		includeRwaPerps,
 		useInitialDataset:
-			chartTypeKey === 'activeMcap' &&
 			!activeFilters &&
-			timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries')
+			(timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries') || timeSeriesBreakdown === 'total')
 	})
 
 	const {
@@ -389,6 +407,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
 	const selectedTimeSeriesDataset = chartDataset
+	const timeSeriesCharts = useMemo<Array<MultiSeriesChart2SeriesConfig>>(
+		() => buildRwaTimeSeriesCharts(selectedTimeSeriesDataset.dimensions),
+		[selectedTimeSeriesDataset.dimensions]
+	)
 	const selectedPieChartData =
 		chartTypeKey === 'onChainMcap'
 			? onChainPieChartData
@@ -627,7 +649,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					minDefiActiveTvlToActiveMcapPct,
 					maxDefiActiveTvlToActiveMcapPct,
 					includeStablecoins,
-					includeGovernance
+					includeGovernance,
+					includeRwaPerps
 				}}
 				actions={{
 					setDefiActiveTvlToOnChainMcapPctRange,
@@ -635,6 +658,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					setDefiActiveTvlToActiveMcapPctRange,
 					setIncludeStablecoins,
 					setIncludeGovernance,
+					setIncludeRwaPerps,
 					setRedeemableStates,
 					setAttestationsStates,
 					setCexListedStates,
@@ -672,6 +696,17 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					</Tooltip>
 					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainDeFiActiveTvl, true)}</span>
 				</p>
+				{includeRwaPerps ? (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+						<Tooltip
+							content={perpsDefinitions.totalOpenInterest.description}
+							className="text-(--text-label) underline decoration-dotted"
+						>
+							RWA Perps OI
+						</Tooltip>
+						<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOpenInterest, true)}</span>
+					</p>
+				) : null}
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 					<Tooltip
 						content={definitions.totalAssetIssuers.description}
@@ -708,9 +743,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
 										dataset={deferredSelectedTimeSeriesDataset}
-										stacked
+										charts={timeSeriesCharts}
 										hideDefaultLegend={false}
-										showTotalInTooltip
+										showTotalInTooltip={!deferredSelectedTimeSeriesDataset.dimensions.includes('Total')}
 										onReady={handleMultiSeriesChart2Ready}
 									/>
 								</Suspense>
@@ -771,7 +806,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					) : null}
 				</>
 			) : null}
-			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} />
+			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} includeRwaPerps={includeRwaPerps} />
 		</>
 	)
 }
@@ -785,6 +820,29 @@ const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
 
 function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
+}
+
+function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
+	const seriesDimensions = sortRwaChartSeriesLabels(dimensions.filter((dimension) => dimension !== 'timestamp'))
+	const colorSlots = getRwaChartSeriesColorSlots(seriesDimensions)
+
+	return seriesDimensions.map((name) => {
+		const reservedColorSlot = getRwaReservedSeriesColorSlot(name)
+		const colorSlot = colorSlots[name]
+		const isTotalSeries = reservedColorSlot !== null
+
+		return {
+			type: 'line',
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: CHART_COLORS[colorSlot % CHART_COLORS.length],
+			...(isTotalSeries
+				? {
+						hideAreaStyle: true
+					}
+				: {})
+		}
+	})
 }
 
 const getRwaChartAggregationMode = (state: RWAChartBreakdown | 'total'): RWAChartAggregationMode => {

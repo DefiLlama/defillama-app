@@ -17,7 +17,6 @@ import {
 import type {
 	IFetchedRWAProject,
 	IRWAChartDataByAsset,
-	IRWAProject,
 	IRWAAssetsOverview,
 	IRWAAssetData,
 	IRWAChainsOverview,
@@ -28,19 +27,30 @@ import type {
 	IRWAPlatformsOverviewRow,
 	IRWAAssetGroupsOverview,
 	IRWAAssetGroupsOverviewRow,
+	RWAPerpsOverviewAsset,
+	RWASpotOverviewAsset,
 	RWAAssetChartTarget
 } from './api.types'
 import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from './assetGroup'
 import { toBreakdownChartDataset } from './breakdownDataset'
 import {
 	aggregateRwaMetricData,
+	appendRwaChartDatasetTotal,
 	applyDefaultAssetFilters,
-	emptyChartDataset,
+	buildRwaOpenInterestDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
-import { getDefaultRWAOverviewInclusion, type RWAOverviewMode } from './constants'
+import {
+	filterCategoriesForStandardRwaOverview,
+	getDefaultRWAOverviewInclusion,
+	isCategoryIncludedInStandardRwaOverview,
+	type RWAOverviewMode
+} from './constants'
 import { definitions } from './definitions'
 import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
+import { fetchRWAPerpsContractBreakdownChartData, fetchRWAPerpsCurrent } from './Perps/api'
+import type { IRWAPerpsBreakdownChartResponse, IRWAPerpsMarket } from './Perps/api.types'
+import { toRWAPerpsBreakdownChartDataset } from './Perps/breakdownDataset'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
@@ -228,17 +238,31 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					: 'chain'
 		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
 
-		const [data, chartData]: [Array<IFetchedRWAProject>, IRWAChartDataByAsset | null] = await Promise.all([
+		const [data, perpsMarkets, chartData, openInterestChartRows]: [
+			Array<IFetchedRWAProject>,
+			IRWAPerpsMarket[],
+			IRWAChartDataByAsset | null,
+			IRWAPerpsBreakdownChartResponse | null
+		] = await Promise.all([
 			fetchRWAActiveTVLs(),
+			fetchRWAPerpsCurrent().catch(() => []),
 			fetchRWAChartDataByAsset({
 				target,
 				includeStablecoins: defaultInclusion.includeStablecoins,
 				includeGovernance: defaultInclusion.includeGovernance
-			})
+			}),
+			selectedChain ? Promise.resolve(null) : fetchRWAPerpsContractBreakdownChartData({ key: 'openInterest' })
 		])
 
 		assert(data, 'Failed to get RWA assets list')
-		const hasUnknownAssetGroup = data.some(
+		const filteredData = data.filter(
+			(item) => !(item.category ?? []).some((category) => !isCategoryIncludedInStandardRwaOverview(category))
+		)
+		const filteredPerpsMarkets = perpsMarkets.map((market) => ({
+			...market,
+			category: (market.category ?? []).filter((category) => isCategoryIncludedInStandardRwaOverview(category))
+		}))
+		const hasUnknownAssetGroup = filteredData.some(
 			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP
 		)
 		// Only expose the synthetic Unknown filter/route when the current dataset actually contains
@@ -265,7 +289,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		// while still filtering breakdown keys by slug for robustness.
 		let actualChainName: string | null = null
 		if (selectedChain) {
-			for (const item of data) {
+			for (const item of filteredData) {
 				if (item.chain) {
 					for (const c of item.chain) {
 						if (rwaSlug(c) === selectedChain) {
@@ -284,16 +308,11 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		// `selectedCategory` comes from the URL and is slugified; resolve a display name (original casing/spaces)
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
-			for (const item of data) {
-				if (item.category) {
-					for (const c of item.category) {
-						if (rwaSlug(c) === selectedCategory) {
-							actualCategoryName = c
-							break
-						}
-					}
+			for (const category of filterCategoriesForStandardRwaOverview(params.rwaList.categories)) {
+				if (rwaSlug(category) === selectedCategory) {
+					actualCategoryName = category
+					break
 				}
-				if (actualCategoryName) break
 			}
 			if (!actualCategoryName) {
 				return null
@@ -302,9 +321,15 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
-			for (const item of data) {
-				const platform = getRealRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
-				if (platform) {
+			const platformCandidates = new Set(params.rwaList.platforms)
+			for (const market of filteredPerpsMarkets) {
+				for (const platform of getRealRwaPlatforms(market.parentPlatform)) {
+					platformCandidates.add(platform)
+				}
+			}
+
+			for (const platform of platformCandidates) {
+				if (rwaSlug(platform) === selectedPlatform) {
 					actualPlatformName = platform
 					break
 				}
@@ -330,7 +355,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			}
 		}
 
-		const assets: Array<IRWAProject> = []
+		const assets: IRWAAssetsOverview['assets'] = []
 		const types = new Map<string, number>()
 		const assetClasses = new Map<string, number>()
 		const rwaClassifications = new Map<string, number>()
@@ -357,7 +382,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		let totalActiveMcapStablecoinsAndGovernance = 0
 		let totalDeFiActiveTvlStablecoinsAndGovernance = 0
 
-		for (const item of data) {
+		for (const item of filteredData) {
 			const onChainMcapBreakdown = isEmptyObject(item.onChainMcap) ? null : (item.onChainMcap ?? null)
 			const activeMcapBreakdown = isEmptyObject(item.activeMcap) ? null : (item.activeMcap ?? null)
 			const defiActiveTvlBreakdown = isEmptyObject(item.defiActiveTvl) ? null : (item.defiActiveTvl ?? null)
@@ -405,11 +430,37 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 							...item.category.filter((c) => c && rwaSlug(c) !== selectedCategory)
 						]
 					: (item.category ?? null)
-			const asset: IRWAProject = {
-				...item,
-				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
-				trueRWA: isTrueRWA,
+			const asset: RWASpotOverviewAsset = {
+				id: item.id,
+				kind: 'spot',
+				detailHref: item.canonicalMarketId ? `/rwa/asset/${encodeURIComponent(item.canonicalMarketId)}` : '',
+				canonicalMarketId: item.canonicalMarketId ?? '',
+				assetName: item.assetName ?? '',
+				ticker: item.ticker,
+				primaryChain: item.primaryChain ?? null,
+				chain: item.chain ?? null,
+				price: item.price ?? null,
+				openInterest: null,
+				volume24h: null,
+				volume30d: null,
+				assetGroup: item.assetGroup ?? null,
+				parentPlatform: item.parentPlatform ?? null,
 				category: sortedCategories,
+				assetClass: item.assetClass ?? null,
+				accessModel: item.accessModel ?? null,
+				type: item.type ?? null,
+				rwaClassification: isTrueRWA ? 'RWA' : (item.rwaClassification ?? null),
+				issuer: item.issuer ?? null,
+				redeemable: item.redeemable ?? null,
+				attestations: item.attestations ?? null,
+				cexListed: item.cexListed ?? null,
+				kycForMintRedeem: item.kycForMintRedeem ?? null,
+				kycAllowlistedWhitelistedToTransferHold: item.kycAllowlistedWhitelistedToTransferHold ?? null,
+				transferable: item.transferable ?? null,
+				selfCustody: item.selfCustody ?? null,
+				stablecoin: item.stablecoin ?? null,
+				governance: item.governance ?? null,
+				trueRWA: isTrueRWA,
 				onChainMcap: onChainMcapBreakdown
 					? {
 							total: effectiveOnChainMcap,
@@ -539,6 +590,92 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			}
 		}
 
+		for (const market of filteredPerpsMarkets) {
+			if (selectedChain) {
+				continue
+			}
+
+			const asset: RWAPerpsOverviewAsset = {
+				id: market.id,
+				kind: 'perps',
+				detailHref: `/rwa/perps/contract/${encodeURIComponent(market.contract)}`,
+				contract: market.contract,
+				assetName: market.referenceAsset ?? market.contract,
+				ticker: market.contract,
+				primaryChain: null,
+				chain: null,
+				price: market.price,
+				openInterest: market.openInterest,
+				volume24h: market.volume24h,
+				volume30d: market.volume30d,
+				assetGroup: market.referenceAssetGroup,
+				parentPlatform: market.parentPlatform,
+				category: market.category,
+				assetClass: market.assetClass,
+				accessModel: market.accessModel,
+				type: 'Perp',
+				rwaClassification: market.rwaClassification,
+				issuer: market.issuer,
+				redeemable: null,
+				attestations: null,
+				cexListed: null,
+				kycForMintRedeem: null,
+				kycAllowlistedWhitelistedToTransferHold: null,
+				transferable: null,
+				selfCustody: null,
+				stablecoin: null,
+				governance: null,
+				trueRWA: false,
+				onChainMcap: null,
+				activeMcap: null,
+				defiActiveTvl: null,
+				defiActiveTvlByChain: null
+			}
+			const hasCategoryMatch = selectedCategory
+				? (asset.category ?? []).some((category) => rwaSlug(category) === selectedCategory)
+				: true
+			const hasPlatformMatch = selectedPlatform
+				? getRealRwaPlatforms(asset.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
+				: true
+			const hasAssetGroupMatch = selectedAssetGroup
+				? rwaSlug(normalizeRwaAssetGroup(asset.assetGroup)) === selectedAssetGroup
+				: true
+
+			if (!hasCategoryMatch || !hasPlatformMatch || !hasAssetGroupMatch || ASSETS_TO_EXCLUDE.has(asset.assetName)) {
+				continue
+			}
+
+			assets.push(asset)
+			if (selectedPlatform) {
+				assetNames.set(asset.assetName, assetNames.get(asset.assetName) ?? 0)
+			}
+			if (asset.type) {
+				types.set(asset.type, types.get(asset.type) ?? 0)
+			}
+			for (const assetClass of asset.assetClass ?? []) {
+				assetClasses.set(assetClass, assetClasses.get(assetClass) ?? 0)
+			}
+			const primaryCategory = getPrimaryRwaCategory(asset.category)
+			if (primaryCategory) {
+				categories.set(primaryCategory, categories.get(primaryCategory) ?? 0)
+			}
+			for (const platform of getRwaPlatforms(asset.parentPlatform)) {
+				if (platform === UNKNOWN_PLATFORM) continue
+				platforms.set(platform, platforms.get(platform) ?? 0)
+			}
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
+			assetGroups.set(assetGroup, assetGroups.get(assetGroup) ?? 0)
+			if (asset.rwaClassification) {
+				rwaClassifications.set(asset.rwaClassification, rwaClassifications.get(asset.rwaClassification) ?? 0)
+			}
+			if (asset.accessModel) {
+				accessModels.set(asset.accessModel, accessModels.get(asset.accessModel) ?? 0)
+			}
+			if (asset.issuer) {
+				issuers.set(asset.issuer, issuers.get(asset.issuer) ?? 0)
+			}
+		}
+
 		const formattedRwaClassifications = Array.from(rwaClassifications.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
@@ -569,7 +706,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			label: chain,
 			to: `/rwa/chain/${rwaSlug(chain)}`
 		}))
-		const categoryNavValues = params.rwaList.categories.map((category) => ({
+		const categoryNavValues = filterCategoriesForStandardRwaOverview(params.rwaList.categories).map((category) => ({
 			label: category,
 			to: `/rwa/category/${rwaSlug(category)}`
 		}))
@@ -595,11 +732,21 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		})
 		const initialChartDataset = chartDataMs
 			? {
-					onChainMcap: emptyChartDataset(),
-					activeMcap: aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode),
-					defiActiveTvl: emptyChartDataset()
+					onChainMcap: appendRwaChartDatasetTotal(
+						aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.onChainMcap, aggregationMode)
+					),
+					activeMcap: appendRwaChartDatasetTotal(
+						aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode)
+					),
+					defiActiveTvl: appendRwaChartDatasetTotal(
+						aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.defiActiveTvl, aggregationMode)
+					)
 				}
 			: null
+		const initialOpenInterestChartDataset =
+			selectedChain || openInterestChartRows == null
+				? null
+				: buildRwaOpenInterestDataset(defaultFilteredAssets, toRWAPerpsBreakdownChartDataset(openInterestChartRows))
 
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
@@ -688,6 +835,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				}
 			},
 			initialChartDataset,
+			initialOpenInterestChartDataset,
 			chainSlug: selectedChain ?? null,
 			categorySlug: selectedCategory ?? null,
 			platformSlug: selectedPlatform ?? null,
@@ -736,6 +884,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 
 	const rows: IRWACategoriesOverviewRow[] = []
 	for (const category in data.byCategory) {
+		if (!isCategoryIncludedInStandardRwaOverview(category)) continue
 		rows.push({
 			category,
 			...data.byCategory[category]
