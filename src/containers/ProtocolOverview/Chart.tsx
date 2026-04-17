@@ -23,6 +23,7 @@ import type { IProtocolCoreChartProps } from './types'
 echarts.use([MarkAreaComponent, CustomChart])
 
 const PRIMARY_SERIES_ID_PREFIX = 'protocol-chart-series-'
+const EVENT_MARKLINE_SERIES_ID = 'protocol-chart-event-markline'
 
 type EventHoverState = {
 	hoveredEventDate: number | null
@@ -51,7 +52,7 @@ function attachEventHoverHandlers({
 		if (disposed || activeMarkLineEventDate == null) return
 		activeMarkLineEventDate = null
 		instance.setOption({
-			series: [{ id: `${PRIMARY_SERIES_ID_PREFIX}0`, markLine: { data: [] } }]
+			series: [{ id: EVENT_MARKLINE_SERIES_ID, markLine: { data: [] } }]
 		})
 	}
 
@@ -100,7 +101,7 @@ function attachEventHoverHandlers({
 		instance.setOption({
 			series: [
 				{
-					id: `${PRIMARY_SERIES_ID_PREFIX}0`,
+					id: EVENT_MARKLINE_SERIES_ID,
 					markLine: {
 						data: [
 							[
@@ -230,7 +231,6 @@ export default function ProtocolChart({
 							}
 						}
 					: {}),
-				markLine: {},
 				data: chartData[stack] ?? [],
 				...(index === 0 && (rangeHallmarks?.length ?? 0) > 0
 					? {
@@ -258,27 +258,6 @@ export default function ProtocolChart({
 			}
 		})
 
-		if (series.length > 0 && (hallmarks?.length ?? 0) > 0) {
-			// Start with no markLine data; a single markLine is injected on
-			// hover over the matching event icon (see useEffect below).
-			series[0] = {
-				...series[0],
-				markLine: {
-					silent: true,
-					animation: false,
-					symbol: ['none', 'none'],
-					label: { show: false },
-					emphasis: { label: { show: false } },
-					lineStyle: {
-						color: isThemeDark ? 'rgba(148, 163, 184, 0.7)' : 'rgba(71, 85, 105, 0.55)',
-						type: 'dashed',
-						width: 1
-					},
-					data: []
-				}
-			}
-		}
-
 		for (const seriesItem of series) {
 			if (seriesItem.data.length === 0) {
 				seriesItem.large = false
@@ -289,7 +268,7 @@ export default function ProtocolChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
+	}, [chartData, chartColors, isThemeDark, isCumulative, rangeHallmarks])
 
 	useEffect(() => {
 		// create instance
@@ -326,6 +305,7 @@ export default function ProtocolChart({
 
 		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
 		const shouldShowEventRail = eventRailData.length > 0
+		const shouldShowEventMarkLine = series.length > 0 && eventRailData.some((event) => event.rangeStart == null)
 
 		let timeRangeMin = Infinity
 		let timeRangeMax = -Infinity
@@ -454,9 +434,49 @@ export default function ProtocolChart({
 			}
 		}
 
+		const eventMarkLineSeries = shouldShowEventMarkLine
+			? {
+					id: EVENT_MARKLINE_SERIES_ID,
+					name: 'EventHoverMarkLine',
+					type: 'line',
+					xAxisIndex: 0,
+					yAxisIndex: series[0]?.yAxisIndex,
+					data: [],
+					symbol: 'none',
+					showSymbol: false,
+					silent: true,
+					animation: false,
+					tooltip: { show: false },
+					lineStyle: {
+						opacity: 0
+					},
+					itemStyle: {
+						opacity: 0
+					},
+					z: -1,
+					emphasis: {
+						disabled: true
+					},
+					markLine: {
+						silent: true,
+						animation: false,
+						symbol: ['none', 'none'],
+						label: { show: false },
+						emphasis: { label: { show: false } },
+						lineStyle: {
+							color: isThemeDark ? 'rgba(148, 163, 184, 0.7)' : 'rgba(71, 85, 105, 0.55)',
+							type: 'dashed',
+							width: 1
+						},
+						data: []
+					}
+				}
+			: null
+
 		const finalSeries = shouldShowEventRail
 			? [
 					...series,
+					...(eventMarkLineSeries ? [eventMarkLineSeries] : []),
 					{
 						id: EVENT_RAIL_LAYOUT.seriesId,
 						name: 'Events',
