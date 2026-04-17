@@ -35,6 +35,20 @@ const getGeckoIdsFromMetadata = (metadata) => {
 	return geckoIds
 }
 
+const shouldPreferProtocolId = (currentProtocolId, nextProtocolId) => {
+	if (!currentProtocolId) return true
+	if (!nextProtocolId) return false
+
+	const currentIsParent = currentProtocolId.startsWith('parent#')
+	const nextIsParent = nextProtocolId.startsWith('parent#')
+
+	if (nextIsParent && !currentIsParent) {
+		return true
+	}
+
+	return false
+}
+
 const getTokenMetadataExtrasByGeckoId = (protocolsMetadata, chainsMetadata) => {
 	const extrasByGeckoId = new Map()
 
@@ -45,7 +59,7 @@ const getTokenMetadataExtrasByGeckoId = (protocolsMetadata, chainsMetadata) => {
 		const previous = extrasByGeckoId.get(geckoId) ?? {}
 		extrasByGeckoId.set(geckoId, {
 			...previous,
-			...(previous.protocolId ? {} : { protocolId }),
+			...(shouldPreferProtocolId(previous.protocolId, protocolId) ? { protocolId } : {}),
 			...(item?.tokenRights ? { tokenRights: true } : {})
 		})
 	}
@@ -65,23 +79,25 @@ const getTokenMetadataExtrasByGeckoId = (protocolsMetadata, chainsMetadata) => {
 	return extrasByGeckoId
 }
 
-const loadPreviousAssignmentsByTokenNk = () => {
-	const assignmentsByTokenNk = new Map()
+const inferRouteSource = (key, item) => {
+	if (key === slug(item?.symbol)) return 'symbol'
+	return 'name'
+}
+
+const loadPreviousTokens = () => {
+	const previousEntries = []
 
 	if (!fs.existsSync(OUTPUT_PATH)) {
-		return assignmentsByTokenNk
+		return previousEntries
 	}
 
 	const previousData = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'))
 	for (const [key, item] of Object.entries(previousData)) {
 		if (typeof item?.token_nk !== 'string' || item.token_nk.length === 0) continue
-
-		const symbolSlug = slug(item.symbol)
-		const routeSource = key === symbolSlug ? 'symbol' : 'name'
-		assignmentsByTokenNk.set(item.token_nk, { key, routeSource })
+		previousEntries.push([key, item])
 	}
 
-	return assignmentsByTokenNk
+	return previousEntries
 }
 
 const fetchJson = async (url) => {
@@ -141,49 +157,72 @@ async function main() {
 		...getGeckoIdsFromMetadata(chainsMetadata)
 	])
 	const extrasByGeckoId = getTokenMetadataExtrasByGeckoId(protocolsMetadata, chainsMetadata)
-	const previousAssignmentsByTokenNk = loadPreviousAssignmentsByTokenNk()
+	const previousTokens = loadPreviousTokens()
 	const filteredCoins = []
+	const seenTokenNks = new Set()
 
 	let skippedWithoutMatchCount = 0
+	let skippedDuplicateTokenNkCount = 0
 
 	for (const item of coins) {
 		const geckoId = getCoingeckoId(item.token_nk)
+		if (seenTokenNks.has(item.token_nk)) {
+			skippedDuplicateTokenNkCount++
+			continue
+		}
+
 		if (!geckoId || !allowedGeckoIds.has(geckoId)) {
 			skippedWithoutMatchCount++
 			continue
 		}
 
+		seenTokenNks.add(item.token_nk)
 		filteredCoins.push(item)
 	}
 
-	const reservedKeysByTokenNk = new Map()
-	const seenKeys = new Set()
+	const nextTokensByTokenNk = new Map()
 	for (const item of filteredCoins) {
-		const previousAssignment = previousAssignmentsByTokenNk.get(item.token_nk)
-		if (!previousAssignment) continue
-
-		reservedKeysByTokenNk.set(item.token_nk, previousAssignment)
-		seenKeys.add(previousAssignment.key)
+		const extras = extrasByGeckoId.get(getCoingeckoId(item.token_nk)) ?? {}
+		nextTokensByTokenNk.set(item.token_nk, { item, extras })
 	}
 
 	const bySlug = {}
+	const seenKeys = new Set()
+	const consumedTokenNks = new Set()
 	let nameFallbackCount = 0
+	let preservedMissingTokenCount = 0
+
+	for (const [key, previousItem] of previousTokens) {
+		const tokenNk = previousItem.token_nk
+		const nextToken = nextTokensByTokenNk.get(tokenNk)
+
+		seenKeys.add(key)
+
+		if (!nextToken) {
+			bySlug[key] = previousItem
+			preservedMissingTokenCount++
+			continue
+		}
+
+		const routeSource = inferRouteSource(key, previousItem)
+		bySlug[key] = createTokenRecord(nextToken.item, routeSource, nextToken.extras)
+		consumedTokenNks.add(tokenNk)
+	}
 
 	for (const [index, item] of filteredCoins.entries()) {
-		const preservedAssignment = reservedKeysByTokenNk.get(item.token_nk)
+		if (consumedTokenNks.has(item.token_nk)) continue
+
 		const symbolSlug = slug(item.symbol)
-		const key = preservedAssignment?.key ?? getUniqueKey(item, index, seenKeys)
-		const routeSource = preservedAssignment?.routeSource ?? (key === symbolSlug ? 'symbol' : 'name')
-		const extras = extrasByGeckoId.get(getCoingeckoId(item.token_nk)) ?? {}
+		const key = getUniqueKey(item, index, seenKeys)
+		const routeSource = inferRouteSource(key, item)
+		const extras = nextTokensByTokenNk.get(item.token_nk)?.extras ?? {}
 
 		if (key !== symbolSlug) {
 			nameFallbackCount++
 		}
 
-		if (!preservedAssignment) {
-			seenKeys.add(key)
-		}
 		bySlug[key] = createTokenRecord(item, routeSource, extras)
+		seenKeys.add(key)
 	}
 
 	fs.writeFileSync(OUTPUT_PATH, JSON.stringify(bySlug, null, 2) + '\n')
@@ -191,6 +230,8 @@ async function main() {
 	console.log(`Wrote ${Object.keys(bySlug).length} tokens to ${OUTPUT_PATH}`)
 	console.log(`Used fallback key selection for ${nameFallbackCount} tokens`)
 	console.log(`Skipped ${skippedWithoutMatchCount} tokens without matching protocol/chain gecko_id`)
+	console.log(`Skipped ${skippedDuplicateTokenNkCount} duplicate token_nk rows`)
+	console.log(`Preserved ${preservedMissingTokenCount} existing tokens missing from the current feed`)
 }
 
 main().catch((error) => {

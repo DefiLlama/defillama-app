@@ -1,5 +1,3 @@
-import { promises as fs } from 'fs'
-import path from 'path'
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
@@ -12,21 +10,11 @@ import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { ITokenListEntry } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { readTokenDirectory } from '~/utils/tokenDirectory'
 
 type TokenRouteParams = {
 	token: string
 }
-
-type TokenDirectoryRecord = {
-	name: string
-	symbol: string
-	token_nk?: string
-	protocolId?: string
-	chainId?: string
-	tokenRights?: boolean
-}
-
-type TokenDirectory = Record<string, TokenDirectoryRecord>
 
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
@@ -42,9 +30,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const normalizedToken = slug(token)
-		const tokensPath = path.join(process.cwd(), 'public', 'tokens.json')
-		const tokensJson = await fs.readFile(tokensPath, 'utf8')
-		const tokens = JSON.parse(tokensJson) as TokenDirectory
+		const tokens = await readTokenDirectory()
 		const record = tokens[normalizedToken]
 		if (normalizedToken === 'sui') {
 			record.tokenRights = true

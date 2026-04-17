@@ -9,11 +9,18 @@ export async function fetchProtocolsByToken(symbol: string): Promise<RawProtocol
 	return fetchJson<RawProtocolTokenUsageEntry[]>(`${PROTOCOLS_BY_TOKEN_API_URL}/${symbol.toUpperCase()}`)
 }
 
-export async function fetchProtocolsByTokenClient(symbol: string): Promise<RawProtocolTokenUsageEntry[]> {
+export async function fetchProtocolsByTokenClient(
+	symbol: string,
+	fetchFn: ((url: string) => Promise<Response | null>) | typeof fetch = fetch
+): Promise<RawProtocolTokenUsageEntry[]> {
 	if (!symbol) return []
-	const res = await fetch(`/api/token-usage/${encodeURIComponent(symbol.toUpperCase())}`)
+	const res = await fetchFn(`/api/token-usage/${encodeURIComponent(symbol.toUpperCase())}`)
+	if (!res) {
+		throw new Error('Authentication required')
+	}
 	if (!res.ok) {
-		throw new Error(`Failed to fetch token protocols: ${res.status}`)
+		const errorData = await res.json().catch(() => null)
+		throw new Error(errorData?.error ?? `Failed to fetch token protocols: ${res.status}`)
 	}
 	return res.json()
 }
