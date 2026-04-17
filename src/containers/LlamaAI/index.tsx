@@ -2182,6 +2182,8 @@ export function AgenticChat({
 							onOpenSettings={settingsModalStore.show}
 							hasCustomInstructions={settings.customInstructions.trim().length > 0}
 							sessionTitle={effectiveSessionTitle}
+							canShare={!sharedSession && effectiveMessages.length > 0}
+							onShare={() => openShareModal()}
 						/>
 					) : null}
 					{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
@@ -2189,7 +2191,7 @@ export function AgenticChat({
 							onClick={() => openShareModal()}
 							data-umami-event="llamaai-share-modal-open"
 							data-umami-event-source="header_controls"
-							className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 rounded-md border border-[#e6e6e6] px-3 py-1.5 text-xs font-medium text-[#444] transition-colors hover:bg-[#f7f7f7] dark:border-[#333] dark:text-[#ccc] dark:hover:bg-[#222324]"
+							className="absolute top-2.5 right-2.5 z-10 hidden items-center gap-1.5 rounded-md border border-[#e6e6e6] px-3 py-1.5 text-xs font-medium text-[#444] transition-colors hover:bg-[#f7f7f7] lg:flex dark:border-[#333] dark:text-[#ccc] dark:hover:bg-[#222324]"
 						>
 							<Icon name="share" height={14} width={14} />
 							Share
@@ -2390,12 +2392,16 @@ const ChatControls = memo(function ChatControls({
 	handleNewChat,
 	onOpenSettings,
 	hasCustomInstructions,
-	sessionTitle
+	sessionTitle,
+	canShare,
+	onShare
 }: {
 	handleNewChat: () => void
 	onOpenSettings: () => void
 	hasCustomInstructions: boolean
 	sessionTitle: string | null
+	canShare: boolean
+	onShare: () => void
 }) {
 	const isMobile = useMedia('(max-width: 1023px)')
 	const { isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
@@ -2417,7 +2423,7 @@ const ChatControls = memo(function ChatControls({
 	return (
 		<div className="llamaai-chat-controls">
 			<nav
-				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
+				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
 				aria-label="Chat controls"
 			>
 				<Tooltip
@@ -2438,11 +2444,22 @@ const ChatControls = memo(function ChatControls({
 				<Tooltip
 					content="New Chat"
 					render={<button onClick={handleNewChat} />}
-					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue) max-lg:ml-auto"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span className="sr-only">New Chat</span>
 				</Tooltip>
+				{canShare ? (
+					<button
+						onClick={onShare}
+						data-umami-event="llamaai-share-modal-open"
+						data-umami-event-source="header_controls"
+						className="flex h-6 items-center gap-1 rounded-sm bg-(--old-blue)/12 px-2 text-[11px] text-(--old-blue) transition-colors hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white lg:hidden"
+					>
+						<Icon name="share" height={12} width={12} />
+						Share
+					</button>
+				) : null}
 				{!isMobile ? (
 					<Tooltip
 						content={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
