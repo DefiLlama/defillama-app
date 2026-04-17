@@ -2,7 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
 import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
-import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
+import {
+	fetchAdapterProtocolChartData,
+	fetchAdapterProtocolChartDataByBreakdownType
+} from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { fetchAndFormatGovernanceData } from '~/containers/Governance/queries.client'
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
@@ -10,6 +13,7 @@ import { fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from '~/containers/ProtocolOverview/api'
 import { normalizeBridgeVolumeToChartMs } from '~/containers/ProtocolOverview/chartSeries.utils'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
+import { parseAdapterBreakdownRequest } from '~/server/api/protocolCharts'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
@@ -36,7 +40,6 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 }
 
 const isValidAdapterType = (value: string): value is `${ADAPTER_TYPES}` => VALID_ADAPTER_TYPES.has(value)
-
 const isValidAdapterDataType = (value: string): value is `${ADAPTER_DATA_TYPES}` => VALID_ADAPTER_DATA_TYPES.has(value)
 
 const parseStringArrayParam = (value: string | undefined): string[] | null => {
@@ -88,6 +91,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 				protocol,
 				...(validatedDataType ? { dataType: validatedDataType } : {})
 			})
+			setSuccessCacheHeaders(res)
+			return res.status(200).json(data)
+		}
+
+		if (kind === 'adapter-breakdown') {
+			const parsedRequest = parseAdapterBreakdownRequest({
+				adapterType: getQueryParam(req.query.adapterType),
+				protocol: getQueryParam(req.query.protocol),
+				type: getQueryParam(req.query.type),
+				dataType: getQueryParam(req.query.dataType)
+			})
+
+			if (parsedRequest.ok === false) {
+				setNoStoreHeaders(res)
+				return res.status(400).json({ error: parsedRequest.error })
+			}
+
+			const data = await fetchAdapterProtocolChartDataByBreakdownType(parsedRequest.value)
 			setSuccessCacheHeaders(res)
 			return res.status(200).json(data)
 		}
