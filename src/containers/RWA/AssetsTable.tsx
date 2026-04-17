@@ -621,7 +621,7 @@ function createColumns(includeRwaPerps: boolean) {
 			header: definitions.cexListed.label,
 			cell: (info) => (
 				<span className={info.getValue() ? 'text-(--success)' : 'text-(--error)'}>
-					{info.getValue() != null ? (info.getValue() ? 'Yes' : 'No') : null}
+					{info.getValue() ? (info.getValue() ? 'Yes' : 'No') : null}
 				</span>
 			),
 			meta: {
