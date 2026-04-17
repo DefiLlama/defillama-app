@@ -600,6 +600,46 @@ const nextConfig: NextConfig = {
 				permanent: true
 			},
 			{
+				source: '/protocols/dexs',
+				destination: '/dexs',
+				permanent: true
+			},
+			{
+				source: '/protocols/dexs/:chain',
+				destination: '/dexs/chain/:chain',
+				permanent: true
+			},
+			{
+				source: '/protocols/derivatives',
+				destination: '/perps',
+				permanent: true
+			},
+			{
+				source: '/protocols/derivatives/:chain',
+				destination: '/perps/chain/:chain',
+				permanent: true
+			},
+			{
+				source: '/protocols/dex-aggregator',
+				destination: '/dex-aggregators',
+				permanent: true
+			},
+			{
+				source: '/protocols/dex-aggregator/:chain',
+				destination: '/dex-aggregators/chain/:chain',
+				permanent: true
+			},
+			{
+				source: '/protocols/bridge-aggregator',
+				destination: '/bridge-aggregators',
+				permanent: true
+			},
+			{
+				source: '/protocols/bridge-aggregator/:chain',
+				destination: '/bridge-aggregators/chain/:chain',
+				permanent: true
+			},
+			{
 				source: '/dats',
 				destination: '/digital-asset-treasuries',
 				permanent: true
