@@ -3,7 +3,7 @@ import { lazy, Suspense, useContext, useMemo } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
-import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_PROXY_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -85,7 +85,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 		queryFn: () =>
 			authToken
 				? fetchYieldsLendBorrowViaProxy(borrowPoolId!, authToken)
-				: fetchJson(`${YIELD_CHART_LEND_BORROW_API}/${borrowPoolId}`),
+				: fetchJson(`${YIELD_CHART_LEND_BORROW_PROXY_API}/${borrowPoolId}`),
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 1,

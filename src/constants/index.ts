@@ -80,6 +80,7 @@ export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
 export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow`
+export const YIELD_CHART_LEND_BORROW_PROXY_API = '/api/datasets/chartLendBorrow'
 export const YIELD_CONFIG_API = `${SERVER_URL}/config/yields`
 export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_LEND_BORROW_API = `${YIELDS_SERVER_URL}/lendBorrow`
