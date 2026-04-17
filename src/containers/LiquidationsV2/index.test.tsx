@@ -8,7 +8,7 @@ afterEach(() => {
 })
 
 async function loadModule() {
-	const chartSpy = vi.fn(() => <div>distribution chart</div>)
+	const chartSpy = vi.fn<(props: unknown) => void>()
 	vi.doMock('~/components/RowLinksWithDropdown', () => ({
 		RowLinksWithDropdown: ({ activeLink }: { activeLink: string }) => <div>{activeLink}</div>
 	}))
