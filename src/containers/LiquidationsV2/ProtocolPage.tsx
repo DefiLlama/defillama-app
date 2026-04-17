@@ -23,7 +23,7 @@ export function LiquidationsProtocolPage(props: LiquidationsProtocolPageProps) {
 				<LiquidationsSummaryStats
 					items={[
 						{ label: 'Positions', value: props.positionCount },
-						{ label: 'Collateral IDs', value: props.collateralCount },
+						{ label: 'Tokens', value: props.collateralCount },
 						{ label: 'Collateral USD', value: props.totalCollateralUsd, isUsd: true }
 					]}
 				/>

@@ -111,9 +111,22 @@ export interface LiquidationsDistributionChartSeries {
 	totalUsd: number
 }
 
-export interface LiquidationsDistributionChartData {
+export type LiquidationsDistributionChartBreakdownKey = 'total' | 'protocol' | 'chain'
+
+export interface LiquidationsDistributionChartView {
 	bins: number[]
 	series: LiquidationsDistributionChartSeries[]
+}
+
+export interface LiquidationsDistributionChartToken {
+	key: string
+	label: string
+	totalUsd: number
+	breakdowns: Record<LiquidationsDistributionChartBreakdownKey, LiquidationsDistributionChartView>
+}
+
+export interface LiquidationsDistributionChartData {
+	tokens: LiquidationsDistributionChartToken[]
 }
 
 export interface LiquidationsOverviewPageProps {

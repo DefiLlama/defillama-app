@@ -37,7 +37,7 @@ describe('LiquidationsProtocolPage', () => {
 				positionCount={3}
 				collateralCount={4}
 				totalCollateralUsd={5000000}
-				distributionChart={{ bins: [], series: [] }}
+				distributionChart={{ tokens: [] }}
 				chainRows={[]}
 				positions={[]}
 			/>
@@ -45,7 +45,7 @@ describe('LiquidationsProtocolPage', () => {
 
 		expect(html).toContain('Sky')
 		expect(html).toContain('All Chains')
-		expect(html).toContain('Collateral IDs')
+		expect(html).toContain('Tokens')
 		expect(html).toContain('Collateral USD')
 		expect(html).toContain('distribution chart')
 		expect(html).toContain('chains table')

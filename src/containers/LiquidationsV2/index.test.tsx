@@ -33,13 +33,13 @@ describe('LiquidationsOverview', () => {
 				chainCount={3}
 				positionCount={4}
 				totalCollateralUsd={5000000}
-				distributionChart={{ bins: [], series: [] }}
+				distributionChart={{ tokens: [] }}
 				protocolRows={[]}
 				chainRows={[]}
 			/>
 		)
 
-		expect(html).toContain('Liquidations')
+		expect(html).toContain('Overview')
 		expect(html).toContain('Protocols')
 		expect(html).toContain('Chains')
 		expect(html).toContain('Positions')

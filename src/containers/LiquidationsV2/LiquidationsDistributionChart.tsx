@@ -1,16 +1,33 @@
 import type { ECharts } from 'echarts/core'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { Select } from '~/components/Select/Select'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
 import { formatNum, formattedNum, slug } from '~/utils'
-import type { LiquidationsDistributionChartData } from './api.types'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import type {
+	LiquidationsDistributionChartBreakdownKey,
+	LiquidationsDistributionChartData,
+	LiquidationsDistributionChartView
+} from './api.types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
 type Metric = 'usd' | 'amount'
+type BreakdownMode = 'total' | 'protocol' | 'chain'
+const TOKEN_QUERY_PARAM = 'token'
+const METRIC_QUERY_PARAM = 'metric'
+const BREAKDOWN_QUERY_PARAM = 'breakdown'
+const BREAKDOWN_OPTIONS: ReadonlyArray<{ key: BreakdownMode; name: string }> = [
+	{ key: 'total', name: 'Total' },
+	{ key: 'protocol', name: 'Protocol Breakdown' },
+	{ key: 'chain', name: 'Chain Breakdown' }
+]
 
 function formatLiqPrice(value: number): string {
 	if (!Number.isFinite(value) || value <= 0) return '$0'
@@ -20,8 +37,108 @@ function formatLiqPrice(value: number): string {
 	return formattedNum(value, true)
 }
 
+function formatMetricValue(value: number, metric: Metric, tokenLabel: string): string {
+	if (metric === 'usd') {
+		if (!Number.isFinite(value) || value <= 0) return '$0'
+		if (value < 0.01) return formatNum(value, 5, '$') ?? '$0'
+		if (value < 1) return formatNum(value, 4, '$') ?? '$0'
+		if (value < 100) return formatNum(value, 2, '$') ?? '$0'
+		return formattedNum(value, true)
+	}
+
+	const amountLabel = !Number.isFinite(value) || value <= 0 ? '0' : formattedNum(value)
+	return `${amountLabel} ${tokenLabel}`
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
+}
+
+function normalizeLiquidationsChartTokenKey(value: string): string {
+	return value
+		.trim()
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+}
+
+export function getLiquidationsChartMetric(metricQuery: string | undefined): Metric {
+	return metricQuery === 'amount' ? 'amount' : 'usd'
+}
+
+export function getLiquidationsChartMetricQueryPatch(nextMetric: Metric) {
+	return {
+		[METRIC_QUERY_PARAM]: nextMetric === 'usd' ? undefined : nextMetric
+	}
+}
+
+export function getLiquidationsChartBreakdownMode(breakdownQuery: string | undefined): BreakdownMode {
+	return BREAKDOWN_OPTIONS.some((option) => option.key === breakdownQuery) ? (breakdownQuery as BreakdownMode) : 'total'
+}
+
+export function getLiquidationsChartBreakdownQueryPatch(nextBreakdownMode: BreakdownMode) {
+	return {
+		[BREAKDOWN_QUERY_PARAM]: nextBreakdownMode === 'total' ? undefined : nextBreakdownMode
+	}
+}
+
+export function getLiquidationsChartTokenQueryPatch(nextToken: string, defaultToken: string | null) {
+	return {
+		[TOKEN_QUERY_PARAM]: nextToken === defaultToken ? undefined : nextToken
+	}
+}
+
+export function resolveLiquidationsChartTokenKey(
+	chart: LiquidationsDistributionChartData,
+	tokenQuery: string | undefined
+): string | null {
+	if (chart.tokens.length === 0) return null
+	if (!tokenQuery) return chart.tokens[0]?.key ?? null
+
+	const normalizedTokenQuery = normalizeLiquidationsChartTokenKey(tokenQuery)
+	const exactMatch = chart.tokens.find((entry) => entry.key === tokenQuery)
+	if (exactMatch) return exactMatch.key
+
+	const slugMatch = chart.tokens.find((entry) => normalizeLiquidationsChartTokenKey(entry.key) === normalizedTokenQuery)
+	return slugMatch?.key ?? chart.tokens[0]?.key ?? null
+}
+
+export function getLiquidationsChartView(
+	chart: LiquidationsDistributionChartData,
+	tokenKey: string | null,
+	breakdownMode: LiquidationsDistributionChartBreakdownKey
+): LiquidationsDistributionChartView {
+	if (!tokenKey) return { bins: [], series: [] }
+
+	const selectedToken = chart.tokens.find((entry) => entry.key === tokenKey)
+	if (!selectedToken) return { bins: [], series: [] }
+
+	return trimLiquidationsChartView(selectedToken.breakdowns[breakdownMode])
+}
+
+function trimLiquidationsChartView(view: LiquidationsDistributionChartView): LiquidationsDistributionChartView {
+	if (view.series.length === 0 || view.bins.length === 0) return view
+
+	const hasValueAtIndex = (index: number) =>
+		view.series.some((series) => series.usd[index] > 0 || (series.amount[index] ?? 0) > 0)
+
+	const firstNonZeroIndex = view.bins.findIndex((_, index) => hasValueAtIndex(index))
+	if (firstNonZeroIndex === -1) return view
+
+	let lastNonZeroIndex = firstNonZeroIndex
+	for (let index = firstNonZeroIndex + 1; index < view.bins.length; index += 1) {
+		if (hasValueAtIndex(index)) {
+			lastNonZeroIndex = index
+		}
+	}
+
+	return {
+		bins: view.bins.slice(firstNonZeroIndex, lastNonZeroIndex + 1),
+		series: view.series.map((series) => ({
+			...series,
+			usd: series.usd.slice(firstNonZeroIndex, lastNonZeroIndex + 1),
+			amount: series.amount.slice(firstNonZeroIndex, lastNonZeroIndex + 1)
+		}))
+	}
 }
 
 export function LiquidationsDistributionChart({
@@ -33,7 +150,7 @@ export function LiquidationsDistributionChart({
 	timestamp: number
 	title?: string
 }) {
-	const [metric, setMetric] = React.useState<Metric>('usd')
+	const router = useRouter()
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
 	const onChartReady = React.useCallback((instance: ECharts | null) => {
 		chartInstanceRef.current = instance
@@ -45,17 +162,75 @@ export function LiquidationsDistributionChart({
 		}
 	}, [])
 
+	const tokenOptions = React.useMemo(
+		() => chart.tokens.map((entry) => ({ key: entry.key, name: entry.label })),
+		[chart.tokens]
+	)
+	const defaultToken = chart.tokens[0]?.key ?? null
+	const chartState = React.useMemo(() => {
+		const token = resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
+		const metric = getLiquidationsChartMetric(readSingleQueryValue(router.query[METRIC_QUERY_PARAM]))
+		const breakdownMode = getLiquidationsChartBreakdownMode(readSingleQueryValue(router.query[BREAKDOWN_QUERY_PARAM]))
+		const tokenLabel = chart.tokens.find((entry) => entry.key === token)?.label ?? 'Token'
+		const breakdownLabel = BREAKDOWN_OPTIONS.find((option) => option.key === breakdownMode)?.name ?? 'Total'
+
+		return {
+			token,
+			tokenLabel,
+			metric,
+			breakdownMode,
+			breakdownLabel
+		}
+	}, [chart, router.query])
+
+	const setSelectedToken = React.useCallback(
+		(nextToken: string) => {
+			if (nextToken === chartState.token) return
+			void pushShallowQuery(router, getLiquidationsChartTokenQueryPatch(nextToken, defaultToken))
+		},
+		[chartState.token, defaultToken, router]
+	)
+	const setMetric = React.useCallback(
+		(nextMetric: Metric) => {
+			if (nextMetric === chartState.metric) return
+			void pushShallowQuery(router, getLiquidationsChartMetricQueryPatch(nextMetric))
+		},
+		[chartState.metric, router]
+	)
+	const setBreakdownMode = React.useCallback(
+		(nextBreakdownMode: BreakdownMode) => {
+			if (nextBreakdownMode === chartState.breakdownMode) return
+			void pushShallowQuery(router, getLiquidationsChartBreakdownQueryPatch(nextBreakdownMode))
+		},
+		[chartState.breakdownMode, router]
+	)
+
+	const selectedChartView = React.useMemo(
+		() => getLiquidationsChartView(chart, chartState.token, chartState.breakdownMode),
+		[chart, chartState.breakdownMode, chartState.token]
+	)
+	const visibleDataPointCount = React.useMemo(() => {
+		return selectedChartView.bins.reduce((count, _, index) => {
+			const hasValueAtIndex = selectedChartView.series.some(
+				(series) => series.usd[index] > 0 || (series.amount[index] ?? 0) > 0
+			)
+			return hasValueAtIndex ? count + 1 : count
+		}, 0)
+	}, [selectedChartView.bins, selectedChartView.series])
+	const shouldHideDataZoom = visibleDataPointCount <= 2
+	const showBreakdownLegend = chartState.breakdownMode !== 'total'
+
 	const chartModel = React.useMemo(() => {
-		const dimensions = ['liqPrice', ...chart.series.map((entry) => entry.key)]
-		const source = chart.bins.map((liqPrice, index) => {
+		const dimensions = ['liqPrice', ...selectedChartView.series.map((entry) => entry.key)]
+		const source = selectedChartView.bins.map((liqPrice, index) => {
 			const row: Record<string, number> = { liqPrice }
-			for (const entry of chart.series) {
-				row[entry.key] = metric === 'usd' ? (entry.usd[index] ?? 0) : (entry.amount[index] ?? 0)
+			for (const entry of selectedChartView.series) {
+				row[entry.key] = chartState.metric === 'usd' ? (entry.usd[index] ?? 0) : (entry.amount[index] ?? 0)
 			}
 			return row
 		})
 
-		const charts = chart.series.map((entry, index) => ({
+		const charts = selectedChartView.series.map((entry, index) => ({
 			type: 'bar' as const,
 			name: entry.label,
 			encode: { x: 'liqPrice', y: entry.key },
@@ -68,21 +243,15 @@ export function LiquidationsDistributionChart({
 			dataset: { source, dimensions } satisfies MultiSeriesChart2Dataset,
 			charts
 		}
-	}, [chart.bins, chart.series, metric])
+	}, [chartState.metric, selectedChartView.bins, selectedChartView.series])
 
 	const chartOptions = React.useMemo(() => {
 		const options = {
-			legend: {
-				type: 'scroll',
-				top: 0,
-				left: 8,
-				right: 8
-			},
 			grid: {
-				top: 72,
+				top: showBreakdownLegend ? 40 : 24,
 				left: 12,
 				right: 12,
-				bottom: 64
+				bottom: shouldHideDataZoom ? 12 : 64
 			},
 			xAxis: {
 				type: 'category',
@@ -99,7 +268,7 @@ export function LiquidationsDistributionChart({
 				type: 'value',
 				position: 'right',
 				axisLabel: {
-					formatter: (value: number) => (metric === 'usd' ? formattedNum(value, true) : formattedNum(value))
+					formatter: (value: number) => formatMetricValue(value, chartState.metric, chartState.tokenLabel)
 				},
 				splitLine: {
 					lineStyle: { color: '#a1a1aa', opacity: 0.1 }
@@ -139,7 +308,7 @@ export function LiquidationsDistributionChart({
 							if (axisDimension === 'x') {
 								return formatLiqPrice(numeric)
 							}
-							return metric === 'usd' ? formattedNum(numeric, true) : formattedNum(numeric)
+							return formatMetricValue(numeric, chartState.metric, chartState.tokenLabel)
 						}
 					}
 				},
@@ -154,12 +323,12 @@ export function LiquidationsDistributionChart({
 						isRecord(first) && 'axisValue' in first ? Number((first as { axisValue?: unknown }).axisValue) : Number.NaN
 					const axisLabel = Number.isFinite(axisValue) ? formatLiqPrice(axisValue) : ''
 					const total = paramList.reduce((sum, param) => sum + getTooltipValue(param), 0)
-					const totalLabel = metric === 'usd' ? formattedNum(total, true) : formattedNum(total)
+					const totalLabel = formatMetricValue(total, chartState.metric, chartState.tokenLabel)
 					const rows = paramList
 						.map((param) => {
 							if (!isRecord(param)) return null
 							const value = getTooltipValue(param)
-							const rowValue = metric === 'usd' ? formattedNum(value, true) : formattedNum(value)
+							const rowValue = formatMetricValue(value, chartState.metric, chartState.tokenLabel)
 							const seriesName = typeof param.seriesName === 'string' ? param.seriesName : ''
 							const marker = typeof param.marker === 'string' ? param.marker : ''
 							return `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px;">
@@ -172,13 +341,10 @@ export function LiquidationsDistributionChart({
 						})
 						.filter((row): row is string => typeof row === 'string')
 						.join('')
-					const totalBlock =
-						metric === 'usd'
-							? `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid rgba(255, 255, 255, 0.08); font-size:12px;">
-								<span style="color:var(--text-label);">Total</span>
-								<span style="color:var(--text-primary); font-weight:600; font-variant-numeric:tabular-nums;">${totalLabel}</span>
-							</div>`
-							: ''
+					const totalBlock = `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid rgba(255, 255, 255, 0.08); font-size:12px;">
+						<span style="color:var(--text-label);">Total</span>
+						<span style="color:var(--text-primary); font-weight:600; font-variant-numeric:tabular-nums;">${totalLabel}</span>
+					</div>`
 
 					return `<div style="min-width:220px; background:linear-gradient(180deg, rgba(24, 27, 34, 0.98) 0%, rgba(16, 18, 24, 0.98) 100%); border:1px solid rgba(93, 111, 158, 0.45); box-shadow:0 18px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03) inset; backdrop-filter:blur(10px); color:var(--text-primary); border-radius:10px; padding:12px 14px; font-size:12px; line-height:1.45;">
 						<div style="margin-bottom:8px;">
@@ -188,18 +354,18 @@ export function LiquidationsDistributionChart({
 						<div style="display:flex; flex-direction:column; gap:6px;">
 							${rows}
 						</div>
-						${totalBlock ? `<div style="margin-top:8px;">${totalBlock}</div>` : ''}
+						<div style="margin-top:8px;">${totalBlock}</div>
 					</div>`
 				}
 			}
 		}
 
 		return options as unknown as IMultiSeriesChart2Props['chartOptions']
-	}, [metric])
+	}, [chartState.metric, chartState.tokenLabel, shouldHideDataZoom, showBreakdownLegend])
 
 	const deferredChartModel = React.useDeferredValue(chartModel)
 
-	if (chart.series.length === 0 || chart.bins.length === 0) {
+	if (chart.tokens.length === 0) {
 		return (
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
 				<h2 className="text-lg font-semibold">{title ?? 'Liquidation Distribution'}</h2>
@@ -211,17 +377,39 @@ export function LiquidationsDistributionChart({
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center gap-2 p-2">
-				<div className="mr-auto" />
+				<div className="mr-auto min-w-0">
+					<SelectWithCombobox
+						allValues={tokenOptions}
+						selectedValues={chartState.token ? [chartState.token] : []}
+						setSelectedValues={(values) => {
+							const nextToken = values[0]
+							if (nextToken) setSelectedToken(nextToken)
+						}}
+						label={`Token: ${chartState.tokenLabel}`}
+						singleSelect
+						labelType="none"
+						variant="filter"
+						portal
+					/>
+				</div>
+				<Select
+					allValues={BREAKDOWN_OPTIONS}
+					selectedValues={chartState.breakdownMode}
+					setSelectedValues={(value: string) => setBreakdownMode(value as BreakdownMode)}
+					label={chartState.breakdownLabel}
+					labelType="none"
+					variant="filter"
+				/>
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
-						data-active={metric === 'usd'}
+						data-active={chartState.metric === 'usd'}
 						onClick={() => setMetric('usd')}
 						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
 						USD
 					</button>
 					<button
-						data-active={metric === 'amount'}
+						data-active={chartState.metric === 'amount'}
 						onClick={() => setMetric('amount')}
 						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 					>
@@ -230,8 +418,12 @@ export function LiquidationsDistributionChart({
 				</div>
 				<ChartExportButtons
 					chartInstance={() => chartInstanceRef.current}
-					filename={slug(title ?? 'liquidation-distribution')}
-					title={title ?? 'Liquidation Distribution'}
+					filename={slug(
+						[title ?? 'liquidation-distribution', chartState.token, chartState.breakdownLabel].filter(Boolean).join('-')
+					)}
+					title={[title ?? 'Liquidation Distribution', chartState.token, chartState.breakdownLabel]
+						.filter(Boolean)
+						.join(' - ')}
 					smol
 				/>
 			</div>
@@ -241,9 +433,10 @@ export function LiquidationsDistributionChart({
 					charts={deferredChartModel.charts}
 					chartOptions={chartOptions}
 					containerClassName="min-h-[360px]"
-					hideDefaultLegend={false}
+					hideDataZoom={shouldHideDataZoom}
+					hideDefaultLegend={!showBreakdownLegend}
 					onReady={onChartReady}
-					valueSymbol={metric === 'usd' ? '$' : ''}
+					valueSymbol={chartState.metric === 'usd' ? '$' : ''}
 				/>
 			</React.Suspense>
 			<div className="flex items-center justify-end gap-1 px-4 pb-3 text-xs text-(--text-label) italic opacity-70">

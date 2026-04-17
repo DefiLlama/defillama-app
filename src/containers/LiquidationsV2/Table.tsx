@@ -50,7 +50,7 @@ const protocolColumns = [
 	}),
 	protocolColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
-		header: 'Collateral IDs',
+		header: 'Tokens',
 		meta: { align: 'end' }
 	}),
 	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
@@ -88,7 +88,7 @@ const overviewChainColumns = [
 	}),
 	overviewChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
-		header: 'Collateral IDs',
+		header: 'Tokens',
 		meta: { align: 'end' }
 	}),
 	overviewChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
@@ -126,7 +126,7 @@ const protocolChainColumns = [
 	}),
 	protocolChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
 		id: 'collateralCount',
-		header: 'Collateral IDs',
+		header: 'Tokens',
 		meta: { align: 'end' }
 	}),
 	protocolChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {

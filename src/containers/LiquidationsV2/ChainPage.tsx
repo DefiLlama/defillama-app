@@ -28,7 +28,7 @@ export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 				<LiquidationsSummaryStats
 					items={[
 						{ label: 'Positions', value: props.positionCount },
-						{ label: 'Collateral IDs', value: props.collateralCount },
+						{ label: 'Tokens', value: props.collateralCount },
 						{ label: 'Collateral USD', value: props.totalCollateralUsd, isUsd: true }
 					]}
 				/>
