@@ -1,6 +1,8 @@
 import * as React from 'react'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import type { LiquidationsChainPageProps } from './api.types'
+import { LiquidationsDistributionChart } from './LiquidationsDistributionChart'
+import { LiquidationsPageHeader, LiquidationsSummaryStats } from './Summary'
 import { LiquidationsPositionsTable, LiquidationsProtocolChainsTable } from './Table'
 import { LiquidationsTableTabs } from './TableTabs'
 
@@ -14,31 +16,27 @@ export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 
 	return (
 		<>
-			<RowLinksWithDropdown links={props.protocolLinks} activeLink={props.protocol} />
-			<RowLinksWithDropdown links={props.chainLinks} activeLink={props.chain} />
+			<RowLinksWithDropdown links={props.protocolLinks} activeLink={props.protocolName} />
+			<RowLinksWithDropdown links={props.chainLinks} activeLink={props.chainName} />
 
-			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-4">
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
-					<span className="text-(--text-label)">Protocol</span>
-					<span className="text-xl font-semibold">{props.protocol}</span>
-				</div>
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
-					<span className="text-(--text-label)">Chain</span>
-					<span className="text-xl font-semibold">{props.chain}</span>
-				</div>
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
-					<span className="text-(--text-label)">Positions</span>
-					<span className="font-jetbrains text-2xl font-semibold">{props.positionCount}</span>
-				</div>
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
-					<span className="text-(--text-label)">Collateral IDs</span>
-					<span className="font-jetbrains text-2xl font-semibold">{props.collateralCount}</span>
-				</div>
-			</div>
-
-			<div className="mt-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5">
-				<h2 className="text-lg font-semibold">Snapshot</h2>
-				<p className="mt-2 text-(--text-label)">{new Date(props.timestamp * 1000).toUTCString()}</p>
+			<div className="relative isolate flex flex-col gap-2">
+				<LiquidationsPageHeader
+					title={`${props.protocolName} on ${props.chainName}`}
+					rightText={new Date(props.timestamp * 1000).toUTCString()}
+					logo={{ name: props.protocolName, kind: 'token' }}
+				/>
+				<LiquidationsSummaryStats
+					items={[
+						{ label: 'Positions', value: props.positionCount },
+						{ label: 'Collateral IDs', value: props.collateralCount },
+						{ label: 'Collateral USD', value: props.totalCollateralUsd, isUsd: true }
+					]}
+				/>
+				<LiquidationsDistributionChart
+					chart={props.distributionChart}
+					timestamp={props.timestamp}
+					title={`${props.protocolName} on ${props.chainName}`}
+				/>
 			</div>
 
 			<div className="mt-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">

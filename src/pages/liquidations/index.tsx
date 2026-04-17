@@ -12,8 +12,15 @@ export const getStaticProps = withPerformanceLogging(
 		props: LiquidationsOverviewPageProps
 		revalidate: number
 	}> => {
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const props = await getLiquidationsOverviewPageData({
+			chainMetadata: metadataModule.default.chainMetadata,
+			protocolMetadata: metadataModule.default.protocolMetadata
+		})
+
 		return {
-			props: await getLiquidationsOverviewPageData(),
+			props,
 			revalidate: maxAgeForNext([22])
 		}
 	}

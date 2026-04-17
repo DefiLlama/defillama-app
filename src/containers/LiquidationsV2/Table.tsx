@@ -2,6 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import type { LiquidationPosition, OverviewChainRow, OverviewProtocolRow, ProtocolChainRow } from './api.types'
 
@@ -21,133 +22,198 @@ function shorten(value: string): string {
 }
 
 const protocolColumns = [
-	protocolColumnHelper.accessor('protocol', {
-		header: 'Protocol',
+	protocolColumnHelper.accessor('name', {
+		id: 'name',
+		header: 'Name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
+		cell: ({ row, getValue }) => {
 			const protocol = getValue()
 			return (
-				<BasicLink href={`/liquidations/${protocol}`} className="text-(--link-text) hover:underline">
-					{protocol}
-				</BasicLink>
+				<span className="flex items-center gap-2">
+					<TokenLogo name={protocol} kind="token" data-lgonly alt={`Logo of ${protocol}`} />
+					<BasicLink href={`/liquidations/${row.original.slug}`} className="text-(--link-text) hover:underline">
+						{protocol}
+					</BasicLink>
+				</span>
 			)
 		}
 	}),
-	protocolColumnHelper.accessor('positionCount', {
+	protocolColumnHelper.accessor((row) => row.positionCount ?? undefined, {
+		id: 'positionCount',
 		header: 'Positions',
 		meta: { align: 'end' }
 	}),
-	protocolColumnHelper.accessor('chainCount', {
+	protocolColumnHelper.accessor((row) => row.chainCount ?? undefined, {
+		id: 'chainCount',
 		header: 'Chains',
 		meta: { align: 'end' }
 	}),
-	protocolColumnHelper.accessor('collateralCount', {
+	protocolColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
+		id: 'collateralCount',
 		header: 'Collateral IDs',
+		meta: { align: 'end' }
+	}),
+	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
+		id: 'totalCollateralUsd',
+		header: 'Collateral USD',
+		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: { align: 'end' }
 	})
 ]
 
 const overviewChainColumns = [
-	overviewChainColumnHelper.accessor('chain', {
-		header: 'Chain',
+	overviewChainColumnHelper.accessor('name', {
+		id: 'name',
+		header: 'Name',
+		cell: ({ getValue }) => {
+			const chain = getValue()
+			return (
+				<span className="flex items-center gap-2">
+					<TokenLogo name={chain} kind="chain" data-lgonly alt={`Logo of ${chain}`} />
+					<span>{chain}</span>
+				</span>
+			)
+		},
 		enableSorting: false
 	}),
-	overviewChainColumnHelper.accessor('positionCount', {
+	overviewChainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
+		id: 'positionCount',
 		header: 'Positions',
 		meta: { align: 'end' }
 	}),
-	overviewChainColumnHelper.accessor('protocolCount', {
+	overviewChainColumnHelper.accessor((row) => row.protocolCount ?? undefined, {
+		id: 'protocolCount',
 		header: 'Protocols',
 		meta: { align: 'end' }
 	}),
-	overviewChainColumnHelper.accessor('collateralCount', {
+	overviewChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
+		id: 'collateralCount',
 		header: 'Collateral IDs',
+		meta: { align: 'end' }
+	}),
+	overviewChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
+		id: 'totalCollateralUsd',
+		header: 'Collateral USD',
+		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: { align: 'end' }
 	})
 ]
 
 const protocolChainColumns = [
-	protocolChainColumnHelper.accessor('chain', {
-		header: 'Chain',
+	protocolChainColumnHelper.accessor('name', {
+		id: 'name',
+		header: 'Name',
 		enableSorting: false,
 		cell: ({ row, getValue }) => {
 			const chain = getValue()
 			return (
-				<BasicLink
-					href={`/liquidations/${row.original.protocol}/${chain}`}
-					className="text-(--link-text) hover:underline"
-				>
-					{chain}
-				</BasicLink>
+				<span className="flex items-center gap-2">
+					<TokenLogo name={chain} kind="chain" data-lgonly alt={`Logo of ${chain}`} />
+					<BasicLink
+						href={`/liquidations/${row.original.protocolSlug}/${row.original.slug}`}
+						className="text-(--link-text) hover:underline"
+					>
+						{chain}
+					</BasicLink>
+				</span>
 			)
 		}
 	}),
-	protocolChainColumnHelper.accessor('positionCount', {
+	protocolChainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
+		id: 'positionCount',
 		header: 'Positions',
 		meta: { align: 'end' }
 	}),
-	protocolChainColumnHelper.accessor('collateralCount', {
+	protocolChainColumnHelper.accessor((row) => row.collateralCount ?? undefined, {
+		id: 'collateralCount',
 		header: 'Collateral IDs',
+		meta: { align: 'end' }
+	}),
+	protocolChainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
+		id: 'totalCollateralUsd',
+		header: 'Collateral USD',
+		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: { align: 'end' }
 	})
 ]
 
 const positionColumns = [
-	positionColumnHelper.accessor('protocol', {
+	positionColumnHelper.accessor('protocolName', {
+		id: 'protocolName',
 		header: 'Protocol',
 		enableSorting: false,
-		cell: ({ getValue }) => {
+		cell: ({ row, getValue }) => {
 			const protocol = getValue()
 			return (
-				<BasicLink href={`/liquidations/${protocol}`} className="text-(--link-text) hover:underline">
-					{protocol}
-				</BasicLink>
+				<span className="flex items-center gap-2">
+					<TokenLogo name={protocol} kind="token" data-lgonly alt={`Logo of ${protocol}`} />
+					<BasicLink href={`/liquidations/${row.original.protocolSlug}`} className="text-(--link-text) hover:underline">
+						{protocol}
+					</BasicLink>
+				</span>
 			)
 		}
 	}),
-	positionColumnHelper.accessor('chain', {
+	positionColumnHelper.accessor('chainName', {
+		id: 'chainName',
 		header: 'Chain',
 		enableSorting: false,
 		cell: ({ row, getValue }) => {
 			const chain = getValue()
 			return (
-				<BasicLink
-					href={`/liquidations/${row.original.protocol}/${chain}`}
-					className="text-(--link-text) hover:underline"
-				>
-					{chain}
-				</BasicLink>
+				<span className="flex items-center gap-2">
+					<TokenLogo name={chain} kind="chain" data-lgonly alt={`Logo of ${chain}`} />
+					<BasicLink
+						href={`/liquidations/${row.original.protocolSlug}/${row.original.chainSlug}`}
+						className="text-(--link-text) hover:underline"
+					>
+						{chain}
+					</BasicLink>
+				</span>
 			)
 		}
 	}),
 	positionColumnHelper.accessor('ownerName', {
+		id: 'ownerName',
 		header: 'Owner',
 		enableSorting: false,
-		cell: ({ row, getValue }) => (
-			<a
-				href={row.original.ownerUrl}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="flex items-center gap-1 hover:underline"
-			>
+		cell: ({ row, getValue }) =>
+			row.original.ownerUrl ? (
+				<a
+					href={row.original.ownerUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="flex items-center gap-1 hover:underline"
+				>
+					<span>{shorten(getValue())}</span>
+					<Icon name="external-link" height={12} width={12} />
+				</a>
+			) : (
 				<span>{shorten(getValue())}</span>
-				<Icon name="external-link" height={12} width={12} />
-			</a>
-		)
+			)
 	}),
-	positionColumnHelper.accessor('liqPrice', {
-		header: 'Liquidation Price',
+	positionColumnHelper.accessor((row) => row.collateral ?? undefined, {
+		id: 'collateral',
+		header: 'Collateral ID',
+		enableSorting: false,
+		meta: { align: 'end' }
+	}),
+	positionColumnHelper.accessor((row) => row.collateralAmountUsd ?? undefined, {
+		id: 'collateralAmountUsd',
+		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: { align: 'end' }
 	}),
-	positionColumnHelper.accessor('collateral', {
-		header: 'Collateral ID',
-		enableSorting: false
-	}),
-	positionColumnHelper.accessor('collateralAmount', {
+	positionColumnHelper.accessor((row) => row.collateralAmount ?? undefined, {
+		id: 'collateralAmount',
 		header: 'Raw Amount',
-		enableSorting: false,
-		cell: ({ getValue }) => shorten(getValue()),
+		cell: ({ getValue }) => formattedNum(getValue()),
+		meta: { align: 'end' }
+	}),
+	positionColumnHelper.accessor((row) => row.liqPrice ?? undefined, {
+		id: 'liqPrice',
+		header: 'Liquidation Price',
+		cell: ({ getValue }) => formattedNum(getValue(), true),
 		meta: { align: 'end' }
 	})
 ]
@@ -163,11 +229,11 @@ export function LiquidationsProtocolsTable({
 			columns={protocolColumns}
 			header={embedded ? null : 'Protocols'}
 			leadingControls={leadingControls}
-			columnToSearch="protocol"
+			columnToSearch="name"
 			placeholder="Search protocols..."
 			csvFileName="liquidations-v2-protocols"
 			embedded={embedded}
-			sortingState={[{ id: 'positionCount', desc: true }]}
+			sortingState={[{ id: 'totalCollateralUsd', desc: true }]}
 		/>
 	)
 }
@@ -183,11 +249,11 @@ export function LiquidationsOverviewChainsTable({
 			columns={overviewChainColumns}
 			header={embedded ? null : 'Chains'}
 			leadingControls={leadingControls}
-			columnToSearch="chain"
+			columnToSearch="name"
 			placeholder="Search chains..."
 			csvFileName="liquidations-v2-chains"
 			embedded={embedded}
-			sortingState={[{ id: 'positionCount', desc: true }]}
+			sortingState={[{ id: 'totalCollateralUsd', desc: true }]}
 		/>
 	)
 }
@@ -203,11 +269,11 @@ export function LiquidationsProtocolChainsTable({
 			columns={protocolChainColumns}
 			header={embedded ? null : 'Chains'}
 			leadingControls={leadingControls}
-			columnToSearch="chain"
+			columnToSearch="name"
 			placeholder="Search chains..."
 			csvFileName="liquidations-v2-protocol-chains"
 			embedded={embedded}
-			sortingState={[{ id: 'positionCount', desc: true }]}
+			sortingState={[{ id: 'totalCollateralUsd', desc: true }]}
 		/>
 	)
 }
@@ -228,7 +294,7 @@ export function LiquidationsPositionsTable({
 			placeholder="Search owners..."
 			csvFileName="liquidations-v2-positions"
 			embedded={embedded}
-			sortingState={[{ id: 'liqPrice', desc: false }]}
+			sortingState={[{ id: 'collateralAmountUsd', desc: true }]}
 		/>
 	)
 }

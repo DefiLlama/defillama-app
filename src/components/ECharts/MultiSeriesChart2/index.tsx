@@ -644,6 +644,18 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		// override default chart settings
 		for (const option in chartOptions) {
 			if (option === 'overrides') continue
+			if (
+				option === 'dataZoom' &&
+				Array.isArray(mergedChartSettings.dataZoom) &&
+				chartOptions.dataZoom &&
+				typeof chartOptions.dataZoom === 'object' &&
+				!Array.isArray(chartOptions.dataZoom)
+			) {
+				mergedChartSettings.dataZoom = mergedChartSettings.dataZoom.map((zoomOption: any) =>
+					mergeDeep(zoomOption, chartOptions.dataZoom)
+				)
+				continue
+			}
 			if (mergedChartSettings[option]) {
 				mergedChartSettings[option] = mergeDeep(mergedChartSettings[option], chartOptions[option])
 			} else {

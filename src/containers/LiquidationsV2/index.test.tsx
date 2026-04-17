@@ -11,6 +11,9 @@ async function loadModule() {
 	vi.doMock('~/components/RowLinksWithDropdown', () => ({
 		RowLinksWithDropdown: ({ activeLink }: { activeLink: string }) => <div>{activeLink}</div>
 	}))
+	vi.doMock('./LiquidationsDistributionChart', () => ({
+		LiquidationsDistributionChart: () => <div>distribution chart</div>
+	}))
 	vi.doMock('./Table', () => ({
 		LiquidationsProtocolsTable: () => <div>protocols table</div>,
 		LiquidationsOverviewChainsTable: () => <div>chains table</div>
@@ -29,6 +32,8 @@ describe('LiquidationsOverview', () => {
 				protocolCount={2}
 				chainCount={3}
 				positionCount={4}
+				totalCollateralUsd={5000000}
+				distributionChart={{ bins: [], series: [] }}
 				protocolRows={[]}
 				chainRows={[]}
 			/>
@@ -38,6 +43,8 @@ describe('LiquidationsOverview', () => {
 		expect(html).toContain('Protocols')
 		expect(html).toContain('Chains')
 		expect(html).toContain('Positions')
+		expect(html).toContain('Collateral USD')
+		expect(html).toContain('distribution chart')
 		expect(html).toContain('protocols table')
 		expect(html).not.toContain('chains table')
 	})

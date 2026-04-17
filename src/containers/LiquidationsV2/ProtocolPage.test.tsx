@@ -11,6 +11,9 @@ async function loadModule() {
 	vi.doMock('~/components/RowLinksWithDropdown', () => ({
 		RowLinksWithDropdown: ({ activeLink }: { activeLink: string }) => <div>{activeLink}</div>
 	}))
+	vi.doMock('./LiquidationsDistributionChart', () => ({
+		LiquidationsDistributionChart: () => <div>distribution chart</div>
+	}))
 	vi.doMock('./Table', () => ({
 		LiquidationsProtocolChainsTable: () => <div>chains table</div>,
 		LiquidationsPositionsTable: () => <div>positions table</div>
@@ -25,20 +28,26 @@ describe('LiquidationsProtocolPage', () => {
 		const html = renderToStaticMarkup(
 			<LiquidationsProtocolPage
 				protocolLinks={[{ label: 'Overview', to: '/liquidations' }]}
-				chainLinks={[{ label: 'All Chains', to: '/liquidations/aave-v3' }]}
-				protocol="aave-v3"
+				chainLinks={[{ label: 'All Chains', to: '/liquidations/sky' }]}
+				protocolId="maker"
+				protocolName="Sky"
+				protocolSlug="sky"
 				timestamp={100}
 				chainCount={2}
 				positionCount={3}
 				collateralCount={4}
+				totalCollateralUsd={5000000}
+				distributionChart={{ bins: [], series: [] }}
 				chainRows={[]}
 				positions={[]}
 			/>
 		)
 
-		expect(html).toContain('aave-v3')
+		expect(html).toContain('Sky')
 		expect(html).toContain('All Chains')
 		expect(html).toContain('Collateral IDs')
+		expect(html).toContain('Collateral USD')
+		expect(html).toContain('distribution chart')
 		expect(html).toContain('chains table')
 		expect(html).not.toContain('positions table')
 	})

@@ -5,7 +5,8 @@ import type {
 	RawLiquidationPosition,
 	RawProtocolChainLiquidationsResponse,
 	RawProtocolLiquidationsResponse,
-	RawProtocolsResponse
+	RawProtocolsResponse,
+	RawValidThreshold
 } from './api.types'
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -20,7 +21,8 @@ function assertPosition(position: unknown): asserts position is RawLiquidationPo
 	assert(typeof record.owner === 'string', 'Expected position owner')
 	assert(typeof record.liqPrice === 'number', 'Expected position liqPrice')
 	assert(typeof record.collateral === 'string', 'Expected position collateral')
-	assert(typeof record.collateralAmount === 'string', 'Expected position collateralAmount')
+	assert(typeof record.collateralAmount === 'number', 'Expected position collateralAmount')
+	assert(typeof record.collateralAmountUsd === 'number', 'Expected position collateralAmountUsd')
 }
 
 function assertPositions(positions: unknown): asserts positions is RawLiquidationPosition[] {
@@ -39,11 +41,19 @@ function assertProtocolsResponse(data: unknown): asserts data is RawProtocolsRes
 	}
 }
 
+function assertValidThresholds(validThresholds: unknown): asserts validThresholds is RawValidThreshold[] {
+	assert(Array.isArray(validThresholds), 'Expected valid thresholds')
+	for (const threshold of validThresholds) {
+		assert(threshold === '100k' || threshold === '10k' || threshold === 'all', 'Expected known valid threshold')
+	}
+}
+
 function assertAllLiquidationsResponse(data: unknown): asserts data is RawAllLiquidationsResponse {
 	assert(typeof data === 'object' && data !== null, 'Expected all liquidations response')
 	const record = data as Record<string, unknown>
 	assert(typeof record.timestamp === 'number', 'Expected all liquidations timestamp')
 	assert(typeof record.data === 'object' && record.data !== null, 'Expected all liquidations data')
+	assertValidThresholds(record.validThresholds)
 
 	for (const protocolData of Object.values(record.data)) {
 		assert(typeof protocolData === 'object' && protocolData !== null, 'Expected protocol liquidations data')
@@ -58,6 +68,7 @@ function assertProtocolLiquidationsResponse(data: unknown): asserts data is RawP
 	const record = data as Record<string, unknown>
 	assert(typeof record.timestamp === 'number', 'Expected protocol liquidations timestamp')
 	assert(typeof record.data === 'object' && record.data !== null, 'Expected protocol liquidations data')
+	assertValidThresholds(record.validThresholds)
 
 	for (const positions of Object.values(record.data)) {
 		assertPositions(positions)
@@ -68,6 +79,7 @@ function assertProtocolChainLiquidationsResponse(data: unknown): asserts data is
 	assert(typeof data === 'object' && data !== null, 'Expected protocol chain liquidations response')
 	const record = data as Record<string, unknown>
 	assert(typeof record.timestamp === 'number', 'Expected protocol chain liquidations timestamp')
+	assertValidThresholds(record.validThresholds)
 	assertPositions(record.data)
 }
 

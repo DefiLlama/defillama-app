@@ -27,7 +27,13 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const props = await getLiquidationsChainPageData(params.protocol, params.chain)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+
+		const props = await getLiquidationsChainPageData(params.protocol, params.chain, {
+			chainMetadata: metadataModule.default.chainMetadata,
+			protocolMetadata: metadataModule.default.protocolMetadata
+		})
 
 		if (!props) {
 			return { notFound: true }
@@ -43,10 +49,10 @@ export const getStaticProps = withPerformanceLogging(
 export default function LiquidationsChainRoute(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.protocol} ${props.chain} Liquidations - DefiLlama`}
-			description={`Track the latest liquidation positions for ${props.protocol} on ${props.chain}.`}
-			canonicalUrl={`/liquidations/${props.protocol}/${props.chain}`}
-			pageName={['Liquidations', props.protocol, props.chain]}
+			title={`${props.protocolName} Liquidations on ${props.chainName} - DefiLlama`}
+			description={`Track the latest liquidation positions for ${props.protocolName} on ${props.chainName}.`}
+			canonicalUrl={`/liquidations/${props.protocolSlug}/${props.chainSlug}`}
+			pageName={['Liquidations', props.protocolName, props.chainName]}
 		>
 			<LiquidationsChainPage {...props} />
 		</Layout>

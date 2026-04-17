@@ -24,6 +24,19 @@ const mockedFetchAllLiquidations = vi.mocked(fetchAllLiquidations)
 const mockedFetchProtocolLiquidations = vi.mocked(fetchProtocolLiquidations)
 const mockedFetchProtocolChainLiquidations = vi.mocked(fetchProtocolChainLiquidations)
 
+const metadata = {
+	protocolMetadata: {
+		'118': { name: 'maker', displayName: 'Sky' },
+		'1599': { name: 'aave-v3', displayName: 'Aave V3' },
+		'2088': { name: 'compound-v3', displayName: 'Compound V3' }
+	},
+	chainMetadata: {
+		arbitrum: { id: 'arbitrum', name: 'Arbitrum One' },
+		ethereum: { id: 'ethereum', name: 'Ethereum' },
+		base: { id: 'base', name: 'Base' }
+	}
+}
+
 beforeEach(() => {
 	vi.clearAllMocks()
 })
@@ -33,6 +46,8 @@ describe('LiquidationsV2 queries', () => {
 		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['aave-v3', 'compound-v3'] })
 		mockedFetchAllLiquidations.mockResolvedValue({
 			timestamp: 100,
+			tokens: {},
+			validThresholds: ['all'],
 			data: {
 				'aave-v3': {
 					arbitrum: [
@@ -40,7 +55,8 @@ describe('LiquidationsV2 queries', () => {
 							owner: '0x1',
 							liqPrice: 1,
 							collateral: 'ethereum:eth',
-							collateralAmount: '10',
+							collateralAmount: 10,
+							collateralAmountUsd: 1000,
 							extra: { url: 'https://example.com/1' }
 						}
 					],
@@ -49,7 +65,8 @@ describe('LiquidationsV2 queries', () => {
 							owner: '0x2',
 							liqPrice: 2,
 							collateral: 'ethereum:wbtc',
-							collateralAmount: '20',
+							collateralAmount: 20,
+							collateralAmountUsd: 2000,
 							extra: { url: 'https://example.com/2' }
 						}
 					]
@@ -60,7 +77,8 @@ describe('LiquidationsV2 queries', () => {
 							owner: '0x3',
 							liqPrice: 3,
 							collateral: 'ethereum:eth',
-							collateralAmount: '30',
+							collateralAmount: 30,
+							collateralAmountUsd: 3000,
 							extra: { url: 'https://example.com/3' }
 						}
 					]
@@ -68,36 +86,46 @@ describe('LiquidationsV2 queries', () => {
 			}
 		})
 
-		const data = await getLiquidationsOverviewPageData()
+		const data = await getLiquidationsOverviewPageData(metadata)
 
 		expect(data.protocolCount).toBe(2)
 		expect(data.chainCount).toBe(2)
 		expect(data.positionCount).toBe(3)
+		expect(data.totalCollateralUsd).toBe(6000)
 		expect(data.protocolRows[0]).toEqual({
-			protocol: 'aave-v3',
+			id: 'aave-v3',
+			name: 'Aave V3',
+			slug: 'aave-v3',
 			positionCount: 2,
 			chainCount: 2,
-			collateralCount: 2
+			collateralCount: 2,
+			totalCollateralUsd: 3000
 		})
 		expect(data.chainRows[0]).toEqual({
-			chain: 'ethereum',
+			id: 'ethereum',
+			name: 'Ethereum',
+			slug: 'ethereum',
 			positionCount: 2,
 			protocolCount: 2,
-			collateralCount: 2
+			collateralCount: 2,
+			totalCollateralUsd: 5000
 		})
 	})
 
 	it('builds the protocol page data', async () => {
-		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['aave-v3'] })
+		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['maker'] })
 		mockedFetchProtocolLiquidations.mockResolvedValue({
 			timestamp: 200,
+			tokens: {},
+			validThresholds: ['all'],
 			data: {
 				arbitrum: [
 					{
 						owner: '0x1',
 						liqPrice: 1,
 						collateral: 'ethereum:eth',
-						collateralAmount: '10',
+						collateralAmount: 10,
+						collateralAmountUsd: 1000,
 						extra: { displayName: 'alice', url: 'https://example.com/1' }
 					}
 				],
@@ -106,76 +134,107 @@ describe('LiquidationsV2 queries', () => {
 						owner: '0x2',
 						liqPrice: 2,
 						collateral: 'ethereum:wbtc',
-						collateralAmount: '20',
-						extra: { url: 'https://example.com/2' }
+						collateralAmount: 20,
+						collateralAmountUsd: 2000,
+						extra: { displayName: 'bob' }
 					}
 				]
 			}
 		})
 
-		const data = await getLiquidationsProtocolPageData('aave-v3')
+		const data = await getLiquidationsProtocolPageData('sky', metadata)
 
 		expect(data).not.toBeNull()
+		expect(data?.protocolId).toBe('maker')
+		expect(data?.protocolName).toBe('Sky')
+		expect(data?.protocolSlug).toBe('sky')
 		expect(data?.chainCount).toBe(2)
 		expect(data?.positionCount).toBe(2)
 		expect(data?.collateralCount).toBe(2)
+		expect(data?.totalCollateralUsd).toBe(3000)
+		expect(data?.chainLinks.map((link) => link.label)).toEqual(['All Chains', 'Arbitrum One', 'Ethereum'])
 		expect(data?.positions[0]).toEqual({
-			protocol: 'aave-v3',
-			chain: 'arbitrum',
+			protocolId: 'maker',
+			protocolName: 'Sky',
+			protocolSlug: 'sky',
+			chainId: 'arbitrum',
+			chainName: 'Arbitrum One',
+			chainSlug: 'arbitrum-one',
 			owner: '0x1',
 			ownerName: 'alice',
 			ownerUrl: 'https://example.com/1',
 			liqPrice: 1,
 			collateral: 'ethereum:eth',
-			collateralAmount: '10'
+			collateralAmount: 10,
+			collateralAmountUsd: 1000
 		})
 	})
 
 	it('returns null for an invalid protocol', async () => {
-		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['aave-v3'] })
+		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['maker'] })
 
-		await expect(getLiquidationsProtocolPageData('compound-v3')).resolves.toBeNull()
+		await expect(getLiquidationsProtocolPageData('compound-v3', metadata)).resolves.toBeNull()
 	})
 
 	it('builds the chain page data', async () => {
-		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['aave-v3'] })
+		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['maker'] })
 		mockedFetchProtocolLiquidations.mockResolvedValue({
 			timestamp: 200,
+			tokens: {},
+			validThresholds: ['all'],
 			data: {
-				arbitrum: [],
+				arbitrum: [
+					{
+						owner: '0x1',
+						liqPrice: 1,
+						collateral: 'ethereum:eth',
+						collateralAmount: 10,
+						collateralAmountUsd: 1000,
+						extra: { displayName: 'alice' }
+					}
+				],
 				ethereum: []
 			}
 		})
 		mockedFetchProtocolChainLiquidations.mockResolvedValue({
 			timestamp: 300,
+			tokens: {},
+			validThresholds: ['all'],
 			data: [
 				{
 					owner: '0x2',
 					liqPrice: 2,
 					collateral: 'ethereum:wbtc',
-					collateralAmount: '20',
+					collateralAmount: 20,
+					collateralAmountUsd: 2000,
 					extra: { url: 'https://example.com/2' }
 				}
 			]
 		})
 
-		const data = await getLiquidationsChainPageData('aave-v3', 'ethereum')
+		const data = await getLiquidationsChainPageData('sky', 'arbitrum-one', metadata)
 
 		expect(data).not.toBeNull()
 		expect(data?.positionCount).toBe(1)
 		expect(data?.collateralCount).toBe(1)
-		expect(data?.chainLinks.map((link) => link.label)).toEqual(['All Chains', 'arbitrum', 'ethereum'])
+		expect(data?.totalCollateralUsd).toBe(2000)
+		expect(data?.protocolName).toBe('Sky')
+		expect(data?.chainName).toBe('Arbitrum One')
+		expect(data?.chainSlug).toBe('arbitrum-one')
+		expect(data?.chainLinks.map((link) => link.label)).toEqual(['All Chains', 'Arbitrum One', 'Ethereum'])
 	})
 
 	it('returns null for an invalid chain', async () => {
-		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['aave-v3'] })
+		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['maker'] })
 		mockedFetchProtocolLiquidations.mockResolvedValue({
 			timestamp: 200,
+			tokens: {},
+			validThresholds: ['all'],
 			data: {
 				ethereum: []
 			}
 		})
 
-		await expect(getLiquidationsChainPageData('aave-v3', 'arbitrum')).resolves.toBeNull()
+		await expect(getLiquidationsChainPageData('sky', 'base', metadata)).resolves.toBeNull()
 	})
 })

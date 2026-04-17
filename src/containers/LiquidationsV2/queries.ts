@@ -1,3 +1,5 @@
+import { slug } from '~/utils'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchAllLiquidations,
 	fetchProtocolChainLiquidations,
@@ -5,10 +7,13 @@ import {
 	fetchProtocolsList
 } from './api'
 import type {
-	LiquidationPosition,
+	LiquidationsDistributionChartData,
 	LiquidationsChainPageProps,
+	LiquidationsChainRef,
 	LiquidationsOverviewPageProps,
 	LiquidationsProtocolPageProps,
+	LiquidationsProtocolRef,
+	LiquidationPosition,
 	NavLink,
 	OverviewChainRow,
 	OverviewProtocolRow,
@@ -16,52 +21,112 @@ import type {
 	RawLiquidationPosition
 } from './api.types'
 
-function assert(condition: unknown, message: string): asserts condition {
-	if (!condition) {
-		throw new Error(message)
+interface LiquidationsMetadataCache {
+	chainMetadata: Record<string, IChainMetadata>
+	protocolMetadata: Record<string, IProtocolMetadata>
+}
+
+type LiquidationsProtocolMetadata = IProtocolMetadata & { name?: string }
+
+interface ChainAggregate {
+	chain: LiquidationsChainRef
+	positionCount: number
+	protocolIds: Set<string>
+	collaterals: Set<string>
+	totalCollateralUsd: number
+}
+
+const LIQUIDATIONS_V2_TOTAL_BINS = 60
+
+function createProtocolMetadataLookup(
+	protocolMetadata: Record<string, IProtocolMetadata>
+): Map<string, LiquidationsProtocolMetadata> {
+	const lookup = new Map<string, LiquidationsProtocolMetadata>()
+
+	for (const metadata of Object.values(protocolMetadata) as LiquidationsProtocolMetadata[]) {
+		if (metadata?.name) {
+			lookup.set(metadata.name, metadata)
+		}
+	}
+
+	return lookup
+}
+
+function getProtocolRef(
+	protocolId: string,
+	protocolMetadataLookup: Map<string, LiquidationsProtocolMetadata>
+): LiquidationsProtocolRef {
+	const name = protocolMetadataLookup.get(protocolId)?.displayName ?? protocolId
+
+	return {
+		id: protocolId,
+		name,
+		slug: slug(name)
 	}
 }
 
-function getProtocolLinks(protocols: string[]): NavLink[] {
+function getChainRef(chainId: string, chainMetadata: Record<string, IChainMetadata>): LiquidationsChainRef {
+	const name = chainMetadata[slug(chainId)]?.name ?? chainId
+
+	return {
+		id: chainId,
+		name,
+		slug: slug(name)
+	}
+}
+
+function sortByName<T extends { name: string }>(rows: T[]): T[] {
+	return rows.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+function getProtocolLinks(
+	protocolIds: string[],
+	protocolMetadataLookup: Map<string, LiquidationsProtocolMetadata>
+): NavLink[] {
+	const protocolRefs = sortByName(protocolIds.map((protocolId) => getProtocolRef(protocolId, protocolMetadataLookup)))
+
 	return [
 		{ label: 'Overview', to: '/liquidations' },
-		...protocols.map((protocol) => ({ label: protocol, to: `/liquidations/${protocol}` }))
+		...protocolRefs.map((protocol) => ({ label: protocol.name, to: `/liquidations/${protocol.slug}` }))
 	]
 }
 
-function getChainLinks(protocol: string, chains: string[]): NavLink[] {
+function getChainLinks(
+	protocol: LiquidationsProtocolRef,
+	chainIds: string[],
+	chainMetadata: Record<string, IChainMetadata>
+): NavLink[] {
+	const chainRefs = sortByName(chainIds.map((chainId) => getChainRef(chainId, chainMetadata)))
+
 	return [
-		{ label: 'All Chains', to: `/liquidations/${protocol}` },
-		...chains.map((chain) => ({ label: chain, to: `/liquidations/${protocol}/${chain}` }))
+		{ label: 'All Chains', to: `/liquidations/${protocol.slug}` },
+		...chainRefs.map((chain) => ({ label: chain.name, to: `/liquidations/${protocol.slug}/${chain.slug}` }))
 	]
 }
 
 function normalizePositions(
-	protocol: string,
-	chain: string,
+	protocol: LiquidationsProtocolRef,
+	chain: LiquidationsChainRef,
 	rawPositions: RawLiquidationPosition[]
 ): LiquidationPosition[] {
-	const positions: LiquidationPosition[] = []
-
-	for (const position of rawPositions) {
-		const extra = position.extra
-		assert(extra?.url, `Missing owner url for ${protocol}/${chain}`)
-		positions.push({
-			protocol,
-			chain,
-			owner: position.owner,
-			ownerName: extra.displayName ?? position.owner,
-			ownerUrl: extra.url,
-			liqPrice: position.liqPrice,
-			collateral: position.collateral,
-			collateralAmount: position.collateralAmount
-		})
-	}
-
-	return positions
+	return rawPositions.map((position) => ({
+		protocolId: protocol.id,
+		protocolName: protocol.name,
+		protocolSlug: protocol.slug,
+		chainId: chain.id,
+		chainName: chain.name,
+		chainSlug: chain.slug,
+		owner: position.owner,
+		ownerName: position.extra?.displayName ?? position.owner,
+		ownerUrl: position.extra?.url ?? null,
+		liqPrice: position.liqPrice,
+		collateral: position.collateral,
+		collateralAmount: position.collateralAmount,
+		collateralAmountUsd: position.collateralAmountUsd
+	}))
 }
 
-function getCollateralCount(positions: LiquidationPosition[]): number {
+function getCollateralCount(positions: Array<{ collateral: string }>): number {
 	const collaterals = new Set<string>()
 	for (const position of positions) {
 		collaterals.add(position.collateral)
@@ -69,152 +134,318 @@ function getCollateralCount(positions: LiquidationPosition[]): number {
 	return collaterals.size
 }
 
-function sortByCountAndName<T extends { positionCount: number }>(rows: T[], getName: (row: T) => string): T[] {
+function sumCollateralUsd(positions: RawLiquidationPosition[]): number {
+	return positions.reduce((total, position) => total + position.collateralAmountUsd, 0)
+}
+
+function buildLiquidationsDistributionChart(
+	positions: RawLiquidationPosition[],
+	totalBins = LIQUIDATIONS_V2_TOTAL_BINS
+): LiquidationsDistributionChartData {
+	const validPositions = positions.filter(
+		(position) =>
+			Number.isFinite(position.liqPrice) &&
+			position.liqPrice >= 0 &&
+			Number.isFinite(position.collateralAmount) &&
+			Number.isFinite(position.collateralAmountUsd) &&
+			(position.collateralAmount > 0 || position.collateralAmountUsd > 0)
+	)
+
+	if (validPositions.length === 0) {
+		return { bins: [], series: [] }
+	}
+
+	let maxPrice = 0
+	for (const position of validPositions) {
+		if (position.liqPrice > maxPrice) {
+			maxPrice = position.liqPrice
+		}
+	}
+
+	const binCount = Math.max(1, totalBins)
+	const priceCeiling = maxPrice > 0 ? maxPrice : 1
+	const binSize = priceCeiling / binCount
+	const bins = Array.from({ length: binCount }, (_, index) => index * binSize)
+	const seriesByCollateral = new Map<
+		string,
+		{ key: string; label: string; usd: number[]; amount: number[]; totalUsd: number }
+	>()
+
+	for (const position of validPositions) {
+		let series = seriesByCollateral.get(position.collateral)
+		if (!series) {
+			series = {
+				key: position.collateral,
+				label: position.collateral,
+				usd: new Array(binCount).fill(0),
+				amount: new Array(binCount).fill(0),
+				totalUsd: 0
+			}
+			seriesByCollateral.set(position.collateral, series)
+		}
+
+		const binIndex = binSize === 0 ? 0 : Math.min(binCount - 1, Math.floor(position.liqPrice / binSize))
+		series.usd[binIndex] += position.collateralAmountUsd
+		series.amount[binIndex] += position.collateralAmount
+		series.totalUsd += position.collateralAmountUsd
+	}
+
+	return {
+		bins,
+		series: Array.from(seriesByCollateral.values()).sort((a, b) => {
+			if (b.totalUsd !== a.totalUsd) return b.totalUsd - a.totalUsd
+			return a.label.localeCompare(b.label)
+		})
+	}
+}
+
+function sortByCountAndName<T extends { positionCount: number; name: string }>(rows: T[]): T[] {
 	return rows.sort((a, b) => {
 		if (b.positionCount !== a.positionCount) return b.positionCount - a.positionCount
-		return getName(a).localeCompare(getName(b))
+		return a.name.localeCompare(b.name)
 	})
 }
 
-export async function getLiquidationsOverviewPageData(): Promise<LiquidationsOverviewPageProps> {
+function resolveProtocolId(
+	protocolParam: string,
+	availableProtocolIds: string[],
+	protocolMetadataLookup: Map<string, LiquidationsProtocolMetadata>
+): string | null {
+	const normalizedProtocolParam = slug(protocolParam)
+
+	for (const protocolId of availableProtocolIds) {
+		const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
+		if (protocol.slug === normalizedProtocolParam || slug(protocolId) === normalizedProtocolParam) {
+			return protocolId
+		}
+	}
+
+	return null
+}
+
+function resolveChainId(
+	chainParam: string,
+	availableChainIds: string[],
+	chainMetadata: Record<string, IChainMetadata>
+): string | null {
+	const normalizedChainParam = slug(chainParam)
+
+	for (const chainId of availableChainIds) {
+		const chain = getChainRef(chainId, chainMetadata)
+		if (chain.slug === normalizedChainParam || slug(chainId) === normalizedChainParam) {
+			return chainId
+		}
+	}
+
+	return null
+}
+
+export async function getLiquidationsOverviewPageData(
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsOverviewPageProps> {
 	const [protocolsResponse, allResponse] = await Promise.all([fetchProtocolsList(), fetchAllLiquidations()])
-	const protocols = [...protocolsResponse.protocols].sort((a, b) => a.localeCompare(b))
-	const protocolLinks = getProtocolLinks(protocols)
+	const protocolIds = protocolsResponse.protocols
+	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
+	const protocolLinks = getProtocolLinks(protocolIds, protocolMetadataLookup)
 	const protocolRows: OverviewProtocolRow[] = []
-	const chainMap = new Map<string, OverviewChainRow>()
-	const chainCollateralMap = new Map<string, Set<string>>()
+	const chainMap = new Map<string, ChainAggregate>()
+	const allPositions: RawLiquidationPosition[] = []
 	let positionCount = 0
+	let totalCollateralUsd = 0
 
-	for (const protocol of protocols) {
-		const protocolData = allResponse.data[protocol] ?? {}
+	for (const protocolId of protocolIds) {
+		const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
+		const protocolData = allResponse.data[protocolId] ?? {}
 		let protocolPositionCount = 0
+		let protocolTotalCollateralUsd = 0
 		const protocolCollaterals = new Set<string>()
-		const protocolChains = Object.keys(protocolData)
+		const protocolChainIds = Object.keys(protocolData)
 
-		for (const chain of protocolChains) {
-			const positions = protocolData[chain]
+		for (const chainId of protocolChainIds) {
+			const chain = getChainRef(chainId, metadataCache.chainMetadata)
+			const positions = protocolData[chainId]
+			const chainCollateralUsd = sumCollateralUsd(positions)
+			allPositions.push(...positions)
 			protocolPositionCount += positions.length
 			positionCount += positions.length
+			protocolTotalCollateralUsd += chainCollateralUsd
+			totalCollateralUsd += chainCollateralUsd
 
-			let chainRow = chainMap.get(chain)
-			if (!chainRow) {
-				chainRow = { chain, positionCount: 0, protocolCount: 0, collateralCount: 0 }
-				chainMap.set(chain, chainRow)
-			}
-			let chainCollaterals = chainCollateralMap.get(chain)
-			if (!chainCollaterals) {
-				chainCollaterals = new Set<string>()
-				chainCollateralMap.set(chain, chainCollaterals)
+			let chainAggregate = chainMap.get(chain.id)
+			if (!chainAggregate) {
+				chainAggregate = {
+					chain,
+					positionCount: 0,
+					protocolIds: new Set<string>(),
+					collaterals: new Set<string>(),
+					totalCollateralUsd: 0
+				}
+				chainMap.set(chain.id, chainAggregate)
 			}
 
-			chainRow.positionCount += positions.length
-			chainRow.protocolCount += 1
+			chainAggregate.positionCount += positions.length
+			chainAggregate.protocolIds.add(protocol.id)
+			chainAggregate.totalCollateralUsd += chainCollateralUsd
 
 			for (const position of positions) {
 				protocolCollaterals.add(position.collateral)
-				chainCollaterals.add(position.collateral)
+				chainAggregate.collaterals.add(position.collateral)
 			}
-			chainRow.collateralCount = chainCollaterals.size
 		}
 
 		protocolRows.push({
-			protocol,
+			...protocol,
 			positionCount: protocolPositionCount,
-			chainCount: protocolChains.length,
-			collateralCount: protocolCollaterals.size
+			chainCount: protocolChainIds.length,
+			collateralCount: protocolCollaterals.size,
+			totalCollateralUsd: protocolTotalCollateralUsd
 		})
 	}
 
 	return {
 		protocolLinks,
 		timestamp: allResponse.timestamp,
-		protocolCount: protocols.length,
+		protocolCount: protocolIds.length,
 		chainCount: chainMap.size,
 		positionCount,
-		protocolRows: sortByCountAndName(protocolRows, (row) => row.protocol),
-		chainRows: sortByCountAndName(Array.from(chainMap.values()), (row) => row.chain)
+		totalCollateralUsd,
+		distributionChart: buildLiquidationsDistributionChart(allPositions),
+		protocolRows: sortByCountAndName(protocolRows),
+		chainRows: sortByCountAndName(
+			Array.from(chainMap.values()).map(
+				(chainAggregate): OverviewChainRow => ({
+					...chainAggregate.chain,
+					positionCount: chainAggregate.positionCount,
+					protocolCount: chainAggregate.protocolIds.size,
+					collateralCount: chainAggregate.collaterals.size,
+					totalCollateralUsd: chainAggregate.totalCollateralUsd
+				})
+			)
+		)
 	}
 }
 
-export async function getLiquidationsProtocolPageData(protocol: string): Promise<LiquidationsProtocolPageProps | null> {
+export async function getLiquidationsProtocolPageData(
+	protocolParam: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsProtocolPageProps | null> {
 	const protocolsResponse = await fetchProtocolsList()
-	if (!protocolsResponse.protocols.includes(protocol)) {
+	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
+	const protocolId = resolveProtocolId(protocolParam, protocolsResponse.protocols, protocolMetadataLookup)
+
+	if (!protocolId) {
 		return null
 	}
 
-	const protocolResponse = await fetchProtocolLiquidations(protocol)
-	const protocols = [...protocolsResponse.protocols].sort((a, b) => a.localeCompare(b))
-	const chains = Object.keys(protocolResponse.data).sort((a, b) => a.localeCompare(b))
-	const protocolLinks = getProtocolLinks(protocols)
-	const chainLinks = getChainLinks(protocol, chains)
+	const protocolResponse = await fetchProtocolLiquidations(protocolId)
+	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
+	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
+	const chainIds = Object.keys(protocolResponse.data)
+	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
+	const chartPositions: RawLiquidationPosition[] = []
 	const positions: LiquidationPosition[] = []
 	const chainRows: ProtocolChainRow[] = []
+	let totalCollateralUsd = 0
 
-	for (const chain of chains) {
-		const chainPositions = normalizePositions(protocol, chain, protocolResponse.data[chain])
+	for (const chainId of sortByName(chainIds.map((id) => getChainRef(id, metadataCache.chainMetadata))).map(
+		(chain) => chain.id
+	)) {
+		const chain = getChainRef(chainId, metadataCache.chainMetadata)
+		const rawPositions = protocolResponse.data[chainId]
+		chartPositions.push(...rawPositions)
+		const chainPositions = normalizePositions(protocol, chain, rawPositions)
+		const chainCollateralUsd = sumCollateralUsd(rawPositions)
 		positions.push(...chainPositions)
+		totalCollateralUsd += chainCollateralUsd
 		chainRows.push({
-			protocol,
-			chain,
+			...chain,
+			protocolId: protocol.id,
+			protocolName: protocol.name,
+			protocolSlug: protocol.slug,
 			positionCount: chainPositions.length,
-			collateralCount: getCollateralCount(chainPositions)
+			collateralCount: getCollateralCount(chainPositions),
+			totalCollateralUsd: chainCollateralUsd
 		})
 	}
 
 	return {
 		protocolLinks,
 		chainLinks,
-		protocol,
+		protocolId: protocol.id,
+		protocolName: protocol.name,
+		protocolSlug: protocol.slug,
 		timestamp: protocolResponse.timestamp,
-		chainCount: chains.length,
+		chainCount: chainIds.length,
 		positionCount: positions.length,
 		collateralCount: getCollateralCount(positions),
-		chainRows: sortByCountAndName(chainRows, (row) => row.chain),
+		totalCollateralUsd,
+		distributionChart: buildLiquidationsDistributionChart(chartPositions),
+		chainRows: sortByCountAndName(chainRows),
 		positions
 	}
 }
 
 export async function getLiquidationsChainPageData(
-	protocol: string,
-	chain: string
+	protocolParam: string,
+	chainParam: string,
+	metadataCache: LiquidationsMetadataCache
 ): Promise<LiquidationsChainPageProps | null> {
 	const protocolsResponse = await fetchProtocolsList()
-	if (!protocolsResponse.protocols.includes(protocol)) {
+	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
+	const protocolId = resolveProtocolId(protocolParam, protocolsResponse.protocols, protocolMetadataLookup)
+
+	if (!protocolId) {
 		return null
 	}
 
-	const protocolResponse = await fetchProtocolLiquidations(protocol)
-	const chains = Object.keys(protocolResponse.data).sort((a, b) => a.localeCompare(b))
-	if (!chains.includes(chain)) {
+	const protocolResponse = await fetchProtocolLiquidations(protocolId)
+	const chainIds = Object.keys(protocolResponse.data)
+	const chainId = resolveChainId(chainParam, chainIds, metadataCache.chainMetadata)
+
+	if (!chainId) {
 		return null
 	}
 
-	const chainResponse = await fetchProtocolChainLiquidations(protocol, chain)
-	const protocols = [...protocolsResponse.protocols].sort((a, b) => a.localeCompare(b))
-	const protocolLinks = getProtocolLinks(protocols)
-	const chainLinks = getChainLinks(protocol, chains)
+	const chainResponse = await fetchProtocolChainLiquidations(protocolId, chainId)
+	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
+	const chain = getChainRef(chainId, metadataCache.chainMetadata)
+	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
+	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
 	const positions = normalizePositions(protocol, chain, chainResponse.data)
 	const chainRows: ProtocolChainRow[] = []
 
-	for (const currentChain of chains) {
-		const chainPositions = normalizePositions(protocol, currentChain, protocolResponse.data[currentChain])
+	for (const currentChainId of sortByName(chainIds.map((id) => getChainRef(id, metadataCache.chainMetadata))).map(
+		(currentChain) => currentChain.id
+	)) {
+		const currentChain = getChainRef(currentChainId, metadataCache.chainMetadata)
+		const rawPositions = protocolResponse.data[currentChainId]
+		const chainPositions = normalizePositions(protocol, currentChain, rawPositions)
 		chainRows.push({
-			protocol,
-			chain: currentChain,
+			...currentChain,
+			protocolId: protocol.id,
+			protocolName: protocol.name,
+			protocolSlug: protocol.slug,
 			positionCount: chainPositions.length,
-			collateralCount: getCollateralCount(chainPositions)
+			collateralCount: getCollateralCount(chainPositions),
+			totalCollateralUsd: sumCollateralUsd(rawPositions)
 		})
 	}
 
 	return {
 		protocolLinks,
 		chainLinks,
-		protocol,
-		chain,
+		protocolId: protocol.id,
+		protocolName: protocol.name,
+		protocolSlug: protocol.slug,
+		chainId: chain.id,
+		chainName: chain.name,
+		chainSlug: chain.slug,
 		timestamp: chainResponse.timestamp,
 		positionCount: positions.length,
 		collateralCount: getCollateralCount(positions),
-		chainRows: sortByCountAndName(chainRows, (row) => row.chain),
+		totalCollateralUsd: sumCollateralUsd(chainResponse.data),
+		distributionChart: buildLiquidationsDistributionChart(chainResponse.data),
+		chainRows: sortByCountAndName(chainRows),
 		positions
 	}
 }
