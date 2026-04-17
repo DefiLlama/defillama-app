@@ -2,9 +2,13 @@ import dayjs from 'dayjs'
 import { chartDatasetsBySlug, type ChartDatasetDefinition } from './chart-datasets'
 import type { DatasetDefinition } from './datasets'
 
-export type SavedDownloadKind = 'dataset' | 'chart' | 'multiMetric'
+export type SavedDownloadKind = 'dataset' | 'chart' | 'multiMetric' | 'query'
 export type SavedSortDir = 'asc' | 'desc'
 export type SavedParamType = 'protocol' | 'chain'
+
+export type QueryTableRef =
+	| { kind: 'dataset'; slug: string }
+	| { kind: 'chart'; slug: string; param: string; paramLabel?: string }
 
 export interface SavedSort {
 	column: string
@@ -54,7 +58,13 @@ export interface MultiMetricSavedConfig extends SavedDownloadBase {
 	dateRange?: DateRangeConfig
 }
 
-export type SavedDownload = DatasetSavedConfig | ChartSavedConfig | MultiMetricSavedConfig
+export interface QuerySavedConfig extends SavedDownloadBase {
+	kind: 'query'
+	sql: string
+	tables: QueryTableRef[]
+}
+
+export type SavedDownload = DatasetSavedConfig | ChartSavedConfig | MultiMetricSavedConfig | QuerySavedConfig
 
 // Distributed Omit preserves discrimination across the union.
 type DistributedOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never
@@ -62,6 +72,7 @@ export type SavedDownloadInput = DistributedOmit<SavedDownload, 'id' | 'name' | 
 export type DatasetInput = DistributedOmit<DatasetSavedConfig, 'id' | 'name' | 'createdAt'>
 export type ChartInput = DistributedOmit<ChartSavedConfig, 'id' | 'name' | 'createdAt'>
 export type MultiMetricInput = DistributedOmit<MultiMetricSavedConfig, 'id' | 'name' | 'createdAt'>
+export type QueryInput = DistributedOmit<QuerySavedConfig, 'id' | 'name' | 'createdAt'>
 
 export const MAX_RECENT_DOWNLOADS = 10
 
@@ -164,6 +175,23 @@ export function extractMultiMetricConfig(input: MultiMetricExtractInput): MultiM
 		...(input.paramLabel ? { paramLabel: input.paramLabel } : {}),
 		metrics: input.metrics.slice(),
 		...(dateRange ? { dateRange } : {})
+	}
+}
+
+export interface QueryExtractInput {
+	sql: string
+	tables: QueryTableRef[]
+}
+
+export function extractQueryConfig(input: QueryExtractInput): QueryInput {
+	return {
+		kind: 'query',
+		sql: input.sql,
+		tables: input.tables.map((t) =>
+			t.kind === 'dataset'
+				? { kind: 'dataset', slug: t.slug }
+				: { kind: 'chart', slug: t.slug, param: t.param, ...(t.paramLabel ? { paramLabel: t.paramLabel } : {}) }
+		)
 	}
 }
 
@@ -438,6 +466,17 @@ export function defaultPresetName(config: SavedDownloadInput, datasetLabel?: str
 		if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange))
 		return parts.length > 0 ? `${base} — ${parts.join(' · ')}` : base
 	}
+	if (config.kind === 'query') {
+		const firstLine =
+			config.sql
+				.split('\n')
+				.find((l) => l.trim())
+				?.trim() ?? 'SELECT …'
+		const trimmed = firstLine.length > 60 ? `${firstLine.slice(0, 57)}…` : firstLine
+		const tableCount = config.tables.length
+		const suffix = tableCount > 0 ? ` — ${tableCount} table${tableCount === 1 ? '' : 's'}` : ''
+		return `${trimmed}${suffix}`
+	}
 	// multiMetric
 	const who = config.paramLabel ?? config.param
 	const parts: string[] = []
@@ -479,6 +518,14 @@ export function describeSavedConfig(config: SavedDownload): string {
 		}
 		if (config.sort) parts.push(`${config.sort.column} ${config.sort.dir}`)
 		if (config.dateRange) parts.push(formatDateRangeShort(config.dateRange).toLowerCase())
+		return parts.join(' · ')
+	}
+	if (config.kind === 'query') {
+		const parts: string[] = []
+		const tableCount = config.tables.length
+		if (tableCount > 0) parts.push(`${tableCount} table${tableCount === 1 ? '' : 's'}`)
+		const lineCount = config.sql.split('\n').filter((l) => l.trim()).length
+		if (lineCount > 1) parts.push(`${lineCount} lines`)
 		return parts.join(' · ')
 	}
 	// multiMetric — name lists metrics; only show count when it overflowed.
@@ -540,5 +587,16 @@ export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolea
 		if (JSON.stringify(a.dateRange ?? null) !== JSON.stringify(b.dateRange ?? null)) return false
 		return true
 	}
+	if (a.kind === 'query' && b.kind === 'query') {
+		if (a.sql.trim() !== b.sql.trim()) return false
+		const ta = sortedTableRefs(a.tables)
+		const tb = sortedTableRefs(b.tables)
+		if (JSON.stringify(ta) !== JSON.stringify(tb)) return false
+		return true
+	}
 	return false
+}
+
+function sortedTableRefs(refs: QueryTableRef[]): string[] {
+	return refs.map((r) => (r.kind === 'dataset' ? `d:${r.slug}` : `c:${r.slug}:${r.param}`)).sort()
 }
