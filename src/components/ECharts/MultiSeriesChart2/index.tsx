@@ -1,4 +1,4 @@
-import { BarChart, LineChart } from 'echarts/charts'
+import { BarChart, CustomChart, LineChart } from 'echarts/charts'
 import {
 	DataZoomComponent,
 	GraphicComponent,
@@ -13,6 +13,16 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	attachEventHoverHandlers,
+	buildEventRailData,
+	createEventRailSeries,
+	createEventStripYAxis,
+	type EventHoverState,
+	getMainGridBottom,
+	getSortedDatasetTimeBounds,
+	mergeGraphicWithEventMarkLinePlaceholder
+} from '~/components/ECharts/hallmarkEventRail'
 import { CHART_COLORS } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -22,7 +32,6 @@ import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
-import { buildHallmarksMarkLine } from '../hallmarks'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -30,6 +39,7 @@ echarts.use([
 	CanvasRenderer,
 	LineChart,
 	BarChart,
+	CustomChart,
 	TooltipComponent,
 	TitleComponent,
 	GridComponent,
@@ -87,17 +97,13 @@ function buildSeries({
 	selectedCharts,
 	expandTo100Percent,
 	solidChartAreaStyle,
-	isThemeDark,
-	hallmarks,
-	dataset
+	isThemeDark
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
 	expandTo100Percent: boolean | undefined
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
-	hallmarks: IMultiSeriesChart2Props['hallmarks']
-	dataset: IMultiSeriesChart2Props['dataset']
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -180,27 +186,6 @@ function buildSeries({
 		}
 
 		out.push(base)
-	}
-
-	if (hallmarks && out.length > 0) {
-		// Attach hallmark markLine to the series with the highest max value so that
-		// yAxis:'max' resolves to the tallest series and the line spans the full chart.
-		let targetIdx = 0
-		let bestMax = -Infinity
-		for (let i = 0; i < out.length; i++) {
-			const enc = out[i].encode
-			const yDim = enc?.y
-			if (yDim != null && dataset?.source) {
-				for (const row of dataset.source) {
-					const val = Number(row[yDim])
-					if (val > bestMax) {
-						bestMax = val
-						targetIdx = i
-					}
-				}
-			}
-		}
-		out[targetIdx].markLine = buildHallmarksMarkLine({ hallmarks, isThemeDark })
 	}
 
 	if (someSeriesHasYAxisIndex) {
@@ -450,6 +435,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	useChartResize(chartRef)
 
 	const groupBySafe: GroupBy = groupBy ?? 'daily'
+	const tooltipGroupBy = groupBySafe === 'cumulative' ? 'daily' : groupBySafe
 
 	const defaultChartSettings = useMemo(() => {
 		const themeColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -591,11 +577,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			selectedCharts,
 			expandTo100Percent,
 			solidChartAreaStyle,
-			isThemeDark,
-			hallmarks,
-			dataset
+			isThemeDark
 		})
-	}, [effectiveCharts, isThemeDark, expandTo100Percent, hallmarks, solidChartAreaStyle, selectedCharts, dataset])
+	}, [effectiveCharts, isThemeDark, expandTo100Percent, solidChartAreaStyle, selectedCharts])
+
+	const eventRailData = useMemo(
+		() => buildEventRailData({ hallmarks, isThemeDark, dateInMs: false }).events,
+		[hallmarks, isThemeDark]
+	)
 
 	const seriesSymbols = useMemo(() => {
 		const map = new Map<string, string>()
@@ -667,6 +656,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		const datasetLength = Array.isArray(datasetSource) ? datasetSource.length : 0
 		const shouldHideDataZoom = datasetLength < 2 || hideDataZoom
+		const shouldShowEventRail = eventRailData.length > 0
+		const hoverState: EventHoverState = { hoveredEventDate: null }
 
 		// Always use a scroll legend when the default legend is enabled.
 		// Only constrain the left boundary when there are enough series to span the
@@ -805,7 +796,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		const baseGrid = {
 			left: 12,
-			bottom: shouldHideDataZoom ? 12 : 68,
+			bottom: getMainGridBottom({ shouldShowEventRail, shouldHideDataZoom }),
 			top: hideDefaultLegend ? 12 : 40,
 			right: 12,
 			outerBoundsMode: 'same',
@@ -813,29 +804,73 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 		const finalGrid = mergedChartSettings.grid ? mergeDeep(baseGrid, mergedChartSettings.grid) : baseGrid
 		const hasExplicitGridBottom = mergedChartSettings.grid?.bottom != null
-		if (shouldHideDataZoom && !hasExplicitGridBottom) {
-			// Caller-provided grid defaults often reserve slider space. When the zoom control is
-			// not rendered, force the compact bottom padding so charts do not keep a dead band.
-			finalGrid.bottom = 12
+		if (!hasExplicitGridBottom) {
+			finalGrid.bottom = getMainGridBottom({ shouldShowEventRail, shouldHideDataZoom })
 		}
+
+		const { min: timeRangeMin, max: timeRangeMax } = shouldShowEventRail
+			? getSortedDatasetTimeBounds(datasetSource, 'timestamp')
+			: { min: undefined, max: undefined }
+		const hasTimeRange =
+			typeof timeRangeMin === 'number' &&
+			Number.isFinite(timeRangeMin) &&
+			typeof timeRangeMax === 'number' &&
+			Number.isFinite(timeRangeMax) &&
+			timeRangeMin < timeRangeMax
+
+		const finalXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		const finalYAxisBase =
+			finalYAxis && finalYAxis.length > 0
+				? finalYAxis
+				: [
+						{
+							...yAxis,
+							...(expandTo100Percent ? { max: 100, min: 0 } : {})
+						}
+					]
+		const eventStripYAxisIndex = finalYAxisBase.length
+		const finalYAxisWithEvents = shouldShowEventRail ? [...finalYAxisBase, createEventStripYAxis()] : finalYAxisBase
+		const finalSeries = shouldShowEventRail
+			? [
+					...series,
+					createEventRailSeries({
+						eventRailData,
+						eventStripYAxisIndex,
+						hoverState,
+						shouldHideDataZoom,
+						tooltipGroupBy
+					})
+				]
+			: series
+		const finalGraphic = shouldShowEventRail ? mergeGraphicWithEventMarkLinePlaceholder(graphic, isThemeDark) : graphic
 
 		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
-			graphic,
+			graphic: finalGraphic,
 			tooltip: tooltipConfig,
 			grid: finalGrid,
-			xAxis,
-			yAxis:
-				finalYAxis && finalYAxis.length > 0
-					? finalYAxis
-					: {
-							...yAxis,
-							...(expandTo100Percent ? { max: 100, min: 0 } : {})
-						},
+			xAxis: finalXAxis,
+			yAxis: finalYAxisWithEvents,
 			...(shouldHideDataZoom ? {} : { dataZoom }),
 			...(chartOptions?.toolbox ? { toolbox: chartOptions.toolbox } : {}),
-			series,
+			series: finalSeries,
 			dataset: datasetForOption
+		})
+		const detachEventHoverHandlers = attachEventHoverHandlers({
+			instance,
+			eventRailData: shouldShowEventRail ? eventRailData : [],
+			hoverState,
+			getEventMarkLineShape: (eventDate) => {
+				const x = instance.convertToPixel({ xAxisIndex: 0 }, eventDate)
+				if (!Number.isFinite(x)) return null
+
+				return {
+					x1: x,
+					y1: Number(finalGrid.top),
+					x2: x,
+					y2: instance.getHeight() - Number(finalGrid.bottom)
+				}
+			}
 		})
 
 		if (alwaysShowTooltip && series.length > 0 && datasetLength > 0) {
@@ -859,6 +894,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 			return () => {
 				instance.off('globalout', onGlobalOut)
+				detachEventHoverHandlers()
 				chartRef.current = null
 				tooltipSizeCacheRef.current = null
 				instance.dispose()
@@ -868,6 +904,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 
 		return () => {
+			detachEventHoverHandlers()
 			chartRef.current = null
 			tooltipSizeCacheRef.current = null
 			instance.dispose()
@@ -887,6 +924,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		datasetDimensions,
 		valueSymbol,
 		tooltipFormatter,
+		eventRailData,
+		tooltipGroupBy,
+		isThemeDark,
 		effectiveCharts,
 		handleChartReady,
 		shouldEnableCSVDownload,
