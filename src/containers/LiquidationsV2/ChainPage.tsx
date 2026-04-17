@@ -36,6 +36,7 @@ export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 					chart={props.distributionChart}
 					timestamp={props.timestamp}
 					title={`${props.protocolName} on ${props.chainName}`}
+					allowedBreakdownModes={['total']}
 				/>
 			</div>
 

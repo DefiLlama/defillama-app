@@ -176,6 +176,10 @@ describe('LiquidationsDistributionChart helpers', () => {
 		expect(getLiquidationsChartMetric('amount')).toBe('amount')
 		expect(getLiquidationsChartBreakdownMode(undefined)).toBe('total')
 		expect(getLiquidationsChartBreakdownMode('protocol')).toBe('protocol')
+		expect(getLiquidationsChartBreakdownMode('protocol', ['total', 'chain'])).toBe('total')
+		expect(getLiquidationsChartBreakdownMode(undefined, ['chain'])).toBe('chain')
+		expect(getLiquidationsChartBreakdownMode(undefined, ['total', 'chain'], 'chain')).toBe('chain')
+		expect(getLiquidationsChartBreakdownMode(undefined, ['total', 'chain'], 'protocol')).toBe('total')
 	})
 
 	it('drops default chart state from query patches', () => {

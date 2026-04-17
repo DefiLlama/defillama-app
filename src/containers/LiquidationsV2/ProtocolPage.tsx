@@ -22,15 +22,17 @@ export function LiquidationsProtocolPage(props: LiquidationsProtocolPageProps) {
 			<div className="relative isolate flex flex-col gap-2">
 				<LiquidationsSummaryStats
 					items={[
+						{ label: 'Collateral USD', value: props.totalCollateralUsd, isUsd: true },
 						{ label: 'Positions', value: props.positionCount },
-						{ label: 'Tokens', value: props.collateralCount },
-						{ label: 'Collateral USD', value: props.totalCollateralUsd, isUsd: true }
+						{ label: 'Tokens', value: props.collateralCount }
 					]}
 				/>
 				<LiquidationsDistributionChart
 					chart={props.distributionChart}
 					timestamp={props.timestamp}
 					title={`${props.protocolName} Liquidation Distribution`}
+					allowedBreakdownModes={['total', 'chain']}
+					defaultBreakdownMode="chain"
 				/>
 			</div>
 

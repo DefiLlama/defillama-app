@@ -8,23 +8,27 @@ afterEach(() => {
 })
 
 async function loadModule() {
+	const chartSpy = vi.fn(() => <div>distribution chart</div>)
 	vi.doMock('~/components/RowLinksWithDropdown', () => ({
 		RowLinksWithDropdown: ({ activeLink }: { activeLink: string }) => <div>{activeLink}</div>
 	}))
 	vi.doMock('./LiquidationsDistributionChart', () => ({
-		LiquidationsDistributionChart: () => <div>distribution chart</div>
+		LiquidationsDistributionChart: (props: unknown) => {
+			chartSpy(props)
+			return <div>distribution chart</div>
+		}
 	}))
 	vi.doMock('./Table', () => ({
 		LiquidationsProtocolChainsTable: () => <div>chains table</div>,
 		LiquidationsPositionsTable: () => <div>positions table</div>
 	}))
 
-	return import('./ProtocolPage')
+	return { chartSpy, ...(await import('./ProtocolPage')) }
 }
 
 describe('LiquidationsProtocolPage', () => {
 	it('renders protocol summary', async () => {
-		const { LiquidationsProtocolPage } = await loadModule()
+		const { LiquidationsProtocolPage, chartSpy } = await loadModule()
 		const html = renderToStaticMarkup(
 			<LiquidationsProtocolPage
 				protocolLinks={[{ label: 'Overview', to: '/liquidations' }]}
@@ -51,5 +55,12 @@ describe('LiquidationsProtocolPage', () => {
 		expect(html).toContain('distribution chart')
 		expect(html).toContain('chains table')
 		expect(html).not.toContain('positions table')
+		expect(html.indexOf('Collateral USD')).toBeLessThan(html.indexOf('Positions'))
+		expect(chartSpy).toHaveBeenCalledWith(
+			expect.objectContaining({
+				allowedBreakdownModes: ['total', 'chain'],
+				defaultBreakdownMode: 'chain'
+			})
+		)
 	})
 })

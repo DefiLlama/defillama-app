@@ -28,6 +28,7 @@ const BREAKDOWN_OPTIONS: ReadonlyArray<{ key: BreakdownMode; name: string }> = [
 	{ key: 'protocol', name: 'Protocol Breakdown' },
 	{ key: 'chain', name: 'Chain Breakdown' }
 ]
+const DEFAULT_BREAKDOWN_MODES = BREAKDOWN_OPTIONS.map((option) => option.key)
 
 function formatLiqPrice(value: number): string {
 	if (!Number.isFinite(value) || value <= 0) return '$0'
@@ -71,8 +72,20 @@ export function getLiquidationsChartMetricQueryPatch(nextMetric: Metric) {
 	}
 }
 
-export function getLiquidationsChartBreakdownMode(breakdownQuery: string | undefined): BreakdownMode {
-	return BREAKDOWN_OPTIONS.some((option) => option.key === breakdownQuery) ? (breakdownQuery as BreakdownMode) : 'total'
+function getLiquidationsChartBreakdownOptions(allowedBreakdownModes: ReadonlyArray<BreakdownMode>) {
+	return BREAKDOWN_OPTIONS.filter((option) => allowedBreakdownModes.includes(option.key))
+}
+
+export function getLiquidationsChartBreakdownMode(
+	breakdownQuery: string | undefined,
+	allowedBreakdownModes: ReadonlyArray<BreakdownMode> = DEFAULT_BREAKDOWN_MODES,
+	defaultBreakdownMode: BreakdownMode = 'total'
+): BreakdownMode {
+	return allowedBreakdownModes.some((mode) => mode === breakdownQuery)
+		? (breakdownQuery as BreakdownMode)
+		: allowedBreakdownModes.includes(defaultBreakdownMode)
+			? defaultBreakdownMode
+			: (allowedBreakdownModes[0] ?? 'total')
 }
 
 export function getLiquidationsChartBreakdownQueryPatch(nextBreakdownMode: BreakdownMode) {
@@ -144,11 +157,15 @@ function trimLiquidationsChartView(view: LiquidationsDistributionChartView): Liq
 export function LiquidationsDistributionChart({
 	chart,
 	timestamp,
-	title
+	title,
+	allowedBreakdownModes = DEFAULT_BREAKDOWN_MODES,
+	defaultBreakdownMode = 'total'
 }: {
 	chart: LiquidationsDistributionChartData
 	timestamp: number
 	title?: string
+	allowedBreakdownModes?: ReadonlyArray<BreakdownMode>
+	defaultBreakdownMode?: BreakdownMode
 }) {
 	const router = useRouter()
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
@@ -166,13 +183,21 @@ export function LiquidationsDistributionChart({
 		() => chart.tokens.map((entry) => ({ key: entry.key, name: entry.label })),
 		[chart.tokens]
 	)
+	const breakdownOptions = React.useMemo(
+		() => getLiquidationsChartBreakdownOptions(allowedBreakdownModes),
+		[allowedBreakdownModes]
+	)
 	const defaultToken = chart.tokens[0]?.key ?? null
 	const chartState = React.useMemo(() => {
 		const token = resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
 		const metric = getLiquidationsChartMetric(readSingleQueryValue(router.query[METRIC_QUERY_PARAM]))
-		const breakdownMode = getLiquidationsChartBreakdownMode(readSingleQueryValue(router.query[BREAKDOWN_QUERY_PARAM]))
+		const breakdownMode = getLiquidationsChartBreakdownMode(
+			readSingleQueryValue(router.query[BREAKDOWN_QUERY_PARAM]),
+			allowedBreakdownModes,
+			defaultBreakdownMode
+		)
 		const tokenLabel = chart.tokens.find((entry) => entry.key === token)?.label ?? 'Token'
-		const breakdownLabel = BREAKDOWN_OPTIONS.find((option) => option.key === breakdownMode)?.name ?? 'Total'
+		const breakdownLabel = breakdownOptions.find((option) => option.key === breakdownMode)?.name ?? 'Total'
 
 		return {
 			token,
@@ -181,7 +206,7 @@ export function LiquidationsDistributionChart({
 			breakdownMode,
 			breakdownLabel
 		}
-	}, [chart, router.query])
+	}, [allowedBreakdownModes, breakdownOptions, chart, defaultBreakdownMode, router.query])
 
 	const setSelectedToken = React.useCallback(
 		(nextToken: string) => {
@@ -219,6 +244,7 @@ export function LiquidationsDistributionChart({
 	}, [selectedChartView.bins, selectedChartView.series])
 	const shouldHideDataZoom = visibleDataPointCount <= 2
 	const showBreakdownLegend = chartState.breakdownMode !== 'total'
+	const showBreakdownSelector = breakdownOptions.length > 1
 
 	const chartModel = React.useMemo(() => {
 		const dimensions = ['liqPrice', ...selectedChartView.series.map((entry) => entry.key)]
@@ -389,17 +415,23 @@ export function LiquidationsDistributionChart({
 						singleSelect
 						labelType="none"
 						variant="filter"
+						triggerProps={{
+							className:
+								'flex items-center justify-between gap-2 rounded-md border border-(--old-blue) bg-(--link-bg) px-2 py-1.5 text-xs font-medium text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+						}}
 						portal
 					/>
 				</div>
-				<Select
-					allValues={BREAKDOWN_OPTIONS}
-					selectedValues={chartState.breakdownMode}
-					setSelectedValues={(value: string) => setBreakdownMode(value as BreakdownMode)}
-					label={chartState.breakdownLabel}
-					labelType="none"
-					variant="filter"
-				/>
+				{showBreakdownSelector ? (
+					<Select
+						allValues={breakdownOptions}
+						selectedValues={chartState.breakdownMode}
+						setSelectedValues={(value: string) => setBreakdownMode(value as BreakdownMode)}
+						label={chartState.breakdownLabel}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
 						data-active={chartState.metric === 'usd'}

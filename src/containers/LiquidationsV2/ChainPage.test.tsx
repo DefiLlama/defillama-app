@@ -8,23 +8,27 @@ afterEach(() => {
 })
 
 async function loadModule() {
+	const chartSpy = vi.fn(() => <div>distribution chart</div>)
 	vi.doMock('~/components/RowLinksWithDropdown', () => ({
 		RowLinksWithDropdown: ({ activeLink }: { activeLink: string }) => <div>{activeLink}</div>
 	}))
 	vi.doMock('./LiquidationsDistributionChart', () => ({
-		LiquidationsDistributionChart: () => <div>distribution chart</div>
+		LiquidationsDistributionChart: (props: unknown) => {
+			chartSpy(props)
+			return <div>distribution chart</div>
+		}
 	}))
 	vi.doMock('./Table', () => ({
 		LiquidationsProtocolChainsTable: () => <div>chains table</div>,
 		LiquidationsPositionsTable: () => <div>positions table</div>
 	}))
 
-	return import('./ChainPage')
+	return { chartSpy, ...(await import('./ChainPage')) }
 }
 
 describe('LiquidationsChainPage', () => {
 	it('renders chain summary', async () => {
-		const { LiquidationsChainPage } = await loadModule()
+		const { LiquidationsChainPage, chartSpy } = await loadModule()
 		const html = renderToStaticMarkup(
 			<LiquidationsChainPage
 				protocolLinks={[{ label: 'Overview', to: '/liquidations' }]}
@@ -53,5 +57,10 @@ describe('LiquidationsChainPage', () => {
 		expect(html).toContain('distribution chart')
 		expect(html).toContain('positions table')
 		expect(html).not.toContain('chains table')
+		expect(chartSpy).toHaveBeenCalledWith(
+			expect.objectContaining({
+				allowedBreakdownModes: ['total']
+			})
+		)
 	})
 })
