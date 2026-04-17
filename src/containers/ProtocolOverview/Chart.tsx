@@ -1,31 +1,28 @@
+import { CustomChart } from 'echarts/charts'
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef } from 'react'
-import { buildHallmarksMarkLine } from '~/components/ECharts/hallmarks'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
+import {
+	attachEventHoverHandlers,
+	buildEventRailData,
+	createEventRailSeries,
+	createEventStripYAxis,
+	type EventHoverState,
+	getMainGridBottom,
+	getSortedSeriesTimeBounds,
+	mergeGraphicWithEventMarkLinePlaceholder
+} from '~/components/ECharts/hallmarkEventRail'
 import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
-import { formattedNum } from '~/utils'
+import { buildProtocolYAxis } from './chartYAxis'
 import { BAR_CHARTS, type ProtocolChartsLabels, yAxisByChart } from './constants'
 import type { IProtocolCoreChartProps } from './types'
 
-const customOffsets: Record<string, number> = {
-	Contributors: 60,
-	'Contributors Commits': 80,
-	'Devs Commits': 70,
-	'NFT Volume': 65
-}
+echarts.use([MarkAreaComponent, CustomChart])
 
-echarts.use([MarkAreaComponent])
-
-type AxisExtent = {
-	min?: number
-}
-
-function getZeroBaselineYAxisMin(extent: AxisExtent) {
-	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
-}
+const PRIMARY_SERIES_ID_PREFIX = 'protocol-chart-series-'
 
 export default function ProtocolChart({
 	chartData,
@@ -46,6 +43,7 @@ export default function ProtocolChart({
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const eventHoverCleanupRef = useRef<(() => void) | null>(null)
 	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
 
 	// Stable resize listener - never re-attaches when dependencies change
@@ -60,6 +58,11 @@ export default function ProtocolChart({
 		isThemeDark,
 		groupBy: tooltipGroupBy
 	})
+
+	const eventRailData = useMemo(
+		() => buildEventRailData({ hallmarks, rangeHallmarks, isThemeDark, dateInMs: true }).events,
+		[hallmarks, rangeHallmarks, isThemeDark]
+	)
 
 	const { series, allYAxis } = useMemo(() => {
 		const uniqueYAxis = new Set()
@@ -78,14 +81,14 @@ export default function ProtocolChart({
 
 		const series = stacks.map((stack, index) => {
 			const stackColor = chartColors[stack]
-
-			let type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
+			const type = BAR_CHARTS.includes(stack) && !isCumulative ? 'bar' : 'line'
 
 			const options = {
 				yAxisIndex: indexByYAxis[yAxisByChart[stack]]
 			}
 
 			return {
+				id: `${PRIMARY_SERIES_ID_PREFIX}${index}`,
 				name: stack,
 				type,
 				...options,
@@ -115,7 +118,6 @@ export default function ProtocolChart({
 							}
 						}
 					: {}),
-				markLine: {},
 				data: chartData[stack] ?? [],
 				...(index === 0 && (rangeHallmarks?.length ?? 0) > 0
 					? {
@@ -143,13 +145,6 @@ export default function ProtocolChart({
 			}
 		})
 
-		if (series.length > 0 && (hallmarks?.length ?? 0) > 0) {
-			series[0] = {
-				...series[0],
-				markLine: buildHallmarksMarkLine({ hallmarks: hallmarks!, isThemeDark, dateInMs: true })
-			}
-		}
-
 		for (const seriesItem of series) {
 			if (seriesItem.data.length === 0) {
 				seriesItem.large = false
@@ -160,17 +155,31 @@ export default function ProtocolChart({
 			series,
 			allYAxis: Object.entries(indexByYAxis) as Array<[ProtocolChartsLabels, number | undefined]>
 		}
-	}, [chartData, chartColors, hallmarks, isThemeDark, isCumulative, rangeHallmarks])
+	}, [chartData, chartColors, isThemeDark, isCumulative, rangeHallmarks])
+
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	useEffect(() => {
-		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
-		if (onReady) {
-			onReady(instance)
+		emitReady(instance)
+
+		return () => {
+			eventHoverCleanupRef.current?.()
+			eventHoverCleanupRef.current = null
+			chartRef.current = null
+			instance.dispose()
+			emitReady(null)
 		}
+	}, [id])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance) return
 
 		const mergedSettings = { ...defaultChartSettings } as Record<string, unknown>
 		if (chartOptions) {
@@ -186,367 +195,95 @@ export default function ProtocolChart({
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom } = mergedSettings as typeof defaultChartSettings
 
-		const finalYAxis: Array<Record<string, unknown>> = []
-
-		const noOffset = allYAxis.length < 3
-
 		const chartsInSeries = new Set(series.map((s) => s.name))
-
-		for (const [type, index] of allYAxis) {
-			const prevOffset = (finalYAxis[finalYAxis.length - 1]?.offset as number | undefined) ?? 0
-			const options: Record<string, unknown> = {
-				...yAxis,
-				name: '',
-				type: 'value',
-				min: getZeroBaselineYAxisMin,
-				alignTicks: true,
-				offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (customOffsets[type] ?? 40)
-			}
-
-			if (type === 'TVL') {
-				finalYAxis.push({
-					...yAxis,
-					min: getZeroBaselineYAxisMin
-				})
-			}
-
-			if (type === 'Token Price') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Token Price']
-						}
-					}
-				})
-			}
-
-			if (type === 'Token Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Token Volume']
-						}
-					}
-				})
-			}
-
-			if (type === 'Token Liquidity') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Token Liquidity']
-						}
-					}
-				})
-			}
-
-			if (type === 'Bridge Deposits') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Bridge Deposits']
-						}
-					}
-				})
-			}
-
-			if (type === 'Fees') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartsInSeries.has('Fees')
-								? chartColors['Fees']
-								: chartsInSeries.has('Revenue')
-									? chartColors['Revenue']
-									: chartsInSeries.has('Holders Revenue')
-										? chartColors['Holders Revenue']
-										: chartsInSeries.has('Incentives')
-											? chartColors['Incentives']
-											: chartColors['Fees']
-						}
-					}
-				})
-			}
-
-			if (type === 'DEX Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartsInSeries.has('DEX Volume')
-								? chartColors['DEX Volume']
-								: chartsInSeries.has('Perp Volume')
-									? chartColors['Perp Volume']
-									: chartsInSeries.has('Options Premium Volume')
-										? chartColors['Options Premium Volume']
-										: chartsInSeries.has('Options Notional Volume')
-											? chartColors['Options Notional Volume']
-											: chartsInSeries.has('Perp Aggregator Volume')
-												? chartColors['Perp Aggregator Volume']
-												: chartsInSeries.has('Bridge Aggregator Volume')
-													? chartColors['Bridge Aggregator Volume']
-													: chartsInSeries.has('DEX Aggregator Volume')
-														? chartColors['DEX Aggregator Volume']
-														: chartColors['DEX Volume']
-						}
-					}
-				})
-			}
-
-			if (type === 'Open Interest') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Open Interest']
-						}
-					}
-				})
-			}
-
-			if (type === 'Unlocks') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => `${formattedNum(value)} ${unlockTokenSymbol}`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Unlocks']
-						}
-					}
-				})
-			}
-
-			if (type === 'Active Addresses') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartsInSeries.has('Active Addresses')
-								? chartColors['Active Addresses']
-								: chartsInSeries.has('New Addresses')
-									? chartColors['New Addresses']
-									: chartColors['Active Addresses']
-						}
-					}
-				})
-			}
-
-			if (type === 'Transactions') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Transactions']
-						}
-					}
-				})
-			}
-
-			if (type === 'Gas Used') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Gas Used']
-						}
-					}
-				})
-			}
-			if (type === 'Median APY') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => `${value}%`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Median APY']
-						}
-					}
-				})
-			}
-
-			if (type === 'USD Inflows') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['USD Inflows']
-						}
-					}
-				})
-			}
-
-			if (type === 'Total Proposals') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Total Proposals']
-						}
-					}
-				})
-			}
-
-			if (type === 'Max Votes') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Max Votes']
-						}
-					}
-				})
-			}
-
-			if (type === 'Treasury') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Treasury']
-						}
-					}
-				})
-			}
-
-			if (type === 'Tweets') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value: number) => `${value} tweets`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['Tweets']
-						}
-					}
-				})
-			}
-
-			if (type === 'NFT Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartColors['NFT Volume']
-						}
-					}
-				})
-			}
-		}
-
-		if (allYAxis.length === 0) {
-			finalYAxis.push({
-				...yAxis,
-				min: getZeroBaselineYAxisMin
-			})
-		}
-
-		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
-
-		instance.setOption({
-			graphic,
-			tooltip,
-			grid: {
-				left: 12,
-				bottom: shouldHideDataZoom ? 12 : 68,
-				top: (rangeHallmarks?.length ?? 0) > 0 ? 18 : 12,
-				right: 12,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
-			},
-			xAxis,
-			yAxis: finalYAxis,
-			...(shouldHideDataZoom ? {} : { dataZoom }),
-			series
+		const finalYAxis = buildProtocolYAxis({
+			allYAxis,
+			baseYAxis: yAxis,
+			chartColors,
+			chartsInSeries,
+			unlockTokenSymbol
 		})
 
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-			if (onReady) {
-				onReady(null)
+		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
+		const shouldShowEventRail = eventRailData.length > 0
+
+		let timeRangeMin = Infinity
+		let timeRangeMax = -Infinity
+		if (shouldShowEventRail) {
+			for (const s of series) {
+				const data = (s.data ?? []) as Array<[number, number] | unknown>
+				const { min, max } = getSortedSeriesTimeBounds(data)
+				if (typeof min === 'number' && min < timeRangeMin) timeRangeMin = min
+				if (typeof max === 'number' && max > timeRangeMax) timeRangeMax = max
 			}
 		}
+		const hasTimeRange = Number.isFinite(timeRangeMin) && Number.isFinite(timeRangeMax) && timeRangeMin < timeRangeMax
+
+		const mainGridBottom = getMainGridBottom({ shouldShowEventRail, shouldHideDataZoom })
+
+		const mainGrid = {
+			left: 12,
+			bottom: mainGridBottom,
+			top: (rangeHallmarks?.length ?? 0) > 0 ? 18 : 12,
+			right: 12,
+			outerBoundsMode: 'same',
+			outerBoundsContain: 'axisLabel'
+		}
+		const finalGrid = mainGrid
+		const finalXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+
+		const eventStripYAxis = createEventStripYAxis()
+		const eventStripYAxisIndex = finalYAxis.length
+		const finalYAxisWithEvents = shouldShowEventRail ? [...finalYAxis, eventStripYAxis] : finalYAxis
+		const finalDataZoom = dataZoom
+		const hoverState: EventHoverState = { hoveredEventDate: null }
+
+		const finalSeries = shouldShowEventRail
+			? [
+					...series,
+					createEventRailSeries({
+						eventRailData,
+						eventStripYAxisIndex,
+						hoverState,
+						shouldHideDataZoom,
+						tooltipGroupBy
+					})
+				]
+			: series
+
+		const finalGraphic = shouldShowEventRail ? mergeGraphicWithEventMarkLinePlaceholder(graphic, isThemeDark) : graphic
+
+		instance.setOption(
+			{
+				graphic: finalGraphic,
+				tooltip,
+				grid: finalGrid,
+				xAxis: finalXAxis,
+				yAxis: finalYAxisWithEvents,
+				...(shouldHideDataZoom ? {} : { dataZoom: finalDataZoom }),
+				series: finalSeries
+			},
+			{ notMerge: true, lazyUpdate: true }
+		)
+
+		eventHoverCleanupRef.current?.()
+		eventHoverCleanupRef.current = attachEventHoverHandlers({
+			instance,
+			eventRailData: shouldShowEventRail ? eventRailData : [],
+			hoverState,
+			getEventMarkLineShape: (eventDate) => {
+				const x = instance.convertToPixel({ xAxisIndex: 0 }, eventDate)
+				if (!Number.isFinite(x)) return null
+
+				return {
+					x1: x,
+					y1: Number(mainGrid.top),
+					x2: x,
+					y2: instance.getHeight() - mainGridBottom
+				}
+			}
+		})
 	}, [
-		id,
 		defaultChartSettings,
 		series,
 		chartOptions,
@@ -554,7 +291,9 @@ export default function ProtocolChart({
 		chartColors,
 		allYAxis,
 		rangeHallmarks,
-		onReady,
+		eventRailData,
+		isThemeDark,
+		tooltipGroupBy,
 		hideDataZoom
 	])
 

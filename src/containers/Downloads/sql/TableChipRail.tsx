@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { prettyLabelForSource, type RegisteredTable } from './useTableRegistry'
 import { inferColumnKind, SectionLabel, TypeBadge } from './primitives'
+import { prettyLabelForSource, type RegisteredTable } from './useTableRegistry'
 
 interface TableChipRailProps {
 	tables: RegisteredTable[]
@@ -11,7 +11,7 @@ interface TableChipRailProps {
 
 export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailProps) {
 	const [openName, setOpenName] = useState<string | null>(null)
-	const openTable = openName ? tables.find((t) => t.name === openName) ?? null : null
+	const openTable = openName ? (tables.find((t) => t.name === openName) ?? null) : null
 
 	return (
 		<section aria-label="Loaded tables" className="flex flex-col gap-2">
@@ -100,7 +100,7 @@ function TableChip({
 					}`}
 				/>
 				<span className="max-w-[180px] truncate font-mono font-medium">{table.name}</span>
-				<span className="tabular-nums text-(--text-tertiary)">· {formatCount(table.rowCount)}</span>
+				<span className="text-(--text-tertiary) tabular-nums">· {formatCount(table.rowCount)}</span>
 			</button>
 			<button
 				type="button"

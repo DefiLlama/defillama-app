@@ -262,12 +262,7 @@ function YSeriesPicker({
 	selected: string[]
 	onChange: (next: string[]) => void
 }) {
-	const label =
-		selected.length === 0
-			? 'None'
-			: selected.length === 1
-				? selected[0]
-				: `${selected.length} series`
+	const label = selected.length === 0 ? 'None' : selected.length === 1 ? selected[0] : `${selected.length} series`
 	return (
 		<Ariakit.MenuProvider>
 			<Ariakit.MenuButton
@@ -298,9 +293,7 @@ function YSeriesPicker({
 							>
 								<span
 									className={`flex h-3 w-3 shrink-0 items-center justify-center rounded-sm border ${
-										isSelected
-											? 'border-(--primary) bg-(--primary) text-white'
-											: 'border-(--divider) bg-(--bg-primary)'
+										isSelected ? 'border-(--primary) bg-(--primary) text-white' : 'border-(--divider) bg-(--bg-primary)'
 									}`}
 								>
 									{isSelected ? (

@@ -25,10 +25,7 @@ interface EditorProps {
 	tables: RegisteredTable[]
 }
 
-export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
-	{ value, onChange, onRun, tables },
-	ref
-) {
+export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ value, onChange, onRun, tables }, ref) {
 	const [theme, setTheme] = useState<string>(() => computeTheme())
 	const editorInstanceRef = useRef<any>(null)
 
@@ -107,8 +104,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
 					lineDecorationsWidth: 8,
 					lineNumbersMinChars: 3,
 					fontLigatures: true,
-					fontFamily:
-						"'JetBrains Mono', 'SF Mono', Menlo, Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace",
+					fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace",
 					quickSuggestions: { other: true, comments: false, strings: false },
 					suggestOnTriggerCharacters: true,
 					wordBasedSuggestions: 'currentDocument',

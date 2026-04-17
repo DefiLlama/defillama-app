@@ -29,16 +29,12 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 			list.push(ex)
 			byGroup.set(ex.subcategory, list)
 		}
-		return SUBCATEGORY_META
-			.filter((g) => byGroup.has(g.name))
-			.map((g) => ({ meta: g, items: byGroup.get(g.name)! }))
+		return SUBCATEGORY_META.filter((g) => byGroup.has(g.name)).map((g) => ({ meta: g, items: byGroup.get(g.name)! }))
 	}, [filter])
 
 	const totalVisible = filteredGroups.reduce((sum, g) => sum + g.items.length, 0)
 	const activeBlurb = useMemo(() => {
-		const active = hoveredGroup
-			? SUBCATEGORY_META.find((g) => g.name === hoveredGroup)
-			: filteredGroups[0]?.meta
+		const active = hoveredGroup ? SUBCATEGORY_META.find((g) => g.name === hoveredGroup) : filteredGroups[0]?.meta
 		return active ?? SUBCATEGORY_META[0]
 	}, [hoveredGroup, filteredGroups])
 
@@ -49,7 +45,7 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 			<header className="flex items-baseline justify-between gap-2">
 				<div className="flex items-baseline gap-2">
 					<h3 className="text-sm font-semibold tracking-tight text-(--text-primary)">Playbook</h3>
-					<span className="text-[11px] tabular-nums text-(--text-tertiary)">{EXAMPLE_QUERIES.length}</span>
+					<span className="text-[11px] text-(--text-tertiary) tabular-nums">{EXAMPLE_QUERIES.length}</span>
 				</div>
 				<Icon name="sparkles" className="h-3.5 w-3.5 text-(--text-tertiary)" />
 			</header>
@@ -79,7 +75,7 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 			</div>
 
 			<div
-				className="-mr-1 flex flex-col gap-4 overflow-y-auto pr-1 thin-scrollbar"
+				className="-mr-1 flex thin-scrollbar flex-col gap-4 overflow-y-auto pr-1"
 				onMouseLeave={() => setHoveredGroup(null)}
 			>
 				{filteredGroups.length === 0 ? (
@@ -89,11 +85,7 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 				) : null}
 
 				{filteredGroups.map(({ meta, items }) => (
-					<section
-						key={meta.name}
-						onMouseEnter={() => setHoveredGroup(meta.name)}
-						className="flex flex-col gap-1"
-					>
+					<section key={meta.name} onMouseEnter={() => setHoveredGroup(meta.name)} className="flex flex-col gap-1">
 						<header className="flex items-baseline justify-between">
 							<h4 className="flex items-center gap-1.5 text-[11px] font-semibold text-(--text-secondary)">
 								<span
@@ -103,7 +95,7 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 								/>
 								{meta.name}
 							</h4>
-							<span className="text-[11px] tabular-nums text-(--text-tertiary)">{items.length}</span>
+							<span className="text-[11px] text-(--text-tertiary) tabular-nums">{items.length}</span>
 						</header>
 						<ul className="flex flex-col border-t border-(--divider)/60">
 							{items.map((ex) => {
@@ -136,8 +128,7 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 						style={{ background: activeBlurb.color }}
 					/>
 					<span>
-						<span className="font-semibold text-(--text-secondary)">{activeBlurb.name}.</span>{' '}
-						{activeBlurb.blurb}
+						<span className="font-semibold text-(--text-secondary)">{activeBlurb.name}.</span> {activeBlurb.blurb}
 					</span>
 				</p>
 				<p className="mt-1 text-[11px] text-(--text-tertiary)/80">
@@ -193,7 +184,7 @@ function PlaybookItem({
 					{isBusy ? (
 						<LoadingSpinner size={10} />
 					) : (
-						<span className="text-[11px] tabular-nums text-(--text-tertiary) transition-colors group-hover/item:text-(--text-primary)">
+						<span className="text-[11px] text-(--text-tertiary) tabular-nums transition-colors group-hover/item:text-(--text-primary)">
 							{String(ordinal).padStart(2, '0')}
 						</span>
 					)}

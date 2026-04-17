@@ -1,5 +1,5 @@
-import { useDeferredValue, useMemo, useState } from 'react'
 import { matchSorter } from 'match-sorter'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import {
@@ -38,7 +38,8 @@ export function LoadTableModal({ chartOptionsMap, onClose, onLoad, loading, exis
 	}, [existing])
 
 	const filteredDatasets = useMemo(() => {
-		if (!deferred) return datasetCategories.map((c) => ({ category: c, items: datasets.filter((d) => d.category === c) }))
+		if (!deferred)
+			return datasetCategories.map((c) => ({ category: c, items: datasets.filter((d) => d.category === c) }))
 		return datasetCategories
 			.map((c) => {
 				const items = datasets.filter((d) => d.category === c)
@@ -141,14 +142,9 @@ export function LoadTableModal({ chartOptionsMap, onClose, onLoad, loading, exis
 					/>
 				</label>
 
-				<div className="flex-1 overflow-y-auto thin-scrollbar pr-1">
+				<div className="thin-scrollbar flex-1 overflow-y-auto pr-1">
 					{tab === 'flat' ? (
-						<FlatDatasetList
-							grouped={filteredDatasets}
-							existingKeys={existingKeys}
-							loading={loading}
-							onLoad={onLoad}
-						/>
+						<FlatDatasetList grouped={filteredDatasets} existingKeys={existingKeys} loading={loading} onLoad={onLoad} />
 					) : selectedChart ? (
 						<TimeSeriesParamPicker
 							dataset={selectedChart}
@@ -257,7 +253,10 @@ function TimeSeriesDatasetList({
 								>
 									<div className="flex items-center justify-between gap-2">
 										<span className="font-medium text-(--text-primary) group-hover:text-(--primary)">{d.name}</span>
-										<Icon name="chevron-right" className="h-4 w-4 text-(--text-tertiary) group-hover:text-(--primary)" />
+										<Icon
+											name="chevron-right"
+											className="h-4 w-4 text-(--text-tertiary) group-hover:text-(--primary)"
+										/>
 									</div>
 									<p className="text-xs text-(--text-secondary)">{d.description}</p>
 									<span className="inline-flex w-fit items-center gap-1 rounded-full bg-(--link-hover-bg) px-2 py-0.5 text-[10px] text-(--text-tertiary)">
@@ -337,7 +336,7 @@ function TimeSeriesParamPicker({
 				/>
 			</label>
 
-			<ul className="flex max-h-80 flex-col overflow-y-auto thin-scrollbar divide-y divide-(--divider) border-y border-(--divider)">
+			<ul className="flex thin-scrollbar max-h-80 flex-col divide-y divide-(--divider) overflow-y-auto border-y border-(--divider)">
 				{filtered.slice(0, 200).map((opt) => {
 					const isLoaded = existingKeys.has(`c:${dataset.slug}:${opt.value}`)
 					const active = value === opt.value
@@ -389,5 +388,8 @@ function TimeSeriesParamPicker({
 }
 
 function identifierSafe(s: string): string {
-	return s.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '')
+	return s
+		.toLowerCase()
+		.replace(/[^a-z0-9_]+/g, '_')
+		.replace(/^_+|_+$/g, '')
 }

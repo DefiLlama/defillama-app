@@ -16,7 +16,11 @@ export interface RegisteredTable {
 	loadedAt: number
 }
 
-type AuthorizedFetch = (url: string, options?: RequestInit & { skipAuth?: boolean }, onlyToken?: boolean) => Promise<Response | null>
+type AuthorizedFetch = (
+	url: string,
+	options?: RequestInit & { skipAuth?: boolean },
+	onlyToken?: boolean
+) => Promise<Response | null>
 
 interface UseTableRegistryOptions {
 	conn: AsyncDuckDBConnection | null
@@ -32,7 +36,10 @@ export function tableNameFor(source: TableSource): string {
 }
 
 export function identifierize(s: string): string {
-	const normalized = s.toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '')
+	const normalized = s
+		.toLowerCase()
+		.replace(/[^a-z0-9_]+/g, '_')
+		.replace(/^_+|_+$/g, '')
 	return /^[a-z]/.test(normalized) ? normalized : `t_${normalized}`
 }
 
@@ -58,7 +65,9 @@ export function useTableRegistry({ conn, authorizedFetch }: UseTableRegistryOpti
 					// Fallback path if private API shifts.
 					await registerViaBuffer(conn, fileName, csvText)
 				}
-				await conn.query(`CREATE OR REPLACE TABLE "${name}" AS SELECT * FROM read_csv_auto('${fileName}', header = true, sample_size = -1)`)
+				await conn.query(
+					`CREATE OR REPLACE TABLE "${name}" AS SELECT * FROM read_csv_auto('${fileName}', header = true, sample_size = -1)`
+				)
 				const countResult = await conn.query(`SELECT COUNT(*)::BIGINT AS n FROM "${name}"`)
 				const countRow = countResult.toArray()[0] as { n: bigint | number } | undefined
 				const rowCount = countRow ? Number(countRow.n) : 0
@@ -130,15 +139,19 @@ async function fetchCsvFor(
 	source: TableSource,
 	authorizedFetch: AuthorizedFetch
 ): Promise<{ csvText: string; columns: string[] }> {
-	const url = source.kind === 'dataset'
-		? `/api/downloads/${encodeURIComponent(source.slug)}`
-		: `/api/downloads/chart/${encodeURIComponent(source.slug)}?param=${encodeURIComponent(source.param)}`
+	const url =
+		source.kind === 'dataset'
+			? `/api/downloads/${encodeURIComponent(source.slug)}`
+			: `/api/downloads/chart/${encodeURIComponent(source.slug)}?param=${encodeURIComponent(source.param)}`
 
 	const resp = await authorizedFetch(url)
 	if (!resp) throw new Error('Not authenticated')
 	if (!resp.ok) {
 		const body = await safeJson(resp)
-		throw new Error(body?.error ?? `Failed to load ${source.kind === 'dataset' ? source.slug : `${source.slug}/${source.param}`}: HTTP ${resp.status}`)
+		throw new Error(
+			body?.error ??
+				`Failed to load ${source.kind === 'dataset' ? source.slug : `${source.slug}/${source.param}`}: HTTP ${resp.status}`
+		)
 	}
 	const csvText = await resp.text()
 	const columns = inferColumns(source, csvText)

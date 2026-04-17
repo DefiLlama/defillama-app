@@ -293,56 +293,59 @@ export function MultiMetricModal({
 		})
 	}, [])
 
-	const handleDownloadCombined = useCallback((format: DownloadFormat = 'csv') => {
-		if (!param) return
-		const readyWithSlug: Array<CsvItem & { slug: string }> = []
-		const failed: Array<{ slug: string; name: string }> = []
-		csvQueries.forEach((query, i) => {
-			const slug = selectedMetrics[i]
-			if (!slug) return
-			const dataset = chartDatasetsBySlug.get(slug)
-			if (!dataset) return
-			const data = query.data as unknown
-			if (typeof data === 'string') {
-				readyWithSlug.push({ label: dataset.name, value: shortMetricName(dataset), csvText: data, slug })
+	const handleDownloadCombined = useCallback(
+		(format: DownloadFormat = 'csv') => {
+			if (!param) return
+			const readyWithSlug: Array<CsvItem & { slug: string }> = []
+			const failed: Array<{ slug: string; name: string }> = []
+			csvQueries.forEach((query, i) => {
+				const slug = selectedMetrics[i]
+				if (!slug) return
+				const dataset = chartDatasetsBySlug.get(slug)
+				if (!dataset) return
+				const data = query.data as unknown
+				if (typeof data === 'string') {
+					readyWithSlug.push({ label: dataset.name, value: shortMetricName(dataset), csvText: data, slug })
+					return
+				}
+				const err = (query as { error?: unknown }).error
+				if (err) failed.push({ slug, name: dataset.name })
+			})
+			if (readyWithSlug.length === 0) {
+				toast.error('No data ready to download')
 				return
 			}
-			const err = (query as { error?: unknown }).error
-			if (err) failed.push({ slug, name: dataset.name })
-		})
-		if (readyWithSlug.length === 0) {
-			toast.error('No data ready to download')
-			return
-		}
-		readyWithSlug.sort((a, b) => metricSortWeight(a.slug) - metricSortWeight(b.slug))
-		const ready: CsvItem[] = readyWithSlug
-		const merged = combineCsvsWide(ready, dateRange)
-		if (merged.length <= 1) {
-			toast.error('No rows to download')
-			return
-		}
-		const filename = `${paramSlugForFilename(param.value)}_metrics.${format}`
-		downloadTabular(format, filename, merged, { addTimestamp: true })
-		if (failed.length > 0) {
-			toast.success(`Downloaded ${filename} — skipped ${failed.length} (${failed.map((f) => f.name).join(', ')})`)
-		} else {
-			toast.success(`Downloaded ${filename}`)
-		}
+			readyWithSlug.sort((a, b) => metricSortWeight(a.slug) - metricSortWeight(b.slug))
+			const ready: CsvItem[] = readyWithSlug
+			const merged = combineCsvsWide(ready, dateRange)
+			if (merged.length <= 1) {
+				toast.error('No rows to download')
+				return
+			}
+			const filename = `${paramSlugForFilename(param.value)}_metrics.${format}`
+			downloadTabular(format, filename, merged, { addTimestamp: true })
+			if (failed.length > 0) {
+				toast.success(`Downloaded ${filename} — skipped ${failed.length} (${failed.map((f) => f.name).join(', ')})`)
+			} else {
+				toast.success(`Downloaded ${filename}`)
+			}
 
-		const configBase = extractMultiMetricConfig({
-			paramType,
-			param: param.value,
-			paramLabel: param.label,
-			metrics: selectedMetrics,
-			dateRange
-		})
-		recordRecent({
-			...configBase,
-			id: generatePresetId(),
-			name: defaultPresetName(configBase),
-			createdAt: Date.now()
-		})
-	}, [csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent])
+			const configBase = extractMultiMetricConfig({
+				paramType,
+				param: param.value,
+				paramLabel: param.label,
+				metrics: selectedMetrics,
+				dateRange
+			})
+			recordRecent({
+				...configBase,
+				id: generatePresetId(),
+				name: defaultPresetName(configBase),
+				createdAt: Date.now()
+			})
+		},
+		[csvQueries, selectedMetrics, param, paramType, dateRange, recordRecent]
+	)
 
 	const handleDownloadSingle = useCallback(
 		(slug: string, format: DownloadFormat = 'csv') => {

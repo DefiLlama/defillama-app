@@ -33,14 +33,14 @@ export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGatePro
 	const heading = isTrial
 		? 'SQL workspace — upgrade from trial'
 		: isAuthenticated
-		? 'Unlock the SQL workspace'
-		: 'Sign in to unlock SQL'
+			? 'Unlock the SQL workspace'
+			: 'Sign in to unlock SQL'
 
 	const copy = isTrial
 		? 'Your trial includes preview-only CSV downloads. Upgrade to run SQL queries across the full DefiLlama catalogue in your browser.'
 		: isAuthenticated
-		? 'Upgrade to run SQL queries across every DefiLlama dataset in your browser — no API cost, arbitrary joins, full DuckDB dialect.'
-		: 'Sign in with a paid plan to run SQL queries across every DefiLlama dataset in your browser.'
+			? 'Upgrade to run SQL queries across every DefiLlama dataset in your browser — no API cost, arbitrary joins, full DuckDB dialect.'
+			: 'Sign in with a paid plan to run SQL queries across every DefiLlama dataset in your browser.'
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -112,16 +112,14 @@ function SamplePane() {
 					<span className="text-(--primary)">SELECT</span> f.name, f.category,{'\n'}
 					{'       '}f.total30d <span className="text-(--primary)">AS</span> fees_30d, p.tvl{'\n'}
 					<span className="text-(--primary)">FROM</span> fees f{'\n'}
-					<span className="text-(--primary)">JOIN</span> protocols p <span className="text-(--primary)">ON</span>{' '}
-					p.name = f.name{'\n'}
+					<span className="text-(--primary)">JOIN</span> protocols p <span className="text-(--primary)">ON</span> p.name
+					= f.name{'\n'}
 					<span className="text-(--primary)">WHERE</span> f.total30d &gt;{' '}
 					<span className="text-pro-green-300">10_000_000</span>
 					{'\n'}
-					<span className="text-(--primary)">ORDER BY</span> fees_30d{' '}
-					<span className="text-(--primary)">DESC</span>
+					<span className="text-(--primary)">ORDER BY</span> fees_30d <span className="text-(--primary)">DESC</span>
 					{'\n'}
-					<span className="text-(--primary)">LIMIT</span>{' '}
-					<span className="text-pro-green-300">4</span>;
+					<span className="text-(--primary)">LIMIT</span> <span className="text-pro-green-300">4</span>;
 				</code>
 			</pre>
 
@@ -151,9 +149,7 @@ function SamplePane() {
 }
 
 function HeaderCell({ children, align = 'left' }: { children: ReactNode; align?: 'left' | 'right' }) {
-	return (
-		<span className={`px-2.5 py-1.5 ${align === 'right' ? 'text-right' : 'text-left'}`}>{children}</span>
-	)
+	return <span className={`px-2.5 py-1.5 ${align === 'right' ? 'text-right' : 'text-left'}`}>{children}</span>
 }
 
 function Cell({

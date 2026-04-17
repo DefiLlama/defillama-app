@@ -227,7 +227,7 @@ ORDER BY avg_tvl DESC`
 	// ─── Concentration ───────────────────────────────────────────────────────
 	{
 		title: 'TVL by chain — share of total',
-		description: 'Each chain\'s slice of global TVL, in percent.',
+		description: "Each chain's slice of global TVL, in percent.",
 		subcategory: 'Concentration',
 		tables: [{ kind: 'dataset', slug: 'protocols' }],
 		sql: `WITH chain_totals AS (

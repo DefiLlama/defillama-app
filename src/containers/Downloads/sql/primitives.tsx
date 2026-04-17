@@ -11,13 +11,8 @@ const TONE_CLASS: Record<StatusTone, string> = {
 
 export function StatusDot({ tone, blink = false }: { tone: StatusTone; blink?: boolean }) {
 	return (
-		<span
-			aria-hidden="true"
-			className={`relative inline-flex h-1.5 w-1.5 shrink-0 rounded-full ${TONE_CLASS[tone]}`}
-		>
-			{blink ? (
-				<span className={`absolute inset-0 animate-ping rounded-full opacity-60 ${TONE_CLASS[tone]}`} />
-			) : null}
+		<span aria-hidden="true" className={`relative inline-flex h-1.5 w-1.5 shrink-0 rounded-full ${TONE_CLASS[tone]}`}>
+			{blink ? <span className={`absolute inset-0 animate-ping rounded-full opacity-60 ${TONE_CLASS[tone]}`} /> : null}
 		</span>
 	)
 }
@@ -36,22 +31,12 @@ export function Keycap({ children, muted = false }: { children: ReactNode; muted
 	)
 }
 
-export function SectionLabel({
-	label,
-	count,
-	action
-}: {
-	label: string
-	count?: string | number
-	action?: ReactNode
-}) {
+export function SectionLabel({ label, count, action }: { label: string; count?: string | number; action?: ReactNode }) {
 	return (
 		<div className="flex items-baseline justify-between gap-2">
 			<div className="flex items-baseline gap-2">
 				<h3 className="text-xs font-semibold tracking-tight text-(--text-primary)">{label}</h3>
-				{count !== undefined ? (
-					<span className="text-[11px] tabular-nums text-(--text-tertiary)">{count}</span>
-				) : null}
+				{count !== undefined ? <span className="text-[11px] text-(--text-tertiary) tabular-nums">{count}</span> : null}
 			</div>
 			{action ? <div className="shrink-0">{action}</div> : null}
 		</div>

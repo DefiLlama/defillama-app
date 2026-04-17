@@ -188,7 +188,9 @@ export function extractQueryConfig(input: QueryExtractInput): QueryInput {
 		kind: 'query',
 		sql: input.sql,
 		tables: input.tables.map((t) =>
-			t.kind === 'dataset' ? { kind: 'dataset', slug: t.slug } : { kind: 'chart', slug: t.slug, param: t.param, ...(t.paramLabel ? { paramLabel: t.paramLabel } : {}) }
+			t.kind === 'dataset'
+				? { kind: 'dataset', slug: t.slug }
+				: { kind: 'chart', slug: t.slug, param: t.param, ...(t.paramLabel ? { paramLabel: t.paramLabel } : {}) }
 		)
 	}
 }
@@ -465,7 +467,11 @@ export function defaultPresetName(config: SavedDownloadInput, datasetLabel?: str
 		return parts.length > 0 ? `${base} — ${parts.join(' · ')}` : base
 	}
 	if (config.kind === 'query') {
-		const firstLine = config.sql.split('\n').find((l) => l.trim())?.trim() ?? 'SELECT …'
+		const firstLine =
+			config.sql
+				.split('\n')
+				.find((l) => l.trim())
+				?.trim() ?? 'SELECT …'
 		const trimmed = firstLine.length > 60 ? `${firstLine.slice(0, 57)}…` : firstLine
 		const tableCount = config.tables.length
 		const suffix = tableCount > 0 ? ` — ${tableCount} table${tableCount === 1 ? '' : 's'}` : ''
@@ -592,7 +598,5 @@ export function sameSavedConfigShape(a: SavedDownload, b: SavedDownload): boolea
 }
 
 function sortedTableRefs(refs: QueryTableRef[]): string[] {
-	return refs
-		.map((r) => (r.kind === 'dataset' ? `d:${r.slug}` : `c:${r.slug}:${r.param}`))
-		.sort()
+	return refs.map((r) => (r.kind === 'dataset' ? `d:${r.slug}` : `c:${r.slug}:${r.param}`)).sort()
 }

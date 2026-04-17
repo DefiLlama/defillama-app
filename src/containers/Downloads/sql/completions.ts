@@ -73,12 +73,9 @@ export function registerSqlCompletions(
 					insertText: t.name,
 					detail: `${t.rowCount.toLocaleString()} rows · loaded`,
 					documentation: {
-						value: [
-							`**${labelForSource(t.source)}**`,
-							'',
-							'Columns:',
-							...t.columns.map((c) => `- \`${c.name}\``)
-						].join('\n')
+						value: [`**${labelForSource(t.source)}**`, '', 'Columns:', ...t.columns.map((c) => `- \`${c.name}\``)].join(
+							'\n'
+						)
 					},
 					sortText: `0_${t.name}`,
 					range
@@ -95,7 +92,13 @@ export function registerSqlCompletions(
 					insertText: identifier,
 					detail: `${d.category} · auto-loads on run`,
 					documentation: {
-						value: [`**${d.name}**`, '', d.description, '', d.fields ? `Columns: ${d.fields.map((f) => `\`${f}\``).join(', ')}` : ''].join('\n')
+						value: [
+							`**${d.name}**`,
+							'',
+							d.description,
+							'',
+							d.fields ? `Columns: ${d.fields.map((f) => `\`${f}\``).join(', ')}` : ''
+						].join('\n')
 					},
 					sortText: `1_${identifier}`,
 					range
@@ -111,7 +114,13 @@ export function registerSqlCompletions(
 					insertText: baseIdentifier,
 					detail: `Time series · pick ${d.paramLabel.toLowerCase()} in Tables tab`,
 					documentation: {
-						value: [`**${d.name}**`, '', d.description, '', `Load via "Add table" and pick a ${d.paramLabel.toLowerCase()}.`].join('\n')
+						value: [
+							`**${d.name}**`,
+							'',
+							d.description,
+							'',
+							`Load via "Add table" and pick a ${d.paramLabel.toLowerCase()}.`
+						].join('\n')
 					},
 					sortText: `2_${d.slug}`,
 					range
@@ -209,9 +218,7 @@ export function matchTableRef(tableName: string): TableRefMatch | null {
 export function extractTableRefs(sql: string): string[] {
 	const refs = new Set<string>()
 	// Strip single-line comments to avoid matching inside them.
-	const stripped = sql
-		.replace(/--[^\n]*/g, '')
-		.replace(/\/\*[\s\S]*?\*\//g, '')
+	const stripped = sql.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
 	const regex = /\b(?:FROM|JOIN)\s+("?)([\w-]+)\1/gi
 	let m: RegExpExecArray | null
 	while ((m = regex.exec(stripped)) !== null) {

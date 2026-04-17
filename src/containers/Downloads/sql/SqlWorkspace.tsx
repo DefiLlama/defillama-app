@@ -8,16 +8,16 @@ import type { ChartOptionsMap } from '../chart-datasets'
 import { extractQueryConfig, generatePresetId, type QuerySavedConfig } from '../savedDownloads'
 import { SavePresetDialog } from '../SavePresetDialog'
 import { extractTableRefs, matchTableRef } from './completions'
-import { identifierize, prettyLabelForSource, type TableSource } from './useTableRegistry'
 import { Editor, type EditorHandle } from './Editor'
-import { ExamplesPanel } from './ExamplesPanel'
 import type { ExampleQuery } from './examples'
+import { ExamplesPanel } from './ExamplesPanel'
 import { LoadTableModal } from './LoadTableModal'
+import { Keycap, SectionLabel, StatusDot } from './primitives'
 import { ResultsPanel } from './ResultsPanel'
 import { TableChipRail } from './TableChipRail'
-import { Keycap, SectionLabel, StatusDot } from './primitives'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
+import { identifierize, prettyLabelForSource, type TableSource } from './useTableRegistry'
 import { useTableRegistry, type RegisteredTable } from './useTableRegistry'
 
 const SQL_TABS = [
@@ -48,9 +48,7 @@ export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
 		return <UpsellGate isAuthenticated={isAuthenticated} isTrial={isTrial} topRight={topRight} />
 	}
 
-	return (
-		<SqlWorkspaceInner chartOptionsMap={chartOptionsMap} authorizedFetch={authorizedFetch} topRight={topRight} />
-	)
+	return <SqlWorkspaceInner chartOptionsMap={chartOptionsMap} authorizedFetch={authorizedFetch} topRight={topRight} />
 }
 
 interface QueryResult {
@@ -212,15 +210,7 @@ ORDER BY date DESC
 	const runQuery = useCallback(() => runSql(sql), [runSql, sql])
 
 	const prepareAndRun = useCallback(
-		async ({
-			taskId,
-			tables,
-			sql: nextSql
-		}: {
-			taskId: string
-			tables: TableSource[]
-			sql: string
-		}) => {
+		async ({ taskId, tables, sql: nextSql }: { taskId: string; tables: TableSource[]; sql: string }) => {
 			setBusyTaskId(taskId)
 			setRunError(null)
 			setResult(null)
@@ -314,13 +304,7 @@ ORDER BY date DESC
 							onAddTable={() => setLoadTableOpen(true)}
 							onRemove={registry.remove}
 						/>
-						<Editor
-							ref={editorRef}
-							value={sql}
-							onChange={setSql}
-							onRun={runQuery}
-							tables={registry.tables}
-						/>
+						<Editor ref={editorRef} value={sql} onChange={setSql} onRun={runQuery} tables={registry.tables} />
 						<EditorRunBar
 							running={running || !!loadingStage}
 							canRun={!!duckdb.conn && !!sql.trim()}
@@ -413,8 +397,8 @@ function StatusStrip({
 						duckdbStatus === 'ready'
 							? 'text-(--text-primary)'
 							: duckdbStatus === 'error'
-							? 'text-red-500'
-							: 'text-pro-gold-300'
+								? 'text-red-500'
+								: 'text-pro-gold-300'
 					}
 				>
 					{duckdbStatus === 'ready' ? 'ready' : duckdbStatus === 'error' ? 'failed' : 'loading'}
@@ -425,7 +409,7 @@ function StatusStrip({
 
 			<span>
 				<span className="text-(--text-tertiary)">Tables</span>{' '}
-				<span className="tabular-nums text-(--text-primary)">{tableCount}</span>
+				<span className="text-(--text-primary) tabular-nums">{tableCount}</span>
 			</span>
 
 			<Divider />
@@ -457,20 +441,10 @@ function StatusStrip({
 }
 
 function Divider() {
-	return (
-		<span aria-hidden className="h-3 w-px bg-(--divider)" />
-	)
+	return <span aria-hidden className="h-3 w-px bg-(--divider)" />
 }
 
-function TabNav({
-	tab,
-	onChange,
-	savedCount
-}: {
-	tab: SqlTab
-	onChange: (next: SqlTab) => void
-	savedCount: number
-}) {
+function TabNav({ tab, onChange, savedCount }: { tab: SqlTab; onChange: (next: SqlTab) => void; savedCount: number }) {
 	return (
 		<nav
 			role="tablist"
@@ -493,7 +467,7 @@ function TabNav({
 					>
 						{t.label}
 						{showCount ? (
-							<span className="rounded-sm bg-(--link-hover-bg) px-1.5 py-px text-[10px] font-semibold tabular-nums text-(--text-tertiary)">
+							<span className="rounded-sm bg-(--link-hover-bg) px-1.5 py-px text-[10px] font-semibold text-(--text-tertiary) tabular-nums">
 								{savedCount}
 							</span>
 						) : null}
@@ -626,7 +600,7 @@ function TablesTab({
 									<span className="rounded-sm bg-(--link-hover-bg) px-1.5 py-px text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">
 										{t.source.kind === 'dataset' ? 'Dataset' : 'Time series'}
 									</span>
-									<span className="text-xs tabular-nums text-(--text-tertiary)">
+									<span className="text-xs text-(--text-tertiary) tabular-nums">
 										{t.rowCount.toLocaleString()} rows · {t.columns.length} cols
 									</span>
 								</div>
@@ -691,15 +665,16 @@ function SavedQueriesTab({
 							{isBusy ? (
 								<LoadingSpinner size={12} />
 							) : (
-								<Icon name="arrow-right" className="h-3.5 w-3.5 shrink-0 text-(--text-tertiary) transition-colors group-hover:text-(--primary)" />
+								<Icon
+									name="arrow-right"
+									className="h-3.5 w-3.5 shrink-0 text-(--text-tertiary) transition-colors group-hover:text-(--primary)"
+								/>
 							)}
 							<span className="flex min-w-0 flex-1 flex-col gap-0.5">
 								<span className="truncate text-sm font-semibold text-(--text-primary) transition-colors group-hover:text-(--primary)">
 									{q.name}
 								</span>
-								<span className="truncate font-mono text-xs text-(--text-tertiary)">
-									{firstNonEmptyLine(q.sql)}
-								</span>
+								<span className="truncate font-mono text-xs text-(--text-tertiary)">{firstNonEmptyLine(q.sql)}</span>
 							</span>
 						</button>
 						<div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
@@ -743,7 +718,12 @@ function sameSource(
 }
 
 function firstNonEmptyLine(text: string): string {
-	return text.split('\n').find((l) => l.trim())?.trim() ?? ''
+	return (
+		text
+			.split('\n')
+			.find((l) => l.trim())
+			?.trim() ?? ''
+	)
 }
 
 function formatDuration(ms: number): string {

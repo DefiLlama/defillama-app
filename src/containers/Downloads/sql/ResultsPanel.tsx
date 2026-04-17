@@ -39,8 +39,7 @@ export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) 
 					<kbd className="inline-flex h-[17px] items-center rounded-[3px] border border-(--divider) bg-(--app-bg) px-1 font-mono text-[10px] text-(--text-secondary)">
 						↵
 					</kbd>{' '}
-					or click{' '}
-					<span className="font-medium text-(--text-primary)">Run query</span>.
+					or click <span className="font-medium text-(--text-primary)">Run query</span>.
 				</p>
 			</div>
 		)
@@ -64,9 +63,9 @@ export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) 
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-baseline gap-2">
 					<h3 className="text-sm font-semibold tracking-tight text-(--text-primary)">Results</h3>
-					<span className="text-xs tabular-nums text-(--text-tertiary)">
-						{result.rows.length.toLocaleString()} row{result.rows.length === 1 ? '' : 's'} ·{' '}
-						{result.columns.length} col{result.columns.length === 1 ? '' : 's'}
+					<span className="text-xs text-(--text-tertiary) tabular-nums">
+						{result.rows.length.toLocaleString()} row{result.rows.length === 1 ? '' : 's'} · {result.columns.length} col
+						{result.columns.length === 1 ? '' : 's'}
 					</span>
 				</div>
 				<div className="flex items-center gap-2">

@@ -15,9 +15,7 @@ export function exportQueryResult(result: QueryResult, format: DownloadFormat, f
 		return
 	}
 	const header: CsvCell[] = result.columns.map((c) => c.name)
-	const data: CsvCell[][] = result.rows.map((row) =>
-		result.columns.map((c) => toCell(row[c.name]))
-	)
+	const data: CsvCell[][] = result.rows.map((row) => result.columns.map((c) => toCell(row[c.name])))
 	downloadTabular(format, filename, [header, ...data], { addTimestamp: true })
 }
 
