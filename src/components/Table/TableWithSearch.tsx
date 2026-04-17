@@ -31,6 +31,7 @@ interface ITableWithSearchBaseProps<T extends RowData> {
 	placeholder?: string
 	columnToSearch?: string
 	header?: string | null
+	leadingControls?: React.ReactNode | null
 	headingAs?: 'h1' | 'h2'
 	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
@@ -38,6 +39,7 @@ interface ITableWithSearchBaseProps<T extends RowData> {
 	columnVisibility?: VisibilityState | null
 	rowSize?: number | null
 	compact?: boolean
+	embedded?: boolean
 	getSubRows?: (row: T) => T[] | undefined
 	showColumnSelect?: boolean
 	columnSelectLabel?: string
@@ -62,6 +64,7 @@ export function TableWithSearch<T extends RowData>({
 	columnToSearch,
 	customFilters = null,
 	header = null,
+	leadingControls = null,
 	headingAs: HeadingTag = 'h2',
 	columnSizes = null,
 	columnOrders = null,
@@ -69,6 +72,7 @@ export function TableWithSearch<T extends RowData>({
 	columnVisibility: columnVisibilityProp = null,
 	rowSize = null,
 	compact = false,
+	embedded = false,
 	showColumnSelect = false,
 	columnSelectLabel = 'Columns',
 	csvFileName = null,
@@ -144,42 +148,70 @@ export function TableWithSearch<T extends RowData>({
 
 	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
+	const controls = (
+		<div className="flex w-full flex-wrap items-center justify-end gap-3 p-3">
+			{leadingControls || header ? (
+				<div className="mr-auto flex items-center gap-3 overflow-x-auto">
+					{leadingControls ? <div className="flex items-center overflow-x-auto">{leadingControls}</div> : null}
+					{header ? (
+						<HeadingTag
+							className={
+								leadingControls ? 'text-sm font-medium whitespace-nowrap text-(--text-label)' : 'text-lg font-semibold'
+							}
+						>
+							{header}
+						</HeadingTag>
+					) : null}
+				</div>
+			) : null}
+			{columnToSearch ? (
+				<label
+					className={`relative w-full max-w-full sm:max-w-[280px] ${!leadingControls && !header ? 'mr-auto' : ''}`}
+				>
+					<span className="sr-only">{placeholder}</span>
+					<Icon
+						name="search"
+						height={16}
+						width={16}
+						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+					/>
+					<input
+						onInput={(e) => setProjectName(e.currentTarget.value)}
+						placeholder={placeholder}
+						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
+					/>
+				</label>
+			) : null}
+			{showColumnSelect ? (
+				<SelectWithCombobox
+					allValues={columnsOptions}
+					selectedValues={selectedColumns}
+					setSelectedValues={setColumnOptions}
+					nestedMenu={false}
+					label={columnSelectLabel}
+					labelType="smol"
+					variant="filter-responsive"
+				/>
+			) : null}
+			{typeof customFilters === 'function' ? customFilters() : customFilters}
+			{csvFileName ? (
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: csvFileName })} smol />
+			) : null}
+		</div>
+	)
+
+	if (embedded) {
+		return (
+			<>
+				{controls}
+				<VirtualTable instance={instance} rowSize={rowSize ?? undefined} compact={compact} />
+			</>
+		)
+	}
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				{header ? <HeadingTag className="mr-auto text-lg font-semibold">{header}</HeadingTag> : null}
-				{columnToSearch ? (
-					<label className={`relative w-full sm:max-w-70 ${header ? '' : 'mr-auto'}`}>
-						<span className="sr-only">{placeholder}</span>
-						<Icon
-							name="search"
-							height={16}
-							width={16}
-							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
-						/>
-						<input
-							onInput={(e) => setProjectName(e.currentTarget.value)}
-							placeholder={placeholder}
-							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
-						/>
-					</label>
-				) : null}
-				{showColumnSelect ? (
-					<SelectWithCombobox
-						allValues={columnsOptions}
-						selectedValues={selectedColumns}
-						setSelectedValues={setColumnOptions}
-						nestedMenu={false}
-						label={columnSelectLabel}
-						labelType="smol"
-						variant="filter-responsive"
-					/>
-				) : null}
-				{typeof customFilters === 'function' ? customFilters() : customFilters}
-				{csvFileName ? (
-					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: csvFileName })} smol />
-				) : null}
-			</div>
+			{controls}
 			<VirtualTable instance={instance} rowSize={rowSize ?? undefined} compact={compact} />
 		</div>
 	)

@@ -108,13 +108,6 @@ export const CHAINS_CATEGORY_GROUP_SETTINGS = [
 	}
 ] as const
 
-// LIQUIDATIONS
-export const LIQS_SETTINGS = {
-	LIQS_USING_USD: 'LIQS_USING_USD',
-	LIQS_SHOWING_INSPECTOR: 'LIQS_SHOWING_INSPECTOR',
-	LIQS_CUMULATIVE: 'LIQS_CUMULATIVE'
-} as const
-
 // BRIDGES
 const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
 
@@ -122,17 +115,10 @@ export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
 export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
 type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
-type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
 type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
 type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
 
-type SettingKey =
-	| TvlSettingsKey
-	| FeesSettingKey
-	| NftSettingKey
-	| LiquidationsSettingKey
-	| BridgesSettingKey
-	| ChainsCategoryGroupKey
+type SettingKey = TvlSettingsKey | FeesSettingKey | NftSettingKey | BridgesSettingKey | ChainsCategoryGroupKey
 
 type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 	? TvlSettingsKey
@@ -144,11 +130,9 @@ type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 				? ChainsCategoryGroupKey
 				: T extends 'nfts'
 					? NftSettingKey
-					: T extends 'liquidations'
-						? LiquidationsSettingKey
-						: T extends 'bridges'
-							? BridgesSettingKey
-							: string
+					: T extends 'bridges'
+						? BridgesSettingKey
+						: string
 
 type YieldFilterValue = string | number | boolean
 type YieldSavedFilter = Record<string, YieldFilterValue>
@@ -190,7 +174,6 @@ export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
 const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
 export const FEES_SETTINGS_KEYS_SET = new Set<string>(FEES_SETTINGS_KEYS)
 const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
-const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
 const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
 
 export const isTvlSettingsKey = (value: string): value is TvlSettingsKey => TVL_SETTINGS_KEYS_SET.has(value)
@@ -328,7 +311,6 @@ type TSETTINGTYPE =
 	| 'tvl_chains'
 	| 'stablecoins'
 	| 'nfts'
-	| 'liquidations'
 	| 'bridges'
 	| 'dimension_chart_interval'
 	| 'compare_chains'
@@ -345,8 +327,6 @@ function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 			return CHAINS_CATEGORY_GROUP_KEYS as KeysFor<T>[]
 		case 'nfts':
 			return NFT_SETTINGS_KEYS as KeysFor<T>[]
-		case 'liquidations':
-			return LIQS_SETTINGS_KEYS as KeysFor<T>[]
 		case 'bridges':
 			return BRIDGES_SETTINGS_KEYS as KeysFor<T>[]
 		default:

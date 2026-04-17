@@ -35,6 +35,9 @@ export const STABLECOINS_SERVER_URL = API_KEY
 	: 'https://stablecoins.llama.fi'
 export const TRADFI_API = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/dat` : 'https://api.llama.fi/dat'
 export const YIELDS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/yields` : 'https://yields.llama.fi'
+export const LIQUIDATIONS_SERVER_URL_V2 = API_KEY
+	? `https://pro-api.llama.fi/${API_KEY}/liquidations`
+	: 'https://api.llama.fi/liquidations'
 
 // Core llama APIs
 export const CONFIG_API = `${SERVER_URL}/config`

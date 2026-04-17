@@ -25,10 +25,6 @@ export function peggedAssetIconUrl(name: string, size: number = 48): string {
 	return `${ICONS_CDN}/pegged/${encodeURIComponent(slug)}?w=${size}&h=${size}`
 }
 
-export function liquidationsIconUrl(symbol: string, size: number = 48): string {
-	return `${ICONS_CDN}/liquidations/${symbol.toLowerCase()}?w=${size}&h=${size}`
-}
-
 export function equityIconUrl(symbol: string, size: number = 48): string {
 	// no lowercase
 	return `${ICONS_CDN}/equities/${encodeURIComponent(symbol)}?w=${size}&h=${size}`

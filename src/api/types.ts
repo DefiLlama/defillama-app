@@ -129,7 +129,7 @@ interface BlockExplorerLink {
 	url: string
 }
 
-interface BlockExplorersChain {
+export interface BlockExplorersChain {
 	displayName: string
 	llamaChainId: string | null
 	evmChainId: number | null
