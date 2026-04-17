@@ -1,11 +1,22 @@
 import * as Ariakit from '@ariakit/react'
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { STRIPE_PUBLISHABLE_KEY } from '~/constants'
-import type { PurchaseSeatsResponse } from './types'
+import type { PurchaseSeatsResponse, TeamSubscription } from './types'
 import { useTeam } from './useTeam'
+
+function getExistingInterval(
+	subscriptions: TeamSubscription[],
+	type: 'api' | 'llamafeed'
+): 'month' | 'year' | null {
+	const existing = subscriptions.find(
+		(sub) => sub.type === type && (sub.status === undefined || sub.status === 'active')
+	)
+	return existing?.billingInterval ?? null
+}
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
@@ -15,11 +26,21 @@ interface PurchaseSeatsModalProps {
 }
 
 export function PurchaseSeatsModal({ isOpen, onClose }: PurchaseSeatsModalProps) {
-	const { purchaseSeatsMutation } = useTeam()
+	const { purchaseSeatsMutation, teamSubscriptions } = useTeam()
 	const [subscriptionType, setSubscriptionType] = useState<'api' | 'llamafeed'>('llamafeed')
 	const [seatCount, setSeatCount] = useState(1)
 	const [billingInterval, setBillingInterval] = useState<'month' | 'year'>('month')
 	const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null)
+
+	const lockedInterval = getExistingInterval(teamSubscriptions, subscriptionType)
+
+	// When the selected type has an existing sub, force the interval to match it —
+	// the backend rejects mixing monthly and yearly for the same subscription type.
+	useEffect(() => {
+		if (lockedInterval && billingInterval !== lockedInterval) {
+			setBillingInterval(lockedInterval)
+		}
+	}, [lockedInterval, billingInterval])
 
 	const handlePurchase = async () => {
 		const result: PurchaseSeatsResponse = await purchaseSeatsMutation.mutateAsync({
@@ -111,26 +132,48 @@ export function PurchaseSeatsModal({ isOpen, onClose }: PurchaseSeatsModalProps)
 							<div className="flex flex-col gap-2">
 								<label className="text-xs font-medium text-(--sub-text-muted)">Billing Interval</label>
 								<div className="flex gap-2">
-									<button
-										onClick={() => setBillingInterval('month')}
-										className={`flex h-10 flex-1 items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
-											billingInterval === 'month'
-												? 'border-(--sub-brand-primary) bg-(--sub-brand-primary)/5 text-(--sub-brand-primary)'
-												: 'border-(--sub-border-slate-100) text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white'
-										}`}
+									<Tooltip
+										content={
+											lockedInterval === 'year'
+												? `You already have a yearly ${subscriptionType === 'api' ? 'API' : 'Pro'} subscription. Monthly and yearly billing can't be mixed for the same plan — upgrade or cancel the yearly subscription first.`
+												: null
+										}
+										placement="top"
+										className="flex-1"
 									>
-										Monthly
-									</button>
-									<button
-										onClick={() => setBillingInterval('year')}
-										className={`flex h-10 flex-1 items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
-											billingInterval === 'year'
-												? 'border-(--sub-brand-primary) bg-(--sub-brand-primary)/5 text-(--sub-brand-primary)'
-												: 'border-(--sub-border-slate-100) text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white'
-										}`}
+										<button
+											onClick={() => setBillingInterval('month')}
+											disabled={lockedInterval === 'year'}
+											className={`flex h-10 w-full flex-1 items-center justify-center rounded-lg border text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+												billingInterval === 'month'
+													? 'border-(--sub-brand-primary) bg-(--sub-brand-primary)/5 text-(--sub-brand-primary)'
+													: 'border-(--sub-border-slate-100) text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white'
+											}`}
+										>
+											Monthly
+										</button>
+									</Tooltip>
+									<Tooltip
+										content={
+											lockedInterval === 'month'
+												? `You already have a monthly ${subscriptionType === 'api' ? 'API' : 'Pro'} subscription. Monthly and yearly billing can't be mixed for the same plan — upgrade the monthly subscription to yearly first.`
+												: null
+										}
+										placement="top"
+										className="flex-1"
 									>
-										Yearly
-									</button>
+										<button
+											onClick={() => setBillingInterval('year')}
+											disabled={lockedInterval === 'month'}
+											className={`flex h-10 w-full flex-1 items-center justify-center rounded-lg border text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+												billingInterval === 'year'
+													? 'border-(--sub-brand-primary) bg-(--sub-brand-primary)/5 text-(--sub-brand-primary)'
+													: 'border-(--sub-border-slate-100) text-(--sub-ink-primary) dark:border-(--sub-border-strong) dark:text-white'
+											}`}
+										>
+											Yearly
+										</button>
+									</Tooltip>
 								</div>
 							</div>
 
@@ -183,6 +226,19 @@ export function PurchaseSeatsModal({ isOpen, onClose }: PurchaseSeatsModalProps)
 									</span>
 								</div>
 							</div>
+
+							{billingInterval === 'month' && !lockedInterval && (
+								<div className="flex items-start gap-2">
+									<Icon name="sparkles" height={12} width={12} className="mt-1 shrink-0 text-(--sub-text-muted)" />
+									<p className="text-xs leading-5 text-(--sub-text-muted)">
+										Switch to yearly billing and get 2 months free — save $
+										{(
+											(subscriptionType === 'api' ? 300 * 12 - 3000 : 49 * 12 - 490) * seatCount
+										).toLocaleString()}
+										/year on these seats.
+									</p>
+								</div>
+							)}
 
 							<button
 								onClick={() => void handlePurchase()}

@@ -27,6 +27,13 @@ function formatDate(date: Date): string {
 	return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function parseBackendDate(raw: string): Date | null {
+	// Backend returns "2026-05-17 08:24:42.000Z" with a space; normalize to ISO.
+	const isoLike = raw.includes('T') ? raw : raw.replace(' ', 'T')
+	const date = new Date(isoLike)
+	return isNaN(date.getTime()) ? null : date
+}
+
 function computeNextBillingDate(createdAt: string, billingInterval: 'month' | 'year'): Date | null {
 	// Backend returns "2026-04-16 20:02:14.302Z" with a space separator; normalize to ISO.
 	const isoLike = createdAt.includes('T') ? createdAt : createdAt.replace(' ', 'T')
@@ -51,6 +58,26 @@ function isActiveSub(sub: TeamSubscription): boolean {
 	return sub.status === undefined || sub.status === 'active'
 }
 
+function getCancelAtDate(sub: TeamSubscription): Date | null {
+	if (sub.cancelsAt) {
+		const parsed = parseBackendDate(sub.cancelsAt)
+		if (parsed) return parsed
+	}
+	if (sub.canceledAtPeriodEnd && typeof sub.effectiveAt === 'number') {
+		const fromSeconds = new Date(sub.effectiveAt * 1000)
+		if (!isNaN(fromSeconds.getTime())) return fromSeconds
+	}
+	return null
+}
+
+function isCancelingSub(sub: TeamSubscription): boolean {
+	return sub.canceledAtPeriodEnd === true || Boolean(sub.cancelsAt) || getCancelAtDate(sub) !== null
+}
+
+function isRenewingSub(sub: TeamSubscription): boolean {
+	return isActiveSub(sub) && !isCancelingSub(sub)
+}
+
 function InfoRow({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
 	return (
 		<div className="flex items-center gap-2">
@@ -73,8 +100,12 @@ function SubscriptionRow({ subscription }: { subscription: TeamSubscription }) {
 	const total = unit * subscription.seats.seatCount
 	const intervalSuffix = getIntervalSuffix(subscription.billingInterval)
 	const active = isActiveSub(subscription)
+	const isCanceling = isCancelingSub(subscription)
+	const cancelAtDate = getCancelAtDate(subscription)
 	const nextDate =
-		active && subscription.createdAt ? computeNextBillingDate(subscription.createdAt, subscription.billingInterval) : null
+		active && !isCanceling && subscription.createdAt
+			? computeNextBillingDate(subscription.createdAt, subscription.billingInterval)
+			: null
 
 	const isMonthly = subscription.billingInterval === 'month'
 	const upgradePending = upgradeSeatsMutation.isPending
@@ -105,7 +136,7 @@ function SubscriptionRow({ subscription }: { subscription: TeamSubscription }) {
 					<span className="text-sm font-semibold text-(--sub-ink-primary) dark:text-white">
 						{`$${total.toLocaleString()}${intervalSuffix}`}
 					</span>
-					{isMonthly && active && (
+					{isMonthly && active && !isCanceling && (
 						<button
 							onClick={() => setShowUpgradeConfirm(true)}
 							disabled={upgradePending}
@@ -138,7 +169,9 @@ function SubscriptionRow({ subscription }: { subscription: TeamSubscription }) {
 							: 'text-(--sub-text-muted)'
 					}
 				/>
-				{nextDate ? (
+				{isCanceling && cancelAtDate ? (
+					<InfoRow label="Cancels on" value={formatDate(cancelAtDate)} valueClassName="text-(--error)" />
+				) : nextDate ? (
 					<InfoRow label="Next billing" value={formatDate(nextDate)} />
 				) : subscription.status ? (
 					<InfoRow label="Status" value={subscription.status} valueClassName="capitalize text-(--sub-text-muted)" />
@@ -161,7 +194,7 @@ function SubscriptionRow({ subscription }: { subscription: TeamSubscription }) {
 				onConfirm={() => void handleConfirmUpgrade()}
 				isLoading={upgradePending}
 				title={`Upgrade ${label} to Yearly`}
-				description={`Upgrade your ${label} subscription (${subscription.seats.seatCount} seat${subscription.seats.seatCount === 1 ? '' : 's'}) to yearly billing? Stripe will immediately charge your saved card the prorated yearly amount, and your renewal date will shift to one year from today.`}
+				description={`Upgrade your ${label} subscription (${subscription.seats.seatCount} seat${subscription.seats.seatCount === 1 ? '' : 's'}) to yearly billing? Stripe will immediately charge your saved card the prorated yearly amount.`}
 				confirmLabel="Upgrade to Yearly"
 			/>
 		</div>
@@ -171,7 +204,7 @@ function SubscriptionRow({ subscription }: { subscription: TeamSubscription }) {
 function BillingTotals({ subscriptions }: { subscriptions: TeamSubscription[] }) {
 	const totals = subscriptions.reduce(
 		(acc, sub) => {
-			if (!isActiveSub(sub)) return acc
+			if (!isRenewingSub(sub)) return acc
 			const amount = getUnitPrice(sub.type, sub.billingInterval) * sub.seats.seatCount
 			if (sub.billingInterval === 'year') acc.yearly += amount
 			else acc.monthly += amount
@@ -199,7 +232,7 @@ function BillingTotals({ subscriptions }: { subscriptions: TeamSubscription[] })
 }
 
 function YearlyTip({ subscriptions }: { subscriptions: TeamSubscription[] }) {
-	const monthlySubs = subscriptions.filter((sub) => isActiveSub(sub) && sub.billingInterval === 'month')
+	const monthlySubs = subscriptions.filter((sub) => isRenewingSub(sub) && sub.billingInterval === 'month')
 	if (monthlySubs.length === 0) return null
 
 	const monthlyTotal = monthlySubs.reduce(

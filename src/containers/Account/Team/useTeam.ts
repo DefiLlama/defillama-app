@@ -187,6 +187,9 @@ export const useTeam = () => {
 		},
 		onMutate: async ({ subscriptionType, seatCount }) => {
 			await queryClient.cancelQueries({ queryKey: teamQueryKey })
+			// seatCount=0 cancels at period end on the backend; skip optimistic update so
+			// the canonical canceledAtPeriodEnd/effectiveAt state comes from the refetch.
+			if (seatCount === 0) return { previous: queryClient.getQueryData<Team | null>(teamQueryKey) }
 			return optimistic((old) => ({
 				...old,
 				subscriptions: old.subscriptions.map((sub) =>
@@ -206,6 +209,9 @@ export const useTeam = () => {
 		onError: (error, _vars, context) => {
 			rollback(error, _vars, context)
 			toast.error(getErrorMessage(error, 'Failed to update seats'))
+		},
+		onSuccess: (_data, { seatCount }) => {
+			if (seatCount === 0) toast.success('Subscription will cancel at the end of the current period')
 		},
 		onSettled: () => refetch()
 	})
@@ -344,6 +350,29 @@ export const useTeam = () => {
 			toast.success('Invite sent successfully!')
 		},
 		onSettled: () => refetch()
+	})
+
+	// ── Mutation: POST /team/invite/resend ──
+	const resendInviteMutation = useMutation({
+		mutationFn: async (data: { inviteId: string }) => {
+			const response = await authorizedFetch(`${AUTH_SERVER}/team/invite/resend`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			})
+			if (!response) throw new Error('Not authenticated')
+			const normalized = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to resend invite'))
+			})
+			return normalized.json()
+		},
+		onSuccess: () => {
+			toast.success('Invite resent')
+			refetch()
+		},
+		onError: (error) => {
+			toast.error(getErrorMessage(error, 'Failed to resend invite'))
+		}
 	})
 
 	// ── Mutation: POST /team/invite/revoke ──
@@ -501,6 +530,7 @@ export const useTeam = () => {
 		assignMemberMutation,
 		unassignMemberMutation,
 		inviteMemberMutation,
+		resendInviteMutation,
 		revokeInviteMutation,
 		removeMemberMutation,
 		leaveTeamMutation,

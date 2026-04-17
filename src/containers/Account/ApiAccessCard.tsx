@@ -2,34 +2,27 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { ApiUsageBreakdown } from './ApiUsageBreakdown'
-import { ToggleSwitch } from './ToggleSwitch'
 
 const API_CREDITS_LIMIT = 1_000_000
 
 interface ApiAccessCardProps {
 	apiKey: string | null
 	credits: number | null
-	overageEnabled: boolean
 	usageStats: any
 	isUsageStatsLoading: boolean
 	isUsageStatsError: boolean
 	onRegenerateKey: () => void
-	onToggleOverage: () => void
 	isRegenerateLoading?: boolean
-	isOverageLoading?: boolean
 }
 
 export function ApiAccessCard({
 	apiKey,
 	credits,
-	overageEnabled,
 	usageStats,
 	isUsageStatsLoading,
 	isUsageStatsError,
 	onRegenerateKey,
-	onToggleOverage,
-	isRegenerateLoading,
-	isOverageLoading
+	isRegenerateLoading
 }: ApiAccessCardProps) {
 	const [copied, setCopied] = useState(false)
 	const [showKey, setShowKey] = useState(false)
@@ -99,22 +92,6 @@ export function ApiAccessCard({
 						{!apiKey ? '...' : showKey ? apiKey : '•'.repeat(apiKey.length)}
 					</code>
 				</div>
-			</div>
-
-			{/* Enable Overage */}
-			<div className="flex flex-col gap-1">
-				<div className="flex items-center justify-between">
-					<span className="text-sm text-(--sub-ink-primary) dark:text-white">Enable Overage</span>
-					<ToggleSwitch
-						checked={overageEnabled}
-						onClick={onToggleOverage}
-						disabled={isOverageLoading}
-						aria-label="Enable overage billing"
-					/>
-				</div>
-				<p className="text-xs leading-4 text-(--sub-text-muted)">
-					Continue API calls beyond 1M/month at $0.60 per 1,000 calls.
-				</p>
 			</div>
 
 			{/* API Usage */}

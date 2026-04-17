@@ -200,8 +200,8 @@ function TeamSubscriptionBanner({ teamName, subscriptionType }: { teamName: stri
 						{getTeamSubLabel(subscriptionType)}
 					</span>{' '}
 					subscription is managed by{' '}
-					<span className="font-medium text-(--sub-ink-primary) dark:text-white">{teamName}</span>. Go to the Team tab
-					to view details.
+					<span className="font-medium text-(--sub-ink-primary) dark:text-white">{teamName}</span>. Billing and seat
+					changes are handled by your team admin.
 				</p>
 			) : (
 				<p className="text-sm text-(--sub-text-muted)">
@@ -232,21 +232,68 @@ export function SubscriptionSection() {
 		isUsageStatsLoading,
 		isUsageStatsError,
 		createPortalSession,
-		enableOverage,
 		cancelSubscription,
 		generateNewKeyMutation,
 		apiKey,
 		isPortalSessionLoading,
-		isEnableOverageLoading,
 		isCancelSubscriptionLoading,
 		endTrialSubscription,
 		isEndTrialLoading,
 		isSubscriptionLoading
 	} = useSubscribe()
 
-	// Team member guard: show banner instead of individual subscription controls
-	if (team && !team.isAdmin) {
-		return <TeamSubscriptionBanner teamName={team.name} subscriptionType={team.subscriptionType} />
+	const isTeamMember = Boolean(team && !team.isAdmin)
+	const teamAssignedType = isTeamMember ? team?.subscriptionType ?? null : null
+
+	// Team member guard: hide personal billing controls. Still render the feature cards
+	// (API access, usage, external-data balance) that the assigned subscription unlocks.
+	if (isTeamMember && team) {
+		const teamBanner = <TeamSubscriptionBanner teamName={team.name} subscriptionType={teamAssignedType} />
+
+		if (teamAssignedType === 'api') {
+			const memberBalanceCard = balance ? (
+				<ExternalDataBalanceCard
+					freeRemaining={balance.freeRemaining}
+					toppedUpBalance={balance.toppedUpBalance}
+					freeLimit={balance.freeLimit}
+					freeSpent={balance.freeSpent}
+					isLoading={isAiBalanceLoading}
+					onTopUp={() => setIsTopupModalOpen(true)}
+				/>
+			) : isAiBalanceLoading ? (
+				<ExternalDataBalanceCard
+					freeRemaining="0"
+					toppedUpBalance="0"
+					freeLimit="0"
+					freeSpent="0"
+					isLoading
+					onTopUp={() => {}}
+				/>
+			) : null
+
+			return (
+				<>
+					{teamBanner}
+					<ApiAccessCard
+						apiKey={apiKey}
+						credits={credits}
+						usageStats={usageStats}
+						isUsageStatsLoading={isUsageStatsLoading}
+						isUsageStatsError={isUsageStatsError}
+						onRegenerateKey={() => generateNewKeyMutation.mutate()}
+						isRegenerateLoading={generateNewKeyMutation.isPending}
+					/>
+					{memberBalanceCard}
+					{isTopupModalOpen ? (
+						<Suspense fallback={null}>
+							<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+						</Suspense>
+					) : null}
+				</>
+			)
+		}
+
+		return teamBanner
 	}
 
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
@@ -400,14 +447,11 @@ export function SubscriptionSection() {
 				<ApiAccessCard
 					apiKey={apiKey}
 					credits={credits}
-					overageEnabled={activeSubscription.overage ?? false}
 					usageStats={usageStats}
 					isUsageStatsLoading={isUsageStatsLoading}
 					isUsageStatsError={isUsageStatsError}
 					onRegenerateKey={() => generateNewKeyMutation.mutate()}
-					onToggleOverage={enableOverage}
 					isRegenerateLoading={generateNewKeyMutation.isPending}
-					isOverageLoading={isEnableOverageLoading}
 				/>
 				{balanceCard}
 				{topupModal}

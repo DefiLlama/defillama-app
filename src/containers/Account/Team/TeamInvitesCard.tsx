@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { ConfirmActionModal } from './ConfirmActionModal'
 import { InviteMemberModal } from './InviteMemberModal'
 import type { TeamInvite } from './types'
 import { useTeam } from './useTeam'
+
+const RESEND_COOLDOWN_MS = 60_000
 
 function formatDate(dateStr: string): string {
 	const date = new Date(dateStr)
@@ -11,8 +13,29 @@ function formatDate(dateStr: string): string {
 }
 
 function InviteRow({ invite }: { invite: TeamInvite }) {
-	const { revokeInviteMutation } = useTeam()
+	const { revokeInviteMutation, resendInviteMutation } = useTeam()
 	const [showRevokeConfirm, setShowRevokeConfirm] = useState(false)
+	const [cooldownUntil, setCooldownUntil] = useState<number | null>(null)
+	const [now, setNow] = useState(() => Date.now())
+
+	useEffect(() => {
+		if (!cooldownUntil) return
+		const tick = () => setNow(Date.now())
+		const id = window.setInterval(tick, 1000)
+		return () => window.clearInterval(id)
+	}, [cooldownUntil])
+
+	const remainingMs = cooldownUntil ? Math.max(0, cooldownUntil - now) : 0
+	const remainingSeconds = Math.ceil(remainingMs / 1000)
+	const onCooldown = remainingMs > 0
+	const isResending = resendInviteMutation.isPending && resendInviteMutation.variables?.inviteId === invite.id
+
+	const handleResend = () => {
+		if (onCooldown || isResending) return
+		void resendInviteMutation.mutateAsync({ inviteId: invite.id }).then(() => {
+			setCooldownUntil(Date.now() + RESEND_COOLDOWN_MS)
+		})
+	}
 
 	const isExpired = new Date(invite.expiresAt) < new Date()
 
@@ -27,6 +50,15 @@ function InviteRow({ invite }: { invite: TeamInvite }) {
 						</span>
 					</div>
 				</div>
+				<button
+					onClick={handleResend}
+					disabled={onCooldown || isResending}
+					className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-(--sub-border-muted) px-2 text-xs font-medium text-(--sub-text-muted) transition-colors hover:border-(--sub-brand-primary) hover:text-(--sub-brand-primary) disabled:cursor-not-allowed disabled:opacity-50 dark:border-(--sub-border-strong)"
+					title={onCooldown ? `Wait ${remainingSeconds}s to resend again` : 'Resend invite'}
+				>
+					<Icon name="mail" height={12} width={12} />
+					{isResending ? 'Sending...' : onCooldown ? `Resend in ${remainingSeconds}s` : 'Resend'}
+				</button>
 				<button
 					onClick={() => setShowRevokeConfirm(true)}
 					className="flex h-7 shrink-0 items-center gap-1 rounded-md border border-(--sub-border-muted) px-2 text-xs font-medium text-(--sub-text-muted) transition-colors hover:border-(--error) hover:text-(--error) dark:border-(--sub-border-strong)"

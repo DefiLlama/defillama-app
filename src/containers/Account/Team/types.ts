@@ -29,6 +29,9 @@ export interface TeamSubscription {
 	billingInterval: 'month' | 'year'
 	seats: TeamSeatInfo
 	createdAt?: string
+	canceledAtPeriodEnd?: boolean
+	effectiveAt?: number
+	cancelsAt?: string | null
 }
 
 export interface Team {
