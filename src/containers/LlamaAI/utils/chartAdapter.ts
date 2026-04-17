@@ -1,4 +1,4 @@
-import { formatTooltipValue } from '~/components/ECharts/formatters'
+import { formatChartValue } from '~/components/ECharts/formatters'
 import type {
 	ICandlestickChartProps,
 	IMultiSeriesChart2Props,
@@ -8,33 +8,6 @@ import type {
 import { CHART_COLORS, oldBlue } from '~/constants/colors'
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
 import { getNDistinctColors } from '~/utils'
-
-const formatLlamaAIValue = (value: number, symbol: string): string => {
-	if (value == null || !Number.isFinite(value)) return String(value ?? '')
-	const abs = Math.abs(value)
-	const formatLarge = () =>
-		value.toLocaleString('en-US', {
-			notation: 'compact',
-			compactDisplay: 'short',
-			maximumFractionDigits: 2
-		})
-	if (abs >= 1000) {
-		if (symbol === '$') return `${value < 0 ? '-' : ''}$${formatLarge().replace(/^-/, '')}`
-		if (symbol === '%') return `${formatLarge()}%`
-		return symbol ? `${formatLarge()} ${symbol}` : formatLarge()
-	}
-	let maxDecimals: number
-	if (abs === 0) maxDecimals = 0
-	else if (abs < 0.001) maxDecimals = 6
-	else if (abs < 0.1) maxDecimals = 5
-	else if (abs < 10) maxDecimals = 5
-	else if (abs < 100) maxDecimals = 4
-	else maxDecimals = 2
-	const formatted = value.toLocaleString('en-US', { maximumFractionDigits: maxDecimals, minimumFractionDigits: 0 })
-	if (symbol === '$') return `${value < 0 ? '-' : ''}$${formatted.replace(/^-/, '')}`
-	if (symbol === '%') return `${formatted}%`
-	return symbol ? `${formatted} ${symbol}` : formatted
-}
 
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
@@ -320,6 +293,12 @@ const getTooltipValueFromParams = (item: any) => {
 	return item?.value
 }
 
+const getNumericTooltipValueFromParams = (item: any): number | null => {
+	const rawValue = getTooltipValueFromParams(item)
+	const value = rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+	return value == null || Number.isNaN(value) ? null : value
+}
+
 const createCategoryTooltipFormatter = (
 	valueSymbol: string,
 	charts: LlamaAICartesianSeriesConfig[] = []
@@ -335,9 +314,7 @@ const createCategoryTooltipFormatter = (
 			.map((item) => {
 				const seriesName = item?.seriesName
 				if (!seriesName) return null
-				const rawValue = getTooltipValueFromParams(item)
-				const value =
-					rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+				const value = getNumericTooltipValueFromParams(item)
 				if (value == null || Number.isNaN(value)) return null
 				return {
 					marker: item?.marker ?? '',
@@ -361,7 +338,7 @@ const createCategoryTooltipFormatter = (
 		const lines = values
 			.map(
 				(item) =>
-					`<div>${item.marker} ${item.seriesName}: ${formatTooltipValue(item.value, item.symbol ?? valueSymbol)}</div>`
+					`<div>${item.marker} ${item.seriesName}: ${formatChartValue(item.value, item.symbol ?? valueSymbol)}</div>`
 			)
 			.join('')
 
@@ -464,7 +441,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 				tooltipFormatter: (params: any) => {
 					if (params.value.length < 2) return ''
 					const entityName = params.value[2] || 'Unknown'
-					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatTooltipValue(params.value[0], xAxisSymbol)}<br/>${yAxisLabel}: ${formatTooltipValue(params.value[1], yAxisSymbol)}`
+					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatChartValue(params.value[0], xAxisSymbol)}<br/>${yAxisLabel}: ${formatChartValue(params.value[1], yAxisSymbol)}`
 				}
 			},
 			title: config.title,
@@ -644,23 +621,37 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 		}
 
 		const primaryAxisSymbol = config.axes.yAxes?.[0]?.valueSymbol ?? config.valueSymbol ?? ''
-		chartOptions.yAxis = {
-			...(chartOptions.yAxis ?? {}),
-			axisLabel: {
-				...(chartOptions.yAxis?.axisLabel ?? {}),
-				formatter: (value: number) => formatLlamaAIValue(value, primaryAxisSymbol)
-			}
-		}
+		if (config.axes.yAxes?.length) {
+			chartOptions.yAxis = config.axes.yAxes.map((axis, index) => {
+				const existingAxis = Array.isArray(chartOptions.yAxis)
+					? (chartOptions.yAxis[index] ?? {})
+					: index === 0
+						? (chartOptions.yAxis ?? {})
+						: {}
+				const valueSymbol = axis.valueSymbol ?? config.valueSymbol ?? ''
 
-		const primaryAxisMin = config.axes.yAxes?.[0]?.min
-		if (primaryAxisMin !== undefined) {
-			chartOptions.yAxis.min = primaryAxisMin
+				return {
+					...existingAxis,
+					axisLabel: {
+						...(existingAxis?.axisLabel ?? {}),
+						formatter: (value: number) => formatChartValue(value, valueSymbol)
+					},
+					...(axis.min !== undefined ? { min: axis.min } : {})
+				}
+			})
+		} else {
+			chartOptions.yAxis = {
+				...(chartOptions.yAxis ?? {}),
+				axisLabel: {
+					...(chartOptions.yAxis?.axisLabel ?? {}),
+					formatter: (value: number) => formatChartValue(value, primaryAxisSymbol)
+				}
+			}
 		}
 
 		if (axisType === 'time' && !chartOptions.tooltip) {
 			const seriesSymbols = new Map(charts.map((c) => [c.name, c.valueSymbol ?? primaryAxisSymbol]))
 			chartOptions.tooltip = {
-				valueFormatter: undefined,
 				formatter: (params: any) => {
 					const items = Array.isArray(params) ? params : params ? [params] : []
 					if (items.length === 0) return ''
@@ -674,13 +665,31 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 					const lines = items
 						.map((it: any) => {
 							const name = it?.seriesName
-							const val = Array.isArray(it?.value) ? Number(it.value[1]) : Number(it?.data?.[name] ?? it?.value)
-							if (!Number.isFinite(val)) return ''
-							const sym = seriesSymbols.get(name) ?? primaryAxisSymbol
-							const color = it?.color ?? '#888'
-							return `<li style="list-style:none;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px;"></span>${name}: <strong>${formatLlamaAIValue(val, sym)}</strong></li>`
+							if (!name) return null
+							const value = getNumericTooltipValueFromParams(it)
+							if (value == null) return null
+							return {
+								color: it?.color ?? '#888',
+								name,
+								symbol: seriesSymbols.get(name) ?? primaryAxisSymbol,
+								value
+							}
 						})
-						.filter(Boolean)
+						.filter(
+							(
+								item
+							): item is {
+								color: string
+								name: string
+								symbol: string
+								value: number
+							} => item !== null
+						)
+						.sort((a, b) => b.value - a.value)
+						.map(
+							(item) =>
+								`<li style="list-style:none;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;"></span>${item.name}: <strong>${formatChartValue(item.value, item.symbol)}</strong></li>`
+						)
 						.join('')
 					return `<div style="font-weight:600;margin-bottom:4px;">${dateStr}</div><ul style="margin:0;padding:0;">${lines}</ul>`
 				}

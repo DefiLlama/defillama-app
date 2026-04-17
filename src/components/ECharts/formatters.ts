@@ -270,6 +270,47 @@ export function formatTvlApyTooltip(params: any) {
 }
 
 /**
+ * Format chart values using LlamaAI's adaptive precision rules.
+ * Large values switch to compact notation, while smaller values gain precision
+ * as their magnitude decreases so axis labels and tooltips stay readable.
+ */
+export const formatChartValue = (value: number, symbol: string) => {
+	if (value == null || !Number.isFinite(value)) return String(value ?? '')
+
+	const abs = Math.abs(value)
+
+	const applySymbol = (formatted: string) => {
+		if (symbol === '$') return `${value < 0 ? '-' : ''}$${formatted.replace(/^-/, '')}`
+		if (symbol === '%') return `${formatted}%`
+		return symbol ? `${formatted} ${symbol}` : formatted
+	}
+
+	if (abs >= 1000) {
+		return applySymbol(
+			value.toLocaleString('en-US', {
+				notation: 'compact',
+				compactDisplay: 'short',
+				maximumFractionDigits: 2
+			})
+		)
+	}
+
+	let maxDecimals: number
+	if (abs === 0) maxDecimals = 0
+	else if (abs < 0.001) maxDecimals = 6
+	else if (abs < 10) maxDecimals = 5
+	else if (abs < 100) maxDecimals = 4
+	else maxDecimals = 2
+
+	return applySymbol(
+		value.toLocaleString('en-US', {
+			maximumFractionDigits: maxDecimals,
+			minimumFractionDigits: 0
+		})
+	)
+}
+
+/**
  * Format a numeric value for display in a tooltip, applying the appropriate unit.
  * `'$'` uses abbreviated currency formatting, `'%'` rounds to two decimals,
  * and any other symbol is appended after a formatted number.

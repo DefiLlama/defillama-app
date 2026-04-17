@@ -183,7 +183,7 @@ export function ResponseControls({
 	return (
 		<>
 			<div
-				className={`flex items-center gap-0.5 pb-3 pt-1${isLatest ? '' : ' opacity-0 transition-opacity duration-150 group-hover/msg:opacity-100 focus-within:opacity-100'}`}
+				className={`flex items-center gap-0.5 pb-3${isLatest ? '' : ' opacity-0 transition-opacity duration-150 group-hover/msg:opacity-100 focus-within:opacity-100'}`}
 			>
 				{content ? (
 					<Tooltip
