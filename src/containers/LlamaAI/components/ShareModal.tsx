@@ -14,6 +14,7 @@ interface ShareModalProps {
 	open: boolean
 	setOpen: (value: boolean) => void
 	sessionId: string | null
+	messageId?: string | null
 }
 
 interface ShareResult {
@@ -21,7 +22,12 @@ interface ShareResult {
 	isPublic: boolean
 }
 
-export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId }: ShareModalProps) {
+function buildShareLink(origin: string, shareToken: string, messageId?: string | null) {
+	const baseLink = `${origin}/ai/chat/shared/${shareToken}`
+	return messageId ? `${baseLink}#msg-${messageId}` : baseLink
+}
+
+export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId, messageId }: ShareModalProps) {
 	const [shareResult, setShareResult] = useState<ShareResult | null>(null)
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -47,7 +53,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId }:
 		onSuccess: (data) => {
 			if (data.shareToken) {
 				setShareResult(data)
-				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
+				const shareLink = buildShareLink(window.location.origin, data.shareToken, messageId)
 				void navigator.clipboard.writeText(shareLink)
 			}
 		},
@@ -63,7 +69,7 @@ export const ShareModal = memo(function ShareModal({ open, setOpen, sessionId }:
 	}, [])
 
 	const origin = typeof window === 'undefined' ? '' : window.location.origin
-	const shareLink = shareResult?.shareToken && origin ? `${origin}/ai/chat/shared/${shareResult.shareToken}` : ''
+	const shareLink = shareResult?.shareToken && origin ? buildShareLink(origin, shareResult.shareToken, messageId) : ''
 
 	const handleCopyLink = useCallback(async () => {
 		if (!shareLink) return

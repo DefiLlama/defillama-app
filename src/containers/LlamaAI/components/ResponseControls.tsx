@@ -16,7 +16,7 @@ interface ResponseControlsProps {
 	readOnly?: boolean
 	messageMetadata?: MessageMetadata
 	isLatest?: boolean
-	onShare?: () => void
+	onShare?: (messageId?: string) => void
 }
 
 type Rating = 'good' | 'bad' | null
@@ -284,7 +284,7 @@ export function ResponseControls({
 				{sessionId && !readOnly && onShare ? (
 					<Tooltip
 						content="Share"
-						render={<button onClick={onShare} />}
+						render={<button onClick={() => onShare(messageId)} />}
 						className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
 					>
 						<Icon name="share" height={16} width={16} />

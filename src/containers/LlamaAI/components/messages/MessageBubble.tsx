@@ -685,7 +685,7 @@ export function MessageBubble({
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
-	onShare?: () => void
+	onShare?: (messageId?: string) => void
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>

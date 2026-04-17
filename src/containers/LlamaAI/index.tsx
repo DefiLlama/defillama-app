@@ -797,6 +797,7 @@ export function AgenticChat({
 	] = useReducer(dashboardPanelReducer, INITIAL_DASHBOARD_PANEL_STATE)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
+	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
 	const { settings, actions, availableModels } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
@@ -891,6 +892,18 @@ export function AgenticChat({
 		clearPromptTransitionTimer()
 		setPromptTransitionMode('idle')
 	}, [clearPromptTransitionTimer])
+
+	const openShareModal = useCallback((messageId?: string) => {
+		setShareTargetMessageId(messageId ?? null)
+		setShowShareModal(true)
+	}, [])
+
+	const setShareModalOpen = useCallback((nextOpen: boolean) => {
+		setShowShareModal(nextOpen)
+		if (!nextOpen) {
+			setShareTargetMessageId(null)
+		}
+	}, [])
 
 	const triggerPromptTransition = useCallback(
 		(mode: PromptTransitionMode) => {
@@ -2173,7 +2186,7 @@ export function AgenticChat({
 					) : null}
 					{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
 						<button
-							onClick={() => setShowShareModal(true)}
+							onClick={() => openShareModal()}
 							data-umami-event="llamaai-share-modal-open"
 							data-umami-event-source="header_controls"
 							className="absolute top-2.5 right-2.5 z-10 flex items-center gap-1.5 rounded-md border border-[#e6e6e6] px-3 py-1.5 text-xs font-medium text-[#444] transition-colors hover:bg-[#f7f7f7] dark:border-[#333] dark:text-[#ccc] dark:hover:bg-[#222324]"
@@ -2249,7 +2262,7 @@ export function AgenticChat({
 									quotedText={quotedText}
 									onClearQuotedText={() => setQuotedText(null)}
 									onTableFullscreenOpen={hideSidebar}
-									onShare={() => setShowShareModal(true)}
+									onShare={openShareModal}
 								/>
 							</div>
 						</div>
@@ -2307,7 +2320,7 @@ export function AgenticChat({
 							quotedText={quotedText}
 							onClearQuotedText={() => setQuotedText(null)}
 							onTableFullscreenOpen={hideSidebar}
-							onShare={() => setShowShareModal(true)}
+							onShare={openShareModal}
 						/>
 					)}
 				</div>
@@ -2347,7 +2360,12 @@ export function AgenticChat({
 					<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
 				) : null}
 				{!readOnly && showShareModal ? (
-					<ShareModal open={true} setOpen={setShowShareModal} sessionId={effectiveSessionId} />
+					<ShareModal
+						open={true}
+						setOpen={setShareModalOpen}
+						sessionId={effectiveSessionId}
+						messageId={shareTargetMessageId}
+					/>
 				) : null}
 				{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
 				{shouldRenderSubscribeModal ? (

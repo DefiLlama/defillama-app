@@ -70,7 +70,7 @@ interface ConversationViewProps {
 	quotedText?: string | null
 	onClearQuotedText?: () => void
 	onTableFullscreenOpen?: () => void
-	onShare?: () => void
+	onShare?: (messageId?: string) => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -104,7 +104,7 @@ function ConversationMessageItem({
 }: {
 	message: Message
 	nextUserMessage?: string
-	onShare?: () => void
+	onShare?: (messageId?: string) => void
 	sessionId: string | null
 	readOnly: boolean
 	isLlama: boolean
