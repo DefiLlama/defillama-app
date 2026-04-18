@@ -1,23 +1,35 @@
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import { inferColumnKind, SectionLabel, TypeBadge } from './primitives'
 import { prettyLabelForSource, type RegisteredTable } from './useTableRegistry'
+
+export type PendingTableStatus = 'pending' | 'loading' | 'failed'
+
+export interface PendingTable {
+	key: string
+	name: string
+	label: string
+	status: PendingTableStatus
+}
 
 interface TableChipRailProps {
 	tables: RegisteredTable[]
 	onAddTable: () => void
 	onRemove: (name: string) => void
+	pending?: PendingTable[]
 }
 
-export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailProps) {
+export function TableChipRail({ tables, onAddTable, onRemove, pending = [] }: TableChipRailProps) {
 	const [openName, setOpenName] = useState<string | null>(null)
 	const openTable = openName ? (tables.find((t) => t.name === openName) ?? null) : null
+	const totalCount = tables.length + pending.length
 
 	return (
 		<section aria-label="Loaded tables" className="flex flex-col gap-2">
 			<SectionLabel
 				label="Tables"
-				count={tables.length}
+				count={totalCount}
 				action={
 					<button
 						type="button"
@@ -30,7 +42,7 @@ export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailPro
 				}
 			/>
 
-			{tables.length === 0 ? (
+			{totalCount === 0 ? (
 				<div className="rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-3 py-2.5 text-xs text-(--text-secondary)">
 					No tables loaded.{' '}
 					<button
@@ -43,7 +55,7 @@ export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailPro
 					to start querying.
 				</div>
 			) : (
-				<div className="flex flex-wrap items-center gap-1.5">
+				<div className="flex flex-wrap items-center gap-1.5" aria-live="polite">
 					{tables.map((t) => {
 						const isOpen = openName === t.name
 						return (
@@ -59,6 +71,9 @@ export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailPro
 							/>
 						)
 					})}
+					{pending.map((p) => (
+						<PendingChip key={p.key} table={p} />
+					))}
 				</div>
 			)}
 
@@ -110,6 +125,52 @@ function TableChip({
 			>
 				<Icon name="x" className="h-3 w-3" />
 			</button>
+		</div>
+	)
+}
+
+function PendingChip({ table }: { table: PendingTable }) {
+	const { status } = table
+	const failed = status === 'failed'
+	const loading = status === 'loading'
+	return (
+		<div
+			role="status"
+			aria-label={
+				failed
+					? `Failed to load ${table.label}`
+					: loading
+						? `Loading ${table.label}`
+						: `Queued ${table.label}`
+			}
+			title={table.label}
+			className={`flex items-center gap-1.5 overflow-hidden rounded-md border border-dashed px-2.5 py-1 text-xs transition-colors ${
+				failed
+					? 'border-red-500/50 bg-red-500/5 text-red-600 dark:text-red-300'
+					: loading
+						? 'border-(--primary)/40 bg-(--primary)/5 text-(--text-primary)'
+						: 'border-(--divider) bg-(--cards-bg)/40 text-(--text-secondary)'
+			} ${loading ? 'animate-pulse' : ''}`}
+		>
+			<span className="flex h-3 w-3 shrink-0 items-center justify-center">
+				{failed ? (
+					<Icon name="alert-triangle" className="h-3 w-3 text-red-500" />
+				) : loading ? (
+					<LoadingSpinner size={10} />
+				) : (
+					<span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--text-tertiary)/60">
+						<span className="absolute inset-0 animate-ping rounded-full bg-(--text-tertiary)/60 opacity-60" />
+					</span>
+				)}
+			</span>
+			<span className="max-w-[180px] truncate font-mono font-medium">{table.name}</span>
+			<span
+				className={`text-[10px] tracking-wide uppercase tabular-nums ${
+					failed ? 'text-red-500/80' : 'text-(--text-tertiary)'
+				}`}
+			>
+				{failed ? 'failed' : loading ? 'loading' : 'queued'}
+			</span>
 		</div>
 	)
 }

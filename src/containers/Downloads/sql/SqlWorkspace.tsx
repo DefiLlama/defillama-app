@@ -1,7 +1,6 @@
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
-import toast from 'react-hot-toast'
+import { type Dispatch, type ReactNode, type SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from '~/components/Loaders'
+import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import type { ChartOptionsMap } from '../chart-datasets'
@@ -14,11 +13,17 @@ import { ExamplesPanel } from './ExamplesPanel'
 import { LoadTableModal } from './LoadTableModal'
 import { Keycap, SectionLabel, StatusDot } from './primitives'
 import { ResultsPanel } from './ResultsPanel'
-import { TableChipRail } from './TableChipRail'
+import { TableChipRail, type PendingTable } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
-import { identifierize, prettyLabelForSource, type TableSource } from './useTableRegistry'
-import { useTableRegistry, type RegisteredTable } from './useTableRegistry'
+import {
+	identifierize,
+	prettyLabelForSource,
+	tableNameFor,
+	useTableRegistry,
+	type RegisteredTable,
+	type TableSource
+} from './useTableRegistry'
 
 const SQL_TABS = [
 	{ id: 'editor', label: 'Editor' },
@@ -38,8 +43,8 @@ export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
 
 	if (loaders.userLoading) {
 		return (
-			<div className="flex h-64 items-center justify-center">
-				<LoadingSpinner size={20} />
+			<div className="flex min-h-[60vh] items-center justify-center">
+				<LocalLoader />
 			</div>
 		)
 	}
@@ -116,6 +121,10 @@ ORDER BY date DESC
 	// Title of whichever playbook / saved-query entry is currently being applied,
 	// so those lists can show a spinner on the clicked row.
 	const [busyTaskId, setBusyTaskId] = useState<string | null>(null)
+	// Ghost chips rendered in the TableChipRail while tables resolve. Each entry
+	// flips pending → loading → (removed on success | failed on error). Failed
+	// chips linger briefly before being cleared so the red flash is readable.
+	const [pendingTables, setPendingTables] = useState<PendingTable[]>([])
 	const editorRef = useRef<EditorHandle | null>(null)
 
 	const savedQueries = useMemo(
@@ -130,46 +139,26 @@ ORDER BY date DESC
 			if (!trimmed) return
 			setRunning(true)
 			setRunError(null)
+			setPendingTables([])
 			const started = performance.now()
 			try {
 				const referenced = extractTableRefs(trimmed)
 				const loadedNames = new Set(registry.tables.map((t) => t.name))
 				const missingRefs = referenced.filter((r) => !loadedNames.has(r))
 
-				for (const ref of missingRefs) {
-					const match = matchTableRef(ref)
-					if (!match) continue
-					if (match.kind === 'dataset') {
-						toast.loading(`Loading ${match.definition.name}…`, { id: `auto-load-${ref}` })
-						const loaded = await registry.load({ kind: 'dataset', slug: match.slug })
-						toast.dismiss(`auto-load-${ref}`)
-						if (!loaded) {
-							throw new Error(`Could not auto-load table "${ref}" (${match.definition.name}).`)
-						}
-					} else {
-						const options = chartOptionsMap[match.definition.slug] ?? []
-						const resolvedOption = options.find((opt) => identifierize(opt.value) === match.paramIdentifier)
-						if (!resolvedOption) {
-							throw new Error(
-								`Table "${ref}" — couldn't resolve ${match.definition.paramLabel.toLowerCase()} "${match.paramIdentifier}" for ${match.definition.name}. Use "add" to browse valid options.`
-							)
-						}
-						toast.loading(`Loading ${match.definition.name} · ${resolvedOption.label}…`, {
-							id: `auto-load-${ref}`
-						})
-						const loaded = await registry.load({
-							kind: 'chart',
-							slug: match.definition.slug,
-							param: resolvedOption.value,
-							paramLabel: resolvedOption.label
-						})
-						toast.dismiss(`auto-load-${ref}`)
-						if (!loaded) {
-							throw new Error(
-								`Could not auto-load table "${ref}" (${match.definition.name} · ${resolvedOption.label}).`
-							)
-						}
+				const plan = buildAutoLoadPlan(missingRefs, chartOptionsMap)
+				if (plan.length > 0) {
+					setPendingTables(plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' })))
+				}
+
+				for (const step of plan) {
+					setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p)))
+					const loaded = await registry.load(step.source)
+					if (!loaded) {
+						setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p)))
+						throw new Error(`Could not auto-load table "${step.name}" (${step.label}).`)
 					}
+					setPendingTables((prev) => prev.filter((p) => p.key !== step.key))
 				}
 
 				const arrow = await duckdb.conn.query(trimmed)
@@ -200,6 +189,7 @@ ORDER BY date DESC
 			} catch (err) {
 				setRunError(err instanceof Error ? err.message : String(err))
 				setResult(null)
+				schedulePendingClear(setPendingTables)
 			} finally {
 				setRunning(false)
 			}
@@ -214,31 +204,41 @@ ORDER BY date DESC
 			setBusyTaskId(taskId)
 			setRunError(null)
 			setResult(null)
-			const openToastIds: string[] = []
+			setPendingTables([])
+			setSql(nextSql)
+			setTab('editor')
 			try {
-				for (const [index, t] of tables.entries()) {
-					if (registry.tables.some((r) => sameSource(r.source, t))) continue
-					const label = prettyLabelForSource(t)
-					const stage = tables.length > 1 ? `Loading ${label} · ${index + 1}/${tables.length}` : `Loading ${label}`
-					setLoadingStage(`${stage}…`)
-					const tid = `apply-${taskId}-${index}`
-					openToastIds.push(tid)
-					toast.loading(`${stage}…`, { id: tid })
-					const loaded = await registry.load(t)
-					if (!loaded) {
-						toast.error(`Failed to load ${label}`, { id: tid })
-						throw new Error(`Could not load ${label}.`)
-					}
-					toast.success(`Loaded ${label}`, { id: tid, duration: 1200 })
+				const plan = tables
+					.filter((t) => !registry.tables.some((r) => sameSource(r.source, t)))
+					.map((t, index) => ({
+						key: `apply-${taskId}-${index}`,
+						source: t,
+						name: tableNameFor(t),
+						label: prettyLabelForSource(t)
+					}))
+
+				if (plan.length > 0) {
+					setPendingTables(plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' })))
 				}
-				setSql(nextSql)
-				setTab('editor')
+
+				for (const [index, step] of plan.entries()) {
+					setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p)))
+					const stagePrefix =
+						plan.length > 1 ? `Loading ${step.label} · ${index + 1}/${plan.length}` : `Loading ${step.label}`
+					setLoadingStage(`${stagePrefix}…`)
+					const loaded = await registry.load(step.source)
+					if (!loaded) {
+						setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p)))
+						throw new Error(`Could not load ${step.label}.`)
+					}
+					setPendingTables((prev) => prev.filter((p) => p.key !== step.key))
+				}
 				setLoadingStage(null)
 				await runSql(nextSql)
 			} catch (err) {
-				for (const id of openToastIds) toast.dismiss(id)
 				setRunError(err instanceof Error ? err.message : String(err))
 				setResult(null)
+				schedulePendingClear(setPendingTables)
 			} finally {
 				setLoadingStage(null)
 				setBusyTaskId(null)
@@ -303,6 +303,7 @@ ORDER BY date DESC
 							tables={registry.tables}
 							onAddTable={() => setLoadTableOpen(true)}
 							onRemove={registry.remove}
+							pending={pendingTables}
 						/>
 						<Editor ref={editorRef} value={sql} onChange={setSql} onRun={runQuery} tables={registry.tables} />
 						<EditorRunBar
@@ -715,6 +716,55 @@ function sameSource(
 	if (a.kind === 'dataset' && b.kind === 'dataset') return a.slug === b.slug
 	if (a.kind === 'chart' && b.kind === 'chart') return a.slug === b.slug && a.param === b.param
 	return false
+}
+
+interface AutoLoadStep {
+	key: string
+	name: string
+	label: string
+	source: TableSource
+}
+
+function buildAutoLoadPlan(missingRefs: string[], chartOptionsMap: ChartOptionsMap): AutoLoadStep[] {
+	const steps: AutoLoadStep[] = []
+	for (const ref of missingRefs) {
+		const match = matchTableRef(ref)
+		if (!match) continue
+		if (match.kind === 'dataset') {
+			steps.push({
+				key: `auto-${ref}`,
+				name: ref,
+				label: match.definition.name,
+				source: { kind: 'dataset', slug: match.slug }
+			})
+			continue
+		}
+		const options = chartOptionsMap[match.definition.slug] ?? []
+		const resolvedOption = options.find((opt) => identifierize(opt.value) === match.paramIdentifier)
+		if (!resolvedOption) {
+			throw new Error(
+				`Table "${ref}" — couldn't resolve ${match.definition.paramLabel.toLowerCase()} "${match.paramIdentifier}" for ${match.definition.name}. Use "add" to browse valid options.`
+			)
+		}
+		steps.push({
+			key: `auto-${ref}`,
+			name: ref,
+			label: `${match.definition.name} · ${resolvedOption.label}`,
+			source: {
+				kind: 'chart',
+				slug: match.definition.slug,
+				param: resolvedOption.value,
+				paramLabel: resolvedOption.label
+			}
+		})
+	}
+	return steps
+}
+
+// Linger on failed chips so the red flash is readable, then clear the whole pending list.
+// The authoritative error story is already in `ErrorBanner` — the chips are just an echo.
+function schedulePendingClear(setPending: Dispatch<SetStateAction<PendingTable[]>>) {
+	window.setTimeout(() => setPending([]), 1400)
 }
 
 function firstNonEmptyLine(text: string): string {
