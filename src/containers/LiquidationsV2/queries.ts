@@ -25,6 +25,7 @@ import type {
 	ProtocolChainRow,
 	RawLiquidationPosition
 } from './api.types'
+import { createProtocolMetadataLookup } from './protocolMetadata'
 
 interface LiquidationsMetadataCache {
 	chainMetadata: Record<string, IChainMetadata>
@@ -42,20 +43,6 @@ interface ChainAggregate {
 }
 
 const LIQUIDATIONS_V2_TOTAL_BINS = 60
-
-function createProtocolMetadataLookup(
-	protocolMetadata: Record<string, IProtocolMetadata>
-): Map<string, LiquidationsProtocolMetadata> {
-	const lookup = new Map<string, LiquidationsProtocolMetadata>()
-
-	for (const metadata of Object.values(protocolMetadata) as LiquidationsProtocolMetadata[]) {
-		if (metadata?.name) {
-			lookup.set(metadata.name, metadata)
-		}
-	}
-
-	return lookup
-}
 
 function getProtocolRef(
 	protocolId: string,
@@ -80,15 +67,11 @@ function getChainRef(chainId: string, chainMetadata: Record<string, IChainMetada
 	}
 }
 
-function sortByName<T extends { name: string }>(rows: T[]): T[] {
-	return rows.sort((a, b) => a.name.localeCompare(b.name))
-}
-
 function getProtocolLinks(
 	protocolIds: string[],
 	protocolMetadataLookup: Map<string, LiquidationsProtocolMetadata>
 ): NavLink[] {
-	const protocolRefs = sortByName(protocolIds.map((protocolId) => getProtocolRef(protocolId, protocolMetadataLookup)))
+	const protocolRefs = protocolIds.map((protocolId) => getProtocolRef(protocolId, protocolMetadataLookup))
 
 	return [
 		{ label: 'Overview', to: '/liquidations' },
@@ -101,7 +84,9 @@ function getChainLinks(
 	chainIds: string[],
 	chainMetadata: Record<string, IChainMetadata>
 ): NavLink[] {
-	const chainRefs = sortByName(chainIds.map((chainId) => getChainRef(chainId, chainMetadata)))
+	const chainRefs = chainIds
+		.map((chainId) => getChainRef(chainId, chainMetadata))
+		.sort((a, b) => a.name.localeCompare(b.name))
 
 	return getChainLinksFromRefs(protocol, chainRefs)
 }
@@ -421,7 +406,9 @@ export async function getLiquidationsProtocolPageData(
 	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
 	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
 	const chainIds = Object.keys(protocolResponse.data)
-	const chainRefs = sortByName(chainIds.map((chainId) => getChainRef(chainId, metadataCache.chainMetadata)))
+	const chainRefs = chainIds
+		.map((chainId) => getChainRef(chainId, metadataCache.chainMetadata))
+		.sort((a, b) => a.name.localeCompare(b.name))
 	const chainLinks = getChainLinksFromRefs(protocol, chainRefs)
 	const ownerBlockExplorers = filterBlockExplorersForChains({
 		blockExplorers,
@@ -507,11 +494,12 @@ export async function getLiquidationsChainPageData(
 	const positions = normalizePositions(protocol, chain, chainResponse.data)
 	const chainRows: ProtocolChainRow[] = []
 
-	for (const currentChainId of sortByName(chainIds.map((id) => getChainRef(id, metadataCache.chainMetadata))).map(
-		(currentChain) => currentChain.id
-	)) {
-		const currentChain = getChainRef(currentChainId, metadataCache.chainMetadata)
-		const rawPositions = protocolResponse.data[currentChainId]
+	const sortedChainRefs = chainIds
+		.map((id) => getChainRef(id, metadataCache.chainMetadata))
+		.sort((a, b) => a.name.localeCompare(b.name))
+
+	for (const currentChain of sortedChainRefs) {
+		const rawPositions = protocolResponse.data[currentChain.id]
 		chainRows.push({
 			...currentChain,
 			protocolId: protocol.id,
