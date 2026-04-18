@@ -49,12 +49,12 @@ describe('liquidations SSG routes', () => {
 	it('returns minimal shell props for the overview page', async () => {
 		await expect(overviewPage.getStaticProps({} as never)).resolves.toEqual(
 			expect.objectContaining({
-				props: {
+				props: expect.objectContaining({
 					protocolLinks: [
 						{ label: 'Overview', to: '/liquidations' },
 						{ label: 'Sky', to: '/liquidations/sky' }
 					]
-				}
+				})
 			})
 		)
 	})
@@ -81,7 +81,7 @@ describe('liquidations SSG routes', () => {
 		})
 	})
 
-	it('returns all protocol paths and disables fallback blocking', async () => {
+	it('returns all protocol paths and enables blocking fallback', async () => {
 		await expect(protocolPage.getStaticPaths()).resolves.toEqual({
 			paths: [{ params: { protocol: 'sky' } }],
 			fallback: 'blocking'

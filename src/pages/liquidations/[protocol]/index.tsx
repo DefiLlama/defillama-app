@@ -55,7 +55,7 @@ export const getStaticProps = withPerformanceLogging(
 
 				return {
 					label: protocolName,
-					to: `/liquidations/${slug(protocolName)}`
+					to: `/liquidations/${protocolId}`
 				}
 			})
 		]
