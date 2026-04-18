@@ -25,7 +25,8 @@ vi.mock('~/utils/metadata', () => ({
 			'arbitrum-one': { id: 'arbitrum', name: 'Arbitrum One' }
 		},
 		protocolMetadata: {
-			sky: { displayName: 'Sky' }
+			sky: { displayName: 'Sky' },
+			makerdao: { name: 'sky', displayName: 'Sky' }
 		}
 	},
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
