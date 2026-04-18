@@ -2,6 +2,7 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type { LiquidationsProtocolShell } from '~/containers/LiquidationsV2/api.types'
+import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsProtocolRouteContent } from '~/containers/LiquidationsV2/RouteContent'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -22,7 +23,7 @@ export const getStaticPaths = async () => {
 		paths: protocolsResponse.protocols.map((protocolId) => {
 			return { params: { protocol: protocolId } }
 		}),
-		fallback: false
+		fallback: 'blocking'
 	}
 }
 
@@ -45,29 +46,24 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-
-		const liqProtocols = new Set(protocolsResponse.protocols)
-		const protocolMetadata = metadataModule.default.protocolMetadata
-		const protocolNames: Record<string, string> = Object.create(null)
-
-		for (const id in protocolMetadata) {
-			const metadata = protocolMetadata[id]
-			if (liqProtocols.has(metadata.name)) {
-				protocolNames[metadata.name] = metadata.displayName ?? id
-			}
-		}
+		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
 
 		const protocolLinks = [
 			{ label: 'Overview', to: '/liquidations' },
-			...protocolsResponse.protocols.map((protocolId) => ({
-				label: protocolNames[protocolId],
-				to: `/liquidations/${protocolId}`
-			}))
+			...protocolsResponse.protocols.map((protocolId) => {
+				const protocolName = protocolMetadataLookup.get(protocolId)?.displayName ?? protocolId
+
+				return {
+					label: protocolName,
+					to: `/liquidations/${slug(protocolName)}`
+				}
+			})
 		]
+		const protocolName = protocolMetadataLookup.get(protocolParam)?.displayName ?? protocolParam
 
 		return {
 			props: {
-				protocolName: protocolNames[protocolParam],
+				protocolName,
 				protocolSlug: protocolParam,
 				protocolLinks,
 				chainLinks: [{ label: 'All Chains', to: `/liquidations/${protocolParam}` }]

@@ -1,6 +1,7 @@
 import type { InferGetStaticPropsType } from 'next'
 import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type { LiquidationsOverviewShell } from '~/containers/LiquidationsV2/api.types'
+import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsOverviewRouteContent } from '~/containers/LiquidationsV2/RouteContent'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -16,10 +17,11 @@ export const getStaticProps = withPerformanceLogging(
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
 		const protocolsResponse = await fetchProtocolsList()
+		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
 		const protocolLinks = [
 			{ label: 'Overview', to: '/liquidations' },
 			...protocolsResponse.protocols.map((protocolId) => {
-				const protocolName = metadataModule.default.protocolMetadata[slug(protocolId)]?.displayName ?? protocolId
+				const protocolName = protocolMetadataLookup.get(protocolId)?.displayName ?? protocolId
 
 				return {
 					label: protocolName,

@@ -25,6 +25,7 @@ import type {
 	ProtocolChainRow,
 	RawLiquidationPosition
 } from './api.types'
+import { createProtocolMetadataLookup } from './protocolMetadata'
 
 interface LiquidationsMetadataCache {
 	chainMetadata: Record<string, IChainMetadata>
@@ -42,20 +43,6 @@ interface ChainAggregate {
 }
 
 const LIQUIDATIONS_V2_TOTAL_BINS = 60
-
-function createProtocolMetadataLookup(
-	protocolMetadata: Record<string, IProtocolMetadata>
-): Map<string, LiquidationsProtocolMetadata> {
-	const lookup = new Map<string, LiquidationsProtocolMetadata>()
-
-	for (const metadata of Object.values(protocolMetadata) as LiquidationsProtocolMetadata[]) {
-		if (metadata?.name) {
-			lookup.set(metadata.name, metadata)
-		}
-	}
-
-	return lookup
-}
 
 function getProtocolRef(
 	protocolId: string,
@@ -507,12 +494,12 @@ export async function getLiquidationsChainPageData(
 	const positions = normalizePositions(protocol, chain, chainResponse.data)
 	const chainRows: ProtocolChainRow[] = []
 
-	for (const currentChainId of chainIds
+	const sortedChainRefs = chainIds
 		.map((id) => getChainRef(id, metadataCache.chainMetadata))
 		.sort((a, b) => a.name.localeCompare(b.name))
-		.map((currentChain) => currentChain.id)) {
-		const currentChain = getChainRef(currentChainId, metadataCache.chainMetadata)
-		const rawPositions = protocolResponse.data[currentChainId]
+
+	for (const currentChain of sortedChainRefs) {
+		const rawPositions = protocolResponse.data[currentChain.id]
 		chainRows.push({
 			...currentChain,
 			protocolId: protocol.id,

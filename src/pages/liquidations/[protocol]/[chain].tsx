@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
 import type { LiquidationsChainShell } from '~/containers/LiquidationsV2/api.types'
+import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
 import { LiquidationsChainRouteContent } from '~/containers/LiquidationsV2/RouteContent'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -34,34 +35,29 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metadataModule = await import('~/utils/metadata')
+		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
 
 		const chainMetadata = metadataModule.default.chainMetadata[chainParam]
 		if (!chainMetadata) {
 			return { notFound: true }
 		}
 
-		const liqProtocols = new Set(protocolsResponse.protocols)
-		const protocolMetadata = metadataModule.default.protocolMetadata
-		const protocolNames: Record<string, string> = Object.create(null)
-
-		for (const id in protocolMetadata) {
-			const metadata = protocolMetadata[id]
-			if (liqProtocols.has(metadata.name)) {
-				protocolNames[metadata.name] = metadata.displayName ?? id
-			}
-		}
-
 		const protocolLinks = [
 			{ label: 'Overview', to: '/liquidations' },
-			...protocolsResponse.protocols.map((protocolId) => ({
-				label: protocolNames[protocolId],
-				to: `/liquidations/${protocolId}`
-			}))
+			...protocolsResponse.protocols.map((protocolId) => {
+				const protocolName = protocolMetadataLookup.get(protocolId)?.displayName ?? protocolId
+
+				return {
+					label: protocolName,
+					to: `/liquidations/${slug(protocolName)}`
+				}
+			})
 		]
+		const protocolName = protocolMetadataLookup.get(protocolParam)?.displayName ?? protocolParam
 
 		return {
 			props: {
-				protocolName: protocolNames[protocolParam],
+				protocolName,
 				protocolSlug: protocolParam,
 				chainName: chainMetadata.name,
 				chainSlug: chainParam,

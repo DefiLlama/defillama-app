@@ -18,7 +18,7 @@ export function LiquidationsChainPage(props: LiquidationsChainPageProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.protocolLinks} activeLink={props.protocolName} />
-			{props.chainLinks?.length > 2 ? (
+			{(props.chainLinks?.length ?? 0) > 2 ? (
 				<RowLinksWithDropdown links={props.chainLinks} activeLink={props.chainName} />
 			) : null}
 

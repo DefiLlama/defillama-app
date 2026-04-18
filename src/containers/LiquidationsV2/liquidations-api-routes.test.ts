@@ -150,4 +150,45 @@ describe('liquidations api routes', () => {
 			})
 		)
 	})
+
+	it('returns a 500 json error when overview auth validation throws', async () => {
+		const req = { method: 'GET', headers: { authorization: 'Bearer bad' }, query: {} } as unknown as NextApiRequest
+		const res = createRes()
+		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
+
+		await overviewHandler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch liquidations overview data' })
+	})
+
+	it('returns a 500 json error when protocol auth validation throws', async () => {
+		const req = {
+			method: 'GET',
+			headers: { authorization: 'Bearer bad' },
+			query: { protocol: 'sky' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
+
+		await protocolHandler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch liquidations protocol data' })
+	})
+
+	it('returns a 500 json error when chain auth validation throws', async () => {
+		const req = {
+			method: 'GET',
+			headers: { authorization: 'Bearer bad' },
+			query: { protocol: 'sky', chain: 'arbitrum-one' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
+
+		await chainHandler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch liquidations chain data' })
+	})
 })

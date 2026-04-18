@@ -21,12 +21,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(400).json({ error: 'Missing protocol parameter' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
-	}
-
 	try {
+		const auth = await validateSubscription(req.headers.authorization)
+		if (auth.valid === false) {
+			return res.status(auth.status).json({ error: auth.error })
+		}
+
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
 

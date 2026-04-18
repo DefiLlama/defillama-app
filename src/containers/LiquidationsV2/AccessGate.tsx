@@ -27,7 +27,7 @@ function LiquidationsShellChrome({
 	return (
 		<>
 			{protocolLinks?.length ? <RowLinksWithDropdown links={protocolLinks} activeLink={activeProtocolLink} /> : null}
-			{chainLinks?.length > 2 ? <RowLinksWithDropdown links={chainLinks} activeLink={activeChainLink} /> : null}
+			{(chainLinks?.length ?? 0) > 2 ? <RowLinksWithDropdown links={chainLinks} activeLink={activeChainLink} /> : null}
 		</>
 	)
 }
@@ -78,7 +78,7 @@ export function LiquidationsShellError({
 export function LiquidationsAccessGate(props: LiquidationsShellChromeProps) {
 	const router = useRouter()
 	const signInDialogStore = Ariakit.useDialogStore()
-	const { hasActiveSubscription, isAuthenticated, loaders } = useAuthContext()
+	const { isAuthenticated, loaders } = useAuthContext()
 
 	if (loaders.userLoading) {
 		return <LiquidationsShellLoader {...props} />
@@ -95,8 +95,6 @@ export function LiquidationsAccessGate(props: LiquidationsShellChromeProps) {
 						</button>{' '}
 						is required to view liquidations data.
 					</p>
-				) : hasActiveSubscription ? (
-					<p className="text-sm text-(--text-label)">Loading liquidations data...</p>
 				) : (
 					<p className="text-sm text-(--text-label)">
 						An{' '}

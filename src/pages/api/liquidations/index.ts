@@ -16,12 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		return res.status(auth.status).json({ error: auth.error })
-	}
-
 	try {
+		const auth = await validateSubscription(req.headers.authorization)
+		if (auth.valid === false) {
+			return res.status(auth.status).json({ error: auth.error })
+		}
+
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
 

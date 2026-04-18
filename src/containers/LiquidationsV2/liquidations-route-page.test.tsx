@@ -25,7 +25,6 @@ vi.mock('~/utils/metadata', () => ({
 			'arbitrum-one': { id: 'arbitrum', name: 'Arbitrum One' }
 		},
 		protocolMetadata: {
-			sky: { displayName: 'Sky' },
 			makerdao: { name: 'sky', displayName: 'Sky' }
 		}
 	},
@@ -85,7 +84,7 @@ describe('liquidations SSG routes', () => {
 	it('returns all protocol paths and disables fallback blocking', async () => {
 		await expect(protocolPage.getStaticPaths()).resolves.toEqual({
 			paths: [{ params: { protocol: 'sky' } }],
-			fallback: false
+			fallback: 'blocking'
 		})
 	})
 
