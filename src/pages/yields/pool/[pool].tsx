@@ -463,10 +463,9 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 	dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 }
 
-const PageView = (_props) => {
+const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any; fetchingConfigData: boolean }) => {
 	const { query, isReady } = useRouter()
 
-	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
 	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
 
@@ -510,8 +509,6 @@ const PageView = (_props) => {
 	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(poolId)
 
 	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(poolId)
-
-	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	const { data: volatility } = useVolatility()
 	const { data: holderHistory } = useHolderHistory(poolId)
@@ -564,7 +561,7 @@ const PageView = (_props) => {
 	const url = poolData.url ?? ''
 	const category = config?.category ?? ''
 
-	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
+	const isLoading = fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
 
 	const getYieldsChartConfig = (chartType?: YieldChartType): YieldsChartConfig | null => {
 		if (!query.pool) return null
@@ -1117,16 +1114,35 @@ const liquidityChartColors: Record<string, string> = {
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 export default function YieldPoolPage(props) {
-	const { query } = useRouter()
-	const pool = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+	const { query, isReady } = useRouter()
+	const poolId = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+
+	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(poolId)
+	const poolData = pool?.data?.[0] ?? {}
+
+	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+
+	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
+	const projectName = config?.name ?? ''
+	const chain = poolData.chain ?? ''
+
+	const poolLabel =
+		poolName && projectName && chain ? `${poolName} (${projectName} - ${chain})` : poolName || poolId || ''
+
+	const title = poolLabel ? `${poolLabel} Yields` : ''
+	const description = poolLabel
+		? `Compare historic APY rates, TVL, and pool metrics for ${poolLabel} on DefiLlama.`
+		: ''
 
 	return (
-		<Layout
-			title={pool ? `Yields ${pool} - DefiLlama` : ''}
-			description={pool ? `Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.` : ''}
-			canonicalUrl={pool ? `/yields/pool/${pool}` : null}
-		>
-			<PageView {...props} />
+		<Layout title={title} description={description} canonicalUrl={poolId ? `/yields/pool/${poolId}` : null}>
+			{!isReady || fetchingPoolData ? (
+				<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
+			) : (
+				<PageView {...props} pool={pool} config={config} fetchingConfigData={fetchingConfigData} />
+			)}
 		</Layout>
 	)
 }
