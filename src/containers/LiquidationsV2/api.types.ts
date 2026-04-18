@@ -143,6 +143,10 @@ export interface LiquidationsOverviewPageProps {
 	chainRows: OverviewChainRow[]
 }
 
+export interface LiquidationsOverviewShell {
+	protocolLinks: NavLink[]
+}
+
 export interface LiquidationsProtocolPageProps {
 	protocolLinks: NavLink[]
 	chainLinks: NavLink[]
@@ -158,6 +162,13 @@ export interface LiquidationsProtocolPageProps {
 	chainRows: ProtocolChainRow[]
 	ownerBlockExplorers: BlockExplorersResponse
 	positions: LiquidationPosition[]
+}
+
+export interface LiquidationsProtocolShell {
+	protocolLinks: NavLink[]
+	chainLinks: NavLink[]
+	protocolName: string
+	protocolSlug: string
 }
 
 export interface LiquidationsChainPageProps {
@@ -177,4 +188,13 @@ export interface LiquidationsChainPageProps {
 	chainRows: ProtocolChainRow[]
 	ownerBlockExplorers: BlockExplorersResponse
 	positions: LiquidationPosition[]
+}
+
+export interface LiquidationsChainShell {
+	protocolLinks: NavLink[]
+	chainLinks: NavLink[]
+	protocolName: string
+	protocolSlug: string
+	chainName: string
+	chainSlug: string
 }

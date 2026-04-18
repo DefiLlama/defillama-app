@@ -24,11 +24,11 @@ import {
 	getLiquidationsProtocolPageData
 } from './queries'
 
-const mockedFetchProtocolsList = vi.mocked(fetchProtocolsList)
-const mockedFetchAllLiquidations = vi.mocked(fetchAllLiquidations)
-const mockedFetchProtocolLiquidations = vi.mocked(fetchProtocolLiquidations)
-const mockedFetchProtocolChainLiquidations = vi.mocked(fetchProtocolChainLiquidations)
-const mockedFetchBlockExplorers = vi.mocked(fetchBlockExplorers)
+const mockedFetchProtocolsList = fetchProtocolsList as unknown as ReturnType<typeof vi.fn>
+const mockedFetchAllLiquidations = fetchAllLiquidations as unknown as ReturnType<typeof vi.fn>
+const mockedFetchProtocolLiquidations = fetchProtocolLiquidations as unknown as ReturnType<typeof vi.fn>
+const mockedFetchProtocolChainLiquidations = fetchProtocolChainLiquidations as unknown as ReturnType<typeof vi.fn>
+const mockedFetchBlockExplorers = fetchBlockExplorers as unknown as ReturnType<typeof vi.fn>
 
 const metadata = {
 	protocolMetadata: {

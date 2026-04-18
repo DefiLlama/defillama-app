@@ -1,38 +1,77 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { LiquidationsProtocolPage } from '~/containers/LiquidationsV2/ProtocolPage'
-import { getLiquidationsProtocolPageData } from '~/containers/LiquidationsV2/queries'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
+import type { LiquidationsProtocolShell } from '~/containers/LiquidationsV2/api.types'
+import { LiquidationsProtocolRouteContent } from '~/containers/LiquidationsV2/RouteContent'
 import Layout from '~/layout'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = () => {
+export const getStaticPaths = async () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const protocolsResponse = await fetchProtocolsList()
+
 	return {
-		paths: [],
-		fallback: 'blocking'
+		paths: protocolsResponse.protocols.map((protocolId) => {
+			return { params: { protocol: protocolId } }
+		}),
+		fallback: false
 	}
 }
 
 export const getStaticProps = withPerformanceLogging(
 	'liquidations/[protocol]/index',
-	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
+	async ({
+		params
+	}: GetStaticPropsContext<{ protocol: string }>): Promise<
+		{ props: LiquidationsProtocolShell; revalidate: number } | { notFound: true }
+	> => {
 		if (!params?.protocol) {
 			return { notFound: true }
 		}
 
-		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
+		const protocolParam = slug(params.protocol)
 
-		const props = await getLiquidationsProtocolPageData(params.protocol, {
-			chainMetadata: metadataModule.default.chainMetadata,
-			protocolMetadata: metadataModule.default.protocolMetadata
-		})
-
-		if (!props) {
+		const protocolsResponse = await fetchProtocolsList()
+		if (!protocolsResponse.protocols.includes(protocolParam)) {
 			return { notFound: true }
 		}
 
+		const metadataModule = await import('~/utils/metadata')
+
+		const liqProtocols = new Set(protocolsResponse.protocols)
+		const protocolMetadata = metadataModule.default.protocolMetadata
+		const protocolNames: Record<string, string> = Object.create(null)
+
+		for (const id in protocolMetadata) {
+			const metadata = protocolMetadata[id]
+			if (liqProtocols.has(metadata.name)) {
+				protocolNames[metadata.name] = metadata.displayName ?? id
+			}
+		}
+
+		const protocolLinks = [
+			{ label: 'Overview', to: '/liquidations' },
+			...protocolsResponse.protocols.map((protocolId) => ({
+				label: protocolNames[protocolId],
+				to: `/liquidations/${protocolId}`
+			}))
+		]
+
 		return {
-			props,
+			props: {
+				protocolName: protocolNames[protocolParam],
+				protocolSlug: protocolParam,
+				protocolLinks,
+				chainLinks: [{ label: 'All Chains', to: `/liquidations/${protocolParam}` }]
+			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -46,7 +85,7 @@ export default function LiquidationsProtocolRoute(props: InferGetStaticPropsType
 			canonicalUrl={`/liquidations/${props.protocolSlug}`}
 			pageName={['Liquidations', props.protocolName]}
 		>
-			<LiquidationsProtocolPage {...props} />
+			<LiquidationsProtocolRouteContent shell={props} />
 		</Layout>
 	)
 }
