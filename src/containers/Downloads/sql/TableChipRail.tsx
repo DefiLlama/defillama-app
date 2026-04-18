@@ -137,11 +137,7 @@ function PendingChip({ table }: { table: PendingTable }) {
 		<div
 			role="status"
 			aria-label={
-				failed
-					? `Failed to load ${table.label}`
-					: loading
-						? `Loading ${table.label}`
-						: `Queued ${table.label}`
+				failed ? `Failed to load ${table.label}` : loading ? `Loading ${table.label}` : `Queued ${table.label}`
 			}
 			title={table.label}
 			className={`flex items-center gap-1.5 overflow-hidden rounded-md border border-dashed px-2.5 py-1 text-xs transition-colors ${
