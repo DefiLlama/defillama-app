@@ -1,3 +1,5 @@
+import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useBlockExplorers } from '~/api/client'
@@ -5,8 +7,12 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { CopyHelper } from '~/components/Copy'
-import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
-import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type {
+	IMultiSeriesChart2Props,
+	IPieChartProps,
+	MultiSeriesChart2Dataset,
+	MultiSeriesChart2SeriesConfig
+} from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -22,7 +28,8 @@ import {
 	useYieldPoolData,
 	useVolatility,
 	useHolderHistory,
-	useHolderStats
+	useHolderStats,
+	useYieldTokenPrices
 } from '~/containers/Yields/queries/client'
 import type { Top10Holder } from '~/containers/Yields/queries/holderTypes'
 import {
@@ -37,33 +44,13 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
+import { toDimensionsSlug } from '~/utils/chainNormalizer'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-const EMPTY_CHART_DATA: any[] = []
-const EMPTY_TVL_APY_DATASET = { source: [] as any[], dimensions: ['timestamp', 'APY', 'TVL'] }
-
-const tvlApyCharts = [
-	{
-		type: 'line' as const,
-		name: 'APY',
-		encode: { x: 'timestamp', y: 'APY' },
-		color: '#fd3c99',
-		yAxisIndex: 0,
-		valueSymbol: '%'
-	},
-	{
-		type: 'line' as const,
-		name: 'TVL',
-		encode: { x: 'timestamp', y: 'TVL' },
-		color: '#4f8fea',
-		yAxisIndex: 1,
-		valueSymbol: '$'
-	}
-]
-const tvlApyChartOptions = { tooltip: { formatter: formatTvlApyTooltip } }
 
 const BASE_REWARD_BAR_CHARTS: IMultiSeriesChart2Props['charts'] = [
 	{ type: 'bar', name: 'Base', encode: { x: 'timestamp', y: 'Base' }, stack: 'a', color: CHART_COLORS[0] },
@@ -73,6 +60,153 @@ const BASE_REWARD_BAR_CHARTS: IMultiSeriesChart2Props['charts'] = [
 const SINGLE_APY_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
 	{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }
 ]
+
+type YieldMetricDef = {
+	queryKey: string
+	defaultOn: boolean
+	needsBorrow: boolean
+	chart: MultiSeriesChart2SeriesConfig
+}
+
+const YIELD_METRIC_DEFS: Record<string, YieldMetricDef> = {
+	APY: {
+		queryKey: 'apy',
+		defaultOn: true,
+		needsBorrow: false,
+		chart: {
+			type: 'line',
+			name: 'APY',
+			encode: { x: 'timestamp', y: 'APY' },
+			color: '#fd3c99',
+			yAxisIndex: 0,
+			valueSymbol: '%'
+		}
+	},
+	TVL: {
+		queryKey: 'tvl',
+		defaultOn: true,
+		needsBorrow: false,
+		chart: {
+			type: 'line',
+			name: 'TVL',
+			encode: { x: 'timestamp', y: 'TVL' },
+			color: '#4f8fea',
+			yAxisIndex: 1,
+			valueSymbol: '$'
+		}
+	},
+	'TVL Change': {
+		queryKey: 'tvlChange',
+		defaultOn: false,
+		needsBorrow: false,
+		chart: {
+			type: 'bar',
+			name: 'TVL Change',
+			encode: { x: 'timestamp', y: 'TVL Change' },
+			color: '#14b8a6',
+			yAxisIndex: 1,
+			valueSymbol: '$'
+		}
+	},
+	'Supply APY Base': {
+		queryKey: 'supplyApyBase',
+		defaultOn: false,
+		needsBorrow: false,
+		chart: {
+			type: 'bar',
+			name: 'Supply APY Base',
+			encode: { x: 'timestamp', y: 'Supply APY Base' },
+			stack: 'supplyApy',
+			color: '#f59e0b',
+			yAxisIndex: 0,
+			valueSymbol: '%'
+		}
+	},
+	'Supply APY Reward': {
+		queryKey: 'supplyApyReward',
+		defaultOn: false,
+		needsBorrow: false,
+		chart: {
+			type: 'bar',
+			name: 'Supply APY Reward',
+			encode: { x: 'timestamp', y: 'Supply APY Reward' },
+			stack: 'supplyApy',
+			color: '#22c55e',
+			yAxisIndex: 0,
+			valueSymbol: '%'
+		}
+	},
+	'Net Borrow APY': {
+		queryKey: 'netBorrowApy',
+		defaultOn: false,
+		needsBorrow: true,
+		chart: {
+			type: 'line',
+			name: 'Net Borrow APY',
+			encode: { x: 'timestamp', y: 'Net Borrow APY' },
+			color: '#eab308',
+			yAxisIndex: 0,
+			valueSymbol: '%'
+		}
+	},
+	'Utilization Rate': {
+		queryKey: 'utilization',
+		defaultOn: false,
+		needsBorrow: true,
+		chart: {
+			type: 'line',
+			name: 'Utilization Rate',
+			encode: { x: 'timestamp', y: 'Utilization Rate' },
+			color: '#ef4444',
+			yAxisIndex: 0,
+			valueSymbol: '%'
+		}
+	},
+	Supplied: {
+		queryKey: 'supplied',
+		defaultOn: false,
+		needsBorrow: true,
+		chart: {
+			type: 'line',
+			name: 'Supplied',
+			encode: { x: 'timestamp', y: 'Supplied' },
+			color: '#06b6d4',
+			yAxisIndex: 1,
+			valueSymbol: '$'
+		}
+	},
+	Borrowed: {
+		queryKey: 'borrowed',
+		defaultOn: false,
+		needsBorrow: true,
+		chart: {
+			type: 'line',
+			name: 'Borrowed',
+			encode: { x: 'timestamp', y: 'Borrowed' },
+			color: '#ec4899',
+			yAxisIndex: 1,
+			valueSymbol: '$'
+		}
+	},
+	Available: {
+		queryKey: 'available',
+		defaultOn: false,
+		needsBorrow: true,
+		chart: {
+			type: 'line',
+			name: 'Available',
+			encode: { x: 'timestamp', y: 'Available' },
+			color: '#84cc16',
+			yAxisIndex: 1,
+			valueSymbol: '$'
+		}
+	}
+}
+
+// Picked to not collide with the fixed metric palette above:
+//   Supplied (#06b6d4), Available (#84cc16), APY (#fd3c99), TVL (#4f8fea),
+//   TVL Change (#14b8a6), Net Borrow (#eab308), Utilization (#ef4444), Borrowed (#ec4899)
+const PRICE_CHART_COLORS = ['#a855f7', '#f97316', '#0369a1', '#4f46e5']
 
 const HOLDER_DONUT_RADIUS: [string, string] = ['45%', '75%']
 
@@ -464,7 +598,12 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 }
 
 const PageView = (_props) => {
-	const { query, isReady } = useRouter()
+	const router = useRouter()
+	const { query, isReady } = router
+	const searchParams = useMemo(() => {
+		const qs = router.asPath.split('?')[1]?.split('#')[0] ?? ''
+		return new URLSearchParams(qs)
+	}, [router.asPath])
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
@@ -525,20 +664,98 @@ const PageView = (_props) => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 30)
 	}, [holderStats?.top10Holders, holderHistory])
 	const poolConfigId = poolData.pool
+
+	const priceMetrics = useMemo(() => {
+		const tokens = poolData.underlyingTokens as string[] | undefined
+		const symbols = (poolData.symbol as string)?.split('-') ?? []
+		const chain = toDimensionsSlug(poolData.chain as string)
+		if (!tokens?.length || !chain) return []
+
+		return tokens
+			.map((addr, i) => {
+				if (!addr) return null
+				const symbol = symbols[i] ?? `Token ${i + 1}`
+				const coinId = `${chain}:${addr.toLowerCase().replaceAll('/', ':')}`
+				const metricId = `${symbol} Price`
+				return { metricId, symbol, coinId, color: PRICE_CHART_COLORS[i % PRICE_CHART_COLORS.length] }
+			})
+			.filter(Boolean) as Array<{ metricId: string; symbol: string; coinId: string; color: string }>
+	}, [poolData.underlyingTokens, poolData.symbol, poolData.chain])
+
+	const priceMetricDefs = useMemo(() => {
+		const defs: Record<string, YieldMetricDef> = {}
+		for (const pm of priceMetrics) {
+			defs[pm.metricId] = {
+				queryKey: `price_${pm.symbol.toLowerCase()}`,
+				defaultOn: false,
+				needsBorrow: false,
+				chart: {
+					type: 'line',
+					name: pm.metricId,
+					encode: { x: 'timestamp', y: pm.metricId },
+					color: pm.color,
+					yAxisIndex: 2,
+					valueSymbol: '$',
+					hideAreaStyle: true
+				}
+			}
+		}
+		return defs
+	}, [priceMetrics])
+
+	const allMetricDefs = useMemo(() => ({ ...YIELD_METRIC_DEFS, ...priceMetricDefs }), [priceMetricDefs])
+	const allMetricIds = useMemo(() => Object.keys(allMetricDefs), [allMetricDefs])
+
+	const { toggledMetricIds, availableMetricIds } = useMemo(() => {
+		const hasBorrowData = (chartBorrow?.data?.length ?? 0) > 0
+		const hasSupplyBreakdown = chart?.data?.some((el) => el.apyBase != null || el.apyReward != null) ?? false
+
+		const available: string[] = []
+		const toggled: string[] = []
+
+		for (const id of allMetricIds) {
+			const def = allMetricDefs[id]
+			if (def.needsBorrow && !hasBorrowData) continue
+			if ((id === 'Supply APY Base' || id === 'Supply APY Reward') && !hasSupplyBreakdown) continue
+			if (id === 'TVL Change' && !chart?.data?.length) continue
+			available.push(id)
+
+			const paramValue = searchParams.get(def.queryKey)
+			if (paramValue === 'true') {
+				toggled.push(id)
+			} else if (paramValue === 'false') {
+				// off
+			} else if (def.defaultOn) {
+				toggled.push(id)
+			}
+		}
+
+		return { toggledMetricIds: toggled, availableMetricIds: available }
+	}, [searchParams, chart, chartBorrow, allMetricIds, allMetricDefs])
+
+	const toggledPriceMetrics = useMemo(
+		() => priceMetrics.filter((pm) => toggledMetricIds.includes(pm.metricId)),
+		[priceMetrics, toggledMetricIds]
+	)
+
+	const { data: priceData, status: priceStatus } = useYieldTokenPrices(toggledPriceMetrics)
+
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
 	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
 
-	// prepare csv data
+	// prepare csv data — mirrors the currently-toggled metrics in the multichart
 	const prepareCsv = () => {
-		if (!chart?.data || !query?.pool) return { filename: `yields`, rows: [] }
-		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
-
-		for (const item of chart?.data ?? EMPTY_CHART_DATA) {
-			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
+		if (!query?.pool || !toggledMetricIds.length || !combinedDataset.source.length) {
+			return { filename: `yields`, rows: [] }
 		}
-
-		return { filename: `${query.pool}`, rows: rows as (string | number | boolean)[][] }
+		const rows: (string | number | boolean | null)[][] = [['DATE', ...toggledMetricIds]]
+		for (const row of combinedDataset.source) {
+			const ts = row.timestamp as number
+			const date = Number.isFinite(ts) ? new Date(ts).toISOString().split('T')[0] : ''
+			rows.push([date, ...toggledMetricIds.map((id) => (row[id] ?? null) as number | null)])
+		}
+		return { filename: `${query.pool}`, rows }
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
@@ -579,133 +796,197 @@ const PageView = (_props) => {
 		}
 	}
 
+	const fullSortedSource = useMemo(() => {
+		if (!chart?.data?.length) return [] as Array<Record<string, number | null | undefined>>
+
+		const windowSize = 7
+		const apyValues = chart.data.map((m) => m.apy)
+		const avg7Days: (number | null)[] = []
+		for (let i = 0; i < apyValues.length; i++) {
+			avg7Days[i] =
+				i + 1 < windowSize ? null : apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
+		}
+
+		const dayMap = new Map<number, Record<string, number | null | undefined>>()
+
+		let prevTvl: number | null = null
+		chart.data.forEach((el, i) => {
+			const ts = Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000) * 1000
+			const tvl = el.tvlUsd ?? null
+			const tvlChange = tvl != null && prevTvl != null ? tvl - prevTvl : null
+			prevTvl = tvl
+			dayMap.set(ts, {
+				timestamp: ts,
+				APY: el.apy != null ? Number(Number(el.apy).toFixed(2)) : null,
+				TVL: tvl,
+				'TVL Change': tvlChange != null ? Math.round(tvlChange) : null,
+				'Supply APY Base': el.apyBase != null ? Number(Number(el.apyBase).toFixed(2)) : null,
+				'Supply APY Reward': el.apyReward != null ? Number(Number(el.apyReward).toFixed(2)) : null,
+				_apy7d: avg7Days[i] != null ? Number(avg7Days[i]!.toFixed(2)) : null
+			})
+		})
+
+		if (chartBorrow?.data?.length) {
+			for (const el of chartBorrow.data) {
+				const ts = Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000) * 1000
+				const existing = dayMap.get(ts) ?? { timestamp: ts }
+				existing['Net Borrow APY'] =
+					el.apyBaseBorrow == null && el.apyRewardBorrow == null
+						? null
+						: Number(((el.apyRewardBorrow ?? 0) - (el.apyBaseBorrow ?? 0)).toFixed(2))
+				existing['Supplied'] = el.totalSupplyUsd ?? null
+				existing['Borrowed'] = el.totalBorrowUsd ?? null
+				existing['Utilization Rate'] =
+					el.totalSupplyUsd != null && el.totalSupplyUsd > 0 && el.totalBorrowUsd != null
+						? Number(((el.totalBorrowUsd / el.totalSupplyUsd) * 100).toFixed(2))
+						: null
+				existing['Available'] =
+					category === 'CDP'
+						? el.debtCeilingUsd != null && el.totalBorrowUsd != null
+							? el.debtCeilingUsd - el.totalBorrowUsd
+							: null
+						: el.totalSupplyUsd != null && el.totalBorrowUsd != null
+							? el.totalSupplyUsd - el.totalBorrowUsd
+							: null
+				existing['_borrowBase'] = el.apyBaseBorrow == null ? null : -Number(Number(el.apyBaseBorrow).toFixed(2))
+				existing['_borrowReward'] = el.apyRewardBorrow != null ? Number(Number(el.apyRewardBorrow).toFixed(2)) : null
+				dayMap.set(ts, existing)
+			}
+		}
+
+		return Array.from(dayMap.values()).sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+	}, [chart, chartBorrow, category])
+
 	const {
-		tvlApyDataset = EMPTY_TVL_APY_DATASET,
 		supplyApyBarDataset = EMPTY_BASE_REWARD_DATASET,
 		supplyApy7dDataset = EMPTY_APY_DATASET,
-		// borrow stuff
 		borrowApyBarDataset = EMPTY_BASE_REWARD_DATASET,
 		netBorrowApyDataset = EMPTY_APY_DATASET,
 		poolLiquidityDataset = EMPTY_LIQUIDITY_DATASET
 	} = useMemo(() => {
-		if (!chart) return {}
-
-		// - calc 7day APY moving average
-		const windowSize = 7
-		const apyValues = chart?.data?.map((m) => m.apy)
-		const avg7Days = []
-
-		for (let i = 0; i < apyValues?.length; i++) {
-			if (i + 1 < windowSize) {
-				avg7Days[i] = null
-			} else {
-				avg7Days[i] = apyValues.slice(i + 1 - windowSize, i + 1).reduce((a, b) => a + b, 0) / windowSize
-			}
-		}
-
-		// - format for chart components
-		const data = chart?.data?.map((el, i) => [
-			// round time to day
-			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-			el.tvlUsd,
-			el.apy?.toFixed(2) ?? null,
-			el.apyBase?.toFixed(2) ?? null,
-			el.apyReward?.toFixed(2) ?? null,
-			avg7Days[i]?.toFixed(2) ?? null
-		])
-
-		const dataBar = data?.filter((t) => t[3] !== null || t[4] !== null) ?? EMPTY_CHART_DATA
+		if (!fullSortedSource.length) return {}
 
 		const supplyApyBarDataset: MultiSeriesChart2Dataset = {
-			source: dataBar.length
-				? dataBar.map((item) => ({
-						timestamp: item[0] * 1e3,
-						Base: item[3] === null ? null : Number(item[3]),
-						Reward: item[4] === null ? null : Number(item[4])
-					}))
-				: [],
+			source: fullSortedSource
+				.filter((r) => r['Supply APY Base'] != null || r['Supply APY Reward'] != null)
+				.map((r) => ({ timestamp: r.timestamp, Base: r['Supply APY Base'], Reward: r['Supply APY Reward'] })),
 			dimensions: ['timestamp', 'Base', 'Reward']
 		}
 
 		const supplyApy7dDataset: MultiSeriesChart2Dataset = {
-			source: data?.length
-				? data
-						.filter((t) => t[5] !== null)
-						.map((t) => ({ timestamp: t[0] * 1e3, APY: t[5] === null ? null : Number(t[5]) }))
-				: [],
+			source: fullSortedSource
+				.filter((r) => r['_apy7d'] != null)
+				.map((r) => ({ timestamp: r.timestamp, APY: r['_apy7d'] })),
 			dimensions: ['timestamp', 'APY']
 		}
 
-		// borrow charts
-
-		// - format for chart components
-		const dataBorrow = chartBorrow?.data?.map((el) => [
-			// round time to day
-			Math.floor(new Date(el.timestamp.split('T')[0]).getTime() / 1000),
-			el.totalSupplyUsd,
-			el.totalBorrowUsd,
-			category === 'CDP' && el.debtCeilingUsd
-				? el.debtCeilingUsd - el.totalBorrowUsd
-				: category === 'CDP'
-					? null
-					: el.totalSupplyUsd === null && el.totalBorrowUsd === null
-						? null
-						: el.totalSupplyUsd - el.totalBorrowUsd,
-			el.apyBase?.toFixed(2) ?? null,
-			el.apyReward?.toFixed(2) ?? null,
-			el.apyBaseBorrow == null ? null : -Number(el.apyBaseBorrow.toFixed(2)),
-			el.apyRewardBorrow?.toFixed(2) ?? null,
-			el.apyBaseBorrow === null && el.apyRewardBorrow === null
-				? null
-				: ((-el.apyBaseBorrow + el.apyRewardBorrow).toFixed(2) ?? null)
-		])
-
-		const dataBarBorrow = dataBorrow?.filter((t) => Number.isFinite(t[6]) || t[7] !== null) ?? EMPTY_CHART_DATA
 		const borrowApyBarDataset: MultiSeriesChart2Dataset = {
-			source: dataBarBorrow.length
-				? dataBarBorrow.map((item) => ({
-						timestamp: item[0] * 1e3,
-						Base: item[6] === null ? null : Number(item[6]),
-						Reward: item[7] === null ? null : Number(item[7])
-					}))
-				: [],
+			source: fullSortedSource
+				.filter((r) => Number.isFinite(r['_borrowBase']) || r['_borrowReward'] != null)
+				.map((r) => ({ timestamp: r.timestamp, Base: r['_borrowBase'], Reward: r['_borrowReward'] })),
 			dimensions: ['timestamp', 'Base', 'Reward']
 		}
 
-		const dataArea = dataBorrow?.filter((t) => t[1] !== null && t[2] !== null && t[3] !== null) ?? EMPTY_CHART_DATA
-		const poolLiquidityDataset: MultiSeriesChart2Dataset = {
-			source: dataArea.length
-				? dataArea.map((t) => ({ timestamp: t[0] * 1e3, Supplied: t[1], Borrowed: t[2], Available: t[3] }))
-				: [],
-			dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
-		}
-
-		const dataNetBorrowArea = dataBorrow?.filter((t) => t[8] !== null) ?? EMPTY_CHART_DATA
 		const netBorrowApyDataset: MultiSeriesChart2Dataset = {
-			source: dataNetBorrowArea.length
-				? dataNetBorrowArea.map((t) => ({ timestamp: t[0] * 1e3, APY: t[8] === null ? null : Number(t[8]) }))
-				: [],
+			source: fullSortedSource
+				.filter((r) => r['Net Borrow APY'] != null)
+				.map((r) => ({ timestamp: r.timestamp, APY: r['Net Borrow APY'] })),
 			dimensions: ['timestamp', 'APY']
 		}
 
-		return {
-			tvlApyDataset: {
-				source: (data ?? []).map((item) => ({ timestamp: item[0] * 1000, TVL: item[1], APY: item[2] })),
-				dimensions: ['timestamp', 'APY', 'TVL']
-			},
-			supplyApyBarDataset,
-			supplyApy7dDataset,
-			borrowApyBarDataset,
-			netBorrowApyDataset,
-			poolLiquidityDataset
+		const poolLiquidityDataset: MultiSeriesChart2Dataset = {
+			source: fullSortedSource
+				.filter((r) => r['Supplied'] != null && r['Borrowed'] != null && r['Available'] != null)
+				.map((r) => ({
+					timestamp: r.timestamp,
+					Supplied: r['Supplied'],
+					Borrowed: r['Borrowed'],
+					Available: r['Available']
+				})),
+			dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 		}
-	}, [chart, chartBorrow, category])
-	const deferredTvlApyDataset = useDeferredValue(tvlApyDataset)
+
+		return { supplyApyBarDataset, supplyApy7dDataset, borrowApyBarDataset, netBorrowApyDataset, poolLiquidityDataset }
+	}, [fullSortedSource])
 	const deferredSupplyApyBarDataset = useDeferredValue(supplyApyBarDataset)
 	const deferredSupplyApy7dDataset = useDeferredValue(supplyApy7dDataset)
 	const deferredBorrowApyBarDataset = useDeferredValue(borrowApyBarDataset)
 	const deferredNetBorrowApyDataset = useDeferredValue(netBorrowApyDataset)
 	const deferredPoolLiquidityDataset = useDeferredValue(poolLiquidityDataset)
+
+	const { combinedDataset, combinedCharts } = useMemo(() => {
+		if (!fullSortedSource.length || !toggledMetricIds.length) {
+			return {
+				combinedDataset: { source: [], dimensions: ['timestamp'] } as MultiSeriesChart2Dataset,
+				combinedCharts: [] as MultiSeriesChart2SeriesConfig[]
+			}
+		}
+
+		const hasPriceData = Object.keys(priceData).length > 0
+
+		// Build price lookup maps (timestamp -> price) for each toggled price metric
+		const priceMaps = new Map<string, Map<number, number>>()
+		if (hasPriceData) {
+			for (const metricId of toggledMetricIds) {
+				const prices = priceData[metricId]
+				if (!prices) continue
+				const map = new Map<number, number>()
+				for (const p of prices) {
+					// Round to day to match yield data granularity
+					const dayTs = Math.floor(p.timestamp / 86400000) * 86400000
+					map.set(dayTs, p.price)
+				}
+				priceMaps.set(metricId, map)
+			}
+		}
+
+		const dimensions = ['timestamp', ...toggledMetricIds]
+		const source = fullSortedSource.map((row) => {
+			const out: Record<string, number | null | undefined> = { timestamp: row.timestamp }
+			const dayTs = Math.floor((row.timestamp as number) / 86400000) * 86400000
+			for (const id of toggledMetricIds) {
+				const priceMap = priceMaps.get(id)
+				if (priceMap) {
+					out[id] = priceMap.get(dayTs) ?? null
+				} else {
+					out[id] = row[id]
+				}
+			}
+			return out
+		})
+
+		return {
+			combinedDataset: { source, dimensions } as MultiSeriesChart2Dataset,
+			combinedCharts: toggledMetricIds.map((id) => allMetricDefs[id].chart)
+		}
+	}, [fullSortedSource, toggledMetricIds, priceData, allMetricDefs])
+
+	const deferredCombinedDataset = useDeferredValue(combinedDataset)
+	const deferredCombinedCharts = useDeferredValue(combinedCharts)
+
+	const metricsDialogStore = Ariakit.useDialogStore({
+		setOpen(open) {
+			if (!open) setMetricsSearchValue('')
+		}
+	})
+	const [metricsSearchValue, setMetricsSearchValue] = useState('')
+	const deferredMetricsSearchValue = useDeferredValue(metricsSearchValue)
+
+	const filteredMetricOptions = useMemo(() => {
+		const options = availableMetricIds.map((id) => ({
+			id,
+			label: id,
+			active: toggledMetricIds.includes(id),
+			queryKey: allMetricDefs[id].queryKey,
+			defaultOn: allMetricDefs[id].defaultOn,
+			color: allMetricDefs[id].chart.color
+		}))
+		if (!deferredMetricsSearchValue) return options
+		return matchSorter(options, deferredMetricsSearchValue, {
+			keys: ['label', 'id'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [availableMetricIds, toggledMetricIds, deferredMetricsSearchValue, allMetricDefs])
 
 	const { holderDonutData, holderDonutColors } = useMemo(() => {
 		const holders = holderStats?.top10Holders
@@ -742,6 +1023,11 @@ const PageView = (_props) => {
 		borrowApyBarDataset.source.length > 0 ||
 		netBorrowApyDataset.source.length > 0 ||
 		poolLiquidityDataset.source.length > 0
+
+	const loadingPriceCount = useMemo(
+		() => Object.values(priceStatus).filter((s) => s === 'loading').length,
+		[priceStatus]
+	)
 
 	if (!isReady || isLoading) {
 		return (
@@ -821,25 +1107,139 @@ const PageView = (_props) => {
 					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
-				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="flex items-center justify-end gap-1 p-2">
-						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
-						<ChartExportButtons
-							chartInstance={tvlApyChartInstance}
-							filename={`${query.pool}-tvl-apy`}
-							title={`${poolName} - ${projectName} (${poolData.chain})`}
-						/>
+				<div className="col-span-2 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<div className="flex flex-wrap items-center justify-start gap-2">
+						{availableMetricIds.length > toggledMetricIds.length ? (
+							<Ariakit.DialogProvider store={metricsDialogStore}>
+								<Ariakit.DialogDisclosure className="flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
+									<span>Add Metrics</span>
+									<Icon name="plus" className="h-3.5 w-3.5" />
+								</Ariakit.DialogDisclosure>
+								<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
+									<span className="flex items-center justify-between gap-1">
+										<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
+										<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
+											<Icon name="x" className="h-5 w-5" />
+										</Ariakit.DialogDismiss>
+									</span>
+
+									<label className="relative">
+										<span className="sr-only">Search metrics</span>
+										<Icon
+											name="search"
+											height={16}
+											width={16}
+											className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+										/>
+										<input
+											type="text"
+											name="search"
+											inputMode="search"
+											placeholder="Search..."
+											autoFocus
+											value={metricsSearchValue}
+											className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+											onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+										/>
+									</label>
+
+									<div className="flex flex-wrap gap-2">
+										{filteredMetricOptions.map((option) => (
+											<button
+												key={`add-metric-${option.id}`}
+												onClick={() => {
+													void pushShallowQuery(router, {
+														[option.queryKey]: option.active ? (option.defaultOn ? 'false' : undefined) : 'true'
+													})
+												}}
+												data-active={option.active}
+												className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+											>
+												<span>{option.label}</span>
+												{option.active ? (
+													<Icon name="x" className="h-3.5 w-3.5" />
+												) : (
+													<Icon name="plus" className="h-3.5 w-3.5" />
+												)}
+											</button>
+										))}
+										{filteredMetricOptions.length === 0 ? (
+											<p className="py-2 text-sm text-(--text-tertiary)">No metrics found.</p>
+										) : null}
+									</div>
+								</Ariakit.Dialog>
+							</Ariakit.DialogProvider>
+						) : null}
+						{toggledMetricIds.map((metricId) => {
+							const state = priceStatus[metricId]
+							const title =
+								state === 'error'
+									? `Failed to load ${metricId}`
+									: state === 'empty'
+										? `No price data for ${metricId}`
+										: undefined
+							return (
+								<label
+									className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm"
+									key={`active-metric-${metricId}`}
+									title={title}
+								>
+									<input
+										type="checkbox"
+										value={metricId}
+										checked={true}
+										onChange={() => {
+											const def = allMetricDefs[metricId]
+											void pushShallowQuery(router, {
+												[def.queryKey]: def.defaultOn ? 'false' : undefined
+											})
+										}}
+										className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
+									/>
+									<span
+										className={`flex items-center gap-1 rounded-full border-2 px-2 py-1 text-xs ${state === 'loading' ? 'animate-pulse' : ''} ${state === 'error' ? 'border-dashed opacity-60' : ''} ${state === 'empty' ? 'opacity-50' : ''}`}
+										style={{ borderColor: allMetricDefs[metricId]?.chart.color }}
+										aria-label={`Remove ${metricId}`}
+									>
+										<span>{metricId}</span>
+										{state === 'error' ? (
+											<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+										) : (
+											<Icon name="x" className="h-3.5 w-3.5" />
+										)}
+									</span>
+								</label>
+							)
+						})}
+						{loadingPriceCount > 0 ? (
+							<span className="flex animate-pulse items-center gap-1 text-xs text-(--text-disabled)" aria-live="polite">
+								Loading {loadingPriceCount} price series…
+							</span>
+						) : null}
+						<div className="ml-auto flex flex-wrap justify-end gap-1">
+							<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
+							<ChartExportButtons
+								chartInstance={tvlApyChartInstance}
+								filename={`${query.pool}-tvl-apy`}
+								title={`${poolName} - ${projectName} (${poolData.chain})`}
+							/>
+						</div>
 					</div>
-					<Suspense fallback={<div className="min-h-[360px]" />}>
-						<MultiSeriesChart2
-							dataset={deferredTvlApyDataset}
-							charts={tvlApyCharts}
-							chartOptions={tvlApyChartOptions}
-							valueSymbol=""
-							alwaysShowTooltip
-							onReady={handleTvlApyReady}
-						/>
-					</Suspense>
+					{deferredCombinedCharts.length > 0 ? (
+						<Suspense fallback={<div className="min-h-[360px]" />}>
+							<MultiSeriesChart2
+								dataset={deferredCombinedDataset}
+								charts={deferredCombinedCharts}
+								valueSymbol=""
+								alwaysShowTooltip
+								onReady={handleTvlApyReady}
+							/>
+						</Suspense>
+					) : (
+						<div className="flex min-h-[360px] items-center justify-center text-sm text-(--text-disabled)">
+							Select metrics to display
+						</div>
+					)}
 				</div>
 			</div>
 

@@ -1,4 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import { useCallback } from 'react'
+import { fetchCoinsChart } from '~/api'
 import {
 	CONFIG_API,
 	YIELD_CHART_API,
@@ -14,6 +16,61 @@ import { useAuthContext } from '~/containers/Subscription/auth'
 import { fetchJson } from '~/utils/async'
 import type { HolderHistoryEntry, HolderStatsMap } from './holderTypes'
 import { formatYieldsPageData } from './utils'
+
+export type YieldTokenPriceMetric = { metricId: string; coinId: string }
+export type YieldTokenPriceSeries = Record<string, Array<{ timestamp: number; price: number }>>
+export type YieldTokenPriceStatus = Record<string, 'loading' | 'error' | 'empty' | 'ok'>
+export type YieldTokenPricesResult = {
+	data: YieldTokenPriceSeries
+	status: YieldTokenPriceStatus
+}
+
+type PriceQueryResult = { metricId: string; prices: Array<{ timestamp: number; price: number }> }
+
+export const useYieldTokenPrices = (metrics: YieldTokenPriceMetric[]): YieldTokenPricesResult => {
+	const combine = useCallback(
+		(
+			results: ReadonlyArray<{ isPending: boolean; isError: boolean; data?: PriceQueryResult }>
+		): YieldTokenPricesResult => {
+			const data: YieldTokenPriceSeries = {}
+			const status: YieldTokenPriceStatus = {}
+			results.forEach((q, i) => {
+				const metricId = metrics[i]?.metricId
+				if (!metricId) return
+				if (q.isPending) status[metricId] = 'loading'
+				else if (q.isError) status[metricId] = 'error'
+				else if (q.data?.prices?.length) {
+					data[metricId] = q.data.prices
+					status[metricId] = 'ok'
+				} else status[metricId] = 'empty'
+			})
+			return { data, status }
+		},
+		[metrics]
+	)
+
+	return useQueries({
+		queries: metrics.map((pm) => ({
+			queryKey: ['yield-pool-token-price', pm.coinId],
+			queryFn: async (): Promise<PriceQueryResult> => {
+				const now = Math.floor(Date.now() / 1000)
+				const resp = await fetchCoinsChart({ coin: pm.coinId, start: now - 365 * 86400, span: 365 })
+				const prices = resp?.coins?.[pm.coinId]?.prices
+				if (!prices?.length) return { metricId: pm.metricId, prices: [] }
+				return {
+					metricId: pm.metricId,
+					prices: prices
+						.filter((p) => p.timestamp != null && p.price != null)
+						.map((p) => ({ timestamp: p.timestamp! * 1000, price: p.price! }))
+				}
+			},
+			staleTime: 60 * 60 * 1000,
+			refetchOnWindowFocus: false,
+			retry: 0
+		})),
+		combine
+	})
+}
 
 // single pool
 export const useYieldPoolData = (configID) => {
