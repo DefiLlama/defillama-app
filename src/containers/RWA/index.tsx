@@ -24,6 +24,7 @@ import {
 	emptyChartDatasets,
 	getRwaChartSeriesColorSlots,
 	getRwaReservedSeriesColorSlot,
+	isRwaTotalSeriesLabel,
 	sortRwaChartSeriesLabels,
 	type RWAChartAggregationMode
 } from './chartAggregation'
@@ -822,23 +823,25 @@ function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
 }
 
-function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
+export function buildRwaTimeSeriesCharts(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
 	const seriesDimensions = sortRwaChartSeriesLabels(dimensions.filter((dimension) => dimension !== 'timestamp'))
 	const colorSlots = getRwaChartSeriesColorSlots(seriesDimensions)
 
 	return seriesDimensions.map((name) => {
 		const reservedColorSlot = getRwaReservedSeriesColorSlot(name)
 		const colorSlot = colorSlots[name]
-		const isTotalSeries = reservedColorSlot !== null
+		const isReservedSeries = reservedColorSlot !== null
+		const isTotalSeries = isRwaTotalSeriesLabel(name)
 
 		return {
 			type: 'line',
 			name,
 			encode: { x: 'timestamp', y: name },
 			color: CHART_COLORS[colorSlot % CHART_COLORS.length],
-			...(isTotalSeries
+			...(isReservedSeries
 				? {
-						hideAreaStyle: true
+						hideAreaStyle: true,
+						...(isTotalSeries ? { excludeFromTooltipTotal: true } : {})
 					}
 				: {})
 		}

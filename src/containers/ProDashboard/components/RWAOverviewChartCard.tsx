@@ -7,6 +7,7 @@ import type {
 	ITreemapChartProps
 } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
+import { isRwaTotalSeriesLabel } from '~/containers/RWA/chartAggregation'
 import { getChartMetricLabel } from '~/containers/RWA/chartState'
 import { buildRwaTreemapTreeData } from '~/containers/RWA/treemap'
 import { useChartImageExport } from '../hooks/useChartImageExport'
@@ -149,7 +150,7 @@ export function RWAOverviewChartCard({ config }: RWAOverviewChartCardProps) {
 							dataset={chartDataset}
 							hideDefaultLegend={false}
 							stacked
-							showTotalInTooltip
+							showTotalInTooltip={!chartDataset.dimensions.some(isRwaTotalSeriesLabel)}
 							onReady={handleChartReady}
 						/>
 					) : chartView === 'pie' && pieData.length > 0 ? (

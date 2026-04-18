@@ -377,6 +377,7 @@ function createTooltipFormatter({
 	groupBy,
 	valueSymbol,
 	seriesSymbols,
+	tooltipTotalExcludedSeries,
 	maxItems,
 	showTotalInTooltip,
 	tooltipTotalPosition
@@ -384,6 +385,7 @@ function createTooltipFormatter({
 	groupBy: GroupBy
 	valueSymbol: string
 	seriesSymbols?: Map<string, string>
+	tooltipTotalExcludedSeries?: Set<string>
 	maxItems?: number
 	showTotalInTooltip?: boolean
 	tooltipTotalPosition?: 'top' | 'bottom'
@@ -414,10 +416,11 @@ function createTooltipFormatter({
 			if (value == null || Number.isNaN(value)) continue
 
 			const hasOverride = seriesSymbols?.has(name) ?? false
+			const excludeFromTotal = hasOverride || (tooltipTotalExcludedSeries?.has(name) ?? false)
 			const nextRow = [item.marker, name, value, seriesSymbols?.get(name) ?? valueSymbol, hasOverride] as const
 
 			totalCount += 1
-			if (!hasOverride) {
+			if (!excludeFromTotal) {
 				total += value
 				standardCount += 1
 			}
@@ -661,6 +664,15 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		}
 		return map.size > 0 ? map : undefined
 	}, [effectiveCharts])
+	const tooltipTotalExcludedSeries = useMemo(() => {
+		const set = new Set<string>()
+		for (const chart of effectiveCharts ?? []) {
+			if ('excludeFromTooltipTotal' in chart && chart.excludeFromTooltipTotal) {
+				set.add(chart.name)
+			}
+		}
+		return set.size > 0 ? set : undefined
+	}, [effectiveCharts])
 
 	const tooltipFormatter = useMemo(
 		() =>
@@ -668,11 +680,20 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				groupBy: groupBySafe,
 				valueSymbol,
 				seriesSymbols,
+				tooltipTotalExcludedSeries,
 				maxItems: tooltipMaxItems,
 				showTotalInTooltip,
 				tooltipTotalPosition
 			}),
-		[groupBySafe, valueSymbol, seriesSymbols, tooltipMaxItems, showTotalInTooltip, tooltipTotalPosition]
+		[
+			groupBySafe,
+			valueSymbol,
+			seriesSymbols,
+			tooltipTotalExcludedSeries,
+			tooltipMaxItems,
+			showTotalInTooltip,
+			tooltipTotalPosition
+		]
 	)
 
 	const exportFilename = exportButtonsConfig?.filename || (title ? slug(title) : 'multi-series-chart')
