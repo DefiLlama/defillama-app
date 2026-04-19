@@ -22,7 +22,7 @@ type FilterKind = 'all' | 'flat' | 'timeseries'
 
 const FILTER_LABELS: Record<FilterKind, string> = {
 	all: 'All',
-	flat: 'Flat',
+	flat: 'Datasets',
 	timeseries: 'Time series'
 }
 

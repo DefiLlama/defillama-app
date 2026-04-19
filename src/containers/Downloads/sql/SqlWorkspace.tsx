@@ -10,7 +10,6 @@ import { extractTableRefs, matchTableRef } from './completions'
 import { Editor, type EditorHandle } from './Editor'
 import type { ExampleQuery } from './examples'
 import { ExamplesPanel } from './ExamplesPanel'
-import { LoadTableModal } from './LoadTableModal'
 import { Keycap, StatusDot } from './primitives'
 import { ResultsPanel } from './ResultsPanel'
 import { SchemaDrawer } from './SchemaDrawer'
@@ -117,7 +116,6 @@ ORDER BY date DESC
 	const [running, setRunning] = useState(false)
 	const [runError, setRunError] = useState<string | null>(null)
 	const [lastRun, setLastRun] = useState<LastRunMeta | null>(null)
-	const [loadTableOpen, setLoadTableOpen] = useState(false)
 	const [savePresetOpen, setSavePresetOpen] = useState(false)
 	// Stage text surfaced in the status strip + results panel while we prep a query
 	// (e.g. "Loading fees…"). null once the query actually starts running — at that
@@ -316,7 +314,6 @@ ORDER BY date DESC
 					<div className="flex min-w-0 flex-col gap-3">
 						<TableChipRail
 							tables={registry.tables}
-							onAddTable={() => setLoadTableOpen(true)}
 							onBrowseSchema={() => setSchemaDrawerOpen(true)}
 							onRemove={registry.remove}
 							pending={pendingTables}
@@ -347,19 +344,6 @@ ORDER BY date DESC
 					busyTaskId={busyTaskId}
 				/>
 			)}
-
-			{loadTableOpen ? (
-				<LoadTableModal
-					chartOptionsMap={chartOptionsMap}
-					onClose={() => setLoadTableOpen(false)}
-					onLoad={async (source) => {
-						await registry.load(source)
-						setLoadTableOpen(false)
-					}}
-					loading={registry.loading}
-					existing={registry.tables}
-				/>
-			) : null}
 
 			{savePresetOpen ? (
 				<SavePresetDialog

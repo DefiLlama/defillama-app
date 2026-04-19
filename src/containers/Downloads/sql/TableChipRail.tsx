@@ -15,7 +15,6 @@ export interface PendingTable {
 
 interface TableChipRailProps {
 	tables: RegisteredTable[]
-	onAddTable: () => void
 	onBrowseSchema: () => void
 	onRemove: (name: string) => void
 	pending?: PendingTable[]
@@ -24,7 +23,6 @@ interface TableChipRailProps {
 
 export function TableChipRail({
 	tables,
-	onAddTable,
 	onBrowseSchema,
 	onRemove,
 	pending = [],
@@ -40,35 +38,21 @@ export function TableChipRail({
 				label="Tables"
 				count={totalCount}
 				action={
-					<div className="flex items-center gap-1.5">
-						<button
-							type="button"
-							onClick={onBrowseSchema}
-							className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
-							title={`Browse all ${totalSchemaCount} available datasets`}
-						>
-							<Icon name="layers" className="h-3 w-3" />
-							Browse schema
-							<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
-						</button>
-						<button
-							type="button"
-							onClick={onAddTable}
-							className="inline-flex items-center gap-1 rounded-md border border-(--divider) bg-(--cards-bg) px-2 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
-						>
-							<Icon name="plus" className="h-3 w-3" />
-							Add
-						</button>
-					</div>
+					<button
+						type="button"
+						onClick={onBrowseSchema}
+						className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
+						title={`Browse all ${totalSchemaCount} available datasets`}
+					>
+						<Icon name="layers" className="h-3 w-3" />
+						Browse schema
+						<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
+					</button>
 				}
 			/>
 
 			{totalCount === 0 ? (
-				<EmptyTablesPrompt
-					onBrowseSchema={onBrowseSchema}
-					onAddTable={onAddTable}
-					totalSchemaCount={totalSchemaCount}
-				/>
+				<EmptyTablesPrompt onBrowseSchema={onBrowseSchema} totalSchemaCount={totalSchemaCount} />
 			) : (
 				<div className="flex flex-wrap items-center gap-1.5" aria-live="polite">
 					{tables.map((t) => {
@@ -230,11 +214,9 @@ function formatCount(n: number): string {
 
 function EmptyTablesPrompt({
 	onBrowseSchema,
-	onAddTable,
 	totalSchemaCount
 }: {
 	onBrowseSchema: () => void
-	onAddTable: () => void
 	totalSchemaCount: number
 }) {
 	return (
@@ -244,9 +226,7 @@ function EmptyTablesPrompt({
 					<Icon name="layers" className="h-3.5 w-3.5" />
 				</div>
 				<div className="flex min-w-0 flex-col gap-0.5">
-					<p className="text-xs font-semibold text-(--text-primary)">
-						Start by browsing the schema
-					</p>
+					<p className="text-xs font-semibold text-(--text-primary)">Start by browsing the schema</p>
 					<p className="text-[11.5px] leading-snug text-(--text-secondary)">
 						<span className="tabular-nums">{totalSchemaCount}</span> datasets you can query — protocols, fees, yields,
 						TVL series, hacks, raises, and more. Insert a snippet at the cursor or load a table into the session.
@@ -262,14 +242,6 @@ function EmptyTablesPrompt({
 					<Icon name="layers" className="h-3 w-3" />
 					Browse schema
 					<Icon name="arrow-right" className="h-3 w-3 opacity-80" />
-				</button>
-				<button
-					type="button"
-					onClick={onAddTable}
-					className="inline-flex items-center gap-1 rounded-md border border-(--divider) bg-(--cards-bg) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
-				>
-					<Icon name="plus" className="h-3 w-3" />
-					Quick add
 				</button>
 				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">
 					Tables referenced in SQL auto-load on run.
