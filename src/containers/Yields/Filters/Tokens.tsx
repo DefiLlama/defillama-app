@@ -10,11 +10,18 @@ interface IFiltersByTokensProps {
 	selectedTokens: Array<string>
 	nestedMenu?: boolean
 	autoApplyAttributes?: boolean
+	queryKey?: string
+	excludeQueryKey?: string
 }
 
-function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, string | string[] | undefined> {
+function tokenQueryUpdates(
+	allKeys: string[],
+	values: string[],
+	queryKey: string,
+	excludeQueryKey: string
+): Record<string, string | string[] | undefined> {
 	if (values.length === 0) {
-		return { token: undefined, excludeToken: undefined }
+		return { [queryKey]: undefined, [excludeQueryKey]: undefined }
 	}
 
 	const validSet = new Set(allKeys)
@@ -22,7 +29,7 @@ function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, 
 
 	// All selected = default, clear params
 	if (selected.length === allKeys.length) {
-		return { token: undefined, excludeToken: undefined }
+		return { [queryKey]: undefined, [excludeQueryKey]: undefined }
 	}
 
 	const selectedSet = new Set(selected)
@@ -31,14 +38,14 @@ function tokenQueryUpdates(allKeys: string[], values: string[]): Record<string, 
 
 	if (useExclude) {
 		return {
-			token: undefined,
-			excludeToken: excluded.length === 1 ? excluded[0] : excluded
+			[queryKey]: undefined,
+			[excludeQueryKey]: excluded.length === 1 ? excluded[0] : excluded
 		}
 	}
 
 	return {
-		excludeToken: undefined,
-		token: selected.length === 1 ? selected[0] : selected
+		[excludeQueryKey]: undefined,
+		[queryKey]: selected.length === 1 ? selected[0] : selected
 	}
 }
 
@@ -46,10 +53,14 @@ export function FilterByToken({
 	tokensList = EMPTY_ARRAY,
 	selectedTokens,
 	nestedMenu,
-	autoApplyAttributes = true
+	autoApplyAttributes = true,
+	queryKey = 'token',
+	excludeQueryKey = 'excludeToken'
 }: IFiltersByTokensProps) {
 	const router = useRouter()
-	const { token, excludeToken, attribute } = router.query
+	const { attribute } = router.query
+	const token = router.query[queryKey]
+	const excludeToken = router.query[excludeQueryKey]
 	const excludedTokens = excludeToken
 		? typeof excludeToken === 'string'
 			? [excludeToken]
@@ -69,7 +80,12 @@ export function FilterByToken({
 			}
 		}
 
-		const updates: Record<string, string | string[] | undefined> = tokenQueryUpdates(tokensList, values)
+		const updates: Record<string, string | string[] | undefined> = tokenQueryUpdates(
+			tokensList,
+			values,
+			queryKey,
+			excludeQueryKey
+		)
 
 		// Mirror the desktop include behaviour: auto-apply single_exposure + no_il when a token
 		// filter is active, clean them up when the filter is cleared.

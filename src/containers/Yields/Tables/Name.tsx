@@ -173,7 +173,7 @@ export function NameYield({
 	return (
 		<span className="relative flex items-center pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? <AirdropIndicator raiseValuation={raiseValuation} /> : null}
-			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} size={22} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
@@ -196,7 +196,7 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 
 	return (
 		<span className="flex items-center gap-2">
-			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} size={22} />
 			<BasicLink
 				href={tokenUrl}
 				data-umami-event="yields-project-filter-click"

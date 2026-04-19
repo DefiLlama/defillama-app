@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHAIN_API, YIELD_CONFIG_API, YIELD_LEND_BORROW_API, YIELD_POOLS_API, YIELD_URL_API } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
+import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
 import { fetchJson } from '~/utils/async'
 
 const formatChain = (chain: string) => {
@@ -11,8 +12,9 @@ const formatChain = (chain: string) => {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
-		const { chains } = req.query
+		const { chains, token } = req.query
 		let chainList = typeof chains === 'string' ? [chains] : chains || []
+		const tokenFilter = typeof token === 'string' ? token.trim() : Array.isArray(token) ? token[0]?.trim() : ''
 		chainList = chainList.map(formatChain)
 		const poolsAndConfig = await Promise.all([
 			fetchJson(YIELD_POOLS_API),
@@ -113,6 +115,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			filteredPools = transformedPools.filter((pool: any) =>
 				pool.chains.some((chain: string) => chainList.some((c: string) => c.toLowerCase() === chain.toLowerCase()))
 			)
+		}
+
+		if (tokenFilter) {
+			filteredPools = filteredPools.filter((pool: any) => matchesYieldPoolToken(pool.pool, tokenFilter))
 		}
 
 		const sortedPools = filteredPools.filter((p: any) => p.tvl > 0).sort((a: any, b: any) => b.apy - a.apy)

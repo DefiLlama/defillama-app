@@ -9,6 +9,7 @@ export type TokenDirectoryRecord = {
 	chainId?: string
 	route?: string
 	tokenRights?: boolean
+	is_yields?: boolean
 }
 
 export type TokenDirectory = Record<string, TokenDirectoryRecord>

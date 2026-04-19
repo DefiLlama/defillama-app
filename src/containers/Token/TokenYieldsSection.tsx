@@ -1,0 +1,284 @@
+import { useQuery } from '@tanstack/react-query'
+import type { SortingState } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import * as React from 'react'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
+import { TVLRange } from '~/components/Filters/TVLRange'
+import { Icon } from '~/components/Icon'
+import { LocalLoader } from '~/components/Loaders'
+import { APYRange } from '~/containers/Yields/Filters/APYRange'
+import { FilterByChain } from '~/containers/Yields/Filters/Chains'
+import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
+import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
+import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
+import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
+import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
+import { fetchJson } from '~/utils/async'
+import { pushShallowQuery } from '~/utils/routerQuery'
+import { DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT } from './tableUtils'
+
+const ENABLED_COLUMNS = [
+	'show7dBaseApy',
+	'show7dIL',
+	'show1dVolume',
+	'show7dVolume',
+	'showInceptionApy',
+	'showBorrowBaseApy',
+	'showBorrowRewardApy',
+	'showNetBorrowApy',
+	'showLTV',
+	'showTotalSupplied',
+	'showTotalBorrowed',
+	'showAvailable',
+	'showMedianApy',
+	'showStdDev',
+	'showHolderCount',
+	'showAvgPosition'
+]
+
+const FILTER_QUERY_PARAMS = [
+	'chain',
+	'excludeChain',
+	'yieldToken',
+	'yieldExcludeToken',
+	'minTvl',
+	'maxTvl',
+	'minApy',
+	'maxApy',
+	...ENABLED_COLUMNS
+]
+
+const TOKEN_YIELDS_SECTION_ID = 'token-yields'
+const DEFAULT_TABLE_SORTING: SortingState = [{ id: 'tvl', desc: true }]
+
+async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[]> {
+	return fetchJson<IYieldTableRow[]>(`/api/datasets/yields?token=${encodeURIComponent(tokenSymbol)}`)
+}
+
+interface TokenYieldsSectionProps {
+	tokenSymbol: string
+}
+
+export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
+	const router = useRouter()
+	const {
+		data: rows,
+		error,
+		isLoading
+	} = useQuery({
+		queryKey: ['token-yields', tokenSymbol],
+		queryFn: () => fetchTokenYieldRows(tokenSymbol),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: Boolean(tokenSymbol)
+	})
+	const poolsList = React.useMemo(() => rows ?? [], [rows])
+	const { data: volatility } = useVolatility()
+	const { data: holderStats } = useHolderStats(poolsList.map((pool) => pool.configID))
+
+	const chainList = React.useMemo(() => [...new Set(poolsList.map((pool) => pool.chains[0]))].sort(), [poolsList])
+
+	const tokensList = React.useMemo(
+		() =>
+			[...new Set(poolsList.flatMap((pool) => extractPoolTokens(pool.pool)))]
+				.sort()
+				.map((token) => token.toUpperCase()),
+		[poolsList]
+	)
+
+	const { selectedChains, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy } = useFormatYieldQueryParams({
+		chainList,
+		tokenQueryKey: 'yieldToken',
+		excludeTokenQueryKey: 'yieldExcludeToken'
+	})
+
+	const poolsWithVolatility = React.useMemo(() => {
+		return poolsList.map((pool) => ({
+			...pool,
+			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
+			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
+			cv30d: volatility?.[pool.configID]?.[3] ?? null,
+			holderCount: holderStats?.[pool.configID]?.holderCount ?? null,
+			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? null,
+			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? null,
+			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? null,
+			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? null
+		}))
+	}, [holderStats, poolsList, volatility])
+
+	const filteredPools = React.useMemo(() => {
+		let pools = poolsWithVolatility
+
+		if (selectedChains.length > 0 && selectedChains.length < chainList.length) {
+			const chainSet = new Set(selectedChains)
+			pools = pools.filter((pool) => chainSet.has(pool.chains[0]))
+		}
+
+		if (includeTokens.length > 0) {
+			pools = pools.filter((pool) => {
+				const poolTokens = extractPoolTokens(pool.pool)
+				return includeTokens.some((token) => poolTokens.some((poolToken) => poolToken.includes(normalizeToken(token))))
+			})
+		}
+
+		if (excludeTokens.length > 0) {
+			pools = pools.filter((pool) => {
+				const poolTokens = new Set(extractPoolTokens(pool.pool))
+				return !excludeTokens.some((token) => poolTokens.has(normalizeToken(token)))
+			})
+		}
+
+		if (minTvl != null) {
+			pools = pools.filter((pool) => pool.tvl != null && pool.tvl >= minTvl)
+		}
+		if (maxTvl != null) {
+			pools = pools.filter((pool) => pool.tvl != null && pool.tvl <= maxTvl)
+		}
+
+		if (minApy != null) {
+			pools = pools.filter((pool) => pool.apy != null && pool.apy > minApy)
+		}
+		if (maxApy != null) {
+			pools = pools.filter((pool) => pool.apy != null && pool.apy < maxApy)
+		}
+
+		return pools
+	}, [
+		chainList.length,
+		excludeTokens,
+		includeTokens,
+		maxApy,
+		maxTvl,
+		minApy,
+		minTvl,
+		poolsWithVolatility,
+		selectedChains
+	])
+
+	const filteredStats = React.useMemo(() => {
+		const poolsWithApy = filteredPools.filter((pool) => pool.apy !== 0)
+
+		return {
+			noOfPoolsTracked: filteredPools.length,
+			averageAPY:
+				poolsWithApy.length > 0
+					? poolsWithApy.reduce((accumulator, { apy }) => accumulator + apy, 0) / poolsWithApy.length
+					: null
+		}
+	}, [filteredPools])
+
+	const hasActiveFilters = FILTER_QUERY_PARAMS.some((key) => router.query[key] != null && router.query[key] !== '')
+
+	const resetFilters = () => {
+		const updates: Record<string, undefined> = {}
+		for (const key of FILTER_QUERY_PARAMS) {
+			updates[key] = undefined
+		}
+		pushShallowQuery(router, updates)
+	}
+
+	const isFilteredEmpty = filteredPools.length === 0 && poolsList.length > 0
+
+	return (
+		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="border-b border-(--cards-border) p-3">
+				<h2
+					className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
+					id={TOKEN_YIELDS_SECTION_ID}
+				>
+					Yields
+					<a
+						aria-hidden="true"
+						tabIndex={-1}
+						href={`#${TOKEN_YIELDS_SECTION_ID}`}
+						className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+					/>
+					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+				</h2>
+			</div>
+
+			<div className="flex flex-col gap-3 p-3">
+				{isLoading ? (
+					<div
+						className="flex items-center justify-center"
+						style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
+					>
+						<LocalLoader />
+					</div>
+				) : error ? (
+					<div
+						className="flex items-center justify-center px-4 text-center"
+						style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
+					>
+						<p className="text-sm text-(--text-label)">{error.message}</p>
+					</div>
+				) : poolsList.length === 0 ? (
+					<div
+						className="flex items-center justify-center px-4 text-center"
+						style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
+					>
+						<p className="text-sm text-(--text-label)">No yield pools found.</p>
+					</div>
+				) : (
+					<>
+						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+							<div className="flex flex-wrap items-center gap-2 p-3">
+								<span>
+									{filteredStats.noOfPoolsTracked > 0
+										? `Tracking ${filteredStats.noOfPoolsTracked} ${
+												filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'
+											}${filteredStats.averageAPY != null ? `, average APY ${filteredStats.averageAPY.toFixed(2)}%` : ''}`
+										: 'No pools matching filters'}
+								</span>
+							</div>
+							<div className="p-3">
+								<ResponsiveFilterLayout>
+									{(nestedMenu) => (
+										<>
+											<FilterByChain chainList={chainList} selectedChains={selectedChains} nestedMenu={nestedMenu} />
+											<FilterByToken
+												tokensList={tokensList}
+												selectedTokens={includeTokens}
+												nestedMenu={nestedMenu}
+												autoApplyAttributes={false}
+												queryKey="yieldToken"
+												excludeQueryKey="yieldExcludeToken"
+											/>
+											<TVLRange variant="secondary" nestedMenu={nestedMenu} />
+											<APYRange nestedMenu={nestedMenu} />
+											<ColumnFilters enabledColumns={ENABLED_COLUMNS} nestedMenu={nestedMenu} />
+											{hasActiveFilters ? (
+												<button
+													onClick={resetFilters}
+													className="rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
+												>
+													Reset filters
+												</button>
+											) : null}
+										</>
+									)}
+								</ResponsiveFilterLayout>
+							</div>
+						</div>
+
+						{isFilteredEmpty ? (
+							<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+								<p className="p-2">No pools match current filters</p>
+							</div>
+						) : (
+							<YieldsPoolsTable
+								data={filteredPools}
+								enablePagination
+								initialPageSize={10}
+								sortingState={DEFAULT_TABLE_SORTING}
+							/>
+						)}
+					</>
+				)}
+			</div>
+		</section>
+	)
+}

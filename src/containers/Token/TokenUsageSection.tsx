@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import {
 	type PaginationState,
 	type SortingState,
-	type Updater,
 	createColumnHelper,
 	flexRender,
 	getCoreRowModel,
@@ -26,6 +25,12 @@ import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 import type { RawProtocolTokenUsageEntry } from '~/containers/TokenUsage/api.types'
 import { formattedNum } from '~/utils'
+import {
+	DEFAULT_TABLE_PAGE_SIZE,
+	DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT,
+	resolveUpdater,
+	TABLE_PAGE_SIZE_OPTIONS
+} from './tableUtils'
 
 export type TokenUsageSectionRow = {
 	name: string
@@ -36,20 +41,9 @@ export type TokenUsageSectionRow = {
 	misrepresentedTokens?: boolean
 }
 
-const DEFAULT_PAGE_SIZE = 10
-const PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
-const DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT = 494
 const DEFAULT_SORTING: SortingState = [{ desc: true, id: 'amountUsd' }]
 const TOKEN_USAGE_SECTION_ID = 'token-usage'
 const columnHelper = createColumnHelper<TokenUsageSectionRow>()
-
-const isUpdaterFunction = <T,>(updater: Updater<T>): updater is (old: T) => T => {
-	return typeof updater === 'function'
-}
-
-const resolveUpdater = <T,>(updater: Updater<T>, previousValue: T): T => {
-	return isUpdaterFunction(updater) ? updater(previousValue) : updater
-}
 
 const columns = [
 	columnHelper.accessor('name', {
@@ -62,9 +56,9 @@ const columns = [
 			return (
 				<span className="flex items-center gap-2">
 					{row.original.logo ? (
-						<TokenLogo src={row.original.logo} alt={`Logo of ${value}`} />
+						<TokenLogo src={row.original.logo} alt={`Logo of ${value}`} size={22} />
 					) : (
-						<TokenLogo name={value} kind="token" alt={`Logo of ${value}`} />
+						<TokenLogo name={value} kind="token" alt={`Logo of ${value}`} size={22} />
 					)}
 					{href ? (
 						<BasicLink
@@ -132,13 +126,13 @@ async function fetchTokenUsageRows(
 interface TokenUsageSectionProps {
 	tokenSymbol: string
 	initialIncludeCentralizedExchanges?: boolean
-	initialPageSize?: (typeof PAGE_SIZE_OPTIONS)[number]
+	initialPageSize?: (typeof TABLE_PAGE_SIZE_OPTIONS)[number]
 }
 
 export function TokenUsageSection({
 	tokenSymbol,
 	initialIncludeCentralizedExchanges = false,
-	initialPageSize = DEFAULT_PAGE_SIZE
+	initialPageSize = DEFAULT_TABLE_PAGE_SIZE
 }: TokenUsageSectionProps) {
 	const router = useRouter()
 	const signInDialogStore = Ariakit.useDialogStore()
@@ -385,7 +379,7 @@ export function TokenUsageSection({
 										}
 										className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1"
 									>
-										{PAGE_SIZE_OPTIONS.map((pageSize) => (
+										{TABLE_PAGE_SIZE_OPTIONS.map((pageSize) => (
 											<option key={pageSize} value={pageSize}>
 												{pageSize}
 											</option>

@@ -11,6 +11,7 @@ export interface IconsRowItem {
 	kind: 'chain' | 'token'
 	href?: string
 	title?: string
+	size?: number
 }
 
 interface IIconItemLogoProps {
@@ -21,12 +22,12 @@ const IconItemLogo = ({ item }: IIconItemLogoProps) => {
 	const title = item.title ?? item.label
 
 	if (!item.href) {
-		return <TokenLogo name={item.label} kind={item.kind} alt={`Logo of ${item.label}`} title={title} />
+		return <TokenLogo name={item.label} kind={item.kind} alt={`Logo of ${item.label}`} title={title} size={item.size} />
 	}
 
 	return (
 		<a href={item.href} target="_blank" rel="noopener noreferrer" title={title} onClick={(e) => e.stopPropagation()}>
-			<TokenLogo name={item.label} kind={item.kind} alt={`Logo of ${item.label}`} />
+			<TokenLogo name={item.label} kind={item.kind} alt={`Logo of ${item.label}`} size={item.size} />
 		</a>
 	)
 }

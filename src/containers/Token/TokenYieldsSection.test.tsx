@@ -1,0 +1,203 @@
+import React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+var queryState: {
+	data?: any
+	error?: Error | null
+	isLoading: boolean
+} = {
+	data: [],
+	error: null,
+	isLoading: false
+}
+
+var yieldsQueryState = {
+	selectedChains: [] as string[],
+	includeTokens: [] as string[],
+	excludeTokens: [] as string[],
+	minTvl: null as number | null,
+	maxTvl: null as number | null,
+	minApy: null as number | null,
+	maxApy: null as number | null
+}
+
+vi.mock('@tanstack/react-query', () => ({
+	useQuery: () => queryState
+}))
+
+vi.mock('next/router', () => ({
+	useRouter: () => ({
+		pathname: '/token/[token]',
+		query: {},
+		push: vi.fn()
+	})
+}))
+
+vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
+	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
+		<div>{children(false)}</div>
+	)
+}))
+
+vi.mock('~/components/Filters/TVLRange', () => ({
+	TVLRange: () => <div>TVL Range</div>
+}))
+
+vi.mock('~/components/Icon', () => ({
+	Icon: ({ name }: { name: string }) => <span>{name}</span>
+}))
+
+vi.mock('~/components/Loaders', () => ({
+	LocalLoader: () => <div>loader</div>
+}))
+
+vi.mock('~/containers/Yields/Filters/APYRange', () => ({
+	APYRange: () => <div>APY</div>
+}))
+
+vi.mock('~/containers/Yields/Filters/Chains', () => ({
+	FilterByChain: () => <div>Chains</div>
+}))
+
+vi.mock('~/containers/Yields/Filters/ColumnFilters', () => ({
+	ColumnFilters: () => <div>Columns</div>
+}))
+
+vi.mock('~/containers/Yields/Filters/Tokens', () => ({
+	FilterByToken: () => <div>Tokens</div>
+}))
+
+vi.mock('~/containers/Yields/hooks', () => ({
+	useFormatYieldQueryParams: () => yieldsQueryState
+}))
+
+vi.mock('~/containers/Yields/queries/client', () => ({
+	useVolatility: () => ({ data: {} }),
+	useHolderStats: () => ({ data: {} })
+}))
+
+vi.mock('~/containers/Yields/Tables/Pools', () => ({
+	YieldsPoolsTable: ({
+		data,
+		enablePagination,
+		initialPageSize
+	}: {
+		data: Array<{ pool: string }>
+		enablePagination?: boolean
+		initialPageSize?: number
+	}) => (
+		<div>{`yields-table:${data.length}:${enablePagination ? 'paginated' : 'plain'}:${initialPageSize ?? 'default'}`}</div>
+	)
+}))
+
+afterEach(() => {
+	queryState = {
+		data: [],
+		error: null,
+		isLoading: false
+	}
+	yieldsQueryState = {
+		selectedChains: [],
+		includeTokens: [],
+		excludeTokens: [],
+		minTvl: null,
+		maxTvl: null,
+		minApy: null,
+		maxApy: null
+	}
+	vi.clearAllMocks()
+})
+
+import { TokenYieldsSection } from './TokenYieldsSection'
+
+describe('TokenYieldsSection', () => {
+	it('renders the protocol-yields filter controls and paginated table', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'stETH-ETH',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('Tracking 1 pool, average APY 5.10%')
+		expect(html).toContain('Chains')
+		expect(html).toContain('Tokens')
+		expect(html).toContain('TVL Range')
+		expect(html).toContain('APY')
+		expect(html).toContain('Columns')
+		expect(html).toContain('yields-table:1:paginated:10')
+	})
+
+	it('shows a loader while data is loading', () => {
+		queryState = {
+			data: [],
+			error: null,
+			isLoading: true
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('loader')
+		expect(html).toContain('min-height:494px')
+	})
+
+	it('shows an error state when the fetch fails', () => {
+		queryState = {
+			data: [],
+			error: new Error('Failed to fetch yields data'),
+			isLoading: false
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('Failed to fetch yields data')
+		expect(html).toContain('min-height:494px')
+	})
+
+	it('shows an empty state when no pools match the token', () => {
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('No yield pools found.')
+		expect(html).toContain('min-height:494px')
+	})
+
+	it('shows the filtered empty state when selectors remove all rows', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'stETH-ETH',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+		yieldsQueryState = {
+			...yieldsQueryState,
+			minTvl: 2000000
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('No pools matching filters')
+		expect(html).toContain('No pools match current filters')
+		expect(html).not.toContain('yields-table:')
+	})
+})

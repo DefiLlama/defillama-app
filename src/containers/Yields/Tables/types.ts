@@ -1,3 +1,5 @@
+import type { SortingState } from '@tanstack/react-table'
+
 export interface IYieldTableRow {
 	rewardMeta: string
 	id: string
@@ -56,6 +58,9 @@ export interface IYieldsProjectsTableRow {
 
 export interface IYieldsTableProps {
 	data: Array<IYieldTableRow>
+	enablePagination?: boolean
+	initialPageSize?: number
+	sortingState?: SortingState
 }
 
 export interface IYieldsOptimizerTableRow extends IYieldTableRow {
