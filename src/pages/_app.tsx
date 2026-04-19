@@ -113,7 +113,7 @@ function App({ Component, pageProps }: AppProps) {
 	useEffect(() => {
 		const handleRouteChange = (url: string, { shallow }: { shallow: boolean }) => {
 			// Only restore scroll for complete route changes, not shallow ones
-			if (!shallow && typeof window !== 'undefined') {
+			if (!shallow && typeof window !== 'undefined' && !url.includes('#')) {
 				window.scrollTo({ top: 0, behavior: 'smooth' })
 			}
 		}

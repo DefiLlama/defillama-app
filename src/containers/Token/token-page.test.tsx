@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 
 afterEach(() => {
@@ -14,6 +15,8 @@ function setupPageModule({
 		eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum' }
 	},
 	tokenRightsEntries = [],
+	protocolMetadata = {},
+	incomeStatementData = null,
 	tokenlist = {
 		bitcoin: {
 			symbol: 'btc',
@@ -35,6 +38,8 @@ function setupPageModule({
 }: {
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
+	protocolMetadata?: Record<string, IProtocolMetadata>
+	incomeStatementData?: unknown
 	tokenlist?: Record<string, unknown>
 } = {}) {
 	vi.doMock('fs', () => ({
@@ -50,6 +55,9 @@ function setupPageModule({
 	}))
 	vi.doMock('~/containers/Token/TokenUsageSection', () => ({
 		TokenUsageSection: () => <div>token-usage-section</div>
+	}))
+	vi.doMock('~/containers/Token/TokenIncomeStatementSection', () => ({
+		TokenIncomeStatementSection: () => <div>token-income-statement-section</div>
 	}))
 	vi.doMock('~/containers/TokenRights/TokenRightsByProtocol', () => ({
 		TokenRightsByProtocol: () => <div>token-rights-section</div>
@@ -69,16 +77,20 @@ function setupPageModule({
 	vi.doMock('~/utils/metadata', () => ({
 		__esModule: true,
 		default: {
-			tokenlist
+			tokenlist,
+			protocolMetadata
 		},
 		refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
+	}))
+	vi.doMock('~/containers/ProtocolOverview/queries', () => ({
+		getProtocolIncomeStatement: vi.fn().mockResolvedValue(incomeStatementData)
 	}))
 
 	return import('~/pages/token/[token]')
 }
 
 describe('token page', () => {
-	it('renders token usage above token rights when token rights data exists', async () => {
+	it('renders income statement above token usage and token rights when data exists', async () => {
 		const page = await setupPageModule()
 
 		const html = renderToStaticMarkup(
@@ -86,6 +98,9 @@ describe('token page', () => {
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true }}
 				displayName="BTC"
 				tokenRightsData={{}}
+				incomeStatementData={{ data: {} }}
+				incomeStatementProtocolName="Bitcoin Protocol"
+				incomeStatementHasIncentives={false}
 				price={100}
 				percentChange={5}
 				mcap={1000}
@@ -100,8 +115,11 @@ describe('token page', () => {
 		)
 
 		expect(html).toContain('token-overview-header')
+		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
 		expect(html).toContain('token-rights-section')
+		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
+		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
 		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
 	})
@@ -140,6 +158,9 @@ describe('token page', () => {
 				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' },
 				displayName: 'BTC',
 				tokenRightsData: null,
+				incomeStatementData: null,
+				incomeStatementProtocolName: null,
+				incomeStatementHasIncentives: false,
 				price: 100,
 				percentChange: 5,
 				mcap: 1000,
@@ -178,6 +199,9 @@ describe('token page', () => {
 				record: { name: 'Bitcoin', symbol: 'BTC' },
 				displayName: 'BTC',
 				tokenRightsData: null,
+				incomeStatementData: null,
+				incomeStatementProtocolName: null,
+				incomeStatementHasIncentives: false,
 				price: null,
 				percentChange: null,
 				mcap: null,
@@ -300,6 +324,9 @@ describe('token page', () => {
 						reports: []
 					}
 				},
+				incomeStatementData: null,
+				incomeStatementProtocolName: null,
+				incomeStatementHasIncentives: false,
 				price: 10,
 				percentChange: 10,
 				mcap: 100,
@@ -311,6 +338,88 @@ describe('token page', () => {
 				seoDescription:
 					'Track LINK price, market cap, circulating supply, max supply, 24h trading volume, and token rights on DefiLlama.',
 				canonicalUrl: '/token/link'
+			},
+			revalidate: 123
+		})
+	})
+
+	it('getStaticProps includes income statement data when the token protocol has one', async () => {
+		const incomeStatementData = {
+			data: {
+				monthly: {},
+				quarterly: {
+					'2026-Q1': {
+						'Gross Protocol Revenue': { value: 10, 'by-label': {} },
+						'Cost Of Revenue': { value: -2, 'by-label': {} },
+						'Gross Profit': { value: 8, 'by-label': {} },
+						Earnings: { value: 8, 'by-label': {} }
+					}
+				},
+				yearly: {},
+				cumulative: {}
+			},
+			labelsByType: {},
+			methodology: {},
+			breakdownMethodology: {},
+			hasOtherTokenHolderFlows: false,
+			hasTokenHolderNetIncome: false
+		}
+		const page = await setupPageModule({
+			tokensJson: {
+				aave: {
+					name: 'Aave',
+					symbol: 'AAVE',
+					token_nk: 'coingecko:aave',
+					protocolId: 'parent#aave'
+				}
+			},
+			protocolMetadata: {
+				'parent#aave': {
+					displayName: 'Aave',
+					fees: true,
+					revenue: true,
+					incentives: true
+				} as IProtocolMetadata
+			},
+			incomeStatementData,
+			tokenlist: {
+				aave: {
+					symbol: 'aave',
+					current_price: 10,
+					price_change_percentage_24h: 10,
+					market_cap: 100,
+					fully_diluted_valuation: 150,
+					total_volume: 50,
+					circulating_supply: 20,
+					max_supply: 1000
+				}
+			}
+		})
+
+		await expect(page.getStaticProps({ params: { token: 'aave' } } as never)).resolves.toEqual({
+			props: {
+				record: {
+					name: 'Aave',
+					symbol: 'AAVE',
+					token_nk: 'coingecko:aave',
+					protocolId: 'parent#aave'
+				},
+				displayName: 'AAVE',
+				tokenRightsData: null,
+				incomeStatementData,
+				incomeStatementProtocolName: 'Aave',
+				incomeStatementHasIncentives: true,
+				price: 10,
+				percentChange: 10,
+				mcap: 100,
+				fdv: 150,
+				volume24h: 50,
+				circSupply: 20,
+				maxSupply: 1000,
+				seoTitle: 'AAVE Price, Market Cap & Supply - DefiLlama',
+				seoDescription:
+					'Track AAVE price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				canonicalUrl: '/token/aave'
 			},
 			revalidate: 123
 		})

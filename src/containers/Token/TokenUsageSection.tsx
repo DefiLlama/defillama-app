@@ -36,10 +36,11 @@ export type TokenUsageSectionRow = {
 	misrepresentedTokens?: boolean
 }
 
-const DEFAULT_PAGE_SIZE = 20
-const PAGE_SIZE_OPTIONS = [20, 30, 50] as const
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
 const DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT = 494
 const DEFAULT_SORTING: SortingState = [{ desc: true, id: 'amountUsd' }]
+const TOKEN_USAGE_SECTION_ID = 'token-usage'
 const columnHelper = createColumnHelper<TokenUsageSectionRow>()
 
 const isUpdaterFunction = <T,>(updater: Updater<T>): updater is (old: T) => T => {
@@ -190,7 +191,19 @@ export function TokenUsageSection({
 		<>
 			<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
-					<h2 className="min-w-0 text-xl font-bold">Token Usage</h2>
+					<h2
+						className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
+						id={TOKEN_USAGE_SECTION_ID}
+					>
+						Token Usage
+						<a
+							aria-hidden="true"
+							tabIndex={-1}
+							href={`#${TOKEN_USAGE_SECTION_ID}`}
+							className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+						/>
+						<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+					</h2>
 
 					{isAuthenticated && hasActiveSubscription && rows ? (
 						<div className="flex flex-wrap items-center gap-2 max-sm:w-full">

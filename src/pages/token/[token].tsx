@@ -1,6 +1,8 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
+import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
@@ -47,12 +49,22 @@ export const getStaticProps = withPerformanceLogging(
 		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const tokenEntry: ITokenListEntry | null = geckoId ? (metadataCache.tokenlist[geckoId] ?? null) : null
+		const protocolMetadata = record.protocolId ? (metadataCache.protocolMetadata[record.protocolId] ?? null) : null
 		let tokenRightsData: ITokenRightsData | null = null
+		let incomeStatementData = null
+		let incomeStatementProtocolName: string | null = null
+		let incomeStatementHasIncentives = false
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {
 			const tokenRightsEntries = await fetchTokenRightsData()
 			const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
 			tokenRightsData = rawEntry ? parseTokenRightsEntry(rawEntry) : null
+		}
+
+		if (protocolMetadata) {
+			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata })
+			incomeStatementProtocolName = protocolMetadata.displayName
+			incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
 		}
 
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
@@ -68,6 +80,9 @@ export const getStaticProps = withPerformanceLogging(
 				record,
 				displayName,
 				tokenRightsData,
+				incomeStatementData,
+				incomeStatementProtocolName,
+				incomeStatementHasIncentives,
 				price: tokenEntry?.current_price ?? null,
 				percentChange: tokenEntry?.price_change_percentage_24h ?? null,
 				mcap: tokenEntry?.market_cap ?? null,
@@ -102,6 +117,9 @@ export default function TokenPage({
 	record,
 	displayName,
 	tokenRightsData,
+	incomeStatementData,
+	incomeStatementProtocolName,
+	incomeStatementHasIncentives,
 	price,
 	percentChange,
 	mcap,
@@ -128,6 +146,13 @@ export default function TokenPage({
 					volume24h={volume24h}
 					symbol={record.symbol}
 				/>
+				{incomeStatementData && incomeStatementProtocolName ? (
+					<TokenIncomeStatementSection
+						protocolName={incomeStatementProtocolName}
+						incomeStatement={incomeStatementData}
+						hasIncentives={incomeStatementHasIncentives}
+					/>
+				) : null}
 				<TokenUsageSection tokenSymbol={record.symbol} />
 				{tokenRightsData ? (
 					<TokenRightsByProtocol

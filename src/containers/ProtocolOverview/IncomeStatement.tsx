@@ -54,6 +54,7 @@ interface IncomeStatementProps {
 	anchorId?: string
 	className?: string
 	showTitles?: boolean
+	titleClassName?: string
 }
 
 export const IncomeStatement = ({
@@ -63,7 +64,8 @@ export const IncomeStatement = ({
 	view = 'both',
 	anchorId,
 	className,
-	showTitles = true
+	showTitles = true,
+	titleClassName
 }: IncomeStatementProps) => {
 	const [groupBy, setGroupBy] = useState<IncomeStatementGroupBy>('Quarterly')
 	const [sankeyGroupBy, setSankeyGroupBy] = useState<IncomeStatementGroupBy>('Quarterly')
@@ -544,7 +546,10 @@ export const IncomeStatement = ({
 		>
 			<div className="flex flex-wrap items-center justify-between gap-1">
 				{showTitles ? (
-					<h2 className="group relative flex items-center gap-1 text-base font-semibold" id={headerId}>
+					<h2
+						className={`group relative flex items-center gap-1 text-base font-semibold ${titleClassName ?? ''}`}
+						id={headerId}
+					>
 						Income Statement for {name}
 						<a
 							aria-hidden="true"

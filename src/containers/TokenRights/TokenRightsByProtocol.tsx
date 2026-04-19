@@ -37,6 +37,8 @@ const TOOLTIPS = {
 		'Which entity owns the primary domain name(s) and frontend interface of the protocol. Domain ownership affects user access and frontend fee capture.'
 } as const
 
+const EMBEDDED_TOKEN_RIGHTS_SECTION_ID = 'token-rights-and-value-accrual'
+
 interface TokenRightsByProtocolProps {
 	name: string
 	symbol: string | null
@@ -76,7 +78,19 @@ export function TokenRightsByProtocol({
 			{showHeader ? (
 				headerVariant === 'embedded' ? (
 					<div className="flex items-center gap-2 border-b border-(--cards-border) p-3">
-						<h1 className="text-xl font-bold">Token Rights and Value Accrual</h1>
+						<h1
+							className="group relative flex scroll-mt-4 items-center gap-1 text-xl font-bold"
+							id={EMBEDDED_TOKEN_RIGHTS_SECTION_ID}
+						>
+							Token Rights and Value Accrual
+							<a
+								aria-hidden="true"
+								tabIndex={-1}
+								href={`#${EMBEDDED_TOKEN_RIGHTS_SECTION_ID}`}
+								className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+							/>
+							<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+						</h1>
 						{overview.lastUpdated ? (
 							<span className="ml-auto text-xs text-(--text-secondary)">
 								Updated{' '}
