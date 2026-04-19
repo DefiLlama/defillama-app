@@ -59,14 +59,16 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 				if (!editor) return
 				const selection = editor.getSelection()
 				const pos = selection ? null : editor.getPosition()
-				const range = selection ?? (pos
-					? {
-						startLineNumber: pos.lineNumber,
-						startColumn: pos.column,
-						endLineNumber: pos.lineNumber,
-						endColumn: pos.column
-					}
-					: null)
+				const range =
+					selection ??
+					(pos
+						? {
+								startLineNumber: pos.lineNumber,
+								startColumn: pos.column,
+								endLineNumber: pos.lineNumber,
+								endColumn: pos.column
+							}
+						: null)
 				if (!range) return
 				editor.executeEdits('schema-browser', [{ range, text, forceMoveMarkers: true }])
 				editor.focus()

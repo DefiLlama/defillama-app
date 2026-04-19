@@ -243,9 +243,7 @@ function EmptyTablesPrompt({
 					Browse schema
 					<Icon name="arrow-right" className="h-3 w-3 opacity-80" />
 				</button>
-				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">
-					Tables referenced in SQL auto-load on run.
-				</span>
+				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">Tables referenced in SQL auto-load on run.</span>
 			</div>
 		</div>
 	)

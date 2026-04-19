@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 
@@ -44,13 +46,16 @@ function setupPageModule({
 		SKIP_BUILD_STATIC_GENERATION: false
 	}))
 	vi.doMock('~/components/TokenOverviewHeader', () => ({
-		TokenOverviewHeader: () => null
+		TokenOverviewHeader: () => <div>token-overview-header</div>
+	}))
+	vi.doMock('~/containers/Token/TokenUsageSection', () => ({
+		TokenUsageSection: () => <div>token-usage-section</div>
 	}))
 	vi.doMock('~/containers/TokenRights/TokenRightsByProtocol', () => ({
-		TokenRightsByProtocol: () => null
+		TokenRightsByProtocol: () => <div>token-rights-section</div>
 	}))
 	vi.doMock('~/layout', () => ({
-		default: () => null
+		default: ({ children }: { children: ReactNode }) => <div>{children}</div>
 	}))
 	vi.doMock('~/utils/maxAgeForNext', () => ({
 		maxAgeForNext: () => 123
@@ -73,6 +78,34 @@ function setupPageModule({
 }
 
 describe('token page', () => {
+	it('renders token usage above token rights when token rights data exists', async () => {
+		const page = await setupPageModule()
+
+		const html = renderToStaticMarkup(
+			<page.default
+				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true }}
+				displayName="BTC"
+				tokenRightsData={{}}
+				price={100}
+				percentChange={5}
+				mcap={1000}
+				fdv={1500}
+				volume24h={500}
+				circSupply={21}
+				maxSupply={21}
+				seoTitle="title"
+				seoDescription="description"
+				canonicalUrl="/token/btc"
+			/>
+		)
+
+		expect(html).toContain('token-overview-header')
+		expect(html).toContain('token-usage-section')
+		expect(html).toContain('token-rights-section')
+		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
+		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
+	})
+
 	it('getStaticPaths returns empty paths with blocking fallback', async () => {
 		const page = await setupPageModule()
 

@@ -4,6 +4,8 @@ import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import type { ChartOptionsMap } from '../chart-datasets'
+import { chartDatasets } from '../chart-datasets'
+import { datasets } from '../datasets'
 import { extractQueryConfig, generatePresetId, type QuerySavedConfig } from '../savedDownloads'
 import { SavePresetDialog } from '../SavePresetDialog'
 import { extractTableRefs, matchTableRef } from './completions'
@@ -16,8 +18,6 @@ import { SchemaDrawer } from './SchemaDrawer'
 import { TableChipRail, type PendingTable } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
-import { chartDatasets } from '../chart-datasets'
-import { datasets } from '../datasets'
 import {
 	identifierize,
 	prettyLabelForSource,

@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
@@ -127,6 +128,7 @@ export default function TokenPage({
 					volume24h={volume24h}
 					symbol={record.symbol}
 				/>
+				<TokenUsageSection tokenSymbol={record.symbol} />
 				{tokenRightsData ? (
 					<TokenRightsByProtocol
 						name={record.name}

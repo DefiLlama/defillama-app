@@ -8,13 +8,7 @@ interface SchemaDrawerProps extends SchemaBrowserProps {
 	totalDatasetCount: number
 }
 
-export function SchemaDrawer({
-	open,
-	onClose,
-	totalDatasetCount,
-	onReplaceSql,
-	...browserProps
-}: SchemaDrawerProps) {
+export function SchemaDrawer({ open, onClose, totalDatasetCount, onReplaceSql, ...browserProps }: SchemaDrawerProps) {
 	const wrappedReplace = (snippet: string) => {
 		onReplaceSql(snippet)
 		onClose()
@@ -28,7 +22,9 @@ export function SchemaDrawer({
 		>
 			<Ariakit.Dialog
 				unmountOnHide
-				backdrop={<div className="fixed inset-0 z-40 bg-black/20 opacity-0 transition-opacity duration-150 data-enter:opacity-100 dark:bg-black/40" />}
+				backdrop={
+					<div className="fixed inset-0 z-40 bg-black/20 opacity-0 transition-opacity duration-150 data-enter:opacity-100 dark:bg-black/40" />
+				}
 				className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-[640px] drawer-to-left flex-col overflow-hidden border-l border-(--divider) bg-(--cards-bg) shadow-2xl sm:max-w-[560px] lg:max-w-[640px]"
 			>
 				<header className="flex items-start justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/40 px-5 py-3.5">

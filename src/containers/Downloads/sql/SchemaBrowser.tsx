@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
-import { toast } from 'react-hot-toast'
 import { startTransition, useCallback, useDeferredValue, useMemo, useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { getStorageJSON, setStorageJSON } from '~/contexts/localStorageStore'
@@ -111,7 +111,11 @@ export function SchemaBrowser({
 		if (!deferred) return list
 		const toName = (e: SchemaEntry) => (e.kind === 'flat' ? e.tableName : e.displayName)
 		const toDataFields = (e: SchemaEntry) =>
-			e.kind === 'flat' ? (e.dataset.fields ?? []).join(' ') : (columnShapeFor(e.slug) === 'dynamic' ? '' : (columnShapeFor(e.slug) as readonly string[]).join(' '))
+			e.kind === 'flat'
+				? (e.dataset.fields ?? []).join(' ')
+				: columnShapeFor(e.slug) === 'dynamic'
+					? ''
+					: (columnShapeFor(e.slug) as readonly string[]).join(' ')
 		return matchSorter(list, deferred, {
 			keys: [toName, 'description', 'category', toDataFields],
 			threshold: matchSorter.rankings.CONTAINS
@@ -375,9 +379,10 @@ function FlatRow({
 	const staticFields = entry.dataset.fields ?? []
 	const loadedCols = loaded?.columns ?? []
 	const typeByName = new Map(loadedCols.map((c) => [c.name, c.type]))
-	const columns = staticFields.length > 0
-		? staticFields.map((name) => ({ name, type: typeByName.get(name) }))
-		: loadedCols.map((c) => ({ name: c.name, type: c.type }))
+	const columns =
+		staticFields.length > 0
+			? staticFields.map((name) => ({ name, type: typeByName.get(name) }))
+			: loadedCols.map((c) => ({ name: c.name, type: c.type }))
 
 	return (
 		<div className="flex flex-col gap-2 py-3.5">
@@ -430,9 +435,7 @@ function TsRow({
 }) {
 	const [param, setParam] = useState<string>('')
 	const selectedOption = options.find((o) => o.value === param)
-	const resolvedName = param
-		? tableNameFor({ kind: 'chart', slug: entry.slug, param })
-		: entry.displayName
+	const resolvedName = param ? tableNameFor({ kind: 'chart', slug: entry.slug, param }) : entry.displayName
 	const loaded = param ? loadedByKey.get(`ts:${entry.slug}:${param}`) : undefined
 	const isLoading = !!param && loading === resolvedName
 	const snippet = `SELECT * FROM ${resolvedName} LIMIT 100\n`
@@ -481,12 +484,7 @@ function TsRow({
 				/>
 			</div>
 
-			<ParamCombobox
-				paramLabel={entry.dataset.paramLabel}
-				options={options}
-				value={param}
-				onChange={setParam}
-			/>
+			<ParamCombobox paramLabel={entry.dataset.paramLabel} options={options} value={param} onChange={setParam} />
 
 			{columns.length > 0 ? (
 				<ColumnChips columns={columns} onInsertColumn={(name) => onInsertAtCursor(name)} />
@@ -511,7 +509,9 @@ function ColumnChips({
 					<button
 						type="button"
 						onClick={() => onInsertColumn(c.name)}
-						title={c.type ? `${c.name} · ${c.type}\nClick to insert column name` : `${c.name}\nClick to insert column name`}
+						title={
+							c.type ? `${c.name} · ${c.type}\nClick to insert column name` : `${c.name}\nClick to insert column name`
+						}
 						className="group inline-flex items-center gap-1 rounded-sm border border-(--divider) bg-(--cards-bg) px-1.5 py-0.5 transition-colors hover:border-(--primary)/50 hover:bg-(--primary)/5"
 					>
 						<TypeBadge kind={inferColumnKind(c.type)} />
@@ -546,9 +546,7 @@ function RowActions({
 }) {
 	return (
 		<div className="flex shrink-0 items-center gap-1.5">
-			{disabledHint ? (
-				<span className="mr-1 text-[10px] text-(--text-tertiary)">{disabledHint}</span>
-			) : null}
+			{disabledHint ? <span className="mr-1 text-[10px] text-(--text-tertiary)">{disabledHint}</span> : null}
 			<button
 				type="button"
 				onClick={onCopy}
@@ -605,11 +603,7 @@ function ParamCombobox({
 	const current = options.find((o) => o.value === value)
 
 	if (options.length === 0) {
-		return (
-			<p className="text-[11px] text-(--text-tertiary) italic">
-				No {paramLabel.toLowerCase()} options available.
-			</p>
-		)
+		return <p className="text-[11px] text-(--text-tertiary) italic">No {paramLabel.toLowerCase()} options available.</p>
 	}
 
 	return (
@@ -628,15 +622,13 @@ function ParamCombobox({
 					}}
 				>
 					<Ariakit.Select
-						className={`inline-flex min-w-[160px] max-w-[220px] items-center justify-between gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${
+						className={`inline-flex max-w-[220px] min-w-[160px] items-center justify-between gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors ${
 							value
 								? 'border-(--primary)/50 bg-(--primary)/5 text-(--primary)'
 								: 'border-(--divider) bg-(--cards-bg) text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--text-primary)'
 						}`}
 					>
-						<span className="truncate font-mono">
-							{current?.label ?? `Pick ${paramLabel.toLowerCase()}…`}
-						</span>
+						<span className="truncate font-mono">{current?.label ?? `Pick ${paramLabel.toLowerCase()}…`}</span>
 						<Ariakit.SelectArrow />
 					</Ariakit.Select>
 					<Ariakit.SelectPopover
