@@ -16,6 +16,7 @@ const DARK_THEME_ID = 'llama-sql-dark'
 export interface EditorHandle {
 	revealLine: (line: number, column?: number) => void
 	focus: () => void
+	insertSnippet: (text: string) => void
 }
 
 interface EditorProps {
@@ -52,7 +53,24 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 				editor.setPosition({ lineNumber: line, column: column ?? 1 })
 				editor.focus()
 			},
-			focus: () => editorInstanceRef.current?.focus()
+			focus: () => editorInstanceRef.current?.focus(),
+			insertSnippet: (text: string) => {
+				const editor = editorInstanceRef.current
+				if (!editor) return
+				const selection = editor.getSelection()
+				const pos = selection ? null : editor.getPosition()
+				const range = selection ?? (pos
+					? {
+						startLineNumber: pos.lineNumber,
+						startColumn: pos.column,
+						endLineNumber: pos.lineNumber,
+						endColumn: pos.column
+					}
+					: null)
+				if (!range) return
+				editor.executeEdits('schema-browser', [{ range, text, forceMoveMarkers: true }])
+				editor.focus()
+			}
 		}),
 		[]
 	)

@@ -11,11 +11,14 @@ import { Editor, type EditorHandle } from './Editor'
 import type { ExampleQuery } from './examples'
 import { ExamplesPanel } from './ExamplesPanel'
 import { LoadTableModal } from './LoadTableModal'
-import { Keycap, SectionLabel, StatusDot } from './primitives'
+import { Keycap, StatusDot } from './primitives'
 import { ResultsPanel } from './ResultsPanel'
+import { SchemaDrawer } from './SchemaDrawer'
 import { TableChipRail, type PendingTable } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
+import { chartDatasets } from '../chart-datasets'
+import { datasets } from '../datasets'
 import {
 	identifierize,
 	prettyLabelForSource,
@@ -27,10 +30,11 @@ import {
 
 const SQL_TABS = [
 	{ id: 'editor', label: 'Editor' },
-	{ id: 'tables', label: 'Tables' },
 	{ id: 'saved', label: 'Saved' }
 ] as const
 type SqlTab = (typeof SQL_TABS)[number]['id']
+
+const TOTAL_SCHEMA_COUNT = datasets.length + chartDatasets.length
 
 interface SqlWorkspaceProps {
 	chartOptionsMap: ChartOptionsMap
@@ -83,6 +87,7 @@ function SqlWorkspaceInner({
 	const { recordRecent } = useRecentDownloads()
 
 	const [tab, setTab] = useState<SqlTab>('editor')
+	const [schemaDrawerOpen, setSchemaDrawerOpen] = useState(false)
 	const [sql, setSql] = useState<string>(
 		`-- Lending vs DEX fees — daily series with 30-day moving averages.
 -- CTE + FULL OUTER JOIN stitches two time-series, then a named WINDOW
@@ -259,6 +264,16 @@ ORDER BY date DESC
 		[prepareAndRun]
 	)
 
+	const onReplaceSql = useCallback((snippet: string) => {
+		setTab('editor')
+		setSql(snippet)
+	}, [])
+
+	const onInsertAtCursor = useCallback((text: string) => {
+		setTab('editor')
+		setTimeout(() => editorRef.current?.insertSnippet(text), 0)
+	}, [])
+
 	const onSavePreset = useCallback(
 		(name: string) => {
 			const trimmed = sql.trim()
@@ -302,8 +317,10 @@ ORDER BY date DESC
 						<TableChipRail
 							tables={registry.tables}
 							onAddTable={() => setLoadTableOpen(true)}
+							onBrowseSchema={() => setSchemaDrawerOpen(true)}
 							onRemove={registry.remove}
 							pending={pendingTables}
+							totalSchemaCount={TOTAL_SCHEMA_COUNT}
 						/>
 						<Editor ref={editorRef} value={sql} onChange={setSql} onRun={runQuery} tables={registry.tables} />
 						<EditorRunBar
@@ -321,13 +338,6 @@ ORDER BY date DESC
 						<ExamplesPanel onApply={onApplyExample} busyTaskId={busyTaskId} />
 					</div>
 				</div>
-			) : tab === 'tables' ? (
-				<TablesTab
-					tables={registry.tables}
-					onAdd={() => setLoadTableOpen(true)}
-					onRemove={registry.remove}
-					loading={registry.loading}
-				/>
 			) : (
 				<SavedQueriesTab
 					savedQueries={savedQueries}
@@ -363,6 +373,18 @@ ORDER BY date DESC
 					onClose={() => setSavePresetOpen(false)}
 				/>
 			) : null}
+
+			<SchemaDrawer
+				open={schemaDrawerOpen}
+				onClose={() => setSchemaDrawerOpen(false)}
+				chartOptionsMap={chartOptionsMap}
+				loadedTables={registry.tables}
+				onLoad={registry.load}
+				onReplaceSql={onReplaceSql}
+				onInsertAtCursor={onInsertAtCursor}
+				loading={registry.loading}
+				totalDatasetCount={TOTAL_SCHEMA_COUNT}
+			/>
 		</div>
 	)
 }
@@ -551,76 +573,6 @@ function ErrorBanner({ error, onJump }: { error: string; onJump: (line: number, 
 				) : null}
 			</div>
 			<pre className="overflow-x-auto font-mono text-[11.5px] leading-snug whitespace-pre-wrap">{error}</pre>
-		</div>
-	)
-}
-
-function TablesTab({
-	tables,
-	onAdd,
-	onRemove,
-	loading
-}: {
-	tables: RegisteredTable[]
-	onAdd: () => void
-	onRemove: (name: string) => void
-	loading: string | null
-}) {
-	return (
-		<div className="flex flex-col gap-3">
-			<SectionLabel
-				label="Loaded tables"
-				count={tables.length}
-				action={
-					<button
-						type="button"
-						onClick={onAdd}
-						disabled={!!loading}
-						className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-					>
-						<Icon name="plus" className="h-3.5 w-3.5" />
-						Add table
-					</button>
-				}
-			/>
-			{tables.length === 0 ? (
-				<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-12 text-center">
-					<Icon name="blocks" className="h-6 w-6 text-(--text-tertiary)" />
-					<p className="text-sm text-(--text-secondary)">No tables in this session.</p>
-					<p className="max-w-sm text-xs text-(--text-tertiary)">
-						Add a DefiLlama dataset or time-series to start querying.
-					</p>
-				</div>
-			) : (
-				<ul className="flex flex-col divide-y divide-(--divider) border-y border-(--divider)">
-					{tables.map((t) => (
-						<li key={t.name} className="flex flex-col gap-1.5 py-3">
-							<div className="flex items-center justify-between gap-3">
-								<div className="flex flex-wrap items-center gap-2">
-									<span className="font-mono text-sm font-semibold text-(--text-primary)">{t.name}</span>
-									<span className="rounded-sm bg-(--link-hover-bg) px-1.5 py-px text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">
-										{t.source.kind === 'dataset' ? 'Dataset' : 'Time series'}
-									</span>
-									<span className="text-xs text-(--text-tertiary) tabular-nums">
-										{t.rowCount.toLocaleString()} rows · {t.columns.length} cols
-									</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => onRemove(t.name)}
-									aria-label={`Remove ${t.name}`}
-									className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500"
-								>
-									<Icon name="trash-2" className="h-3.5 w-3.5" />
-								</button>
-							</div>
-							<p className="truncate font-mono text-xs text-(--text-tertiary)">
-								{t.columns.map((c) => c.name).join(', ')}
-							</p>
-						</li>
-					))}
-				</ul>
-			)}
 		</div>
 	)
 }
