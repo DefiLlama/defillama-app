@@ -892,7 +892,7 @@ const ChartContainer = ({
 				...(!isOverlay ? { stack: 'A' } : {}),
 				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {}),
 				...(isTBD ? { isTBD: true } : {}),
-				...(isForecast ? { isForecast: true } : {}),
+				...(isForecast ? { isForecast: true } : {})
 			}
 		})
 	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType, tbdSections, forecastSections])

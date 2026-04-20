@@ -173,7 +173,10 @@ function buildPieFromChart(chart: EmissionsChartRow[]): Array<{ name: string; va
 	return pie
 }
 
-function buildColorsForPie(pie: Array<{ name: string }>, colorFrom: Record<string, string> = {}): Record<string, string> {
+function buildColorsForPie(
+	pie: Array<{ name: string }>,
+	colorFrom: Record<string, string> = {}
+): Record<string, string> {
 	const colors: Record<string, string> = {}
 	const names = new Set(pie.map((p) => p.name))
 	const baseNameOf = (n: string): string | null => {
@@ -737,17 +740,14 @@ export const getAllProtocolEmissions = async ({
 const EMPTY_TBD_SECTIONS: string[] = []
 const EMPTY_FORECAST_SECTIONS: string[] = []
 
-function extractSections(
-	res: ProtocolEmissionDetail,
-	flag: string,
-): string[] {
-    const sections = res.componentData?.sections
-    if (!sections) return []
-    const matches: string[] = []
-    for (const [name, section] of Object.entries(sections)) {
-        if (section?.[flag]) matches.push(name)
-    }
-    return matches
+function extractSections(res: ProtocolEmissionDetail, flag: string): string[] {
+	const sections = res.componentData?.sections
+	if (!sections) return []
+	const matches: string[] = []
+	for (const [name, section] of Object.entries(sections)) {
+		if (section?.[flag]) matches.push(name)
+	}
+	return matches
 }
 
 function extractColorFromMap(res: ProtocolEmissionDetail): Record<string, string> {
@@ -792,7 +792,7 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		tokenPrice: {},
 		unlockUsdChart: null,
 		tbdSections: EMPTY_TBD_SECTIONS,
-		forecastSections: EMPTY_FORECAST_SECTIONS,
+		forecastSections: EMPTY_FORECAST_SECTIONS
 	}
 }
 
@@ -899,8 +899,8 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			name: name || null,
 			tokenPrice,
 			unlockUsdChart: res.unlockUsdChart ?? null,
-			tbdSections: extractSections(res, "isTBD"),
-			forecastSections: extractSections(res, "isForecast"),
+			tbdSections: extractSections(res, 'isTBD'),
+			forecastSections: extractSections(res, 'isForecast')
 		}
 	} catch (e) {
 		console.log(e)
