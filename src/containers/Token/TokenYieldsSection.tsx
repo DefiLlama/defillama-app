@@ -12,13 +12,12 @@ import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
-import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+import { PaginatedYieldsPoolTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
 import { extractPoolTokens } from '~/containers/Yields/utils'
 import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
-import { DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT } from './tableUtils'
 
 const ENABLED_COLUMNS = [
 	'show7dBaseApy',
@@ -217,9 +216,14 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	}
 
 	const isFilteredEmpty = filteredPools.length === 0 && poolsList.length > 0
+	const hasPlaceholderState = isLoading || error != null || poolsList.length === 0
 
 	return (
-		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+		<section
+			className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)${
+				hasPlaceholderState ? ' min-h-[80dvh] sm:min-h-[572px]' : ''
+			}`}
+		>
 			<div className="border-b border-(--cards-border) p-3">
 				<h2
 					className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
@@ -236,26 +240,17 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 				</h2>
 			</div>
 
-			<div className="flex flex-col gap-3 p-3">
+			<div className="flex flex-1 flex-col gap-3 p-3">
 				{isLoading ? (
-					<div
-						className="flex items-center justify-center"
-						style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-					>
+					<div className="flex flex-1 items-center justify-center">
 						<LocalLoader />
 					</div>
 				) : error ? (
-					<div
-						className="flex items-center justify-center px-4 text-center"
-						style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-					>
+					<div className="flex flex-1 items-center justify-center px-4 text-center">
 						<p className="text-sm text-(--text-label)">{error.message}</p>
 					</div>
 				) : poolsList.length === 0 ? (
-					<div
-						className="flex items-center justify-center px-4 text-center"
-						style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-					>
+					<div className="flex flex-1 items-center justify-center px-4 text-center">
 						<p className="text-sm text-(--text-label)">No yield pools found.</p>
 					</div>
 				) : (
@@ -305,7 +300,7 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 								<p className="p-2">No pools match current filters</p>
 							</div>
 						) : (
-							<YieldsPoolsTable
+							<PaginatedYieldsPoolTable
 								data={filteredPools}
 								enablePagination
 								initialPageSize={10}

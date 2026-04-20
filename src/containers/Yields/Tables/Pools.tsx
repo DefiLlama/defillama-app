@@ -1,12 +1,21 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type PaginationState,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -49,21 +58,30 @@ function PegHealthIndicator({
 }
 
 const columnHelper = createColumnHelper<IYieldTableRow>()
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
 
 const columns = [
 	columnHelper.accessor('pool', {
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
+		cell: ({ getValue, row, table }) => {
 			const value = getValue()
 			const exploited = isExploitedPool(row.original.projectslug, value)
+			const rowIndex = (
+				table.options.meta as
+					| {
+							getDisplayRowNumber?: (rowIndex: number) => number
+					  }
+					| undefined
+			)?.getDisplayRowNumber?.(row.index)
 			return (
 				<span className="flex items-center gap-1">
 					<NameYieldPool
 						value={value}
 						configID={row.original.configID}
 						url={row.original.url}
+						rowIndex={rowIndex}
 						poolMeta={row.original.poolMeta}
 					/>
 					{exploited ? (
@@ -1014,7 +1032,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export function YieldsPoolsTable(props: IYieldsTableProps) {
+export function useYieldsPoolsTableConfig() {
 	const router = useRouter()
 	const { hasActiveSubscription } = useAuthContext()
 	const {
@@ -1108,13 +1126,64 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					...stablecoinColumnVisibility
 				}
 
+	return {
+		resolvedColumns,
+		columnVisibility,
+		poolColumnSizes: columnSizes,
+		poolColumnOrders: columnOrders
+	}
+}
+
+export function YieldsPoolsTable(props: IYieldsTableProps) {
+	const { resolvedColumns, columnVisibility, poolColumnSizes, poolColumnOrders } = useYieldsPoolsTableConfig()
+
 	return (
 		<YieldsTableWrapper
 			{...props}
 			columns={resolvedColumns}
-			columnSizes={columnSizes}
-			columnOrders={columnOrders}
+			columnSizes={poolColumnSizes}
+			columnOrders={poolColumnOrders}
 			columnVisibility={columnVisibility}
 		/>
 	)
+}
+
+export function PaginatedYieldsPoolTable({
+	data,
+	initialPageSize = DEFAULT_PAGE_SIZE_OPTIONS[0],
+	sortingState = []
+}: IYieldsTableProps) {
+	const { resolvedColumns, columnVisibility } = useYieldsPoolsTableConfig()
+	const [sorting, setSorting] = useState<SortingState>([...sortingState])
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: initialPageSize
+	})
+
+	const table = useReactTable({
+		data,
+		columns: resolvedColumns,
+		meta: {
+			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
+		},
+		state: {
+			sorting,
+			columnVisibility,
+			pagination
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		onSortingChange: (updater) =>
+			startTransition(() => setSorting(typeof updater === 'function' ? updater(sorting) : updater)),
+		onPaginationChange: (updater) =>
+			startTransition(() => setPagination(typeof updater === 'function' ? updater(pagination) : updater)),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS} />
 }

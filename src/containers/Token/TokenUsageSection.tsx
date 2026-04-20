@@ -4,7 +4,6 @@ import {
 	type PaginationState,
 	type SortingState,
 	createColumnHelper,
-	flexRender,
 	getCoreRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
@@ -17,7 +16,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
-import { SortIcon } from '~/components/Table/SortIcon'
+import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -25,12 +24,7 @@ import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { fetchProtocolsByTokenClient } from '~/containers/TokenUsage/api'
 import type { RawProtocolTokenUsageEntry } from '~/containers/TokenUsage/api.types'
 import { formattedNum } from '~/utils'
-import {
-	DEFAULT_TABLE_PAGE_SIZE,
-	DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT,
-	resolveUpdater,
-	TABLE_PAGE_SIZE_OPTIONS
-} from './tableUtils'
+import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
 
 export type TokenUsageSectionRow = {
 	name: string
@@ -181,9 +175,21 @@ export function TokenUsageSection({
 		autoResetPageIndex: false
 	})
 
+	const hasPlaceholderState =
+		loaders.userLoading ||
+		isLoading ||
+		!isAuthenticated ||
+		!hasActiveSubscription ||
+		error != null ||
+		filteredRows.length === 0
+
 	return (
 		<>
-			<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<section
+				className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)${
+					hasPlaceholderState ? ' min-h-[80dvh] sm:min-h-[572px]' : ''
+				}`}
+			>
 				<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 					<h2
 						className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
@@ -225,19 +231,13 @@ export function TokenUsageSection({
 					) : null}
 				</div>
 
-				<div className="p-3">
+				<div className="flex flex-1 flex-col p-3">
 					{loaders.userLoading || isLoading ? (
-						<div
-							className="flex items-center justify-center"
-							style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-						>
+						<div className="flex flex-1 items-center justify-center">
 							<LocalLoader />
 						</div>
 					) : !isAuthenticated || !hasActiveSubscription ? (
-						<div
-							className="flex items-center justify-center px-4 text-center"
-							style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-						>
+						<div className="flex flex-1 items-center justify-center px-4 text-center">
 							{!isAuthenticated ? (
 								<p className="text-sm text-(--text-label)">
 									An{' '}
@@ -260,134 +260,15 @@ export function TokenUsageSection({
 							)}
 						</div>
 					) : error ? (
-						<div
-							className="flex items-center justify-center px-4 text-center"
-							style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-						>
+						<div className="flex flex-1 items-center justify-center px-4 text-center">
 							<p className="text-sm text-(--text-label)">{error.message}</p>
 						</div>
 					) : filteredRows.length === 0 ? (
-						<div
-							className="flex items-center justify-center px-4 text-center"
-							style={{ minHeight: `${DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT}px` }}
-						>
+						<div className="flex flex-1 items-center justify-center px-4 text-center">
 							<p className="text-sm text-(--text-label)">No token usage entries found.</p>
 						</div>
 					) : (
-						<div className="flex flex-col gap-3">
-							<div className="overflow-x-auto rounded-md border border-(--cards-border)">
-								<table className="min-w-full border-collapse text-sm">
-									<thead>
-										{table.getHeaderGroups().map((headerGroup) => (
-											<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--app-bg)">
-												{headerGroup.headers.map((header) => {
-													const align = header.column.columnDef.meta?.align ?? 'start'
-													return (
-														<th
-															key={header.id}
-															className="px-3 py-2 text-xs font-medium tracking-wider text-(--text-secondary) uppercase"
-															style={{ textAlign: align }}
-														>
-															{header.isPlaceholder ? null : header.column.getCanSort() ? (
-																<button
-																	type="button"
-																	onClick={header.column.getToggleSortingHandler()}
-																	className="inline-flex items-center gap-1"
-																	style={{ marginLeft: align === 'end' ? 'auto' : undefined }}
-																>
-																	{flexRender(header.column.columnDef.header, header.getContext())}
-																	<SortIcon dir={header.column.getIsSorted()} />
-																</button>
-															) : (
-																flexRender(header.column.columnDef.header, header.getContext())
-															)}
-														</th>
-													)
-												})}
-											</tr>
-										))}
-									</thead>
-									<tbody>
-										{table.getRowModel().rows.map((row) => (
-											<tr key={row.id} className="border-b border-(--cards-border) last:border-b-0">
-												{row.getVisibleCells().map((cell) => {
-													const align = cell.column.columnDef.meta?.align ?? 'start'
-													return (
-														<td key={cell.id} className="px-3 py-2 align-middle" style={{ textAlign: align }}>
-															{flexRender(cell.column.columnDef.cell, cell.getContext())}
-														</td>
-													)
-												})}
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-
-							<div className="flex flex-wrap items-center justify-between gap-2">
-								<div className="flex items-center gap-2">
-									<button
-										type="button"
-										aria-label="Go to first page"
-										onClick={() => startTransition(() => table.setPageIndex(0))}
-										disabled={!table.getCanPreviousPage()}
-										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										<Icon name="chevrons-left" height={16} width={16} />
-									</button>
-									<button
-										type="button"
-										aria-label="Go to previous page"
-										onClick={() => startTransition(() => table.previousPage())}
-										disabled={!table.getCanPreviousPage()}
-										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										<Icon name="chevron-left" height={16} width={16} />
-									</button>
-									<span className="text-xs text-(--text-secondary)">
-										{`Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`}
-									</span>
-									<button
-										type="button"
-										aria-label="Go to next page"
-										onClick={() => startTransition(() => table.nextPage())}
-										disabled={!table.getCanNextPage()}
-										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										<Icon name="chevron-right" height={16} width={16} />
-									</button>
-									<button
-										type="button"
-										aria-label="Go to last page"
-										onClick={() => startTransition(() => table.setPageIndex(Math.max(0, table.getPageCount() - 1)))}
-										disabled={!table.getCanNextPage()}
-										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										<Icon name="chevrons-right" height={16} width={16} />
-									</button>
-								</div>
-
-								<label className="flex items-center gap-2 text-sm">
-									<span className="text-(--text-secondary)">Rows per page</span>
-									<select
-										value={table.getState().pagination.pageSize}
-										onChange={(event) =>
-											startTransition(() => {
-												table.setPageSize(Number(event.target.value))
-												table.setPageIndex(0)
-											})
-										}
-										className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1"
-									>
-										{TABLE_PAGE_SIZE_OPTIONS.map((pageSize) => (
-											<option key={pageSize} value={pageSize}>
-												{pageSize}
-											</option>
-										))}
-									</select>
-								</label>
-							</div>
-						</div>
+						<PaginatedTable table={table} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
 					)}
 				</div>
 			</section>

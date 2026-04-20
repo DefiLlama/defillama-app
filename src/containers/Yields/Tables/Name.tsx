@@ -13,6 +13,7 @@ interface INameYieldPoolProps {
 	value: string
 	configID: string
 	url: string
+	rowIndex?: number
 	borrow?: boolean
 	withoutLink?: boolean
 	maxCharacters?: number
@@ -34,6 +35,7 @@ export function NameYieldPool({
 	value,
 	configID,
 	url,
+	rowIndex,
 	borrow: _borrow,
 	strategy,
 	withoutLink,
@@ -49,7 +51,13 @@ export function NameYieldPool({
 		<span className="flex items-center gap-2">
 			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
-			{strategy ? null : <span className="vf-row-index shrink-0" aria-hidden="true" />}
+			{strategy ? null : rowIndex != null ? (
+				<span className="inline-block shrink-0 text-left tabular-nums" aria-hidden="true">
+					{rowIndex}
+				</span>
+			) : (
+				<span className="vf-row-index shrink-0" aria-hidden="true" />
+			)}
 
 			<a
 				href={url}
