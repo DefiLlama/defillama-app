@@ -468,6 +468,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 			<div className="relative flex min-h-[360px] flex-col">
 				{hasChartData ? (
 					<ProtocolChart
+						key={`${groupBy}:${activeCharts.join('|')}`}
 						chartData={displayedChartData}
 						chartColors={TOKEN_OVERVIEW_CHART_COLORS}
 						isThemeDark={isThemeDark}
