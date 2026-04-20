@@ -61,6 +61,8 @@ const state: {
 	protocolMetadata: Record<string, IProtocolMetadata>
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
+	initialYieldsRows: unknown[]
+	initialTokenStrategiesData: unknown
 	tokenlist: Record<string, unknown>
 } = {
 	tokensJson: {
@@ -71,6 +73,8 @@ const state: {
 	protocolMetadata: {},
 	incomeStatementData: null,
 	tokenRiskData: null,
+	initialYieldsRows: [],
+	initialTokenStrategiesData: null,
 	tokenlist: {
 		bitcoin: {
 			symbol: 'btc',
@@ -100,6 +104,8 @@ function resetState() {
 	state.protocolMetadata = {}
 	state.incomeStatementData = null
 	state.tokenRiskData = null
+	state.initialYieldsRows = []
+	state.initialTokenStrategiesData = null
 	state.tokenlist = {
 		bitcoin: {
 			symbol: 'btc',
@@ -199,6 +205,14 @@ vi.mock('~/containers/Token/queries', () => ({
 	getTokenRiskData: vi.fn(() => Promise.resolve(state.tokenRiskData))
 }))
 
+vi.mock('~/containers/Token/tokenYields.server', () => ({
+	getTokenYieldsRows: vi.fn(() => Promise.resolve(state.initialYieldsRows))
+}))
+
+vi.mock('~/containers/Token/tokenStrategies.server', () => ({
+	getTokenStrategiesData: vi.fn(() => Promise.resolve(state.initialTokenStrategiesData))
+}))
+
 vi.mock('~/utils/tokenDirectory', () => ({
 	readTokenDirectory: vi.fn(() => Promise.resolve(state.tokensJson))
 }))
@@ -219,6 +233,12 @@ describe('token page', () => {
 				incomeStatementProtocolName="Bitcoin Protocol"
 				incomeStatementHasIncentives={false}
 				tokenRiskData={{} as TokenRiskResponse}
+				initialYieldsRows={[{ pool: 'pool-1' }]}
+				initialTokenStrategiesData={{
+					borrowAsCollateral: [{ pool: 'borrow-1' }],
+					borrowAsDebt: [],
+					longShort: [{ pool: 'long-short-1' }]
+				}}
 				geckoId="bitcoin"
 				price={100}
 				percentChange={5}
@@ -260,6 +280,8 @@ describe('token page', () => {
 				incomeStatementProtocolName={null}
 				incomeStatementHasIncentives={false}
 				tokenRiskData={null}
+				initialYieldsRows={[]}
+				initialTokenStrategiesData={null}
 				geckoId="bitcoin"
 				price={100}
 				percentChange={5}
@@ -278,6 +300,42 @@ describe('token page', () => {
 		expect(html).not.toContain('token-borrow-section')
 		expect(html).not.toContain('token-risks-section')
 		expect(html).not.toContain('token-long-short-section')
+	})
+
+	it('renders each yield-related section from its own prefetched dataset', () => {
+		const html = renderToStaticMarkup(
+			<TokenPage
+				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', is_yields: true }}
+				displayName="BTC"
+				tokenRightsData={null}
+				incomeStatementData={null}
+				incomeStatementProtocolName={null}
+				incomeStatementHasIncentives={false}
+				tokenRiskData={{} as TokenRiskResponse}
+				initialYieldsRows={[]}
+				initialTokenStrategiesData={{
+					borrowAsCollateral: [{ pool: 'borrow-1' }],
+					borrowAsDebt: [],
+					longShort: [{ pool: 'long-short-1' }]
+				}}
+				geckoId="bitcoin"
+				price={100}
+				percentChange={5}
+				mcap={1000}
+				fdv={1500}
+				volume24h={500}
+				circSupply={21}
+				maxSupply={21}
+				seoTitle="title"
+				seoDescription="description"
+				canonicalUrl="/token/btc"
+			/>
+		)
+
+		expect(html).not.toContain('token-yields-section')
+		expect(html).toContain('token-borrow-section')
+		expect(html).toContain('token-long-short-section')
+		expect(html).toContain('token-risks-section')
 	})
 
 	it('getStaticPaths returns empty paths with blocking fallback', () => {
@@ -311,6 +369,8 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: 'bitcoin',
 				tokenRiskData: null,
+				initialYieldsRows: [],
+				initialTokenStrategiesData: null,
 				price: 100,
 				percentChange: 5,
 				mcap: 1000,
@@ -350,6 +410,8 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: null,
 				tokenRiskData: null,
+				initialYieldsRows: [],
+				initialTokenStrategiesData: null,
 				price: null,
 				percentChange: null,
 				mcap: null,
@@ -412,7 +474,6 @@ describe('token page', () => {
 				max_supply: 1000
 			}
 		}
-
 		await expect(getStaticProps({ params: { token: 'link' } } as never)).resolves.toEqual({
 			props: {
 				record: {
@@ -475,6 +536,8 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: 'chainlink',
 				tokenRiskData: null,
+				initialYieldsRows: [],
+				initialTokenStrategiesData: null,
 				price: 10,
 				percentChange: 10,
 				mcap: 100,
@@ -558,6 +621,8 @@ describe('token page', () => {
 				incomeStatementHasIncentives: true,
 				geckoId: 'aave',
 				tokenRiskData: null,
+				initialYieldsRows: [],
+				initialTokenStrategiesData: null,
 				price: 10,
 				percentChange: 10,
 				mcap: 100,
@@ -600,6 +665,9 @@ describe('token page', () => {
 		if (!('props' in withoutRisk)) throw new Error('expected props')
 
 		const withoutRiskHtml = renderToStaticMarkup(<TokenPage {...withoutRisk.props} />)
+		expect(withoutRiskHtml).not.toContain('token-yields-section')
+		expect(withoutRiskHtml).not.toContain('token-borrow-section')
+		expect(withoutRiskHtml).not.toContain('token-long-short-section')
 		expect(withoutRiskHtml).not.toContain('token-risks-section')
 
 		state.tokenRiskData = {
@@ -667,6 +735,9 @@ describe('token page', () => {
 		if (!('props' in withRisk)) throw new Error('expected props')
 
 		const withRiskHtml = renderToStaticMarkup(<TokenPage {...withRisk.props} />)
+		expect(withRiskHtml).not.toContain('token-yields-section')
+		expect(withRiskHtml).not.toContain('token-borrow-section')
+		expect(withRiskHtml).not.toContain('token-long-short-section')
 		expect(withRiskHtml).toContain('token-risks-section')
 	})
 })

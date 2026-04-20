@@ -66,10 +66,14 @@ export function usePaginatedTableDisplayRowNumber(rowId: string) {
 export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: PaginatedTableProps<T>) {
 	const columnSizing = table.getState().columnSizing
 	const rows = table.getRowModel().rows
+	const rowCount = table.getRowCount()
 	const { pageIndex, pageSize } = table.getState().pagination
 	const pageCount = table.getPageCount()
 	const displayPageCount = Math.max(1, pageCount)
 	const displayPageIndex = pageCount === 0 ? 0 : Math.min(pageIndex, displayPageCount - 1)
+	const availablePageSizeOptions = pageSizeOptions.filter((pageSizeOption) => pageSizeOption <= rowCount)
+	const shouldShowPaginationControls = rowCount > 10 && pageCount > 1
+	const shouldShowPageSizeSelector = rowCount > 10 && pageSize <= rowCount && availablePageSizeOptions.length >= 2
 	const displayRowNumbers = useMemo(
 		() => new Map(rows.map((row, rowIndex) => [row.id, pageIndex * pageSize + rowIndex + 1])),
 		[pageIndex, pageSize, rows]
@@ -132,69 +136,77 @@ export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: Pa
 					</TokenPageTableScroller>
 				</TokenPageTableShell>
 
-				<div className="flex flex-wrap items-center justify-between gap-2">
-					<div className="flex items-center gap-2">
-						<button
-							type="button"
-							aria-label="Go to first page"
-							onClick={() => startTransition(() => table.setPageIndex(0))}
-							disabled={!table.getCanPreviousPage()}
-							className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<Icon name="chevrons-left" height={16} width={16} />
-						</button>
-						<button
-							type="button"
-							aria-label="Go to previous page"
-							onClick={() => startTransition(() => table.previousPage())}
-							disabled={!table.getCanPreviousPage()}
-							className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<Icon name="chevron-left" height={16} width={16} />
-						</button>
-						<span className="text-xs text-(--text-secondary)">
-							{`Page ${displayPageIndex + 1} of ${displayPageCount}`}
-						</span>
-						<button
-							type="button"
-							aria-label="Go to next page"
-							onClick={() => startTransition(() => table.nextPage())}
-							disabled={!table.getCanNextPage()}
-							className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<Icon name="chevron-right" height={16} width={16} />
-						</button>
-						<button
-							type="button"
-							aria-label="Go to last page"
-							onClick={() => startTransition(() => table.setPageIndex(Math.max(0, table.getPageCount() - 1)))}
-							disabled={!table.getCanNextPage()}
-							className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<Icon name="chevrons-right" height={16} width={16} />
-						</button>
-					</div>
+				{shouldShowPaginationControls || shouldShowPageSizeSelector ? (
+					<div className="flex flex-wrap items-center justify-between gap-2">
+						<div className="flex items-center gap-2">
+							{shouldShowPaginationControls ? (
+								<>
+									<button
+										type="button"
+										aria-label="Go to first page"
+										onClick={() => startTransition(() => table.setPageIndex(0))}
+										disabled={!table.getCanPreviousPage()}
+										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										<Icon name="chevrons-left" height={16} width={16} />
+									</button>
+									<button
+										type="button"
+										aria-label="Go to previous page"
+										onClick={() => startTransition(() => table.previousPage())}
+										disabled={!table.getCanPreviousPage()}
+										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										<Icon name="chevron-left" height={16} width={16} />
+									</button>
+									<span className="text-xs text-(--text-secondary)">
+										{`Page ${displayPageIndex + 1} of ${displayPageCount}`}
+									</span>
+									<button
+										type="button"
+										aria-label="Go to next page"
+										onClick={() => startTransition(() => table.nextPage())}
+										disabled={!table.getCanNextPage()}
+										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										<Icon name="chevron-right" height={16} width={16} />
+									</button>
+									<button
+										type="button"
+										aria-label="Go to last page"
+										onClick={() => startTransition(() => table.setPageIndex(Math.max(0, table.getPageCount() - 1)))}
+										disabled={!table.getCanNextPage()}
+										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										<Icon name="chevrons-right" height={16} width={16} />
+									</button>
+								</>
+							) : null}
+						</div>
 
-					<label className="flex items-center gap-2 text-sm">
-						<span className="text-(--text-secondary)">Rows per page</span>
-						<select
-							value={pageSize}
-							onChange={(event) =>
-								startTransition(() => {
-									table.setPageSize(Number(event.target.value))
-									table.setPageIndex(0)
-								})
-							}
-							className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1"
-						>
-							{pageSizeOptions.map((pageSizeOption) => (
-								<option key={pageSizeOption} value={pageSizeOption}>
-									{pageSizeOption}
-								</option>
-							))}
-						</select>
-					</label>
-				</div>
+						{shouldShowPageSizeSelector ? (
+							<label className="flex items-center gap-2 text-sm">
+								<span className="text-(--text-secondary)">Rows per page</span>
+								<select
+									value={pageSize}
+									onChange={(event) =>
+										startTransition(() => {
+											table.setPageSize(Number(event.target.value))
+											table.setPageIndex(0)
+										})
+									}
+									className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1"
+								>
+									{availablePageSizeOptions.map((pageSizeOption) => (
+										<option key={pageSizeOption} value={pageSizeOption}>
+											{pageSizeOption}
+										</option>
+									))}
+								</select>
+							</label>
+						) : null}
+					</div>
+				) : null}
 			</div>
 		</DisplayRowNumbersContext.Provider>
 	)

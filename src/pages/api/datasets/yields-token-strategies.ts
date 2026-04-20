@@ -1,44 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { getTokenStrategiesData } from '~/containers/Token/tokenStrategies.server'
 import type { TokenStrategiesResponse } from '~/containers/Token/tokenStrategies.types'
-import { getPerpData, getLendBorrowData } from '~/containers/Yields/queries/index'
-import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
-import { findOptimizerPools, findStrategyPoolsFR, formatOptimizerPool } from '~/containers/Yields/utils'
 
 const CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
-
-const LONG_SHORT_EXCLUDED_PROJECTS = new Set(['babydogeswap', 'cbridge'])
-const LONG_SHORT_EXCLUDED_SYMBOLS = ['ADAI', 'DOP', 'COPI', 'EUROPOOL', 'UMAMI']
-
-function matchesLongShortPoolToken(poolSymbol: string, tokenSymbol: string) {
-	if (matchesYieldPoolToken(poolSymbol, tokenSymbol)) return true
-
-	const normalizedPoolSymbol = poolSymbol?.toUpperCase() ?? ''
-	const normalizedTokenSymbol = tokenSymbol?.trim().toUpperCase() ?? ''
-
-	if (!normalizedPoolSymbol || !normalizedTokenSymbol) return false
-
-	// Standalone long/short finder uses substring matching, which is needed for
-	// composite symbols like 75SDEX25AAVELIDOETH. Restrict the fallback to 4+ chars
-	// so short tokens like IN do not create false positives.
-	return normalizedTokenSymbol.length >= 4 && normalizedPoolSymbol.includes(normalizedTokenSymbol)
-}
-
-function filterLongShortPools(
-	allPools: Awaited<ReturnType<typeof getLendBorrowData>>['props']['allPools'],
-	token: string
-) {
-	return allPools
-		.filter(
-			(pool) =>
-				pool.ilRisk === 'no' &&
-				pool.exposure === 'single' &&
-				pool.apy > 0 &&
-				!LONG_SHORT_EXCLUDED_PROJECTS.has(pool.project) &&
-				!LONG_SHORT_EXCLUDED_SYMBOLS.some((excludedSymbol) => pool.symbol.includes(excludedSymbol)) &&
-				matchesLongShortPoolToken(pool.symbol, token)
-		)
-		.map((pool) => ({ ...pool, symbol: pool.symbol?.toUpperCase() }))
-}
 
 export default async function handler(
 	req: NextApiRequest,
@@ -58,50 +22,10 @@ export default async function handler(
 			return
 		}
 
-		const [{ props }, perps] = await Promise.all([getLendBorrowData(), getPerpData()])
 		res.setHeader('Cache-Control', CACHE_CONTROL)
+		const data = await getTokenStrategiesData(token)
 
-		const lendingPools = props.pools.filter((pool) => pool.category !== 'CDP' && !pool.mintedCoin)
-		const cdpPools = props.pools
-			.filter(
-				(pool) => (pool.category === 'CDP' && pool.mintedCoin) || (pool.category === 'Lending' && pool.mintedCoin)
-			)
-			.map((pool) => ({ ...pool, chains: [pool.chain], borrow: { ...pool, symbol: pool.mintedCoin.toUpperCase() } }))
-
-		const borrowAsCollateral = findOptimizerPools({
-			pools: lendingPools,
-			tokenToLend: token,
-			tokenToBorrow: undefined,
-			cdpRoutes: cdpPools
-		})
-			.filter(
-				(pool) => matchesYieldPoolToken(pool.symbol, token) && !matchesYieldPoolToken(pool.borrow?.symbol ?? '', token)
-			)
-			.map((pool) => formatOptimizerPool({ pool, customLTV: null }))
-			.sort((a, b) => (b.totalReward ?? Number.NEGATIVE_INFINITY) - (a.totalReward ?? Number.NEGATIVE_INFINITY))
-
-		const borrowAsDebt = findOptimizerPools({
-			pools: lendingPools,
-			tokenToLend: undefined,
-			tokenToBorrow: token,
-			cdpRoutes: cdpPools
-		})
-			.filter((pool) => matchesYieldPoolToken(pool.borrow?.symbol ?? '', token))
-			.map((pool) => formatOptimizerPool({ pool, customLTV: null }))
-			.sort((a, b) => (b.totalReward ?? Number.NEGATIVE_INFINITY) - (a.totalReward ?? Number.NEGATIVE_INFINITY))
-
-		const filteredLongShortPools = filterLongShortPools(props.allPools, token)
-		const longShort = findStrategyPoolsFR({
-			token: { token: [token] },
-			filteredPools: filteredLongShortPools,
-			perps
-		}).sort((a, b) => (b.openInterest ?? Number.NEGATIVE_INFINITY) - (a.openInterest ?? Number.NEGATIVE_INFINITY))
-
-		res.status(200).json({
-			borrowAsCollateral,
-			borrowAsDebt,
-			longShort
-		})
+		res.status(200).json(data)
 	} catch (error) {
 		console.error('Error fetching token strategies data:', error)
 		res.status(500).json({ error: 'Failed to fetch token strategies data' })

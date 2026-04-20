@@ -2,21 +2,19 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const strategiesState = vi.hoisted(
-	(): {
-		data?: any
-		error?: Error | null
-		isLoading: boolean
-	} => ({
-		data: {
-			borrowAsCollateral: [],
-			borrowAsDebt: [],
-			longShort: []
-		},
-		error: null,
-		isLoading: false
-	})
-)
+const strategiesState: {
+	data?: any
+	error?: Error | null
+	isLoading: boolean
+} = {
+	data: {
+		borrowAsCollateral: [],
+		borrowAsDebt: [],
+		longShort: []
+	},
+	error: null,
+	isLoading: false
+}
 
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
@@ -53,7 +51,10 @@ vi.mock('~/containers/Yields/Tables/StrategyFR', () => ({
 }))
 
 vi.mock('./useTokenStrategies', () => ({
-	useTokenStrategies: () => strategiesState
+	useTokenStrategies: (_tokenSymbol: string, initialData?: unknown) =>
+		strategiesState.data === undefined && initialData !== undefined
+			? { data: initialData, error: null, isLoading: false }
+			: strategiesState
 }))
 
 afterEach(() => {
@@ -103,6 +104,35 @@ describe('TokenLongShortSection', () => {
 		expect(html).toContain('Attributes:single_exposure,no_il')
 		expect(html).toContain('TVL Range')
 		expect(html).toContain('strategy-fr-table:1:10')
+	})
+
+	it('renders prefetched long/short strategies without waiting for a client fetch', () => {
+		strategiesState.data = undefined
+		strategiesState.error = null
+		strategiesState.isLoading = true
+
+		const html = renderToStaticMarkup(
+			<TokenLongShortSection
+				tokenSymbol="ETH"
+				initialData={{
+					borrowAsCollateral: [],
+					borrowAsDebt: [],
+					longShort: [
+						{
+							symbol: 'ETH',
+							symbolPerp: 'ETH-PERP',
+							chains: ['Ethereum'],
+							exposure: 'single',
+							ilRisk: 'no'
+						}
+					]
+				}}
+			/>
+		)
+
+		expect(html).toContain('Tracking 1 strategy')
+		expect(html).toContain('strategy-fr-table:1:10')
+		expect(html).not.toContain('loader')
 	})
 
 	it('shows the section empty state when no rows exist', () => {

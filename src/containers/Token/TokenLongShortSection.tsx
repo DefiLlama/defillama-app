@@ -9,6 +9,7 @@ import { PaginatedYieldsStrategyTableFR } from '~/containers/Yields/Tables/Strat
 import type { IYieldsStrategyTableRow } from '~/containers/Yields/Tables/types'
 import { filterPool } from '~/containers/Yields/utils'
 import type { FormSubmitEvent } from '~/types/forms'
+import type { TokenStrategiesResponse } from './tokenStrategies.types'
 import { useTokenStrategies } from './useTokenStrategies'
 
 const TOKEN_LONG_SHORT_SECTION_ID = 'token-long-short'
@@ -140,12 +141,18 @@ export function filterLongShortRows({
 	})
 }
 
-export function TokenLongShortSection({ tokenSymbol }: { tokenSymbol: string }) {
+export function TokenLongShortSection({
+	tokenSymbol,
+	initialData
+}: {
+	tokenSymbol: string
+	initialData?: TokenStrategiesResponse
+}) {
 	const [selectedChainsState, setSelectedChains] = React.useState<string[] | null>(null)
 	const [selectedAttributes, setSelectedAttributes] = React.useState<string[]>(DEFAULT_LONG_SHORT_ATTRIBUTES)
 	const [minTvl, setMinTvl] = React.useState('')
 	const [maxTvl, setMaxTvl] = React.useState('')
-	const { data, error, isLoading } = useTokenStrategies(tokenSymbol)
+	const { data, error, isLoading } = useTokenStrategies(tokenSymbol, initialData)
 	const rows = React.useMemo(() => data?.longShort ?? [], [data])
 	const chainList = React.useMemo(() => getLongShortChainList(rows), [rows])
 	const selectedChains = React.useMemo(

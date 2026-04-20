@@ -8,12 +8,16 @@ import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeState
 import { TokenLongShortSection } from '~/containers/Token/TokenLongShortSection'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
+import { getTokenStrategiesData } from '~/containers/Token/tokenStrategies.server'
+import type { TokenStrategiesResponse } from '~/containers/Token/tokenStrategies.types'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
+import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { findProtocolEntry, parseTokenRightsEntry } from '~/containers/TokenRights/utils'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -89,6 +93,8 @@ export const getStaticProps = withPerformanceLogging(
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
 		let tokenRiskData: TokenRiskResponse | null = null
+		let initialYieldsRows: IYieldTableRow[] = []
+		let initialTokenStrategiesData: TokenStrategiesResponse | null = null
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {
 			const tokenRightsEntries = await fetchTokenRightsData()
@@ -102,15 +108,29 @@ export const getStaticProps = withPerformanceLogging(
 			incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
 		}
 
-		if (record.is_yields && geckoId) {
-			tokenRiskData = await getTokenRiskData({
-				geckoId,
-				protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
-				displayLookups: {
-					protocolDisplayNames: createProtocolDisplayNameLookup(metadataCache.protocolMetadata),
-					chainDisplayNames: createChainDisplayNameLookup(metadataCache.chainMetadata)
-				}
-			})
+		if (record.is_yields) {
+			const yieldTasks: Array<Promise<unknown>> = [
+				getTokenYieldsRows(record.symbol),
+				getTokenStrategiesData(record.symbol)
+			]
+
+			if (geckoId) {
+				yieldTasks.push(
+					getTokenRiskData({
+						geckoId,
+						protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
+						displayLookups: {
+							protocolDisplayNames: createProtocolDisplayNameLookup(metadataCache.protocolMetadata),
+							chainDisplayNames: createChainDisplayNameLookup(metadataCache.chainMetadata)
+						}
+					})
+				)
+			}
+
+			const yieldResults = await Promise.all(yieldTasks)
+			initialYieldsRows = yieldResults[0] as IYieldTableRow[]
+			initialTokenStrategiesData = yieldResults[1] as TokenStrategiesResponse
+			tokenRiskData = geckoId ? ((yieldResults[2] as TokenRiskResponse | null | undefined) ?? null) : null
 		}
 
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
@@ -131,6 +151,8 @@ export const getStaticProps = withPerformanceLogging(
 				incomeStatementHasIncentives,
 				geckoId,
 				tokenRiskData,
+				initialYieldsRows,
+				initialTokenStrategiesData,
 				price: tokenEntry?.current_price ?? null,
 				percentChange: tokenEntry?.price_change_percentage_24h ?? null,
 				mcap: tokenEntry?.market_cap ?? null,
@@ -169,6 +191,8 @@ export default function TokenPage({
 	incomeStatementProtocolName,
 	incomeStatementHasIncentives,
 	tokenRiskData,
+	initialYieldsRows,
+	initialTokenStrategiesData,
 	price,
 	percentChange,
 	mcap,
@@ -180,6 +204,13 @@ export default function TokenPage({
 	seoDescription,
 	canonicalUrl
 }: InferGetStaticPropsType<typeof getStaticProps>) {
+	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
+	const shouldRenderBorrowSection =
+		record.is_yields &&
+		((initialTokenStrategiesData?.borrowAsCollateral.length ?? 0) > 0 ||
+			(initialTokenStrategiesData?.borrowAsDebt.length ?? 0) > 0)
+	const shouldRenderLongShortSection = record.is_yields && (initialTokenStrategiesData?.longShort.length ?? 0) > 0
+
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
 			<div className="flex flex-col gap-2">
@@ -203,12 +234,18 @@ export default function TokenPage({
 					/>
 				) : null}
 				<TokenUsageSection tokenSymbol={record.symbol} />
-				{record.is_yields ? (
+				{shouldRenderYieldsSection ? (
+					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
+				) : null}
+				{shouldRenderBorrowSection ? (
+					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
+				) : null}
+				{record.is_yields && tokenRiskData ? (
+					<TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
+				) : null}
+				{shouldRenderLongShortSection ? (
 					<>
-						<TokenYieldsSection tokenSymbol={record.symbol} />
-						<TokenBorrowSection tokenSymbol={record.symbol} />
-						{tokenRiskData ? <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} /> : null}
-						<TokenLongShortSection tokenSymbol={record.symbol} />
+						<TokenLongShortSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
 					</>
 				) : null}
 				{tokenRightsData ? (

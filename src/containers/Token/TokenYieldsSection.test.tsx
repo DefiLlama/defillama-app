@@ -29,7 +29,10 @@ var routerState = {
 }
 
 vi.mock('@tanstack/react-query', () => ({
-	useQuery: () => queryState
+	useQuery: (options: { initialData?: unknown }) =>
+		queryState.data === undefined && options.initialData !== undefined
+			? { data: options.initialData, error: null, isLoading: false }
+			: queryState
 }))
 
 vi.mock('next/router', () => ({
@@ -145,6 +148,35 @@ describe('TokenYieldsSection', () => {
 		expect(html).toContain('APY')
 		expect(html).toContain('Columns')
 		expect(html).toContain('yields-table:1:paginated:10')
+	})
+
+	it('renders prefetched rows without waiting for a client fetch', () => {
+		queryState = {
+			data: undefined,
+			error: null,
+			isLoading: true
+		}
+
+		const html = renderToStaticMarkup(
+			<TokenYieldsSection
+				tokenSymbol="ETH"
+				initialData={[
+					{
+						pool: 'stETH-ETH',
+						project: 'Aave',
+						projectslug: 'aave',
+						configID: 'pool-1',
+						chains: ['Ethereum'],
+						tvl: 1000000,
+						apy: 5.1
+					}
+				]}
+			/>
+		)
+
+		expect(html).toContain('Tracking 1 pool, average APY 5.10%')
+		expect(html).toContain('yields-table:1:paginated:10')
+		expect(html).not.toContain('loader')
 	})
 
 	it('ignores null APYs when computing the average', () => {

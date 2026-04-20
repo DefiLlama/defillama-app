@@ -46,6 +46,7 @@ async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[
 
 interface TokenYieldsSectionProps {
 	tokenSymbol: string
+	initialData?: IYieldTableRow[]
 }
 
 function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants: Set<string>) {
@@ -56,7 +57,7 @@ function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants:
 	return false
 }
 
-export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
+export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSectionProps) {
 	const router = useRouter()
 	const {
 		data: rows,
@@ -65,6 +66,7 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	} = useQuery({
 		queryKey: ['token-yields', tokenSymbol],
 		queryFn: () => fetchTokenYieldRows(tokenSymbol),
+		initialData,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: false,

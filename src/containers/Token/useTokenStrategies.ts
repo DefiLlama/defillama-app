@@ -8,10 +8,11 @@ async function fetchTokenStrategies(tokenSymbol: string): Promise<TokenStrategie
 	)
 }
 
-export function useTokenStrategies(tokenSymbol: string) {
+export function useTokenStrategies(tokenSymbol: string, initialData?: TokenStrategiesResponse) {
 	return useQuery({
 		queryKey: ['token-strategies', 'token-page', tokenSymbol],
 		queryFn: () => fetchTokenStrategies(tokenSymbol),
+		initialData,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: false,
