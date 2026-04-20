@@ -76,7 +76,11 @@ interface TabsState {
 }
 
 export function deriveTitle(sql: string): string {
-	const line = sql.split('\n').find((l) => l.trim())?.trim() ?? ''
+	const line =
+		sql
+			.split('\n')
+			.find((l) => l.trim())
+			?.trim() ?? ''
 	return line.slice(0, MAX_TITLE) || 'Untitled'
 }
 
@@ -102,10 +106,7 @@ function blankTab(sql = ''): QueryTab {
 }
 
 function seedDefaultTabs(): QueryTab[] {
-	return [
-		blankTab(DEFAULT_SQL),
-		{ ...blankTab(HACKS_OVER_50M_SQL), title: 'Hacks over $50M', titleAuto: false }
-	]
+	return [blankTab(DEFAULT_SQL), { ...blankTab(HACKS_OVER_50M_SQL), title: 'Hacks over $50M', titleAuto: false }]
 }
 
 function hydrate(): TabsState {
@@ -181,48 +182,39 @@ export function useSqlTabs(): UseSqlTabsReturn {
 		}
 	}, [state])
 
-	const activeTab = useMemo(
-		() => state.tabs.find((t) => t.id === state.activeTabId) ?? state.tabs[0],
-		[state]
-	)
+	const activeTab = useMemo(() => state.tabs.find((t) => t.id === state.activeTabId) ?? state.tabs[0], [state])
 
-	const updateTab = useCallback(
-		(id: string, patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => {
-			setState((prev) => {
-				const idx = prev.tabs.findIndex((t) => t.id === id)
-				if (idx === -1) return prev
-				const current = prev.tabs[idx]
-				const resolved = typeof patch === 'function' ? patch(current) : patch
-				const merged: QueryTab = { ...current, ...resolved }
-				if (merged.titleAuto && resolved.sql !== undefined) {
-					merged.title = deriveTitle(merged.sql)
-				}
-				const nextTabs = prev.tabs.slice()
-				nextTabs[idx] = merged
-				return { ...prev, tabs: nextTabs }
-			})
-		},
-		[]
-	)
+	const updateTab = useCallback((id: string, patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => {
+		setState((prev) => {
+			const idx = prev.tabs.findIndex((t) => t.id === id)
+			if (idx === -1) return prev
+			const current = prev.tabs[idx]
+			const resolved = typeof patch === 'function' ? patch(current) : patch
+			const merged: QueryTab = { ...current, ...resolved }
+			if (merged.titleAuto && resolved.sql !== undefined) {
+				merged.title = deriveTitle(merged.sql)
+			}
+			const nextTabs = prev.tabs.slice()
+			nextTabs[idx] = merged
+			return { ...prev, tabs: nextTabs }
+		})
+	}, [])
 
-	const updateActiveTab = useCallback(
-		(patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => {
-			setState((prev) => {
-				const idx = prev.tabs.findIndex((t) => t.id === prev.activeTabId)
-				if (idx === -1) return prev
-				const current = prev.tabs[idx]
-				const resolved = typeof patch === 'function' ? patch(current) : patch
-				const merged: QueryTab = { ...current, ...resolved }
-				if (merged.titleAuto && resolved.sql !== undefined) {
-					merged.title = deriveTitle(merged.sql)
-				}
-				const nextTabs = prev.tabs.slice()
-				nextTabs[idx] = merged
-				return { ...prev, tabs: nextTabs }
-			})
-		},
-		[]
-	)
+	const updateActiveTab = useCallback((patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => {
+		setState((prev) => {
+			const idx = prev.tabs.findIndex((t) => t.id === prev.activeTabId)
+			if (idx === -1) return prev
+			const current = prev.tabs[idx]
+			const resolved = typeof patch === 'function' ? patch(current) : patch
+			const merged: QueryTab = { ...current, ...resolved }
+			if (merged.titleAuto && resolved.sql !== undefined) {
+				merged.title = deriveTitle(merged.sql)
+			}
+			const nextTabs = prev.tabs.slice()
+			nextTabs[idx] = merged
+			return { ...prev, tabs: nextTabs }
+		})
+	}, [])
 
 	const setActiveSql = useCallback(
 		(next: string) => {
@@ -245,27 +237,24 @@ export function useSqlTabs(): UseSqlTabsReturn {
 		return nextTab.id
 	}, [])
 
-	const openOrFocusBySql = useCallback(
-		(sql: string, title?: string) => {
-			let foundId: string | null = null
-			setState((prev) => {
-				const existing = prev.tabs.find((t) => t.sql === sql)
-				if (existing) {
-					foundId = existing.id
-					return { ...prev, activeTabId: existing.id }
-				}
-				const nextTab: QueryTab = {
-					...blankTab(sql),
-					title: title ? title.slice(0, MAX_TITLE) : deriveTitle(sql),
-					titleAuto: !title
-				}
-				foundId = nextTab.id
-				return { tabs: [...prev.tabs, nextTab], activeTabId: nextTab.id }
-			})
-			return foundId as unknown as string
-		},
-		[]
-	)
+	const openOrFocusBySql = useCallback((sql: string, title?: string) => {
+		let foundId: string | null = null
+		setState((prev) => {
+			const existing = prev.tabs.find((t) => t.sql === sql)
+			if (existing) {
+				foundId = existing.id
+				return { ...prev, activeTabId: existing.id }
+			}
+			const nextTab: QueryTab = {
+				...blankTab(sql),
+				title: title ? title.slice(0, MAX_TITLE) : deriveTitle(sql),
+				titleAuto: !title
+			}
+			foundId = nextTab.id
+			return { tabs: [...prev.tabs, nextTab], activeTabId: nextTab.id }
+		})
+		return foundId as unknown as string
+	}, [])
 
 	const closeTab = useCallback((id: string) => {
 		setState((prev) => {
@@ -304,7 +293,7 @@ export function useSqlTabs(): UseSqlTabsReturn {
 			const currentIdx = prev.tabs.findIndex((t) => t.id === prev.activeTabId)
 			if (currentIdx === -1) return prev
 			const n = prev.tabs.length
-			const nextIdx = ((currentIdx + delta) % n + n) % n
+			const nextIdx = (((currentIdx + delta) % n) + n) % n
 			return { ...prev, activeTabId: prev.tabs[nextIdx].id }
 		})
 	}, [])

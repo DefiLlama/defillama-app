@@ -77,7 +77,7 @@ export function QueryTabBar({
 		<div className="relative flex items-end border-b border-(--divider)">
 			<div
 				ref={scrollerRef}
-				className="thin-scrollbar flex min-w-0 flex-1 items-end gap-0.5 overflow-x-auto overflow-y-hidden"
+				className="flex thin-scrollbar min-w-0 flex-1 items-end gap-0.5 overflow-x-auto overflow-y-hidden"
 				style={{
 					scrollbarWidth: 'thin',
 					maskImage:
@@ -259,10 +259,7 @@ function TabPill({
 			title={tab.title}
 			className={`${base} ${active ? activeCls : inactiveCls}`}
 		>
-			<span
-				aria-hidden
-				className="flex h-3 w-3 shrink-0 items-center justify-center"
-			>
+			<span aria-hidden className="flex h-3 w-3 shrink-0 items-center justify-center">
 				{tab.running ? (
 					<LoadingSpinner size={10} />
 				) : tab.dirty ? (
@@ -285,18 +282,15 @@ function TabPill({
 					}}
 					onMouseDown={(e) => e.stopPropagation()}
 					className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--text-tertiary) transition-opacity hover:bg-(--link-hover-bg) hover:text-(--text-primary) ${
-						active ? 'opacity-60 hover:opacity-100' : 'opacity-0 group-hover:opacity-60 group-focus-within:opacity-60 hover:!opacity-100'
+						active
+							? 'opacity-60 hover:opacity-100'
+							: 'opacity-0 group-focus-within:opacity-60 group-hover:opacity-60 hover:!opacity-100'
 					}`}
 				>
 					<Icon name="x" className="h-3 w-3" />
 				</span>
 			) : null}
-			{active ? (
-				<span
-					aria-hidden
-					className="absolute inset-x-0 -bottom-px h-px bg-(--app-bg)"
-				/>
-			) : null}
+			{active ? <span aria-hidden className="absolute inset-x-0 -bottom-px h-px bg-(--app-bg)" /> : null}
 		</button>
 	)
 }
@@ -337,7 +331,7 @@ function RenameInput({
 			onClick={(e) => e.stopPropagation()}
 			onDoubleClick={(e) => e.stopPropagation()}
 			onMouseDown={(e) => e.stopPropagation()}
-			className="min-w-0 flex-1 rounded-sm bg-(--bg-primary) px-1 py-px text-[13px] font-medium text-(--text-primary) outline-none ring-1 ring-(--primary)"
+			className="min-w-0 flex-1 rounded-sm bg-(--bg-primary) px-1 py-px text-[13px] font-medium text-(--text-primary) ring-1 ring-(--primary) outline-none"
 		/>
 	)
 }

@@ -181,7 +181,10 @@ function SqlWorkspaceInner({
 		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab]
 	)
 
-	const runQuery = useCallback(() => runSqlForTab(activeTabId, activeTab.sql), [runSqlForTab, activeTabId, activeTab.sql])
+	const runQuery = useCallback(
+		() => runSqlForTab(activeTabId, activeTab.sql),
+		[runSqlForTab, activeTabId, activeTab.sql]
+	)
 
 	const prepareAndRun = useCallback(
 		async ({
@@ -363,8 +366,7 @@ function SqlWorkspaceInner({
 			}
 			if (/^[1-9]$/.test(e.key)) {
 				const editable =
-					target &&
-					(target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+					target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
 				if (editable) return
 				e.preventDefault()
 				focusByIndex(Number(e.key) - 1)
