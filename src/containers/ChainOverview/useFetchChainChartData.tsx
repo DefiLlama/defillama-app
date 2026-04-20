@@ -13,7 +13,7 @@ import type { ChainChartLabels } from './constants'
 /**
  * Get TVL values for 24h change calculation.
  * Only returns a previous-day value when the chart has current-day data and
- * a point inside the exact previous UTC day window.
+ * a point close to latestTimestamp - 24h.
  */
 const getTvl24hChange = (
 	chart: Array<[number, number]>,

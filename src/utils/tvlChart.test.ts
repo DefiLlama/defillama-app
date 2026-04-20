@@ -15,13 +15,13 @@ describe('getPrevTvlFromChart', () => {
 		).toBe(110)
 	})
 
-	it('returns the latest point inside the requested UTC day window', () => {
+	it('returns the point closest to the 24h target within tolerance', () => {
 		expect(
 			getPrevTvlFromChart(
 				[
-					[1774483200, 100],
-					[1774526400, 110],
-					[1774569600, 120]
+					[new Date('2026-03-26T00:02:00Z').getTime(), 100],
+					[new Date('2026-03-26T00:04:00Z').getTime(), 110],
+					[new Date('2026-03-27T00:05:00Z').getTime(), 120]
 				],
 				1,
 				new Date('2026-03-27T12:00:00Z').getTime()
@@ -42,12 +42,12 @@ describe('getPrevTvlFromChart', () => {
 		).toBeNull()
 	})
 
-	it('returns null when the requested previous day is missing', () => {
+	it('returns null when no point is close enough to the 24h target', () => {
 		expect(
 			getPrevTvlFromChart(
 				[
-					[1774396800, 90],
-					[1774569600, 120]
+					[new Date('2026-03-26T12:00:00Z').getTime(), 90],
+					[new Date('2026-03-27T00:05:00Z').getTime(), 120]
 				],
 				1,
 				new Date('2026-03-27T12:00:00Z').getTime()
