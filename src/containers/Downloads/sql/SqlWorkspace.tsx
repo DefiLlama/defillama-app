@@ -165,7 +165,7 @@ ORDER BY date DESC
 					setPendingTables((prev) => prev.filter((p) => p.key !== step.key))
 				}
 
-				const arrow = await duckdb.conn.query(trimmed)
+				const arrow = await runWithFreshLoadRetry(duckdb.conn, trimmed, plan.length > 0)
 				const columns = arrow.schema.fields.map((f) => ({ name: f.name, type: String(f.type) }))
 				const rows = arrow.toArray().map((r: any) => {
 					const obj: Record<string, unknown> = {}
@@ -914,6 +914,23 @@ function formatDuration(ms: number): string {
 	if (ms < 10_000) return `${(ms / 1000).toFixed(2)}s`
 	if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`
 	return `${Math.round(ms / 1000)}s`
+}
+
+async function runWithFreshLoadRetry(
+	conn: NonNullable<ReturnType<typeof useDuckDB>['conn']>,
+	sql: string,
+	justLoaded: boolean
+): Promise<any> {
+	try {
+		return await conn.query(sql)
+	} catch (err) {
+		if (!justLoaded) throw err
+		const msg = err instanceof Error ? err.message : String(err)
+		const transient = /function signature mismatch/i.test(msg)
+		if (!transient) throw err
+		await new Promise((resolve) => setTimeout(resolve, 60))
+		return await conn.query(sql)
+	}
 }
 
 function parseErrorLocation(error: string): { line: number; column?: number } | null {

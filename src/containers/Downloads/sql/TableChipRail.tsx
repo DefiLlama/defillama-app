@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { buildLlmInstructions } from './llmInstructions'
 import { inferColumnKind, SectionLabel, TypeBadge } from './primitives'
 import { prettyLabelForSource, type RegisteredTable } from './useTableRegistry'
 
@@ -38,16 +40,19 @@ export function TableChipRail({
 				label="Tables"
 				count={totalCount}
 				action={
-					<button
-						type="button"
-						onClick={onBrowseSchema}
-						className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
-						title={`Browse all ${totalSchemaCount} available datasets`}
-					>
-						<Icon name="layers" className="h-3 w-3" />
-						Browse schema
-						<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
-					</button>
+					<div className="flex items-center gap-1.5">
+						<CopyForAIButton />
+						<button
+							type="button"
+							onClick={onBrowseSchema}
+							className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
+							title={`Browse all ${totalSchemaCount} available datasets`}
+						>
+							<Icon name="layers" className="h-3 w-3" />
+							Browse schema
+							<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
+						</button>
+					</div>
 				}
 			/>
 
@@ -229,7 +234,8 @@ function EmptyTablesPrompt({
 					<p className="text-xs font-semibold text-(--text-primary)">Start by browsing the schema</p>
 					<p className="text-[11.5px] leading-snug text-(--text-secondary)">
 						<span className="tabular-nums">{totalSchemaCount}</span> datasets you can query — protocols, fees, yields,
-						TVL series, hacks, raises, and more. Insert a snippet at the cursor or load a table into the session.
+						TVL series, hacks, raises, and more. Or let an AI draft the query: copy the full dataset brief and paste
+						it into ChatGPT / Claude / Gemini.
 					</p>
 				</div>
 			</div>
@@ -243,8 +249,55 @@ function EmptyTablesPrompt({
 					Browse schema
 					<Icon name="arrow-right" className="h-3 w-3 opacity-80" />
 				</button>
-				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">Tables referenced in SQL auto-load on run.</span>
+				<CopyForAIButton prominent />
+				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">
+					Tables referenced in SQL auto-load on run.
+				</span>
 			</div>
 		</div>
+	)
+}
+
+function CopyForAIButton({ prominent = false }: { prominent?: boolean }) {
+	const [copied, setCopied] = useState(false)
+
+	const onCopy = async () => {
+		if (typeof navigator === 'undefined' || !navigator.clipboard) {
+			toast.error('Clipboard unavailable')
+			return
+		}
+		try {
+			const brief = buildLlmInstructions()
+			await navigator.clipboard.writeText(brief)
+			setCopied(true)
+			toast.success('Paste into ChatGPT / Claude / Gemini, then ask for a query', { duration: 2600 })
+			window.setTimeout(() => setCopied(false), 2000)
+		} catch {
+			toast.error('Copy failed')
+		}
+	}
+
+	const base =
+		'inline-flex items-center gap-1.5 rounded-md border text-xs font-semibold transition-all disabled:cursor-not-allowed'
+	const size = prominent ? 'px-3 py-1.5' : 'px-2.5 py-1'
+	const idle = prominent
+		? 'border-(--divider) bg-(--cards-bg) text-(--text-primary) hover:border-(--primary)/50 hover:text-(--primary)'
+		: 'border-(--divider) bg-transparent text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--primary)'
+	const done = 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+
+	return (
+		<button
+			type="button"
+			onClick={onCopy}
+			title="Copy a full dataset + dialect brief tailored for LLMs. Paste into ChatGPT / Claude / Gemini and ask for a query."
+			className={`${base} ${size} ${copied ? done : idle}`}
+		>
+			{copied ? (
+				<Icon name="check" className="h-3 w-3" />
+			) : (
+				<Icon name="sparkles" className="h-3 w-3" />
+			)}
+			{copied ? 'Copied for AI' : 'Copy for AI'}
+		</button>
 	)
 }
