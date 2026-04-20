@@ -1136,10 +1136,17 @@ export function useYieldsPoolsTableConfig() {
 }
 
 function getResponsiveValue<T>(valuesByBreakpoint: Record<number, T>, width: number): T | undefined {
-	return Object.entries(valuesByBreakpoint)
-		.map(([breakpoint, value]) => [Number(breakpoint), value] as const)
-		.sort(([a], [b]) => b - a)
-		.find(([breakpoint]) => width >= breakpoint)?.[1]
+	const sortedBreakpoints = Object.keys(valuesByBreakpoint)
+		.map(Number)
+		.sort((a, b) => b - a)
+
+	for (const breakpoint of sortedBreakpoints) {
+		if (width >= breakpoint) {
+			return valuesByBreakpoint[breakpoint]
+		}
+	}
+
+	return undefined
 }
 
 function getColumnId(column: (typeof columns)[number]) {

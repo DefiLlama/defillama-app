@@ -1,6 +1,13 @@
 import { flexRender, type RowData, type Table as ReactTable } from '@tanstack/react-table'
 import { startTransition } from 'react'
 import { Icon } from '~/components/Icon'
+import {
+	TokenPageTable,
+	TokenPageTableBodyCell,
+	TokenPageTableHeaderCell,
+	TokenPageTableScroller,
+	TokenPageTableShell
+} from '~/components/Table/helpers'
 import { SortIcon } from '~/components/Table/SortIcon'
 
 interface PaginatedTableProps<T extends RowData> {
@@ -13,61 +20,59 @@ export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: Pa
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="overflow-x-auto rounded-md border border-(--cards-border)">
-				<table className="w-max min-w-full border-collapse text-sm">
-					<thead>
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--app-bg)">
-								{headerGroup.headers.map((header) => {
-									const align = header.column.columnDef.meta?.align ?? 'start'
-									const minWidth = columnSizing?.[header.column.id] ?? header.column.columnDef.size
+			<TokenPageTableShell>
+				<TokenPageTableScroller>
+					<TokenPageTable>
+						<thead>
+							{table.getHeaderGroups().map((headerGroup) => (
+								<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--app-bg)">
+									{headerGroup.headers.map((header) => {
+										const align = header.column.columnDef.meta?.align ?? 'start'
+										const minWidth = columnSizing?.[header.column.id] ?? header.column.columnDef.size
 
-									return (
-										<th
-											key={header.id}
-											className="px-3 py-2 text-sm font-medium whitespace-nowrap text-(--text-secondary)"
-											style={{ minWidth, textAlign: align }}
-										>
-											{header.isPlaceholder ? null : header.column.getCanSort() ? (
-												<button
-													type="button"
-													onClick={header.column.getToggleSortingHandler()}
-													className="inline-flex items-center gap-1 whitespace-nowrap"
-													style={{
-														marginLeft: align === 'end' || align === 'center' ? 'auto' : undefined,
-														marginRight: align === 'center' ? 'auto' : undefined
-													}}
-												>
-													{flexRender(header.column.columnDef.header, header.getContext())}
-													<SortIcon dir={header.column.getIsSorted()} />
-												</button>
-											) : (
-												flexRender(header.column.columnDef.header, header.getContext())
-											)}
-										</th>
-									)
-								})}
-							</tr>
-						))}
-					</thead>
-					<tbody>
-						{table.getRowModel().rows.map((row) => (
-							<tr key={row.id} className="border-b border-(--cards-border) last:border-b-0">
-								{row.getVisibleCells().map((cell) => {
-									const align = cell.column.columnDef.meta?.align ?? 'start'
-									const minWidth = columnSizing?.[cell.column.id] ?? cell.column.columnDef.size
+										return (
+											<TokenPageTableHeaderCell key={header.id} textAlign={align} minWidth={minWidth}>
+												{header.isPlaceholder ? null : header.column.getCanSort() ? (
+													<button
+														type="button"
+														onClick={header.column.getToggleSortingHandler()}
+														className="inline-flex items-center gap-1 whitespace-nowrap"
+														style={{
+															marginLeft: align === 'end' || align === 'center' ? 'auto' : undefined,
+															marginRight: align === 'center' ? 'auto' : undefined
+														}}
+													>
+														{flexRender(header.column.columnDef.header, header.getContext())}
+														<SortIcon dir={header.column.getIsSorted()} />
+													</button>
+												) : (
+													flexRender(header.column.columnDef.header, header.getContext())
+												)}
+											</TokenPageTableHeaderCell>
+										)
+									})}
+								</tr>
+							))}
+						</thead>
+						<tbody>
+							{table.getRowModel().rows.map((row) => (
+								<tr key={row.id} className="border-b border-(--cards-border) last:border-b-0">
+									{row.getVisibleCells().map((cell) => {
+										const align = cell.column.columnDef.meta?.align ?? 'start'
+										const minWidth = columnSizing?.[cell.column.id] ?? cell.column.columnDef.size
 
-									return (
-										<td key={cell.id} className="px-3 py-2 align-middle" style={{ minWidth, textAlign: align }}>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</td>
-									)
-								})}
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
+										return (
+											<TokenPageTableBodyCell key={cell.id} textAlign={align} minWidth={minWidth}>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</TokenPageTableBodyCell>
+										)
+									})}
+								</tr>
+							))}
+						</tbody>
+					</TokenPageTable>
+				</TokenPageTableScroller>
+			</TokenPageTableShell>
 
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">

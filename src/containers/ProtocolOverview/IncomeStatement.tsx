@@ -4,6 +4,13 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
+import {
+	TokenPageTable,
+	TokenPageTableIncomeCell,
+	TokenPageTableIncomeHeaderCell,
+	TokenPageTableScroller,
+	TokenPageTableShell
+} from '~/components/Table/helpers'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { abbreviateNumber } from '~/utils'
@@ -581,8 +588,8 @@ export const IncomeStatement = ({
 				) : null}
 			</div>
 			{showTable ? (
-				<div className="overflow-hidden rounded-md border border-(--cards-border)">
-					<div className="relative overflow-x-auto">
+				<TokenPageTableShell>
+					<TokenPageTableScroller>
 						<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 							<img
 								src="/assets/defillama-dark-neutral.webp"
@@ -599,16 +606,21 @@ export const IncomeStatement = ({
 								className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 							/>
 						</div>
-						<table className="z-10 w-full border-separate border-spacing-0 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0">
+						<TokenPageTable
+							separated
+							className="z-10 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0"
+						>
 							<thead>
 								<tr>
-									<th className="min-w-[120px] overflow-hidden border-r border-b border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
+									<TokenPageTableIncomeHeaderCell sticky surface="app" className="min-w-[120px] font-semibold">
 										{groupBy === 'Cumulative' ? 'Name' : null}
-									</th>
+									</TokenPageTableIncomeHeaderCell>
 									{tableHeaders.map((header, i) => (
-										<th
+										<TokenPageTableIncomeHeaderCell
 											key={`${name}-${groupBy}-income-statement-${header[0]}`}
-											className="min-w-[120px] overflow-hidden border-r border-b border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap last:border-r-0 dark:border-white/10"
+											surface="app"
+											className="min-w-[120px] font-semibold"
+											lastColumn={i === tableHeaders.length - 1}
 										>
 											{i === 0 && groupBy !== 'Cumulative' ? (
 												<span className="-mr-2 flex items-center justify-start gap-1">
@@ -623,7 +635,7 @@ export const IncomeStatement = ({
 											) : (
 												header[1]
 											)}
-										</th>
+										</TokenPageTableIncomeHeaderCell>
 									))}
 								</tr>
 							</thead>
@@ -719,9 +731,9 @@ export const IncomeStatement = ({
 									/>
 								) : null}
 							</tbody>
-						</table>
-					</div>
-				</div>
+						</TokenPageTable>
+					</TokenPageTableScroller>
+				</TokenPageTableShell>
 			) : null}
 
 			{showSankey ? (
@@ -817,14 +829,10 @@ const IncomeStatementByLabel = ({
 	const hasBreakdownRows = breakdownByLabels.length > 0
 	const showComparison = groupBy !== 'Cumulative'
 	const [isExpanded, setIsExpanded] = useState(true)
-	const headerCellClassName =
-		'w-[36%] overflow-hidden border-r border-b border-black/10 bg-(--cards-bg) p-2 text-left text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10'
-	const valueCellClassName =
-		'overflow-hidden border-r border-b border-black/10 p-2 text-left text-ellipsis whitespace-nowrap dark:border-white/10'
 	return (
 		<>
 			<tr className="group">
-				<th className={`${headerCellClassName} font-semibold group-hover:bg-(--link-hover-bg)`}>
+				<TokenPageTableIncomeHeaderCell sticky className="w-[36%] font-semibold group-hover:bg-(--link-hover-bg)">
 					<div
 						className="flex items-center gap-1"
 						onClick={(e) => {
@@ -862,11 +870,12 @@ const IncomeStatementByLabel = ({
 							<>{label}</>
 						)}
 					</div>
-				</th>
+				</TokenPageTableIncomeHeaderCell>
 				{tableHeaders.map((header, i) => (
-					<td
+					<TokenPageTableIncomeCell
 						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`${valueCellClassName} font-medium group-hover:bg-(--link-hover-bg) ${i === tableHeaders.length - 1 ? 'border-r-0' : ''} ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
+						lastColumn={i === tableHeaders.length - 1}
+						className={`font-medium group-hover:bg-(--link-hover-bg) ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
 					>
 						{data[header[0]]?.value == null ? null : showComparison && i !== 0 && tableHeaders[i + 1] ? (
 							<Tooltip
@@ -885,7 +894,7 @@ const IncomeStatementByLabel = ({
 						) : (
 							<>{formatIncomeValue(data[header[0]].value)}</>
 						)}
-					</td>
+					</TokenPageTableIncomeCell>
 				))}
 			</tr>
 			{hasBreakdownRows && isExpanded ? (
@@ -895,7 +904,10 @@ const IncomeStatementByLabel = ({
 							key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}
 							className="group text-(--text-secondary)"
 						>
-							<th className={`${headerCellClassName} pl-9 font-normal italic group-hover:bg-(--link-hover-bg)`}>
+							<TokenPageTableIncomeHeaderCell
+								sticky
+								className="w-[36%] pl-9 font-normal italic group-hover:bg-(--link-hover-bg)"
+							>
 								{breakdownMethodology[breakdownlabel] ? (
 									<Tooltip
 										content={breakdownMethodology[breakdownlabel]}
@@ -906,11 +918,12 @@ const IncomeStatementByLabel = ({
 								) : (
 									<>{breakdownlabel}</>
 								)}
-							</th>
+							</TokenPageTableIncomeHeaderCell>
 							{tableHeaders.map((header, i) => (
-								<td
+								<TokenPageTableIncomeCell
 									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
-									className={`${valueCellClassName} font-normal group-hover:bg-(--link-hover-bg) ${i === tableHeaders.length - 1 ? 'border-r-0' : ''}`}
+									lastColumn={i === tableHeaders.length - 1}
+									className="font-normal group-hover:bg-(--link-hover-bg)"
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  showComparison &&
@@ -937,7 +950,7 @@ const IncomeStatementByLabel = ({
 									) : (
 										<>{formatIncomeValue(data[header[0]]['by-label']?.[breakdownlabel])}</>
 									)}
-								</td>
+								</TokenPageTableIncomeCell>
 							))}
 						</tr>
 					))}
