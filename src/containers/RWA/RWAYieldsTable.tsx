@@ -118,7 +118,7 @@ function createColumns({
 		columnHelper.accessor((row) => row.cv30d ?? undefined, {
 			id: 'cv30d',
 			header: () => <StabilityHeader hasPremiumAccess={hasPremiumAccess} onRequestUpgrade={onRequestUpgrade} />,
-			enableSorting: true,
+			enableSorting: hasPremiumAccess,
 			cell: ({ getValue, row }) => (
 				<StabilityCell
 					cv30d={getValue() as number | null}

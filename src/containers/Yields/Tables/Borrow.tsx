@@ -181,13 +181,14 @@ const columns = [
 		header: 'LTV',
 		enableSorting: true,
 		cell: (info) => {
+			const value = info.getValue()
 			return (
 				<span
 					style={{
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{formattedNum(Number(info.getValue()) * 100) + '%'}
+					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>
 			)
 		},

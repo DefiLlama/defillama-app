@@ -214,7 +214,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{value == null ? null : formattedNum(value * indexPrice, true)}
+					{value == null || indexPrice == null ? null : formattedNum(value * indexPrice, true)}
 				</span>
 			)
 		},

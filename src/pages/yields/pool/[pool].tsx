@@ -528,7 +528,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 	const holderChanges30d = useMemo(() => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 30)
 	}, [holderStats?.top10Holders, holderHistory])
-	const poolConfigId = typeof query.pool === 'string' ? query.pool : (poolData.pool ?? null)
+	const poolConfigId = poolData.pool ?? (typeof query.pool === 'string' ? query.pool : null)
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
 	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
