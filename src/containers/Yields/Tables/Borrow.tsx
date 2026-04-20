@@ -3,16 +3,31 @@ import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
+import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
 
 const columnHelper = createColumnHelper<IYieldTableRow>()
+const BORROW_COLUMN_IDS = [
+	'pool',
+	'project',
+	'chains',
+	'apyBase',
+	'apyReward',
+	'apyBorrow',
+	'apyBaseBorrow',
+	'apyRewardBorrow',
+	'ltv',
+	'totalSupplyUsd',
+	'totalBorrowUsd',
+	'totalAvailableUsd'
+] as const
+type BorrowColumnId = (typeof BORROW_COLUMN_IDS)[number]
 
 const columns = [
 	columnHelper.accessor('pool', {
@@ -62,7 +77,7 @@ const columns = [
 		},
 		size: 60
 	}),
-	columnHelper.accessor('apyBase', {
+	columnHelper.accessor((row) => row.apyBase ?? undefined, {
 		id: 'apyBase',
 		header: 'Supply Base',
 		enableSorting: true,
@@ -75,7 +90,7 @@ const columns = [
 			headerHelperText: 'Base rate lenders earn which is generated from the borrow side.'
 		}
 	}),
-	columnHelper.accessor('apyReward', {
+	columnHelper.accessor((row) => row.apyReward ?? undefined, {
 		id: 'apyReward',
 		header: 'Supply Reward',
 		enableSorting: true,
@@ -101,7 +116,7 @@ const columns = [
 			headerHelperText: 'Incentive reward APY for lending.'
 		}
 	}),
-	columnHelper.accessor('apyBorrow', {
+	columnHelper.accessor((row) => row.apyBorrow ?? undefined, {
 		id: 'apyBorrow',
 		header: 'Net Borrow',
 		enableSorting: true,
@@ -118,7 +133,7 @@ const columns = [
 			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).apyBaseBorrow as number | null, {
+	columnHelper.accessor((row) => row.apyBaseBorrow ?? undefined, {
 		id: 'apyBaseBorrow',
 		header: 'Borrow Base',
 		enableSorting: true,
@@ -131,7 +146,7 @@ const columns = [
 			headerHelperText: 'Interest borrowers pay to lenders.'
 		}
 	}),
-	columnHelper.accessor('apyRewardBorrow', {
+	columnHelper.accessor((row) => row.apyRewardBorrow ?? undefined, {
 		id: 'apyRewardBorrow',
 		header: 'Borrow Reward',
 		enableSorting: true,
@@ -161,18 +176,19 @@ const columns = [
 			headerHelperText: 'Incentive reward APY for borrowing.'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+	columnHelper.accessor((row) => row.ltv ?? undefined, {
 		id: 'ltv',
 		header: 'LTV',
 		enableSorting: true,
 		cell: (info) => {
+			const value = info.getValue()
 			return (
 				<span
 					style={{
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{formattedNum(Number(info.getValue()) * 100) + '%'}
+					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>
 			)
 		},
@@ -182,7 +198,7 @@ const columns = [
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
 	}),
-	columnHelper.accessor('totalSupplyUsd', {
+	columnHelper.accessor((row) => row.totalSupplyUsd ?? undefined, {
 		id: 'totalSupplyUsd',
 		header: 'Supplied',
 		enableSorting: true,
@@ -193,7 +209,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? '' : formattedNum(info.getValue(), true)}
+					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -202,7 +218,7 @@ const columns = [
 			align: 'end'
 		}
 	}),
-	columnHelper.accessor('totalBorrowUsd', {
+	columnHelper.accessor((row) => row.totalBorrowUsd ?? undefined, {
 		id: 'totalBorrowUsd',
 		header: 'Borrowed',
 		enableSorting: true,
@@ -213,7 +229,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? '' : formattedNum(info.getValue(), true)}
+					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -223,7 +239,7 @@ const columns = [
 			headerHelperText: 'Amount of borrowed collateral'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
+	columnHelper.accessor((row) => row.totalAvailableUsd ?? undefined, {
 		id: 'totalAvailableUsd',
 		header: 'Available',
 		enableSorting: true,
@@ -242,7 +258,7 @@ const columns = [
 							}`}
 						/>
 					) : null}
-					{info.getValue() === null ? null : formattedNum(info.getValue(), true)}
+					{info.getValue() == null ? null : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -253,7 +269,7 @@ const columns = [
 	})
 ]
 
-const columnOrders: ColumnOrdersByBreakpoint = {
+const columnOrders: Record<number, readonly BorrowColumnId[]> = {
 	0: [
 		'pool',
 		'project',
@@ -311,11 +327,11 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalAvailableUsd'
 	]
 }
-const columnSizes: ColumnSizesByBreakpoint = {
+const columnSizes: Record<number, Partial<Record<BorrowColumnId, number>>> = {
 	0: {
 		pool: 200,
 		project: 200,
-		chain: 60,
+		chains: 60,
 		apyBase: 140,
 		apyReward: 160,
 		apyBorrow: 130,
@@ -329,7 +345,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	812: {
 		pool: 200,
 		project: 200,
-		chain: 60,
+		chains: 60,
 		apyBase: 140,
 		apyReward: 160,
 		apyBorrow: 130,
@@ -343,7 +359,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1536: {
 		pool: 240,
 		project: 200,
-		chain: 60,
+		chains: 60,
 		apyBase: 140,
 		apyReward: 160,
 		apyBorrow: 130,
@@ -357,7 +373,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1600: {
 		pool: 280,
 		project: 200,
-		chain: 60,
+		chains: 60,
 		apyBase: 140,
 		apyReward: 160,
 		apyBorrow: 130,
@@ -371,7 +387,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1640: {
 		pool: 320,
 		project: 200,
-		chain: 60,
+		chains: 60,
 		apyBase: 140,
 		apyReward: 160,
 		apyBorrow: 130,
@@ -385,7 +401,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1720: {
 		pool: 420,
 		project: 200,
-		chain: 60,
+		chains: 60,
 		apyBase: 140,
 		apyReward: 160,
 		apyBorrow: 130,
@@ -398,6 +414,22 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
+export const BORROW_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, BorrowColumnId> = {
+	kind: 'borrow',
+	columnIds: BORROW_COLUMN_IDS,
+	columns,
+	columnOrders,
+	columnSizes
+}
+
 export function YieldsBorrowTable({ data }: IYieldsTableProps) {
-	return <YieldsTableWrapper data={data} columns={columns} columnSizes={columnSizes} columnOrders={columnOrders} />
+	const resolvedConfig = resolveVirtualYieldsTableConfig(BORROW_TABLE_CONFIG, undefined)
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={resolvedConfig.columns}
+			columnSizes={resolvedConfig.columnSizes}
+			columnOrders={resolvedConfig.columnOrders}
+		/>
+	)
 }

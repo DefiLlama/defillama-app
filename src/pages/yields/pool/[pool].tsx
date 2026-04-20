@@ -15,6 +15,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -33,7 +34,9 @@ import {
 	type HolderWithChange
 } from '~/containers/Yields/queries/holderUtils'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
+import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
@@ -465,6 +468,10 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 
 const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any; fetchingConfigData: boolean }) => {
 	const { query, isReady } = useRouter()
+	const isClient = useIsClient()
+	const { hasActiveSubscription } = useAuthContext()
+	const { onRequestUpgrade, modal } = useYieldsUpgradePrompt()
+	const hasPremiumAccess = isClient && hasActiveSubscription
 
 	const poolData = pool?.data?.[0] ?? {}
 	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
@@ -521,7 +528,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 	const holderChanges30d = useMemo(() => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 30)
 	}, [holderStats?.top10Holders, holderHistory])
-	const poolConfigId = poolData.pool
+	const poolConfigId = poolData.pool ?? (typeof query.pool === 'string' ? query.pool : null)
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
 	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
@@ -772,7 +779,13 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 						{poolConfigId ? (
 							<p className="flex items-center justify-between gap-1">
 								<span className="font-semibold">Yield Score</span>
-								<StabilityCell cv30d={cv30d} apyMedian30d={apyMedian30d} apyStd30d={apyStd30d} />
+								<StabilityCell
+									cv30d={cv30d}
+									apyMedian30d={apyMedian30d}
+									apyStd30d={apyStd30d}
+									hasPremiumAccess={hasPremiumAccess}
+									onRequestUpgrade={onRequestUpgrade}
+								/>
 							</p>
 						) : null}
 						{holderStats?.holderCount != null ? (
@@ -1101,6 +1114,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 					) : null}
 				</div>
 			</div>
+			{modal}
 		</>
 	)
 }
