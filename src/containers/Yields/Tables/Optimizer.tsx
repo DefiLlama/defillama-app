@@ -549,3 +549,33 @@ export function YieldsOptimizerTable({ data }) {
 		/>
 	)
 }
+
+export function PaginatedYieldsOptimizerTable({
+	data,
+	initialPageSize = 10,
+	excludeRewardApy = false,
+	withAmount = false
+}: {
+	data: IYieldsOptimizerTableRow[]
+	initialPageSize?: number
+	excludeRewardApy?: boolean
+	withAmount?: boolean
+}) {
+	const resolvedConfig = resolveVirtualYieldsTableConfig(OPTIMIZER_TABLE_CONFIG, {
+		excludeRewardApy,
+		withAmount
+	})
+
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={resolvedConfig.columns}
+			columnSizes={resolvedConfig.columnSizes}
+			columnOrders={resolvedConfig.columnOrders}
+			sortingState={resolvedConfig.defaultSorting ?? defaultSortingState}
+			columnVisibility={resolvedConfig.columnVisibility}
+			enablePagination
+			initialPageSize={initialPageSize}
+		/>
+	)
+}

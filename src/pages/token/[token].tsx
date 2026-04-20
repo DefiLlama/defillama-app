@@ -2,7 +2,9 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
+import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
+import { TokenLongShortSection } from '~/containers/Token/TokenLongShortSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
@@ -155,7 +157,13 @@ export default function TokenPage({
 					/>
 				) : null}
 				<TokenUsageSection tokenSymbol={record.symbol} />
-				{record.is_yields ? <TokenYieldsSection tokenSymbol={record.symbol} /> : null}
+				{record.is_yields ? (
+					<>
+						<TokenYieldsSection tokenSymbol={record.symbol} />
+						<TokenBorrowSection tokenSymbol={record.symbol} />
+						<TokenLongShortSection tokenSymbol={record.symbol} />
+					</>
+				) : null}
 				{tokenRightsData ? (
 					<TokenRightsByProtocol
 						name={record.name}

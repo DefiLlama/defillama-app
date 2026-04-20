@@ -276,3 +276,24 @@ export function YieldsStrategyTableFR({ data }) {
 		/>
 	)
 }
+
+export function PaginatedYieldsStrategyTableFR({
+	data,
+	initialPageSize = 10
+}: {
+	data: IYieldsStrategyTableRow[]
+	initialPageSize?: number
+}) {
+	const resolvedConfig = resolveVirtualYieldsTableConfig(STRATEGY_FR_TABLE_CONFIG, undefined)
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={resolvedConfig.columns}
+			columnSizes={resolvedConfig.columnSizes}
+			columnOrders={resolvedConfig.columnOrders}
+			rowSize={resolvedConfig.rowSize}
+			enablePagination
+			initialPageSize={initialPageSize}
+		/>
+	)
+}
