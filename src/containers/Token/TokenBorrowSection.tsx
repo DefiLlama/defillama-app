@@ -7,6 +7,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { PaginatedYieldsOptimizerTable } from '~/containers/Yields/Tables/Optimizer'
 import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 import type { FormSubmitEvent } from '~/types/forms'
+import type { TokenStrategiesResponse } from './tokenStrategies.types'
 import { useTokenStrategies } from './useTokenStrategies'
 
 const TOKEN_BORROW_SECTION_ID = 'token-borrow'
@@ -117,7 +118,13 @@ export function filterBorrowRows({
 	})
 }
 
-export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
+export function TokenBorrowSection({
+	tokenSymbol,
+	initialData
+}: {
+	tokenSymbol: string
+	initialData?: TokenStrategiesResponse
+}) {
 	const [activeTab, setActiveTab] = React.useState<BorrowTabKey>('use')
 	const [filtersByTab, setFiltersByTab] = React.useState<Record<BorrowTabKey, BorrowTabFilters>>({
 		use: {
@@ -131,7 +138,7 @@ export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 			maxAvailable: ''
 		}
 	})
-	const { data, error, isLoading } = useTokenStrategies(tokenSymbol)
+	const { data, error, isLoading } = useTokenStrategies(tokenSymbol, initialData)
 	const useRows = React.useMemo(() => data?.borrowAsCollateral ?? [], [data])
 	const borrowRows = React.useMemo(() => data?.borrowAsDebt ?? [], [data])
 	const useChainList = React.useMemo(() => getBorrowChainList(useRows), [useRows])
