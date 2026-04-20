@@ -16,9 +16,89 @@ export const useFormatYieldQueryParams = ({
 	exactTokenQueryKey = 'exactToken'
 }: IFormatYieldQueryParams) => {
 	const router = useRouter()
+	const {
+		project,
+		excludeProject,
+		lendingProtocol,
+		excludeLendingProtocol,
+		farmProtocol,
+		excludeFarmProtocol,
+		chain,
+		excludeChain,
+		attribute,
+		excludeAttribute,
+		category,
+		excludeCategory,
+		token_pair,
+		minTvl,
+		maxTvl,
+		minApy,
+		maxApy,
+		minAvailable,
+		maxAvailable,
+		customLTV
+	} = router.query
+	const token = router.query[tokenQueryKey]
+	const excludeToken = router.query[excludeTokenQueryKey]
+	const exactToken = router.query[exactTokenQueryKey]
+	const decodedQuery = React.useMemo(
+		() => ({
+			project,
+			excludeProject,
+			lendingProtocol,
+			excludeLendingProtocol,
+			farmProtocol,
+			excludeFarmProtocol,
+			chain,
+			excludeChain,
+			attribute,
+			excludeAttribute,
+			category,
+			excludeCategory,
+			token_pair,
+			minTvl,
+			maxTvl,
+			minApy,
+			maxApy,
+			minAvailable,
+			maxAvailable,
+			customLTV,
+			[tokenQueryKey]: token,
+			[excludeTokenQueryKey]: excludeToken,
+			[exactTokenQueryKey]: exactToken
+		}),
+		[
+			project,
+			excludeProject,
+			lendingProtocol,
+			excludeLendingProtocol,
+			farmProtocol,
+			excludeFarmProtocol,
+			chain,
+			excludeChain,
+			attribute,
+			excludeAttribute,
+			category,
+			excludeCategory,
+			token_pair,
+			minTvl,
+			maxTvl,
+			minApy,
+			maxApy,
+			minAvailable,
+			maxAvailable,
+			customLTV,
+			token,
+			excludeToken,
+			exactToken,
+			tokenQueryKey,
+			excludeTokenQueryKey,
+			exactTokenQueryKey
+		]
+	)
 
 	return React.useMemo(() => {
-		return decodeYieldsQuery(router.query, {
+		return decodeYieldsQuery(decodedQuery, {
 			projectList,
 			chainList,
 			categoryList,
@@ -30,13 +110,13 @@ export const useFormatYieldQueryParams = ({
 			exactTokenQueryKey
 		})
 	}, [
-		router.query,
 		projectList,
 		chainList,
 		categoryList,
 		lendingProtocols,
 		farmProtocols,
 		evmChains,
+		decodedQuery,
 		tokenQueryKey,
 		excludeTokenQueryKey,
 		exactTokenQueryKey

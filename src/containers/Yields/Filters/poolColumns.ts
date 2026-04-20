@@ -14,6 +14,7 @@ export const POOL_OPTIONAL_COLUMN_OPTIONS = [
 	{ name: '30d Median APY', queryKey: 'showMedianApy', columnId: 'apyMedian30d', isPremium: true },
 	{ name: '30d Std Dev', queryKey: 'showStdDev', columnId: 'apyStd30d', isPremium: true },
 	{ name: 'Holder Count', queryKey: 'showHolderCount', columnId: 'holderCount' },
+	{ name: 'Top 10 %', queryKey: 'showTop10Pct', columnId: 'top10Pct' },
 	{ name: 'Holders Avg Position', queryKey: 'showAvgPosition', columnId: 'avgPositionUsd' }
 ] as const
 

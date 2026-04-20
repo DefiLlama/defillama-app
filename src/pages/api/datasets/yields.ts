@@ -1,7 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHAIN_API, YIELD_CONFIG_API, YIELD_LEND_BORROW_API, YIELD_POOLS_API, YIELD_URL_API } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
-import { mapPoolToYieldTableRow } from '~/containers/Yields/poolsPipeline'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
 import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
 import { fetchJson } from '~/utils/async'
@@ -68,7 +67,48 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			})
 		}
 
-		const transformedPools = pools.map((pool: any) => mapPoolToYieldTableRow(pool))
+		const transformedPools = pools.map((pool: any) => ({
+			pool: pool.symbol,
+			configID: pool.pool,
+			projectslug: pool.project,
+			project: pool.projectName,
+			airdrop: pool.airdrop,
+			chains: [pool.chain],
+			tvl: pool.tvlUsd,
+			apy: pool.apy,
+			apyBase: pool.apyBase,
+			apyReward: pool.apyReward,
+			rewardTokensSymbols: pool.rewardTokensSymbols || [],
+			change1d: pool.apyPct1D,
+			change7d: pool.apyPct7D,
+			il7d: pool.il7d,
+			apyBase7d: pool.apyBase7d,
+			apyNet7d: pool.apyNet7d,
+			apyMean30d: pool.apyMean30d,
+			volumeUsd1d: pool.volumeUsd1d,
+			volumeUsd7d: pool.volumeUsd7d,
+			apyBaseBorrow: pool.apyBaseBorrow,
+			apyRewardBorrow: pool.apyRewardBorrow,
+			apyBorrow: pool.apyBorrow,
+			totalSupplyUsd: pool.totalSupplyUsd,
+			totalBorrowUsd: pool.totalBorrowUsd,
+			totalAvailableUsd: pool.totalAvailableUsd,
+			ltv: pool.ltv,
+			poolMeta: pool.poolMeta,
+			category: pool.category,
+			stablecoin: pool.stablecoin,
+			exposure: pool.exposure,
+			ilRisk: pool.ilRisk,
+			audits: pool.audits,
+			outlier: pool.outlier,
+			predictions: pool.predictions,
+			apyIncludingLsdApy: pool.apyIncludingLsdApy,
+			apyBaseIncludingLsdApy: pool.apyBaseIncludingLsdApy,
+			apyLsd: pool.apyLsd,
+			lsdTokenOnly: pool.lsdTokenOnly,
+			rewardTokens: pool.rewardTokens || [],
+			url: pool.url
+		}))
 
 		let filteredPools = transformedPools
 		if (chainList.length > 0 && !chainList.includes('All')) {
