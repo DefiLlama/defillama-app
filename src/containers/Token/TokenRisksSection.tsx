@@ -38,7 +38,7 @@ type CollateralProtocolSummary = {
 }
 
 const DEFAULT_BORROW_CAPS_SORTING: SortingState = [{ id: 'borrowCapUsd', desc: true }]
-const DEFAULT_COLLATERAL_RISK_SORTING: SortingState = [{ id: 'borrowCapUsd', desc: true }]
+const DEFAULT_COLLATERAL_RISK_SORTING: SortingState = [{ id: 'availableToBorrowUsd', desc: true }]
 
 function formatUsd(value: number | null | undefined) {
 	if (value == null) return 'Uncapped'
@@ -479,6 +479,9 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				chainDisplayNames: [...summary.chainDisplayNames].sort((a, b) => a.localeCompare(b))
 			}))
 			.sort((a, b) => {
+				if (a.totalAvailableToBorrowUsd !== b.totalAvailableToBorrowUsd) {
+					return b.totalAvailableToBorrowUsd - a.totalAvailableToBorrowUsd
+				}
 				if (a.totalBorrowCapUsd !== b.totalBorrowCapUsd) {
 					return b.totalBorrowCapUsd - a.totalBorrowCapUsd
 				}
@@ -525,7 +528,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					</h2>
 					<p className="mt-1 max-w-4xl text-sm text-(--text-secondary)">
 						{hasCollateralPrimary
-							? `How much can be borrowed against ${tokenSymbol} across lending protocols.`
+							? `How much can still be borrowed right now using ${tokenSymbol} as collateral across lending protocols.`
 							: `How much ${tokenSymbol} is currently available to borrow across lending protocols.`}
 					</p>
 				</div>
@@ -535,17 +538,21 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				<div className="rounded-md border border-(--cards-border) p-4">
 					<p className="text-sm text-(--text-secondary)">
 						{hasCollateralPrimary
-							? `Total borrowing cap against ${tokenSymbol}`
+							? `Total available to borrow using ${tokenSymbol} as collateral`
 							: `Total ${tokenSymbol} available to borrow`}
 					</p>
 					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-						{hasCollateralPrimary ? formatUsd(totalCollateralBorrowCapUsd) : formatUsd(totalAvailableToBorrowUsd)}
+						{hasCollateralPrimary
+							? formatUsd(totalCollateralAvailableToBorrowUsd)
+							: formatUsd(totalAvailableToBorrowUsd)}
 					</p>
 					<p className="mt-1 text-sm text-(--text-secondary)">
 						{hasCollateralPrimary
-							? `${formatUsd(totalCollateralAvailableToBorrowUsd)} still available and ${formatUsd(
-									totalCollateralBorrowedUsd
-								)} already borrowed across these lending markets`
+							? `${formatUsd(totalCollateralBorrowedUsd)} currently borrowed across the reachable debt markets${
+									totalCollateralBorrowCapUsd > 0
+										? ` (${formatUsd(totalCollateralBorrowCapUsd)} derived route capacity)`
+										: ''
+								}`
 							: `${formatUsd(totalBorrowedUsd)} borrowed across these lending markets`}
 					</p>
 				</div>
@@ -570,9 +577,9 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 									</div>
 									<p className="mt-1 text-sm text-(--text-secondary)">
 										{hasCollateralPrimary
-											? `${formatUsd(summary.totalBorrowCapUsd)} cap (${formatUsd(
-													summary.totalAvailableToBorrowUsd
-												)} available / ${formatUsd(summary.totalDebtBorrowedUsd)} borrowed)`
+											? `${formatUsd(summary.totalAvailableToBorrowUsd)} available (${formatUsd(
+													summary.totalDebtBorrowedUsd
+												)} borrowed in route debt markets / ${formatUsd(summary.totalBorrowCapUsd)} derived route capacity)`
 											: `${formatUsd(summary.totalAvailableToBorrowUsd)} available (${formatUsd(
 													summary.totalDebtBorrowedUsd
 												)} borrowed${summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})`}
@@ -601,7 +608,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>. The headline
 						total and protocol lines use{' '}
 						{hasCollateralPrimary
-							? `${tokenSymbol} collateral routes where cap equals available plus borrowed.`
+							? `${tokenSymbol} collateral routes where available is what can still be borrowed now, and derived route capacity is available plus the current borrowed amount in each reachable debt market.`
 							: `${tokenSymbol} debt routes where the asset itself is borrowed as debt.`}
 					</p>
 					<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
@@ -626,7 +633,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						</summary>
 						<p className="mt-2 text-sm text-(--text-secondary)">
 							{hasCollateralPrimary
-								? `Each row is a lending route where ${tokenSymbol} is posted as collateral. Cap equals available plus borrowed for each route.`
+								? `Each row is a lending route where ${tokenSymbol} is accepted as collateral. Available is what can still be borrowed now. Derived route capacity is available plus the current borrowed amount in that route's debt market.`
 								: `These rows show what users can borrow by posting ${tokenSymbol} as collateral, which is different from how much ${tokenSymbol} itself is available to borrow as debt.`}
 						</p>
 						<div className="mt-3">

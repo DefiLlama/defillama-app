@@ -202,8 +202,7 @@ function buildTokenLiquiditySummary({
 
 	const rows: Array<[string, string, number]> = []
 	for (const protocolSlug in liquidityAggregated) {
-		const protocolName = yieldsConfig.protocols?.[protocolSlug]?.name
-		if (!protocolName) continue
+		const protocolName = yieldsConfig.protocols?.[protocolSlug]?.name ?? protocolSlug
 
 		const chainValues = liquidityAggregated[protocolSlug]
 		for (const chainName in chainValues) {
@@ -290,16 +289,15 @@ export async function getTokenOverviewData({
 	llamaswapChains: IProtocolLlamaswapChain[] | null
 }): Promise<TokenOverviewData> {
 	const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
-	const protocolDefiLlamaId = record.protocolId ?? null
-	const protocolName = protocolMetadata?.displayName ?? protocolMetadata?.name ?? null
-	const protocolSlug = protocolName ? slug(protocolName) : null
+	const protocolDefiLlamaId = record.protocolId ?? protocolMetadata?.name ?? null
+	const protocolSlug = protocolDefiLlamaId ? slug(protocolDefiLlamaId.replace(/^parent#/, '')) : null
 
 	const shouldFetchProtocolData = Boolean(protocolSlug)
 	const shouldFetchTreasury = Boolean(!record.chainId && protocolDefiLlamaId)
 	const shouldFetchRaises = Boolean(chainDefiLlamaId || protocolDefiLlamaId)
 	const shouldFetchLiquidity = Boolean(shouldFetchProtocolData && protocolMetadata?.liquidity)
 	const shouldFetchOutstandingFdv = Boolean(shouldFetchProtocolData && protocolMetadata?.emissions)
-	const totalSupply = tokenEntry?.total_supply ?? tokenEntry?.max_supply ?? null
+	const totalSupply = tokenEntry?.max_supply ?? tokenEntry?.total_supply ?? null
 
 	const [
 		cgChart,
@@ -354,7 +352,7 @@ export async function getTokenOverviewData({
 			adjustedSupply != null && marketData.currentPrice != null ? adjustedSupply * marketData.currentPrice : null,
 		rawChartData: buildTokenOverviewRawChartData({
 			chart: cgChart,
-			totalSupply: fetchedTotalSupply ?? totalSupply
+			totalSupply: totalSupply ?? fetchedTotalSupply
 		})
 	}
 }

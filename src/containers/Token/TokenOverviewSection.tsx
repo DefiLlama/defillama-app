@@ -67,6 +67,21 @@ function formatRaiseAmount(value: number | null | undefined) {
 	return formattedNum(value, true)
 }
 
+function getTotalRaisedAmount(raises: TokenOverviewData['raises']): number | null {
+	if (!raises?.length) return null
+
+	let totalRaised = 0
+	let hasDisclosedRaise = false
+
+	for (const raise of raises) {
+		if (raise.amount == null) continue
+		totalRaised += raise.amount
+		hasDisclosedRaise = true
+	}
+
+	return hasDisclosedRaise ? totalRaised : null
+}
+
 function formatDateLabel(value: string | number | null | undefined) {
 	if (value == null) return null
 	const date = typeof value === 'number' ? dayjs.unix(value) : dayjs(value)
@@ -195,7 +210,7 @@ function TokenHeader({
 }
 
 function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
-	const totalRaised = overview.raises?.reduce((sum, raise) => sum + (raise.amount ?? 0), 0) ?? 0
+	const totalRaised = getTotalRaisedAmount(overview.raises)
 
 	return (
 		<div className="flex flex-1 flex-col gap-2">
@@ -221,7 +236,11 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 					<MetricRow label="Market Cap" tooltip={MARKET_CAP_TOOLTIP} value={formatCurrency(overview.marketData.mcap)} />
 				) : null}
 				{overview.marketData.fdv != null ? (
-					<MetricRow label="FDV" tooltip={FDV_TOOLTIP} value={formatCurrency(overview.marketData.fdv)} />
+					<MetricRow
+						label="Fully Diluted Valuation"
+						tooltip={FDV_TOOLTIP}
+						value={formatCurrency(overview.marketData.fdv)}
+					/>
 				) : null}
 				{overview.outstandingFDV != null ? (
 					<MetricRow
@@ -278,7 +297,7 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 					</MetricSection>
 				) : null}
 				{overview.raises?.length ? (
-					<MetricSection label="Raises" value={formatCurrency(totalRaised)}>
+					<MetricSection label="Raises" value={formatRaiseAmount(totalRaised)}>
 						{overview.raises.map((raise) => (
 							<SubMetricRow
 								key={`${raise.date}-${raise.round ?? 'raise'}`}
@@ -393,8 +412,8 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 						<Ariakit.Dialog className="dialog gap-3 max-sm:drawer sm:w-full" unmountOnHide>
 							<span className="flex items-center justify-between gap-1">
 								<Ariakit.DialogHeading className="text-2xl font-bold">Add metrics to chart</Ariakit.DialogHeading>
-								<Ariakit.DialogDismiss className="ml-auto p-2 opacity-50">
-									<Icon name="x" className="h-5 w-5" />
+								<Ariakit.DialogDismiss aria-label="Close dialog" className="ml-auto p-2 opacity-50">
+									<Icon name="x" aria-hidden="true" className="h-5 w-5" />
 								</Ariakit.DialogDismiss>
 							</span>
 
@@ -423,6 +442,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									<button
 										key={`token-chart-option-${option.id}`}
 										type="button"
+										aria-label={`${option.active ? 'Remove' : 'Add'} ${option.label}`}
 										onClick={() => {
 											setActiveCharts(
 												activeCharts.includes(option.id)
@@ -436,9 +456,9 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									>
 										<span>{option.label}</span>
 										{option.active ? (
-											<Icon name="x" className="h-3.5 w-3.5" />
+											<Icon name="x" aria-hidden="true" className="h-3.5 w-3.5" />
 										) : (
-											<Icon name="plus" className="h-3.5 w-3.5" />
+											<Icon name="plus" aria-hidden="true" className="h-3.5 w-3.5" />
 										)}
 									</button>
 								))}
@@ -453,12 +473,13 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 					<button
 						key={chart}
 						type="button"
+						aria-label={`Remove ${getChartLabel(chart, overview.symbol)}`}
 						onClick={() => setActiveCharts(activeCharts.filter((value) => value !== chart))}
 						className="flex items-center gap-1 rounded-full border-2 px-2 py-1 text-xs"
 						style={{ borderColor: TOKEN_OVERVIEW_CHART_COLORS[chart] }}
 					>
 						<span>{getChartLabel(chart, overview.symbol)}</span>
-						<Icon name="x" className="h-3.5 w-3.5" />
+						<Icon name="x" aria-hidden="true" className="h-3.5 w-3.5" />
 					</button>
 				))}
 				<div className="ml-auto">

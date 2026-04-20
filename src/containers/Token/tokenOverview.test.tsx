@@ -355,6 +355,73 @@ describe('tokenOverview helpers', () => {
 		expect(mocks.fetchTreasuries).toHaveBeenCalledOnce()
 	})
 
+	it('prefers the protocol slug metadata and max supply when building overview data', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Test Protocol',
+				symbol: 'TEST',
+				protocolId: 'parent#uniswap'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'TEST',
+			geckoId: 'bitcoin',
+			tokenEntry: {
+				...tokenEntryFixture,
+				max_supply: 21000,
+				total_supply: 1000
+			},
+			protocolMetadata: {
+				...protocolMetadataFixture,
+				name: 'uniswap-v3',
+				displayName: 'Uniswap'
+			} as IProtocolMetadata,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null
+		})
+
+		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('uniswap')
+		expect(mocks.fetchProtocolEmissionFromDatasets).toHaveBeenCalledWith('uniswap')
+		expect(result.rawChartData.FDV).toEqual([
+			[1711929600000, 2100000],
+			[1712016000000, 2310000]
+		])
+	})
+
+	it('keeps liquidity rows when yields metadata is missing a protocol display name', async () => {
+		mocks.fetchJson.mockImplementation((url: string) => {
+			if (url.includes('/supply/')) {
+				return Promise.resolve({ data: { total_supply: 1000 } })
+			}
+
+			return Promise.resolve({
+				protocols: {
+					'pool-one': {}
+				}
+			})
+		})
+
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Test Protocol',
+				symbol: 'TEST',
+				protocolId: 'parent#test-protocol'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'TEST',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: protocolMetadataFixture,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null
+		})
+
+		expect(result.tokenLiquidity).toEqual({
+			total: 75,
+			pools: [
+				['pool-one', 'Ethereum', 50],
+				['pool-two', 'Base', 25]
+			]
+		})
+	})
+
 	it('returns token-only data when no protocol mapping is available', async () => {
 		const result = await getTokenOverviewData({
 			record: {
@@ -458,6 +525,30 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('DEX Volume')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
 		expect(html).toContain('protocol-chart')
+	})
+
+	it('shows undisclosed raises without falling back to $0 and exposes chart controls to assistive tech', () => {
+		const html = renderToStaticMarkup(
+			<TokenOverviewSection
+				overview={{
+					...overviewFixture,
+					raises: [
+						{
+							date: 1704067200,
+							round: 'Series A',
+							amount: null,
+							source: 'Blog',
+							investors: ['Investor A']
+						}
+					]
+				}}
+				geckoId="bitcoin"
+			/>
+		)
+
+		expect(html).toContain('Undisclosed')
+		expect(html).not.toContain('>$0<')
+		expect(html).toContain('aria-label="Remove $BTC Price"')
 	})
 
 	it('reads chart grouping and metric selection from the URL query', () => {

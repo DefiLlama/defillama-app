@@ -68,7 +68,7 @@ describe('tokenRisk utils', () => {
 	it('resolves token risk candidates from llamaswap metadata and dedupes by chain/address', () => {
 		const candidates = resolveTokenRiskCandidates('usdc', {
 			usdc: [
-				{ chain: 'ethereum', address: '0xA0b8', displayName: 'Ethereum' },
+				{ chain: 'Ethereum', address: '0xA0b8', displayName: 'Ethereum' },
 				{ chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum duplicate' },
 				{ chain: 'base', address: '0x8335', displayName: 'Base' }
 			]
@@ -77,7 +77,7 @@ describe('tokenRisk utils', () => {
 		expect(candidates).toEqual([
 			{
 				key: 'ethereum:0xa0b8',
-				chain: 'ethereum',
+				chain: 'Ethereum',
 				address: '0xa0b8',
 				displayName: 'Ethereum'
 			},
@@ -93,7 +93,7 @@ describe('tokenRisk utils', () => {
 	it('indexes borrow routes by chain-address key and merges buckets across candidates', () => {
 		const routes = [
 			createRoute({
-				chain: 'ethereum',
+				chain: 'Ethereum',
 				collateral: { symbol: 'WBTC', address: '0xCollateral1', priceUsd: 100 }
 			}),
 			createRoute({
@@ -207,5 +207,35 @@ describe('tokenRisk utils', () => {
 		expect(section.rows[0].borrowCapUsd).toBe(700)
 		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
 		expect(section.rows[0].chainDisplayName).toBe('ethereum')
+	})
+
+	it('sorts collateral-risk rows by available liquidity before implied cap', () => {
+		const bucket = {
+			asDebt: [],
+			asCollateral: [
+				createRoute({
+					protocol: 'aave-v3',
+					availableToBorrowUsd: 0,
+					debtTotalBorrowedUsd: 1000,
+					borrowCapUsd: 1000
+				}),
+				createRoute({
+					protocol: 'morpho-v3',
+					availableToBorrowUsd: 123,
+					debtTotalBorrowedUsd: 0,
+					borrowCapUsd: 123
+				}),
+				createRoute({
+					protocol: 'compound-v3',
+					availableToBorrowUsd: 900,
+					debtTotalBorrowedUsd: 50,
+					borrowCapUsd: 950
+				})
+			]
+		}
+
+		const section = buildCollateralRiskSection(bucket, methodologies)
+
+		expect(section.rows.map((row) => row.protocol)).toEqual(['compound-v3', 'morpho-v3', 'aave-v3'])
 	})
 })

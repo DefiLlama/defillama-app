@@ -32,8 +32,12 @@ function normalizeAddress(address: string | null | undefined): string {
 	return (address ?? '').trim().toLowerCase()
 }
 
+function normalizeChain(chain: string | null | undefined): string {
+	return (chain ?? '').trim().toLowerCase()
+}
+
 function buildRouteAssetKey(chain: string, address: string): string {
-	return `${chain}:${normalizeAddress(address)}`
+	return `${normalizeChain(chain)}:${normalizeAddress(address)}`
 }
 
 function uniqueSorted(values: Iterable<string>): string[] {
@@ -253,7 +257,12 @@ export function buildCollateralRiskSection(
 			debtCeilingUsd: route.debtCeilingUsd ?? null,
 			availableToBorrowUsd: route.availableToBorrowUsd
 		}))
-		.sort((a, b) => b.borrowCapUsd - a.borrowCapUsd)
+		.sort((a, b) => {
+			if (a.availableToBorrowUsd !== b.availableToBorrowUsd) {
+				return b.availableToBorrowUsd - a.availableToBorrowUsd
+			}
+			return b.borrowCapUsd - a.borrowCapUsd
+		})
 
 	const liquidationBuffers = rows.map((row) => row.liquidationBuffer).filter((value) => Number.isFinite(value))
 	const totalBorrowedUsd = rows.reduce((sum, row) => sum + row.debtTotalBorrowedUsd, 0)

@@ -153,6 +153,8 @@ describe('getTokenRiskData', () => {
 		expect(payload).not.toBeNull()
 		expect(payload?.borrowCaps.rows).toEqual([])
 		expect(payload?.collateralRisk.rows).toHaveLength(1)
+		expect(payload?.limitations.length).toBeGreaterThan(0)
+		expect(payload?.limitations.every((l) => !l.includes('Debt-side totals'))).toBe(true)
 	})
 
 	it('returns null when the token cannot be resolved from protocol llamaswap metadata', async () => {

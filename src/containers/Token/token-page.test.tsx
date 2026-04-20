@@ -5,9 +5,11 @@ import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/querie
 import { getTokenRiskData } from '~/containers/Token/queries'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import { getTokenStrategiesData } from '~/containers/Token/tokenStrategies.server'
+import type { TokenStrategiesResponse } from '~/containers/Token/tokenStrategies.types'
 import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
@@ -276,12 +278,14 @@ describe('token page', () => {
 				incomeStatementProtocolName="Bitcoin Protocol"
 				incomeStatementHasIncentives={false}
 				tokenRiskData={{} as TokenRiskResponse}
-				initialYieldsRows={[{ pool: 'pool-1' }]}
-				initialTokenStrategiesData={{
-					borrowAsCollateral: [{ pool: 'borrow-1' }],
-					borrowAsDebt: [],
-					longShort: [{ pool: 'long-short-1' }]
-				}}
+				initialYieldsRows={[{ pool: 'pool-1' }] as IYieldTableRow[]}
+				initialTokenStrategiesData={
+					{
+						borrowAsCollateral: [{ pool: 'borrow-1' }],
+						borrowAsDebt: [],
+						longShort: [{ pool: 'long-short-1' }]
+					} as TokenStrategiesResponse
+				}
 				geckoId="bitcoin"
 				overview={overviewFixture}
 				seoTitle="title"
@@ -344,11 +348,13 @@ describe('token page', () => {
 				incomeStatementHasIncentives={false}
 				tokenRiskData={{} as TokenRiskResponse}
 				initialYieldsRows={[]}
-				initialTokenStrategiesData={{
-					borrowAsCollateral: [{ pool: 'borrow-1' }],
-					borrowAsDebt: [],
-					longShort: [{ pool: 'long-short-1' }]
-				}}
+				initialTokenStrategiesData={
+					{
+						borrowAsCollateral: [{ pool: 'borrow-1' }],
+						borrowAsDebt: [],
+						longShort: [{ pool: 'long-short-1' }]
+					} as TokenStrategiesResponse
+				}
 				geckoId="bitcoin"
 				overview={overviewFixture}
 				seoTitle="title"

@@ -140,13 +140,13 @@ describe('TokenRisksSection', () => {
 	it('renders the collateral-side summary from preloaded risk data', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		expect(html).toContain('Total borrowing cap against USDC')
-		expect(html).toContain('$800')
-		expect(html).toContain('$500 still available and $300 already borrowed across these lending markets')
+		expect(html).toContain('Total available to borrow using USDC as collateral')
+		expect(html).toContain('$500')
+		expect(html).toContain('$300 currently borrowed across the reachable debt markets ($800 derived route capacity)')
 		expect(html).toContain('Aave V3')
-		expect(html).toContain('$800 cap ($500 available / $300 borrowed)')
+		expect(html).toContain('$500 available ($300 borrowed in route debt markets / $800 derived route capacity)')
 		expect(html).toContain('Ethereum')
-		expect(html).toContain('How much can be borrowed against USDC across lending protocols')
+		expect(html).toContain('How much can still be borrowed right now using USDC as collateral across lending protocols')
 	})
 
 	it('shows methodology and both detail disclosures when data exists', () => {
@@ -157,11 +157,91 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain('Show USDC collateral details')
 		expect(html).toContain('Show borrow-cap details')
 		expect(html).toContain('paginated-table:1')
-		expect(html).toContain('cap equals available plus borrowed')
+		expect(html).toContain('derived route capacity is available plus the current borrowed amount')
 		expect(html).toContain('Cap|Borrowing cap against this collateral route, calculated as borrowed plus available.')
 		expect(html).toContain('Borrowed|Borrowed methodology')
 		expect(html).toContain('Available|Available methodology')
 		expect(html).toContain('Max LTV|Max LTV methodology')
+	})
+
+	it('prioritizes collateral protocols by available liquidity instead of implied cap', () => {
+		const riskData = createRiskData()
+		riskData.collateralRisk.summary = {
+			totalBorrowCapUsd: 1373,
+			totalBorrowedUsd: 350,
+			totalAvailableToBorrowUsd: 1023,
+			routeCount: 3,
+			isolatedRouteCount: 1,
+			minLiquidationBuffer: 0.08,
+			maxLiquidationBuffer: 0.08
+		}
+		riskData.collateralRisk.rows = [
+			{
+				protocol: 'aave-v3',
+				protocolDisplayName: 'Aave V3',
+				chain: 'ethereum',
+				chainDisplayName: 'Ethereum',
+				debtSymbol: 'WBTC',
+				debtTotalSupplyUsd: 800,
+				debtTotalBorrowedUsd: 300,
+				borrowCapUsd: 1000,
+				maxLtv: 0.7,
+				liquidationThreshold: 0.78,
+				liquidationPenalty: 0.04,
+				liquidationBuffer: 0.08,
+				borrowApy: 0.02,
+				isolationMode: true,
+				debtCeilingUsd: 1000,
+				availableToBorrowUsd: 0,
+				market: 'aave-market'
+			},
+			{
+				protocol: 'morpho-v3',
+				protocolDisplayName: 'Morpho V3',
+				chain: 'ethereum',
+				chainDisplayName: 'Ethereum',
+				debtSymbol: 'USDC',
+				debtTotalSupplyUsd: 123,
+				debtTotalBorrowedUsd: 0,
+				borrowCapUsd: 123,
+				maxLtv: 0.7,
+				liquidationThreshold: 0.78,
+				liquidationPenalty: 0.04,
+				liquidationBuffer: 0.08,
+				borrowApy: 0.02,
+				isolationMode: false,
+				debtCeilingUsd: null,
+				availableToBorrowUsd: 123,
+				market: 'morpho-market'
+			},
+			{
+				protocol: 'compound-v3',
+				protocolDisplayName: 'Compound V3',
+				chain: 'ethereum',
+				chainDisplayName: 'Ethereum',
+				debtSymbol: 'USDC',
+				debtTotalSupplyUsd: 950,
+				debtTotalBorrowedUsd: 50,
+				borrowCapUsd: 250,
+				maxLtv: 0.7,
+				liquidationThreshold: 0.78,
+				liquidationPenalty: 0.04,
+				liquidationBuffer: 0.08,
+				borrowApy: 0.02,
+				isolationMode: false,
+				debtCeilingUsd: null,
+				availableToBorrowUsd: 900,
+				market: 'compound-market'
+			}
+		]
+
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" riskData={riskData} />)
+
+		expect(html).toContain('Total available to borrow using LINK as collateral')
+		expect(html).toContain('$1,023')
+		expect(html.indexOf('Compound V3')).toBeLessThan(html.indexOf('Morpho V3'))
+		expect(html.indexOf('Morpho V3')).toBeLessThan(html.indexOf('Aave V3'))
+		expect(html).toContain('$0 available ($300 borrowed in route debt markets / $1,000 derived route capacity)')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -198,7 +278,7 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="AAVE" riskData={riskData} />)
 
-		expect(html).not.toContain('Show collateral-side details')
+		expect(html).not.toContain('Show AAVE collateral details')
 		expect(html).not.toContain('Show borrow-cap details')
 	})
 
