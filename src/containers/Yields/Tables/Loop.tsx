@@ -51,7 +51,7 @@ const columns = [
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
-		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+		header: () => <span style={{ paddingLeft: '24px' }}>Project</span>,
 		enableSorting: true,
 		cell: ({ row }) => (
 			<NameYield

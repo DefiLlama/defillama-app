@@ -234,8 +234,8 @@ function EmptyTablesPrompt({
 					<p className="text-xs font-semibold text-(--text-primary)">Start by browsing the schema</p>
 					<p className="text-[11.5px] leading-snug text-(--text-secondary)">
 						<span className="tabular-nums">{totalSchemaCount}</span> datasets you can query — protocols, fees, yields,
-						TVL series, hacks, raises, and more. Or let an AI draft the query: copy the full dataset brief and paste
-						it into ChatGPT / Claude / Gemini.
+						TVL series, hacks, raises, and more. Or let an AI draft the query: copy the full dataset brief and paste it
+						into ChatGPT / Claude / Gemini.
 					</p>
 				</div>
 			</div>
@@ -250,9 +250,7 @@ function EmptyTablesPrompt({
 					<Icon name="arrow-right" className="h-3 w-3 opacity-80" />
 				</button>
 				<CopyForAIButton prominent />
-				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">
-					Tables referenced in SQL auto-load on run.
-				</span>
+				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">Tables referenced in SQL auto-load on run.</span>
 			</div>
 		</div>
 	)
@@ -292,11 +290,7 @@ function CopyForAIButton({ prominent = false }: { prominent?: boolean }) {
 			title="Copy a full dataset + dialect brief tailored for LLMs. Paste into ChatGPT / Claude / Gemini and ask for a query."
 			className={`${base} ${size} ${copied ? done : idle}`}
 		>
-			{copied ? (
-				<Icon name="check" className="h-3 w-3" />
-			) : (
-				<Icon name="sparkles" className="h-3 w-3" />
-			)}
+			{copied ? <Icon name="check" className="h-3 w-3" /> : <Icon name="sparkles" className="h-3 w-3" />}
 			{copied ? 'Copied for AI' : 'Copy for AI'}
 		</button>
 	)

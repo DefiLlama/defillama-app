@@ -1,11 +1,22 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type PaginationState,
+	type SortingState,
+	useReactTable,
+	createColumnHelper
+} from '@tanstack/react-table'
+import { startTransition, useEffect, useMemo, useState } from 'react'
 import { PercentChange, formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { FRStrategyRoute, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsStrategyTableRow } from './types'
@@ -33,39 +44,44 @@ const STRATEGY_FR_COLUMN_IDS = [
 ] as const
 type StrategyFrColumnId = (typeof STRATEGY_FR_COLUMN_IDS)[number]
 
+function StrategyFrNameCell({ row }: { row: { id: string; index: number; original: IYieldsStrategyTableRow } }) {
+	const name = `Long ${row.original.symbol} | Short ${row.original.symbolPerp}`
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+
+	return (
+		<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
+			<span className="shrink-0 tabular-nums lg:pt-1.25" aria-hidden="true">
+				{rowIndex ?? row.index + 1}
+			</span>
+			<span className="flex min-w-0 flex-col gap-2">
+				<NameYieldPool
+					value={name}
+					configID={row.original.pool}
+					withoutLink={true}
+					url={row.original.url}
+					strategy={true}
+					maxCharacters={50}
+					bookmark={false}
+				/>
+				<FRStrategyRoute
+					project1={row.original.projectName}
+					airdropProject1={row.original.airdrop}
+					raiseValuationProject1={row.original.raiseValuation}
+					project2={row.original.marketplace}
+					airdropProject2={false}
+					chain={row.original.chains[0]}
+				/>
+			</span>
+		</span>
+	)
+}
+
 const columns = [
 	columnHelper.accessor((row) => row.strategy ?? '', {
 		id: 'strategy',
 		header: 'Strategy',
 		enableSorting: false,
-		cell: ({ row }) => {
-			const name = `Long ${row.original.symbol} | Short ${row.original.symbolPerp}`
-
-			return (
-				<span className="grid grid-cols-[auto_1fr] gap-2 text-xs">
-					<span className="vf-row-index shrink-0 lg:pt-1.25" aria-hidden="true" />
-					<span className="flex min-w-0 flex-col gap-2">
-						<NameYieldPool
-							value={name}
-							configID={row.original.pool}
-							withoutLink={true}
-							url={row.original.url}
-							strategy={true}
-							maxCharacters={50}
-							bookmark={false}
-						/>
-						<FRStrategyRoute
-							project1={row.original.projectName}
-							airdropProject1={row.original.airdrop}
-							raiseValuationProject1={row.original.raiseValuation}
-							project2={row.original.marketplace}
-							airdropProject2={false}
-							chain={row.original.chains[0]}
-						/>
-					</span>
-				</span>
-			)
-		},
+		cell: ({ row }) => <StrategyFrNameCell row={row} />,
 		size: 400
 	}),
 	columnHelper.accessor((row) => row.strategyAPY ?? undefined, {
@@ -93,12 +109,12 @@ const columns = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex w-full items-center justify-end gap-1">
+						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<>
 								<PercentChange percent={getValue()} noSign fontWeight={400} />
 							</>
-						</div>
+						</span>
 					) : (
 						<>
 							<PercentChange percent={getValue()} noSign fontWeight={400} />
@@ -121,8 +137,23 @@ const columns = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex w-full items-center justify-end gap-1">
+						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
+							<Tooltip
+								className="ml-auto"
+								content={
+									<FundingRateTooltipContent
+										afr={row.original?.afr}
+										afr7d={row.original?.afr7d}
+										afr30d={row.original?.afr30d}
+									/>
+								}
+							>
+								<PercentChange percent={getValue()} noSign fontWeight={700} />
+							</Tooltip>
+						</span>
+					) : (
+						<span className="flex w-full items-center justify-end">
 							<Tooltip
 								content={
 									<FundingRateTooltipContent
@@ -134,19 +165,7 @@ const columns = [
 							>
 								<PercentChange percent={getValue()} noSign fontWeight={700} />
 							</Tooltip>
-						</div>
-					) : (
-						<Tooltip
-							content={
-								<FundingRateTooltipContent
-									afr={row.original?.afr}
-									afr7d={row.original?.afr7d}
-									afr30d={row.original?.afr30d}
-								/>
-							}
-						>
-							<PercentChange percent={getValue()} noSign fontWeight={700} />
-						</Tooltip>
+						</span>
 					)}
 				</>
 			)
@@ -275,4 +294,51 @@ export function YieldsStrategyTableFR({ data }) {
 			rowSize={resolvedConfig.rowSize}
 		/>
 	)
+}
+
+export function PaginatedYieldsStrategyTableFR({
+	data,
+	initialPageSize = 10
+}: {
+	data: IYieldsStrategyTableRow[]
+	initialPageSize?: number
+}) {
+	const width = useBreakpointWidth()
+	const [sorting, setSorting] = useState<SortingState>([])
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: initialPageSize
+	})
+
+	useEffect(() => {
+		setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+	}, [data.length])
+
+	const paginatedColumns = useMemo(
+		() => preparePaginatedYieldsColumns(STRATEGY_FR_TABLE_CONFIG, undefined, width),
+		[width]
+	)
+
+	const table = useReactTable({
+		data,
+		columns: paginatedColumns,
+		state: {
+			sorting,
+			pagination
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		onSortingChange: (updater) =>
+			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		onPaginationChange: (updater) =>
+			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
 }

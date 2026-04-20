@@ -70,20 +70,22 @@ const columns = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex w-full items-center justify-end gap-1">
+						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<Tooltip content={<TooltipContent />}>
 								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
 									{formatPercentChangeText(getValue(), true)}
 								</ColoredAPY>
 							</Tooltip>
-						</div>
+						</span>
 					) : (
-						<Tooltip content={<TooltipContent />}>
-							<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
-								{formatPercentChangeText(getValue(), true)}
-							</ColoredAPY>
-						</Tooltip>
+						<span className="flex w-full items-center justify-end">
+							<Tooltip content={<TooltipContent />}>
+								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+									{formatPercentChangeText(getValue(), true)}
+								</ColoredAPY>
+							</Tooltip>
+						</span>
 					)}
 				</>
 			)

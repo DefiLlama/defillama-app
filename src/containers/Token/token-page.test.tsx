@@ -108,6 +108,12 @@ function setupPageModule({
 	vi.doMock('~/containers/Token/TokenYieldsSection', () => ({
 		TokenYieldsSection: () => <div>token-yields-section</div>
 	}))
+	vi.doMock('~/containers/Token/TokenBorrowSection', () => ({
+		TokenBorrowSection: () => <div>token-borrow-section</div>
+	}))
+	vi.doMock('~/containers/Token/TokenLongShortSection', () => ({
+		TokenLongShortSection: () => <div>token-long-short-section</div>
+	}))
 	vi.doMock('~/containers/Token/TokenIncomeStatementSection', () => ({
 		TokenIncomeStatementSection: () => <div>token-income-statement-section</div>
 	}))
@@ -170,11 +176,15 @@ describe('token page', () => {
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
 		expect(html).toContain('token-yields-section')
+		expect(html).toContain('token-borrow-section')
+		expect(html).toContain('token-long-short-section')
 		expect(html).toContain('token-rights-section')
 		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
-		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
+		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
+		expect(html.indexOf('token-long-short-section')).toBeGreaterThan(html.indexOf('token-borrow-section'))
+		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-long-short-section'))
 	})
 
 	it('does not render the yields section when the token does not opt into yields', async () => {
@@ -202,6 +212,8 @@ describe('token page', () => {
 		)
 
 		expect(html).not.toContain('token-yields-section')
+		expect(html).not.toContain('token-borrow-section')
+		expect(html).not.toContain('token-long-short-section')
 	})
 
 	it('getStaticPaths returns empty paths with blocking fallback', async () => {

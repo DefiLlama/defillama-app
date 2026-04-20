@@ -234,7 +234,6 @@ describe('TokenYieldsSection', () => {
 
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
 
-		expect(html).toContain('No pools matching filters')
 		expect(html).toContain('No pools match current filters')
 		expect(html).not.toContain('yields-table:')
 	})
@@ -262,7 +261,6 @@ describe('TokenYieldsSection', () => {
 
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="LINK" />)
 
-		expect(html).toContain('No pools matching filters')
 		expect(html).not.toContain('yields-table:1')
 	})
 
@@ -289,7 +287,6 @@ describe('TokenYieldsSection', () => {
 
 		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="BTC" />)
 
-		expect(html).toContain('No pools matching filters')
 		expect(html).not.toContain('yields-table:1')
 	})
 

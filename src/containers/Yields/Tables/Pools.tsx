@@ -138,7 +138,7 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 		}),
 		columnHelper.accessor('project', {
 			id: 'project',
-			header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+			header: () => <span style={{ paddingLeft: '24px' }}>Project</span>,
 			enableSorting: false,
 			cell: ({ row }) => (
 				<NameYield

@@ -543,12 +543,39 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 	return finalPools
 }
 
+interface FilterablePool {
+	chain: string
+	project: string
+	projectName?: string
+	farmProject?: string
+	farmProjectName?: string
+	stablecoin?: boolean
+	exposure?: string
+	ilRisk?: string
+	hasMemeToken?: boolean
+	tvlUsd: number
+	farmTvlUsd?: number
+	audits?: string
+	outlier?: boolean
+	predictions?: {
+		predictedClass?: string
+		binnedConfidence?: number
+	}
+	airdrop?: boolean
+	apy: number
+	lsdTokenOnly?: boolean
+	borrow?: {
+		totalAvailableUsd?: number | null
+	}
+	ltv?: number | null
+}
+
 interface FilterPools {
 	selectedChainsSet: Set<string>
 	selectedAttributes?: Array<string>
 	selectedLendingProtocolsSet?: Set<string> | null
 	selectedFarmProtocolsSet?: Set<string> | null
-	pool: YieldsData['props']['pools'][number]
+	pool: FilterablePool
 	minTvl?: number | null
 	maxTvl?: number | null
 	minAvailable?: number | null
@@ -594,7 +621,9 @@ export const filterPool = ({
 
 	if (isValidTvlRange) {
 		toFilter =
-			toFilter && (minTvl != null ? pool.farmTvlUsd >= minTvl : true) && (maxTvl != null ? pool.tvlUsd <= maxTvl : true)
+			toFilter &&
+			(minTvl != null ? (pool.farmTvlUsd ?? 0) >= minTvl : true) &&
+			(maxTvl != null ? (pool.tvlUsd ?? 0) <= maxTvl : true)
 	}
 
 	const isValidAvailableRange = minAvailable != null || maxAvailable != null
@@ -602,8 +631,8 @@ export const filterPool = ({
 	if (isValidAvailableRange) {
 		toFilter =
 			toFilter &&
-			(minAvailable != null ? +(pool.borrow.totalAvailableUsd || 0) >= +minAvailable : true) &&
-			(maxAvailable != null ? +(pool.borrow.totalAvailableUsd || 0) <= +maxAvailable : true)
+			(minAvailable != null ? +(pool.borrow?.totalAvailableUsd || 0) >= +minAvailable : true) &&
+			(maxAvailable != null ? +(pool.borrow?.totalAvailableUsd || 0) <= +maxAvailable : true)
 	}
 
 	const isValidLtvValue = customLTV != null

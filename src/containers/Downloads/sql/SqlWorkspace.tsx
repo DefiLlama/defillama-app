@@ -713,10 +713,7 @@ function analyzeError(error: string, loadedTables: RegisteredTable[]): ErrorAnal
 		error.match(/Table\s+"([A-Za-z_][\w]*)"\s+does not exist/i)
 	if (tableMatch) {
 		const offending = tableMatch[1]!
-		const pool = [
-			...loadedTables.map((t) => t.name),
-			...KNOWN_DATASET_IDENTIFIERS
-		]
+		const pool = [...loadedTables.map((t) => t.name), ...KNOWN_DATASET_IDENTIFIERS]
 		const unique = [...new Set(pool)]
 		const suggestions = matchSorter(unique, offending)
 			.filter((s) => s.toLowerCase() !== offending.toLowerCase())
