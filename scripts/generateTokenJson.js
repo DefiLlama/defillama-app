@@ -23,18 +23,6 @@ const getCoingeckoId = (tokenNk) => {
 	return geckoId || null
 }
 
-const getGeckoIdsFromMetadata = (metadata) => {
-	const geckoIds = new Set()
-
-	for (const item of Object.values(metadata ?? {})) {
-		if (typeof item?.gecko_id === 'string' && item.gecko_id.trim()) {
-			geckoIds.add(item.gecko_id.trim().toLowerCase())
-		}
-	}
-
-	return geckoIds
-}
-
 const shouldPreferProtocolId = (currentProtocolId, nextProtocolId) => {
 	if (!currentProtocolId) return true
 	if (!nextProtocolId) return false
@@ -142,47 +130,33 @@ const createTokenRecord = (item, routeSource, extras = {}) => ({
 	...extras
 })
 
-async function main() {
-	const [coins, protocolsMetadata, chainsMetadata] = await Promise.all([
-		fetchJson(SOURCE_URL),
-		fetchJson(PROTOCOLS_URL),
-		fetchJson(CHAINS_URL)
-	])
-
+export const buildTokenDirectory = ({ coins, protocolsMetadata, chainsMetadata, previousTokens = [] }) => {
 	if (!Array.isArray(coins)) {
-		throw new Error(`Expected an array from ${SOURCE_URL}`)
+		throw new Error('Expected coins to be an array')
 	}
-	const allowedGeckoIds = new Set([
-		...getGeckoIdsFromMetadata(protocolsMetadata),
-		...getGeckoIdsFromMetadata(chainsMetadata)
-	])
-	const extrasByGeckoId = getTokenMetadataExtrasByGeckoId(protocolsMetadata, chainsMetadata)
-	const previousTokens = loadPreviousTokens()
-	const filteredCoins = []
-	const seenTokenNks = new Set()
 
-	let skippedWithoutMatchCount = 0
+	const extrasByGeckoId = getTokenMetadataExtrasByGeckoId(protocolsMetadata, chainsMetadata)
+	const uniqueCoins = []
+	const seenTokenNks = new Set()
 	let skippedDuplicateTokenNkCount = 0
 
 	for (const item of coins) {
-		const geckoId = getCoingeckoId(item.token_nk)
 		if (seenTokenNks.has(item.token_nk)) {
 			skippedDuplicateTokenNkCount++
 			continue
 		}
 
-		if (!geckoId || !allowedGeckoIds.has(geckoId)) {
-			skippedWithoutMatchCount++
-			continue
-		}
-
 		seenTokenNks.add(item.token_nk)
-		filteredCoins.push(item)
+		uniqueCoins.push(item)
 	}
 
 	const nextTokensByTokenNk = new Map()
-	for (const item of filteredCoins) {
+	let includedWithoutMetadataCount = 0
+	for (const item of uniqueCoins) {
 		const extras = extrasByGeckoId.get(getCoingeckoId(item.token_nk)) ?? {}
+		if (Object.keys(extras).length === 0) {
+			includedWithoutMetadataCount++
+		}
 		nextTokensByTokenNk.set(item.token_nk, { item, extras })
 	}
 
@@ -209,7 +183,7 @@ async function main() {
 		consumedTokenNks.add(tokenNk)
 	}
 
-	for (const [index, item] of filteredCoins.entries()) {
+	for (const [index, item] of uniqueCoins.entries()) {
 		if (consumedTokenNks.has(item.token_nk)) continue
 
 		const symbolSlug = slug(item.symbol)
@@ -225,16 +199,51 @@ async function main() {
 		seenKeys.add(key)
 	}
 
-	fs.writeFileSync(OUTPUT_PATH, JSON.stringify(bySlug, null, 2) + '\n')
-
-	console.log(`Wrote ${Object.keys(bySlug).length} tokens to ${OUTPUT_PATH}`)
-	console.log(`Used fallback key selection for ${nameFallbackCount} tokens`)
-	console.log(`Skipped ${skippedWithoutMatchCount} tokens without matching protocol/chain gecko_id`)
-	console.log(`Skipped ${skippedDuplicateTokenNkCount} duplicate token_nk rows`)
-	console.log(`Preserved ${preservedMissingTokenCount} existing tokens missing from the current feed`)
+	return {
+		bySlug,
+		stats: {
+			totalTokens: Object.keys(bySlug).length,
+			nameFallbackCount,
+			includedWithoutMetadataCount,
+			skippedDuplicateTokenNkCount,
+			preservedMissingTokenCount
+		}
+	}
 }
 
-main().catch((error) => {
-	console.error(error)
-	process.exit(1)
-})
+async function main() {
+	const [coins, protocolsMetadata, chainsMetadata] = await Promise.all([
+		fetchJson(SOURCE_URL),
+		fetchJson(PROTOCOLS_URL),
+		fetchJson(CHAINS_URL)
+	])
+
+	if (!Array.isArray(coins)) {
+		throw new Error(`Expected an array from ${SOURCE_URL}`)
+	}
+
+	const previousTokens = loadPreviousTokens()
+	const { bySlug, stats } = buildTokenDirectory({
+		coins,
+		protocolsMetadata,
+		chainsMetadata,
+		previousTokens
+	})
+
+	fs.writeFileSync(OUTPUT_PATH, JSON.stringify(bySlug) + '\n')
+
+	console.log(`Wrote ${stats.totalTokens} tokens to ${OUTPUT_PATH}`)
+	console.log(`Used fallback key selection for ${stats.nameFallbackCount} tokens`)
+	console.log(`Included ${stats.includedWithoutMetadataCount} tokens without protocol/chain metadata`)
+	console.log(`Skipped ${stats.skippedDuplicateTokenNkCount} duplicate token_nk rows`)
+	console.log(`Preserved ${stats.preservedMissingTokenCount} existing tokens missing from the current feed`)
+}
+
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+if (isDirectRun) {
+	main().catch((error) => {
+		console.error(error)
+		process.exit(1)
+	})
+}
