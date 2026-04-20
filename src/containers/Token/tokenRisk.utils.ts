@@ -19,12 +19,14 @@ interface TokenRiskDisplayLookups {
 	chainDisplayNames: Map<string, string>
 }
 
-export const TOKEN_RISK_LIMITATIONS = [
+export const TOKEN_RISK_LIMITATIONS_COMMON = [
 	'Borrow caps are a strong risk signal, but they are not a full protocol risk rating.',
 	'This v1 covers route-derived lending risk only and does not include multisigs, timelocks, audits, oracle incidents, listing discussions, curator reports, or protocol backstops.',
-	'Chain-specific drilldown is exact only when the token resolves to a concrete chain:address.',
-	'Debt-side totals repeat across many collateral routes, so this data cannot estimate collateral-specific lender loss.'
+	'Chain-specific drilldown is exact only when the token resolves to a concrete chain:address.'
 ] as const
+
+export const TOKEN_RISK_LIMITATION_DEBT_SIDE =
+	'Debt-side totals repeat across many collateral routes, so this data cannot estimate collateral-specific lender loss.'
 
 function normalizeAddress(address: string | null | undefined): string {
 	return (address ?? '').trim().toLowerCase()

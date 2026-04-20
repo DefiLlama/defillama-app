@@ -189,7 +189,7 @@ export const getStaticProps = withPerformanceLogging(
 				overview,
 				seoTitle,
 				seoDescription,
-				canonicalUrl: `/token/${token}`
+				canonicalUrl: record.route ?? `/token/${encodeURIComponent(record.symbol)}`
 			},
 			revalidate: maxAgeForNext([22])
 		}

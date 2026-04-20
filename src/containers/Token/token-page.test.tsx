@@ -106,8 +106,8 @@ const state: {
 	tokenlist: Record<string, unknown>
 } = {
 	tokensJson: {
-		btc: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' },
-		eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum' }
+		btc: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC' },
+		eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum', route: '/token/ETH' }
 	},
 	tokenRightsEntries: [],
 	protocolMetadata: {},
@@ -137,8 +137,8 @@ const state: {
 
 function resetState() {
 	state.tokensJson = {
-		btc: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' },
-		eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum' }
+		btc: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC' },
+		eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum', route: '/token/ETH' }
 	}
 	state.tokenRightsEntries = []
 	state.protocolMetadata = {}
@@ -386,7 +386,30 @@ describe('token page', () => {
 	it('getStaticProps resolves the route param by slugging the token key', async () => {
 		await expect(getStaticProps({ params: { token: 'BTC' } } as never)).resolves.toEqual({
 			props: {
-				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' },
+				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC' },
+				displayName: 'BTC',
+				tokenRightsData: null,
+				incomeStatementData: null,
+				incomeStatementProtocolName: null,
+				incomeStatementHasIncentives: false,
+				geckoId: 'bitcoin',
+				tokenRiskData: null,
+				initialYieldsRows: [],
+				initialTokenStrategiesData: null,
+				overview: overviewFixture,
+				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
+				seoDescription:
+					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				canonicalUrl: '/token/BTC'
+			},
+			revalidate: 123
+		})
+	})
+
+	it('getStaticProps keeps the canonical URL metadata-defined for lowercase token params', async () => {
+		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toEqual({
+			props: {
+				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC' },
 				displayName: 'BTC',
 				tokenRightsData: null,
 				incomeStatementData: null,
@@ -415,13 +438,13 @@ describe('token page', () => {
 
 	it('getStaticProps returns props even when token market stats are missing', async () => {
 		state.tokensJson = {
-			btc: { name: 'Bitcoin', symbol: 'BTC' }
+			btc: { name: 'Bitcoin', symbol: 'BTC', route: '/token/BTC' }
 		}
 		state.tokenlist = {}
 
 		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toEqual({
 			props: {
-				record: { name: 'Bitcoin', symbol: 'BTC' },
+				record: { name: 'Bitcoin', symbol: 'BTC', route: '/token/BTC' },
 				displayName: 'BTC',
 				tokenRightsData: null,
 				incomeStatementData: null,
@@ -435,7 +458,52 @@ describe('token page', () => {
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/btc'
+				canonicalUrl: '/token/BTC'
+			},
+			revalidate: 123
+		})
+	})
+
+	it('getStaticProps falls back to an encoded symbol when metadata route is missing', async () => {
+		state.tokensJson = {
+			swing: { name: 'Swing.xyz', symbol: '$SWING', token_nk: 'coingecko:swing-xyz' }
+		}
+		state.tokenlist = {
+			'swing-xyz': {
+				symbol: '$swing',
+				current_price: 1,
+				price_change_24h: 0,
+				price_change_percentage_24h: 0,
+				ath: null,
+				ath_date: null,
+				atl: null,
+				atl_date: null,
+				market_cap: 10,
+				fully_diluted_valuation: 10,
+				total_volume: 1,
+				total_supply: null,
+				circulating_supply: 10,
+				max_supply: 10
+			}
+		}
+
+		await expect(getStaticProps({ params: { token: 'swing' } } as never)).resolves.toEqual({
+			props: {
+				record: { name: 'Swing.xyz', symbol: '$SWING', token_nk: 'coingecko:swing-xyz' },
+				displayName: 'Swing.xyz',
+				tokenRightsData: null,
+				incomeStatementData: null,
+				incomeStatementProtocolName: null,
+				incomeStatementHasIncentives: false,
+				geckoId: 'swing-xyz',
+				tokenRiskData: null,
+				initialYieldsRows: [],
+				initialTokenStrategiesData: null,
+				overview: overviewFixture,
+				seoTitle: 'Swing.xyz Price, Market Cap & Supply - DefiLlama',
+				seoDescription:
+					'Track Swing.xyz price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				canonicalUrl: '/token/%24SWING'
 			},
 			revalidate: 123
 		})
@@ -555,7 +623,7 @@ describe('token page', () => {
 				seoTitle: 'LINK Price, Market Cap, Supply & Token Rights - DefiLlama',
 				seoDescription:
 					'Track LINK price, market cap, circulating supply, max supply, 24h trading volume, and token rights on DefiLlama.',
-				canonicalUrl: '/token/link'
+				canonicalUrl: '/token/LINK'
 			},
 			revalidate: 123
 		})
@@ -634,7 +702,7 @@ describe('token page', () => {
 				seoTitle: 'AAVE Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track AAVE price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/aave'
+				canonicalUrl: '/token/AAVE'
 			},
 			revalidate: 123
 		})

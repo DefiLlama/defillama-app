@@ -9,7 +9,8 @@ import {
 	indexBorrowRoutesByAssetKey,
 	mergeIndexedBuckets,
 	resolveTokenRiskCandidates,
-	TOKEN_RISK_LIMITATIONS
+	TOKEN_RISK_LIMITATIONS_COMMON,
+	TOKEN_RISK_LIMITATION_DEBT_SIDE
 } from './tokenRisk.utils'
 
 const BORROW_ROUTES_CACHE_TTL_MS = 5 * 60 * 1000
@@ -94,6 +95,9 @@ export async function getTokenRiskData({
 		borrowCaps,
 		collateralRisk,
 		selectedChainRisk: null,
-		limitations: [...TOKEN_RISK_LIMITATIONS]
+		limitations: [
+			...TOKEN_RISK_LIMITATIONS_COMMON,
+			...(borrowCaps.rows.length > 0 ? [TOKEN_RISK_LIMITATION_DEBT_SIDE] : [])
+		]
 	}
 }

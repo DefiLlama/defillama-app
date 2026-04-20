@@ -625,9 +625,9 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 							/>
 						</summary>
 						<p className="mt-2 text-sm text-(--text-secondary)">
-							These rows show what users can borrow by posting {tokenSymbol} as collateral, which is different from how
-							much {tokenSymbol} itself is available to borrow as debt. The cap shown here equals available plus
-							borrowed for each collateral route.
+							{hasCollateralPrimary
+								? `Each row is a lending route where ${tokenSymbol} is posted as collateral. Cap equals available plus borrowed for each route.`
+								: `These rows show what users can borrow by posting ${tokenSymbol} as collateral, which is different from how much ${tokenSymbol} itself is available to borrow as debt.`}
 						</p>
 						<div className="mt-3">
 							<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
