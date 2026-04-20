@@ -655,31 +655,49 @@ const StatCard = ({
 	label,
 	tooltip,
 	value,
-	change
+	change,
+	changeTooltip
 }: {
 	label: string
 	tooltip?: string
 	value: React.ReactNode
 	change?: number | null
-}) => (
-	<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-		{tooltip ? (
-			<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
-				{label}
-			</Tooltip>
-		) : (
-			<span className="text-(--text-label)">{label}</span>
-		)}
-		<span className="flex items-end justify-between gap-2 font-jetbrains">
-			<span className="text-2xl font-medium">{value}</span>
-			{change != null ? (
-				<span className="text-base text-(--text-secondary)">
-					<PercentChange percent={change} fontWeight={500} />
-				</span>
-			) : null}
-		</span>
-	</p>
-)
+	changeTooltip?: string
+}) => {
+	const changeDecorationClass =
+		change == null ? '' : change > 0 ? 'text-(--success)' : change < 0 ? 'text-(--error)' : 'text-(--text-secondary)'
+
+	return (
+		<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			{tooltip ? (
+				<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
+					{label}
+				</Tooltip>
+			) : (
+				<span className="text-(--text-label)">{label}</span>
+			)}
+			<span className="flex items-end justify-between gap-2 font-jetbrains">
+				<span className="text-2xl font-medium">{value}</span>
+				{change != null ? (
+					changeTooltip ? (
+						<Tooltip
+							content={changeTooltip}
+							className={`text-base underline decoration-current decoration-dotted ${changeDecorationClass}`}
+						>
+							<span>
+								<PercentChange percent={change} fontWeight={500} />
+							</span>
+						</Tooltip>
+					) : (
+						<span className="text-base">
+							<PercentChange percent={change} fontWeight={500} />
+						</span>
+					)
+				) : null}
+			</span>
+		</p>
+	)
+}
 
 function fetchOverviewTimeSeriesDataset(
 	request: IRWAPerpsOverviewBreakdownRequest & { venue?: string; assetGroup?: string }
@@ -961,13 +979,15 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 					label: d.totalOpenInterest.label,
 					tooltip: d.totalOpenInterest.description,
 					value: formattedNum(props.data.totals.openInterest, true),
-					change: props.data.totals.openInterestChange24h
+					change: props.data.totals.openInterestChange24h,
+					changeTooltip: d.openInterestChange24h.description
 				},
 				{
 					label: d.totalVolume24h.label,
 					tooltip: d.totalVolume24h.description,
 					value: formattedNum(props.data.totals.volume24h, true),
-					change: props.data.totals.volume24hChange24h
+					change: props.data.totals.volume24hChange24h,
+					changeTooltip: d.volume24hChange24h.description
 				},
 				{
 					label: d.totalMarkets.label,
@@ -985,13 +1005,15 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 					label: d.openInterest.label,
 					tooltip: d.openInterest.description,
 					value: formattedNum(props.data.totals.openInterest, true),
-					change: props.data.totals.openInterestChange24h
+					change: props.data.totals.openInterestChange24h,
+					changeTooltip: d.openInterestChange24h.description
 				},
 				{
 					label: d.volume24h.label,
 					tooltip: d.volume24h.description,
 					value: formattedNum(props.data.totals.volume24h, true),
-					change: props.data.totals.volume24hChange24h
+					change: props.data.totals.volume24hChange24h,
+					changeTooltip: d.volume24hChange24h.description
 				},
 				{
 					label: d.markets.label,
@@ -1020,6 +1042,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 						tooltip={card.tooltip}
 						value={card.value}
 						change={card.change}
+						changeTooltip={card.changeTooltip}
 					/>
 				))}
 			</div>

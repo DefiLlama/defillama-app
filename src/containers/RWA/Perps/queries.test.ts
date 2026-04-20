@@ -60,7 +60,9 @@ const baseMarket = {
 	contract: 'xyz:META',
 	venue: 'xyz',
 	openInterest: 100,
+	openInterestChange24h: 25,
 	volume24h: 50,
+	volume24hChange24h: 50,
 	price: 500,
 	priceChange24h: 5,
 	fundingRate: 0.00001,
@@ -417,9 +419,9 @@ describe('perps overview queries', () => {
 		expect(result).toMatchObject({
 			totals: {
 				openInterest: 350,
-				openInterestChange24h: 191.66666666666669,
+				openInterestChange24h: 25,
 				volume24h: 150,
-				volume24hChange24h: 114.28571428571428,
+				volume24hChange24h: 50,
 				markets: 3,
 				protocolFees24h: 3,
 				cumulativeFunding: 111
@@ -513,8 +515,9 @@ describe('perps overview queries', () => {
 			venue: 'xyz',
 			totals: {
 				openInterest: 280,
-				openInterestChange24h: 133.33333333333331,
+				openInterestChange24h: 25,
 				volume24h: 100,
+				volume24hChange24h: 49.999999999999986,
 				markets: 2,
 				protocolFees24h: 12
 			},
@@ -524,8 +527,8 @@ describe('perps overview queries', () => {
 				{ label: 'flx', to: '/rwa/perps/venue/flx' }
 			]
 		})
-		expect(result?.totals.openInterestChange24h).toBe(133.33333333333331)
-		expect(result?.totals.volume24hChange24h).toBe(233.33333333333334)
+		expect(result?.totals.openInterestChange24h).toBe(25)
+		expect(result?.totals.volume24hChange24h).toBeCloseTo(50)
 		expect(result?.initialChartDataset).toEqual({
 			source: [
 				{ timestamp: 1774483200000, Equities: 120 },
@@ -592,7 +595,7 @@ describe('perps overview queries', () => {
 	it('preloads the venue time-series dataset when the active view is timeSeries', async () => {
 		const result = await getRWAPerpsVenuePage({ venue: 'xyz', activeView: 'timeSeries' })
 
-		expect(result?.initialChartDataset.dimensions).toEqual(['timestamp', 'Equities'])
+		expect(result?.initialChartDataset.dimensions).toEqual(['timestamp', 'Meta', 'NVIDIA'])
 	})
 
 	it('returns null for an unknown venue', async () => {
@@ -606,8 +609,9 @@ describe('perps overview queries', () => {
 			assetGroup: 'Equities',
 			totals: {
 				openInterest: 280,
-				openInterestChange24h: 133.33333333333331,
+				openInterestChange24h: 25,
 				volume24h: 100,
+				volume24hChange24h: 49.999999999999986,
 				markets: 2,
 				protocolFees24h: 12
 			},
@@ -617,7 +621,7 @@ describe('perps overview queries', () => {
 				{ label: 'Equities', to: '/rwa/perps/asset-group/equities' }
 			]
 		})
-		expect(result?.totals.openInterestChange24h).toBe(133.33333333333331)
+		expect(result?.totals.openInterestChange24h).toBe(25)
 		expect(result?.initialChartDataset).toEqual({
 			source: [
 				{ timestamp: 1774483200000, Meta: 120 },

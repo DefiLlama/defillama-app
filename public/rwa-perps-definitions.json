@@ -108,11 +108,11 @@
 	},
 	"openInterest": {
 		"label": "Open Interest",
-		"description": "Total USD value of outstanding perpetual contracts that have not been settled or closed."
+		"description": "Total USD value of outstanding perpetual contracts that have not been settled or closed at the most recent available snapshot."
 	},
 	"openInterestChange24h": {
 		"label": "24h OI Change",
-		"description": "Percentage change in open interest over the last 24 hours."
+		"description": "Percentage change in open interest at the most recent available snapshot versus 24 hours earlier. This may differ from the daily chart, which is updated at 00:00 UTC."
 	},
 	"volume24h": {
 		"label": "24h Volume",
@@ -120,7 +120,7 @@
 	},
 	"volume24hChange24h": {
 		"label": "24h Volume Change",
-		"description": "Percentage change in 24-hour notional trading volume versus 24 hours ago."
+		"description": "Percentage change in 24-hour notional trading volume at the most recent available snapshot versus 24 hours earlier. This may differ from the daily chart, which is updated at 00:00 UTC."
 	},
 	"price": {
 		"label": "Price",
@@ -128,7 +128,7 @@
 	},
 	"priceChange24h": {
 		"label": "24h Price Change",
-		"description": "Percentage change in contract price over the last 24 hours."
+		"description": "Percentage change in contract price at the most recent available snapshot versus 24 hours earlier. This may differ from the daily chart, which is updated at 00:00 UTC."
 	},
 	"fundingRate": {
 		"label": "Latest Funding Rate",
@@ -228,7 +228,7 @@
 	},
 	"totalOpenInterest": {
 		"label": "Total Open Interest",
-		"description": "Aggregate USD value of all outstanding perpetual contracts across all tracked markets."
+		"description": "Aggregate USD value of all outstanding perpetual contracts across all tracked markets at the most recent available snapshot."
 	},
 	"totalVolume24h": {
 		"label": "Total 24h Volume",
@@ -292,6 +292,6 @@
 	},
 	"snapshotTime": {
 		"label": "Snapshot Time",
-		"description": "Timestamp of the most recent data snapshot for this contract."
+		"description": "Timestamp of the most recent available market snapshot for this contract."
 	}
 }
