@@ -20,6 +20,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -1134,6 +1135,19 @@ export function useYieldsPoolsTableConfig() {
 	}
 }
 
+function getResponsiveValue<T>(valuesByBreakpoint: Record<number, T>, width: number): T | undefined {
+	return Object.entries(valuesByBreakpoint)
+		.map(([breakpoint, value]) => [Number(breakpoint), value] as const)
+		.sort(([a], [b]) => b - a)
+		.find(([breakpoint]) => width >= breakpoint)?.[1]
+}
+
+function getColumnId(column: (typeof columns)[number]) {
+	if (column.id) return column.id
+	if ('accessorKey' in column && typeof column.accessorKey === 'string') return column.accessorKey
+	return undefined
+}
+
 export function YieldsPoolsTable(props: IYieldsTableProps) {
 	const { resolvedColumns, columnVisibility, poolColumnSizes, poolColumnOrders } = useYieldsPoolsTableConfig()
 
@@ -1153,22 +1167,45 @@ export function PaginatedYieldsPoolTable({
 	initialPageSize = DEFAULT_PAGE_SIZE_OPTIONS[0],
 	sortingState = []
 }: IYieldsTableProps) {
-	const { resolvedColumns, columnVisibility } = useYieldsPoolsTableConfig()
+	const { resolvedColumns, columnVisibility, poolColumnOrders, poolColumnSizes } = useYieldsPoolsTableConfig()
+	const width = useBreakpointWidth()
 	const [sorting, setSorting] = useState<SortingState>([...sortingState])
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: initialPageSize
 	})
 
+	const paginatedColumns = useMemo(() => {
+		const responsiveOrder = getResponsiveValue(poolColumnOrders, width) ?? []
+		const responsiveSizing = getResponsiveValue(poolColumnSizes, width) ?? {}
+		const orderIndexes = new Map(responsiveOrder.map((columnId, index) => [columnId, index]))
+
+		return resolvedColumns
+			.map((column, index) => ({ column, id: getColumnId(column), index }))
+			.filter(({ id }) => (id ? columnVisibility[id] !== false : true))
+			.sort((a, b) => {
+				const leftOrder = a.id != null ? orderIndexes.get(a.id) : undefined
+				const rightOrder = b.id != null ? orderIndexes.get(b.id) : undefined
+
+				if (leftOrder != null && rightOrder != null) return leftOrder - rightOrder
+				if (leftOrder != null) return -1
+				if (rightOrder != null) return 1
+				return a.index - b.index
+			})
+			.map(({ column, id }) => {
+				const size = id != null ? responsiveSizing[id] : undefined
+				return size != null ? { ...column, size } : column
+			})
+	}, [columnVisibility, poolColumnOrders, poolColumnSizes, resolvedColumns, width])
+
 	const table = useReactTable({
 		data,
-		columns: resolvedColumns,
+		columns: paginatedColumns,
 		meta: {
 			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
 		},
 		state: {
 			sorting,
-			columnVisibility,
 			pagination
 		},
 		defaultColumn: {

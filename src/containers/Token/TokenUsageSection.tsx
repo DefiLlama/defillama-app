@@ -72,7 +72,7 @@ const columns = [
 		header: 'Category',
 		enableSorting: false,
 		meta: {
-			align: 'end'
+			align: 'center'
 		}
 	}),
 	columnHelper.accessor('amountUsd', {
