@@ -238,6 +238,8 @@ export function buildCollateralRiskSection(
 			chainDisplayName: displayLookups?.chainDisplayNames.get(route.chain) ?? route.chain,
 			market: route.market,
 			debtSymbol: route.debt.symbol,
+			debtTotalSupplyUsd: route.debtTotalSupplyUsd,
+			debtTotalBorrowedUsd: route.debtTotalBorrowedUsd,
 			maxLtv: route.maxLtv,
 			liquidationThreshold: route.liquidationThreshold,
 			liquidationPenalty: route.liquidationPenalty,

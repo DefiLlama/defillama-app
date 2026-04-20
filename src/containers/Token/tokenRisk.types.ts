@@ -62,6 +62,8 @@ export interface TokenRiskCollateralRiskRow {
 	chainDisplayName: string
 	market: string
 	debtSymbol: string
+	debtTotalSupplyUsd: number
+	debtTotalBorrowedUsd: number
 	maxLtv: number
 	liquidationThreshold: number
 	liquidationPenalty: number

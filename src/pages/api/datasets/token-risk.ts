@@ -36,6 +36,10 @@ function createProtocolDisplayNameLookup(protocolMetadata: Record<string, IProto
 		lookup.set(metadata.name, metadata.displayName ?? metadata.name)
 	}
 
+	if (!lookup.has('morpho-blue')) {
+		lookup.set('morpho-blue', 'Morpho Blue')
+	}
+
 	return lookup
 }
 

@@ -6,7 +6,7 @@ import {
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table'
-import { startTransition, useEffect, useMemo, useState } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
@@ -20,8 +20,15 @@ const TOKEN_RISKS_SECTION_ID = 'token-risks'
 const borrowCapsColumnHelper = createColumnHelper<TokenRiskBorrowCapsRow>()
 const collateralRiskColumnHelper = createColumnHelper<TokenRiskCollateralRiskRow>()
 
-type TokenRisksTabKey = 'borrowCaps' | 'collateralRisk'
 type RiskTone = 'neutral' | 'good' | 'warning' | 'danger'
+type BorrowCapsProtocolSummary = {
+	protocol: string
+	protocolDisplayName: string
+	totalAvailableToBorrowUsd: number
+	totalDebtBorrowedUsd: number
+	totalBorrowCapUsd: number | null
+	chainDisplayNames: string[]
+}
 
 const DEFAULT_BORROW_CAPS_SORTING: SortingState = [{ id: 'borrowCapUsd', desc: true }]
 const DEFAULT_COLLATERAL_RISK_SORTING: SortingState = [{ id: 'availableToBorrowUsd', desc: true }]
@@ -71,28 +78,6 @@ function getLiquidationBufferTone(value: number | null | undefined): RiskTone {
 	return 'danger'
 }
 
-function SummaryCard({
-	label,
-	value,
-	helperText,
-	tone = 'neutral'
-}: {
-	label: string
-	value: string
-	helperText?: string
-	tone?: RiskTone
-}) {
-	const toneClassName = getToneClassName(tone)
-
-	return (
-		<div className={`rounded-md border p-3 ${tone === 'neutral' ? toneClassName : `border-l-4 ${toneClassName}`}`}>
-			<p className="text-xs font-medium tracking-wide text-(--text-secondary) uppercase">{label}</p>
-			<p className="mt-2 text-lg font-semibold text-(--text-primary)">{value}</p>
-			{helperText ? <p className="mt-1 text-xs text-(--text-secondary)">{helperText}</p> : null}
-		</div>
-	)
-}
-
 function MetricPill({ value, tone, title }: { value: string; tone: RiskTone; title?: string }) {
 	return (
 		<span
@@ -121,6 +106,12 @@ function TableEntityCell({
 			<span>{label}</span>
 		</div>
 	)
+}
+
+function formatProtocolChains(chainDisplayNames: string[]) {
+	if (chainDisplayNames.length === 0) return ''
+	if (chainDisplayNames.length === 1) return chainDisplayNames[0]
+	return `${chainDisplayNames.length} chains`
 }
 
 const borrowCapsColumns = [
@@ -298,8 +289,6 @@ const collateralRiskColumns = [
 ]
 
 export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: string; geckoId: string | null }) {
-	const [activeTab, setActiveTab] = useState<TokenRisksTabKey>('borrowCaps')
-	const [selectedCandidateKey, setSelectedCandidateKey] = useState<string | null>(null)
 	const [borrowCapsSorting, setBorrowCapsSorting] = useState<SortingState>(DEFAULT_BORROW_CAPS_SORTING)
 	const [collateralRiskSorting, setCollateralRiskSorting] = useState<SortingState>(DEFAULT_COLLATERAL_RISK_SORTING)
 	const [borrowCapsPagination, setBorrowCapsPagination] = useState<PaginationState>({
@@ -311,7 +300,7 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 		pageSize: DEFAULT_TABLE_PAGE_SIZE
 	})
 
-	const { data, error, isLoading } = useTokenRisk(geckoId, selectedCandidateKey)
+	const { data, error, isLoading } = useTokenRisk(geckoId, null)
 
 	const borrowCapsTable = useReactTable({
 		data: data?.borrowCaps?.rows ?? [],
@@ -357,45 +346,75 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 
 		return (data.candidates ?? []).filter((candidate) => chainsWithVisibleRows.has(candidate.chain))
 	}, [data])
-	const selectedCandidateDisplayName = useMemo(() => {
-		if (selectedCandidateKey) {
-			return (
-				data?.candidates.find((candidate) => candidate.key === selectedCandidateKey)?.displayName ?? 'Selected chain'
-			)
-		}
-		if (scopeCandidates.length === 1) return scopeCandidates[0].displayName
-		return 'All chains'
-	}, [data?.candidates, scopeCandidates, selectedCandidateKey])
-	const showScopeSelector = scopeCandidates.length > 1
-
-	useEffect(() => {
-		if (!selectedCandidateKey || scopeCandidates.length === 0) return
-		if (scopeCandidates.some((candidate) => candidate.key === selectedCandidateKey)) return
-
-		startTransition(() => {
-			setSelectedCandidateKey(null)
-			setBorrowCapsPagination((prev) => ({ ...prev, pageIndex: 0 }))
-			setCollateralRiskPagination((prev) => ({ ...prev, pageIndex: 0 }))
-		})
-	}, [scopeCandidates, selectedCandidateKey])
-
-	const activeMethodologyItems = useMemo(() => {
+	const borrowCapsProtocolSummaries = useMemo<BorrowCapsProtocolSummary[]>(() => {
 		if (!data) return []
 
-		return activeTab === 'borrowCaps'
-			? [
-					{ label: 'Borrow Cap', text: data.borrowCaps.methodologies.borrowCapUsd },
-					{ label: 'Borrowed', text: data.borrowCaps.methodologies.debtTotalBorrowedUsd },
-					{ label: 'Utilization', text: data.borrowCaps.methodologies.debtUtilization },
-					{ label: 'Available', text: data.borrowCaps.methodologies.availableToBorrowUsd }
-				]
-			: [
-					{ label: 'Available', text: data.collateralRisk.methodologies.availableToBorrowUsd },
-					{ label: 'Max LTV', text: data.collateralRisk.methodologies.maxLtv },
-					{ label: 'Liq Threshold', text: data.collateralRisk.methodologies.liquidationThreshold },
-					{ label: 'Penalty', text: data.collateralRisk.methodologies.liquidationPenalty }
-				]
-	}, [activeTab, data])
+		const grouped = new Map<
+			string,
+			{
+				protocol: string
+				protocolDisplayName: string
+				totalAvailableToBorrowUsd: number
+				totalDebtBorrowedUsd: number
+				totalBorrowCapUsd: number
+				hasCap: boolean
+				chainDisplayNames: Set<string>
+			}
+		>()
+
+		for (const row of data.borrowCaps.rows) {
+			const existing = grouped.get(row.protocol)
+
+			if (existing) {
+				existing.totalAvailableToBorrowUsd += row.availableToBorrowUsd
+				existing.totalDebtBorrowedUsd += row.debtTotalBorrowedUsd
+				if (row.borrowCapUsd != null && row.borrowCapUsd > 0) {
+					existing.totalBorrowCapUsd += row.borrowCapUsd
+					existing.hasCap = true
+				}
+				existing.chainDisplayNames.add(row.chainDisplayName)
+				continue
+			}
+
+			grouped.set(row.protocol, {
+				protocol: row.protocol,
+				protocolDisplayName: row.protocolDisplayName,
+				totalAvailableToBorrowUsd: row.availableToBorrowUsd,
+				totalDebtBorrowedUsd: row.debtTotalBorrowedUsd,
+				totalBorrowCapUsd: row.borrowCapUsd != null && row.borrowCapUsd > 0 ? row.borrowCapUsd : 0,
+				hasCap: row.borrowCapUsd != null && row.borrowCapUsd > 0,
+				chainDisplayNames: new Set([row.chainDisplayName])
+			})
+		}
+
+		return [...grouped.values()]
+			.map((summary) => ({
+				protocol: summary.protocol,
+				protocolDisplayName: summary.protocolDisplayName,
+				totalAvailableToBorrowUsd: summary.totalAvailableToBorrowUsd,
+				totalDebtBorrowedUsd: summary.totalDebtBorrowedUsd,
+				totalBorrowCapUsd: summary.hasCap ? summary.totalBorrowCapUsd : null,
+				chainDisplayNames: [...summary.chainDisplayNames].sort((a, b) => a.localeCompare(b))
+			}))
+			.sort((a, b) => {
+				if (a.totalAvailableToBorrowUsd !== b.totalAvailableToBorrowUsd) {
+					return b.totalAvailableToBorrowUsd - a.totalAvailableToBorrowUsd
+				}
+				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
+			})
+	}, [data])
+	const totalAvailableToBorrowUsd = useMemo(
+		() => borrowCapsProtocolSummaries.reduce((sum, summary) => sum + summary.totalAvailableToBorrowUsd, 0),
+		[borrowCapsProtocolSummaries]
+	)
+	const totalBorrowedUsd = useMemo(
+		() => borrowCapsProtocolSummaries.reduce((sum, summary) => sum + summary.totalDebtBorrowedUsd, 0),
+		[borrowCapsProtocolSummaries]
+	)
+	const selectedCandidateDisplayName = useMemo(() => {
+		if (scopeCandidates.length === 1) return scopeCandidates[0].displayName
+		return 'onchain'
+	}, [scopeCandidates])
 
 	const hasPlaceholderState = isLoading || error != null || !geckoId
 
@@ -421,35 +440,9 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 						<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 					</h2>
 					<p className="mt-1 max-w-4xl text-sm text-(--text-secondary)">
-						See how much lending protocols are willing to let users borrow using {tokenSymbol}, and the liquidation
-						parameters that protect those positions.
+						How much {tokenSymbol} is currently available to borrow across lending protocols.
 					</p>
 				</div>
-
-				{showScopeSelector ? (
-					<label className="flex items-center gap-2 text-sm">
-						<span className="text-(--text-secondary)">Scope</span>
-						<select
-							value={selectedCandidateKey ?? 'all'}
-							onChange={(event) =>
-								startTransition(() => {
-									const nextValue = event.target.value === 'all' ? null : event.target.value
-									setSelectedCandidateKey(nextValue)
-									setBorrowCapsPagination((prev) => ({ ...prev, pageIndex: 0 }))
-									setCollateralRiskPagination((prev) => ({ ...prev, pageIndex: 0 }))
-								})
-							}
-							className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1"
-						>
-							<option value="all">All chains</option>
-							{scopeCandidates.map((candidate) => (
-								<option key={candidate.key} value={candidate.key}>
-									{candidate.displayName}
-								</option>
-							))}
-						</select>
-					</label>
-				) : null}
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
@@ -476,160 +469,133 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 					</div>
 				) : (
 					<>
-						<div className="flex flex-wrap items-center gap-2 border-b border-(--cards-border) pb-3">
-							<button
-								type="button"
-								onClick={() => setActiveTab('borrowCaps')}
-								data-selected={activeTab === 'borrowCaps'}
-								className="rounded-md border border-(--cards-border) px-3 py-2 text-sm font-medium transition-colors data-[selected=true]:border-(--primary) data-[selected=true]:bg-(--primary)/10 data-[selected=true]:text-(--primary)"
-							>
-								Borrow Caps
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab('collateralRisk')}
-								data-selected={activeTab === 'collateralRisk'}
-								className="rounded-md border border-(--cards-border) px-3 py-2 text-sm font-medium transition-colors data-[selected=true]:border-(--primary) data-[selected=true]:bg-(--primary)/10 data-[selected=true]:text-(--primary)"
-							>
-								Collateral Risk
-							</button>
+						<div className="rounded-md border border-(--cards-border) p-4">
+							<p className="text-sm text-(--text-secondary)">Total {tokenSymbol} available to borrow</p>
+							<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
+								{formatUsd(totalAvailableToBorrowUsd)}
+							</p>
+							<p className="mt-1 text-sm text-(--text-secondary)">
+								{formatUsd(totalBorrowedUsd)} borrowed across these lending markets
+							</p>
 						</div>
 
-						{activeTab === 'borrowCaps' ? (
-							<>
-								<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-									<SummaryCard
-										label="Total Borrow Cap"
-										value={formatUsd(data.borrowCaps.summary.totalBorrowCapUsd)}
-										helperText="Across markets with explicit caps"
-									/>
-									<SummaryCard
-										label="Borrowed Against Cap"
-										value={formatUsd(data.borrowCaps.summary.totalBorrowedUsd)}
-									/>
-									<SummaryCard
-										label="Remaining Headroom"
-										value={formatUsd(data.borrowCaps.summary.remainingCapUsd)}
-										tone={getHeadroomTone(
-											data.borrowCaps.summary.remainingCapUsd,
-											data.borrowCaps.summary.totalBorrowCapUsd
-										)}
-									/>
-									<SummaryCard
-										label="Cap Utilization"
-										value={formatPercent(data.borrowCaps.summary.capUtilization)}
-										tone={getUtilizationTone(data.borrowCaps.summary.capUtilization)}
-									/>
-									<SummaryCard
-										label="Markets / Chains / Protocols"
-										value={`${data.borrowCaps.summary.marketCount} / ${data.borrowCaps.summary.chainCount} / ${data.borrowCaps.summary.protocolCount}`}
-									/>
-								</div>
-								<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-									<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-										<span>Methodology and limitations</span>
-										<Icon
-											name="chevron-down"
-											height={16}
-											width={16}
-											className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-										/>
-									</summary>
-									<p className="mt-2 text-sm text-(--text-secondary)">
-										Showing <span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>{' '}
-										route-derived lending risk for {tokenSymbol}. Borrow cap is the protocol-defined risk limit.
-										Available to borrow reflects executable liquidity after liquidity, caps, and debt ceilings.
-									</p>
-									<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
-										{data.limitations.map((limitation) => (
-											<li key={limitation}>{limitation}</li>
-										))}
-									</ul>
-									<div className="mt-3 grid gap-2 sm:grid-cols-2">
-										{activeMethodologyItems.map((item) => (
-											<div key={item.label} className="rounded-md border border-(--cards-border) p-2">
-												<p className="text-xs font-medium tracking-wide text-(--text-secondary) uppercase">
-													{item.label}
-												</p>
-												<p className="mt-1 text-xs text-(--text-secondary)">{item.text}</p>
-											</div>
-										))}
-									</div>
-								</details>
-
-								{data.borrowCaps.rows.length === 0 ? (
-									<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) px-4 py-12 text-center">
-										<p className="text-sm text-(--text-label)">
-											No capped borrow markets currently support this token as debt.
-										</p>
+						<div className="rounded-md border border-(--cards-border) p-3">
+							<div className="space-y-3">
+								{borrowCapsProtocolSummaries.length === 0 ? (
+									<div className="px-4 py-10 text-center">
+										<p className="text-sm text-(--text-label)">No borrowing markets found for this token.</p>
 									</div>
 								) : (
-									<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
+									borrowCapsProtocolSummaries.map((summary) => (
+										<div
+											key={summary.protocol}
+											className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+										>
+											<div className="min-w-0">
+												<div className="flex items-center gap-2">
+													<TokenLogo
+														name={summary.protocolDisplayName}
+														kind="token"
+														size={18}
+														alt={`Logo of ${summary.protocolDisplayName}`}
+														title={summary.protocol}
+													/>
+													<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
+												</div>
+												<p className="mt-1 text-sm text-(--text-secondary)">
+													{formatUsd(summary.totalAvailableToBorrowUsd)} available (
+													{formatUsd(summary.totalDebtBorrowedUsd)} borrowed
+													{summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})
+												</p>
+												<p className="mt-1 text-xs text-(--text-secondary)">
+													{formatProtocolChains(summary.chainDisplayNames)}
+												</p>
+											</div>
+										</div>
+									))
 								)}
-							</>
-						) : (
-							<>
-								<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-									<SummaryCard
-										label="Total Borrowable"
-										value={formatUsd(data.collateralRisk.summary.totalBorrowableUsd)}
-									/>
-									<SummaryCard label="Routes" value={String(data.collateralRisk.summary.routeCount)} />
-									<SummaryCard label="Isolated Routes" value={String(data.collateralRisk.summary.isolatedRouteCount)} />
-									<SummaryCard
-										label="Liquidation Buffer"
-										value={
-											data.collateralRisk.summary.minLiquidationBuffer == null ||
-											data.collateralRisk.summary.maxLiquidationBuffer == null
-												? '-'
-												: `${formatPercent(data.collateralRisk.summary.minLiquidationBuffer)} to ${formatPercent(
-														data.collateralRisk.summary.maxLiquidationBuffer
-													)}`
-										}
-										tone={getLiquidationBufferTone(data.collateralRisk.summary.minLiquidationBuffer)}
-									/>
-								</div>
-								<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-									<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-										<span>Methodology and limitations</span>
-										<Icon
-											name="chevron-down"
-											height={16}
-											width={16}
-											className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-										/>
-									</summary>
-									<p className="mt-2 text-sm text-(--text-secondary)">
-										Showing <span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>{' '}
-										route-derived lending risk for {tokenSymbol}. Borrow cap is the protocol-defined risk limit.
-										Available to borrow reflects executable liquidity after liquidity, caps, and debt ceilings.
-									</p>
-									<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
-										{data.limitations.map((limitation) => (
-											<li key={limitation}>{limitation}</li>
-										))}
-									</ul>
-									<div className="mt-3 grid gap-2 sm:grid-cols-2">
-										{activeMethodologyItems.map((item) => (
-											<div key={item.label} className="rounded-md border border-(--cards-border) p-2">
-												<p className="text-xs font-medium tracking-wide text-(--text-secondary) uppercase">
-													{item.label}
-												</p>
-												<p className="mt-1 text-xs text-(--text-secondary)">{item.text}</p>
-											</div>
-										))}
-									</div>
-								</details>
+							</div>
+						</div>
 
-								{data.collateralRisk.rows.length === 0 ? (
-									<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) px-4 py-12 text-center">
-										<p className="text-sm text-(--text-label)">No collateral risk routes found for this token.</p>
-									</div>
-								) : (
+						<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+							<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+								<span>Methodology and limitations</span>
+								<Icon
+									name="chevron-down"
+									height={16}
+									width={16}
+									className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+								/>
+							</summary>
+							<p className="mt-2 text-sm text-(--text-secondary)">
+								Showing debt-side borrowing capacity for {tokenSymbol} on{' '}
+								<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>. The headline
+								total and protocol lines use debt-side lending routes where {tokenSymbol} is borrowed as debt.
+							</p>
+							<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
+								{data.limitations.map((limitation) => (
+									<li key={limitation}>{limitation}</li>
+								))}
+							</ul>
+						</details>
+
+						{data.collateralRisk.rows.length > 0 ? (
+							<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+									<span>Show collateral-side details</span>
+									<Icon
+										name="chevron-down"
+										height={16}
+										width={16}
+										className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+									/>
+								</summary>
+								<p className="mt-2 text-sm text-(--text-secondary)">
+									These rows show what users can borrow by posting {tokenSymbol} as collateral, which is different from
+									how much {tokenSymbol} is available to borrow as debt.
+								</p>
+								<div className="mt-3">
 									<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
-								)}
-							</>
-						)}
+								</div>
+							</details>
+						) : null}
+
+						{data.borrowCaps.rows.length > 0 ? (
+							<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+									<span>Show borrow-cap details</span>
+									<Icon
+										name="chevron-down"
+										height={16}
+										width={16}
+										className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+									/>
+								</summary>
+								<p className="mt-2 text-sm text-(--text-secondary)">
+									These rows show markets where {tokenSymbol} itself is borrowed as debt. Current capped markets total{' '}
+									<span className="font-medium text-(--text-primary)">
+										{formatUsd(data.borrowCaps.summary.totalBorrowCapUsd)}
+									</span>{' '}
+									of borrow capacity, with{' '}
+									<span className="font-medium text-(--text-primary)">
+										{formatUsd(data.borrowCaps.summary.totalBorrowedUsd)}
+									</span>{' '}
+									borrowed and{' '}
+									<span className="font-medium text-(--text-primary)">
+										{formatUsd(data.borrowCaps.summary.remainingCapUsd)}
+									</span>{' '}
+									of remaining cap headroom.
+								</p>
+								<p className="mt-2 text-sm text-(--text-secondary)">
+									Borrow cap equals borrowed plus remaining cap headroom.{' '}
+									<span className="font-medium text-(--text-primary)">Available</span> can be lower than cap headroom
+									when pool liquidity or debt ceilings are the tighter constraint.
+								</p>
+								<div className="mt-3">
+									<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
+								</div>
+							</details>
+						) : null}
 					</>
 				)}
 			</div>
