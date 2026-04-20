@@ -110,6 +110,18 @@ describe('tokenRisk utils', () => {
 		expect(merged.asCollateral).toHaveLength(0)
 	})
 
+	it('returns a fresh empty bucket when there are no candidate keys', () => {
+		const first = mergeIndexedBuckets(new Map(), [])
+		const second = mergeIndexedBuckets(new Map(), [])
+
+		first.asDebt.push(createRoute({}))
+
+		expect(second).toEqual({
+			asDebt: [],
+			asCollateral: []
+		})
+	})
+
 	it('filters scope candidates down to chains that have borrow or collateral routes', () => {
 		const routes = [
 			createRoute({

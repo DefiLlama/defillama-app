@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { getTokenRiskData } from '~/containers/Token/queries'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -637,6 +638,50 @@ describe('token page', () => {
 			},
 			revalidate: 123
 		})
+	})
+
+	it('getStaticProps falls back to null token risk data when the risk query throws', async () => {
+		state.tokensJson = {
+			link: {
+				name: 'Chainlink',
+				symbol: 'LINK',
+				token_nk: 'coingecko:chainlink',
+				is_yields: true
+			}
+		}
+		state.tokenlist = {
+			chainlink: {
+				symbol: 'link',
+				current_price: 10,
+				price_change_percentage_24h: 10,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+		state.initialYieldsRows = [{ pool: 'pool-1' }]
+		state.initialTokenStrategiesData = {
+			borrowAsCollateral: [],
+			borrowAsDebt: [],
+			longShort: []
+		}
+
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(getTokenRiskData).mockRejectedValueOnce(new Error('risk failed'))
+
+		const result = await getStaticProps({ params: { token: 'link' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.tokenRiskData).toBeNull()
+		expect(result.props.initialYieldsRows).toEqual(state.initialYieldsRows)
+		expect(result.props.initialTokenStrategiesData).toEqual(state.initialTokenStrategiesData)
+		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
+
+		consoleErrorSpy.mockRestore()
 	})
 
 	it('renders the risks section only when getStaticProps returns token risk data', async () => {

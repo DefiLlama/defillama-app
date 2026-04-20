@@ -71,9 +71,11 @@ export async function getTokenRiskData({
 
 	const borrowRoutesSnapshot = await getIndexedBorrowRoutesCache()
 	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, borrowRoutesSnapshot.indexedRoutes)
+	if (scopeCandidates.length === 0) return null
+
 	const activeBucket = mergeIndexedBuckets(
 		borrowRoutesSnapshot.indexedRoutes,
-		candidates.map((candidate) => candidate.key)
+		scopeCandidates.map((candidate) => candidate.key)
 	)
 
 	const borrowCaps = buildBorrowCapsSection(activeBucket, borrowRoutesSnapshot.data.methodologies, displayLookups)

@@ -29,6 +29,9 @@ type TokenRouteParams = {
 	token: string
 }
 
+const DEFAULT_PROTOCOL_FALLBACK_SLUG = 'morpho-blue'
+const DEFAULT_PROTOCOL_FALLBACK_NAME = 'Morpho Blue'
+
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
 	return tokenNk.slice('coingecko:'.length) || null
@@ -44,8 +47,9 @@ function createProtocolDisplayNameLookup(
 		lookup.set(metadata.name, metadata.displayName ?? metadata.name)
 	}
 
-	if (!lookup.has('morpho-blue')) {
-		lookup.set('morpho-blue', 'Morpho Blue')
+	// TODO: remove this once morpho-blue display metadata is present in the metadata pipeline.
+	if (!lookup.has(DEFAULT_PROTOCOL_FALLBACK_SLUG)) {
+		lookup.set(DEFAULT_PROTOCOL_FALLBACK_SLUG, DEFAULT_PROTOCOL_FALLBACK_NAME)
 	}
 
 	return lookup
@@ -109,28 +113,28 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (record.is_yields) {
-			const yieldTasks: Array<Promise<unknown>> = [
-				getTokenYieldsRows(record.symbol),
-				getTokenStrategiesData(record.symbol)
-			]
-
-			if (geckoId) {
-				yieldTasks.push(
-					getTokenRiskData({
+			const tokenRiskPromise = geckoId
+				? getTokenRiskData({
 						geckoId,
 						protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
 						displayLookups: {
 							protocolDisplayNames: createProtocolDisplayNameLookup(metadataCache.protocolMetadata),
 							chainDisplayNames: createChainDisplayNameLookup(metadataCache.chainMetadata)
 						}
+					}).catch((error) => {
+						console.error(`Failed to load token risk data for ${geckoId}`, error)
+						return null
 					})
-				)
-			}
+				: Promise.resolve(null)
 
-			const yieldResults = await Promise.all(yieldTasks)
-			initialYieldsRows = yieldResults[0] as IYieldTableRow[]
-			initialTokenStrategiesData = yieldResults[1] as TokenStrategiesResponse
-			tokenRiskData = geckoId ? ((yieldResults[2] as TokenRiskResponse | null | undefined) ?? null) : null
+			const [yieldsRows, tokenStrategiesData, riskData] = await Promise.all([
+				getTokenYieldsRows(record.symbol),
+				getTokenStrategiesData(record.symbol),
+				tokenRiskPromise
+			])
+			initialYieldsRows = yieldsRows
+			initialTokenStrategiesData = tokenStrategiesData
+			tokenRiskData = riskData
 		}
 
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name

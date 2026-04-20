@@ -305,6 +305,7 @@ function createCollateralRiskColumns(methodologies: TokenRiskResponse['collatera
 }
 
 export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: string; riskData: TokenRiskResponse }) {
+	const { borrowCaps, collateralRisk, scopeCandidates } = riskData
 	const [borrowCapsSorting, setBorrowCapsSorting] = useState<SortingState>(DEFAULT_BORROW_CAPS_SORTING)
 	const [collateralRiskSorting, setCollateralRiskSorting] = useState<SortingState>(DEFAULT_COLLATERAL_RISK_SORTING)
 	const [borrowCapsPagination, setBorrowCapsPagination] = useState<PaginationState>({
@@ -315,14 +316,14 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 		pageIndex: 0,
 		pageSize: DEFAULT_TABLE_PAGE_SIZE
 	})
-	const borrowCapsColumns = useMemo(() => createBorrowCapsColumns(riskData.borrowCaps.methodologies), [riskData])
+	const borrowCapsColumns = useMemo(() => createBorrowCapsColumns(borrowCaps.methodologies), [borrowCaps.methodologies])
 	const collateralRiskColumns = useMemo(
-		() => createCollateralRiskColumns(riskData.collateralRisk.methodologies),
-		[riskData]
+		() => createCollateralRiskColumns(collateralRisk.methodologies),
+		[collateralRisk.methodologies]
 	)
 
 	const borrowCapsTable = useReactTable({
-		data: riskData.borrowCaps.rows,
+		data: borrowCaps.rows,
 		columns: borrowCapsColumns,
 		state: {
 			sorting: borrowCapsSorting,
@@ -339,7 +340,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 	})
 
 	const collateralRiskTable = useReactTable({
-		data: riskData.collateralRisk.rows,
+		data: collateralRisk.rows,
 		columns: collateralRiskColumns,
 		state: {
 			sorting: collateralRiskSorting,
@@ -354,16 +355,6 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel()
 	})
-
-	const scopeCandidates = useMemo(() => {
-		if (riskData.scopeCandidates) return riskData.scopeCandidates
-
-		const chainsWithVisibleRows = new Set<string>()
-		for (const row of riskData.borrowCaps.rows) chainsWithVisibleRows.add(row.chain)
-		for (const row of riskData.collateralRisk.rows) chainsWithVisibleRows.add(row.chain)
-
-		return riskData.candidates.filter((candidate) => chainsWithVisibleRows.has(candidate.chain))
-	}, [riskData])
 	const borrowCapsProtocolSummaries = useMemo<BorrowCapsProtocolSummary[]>(() => {
 		const grouped = new Map<
 			string,
@@ -378,7 +369,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			}
 		>()
 
-		for (const row of riskData.borrowCaps.rows) {
+		for (const row of borrowCaps.rows) {
 			const existing = grouped.get(row.protocol)
 
 			if (existing) {
@@ -418,7 +409,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				}
 				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
 			})
-	}, [riskData])
+	}, [borrowCaps.rows])
 	const totalAvailableToBorrowUsd = useMemo(
 		() => borrowCapsProtocolSummaries.reduce((sum, summary) => sum + summary.totalAvailableToBorrowUsd, 0),
 		[borrowCapsProtocolSummaries]

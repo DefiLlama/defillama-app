@@ -108,10 +108,7 @@ beforeEach(() => {
 
 describe('getTokenRiskData', () => {
 	it('builds aggregate token risk data from the live borrow-routes payload', async () => {
-		const mockedGetTokenRiskBorrowRoutes = getTokenRiskBorrowRoutes as unknown as {
-			mockResolvedValue: (value: unknown) => void
-			mock: { calls: unknown[] }
-		}
+		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
 		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
 
 		const payload = await getTokenRiskData({
@@ -142,9 +139,7 @@ describe('getTokenRiskData', () => {
 	})
 
 	it('returns null when the token has no debt-side borrowing rows', async () => {
-		const mockedGetTokenRiskBorrowRoutes = getTokenRiskBorrowRoutes as unknown as {
-			mockResolvedValue: (value: unknown) => void
-		}
+		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
 		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
 
 		const payload = await getTokenRiskData({
@@ -159,10 +154,7 @@ describe('getTokenRiskData', () => {
 	})
 
 	it('returns null when the token cannot be resolved from protocol llamaswap metadata', async () => {
-		const mockedGetTokenRiskBorrowRoutes = getTokenRiskBorrowRoutes as unknown as {
-			mockResolvedValue: (value: unknown) => void
-			mock: { calls: unknown[] }
-		}
+		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
 		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
 
 		const payload = await getTokenRiskData({

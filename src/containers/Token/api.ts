@@ -9,7 +9,7 @@ export async function getTokenRiskBorrowRoutes(): Promise<TokenRiskBorrowRoutesR
 
 export async function getTokenRiskLendingRisks(tokenChainAndAddress: string): Promise<TokenRiskLendingRisksResponse> {
 	const data = await fetchJson<TokenRiskLendingRisksResponse>(
-		`${RISK_SERVER_URL}/get-lending-risks/${tokenChainAndAddress}`
+		`${RISK_SERVER_URL}/get-lending-risks/${encodeURIComponent(tokenChainAndAddress)}`
 	)
 	return data
 }

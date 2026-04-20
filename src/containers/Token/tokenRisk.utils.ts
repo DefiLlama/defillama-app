@@ -19,11 +19,6 @@ interface TokenRiskDisplayLookups {
 	chainDisplayNames: Map<string, string>
 }
 
-const EMPTY_BUCKET: TokenRiskLendingRoutesBucket = {
-	asDebt: [],
-	asCollateral: []
-}
-
 export const TOKEN_RISK_LIMITATIONS = [
 	'Borrow caps are a strong risk signal, but they are not a full protocol risk rating.',
 	'This v1 covers route-derived lending risk only and does not include multisigs, timelocks, audits, oracle incidents, listing discussions, curator reports, or protocol backstops.',
@@ -113,7 +108,12 @@ export function mergeIndexedBuckets(
 	indexedRoutes: Map<string, TokenRiskLendingRoutesBucket>,
 	candidateKeys: string[]
 ): TokenRiskLendingRoutesBucket {
-	if (candidateKeys.length === 0) return EMPTY_BUCKET
+	if (candidateKeys.length === 0) {
+		return {
+			asDebt: [],
+			asCollateral: []
+		}
+	}
 
 	return candidateKeys.reduce<TokenRiskLendingRoutesBucket>(
 		(acc, candidateKey) => {
