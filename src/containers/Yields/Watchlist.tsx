@@ -5,31 +5,13 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
+import { ALL_POOL_COLUMN_QUERY_KEYS } from '~/containers/Yields/Filters/poolColumns'
+import { mapPoolToYieldTableRow } from '~/containers/Yields/poolsPipeline'
 import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { DEFAULT_PORTFOLIO_NAME } from '~/contexts/LocalStorage'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useIsClient } from '~/hooks/useIsClient'
-
-const ALL_YIELD_COLUMNS = [
-	'show7dBaseApy',
-	'show7dIL',
-	'show1dVolume',
-	'show7dVolume',
-	'showInceptionApy',
-	'showBorrowBaseApy',
-	'showBorrowRewardApy',
-	'showNetBorrowApy',
-	'showLTV',
-	'showTotalSupplied',
-	'showTotalBorrowed',
-	'showAvailable',
-	'showMedianApy',
-	'showStdDev',
-	'showHolderCount',
-	'showTop10Pct',
-	'showAvgPosition'
-]
 
 export function YieldsWatchlistContainer({ protocolsDict }) {
 	const isClient = useIsClient()
@@ -43,50 +25,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 	const filteredProtocols = useMemo(() => {
 		if (isClient) {
 			const list = protocolsDict.filter((p) => savedProtocols.has(p.pool))
-			return list.map((t) => ({
-				pool: t.symbol,
-				configID: t.pool,
-				projectslug: t.project,
-				project: t.projectName,
-				chains: [t.chain],
-				tvl: t.tvlUsd,
-				apy: t.apy,
-				apyBase: t.apyBase,
-				apyBase7d: t.apyBase7d,
-				apyReward: t.apyReward,
-				apyNet7d: t.apyNet7d,
-				apyMean30d: t.apyMean30d,
-				il7d: t.il7d,
-				rewardTokensSymbols: t.rewardTokensSymbols,
-				rewards: t.rewardTokensNames,
-				change1d: t.apyPct1D,
-				change7d: t.apyPct7D,
-				outlook: t.apy >= 0.005 ? t.predictions.predictedClass : null,
-				confidence: t.apy >= 0.005 ? t.predictions.binnedConfidence : null,
-				url: t.url,
-				category: t.category,
-				volumeUsd1d: t.volumeUsd1d,
-				volumeUsd7d: t.volumeUsd7d,
-				apyBaseInception: t.apyBaseInception,
-				apyIncludingLsdApy: t.apyIncludingLsdApy,
-				apyBaseIncludingLsdApy: t.apyBaseIncludingLsdApy,
-				apyBaseBorrow: t.apyBaseBorrow,
-				apyRewardBorrow: t.apyRewardBorrow,
-				apyBorrow: t.apyBorrow,
-				totalSupplyUsd: t.totalSupplyUsd,
-				totalBorrowUsd: t.totalBorrowUsd,
-				totalAvailableUsd: t.totalAvailableUsd,
-				ltv: t.ltv,
-				lsdTokenOnly: t.lsdTokenOnly,
-				apyMedian30d: volatility?.[t.pool]?.[1] ?? null,
-				apyStd30d: volatility?.[t.pool]?.[2] ?? null,
-				cv30d: volatility?.[t.pool]?.[3] ?? null,
-				holderCount: holderStats?.[t.pool]?.holderCount ?? null,
-				avgPositionUsd: holderStats?.[t.pool]?.avgPositionUsd ?? null,
-				top10Pct: holderStats?.[t.pool]?.top10Pct ?? null,
-				holderChange7d: holderStats?.[t.pool]?.holderChange7d ?? null,
-				holderChange30d: holderStats?.[t.pool]?.holderChange30d ?? null
-			}))
+			return list.map((pool) => mapPoolToYieldTableRow(pool, { volatility, holderStats }))
 		} else return []
 	}, [isClient, savedProtocols, protocolsDict, volatility, holderStats])
 	const [open, setOpen] = useState(false)
@@ -133,7 +72,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 							<span>Delete</span>
 						</button>
 					) : null}
-					<ColumnFilters enabledColumns={ALL_YIELD_COLUMNS} />
+					<ColumnFilters enabledColumns={ALL_POOL_COLUMN_QUERY_KEYS} />
 				</div>
 
 				{filteredProtocols.length ? (

@@ -1,11 +1,11 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { PercentChange, formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
+import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { FRStrategyRoute, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsStrategyTableRow } from './types'
@@ -21,9 +21,20 @@ const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d:
 }
 
 const columnHelper = createColumnHelper<IYieldsStrategyTableRow>()
+const STRATEGY_FR_COLUMN_IDS = [
+	'strategy',
+	'strategyAPY',
+	'apy',
+	'afr',
+	'fr8hCurrent',
+	'fundingRate7dAverage',
+	'tvlUsd',
+	'openInterest'
+] as const
+type StrategyFrColumnId = (typeof STRATEGY_FR_COLUMN_IDS)[number]
 
 const columns = [
-	columnHelper.accessor((row) => (row as any).strategy as string, {
+	columnHelper.accessor((row) => row.strategy ?? '', {
 		id: 'strategy',
 		header: 'Strategy',
 		enableSorting: false,
@@ -57,7 +68,7 @@ const columns = [
 		},
 		size: 400
 	}),
-	columnHelper.accessor((row) => (row as any).strategyAPY as number | null, {
+	columnHelper.accessor((row) => row.strategyAPY ?? undefined, {
 		id: 'strategyAPY',
 		header: 'Strategy APY',
 		enableSorting: true,
@@ -74,7 +85,8 @@ const columns = [
 			headerHelperText: 'Farm APY + Funding APY'
 		}
 	}),
-	columnHelper.accessor('apy', {
+	columnHelper.accessor((row) => row.apy ?? undefined, {
+		id: 'apy',
 		header: 'Farm APY',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
@@ -84,12 +96,12 @@ const columns = [
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<>
-								<PercentChange percent={Number(getValue())} noSign fontWeight={400} />
+								<PercentChange percent={getValue()} noSign fontWeight={400} />
 							</>
 						</div>
 					) : (
 						<>
-							<PercentChange percent={Number(getValue())} noSign fontWeight={400} />
+							<PercentChange percent={getValue()} noSign fontWeight={400} />
 						</>
 					)}
 				</>
@@ -101,7 +113,8 @@ const columns = [
 			headerHelperText: 'Annualised Farm Yield'
 		}
 	}),
-	columnHelper.accessor('afr', {
+	columnHelper.accessor((row) => row.afr ?? undefined, {
+		id: 'afr',
 		header: 'Funding APY',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
@@ -145,29 +158,30 @@ const columns = [
 				'Annualised Funding Yield based on previous settled Funding Rate. Hover for detailed breakdown of different APY windows using 7day or 30day paid Funding Rate sums'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).fr8hCurrent as number | string, {
+	columnHelper.accessor((row) => row.fr8hCurrent ?? undefined, {
 		id: 'fr8hCurrent',
 		header: 'Funding Rate',
 		enableSorting: true,
-		cell: (info) => `${info.getValue()}%`,
+		cell: (info) => (info.getValue() == null ? null : `${info.getValue()}%`),
 		size: 145,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Current (predicted) Funding Rate'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).fundingRate7dAverage as number | string, {
+	columnHelper.accessor((row) => row.fundingRate7dAverage ?? undefined, {
 		id: 'fundingRate7dAverage',
 		header: 'Avg Funding Rate',
 		enableSorting: true,
-		cell: (info) => `${info.getValue()}%`,
+		cell: (info) => (info.getValue() == null ? null : `${info.getValue()}%`),
 		size: 175,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Average of previously settled funding rates from the last 7 days'
 		}
 	}),
-	columnHelper.accessor('tvlUsd', {
+	columnHelper.accessor((row) => row.tvlUsd ?? undefined, {
+		id: 'tvlUsd',
 		header: 'Farm TVL',
 		enableSorting: true,
 		cell: (info) => {
@@ -178,7 +192,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{value === null ? null : formattedNum(value, true)}
+					{value == null ? null : formattedNum(value, true)}
 				</span>
 			)
 		},
@@ -187,7 +201,8 @@ const columns = [
 			align: 'end'
 		}
 	}),
-	columnHelper.accessor('openInterest', {
+	columnHelper.accessor((row) => row.openInterest ?? undefined, {
+		id: 'openInterest',
 		header: 'Open Interest',
 		enableSorting: true,
 		cell: (info) => {
@@ -199,7 +214,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{value === null ? null : formattedNum(value * indexPrice, true)}
+					{value == null ? null : formattedNum(value * indexPrice, true)}
 				</span>
 			)
 		},
@@ -210,14 +225,14 @@ const columns = [
 	})
 ]
 
-const columnOrders: ColumnOrdersByBreakpoint = {
+const columnOrders: Record<number, readonly StrategyFrColumnId[]> = {
 	0: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	400: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	640: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest'],
 	1280: ['strategy', 'strategyAPY', 'apy', 'afr', 'fr8hCurrent', 'fundingRate7dAverage', 'tvlUsd', 'openInterest']
 }
 
-const columnSizes: ColumnSizesByBreakpoint = {
+const columnSizes: Record<number, Partial<Record<StrategyFrColumnId, number>>> = {
 	0: {
 		strategy: 250,
 		strategyAPY: 145,
@@ -240,14 +255,24 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
+export const STRATEGY_FR_TABLE_CONFIG: YieldsTableConfig<IYieldsStrategyTableRow, StrategyFrColumnId> = {
+	kind: 'strategyFr',
+	columnIds: STRATEGY_FR_COLUMN_IDS,
+	columns,
+	columnOrders,
+	columnSizes,
+	rowSize: 80
+}
+
 export function YieldsStrategyTableFR({ data }) {
+	const resolvedConfig = resolveVirtualYieldsTableConfig(STRATEGY_FR_TABLE_CONFIG, undefined)
 	return (
 		<YieldsTableWrapper
 			data={data}
-			columns={columns}
-			columnSizes={columnSizes}
-			columnOrders={columnOrders}
-			rowSize={80}
+			columns={resolvedConfig.columns}
+			columnSizes={resolvedConfig.columnSizes}
+			columnOrders={resolvedConfig.columnOrders}
+			rowSize={resolvedConfig.rowSize}
 		/>
 	)
 }

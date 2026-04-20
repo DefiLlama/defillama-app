@@ -3,16 +3,29 @@ import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
+import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
 
 const columnHelper = createColumnHelper<IYieldTableRow>()
+const LOOP_COLUMN_IDS = [
+	'pool',
+	'project',
+	'chains',
+	'loopApy',
+	'netSupplyApy',
+	'boost',
+	'ltv',
+	'totalSupplyUsd',
+	'totalBorrowUsd',
+	'totalAvailableUsd'
+] as const
+type LoopColumnId = (typeof LOOP_COLUMN_IDS)[number]
 
 const columns = [
 	columnHelper.accessor('pool', {
@@ -62,7 +75,7 @@ const columns = [
 		},
 		size: 60
 	}),
-	columnHelper.accessor('loopApy', {
+	columnHelper.accessor((row) => row.loopApy ?? undefined, {
 		id: 'loopApy',
 		header: 'Loop APY',
 		enableSorting: true,
@@ -90,7 +103,7 @@ const columns = [
 			headerHelperText: 'Leveraged APY consisting of deposit -> borrow (same asset, max LTV) -> deposit (same asset)'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).netSupplyApy as number | null, {
+	columnHelper.accessor((row) => row.netSupplyApy ?? undefined, {
 		id: 'netSupplyApy',
 		header: 'Supply APY',
 		enableSorting: true,
@@ -103,7 +116,7 @@ const columns = [
 			headerHelperText: 'Total net APY for supplying (Base + Reward)'
 		}
 	}),
-	columnHelper.accessor('boost', {
+	columnHelper.accessor((row) => row.boost ?? undefined, {
 		id: 'boost',
 		header: 'Boost',
 		enableSorting: true,
@@ -116,7 +129,7 @@ const columns = [
 			headerHelperText: 'Loop APY / Supply APY'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+	columnHelper.accessor((row) => row.ltv ?? undefined, {
 		id: 'ltv',
 		header: 'LTV',
 		enableSorting: true,
@@ -137,7 +150,7 @@ const columns = [
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
 	}),
-	columnHelper.accessor('totalSupplyUsd', {
+	columnHelper.accessor((row) => row.totalSupplyUsd ?? undefined, {
 		id: 'totalSupplyUsd',
 		header: 'Supplied',
 		enableSorting: true,
@@ -148,7 +161,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? '' : formattedNum(info.getValue(), true)}
+					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -157,7 +170,7 @@ const columns = [
 			align: 'end'
 		}
 	}),
-	columnHelper.accessor('totalBorrowUsd', {
+	columnHelper.accessor((row) => row.totalBorrowUsd ?? undefined, {
 		id: 'totalBorrowUsd',
 		header: 'Borrowed',
 		enableSorting: true,
@@ -168,7 +181,7 @@ const columns = [
 						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
 					}}
 				>
-					{info.getValue() === null ? '' : formattedNum(info.getValue(), true)}
+					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -178,7 +191,7 @@ const columns = [
 			headerHelperText: 'Amount of borrowed collateral'
 		}
 	}),
-	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
+	columnHelper.accessor((row) => row.totalAvailableUsd ?? undefined, {
 		id: 'totalAvailableUsd',
 		header: 'Available',
 		enableSorting: true,
@@ -197,7 +210,7 @@ const columns = [
 							}`}
 						/>
 					) : null}
-					{info.getValue() === null ? null : formattedNum(info.getValue(), true)}
+					{info.getValue() == null ? null : formattedNum(info.getValue(), true)}
 				</span>
 			)
 		},
@@ -208,10 +221,9 @@ const columns = [
 	})
 ]
 
-const columnOrders: ColumnOrdersByBreakpoint = {
+const columnOrders: Record<number, readonly LoopColumnId[]> = {
 	0: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'loopApy',
@@ -224,7 +236,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 	],
 	400: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'loopApy',
@@ -237,7 +248,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 	],
 	640: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'loopApy',
@@ -250,7 +260,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 	],
 	1280: [
 		'pool',
-		'apy',
 		'project',
 		'chains',
 		'loopApy',
@@ -263,11 +272,11 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
-const columnSizes: ColumnSizesByBreakpoint = {
+const columnSizes: Record<number, Partial<Record<LoopColumnId, number>>> = {
 	0: {
 		pool: 160,
 		project: 180,
-		chain: 60,
+		chains: 60,
 		loopApy: 100,
 		netSupplyApy: 100,
 		boost: 80,
@@ -279,7 +288,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	812: {
 		pool: 200,
 		project: 160,
-		chain: 60,
+		chains: 60,
 		loopApy: 100,
 		netSupplyApy: 120,
 		boost: 80,
@@ -291,7 +300,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1536: {
 		pool: 240,
 		project: 160,
-		chain: 60,
+		chains: 60,
 		loopApy: 100,
 		netSupplyApy: 120,
 		boost: 80,
@@ -303,7 +312,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1600: {
 		pool: 280,
 		project: 160,
-		chain: 60,
+		chains: 60,
 		loopApy: 100,
 		netSupplyApy: 120,
 		boost: 80,
@@ -315,7 +324,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1640: {
 		pool: 320,
 		project: 160,
-		chain: 60,
+		chains: 60,
 		loopApy: 100,
 		netSupplyApy: 120,
 		boost: 80,
@@ -327,7 +336,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1720: {
 		pool: 420,
 		project: 160,
-		chain: 60,
+		chains: 60,
 		loopApy: 100,
 		netSupplyApy: 120,
 		boost: 80,
@@ -338,6 +347,22 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
+export const LOOP_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, LoopColumnId> = {
+	kind: 'loop',
+	columnIds: LOOP_COLUMN_IDS,
+	columns,
+	columnOrders,
+	columnSizes
+}
+
 export function YieldsLoopTable({ data }: IYieldsTableProps) {
-	return <YieldsTableWrapper data={data} columns={columns} columnSizes={columnSizes} columnOrders={columnOrders} />
+	const resolvedConfig = resolveVirtualYieldsTableConfig(LOOP_TABLE_CONFIG, undefined)
+	return (
+		<YieldsTableWrapper
+			data={data}
+			columns={resolvedConfig.columns}
+			columnSizes={resolvedConfig.columnSizes}
+			columnOrders={resolvedConfig.columnOrders}
+		/>
+	)
 }

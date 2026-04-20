@@ -4,31 +4,12 @@ import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { LocalLoader } from '~/components/Loaders'
 import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { YieldFiltersV2 } from './Filters'
+import { ALL_POOL_COLUMN_QUERY_KEYS } from './Filters/poolColumns'
 import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
+import { buildPoolsTableRows } from './poolsPipeline'
 import { useHolderStats, useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
-import { extractPoolTokens, normalizeToken, toFilterPool } from './utils'
-
-const ALL_YIELD_COLUMNS = [
-	'show7dBaseApy',
-	'show7dIL',
-	'show1dVolume',
-	'show7dVolume',
-	'showInceptionApy',
-	'showBorrowBaseApy',
-	'showBorrowRewardApy',
-	'showNetBorrowApy',
-	'showLTV',
-	'showTotalSupplied',
-	'showTotalBorrowed',
-	'showAvailable',
-	'showMedianApy',
-	'showStdDev',
-	'showHolderCount',
-	'showTop10Pct',
-	'showAvgPosition'
-]
 
 const YieldPage = ({
 	pools,
@@ -101,105 +82,29 @@ const YieldPage = ({
 	])
 
 	const poolsData = React.useMemo(() => {
-		const pair_tokens = pairTokens.map((token) => normalizeToken(token))
-		const include_tokens = includeTokens.map((token) => normalizeToken(token))
-		const excludeTokensSet = new Set(excludeTokens.map((token) => normalizeToken(token)))
-		const exact_tokens = exactTokens.map((token) => normalizeToken(token))
-
-		// Selected sets already have excludes filtered out at hook level
-		const selectedProjectsSet = new Set(selectedProjects)
-		const selectedChainsSet = new Set(selectedChains)
-		const selectedCategoriesSet = new Set(selectedCategories)
-
-		const scInfo = stablecoinInfoBySymbol || {}
-
-		return pools.reduce((acc, curr) => {
-			const toFilter = toFilterPool({
-				curr,
-				pathname,
-				selectedProjectsSet,
-				selectedChainsSet,
+		return buildPoolsTableRows({
+			pools,
+			pathname,
+			filters: {
+				selectedProjects,
+				selectedChains,
 				selectedAttributes,
-				includeTokens: include_tokens,
-				excludeTokensSet,
-				exactTokens: exact_tokens,
-				selectedCategoriesSet,
+				includeTokens,
+				excludeTokens,
+				exactTokens,
+				selectedCategories,
+				pairTokens,
 				minTvl,
 				maxTvl,
 				minApy,
-				maxApy,
-				pairTokens: pair_tokens,
-				usdPeggedSymbols,
-				tokenCategories: tokenCategories ?? {}
-			})
-
-			if (toFilter) {
-				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
-				const poolTokens = curr.symbol ? extractPoolTokens(curr.symbol) : []
-				let pegInfo = null
-				let maxAbs = -1
-				for (const t of poolTokens) {
-					const info = scInfo[t]
-					if (info) {
-						const abs = info.pegDeviation != null ? Math.abs(info.pegDeviation) : -1
-						if (abs > maxAbs) {
-							maxAbs = abs
-							pegInfo = info
-						}
-					}
-				}
-
-				return acc.concat({
-					pool: curr.symbol,
-					configID: curr.pool,
-					projectslug: curr.project,
-					project: curr.projectName,
-					airdrop: curr.airdrop,
-					raiseValuation: curr.raiseValuation,
-					chains: [curr.chain],
-					tvl: curr.tvlUsd,
-					apy: curr.apy,
-					apyBase: curr.apyBase,
-					apyReward: curr.apyReward,
-					rewardTokensSymbols: curr.rewardTokensSymbols,
-					rewards: curr.rewardTokensNames,
-					change1d: curr.apyPct1D,
-					change7d: curr.apyPct7D,
-					outlook: curr.apy >= 0.005 ? curr.predictions.predictedClass : null,
-					confidence: curr.apy >= 0.005 ? curr.predictions.binnedConfidence : null,
-					url: curr.url,
-					category: curr.category,
-					il7d: curr.il7d,
-					apyBase7d: curr.apyBase7d,
-					apyNet7d: curr.apyNet7d,
-					apyMean30d: curr.apyMean30d,
-					volumeUsd1d: curr.volumeUsd1d,
-					volumeUsd7d: curr.volumeUsd7d,
-					apyBaseInception: curr.apyBaseInception,
-					apyIncludingLsdApy: curr.apyIncludingLsdApy,
-					apyBaseIncludingLsdApy: curr.apyBaseIncludingLsdApy,
-					apyBaseBorrow: curr.apyBaseBorrow,
-					apyRewardBorrow: curr.apyRewardBorrow,
-					apyBorrow: curr.apyBorrow,
-					totalSupplyUsd: curr.totalSupplyUsd,
-					totalBorrowUsd: curr.totalBorrowUsd,
-					totalAvailableUsd: curr.totalAvailableUsd,
-					ltv: curr.ltv,
-					lsdTokenOnly: curr.lsdTokenOnly,
-					poolMeta: curr.poolMeta,
-					apyMedian30d: volatility?.[curr.pool]?.[1] ?? null,
-					apyStd30d: volatility?.[curr.pool]?.[2] ?? null,
-					cv30d: volatility?.[curr.pool]?.[3] ?? null,
-					pegDeviation: pegInfo?.pegDeviation ?? null,
-					pegPrice: pegInfo?.price ?? null,
-					holderCount: holderStats?.[curr.pool]?.holderCount ?? null,
-					avgPositionUsd: holderStats?.[curr.pool]?.avgPositionUsd ?? null,
-					top10Pct: holderStats?.[curr.pool]?.top10Pct ?? null,
-					holderChange7d: holderStats?.[curr.pool]?.holderChange7d ?? null,
-					holderChange30d: holderStats?.[curr.pool]?.holderChange30d ?? null
-				})
-			} else return acc
-		}, [])
+				maxApy
+			},
+			usdPeggedSymbols,
+			tokenCategories,
+			stablecoinInfoBySymbol,
+			volatility,
+			holderStats
+		})
 	}, [
 		minTvl,
 		maxTvl,
@@ -327,7 +232,7 @@ const YieldPage = ({
 				attributes={true}
 				tvlRange={true}
 				apyRange={true}
-				enabledColumns={ALL_YIELD_COLUMNS}
+				enabledColumns={ALL_POOL_COLUMN_QUERY_KEYS}
 				resetFilters={true}
 				includeLsdApy={true}
 				showMedianApy={true}

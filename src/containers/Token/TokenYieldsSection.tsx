@@ -9,8 +9,10 @@ import { LocalLoader } from '~/components/Loaders'
 import { APYRange } from '~/containers/Yields/Filters/APYRange'
 import { FilterByChain } from '~/containers/Yields/Filters/Chains'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
+import { ALL_POOL_COLUMN_QUERY_KEYS } from '~/containers/Yields/Filters/poolColumns'
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
+import { buildPoolsTrackingStats } from '~/containers/Yields/poolsPipeline'
 import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
 import { PaginatedYieldsPoolTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
@@ -19,24 +21,7 @@ import { extractPoolTokens } from '~/containers/Yields/utils'
 import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
-const ENABLED_COLUMNS = [
-	'show7dBaseApy',
-	'show7dIL',
-	'show1dVolume',
-	'show7dVolume',
-	'showInceptionApy',
-	'showBorrowBaseApy',
-	'showBorrowRewardApy',
-	'showNetBorrowApy',
-	'showLTV',
-	'showTotalSupplied',
-	'showTotalBorrowed',
-	'showAvailable',
-	'showMedianApy',
-	'showStdDev',
-	'showHolderCount',
-	'showAvgPosition'
-]
+const ENABLED_COLUMNS = [...ALL_POOL_COLUMN_QUERY_KEYS]
 
 const FILTER_QUERY_PARAMS = [
 	'chain',
@@ -49,7 +34,8 @@ const FILTER_QUERY_PARAMS = [
 	'maxApy',
 	...ENABLED_COLUMNS
 ]
-const FILTER_ONLY_PARAMS = FILTER_QUERY_PARAMS.filter((queryParam) => !ENABLED_COLUMNS.includes(queryParam))
+const ENABLED_COLUMNS_SET = new Set<string>(ENABLED_COLUMNS)
+const FILTER_ONLY_PARAMS = FILTER_QUERY_PARAMS.filter((queryParam) => !ENABLED_COLUMNS_SET.has(queryParam))
 
 const TOKEN_YIELDS_SECTION_ID = 'token-yields'
 const DEFAULT_TABLE_SORTING: SortingState = [{ id: 'tvl', desc: true }]
@@ -185,17 +171,7 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	])
 
 	const filteredStats = React.useMemo(() => {
-		const poolsWithApy = filteredPools.filter(
-			(pool): pool is (typeof filteredPools)[number] & { apy: number } => pool.apy != null && pool.apy !== 0
-		)
-
-		return {
-			noOfPoolsTracked: filteredPools.length,
-			averageAPY:
-				poolsWithApy.length > 0
-					? poolsWithApy.reduce((accumulator, { apy }) => accumulator + apy, 0) / poolsWithApy.length
-					: null
-		}
+		return buildPoolsTrackingStats(filteredPools)
 	}, [filteredPools])
 
 	const hasActiveFilters = React.useMemo(
