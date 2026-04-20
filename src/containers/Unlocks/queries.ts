@@ -173,10 +173,21 @@ function buildPieFromChart(chart: EmissionsChartRow[]): Array<{ name: string; va
 	return pie
 }
 
-function buildColorsForPie(pie: Array<{ name: string }>): Record<string, string> {
+function buildColorsForPie(pie: Array<{ name: string }>, colorFrom: Record<string, string> = {}): Record<string, string> {
 	const colors: Record<string, string> = {}
-	const palette = getNDistinctColors(pie.length)
-	for (let i = 0; i < pie.length; i++) colors[pie[i].name] = palette[i]
+	const names = new Set(pie.map((p) => p.name))
+	const baseNameOf = (n: string): string | null => {
+		const explicit = colorFrom[n]
+		return explicit && names.has(explicit) ? explicit : null
+	}
+	const primary = pie.filter((p) => !baseNameOf(p.name))
+	const palette = getNDistinctColors(primary.length)
+	for (let i = 0; i < primary.length; i++) colors[primary[i].name] = palette[i]
+	for (const p of pie) {
+		if (colors[p.name]) continue
+		const base = baseNameOf(p.name)
+		if (base && colors[base]) colors[p.name] = colors[base]
+	}
 	return colors
 }
 
@@ -311,9 +322,10 @@ export async function getProtocolEmissionsPieData(protocolName: string): Promise
 		documented: buildPieFromChart(documentedChart),
 		realtime: buildPieFromChart(realtimeChart)
 	}
+	const colorFromMap = extractColorFromMap(res)
 	const stackColors = {
-		documented: buildColorsForPie(pieChartData.documented),
-		realtime: buildColorsForPie(pieChartData.realtime)
+		documented: buildColorsForPie(pieChartData.documented, colorFromMap),
+		realtime: buildColorsForPie(pieChartData.realtime, colorFromMap)
 	}
 
 	const allEmissions = await fetchAllProtocolEmissions()
@@ -723,15 +735,32 @@ export const getAllProtocolEmissions = async ({
 }
 
 const EMPTY_TBD_SECTIONS: string[] = []
+const EMPTY_FORECAST_SECTIONS: string[] = []
 
-function extractTbdSections(res: ProtocolEmissionDetail): string[] {
+function extractSections(
+	res: ProtocolEmissionDetail,
+	flag: string,
+): string[] {
+    const sections = res.componentData?.sections
+    if (!sections) return []
+    const matches: string[] = []
+    for (const [name, section] of Object.entries(sections)) {
+        if (section?.[flag]) matches.push(name)
+    }
+    return matches
+}
+
+function extractColorFromMap(res: ProtocolEmissionDetail): Record<string, string> {
 	const sections = res.componentData?.sections
-	if (!sections) return EMPTY_TBD_SECTIONS
-	const tbd: string[] = []
+	if (!sections) return {}
+	const map: Record<string, string> = {}
 	for (const [name, section] of Object.entries(sections)) {
-		if (section?.isTBD) tbd.push(name)
+		const target = section?.colorFrom
+		if (typeof target === 'string' && target && target !== name && sections[target]) {
+			map[name] = target
+		}
 	}
-	return tbd.length > 0 ? tbd : EMPTY_TBD_SECTIONS
+	return map
 }
 
 function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
@@ -762,7 +791,8 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		name: null,
 		tokenPrice: {},
 		unlockUsdChart: null,
-		tbdSections: EMPTY_TBD_SECTIONS
+		tbdSections: EMPTY_TBD_SECTIONS,
+		forecastSections: EMPTY_FORECAST_SECTIONS,
 	}
 }
 
@@ -798,9 +828,10 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			realtime: buildPieFromChart(chartData.realtime)
 		}
 
+		const colorFromMap = extractColorFromMap(res)
 		const stackColors = {
-			documented: buildColorsForPie(pieChartData.documented),
-			realtime: buildColorsForPie(pieChartData.realtime)
+			documented: buildColorsForPie(pieChartData.documented, colorFromMap),
+			realtime: buildColorsForPie(pieChartData.realtime, colorFromMap)
 		}
 
 		const roundedEvents = roundEmissionEvents(metadata?.events)
@@ -868,7 +899,8 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			name: name || null,
 			tokenPrice,
 			unlockUsdChart: res.unlockUsdChart ?? null,
-			tbdSections: extractTbdSections(res)
+			tbdSections: extractSections(res, "isTBD"),
+			forecastSections: extractSections(res, "isForecast"),
 		}
 	} catch (e) {
 		console.log(e)

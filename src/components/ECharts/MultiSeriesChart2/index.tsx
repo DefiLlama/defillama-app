@@ -184,6 +184,14 @@ function buildSeries({
 				offset: [-40, 10]
 			}
 		}
+		if (chart.isForecast) {
+			const hatch = createHatchPattern(resolvedColor, 0.8)
+			base.itemStyle = { ...base.itemStyle, opacity: 0.5 }
+			if (base.areaStyle) {
+				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
+			}
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
+		}
 
 		out.push(base)
 	}
