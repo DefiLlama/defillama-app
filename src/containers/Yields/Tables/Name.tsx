@@ -13,6 +13,7 @@ interface INameYieldPoolProps {
 	value: string
 	configID: string
 	url: string
+	rowIndex?: number
 	borrow?: boolean
 	withoutLink?: boolean
 	maxCharacters?: number
@@ -34,6 +35,7 @@ export function NameYieldPool({
 	value,
 	configID,
 	url,
+	rowIndex,
 	borrow: _borrow,
 	strategy,
 	withoutLink,
@@ -49,7 +51,13 @@ export function NameYieldPool({
 		<span className="flex items-center gap-2">
 			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
-			{strategy ? null : <span className="vf-row-index shrink-0" aria-hidden="true" />}
+			{strategy ? null : rowIndex != null ? (
+				<span className="inline-block shrink-0 text-left tabular-nums" aria-hidden="true">
+					{rowIndex}
+				</span>
+			) : (
+				<span className="vf-row-index shrink-0" aria-hidden="true" />
+			)}
 
 			<a
 				href={url}
@@ -173,7 +181,7 @@ export function NameYield({
 	return (
 		<span className="relative flex items-center pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? <AirdropIndicator raiseValuation={raiseValuation} /> : null}
-			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} size={22} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
@@ -196,7 +204,7 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 
 	return (
 		<span className="flex items-center gap-2">
-			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} size={22} />
 			<BasicLink
 				href={tokenUrl}
 				data-umami-event="yields-project-filter-click"

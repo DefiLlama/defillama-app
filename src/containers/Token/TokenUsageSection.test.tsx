@@ -118,7 +118,7 @@ describe('TokenUsageSection', () => {
 
 		expect(html).toContain('active subscription')
 		expect(html).toContain('sign-in-modal')
-		expect(html).toContain('min-height:494px')
+		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows a subscription link for authenticated users without a subscription', () => {
@@ -138,7 +138,7 @@ describe('TokenUsageSection', () => {
 		const html = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" />)
 
 		expect(html).toContain('No token usage entries found.')
-		expect(html).toContain('min-height:494px')
+		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('shows the query error message when the fetch fails', () => {
@@ -151,7 +151,7 @@ describe('TokenUsageSection', () => {
 		const html = renderToStaticMarkup(<TokenUsageSection tokenSymbol="link" />)
 
 		expect(html).toContain('Failed to fetch token usage data')
-		expect(html).toContain('min-height:494px')
+		expect(html).toContain('min-h-[80dvh]')
 	})
 
 	it('filters CEX rows unless the embedded CEX toggle is enabled', () => {

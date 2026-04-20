@@ -9,6 +9,9 @@ interface IFormatYieldQueryParams {
 	chainList?: Array<string>
 	categoryList?: Array<string>
 	evmChains?: Array<string>
+	tokenQueryKey?: string
+	excludeTokenQueryKey?: string
+	exactTokenQueryKey?: string
 }
 
 export const useFormatYieldQueryParams = ({
@@ -17,7 +20,10 @@ export const useFormatYieldQueryParams = ({
 	categoryList,
 	lendingProtocols,
 	farmProtocols,
-	evmChains
+	evmChains,
+	tokenQueryKey = 'token',
+	excludeTokenQueryKey = 'excludeToken',
+	exactTokenQueryKey = 'exactToken'
 }: IFormatYieldQueryParams) => {
 	const evmChainsSet = React.useMemo(() => new Set(evmChains ?? []), [evmChains])
 	const router = useRouter()
@@ -30,9 +36,6 @@ export const useFormatYieldQueryParams = ({
 		excludeFarmProtocol,
 		chain,
 		excludeChain,
-		token,
-		excludeToken,
-		exactToken,
 		attribute,
 		excludeAttribute,
 		category,
@@ -46,6 +49,9 @@ export const useFormatYieldQueryParams = ({
 		maxAvailable,
 		customLTV
 	} = router.query
+	const token = router.query[tokenQueryKey]
+	const excludeToken = router.query[excludeTokenQueryKey]
+	const exactToken = router.query[exactTokenQueryKey]
 
 	return React.useMemo(() => {
 		let selectedProjects: string[] = [],

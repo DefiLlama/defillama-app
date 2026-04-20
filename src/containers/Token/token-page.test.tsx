@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 
@@ -8,6 +9,54 @@ afterEach(() => {
 	vi.clearAllMocks()
 	vi.resetModules()
 })
+
+const tokenRightsFixture: ITokenRightsData = {
+	overview: {
+		protocolName: 'Bitcoin',
+		tokens: ['BTC'],
+		tokenTypes: ['Governance'],
+		description: 'desc',
+		utility: null,
+		lastUpdated: null
+	},
+	governance: {
+		summary: 'gov summary',
+		decisionTokens: ['BTC'],
+		details: null,
+		links: []
+	},
+	decisions: {
+		treasury: { tokens: ['BTC'], details: null },
+		revenue: { tokens: ['N/A'], details: null }
+	},
+	economic: {
+		summary: null,
+		feeSwitchStatus: 'OFF',
+		feeSwitchDetails: null,
+		links: []
+	},
+	valueAccrual: {
+		primary: null,
+		details: null,
+		buybacks: { tokens: ['N/A'], details: null },
+		dividends: { tokens: ['N/A'], details: null },
+		burns: { status: 'N/A', details: null }
+	},
+	alignment: {
+		fundraising: [],
+		raiseDetails: null,
+		associatedEntities: [],
+		equityRevenueCapture: null,
+		equityStatement: null,
+		ipAndBrand: null,
+		domain: null,
+		links: []
+	},
+	resources: {
+		addresses: [],
+		reports: []
+	}
+}
 
 function setupPageModule({
 	tokensJson = {
@@ -56,6 +105,9 @@ function setupPageModule({
 	vi.doMock('~/containers/Token/TokenUsageSection', () => ({
 		TokenUsageSection: () => <div>token-usage-section</div>
 	}))
+	vi.doMock('~/containers/Token/TokenYieldsSection', () => ({
+		TokenYieldsSection: () => <div>token-yields-section</div>
+	}))
 	vi.doMock('~/containers/Token/TokenIncomeStatementSection', () => ({
 		TokenIncomeStatementSection: () => <div>token-income-statement-section</div>
 	}))
@@ -90,14 +142,14 @@ function setupPageModule({
 }
 
 describe('token page', () => {
-	it('renders income statement above token usage and token rights when data exists', async () => {
+	it('renders income statement above token usage, yields, and token rights when data exists', async () => {
 		const page = await setupPageModule()
 
 		const html = renderToStaticMarkup(
 			<page.default
-				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true }}
+				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true, is_yields: true }}
 				displayName="BTC"
-				tokenRightsData={{}}
+				tokenRightsData={tokenRightsFixture}
 				incomeStatementData={{ data: {} }}
 				incomeStatementProtocolName="Bitcoin Protocol"
 				incomeStatementHasIncentives={false}
@@ -117,11 +169,39 @@ describe('token page', () => {
 		expect(html).toContain('token-overview-header')
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
+		expect(html).toContain('token-yields-section')
 		expect(html).toContain('token-rights-section')
 		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
-		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
-		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
+		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
+		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
+	})
+
+	it('does not render the yields section when the token does not opt into yields', async () => {
+		const page = await setupPageModule()
+
+		const html = renderToStaticMarkup(
+			<page.default
+				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
+				displayName="BTC"
+				tokenRightsData={null}
+				incomeStatementData={null}
+				incomeStatementProtocolName={null}
+				incomeStatementHasIncentives={false}
+				price={100}
+				percentChange={5}
+				mcap={1000}
+				fdv={1500}
+				volume24h={500}
+				circSupply={21}
+				maxSupply={21}
+				seoTitle="title"
+				seoDescription="description"
+				canonicalUrl="/token/btc"
+			/>
+		)
+
+		expect(html).not.toContain('token-yields-section')
 	})
 
 	it('getStaticPaths returns empty paths with blocking fallback', async () => {

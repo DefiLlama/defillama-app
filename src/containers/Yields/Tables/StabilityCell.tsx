@@ -43,11 +43,11 @@ export function StabilityHeader() {
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
 	if (!isClient) {
-		return <span>Yield Score</span>
+		return <span className="whitespace-nowrap">Yield Score</span>
 	}
 
 	if (hasActiveSubscription) {
-		return <span>Yield Score</span>
+		return <span className="whitespace-nowrap">Yield Score</span>
 	}
 
 	return (
@@ -59,7 +59,7 @@ export function StabilityHeader() {
 					setSignupSource('yield-score')
 					setShouldRenderModal(true)
 				}}
-				className="cursor-pointer"
+				className="cursor-pointer whitespace-nowrap"
 			>
 				Yield Score
 			</button>

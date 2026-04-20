@@ -1,16 +1,26 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type PaginationState,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -49,33 +59,38 @@ function PegHealthIndicator({
 }
 
 const columnHelper = createColumnHelper<IYieldTableRow>()
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
+
+function PoolNameCell({ value, row }: { value: string; row: { id: string; original: IYieldTableRow } }) {
+	const exploited = isExploitedPool(row.original.projectslug, value)
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+
+	return (
+		<span className="flex items-center gap-1">
+			<NameYieldPool
+				value={value}
+				configID={row.original.configID}
+				url={row.original.url}
+				rowIndex={rowIndex}
+				poolMeta={row.original.poolMeta}
+			/>
+			{exploited ? (
+				<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+					<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
+						exploit
+					</span>
+				</Tooltip>
+			) : null}
+		</span>
+	)
+}
 
 const columns = [
 	columnHelper.accessor('pool', {
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			const value = getValue()
-			const exploited = isExploitedPool(row.original.projectslug, value)
-			return (
-				<span className="flex items-center gap-1">
-					<NameYieldPool
-						value={value}
-						configID={row.original.configID}
-						url={row.original.url}
-						poolMeta={row.original.poolMeta}
-					/>
-					{exploited ? (
-						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
-								exploit
-							</span>
-						</Tooltip>
-					) : null}
-				</span>
-			)
-		},
+		cell: ({ getValue, row }) => <PoolNameCell value={getValue()} row={row} />,
 		size: 200
 	}),
 	columnHelper.accessor('project', {
@@ -1014,7 +1029,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export function YieldsPoolsTable(props: IYieldsTableProps) {
+export function useYieldsPoolsTableConfig() {
 	const router = useRouter()
 	const { hasActiveSubscription } = useAuthContext()
 	const {
@@ -1108,13 +1123,104 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					...stablecoinColumnVisibility
 				}
 
+	return {
+		resolvedColumns,
+		columnVisibility,
+		poolColumnSizes: columnSizes,
+		poolColumnOrders: columnOrders
+	}
+}
+
+function getResponsiveValue<T>(valuesByBreakpoint: Record<number, T>, width: number): T | undefined {
+	const sortedBreakpoints = Object.keys(valuesByBreakpoint)
+		.map(Number)
+		.sort((a, b) => b - a)
+
+	for (const breakpoint of sortedBreakpoints) {
+		if (width >= breakpoint) {
+			return valuesByBreakpoint[breakpoint]
+		}
+	}
+
+	return undefined
+}
+
+function getColumnId(column: (typeof columns)[number]) {
+	if (column.id) return column.id
+	if ('accessorKey' in column && typeof column.accessorKey === 'string') return column.accessorKey
+	return undefined
+}
+
+export function YieldsPoolsTable(props: IYieldsTableProps) {
+	const { resolvedColumns, columnVisibility, poolColumnSizes, poolColumnOrders } = useYieldsPoolsTableConfig()
+
 	return (
 		<YieldsTableWrapper
 			{...props}
 			columns={resolvedColumns}
-			columnSizes={columnSizes}
-			columnOrders={columnOrders}
+			columnSizes={poolColumnSizes}
+			columnOrders={poolColumnOrders}
 			columnVisibility={columnVisibility}
 		/>
 	)
+}
+
+export function PaginatedYieldsPoolTable({
+	data,
+	initialPageSize = DEFAULT_PAGE_SIZE_OPTIONS[0],
+	sortingState = []
+}: IYieldsTableProps) {
+	const { resolvedColumns, columnVisibility, poolColumnOrders, poolColumnSizes } = useYieldsPoolsTableConfig()
+	const width = useBreakpointWidth()
+	const [sorting, setSorting] = useState<SortingState>([...sortingState])
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: initialPageSize
+	})
+
+	const paginatedColumns = useMemo(() => {
+		const responsiveOrder = getResponsiveValue(poolColumnOrders, width) ?? []
+		const responsiveSizing = getResponsiveValue(poolColumnSizes, width) ?? {}
+		const orderIndexes = new Map(responsiveOrder.map((columnId, index) => [columnId, index]))
+
+		return resolvedColumns
+			.map((column, index) => ({ column, id: getColumnId(column), index }))
+			.filter(({ id }) => (id ? columnVisibility[id] !== false : true))
+			.sort((a, b) => {
+				const leftOrder = a.id != null ? orderIndexes.get(a.id) : undefined
+				const rightOrder = b.id != null ? orderIndexes.get(b.id) : undefined
+
+				if (leftOrder != null && rightOrder != null) return leftOrder - rightOrder
+				if (leftOrder != null) return -1
+				if (rightOrder != null) return 1
+				return a.index - b.index
+			})
+			.map(({ column, id }) => {
+				const size = id != null ? responsiveSizing[id] : undefined
+				return size != null ? { ...column, size } : column
+			})
+	}, [columnVisibility, poolColumnOrders, poolColumnSizes, resolvedColumns, width])
+
+	const table = useReactTable({
+		data,
+		columns: paginatedColumns,
+		state: {
+			sorting,
+			pagination
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		onSortingChange: (updater) =>
+			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		onPaginationChange: (updater) =>
+			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS} />
 }

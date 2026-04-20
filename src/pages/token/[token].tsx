@@ -4,6 +4,7 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
+import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
@@ -154,6 +155,7 @@ export default function TokenPage({
 					/>
 				) : null}
 				<TokenUsageSection tokenSymbol={record.symbol} />
+				{record.is_yields ? <TokenYieldsSection tokenSymbol={record.symbol} /> : null}
 				{tokenRightsData ? (
 					<TokenRightsByProtocol
 						name={record.name}
