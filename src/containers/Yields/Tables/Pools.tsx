@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { startTransition, useMemo, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
@@ -119,9 +120,7 @@ function PoolNameCell({ value, row }: { value: string; row: { id: string; origin
 			/>
 			{exploited ? (
 				<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-					<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
-						exploit
-					</span>
+					<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
 				</Tooltip>
 			) : null}
 		</span>

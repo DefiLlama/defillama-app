@@ -639,8 +639,8 @@ export const lockupsCollateral = [
 ]
 export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
 
-export const exploitedProjects = ['resolv-protocol']
-export const exploitedTokens = ['USR']
+export const exploitedProjects = ['resolv-protocol', 'kelp']
+export const exploitedTokens = ['USR', 'RSETH']
 
 export function isExploitedPool(project: string, symbol: string): boolean {
 	return exploitedProjects.includes(project) || exploitedTokens.some((t) => symbol?.toUpperCase().includes(t))
@@ -650,7 +650,7 @@ export const disclaimer =
 	"DefiLlama doesn't audit nor endorse any of the protocols listed, we just focus on providing accurate data. Ape at your own risk."
 
 export const exploitWarning =
-	"USR is depegging following an exploit on Resolv (unauthorized minting of 50M unbacked USR). Protocol functions are paused. Follow Resolv's X for updates."
+	"KelpDAO paused rsETH across mainnet and several L2s on April 18, 2026 after suspicious cross-chain activity. Treat Kelp pools with extreme caution and follow KelpDAO's X for updates."
 
 export const earlyExit =
 	'Rewards are calculated assuming an early exit penalty applies. So this is the minimum APY you can expect when claiming your rewards early.'

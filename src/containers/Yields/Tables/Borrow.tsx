@@ -1,4 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
@@ -42,9 +43,7 @@ const columns = [
 					<NameYieldPool value={value} configID={row.original.configID} url={row.original.url} borrow={true} />
 					{exploited ? (
 						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
-								exploit
-							</span>
+							<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-red-500 dark:text-red-400" />
 						</Tooltip>
 					) : null}
 				</span>
