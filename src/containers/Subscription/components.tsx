@@ -242,7 +242,7 @@ function PricingCardCta({
 							{card.priceUnit} after
 						</p>
 					</div>
-					{card.secondaryCta && billingCycle === 'monthly' ? (
+					{card.secondaryCta ? (
 						<button
 							type="button"
 							className={outlineBtnCls}
@@ -255,7 +255,7 @@ function PricingCardCta({
 				</>
 			) : (
 				<>
-					{card.secondaryCta && billingCycle === 'monthly' ? (
+					{card.secondaryCta ? (
 						<button
 							type="button"
 							className={outlineBtnCls}
