@@ -74,7 +74,7 @@ export interface IChainsByCategory {
 	tvlTypes: Record<string, string>
 }
 
-interface IChain extends IChainTvl {
+export interface IChain extends IChainTvl {
 	dexVolume24h: number | null
 	dexVolume7d: number | null
 	dexVolume30d: number | null
