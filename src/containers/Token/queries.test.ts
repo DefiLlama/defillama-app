@@ -138,7 +138,7 @@ describe('getTokenRiskData', () => {
 		expect(payload?.limitations.length).toBeGreaterThan(0)
 	})
 
-	it('returns null when the token has no debt-side borrowing rows', async () => {
+	it('returns collateral-side risk data when the token has no debt-side borrowing rows', async () => {
 		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
 		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
 
@@ -150,7 +150,9 @@ describe('getTokenRiskData', () => {
 			displayLookups
 		})
 
-		expect(payload).toBeNull()
+		expect(payload).not.toBeNull()
+		expect(payload?.borrowCaps.rows).toEqual([])
+		expect(payload?.collateralRisk.rows).toHaveLength(1)
 	})
 
 	it('returns null when the token cannot be resolved from protocol llamaswap metadata', async () => {

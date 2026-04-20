@@ -222,6 +222,7 @@ export function buildCollateralRiskSection(
 	methodologies: Pick<
 		TokenRiskRouteMethodologies,
 		| 'availableToBorrowUsd'
+		| 'debtTotalBorrowedUsd'
 		| 'maxLtv'
 		| 'liquidationThreshold'
 		| 'liquidationPenalty'
@@ -240,6 +241,7 @@ export function buildCollateralRiskSection(
 			debtSymbol: route.debt.symbol,
 			debtTotalSupplyUsd: route.debtTotalSupplyUsd,
 			debtTotalBorrowedUsd: route.debtTotalBorrowedUsd,
+			borrowCapUsd: route.availableToBorrowUsd + route.debtTotalBorrowedUsd,
 			maxLtv: route.maxLtv,
 			liquidationThreshold: route.liquidationThreshold,
 			liquidationPenalty: route.liquidationPenalty,
@@ -249,13 +251,17 @@ export function buildCollateralRiskSection(
 			debtCeilingUsd: route.debtCeilingUsd ?? null,
 			availableToBorrowUsd: route.availableToBorrowUsd
 		}))
-		.sort((a, b) => b.availableToBorrowUsd - a.availableToBorrowUsd)
+		.sort((a, b) => b.borrowCapUsd - a.borrowCapUsd)
 
 	const liquidationBuffers = rows.map((row) => row.liquidationBuffer).filter((value) => Number.isFinite(value))
+	const totalBorrowedUsd = rows.reduce((sum, row) => sum + row.debtTotalBorrowedUsd, 0)
+	const totalAvailableToBorrowUsd = rows.reduce((sum, row) => sum + row.availableToBorrowUsd, 0)
 
 	return {
 		summary: {
-			totalBorrowableUsd: rows.reduce((sum, row) => sum + row.availableToBorrowUsd, 0),
+			totalBorrowCapUsd: totalBorrowedUsd + totalAvailableToBorrowUsd,
+			totalBorrowedUsd,
+			totalAvailableToBorrowUsd,
 			routeCount: rows.length,
 			isolatedRouteCount: rows.filter((row) => row.isolationMode).length,
 			minLiquidationBuffer: liquidationBuffers.length > 0 ? Math.min(...liquidationBuffers) : null,
@@ -264,6 +270,7 @@ export function buildCollateralRiskSection(
 		rows,
 		methodologies: {
 			availableToBorrowUsd: methodologies.availableToBorrowUsd,
+			debtTotalBorrowedUsd: methodologies.debtTotalBorrowedUsd,
 			maxLtv: methodologies.maxLtv,
 			liquidationThreshold: methodologies.liquidationThreshold,
 			liquidationPenalty: methodologies.liquidationPenalty,

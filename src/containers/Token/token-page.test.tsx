@@ -821,7 +821,9 @@ describe('token page', () => {
 			},
 			collateralRisk: {
 				summary: {
-					totalBorrowableUsd: 0,
+					totalBorrowCapUsd: 0,
+					totalBorrowedUsd: 0,
+					totalAvailableToBorrowUsd: 0,
 					routeCount: 0,
 					isolatedRouteCount: 0,
 					minLiquidationBuffer: null,
@@ -830,6 +832,7 @@ describe('token page', () => {
 				rows: [],
 				methodologies: {
 					availableToBorrowUsd: 'available',
+					debtTotalBorrowedUsd: 'borrowed',
 					maxLtv: 'ltv',
 					liquidationThreshold: 'threshold',
 					liquidationPenalty: 'penalty',

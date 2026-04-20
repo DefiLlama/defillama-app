@@ -91,7 +91,9 @@ const createRiskData = (): TokenRiskResponse => ({
 	},
 	collateralRisk: {
 		summary: {
-			totalBorrowableUsd: 500,
+			totalBorrowCapUsd: 800,
+			totalBorrowedUsd: 300,
+			totalAvailableToBorrowUsd: 500,
 			routeCount: 1,
 			isolatedRouteCount: 1,
 			minLiquidationBuffer: 0.08,
@@ -106,6 +108,7 @@ const createRiskData = (): TokenRiskResponse => ({
 				debtSymbol: 'WBTC',
 				debtTotalSupplyUsd: 800,
 				debtTotalBorrowedUsd: 300,
+				borrowCapUsd: 800,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
 				liquidationPenalty: 0.04,
@@ -119,6 +122,7 @@ const createRiskData = (): TokenRiskResponse => ({
 		],
 		methodologies: {
 			availableToBorrowUsd: 'Available methodology',
+			debtTotalBorrowedUsd: 'Borrowed methodology',
 			maxLtv: 'Max LTV methodology',
 			liquidationThreshold: 'Threshold methodology',
 			liquidationPenalty: 'Penalty methodology',
@@ -133,27 +137,29 @@ const createRiskData = (): TokenRiskResponse => ({
 import { TokenRisksSection } from './TokenRisksSection'
 
 describe('TokenRisksSection', () => {
-	it('renders the debt-side summary from preloaded risk data', () => {
+	it('renders the collateral-side summary from preloaded risk data', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		expect(html).toContain('Total USDC available to borrow')
-		expect(html).toContain('$200')
-		expect(html).toContain('$400 borrowed across these lending markets')
+		expect(html).toContain('Total borrowing cap against USDC')
+		expect(html).toContain('$800')
+		expect(html).toContain('$500 still available and $300 already borrowed across these lending markets')
 		expect(html).toContain('Aave V3')
-		expect(html).toContain('$200 available ($400 borrowed / $1,000 cap)')
+		expect(html).toContain('$800 cap ($500 available / $300 borrowed)')
 		expect(html).toContain('Ethereum')
-		expect(html).toContain('How much USDC is currently available to borrow across lending protocols')
+		expect(html).toContain('How much can be borrowed against USDC across lending protocols')
 	})
 
 	it('shows methodology and both detail disclosures when data exists', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		expect(html).toContain('Showing debt-side borrowing capacity for USDC on')
+		expect(html).toContain('Showing collateral-side borrowing capacity for USDC on')
 		expect(html).toContain('Borrow caps are not a full risk rating.')
-		expect(html).toContain('Show collateral-side details')
+		expect(html).toContain('Show USDC collateral details')
 		expect(html).toContain('Show borrow-cap details')
 		expect(html).toContain('paginated-table:1')
-		expect(html).toContain('Borrow cap equals borrowed plus remaining cap headroom')
+		expect(html).toContain('cap equals available plus borrowed')
+		expect(html).toContain('Cap|Borrowing cap against this collateral route, calculated as borrowed plus available.')
+		expect(html).toContain('Borrowed|Borrowed methodology')
 		expect(html).toContain('Available|Available methodology')
 		expect(html).toContain('Max LTV|Max LTV methodology')
 	})
@@ -171,7 +177,9 @@ describe('TokenRisksSection', () => {
 		const riskData = createRiskData()
 		riskData.collateralRisk.rows = []
 		riskData.collateralRisk.summary = {
-			totalBorrowableUsd: 0,
+			totalBorrowCapUsd: 0,
+			totalBorrowedUsd: 0,
+			totalAvailableToBorrowUsd: 0,
 			routeCount: 0,
 			isolatedRouteCount: 0,
 			minLiquidationBuffer: null,
@@ -194,8 +202,18 @@ describe('TokenRisksSection', () => {
 		expect(html).not.toContain('Show borrow-cap details')
 	})
 
-	it('returns nothing when there are no debt-side protocol summaries', () => {
+	it('returns nothing when there are no collateral-side or debt-side protocol summaries', () => {
 		const riskData = createRiskData()
+		riskData.collateralRisk.rows = []
+		riskData.collateralRisk.summary = {
+			totalBorrowCapUsd: 0,
+			totalBorrowedUsd: 0,
+			totalAvailableToBorrowUsd: 0,
+			routeCount: 0,
+			isolatedRouteCount: 0,
+			minLiquidationBuffer: null,
+			maxLiquidationBuffer: null
+		}
 		riskData.borrowCaps.rows = []
 		riskData.borrowCaps.summary = {
 			totalBorrowCapUsd: 0,

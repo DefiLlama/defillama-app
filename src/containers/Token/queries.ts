@@ -85,7 +85,7 @@ export async function getTokenRiskData({
 		displayLookups
 	)
 
-	if (borrowCaps.rows.length === 0) return null
+	if (borrowCaps.rows.length === 0 && collateralRisk.rows.length === 0) return null
 
 	return {
 		candidates,

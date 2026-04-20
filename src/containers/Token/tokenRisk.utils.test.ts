@@ -196,12 +196,15 @@ describe('tokenRisk utils', () => {
 
 		const section = buildCollateralRiskSection(bucket, methodologies)
 
-		expect(section.summary.totalBorrowableUsd).toBe(450)
+		expect(section.summary.totalBorrowCapUsd).toBe(1250)
+		expect(section.summary.totalBorrowedUsd).toBe(800)
+		expect(section.summary.totalAvailableToBorrowUsd).toBe(450)
 		expect(section.summary.routeCount).toBe(2)
 		expect(section.summary.isolatedRouteCount).toBe(1)
 		expect(section.summary.minLiquidationBuffer).toBeCloseTo(0.08)
 		expect(section.summary.maxLiquidationBuffer).toBeCloseTo(0.15)
 		expect(section.rows[0].debtSymbol).toBe('USDT')
+		expect(section.rows[0].borrowCapUsd).toBe(700)
 		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
 		expect(section.rows[0].chainDisplayName).toBe('ethereum')
 	})
