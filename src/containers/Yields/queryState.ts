@@ -1,6 +1,11 @@
 import type { ParsedUrlQuery } from 'querystring'
 import { parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
-import { ALL_POOL_COLUMN_QUERY_KEYS, POOL_QUERY_KEY_TO_COLUMN_ID, type PoolColumnQueryKey } from './Filters/poolColumns'
+import {
+	ALL_POOL_COLUMN_QUERY_KEYS,
+	POOL_QUERY_KEY_TO_COLUMN_ID,
+	type PoolColumnQueryKey,
+	type PoolOptionalColumnId
+} from './Filters/poolColumns'
 
 export interface DecodeYieldsQueryContext {
 	projectList?: Array<string>
@@ -33,6 +38,11 @@ export interface DecodedYieldsQuery {
 	maxAvailable: number | null
 	customLTV: number | null
 }
+
+type PoolsColumnVisibility = Record<
+	PoolOptionalColumnId | 'apy' | 'apyBase' | 'apyIncludingLsdApy' | 'apyBaseIncludingLsdApy' | 'cv30d' | 'pegDeviation',
+	boolean
+>
 
 function toQueryArray(value: ParsedUrlQuery[string]): string[] {
 	if (typeof value === 'string') return [value]
@@ -171,7 +181,7 @@ export function decodePoolsColumnVisibilityQuery(
 		includeLsdApy: boolean
 		isStablecoinPage: boolean
 	}
-) {
+): PoolsColumnVisibility {
 	const optionalColumnVisibility = Object.fromEntries(
 		ALL_POOL_COLUMN_QUERY_KEYS.map((queryKey) => {
 			const columnId = POOL_QUERY_KEY_TO_COLUMN_ID[queryKey]
@@ -179,7 +189,7 @@ export function decodePoolsColumnVisibilityQuery(
 			const premiumBlocked = (queryKey === 'showMedianApy' || queryKey === 'showStdDev') && !hasPremiumAccess
 			return [columnId, premiumBlocked ? false : isVisible]
 		})
-	)
+	) as Record<PoolOptionalColumnId, boolean>
 
 	return {
 		...optionalColumnVisibility,
