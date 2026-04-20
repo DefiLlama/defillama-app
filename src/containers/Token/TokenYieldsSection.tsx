@@ -50,6 +50,7 @@ const FILTER_QUERY_PARAMS = [
 	'maxApy',
 	...ENABLED_COLUMNS
 ]
+const FILTER_ONLY_PARAMS = FILTER_QUERY_PARAMS.filter((queryParam) => !ENABLED_COLUMNS.includes(queryParam))
 
 const TOKEN_YIELDS_SECTION_ID = 'token-yields'
 const DEFAULT_TABLE_SORTING: SortingState = [{ id: 'tvl', desc: true }]
@@ -185,7 +186,9 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	])
 
 	const filteredStats = React.useMemo(() => {
-		const poolsWithApy = filteredPools.filter((pool) => pool.apy !== 0)
+		const poolsWithApy = filteredPools.filter(
+			(pool): pool is (typeof filteredPools)[number] & { apy: number } => pool.apy != null && pool.apy !== 0
+		)
 
 		return {
 			noOfPoolsTracked: filteredPools.length,
@@ -196,14 +199,18 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 		}
 	}, [filteredPools])
 
-	const hasActiveFilters = FILTER_QUERY_PARAMS.some((key) => {
-		const value = router.query[key]
-		return Array.isArray(value) ? value.length > 0 : value != null && value !== ''
-	})
+	const hasActiveFilters = React.useMemo(
+		() =>
+			FILTER_ONLY_PARAMS.some((key) => {
+				const value = router.query[key]
+				return Array.isArray(value) ? value.length > 0 : value != null && value !== ''
+			}),
+		[router.query]
+	)
 
 	const resetFilters = () => {
 		const updates: Record<string, undefined> = {}
-		for (const key of FILTER_QUERY_PARAMS) {
+		for (const key of FILTER_ONLY_PARAMS) {
 			updates[key] = undefined
 		}
 		pushShallowQuery(router, updates)

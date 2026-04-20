@@ -22,16 +22,18 @@ var yieldsQueryState = {
 	maxApy: null as number | null
 }
 
+var routerState = {
+	pathname: '/token/[token]',
+	query: {} as Record<string, string | string[]>,
+	push: vi.fn()
+}
+
 vi.mock('@tanstack/react-query', () => ({
 	useQuery: () => queryState
 }))
 
 vi.mock('next/router', () => ({
-	useRouter: () => ({
-		pathname: '/token/[token]',
-		query: {},
-		push: vi.fn()
-	})
+	useRouter: () => routerState
 }))
 
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
@@ -106,6 +108,11 @@ afterEach(() => {
 		minApy: null,
 		maxApy: null
 	}
+	routerState = {
+		pathname: '/token/[token]',
+		query: {},
+		push: vi.fn()
+	}
 	vi.clearAllMocks()
 })
 
@@ -138,6 +145,37 @@ describe('TokenYieldsSection', () => {
 		expect(html).toContain('APY')
 		expect(html).toContain('Columns')
 		expect(html).toContain('yields-table:1:paginated:10')
+	})
+
+	it('ignores null APYs when computing the average', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'stETH-ETH',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				},
+				{
+					pool: 'wstETH-ETH',
+					project: 'Lido',
+					projectslug: 'lido',
+					configID: 'pool-2',
+					chains: ['Ethereum'],
+					tvl: 900000,
+					apy: null
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('Tracking 2 pools, average APY 5.10%')
 	})
 
 	it('shows a loader while data is loading', () => {
@@ -253,5 +291,61 @@ describe('TokenYieldsSection', () => {
 
 		expect(html).toContain('No pools matching filters')
 		expect(html).not.toContain('yields-table:1')
+	})
+
+	it('does not show reset filters when only column visibility query params are active', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'stETH-ETH',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+		routerState = {
+			...routerState,
+			query: {
+				showMedianApy: 'true'
+			}
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).not.toContain('Reset filters')
+	})
+
+	it('shows reset filters when a real filter query param is active', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'stETH-ETH',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+		routerState = {
+			...routerState,
+			query: {
+				minApy: '4'
+			}
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" />)
+
+		expect(html).toContain('Reset filters')
 	})
 })
