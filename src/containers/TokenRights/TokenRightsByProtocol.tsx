@@ -68,7 +68,8 @@ export function TokenRightsByProtocol({
 		alignment.domain !== null ||
 		alignment.links.length > 0
 
-	const hasPrimaryValueAccrual = valueAccrual.primary !== null || valueAccrual.details !== null
+	const hasPrimaryValueAccrual =
+		valueAccrual.primary !== 'N/A' && (valueAccrual.primary !== null || valueAccrual.details !== null)
 	const hasEquityStatement = alignment.equityStatement !== null
 
 	return (
