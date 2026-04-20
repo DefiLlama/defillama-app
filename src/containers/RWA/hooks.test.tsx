@@ -210,6 +210,7 @@ function FilteredAssetsProbe({
 		)
 	)
 	const selectedAssetGroups = Array.from(new Set(chartAssets.map((asset) => normalizeRwaAssetGroup(asset.assetGroup))))
+	const selectedIssuers = Array.from(new Set(chartAssets.map((asset) => asset.issuer || 'Unknown')))
 
 	const result = useFilteredRwaAssets({
 		assets: chartAssets,
@@ -222,7 +223,7 @@ function FilteredAssetsProbe({
 		selectedAssetClasses: [],
 		selectedRwaClassifications: [],
 		selectedAccessModels: [],
-		selectedIssuers: [],
+		selectedIssuers,
 		selectedRedeemableStates: ['yes', 'no', 'unknown'],
 		selectedAttestationsStates: ['yes', 'no', 'unknown'],
 		selectedCexListedStates: ['yes', 'no', 'unknown'],
