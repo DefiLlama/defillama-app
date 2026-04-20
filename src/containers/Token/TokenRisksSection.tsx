@@ -8,13 +8,11 @@ import {
 } from '@tanstack/react-table'
 import { startTransition, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/Loaders'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
-import type { TokenRiskBorrowCapsRow, TokenRiskCollateralRiskRow } from './tokenRisk.types'
-import { useTokenRisk } from './useTokenRisk'
+import type { TokenRiskBorrowCapsRow, TokenRiskCollateralRiskRow, TokenRiskResponse } from './tokenRisk.types'
 
 const TOKEN_RISKS_SECTION_ID = 'token-risks'
 const borrowCapsColumnHelper = createColumnHelper<TokenRiskBorrowCapsRow>()
@@ -114,181 +112,199 @@ function formatProtocolChains(chainDisplayNames: string[]) {
 	return `${chainDisplayNames.length} chains`
 }
 
-const borrowCapsColumns = [
-	borrowCapsColumnHelper.accessor('protocolDisplayName', {
-		header: 'Protocol',
-		enableSorting: false,
-		cell: ({ row, getValue }) => (
-			<TableEntityCell label={getValue()} logoName={getValue()} logoKind="token" title={row.original.protocol} />
-		)
-	}),
-	borrowCapsColumnHelper.accessor('chainDisplayName', {
-		header: 'Chain',
-		enableSorting: false,
-		cell: ({ row, getValue }) => (
-			<TableEntityCell label={getValue()} logoName={getValue()} logoKind="chain" title={row.original.chain} />
-		)
-	}),
-	borrowCapsColumnHelper.accessor('debtSymbol', {
-		header: 'Asset',
-		enableSorting: false
-	}),
-	borrowCapsColumnHelper.accessor('borrowCapUsd', {
-		header: 'Borrow Cap',
-		cell: ({ getValue }) => formatUsd(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	borrowCapsColumnHelper.accessor('debtTotalBorrowedUsd', {
-		header: 'Borrowed',
-		cell: ({ getValue }) => formatUsd(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	borrowCapsColumnHelper.accessor('remainingCapUsd', {
-		header: 'Cap Headroom',
-		cell: ({ row, getValue }) => (
-			<MetricPill
-				value={formatUsd(getValue())}
-				tone={getHeadroomTone(getValue(), row.original.borrowCapUsd)}
-				title={`Remaining borrow-cap headroom for ${row.original.debtSymbol} in this market.`}
-			/>
-		),
-		meta: {
-			align: 'end'
-		}
-	}),
-	borrowCapsColumnHelper.accessor('availableToBorrowUsd', {
-		header: 'Available',
-		cell: ({ getValue }) => formatUsd(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	borrowCapsColumnHelper.accessor('debtUtilization', {
-		header: 'Utilization',
-		cell: ({ row, getValue }) => (
-			<MetricPill
-				value={formatPercent(getValue())}
-				tone={getUtilizationTone(getValue())}
-				title={`${formatUsd(row.original.debtTotalBorrowedUsd)} borrowed of ${formatUsd(
-					row.original.borrowCapUsd
-				)} cap.`}
-			/>
-		),
-		meta: {
-			align: 'end'
-		}
-	}),
-	borrowCapsColumnHelper.accessor('eligibleCollateralCount', {
-		header: 'Eligible Collateral',
-		cell: ({ row, getValue }) => {
-			const count = getValue()
-			const preview = row.original.eligibleCollateralSymbols.slice(0, 3).join(', ')
-			return preview ? `${count} (${preview}${count > 3 ? '…' : ''})` : String(count)
-		}
-	}),
-	borrowCapsColumnHelper.accessor('market', {
-		header: 'Market',
-		enableSorting: false,
-		cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>
-	})
-]
-
-const collateralRiskColumns = [
-	collateralRiskColumnHelper.accessor('protocolDisplayName', {
-		header: 'Protocol',
-		enableSorting: false,
-		cell: ({ row, getValue }) => (
-			<TableEntityCell label={getValue()} logoName={getValue()} logoKind="token" title={row.original.protocol} />
-		)
-	}),
-	collateralRiskColumnHelper.accessor('chainDisplayName', {
-		header: 'Chain',
-		enableSorting: false,
-		cell: ({ row, getValue }) => (
-			<TableEntityCell label={getValue()} logoName={getValue()} logoKind="chain" title={row.original.chain} />
-		)
-	}),
-	collateralRiskColumnHelper.accessor('debtSymbol', {
-		header: 'Debt Asset',
-		enableSorting: false
-	}),
-	collateralRiskColumnHelper.accessor('availableToBorrowUsd', {
-		header: 'Available',
-		cell: ({ getValue }) => formatUsd(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('maxLtv', {
-		header: 'Max LTV',
-		cell: ({ getValue }) => formatPercent(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('liquidationThreshold', {
-		header: 'Liq Threshold',
-		cell: ({ getValue }) => formatPercent(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('liquidationBuffer', {
-		header: 'Buffer',
-		cell: ({ getValue }) => (
-			<MetricPill
-				value={formatPercent(getValue())}
-				tone={getLiquidationBufferTone(getValue())}
-				title="Gap between max LTV and liquidation threshold."
-			/>
-		),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('liquidationPenalty', {
-		header: 'Penalty',
-		cell: ({ getValue }) => formatPercent(getValue()),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('borrowApy', {
-		header: 'Borrow APY',
-		cell: ({ getValue }) => formatPercent(getValue(), 2),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('isolationMode', {
-		header: 'Isolation',
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<MetricPill value="Isolated" tone="warning" title="Collateral is restricted to isolated borrowing." />
-			) : (
-				<MetricPill value="Open" tone="good" title="Collateral is not restricted to isolation mode." />
+function createBorrowCapsColumns(methodologies: TokenRiskResponse['borrowCaps']['methodologies']) {
+	return [
+		borrowCapsColumnHelper.accessor('protocolDisplayName', {
+			header: 'Protocol',
+			enableSorting: false,
+			cell: ({ row, getValue }) => (
+				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="token" title={row.original.protocol} />
 			)
-	}),
-	collateralRiskColumnHelper.accessor('debtCeilingUsd', {
-		header: 'Debt Ceiling',
-		cell: ({ getValue }) => (getValue() == null ? '-' : formatUsd(getValue())),
-		meta: {
-			align: 'end'
-		}
-	}),
-	collateralRiskColumnHelper.accessor('market', {
-		header: 'Market',
-		enableSorting: false,
-		cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>
-	})
-]
+		}),
+		borrowCapsColumnHelper.accessor('chainDisplayName', {
+			header: 'Chain',
+			enableSorting: false,
+			cell: ({ row, getValue }) => (
+				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="chain" title={row.original.chain} />
+			)
+		}),
+		borrowCapsColumnHelper.accessor('debtSymbol', {
+			header: 'Asset',
+			enableSorting: false
+		}),
+		borrowCapsColumnHelper.accessor('borrowCapUsd', {
+			header: 'Borrow Cap',
+			cell: ({ getValue }) => formatUsd(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.borrowCapUsd
+			}
+		}),
+		borrowCapsColumnHelper.accessor('debtTotalBorrowedUsd', {
+			header: 'Borrowed',
+			cell: ({ getValue }) => formatUsd(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.debtTotalBorrowedUsd
+			}
+		}),
+		borrowCapsColumnHelper.accessor('remainingCapUsd', {
+			header: 'Cap Headroom',
+			cell: ({ row, getValue }) => (
+				<MetricPill
+					value={formatUsd(getValue())}
+					tone={getHeadroomTone(getValue(), row.original.borrowCapUsd)}
+					title={`Remaining borrow-cap headroom for ${row.original.debtSymbol} in this market.`}
+				/>
+			),
+			meta: {
+				align: 'end',
+				headerHelperText: 'Borrow cap minus current borrowed amount for the debt asset in this market.'
+			}
+		}),
+		borrowCapsColumnHelper.accessor('availableToBorrowUsd', {
+			header: 'Available',
+			cell: ({ getValue }) => formatUsd(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.availableToBorrowUsd
+			}
+		}),
+		borrowCapsColumnHelper.accessor('debtUtilization', {
+			header: 'Utilization',
+			cell: ({ row, getValue }) => (
+				<MetricPill
+					value={formatPercent(getValue())}
+					tone={getUtilizationTone(getValue())}
+					title={`${formatUsd(row.original.debtTotalBorrowedUsd)} borrowed of ${formatUsd(
+						row.original.borrowCapUsd
+					)} cap.`}
+				/>
+			),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.debtUtilization
+			}
+		}),
+		borrowCapsColumnHelper.accessor('eligibleCollateralCount', {
+			header: 'Eligible Collateral',
+			cell: ({ row, getValue }) => {
+				const count = getValue()
+				const preview = row.original.eligibleCollateralSymbols.slice(0, 3).join(', ')
+				return preview ? `${count} (${preview}${count > 3 ? '…' : ''})` : String(count)
+			}
+		}),
+		borrowCapsColumnHelper.accessor('market', {
+			header: 'Market',
+			enableSorting: false,
+			cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>
+		})
+	]
+}
 
-export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: string; geckoId: string | null }) {
+function createCollateralRiskColumns(methodologies: TokenRiskResponse['collateralRisk']['methodologies']) {
+	return [
+		collateralRiskColumnHelper.accessor('protocolDisplayName', {
+			header: 'Protocol',
+			enableSorting: false,
+			cell: ({ row, getValue }) => (
+				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="token" title={row.original.protocol} />
+			)
+		}),
+		collateralRiskColumnHelper.accessor('chainDisplayName', {
+			header: 'Chain',
+			enableSorting: false,
+			cell: ({ row, getValue }) => (
+				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="chain" title={row.original.chain} />
+			)
+		}),
+		collateralRiskColumnHelper.accessor('debtSymbol', {
+			header: 'Debt Asset',
+			enableSorting: false
+		}),
+		collateralRiskColumnHelper.accessor('availableToBorrowUsd', {
+			header: 'Available',
+			cell: ({ getValue }) => formatUsd(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.availableToBorrowUsd
+			}
+		}),
+		collateralRiskColumnHelper.accessor('maxLtv', {
+			header: 'Max LTV',
+			cell: ({ getValue }) => formatPercent(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.maxLtv
+			}
+		}),
+		collateralRiskColumnHelper.accessor('liquidationThreshold', {
+			header: 'Liq Threshold',
+			cell: ({ getValue }) => formatPercent(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.liquidationThreshold
+			}
+		}),
+		collateralRiskColumnHelper.accessor('liquidationBuffer', {
+			header: 'Buffer',
+			cell: ({ getValue }) => (
+				<MetricPill
+					value={formatPercent(getValue())}
+					tone={getLiquidationBufferTone(getValue())}
+					title="Gap between max LTV and liquidation threshold."
+				/>
+			),
+			meta: {
+				align: 'end',
+				headerHelperText: 'Gap between max LTV and liquidation threshold.'
+			}
+		}),
+		collateralRiskColumnHelper.accessor('liquidationPenalty', {
+			header: 'Penalty',
+			cell: ({ getValue }) => formatPercent(getValue()),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.liquidationPenalty
+			}
+		}),
+		collateralRiskColumnHelper.accessor('borrowApy', {
+			header: 'Borrow APY',
+			cell: ({ getValue }) => formatPercent(getValue(), 2),
+			meta: {
+				align: 'end'
+			}
+		}),
+		collateralRiskColumnHelper.accessor('isolationMode', {
+			header: 'Isolation',
+			enableSorting: false,
+			cell: ({ getValue }) =>
+				getValue() ? (
+					<MetricPill value="Isolated" tone="warning" title="Collateral is restricted to isolated borrowing." />
+				) : (
+					<MetricPill value="Open" tone="good" title="Collateral is not restricted to isolation mode." />
+				),
+			meta: {
+				headerHelperText: methodologies.isolationMode
+			}
+		}),
+		collateralRiskColumnHelper.accessor('debtCeilingUsd', {
+			header: 'Debt Ceiling',
+			cell: ({ getValue }) => (getValue() == null ? '-' : formatUsd(getValue())),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.debtCeilingUsd
+			}
+		}),
+		collateralRiskColumnHelper.accessor('market', {
+			header: 'Market',
+			enableSorting: false,
+			cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>
+		})
+	]
+}
+
+export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: string; riskData: TokenRiskResponse }) {
 	const [borrowCapsSorting, setBorrowCapsSorting] = useState<SortingState>(DEFAULT_BORROW_CAPS_SORTING)
 	const [collateralRiskSorting, setCollateralRiskSorting] = useState<SortingState>(DEFAULT_COLLATERAL_RISK_SORTING)
 	const [borrowCapsPagination, setBorrowCapsPagination] = useState<PaginationState>({
@@ -299,11 +315,14 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 		pageIndex: 0,
 		pageSize: DEFAULT_TABLE_PAGE_SIZE
 	})
-
-	const { data, error, isLoading } = useTokenRisk(geckoId, null)
+	const borrowCapsColumns = useMemo(() => createBorrowCapsColumns(riskData.borrowCaps.methodologies), [riskData])
+	const collateralRiskColumns = useMemo(
+		() => createCollateralRiskColumns(riskData.collateralRisk.methodologies),
+		[riskData]
+	)
 
 	const borrowCapsTable = useReactTable({
-		data: data?.borrowCaps?.rows ?? [],
+		data: riskData.borrowCaps.rows,
 		columns: borrowCapsColumns,
 		state: {
 			sorting: borrowCapsSorting,
@@ -320,7 +339,7 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 	})
 
 	const collateralRiskTable = useReactTable({
-		data: data?.collateralRisk?.rows ?? [],
+		data: riskData.collateralRisk.rows,
 		columns: collateralRiskColumns,
 		state: {
 			sorting: collateralRiskSorting,
@@ -337,18 +356,15 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 	})
 
 	const scopeCandidates = useMemo(() => {
-		if (!data) return []
-		if (data.scopeCandidates) return data.scopeCandidates
+		if (riskData.scopeCandidates) return riskData.scopeCandidates
 
 		const chainsWithVisibleRows = new Set<string>()
-		for (const row of data.borrowCaps?.rows ?? []) chainsWithVisibleRows.add(row.chain)
-		for (const row of data.collateralRisk?.rows ?? []) chainsWithVisibleRows.add(row.chain)
+		for (const row of riskData.borrowCaps.rows) chainsWithVisibleRows.add(row.chain)
+		for (const row of riskData.collateralRisk.rows) chainsWithVisibleRows.add(row.chain)
 
-		return (data.candidates ?? []).filter((candidate) => chainsWithVisibleRows.has(candidate.chain))
-	}, [data])
+		return riskData.candidates.filter((candidate) => chainsWithVisibleRows.has(candidate.chain))
+	}, [riskData])
 	const borrowCapsProtocolSummaries = useMemo<BorrowCapsProtocolSummary[]>(() => {
-		if (!data) return []
-
 		const grouped = new Map<
 			string,
 			{
@@ -362,7 +378,7 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 			}
 		>()
 
-		for (const row of data.borrowCaps.rows) {
+		for (const row of riskData.borrowCaps.rows) {
 			const existing = grouped.get(row.protocol)
 
 			if (existing) {
@@ -402,7 +418,7 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 				}
 				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
 			})
-	}, [data])
+	}, [riskData])
 	const totalAvailableToBorrowUsd = useMemo(
 		() => borrowCapsProtocolSummaries.reduce((sum, summary) => sum + summary.totalAvailableToBorrowUsd, 0),
 		[borrowCapsProtocolSummaries]
@@ -416,14 +432,12 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 		return 'onchain'
 	}, [scopeCandidates])
 
-	const hasPlaceholderState = isLoading || error != null || !geckoId
+	if (borrowCapsProtocolSummaries.length === 0) {
+		return null
+	}
 
 	return (
-		<section
-			className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)${
-				hasPlaceholderState ? ' min-h-[60dvh] sm:min-h-[520px]' : ''
-			}`}
-		>
+		<section className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 				<div className="min-w-0">
 					<h2
@@ -446,158 +460,125 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
-				{!geckoId ? (
-					<div className="flex flex-1 items-center justify-center px-4 text-center">
-						<p className="text-sm text-(--text-label)">
-							Risk data is unavailable for this token because it has no CoinGecko id.
-						</p>
-					</div>
-				) : isLoading ? (
-					<div className="flex flex-1 items-center justify-center">
-						<LocalLoader />
-					</div>
-				) : error ? (
-					<div className="flex flex-1 items-center justify-center px-4 text-center">
-						<p className="text-sm text-(--text-label)">{error.message}</p>
-					</div>
-				) : !data || data.candidates.length === 0 ? (
-					<div className="flex flex-1 items-center justify-center px-4 text-center">
-						<p className="text-sm text-(--text-label)">
-							Risk data is not yet available for this token because it does not resolve to a supported lending-market
-							asset.
-						</p>
-					</div>
-				) : (
-					<>
-						<div className="rounded-md border border-(--cards-border) p-4">
-							<p className="text-sm text-(--text-secondary)">Total {tokenSymbol} available to borrow</p>
-							<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-								{formatUsd(totalAvailableToBorrowUsd)}
-							</p>
-							<p className="mt-1 text-sm text-(--text-secondary)">
-								{formatUsd(totalBorrowedUsd)} borrowed across these lending markets
-							</p>
-						</div>
+				<div className="rounded-md border border-(--cards-border) p-4">
+					<p className="text-sm text-(--text-secondary)">Total {tokenSymbol} available to borrow</p>
+					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">{formatUsd(totalAvailableToBorrowUsd)}</p>
+					<p className="mt-1 text-sm text-(--text-secondary)">
+						{formatUsd(totalBorrowedUsd)} borrowed across these lending markets
+					</p>
+				</div>
 
-						<div className="rounded-md border border-(--cards-border) p-3">
-							<div className="space-y-3">
-								{borrowCapsProtocolSummaries.length === 0 ? (
-									<div className="px-4 py-10 text-center">
-										<p className="text-sm text-(--text-label)">No borrowing markets found for this token.</p>
+				<div className="rounded-md border border-(--cards-border) p-3">
+					<div className="space-y-3">
+						{borrowCapsProtocolSummaries.map((summary) => (
+							<div
+								key={summary.protocol}
+								className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+							>
+								<div className="min-w-0">
+									<div className="flex items-center gap-2">
+										<TokenLogo
+											name={summary.protocolDisplayName}
+											kind="token"
+											size={18}
+											alt={`Logo of ${summary.protocolDisplayName}`}
+											title={summary.protocol}
+										/>
+										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
 									</div>
-								) : (
-									borrowCapsProtocolSummaries.map((summary) => (
-										<div
-											key={summary.protocol}
-											className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-										>
-											<div className="min-w-0">
-												<div className="flex items-center gap-2">
-													<TokenLogo
-														name={summary.protocolDisplayName}
-														kind="token"
-														size={18}
-														alt={`Logo of ${summary.protocolDisplayName}`}
-														title={summary.protocol}
-													/>
-													<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
-												</div>
-												<p className="mt-1 text-sm text-(--text-secondary)">
-													{formatUsd(summary.totalAvailableToBorrowUsd)} available (
-													{formatUsd(summary.totalDebtBorrowedUsd)} borrowed
-													{summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})
-												</p>
-												<p className="mt-1 text-xs text-(--text-secondary)">
-													{formatProtocolChains(summary.chainDisplayNames)}
-												</p>
-											</div>
-										</div>
-									))
-								)}
+									<p className="mt-1 text-sm text-(--text-secondary)">
+										{formatUsd(summary.totalAvailableToBorrowUsd)} available ({formatUsd(summary.totalDebtBorrowedUsd)}{' '}
+										borrowed
+										{summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})
+									</p>
+									<p className="mt-1 text-xs text-(--text-secondary)">
+										{formatProtocolChains(summary.chainDisplayNames)}
+									</p>
+								</div>
 							</div>
+						))}
+					</div>
+				</div>
+
+				<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+					<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+						<span>Methodology and limitations</span>
+						<Icon
+							name="chevron-down"
+							height={16}
+							width={16}
+							className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+						/>
+					</summary>
+					<p className="mt-2 text-sm text-(--text-secondary)">
+						Showing debt-side borrowing capacity for {tokenSymbol} on{' '}
+						<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>. The headline
+						total and protocol lines use debt-side lending routes where {tokenSymbol} is borrowed as debt.
+					</p>
+					<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
+						{riskData.limitations.map((limitation) => (
+							<li key={limitation}>{limitation}</li>
+						))}
+					</ul>
+				</details>
+
+				{riskData.collateralRisk.rows.length > 0 ? (
+					<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+						<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+							<span>Show collateral-side details</span>
+							<Icon
+								name="chevron-down"
+								height={16}
+								width={16}
+								className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+							/>
+						</summary>
+						<p className="mt-2 text-sm text-(--text-secondary)">
+							These rows show what users can borrow by posting {tokenSymbol} as collateral, which is different from how
+							much {tokenSymbol} is available to borrow as debt.
+						</p>
+						<div className="mt-3">
+							<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
 						</div>
+					</details>
+				) : null}
 
-						<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-							<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-								<span>Methodology and limitations</span>
-								<Icon
-									name="chevron-down"
-									height={16}
-									width={16}
-									className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-								/>
-							</summary>
-							<p className="mt-2 text-sm text-(--text-secondary)">
-								Showing debt-side borrowing capacity for {tokenSymbol} on{' '}
-								<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>. The headline
-								total and protocol lines use debt-side lending routes where {tokenSymbol} is borrowed as debt.
-							</p>
-							<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
-								{data.limitations.map((limitation) => (
-									<li key={limitation}>{limitation}</li>
-								))}
-							</ul>
-						</details>
-
-						{data.collateralRisk.rows.length > 0 ? (
-							<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-									<span>Show collateral-side details</span>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-									/>
-								</summary>
-								<p className="mt-2 text-sm text-(--text-secondary)">
-									These rows show what users can borrow by posting {tokenSymbol} as collateral, which is different from
-									how much {tokenSymbol} is available to borrow as debt.
-								</p>
-								<div className="mt-3">
-									<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
-								</div>
-							</details>
-						) : null}
-
-						{data.borrowCaps.rows.length > 0 ? (
-							<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-								<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-									<span>Show borrow-cap details</span>
-									<Icon
-										name="chevron-down"
-										height={16}
-										width={16}
-										className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-									/>
-								</summary>
-								<p className="mt-2 text-sm text-(--text-secondary)">
-									These rows show markets where {tokenSymbol} itself is borrowed as debt. Current capped markets total{' '}
-									<span className="font-medium text-(--text-primary)">
-										{formatUsd(data.borrowCaps.summary.totalBorrowCapUsd)}
-									</span>{' '}
-									of borrow capacity, with{' '}
-									<span className="font-medium text-(--text-primary)">
-										{formatUsd(data.borrowCaps.summary.totalBorrowedUsd)}
-									</span>{' '}
-									borrowed and{' '}
-									<span className="font-medium text-(--text-primary)">
-										{formatUsd(data.borrowCaps.summary.remainingCapUsd)}
-									</span>{' '}
-									of remaining cap headroom.
-								</p>
-								<p className="mt-2 text-sm text-(--text-secondary)">
-									Borrow cap equals borrowed plus remaining cap headroom.{' '}
-									<span className="font-medium text-(--text-primary)">Available</span> can be lower than cap headroom
-									when pool liquidity or debt ceilings are the tighter constraint.
-								</p>
-								<div className="mt-3">
-									<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
-								</div>
-							</details>
-						) : null}
-					</>
-				)}
+				{riskData.borrowCaps.rows.length > 0 ? (
+					<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+						<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+							<span>Show borrow-cap details</span>
+							<Icon
+								name="chevron-down"
+								height={16}
+								width={16}
+								className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+							/>
+						</summary>
+						<p className="mt-2 text-sm text-(--text-secondary)">
+							These rows show markets where {tokenSymbol} itself is borrowed as debt. Current capped markets total{' '}
+							<span className="font-medium text-(--text-primary)">
+								{formatUsd(riskData.borrowCaps.summary.totalBorrowCapUsd)}
+							</span>{' '}
+							of borrow capacity, with{' '}
+							<span className="font-medium text-(--text-primary)">
+								{formatUsd(riskData.borrowCaps.summary.totalBorrowedUsd)}
+							</span>{' '}
+							borrowed and{' '}
+							<span className="font-medium text-(--text-primary)">
+								{formatUsd(riskData.borrowCaps.summary.remainingCapUsd)}
+							</span>{' '}
+							of remaining cap headroom.
+						</p>
+						<p className="mt-2 text-sm text-(--text-secondary)">
+							Borrow cap equals borrowed plus remaining cap headroom.{' '}
+							<span className="font-medium text-(--text-primary)">Available</span> can be lower than cap headroom when
+							pool liquidity or debt ceilings are the tighter constraint.
+						</p>
+						<div className="mt-3">
+							<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
+						</div>
+					</details>
+				) : null}
 			</div>
 		</section>
 	)

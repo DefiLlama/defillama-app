@@ -2,9 +2,11 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
+import { getTokenRiskData } from '~/containers/Token/queries'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLongShortSection } from '~/containers/Token/TokenLongShortSection'
+import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
@@ -26,6 +28,34 @@ type TokenRouteParams = {
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
 	return tokenNk.slice('coingecko:'.length) || null
+}
+
+function createProtocolDisplayNameLookup(
+	protocolMetadata: Record<string, { name?: string; displayName?: string }>
+): Map<string, string> {
+	const lookup = new Map<string, string>()
+
+	for (const metadata of Object.values(protocolMetadata)) {
+		if (!metadata?.name) continue
+		lookup.set(metadata.name, metadata.displayName ?? metadata.name)
+	}
+
+	if (!lookup.has('morpho-blue')) {
+		lookup.set('morpho-blue', 'Morpho Blue')
+	}
+
+	return lookup
+}
+
+function createChainDisplayNameLookup(chainMetadata: Record<string, { name?: string }>): Map<string, string> {
+	const lookup = new Map<string, string>()
+
+	for (const metadata of Object.values(chainMetadata)) {
+		if (!metadata?.name) continue
+		lookup.set(slug(metadata.name), metadata.name)
+	}
+
+	return lookup
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -58,6 +88,7 @@ export const getStaticProps = withPerformanceLogging(
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
+		let tokenRiskData: TokenRiskResponse | null = null
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {
 			const tokenRightsEntries = await fetchTokenRightsData()
@@ -69,6 +100,17 @@ export const getStaticProps = withPerformanceLogging(
 			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata })
 			incomeStatementProtocolName = protocolMetadata.displayName
 			incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
+		}
+
+		if (record.is_yields && geckoId) {
+			tokenRiskData = await getTokenRiskData({
+				geckoId,
+				protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
+				displayLookups: {
+					protocolDisplayNames: createProtocolDisplayNameLookup(metadataCache.protocolMetadata),
+					chainDisplayNames: createChainDisplayNameLookup(metadataCache.chainMetadata)
+				}
+			})
 		}
 
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
@@ -88,6 +130,7 @@ export const getStaticProps = withPerformanceLogging(
 				incomeStatementProtocolName,
 				incomeStatementHasIncentives,
 				geckoId,
+				tokenRiskData,
 				price: tokenEntry?.current_price ?? null,
 				percentChange: tokenEntry?.price_change_percentage_24h ?? null,
 				mcap: tokenEntry?.market_cap ?? null,
@@ -125,7 +168,7 @@ export default function TokenPage({
 	incomeStatementData,
 	incomeStatementProtocolName,
 	incomeStatementHasIncentives,
-	geckoId,
+	tokenRiskData,
 	price,
 	percentChange,
 	mcap,
@@ -164,7 +207,7 @@ export default function TokenPage({
 					<>
 						<TokenYieldsSection tokenSymbol={record.symbol} />
 						<TokenBorrowSection tokenSymbol={record.symbol} />
-						<TokenRisksSection tokenSymbol={record.symbol} geckoId={geckoId} />
+						{tokenRiskData ? <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} /> : null}
 						<TokenLongShortSection tokenSymbol={record.symbol} />
 					</>
 				) : null}

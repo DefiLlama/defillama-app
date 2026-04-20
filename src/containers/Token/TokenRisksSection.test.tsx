@@ -1,12 +1,59 @@
+import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import type { TokenRiskResponse } from './tokenRisk.types'
 
-const createBaseTokenRiskData = () => ({
+vi.mock('~/components/Icon', () => ({
+	Icon: ({ name }: { name: string }) => <span>{name}</span>
+}))
+
+vi.mock('~/components/TokenLogo', () => ({
+	TokenLogo: ({ name }: { name: string }) => <span>{`logo:${name}`}</span>
+}))
+
+vi.mock('~/components/Tooltip', () => ({
+	Tooltip: ({ children, className }: { children: ReactNode; className?: string }) => (
+		<span className={className}>{children}</span>
+	)
+}))
+
+vi.mock('~/components/Table/PaginatedTable', () => ({
+	PaginatedTable: ({
+		table
+	}: {
+		table: {
+			getHeaderGroups: () => Array<{
+				headers: Array<{ id: string; column: { columnDef: { header: unknown; meta?: { headerHelperText?: string } } } }>
+			}>
+			getRowModel: () => { rows: Array<{ original: Record<string, unknown> }> }
+		}
+	}) => (
+		<div>
+			{table
+				.getHeaderGroups()
+				.flatMap((group) =>
+					group.headers.map(
+						(header) =>
+							`${String(header.column.columnDef.header)}|${header.column.columnDef.meta?.headerHelperText ?? ''}`
+					)
+				)
+				.join(',')}
+			{`paginated-table:${table.getRowModel().rows.length}`}
+			{table
+				.getRowModel()
+				.rows.map((row) => `${row.original.protocolDisplayName ?? ''}|${row.original.chainDisplayName ?? ''}`)
+				.join(',')}
+		</div>
+	)
+}))
+
+const createRiskData = (): TokenRiskResponse => ({
 	candidates: [
 		{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' },
 		{ key: 'base:0x8335', chain: 'base', address: '0x8335', displayName: 'Base' }
 	],
 	scopeCandidates: [{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' }],
+	selectedCandidateKey: null,
 	borrowCaps: {
 		summary: {
 			totalBorrowCapUsd: 1000,
@@ -83,155 +130,85 @@ const createBaseTokenRiskData = () => ({
 	limitations: ['Borrow caps are not a full risk rating.']
 })
 
-const tokenRiskState = {
-	data: createBaseTokenRiskData(),
-	error: null as Error | null,
-	isLoading: false
-}
-
-vi.mock('~/components/Icon', () => ({
-	Icon: ({ name }: { name: string }) => <span>{name}</span>
-}))
-
-vi.mock('~/components/TokenLogo', () => ({
-	TokenLogo: ({ name }: { name: string }) => <span>{`logo:${name}`}</span>
-}))
-
-vi.mock('~/components/Loaders', () => ({
-	LocalLoader: () => <div>loader</div>
-}))
-
-vi.mock('~/components/Table/PaginatedTable', () => ({
-	PaginatedTable: ({
-		table
-	}: {
-		table: { getRowModel: () => { rows: Array<{ original: Record<string, unknown> }> } }
-	}) => (
-		<div>
-			{`paginated-table:${table.getRowModel().rows.length}`}
-			{table
-				.getRowModel()
-				.rows.map((row) => `${row.original.protocolDisplayName ?? ''}|${row.original.chainDisplayName ?? ''}`)
-				.join(',')}
-		</div>
-	)
-}))
-
-vi.mock('./useTokenRisk', () => ({
-	useTokenRisk: () => tokenRiskState
-}))
-
-afterEach(() => {
-	tokenRiskState.error = null
-	tokenRiskState.isLoading = false
-	tokenRiskState.data = createBaseTokenRiskData()
-	vi.clearAllMocks()
-})
-
 import { TokenRisksSection } from './TokenRisksSection'
 
 describe('TokenRisksSection', () => {
-	it('shows a loader while token risk data is loading', () => {
-		tokenRiskState.data = undefined
-		tokenRiskState.error = null
-		tokenRiskState.isLoading = true
+	it('renders the debt-side summary from preloaded risk data', () => {
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
-
-		expect(html).toContain('loader')
-		expect(html).toContain('Risks')
-	})
-
-	it('shows a static unsupported state when the token has no CoinGecko id', () => {
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId={null} />)
-
-		expect(html).toContain('no CoinGecko id')
-	})
-
-	it('renders a compact borrow-against summary by default', () => {
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
-
-		expect(html).not.toContain('Borrow Caps')
-		expect(html).not.toContain('Collateral Risk')
 		expect(html).toContain('Total USDC available to borrow')
+		expect(html).toContain('$200')
 		expect(html).toContain('$400 borrowed across these lending markets')
 		expect(html).toContain('Aave V3')
-		expect(html).toContain('$200')
 		expect(html).toContain('$200 available ($400 borrowed / $1,000 cap)')
 		expect(html).toContain('Ethereum')
+		expect(html).toContain('How much USDC is currently available to borrow across lending protocols')
+	})
+
+	it('shows methodology and both detail disclosures when data exists', () => {
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
+
+		expect(html).toContain('Showing debt-side borrowing capacity for USDC on')
+		expect(html).toContain('Borrow caps are not a full risk rating.')
 		expect(html).toContain('Show collateral-side details')
 		expect(html).toContain('Show borrow-cap details')
-		expect(html).toContain('How much USDC is currently available to borrow across lending protocols')
-		expect(html).toContain('Showing debt-side borrowing capacity for USDC on')
 		expect(html).toContain('paginated-table:1')
-		expect(html.indexOf('Total USDC available to borrow')).toBeLessThan(html.indexOf('Show borrow-cap details'))
+		expect(html).toContain('Borrow cap equals borrowed plus remaining cap headroom')
+		expect(html).toContain('Available|Available methodology')
+		expect(html).toContain('Max LTV|Max LTV methodology')
 	})
 
-	it('shows an unsupported resolved-asset state when no candidates are available', () => {
-		tokenRiskState.data = {
-			...tokenRiskState.data,
-			candidates: []
-		}
+	it('uses onchain copy when multiple scoped chains are present', () => {
+		const riskData = createRiskData()
+		riskData.scopeCandidates = riskData.candidates
 
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" riskData={riskData} />)
 
-		expect(html).toContain('does not resolve to a supported lending-market asset')
-	})
-
-	it('falls back to candidates when scopeCandidates is missing', () => {
-		const nextData = createBaseTokenRiskData()
-		delete (nextData as { scopeCandidates?: unknown }).scopeCandidates
-		tokenRiskState.data = nextData
-
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
-
-		expect(html).not.toContain('Scope')
-		expect(html).toContain('Ethereum')
-	})
-
-	it('uses onchain copy when multiple valid chain options exist', () => {
-		tokenRiskState.data = {
-			...createBaseTokenRiskData(),
-			scopeCandidates: createBaseTokenRiskData().candidates
-		}
-
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" geckoId="link" />)
-
-		expect(html).not.toContain('Scope')
-		expect(html).toContain('Showing debt-side borrowing capacity for LINK on')
 		expect(html).toContain('<span class="font-medium text-(--text-primary)">onchain</span>')
 	})
 
-	it('explains why the borrow-caps tab is empty when no debt markets exist', () => {
-		tokenRiskState.data = {
-			...createBaseTokenRiskData(),
-			borrowCaps: {
-				...createBaseTokenRiskData().borrowCaps,
-				summary: {
-					totalBorrowCapUsd: 0,
-					totalBorrowedUsd: 0,
-					remainingCapUsd: 0,
-					capUtilization: null,
-					protocolCount: 0,
-					chainCount: 0,
-					marketCount: 0
-				},
-				rows: []
-			}
+	it('hides empty detail disclosures', () => {
+		const riskData = createRiskData()
+		riskData.collateralRisk.rows = []
+		riskData.collateralRisk.summary = {
+			totalBorrowableUsd: 0,
+			routeCount: 0,
+			isolatedRouteCount: 0,
+			minLiquidationBuffer: null,
+			maxLiquidationBuffer: null
+		}
+		riskData.borrowCaps.rows = []
+		riskData.borrowCaps.summary = {
+			totalBorrowCapUsd: 0,
+			totalBorrowedUsd: 0,
+			remainingCapUsd: 0,
+			capUtilization: null,
+			protocolCount: 0,
+			chainCount: 0,
+			marketCount: 0
 		}
 
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="AAVE" geckoId="aave" />)
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="AAVE" riskData={riskData} />)
 
+		expect(html).not.toContain('Show collateral-side details')
 		expect(html).not.toContain('Show borrow-cap details')
 	})
 
-	it('explains borrow-cap math inside the debt-side disclosure', () => {
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
+	it('returns nothing when there are no debt-side protocol summaries', () => {
+		const riskData = createRiskData()
+		riskData.borrowCaps.rows = []
+		riskData.borrowCaps.summary = {
+			totalBorrowCapUsd: 0,
+			totalBorrowedUsd: 0,
+			remainingCapUsd: 0,
+			capUtilization: null,
+			protocolCount: 0,
+			chainCount: 0,
+			marketCount: 0
+		}
 
-		expect(html).toContain('Current capped markets total')
-		expect(html).toContain('$1,000')
-		expect(html).toContain('$400')
-		expect(html).toContain('$600')
-		expect(html).toContain('Borrow cap equals borrowed plus remaining cap headroom')
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="AAVE" riskData={riskData} />)
+
+		expect(html).toBe('')
 	})
 })

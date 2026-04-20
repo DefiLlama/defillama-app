@@ -11,6 +11,7 @@ import {
 	TokenPageTableShell
 } from '~/components/Table/helpers'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { Tooltip } from '~/components/Tooltip'
 
 interface PaginatedTableProps<T extends RowData> {
 	table: ReactTable<T>
@@ -18,6 +19,45 @@ interface PaginatedTableProps<T extends RowData> {
 }
 
 const DisplayRowNumbersContext = createContext<Map<string, number> | null>(null)
+
+function HeaderWithTooltip({
+	children,
+	content,
+	onClick
+}: {
+	children: React.ReactNode
+	content?: string
+	onClick: ((event: React.MouseEvent<HTMLElement>) => void) | null
+}) {
+	if (onClick) {
+		if (!content) {
+			return (
+				<button type="button" onClick={onClick} className="inline-flex items-center gap-1 whitespace-nowrap">
+					{children}
+				</button>
+			)
+		}
+
+		return (
+			<Tooltip
+				content={content}
+				className="underline decoration-dotted"
+				render={<button type="button" className="inline-flex items-center gap-1 whitespace-nowrap" />}
+				onClick={onClick}
+			>
+				{children}
+			</Tooltip>
+		)
+	}
+
+	if (!content) return <>{children}</>
+
+	return (
+		<Tooltip content={content} className="underline decoration-dotted">
+			{children}
+		</Tooltip>
+	)
+}
 
 export function usePaginatedTableDisplayRowNumber(rowId: string) {
 	return useContext(DisplayRowNumbersContext)?.get(rowId)
@@ -50,21 +90,21 @@ export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: Pa
 
 											return (
 												<TokenPageTableHeaderCell key={header.id} textAlign={align} minWidth={minWidth}>
-													{header.isPlaceholder ? null : header.column.getCanSort() ? (
-														<button
-															type="button"
-															onClick={header.column.getToggleSortingHandler()}
-															className="inline-flex items-center gap-1 whitespace-nowrap"
+													{header.isPlaceholder ? null : (
+														<div
 															style={{
 																marginLeft: align === 'end' || align === 'center' ? 'auto' : undefined,
 																marginRight: align === 'center' ? 'auto' : undefined
 															}}
 														>
-															{flexRender(header.column.columnDef.header, header.getContext())}
-															<SortIcon dir={header.column.getIsSorted()} />
-														</button>
-													) : (
-														flexRender(header.column.columnDef.header, header.getContext())
+															<HeaderWithTooltip
+																content={header.column.columnDef.meta?.headerHelperText}
+																onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : null}
+															>
+																{flexRender(header.column.columnDef.header, header.getContext())}
+																{header.column.getCanSort() ? <SortIcon dir={header.column.getIsSorted()} /> : null}
+															</HeaderWithTooltip>
+														</div>
 													)}
 												</TokenPageTableHeaderCell>
 											)
