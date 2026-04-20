@@ -6,7 +6,7 @@ import {
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table'
-import { startTransition, useMemo, useState } from 'react'
+import { startTransition, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
@@ -351,7 +351,27 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 		if (!selectedCandidateKey) return 'All chains'
 		return data?.candidates.find((candidate) => candidate.key === selectedCandidateKey)?.displayName ?? 'Selected chain'
 	}, [data?.candidates, selectedCandidateKey])
-	const scopeCandidates = data?.scopeCandidates ?? data?.candidates ?? []
+	const scopeCandidates = useMemo(() => {
+		if (!data) return []
+		if (data.scopeCandidates) return data.scopeCandidates
+
+		const chainsWithVisibleRows = new Set<string>()
+		for (const row of data.borrowCaps?.rows ?? []) chainsWithVisibleRows.add(row.chain)
+		for (const row of data.collateralRisk?.rows ?? []) chainsWithVisibleRows.add(row.chain)
+
+		return (data.candidates ?? []).filter((candidate) => chainsWithVisibleRows.has(candidate.chain))
+	}, [data])
+
+	useEffect(() => {
+		if (!selectedCandidateKey || scopeCandidates.length === 0) return
+		if (scopeCandidates.some((candidate) => candidate.key === selectedCandidateKey)) return
+
+		startTransition(() => {
+			setSelectedCandidateKey(null)
+			setBorrowCapsPagination((prev) => ({ ...prev, pageIndex: 0 }))
+			setCollateralRiskPagination((prev) => ({ ...prev, pageIndex: 0 }))
+		})
+	}, [scopeCandidates, selectedCandidateKey])
 
 	const activeMethodologyItems = useMemo(() => {
 		if (!data) return []

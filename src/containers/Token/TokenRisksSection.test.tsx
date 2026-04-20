@@ -183,7 +183,7 @@ describe('TokenRisksSection', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
 
 		expect(html).toContain('All chains')
-		expect(html).toContain('Base')
+		expect(html).toContain('Ethereum')
 	})
 
 	it('explains why the borrow-caps tab is empty when no debt markets exist', () => {

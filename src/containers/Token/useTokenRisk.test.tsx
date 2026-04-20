@@ -19,7 +19,7 @@ describe('useTokenRisk', () => {
 
 		expect(useQuery).toHaveBeenCalledWith(
 			expect.objectContaining({
-				queryKey: ['token-risk', 'usdc', 'all'],
+				queryKey: ['token-risk', 2, 'usdc', 'all'],
 				staleTime: 5 * 60 * 1000,
 				refetchOnWindowFocus: false,
 				retry: false,
