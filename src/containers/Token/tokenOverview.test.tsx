@@ -22,6 +22,17 @@ const mocks = vi.hoisted(() => ({
 	fetchJson: vi.fn()
 }))
 
+let routerState = {
+	pathname: '/token/[token]',
+	query: {} as Record<string, string | string[]>,
+	push: vi.fn()
+}
+let lastProtocolChartProps: any = null
+
+vi.mock('next/router', () => ({
+	useRouter: () => routerState
+}))
+
 vi.mock('~/api/coingecko', () => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback
 }))
@@ -51,7 +62,10 @@ vi.mock('~/utils/async', () => ({
 }))
 
 vi.mock('~/containers/ProtocolOverview/Chart', () => ({
-	default: () => <div>protocol-chart</div>
+	default: (props: any) => {
+		lastProtocolChartProps = props
+		return <div>protocol-chart</div>
+	}
 }))
 
 const tokenEntryFixture: ITokenListEntry = {
@@ -172,6 +186,12 @@ const overviewFixture: TokenOverviewData = {
 
 beforeEach(() => {
 	vi.clearAllMocks()
+	routerState = {
+		pathname: '/token/[token]',
+		query: {},
+		push: vi.fn()
+	}
+	lastProtocolChartProps = null
 	mocks.fetchCoinGeckoChartByIdWithCacheFallback.mockResolvedValue(cgChartFixture)
 	mocks.fetchProtocolOverviewMetrics.mockResolvedValue({ id: 'proto-data' })
 	mocks.fetchRaises.mockResolvedValue({
@@ -438,6 +458,28 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('DEX Volume')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
 		expect(html).toContain('protocol-chart')
+	})
+
+	it('reads chart grouping and metric selection from the URL query', () => {
+		routerState.query = {
+			chartGroup: 'weekly',
+			chart: 'Token Volume'
+		}
+
+		renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+
+		expect(lastProtocolChartProps.groupBy).toBe('weekly')
+		expect(Object.keys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
+	})
+
+	it('falls back to the default charts when query metrics are unavailable for the current token', () => {
+		routerState.query = {
+			chart: ['FDV', 'Mcap']
+		}
+
+		renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+
+		expect(Object.keys(lastProtocolChartProps.chartData)).toEqual(['Token Price'])
 	})
 
 	it('shows a graceful fallback when market chart data is unavailable', () => {

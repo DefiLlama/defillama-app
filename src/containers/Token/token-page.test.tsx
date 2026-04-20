@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
+import { getTokenStrategiesData } from '~/containers/Token/tokenStrategies.server'
+import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
+import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -675,6 +679,71 @@ describe('token page', () => {
 		expect(result.props.tokenRiskData).toBeNull()
 		expect(result.props.initialYieldsRows).toEqual(state.initialYieldsRows)
 		expect(result.props.initialTokenStrategiesData).toEqual(state.initialTokenStrategiesData)
+		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
+
+		consoleErrorSpy.mockRestore()
+	})
+
+	it('getStaticProps keeps the page renderable when optional token fetches fail', async () => {
+		state.tokensJson = {
+			link: {
+				name: 'Chainlink',
+				symbol: 'LINK',
+				token_nk: 'coingecko:chainlink',
+				protocolId: 'parent#chainlink',
+				tokenRights: true,
+				is_yields: true
+			}
+		}
+		state.protocolMetadata = {
+			'parent#chainlink': {
+				name: 'chainlink',
+				displayName: 'Chainlink',
+				incentives: true
+			} as IProtocolMetadata
+		}
+		state.tokenlist = {
+			chainlink: {
+				symbol: 'link',
+				current_price: 10,
+				price_change_percentage_24h: 10,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.mocked(fetchTokenRightsData).mockRejectedValueOnce(new Error('token rights failed'))
+		vi.mocked(getProtocolIncomeStatement).mockRejectedValueOnce(new Error('income failed'))
+		vi.mocked(getTokenYieldsRows).mockRejectedValueOnce(new Error('yields failed'))
+		vi.mocked(getTokenStrategiesData).mockRejectedValueOnce(new Error('strategies failed'))
+		vi.mocked(getTokenRiskData).mockRejectedValueOnce(new Error('risk failed'))
+
+		const result = await getStaticProps({ params: { token: 'link' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.tokenRightsData).toBeNull()
+		expect(result.props.incomeStatementData).toBeNull()
+		expect(result.props.incomeStatementProtocolName).toBeNull()
+		expect(result.props.incomeStatementHasIncentives).toBe(false)
+		expect(result.props.initialYieldsRows).toEqual([])
+		expect(result.props.initialTokenStrategiesData).toBeNull()
+		expect(result.props.tokenRiskData).toBeNull()
+		expect(consoleErrorSpy).toHaveBeenCalledWith(
+			'Failed to load token rights data for parent#chainlink',
+			expect.any(Error)
+		)
+		expect(consoleErrorSpy).toHaveBeenCalledWith(
+			'Failed to load income statement data for Chainlink',
+			expect.any(Error)
+		)
+		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token yields data for LINK', expect.any(Error))
+		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token strategies data for LINK', expect.any(Error))
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
 
 		consoleErrorSpy.mockRestore()

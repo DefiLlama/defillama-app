@@ -110,15 +110,30 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {
-			const tokenRightsEntries = await fetchTokenRightsData()
-			const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
-			tokenRightsData = rawEntry ? parseTokenRightsEntry(rawEntry) : null
+			tokenRightsData = await (async () => {
+				try {
+					const tokenRightsEntries = await fetchTokenRightsData()
+					const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
+					return rawEntry ? parseTokenRightsEntry(rawEntry) : null
+				} catch (error) {
+					console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
+					return null
+				}
+			})()
 		}
 
 		if (protocolMetadata) {
-			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata })
-			incomeStatementProtocolName = protocolMetadata.displayName
-			incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
+			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata }).catch((error) => {
+				console.error(
+					`Failed to load income statement data for ${protocolMetadata.displayName ?? protocolMetadata.name ?? record.name}`,
+					error
+				)
+				return null
+			})
+			if (incomeStatementData) {
+				incomeStatementProtocolName = protocolMetadata.displayName
+				incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
+			}
 		}
 
 		if (record.is_yields) {
@@ -137,8 +152,14 @@ export const getStaticProps = withPerformanceLogging(
 				: Promise.resolve(null)
 
 			const [yieldsRows, tokenStrategiesData, riskData] = await Promise.all([
-				getTokenYieldsRows(record.symbol),
-				getTokenStrategiesData(record.symbol),
+				getTokenYieldsRows(record.symbol).catch((error) => {
+					console.error(`Failed to load token yields data for ${record.symbol}`, error)
+					return []
+				}),
+				getTokenStrategiesData(record.symbol).catch((error) => {
+					console.error(`Failed to load token strategies data for ${record.symbol}`, error)
+					return null
+				}),
 				tokenRiskPromise
 			])
 			initialYieldsRows = yieldsRows

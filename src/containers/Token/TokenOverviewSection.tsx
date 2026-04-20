@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import {
@@ -14,6 +15,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import ProtocolChart from '~/containers/ProtocolOverview/Chart'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import {
 	buildDisplayedTokenChartData,
 	TOKEN_OVERVIEW_DEFAULT_CHARTS,
@@ -41,6 +43,8 @@ const MAX_SUPPLY_TOOLTIP = 'Max supply is the maximum number of tokens that can 
 const MARKET_CAP_TOOLTIP = 'Market cap is calculated by multiplying the circulating supply by the current token price.'
 const VOLUME_24H_TOOLTIP = 'Volume 24h is the total dollar value traded across tracked markets over the last 24 hours.'
 const TREASURY_TOOLTIP = 'Treasury is the value of assets held by the entity issuing or stewarding this token.'
+const TOKEN_OVERVIEW_CHART_QUERY_KEY = 'chart'
+const TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY = 'chartGroup'
 
 function formatCurrency(value: number | null | undefined) {
 	if (value == null) return 'N/A'
@@ -75,6 +79,23 @@ function getChartLabel(label: TokenOverviewChartLabel, symbol: string) {
 	}
 
 	return label
+}
+
+function isTokenOverviewChartLabel(value: string): value is TokenOverviewChartLabel {
+	return TOKEN_OVERVIEW_CHART_ORDER.includes(value as TokenOverviewChartLabel)
+}
+
+function normalizeTokenOverviewChartGrouping(value: string | undefined): LowercaseDwmcGrouping {
+	const normalizedValue = value?.toLowerCase()
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+
+	return 'daily'
+}
+
+function areTokenOverviewChartsEqual(a: TokenOverviewChartLabel[], b: TokenOverviewChartLabel[]) {
+	return a.length === b.length && a.every((value, index) => value === b[index])
 }
 
 function TokenHeader({
@@ -128,9 +149,10 @@ function TokenHeader({
 						{overview.marketData.ath != null ? (
 							<SubMetricRow
 								label="All Time High"
+								className="items-end"
 								extra={
 									formatDateLabel(overview.marketData.athDate) ? (
-										<span className="ml-auto text-xs text-(--text-tertiary)">
+										<span className="ml-auto self-end text-xs text-(--text-tertiary)">
 											{formatDateLabel(overview.marketData.athDate)}
 										</span>
 									) : null
@@ -142,9 +164,10 @@ function TokenHeader({
 						{overview.marketData.atl != null ? (
 							<SubMetricRow
 								label="All Time Low"
+								className="items-end"
 								extra={
 									formatDateLabel(overview.marketData.atlDate) ? (
-										<span className="ml-auto text-xs text-(--text-tertiary)">
+										<span className="ml-auto self-end text-xs text-(--text-tertiary)">
 											{formatDateLabel(overview.marketData.atlDate)}
 										</span>
 									) : null
@@ -276,18 +299,38 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 }
 
 function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; geckoId: string | null }) {
+	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
-	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>('daily')
 	const availableCharts = useMemo(
 		() => TOKEN_OVERVIEW_CHART_ORDER.filter((label) => (overview.rawChartData[label]?.length ?? 0) > 0),
 		[overview.rawChartData]
 	)
-	const [activeCharts, setActiveCharts] = useState<TokenOverviewChartLabel[]>(() => {
+	const defaultCharts = useMemo(() => {
 		const defaultCharts = TOKEN_OVERVIEW_DEFAULT_CHARTS.filter(
 			(label) => (overview.rawChartData[label]?.length ?? 0) > 0
 		)
 		return defaultCharts.length > 0 ? defaultCharts : availableCharts.slice(0, 1)
-	})
+	}, [availableCharts, overview.rawChartData])
+	const groupBy = normalizeTokenOverviewChartGrouping(
+		readSingleQueryValue(router.query[TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY])
+	)
+	const selectedChartsQuery = router.query[TOKEN_OVERVIEW_CHART_QUERY_KEY] as string | string[] | undefined
+	const activeCharts = useMemo(() => {
+		if (selectedChartsQuery === 'None') {
+			return []
+		}
+
+		const availableChartsSet = new Set(availableCharts)
+		const queryCharts = toNonEmptyArrayParam(selectedChartsQuery).filter(
+			(chart): chart is TokenOverviewChartLabel => isTokenOverviewChartLabel(chart) && availableChartsSet.has(chart)
+		)
+
+		if (selectedChartsQuery != null) {
+			return queryCharts.length > 0 ? queryCharts : defaultCharts
+		}
+
+		return defaultCharts
+	}, [availableCharts, defaultCharts, selectedChartsQuery])
 	const metricsDialogStore = Ariakit.useDialogStore()
 	const [metricsSearchValue, setMetricsSearchValue] = useState('')
 	const deferredMetricsSearchValue = useDeferredValue(metricsSearchValue)
@@ -315,6 +358,28 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [activeCharts, availableCharts, deferredMetricsSearchValue, overview.symbol])
+
+	const setGroupBy = (nextGroupBy: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, {
+			[TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY]: nextGroupBy === 'daily' ? undefined : nextGroupBy
+		})
+	}
+
+	const setActiveCharts = (nextCharts: TokenOverviewChartLabel[]) => {
+		const availableChartsSet = new Set(availableCharts)
+		const normalizedCharts = nextCharts.filter(
+			(chart, index, charts) => availableChartsSet.has(chart) && charts.indexOf(chart) === index
+		)
+
+		void pushShallowQuery(router, {
+			[TOKEN_OVERVIEW_CHART_QUERY_KEY]:
+				normalizedCharts.length === 0
+					? 'None'
+					: areTokenOverviewChartsEqual(normalizedCharts, defaultCharts)
+						? undefined
+						: normalizedCharts
+		})
+	}
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -359,10 +424,10 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 										key={`token-chart-option-${option.id}`}
 										type="button"
 										onClick={() => {
-											setActiveCharts((current) =>
-												current.includes(option.id)
-													? current.filter((value) => value !== option.id)
-													: [...current, option.id]
+											setActiveCharts(
+												activeCharts.includes(option.id)
+													? activeCharts.filter((value) => value !== option.id)
+													: [...activeCharts, option.id]
 											)
 											metricsDialogStore.toggle()
 										}}
@@ -388,7 +453,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 					<button
 						key={chart}
 						type="button"
-						onClick={() => setActiveCharts((current) => current.filter((value) => value !== chart))}
+						onClick={() => setActiveCharts(activeCharts.filter((value) => value !== chart))}
 						className="flex items-center gap-1 rounded-full border-2 px-2 py-1 text-xs"
 						style={{ borderColor: TOKEN_OVERVIEW_CHART_COLORS[chart] }}
 					>
