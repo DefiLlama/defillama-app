@@ -6,48 +6,23 @@ import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
-import { getPercentChange } from '~/utils'
+import { getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { ChainChartLabels } from './constants'
 
-const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
-
 /**
  * Get TVL values for 24h change calculation.
- * Finds timestamps that are at least 24 hours apart (not just consecutive entries).
- * Returns null for tvlPrevDay if chart data is stale (last update > 24 hours ago).
+ * Only returns a previous-day value when the chart has current-day data and
+ * a point inside the exact previous UTC day window.
  */
 const getTvl24hChange = (
 	chart: Array<[number, number]>,
 	now: number
 ): { totalValueUSD: number | null; tvlPrevDay: number | null } => {
-	if (!chart || chart.length === 0) {
-		return { totalValueUSD: null, tvlPrevDay: null }
+	return {
+		totalValueUSD: getPrevTvlFromChart(chart, 0, now),
+		tvlPrevDay: getPrevTvlFromChart(chart, 1, now)
 	}
-
-	const lastEntry = chart[chart.length - 1]
-	if (!lastEntry) {
-		return { totalValueUSD: null, tvlPrevDay: null }
-	}
-
-	const [lastTimestamp, lastValue] = lastEntry
-
-	// Check if data is stale (last timestamp is more than 24 hours old)
-	if (now - lastTimestamp > TWENTY_FOUR_HOURS_IN_MS) {
-		return { totalValueUSD: lastValue, tvlPrevDay: null }
-	}
-
-	// Find an entry that is at least 24 hours before the last entry
-	let tvlPrevDay: number | null = null
-	for (let i = chart.length - 2; i >= 0; i--) {
-		const [timestamp, value] = chart[i]
-		if (lastTimestamp - timestamp >= TWENTY_FOUR_HOURS_IN_MS) {
-			tvlPrevDay = value
-			break
-		}
-	}
-
-	return { totalValueUSD: lastValue, tvlPrevDay }
 }
 
 const normalizeActivityChart = (values: Array<[number, number]> | null): Array<[number, number]> | null =>
