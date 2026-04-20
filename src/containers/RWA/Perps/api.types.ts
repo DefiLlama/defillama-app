@@ -4,9 +4,11 @@ export interface IRWAPerpsMarket {
 	contract: string
 	venue: string
 	openInterest: number
+	openInterestChange24h?: number | null
 	volume24h: number
+	volume24hChange24h?: number | null
 	price: number
-	priceChange24h: number
+	priceChange24h: number | null
 	fundingRate: number
 	premium: number
 	cumulativeFunding: number

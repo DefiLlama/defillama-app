@@ -6,6 +6,38 @@ function toUnixMsTimestamp(timestamp: number): number {
 	return timestamp > 1e12 ? timestamp : timestamp * 1e3
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function getUtcStartOfDay(timestamp: number): number {
+	const date = new Date(timestamp)
+	return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+}
+
+function sumChartRow(row: IRWAPerpsBreakdownChartResponse[number] | null): number | null {
+	if (!row) return null
+
+	let total = 0
+	for (const key in row) {
+		if (key === 'timestamp') continue
+		total += row[key]
+	}
+
+	return total > 0 ? total : null
+}
+
+function getLatestRowInWindow(
+	rows: IRWAPerpsBreakdownChartResponse,
+	windowStart: number,
+	windowEnd: number
+): IRWAPerpsBreakdownChartResponse[number] | null {
+	for (let index = rows.length - 1; index >= 0; index--) {
+		const row = rows[index]
+		if (row.timestamp >= windowStart && row.timestamp < windowEnd) return row
+	}
+
+	return null
+}
+
 export function normalizeRWAPerpsBreakdownChartRows(
 	rows: IRWAPerpsBreakdownChartResponse | null
 ): IRWAPerpsBreakdownChartResponse {
@@ -54,28 +86,23 @@ export function toRWAPerpsBreakdownChartDataset(
 	}
 }
 
-export function getRWAPerpsBreakdownChartSnapshotTotals(rows: IRWAPerpsBreakdownChartResponse | null): {
+export function getRWAPerpsBreakdownChartSnapshotTotals(
+	rows: IRWAPerpsBreakdownChartResponse | null,
+	currentTimeMs: number = Date.now()
+): {
 	latestTotal: number | null
 	previousTotal: number | null
 } {
 	if (!rows || rows.length === 0) return { latestTotal: null, previousTotal: null }
 
 	const normalizedRows = normalizeRWAPerpsBreakdownChartRows(rows)
-	const latestRow = normalizedRows[normalizedRows.length - 1]
-	const previousRow = normalizedRows.length > 1 ? normalizedRows[normalizedRows.length - 2] : null
-
-	const sumRow = (row: IRWAPerpsBreakdownChartResponse[number] | null) => {
-		if (!row) return null
-		let total = 0
-		for (const key in row) {
-			if (key === 'timestamp') continue
-			total += row[key]
-		}
-		return total > 0 ? total : null
-	}
+	const todayStart = getUtcStartOfDay(currentTimeMs)
+	const yesterdayStart = todayStart - DAY_MS
+	const latestRow = getLatestRowInWindow(normalizedRows, todayStart, todayStart + DAY_MS)
+	const previousRow = latestRow ? getLatestRowInWindow(normalizedRows, yesterdayStart, todayStart) : null
 
 	return {
-		latestTotal: sumRow(latestRow),
-		previousTotal: sumRow(previousRow)
+		latestTotal: sumChartRow(latestRow),
+		previousTotal: sumChartRow(previousRow)
 	}
 }

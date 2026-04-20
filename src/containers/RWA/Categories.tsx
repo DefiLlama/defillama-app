@@ -45,35 +45,35 @@ const columns = [
 		},
 		size: 240
 	}),
-	columnHelper.accessor('assetIssuers', {
+	columnHelper.accessor((row) => row.assetIssuers ?? undefined, {
 		id: 'assetIssuers',
 		header: definitions.totalAssetIssuers.label,
 		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
 		size: 168
 	}),
-	columnHelper.accessor('assetCount', {
+	columnHelper.accessor((row) => row.assetCount ?? undefined, {
 		id: 'assetCount',
 		header: definitions.totalAssetCount.label,
 		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 160
 	}),
-	columnHelper.accessor('activeMcap', {
+	columnHelper.accessor((row) => row.activeMcap ?? undefined, {
 		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
 		size: 200
 	}),
-	columnHelper.accessor('onChainMcap', {
+	columnHelper.accessor((row) => row.onChainMcap ?? undefined, {
 		id: 'onChainMcap',
 		header: definitions.totalOnChainMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 208
 	}),
-	columnHelper.accessor('defiActiveTvl', {
+	columnHelper.accessor((row) => row.defiActiveTvl ?? undefined, {
 		id: 'defiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
 		cell: (info) => formattedNum(info.getValue(), true),

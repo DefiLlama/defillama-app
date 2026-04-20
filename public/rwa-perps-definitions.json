@@ -110,9 +110,17 @@
 		"label": "Open Interest",
 		"description": "Total USD value of outstanding perpetual contracts that have not been settled or closed."
 	},
+	"openInterestChange24h": {
+		"label": "24h OI Change",
+		"description": "Percentage change in open interest over the last 24 hours."
+	},
 	"volume24h": {
 		"label": "24h Volume",
 		"description": "Total USD notional volume traded on this contract in the last 24 hours."
+	},
+	"volume24hChange24h": {
+		"label": "24h Volume Change",
+		"description": "Percentage change in 24-hour notional trading volume versus 24 hours ago."
 	},
 	"price": {
 		"label": "Price",
