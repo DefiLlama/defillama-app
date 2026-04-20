@@ -200,4 +200,58 @@ describe('TokenYieldsSection', () => {
 		expect(html).toContain('No pools match current filters')
 		expect(html).not.toContain('yields-table:')
 	})
+
+	it('uses canonical token matching for include filters without substring false positives', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'USDC-LINK',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+		yieldsQueryState = {
+			...yieldsQueryState,
+			includeTokens: ['IN']
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="LINK" />)
+
+		expect(html).toContain('No pools matching filters')
+		expect(html).not.toContain('yields-table:1')
+	})
+
+	it('uses cached canonical token variants for exclude filters', () => {
+		queryState = {
+			data: [
+				{
+					pool: 'WBTC-ETH',
+					project: 'Aave',
+					projectslug: 'aave',
+					configID: 'pool-1',
+					chains: ['Ethereum'],
+					tvl: 1000000,
+					apy: 5.1
+				}
+			],
+			error: null,
+			isLoading: false
+		}
+		yieldsQueryState = {
+			...yieldsQueryState,
+			excludeTokens: ['BTC']
+		}
+
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="BTC" />)
+
+		expect(html).toContain('No pools matching filters')
+		expect(html).not.toContain('yields-table:1')
+	})
 })

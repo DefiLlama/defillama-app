@@ -14,7 +14,8 @@ import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
+import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
+import { extractPoolTokens } from '~/containers/Yields/utils'
 import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { DEFAULT_TABLE_PLACEHOLDER_MIN_HEIGHT } from './tableUtils'
@@ -61,6 +62,14 @@ interface TokenYieldsSectionProps {
 	tokenSymbol: string
 }
 
+function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants: Set<string>) {
+	for (const tokenVariant of tokenVariants) {
+		if (poolTokenVariants.has(tokenVariant)) return true
+	}
+
+	return false
+}
+
 export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	const router = useRouter()
 	const {
@@ -77,9 +86,17 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	})
 	const poolsList = React.useMemo(() => rows ?? [], [rows])
 	const { data: volatility } = useVolatility()
-	const { data: holderStats } = useHolderStats(poolsList.map((pool) => pool.configID))
+	const holderStatsConfigIds = React.useMemo(
+		() => poolsList.map((pool) => pool.configID).filter((configID): configID is string => Boolean(configID)),
+		[poolsList]
+	)
+	const { data: holderStats } = useHolderStats(holderStatsConfigIds)
 
-	const chainList = React.useMemo(() => [...new Set(poolsList.map((pool) => pool.chains[0]))].sort(), [poolsList])
+	const chainList = React.useMemo(
+		() =>
+			[...new Set(poolsList.map((pool) => pool.chains[0]).filter((chain): chain is string => Boolean(chain)))].sort(),
+		[poolsList]
+	)
 
 	const tokensList = React.useMemo(
 		() =>
@@ -95,9 +112,13 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 		excludeTokenQueryKey: 'yieldExcludeToken'
 	})
 
+	const includeTokenVariantSets = React.useMemo(() => includeTokens.map(getYieldTokenVariantSet), [includeTokens])
+	const excludeTokenVariantSets = React.useMemo(() => excludeTokens.map(getYieldTokenVariantSet), [excludeTokens])
+
 	const poolsWithVolatility = React.useMemo(() => {
 		return poolsList.map((pool) => ({
 			...pool,
+			yieldTokenVariants: getYieldPoolTokenVariantSet(pool.pool),
 			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
 			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
 			cv30d: volatility?.[pool.configID]?.[3] ?? null,
@@ -118,17 +139,20 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 		}
 
 		if (includeTokens.length > 0) {
-			pools = pools.filter((pool) => {
-				const poolTokens = extractPoolTokens(pool.pool)
-				return includeTokens.some((token) => poolTokens.some((poolToken) => poolToken.includes(normalizeToken(token))))
-			})
+			pools = pools.filter((pool) =>
+				includeTokenVariantSets.some((tokenVariants) =>
+					poolMatchesSelectedToken(pool.yieldTokenVariants, tokenVariants)
+				)
+			)
 		}
 
 		if (excludeTokens.length > 0) {
-			pools = pools.filter((pool) => {
-				const poolTokens = new Set(extractPoolTokens(pool.pool))
-				return !excludeTokens.some((token) => poolTokens.has(normalizeToken(token)))
-			})
+			pools = pools.filter(
+				(pool) =>
+					!excludeTokenVariantSets.some((tokenVariants) =>
+						poolMatchesSelectedToken(pool.yieldTokenVariants, tokenVariants)
+					)
+			)
 		}
 
 		if (minTvl != null) {
@@ -139,17 +163,19 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 		}
 
 		if (minApy != null) {
-			pools = pools.filter((pool) => pool.apy != null && pool.apy > minApy)
+			pools = pools.filter((pool) => pool.apy != null && pool.apy >= minApy)
 		}
 		if (maxApy != null) {
-			pools = pools.filter((pool) => pool.apy != null && pool.apy < maxApy)
+			pools = pools.filter((pool) => pool.apy != null && pool.apy <= maxApy)
 		}
 
 		return pools
 	}, [
 		chainList.length,
-		excludeTokens,
-		includeTokens,
+		excludeTokenVariantSets,
+		includeTokenVariantSets,
+		excludeTokens.length,
+		includeTokens.length,
 		maxApy,
 		maxTvl,
 		minApy,
@@ -170,7 +196,10 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 		}
 	}, [filteredPools])
 
-	const hasActiveFilters = FILTER_QUERY_PARAMS.some((key) => router.query[key] != null && router.query[key] !== '')
+	const hasActiveFilters = FILTER_QUERY_PARAMS.some((key) => {
+		const value = router.query[key]
+		return Array.isArray(value) ? value.length > 0 : value != null && value !== ''
+	})
 
 	const resetFilters = () => {
 		const updates: Record<string, undefined> = {}

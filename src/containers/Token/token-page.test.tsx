@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 
@@ -8,6 +9,54 @@ afterEach(() => {
 	vi.clearAllMocks()
 	vi.resetModules()
 })
+
+const tokenRightsFixture: ITokenRightsData = {
+	overview: {
+		protocolName: 'Bitcoin',
+		tokens: ['BTC'],
+		tokenTypes: ['Governance'],
+		description: 'desc',
+		utility: null,
+		lastUpdated: null
+	},
+	governance: {
+		summary: 'gov summary',
+		decisionTokens: ['BTC'],
+		details: null,
+		links: []
+	},
+	decisions: {
+		treasury: { tokens: ['BTC'], details: null },
+		revenue: { tokens: ['N/A'], details: null }
+	},
+	economic: {
+		summary: null,
+		feeSwitchStatus: 'OFF',
+		feeSwitchDetails: null,
+		links: []
+	},
+	valueAccrual: {
+		primary: null,
+		details: null,
+		buybacks: { tokens: ['N/A'], details: null },
+		dividends: { tokens: ['N/A'], details: null },
+		burns: { status: 'N/A', details: null }
+	},
+	alignment: {
+		fundraising: [],
+		raiseDetails: null,
+		associatedEntities: [],
+		equityRevenueCapture: null,
+		equityStatement: null,
+		ipAndBrand: null,
+		domain: null,
+		links: []
+	},
+	resources: {
+		addresses: [],
+		reports: []
+	}
+}
 
 function setupPageModule({
 	tokensJson = {
@@ -100,7 +149,7 @@ describe('token page', () => {
 			<page.default
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true, is_yields: true }}
 				displayName="BTC"
-				tokenRightsData={{}}
+				tokenRightsData={tokenRightsFixture}
 				incomeStatementData={{ data: {} }}
 				incomeStatementProtocolName="Bitcoin Protocol"
 				incomeStatementHasIncentives={false}

@@ -20,6 +20,10 @@ function tokenQueryUpdates(
 	queryKey: string,
 	excludeQueryKey: string
 ): Record<string, string | string[] | undefined> {
+	if (process.env.NODE_ENV !== 'production' && queryKey === excludeQueryKey) {
+		throw new Error('tokenQueryUpdates requires distinct queryKey and excludeQueryKey values')
+	}
+
 	if (values.length === 0) {
 		return { [queryKey]: undefined, [excludeQueryKey]: undefined }
 	}
