@@ -1,5 +1,6 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
+import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, TOKEN_DIRECTORY_API } from '~/constants'
 import { getErrorMessage } from '~/utils/error'
+import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import type {
 	ICategoriesAndTags,
@@ -102,6 +103,7 @@ export async function fetchCoreMetadata({
 	rwaList: IRWAList
 	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
+	tokenDirectory: TokenDirectory
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -138,34 +140,44 @@ export async function fetchCoreMetadata({
 				})
 			: fetchJson<T>(url)
 
-	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, rwaPerpsList, tokenlistArray, bridgesResponse] =
-		await Promise.all([
-			fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
-			fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
-			fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
-				categories: [],
-				tags: [],
-				tagCategoryMap: {}
-			}),
-			fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
-			fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
-				canonicalMarketIds: [],
-				platforms: [],
-				chains: [],
-				categories: [],
-				assetGroups: [],
-				idMap: {}
-			}),
-			fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
-				contracts: [],
-				venues: [],
-				categories: [],
-				assetGroups: [],
-				total: 0
-			}),
-			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
-			fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
-		])
+	const [
+		protocols,
+		chains,
+		categoriesAndTags,
+		cexsResponse,
+		rwaList,
+		rwaPerpsList,
+		tokenlistArray,
+		tokenDirectory,
+		bridgesResponse
+	] = await Promise.all([
+		fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
+		fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
+		fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
+			categories: [],
+			tags: [],
+			tagCategoryMap: {}
+		}),
+		fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
+		fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
+			canonicalMarketIds: [],
+			platforms: [],
+			chains: [],
+			categories: [],
+			assetGroups: [],
+			idMap: {}
+		}),
+		fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
+			contracts: [],
+			venues: [],
+			categories: [],
+			assetGroups: [],
+			total: 0
+		}),
+		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
+		fetchWithDevFallback<TokenDirectory>(TOKEN_DIRECTORY_API, {}),
+		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
+	])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -232,6 +244,7 @@ export async function fetchCoreMetadata({
 		rwaList,
 		rwaPerpsList,
 		tokenlist,
+		tokenDirectory,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,

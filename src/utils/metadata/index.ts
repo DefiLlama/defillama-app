@@ -1,3 +1,4 @@
+import type { TokenDirectory } from '~/utils/tokenDirectory'
 import bridgeChainSlugsRaw from '../../../.cache/bridgeChainSlugs.json'
 import bridgeChainSlugToNameRaw from '../../../.cache/bridgeChainSlugToName.json'
 import bridgeProtocolSlugsRaw from '../../../.cache/bridgeProtocolSlugs.json'
@@ -10,6 +11,7 @@ import protocolMetadata from '../../../.cache/protocols.json'
 import rwaList from '../../../.cache/rwa.json'
 import rwaPerpsList from '../../../.cache/rwaPerps.json'
 import tokenlistRaw from '../../../.cache/tokenlist.json'
+import tokenDirectoryRaw from '../../../.cache/tokens.json'
 import { fetchCoreMetadata } from './fetch'
 import type {
 	ICategoriesAndTags,
@@ -30,6 +32,7 @@ const metadataCache: {
 	rwaList: IRWAList
 	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
+	tokenDirectory: TokenDirectory
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -46,6 +49,7 @@ const metadataCache: {
 		assetGroups: (rwaPerpsList as IRWAPerpsList).assetGroups ?? []
 	},
 	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
+	tokenDirectory: tokenDirectoryRaw as TokenDirectory,
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
 	bridgeChainSlugs: bridgeChainSlugsRaw as string[],
@@ -68,6 +72,7 @@ async function doRefresh(): Promise<void> {
 			rwaList: rwaListData,
 			rwaPerpsList: rwaPerpsListData,
 			tokenlist,
+			tokenDirectory,
 			cgExchangeIdentifiers: cgExIds,
 			bridgeProtocolSlugs,
 			bridgeChainSlugs,
@@ -85,6 +90,7 @@ async function doRefresh(): Promise<void> {
 		metadataCache.rwaPerpsList = rwaPerpsListData
 		metadataCache.cgExchangeIdentifiers = cgExIds
 		metadataCache.tokenlist = tokenlist
+		metadataCache.tokenDirectory = tokenDirectory
 		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
 		metadataCache.bridgeChainSlugs = bridgeChainSlugs
 		metadataCache.bridgeChainSlugToName = bridgeChainSlugToName

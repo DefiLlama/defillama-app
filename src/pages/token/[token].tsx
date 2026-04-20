@@ -1,11 +1,12 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLongShortSection } from '~/containers/Token/TokenLongShortSection'
+import { getTokenOverviewData } from '~/containers/Token/tokenOverview'
+import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
 import { getTokenStrategiesData } from '~/containers/Token/tokenStrategies.server'
@@ -23,7 +24,6 @@ import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { ITokenListEntry } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
-import { readTokenDirectory } from '~/utils/tokenDirectory'
 
 type TokenRouteParams = {
 	token: string
@@ -75,8 +75,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const normalizedToken = slug(token)
-		const tokens = await readTokenDirectory()
-		const record = tokens[normalizedToken]
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
+		const record = metadataCache.tokenDirectory[normalizedToken]
 
 		if (!record) {
 			return {
@@ -86,12 +88,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const geckoId = getCoinGeckoId(record.token_nk)
-
-		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
-		const metadataCache = metadataModule.default
 		const tokenEntry: ITokenListEntry | null = geckoId ? (metadataCache.tokenlist[geckoId] ?? null) : null
 		const protocolMetadata = record.protocolId ? (metadataCache.protocolMetadata[record.protocolId] ?? null) : null
+		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
+		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
 		let tokenRightsData: ITokenRightsData | null = null
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
@@ -99,6 +99,15 @@ export const getStaticProps = withPerformanceLogging(
 		let tokenRiskData: TokenRiskResponse | null = null
 		let initialYieldsRows: IYieldTableRow[] = []
 		let initialTokenStrategiesData: TokenStrategiesResponse | null = null
+		const overview = await getTokenOverviewData({
+			record,
+			displayName,
+			geckoId,
+			tokenEntry,
+			protocolMetadata,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers ?? [],
+			llamaswapChains
+		})
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {
 			const tokenRightsEntries = await fetchTokenRightsData()
@@ -137,7 +146,6 @@ export const getStaticProps = withPerformanceLogging(
 			tokenRiskData = riskData
 		}
 
-		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply & Token Rights - DefiLlama`
 			: `${displayName} Price, Market Cap & Supply - DefiLlama`
@@ -157,13 +165,7 @@ export const getStaticProps = withPerformanceLogging(
 				tokenRiskData,
 				initialYieldsRows,
 				initialTokenStrategiesData,
-				price: tokenEntry?.current_price ?? null,
-				percentChange: tokenEntry?.price_change_percentage_24h ?? null,
-				mcap: tokenEntry?.market_cap ?? null,
-				fdv: tokenEntry?.fully_diluted_valuation ?? null,
-				volume24h: tokenEntry?.total_volume ?? null,
-				circSupply: tokenEntry?.circulating_supply ?? null,
-				maxSupply: tokenEntry?.max_supply ?? null,
+				overview,
 				seoTitle,
 				seoDescription,
 				canonicalUrl: `/token/${token}`
@@ -189,21 +191,15 @@ export const getStaticPaths = () => {
 
 export default function TokenPage({
 	record,
-	displayName,
 	tokenRightsData,
 	incomeStatementData,
 	incomeStatementProtocolName,
 	incomeStatementHasIncentives,
+	geckoId,
 	tokenRiskData,
 	initialYieldsRows,
 	initialTokenStrategiesData,
-	price,
-	percentChange,
-	mcap,
-	fdv,
-	volume24h,
-	circSupply,
-	maxSupply,
+	overview,
 	seoTitle,
 	seoDescription,
 	canonicalUrl
@@ -218,18 +214,7 @@ export default function TokenPage({
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
 			<div className="flex flex-col gap-2">
-				<TokenOverviewHeader
-					name={record.name}
-					title={displayName}
-					price={price}
-					percentChange={percentChange}
-					circSupply={circSupply}
-					maxSupply={maxSupply}
-					mcap={mcap}
-					fdv={fdv}
-					volume24h={volume24h}
-					symbol={record.symbol}
-				/>
+				<TokenOverviewSection overview={overview} geckoId={geckoId} />
 				{incomeStatementData && incomeStatementProtocolName ? (
 					<TokenIncomeStatementSection
 						protocolName={incomeStatementProtocolName}

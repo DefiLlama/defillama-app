@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getTokenRiskData } from '~/containers/Token/queries'
+import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -53,6 +54,40 @@ const tokenRightsFixture: ITokenRightsData = {
 	resources: {
 		addresses: [],
 		reports: []
+	}
+}
+
+const overviewFixture: TokenOverviewData = {
+	name: 'Bitcoin',
+	displayName: 'BTC',
+	symbol: 'BTC',
+	llamaswapChains: null,
+	marketData: {
+		currentPrice: 100,
+		percentChange24h: 5,
+		ath: 120,
+		athDate: '2024-01-01',
+		atl: 1,
+		atlDate: '2020-01-01',
+		circulatingSupply: 21,
+		maxSupply: 21,
+		mcap: 1000,
+		fdv: 1500,
+		volume24h: {
+			total: 500,
+			cex: 300,
+			dex: 200
+		}
+	},
+	treasury: null,
+	raises: null,
+	tokenLiquidity: null,
+	outstandingFDV: null,
+	rawChartData: {
+		'Token Price': [
+			[1711929600000, 100],
+			[1712016000000, 110]
+		]
 	}
 }
 
@@ -131,8 +166,12 @@ vi.mock('~/constants', () => ({
 	SKIP_BUILD_STATIC_GENERATION: false
 }))
 
-vi.mock('~/components/TokenOverviewHeader', () => ({
-	TokenOverviewHeader: () => <div>token-overview-header</div>
+vi.mock('~/containers/Token/TokenOverviewSection', () => ({
+	TokenOverviewSection: () => <div>token-overview-section</div>
+}))
+
+vi.mock('~/containers/Token/tokenOverview', () => ({
+	getTokenOverviewData: vi.fn(() => Promise.resolve(overviewFixture))
 }))
 
 vi.mock('~/containers/Token/TokenUsageSection', () => ({
@@ -182,6 +221,9 @@ vi.mock('~/containers/TokenRights/api', () => ({
 vi.mock('~/utils/metadata', () => ({
 	__esModule: true,
 	default: {
+		get tokenDirectory() {
+			return state.tokensJson
+		},
 		get tokenlist() {
 			return state.tokenlist
 		},
@@ -214,10 +256,6 @@ vi.mock('~/containers/Token/tokenStrategies.server', () => ({
 	getTokenStrategiesData: vi.fn(() => Promise.resolve(state.initialTokenStrategiesData))
 }))
 
-vi.mock('~/utils/tokenDirectory', () => ({
-	readTokenDirectory: vi.fn(() => Promise.resolve(state.tokensJson))
-}))
-
 afterEach(() => {
 	resetState()
 	vi.clearAllMocks()
@@ -241,20 +279,14 @@ describe('token page', () => {
 					longShort: [{ pool: 'long-short-1' }]
 				}}
 				geckoId="bitcoin"
-				price={100}
-				percentChange={5}
-				mcap={1000}
-				fdv={1500}
-				volume24h={500}
-				circSupply={21}
-				maxSupply={21}
+				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
 				canonicalUrl="/token/btc"
 			/>
 		)
 
-		expect(html).toContain('token-overview-header')
+		expect(html).toContain('token-overview-section')
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
 		expect(html).toContain('token-yields-section')
@@ -262,7 +294,7 @@ describe('token page', () => {
 		expect(html).toContain('token-risks-section')
 		expect(html).toContain('token-long-short-section')
 		expect(html).toContain('token-rights-section')
-		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
+		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-section'))
 		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-rights-section'))
@@ -284,13 +316,7 @@ describe('token page', () => {
 				initialYieldsRows={[]}
 				initialTokenStrategiesData={null}
 				geckoId="bitcoin"
-				price={100}
-				percentChange={5}
-				mcap={1000}
-				fdv={1500}
-				volume24h={500}
-				circSupply={21}
-				maxSupply={21}
+				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
 				canonicalUrl="/token/btc"
@@ -320,13 +346,7 @@ describe('token page', () => {
 					longShort: [{ pool: 'long-short-1' }]
 				}}
 				geckoId="bitcoin"
-				price={100}
-				percentChange={5}
-				mcap={1000}
-				fdv={1500}
-				volume24h={500}
-				circSupply={21}
-				maxSupply={21}
+				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
 				canonicalUrl="/token/btc"
@@ -372,13 +392,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenStrategiesData: null,
-				price: 100,
-				percentChange: 5,
-				mcap: 1000,
-				fdv: 1500,
-				volume24h: 500,
-				circSupply: 21,
-				maxSupply: 21,
+				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
@@ -413,13 +427,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenStrategiesData: null,
-				price: null,
-				percentChange: null,
-				mcap: null,
-				fdv: null,
-				volume24h: null,
-				circSupply: null,
-				maxSupply: null,
+				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
@@ -539,13 +547,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenStrategiesData: null,
-				price: 10,
-				percentChange: 10,
-				mcap: 100,
-				fdv: 150,
-				volume24h: 50,
-				circSupply: 20,
-				maxSupply: 1000,
+				overview: overviewFixture,
 				seoTitle: 'LINK Price, Market Cap, Supply & Token Rights - DefiLlama',
 				seoDescription:
 					'Track LINK price, market cap, circulating supply, max supply, 24h trading volume, and token rights on DefiLlama.',
@@ -624,13 +626,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenStrategiesData: null,
-				price: 10,
-				percentChange: 10,
-				mcap: 100,
-				fdv: 150,
-				volume24h: 50,
-				circSupply: 20,
-				maxSupply: 1000,
+				overview: overviewFixture,
 				seoTitle: 'AAVE Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track AAVE price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',

@@ -15,11 +15,6 @@ function setupPageModule({
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
 } = {}) {
-	vi.doMock('fs', () => ({
-		promises: {
-			readFile: vi.fn().mockResolvedValue(JSON.stringify(tokensJson))
-		}
-	}))
 	vi.doMock('next/link', () => ({
 		default: () => null
 	}))
@@ -51,7 +46,8 @@ function setupPageModule({
 	vi.doMock('~/utils/metadata', () => ({
 		__esModule: true,
 		default: {
-			protocolMetadata
+			protocolMetadata,
+			tokenDirectory: tokensJson
 		}
 	}))
 
@@ -59,7 +55,7 @@ function setupPageModule({
 }
 
 describe('token rights page', () => {
-	it('routes token rights entries to token pages when tokens.json matches protocolId or chainId', async () => {
+	it('routes token rights entries to token pages when cached token metadata matches protocolId or chainId', async () => {
 		const page = await setupPageModule({
 			tokensJson: {
 				ldo: { name: 'Lido DAO', symbol: 'LDO', protocolId: '182', route: '/token/LDO' },
