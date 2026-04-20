@@ -13,7 +13,7 @@ vi.mock('~/components/Tooltip', () => ({
 
 const columnHelper = createColumnHelper<{ name: string }>()
 
-function TestTable({ rowCount }: { rowCount: number }) {
+function TestTable({ rowCount, initialPageSize = 10 }: { rowCount: number; initialPageSize?: number }) {
 	const data = Array.from({ length: rowCount }, (_, index) => ({ name: `row-${index + 1}` }))
 	const table = useReactTable({
 		data,
@@ -25,7 +25,7 @@ function TestTable({ rowCount }: { rowCount: number }) {
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10
+				pageSize: initialPageSize
 			}
 		},
 		getCoreRowModel: getCoreRowModel(),
@@ -55,5 +55,13 @@ describe('PaginatedTable', () => {
 
 		expect(html).toContain('Page 1 of 2')
 		expect(html).toContain('Rows per page')
+	})
+
+	it('keeps rows-per-page visible when the current page size exceeds the filtered row count', () => {
+		const html = renderToStaticMarkup(<TestTable rowCount={11} initialPageSize={20} />)
+
+		expect(html).toContain('Rows per page')
+		expect(html).toContain('<option value="10">10</option>')
+		expect(html).toContain('<option value="20" selected="">20</option>')
 	})
 })

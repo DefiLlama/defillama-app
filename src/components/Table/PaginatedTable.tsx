@@ -71,9 +71,16 @@ export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: Pa
 	const pageCount = table.getPageCount()
 	const displayPageCount = Math.max(1, pageCount)
 	const displayPageIndex = pageCount === 0 ? 0 : Math.min(pageIndex, displayPageCount - 1)
-	const availablePageSizeOptions = pageSizeOptions.filter((pageSizeOption) => pageSizeOption <= rowCount)
+	const availablePageSizeOptions = useMemo(() => {
+		const filteredOptions = pageSizeOptions.filter((pageSizeOption) => pageSizeOption <= rowCount)
+		if (pageSize > rowCount && pageSizeOptions.includes(pageSize)) {
+			filteredOptions.push(pageSize)
+		}
+
+		return [...new Set(filteredOptions)].sort((a, b) => a - b)
+	}, [pageSize, pageSizeOptions, rowCount])
 	const shouldShowPaginationControls = rowCount > 10 && pageCount > 1
-	const shouldShowPageSizeSelector = rowCount > 10 && pageSize <= rowCount && availablePageSizeOptions.length >= 2
+	const shouldShowPageSizeSelector = rowCount > 10 && availablePageSizeOptions.length >= 2
 	const displayRowNumbers = useMemo(
 		() => new Map(rows.map((row, rowIndex) => [row.id, pageIndex * pageSize + rowIndex + 1])),
 		[pageIndex, pageSize, rows]
