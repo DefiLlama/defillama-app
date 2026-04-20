@@ -218,6 +218,10 @@ function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
 	return markets.reduce((sum, market) => sum + safeNumber(market.estimatedProtocolFees24h), 0)
 }
 
+function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' | 'volume24h') {
+	return markets.reduce((sum, market) => sum + safeNumber(market[key]), 0)
+}
+
 function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
 	return [...markets].sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
 }
@@ -422,8 +426,8 @@ export async function getRWAPerpsOverview({
 	])
 	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
 	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
-	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(stats.totalOpenInterest)
-	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(stats.totalVolume24h)
+	const totalOpenInterest = sumMarketMetric(current, 'openInterest')
+	const totalVolume24h = sumMarketMetric(current, 'volume24h')
 
 	return {
 		markets: sortMarketsByOpenInterest(current),
@@ -478,8 +482,8 @@ export async function getRWAPerpsVenuePage({
 	const statsBucket = stats.byVenue?.[resolvedVenue]
 	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
 	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
-	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
-	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
+	const totalOpenInterest = sumMarketMetric(markets, 'openInterest')
+	const totalVolume24h = sumMarketMetric(markets, 'volume24h')
 
 	return {
 		venue: resolvedVenue,
@@ -562,8 +566,8 @@ export async function getRWAPerpsAssetGroupPage({
 	const statsBucket = stats.byAssetGroup?.[resolvedAssetGroup]
 	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
 	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
-	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
-	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
+	const totalOpenInterest = sumMarketMetric(markets, 'openInterest')
+	const totalVolume24h = sumMarketMetric(markets, 'volume24h')
 
 	return {
 		assetGroup: resolvedAssetGroup,

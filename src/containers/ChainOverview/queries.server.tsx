@@ -30,7 +30,7 @@ import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import type { ProtocolEmissionWithHistory } from '~/containers/Unlocks/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { formatNum, getPercentChange, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
+import { formatNum, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
@@ -38,45 +38,14 @@ import type { ChainChartLabels } from './constants'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
-const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
-
-/**
- * Pre-compute TVL 24h change values on server to avoid client-side iteration.
- * This finds the last value and the value from ~24 hours ago.
- */
 function computeTvlChartSummary(chart: Array<[number, number]>): {
 	totalValueUSD: number | null
 	tvlPrevDay: number | null
 	valueChange24hUSD: number | null
 	change24h: number | null
 } {
-	if (!chart || chart.length === 0) {
-		return { totalValueUSD: null, tvlPrevDay: null, valueChange24hUSD: null, change24h: null }
-	}
-
-	const lastEntry = chart[chart.length - 1]
-	if (!lastEntry) {
-		return { totalValueUSD: null, tvlPrevDay: null, valueChange24hUSD: null, change24h: null }
-	}
-
-	const [lastTimestamp, lastValue] = lastEntry
-	const now = Date.now()
-
-	// Check if data is stale (last timestamp is more than 24 hours old)
-	if (now - lastTimestamp > TWENTY_FOUR_HOURS_IN_MS) {
-		return { totalValueUSD: lastValue, tvlPrevDay: null, valueChange24hUSD: null, change24h: null }
-	}
-
-	// Find an entry that is at least 24 hours before the last entry
-	let tvlPrevDay: number | null = null
-	for (let i = chart.length - 2; i >= 0; i--) {
-		const [timestamp, value] = chart[i]
-		if (lastTimestamp - timestamp >= TWENTY_FOUR_HOURS_IN_MS) {
-			tvlPrevDay = value
-			break
-		}
-	}
-
+	const lastValue = getPrevTvlFromChart(chart, 0)
+	const tvlPrevDay = getPrevTvlFromChart(chart, 1)
 	const valueChange24hUSD = lastValue != null && tvlPrevDay != null ? lastValue - tvlPrevDay : null
 	const change24h = lastValue != null && tvlPrevDay != null ? getPercentChange(lastValue, tvlPrevDay) : null
 

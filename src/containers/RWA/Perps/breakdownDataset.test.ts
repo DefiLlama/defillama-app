@@ -28,13 +28,28 @@ describe('rwa perps breakdownDataset', () => {
 
 	it('uses the newest timestamps for snapshot totals even when rows are unsorted', () => {
 		expect(
-			getRWAPerpsBreakdownChartSnapshotTotals([
-				{ timestamp: 1774569600000, Equities: 130, Commodities: 100 },
-				{ timestamp: 1774483200000, Equities: 120 }
-			])
+			getRWAPerpsBreakdownChartSnapshotTotals(
+				[
+					{ timestamp: 1774569600000, Equities: 130, Commodities: 100 },
+					{ timestamp: 1774483200000, Equities: 120 }
+				],
+				new Date('2026-03-27T12:00:00Z').getTime()
+			)
 		).toEqual({
 			latestTotal: 230,
 			previousTotal: 120
+		})
+	})
+
+	it('returns null changes when today or yesterday data is missing', () => {
+		expect(
+			getRWAPerpsBreakdownChartSnapshotTotals(
+				[{ timestamp: 1774310400000, Equities: 120 }],
+				new Date('2026-03-27T12:00:00Z').getTime()
+			)
+		).toEqual({
+			latestTotal: null,
+			previousTotal: null
 		})
 	})
 })
