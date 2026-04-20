@@ -223,7 +223,7 @@ afterEach(() => {
 })
 
 describe('token page', () => {
-	it('renders income statement above token usage, yields, risks, and token rights when data exists', () => {
+	it('renders income statement, risk, token rights, token usage, and yield tables in order', () => {
 		const html = renderToStaticMarkup(
 			<TokenPage
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true, is_yields: true }}
@@ -262,12 +262,12 @@ describe('token page', () => {
 		expect(html).toContain('token-long-short-section')
 		expect(html).toContain('token-rights-section')
 		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
-		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
+		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
+		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
+		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-rights-section'))
 		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
 		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
-		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-borrow-section'))
-		expect(html.indexOf('token-long-short-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
-		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-long-short-section'))
+		expect(html.indexOf('token-long-short-section')).toBeGreaterThan(html.indexOf('token-borrow-section'))
 	})
 
 	it('does not render the yields stack when the token does not opt into yields', () => {

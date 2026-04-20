@@ -233,20 +233,8 @@ export default function TokenPage({
 						hasIncentives={incomeStatementHasIncentives}
 					/>
 				) : null}
-				<TokenUsageSection tokenSymbol={record.symbol} />
-				{shouldRenderYieldsSection ? (
-					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
-				) : null}
-				{shouldRenderBorrowSection ? (
-					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
-				) : null}
 				{record.is_yields && tokenRiskData ? (
 					<TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
-				) : null}
-				{shouldRenderLongShortSection ? (
-					<>
-						<TokenLongShortSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
-					</>
 				) : null}
 				{tokenRightsData ? (
 					<TokenRightsByProtocol
@@ -257,6 +245,16 @@ export default function TokenPage({
 						showHeader
 						headerVariant="embedded"
 					/>
+				) : null}
+				<TokenUsageSection tokenSymbol={record.symbol} />
+				{shouldRenderYieldsSection ? (
+					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
+				) : null}
+				{shouldRenderBorrowSection ? (
+					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
+				) : null}
+				{shouldRenderLongShortSection ? (
+					<TokenLongShortSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
 				) : null}
 			</div>
 		</Layout>
