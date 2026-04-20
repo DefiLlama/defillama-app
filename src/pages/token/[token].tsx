@@ -5,6 +5,7 @@ import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/querie
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLongShortSection } from '~/containers/Token/TokenLongShortSection'
+import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
@@ -86,6 +87,7 @@ export const getStaticProps = withPerformanceLogging(
 				incomeStatementData,
 				incomeStatementProtocolName,
 				incomeStatementHasIncentives,
+				geckoId,
 				price: tokenEntry?.current_price ?? null,
 				percentChange: tokenEntry?.price_change_percentage_24h ?? null,
 				mcap: tokenEntry?.market_cap ?? null,
@@ -123,6 +125,7 @@ export default function TokenPage({
 	incomeStatementData,
 	incomeStatementProtocolName,
 	incomeStatementHasIncentives,
+	geckoId,
 	price,
 	percentChange,
 	mcap,
@@ -161,6 +164,7 @@ export default function TokenPage({
 					<>
 						<TokenYieldsSection tokenSymbol={record.symbol} />
 						<TokenBorrowSection tokenSymbol={record.symbol} />
+						<TokenRisksSection tokenSymbol={record.symbol} geckoId={geckoId} />
 						<TokenLongShortSection tokenSymbol={record.symbol} />
 					</>
 				) : null}

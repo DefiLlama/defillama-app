@@ -111,6 +111,9 @@ function setupPageModule({
 	vi.doMock('~/containers/Token/TokenBorrowSection', () => ({
 		TokenBorrowSection: () => <div>token-borrow-section</div>
 	}))
+	vi.doMock('~/containers/Token/TokenRisksSection', () => ({
+		TokenRisksSection: () => <div>token-risks-section</div>
+	}))
 	vi.doMock('~/containers/Token/TokenLongShortSection', () => ({
 		TokenLongShortSection: () => <div>token-long-short-section</div>
 	}))
@@ -159,6 +162,7 @@ describe('token page', () => {
 				incomeStatementData={{ data: {} }}
 				incomeStatementProtocolName="Bitcoin Protocol"
 				incomeStatementHasIncentives={false}
+				geckoId="bitcoin"
 				price={100}
 				percentChange={5}
 				mcap={1000}
@@ -177,13 +181,15 @@ describe('token page', () => {
 		expect(html).toContain('token-usage-section')
 		expect(html).toContain('token-yields-section')
 		expect(html).toContain('token-borrow-section')
+		expect(html).toContain('token-risks-section')
 		expect(html).toContain('token-long-short-section')
 		expect(html).toContain('token-rights-section')
 		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-header'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
 		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
-		expect(html.indexOf('token-long-short-section')).toBeGreaterThan(html.indexOf('token-borrow-section'))
+		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-borrow-section'))
+		expect(html.indexOf('token-long-short-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
 		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-long-short-section'))
 	})
 
@@ -198,6 +204,7 @@ describe('token page', () => {
 				incomeStatementData={null}
 				incomeStatementProtocolName={null}
 				incomeStatementHasIncentives={false}
+				geckoId="bitcoin"
 				price={100}
 				percentChange={5}
 				mcap={1000}
@@ -213,6 +220,7 @@ describe('token page', () => {
 
 		expect(html).not.toContain('token-yields-section')
 		expect(html).not.toContain('token-borrow-section')
+		expect(html).not.toContain('token-risks-section')
 		expect(html).not.toContain('token-long-short-section')
 	})
 
@@ -253,6 +261,7 @@ describe('token page', () => {
 				incomeStatementData: null,
 				incomeStatementProtocolName: null,
 				incomeStatementHasIncentives: false,
+				geckoId: 'bitcoin',
 				price: 100,
 				percentChange: 5,
 				mcap: 1000,
@@ -294,6 +303,7 @@ describe('token page', () => {
 				incomeStatementData: null,
 				incomeStatementProtocolName: null,
 				incomeStatementHasIncentives: false,
+				geckoId: null,
 				price: null,
 				percentChange: null,
 				mcap: null,
@@ -419,6 +429,7 @@ describe('token page', () => {
 				incomeStatementData: null,
 				incomeStatementProtocolName: null,
 				incomeStatementHasIncentives: false,
+				geckoId: 'chainlink',
 				price: 10,
 				percentChange: 10,
 				mcap: 100,
@@ -501,6 +512,7 @@ describe('token page', () => {
 				incomeStatementData,
 				incomeStatementProtocolName: 'Aave',
 				incomeStatementHasIncentives: true,
+				geckoId: 'aave',
 				price: 10,
 				percentChange: 10,
 				mcap: 100,

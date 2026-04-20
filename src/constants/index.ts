@@ -98,6 +98,9 @@ export const YIELD_HOLDERS_API = '/api/datasets/holders'
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
+// RISK
+export const RISK_SERVER_URL = process.env.RISK_SERVER_URL
+
 // External services
 export const AI_SERVER = 'https://ai.llama.fi'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
