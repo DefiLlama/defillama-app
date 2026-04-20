@@ -347,10 +347,6 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 		getPaginationRowModel: getPaginationRowModel()
 	})
 
-	const selectedCandidateDisplayName = useMemo(() => {
-		if (!selectedCandidateKey) return 'All chains'
-		return data?.candidates.find((candidate) => candidate.key === selectedCandidateKey)?.displayName ?? 'Selected chain'
-	}, [data?.candidates, selectedCandidateKey])
 	const scopeCandidates = useMemo(() => {
 		if (!data) return []
 		if (data.scopeCandidates) return data.scopeCandidates
@@ -361,6 +357,16 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 
 		return (data.candidates ?? []).filter((candidate) => chainsWithVisibleRows.has(candidate.chain))
 	}, [data])
+	const selectedCandidateDisplayName = useMemo(() => {
+		if (selectedCandidateKey) {
+			return (
+				data?.candidates.find((candidate) => candidate.key === selectedCandidateKey)?.displayName ?? 'Selected chain'
+			)
+		}
+		if (scopeCandidates.length === 1) return scopeCandidates[0].displayName
+		return 'All chains'
+	}, [data?.candidates, scopeCandidates, selectedCandidateKey])
+	const showScopeSelector = scopeCandidates.length > 1
 
 	useEffect(() => {
 		if (!selectedCandidateKey || scopeCandidates.length === 0) return
@@ -420,7 +426,7 @@ export function TokenRisksSection({ tokenSymbol, geckoId }: { tokenSymbol: strin
 					</p>
 				</div>
 
-				{scopeCandidates.length ? (
+				{showScopeSelector ? (
 					<label className="flex items-center gap-2 text-sm">
 						<span className="text-(--text-secondary)">Scope</span>
 						<select

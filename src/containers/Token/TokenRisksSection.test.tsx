@@ -157,7 +157,8 @@ describe('TokenRisksSection', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
 
 		expect(html).toContain('Borrow Caps')
-		expect(html).toContain('All chains')
+		expect(html).not.toContain('Scope')
+		expect(html).toContain('Showing <span class="font-medium text-(--text-primary)">Ethereum</span>')
 		expect(html).toContain('Total Borrow Cap')
 		expect(html).toContain('Aave V3|Ethereum')
 		expect(html).toContain('paginated-table:1')
@@ -182,8 +183,21 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" geckoId="usdc" />)
 
-		expect(html).toContain('All chains')
+		expect(html).not.toContain('Scope')
 		expect(html).toContain('Ethereum')
+	})
+
+	it('shows the scope selector only when there is more than one valid chain option', () => {
+		tokenRiskState.data = {
+			...createBaseTokenRiskData(),
+			scopeCandidates: createBaseTokenRiskData().candidates
+		}
+
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" geckoId="link" />)
+
+		expect(html).toContain('Scope')
+		expect(html).toContain('All chains')
+		expect(html).toContain('Base')
 	})
 
 	it('explains why the borrow-caps tab is empty when no debt markets exist', () => {
