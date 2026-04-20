@@ -1,7 +1,7 @@
 import MonacoEditor, { loader } from '@monaco-editor/react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
-import { registerSqlCompletions, type CompletionContext } from './completions'
+import { registerSqlCompletions, registerSqlHovers, type CompletionContext } from './completions'
 import type { RegisteredTable } from './useTableRegistry'
 
 loader.config({
@@ -87,9 +87,11 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 			editorInstanceRef.current = editor
 			editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRun())
 
-			const disposable = registerSqlCompletions(monaco, contextRef)
+			const completions = registerSqlCompletions(monaco, contextRef)
+			const hovers = registerSqlHovers(monaco, contextRef)
 			editor.onDidDispose(() => {
-				disposable.dispose()
+				completions.dispose()
+				hovers.dispose()
 				if (editorInstanceRef.current === editor) editorInstanceRef.current = null
 			})
 		},

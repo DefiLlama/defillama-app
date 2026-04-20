@@ -132,6 +132,135 @@ export function registerSqlCompletions(
 	})
 }
 
+/**
+ * Hover provider — surfaces inline docs when a user points at a table or column.
+ *
+ * Three match paths, in priority order:
+ *   1. `<word>.<column>` — infer the table from the qualifier, look up the column.
+ *   2. Bare word matches a loaded table → show its source + columns.
+ *   3. Bare word matches a known flat dataset or a `ts_<slug>_<param>` pattern →
+ *      show the dataset card. Unloaded datasets note that they'll auto-load.
+ *   4. Bare word matches a unique column of exactly one loaded table → show that.
+ *
+ * We read context via a ref so loaded-table state stays current without
+ * re-registering the provider on every state change.
+ */
+export function registerSqlHovers(
+	monaco: typeof import('monaco-editor'),
+	contextRef: { current: CompletionContext }
+): { dispose: () => void } {
+	return monaco.languages.registerHoverProvider('sql', {
+		provideHover: (model, position) => {
+			const word = model.getWordAtPosition(position)
+			if (!word) return null
+			const identifier = word.word
+			const range = new monaco.Range(
+				position.lineNumber,
+				word.startColumn,
+				position.lineNumber,
+				word.endColumn
+			)
+			const ctx = contextRef.current
+
+			// Qualified reference: `tableName.columnName` / `tableName."columnName"`.
+			const linePrefix = model.getLineContent(position.lineNumber).slice(0, word.startColumn - 1)
+			const qualifierMatch = linePrefix.match(/([\w"]+)\.\s*$/)
+			if (qualifierMatch) {
+				const tableName = qualifierMatch[1].replace(/"/g, '').toLowerCase()
+				const table = ctx.tables.find((t) => t.name.toLowerCase() === tableName)
+				if (table) {
+					const col = table.columns.find((c) => c.name === identifier || c.name.toLowerCase() === identifier.toLowerCase())
+					if (col) {
+						return {
+							range,
+							contents: [
+								{ value: `\`${table.name}.${col.name}\`` },
+								{ value: `type · \`${col.type}\`` }
+							]
+						}
+					}
+				}
+			}
+
+			// Loaded table match.
+			const loaded = ctx.tables.find((t) => t.name.toLowerCase() === identifier.toLowerCase())
+			if (loaded) {
+				const body = [
+					`**${labelForSource(loaded.source)}**  \n\`${loaded.name}\``,
+					`${loaded.rowCount.toLocaleString()} rows · ${loaded.columns.length} columns · loaded`,
+					'',
+					'**Columns**',
+					...loaded.columns.map((c) => `- \`${c.name}\` · ${c.type}`)
+				].join('\n')
+				return { range, contents: [{ value: body }] }
+			}
+
+			// Known flat dataset (unloaded) — will auto-load on run.
+			const normalized = identifier.toLowerCase()
+			const dataset = datasets.find((d) => identifierize(d.slug) === normalized)
+			if (dataset) {
+				const body = [
+					`**${dataset.name}**  \n\`${identifierize(dataset.slug)}\``,
+					`${dataset.category} · auto-loads on run`,
+					'',
+					dataset.description,
+					dataset.fields && dataset.fields.length > 0
+						? `\n**Columns**\n${dataset.fields.map((f) => `- \`${f}\``).join('\n')}`
+						: ''
+				]
+					.filter(Boolean)
+					.join('\n')
+				return { range, contents: [{ value: body }] }
+			}
+
+			// Time-series pattern: `ts_<slug>_<param>` or just `ts_<slug>_` hint.
+			if (normalized.startsWith('ts_')) {
+				const match = matchTableRef(normalized)
+				if (match && match.kind === 'chart') {
+					const body = [
+						`**${match.definition.name}**  \n\`${normalized}\``,
+						`Time series · ${match.definition.paramLabel.toLowerCase()} = \`${match.paramIdentifier}\``,
+						'',
+						match.definition.description
+					].join('\n')
+					return { range, contents: [{ value: body }] }
+				}
+			}
+
+			// Chart dataset slug (without a resolved param yet).
+			const chart = chartDatasets.find((d) => `ts_${identifierize(d.slug)}` === normalized)
+			if (chart) {
+				const body = [
+					`**${chart.name}**  \n\`ts_${identifierize(chart.slug)}_<${chart.paramLabel.toLowerCase()}>\``,
+					`Time series · pick ${chart.paramLabel.toLowerCase()} in the Schema drawer`,
+					'',
+					chart.description
+				].join('\n')
+				return { range, contents: [{ value: body }] }
+			}
+
+			// Column match — only helpful if exactly one loaded table has this column,
+			// otherwise we'd guess wrong. Quiet by design.
+			const tablesWithColumn = ctx.tables.filter((t) =>
+				t.columns.some((c) => c.name.toLowerCase() === normalized)
+			)
+			if (tablesWithColumn.length === 1) {
+				const table = tablesWithColumn[0]
+				const col = table.columns.find((c) => c.name.toLowerCase() === normalized)!
+				return {
+					range,
+					contents: [
+						{ value: `\`${table.name}.${col.name}\`` },
+						{ value: `type · \`${col.type}\`` }
+					]
+				}
+			}
+
+			return null
+		}
+	})
+}
+
 function needsQuoting(identifier: string): boolean {
 	return !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(identifier)
 }
@@ -212,14 +341,14 @@ export function matchTableRef(tableName: string): TableRefMatch | null {
 
 /**
  * Best-effort extraction of table references from a SQL string. Covers `FROM x`, `JOIN x`,
- * and quoted forms. Doesn't handle subqueries or CTE name resolution — good enough to find
- * which known datasets the user is referencing.
+ * `PIVOT x`, and `UNPIVOT x` (plus quoted forms). Doesn't handle subqueries or CTE name
+ * resolution — good enough to find which known datasets the user is referencing.
  */
 export function extractTableRefs(sql: string): string[] {
 	const refs = new Set<string>()
-	// Strip single-line comments to avoid matching inside them.
+	// Strip comments first so we don't match inside them.
 	const stripped = sql.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
-	const regex = /\b(?:FROM|JOIN)\s+("?)([\w-]+)\1/gi
+	const regex = /\b(?:FROM|JOIN|PIVOT|UNPIVOT)\s+("?)([\w-]+)\1/gi
 	let m: RegExpExecArray | null
 	while ((m = regex.exec(stripped)) !== null) {
 		refs.add(m[2].toLowerCase())
