@@ -212,6 +212,8 @@ describe('token page', () => {
 		)
 
 		expect(html).not.toContain('token-yields-section')
+		expect(html).not.toContain('token-borrow-section')
+		expect(html).not.toContain('token-long-short-section')
 	})
 
 	it('getStaticPaths returns empty paths with blocking fallback', async () => {

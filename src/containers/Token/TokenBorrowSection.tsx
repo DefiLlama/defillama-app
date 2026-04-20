@@ -108,7 +108,8 @@ export function filterBorrowRows({
 		const rowChain = row.chains[0]
 		const available = row.borrow?.totalAvailableUsd ?? null
 
-		if (selectedChains.length > 0 && rowChain && !chainSet.has(rowChain)) return false
+		if (selectedChains.length === 0) return false
+		if (rowChain && !chainSet.has(rowChain)) return false
 		if (minAvailableValue != null && (available == null || available < minAvailableValue)) return false
 		if (maxAvailableValue != null && (available == null || available > maxAvailableValue)) return false
 

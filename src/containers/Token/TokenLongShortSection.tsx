@@ -41,6 +41,13 @@ function getSelectedChains(selectedChains: string[] | null, availableChains: str
 	return selectedChains == null ? availableChains : selectedChains.filter((chain) => availableChains.includes(chain))
 }
 
+function hasDefaultLongShortAttributes(selectedAttributes: string[]) {
+	return (
+		selectedAttributes.length === DEFAULT_LONG_SHORT_ATTRIBUTES.length &&
+		DEFAULT_LONG_SHORT_ATTRIBUTES.every((attribute) => selectedAttributes.includes(attribute))
+	)
+}
+
 function formatRangeTriggerValue(value: string) {
 	const numericValue = Number(value)
 	return Number.isFinite(numericValue) ? numericValue.toLocaleString() : value
@@ -113,7 +120,7 @@ export function filterLongShortRows({
 	minTvl: string
 	maxTvl: string
 }) {
-	const chainSet = selectedChains.length > 0 ? new Set(selectedChains) : null
+	const chainSet = new Set(selectedChains)
 	const minTvlValue = minTvl === '' ? null : Number(minTvl)
 	const maxTvlValue = maxTvl === '' ? null : Number(maxTvl)
 
@@ -125,7 +132,7 @@ export function filterLongShortRows({
 				...row,
 				chain
 			},
-			selectedChainsSet: chainSet ?? new Set([chain]),
+			selectedChainsSet: chainSet,
 			selectedAttributes,
 			minTvl: minTvlValue,
 			maxTvl: maxTvlValue
@@ -158,7 +165,10 @@ export function TokenLongShortSection({ tokenSymbol }: { tokenSymbol: string }) 
 		[maxTvl, minTvl, rows, selectedAttributes, selectedChains]
 	)
 	const hasActiveFilters =
-		selectedChains.length !== chainList.length || selectedAttributes.length > 0 || minTvl !== '' || maxTvl !== ''
+		selectedChains.length !== chainList.length ||
+		!hasDefaultLongShortAttributes(selectedAttributes) ||
+		minTvl !== '' ||
+		maxTvl !== ''
 	const hasPlaceholderState = isLoading || error != null || rows.length === 0
 	const summaryText =
 		filteredRows.length > 0

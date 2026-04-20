@@ -604,9 +604,6 @@ export function PaginatedYieldsOptimizerTable({
 	const table = useReactTable({
 		data,
 		columns: paginatedColumns,
-		meta: {
-			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
-		},
 		state: {
 			sorting,
 			pagination

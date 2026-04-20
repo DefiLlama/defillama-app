@@ -306,6 +306,7 @@ describe('yields-token-strategies api route', () => {
 		await handler(req, res)
 
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching token strategies data:', expect.any(Error))
+		expect(res.setHeader).not.toHaveBeenCalledWith('Cache-Control', expect.anything())
 		expect(res.status).toHaveBeenCalledWith(500)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch token strategies data' })
 	})

@@ -48,8 +48,8 @@ export function CookbookTab({ onApplyAndRun }: CookbookProps) {
 			<header className="flex flex-col gap-1">
 				<h3 className="text-sm font-semibold tracking-tight text-(--text-primary)">Cookbook</h3>
 				<p className="text-[11.5px] leading-snug text-(--text-tertiary)">
-					Pragmatic idioms against DefiLlama tables — hover a technique to see what it does. Try it swaps the editor and
-					runs.
+					Pragmatic idioms against DefiLlama tables — hover a technique to see what it does. Try it: swaps the editor
+					and runs the query.
 				</p>
 			</header>
 

@@ -2,20 +2,21 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-// Hoisted mutable state for the mocked hook below.
-var strategiesState: {
-	data?: any
-	error?: Error | null
-	isLoading: boolean
-} = {
-	data: {
-		borrowAsCollateral: [],
-		borrowAsDebt: [],
-		longShort: []
-	},
-	error: null,
-	isLoading: false
-}
+const strategiesState = vi.hoisted(
+	(): {
+		data?: any
+		error?: Error | null
+		isLoading: boolean
+	} => ({
+		data: {
+			borrowAsCollateral: [],
+			borrowAsDebt: [],
+			longShort: []
+		},
+		error: null,
+		isLoading: false
+	})
+)
 
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
@@ -56,15 +57,13 @@ vi.mock('./useTokenStrategies', () => ({
 }))
 
 afterEach(() => {
-	strategiesState = {
-		data: {
-			borrowAsCollateral: [],
-			borrowAsDebt: [],
-			longShort: []
-		},
-		error: null,
-		isLoading: false
+	strategiesState.data = {
+		borrowAsCollateral: [],
+		borrowAsDebt: [],
+		longShort: []
 	}
+	strategiesState.error = null
+	strategiesState.isLoading = false
 	vi.clearAllMocks()
 })
 
@@ -72,11 +71,9 @@ import { TokenLongShortSection, filterLongShortRows } from './TokenLongShortSect
 
 describe('TokenLongShortSection', () => {
 	it('shows a loader while shared token strategies are loading', () => {
-		strategiesState = {
-			data: undefined,
-			error: null,
-			isLoading: true
-		}
+		strategiesState.data = undefined
+		strategiesState.error = null
+		strategiesState.isLoading = true
 
 		const html = renderToStaticMarkup(<TokenLongShortSection tokenSymbol="ETH" />)
 
@@ -84,23 +81,21 @@ describe('TokenLongShortSection', () => {
 	})
 
 	it('renders the paginated long/short table when rows exist', () => {
-		strategiesState = {
-			data: {
-				borrowAsCollateral: [],
-				borrowAsDebt: [],
-				longShort: [
-					{
-						symbol: 'ETH',
-						symbolPerp: 'ETH-PERP',
-						chains: ['Ethereum'],
-						exposure: 'single',
-						ilRisk: 'no'
-					}
-				]
-			},
-			error: null,
-			isLoading: false
+		strategiesState.data = {
+			borrowAsCollateral: [],
+			borrowAsDebt: [],
+			longShort: [
+				{
+					symbol: 'ETH',
+					symbolPerp: 'ETH-PERP',
+					chains: ['Ethereum'],
+					exposure: 'single',
+					ilRisk: 'no'
+				}
+			]
 		}
+		strategiesState.error = null
+		strategiesState.isLoading = false
 
 		const html = renderToStaticMarkup(<TokenLongShortSection tokenSymbol="ETH" />)
 
@@ -130,5 +125,17 @@ describe('TokenLongShortSection', () => {
 
 		expect(filtered).toHaveLength(1)
 		expect(filtered[0].chains[0]).toBe('Base')
+	})
+
+	it('returns no rows when no chains are selected explicitly', () => {
+		const filtered = filterLongShortRows({
+			rows: [{ symbol: 'IN', symbolPerp: 'IN-PERP', chains: ['Ethereum'], exposure: 'single', ilRisk: 'no' }] as any,
+			selectedChains: [],
+			selectedAttributes: [],
+			minTvl: '',
+			maxTvl: ''
+		})
+
+		expect(filtered).toHaveLength(0)
 	})
 })

@@ -58,9 +58,8 @@ export default async function handler(
 			return
 		}
 
-		res.setHeader('Cache-Control', CACHE_CONTROL)
-
 		const [{ props }, perps] = await Promise.all([getLendBorrowData(), getPerpData()])
+		res.setHeader('Cache-Control', CACHE_CONTROL)
 
 		const lendingPools = props.pools.filter((pool) => pool.category !== 'CDP' && !pool.mintedCoin)
 		const cdpPools = props.pools

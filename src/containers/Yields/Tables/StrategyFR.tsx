@@ -7,7 +7,7 @@ import {
 	useReactTable,
 	createColumnHelper
 } from '@tanstack/react-table'
-import { startTransition, useMemo, useState } from 'react'
+import { startTransition, useEffect, useMemo, useState } from 'react'
 import { PercentChange, formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
@@ -310,6 +310,10 @@ export function PaginatedYieldsStrategyTableFR({
 		pageSize: initialPageSize
 	})
 
+	useEffect(() => {
+		setPagination((prev) => ({ ...prev, pageIndex: 0 }))
+	}, [data.length])
+
 	const paginatedColumns = useMemo(
 		() => preparePaginatedYieldsColumns(STRATEGY_FR_TABLE_CONFIG, undefined, width),
 		[width]
@@ -318,9 +322,6 @@ export function PaginatedYieldsStrategyTableFR({
 	const table = useReactTable({
 		data,
 		columns: paginatedColumns,
-		meta: {
-			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
-		},
 		state: {
 			sorting,
 			pagination

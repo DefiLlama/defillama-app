@@ -1,20 +1,21 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-// Hoisted mutable state for the mocked hook below.
-var strategiesState: {
-	data?: any
-	error?: Error | null
-	isLoading: boolean
-} = {
-	data: {
-		borrowAsCollateral: [],
-		borrowAsDebt: [],
-		longShort: []
-	},
-	error: null,
-	isLoading: false
-}
+const strategiesState = vi.hoisted(
+	(): {
+		data?: any
+		error?: Error | null
+		isLoading: boolean
+	} => ({
+		data: {
+			borrowAsCollateral: [],
+			borrowAsDebt: [],
+			longShort: []
+		},
+		error: null,
+		isLoading: false
+	})
+)
 
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
@@ -53,15 +54,13 @@ vi.mock('./useTokenStrategies', () => ({
 }))
 
 afterEach(() => {
-	strategiesState = {
-		data: {
-			borrowAsCollateral: [],
-			borrowAsDebt: [],
-			longShort: []
-		},
-		error: null,
-		isLoading: false
+	strategiesState.data = {
+		borrowAsCollateral: [],
+		borrowAsDebt: [],
+		longShort: []
 	}
+	strategiesState.error = null
+	strategiesState.isLoading = false
 	vi.clearAllMocks()
 	vi.restoreAllMocks()
 })
@@ -70,11 +69,9 @@ import { TokenBorrowSection, filterBorrowRows } from './TokenBorrowSection'
 
 describe('TokenBorrowSection', () => {
 	it('shows a loader while shared token strategies are loading', () => {
-		strategiesState = {
-			data: undefined,
-			error: null,
-			isLoading: true
-		}
+		strategiesState.data = undefined
+		strategiesState.error = null
+		strategiesState.isLoading = true
 
 		const html = renderToStaticMarkup(<TokenBorrowSection tokenSymbol="ETH" />)
 
@@ -84,27 +81,25 @@ describe('TokenBorrowSection', () => {
 	})
 
 	it('shows the default use-token table with pagination', () => {
-		strategiesState = {
-			data: {
-				borrowAsCollateral: [
-					{
-						symbol: 'ETH',
-						borrow: { symbol: 'USDC', totalAvailableUsd: 500000 },
-						chains: ['Ethereum']
-					}
-				],
-				borrowAsDebt: [
-					{
-						symbol: 'WBTC',
-						borrow: { symbol: 'ETH', totalAvailableUsd: 250000 },
-						chains: ['Ethereum']
-					}
-				],
-				longShort: []
-			},
-			error: null,
-			isLoading: false
+		strategiesState.data = {
+			borrowAsCollateral: [
+				{
+					symbol: 'ETH',
+					borrow: { symbol: 'USDC', totalAvailableUsd: 500000 },
+					chains: ['Ethereum']
+				}
+			],
+			borrowAsDebt: [
+				{
+					symbol: 'WBTC',
+					borrow: { symbol: 'ETH', totalAvailableUsd: 250000 },
+					chains: ['Ethereum']
+				}
+			],
+			longShort: []
 		}
+		strategiesState.error = null
+		strategiesState.isLoading = false
 
 		const html = renderToStaticMarkup(<TokenBorrowSection tokenSymbol="ETH" />)
 
@@ -147,5 +142,22 @@ describe('TokenBorrowSection', () => {
 
 		expect(filtered).toHaveLength(1)
 		expect(filtered[0].borrow.symbol).toBe('USDC')
+	})
+
+	it('returns no rows when no chains are selected explicitly', () => {
+		const filtered = filterBorrowRows({
+			rows: [
+				{
+					symbol: 'ETH',
+					borrow: { symbol: 'USDC', totalAvailableUsd: 500000 },
+					chains: ['Ethereum']
+				}
+			] as any,
+			selectedChains: [],
+			minAvailable: '',
+			maxAvailable: ''
+		})
+
+		expect(filtered).toHaveLength(0)
 	})
 })
