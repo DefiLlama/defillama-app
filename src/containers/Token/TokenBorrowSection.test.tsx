@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+// Hoisted mutable state for the mocked hook below.
 var strategiesState: {
 	data?: any
 	error?: Error | null
@@ -19,6 +20,10 @@ vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
 		<div>{children(false)}</div>
 	)
+}))
+
+vi.mock('~/components/Filters/FilterBetweenRange', () => ({
+	FilterBetweenRange: ({ trigger }: { trigger: React.ReactNode }) => <div>{trigger}</div>
 }))
 
 vi.mock('~/components/Icon', () => ({
@@ -104,6 +109,7 @@ describe('TokenBorrowSection', () => {
 		const html = renderToStaticMarkup(<TokenBorrowSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('Tracking 1 route')
+		expect(html).toContain('Available')
 		expect(html).toContain('optimizer-table:1:10')
 	})
 

@@ -100,11 +100,7 @@ function fixedShapesSection(): string {
 	const fixed = entries.filter(([, shape]) => shape !== 'dynamic') as [string, readonly string[]][]
 	const dynamic = entries.filter(([, shape]) => shape === 'dynamic').map(([k]) => k)
 
-	const lines: string[] = [
-		`## Chart shapes — exceptions to the default \`(date, value)\``,
-		'',
-		`### Fixed shapes`
-	]
+	const lines: string[] = [`## Chart shapes — exceptions to the default \`(date, value)\``, '', `### Fixed shapes`]
 	for (const [slug, cols] of fixed) {
 		lines.push(`- \`${slug}\`: ${cols.map((c) => `\`${c}\``).join(', ')}`)
 	}
@@ -172,9 +168,7 @@ function grainForCategory(category: string): string | null {
 function describeFlatDataset(d: DatasetDefinition): string {
 	const tableName = identifierize(d.slug)
 	const fields =
-		d.fields && d.fields.length > 0
-			? d.fields.map((f) => `\`${f}\``).join(', ')
-			: '_columns resolved on load_'
+		d.fields && d.fields.length > 0 ? d.fields.map((f) => `\`${f}\``).join(', ') : '_columns resolved on load_'
 	return `- \`${tableName}\` — **${d.name}.** ${d.description}\n  Columns: ${fields}`
 }
 

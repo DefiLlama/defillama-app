@@ -7,7 +7,7 @@ vi.mock('~/containers/Yields/queries/index', () => ({
 }))
 
 import { getLendBorrowData, getPerpData } from '~/containers/Yields/queries/index'
-import handler from './yields-token-strategies'
+import handler from '~/pages/api/datasets/yields-token-strategies'
 
 const mockedGetLendBorrowData = getLendBorrowData as unknown as ReturnType<typeof vi.fn>
 const mockedGetPerpData = getPerpData as unknown as ReturnType<typeof vi.fn>
@@ -189,6 +189,20 @@ beforeEach(() => {
 			fundingRate30dAverage: 0.002,
 			openInterest: 2000,
 			indexPrice: 15
+		},
+		{
+			symbol: 'AAVE',
+			baseAsset: 'AAVE',
+			market: 'AAVE-PERP',
+			marketplace: 'Hyperliquid',
+			fundingRatePrevious: 0.002,
+			fundingRate: 0.0025,
+			fundingRate7dSum: 0.02,
+			fundingRate30dSum: 0.04,
+			fundingRate7dAverage: 0.002,
+			fundingRate30dAverage: 0.002,
+			openInterest: 3000,
+			indexPrice: 100
 		}
 	])
 })
@@ -229,6 +243,42 @@ describe('yields-token-strategies api route', () => {
 		expect(payload.longShort[0].symbol).toBe('IN-USDC')
 	})
 
+	it('includes composite pool symbols for long/short token matching when the token is distinctive', async () => {
+		mockedGetLendBorrowData.mockResolvedValueOnce({
+			props: {
+				pools: [],
+				allPools: [
+					{
+						pool: 'aave-composite',
+						project: 'balancer-v3',
+						projectName: 'Balancer V3',
+						chain: 'Ethereum',
+						symbol: '75SDEX25AAVELIDOETH',
+						apy: 6,
+						tvlUsd: 200_000,
+						ilRisk: 'no',
+						exposure: 'single',
+						airdrop: false,
+						raiseValuation: null,
+						url: 'https://example.com/aave-composite'
+					}
+				]
+			}
+		})
+
+		const req = {
+			method: 'GET',
+			query: { token: 'AAVE' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+
+		await handler(req, res)
+
+		const payload = (res.json as ReturnType<typeof vi.fn>).mock.calls[0][0]
+		expect(payload.longShort).toHaveLength(1)
+		expect(payload.longShort[0].symbol).toBe('75SDEX25AAVELIDOETH')
+	})
+
 	it('returns 400 when token is missing', async () => {
 		const req = {
 			method: 'GET',
@@ -239,6 +289,24 @@ describe('yields-token-strategies api route', () => {
 		await handler(req, res)
 
 		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.setHeader).not.toHaveBeenCalled()
 		expect(res.json).toHaveBeenCalledWith({ error: 'Missing token query param' })
+	})
+
+	it('logs and returns 500 when fetching fails', async () => {
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		mockedGetLendBorrowData.mockRejectedValueOnce(new Error('boom'))
+
+		const req = {
+			method: 'GET',
+			query: { token: 'ETH' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+
+		await handler(req, res)
+
+		expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching token strategies data:', expect.any(Error))
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch token strategies data' })
 	})
 })

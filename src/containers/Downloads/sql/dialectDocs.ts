@@ -79,7 +79,7 @@ ORDER BY date DESC`
 	{
 		tag: 'Time series',
 		title: 'Unix epoch → readable date',
-		blurb: "Raises and hacks store `date` as unix seconds (BIGINT). Wrap with to_timestamp before any date function.",
+		blurb: 'Raises and hacks store `date` as unix seconds (BIGINT). Wrap with to_timestamp before any date function.',
 		techniques: ['to_timestamp'],
 		sql: `SELECT to_timestamp(date) AS raised_at,
        name,
@@ -109,7 +109,8 @@ ORDER BY date DESC`
 	{
 		tag: 'Joins',
 		title: 'ASOF JOIN — raises + same-day TVL',
-		blurb: "Raise timestamps are seconds-granular; TVL is daily. ASOF pulls the most recent TVL row at or before each raise.",
+		blurb:
+			'Raise timestamps are seconds-granular; TVL is daily. ASOF pulls the most recent TVL row at or before each raise.',
 		techniques: ['ASOF JOIN', 'to_timestamp'],
 		sql: `SELECT to_timestamp(r.date) AS raised_at,
        r.name               AS protocol,

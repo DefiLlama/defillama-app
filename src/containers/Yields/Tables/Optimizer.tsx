@@ -1,13 +1,24 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type PaginationState,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import { useRouter } from 'next/router'
+import { startTransition, useMemo, useState } from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsOptimizerTableRow } from './types'
@@ -34,23 +45,33 @@ type OptimizerColumnId = (typeof OPTIMIZER_COLUMN_IDS)[number]
 
 //  TODO fix types
 
+function OptimizerPoolCell({ row }: { row: { id: string; original: IYieldsOptimizerTableRow } }) {
+	const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+
+	return (
+		<NameYieldPool
+			withoutLink
+			value={name}
+			configID={row.original.configID}
+			url={row.original.url}
+			rowIndex={rowIndex}
+			borrow={true}
+		/>
+	)
+}
+
 const columns = [
 	columnHelper.accessor('pool', {
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ row }) => {
-			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
-
-			return (
-				<NameYieldPool withoutLink value={name} configID={row.original.configID} url={row.original.url} borrow={true} />
-			)
-		},
+		cell: ({ row }) => <OptimizerPoolCell row={row} />,
 		size: 400
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
-		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+		header: () => <span style={{ paddingLeft: '24px' }}>Project</span>,
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
@@ -561,21 +582,48 @@ export function PaginatedYieldsOptimizerTable({
 	excludeRewardApy?: boolean
 	withAmount?: boolean
 }) {
-	const resolvedConfig = resolveVirtualYieldsTableConfig(OPTIMIZER_TABLE_CONFIG, {
-		excludeRewardApy,
-		withAmount
+	const width = useBreakpointWidth()
+	const context = useMemo(
+		() => ({
+			excludeRewardApy,
+			withAmount
+		}),
+		[excludeRewardApy, withAmount]
+	)
+	const [sorting, setSorting] = useState<SortingState>(defaultSortingState)
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: initialPageSize
 	})
 
-	return (
-		<YieldsTableWrapper
-			data={data}
-			columns={resolvedConfig.columns}
-			columnSizes={resolvedConfig.columnSizes}
-			columnOrders={resolvedConfig.columnOrders}
-			sortingState={resolvedConfig.defaultSorting ?? defaultSortingState}
-			columnVisibility={resolvedConfig.columnVisibility}
-			enablePagination
-			initialPageSize={initialPageSize}
-		/>
+	const paginatedColumns = useMemo(
+		() => preparePaginatedYieldsColumns(OPTIMIZER_TABLE_CONFIG, context, width),
+		[context, width]
 	)
+
+	const table = useReactTable({
+		data,
+		columns: paginatedColumns,
+		meta: {
+			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
+		},
+		state: {
+			sorting,
+			pagination
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		onSortingChange: (updater) =>
+			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		onPaginationChange: (updater) =>
+			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
 }

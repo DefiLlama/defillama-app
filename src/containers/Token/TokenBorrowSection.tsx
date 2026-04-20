@@ -1,18 +1,92 @@
 import * as React from 'react'
+import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { PaginatedYieldsOptimizerTable } from '~/containers/Yields/Tables/Optimizer'
 import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
+import type { FormSubmitEvent } from '~/types/forms'
 import { useTokenStrategies } from './useTokenStrategies'
 
 const TOKEN_BORROW_SECTION_ID = 'token-borrow'
 
 type BorrowTabKey = 'use' | 'borrow'
+type BorrowTabFilters = {
+	selectedChains: string[] | null
+	minAvailable: string
+	maxAvailable: string
+}
 
 function getBorrowChainList(rows: IYieldsOptimizerTableRow[]) {
 	return [...new Set(rows.map((row) => row.chains[0]).filter((chain): chain is string => Boolean(chain)))].sort()
+}
+
+function getSelectedChains(selectedChains: string[] | null, availableChains: string[]) {
+	return selectedChains == null ? availableChains : selectedChains.filter((chain) => availableChains.includes(chain))
+}
+
+function formatAvailableTriggerValue(value: string) {
+	const numericValue = Number(value)
+	return Number.isFinite(numericValue) ? numericValue.toLocaleString() : value
+}
+
+function TokenBorrowAvailableRange({
+	minAvailable,
+	maxAvailable,
+	setMinAvailable,
+	setMaxAvailable,
+	nestedMenu
+}: {
+	minAvailable: string
+	maxAvailable: string
+	setMinAvailable: React.Dispatch<React.SetStateAction<string>>
+	setMaxAvailable: React.Dispatch<React.SetStateAction<string>>
+	nestedMenu?: boolean
+}) {
+	const handleSubmit = (event: FormSubmitEvent) => {
+		event.preventDefault()
+		const form = event.currentTarget
+
+		setMinAvailable(form.min?.value ?? '')
+		setMaxAvailable(form.max?.value ?? '')
+	}
+
+	const handleClear = () => {
+		setMinAvailable('')
+		setMaxAvailable('')
+	}
+
+	const hasRange = minAvailable !== '' || maxAvailable !== ''
+
+	return (
+		<FilterBetweenRange
+			name="Available"
+			trigger={
+				hasRange ? (
+					<>
+						<span>Available: </span>
+						<span className="text-(--link)">{`${minAvailable !== '' ? formatAvailableTriggerValue(minAvailable) : 'min'} - ${
+							maxAvailable !== '' ? formatAvailableTriggerValue(maxAvailable) : 'max'
+						}`}</span>
+					</>
+				) : (
+					<span>Available</span>
+				)
+			}
+			variant="secondary"
+			onSubmit={handleSubmit}
+			onClear={handleClear}
+			nestedMenu={nestedMenu}
+			min={minAvailable}
+			max={maxAvailable}
+			minLabel="Min Available"
+			maxLabel="Max Available"
+			minInputProps={{ inputMode: 'decimal', placeholder: '0' }}
+			maxInputProps={{ inputMode: 'decimal', placeholder: 'Any' }}
+			placement="bottom-start"
+		/>
+	)
 }
 
 export function filterBorrowRows({
@@ -44,20 +118,72 @@ export function filterBorrowRows({
 
 export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 	const [activeTab, setActiveTab] = React.useState<BorrowTabKey>('use')
-	const [selectedChains, setSelectedChains] = React.useState<string[]>([])
-	const [minAvailable, setMinAvailable] = React.useState('')
-	const [maxAvailable, setMaxAvailable] = React.useState('')
+	const [filtersByTab, setFiltersByTab] = React.useState<Record<BorrowTabKey, BorrowTabFilters>>({
+		use: {
+			selectedChains: null,
+			minAvailable: '',
+			maxAvailable: ''
+		},
+		borrow: {
+			selectedChains: null,
+			minAvailable: '',
+			maxAvailable: ''
+		}
+	})
 	const { data, error, isLoading } = useTokenStrategies(tokenSymbol)
+	const useRows = React.useMemo(() => data?.borrowAsCollateral ?? [], [data])
+	const borrowRows = React.useMemo(() => data?.borrowAsDebt ?? [], [data])
+	const useChainList = React.useMemo(() => getBorrowChainList(useRows), [useRows])
+	const borrowChainList = React.useMemo(() => getBorrowChainList(borrowRows), [borrowRows])
 
-	const rows = React.useMemo(
-		() => (activeTab === 'use' ? (data?.borrowAsCollateral ?? []) : (data?.borrowAsDebt ?? [])),
-		[activeTab, data]
+	const activeFilters = filtersByTab[activeTab]
+	const rows = activeTab === 'use' ? useRows : borrowRows
+	const chainList = activeTab === 'use' ? useChainList : borrowChainList
+	const selectedChains = React.useMemo(
+		() => getSelectedChains(activeFilters.selectedChains, chainList),
+		[activeFilters.selectedChains, chainList]
 	)
-	const chainList = React.useMemo(() => getBorrowChainList(rows), [rows])
+	const minAvailable = activeFilters.minAvailable
+	const maxAvailable = activeFilters.maxAvailable
 
-	React.useEffect(() => {
-		setSelectedChains(chainList)
-	}, [activeTab, chainList])
+	const setSelectedChains = React.useCallback(
+		(value: React.SetStateAction<string[] | null>) => {
+			setFiltersByTab((prev) => ({
+				...prev,
+				[activeTab]: {
+					...prev[activeTab],
+					selectedChains: typeof value === 'function' ? value(prev[activeTab].selectedChains) : value
+				}
+			}))
+		},
+		[activeTab]
+	)
+
+	const setMinAvailable = React.useCallback(
+		(value: React.SetStateAction<string>) => {
+			setFiltersByTab((prev) => ({
+				...prev,
+				[activeTab]: {
+					...prev[activeTab],
+					minAvailable: typeof value === 'function' ? value(prev[activeTab].minAvailable) : value
+				}
+			}))
+		},
+		[activeTab]
+	)
+
+	const setMaxAvailable = React.useCallback(
+		(value: React.SetStateAction<string>) => {
+			setFiltersByTab((prev) => ({
+				...prev,
+				[activeTab]: {
+					...prev[activeTab],
+					maxAvailable: typeof value === 'function' ? value(prev[activeTab].maxAvailable) : value
+				}
+			}))
+		},
+		[activeTab]
+	)
 
 	const filteredRows = React.useMemo(
 		() =>
@@ -73,6 +199,8 @@ export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 	const hasActiveFilters = selectedChains.length !== chainList.length || minAvailable !== '' || maxAvailable !== ''
 	const hasPlaceholderState = isLoading || error != null || rows.length === 0
 	const tabLabel = activeTab === 'use' ? `Use ${tokenSymbol}` : `Borrow ${tokenSymbol}`
+	const summaryText =
+		filteredRows.length > 0 ? `Tracking ${filteredRows.length} ${filteredRows.length === 1 ? 'route' : 'routes'}` : null
 
 	return (
 		<section
@@ -80,7 +208,7 @@ export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 				hasPlaceholderState ? ' min-h-[80dvh] sm:min-h-[572px]' : ''
 			}`}
 		>
-			<div className="border-b border-(--cards-border) p-3">
+			<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 				<h2
 					className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
 					id={TOKEN_BORROW_SECTION_ID}
@@ -94,6 +222,9 @@ export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 					/>
 					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
+				{!isLoading && !error && summaryText ? (
+					<p className="text-sm text-(--text-secondary) sm:text-right">{summaryText}</p>
+				) : null}
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
@@ -135,13 +266,6 @@ export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 				) : (
 					<>
 						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="flex flex-wrap items-center gap-2 p-3">
-								<span>
-									{filteredRows.length > 0
-										? `Tracking ${filteredRows.length} ${filteredRows.length === 1 ? 'route' : 'routes'}`
-										: 'No routes matching filters'}
-								</span>
-							</div>
 							<div className="p-3">
 								<ResponsiveFilterLayout>
 									{(nestedMenu) => (
@@ -154,33 +278,18 @@ export function TokenBorrowSection({ tokenSymbol }: { tokenSymbol: string }) {
 												nestedMenu={nestedMenu}
 												labelType={selectedChains.length === chainList.length ? 'none' : 'regular'}
 											/>
-											<label className="flex min-w-[160px] flex-col gap-1 text-sm">
-												<span className="text-(--text-secondary)">Min Available</span>
-												<input
-													type="number"
-													inputMode="decimal"
-													value={minAvailable}
-													onChange={(event) => setMinAvailable(event.target.value)}
-													placeholder="0"
-													className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2"
-												/>
-											</label>
-											<label className="flex min-w-[160px] flex-col gap-1 text-sm">
-												<span className="text-(--text-secondary)">Max Available</span>
-												<input
-													type="number"
-													inputMode="decimal"
-													value={maxAvailable}
-													onChange={(event) => setMaxAvailable(event.target.value)}
-													placeholder="Any"
-													className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2"
-												/>
-											</label>
+											<TokenBorrowAvailableRange
+												minAvailable={minAvailable}
+												maxAvailable={maxAvailable}
+												setMinAvailable={setMinAvailable}
+												setMaxAvailable={setMaxAvailable}
+												nestedMenu={nestedMenu}
+											/>
 											{hasActiveFilters ? (
 												<button
 													type="button"
 													onClick={() => {
-														setSelectedChains(chainList)
+														setSelectedChains(null)
 														setMinAvailable('')
 														setMaxAvailable('')
 													}}

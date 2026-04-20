@@ -9,6 +9,20 @@ const CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
 const LONG_SHORT_EXCLUDED_PROJECTS = new Set(['babydogeswap', 'cbridge'])
 const LONG_SHORT_EXCLUDED_SYMBOLS = ['ADAI', 'DOP', 'COPI', 'EUROPOOL', 'UMAMI']
 
+function matchesLongShortPoolToken(poolSymbol: string, tokenSymbol: string) {
+	if (matchesYieldPoolToken(poolSymbol, tokenSymbol)) return true
+
+	const normalizedPoolSymbol = poolSymbol?.toUpperCase() ?? ''
+	const normalizedTokenSymbol = tokenSymbol?.trim().toUpperCase() ?? ''
+
+	if (!normalizedPoolSymbol || !normalizedTokenSymbol) return false
+
+	// Standalone long/short finder uses substring matching, which is needed for
+	// composite symbols like 75SDEX25AAVELIDOETH. Restrict the fallback to 4+ chars
+	// so short tokens like IN do not create false positives.
+	return normalizedTokenSymbol.length >= 4 && normalizedPoolSymbol.includes(normalizedTokenSymbol)
+}
+
 function filterLongShortPools(
 	allPools: Awaited<ReturnType<typeof getLendBorrowData>>['props']['allPools'],
 	token: string
@@ -21,7 +35,7 @@ function filterLongShortPools(
 				pool.apy > 0 &&
 				!LONG_SHORT_EXCLUDED_PROJECTS.has(pool.project) &&
 				!LONG_SHORT_EXCLUDED_SYMBOLS.some((excludedSymbol) => pool.symbol.includes(excludedSymbol)) &&
-				matchesYieldPoolToken(pool.symbol, token)
+				matchesLongShortPoolToken(pool.symbol, token)
 		)
 		.map((pool) => ({ ...pool, symbol: pool.symbol?.toUpperCase() }))
 }
@@ -31,8 +45,6 @@ export default async function handler(
 	res: NextApiResponse<TokenStrategiesResponse | { error: string }>
 ) {
 	try {
-		res.setHeader('Cache-Control', CACHE_CONTROL)
-
 		const tokenQuery = req.query.token
 		const token =
 			typeof tokenQuery === 'string'
@@ -45,6 +57,8 @@ export default async function handler(
 			res.status(400).json({ error: 'Missing token query param' })
 			return
 		}
+
+		res.setHeader('Cache-Control', CACHE_CONTROL)
 
 		const [{ props }, perps] = await Promise.all([getLendBorrowData(), getPerpData()])
 
@@ -90,7 +104,7 @@ export default async function handler(
 			longShort
 		})
 	} catch (error) {
-		console.log('Error fetching token strategies data:', error)
+		console.error('Error fetching token strategies data:', error)
 		res.status(500).json({ error: 'Failed to fetch token strategies data' })
 	}
 }

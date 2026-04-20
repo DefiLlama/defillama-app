@@ -2,6 +2,7 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+// Hoisted mutable state for the mocked hook below.
 var strategiesState: {
 	data?: any
 	error?: Error | null
@@ -22,6 +23,10 @@ vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	)
 }))
 
+vi.mock('~/components/Filters/FilterBetweenRange', () => ({
+	FilterBetweenRange: ({ trigger }: { trigger: React.ReactNode }) => <div>{trigger}</div>
+}))
+
 vi.mock('~/components/Icon', () => ({
 	Icon: ({ name }: { name: string }) => <span>{name}</span>
 }))
@@ -31,7 +36,9 @@ vi.mock('~/components/Loaders', () => ({
 }))
 
 vi.mock('~/components/Select/SelectWithCombobox', () => ({
-	SelectWithCombobox: ({ label }: { label: string }) => <div>{label}</div>
+	SelectWithCombobox: ({ label, selectedValues }: { label: string; selectedValues?: string[] }) => (
+		<div>{`${label}:${selectedValues?.join(',') ?? ''}`}</div>
+	)
 }))
 
 vi.mock('~/containers/Yields/Tables/StrategyFR', () => ({
@@ -85,7 +92,9 @@ describe('TokenLongShortSection', () => {
 					{
 						symbol: 'ETH',
 						symbolPerp: 'ETH-PERP',
-						chains: ['Ethereum']
+						chains: ['Ethereum'],
+						exposure: 'single',
+						ilRisk: 'no'
 					}
 				]
 			},
@@ -96,6 +105,8 @@ describe('TokenLongShortSection', () => {
 		const html = renderToStaticMarkup(<TokenLongShortSection tokenSymbol="ETH" />)
 
 		expect(html).toContain('Tracking 1 strategy')
+		expect(html).toContain('Attributes:single_exposure,no_il')
+		expect(html).toContain('TVL Range')
 		expect(html).toContain('strategy-fr-table:1:10')
 	})
 
@@ -106,13 +117,16 @@ describe('TokenLongShortSection', () => {
 	})
 
 	it('filters long/short rows by exact chain selection', () => {
-		const filtered = filterLongShortRows(
-			[
+		const filtered = filterLongShortRows({
+			rows: [
 				{ symbol: 'IN', symbolPerp: 'IN-PERP', chains: ['Ethereum'] },
 				{ symbol: 'IN', symbolPerp: 'IN-PERP', chains: ['Base'] }
 			] as any,
-			['Base']
-		)
+			selectedChains: ['Base'],
+			selectedAttributes: [],
+			minTvl: '',
+			maxTvl: ''
+		})
 
 		expect(filtered).toHaveLength(1)
 		expect(filtered[0].chains[0]).toBe('Base')

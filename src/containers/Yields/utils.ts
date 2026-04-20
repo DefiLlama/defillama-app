@@ -543,12 +543,39 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 	return finalPools
 }
 
+interface FilterablePool {
+	chain: string
+	project: string
+	projectName?: string
+	farmProject?: string
+	farmProjectName?: string
+	stablecoin?: boolean
+	exposure?: string
+	ilRisk?: string
+	hasMemeToken?: boolean
+	tvlUsd: number
+	farmTvlUsd?: number
+	audits?: string
+	outlier?: boolean
+	predictions?: {
+		predictedClass?: string
+		binnedConfidence?: number
+	}
+	airdrop?: boolean
+	apy: number
+	lsdTokenOnly?: boolean
+	borrow?: {
+		totalAvailableUsd?: number | null
+	}
+	ltv?: number | null
+}
+
 interface FilterPools {
 	selectedChainsSet: Set<string>
 	selectedAttributes?: Array<string>
 	selectedLendingProtocolsSet?: Set<string> | null
 	selectedFarmProtocolsSet?: Set<string> | null
-	pool: YieldsData['props']['pools'][number]
+	pool: FilterablePool
 	minTvl?: number | null
 	maxTvl?: number | null
 	minAvailable?: number | null

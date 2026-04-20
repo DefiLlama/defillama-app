@@ -154,12 +154,7 @@ export function registerSqlHovers(
 			const word = model.getWordAtPosition(position)
 			if (!word) return null
 			const identifier = word.word
-			const range = new monaco.Range(
-				position.lineNumber,
-				word.startColumn,
-				position.lineNumber,
-				word.endColumn
-			)
+			const range = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn)
 			const ctx = contextRef.current
 
 			// Qualified reference: `tableName.columnName` / `tableName."columnName"`.
@@ -169,14 +164,13 @@ export function registerSqlHovers(
 				const tableName = qualifierMatch[1].replace(/"/g, '').toLowerCase()
 				const table = ctx.tables.find((t) => t.name.toLowerCase() === tableName)
 				if (table) {
-					const col = table.columns.find((c) => c.name === identifier || c.name.toLowerCase() === identifier.toLowerCase())
+					const col = table.columns.find(
+						(c) => c.name === identifier || c.name.toLowerCase() === identifier.toLowerCase()
+					)
 					if (col) {
 						return {
 							range,
-							contents: [
-								{ value: `\`${table.name}.${col.name}\`` },
-								{ value: `type · \`${col.type}\`` }
-							]
+							contents: [{ value: `\`${table.name}.${col.name}\`` }, { value: `type · \`${col.type}\`` }]
 						}
 					}
 				}
@@ -241,18 +235,13 @@ export function registerSqlHovers(
 
 			// Column match — only helpful if exactly one loaded table has this column,
 			// otherwise we'd guess wrong. Quiet by design.
-			const tablesWithColumn = ctx.tables.filter((t) =>
-				t.columns.some((c) => c.name.toLowerCase() === normalized)
-			)
+			const tablesWithColumn = ctx.tables.filter((t) => t.columns.some((c) => c.name.toLowerCase() === normalized))
 			if (tablesWithColumn.length === 1) {
 				const table = tablesWithColumn[0]
 				const col = table.columns.find((c) => c.name.toLowerCase() === normalized)!
 				return {
 					range,
-					contents: [
-						{ value: `\`${table.name}.${col.name}\`` },
-						{ value: `type · \`${col.type}\`` }
-					]
+					contents: [{ value: `\`${table.name}.${col.name}\`` }, { value: `type · \`${col.type}\`` }]
 				}
 			}
 
