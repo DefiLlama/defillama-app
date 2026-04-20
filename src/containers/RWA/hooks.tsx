@@ -699,7 +699,7 @@ export const useFilteredRwaAssets = ({
 					: true) &&
 				(asset.rwaClassification ? selectedRwaClassificationsSet.has(asset.rwaClassification) : true) &&
 				(asset.accessModel ? selectedAccessModelsSet.has(asset.accessModel) : true) &&
-				(asset.issuer ? selectedIssuersSet.has(asset.issuer) : true) &&
+				selectedIssuersSet.has(asset.issuer || 'Unknown') &&
 				selectedTypesSet.has(assetType)
 
 			if (toFilter) {
