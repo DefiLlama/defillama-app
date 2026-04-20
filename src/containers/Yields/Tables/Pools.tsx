@@ -15,7 +15,7 @@ import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { PaginatedTable } from '~/components/Table/PaginatedTable'
+import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -61,40 +61,36 @@ function PegHealthIndicator({
 const columnHelper = createColumnHelper<IYieldTableRow>()
 const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
 
+function PoolNameCell({ value, row }: { value: string; row: { id: string; original: IYieldTableRow } }) {
+	const exploited = isExploitedPool(row.original.projectslug, value)
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+
+	return (
+		<span className="flex items-center gap-1">
+			<NameYieldPool
+				value={value}
+				configID={row.original.configID}
+				url={row.original.url}
+				rowIndex={rowIndex}
+				poolMeta={row.original.poolMeta}
+			/>
+			{exploited ? (
+				<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+					<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
+						exploit
+					</span>
+				</Tooltip>
+			) : null}
+		</span>
+	)
+}
+
 const columns = [
 	columnHelper.accessor('pool', {
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ getValue, row, table }) => {
-			const value = getValue()
-			const exploited = isExploitedPool(row.original.projectslug, value)
-			const rowIndex = (
-				table.options.meta as
-					| {
-							getDisplayRowNumber?: (rowIndex: number) => number
-					  }
-					| undefined
-			)?.getDisplayRowNumber?.(row.index)
-			return (
-				<span className="flex items-center gap-1">
-					<NameYieldPool
-						value={value}
-						configID={row.original.configID}
-						url={row.original.url}
-						rowIndex={rowIndex}
-						poolMeta={row.original.poolMeta}
-					/>
-					{exploited ? (
-						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
-							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
-								exploit
-							</span>
-						</Tooltip>
-					) : null}
-				</span>
-			)
-		},
+		cell: ({ getValue, row }) => <PoolNameCell value={getValue()} row={row} />,
 		size: 200
 	}),
 	columnHelper.accessor('project', {
@@ -1208,9 +1204,6 @@ export function PaginatedYieldsPoolTable({
 	const table = useReactTable({
 		data,
 		columns: paginatedColumns,
-		meta: {
-			getDisplayRowNumber: (rowIndex: number) => pagination.pageIndex * pagination.pageSize + rowIndex + 1
-		},
 		state: {
 			sorting,
 			pagination
@@ -1220,9 +1213,9 @@ export function PaginatedYieldsPoolTable({
 		},
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
-			startTransition(() => setSorting(typeof updater === 'function' ? updater(sorting) : updater)),
+			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		onPaginationChange: (updater) =>
-			startTransition(() => setPagination(typeof updater === 'function' ? updater(pagination) : updater)),
+			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
