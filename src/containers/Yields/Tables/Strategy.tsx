@@ -55,12 +55,14 @@ const columns = [
 		header: 'Strategy APY',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
+			const formatApyDetail = (value: number | null | undefined) => (value != null ? `${value.toFixed(2)}%` : 'N/A')
+
 			const TooltipContent = () => {
 				return (
 					<span className="flex flex-col gap-1">
-						<span>{`Supply APY: ${row.original?.apy?.toFixed(2)}%`}</span>
-						<span>{`Borrow APY: ${row.original?.borrow?.apyBorrow?.toFixed(2)}%`}</span>
-						<span>{`Farm APY: ${row.original?.farmApy?.toFixed(2)}%`}</span>
+						<span>{`Supply APY: ${formatApyDetail(row.original.apy)}`}</span>
+						<span>{`Borrow APY: ${formatApyDetail(row.original.borrow?.apyBorrow)}`}</span>
+						<span>{`Farm APY: ${formatApyDetail(row.original.farmApy)}`}</span>
 					</span>
 				)
 			}

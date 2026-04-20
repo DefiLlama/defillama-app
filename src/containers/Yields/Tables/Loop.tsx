@@ -121,7 +121,9 @@ const columns = [
 		header: 'Boost',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedNum(info.getValue()) + 'x'}</ColoredAPY>
+			const value = info.getValue()
+			if (value == null || !Number.isFinite(Number(value))) return null
+			return <ColoredAPY data-variant="borrow">{formattedNum(value) + 'x'}</ColoredAPY>
 		},
 		size: 80,
 		meta: {
@@ -197,6 +199,9 @@ const columns = [
 		header: 'Available',
 		enableSorting: true,
 		cell: (info) => {
+			const totalSupplyUsd = info.row.original.totalSupplyUsd
+			const totalBorrowUsd = info.row.original.totalBorrowUsd
+			const available = totalSupplyUsd != null && totalBorrowUsd != null ? totalSupplyUsd - totalBorrowUsd : undefined
 			return (
 				<span
 					data-strike={info.row.original.strikeTvl ?? 'false'}
@@ -205,9 +210,7 @@ const columns = [
 					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (
 						<QuestionHelper
 							text={`Morpho liquidity comes from the underlying lending protocol pool itself. Available P2P Liquidity: ${
-								info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd > 0
-									? formattedNum(info.row.original.totalSupplyUsd - info.row.original.totalBorrowUsd, true)
-									: '$0'
+								available == null ? 'Unknown' : available > 0 ? formattedNum(available, true) : '$0'
 							}`}
 						/>
 					) : null}

@@ -525,8 +525,12 @@ export function YieldsOptimizerTable({ data }) {
 	const router = useRouter()
 
 	const { excludeRewardApy } = router.query
-	const lendAmount = router.query.lendAmount ? parseInt(router.query.lendAmount as string) : 0
-	const borrowAmount = router.query.borrowAmount ? parseInt(router.query.borrowAmount as string) : 0
+	const lendAmountQuery = Array.isArray(router.query.lendAmount) ? router.query.lendAmount[0] : router.query.lendAmount
+	const borrowAmountQuery = Array.isArray(router.query.borrowAmount)
+		? router.query.borrowAmount[0]
+		: router.query.borrowAmount
+	const lendAmount = Number.isFinite(Number(lendAmountQuery)) ? Number(lendAmountQuery) : 0
+	const borrowAmount = Number.isFinite(Number(borrowAmountQuery)) ? Number(borrowAmountQuery) : 0
 	const withAmount = lendAmount > 0 || borrowAmount > 0
 
 	const resolvedConfig = resolveVirtualYieldsTableConfig(OPTIMIZER_TABLE_CONFIG, {

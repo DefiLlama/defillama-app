@@ -192,7 +192,7 @@ export function filterPoolTableRows(
 		filteredRows = filteredRows.filter((row) => chainSet.has(row.chains[0]))
 	}
 
-	if (includeTokens.length > 0) {
+	if (includeTokens.length > 0 && includeTokens[0] !== 'All') {
 		filteredRows = filteredRows.filter((row) => includeTokens.some((token) => matchesYieldPoolToken(row.pool, token)))
 	}
 
@@ -206,11 +206,12 @@ export function filterPoolTableRows(
 	if (maxTvl != null) {
 		filteredRows = filteredRows.filter((row) => row.tvl != null && row.tvl <= maxTvl)
 	}
+	// Match the page-level pool filter semantics: APY range bounds are exclusive.
 	if (minApy != null) {
-		filteredRows = filteredRows.filter((row) => row.apy != null && row.apy >= minApy)
+		filteredRows = filteredRows.filter((row) => row.apy != null && row.apy > minApy)
 	}
 	if (maxApy != null) {
-		filteredRows = filteredRows.filter((row) => row.apy != null && row.apy <= maxApy)
+		filteredRows = filteredRows.filter((row) => row.apy != null && row.apy < maxApy)
 	}
 
 	return filteredRows
