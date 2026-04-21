@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { inferFineKindFromArrowType, type FineKind } from './columnKind'
 
 type StatusTone = 'ready' | 'busy' | 'error' | 'muted'
 
@@ -43,7 +44,7 @@ export function SectionLabel({ label, count, action }: { label: string; count?: 
 	)
 }
 
-type ColumnKind = 'date' | 'int' | 'float' | 'text' | 'bool' | 'other'
+type ColumnKind = FineKind
 
 const KIND_LABEL: Record<ColumnKind, string> = {
 	date: 'date',
@@ -51,6 +52,7 @@ const KIND_LABEL: Record<ColumnKind, string> = {
 	float: 'num',
 	text: 'text',
 	bool: 'bool',
+	list: 'list',
 	other: '—'
 }
 
@@ -60,6 +62,7 @@ const KIND_TONE: Record<ColumnKind, string> = {
 	float: 'text-(--primary)',
 	text: 'text-pro-green-300',
 	bool: 'text-pro-purple-300',
+	list: 'text-pro-purple-300',
 	other: 'text-(--text-tertiary)'
 }
 
@@ -74,14 +77,6 @@ export function TypeBadge({ kind }: { kind: ColumnKind }) {
 	)
 }
 
-export function inferColumnKind(typeString: string | undefined): ColumnKind {
-	if (!typeString) return 'other'
-	if (/Date|Timestamp/i.test(typeString)) return 'date'
-	if (/Float|Decimal|Double/i.test(typeString)) return 'float'
-	if (/Int|Long|Short/i.test(typeString)) return 'int'
-	if (/Bool/i.test(typeString)) return 'bool'
-	if (/Utf8|String/i.test(typeString)) return 'text'
-	return 'other'
-}
+export const inferColumnKind = inferFineKindFromArrowType
 
 export type { ColumnKind }

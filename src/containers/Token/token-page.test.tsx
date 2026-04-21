@@ -998,15 +998,15 @@ describe('token page', () => {
 			candidates: [{ key: 'ethereum:0x5149', chain: 'ethereum', address: '0x5149', displayName: 'Ethereum' }],
 			scopeCandidates: [{ key: 'ethereum:0x5149', chain: 'ethereum', address: '0x5149', displayName: 'Ethereum' }],
 			selectedCandidateKey: null,
-			borrowCaps: {
+			exposures: {
 				summary: {
-					totalBorrowCapUsd: 10,
-					totalBorrowedUsd: 6,
-					remainingCapUsd: 4,
-					capUtilization: 0.6,
+					totalCollateralMaxBorrowUsd: 10,
+					totalCollateralBorrowedDebtUsd: 6,
+					exposureCount: 1,
 					protocolCount: 1,
 					chainCount: 1,
-					marketCount: 1
+					borrowedDebtKnownCount: 1,
+					borrowedDebtUnknownCount: 0
 				},
 				rows: [
 					{
@@ -1014,47 +1014,18 @@ describe('token page', () => {
 						protocolDisplayName: 'Aave V3',
 						chain: 'ethereum',
 						chainDisplayName: 'Ethereum',
-						market: 'main',
-						debtSymbol: 'LINK',
-						borrowCapUsd: 10,
-						debtCeilingUsd: null,
-						displayBorrowCapUsd: 10,
-						debtTotalBorrowedUsd: 6,
-						debtTotalSupplyUsd: 12,
-						remainingCapUsd: 4,
-						availableToBorrowUsd: 4,
-						debtUtilization: 0.5,
-						eligibleCollateralCount: 1,
-						eligibleCollateralSymbols: ['ETH']
+						assetSymbol: 'LINK',
+						assetAddress: '0x5149',
+						collateralMaxBorrowUsd: 10,
+						collateralBorrowedDebtUsd: 6
 					}
 				],
 				methodologies: {
-					borrowCapUsd: 'cap',
-					debtTotalBorrowedUsd: 'borrowed',
-					debtUtilization: 'utilization',
-					availableToBorrowUsd: 'available'
+					asset: 'asset',
+					collateralMaxBorrowUsd: 'cap',
+					collateralBorrowedDebtUsd: 'borrowed'
 				}
 			},
-			collateralRisk: {
-				summary: {
-					totalAvailableToBorrowUsd: 0,
-					routeCount: 0,
-					isolatedRouteCount: 0,
-					minLiquidationBuffer: null,
-					maxLiquidationBuffer: null
-				},
-				rows: [],
-				methodologies: {
-					borrowCapUsd: 'borrow cap',
-					availableToBorrowUsd: 'available',
-					maxLtv: 'ltv',
-					liquidationThreshold: 'threshold',
-					liquidationPenalty: 'penalty',
-					isolationMode: 'isolation',
-					debtCeilingUsd: 'ceiling'
-				}
-			},
-			selectedChainRisk: null,
 			limitations: ['limit']
 		}
 

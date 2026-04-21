@@ -1,4 +1,5 @@
 import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
@@ -7,8 +8,10 @@ import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import type { ChartOptionsMap } from '../chart-datasets'
 import { chartDatasets } from '../chart-datasets'
 import { datasets } from '../datasets'
-import { extractQueryConfig, generatePresetId, type QuerySavedConfig } from '../savedDownloads'
+import { extractQueryConfig, generatePresetId, type QuerySavedConfig, type QueryTableRef } from '../savedDownloads'
 import { SavePresetDialog } from '../SavePresetDialog'
+import { decodeDownloadConfig } from '../urlState'
+import type { ChartConfig } from './chartConfig'
 import { extractTableRefs, matchTableRef } from './completions'
 import { Editor, type EditorHandle } from './Editor'
 import type { ExampleQuery } from './examples'
@@ -17,6 +20,7 @@ import { Keycap, StatusDot } from './primitives'
 import { QueryTabBar } from './QueryTabBar'
 import { ResultsPanel } from './ResultsPanel'
 import { SchemaDrawer } from './SchemaDrawer'
+import { ShareQueryButton } from './ShareQueryButton'
 import { TableChipRail } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
@@ -79,6 +83,7 @@ function SqlWorkspaceInner({
 	const [sectionTab, setSectionTab] = useState<SqlTab>('editor')
 	const [schemaDrawerOpen, setSchemaDrawerOpen] = useState(false)
 	const [savePresetOpen, setSavePresetOpen] = useState(false)
+	const [chartPreferredTab, setChartPreferredTab] = useState<string | null>(null)
 
 	const {
 		tabs,
@@ -95,7 +100,8 @@ function SqlWorkspaceInner({
 		renameTab,
 		updateTab,
 		updateActiveTab,
-		setActiveSql
+		setActiveSql,
+		setActiveChartConfig
 	} = useSqlTabs()
 
 	const editorRef = useRef<EditorHandle | null>(null)
@@ -103,6 +109,16 @@ function SqlWorkspaceInner({
 	const savedQueries = useMemo(
 		() => savedDownloads.filter((d): d is QuerySavedConfig => d.kind === 'query'),
 		[savedDownloads]
+	)
+
+	const tableRefs = useMemo(
+		() =>
+			registry.tables.map((t) =>
+				t.source.kind === 'dataset'
+					? { kind: 'dataset' as const, slug: t.source.slug }
+					: { kind: 'chart' as const, slug: t.source.slug, param: t.source.param, paramLabel: t.source.paramLabel }
+			),
+		[registry.tables]
 	)
 
 	const runSqlForTab = useCallback(
@@ -335,6 +351,38 @@ function SqlWorkspaceInner({
 		[updateActiveTab]
 	)
 
+	const router = useRouter()
+	const hydratedRef = useRef(false)
+	const hydrationCtxRef = useRef({ tabs, openTab, focusTab, updateTab, prepareAndRun, router })
+	hydrationCtxRef.current = { tabs, openTab, focusTab, updateTab, prepareAndRun, router }
+	useEffect(() => {
+		if (hydratedRef.current) return
+		if (!router.isReady) return
+		if (!duckdb.conn) return
+		const decoded = decodeDownloadConfig(router.query as Record<string, string | string[] | undefined>)
+		if (!decoded || decoded.kind !== 'query') {
+			hydratedRef.current = true
+			return
+		}
+		hydratedRef.current = true
+		const ctx = hydrationCtxRef.current
+		const existing = ctx.tabs.find((t) => t.sql === decoded.sql)
+		const tabId = existing ? existing.id : ctx.openTab({ sql: decoded.sql, focus: true })
+		if (existing) ctx.focusTab(existing.id)
+		if (decoded.chartConfig) {
+			ctx.updateTab(tabId, { chartConfig: decoded.chartConfig })
+			setChartPreferredTab(tabId)
+		}
+		setSectionTab('editor')
+		ctx.prepareAndRun({
+			tabId,
+			taskId: `share:${Date.now()}`,
+			tables: decoded.tables,
+			sql: decoded.sql
+		})
+		ctx.router.replace({ pathname: ctx.router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
+	}, [router.isReady, router.query, duckdb.conn])
+
 	useEffect(() => {
 		const handler = (e: KeyboardEvent) => {
 			const target = e.target as HTMLElement | null
@@ -424,6 +472,9 @@ function SqlWorkspaceInner({
 							canRun={!!duckdb.conn && !!activeTab.sql.trim()}
 							onRun={runQuery}
 							onSave={() => setSavePresetOpen(true)}
+							sql={activeTab.sql}
+							tables={tableRefs}
+							chartConfig={activeTab.chartConfig}
 						/>
 						{activeTab.runError ? (
 							<ErrorBanner
@@ -433,7 +484,15 @@ function SqlWorkspaceInner({
 								onApplyFix={onApplyFix}
 							/>
 						) : null}
-						<ResultsPanel result={activeTab.result} running={activeTab.running} busyLabel={activeTab.loadingStage} />
+						<ResultsPanel
+							result={activeTab.result}
+							running={activeTab.running}
+							busyLabel={activeTab.loadingStage}
+							chartConfig={activeTab.chartConfig}
+							onChartConfigChange={setActiveChartConfig}
+							preferredView={chartPreferredTab === activeTabId ? 'chart' : undefined}
+							onConsumePreferredView={() => setChartPreferredTab(null)}
+						/>
 					</div>
 					<div className="lg:sticky lg:top-4 lg:self-start">
 						<ExamplesPanel onApply={onApplyExample} busyTaskId={activeTab.busyTaskId} />
@@ -597,15 +656,22 @@ function EditorRunBar({
 	running,
 	canRun,
 	onRun,
-	onSave
+	onSave,
+	sql,
+	tables,
+	chartConfig
 }: {
 	running: boolean
 	canRun: boolean
 	onRun: () => void
 	onSave: () => void
+	sql: string
+	tables: QueryTableRef[]
+	chartConfig: ChartConfig | undefined
 }) {
 	return (
 		<div className="flex flex-wrap items-center justify-end gap-2">
+			<ShareQueryButton sql={sql} tables={tables} chartConfig={chartConfig} disabled={!canRun} />
 			<button
 				type="button"
 				onClick={onSave}

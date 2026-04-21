@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getStorageJSON, setStorageJSON } from '~/contexts/localStorageStore'
+import type { ChartConfig } from './chartConfig'
 import type { PendingTable } from './TableChipRail'
 
 const STORAGE_KEY = 'sql-studio:tabs:v1'
@@ -62,9 +63,10 @@ export interface QueryTab {
 	busyTaskId: string | null
 	pendingTables: PendingTable[]
 	dirty: boolean
+	chartConfig?: ChartConfig
 }
 
-type PersistedTab = Pick<QueryTab, 'id' | 'title' | 'titleAuto' | 'sql'>
+type PersistedTab = Pick<QueryTab, 'id' | 'title' | 'titleAuto' | 'sql' | 'chartConfig'>
 interface PersistedState {
 	tabs: PersistedTab[]
 	activeTabId: string
@@ -101,7 +103,8 @@ function blankTab(sql = ''): QueryTab {
 		loadingStage: null,
 		busyTaskId: null,
 		pendingTables: [],
-		dirty: sql.length > 0
+		dirty: sql.length > 0,
+		chartConfig: undefined
 	}
 }
 
@@ -129,7 +132,8 @@ function hydrate(): TabsState {
 			loadingStage: null,
 			busyTaskId: null,
 			pendingTables: [],
-			dirty: false
+			dirty: false,
+			chartConfig: p.chartConfig
 		}))
 	if (tabs.length === 0) {
 		const seeded = seedDefaultTabs()
@@ -162,6 +166,7 @@ export interface UseSqlTabsReturn {
 	updateTab: (id: string, patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => void
 	updateActiveTab: (patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => void
 	setActiveSql: (next: string) => void
+	setActiveChartConfig: (next: ChartConfig | null) => void
 }
 
 export function useSqlTabs(): UseSqlTabsReturn {
@@ -172,7 +177,13 @@ export function useSqlTabs(): UseSqlTabsReturn {
 		if (persistTimer.current) window.clearTimeout(persistTimer.current)
 		persistTimer.current = window.setTimeout(() => {
 			const payload: PersistedState = {
-				tabs: state.tabs.map(({ id, title, titleAuto, sql }) => ({ id, title, titleAuto, sql })),
+				tabs: state.tabs.map(({ id, title, titleAuto, sql, chartConfig }) => ({
+					id,
+					title,
+					titleAuto,
+					sql,
+					chartConfig
+				})),
 				activeTabId: state.activeTabId
 			}
 			setStorageJSON(STORAGE_KEY, payload)
@@ -219,6 +230,13 @@ export function useSqlTabs(): UseSqlTabsReturn {
 	const setActiveSql = useCallback(
 		(next: string) => {
 			updateActiveTab((t) => ({ sql: next, dirty: next !== t.sql ? true : t.dirty }))
+		},
+		[updateActiveTab]
+	)
+
+	const setActiveChartConfig = useCallback(
+		(next: ChartConfig | null) => {
+			updateActiveTab({ chartConfig: next ?? undefined })
 		},
 		[updateActiveTab]
 	)
@@ -362,6 +380,7 @@ export function useSqlTabs(): UseSqlTabsReturn {
 		renameTab,
 		updateTab,
 		updateActiveTab,
-		setActiveSql
+		setActiveSql,
+		setActiveChartConfig
 	}
 }

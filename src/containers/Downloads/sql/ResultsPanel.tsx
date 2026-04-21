@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { FormatSplitButton } from '../FormatSplitButton'
+import type { ChartConfig } from './chartConfig'
 import { exportQueryResult, type QueryResult } from './exportResults'
 import { ResultsChart } from './ResultsChart'
 import { ResultsGrid } from './ResultsGrid'
@@ -12,16 +13,33 @@ interface ResultsPanelProps {
 	result: QueryResult | null
 	running: boolean
 	busyLabel?: string | null
+	chartConfig: ChartConfig | undefined
+	onChartConfigChange: (next: ChartConfig | null) => void
+	preferredView?: ResultsView
+	onConsumePreferredView?: () => void
 }
 
-export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) {
-	const [view, setView] = useState<ResultsView>('table')
+export function ResultsPanel({
+	result,
+	running,
+	busyLabel,
+	chartConfig,
+	onChartConfigChange,
+	preferredView,
+	onConsumePreferredView
+}: ResultsPanelProps) {
+	const [view, setView] = useState<ResultsView>(preferredView ?? 'table')
 
 	const resultId = result ? `${result.columns.map((c) => c.name).join('|')}:${result.rows.length}` : ''
 	const [prevResultId, setPrevResultId] = useState(resultId)
 	if (prevResultId !== resultId) {
 		setPrevResultId(resultId)
-		setView('table')
+		if (preferredView) {
+			setView(preferredView)
+			onConsumePreferredView?.()
+		} else {
+			setView('table')
+		}
 	}
 
 	const busy = running || !!busyLabel
@@ -77,7 +95,11 @@ export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) 
 					/>
 				</div>
 			</div>
-			{view === 'chart' ? <ResultsChart result={result} /> : <ResultsGrid result={result} />}
+			{view === 'chart' ? (
+				<ResultsChart result={result} chartConfig={chartConfig} onChartConfigChange={onChartConfigChange} />
+			) : (
+				<ResultsGrid result={result} />
+			)}
 		</div>
 	)
 }
