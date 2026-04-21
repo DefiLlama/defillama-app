@@ -23,7 +23,8 @@ import type {
 	OverviewChainRow,
 	OverviewProtocolRow,
 	ProtocolChainRow,
-	RawLiquidationPosition
+	RawLiquidationPosition,
+	TokenLiquidationsSectionData
 } from './api.types'
 import { createProtocolMetadataLookup } from './protocolMetadata'
 
@@ -43,6 +44,11 @@ interface ChainAggregate {
 }
 
 const LIQUIDATIONS_V2_TOTAL_BINS = 60
+
+function normalizeLiquidationsTokenSymbol(symbol: string | null | undefined): string | null {
+	const normalizedSymbol = symbol?.trim().toUpperCase()
+	return normalizedSymbol ? normalizedSymbol : null
+}
 
 function getProtocolRef(
 	protocolId: string,
@@ -139,7 +145,10 @@ function buildLiquidationsDistributionChart(
 			'liqPrice' | 'collateral' | 'collateralAmount' | 'collateralAmountUsd' | 'protocolName' | 'chainName'
 		>
 	>,
-	totalBins = LIQUIDATIONS_V2_TOTAL_BINS
+	totalBins = LIQUIDATIONS_V2_TOTAL_BINS,
+	getTokenIdentity: (position: Pick<LiquidationPosition, 'collateral'>) => { key: string; label: string } = (
+		position
+	) => ({ key: position.collateral, label: position.collateral })
 ): LiquidationsDistributionChartData {
 	const validPositions = positions.filter(
 		(position) =>
@@ -155,12 +164,15 @@ function buildLiquidationsDistributionChart(
 	}
 
 	const positionsByToken = new Map<string, typeof validPositions>()
+	const tokenLabelsByKey = new Map<string, string>()
 	for (const position of validPositions) {
-		const tokenPositions = positionsByToken.get(position.collateral)
+		const token = getTokenIdentity(position)
+		tokenLabelsByKey.set(token.key, token.label)
+		const tokenPositions = positionsByToken.get(token.key)
 		if (tokenPositions) {
 			tokenPositions.push(position)
 		} else {
-			positionsByToken.set(position.collateral, [position])
+			positionsByToken.set(token.key, [position])
 		}
 	}
 
@@ -220,10 +232,10 @@ function buildLiquidationsDistributionChart(
 
 			return {
 				key: tokenKey,
-				label: tokenKey,
+				label: tokenLabelsByKey.get(tokenKey) ?? tokenKey,
 				totalUsd,
 				breakdowns: {
-					total: buildView(() => ({ key: tokenKey, label: tokenKey })),
+					total: buildView(() => ({ key: tokenKey, label: tokenLabelsByKey.get(tokenKey) ?? tokenKey })),
 					protocol: buildView((position) => ({ key: position.protocolName, label: position.protocolName })),
 					chain: buildView((position) => ({ key: position.chainName, label: position.chainName }))
 				}
@@ -379,6 +391,111 @@ export async function getLiquidationsOverviewPageData(
 					positionCount: chainAggregate.positionCount,
 					protocolCount: chainAggregate.protocolIds.size,
 					collateralCount: chainAggregate.collaterals.size,
+					totalCollateralUsd: chainAggregate.totalCollateralUsd
+				})
+			)
+		)
+	}
+}
+
+export async function getTokenLiquidationsSectionData(
+	tokenSymbol: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<TokenLiquidationsSectionData | null> {
+	const normalizedTokenSymbol = normalizeLiquidationsTokenSymbol(tokenSymbol)
+	if (!normalizedTokenSymbol) {
+		return null
+	}
+
+	const [protocolsResponse, allResponse] = await Promise.all([fetchProtocolsList(), fetchAllLiquidations()])
+	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
+	const protocolRows: OverviewProtocolRow[] = []
+	const chainMap = new Map<string, ChainAggregate>()
+	const chartPositions: LiquidationPosition[] = []
+	let positionCount = 0
+	let totalCollateralUsd = 0
+
+	for (const protocolId of protocolsResponse.protocols) {
+		const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
+		const protocolData = allResponse.data[protocolId] ?? {}
+		let protocolPositionCount = 0
+		let protocolTotalCollateralUsd = 0
+		const protocolChains = new Set<string>()
+
+		for (const [chainId, rawPositions] of Object.entries(protocolData)) {
+			const chainTokenMap = allResponse.tokens[chainId] ?? {}
+			const matchedPositions = rawPositions.filter((position) => {
+				const token = chainTokenMap[position.collateral]
+				return normalizeLiquidationsTokenSymbol(token?.symbol) === normalizedTokenSymbol
+			})
+
+			if (matchedPositions.length === 0) {
+				continue
+			}
+
+			const chain = getChainRef(chainId, metadataCache.chainMetadata)
+			const normalizedPositions = normalizePositions(protocol, chain, matchedPositions)
+			const chainCollateralUsd = sumCollateralUsd(matchedPositions)
+
+			protocolPositionCount += matchedPositions.length
+			protocolTotalCollateralUsd += chainCollateralUsd
+			positionCount += matchedPositions.length
+			totalCollateralUsd += chainCollateralUsd
+			protocolChains.add(chain.id)
+			chartPositions.push(...normalizedPositions)
+
+			let chainAggregate = chainMap.get(chain.id)
+			if (!chainAggregate) {
+				chainAggregate = {
+					chain,
+					positionCount: 0,
+					protocolIds: new Set<string>(),
+					collaterals: new Set<string>(),
+					totalCollateralUsd: 0
+				}
+				chainMap.set(chain.id, chainAggregate)
+			}
+
+			chainAggregate.positionCount += matchedPositions.length
+			chainAggregate.protocolIds.add(protocol.id)
+			chainAggregate.totalCollateralUsd += chainCollateralUsd
+			chainAggregate.collaterals.add(normalizedTokenSymbol)
+		}
+
+		if (protocolPositionCount > 0) {
+			protocolRows.push({
+				...protocol,
+				positionCount: protocolPositionCount,
+				chainCount: protocolChains.size,
+				collateralCount: 1,
+				totalCollateralUsd: protocolTotalCollateralUsd
+			})
+		}
+	}
+
+	if (positionCount === 0) {
+		return null
+	}
+
+	return {
+		tokenSymbol: normalizedTokenSymbol,
+		timestamp: allResponse.timestamp,
+		positionCount,
+		protocolCount: protocolRows.length,
+		chainCount: chainMap.size,
+		totalCollateralUsd,
+		distributionChart: buildLiquidationsDistributionChart(chartPositions, LIQUIDATIONS_V2_TOTAL_BINS, () => ({
+			key: normalizedTokenSymbol,
+			label: normalizedTokenSymbol
+		})),
+		protocolRows: sortByCountAndName(protocolRows),
+		chainRows: sortByCountAndName(
+			Array.from(chainMap.values()).map(
+				(chainAggregate): OverviewChainRow => ({
+					...chainAggregate.chain,
+					positionCount: chainAggregate.positionCount,
+					protocolCount: chainAggregate.protocolIds.size,
+					collateralCount: 1,
 					totalCollateralUsd: chainAggregate.totalCollateralUsd
 				})
 			)

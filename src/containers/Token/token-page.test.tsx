@@ -103,6 +103,7 @@ const state: {
 	tokenRightsEntries: unknown[]
 	protocolMetadata: Record<string, IProtocolMetadata>
 	chainMetadata: Record<string, { name: string }>
+	liquidationsTokenSymbols: string[]
 	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
@@ -117,6 +118,7 @@ const state: {
 	tokenRightsEntries: [],
 	protocolMetadata: {},
 	chainMetadata: {},
+	liquidationsTokenSymbols: [],
 	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
@@ -150,6 +152,7 @@ function resetState() {
 	state.tokenRightsEntries = []
 	state.protocolMetadata = {}
 	state.chainMetadata = {}
+	state.liquidationsTokenSymbols = []
 	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
@@ -190,6 +193,10 @@ vi.mock('~/containers/Token/tokenOverview', () => ({
 
 vi.mock('~/containers/Token/TokenUsageSection', () => ({
 	TokenUsageSection: () => <div>token-usage-section</div>
+}))
+
+vi.mock('~/containers/Token/TokenLiquidationsSection', () => ({
+	TokenLiquidationsSection: () => <div>token-liquidations-section</div>
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
@@ -251,6 +258,9 @@ vi.mock('~/utils/metadata', () => ({
 		get chainMetadata() {
 			return state.chainMetadata
 		},
+		get liquidationsTokenSymbols() {
+			return state.liquidationsTokenSymbols
+		},
 		get emissionsProtocolsList() {
 			return state.emissionsProtocolsList
 		},
@@ -304,6 +314,7 @@ describe('token page', () => {
 					} as TokenBorrowRoutesResponse
 				}
 				geckoId="bitcoin"
+				hasLiquidations
 				resolvedUnlocksSlug="chainlink"
 				overview={overviewFixture}
 				seoTitle="title"
@@ -315,6 +326,7 @@ describe('token page', () => {
 		expect(html).toContain('token-overview-section')
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
+		expect(html).toContain('token-liquidations-section')
 		expect(html).toContain('token-unlocks-section:chainlink')
 		expect(html).toContain('token-yields-section')
 		expect(html).toContain('token-borrow-section')
@@ -324,7 +336,8 @@ describe('token page', () => {
 		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-rights-section'))
-		expect(html.indexOf('token-unlocks-section:chainlink')).toBeGreaterThan(html.indexOf('token-usage-section'))
+		expect(html.indexOf('token-liquidations-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
+		expect(html.indexOf('token-unlocks-section:chainlink')).toBeGreaterThan(html.indexOf('token-liquidations-section'))
 		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-unlocks-section:chainlink'))
 		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
 	})
@@ -342,6 +355,7 @@ describe('token page', () => {
 				initialYieldsRows={[]}
 				initialTokenBorrowRoutesData={null}
 				geckoId="bitcoin"
+				hasLiquidations={false}
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -352,6 +366,7 @@ describe('token page', () => {
 		expect(html).not.toContain('token-yields-section')
 		expect(html).not.toContain('token-borrow-section')
 		expect(html).not.toContain('token-risks-section')
+		expect(html).not.toContain('token-liquidations-section')
 		expect(html).not.toContain('token-unlocks-section:')
 	})
 
@@ -373,6 +388,7 @@ describe('token page', () => {
 					} as TokenBorrowRoutesResponse
 				}
 				geckoId="bitcoin"
+				hasLiquidations={false}
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -433,6 +449,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
+				hasLiquidations: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
@@ -456,6 +473,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
+				hasLiquidations: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
@@ -464,6 +482,17 @@ describe('token page', () => {
 			},
 			revalidate: 123
 		})
+	})
+
+	it('getStaticProps enables the liquidations section when metadata includes the token symbol', async () => {
+		state.liquidationsTokenSymbols = ['BTC']
+
+		const result = await getStaticProps({ params: { token: 'btc' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.hasLiquidations).toBe(true)
 	})
 
 	it('getStaticProps does not resolve by token name slug', async () => {
@@ -491,6 +520,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
+				hasLiquidations: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
@@ -536,6 +566,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
+				hasLiquidations: false,
 				overview: overviewFixture,
 				seoTitle: 'Swing.xyz Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
@@ -656,6 +687,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
+				hasLiquidations: false,
 				overview: overviewFixture,
 				seoTitle: 'LINK Price, Market Cap, Supply & Token Rights - DefiLlama',
 				seoDescription:
@@ -807,6 +839,7 @@ describe('token page', () => {
 				tokenRiskData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
+				hasLiquidations: false,
 				overview: overviewFixture,
 				seoTitle: 'AAVE Price, Market Cap & Supply - DefiLlama',
 				seoDescription:

@@ -147,6 +147,18 @@ export interface LiquidationsOverviewShell {
 	protocolLinks: NavLink[]
 }
 
+export interface TokenLiquidationsSectionData {
+	tokenSymbol: string
+	timestamp: number
+	positionCount: number
+	protocolCount: number
+	chainCount: number
+	totalCollateralUsd: number
+	distributionChart: LiquidationsDistributionChartData
+	protocolRows: OverviewProtocolRow[]
+	chainRows: OverviewChainRow[]
+}
+
 export interface LiquidationsProtocolPageProps {
 	protocolLinks: NavLink[]
 	chainLinks: NavLink[]

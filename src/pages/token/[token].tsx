@@ -6,6 +6,7 @@ import { getTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.s
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
+import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
@@ -69,6 +70,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
+		const hasLiquidations = metadataCache.liquidationsTokenSymbols.includes(record.symbol.trim().toUpperCase())
 		let tokenRightsData: ITokenRightsData | null = null
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
@@ -167,6 +169,7 @@ export const getStaticProps = withPerformanceLogging(
 				tokenRiskData,
 				initialYieldsRows,
 				initialTokenBorrowRoutesData,
+				hasLiquidations,
 				...(resolvedUnlocksSlug ? { resolvedUnlocksSlug } : {}),
 				overview,
 				seoTitle,
@@ -223,6 +226,7 @@ export default function TokenPage({
 	tokenRiskData,
 	initialYieldsRows,
 	initialTokenBorrowRoutesData,
+	hasLiquidations,
 	resolvedUnlocksSlug,
 	overview,
 	seoTitle,
@@ -257,6 +261,7 @@ export default function TokenPage({
 					/>
 				) : null}
 				<TokenUsageSection tokenSymbol={record.symbol} />
+				{hasLiquidations ? <TokenLiquidationsSection tokenSymbol={record.symbol} /> : null}
 				<TokenUnlocksSection resolvedUnlocksSlug={resolvedUnlocksSlug} />
 				{shouldRenderYieldsSection ? (
 					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />

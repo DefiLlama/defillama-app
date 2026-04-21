@@ -21,7 +21,8 @@ import {
 import {
 	getLiquidationsChainPageData,
 	getLiquidationsOverviewPageData,
-	getLiquidationsProtocolPageData
+	getLiquidationsProtocolPageData,
+	getTokenLiquidationsSectionData
 } from './queries'
 
 const mockedFetchProtocolsList = fetchProtocolsList as unknown as ReturnType<typeof vi.fn>
@@ -264,5 +265,82 @@ describe('LiquidationsV2 queries', () => {
 		})
 
 		await expect(getLiquidationsChainPageData('sky', 'base', metadata)).resolves.toBeNull()
+	})
+
+	it('builds token-scoped liquidations data by filtering on token symbol', async () => {
+		mockedFetchProtocolsList.mockResolvedValue({ protocols: ['aave-v3', 'compound-v3'] })
+		mockedFetchAllLiquidations.mockResolvedValue({
+			timestamp: 400,
+			validThresholds: ['all'],
+			tokens: {
+				ethereum: {
+					'ethereum:wsteth': { symbol: 'wstETH', decimals: 18 },
+					'ethereum:eth': { symbol: 'ETH', decimals: 18 }
+				},
+				base: {
+					'base:wsteth': { symbol: 'WSTETH', decimals: 18 }
+				}
+			},
+			data: {
+				'aave-v3': {
+					ethereum: [
+						{
+							owner: '0x1',
+							liqPrice: 1,
+							collateral: 'ethereum:wsteth',
+							collateralAmount: 10,
+							collateralAmountUsd: 1000
+						},
+						{
+							owner: '0x2',
+							liqPrice: 2,
+							collateral: 'ethereum:eth',
+							collateralAmount: 20,
+							collateralAmountUsd: 2000
+						}
+					]
+				},
+				'compound-v3': {
+					base: [
+						{
+							owner: '0x3',
+							liqPrice: 3,
+							collateral: 'base:wsteth',
+							collateralAmount: 30,
+							collateralAmountUsd: 3000
+						}
+					]
+				}
+			}
+		})
+
+		const data = await getTokenLiquidationsSectionData('wsteth', metadata)
+
+		expect(data).not.toBeNull()
+		expect(data?.tokenSymbol).toBe('WSTETH')
+		expect(data?.positionCount).toBe(2)
+		expect(data?.protocolCount).toBe(2)
+		expect(data?.chainCount).toBe(2)
+		expect(data?.totalCollateralUsd).toBe(4000)
+		expect(data?.distributionChart.tokens).toHaveLength(1)
+		expect(data?.distributionChart.tokens[0]?.key).toBe('WSTETH')
+		expect(data?.protocolRows[0]).toEqual({
+			id: 'aave-v3',
+			name: 'Aave V3',
+			slug: 'aave-v3',
+			positionCount: 1,
+			chainCount: 1,
+			collateralCount: 1,
+			totalCollateralUsd: 1000
+		})
+		expect(data?.chainRows[0]).toEqual({
+			id: 'base',
+			name: 'Base',
+			slug: 'base',
+			positionCount: 1,
+			protocolCount: 1,
+			collateralCount: 1,
+			totalCollateralUsd: 3000
+		})
 	})
 })

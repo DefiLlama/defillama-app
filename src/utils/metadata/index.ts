@@ -8,6 +8,7 @@ import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json
 import chainDisplayNamesRaw from '../../../.cache/chainDisplayNames.json'
 import chainMetadata from '../../../.cache/chains.json'
 import emissionsProtocolsListRaw from '../../../.cache/emissionsProtocolsList.json'
+import liquidationsTokenSymbolsRaw from '../../../.cache/liquidationsTokenSymbols.json'
 import protocolLlamaswapDatasetRaw from '../../../.cache/llamaswap-protocols.json'
 import protocolDisplayNamesRaw from '../../../.cache/protocolDisplayNames.json'
 import protocolMetadata from '../../../.cache/protocols.json'
@@ -39,6 +40,7 @@ const metadataCache: {
 	tokenDirectory: TokenDirectory
 	protocolDisplayNames: Map<string, string>
 	chainDisplayNames: Map<string, string>
+	liquidationsTokenSymbols: string[]
 	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -59,6 +61,7 @@ const metadataCache: {
 	tokenDirectory: tokenDirectoryRaw as TokenDirectory,
 	protocolDisplayNames: createStringLookupMap(protocolDisplayNamesRaw as Record<string, string>),
 	chainDisplayNames: createStringLookupMap(chainDisplayNamesRaw as Record<string, string>),
+	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
 	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
@@ -85,6 +88,7 @@ async function doRefresh(): Promise<void> {
 			tokenDirectory,
 			protocolDisplayNames,
 			chainDisplayNames,
+			liquidationsTokenSymbols,
 			emissionsProtocolsList,
 			cgExchangeIdentifiers: cgExIds,
 			bridgeProtocolSlugs,
@@ -106,6 +110,7 @@ async function doRefresh(): Promise<void> {
 		metadataCache.tokenDirectory = tokenDirectory
 		metadataCache.protocolDisplayNames = createStringLookupMap(protocolDisplayNames)
 		metadataCache.chainDisplayNames = createStringLookupMap(chainDisplayNames)
+		metadataCache.liquidationsTokenSymbols = liquidationsTokenSymbols
 		metadataCache.emissionsProtocolsList = emissionsProtocolsList
 		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
 		metadataCache.bridgeChainSlugs = bridgeChainSlugs
