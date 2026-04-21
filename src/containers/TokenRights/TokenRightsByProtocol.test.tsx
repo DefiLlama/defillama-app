@@ -128,7 +128,7 @@ describe('TokenRightsByProtocol', () => {
 			/>
 		)
 
-		expect(html).toContain('<h2')
+		expect(html).toMatch(/<h2[^>]*>[\s\S]*Token Rights and Value Accrual[\s\S]*<\/h2>/)
 		expect(html).toContain('Token Rights and Value Accrual')
 		expect(html).not.toContain('<h1')
 	})

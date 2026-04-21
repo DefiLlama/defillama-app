@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { Fragment, type ReactElement } from 'react'
+import { cloneElement, type ReactElement } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
@@ -331,9 +331,7 @@ export default function TokenPage({
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
 			<div className="flex flex-col gap-2">
 				<TokenPageSectionNav sections={visibleSections.map(({ id, label }) => ({ id, label }))} />
-				{visibleSections.map((section) => (
-					<Fragment key={section.id}>{section.element}</Fragment>
-				))}
+				{visibleSections.map((section) => cloneElement(section.element, { key: section.id }))}
 			</div>
 		</Layout>
 	)
