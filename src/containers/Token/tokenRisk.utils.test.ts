@@ -14,7 +14,8 @@ const methodologies: TokenRiskLendingExposuresResponse['methodologies'] = {
 	chain: 'Chain',
 	protocol: 'Protocol',
 	collateralMaxBorrowUsd: 'Max borrow',
-	collateralBorrowedDebtUsd: 'Borrowed debt'
+	collateralBorrowedDebtUsd: 'Borrowed debt',
+	minBadDebtAtPriceZeroUsd: 'Min bad debt at zero'
 }
 
 function createExposure(
@@ -30,6 +31,7 @@ function createExposure(
 		protocol: 'aave-v3',
 		collateralMaxBorrowUsd: 1000,
 		collateralBorrowedDebtUsd: 400,
+		minBadDebtAtPriceZeroUsd: 400,
 		...overrides
 	}
 }
@@ -137,7 +139,8 @@ describe('tokenRisk utils', () => {
 				createExposure({
 					protocol: 'morpho-blue',
 					collateralMaxBorrowUsd: 500,
-					collateralBorrowedDebtUsd: null
+					collateralBorrowedDebtUsd: null,
+					minBadDebtAtPriceZeroUsd: null
 				})
 			],
 			methodologies
@@ -148,6 +151,11 @@ describe('tokenRisk utils', () => {
 		expect(section.summary.totalCollateralBorrowedDebtUsd).toBeNull()
 		expect(section.summary.borrowedDebtKnownCount).toBe(1)
 		expect(section.summary.borrowedDebtUnknownCount).toBe(1)
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBe(400)
+		expect(section.summary.minBadDebtKnownCount).toBe(1)
+		expect(section.summary.minBadDebtUnknownCount).toBe(1)
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('known')
+		expect(section.rows[1].minBadDebtAtPriceZeroCoverage).toBe('unavailable')
 	})
 
 	it('dedupes identical protocol-chain-asset rows and sums known borrowed debt', () => {
@@ -156,12 +164,14 @@ describe('tokenRisk utils', () => {
 				createExposure({
 					protocol: 'aave-v3',
 					collateralMaxBorrowUsd: 100,
-					collateralBorrowedDebtUsd: 10
+					collateralBorrowedDebtUsd: 10,
+					minBadDebtAtPriceZeroUsd: 10
 				}),
 				createExposure({
 					protocol: 'aave-v3',
 					collateralMaxBorrowUsd: 25,
-					collateralBorrowedDebtUsd: 5
+					collateralBorrowedDebtUsd: 5,
+					minBadDebtAtPriceZeroUsd: 5
 				})
 			],
 			methodologies
@@ -171,5 +181,60 @@ describe('tokenRisk utils', () => {
 		expect(section.rows[0].collateralMaxBorrowUsd).toBe(125)
 		expect(section.rows[0].collateralBorrowedDebtUsd).toBe(15)
 		expect(section.summary.totalCollateralBorrowedDebtUsd).toBe(15)
+		expect(section.rows[0].minBadDebtAtPriceZeroUsd).toBe(15)
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('known')
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBe(15)
+	})
+
+	it('marks zero-price bad debt as partial when grouped rows mix known and null values', () => {
+		const section = buildExposuresSection(
+			[
+				createExposure({
+					protocol: 'fluid',
+					collateralMaxBorrowUsd: 200,
+					collateralBorrowedDebtUsd: 100,
+					minBadDebtAtPriceZeroUsd: 100
+				}),
+				createExposure({
+					protocol: 'fluid',
+					collateralMaxBorrowUsd: 50,
+					collateralBorrowedDebtUsd: null,
+					minBadDebtAtPriceZeroUsd: null
+				})
+			],
+			methodologies
+		)
+
+		expect(section.rows).toHaveLength(1)
+		expect(section.rows[0].minBadDebtAtPriceZeroUsd).toBe(100)
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('partial')
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBe(100)
+		expect(section.summary.minBadDebtKnownCount).toBe(0)
+		expect(section.summary.minBadDebtUnknownCount).toBe(1)
+	})
+
+	it('keeps zero-price bad debt unavailable when every merged contribution is null', () => {
+		const section = buildExposuresSection(
+			[
+				createExposure({
+					protocol: 'morpho-blue',
+					collateralBorrowedDebtUsd: null,
+					minBadDebtAtPriceZeroUsd: null
+				}),
+				createExposure({
+					protocol: 'morpho-blue',
+					collateralBorrowedDebtUsd: null,
+					minBadDebtAtPriceZeroUsd: null
+				})
+			],
+			methodologies
+		)
+
+		expect(section.rows).toHaveLength(1)
+		expect(section.rows[0].minBadDebtAtPriceZeroUsd).toBeNull()
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('unavailable')
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBeNull()
+		expect(section.summary.minBadDebtKnownCount).toBe(0)
+		expect(section.summary.minBadDebtUnknownCount).toBe(1)
 	})
 })

@@ -1,6 +1,11 @@
 import type { ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
 import type { TokenRiskExposure, TokenRiskExposureMethodologies } from './api.types'
-import type { TokenRiskCandidate, TokenRiskExposuresSection, TokenRiskExposureRow } from './tokenRisk.types'
+import type {
+	TokenRiskCandidate,
+	TokenRiskCoverageStatus,
+	TokenRiskExposuresSection,
+	TokenRiskExposureRow
+} from './tokenRisk.types'
 
 interface TokenRiskDisplayLookups {
 	protocolDisplayNames: Map<string, string>
@@ -15,6 +20,9 @@ export const TOKEN_RISK_LIMITATIONS_COMMON = [
 
 export const TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS =
 	'When any contributing market cannot attribute borrowed debt to a specific collateral asset, borrowed-debt totals are returned as unavailable instead of being under-counted.'
+
+export const TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS =
+	'Minimum bad-debt totals at a zero asset price are lower bounds when some contributing markets return null for this metric; null rows are excluded instead of being treated as zero.'
 
 function normalizeAddress(address: string | null | undefined): string {
 	return (address ?? '').trim().toLowerCase()
@@ -143,10 +151,18 @@ export function mergeIndexedExposures(
 
 export function buildExposuresSection(
 	exposures: TokenRiskExposure[],
-	methodologies: Pick<TokenRiskExposureMethodologies, 'asset' | 'collateralMaxBorrowUsd' | 'collateralBorrowedDebtUsd'>,
+	methodologies: Pick<
+		TokenRiskExposureMethodologies,
+		'asset' | 'collateralMaxBorrowUsd' | 'collateralBorrowedDebtUsd' | 'minBadDebtAtPriceZeroUsd'
+	>,
 	displayLookups?: TokenRiskDisplayLookups
 ): TokenRiskExposuresSection {
-	const groupedRows = new Map<string, TokenRiskExposureRow>()
+	type GroupedExposureRow = TokenRiskExposureRow & {
+		minBadDebtKnownInputs: number
+		minBadDebtUnknownInputs: number
+	}
+
+	const groupedRows = new Map<string, GroupedExposureRow>()
 
 	for (const exposure of exposures) {
 		const groupKey = `${exposure.protocol}|${exposure.chain}|${normalizeAddress(exposure.asset.address)}`
@@ -158,6 +174,12 @@ export function buildExposuresSection(
 				existing.collateralBorrowedDebtUsd == null || exposure.collateralBorrowedDebtUsd == null
 					? null
 					: existing.collateralBorrowedDebtUsd + exposure.collateralBorrowedDebtUsd
+			if (exposure.minBadDebtAtPriceZeroUsd == null) {
+				existing.minBadDebtUnknownInputs += 1
+			} else {
+				existing.minBadDebtAtPriceZeroUsd = (existing.minBadDebtAtPriceZeroUsd ?? 0) + exposure.minBadDebtAtPriceZeroUsd
+				existing.minBadDebtKnownInputs += 1
+			}
 			continue
 		}
 
@@ -169,42 +191,72 @@ export function buildExposuresSection(
 			assetSymbol: exposure.asset.symbol,
 			assetAddress: normalizeAddress(exposure.asset.address),
 			collateralMaxBorrowUsd: exposure.collateralMaxBorrowUsd,
-			collateralBorrowedDebtUsd: exposure.collateralBorrowedDebtUsd
+			collateralBorrowedDebtUsd: exposure.collateralBorrowedDebtUsd,
+			minBadDebtAtPriceZeroUsd: exposure.minBadDebtAtPriceZeroUsd,
+			minBadDebtAtPriceZeroCoverage: exposure.minBadDebtAtPriceZeroUsd == null ? 'unavailable' : 'known',
+			minBadDebtKnownInputs: exposure.minBadDebtAtPriceZeroUsd == null ? 0 : 1,
+			minBadDebtUnknownInputs: exposure.minBadDebtAtPriceZeroUsd == null ? 1 : 0
 		})
 	}
 
-	const rows = [...groupedRows.values()].sort((a, b) => {
-		if (a.collateralMaxBorrowUsd !== b.collateralMaxBorrowUsd) {
-			return b.collateralMaxBorrowUsd - a.collateralMaxBorrowUsd
-		}
+	const rows = [...groupedRows.values()]
+		.map<TokenRiskExposureRow>(({ minBadDebtKnownInputs, minBadDebtUnknownInputs, ...row }) => {
+			let minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus = 'unavailable'
 
-		const aBorrowed = a.collateralBorrowedDebtUsd ?? Number.NEGATIVE_INFINITY
-		const bBorrowed = b.collateralBorrowedDebtUsd ?? Number.NEGATIVE_INFINITY
-		if (aBorrowed !== bBorrowed) return bBorrowed - aBorrowed
+			if (minBadDebtKnownInputs > 0 && minBadDebtUnknownInputs === 0) {
+				minBadDebtAtPriceZeroCoverage = 'known'
+			} else if (minBadDebtKnownInputs > 0) {
+				minBadDebtAtPriceZeroCoverage = 'partial'
+			}
 
-		return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
-	})
+			return {
+				...row,
+				minBadDebtAtPriceZeroCoverage
+			}
+		})
+		.sort((a, b) => {
+			if (a.collateralMaxBorrowUsd !== b.collateralMaxBorrowUsd) {
+				return b.collateralMaxBorrowUsd - a.collateralMaxBorrowUsd
+			}
+
+			const aBorrowed = a.collateralBorrowedDebtUsd ?? Number.NEGATIVE_INFINITY
+			const bBorrowed = b.collateralBorrowedDebtUsd ?? Number.NEGATIVE_INFINITY
+			if (aBorrowed !== bBorrowed) return bBorrowed - aBorrowed
+
+			return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
+		})
 
 	const totalCollateralMaxBorrowUsd = rows.reduce((sum, row) => sum + row.collateralMaxBorrowUsd, 0)
 	const borrowedDebtUnknownCount = rows.filter((row) => row.collateralBorrowedDebtUsd == null).length
 	const totalCollateralBorrowedDebtUsd =
 		borrowedDebtUnknownCount > 0 ? null : rows.reduce((sum, row) => sum + (row.collateralBorrowedDebtUsd ?? 0), 0)
+	const minBadDebtRowsWithKnownValues = rows.filter((row) => row.minBadDebtAtPriceZeroUsd != null)
+	const totalMinBadDebtAtPriceZeroUsd =
+		minBadDebtRowsWithKnownValues.length > 0
+			? minBadDebtRowsWithKnownValues.reduce((sum, row) => sum + (row.minBadDebtAtPriceZeroUsd ?? 0), 0)
+			: null
+	const minBadDebtKnownCount = rows.filter((row) => row.minBadDebtAtPriceZeroCoverage === 'known').length
+	const minBadDebtUnknownCount = rows.length - minBadDebtKnownCount
 
 	return {
 		summary: {
 			totalCollateralMaxBorrowUsd,
 			totalCollateralBorrowedDebtUsd,
+			totalMinBadDebtAtPriceZeroUsd,
 			exposureCount: rows.length,
 			protocolCount: new Set(rows.map((row) => row.protocol)).size,
 			chainCount: new Set(rows.map((row) => row.chain)).size,
 			borrowedDebtKnownCount: rows.length - borrowedDebtUnknownCount,
-			borrowedDebtUnknownCount
+			borrowedDebtUnknownCount,
+			minBadDebtKnownCount,
+			minBadDebtUnknownCount
 		},
 		rows,
 		methodologies: {
 			asset: methodologies.asset,
 			collateralMaxBorrowUsd: methodologies.collateralMaxBorrowUsd,
-			collateralBorrowedDebtUsd: methodologies.collateralBorrowedDebtUsd
+			collateralBorrowedDebtUsd: methodologies.collateralBorrowedDebtUsd,
+			minBadDebtAtPriceZeroUsd: methodologies.minBadDebtAtPriceZeroUsd
 		}
 	}
 }

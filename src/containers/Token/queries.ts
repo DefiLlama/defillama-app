@@ -10,7 +10,8 @@ import {
 	mergeIndexedExposures,
 	resolveTokenRiskCandidates,
 	TOKEN_RISK_LIMITATIONS_COMMON,
-	TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS
+	TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS,
+	TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS
 } from './tokenRisk.utils'
 
 const LENDING_EXPOSURES_CACHE_TTL_MS = 5 * 60 * 1000
@@ -104,7 +105,8 @@ export async function getTokenRiskData({
 		exposures,
 		limitations: [
 			...TOKEN_RISK_LIMITATIONS_COMMON,
-			...(exposures.summary.borrowedDebtUnknownCount > 0 ? [TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS] : [])
+			...(exposures.summary.borrowedDebtUnknownCount > 0 ? [TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS] : []),
+			...(exposures.summary.minBadDebtUnknownCount > 0 ? [TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS] : [])
 		]
 	}
 }

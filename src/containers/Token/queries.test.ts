@@ -13,7 +13,8 @@ function createLendingExposuresResponse() {
 			chain: 'Chain',
 			protocol: 'Protocol',
 			collateralMaxBorrowUsd: 'Max borrow',
-			collateralBorrowedDebtUsd: 'Borrowed debt'
+			collateralBorrowedDebtUsd: 'Borrowed debt',
+			minBadDebtAtPriceZeroUsd: 'Minimum bad debt at zero'
 		},
 		timestamp: 1,
 		hourlyTimestamp: 1,
@@ -27,7 +28,8 @@ function createLendingExposuresResponse() {
 				chain: 'ethereum',
 				protocol: 'aave-v3',
 				collateralMaxBorrowUsd: 1000,
-				collateralBorrowedDebtUsd: 400
+				collateralBorrowedDebtUsd: 400,
+				minBadDebtAtPriceZeroUsd: 400
 			},
 			{
 				asset: {
@@ -38,7 +40,8 @@ function createLendingExposuresResponse() {
 				chain: 'ethereum',
 				protocol: 'morpho-blue',
 				collateralMaxBorrowUsd: 500,
-				collateralBorrowedDebtUsd: null
+				collateralBorrowedDebtUsd: null,
+				minBadDebtAtPriceZeroUsd: null
 			},
 			{
 				asset: {
@@ -49,7 +52,8 @@ function createLendingExposuresResponse() {
 				chain: 'ethereum',
 				protocol: 'morpho-blue',
 				collateralMaxBorrowUsd: 750,
-				collateralBorrowedDebtUsd: 250
+				collateralBorrowedDebtUsd: 250,
+				minBadDebtAtPriceZeroUsd: 250
 			}
 		]
 	}
@@ -101,8 +105,14 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.rows[0].chainDisplayName).toBe('Ethereum')
 		expect(payload?.exposures.summary.totalCollateralMaxBorrowUsd).toBe(1500)
 		expect(payload?.exposures.summary.totalCollateralBorrowedDebtUsd).toBeNull()
+		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(400)
+		expect(payload?.exposures.summary.minBadDebtKnownCount).toBe(1)
+		expect(payload?.exposures.summary.minBadDebtUnknownCount).toBe(1)
 		expect(payload?.limitations).toContain(
 			'When any contributing market cannot attribute borrowed debt to a specific collateral asset, borrowed-debt totals are returned as unavailable instead of being under-counted.'
+		)
+		expect(payload?.limitations).toContain(
+			'Minimum bad-debt totals at a zero asset price are lower bounds when some contributing markets return null for this metric; null rows are excluded instead of being treated as zero.'
 		)
 	})
 
@@ -125,6 +135,10 @@ describe('getTokenRiskData', () => {
 			displayName: 'Ethereum'
 		})
 		expect(payload?.exposures.summary.totalCollateralBorrowedDebtUsd).toBe(250)
+		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(250)
+		expect(payload?.limitations).not.toContain(
+			'Minimum bad-debt totals at a zero asset price are lower bounds when some contributing markets return null for this metric; null rows are excluded instead of being treated as zero.'
+		)
 	})
 
 	it('returns null when the token cannot be resolved from metadata or exposure symbols', async () => {

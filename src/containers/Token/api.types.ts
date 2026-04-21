@@ -80,6 +80,7 @@ export interface TokenRiskExposure {
 	protocol: string
 	collateralMaxBorrowUsd: number
 	collateralBorrowedDebtUsd: number | null
+	minBadDebtAtPriceZeroUsd: number | null
 }
 
 export interface TokenRiskExposureMethodologies {
@@ -88,6 +89,7 @@ export interface TokenRiskExposureMethodologies {
 	protocol: string
 	collateralMaxBorrowUsd: string
 	collateralBorrowedDebtUsd: string
+	minBadDebtAtPriceZeroUsd: string
 }
 
 export interface TokenRiskLendingExposuresResponse {

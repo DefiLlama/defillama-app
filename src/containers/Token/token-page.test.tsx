@@ -1040,11 +1040,14 @@ describe('token page', () => {
 				summary: {
 					totalCollateralMaxBorrowUsd: 10,
 					totalCollateralBorrowedDebtUsd: 6,
+					totalMinBadDebtAtPriceZeroUsd: 6,
 					exposureCount: 1,
 					protocolCount: 1,
 					chainCount: 1,
 					borrowedDebtKnownCount: 1,
-					borrowedDebtUnknownCount: 0
+					borrowedDebtUnknownCount: 0,
+					minBadDebtKnownCount: 1,
+					minBadDebtUnknownCount: 0
 				},
 				rows: [
 					{
@@ -1055,13 +1058,16 @@ describe('token page', () => {
 						assetSymbol: 'LINK',
 						assetAddress: '0x5149',
 						collateralMaxBorrowUsd: 10,
-						collateralBorrowedDebtUsd: 6
+						collateralBorrowedDebtUsd: 6,
+						minBadDebtAtPriceZeroUsd: 6,
+						minBadDebtAtPriceZeroCoverage: 'known'
 					}
 				],
 				methodologies: {
 					asset: 'asset',
 					collateralMaxBorrowUsd: 'cap',
-					collateralBorrowedDebtUsd: 'borrowed'
+					collateralBorrowedDebtUsd: 'borrowed',
+					minBadDebtAtPriceZeroUsd: 'zero-price'
 				}
 			},
 			limitations: ['limit']
