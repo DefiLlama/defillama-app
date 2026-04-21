@@ -4,6 +4,7 @@ declare module '@tanstack/react-table' {
 	interface ColumnMeta<TData extends RowData, TValue> {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
+		headerClassName?: string
 		hidden?: boolean
 		csvHeader?: string
 		/**

@@ -76,6 +76,7 @@ const overviewFixture: TokenOverviewData = {
 		atl: 1,
 		atlDate: '2020-01-01',
 		circulatingSupply: 21,
+		totalSupply: 21,
 		maxSupply: 21,
 		mcap: 1000,
 		fdv: 1500,

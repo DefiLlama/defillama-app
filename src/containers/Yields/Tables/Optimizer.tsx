@@ -15,7 +15,6 @@ import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
@@ -67,11 +66,14 @@ const columns = [
 		header: 'Pool',
 		enableSorting: false,
 		cell: ({ row }) => <OptimizerPoolCell row={row} />,
-		size: 400
+		size: 400,
+		meta: {
+			headerClassName: 'min-w-[180px] sm:min-w-[220px] xl:min-w-[280px]'
+		}
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
-		header: () => <span style={{ paddingLeft: '24px' }}>Project</span>,
+		header: 'Project',
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
@@ -83,7 +85,10 @@ const columns = [
 				borrow={true}
 			/>
 		),
-		size: 140
+		size: 140,
+		meta: {
+			headerClassName: 'min-w-[120px] pl-9 sm:min-w-[140px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		id: 'chains',
@@ -103,9 +108,8 @@ const columns = [
 			const value = info.row.original.borrow.totalAvailableUsd
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? null : formattedNum(value, true)}
 				</span>
@@ -178,7 +182,7 @@ const columns = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+				<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} className="font-bold">
 					{formatPercentChangeText(getValue(), true)}
 				</ColoredAPY>
 			)
@@ -210,12 +214,12 @@ const columns = [
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+							<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} className="font-bold">
 								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</span>
 					) : (
-						<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+						<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} className="font-bold">
 							{formatPercentChangeText(getValue(), true)}
 						</ColoredAPY>
 					)}
@@ -277,9 +281,8 @@ const columns = [
 			const value = info.getValue()
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>
@@ -298,9 +301,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -318,9 +320,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -582,7 +583,6 @@ export function PaginatedYieldsOptimizerTable({
 	excludeRewardApy?: boolean
 	withAmount?: boolean
 }) {
-	const width = useBreakpointWidth()
 	const context = useMemo(
 		() => ({
 			excludeRewardApy,
@@ -596,10 +596,7 @@ export function PaginatedYieldsOptimizerTable({
 		pageSize: initialPageSize
 	})
 
-	const paginatedColumns = useMemo(
-		() => preparePaginatedYieldsColumns(OPTIMIZER_TABLE_CONFIG, context, width),
-		[context, width]
-	)
+	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(OPTIMIZER_TABLE_CONFIG, context), [context])
 
 	const table = useReactTable({
 		data,

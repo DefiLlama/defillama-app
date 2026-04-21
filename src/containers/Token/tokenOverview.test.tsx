@@ -19,7 +19,8 @@ const mocks = vi.hoisted(() => ({
 	fetchTreasuries: vi.fn(),
 	fetchProtocolEmissionFromDatasets: vi.fn(),
 	fetchLiquidityTokensDataset: vi.fn(),
-	fetchJson: vi.fn()
+	fetchJson: vi.fn(),
+	useFetchTokenOverviewChartData: vi.fn()
 }))
 
 let routerState = {
@@ -59,6 +60,10 @@ vi.mock('~/api', () => ({
 
 vi.mock('~/utils/async', () => ({
 	fetchJson: mocks.fetchJson
+}))
+
+vi.mock('./useFetchTokenOverviewChartData', () => ({
+	useFetchTokenOverviewChartData: mocks.useFetchTokenOverviewChartData
 }))
 
 vi.mock('~/containers/ProtocolOverview/Chart', () => ({
@@ -142,6 +147,7 @@ const overviewFixture: TokenOverviewData = {
 		atl: 1,
 		atlDate: '2020-01-01',
 		circulatingSupply: 21,
+		totalSupply: 1000,
 		maxSupply: 21000,
 		mcap: 1000,
 		fdv: 1500,
@@ -176,10 +182,6 @@ const overviewFixture: TokenOverviewData = {
 		'Token Price': [
 			[1711929600000, 100],
 			[1712016000000, 110]
-		],
-		'Token Volume': [
-			[1711929600000, 450],
-			[1712016000000, 500]
 		]
 	}
 }
@@ -286,6 +288,10 @@ beforeEach(() => {
 			}
 		})
 	})
+	mocks.useFetchTokenOverviewChartData.mockImplementation(({ overview }: { overview: TokenOverviewData }) => ({
+		rawChartData: overview.rawChartData,
+		isLoading: false
+	}))
 })
 
 describe('tokenOverview helpers', () => {
@@ -384,6 +390,29 @@ describe('tokenOverview helpers', () => {
 			[1711929600000, 2100000],
 			[1712016000000, 2310000]
 		])
+	})
+
+	it('can limit server-prefetched chart data to only the default price series', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Bitcoin',
+				symbol: 'BTC'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'BTC',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			prefetchedCharts: ['Token Price']
+		})
+
+		expect(result.rawChartData).toEqual({
+			'Token Price': [
+				[1711929600000, 100],
+				[1712016000000, 110]
+			]
+		})
 	})
 
 	it('keeps liquidity rows when yields metadata is missing a protocol display name', async () => {
@@ -551,26 +580,38 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('aria-label="Remove $BTC Price"')
 	})
 
-	it('reads chart grouping and metric selection from the URL query', () => {
+	it('waits for the client before rendering bookmarked non-prefetched charts', () => {
 		routerState.query = {
 			chartGroup: 'weekly',
 			chart: 'Token Volume'
 		}
 
+		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+
+		expect(html).not.toContain('fetching $BTC Volume')
+		expect(html).not.toContain('Chart unavailable for this token right now.')
+	})
+
+	it('renders client-fetched non-price chart combinations when the chart hook returns them', () => {
+		routerState.query = {
+			chartGroup: 'weekly',
+			chart: 'Token Volume'
+		}
+		mocks.useFetchTokenOverviewChartData.mockReturnValue({
+			rawChartData: {
+				...overviewFixture.rawChartData,
+				'Token Volume': [
+					[1711929600000, 450],
+					[1712016000000, 500]
+				]
+			},
+			isLoading: false
+		})
+
 		renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
 
 		expect(lastProtocolChartProps.groupBy).toBe('weekly')
 		expect(Object.keys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
-	})
-
-	it('falls back to the default charts when query metrics are unavailable for the current token', () => {
-		routerState.query = {
-			chart: ['FDV', 'Mcap']
-		}
-
-		renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
-
-		expect(Object.keys(lastProtocolChartProps.chartData)).toEqual(['Token Price'])
 	})
 
 	it('shows a graceful fallback when market chart data is unavailable', () => {

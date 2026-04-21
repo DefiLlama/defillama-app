@@ -10,10 +10,12 @@ import {
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
 import ProtocolChart from '~/containers/ProtocolOverview/Chart'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import {
@@ -22,6 +24,7 @@ import {
 	type TokenOverviewChartLabel,
 	type TokenOverviewData
 } from './tokenOverview'
+import { useFetchTokenOverviewChartData } from './useFetchTokenOverviewChartData'
 
 const TOKEN_OVERVIEW_CHART_COLORS: Record<TokenOverviewChartLabel, string> = {
 	'Token Price': '#2563eb',
@@ -320,9 +323,15 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; geckoId: string | null }) {
 	const router = useRouter()
 	const [isThemeDark] = useDarkModeManager()
+	const isClient = useIsClient()
 	const availableCharts = useMemo(
-		() => TOKEN_OVERVIEW_CHART_ORDER.filter((label) => (overview.rawChartData[label]?.length ?? 0) > 0),
-		[overview.rawChartData]
+		() =>
+			TOKEN_OVERVIEW_CHART_ORDER.filter((label) =>
+				geckoId
+					? label !== 'Token Price' || (overview.rawChartData[label]?.length ?? 0) > 0
+					: (overview.rawChartData[label]?.length ?? 0) > 0
+			),
+		[geckoId, overview.rawChartData]
 	)
 	const defaultCharts = useMemo(() => {
 		const defaultCharts = TOKEN_OVERVIEW_DEFAULT_CHARTS.filter(
@@ -353,16 +362,30 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 	const metricsDialogStore = Ariakit.useDialogStore()
 	const [metricsSearchValue, setMetricsSearchValue] = useState('')
 	const deferredMetricsSearchValue = useDeferredValue(metricsSearchValue)
+	const { rawChartData, isLoading } = useFetchTokenOverviewChartData({
+		geckoId,
+		overview,
+		activeCharts,
+		enabled: isClient
+	})
 	const displayedChartData = useMemo(
 		() =>
 			buildDisplayedTokenChartData({
-				rawChartData: overview.rawChartData,
+				rawChartData,
 				activeCharts,
 				groupBy
 			}),
-		[overview.rawChartData, activeCharts, groupBy]
+		[rawChartData, activeCharts, groupBy]
+	)
+	const pendingCharts = useMemo(
+		() => activeCharts.filter((chart) => !displayedChartData[chart]?.length),
+		[activeCharts, displayedChartData]
 	)
 	const hasChartData = Object.keys(displayedChartData).length > 0
+	const shouldWaitForClient = !isClient && geckoId != null && pendingCharts.length > 0
+	const showLoadingState = isClient && geckoId != null && pendingCharts.length > 0 && isLoading
+	const loadingLabel =
+		pendingCharts.length === 1 ? getChartLabel(pendingCharts[0], overview.symbol) : `${pendingCharts.length} metrics`
 	const filteredMetricOptions = useMemo(() => {
 		const options = availableCharts.map((chart) => ({
 			id: chart,
@@ -487,7 +510,12 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 				</div>
 			</div>
 			<div className="relative flex min-h-[360px] flex-col">
-				{hasChartData ? (
+				{shouldWaitForClient ? null : showLoadingState ? (
+					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
+						fetching {loadingLabel}
+						<LoadingDots />
+					</p>
+				) : hasChartData ? (
 					<ProtocolChart
 						key={`${groupBy}:${activeCharts.join('|')}`}
 						chartData={displayedChartData}

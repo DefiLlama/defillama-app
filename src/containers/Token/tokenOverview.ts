@@ -47,6 +47,7 @@ export interface TokenOverviewMarketData {
 	atl: number | null
 	atlDate: string | null
 	circulatingSupply: number | null
+	totalSupply: number | null
 	maxSupply: number | null
 	mcap: number | null
 	fdv: number | null
@@ -75,6 +76,7 @@ export interface TokenOverviewData {
 type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
 
 export const TOKEN_OVERVIEW_DEFAULT_CHARTS: TokenOverviewChartLabel[] = ['Token Price']
+export const TOKEN_OVERVIEW_ALL_CHARTS: TokenOverviewChartLabel[] = ['Token Price', 'Token Volume', 'Mcap', 'FDV']
 
 const emptyMarketData: TokenOverviewMarketData = {
 	currentPrice: null,
@@ -84,6 +86,7 @@ const emptyMarketData: TokenOverviewMarketData = {
 	atl: null,
 	atlDate: null,
 	circulatingSupply: null,
+	totalSupply: null,
 	maxSupply: null,
 	mcap: null,
 	fdv: null,
@@ -131,6 +134,7 @@ function buildTokenMarketData(
 		atl: tokenEntry.atl ?? null,
 		atlDate: tokenEntry.atl_date ?? null,
 		circulatingSupply: tokenEntry.circulating_supply ?? null,
+		totalSupply: tokenEntry.total_supply ?? null,
 		maxSupply: tokenEntry.max_supply ?? null,
 		mcap: tokenEntry.market_cap ?? null,
 		fdv: tokenEntry.fully_diluted_valuation ?? null,
@@ -223,11 +227,14 @@ async function fetchTotalSupply(geckoId: string): Promise<number | null> {
 
 export function buildTokenOverviewRawChartData({
 	chart,
-	totalSupply
+	totalSupply,
+	includeCharts = TOKEN_OVERVIEW_ALL_CHARTS
 }: {
 	chart: CgChartResponse | null
 	totalSupply: number | null
+	includeCharts?: TokenOverviewChartLabel[]
 }): TokenOverviewRawChartData {
+	const includedCharts = new Set(includeCharts)
 	const priceSeries = normalizeChartPointsToMs(chart?.data?.prices)
 	const mcapSeries = normalizeChartPointsToMs(chart?.data?.mcaps)
 	const volumeSeries = normalizeChartPointsToMs(chart?.data?.volumes)
@@ -238,10 +245,10 @@ export function buildTokenOverviewRawChartData({
 			: null
 
 	return {
-		...(priceSeries ? { 'Token Price': priceSeries } : {}),
-		...(volumeSeries ? { 'Token Volume': volumeSeries } : {}),
-		...(mcapSeries ? { Mcap: mcapSeries } : {}),
-		...(fdvSeries ? { FDV: fdvSeries } : {})
+		...(includedCharts.has('Token Price') && priceSeries ? { 'Token Price': priceSeries } : {}),
+		...(includedCharts.has('Token Volume') && volumeSeries ? { 'Token Volume': volumeSeries } : {}),
+		...(includedCharts.has('Mcap') && mcapSeries ? { Mcap: mcapSeries } : {}),
+		...(includedCharts.has('FDV') && fdvSeries ? { FDV: fdvSeries } : {})
 	}
 }
 
@@ -278,7 +285,8 @@ export async function getTokenOverviewData({
 	tokenEntry,
 	protocolMetadata,
 	cgExchangeIdentifiers,
-	llamaswapChains
+	llamaswapChains,
+	prefetchedCharts = TOKEN_OVERVIEW_ALL_CHARTS
 }: {
 	record: TokenDirectoryRecord
 	displayName: string
@@ -287,6 +295,7 @@ export async function getTokenOverviewData({
 	protocolMetadata: IProtocolMetadata | null
 	cgExchangeIdentifiers: string[]
 	llamaswapChains: IProtocolLlamaswapChain[] | null
+	prefetchedCharts?: TokenOverviewChartLabel[]
 }): Promise<TokenOverviewData> {
 	const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
 	const protocolDefiLlamaId = record.protocolId ?? protocolMetadata?.name ?? null
@@ -352,7 +361,8 @@ export async function getTokenOverviewData({
 			adjustedSupply != null && marketData.currentPrice != null ? adjustedSupply * marketData.currentPrice : null,
 		rawChartData: buildTokenOverviewRawChartData({
 			chart: cgChart,
-			totalSupply: totalSupply ?? fetchedTotalSupply
+			totalSupply: totalSupply ?? fetchedTotalSupply,
+			includeCharts: prefetchedCharts
 		})
 	}
 }
