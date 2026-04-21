@@ -1,6 +1,7 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 
 var queryState: {
 	data?: any
@@ -121,20 +122,32 @@ afterEach(() => {
 
 import { TokenYieldsSection } from './TokenYieldsSection'
 
+function makeYieldRow(overrides: Partial<IYieldTableRow> = {}): IYieldTableRow {
+	return {
+		pool: 'stETH-ETH',
+		project: 'Aave',
+		projectslug: 'aave',
+		configID: 'pool-1',
+		chains: ['Ethereum'],
+		tvl: 1_000_000,
+		apy: 5.1,
+		apyBase: null,
+		apyReward: null,
+		rewardTokensSymbols: [],
+		rewards: [],
+		change1d: null,
+		change7d: null,
+		confidence: null,
+		url: 'https://example.com/pool-1',
+		category: 'Lending',
+		...overrides
+	}
+}
+
 describe('TokenYieldsSection', () => {
 	it('renders the protocol-yields filter controls and paginated table', () => {
 		queryState = {
-			data: [
-				{
-					pool: 'stETH-ETH',
-					project: 'Aave',
-					projectslug: 'aave',
-					configID: 'pool-1',
-					chains: ['Ethereum'],
-					tvl: 1000000,
-					apy: 5.1
-				}
-			],
+			data: [makeYieldRow()],
 			error: null,
 			isLoading: false
 		}
@@ -160,17 +173,7 @@ describe('TokenYieldsSection', () => {
 		const html = renderToStaticMarkup(
 			<TokenYieldsSection
 				tokenSymbol="ETH"
-				initialData={[
-					{
-						pool: 'stETH-ETH',
-						project: 'Aave',
-						projectslug: 'aave',
-						configID: 'pool-1',
-						chains: ['Ethereum'],
-						tvl: 1000000,
-						apy: 5.1
-					}
-				]}
+				initialData={[makeYieldRow()]}
 			/>
 		)
 
@@ -182,24 +185,15 @@ describe('TokenYieldsSection', () => {
 	it('ignores null APYs when computing the average', () => {
 		queryState = {
 			data: [
-				{
-					pool: 'stETH-ETH',
-					project: 'Aave',
-					projectslug: 'aave',
-					configID: 'pool-1',
-					chains: ['Ethereum'],
-					tvl: 1000000,
-					apy: 5.1
-				},
-				{
+				makeYieldRow(),
+				makeYieldRow({
 					pool: 'wstETH-ETH',
 					project: 'Lido',
 					projectslug: 'lido',
 					configID: 'pool-2',
-					chains: ['Ethereum'],
 					tvl: 900000,
 					apy: null
-				}
+				})
 			],
 			error: null,
 			isLoading: false
@@ -245,17 +239,7 @@ describe('TokenYieldsSection', () => {
 
 	it('shows the filtered empty state when selectors remove all rows', () => {
 		queryState = {
-			data: [
-				{
-					pool: 'stETH-ETH',
-					project: 'Aave',
-					projectslug: 'aave',
-					configID: 'pool-1',
-					chains: ['Ethereum'],
-					tvl: 1000000,
-					apy: 5.1
-				}
-			],
+			data: [makeYieldRow()],
 			error: null,
 			isLoading: false
 		}

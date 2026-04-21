@@ -1,16 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('~/constants', () => ({
-	YIELD_POOLS_API: 'pools-api',
-	YIELD_CONFIG_API: 'config-api',
-	YIELD_URL_API: 'url-api',
-	YIELD_CHAIN_API: 'chain-api',
-	YIELD_LEND_BORROW_API: 'lend-borrow-api'
-}))
+vi.mock('~/constants', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('~/constants')>()
+	return {
+		...actual,
+		YIELD_POOLS_API: 'pools-api',
+		YIELD_CONFIG_API: 'config-api',
+		YIELD_URL_API: 'url-api',
+		YIELD_CHAIN_API: 'chain-api',
+		YIELD_LEND_BORROW_API: 'lend-borrow-api'
+	}
+})
 
-const fetchJsonMock = vi.fn()
-const fetchProtocolsMock = vi.fn()
-const formatYieldsPageDataMock = vi.fn()
+const { fetchJsonMock, fetchProtocolsMock, formatYieldsPageDataMock } = vi.hoisted(() => ({
+	fetchJsonMock: vi.fn(),
+	fetchProtocolsMock: vi.fn(),
+	formatYieldsPageDataMock: vi.fn()
+}))
 
 vi.mock('~/utils/async', () => ({
 	fetchJson: fetchJsonMock

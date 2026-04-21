@@ -178,7 +178,8 @@ vi.mock('~/containers/Token/TokenOverviewSection', () => ({
 }))
 
 vi.mock('~/containers/Token/tokenOverview', () => ({
-	getTokenOverviewData: vi.fn(() => Promise.resolve(overviewFixture))
+	getTokenOverviewData: vi.fn(() => Promise.resolve(overviewFixture)),
+	TOKEN_OVERVIEW_DEFAULT_CHARTS: ['Token Price']
 }))
 
 vi.mock('~/containers/Token/TokenUsageSection', () => ({

@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 
 const strategiesState: {
 	data?: any
@@ -66,6 +67,70 @@ afterEach(() => {
 
 import { TokenBorrowSection, filterBorrowRows } from './TokenBorrowSection'
 
+function makeBorrowRow(
+	overrides: Partial<IYieldsOptimizerTableRow> = {},
+	borrowOverrides: Partial<IYieldsOptimizerTableRow> = {}
+): IYieldsOptimizerTableRow {
+	const borrowRow: IYieldsOptimizerTableRow = {
+		pool: 'ETH-USDC',
+		projectslug: 'aave-v3',
+		project: 'Aave',
+		projectName: 'Aave',
+		chains: ['Ethereum'],
+		tvl: 1_000_000,
+		apy: 5,
+		apyBase: 4,
+		apyReward: 1,
+		rewardTokensSymbols: [],
+		rewards: [],
+		change1d: null,
+		change7d: null,
+		confidence: null,
+		url: 'https://example.com/pool',
+		category: 'Lending',
+		configID: 'pool-1',
+		symbol: 'USDC',
+		borrow: undefined as unknown as IYieldsOptimizerTableRow,
+		rewardTokensNames: [],
+		totalAvailableUsd: 500_000,
+		lendUSDAmount: 0,
+		borrowUSDAmount: 0,
+		lendAmount: 0,
+		borrowAmount: 0,
+		...borrowOverrides
+	}
+	borrowRow.borrow = borrowRow
+
+	return {
+		pool: 'ETH-USDC',
+		projectslug: 'aave-v3',
+		project: 'Aave',
+		projectName: 'Aave',
+		chains: ['Ethereum'],
+		tvl: 1_000_000,
+		apy: 5,
+		apyBase: 4,
+		apyReward: 1,
+		rewardTokensSymbols: [],
+		rewards: [],
+		change1d: null,
+		change7d: null,
+		confidence: null,
+		url: 'https://example.com/pool',
+		category: 'Lending',
+		configID: 'pool-1',
+		symbol: 'ETH',
+		borrow: borrowRow,
+		rewardTokensNames: [],
+		totalAvailableUsd: 500_000,
+		lendUSDAmount: 0,
+		borrowUSDAmount: 0,
+		lendAmount: 0,
+		borrowAmount: 0,
+		...overrides
+	}
+}
+
 describe('TokenBorrowSection', () => {
 	it('shows a loader while shared token strategies are loading', () => {
 		strategiesState.data = undefined
@@ -82,18 +147,10 @@ describe('TokenBorrowSection', () => {
 	it('shows the default use-token table with pagination', () => {
 		strategiesState.data = {
 			borrowAsCollateral: [
-				{
-					symbol: 'ETH',
-					borrow: { symbol: 'USDC', totalAvailableUsd: 500000 },
-					chains: ['Ethereum']
-				}
+				makeBorrowRow()
 			],
 			borrowAsDebt: [
-				{
-					symbol: 'WBTC',
-					borrow: { symbol: 'ETH', totalAvailableUsd: 250000 },
-					chains: ['Ethereum']
-				}
+				makeBorrowRow({ symbol: 'WBTC' }, { symbol: 'ETH', totalAvailableUsd: 250000 })
 			]
 		}
 		strategiesState.error = null
@@ -115,13 +172,7 @@ describe('TokenBorrowSection', () => {
 			<TokenBorrowSection
 				tokenSymbol="ETH"
 				initialData={{
-					borrowAsCollateral: [
-						{
-							symbol: 'ETH',
-							borrow: { symbol: 'USDC', totalAvailableUsd: 500000 },
-							chains: ['Ethereum']
-						}
-					],
+					borrowAsCollateral: [makeBorrowRow()],
 					borrowAsDebt: []
 				}}
 			/>
