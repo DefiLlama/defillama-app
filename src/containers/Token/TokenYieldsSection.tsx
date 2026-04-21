@@ -210,7 +210,7 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 		>
 			<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 				<h2
-					className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
+					className="group relative flex min-w-0 scroll-mt-24 items-center gap-1 text-xl font-bold"
 					id={TOKEN_YIELDS_SECTION_ID}
 				>
 					Yields

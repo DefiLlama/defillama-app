@@ -302,7 +302,7 @@ afterEach(() => {
 })
 
 describe('token page', () => {
-	it('renders income statement, risk, token rights, token usage, and yield tables in order', () => {
+	it('renders the sticky section nav and token sections in manifest order', () => {
 		const html = renderToStaticMarkup(
 			<TokenPage
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true, is_yields: true }}
@@ -329,6 +329,15 @@ describe('token page', () => {
 			/>
 		)
 
+		expect(html).toContain('Overview')
+		expect(html).toContain('Income Statement')
+		expect(html).toContain('Risks')
+		expect(html).toContain('Liquidations')
+		expect(html).toContain('Token Rights')
+		expect(html).toContain('Token Usage')
+		expect(html).toContain('Unlocks')
+		expect(html).toContain('Yields')
+		expect(html).toContain('Borrow')
 		expect(html).toContain('token-overview-section')
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
@@ -348,7 +357,7 @@ describe('token page', () => {
 		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
 	})
 
-	it('does not render the yields stack when the token does not opt into yields', () => {
+	it('limits the section nav to the sections that actually render', () => {
 		const html = renderToStaticMarkup(
 			<TokenPage
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
@@ -369,11 +378,18 @@ describe('token page', () => {
 			/>
 		)
 
+		expect(html).toContain('Overview')
+		expect(html).toContain('Token Usage')
 		expect(html).not.toContain('token-yields-section')
 		expect(html).not.toContain('token-borrow-section')
 		expect(html).not.toContain('token-risks-section')
 		expect(html).not.toContain('token-liquidations-section')
 		expect(html).not.toContain('token-unlocks-section:')
+		expect(html).not.toContain('Yields')
+		expect(html).not.toContain('Borrow')
+		expect(html).not.toContain('Risks')
+		expect(html).not.toContain('Liquidations')
+		expect(html).not.toContain('Unlocks')
 	})
 
 	it('renders each yield-related section from its own prefetched dataset', () => {
