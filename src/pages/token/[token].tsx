@@ -24,6 +24,7 @@ import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import type { ITokenListEntry } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -70,7 +71,9 @@ export const getStaticProps = withPerformanceLogging(
 		})
 		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
-		const hasLiquidations = metadataCache.liquidationsTokenSymbols.includes(record.symbol.trim().toUpperCase())
+		const hasLiquidations = metadataCache.liquidationsTokenSymbolsSet.has(
+			normalizeLiquidationsTokenSymbol(record.symbol) ?? ''
+		)
 		let tokenRightsData: ITokenRightsData | null = null
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null

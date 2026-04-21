@@ -16,7 +16,8 @@ vi.mock('~/utils/metadata', () => ({
 	__esModule: true,
 	default: {
 		chainMetadata: {},
-		protocolMetadata: {}
+		protocolMetadata: {},
+		liquidationsTokenSymbolsSet: new Set(['WSTETH'])
 	},
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))

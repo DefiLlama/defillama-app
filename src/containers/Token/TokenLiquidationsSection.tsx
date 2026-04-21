@@ -196,14 +196,7 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 	}
 
 	if (!data || (data.protocolRows.length === 0 && data.chainRows.length === 0)) {
-		return (
-			<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				{sectionHeader}
-				<div className="flex min-h-[80dvh] items-center justify-center p-6 text-center sm:min-h-[572px]">
-					<p className="max-w-md text-sm text-(--text-label)">No token liquidations found.</p>
-				</div>
-			</section>
-		)
+		return null
 	}
 
 	return (

@@ -189,6 +189,6 @@ describe('TokenLiquidationsSection', () => {
 
 		const html = renderToStaticMarkup(<TokenLiquidationsSection tokenSymbol="wsteth" />)
 
-		expect(html).toContain('No token liquidations found.')
+		expect(html).toBe('')
 	})
 })

@@ -2,6 +2,7 @@ import { fetchBlockExplorers } from '~/api'
 import type { BlockExplorersResponse } from '~/api/types'
 import { slug } from '~/utils'
 import { findBlockExplorerChain } from '~/utils/blockExplorers'
+import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchAllLiquidations,
@@ -44,10 +45,48 @@ interface ChainAggregate {
 }
 
 const LIQUIDATIONS_V2_TOTAL_BINS = 60
+const TOKEN_LIQUIDATIONS_CACHE_TTL_MS = 5 * 60 * 1000
 
-function normalizeLiquidationsTokenSymbol(symbol: string | null | undefined): string | null {
-	const normalizedSymbol = symbol?.trim().toUpperCase()
-	return normalizedSymbol ? normalizedSymbol : null
+type TokenLiquidationsSnapshot = {
+	protocolsResponse: Awaited<ReturnType<typeof fetchProtocolsList>>
+	allResponse: Awaited<ReturnType<typeof fetchAllLiquidations>>
+}
+
+let tokenLiquidationsSnapshotCache: {
+	expiresAt: number
+	value: TokenLiquidationsSnapshot
+} | null = null
+let tokenLiquidationsSnapshotInFlight: Promise<TokenLiquidationsSnapshot> | null = null
+
+async function getTokenLiquidationsSnapshot(): Promise<TokenLiquidationsSnapshot> {
+	const now = Date.now()
+	if (tokenLiquidationsSnapshotCache && now < tokenLiquidationsSnapshotCache.expiresAt) {
+		return tokenLiquidationsSnapshotCache.value
+	}
+
+	if (tokenLiquidationsSnapshotInFlight) {
+		return tokenLiquidationsSnapshotInFlight
+	}
+
+	tokenLiquidationsSnapshotInFlight = Promise.all([fetchProtocolsList(), fetchAllLiquidations()])
+		.then(([protocolsResponse, allResponse]) => {
+			const value = { protocolsResponse, allResponse }
+			tokenLiquidationsSnapshotCache = {
+				expiresAt: Date.now() + TOKEN_LIQUIDATIONS_CACHE_TTL_MS,
+				value
+			}
+			return value
+		})
+		.finally(() => {
+			tokenLiquidationsSnapshotInFlight = null
+		})
+
+	return tokenLiquidationsSnapshotInFlight
+}
+
+export function resetTokenLiquidationsSnapshotCache() {
+	tokenLiquidationsSnapshotCache = null
+	tokenLiquidationsSnapshotInFlight = null
 }
 
 function getProtocolRef(
@@ -407,7 +446,7 @@ export async function getTokenLiquidationsSectionData(
 		return null
 	}
 
-	const [protocolsResponse, allResponse] = await Promise.all([fetchProtocolsList(), fetchAllLiquidations()])
+	const { protocolsResponse, allResponse } = await getTokenLiquidationsSnapshot()
 	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 	const protocolRows: OverviewProtocolRow[] = []
 	const chainMap = new Map<string, ChainAggregate>()
@@ -421,6 +460,7 @@ export async function getTokenLiquidationsSectionData(
 		let protocolPositionCount = 0
 		let protocolTotalCollateralUsd = 0
 		const protocolChains = new Set<string>()
+		const protocolCollaterals = new Set<string>()
 
 		for (const [chainId, rawPositions] of Object.entries(protocolData)) {
 			const chainTokenMap = allResponse.tokens[chainId] ?? {}
@@ -460,6 +500,7 @@ export async function getTokenLiquidationsSectionData(
 			chainAggregate.protocolIds.add(protocol.id)
 			chainAggregate.totalCollateralUsd += chainCollateralUsd
 			chainAggregate.collaterals.add(normalizedTokenSymbol)
+			protocolCollaterals.add(normalizedTokenSymbol)
 		}
 
 		if (protocolPositionCount > 0) {
@@ -467,7 +508,7 @@ export async function getTokenLiquidationsSectionData(
 				...protocol,
 				positionCount: protocolPositionCount,
 				chainCount: protocolChains.size,
-				collateralCount: 1,
+				collateralCount: protocolCollaterals.size,
 				totalCollateralUsd: protocolTotalCollateralUsd
 			})
 		}
@@ -495,7 +536,7 @@ export async function getTokenLiquidationsSectionData(
 					...chainAggregate.chain,
 					positionCount: chainAggregate.positionCount,
 					protocolCount: chainAggregate.protocolIds.size,
-					collateralCount: 1,
+					collateralCount: chainAggregate.collaterals.size,
 					totalCollateralUsd: chainAggregate.totalCollateralUsd
 				})
 			)

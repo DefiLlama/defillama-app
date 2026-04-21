@@ -41,6 +41,7 @@ const metadataCache: {
 	protocolDisplayNames: Map<string, string>
 	chainDisplayNames: Map<string, string>
 	liquidationsTokenSymbols: string[]
+	liquidationsTokenSymbolsSet: Set<string>
 	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -62,6 +63,7 @@ const metadataCache: {
 	protocolDisplayNames: createStringLookupMap(protocolDisplayNamesRaw as Record<string, string>),
 	chainDisplayNames: createStringLookupMap(chainDisplayNamesRaw as Record<string, string>),
 	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
+	liquidationsTokenSymbolsSet: new Set(liquidationsTokenSymbolsRaw as string[]),
 	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
@@ -111,6 +113,7 @@ async function doRefresh(): Promise<void> {
 		metadataCache.protocolDisplayNames = createStringLookupMap(protocolDisplayNames)
 		metadataCache.chainDisplayNames = createStringLookupMap(chainDisplayNames)
 		metadataCache.liquidationsTokenSymbols = liquidationsTokenSymbols
+		metadataCache.liquidationsTokenSymbolsSet = new Set(liquidationsTokenSymbols)
 		metadataCache.emissionsProtocolsList = emissionsProtocolsList
 		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
 		metadataCache.bridgeChainSlugs = bridgeChainSlugs

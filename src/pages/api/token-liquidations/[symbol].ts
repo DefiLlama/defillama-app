@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenLiquidationsSectionData } from '~/containers/LiquidationsV2/queries'
 import { validateSubscription } from '~/utils/apiAuth'
+import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 
 export const config = {
 	api: {
@@ -29,8 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
+		const normalizedSymbol = normalizeLiquidationsTokenSymbol(symbol)
 
-		const data = await getTokenLiquidationsSectionData(symbol, {
+		if (!normalizedSymbol || !metadataModule.default.liquidationsTokenSymbolsSet.has(normalizedSymbol)) {
+			return res.status(404).json({ error: 'Token liquidations not found' })
+		}
+
+		const data = await getTokenLiquidationsSectionData(normalizedSymbol, {
 			chainMetadata: metadataModule.default.chainMetadata,
 			protocolMetadata: metadataModule.default.protocolMetadata
 		})

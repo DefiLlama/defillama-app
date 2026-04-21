@@ -22,7 +22,8 @@ import {
 	getLiquidationsChainPageData,
 	getLiquidationsOverviewPageData,
 	getLiquidationsProtocolPageData,
-	getTokenLiquidationsSectionData
+	getTokenLiquidationsSectionData,
+	resetTokenLiquidationsSnapshotCache
 } from './queries'
 
 const mockedFetchProtocolsList = fetchProtocolsList as unknown as ReturnType<typeof vi.fn>
@@ -46,6 +47,7 @@ const metadata = {
 
 beforeEach(() => {
 	vi.clearAllMocks()
+	resetTokenLiquidationsSnapshotCache()
 	mockedFetchBlockExplorers.mockResolvedValue([
 		{
 			displayName: 'Arbitrum',

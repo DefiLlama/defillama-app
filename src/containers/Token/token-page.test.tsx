@@ -104,6 +104,7 @@ const state: {
 	protocolMetadata: Record<string, IProtocolMetadata>
 	chainMetadata: Record<string, { name: string }>
 	liquidationsTokenSymbols: string[]
+	liquidationsTokenSymbolsSet: Set<string>
 	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
@@ -119,6 +120,7 @@ const state: {
 	protocolMetadata: {},
 	chainMetadata: {},
 	liquidationsTokenSymbols: [],
+	liquidationsTokenSymbolsSet: new Set<string>(),
 	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
@@ -153,6 +155,7 @@ function resetState() {
 	state.protocolMetadata = {}
 	state.chainMetadata = {}
 	state.liquidationsTokenSymbols = []
+	state.liquidationsTokenSymbolsSet = new Set<string>()
 	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
@@ -260,6 +263,9 @@ vi.mock('~/utils/metadata', () => ({
 		},
 		get liquidationsTokenSymbols() {
 			return state.liquidationsTokenSymbols
+		},
+		get liquidationsTokenSymbolsSet() {
+			return state.liquidationsTokenSymbolsSet
 		},
 		get emissionsProtocolsList() {
 			return state.emissionsProtocolsList
@@ -486,6 +492,7 @@ describe('token page', () => {
 
 	it('getStaticProps enables the liquidations section when metadata includes the token symbol', async () => {
 		state.liquidationsTokenSymbols = ['BTC']
+		state.liquidationsTokenSymbolsSet = new Set(['BTC'])
 
 		const result = await getStaticProps({ params: { token: 'btc' } } as never)
 
@@ -1038,6 +1045,7 @@ describe('token page', () => {
 				},
 				rows: [],
 				methodologies: {
+					borrowCapUsd: 'borrow cap',
 					availableToBorrowUsd: 'available',
 					maxLtv: 'ltv',
 					liquidationThreshold: 'threshold',
