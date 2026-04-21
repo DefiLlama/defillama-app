@@ -1,4 +1,5 @@
 import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, TOKEN_DIRECTORY_API } from '~/constants'
+import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
@@ -107,6 +108,7 @@ export async function fetchCoreMetadata({
 	tokenDirectory: TokenDirectory
 	protocolDisplayNames: Record<string, string>
 	chainDisplayNames: Record<string, string>
+	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -182,6 +184,13 @@ export async function fetchCoreMetadata({
 		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
 	])
 
+	const emissionsProtocolsList = await (isDev
+		? fetchEmissionsProtocolsList().catch((error) => {
+				console.error('[metadata] dev: failed to fetch emissions protocols list, using fallback:', error)
+				return []
+			})
+		: fetchEmissionsProtocolsList())
+
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
 		if (!t || typeof t.id !== 'string' || !t.id) continue
@@ -253,6 +262,7 @@ export async function fetchCoreMetadata({
 		tokenDirectory,
 		protocolDisplayNames,
 		chainDisplayNames,
+		emissionsProtocolsList,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,

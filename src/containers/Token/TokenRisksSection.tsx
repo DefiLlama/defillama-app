@@ -32,8 +32,6 @@ type CollateralProtocolSummary = {
 	protocol: string
 	protocolDisplayName: string
 	totalAvailableToBorrowUsd: number
-	totalDebtBorrowedUsd: number
-	totalBorrowCapUsd: number
 	chainDisplayNames: string[]
 }
 
@@ -231,28 +229,12 @@ function createCollateralRiskColumns(methodologies: TokenRiskResponse['collatera
 			header: 'Debt Asset',
 			enableSorting: false
 		}),
-		collateralRiskColumnHelper.accessor('borrowCapUsd', {
-			header: 'Cap',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: 'Borrowing cap against this collateral route, calculated as borrowed plus available.'
-			}
-		}),
 		collateralRiskColumnHelper.accessor('availableToBorrowUsd', {
 			header: 'Available',
 			cell: ({ getValue }) => formatUsd(getValue()),
 			meta: {
 				align: 'end',
 				headerHelperText: methodologies.availableToBorrowUsd
-			}
-		}),
-		collateralRiskColumnHelper.accessor('debtTotalBorrowedUsd', {
-			header: 'Borrowed',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.debtTotalBorrowedUsd
 			}
 		}),
 		collateralRiskColumnHelper.accessor('maxLtv', {
@@ -442,8 +424,6 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				protocol: string
 				protocolDisplayName: string
 				totalAvailableToBorrowUsd: number
-				totalDebtBorrowedUsd: number
-				totalBorrowCapUsd: number
 				chainDisplayNames: Set<string>
 			}
 		>()
@@ -453,8 +433,6 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 
 			if (existing) {
 				existing.totalAvailableToBorrowUsd += row.availableToBorrowUsd
-				existing.totalDebtBorrowedUsd += row.debtTotalBorrowedUsd
-				existing.totalBorrowCapUsd += row.borrowCapUsd
 				existing.chainDisplayNames.add(row.chainDisplayName)
 				continue
 			}
@@ -463,8 +441,6 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				protocol: row.protocol,
 				protocolDisplayName: row.protocolDisplayName,
 				totalAvailableToBorrowUsd: row.availableToBorrowUsd,
-				totalDebtBorrowedUsd: row.debtTotalBorrowedUsd,
-				totalBorrowCapUsd: row.borrowCapUsd,
 				chainDisplayNames: new Set([row.chainDisplayName])
 			})
 		}
@@ -474,16 +450,11 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				protocol: summary.protocol,
 				protocolDisplayName: summary.protocolDisplayName,
 				totalAvailableToBorrowUsd: summary.totalAvailableToBorrowUsd,
-				totalDebtBorrowedUsd: summary.totalDebtBorrowedUsd,
-				totalBorrowCapUsd: summary.totalBorrowCapUsd,
 				chainDisplayNames: [...summary.chainDisplayNames].sort((a, b) => a.localeCompare(b))
 			}))
 			.sort((a, b) => {
 				if (a.totalAvailableToBorrowUsd !== b.totalAvailableToBorrowUsd) {
 					return b.totalAvailableToBorrowUsd - a.totalAvailableToBorrowUsd
-				}
-				if (a.totalBorrowCapUsd !== b.totalBorrowCapUsd) {
-					return b.totalBorrowCapUsd - a.totalBorrowCapUsd
 				}
 				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
 			})
@@ -498,8 +469,6 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 		[borrowCapsProtocolSummaries]
 	)
 	const totalCollateralAvailableToBorrowUsd = collateralRisk.summary.totalAvailableToBorrowUsd
-	const totalCollateralBorrowedUsd = collateralRisk.summary.totalBorrowedUsd
-	const totalCollateralBorrowCapUsd = collateralRisk.summary.totalBorrowCapUsd
 	const selectedCandidateDisplayName = useMemo(() => {
 		if (scopeCandidates.length === 1) return scopeCandidates[0].displayName
 		return 'onchain'
@@ -548,48 +517,68 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					</p>
 					<p className="mt-1 text-sm text-(--text-secondary)">
 						{hasCollateralPrimary
-							? `${formatUsd(totalCollateralBorrowedUsd)} currently borrowed across the reachable debt markets${
-									totalCollateralBorrowCapUsd > 0
-										? ` (${formatUsd(totalCollateralBorrowCapUsd)} derived route capacity)`
-										: ''
-								}`
+							? `Across ${collateralRisk.summary.routeCount} collateral route${
+									collateralRisk.summary.routeCount === 1 ? '' : 's'
+								}. Borrowed totals are omitted for pooled markets because they are not collateral-specific.`
 							: `${formatUsd(totalBorrowedUsd)} borrowed across these lending markets`}
 					</p>
 				</div>
 
 				<div className="rounded-md border border-(--cards-border) p-3">
 					<div className="space-y-3">
-						{(hasCollateralPrimary ? collateralProtocolSummaries : borrowCapsProtocolSummaries).map((summary) => (
-							<div
-								key={summary.protocol}
-								className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-							>
-								<div className="min-w-0">
-									<div className="flex items-center gap-2">
-										<TokenLogo
-											name={summary.protocolDisplayName}
-											kind="token"
-											size={18}
-											alt={`Logo of ${summary.protocolDisplayName}`}
-											title={summary.protocol}
-										/>
-										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
+						{hasCollateralPrimary
+							? collateralProtocolSummaries.map((summary) => (
+									<div
+										key={summary.protocol}
+										className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+									>
+										<div className="min-w-0">
+											<div className="flex items-center gap-2">
+												<TokenLogo
+													name={summary.protocolDisplayName}
+													kind="token"
+													size={18}
+													alt={`Logo of ${summary.protocolDisplayName}`}
+													title={summary.protocol}
+												/>
+												<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
+											</div>
+											<p className="mt-1 text-sm text-(--text-secondary)">
+												{formatUsd(summary.totalAvailableToBorrowUsd)} available now
+											</p>
+											<p className="mt-1 text-xs text-(--text-secondary)">
+												{formatProtocolChains(summary.chainDisplayNames)}
+											</p>
+										</div>
 									</div>
-									<p className="mt-1 text-sm text-(--text-secondary)">
-										{hasCollateralPrimary
-											? `${formatUsd(summary.totalAvailableToBorrowUsd)} available (${formatUsd(
-													summary.totalDebtBorrowedUsd
-												)} borrowed in route debt markets / ${formatUsd(summary.totalBorrowCapUsd)} derived route capacity)`
-											: `${formatUsd(summary.totalAvailableToBorrowUsd)} available (${formatUsd(
-													summary.totalDebtBorrowedUsd
-												)} borrowed${summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})`}
-									</p>
-									<p className="mt-1 text-xs text-(--text-secondary)">
-										{formatProtocolChains(summary.chainDisplayNames)}
-									</p>
-								</div>
-							</div>
-						))}
+								))
+							: borrowCapsProtocolSummaries.map((summary) => (
+									<div
+										key={summary.protocol}
+										className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
+									>
+										<div className="min-w-0">
+											<div className="flex items-center gap-2">
+												<TokenLogo
+													name={summary.protocolDisplayName}
+													kind="token"
+													size={18}
+													alt={`Logo of ${summary.protocolDisplayName}`}
+													title={summary.protocol}
+												/>
+												<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
+											</div>
+											<p className="mt-1 text-sm text-(--text-secondary)">
+												{formatUsd(summary.totalAvailableToBorrowUsd)} available (
+												{formatUsd(summary.totalDebtBorrowedUsd)} borrowed
+												{summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})
+											</p>
+											<p className="mt-1 text-xs text-(--text-secondary)">
+												{formatProtocolChains(summary.chainDisplayNames)}
+											</p>
+										</div>
+									</div>
+								))}
 					</div>
 				</div>
 
@@ -608,7 +597,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>. The headline
 						total and protocol lines use{' '}
 						{hasCollateralPrimary
-							? `${tokenSymbol} collateral routes where available is what can still be borrowed now, and derived route capacity is available plus the current borrowed amount in each reachable debt market.`
+							? `${tokenSymbol} collateral routes where available is what can still be borrowed now. Borrowed-against totals are intentionally omitted because pooled markets do not expose them per collateral asset without position-level indexing.`
 							: `${tokenSymbol} debt routes where the asset itself is borrowed as debt.`}
 					</p>
 					<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
@@ -633,7 +622,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						</summary>
 						<p className="mt-2 text-sm text-(--text-secondary)">
 							{hasCollateralPrimary
-								? `Each row is a lending route where ${tokenSymbol} is accepted as collateral. Available is what can still be borrowed now. Derived route capacity is available plus the current borrowed amount in that route's debt market.`
+								? `Each row is a lending route where ${tokenSymbol} is accepted as collateral. Available is what can still be borrowed now on that route. Borrowed and derived-capacity totals are omitted because pooled markets do not expose them per collateral asset without position-level indexing.`
 								: `These rows show what users can borrow by posting ${tokenSymbol} as collateral, which is different from how much ${tokenSymbol} itself is available to borrow as debt.`}
 						</p>
 						<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />

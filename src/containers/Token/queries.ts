@@ -9,6 +9,7 @@ import {
 	indexBorrowRoutesByAssetKey,
 	mergeIndexedBuckets,
 	resolveTokenRiskCandidates,
+	TOKEN_RISK_LIMITATION_COLLATERAL_SIDE,
 	TOKEN_RISK_LIMITATIONS_COMMON,
 	TOKEN_RISK_LIMITATION_DEBT_SIDE
 } from './tokenRisk.utils'
@@ -97,6 +98,7 @@ export async function getTokenRiskData({
 		selectedChainRisk: null,
 		limitations: [
 			...TOKEN_RISK_LIMITATIONS_COMMON,
+			...(collateralRisk.rows.length > 0 ? [TOKEN_RISK_LIMITATION_COLLATERAL_SIDE] : []),
 			...(borrowCaps.rows.length > 0 ? [TOKEN_RISK_LIMITATION_DEBT_SIDE] : [])
 		]
 	}

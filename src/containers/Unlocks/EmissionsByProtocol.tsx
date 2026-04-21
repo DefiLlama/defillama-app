@@ -142,12 +142,14 @@ export function EmissionsByProtocol({
 	data,
 	isEmissionsPage,
 	initialTokenMarketData,
-	disableClientTokenStatsFetch
+	disableClientTokenStatsFetch,
+	hideTokenStats
 }: {
 	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
+	hideTokenStats?: boolean
 }) {
 	const router = useRouter()
 	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
@@ -161,6 +163,7 @@ export function EmissionsByProtocol({
 				isEmissionsPage={isEmissionsPage}
 				initialTokenMarketData={initialTokenMarketData}
 				disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+				hideTokenStats={hideTokenStats}
 			/>
 		</div>
 	)
@@ -557,12 +560,14 @@ const ChartContainer = ({
 	data,
 	isEmissionsPage,
 	initialTokenMarketData,
-	disableClientTokenStatsFetch
+	disableClientTokenStatsFetch,
+	hideTokenStats
 }: {
 	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
+	hideTokenStats?: boolean
 }) => {
 	const width = useBreakpointWidth()
 	const router = useRouter()
@@ -611,7 +616,7 @@ const ChartContainer = ({
 
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
-	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
+	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false) && !(hideTokenStats ?? false)
 	const resolvedGeckoId = data.geckoId ?? geckoId
 	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceAndMcapRequested
 	const priceChart = usePriceChart(shouldFetchPriceChart ? resolvedGeckoId : undefined)
@@ -952,13 +957,15 @@ const ChartContainer = ({
 		<>
 			{isEmissionsPage ? <TokenHeader name={data.name} tokenPrice={tokenPrice} percentChange={percentChange} /> : null}
 
-			<TokenStats
-				tokenCircSupply={tokenCircSupply}
-				tokenMaxSupply={tokenMaxSupply}
-				tokenMcap={tokenMcap}
-				tokenVolume={tokenVolume}
-				symbol={data.tokenPrice?.symbol}
-			/>
+			{hideTokenStats ? null : (
+				<TokenStats
+					tokenCircSupply={tokenCircSupply}
+					tokenMaxSupply={tokenMaxSupply}
+					tokenMcap={tokenMcap}
+					tokenVolume={tokenVolume}
+					symbol={data.tokenPrice?.symbol}
+				/>
+			)}
 
 			{data.chartData?.realtime?.length > 0 ? (
 				<TagGroup
@@ -1119,13 +1126,15 @@ export const UnlocksCharts = ({
 	initialData,
 	initialTokenMarketData,
 	disableClientTokenStatsFetch,
-	isEmissionsPage
+	isEmissionsPage,
+	hideTokenStats
 }: {
 	protocolName: string
 	initialData?: IEmission | ProtocolEmissionResult | null
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
+	hideTokenStats?: boolean
 }) => {
 	const router = useRouter()
 	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
@@ -1156,6 +1165,7 @@ export const UnlocksCharts = ({
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}
 			disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+			hideTokenStats={hideTokenStats}
 		/>
 	)
 }
