@@ -1,25 +1,23 @@
 import type { ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
-import { getTokenRiskBorrowRoutes } from './api'
-import type { TokenRiskBorrowRoutesResponse } from './api.types'
+import { getTokenRiskLendingExposures } from './api'
+import type { TokenRiskLendingExposuresResponse } from './api.types'
 import type { TokenRiskResponse } from './tokenRisk.types'
 import {
-	buildBorrowCapsSection,
-	buildCollateralRiskSection,
+	buildExposuresSection,
 	filterTokenRiskCandidatesWithData,
-	inferTokenRiskCandidatesFromRoutes,
-	indexBorrowRoutesByAssetKey,
-	mergeIndexedBuckets,
+	indexExposuresByAssetKey,
+	inferTokenRiskCandidatesFromExposures,
+	mergeIndexedExposures,
 	resolveTokenRiskCandidates,
-	TOKEN_RISK_LIMITATION_COLLATERAL_SIDE,
 	TOKEN_RISK_LIMITATIONS_COMMON,
-	TOKEN_RISK_LIMITATION_DEBT_SIDE
+	TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS
 } from './tokenRisk.utils'
 
-const BORROW_ROUTES_CACHE_TTL_MS = 5 * 60 * 1000
+const LENDING_EXPOSURES_CACHE_TTL_MS = 5 * 60 * 1000
 
-type IndexedBorrowRoutesCache = {
-	data: TokenRiskBorrowRoutesResponse
-	indexedRoutes: ReturnType<typeof indexBorrowRoutesByAssetKey>
+type IndexedLendingExposuresCache = {
+	data: TokenRiskLendingExposuresResponse
+	indexedExposures: ReturnType<typeof indexExposuresByAssetKey>
 	fetchedAt: number
 }
 
@@ -35,39 +33,39 @@ type TokenRiskQueryInput = {
 	displayLookups: TokenRiskDisplayLookups
 }
 
-let borrowRoutesCache: IndexedBorrowRoutesCache | null = null
-let borrowRoutesInFlight: Promise<IndexedBorrowRoutesCache> | null = null
+let lendingExposuresCache: IndexedLendingExposuresCache | null = null
+let lendingExposuresInFlight: Promise<IndexedLendingExposuresCache> | null = null
 
 export function resetTokenRiskBorrowRoutesCache() {
-	borrowRoutesCache = null
-	borrowRoutesInFlight = null
+	lendingExposuresCache = null
+	lendingExposuresInFlight = null
 }
 
-async function getIndexedBorrowRoutesCache(): Promise<IndexedBorrowRoutesCache> {
+async function getIndexedLendingExposuresCache(): Promise<IndexedLendingExposuresCache> {
 	const now = Date.now()
-	if (borrowRoutesCache && now - borrowRoutesCache.fetchedAt < BORROW_ROUTES_CACHE_TTL_MS) {
-		return borrowRoutesCache
+	if (lendingExposuresCache && now - lendingExposuresCache.fetchedAt < LENDING_EXPOSURES_CACHE_TTL_MS) {
+		return lendingExposuresCache
 	}
 
-	if (borrowRoutesInFlight) {
-		return borrowRoutesInFlight
+	if (lendingExposuresInFlight) {
+		return lendingExposuresInFlight
 	}
 
-	borrowRoutesInFlight = getTokenRiskBorrowRoutes()
+	lendingExposuresInFlight = getTokenRiskLendingExposures()
 		.then((data) => ({
 			data,
-			indexedRoutes: indexBorrowRoutesByAssetKey(data.routes),
+			indexedExposures: indexExposuresByAssetKey(data.exposures),
 			fetchedAt: Date.now()
 		}))
 		.then((cacheValue) => {
-			borrowRoutesCache = cacheValue
+			lendingExposuresCache = cacheValue
 			return cacheValue
 		})
 		.finally(() => {
-			borrowRoutesInFlight = null
+			lendingExposuresInFlight = null
 		})
 
-	return borrowRoutesInFlight
+	return lendingExposuresInFlight
 }
 
 export async function getTokenRiskData({
@@ -76,46 +74,37 @@ export async function getTokenRiskData({
 	protocolLlamaswapDataset,
 	displayLookups
 }: TokenRiskQueryInput): Promise<TokenRiskResponse | null> {
-	const borrowRoutesSnapshot = await getIndexedBorrowRoutesCache()
+	const lendingExposuresSnapshot = await getIndexedLendingExposuresCache()
 	const metadataCandidates = resolveTokenRiskCandidates(geckoId, protocolLlamaswapDataset)
 	const candidates =
 		metadataCandidates.length > 0
 			? metadataCandidates
-			: inferTokenRiskCandidatesFromRoutes({
+			: inferTokenRiskCandidatesFromExposures({
 					tokenSymbol,
-					routes: borrowRoutesSnapshot.data.routes,
+					exposures: lendingExposuresSnapshot.data.exposures,
 					chainDisplayNames: displayLookups.chainDisplayNames
 				})
 	if (candidates.length === 0) return null
 
-	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, borrowRoutesSnapshot.indexedRoutes)
+	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, lendingExposuresSnapshot.indexedExposures)
 	if (scopeCandidates.length === 0) return null
 
-	const activeBucket = mergeIndexedBuckets(
-		borrowRoutesSnapshot.indexedRoutes,
+	const activeExposures = mergeIndexedExposures(
+		lendingExposuresSnapshot.indexedExposures,
 		scopeCandidates.map((candidate) => candidate.key)
 	)
 
-	const borrowCaps = buildBorrowCapsSection(activeBucket, borrowRoutesSnapshot.data.methodologies, displayLookups)
-	const collateralRisk = buildCollateralRiskSection(
-		activeBucket,
-		borrowRoutesSnapshot.data.methodologies,
-		displayLookups
-	)
-
-	if (borrowCaps.rows.length === 0 && collateralRisk.rows.length === 0) return null
+	const exposures = buildExposuresSection(activeExposures, lendingExposuresSnapshot.data.methodologies, displayLookups)
+	if (exposures.rows.length === 0) return null
 
 	return {
 		candidates,
 		scopeCandidates,
 		selectedCandidateKey: null,
-		borrowCaps,
-		collateralRisk,
-		selectedChainRisk: null,
+		exposures,
 		limitations: [
 			...TOKEN_RISK_LIMITATIONS_COMMON,
-			...(collateralRisk.rows.length > 0 ? [TOKEN_RISK_LIMITATION_COLLATERAL_SIDE] : []),
-			...(borrowCaps.rows.length > 0 ? [TOKEN_RISK_LIMITATION_DEBT_SIDE] : [])
+			...(exposures.summary.borrowedDebtUnknownCount > 0 ? [TOKEN_RISK_LIMITATION_BORROWED_DEBT_NULLS] : [])
 		]
 	}
 }

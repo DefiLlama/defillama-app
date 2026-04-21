@@ -1,8 +1,4 @@
-import type {
-	TokenRiskLendingRisksResponse,
-	TokenRiskLendingRoutesBucket,
-	TokenRiskRouteMethodologies
-} from './api.types'
+import type { TokenRiskExposureMethodologies } from './api.types'
 
 export interface TokenRiskCandidate {
 	key: string
@@ -11,101 +7,37 @@ export interface TokenRiskCandidate {
 	displayName: string
 }
 
-export interface TokenRiskBorrowCapsSummary {
-	totalBorrowCapUsd: number
-	totalBorrowedUsd: number
-	remainingCapUsd: number
-	capUtilization: number | null
+export interface TokenRiskExposureSummary {
+	totalCollateralMaxBorrowUsd: number
+	totalCollateralBorrowedDebtUsd: number | null
+	exposureCount: number
 	protocolCount: number
 	chainCount: number
-	marketCount: number
+	borrowedDebtKnownCount: number
+	borrowedDebtUnknownCount: number
 }
 
-export interface TokenRiskBorrowCapsRow {
+export interface TokenRiskExposureRow {
 	protocol: string
 	protocolDisplayName: string
 	chain: string
 	chainDisplayName: string
-	market: string
-	debtSymbol: string
-	borrowCapUsd: number | null
-	debtCeilingUsd: number | null
-	displayBorrowCapUsd: number | null
-	debtTotalBorrowedUsd: number
-	debtTotalSupplyUsd: number
-	remainingCapUsd: number | null
-	availableToBorrowUsd: number
-	debtUtilization: number | null
-	eligibleCollateralCount: number
-	eligibleCollateralSymbols: string[]
+	assetSymbol: string
+	assetAddress: string
+	collateralMaxBorrowUsd: number
+	collateralBorrowedDebtUsd: number | null
 }
 
-export interface TokenRiskBorrowCapsSection {
-	summary: TokenRiskBorrowCapsSummary
-	rows: TokenRiskBorrowCapsRow[]
-	methodologies: Pick<
-		TokenRiskRouteMethodologies,
-		'borrowCapUsd' | 'debtTotalBorrowedUsd' | 'debtUtilization' | 'availableToBorrowUsd'
-	>
-}
-
-export interface TokenRiskCollateralRiskSummary {
-	totalAvailableToBorrowUsd: number
-	routeCount: number
-	isolatedRouteCount: number
-	minLiquidationBuffer: number | null
-	maxLiquidationBuffer: number | null
-}
-
-export interface TokenRiskCollateralRiskRow {
-	protocol: string
-	protocolDisplayName: string
-	chain: string
-	chainDisplayName: string
-	market: string
-	debtSymbol: string
-	borrowCapUsd: number | null
-	displayBorrowCapUsd: number | null
-	debtTotalSupplyUsd: number
-	maxLtv: number
-	liquidationThreshold: number
-	liquidationPenalty: number
-	liquidationBuffer: number
-	borrowApy: number
-	isolationMode: boolean
-	debtCeilingUsd: number | null
-	availableToBorrowUsd: number
-}
-
-export interface TokenRiskCollateralRiskSection {
-	summary: TokenRiskCollateralRiskSummary
-	rows: TokenRiskCollateralRiskRow[]
-	methodologies: Pick<
-		TokenRiskRouteMethodologies,
-		| 'availableToBorrowUsd'
-		| 'borrowCapUsd'
-		| 'maxLtv'
-		| 'liquidationThreshold'
-		| 'liquidationPenalty'
-		| 'isolationMode'
-		| 'debtCeilingUsd'
-	>
-}
-
-export interface TokenRiskSelectedChainRisk {
-	candidateKey: string
-	timestamp: number | null
-	hourlyTimestamp: number | null
-	methodologies: TokenRiskLendingRisksResponse['methodologies'] | null
-	bucket: TokenRiskLendingRoutesBucket | null
+export interface TokenRiskExposuresSection {
+	summary: TokenRiskExposureSummary
+	rows: TokenRiskExposureRow[]
+	methodologies: Pick<TokenRiskExposureMethodologies, 'asset' | 'collateralMaxBorrowUsd' | 'collateralBorrowedDebtUsd'>
 }
 
 export interface TokenRiskResponse {
 	candidates: TokenRiskCandidate[]
 	scopeCandidates: TokenRiskCandidate[]
 	selectedCandidateKey: string | null
-	borrowCaps: TokenRiskBorrowCapsSection
-	collateralRisk: TokenRiskCollateralRiskSection
-	selectedChainRisk: TokenRiskSelectedChainRisk | null
+	exposures: TokenRiskExposuresSection
 	limitations: string[]
 }

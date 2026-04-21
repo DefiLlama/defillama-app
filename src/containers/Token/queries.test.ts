@@ -1,91 +1,55 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getTokenRiskBorrowRoutes } from './api'
+import { getTokenRiskLendingExposures } from './api'
 import { getTokenRiskData, resetTokenRiskBorrowRoutesCache } from './queries'
 
 vi.mock('./api', () => ({
-	getTokenRiskBorrowRoutes: vi.fn()
+	getTokenRiskLendingExposures: vi.fn()
 }))
 
-function createBorrowRoutesResponse() {
+function createLendingExposuresResponse() {
 	return {
 		methodologies: {
-			protocol: 'Protocol',
+			asset: 'Collateral asset',
 			chain: 'Chain',
-			market: 'Market',
-			collateral: 'Collateral',
-			debt: 'Debt',
-			collateralTotalSupplyUsd: 'Collateral supply',
-			debtTotalSupplyUsd: 'Debt supply',
-			debtTotalBorrowedUsd: 'Debt borrowed',
-			debtUtilization: 'Debt utilization',
-			maxLtv: 'Max LTV',
-			liquidationThreshold: 'Liquidation threshold',
-			liquidationPenalty: 'Liquidation penalty',
-			availableToBorrowUsd: 'Available to borrow',
-			borrowCapUsd: 'Borrow cap',
-			isolationMode: 'Isolation mode',
-			debtCeilingUsd: 'Debt ceiling',
-			borrowApy: 'Borrow APY',
-			collateralSupplyApy: 'Collateral APY'
+			protocol: 'Protocol',
+			collateralMaxBorrowUsd: 'Max borrow',
+			collateralBorrowedDebtUsd: 'Borrowed debt'
 		},
 		timestamp: 1,
 		hourlyTimestamp: 1,
-		routes: [
+		exposures: [
 			{
-				protocol: 'aave-v3',
-				chain: 'ethereum',
-				market: 'core-market',
-				collateral: {
-					symbol: 'WBTC',
-					address: '0xCollateral1',
-					priceUsd: 100
-				},
-				debt: {
+				asset: {
 					symbol: 'USDC',
 					address: '0xA0b8',
 					priceUsd: 1
 				},
-				collateralTotalSupplyUsd: 1000,
-				debtTotalSupplyUsd: 800,
-				debtTotalBorrowedUsd: 400,
-				debtUtilization: 0.5,
-				maxLtv: 0.75,
-				liquidationThreshold: 0.8,
-				liquidationPenalty: 0.05,
-				availableToBorrowUsd: 200,
-				borrowCapUsd: 1000,
-				isolationMode: false,
-				debtCeilingUsd: null,
-				borrowApy: 0.04,
-				collateralSupplyApy: 0
+				chain: 'ethereum',
+				protocol: 'aave-v3',
+				collateralMaxBorrowUsd: 1000,
+				collateralBorrowedDebtUsd: 400
 			},
 			{
-				protocol: 'aave-v3',
-				chain: 'ethereum',
-				market: 'core-market',
-				collateral: {
+				asset: {
 					symbol: 'USDC',
 					address: '0xA0b8',
 					priceUsd: 1
 				},
-				debt: {
-					symbol: 'WBTC',
-					address: '0xDebtBtc',
-					priceUsd: 100
+				chain: 'ethereum',
+				protocol: 'morpho-blue',
+				collateralMaxBorrowUsd: 500,
+				collateralBorrowedDebtUsd: null
+			},
+			{
+				asset: {
+					symbol: 'WSTETH',
+					address: '0xWstEth',
+					priceUsd: 2000
 				},
-				collateralTotalSupplyUsd: 1000,
-				debtTotalSupplyUsd: 900,
-				debtTotalBorrowedUsd: 300,
-				debtUtilization: 0.33,
-				maxLtv: 0.7,
-				liquidationThreshold: 0.78,
-				liquidationPenalty: 0.04,
-				availableToBorrowUsd: 500,
-				borrowCapUsd: 900,
-				isolationMode: true,
-				debtCeilingUsd: 1000,
-				borrowApy: 0.02,
-				collateralSupplyApy: 0.01
+				chain: 'ethereum',
+				protocol: 'morpho-blue',
+				collateralMaxBorrowUsd: 750,
+				collateralBorrowedDebtUsd: 250
 			}
 		]
 	}
@@ -108,9 +72,9 @@ beforeEach(() => {
 })
 
 describe('getTokenRiskData', () => {
-	it('builds aggregate token risk data from the live borrow-routes payload', async () => {
-		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
-		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
+	it('builds token risk exposure data from the lending exposures payload', async () => {
+		const mockedGetTokenRiskLendingExposures = vi.mocked(getTokenRiskLendingExposures)
+		mockedGetTokenRiskLendingExposures.mockResolvedValue(createLendingExposuresResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'usdc',
@@ -132,60 +96,19 @@ describe('getTokenRiskData', () => {
 		])
 		expect(payload?.scopeCandidates).toEqual(payload?.candidates)
 		expect(payload?.selectedCandidateKey).toBeNull()
-		expect(payload?.selectedChainRisk).toBeNull()
-		expect(payload?.borrowCaps.rows[0].protocolDisplayName).toBe('Aave V3')
-		expect(payload?.borrowCaps.rows[0].chainDisplayName).toBe('Ethereum')
-		expect(payload?.collateralRisk.rows[0].protocolDisplayName).toBe('Aave V3')
-		expect(payload?.collateralRisk.rows[0].chainDisplayName).toBe('Ethereum')
-		expect(payload?.limitations.length).toBeGreaterThan(0)
+		expect(payload?.exposures.rows).toHaveLength(2)
+		expect(payload?.exposures.rows[0].protocolDisplayName).toBe('Aave V3')
+		expect(payload?.exposures.rows[0].chainDisplayName).toBe('Ethereum')
+		expect(payload?.exposures.summary.totalCollateralMaxBorrowUsd).toBe(1500)
+		expect(payload?.exposures.summary.totalCollateralBorrowedDebtUsd).toBeNull()
 		expect(payload?.limitations).toContain(
-			'Collateral-side available is route-level, but pooled markets do not expose collateral-specific borrowed totals without indexing individual borrow positions.'
+			'When any contributing market cannot attribute borrowed debt to a specific collateral asset, borrowed-debt totals are returned as unavailable instead of being under-counted.'
 		)
 	})
 
-	it('returns collateral-side risk data when the token has no debt-side borrowing rows', async () => {
-		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
-		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
-
-		const payload = await getTokenRiskData({
-			geckoId: 'collateral-only',
-			tokenSymbol: 'COLLATERAL',
-			protocolLlamaswapDataset: {
-				'collateral-only': [{ chain: 'ethereum', address: '0xCollateral1', displayName: 'Ethereum' }]
-			},
-			displayLookups
-		})
-
-		expect(payload).not.toBeNull()
-		expect(payload?.borrowCaps.rows).toEqual([])
-		expect(payload?.collateralRisk.rows).toHaveLength(1)
-		expect(payload?.limitations.length).toBeGreaterThan(0)
-		expect(payload?.limitations.every((l) => !l.includes('Debt-side totals'))).toBe(true)
-	})
-
-	it('falls back to route symbols when protocol llamaswap metadata is missing', async () => {
-		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
-		mockedGetTokenRiskBorrowRoutes.mockResolvedValue({
-			...createBorrowRoutesResponse(),
-			routes: [
-				createBorrowRoutesResponse().routes[0],
-				{
-					...createBorrowRoutesResponse().routes[0],
-					protocol: 'morpho-blue',
-					market: 'wsteth-market',
-					collateral: {
-						symbol: 'wstETH',
-						address: '0xWstEth',
-						priceUsd: 100
-					},
-					debt: {
-						symbol: 'USDC',
-						address: '0xUsdc',
-						priceUsd: 1
-					}
-				}
-			]
-		} as never)
+	it('falls back to exposure symbols when protocol llamaswap metadata is missing', async () => {
+		const mockedGetTokenRiskLendingExposures = vi.mocked(getTokenRiskLendingExposures)
+		mockedGetTokenRiskLendingExposures.mockResolvedValue(createLendingExposuresResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'wrapped-steth',
@@ -201,11 +124,12 @@ describe('getTokenRiskData', () => {
 			address: '0xwsteth',
 			displayName: 'Ethereum'
 		})
+		expect(payload?.exposures.summary.totalCollateralBorrowedDebtUsd).toBe(250)
 	})
 
-	it('returns null when the token cannot be resolved from metadata or route symbols', async () => {
-		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
-		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
+	it('returns null when the token cannot be resolved from metadata or exposure symbols', async () => {
+		const mockedGetTokenRiskLendingExposures = vi.mocked(getTokenRiskLendingExposures)
+		mockedGetTokenRiskLendingExposures.mockResolvedValue(createLendingExposuresResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'missing',
@@ -215,6 +139,6 @@ describe('getTokenRiskData', () => {
 		})
 
 		expect(payload).toBeNull()
-		expect(mockedGetTokenRiskBorrowRoutes.mock.calls).toHaveLength(1)
+		expect(mockedGetTokenRiskLendingExposures.mock.calls).toHaveLength(1)
 	})
 })

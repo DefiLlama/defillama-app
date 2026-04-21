@@ -67,3 +67,32 @@ export interface TokenRiskLendingRisksResponse {
 	hourlyTimestamp: number
 	results: Record<string, TokenRiskLendingRoutesBucket>
 }
+
+export interface TokenRiskExposureAsset {
+	symbol: string
+	address: string
+	priceUsd: number
+}
+
+export interface TokenRiskExposure {
+	asset: TokenRiskExposureAsset
+	chain: string
+	protocol: string
+	collateralMaxBorrowUsd: number
+	collateralBorrowedDebtUsd: number | null
+}
+
+export interface TokenRiskExposureMethodologies {
+	asset: string
+	chain: string
+	protocol: string
+	collateralMaxBorrowUsd: string
+	collateralBorrowedDebtUsd: string
+}
+
+export interface TokenRiskLendingExposuresResponse {
+	methodologies: TokenRiskExposureMethodologies
+	timestamp: number
+	hourlyTimestamp: number
+	exposures: TokenRiskExposure[]
+}
