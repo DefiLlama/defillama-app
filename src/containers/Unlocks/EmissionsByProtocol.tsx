@@ -616,7 +616,7 @@ const ChartContainer = ({
 
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
-	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
+	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false) && !(hideTokenStats ?? false)
 	const resolvedGeckoId = data.geckoId ?? geckoId
 	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceAndMcapRequested
 	const priceChart = usePriceChart(shouldFetchPriceChart ? resolvedGeckoId : undefined)

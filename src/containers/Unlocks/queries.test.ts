@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const fetchProtocolEmissionMock = vi.fn()
-const fetchAllProtocolEmissionsMock = vi.fn(() => Promise.resolve([]))
-const fetchCoinPricesMock = vi.fn(() => Promise.resolve({}))
+const fetchProtocolEmissionMock = vi.fn<(...args: unknown[]) => Promise<any>>()
+const fetchAllProtocolEmissionsMock = vi.fn<(...args: unknown[]) => Promise<any[]>>(() => Promise.resolve([]))
+const fetchCoinPricesMock = vi.fn<(...args: unknown[]) => Promise<Record<string, unknown>>>(() => Promise.resolve({}))
 
 vi.mock('~/api', () => ({
 	fetchCoinPrices: (...args: unknown[]) => fetchCoinPricesMock(...args)

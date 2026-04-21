@@ -18,23 +18,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(400).json({ error: 'Missing protocol parameter' })
 	}
 
-	const auth = await validateSubscription(req.headers.authorization)
-	if (auth.valid === false) {
-		res.setHeader('Cache-Control', 'private, no-store')
-		return res.status(auth.status).json({ error: auth.error })
-	}
-
 	try {
+		const auth = await validateSubscription(req.headers.authorization)
+		if (auth.valid === false) {
+			res.setHeader('Cache-Control', 'private, no-store')
+			return res.status(auth.status).json({ error: auth.error })
+		}
+
 		const data = await getProtocolEmissons(slug(protocol), { skipAvailabilityCheck: true })
 		if (isEmptyProtocolEmissionResult(data)) {
 			res.setHeader('Cache-Control', 'private, no-store')
-			return res.status(502).json({ error: 'Failed to fetch token unlocks' })
+			return res.status(404).json({ error: 'Protocol emissions not found' })
 		}
 		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(200).json(data)
 	} catch (error) {
 		console.error(`Failed to fetch token unlocks for ${protocol}:`, error)
 		res.setHeader('Cache-Control', 'private, no-store')
-		return res.status(500).json({ error: 'Failed to fetch token unlocks' })
+		return res.status(500).json({ error: 'Internal server error' })
 	}
 }
