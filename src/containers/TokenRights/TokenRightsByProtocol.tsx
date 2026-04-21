@@ -37,6 +37,8 @@ const TOOLTIPS = {
 		'Which entity owns the primary domain name(s) and frontend interface of the protocol. Domain ownership affects user access and frontend fee capture.'
 } as const
 
+const EMBEDDED_TOKEN_RIGHTS_SECTION_ID = 'token-rights-and-value-accrual'
+
 interface TokenRightsByProtocolProps {
 	name: string
 	symbol: string | null
@@ -55,6 +57,7 @@ export function TokenRightsByProtocol({
 	headerVariant = 'protocol'
 }: TokenRightsByProtocolProps) {
 	const { overview, governance, decisions, economic, valueAccrual, alignment, resources } = tokenRightsData
+	const isEmbedded = headerVariant === 'embedded'
 
 	const hasOwnershipContent =
 		(raises && raises.length > 0) ||
@@ -65,15 +68,30 @@ export function TokenRightsByProtocol({
 		alignment.domain !== null ||
 		alignment.links.length > 0
 
-	const hasPrimaryValueAccrual = valueAccrual.primary !== null || valueAccrual.details !== null
+	const hasPrimaryValueAccrual =
+		valueAccrual.primary !== 'N/A' && (valueAccrual.primary !== null || valueAccrual.details !== null)
 	const hasEquityStatement = alignment.equityStatement !== null
 
 	return (
-		<div className="grid grid-cols-1 gap-2">
+		<div
+			className={isEmbedded ? 'rounded-md border border-(--cards-border) bg-(--cards-bg)' : 'grid grid-cols-1 gap-2'}
+		>
 			{showHeader ? (
 				headerVariant === 'embedded' ? (
-					<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h1 className="text-xl font-bold">Token Rights and Value Accrual</h1>
+					<div className="flex items-center gap-2 border-b border-(--cards-border) p-3">
+						<h1
+							className="group relative flex scroll-mt-4 items-center gap-1 text-xl font-bold"
+							id={EMBEDDED_TOKEN_RIGHTS_SECTION_ID}
+						>
+							Token Rights and Value Accrual
+							<a
+								aria-hidden="true"
+								tabIndex={-1}
+								href={`#${EMBEDDED_TOKEN_RIGHTS_SECTION_ID}`}
+								className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+							/>
+							<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
+						</h1>
 						{overview.lastUpdated ? (
 							<span className="ml-auto text-xs text-(--text-secondary)">
 								Updated{' '}
@@ -103,206 +121,208 @@ export function TokenRightsByProtocol({
 				)
 			) : null}
 
-			<div className="grid gap-3 xl:grid-cols-2">
-				{/* ── Left column ── */}
-				<div className="flex flex-col gap-3">
-					{/* Overview */}
-					<SectionCard title="Overview">
-						<dl className="divide-y divide-(--cards-border) empty:hidden">
-							{overview.tokens.length > 0 ? (
-								<KeyValueRow label="Token(s)">
-									<PillList items={overview.tokens} category="tokens" highlight />
-								</KeyValueRow>
-							) : null}
-							{overview.tokenTypes.length > 0 ? (
-								<KeyValueRow label="Token Type">
-									<PillList items={overview.tokenTypes} category="tokenTypes" />
-								</KeyValueRow>
-							) : null}
-							{overview.utility !== null ? (
-								<KeyValueRow label="Utility">
-									<PillList items={[overview.utility]} category="utility" />
-								</KeyValueRow>
-							) : null}
-						</dl>
-						<p className="text-sm text-(--text-secondary)">{overview.description}</p>
-					</SectionCard>
-
-					{/* Governance & Decisions */}
-					<SectionCard title="Governance Rights" badge="Control">
-						<p className="text-sm text-(--text-secondary)">{governance.summary}</p>
-						<DecisionRow
-							label="Governance Decisions"
-							tooltip={TOOLTIPS['Governance Decisions']}
-							tokens={governance.decisionTokens}
-							details={governance.details}
-						/>
-						<DecisionRow
-							label="Treasury Decisions"
-							tooltip={TOOLTIPS['Treasury Decisions']}
-							tokens={decisions.treasury.tokens}
-							details={decisions.treasury.details}
-						/>
-						<DecisionRow
-							label="Revenue Decisions"
-							tooltip={TOOLTIPS['Revenue Decisions']}
-							tokens={decisions.revenue.tokens}
-							details={decisions.revenue.details}
-						/>
-						<FeeSwitchRow
-							tooltip={TOOLTIPS['Fee Switch']}
-							status={economic.feeSwitchStatus}
-							details={economic.feeSwitchDetails}
-						/>
-						<InlineLinks links={governance.links} />
-					</SectionCard>
-
-					{/* Resources */}
-					{resources.addresses.length > 0 || resources.reports.length > 0 ? (
-						<SectionCard title="Resources">
-							{resources.addresses.length > 0 ? (
-								<div className="flex flex-col gap-2 text-sm">
-									{resources.addresses.every((a) => !a.label) ? (
-										<h3 className="text-(--text-label)">Foundation Multisigs / Addresses</h3>
-									) : null}
-									{resources.addresses.map((a, i) => {
-										const isLink = a.value.startsWith('http://') || a.value.startsWith('https://')
-										return (
-											<div key={`${a.value}-${i}`} className="flex min-w-0 flex-col gap-0.5">
-												{a.label ? <span className="text-(--text-label)">{a.label}</span> : null}
-												{isLink ? (
-													<a
-														href={a.value}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="truncate text-(--link) underline"
-													>
-														{a.value}
-													</a>
-												) : (
-													<div className="flex items-center justify-between gap-4">
-														<span className="truncate font-mono text-(--text-secondary)">{a.value}</span>
-														<CopyHelper toCopy={a.value} />
-													</div>
-												)}
-											</div>
-										)
-									})}
-								</div>
-							) : null}
-							{resources.reports.length > 0 ? (
-								<>
-									<hr className="my-2 border-(--cards-border)" />
-									<div className="flex flex-col gap-2 text-sm">
-										{/* <h3 className="font-medium text-(--text-label)">Latest Treasury / Token Report</h3> */}
-										{resources.reports.map((r) => (
-											<div key={r.url} className="flex items-center justify-between gap-4">
-												<span>{r.label}</span>
-												<a
-													href={r.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="inline-flex shrink-0 items-center gap-1 text-blue-500 hover:underline"
-												>
-													{tryHostname(r.url)}
-													<Icon name="external-link" className="h-3.5 w-3.5" />
-												</a>
-											</div>
-										))}
-									</div>
-								</>
-							) : null}
-						</SectionCard>
-					) : null}
-				</div>
-
-				{/* ── Right column ── */}
-				<div className="flex flex-col gap-3">
-					{hasPrimaryValueAccrual ? (
-						<GreenCard
-							title="Primary Value Accrual"
-							tooltip="The main mechanism by which value accrues to token holders"
-						>
-							{valueAccrual.primary !== null && valueAccrual.primary !== 'N/A' ? (
-								<span className="text-xs font-semibold tracking-wider uppercase">{valueAccrual.primary}</span>
-							) : null}
-							{valueAccrual.details !== null ? (
-								<p className="text-sm text-(--text-secondary)">{valueAccrual.details}</p>
-							) : null}
-						</GreenCard>
-					) : null}
-
-					{hasEquityStatement ? (
-						<GreenCard
-							title="Equity Statement"
-							tooltip="Protocol statement on the relationship between equity and token holders, and how value ultimately flows or may flow in the future"
-						>
-							<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
-						</GreenCard>
-					) : null}
-
-					{/* Economic Rights & Value Accrual */}
-					<SectionCard title="Economic Rights" badge="Value Capture">
-						{economic.summary !== null ? <p className="text-sm text-(--text-secondary)">{economic.summary}</p> : null}
-						<TokenActionRow
-							label="Buybacks"
-							tooltip={TOOLTIPS['Buybacks']}
-							tokens={valueAccrual.buybacks.tokens}
-							details={valueAccrual.buybacks.details}
-						/>
-						<TokenActionRow
-							label="Dividends"
-							tooltip={TOOLTIPS['Dividends']}
-							tokens={valueAccrual.dividends.tokens}
-							details={valueAccrual.dividends.details}
-						/>
-						<BurnsRow
-							tooltip={TOOLTIPS['Burns']}
-							status={valueAccrual.burns.status}
-							details={valueAccrual.burns.details}
-						/>
-						<InlineLinks links={economic.links} />
-					</SectionCard>
-
-					{/* Ownership */}
-					{hasOwnershipContent ? (
-						<SectionCard title="Ownership">
-							{raises && raises.length > 0 ? (
-								<RaiseHistorySection tooltip={TOOLTIPS['Raise History']} raises={raises} />
-							) : null}
+			<div className={isEmbedded ? 'p-3' : undefined}>
+				<div className="grid gap-3 xl:grid-cols-2">
+					{/* ── Left column ── */}
+					<div className="flex flex-col gap-3">
+						{/* Overview */}
+						<SectionCard title="Overview">
 							<dl className="divide-y divide-(--cards-border) empty:hidden">
-								{alignment.fundraising.length > 0 ? (
-									<KeyValueRow label="Fundraising" tooltip={TOOLTIPS['Fundraising']}>
-										<PillList items={alignment.fundraising} category="fundraising" />
+								{overview.tokens.length > 0 ? (
+									<KeyValueRow label="Token(s)">
+										<PillList items={overview.tokens} category="tokens" highlight />
 									</KeyValueRow>
 								) : null}
-								{alignment.equityRevenueCapture !== null ? (
-									<KeyValueRow label="Equity Revenue Capture" tooltip={TOOLTIPS['Equity Revenue Capture']}>
-										<StatusBadge
-											label={alignment.equityRevenueCapture}
-											tone={equityCaptureTone(alignment.equityRevenueCapture)}
-										/>
+								{overview.tokenTypes.length > 0 ? (
+									<KeyValueRow label="Token Type">
+										<PillList items={overview.tokenTypes} category="tokenTypes" />
 									</KeyValueRow>
 								) : null}
-								{alignment.associatedEntities.length > 0 ? (
-									<KeyValueRow label="Associated Entities" tooltip={TOOLTIPS['Associated Entities']}>
-										<PillList items={alignment.associatedEntities} category="associatedEntities" />
-									</KeyValueRow>
-								) : null}
-								{alignment.ipAndBrand !== null ? (
-									<KeyValueRow label="IP & Brand" tooltip={TOOLTIPS['IP & Brand']}>
-										<PillList items={[alignment.ipAndBrand]} category="ipAndBrand" />
-									</KeyValueRow>
-								) : null}
-								{alignment.domain !== null ? (
-									<KeyValueRow label="Domain" tooltip={TOOLTIPS['Domain']}>
-										<PillList items={[alignment.domain]} category="domain" />
+								{overview.utility !== null ? (
+									<KeyValueRow label="Utility">
+										<PillList items={[overview.utility]} category="utility" />
 									</KeyValueRow>
 								) : null}
 							</dl>
-							<InlineLinks links={alignment.links} />
+							<p className="text-sm text-(--text-secondary)">{overview.description}</p>
 						</SectionCard>
-					) : null}
+
+						{/* Governance & Decisions */}
+						<SectionCard title="Governance Rights" badge="Control">
+							<p className="text-sm text-(--text-secondary)">{governance.summary}</p>
+							<DecisionRow
+								label="Governance Decisions"
+								tooltip={TOOLTIPS['Governance Decisions']}
+								tokens={governance.decisionTokens}
+								details={governance.details}
+							/>
+							<DecisionRow
+								label="Treasury Decisions"
+								tooltip={TOOLTIPS['Treasury Decisions']}
+								tokens={decisions.treasury.tokens}
+								details={decisions.treasury.details}
+							/>
+							<DecisionRow
+								label="Revenue Decisions"
+								tooltip={TOOLTIPS['Revenue Decisions']}
+								tokens={decisions.revenue.tokens}
+								details={decisions.revenue.details}
+							/>
+							<FeeSwitchRow
+								tooltip={TOOLTIPS['Fee Switch']}
+								status={economic.feeSwitchStatus}
+								details={economic.feeSwitchDetails}
+							/>
+							<InlineLinks links={governance.links} />
+						</SectionCard>
+
+						{/* Resources */}
+						{resources.addresses.length > 0 || resources.reports.length > 0 ? (
+							<SectionCard title="Resources">
+								{resources.addresses.length > 0 ? (
+									<div className="flex flex-col gap-2 text-sm">
+										{resources.addresses.every((a) => !a.label) ? (
+											<h3 className="text-(--text-label)">Foundation Multisigs / Addresses</h3>
+										) : null}
+										{resources.addresses.map((a, i) => {
+											const isLink = a.value.startsWith('http://') || a.value.startsWith('https://')
+											return (
+												<div key={`${a.value}-${i}`} className="flex min-w-0 flex-col gap-0.5">
+													{a.label ? <span className="text-(--text-label)">{a.label}</span> : null}
+													{isLink ? (
+														<a
+															href={a.value}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="truncate text-(--link) underline"
+														>
+															{a.value}
+														</a>
+													) : (
+														<div className="flex items-center justify-between gap-4">
+															<span className="truncate font-mono text-(--text-secondary)">{a.value}</span>
+															<CopyHelper toCopy={a.value} />
+														</div>
+													)}
+												</div>
+											)
+										})}
+									</div>
+								) : null}
+								{resources.reports.length > 0 ? (
+									<>
+										<hr className="my-2 border-(--cards-border)" />
+										<div className="flex flex-col gap-2 text-sm">
+											{/* <h3 className="font-medium text-(--text-label)">Latest Treasury / Token Report</h3> */}
+											{resources.reports.map((r) => (
+												<div key={r.url} className="flex items-center justify-between gap-4">
+													<span>{r.label}</span>
+													<a
+														href={r.url}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="inline-flex shrink-0 items-center gap-1 text-blue-500 hover:underline"
+													>
+														{tryHostname(r.url)}
+														<Icon name="external-link" className="h-3.5 w-3.5" />
+													</a>
+												</div>
+											))}
+										</div>
+									</>
+								) : null}
+							</SectionCard>
+						) : null}
+					</div>
+
+					{/* ── Right column ── */}
+					<div className="flex flex-col gap-3">
+						{hasPrimaryValueAccrual ? (
+							<GreenCard
+								title="Primary Value Accrual"
+								tooltip="The main mechanism by which value accrues to token holders"
+							>
+								{valueAccrual.primary !== null && valueAccrual.primary !== 'N/A' ? (
+									<span className="text-xs font-semibold tracking-wider uppercase">{valueAccrual.primary}</span>
+								) : null}
+								{valueAccrual.details !== null ? (
+									<p className="text-sm text-(--text-secondary)">{valueAccrual.details}</p>
+								) : null}
+							</GreenCard>
+						) : null}
+
+						{hasEquityStatement ? (
+							<GreenCard
+								title="Equity Statement"
+								tooltip="Protocol statement on the relationship between equity and token holders, and how value ultimately flows or may flow in the future"
+							>
+								<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
+							</GreenCard>
+						) : null}
+
+						{/* Economic Rights & Value Accrual */}
+						<SectionCard title="Economic Rights" badge="Value Capture">
+							{economic.summary !== null ? <p className="text-sm text-(--text-secondary)">{economic.summary}</p> : null}
+							<TokenActionRow
+								label="Buybacks"
+								tooltip={TOOLTIPS['Buybacks']}
+								tokens={valueAccrual.buybacks.tokens}
+								details={valueAccrual.buybacks.details}
+							/>
+							<TokenActionRow
+								label="Dividends"
+								tooltip={TOOLTIPS['Dividends']}
+								tokens={valueAccrual.dividends.tokens}
+								details={valueAccrual.dividends.details}
+							/>
+							<BurnsRow
+								tooltip={TOOLTIPS['Burns']}
+								status={valueAccrual.burns.status}
+								details={valueAccrual.burns.details}
+							/>
+							<InlineLinks links={economic.links} />
+						</SectionCard>
+
+						{/* Ownership */}
+						{hasOwnershipContent ? (
+							<SectionCard title="Ownership">
+								{raises && raises.length > 0 ? (
+									<RaiseHistorySection tooltip={TOOLTIPS['Raise History']} raises={raises} />
+								) : null}
+								<dl className="divide-y divide-(--cards-border) empty:hidden">
+									{alignment.fundraising.length > 0 ? (
+										<KeyValueRow label="Fundraising" tooltip={TOOLTIPS['Fundraising']}>
+											<PillList items={alignment.fundraising} category="fundraising" />
+										</KeyValueRow>
+									) : null}
+									{alignment.equityRevenueCapture !== null ? (
+										<KeyValueRow label="Equity Revenue Capture" tooltip={TOOLTIPS['Equity Revenue Capture']}>
+											<StatusBadge
+												label={alignment.equityRevenueCapture}
+												tone={equityCaptureTone(alignment.equityRevenueCapture)}
+											/>
+										</KeyValueRow>
+									) : null}
+									{alignment.associatedEntities.length > 0 ? (
+										<KeyValueRow label="Associated Entities" tooltip={TOOLTIPS['Associated Entities']}>
+											<PillList items={alignment.associatedEntities} category="associatedEntities" />
+										</KeyValueRow>
+									) : null}
+									{alignment.ipAndBrand !== null ? (
+										<KeyValueRow label="IP & Brand" tooltip={TOOLTIPS['IP & Brand']}>
+											<PillList items={[alignment.ipAndBrand]} category="ipAndBrand" />
+										</KeyValueRow>
+									) : null}
+									{alignment.domain !== null ? (
+										<KeyValueRow label="Domain" tooltip={TOOLTIPS['Domain']}>
+											<PillList items={[alignment.domain]} category="domain" />
+										</KeyValueRow>
+									) : null}
+								</dl>
+								<InlineLinks links={alignment.links} />
+							</SectionCard>
+						) : null}
+					</div>
 				</div>
 			</div>
 		</div>

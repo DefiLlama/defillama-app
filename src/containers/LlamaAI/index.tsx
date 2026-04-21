@@ -46,7 +46,12 @@ import {
 	resumeAgenticStream,
 	stopAgenticExecution
 } from '~/containers/LlamaAI/fetchAgenticResponse'
-import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
+import type {
+	AgenticSSECallbacks,
+	CsvExport,
+	MdExport,
+	SpawnProgressData
+} from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
@@ -125,6 +130,7 @@ interface PersistedMessage {
 	chartData?: Record<string, unknown[]>
 	citations?: string[]
 	csvExports?: CsvExport[]
+	mdExports?: MdExport[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	metadata?: PersistedMessageMetadata
 	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
@@ -150,6 +156,7 @@ interface SharedSessionMessage {
 	chartData?: unknown[] | Record<string, unknown[]>
 	citations?: string[]
 	csvExports?: CsvExport[]
+	mdExports?: MdExport[]
 	savedAlertIds?: string[]
 }
 
@@ -275,7 +282,7 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
-		mdExports: message.metadata?.mdExports,
+		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		dashboards: dashboardConfig
 			? [
 					(() => {
@@ -388,7 +395,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 					]
 				: undefined,
 		csvExports: message.csvExports,
-		mdExports: message.metadata?.mdExports,
+		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		citations: message.citations,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,

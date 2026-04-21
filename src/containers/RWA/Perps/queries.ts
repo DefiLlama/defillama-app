@@ -21,7 +21,7 @@ import type {
 	IRWAPerpsMarketChartPoint,
 	IRWAPerpsStatsResponse
 } from './api.types'
-import { getRWAPerpsBreakdownChartSnapshotTotals, toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
+import { toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
 import { getRWAPerpsOverviewSnapshotBreakdownLabel, getRWAPerpsVenueSnapshotBreakdownLabel } from './breakdownLabels'
 import { getDefaultRWAPerpsChartBreakdown, getDefaultRWAPerpsChartView } from './chartState'
 import type {
@@ -218,8 +218,74 @@ function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
 	return markets.reduce((sum, market) => sum + safeNumber(market.estimatedProtocolFees24h), 0)
 }
 
+function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' | 'volume24h') {
+	return markets.reduce((sum, market) => sum + safeNumber(market[key]), 0)
+}
+
 function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
 	return [...markets].sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
+}
+
+function derivePreviousValueFromPercentChange(
+	currentValue: number,
+	percentChange: number | null | undefined
+): number | null {
+	if (!Number.isFinite(currentValue) || currentValue < 0 || percentChange == null || !Number.isFinite(percentChange)) {
+		return null
+	}
+
+	const denominator = 1 + percentChange / 100
+	if (!Number.isFinite(denominator) || denominator <= 0) return null
+
+	return currentValue / denominator
+}
+
+function getAggregateMarketChange24h(
+	markets: IRWAPerpsMarket[],
+	config: {
+		valueKey: 'openInterest' | 'volume24h'
+		changeKey: 'openInterestChange24h' | 'volume24hChange24h'
+		minCoverage?: number
+	}
+): number | null {
+	const minCoverage = config.minCoverage ?? 0.95
+	let totalCurrent = 0
+	let comparableCurrent = 0
+	let comparablePrevious = 0
+	let hasComparableMarket = false
+
+	for (const market of markets) {
+		const currentValue = safeNumber(market[config.valueKey])
+		totalCurrent += currentValue
+
+		if (currentValue <= 0 && market[config.changeKey] == null) continue
+
+		const previousValue = derivePreviousValueFromPercentChange(currentValue, market[config.changeKey])
+		if (previousValue == null) continue
+
+		comparableCurrent += currentValue
+		comparablePrevious += previousValue
+		hasComparableMarket = true
+	}
+
+	if (!hasComparableMarket || comparablePrevious <= 0) return null
+	if (totalCurrent > 0 && comparableCurrent / totalCurrent < minCoverage) return null
+
+	return getPercentChange(comparableCurrent, comparablePrevious)
+}
+
+function getAggregateOpenInterestChange24h(markets: IRWAPerpsMarket[]): number | null {
+	return getAggregateMarketChange24h(markets, {
+		valueKey: 'openInterest',
+		changeKey: 'openInterestChange24h'
+	})
+}
+
+function getAggregateVolume24hChange24h(markets: IRWAPerpsMarket[]): number | null {
+	return getAggregateMarketChange24h(markets, {
+		valueKey: 'volume24h',
+		changeKey: 'volume24hChange24h'
+	})
 }
 
 export async function getRWAPerpsContractData({
@@ -407,32 +473,20 @@ export async function getRWAPerpsOverview({
 		throw new Error('Failed to get RWA perps overview')
 	}
 
-	const [openInterestChartRows, volume24hChartRows, initialChartDataset] = await Promise.all([
-		getRequiredOverviewBreakdownRows({
-			breakdown: 'baseAsset',
-			key: 'openInterest'
-		}),
-		getRequiredOverviewBreakdownRows({
-			breakdown: 'baseAsset',
-			key: 'volume24h'
-		}),
-		shouldPreloadInitialChartDataset(activeView)
-			? getInitialTimeSeriesDataset({ mode: 'overview' })
-			: EMPTY_CHART_DATASET
-	])
-	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
-	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
-	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(stats.totalOpenInterest)
-	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(stats.totalVolume24h)
+	const initialChartDataset = shouldPreloadInitialChartDataset(activeView)
+		? await getInitialTimeSeriesDataset({ mode: 'overview' })
+		: EMPTY_CHART_DATASET
+	const totalOpenInterest = sumMarketMetric(current, 'openInterest')
+	const totalVolume24h = sumMarketMetric(current, 'volume24h')
 
 	return {
 		markets: sortMarketsByOpenInterest(current),
 		initialChartDataset,
 		totals: {
 			openInterest: totalOpenInterest,
-			openInterestChange24h: getPercentChange(totalOpenInterest, openInterestSnapshotTotals.previousTotal),
+			openInterestChange24h: getAggregateOpenInterestChange24h(current),
 			volume24h: totalVolume24h,
-			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
+			volume24hChange24h: getAggregateVolume24hChange24h(current),
 			markets: safeNumber(stats.totalMarkets),
 			protocolFees24h: sumProtocolFees24h(current),
 			cumulativeFunding: safeNumber(stats.totalCumulativeFunding)
@@ -459,27 +513,13 @@ export async function getRWAPerpsVenuePage({
 	const markets = venueResponse
 	if (markets.length === 0) return null
 
-	const [openInterestChartRows, volume24hChartRows, initialChartDataset] = await Promise.all([
-		getRequiredOverviewBreakdownRows({
-			venue: resolvedVenue,
-			breakdown: 'baseAsset',
-			key: 'openInterest'
-		}),
-		getRequiredOverviewBreakdownRows({
-			venue: resolvedVenue,
-			breakdown: 'baseAsset',
-			key: 'volume24h'
-		}),
-		shouldPreloadInitialChartDataset(activeView)
-			? getInitialTimeSeriesDataset({ mode: 'venue', venue: resolvedVenue })
-			: EMPTY_CHART_DATASET
-	])
+	const initialChartDataset = shouldPreloadInitialChartDataset(activeView)
+		? await getInitialTimeSeriesDataset({ mode: 'venue', venue: resolvedVenue })
+		: EMPTY_CHART_DATASET
 
 	const statsBucket = stats.byVenue?.[resolvedVenue]
-	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
-	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
-	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
-	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
+	const totalOpenInterest = sumMarketMetric(markets, 'openInterest')
+	const totalVolume24h = sumMarketMetric(markets, 'volume24h')
 
 	return {
 		venue: resolvedVenue,
@@ -491,9 +531,9 @@ export async function getRWAPerpsVenuePage({
 		],
 		totals: {
 			openInterest: totalOpenInterest,
-			openInterestChange24h: getPercentChange(totalOpenInterest, openInterestSnapshotTotals.previousTotal),
+			openInterestChange24h: getAggregateOpenInterestChange24h(markets),
 			volume24h: totalVolume24h,
-			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
+			volume24hChange24h: getAggregateVolume24hChange24h(markets),
 			markets: safeNumber(statsBucket?.markets ?? markets.length),
 			protocolFees24h: sumProtocolFees24h(markets)
 		}
@@ -543,27 +583,13 @@ export async function getRWAPerpsAssetGroupPage({
 	const markets = await fetchRWAPerpsMarketsByAssetGroup(resolvedAssetGroup).catch(() => null)
 	if (!markets?.length) return null
 
-	const [openInterestChartRows, volume24hChartRows, initialChartDataset] = await Promise.all([
-		getRequiredOverviewBreakdownRows({
-			assetGroup: resolvedAssetGroup,
-			breakdown: 'baseAsset',
-			key: 'openInterest'
-		}),
-		getRequiredOverviewBreakdownRows({
-			assetGroup: resolvedAssetGroup,
-			breakdown: 'baseAsset',
-			key: 'volume24h'
-		}),
-		shouldPreloadInitialChartDataset(activeView)
-			? getInitialTimeSeriesDataset({ mode: 'assetGroup', assetGroup: resolvedAssetGroup })
-			: EMPTY_CHART_DATASET
-	])
+	const initialChartDataset = shouldPreloadInitialChartDataset(activeView)
+		? await getInitialTimeSeriesDataset({ mode: 'assetGroup', assetGroup: resolvedAssetGroup })
+		: EMPTY_CHART_DATASET
 
 	const statsBucket = stats.byAssetGroup?.[resolvedAssetGroup]
-	const openInterestSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(openInterestChartRows)
-	const volume24hSnapshotTotals = getRWAPerpsBreakdownChartSnapshotTotals(volume24hChartRows)
-	const totalOpenInterest = openInterestSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.openInterest)
-	const totalVolume24h = volume24hSnapshotTotals.latestTotal ?? safeNumber(statsBucket?.volume24h)
+	const totalOpenInterest = sumMarketMetric(markets, 'openInterest')
+	const totalVolume24h = sumMarketMetric(markets, 'volume24h')
 
 	return {
 		assetGroup: resolvedAssetGroup,
@@ -575,9 +601,9 @@ export async function getRWAPerpsAssetGroupPage({
 		],
 		totals: {
 			openInterest: totalOpenInterest,
-			openInterestChange24h: getPercentChange(totalOpenInterest, openInterestSnapshotTotals.previousTotal),
+			openInterestChange24h: getAggregateOpenInterestChange24h(markets),
 			volume24h: totalVolume24h,
-			volume24hChange24h: getPercentChange(totalVolume24h, volume24hSnapshotTotals.previousTotal),
+			volume24hChange24h: getAggregateVolume24hChange24h(markets),
 			markets: safeNumber(statsBucket?.markets ?? markets.length),
 			protocolFees24h: sumProtocolFees24h(markets)
 		}

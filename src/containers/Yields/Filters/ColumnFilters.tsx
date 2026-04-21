@@ -6,6 +6,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { POOL_OPTIONAL_COLUMN_OPTIONS } from './poolColumns'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -25,32 +26,14 @@ const PRO_BADGE = (
 	</span>
 )
 
-const baseFilters = [
-	{ name: '7d Base APY', key: 'show7dBaseApy' },
-	{ name: '7d IL', key: 'show7dIL' },
-	{ name: '1d Volume', key: 'show1dVolume' },
-	{ name: '7d Volume', key: 'show7dVolume' },
-	{ name: 'Inception APY', key: 'showInceptionApy' },
-	{ name: 'Borrow Base APY', key: 'showBorrowBaseApy' },
-	{ name: 'Borrow Reward APY', key: 'showBorrowRewardApy' },
-	{ name: 'Net Borrow APY', key: 'showNetBorrowApy' },
-	{ name: 'Max LTV', key: 'showLTV' },
-	{ name: 'Supplied', key: 'showTotalSupplied' },
-	{ name: 'Borrowed', key: 'showTotalBorrowed' },
-	{ name: 'Available', key: 'showAvailable' },
-	{ name: '30d Median APY', key: 'showMedianApy', isPremium: true },
-	{ name: '30d Std Dev', key: 'showStdDev', isPremium: true },
-	{ name: 'Holder Count', key: 'showHolderCount' },
-	{ name: 'Holders Avg Position', key: 'showAvgPosition' }
-]
-
 const getOptionalFilters = (hasActiveSubscription: boolean) =>
-	baseFilters.map((filter) => ({
+	POOL_OPTIONAL_COLUMN_OPTIONS.map((filter) => ({
 		...filter,
-		icon: filter.isPremium && !hasActiveSubscription ? PRO_BADGE : undefined
+		key: filter.queryKey,
+		icon: 'isPremium' in filter && filter.isPremium && !hasActiveSubscription ? PRO_BADGE : undefined
 	}))
 
-const ALL_COLUMN_KEYS = baseFilters.map((op) => op.key)
+const ALL_COLUMN_KEYS = POOL_OPTIONAL_COLUMN_OPTIONS.map((option) => option.queryKey)
 
 export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProps) {
 	const router = useRouter()

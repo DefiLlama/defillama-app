@@ -34,6 +34,7 @@ export interface IChainMetadata {
 }
 
 export interface IProtocolMetadata {
+	name?: string
 	tvl?: boolean
 	yields?: boolean
 	forks?: boolean

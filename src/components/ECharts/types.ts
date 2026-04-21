@@ -130,6 +130,8 @@ export type MultiSeriesChart2SeriesConfig = {
 	valueSymbol?: string
 	/** Disable area fill for this series (line only). */
 	hideAreaStyle?: boolean
+	/** Exclude this series from the computed tooltip total while still rendering the row itself. */
+	excludeFromTooltipTotal?: boolean
 	/** Mark this series as tentative/TBD — renders with reduced opacity and dashed border. */
 	isTBD?: boolean
 	// Optional: enable point markers on line series.

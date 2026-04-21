@@ -39,6 +39,9 @@ async function pullData() {
 				rwaList,
 				rwaPerpsList,
 				tokenlist,
+				tokenDirectory,
+				protocolDisplayNames,
+				chainDisplayNames,
 				cgExchangeIdentifiers,
 				bridgeProtocolSlugs,
 				bridgeChainSlugs,
@@ -87,6 +90,9 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'rwaPerps.json'), JSON.stringify(rwaPerpsList))
 
 		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
+		fs.writeFileSync(path.join(CACHE_DIR, 'tokens.json'), JSON.stringify(tokenDirectory))
+		fs.writeFileSync(path.join(CACHE_DIR, 'protocolDisplayNames.json'), JSON.stringify(protocolDisplayNames))
+		fs.writeFileSync(path.join(CACHE_DIR, 'chainDisplayNames.json'), JSON.stringify(chainDisplayNames))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
 		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeProtocolSlugs.json'), JSON.stringify(bridgeProtocolSlugs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugs.json'), JSON.stringify(bridgeChainSlugs))
@@ -211,6 +217,9 @@ async function pullData() {
 				'rwa.json': { tickers: [], platforms: [], chains: [], assetGroups: [], categories: [], idMap: {} },
 				'rwaPerps.json': { contracts: [], venues: [], categories: [], total: 0 },
 				'tokenlist.json': {},
+				'tokens.json': {},
+				'protocolDisplayNames.json': {},
+				'chainDisplayNames.json': {},
 				'cgExchangeIdentifiers.json': [],
 				'bridgeProtocolSlugs.json': [],
 				'bridgeChainSlugs.json': [],

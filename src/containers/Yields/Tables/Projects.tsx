@@ -52,7 +52,8 @@ const columns = [
 			align: 'end'
 		}
 	}),
-	columnHelper.accessor('tvl', {
+	columnHelper.accessor((row) => row.tvl ?? undefined, {
+		id: 'tvl',
 		header: 'Combined TVL',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
@@ -66,7 +67,8 @@ const columns = [
 			align: 'end'
 		}
 	}),
-	columnHelper.accessor('medianApy', {
+	columnHelper.accessor((row) => row.medianApy ?? undefined, {
+		id: 'medianApy',
 		header: 'Median APY',
 		cell: (info) => <PercentChange percent={info.getValue()} noSign />,
 		meta: {

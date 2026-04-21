@@ -8,7 +8,7 @@ import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
-import { findTokenDirectoryRecordByDefiLlamaId, readTokenDirectory } from '~/utils/tokenDirectory'
+import { findTokenDirectoryRecordByDefiLlamaId, type TokenDirectory } from '~/utils/tokenDirectory'
 
 interface TokenRightsListItem {
 	name: string
@@ -17,13 +17,15 @@ interface TokenRightsListItem {
 }
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
-	const [entries, metadataCache, tokenDirectory] = await Promise.all([
+	const [entries, metadataCache] = await Promise.all([
 		fetchTokenRightsData(),
-		import('~/utils/metadata').then((m) => m.default),
-		readTokenDirectory()
+		import('~/utils/metadata').then((m) => m.default)
 	])
 
-	const { protocolMetadata } = metadataCache as { protocolMetadata: Record<string, IProtocolMetadata> }
+	const { protocolMetadata, tokenDirectory } = metadataCache as {
+		protocolMetadata: Record<string, IProtocolMetadata>
+		tokenDirectory: TokenDirectory
+	}
 
 	const protocols: TokenRightsListItem[] = []
 

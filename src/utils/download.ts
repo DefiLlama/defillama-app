@@ -43,6 +43,72 @@ export function downloadDataURL(filename: string, dataURL: string): void {
 	document.body.removeChild(element)
 }
 
+function stringifyCell(cell: CsvCell): string {
+	if (cell == null) return ''
+	if (typeof cell === 'object') return JSON.stringify(cell)
+	return String(cell)
+}
+
+export function downloadJSON(filename: string, data: CsvCell[][], options: { addTimestamp?: boolean } = {}): void {
+	try {
+		const [header, ...rows] = data
+		if (!header) {
+			download(filename, '[]')
+			return
+		}
+		const headerStrings = header.map(stringifyCell)
+		const objects = rows.map((row) => {
+			const obj: Record<string, string> = {}
+			for (let i = 0; i < headerStrings.length; i++) {
+				obj[headerStrings[i]] = stringifyCell(row[i])
+			}
+			return obj
+		})
+		const content = JSON.stringify(objects, null, 2)
+
+		trackUmamiEvent('export-json-success', { filename })
+
+		let finalFilename = filename
+		if (options.addTimestamp && !filename.includes(new Date().toISOString().split('T')[0])) {
+			const extension = filename.split('.').pop()
+			const nameWithoutExt = filename.replace(`.${extension}`, '')
+			finalFilename = `${nameWithoutExt}_${new Date().toISOString().split('T')[0]}.${extension}`
+		}
+
+		const blob = new Blob([content], { type: 'application/json;charset=utf-8;' })
+		const downloadUrl = window.URL.createObjectURL(blob)
+
+		const link = document.createElement('a')
+		link.href = downloadUrl
+		link.download = finalFilename
+		link.style.display = 'none'
+
+		document.body.appendChild(link)
+		link.click()
+		document.body.removeChild(link)
+
+		window.URL.revokeObjectURL(downloadUrl)
+	} catch (error) {
+		console.log('JSON download error:', error)
+	}
+}
+
+export type DownloadFormat = 'csv' | 'json'
+
+export function downloadTabular(
+	format: DownloadFormat,
+	filename: string,
+	data: CsvCell[][],
+	options: { addTimestamp?: boolean } = {}
+): void {
+	const base = filename.replace(/\.(csv|json)$/i, '')
+	if (format === 'json') {
+		downloadJSON(`${base}.json`, data, options)
+	} else {
+		downloadCSV(`${base}.csv`, data, options)
+	}
+}
+
 export function downloadCSV(filename: string, csvData: CsvData, options: CSVDownloadOptions = {}): void {
 	try {
 		const { mimeType = 'text/csv;charset=utf-8;', addTimestamp = false } = options

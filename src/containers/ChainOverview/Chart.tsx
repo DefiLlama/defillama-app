@@ -1,11 +1,10 @@
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef } from 'react'
-import { formatTooltipValue } from '~/components/ECharts/formatters'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
-import { formattedNum } from '~/utils'
+import { buildChainYAxis } from './chartYAxis'
 import {
 	BAR_CHARTS,
 	type ChainChartLabels,
@@ -13,16 +12,6 @@ import {
 	DISABLED_CUMULATIVE_CHARTS,
 	yAxisByChart
 } from './constants'
-
-const customOffsets = {}
-
-type AxisExtent = {
-	min?: number
-}
-
-function getZeroBaselineYAxisMin(extent: AxisExtent) {
-	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
-}
 
 export default function ChainCoreChart({
 	chartData,
@@ -125,15 +114,27 @@ export default function ChainCoreChart({
 		}
 	}, [chartData, isThemeDark, isCumulative])
 
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
+
 	useEffect(() => {
-		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
-		if (onReady) {
-			onReady(instance)
+		emitReady(instance)
+
+		return () => {
+			chartRef.current = null
+			instance.dispose()
+			emitReady(null)
 		}
+	}, [id])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance) return
 
 		const settings = { ...defaultChartSettings }
 
@@ -146,335 +147,35 @@ export default function ChainCoreChart({
 		}
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom } = settings
-
-		const finalYAxis = []
-
-		const noOffset = allYAxis.length < 3
-
-		for (const [type, index] of allYAxis) {
-			const options = {
-				...yAxis,
-				name: '',
-				type: 'value',
-				min: getZeroBaselineYAxisMin,
-				alignTicks: true,
-				offset:
-					noOffset || index == null || index < 2
-						? 0
-						: (finalYAxis[finalYAxis.length - 1]?.offset ?? 0) + (customOffsets[type] || 40)
-			}
-
-			if (type === 'TVL') {
-				finalYAxis.push({
-					...yAxis,
-					min: getZeroBaselineYAxisMin
-				})
-			}
-
-			if (type === 'Stablecoins Mcap') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Stablecoins Mcap']
-						}
-					}
-				})
-			}
-
-			if (type === 'Chain Fees' || type === 'Chain Revenue') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartData['Chain Fees']
-								? chainOverviewChartColors['Chain Fees']
-								: chartData['Chain Revenue']
-									? chainOverviewChartColors['Chain Revenue']
-									: chartData['App Fees']
-										? chainOverviewChartColors['App Fees']
-										: chainOverviewChartColors['App Revenue']
-						}
-					}
-				})
-			}
-
-			if (type === 'DEXs Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['DEXs Volume']
-						}
-					}
-				})
-			}
-
-			if (type === 'Perps Volume') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Perps Volume']
-						}
-					}
-				})
-			}
-
-			if (type === 'Token Incentives') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Token Incentives']
-						}
-					}
-				})
-			}
-
-			if (type === 'Bridged TVL') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Bridged TVL']
-						}
-					}
-				})
-			}
-
-			if (type === 'Active Addresses') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chartData['Active Addresses']
-								? chainOverviewChartColors['Active Addresses']
-								: chartData['New Addresses']
-									? chainOverviewChartColors['New Addresses']
-									: isThemeDark
-										? '#fff'
-										: '#000'
-						}
-					}
-				})
-			}
-
-			if (type === 'Transactions') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Transactions']
-						}
-					}
-				})
-			}
-
-			if (type === 'Gas Used') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => formattedNum(value)
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Gas Used']
-						}
-					}
-				})
-			}
-
-			if (type === 'Net Inflows') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Net Inflows']
-						}
-					}
-				})
-			}
-
-			if (type === 'Core Developers') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} devs`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Core Developers']
-						}
-					}
-				})
-			}
-
-			if (type === 'Devs Commits') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => `${value} commits`
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Devs Commits']
-						}
-					}
-				})
-			}
-
-			if (type === 'Token Mcap') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => formatTooltipValue(value, '$')
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Token Mcap']
-						}
-					}
-				})
-			}
-
-			if (type === 'Token Price') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => formatTooltipValue(value, '$')
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Token Price']
-						}
-					}
-				})
-			}
-
-			if (type === 'Token Volume') {
-				finalYAxis.push({
-					...options,
-					axisLabel: {
-						formatter: (value) => formatTooltipValue(value, '$')
-					},
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Token Volume']
-						}
-					}
-				})
-			}
-
-			if (type === 'Raises') {
-				finalYAxis.push({
-					...options,
-					axisLine: {
-						show: true,
-						lineStyle: {
-							type: [5, 10],
-							dashOffset: 5,
-							color: chainOverviewChartColors['Raises']
-						}
-					}
-				})
-			}
-		}
-
-		if (allYAxis.length === 0) {
-			finalYAxis.push({
-				...yAxis,
-				min: getZeroBaselineYAxisMin
-			})
-		}
-
-		instance.setOption({
-			graphic,
-			tooltip,
-			grid: {
-				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
-				top: 12,
-				right: 12,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
-			},
-			xAxis,
-			yAxis: finalYAxis,
-			dataZoom,
-			series
+		const chartsInSeries = new Set(series.map((s) => s.name))
+		const finalYAxis = buildChainYAxis({
+			allYAxis,
+			baseYAxis: yAxis,
+			chartColors: chainOverviewChartColors,
+			chartsInSeries,
+			isThemeDark
 		})
 
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-			if (onReady) {
-				onReady(null)
-			}
-		}
-	}, [
-		id,
-		defaultChartSettings,
-		series,
-		chartOptions,
-		unlockTokenSymbol,
-		allYAxis,
-		onReady,
-		isThemeDark,
-		chartData,
-		hideDataZoom
-	])
+		instance.setOption(
+			{
+				graphic,
+				tooltip,
+				grid: {
+					left: 12,
+					bottom: hideDataZoom ? 12 : 68,
+					top: 12,
+					right: 12,
+					outerBoundsMode: 'same',
+					outerBoundsContain: 'axisLabel'
+				},
+				xAxis,
+				yAxis: finalYAxis,
+				dataZoom,
+				series
+			},
+			{ notMerge: true, lazyUpdate: true }
+		)
+	}, [defaultChartSettings, series, chartOptions, allYAxis, isThemeDark, hideDataZoom])
 
 	return (
 		<div

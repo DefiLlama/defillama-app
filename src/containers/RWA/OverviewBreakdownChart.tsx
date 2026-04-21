@@ -12,6 +12,7 @@ import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { isTrueQueryParam, pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import type { RWAChartMetricKey, RWAOverviewBreakdownRequest, RWAOverviewPage } from './api.types'
+import { isRwaTotalSeriesLabel } from './chartAggregation'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -203,7 +204,7 @@ export function RWAOverviewBreakdownChart({
 					<MultiSeriesChart2
 						dataset={dataset}
 						stacked
-						showTotalInTooltip
+						showTotalInTooltip={!dataset.dimensions.some(isRwaTotalSeriesLabel)}
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}
 					/>

@@ -13,6 +13,7 @@ import {
 	useRWABreakdownChartData,
 	useRWAChainsList
 } from '~/containers/ProDashboard/components/datasets/RWADataset/useRWAChartData'
+import { isRwaTotalSeriesLabel } from '~/containers/RWA/chartAggregation'
 import { getChartMetricOptions, getChartViewOptions, getChartMetricLabel } from '~/containers/RWA/chartState'
 import { buildRwaTreemapTreeData } from '~/containers/RWA/treemap'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -342,7 +343,12 @@ function OverviewPreview({
 	return (
 		<Suspense fallback={<div className="min-h-[320px]" />}>
 			{chartView === 'timeSeries' ? (
-				<MultiSeriesChart2 dataset={chartDataset} hideDefaultLegend={false} stacked showTotalInTooltip />
+				<MultiSeriesChart2
+					dataset={chartDataset}
+					hideDefaultLegend={false}
+					stacked
+					showTotalInTooltip={!chartDataset.dimensions.some(isRwaTotalSeriesLabel)}
+				/>
 			) : chartView === 'pie' && pieData.length > 0 ? (
 				<PieChart chartData={pieData} stackColors={pieColors} />
 			) : chartView === 'hbar' && barData.categories.length > 0 ? (

@@ -80,6 +80,7 @@ export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`
 export const YIELD_CHART_LEND_BORROW_API = `${YIELDS_SERVER_URL}/chartLendBorrow`
+export const YIELD_CHART_LEND_BORROW_PROXY_API = '/api/datasets/chartLendBorrow'
 export const YIELD_CONFIG_API = `${SERVER_URL}/config/yields`
 export const YIELD_CONFIG_POOL_API = `${YIELDS_SERVER_URL}/configPool`
 export const YIELD_LEND_BORROW_API = `${YIELDS_SERVER_URL}/lendBorrow`
@@ -96,6 +97,10 @@ export const YIELD_HOLDERS_API = '/api/datasets/holders'
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
+export const TOKEN_DIRECTORY_API = `${SERVER_URL}/config/smol/token.json`
+
+// RISK
+export const RISK_SERVER_URL = process.env.RISK_SERVER_URL
 
 // External services
 export const AI_SERVER = 'https://ai.llama.fi'

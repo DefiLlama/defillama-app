@@ -4,6 +4,13 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
+import {
+	TokenPageTable,
+	TokenPageTableIncomeCell,
+	TokenPageTableIncomeHeaderCell,
+	TokenPageTableScroller,
+	TokenPageTableShell
+} from '~/components/Table/helpers'
 import { Tooltip } from '~/components/Tooltip'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { abbreviateNumber } from '~/utils'
@@ -54,6 +61,7 @@ interface IncomeStatementProps {
 	anchorId?: string
 	className?: string
 	showTitles?: boolean
+	titleClassName?: string
 }
 
 export const IncomeStatement = ({
@@ -63,7 +71,8 @@ export const IncomeStatement = ({
 	view = 'both',
 	anchorId,
 	className,
-	showTitles = true
+	showTitles = true,
+	titleClassName
 }: IncomeStatementProps) => {
 	const [groupBy, setGroupBy] = useState<IncomeStatementGroupBy>('Quarterly')
 	const [sankeyGroupBy, setSankeyGroupBy] = useState<IncomeStatementGroupBy>('Quarterly')
@@ -544,7 +553,10 @@ export const IncomeStatement = ({
 		>
 			<div className="flex flex-wrap items-center justify-between gap-1">
 				{showTitles ? (
-					<h2 className="group relative flex items-center gap-1 text-base font-semibold" id={headerId}>
+					<h2
+						className={`group relative flex items-center gap-1 text-base font-semibold ${titleClassName ?? ''}`}
+						id={headerId}
+					>
 						Income Statement for {name}
 						<a
 							aria-hidden="true"
@@ -576,145 +588,152 @@ export const IncomeStatement = ({
 				) : null}
 			</div>
 			{showTable ? (
-				<div className="relative overflow-x-auto">
-					<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
-						<img
-							src="/assets/defillama-dark-neutral.webp"
-							alt="defillama"
-							height={53}
-							width={155}
-							className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
-						/>
-						<img
-							src="/assets/defillama-light-neutral.webp"
-							alt="defillama"
-							height={53}
-							width={155}
-							className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
-						/>
-					</div>
-					<table className="z-10 w-full border-collapse">
-						<thead>
-							<tr>
-								<th className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10">
-									{groupBy === 'Cumulative' ? 'Name' : null}
-								</th>
-								{tableHeaders.map((header, i) => (
-									<th
-										key={`${name}-${groupBy}-income-statement-${header[0]}`}
-										className="min-w-[120px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
-									>
-										{i === 0 && groupBy !== 'Cumulative' ? (
-											<span className="-mr-2 flex items-center justify-start gap-1">
-												<span className="overflow-hidden text-ellipsis whitespace-nowrap">{header[1]}</span>
-												<Tooltip
-													content={`Current ${groupBy.toLowerCase()} data is incomplete`}
-													className="text-xs text-(--error)"
-												>
-													*
-												</Tooltip>
-											</span>
-										) : (
-											header[1]
-										)}
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody>
-							<IncomeStatementByLabel
-								protocolName={name}
-								groupBy={groupBy}
-								data={grossProtocolRevenueData}
-								dataType="gross protocol revenue"
-								label="Gross Protocol Revenue"
-								methodology={incomeStatement?.methodology?.['Gross Protocol Revenue'] ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={grossProtocolRevenueByLabels}
-								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Gross Protocol Revenue'] ?? {}}
-								alignWithBreakdownRows={hasAnyBreakdownRows}
+				<TokenPageTableShell>
+					<TokenPageTableScroller>
+						<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
+							<img
+								src="/assets/defillama-dark-neutral.webp"
+								alt="defillama"
+								height={53}
+								width={155}
+								className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
 							/>
-							<IncomeStatementByLabel
-								protocolName={name}
-								groupBy={groupBy}
-								data={costOfRevenueData}
-								dataType="cost of revenue"
-								label="Cost of Revenue"
-								methodology={incomeStatement?.methodology?.['Cost Of Revenue'] ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={costOfRevenueByLabels}
-								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Cost Of Revenue'] ?? {}}
-								alignWithBreakdownRows={hasAnyBreakdownRows}
+							<img
+								src="/assets/defillama-light-neutral.webp"
+								alt="defillama"
+								height={53}
+								width={155}
+								className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 							/>
-							<IncomeStatementByLabel
-								protocolName={name}
-								groupBy={groupBy}
-								data={grossProfitData}
-								dataType="gross profit"
-								label="Gross Profit"
-								methodology={incomeStatement?.methodology?.['Gross Profit'] ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={grossProfitByLabels}
-								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Gross Profit'] ?? {}}
-								alignWithBreakdownRows={hasAnyBreakdownRows}
-							/>
-							{hasIncentives ? (
+						</div>
+						<TokenPageTable
+							separated
+							className="z-10 [&_tbody_tr:last-child_td]:border-b-0 [&_tbody_tr:last-child_th]:border-b-0"
+						>
+							<thead>
+								<tr>
+									<TokenPageTableIncomeHeaderCell sticky surface="app" className="min-w-[120px] font-semibold">
+										{groupBy === 'Cumulative' ? 'Name' : null}
+									</TokenPageTableIncomeHeaderCell>
+									{tableHeaders.map((header, i) => (
+										<TokenPageTableIncomeHeaderCell
+											key={`${name}-${groupBy}-income-statement-${header[0]}`}
+											surface="app"
+											className="min-w-[120px] font-semibold"
+											lastColumn={i === tableHeaders.length - 1}
+										>
+											{i === 0 && groupBy !== 'Cumulative' ? (
+												<span className="-mr-2 flex items-center justify-start gap-1">
+													<span className="overflow-hidden text-ellipsis whitespace-nowrap">{header[1]}</span>
+													<Tooltip
+														content={`Current ${groupBy.toLowerCase()} data is incomplete`}
+														className="text-xs text-(--error)"
+													>
+														*
+													</Tooltip>
+												</span>
+											) : (
+												header[1]
+											)}
+										</TokenPageTableIncomeHeaderCell>
+									))}
+								</tr>
+							</thead>
+							<tbody>
 								<IncomeStatementByLabel
 									protocolName={name}
 									groupBy={groupBy}
-									data={incentivesData}
-									dataType="incentives"
-									label="Incentives"
-									methodology={incomeStatement?.methodology?.['Incentives'] ?? ''}
+									data={grossProtocolRevenueData}
+									dataType="gross protocol revenue"
+									label="Gross Protocol Revenue"
+									methodology={incomeStatement?.methodology?.['Gross Protocol Revenue'] ?? ''}
 									tableHeaders={tableHeaders}
-									breakdownByLabels={incentivesByLabels}
-									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Incentives'] ?? {}}
+									breakdownByLabels={grossProtocolRevenueByLabels}
+									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Gross Protocol Revenue'] ?? {}}
 									alignWithBreakdownRows={hasAnyBreakdownRows}
 								/>
-							) : null}
-							<IncomeStatementByLabel
-								protocolName={name}
-								groupBy={groupBy}
-								data={earningsData}
-								dataType="earnings"
-								label="Earnings"
-								methodology={incomeStatement?.methodology?.['Earnings'] ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={EMPTY_BREAKDOWN_LABELS}
-								breakdownMethodology={EMPTY_BREAKDOWN_METHODOLOGY}
-								alignWithBreakdownRows={hasAnyBreakdownRows}
-							/>
-							{incomeStatement?.hasTokenHolderNetIncome ? (
 								<IncomeStatementByLabel
 									protocolName={name}
 									groupBy={groupBy}
-									data={tokenHolderNetIncomeData}
-									dataType="token holder net income"
-									label="Token Holder Net Income"
-									methodology={incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
+									data={costOfRevenueData}
+									dataType="cost of revenue"
+									label="Cost of Revenue"
+									methodology={incomeStatement?.methodology?.['Cost Of Revenue'] ?? ''}
 									tableHeaders={tableHeaders}
-									breakdownByLabels={tokenHolderNetIncomeByLabels}
-									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
+									breakdownByLabels={costOfRevenueByLabels}
+									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Cost Of Revenue'] ?? {}}
 									alignWithBreakdownRows={hasAnyBreakdownRows}
 								/>
-							) : null}
-							{incomeStatement?.hasOtherTokenHolderFlows ? (
 								<IncomeStatementByLabel
 									protocolName={name}
 									groupBy={groupBy}
-									data={othersTokenHolderFlowsData}
-									dataType="others token holder flows"
-									label="Others Token Holder Flows"
-									methodology={incomeStatement?.methodology?.['Others Token Holder Flows'] ?? ''}
+									data={grossProfitData}
+									dataType="gross profit"
+									label="Gross Profit"
+									methodology={incomeStatement?.methodology?.['Gross Profit'] ?? ''}
 									tableHeaders={tableHeaders}
-									breakdownByLabels={othersTokenHolderFlowsByLabels}
-									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Others Token Holder Flows'] ?? {}}
+									breakdownByLabels={grossProfitByLabels}
+									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Gross Profit'] ?? {}}
 									alignWithBreakdownRows={hasAnyBreakdownRows}
 								/>
-							) : null}
-						</tbody>
-					</table>
-				</div>
+								{hasIncentives ? (
+									<IncomeStatementByLabel
+										protocolName={name}
+										groupBy={groupBy}
+										data={incentivesData}
+										dataType="incentives"
+										label="Incentives"
+										methodology={incomeStatement?.methodology?.['Incentives'] ?? ''}
+										tableHeaders={tableHeaders}
+										breakdownByLabels={incentivesByLabels}
+										breakdownMethodology={incomeStatement?.breakdownMethodology?.['Incentives'] ?? {}}
+										alignWithBreakdownRows={hasAnyBreakdownRows}
+									/>
+								) : null}
+								<IncomeStatementByLabel
+									protocolName={name}
+									groupBy={groupBy}
+									data={earningsData}
+									dataType="earnings"
+									label="Earnings"
+									methodology={incomeStatement?.methodology?.['Earnings'] ?? ''}
+									tableHeaders={tableHeaders}
+									breakdownByLabels={EMPTY_BREAKDOWN_LABELS}
+									breakdownMethodology={EMPTY_BREAKDOWN_METHODOLOGY}
+									alignWithBreakdownRows={hasAnyBreakdownRows}
+								/>
+								{incomeStatement?.hasTokenHolderNetIncome ? (
+									<IncomeStatementByLabel
+										protocolName={name}
+										groupBy={groupBy}
+										data={tokenHolderNetIncomeData}
+										dataType="token holder net income"
+										label="Token Holder Net Income"
+										methodology={incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
+										tableHeaders={tableHeaders}
+										breakdownByLabels={tokenHolderNetIncomeByLabels}
+										breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
+										alignWithBreakdownRows={hasAnyBreakdownRows}
+									/>
+								) : null}
+								{incomeStatement?.hasOtherTokenHolderFlows ? (
+									<IncomeStatementByLabel
+										protocolName={name}
+										groupBy={groupBy}
+										data={othersTokenHolderFlowsData}
+										dataType="others token holder flows"
+										label="Others Token Holder Flows"
+										methodology={incomeStatement?.methodology?.['Others Token Holder Flows'] ?? ''}
+										tableHeaders={tableHeaders}
+										breakdownByLabels={othersTokenHolderFlowsByLabels}
+										breakdownMethodology={incomeStatement?.breakdownMethodology?.['Others Token Holder Flows'] ?? {}}
+										alignWithBreakdownRows={hasAnyBreakdownRows}
+									/>
+								) : null}
+							</tbody>
+						</TokenPageTable>
+					</TokenPageTableScroller>
+				</TokenPageTableShell>
 			) : null}
 
 			{showSankey ? (
@@ -813,9 +832,7 @@ const IncomeStatementByLabel = ({
 	return (
 		<>
 			<tr className="group">
-				<th
-					className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) first:sticky first:left-0 first:z-10 dark:border-white/10`}
-				>
+				<TokenPageTableIncomeHeaderCell sticky className="w-[36%] font-semibold group-hover:bg-(--link-hover-bg)">
 					<div
 						className="flex items-center gap-1"
 						onClick={(e) => {
@@ -853,11 +870,12 @@ const IncomeStatementByLabel = ({
 							<>{label}</>
 						)}
 					</div>
-				</th>
+				</TokenPageTableIncomeHeaderCell>
 				{tableHeaders.map((header, i) => (
-					<td
+					<TokenPageTableIncomeCell
 						key={`${protocolName}-${groupBy}-${dataType}-${header[0]}`}
-						className={`overflow-hidden border border-black/10 p-2 text-left font-medium text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) dark:border-white/10 ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
+						lastColumn={i === tableHeaders.length - 1}
+						className={`font-medium group-hover:bg-(--link-hover-bg) ${isEarnings ? (data[header[0]]?.value >= 0 ? 'text-(--success)' : 'text-(--error)') : ''}`}
 					>
 						{data[header[0]]?.value == null ? null : showComparison && i !== 0 && tableHeaders[i + 1] ? (
 							<Tooltip
@@ -876,7 +894,7 @@ const IncomeStatementByLabel = ({
 						) : (
 							<>{formatIncomeValue(data[header[0]].value)}</>
 						)}
-					</td>
+					</TokenPageTableIncomeCell>
 				))}
 			</tr>
 			{hasBreakdownRows && isExpanded ? (
@@ -886,8 +904,9 @@ const IncomeStatementByLabel = ({
 							key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`}
 							className="group text-(--text-secondary)"
 						>
-							<th
-								className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-9 text-left font-normal text-ellipsis whitespace-nowrap italic group-hover:bg-(--link-hover-bg) first:sticky first:left-0 first:z-10 dark:border-white/10`}
+							<TokenPageTableIncomeHeaderCell
+								sticky
+								className="w-[36%] pl-9 font-normal italic group-hover:bg-(--link-hover-bg)"
 							>
 								{breakdownMethodology[breakdownlabel] ? (
 									<Tooltip
@@ -899,11 +918,12 @@ const IncomeStatementByLabel = ({
 								) : (
 									<>{breakdownlabel}</>
 								)}
-							</th>
+							</TokenPageTableIncomeHeaderCell>
 							{tableHeaders.map((header, i) => (
-								<td
+								<TokenPageTableIncomeCell
 									key={`${protocolName}-${groupBy}-${dataType}-by-label-${breakdownlabel}-${header[0]}`}
-									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) dark:border-white/10"
+									lastColumn={i === tableHeaders.length - 1}
+									className="font-normal group-hover:bg-(--link-hover-bg)"
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  showComparison &&
@@ -930,7 +950,7 @@ const IncomeStatementByLabel = ({
 									) : (
 										<>{formatIncomeValue(data[header[0]]['by-label']?.[breakdownlabel])}</>
 									)}
-								</td>
+								</TokenPageTableIncomeCell>
 							))}
 						</tr>
 					))}

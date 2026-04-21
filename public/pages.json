@@ -428,7 +428,14 @@
       ],
       "tab": "Protocols",
       "oldCategory": "Stablecoins",
-      "oldName": "Overview"
+      "oldName": "Overview",
+      "searchKeywords": [
+        "stable",
+        "stables",
+        "stablecoin",
+        "stablecoins",
+        "stablecoin market cap"
+      ]
     },
     {
       "name": "Stablecoin Supply by Chain",
@@ -441,7 +448,13 @@
       ],
       "tab": "Chains",
       "oldCategory": "Stablecoins",
-      "oldName": "Chains"
+      "oldName": "Chains",
+      "searchKeywords": [
+        "stablecoin chains",
+        "stablecoins by chain",
+        "stablecoin supply",
+        "stablecoin supply by chain"
+      ]
     },
     {
       "name": "Airdrops",
@@ -491,13 +504,35 @@
       "description": "Overview of all Real World Assets (RWAs)",
       "tags": [
         "New"
+      ],
+      "searchKeywords": [
+        "rwa",
+        "rwas",
+        "real world asset",
+        "real world assets"
       ]
     },
     {
       "name": "RWA by Chain",
       "route": "/rwa/chains",
       "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by chain"
+      "description": "Overview of all Real World Assets (RWAs) by chain",
+      "searchKeywords": [
+        "rwa chains",
+        "rwas by chain",
+        "real world assets by chain"
+      ]
+    },
+    {
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform",
+      "searchKeywords": [
+        "rwa platforms",
+        "rwas by platform",
+        "real world assets by platform"
+      ]
     },
     {
       "name": "RWA: Perps",
@@ -506,37 +541,57 @@
       "description": "Overview of all Real World Assets (RWAs) perps",
       "tags": [
         "New"
+      ],
+      "searchKeywords": [
+        "rwa perps",
+        "rwa perp",
+        "real world asset perps",
+        "real world assets perps"
       ]
     },
     {
       "name": "RWA by Category",
       "route": "/rwa/categories",
       "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by category"
-    },
-    {
-      "name": "RWA by Platform",
-      "route": "/rwa/platforms",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by platform"
+      "description": "Overview of all Real World Assets (RWAs) by category",
+      "searchKeywords": [
+        "rwa categories",
+        "rwas by category",
+        "real world assets by category"
+      ]
     },
     {
       "name": "RWA by Asset Group",
       "route": "/rwa/asset-groups",
       "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by asset group"
+      "description": "Overview of all Real World Assets (RWAs) by asset group",
+      "searchKeywords": [
+        "rwa asset groups",
+        "rwas by asset group",
+        "real world assets by asset group"
+      ]
     },
     {
       "name": "RWA Perps by Venue",
       "route": "/rwa/perps/venues",
       "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) perps by venue"
+      "description": "Overview of all Real World Assets (RWAs) perps by venue",
+      "searchKeywords": [
+        "rwa perp venues",
+        "rwa perps by venue",
+        "real world asset perps by venue"
+      ]
     },
     {
       "name": "RWA Perps by Asset Group",
       "route": "/rwa/perps/asset-groups",
       "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) perps by asset group"
+      "description": "Overview of all Real World Assets (RWAs) perps by asset group",
+      "searchKeywords": [
+        "rwa perp asset groups",
+        "rwa perps by asset group",
+        "real world asset perps by asset group"
+      ]
     },
     {
       "name": "Bridges by Volume",
@@ -575,11 +630,55 @@
       "tab": "Protocols"
     },
     {
+      "name": "NFTs: Marketplaces",
+      "route": "/nfts/marketplaces",
+      "category": "NFTs",
+      "description": "Overview of all NFT marketplaces",
+      "totalTrackedKey": "nfts.marketplaces",
+      "oldCategory": "NFTs",
+      "oldName": "Marketplaces"
+    },
+    {
+      "name": "NFTs: Collections",
+      "route": "/nfts",
+      "category": "NFTs",
+      "description": "Overview of all NFT collections",
+      "totalTrackedKey": "nfts.collections",
+      "oldCategory": "NFTs",
+      "oldName": "Collections"
+    },
+    {
+      "name": "NFTs: Collection Earnings",
+      "route": "/nfts/earnings",
+      "category": "NFTs",
+      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
+      "oldCategory": "NFTs",
+      "oldName": "Earnings"
+    },
+    {
+      "name": "NFT Volume by Chain",
+      "route": "/nfts/chains",
+      "category": "NFTs",
+      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain",
+      "totalTrackedKey": "nfts.chains",
+      "oldCategory": "NFTs",
+      "oldName": "Volume (Chains)"
+    },
+    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
       "category": "Equities, ETFs & DATs",
       "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
+      "oldName": "DATs",
+      "searchKeywords": [
+        "dat",
+        "dats",
+        "digital asset treasury",
+        "digital asset treasuries",
+        "crypto treasury",
+        "crypto treasuries",
+        "corporate treasury"
+      ]
     },
     {
       "name": "Exchange Traded Funds (ETFs)",
@@ -619,41 +718,6 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
-    },
-    {
-      "name": "NFTs: Marketplaces",
-      "route": "/nfts/marketplaces",
-      "category": "NFTs",
-      "description": "Overview of all NFT marketplaces",
-      "totalTrackedKey": "nfts.marketplaces",
-      "oldCategory": "NFTs",
-      "oldName": "Marketplaces"
-    },
-    {
-      "name": "NFTs: Collections",
-      "route": "/nfts",
-      "category": "NFTs",
-      "description": "Overview of all NFT collections",
-      "totalTrackedKey": "nfts.collections",
-      "oldCategory": "NFTs",
-      "oldName": "Collections"
-    },
-    {
-      "name": "NFTs: Collection Earnings",
-      "route": "/nfts/earnings",
-      "category": "NFTs",
-      "description": "Earnings of all NFT collections that are tracked by DefiLlama",
-      "oldCategory": "NFTs",
-      "oldName": "Earnings"
-    },
-    {
-      "name": "NFT Volume by Chain",
-      "route": "/nfts/chains",
-      "category": "NFTs",
-      "description": "Volume of all NFTs that are tracked by DefiLlama traded on the chain",
-      "totalTrackedKey": "nfts.chains",
-      "oldCategory": "NFTs",
-      "oldName": "Volume (Chains)"
     },
     {
       "name": "Raises: Overview",
@@ -815,14 +879,6 @@
       "oldName": "Watchlist"
     },
     {
-      "name": "Borrow Aggregator: Advanced",
-      "route": "/borrow/advanced",
-      "category": "Borrow Aggregator",
-      "description": "Advanced view of optimal lending routes by collateral to borrow assets",
-      "oldCategory": "Borrow Aggregator",
-      "oldName": "Advanced"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
@@ -831,12 +887,33 @@
       "oldName": "Directory"
     },
     {
+      "name": "Borrow Aggregator: Advanced",
+      "route": "/borrow/advanced",
+      "category": "Borrow Aggregator",
+      "description": "Advanced view of optimal lending routes by collateral to borrow assets",
+      "oldCategory": "Borrow Aggregator",
+      "oldName": "Advanced"
+    },
+    {
       "name": "Transactions by Bridge",
       "route": "/bridge-transactions",
       "category": "Tools",
       "description": "Download transaction data across different time periods by bridge",
       "oldCategory": "Bridges",
       "oldName": "Transactions"
+    },
+    {
+      "name": "Liquidations",
+      "route": "/liquidations",
+      "category": "Liquidations",
+      "description": "Collateral at risk of liquidation if asset prices reach certain levels",
+      "searchKeywords": [
+        "liquidation",
+        "liquidations",
+        "liquidation dashboard",
+        "liquidation risk",
+        "liquidation levels"
+      ]
     },
     {
       "name": "Token Holder Profit and Loss",
@@ -956,13 +1033,26 @@
     {
       "name": "Stablecoins",
       "route": "/stablecoins",
-      "icon": "dollar-sign"
+      "icon": "dollar-sign",
+      "searchKeywords": [
+        "stable",
+        "stables",
+        "stablecoin",
+        "stablecoins",
+        "stablecoin market cap"
+      ]
     },
     {
       "name": "RWA",
       "route": "/rwa",
       "icon": "banknote",
-      "isNew": true
+      "isNew": true,
+      "searchKeywords": [
+        "rwa",
+        "rwas",
+        "real world asset",
+        "real world assets"
+      ]
     },
     {
       "name": "Support",

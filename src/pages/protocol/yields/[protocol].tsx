@@ -11,12 +11,19 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { APYRange } from '~/containers/Yields/Filters/APYRange'
 import { FilterByChain } from '~/containers/Yields/Filters/Chains'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
+import { ALL_POOL_COLUMN_QUERY_KEYS } from '~/containers/Yields/Filters/poolColumns'
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
+import {
+	buildPoolsTrackingStats,
+	filterPoolTableRows,
+	getPoolRowChains,
+	getPoolRowTokens,
+	mapPoolToYieldTableRow
+} from '~/containers/Yields/poolsPipeline'
 import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
+import { clearYieldsQueries, hasActiveYieldsQueries } from '~/containers/Yields/queryState'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
-import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { extractPoolTokens, normalizeToken } from '~/containers/Yields/utils'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -61,7 +68,7 @@ export const getStaticProps = withPerformanceLogging(
 		const otherProtocolsSet = new Set((protocolData.otherProtocols ?? []).map((op) => sluggifyProtocol(op)))
 
 		let poolsError: string | null = null
-		let poolsList: IYieldTableRow[] = []
+		let poolsList: any[] = []
 		try {
 			const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
 			const yieldsData = await getYieldPageData()
@@ -80,20 +87,10 @@ export const getStaticProps = withPerformanceLogging(
 					ltv: x?.ltv ?? null
 				}
 			})
-			poolsList = allPools
-				.filter(
-					(pool) =>
-						pool.project === protocolSlug || (protocolData.parentProtocol ? false : otherProtocolsSet.has(pool.project))
-				)
-				.map((pool) => ({
-					...pool,
-					tvl: pool.tvlUsd,
-					pool: pool.symbol,
-					configID: pool.pool,
-					chains: [pool.chain],
-					project: pool.projectName,
-					projectslug: pool.project
-				}))
+			poolsList = allPools.filter(
+				(pool) =>
+					pool.project === protocolSlug || (protocolData.parentProtocol ? false : otherProtocolsSet.has(pool.project))
+			)
 		} catch (err) {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
 			poolsError = 'Failed to fetch'
@@ -131,26 +128,6 @@ export const getStaticPaths = () => {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const ENABLED_COLUMNS = [
-	'show7dBaseApy',
-	'show7dIL',
-	'show1dVolume',
-	'show7dVolume',
-	'showInceptionApy',
-	'showBorrowBaseApy',
-	'showBorrowRewardApy',
-	'showNetBorrowApy',
-	'showLTV',
-	'showTotalSupplied',
-	'showTotalBorrowed',
-	'showAvailable',
-	'showMedianApy',
-	'showStdDev',
-	'showHolderCount',
-	'showTop10Pct',
-	'showAvgPosition'
-]
-
 const FILTER_QUERY_PARAMS = [
 	'chain',
 	'excludeChain',
@@ -160,110 +137,44 @@ const FILTER_QUERY_PARAMS = [
 	'maxTvl',
 	'minApy',
 	'maxApy',
-	...ENABLED_COLUMNS
+	...ALL_POOL_COLUMN_QUERY_KEYS
 ]
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const router = useRouter()
 	const { data: volatility } = useVolatility()
 	const poolsList = React.useMemo(() => props.poolsList ?? [], [props.poolsList])
-	const { data: holderStats } = useHolderStats(poolsList.map((p) => p.configID))
-
-	const chainList = React.useMemo(() => [...new Set(poolsList.map((p) => p.chains[0]))].sort(), [poolsList])
-
-	const tokensList = React.useMemo(
-		() => [...new Set(poolsList.flatMap((p) => extractPoolTokens(p.pool)))].sort().map((t) => t.toUpperCase()),
-		[poolsList]
+	const { data: holderStats } = useHolderStats(poolsList.map((pool) => pool.pool))
+	const rowsWithStats = React.useMemo(
+		() => poolsList.map((pool) => mapPoolToYieldTableRow(pool, { volatility, holderStats })),
+		[poolsList, volatility, holderStats]
 	)
+	const chainList = React.useMemo(() => getPoolRowChains(rowsWithStats), [rowsWithStats])
+	const tokensList = React.useMemo(() => getPoolRowTokens(rowsWithStats), [rowsWithStats])
 
 	const { selectedChains, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy } = useFormatYieldQueryParams({
 		chainList
 	})
 
-	const poolsWithVolatility = React.useMemo(() => {
-		return poolsList.map((pool) => ({
-			...pool,
-			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
-			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
-			cv30d: volatility?.[pool.configID]?.[3] ?? null,
-			holderCount: holderStats?.[pool.configID]?.holderCount ?? null,
-			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? null,
-			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? null,
-			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? null,
-			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? null
-		}))
-	}, [poolsList, volatility, holderStats])
-
 	const filteredPools = React.useMemo(() => {
-		let pools = poolsWithVolatility
+		return filterPoolTableRows(rowsWithStats, {
+			selectedChains,
+			chainList,
+			includeTokens,
+			excludeTokens,
+			minTvl,
+			maxTvl,
+			minApy,
+			maxApy
+		})
+	}, [rowsWithStats, selectedChains, chainList, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy])
 
-		// Chain filter
-		if (selectedChains.length > 0 && selectedChains.length < chainList.length) {
-			const chainSet = new Set(selectedChains)
-			pools = pools.filter((p) => chainSet.has(p.chains[0]))
-		}
+	const filteredStats = React.useMemo(() => buildPoolsTrackingStats(filteredPools), [filteredPools])
 
-		// Token include filter (substring match, consistent with toFilterPool)
-		if (includeTokens.length > 0) {
-			pools = pools.filter((p) => {
-				const poolTokens = extractPoolTokens(p.pool)
-				return includeTokens.some((t) => poolTokens.some((pt) => pt.includes(normalizeToken(t))))
-			})
-		}
-
-		// Token exclude filter (exact match, consistent with toFilterPool)
-		if (excludeTokens.length > 0) {
-			pools = pools.filter((p) => {
-				const poolTokens = new Set(extractPoolTokens(p.pool))
-				return !excludeTokens.some((t) => poolTokens.has(normalizeToken(t)))
-			})
-		}
-
-		// TVL range
-		if (minTvl != null) {
-			pools = pools.filter((p) => p.tvl != null && p.tvl >= minTvl)
-		}
-		if (maxTvl != null) {
-			pools = pools.filter((p) => p.tvl != null && p.tvl <= maxTvl)
-		}
-
-		// APY range (strict comparison, consistent with toFilterPool)
-		if (minApy != null) {
-			pools = pools.filter((p) => p.apy != null && p.apy > minApy)
-		}
-		if (maxApy != null) {
-			pools = pools.filter((p) => p.apy != null && p.apy < maxApy)
-		}
-
-		return pools
-	}, [
-		poolsWithVolatility,
-		selectedChains,
-		chainList.length,
-		includeTokens,
-		excludeTokens,
-		minTvl,
-		maxTvl,
-		minApy,
-		maxApy
-	])
-
-	const filteredStats = React.useMemo(() => {
-		const withApy = filteredPools.filter((p) => p.apy !== 0)
-		return {
-			noOfPoolsTracked: filteredPools.length,
-			averageAPY: withApy.length > 0 ? withApy.reduce((acc, { apy }) => acc + apy, 0) / withApy.length : null
-		}
-	}, [filteredPools])
-
-	const hasActiveFilters = FILTER_QUERY_PARAMS.some((key) => router.query[key] != null && router.query[key] !== '')
+	const hasActiveFilters = hasActiveYieldsQueries(router.query, FILTER_QUERY_PARAMS)
 
 	const resetFilters = () => {
-		const updates: Record<string, undefined> = {}
-		for (const key of FILTER_QUERY_PARAMS) {
-			updates[key] = undefined
-		}
-		pushShallowQuery(router, updates)
+		pushShallowQuery(router, clearYieldsQueries(FILTER_QUERY_PARAMS))
 	}
 
 	const isFilteredEmpty = filteredPools.length === 0 && poolsList.length > 0
@@ -302,7 +213,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									/>
 									<TVLRange variant="secondary" nestedMenu={nestedMenu} />
 									<APYRange nestedMenu={nestedMenu} />
-									<ColumnFilters enabledColumns={ENABLED_COLUMNS} nestedMenu={nestedMenu} />
+									<ColumnFilters enabledColumns={ALL_POOL_COLUMN_QUERY_KEYS} nestedMenu={nestedMenu} />
 									{hasActiveFilters && (
 										<button
 											onClick={resetFilters}

@@ -1,35 +1,38 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 export function useMedia(query: string) {
-	const [matches, setMatches] = useState(() => {
-		if (typeof window === 'undefined') return false
-		return window.matchMedia(query).matches
-	})
+	const subscribe = useCallback(
+		(onStoreChange: () => void) => {
+			if (typeof window === 'undefined') return () => {}
 
-	useEffect(() => {
-		if (typeof window === 'undefined') return
+			const mediaQueryList = window.matchMedia(query)
+			const legacyMediaQueryList = mediaQueryList as MediaQueryList & {
+				addListener?: (listener: (event: MediaQueryListEvent) => void) => void
+				removeListener?: (listener: (event: MediaQueryListEvent) => void) => void
+			}
 
-		const mediaQueryList = window.matchMedia(query)
-		const updateMatches = () => setMatches(mediaQueryList.matches)
+			if ('addEventListener' in mediaQueryList) {
+				mediaQueryList.addEventListener('change', onStoreChange)
 
-		updateMatches()
+				return () => {
+					mediaQueryList.removeEventListener('change', onStoreChange)
+				}
+			}
 
-		if ('addEventListener' in mediaQueryList) {
-			mediaQueryList.addEventListener('change', updateMatches)
-			window.addEventListener('resize', updateMatches)
+			legacyMediaQueryList.addListener?.(onStoreChange)
 
 			return () => {
-				mediaQueryList.removeEventListener('change', updateMatches)
-				window.removeEventListener('resize', updateMatches)
+				legacyMediaQueryList.removeListener?.(onStoreChange)
 			}
-		}
+		},
+		[query]
+	)
 
-		window.addEventListener('resize', updateMatches)
+	const getSnapshot = useCallback(() => {
+		if (typeof window === 'undefined') return false
 
-		return () => {
-			window.removeEventListener('resize', updateMatches)
-		}
+		return window.matchMedia(query).matches
 	}, [query])
 
-	return matches
+	return useSyncExternalStore(subscribe, getSnapshot, () => false)
 }

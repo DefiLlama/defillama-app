@@ -44,6 +44,12 @@ const CARD_CONTENT: Omit<PricingCardData, 'priceMain' | 'priceUnit' | 'priceSeco
 						linkText: 'LlamaAI free',
 						availability: 'check',
 						highlightText: false
+					},
+					{
+						label: 'Access to free API endpoints',
+						link: 'https://api-docs.defillama.com/',
+						linkText: 'API endpoints',
+						availability: 'check'
 					}
 				]
 			}
@@ -93,18 +99,16 @@ const CARD_CONTENT: Omit<PricingCardData, 'priceMain' | 'priceUnit' | 'priceSeco
 			{
 				title: 'API Access',
 				items: [
-					{ label: 'TVL, revenue, fees, and price data endpoints', availability: 'check' },
-					{ label: 'Full data access: token unlocks, active users, liquidity, and more', availability: 'check' },
+					{ label: 'Premium endpoints: prices, inflows, token unlocks, and more', availability: 'check' },
+					{ label: 'Increased rate limit: 1,000 requests / minute, 1M calls / month', availability: 'check' },
+					{ label: '$0.60 per 1,000 calls beyond the 1M limit', availability: 'check' },
 					{
 						label: 'Connect DefiLlama data directly to your AI agents via MCP',
 						link: '/mcp',
 						linkText: 'MCP',
 						availability: 'check'
 					},
-					{ label: 'Priority support', availability: 'check' },
-					{ label: '1,000 requests / minute', availability: 'check' },
-					{ label: '1M calls / month', availability: 'check' },
-					{ label: '$0.60 per 1,000 calls beyond the 1M limit', availability: 'check' }
+					{ label: 'Priority support', availability: 'check' }
 				]
 			}
 		],
@@ -298,7 +302,19 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 		title: 'API Access',
 		rows: [
 			{
-				label: 'Access to TVL, revenue/fees and prices API endpoints',
+				label: 'Access to free API endpoints',
+				link: 'https://api-docs.defillama.com/',
+				wrapLabel: true,
+				values: {
+					free: 'check',
+					pro: 'check',
+					api: 'check',
+					enterprise: 'check'
+				}
+			},
+			{
+				label: 'Premium endpoints: prices, inflows, token unlocks, and more',
+				link: 'https://api-docs.defillama.com/',
 				wrapLabel: true,
 				values: {
 					free: 'dash',
@@ -308,7 +324,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 				}
 			},
 			{
-				label: 'Access to all data (unlocks, active users, token liq...)',
+				label: 'Increased rate limits (1000 requests/minute)',
 				wrapLabel: true,
 				values: {
 					free: 'dash',
@@ -318,7 +334,17 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 				}
 			},
 			{
-				label: 'Priority support',
+				label: 'Increased monthly call volume (1M calls/month)',
+				wrapLabel: true,
+				values: {
+					free: 'dash',
+					pro: 'dash',
+					api: 'check',
+					enterprise: 'check'
+				}
+			},
+			{
+				label: '$0.60 per 1,000 additional calls after 1M limit',
 				values: {
 					free: 'dash',
 					pro: 'dash',
@@ -338,25 +364,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 				}
 			},
 			{
-				label: '1000 requests/minute',
-				values: {
-					free: 'dash',
-					pro: 'dash',
-					api: 'check',
-					enterprise: 'check'
-				}
-			},
-			{
-				label: '1M calls/month',
-				values: {
-					free: 'dash',
-					pro: 'dash',
-					api: 'check',
-					enterprise: 'check'
-				}
-			},
-			{
-				label: '$0.60 per 1,000 additional calls after 1M limit',
+				label: 'Priority support',
 				values: {
 					free: 'dash',
 					pro: 'dash',

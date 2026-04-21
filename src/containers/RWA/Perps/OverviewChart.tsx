@@ -126,7 +126,8 @@ export function buildRWAPerpsOverviewChartSeries({
 						type: 'line' as const,
 						encode: { x: 'timestamp', y: 'Total' },
 						color: CHART_COLORS[0],
-						hideAreaStyle: true
+						hideAreaStyle: true,
+						excludeFromTooltipTotal: true
 					}
 				]
 			: [])

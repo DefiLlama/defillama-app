@@ -1,4 +1,4 @@
-import { formatTooltipValue } from '~/components/ECharts/formatters'
+import { formatChartValue } from '~/components/ECharts/formatters'
 import type {
 	ICandlestickChartProps,
 	IMultiSeriesChart2Props,
@@ -293,6 +293,12 @@ const getTooltipValueFromParams = (item: any) => {
 	return item?.value
 }
 
+const getNumericTooltipValueFromParams = (item: any): number | null => {
+	const rawValue = getTooltipValueFromParams(item)
+	const value = rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+	return value == null || Number.isNaN(value) ? null : value
+}
+
 const createCategoryTooltipFormatter = (
 	valueSymbol: string,
 	charts: LlamaAICartesianSeriesConfig[] = []
@@ -308,9 +314,7 @@ const createCategoryTooltipFormatter = (
 			.map((item) => {
 				const seriesName = item?.seriesName
 				if (!seriesName) return null
-				const rawValue = getTooltipValueFromParams(item)
-				const value =
-					rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+				const value = getNumericTooltipValueFromParams(item)
 				if (value == null || Number.isNaN(value)) return null
 				return {
 					marker: item?.marker ?? '',
@@ -334,7 +338,7 @@ const createCategoryTooltipFormatter = (
 		const lines = values
 			.map(
 				(item) =>
-					`<div>${item.marker} ${item.seriesName}: ${formatTooltipValue(item.value, item.symbol ?? valueSymbol)}</div>`
+					`<div>${item.marker} ${item.seriesName}: ${formatChartValue(item.value, item.symbol ?? valueSymbol)}</div>`
 			)
 			.join('')
 
@@ -437,7 +441,7 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 				tooltipFormatter: (params: any) => {
 					if (params.value.length < 2) return ''
 					const entityName = params.value[2] || 'Unknown'
-					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatTooltipValue(params.value[0], xAxisSymbol)}<br/>${yAxisLabel}: ${formatTooltipValue(params.value[1], yAxisSymbol)}`
+					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatChartValue(params.value[0], xAxisSymbol)}<br/>${yAxisLabel}: ${formatChartValue(params.value[1], yAxisSymbol)}`
 				}
 			},
 			title: config.title,
@@ -613,6 +617,82 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 			}
 			chartOptions.tooltip = {
 				formatter: createCategoryTooltipFormatter(config.valueSymbol ?? '', charts)
+			}
+		}
+
+		const primaryAxisSymbol = config.axes.yAxes?.[0]?.valueSymbol ?? config.valueSymbol ?? ''
+		if (config.axes.yAxes?.length) {
+			chartOptions.yAxis = config.axes.yAxes.map((axis, index) => {
+				const existingAxis = Array.isArray(chartOptions.yAxis)
+					? (chartOptions.yAxis[index] ?? {})
+					: index === 0
+						? (chartOptions.yAxis ?? {})
+						: {}
+				const valueSymbol = axis.valueSymbol ?? config.valueSymbol ?? ''
+
+				return {
+					...existingAxis,
+					axisLabel: {
+						...(existingAxis?.axisLabel ?? {}),
+						formatter: (value: number) => formatChartValue(value, valueSymbol)
+					},
+					...(axis.min !== undefined ? { min: axis.min } : {})
+				}
+			})
+		} else {
+			chartOptions.yAxis = {
+				...(chartOptions.yAxis ?? {}),
+				axisLabel: {
+					...(chartOptions.yAxis?.axisLabel ?? {}),
+					formatter: (value: number) => formatChartValue(value, primaryAxisSymbol)
+				}
+			}
+		}
+
+		if (axisType === 'time' && !chartOptions.tooltip) {
+			const seriesSymbols = new Map(charts.map((c) => [c.name, c.valueSymbol ?? primaryAxisSymbol]))
+			chartOptions.tooltip = {
+				formatter: (params: any) => {
+					const items = Array.isArray(params) ? params : params ? [params] : []
+					if (items.length === 0) return ''
+					const first = items[0]
+					const ts = Array.isArray(first?.value)
+						? Number(first.value[0])
+						: Number(first?.data?.timestamp ?? first?.axisValue)
+					const dateStr = Number.isFinite(ts)
+						? new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+						: ''
+					const lines = items
+						.map((it: any) => {
+							const name = it?.seriesName
+							if (!name) return null
+							const value = getNumericTooltipValueFromParams(it)
+							if (value == null) return null
+							return {
+								color: it?.color ?? '#888',
+								name,
+								symbol: seriesSymbols.get(name) ?? primaryAxisSymbol,
+								value
+							}
+						})
+						.filter(
+							(
+								item
+							): item is {
+								color: string
+								name: string
+								symbol: string
+								value: number
+							} => item !== null
+						)
+						.sort((a, b) => b.value - a.value)
+						.map(
+							(item) =>
+								`<li style="list-style:none;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${item.color};margin-right:6px;"></span>${item.name}: <strong>${formatChartValue(item.value, item.symbol)}</strong></li>`
+						)
+						.join('')
+					return `<div style="font-weight:600;margin-bottom:4px;">${dateStr}</div><ul style="margin:0;padding:0;">${lines}</ul>`
+				}
 			}
 		}
 

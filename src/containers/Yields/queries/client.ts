@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
 	CONFIG_API,
 	YIELD_CHART_API,
-	YIELD_CHART_LEND_BORROW_API,
+	YIELD_CHART_LEND_BORROW_PROXY_API,
 	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
 	YIELD_HOLDERS_API,
@@ -41,7 +41,7 @@ export const useYieldChartData = (configID: string | null) => {
 export const useYieldChartLendBorrow = (configID: string | null) => {
 	return useQuery({
 		queryKey: ['yield-lend-borrow-chart', configID],
-		queryFn: () => fetchJson(`${YIELD_CHART_LEND_BORROW_API}/${configID}`),
+		queryFn: () => fetchJson(`${YIELD_CHART_LEND_BORROW_PROXY_API}/${configID}`),
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 1,
