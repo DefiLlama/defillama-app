@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const getTokenStrategiesDataMock = vi.fn()
-
-vi.mock('~/containers/Token/tokenStrategies.server', () => ({
-	getTokenStrategiesData: getTokenStrategiesDataMock
+const { getTokenBorrowRoutesDataMock } = vi.hoisted(() => ({
+	getTokenBorrowRoutesDataMock: vi.fn()
 }))
 
-import handler from '~/pages/api/datasets/yields-token-strategies'
+vi.mock('~/containers/Token/tokenBorrowRoutes.server', () => ({
+	getTokenBorrowRoutesData: getTokenBorrowRoutesDataMock
+}))
+
+import handler from '~/pages/api/datasets/yields-token-borrow-routes'
 
 function createRes() {
 	const res: Partial<NextApiResponse> = {
@@ -24,15 +26,14 @@ function createRes() {
 
 beforeEach(() => {
 	vi.clearAllMocks()
-	getTokenStrategiesDataMock.mockResolvedValue({
+	getTokenBorrowRoutesDataMock.mockResolvedValue({
 		borrowAsCollateral: [{ symbol: 'ETH' }],
-		borrowAsDebt: [{ borrow: { symbol: 'ETH' } }],
-		longShort: [{ symbolPerp: 'ETH-PERP' }]
+		borrowAsDebt: [{ borrow: { symbol: 'ETH' } }]
 	})
 })
 
-describe('yields-token-strategies api route', () => {
-	it('delegates to the shared strategies loader and sets cache headers', async () => {
+describe('yields-token-borrow-routes api route', () => {
+	it('delegates to the shared borrow routes loader and sets cache headers', async () => {
 		const req = {
 			method: 'GET',
 			query: { token: 'ETH' }
@@ -41,13 +42,12 @@ describe('yields-token-strategies api route', () => {
 
 		await handler(req, res)
 
-		expect(getTokenStrategiesDataMock).toHaveBeenCalledWith('ETH')
+		expect(getTokenBorrowRoutesDataMock).toHaveBeenCalledWith('ETH')
 		expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
 		expect(res.status).toHaveBeenCalledWith(200)
 		expect(res.json).toHaveBeenCalledWith({
 			borrowAsCollateral: [{ symbol: 'ETH' }],
-			borrowAsDebt: [{ borrow: { symbol: 'ETH' } }],
-			longShort: [{ symbolPerp: 'ETH-PERP' }]
+			borrowAsDebt: [{ borrow: { symbol: 'ETH' } }]
 		})
 	})
 })

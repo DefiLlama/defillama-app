@@ -8,8 +8,7 @@ const strategiesState: {
 } = {
 	data: {
 		borrowAsCollateral: [],
-		borrowAsDebt: [],
-		longShort: []
+		borrowAsDebt: []
 	},
 	error: null,
 	isLoading: false
@@ -47,8 +46,8 @@ vi.mock('~/containers/Yields/Tables/Optimizer', () => ({
 	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}`}</div>
 }))
 
-vi.mock('./useTokenStrategies', () => ({
-	useTokenStrategies: (_tokenSymbol: string, initialData?: unknown) =>
+vi.mock('./useTokenBorrowRoutes', () => ({
+	useTokenBorrowRoutes: (_tokenSymbol: string, initialData?: unknown) =>
 		strategiesState.data === undefined && initialData !== undefined
 			? { data: initialData, error: null, isLoading: false }
 			: strategiesState
@@ -57,8 +56,7 @@ vi.mock('./useTokenStrategies', () => ({
 afterEach(() => {
 	strategiesState.data = {
 		borrowAsCollateral: [],
-		borrowAsDebt: [],
-		longShort: []
+		borrowAsDebt: []
 	}
 	strategiesState.error = null
 	strategiesState.isLoading = false
@@ -96,8 +94,7 @@ describe('TokenBorrowSection', () => {
 					borrow: { symbol: 'ETH', totalAvailableUsd: 250000 },
 					chains: ['Ethereum']
 				}
-			],
-			longShort: []
+			]
 		}
 		strategiesState.error = null
 		strategiesState.isLoading = false
@@ -125,8 +122,7 @@ describe('TokenBorrowSection', () => {
 							chains: ['Ethereum']
 						}
 					],
-					borrowAsDebt: [],
-					longShort: []
+					borrowAsDebt: []
 				}}
 			/>
 		)

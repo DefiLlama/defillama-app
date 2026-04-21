@@ -2,6 +2,7 @@ import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, TOKEN_DIRECTORY_API } from '~/consta
 import { getErrorMessage } from '~/utils/error'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
+import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
 import type {
 	ICategoriesAndTags,
 	ICexItem,
@@ -104,6 +105,8 @@ export async function fetchCoreMetadata({
 	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
 	tokenDirectory: TokenDirectory
+	protocolDisplayNames: Record<string, string>
+	chainDisplayNames: Record<string, string>
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -235,6 +238,9 @@ export async function fetchCoreMetadata({
 				: buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }))
 		: ({} as ProtocolLlamaswapMetadata)
 
+	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
+	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
+
 	return {
 		protocols,
 		chains,
@@ -245,6 +251,8 @@ export async function fetchCoreMetadata({
 		rwaPerpsList,
 		tokenlist,
 		tokenDirectory,
+		protocolDisplayNames,
+		chainDisplayNames,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,

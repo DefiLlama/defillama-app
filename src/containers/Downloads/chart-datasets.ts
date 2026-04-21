@@ -6,8 +6,8 @@ import {
 	RWA_SERVER_URL,
 	STABLECOINS_SERVER_URL
 } from '~/constants'
-import { slug as toSlug } from '~/utils'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { slug as toSlug } from '~/utils'
 
 export type CategoryBreakdownKind = { kind: 'tvl' } | { kind: 'dimension'; adapterType: string; dataType?: string }
 
@@ -516,9 +516,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 					catMcap.set(c, (catMcap.get(c) ?? 0) + total)
 				}
 			}
-			return [...catMcap.entries()]
-				.sort(([, a], [, b]) => b - a)
-				.map(([c]) => ({ label: c, value: rwaSlug(c) }))
+			return [...catMcap.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: rwaSlug(c) }))
 		},
 		buildUrl: (param: string) => `${RWA_SERVER_URL}/chart/category/${param}/asset-breakdown`,
 		extractRows: () => [],

@@ -2,15 +2,14 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
+import { getTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.server'
+import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
-import { TokenLongShortSection } from '~/containers/Token/TokenLongShortSection'
 import { getTokenOverviewData } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
-import { getTokenStrategiesData } from '~/containers/Token/tokenStrategies.server'
-import type { TokenStrategiesResponse } from '~/containers/Token/tokenStrategies.types'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
@@ -29,41 +28,11 @@ type TokenRouteParams = {
 	token: string
 }
 
-const DEFAULT_PROTOCOL_FALLBACK_SLUG = 'morpho-blue'
-const DEFAULT_PROTOCOL_FALLBACK_NAME = 'Morpho Blue'
+const INITIAL_TOKEN_PRERENDER_LIMIT = 30
 
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
 	return tokenNk.slice('coingecko:'.length) || null
-}
-
-function createProtocolDisplayNameLookup(
-	protocolMetadata: Record<string, { name?: string; displayName?: string }>
-): Map<string, string> {
-	const lookup = new Map<string, string>()
-
-	for (const metadata of Object.values(protocolMetadata)) {
-		if (!metadata?.name) continue
-		lookup.set(metadata.name, metadata.displayName ?? metadata.name)
-	}
-
-	// TODO: remove this once morpho-blue display metadata is present in the metadata pipeline.
-	if (!lookup.has(DEFAULT_PROTOCOL_FALLBACK_SLUG)) {
-		lookup.set(DEFAULT_PROTOCOL_FALLBACK_SLUG, DEFAULT_PROTOCOL_FALLBACK_NAME)
-	}
-
-	return lookup
-}
-
-function createChainDisplayNameLookup(chainMetadata: Record<string, { name?: string }>): Map<string, string> {
-	const lookup = new Map<string, string>()
-
-	for (const metadata of Object.values(chainMetadata)) {
-		if (!metadata?.name) continue
-		lookup.set(slug(metadata.name), metadata.name)
-	}
-
-	return lookup
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -98,7 +67,7 @@ export const getStaticProps = withPerformanceLogging(
 		let incomeStatementHasIncentives = false
 		let tokenRiskData: TokenRiskResponse | null = null
 		let initialYieldsRows: IYieldTableRow[] = []
-		let initialTokenStrategiesData: TokenStrategiesResponse | null = null
+		let initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null = null
 		const overview = await getTokenOverviewData({
 			record,
 			displayName,
@@ -142,8 +111,8 @@ export const getStaticProps = withPerformanceLogging(
 						geckoId,
 						protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
 						displayLookups: {
-							protocolDisplayNames: createProtocolDisplayNameLookup(metadataCache.protocolMetadata),
-							chainDisplayNames: createChainDisplayNameLookup(metadataCache.chainMetadata)
+							protocolDisplayNames: metadataCache.protocolDisplayNames,
+							chainDisplayNames: metadataCache.chainDisplayNames
 						}
 					}).catch((error) => {
 						console.error(`Failed to load token risk data for ${geckoId}`, error)
@@ -151,19 +120,19 @@ export const getStaticProps = withPerformanceLogging(
 					})
 				: Promise.resolve(null)
 
-			const [yieldsRows, tokenStrategiesData, riskData] = await Promise.all([
+			const [yieldsRows, tokenBorrowRoutesData, riskData] = await Promise.all([
 				getTokenYieldsRows(record.symbol).catch((error) => {
 					console.error(`Failed to load token yields data for ${record.symbol}`, error)
 					return []
 				}),
-				getTokenStrategiesData(record.symbol).catch((error) => {
-					console.error(`Failed to load token strategies data for ${record.symbol}`, error)
+				getTokenBorrowRoutesData(record.symbol).catch((error) => {
+					console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
 					return null
 				}),
 				tokenRiskPromise
 			])
 			initialYieldsRows = yieldsRows
-			initialTokenStrategiesData = tokenStrategiesData
+			initialTokenBorrowRoutesData = tokenBorrowRoutesData
 			tokenRiskData = riskData
 		}
 
@@ -185,7 +154,7 @@ export const getStaticProps = withPerformanceLogging(
 				geckoId,
 				tokenRiskData,
 				initialYieldsRows,
-				initialTokenStrategiesData,
+				initialTokenBorrowRoutesData,
 				overview,
 				seoTitle,
 				seoDescription,
@@ -196,7 +165,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export const getStaticPaths = () => {
+export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
@@ -207,7 +176,28 @@ export const getStaticPaths = () => {
 		}
 	}
 
-	return { paths: [], fallback: 'blocking' }
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const tokenDirectory = metadataModule.default.tokenDirectory
+
+	const rankedRecords = []
+
+	for (const key in tokenDirectory) {
+		const record = tokenDirectory[key]
+		if (record.mcap_rank == null || record.mcap_rank < 1 || record.mcap_rank > INITIAL_TOKEN_PRERENDER_LIMIT) {
+			continue
+		}
+
+		rankedRecords.push(record)
+	}
+
+	rankedRecords.sort((a, b) => (a.mcap_rank ?? Number.POSITIVE_INFINITY) - (b.mcap_rank ?? Number.POSITIVE_INFINITY))
+
+	const paths = rankedRecords.map((record) => record.route)
+
+	console.log(paths)
+
+	return { paths, fallback: 'blocking' }
 }
 
 export default function TokenPage({
@@ -219,7 +209,7 @@ export default function TokenPage({
 	geckoId,
 	tokenRiskData,
 	initialYieldsRows,
-	initialTokenStrategiesData,
+	initialTokenBorrowRoutesData,
 	overview,
 	seoTitle,
 	seoDescription,
@@ -228,9 +218,8 @@ export default function TokenPage({
 	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
 	const shouldRenderBorrowSection =
 		record.is_yields &&
-		((initialTokenStrategiesData?.borrowAsCollateral.length ?? 0) > 0 ||
-			(initialTokenStrategiesData?.borrowAsDebt.length ?? 0) > 0)
-	const shouldRenderLongShortSection = record.is_yields && (initialTokenStrategiesData?.longShort.length ?? 0) > 0
+		((initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
+			(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0)
 
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
@@ -261,10 +250,7 @@ export default function TokenPage({
 					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
 				) : null}
 				{shouldRenderBorrowSection ? (
-					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
-				) : null}
-				{shouldRenderLongShortSection ? (
-					<TokenLongShortSection tokenSymbol={record.symbol} initialData={initialTokenStrategiesData ?? undefined} />
+					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
 				) : null}
 			</div>
 		</Layout>

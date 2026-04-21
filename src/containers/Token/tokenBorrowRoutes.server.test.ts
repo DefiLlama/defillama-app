@@ -1,15 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('~/containers/Yields/queries/index', () => ({
-	getLendBorrowData: vi.fn(),
-	getPerpData: vi.fn()
+	getLendBorrowData: vi.fn()
 }))
 
-import { getLendBorrowData, getPerpData } from '~/containers/Yields/queries/index'
-import { getTokenStrategiesData } from './tokenStrategies.server'
+import { getLendBorrowData } from '~/containers/Yields/queries/index'
+import { getTokenBorrowRoutesData } from './tokenBorrowRoutes.server'
 
 const mockedGetLendBorrowData = getLendBorrowData as unknown as ReturnType<typeof vi.fn>
-const mockedGetPerpData = getPerpData as unknown as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -132,48 +130,15 @@ beforeEach(() => {
 			]
 		}
 	})
-
-	mockedGetPerpData.mockResolvedValue([
-		{
-			symbol: 'LINK',
-			baseAsset: 'LINK',
-			market: 'LINK-PERP',
-			marketplace: 'Hyperliquid',
-			fundingRatePrevious: 0.002,
-			fundingRate: 0.0025,
-			fundingRate7dSum: 0.02,
-			fundingRate30dSum: 0.04,
-			fundingRate7dAverage: 0.002,
-			fundingRate30dAverage: 0.002,
-			openInterest: 2000,
-			indexPrice: 15
-		},
-		{
-			symbol: 'AAVE',
-			baseAsset: 'AAVE',
-			market: 'AAVE-PERP',
-			marketplace: 'Hyperliquid',
-			fundingRatePrevious: 0.002,
-			fundingRate: 0.0025,
-			fundingRate7dSum: 0.02,
-			fundingRate30dSum: 0.04,
-			fundingRate7dAverage: 0.002,
-			fundingRate30dAverage: 0.002,
-			openInterest: 3000,
-			indexPrice: 100
-		}
-	])
 })
 
-describe('getTokenStrategiesData', () => {
-	it('returns combined borrow and long/short data for a token', async () => {
-		const payload = await getTokenStrategiesData('LINK')
+describe('getTokenBorrowRoutesData', () => {
+	it('returns borrow route data for a token', async () => {
+		const payload = await getTokenBorrowRoutesData('LINK')
 
 		expect(payload.borrowAsCollateral).toHaveLength(2)
 		expect(payload.borrowAsCollateral[0].symbol).toBe('LINK')
 		expect(payload.borrowAsDebt).toHaveLength(2)
 		expect(payload.borrowAsDebt[0].borrow.symbol).toBe('LINK')
-		expect(payload.longShort).toHaveLength(1)
-		expect(payload.longShort[0].symbolPerp).toBe('LINK-PERP')
 	})
 })
