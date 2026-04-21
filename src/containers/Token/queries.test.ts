@@ -136,6 +136,9 @@ describe('getTokenRiskData', () => {
 		expect(payload?.collateralRisk.rows[0].protocolDisplayName).toBe('Aave V3')
 		expect(payload?.collateralRisk.rows[0].chainDisplayName).toBe('Ethereum')
 		expect(payload?.limitations.length).toBeGreaterThan(0)
+		expect(payload?.limitations).toContain(
+			'Collateral-side available is route-level, but pooled markets do not expose collateral-specific borrowed totals without indexing individual borrow positions.'
+		)
 	})
 
 	it('returns collateral-side risk data when the token has no debt-side borrowing rows', async () => {

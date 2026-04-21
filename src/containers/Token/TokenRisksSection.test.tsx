@@ -91,8 +91,6 @@ const createRiskData = (): TokenRiskResponse => ({
 	},
 	collateralRisk: {
 		summary: {
-			totalBorrowCapUsd: 800,
-			totalBorrowedUsd: 300,
 			totalAvailableToBorrowUsd: 500,
 			routeCount: 1,
 			isolatedRouteCount: 1,
@@ -107,8 +105,6 @@ const createRiskData = (): TokenRiskResponse => ({
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'WBTC',
 				debtTotalSupplyUsd: 800,
-				debtTotalBorrowedUsd: 300,
-				borrowCapUsd: 800,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
 				liquidationPenalty: 0.04,
@@ -122,7 +118,6 @@ const createRiskData = (): TokenRiskResponse => ({
 		],
 		methodologies: {
 			availableToBorrowUsd: 'Available methodology',
-			debtTotalBorrowedUsd: 'Borrowed methodology',
 			maxLtv: 'Max LTV methodology',
 			liquidationThreshold: 'Threshold methodology',
 			liquidationPenalty: 'Penalty methodology',
@@ -142,9 +137,11 @@ describe('TokenRisksSection', () => {
 
 		expect(html).toContain('Total available to borrow using USDC as collateral')
 		expect(html).toContain('$500')
-		expect(html).toContain('$300 currently borrowed across the reachable debt markets ($800 derived route capacity)')
+		expect(html).toContain(
+			'Across 1 collateral route. Borrowed totals are omitted for pooled markets because they are not collateral-specific.'
+		)
 		expect(html).toContain('Aave V3')
-		expect(html).toContain('$500 available ($300 borrowed in route debt markets / $800 derived route capacity)')
+		expect(html).toContain('$500 available now')
 		expect(html).toContain('Ethereum')
 		expect(html).toContain('How much can still be borrowed right now using USDC as collateral across lending protocols')
 	})
@@ -157,9 +154,7 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain('Show USDC collateral details')
 		expect(html).toContain('Show borrow-cap details')
 		expect(html).toContain('paginated-table:1')
-		expect(html).toContain('derived route capacity is available plus the current borrowed amount')
-		expect(html).toContain('Cap|Borrowing cap against this collateral route, calculated as borrowed plus available.')
-		expect(html).toContain('Borrowed|Borrowed methodology')
+		expect(html).toContain('Borrowed-against totals are intentionally omitted')
 		expect(html).toContain('Available|Available methodology')
 		expect(html).toContain('Max LTV|Max LTV methodology')
 	})
@@ -167,8 +162,6 @@ describe('TokenRisksSection', () => {
 	it('prioritizes collateral protocols by available liquidity instead of implied cap', () => {
 		const riskData = createRiskData()
 		riskData.collateralRisk.summary = {
-			totalBorrowCapUsd: 1373,
-			totalBorrowedUsd: 350,
 			totalAvailableToBorrowUsd: 1023,
 			routeCount: 3,
 			isolatedRouteCount: 1,
@@ -183,8 +176,6 @@ describe('TokenRisksSection', () => {
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'WBTC',
 				debtTotalSupplyUsd: 800,
-				debtTotalBorrowedUsd: 300,
-				borrowCapUsd: 1000,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
 				liquidationPenalty: 0.04,
@@ -202,8 +193,6 @@ describe('TokenRisksSection', () => {
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'USDC',
 				debtTotalSupplyUsd: 123,
-				debtTotalBorrowedUsd: 0,
-				borrowCapUsd: 123,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
 				liquidationPenalty: 0.04,
@@ -221,8 +210,6 @@ describe('TokenRisksSection', () => {
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'USDC',
 				debtTotalSupplyUsd: 950,
-				debtTotalBorrowedUsd: 50,
-				borrowCapUsd: 250,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
 				liquidationPenalty: 0.04,
@@ -241,7 +228,7 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain('$1,023')
 		expect(html.indexOf('Compound V3')).toBeLessThan(html.indexOf('Morpho V3'))
 		expect(html.indexOf('Morpho V3')).toBeLessThan(html.indexOf('Aave V3'))
-		expect(html).toContain('$0 available ($300 borrowed in route debt markets / $1,000 derived route capacity)')
+		expect(html).toContain('$0 available now')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -257,8 +244,6 @@ describe('TokenRisksSection', () => {
 		const riskData = createRiskData()
 		riskData.collateralRisk.rows = []
 		riskData.collateralRisk.summary = {
-			totalBorrowCapUsd: 0,
-			totalBorrowedUsd: 0,
 			totalAvailableToBorrowUsd: 0,
 			routeCount: 0,
 			isolatedRouteCount: 0,
@@ -286,8 +271,6 @@ describe('TokenRisksSection', () => {
 		const riskData = createRiskData()
 		riskData.collateralRisk.rows = []
 		riskData.collateralRisk.summary = {
-			totalBorrowCapUsd: 0,
-			totalBorrowedUsd: 0,
 			totalAvailableToBorrowUsd: 0,
 			routeCount: 0,
 			isolatedRouteCount: 0,

@@ -10,6 +10,8 @@ import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/container
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
+import { resolveTokenUnlockSlug } from '~/containers/Token/tokenUnlocks'
+import { TokenUnlocksSection } from '~/containers/Token/TokenUnlocksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
@@ -59,6 +61,12 @@ export const getStaticProps = withPerformanceLogging(
 		const geckoId = getCoinGeckoId(record.token_nk)
 		const tokenEntry: ITokenListEntry | null = geckoId ? (metadataCache.tokenlist[geckoId] ?? null) : null
 		const protocolMetadata = record.protocolId ? (metadataCache.protocolMetadata[record.protocolId] ?? null) : null
+		const resolvedUnlocksSlug = resolveTokenUnlockSlug({
+			record,
+			protocolMetadata: metadataCache.protocolMetadata,
+			chainMetadata: metadataCache.chainMetadata,
+			emissionsProtocolsList: metadataCache.emissionsProtocolsList
+		})
 		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
 		let tokenRightsData: ITokenRightsData | null = null
@@ -156,6 +164,7 @@ export const getStaticProps = withPerformanceLogging(
 				tokenRiskData,
 				initialYieldsRows,
 				initialTokenBorrowRoutesData,
+				...(resolvedUnlocksSlug ? { resolvedUnlocksSlug } : {}),
 				overview,
 				seoTitle,
 				seoDescription,
@@ -211,6 +220,7 @@ export default function TokenPage({
 	tokenRiskData,
 	initialYieldsRows,
 	initialTokenBorrowRoutesData,
+	resolvedUnlocksSlug,
 	overview,
 	seoTitle,
 	seoDescription,
@@ -247,6 +257,7 @@ export default function TokenPage({
 					/>
 				) : null}
 				<TokenUsageSection tokenSymbol={record.symbol} />
+				<TokenUnlocksSection resolvedUnlocksSlug={resolvedUnlocksSlug} />
 				{shouldRenderYieldsSection ? (
 					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
 				) : null}

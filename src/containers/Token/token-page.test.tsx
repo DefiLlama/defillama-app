@@ -102,6 +102,8 @@ const state: {
 	tokensJson: TokenDirectory
 	tokenRightsEntries: unknown[]
 	protocolMetadata: Record<string, IProtocolMetadata>
+	chainMetadata: Record<string, { name: string }>
+	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
 	initialYieldsRows: unknown[]
@@ -114,6 +116,8 @@ const state: {
 	},
 	tokenRightsEntries: [],
 	protocolMetadata: {},
+	chainMetadata: {},
+	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
 	initialYieldsRows: [],
@@ -145,6 +149,8 @@ function resetState() {
 	}
 	state.tokenRightsEntries = []
 	state.protocolMetadata = {}
+	state.chainMetadata = {}
+	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
 	state.initialYieldsRows = []
@@ -188,6 +194,11 @@ vi.mock('~/containers/Token/TokenUsageSection', () => ({
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
 	TokenYieldsSection: () => <div>token-yields-section</div>
+}))
+
+vi.mock('~/containers/Token/TokenUnlocksSection', () => ({
+	TokenUnlocksSection: ({ resolvedUnlocksSlug }: { resolvedUnlocksSlug?: string | null }) =>
+		resolvedUnlocksSlug ? <div>{`token-unlocks-section:${resolvedUnlocksSlug}`}</div> : null
 }))
 
 vi.mock('~/containers/Token/TokenBorrowSection', () => ({
@@ -238,7 +249,10 @@ vi.mock('~/utils/metadata', () => ({
 			return {}
 		},
 		get chainMetadata() {
-			return {}
+			return state.chainMetadata
+		},
+		get emissionsProtocolsList() {
+			return state.emissionsProtocolsList
 		},
 		get protocolDisplayNames() {
 			return new Map<string, string>()
@@ -290,6 +304,7 @@ describe('token page', () => {
 					} as TokenBorrowRoutesResponse
 				}
 				geckoId="bitcoin"
+				resolvedUnlocksSlug="chainlink"
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -300,6 +315,7 @@ describe('token page', () => {
 		expect(html).toContain('token-overview-section')
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
+		expect(html).toContain('token-unlocks-section:chainlink')
 		expect(html).toContain('token-yields-section')
 		expect(html).toContain('token-borrow-section')
 		expect(html).toContain('token-risks-section')
@@ -308,7 +324,8 @@ describe('token page', () => {
 		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
 		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-rights-section'))
-		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-usage-section'))
+		expect(html.indexOf('token-unlocks-section:chainlink')).toBeGreaterThan(html.indexOf('token-usage-section'))
+		expect(html.indexOf('token-yields-section')).toBeGreaterThan(html.indexOf('token-unlocks-section:chainlink'))
 		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
 	})
 
@@ -335,6 +352,7 @@ describe('token page', () => {
 		expect(html).not.toContain('token-yields-section')
 		expect(html).not.toContain('token-borrow-section')
 		expect(html).not.toContain('token-risks-section')
+		expect(html).not.toContain('token-unlocks-section:')
 	})
 
 	it('renders each yield-related section from its own prefetched dataset', () => {
@@ -365,6 +383,7 @@ describe('token page', () => {
 		expect(html).not.toContain('token-yields-section')
 		expect(html).toContain('token-borrow-section')
 		expect(html).toContain('token-risks-section')
+		expect(html).not.toContain('token-unlocks-section:')
 	})
 
 	it('getStaticPaths prerenders top market cap token routes with blocking fallback', async () => {
@@ -647,6 +666,78 @@ describe('token page', () => {
 		})
 	})
 
+	it('getStaticProps resolves embedded unlocks by protocol display name when the slug is cached', async () => {
+		state.tokensJson = {
+			link: {
+				name: 'Chainlink',
+				symbol: 'LINK',
+				token_nk: 'coingecko:chainlink',
+				protocolId: 'parent#chainlink'
+			}
+		}
+		state.protocolMetadata = {
+			'parent#chainlink': {
+				displayName: 'Chainlink'
+			} as IProtocolMetadata
+		}
+		state.emissionsProtocolsList = ['chainlink']
+		state.tokenlist = {
+			chainlink: {
+				symbol: 'link',
+				current_price: 10,
+				price_change_percentage_24h: 10,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+
+		const result = await getStaticProps({ params: { token: 'link' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.resolvedUnlocksSlug).toBe('chainlink')
+	})
+
+	it('getStaticProps falls back to chain-name unlock slugs when the chain is cached', async () => {
+		state.tokensJson = {
+			sol: {
+				name: 'Solana',
+				symbol: 'SOL',
+				token_nk: 'coingecko:solana',
+				chainId: 'solana'
+			}
+		}
+		state.chainMetadata = {
+			solana: {
+				name: 'Solana'
+			}
+		}
+		state.emissionsProtocolsList = ['solana']
+		state.tokenlist = {
+			solana: {
+				symbol: 'sol',
+				current_price: 10,
+				price_change_percentage_24h: 10,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+
+		const result = await getStaticProps({ params: { token: 'sol' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.resolvedUnlocksSlug).toBe('solana')
+	})
+
 	it('getStaticProps includes income statement data when the token protocol has one', async () => {
 		const incomeStatementData = {
 			data: {
@@ -905,8 +996,6 @@ describe('token page', () => {
 			},
 			collateralRisk: {
 				summary: {
-					totalBorrowCapUsd: 0,
-					totalBorrowedUsd: 0,
 					totalAvailableToBorrowUsd: 0,
 					routeCount: 0,
 					isolatedRouteCount: 0,
@@ -916,7 +1005,6 @@ describe('token page', () => {
 				rows: [],
 				methodologies: {
 					availableToBorrowUsd: 'available',
-					debtTotalBorrowedUsd: 'borrowed',
 					maxLtv: 'ltv',
 					liquidationThreshold: 'threshold',
 					liquidationPenalty: 'penalty',

@@ -196,15 +196,12 @@ describe('tokenRisk utils', () => {
 
 		const section = buildCollateralRiskSection(bucket, methodologies)
 
-		expect(section.summary.totalBorrowCapUsd).toBe(1250)
-		expect(section.summary.totalBorrowedUsd).toBe(800)
 		expect(section.summary.totalAvailableToBorrowUsd).toBe(450)
 		expect(section.summary.routeCount).toBe(2)
 		expect(section.summary.isolatedRouteCount).toBe(1)
 		expect(section.summary.minLiquidationBuffer).toBeCloseTo(0.08)
 		expect(section.summary.maxLiquidationBuffer).toBeCloseTo(0.15)
 		expect(section.rows[0].debtSymbol).toBe('USDT')
-		expect(section.rows[0].borrowCapUsd).toBe(700)
 		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
 		expect(section.rows[0].chainDisplayName).toBe('ethereum')
 	})
@@ -217,19 +214,19 @@ describe('tokenRisk utils', () => {
 					protocol: 'aave-v3',
 					availableToBorrowUsd: 0,
 					debtTotalBorrowedUsd: 1000,
-					borrowCapUsd: 1000
+					debtTotalSupplyUsd: 2000
 				}),
 				createRoute({
 					protocol: 'morpho-v3',
 					availableToBorrowUsd: 123,
 					debtTotalBorrowedUsd: 0,
-					borrowCapUsd: 123
+					debtTotalSupplyUsd: 123
 				}),
 				createRoute({
 					protocol: 'compound-v3',
 					availableToBorrowUsd: 900,
 					debtTotalBorrowedUsd: 50,
-					borrowCapUsd: 950
+					debtTotalSupplyUsd: 950
 				})
 			]
 		}

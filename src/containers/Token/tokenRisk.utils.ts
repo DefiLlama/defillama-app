@@ -28,6 +28,9 @@ export const TOKEN_RISK_LIMITATIONS_COMMON = [
 export const TOKEN_RISK_LIMITATION_DEBT_SIDE =
 	'Debt-side totals repeat across many collateral routes, so this data cannot estimate collateral-specific lender loss.'
 
+export const TOKEN_RISK_LIMITATION_COLLATERAL_SIDE =
+	'Collateral-side available is route-level, but pooled markets do not expose collateral-specific borrowed totals without indexing individual borrow positions.'
+
 function normalizeAddress(address: string | null | undefined): string {
 	return (address ?? '').trim().toLowerCase()
 }
@@ -228,7 +231,6 @@ export function buildCollateralRiskSection(
 	methodologies: Pick<
 		TokenRiskRouteMethodologies,
 		| 'availableToBorrowUsd'
-		| 'debtTotalBorrowedUsd'
 		| 'maxLtv'
 		| 'liquidationThreshold'
 		| 'liquidationPenalty'
@@ -246,8 +248,6 @@ export function buildCollateralRiskSection(
 			market: route.market,
 			debtSymbol: route.debt.symbol,
 			debtTotalSupplyUsd: route.debtTotalSupplyUsd,
-			debtTotalBorrowedUsd: route.debtTotalBorrowedUsd,
-			borrowCapUsd: route.availableToBorrowUsd + route.debtTotalBorrowedUsd,
 			maxLtv: route.maxLtv,
 			liquidationThreshold: route.liquidationThreshold,
 			liquidationPenalty: route.liquidationPenalty,
@@ -261,17 +261,17 @@ export function buildCollateralRiskSection(
 			if (a.availableToBorrowUsd !== b.availableToBorrowUsd) {
 				return b.availableToBorrowUsd - a.availableToBorrowUsd
 			}
-			return b.borrowCapUsd - a.borrowCapUsd
+			if (a.debtTotalSupplyUsd !== b.debtTotalSupplyUsd) {
+				return b.debtTotalSupplyUsd - a.debtTotalSupplyUsd
+			}
+			return a.market.localeCompare(b.market)
 		})
 
 	const liquidationBuffers = rows.map((row) => row.liquidationBuffer).filter((value) => Number.isFinite(value))
-	const totalBorrowedUsd = rows.reduce((sum, row) => sum + row.debtTotalBorrowedUsd, 0)
 	const totalAvailableToBorrowUsd = rows.reduce((sum, row) => sum + row.availableToBorrowUsd, 0)
 
 	return {
 		summary: {
-			totalBorrowCapUsd: totalBorrowedUsd + totalAvailableToBorrowUsd,
-			totalBorrowedUsd,
 			totalAvailableToBorrowUsd,
 			routeCount: rows.length,
 			isolatedRouteCount: rows.filter((row) => row.isolationMode).length,
@@ -281,7 +281,6 @@ export function buildCollateralRiskSection(
 		rows,
 		methodologies: {
 			availableToBorrowUsd: methodologies.availableToBorrowUsd,
-			debtTotalBorrowedUsd: methodologies.debtTotalBorrowedUsd,
 			maxLtv: methodologies.maxLtv,
 			liquidationThreshold: methodologies.liquidationThreshold,
 			liquidationPenalty: methodologies.liquidationPenalty,
