@@ -5,8 +5,8 @@ type TableTextAlign = 'start' | 'center' | 'end'
 
 function getTableTextAlignClass(textAlign: TableTextAlign) {
 	if (textAlign === 'center') return 'text-center'
-	if (textAlign === 'end') return 'text-right'
-	return 'text-left'
+	if (textAlign === 'end') return 'text-end'
+	return 'text-start'
 }
 
 interface TokenPageTableCellProps {

@@ -104,7 +104,7 @@ export function PaginatedTable<T extends RowData>({
 										{headerGroup.headers.map((header) => {
 											const align = header.column.columnDef.meta?.align ?? 'start'
 											const headerAlignmentClass =
-												align === 'center' ? 'mx-auto w-fit' : align === 'end' ? 'ml-auto w-fit' : 'w-fit'
+												align === 'center' ? 'mx-auto w-fit' : align === 'end' ? 'ms-auto w-fit' : 'w-fit'
 
 											return (
 												<TokenPageTableHeaderCell

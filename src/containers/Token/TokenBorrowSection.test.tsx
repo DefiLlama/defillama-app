@@ -146,12 +146,8 @@ describe('TokenBorrowSection', () => {
 
 	it('shows the default use-token table with pagination', () => {
 		strategiesState.data = {
-			borrowAsCollateral: [
-				makeBorrowRow()
-			],
-			borrowAsDebt: [
-				makeBorrowRow({ symbol: 'WBTC' }, { symbol: 'ETH', totalAvailableUsd: 250000 })
-			]
+			borrowAsCollateral: [makeBorrowRow()],
+			borrowAsDebt: [makeBorrowRow({ symbol: 'WBTC' }, { symbol: 'ETH', totalAvailableUsd: 250000 })]
 		}
 		strategiesState.error = null
 		strategiesState.isLoading = false

@@ -33,7 +33,13 @@ export function useFetchTokenOverviewChartData({
 		overview.marketData.maxSupply == null &&
 		overview.marketData.totalSupply == null
 
-	const { data: chartData = null, isLoading: loadingChartData } = useQuery({
+	const {
+		data: chartData = null,
+		isLoading: loadingChartData,
+		isError: isChartError,
+		isFetching: isFetchingChartData
+	} = useQuery({
+		// Keep all token overview full-chart responses under one key per Gecko id.
 		queryKey: ['token-overview', 'chart', geckoId],
 		queryFn: () => fetchTokenOverviewChart(geckoId!),
 		staleTime: 60 * 60 * 1000,
@@ -42,7 +48,12 @@ export function useFetchTokenOverviewChartData({
 		enabled: shouldFetchChart
 	})
 
-	const { data: totalSupply = null, isLoading: loadingTotalSupply } = useQuery({
+	const {
+		data: totalSupply = null,
+		isLoading: loadingTotalSupply,
+		isError: isTotalSupplyError,
+		isFetching: isFetchingTotalSupply
+	} = useQuery({
 		queryKey: ['token-overview', 'total-supply', geckoId],
 		queryFn: () => fetchTokenOverviewTotalSupply(geckoId!),
 		staleTime: 60 * 60 * 1000,
@@ -62,6 +73,8 @@ export function useFetchTokenOverviewChartData({
 					})
 				}
 			: overview.rawChartData,
-		isLoading: loadingChartData || loadingTotalSupply
+		isLoading: loadingChartData || loadingTotalSupply,
+		isFetching: isFetchingChartData || isFetchingTotalSupply,
+		isError: isChartError || isTotalSupplyError
 	}
 }

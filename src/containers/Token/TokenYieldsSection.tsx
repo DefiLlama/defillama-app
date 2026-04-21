@@ -243,7 +243,7 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 				) : (
 					<>
 						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="p-3">
+							<div className="p-1">
 								<ResponsiveFilterLayout>
 									{(nestedMenu) => (
 										<>

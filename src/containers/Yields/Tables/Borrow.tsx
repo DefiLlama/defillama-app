@@ -242,7 +242,7 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					data-strike={info.row.original.strikeTvl ?? 'false'}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
 					className="flex justify-end gap-1 data-[strike=true]:text-(--text-disabled)"
 				>
 					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (

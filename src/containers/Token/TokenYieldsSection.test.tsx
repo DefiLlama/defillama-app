@@ -170,12 +170,7 @@ describe('TokenYieldsSection', () => {
 			isLoading: true
 		}
 
-		const html = renderToStaticMarkup(
-			<TokenYieldsSection
-				tokenSymbol="ETH"
-				initialData={[makeYieldRow()]}
-			/>
-		)
+		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" initialData={[makeYieldRow()]} />)
 
 		expect(html).toContain('Tracking 1 pool, average APY 5.10%')
 		expect(html).toContain('yields-table:1:paginated:10')
