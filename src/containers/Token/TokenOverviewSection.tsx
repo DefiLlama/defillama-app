@@ -117,7 +117,7 @@ function areTokenOverviewChartsEqual(a: TokenOverviewChartLabel[], b: TokenOverv
 	return a.length === b.length && a.every((value, index) => value === b[index])
 }
 
-function TokenHeader({
+export function TokenPageHero({
 	overview,
 	headingAs: Heading = 'h1'
 }: {
@@ -132,7 +132,7 @@ function TokenHeader({
 			: 'rgba(211, 0, 0, 0.7)'
 
 	return (
-		<div className="flex flex-col gap-3">
+		<div className="flex flex-col gap-6">
 			<div className="flex flex-wrap items-center gap-2 text-xl">
 				{overview.logoUrl ? (
 					<TokenLogo
@@ -554,22 +554,19 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 
 export function TokenOverviewSection({ overview, geckoId }: { overview: TokenOverviewData; geckoId: string | null }) {
 	return (
-		<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-			<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
-				<TokenHeader overview={overview} headingAs="h1" />
-				<TokenMetrics overview={overview} />
-			</div>
-			<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
-				<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<div className="xl:hidden">
-						<TokenHeader overview={overview} headingAs="div" />
-					</div>
-					<TokenChartPanel overview={overview} geckoId={geckoId} />
-				</div>
-				<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
+		<section className="scroll-mt-24" id="token-overview">
+			<h2 className="sr-only">Overview</h2>
+			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
+				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
+					<TokenPageHero overview={overview} />
 					<TokenMetrics overview={overview} />
 				</div>
+				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
+					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+						<TokenChartPanel overview={overview} geckoId={geckoId} />
+					</div>
+				</div>
 			</div>
-		</div>
+		</section>
 	)
 }

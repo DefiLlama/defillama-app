@@ -186,7 +186,7 @@ vi.mock('~/constants', () => ({
 }))
 
 vi.mock('~/containers/Token/TokenOverviewSection', () => ({
-	TokenOverviewSection: () => <div>token-overview-section</div>
+	TokenOverviewSection: () => <section id="token-overview">token-overview-section</section>
 }))
 
 vi.mock('~/containers/Token/tokenOverview', () => ({
@@ -195,36 +195,36 @@ vi.mock('~/containers/Token/tokenOverview', () => ({
 }))
 
 vi.mock('~/containers/Token/TokenUsageSection', () => ({
-	TokenUsageSection: () => <div>token-usage-section</div>
+	TokenUsageSection: () => <section id="token-usage">token-usage-section</section>
 }))
 
 vi.mock('~/containers/Token/TokenLiquidationsSection', () => ({
-	TokenLiquidationsSection: () => <div>token-liquidations-section</div>
+	TokenLiquidationsSection: () => <section id="token-liquidations">token-liquidations-section</section>
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
-	TokenYieldsSection: () => <div>token-yields-section</div>
+	TokenYieldsSection: () => <section id="token-yields">token-yields-section</section>
 }))
 
 vi.mock('~/containers/Token/TokenUnlocksSection', () => ({
 	TokenUnlocksSection: ({ resolvedUnlocksSlug }: { resolvedUnlocksSlug?: string | null }) =>
-		resolvedUnlocksSlug ? <div>{`token-unlocks-section:${resolvedUnlocksSlug}`}</div> : null
+		resolvedUnlocksSlug ? <section id="token-unlocks">{`token-unlocks-section:${resolvedUnlocksSlug}`}</section> : null
 }))
 
 vi.mock('~/containers/Token/TokenBorrowSection', () => ({
-	TokenBorrowSection: () => <div>token-borrow-section</div>
+	TokenBorrowSection: () => <section id="token-borrow">token-borrow-section</section>
 }))
 
 vi.mock('~/containers/Token/TokenRisksSection', () => ({
-	TokenRisksSection: () => <div>token-risks-section</div>
+	TokenRisksSection: () => <section id="token-risks">token-risks-section</section>
 }))
 
 vi.mock('~/containers/Token/TokenIncomeStatementSection', () => ({
-	TokenIncomeStatementSection: () => <div>token-income-statement-section</div>
+	TokenIncomeStatementSection: () => <section id="token-income-statement">token-income-statement-section</section>
 }))
 
 vi.mock('~/containers/TokenRights/TokenRightsByProtocol', () => ({
-	TokenRightsByProtocol: () => <div>token-rights-section</div>
+	TokenRightsByProtocol: () => <section id="token-rights-and-value-accrual">token-rights-section</section>
 }))
 
 vi.mock('~/layout', () => ({
@@ -302,7 +302,7 @@ afterEach(() => {
 })
 
 describe('token page', () => {
-	it('renders income statement, risk, token rights, token usage, and yield tables in order', () => {
+	it('renders the sticky section nav and token sections in manifest order', () => {
 		const html = renderToStaticMarkup(
 			<TokenPage
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', tokenRights: true, is_yields: true }}
@@ -328,7 +328,17 @@ describe('token page', () => {
 				canonicalUrl="/token/btc"
 			/>
 		)
+		const navHtml = html.match(/<nav[^>]*aria-label="Token page sections"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
 
+		expect(html).toContain('Overview')
+		expect(html).toContain('Income Statement')
+		expect(html).toContain('Risks')
+		expect(html).toContain('Liquidations')
+		expect(html).toContain('Token Rights')
+		expect(html).toContain('Token Usage')
+		expect(html).toContain('Unlocks')
+		expect(html).toContain('Yields')
+		expect(html).toContain('Borrow')
 		expect(html).toContain('token-overview-section')
 		expect(html).toContain('token-income-statement-section')
 		expect(html).toContain('token-usage-section')
@@ -338,6 +348,24 @@ describe('token page', () => {
 		expect(html).toContain('token-borrow-section')
 		expect(html).toContain('token-risks-section')
 		expect(html).toContain('token-rights-section')
+		expect(html).toContain('id="token-overview"')
+		expect(html).toContain('id="token-income-statement"')
+		expect(html).toContain('id="token-risks"')
+		expect(html).toContain('id="token-rights-and-value-accrual"')
+		expect(html).toContain('id="token-usage"')
+		expect(html).toContain('id="token-liquidations"')
+		expect(html).toContain('id="token-unlocks"')
+		expect(html).toContain('id="token-yields"')
+		expect(html).toContain('id="token-borrow"')
+		expect(navHtml).toContain('>Overview<')
+		expect(navHtml).toContain('>Income Statement<')
+		expect(navHtml).toContain('>Risks<')
+		expect(navHtml).toContain('>Token Rights<')
+		expect(navHtml).toContain('>Token Usage<')
+		expect(navHtml).toContain('>Liquidations<')
+		expect(navHtml).toContain('>Unlocks<')
+		expect(navHtml).toContain('>Yields<')
+		expect(navHtml).toContain('>Borrow<')
 		expect(html.indexOf('token-income-statement-section')).toBeGreaterThan(html.indexOf('token-overview-section'))
 		expect(html.indexOf('token-risks-section')).toBeGreaterThan(html.indexOf('token-income-statement-section'))
 		expect(html.indexOf('token-rights-section')).toBeGreaterThan(html.indexOf('token-risks-section'))
@@ -348,7 +376,7 @@ describe('token page', () => {
 		expect(html.indexOf('token-borrow-section')).toBeGreaterThan(html.indexOf('token-yields-section'))
 	})
 
-	it('does not render the yields stack when the token does not opt into yields', () => {
+	it('limits the section nav to the sections that actually render', () => {
 		const html = renderToStaticMarkup(
 			<TokenPage
 				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
@@ -368,12 +396,22 @@ describe('token page', () => {
 				canonicalUrl="/token/btc"
 			/>
 		)
+		const navHtml = html.match(/<nav[^>]*aria-label="Token page sections"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
 
+		expect(html).toContain('Overview')
+		expect(html).toContain('Token Usage')
 		expect(html).not.toContain('token-yields-section')
 		expect(html).not.toContain('token-borrow-section')
 		expect(html).not.toContain('token-risks-section')
 		expect(html).not.toContain('token-liquidations-section')
 		expect(html).not.toContain('token-unlocks-section:')
+		expect(navHtml).toContain('>Overview<')
+		expect(navHtml).toContain('>Token Usage<')
+		expect(navHtml).not.toContain('>Yields<')
+		expect(navHtml).not.toContain('>Borrow<')
+		expect(navHtml).not.toContain('>Risks<')
+		expect(navHtml).not.toContain('>Liquidations<')
+		expect(navHtml).not.toContain('>Unlocks<')
 	})
 
 	it('renders each yield-related section from its own prefetched dataset', () => {

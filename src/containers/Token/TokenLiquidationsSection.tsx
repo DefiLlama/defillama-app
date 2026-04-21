@@ -121,7 +121,7 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 	const sectionHeader = (
 		<div className="flex items-center gap-2 border-b border-(--cards-border) p-3">
 			<h2
-				className="group relative flex scroll-mt-4 items-center gap-1 text-xl font-bold"
+				className="group relative flex scroll-mt-24 items-center gap-1 text-xl font-bold"
 				id={TOKEN_LIQUIDATIONS_SECTION_ID}
 			>
 				Liquidations

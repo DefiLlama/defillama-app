@@ -1,4 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { cloneElement, type ReactElement } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
@@ -9,6 +10,7 @@ import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeState
 import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
+import { TokenPageSectionNav } from '~/containers/Token/TokenPageSectionNav'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
 import { resolveTokenUnlockSlug } from '~/containers/Token/tokenUnlocks'
@@ -30,6 +32,12 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 type TokenRouteParams = {
 	token: string
+}
+
+type TokenPageSection = {
+	id: string
+	label: string
+	element: ReactElement
 }
 
 const INITIAL_TOKEN_PRERENDER_LIMIT = 30
@@ -240,38 +248,90 @@ export default function TokenPage({
 	const shouldRenderBorrowSection =
 		(initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
 		(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0
+	const visibleSections = [
+		{
+			id: 'token-overview',
+			label: 'Overview',
+			element: <TokenOverviewSection overview={overview} geckoId={geckoId} />
+		},
+		incomeStatementData && incomeStatementProtocolName
+			? {
+					id: 'token-income-statement',
+					label: 'Income Statement',
+					element: (
+						<TokenIncomeStatementSection
+							protocolName={incomeStatementProtocolName}
+							incomeStatement={incomeStatementData}
+							hasIncentives={incomeStatementHasIncentives}
+						/>
+					)
+				}
+			: null,
+		tokenRiskData
+			? {
+					id: 'token-risks',
+					label: 'Risks',
+					element: <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
+				}
+			: null,
+		tokenRightsData
+			? {
+					id: 'token-rights-and-value-accrual',
+					label: 'Token Rights',
+					element: (
+						<TokenRightsByProtocol
+							name={record.name}
+							symbol={record.symbol}
+							tokenRightsData={tokenRightsData}
+							raises={null}
+							showHeader
+							headerVariant="embedded"
+						/>
+					)
+				}
+			: null,
+		{
+			id: 'token-usage',
+			label: 'Token Usage',
+			element: <TokenUsageSection tokenSymbol={record.symbol} />
+		},
+		hasLiquidations
+			? {
+					id: 'token-liquidations',
+					label: 'Liquidations',
+					element: <TokenLiquidationsSection tokenSymbol={record.symbol} />
+				}
+			: null,
+		resolvedUnlocksSlug
+			? {
+					id: 'token-unlocks',
+					label: 'Unlocks',
+					element: <TokenUnlocksSection resolvedUnlocksSlug={resolvedUnlocksSlug} />
+				}
+			: null,
+		shouldRenderYieldsSection
+			? {
+					id: 'token-yields',
+					label: 'Yields',
+					element: <TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
+				}
+			: null,
+		shouldRenderBorrowSection
+			? {
+					id: 'token-borrow',
+					label: 'Borrow',
+					element: (
+						<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
+					)
+				}
+			: null
+	].filter((section): section is TokenPageSection => section !== null)
 
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
 			<div className="flex flex-col gap-2">
-				<TokenOverviewSection overview={overview} geckoId={geckoId} />
-				{incomeStatementData && incomeStatementProtocolName ? (
-					<TokenIncomeStatementSection
-						protocolName={incomeStatementProtocolName}
-						incomeStatement={incomeStatementData}
-						hasIncentives={incomeStatementHasIncentives}
-					/>
-				) : null}
-				{tokenRiskData ? <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} /> : null}
-				{tokenRightsData ? (
-					<TokenRightsByProtocol
-						name={record.name}
-						symbol={record.symbol}
-						tokenRightsData={tokenRightsData}
-						raises={null}
-						showHeader
-						headerVariant="embedded"
-					/>
-				) : null}
-				<TokenUsageSection tokenSymbol={record.symbol} />
-				{hasLiquidations ? <TokenLiquidationsSection tokenSymbol={record.symbol} /> : null}
-				<TokenUnlocksSection resolvedUnlocksSlug={resolvedUnlocksSlug} />
-				{shouldRenderYieldsSection ? (
-					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
-				) : null}
-				{shouldRenderBorrowSection ? (
-					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
-				) : null}
+				<TokenPageSectionNav sections={visibleSections.map(({ id, label }) => ({ id, label }))} />
+				{visibleSections.map((section) => cloneElement(section.element, { key: section.id }))}
 			</div>
 		</Layout>
 	)

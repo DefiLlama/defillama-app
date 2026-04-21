@@ -1,6 +1,8 @@
 import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 
+const TOKEN_INCOME_STATEMENT_SECTION_ID = 'token-income-statement'
+
 interface TokenIncomeStatementSectionProps {
 	protocolName: string
 	incomeStatement: IProtocolOverviewPageData['incomeStatement'] | null | undefined
@@ -20,7 +22,8 @@ export function TokenIncomeStatementSection({
 			incomeStatement={incomeStatement}
 			hasIncentives={hasIncentives}
 			view="table"
-			titleClassName="scroll-mt-4 text-xl font-bold"
+			anchorId={TOKEN_INCOME_STATEMENT_SECTION_ID}
+			titleClassName="scroll-mt-24 text-xl font-bold"
 		/>
 	)
 }

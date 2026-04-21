@@ -320,16 +320,6 @@
       "oldName": "DEXs (Chains)"
     },
     {
-      "name": "DEX Aggregator Volume by Protocol",
-      "route": "/dex-aggregators",
-      "category": "Volume",
-      "description": "Volume of spot token swaps that go through a DEX aggregator",
-      "totalTrackedKey": "dexAggregators.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Volume",
-      "oldName": "DEX Aggregators"
-    },
-    {
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
@@ -338,6 +328,16 @@
       "tab": "Protocols",
       "oldCategory": "Volume",
       "oldName": "Bridge Aggregators"
+    },
+    {
+      "name": "DEX Aggregator Volume by Protocol",
+      "route": "/dex-aggregators",
+      "category": "Volume",
+      "description": "Volume of spot token swaps that go through a DEX aggregator",
+      "totalTrackedKey": "dexAggregators.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Volume",
+      "oldName": "DEX Aggregators"
     },
     {
       "name": "Perp Volume by Chain",

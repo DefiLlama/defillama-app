@@ -10,7 +10,7 @@ import {
 	type TokenOverviewData,
 	getTokenOverviewData
 } from './tokenOverview'
-import { TokenOverviewSection } from './TokenOverviewSection'
+import { TokenOverviewSection, TokenPageHero } from './TokenOverviewSection'
 
 const mocks = vi.hoisted(() => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: vi.fn(),
@@ -652,14 +652,31 @@ describe('tokenOverview helpers', () => {
 	})
 })
 
-describe('TokenOverviewSection component', () => {
-	it('renders nested price and volume breakdown metrics', () => {
-		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+describe('TokenPageHero component', () => {
+	it('renders the token identity, price breakdown, and buy action in the page hero', () => {
+		const html = renderToStaticMarkup(<TokenPageHero overview={overviewFixture} />)
 
+		expect(html).toContain('Bitcoin')
+		expect(html).toContain('(BTC)')
+		expect(html).toContain('Token Price')
 		expect(html).toContain('All Time High')
 		expect(html).toContain('All Time Low')
-		expect(html).toContain('Token Price')
 		expect(html).toContain('Buy Now')
+	})
+})
+
+describe('TokenOverviewSection component', () => {
+	it('renders the overview chart and key metrics without duplicating the page hero', () => {
+		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+
+		expect(html).toContain('Bitcoin')
+		expect(html).toContain('(BTC)')
+		expect(html).toContain('Buy Now')
+		expect((html.match(/Buy Now/g) || []).length).toBe(1)
+		expect((html.match(/\(BTC\)/g) || []).length).toBe(1)
+		expect((html.match(/id="token-key-metrics"/g) || []).length).toBe(1)
+		expect(html).toContain('Overview')
+		expect(html).toContain('Key Metrics')
 		expect(html).toContain('Add Metrics')
 		expect(html).toContain('$BTC Price')
 		expect(html).toContain('CEX Volume')
