@@ -10,6 +10,7 @@ import { startTransition, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
 import type { TokenRiskBorrowCapsRow, TokenRiskCollateralRiskRow, TokenRiskResponse } from './tokenRisk.types'
@@ -35,7 +36,7 @@ type CollateralProtocolSummary = {
 	chainDisplayNames: string[]
 }
 
-const DEFAULT_BORROW_CAPS_SORTING: SortingState = [{ id: 'borrowCapUsd', desc: true }]
+const DEFAULT_BORROW_CAPS_SORTING: SortingState = [{ id: 'displayBorrowCapUsd', desc: true }]
 const DEFAULT_COLLATERAL_RISK_SORTING: SortingState = [{ id: 'availableToBorrowUsd', desc: true }]
 
 function formatUsd(value: number | null | undefined) {
@@ -46,6 +47,14 @@ function formatUsd(value: number | null | undefined) {
 function formatPercent(value: number | null | undefined, fractionDigits = 1) {
 	if (value == null || Number.isNaN(value)) return '-'
 	return `${(value * 100).toFixed(fractionDigits)}%`
+}
+
+function UncappedIndicator({ content, className }: { content: string; className?: string }) {
+	return (
+		<Tooltip content={content} className={`underline decoration-dotted${className ? ` ${className}` : ''}`}>
+			Uncapped
+		</Tooltip>
+	)
 }
 
 function getToneClassName(tone: RiskTone) {
@@ -139,9 +148,17 @@ function createBorrowCapsColumns(methodologies: TokenRiskResponse['borrowCaps'][
 			header: 'Asset',
 			enableSorting: false
 		}),
-		borrowCapsColumnHelper.accessor('borrowCapUsd', {
+		borrowCapsColumnHelper.accessor('displayBorrowCapUsd', {
 			header: 'Borrow Cap',
-			cell: ({ getValue }) => formatUsd(getValue()),
+			cell: ({ row, getValue }) =>
+				getValue() == null ? (
+					<UncappedIndicator
+						content={`No governance borrow cap is configured for ${row.original.debtSymbol} in this market.`}
+						className="w-full justify-end"
+					/>
+				) : (
+					formatUsd(getValue())
+				),
 			meta: {
 				align: 'end',
 				headerHelperText: methodologies.borrowCapUsd
@@ -160,13 +177,18 @@ function createBorrowCapsColumns(methodologies: TokenRiskResponse['borrowCaps'][
 			cell: ({ row, getValue }) => (
 				<MetricPill
 					value={formatUsd(getValue())}
-					tone={getHeadroomTone(getValue(), row.original.borrowCapUsd)}
-					title={`Remaining borrow-cap headroom for ${row.original.debtSymbol} in this market.`}
+					tone={getHeadroomTone(getValue(), row.original.borrowCapUsd ?? row.original.debtTotalSupplyUsd)}
+					title={
+						row.original.borrowCapUsd == null
+							? `No governance borrow cap is configured for ${row.original.debtSymbol} in this market. Showing debt total supply minus borrowed amount instead.`
+							: `Remaining borrow-cap headroom for ${row.original.debtSymbol} in this market.`
+					}
 				/>
 			),
 			meta: {
 				align: 'end',
-				headerHelperText: 'Borrow cap minus current borrowed amount for the debt asset in this market.'
+				headerHelperText:
+					'Borrow cap minus current borrowed amount for the debt asset in this market. When no governance cap exists, this shows debt total supply minus borrowed amount.'
 			}
 		}),
 		borrowCapsColumnHelper.accessor('availableToBorrowUsd', {
@@ -183,9 +205,7 @@ function createBorrowCapsColumns(methodologies: TokenRiskResponse['borrowCaps'][
 				<MetricPill
 					value={formatPercent(getValue())}
 					tone={getUtilizationTone(getValue())}
-					title={`${formatUsd(row.original.debtTotalBorrowedUsd)} borrowed of ${formatUsd(
-						row.original.borrowCapUsd
-					)} cap.`}
+					title={`${formatUsd(row.original.debtTotalBorrowedUsd)} borrowed of ${formatUsd(row.original.displayBorrowCapUsd)} cap.`}
 				/>
 			),
 			meta: {
@@ -235,6 +255,22 @@ function createCollateralRiskColumns(methodologies: TokenRiskResponse['collatera
 			meta: {
 				align: 'end',
 				headerHelperText: methodologies.availableToBorrowUsd
+			}
+		}),
+		collateralRiskColumnHelper.accessor('displayBorrowCapUsd', {
+			header: 'Debt Borrow Cap',
+			cell: ({ row, getValue }) =>
+				getValue() == null ? (
+					<UncappedIndicator
+						content={`No governance borrow cap is configured for ${row.original.debtSymbol} in this market.`}
+						className="w-full justify-end"
+					/>
+				) : (
+					formatUsd(getValue())
+				),
+			meta: {
+				align: 'end',
+				headerHelperText: methodologies.borrowCapUsd
 			}
 		}),
 		collateralRiskColumnHelper.accessor('maxLtv', {
@@ -382,8 +418,8 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			if (existing) {
 				existing.totalAvailableToBorrowUsd += row.availableToBorrowUsd
 				existing.totalDebtBorrowedUsd += row.debtTotalBorrowedUsd
-				if (row.borrowCapUsd != null && row.borrowCapUsd > 0) {
-					existing.totalBorrowCapUsd += row.borrowCapUsd
+				if (row.displayBorrowCapUsd != null && row.displayBorrowCapUsd > 0) {
+					existing.totalBorrowCapUsd += row.displayBorrowCapUsd
 					existing.hasCap = true
 				}
 				existing.chainDisplayNames.add(row.chainDisplayName)
@@ -395,8 +431,8 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				protocolDisplayName: row.protocolDisplayName,
 				totalAvailableToBorrowUsd: row.availableToBorrowUsd,
 				totalDebtBorrowedUsd: row.debtTotalBorrowedUsd,
-				totalBorrowCapUsd: row.borrowCapUsd != null && row.borrowCapUsd > 0 ? row.borrowCapUsd : 0,
-				hasCap: row.borrowCapUsd != null && row.borrowCapUsd > 0,
+				totalBorrowCapUsd: row.displayBorrowCapUsd != null && row.displayBorrowCapUsd > 0 ? row.displayBorrowCapUsd : 0,
+				hasCap: row.displayBorrowCapUsd != null && row.displayBorrowCapUsd > 0,
 				chainDisplayNames: new Set([row.chainDisplayName])
 			})
 		}
@@ -656,9 +692,13 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 							of remaining cap headroom.
 						</p>
 						<p className="mt-2 text-sm text-(--text-secondary)">
-							Borrow cap equals borrowed plus remaining cap headroom.{' '}
-							<span className="font-medium text-(--text-primary)">Available</span> can be lower than cap headroom when
-							pool liquidity or debt ceilings are the tighter constraint.
+							<span className="font-medium text-(--text-primary)">Borrow Cap</span> uses the governance borrow cap when
+							present and otherwise falls back to the protocol debt ceiling. When neither is configured, it shows{' '}
+							<span className="font-medium text-(--text-primary)">Uncapped</span>.{' '}
+							<span className="font-medium text-(--text-primary)">Cap Headroom</span> uses governance borrow cap when
+							available, otherwise debt total supply minus borrowed.{' '}
+							<span className="font-medium text-(--text-primary)">Available</span> can still be lower when pool
+							liquidity is the tighter constraint.
 						</p>
 						<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
 					</details>

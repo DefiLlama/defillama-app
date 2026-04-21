@@ -72,6 +72,8 @@ const createRiskData = (): TokenRiskResponse => ({
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'USDC',
 				borrowCapUsd: 1000,
+				debtCeilingUsd: null,
+				displayBorrowCapUsd: 1000,
 				debtTotalBorrowedUsd: 400,
 				debtTotalSupplyUsd: 800,
 				remainingCapUsd: 600,
@@ -104,6 +106,8 @@ const createRiskData = (): TokenRiskResponse => ({
 				chain: 'ethereum',
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'WBTC',
+				borrowCapUsd: 1000,
+				displayBorrowCapUsd: 1000,
 				debtTotalSupplyUsd: 800,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
@@ -118,6 +122,7 @@ const createRiskData = (): TokenRiskResponse => ({
 		],
 		methodologies: {
 			availableToBorrowUsd: 'Available methodology',
+			borrowCapUsd: 'Borrow cap methodology',
 			maxLtv: 'Max LTV methodology',
 			liquidationThreshold: 'Threshold methodology',
 			liquidationPenalty: 'Penalty methodology',
@@ -156,7 +161,10 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain('paginated-table:1')
 		expect(html).toContain('Borrowed-against totals are intentionally omitted')
 		expect(html).toContain('Available|Available methodology')
+		expect(html).toContain('Debt Borrow Cap|Borrow cap methodology')
 		expect(html).toContain('Max LTV|Max LTV methodology')
+		expect(html).toContain('Borrow Cap</span> uses the governance borrow cap')
+		expect(html).toContain('falls back to the protocol debt ceiling')
 	})
 
 	it('prioritizes collateral protocols by available liquidity instead of implied cap', () => {
@@ -175,6 +183,8 @@ describe('TokenRisksSection', () => {
 				chain: 'ethereum',
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'WBTC',
+				borrowCapUsd: 1000,
+				displayBorrowCapUsd: 1000,
 				debtTotalSupplyUsd: 800,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
@@ -192,6 +202,8 @@ describe('TokenRisksSection', () => {
 				chain: 'ethereum',
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'USDC',
+				borrowCapUsd: null,
+				displayBorrowCapUsd: null,
 				debtTotalSupplyUsd: 123,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
@@ -209,6 +221,8 @@ describe('TokenRisksSection', () => {
 				chain: 'ethereum',
 				chainDisplayName: 'Ethereum',
 				debtSymbol: 'USDC',
+				borrowCapUsd: 950,
+				displayBorrowCapUsd: 950,
 				debtTotalSupplyUsd: 950,
 				maxLtv: 0.7,
 				liquidationThreshold: 0.78,
@@ -229,6 +243,7 @@ describe('TokenRisksSection', () => {
 		expect(html.indexOf('Compound V3')).toBeLessThan(html.indexOf('Morpho V3'))
 		expect(html.indexOf('Morpho V3')).toBeLessThan(html.indexOf('Aave V3'))
 		expect(html).toContain('$0 available now')
+		expect(html).toContain('Uncapped')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {

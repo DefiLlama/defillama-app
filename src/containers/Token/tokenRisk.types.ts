@@ -29,6 +29,8 @@ export interface TokenRiskBorrowCapsRow {
 	market: string
 	debtSymbol: string
 	borrowCapUsd: number | null
+	debtCeilingUsd: number | null
+	displayBorrowCapUsd: number | null
 	debtTotalBorrowedUsd: number
 	debtTotalSupplyUsd: number
 	remainingCapUsd: number | null
@@ -62,6 +64,8 @@ export interface TokenRiskCollateralRiskRow {
 	chainDisplayName: string
 	market: string
 	debtSymbol: string
+	borrowCapUsd: number | null
+	displayBorrowCapUsd: number | null
 	debtTotalSupplyUsd: number
 	maxLtv: number
 	liquidationThreshold: number
@@ -79,6 +83,7 @@ export interface TokenRiskCollateralRiskSection {
 	methodologies: Pick<
 		TokenRiskRouteMethodologies,
 		| 'availableToBorrowUsd'
+		| 'borrowCapUsd'
 		| 'maxLtv'
 		| 'liquidationThreshold'
 		| 'liquidationPenalty'

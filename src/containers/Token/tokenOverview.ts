@@ -1,6 +1,10 @@
 import { fetchLiquidityTokensDataset } from '~/api'
-import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
-import type { CgChartResponse } from '~/api/coingecko.types'
+import {
+	fetchCoinGeckoChartByIdWithCacheFallback,
+	fetchCoinGeckoCoinById,
+	fetchCoinPriceByCoinGeckoIdViaLlamaPrices
+} from '~/api/coingecko'
+import type { CgChartResponse, CoinGeckoCoinDetailResultForOptions } from '~/api/coingecko.types'
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatLineChart } from '~/components/ECharts/utils'
@@ -64,6 +68,7 @@ export interface TokenOverviewData {
 	name: string
 	displayName: string
 	symbol: string
+	logoUrl?: string | null
 	llamaswapChains: IProtocolLlamaswapChain[] | null
 	marketData: TokenOverviewMarketData
 	treasury: TokenOverviewTreasury | null
@@ -97,12 +102,105 @@ const emptyMarketData: TokenOverviewMarketData = {
 	}
 }
 
+function needsCoinDetailFallback(tokenEntry: ITokenListEntry | null): boolean {
+	if (!tokenEntry) return true
+
+	return (
+		tokenEntry.current_price == null ||
+		tokenEntry.circulating_supply == null ||
+		tokenEntry.total_supply == null ||
+		tokenEntry.market_cap == null ||
+		tokenEntry.fully_diluted_valuation == null ||
+		tokenEntry.total_volume == null
+	)
+}
+
+type TokenOverviewCoinDetail = CoinGeckoCoinDetailResultForOptions<{
+	localization: false
+	tickers: false
+	marketData: true
+	communityData: false
+	developerData: false
+	sparkline: false
+	includeCategoriesDetails: false
+}>
+
+type TokenOverviewCoinLogoDetail = CoinGeckoCoinDetailResultForOptions<{
+	localization: false
+	tickers: false
+	marketData: false
+	communityData: false
+	developerData: false
+	sparkline: false
+	includeCategoriesDetails: false
+}>
+
+type TokenOverviewResolvedCoinDetail = TokenOverviewCoinDetail | TokenOverviewCoinLogoDetail
+
+async function fetchTokenOverviewCoinDetail(
+	geckoId: string,
+	includeMarketData: boolean
+): Promise<TokenOverviewResolvedCoinDetail | null> {
+	if (!geckoId) return null
+
+	if (includeMarketData) {
+		return fetchCoinGeckoCoinById(geckoId, {
+			localization: false,
+			tickers: false,
+			marketData: true,
+			communityData: false,
+			developerData: false,
+			sparkline: false,
+			includeCategoriesDetails: false
+		}).catch(() => null)
+	}
+
+	return fetchCoinGeckoCoinById(geckoId, {
+		localization: false,
+		tickers: false,
+		marketData: false,
+		communityData: false,
+		developerData: false,
+		sparkline: false,
+		includeCategoriesDetails: false
+	}).catch(() => null)
+}
+
+function buildTokenMarketDataFallback(
+	coinDetail: TokenOverviewResolvedCoinDetail | null | undefined,
+	currentPriceViaLlama: number | null
+): TokenOverviewMarketData {
+	const marketData = coinDetail?.market_data
+
+	return {
+		currentPrice: marketData?.current_price?.usd ?? currentPriceViaLlama,
+		percentChange24h: null,
+		ath: marketData?.ath?.usd ?? null,
+		athDate: marketData?.ath_date?.usd ?? null,
+		atl: marketData?.atl?.usd ?? null,
+		atlDate: marketData?.atl_date?.usd ?? null,
+		circulatingSupply: marketData?.circulating_supply ?? null,
+		totalSupply: marketData?.total_supply ?? null,
+		maxSupply: marketData?.max_supply ?? null,
+		mcap: marketData?.market_cap?.usd ?? null,
+		fdv: marketData?.fully_diluted_valuation?.usd ?? null,
+		volume24h: {
+			total: marketData?.total_volume?.usd ?? null,
+			cex: null,
+			dex: null
+		}
+	}
+}
+
 function buildTokenMarketData(
 	tokenEntry: ITokenListEntry | null,
 	tickers: CgChartResponse['data']['coinData']['tickers'] | undefined,
-	cgExchangeIdentifiers: string[]
+	cgExchangeIdentifiers: string[],
+	marketDataFallback: TokenOverviewMarketData = emptyMarketData
 ): TokenOverviewMarketData {
-	if (!tokenEntry) return emptyMarketData
+	if (!tokenEntry) {
+		return marketDataFallback
+	}
 
 	let cexVolume: number | null = null
 	let dexVolume: number | null = null
@@ -127,19 +225,19 @@ function buildTokenMarketData(
 	}
 
 	return {
-		currentPrice: tokenEntry.current_price ?? null,
-		percentChange24h: tokenEntry.price_change_percentage_24h ?? null,
-		ath: tokenEntry.ath ?? null,
-		athDate: tokenEntry.ath_date ?? null,
-		atl: tokenEntry.atl ?? null,
-		atlDate: tokenEntry.atl_date ?? null,
-		circulatingSupply: tokenEntry.circulating_supply ?? null,
-		totalSupply: tokenEntry.total_supply ?? null,
-		maxSupply: tokenEntry.max_supply ?? null,
-		mcap: tokenEntry.market_cap ?? null,
-		fdv: tokenEntry.fully_diluted_valuation ?? null,
+		currentPrice: tokenEntry.current_price ?? marketDataFallback.currentPrice,
+		percentChange24h: tokenEntry.price_change_percentage_24h ?? marketDataFallback.percentChange24h,
+		ath: tokenEntry.ath ?? marketDataFallback.ath,
+		athDate: tokenEntry.ath_date ?? marketDataFallback.athDate,
+		atl: tokenEntry.atl ?? marketDataFallback.atl,
+		atlDate: tokenEntry.atl_date ?? marketDataFallback.atlDate,
+		circulatingSupply: tokenEntry.circulating_supply ?? marketDataFallback.circulatingSupply,
+		totalSupply: tokenEntry.total_supply ?? marketDataFallback.totalSupply,
+		maxSupply: tokenEntry.max_supply ?? marketDataFallback.maxSupply,
+		mcap: tokenEntry.market_cap ?? marketDataFallback.mcap,
+		fdv: tokenEntry.fully_diluted_valuation ?? marketDataFallback.fdv,
 		volume24h: {
-			total: tokenEntry.total_volume ?? null,
+			total: tokenEntry.total_volume ?? marketDataFallback.volume24h.total,
 			cex: cexVolume,
 			dex: dexVolume
 		}
@@ -306,10 +404,14 @@ export async function getTokenOverviewData({
 	const shouldFetchRaises = Boolean(chainDefiLlamaId || protocolDefiLlamaId)
 	const shouldFetchLiquidity = Boolean(shouldFetchProtocolData && protocolMetadata?.liquidity)
 	const shouldFetchOutstandingFdv = Boolean(shouldFetchProtocolData && protocolMetadata?.emissions)
+	const shouldFetchCoinDetail = Boolean(geckoId && needsCoinDetailFallback(tokenEntry))
+	const shouldFetchCoinLogo = Boolean(geckoId)
 	const totalSupply = tokenEntry?.max_supply ?? tokenEntry?.total_supply ?? null
 
 	const [
 		cgChart,
+		coinDetail,
+		currentPriceViaLlama,
 		protocolData,
 		raisesData,
 		treasuries,
@@ -319,6 +421,10 @@ export async function getTokenOverviewData({
 		fetchedTotalSupply
 	] = await Promise.all([
 		geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
+		shouldFetchCoinLogo ? fetchTokenOverviewCoinDetail(geckoId, shouldFetchCoinDetail) : Promise.resolve(null),
+		shouldFetchCoinDetail
+			? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null)
+			: Promise.resolve(null),
 		shouldFetchProtocolData ? fetchProtocolOverviewMetrics(protocolSlug!).catch(() => null) : Promise.resolve(null),
 		shouldFetchRaises ? fetchRaises().catch(() => ({ raises: [] as RawRaise[] })) : Promise.resolve(null),
 		shouldFetchTreasury ? fetchTreasuries().catch(() => []) : Promise.resolve(null),
@@ -332,7 +438,13 @@ export async function getTokenOverviewData({
 		geckoId ? fetchTotalSupply(geckoId) : Promise.resolve(null)
 	])
 
-	const marketData = buildTokenMarketData(tokenEntry, cgChart?.data?.coinData?.tickers, cgExchangeIdentifiers)
+	const marketDataFallback = buildTokenMarketDataFallback(coinDetail, currentPriceViaLlama?.price ?? null)
+	const marketData = buildTokenMarketData(
+		tokenEntry,
+		cgChart?.data?.coinData?.tickers,
+		cgExchangeIdentifiers,
+		marketDataFallback
+	)
 	const treasury =
 		shouldFetchTreasury && treasuries
 			? buildTreasurySummary(treasuries.find((item) => item.id === `${protocolDefiLlamaId}-treasury`) ?? null)
@@ -352,6 +464,7 @@ export async function getTokenOverviewData({
 		name: record.name,
 		displayName,
 		symbol: record.symbol,
+		logoUrl: coinDetail?.image?.small ?? coinDetail?.image?.thumb ?? null,
 		llamaswapChains,
 		marketData,
 		treasury,

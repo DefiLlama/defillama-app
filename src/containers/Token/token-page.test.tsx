@@ -930,8 +930,7 @@ describe('token page', () => {
 			link: {
 				name: 'Chainlink',
 				symbol: 'LINK',
-				token_nk: 'coingecko:chainlink',
-				is_yields: true
+				token_nk: 'coingecko:chainlink'
 			}
 		}
 		state.tokenlist = {
@@ -978,6 +977,8 @@ describe('token page', () => {
 						market: 'main',
 						debtSymbol: 'LINK',
 						borrowCapUsd: 10,
+						debtCeilingUsd: null,
+						displayBorrowCapUsd: 10,
 						debtTotalBorrowedUsd: 6,
 						debtTotalSupplyUsd: 12,
 						remainingCapUsd: 4,

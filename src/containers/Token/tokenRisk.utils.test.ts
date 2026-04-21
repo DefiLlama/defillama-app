@@ -4,6 +4,7 @@ import {
 	buildBorrowCapsSection,
 	buildCollateralRiskSection,
 	filterTokenRiskCandidatesWithData,
+	inferTokenRiskCandidatesFromRoutes,
 	indexBorrowRoutesByAssetKey,
 	mergeIndexedBuckets,
 	resolveTokenRiskCandidates
@@ -110,6 +111,41 @@ describe('tokenRisk utils', () => {
 		expect(merged.asCollateral).toHaveLength(0)
 	})
 
+	it('infers token risk candidates from route symbols', () => {
+		const candidates = inferTokenRiskCandidatesFromRoutes({
+			tokenSymbol: 'WSTETH',
+			routes: [
+				createRoute({
+					chain: 'ethereum',
+					collateral: { symbol: 'wstETH', address: '0xCollateral1', priceUsd: 100 }
+				}),
+				createRoute({
+					chain: 'base',
+					collateral: { symbol: 'WSTETH', address: '0xCollateral2', priceUsd: 100 }
+				})
+			],
+			chainDisplayNames: new Map([
+				['ethereum', 'Ethereum'],
+				['base', 'Base']
+			])
+		})
+
+		expect(candidates).toEqual([
+			{
+				key: 'ethereum:0xcollateral1',
+				chain: 'ethereum',
+				address: '0xcollateral1',
+				displayName: 'Ethereum'
+			},
+			{
+				key: 'base:0xcollateral2',
+				chain: 'base',
+				address: '0xcollateral2',
+				displayName: 'Base'
+			}
+		])
+	})
+
 	it('returns a fresh empty bucket when there are no candidate keys', () => {
 		const first = mergeIndexedBuckets(new Map(), [])
 		const second = mergeIndexedBuckets(new Map(), [])
@@ -164,11 +200,42 @@ describe('tokenRisk utils', () => {
 		expect(section.rows[0].eligibleCollateralCount).toBe(2)
 		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
 		expect(section.rows[0].chainDisplayName).toBe('ethereum')
+		expect(section.rows[0].displayBorrowCapUsd).toBe(1000)
+		expect(section.rows[1].borrowCapUsd).toBeNull()
+		expect(section.rows[1].displayBorrowCapUsd).toBeNull()
+		expect(section.rows[1].remainingCapUsd).toBe(400)
 		expect(section.summary.totalBorrowCapUsd).toBe(1000)
 		expect(section.summary.totalBorrowedUsd).toBe(400)
 		expect(section.summary.remainingCapUsd).toBe(600)
 		expect(section.summary.capUtilization).toBe(0.4)
 		expect(section.summary.marketCount).toBe(2)
+	})
+
+	it('falls back to debt ceiling for displayed borrow cap when governance borrow cap is missing', () => {
+		const bucket = {
+			asDebt: [
+				createRoute({
+					protocol: 'spark',
+					chain: 'ethereum',
+					market: 'spark-market',
+					borrowCapUsd: null,
+					debtCeilingUsd: 750,
+					debtTotalBorrowedUsd: 250,
+					debtTotalSupplyUsd: 600
+				})
+			],
+			asCollateral: []
+		}
+
+		const section = buildBorrowCapsSection(bucket, methodologies)
+
+		expect(section.rows[0].borrowCapUsd).toBeNull()
+		expect(section.rows[0].debtCeilingUsd).toBe(750)
+		expect(section.rows[0].displayBorrowCapUsd).toBe(750)
+		expect(section.rows[0].remainingCapUsd).toBe(350)
+		expect(section.summary.totalBorrowCapUsd).toBe(750)
+		expect(section.summary.totalBorrowedUsd).toBe(250)
+		expect(section.summary.remainingCapUsd).toBe(350)
 	})
 
 	it('computes collateral-risk totals, isolation counts, and liquidation buffers', () => {
@@ -178,6 +245,7 @@ describe('tokenRisk utils', () => {
 				createRoute({
 					debt: { symbol: 'USDT', address: '0xUsdt', priceUsd: 1 },
 					availableToBorrowUsd: 300,
+					borrowCapUsd: null,
 					maxLtv: 0.7,
 					liquidationThreshold: 0.78,
 					isolationMode: true,
@@ -202,6 +270,8 @@ describe('tokenRisk utils', () => {
 		expect(section.summary.minLiquidationBuffer).toBeCloseTo(0.08)
 		expect(section.summary.maxLiquidationBuffer).toBeCloseTo(0.15)
 		expect(section.rows[0].debtSymbol).toBe('USDT')
+		expect(section.rows[0].borrowCapUsd).toBeNull()
+		expect(section.rows[0].displayBorrowCapUsd).toBe(5000)
 		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
 		expect(section.rows[0].chainDisplayName).toBe('ethereum')
 	})

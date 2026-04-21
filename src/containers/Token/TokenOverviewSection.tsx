@@ -17,6 +17,7 @@ import ProtocolChart from '~/containers/ProtocolOverview/Chart'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import {
 	buildDisplayedTokenChartData,
@@ -133,7 +134,16 @@ function TokenHeader({
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="flex flex-wrap items-center gap-2 text-xl">
-				<TokenLogo name={overview.name} kind="token" size={24} alt={`Logo of ${overview.name}`} />
+				{overview.logoUrl ? (
+					<TokenLogo
+						src={overview.logoUrl}
+						fallbackSrc={tokenIconUrl(overview.name)}
+						size={24}
+						alt={`Logo of ${overview.name}`}
+					/>
+				) : (
+					<TokenLogo name={overview.name} kind="token" size={24} alt={`Logo of ${overview.name}`} />
+				)}
 				<Heading className="flex flex-wrap items-center gap-2 text-xl">
 					<span className="font-bold">{overview.name}</span>
 					{overview.symbol ? <span className="font-normal">({overview.symbol})</span> : null}
@@ -147,6 +157,7 @@ function TokenHeader({
 			{hasPriceBreakdown ? (
 				<details className="group/price">
 					<summary className="flex flex-wrap items-center gap-x-3 gap-y-1">
+						<span className="basis-full text-sm text-(--text-label)">Token Price</span>
 						<span className="font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 							{formatCurrency(overview.marketData.currentPrice)}
 						</span>
@@ -198,6 +209,7 @@ function TokenHeader({
 				</details>
 			) : (
 				<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+					<span className="basis-full text-sm text-(--text-label)">Token Price</span>
 					<span className="font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 						{formatCurrency(overview.marketData.currentPrice)}
 					</span>
@@ -221,6 +233,16 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 				Key Metrics
 			</h2>
 			<div className="flex flex-col">
+				{overview.marketData.mcap != null ? (
+					<MetricRow label="Market Cap" tooltip={MARKET_CAP_TOOLTIP} value={formatCurrency(overview.marketData.mcap)} />
+				) : null}
+				{overview.marketData.fdv != null ? (
+					<MetricRow
+						label="Fully Diluted Valuation"
+						tooltip={FDV_TOOLTIP}
+						value={formatCurrency(overview.marketData.fdv)}
+					/>
+				) : null}
 				{overview.marketData.circulatingSupply != null ? (
 					<MetricRow
 						label="Circ. Supply"
@@ -233,16 +255,6 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 						label="Max Supply"
 						tooltip={MAX_SUPPLY_TOOLTIP}
 						value={formatSupply(overview.marketData.maxSupply, overview.symbol)}
-					/>
-				) : null}
-				{overview.marketData.mcap != null ? (
-					<MetricRow label="Market Cap" tooltip={MARKET_CAP_TOOLTIP} value={formatCurrency(overview.marketData.mcap)} />
-				) : null}
-				{overview.marketData.fdv != null ? (
-					<MetricRow
-						label="Fully Diluted Valuation"
-						tooltip={FDV_TOOLTIP}
-						value={formatCurrency(overview.marketData.fdv)}
 					/>
 				) : null}
 				{overview.outstandingFDV != null ? (

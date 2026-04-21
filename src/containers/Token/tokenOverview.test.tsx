@@ -14,6 +14,8 @@ import { TokenOverviewSection } from './TokenOverviewSection'
 
 const mocks = vi.hoisted(() => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: vi.fn(),
+	fetchCoinGeckoCoinById: vi.fn(),
+	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: vi.fn(),
 	fetchProtocolOverviewMetrics: vi.fn(),
 	fetchRaises: vi.fn(),
 	fetchTreasuries: vi.fn(),
@@ -35,7 +37,9 @@ vi.mock('next/router', () => ({
 }))
 
 vi.mock('~/api/coingecko', () => ({
-	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback
+	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback,
+	fetchCoinGeckoCoinById: mocks.fetchCoinGeckoCoinById,
+	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices
 }))
 
 vi.mock('~/containers/ProtocolOverview/api', () => ({
@@ -128,6 +132,28 @@ const cgChartFixture = {
 	}
 }
 
+const cgCoinDetailFixture = {
+	id: 'bitcoin',
+	symbol: 'btc',
+	name: 'Bitcoin',
+	image: {
+		small: 'https://example.com/btc.png'
+	},
+	market_data: {
+		current_price: { usd: 123 },
+		market_cap: { usd: 2222 },
+		fully_diluted_valuation: { usd: 3333 },
+		total_volume: { usd: 4444 },
+		circulating_supply: 21,
+		total_supply: 1000,
+		max_supply: 21000,
+		ath: { usd: 150 },
+		ath_date: { usd: '2024-02-01' },
+		atl: { usd: 1 },
+		atl_date: { usd: '2020-01-01' }
+	}
+}
+
 const overviewFixture: TokenOverviewData = {
 	name: 'Bitcoin',
 	displayName: 'BTC',
@@ -195,6 +221,13 @@ beforeEach(() => {
 	}
 	lastProtocolChartProps = null
 	mocks.fetchCoinGeckoChartByIdWithCacheFallback.mockResolvedValue(cgChartFixture)
+	mocks.fetchCoinGeckoCoinById.mockResolvedValue(cgCoinDetailFixture)
+	mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices.mockResolvedValue({
+		price: 111,
+		symbol: 'BTC',
+		confidence: 0.99,
+		timestamp: 1712016000
+	})
 	mocks.fetchProtocolOverviewMetrics.mockResolvedValue({ id: 'proto-data' })
 	mocks.fetchRaises.mockResolvedValue({
 		raises: [
@@ -471,6 +504,85 @@ describe('tokenOverview helpers', () => {
 		expect(result.tokenLiquidity).toBeNull()
 		expect(result.outstandingFDV).toBeNull()
 		expect(result.llamaswapChains).toBeNull()
+		expect(result.logoUrl).toBe('https://example.com/btc.png')
+		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('bitcoin', {
+			localization: false,
+			tickers: false,
+			marketData: false,
+			communityData: false,
+			developerData: false,
+			sparkline: false,
+			includeCategoriesDetails: false
+		})
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).not.toHaveBeenCalled()
+	})
+
+	it('fetches only logo detail when only max supply is missing from tokenlist data', async () => {
+		mocks.fetchCoinGeckoCoinById.mockResolvedValueOnce({
+			id: 'ethereum',
+			symbol: 'eth',
+			name: 'Ethereum',
+			image: {
+				small: 'https://example.com/eth.png'
+			}
+		})
+
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Ethereum',
+				symbol: 'ETH'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'ETH',
+			geckoId: 'ethereum',
+			tokenEntry: {
+				...tokenEntryFixture,
+				max_supply: null
+			},
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null
+		})
+
+		expect(result.marketData.currentPrice).toBe(100)
+		expect(result.marketData.maxSupply).toBeNull()
+		expect(result.logoUrl).toBe('https://example.com/eth.png')
+		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('ethereum', {
+			localization: false,
+			tickers: false,
+			marketData: false,
+			communityData: false,
+			developerData: false,
+			sparkline: false,
+			includeCategoriesDetails: false
+		})
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).not.toHaveBeenCalled()
+	})
+
+	it('falls back to the single-price endpoint when tokenlist market data is missing', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Wrapped stETH',
+				symbol: 'WSTETH'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'WSTETH',
+			geckoId: 'wrapped-steth',
+			tokenEntry: null,
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null
+		})
+
+		expect(result.marketData.currentPrice).toBe(123)
+		expect(result.marketData.mcap).toBe(2222)
+		expect(result.marketData.fdv).toBe(3333)
+		expect(result.marketData.volume24h.total).toBe(4444)
+		expect(result.logoUrl).toBe('https://example.com/btc.png')
+		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('wrapped-steth', expect.any(Object))
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('wrapped-steth')
+		expect(result.rawChartData['Token Price']).toEqual([
+			[1711929600000, 100],
+			[1712016000000, 110]
+		])
 	})
 
 	it('builds token volume chart data from the coingecko chart payload', () => {
@@ -546,7 +658,7 @@ describe('TokenOverviewSection component', () => {
 
 		expect(html).toContain('All Time High')
 		expect(html).toContain('All Time Low')
-		expect(html).not.toContain('>Price<')
+		expect(html).toContain('Token Price')
 		expect(html).toContain('Buy Now')
 		expect(html).toContain('Add Metrics')
 		expect(html).toContain('$BTC Price')
@@ -554,6 +666,8 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('DEX Volume')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
 		expect(html).toContain('protocol-chart')
+		expect(html.indexOf('Market Cap')).toBeLessThan(html.indexOf('Circ. Supply'))
+		expect(html.indexOf('Fully Diluted Valuation')).toBeLessThan(html.indexOf('Circ. Supply'))
 	})
 
 	it('shows undisclosed raises without falling back to $0 and exposes chart controls to assistive tech', () => {

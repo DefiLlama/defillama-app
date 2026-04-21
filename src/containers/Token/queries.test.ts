@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getTokenRiskBorrowRoutes } from './api'
-import { getTokenRiskData } from './queries'
+import { getTokenRiskData, resetTokenRiskBorrowRoutesCache } from './queries'
 
 vi.mock('./api', () => ({
 	getTokenRiskBorrowRoutes: vi.fn()
@@ -104,6 +104,7 @@ const displayLookups = {
 
 beforeEach(() => {
 	vi.clearAllMocks()
+	resetTokenRiskBorrowRoutesCache()
 })
 
 describe('getTokenRiskData', () => {
@@ -113,6 +114,7 @@ describe('getTokenRiskData', () => {
 
 		const payload = await getTokenRiskData({
 			geckoId: 'usdc',
+			tokenSymbol: 'USDC',
 			protocolLlamaswapDataset: {
 				usdc: [{ chain: 'ethereum', address: '0xA0b8', displayName: 'Ethereum' }]
 			},
@@ -147,6 +149,7 @@ describe('getTokenRiskData', () => {
 
 		const payload = await getTokenRiskData({
 			geckoId: 'collateral-only',
+			tokenSymbol: 'COLLATERAL',
 			protocolLlamaswapDataset: {
 				'collateral-only': [{ chain: 'ethereum', address: '0xCollateral1', displayName: 'Ethereum' }]
 			},
@@ -160,17 +163,58 @@ describe('getTokenRiskData', () => {
 		expect(payload?.limitations.every((l) => !l.includes('Debt-side totals'))).toBe(true)
 	})
 
-	it('returns null when the token cannot be resolved from protocol llamaswap metadata', async () => {
+	it('falls back to route symbols when protocol llamaswap metadata is missing', async () => {
+		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
+		mockedGetTokenRiskBorrowRoutes.mockResolvedValue({
+			...createBorrowRoutesResponse(),
+			routes: [
+				createBorrowRoutesResponse().routes[0],
+				{
+					...createBorrowRoutesResponse().routes[0],
+					protocol: 'morpho-blue',
+					market: 'wsteth-market',
+					collateral: {
+						symbol: 'wstETH',
+						address: '0xWstEth',
+						priceUsd: 100
+					},
+					debt: {
+						symbol: 'USDC',
+						address: '0xUsdc',
+						priceUsd: 1
+					}
+				}
+			]
+		} as never)
+
+		const payload = await getTokenRiskData({
+			geckoId: 'wrapped-steth',
+			tokenSymbol: 'WSTETH',
+			protocolLlamaswapDataset: {},
+			displayLookups
+		})
+
+		expect(payload).not.toBeNull()
+		expect(payload?.candidates).toContainEqual({
+			key: 'ethereum:0xwsteth',
+			chain: 'ethereum',
+			address: '0xwsteth',
+			displayName: 'Ethereum'
+		})
+	})
+
+	it('returns null when the token cannot be resolved from metadata or route symbols', async () => {
 		const mockedGetTokenRiskBorrowRoutes = vi.mocked(getTokenRiskBorrowRoutes)
 		mockedGetTokenRiskBorrowRoutes.mockResolvedValue(createBorrowRoutesResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'missing',
+			tokenSymbol: 'MISSING',
 			protocolLlamaswapDataset: {},
 			displayLookups
 		})
 
 		expect(payload).toBeNull()
-		expect(mockedGetTokenRiskBorrowRoutes.mock.calls).toHaveLength(0)
+		expect(mockedGetTokenRiskBorrowRoutes.mock.calls).toHaveLength(1)
 	})
 })

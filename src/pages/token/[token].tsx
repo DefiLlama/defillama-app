@@ -114,36 +114,39 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		if (record.is_yields) {
-			const tokenRiskPromise = geckoId
-				? getTokenRiskData({
-						geckoId,
-						protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
-						displayLookups: {
-							protocolDisplayNames: metadataCache.protocolDisplayNames,
-							chainDisplayNames: metadataCache.chainDisplayNames
-						}
-					}).catch((error) => {
-						console.error(`Failed to load token risk data for ${geckoId}`, error)
-						return null
-					})
-				: Promise.resolve(null)
+		const tokenRiskPromise = geckoId
+			? getTokenRiskData({
+					geckoId,
+					tokenSymbol: record.symbol,
+					protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
+					displayLookups: {
+						protocolDisplayNames: metadataCache.protocolDisplayNames,
+						chainDisplayNames: metadataCache.chainDisplayNames
+					}
+				}).catch((error) => {
+					console.error(`Failed to load token risk data for ${geckoId}`, error)
+					return null
+				})
+			: Promise.resolve(null)
 
-			const [yieldsRows, tokenBorrowRoutesData, riskData] = await Promise.all([
-				getTokenYieldsRows(record.symbol).catch((error) => {
+		const yieldsRowsPromise = record.is_yields
+			? getTokenYieldsRows(record.symbol).catch((error) => {
 					console.error(`Failed to load token yields data for ${record.symbol}`, error)
 					return []
-				}),
-				getTokenBorrowRoutesData(record.symbol).catch((error) => {
-					console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
-					return null
-				}),
-				tokenRiskPromise
-			])
-			initialYieldsRows = yieldsRows
-			initialTokenBorrowRoutesData = tokenBorrowRoutesData
-			tokenRiskData = riskData
-		}
+				})
+			: Promise.resolve([])
+
+		const [yieldsRows, tokenBorrowRoutesData, riskData] = await Promise.all([
+			yieldsRowsPromise,
+			getTokenBorrowRoutesData(record.symbol).catch((error) => {
+				console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
+				return null
+			}),
+			tokenRiskPromise
+		])
+		initialYieldsRows = yieldsRows
+		initialTokenBorrowRoutesData = tokenBorrowRoutesData
+		tokenRiskData = riskData
 
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply & Token Rights - DefiLlama`
@@ -228,9 +231,8 @@ export default function TokenPage({
 }: InferGetStaticPropsType<typeof getStaticProps>) {
 	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
 	const shouldRenderBorrowSection =
-		record.is_yields &&
-		((initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
-			(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0)
+		(initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
+		(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0
 
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
@@ -243,9 +245,7 @@ export default function TokenPage({
 						hasIncentives={incomeStatementHasIncentives}
 					/>
 				) : null}
-				{record.is_yields && tokenRiskData ? (
-					<TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
-				) : null}
+				{tokenRiskData ? <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} /> : null}
 				{tokenRightsData ? (
 					<TokenRightsByProtocol
 						name={record.name}
