@@ -636,9 +636,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 								? `Each row is a lending route where ${tokenSymbol} is accepted as collateral. Available is what can still be borrowed now. Derived route capacity is available plus the current borrowed amount in that route's debt market.`
 								: `These rows show what users can borrow by posting ${tokenSymbol} as collateral, which is different from how much ${tokenSymbol} itself is available to borrow as debt.`}
 						</p>
-						<div className="mt-3">
-							<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
-						</div>
+						<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
 					</details>
 				) : null}
 
@@ -673,9 +671,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 							<span className="font-medium text-(--text-primary)">Available</span> can be lower than cap headroom when
 							pool liquidity or debt ceilings are the tighter constraint.
 						</p>
-						<div className="mt-3">
-							<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
-						</div>
+						<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
 					</details>
 				) : null}
 			</div>

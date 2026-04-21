@@ -274,7 +274,7 @@ export function TokenBorrowSection({
 				) : (
 					<>
 						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="p-3">
+							<div className="p-1">
 								<ResponsiveFilterLayout>
 									{(nestedMenu) => (
 										<>

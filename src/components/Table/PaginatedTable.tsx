@@ -16,6 +16,8 @@ import { Tooltip } from '~/components/Tooltip'
 interface PaginatedTableProps<T extends RowData> {
 	table: ReactTable<T>
 	pageSizeOptions: readonly number[]
+	className?: string
+	tableClassName?: string
 }
 
 const DisplayRowNumbersContext = createContext<Map<string, number> | null>(null)
@@ -63,8 +65,12 @@ export function usePaginatedTableDisplayRowNumber(rowId: string) {
 	return useContext(DisplayRowNumbersContext)?.get(rowId)
 }
 
-export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: PaginatedTableProps<T>) {
-	const columnSizing = table.getState().columnSizing
+export function PaginatedTable<T extends RowData>({
+	table,
+	pageSizeOptions,
+	className,
+	tableClassName
+}: PaginatedTableProps<T>) {
 	const rows = table.getRowModel().rows
 	const rowCount = table.getRowCount()
 	const { pageIndex, pageSize } = table.getState().pagination
@@ -88,26 +94,26 @@ export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: Pa
 
 	return (
 		<DisplayRowNumbersContext.Provider value={displayRowNumbers}>
-			<div className="flex flex-col gap-3">
+			<div className={`flex flex-col gap-3 ${className ?? ''}`}>
 				<TokenPageTableShell>
 					<TokenPageTableScroller>
-						<TokenPageTable>
+						<TokenPageTable className={tableClassName}>
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<tr key={headerGroup.id} className="border-b border-(--cards-border) bg-(--app-bg)">
 										{headerGroup.headers.map((header) => {
 											const align = header.column.columnDef.meta?.align ?? 'start'
-											const minWidth = columnSizing?.[header.column.id] ?? header.column.columnDef.size
+											const headerAlignmentClass =
+												align === 'center' ? 'mx-auto w-fit' : align === 'end' ? 'ms-auto w-fit' : 'w-fit'
 
 											return (
-												<TokenPageTableHeaderCell key={header.id} textAlign={align} minWidth={minWidth}>
+												<TokenPageTableHeaderCell
+													key={header.id}
+													textAlign={align}
+													className={header.column.columnDef.meta?.headerClassName}
+												>
 													{header.isPlaceholder ? null : (
-														<div
-															style={{
-																marginLeft: align === 'end' || align === 'center' ? 'auto' : undefined,
-																marginRight: align === 'center' ? 'auto' : undefined
-															}}
-														>
+														<div className={headerAlignmentClass}>
 															<HeaderWithTooltip
 																content={header.column.columnDef.meta?.headerHelperText}
 																onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : null}
@@ -128,10 +134,9 @@ export function PaginatedTable<T extends RowData>({ table, pageSizeOptions }: Pa
 									<tr key={row.id} className="border-b border-(--cards-border) last:border-b-0">
 										{row.getVisibleCells().map((cell) => {
 											const align = cell.column.columnDef.meta?.align ?? 'start'
-											const minWidth = columnSizing?.[cell.column.id] ?? cell.column.columnDef.size
 
 											return (
-												<TokenPageTableBodyCell key={cell.id} textAlign={align} minWidth={minWidth}>
+												<TokenPageTableBodyCell key={cell.id} textAlign={align}>
 													{flexRender(cell.column.columnDef.cell, cell.getContext())}
 												</TokenPageTableBodyCell>
 											)

@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const getTokenYieldsRowsMock = vi.fn()
+const { getTokenYieldsRowsMock } = vi.hoisted(() => ({
+	getTokenYieldsRowsMock: vi.fn()
+}))
 
 vi.mock('~/containers/Token/tokenYields.server', () => ({
 	getTokenYieldsRows: getTokenYieldsRowsMock

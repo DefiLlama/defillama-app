@@ -6,7 +6,7 @@ import { getTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.s
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
-import { getTokenOverviewData } from '~/containers/Token/tokenOverview'
+import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
@@ -75,7 +75,8 @@ export const getStaticProps = withPerformanceLogging(
 			tokenEntry,
 			protocolMetadata,
 			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers ?? [],
-			llamaswapChains
+			llamaswapChains,
+			prefetchedCharts: TOKEN_OVERVIEW_DEFAULT_CHARTS
 		})
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {

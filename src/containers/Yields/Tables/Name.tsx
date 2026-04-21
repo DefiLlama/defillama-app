@@ -9,6 +9,8 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
+const MOBILE_PRIMARY_COLUMN_MAX_WIDTH = 'max-sm:max-w-[clamp(160px,40vw,260px)]'
+
 interface INameYieldPoolProps {
 	value: string
 	configID: string
@@ -48,7 +50,7 @@ export function NameYieldPool({
 	const mc = maxCharacters ?? (width >= 1536 ? 20 : width >= 1280 ? 12 : 10)
 
 	return (
-		<span className="flex items-center gap-2">
+		<span className="flex min-w-0 items-center gap-2">
 			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
 			{strategy ? null : rowIndex != null ? (
@@ -76,7 +78,9 @@ export function NameYieldPool({
 			>
 				{poolMeta ? (
 					<>
-						<span className="shrink-0 overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)">
+						<span
+							className={`min-w-0 shrink overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
+						>
 							{value}
 						</span>
 						<span className="ml-1 shrink overflow-hidden rounded-lg bg-(--bg-tertiary) px-1 py-0.5 text-xs text-ellipsis whitespace-nowrap text-black group-data-[tooltipcontent=true]:whitespace-break-spaces dark:text-white">
@@ -105,7 +109,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 								onClick={() => trackUmamiEvent('yields-pool-click')}
 							/>
 						}
-						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+						className={`flex min-w-0 shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
 						content={children}
 						data-fullwidth
 					>
@@ -113,7 +117,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 					</Tooltip>
 				) : (
 					<Tooltip
-						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+						className={`flex min-w-0 shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
 						content={children}
 						data-fullwidth
 					>
@@ -131,12 +135,16 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 					href={url}
 					target="_blank"
 					data-umami-event="yields-pool-click"
-					className="flex items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+					className={`flex min-w-0 items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
 				>
 					{children}
 				</BasicLink>
 			) : (
-				<span className="flex items-center overflow-hidden text-ellipsis whitespace-nowrap">{children}</span>
+				<span
+					className={`flex min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
+				>
+					{children}
+				</span>
 			)}
 		</>
 	)

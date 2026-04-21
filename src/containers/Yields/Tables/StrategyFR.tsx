@@ -13,7 +13,6 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
@@ -82,7 +81,10 @@ const columns = [
 		header: 'Strategy',
 		enableSorting: false,
 		cell: ({ row }) => <StrategyFrNameCell row={row} />,
-		size: 400
+		size: 400,
+		meta: {
+			headerClassName: 'min-w-[220px] sm:min-w-[320px] xl:min-w-[400px]'
+		}
 	}),
 	columnHelper.accessor((row) => row.strategyAPY ?? undefined, {
 		id: 'strategyAPY',
@@ -90,7 +92,7 @@ const columns = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
+				<ColoredAPY data-variant="positive" className="ml-auto font-bold">
 					{formatPercentChangeText(getValue(), true)}
 				</ColoredAPY>
 			)
@@ -207,9 +209,8 @@ const columns = [
 			const value = info.row.original.tvlUsd
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? null : formattedNum(value, true)}
 				</span>
@@ -229,9 +230,8 @@ const columns = [
 			const indexPrice = info.row.original.indexPrice
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null || indexPrice == null ? null : formattedNum(value * indexPrice, true)}
 				</span>
@@ -303,7 +303,6 @@ export function PaginatedYieldsStrategyTableFR({
 	data: IYieldsStrategyTableRow[]
 	initialPageSize?: number
 }) {
-	const width = useBreakpointWidth()
 	const [sorting, setSorting] = useState<SortingState>([])
 	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
@@ -314,10 +313,7 @@ export function PaginatedYieldsStrategyTableFR({
 		setPagination((prev) => ({ ...prev, pageIndex: 0 }))
 	}, [data.length])
 
-	const paginatedColumns = useMemo(
-		() => preparePaginatedYieldsColumns(STRATEGY_FR_TABLE_CONFIG, undefined, width),
-		[width]
-	)
+	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(STRATEGY_FR_TABLE_CONFIG, undefined), [])
 
 	const table = useReactTable({
 		data,
