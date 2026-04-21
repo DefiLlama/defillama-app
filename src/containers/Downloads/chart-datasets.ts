@@ -24,6 +24,7 @@ export interface ChartDatasetDefinition {
 	extractRows: (json: any) => Array<Record<string, unknown>>
 	customFetch?: (param: string) => Promise<Array<Record<string, unknown>>>
 	categoryBreakdown?: CategoryBreakdownKind
+	sumMode?: { columnLabel: string }
 }
 
 const OVERVIEW_QS = 'excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true'
@@ -385,6 +386,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		category: 'RWA',
 		paramType: 'chain',
 		paramLabel: 'Chain',
+		sumMode: { columnLabel: 'mcap' },
 		optionsUrl: `${RWA_SERVER_URL}/current?z=0`,
 		extractOptions: (json) => {
 			const allOption = { label: 'All Chains', value: 'all' }
@@ -502,6 +504,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		category: 'RWA',
 		paramType: 'protocol',
 		paramLabel: 'Category',
+		sumMode: { columnLabel: 'mcap' },
 		optionsUrl: `${RWA_SERVER_URL}/current?z=0`,
 		extractOptions: (json) => {
 			if (!Array.isArray(json)) return []
