@@ -1,6 +1,6 @@
 import { Icon } from '~/components/Icon'
-import type { ClassifiedColumn } from '../columnKind'
 import type { ChartConfig } from '../chartConfig'
+import type { ClassifiedColumn } from '../columnKind'
 import type { QueryResult } from '../exportResults'
 import { AreaChartAdapter } from './adapters/AreaChartAdapter'
 import { BarChartAdapter } from './adapters/BarChartAdapter'

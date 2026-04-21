@@ -1,8 +1,8 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
-import type { ClassifiedColumn } from '../../columnKind'
 import { SPLIT_TOP_N, type ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 import { pivotRowsForSplit } from '../pivot'
 import { formatterFromConfig } from '../valueFormatters'
@@ -43,7 +43,15 @@ interface LineBarChartProps {
 	forceStack?: string
 }
 
-export function LineBarChart({ config, result, classified, onReady, forceType, forceArea, forceStack }: LineBarChartProps) {
+export function LineBarChart({
+	config,
+	result,
+	classified,
+	onReady,
+	forceType,
+	forceArea,
+	forceStack
+}: LineBarChartProps) {
 	const xColumn = classified.find((c) => c.name === config.xCol) ?? null
 	const xAxisType: 'time' | 'category' = xColumn?.coarse === 'date' ? 'time' : 'category'
 	const formatter = formatterFromConfig(config)
@@ -98,7 +106,10 @@ export function LineBarChart({ config, result, classified, onReady, forceType, f
 		return { series: base, truncatedCount: 0 }
 	}, [result, config, xColumn, xAxisType, forceType, forceArea, forceStack])
 
-	const chartOptions = useMemo(() => buildChartOptions(config, series, xAxisType, formatter), [config, series, xAxisType, formatter])
+	const chartOptions = useMemo(
+		() => buildChartOptions(config, series, xAxisType, formatter),
+		[config, series, xAxisType, formatter]
+	)
 
 	const yAxisSymbols = useMemo(() => {
 		if (config.rightAxisCols.length === 0) return undefined

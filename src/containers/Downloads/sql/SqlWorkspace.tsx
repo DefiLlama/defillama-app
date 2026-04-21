@@ -12,7 +12,6 @@ import { extractQueryConfig, generatePresetId, type QuerySavedConfig, type Query
 import { SavePresetDialog } from '../SavePresetDialog'
 import { decodeDownloadConfig } from '../urlState'
 import type { ChartConfig } from './chartConfig'
-import { ShareQueryButton } from './ShareQueryButton'
 import { extractTableRefs, matchTableRef } from './completions'
 import { Editor, type EditorHandle } from './Editor'
 import type { ExampleQuery } from './examples'
@@ -21,6 +20,7 @@ import { Keycap, StatusDot } from './primitives'
 import { QueryTabBar } from './QueryTabBar'
 import { ResultsPanel } from './ResultsPanel'
 import { SchemaDrawer } from './SchemaDrawer'
+import { ShareQueryButton } from './ShareQueryButton'
 import { TableChipRail } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
@@ -380,11 +380,7 @@ function SqlWorkspaceInner({
 			tables: decoded.tables,
 			sql: decoded.sql
 		})
-		ctx.router.replace(
-			{ pathname: ctx.router.pathname, query: { mode: 'sql' } },
-			undefined,
-			{ shallow: true }
-		)
+		ctx.router.replace({ pathname: ctx.router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
 	}, [router.isReady, router.query, duckdb.conn])
 
 	useEffect(() => {

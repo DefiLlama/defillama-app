@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
-import type { ClassifiedColumn } from '../../columnKind'
 import type { ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 import { formatterFromConfig } from '../valueFormatters'
 
@@ -56,9 +56,7 @@ export function TreemapChartAdapter({ config, result, classified, onReady }: Tre
 			if (v == null) continue
 			leaves.set(n, (leaves.get(n) ?? 0) + v)
 		}
-		return [...leaves.entries()]
-			.sort((a, b) => b[1] - a[1])
-			.map(([name, value]) => ({ name, value: [value, 0, 0] }))
+		return [...leaves.entries()].sort((a, b) => b[1] - a[1]).map(([name, value]) => ({ name, value: [value, 0, 0] }))
 	}, [result, nameCol, valueCol, groupCol])
 
 	if (!nameCol || !valueCol)

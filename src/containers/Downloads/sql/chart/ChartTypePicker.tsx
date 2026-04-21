@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import type { ClassifiedColumn } from '../columnKind'
 import { canUseChartType, type ChartType } from '../chartConfig'
+import type { ClassifiedColumn } from '../columnKind'
 
 interface ChartTypeOption {
 	type: ChartType
@@ -192,7 +192,7 @@ export function ChartTypePicker({ value, onChange, classified }: ChartTypePicker
 										? 'bg-(--primary) text-white shadow-sm'
 										: available
 											? 'text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
-											: 'text-(--text-tertiary)/50 cursor-not-allowed'
+											: 'cursor-not-allowed text-(--text-tertiary)/50'
 								}`}
 							>
 								{opt.icon}

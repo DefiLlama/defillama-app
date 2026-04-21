@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
-import type { ClassifiedColumn } from '../../columnKind'
 import type { ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 import { formatterFromConfig } from '../valueFormatters'
 
@@ -32,14 +32,16 @@ export function BubbleChartAdapter({ config, result, classified, onReady }: Bubb
 	const formatter = formatterFromConfig(config)
 	const numericCols = classified.filter((c) => c.coarse === 'number').map((c) => c.name)
 	const isNumeric = (name: string | null | undefined) => !!name && numericCols.includes(name)
-	const xCol = isNumeric(config.xCol) ? (config.xCol as string) : numericCols[0] ?? null
-	const yCol = isNumeric(config.yCols[0]) && config.yCols[0] !== xCol
-		? config.yCols[0]
-		: numericCols.find((n) => n !== xCol) ?? null
+	const xCol = isNumeric(config.xCol) ? (config.xCol as string) : (numericCols[0] ?? null)
+	const yCol =
+		isNumeric(config.yCols[0]) && config.yCols[0] !== xCol
+			? config.yCols[0]
+			: (numericCols.find((n) => n !== xCol) ?? null)
 	const fallbackSize = numericCols.find((n) => n !== xCol && n !== yCol) ?? null
-	const sizeCol = isNumeric(config.bubble?.sizeCol ?? null) && config.bubble?.sizeCol !== xCol && config.bubble?.sizeCol !== yCol
-		? config.bubble!.sizeCol!
-		: fallbackSize
+	const sizeCol =
+		isNumeric(config.bubble?.sizeCol ?? null) && config.bubble?.sizeCol !== xCol && config.bubble?.sizeCol !== yCol
+			? config.bubble!.sizeCol!
+			: fallbackSize
 	const labelCol = classified.find((c) => c.coarse === 'category')?.name ?? null
 
 	const { chartData, sizeRange } = useMemo(() => {

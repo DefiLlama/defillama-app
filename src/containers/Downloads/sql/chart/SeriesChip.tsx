@@ -56,7 +56,7 @@ export function SeriesChip({
 					onClick={toggleKind}
 					aria-label={`Series ${name} type: ${kind}`}
 					title={`Series type: ${kind}`}
-					className="flex h-4 w-5 items-center justify-center rounded-sm border border-(--divider) bg-(--app-bg) text-[9px] font-mono text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+					className="flex h-4 w-5 items-center justify-center rounded-sm border border-(--divider) bg-(--app-bg) font-mono text-[9px] text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 				>
 					{kind === 'line' ? '—' : '▮'}
 				</button>
@@ -67,7 +67,7 @@ export function SeriesChip({
 					onClick={toggleAxis}
 					aria-label={`Axis: ${isRight ? 'right' : 'left'}`}
 					title={`Axis: ${isRight ? 'right' : 'left'}`}
-					className={`flex h-4 w-5 items-center justify-center rounded-sm border text-[9px] font-mono transition-colors ${
+					className={`flex h-4 w-5 items-center justify-center rounded-sm border font-mono text-[9px] transition-colors ${
 						isRight
 							? 'border-(--primary) bg-(--primary) text-white'
 							: 'border-(--divider) bg-(--app-bg) text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
@@ -80,7 +80,7 @@ export function SeriesChip({
 				type="button"
 				onClick={onRemove}
 				aria-label={`Remove ${name}`}
-				className="flex h-4 w-4 items-center justify-center rounded-sm text-(--text-tertiary) opacity-0 transition-opacity hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100 focus:opacity-100"
+				className="flex h-4 w-4 items-center justify-center rounded-sm text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-500/10 hover:text-red-500 focus:opacity-100"
 			>
 				<Icon name="x" className="h-2.5 w-2.5" />
 			</button>

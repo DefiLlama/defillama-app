@@ -10,8 +10,8 @@ interface SparklineShim {
 	smooth?: boolean
 }
 
-const SparklineChart = lazy(
-	() => import('~/components/ECharts/SparklineChart').then((m) => ({ default: m.SparklineChart }))
+const SparklineChart = lazy(() =>
+	import('~/components/ECharts/SparklineChart').then((m) => ({ default: m.SparklineChart }))
 ) as unknown as React.FC<SparklineShim>
 
 const ROW_HEIGHT = 28
@@ -39,7 +39,11 @@ export function ResultsGrid({ result }: ResultsGridProps) {
 				let kind = inferColumnKind(c.type)
 				if (kind === 'other') {
 					const sample = result.rows.find((row) => row[c.name] != null)
-					if (sample && Array.isArray(sample[c.name]) && (sample[c.name] as any[]).every((v) => v == null || typeof v === 'number')) {
+					if (
+						sample &&
+						Array.isArray(sample[c.name]) &&
+						(sample[c.name] as any[]).every((v) => v == null || typeof v === 'number')
+					) {
 						kind = 'list'
 					}
 				}

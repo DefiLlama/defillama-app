@@ -42,6 +42,7 @@ async function pullData() {
 				tokenDirectory,
 				protocolDisplayNames,
 				chainDisplayNames,
+				liquidationsTokenSymbols,
 				emissionsProtocolsList,
 				cgExchangeIdentifiers,
 				bridgeProtocolSlugs,
@@ -94,6 +95,7 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'tokens.json'), JSON.stringify(tokenDirectory))
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocolDisplayNames.json'), JSON.stringify(protocolDisplayNames))
 		fs.writeFileSync(path.join(CACHE_DIR, 'chainDisplayNames.json'), JSON.stringify(chainDisplayNames))
+		fs.writeFileSync(path.join(CACHE_DIR, 'liquidationsTokenSymbols.json'), JSON.stringify(liquidationsTokenSymbols))
 		fs.writeFileSync(path.join(CACHE_DIR, 'emissionsProtocolsList.json'), JSON.stringify(emissionsProtocolsList))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
 		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeProtocolSlugs.json'), JSON.stringify(bridgeProtocolSlugs))
@@ -222,6 +224,7 @@ async function pullData() {
 				'tokens.json': {},
 				'protocolDisplayNames.json': {},
 				'chainDisplayNames.json': {},
+				'liquidationsTokenSymbols.json': [],
 				'emissionsProtocolsList.json': [],
 				'cgExchangeIdentifiers.json': [],
 				'bridgeProtocolSlugs.json': [],

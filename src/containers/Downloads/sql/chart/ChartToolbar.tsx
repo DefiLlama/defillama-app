@@ -1,8 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { Icon } from '~/components/Icon'
 import { CHART_COLORS } from '~/constants/colors'
-import type { ClassifiedColumn } from '../columnKind'
 import { canUseChartType, type ChartConfig, type ChartType, type NumberFormat, type StackMode } from '../chartConfig'
+import type { ClassifiedColumn } from '../columnKind'
 import { ChartTypePicker } from './ChartTypePicker'
 import { SeriesChip } from './SeriesChip'
 
@@ -29,12 +29,15 @@ const TYPES_SUPPORTING_STACK: ChartType[] = ['bar', 'hbar', 'area', 'areaStacked
 const TYPES_SUPPORTING_SPLIT: ChartType[] = ['line', 'area', 'areaStacked', 'areaPct', 'bar', 'hbar']
 
 export function ChartToolbar({ config, classified, onChange }: ChartToolbarProps) {
-	const xOptions = classified.filter((c) => c.coarse !== 'number' || classified.every((o) => o.coarse !== 'date' && o.coarse !== 'category'))
+	const xOptions = classified.filter(
+		(c) => c.coarse !== 'number' || classified.every((o) => o.coarse !== 'date' && o.coarse !== 'category')
+	)
 	const yOptions = classified.filter((c) => c.coarse === 'number')
 	const categoryOptions = classified.filter((c) => c.coarse === 'category' && c.name !== config.xCol)
 
 	const canStack = TYPES_SUPPORTING_STACK.includes(config.chartType) && config.yCols.length >= 2
-	const canSplit = TYPES_SUPPORTING_SPLIT.includes(config.chartType) && categoryOptions.length > 0 && config.yCols.length <= 1
+	const canSplit =
+		TYPES_SUPPORTING_SPLIT.includes(config.chartType) && categoryOptions.length > 0 && config.yCols.length <= 1
 
 	const handleChartType = (next: ChartType) => {
 		if (!canUseChartType(next, classified)) return
@@ -115,9 +118,7 @@ export function ChartToolbar({ config, classified, onChange }: ChartToolbarProps
 					/>
 				) : null}
 
-				<span className="ml-auto text-[11px] text-(--text-tertiary)">
-					{seriesSummary(config)}
-				</span>
+				<span className="ml-auto text-[11px] text-(--text-tertiary)">{seriesSummary(config)}</span>
 			</div>
 		</div>
 	)

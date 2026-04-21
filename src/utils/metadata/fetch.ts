@@ -1,9 +1,10 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, TOKEN_DIRECTORY_API } from '~/constants'
+import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DIRECTORY_API } from '~/constants'
 import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
+import { extractLiquidationsTokenSymbols } from './liquidations'
 import type {
 	ICategoriesAndTags,
 	ICexItem,
@@ -108,6 +109,7 @@ export async function fetchCoreMetadata({
 	tokenDirectory: TokenDirectory
 	protocolDisplayNames: Record<string, string>
 	chainDisplayNames: Record<string, string>
+	liquidationsTokenSymbols: string[]
 	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -125,6 +127,7 @@ export async function fetchCoreMetadata({
 	const DATASETS_SERVER_URL = API_KEY
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
+	const LIQUIDATIONS_DATA_URL = `${LIQUIDATIONS_SERVER_URL_V2}/all?zz=14`
 
 	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=14`
 	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=14`
@@ -154,6 +157,7 @@ export async function fetchCoreMetadata({
 		rwaPerpsList,
 		tokenlistArray,
 		tokenDirectory,
+		liquidationsResponse,
 		bridgesResponse
 	] = await Promise.all([
 		fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
@@ -181,6 +185,10 @@ export async function fetchCoreMetadata({
 		}),
 		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
 		fetchWithDevFallback<TokenDirectory>(TOKEN_DIRECTORY_API, {}),
+		fetchWithDevFallback<{ tokens?: Record<string, Record<string, { symbol: string; decimals: number }>> }>(
+			LIQUIDATIONS_DATA_URL,
+			{ tokens: {} }
+		),
 		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
 	])
 
@@ -249,6 +257,7 @@ export async function fetchCoreMetadata({
 
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
+	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse.tokens ?? {})
 
 	return {
 		protocols,
@@ -262,6 +271,7 @@ export async function fetchCoreMetadata({
 		tokenDirectory,
 		protocolDisplayNames,
 		chainDisplayNames,
+		liquidationsTokenSymbols,
 		emissionsProtocolsList,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,

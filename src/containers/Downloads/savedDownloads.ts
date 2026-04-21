@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
-import type { ChartConfig } from './sql/chartConfig'
 import { chartDatasetsBySlug, type ChartDatasetDefinition } from './chart-datasets'
 import type { DatasetDefinition } from './datasets'
+import type { ChartConfig } from './sql/chartConfig'
 
 export type SavedDownloadKind = 'dataset' | 'chart' | 'multiMetric' | 'query'
 export type SavedSortDir = 'asc' | 'desc'

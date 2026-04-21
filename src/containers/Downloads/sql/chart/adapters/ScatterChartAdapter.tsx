@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
-import type { ClassifiedColumn } from '../../columnKind'
 import type { ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 import { formatterFromConfig } from '../valueFormatters'
 
@@ -30,11 +30,11 @@ export function ScatterChartAdapter({ config, result, classified, onReady }: Sca
 
 	const numericCols = classified.filter((c) => c.coarse === 'number').map((c) => c.name)
 	const isNumeric = (name: string | null | undefined) => !!name && numericCols.includes(name)
-	const xCol = isNumeric(config.xCol) ? (config.xCol as string) : numericCols[0] ?? null
+	const xCol = isNumeric(config.xCol) ? (config.xCol as string) : (numericCols[0] ?? null)
 	const yCol =
 		isNumeric(config.yCols[0]) && config.yCols[0] !== xCol
 			? config.yCols[0]
-			: numericCols.find((n) => n !== xCol) ?? null
+			: (numericCols.find((n) => n !== xCol) ?? null)
 	const labelCol = classified.find((c) => c.coarse === 'category')?.name ?? null
 
 	const chartData = useMemo(() => {

@@ -1,5 +1,5 @@
-import type { ClassifiedColumn } from '../../columnKind'
 import type { ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 import { LineBarChart } from './LineBarChart'
 

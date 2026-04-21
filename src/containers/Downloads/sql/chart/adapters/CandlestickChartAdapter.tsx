@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
-import type { ClassifiedColumn } from '../../columnKind'
 import type { ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 
 interface ICandlestickChartShim {
@@ -31,7 +31,7 @@ export function CandlestickChartAdapter({ config, result, classified }: Candlest
 			const low = toNumber(row[mapping.low])
 			const high = toNumber(row[mapping.high])
 			if (ts == null || open == null || close == null || low == null || high == null) continue
-			const volume = mapping.volume ? toNumber(row[mapping.volume]) ?? 0 : 0
+			const volume = mapping.volume ? (toNumber(row[mapping.volume]) ?? 0) : 0
 			out.push([ts * 1000, open, close, low, high, volume])
 		}
 		return out

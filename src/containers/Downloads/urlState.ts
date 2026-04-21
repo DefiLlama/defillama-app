@@ -1,4 +1,3 @@
-import type { ChartConfig, ChartType, NumberFormat, StackMode } from './sql/chartConfig'
 import type {
 	ChartInput,
 	DatasetInput,
@@ -11,6 +10,7 @@ import type {
 	SavedParamType,
 	SavedSort
 } from './savedDownloads'
+import type { ChartConfig, ChartType, NumberFormat, StackMode } from './sql/chartConfig'
 
 // Query-param keys are kept short so deep links stay under practical URL lengths
 // and remain human-readable / hand-editable. JSON-stringifying the whole config
@@ -388,11 +388,11 @@ function decodeChartConfig(query: Record<string, string | string[] | undefined>)
 		xCol: firstStr(query.cx),
 		yCols,
 		splitByCol: firstStr(query.csb),
-		stackMode: cs ? STACK_LONG[cs] ?? 'off' : 'off',
+		stackMode: cs ? (STACK_LONG[cs] ?? 'off') : 'off',
 		rightAxisCols: cra ? splitEscaped(cra) : [],
 		seriesKinds: ckn ? decodeSeriesKinds(ckn) : {},
 		seriesColors: ccl ? decodeSeriesColors(ccl) : {},
-		numberFormat: cn ? NUMBER_FORMAT_LONG[cn] ?? 'auto' : 'auto',
+		numberFormat: cn ? (NUMBER_FORMAT_LONG[cn] ?? 'auto') : 'auto',
 		candlestick: extras.candlestick,
 		bubble: extras.bubble,
 		histogram: extras.histogram

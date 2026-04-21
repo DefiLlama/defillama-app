@@ -18,11 +18,7 @@ export function ShareQueryButton({ sql, tables, chartConfig, disabled }: ShareQu
 
 	const onClick = async () => {
 		try {
-			const url = buildShareUrl(
-				window.location.origin,
-				'/downloads',
-				extractQueryConfig({ sql, tables, chartConfig })
-			)
+			const url = buildShareUrl(window.location.origin, '/downloads', extractQueryConfig({ sql, tables, chartConfig }))
 			const withMode = url.includes('mode=sql') ? url : `${url}${url.includes('?') ? '&' : '?'}mode=sql`
 			await navigator.clipboard.writeText(withMode)
 			setCopied(true)

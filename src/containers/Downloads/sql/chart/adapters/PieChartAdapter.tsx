@@ -1,8 +1,8 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
-import type { ClassifiedColumn } from '../../columnKind'
 import type { ChartConfig } from '../../chartConfig'
+import type { ClassifiedColumn } from '../../columnKind'
 import type { QueryResult } from '../../exportResults'
 import { formatterFromConfig } from '../valueFormatters'
 
@@ -95,7 +95,9 @@ export function PieChartAdapter({ config, result, classified, onReady }: PieChar
 				/>
 			</Suspense>
 			{truncated > 0 ? (
-				<p className="text-[11px] text-(--text-tertiary)">Top {TOP_N_SLICES} slices. {truncated} folded into Other.</p>
+				<p className="text-[11px] text-(--text-tertiary)">
+					Top {TOP_N_SLICES} slices. {truncated} folded into Other.
+				</p>
 			) : null}
 		</div>
 	)

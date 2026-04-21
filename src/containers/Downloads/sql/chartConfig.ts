@@ -160,8 +160,16 @@ export function migrateChartConfig(prev: ChartConfig, classified: ClassifiedColu
 		rightAxisCols: filterExisting(prev.rightAxisCols),
 		seriesKinds: Object.fromEntries(Object.entries(prev.seriesKinds).filter(([k]) => names.has(k))),
 		seriesColors: Object.fromEntries(Object.entries(prev.seriesColors).filter(([k]) => names.has(k))),
-		candlestick: prev.candlestick && Object.values(prev.candlestick).every((v) => !v || names.has(v)) ? prev.candlestick : undefined,
-		bubble: prev.bubble?.sizeCol && names.has(prev.bubble.sizeCol) ? prev.bubble : prev.chartType === 'bubble' ? { sizeCol: null } : prev.bubble,
+		candlestick:
+			prev.candlestick && Object.values(prev.candlestick).every((v) => !v || names.has(v))
+				? prev.candlestick
+				: undefined,
+		bubble:
+			prev.bubble?.sizeCol && names.has(prev.bubble.sizeCol)
+				? prev.bubble
+				: prev.chartType === 'bubble'
+					? { sizeCol: null }
+					: prev.bubble,
 		histogram:
 			prev.histogram && names.has(prev.histogram.valueCol)
 				? prev.histogram

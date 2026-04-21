@@ -3,8 +3,8 @@ import { Icon } from '~/components/Icon'
 import { ChartRouter } from './chart'
 import { ChartExportButton } from './chart/ChartExportButton'
 import { ChartToolbar } from './chart/ChartToolbar'
-import { classifyColumns, type ClassifiedColumn } from './columnKind'
 import { defaultChartConfig, migrateChartConfig, type ChartConfig } from './chartConfig'
+import { classifyColumns, type ClassifiedColumn } from './columnKind'
 import type { QueryResult } from './exportResults'
 
 interface ResultsChartProps {

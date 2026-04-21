@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import type { QueryResult } from './exportResults'
 import {
 	classifyColumn,
 	classifyColumns,
@@ -8,6 +7,7 @@ import {
 	looksLikeISODate,
 	looksLikeNumericArray
 } from './columnKind'
+import type { QueryResult } from './exportResults'
 
 describe('inferFineKindFromArrowType', () => {
 	it('classifies common Arrow types', () => {
