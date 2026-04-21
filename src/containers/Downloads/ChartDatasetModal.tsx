@@ -15,7 +15,6 @@ import type { ChartDatasetDefinition } from './chart-datasets'
 import { combineCsvsWide } from './combineCsvsWide'
 import { filterParsedRowsByDateRange } from './csvDateFilter'
 import { parseCsv, type ParsedCsvRow } from './csvParse'
-import { sumCsvColumnsToTotal } from './sumCsvColumns'
 import { DateRangePicker } from './DateRangePicker'
 import { FormatSplitButton } from './FormatSplitButton'
 import {
@@ -29,6 +28,7 @@ import {
 	type SavedDownloadInput
 } from './savedDownloads'
 import { SavePresetDialog } from './SavePresetDialog'
+import { sumCsvColumnsToTotal } from './sumCsvColumns'
 import { buildShareUrl } from './urlState'
 
 const SubscribeProModal = lazy(() =>
