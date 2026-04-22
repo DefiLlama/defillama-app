@@ -13,6 +13,9 @@ import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import { TokenPageSectionNav } from '~/containers/Token/TokenPageSectionNav'
 import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
 import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
+import { getTokenRiskTimelineData } from '~/containers/Token/tokenRiskTimeline.server'
+import type { RiskTimelineResponse } from '~/containers/Token/tokenRiskTimeline.types'
+import { TokenRiskTimelineSection } from '~/containers/Token/TokenRiskTimelineSection'
 import { resolveTokenUnlockSlug } from '~/containers/Token/tokenUnlocks'
 import { TokenUnlocksSection } from '~/containers/Token/TokenUnlocksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
@@ -87,6 +90,7 @@ export const getStaticProps = withPerformanceLogging(
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
 		let tokenRiskData: TokenRiskResponse | null = null
+		let tokenRiskTimelineData: RiskTimelineResponse | null = null
 		let initialYieldsRows: IYieldTableRow[] = []
 		let initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null = null
 		const overview = await getTokenOverviewData({
@@ -149,17 +153,26 @@ export const getStaticProps = withPerformanceLogging(
 				})
 			: Promise.resolve([])
 
-		const [yieldsRows, tokenBorrowRoutesData, riskData] = await Promise.all([
+		const tokenRiskTimelinePromise = record.symbol
+			? getTokenRiskTimelineData(record.symbol).catch((error) => {
+					console.error(`Failed to load token risk timeline data for ${record.symbol}`, error)
+					return null
+				})
+			: Promise.resolve(null)
+
+		const [yieldsRows, tokenBorrowRoutesData, riskData, riskTimelineData] = await Promise.all([
 			yieldsRowsPromise,
 			getTokenBorrowRoutesData(record.symbol).catch((error) => {
 				console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
 				return null
 			}),
-			tokenRiskPromise
+			tokenRiskPromise,
+			tokenRiskTimelinePromise
 		])
 		initialYieldsRows = yieldsRows
 		initialTokenBorrowRoutesData = tokenBorrowRoutesData
 		tokenRiskData = riskData
+		tokenRiskTimelineData = riskTimelineData
 
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply & Token Rights - DefiLlama`
@@ -178,6 +191,7 @@ export const getStaticProps = withPerformanceLogging(
 				incomeStatementHasIncentives,
 				geckoId,
 				tokenRiskData,
+				tokenRiskTimelineData,
 				initialYieldsRows,
 				initialTokenBorrowRoutesData,
 				hasLiquidations,
@@ -235,6 +249,7 @@ export default function TokenPage({
 	incomeStatementHasIncentives,
 	geckoId,
 	tokenRiskData,
+	tokenRiskTimelineData,
 	initialYieldsRows,
 	initialTokenBorrowRoutesData,
 	hasLiquidations,
@@ -272,6 +287,15 @@ export default function TokenPage({
 					id: 'token-risks',
 					label: 'Risks',
 					element: <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
+				}
+			: null,
+		tokenRiskTimelineData
+			? {
+					id: 'token-risk-timeline',
+					label: 'Risk Timeline',
+					element: (
+						<TokenRiskTimelineSection tokenSymbol={record.symbol} timelineData={tokenRiskTimelineData} />
+					)
 				}
 			: null,
 		tokenRightsData
