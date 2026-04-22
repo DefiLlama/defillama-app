@@ -304,7 +304,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				</div>
 
 				<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-					<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+					<summary className="-m-3 flex cursor-pointer list-none items-center justify-between gap-3 p-3 text-sm font-medium">
 						<span>Methodology and limitations</span>
 						<Icon
 							name="chevron-down"
@@ -331,7 +331,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				</details>
 
 				<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-					<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+					<summary className="-m-3 flex cursor-pointer list-none items-center justify-between gap-3 p-3 text-sm font-medium">
 						<span>Show exposure details</span>
 						<Icon
 							name="chevron-down"
