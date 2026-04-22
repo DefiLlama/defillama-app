@@ -1,4 +1,4 @@
-import type { TokenRiskExposureMethodologies } from './api.types'
+import type { TokenRiskBorrowCapacityMethodologies } from './api.types'
 
 export type TokenRiskCoverageStatus = 'known' | 'partial' | 'unavailable'
 
@@ -10,14 +10,11 @@ export interface TokenRiskCandidate {
 }
 
 export interface TokenRiskExposureSummary {
-	totalCollateralMaxBorrowUsd: number
-	totalCollateralBorrowedDebtUsd: number | null
+	totalCurrentMaxBorrowUsd: number
 	totalMinBadDebtAtPriceZeroUsd: number | null
 	exposureCount: number
 	protocolCount: number
 	chainCount: number
-	borrowedDebtKnownCount: number
-	borrowedDebtUnknownCount: number
 	minBadDebtKnownCount: number
 	minBadDebtUnknownCount: number
 }
@@ -29,8 +26,7 @@ export interface TokenRiskExposureRow {
 	chainDisplayName: string
 	assetSymbol: string
 	assetAddress: string
-	collateralMaxBorrowUsd: number
-	collateralBorrowedDebtUsd: number | null
+	currentMaxBorrowUsd: number
 	minBadDebtAtPriceZeroUsd: number | null
 	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
 }
@@ -38,10 +34,9 @@ export interface TokenRiskExposureRow {
 export interface TokenRiskExposuresSection {
 	summary: TokenRiskExposureSummary
 	rows: TokenRiskExposureRow[]
-	methodologies: Pick<
-		TokenRiskExposureMethodologies,
-		'asset' | 'collateralMaxBorrowUsd' | 'collateralBorrowedDebtUsd' | 'minBadDebtAtPriceZeroUsd'
-	>
+	methodologies: Pick<TokenRiskBorrowCapacityMethodologies, 'asset' | 'minBadDebtAtPriceZeroUsd'> & {
+		currentMaxBorrowUsd: string
+	}
 }
 
 export interface TokenRiskResponse {

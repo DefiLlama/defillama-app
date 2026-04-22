@@ -68,33 +68,43 @@ export interface TokenRiskLendingRisksResponse {
 	results: Record<string, TokenRiskLendingRoutesBucket>
 }
 
-export interface TokenRiskExposureAsset {
+export interface TokenRiskBorrowCapacityAsset {
 	symbol: string
 	address: string
 	priceUsd: number
 }
 
-export interface TokenRiskExposure {
-	asset: TokenRiskExposureAsset
-	chain: string
-	protocol: string
-	collateralMaxBorrowUsd: number
+export interface TokenRiskBorrowCapacityTotals {
+	collateralMaxBorrowUsdGovernance: number | null
+	collateralMaxBorrowUsdLiquidity: number
 	collateralBorrowedDebtUsd: number | null
 	minBadDebtAtPriceZeroUsd: number | null
 }
 
-export interface TokenRiskExposureMethodologies {
+export interface TokenRiskBorrowCapacityByProtocolEntry extends TokenRiskBorrowCapacityTotals {
+	protocol: string
+}
+
+export interface TokenRiskBorrowCapacityTokenEntry {
+	asset: TokenRiskBorrowCapacityAsset
+	chain: string
+	totals: TokenRiskBorrowCapacityTotals
+	byProtocol: TokenRiskBorrowCapacityByProtocolEntry[]
+}
+
+export interface TokenRiskBorrowCapacityMethodologies {
 	asset: string
 	chain: string
 	protocol: string
-	collateralMaxBorrowUsd: string
+	collateralMaxBorrowUsdGovernance: string
+	collateralMaxBorrowUsdLiquidity: string
 	collateralBorrowedDebtUsd: string
 	minBadDebtAtPriceZeroUsd: string
 }
 
-export interface TokenRiskLendingExposuresResponse {
-	methodologies: TokenRiskExposureMethodologies
+export interface TokenRiskBorrowCapacityResponse {
+	methodologies: TokenRiskBorrowCapacityMethodologies
 	timestamp: number
 	hourlyTimestamp: number
-	exposures: TokenRiskExposure[]
+	tokens: TokenRiskBorrowCapacityTokenEntry[]
 }

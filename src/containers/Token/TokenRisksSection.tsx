@@ -16,13 +16,12 @@ import type { TokenRiskCoverageStatus, TokenRiskExposureRow, TokenRiskResponse }
 
 const TOKEN_RISKS_SECTION_ID = 'token-risks'
 const exposureColumnHelper = createColumnHelper<TokenRiskExposureRow>()
-const DEFAULT_EXPOSURES_SORTING: SortingState = [{ id: 'collateralMaxBorrowUsd', desc: true }]
+const DEFAULT_EXPOSURES_SORTING: SortingState = [{ id: 'currentMaxBorrowUsd', desc: true }]
 
 type ExposureProtocolSummary = {
 	protocol: string
 	protocolDisplayName: string
-	totalCollateralMaxBorrowUsd: number
-	totalCollateralBorrowedDebtUsd: number | null
+	totalCurrentMaxBorrowUsd: number
 	totalMinBadDebtAtPriceZeroUsd: number | null
 	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
 	chainDisplayNames: string[]
@@ -92,25 +91,17 @@ function createExposureColumns(methodologies: TokenRiskResponse['exposures']['me
 				headerHelperText: methodologies.asset
 			}
 		}),
-		exposureColumnHelper.accessor('collateralMaxBorrowUsd', {
-			header: 'Max Borrow',
+		exposureColumnHelper.accessor('currentMaxBorrowUsd', {
+			header: 'Max Borrowable',
 			cell: ({ getValue }) => formatUsd(getValue()),
 			meta: {
 				align: 'end',
-				headerHelperText: methodologies.collateralMaxBorrowUsd
-			}
-		}),
-		exposureColumnHelper.accessor('collateralBorrowedDebtUsd', {
-			header: 'Borrowed Debt',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.collateralBorrowedDebtUsd
+				headerHelperText: methodologies.currentMaxBorrowUsd
 			}
 		}),
 		exposureColumnHelper.accessor('minBadDebtAtPriceZeroUsd', {
 			id: 'minBadDebtAtPriceZeroUsd',
-			header: 'Min Bad Debt at $0',
+			header: 'Current Exposure',
 			cell: ({ row, getValue }) => formatMinBadDebtValue(getValue(), row.original.minBadDebtAtPriceZeroCoverage),
 			meta: {
 				align: 'end',
@@ -151,8 +142,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			{
 				protocol: string
 				protocolDisplayName: string
-				totalCollateralMaxBorrowUsd: number
-				totalCollateralBorrowedDebtUsd: number | null
+				totalCurrentMaxBorrowUsd: number
 				totalMinBadDebtAtPriceZeroUsd: number | null
 				hasKnownMinBadDebt: boolean
 				hasUnknownMinBadDebt: boolean
@@ -164,11 +154,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			const existing = grouped.get(row.protocol)
 
 			if (existing) {
-				existing.totalCollateralMaxBorrowUsd += row.collateralMaxBorrowUsd
-				existing.totalCollateralBorrowedDebtUsd =
-					existing.totalCollateralBorrowedDebtUsd == null || row.collateralBorrowedDebtUsd == null
-						? null
-						: existing.totalCollateralBorrowedDebtUsd + row.collateralBorrowedDebtUsd
+				existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
 				if (row.minBadDebtAtPriceZeroUsd != null) {
 					existing.totalMinBadDebtAtPriceZeroUsd =
 						(existing.totalMinBadDebtAtPriceZeroUsd ?? 0) + row.minBadDebtAtPriceZeroUsd
@@ -184,8 +170,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			grouped.set(row.protocol, {
 				protocol: row.protocol,
 				protocolDisplayName: row.protocolDisplayName,
-				totalCollateralMaxBorrowUsd: row.collateralMaxBorrowUsd,
-				totalCollateralBorrowedDebtUsd: row.collateralBorrowedDebtUsd,
+				totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
 				totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
 				hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
 				hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known',
@@ -204,21 +189,16 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				return {
 					protocol: summary.protocol,
 					protocolDisplayName: summary.protocolDisplayName,
-					totalCollateralMaxBorrowUsd: summary.totalCollateralMaxBorrowUsd,
-					totalCollateralBorrowedDebtUsd: summary.totalCollateralBorrowedDebtUsd,
+					totalCurrentMaxBorrowUsd: summary.totalCurrentMaxBorrowUsd,
 					totalMinBadDebtAtPriceZeroUsd: summary.totalMinBadDebtAtPriceZeroUsd,
 					minBadDebtAtPriceZeroCoverage,
 					chainDisplayNames: [...summary.chainDisplayNames].sort((a, b) => a.localeCompare(b))
 				}
 			})
 			.sort((a, b) => {
-				if (a.totalCollateralMaxBorrowUsd !== b.totalCollateralMaxBorrowUsd) {
-					return b.totalCollateralMaxBorrowUsd - a.totalCollateralMaxBorrowUsd
+				if (a.totalCurrentMaxBorrowUsd !== b.totalCurrentMaxBorrowUsd) {
+					return b.totalCurrentMaxBorrowUsd - a.totalCurrentMaxBorrowUsd
 				}
-
-				const aBorrowed = a.totalCollateralBorrowedDebtUsd ?? Number.NEGATIVE_INFINITY
-				const bBorrowed = b.totalCollateralBorrowedDebtUsd ?? Number.NEGATIVE_INFINITY
-				if (aBorrowed !== bBorrowed) return bBorrowed - aBorrowed
 
 				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
 			})
@@ -259,11 +239,11 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
-				<div className="grid gap-3 md:grid-cols-3">
+				<div className="grid gap-3 md:grid-cols-2">
 					<div className="rounded-md border border-(--cards-border) p-4">
-						<p className="text-sm text-(--text-secondary)">Total max borrow against {tokenSymbol}</p>
+						<p className="text-sm text-(--text-secondary)">Total max borrowable against {tokenSymbol}</p>
 						<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-							{formatUsd(exposures.summary.totalCollateralMaxBorrowUsd)}
+							{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)}
 						</p>
 						<p className="mt-1 text-sm text-(--text-secondary)">
 							Across {exposures.summary.exposureCount} exposure
@@ -273,32 +253,16 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					</div>
 
 					<div className="rounded-md border border-(--cards-border) p-4">
-						<p className="text-sm text-(--text-secondary)">Debt already borrowed against {tokenSymbol}</p>
-						<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-							{formatUsd(exposures.summary.totalCollateralBorrowedDebtUsd)}
-						</p>
-						<p className="mt-1 text-sm text-(--text-secondary)">
-							{exposures.summary.borrowedDebtUnknownCount > 0
-								? `${exposures.summary.borrowedDebtUnknownCount} exposure${
-										exposures.summary.borrowedDebtUnknownCount === 1 ? '' : 's'
-									} ${
-										exposures.summary.borrowedDebtUnknownCount === 1 ? 'does' : 'do'
-									} not report collateral-attributed borrowed debt.`
-								: 'Borrowed-debt totals are available for every exposure in this scope.'}
-						</p>
-					</div>
-
-					<div className="rounded-md border border-(--cards-border) p-4">
-						<p className="text-sm text-(--text-secondary)">Minimum known bad debt if {tokenSymbol} goes to $0</p>
+						<p className="text-sm text-(--text-secondary)">Current exposure if {tokenSymbol} goes to $0</p>
 						<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
 							{formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)}
 						</p>
 						<p className="mt-1 text-sm text-(--text-secondary)">
 							{!hasKnownMinBadDebt
-								? 'No exposures in this scope report zero-price bad-debt data yet.'
+								? 'No exposures in this scope report current exposure at a zero asset price yet.'
 								: exposures.summary.minBadDebtUnknownCount > 0
-									? 'Shown as a minimum known amount because some exposures do not report this metric yet.'
-									: 'Zero-price bad-debt coverage is available for every exposure in this scope.'}
+									? 'Shown as a minimum known amount because some exposures do not report zero-price bad debt yet.'
+									: 'Current exposure coverage is available for every exposure in this scope.'}
 						</p>
 					</div>
 				</div>
@@ -322,15 +286,13 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
 									</div>
 									<p className="mt-1 text-sm text-(--text-secondary)">
-										{formatUsd(summary.totalCollateralMaxBorrowUsd)} max borrow
-										{' · '}
-										{formatUsd(summary.totalCollateralBorrowedDebtUsd)} borrowed debt
+										{formatUsd(summary.totalCurrentMaxBorrowUsd)} max borrowable
 										{' · '}
 										{formatMinBadDebtValue(
 											summary.totalMinBadDebtAtPriceZeroUsd,
 											summary.minBadDebtAtPriceZeroCoverage
 										)}{' '}
-										min bad debt at $0
+										current exposure
 									</p>
 									<p className="mt-1 text-xs text-(--text-secondary)">
 										{formatProtocolChains(summary.chainDisplayNames)}
@@ -354,13 +316,12 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					<p className="mt-2 text-sm text-(--text-secondary)">
 						Showing collateral exposure for {tokenSymbol} on{' '}
 						<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>.{' '}
-						<span className="font-medium text-(--text-primary)">Max Borrow</span> is the maximum additional USD debt
-						that can currently be issued against the asset.{' '}
-						<span className="font-medium text-(--text-primary)">Borrowed Debt</span> is the total USD debt already
-						issued using the asset as collateral, when the backend can attribute it exactly.{' '}
-						<span className="font-medium text-(--text-primary)">Min Bad Debt at $0</span> is the minimum known bad debt
-						if the collateral asset price goes to zero; null rows are excluded from this total rather than treated as
-						zero.
+						<span className="font-medium text-(--text-primary)">Max Borrowable</span> uses the backend&apos;s
+						liquidity-bounded borrow-capacity metric (`collateralMaxBorrowUsdLiquidity`) for the maximum additional USD
+						debt that can be issued against the asset right now.{' '}
+						<span className="font-medium text-(--text-primary)">Current Exposure</span> is the minimum known bad debt if
+						the collateral asset price goes to zero; null rows are excluded from this total rather than treated as zero,
+						so totals may remain lower bounds.
 					</p>
 					<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
 						{riskData.limitations.map((limitation) => (
@@ -380,9 +341,8 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						/>
 					</summary>
 					<p className="mt-2 text-sm text-(--text-secondary)">
-						Each row is one protocol-chain exposure for {tokenSymbol} as collateral. Rows with unavailable borrowed-debt
-						values are left blank at the API level rather than being filled with zero, and zero-price bad-debt totals
-						remain lower bounds when a row is marked partial.
+						Each row is one protocol-chain exposure for {tokenSymbol} as collateral. Current exposure totals remain
+						lower bounds when a row is marked partial.
 					</p>
 					<PaginatedTable table={exposureTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
 				</details>

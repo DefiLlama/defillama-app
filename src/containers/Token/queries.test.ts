@@ -1,24 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getTokenRiskLendingExposures } from './api'
+import { getTokenRiskBorrowCapacity } from './api'
 import { getTokenRiskData, resetTokenRiskBorrowRoutesCache } from './queries'
 
 vi.mock('./api', () => ({
-	getTokenRiskLendingExposures: vi.fn()
+	getTokenRiskBorrowCapacity: vi.fn()
 }))
 
-function createLendingExposuresResponse() {
+function createBorrowCapacityResponse() {
 	return {
 		methodologies: {
 			asset: 'Collateral asset',
 			chain: 'Chain',
 			protocol: 'Protocol',
-			collateralMaxBorrowUsd: 'Max borrow',
+			collateralMaxBorrowUsdGovernance: 'Governance max borrow',
+			collateralMaxBorrowUsdLiquidity: 'Liquidity max borrow',
 			collateralBorrowedDebtUsd: 'Borrowed debt',
 			minBadDebtAtPriceZeroUsd: 'Minimum bad debt at zero'
 		},
 		timestamp: 1,
 		hourlyTimestamp: 1,
-		exposures: [
+		tokens: [
 			{
 				asset: {
 					symbol: 'USDC',
@@ -26,22 +27,28 @@ function createLendingExposuresResponse() {
 					priceUsd: 1
 				},
 				chain: 'ethereum',
-				protocol: 'aave-v3',
-				collateralMaxBorrowUsd: 1000,
-				collateralBorrowedDebtUsd: 400,
-				minBadDebtAtPriceZeroUsd: 400
-			},
-			{
-				asset: {
-					symbol: 'USDC',
-					address: '0xA0b8',
-					priceUsd: 1
+				totals: {
+					collateralMaxBorrowUsdGovernance: 1800,
+					collateralMaxBorrowUsdLiquidity: 1500,
+					collateralBorrowedDebtUsd: null,
+					minBadDebtAtPriceZeroUsd: 400
 				},
-				chain: 'ethereum',
-				protocol: 'morpho-blue',
-				collateralMaxBorrowUsd: 500,
-				collateralBorrowedDebtUsd: null,
-				minBadDebtAtPriceZeroUsd: null
+				byProtocol: [
+					{
+						protocol: 'aave-v3',
+						collateralMaxBorrowUsdGovernance: 1200,
+						collateralMaxBorrowUsdLiquidity: 1000,
+						collateralBorrowedDebtUsd: 400,
+						minBadDebtAtPriceZeroUsd: 400
+					},
+					{
+						protocol: 'morpho-blue',
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 500,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: null
+					}
+				]
 			},
 			{
 				asset: {
@@ -50,10 +57,44 @@ function createLendingExposuresResponse() {
 					priceUsd: 2000
 				},
 				chain: 'ethereum',
-				protocol: 'morpho-blue',
-				collateralMaxBorrowUsd: 750,
-				collateralBorrowedDebtUsd: 250,
-				minBadDebtAtPriceZeroUsd: 250
+				totals: {
+					collateralMaxBorrowUsdGovernance: null,
+					collateralMaxBorrowUsdLiquidity: 750,
+					collateralBorrowedDebtUsd: 250,
+					minBadDebtAtPriceZeroUsd: 250
+				},
+				byProtocol: [
+					{
+						protocol: 'morpho-blue',
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 750,
+						collateralBorrowedDebtUsd: 250,
+						minBadDebtAtPriceZeroUsd: 250
+					}
+				]
+			},
+			{
+				asset: {
+					symbol: 'USDC',
+					address: '0x8335',
+					priceUsd: 1
+				},
+				chain: 'base',
+				totals: {
+					collateralMaxBorrowUsdGovernance: 500,
+					collateralMaxBorrowUsdLiquidity: 300,
+					collateralBorrowedDebtUsd: 50,
+					minBadDebtAtPriceZeroUsd: 25
+				},
+				byProtocol: [
+					{
+						protocol: 'aave-v3',
+						collateralMaxBorrowUsdGovernance: 500,
+						collateralMaxBorrowUsdLiquidity: 300,
+						collateralBorrowedDebtUsd: 50,
+						minBadDebtAtPriceZeroUsd: 25
+					}
+				]
 			}
 		]
 	}
@@ -76,9 +117,9 @@ beforeEach(() => {
 })
 
 describe('getTokenRiskData', () => {
-	it('builds token risk exposure data from the lending exposures payload', async () => {
-		const mockedGetTokenRiskLendingExposures = vi.mocked(getTokenRiskLendingExposures)
-		mockedGetTokenRiskLendingExposures.mockResolvedValue(createLendingExposuresResponse() as never)
+	it('builds token risk exposure data from the borrow capacity payload', async () => {
+		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
+		mockedGetTokenRiskBorrowCapacity.mockResolvedValue(createBorrowCapacityResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'usdc',
@@ -103,22 +144,42 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.rows).toHaveLength(2)
 		expect(payload?.exposures.rows[0].protocolDisplayName).toBe('Aave V3')
 		expect(payload?.exposures.rows[0].chainDisplayName).toBe('Ethereum')
-		expect(payload?.exposures.summary.totalCollateralMaxBorrowUsd).toBe(1500)
-		expect(payload?.exposures.summary.totalCollateralBorrowedDebtUsd).toBeNull()
+		expect(payload?.exposures.rows[0]).not.toHaveProperty('collateralBorrowedDebtUsd')
+		expect(payload?.exposures.summary.totalCurrentMaxBorrowUsd).toBe(1500)
 		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(400)
 		expect(payload?.exposures.summary.minBadDebtKnownCount).toBe(1)
 		expect(payload?.exposures.summary.minBadDebtUnknownCount).toBe(1)
 		expect(payload?.limitations).toContain(
-			'When any contributing market cannot attribute borrowed debt to a specific collateral asset, borrowed-debt totals are returned as unavailable instead of being under-counted.'
-		)
-		expect(payload?.limitations).toContain(
-			'Minimum bad-debt totals at a zero asset price are lower bounds when some contributing markets return null for this metric; null rows are excluded instead of being treated as zero.'
+			'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 		)
 	})
 
-	it('falls back to exposure symbols when protocol llamaswap metadata is missing', async () => {
-		const mockedGetTokenRiskLendingExposures = vi.mocked(getTokenRiskLendingExposures)
-		mockedGetTokenRiskLendingExposures.mockResolvedValue(createLendingExposuresResponse() as never)
+	it('aggregates multiple scoped candidates into one onchain view', async () => {
+		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
+		mockedGetTokenRiskBorrowCapacity.mockResolvedValue(createBorrowCapacityResponse() as never)
+
+		const payload = await getTokenRiskData({
+			geckoId: 'usdc',
+			tokenSymbol: 'USDC',
+			protocolLlamaswapDataset: {
+				usdc: [
+					{ chain: 'ethereum', address: '0xA0b8', displayName: 'Ethereum' },
+					{ chain: 'base', address: '0x8335', displayName: 'Base' }
+				]
+			},
+			displayLookups
+		})
+
+		expect(payload?.scopeCandidates).toHaveLength(2)
+		expect(payload?.exposures.summary.totalCurrentMaxBorrowUsd).toBe(1800)
+		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(425)
+		expect(payload?.exposures.summary.protocolCount).toBe(2)
+		expect(payload?.exposures.summary.chainCount).toBe(2)
+	})
+
+	it('falls back to borrow capacity symbols when protocol llamaswap metadata is missing', async () => {
+		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
+		mockedGetTokenRiskBorrowCapacity.mockResolvedValue(createBorrowCapacityResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'wrapped-steth',
@@ -134,16 +195,16 @@ describe('getTokenRiskData', () => {
 			address: '0xwsteth',
 			displayName: 'Ethereum'
 		})
-		expect(payload?.exposures.summary.totalCollateralBorrowedDebtUsd).toBe(250)
+		expect(payload?.exposures.summary.totalCurrentMaxBorrowUsd).toBe(750)
 		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(250)
 		expect(payload?.limitations).not.toContain(
-			'Minimum bad-debt totals at a zero asset price are lower bounds when some contributing markets return null for this metric; null rows are excluded instead of being treated as zero.'
+			'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 		)
 	})
 
-	it('returns null when the token cannot be resolved from metadata or exposure symbols', async () => {
-		const mockedGetTokenRiskLendingExposures = vi.mocked(getTokenRiskLendingExposures)
-		mockedGetTokenRiskLendingExposures.mockResolvedValue(createLendingExposuresResponse() as never)
+	it('returns null when the token cannot be resolved from metadata or borrow capacity symbols', async () => {
+		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
+		mockedGetTokenRiskBorrowCapacity.mockResolvedValue(createBorrowCapacityResponse() as never)
 
 		const payload = await getTokenRiskData({
 			geckoId: 'missing',
@@ -153,6 +214,6 @@ describe('getTokenRiskData', () => {
 		})
 
 		expect(payload).toBeNull()
-		expect(mockedGetTokenRiskLendingExposures.mock.calls).toHaveLength(1)
+		expect(mockedGetTokenRiskBorrowCapacity.mock.calls).toHaveLength(1)
 	})
 })

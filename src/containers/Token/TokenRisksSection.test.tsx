@@ -49,14 +49,11 @@ const createRiskData = (): TokenRiskResponse => ({
 	selectedCandidateKey: null,
 	exposures: {
 		summary: {
-			totalCollateralMaxBorrowUsd: 1500,
-			totalCollateralBorrowedDebtUsd: null,
+			totalCurrentMaxBorrowUsd: 1500,
 			totalMinBadDebtAtPriceZeroUsd: 400,
 			exposureCount: 2,
 			protocolCount: 2,
 			chainCount: 1,
-			borrowedDebtKnownCount: 1,
-			borrowedDebtUnknownCount: 1,
 			minBadDebtKnownCount: 1,
 			minBadDebtUnknownCount: 1
 		},
@@ -68,8 +65,7 @@ const createRiskData = (): TokenRiskResponse => ({
 				chainDisplayName: 'Ethereum',
 				assetSymbol: 'USDC',
 				assetAddress: '0xa0b8',
-				collateralMaxBorrowUsd: 1000,
-				collateralBorrowedDebtUsd: 400,
+				currentMaxBorrowUsd: 1000,
 				minBadDebtAtPriceZeroUsd: 400,
 				minBadDebtAtPriceZeroCoverage: 'known'
 			},
@@ -80,66 +76,64 @@ const createRiskData = (): TokenRiskResponse => ({
 				chainDisplayName: 'Ethereum',
 				assetSymbol: 'USDC',
 				assetAddress: '0xa0b8',
-				collateralMaxBorrowUsd: 500,
-				collateralBorrowedDebtUsd: null,
+				currentMaxBorrowUsd: 500,
 				minBadDebtAtPriceZeroUsd: null,
 				minBadDebtAtPriceZeroCoverage: 'unavailable'
 			}
 		],
 		methodologies: {
 			asset: 'Asset methodology',
-			collateralMaxBorrowUsd: 'Max borrow methodology',
-			collateralBorrowedDebtUsd: 'Borrowed debt methodology',
+			currentMaxBorrowUsd: 'Liquidity max borrow methodology',
 			minBadDebtAtPriceZeroUsd: 'Zero-price bad debt methodology'
 		}
 	},
-	limitations: ['Borrowed debt totals may be unavailable.']
+	limitations: ['Current exposure is a lower bound when some contributing markets return null for zero-price bad debt.']
 })
 
 import { TokenRisksSection } from './TokenRisksSection'
 
 describe('TokenRisksSection', () => {
-	it('renders the new exposure summary from preloaded risk data', () => {
+	it('renders the two-metric exposure summary from preloaded risk data', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
 		expect(html).toContain('How much debt can be issued against USDC as collateral across lending protocols')
-		expect(html).toContain('Total max borrow against USDC')
+		expect(html).toContain('Total max borrowable against USDC')
 		expect(html).toContain('$1,500')
-		expect(html).toContain('Debt already borrowed against USDC')
-		expect(html).toContain('Unavailable')
-		expect(html).toContain('1 exposure does not report collateral-attributed borrowed debt.')
-		expect(html).toContain('Minimum known bad debt if USDC goes to $0')
+		expect(html).toContain('Current exposure if USDC goes to $0')
 		expect(html).toContain('$400')
-		expect(html).toContain('Shown as a minimum known amount because some exposures do not report this metric yet.')
+		expect(html).toContain(
+			'Shown as a minimum known amount because some exposures do not report zero-price bad debt yet.'
+		)
+		expect(html).not.toContain('Debt already borrowed against USDC')
+		expect(html).not.toContain('borrowed debt')
 	})
 
 	it('shows methodology, limitations, and the exposure details disclosure', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
 		expect(html).toContain('Showing collateral exposure for USDC on')
-		expect(html).toContain('Borrowed debt totals may be unavailable.')
+		expect(html).toContain(
+			'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt.'
+		)
 		expect(html).toContain('Show exposure details')
 		expect(html).toContain('paginated-table:2')
 		expect(html).toContain('Asset|Asset methodology')
-		expect(html).toContain('Max Borrow|Max borrow methodology')
-		expect(html).toContain('Borrowed Debt|Borrowed debt methodology')
-		expect(html).toContain('Min Bad Debt at $0|Zero-price bad debt methodology')
+		expect(html).toContain('Max Borrowable|Liquidity max borrow methodology')
+		expect(html).toContain('Current Exposure|Zero-price bad debt methodology')
 		expect(html).toContain(
-			'Min Bad Debt at $0</span> is the minimum known bad debt if the collateral asset price goes to zero; null rows are excluded from this total rather than treated as zero.'
+			'Current Exposure</span> is the minimum known bad debt if the collateral asset price goes to zero'
 		)
-		expect(html).toContain(
-			'Rows with unavailable borrowed-debt values are left blank at the API level rather than being filled with zero, and zero-price bad-debt totals remain lower bounds when a row is marked partial.'
-		)
+		expect(html).toContain('Current exposure totals remain lower bounds when a row is marked partial.')
+		expect(html).not.toContain('Borrowed Debt|')
 	})
 
-	it('prioritizes protocols by total max borrow', () => {
+	it('prioritizes protocols by total max borrowable', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
 		expect(html.indexOf('Aave V3')).toBeLessThan(html.indexOf('Morpho Blue'))
-		expect(html).toContain('$1,000 max borrow')
-		expect(html).toContain('$400 borrowed debt')
-		expect(html).toContain('$400 min bad debt at $0')
-		expect(html).toContain('Unavailable min bad debt at $0')
+		expect(html).toContain('$1,000 max borrowable')
+		expect(html).toContain('$400 current exposure')
+		expect(html).toContain('Unavailable current exposure')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -155,14 +149,11 @@ describe('TokenRisksSection', () => {
 		const riskData = createRiskData()
 		riskData.exposures.rows = []
 		riskData.exposures.summary = {
-			totalCollateralMaxBorrowUsd: 0,
-			totalCollateralBorrowedDebtUsd: null,
+			totalCurrentMaxBorrowUsd: 0,
 			totalMinBadDebtAtPriceZeroUsd: null,
 			exposureCount: 0,
 			protocolCount: 0,
 			chainCount: 0,
-			borrowedDebtKnownCount: 0,
-			borrowedDebtUnknownCount: 0,
 			minBadDebtKnownCount: 0,
 			minBadDebtUnknownCount: 0
 		}
@@ -172,7 +163,7 @@ describe('TokenRisksSection', () => {
 		expect(html).toBe('')
 	})
 
-	it('shows partial zero-price bad debt labels and unavailable totals when coverage is incomplete', () => {
+	it('shows partial current exposure labels and unavailable totals when coverage is incomplete', () => {
 		const riskData = createRiskData()
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = 50
 		riskData.exposures.summary.minBadDebtKnownCount = 0
@@ -196,11 +187,13 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain('Shown as a minimum known amount because some exposures do not report this metric yet.')
-		expect(html).toContain('$50 (partial) min bad debt at $0')
+		expect(html).toContain(
+			'Shown as a minimum known amount because some exposures do not report zero-price bad debt yet.'
+		)
+		expect(html).toContain('$50 (partial) current exposure')
 	})
 
-	it('shows unavailable zero-price bad debt totals when no exposures report the metric', () => {
+	it('shows unavailable current exposure totals when no exposures report the metric', () => {
 		const riskData = createRiskData()
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = null
 		riskData.exposures.summary.minBadDebtKnownCount = 0
@@ -213,7 +206,7 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain('No exposures in this scope report zero-price bad-debt data yet.')
-		expect(html).toContain('Unavailable min bad debt at $0')
+		expect(html).toContain('No exposures in this scope report current exposure at a zero asset price yet.')
+		expect(html).toContain('Unavailable current exposure')
 	})
 })

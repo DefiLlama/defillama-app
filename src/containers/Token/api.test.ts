@@ -22,11 +22,11 @@ beforeEach(() => {
 })
 
 describe('token risk api', () => {
-	it('requests the lending exposures snapshot', async () => {
+	it('requests the borrow capacity snapshot', async () => {
 		const api = await import('./api')
 
-		await api.getTokenRiskLendingExposures()
+		await api.getTokenRiskBorrowCapacity()
 
-		expect(mocks.fetchJson).toHaveBeenCalledWith('https://risk.example.com/get-lending-exposures')
+		expect(mocks.fetchJson).toHaveBeenCalledWith('https://risk.example.com/get-borrow-capacity-by-asset')
 	})
 })

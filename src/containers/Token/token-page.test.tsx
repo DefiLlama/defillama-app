@@ -1038,14 +1038,11 @@ describe('token page', () => {
 			selectedCandidateKey: null,
 			exposures: {
 				summary: {
-					totalCollateralMaxBorrowUsd: 10,
-					totalCollateralBorrowedDebtUsd: 6,
+					totalCurrentMaxBorrowUsd: 10,
 					totalMinBadDebtAtPriceZeroUsd: 6,
 					exposureCount: 1,
 					protocolCount: 1,
 					chainCount: 1,
-					borrowedDebtKnownCount: 1,
-					borrowedDebtUnknownCount: 0,
 					minBadDebtKnownCount: 1,
 					minBadDebtUnknownCount: 0
 				},
@@ -1057,16 +1054,14 @@ describe('token page', () => {
 						chainDisplayName: 'Ethereum',
 						assetSymbol: 'LINK',
 						assetAddress: '0x5149',
-						collateralMaxBorrowUsd: 10,
-						collateralBorrowedDebtUsd: 6,
+						currentMaxBorrowUsd: 10,
 						minBadDebtAtPriceZeroUsd: 6,
 						minBadDebtAtPriceZeroCoverage: 'known'
 					}
 				],
 				methodologies: {
 					asset: 'asset',
-					collateralMaxBorrowUsd: 'cap',
-					collateralBorrowedDebtUsd: 'borrowed',
+					currentMaxBorrowUsd: 'cap',
 					minBadDebtAtPriceZeroUsd: 'zero-price'
 				}
 			},
