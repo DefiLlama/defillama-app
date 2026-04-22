@@ -275,7 +275,13 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 		)
 	}
 	return (
-		<a href={href} target="_blank" rel="noreferrer noopener" {...props}>
+		<a
+			href={href}
+			target="_blank"
+			rel="noreferrer noopener"
+			className="text-(--link-text) no-underline hover:underline"
+			{...props}
+		>
 			{children}
 		</a>
 	)

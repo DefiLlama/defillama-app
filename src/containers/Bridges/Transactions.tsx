@@ -12,16 +12,16 @@ import * as React from 'react'
 import { useBlockExplorers } from '~/api/client'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { formattedNum, slug, toNiceDayAndHour } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
-import type { RawBridgeInfo } from './api.types'
 import { fetchBridgeTransactionsClient } from './api'
+import type { RawBridgeInfo } from './api.types'
 
 type BridgeTransaction = {
 	tx_hash: string
@@ -98,9 +98,7 @@ const buildBridgeColumns = (blockExplorersData: ReturnType<typeof useBlockExplor
 			return (
 				<span
 					className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-						deposit
-							? 'bg-(--success)/10 text-(--success)'
-							: 'bg-(--error)/10 text-(--error)'
+						deposit ? 'bg-(--success)/10 text-(--success)' : 'bg-(--error)/10 text-(--error)'
 					}`}
 				>
 					<Icon name={deposit ? 'arrow-down' : 'arrow-up-right'} height={12} width={12} />
@@ -395,10 +393,11 @@ export const BridgeTransactionsPage = ({ bridges }: { bridges: RawBridgeInfo[] }
 	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
 
 	const [transactions, setTransactions] = React.useState<BridgeTransaction[]>([])
-	const [fetchedContext, setFetchedContext] = React.useState<
-		| { startDate: string; endDate: string; bridgeName: string }
-		| null
-	>(null)
+	const [fetchedContext, setFetchedContext] = React.useState<{
+		startDate: string
+		endDate: string
+		bridgeName: string
+	} | null>(null)
 	const [selectedBridge, setSelectedBridge] = React.useState<string[]>([])
 
 	const { mutate, isPending, error } = useMutation({
@@ -496,8 +495,8 @@ export const BridgeTransactionsPage = ({ bridges }: { bridges: RawBridgeInfo[] }
 			<header className="flex flex-col gap-2">
 				<h1 className="text-2xl font-bold tracking-tight md:text-3xl">Bridge Transactions</h1>
 				<p className="max-w-2xl text-sm text-(--text-label)">
-					Download cross-chain bridge transaction data by protocol and time window. Results include deposits, withdrawals,
-					USD value, and explorer links — exportable as CSV.
+					Download cross-chain bridge transaction data by protocol and time window. Results include deposits,
+					withdrawals, USD value, and explorer links — exportable as CSV.
 				</p>
 			</header>
 
@@ -589,7 +588,9 @@ export const BridgeTransactionsPage = ({ bridges }: { bridges: RawBridgeInfo[] }
 						<span className="text-(--text-tertiary)">
 							{formatDateLabel(fetchedContext.startDate)} → {formatDateLabel(fetchedContext.endDate)}
 						</span>
-						<span className="text-(--text-tertiary)">· {stats.uniqueChains} chain{stats.uniqueChains === 1 ? '' : 's'}</span>
+						<span className="text-(--text-tertiary)">
+							· {stats.uniqueChains} chain{stats.uniqueChains === 1 ? '' : 's'}
+						</span>
 					</div>
 
 					<div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -598,7 +599,11 @@ export const BridgeTransactionsPage = ({ bridges }: { bridges: RawBridgeInfo[] }
 							value={formattedNum(stats.total)}
 							sublabel={stats.unknownValueCount > 0 ? `${stats.unknownValueCount} without USD value` : undefined}
 						/>
-						<StatCard label="Total Volume" value={formattedNum(stats.totalVolume, true)} sublabel="USD, priced rows only" />
+						<StatCard
+							label="Total Volume"
+							value={formattedNum(stats.totalVolume, true)}
+							sublabel="USD, priced rows only"
+						/>
 						<StatCard
 							label="Deposits"
 							value={formattedNum(stats.deposits)}
@@ -784,12 +789,7 @@ function TransactionsTable({
 	)
 }
 
-function PagerButton({
-	children,
-	disabled,
-	onClick,
-	...rest
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+function PagerButton({ children, disabled, onClick, ...rest }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
 	return (
 		<button
 			type="button"
