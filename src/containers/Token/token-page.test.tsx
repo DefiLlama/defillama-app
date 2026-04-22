@@ -14,6 +14,7 @@ import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import type { TokenRiskResponse } from './tokenRisk.types'
+import type { RiskTimelineResponse } from './tokenRiskTimeline.types'
 
 const tokenRightsFixture: ITokenRightsData = {
 	overview: {
@@ -108,6 +109,7 @@ const state: {
 	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
+	tokenRiskTimelineData: RiskTimelineResponse | null
 	initialYieldsRows: unknown[]
 	initialTokenBorrowRoutesData: unknown
 	tokenlist: Record<string, unknown>
@@ -124,6 +126,7 @@ const state: {
 	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
+	tokenRiskTimelineData: null,
 	initialYieldsRows: [],
 	initialTokenBorrowRoutesData: null,
 	tokenlist: {
@@ -159,6 +162,7 @@ function resetState() {
 	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
+	state.tokenRiskTimelineData = null
 	state.initialYieldsRows = []
 	state.initialTokenBorrowRoutesData = null
 	state.tokenlist = {
@@ -217,6 +221,10 @@ vi.mock('~/containers/Token/TokenBorrowSection', () => ({
 
 vi.mock('~/containers/Token/TokenRisksSection', () => ({
 	TokenRisksSection: () => <section id="token-risks">token-risks-section</section>
+}))
+
+vi.mock('~/containers/Token/TokenRiskTimelineSection', () => ({
+	TokenRiskTimelineSection: () => <section id="token-risk-timeline">token-risk-timeline-section</section>
 }))
 
 vi.mock('~/containers/Token/TokenIncomeStatementSection', () => ({
@@ -288,6 +296,10 @@ vi.mock('~/containers/Token/queries', () => ({
 	getTokenRiskData: vi.fn(() => Promise.resolve(state.tokenRiskData))
 }))
 
+vi.mock('~/containers/Token/tokenRiskTimeline.server', () => ({
+	getTokenRiskTimelineData: vi.fn(() => Promise.resolve(state.tokenRiskTimelineData))
+}))
+
 vi.mock('~/containers/Token/tokenYields.server', () => ({
 	getTokenYieldsRows: vi.fn(() => Promise.resolve(state.initialYieldsRows))
 }))
@@ -312,6 +324,7 @@ describe('token page', () => {
 				incomeStatementProtocolName="Bitcoin Protocol"
 				incomeStatementHasIncentives={false}
 				tokenRiskData={{} as TokenRiskResponse}
+				tokenRiskTimelineData={null}
 				initialYieldsRows={[{ pool: 'pool-1' }] as IYieldTableRow[]}
 				initialTokenBorrowRoutesData={
 					{
@@ -386,6 +399,7 @@ describe('token page', () => {
 				incomeStatementProtocolName={null}
 				incomeStatementHasIncentives={false}
 				tokenRiskData={null}
+				tokenRiskTimelineData={null}
 				initialYieldsRows={[]}
 				initialTokenBorrowRoutesData={null}
 				geckoId="bitcoin"
@@ -424,6 +438,7 @@ describe('token page', () => {
 				incomeStatementProtocolName={null}
 				incomeStatementHasIncentives={false}
 				tokenRiskData={{} as TokenRiskResponse}
+				tokenRiskTimelineData={null}
 				initialYieldsRows={[]}
 				initialTokenBorrowRoutesData={
 					{
@@ -491,6 +506,7 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: 'bitcoin',
 				tokenRiskData: null,
+				tokenRiskTimelineData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
@@ -515,6 +531,7 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: 'bitcoin',
 				tokenRiskData: null,
+				tokenRiskTimelineData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
@@ -563,6 +580,7 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: null,
 				tokenRiskData: null,
+				tokenRiskTimelineData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
@@ -609,6 +627,7 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: 'swing-xyz',
 				tokenRiskData: null,
+				tokenRiskTimelineData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
@@ -730,6 +749,7 @@ describe('token page', () => {
 				incomeStatementHasIncentives: false,
 				geckoId: 'chainlink',
 				tokenRiskData: null,
+				tokenRiskTimelineData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
@@ -882,6 +902,7 @@ describe('token page', () => {
 				incomeStatementHasIncentives: true,
 				geckoId: 'aave',
 				tokenRiskData: null,
+				tokenRiskTimelineData: null,
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
