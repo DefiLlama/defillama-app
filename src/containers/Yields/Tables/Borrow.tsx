@@ -53,7 +53,7 @@ const columns = [
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
-		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+		header: () => <span className="pl-6">Project</span>,
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
@@ -121,7 +121,7 @@ const columns = [
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'} className="font-bold">
 					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
@@ -183,9 +183,8 @@ const columns = [
 			const value = info.getValue()
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>
@@ -204,9 +203,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -224,9 +222,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -245,7 +242,7 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					data-strike={info.row.original.strikeTvl ?? 'false'}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
 					className="flex justify-end gap-1 data-[strike=true]:text-(--text-disabled)"
 				>
 					{['Morpho Compound', 'Morpho Aave'].includes(info.row.original.project) ? (

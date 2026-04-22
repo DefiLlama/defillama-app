@@ -1,13 +1,23 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import {
+	createColumnHelper,
+	getCoreRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	type PaginationState,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import { useRouter } from 'next/router'
+import { startTransition, useMemo, useState } from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, toTokenIconItems } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/Table/PaginatedTable'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
-import { resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
+import { preparePaginatedYieldsColumns, resolveVirtualYieldsTableConfig, type YieldsTableConfig } from './config'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsOptimizerTableRow } from './types'
@@ -34,23 +44,36 @@ type OptimizerColumnId = (typeof OPTIMIZER_COLUMN_IDS)[number]
 
 //  TODO fix types
 
+function OptimizerPoolCell({ row }: { row: { id: string; original: IYieldsOptimizerTableRow } }) {
+	const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
+	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
+
+	return (
+		<NameYieldPool
+			withoutLink
+			value={name}
+			configID={row.original.configID}
+			url={row.original.url}
+			rowIndex={rowIndex}
+			borrow={true}
+		/>
+	)
+}
+
 const columns = [
 	columnHelper.accessor('pool', {
 		id: 'pool',
 		header: 'Pool',
 		enableSorting: false,
-		cell: ({ row }) => {
-			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
-
-			return (
-				<NameYieldPool withoutLink value={name} configID={row.original.configID} url={row.original.url} borrow={true} />
-			)
-		},
-		size: 400
+		cell: ({ row }) => <OptimizerPoolCell row={row} />,
+		size: 400,
+		meta: {
+			headerClassName: 'min-w-[180px] sm:min-w-[220px] xl:min-w-[280px]'
+		}
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
-		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+		header: 'Project',
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
@@ -62,7 +85,10 @@ const columns = [
 				borrow={true}
 			/>
 		),
-		size: 140
+		size: 140,
+		meta: {
+			headerClassName: 'min-w-[120px] pl-9 sm:min-w-[140px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		id: 'chains',
@@ -82,9 +108,8 @@ const columns = [
 			const value = info.row.original.borrow.totalAvailableUsd
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? null : formattedNum(value, true)}
 				</span>
@@ -157,7 +182,7 @@ const columns = [
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+				<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} className="font-bold">
 					{formatPercentChangeText(getValue(), true)}
 				</ColoredAPY>
 			)
@@ -189,12 +214,12 @@ const columns = [
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+							<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} className="font-bold">
 								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</span>
 					) : (
-						<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+						<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} className="font-bold">
 							{formatPercentChangeText(getValue(), true)}
 						</ColoredAPY>
 					)}
@@ -256,9 +281,8 @@ const columns = [
 			const value = info.getValue()
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>
@@ -277,9 +301,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -297,9 +320,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -548,4 +570,54 @@ export function YieldsOptimizerTable({ data }) {
 			columnVisibility={resolvedConfig.columnVisibility}
 		/>
 	)
+}
+
+export function PaginatedYieldsOptimizerTable({
+	data,
+	initialPageSize = 10,
+	excludeRewardApy = false,
+	withAmount = false
+}: {
+	data: IYieldsOptimizerTableRow[]
+	initialPageSize?: number
+	excludeRewardApy?: boolean
+	withAmount?: boolean
+}) {
+	const context = useMemo(
+		() => ({
+			excludeRewardApy,
+			withAmount
+		}),
+		[excludeRewardApy, withAmount]
+	)
+	const [sorting, setSorting] = useState<SortingState>(defaultSortingState)
+	const [pagination, setPagination] = useState<PaginationState>({
+		pageIndex: 0,
+		pageSize: initialPageSize
+	})
+
+	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(OPTIMIZER_TABLE_CONFIG, context), [context])
+
+	const table = useReactTable({
+		data,
+		columns: paginatedColumns,
+		state: {
+			sorting,
+			pagination
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		onSortingChange: (updater) =>
+			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		onPaginationChange: (updater) =>
+			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel(),
+		getPaginationRowModel: getPaginationRowModel(),
+		autoResetPageIndex: false
+	})
+
+	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
 }

@@ -226,7 +226,10 @@ function sortMarketsByOpenInterest(markets: IRWAPerpsMarket[]) {
 	return [...markets].sort((a, b) => safeNumber(b.openInterest) - safeNumber(a.openInterest))
 }
 
-function derivePreviousValueFromPercentChange(currentValue: number, percentChange: number | null | undefined): number | null {
+function derivePreviousValueFromPercentChange(
+	currentValue: number,
+	percentChange: number | null | undefined
+): number | null {
 	if (!Number.isFinite(currentValue) || currentValue < 0 || percentChange == null || !Number.isFinite(percentChange)) {
 		return null
 	}

@@ -1,20 +1,17 @@
 import clsx from 'clsx'
-import type {
-	CSSProperties,
-	HTMLAttributes,
-	ReactNode,
-	TableHTMLAttributes,
-	TdHTMLAttributes,
-	ThHTMLAttributes
-} from 'react'
+import type { HTMLAttributes, ReactNode, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from 'react'
 
 type TableTextAlign = 'start' | 'center' | 'end'
+
+function getTableTextAlignClass(textAlign: TableTextAlign) {
+	if (textAlign === 'center') return 'text-center'
+	if (textAlign === 'end') return 'text-end'
+	return 'text-start'
+}
 
 interface TokenPageTableCellProps {
 	children: ReactNode
 	className?: string
-	minWidth?: CSSProperties['minWidth']
-	style?: CSSProperties
 	textAlign?: TableTextAlign
 }
 
@@ -65,15 +62,16 @@ export function TokenPageTable({
 export function TokenPageTableHeaderCell({
 	children,
 	className,
-	minWidth,
-	style,
 	textAlign = 'start',
 	...props
 }: TokenPageTableCellProps & ThHTMLAttributes<HTMLTableCellElement>) {
 	return (
 		<th
-			className={clsx('px-3 py-2 text-sm font-medium whitespace-nowrap text-(--text-secondary)', className)}
-			style={{ minWidth, textAlign, ...style }}
+			className={clsx(
+				'px-3 py-2 text-sm font-medium whitespace-nowrap text-(--text-secondary)',
+				getTableTextAlignClass(textAlign),
+				className
+			)}
 			{...props}
 		>
 			{children}
@@ -84,13 +82,11 @@ export function TokenPageTableHeaderCell({
 export function TokenPageTableBodyCell({
 	children,
 	className,
-	minWidth,
-	style,
 	textAlign = 'start',
 	...props
 }: TokenPageTableCellProps & TdHTMLAttributes<HTMLTableCellElement>) {
 	return (
-		<td className={clsx('px-3 py-2 align-middle', className)} style={{ minWidth, textAlign, ...style }} {...props}>
+		<td className={clsx('px-3 py-2 align-middle', getTableTextAlignClass(textAlign), className)} {...props}>
 			{children}
 		</td>
 	)

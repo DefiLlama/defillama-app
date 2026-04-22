@@ -35,6 +35,11 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 		contextRef.current = { tables }
 	}, [tables])
 
+	const onRunRef = useRef(onRun)
+	useEffect(() => {
+		onRunRef.current = onRun
+	}, [onRun])
+
 	useEffect(() => {
 		const root = typeof document !== 'undefined' ? document.documentElement : null
 		if (!root) return
@@ -82,21 +87,18 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 		monaco.editor.defineTheme(DARK_THEME_ID, llamaSqlDark)
 	}, [])
 
-	const handleMount = useCallback(
-		(editor: any, monaco: any) => {
-			editorInstanceRef.current = editor
-			editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRun())
+	const handleMount = useCallback((editor: any, monaco: any) => {
+		editorInstanceRef.current = editor
+		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRunRef.current())
 
-			const completions = registerSqlCompletions(monaco, contextRef)
-			const hovers = registerSqlHovers(monaco, contextRef)
-			editor.onDidDispose(() => {
-				completions.dispose()
-				hovers.dispose()
-				if (editorInstanceRef.current === editor) editorInstanceRef.current = null
-			})
-		},
-		[onRun]
-	)
+		const completions = registerSqlCompletions(monaco, contextRef)
+		const hovers = registerSqlHovers(monaco, contextRef)
+		editor.onDidDispose(() => {
+			completions.dispose()
+			hovers.dispose()
+			if (editorInstanceRef.current === editor) editorInstanceRef.current = null
+		})
+	}, [])
 
 	return (
 		<div className="overflow-hidden rounded-[4px] border border-(--divider) bg-(--cards-bg)">

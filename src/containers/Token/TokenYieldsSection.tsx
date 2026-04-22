@@ -46,6 +46,7 @@ async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[
 
 interface TokenYieldsSectionProps {
 	tokenSymbol: string
+	initialData?: IYieldTableRow[]
 }
 
 function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants: Set<string>) {
@@ -56,7 +57,7 @@ function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants:
 	return false
 }
 
-export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
+export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSectionProps) {
 	const router = useRouter()
 	const {
 		data: rows,
@@ -65,6 +66,7 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 	} = useQuery({
 		queryKey: ['token-yields', tokenSymbol],
 		queryFn: () => fetchTokenYieldRows(tokenSymbol),
+		initialData,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: false,
@@ -193,6 +195,12 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 
 	const isFilteredEmpty = filteredPools.length === 0 && poolsList.length > 0
 	const hasPlaceholderState = isLoading || error != null || poolsList.length === 0
+	const summaryText =
+		filteredStats.noOfPoolsTracked > 0
+			? `Tracking ${filteredStats.noOfPoolsTracked} ${filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'}${
+					filteredStats.averageAPY != null ? `, average APY ${filteredStats.averageAPY.toFixed(2)}%` : ''
+				}`
+			: null
 
 	return (
 		<section
@@ -200,7 +208,7 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 				hasPlaceholderState ? ' min-h-[80dvh] sm:min-h-[572px]' : ''
 			}`}
 		>
-			<div className="border-b border-(--cards-border) p-3">
+			<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 				<h2
 					className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
 					id={TOKEN_YIELDS_SECTION_ID}
@@ -214,6 +222,9 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 					/>
 					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
+				{!isLoading && !error && summaryText ? (
+					<p className="text-sm text-(--text-secondary) sm:text-right">{summaryText}</p>
+				) : null}
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
@@ -232,16 +243,7 @@ export function TokenYieldsSection({ tokenSymbol }: TokenYieldsSectionProps) {
 				) : (
 					<>
 						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="flex flex-wrap items-center gap-2 p-3">
-								<span>
-									{filteredStats.noOfPoolsTracked > 0
-										? `Tracking ${filteredStats.noOfPoolsTracked} ${
-												filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'
-											}${filteredStats.averageAPY != null ? `, average APY ${filteredStats.averageAPY.toFixed(2)}%` : ''}`
-										: 'No pools matching filters'}
-								</span>
-							</div>
-							<div className="p-3">
+							<div className="p-1">
 								<ResponsiveFilterLayout>
 									{(nestedMenu) => (
 										<>

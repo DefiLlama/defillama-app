@@ -1,5 +1,5 @@
 import { matchSorter } from 'match-sorter'
-import { type Dispatch, type ReactNode, type SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -14,11 +14,13 @@ import { Editor, type EditorHandle } from './Editor'
 import type { ExampleQuery } from './examples'
 import { ExamplesPanel } from './ExamplesPanel'
 import { Keycap, StatusDot } from './primitives'
+import { QueryTabBar } from './QueryTabBar'
 import { ResultsPanel } from './ResultsPanel'
 import { SchemaDrawer } from './SchemaDrawer'
-import { TableChipRail, type PendingTable } from './TableChipRail'
+import { TableChipRail } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
+import { useSqlTabs, type LastRunMeta, type QueryTab } from './useSqlTabs'
 import {
 	identifierize,
 	prettyLabelForSource,
@@ -60,18 +62,6 @@ export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
 	return <SqlWorkspaceInner chartOptionsMap={chartOptionsMap} authorizedFetch={authorizedFetch} topRight={topRight} />
 }
 
-interface QueryResult {
-	columns: Array<{ name: string; type: string }>
-	rows: Record<string, unknown>[]
-}
-
-interface LastRunMeta {
-	durationMs: number
-	rows: number
-	cols: number
-	at: number
-}
-
 function SqlWorkspaceInner({
 	chartOptionsMap,
 	authorizedFetch,
@@ -86,49 +76,28 @@ function SqlWorkspaceInner({
 	const { savedDownloads, saveDownload, deleteDownload, renameDownload } = useSavedDownloads()
 	const { recordRecent } = useRecentDownloads()
 
-	const [tab, setTab] = useState<SqlTab>('editor')
+	const [sectionTab, setSectionTab] = useState<SqlTab>('editor')
 	const [schemaDrawerOpen, setSchemaDrawerOpen] = useState(false)
-	const [sql, setSql] = useState<string>(
-		`-- Lending vs DEX fees — daily series with 30-day moving averages.
--- CTE + FULL OUTER JOIN stitches two time-series, then a named WINDOW
--- smooths each one. Hit ⌘/Ctrl+Enter — missing tables auto-load and
--- the Chart tab will render four lines.
-WITH joined AS (
-  SELECT COALESCE(l.date, d.date) AS date,
-         COALESCE(l.value, 0)     AS lending,
-         COALESCE(d.value, 0)     AS dexs
-  FROM ts_category_fees_chart_lending l
-  FULL OUTER JOIN ts_category_fees_chart_dexs d
-    ON l.date = d.date
-)
-SELECT date,
-       lending,
-       dexs,
-       AVG(lending) OVER w AS lending_30d_avg,
-       AVG(dexs)    OVER w AS dexs_30d_avg,
-       lending / NULLIF(lending + dexs, 0) AS lending_share
-FROM joined
-WINDOW w AS (ORDER BY date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)
-QUALIFY ROW_NUMBER() OVER (ORDER BY date DESC) <= 365
-ORDER BY date DESC
-`
-	)
-	const [result, setResult] = useState<QueryResult | null>(null)
-	const [running, setRunning] = useState(false)
-	const [runError, setRunError] = useState<string | null>(null)
-	const [lastRun, setLastRun] = useState<LastRunMeta | null>(null)
 	const [savePresetOpen, setSavePresetOpen] = useState(false)
-	// Stage text surfaced in the status strip + results panel while we prep a query
-	// (e.g. "Loading fees…"). null once the query actually starts running — at that
-	// point `running` drives the UI.
-	const [loadingStage, setLoadingStage] = useState<string | null>(null)
-	// Title of whichever playbook / saved-query entry is currently being applied,
-	// so those lists can show a spinner on the clicked row.
-	const [busyTaskId, setBusyTaskId] = useState<string | null>(null)
-	// Ghost chips rendered in the TableChipRail while tables resolve. Each entry
-	// flips pending → loading → (removed on success | failed on error). Failed
-	// chips linger briefly before being cleared so the red flash is readable.
-	const [pendingTables, setPendingTables] = useState<PendingTable[]>([])
+
+	const {
+		tabs,
+		activeTab,
+		activeTabId,
+		openTab,
+		closeTab,
+		focusTab,
+		focusByIndex,
+		focusDelta,
+		duplicateTab,
+		closeOthers,
+		closeToRight,
+		renameTab,
+		updateTab,
+		updateActiveTab,
+		setActiveSql
+	} = useSqlTabs()
+
 	const editorRef = useRef<EditorHandle | null>(null)
 
 	const savedQueries = useMemo(
@@ -136,14 +105,12 @@ ORDER BY date DESC
 		[savedDownloads]
 	)
 
-	const runSql = useCallback(
-		async (rawSql: string) => {
+	const runSqlForTab = useCallback(
+		async (tabId: string, rawSql: string) => {
 			if (!duckdb.conn) return
 			const trimmed = rawSql.trim()
 			if (!trimmed) return
-			setRunning(true)
-			setRunError(null)
-			setPendingTables([])
+			updateTab(tabId, { running: true, runError: null, pendingTables: [] })
 			const started = performance.now()
 			try {
 				const referenced = extractTableRefs(trimmed)
@@ -152,17 +119,25 @@ ORDER BY date DESC
 
 				const plan = buildAutoLoadPlan(missingRefs, chartOptionsMap)
 				if (plan.length > 0) {
-					setPendingTables(plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' })))
+					updateTab(tabId, {
+						pendingTables: plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' }))
+					})
 				}
 
 				for (const step of plan) {
-					setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p)))
+					updateTab(tabId, (t) => ({
+						pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p))
+					}))
 					const loaded = await registry.load(step.source)
 					if (!loaded) {
-						setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p)))
+						updateTab(tabId, (t) => ({
+							pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p))
+						}))
 						throw new Error(`Could not auto-load table "${step.name}" (${step.label}).`)
 					}
-					setPendingTables((prev) => prev.filter((p) => p.key !== step.key))
+					updateTab(tabId, (t) => ({
+						pendingTables: t.pendingTables.filter((p) => p.key !== step.key)
+					}))
 				}
 
 				const arrow = await runWithFreshLoadRetry(duckdb.conn, trimmed, plan.length > 0)
@@ -173,8 +148,11 @@ ORDER BY date DESC
 					return obj
 				})
 				const durationMs = Math.round(performance.now() - started)
-				setResult({ columns, rows })
-				setLastRun({ durationMs, rows: rows.length, cols: columns.length, at: Date.now() })
+				updateTab(tabId, {
+					result: { columns, rows },
+					lastRun: { durationMs, rows: rows.length, cols: columns.length, at: Date.now() },
+					dirty: false
+				})
 				const preset: QuerySavedConfig = {
 					id: generatePresetId(),
 					name: firstNonEmptyLine(trimmed).slice(0, 80),
@@ -191,28 +169,46 @@ ORDER BY date DESC
 				}
 				recordRecent(preset)
 			} catch (err) {
-				setRunError(err instanceof Error ? err.message : String(err))
-				setResult(null)
-				schedulePendingClear(setPendingTables)
+				updateTab(tabId, {
+					runError: err instanceof Error ? err.message : String(err),
+					result: null
+				})
+				scheduleTabPendingClear(updateTab, tabId)
 			} finally {
-				setRunning(false)
+				updateTab(tabId, { running: false })
 			}
 		},
-		[duckdb.conn, registry, recordRecent, chartOptionsMap]
+		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab]
 	)
 
-	const runQuery = useCallback(() => runSql(sql), [runSql, sql])
+	const runQuery = useCallback(
+		() => runSqlForTab(activeTabId, activeTab.sql),
+		[runSqlForTab, activeTabId, activeTab.sql]
+	)
 
 	const prepareAndRun = useCallback(
-		async ({ taskId, tables, sql: nextSql }: { taskId: string; tables: TableSource[]; sql: string }) => {
-			setBusyTaskId(taskId)
-			setRunError(null)
-			setResult(null)
-			setPendingTables([])
-			setSql(nextSql)
-			setTab('editor')
+		async ({
+			tabId,
+			taskId,
+			tables: nextTables,
+			sql: nextSql
+		}: {
+			tabId: string
+			taskId: string
+			tables: TableSource[]
+			sql: string
+		}) => {
+			updateTab(tabId, {
+				busyTaskId: taskId,
+				runError: null,
+				result: null,
+				pendingTables: [],
+				sql: nextSql,
+				dirty: true
+			})
+			setSectionTab('editor')
 			try {
-				const plan = tables
+				const plan = nextTables
 					.filter((t) => !registry.tables.some((r) => sameSource(r.source, t)))
 					.map((t, index) => ({
 						key: `apply-${taskId}-${index}`,
@@ -222,71 +218,96 @@ ORDER BY date DESC
 					}))
 
 				if (plan.length > 0) {
-					setPendingTables(plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' })))
+					updateTab(tabId, {
+						pendingTables: plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' }))
+					})
 				}
 
 				for (const [index, step] of plan.entries()) {
-					setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p)))
+					updateTab(tabId, (t) => ({
+						pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p))
+					}))
 					const stagePrefix =
 						plan.length > 1 ? `Loading ${step.label} · ${index + 1}/${plan.length}` : `Loading ${step.label}`
-					setLoadingStage(`${stagePrefix}…`)
+					updateTab(tabId, { loadingStage: `${stagePrefix}…` })
 					const loaded = await registry.load(step.source)
 					if (!loaded) {
-						setPendingTables((prev) => prev.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p)))
+						updateTab(tabId, (t) => ({
+							pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p))
+						}))
 						throw new Error(`Could not load ${step.label}.`)
 					}
-					setPendingTables((prev) => prev.filter((p) => p.key !== step.key))
+					updateTab(tabId, (t) => ({
+						pendingTables: t.pendingTables.filter((p) => p.key !== step.key)
+					}))
 				}
-				setLoadingStage(null)
-				await runSql(nextSql)
+				updateTab(tabId, { loadingStage: null })
+				await runSqlForTab(tabId, nextSql)
 			} catch (err) {
-				setRunError(err instanceof Error ? err.message : String(err))
-				setResult(null)
-				schedulePendingClear(setPendingTables)
+				updateTab(tabId, {
+					runError: err instanceof Error ? err.message : String(err),
+					result: null
+				})
+				scheduleTabPendingClear(updateTab, tabId)
 			} finally {
-				setLoadingStage(null)
-				setBusyTaskId(null)
+				updateTab(tabId, { loadingStage: null, busyTaskId: null })
 			}
 		},
-		[registry, runSql]
+		[registry, runSqlForTab, updateTab]
 	)
 
 	const onApplyExample = useCallback(
-		(example: ExampleQuery) =>
-			prepareAndRun({ taskId: `example:${example.title}`, tables: example.tables, sql: example.sql }),
-		[prepareAndRun]
+		(example: ExampleQuery) => {
+			const newId = openTab({ sql: example.sql, title: example.title, focus: true })
+			return prepareAndRun({
+				tabId: newId,
+				taskId: `example:${example.title}`,
+				tables: example.tables,
+				sql: example.sql
+			})
+		},
+		[openTab, prepareAndRun]
 	)
 
 	const onLoadSavedQuery = useCallback(
-		(preset: QuerySavedConfig) =>
-			prepareAndRun({ taskId: `saved:${preset.id}`, tables: preset.tables, sql: preset.sql }),
-		[prepareAndRun]
+		(preset: QuerySavedConfig) => {
+			const existing = tabs.find((t) => t.sql === preset.sql)
+			if (existing) {
+				focusTab(existing.id)
+				setSectionTab('editor')
+				return
+			}
+			const newId = openTab({ sql: preset.sql, title: preset.name, focus: true })
+			return prepareAndRun({ tabId: newId, taskId: `saved:${preset.id}`, tables: preset.tables, sql: preset.sql })
+		},
+		[tabs, focusTab, openTab, prepareAndRun]
 	)
 
-	const onReplaceSql = useCallback((snippet: string) => {
-		setTab('editor')
-		setSql(snippet)
-	}, [])
+	const onReplaceSql = useCallback(
+		(snippet: string) => {
+			openTab({ sql: snippet, focus: true })
+			setSectionTab('editor')
+		},
+		[openTab]
+	)
 
 	const onCookbookApply = useCallback(
 		(snippet: string) => {
-			setTab('editor')
-			setSql(snippet)
-			// Run the snippet directly — auto-load in runSql picks up any missing tables
-			// from the SQL text, so we don't need an explicit tables list here.
-			runSql(snippet)
+			const newId = openTab({ sql: snippet, focus: true })
+			setSectionTab('editor')
+			runSqlForTab(newId, snippet)
 		},
-		[runSql]
+		[openTab, runSqlForTab]
 	)
 
 	const onInsertAtCursor = useCallback((text: string) => {
-		setTab('editor')
+		setSectionTab('editor')
 		setTimeout(() => editorRef.current?.insertSnippet(text), 0)
 	}, [])
 
 	const onSavePreset = useCallback(
 		(name: string) => {
-			const trimmed = sql.trim()
+			const trimmed = activeTab.sql.trim()
 			if (!trimmed) return
 			const preset: QuerySavedConfig = {
 				id: generatePresetId(),
@@ -304,52 +325,118 @@ ORDER BY date DESC
 			saveDownload(preset, { replaceByName: true })
 			setSavePresetOpen(false)
 		},
-		[sql, registry.tables, saveDownload]
+		[activeTab.sql, registry.tables, saveDownload]
 	)
+
+	const onApplyFix = useCallback(
+		(oldId: string, newId: string) => {
+			updateActiveTab((t) => ({ sql: replaceIdentifier(t.sql, oldId, newId), dirty: true }))
+		},
+		[updateActiveTab]
+	)
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			const target = e.target as HTMLElement | null
+			const mod = e.metaKey || e.ctrlKey
+			if (!mod) return
+			if (e.key === 't' || e.key === 'T') {
+				if (e.shiftKey) return
+				e.preventDefault()
+				openTab({ focus: true })
+				setSectionTab('editor')
+				return
+			}
+			if (e.key === 'w' || e.key === 'W') {
+				if (tabs.length > 1) {
+					e.preventDefault()
+					closeTab(activeTabId)
+				}
+				return
+			}
+			if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
+				e.preventDefault()
+				focusDelta(1)
+				return
+			}
+			if (e.shiftKey && (e.key === '[' || e.code === 'BracketLeft')) {
+				e.preventDefault()
+				focusDelta(-1)
+				return
+			}
+			if (/^[1-9]$/.test(e.key)) {
+				const editable =
+					target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+				if (editable) return
+				e.preventDefault()
+				focusByIndex(Number(e.key) - 1)
+			}
+		}
+		window.addEventListener('keydown', handler)
+		return () => window.removeEventListener('keydown', handler)
+	}, [openTab, closeTab, focusDelta, focusByIndex, tabs.length, activeTabId])
 
 	return (
 		<div className="flex flex-col gap-3">
 			<StatusStrip
 				duckdbStatus={duckdb.status}
 				tableCount={registry.tables.length}
-				lastRun={lastRun}
-				running={running}
-				loadingStage={loadingStage}
-				error={!!runError}
+				lastRun={activeTab.lastRun}
+				running={activeTab.running}
+				loadingStage={activeTab.loadingStage}
+				error={!!activeTab.runError}
 				topRight={topRight}
 			/>
 
-			<TabNav tab={tab} onChange={setTab} savedCount={savedQueries.length} />
+			<TabNav tab={sectionTab} onChange={setSectionTab} savedCount={savedQueries.length} />
 
-			{tab === 'editor' ? (
+			{sectionTab === 'editor' ? (
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
 					<div className="flex min-w-0 flex-col gap-3">
+						<QueryTabBar
+							tabs={tabs}
+							activeTabId={activeTabId}
+							onFocus={focusTab}
+							onClose={closeTab}
+							onNewTab={() => openTab({ focus: true })}
+							onRename={renameTab}
+							onDuplicate={duplicateTab}
+							onCloseOthers={closeOthers}
+							onCloseToRight={closeToRight}
+						/>
 						<TableChipRail
 							tables={registry.tables}
 							onBrowseSchema={() => setSchemaDrawerOpen(true)}
 							onRemove={registry.remove}
-							pending={pendingTables}
+							pending={activeTab.pendingTables}
 							totalSchemaCount={TOTAL_SCHEMA_COUNT}
 						/>
-						<Editor ref={editorRef} value={sql} onChange={setSql} onRun={runQuery} tables={registry.tables} />
+						<Editor
+							key={activeTabId}
+							ref={editorRef}
+							value={activeTab.sql}
+							onChange={setActiveSql}
+							onRun={runQuery}
+							tables={registry.tables}
+						/>
 						<EditorRunBar
-							running={running || !!loadingStage}
-							canRun={!!duckdb.conn && !!sql.trim()}
+							running={activeTab.running || !!activeTab.loadingStage}
+							canRun={!!duckdb.conn && !!activeTab.sql.trim()}
 							onRun={runQuery}
 							onSave={() => setSavePresetOpen(true)}
 						/>
-						{runError ? (
+						{activeTab.runError ? (
 							<ErrorBanner
-								error={runError}
+								error={activeTab.runError}
 								loadedTables={registry.tables}
 								onJump={(line, col) => editorRef.current?.revealLine(line, col)}
-								onApplyFix={(oldId, newId) => setSql((prev) => replaceIdentifier(prev, oldId, newId))}
+								onApplyFix={onApplyFix}
 							/>
 						) : null}
-						<ResultsPanel result={result} running={running} busyLabel={loadingStage} />
+						<ResultsPanel result={activeTab.result} running={activeTab.running} busyLabel={activeTab.loadingStage} />
 					</div>
 					<div className="lg:sticky lg:top-4 lg:self-start">
-						<ExamplesPanel onApply={onApplyExample} busyTaskId={busyTaskId} />
+						<ExamplesPanel onApply={onApplyExample} busyTaskId={activeTab.busyTaskId} />
 					</div>
 				</div>
 			) : (
@@ -358,13 +445,13 @@ ORDER BY date DESC
 					onOpen={onLoadSavedQuery}
 					onDelete={deleteDownload}
 					onRename={renameDownload}
-					busyTaskId={busyTaskId}
+					busyTaskId={activeTab.busyTaskId}
 				/>
 			)}
 
 			{savePresetOpen ? (
 				<SavePresetDialog
-					suggestedName={firstNonEmptyLine(sql).slice(0, 60) || 'Untitled query'}
+					suggestedName={firstNonEmptyLine(activeTab.sql).slice(0, 60) || 'Untitled query'}
 					existingNames={savedDownloads.map((d) => d.name)}
 					title="Save SQL query"
 					description="Saved queries appear in the saved tab and in the main Saved list."
@@ -701,22 +788,17 @@ function ErrorBanner({
 const KNOWN_DATASET_IDENTIFIERS = datasets.map((d) => identifierize(d.slug))
 
 function analyzeError(error: string, loadedTables: RegisteredTable[]): ErrorAnalysis {
-	// Load failures bubbled up by our own auto-load path take priority.
 	if (/^Could not auto-load table|^Could not load /i.test(error)) {
 		return { family: 'load', suggestions: [] }
 	}
 
-	// Table not found — DuckDB phrasing varies by version.
 	const tableMatch =
 		error.match(/(?:Catalog Error|Binder Error)[^\n]*?(?:Table with name|Referenced table)\s+"?([A-Za-z_][\w]*)"?/i) ??
 		error.match(/Table with name\s+"?([A-Za-z_][\w]*)"?\s+does not exist/i) ??
 		error.match(/Table\s+"([A-Za-z_][\w]*)"\s+does not exist/i)
 	if (tableMatch) {
 		const offending = tableMatch[1]!
-		const pool = [
-			...loadedTables.map((t) => t.name),
-			...KNOWN_DATASET_IDENTIFIERS
-		]
+		const pool = [...loadedTables.map((t) => t.name), ...KNOWN_DATASET_IDENTIFIERS]
 		const unique = [...new Set(pool)]
 		const suggestions = matchSorter(unique, offending)
 			.filter((s) => s.toLowerCase() !== offending.toLowerCase())
@@ -724,7 +806,6 @@ function analyzeError(error: string, loadedTables: RegisteredTable[]): ErrorAnal
 		return { family: 'table', offendingIdentifier: offending, suggestions }
 	}
 
-	// Column not found.
 	const columnMatch =
 		error.match(/Referenced column\s+"?([A-Za-z_][\w]*)"?\s+not found/i) ??
 		error.match(/column\s+"?([A-Za-z_][\w]*)"?\s+not found/i)
@@ -753,7 +834,6 @@ function analyzeError(error: string, loadedTables: RegisteredTable[]): ErrorAnal
 }
 
 function replaceIdentifier(sql: string, oldIdentifier: string, newIdentifier: string): string {
-	// Replace only whole-word token matches so we don't clobber substrings.
 	const escaped = oldIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 	return sql.replace(new RegExp(`\\b${escaped}\\b`, 'g'), newIdentifier)
 }
@@ -894,10 +974,11 @@ function buildAutoLoadPlan(missingRefs: string[], chartOptionsMap: ChartOptionsM
 	return steps
 }
 
-// Linger on failed chips so the red flash is readable, then clear the whole pending list.
-// The authoritative error story is already in `ErrorBanner` — the chips are just an echo.
-function schedulePendingClear(setPending: Dispatch<SetStateAction<PendingTable[]>>) {
-	window.setTimeout(() => setPending([]), 1400)
+function scheduleTabPendingClear(
+	updateTab: (id: string, patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => void,
+	tabId: string
+) {
+	window.setTimeout(() => updateTab(tabId, { pendingTables: [] }), 1400)
 }
 
 function firstNonEmptyLine(text: string): string {

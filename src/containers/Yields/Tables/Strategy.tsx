@@ -70,20 +70,22 @@ const columns = [
 			return (
 				<>
 					{lockupsRewards.includes(row.original.projectName) ? (
-						<div className="flex w-full items-center justify-end gap-1">
+						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<Tooltip content={<TooltipContent />}>
-								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+								<ColoredAPY data-variant="positive" className="font-bold">
 									{formatPercentChangeText(getValue(), true)}
 								</ColoredAPY>
 							</Tooltip>
-						</div>
+						</span>
 					) : (
-						<Tooltip content={<TooltipContent />}>
-							<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
-								{formatPercentChangeText(getValue(), true)}
-							</ColoredAPY>
-						</Tooltip>
+						<span className="flex w-full items-center justify-end">
+							<Tooltip content={<TooltipContent />}>
+								<ColoredAPY data-variant="positive" className="font-bold">
+									{formatPercentChangeText(getValue(), true)}
+								</ColoredAPY>
+							</Tooltip>
+						</span>
 					)}
 				</>
 			)
@@ -115,9 +117,8 @@ const columns = [
 			const value = info.row.original.borrow.totalAvailableUsd
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? null : formattedNum(value, true)}
 				</span>
@@ -137,9 +138,8 @@ const columns = [
 			const value = info.row.original.farmTvlUsd
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? null : formattedNum(value, true)}
 				</span>
@@ -159,9 +159,8 @@ const columns = [
 			const value = info.getValue()
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>

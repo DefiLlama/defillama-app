@@ -51,7 +51,7 @@ const columns = [
 	}),
 	columnHelper.accessor('project', {
 		id: 'project',
-		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
+		header: () => <span className="pl-6">Project</span>,
 		enableSorting: true,
 		cell: ({ row }) => (
 			<NameYield
@@ -84,12 +84,12 @@ const columns = [
 					{lockupsRewards.includes(row.original.project) ? (
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+							<ColoredAPY data-variant="positive" className="font-bold">
 								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</div>
 					) : (
-						<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
+						<ColoredAPY data-variant="positive" className="font-bold">
 							{formatPercentChangeText(getValue(), true)}
 						</ColoredAPY>
 					)}
@@ -138,9 +138,8 @@ const columns = [
 			const value = info.getValue()
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{value == null ? '' : formattedNum(Number(value) * 100) + '%'}
 				</span>
@@ -159,9 +158,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>
@@ -179,9 +177,8 @@ const columns = [
 		cell: (info) => {
 			return (
 				<span
-					style={{
-						color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-					}}
+					data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+					className="data-[strike=true]:text-(--text-disabled)"
 				>
 					{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 				</span>

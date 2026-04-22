@@ -45,14 +45,15 @@ export function getResponsiveYieldsValue<T>(valuesByBreakpoint: Record<number, T
 export function preparePaginatedYieldsColumns<TRow, TColumnId extends string, TContext>(
 	config: YieldsTableConfig<TRow, TColumnId, TContext>,
 	context: TContext,
-	width: number
+	width?: number
 ) {
 	const columns = resolveFactoryValue(config.columns, context)
 	const columnVisibility = config.columnVisibility ? resolveFactoryValue(config.columnVisibility, context) : undefined
-	const responsiveOrder = getResponsiveYieldsValue(config.columnOrders, width) ?? []
-	const responsiveSizing = (getResponsiveYieldsValue(config.columnSizes, width) ?? {}) as Partial<
-		Record<TColumnId, number>
-	>
+	const responsiveOrder = width != null ? (getResponsiveYieldsValue(config.columnOrders, width) ?? []) : []
+	const responsiveSizing =
+		width != null
+			? ((getResponsiveYieldsValue(config.columnSizes, width) ?? {}) as Partial<Record<TColumnId, number>>)
+			: ({} as Partial<Record<TColumnId, number>>)
 	const orderIndexes = new Map(responsiveOrder.map((columnId, index) => [columnId, index]))
 
 	return columns

@@ -1,24 +1,34 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { TokenOverviewHeader } from '~/components/TokenOverviewHeader'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
+import { getTokenRiskData } from '~/containers/Token/queries'
+import { getTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.server'
+import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
+import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
+import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
+import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
+import type { TokenRiskResponse } from '~/containers/Token/tokenRisk.types'
+import { TokenRisksSection } from '~/containers/Token/TokenRisksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
+import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { findProtocolEntry, parseTokenRightsEntry } from '~/containers/TokenRights/utils'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { ITokenListEntry } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
-import { readTokenDirectory } from '~/utils/tokenDirectory'
 
 type TokenRouteParams = {
 	token: string
 }
+
+const INITIAL_TOKEN_PRERENDER_LIMIT = 30
 
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
@@ -34,8 +44,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const normalizedToken = slug(token)
-		const tokens = await readTokenDirectory()
-		const record = tokens[normalizedToken]
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
+		const record = metadataCache.tokenDirectory[normalizedToken]
 
 		if (!record) {
 			return {
@@ -45,30 +57,86 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const geckoId = getCoinGeckoId(record.token_nk)
-
-		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
-		const metadataCache = metadataModule.default
 		const tokenEntry: ITokenListEntry | null = geckoId ? (metadataCache.tokenlist[geckoId] ?? null) : null
 		const protocolMetadata = record.protocolId ? (metadataCache.protocolMetadata[record.protocolId] ?? null) : null
+		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
+		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
 		let tokenRightsData: ITokenRightsData | null = null
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
+		let tokenRiskData: TokenRiskResponse | null = null
+		let initialYieldsRows: IYieldTableRow[] = []
+		let initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null = null
+		const overview = await getTokenOverviewData({
+			record,
+			displayName,
+			geckoId,
+			tokenEntry,
+			protocolMetadata,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers ?? [],
+			llamaswapChains,
+			prefetchedCharts: TOKEN_OVERVIEW_DEFAULT_CHARTS
+		})
 
 		if (record.tokenRights && (record.chainId || record.protocolId)) {
-			const tokenRightsEntries = await fetchTokenRightsData()
-			const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
-			tokenRightsData = rawEntry ? parseTokenRightsEntry(rawEntry) : null
+			tokenRightsData = await (async () => {
+				try {
+					const tokenRightsEntries = await fetchTokenRightsData()
+					const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
+					return rawEntry ? parseTokenRightsEntry(rawEntry) : null
+				} catch (error) {
+					console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
+					return null
+				}
+			})()
 		}
 
 		if (protocolMetadata) {
-			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata })
-			incomeStatementProtocolName = protocolMetadata.displayName
-			incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
+			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata }).catch((error) => {
+				console.error(
+					`Failed to load income statement data for ${protocolMetadata.displayName ?? protocolMetadata.name ?? record.name}`,
+					error
+				)
+				return null
+			})
+			if (incomeStatementData) {
+				incomeStatementProtocolName = protocolMetadata.displayName
+				incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
+			}
 		}
 
-		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
+		if (record.is_yields) {
+			const tokenRiskPromise = geckoId
+				? getTokenRiskData({
+						geckoId,
+						protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset,
+						displayLookups: {
+							protocolDisplayNames: metadataCache.protocolDisplayNames,
+							chainDisplayNames: metadataCache.chainDisplayNames
+						}
+					}).catch((error) => {
+						console.error(`Failed to load token risk data for ${geckoId}`, error)
+						return null
+					})
+				: Promise.resolve(null)
+
+			const [yieldsRows, tokenBorrowRoutesData, riskData] = await Promise.all([
+				getTokenYieldsRows(record.symbol).catch((error) => {
+					console.error(`Failed to load token yields data for ${record.symbol}`, error)
+					return []
+				}),
+				getTokenBorrowRoutesData(record.symbol).catch((error) => {
+					console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
+					return null
+				}),
+				tokenRiskPromise
+			])
+			initialYieldsRows = yieldsRows
+			initialTokenBorrowRoutesData = tokenBorrowRoutesData
+			tokenRiskData = riskData
+		}
+
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply & Token Rights - DefiLlama`
 			: `${displayName} Price, Market Cap & Supply - DefiLlama`
@@ -84,23 +152,21 @@ export const getStaticProps = withPerformanceLogging(
 				incomeStatementData,
 				incomeStatementProtocolName,
 				incomeStatementHasIncentives,
-				price: tokenEntry?.current_price ?? null,
-				percentChange: tokenEntry?.price_change_percentage_24h ?? null,
-				mcap: tokenEntry?.market_cap ?? null,
-				fdv: tokenEntry?.fully_diluted_valuation ?? null,
-				volume24h: tokenEntry?.total_volume ?? null,
-				circSupply: tokenEntry?.circulating_supply ?? null,
-				maxSupply: tokenEntry?.max_supply ?? null,
+				geckoId,
+				tokenRiskData,
+				initialYieldsRows,
+				initialTokenBorrowRoutesData,
+				overview,
 				seoTitle,
 				seoDescription,
-				canonicalUrl: `/token/${token}`
+				canonicalUrl: record.route ?? `/token/${encodeURIComponent(record.symbol)}`
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export const getStaticPaths = () => {
+export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
@@ -111,42 +177,55 @@ export const getStaticPaths = () => {
 		}
 	}
 
-	return { paths: [], fallback: 'blocking' }
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const tokenDirectory = metadataModule.default.tokenDirectory
+
+	const rankedRecords = []
+
+	for (const key in tokenDirectory) {
+		const record = tokenDirectory[key]
+		if (record.mcap_rank == null || record.mcap_rank < 1 || record.mcap_rank > INITIAL_TOKEN_PRERENDER_LIMIT) {
+			continue
+		}
+
+		rankedRecords.push(record)
+	}
+
+	rankedRecords.sort((a, b) => (a.mcap_rank ?? Number.POSITIVE_INFINITY) - (b.mcap_rank ?? Number.POSITIVE_INFINITY))
+
+	const paths = rankedRecords.map((record) => record.route)
+
+	console.log(paths)
+
+	return { paths, fallback: 'blocking' }
 }
 
 export default function TokenPage({
 	record,
-	displayName,
 	tokenRightsData,
 	incomeStatementData,
 	incomeStatementProtocolName,
 	incomeStatementHasIncentives,
-	price,
-	percentChange,
-	mcap,
-	fdv,
-	volume24h,
-	circSupply,
-	maxSupply,
+	geckoId,
+	tokenRiskData,
+	initialYieldsRows,
+	initialTokenBorrowRoutesData,
+	overview,
 	seoTitle,
 	seoDescription,
 	canonicalUrl
 }: InferGetStaticPropsType<typeof getStaticProps>) {
+	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
+	const shouldRenderBorrowSection =
+		record.is_yields &&
+		((initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
+			(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0)
+
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
 			<div className="flex flex-col gap-2">
-				<TokenOverviewHeader
-					name={record.name}
-					title={displayName}
-					price={price}
-					percentChange={percentChange}
-					circSupply={circSupply}
-					maxSupply={maxSupply}
-					mcap={mcap}
-					fdv={fdv}
-					volume24h={volume24h}
-					symbol={record.symbol}
-				/>
+				<TokenOverviewSection overview={overview} geckoId={geckoId} />
 				{incomeStatementData && incomeStatementProtocolName ? (
 					<TokenIncomeStatementSection
 						protocolName={incomeStatementProtocolName}
@@ -154,8 +233,9 @@ export default function TokenPage({
 						hasIncentives={incomeStatementHasIncentives}
 					/>
 				) : null}
-				<TokenUsageSection tokenSymbol={record.symbol} />
-				{record.is_yields ? <TokenYieldsSection tokenSymbol={record.symbol} /> : null}
+				{record.is_yields && tokenRiskData ? (
+					<TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
+				) : null}
 				{tokenRightsData ? (
 					<TokenRightsByProtocol
 						name={record.name}
@@ -165,6 +245,13 @@ export default function TokenPage({
 						showHeader
 						headerVariant="embedded"
 					/>
+				) : null}
+				<TokenUsageSection tokenSymbol={record.symbol} />
+				{shouldRenderYieldsSection ? (
+					<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
+				) : null}
+				{shouldRenderBorrowSection ? (
+					<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
 				) : null}
 			</div>
 		</Layout>

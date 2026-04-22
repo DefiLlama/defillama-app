@@ -1,6 +1,3 @@
-import { promises as fs } from 'fs'
-import path from 'path'
-
 export type TokenDirectoryRecord = {
 	name: string
 	symbol: string
@@ -10,15 +7,10 @@ export type TokenDirectoryRecord = {
 	route?: string
 	tokenRights?: boolean
 	is_yields?: boolean
+	mcap_rank?: number
 }
 
 export type TokenDirectory = Record<string, TokenDirectoryRecord>
-
-export async function readTokenDirectory(): Promise<TokenDirectory> {
-	const tokensPath = path.join(process.cwd(), 'public', 'tokens.json')
-	const tokensJson = await fs.readFile(tokensPath, 'utf8')
-	return JSON.parse(tokensJson) as TokenDirectory
-}
 
 export function findTokenDirectoryRecordByDefiLlamaId(
 	tokens: TokenDirectory,
