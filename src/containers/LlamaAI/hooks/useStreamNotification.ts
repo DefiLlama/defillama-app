@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useRef } from 'react'
 
-export function useStreamNotification() {
+interface UseStreamNotificationOptions {
+	soundEnabled: boolean
+}
+
+export function useStreamNotification({ soundEnabled }: UseStreamNotificationOptions) {
 	const isHiddenRef = useRef(false)
 	const originalTitleRef = useRef('')
 	const originalFaviconRef = useRef('')
 	const hasBadgeRef = useRef(false)
 	const audioRef = useRef<HTMLAudioElement | null>(null)
+	const soundEnabledRef = useRef(soundEnabled)
+	soundEnabledRef.current = soundEnabled
 
 	// Preload the notification sound once so later completion notifications can play immediately.
 	useEffect(() => {
@@ -57,6 +63,7 @@ export function useStreamNotification() {
 
 	// Reset and replay the short audio cue when a background response completes.
 	const playSound = useCallback(() => {
+		if (!soundEnabledRef.current) return
 		if (!audioRef.current) return
 		audioRef.current.currentTime = 0
 		audioRef.current.play().catch((error) => {
@@ -82,6 +89,8 @@ export function useStreamNotification() {
 	}, [])
 
 	// Notify only when the page is hidden; foreground completions do not need browser-level alerts.
+	// Permission prompting is handled by NotificationPermissionBanner, not here — if the user hasn't
+	// granted permission we silently skip the OS notification and rely on badge+sound.
 	const notify = useCallback(() => {
 		if (!isHiddenRef.current) return
 
@@ -89,49 +98,35 @@ export function useStreamNotification() {
 		playSound()
 
 		if (typeof Notification === 'undefined') return
-		if (Notification.permission === 'granted') {
-			showNotification()
-		} else if (Notification.permission === 'default') {
-			void Notification.requestPermission().then((permission) => {
-				if (permission === 'granted') showNotification()
-			})
-		}
+		if (Notification.permission === 'granted') showNotification()
 	}, [playSound, setBadge, showNotification])
 
-	// Prime both audio playback and notification permission early from an explicit user gesture.
-	const requestPermission = useCallback(() => {
-		if (audioRef.current) {
-			const vol = audioRef.current.volume
-			audioRef.current.volume = 0
-			audioRef.current
-				.play()
-				.then(() => {
-					if (!audioRef.current) return
+	// Prime audio playback from a user gesture so completion sounds aren't blocked by autoplay policy.
+	const primeAudio = useCallback(() => {
+		if (!soundEnabledRef.current) return
+		if (!audioRef.current) return
+		const vol = audioRef.current.volume
+		audioRef.current.volume = 0
+		audioRef.current
+			.play()
+			.then(() => {
+				if (!audioRef.current) return
+				audioRef.current.pause()
+				audioRef.current.currentTime = 0
+				audioRef.current.volume = vol
+			})
+			.catch((error) => {
+				if (audioRef.current) {
 					audioRef.current.pause()
 					audioRef.current.currentTime = 0
 					audioRef.current.volume = vol
-				})
-				.catch((error) => {
-					if (audioRef.current) {
-						audioRef.current.pause()
-						audioRef.current.currentTime = 0
-						audioRef.current.volume = vol
-					}
-					// Expected when autoplay is blocked - silently ignore
-					if (error.name !== 'NotAllowedError') {
-						console.log('Failed to initialize audio:', error)
-					}
-				})
-		}
-		if (typeof Notification === 'undefined') return
-		if (Notification.permission === 'default') {
-			void Notification.requestPermission().then((permission) => {
-				if (permission === 'denied') {
-					console.log('Notification permission was denied by user')
+				}
+				// Expected when autoplay is blocked - silently ignore
+				if (error.name !== 'NotAllowedError') {
+					console.log('Failed to initialize audio:', error)
 				}
 			})
-		}
 	}, [])
 
-	return { notify, requestPermission }
+	return { notify, primeAudio }
 }

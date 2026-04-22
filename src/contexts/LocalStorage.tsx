@@ -4,7 +4,13 @@ import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
-import { getStorageItem, notifyKeyChange, setStorageItem, subscribeToStorageKey } from './localStorageStore'
+import {
+	getStorageItem,
+	notifyKeyChange,
+	setStorageItem,
+	subscribeToStorageKey,
+	useStorageItem
+} from './localStorageStore'
 
 const DEFILLAMA = 'DEFILLAMA' as const
 const PINNED_METRICS_KEY = 'pinned-metrics' as const
@@ -18,6 +24,8 @@ export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
 export const LLAMA_AI_WALKTHROUGH_STATE = 'LLAMA_AI_WALKTHROUGH_STATE' as const
 const LLAMA_AI_LANDING_VISITED = 'LLAMA_AI_LANDING_VISITED' as const
+//stored outside so useUserConfig does not sync it across devices
+const LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY = 'llamaai-notify-banner-dismissed' as const
 const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
@@ -733,6 +741,12 @@ export function useLlamaAIWelcome(_isSubscribed?: boolean): [boolean, () => void
 	const setShown = useMemo(() => () => setLlamaAIWalkthroughState('completed'), [])
 
 	return [shown, setShown]
+}
+
+export function useLlamaAINotifyBannerDismissed(): [boolean, () => void] {
+	const raw = useStorageItem(LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY, null)
+	const markDismissed = useMemo(() => () => setStorageItem(LLAMA_AI_NOTIFY_BANNER_DISMISSED_KEY, 'true'), [])
+	return [raw === 'true', markDismissed]
 }
 
 export function useLlamaAILandingVisited(): [boolean, () => void] {
