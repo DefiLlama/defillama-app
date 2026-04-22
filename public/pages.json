@@ -128,7 +128,14 @@
         "pegged"
       ],
       "oldCategory": "Yields",
-      "oldName": "Stablecoin Yields"
+      "oldName": "Stablecoin Yields",
+      "searchKeywords": [
+        "stablecoin yields",
+        "stable yields",
+        "stablecoin apy",
+        "stablecoin",
+        "stable"
+      ]
     },
     {
       "name": "Yields: Leveraged Lending",
@@ -453,7 +460,8 @@
         "stablecoin chains",
         "stablecoins by chain",
         "stablecoin supply",
-        "stablecoin supply by chain"
+        "stablecoin",
+        "stable"
       ]
     },
     {
