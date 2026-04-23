@@ -188,6 +188,8 @@ describe('LiquidationsDistributionChart helpers', () => {
 		expect(getLiquidationsChartMetricQueryPatch('amount')).toEqual({ metric: 'amount' })
 		expect(getLiquidationsChartBreakdownQueryPatch('total')).toEqual({ breakdown: undefined })
 		expect(getLiquidationsChartBreakdownQueryPatch('chain')).toEqual({ breakdown: 'chain' })
+		expect(getLiquidationsChartBreakdownQueryPatch('total', 'chain')).toEqual({ breakdown: 'total' })
+		expect(getLiquidationsChartBreakdownQueryPatch('chain', 'chain')).toEqual({ breakdown: undefined })
 		expect(getLiquidationsChartTokenQueryPatch('WBTC', 'WBTC')).toEqual({ token: undefined })
 		expect(getLiquidationsChartTokenQueryPatch('ethereum:eth', 'WBTC')).toEqual({ token: 'ethereum:eth' })
 	})

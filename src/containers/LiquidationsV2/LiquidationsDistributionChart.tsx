@@ -88,9 +88,12 @@ export function getLiquidationsChartBreakdownMode(
 			: (allowedBreakdownModes[0] ?? 'total')
 }
 
-export function getLiquidationsChartBreakdownQueryPatch(nextBreakdownMode: BreakdownMode) {
+export function getLiquidationsChartBreakdownQueryPatch(
+	nextBreakdownMode: BreakdownMode,
+	defaultBreakdownMode: BreakdownMode = 'total'
+) {
 	return {
-		[BREAKDOWN_QUERY_PARAM]: nextBreakdownMode === 'total' ? undefined : nextBreakdownMode
+		[BREAKDOWN_QUERY_PARAM]: nextBreakdownMode === defaultBreakdownMode ? undefined : nextBreakdownMode
 	}
 }
 
@@ -237,9 +240,9 @@ export function LiquidationsDistributionChart({
 	const setBreakdownMode = React.useCallback(
 		(nextBreakdownMode: BreakdownMode) => {
 			if (nextBreakdownMode === chartState.breakdownMode) return
-			void pushShallowQuery(router, getLiquidationsChartBreakdownQueryPatch(nextBreakdownMode))
+			void pushShallowQuery(router, getLiquidationsChartBreakdownQueryPatch(nextBreakdownMode, defaultBreakdownMode))
 		},
-		[chartState.breakdownMode, router]
+		[chartState.breakdownMode, defaultBreakdownMode, router]
 	)
 
 	const selectedChartView = React.useMemo(
