@@ -90,17 +90,26 @@ const columns = [
 ]
 
 export function buildTokenUsageRows(data: RawProtocolTokenUsageEntry[]): TokenUsageSectionRow[] {
-	return data.map((entry) => ({
-		name: entry.name,
-		category: entry.category,
-		logo: typeof entry.logo === 'string' ? entry.logo : undefined,
-		slug: typeof entry.slug === 'string' ? entry.slug : undefined,
-		misrepresentedTokens: entry.misrepresentedTokens,
-		amountUsd: Object.values(entry.amountUsd ?? {}).reduce(
-			(sum, amount) => sum + (typeof amount === 'number' ? amount : 0),
-			0
-		)
-	}))
+	return data.map((entry) => {
+		let amountUsd = 0
+		const amountUsdByChain = entry.amountUsd ?? {}
+
+		for (const chain in amountUsdByChain) {
+			const amount = amountUsdByChain[chain]
+			if (typeof amount === 'number') {
+				amountUsd += amount
+			}
+		}
+
+		return {
+			name: entry.name,
+			category: entry.category,
+			logo: typeof entry.logo === 'string' ? entry.logo : undefined,
+			slug: typeof entry.slug === 'string' ? entry.slug : undefined,
+			misrepresentedTokens: entry.misrepresentedTokens,
+			amountUsd
+		}
+	})
 }
 
 export function filterTokenUsageRows(

@@ -119,9 +119,11 @@ function areTokenOverviewChartsEqual(a: TokenOverviewChartLabel[], b: TokenOverv
 
 export function TokenPageHero({
 	overview,
+	logo,
 	headingAs: Heading = 'h1'
 }: {
 	overview: TokenOverviewData
+	logo?: string | null
 	headingAs?: 'h1' | 'div'
 }) {
 	const percentChange = formatPercent(overview.marketData.percentChange24h)
@@ -134,13 +136,8 @@ export function TokenPageHero({
 	return (
 		<div className="flex flex-col gap-6">
 			<div className="flex flex-wrap items-center gap-2 text-xl">
-				{overview.logoUrl ? (
-					<TokenLogo
-						src={overview.logoUrl}
-						fallbackSrc={tokenIconUrl(overview.name)}
-						size={24}
-						alt={`Logo of ${overview.name}`}
-					/>
+				{logo ? (
+					<TokenLogo src={logo} fallbackSrc={tokenIconUrl(overview.name)} size={24} alt={`Logo of ${overview.name}`} />
 				) : (
 					<TokenLogo name={overview.name} kind="token" size={24} alt={`Logo of ${overview.name}`} />
 				)}
@@ -393,7 +390,11 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 		() => activeCharts.filter((chart) => !displayedChartData[chart]?.length),
 		[activeCharts, displayedChartData]
 	)
-	const hasChartData = Object.keys(displayedChartData).length > 0
+	let hasChartData = false
+	for (const _chart in displayedChartData) {
+		hasChartData = true
+		break
+	}
 	const shouldWaitForClient = !isClient && geckoId != null && pendingCharts.length > 0
 	const showLoadingState = isClient && geckoId != null && pendingCharts.length > 0 && isLoading
 	const loadingLabel =
@@ -552,13 +553,21 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 	)
 }
 
-export function TokenOverviewSection({ overview, geckoId }: { overview: TokenOverviewData; geckoId: string | null }) {
+export function TokenOverviewSection({
+	overview,
+	geckoId,
+	logo
+}: {
+	overview: TokenOverviewData
+	geckoId: string | null
+	logo?: string | null
+}) {
 	return (
 		<section className="scroll-mt-24" id="token-overview">
 			<h2 className="sr-only">Overview</h2>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
-					<TokenPageHero overview={overview} />
+					<TokenPageHero overview={overview} logo={logo} />
 					<TokenMetrics overview={overview} />
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">

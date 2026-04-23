@@ -8,6 +8,7 @@ export type TokenDirectoryRecord = {
 	tokenRights?: boolean
 	is_yields?: boolean
 	mcap_rank?: number
+	logo?: string | null
 }
 
 export type TokenDirectory = Record<string, TokenDirectoryRecord>

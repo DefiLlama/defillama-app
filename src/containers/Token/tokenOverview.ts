@@ -68,7 +68,6 @@ export interface TokenOverviewData {
 	name: string
 	displayName: string
 	symbol: string
-	logoUrl?: string | null
 	llamaswapChains: IProtocolLlamaswapChain[] | null
 	marketData: TokenOverviewMarketData
 	treasury: TokenOverviewTreasury | null
@@ -125,40 +124,13 @@ type TokenOverviewCoinDetail = CoinGeckoCoinDetailResultForOptions<{
 	includeCategoriesDetails: false
 }>
 
-type TokenOverviewCoinLogoDetail = CoinGeckoCoinDetailResultForOptions<{
-	localization: false
-	tickers: false
-	marketData: false
-	communityData: false
-	developerData: false
-	sparkline: false
-	includeCategoriesDetails: false
-}>
-
-type TokenOverviewResolvedCoinDetail = TokenOverviewCoinDetail | TokenOverviewCoinLogoDetail
-
-async function fetchTokenOverviewCoinDetail(
-	geckoId: string,
-	includeMarketData: boolean
-): Promise<TokenOverviewResolvedCoinDetail | null> {
+async function fetchTokenOverviewCoinDetail(geckoId: string): Promise<TokenOverviewCoinDetail | null> {
 	if (!geckoId) return null
-
-	if (includeMarketData) {
-		return fetchCoinGeckoCoinById(geckoId, {
-			localization: false,
-			tickers: false,
-			marketData: true,
-			communityData: false,
-			developerData: false,
-			sparkline: false,
-			includeCategoriesDetails: false
-		}).catch(() => null)
-	}
 
 	return fetchCoinGeckoCoinById(geckoId, {
 		localization: false,
 		tickers: false,
-		marketData: false,
+		marketData: true,
 		communityData: false,
 		developerData: false,
 		sparkline: false,
@@ -167,7 +139,7 @@ async function fetchTokenOverviewCoinDetail(
 }
 
 function buildTokenMarketDataFallback(
-	coinDetail: TokenOverviewResolvedCoinDetail | null | undefined,
+	coinDetail: TokenOverviewCoinDetail | null | undefined,
 	currentPriceViaLlama: number | null
 ): TokenOverviewMarketData {
 	const marketData = coinDetail?.market_data
@@ -405,7 +377,6 @@ export async function getTokenOverviewData({
 	const shouldFetchLiquidity = Boolean(shouldFetchProtocolData && protocolMetadata?.liquidity)
 	const shouldFetchOutstandingFdv = Boolean(shouldFetchProtocolData && protocolMetadata?.emissions)
 	const shouldFetchCoinDetail = Boolean(geckoId && needsCoinDetailFallback(tokenEntry))
-	const shouldFetchCoinLogo = Boolean(geckoId)
 	const totalSupply = tokenEntry?.max_supply ?? tokenEntry?.total_supply ?? null
 
 	const [
@@ -421,7 +392,7 @@ export async function getTokenOverviewData({
 		fetchedTotalSupply
 	] = await Promise.all([
 		geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
-		shouldFetchCoinLogo ? fetchTokenOverviewCoinDetail(geckoId, shouldFetchCoinDetail) : Promise.resolve(null),
+		shouldFetchCoinDetail ? fetchTokenOverviewCoinDetail(geckoId) : Promise.resolve(null),
 		shouldFetchCoinDetail
 			? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null)
 			: Promise.resolve(null),
@@ -464,7 +435,6 @@ export async function getTokenOverviewData({
 		name: record.name,
 		displayName,
 		symbol: record.symbol,
-		logoUrl: coinDetail?.image?.small ?? coinDetail?.image?.thumb ?? null,
 		llamaswapChains,
 		marketData,
 		treasury,

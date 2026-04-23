@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { cloneElement, type ReactElement } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
@@ -32,25 +32,185 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import type { ITokenListEntry } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import type { TokenDirectoryRecord } from '~/utils/tokenDirectory'
 
 type TokenRouteParams = {
 	token: string
 }
 
-type TokenPageSection = {
-	id: string
-	label: string
-	element: ReactElement
+type TokenPageSectionId =
+	| 'token-overview'
+	| 'token-income-statement'
+	| 'token-risks'
+	| 'token-risk-timeline'
+	| 'token-rights-and-value-accrual'
+	| 'token-usage'
+	| 'token-liquidations'
+	| 'token-unlocks'
+	| 'token-yields'
+	| 'token-borrow'
+
+type TokenPageProps = {
+	record: TokenDirectoryRecord
+	displayName: string
+	tokenRightsData: ITokenRightsData | null
+	incomeStatementData: Awaited<ReturnType<typeof getProtocolIncomeStatement>>
+	incomeStatementProtocolName: string | null
+	incomeStatementHasIncentives: boolean
+	geckoId: string | null
+	tokenRiskData: TokenRiskResponse | null
+	tokenRiskTimelineData: RiskTimelineResponse | null
+	initialYieldsRows: IYieldTableRow[]
+	initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null
+	hasLiquidations: boolean
+	resolvedUnlocksSlug?: string
+	overview: Awaited<ReturnType<typeof getTokenOverviewData>>
+	seoTitle: string
+	seoDescription: string
+	canonicalUrl: string
+	visibleSections: TokenPageSectionId[]
 }
 
 const INITIAL_TOKEN_PRERENDER_LIMIT = 30
+
+type TokenPageSection = {
+	label: string
+	render: (props: TokenPageProps) => ReactNode
+}
+
+const TOKEN_SECTIONS = {
+	'token-overview': {
+		label: 'Overview',
+		render: ({ overview, geckoId, record }) => (
+			<TokenOverviewSection overview={overview} geckoId={geckoId} logo={record.logo} />
+		)
+	},
+	'token-income-statement': {
+		label: 'Income Statement',
+		render: ({ incomeStatementProtocolName, incomeStatementData, incomeStatementHasIncentives }) => (
+			<TokenIncomeStatementSection
+				protocolName={incomeStatementProtocolName!}
+				incomeStatement={incomeStatementData}
+				hasIncentives={incomeStatementHasIncentives}
+			/>
+		)
+	},
+	'token-risks': {
+		label: 'Risks',
+		render: ({ record, tokenRiskData }) => <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData!} />
+	},
+	'token-risk-timeline': {
+		label: 'Risk Timeline',
+		render: ({ record, tokenRiskTimelineData }) => (
+			<TokenRiskTimelineSection tokenSymbol={record.symbol} timelineData={tokenRiskTimelineData!} />
+		)
+	},
+	'token-rights-and-value-accrual': {
+		label: 'Token Rights',
+		render: ({ record, tokenRightsData }) => (
+			<TokenRightsByProtocol
+				name={record.name}
+				symbol={record.symbol}
+				tokenRightsData={tokenRightsData!}
+				raises={null}
+				showHeader
+				headerVariant="embedded"
+			/>
+		)
+	},
+	'token-usage': {
+		label: 'Token Usage',
+		render: ({ record }) => <TokenUsageSection tokenSymbol={record.symbol} />
+	},
+	'token-liquidations': {
+		label: 'Liquidations',
+		render: ({ record }) => <TokenLiquidationsSection tokenSymbol={record.symbol} />
+	},
+	'token-unlocks': {
+		label: 'Unlocks',
+		render: ({ resolvedUnlocksSlug }) => <TokenUnlocksSection resolvedUnlocksSlug={resolvedUnlocksSlug} />
+	},
+	'token-yields': {
+		label: 'Yields',
+		render: ({ record, initialYieldsRows }) => (
+			<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
+		)
+	},
+	'token-borrow': {
+		label: 'Borrow',
+		render: ({ record, initialTokenBorrowRoutesData }) => (
+			<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
+		)
+	}
+} satisfies Record<TokenPageSectionId, TokenPageSection>
 
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
 	return tokenNk.slice('coingecko:'.length) || null
 }
 
-export const getStaticProps = withPerformanceLogging(
+function getVisibleTokenSections({
+	record,
+	incomeStatementData,
+	incomeStatementProtocolName,
+	tokenRiskData,
+	tokenRiskTimelineData,
+	tokenRightsData,
+	hasLiquidations,
+	resolvedUnlocksSlug,
+	initialYieldsRows,
+	initialTokenBorrowRoutesData
+}: Pick<
+	TokenPageProps,
+	| 'record'
+	| 'incomeStatementData'
+	| 'incomeStatementProtocolName'
+	| 'tokenRiskData'
+	| 'tokenRiskTimelineData'
+	| 'tokenRightsData'
+	| 'hasLiquidations'
+	| 'resolvedUnlocksSlug'
+	| 'initialYieldsRows'
+	| 'initialTokenBorrowRoutesData'
+>): TokenPageSectionId[] {
+	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
+	const shouldRenderBorrowSection =
+		(initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
+		(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0
+	const visibleSections: TokenPageSectionId[] = ['token-overview']
+
+	if (incomeStatementData && incomeStatementProtocolName) {
+		visibleSections.push('token-income-statement')
+	}
+	if (tokenRiskData) {
+		visibleSections.push('token-risks')
+	}
+	if (tokenRiskTimelineData) {
+		visibleSections.push('token-risk-timeline')
+	}
+	if (tokenRightsData) {
+		visibleSections.push('token-rights-and-value-accrual')
+	}
+
+	visibleSections.push('token-usage')
+
+	if (hasLiquidations) {
+		visibleSections.push('token-liquidations')
+	}
+	if (resolvedUnlocksSlug) {
+		visibleSections.push('token-unlocks')
+	}
+	if (shouldRenderYieldsSection) {
+		visibleSections.push('token-yields')
+	}
+	if (shouldRenderBorrowSection) {
+		visibleSections.push('token-borrow')
+	}
+
+	return visibleSections
+}
+
+export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteParams>(
 	'token/[token]',
 	async ({ params }: GetStaticPropsContext<TokenRouteParams>) => {
 		const token = params?.token
@@ -85,15 +245,10 @@ export const getStaticProps = withPerformanceLogging(
 		const hasLiquidations = metadataCache.liquidationsTokenSymbolsSet.has(
 			normalizeLiquidationsTokenSymbol(record.symbol) ?? ''
 		)
-		let tokenRightsData: ITokenRightsData | null = null
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
-		let tokenRiskData: TokenRiskResponse | null = null
-		let tokenRiskTimelineData: RiskTimelineResponse | null = null
-		let initialYieldsRows: IYieldTableRow[] = []
-		let initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null = null
-		const overview = await getTokenOverviewData({
+		const overviewPromise = getTokenOverviewData({
 			record,
 			displayName,
 			geckoId,
@@ -104,32 +259,29 @@ export const getStaticProps = withPerformanceLogging(
 			prefetchedCharts: TOKEN_OVERVIEW_DEFAULT_CHARTS
 		})
 
-		if (record.tokenRights && (record.chainId || record.protocolId)) {
-			tokenRightsData = await (async () => {
-				try {
-					const tokenRightsEntries = await fetchTokenRightsData()
-					const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
-					return rawEntry ? parseTokenRightsEntry(rawEntry) : null
-				} catch (error) {
-					console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
-					return null
-				}
-			})()
-		}
+		const tokenRightsPromise =
+			record.tokenRights && (record.chainId || record.protocolId)
+				? (async () => {
+						try {
+							const tokenRightsEntries = await fetchTokenRightsData()
+							const rawEntry = findProtocolEntry(tokenRightsEntries, record.chainId || record.protocolId)
+							return rawEntry ? parseTokenRightsEntry(rawEntry) : null
+						} catch (error) {
+							console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
+							return null
+						}
+					})()
+				: Promise.resolve(null)
 
-		if (protocolMetadata) {
-			incomeStatementData = await getProtocolIncomeStatement({ metadata: protocolMetadata }).catch((error) => {
-				console.error(
-					`Failed to load income statement data for ${protocolMetadata.displayName ?? protocolMetadata.name ?? record.name}`,
-					error
-				)
-				return null
-			})
-			if (incomeStatementData) {
-				incomeStatementProtocolName = protocolMetadata.displayName
-				incomeStatementHasIncentives = Boolean(protocolMetadata.incentives)
-			}
-		}
+		const incomeStatementPromise = protocolMetadata
+			? getProtocolIncomeStatement({ metadata: protocolMetadata }).catch((error) => {
+					console.error(
+						`Failed to load income statement data for ${protocolMetadata.displayName ?? protocolMetadata.name ?? record.name}`,
+						error
+					)
+					return null
+				})
+			: Promise.resolve(null)
 
 		const tokenRiskPromise = geckoId
 			? getTokenRiskData({
@@ -160,7 +312,18 @@ export const getStaticProps = withPerformanceLogging(
 				})
 			: Promise.resolve(null)
 
-		const [yieldsRows, tokenBorrowRoutesData, riskData, riskTimelineData] = await Promise.all([
+		const [
+			overview,
+			tokenRightsData,
+			resolvedIncomeStatementData,
+			yieldsRows,
+			tokenBorrowRoutesData,
+			riskData,
+			riskTimelineData
+		] = await Promise.all([
+			overviewPromise,
+			tokenRightsPromise,
+			incomeStatementPromise,
 			yieldsRowsPromise,
 			getTokenBorrowRoutesData(record.symbol).catch((error) => {
 				console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
@@ -169,10 +332,29 @@ export const getStaticProps = withPerformanceLogging(
 			tokenRiskPromise,
 			tokenRiskTimelinePromise
 		])
-		initialYieldsRows = yieldsRows
-		initialTokenBorrowRoutesData = tokenBorrowRoutesData
-		tokenRiskData = riskData
-		tokenRiskTimelineData = riskTimelineData
+
+		if (resolvedIncomeStatementData) {
+			incomeStatementData = resolvedIncomeStatementData
+			incomeStatementProtocolName = protocolMetadata?.displayName ?? null
+			incomeStatementHasIncentives = Boolean(protocolMetadata?.incentives)
+		}
+
+		const initialYieldsRows: IYieldTableRow[] = yieldsRows
+		const initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null = tokenBorrowRoutesData
+		const tokenRiskData: TokenRiskResponse | null = riskData
+		const tokenRiskTimelineData: RiskTimelineResponse | null = riskTimelineData
+		const visibleSections = getVisibleTokenSections({
+			record,
+			incomeStatementData,
+			incomeStatementProtocolName,
+			tokenRiskData,
+			tokenRiskTimelineData,
+			tokenRightsData,
+			hasLiquidations,
+			resolvedUnlocksSlug,
+			initialYieldsRows,
+			initialTokenBorrowRoutesData
+		})
 
 		const seoTitle = record.tokenRights
 			? `${displayName} Price, Market Cap, Supply & Token Rights - DefiLlama`
@@ -199,7 +381,8 @@ export const getStaticProps = withPerformanceLogging(
 				overview,
 				seoTitle,
 				seoDescription,
-				canonicalUrl: record.route ?? `/token/${encodeURIComponent(record.symbol)}`
+				canonicalUrl: record.route ?? `/token/${encodeURIComponent(record.symbol)}`,
+				visibleSections
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -236,126 +419,22 @@ export const getStaticPaths = async () => {
 
 	const paths = rankedRecords.map((record) => record.route)
 
-	console.log(paths)
-
 	return { paths, fallback: 'blocking' }
 }
 
-export default function TokenPage({
-	record,
-	tokenRightsData,
-	incomeStatementData,
-	incomeStatementProtocolName,
-	incomeStatementHasIncentives,
-	geckoId,
-	tokenRiskData,
-	tokenRiskTimelineData,
-	initialYieldsRows,
-	initialTokenBorrowRoutesData,
-	hasLiquidations,
-	resolvedUnlocksSlug,
-	overview,
-	seoTitle,
-	seoDescription,
-	canonicalUrl
-}: InferGetStaticPropsType<typeof getStaticProps>) {
-	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
-	const shouldRenderBorrowSection =
-		(initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
-		(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0
-	const visibleSections = [
-		{
-			id: 'token-overview',
-			label: 'Overview',
-			element: <TokenOverviewSection overview={overview} geckoId={geckoId} />
-		},
-		incomeStatementData && incomeStatementProtocolName
-			? {
-					id: 'token-income-statement',
-					label: 'Income Statement',
-					element: (
-						<TokenIncomeStatementSection
-							protocolName={incomeStatementProtocolName}
-							incomeStatement={incomeStatementData}
-							hasIncentives={incomeStatementHasIncentives}
-						/>
-					)
-				}
-			: null,
-		tokenRiskData
-			? {
-					id: 'token-risks',
-					label: 'Risks',
-					element: <TokenRisksSection tokenSymbol={record.symbol} riskData={tokenRiskData} />
-				}
-			: null,
-		tokenRiskTimelineData
-			? {
-					id: 'token-risk-timeline',
-					label: 'Risk Timeline',
-					element: (
-						<TokenRiskTimelineSection tokenSymbol={record.symbol} timelineData={tokenRiskTimelineData} />
-					)
-				}
-			: null,
-		tokenRightsData
-			? {
-					id: 'token-rights-and-value-accrual',
-					label: 'Token Rights',
-					element: (
-						<TokenRightsByProtocol
-							name={record.name}
-							symbol={record.symbol}
-							tokenRightsData={tokenRightsData}
-							raises={null}
-							showHeader
-							headerVariant="embedded"
-						/>
-					)
-				}
-			: null,
-		{
-			id: 'token-usage',
-			label: 'Token Usage',
-			element: <TokenUsageSection tokenSymbol={record.symbol} />
-		},
-		hasLiquidations
-			? {
-					id: 'token-liquidations',
-					label: 'Liquidations',
-					element: <TokenLiquidationsSection tokenSymbol={record.symbol} />
-				}
-			: null,
-		resolvedUnlocksSlug
-			? {
-					id: 'token-unlocks',
-					label: 'Unlocks',
-					element: <TokenUnlocksSection resolvedUnlocksSlug={resolvedUnlocksSlug} />
-				}
-			: null,
-		shouldRenderYieldsSection
-			? {
-					id: 'token-yields',
-					label: 'Yields',
-					element: <TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
-				}
-			: null,
-		shouldRenderBorrowSection
-			? {
-					id: 'token-borrow',
-					label: 'Borrow',
-					element: (
-						<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
-					)
-				}
-			: null
-	].filter((section): section is TokenPageSection => section !== null)
-
+export default function TokenPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
-		<Layout title={seoTitle} description={seoDescription} canonicalUrl={canonicalUrl}>
+		<Layout title={props.seoTitle} description={props.seoDescription} canonicalUrl={props.canonicalUrl}>
 			<div className="flex flex-col gap-2">
-				<TokenPageSectionNav sections={visibleSections.map(({ id, label }) => ({ id, label }))} />
-				{visibleSections.map((section) => cloneElement(section.element, { key: section.id }))}
+				<TokenPageSectionNav
+					sections={props.visibleSections.map((sectionId) => ({
+						id: sectionId,
+						label: TOKEN_SECTIONS[sectionId].label
+					}))}
+				/>
+				{props.visibleSections.map((sectionId) => (
+					<Fragment key={`token-page-${sectionId}`}>{TOKEN_SECTIONS[sectionId].render(props)}</Fragment>
+				))}
 			</div>
 		</Layout>
 	)

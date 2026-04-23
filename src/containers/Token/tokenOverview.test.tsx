@@ -12,6 +12,16 @@ import {
 } from './tokenOverview'
 import { TokenOverviewSection, TokenPageHero } from './TokenOverviewSection'
 
+function getRecordKeys<T extends Record<string, unknown>>(record: T): string[] {
+	const keys: string[] = []
+
+	for (const key in record) {
+		keys.push(key)
+	}
+
+	return keys
+}
+
 const mocks = vi.hoisted(() => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: vi.fn(),
 	fetchCoinGeckoCoinById: vi.fn(),
@@ -488,7 +498,8 @@ describe('tokenOverview helpers', () => {
 		const result = await getTokenOverviewData({
 			record: {
 				name: 'Bitcoin',
-				symbol: 'BTC'
+				symbol: 'BTC',
+				logo: 'https://metadata.example.com/btc.png'
 			} satisfies TokenDirectoryRecord,
 			displayName: 'BTC',
 			geckoId: 'bitcoin',
@@ -504,29 +515,11 @@ describe('tokenOverview helpers', () => {
 		expect(result.tokenLiquidity).toBeNull()
 		expect(result.outstandingFDV).toBeNull()
 		expect(result.llamaswapChains).toBeNull()
-		expect(result.logoUrl).toBe('https://example.com/btc.png')
-		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('bitcoin', {
-			localization: false,
-			tickers: false,
-			marketData: false,
-			communityData: false,
-			developerData: false,
-			sparkline: false,
-			includeCategoriesDetails: false
-		})
+		expect(mocks.fetchCoinGeckoCoinById).not.toHaveBeenCalled()
 		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).not.toHaveBeenCalled()
 	})
 
-	it('fetches only logo detail when only max supply is missing from tokenlist data', async () => {
-		mocks.fetchCoinGeckoCoinById.mockResolvedValueOnce({
-			id: 'ethereum',
-			symbol: 'eth',
-			name: 'Ethereum',
-			image: {
-				small: 'https://example.com/eth.png'
-			}
-		})
-
+	it('does not fetch CoinGecko coin detail when only max supply is missing from tokenlist data', async () => {
 		const result = await getTokenOverviewData({
 			record: {
 				name: 'Ethereum',
@@ -545,16 +538,7 @@ describe('tokenOverview helpers', () => {
 
 		expect(result.marketData.currentPrice).toBe(100)
 		expect(result.marketData.maxSupply).toBeNull()
-		expect(result.logoUrl).toBe('https://example.com/eth.png')
-		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('ethereum', {
-			localization: false,
-			tickers: false,
-			marketData: false,
-			communityData: false,
-			developerData: false,
-			sparkline: false,
-			includeCategoriesDetails: false
-		})
+		expect(mocks.fetchCoinGeckoCoinById).not.toHaveBeenCalled()
 		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).not.toHaveBeenCalled()
 	})
 
@@ -576,8 +560,15 @@ describe('tokenOverview helpers', () => {
 		expect(result.marketData.mcap).toBe(2222)
 		expect(result.marketData.fdv).toBe(3333)
 		expect(result.marketData.volume24h.total).toBe(4444)
-		expect(result.logoUrl).toBe('https://example.com/btc.png')
-		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('wrapped-steth', expect.any(Object))
+		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('wrapped-steth', {
+			localization: false,
+			tickers: false,
+			marketData: true,
+			communityData: false,
+			developerData: false,
+			sparkline: false,
+			includeCategoriesDetails: false
+		})
 		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('wrapped-steth')
 		expect(result.rawChartData['Token Price']).toEqual([
 			[1711929600000, 100],
@@ -621,7 +612,7 @@ describe('tokenOverview helpers', () => {
 			groupBy: 'daily'
 		})
 
-		expect(Object.keys(displayed)).toEqual(['Token Price'])
+		expect(getRecordKeys(displayed)).toEqual(['Token Price'])
 	})
 
 	it('supports non-price chart combinations when toggled on', () => {
@@ -648,13 +639,15 @@ describe('tokenOverview helpers', () => {
 			groupBy: 'daily'
 		})
 
-		expect(Object.keys(displayed)).toEqual(['Token Volume', 'Mcap', 'FDV'])
+		expect(getRecordKeys(displayed)).toEqual(['Token Volume', 'Mcap', 'FDV'])
 	})
 })
 
 describe('TokenPageHero component', () => {
 	it('renders the token identity, price breakdown, and buy action in the page hero', () => {
-		const html = renderToStaticMarkup(<TokenPageHero overview={overviewFixture} />)
+		const html = renderToStaticMarkup(
+			<TokenPageHero overview={overviewFixture} logo="https://metadata.example.com/btc.png" />
+		)
 
 		expect(html).toContain('Bitcoin')
 		expect(html).toContain('(BTC)')
@@ -667,7 +660,9 @@ describe('TokenPageHero component', () => {
 
 describe('TokenOverviewSection component', () => {
 	it('renders the overview chart and key metrics without duplicating the page hero', () => {
-		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+		const html = renderToStaticMarkup(
+			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
+		)
 
 		expect(html).toContain('Bitcoin')
 		expect(html).toContain('(BTC)')
@@ -703,6 +698,7 @@ describe('TokenOverviewSection component', () => {
 					]
 				}}
 				geckoId="bitcoin"
+				logo="https://metadata.example.com/btc.png"
 			/>
 		)
 
@@ -717,7 +713,9 @@ describe('TokenOverviewSection component', () => {
 			chart: 'Token Volume'
 		}
 
-		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+		const html = renderToStaticMarkup(
+			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
+		)
 
 		expect(html).not.toContain('fetching $BTC Volume')
 		expect(html).not.toContain('Chart unavailable for this token right now.')
@@ -739,10 +737,12 @@ describe('TokenOverviewSection component', () => {
 			isLoading: false
 		})
 
-		renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+		renderToStaticMarkup(
+			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
+		)
 
 		expect(lastProtocolChartProps.groupBy).toBe('weekly')
-		expect(Object.keys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
+		expect(getRecordKeys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
 	})
 
 	it('shows a graceful fallback when market chart data is unavailable', () => {
@@ -753,6 +753,7 @@ describe('TokenOverviewSection component', () => {
 					rawChartData: {}
 				}}
 				geckoId={null}
+				logo="https://metadata.example.com/btc.png"
 			/>
 		)
 

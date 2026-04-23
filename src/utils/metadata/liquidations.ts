@@ -8,8 +8,11 @@ export function normalizeLiquidationsTokenSymbol(symbol: string | null | undefin
 export function extractLiquidationsTokenSymbols(tokens: RawMultiChainTokenMap): string[] {
 	const symbols = new Set<string>()
 
-	for (const chainTokens of Object.values(tokens)) {
-		for (const token of Object.values(chainTokens)) {
+	for (const chain in tokens) {
+		const chainTokens = tokens[chain]
+
+		for (const tokenAddress in chainTokens) {
+			const token = chainTokens[tokenAddress]
 			const normalizedSymbol = normalizeLiquidationsTokenSymbol(token.symbol)
 			if (normalizedSymbol) {
 				symbols.add(normalizedSymbol)

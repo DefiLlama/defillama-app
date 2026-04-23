@@ -339,6 +339,17 @@ describe('token page', () => {
 				seoTitle="title"
 				seoDescription="description"
 				canonicalUrl="/token/btc"
+				visibleSections={[
+					'token-overview',
+					'token-income-statement',
+					'token-risks',
+					'token-rights-and-value-accrual',
+					'token-usage',
+					'token-liquidations',
+					'token-unlocks',
+					'token-yields',
+					'token-borrow'
+				]}
 			/>
 		)
 		const navHtml = html.match(/<nav[^>]*aria-label="Token page sections"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
@@ -408,6 +419,7 @@ describe('token page', () => {
 				seoTitle="title"
 				seoDescription="description"
 				canonicalUrl="/token/btc"
+				visibleSections={['token-overview', 'token-usage']}
 			/>
 		)
 		const navHtml = html.match(/<nav[^>]*aria-label="Token page sections"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
@@ -452,6 +464,7 @@ describe('token page', () => {
 				seoTitle="title"
 				seoDescription="description"
 				canonicalUrl="/token/btc"
+				visibleSections={['token-overview', 'token-risks', 'token-usage', 'token-borrow']}
 			/>
 		)
 
@@ -514,7 +527,8 @@ describe('token page', () => {
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/BTC'
+				canonicalUrl: '/token/BTC',
+				visibleSections: ['token-overview', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -539,7 +553,8 @@ describe('token page', () => {
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/BTC'
+				canonicalUrl: '/token/BTC',
+				visibleSections: ['token-overview', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -588,7 +603,8 @@ describe('token page', () => {
 				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/BTC'
+				canonicalUrl: '/token/BTC',
+				visibleSections: ['token-overview', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -635,7 +651,8 @@ describe('token page', () => {
 				seoTitle: 'Swing.xyz Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track Swing.xyz price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/%24SWING'
+				canonicalUrl: '/token/%24SWING',
+				visibleSections: ['token-overview', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -757,7 +774,8 @@ describe('token page', () => {
 				seoTitle: 'LINK Price, Market Cap, Supply & Token Rights - DefiLlama',
 				seoDescription:
 					'Track LINK price, market cap, circulating supply, max supply, 24h trading volume, and token rights on DefiLlama.',
-				canonicalUrl: '/token/LINK'
+				canonicalUrl: '/token/LINK',
+				visibleSections: ['token-overview', 'token-rights-and-value-accrual', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -910,7 +928,8 @@ describe('token page', () => {
 				seoTitle: 'AAVE Price, Market Cap & Supply - DefiLlama',
 				seoDescription:
 					'Track AAVE price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
-				canonicalUrl: '/token/AAVE'
+				canonicalUrl: '/token/AAVE',
+				visibleSections: ['token-overview', 'token-income-statement', 'token-usage']
 			},
 			revalidate: 123
 		})

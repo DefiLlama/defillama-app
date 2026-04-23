@@ -150,7 +150,8 @@ function rankSupportedPlatformsByPoolCoverage(
 	const supportedPlatforms = getSupportedCoinGeckoPlatformsForLlamaswap(platforms)
 	const rankedChains: Array<IProtocolLlamaswapChain & { index: number; poolCoverageUsd: number }> = []
 
-	for (const [platform, address] of Object.entries(supportedPlatforms)) {
+	for (const platform in supportedPlatforms) {
+		const address = supportedPlatforms[platform]
 		const llamaswapChain = getLlamaswapChainByGeckoPlatform(platform)
 		if (!llamaswapChain) continue
 
