@@ -1,28 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import {
-	getAutoFitYAxisMin,
-	getDefaultYAxisMinForSeriesTypes,
-	getRenderedSeriesTypesByYAxisIndex,
-	getZeroBaselineYAxisMin
-} from './axisMin'
+import { getRenderedSeriesTypesByYAxisIndex, getZeroBaselineYAxisMin } from './axisMin'
 
 describe('axisMin helpers', () => {
-	it('returns a padded data min for positive finite ranges', () => {
-		expect(getAutoFitYAxisMin({ min: 4, max: 8 })).toBe(3.8)
-	})
-
-	it('falls back safely for flat or invalid ranges', () => {
-		expect(getAutoFitYAxisMin({ min: 4, max: 4 })).toBe(4)
-		expect(Number.isNaN(getAutoFitYAxisMin({ min: Number.NaN, max: 8 }))).toBe(true)
-	})
-
-	it('keeps zero baseline for any axis with a bar series', () => {
-		expect(getDefaultYAxisMinForSeriesTypes(['line', 'bar'])).toBe(getZeroBaselineYAxisMin)
-		expect(getDefaultYAxisMinForSeriesTypes(['bar'])).toBe(getZeroBaselineYAxisMin)
-	})
-
-	it('auto-fits line-only axes', () => {
-		expect(getDefaultYAxisMinForSeriesTypes(['line'])).toBe(getAutoFitYAxisMin)
+	it('keeps zero baseline for positive-only bar extents and preserves negative minima', () => {
+		expect(getZeroBaselineYAxisMin({ min: 4, max: 8 })).toBe(0)
+		expect(getZeroBaselineYAxisMin({ min: -4, max: 8 })).toBe(-4)
 	})
 
 	it('groups rendered series types by y-axis index', () => {

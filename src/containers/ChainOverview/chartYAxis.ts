@@ -1,4 +1,4 @@
-import { getAutoFitYAxisMin, getZeroBaselineYAxisMin } from '~/components/ECharts/axisMin'
+import { getZeroBaselineYAxisMin } from '~/components/ECharts/axisMin'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { formattedNum } from '~/utils'
 import type { ChainChartLabels } from './constants'
@@ -115,12 +115,12 @@ export function buildChainYAxis({
 	const noOffset = allYAxis.length < 3
 
 	for (const [type, index] of allYAxis) {
-		const min = barAxisTypes.has(type) ? getZeroBaselineYAxisMin : getAutoFitYAxisMin
+		const isBarAxis = barAxisTypes.has(type)
 
 		if (type === 'TVL') {
 			finalYAxis.push({
 				...baseYAxis,
-				min
+				scale: true
 			})
 			continue
 		}
@@ -130,8 +130,10 @@ export function buildChainYAxis({
 			...baseYAxis,
 			name: '',
 			type: 'value',
-			min,
-			alignTicks: true,
+			scale: !isBarAxis,
+			...(isBarAxis ? { min: getZeroBaselineYAxisMin } : {}),
+			// Bar axes need a visible zero baseline; aligned ticks can move it off-screen.
+			alignTicks: !isBarAxis,
 			offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (CUSTOM_OFFSETS[type] ?? 40)
 		}
 		const axisConfig = AXIS_CONFIG_BY_TYPE[type]

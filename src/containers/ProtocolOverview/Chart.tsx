@@ -212,6 +212,7 @@ export default function ProtocolChart({
 
 		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
 		const shouldShowEventRail = eventRailData.length > 0
+		const hasBarAxis = barAxisTypes.size > 0
 
 		let timeRangeMin = Infinity
 		let timeRangeMax = -Infinity
@@ -236,7 +237,16 @@ export default function ProtocolChart({
 			outerBoundsContain: 'axisLabel'
 		}
 		const finalGrid = mainGrid
-		const finalXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		const baseXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		const finalXAxis = hasBarAxis
+			? {
+					...baseXAxis,
+					axisLine: {
+						...(baseXAxis?.axisLine ?? {}),
+						onZero: false
+					}
+				}
+			: baseXAxis
 
 		const eventStripYAxis = createEventStripYAxis()
 		const eventStripYAxisIndex = finalYAxis.length

@@ -153,6 +153,7 @@ export default function ChainCoreChart({
 
 		const { graphic, tooltip, xAxis, yAxis, dataZoom } = settings
 		const chartsInSeries = new Set(series.map((s) => s.name))
+		const hasBarAxis = barAxisTypes.size > 0
 		const finalYAxis = buildChainYAxis({
 			allYAxis,
 			baseYAxis: yAxis,
@@ -161,6 +162,16 @@ export default function ChainCoreChart({
 			chartsInSeries,
 			isThemeDark
 		})
+
+		const finalXAxis = hasBarAxis
+			? {
+					...xAxis,
+					axisLine: {
+						...(xAxis?.axisLine ?? {}),
+						onZero: false
+					}
+				}
+			: xAxis
 
 		instance.setOption(
 			{
@@ -174,7 +185,7 @@ export default function ChainCoreChart({
 					outerBoundsMode: 'same',
 					outerBoundsContain: 'axisLabel'
 				},
-				xAxis,
+				xAxis: finalXAxis,
 				yAxis: finalYAxis,
 				dataZoom,
 				series

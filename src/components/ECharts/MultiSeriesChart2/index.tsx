@@ -29,11 +29,7 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
-import {
-	getDefaultYAxisMinForSeriesTypes,
-	getRenderedSeriesTypesByYAxisIndex,
-	getZeroBaselineYAxisMin
-} from '../axisMin'
+import { getRenderedSeriesTypesByYAxisIndex, getZeroBaselineYAxisMin } from '../axisMin'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
@@ -251,6 +247,8 @@ function buildMultiYAxis({
 	let prevOffset = 0
 	for (let i = 0; i <= maxIndex; i++) {
 		const isPrimary = i === 0
+		const axisSeriesTypes = seriesTypesByAxisIndex.get(i)
+		const isBarAxis = !!axisSeriesTypes && Array.from(axisSeriesTypes).includes('bar')
 		const baseAxis = Array.isArray(yAxis) && yAxis.length > 0 ? (yAxis[i] ?? yAxis[0] ?? {}) : (yAxis ?? {})
 		const baseAxisLabel =
 			baseAxis?.axisLabel && typeof baseAxis.axisLabel === 'object' && !Array.isArray(baseAxis.axisLabel)
@@ -273,14 +271,20 @@ function buildMultiYAxis({
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
 		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
-		const min = baseAxis?.min ?? getDefaultYAxisMinForSeriesTypes(seriesTypesByAxisIndex.get(i))
-
 		out.push({
 			...baseAxis,
 			position: isPrimary ? 'left' : 'right',
-			alignTicks: true,
+			scale: !isBarAxis,
+			// Bar axes need a visible zero baseline; aligned ticks can move it off-screen.
+			alignTicks: !isBarAxis,
 			offset,
-			...(expandTo100Percent ? { max: 100, min: 0 } : { min }),
+			...(expandTo100Percent
+				? { max: 100, min: 0 }
+				: baseAxis?.min !== undefined
+					? { min: baseAxis.min }
+					: isBarAxis
+						? { min: getZeroBaselineYAxisMin }
+						: {}),
 			axisLine: {
 				...baseAxisLine,
 				show: !isPrimary,
@@ -941,8 +945,20 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			Number.isFinite(timeRangeMax) &&
 			timeRangeMin < timeRangeMax
 
+		const hasBarAxis = series.some((item) => item?.type === 'bar')
+		const primaryAxisSeriesTypes = getRenderedSeriesTypesByYAxisIndex(series).get(0)
+		const primaryAxisHasBar = !!primaryAxisSeriesTypes && Array.from(primaryAxisSeriesTypes).includes('bar')
 		let finalXAxis: any =
 			shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		if (hasBarAxis) {
+			finalXAxis = {
+				...finalXAxis,
+				axisLine: {
+					...(finalXAxis?.axisLine ?? {}),
+					onZero: false
+				}
+			}
+		}
 		if (hasCategoryLogos) {
 			finalXAxis = {
 				...finalXAxis,
@@ -956,12 +972,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				: [
 						{
 							...yAxis,
+							scale: !primaryAxisHasBar,
 							...(expandTo100Percent
 								? { max: 100, min: 0 }
-								: {
-										min:
-											yAxis?.min ?? getDefaultYAxisMinForSeriesTypes(getRenderedSeriesTypesByYAxisIndex(series).get(0))
-									})
+								: yAxis?.min !== undefined
+									? { min: yAxis.min }
+									: primaryAxisHasBar
+										? { min: getZeroBaselineYAxisMin }
+										: {})
 						}
 					]
 		const eventStripYAxisIndex = finalYAxisBase.length

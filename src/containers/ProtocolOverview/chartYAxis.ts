@@ -1,4 +1,4 @@
-import { getAutoFitYAxisMin, getZeroBaselineYAxisMin } from '~/components/ECharts/axisMin'
+import { getZeroBaselineYAxisMin } from '~/components/ECharts/axisMin'
 import { formattedNum } from '~/utils'
 import type { ProtocolChartsLabels } from './constants'
 
@@ -135,12 +135,12 @@ export function buildProtocolYAxis({
 	const noOffset = allYAxis.length < 3
 
 	for (const [type, index] of allYAxis) {
-		const min = barAxisTypes.has(type) ? getZeroBaselineYAxisMin : getAutoFitYAxisMin
+		const isBarAxis = barAxisTypes.has(type)
 
 		if (type === 'TVL') {
 			finalYAxis.push({
 				...baseYAxis,
-				min
+				scale: true
 			})
 			continue
 		}
@@ -150,8 +150,10 @@ export function buildProtocolYAxis({
 			...baseYAxis,
 			name: '',
 			type: 'value',
-			min,
-			alignTicks: true,
+			scale: !isBarAxis,
+			...(isBarAxis ? { min: getZeroBaselineYAxisMin } : {}),
+			// Bar axes need an actual zero baseline; aligned ticks can push zero off-screen.
+			alignTicks: !isBarAxis,
 			offset: noOffset || index == null || index < 2 ? 0 : prevOffset + (CUSTOM_OFFSETS[type] ?? 40)
 		}
 		const axisConfig = AXIS_CONFIG_BY_TYPE[type]
