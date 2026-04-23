@@ -12,11 +12,5 @@ export async function fetchRaisesByDefillamaIdFromCache(defillamaId: string): Pr
 	}
 
 	const payload = await readJsonFile<{ raises: RawRaise[] }>(`${getRaisesDomainDir()}/full.json`)
-	const rows = []
-	for (const raise of payload.raises) {
-		if (raise.defillamaId === defillamaId) {
-			rows.push(raise)
-		}
-	}
-	return rows
+	return payload.raises.filter((raise) => raise.defillamaId === defillamaId)
 }

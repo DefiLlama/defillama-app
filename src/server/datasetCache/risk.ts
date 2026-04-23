@@ -16,11 +16,9 @@ export async function getIndexedTokenRiskBorrowCapacityFromCache(): Promise<{
 }> {
 	await readDatasetManifest()
 	const payload = await readJsonFile<IndexedBorrowCapacityJson>(`${getRiskDomainDir()}/indexed.json`)
-	const indexedTokens = new Map<string, TokenRiskBorrowCapacityTokenEntry[]>()
-
-	for (const assetKey in payload.indexedTokens) {
-		indexedTokens.set(assetKey, payload.indexedTokens[assetKey])
-	}
+	const indexedTokens = new Map<string, TokenRiskBorrowCapacityTokenEntry[]>(
+		Object.entries(payload.indexedTokens ?? {})
+	)
 
 	return {
 		data: payload.data,

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
@@ -22,7 +23,11 @@ export type DatasetManifest = {
 }
 
 type JsonCacheEntry = {
-	mtimeMs: number
+	stat: {
+		mtimeMs: number
+		size: number
+		ino: number
+	}
 	value: unknown
 }
 
@@ -61,14 +66,23 @@ export async function removeDirectory(targetPath: string): Promise<void> {
 export async function readJsonFile<T>(filePath: string): Promise<T> {
 	const stat = await fs.stat(filePath)
 	const cached = jsonCache.get(filePath)
-	if (cached && cached.mtimeMs === stat.mtimeMs) {
+	if (
+		cached &&
+		cached.stat.mtimeMs === stat.mtimeMs &&
+		cached.stat.size === stat.size &&
+		cached.stat.ino === stat.ino
+	) {
 		return cached.value as T
 	}
 
 	const fileContent = await fs.readFile(filePath, 'utf8')
 	const parsed = JSON.parse(fileContent) as T
 	jsonCache.set(filePath, {
-		mtimeMs: stat.mtimeMs,
+		stat: {
+			mtimeMs: stat.mtimeMs,
+			size: stat.size,
+			ino: stat.ino
+		},
 		value: parsed
 	})
 
@@ -77,8 +91,24 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
 
 export async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
 	await ensureDirectory(path.dirname(filePath))
-	await fs.writeFile(filePath, JSON.stringify(value))
-	jsonCache.delete(filePath)
+	const tempPath = `${filePath}.tmp-${process.pid}-${randomUUID()}`
+	let handle: Awaited<ReturnType<typeof fs.open>> | null = null
+
+	try {
+		handle = await fs.open(tempPath, 'w')
+		await handle.writeFile(JSON.stringify(value))
+		await handle.sync()
+		await handle.close()
+		handle = null
+		await fs.rename(tempPath, filePath)
+		jsonCache.delete(filePath)
+	} catch (error) {
+		if (handle) {
+			await handle.close().catch(() => undefined)
+		}
+		await fs.rm(tempPath, { force: true }).catch(() => undefined)
+		throw error
+	}
 }
 
 export async function readDatasetManifest(): Promise<DatasetManifest> {
@@ -94,7 +124,8 @@ export async function readDatasetManifestFrom(rootDir: string): Promise<DatasetM
 	}
 
 	for (const domain of DATASET_DOMAINS) {
-		if (!manifest.domains?.[domain]?.builtAt) {
+		const builtAt = manifest.domains?.[domain]?.builtAt
+		if (typeof builtAt !== 'number' || !Number.isFinite(builtAt)) {
 			throw new Error(`Dataset cache manifest is missing builtAt for ${domain}`)
 		}
 	}
@@ -110,7 +141,7 @@ export async function writeDatasetManifest(
 	await writeJsonFile(manifestPath, manifest)
 }
 
-export async function recoverDirectorySwap(targetDir: string, backupDir: string): Promise<void> {
+export async function recoverDirectoryReplacement(targetDir: string, backupDir: string): Promise<void> {
 	const targetExists = await pathExists(targetDir)
 	if (targetExists) {
 		if (await pathExists(backupDir)) {
@@ -124,17 +155,20 @@ export async function recoverDirectorySwap(targetDir: string, backupDir: string)
 	}
 }
 
-export async function replaceDirectoryAtomic(params: {
+// This uses a backup-and-promote flow. It is recoverable, but not truly atomic
+// because readers can observe a brief window where targetDir is absent.
+export async function replaceDirectoryWithBackup(params: {
 	targetDir: string
 	nextDir: string
 	backupDir: string
 }): Promise<void> {
 	const { targetDir, nextDir, backupDir } = params
 
-	await recoverDirectorySwap(targetDir, backupDir)
+	await recoverDirectoryReplacement(targetDir, backupDir)
 	await removeDirectory(backupDir)
 
 	let movedTargetToBackup = false
+	let promotedNextToTarget = false
 
 	try {
 		if (await pathExists(targetDir)) {
@@ -143,9 +177,17 @@ export async function replaceDirectoryAtomic(params: {
 		}
 
 		await fs.rename(nextDir, targetDir)
-		await removeDirectory(backupDir)
+		promotedNextToTarget = true
+		if (await pathExists(backupDir)) {
+			await removeDirectory(backupDir)
+		}
 	} catch (error) {
-		if (movedTargetToBackup && !(await pathExists(targetDir)) && (await pathExists(backupDir))) {
+		if (
+			!promotedNextToTarget &&
+			movedTargetToBackup &&
+			!(await pathExists(targetDir)) &&
+			(await pathExists(backupDir))
+		) {
 			await fs.rename(backupDir, targetDir)
 		}
 		throw error

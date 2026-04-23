@@ -38,18 +38,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 
 		const shouldUseDatasetCache = isDatasetCacheEnabled()
+		const metadataCache = {
+			chainMetadata: metadataModule.default.chainMetadata,
+			protocolMetadata: metadataModule.default.protocolMetadata
+		}
 		const data = shouldUseDatasetCache
 			? await (async () => {
 					const { getTokenLiquidationsFromCache } = await import('~/server/datasetCache/liquidations')
-					return getTokenLiquidationsFromCache(normalizedSymbol, {
-						chainMetadata: metadataModule.default.chainMetadata,
-						protocolMetadata: metadataModule.default.protocolMetadata
-					})
+					return getTokenLiquidationsFromCache(normalizedSymbol, metadataCache)
 				})()
-			: await getTokenLiquidationsSectionDataFromNetwork(normalizedSymbol, {
-					chainMetadata: metadataModule.default.chainMetadata,
-					protocolMetadata: metadataModule.default.protocolMetadata
-				})
+			: await getTokenLiquidationsSectionDataFromNetwork(normalizedSymbol, metadataCache)
 
 		if (!data) {
 			return res.status(404).json({ error: 'Token liquidations not found' })

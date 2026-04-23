@@ -12,6 +12,7 @@ vi.mock('./api', () => ({
 
 import { fetchBlockExplorers } from '~/api'
 import { fetchAllLiquidations, fetchProtocolLiquidations, fetchProtocolsList } from './api'
+import type { RawAllLiquidationsResponse, RawProtocolsResponse } from './api.types'
 import {
 	buildLiquidationsProtocolPageData,
 	buildTokenLiquidationsSectionData,
@@ -335,8 +336,8 @@ describe('LiquidationsV2 queries', () => {
 	})
 
 	it('builds protocol and token liquidations data from a raw snapshot without network fetches', () => {
-		const protocolsResponse = { protocols: ['maker'] }
-		const allResponse = {
+		const protocolsResponse: RawProtocolsResponse = { protocols: ['maker'] }
+		const allResponse: RawAllLiquidationsResponse = {
 			timestamp: 200,
 			validThresholds: ['all'],
 			tokens: {

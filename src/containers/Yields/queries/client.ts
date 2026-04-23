@@ -99,7 +99,7 @@ const useFetchProjectsList = () => {
 	}
 }
 
-export const useVolatility = () => {
+export const useVolatility = ({ enabled = true }: { enabled?: boolean } = {}) => {
 	const { authorizedFetch, hasActiveSubscription, isAuthenticated } = useAuthContext()
 
 	return useQuery({
@@ -112,11 +112,11 @@ export const useVolatility = () => {
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: isAuthenticated && !!hasActiveSubscription
+		enabled: enabled && isAuthenticated && !!hasActiveSubscription
 	})
 }
 
-export const useHolderStats = (configIDs?: string[]) => {
+export const useHolderStats = (configIDs?: string[], { enabled = true }: { enabled?: boolean } = {}) => {
 	return useQuery<HolderStatsMap, unknown, HolderStatsMap>({
 		queryKey: ['holder-stats'],
 		queryFn: async () => {
@@ -149,7 +149,8 @@ export const useHolderStats = (configIDs?: string[]) => {
 			: undefined,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 1
+		retry: 1,
+		enabled
 	})
 }
 

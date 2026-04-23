@@ -575,13 +575,21 @@ export function YieldsOptimizerTable({ data }) {
 export function PaginatedYieldsOptimizerTable({
 	data,
 	initialPageSize = 10,
+	initialPageIndex = 0,
 	excludeRewardApy = false,
-	withAmount = false
+	withAmount = false,
+	sortingState = defaultSortingState,
+	onSortingChange,
+	interactionDisabled = false
 }: {
 	data: IYieldsOptimizerTableRow[]
 	initialPageSize?: number
+	initialPageIndex?: number
 	excludeRewardApy?: boolean
 	withAmount?: boolean
+	sortingState?: SortingState
+	onSortingChange?: (sortingState: SortingState) => void
+	interactionDisabled?: boolean
 }) {
 	const context = useMemo(
 		() => ({
@@ -590,9 +598,9 @@ export function PaginatedYieldsOptimizerTable({
 		}),
 		[excludeRewardApy, withAmount]
 	)
-	const [sorting, setSorting] = useState<SortingState>(defaultSortingState)
+	const [sorting, setSorting] = useState<SortingState>([...sortingState])
 	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
+		pageIndex: initialPageIndex,
 		pageSize: initialPageSize
 	})
 
@@ -610,7 +618,13 @@ export function PaginatedYieldsOptimizerTable({
 		},
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
-			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+			startTransition(() =>
+				setSorting((prev) => {
+					const nextSorting = typeof updater === 'function' ? updater(prev) : updater
+					onSortingChange?.(nextSorting)
+					return nextSorting
+				})
+			),
 		onPaginationChange: (updater) =>
 			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		getCoreRowModel: getCoreRowModel(),
@@ -619,5 +633,11 @@ export function PaginatedYieldsOptimizerTable({
 		autoResetPageIndex: false
 	})
 
-	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
+	return (
+		<PaginatedTable
+			table={table}
+			pageSizeOptions={[10, 20, 30, 50] as const}
+			interactionDisabled={interactionDisabled}
+		/>
+	)
 }

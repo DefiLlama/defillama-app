@@ -1,10 +1,7 @@
-import { YIELD_CHAIN_API, YIELD_CONFIG_API, YIELD_LEND_BORROW_API, YIELD_POOLS_API, YIELD_URL_API } from '~/constants'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import { buildYieldTableRowsWithBorrowData } from '~/containers/Yields/poolsPipeline'
-import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
+import { getLendBorrowDataFromYieldPageData, getYieldPageDataFromNetwork } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
-import { fetchJson } from '~/utils/async'
 
 const formatChain = (chain: string) => {
 	if (chain.toLowerCase().includes('hyperliquid')) return 'Hyperliquid'
@@ -12,17 +9,9 @@ const formatChain = (chain: string) => {
 }
 
 export async function fetchTokenYieldSourceDataFromNetwork(): Promise<IYieldTableRow[]> {
-	const poolsAndConfig = await Promise.all([
-		fetchJson(YIELD_POOLS_API),
-		fetchJson(YIELD_CONFIG_API),
-		fetchJson(YIELD_URL_API),
-		fetchJson(YIELD_CHAIN_API),
-		fetchProtocols()
-	])
-
-	const lendBorrowData: any[] = await fetchJson(YIELD_LEND_BORROW_API)
-	const data = formatYieldsPageData(poolsAndConfig)
-	return buildYieldTableRowsWithBorrowData(data.pools || [], lendBorrowData)
+	const data = await getYieldPageDataFromNetwork()
+	const lendBorrowData = await getLendBorrowDataFromYieldPageData(data)
+	return buildYieldTableRowsWithBorrowData(data.props.pools || [], lendBorrowData.props.pools || [])
 }
 
 export function filterTokenYieldRows(

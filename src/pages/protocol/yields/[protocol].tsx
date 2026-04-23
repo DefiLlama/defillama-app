@@ -167,11 +167,11 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				apyMedian30d: volatility?.[pool.configID]?.[1] ?? pool.apyMedian30d ?? null,
 				apyStd30d: volatility?.[pool.configID]?.[2] ?? pool.apyStd30d ?? null,
 				cv30d: volatility?.[pool.configID]?.[3] ?? pool.cv30d ?? null,
-				holderCount: holderStats?.[pool.configID]?.holderCount ?? null,
-				avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? null,
-				top10Pct: holderStats?.[pool.configID]?.top10Pct ?? null,
-				holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? null,
-				holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? null
+				holderCount: holderStats?.[pool.configID]?.holderCount ?? pool.holderCount ?? null,
+				avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? pool.avgPositionUsd ?? null,
+				top10Pct: holderStats?.[pool.configID]?.top10Pct ?? pool.top10Pct ?? null,
+				holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? pool.holderChange7d ?? null,
+				holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? pool.holderChange30d ?? null
 			})),
 		[poolsList, volatility, holderStats]
 	)

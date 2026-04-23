@@ -4,9 +4,9 @@ import {
 	ensureDirectory,
 	getDatasetCacheRootDir,
 	readDatasetManifestFrom,
-	recoverDirectorySwap,
+	recoverDirectoryReplacement,
 	removeDirectory,
-	replaceDirectoryAtomic,
+	replaceDirectoryWithBackup,
 	writeDatasetManifest
 } from '../src/server/datasetCache/core'
 
@@ -19,7 +19,7 @@ async function main() {
 
 	await ensureDirectory(parentDir)
 	await metadataModule.refreshMetadataIfStale()
-	await recoverDirectorySwap(rootDir, backupDir)
+	await recoverDirectoryReplacement(rootDir, backupDir)
 	await removeDirectory(tempDir)
 	await ensureDirectory(tempDir)
 
@@ -28,7 +28,7 @@ async function main() {
 		await writeDatasetManifest(manifest, tempDir)
 		await readDatasetManifestFrom(tempDir)
 
-		await replaceDirectoryAtomic({
+		await replaceDirectoryWithBackup({
 			targetDir: rootDir,
 			nextDir: tempDir,
 			backupDir

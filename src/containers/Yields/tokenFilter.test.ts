@@ -35,14 +35,7 @@ describe('matchesYieldPoolToken', () => {
 	it('shares at least one normalized variant between pool shards and token lookups', () => {
 		const poolVariants = getYieldPoolTokenVariantSet('WBTC-ETH')
 		const tokenVariants = getYieldTokenVariantSet('BTC')
-
-		let hasMatch = false
-		for (const tokenVariant of tokenVariants) {
-			if (poolVariants.has(tokenVariant)) {
-				hasMatch = true
-				break
-			}
-		}
+		const hasMatch = [...tokenVariants].some((tokenVariant) => poolVariants.has(tokenVariant))
 
 		expect(hasMatch).toBe(true)
 	})

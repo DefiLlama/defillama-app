@@ -141,12 +141,7 @@ export async function fetchLiquidityDatasetEntryByProtocolId(
 	}
 
 	const data = await fetchLiquidityTokensDatasetFromNetwork()
-	for (const entry of data) {
-		if (entry.id === protocolId) {
-			return entry
-		}
-	}
-	return null
+	return data.find((entry) => entry.id === protocolId) ?? null
 }
 
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */

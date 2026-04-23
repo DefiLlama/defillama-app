@@ -27,10 +27,10 @@ const mocks = vi.hoisted(() => ({
 	fetchCoinGeckoCoinById: vi.fn(),
 	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: vi.fn(),
 	fetchProtocolOverviewMetrics: vi.fn(),
-	fetchRaises: vi.fn(),
-	fetchTreasuries: vi.fn(),
+	fetchRaisesByDefillamaId: vi.fn(),
+	fetchTreasuryById: vi.fn(),
 	fetchProtocolEmissionFromDatasets: vi.fn(),
-	fetchLiquidityTokensDataset: vi.fn(),
+	fetchLiquidityDatasetEntryByProtocolId: vi.fn(),
 	fetchJson: vi.fn(),
 	useFetchTokenOverviewChartData: vi.fn()
 }))
@@ -57,11 +57,11 @@ vi.mock('~/containers/ProtocolOverview/api', () => ({
 }))
 
 vi.mock('~/containers/Raises/api', () => ({
-	fetchRaises: mocks.fetchRaises
+	fetchRaisesByDefillamaId: mocks.fetchRaisesByDefillamaId
 }))
 
 vi.mock('~/containers/Treasuries/api', () => ({
-	fetchTreasuries: mocks.fetchTreasuries
+	fetchTreasuryById: mocks.fetchTreasuryById
 }))
 
 vi.mock('~/containers/Unlocks/api', () => ({
@@ -69,7 +69,7 @@ vi.mock('~/containers/Unlocks/api', () => ({
 }))
 
 vi.mock('~/api', () => ({
-	fetchLiquidityTokensDataset: mocks.fetchLiquidityTokensDataset
+	fetchLiquidityDatasetEntryByProtocolId: mocks.fetchLiquidityDatasetEntryByProtocolId
 }))
 
 vi.mock('~/utils/async', () => ({
@@ -239,86 +239,83 @@ beforeEach(() => {
 		timestamp: 1712016000
 	})
 	mocks.fetchProtocolOverviewMetrics.mockResolvedValue({ id: 'proto-data' })
-	mocks.fetchRaises.mockResolvedValue({
-		raises: [
-			{
-				date: 1704067200,
-				name: 'Chain Raise',
-				round: 'Strategic',
-				amount: 25,
-				chains: [],
-				sector: '',
-				category: '',
-				categoryGroup: '',
-				source: 'Chain Announcement',
-				leadInvestors: ['Investor A'],
-				otherInvestors: [],
-				valuation: null,
-				defillamaId: 'chain#xion'
-			},
-			{
-				date: 1706745600,
-				name: 'Protocol Raise',
-				round: 'Series A',
-				amount: 50,
-				chains: [],
-				sector: '',
-				category: '',
-				categoryGroup: '',
-				source: 'Protocol Blog',
-				leadInvestors: ['Investor B'],
-				otherInvestors: [],
-				valuation: null,
-				defillamaId: 'parent#test-protocol'
-			}
-		] satisfies RawRaise[]
-	})
-	mocks.fetchTreasuries.mockResolvedValue([
-		{
-			id: 'parent#test-protocol-treasury',
-			name: 'Treasury',
-			address: null,
-			symbol: 'TRE',
-			url: '',
-			description: '',
-			chain: 'Ethereum',
-			logo: '',
-			audits: '',
-			gecko_id: null,
-			cmcId: null,
-			category: 'treasury',
-			chains: [],
-			module: '',
-			treasury: '',
-			twitter: '',
-			slug: '',
-			tvl: 0,
-			change_1h: null,
-			change_1d: null,
-			change_7d: null,
-			tokenBreakdowns: {
-				majors: 10,
-				stablecoins: 20,
-				ownTokens: 30,
-				others: 40
-			},
-			mcap: null
-		}
-	] satisfies RawTreasuriesResponse)
+	mocks.fetchRaisesByDefillamaId.mockImplementation(
+		async (defillamaId: string) =>
+			[
+				{
+					date: 1704067200,
+					name: 'Chain Raise',
+					round: 'Strategic',
+					amount: 25,
+					chains: [],
+					sector: '',
+					category: '',
+					categoryGroup: '',
+					source: 'Chain Announcement',
+					leadInvestors: ['Investor A'],
+					otherInvestors: [],
+					valuation: null,
+					defillamaId: 'chain#xion'
+				},
+				{
+					date: 1706745600,
+					name: 'Protocol Raise',
+					round: 'Series A',
+					amount: 50,
+					chains: [],
+					sector: '',
+					category: '',
+					categoryGroup: '',
+					source: 'Protocol Blog',
+					leadInvestors: ['Investor B'],
+					otherInvestors: [],
+					valuation: null,
+					defillamaId: 'parent#test-protocol'
+				}
+			].filter((raise) => raise.defillamaId === defillamaId) satisfies RawRaise[]
+	)
+	mocks.fetchTreasuryById.mockResolvedValue({
+		id: 'parent#test-protocol-treasury',
+		name: 'Treasury',
+		address: null,
+		symbol: 'TRE',
+		url: '',
+		description: '',
+		chain: 'Ethereum',
+		logo: '',
+		audits: '',
+		gecko_id: null,
+		cmcId: null,
+		category: 'treasury',
+		chains: [],
+		module: '',
+		treasury: '',
+		twitter: '',
+		slug: '',
+		tvl: 0,
+		change_1h: null,
+		change_1d: null,
+		change_7d: null,
+		tokenBreakdowns: {
+			majors: 10,
+			stablecoins: 20,
+			ownTokens: 30,
+			others: 40
+		},
+		mcap: null
+	} satisfies RawTreasuriesResponse[number])
 	mocks.fetchProtocolEmissionFromDatasets.mockResolvedValue({
 		supplyMetrics: {
 			adjustedSupply: 900
 		}
 	})
-	mocks.fetchLiquidityTokensDataset.mockResolvedValue([
-		{
-			id: 'proto-data',
-			tokenPools: [
-				{ project: 'pool-one', chain: 'Ethereum', tvlUsd: 50 },
-				{ project: 'pool-two', chain: 'Base', tvlUsd: 25 }
-			]
-		}
-	])
+	mocks.fetchLiquidityDatasetEntryByProtocolId.mockResolvedValue({
+		id: 'proto-data',
+		tokenPools: [
+			{ project: 'pool-one', chain: 'Ethereum', symbol: 'TEST', tvlUsd: 50 },
+			{ project: 'pool-two', chain: 'Base', symbol: 'TEST', tvlUsd: 25 }
+		]
+	})
 	mocks.fetchJson.mockImplementation((url: string) => {
 		if (url.includes('/supply/')) {
 			return Promise.resolve({ data: { total_supply: 1000 } })
@@ -370,7 +367,7 @@ describe('tokenOverview helpers', () => {
 		})
 		expect(result.llamaswapChains).toBeNull()
 		expect(result.outstandingFDV).toBe(90000)
-		expect(mocks.fetchTreasuries).not.toHaveBeenCalled()
+		expect(mocks.fetchTreasuryById).not.toHaveBeenCalled()
 	})
 
 	it('fetches treasury by protocol when protocolId exists without chainId', async () => {
@@ -403,7 +400,7 @@ describe('tokenOverview helpers', () => {
 				amount: 50
 			})
 		])
-		expect(mocks.fetchTreasuries).toHaveBeenCalledOnce()
+		expect(mocks.fetchTreasuryById).toHaveBeenCalledOnce()
 	})
 
 	it('uses prefetched raises, treasury, yield config, and liquidity info without fetching them again', async () => {
@@ -477,8 +474,8 @@ describe('tokenOverview helpers', () => {
 				liquidityInfo: {
 					id: 'proto-data',
 					tokenPools: [
-						{ project: 'pool-one', chain: 'Ethereum', tvlUsd: 50 },
-						{ project: 'pool-two', chain: 'Base', tvlUsd: 25 }
+						{ project: 'pool-one', chain: 'Ethereum', symbol: 'TEST', tvlUsd: 50 },
+						{ project: 'pool-two', chain: 'Base', symbol: 'TEST', tvlUsd: 25 }
 					]
 				}
 			}
@@ -493,9 +490,9 @@ describe('tokenOverview helpers', () => {
 				['Pool Two', 'Base', 25]
 			]
 		})
-		expect(mocks.fetchRaises).not.toHaveBeenCalled()
-		expect(mocks.fetchTreasuries).not.toHaveBeenCalled()
-		expect(mocks.fetchLiquidityTokensDataset).not.toHaveBeenCalled()
+		expect(mocks.fetchRaisesByDefillamaId).not.toHaveBeenCalled()
+		expect(mocks.fetchTreasuryById).not.toHaveBeenCalled()
+		expect(mocks.fetchLiquidityDatasetEntryByProtocolId).not.toHaveBeenCalled()
 	})
 
 	it('prefers the protocol slug metadata and max supply when building overview data', async () => {
@@ -759,7 +756,7 @@ describe('TokenPageHero component', () => {
 })
 
 describe('TokenOverviewSection component', () => {
-	it('renders the overview chart and key metrics without duplicating the page hero', () => {
+	it('renders the overview chart shell and key metrics without duplicating the page hero', () => {
 		const html = renderToStaticMarkup(
 			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
 		)
@@ -777,7 +774,7 @@ describe('TokenOverviewSection component', () => {
 		expect(html).toContain('CEX Volume')
 		expect(html).toContain('DEX Volume')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
-		expect(html).toContain('protocol-chart')
+		expect(html).toContain('min-h-[360px]')
 		expect(html.indexOf('Market Cap')).toBeLessThan(html.indexOf('Circ. Supply'))
 		expect(html.indexOf('Fully Diluted Valuation')).toBeLessThan(html.indexOf('Circ. Supply'))
 	})

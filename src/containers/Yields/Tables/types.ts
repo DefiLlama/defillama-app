@@ -73,7 +73,10 @@ export interface IYieldsTableProps {
 	data: Array<IYieldTableRow>
 	enablePagination?: boolean
 	initialPageSize?: number
+	initialPageIndex?: number
 	sortingState?: SortingState
+	onSortingChange?: (sortingState: SortingState) => void
+	interactionDisabled?: boolean
 }
 
 export interface IYieldsOptimizerTableRow extends IYieldTableRow {

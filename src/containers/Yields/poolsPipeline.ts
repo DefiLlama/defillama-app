@@ -143,13 +143,13 @@ export function buildYieldTableRowsWithBorrowData(
 
 		rows.push({
 			...baseRow,
-			apyBaseBorrow: lendBorrowEntry?.apyBaseBorrow ?? null,
-			apyRewardBorrow: lendBorrowEntry?.apyRewardBorrow ?? null,
-			apyBorrow: lendBorrowEntry?.apyBorrow ?? null,
-			totalSupplyUsd: lendBorrowEntry?.totalSupplyUsd ?? null,
-			totalBorrowUsd: lendBorrowEntry?.totalBorrowUsd ?? null,
-			totalAvailableUsd: lendBorrowEntry?.totalAvailableUsd ?? null,
-			ltv: lendBorrowEntry?.ltv ?? null
+			apyBaseBorrow: lendBorrowEntry?.apyBaseBorrow ?? baseRow.apyBaseBorrow ?? null,
+			apyRewardBorrow: lendBorrowEntry?.apyRewardBorrow ?? baseRow.apyRewardBorrow ?? null,
+			apyBorrow: lendBorrowEntry?.apyBorrow ?? baseRow.apyBorrow ?? null,
+			totalSupplyUsd: lendBorrowEntry?.totalSupplyUsd ?? baseRow.totalSupplyUsd ?? null,
+			totalBorrowUsd: lendBorrowEntry?.totalBorrowUsd ?? baseRow.totalBorrowUsd ?? null,
+			totalAvailableUsd: lendBorrowEntry?.totalAvailableUsd ?? baseRow.totalAvailableUsd ?? null,
+			ltv: lendBorrowEntry?.ltv ?? baseRow.ltv ?? null
 		})
 	}
 

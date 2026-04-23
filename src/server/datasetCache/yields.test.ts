@@ -1,19 +1,17 @@
 import { mkdtemp, rm } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { writeDatasetManifest, writeJsonFile } from './core'
 import { getTokenYieldsRowsFromCache } from './yields'
 
 describe('dataset cache yields reader', () => {
 	let tempDir = ''
-	let previousCacheDir: string | undefined
 
 	beforeEach(async () => {
 		tempDir = await mkdtemp(path.join(os.tmpdir(), 'dataset-cache-yields-'))
-		previousCacheDir = process.env.DATASET_CACHE_DIR
-		process.env.DATASET_CACHE_DIR = tempDir
+		vi.stubEnv('DATASET_CACHE_DIR', tempDir)
 		await writeDatasetManifest(
 			{
 				artifactVersion: 1,
@@ -33,12 +31,7 @@ describe('dataset cache yields reader', () => {
 	})
 
 	afterEach(async () => {
-		if (previousCacheDir === undefined) {
-			delete process.env.DATASET_CACHE_DIR
-		} else {
-			process.env.DATASET_CACHE_DIR = previousCacheDir
-		}
-
+		vi.unstubAllEnvs()
 		if (tempDir) {
 			await rm(tempDir, { recursive: true, force: true })
 		}

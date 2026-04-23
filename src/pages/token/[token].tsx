@@ -3,6 +3,7 @@ import { Fragment, type ReactNode } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
+import { DEFAULT_TABLE_PAGE_SIZE } from '~/containers/Token/tableUtils'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
@@ -25,6 +26,7 @@ import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import { extractPoolTokens } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { slug } from '~/utils'
@@ -61,7 +63,18 @@ type TokenPageProps = {
 	tokenRiskData: TokenRiskResponse | null
 	tokenRiskTimelineData: RiskTimelineResponse | null
 	initialYieldsRows: IYieldTableRow[]
+	initialYieldsRowCount: number
+	initialYieldsChainList: string[]
+	initialYieldsTokensList: string[]
 	initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null
+	initialTokenBorrowRoutesCounts: {
+		borrowAsCollateral: number
+		borrowAsDebt: number
+	} | null
+	initialTokenBorrowRoutesChainLists: {
+		borrowAsCollateral: string[]
+		borrowAsDebt: string[]
+	} | null
 	hasLiquidations: boolean
 	resolvedUnlocksSlug?: string
 	overview: Awaited<ReturnType<typeof getTokenOverviewData>>
@@ -132,14 +145,30 @@ const TOKEN_SECTIONS = {
 	},
 	'token-yields': {
 		label: 'Yields',
-		render: ({ record, initialYieldsRows }) => (
-			<TokenYieldsSection tokenSymbol={record.symbol} initialData={initialYieldsRows} />
+		render: ({ record, initialYieldsRows, initialYieldsRowCount, initialYieldsChainList, initialYieldsTokensList }) => (
+			<TokenYieldsSection
+				tokenSymbol={record.symbol}
+				initialData={initialYieldsRows}
+				initialRowCount={initialYieldsRowCount}
+				initialChainList={initialYieldsChainList}
+				initialTokensList={initialYieldsTokensList}
+			/>
 		)
 	},
 	'token-borrow': {
 		label: 'Borrow',
-		render: ({ record, initialTokenBorrowRoutesData }) => (
-			<TokenBorrowSection tokenSymbol={record.symbol} initialData={initialTokenBorrowRoutesData ?? undefined} />
+		render: ({
+			record,
+			initialTokenBorrowRoutesData,
+			initialTokenBorrowRoutesCounts,
+			initialTokenBorrowRoutesChainLists
+		}) => (
+			<TokenBorrowSection
+				tokenSymbol={record.symbol}
+				initialData={initialTokenBorrowRoutesData ?? undefined}
+				initialCounts={initialTokenBorrowRoutesCounts}
+				initialChains={initialTokenBorrowRoutesChainLists}
+			/>
 		)
 	}
 } satisfies Record<TokenPageSectionId, TokenPageSection>
@@ -147,6 +176,14 @@ const TOKEN_SECTIONS = {
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
 	return tokenNk.slice('coingecko:'.length) || null
+}
+
+function getBorrowRouteChainList(rows: TokenBorrowRoutesResponse['borrowAsCollateral']): string[] {
+	return [
+		...new Set(
+			rows.map((row) => row.chains[0]).filter((chain): chain is string => typeof chain === 'string' && chain.length > 0)
+		)
+	].sort()
 }
 
 function getVisibleTokenSections({
@@ -158,8 +195,8 @@ function getVisibleTokenSections({
 	tokenRightsData,
 	hasLiquidations,
 	resolvedUnlocksSlug,
-	initialYieldsRows,
-	initialTokenBorrowRoutesData
+	initialYieldsRowCount,
+	initialTokenBorrowRoutesCounts
 }: Pick<
 	TokenPageProps,
 	| 'record'
@@ -170,13 +207,13 @@ function getVisibleTokenSections({
 	| 'tokenRightsData'
 	| 'hasLiquidations'
 	| 'resolvedUnlocksSlug'
-	| 'initialYieldsRows'
-	| 'initialTokenBorrowRoutesData'
+	| 'initialYieldsRowCount'
+	| 'initialTokenBorrowRoutesCounts'
 >): TokenPageSectionId[] {
-	const shouldRenderYieldsSection = record.is_yields && initialYieldsRows.length > 0
+	const shouldRenderYieldsSection = record.is_yields && initialYieldsRowCount > 0
 	const shouldRenderBorrowSection =
-		(initialTokenBorrowRoutesData?.borrowAsCollateral.length ?? 0) > 0 ||
-		(initialTokenBorrowRoutesData?.borrowAsDebt.length ?? 0) > 0
+		(initialTokenBorrowRoutesCounts?.borrowAsCollateral ?? 0) > 0 ||
+		(initialTokenBorrowRoutesCounts?.borrowAsDebt ?? 0) > 0
 	const visibleSections: TokenPageSectionId[] = ['token-overview']
 
 	if (incomeStatementData && incomeStatementProtocolName) {
@@ -416,8 +453,33 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			incomeStatementHasIncentives = Boolean(protocolMetadata?.incentives)
 		}
 
-		const initialYieldsRows: IYieldTableRow[] = yieldsRows
+		const initialYieldsRowCount = yieldsRows.length
+		const initialYieldsRows: IYieldTableRow[] = yieldsRows.slice(0, DEFAULT_TABLE_PAGE_SIZE)
+		const initialYieldsChainList = [
+			...new Set(yieldsRows.map((row) => row.chains[0]).filter((chain): chain is string => Boolean(chain)))
+		].sort()
+		const initialYieldsTokensList = [
+			...new Set(yieldsRows.flatMap((row) => extractPoolTokens(row.pool)).map((poolToken) => poolToken.toUpperCase()))
+		].sort()
+		const initialTokenBorrowRoutesCounts: TokenPageProps['initialTokenBorrowRoutesCounts'] = tokenBorrowRoutesData
+			? {
+					borrowAsCollateral: tokenBorrowRoutesData.borrowAsCollateral.length,
+					borrowAsDebt: tokenBorrowRoutesData.borrowAsDebt.length
+				}
+			: null
+		const initialTokenBorrowRoutesChainLists: TokenPageProps['initialTokenBorrowRoutesChainLists'] =
+			tokenBorrowRoutesData
+				? {
+						borrowAsCollateral: getBorrowRouteChainList(tokenBorrowRoutesData.borrowAsCollateral),
+						borrowAsDebt: getBorrowRouteChainList(tokenBorrowRoutesData.borrowAsDebt)
+					}
+				: null
 		const initialTokenBorrowRoutesData: TokenBorrowRoutesResponse | null = tokenBorrowRoutesData
+			? {
+					borrowAsCollateral: tokenBorrowRoutesData.borrowAsCollateral.slice(0, DEFAULT_TABLE_PAGE_SIZE),
+					borrowAsDebt: tokenBorrowRoutesData.borrowAsDebt.slice(0, DEFAULT_TABLE_PAGE_SIZE)
+				}
+			: null
 		const tokenRiskData: TokenRiskResponse | null = riskData
 		const tokenRiskTimelineData: RiskTimelineResponse | null = riskTimelineData
 		const visibleSections = getVisibleTokenSections({
@@ -429,8 +491,8 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			tokenRightsData,
 			hasLiquidations,
 			resolvedUnlocksSlug,
-			initialYieldsRows,
-			initialTokenBorrowRoutesData
+			initialYieldsRowCount,
+			initialTokenBorrowRoutesCounts
 		})
 
 		const seoTitle = record.tokenRights
@@ -452,7 +514,12 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				tokenRiskData,
 				tokenRiskTimelineData,
 				initialYieldsRows,
+				initialYieldsRowCount,
+				initialYieldsChainList,
+				initialYieldsTokensList,
 				initialTokenBorrowRoutesData,
+				initialTokenBorrowRoutesCounts,
+				initialTokenBorrowRoutesChainLists,
 				hasLiquidations,
 				...(resolvedUnlocksSlug ? { resolvedUnlocksSlug } : {}),
 				overview,

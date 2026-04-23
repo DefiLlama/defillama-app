@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { matchSorter } from 'match-sorter'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
@@ -13,7 +14,6 @@ import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
-import ProtocolChart from '~/containers/ProtocolOverview/Chart'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
@@ -49,6 +49,10 @@ const VOLUME_24H_TOOLTIP = 'Volume 24h is the total dollar value traded across t
 const TREASURY_TOOLTIP = 'Treasury is the value of assets held by the entity issuing or stewarding this token.'
 const TOKEN_OVERVIEW_CHART_QUERY_KEY = 'chart'
 const TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY = 'chartGroup'
+
+const DeferredProtocolChart = dynamic(() => import('~/containers/ProtocolOverview/Chart'), {
+	loading: () => <div className="min-h-[360px]" />
+})
 
 function formatCurrency(value: number | null | undefined) {
 	if (value == null) return 'N/A'
@@ -529,7 +533,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 						<LoadingDots />
 					</p>
 				) : hasChartData ? (
-					<ProtocolChart
+					<DeferredProtocolChart
 						key={`${groupBy}:${activeCharts.join('|')}`}
 						chartData={displayedChartData}
 						chartColors={TOKEN_OVERVIEW_CHART_COLORS}

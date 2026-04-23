@@ -8,14 +8,13 @@ async function fetchTokenBorrowRoutes(tokenSymbol: string): Promise<TokenBorrowR
 	)
 }
 
-export function useTokenBorrowRoutes(tokenSymbol: string, initialData?: TokenBorrowRoutesResponse) {
+export function useTokenBorrowRoutes(tokenSymbol: string, { enabled = true }: { enabled?: boolean } = {}) {
 	return useQuery({
 		queryKey: ['token-borrow-routes', 'token-page', tokenSymbol],
 		queryFn: () => fetchTokenBorrowRoutes(tokenSymbol),
-		initialData,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: false,
-		enabled: Boolean(tokenSymbol)
+		enabled: Boolean(tokenSymbol) && enabled
 	})
 }
