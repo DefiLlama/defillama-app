@@ -179,17 +179,41 @@ function buildColorsForPie(
 ): Record<string, string> {
 	const colors: Record<string, string> = {}
 	const names = new Set(pie.map((p) => p.name))
-	const baseNameOf = (n: string): string | null => {
-		const explicit = colorFrom[n]
-		return explicit && names.has(explicit) ? explicit : null
+	const baseNameCache = new Map<string, string>()
+	const baseNameOf = (name: string): string => {
+		const cached = baseNameCache.get(name)
+		if (cached) return cached
+
+		const visited: string[] = []
+		const seen = new Set<string>()
+		let current = name
+
+		for (;;) {
+			const next = colorFrom[current]
+			if (!next || !names.has(next)) break
+			if (seen.has(next)) {
+				const cycle = [...visited, current, next].filter((item, index, arr) => arr.indexOf(item) === index)
+				current = cycle.toSorted()[0]
+				break
+			}
+			visited.push(current)
+			seen.add(current)
+			current = next
+		}
+
+		for (const visitedName of visited) {
+			baseNameCache.set(visitedName, current)
+		}
+		baseNameCache.set(name, current)
+		return current
 	}
-	const primary = pie.filter((p) => !baseNameOf(p.name))
+	const primary = pie.filter((p) => baseNameOf(p.name) === p.name)
 	const palette = getNDistinctColors(primary.length)
 	for (let i = 0; i < primary.length; i++) colors[primary[i].name] = palette[i]
 	for (const p of pie) {
 		if (colors[p.name]) continue
 		const base = baseNameOf(p.name)
-		if (base && colors[base]) colors[p.name] = colors[base]
+		if (colors[base]) colors[p.name] = colors[base]
 	}
 	return colors
 }

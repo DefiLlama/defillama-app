@@ -94,25 +94,51 @@ function createHatchPattern(color: string, opacity: number): { image: HTMLCanvas
 
 const MIN_END_LABEL_HEIGHT_PX = 16
 
-function getSeriesValueFromParams(params: any, seriesName: string): number {
+function getPrimaryEncodedDimension(value: unknown): string | number | null {
+	if (Array.isArray(value)) return value[0] ?? null
+	return typeof value === 'string' || typeof value === 'number' ? value : null
+}
+
+function getSeriesValueFromParams(params: any, seriesKey: string | number | null): number {
 	const data = params?.data
-	if (data && typeof data === 'object' && !Array.isArray(data) && seriesName in data) {
-		return Number(data[seriesName])
+	if (typeof seriesKey === 'string' && data && typeof data === 'object' && !Array.isArray(data) && seriesKey in data) {
+		return Number(data[seriesKey])
 	}
-	if (Array.isArray(params?.value)) return Number(params.value[1])
+
+	if (Array.isArray(params?.value)) {
+		const encodedY = getPrimaryEncodedDimension(params?.encode?.y)
+		const dimensionNames = Array.isArray(params?.dimensionNames) ? params.dimensionNames : []
+		const dimensionIndex =
+			typeof encodedY === 'number'
+				? encodedY
+				: typeof encodedY === 'string'
+					? dimensionNames.indexOf(encodedY)
+					: typeof seriesKey === 'number'
+						? seriesKey
+						: typeof seriesKey === 'string'
+							? dimensionNames.indexOf(seriesKey)
+							: -1
+
+		if (dimensionIndex >= 0 && dimensionIndex < params.value.length) {
+			return Number(params.value[dimensionIndex])
+		}
+
+		return Number(params.value[1])
+	}
+
 	return Number(params?.value)
 }
 
 function createEndLabel({
 	text,
-	seriesName,
+	seriesKey,
 	yAxisIndex,
 	chartRef,
 	isThemeDark,
 	offset
 }: {
 	text: string
-	seriesName: string
+	seriesKey: string | number | null
 	yAxisIndex: number
 	chartRef: { current: echarts.ECharts | null }
 	isThemeDark: boolean
@@ -123,7 +149,7 @@ function createEndLabel({
 		formatter: (params: any) => {
 			const instance = chartRef.current
 			if (!instance) return text
-			const value = getSeriesValueFromParams(params, seriesName)
+			const value = getSeriesValueFromParams(params, seriesKey)
 			const height = Math.abs(
 				instance.convertToPixel({ yAxisIndex }, value) - instance.convertToPixel({ yAxisIndex }, 0)
 			)
@@ -221,14 +247,13 @@ function buildSeries({
 			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
 			base.endLabel = createEndLabel({
 				text: 'TBD',
-				seriesName: chart.name,
+				seriesKey: getPrimaryEncodedDimension(chart.encode?.y),
 				yAxisIndex: chart.yAxisIndex ?? 0,
 				chartRef,
 				isThemeDark,
 				offset: [-40, 10]
 			})
-		}
-		if (chart.isForecast) {
+		} else if (chart.isForecast) {
 			const hatch = createHatchPattern(resolvedColor, 0.8)
 			base.itemStyle = { ...base.itemStyle, opacity: 0.5 }
 			if (base.areaStyle) {
@@ -237,7 +262,7 @@ function buildSeries({
 			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
 			base.endLabel = createEndLabel({
 				text: 'Forecast',
-				seriesName: chart.name,
+				seriesKey: getPrimaryEncodedDimension(chart.encode?.y),
 				yAxisIndex: chart.yAxisIndex ?? 0,
 				chartRef,
 				isThemeDark,
