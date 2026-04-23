@@ -120,7 +120,7 @@ export default function YieldsEmissions() {
 						isStackedChart
 						hideGradient
 						height="400px"
-						chartOptions={{ ...SCROLL_LEGEND, ...lastNDaysZoom(data.emissions.data.length) }}
+						chartOptions={SCROLL_LEGEND}
 					/>
 				</ChartCard>
 			</div>
