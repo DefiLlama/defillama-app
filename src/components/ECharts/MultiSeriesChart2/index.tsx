@@ -250,6 +250,8 @@ function buildMultiYAxis({
 		const axisSeriesTypes = seriesTypesByAxisIndex.get(i)
 		const isBarAxis = !!axisSeriesTypes && Array.from(axisSeriesTypes).includes('bar')
 		const baseAxis = Array.isArray(yAxis) && yAxis.length > 0 ? (yAxis[i] ?? yAxis[0] ?? {}) : (yAxis ?? {})
+		const baseAxisScale = typeof baseAxis?.scale === 'boolean' ? baseAxis.scale : undefined
+		const baseAxisAlignTicks = typeof baseAxis?.alignTicks === 'boolean' ? baseAxis.alignTicks : undefined
 		const baseAxisLabel =
 			baseAxis?.axisLabel && typeof baseAxis.axisLabel === 'object' && !Array.isArray(baseAxis.axisLabel)
 				? baseAxis.axisLabel
@@ -273,11 +275,11 @@ function buildMultiYAxis({
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
 		out.push({
 			...baseAxis,
-			position: isPrimary ? 'left' : 'right',
-			scale: !isBarAxis,
+			position: baseAxis?.position ?? (isPrimary ? 'left' : 'right'),
+			scale: baseAxisScale ?? !isBarAxis,
 			// Bar axes need a visible zero baseline; aligned ticks can move it off-screen.
-			alignTicks: !isBarAxis,
-			offset,
+			alignTicks: baseAxisAlignTicks ?? !isBarAxis,
+			offset: baseAxis?.offset ?? offset,
 			...(expandTo100Percent
 				? { max: 100, min: 0 }
 				: baseAxis?.min !== undefined
@@ -950,7 +952,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		const primaryAxisHasBar = !!primaryAxisSeriesTypes && Array.from(primaryAxisSeriesTypes).includes('bar')
 		let finalXAxis: any =
 			shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
-		if (hasBarAxis) {
+		if (hasBarAxis && finalXAxis?.axisLine?.onZero === undefined) {
 			finalXAxis = {
 				...finalXAxis,
 				axisLine: {
@@ -972,7 +974,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				: [
 						{
 							...yAxis,
-							scale: !primaryAxisHasBar,
+							scale: typeof yAxis?.scale === 'boolean' ? yAxis.scale : !primaryAxisHasBar,
 							...(expandTo100Percent
 								? { max: 100, min: 0 }
 								: yAxis?.min !== undefined

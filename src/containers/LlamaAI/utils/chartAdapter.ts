@@ -660,6 +660,8 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 
 				return {
 					...existingAxis,
+					position: axis.position,
+					...(axis.scale === 'log' ? { type: 'log' } : axis.scale === 'linear' ? { type: 'value' } : {}),
 					axisLabel: {
 						...(existingAxis?.axisLabel ?? {}),
 						formatter: (value: number) => formatChartValue(value, valueSymbol)
