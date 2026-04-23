@@ -73,4 +73,58 @@ describe('getProtocolEmissons', () => {
 		expect(isEmptyProtocolEmissionResult(result)).toBe(false)
 		expect(result.categories.documented).toEqual(['Team'])
 	})
+
+	it('reuses colors across chained colorFrom remaps', async () => {
+		fetchProtocolEmissionMock.mockResolvedValue({
+			name: 'Chainlink',
+			metadata: {
+				events: [],
+				token: 'coingecko:chainlink',
+				sources: [],
+				notes: []
+			},
+			documentedData: {
+				data: [
+					{
+						label: 'alpha',
+						data: [{ timestamp: 1, unlocked: 10 }]
+					},
+					{
+						label: 'charlie',
+						data: [{ timestamp: 1, unlocked: 20 }]
+					},
+					{
+						label: 'bravo',
+						data: [{ timestamp: 1, unlocked: 30 }]
+					}
+				],
+				tokenAllocation: {
+					Alpha: 10,
+					Bravo: 30,
+					Charlie: 20
+				}
+			},
+			realTimeData: {
+				data: [],
+				tokenAllocation: {}
+			},
+			componentData: {
+				sections: {
+					Alpha: {},
+					Bravo: { colorFrom: 'Alpha' },
+					Charlie: { colorFrom: 'Bravo' }
+				}
+			}
+		})
+
+		const result = await getProtocolEmissons('chainlink', {
+			skipAvailabilityCheck: true
+		})
+
+		expect(result.stackColors.documented).toMatchObject({
+			Alpha: '#0',
+			Bravo: '#0',
+			Charlie: '#0'
+		})
+	})
 })

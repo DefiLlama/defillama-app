@@ -92,18 +92,90 @@ function createHatchPattern(color: string, opacity: number): { image: HTMLCanvas
 	return { image: canvas, repeat: 'repeat' }
 }
 
+const MIN_END_LABEL_HEIGHT_PX = 16
+
+function getPrimaryEncodedDimension(value: unknown): string | number | null {
+	if (Array.isArray(value)) return value[0] ?? null
+	return typeof value === 'string' || typeof value === 'number' ? value : null
+}
+
+function getSeriesValueFromParams(params: any, seriesKey: string | number | null): number {
+	const data = params?.data
+	if (typeof seriesKey === 'string' && data && typeof data === 'object' && !Array.isArray(data) && seriesKey in data) {
+		return Number(data[seriesKey])
+	}
+
+	if (Array.isArray(params?.value)) {
+		const encodedY = getPrimaryEncodedDimension(params?.encode?.y)
+		const dimensionNames = Array.isArray(params?.dimensionNames) ? params.dimensionNames : []
+		const dimensionIndex =
+			typeof encodedY === 'number'
+				? encodedY
+				: typeof encodedY === 'string'
+					? dimensionNames.indexOf(encodedY)
+					: typeof seriesKey === 'number'
+						? seriesKey
+						: typeof seriesKey === 'string'
+							? dimensionNames.indexOf(seriesKey)
+							: -1
+
+		if (dimensionIndex >= 0 && dimensionIndex < params.value.length) {
+			return Number(params.value[dimensionIndex])
+		}
+
+		return Number(params.value[1])
+	}
+
+	return Number(params?.value)
+}
+
+function createEndLabel({
+	text,
+	seriesKey,
+	yAxisIndex,
+	chartRef,
+	isThemeDark,
+	offset
+}: {
+	text: string
+	seriesKey: string | number | null
+	yAxisIndex: number
+	chartRef: { current: echarts.ECharts | null }
+	isThemeDark: boolean
+	offset: [number, number]
+}) {
+	return {
+		show: true,
+		formatter: (params: any) => {
+			const instance = chartRef.current
+			if (!instance) return text
+			const value = getSeriesValueFromParams(params, seriesKey)
+			const height = Math.abs(
+				instance.convertToPixel({ yAxisIndex }, value) - instance.convertToPixel({ yAxisIndex }, 0)
+			)
+			return !Number.isFinite(height) || height >= MIN_END_LABEL_HEIGHT_PX ? text : ''
+		},
+		fontSize: 16,
+		fontWeight: 'bold',
+		color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+		offset
+	}
+}
+
 function buildSeries({
 	effectiveCharts,
 	selectedCharts,
 	expandTo100Percent,
 	solidChartAreaStyle,
-	isThemeDark
+	isThemeDark,
+	chartRef
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
 	expandTo100Percent: boolean | undefined
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
+	chartRef: { current: echarts.ECharts | null }
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -166,7 +238,6 @@ function buildSeries({
 		if (chart.type === 'line' && chart.hideAreaStyle) {
 			delete base.areaStyle
 		}
-
 		if (chart.isTBD) {
 			const hatch = createHatchPattern(resolvedColor, 0.4)
 			base.itemStyle = { ...base.itemStyle, opacity: 0.3 }
@@ -174,15 +245,29 @@ function buildSeries({
 				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
 			}
 			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
-
-			base.endLabel = {
-				show: true,
-				formatter: 'TBD',
-				fontSize: 16,
-				fontWeight: 'bold',
-				color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+			base.endLabel = createEndLabel({
+				text: 'TBD',
+				seriesKey: getPrimaryEncodedDimension(chart.encode?.y),
+				yAxisIndex: chart.yAxisIndex ?? 0,
+				chartRef,
+				isThemeDark,
 				offset: [-40, 10]
+			})
+		} else if (chart.isForecast) {
+			const hatch = createHatchPattern(resolvedColor, 0.8)
+			base.itemStyle = { ...base.itemStyle, opacity: 0.5 }
+			if (base.areaStyle) {
+				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
 			}
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
+			base.endLabel = createEndLabel({
+				text: 'Forecast',
+				seriesKey: getPrimaryEncodedDimension(chart.encode?.y),
+				yAxisIndex: chart.yAxisIndex ?? 0,
+				chartRef,
+				isThemeDark,
+				offset: [-80, 15]
+			})
 		}
 
 		out.push(base)
@@ -653,7 +738,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			selectedCharts,
 			expandTo100Percent,
 			solidChartAreaStyle,
-			isThemeDark
+			isThemeDark,
+			chartRef
 		})
 	}, [effectiveCharts, isThemeDark, expandTo100Percent, solidChartAreaStyle, selectedCharts])
 

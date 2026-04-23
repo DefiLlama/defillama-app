@@ -135,6 +135,8 @@ export type MultiSeriesChart2SeriesConfig = {
 	excludeFromTooltipTotal?: boolean
 	/** Mark this series as tentative/TBD — renders with reduced opacity and dashed border. */
 	isTBD?: boolean
+	/** Mark this series as a forecast — renders with reduced opacity and dashed border. */
+	isForecast?: boolean
 	// Optional: enable point markers on line series.
 	// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
 	// implicitly disable large mode unless `large` is explicitly set.

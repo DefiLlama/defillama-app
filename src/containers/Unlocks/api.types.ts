@@ -64,7 +64,7 @@ export interface ProtocolEmissionDetail {
 	futures?: Record<string, unknown> | null
 	categories?: Record<string, string[]> | null
 	componentData?: {
-		sections?: Record<string, { isTBD?: boolean; [key: string]: unknown }>
+		sections?: Record<string, { isTBD?: boolean; isForecast?: boolean; colorFrom?: string; [key: string]: unknown }>
 	} | null
 }
 
