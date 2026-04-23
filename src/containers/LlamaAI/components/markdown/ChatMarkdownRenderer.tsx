@@ -103,6 +103,8 @@ function TableWrapper({
 	const fullscreenDialogStore = Ariakit.useDialogStore()
 
 	const mergedTableClassName = `z-10 w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`
+	const inlineTableClassName = `llamaai-table-inline ${mergedTableClassName}`
+	const fullscreenTableClassName = `llamaai-table-fullscreen ${mergedTableClassName}`
 
 	const openTableFullscreen = () => {
 		onTableFullscreenOpen?.()
@@ -144,8 +146,8 @@ function TableWrapper({
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
-					<div className="min-h-0 flex-1 overflow-auto">
-						<div className="relative overflow-x-auto">
+					<div className="min-h-0 flex-1 overflow-auto overscroll-contain">
+						<div className="relative">
 							<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 								<img
 									src="/assets/defillama-dark-neutral.webp"
@@ -162,7 +164,7 @@ function TableWrapper({
 									className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 								/>
 							</div>
-							<table {...tableProps} className={mergedTableClassName}>
+							<table {...tableProps} className={fullscreenTableClassName}>
 								{children}
 							</table>
 						</div>
@@ -218,7 +220,7 @@ function TableWrapper({
 						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 					/>
 				</div>
-				<table {...tableProps} className={mergedTableClassName}>
+				<table {...tableProps} className={inlineTableClassName}>
 					{children}
 				</table>
 			</div>
@@ -419,7 +421,7 @@ export function ChatMarkdownRenderer({
 		th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
 			<th
 				{...props}
-				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
+				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
 			>
 				{children}
 			</th>
@@ -427,7 +429,7 @@ export function ChatMarkdownRenderer({
 		td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
 			<td
 				{...props}
-				className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
+				className={`border border-[#e6e6e6] bg-white px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
 			>
 				{children}
 			</td>
