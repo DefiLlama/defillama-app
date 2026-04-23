@@ -20,13 +20,19 @@ const MultiSeriesChart2 = React.lazy(
 
 type Metric = 'usd' | 'amount'
 type BreakdownMode = 'total' | 'protocol' | 'chain'
+type ChartMode = 'cumulative' | 'distribution'
 const TOKEN_QUERY_PARAM = 'token'
 const METRIC_QUERY_PARAM = 'metric'
 const BREAKDOWN_QUERY_PARAM = 'breakdown'
+const VIEW_QUERY_PARAM = 'view'
 const BREAKDOWN_OPTIONS: ReadonlyArray<{ key: BreakdownMode; name: string }> = [
 	{ key: 'total', name: 'Total' },
 	{ key: 'protocol', name: 'Protocol Breakdown' },
 	{ key: 'chain', name: 'Chain Breakdown' }
+]
+const CHART_MODE_OPTIONS: ReadonlyArray<{ key: ChartMode; name: string }> = [
+	{ key: 'cumulative', name: 'Cumulative' },
+	{ key: 'distribution', name: 'Distribution' }
 ]
 const DEFAULT_BREAKDOWN_MODES = BREAKDOWN_OPTIONS.map((option) => option.key)
 
@@ -69,6 +75,22 @@ export function getLiquidationsChartMetric(metricQuery: string | undefined): Met
 export function getLiquidationsChartMetricQueryPatch(nextMetric: Metric) {
 	return {
 		[METRIC_QUERY_PARAM]: nextMetric === 'usd' ? undefined : nextMetric
+	}
+}
+
+export function getLiquidationsChartMode(
+	modeQuery: string | undefined,
+	defaultChartMode: ChartMode = 'cumulative'
+): ChartMode {
+	return CHART_MODE_OPTIONS.some((option) => option.key === modeQuery) ? (modeQuery as ChartMode) : defaultChartMode
+}
+
+export function getLiquidationsChartModeQueryPatch(
+	nextChartMode: ChartMode,
+	defaultChartMode: ChartMode = 'cumulative'
+) {
+	return {
+		[VIEW_QUERY_PARAM]: nextChartMode === defaultChartMode ? undefined : nextChartMode
 	}
 }
 
@@ -157,13 +179,39 @@ function trimLiquidationsChartView(view: LiquidationsDistributionChartView): Liq
 	}
 }
 
+export function buildCumulativeLiquidationsChartView(
+	view: LiquidationsDistributionChartView
+): LiquidationsDistributionChartView {
+	if (view.series.length === 0 || view.bins.length === 0) return view
+
+	return {
+		bins: view.bins,
+		series: view.series.map((series) => {
+			const usd = [...series.usd]
+			const amount = [...series.amount]
+
+			for (let index = usd.length - 2; index >= 0; index -= 1) {
+				usd[index] += usd[index + 1] ?? 0
+				amount[index] += amount[index + 1] ?? 0
+			}
+
+			return {
+				...series,
+				usd,
+				amount
+			}
+		})
+	}
+}
+
 export function LiquidationsDistributionChart({
 	chart,
 	timestamp,
 	title,
 	allowedBreakdownModes = DEFAULT_BREAKDOWN_MODES,
 	defaultBreakdownMode = 'total',
-	hideTokenSelector = false
+	hideTokenSelector = false,
+	defaultChartMode = 'cumulative'
 }: {
 	chart: LiquidationsDistributionChartData
 	timestamp: number
@@ -171,6 +219,7 @@ export function LiquidationsDistributionChart({
 	allowedBreakdownModes?: ReadonlyArray<BreakdownMode>
 	defaultBreakdownMode?: BreakdownMode
 	hideTokenSelector?: boolean
+	defaultChartMode?: ChartMode
 }) {
 	const router = useRouter()
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
@@ -198,6 +247,7 @@ export function LiquidationsDistributionChart({
 			? defaultToken
 			: resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
 		const metric = getLiquidationsChartMetric(readSingleQueryValue(router.query[METRIC_QUERY_PARAM]))
+		const mode = getLiquidationsChartMode(readSingleQueryValue(router.query[VIEW_QUERY_PARAM]), defaultChartMode)
 		const breakdownMode = getLiquidationsChartBreakdownMode(
 			readSingleQueryValue(router.query[BREAKDOWN_QUERY_PARAM]),
 			allowedBreakdownModes,
@@ -205,11 +255,14 @@ export function LiquidationsDistributionChart({
 		)
 		const tokenLabel = chart.tokens.find((entry) => entry.key === token)?.label ?? 'Token'
 		const breakdownLabel = breakdownOptions.find((option) => option.key === breakdownMode)?.name ?? 'Total'
+		const modeLabel = CHART_MODE_OPTIONS.find((option) => option.key === mode)?.name ?? 'Cumulative'
 
 		return {
 			token,
 			tokenLabel,
 			metric,
+			mode,
+			modeLabel,
 			breakdownMode,
 			breakdownLabel
 		}
@@ -217,6 +270,7 @@ export function LiquidationsDistributionChart({
 		allowedBreakdownModes,
 		breakdownOptions,
 		chart,
+		defaultChartMode,
 		defaultBreakdownMode,
 		defaultToken,
 		hideTokenSelector,
@@ -237,6 +291,13 @@ export function LiquidationsDistributionChart({
 		},
 		[chartState.metric, router]
 	)
+	const setChartMode = React.useCallback(
+		(nextChartMode: ChartMode) => {
+			if (nextChartMode === chartState.mode) return
+			void pushShallowQuery(router, getLiquidationsChartModeQueryPatch(nextChartMode, defaultChartMode))
+		},
+		[chartState.mode, defaultChartMode, router]
+	)
 	const setBreakdownMode = React.useCallback(
 		(nextBreakdownMode: BreakdownMode) => {
 			if (nextBreakdownMode === chartState.breakdownMode) return
@@ -245,10 +306,10 @@ export function LiquidationsDistributionChart({
 		[chartState.breakdownMode, defaultBreakdownMode, router]
 	)
 
-	const selectedChartView = React.useMemo(
-		() => getLiquidationsChartView(chart, chartState.token, chartState.breakdownMode),
-		[chart, chartState.breakdownMode, chartState.token]
-	)
+	const selectedChartView = React.useMemo(() => {
+		const baseView = getLiquidationsChartView(chart, chartState.token, chartState.breakdownMode)
+		return chartState.mode === 'cumulative' ? buildCumulativeLiquidationsChartView(baseView) : baseView
+	}, [chart, chartState.breakdownMode, chartState.mode, chartState.token])
 	const visibleDataPointCount = React.useMemo(() => {
 		return selectedChartView.bins.reduce((count, _, index) => {
 			const hasValueAtIndex = selectedChartView.series.some(
@@ -451,6 +512,22 @@ export function LiquidationsDistributionChart({
 				) : null}
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					<button
+						data-active={chartState.mode === 'cumulative'}
+						onClick={() => setChartMode('cumulative')}
+						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						Cumulative
+					</button>
+					<button
+						data-active={chartState.mode === 'distribution'}
+						onClick={() => setChartMode('distribution')}
+						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						Distribution
+					</button>
+				</div>
+				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+					<button
 						data-active={chartState.metric === 'usd'}
 						onClick={() => setMetric('usd')}
 						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -468,9 +545,16 @@ export function LiquidationsDistributionChart({
 				<ChartExportButtons
 					chartInstance={() => chartInstanceRef.current}
 					filename={slug(
-						[title ?? 'liquidation-distribution', chartState.token, chartState.breakdownLabel].filter(Boolean).join('-')
+						[title ?? 'liquidation-distribution', chartState.token, chartState.modeLabel, chartState.breakdownLabel]
+							.filter(Boolean)
+							.join('-')
 					)}
-					title={[title ?? 'Liquidation Distribution', chartState.token, chartState.breakdownLabel]
+					title={[
+						title ?? 'Liquidation Distribution',
+						chartState.token,
+						chartState.modeLabel,
+						chartState.breakdownLabel
+					]
 						.filter(Boolean)
 						.join(' - ')}
 					smol

@@ -268,10 +268,8 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
 									</div>
 									<p className="mt-1 text-sm text-(--text-secondary)">
-										{formatUsd(
-											summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
-										)}{' '}
-										max exposure = {formatUsd(summary.totalCurrentMaxBorrowUsd)} max borrowable +{' '}
+										{formatUsd(summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0))} max
+										exposure = {formatUsd(summary.totalCurrentMaxBorrowUsd)} max borrowable +{' '}
 										{formatMinBadDebtValue(
 											summary.totalMinBadDebtAtPriceZeroUsd,
 											summary.minBadDebtAtPriceZeroCoverage
