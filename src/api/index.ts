@@ -140,7 +140,7 @@ export async function fetchLiquidityDatasetEntryByProtocolId(
 		return null
 	}
 
-	const data = await fetchLiquidityTokensDatasetFromNetwork()
+	const data = await fetchLiquidityTokensDataset()
 	return data.find((entry) => entry.id === protocolId) ?? null
 }
 

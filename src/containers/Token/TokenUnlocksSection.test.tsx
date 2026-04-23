@@ -38,7 +38,15 @@ vi.mock('~/components/Icon', () => ({
 }))
 
 vi.mock('next/dynamic', () => ({
-	default: () => DynamicUnlocksCharts
+	default: (_loader: () => Promise<unknown>, options?: { loading?: (props: any) => React.ReactNode }) => {
+		return (props: any) => {
+			if ('protocolName' in (props ?? {})) {
+				return <DynamicUnlocksCharts {...props} />
+			}
+
+			return options?.loading?.(props) ?? null
+		}
+	}
 }))
 
 vi.mock('@tanstack/react-query', () => ({
@@ -63,10 +71,6 @@ vi.mock('~/containers/Subscription/SignInModal', () => ({
 
 vi.mock('~/containers/Subscription/auth', () => ({
 	useAuthContext: () => authState
-}))
-
-vi.mock('~/containers/Unlocks/EmissionsByProtocol', () => ({
-	UnlocksCharts: DynamicUnlocksCharts
 }))
 
 import { TokenUnlocksSection } from './TokenUnlocksSection'

@@ -130,14 +130,14 @@ export function TokenYieldsSection({
 		return poolsList.map((pool) => ({
 			...pool,
 			yieldTokenVariants: getYieldPoolTokenVariantSet(pool.pool),
-			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
-			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
-			cv30d: volatility?.[pool.configID]?.[3] ?? null,
-			holderCount: holderStats?.[pool.configID]?.holderCount ?? null,
-			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? null,
-			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? null,
-			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? null,
-			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? null
+			apyMedian30d: volatility?.[pool.configID]?.[1] ?? pool.apyMedian30d,
+			apyStd30d: volatility?.[pool.configID]?.[2] ?? pool.apyStd30d,
+			cv30d: volatility?.[pool.configID]?.[3] ?? pool.cv30d,
+			holderCount: holderStats?.[pool.configID]?.holderCount ?? pool.holderCount,
+			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? pool.avgPositionUsd,
+			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? pool.top10Pct,
+			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? pool.holderChange7d,
+			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? pool.holderChange30d
 		}))
 	}, [holderStats, poolsList, volatility])
 
@@ -240,8 +240,9 @@ export function TokenYieldsSection({
 		pushShallowQuery(router, updates)
 	}
 
-	const isFilteredEmpty = filteredPools.length === 0 && totalRowCount > 0
-	const hasPlaceholderState = showInitialLoader || (error != null && poolsList.length === 0) || totalRowCount === 0
+	const isFilteredEmpty = filteredPools.length === 0 && totalRowCount > 0 && !isFetchingFullData
+	const hasPlaceholderState =
+		showInitialLoader || (error != null && poolsList.length === 0) || (totalRowCount === 0 && !isFetchingFullData)
 	const summaryText =
 		filteredStats.noOfPoolsTracked > 0
 			? hasPartialData && !hasFetchTriggeringFilters

@@ -1100,13 +1100,11 @@ export function PaginatedYieldsPoolTable({
 		},
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
-			startTransition(() =>
-				setSorting((prev) => {
-					const nextSorting = typeof updater === 'function' ? updater(prev) : updater
-					onSortingChange?.(nextSorting)
-					return nextSorting
-				})
-			),
+			startTransition(() => {
+				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
+				setSorting(nextSorting)
+				onSortingChange?.(nextSorting)
+			}),
 		onPaginationChange: (updater) =>
 			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		getCoreRowModel: getCoreRowModel(),

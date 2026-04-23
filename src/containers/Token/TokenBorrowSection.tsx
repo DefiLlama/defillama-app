@@ -407,7 +407,7 @@ export function TokenBorrowSection({
 								</div>
 							) : null}
 
-							{filteredRows.length === 0 ? (
+							{filteredRows.length === 0 && !isFetchingFullData ? (
 								<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 									<p className="p-2">{`No ${tabLabel.toLowerCase()} routes match current filters.`}</p>
 								</div>

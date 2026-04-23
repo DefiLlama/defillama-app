@@ -53,15 +53,24 @@ vi.mock('@ariakit/react', () => ({
 }))
 
 vi.mock('next/dynamic', () => {
-	const dynamicComponents = [
-		DynamicLiquidationsSummaryStats,
-		DynamicLiquidationsDistributionChart,
-		DynamicTableWithSearch
-	]
-	let dynamicIndex = 0
-
 	return {
-		default: () => dynamicComponents[dynamicIndex++] ?? (() => null)
+		default: (_loader: () => Promise<unknown>, options?: { loading?: (props: any) => React.ReactNode }) => {
+			return (props: any) => {
+				if (Array.isArray(props?.items)) {
+					return <DynamicLiquidationsSummaryStats {...props} />
+				}
+
+				if ('chart' in (props ?? {})) {
+					return <DynamicLiquidationsDistributionChart {...props} />
+				}
+
+				if ('placeholder' in (props ?? {})) {
+					return <DynamicTableWithSearch {...props} />
+				}
+
+				return options?.loading?.(props) ?? null
+			}
+		}
 	}
 })
 
