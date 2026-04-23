@@ -14,7 +14,7 @@ function SonicIcon() {
 			strokeMiterlimit="2"
 			viewBox="0 0 180 180"
 			xmlns="http://www.w3.org/2000/svg"
-			className="h-14 w-14 shrink-0"
+			className="h-9 w-9 shrink-0"
 		>
 			<g fill="url(#sonic-brand-a)">
 				<path d="m90 7.5c45.533 0 82.5 36.967 82.5 82.5s-36.967 82.5-82.5 82.5-82.5-36.967-82.5-82.5 36.967-82.5 82.5-82.5zm67.861 90.573c-42.086 6.922-71.149 27.287-93.917 53.61 7.993 3.176 16.74 4.927 25.904 4.927 35.031 0 63.956-25.584 68.013-58.537zm-103.98 48.63c12.075-15.367 29.012-28.893 49.34-40.152-20.672 4.701-41.249 16.316-61.074 31.266 3.559 3.355 7.492 6.339 11.734 8.886zm-32.346-50.896c1.014 13.37 6.108 24.893 14.076 34.906 17.787-16.574 41.222-28.705 70.191-35.375l-84.267 0.469zm14.138-46.378c-7.899 9.894-12.908 21.244-14.016 34.446l84.073 0.762c-29.876-7.796-53.229-19.177-70.057-35.208zm122.23 33.03c-3.914-33.105-32.91-58.849-68.051-58.849-9.142 0-17.867 1.742-25.84 4.901 14.887 21.28 57.159 49.575 93.891 53.948zm-103.8-49.075c-4.095 2.439-7.907 5.284-11.373 8.476 13.223 12.708 32.666 23.768 61.418 32.338-20.864-11.522-37.144-25.196-50.045-40.814z" />
@@ -155,6 +155,36 @@ export default function InvestorsPage() {
 						</div>
 						<BasicLink href="/spark" className="absolute inset-0">
 							<span className="sr-only">View Spark Dashboard</span>
+						</BasicLink>
+					</div>
+
+					<div className="group relative isolate flex flex-col overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow] duration-200 hover:border-[#FA43BD]/15 hover:shadow-lg hover:shadow-[#FA43BD]/[0.03]">
+						<div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #FA43BD, #FFA930)' }} />
+						<div className="flex flex-1 flex-col gap-4 p-5">
+							<div className="flex items-center gap-3">
+								<SonicIcon />
+								<span className="text-lg font-semibold text-(--text-primary)">Sonic</span>
+							</div>
+							<p className="text-sm leading-relaxed text-(--text-secondary)">
+								Fees, ecosystem, vertical integration, and network stats for Sonic.
+							</p>
+							<div className="flex flex-wrap gap-1.5">
+								{['Financials', 'Lending', 'Rewards', 'Reports'].map((tag) => (
+									<span
+										key={tag}
+										className="rounded-full bg-(--sl-accent-muted) px-2.5 py-0.5 text-[11px] font-medium text-(--sl-accent)"
+									>
+										{tag}
+									</span>
+								))}
+							</div>
+							<div className="mt-auto flex items-center gap-1.5 text-xs font-medium text-(--sl-accent)">
+								View Dashboard
+								<Icon name="arrow-right" className="h-3.5 w-3.5" />
+							</div>
+						</div>
+						<BasicLink href="/sonic" className="absolute inset-0">
+							<span className="sr-only">View Sonic Dashboard</span>
 						</BasicLink>
 					</div>
 
