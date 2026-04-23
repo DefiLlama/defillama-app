@@ -209,7 +209,8 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 		return 'onchain'
 	}, [scopeCandidates])
 
-	const hasKnownMinBadDebt = exposures.summary.totalMinBadDebtAtPriceZeroUsd != null
+	const totalMaxExposureUsd =
+		exposures.summary.totalCurrentMaxBorrowUsd + (exposures.summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
 
 	if (exposures.rows.length === 0) {
 		return null
@@ -239,32 +240,13 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
-				<div className="grid gap-3 md:grid-cols-2">
-					<div className="rounded-md border border-(--cards-border) p-4">
-						<p className="text-sm text-(--text-secondary)">Total max borrowable against {tokenSymbol}</p>
-						<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-							{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)}
-						</p>
-						<p className="mt-1 text-sm text-(--text-secondary)">
-							Across {exposures.summary.exposureCount} exposure
-							{exposures.summary.exposureCount === 1 ? '' : 's'} on {exposures.summary.protocolCount} protocol
-							{exposures.summary.protocolCount === 1 ? '' : 's'}.
-						</p>
-					</div>
-
-					<div className="rounded-md border border-(--cards-border) p-4">
-						<p className="text-sm text-(--text-secondary)">Current exposure if {tokenSymbol} goes to $0</p>
-						<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-							{formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)}
-						</p>
-						<p className="mt-1 text-sm text-(--text-secondary)">
-							{!hasKnownMinBadDebt
-								? 'No exposures in this scope report current exposure at a zero asset price yet.'
-								: exposures.summary.minBadDebtUnknownCount > 0
-									? 'Shown as a minimum known amount because some exposures do not report zero-price bad debt yet.'
-									: 'Current exposure coverage is available for every exposure in this scope.'}
-						</p>
-					</div>
+				<div className="rounded-md border border-(--cards-border) p-4">
+					<p className="text-sm text-(--text-secondary)">Maximum possible exposure to {tokenSymbol}</p>
+					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">{formatUsd(totalMaxExposureUsd)}</p>
+					<p className="mt-1 text-sm text-(--text-secondary)">
+						{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)} (max additional borrows against {tokenSymbol}) +{' '}
+						{formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)} (bad debt if {tokenSymbol} got hacked now)
+					</p>
 				</div>
 
 				<div className="rounded-md border border-(--cards-border) p-3">
@@ -286,8 +268,10 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
 									</div>
 									<p className="mt-1 text-sm text-(--text-secondary)">
-										{formatUsd(summary.totalCurrentMaxBorrowUsd)} max borrowable
-										{' · '}
+										{formatUsd(
+											summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
+										)}{' '}
+										max exposure = {formatUsd(summary.totalCurrentMaxBorrowUsd)} max borrowable +{' '}
 										{formatMinBadDebtValue(
 											summary.totalMinBadDebtAtPriceZeroUsd,
 											summary.minBadDebtAtPriceZeroCoverage

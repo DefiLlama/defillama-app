@@ -93,17 +93,14 @@ const createRiskData = (): TokenRiskResponse => ({
 import { TokenRisksSection } from './TokenRisksSection'
 
 describe('TokenRisksSection', () => {
-	it('renders the two-metric exposure summary from preloaded risk data', () => {
+	it('renders the combined maximum possible exposure headline from preloaded risk data', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
 		expect(html).toContain('How much debt can be issued against USDC as collateral across lending protocols')
-		expect(html).toContain('Total max borrowable against USDC')
-		expect(html).toContain('$1,500')
-		expect(html).toContain('Current exposure if USDC goes to $0')
-		expect(html).toContain('$400')
-		expect(html).toContain(
-			'Shown as a minimum known amount because some exposures do not report zero-price bad debt yet.'
-		)
+		expect(html).toContain('Maximum possible exposure to USDC')
+		expect(html).toContain('$1,900')
+		expect(html).toContain('$1,500 (max additional borrows against USDC)')
+		expect(html).toContain('$400 (bad debt if USDC was hacked now)')
 		expect(html).not.toContain('Debt already borrowed against USDC')
 		expect(html).not.toContain('borrowed debt')
 	})
@@ -131,9 +128,8 @@ describe('TokenRisksSection', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
 		expect(html.indexOf('Aave V3')).toBeLessThan(html.indexOf('Morpho Blue'))
-		expect(html).toContain('$1,000 max borrowable')
-		expect(html).toContain('$400 current exposure')
-		expect(html).toContain('Unavailable current exposure')
+		expect(html).toContain('$1,400 max exposure = $1,000 max borrowable + $400 current exposure')
+		expect(html).toContain('$500 max exposure = $500 max borrowable + Unavailable current exposure')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -187,9 +183,6 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain(
-			'Shown as a minimum known amount because some exposures do not report zero-price bad debt yet.'
-		)
 		expect(html).toContain('$50 (partial) current exposure')
 	})
 
@@ -206,7 +199,6 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain('No exposures in this scope report current exposure at a zero asset price yet.')
 		expect(html).toContain('Unavailable current exposure')
 	})
 })
