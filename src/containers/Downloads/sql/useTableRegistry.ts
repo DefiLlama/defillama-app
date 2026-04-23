@@ -27,7 +27,7 @@ interface UseTableRegistryOptions {
 	authorizedFetch: AuthorizedFetch
 }
 
-// Sanitize a source into a valid DuckDB identifier.
+// Sanitize a source into a valid LlamaSQL identifier.
 // Table names must be quoted in queries when they contain non-identifier chars,
 // but we prefer to give them identifier-safe names up front.
 export function tableNameFor(source: TableSource): string {
@@ -56,7 +56,7 @@ export function useTableRegistry({ conn, authorizedFetch }: UseTableRegistryOpti
 			setError(null)
 			try {
 				const { csvText, columns } = await fetchCsvFor(source, authorizedFetch)
-				// DuckDB's virtual filesystem: register text blob, then create table.
+				// LlamaSQL's virtual filesystem: register text blob, then create table.
 				const fileName = `${name}.csv`
 				const db = conn.bindings
 				if (db && typeof db.registerFileText === 'function') {
@@ -132,7 +132,7 @@ async function registerViaBuffer(conn: AsyncDuckDBConnection, fileName: string, 
 		await db.registerFileBuffer(fileName, enc)
 		return
 	}
-	throw new Error('Unable to register CSV buffer with DuckDB instance')
+	throw new Error('Unable to register CSV buffer with LlamaSQL instance')
 }
 
 async function fetchCsvFor(

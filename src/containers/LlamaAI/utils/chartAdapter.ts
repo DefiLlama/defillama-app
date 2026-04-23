@@ -8,6 +8,30 @@ import type {
 import { CHART_COLORS, oldBlue } from '~/constants/colors'
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
 import { getNDistinctColors } from '~/utils'
+import { chainIconUrl, equityIconUrl, geckoTokenIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
+
+type AxisEntityType = NonNullable<ChartConfiguration['axes']['x']['entityType']>
+
+function buildAxisLogoUrls(
+	entityType: AxisEntityType | undefined,
+	logoCategories: string[] | undefined
+): string[] | undefined {
+	if (!entityType || !logoCategories?.length) return undefined
+	const builder =
+		entityType === 'protocol'
+			? tokenIconUrl
+			: entityType === 'chain'
+				? chainIconUrl
+				: entityType === 'token'
+					? geckoTokenIconUrl
+					: entityType === 'stablecoin'
+						? peggedAssetIconUrl
+						: entityType === 'equity'
+							? equityIconUrl
+							: null
+	if (!builder) return undefined
+	return logoCategories.map((v) => (v ? builder(v) : ''))
+}
 
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
@@ -20,7 +44,7 @@ const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Arr
 
 export type LlamaAICartesianChartProps = Pick<
 	IMultiSeriesChart2Props,
-	'dataset' | 'charts' | 'chartOptions' | 'valueSymbol' | 'groupBy' | 'hallmarks' | 'hideDataZoom'
+	'dataset' | 'charts' | 'chartOptions' | 'valueSymbol' | 'groupBy' | 'hallmarks' | 'hideDataZoom' | 'categoryLogos'
 >
 
 export type LlamaAICartesianDatasetRow = LlamaAICartesianChartProps['dataset']['source'][number]
@@ -78,6 +102,7 @@ interface AdaptedHBarChartData {
 		height: string
 		valueSymbol: string
 		colors?: string[]
+		logos?: string[]
 	}
 	title: string
 	description: string
@@ -476,6 +501,8 @@ function adaptHBarChartData(config: ChartConfiguration, rawData: any[]): Adapted
 			.filter(([, value]) => !Number.isNaN(value))
 
 		const colors = getNDistinctColors(chartData.length)
+		const allLogos = buildAxisLogoUrls(config.axes.x.entityType, config.axes.x.logoCategories)
+		const logos = allLogos ? chartData.map(([, , origIdx]) => allLogos[origIdx] ?? '') : undefined
 
 		return {
 			chartType: 'hbar',
@@ -483,7 +510,8 @@ function adaptHBarChartData(config: ChartConfiguration, rawData: any[]): Adapted
 			props: {
 				height: '360px',
 				valueSymbol: config.valueSymbol ?? '',
-				colors
+				colors,
+				...(logos && { logos })
 			},
 			title: config.title,
 			description: config.description,
@@ -660,7 +688,12 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 						? Number(first.value[0])
 						: Number(first?.data?.timestamp ?? first?.axisValue)
 					const dateStr = Number.isFinite(ts)
-						? new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+						? new Date(ts).toLocaleDateString('en-US', {
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric',
+								timeZone: 'UTC'
+							})
 						: ''
 					const lines = items
 						.map((it: any) => {
@@ -696,6 +729,14 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 			}
 		}
 
+		let categoryLogos: string[] | undefined
+		if (axisType === 'category') {
+			const allLogos = buildAxisLogoUrls(config.axes.x.entityType, config.axes.x.logoCategories)
+			if (allLogos?.length) {
+				categoryLogos = categoryOrder.map((_, i) => allLogos[i] ?? '')
+			}
+		}
+
 		return {
 			chartType: 'cartesian',
 			props: {
@@ -705,7 +746,8 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 				valueSymbol: config.valueSymbol ?? (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : ''),
 				groupBy: axisType === 'time' ? 'daily' : undefined,
 				hallmarks: axisType === 'time' && config.hallmarks?.length ? normalizeHallmarks(config.hallmarks) : undefined,
-				hideDataZoom: axisType === 'category'
+				hideDataZoom: axisType === 'category',
+				...(categoryLogos && { categoryLogos })
 			},
 			title: config.title,
 			description: config.description,

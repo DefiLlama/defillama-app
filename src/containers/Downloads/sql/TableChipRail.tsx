@@ -40,19 +40,21 @@ export function TableChipRail({
 				label="Tables"
 				count={totalCount}
 				action={
-					<div className="flex items-center gap-1.5">
-						<CopyForAIButton />
-						<button
-							type="button"
-							onClick={onBrowseSchema}
-							className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
-							title={`Browse all ${totalSchemaCount} available datasets`}
-						>
-							<Icon name="layers" className="h-3 w-3" />
-							Browse schema
-							<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
-						</button>
-					</div>
+					totalCount > 0 ? (
+						<div className="flex items-center gap-1.5">
+							<CopyForAIButton />
+							<button
+								type="button"
+								onClick={onBrowseSchema}
+								className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
+								title={`Browse all ${totalSchemaCount} available datasets`}
+							>
+								<Icon name="layers" className="h-3 w-3" />
+								Browse schema
+								<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
+							</button>
+						</div>
+					) : null
 				}
 			/>
 
@@ -158,9 +160,7 @@ function PendingChip({ table }: { table: PendingTable }) {
 				) : loading ? (
 					<LoadingSpinner size={10} />
 				) : (
-					<span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-(--text-tertiary)/60">
-						<span className="absolute inset-0 animate-ping rounded-full bg-(--text-tertiary)/60 opacity-60" />
-					</span>
+					<span className="h-1.5 w-1.5 rounded-full bg-(--text-tertiary)/60" />
 				)}
 			</span>
 			<span className="max-w-[180px] truncate font-mono font-medium">{table.name}</span>
@@ -225,38 +225,28 @@ function EmptyTablesPrompt({
 	totalSchemaCount: number
 }) {
 	return (
-		<div className="flex flex-col gap-3 rounded-md border border-(--primary)/20 bg-gradient-to-br from-(--primary)/[0.06] to-(--primary)/[0.01] p-3.5">
-			<div className="flex items-start gap-2.5">
-				<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-(--primary)/12 text-(--primary)">
-					<Icon name="layers" className="h-3.5 w-3.5" />
-				</div>
-				<div className="flex min-w-0 flex-col gap-0.5">
-					<p className="text-xs font-semibold text-(--text-primary)">Start by browsing the schema</p>
-					<p className="text-[11.5px] leading-snug text-(--text-secondary)">
-						<span className="tabular-nums">{totalSchemaCount}</span> datasets you can query — protocols, fees, yields,
-						TVL series, hacks, raises, and more. Or let an AI draft the query: copy the full dataset brief and paste it
-						into ChatGPT / Claude / Gemini.
-					</p>
-				</div>
-			</div>
-			<div className="flex flex-wrap items-center gap-2 pl-[38px]">
+		<div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-(--divider) bg-(--cards-bg)/60 px-3 py-2 text-xs text-(--text-secondary)">
+			<span className="text-(--text-primary)">
+				No tables loaded — type a table name in SQL to auto-load on run, or pick from the catalogue.
+			</span>
+			<span className="ml-auto flex items-center gap-1.5">
+				<CopyForAIButton />
 				<button
 					type="button"
 					onClick={onBrowseSchema}
-					className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+					className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+					title={`Browse all ${totalSchemaCount} available datasets`}
 				>
 					<Icon name="layers" className="h-3 w-3" />
-					Browse schema
-					<Icon name="arrow-right" className="h-3 w-3 opacity-80" />
+					Browse datasets
+					<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
 				</button>
-				<CopyForAIButton prominent />
-				<span className="ml-auto text-[10.5px] text-(--text-tertiary)">Tables referenced in SQL auto-load on run.</span>
-			</div>
+			</span>
 		</div>
 	)
 }
 
-function CopyForAIButton({ prominent = false }: { prominent?: boolean }) {
+function CopyForAIButton() {
 	const [copied, setCopied] = useState(false)
 
 	const onCopy = async () => {
@@ -275,20 +265,16 @@ function CopyForAIButton({ prominent = false }: { prominent?: boolean }) {
 		}
 	}
 
-	const base =
-		'inline-flex items-center gap-1.5 rounded-md border text-xs font-semibold transition-all disabled:cursor-not-allowed'
-	const size = prominent ? 'px-3 py-1.5' : 'px-2.5 py-1'
-	const idle = prominent
-		? 'border-(--divider) bg-(--cards-bg) text-(--text-primary) hover:border-(--primary)/50 hover:text-(--primary)'
-		: 'border-(--divider) bg-transparent text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--primary)'
-	const done = 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-
 	return (
 		<button
 			type="button"
 			onClick={onCopy}
 			title="Copy a full dataset + dialect brief tailored for LLMs. Paste into ChatGPT / Claude / Gemini and ask for a query."
-			className={`${base} ${size} ${copied ? done : idle}`}
+			className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold transition-all disabled:cursor-not-allowed ${
+				copied
+					? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+					: 'border-(--divider) bg-transparent text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--primary)'
+			}`}
 		>
 			{copied ? <Icon name="check" className="h-3 w-3" /> : <Icon name="sparkles" className="h-3 w-3" />}
 			{copied ? 'Copied for AI' : 'Copy for AI'}

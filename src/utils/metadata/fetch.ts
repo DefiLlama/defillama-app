@@ -1,6 +1,10 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
+import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DIRECTORY_API } from '~/constants'
+import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
+import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
+import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
+import { extractLiquidationsTokenSymbols } from './liquidations'
 import type {
 	ICategoriesAndTags,
 	ICexItem,
@@ -102,6 +106,11 @@ export async function fetchCoreMetadata({
 	rwaList: IRWAList
 	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
+	tokenDirectory: TokenDirectory
+	protocolDisplayNames: Record<string, string>
+	chainDisplayNames: Record<string, string>
+	liquidationsTokenSymbols: string[]
+	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -118,6 +127,7 @@ export async function fetchCoreMetadata({
 	const DATASETS_SERVER_URL = API_KEY
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
+	const LIQUIDATIONS_DATA_URL = `${LIQUIDATIONS_SERVER_URL_V2}/all?zz=14`
 
 	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=14`
 	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=14`
@@ -138,34 +148,56 @@ export async function fetchCoreMetadata({
 				})
 			: fetchJson<T>(url)
 
-	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, rwaPerpsList, tokenlistArray, bridgesResponse] =
-		await Promise.all([
-			fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
-			fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
-			fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
-				categories: [],
-				tags: [],
-				tagCategoryMap: {}
-			}),
-			fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
-			fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
-				canonicalMarketIds: [],
-				platforms: [],
-				chains: [],
-				categories: [],
-				assetGroups: [],
-				idMap: {}
-			}),
-			fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
-				contracts: [],
-				venues: [],
-				categories: [],
-				assetGroups: [],
-				total: 0
-			}),
-			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
-			fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
-		])
+	const [
+		protocols,
+		chains,
+		categoriesAndTags,
+		cexsResponse,
+		rwaList,
+		rwaPerpsList,
+		tokenlistArray,
+		tokenDirectory,
+		liquidationsResponse,
+		bridgesResponse
+	] = await Promise.all([
+		fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
+		fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
+		fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
+			categories: [],
+			tags: [],
+			tagCategoryMap: {}
+		}),
+		fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
+		fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
+			canonicalMarketIds: [],
+			platforms: [],
+			chains: [],
+			categories: [],
+			assetGroups: [],
+			idMap: {}
+		}),
+		fetchWithDevFallback<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL, {
+			contracts: [],
+			venues: [],
+			categories: [],
+			assetGroups: [],
+			total: 0
+		}),
+		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
+		fetchWithDevFallback<TokenDirectory>(TOKEN_DIRECTORY_API, {}),
+		fetchWithDevFallback<{ tokens?: Record<string, Record<string, { symbol: string; decimals: number }>> }>(
+			LIQUIDATIONS_DATA_URL,
+			{ tokens: {} }
+		),
+		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
+	])
+
+	const emissionsProtocolsList = await (isDev
+		? fetchEmissionsProtocolsList().catch((error) => {
+				console.error('[metadata] dev: failed to fetch emissions protocols list, using fallback:', error)
+				return []
+			})
+		: fetchEmissionsProtocolsList())
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -223,6 +255,10 @@ export async function fetchCoreMetadata({
 				: buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }))
 		: ({} as ProtocolLlamaswapMetadata)
 
+	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
+	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
+	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse.tokens ?? {})
+
 	return {
 		protocols,
 		chains,
@@ -232,6 +268,11 @@ export async function fetchCoreMetadata({
 		rwaList,
 		rwaPerpsList,
 		tokenlist,
+		tokenDirectory,
+		protocolDisplayNames,
+		chainDisplayNames,
+		liquidationsTokenSymbols,
+		emissionsProtocolsList,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,

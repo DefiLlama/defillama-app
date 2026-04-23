@@ -523,6 +523,9 @@ function createTooltipFormatter({
 	}
 }
 
+const CATEGORY_LOGO_SIZE = 22
+const CATEGORY_LOGO_BOTTOM_GAP = 10
+
 export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const {
 		charts,
@@ -546,7 +549,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		exportButtons,
 		title,
 		headingAs,
-		containerClassName
+		containerClassName,
+		categoryLogos
 	} = props
 
 	const id = useId()
@@ -554,6 +558,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const categoryLogosOverlayRef = useRef<HTMLDivElement>(null)
+	const hasCategoryLogos = !!(categoryLogos && categoryLogos.length > 0 && categoryLogos.some(Boolean))
 	const eventHoverCleanupRef = useRef<(() => void) | null>(null)
 	const globalOutCleanupRef = useRef<(() => void) | null>(null)
 	// Per-component tooltip size cache (used by tooltip.position). Keeping this in a ref avoids
@@ -982,6 +988,10 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		if (!hasExplicitGridBottom) {
 			finalGrid.bottom = getMainGridBottom({ shouldShowEventRail, shouldHideDataZoom })
 		}
+		if (hasCategoryLogos) {
+			finalGrid.bottom = Number(finalGrid.bottom ?? 12) + CATEGORY_LOGO_SIZE + CATEGORY_LOGO_BOTTOM_GAP
+			finalGrid.outerBoundsContain = undefined
+		}
 
 		const { min: timeRangeMin, max: timeRangeMax } = shouldShowEventRail
 			? getSortedDatasetTimeBounds(datasetSource, 'timestamp')
@@ -993,7 +1003,15 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			Number.isFinite(timeRangeMax) &&
 			timeRangeMin < timeRangeMax
 
-		const finalXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		let finalXAxis: any =
+			shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		if (hasCategoryLogos) {
+			finalXAxis = {
+				...finalXAxis,
+				axisLabel: { ...(finalXAxis?.axisLabel ?? {}), show: false },
+				axisTick: { ...(finalXAxis?.axisTick ?? {}), show: false }
+			}
+		}
 		const finalYAxisBase =
 			finalYAxis && finalYAxis.length > 0
 				? finalYAxis
@@ -1053,6 +1071,38 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			}
 		})
 
+		const syncCategoryLogos = () => {
+			const layer = categoryLogosOverlayRef.current
+			const inst = chartRef.current
+			if (!layer) return
+			layer.innerHTML = ''
+			if (!hasCategoryLogos || !inst || inst.isDisposed()) return
+			const categoryValues = datasetSource.map((row: any) => row?.[datasetDimensions[0]])
+			const gridBottom = Number(finalGrid.bottom)
+			const chartHeight = inst.getHeight()
+			if (typeof chartHeight !== 'number' || !Number.isFinite(chartHeight)) return
+			const centerY = chartHeight - gridBottom + CATEGORY_LOGO_BOTTOM_GAP / 2 + CATEGORY_LOGO_SIZE / 2
+			const darkBg = isThemeDark ? '#1a1a1a' : '#fff'
+			for (let i = 0; i < categoryValues.length; i++) {
+				const url = categoryLogos?.[i]
+				if (!url) continue
+				const catVal = categoryValues[i]
+				if (catVal == null) continue
+				const x = inst.convertToPixel({ xAxisIndex: 0 }, catVal as any)
+				if (typeof x !== 'number' || !Number.isFinite(x)) continue
+				const img = document.createElement('img')
+				img.src = url
+				img.alt = ''
+				img.loading = 'lazy'
+				img.decoding = 'async'
+				img.title = String(catVal)
+				img.style.cssText = `position:absolute;left:${x - CATEGORY_LOGO_SIZE / 2}px;top:${centerY - CATEGORY_LOGO_SIZE / 2}px;width:${CATEGORY_LOGO_SIZE}px;height:${CATEGORY_LOGO_SIZE}px;border-radius:50%;object-fit:cover;background:${darkBg};pointer-events:none;`
+				layer.appendChild(img)
+			}
+		}
+		instance.on('finished', syncCategoryLogos)
+		requestAnimationFrame(syncCategoryLogos)
+
 		globalOutCleanupRef.current?.()
 		globalOutCleanupRef.current = null
 
@@ -1080,6 +1130,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		} else {
 			instance.dispatchAction({ type: 'hideTip' })
 		}
+		return () => {
+			instance.off('finished', syncCategoryLogos)
+		}
 	}, [
 		id,
 		defaultChartSettings,
@@ -1096,7 +1149,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		eventRailData,
 		tooltipGroupBy,
 		isThemeDark,
-		effectiveCharts
+		effectiveCharts,
+		categoryLogos,
+		hasCategoryLogos
 	])
 
 	return (
@@ -1105,6 +1160,11 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			className={containerClassName ? 'flex flex-1 flex-col' : undefined}
 			chartClassName={containerClassName ?? 'h-[360px]'}
 			chartStyle={!containerClassName && height ? { height } : undefined}
+			overlay={
+				hasCategoryLogos ? (
+					<div ref={categoryLogosOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden />
+				) : null
+			}
 			header={
 				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 					<ChartHeader

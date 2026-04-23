@@ -6,6 +6,7 @@ import {
 	RWA_SERVER_URL,
 	STABLECOINS_SERVER_URL
 } from '~/constants'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { slug as toSlug } from '~/utils'
 
 export type CategoryBreakdownKind = { kind: 'tvl' } | { kind: 'dimension'; adapterType: string; dataType?: string }
@@ -23,6 +24,7 @@ export interface ChartDatasetDefinition {
 	extractRows: (json: any) => Array<Record<string, unknown>>
 	customFetch?: (param: string) => Promise<Array<Record<string, unknown>>>
 	categoryBreakdown?: CategoryBreakdownKind
+	sumMode?: { columnLabel: string }
 }
 
 const OVERVIEW_QS = 'excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true'
@@ -384,6 +386,7 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		category: 'RWA',
 		paramType: 'chain',
 		paramLabel: 'Chain',
+		sumMode: { columnLabel: 'mcap' },
 		optionsUrl: `${RWA_SERVER_URL}/current?z=0`,
 		extractOptions: (json) => {
 			const allOption = { label: 'All Chains', value: 'all' }
@@ -491,6 +494,67 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 						if (typeof val === 'number' && Number.isFinite(val)) total += val
 					}
 					return { date: item.timestamp, value: total }
+				})
+		}
+	},
+	{
+		slug: 'rwa-asset-chart',
+		name: 'RWA by Asset',
+		description: 'Historical on-chain mcap time series for every Real World Asset in a selected category',
+		category: 'RWA',
+		paramType: 'protocol',
+		paramLabel: 'Category',
+		sumMode: { columnLabel: 'mcap' },
+		optionsUrl: `${RWA_SERVER_URL}/current?z=0`,
+		extractOptions: (json) => {
+			if (!Array.isArray(json)) return []
+			const catMcap = new Map<string, number>()
+			for (const item of json) {
+				const cats = item?.category
+				if (!Array.isArray(cats)) continue
+				const total = sumRecord(item?.onChainMcap)
+				for (const c of cats) {
+					if (typeof c !== 'string' || !c) continue
+					if (c === 'rwa-perps') continue
+					catMcap.set(c, (catMcap.get(c) ?? 0) + total)
+				}
+			}
+			return [...catMcap.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: rwaSlug(c) }))
+		},
+		buildUrl: (param: string) => `${RWA_SERVER_URL}/chart/category/${param}/asset-breakdown`,
+		extractRows: () => [],
+		customFetch: async (param: string) => {
+			const [chartResp, assetsResp] = await Promise.all([
+				fetch(`${RWA_SERVER_URL}/chart/category/${param}/asset-breakdown`),
+				fetch(`${RWA_SERVER_URL}/current?z=0`)
+			])
+			if (!chartResp.ok || !assetsResp.ok) return []
+			const chart = await chartResp.json()
+			const assets: any[] = await assetsResp.json()
+			const idToName = new Map<string, string>()
+			if (Array.isArray(assets)) {
+				for (const a of assets) {
+					const id = a?.canonicalMarketId
+					const name = a?.assetName ?? a?.ticker
+					if (typeof id === 'string' && typeof name === 'string') {
+						idToName.set(id, name)
+					}
+				}
+			}
+			const onChainMcap: any[] = chart?.onChainMcap ?? []
+			if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
+			return onChainMcap
+				.filter((item: any) => item && item.timestamp != null)
+				.map((item: any) => {
+					const row: Record<string, unknown> = { date: item.timestamp }
+					const seen = new Map<string, number>()
+					for (const [key, val] of Object.entries(item)) {
+						if (key === 'timestamp') continue
+						const label = idToName.get(key) ?? key
+						seen.set(label, (seen.get(label) ?? 0) + (Number(val) || 0))
+					}
+					for (const [label, v] of seen) row[label] = v
+					return row
 				})
 		}
 	},

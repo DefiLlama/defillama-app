@@ -18,8 +18,16 @@ import { chartDatasets, type ChartDatasetDefinition } from '../chart-datasets'
 import { datasets, type DatasetDefinition } from '../datasets'
 import { identifierize, type RegisteredTable } from './useTableRegistry'
 
+export interface CellVirtualTable {
+	name: string
+	columns: Array<{ name: string; type?: string }>
+	rowCount: number
+	hasRun: boolean
+}
+
 export interface CompletionContext {
 	tables: RegisteredTable[]
+	cellTables?: CellVirtualTable[]
 }
 
 export function registerSqlCompletions(
@@ -56,6 +64,18 @@ export function registerSqlCompletions(
 						}))
 					}
 				}
+				const cellTable = ctx.cellTables?.find((t) => t.name === tableName)
+				if (cellTable) {
+					return {
+						suggestions: cellTable.columns.map((c) => ({
+							label: c.name,
+							kind: monaco.languages.CompletionItemKind.Field,
+							insertText: needsQuoting(c.name) ? `"${c.name}"` : c.name,
+							detail: 'column',
+							range
+						}))
+					}
+				}
 				// No matching table → no suggestions rather than suggest everything.
 				return { suggestions: [] }
 			}
@@ -64,6 +84,27 @@ export function registerSqlCompletions(
 			const loadedDatasetSlugs = new Set(
 				ctx.tables.filter((t) => t.source.kind === 'dataset').map((t) => t.source.kind === 'dataset' && t.source.slug)
 			)
+
+			// 0) Notebook cells that have run — shown at very top.
+			for (const t of ctx.cellTables ?? []) {
+				const detail = t.hasRun ? `${t.rowCount.toLocaleString()} rows · notebook cell` : 'notebook cell · not yet run'
+				const docLines = [`**${t.name}** · notebook cell output`, '']
+				if (t.hasRun && t.columns.length > 0) {
+					docLines.push('Columns:')
+					for (const c of t.columns) docLines.push(`- \`${c.name}\``)
+				} else {
+					docLines.push('_Run this cell to populate columns._')
+				}
+				suggestions.push({
+					label: t.name,
+					kind: monaco.languages.CompletionItemKind.Variable,
+					insertText: t.name,
+					detail,
+					documentation: { value: docLines.join('\n') },
+					sortText: `00_${t.name}`,
+					range
+				})
+			}
 
 			// 1) Loaded tables (highest priority).
 			for (const t of ctx.tables) {
@@ -174,6 +215,38 @@ export function registerSqlHovers(
 						}
 					}
 				}
+				const cellTable = ctx.cellTables?.find((t) => t.name.toLowerCase() === tableName)
+				if (cellTable) {
+					const col = cellTable.columns.find(
+						(c) => c.name === identifier || c.name.toLowerCase() === identifier.toLowerCase()
+					)
+					if (col) {
+						return {
+							range,
+							contents: [
+								{ value: `\`${cellTable.name}.${col.name}\`` },
+								{ value: col.type ? `type · \`${col.type}\`` : 'column · notebook cell output' }
+							]
+						}
+					}
+				}
+			}
+
+			// Notebook cell match.
+			const cellHit = ctx.cellTables?.find((t) => t.name.toLowerCase() === identifier.toLowerCase())
+			if (cellHit) {
+				const lines: string[] = [`**${cellHit.name}**  \nnotebook cell output`]
+				if (cellHit.hasRun) {
+					lines.push(`${cellHit.rowCount.toLocaleString()} rows · ${cellHit.columns.length} columns`)
+					if (cellHit.columns.length > 0) {
+						lines.push('')
+						lines.push('**Columns**')
+						for (const c of cellHit.columns) lines.push(`- \`${c.name}\`${c.type ? ` · ${c.type}` : ''}`)
+					}
+				} else {
+					lines.push('_Not yet run — run the cell to populate._')
+				}
+				return { range, contents: [{ value: lines.join('\n') }] }
 			}
 
 			// Loaded table match.

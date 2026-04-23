@@ -9,6 +9,7 @@ import {
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -16,7 +17,6 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
-import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -38,6 +38,14 @@ export type TokenUsageSectionRow = {
 const DEFAULT_SORTING: SortingState = [{ desc: true, id: 'amountUsd' }]
 const TOKEN_USAGE_SECTION_ID = 'token-usage'
 const columnHelper = createColumnHelper<TokenUsageSectionRow>()
+const TOKEN_USAGE_NAME_MAX_WIDTH = 'max-sm:max-w-[clamp(160px,40vw,260px)]'
+
+const DeferredPaginatedTable = dynamic(
+	() => import('~/components/Table/PaginatedTable').then((mod) => mod.PaginatedTable),
+	{
+		loading: () => <div className="min-h-[360px]" />
+	}
+) as typeof import('~/components/Table/PaginatedTable').PaginatedTable
 
 const columns = [
 	columnHelper.accessor('name', {
@@ -48,7 +56,7 @@ const columns = [
 			const href = row.original.slug ? `/protocol/${row.original.slug}` : null
 
 			return (
-				<span className="flex items-center gap-2">
+				<span className="flex min-w-0 items-center gap-2">
 					{row.original.logo ? (
 						<TokenLogo src={row.original.logo} alt={`Logo of ${value}`} size={22} />
 					) : (
@@ -57,12 +65,16 @@ const columns = [
 					{href ? (
 						<BasicLink
 							href={href}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+							className={`min-w-0 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline ${TOKEN_USAGE_NAME_MAX_WIDTH}`}
 						>
 							{value}
 						</BasicLink>
 					) : (
-						<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">{value}</span>
+						<span
+							className={`min-w-0 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap ${TOKEN_USAGE_NAME_MAX_WIDTH}`}
+						>
+							{value}
+						</span>
 					)}
 				</span>
 			)
@@ -85,17 +97,26 @@ const columns = [
 ]
 
 export function buildTokenUsageRows(data: RawProtocolTokenUsageEntry[]): TokenUsageSectionRow[] {
-	return data.map((entry) => ({
-		name: entry.name,
-		category: entry.category,
-		logo: typeof entry.logo === 'string' ? entry.logo : undefined,
-		slug: typeof entry.slug === 'string' ? entry.slug : undefined,
-		misrepresentedTokens: entry.misrepresentedTokens,
-		amountUsd: Object.values(entry.amountUsd ?? {}).reduce(
-			(sum, amount) => sum + (typeof amount === 'number' ? amount : 0),
-			0
-		)
-	}))
+	return data.map((entry) => {
+		let amountUsd = 0
+		const amountUsdByChain = entry.amountUsd ?? {}
+
+		for (const chain in amountUsdByChain) {
+			const amount = amountUsdByChain[chain]
+			if (typeof amount === 'number') {
+				amountUsd += amount
+			}
+		}
+
+		return {
+			name: entry.name,
+			category: entry.category,
+			logo: typeof entry.logo === 'string' ? entry.logo : undefined,
+			slug: typeof entry.slug === 'string' ? entry.slug : undefined,
+			misrepresentedTokens: entry.misrepresentedTokens,
+			amountUsd
+		}
+	})
 }
 
 export function filterTokenUsageRows(
@@ -192,7 +213,7 @@ export function TokenUsageSection({
 			>
 				<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 					<h2
-						className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
+						className="group relative flex min-w-0 scroll-mt-24 items-center gap-1 text-xl font-bold"
 						id={TOKEN_USAGE_SECTION_ID}
 					>
 						Token Usage
@@ -268,7 +289,11 @@ export function TokenUsageSection({
 							<p className="text-sm text-(--text-label)">No token usage entries found.</p>
 						</div>
 					) : (
-						<PaginatedTable table={table} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} />
+						<DeferredPaginatedTable
+							table={table}
+							pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS}
+							tableClassName="mx-auto w-auto min-w-[720px] max-w-full"
+						/>
 					)}
 				</div>
 			</section>

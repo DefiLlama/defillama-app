@@ -20,7 +20,6 @@ import { PaginatedTable, usePaginatedTableDisplayRowNumber } from '~/components/
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { decodePoolsColumnVisibilityQuery } from '../queryState'
@@ -134,11 +133,14 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Pool',
 			enableSorting: false,
 			cell: ({ getValue, row }) => <PoolNameCell value={getValue()} row={row} />,
-			size: 200
+			size: 200,
+			meta: {
+				headerClassName: 'min-w-[160px] sm:min-w-[200px]'
+			}
 		}),
 		columnHelper.accessor('project', {
 			id: 'project',
-			header: () => <span style={{ paddingLeft: '24px' }}>Project</span>,
+			header: 'Project',
 			enableSorting: false,
 			cell: ({ row }) => (
 				<NameYield
@@ -148,7 +150,10 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					raiseValuation={row.original.raiseValuation}
 				/>
 			),
-			size: 200
+			size: 200,
+			meta: {
+				headerClassName: 'min-w-[140px] pl-9 sm:min-w-[200px]'
+			}
 		}),
 		columnHelper.accessor('chains', {
 			id: 'chains',
@@ -167,9 +172,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			cell: (info) => {
 				return (
 					<span
-						style={{
-							color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-						}}
+						data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+						className="data-[strike=true]:text-(--text-disabled)"
 					>
 						{formattedNum(info.getValue(), true)}
 					</span>
@@ -496,9 +500,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			cell: (info) => {
 				return (
 					<span
-						style={{
-							color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-						}}
+						data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+						className="data-[strike=true]:text-(--text-disabled)"
 					>
 						{info.getValue() != null ? formattedNum(Number(info.getValue()) * 100) + '%' : null}
 					</span>
@@ -517,9 +520,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			cell: (info) => {
 				return (
 					<span
-						style={{
-							color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-						}}
+						data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+						className="data-[strike=true]:text-(--text-disabled)"
 					>
 						{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 					</span>
@@ -537,9 +539,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			cell: (info) => {
 				return (
 					<span
-						style={{
-							color: info.row.original.strikeTvl ? 'var(--text-disabled)' : 'inherit'
-						}}
+						data-strike={info.row.original.strikeTvl ? 'true' : 'false'}
+						className="data-[strike=true]:text-(--text-disabled)"
 					>
 						{info.getValue() == null ? '' : formattedNum(info.getValue(), true)}
 					</span>
@@ -584,13 +585,13 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 				const val = info.getValue() as number | null
 				if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
 
-				const accentColor = val >= 80 ? '#ef4444' : val >= 50 ? '#eab308' : '#22c55e'
+				const accentClass = val >= 80 ? 'bg-red-500' : val >= 50 ? 'bg-yellow-500' : 'bg-green-500'
 				const riskLabel = val >= 80 ? 'High concentration' : val >= 50 ? 'Medium concentration' : 'Low concentration'
 
 				return (
 					<Tooltip content={riskLabel} className="justify-end">
 						<span className="inline-flex items-center gap-1.5 tabular-nums">
-							<span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: accentColor }} />
+							<span className={`h-2 w-2 shrink-0 rounded-full ${accentClass}`} />
 							{val.toFixed(1)}%
 						</span>
 					</Tooltip>
@@ -1070,20 +1071,19 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 export function PaginatedYieldsPoolTable({
 	data,
 	initialPageSize = DEFAULT_PAGE_SIZE_OPTIONS[0],
-	sortingState = []
+	initialPageIndex = 0,
+	sortingState = [],
+	onSortingChange,
+	interactionDisabled = false
 }: IYieldsTableProps) {
 	const { context, modal } = usePoolsTableContext()
-	const width = useBreakpointWidth()
 	const [sorting, setSorting] = useState<SortingState>([...sortingState])
 	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
+		pageIndex: initialPageIndex,
 		pageSize: initialPageSize
 	})
 
-	const paginatedColumns = useMemo(
-		() => preparePaginatedYieldsColumns(POOLS_TABLE_CONFIG, context, width),
-		[context, width]
-	)
+	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(POOLS_TABLE_CONFIG, context), [context])
 
 	const table = useReactTable({
 		data,
@@ -1100,7 +1100,11 @@ export function PaginatedYieldsPoolTable({
 		},
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
-			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+			startTransition(() => {
+				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
+				setSorting(nextSorting)
+				onSortingChange?.(nextSorting)
+			}),
 		onPaginationChange: (updater) =>
 			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		getCoreRowModel: getCoreRowModel(),
@@ -1111,7 +1115,11 @@ export function PaginatedYieldsPoolTable({
 
 	return (
 		<>
-			<PaginatedTable table={table} pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS} />
+			<PaginatedTable
+				table={table}
+				pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
+				interactionDisabled={interactionDisabled}
+			/>
 			{modal}
 		</>
 	)

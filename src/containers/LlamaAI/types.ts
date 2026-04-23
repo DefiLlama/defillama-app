@@ -14,6 +14,8 @@ export interface ChartConfiguration {
 			label: string
 			type: 'time' | 'category' | 'value'
 			valueSymbol?: string
+			entityType?: 'protocol' | 'chain' | 'token' | 'stablecoin' | 'equity'
+			logoCategories?: string[]
 		}
 		yAxes: Array<{
 			id: string

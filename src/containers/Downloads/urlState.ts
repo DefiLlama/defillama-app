@@ -10,6 +10,7 @@ import type {
 	SavedParamType,
 	SavedSort
 } from './savedDownloads'
+import type { ChartConfig, ChartType, NumberFormat, StackMode } from './sql/chartConfig'
 
 // Query-param keys are kept short so deep links stay under practical URL lengths
 // and remain human-readable / hand-editable. JSON-stringifying the whole config
@@ -96,7 +97,7 @@ function firstStr(v: string | string[] | undefined): string | null {
 	return typeof v === 'string' ? v : null
 }
 
-export function encodeDownloadConfig(input: SavedDownloadInput): Record<string, string> {
+export function encodeDownloadConfig(input: SavedDownloadInput): Record<string, string | undefined> {
 	const q: Record<string, string> = {}
 	if (input.kind === 'dataset') {
 		q.k = 'dataset'
@@ -128,6 +129,7 @@ export function encodeDownloadConfig(input: SavedDownloadInput): Record<string, 
 		q.k = 'query'
 		q.q = input.sql
 		if (input.tables.length > 0) q.tbls = joinEscaped(input.tables.map(encodeTableRef))
+		if (input.chartConfig) Object.assign(q, encodeChartConfig(input.chartConfig))
 		return q
 	}
 	// multiMetric
@@ -270,15 +272,222 @@ export function decodeDownloadConfig(query: Record<string, string | string[] | u
 				if (ref) refs.push(ref)
 			}
 		}
-		const config: QueryInput = { kind: 'query', sql, tables: refs }
+		const chartConfig = decodeChartConfig(query)
+		const config: QueryInput = { kind: 'query', sql, tables: refs, ...(chartConfig ? { chartConfig } : {}) }
 		return config
 	}
 
 	return null
 }
 
+const CHART_TYPE_SHORT: Record<ChartType, string> = {
+	line: 'ln',
+	bar: 'ba',
+	area: 'ar',
+	areaStacked: 'as',
+	areaPct: 'ap',
+	hbar: 'hb',
+	scatter: 'sc',
+	bubble: 'bu',
+	pie: 'pi',
+	donut: 'do',
+	treemap: 'tm',
+	histogram: 'hi',
+	candlestick: 'cs'
+}
+const CHART_TYPE_LONG: Record<string, ChartType> = Object.fromEntries(
+	Object.entries(CHART_TYPE_SHORT).map(([k, v]) => [v, k as ChartType])
+) as Record<string, ChartType>
+
+const NUMBER_FORMAT_SHORT: Record<NumberFormat, string> = {
+	auto: 'a',
+	humanized: 'h',
+	currency: 'c',
+	percent: 'p'
+}
+const NUMBER_FORMAT_LONG: Record<string, NumberFormat> = Object.fromEntries(
+	Object.entries(NUMBER_FORMAT_SHORT).map(([k, v]) => [v, k as NumberFormat])
+) as Record<string, NumberFormat>
+
+const STACK_SHORT: Record<StackMode, string> = { off: 'o', stacked: 's', expand: 'e' }
+const STACK_LONG: Record<string, StackMode> = { o: 'off', s: 'stacked', e: 'expand' }
+
+function encodeSeriesKinds(map: Record<string, 'line' | 'bar'>): string {
+	return joinEscaped(Object.entries(map).map(([k, v]) => `${k}:${v === 'line' ? 'l' : 'b'}`))
+}
+
+function decodeSeriesKinds(s: string): Record<string, 'line' | 'bar'> {
+	const out: Record<string, 'line' | 'bar'> = {}
+	for (const entry of splitEscaped(s)) {
+		const i = entry.lastIndexOf(':')
+		if (i < 0) continue
+		const name = entry.slice(0, i)
+		const v = entry.slice(i + 1)
+		if (v === 'l' || v === 'b') out[name] = v === 'l' ? 'line' : 'bar'
+	}
+	return out
+}
+
+function encodeSeriesColors(map: Record<string, string>): string {
+	return joinEscaped(Object.entries(map).map(([k, v]) => `${k}:${v}`))
+}
+
+function decodeSeriesColors(s: string): Record<string, string> {
+	const out: Record<string, string> = {}
+	for (const entry of splitEscaped(s)) {
+		const i = entry.lastIndexOf(':')
+		if (i < 0) continue
+		out[entry.slice(0, i)] = entry.slice(i + 1)
+	}
+	return out
+}
+
+function encodeChartConfig(cfg: ChartConfig): Record<string, string> {
+	const q: Record<string, string> = {}
+	q.cv = CHART_TYPE_SHORT[cfg.chartType]
+	if (cfg.xCol) q.cx = cfg.xCol
+	if (cfg.yCols.length > 0) q.cy = joinEscaped(cfg.yCols.slice(0, 8))
+	if (cfg.splitByCol) q.csb = cfg.splitByCol
+	if (cfg.stackMode !== 'off') q.cs = STACK_SHORT[cfg.stackMode]
+	if (cfg.rightAxisCols.length > 0) q.cra = joinEscaped(cfg.rightAxisCols)
+	if (Object.keys(cfg.seriesKinds).length > 0) q.ckn = encodeSeriesKinds(cfg.seriesKinds)
+	if (Object.keys(cfg.seriesColors).length > 0) q.ccl = encodeSeriesColors(cfg.seriesColors)
+	if (cfg.numberFormat !== 'auto') q.cn = NUMBER_FORMAT_SHORT[cfg.numberFormat]
+	const extras: Record<string, unknown> = {}
+	if (cfg.candlestick) extras.candlestick = cfg.candlestick
+	if (cfg.bubble) extras.bubble = cfg.bubble
+	if (cfg.histogram) extras.histogram = cfg.histogram
+	if (Object.keys(extras).length > 0) q.cjs = JSON.stringify(extras)
+	return q
+}
+
+function decodeChartConfig(query: Record<string, string | string[] | undefined>): ChartConfig | undefined {
+	const cv = firstStr(query.cv)
+	if (!cv) return undefined
+	const chartType = CHART_TYPE_LONG[cv]
+	if (!chartType) return undefined
+	const cy = firstStr(query.cy)
+	const yCols = cy ? splitEscaped(cy).slice(0, 8) : []
+	const cra = firstStr(query.cra)
+	const ckn = firstStr(query.ckn)
+	const ccl = firstStr(query.ccl)
+	const cn = firstStr(query.cn)
+	const cs = firstStr(query.cs)
+	const extrasRaw = firstStr(query.cjs)
+	let extras: Record<string, any> = {}
+	if (extrasRaw) {
+		try {
+			extras = JSON.parse(extrasRaw)
+		} catch {
+			extras = {}
+		}
+	}
+
+	const cfg: ChartConfig = {
+		chartType,
+		xCol: firstStr(query.cx),
+		yCols,
+		splitByCol: firstStr(query.csb),
+		stackMode: cs ? (STACK_LONG[cs] ?? 'off') : 'off',
+		rightAxisCols: cra ? splitEscaped(cra) : [],
+		seriesKinds: ckn ? decodeSeriesKinds(ckn) : {},
+		seriesColors: ccl ? decodeSeriesColors(ccl) : {},
+		numberFormat: cn ? (NUMBER_FORMAT_LONG[cn] ?? 'auto') : 'auto',
+		candlestick: extras.candlestick,
+		bubble: extras.bubble,
+		histogram: extras.histogram
+	}
+	return cfg
+}
+
 export function buildShareUrl(origin: string, pathname: string, input: SavedDownloadInput): string {
 	const params = new URLSearchParams(encodeDownloadConfig(input))
 	const qs = params.toString()
 	return qs ? `${origin}${pathname}?${qs}` : `${origin}${pathname}`
+}
+
+// --- Notebook sharing ---
+// Notebook shares round-trip an ordered cell list via a single base64-encoded JSON
+// payload. We keep the key `k=nb` alongside the other `k=...` kinds so the page
+// hydrator can pick the right branch without guessing.
+
+export interface NotebookShareCell {
+	type: 'sql' | 'markdown' | 'chart'
+	source: string
+	chartConfig?: ChartConfig
+}
+
+export interface NotebookShareInput {
+	title?: string
+	cells: NotebookShareCell[]
+}
+
+export interface NotebookShareDecoded extends NotebookShareInput {
+	kind: 'notebook'
+}
+
+function urlSafeB64Encode(input: string): string {
+	const bytes = new TextEncoder().encode(input)
+	let binary = ''
+	for (const b of bytes) binary += String.fromCharCode(b)
+	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+}
+
+function urlSafeB64Decode(input: string): string {
+	const padded = input.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((input.length + 3) % 4)
+	const binary = atob(padded)
+	const bytes = new Uint8Array(binary.length)
+	for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+	return new TextDecoder().decode(bytes)
+}
+
+function sanitizeShareCell(raw: unknown): NotebookShareCell | null {
+	if (!raw || typeof raw !== 'object') return null
+	const r = raw as Record<string, unknown>
+	const type = r.type === 'markdown' ? 'markdown' : r.type === 'sql' ? 'sql' : r.type === 'chart' ? 'chart' : null
+	if (!type) return null
+	if (typeof r.source !== 'string') return null
+	const out: NotebookShareCell = { type, source: r.source }
+	if (r.chartConfig && typeof r.chartConfig === 'object') {
+		out.chartConfig = r.chartConfig as ChartConfig
+	}
+	return out
+}
+
+export function encodeNotebookShare(input: NotebookShareInput): Record<string, string> {
+	const payload = {
+		title: input.title,
+		cells: input.cells.map((c) => ({
+			type: c.type,
+			source: c.source,
+			...(c.chartConfig ? { chartConfig: c.chartConfig } : {})
+		}))
+	}
+	const json = JSON.stringify(payload)
+	return { k: 'nb', n: urlSafeB64Encode(json) }
+}
+
+export function decodeNotebookShare(query: Record<string, string | string[] | undefined>): NotebookShareDecoded | null {
+	const kind = firstStr(query.k)
+	if (kind !== 'nb') return null
+	const payload = firstStr(query.n)
+	if (!payload) return null
+	try {
+		const json = urlSafeB64Decode(payload)
+		const parsed = JSON.parse(json)
+		if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as any).cells)) return null
+		const cells = ((parsed as any).cells as unknown[])
+			.map(sanitizeShareCell)
+			.filter((c): c is NotebookShareCell => c !== null)
+		if (cells.length === 0) return null
+		const title = typeof (parsed as any).title === 'string' ? ((parsed as any).title as string) : undefined
+		return { kind: 'notebook', title, cells }
+	} catch {
+		return null
+	}
+}
+
+export function buildNotebookShareUrl(origin: string, pathname: string, input: NotebookShareInput): string {
+	const params = new URLSearchParams(encodeNotebookShare(input))
+	return `${origin}${pathname}?${params.toString()}`
 }

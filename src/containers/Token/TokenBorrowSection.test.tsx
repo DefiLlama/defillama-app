@@ -1,21 +1,19 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 
-const strategiesState = vi.hoisted(
-	(): {
-		data?: any
-		error?: Error | null
-		isLoading: boolean
-	} => ({
-		data: {
-			borrowAsCollateral: [],
-			borrowAsDebt: [],
-			longShort: []
-		},
-		error: null,
-		isLoading: false
-	})
-)
+const strategiesState: {
+	data?: any
+	error?: Error | null
+	isLoading: boolean
+} = {
+	data: {
+		borrowAsCollateral: [],
+		borrowAsDebt: []
+	},
+	error: null,
+	isLoading: false
+}
 
 vi.mock('~/components/Filters/ResponsiveFilterLayout', () => ({
 	ResponsiveFilterLayout: ({ children }: { children: (nestedMenu: boolean) => React.ReactNode }) => (
@@ -32,7 +30,8 @@ vi.mock('~/components/Icon', () => ({
 }))
 
 vi.mock('~/components/Loaders', () => ({
-	LocalLoader: () => <div>loader</div>
+	LocalLoader: () => <div>loader</div>,
+	LoadingSpinner: () => <div>spinner</div>
 }))
 
 vi.mock('~/components/Select/SelectWithCombobox', () => ({
@@ -42,22 +41,24 @@ vi.mock('~/components/Select/SelectWithCombobox', () => ({
 vi.mock('~/containers/Yields/Tables/Optimizer', () => ({
 	PaginatedYieldsOptimizerTable: ({
 		data,
-		initialPageSize
+		initialPageSize,
+		initialPageIndex
 	}: {
 		data: Array<{ symbol: string; borrow: { symbol: string } }>
 		initialPageSize?: number
-	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}`}</div>
+		initialPageIndex?: number
+	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}:${initialPageIndex ?? 0}`}</div>
 }))
 
-vi.mock('./useTokenStrategies', () => ({
-	useTokenStrategies: () => strategiesState
+vi.mock('./useTokenBorrowRoutes', () => ({
+	useTokenBorrowRoutes: (_tokenSymbol: string, options?: { enabled?: boolean }) =>
+		options?.enabled === false ? { data: undefined, error: null, isLoading: false } : strategiesState
 }))
 
 afterEach(() => {
 	strategiesState.data = {
 		borrowAsCollateral: [],
-		borrowAsDebt: [],
-		longShort: []
+		borrowAsDebt: []
 	}
 	strategiesState.error = null
 	strategiesState.isLoading = false
@@ -66,6 +67,70 @@ afterEach(() => {
 })
 
 import { TokenBorrowSection, filterBorrowRows } from './TokenBorrowSection'
+
+function makeBorrowRow(
+	overrides: Partial<IYieldsOptimizerTableRow> = {},
+	borrowOverrides: Partial<IYieldsOptimizerTableRow> = {}
+): IYieldsOptimizerTableRow {
+	const borrowRow: IYieldsOptimizerTableRow = {
+		pool: 'ETH-USDC',
+		projectslug: 'aave-v3',
+		project: 'Aave',
+		projectName: 'Aave',
+		chains: ['Ethereum'],
+		tvl: 1_000_000,
+		apy: 5,
+		apyBase: 4,
+		apyReward: 1,
+		rewardTokensSymbols: [],
+		rewards: [],
+		change1d: null,
+		change7d: null,
+		confidence: null,
+		url: 'https://example.com/pool',
+		category: 'Lending',
+		configID: 'pool-1',
+		symbol: 'USDC',
+		borrow: undefined as unknown as IYieldsOptimizerTableRow,
+		rewardTokensNames: [],
+		totalAvailableUsd: 500_000,
+		lendUSDAmount: 0,
+		borrowUSDAmount: 0,
+		lendAmount: 0,
+		borrowAmount: 0,
+		...borrowOverrides
+	}
+	borrowRow.borrow = borrowRow
+
+	return {
+		pool: 'ETH-USDC',
+		projectslug: 'aave-v3',
+		project: 'Aave',
+		projectName: 'Aave',
+		chains: ['Ethereum'],
+		tvl: 1_000_000,
+		apy: 5,
+		apyBase: 4,
+		apyReward: 1,
+		rewardTokensSymbols: [],
+		rewards: [],
+		change1d: null,
+		change7d: null,
+		confidence: null,
+		url: 'https://example.com/pool',
+		category: 'Lending',
+		configID: 'pool-1',
+		symbol: 'ETH',
+		borrow: borrowRow,
+		rewardTokensNames: [],
+		totalAvailableUsd: 500_000,
+		lendUSDAmount: 0,
+		borrowUSDAmount: 0,
+		lendAmount: 0,
+		borrowAmount: 0,
+		...overrides
+	}
+}
 
 describe('TokenBorrowSection', () => {
 	it('shows a loader while shared token strategies are loading', () => {
@@ -82,21 +147,8 @@ describe('TokenBorrowSection', () => {
 
 	it('shows the default use-token table with pagination', () => {
 		strategiesState.data = {
-			borrowAsCollateral: [
-				{
-					symbol: 'ETH',
-					borrow: { symbol: 'USDC', totalAvailableUsd: 500000 },
-					chains: ['Ethereum']
-				}
-			],
-			borrowAsDebt: [
-				{
-					symbol: 'WBTC',
-					borrow: { symbol: 'ETH', totalAvailableUsd: 250000 },
-					chains: ['Ethereum']
-				}
-			],
-			longShort: []
+			borrowAsCollateral: [makeBorrowRow()],
+			borrowAsDebt: [makeBorrowRow({ symbol: 'WBTC' }, { symbol: 'ETH', totalAvailableUsd: 250000 })]
 		}
 		strategiesState.error = null
 		strategiesState.isLoading = false
@@ -105,7 +157,58 @@ describe('TokenBorrowSection', () => {
 
 		expect(html).toContain('Tracking 1 route')
 		expect(html).toContain('Available')
-		expect(html).toContain('optimizer-table:1:10')
+		expect(html).toContain('optimizer-table:1:10:0')
+	})
+
+	it('renders prefetched strategies without waiting for a client fetch', () => {
+		strategiesState.data = undefined
+		strategiesState.error = null
+		strategiesState.isLoading = true
+
+		const html = renderToStaticMarkup(
+			<TokenBorrowSection
+				tokenSymbol="ETH"
+				initialData={{
+					borrowAsCollateral: [makeBorrowRow()],
+					borrowAsDebt: []
+				}}
+				initialCounts={{
+					borrowAsCollateral: 1,
+					borrowAsDebt: 0
+				}}
+			/>
+		)
+
+		expect(html).toContain('Tracking 1 route')
+		expect(html).toContain('optimizer-table:1:10:0')
+		expect(html).not.toContain('loader')
+	})
+
+	it('shows deferred pagination controls when only the first page is prefetched', () => {
+		strategiesState.data = undefined
+		strategiesState.error = null
+		strategiesState.isLoading = false
+
+		const html = renderToStaticMarkup(
+			<TokenBorrowSection
+				tokenSymbol="ETH"
+				initialData={{
+					borrowAsCollateral: [makeBorrowRow()],
+					borrowAsDebt: []
+				}}
+				initialCounts={{
+					borrowAsCollateral: 25,
+					borrowAsDebt: 0
+				}}
+				initialChains={{
+					borrowAsCollateral: ['Ethereum'],
+					borrowAsDebt: []
+				}}
+			/>
+		)
+
+		expect(html).toContain('Showing 1 of 25 routes')
+		expect(html).toContain('Page 1 of 3')
 	})
 
 	it('renders both borrow tab labels', () => {

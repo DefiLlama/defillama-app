@@ -35,4 +35,19 @@ describe('YIELDS_TABLE_CONFIGS', () => {
 		expect(orderedIds).not.toContain('apyMedian30d')
 		expect(orderedIds).not.toContain('apyStd30d')
 	})
+
+	it('keeps paginated rendering stable without a client breakpoint width', () => {
+		const columns = preparePaginatedYieldsColumns(YIELDS_TABLE_CONFIGS.pools, basePoolsContext)
+		const orderedIds = columns
+			.map((column) =>
+				'id' in column && typeof column.id === 'string'
+					? column.id
+					: 'accessorKey' in column
+						? column.accessorKey
+						: undefined
+			)
+			.filter(Boolean)
+
+		expect(orderedIds.slice(0, 6)).toEqual(['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase'])
+	})
 })

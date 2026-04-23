@@ -2,7 +2,7 @@ import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
-import { fetchProtocolEmission, fetchAllProtocolEmissions, fetchEmissionsProtocolsList } from './api'
+import { fetchProtocolEmission, fetchAllProtocolEmissions } from './api'
 import type {
 	EmissionsDataset,
 	EmissionsChartRow,
@@ -763,7 +763,7 @@ function extractColorFromMap(res: ProtocolEmissionDetail): Record<string, string
 	return map
 }
 
-function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
+export function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 	return {
 		chartData: { documented: [], realtime: [] },
 		pieChartData: { documented: [], realtime: [] },
@@ -796,11 +796,33 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 	}
 }
 
-export const getProtocolEmissons = async (protocolName: string): Promise<ProtocolEmissionResult> => {
+export function isEmptyProtocolEmissionResult(result: ProtocolEmissionResult | null | undefined): boolean {
+	if (!result) return true
+
+	return (
+		result.categories.documented.length === 0 && result.categories.realtime.length === 0 && result.events.length === 0
+	)
+}
+
+export const getProtocolEmissons = async (
+	protocolName: string,
+	options?: {
+		emissionsProtocolsList?: string[]
+		skipAvailabilityCheck?: boolean
+	}
+): Promise<ProtocolEmissionResult> => {
 	try {
 		const emptyResult = createEmptyProtocolEmissionResult()
-		const list = await fetchEmissionsProtocolsList()
-		if (!list.includes(protocolName)) return emptyResult
+		if (!protocolName) return emptyResult
+
+		const shouldCheckAvailability = !options?.skipAvailabilityCheck
+		if (
+			shouldCheckAvailability &&
+			options?.emissionsProtocolsList &&
+			!options.emissionsProtocolsList.includes(protocolName)
+		) {
+			return emptyResult
+		}
 
 		const [res, allEmissions] = await Promise.all([
 			fetchProtocolEmission(protocolName),

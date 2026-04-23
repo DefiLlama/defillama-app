@@ -258,6 +258,10 @@ type CoinGeckoCurrencyNumberMap = Partial<Record<string, number | null>>
 
 interface CoinGeckoCoinMarketData {
 	current_price?: CoinGeckoCurrencyNumberMap
+	ath?: CoinGeckoCurrencyNumberMap
+	ath_date?: Partial<Record<string, string | null>>
+	atl?: CoinGeckoCurrencyNumberMap
+	atl_date?: Partial<Record<string, string | null>>
 	market_cap?: CoinGeckoCurrencyNumberMap
 	fully_diluted_valuation?: CoinGeckoCurrencyNumberMap
 	total_volume?: CoinGeckoCurrencyNumberMap

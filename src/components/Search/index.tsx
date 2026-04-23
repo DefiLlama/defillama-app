@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
 import { searchApi } from '~/api'
@@ -12,6 +12,8 @@ import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
 import { fetchJson } from '~/utils/async'
 
+const SEARCH_PAGE_SIZE = 20
+
 async function getDefaultSearchList() {
 	try {
 		const data = await fetchJson('https://defillama-datasets.llama.fi/searchlist.json')
@@ -20,8 +22,8 @@ async function getDefaultSearchList() {
 		throw new Error(error instanceof Error ? error.message : 'Unknown error')
 	}
 }
-async function fetchSearchList(query: string): Promise<Array<ISearchItem>> {
-	return searchApi<ISearchItem>({ indexUid: 'pages', limit: 20, offset: 0, q: query })
+async function fetchSearchPage(query: string, offset: number): Promise<Array<ISearchItem>> {
+	return searchApi<ISearchItem>({ indexUid: 'pages', limit: SEARCH_PAGE_SIZE, offset, q: query })
 }
 
 interface ISearchItem {
@@ -108,7 +110,7 @@ export const MobileSearch = () => {
 
 function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; onSelect: () => void }) {
 	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
-	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+	const { data, isLoading, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useSearch(debouncedSearchValue)
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
 
@@ -124,7 +126,7 @@ function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; o
 		if (error) {
 			return <p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
 		}
-		if (!data?.length) {
+		if (!data.length) {
 			return <p className="flex items-center justify-center p-4">No results found</p>
 		}
 		return (
@@ -132,6 +134,7 @@ function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; o
 				{data.map((route: ISearchItem) => (
 					<SearchItem key={`m-srch-data-${route.name}-${route.route}`} route={route} onSelect={onSelect} />
 				))}
+				{hasNextPage ? <SeeMoreButton isLoading={isFetchingNextPage} onClick={() => fetchNextPage()} /> : null}
 			</>
 		)
 	}
@@ -197,7 +200,7 @@ export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boo
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
 	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
-	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+	const { data, isLoading, error, hasNextPage, isFetchingNextPage, fetchNextPage } = useSearch(debouncedSearchValue)
 
 	return (
 		<>
@@ -261,12 +264,17 @@ export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boo
 								</p>
 							) : error ? (
 								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-							) : !data?.length ? (
+							) : !data.length ? (
 								<p className="flex items-center justify-center p-4">No results found</p>
 							) : (
-								data.map((route: ISearchItem) => (
-									<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
-								))
+								<>
+									{data.map((route: ISearchItem) => (
+										<SearchItem key={`gs-${route.name}-${route.route}-${route.subName}`} route={route} />
+									))}
+									{hasNextPage ? (
+										<SeeMoreButton isLoading={isFetchingNextPage} onClick={() => fetchNextPage()} />
+									) : null}
+								</>
 							)
 						) : isLoadingDefaultSearchList ? (
 							<p className="flex items-center justify-center gap-1 p-4">
@@ -360,6 +368,26 @@ const SearchItem = ({
 	)
 }
 
+const SeeMoreButton = ({ isLoading, onClick }: { isLoading: boolean; onClick: () => void }) => {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			disabled={isLoading}
+			className="flex w-full items-center justify-center gap-1 px-2 py-2 text-sm text-(--link-text) hover:bg-(--link-bg) disabled:opacity-60 lg:px-4"
+		>
+			{isLoading ? (
+				<>
+					Loading
+					<LoadingDots />
+				</>
+			) : (
+				'See more'
+			)}
+		</button>
+	)
+}
+
 const setRecentSearch = (route: ISearchItem) => {
 	const recentSearch = window.localStorage.getItem('recentSearch')
 	const recentSearchArray = JSON.parse(recentSearch ?? '[]')
@@ -402,11 +430,25 @@ const useDefaultSearchList = () => {
 }
 
 function useSearch(searchValue: string) {
-	return useQuery({
+	const query = useInfiniteQuery({
 		queryKey: ['search', 'results', searchValue],
-		queryFn: () => fetchSearchList(searchValue),
+		queryFn: ({ pageParam }) => fetchSearchPage(searchValue, pageParam),
+		initialPageParam: 0,
+		getNextPageParam: (lastPage, allPages) =>
+			lastPage.length === SEARCH_PAGE_SIZE ? allPages.length * SEARCH_PAGE_SIZE : undefined,
 		enabled: searchValue.length > 0,
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
+
+	const data = useMemo(() => query.data?.pages.flat() ?? [], [query.data])
+
+	return {
+		data,
+		isLoading: query.isLoading,
+		error: query.error,
+		hasNextPage: query.hasNextPage,
+		isFetchingNextPage: query.isFetchingNextPage,
+		fetchNextPage: query.fetchNextPage
+	}
 }

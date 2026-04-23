@@ -11,10 +11,61 @@ import {
 } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
-import type { IChainsByCategoryData } from './types'
+import { applyChainsTvlSettings } from './tvl'
+import type { IChain, IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+
+const getChartExtraValues = ({
+	tvlChartsByChain,
+	chain,
+	date
+}: {
+	tvlChartsByChain: IChainsByCategoryData['tvlChartsByChain']
+	chain: string
+	date: string
+}) => ({
+	doublecounted: tvlChartsByChain.doublecounted?.[chain]?.[date],
+	liquidstaking: tvlChartsByChain.liquidstaking?.[chain]?.[date],
+	dcAndLsOverlap: tvlChartsByChain.dcAndLsOverlap?.[chain]?.[date],
+	staking: tvlChartsByChain.staking?.[chain]?.[date],
+	borrowed: tvlChartsByChain.borrowed?.[chain]?.[date],
+	pool2: tvlChartsByChain.pool2?.[chain]?.[date],
+	vesting: tvlChartsByChain.vesting?.[chain]?.[date]
+})
+
+const getTotalExtraValues = ({
+	totalTvlByDate,
+	date
+}: {
+	totalTvlByDate: IChainsByCategoryData['totalTvlByDate']
+	date: string
+}) => ({
+	doublecounted: totalTvlByDate.doublecounted?.[date],
+	liquidstaking: totalTvlByDate.liquidstaking?.[date],
+	dcAndLsOverlap: totalTvlByDate.dcAndLsOverlap?.[date],
+	staking: totalTvlByDate.staking?.[date],
+	borrowed: totalTvlByDate.borrowed?.[date],
+	pool2: totalTvlByDate.pool2?.[date],
+	vesting: totalTvlByDate.vesting?.[date]
+})
+
+const getChainRowExtraValues = ({
+	chain,
+	metric
+}: {
+	chain: IChain
+	metric: 'tvl' | 'tvlPrevDay' | 'tvlPrevWeek' | 'tvlPrevMonth'
+}) => ({
+	doublecounted: chain.extraTvl?.doublecounted?.[metric],
+	liquidstaking: chain.extraTvl?.liquidstaking?.[metric],
+	dcAndLsOverlap: chain.extraTvl?.dcAndLsOverlap?.[metric],
+	staking: chain.extraTvl?.staking?.[metric],
+	borrowed: chain.extraTvl?.borrowed?.[metric],
+	pool2: chain.extraTvl?.pool2?.[metric],
+	vesting: chain.extraTvl?.vesting?.[metric]
+})
 
 export function ChainsByCategory({
 	chains,
@@ -103,17 +154,19 @@ const useFormatChartData = ({
 		for (const chain of chainNames) {
 			let lastValue: number | undefined
 			for (const date in totalTvlByDate['tvl']) {
-				let total = totalTvlByDate['tvl'][date]
-				let value = tvlChartsByChain['tvl']?.[chain]?.[date]
-				for (const key of toggledTvlSettings) {
-					if (tvlChartsByChain[key]?.[chain]?.[date] != null) {
-						value = (value ?? 0) + (tvlChartsByChain[key]?.[chain]?.[date] ?? 0)
-					}
-					total += totalTvlByDate?.[key]?.[date] ?? 0
-				}
-				lastValue = value
+				const value = applyChainsTvlSettings(
+					tvlChartsByChain['tvl']?.[chain]?.[date],
+					getChartExtraValues({ tvlChartsByChain, chain, date }),
+					toggledTvlSettings
+				)
+				const total = applyChainsTvlSettings(
+					totalTvlByDate['tvl'][date],
+					getTotalExtraValues({ totalTvlByDate, date }),
+					toggledTvlSettings
+				)
+				lastValue = value ?? undefined
 				const row = rowMap.get(+date) ?? { timestamp: +date }
-				row[chain] = value != null ? (value / total) * 100 : null
+				row[chain] = value != null && total != null && total !== 0 ? (value / total) * 100 : null
 				rowMap.set(+date, row)
 			}
 			recentTvlByChain[chain] = lastValue ?? 0
@@ -168,28 +221,29 @@ export const useGroupAndFormatChains = ({
 			(item) => chainsGroupbyParent[item.key]
 		).map((item) => item.key)
 		const { minTvl, maxTvl } = JSON.parse(minMaxTvl)
-		const toggledTvlSettingsSet = new Set(toggledTvlSettings)
 
 		const data = chains
 			.map((chain) => {
-				let finalTvl: number | null = chain.tvl
-				let finalTvlPrevDay: number | null = chain.tvlPrevDay
-				let finalTvlPrevWeek: number | null = chain.tvlPrevWeek
-				let finalTvlPrevMonth: number | null = chain.tvlPrevMonth
-
-				for (const key of toggledTvlSettings) {
-					finalTvl = (finalTvl ?? 0) + (chain.extraTvl?.[key]?.tvl ?? 0)
-					finalTvlPrevDay = (finalTvlPrevDay ?? 0) + (chain.extraTvl?.[key]?.tvlPrevDay ?? 0)
-					finalTvlPrevWeek = (finalTvlPrevWeek ?? 0) + (chain.extraTvl?.[key]?.tvlPrevWeek ?? 0)
-					finalTvlPrevMonth = (finalTvlPrevMonth ?? 0) + (chain.extraTvl?.[key]?.tvlPrevMonth ?? 0)
-				}
-
-				if (toggledTvlSettingsSet.has('doublecounted') && toggledTvlSettingsSet.has('liquidstaking')) {
-					finalTvl = (finalTvl ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvl ?? 0)
-					finalTvlPrevDay = (finalTvlPrevDay ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvlPrevDay ?? 0)
-					finalTvlPrevWeek = (finalTvlPrevWeek ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvlPrevWeek ?? 0)
-					finalTvlPrevMonth = (finalTvlPrevMonth ?? 0) - (chain.extraTvl?.dcAndLsOverlap?.tvlPrevMonth ?? 0)
-				}
+				const finalTvl = applyChainsTvlSettings(
+					chain.tvl,
+					getChainRowExtraValues({ chain, metric: 'tvl' }),
+					toggledTvlSettings
+				)
+				const finalTvlPrevDay = applyChainsTvlSettings(
+					chain.tvlPrevDay,
+					getChainRowExtraValues({ chain, metric: 'tvlPrevDay' }),
+					toggledTvlSettings
+				)
+				const finalTvlPrevWeek = applyChainsTvlSettings(
+					chain.tvlPrevWeek,
+					getChainRowExtraValues({ chain, metric: 'tvlPrevWeek' }),
+					toggledTvlSettings
+				)
+				const finalTvlPrevMonth = applyChainsTvlSettings(
+					chain.tvlPrevMonth,
+					getChainRowExtraValues({ chain, metric: 'tvlPrevMonth' }),
+					toggledTvlSettings
+				)
 
 				const change_1d = getPercentChange(finalTvl, finalTvlPrevDay)
 				const change_7d = getPercentChange(finalTvl, finalTvlPrevWeek)

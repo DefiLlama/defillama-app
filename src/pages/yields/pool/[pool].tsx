@@ -11,6 +11,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
+import { NotFoundPage } from '~/components/NotFoundPage'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
@@ -466,6 +467,101 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 	dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 }
 
+export function ProtocolInformationCard({
+	category,
+	projectName,
+	projectSlug,
+	config,
+	url
+}: {
+	category: string
+	projectName: string
+	projectSlug: string
+	config: any
+	url: string
+}) {
+	return (
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h3 className="text-base font-semibold">Information</h3>
+			{projectName && projectSlug ? (
+				<p className="flex items-center gap-1">
+					<span>Protocol:</span>
+					<BasicLink href={`/protocol/${projectSlug}`} className="hover:underline">
+						{projectName}
+					</BasicLink>
+				</p>
+			) : null}
+			<p className="flex items-center gap-1">
+				<span>Category:</span>
+				<BasicLink href={`/protocols/${slug(category)}`} className="hover:underline">
+					{category}
+				</BasicLink>
+			</p>
+
+			{config?.audits ? (
+				<>
+					<p className="flex items-center gap-1">
+						<span className="flex flex-nowrap items-center gap-1">
+							<span>Audits</span>
+							<QuestionHelper text="Audits are not a security guarantee" />
+							<span>:</span>
+						</span>
+						{config.audit_links?.length > 0 ? (
+							<Menu
+								name="Yes"
+								options={config.audit_links}
+								isExternal
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							/>
+						) : (
+							<span>No</span>
+						)}
+					</p>
+					{config.audit_note ? <p>Audit Note: {config.audit_note}</p> : null}
+				</>
+			) : null}
+			<div className="flex flex-wrap gap-2">
+				{url ? (
+					<a
+						href={url}
+						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Icon name="earth" className="h-3 w-3" />
+						<span>Website</span>
+					</a>
+				) : null}
+				{config?.github?.length
+					? config.github.map((github) => (
+							<a
+								href={`https://github.com/${github}`}
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+								target="_blank"
+								rel="noopener noreferrer"
+								key={`${config.name}-github-${github}`}
+							>
+								<Icon name="github" className="h-3 w-3" />
+								<span>{config.github.length === 1 ? 'GitHub' : github}</span>
+							</a>
+						))
+					: null}
+				{config?.twitter ? (
+					<a
+						href={`https://x.com/${config.twitter}`}
+						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Icon name="twitter" className="h-3 w-3" />
+						<span>Twitter</span>
+					</a>
+				) : null}
+			</div>
+		</div>
+	)
+}
+
 const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any; fetchingConfigData: boolean }) => {
 	const { query, isReady } = useRouter()
 	const isClient = useIsClient()
@@ -565,6 +661,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
 
 	const projectName = config?.name ?? ''
+	const projectSlug = poolData.project ?? ''
 	const url = poolData.url ?? ''
 	const category = config?.category ?? ''
 
@@ -1044,76 +1141,13 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 				</div>
 			) : null}
 
-			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-				<h3 className="text-base font-semibold">Protocol Information</h3>
-				<p className="flex items-center gap-1">
-					<span>Category:</span>
-					<BasicLink href={`/protocols/${slug(category)}`} className="hover:underline">
-						{category}
-					</BasicLink>
-				</p>
-
-				{config?.audits ? (
-					<>
-						<p className="flex items-center gap-1">
-							<span className="flex flex-nowrap items-center gap-1">
-								<span>Audits</span>
-								<QuestionHelper text="Audits are not a security guarantee" />
-								<span>:</span>
-							</span>
-							{config.audit_links?.length > 0 ? (
-								<Menu
-									name="Yes"
-									options={config.audit_links}
-									isExternal
-									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-								/>
-							) : (
-								<span>No</span>
-							)}
-						</p>
-						{config.audit_note ? <p>Audit Note: {config.audit_note}</p> : null}
-					</>
-				) : null}
-				<div className="flex flex-wrap gap-2">
-					{url ? (
-						<a
-							href={url}
-							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Icon name="earth" className="h-3 w-3" />
-							<span>Website</span>
-						</a>
-					) : null}
-					{config?.github?.length
-						? config.github.map((github) => (
-								<a
-									href={`https://github.com/${github}`}
-									className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-									target="_blank"
-									rel="noopener noreferrer"
-									key={`${config.name}-github-${github}`}
-								>
-									<Icon name="github" className="h-3 w-3" />
-									<span>{config.github.length === 1 ? 'GitHub' : github}</span>
-								</a>
-							))
-						: null}
-					{config?.twitter ? (
-						<a
-							href={`https://x.com/${config.twitter}`}
-							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							<Icon name="twitter" className="h-3 w-3" />
-							<span>Twitter</span>
-						</a>
-					) : null}
-				</div>
-			</div>
+			<ProtocolInformationCard
+				category={category}
+				projectName={projectName}
+				projectSlug={projectSlug}
+				config={config}
+				url={url}
+			/>
 			{modal}
 		</>
 	)
@@ -1132,13 +1166,18 @@ export default function YieldPoolPage(props) {
 	const poolId = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
 
 	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(poolId)
-	const poolData = pool?.data?.[0] ?? {}
+	const poolData = pool?.data?.[0]
+	const shouldRenderNotFound = isReady && !fetchingPoolData && !poolData
 
-	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData?.project ?? '')
 
-	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
+	if (shouldRenderNotFound) {
+		return <NotFoundPage />
+	}
+
+	const poolName = poolData?.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData?.symbol ?? '')
 	const projectName = config?.name ?? ''
-	const chain = poolData.chain ?? ''
+	const chain = poolData?.chain ?? ''
 
 	const poolLabel =
 		poolName && projectName && chain ? `${poolName} (${projectName} - ${chain})` : poolName || poolId || ''

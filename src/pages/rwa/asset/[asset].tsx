@@ -14,6 +14,18 @@ function safeDecodeAssetParam(value: string): string {
 	}
 }
 
+function resolveCanonicalMarketId(assetParam: string, idMap: Record<string, string>): string | null {
+	const normalizedAssetParam = assetParam.toLowerCase()
+
+	for (const canonicalMarketId of Object.keys(idMap)) {
+		if (canonicalMarketId.toLowerCase() === normalizedAssetParam) {
+			return canonicalMarketId
+		}
+	}
+
+	return null
+}
+
 export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
@@ -42,10 +54,15 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const canonicalMarketId = safeDecodeAssetParam(params.asset)
+		const assetParam = safeDecodeAssetParam(params.asset)
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const rwaList = metadataCache.rwaList
+		const canonicalMarketId = resolveCanonicalMarketId(assetParam, rwaList.idMap)
+		if (!canonicalMarketId) {
+			return { notFound: true }
+		}
+
 		const assetId = rwaList.idMap[canonicalMarketId] ?? null
 		if (!assetId) {
 			return { notFound: true }

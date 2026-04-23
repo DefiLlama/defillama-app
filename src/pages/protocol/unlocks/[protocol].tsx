@@ -40,7 +40,8 @@ export const getStaticProps = withPerformanceLogging(
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
 			normalizedName,
-			metadataCache.tokenlist
+			metadataCache.tokenlist,
+			metadataCache.emissionsProtocolsList
 		)
 		if (!emissions) {
 			return { notFound: true }

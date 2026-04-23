@@ -122,6 +122,8 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 					type="text"
 					name="newTitle"
 					defaultValue={session.title}
+					autoFocus
+					onFocus={(e) => e.currentTarget.select()}
 					className="flex-1 overflow-hidden p-1.5 text-left text-xs text-ellipsis whitespace-nowrap"
 					disabled={isUpdatingTitle}
 				/>

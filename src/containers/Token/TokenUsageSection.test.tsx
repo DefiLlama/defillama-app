@@ -1,6 +1,42 @@
+import { flexRender } from '@tanstack/react-table'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+
+const { DynamicPaginatedTable } = vi.hoisted(() => ({
+	DynamicPaginatedTable: ({ table, pageSizeOptions }: any) => {
+		const rows = table.getRowModel().rows
+		const rowCount = table.getRowCount()
+		const { pageIndex, pageSize } = table.getState().pagination
+		const availablePageSizeOptions = pageSizeOptions.filter((pageSizeOption: number) => pageSizeOption <= rowCount)
+		const pageCount = Math.max(1, table.getPageCount())
+
+		return (
+			<div>
+				{rows.map((row: any) => (
+					<div key={row.id}>
+						{row.getVisibleCells().map((cell: any) => (
+							<span key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
+						))}
+					</div>
+				))}
+				{rowCount > 10 && pageCount > 1 ? <span>{`Page ${pageIndex + 1} of ${pageCount}`}</span> : null}
+				{rowCount > 10 && availablePageSizeOptions.length >= 2 ? (
+					<label>
+						<span>Rows per page</span>
+						<select defaultValue={String(pageSize)}>
+							{availablePageSizeOptions.map((pageSizeOption: number) => (
+								<option key={pageSizeOption} value={String(pageSizeOption)}>
+									{pageSizeOption}
+								</option>
+							))}
+						</select>
+					</label>
+				) : null}
+			</div>
+		)
+	}
+}))
 
 var authState = {
 	authorizedFetch: vi.fn(),
@@ -25,6 +61,10 @@ vi.mock('next/router', () => ({
 
 vi.mock('@ariakit/react', () => ({
 	useDialogStore: () => ({ show: vi.fn() })
+}))
+
+vi.mock('next/dynamic', () => ({
+	default: () => DynamicPaginatedTable
 }))
 
 vi.mock('@tanstack/react-query', () => ({
@@ -57,6 +97,10 @@ vi.mock('~/components/Table/SortIcon', () => ({
 
 vi.mock('~/components/Table/utils', () => ({
 	prepareTableCsv: vi.fn(() => ({ filename: 'token-usage', rows: [] }))
+}))
+
+vi.mock('~/components/Table/PaginatedTable', () => ({
+	PaginatedTable: DynamicPaginatedTable
 }))
 
 vi.mock('~/components/TokenLogo', () => ({
@@ -197,8 +241,8 @@ describe('TokenUsageSection', () => {
 		expect(defaultHtml).toContain('Rows per page')
 		expect(defaultHtml).toContain('<option value="10" selected="">10</option>')
 		expect(defaultHtml).toContain('<option value="20">20</option>')
-		expect(defaultHtml).toContain('<option value="30">30</option>')
-		expect(defaultHtml).toContain('<option value="50">50</option>')
+		expect(defaultHtml).not.toContain('<option value="30">30</option>')
+		expect(defaultHtml).not.toContain('<option value="50">50</option>')
 		expect(defaultHtml).toContain('Page 1 of 3')
 		expect(expandedPageHtml).toContain('Protocol 2')
 		expect(expandedPageHtml).toContain('Protocol 11')

@@ -2,9 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('~/containers/LiquidationsV2/queries', () => ({
-	getLiquidationsOverviewPageData: vi.fn(),
-	getLiquidationsProtocolPageData: vi.fn(),
-	getLiquidationsChainPageData: vi.fn()
+	getLiquidationsOverviewPageDataFromNetwork: vi.fn(),
+	getLiquidationsProtocolPageDataFromNetwork: vi.fn(),
+	getLiquidationsChainPageDataFromNetwork: vi.fn(),
+	getTokenLiquidationsSectionDataFromNetwork: vi.fn()
 }))
 
 vi.mock('~/utils/apiAuth', () => ({
@@ -15,25 +16,37 @@ vi.mock('~/utils/metadata', () => ({
 	__esModule: true,
 	default: {
 		chainMetadata: {},
-		protocolMetadata: {}
+		protocolMetadata: {},
+		liquidationsTokenSymbolsSet: new Set(['WSTETH'])
 	},
 	refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 }))
 
 import {
-	getLiquidationsChainPageData,
-	getLiquidationsOverviewPageData,
-	getLiquidationsProtocolPageData
+	getLiquidationsChainPageDataFromNetwork,
+	getLiquidationsOverviewPageDataFromNetwork,
+	getLiquidationsProtocolPageDataFromNetwork,
+	getTokenLiquidationsSectionDataFromNetwork
 } from '~/containers/LiquidationsV2/queries'
 import chainHandler from '~/pages/api/liquidations/[protocol]/[chain]'
 import protocolHandler from '~/pages/api/liquidations/[protocol]/index'
 import overviewHandler from '~/pages/api/liquidations/index'
+import tokenHandler from '~/pages/api/token-liquidations/[symbol]'
 import { validateSubscription } from '~/utils/apiAuth'
 
 const mockedValidateSubscription = validateSubscription as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsOverviewPageData = getLiquidationsOverviewPageData as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsProtocolPageData = getLiquidationsProtocolPageData as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsChainPageData = getLiquidationsChainPageData as unknown as ReturnType<typeof vi.fn>
+const mockedGetLiquidationsOverviewPageData = getLiquidationsOverviewPageDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
+const mockedGetLiquidationsProtocolPageData = getLiquidationsProtocolPageDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
+const mockedGetLiquidationsChainPageData = getLiquidationsChainPageDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
+const mockedGetTokenLiquidationsSectionData = getTokenLiquidationsSectionDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
 
 function createRes() {
 	const res: Partial<NextApiResponse> = {
@@ -151,6 +164,52 @@ describe('liquidations api routes', () => {
 		)
 	})
 
+	it('returns token liquidations for authorized requests', async () => {
+		const req = {
+			method: 'GET',
+			headers: { authorization: 'Bearer ok' },
+			query: { symbol: 'wsteth' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+		mockedGetTokenLiquidationsSectionData.mockResolvedValue({
+			tokenSymbol: 'WSTETH',
+			timestamp: 1,
+			positionCount: 2,
+			protocolCount: 2,
+			chainCount: 1,
+			totalCollateralUsd: 100,
+			distributionChart: { tokens: [] },
+			protocolRows: [],
+			chainRows: []
+		})
+
+		await tokenHandler(req, res)
+
+		expect(mockedValidateSubscription).toHaveBeenCalledWith('Bearer ok')
+		expect(res.status).toHaveBeenCalledWith(200)
+		expect(res.json).toHaveBeenCalledWith(
+			expect.objectContaining({
+				tokenSymbol: 'WSTETH',
+				totalCollateralUsd: 100
+			})
+		)
+	})
+
+	it('returns 404 when token liquidations are missing', async () => {
+		const req = {
+			method: 'GET',
+			headers: { authorization: 'Bearer ok' },
+			query: { symbol: 'missing' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+		mockedGetTokenLiquidationsSectionData.mockResolvedValue(null)
+
+		await tokenHandler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(404)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Token liquidations not found' })
+	})
+
 	it('returns a 500 json error when overview auth validation throws', async () => {
 		const req = { method: 'GET', headers: { authorization: 'Bearer bad' }, query: {} } as unknown as NextApiRequest
 		const res = createRes()
@@ -190,5 +249,20 @@ describe('liquidations api routes', () => {
 
 		expect(res.status).toHaveBeenCalledWith(500)
 		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch liquidations chain data' })
+	})
+
+	it('returns a 500 json error when token auth validation throws', async () => {
+		const req = {
+			method: 'GET',
+			headers: { authorization: 'Bearer bad' },
+			query: { symbol: 'wsteth' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
+
+		await tokenHandler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(500)
+		expect(res.json).toHaveBeenCalledWith({ error: 'Failed to fetch token liquidations data' })
 	})
 })

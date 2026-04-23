@@ -5,9 +5,9 @@ import type {
 	LiquidationsOverviewPageProps,
 	LiquidationsProtocolPageProps,
 	RawAllLiquidationsResponse,
-	RawProtocolChainLiquidationsResponse,
 	RawProtocolLiquidationsResponse,
-	RawProtocolsResponse
+	RawProtocolsResponse,
+	TokenLiquidationsSectionData
 } from './api.types'
 
 export async function fetchProtocolsList(): Promise<RawProtocolsResponse> {
@@ -21,15 +21,6 @@ export async function fetchAllLiquidations(): Promise<RawAllLiquidationsResponse
 export async function fetchProtocolLiquidations(protocol: string): Promise<RawProtocolLiquidationsResponse> {
 	return fetchJson<RawProtocolLiquidationsResponse>(
 		`${LIQUIDATIONS_SERVER_URL_V2}/protocol/${encodeURIComponent(protocol)}?zz=14`
-	)
-}
-
-export async function fetchProtocolChainLiquidations(
-	protocol: string,
-	chain: string
-): Promise<RawProtocolChainLiquidationsResponse> {
-	return fetchJson<RawProtocolChainLiquidationsResponse>(
-		`${LIQUIDATIONS_SERVER_URL_V2}/protocol/${encodeURIComponent(protocol)}/${encodeURIComponent(chain)}?zz=14`
 	)
 }
 
@@ -74,6 +65,16 @@ export async function fetchLiquidationsChainClient(
 ): Promise<LiquidationsChainPageProps> {
 	return fetchLiquidationsClient<LiquidationsChainPageProps>(
 		`/api/liquidations/${encodeURIComponent(protocol)}/${encodeURIComponent(chain)}`,
+		fetchFn
+	)
+}
+
+export async function fetchTokenLiquidationsClient(
+	symbol: string,
+	fetchFn: ((url: string) => Promise<Response | null>) | typeof fetch = fetch
+): Promise<TokenLiquidationsSectionData> {
+	return fetchLiquidationsClient<TokenLiquidationsSectionData>(
+		`/api/token-liquidations/${encodeURIComponent(symbol.toUpperCase())}`,
 		fetchFn
 	)
 }
