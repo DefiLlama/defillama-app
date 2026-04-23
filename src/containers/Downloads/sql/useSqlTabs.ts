@@ -3,7 +3,7 @@ import { getStorageJSON, setStorageJSON } from '~/contexts/localStorageStore'
 import type { ChartConfig } from './chartConfig'
 import type { PendingTable } from './TableChipRail'
 
-const STORAGE_KEY = 'sql-studio:tabs:v1'
+const STORAGE_KEY = 'sql-studio:tabs:v2'
 const PERSIST_DEBOUNCE_MS = 250
 const MAX_TITLE = 40
 

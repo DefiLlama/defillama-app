@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
+import { getStorageJSON, setStorageJSON } from '~/contexts/localStorageStore'
 import type { ChartOptionsMap } from '../chart-datasets'
 import { chartDatasets } from '../chart-datasets'
 import { datasets } from '../datasets'
@@ -42,6 +43,7 @@ const SQL_TABS = [
 type SqlTab = (typeof SQL_TABS)[number]['id']
 
 const TOTAL_SCHEMA_COUNT = datasets.length + chartDatasets.length
+const PLAYBOOK_COLLAPSED_KEY = 'sql-studio:playbook-collapsed:v1'
 
 interface SqlWorkspaceProps {
 	chartOptionsMap: ChartOptionsMap
@@ -85,6 +87,16 @@ function SqlWorkspaceInner({
 	const [schemaDrawerOpen, setSchemaDrawerOpen] = useState(false)
 	const [savePresetOpen, setSavePresetOpen] = useState(false)
 	const [chartPreferredTab, setChartPreferredTab] = useState<string | null>(null)
+	const [playbookCollapsed, setPlaybookCollapsed] = useState<boolean>(() =>
+		getStorageJSON<boolean>(PLAYBOOK_COLLAPSED_KEY, false)
+	)
+	const togglePlaybook = useCallback(() => {
+		setPlaybookCollapsed((prev) => {
+			const next = !prev
+			setStorageJSON(PLAYBOOK_COLLAPSED_KEY, next)
+			return next
+		})
+	}, [])
 
 	const {
 		tabs,
@@ -676,7 +688,11 @@ function SqlWorkspaceInner({
 			<TabNav tab={sectionTab} onChange={setSectionTab} savedCount={savedQueries.length} />
 
 			{sectionTab === 'editor' ? (
-				<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+				<div
+					className={`grid grid-cols-1 gap-4 ${
+						playbookCollapsed ? 'lg:grid-cols-[minmax(0,1fr)_44px]' : 'lg:grid-cols-[minmax(0,1fr)_320px]'
+					}`}
+				>
 					<div className="flex min-w-0 flex-col gap-3">
 						<QueryTabBar
 							tabs={tabs}
@@ -802,7 +818,12 @@ function SqlWorkspaceInner({
 						) : null}
 					</div>
 					<div className="lg:sticky lg:top-4 lg:self-start">
-						<ExamplesPanel onApply={onApplyExample} busyTaskId={activeTab.busyTaskId} />
+						<ExamplesPanel
+							onApply={onApplyExample}
+							busyTaskId={activeTab.busyTaskId}
+							collapsed={playbookCollapsed}
+							onToggleCollapsed={togglePlaybook}
+						/>
 					</div>
 				</div>
 			) : (

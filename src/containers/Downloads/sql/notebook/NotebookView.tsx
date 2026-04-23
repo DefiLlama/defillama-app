@@ -268,12 +268,11 @@ export function NotebookView({
 				<div className="flex items-center gap-2">
 					{promoteRunAll && hasRunnableSql ? (
 						<span className="hidden text-[11px] text-(--text-tertiary) sm:inline">
-							Not yet run —{' '}
-							<span className="tabular-nums text-(--text-secondary)">{runnableSqlCount}</span>{' '}
+							Not yet run — <span className="text-(--text-secondary) tabular-nums">{runnableSqlCount}</span>{' '}
 							{runnableSqlCount === 1 ? 'query' : 'queries'}
 							{chartCount > 0 ? (
 								<>
-									, <span className="tabular-nums text-(--text-secondary)">{chartCount}</span>{' '}
+									, <span className="text-(--text-secondary) tabular-nums">{chartCount}</span>{' '}
 									{chartCount === 1 ? 'chart' : 'charts'}
 								</>
 							) : null}
