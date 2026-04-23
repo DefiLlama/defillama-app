@@ -6,7 +6,7 @@ const { getTokenYieldsRowsMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('~/containers/Token/tokenYields.server', () => ({
-	getTokenYieldsRows: getTokenYieldsRowsMock
+	getTokenYieldsRowsFromNetwork: getTokenYieldsRowsMock
 }))
 
 import handler from '~/pages/api/datasets/yields'

@@ -6,7 +6,7 @@ const { getTokenBorrowRoutesDataMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('~/containers/Token/tokenBorrowRoutes.server', () => ({
-	getTokenBorrowRoutesData: getTokenBorrowRoutesDataMock
+	getTokenBorrowRoutesDataFromNetwork: getTokenBorrowRoutesDataMock
 }))
 
 import handler from '~/pages/api/datasets/yields-token-borrow-routes'

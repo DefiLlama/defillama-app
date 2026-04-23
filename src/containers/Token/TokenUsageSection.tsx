@@ -9,6 +9,7 @@ import {
 	getSortedRowModel,
 	useReactTable
 } from '@tanstack/react-table'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -16,7 +17,6 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
-import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -39,6 +39,13 @@ const DEFAULT_SORTING: SortingState = [{ desc: true, id: 'amountUsd' }]
 const TOKEN_USAGE_SECTION_ID = 'token-usage'
 const columnHelper = createColumnHelper<TokenUsageSectionRow>()
 const TOKEN_USAGE_NAME_MAX_WIDTH = 'max-sm:max-w-[clamp(160px,40vw,260px)]'
+
+const DeferredPaginatedTable = dynamic(
+	() => import('~/components/Table/PaginatedTable').then((mod) => mod.PaginatedTable),
+	{
+		loading: () => <div className="min-h-[360px]" />
+	}
+) as typeof import('~/components/Table/PaginatedTable').PaginatedTable
 
 const columns = [
 	columnHelper.accessor('name', {
@@ -282,7 +289,7 @@ export function TokenUsageSection({
 							<p className="text-sm text-(--text-label)">No token usage entries found.</p>
 						</div>
 					) : (
-						<PaginatedTable
+						<DeferredPaginatedTable
 							table={table}
 							pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS}
 							tableClassName="mx-auto w-auto min-w-[720px] max-w-full"

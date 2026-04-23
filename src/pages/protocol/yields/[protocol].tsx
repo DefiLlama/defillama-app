@@ -15,15 +15,17 @@ import { ALL_POOL_COLUMN_QUERY_KEYS } from '~/containers/Yields/Filters/poolColu
 import { FilterByToken } from '~/containers/Yields/Filters/Tokens'
 import { useFormatYieldQueryParams } from '~/containers/Yields/hooks'
 import {
+	buildYieldTableRowsWithBorrowData,
 	buildPoolsTrackingStats,
 	filterPoolTableRows,
 	getPoolRowChains,
-	getPoolRowTokens,
-	mapPoolToYieldTableRow
+	getPoolRowTokens
 } from '~/containers/Yields/poolsPipeline'
 import { useHolderStats, useVolatility } from '~/containers/Yields/queries/client'
 import { clearYieldsQueries, hasActiveYieldsQueries } from '~/containers/Yields/queryState'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -65,32 +67,45 @@ export const getStaticProps = withPerformanceLogging(
 		const seoTitle = `${protocolData.name} Yield Pools & APY Rankings - DefiLlama`
 		const seoDescription = `Explore ${protocolData.name} yield pools, APY rankings, and liquidity farming opportunities across chains on DefiLlama.`
 		const protocolSlug = sluggifyProtocol(protocolData.name)
-		const otherProtocolsSet = new Set((protocolData.otherProtocols ?? []).map((op) => sluggifyProtocol(op)))
+		const otherProtocolsSet = new Set<string>()
+		for (const otherProtocol of protocolData.otherProtocols ?? []) {
+			otherProtocolsSet.add(sluggifyProtocol(otherProtocol))
+		}
 
 		let poolsError: string | null = null
-		let poolsList: any[] = []
+		let poolsList: IYieldTableRow[] = []
 		try {
-			const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
-			const yieldsData = await getYieldPageData()
-			const dataBorrow = await getLendBorrowData().catch(() => ({ props: { pools: [] as any[] } }))
-			const borrowByPool = new Map(dataBorrow.props.pools.map((i) => [i.pool, i]))
-			const allPools = (yieldsData?.props?.pools ?? []).map((p) => {
-				const x = borrowByPool.get(p.pool)
-				return {
-					...p,
-					apyBaseBorrow: x?.apyBaseBorrow ?? null,
-					apyRewardBorrow: x?.apyRewardBorrow ?? null,
-					apyBorrow: x?.apyBorrow ?? null,
-					totalSupplyUsd: x?.totalSupplyUsd ?? null,
-					totalBorrowUsd: x?.totalBorrowUsd ?? null,
-					totalAvailableUsd: x?.totalAvailableUsd ?? null,
-					ltv: x?.ltv ?? null
+			if (!isDatasetCacheEnabled()) {
+				const { getYieldPageData, getLendBorrowData } = await import('~/containers/Yields/queries/index')
+				const yieldsData = await getYieldPageData()
+				const dataBorrow = await getLendBorrowData().catch(() => ({ props: { pools: [] as any[] } }))
+				const allRows = buildYieldTableRowsWithBorrowData(yieldsData?.props?.pools ?? [], dataBorrow.props.pools)
+				const rows: IYieldTableRow[] = []
+
+				for (const pool of allRows) {
+					if (
+						pool.projectslug !== protocolSlug &&
+						(protocolData.parentProtocol || !otherProtocolsSet.has(pool.projectslug))
+					) {
+						continue
+					}
+					rows.push(pool)
 				}
-			})
-			poolsList = allPools.filter(
-				(pool) =>
-					pool.project === protocolSlug || (protocolData.parentProtocol ? false : otherProtocolsSet.has(pool.project))
-			)
+
+				poolsList = rows
+			} else {
+				const protocolSlugs = [protocolSlug]
+				if (!protocolData.parentProtocol) {
+					for (const otherProtocolSlug of otherProtocolsSet) {
+						if (otherProtocolSlug !== protocolSlug) {
+							protocolSlugs.push(otherProtocolSlug)
+						}
+					}
+				}
+
+				const { getProtocolYieldRowsFromCache } = await import('~/server/datasetCache/yields')
+				poolsList = await getProtocolYieldRowsFromCache(protocolSlugs)
+			}
 		} catch (err) {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
 			poolsError = 'Failed to fetch'
@@ -144,9 +159,20 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const router = useRouter()
 	const { data: volatility } = useVolatility()
 	const poolsList = React.useMemo(() => props.poolsList ?? [], [props.poolsList])
-	const { data: holderStats } = useHolderStats(poolsList.map((pool) => pool.pool))
+	const { data: holderStats } = useHolderStats(poolsList.map((pool) => pool.configID))
 	const rowsWithStats = React.useMemo(
-		() => poolsList.map((pool) => mapPoolToYieldTableRow(pool, { volatility, holderStats })),
+		() =>
+			poolsList.map((pool) => ({
+				...pool,
+				apyMedian30d: volatility?.[pool.configID]?.[1] ?? pool.apyMedian30d ?? null,
+				apyStd30d: volatility?.[pool.configID]?.[2] ?? pool.apyStd30d ?? null,
+				cv30d: volatility?.[pool.configID]?.[3] ?? pool.cv30d ?? null,
+				holderCount: holderStats?.[pool.configID]?.holderCount ?? pool.holderCount ?? null,
+				avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? pool.avgPositionUsd ?? null,
+				top10Pct: holderStats?.[pool.configID]?.top10Pct ?? pool.top10Pct ?? null,
+				holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? pool.holderChange7d ?? null,
+				holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? pool.holderChange30d ?? null
+			})),
 		[poolsList, volatility, holderStats]
 	)
 	const chainList = React.useMemo(() => getPoolRowChains(rowsWithStats), [rowsWithStats])

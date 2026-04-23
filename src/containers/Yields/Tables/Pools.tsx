@@ -1071,12 +1071,15 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 export function PaginatedYieldsPoolTable({
 	data,
 	initialPageSize = DEFAULT_PAGE_SIZE_OPTIONS[0],
-	sortingState = []
+	initialPageIndex = 0,
+	sortingState = [],
+	onSortingChange,
+	interactionDisabled = false
 }: IYieldsTableProps) {
 	const { context, modal } = usePoolsTableContext()
 	const [sorting, setSorting] = useState<SortingState>([...sortingState])
 	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
+		pageIndex: initialPageIndex,
 		pageSize: initialPageSize
 	})
 
@@ -1097,7 +1100,11 @@ export function PaginatedYieldsPoolTable({
 		},
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
-			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+			startTransition(() => {
+				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
+				setSorting(nextSorting)
+				onSortingChange?.(nextSorting)
+			}),
 		onPaginationChange: (updater) =>
 			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		getCoreRowModel: getCoreRowModel(),
@@ -1108,7 +1115,11 @@ export function PaginatedYieldsPoolTable({
 
 	return (
 		<>
-			<PaginatedTable table={table} pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS} />
+			<PaginatedTable
+				table={table}
+				pageSizeOptions={DEFAULT_PAGE_SIZE_OPTIONS}
+				interactionDisabled={interactionDisabled}
+			/>
 			{modal}
 		</>
 	)

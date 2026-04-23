@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLiquidationsChainPageData } from '~/containers/LiquidationsV2/queries'
+import { getLiquidationsChainPageDataFromNetwork } from '~/containers/LiquidationsV2/queries'
+import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { validateSubscription } from '~/utils/apiAuth'
 
 export const config = {
@@ -32,10 +33,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
 
-		const data = await getLiquidationsChainPageData(protocol, chain, {
-			chainMetadata: metadataModule.default.chainMetadata,
-			protocolMetadata: metadataModule.default.protocolMetadata
-		})
+		const shouldUseDatasetCache = isDatasetCacheEnabled()
+		const data = shouldUseDatasetCache
+			? await (async () => {
+					const { getLiquidationsChainFromCache } = await import('~/server/datasetCache/liquidations')
+					return getLiquidationsChainFromCache(protocol, chain, {
+						chainMetadata: metadataModule.default.chainMetadata,
+						protocolMetadata: metadataModule.default.protocolMetadata
+					})
+				})()
+			: await getLiquidationsChainPageDataFromNetwork(protocol, chain, {
+					chainMetadata: metadataModule.default.chainMetadata,
+					protocolMetadata: metadataModule.default.protocolMetadata
+				})
 
 		if (!data) {
 			return res.status(404).json({ error: 'Liquidations chain not found' })

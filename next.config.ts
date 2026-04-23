@@ -2,6 +2,17 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
 	output: 'standalone',
+	outputFileTracingIncludes: {
+		'/token/*': ['./.cache/datasets/**/*'],
+		'/token-rights': ['./.cache/datasets/**/*'],
+		'/protocol/token-rights/*': ['./.cache/datasets/**/*'],
+		'/protocol/yields/*': ['./.cache/datasets/**/*'],
+		'/api/datasets/*': ['./.cache/datasets/**/*'],
+		'/api/token-liquidations/*': ['./.cache/datasets/**/*'],
+		'/api/liquidations': ['./.cache/datasets/**/*'],
+		'/api/liquidations/*': ['./.cache/datasets/**/*'],
+		'/api/liquidations/*/*': ['./.cache/datasets/**/*']
+	},
 	reactStrictMode: true,
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)

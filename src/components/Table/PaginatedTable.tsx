@@ -18,6 +18,7 @@ interface PaginatedTableProps<T extends RowData> {
 	pageSizeOptions: readonly number[]
 	className?: string
 	tableClassName?: string
+	interactionDisabled?: boolean
 }
 
 const DisplayRowNumbersContext = createContext<Map<string, number> | null>(null)
@@ -69,7 +70,8 @@ export function PaginatedTable<T extends RowData>({
 	table,
 	pageSizeOptions,
 	className,
-	tableClassName
+	tableClassName,
+	interactionDisabled = false
 }: PaginatedTableProps<T>) {
 	const rows = table.getRowModel().rows
 	const rowCount = table.getRowCount()
@@ -116,7 +118,11 @@ export function PaginatedTable<T extends RowData>({
 														<div className={headerAlignmentClass}>
 															<HeaderWithTooltip
 																content={header.column.columnDef.meta?.headerHelperText}
-																onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : null}
+																onClick={
+																	interactionDisabled || !header.column.getCanSort()
+																		? null
+																		: header.column.getToggleSortingHandler()
+																}
 															>
 																{flexRender(header.column.columnDef.header, header.getContext())}
 																{header.column.getCanSort() ? <SortIcon dir={header.column.getIsSorted()} /> : null}
@@ -157,7 +163,7 @@ export function PaginatedTable<T extends RowData>({
 										type="button"
 										aria-label="Go to first page"
 										onClick={() => startTransition(() => table.setPageIndex(0))}
-										disabled={!table.getCanPreviousPage()}
+										disabled={interactionDisabled || !table.getCanPreviousPage()}
 										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
 									>
 										<Icon name="chevrons-left" height={16} width={16} />
@@ -166,7 +172,7 @@ export function PaginatedTable<T extends RowData>({
 										type="button"
 										aria-label="Go to previous page"
 										onClick={() => startTransition(() => table.previousPage())}
-										disabled={!table.getCanPreviousPage()}
+										disabled={interactionDisabled || !table.getCanPreviousPage()}
 										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
 									>
 										<Icon name="chevron-left" height={16} width={16} />
@@ -178,7 +184,7 @@ export function PaginatedTable<T extends RowData>({
 										type="button"
 										aria-label="Go to next page"
 										onClick={() => startTransition(() => table.nextPage())}
-										disabled={!table.getCanNextPage()}
+										disabled={interactionDisabled || !table.getCanNextPage()}
 										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
 									>
 										<Icon name="chevron-right" height={16} width={16} />
@@ -187,7 +193,7 @@ export function PaginatedTable<T extends RowData>({
 										type="button"
 										aria-label="Go to last page"
 										onClick={() => startTransition(() => table.setPageIndex(Math.max(0, table.getPageCount() - 1)))}
-										disabled={!table.getCanNextPage()}
+										disabled={interactionDisabled || !table.getCanNextPage()}
 										className="rounded-md border border-(--cards-border) p-2 text-sm transition-colors hover:bg-(--cards-bg) disabled:cursor-not-allowed disabled:opacity-50"
 									>
 										<Icon name="chevrons-right" height={16} width={16} />
@@ -201,13 +207,14 @@ export function PaginatedTable<T extends RowData>({
 								<span className="text-(--text-secondary)">Rows per page</span>
 								<select
 									value={pageSize}
+									disabled={interactionDisabled}
 									onChange={(event) =>
 										startTransition(() => {
 											table.setPageSize(Number(event.target.value))
 											table.setPageIndex(0)
 										})
 									}
-									className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1"
+									className="rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-1 disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{availablePageSizeOptions.map((pageSizeOption) => (
 										<option key={pageSizeOption} value={pageSizeOption}>

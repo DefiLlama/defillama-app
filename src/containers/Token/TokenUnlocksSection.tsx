@@ -1,15 +1,22 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
-import { UnlocksCharts } from '~/containers/Unlocks/EmissionsByProtocol'
 import type { ProtocolEmissionResult } from '~/containers/Unlocks/types'
 
 const TOKEN_UNLOCKS_SECTION_ID = 'token-unlocks'
+
+const DeferredUnlocksCharts = dynamic(
+	() => import('~/containers/Unlocks/EmissionsByProtocol').then((mod) => mod.UnlocksCharts),
+	{
+		loading: () => <div className="min-h-[572px]" />
+	}
+)
 
 async function fetchTokenUnlocksClient(
 	resolvedUnlocksSlug: string,
@@ -121,7 +128,7 @@ export function TokenUnlocksSection({ resolvedUnlocksSlug }: { resolvedUnlocksSl
 		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			{sectionHeader}
 			<div className="flex flex-col gap-2 p-3">
-				<UnlocksCharts
+				<DeferredUnlocksCharts
 					protocolName={resolvedUnlocksSlug}
 					initialData={data}
 					disableClientTokenStatsFetch

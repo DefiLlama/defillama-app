@@ -3,11 +3,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
-import { getTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.server'
+import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
-import { getTokenYieldsRows } from '~/containers/Token/tokenYields.server'
-import { fetchTokenRightsData } from '~/containers/TokenRights/api'
+import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
+import { fetchTokenRightsEntryByDefillamaId } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
@@ -185,9 +185,35 @@ function resetState() {
 	}
 }
 
-vi.mock('~/constants', () => ({
-	SKIP_BUILD_STATIC_GENERATION: false
-}))
+function makeYieldRow(overrides: Partial<IYieldTableRow> = {}): IYieldTableRow {
+	return {
+		pool: 'stETH-ETH',
+		project: 'Aave',
+		projectslug: 'aave',
+		configID: 'pool-1',
+		chains: ['Ethereum'],
+		tvl: 1_000_000,
+		apy: 5.1,
+		apyBase: null,
+		apyReward: null,
+		rewardTokensSymbols: [],
+		rewards: [],
+		change1d: null,
+		change7d: null,
+		confidence: null,
+		url: 'https://example.com/pool-1',
+		category: 'Lending',
+		...overrides
+	}
+}
+
+vi.mock('~/constants', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('~/constants')>()
+	return {
+		...actual,
+		SKIP_BUILD_STATIC_GENERATION: false
+	}
+})
 
 vi.mock('~/containers/Token/TokenOverviewSection', () => ({
 	TokenOverviewSection: () => <section id="token-overview">token-overview-section</section>
@@ -248,7 +274,13 @@ vi.mock('~/utils/perf', () => ({
 }))
 
 vi.mock('~/containers/TokenRights/api', () => ({
-	fetchTokenRightsData: vi.fn(() => Promise.resolve(state.tokenRightsEntries))
+	fetchTokenRightsEntryByDefillamaId: vi.fn((defillamaId: string) =>
+		Promise.resolve(
+			(state.tokenRightsEntries as Array<Record<string, unknown>>).find(
+				(entry) => entry['DefiLlama ID'] === defillamaId
+			) ?? null
+		)
+	)
 }))
 
 vi.mock('~/utils/metadata', () => ({
@@ -301,11 +333,11 @@ vi.mock('~/containers/Token/tokenRiskTimeline.server', () => ({
 }))
 
 vi.mock('~/containers/Token/tokenYields.server', () => ({
-	getTokenYieldsRows: vi.fn(() => Promise.resolve(state.initialYieldsRows))
+	getTokenYieldsRowsFromNetwork: vi.fn(() => Promise.resolve(state.initialYieldsRows))
 }))
 
 vi.mock('~/containers/Token/tokenBorrowRoutes.server', () => ({
-	getTokenBorrowRoutesData: vi.fn(() => Promise.resolve(state.initialTokenBorrowRoutesData))
+	getTokenBorrowRoutesDataFromNetwork: vi.fn(() => Promise.resolve(state.initialTokenBorrowRoutesData))
 }))
 
 afterEach(() => {
@@ -326,12 +358,23 @@ describe('token page', () => {
 				tokenRiskData={{} as TokenRiskResponse}
 				tokenRiskTimelineData={null}
 				initialYieldsRows={[{ pool: 'pool-1' }] as IYieldTableRow[]}
+				initialYieldsRowCount={1}
+				initialYieldsChainList={[]}
+				initialYieldsTokensList={[]}
 				initialTokenBorrowRoutesData={
 					{
 						borrowAsCollateral: [{ pool: 'borrow-1' }],
 						borrowAsDebt: []
 					} as TokenBorrowRoutesResponse
 				}
+				initialTokenBorrowRoutesCounts={{
+					borrowAsCollateral: 1,
+					borrowAsDebt: 0
+				}}
+				initialTokenBorrowRoutesChainLists={{
+					borrowAsCollateral: [],
+					borrowAsDebt: []
+				}}
 				geckoId="bitcoin"
 				hasLiquidations
 				resolvedUnlocksSlug="chainlink"
@@ -412,7 +455,12 @@ describe('token page', () => {
 				tokenRiskData={null}
 				tokenRiskTimelineData={null}
 				initialYieldsRows={[]}
+				initialYieldsRowCount={0}
+				initialYieldsChainList={[]}
+				initialYieldsTokensList={[]}
 				initialTokenBorrowRoutesData={null}
+				initialTokenBorrowRoutesCounts={null}
+				initialTokenBorrowRoutesChainLists={null}
 				geckoId="bitcoin"
 				hasLiquidations={false}
 				overview={overviewFixture}
@@ -452,12 +500,23 @@ describe('token page', () => {
 				tokenRiskData={{} as TokenRiskResponse}
 				tokenRiskTimelineData={null}
 				initialYieldsRows={[]}
+				initialYieldsRowCount={0}
+				initialYieldsChainList={[]}
+				initialYieldsTokensList={[]}
 				initialTokenBorrowRoutesData={
 					{
 						borrowAsCollateral: [{ pool: 'borrow-1' }],
 						borrowAsDebt: []
 					} as TokenBorrowRoutesResponse
 				}
+				initialTokenBorrowRoutesCounts={{
+					borrowAsCollateral: 1,
+					borrowAsDebt: 0
+				}}
+				initialTokenBorrowRoutesChainLists={{
+					borrowAsCollateral: [],
+					borrowAsDebt: []
+				}}
 				geckoId="bitcoin"
 				hasLiquidations={false}
 				overview={overviewFixture}
@@ -509,7 +568,7 @@ describe('token page', () => {
 	})
 
 	it('getStaticProps resolves the route param by slugging the token key', async () => {
-		await expect(getStaticProps({ params: { token: 'BTC' } } as never)).resolves.toEqual({
+		await expect(getStaticProps({ params: { token: 'BTC' } } as never)).resolves.toMatchObject({
 			props: {
 				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC', mcap_rank: 1 },
 				displayName: 'BTC',
@@ -535,7 +594,7 @@ describe('token page', () => {
 	})
 
 	it('getStaticProps keeps the canonical URL metadata-defined for lowercase token params', async () => {
-		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toEqual({
+		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toMatchObject({
 			props: {
 				record: { name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin', route: '/token/BTC', mcap_rank: 1 },
 				displayName: 'BTC',
@@ -585,7 +644,7 @@ describe('token page', () => {
 		}
 		state.tokenlist = {}
 
-		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toEqual({
+		await expect(getStaticProps({ params: { token: 'btc' } } as never)).resolves.toMatchObject({
 			props: {
 				record: { name: 'Bitcoin', symbol: 'BTC', route: '/token/BTC' },
 				displayName: 'BTC',
@@ -633,7 +692,7 @@ describe('token page', () => {
 			}
 		}
 
-		await expect(getStaticProps({ params: { token: 'swing' } } as never)).resolves.toEqual({
+		await expect(getStaticProps({ params: { token: 'swing' } } as never)).resolves.toMatchObject({
 			props: {
 				record: { name: 'Swing.xyz', symbol: '$SWING', token_nk: 'coingecko:swing-xyz' },
 				displayName: 'Swing.xyz',
@@ -704,7 +763,7 @@ describe('token page', () => {
 				max_supply: 1000
 			}
 		}
-		await expect(getStaticProps({ params: { token: 'link' } } as never)).resolves.toEqual({
+		await expect(getStaticProps({ params: { token: 'link' } } as never)).resolves.toMatchObject({
 			props: {
 				record: {
 					name: 'Chainlink',
@@ -905,7 +964,7 @@ describe('token page', () => {
 			}
 		}
 
-		await expect(getStaticProps({ params: { token: 'aave' } } as never)).resolves.toEqual({
+		await expect(getStaticProps({ params: { token: 'aave' } } as never)).resolves.toMatchObject({
 			props: {
 				record: {
 					name: 'Aave',
@@ -956,7 +1015,7 @@ describe('token page', () => {
 				max_supply: 1000
 			}
 		}
-		state.initialYieldsRows = [{ pool: 'pool-1' }]
+		state.initialYieldsRows = [makeYieldRow({ pool: 'pool-1' })]
 		state.initialTokenBorrowRoutesData = {
 			borrowAsCollateral: [],
 			borrowAsDebt: []
@@ -972,10 +1031,66 @@ describe('token page', () => {
 
 		expect(result.props.tokenRiskData).toBeNull()
 		expect(result.props.initialYieldsRows).toEqual(state.initialYieldsRows)
+		expect(result.props.initialYieldsRowCount).toBe(state.initialYieldsRows.length)
 		expect(result.props.initialTokenBorrowRoutesData).toEqual(state.initialTokenBorrowRoutesData)
+		expect(result.props.initialTokenBorrowRoutesCounts).toEqual({
+			borrowAsCollateral: 0,
+			borrowAsDebt: 0
+		})
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
 
 		consoleErrorSpy.mockRestore()
+	})
+
+	it('getStaticProps limits prefetched yields tables to the first page while preserving total counts', async () => {
+		state.tokensJson = {
+			link: {
+				name: 'Chainlink',
+				symbol: 'LINK',
+				token_nk: 'coingecko:chainlink',
+				is_yields: true
+			}
+		}
+		state.tokenlist = {
+			chainlink: {
+				symbol: 'link',
+				current_price: 10,
+				price_change_percentage_24h: 10,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+		state.initialYieldsRows = Array.from({ length: 12 }, (_, index) => ({
+			pool: `LINK-USDC-${index}`,
+			chains: ['Ethereum']
+		}))
+		state.initialTokenBorrowRoutesData = {
+			borrowAsCollateral: Array.from({ length: 13 }, (_, index) => ({
+				pool: `collateral-${index}`,
+				chains: ['Ethereum']
+			})),
+			borrowAsDebt: Array.from({ length: 11 }, (_, index) => ({
+				pool: `debt-${index}`,
+				chains: ['Arbitrum']
+			}))
+		}
+
+		const result = await getStaticProps({ params: { token: 'link' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.initialYieldsRows).toHaveLength(10)
+		expect(result.props.initialYieldsRowCount).toBe(12)
+		expect(result.props.initialTokenBorrowRoutesData?.borrowAsCollateral).toHaveLength(10)
+		expect(result.props.initialTokenBorrowRoutesData?.borrowAsDebt).toHaveLength(10)
+		expect(result.props.initialTokenBorrowRoutesCounts).toEqual({
+			borrowAsCollateral: 13,
+			borrowAsDebt: 11
+		})
 	})
 
 	it('getStaticProps keeps the page renderable when optional token fetches fail', async () => {
@@ -1010,10 +1125,10 @@ describe('token page', () => {
 		}
 
 		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-		vi.mocked(fetchTokenRightsData).mockRejectedValueOnce(new Error('token rights failed'))
+		vi.mocked(fetchTokenRightsEntryByDefillamaId).mockRejectedValueOnce(new Error('token rights failed'))
 		vi.mocked(getProtocolIncomeStatement).mockRejectedValueOnce(new Error('income failed'))
-		vi.mocked(getTokenYieldsRows).mockRejectedValueOnce(new Error('yields failed'))
-		vi.mocked(getTokenBorrowRoutesData).mockRejectedValueOnce(new Error('borrow routes failed'))
+		vi.mocked(getTokenYieldsRowsFromNetwork).mockRejectedValueOnce(new Error('yields failed'))
+		vi.mocked(getTokenBorrowRoutesDataFromNetwork).mockRejectedValueOnce(new Error('borrow routes failed'))
 		vi.mocked(getTokenRiskData).mockRejectedValueOnce(new Error('risk failed'))
 
 		const result = await getStaticProps({ params: { token: 'link' } } as never)
@@ -1026,7 +1141,9 @@ describe('token page', () => {
 		expect(result.props.incomeStatementProtocolName).toBeNull()
 		expect(result.props.incomeStatementHasIncentives).toBe(false)
 		expect(result.props.initialYieldsRows).toEqual([])
+		expect(result.props.initialYieldsRowCount).toBe(0)
 		expect(result.props.initialTokenBorrowRoutesData).toBeNull()
+		expect(result.props.initialTokenBorrowRoutesCounts).toBeNull()
 		expect(result.props.tokenRiskData).toBeNull()
 		expect(consoleErrorSpy).toHaveBeenCalledWith(
 			'Failed to load token rights data for parent#chainlink',

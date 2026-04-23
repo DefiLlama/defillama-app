@@ -8,7 +8,7 @@
 	"scripts": {
 		"analyze": "bun --bun next experimental-analyze",
 		"dev": "bun run build:metadata && bun --bun next dev",
-		"build:metadata": "bun scripts/pullMetadata.js && bun scripts/generateRobots.js",
+		"build:metadata": "sh ./scripts/buildMetadata.sh",
 		"build": "bun run build:metadata && bun --bun next build",
 		"start": "./scripts/prestart.sh & bun --bun next start",
 		"test": "vitest run",

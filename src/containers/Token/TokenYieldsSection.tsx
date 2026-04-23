@@ -5,7 +5,7 @@ import * as React from 'react'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { APYRange } from '~/containers/Yields/Filters/APYRange'
 import { FilterByChain } from '~/containers/Yields/Filters/Chains'
 import { ColumnFilters } from '~/containers/Yields/Filters/ColumnFilters'
@@ -20,6 +20,8 @@ import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet } from '~/containe
 import { extractPoolTokens } from '~/containers/Yields/utils'
 import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
+import { DEFAULT_TABLE_PAGE_SIZE } from './tableUtils'
+import { TokenDeferredPaginationControls } from './TokenDeferredPaginationControls'
 
 const ENABLED_COLUMNS = [...ALL_POOL_COLUMN_QUERY_KEYS]
 
@@ -39,6 +41,7 @@ const FILTER_ONLY_PARAMS = FILTER_QUERY_PARAMS.filter((queryParam) => !ENABLED_C
 
 const TOKEN_YIELDS_SECTION_ID = 'token-yields'
 const DEFAULT_TABLE_SORTING: SortingState = [{ id: 'tvl', desc: true }]
+const DEFAULT_TABLE_SORTING_KEY = JSON.stringify(DEFAULT_TABLE_SORTING)
 
 async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[]> {
 	return fetchJson<IYieldTableRow[]>(`/api/datasets/yields?token=${encodeURIComponent(tokenSymbol)}`)
@@ -47,6 +50,9 @@ async function fetchTokenYieldRows(tokenSymbol: string): Promise<IYieldTableRow[
 interface TokenYieldsSectionProps {
 	tokenSymbol: string
 	initialData?: IYieldTableRow[]
+	initialRowCount?: number
+	initialChainList?: string[]
+	initialTokensList?: string[]
 }
 
 function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants: Set<string>) {
@@ -57,41 +63,58 @@ function poolMatchesSelectedToken(poolTokenVariants: Set<string>, tokenVariants:
 	return false
 }
 
-export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSectionProps) {
+export function TokenYieldsSection({
+	tokenSymbol,
+	initialData,
+	initialRowCount,
+	initialChainList,
+	initialTokensList
+}: TokenYieldsSectionProps) {
 	const router = useRouter()
-	const {
-		data: rows,
-		error,
-		isLoading
-	} = useQuery({
+	const [shouldFetchFullData, setShouldFetchFullData] = React.useState(initialData == null)
+	const [requestedPageIndex, setRequestedPageIndex] = React.useState(0)
+	const [tableSorting, setTableSorting] = React.useState<SortingState>([...DEFAULT_TABLE_SORTING])
+	const { data: fetchedRows, error } = useQuery({
 		queryKey: ['token-yields', tokenSymbol],
 		queryFn: () => fetchTokenYieldRows(tokenSymbol),
-		initialData,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: false,
-		enabled: Boolean(tokenSymbol)
+		enabled: Boolean(tokenSymbol) && shouldFetchFullData
 	})
-	const poolsList = React.useMemo(() => rows ?? [], [rows])
-	const { data: volatility } = useVolatility()
+	const poolsList = React.useMemo(() => fetchedRows ?? initialData ?? [], [fetchedRows, initialData])
+	const { data: volatility } = useVolatility({ enabled: shouldFetchFullData })
 	const holderStatsConfigIds = React.useMemo(
 		() => poolsList.map((pool) => pool.configID).filter((configID): configID is string => Boolean(configID)),
 		[poolsList]
 	)
-	const { data: holderStats } = useHolderStats(holderStatsConfigIds)
+	const { data: holderStats } = useHolderStats(holderStatsConfigIds, { enabled: shouldFetchFullData })
+	const totalRowCount = fetchedRows?.length ?? initialRowCount ?? poolsList.length
 
 	const chainList = React.useMemo(
 		() =>
-			[...new Set(poolsList.map((pool) => pool.chains[0]).filter((chain): chain is string => Boolean(chain)))].sort(),
-		[poolsList]
+			fetchedRows
+				? [
+						...new Set(poolsList.map((pool) => pool.chains[0]).filter((chain): chain is string => Boolean(chain)))
+					].sort()
+				: (initialChainList ??
+					[
+						...new Set(poolsList.map((pool) => pool.chains[0]).filter((chain): chain is string => Boolean(chain)))
+					].sort()),
+		[fetchedRows, initialChainList, poolsList]
 	)
 
 	const tokensList = React.useMemo(
 		() =>
-			[...new Set(poolsList.flatMap((pool) => extractPoolTokens(pool.pool)))]
-				.sort()
-				.map((token) => token.toUpperCase()),
-		[poolsList]
+			fetchedRows
+				? [...new Set(poolsList.flatMap((pool) => extractPoolTokens(pool.pool)))]
+						.sort()
+						.map((token) => token.toUpperCase())
+				: (initialTokensList ??
+					[...new Set(poolsList.flatMap((pool) => extractPoolTokens(pool.pool)))]
+						.sort()
+						.map((token) => token.toUpperCase())),
+		[fetchedRows, initialTokensList, poolsList]
 	)
 
 	const { selectedChains, includeTokens, excludeTokens, minTvl, maxTvl, minApy, maxApy } = useFormatYieldQueryParams({
@@ -107,14 +130,14 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 		return poolsList.map((pool) => ({
 			...pool,
 			yieldTokenVariants: getYieldPoolTokenVariantSet(pool.pool),
-			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
-			apyStd30d: volatility?.[pool.configID]?.[2] ?? null,
-			cv30d: volatility?.[pool.configID]?.[3] ?? null,
-			holderCount: holderStats?.[pool.configID]?.holderCount ?? null,
-			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? null,
-			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? null,
-			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? null,
-			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? null
+			apyMedian30d: volatility?.[pool.configID]?.[1] ?? pool.apyMedian30d,
+			apyStd30d: volatility?.[pool.configID]?.[2] ?? pool.apyStd30d,
+			cv30d: volatility?.[pool.configID]?.[3] ?? pool.cv30d,
+			holderCount: holderStats?.[pool.configID]?.holderCount ?? pool.holderCount,
+			avgPositionUsd: holderStats?.[pool.configID]?.avgPositionUsd ?? pool.avgPositionUsd,
+			top10Pct: holderStats?.[pool.configID]?.top10Pct ?? pool.top10Pct,
+			holderChange7d: holderStats?.[pool.configID]?.holderChange7d ?? pool.holderChange7d,
+			holderChange30d: holderStats?.[pool.configID]?.holderChange30d ?? pool.holderChange30d
 		}))
 	}, [holderStats, poolsList, volatility])
 
@@ -176,7 +199,7 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 		return buildPoolsTrackingStats(filteredPools)
 	}, [filteredPools])
 
-	const hasActiveFilters = React.useMemo(
+	const hasVisibleFilters = React.useMemo(
 		() =>
 			FILTER_ONLY_PARAMS.some((key) => {
 				const value = router.query[key]
@@ -184,6 +207,30 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 			}),
 		[router.query]
 	)
+	const hasFetchTriggeringFilters = React.useMemo(
+		() =>
+			FILTER_QUERY_PARAMS.some((key) => {
+				const value = router.query[key]
+				return Array.isArray(value) ? value.length > 0 : value != null && value !== ''
+			}),
+		[router.query]
+	)
+	const hasPartialData = !fetchedRows && totalRowCount > poolsList.length
+	const tableSortingKey = React.useMemo(() => JSON.stringify(tableSorting), [tableSorting])
+	const hasNonDefaultSorting = tableSortingKey !== DEFAULT_TABLE_SORTING_KEY
+	const isFetchingFullData =
+		!fetchedRows &&
+		!error &&
+		(shouldFetchFullData ||
+			(hasPartialData && (hasFetchTriggeringFilters || hasNonDefaultSorting || requestedPageIndex > 0)))
+	const showInitialLoader = isFetchingFullData && poolsList.length === 0
+	const showBackgroundLoading = isFetchingFullData && poolsList.length > 0
+
+	React.useEffect(() => {
+		if ((hasFetchTriggeringFilters || hasNonDefaultSorting) && !shouldFetchFullData) {
+			setShouldFetchFullData(true)
+		}
+	}, [hasFetchTriggeringFilters, hasNonDefaultSorting, shouldFetchFullData])
 
 	const resetFilters = () => {
 		const updates: Record<string, undefined> = {}
@@ -193,14 +240,33 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 		pushShallowQuery(router, updates)
 	}
 
-	const isFilteredEmpty = filteredPools.length === 0 && poolsList.length > 0
-	const hasPlaceholderState = isLoading || error != null || poolsList.length === 0
+	const isFilteredEmpty = filteredPools.length === 0 && totalRowCount > 0 && !isFetchingFullData
+	const hasPlaceholderState =
+		showInitialLoader || (error != null && poolsList.length === 0) || (totalRowCount === 0 && !isFetchingFullData)
 	const summaryText =
 		filteredStats.noOfPoolsTracked > 0
-			? `Tracking ${filteredStats.noOfPoolsTracked} ${filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'}${
-					filteredStats.averageAPY != null ? `, average APY ${filteredStats.averageAPY.toFixed(2)}%` : ''
-				}`
+			? hasPartialData && !hasFetchTriggeringFilters
+				? `Showing ${filteredStats.noOfPoolsTracked} of ${totalRowCount} ${totalRowCount > 1 ? 'pools' : 'pool'}`
+				: `Tracking ${filteredStats.noOfPoolsTracked} ${filteredStats.noOfPoolsTracked > 1 ? 'pools' : 'pool'}${
+						filteredStats.averageAPY != null ? `, average APY ${filteredStats.averageAPY.toFixed(2)}%` : ''
+					}`
 			: null
+
+	const requestFullDataPage = React.useCallback((pageIndex: number) => {
+		setRequestedPageIndex(pageIndex)
+		setShouldFetchFullData(true)
+	}, [])
+
+	const handleSortingChange = React.useCallback(
+		(sortingState: SortingState) => {
+			setTableSorting(sortingState)
+			setRequestedPageIndex(0)
+			if (hasPartialData && !fetchedRows) {
+				setShouldFetchFullData(true)
+			}
+		},
+		[fetchedRows, hasPartialData]
+	)
 
 	return (
 		<section
@@ -222,17 +288,17 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 					/>
 					<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 				</h2>
-				{!isLoading && !error && summaryText ? (
+				{!showInitialLoader && !error && summaryText ? (
 					<p className="text-sm text-(--text-secondary) sm:text-right">{summaryText}</p>
 				) : null}
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
-				{isLoading ? (
+				{showInitialLoader ? (
 					<div className="flex flex-1 items-center justify-center">
 						<LocalLoader />
 					</div>
-				) : error ? (
+				) : error && poolsList.length === 0 ? (
 					<div className="flex flex-1 items-center justify-center px-4 text-center">
 						<p className="text-sm text-(--text-label)">{error.message}</p>
 					</div>
@@ -241,7 +307,7 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 						<p className="text-sm text-(--text-label)">No yield pools found.</p>
 					</div>
 				) : (
-					<>
+					<div className="flex flex-1 flex-col">
 						<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="p-1">
 								<ResponsiveFilterLayout>
@@ -259,7 +325,7 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 											<TVLRange variant="secondary" nestedMenu={nestedMenu} />
 											<APYRange nestedMenu={nestedMenu} />
 											<ColumnFilters enabledColumns={ENABLED_COLUMNS} nestedMenu={nestedMenu} />
-											{hasActiveFilters ? (
+											{hasVisibleFilters ? (
 												<button
 													onClick={resetFilters}
 													className="rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)"
@@ -272,20 +338,50 @@ export function TokenYieldsSection({ tokenSymbol, initialData }: TokenYieldsSect
 								</ResponsiveFilterLayout>
 							</div>
 						</div>
+						{error ? (
+							<div className="rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-(--text-label)">
+								{error.message}
+							</div>
+						) : null}
 
 						{isFilteredEmpty ? (
 							<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 								<p className="p-2">No pools match current filters</p>
 							</div>
 						) : (
-							<PaginatedYieldsPoolTable
-								data={filteredPools}
-								enablePagination
-								initialPageSize={10}
-								sortingState={DEFAULT_TABLE_SORTING}
-							/>
+							<div className="relative flex flex-col gap-3">
+								{showBackgroundLoading ? (
+									<div className="absolute inset-0 z-20 flex items-center justify-center rounded-md bg-(--app-bg)/60 backdrop-blur-[1px]">
+										<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-secondary) shadow-xs">
+											<LoadingSpinner size={12} />
+											<span>Loading full dataset...</span>
+										</div>
+									</div>
+								) : null}
+								<div className={showBackgroundLoading ? 'opacity-60' : ''}>
+									<PaginatedYieldsPoolTable
+										key={`${fetchedRows ? 'full' : 'initial'}-${requestedPageIndex}-${tableSortingKey}`}
+										data={filteredPools}
+										enablePagination
+										initialPageSize={DEFAULT_TABLE_PAGE_SIZE}
+										initialPageIndex={fetchedRows ? requestedPageIndex : 0}
+										sortingState={tableSorting}
+										onSortingChange={handleSortingChange}
+										interactionDisabled={showBackgroundLoading}
+									/>
+								</div>
+								{hasPartialData && !hasFetchTriggeringFilters ? (
+									<div className={showBackgroundLoading ? 'opacity-60' : ''}>
+										<TokenDeferredPaginationControls
+											totalCount={totalRowCount}
+											isLoading={showBackgroundLoading}
+											onRequestPage={requestFullDataPage}
+										/>
+									</div>
+								) : null}
+							</div>
 						)}
-					</>
+					</div>
 				)}
 			</div>
 		</section>
