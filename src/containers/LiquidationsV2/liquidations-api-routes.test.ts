@@ -2,10 +2,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('~/containers/LiquidationsV2/queries', () => ({
-	getLiquidationsOverviewPageData: vi.fn(),
-	getLiquidationsProtocolPageData: vi.fn(),
-	getLiquidationsChainPageData: vi.fn(),
-	getTokenLiquidationsSectionData: vi.fn()
+	getLiquidationsOverviewPageDataFromNetwork: vi.fn(),
+	getLiquidationsProtocolPageDataFromNetwork: vi.fn(),
+	getLiquidationsChainPageDataFromNetwork: vi.fn(),
+	getTokenLiquidationsSectionDataFromNetwork: vi.fn()
 }))
 
 vi.mock('~/utils/apiAuth', () => ({
@@ -23,10 +23,10 @@ vi.mock('~/utils/metadata', () => ({
 }))
 
 import {
-	getLiquidationsChainPageData,
-	getLiquidationsOverviewPageData,
-	getLiquidationsProtocolPageData,
-	getTokenLiquidationsSectionData
+	getLiquidationsChainPageDataFromNetwork,
+	getLiquidationsOverviewPageDataFromNetwork,
+	getLiquidationsProtocolPageDataFromNetwork,
+	getTokenLiquidationsSectionDataFromNetwork
 } from '~/containers/LiquidationsV2/queries'
 import chainHandler from '~/pages/api/liquidations/[protocol]/[chain]'
 import protocolHandler from '~/pages/api/liquidations/[protocol]/index'
@@ -35,10 +35,18 @@ import tokenHandler from '~/pages/api/token-liquidations/[symbol]'
 import { validateSubscription } from '~/utils/apiAuth'
 
 const mockedValidateSubscription = validateSubscription as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsOverviewPageData = getLiquidationsOverviewPageData as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsProtocolPageData = getLiquidationsProtocolPageData as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsChainPageData = getLiquidationsChainPageData as unknown as ReturnType<typeof vi.fn>
-const mockedGetTokenLiquidationsSectionData = getTokenLiquidationsSectionData as unknown as ReturnType<typeof vi.fn>
+const mockedGetLiquidationsOverviewPageData = getLiquidationsOverviewPageDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
+const mockedGetLiquidationsProtocolPageData = getLiquidationsProtocolPageDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
+const mockedGetLiquidationsChainPageData = getLiquidationsChainPageDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
+const mockedGetTokenLiquidationsSectionData = getTokenLiquidationsSectionDataFromNetwork as unknown as ReturnType<
+	typeof vi.fn
+>
 
 function createRes() {
 	const res: Partial<NextApiResponse> = {

@@ -2,6 +2,12 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+const { DynamicUnlocksCharts } = vi.hoisted(() => ({
+	DynamicUnlocksCharts: ({ protocolName, hideTokenStats }: { protocolName: string; hideTokenStats?: boolean }) => (
+		<div>{`unlocks-charts:${protocolName}:${String(hideTokenStats)}`}</div>
+	)
+}))
+
 var authState = {
 	authorizedFetch: vi.fn(),
 	hasActiveSubscription: true,
@@ -31,6 +37,10 @@ vi.mock('~/components/Icon', () => ({
 	Icon: () => <span>icon</span>
 }))
 
+vi.mock('next/dynamic', () => ({
+	default: () => DynamicUnlocksCharts
+}))
+
 vi.mock('@tanstack/react-query', () => ({
 	useQuery: () => queryState
 }))
@@ -56,9 +66,7 @@ vi.mock('~/containers/Subscription/auth', () => ({
 }))
 
 vi.mock('~/containers/Unlocks/EmissionsByProtocol', () => ({
-	UnlocksCharts: ({ protocolName, hideTokenStats }: { protocolName: string; hideTokenStats?: boolean }) => (
-		<div>{`unlocks-charts:${protocolName}:${String(hideTokenStats)}`}</div>
-	)
+	UnlocksCharts: DynamicUnlocksCharts
 }))
 
 import { TokenUnlocksSection } from './TokenUnlocksSection'

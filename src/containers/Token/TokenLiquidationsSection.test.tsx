@@ -2,6 +2,31 @@ import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+const { DynamicLiquidationsSummaryStats, DynamicLiquidationsDistributionChart, DynamicTableWithSearch } = vi.hoisted(
+	() => ({
+		DynamicLiquidationsSummaryStats: ({ items }: { items: Array<{ label: string; value: number }> }) => (
+			<div>{items.map((item) => `${item.label}:${item.value}`).join('|')}</div>
+		),
+		DynamicLiquidationsDistributionChart: ({
+			hideTokenSelector,
+			defaultBreakdownMode,
+			title
+		}: {
+			hideTokenSelector?: boolean
+			defaultBreakdownMode?: string
+			title?: string
+		}) => <div>{`${title}|hide:${String(hideTokenSelector)}|breakdown:${defaultBreakdownMode}`}</div>,
+		DynamicTableWithSearch: ({ data, placeholder, csvFileName, leadingControls }: any) => (
+			<div>
+				<div>{placeholder}</div>
+				<div>{csvFileName}</div>
+				<div>{data.length}</div>
+				{leadingControls}
+			</div>
+		)
+	})
+)
+
 var authState = {
 	authorizedFetch: vi.fn(),
 	hasActiveSubscription: true,
@@ -26,6 +51,19 @@ vi.mock('next/router', () => ({
 vi.mock('@ariakit/react', () => ({
 	useDialogStore: () => ({ show: vi.fn() })
 }))
+
+vi.mock('next/dynamic', () => {
+	const dynamicComponents = [
+		DynamicLiquidationsSummaryStats,
+		DynamicLiquidationsDistributionChart,
+		DynamicTableWithSearch
+	]
+	let dynamicIndex = 0
+
+	return {
+		default: () => dynamicComponents[dynamicIndex++] ?? (() => null)
+	}
+})
 
 vi.mock('@tanstack/react-query', () => ({
 	useQuery: () => queryState
@@ -60,32 +98,15 @@ vi.mock('~/components/TokenLogo', () => ({
 }))
 
 vi.mock('~/components/Table/TableWithSearch', () => ({
-	TableWithSearch: ({ data, placeholder, csvFileName, leadingControls }: any) => (
-		<div>
-			<div>{placeholder}</div>
-			<div>{csvFileName}</div>
-			<div>{data.length}</div>
-			{leadingControls}
-		</div>
-	)
+	TableWithSearch: DynamicTableWithSearch
 }))
 
 vi.mock('~/containers/LiquidationsV2/Summary', () => ({
-	LiquidationsSummaryStats: ({ items }: { items: Array<{ label: string; value: number }> }) => (
-		<div>{items.map((item) => `${item.label}:${item.value}`).join('|')}</div>
-	)
+	LiquidationsSummaryStats: DynamicLiquidationsSummaryStats
 }))
 
 vi.mock('~/containers/LiquidationsV2/LiquidationsDistributionChart', () => ({
-	LiquidationsDistributionChart: ({
-		hideTokenSelector,
-		defaultBreakdownMode,
-		title
-	}: {
-		hideTokenSelector?: boolean
-		defaultBreakdownMode?: string
-		title?: string
-	}) => <div>{`${title}|hide:${String(hideTokenSelector)}|breakdown:${defaultBreakdownMode}`}</div>
+	LiquidationsDistributionChart: DynamicLiquidationsDistributionChart
 }))
 
 import { TokenLiquidationsSection } from './TokenLiquidationsSection'

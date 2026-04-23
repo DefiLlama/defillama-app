@@ -48,7 +48,8 @@ function setupPageModule({
 		default: {
 			protocolMetadata,
 			tokenDirectory: tokensJson
-		}
+		},
+		refreshMetadataIfStale: vi.fn().mockResolvedValue(undefined)
 	}))
 
 	return import('~/pages/token-rights')
