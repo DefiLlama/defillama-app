@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
+import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { slug } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -17,12 +17,17 @@ interface TokenRightsListItem {
 }
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
-	const [entries, metadataCache] = await Promise.all([
-		fetchTokenRightsData(),
-		import('~/utils/metadata').then((m) => m.default)
-	])
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const shouldUseDatasetCache = isDatasetCacheEnabled()
+	const entries = shouldUseDatasetCache
+		? await (async () => {
+				const { fetchTokenRightsEntriesFromCache } = await import('~/server/datasetCache/tokenRights')
+				return fetchTokenRightsEntriesFromCache()
+			})()
+		: await import('~/containers/TokenRights/api').then((m) => m.fetchTokenRightsData())
 
-	const { protocolMetadata, tokenDirectory } = metadataCache as {
+	const { protocolMetadata, tokenDirectory } = metadataModule.default as {
 		protocolMetadata: Record<string, IProtocolMetadata>
 		tokenDirectory: TokenDirectory
 	}

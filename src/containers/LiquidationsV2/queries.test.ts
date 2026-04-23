@@ -7,18 +7,14 @@ vi.mock('~/api', () => ({
 vi.mock('./api', () => ({
 	fetchProtocolsList: vi.fn(),
 	fetchAllLiquidations: vi.fn(),
-	fetchProtocolLiquidations: vi.fn(),
-	fetchProtocolChainLiquidations: vi.fn()
+	fetchProtocolLiquidations: vi.fn()
 }))
 
 import { fetchBlockExplorers } from '~/api'
+import { fetchAllLiquidations, fetchProtocolLiquidations, fetchProtocolsList } from './api'
 import {
-	fetchAllLiquidations,
-	fetchProtocolChainLiquidations,
-	fetchProtocolLiquidations,
-	fetchProtocolsList
-} from './api'
-import {
+	buildLiquidationsProtocolPageData,
+	buildTokenLiquidationsSectionData,
 	getLiquidationsChainPageData,
 	getLiquidationsOverviewPageData,
 	getLiquidationsProtocolPageData,
@@ -29,7 +25,6 @@ import {
 const mockedFetchProtocolsList = fetchProtocolsList as unknown as ReturnType<typeof vi.fn>
 const mockedFetchAllLiquidations = fetchAllLiquidations as unknown as ReturnType<typeof vi.fn>
 const mockedFetchProtocolLiquidations = fetchProtocolLiquidations as unknown as ReturnType<typeof vi.fn>
-const mockedFetchProtocolChainLiquidations = fetchProtocolChainLiquidations as unknown as ReturnType<typeof vi.fn>
 const mockedFetchBlockExplorers = fetchBlockExplorers as unknown as ReturnType<typeof vi.fn>
 
 const metadata = {
@@ -221,33 +216,26 @@ describe('LiquidationsV2 queries', () => {
 						collateralAmount: 10,
 						collateralAmountUsd: 1000,
 						extra: { displayName: 'alice' }
+					},
+					{
+						owner: '0x2',
+						liqPrice: 2,
+						collateral: 'ethereum:wbtc',
+						collateralAmount: 20,
+						collateralAmountUsd: 2000,
+						extra: { url: 'https://example.com/2' }
 					}
 				],
 				ethereum: []
 			}
 		})
-		mockedFetchProtocolChainLiquidations.mockResolvedValue({
-			timestamp: 300,
-			tokens: {},
-			validThresholds: ['all'],
-			data: [
-				{
-					owner: '0x2',
-					liqPrice: 2,
-					collateral: 'ethereum:wbtc',
-					collateralAmount: 20,
-					collateralAmountUsd: 2000,
-					extra: { url: 'https://example.com/2' }
-				}
-			]
-		})
 
 		const data = await getLiquidationsChainPageData('sky', 'arbitrum-one', metadata)
 
 		expect(data).not.toBeNull()
-		expect(data?.positionCount).toBe(1)
-		expect(data?.collateralCount).toBe(1)
-		expect(data?.totalCollateralUsd).toBe(2000)
+		expect(data?.positionCount).toBe(2)
+		expect(data?.collateralCount).toBe(2)
+		expect(data?.totalCollateralUsd).toBe(3000)
 		expect(data?.protocolName).toBe('Sky')
 		expect(data?.chainName).toBe('Arbitrum One')
 		expect(data?.chainSlug).toBe('arbitrum-one')
@@ -344,5 +332,46 @@ describe('LiquidationsV2 queries', () => {
 			collateralCount: 1,
 			totalCollateralUsd: 3000
 		})
+	})
+
+	it('builds protocol and token liquidations data from a raw snapshot without network fetches', () => {
+		const protocolsResponse = { protocols: ['maker'] }
+		const allResponse = {
+			timestamp: 200,
+			validThresholds: ['all'],
+			tokens: {
+				arbitrum: {
+					'ethereum:wsteth': { symbol: 'wstETH', decimals: 18 }
+				}
+			},
+			data: {
+				maker: {
+					arbitrum: [
+						{
+							owner: '0x1',
+							liqPrice: 1,
+							collateral: 'ethereum:wsteth',
+							collateralAmount: 10,
+							collateralAmountUsd: 1000
+						}
+					]
+				}
+			}
+		}
+
+		const protocolData = buildLiquidationsProtocolPageData(
+			'maker',
+			protocolsResponse.protocols,
+			allResponse.data.maker,
+			allResponse.timestamp,
+			[],
+			metadata
+		)
+		const tokenData = buildTokenLiquidationsSectionData('wsteth', protocolsResponse, allResponse, metadata)
+
+		expect(protocolData.positionCount).toBe(1)
+		expect(protocolData.chainRows[0]?.id).toBe('arbitrum')
+		expect(tokenData?.positionCount).toBe(1)
+		expect(tokenData?.tokenSymbol).toBe('WSTETH')
 	})
 })

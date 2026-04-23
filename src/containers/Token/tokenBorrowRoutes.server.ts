@@ -1,14 +1,14 @@
-import { getLendBorrowData } from '~/containers/Yields/queries/index'
+import { getLendBorrowDataFromNetwork } from '~/containers/Yields/queries/index'
 import { matchesYieldPoolToken } from '~/containers/Yields/tokenFilter'
 import { findOptimizerPools, formatOptimizerPool } from '~/containers/Yields/utils'
 import type { TokenBorrowRoutesResponse } from './tokenBorrowRoutes.types'
 
-export async function getTokenBorrowRoutesData(token: string): Promise<TokenBorrowRoutesResponse> {
-	const normalizedToken = token.trim().toUpperCase()
-	const { props } = await getLendBorrowData()
+type LendBorrowPools = Awaited<ReturnType<typeof getLendBorrowDataFromNetwork>>['props']['pools']
 
-	const lendingPools = props.pools.filter((pool) => pool.category !== 'CDP' && !pool.mintedCoin)
-	const cdpPools = props.pools
+export function buildTokenBorrowRoutesData(token: string, pools: LendBorrowPools): TokenBorrowRoutesResponse {
+	const normalizedToken = token.trim().toUpperCase()
+	const lendingPools = pools.filter((pool) => pool.category !== 'CDP' && !pool.mintedCoin)
+	const cdpPools = pools
 		.filter((pool) => (pool.category === 'CDP' && pool.mintedCoin) || (pool.category === 'Lending' && pool.mintedCoin))
 		.map((pool) => ({ ...pool, chains: [pool.chain], borrow: { ...pool, symbol: pool.mintedCoin.toUpperCase() } }))
 
@@ -40,4 +40,13 @@ export async function getTokenBorrowRoutesData(token: string): Promise<TokenBorr
 		borrowAsCollateral,
 		borrowAsDebt
 	}
+}
+
+export async function getTokenBorrowRoutesDataFromNetwork(token: string): Promise<TokenBorrowRoutesResponse> {
+	const { props } = await getLendBorrowDataFromNetwork()
+	return buildTokenBorrowRoutesData(token, props.pools)
+}
+
+export async function getTokenBorrowRoutesData(token: string): Promise<TokenBorrowRoutesResponse> {
+	return getTokenBorrowRoutesDataFromNetwork(token)
 }

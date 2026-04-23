@@ -1,4 +1,4 @@
-import { fetchLiquidityTokensDataset } from '~/api'
+import { fetchLiquidityDatasetEntryByProtocolId } from '~/api'
 import {
 	fetchCoinGeckoChartByIdWithCacheFallback,
 	fetchCoinGeckoCoinById,
@@ -8,13 +8,15 @@ import type { CgChartResponse, CoinGeckoCoinDetailResultForOptions } from '~/api
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatLineChart } from '~/components/ECharts/utils'
-import { CACHE_SERVER, YIELD_CONFIG_API } from '~/constants'
+import { CACHE_SERVER } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { normalizeChartPointsToMs } from '~/containers/ProtocolOverview/chartSeries.utils'
-import { fetchRaises } from '~/containers/Raises/api'
+import { fetchRaisesByDefillamaId } from '~/containers/Raises/api'
 import type { RawRaise } from '~/containers/Raises/api.types'
-import { fetchTreasuries } from '~/containers/Treasuries/api'
+import { fetchTreasuryById } from '~/containers/Treasuries/api'
+import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
+import { fetchYieldConfig, type YieldConfigResponse } from '~/containers/Yields/queries/index'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IProtocolLlamaswapChain, IProtocolMetadata, ITokenListEntry } from '~/utils/metadata/types'
@@ -77,7 +79,17 @@ export interface TokenOverviewData {
 	rawChartData: TokenOverviewRawChartData
 }
 
-type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
+type TokenOverviewDataSource =
+	| {
+			kind: 'network'
+	  }
+	| {
+			kind: 'prefetched'
+			raises: RawRaise[] | null
+			treasury: RawTreasuriesResponse[number] | null
+			yieldConfig: YieldConfigResponse | null
+			liquidityInfo: ProtocolLiquidityTokensResponse[number] | null
+	  }
 
 export const TOKEN_OVERVIEW_DEFAULT_CHARTS: TokenOverviewChartLabel[] = ['Token Price']
 export const TOKEN_OVERVIEW_ALL_CHARTS: TokenOverviewChartLabel[] = ['Token Price', 'Token Volume', 'Mcap', 'FDV']
@@ -254,38 +266,40 @@ function buildTokenLiquiditySummary({
 	liquidityInfo
 }: {
 	protocolDataId: string | null
-	yieldsConfig: IYieldsConfigResult
-	liquidityInfo: ProtocolLiquidityTokensResponse | null
+	yieldsConfig: YieldConfigResponse
+	liquidityInfo: ProtocolLiquidityTokensResponse[number] | null
 }): TokenOverviewTokenLiquidity | null {
 	if (!protocolDataId || !yieldsConfig?.protocols || !liquidityInfo) return null
 
-	const tokenPools =
-		liquidityInfo.find((protocol: ProtocolLiquidityTokensResponse[number]) => protocol.id === protocolDataId)
-			?.tokenPools ?? []
+	const tokenPools = liquidityInfo.id === protocolDataId ? (liquidityInfo.tokenPools ?? []) : []
 
 	if (tokenPools.length === 0) return null
 
-	const liquidityAggregated = tokenPools.reduce(
-		(agg: Record<string, Record<string, number>>, pool: { project: string; chain: string; tvlUsd: number }) => {
-			if (!agg[pool.project]) agg[pool.project] = {}
-			agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
-			return agg
-		},
-		{} as Record<string, Record<string, number>>
-	)
+	const liquidityAggregated: Record<string, Record<string, number>> = {}
+	for (const pool of tokenPools) {
+		if (!liquidityAggregated[pool.project]) {
+			liquidityAggregated[pool.project] = {}
+		}
+
+		const currentValue = liquidityAggregated[pool.project][pool.chain] ?? 0
+		liquidityAggregated[pool.project][pool.chain] = currentValue + pool.tvlUsd
+	}
 
 	const rows: Array<[string, string, number]> = []
+	let total = 0
 	for (const protocolSlug in liquidityAggregated) {
 		const protocolName = yieldsConfig.protocols?.[protocolSlug]?.name ?? protocolSlug
 
 		const chainValues = liquidityAggregated[protocolSlug]
 		for (const chainName in chainValues) {
-			rows.push([protocolName, chainName, Number(chainValues[chainName])])
+			const liquidityValue = Number(chainValues[chainName])
+			rows.push([protocolName, chainName, liquidityValue])
+			total += liquidityValue
 		}
 	}
 
 	rows.sort((a, b) => b[2] - a[2])
-	return rows.length > 0 ? { pools: rows, total: rows.reduce((sum, row) => sum + row[2], 0) } : null
+	return rows.length > 0 ? { pools: rows, total } : null
 }
 
 async function fetchTotalSupply(geckoId: string): Promise<number | null> {
@@ -356,6 +370,7 @@ export async function getTokenOverviewData({
 	protocolMetadata,
 	cgExchangeIdentifiers,
 	llamaswapChains,
+	source,
 	prefetchedCharts = TOKEN_OVERVIEW_ALL_CHARTS
 }: {
 	record: TokenDirectoryRecord
@@ -365,6 +380,7 @@ export async function getTokenOverviewData({
 	protocolMetadata: IProtocolMetadata | null
 	cgExchangeIdentifiers: string[]
 	llamaswapChains: IProtocolLlamaswapChain[] | null
+	source: TokenOverviewDataSource
 	prefetchedCharts?: TokenOverviewChartLabel[]
 }): Promise<TokenOverviewData> {
 	const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
@@ -387,8 +403,6 @@ export async function getTokenOverviewData({
 		raisesData,
 		treasuries,
 		adjustedSupply,
-		yieldsConfig,
-		liquidityInfo,
 		fetchedTotalSupply
 	] = await Promise.all([
 		geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
@@ -397,17 +411,33 @@ export async function getTokenOverviewData({
 			? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null)
 			: Promise.resolve(null),
 		shouldFetchProtocolData ? fetchProtocolOverviewMetrics(protocolSlug!).catch(() => null) : Promise.resolve(null),
-		shouldFetchRaises ? fetchRaises().catch(() => ({ raises: [] as RawRaise[] })) : Promise.resolve(null),
-		shouldFetchTreasury ? fetchTreasuries().catch(() => []) : Promise.resolve(null),
+		source.kind === 'prefetched'
+			? Promise.resolve(source.raises)
+			: shouldFetchRaises
+				? fetchRaisesByDefillamaId(chainDefiLlamaId ?? protocolDefiLlamaId!).catch(() => [] as RawRaise[])
+				: Promise.resolve(null),
+		source.kind === 'prefetched'
+			? Promise.resolve(source.treasury)
+			: shouldFetchTreasury
+				? fetchTreasuryById(`${protocolDefiLlamaId}-treasury`).catch(() => null)
+				: Promise.resolve(null),
 		shouldFetchOutstandingFdv
 			? fetchProtocolEmissionFromDatasets(protocolSlug!)
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: Promise.resolve(null),
-		shouldFetchLiquidity ? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API).catch(() => null) : Promise.resolve(null),
-		shouldFetchLiquidity ? fetchLiquidityTokensDataset().catch(() => null) : Promise.resolve(null),
 		geckoId ? fetchTotalSupply(geckoId) : Promise.resolve(null)
 	])
+
+	const [yieldsConfig, liquidityInfo] =
+		source.kind === 'prefetched'
+			? [source.yieldConfig, source.liquidityInfo]
+			: shouldFetchLiquidity && protocolData?.id
+				? await Promise.all([
+						fetchYieldConfig().catch(() => null),
+						fetchLiquidityDatasetEntryByProtocolId(protocolData.id).catch(() => null)
+					])
+				: [null, null]
 
 	const marketDataFallback = buildTokenMarketDataFallback(coinDetail, currentPriceViaLlama?.price ?? null)
 	const marketData = buildTokenMarketData(
@@ -416,14 +446,9 @@ export async function getTokenOverviewData({
 		cgExchangeIdentifiers,
 		marketDataFallback
 	)
-	const treasury =
-		shouldFetchTreasury && treasuries
-			? buildTreasurySummary(treasuries.find((item) => item.id === `${protocolDefiLlamaId}-treasury`) ?? null)
-			: null
+	const treasury = shouldFetchTreasury ? buildTreasurySummary(treasuries) : null
 
-	const matchedRaises = raisesData
-		? (raisesData.raises.filter((raise) => raise.defillamaId === (chainDefiLlamaId ?? protocolDefiLlamaId)) ?? [])
-		: []
+	const matchedRaises = raisesData ?? []
 
 	const tokenLiquidity = buildTokenLiquiditySummary({
 		protocolDataId: protocolData?.id ?? null,

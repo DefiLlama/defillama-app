@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchesYieldPoolToken } from './tokenFilter'
+import { getYieldPoolTokenVariantSet, getYieldTokenVariantSet, matchesYieldPoolToken } from './tokenFilter'
 
 describe('matchesYieldPoolToken', () => {
 	it('returns false for falsy inputs', () => {
@@ -30,5 +30,20 @@ describe('matchesYieldPoolToken', () => {
 	it('returns false when the token is not present in the pool symbol', () => {
 		expect(matchesYieldPoolToken('USDC-USDT', 'LINK')).toBe(false)
 		expect(matchesYieldPoolToken('USDC-LINK', 'IN')).toBe(false)
+	})
+
+	it('shares at least one normalized variant between pool shards and token lookups', () => {
+		const poolVariants = getYieldPoolTokenVariantSet('WBTC-ETH')
+		const tokenVariants = getYieldTokenVariantSet('BTC')
+
+		let hasMatch = false
+		for (const tokenVariant of tokenVariants) {
+			if (poolVariants.has(tokenVariant)) {
+				hasMatch = true
+				break
+			}
+		}
+
+		expect(hasMatch).toBe(true)
 	})
 })

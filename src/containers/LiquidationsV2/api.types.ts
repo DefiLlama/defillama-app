@@ -47,8 +47,6 @@ export type RawProtocolLiquidationsResponse = RawLiquidationsResponseBase<
 	RawMultiChainTokenMap
 >
 
-export type RawProtocolChainLiquidationsResponse = RawLiquidationsResponseBase<RawLiquidationPosition[], RawTokenMap>
-
 export interface NavLink {
 	label: string
 	to: string

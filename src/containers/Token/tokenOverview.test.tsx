@@ -351,7 +351,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.treasury).toBeNull()
@@ -384,7 +385,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: overviewFixture.llamaswapChains
+			llamaswapChains: overviewFixture.llamaswapChains,
+			source: { kind: 'network' }
 		})
 
 		expect(result.treasury).toEqual({
@@ -402,6 +404,98 @@ describe('tokenOverview helpers', () => {
 			})
 		])
 		expect(mocks.fetchTreasuries).toHaveBeenCalledOnce()
+	})
+
+	it('uses prefetched raises, treasury, yield config, and liquidity info without fetching them again', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Test Protocol',
+				symbol: 'TEST',
+				protocolId: 'parent#test-protocol'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'TEST',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: protocolMetadataFixture,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: {
+				kind: 'prefetched',
+				raises: [
+					{
+						date: 1706745600,
+						name: 'Protocol Raise',
+						round: 'Series A',
+						amount: 50,
+						chains: [],
+						sector: '',
+						category: '',
+						categoryGroup: '',
+						source: 'Protocol Blog',
+						leadInvestors: ['Investor B'],
+						otherInvestors: [],
+						valuation: null,
+						defillamaId: 'parent#test-protocol'
+					}
+				],
+				treasury: {
+					id: 'parent#test-protocol-treasury',
+					name: 'Treasury',
+					address: null,
+					symbol: 'TRE',
+					url: '',
+					description: '',
+					chain: 'Ethereum',
+					logo: '',
+					audits: '',
+					gecko_id: null,
+					cmcId: null,
+					category: 'treasury',
+					chains: [],
+					module: '',
+					treasury: '',
+					twitter: '',
+					slug: '',
+					tvl: 0,
+					change_1h: null,
+					change_1d: null,
+					change_7d: null,
+					tokenBreakdowns: {
+						majors: 10,
+						stablecoins: 20,
+						ownTokens: 30,
+						others: 40
+					},
+					mcap: null
+				},
+				yieldConfig: {
+					protocols: {
+						'pool-one': { name: 'Pool One' },
+						'pool-two': { name: 'Pool Two' }
+					}
+				},
+				liquidityInfo: {
+					id: 'proto-data',
+					tokenPools: [
+						{ project: 'pool-one', chain: 'Ethereum', tvlUsd: 50 },
+						{ project: 'pool-two', chain: 'Base', tvlUsd: 25 }
+					]
+				}
+			}
+		})
+
+		expect(result.treasury?.total).toBe(100)
+		expect(result.raises?.[0]?.source).toBe('Protocol Blog')
+		expect(result.tokenLiquidity).toEqual({
+			total: 75,
+			pools: [
+				['Pool One', 'Ethereum', 50],
+				['Pool Two', 'Base', 25]
+			]
+		})
+		expect(mocks.fetchRaises).not.toHaveBeenCalled()
+		expect(mocks.fetchTreasuries).not.toHaveBeenCalled()
+		expect(mocks.fetchLiquidityTokensDataset).not.toHaveBeenCalled()
 	})
 
 	it('prefers the protocol slug metadata and max supply when building overview data', async () => {
@@ -424,7 +518,8 @@ describe('tokenOverview helpers', () => {
 				displayName: 'Uniswap'
 			} as IProtocolMetadata,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('uniswap')
@@ -447,6 +542,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			source: { kind: 'network' },
 			prefetchedCharts: ['Token Price']
 		})
 
@@ -482,7 +578,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.tokenLiquidity).toEqual({
@@ -506,7 +603,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.marketData.currentPrice).toBe(100)
@@ -533,7 +631,8 @@ describe('tokenOverview helpers', () => {
 			},
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.marketData.currentPrice).toBe(100)
@@ -553,7 +652,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: null,
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.marketData.currentPrice).toBe(123)

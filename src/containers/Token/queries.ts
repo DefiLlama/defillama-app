@@ -18,7 +18,7 @@ const BORROW_CAPACITY_CACHE_TTL_MS = 5 * 60 * 1000
 type IndexedBorrowCapacityCache = {
 	data: TokenRiskBorrowCapacityResponse
 	indexedTokens: ReturnType<typeof indexBorrowCapacityByAssetKey>
-	fetchedAt: number
+	fetchedAt?: number
 }
 
 type TokenRiskDisplayLookups = {
@@ -31,6 +31,7 @@ type TokenRiskQueryInput = {
 	tokenSymbol: string
 	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
 	displayLookups: TokenRiskDisplayLookups
+	borrowCapacitySnapshot?: IndexedBorrowCapacityCache
 }
 
 let borrowCapacityCache: IndexedBorrowCapacityCache | null = null
@@ -43,7 +44,11 @@ export function resetTokenRiskBorrowRoutesCache() {
 
 async function getIndexedBorrowCapacityCache(): Promise<IndexedBorrowCapacityCache> {
 	const now = Date.now()
-	if (borrowCapacityCache && now - borrowCapacityCache.fetchedAt < BORROW_CAPACITY_CACHE_TTL_MS) {
+	if (
+		borrowCapacityCache &&
+		borrowCapacityCache.fetchedAt &&
+		now - borrowCapacityCache.fetchedAt < BORROW_CAPACITY_CACHE_TTL_MS
+	) {
 		return borrowCapacityCache
 	}
 
@@ -51,12 +56,14 @@ async function getIndexedBorrowCapacityCache(): Promise<IndexedBorrowCapacityCac
 		return borrowCapacityInFlight
 	}
 
-	borrowCapacityInFlight = getTokenRiskBorrowCapacity()
-		.then((data) => ({
+	borrowCapacityInFlight = (async () => {
+		const data = await getTokenRiskBorrowCapacity()
+		return {
 			data,
 			indexedTokens: indexBorrowCapacityByAssetKey(data.tokens),
 			fetchedAt: Date.now()
-		}))
+		}
+	})()
 		.then((cacheValue) => {
 			borrowCapacityCache = cacheValue
 			return cacheValue
@@ -72,29 +79,34 @@ export async function getTokenRiskData({
 	geckoId,
 	tokenSymbol,
 	protocolLlamaswapDataset,
-	displayLookups
+	displayLookups,
+	borrowCapacitySnapshot
 }: TokenRiskQueryInput): Promise<TokenRiskResponse | null> {
-	const borrowCapacitySnapshot = await getIndexedBorrowCapacityCache()
+	const resolvedBorrowCapacitySnapshot = borrowCapacitySnapshot ?? (await getIndexedBorrowCapacityCache())
 	const metadataCandidates = resolveTokenRiskCandidates(geckoId, protocolLlamaswapDataset)
 	const candidates =
 		metadataCandidates.length > 0
 			? metadataCandidates
 			: inferTokenRiskCandidatesFromBorrowCapacity({
 					tokenSymbol,
-					tokens: borrowCapacitySnapshot.data.tokens,
+					tokens: resolvedBorrowCapacitySnapshot.data.tokens,
 					chainDisplayNames: displayLookups.chainDisplayNames
 				})
 	if (candidates.length === 0) return null
 
-	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, borrowCapacitySnapshot.indexedTokens)
+	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, resolvedBorrowCapacitySnapshot.indexedTokens)
 	if (scopeCandidates.length === 0) return null
 
 	const activeTokens = mergeIndexedBorrowCapacity(
-		borrowCapacitySnapshot.indexedTokens,
+		resolvedBorrowCapacitySnapshot.indexedTokens,
 		scopeCandidates.map((candidate) => candidate.key)
 	)
 
-	const exposures = buildExposuresSection(activeTokens, borrowCapacitySnapshot.data.methodologies, displayLookups)
+	const exposures = buildExposuresSection(
+		activeTokens,
+		resolvedBorrowCapacitySnapshot.data.methodologies,
+		displayLookups
+	)
 	if (exposures.rows.length === 0) return null
 
 	return {

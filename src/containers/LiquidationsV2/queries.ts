@@ -4,12 +4,7 @@ import { slug } from '~/utils'
 import { findBlockExplorerChain } from '~/utils/blockExplorers'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import {
-	fetchAllLiquidations,
-	fetchProtocolChainLiquidations,
-	fetchProtocolLiquidations,
-	fetchProtocolsList
-} from './api'
+import { fetchAllLiquidations, fetchProtocolLiquidations, fetchProtocolsList } from './api'
 import type {
 	LiquidationsDistributionChartData,
 	LiquidationsDistributionChartSeries,
@@ -24,12 +19,15 @@ import type {
 	OverviewChainRow,
 	OverviewProtocolRow,
 	ProtocolChainRow,
+	RawAllLiquidationsResponse,
 	RawLiquidationPosition,
+	RawProtocolLiquidationsResponse,
+	RawProtocolsResponse,
 	TokenLiquidationsSectionData
 } from './api.types'
 import { createProtocolMetadataLookup } from './protocolMetadata'
 
-interface LiquidationsMetadataCache {
+export interface LiquidationsMetadataCache {
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 }
@@ -297,7 +295,7 @@ function sortByCountAndName<T extends { positionCount: number; name: string }>(r
 	})
 }
 
-function resolveProtocolId(
+export function resolveProtocolId(
 	protocolParam: string,
 	availableProtocolIds: string[],
 	protocolMetadataLookup: Map<string, LiquidationsProtocolMetadata>
@@ -314,7 +312,7 @@ function resolveProtocolId(
 	return null
 }
 
-function resolveChainId(
+export function resolveChainId(
 	chainParam: string,
 	availableChainIds: string[],
 	chainMetadata: Record<string, IChainMetadata>
@@ -351,10 +349,11 @@ function filterBlockExplorersForChains({
 	)
 }
 
-export async function getLiquidationsOverviewPageData(
+export function buildLiquidationsOverviewPageData(
+	protocolsResponse: RawProtocolsResponse,
+	allResponse: RawAllLiquidationsResponse,
 	metadataCache: LiquidationsMetadataCache
-): Promise<LiquidationsOverviewPageProps> {
-	const [protocolsResponse, allResponse] = await Promise.all([fetchProtocolsList(), fetchAllLiquidations()])
+): LiquidationsOverviewPageProps {
 	const protocolIds = protocolsResponse.protocols
 	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 	const protocolLinks = getProtocolLinks(protocolIds, protocolMetadataLookup)
@@ -437,16 +436,17 @@ export async function getLiquidationsOverviewPageData(
 	}
 }
 
-export async function getTokenLiquidationsSectionData(
+export function buildTokenLiquidationsSectionData(
 	tokenSymbol: string,
+	protocolsResponse: RawProtocolsResponse,
+	allResponse: RawAllLiquidationsResponse,
 	metadataCache: LiquidationsMetadataCache
-): Promise<TokenLiquidationsSectionData | null> {
+): TokenLiquidationsSectionData | null {
 	const normalizedTokenSymbol = normalizeLiquidationsTokenSymbol(tokenSymbol)
 	if (!normalizedTokenSymbol) {
 		return null
 	}
 
-	const { protocolsResponse, allResponse } = await getTokenLiquidationsSnapshot()
 	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
 	const protocolRows: OverviewProtocolRow[] = []
 	const chainMap = new Map<string, ChainAggregate>()
@@ -544,26 +544,18 @@ export async function getTokenLiquidationsSectionData(
 	}
 }
 
-export async function getLiquidationsProtocolPageData(
-	protocolParam: string,
+export function buildLiquidationsProtocolPageData(
+	protocolId: string,
+	protocolIds: string[],
+	protocolData: RawProtocolLiquidationsResponse['data'],
+	timestamp: number,
+	blockExplorers: BlockExplorersResponse,
 	metadataCache: LiquidationsMetadataCache
-): Promise<LiquidationsProtocolPageProps | null> {
-	const blockExplorersPromise = fetchBlockExplorers().catch((): BlockExplorersResponse => [])
-	const protocolsResponse = await fetchProtocolsList()
+): LiquidationsProtocolPageProps {
 	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
-	const protocolId = resolveProtocolId(protocolParam, protocolsResponse.protocols, protocolMetadataLookup)
-
-	if (!protocolId) {
-		return null
-	}
-
-	const [protocolResponse, blockExplorers] = await Promise.all([
-		fetchProtocolLiquidations(protocolId),
-		blockExplorersPromise
-	])
 	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
-	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
-	const chainIds = Object.keys(protocolResponse.data)
+	const protocolLinks = getProtocolLinks(protocolIds, protocolMetadataLookup)
+	const chainIds = Object.keys(protocolData)
 	const chainRefs = chainIds
 		.map((chainId) => getChainRef(chainId, metadataCache.chainMetadata))
 		.sort((a, b) => a.name.localeCompare(b.name))
@@ -579,7 +571,7 @@ export async function getLiquidationsProtocolPageData(
 	let totalCollateralUsd = 0
 
 	for (const chain of chainRefs) {
-		const rawPositions = protocolResponse.data[chain.id]
+		const rawPositions = protocolData[chain.id]
 		const chainPositions = normalizePositions(protocol, chain, rawPositions)
 		chartPositions.push(...chainPositions)
 		const chainCollateralUsd = sumCollateralUsd(rawPositions)
@@ -602,7 +594,7 @@ export async function getLiquidationsProtocolPageData(
 		protocolId: protocol.id,
 		protocolName: protocol.name,
 		protocolSlug: protocol.slug,
-		timestamp: protocolResponse.timestamp,
+		timestamp,
 		chainCount: chainIds.length,
 		positionCount: positions.length,
 		collateralCount: getCollateralCount(positions),
@@ -614,7 +606,111 @@ export async function getLiquidationsProtocolPageData(
 	}
 }
 
-export async function getLiquidationsChainPageData(
+export function buildLiquidationsChainPageData(
+	protocolId: string,
+	chainId: string,
+	protocolIds: string[],
+	protocolData: RawProtocolLiquidationsResponse['data'],
+	timestamp: number,
+	blockExplorers: BlockExplorersResponse,
+	metadataCache: LiquidationsMetadataCache
+): LiquidationsChainPageProps {
+	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
+	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
+	const chainIds = Object.keys(protocolData)
+	const chain = getChainRef(chainId, metadataCache.chainMetadata)
+	const protocolLinks = getProtocolLinks(protocolIds, protocolMetadataLookup)
+	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
+	const ownerBlockExplorers = filterBlockExplorersForChains({
+		blockExplorers,
+		chainIds: [chainId],
+		chainMetadata: metadataCache.chainMetadata
+	})
+	const chainPositions = protocolData[chainId] ?? []
+	const positions = normalizePositions(protocol, chain, chainPositions)
+	const chainRows: ProtocolChainRow[] = []
+
+	const sortedChainRefs = chainIds
+		.map((id) => getChainRef(id, metadataCache.chainMetadata))
+		.sort((a, b) => a.name.localeCompare(b.name))
+
+	for (const currentChain of sortedChainRefs) {
+		const currentChainPositions = protocolData[currentChain.id]
+		chainRows.push({
+			...currentChain,
+			protocolId: protocol.id,
+			protocolName: protocol.name,
+			protocolSlug: protocol.slug,
+			positionCount: currentChainPositions.length,
+			collateralCount: getCollateralCount(currentChainPositions),
+			totalCollateralUsd: sumCollateralUsd(currentChainPositions)
+		})
+	}
+
+	return {
+		protocolLinks,
+		chainLinks,
+		protocolId: protocol.id,
+		protocolName: protocol.name,
+		protocolSlug: protocol.slug,
+		chainId: chain.id,
+		chainName: chain.name,
+		chainSlug: chain.slug,
+		timestamp,
+		positionCount: positions.length,
+		collateralCount: getCollateralCount(positions),
+		totalCollateralUsd: sumCollateralUsd(chainPositions),
+		distributionChart: buildLiquidationsDistributionChart(positions),
+		chainRows: sortByCountAndName(chainRows),
+		ownerBlockExplorers,
+		positions
+	}
+}
+
+export async function getLiquidationsOverviewPageDataFromNetwork(
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsOverviewPageProps> {
+	const [protocolsResponse, allResponse] = await Promise.all([fetchProtocolsList(), fetchAllLiquidations()])
+	return buildLiquidationsOverviewPageData(protocolsResponse, allResponse, metadataCache)
+}
+
+export async function getTokenLiquidationsSectionDataFromNetwork(
+	tokenSymbol: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<TokenLiquidationsSectionData | null> {
+	const { protocolsResponse, allResponse } = await getTokenLiquidationsSnapshot()
+	return buildTokenLiquidationsSectionData(tokenSymbol, protocolsResponse, allResponse, metadataCache)
+}
+
+export async function getLiquidationsProtocolPageDataFromNetwork(
+	protocolParam: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsProtocolPageProps | null> {
+	const blockExplorersPromise = fetchBlockExplorers().catch((): BlockExplorersResponse => [])
+	const protocolsResponse = await fetchProtocolsList()
+	const protocolMetadataLookup = createProtocolMetadataLookup(metadataCache.protocolMetadata)
+	const protocolId = resolveProtocolId(protocolParam, protocolsResponse.protocols, protocolMetadataLookup)
+
+	if (!protocolId) {
+		return null
+	}
+
+	const [protocolResponse, blockExplorers] = await Promise.all([
+		fetchProtocolLiquidations(protocolId),
+		blockExplorersPromise
+	])
+
+	return buildLiquidationsProtocolPageData(
+		protocolId,
+		protocolsResponse.protocols,
+		protocolResponse.data,
+		protocolResponse.timestamp,
+		blockExplorers,
+		metadataCache
+	)
+}
+
+export async function getLiquidationsChainPageDataFromNetwork(
 	protocolParam: string,
 	chainParam: string,
 	metadataCache: LiquidationsMetadataCache
@@ -636,55 +732,43 @@ export async function getLiquidationsChainPageData(
 		return null
 	}
 
-	const [chainResponse, blockExplorers] = await Promise.all([
-		fetchProtocolChainLiquidations(protocolId, chainId),
-		blockExplorersPromise
-	])
-	const protocol = getProtocolRef(protocolId, protocolMetadataLookup)
-	const chain = getChainRef(chainId, metadataCache.chainMetadata)
-	const protocolLinks = getProtocolLinks(protocolsResponse.protocols, protocolMetadataLookup)
-	const chainLinks = getChainLinks(protocol, chainIds, metadataCache.chainMetadata)
-	const ownerBlockExplorers = filterBlockExplorersForChains({
+	const blockExplorers = await blockExplorersPromise
+
+	return buildLiquidationsChainPageData(
+		protocolId,
+		chainId,
+		protocolsResponse.protocols,
+		protocolResponse.data,
+		protocolResponse.timestamp,
 		blockExplorers,
-		chainIds: [chainId],
-		chainMetadata: metadataCache.chainMetadata
-	})
-	const positions = normalizePositions(protocol, chain, chainResponse.data)
-	const chainRows: ProtocolChainRow[] = []
+		metadataCache
+	)
+}
 
-	const sortedChainRefs = chainIds
-		.map((id) => getChainRef(id, metadataCache.chainMetadata))
-		.sort((a, b) => a.name.localeCompare(b.name))
+export async function getLiquidationsOverviewPageData(
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsOverviewPageProps> {
+	return getLiquidationsOverviewPageDataFromNetwork(metadataCache)
+}
 
-	for (const currentChain of sortedChainRefs) {
-		const rawPositions = protocolResponse.data[currentChain.id]
-		chainRows.push({
-			...currentChain,
-			protocolId: protocol.id,
-			protocolName: protocol.name,
-			protocolSlug: protocol.slug,
-			positionCount: rawPositions.length,
-			collateralCount: getCollateralCount(rawPositions),
-			totalCollateralUsd: sumCollateralUsd(rawPositions)
-		})
-	}
+export async function getTokenLiquidationsSectionData(
+	tokenSymbol: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<TokenLiquidationsSectionData | null> {
+	return getTokenLiquidationsSectionDataFromNetwork(tokenSymbol, metadataCache)
+}
 
-	return {
-		protocolLinks,
-		chainLinks,
-		protocolId: protocol.id,
-		protocolName: protocol.name,
-		protocolSlug: protocol.slug,
-		chainId: chain.id,
-		chainName: chain.name,
-		chainSlug: chain.slug,
-		timestamp: chainResponse.timestamp,
-		positionCount: positions.length,
-		collateralCount: getCollateralCount(positions),
-		totalCollateralUsd: sumCollateralUsd(chainResponse.data),
-		distributionChart: buildLiquidationsDistributionChart(positions),
-		chainRows: sortByCountAndName(chainRows),
-		ownerBlockExplorers,
-		positions
-	}
+export async function getLiquidationsProtocolPageData(
+	protocolParam: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsProtocolPageProps | null> {
+	return getLiquidationsProtocolPageDataFromNetwork(protocolParam, metadataCache)
+}
+
+export async function getLiquidationsChainPageData(
+	protocolParam: string,
+	chainParam: string,
+	metadataCache: LiquidationsMetadataCache
+): Promise<LiquidationsChainPageProps | null> {
+	return getLiquidationsChainPageDataFromNetwork(protocolParam, chainParam, metadataCache)
 }
