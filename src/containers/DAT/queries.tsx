@@ -85,17 +85,18 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	const dailyFlowsByAsset: Record<string, IDATOverviewFlowSeries> = {}
 	for (const asset in res.flows) {
 		const name = res.assetMetadata[asset]?.name ?? asset
-		const points: Array<readonly [number, number]> = []
+		const existing = dailyFlowsByAsset[name]
+		const points: Array<readonly [number, number]> = existing ? [...existing.points] : []
 
 		for (const [date, _net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
 			points.push([toUnixMsTimestamp(+date), purchasePrice ?? usdValueOfPurchase ?? 0] as const)
 		}
 
-		dailyFlowsByAsset[asset] = {
+		dailyFlowsByAsset[name] = {
 			name,
 			stack: 'asset',
-			color: colorByAsset[asset],
-			points: points.toSorted((a, b) => a[0] - b[0])
+			color: existing?.color ?? colorByAsset[asset],
+			points: points.sort((a, b) => a[0] - b[0])
 		}
 	}
 

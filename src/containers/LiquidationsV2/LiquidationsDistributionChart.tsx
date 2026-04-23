@@ -159,13 +159,15 @@ export function LiquidationsDistributionChart({
 	timestamp,
 	title,
 	allowedBreakdownModes = DEFAULT_BREAKDOWN_MODES,
-	defaultBreakdownMode = 'total'
+	defaultBreakdownMode = 'total',
+	hideTokenSelector = false
 }: {
 	chart: LiquidationsDistributionChartData
 	timestamp: number
 	title?: string
 	allowedBreakdownModes?: ReadonlyArray<BreakdownMode>
 	defaultBreakdownMode?: BreakdownMode
+	hideTokenSelector?: boolean
 }) {
 	const router = useRouter()
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
@@ -189,7 +191,9 @@ export function LiquidationsDistributionChart({
 	)
 	const defaultToken = chart.tokens[0]?.key ?? null
 	const chartState = React.useMemo(() => {
-		const token = resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
+		const token = hideTokenSelector
+			? defaultToken
+			: resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
 		const metric = getLiquidationsChartMetric(readSingleQueryValue(router.query[METRIC_QUERY_PARAM]))
 		const breakdownMode = getLiquidationsChartBreakdownMode(
 			readSingleQueryValue(router.query[BREAKDOWN_QUERY_PARAM]),
@@ -206,7 +210,15 @@ export function LiquidationsDistributionChart({
 			breakdownMode,
 			breakdownLabel
 		}
-	}, [allowedBreakdownModes, breakdownOptions, chart, defaultBreakdownMode, router.query])
+	}, [
+		allowedBreakdownModes,
+		breakdownOptions,
+		chart,
+		defaultBreakdownMode,
+		defaultToken,
+		hideTokenSelector,
+		router.query
+	])
 
 	const setSelectedToken = React.useCallback(
 		(nextToken: string) => {
@@ -404,23 +416,25 @@ export function LiquidationsDistributionChart({
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center gap-2 p-2">
 				<div className="mr-auto min-w-0">
-					<SelectWithCombobox
-						allValues={tokenOptions}
-						selectedValues={chartState.token ? [chartState.token] : []}
-						setSelectedValues={(values) => {
-							const nextToken = values[0]
-							if (nextToken) setSelectedToken(nextToken)
-						}}
-						label={`Token: ${chartState.tokenLabel}`}
-						singleSelect
-						labelType="none"
-						variant="filter"
-						triggerProps={{
-							className:
-								'flex items-center justify-between gap-2 rounded-md border border-(--old-blue) bg-(--link-bg) px-2 py-1.5 text-xs font-medium text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
-						}}
-						portal
-					/>
+					{hideTokenSelector ? null : (
+						<SelectWithCombobox
+							allValues={tokenOptions}
+							selectedValues={chartState.token ? [chartState.token] : []}
+							setSelectedValues={(values) => {
+								const nextToken = values[0]
+								if (nextToken) setSelectedToken(nextToken)
+							}}
+							label={`Token: ${chartState.tokenLabel}`}
+							singleSelect
+							labelType="none"
+							variant="filter"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 rounded-md border border-(--old-blue) bg-(--link-bg) px-2 py-1.5 text-xs font-medium text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+							}}
+							portal
+						/>
+					)}
 				</div>
 				{showBreakdownSelector ? (
 					<Select

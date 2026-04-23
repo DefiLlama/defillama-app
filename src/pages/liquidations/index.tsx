@@ -1,26 +1,37 @@
 import type { InferGetStaticPropsType } from 'next'
-import { LiquidationsOverview } from '~/containers/LiquidationsV2'
-import type { LiquidationsOverviewPageProps } from '~/containers/LiquidationsV2/api.types'
-import { getLiquidationsOverviewPageData } from '~/containers/LiquidationsV2/queries'
+import { fetchProtocolsList } from '~/containers/LiquidationsV2/api'
+import type { LiquidationsOverviewShell } from '~/containers/LiquidationsV2/api.types'
+import { createProtocolMetadataLookup } from '~/containers/LiquidationsV2/protocolMetadata'
+import { LiquidationsOverviewRouteContent } from '~/containers/LiquidationsV2/RouteContent'
 import Layout from '~/layout'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'liquidations/index',
 	async (): Promise<{
-		props: LiquidationsOverviewPageProps
+		props: LiquidationsOverviewShell
 		revalidate: number
 	}> => {
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
-		const props = await getLiquidationsOverviewPageData({
-			chainMetadata: metadataModule.default.chainMetadata,
-			protocolMetadata: metadataModule.default.protocolMetadata
-		})
+		const protocolsResponse = await fetchProtocolsList()
+		const protocolMetadataLookup = createProtocolMetadataLookup(metadataModule.default.protocolMetadata)
+		const protocolLinks = [
+			{ label: 'Overview', to: '/liquidations' },
+			...protocolsResponse.protocols.map((protocolId) => {
+				const protocolName = protocolMetadataLookup.get(protocolId)?.displayName ?? protocolId
+
+				return {
+					label: protocolName,
+					to: `/liquidations/${slug(protocolName)}`
+				}
+			})
+		]
 
 		return {
-			props,
+			props: { protocolLinks },
 			revalidate: maxAgeForNext([22])
 		}
 	}
@@ -34,7 +45,7 @@ export default function LiquidationsOverviewPage(props: InferGetStaticPropsType<
 			canonicalUrl="/liquidations"
 			pageName={['Liquidations']}
 		>
-			<LiquidationsOverview {...props} />
+			<LiquidationsOverviewRouteContent shell={props} />
 		</Layout>
 	)
 }

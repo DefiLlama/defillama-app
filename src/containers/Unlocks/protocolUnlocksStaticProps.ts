@@ -48,11 +48,23 @@ export function getEventCountdown(timestamp: number | null | undefined): string 
 
 export async function getProtocolUnlocksStaticPropsData(
 	protocolParam: string,
-	tokenlist: Record<string, ITokenListEntry>
+	tokenlist: Record<string, ITokenListEntry>,
+	emissionsProtocolsList: string[]
 ) {
 	const normalizedName = slug(protocolParam)
+	if (!emissionsProtocolsList.includes(normalizedName)) {
+		return {
+			normalizedName,
+			emissions: null,
+			geckoId: null,
+			tokenSymbol: null,
+			initialTokenMarketData: null
+		}
+	}
 
-	const emissions = await getProtocolEmissons(normalizedName).catch(() => null)
+	const emissions = await getProtocolEmissons(normalizedName, {
+		emissionsProtocolsList
+	}).catch(() => null)
 	const geckoId = emissions?.geckoId ?? emissions?.meta?.gecko_id ?? null
 	const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
 	const cgChart = geckoId

@@ -15,6 +15,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
+import { useAuthContext } from '~/containers/Subscription/auth'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
@@ -33,7 +34,9 @@ import {
 	type HolderWithChange
 } from '~/containers/Yields/queries/holderUtils'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
+import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
@@ -463,10 +466,13 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 	dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 }
 
-const PageView = (_props) => {
+const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any; fetchingConfigData: boolean }) => {
 	const { query, isReady } = useRouter()
+	const isClient = useIsClient()
+	const { hasActiveSubscription } = useAuthContext()
+	const { onRequestUpgrade, modal } = useYieldsUpgradePrompt()
+	const hasPremiumAccess = isClient && hasActiveSubscription
 
-	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(query.pool)
 	const poolData = pool?.data?.[0] ?? {}
 	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
 
@@ -511,8 +517,6 @@ const PageView = (_props) => {
 
 	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(poolId)
 
-	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
-
 	const { data: volatility } = useVolatility()
 	const { data: holderHistory } = useHolderHistory(poolId)
 	const { data: holderStatsMap } = useHolderStats(poolData.pool ? [poolData.pool] : undefined)
@@ -524,7 +528,7 @@ const PageView = (_props) => {
 	const holderChanges30d = useMemo(() => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 30)
 	}, [holderStats?.top10Holders, holderHistory])
-	const poolConfigId = poolData.pool
+	const poolConfigId = poolData.pool ?? (typeof query.pool === 'string' ? query.pool : null)
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
 	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
@@ -564,7 +568,7 @@ const PageView = (_props) => {
 	const url = poolData.url ?? ''
 	const category = config?.category ?? ''
 
-	const isLoading = fetchingPoolData || fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
+	const isLoading = fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
 
 	const getYieldsChartConfig = (chartType?: YieldChartType): YieldsChartConfig | null => {
 		if (!query.pool) return null
@@ -775,7 +779,13 @@ const PageView = (_props) => {
 						{poolConfigId ? (
 							<p className="flex items-center justify-between gap-1">
 								<span className="font-semibold">Yield Score</span>
-								<StabilityCell cv30d={cv30d} apyMedian30d={apyMedian30d} apyStd30d={apyStd30d} />
+								<StabilityCell
+									cv30d={cv30d}
+									apyMedian30d={apyMedian30d}
+									apyStd30d={apyStd30d}
+									hasPremiumAccess={hasPremiumAccess}
+									onRequestUpgrade={onRequestUpgrade}
+								/>
 							</p>
 						) : null}
 						{holderStats?.holderCount != null ? (
@@ -1104,6 +1114,7 @@ const PageView = (_props) => {
 					) : null}
 				</div>
 			</div>
+			{modal}
 		</>
 	)
 }
@@ -1117,16 +1128,35 @@ const liquidityChartColors: Record<string, string> = {
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 export default function YieldPoolPage(props) {
-	const { query } = useRouter()
-	const pool = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+	const { query, isReady } = useRouter()
+	const poolId = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+
+	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(poolId)
+	const poolData = pool?.data?.[0] ?? {}
+
+	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
+
+	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
+	const projectName = config?.name ?? ''
+	const chain = poolData.chain ?? ''
+
+	const poolLabel =
+		poolName && projectName && chain ? `${poolName} (${projectName} - ${chain})` : poolName || poolId || ''
+
+	const title = poolLabel ? `${poolLabel} Yields` : ''
+	const description = poolLabel
+		? `Compare historic APY rates, TVL, and pool metrics for ${poolLabel} on DefiLlama.`
+		: ''
 
 	return (
-		<Layout
-			title={pool ? `Yields ${pool} - DefiLlama` : ''}
-			description={pool ? `Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.` : ''}
-			canonicalUrl={pool ? `/yields/pool/${pool}` : null}
-		>
-			<PageView {...props} />
+		<Layout title={title} description={description} canonicalUrl={poolId ? `/yields/pool/${poolId}` : null}>
+			{!isReady || fetchingPoolData ? (
+				<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
+			) : (
+				<PageView {...props} pool={pool} config={config} fetchingConfigData={fetchingConfigData} />
+			)}
 		</Layout>
 	)
 }

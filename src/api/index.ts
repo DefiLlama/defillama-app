@@ -124,8 +124,24 @@ export async function fetchCoinsChart(params: {
 // ---------------------------------------------------------------------------
 
 /** Fetch the list of all protocols that have liquidity data available. */
-export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+export async function fetchLiquidityTokensDatasetFromNetwork(): Promise<ProtocolLiquidityTokensResponse> {
 	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
+}
+
+/** Fetch the list of all protocols that have liquidity data available. */
+export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+	return fetchLiquidityTokensDatasetFromNetwork()
+}
+
+export async function fetchLiquidityDatasetEntryByProtocolId(
+	protocolId: string
+): Promise<ProtocolLiquidityTokensResponse[number] | null> {
+	if (!protocolId) {
+		return null
+	}
+
+	const data = await fetchLiquidityTokensDataset()
+	return data.find((entry) => entry.id === protocolId) ?? null
 }
 
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */

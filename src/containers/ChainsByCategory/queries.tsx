@@ -7,6 +7,7 @@ import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAd
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import type { IChainMetadata } from '~/utils/metadata/types'
+import { normalizeChainsBaseTvlValue, removeStaleChainExtraTvlEntries } from './tvl'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
@@ -152,10 +153,14 @@ export const getChainsByCategory = async ({
 				const keyName = keysToNames[key]
 				totalTvlByDate[keyName] = totalTvlByDate[keyName] || {}
 
-				// by default doublecounted, liquidstaking tvls need to be subtracted, overlapping tvls need to be added to tvl chart
+				// Match /chain/:chain base TVL: subtract current doublecounted and liquid staking, then add overlap back.
 				const value =
 					keyName === 'tvl'
-						? tvls[chain][key] - (tvls[chain]['d'] ?? 0) - (tvls[chain]['l'] ?? 0) + (tvls[chain]['dl'] ?? 0)
+						? normalizeChainsBaseTvlValue(tvls[chain][key], {
+								doublecounted: tvls[chain]['d'],
+								liquidstaking: tvls[chain]['l'],
+								dcAndLsOverlap: tvls[chain]['dl']
+							})
 						: tvls[chain][key]
 				tvlChartsByChain[keyName] = tvlChartsByChain[keyName] || {}
 				tvlChartsByChain[keyName][chain] = tvlChartsByChain[keyName][chain] || {}
@@ -175,6 +180,11 @@ export const getChainsByCategory = async ({
 		chains: chainTvls
 			.map((chain) => {
 				const name = slug(chain.name)
+				const extraTvl = removeStaleChainExtraTvlEntries({
+					chainName: chain.name,
+					extraTvl: chain.extraTvl,
+					tvlChartsByChain
+				})
 
 				const fees24h = feesByDisplayName[chain.name]?.total24h ?? null
 				const fees7d = feesByDisplayName[chain.name]?.total7d ?? null
@@ -200,26 +210,26 @@ export const getChainsByCategory = async ({
 
 				const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 
-				const tvl =
-					(chain.tvl ?? 0) -
-					(chain.extraTvl?.doublecounted?.tvl ?? 0) -
-					(chain.extraTvl?.liquidstaking?.tvl ?? 0) +
-					(chain.extraTvl?.dcAndLsOverlap?.tvl ?? 0)
-				const tvlPrevDay =
-					(chain.tvlPrevDay ?? 0) -
-					(chain.extraTvl?.doublecounted?.tvlPrevDay ?? 0) -
-					(chain.extraTvl?.liquidstaking?.tvlPrevDay ?? 0) +
-					(chain.extraTvl?.dcAndLsOverlap?.tvlPrevDay ?? 0)
-				const tvlPrevWeek =
-					(chain.tvlPrevWeek ?? 0) -
-					(chain.extraTvl?.doublecounted?.tvlPrevWeek ?? 0) -
-					(chain.extraTvl?.liquidstaking?.tvlPrevWeek ?? 0) +
-					(chain.extraTvl?.dcAndLsOverlap?.tvlPrevWeek ?? 0)
-				const tvlPrevMonth =
-					(chain.tvlPrevMonth ?? 0) -
-					(chain.extraTvl?.doublecounted?.tvlPrevMonth ?? 0) -
-					(chain.extraTvl?.liquidstaking?.tvlPrevMonth ?? 0) +
-					(chain.extraTvl?.dcAndLsOverlap?.tvlPrevMonth ?? 0)
+				const tvl = normalizeChainsBaseTvlValue(chain.tvl, {
+					doublecounted: extraTvl?.doublecounted?.tvl,
+					liquidstaking: extraTvl?.liquidstaking?.tvl,
+					dcAndLsOverlap: extraTvl?.dcAndLsOverlap?.tvl
+				})
+				const tvlPrevDay = normalizeChainsBaseTvlValue(chain.tvlPrevDay, {
+					doublecounted: extraTvl?.doublecounted?.tvlPrevDay,
+					liquidstaking: extraTvl?.liquidstaking?.tvlPrevDay,
+					dcAndLsOverlap: extraTvl?.dcAndLsOverlap?.tvlPrevDay
+				})
+				const tvlPrevWeek = normalizeChainsBaseTvlValue(chain.tvlPrevWeek, {
+					doublecounted: extraTvl?.doublecounted?.tvlPrevWeek,
+					liquidstaking: extraTvl?.liquidstaking?.tvlPrevWeek,
+					dcAndLsOverlap: extraTvl?.dcAndLsOverlap?.tvlPrevWeek
+				})
+				const tvlPrevMonth = normalizeChainsBaseTvlValue(chain.tvlPrevMonth, {
+					doublecounted: extraTvl?.doublecounted?.tvlPrevMonth,
+					liquidstaking: extraTvl?.liquidstaking?.tvlPrevMonth,
+					dcAndLsOverlap: extraTvl?.dcAndLsOverlap?.tvlPrevMonth
+				})
 
 				const nftVolume24h = nftVolumeByDisplayName[chain.name]?.total24h ?? null
 				const nftVolume7d = nftVolumeByDisplayName[chain.name]?.total7d ?? null
@@ -227,6 +237,7 @@ export const getChainsByCategory = async ({
 
 				return {
 					...chain,
+					extraTvl,
 					protocols,
 					stablesMcap,
 					dexVolume24h,

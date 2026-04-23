@@ -1,49 +1,67 @@
 import { useState } from 'react'
+import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
+import { buildLlmInstructions } from './llmInstructions'
 import { inferColumnKind, SectionLabel, TypeBadge } from './primitives'
 import { prettyLabelForSource, type RegisteredTable } from './useTableRegistry'
 
-interface TableChipRailProps {
-	tables: RegisteredTable[]
-	onAddTable: () => void
-	onRemove: (name: string) => void
+export type PendingTableStatus = 'pending' | 'loading' | 'failed'
+
+export interface PendingTable {
+	key: string
+	name: string
+	label: string
+	status: PendingTableStatus
 }
 
-export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailProps) {
+interface TableChipRailProps {
+	tables: RegisteredTable[]
+	onBrowseSchema: () => void
+	onRemove: (name: string) => void
+	pending?: PendingTable[]
+	totalSchemaCount: number
+}
+
+export function TableChipRail({
+	tables,
+	onBrowseSchema,
+	onRemove,
+	pending = [],
+	totalSchemaCount
+}: TableChipRailProps) {
 	const [openName, setOpenName] = useState<string | null>(null)
 	const openTable = openName ? (tables.find((t) => t.name === openName) ?? null) : null
+	const totalCount = tables.length + pending.length
 
 	return (
 		<section aria-label="Loaded tables" className="flex flex-col gap-2">
 			<SectionLabel
 				label="Tables"
-				count={tables.length}
+				count={totalCount}
 				action={
-					<button
-						type="button"
-						onClick={onAddTable}
-						className="inline-flex items-center gap-1 rounded-md border border-(--divider) bg-(--cards-bg) px-2 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
-					>
-						<Icon name="plus" className="h-3 w-3" />
-						Add table
-					</button>
+					totalCount > 0 ? (
+						<div className="flex items-center gap-1.5">
+							<CopyForAIButton />
+							<button
+								type="button"
+								onClick={onBrowseSchema}
+								className="inline-flex items-center gap-1.5 rounded-md border border-(--primary)/30 bg-(--primary)/8 px-2.5 py-1 text-xs font-semibold text-(--primary) transition-all hover:border-(--primary)/60 hover:bg-(--primary)/12"
+								title={`Browse all ${totalSchemaCount} available datasets`}
+							>
+								<Icon name="layers" className="h-3 w-3" />
+								Browse schema
+								<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
+							</button>
+						</div>
+					) : null
 				}
 			/>
 
-			{tables.length === 0 ? (
-				<div className="rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-3 py-2.5 text-xs text-(--text-secondary)">
-					No tables loaded.{' '}
-					<button
-						type="button"
-						onClick={onAddTable}
-						className="font-medium text-(--primary) underline-offset-2 hover:underline"
-					>
-						Add one
-					</button>{' '}
-					to start querying.
-				</div>
+			{totalCount === 0 ? (
+				<EmptyTablesPrompt onBrowseSchema={onBrowseSchema} totalSchemaCount={totalSchemaCount} />
 			) : (
-				<div className="flex flex-wrap items-center gap-1.5">
+				<div className="flex flex-wrap items-center gap-1.5" aria-live="polite">
 					{tables.map((t) => {
 						const isOpen = openName === t.name
 						return (
@@ -59,6 +77,9 @@ export function TableChipRail({ tables, onAddTable, onRemove }: TableChipRailPro
 							/>
 						)
 					})}
+					{pending.map((p) => (
+						<PendingChip key={p.key} table={p} />
+					))}
 				</div>
 			)}
 
@@ -114,6 +135,46 @@ function TableChip({
 	)
 }
 
+function PendingChip({ table }: { table: PendingTable }) {
+	const { status } = table
+	const failed = status === 'failed'
+	const loading = status === 'loading'
+	return (
+		<div
+			role="status"
+			aria-label={
+				failed ? `Failed to load ${table.label}` : loading ? `Loading ${table.label}` : `Queued ${table.label}`
+			}
+			title={table.label}
+			className={`flex items-center gap-1.5 overflow-hidden rounded-md border border-dashed px-2.5 py-1 text-xs transition-colors ${
+				failed
+					? 'border-red-500/50 bg-red-500/5 text-red-600 dark:text-red-300'
+					: loading
+						? 'border-(--primary)/40 bg-(--primary)/5 text-(--text-primary)'
+						: 'border-(--divider) bg-(--cards-bg)/40 text-(--text-secondary)'
+			} ${loading ? 'animate-pulse' : ''}`}
+		>
+			<span className="flex h-3 w-3 shrink-0 items-center justify-center">
+				{failed ? (
+					<Icon name="alert-triangle" className="h-3 w-3 text-red-500" />
+				) : loading ? (
+					<LoadingSpinner size={10} />
+				) : (
+					<span className="h-1.5 w-1.5 rounded-full bg-(--text-tertiary)/60" />
+				)}
+			</span>
+			<span className="max-w-[180px] truncate font-mono font-medium">{table.name}</span>
+			<span
+				className={`text-[10px] tracking-wide uppercase tabular-nums ${
+					failed ? 'text-red-500/80' : 'text-(--text-tertiary)'
+				}`}
+			>
+				{failed ? 'failed' : loading ? 'loading' : 'queued'}
+			</span>
+		</div>
+	)
+}
+
 function ColumnDrawer({ table, onClose }: { table: RegisteredTable; onClose: () => void }) {
 	return (
 		<div className="rounded-md border border-(--divider) bg-(--cards-bg) px-3 py-2.5">
@@ -154,4 +215,69 @@ function formatCount(n: number): string {
 	if (n < 10_000) return `${(n / 1000).toFixed(1)}k`
 	if (n < 1_000_000) return `${Math.round(n / 1000)}k`
 	return `${(n / 1_000_000).toFixed(1)}m`
+}
+
+function EmptyTablesPrompt({
+	onBrowseSchema,
+	totalSchemaCount
+}: {
+	onBrowseSchema: () => void
+	totalSchemaCount: number
+}) {
+	return (
+		<div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-md border border-(--divider) bg-(--cards-bg)/60 px-3 py-2 text-xs text-(--text-secondary)">
+			<span className="text-(--text-primary)">
+				No tables loaded — type a table name in SQL to auto-load on run, or pick from the catalogue.
+			</span>
+			<span className="ml-auto flex items-center gap-1.5">
+				<CopyForAIButton />
+				<button
+					type="button"
+					onClick={onBrowseSchema}
+					className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+					title={`Browse all ${totalSchemaCount} available datasets`}
+				>
+					<Icon name="layers" className="h-3 w-3" />
+					Browse datasets
+					<span className="tabular-nums opacity-80">{totalSchemaCount}</span>
+				</button>
+			</span>
+		</div>
+	)
+}
+
+function CopyForAIButton() {
+	const [copied, setCopied] = useState(false)
+
+	const onCopy = async () => {
+		if (typeof navigator === 'undefined' || !navigator.clipboard) {
+			toast.error('Clipboard unavailable')
+			return
+		}
+		try {
+			const brief = buildLlmInstructions()
+			await navigator.clipboard.writeText(brief)
+			setCopied(true)
+			toast.success('Paste into ChatGPT / Claude / Gemini, then ask for a query', { duration: 2600 })
+			window.setTimeout(() => setCopied(false), 2000)
+		} catch {
+			toast.error('Copy failed')
+		}
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={onCopy}
+			title="Copy a full dataset + dialect brief tailored for LLMs. Paste into ChatGPT / Claude / Gemini and ask for a query."
+			className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold transition-all disabled:cursor-not-allowed ${
+				copied
+					? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+					: 'border-(--divider) bg-transparent text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--primary)'
+			}`}
+		>
+			{copied ? <Icon name="check" className="h-3 w-3" /> : <Icon name="sparkles" className="h-3 w-3" />}
+			{copied ? 'Copied for AI' : 'Copy for AI'}
+		</button>
+	)
 }

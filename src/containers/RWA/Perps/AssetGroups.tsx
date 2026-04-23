@@ -30,35 +30,35 @@ const columns = [
 		meta: { headerHelperText: d.assetGroup.description },
 		size: 220
 	}),
-	columnHelper.accessor('openInterest', {
+	columnHelper.accessor((row) => row.openInterest ?? undefined, {
 		id: 'openInterest',
 		header: d.openInterest.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: d.openInterest.description },
 		size: 180
 	}),
-	columnHelper.accessor('openInterestShare', {
+	columnHelper.accessor((row) => row.openInterestShare ?? undefined, {
 		id: 'openInterestShare',
 		header: d.openInterestShare.label,
 		cell: (info) => `${formattedNum(info.getValue() * 100, false)}%`,
 		meta: { align: 'end', headerHelperText: d.openInterestShare.description },
 		size: 150
 	}),
-	columnHelper.accessor('volume24h', {
+	columnHelper.accessor((row) => row.volume24h ?? undefined, {
 		id: 'volume24h',
 		header: d.volume24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: d.volume24h.description },
 		size: 180
 	}),
-	columnHelper.accessor('volume24hShare', {
+	columnHelper.accessor((row) => row.volume24hShare ?? undefined, {
 		id: 'volume24hShare',
 		header: d.volume24hShare.label,
 		cell: (info) => `${formattedNum(info.getValue() * 100, false)}%`,
 		meta: { align: 'end', headerHelperText: d.volume24hShare.description },
 		size: 190
 	}),
-	columnHelper.accessor('markets', {
+	columnHelper.accessor((row) => row.markets ?? undefined, {
 		id: 'markets',
 		header: d.markets.label,
 		cell: (info) => formattedNum(info.getValue(), false),

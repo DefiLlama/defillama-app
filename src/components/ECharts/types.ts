@@ -90,6 +90,7 @@ export interface IHBarChartProps {
 	height?: string
 	color?: string
 	colors?: string[]
+	logos?: string[]
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
@@ -130,6 +131,8 @@ export type MultiSeriesChart2SeriesConfig = {
 	valueSymbol?: string
 	/** Disable area fill for this series (line only). */
 	hideAreaStyle?: boolean
+	/** Exclude this series from the computed tooltip total while still rendering the row itself. */
+	excludeFromTooltipTotal?: boolean
 	/** Mark this series as tentative/TBD — renders with reduced opacity and dashed border. */
 	isTBD?: boolean
 	// Optional: enable point markers on line series.
@@ -183,6 +186,12 @@ type MultiSeriesChart2BaseProps = {
 	dataset: MultiSeriesChart2Dataset
 	title?: string
 	headingAs?: 'h1' | 'h2'
+	/**
+	 * For category xAxis only. One entry per category in the dataset's dimension order.
+	 * When present, the xAxis text labels are hidden and a logo row is rendered underneath
+	 * the plot area, aligned with each category tick.
+	 */
+	categoryLogos?: string[]
 }
 
 export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {

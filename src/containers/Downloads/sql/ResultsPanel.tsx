@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { FormatSplitButton } from '../FormatSplitButton'
+import type { ChartConfig } from './chartConfig'
 import { exportQueryResult, type QueryResult } from './exportResults'
 import { ResultsChart } from './ResultsChart'
 import { ResultsGrid } from './ResultsGrid'
@@ -12,16 +13,35 @@ interface ResultsPanelProps {
 	result: QueryResult | null
 	running: boolean
 	busyLabel?: string | null
+	chartConfig: ChartConfig | undefined
+	onChartConfigChange: (next: ChartConfig | null) => void
+	preferredView?: ResultsView
+	onConsumePreferredView?: () => void
+	durationMs?: number | null
 }
 
-export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) {
-	const [view, setView] = useState<ResultsView>('table')
+export function ResultsPanel({
+	result,
+	running,
+	busyLabel,
+	chartConfig,
+	onChartConfigChange,
+	preferredView,
+	onConsumePreferredView,
+	durationMs
+}: ResultsPanelProps) {
+	const [view, setView] = useState<ResultsView>(preferredView ?? 'table')
 
 	const resultId = result ? `${result.columns.map((c) => c.name).join('|')}:${result.rows.length}` : ''
 	const [prevResultId, setPrevResultId] = useState(resultId)
 	if (prevResultId !== resultId) {
 		setPrevResultId(resultId)
-		setView('table')
+		if (preferredView) {
+			setView(preferredView)
+			onConsumePreferredView?.()
+		} else {
+			setView('table')
+		}
 	}
 
 	const busy = running || !!busyLabel
@@ -66,6 +86,7 @@ export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) 
 					<span className="text-xs text-(--text-tertiary) tabular-nums">
 						{result.rows.length.toLocaleString()} row{result.rows.length === 1 ? '' : 's'} · {result.columns.length} col
 						{result.columns.length === 1 ? '' : 's'}
+						{durationMs != null ? ` · ${formatDuration(durationMs)}` : ''}
 					</span>
 				</div>
 				<div className="flex items-center gap-2">
@@ -77,7 +98,11 @@ export function ResultsPanel({ result, running, busyLabel }: ResultsPanelProps) 
 					/>
 				</div>
 			</div>
-			{view === 'chart' ? <ResultsChart result={result} /> : <ResultsGrid result={result} />}
+			{view === 'chart' ? (
+				<ResultsChart result={result} chartConfig={chartConfig} onChartConfigChange={onChartConfigChange} />
+			) : (
+				<ResultsGrid result={result} />
+			)}
 		</div>
 	)
 }
@@ -103,6 +128,13 @@ function ViewToggle({
 			<ToggleButton active={view === 'chart'} onClick={() => onChange('chart')} label="Chart" icon="bar-chart-2" />
 		</div>
 	)
+}
+
+function formatDuration(ms: number): string {
+	if (ms < 1000) return `${ms}ms`
+	if (ms < 10_000) return `${(ms / 1000).toFixed(2)}s`
+	if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`
+	return `${Math.round(ms / 1000)}s`
 }
 
 function ToggleButton({

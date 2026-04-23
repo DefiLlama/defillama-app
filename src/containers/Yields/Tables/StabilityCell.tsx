@@ -1,20 +1,10 @@
-import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useState } from 'react'
 import { LockIcon } from '~/components/LockIcon'
 import { Tooltip } from '~/components/Tooltip'
-import { useAuthContext } from '~/containers/Subscription/auth'
-import { setSignupSource } from '~/containers/Subscription/signupSource'
-import { useIsClient } from '~/hooks/useIsClient'
-import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
-
-function formatPct(v: number): string {
-	if (v === 0) return '0%'
-	if (Math.abs(v) < 0.01) return `${v.toPrecision(2)}%`
-	return `${v.toFixed(2)}%`
+function formatPct(value: number): string {
+	if (value === 0) return '0%'
+	if (Math.abs(value) < 0.01) return `${value.toPrecision(2)}%`
+	return `${value.toFixed(2)}%`
 }
 
 function getStabilityLabel(cv: number): { label: string; className: string } {
@@ -30,60 +20,43 @@ function getStabilityLabel(cv: number): { label: string; className: string } {
 	return { label: 'Volatile', className: 'bg-red-500/15 text-red-600 dark:text-red-400' }
 }
 
-interface StabilityCellProps {
+interface StabilitySharedProps {
+	hasPremiumAccess: boolean
+	onRequestUpgrade?: (source: 'header' | 'cell') => void
+}
+
+interface StabilityCellProps extends StabilitySharedProps {
 	cv30d: number | null | undefined
 	apyMedian30d?: number | null
 	apyStd30d?: number | null
 }
 
-export function StabilityHeader() {
-	const isClient = useIsClient()
-	const { hasActiveSubscription } = useAuthContext()
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
-
-	if (!isClient) {
-		return <span>Yield Score</span>
-	}
-
-	if (hasActiveSubscription) {
-		return <span>Yield Score</span>
+export function StabilityHeader({ hasPremiumAccess, onRequestUpgrade }: StabilitySharedProps) {
+	if (hasPremiumAccess) {
+		return <span className="whitespace-nowrap">Yield Score</span>
 	}
 
 	return (
-		<>
-			<button
-				onClick={(e) => {
-					e.stopPropagation()
-					trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'header' })
-					setSignupSource('yield-score')
-					setShouldRenderModal(true)
-				}}
-				className="cursor-pointer"
-			>
-				Yield Score
-			</button>
-			{shouldRenderModal ? (
-				<Suspense fallback={null}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
-			) : null}
-		</>
+		<button
+			onClick={(event) => {
+				event.stopPropagation()
+				onRequestUpgrade?.('header')
+			}}
+			className="cursor-pointer whitespace-nowrap"
+		>
+			Yield Score
+		</button>
 	)
 }
 
-export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellProps) {
-	const isClient = useIsClient()
-	const { hasActiveSubscription } = useAuthContext()
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
-
-	// Keep SSR/client-hydration output deterministic before auth state is available.
-	if (!isClient) {
-		return <span className="ml-auto opacity-30">—</span>
-	}
-
-	if (!hasActiveSubscription) {
+export function StabilityCell({
+	cv30d,
+	apyMedian30d,
+	apyStd30d,
+	hasPremiumAccess,
+	onRequestUpgrade
+}: StabilityCellProps) {
+	if (!hasPremiumAccess) {
 		const redactedTooltip = (
 			<div className="flex flex-col gap-1.5 text-xs">
 				<div className="flex items-center justify-between gap-4">
@@ -114,36 +87,23 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 		)
 
 		return (
-			<>
-				<Tooltip content={redactedTooltip} placement="top">
-					<button
-						onClick={() => {
-							trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'cell' })
-							setSignupSource('yield-score')
-							setShouldRenderModal(true)
-						}}
-						className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
-					>
-						<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-500/15 px-3 py-1 dark:bg-(--cards-border)/40">
-							<LockIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-
-							<span className="text-xs text-gray-400 blur-[3px] select-none dark:text-gray-300">Hidden</span>
-						</span>
-					</button>
-				</Tooltip>
-				{shouldRenderModal ? (
-					<Suspense fallback={null}>
-						<SubscribeProModal dialogStore={subscribeModalStore} />
-					</Suspense>
-				) : null}
-			</>
+			<Tooltip content={redactedTooltip} placement="top">
+				<button
+					onClick={() => onRequestUpgrade?.('cell')}
+					className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
+				>
+					<span className="inline-flex items-center gap-1.5 rounded-full bg-gray-500/15 px-3 py-1 dark:bg-(--cards-border)/40">
+						<LockIcon className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+						<span className="text-xs text-gray-400 blur-[3px] select-none dark:text-gray-300">Hidden</span>
+					</span>
+				</button>
+			</Tooltip>
 		)
 	}
 
 	if (cv30d == null) return <span className="ml-auto opacity-30">—</span>
 
 	const { label, className } = getStabilityLabel(cv30d)
-
 	const tooltipContent = (
 		<div className="flex flex-col gap-1.5 text-xs">
 			<span className="font-semibold">Yield Score · 30d</span>

@@ -6,6 +6,17 @@ import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
 
 const baseUrl = `https://defillama.com`
+
+// First path segment after `protocols/` for URLs that permanently redirect (see redirects in next.config.ts)
+const REDIRECTED_PROTOCOLS_LISTING_SLUGS = new Set([
+	'cex',
+	'dexes', // /protocols/Dexes -> /protocols/Dexs
+	'rwa',
+	'dexs',
+	'derivatives',
+	'dex-aggregator',
+	'bridge-aggregator'
+])
 // const protocolTabRoutes = [
 // 	{ prefix: 'protocol/tvl', hasMetric: (meta) => meta.tvl },
 // 	{ prefix: 'protocol/stablecoins', hasMetric: (meta) => meta.stablecoins },
@@ -160,13 +171,17 @@ function buildCategoryAndTagRoutes(categoriesAndTags) {
 
 	for (const category of categories) {
 		const categorySlug = slug(category)
-		if (categorySlug && categorySlug !== 'rwa') routes.push(`protocols/${categorySlug}`)
+		if (categorySlug && !REDIRECTED_PROTOCOLS_LISTING_SLUGS.has(categorySlug)) {
+			routes.push(`protocols/${categorySlug}`)
+		}
 	}
 
 	for (const tag of tags) {
 		if (!tagCategoryMap[tag]) continue
 		const tagSlug = slug(tag)
-		if (tagSlug && tagCategoryMap[tag] !== 'RWA') routes.push(`protocols/${tagSlug}`)
+		if (tagSlug && tagCategoryMap[tag] !== 'RWA' && !REDIRECTED_PROTOCOLS_LISTING_SLUGS.has(tagSlug)) {
+			routes.push(`protocols/${tagSlug}`)
+		}
 	}
 
 	return routes

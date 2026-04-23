@@ -255,6 +255,11 @@ export function buildRWAPerpsContractMetricSections(contractData: IRWAPerpsContr
 		},
 		pointInTimeRows: [
 			{
+				label: d.openInterestChange24h.label,
+				tooltip: d.openInterestChange24h.description,
+				value: formatPercentChangeText(contractData.market.openInterestChange24h) ?? '-'
+			},
+			{
 				label: d.fundingRate.label,
 				tooltip: d.fundingRate.description,
 				value: formatFractionPercent(contractData.market.fundingRate)

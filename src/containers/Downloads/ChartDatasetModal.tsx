@@ -28,6 +28,7 @@ import {
 	type SavedDownloadInput
 } from './savedDownloads'
 import { SavePresetDialog } from './SavePresetDialog'
+import { sumCsvColumnsToTotal } from './sumCsvColumns'
 import { buildShareUrl } from './urlState'
 
 const SubscribeProModal = lazy(() =>
@@ -229,6 +230,7 @@ export function ChartDatasetModal({
 	const [dateRange, setDateRange] = useState<DateRangeConfig | null>(initialConfig?.dateRange ?? null)
 	const [showSaveDialog, setShowSaveDialog] = useState(false)
 	const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+	const [sumMode, setSumMode] = useState(false)
 	const initialParamsAppliedRef = useRef(false)
 	const initialColumnsAppliedRef = useRef(false)
 	const wasInCategoryModeRef = useRef(false)
@@ -365,11 +367,19 @@ export function ChartDatasetModal({
 
 	const activeQuery = activeQueryIndex >= 0 ? perProtocolQueries[activeQueryIndex] : null
 
-	const csvText = isCategoryMode
+	const rawCsvText = isCategoryMode
 		? ((breakdownQuery.data as string | undefined) ?? undefined)
 		: ((activeQuery?.data as string | undefined) ?? undefined)
 	const dataLoading = isCategoryMode ? breakdownQuery.isLoading : (activeQuery?.isLoading ?? false)
 	const dataError = isCategoryMode ? breakdownQuery.error : (activeQuery?.error ?? null)
+
+	const sumModeActive = sumMode && !!dataset.sumMode && !isCategoryMode
+	const sumColumnLabel = dataset.sumMode?.columnLabel ?? 'total'
+
+	const csvText = useMemo(() => {
+		if (!sumModeActive || !rawCsvText) return rawCsvText
+		return sumCsvColumnsToTotal(rawCsvText, sumColumnLabel)
+	}, [sumModeActive, rawCsvText, sumColumnLabel])
 
 	const categorySyntheticQueries = useMemo<ReadonlyArray<CsvQueryStatus>>(() => {
 		if (!isCategoryMode) return []
@@ -383,7 +393,15 @@ export function ChartDatasetModal({
 		}))
 	}, [isCategoryMode, selectedParams, breakdownQuery.data, breakdownQuery.isLoading, breakdownQuery.error])
 
-	const csvQueries = isCategoryMode ? categorySyntheticQueries : perProtocolQueries
+	const rawCsvQueries = isCategoryMode ? categorySyntheticQueries : perProtocolQueries
+
+	const csvQueries = useMemo<ReadonlyArray<CsvQueryStatus>>(() => {
+		if (!sumModeActive) return rawCsvQueries
+		return rawCsvQueries.map((q) => {
+			if (typeof q.data !== 'string') return q
+			return { ...q, data: sumCsvColumnsToTotal(q.data, sumColumnLabel) }
+		})
+	}, [sumModeActive, rawCsvQueries, sumColumnLabel])
 
 	const { headers, rows } = useMemo(() => {
 		if (!csvText) return { headers: [] as string[], rows: [] as PreviewRow[] }
@@ -431,6 +449,11 @@ export function ChartDatasetModal({
 		setSearch('')
 		setSortState(null)
 	}, [isCategoryMode, activePreviewValue])
+
+	useEffect(() => {
+		setSelectedColumns(null)
+		setSortState(null)
+	}, [sumModeActive])
 
 	useEffect(() => {
 		if (headers.length === 0 || selectedColumns !== null) return
@@ -1283,6 +1306,27 @@ export function ChartDatasetModal({
 									{selectedParams.length} protocols
 								</span>
 							)}
+
+							{dataset.sumMode && !isCategoryMode ? (
+								<button
+									type="button"
+									onClick={() => setSumMode((s) => !s)}
+									aria-pressed={sumModeActive}
+									title={
+										sumModeActive
+											? `Showing total per date. Click to show each ${dataset.paramLabel.toLowerCase()} as a separate column.`
+											: `Sum all columns into a single total per date`
+									}
+									className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+										sumModeActive
+											? 'border-(--primary) bg-(--primary) text-white'
+											: 'border-(--divider) text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
+									}`}
+								>
+									<Icon name="plus" className="h-3.5 w-3.5" />
+									<span>Sum all</span>
+								</button>
+							) : null}
 
 							{hasSelection && !isPreview ? (
 								<DateRangePicker

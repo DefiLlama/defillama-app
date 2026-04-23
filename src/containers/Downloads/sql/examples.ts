@@ -107,6 +107,49 @@ ORDER BY revenue_pct_of_tvl DESC
 LIMIT 30`
 	},
 	{
+		title: 'Protocol economics stack',
+		description: 'Protocol-granular join across TVL, fees, revenue, treasury, holders, and supply side.',
+		subcategory: 'Cross-joins',
+		tables: [
+			{ kind: 'dataset', slug: 'protocols' },
+			{ kind: 'dataset', slug: 'fees' },
+			{ kind: 'dataset', slug: 'revenue' },
+			{ kind: 'dataset', slug: 'protocol-revenue' },
+			{ kind: 'dataset', slug: 'holders-revenue' },
+			{ kind: 'dataset', slug: 'supply-side-revenue' }
+		],
+		sql: `WITH protocol_stack AS (
+  SELECT p.name,
+         p.category,
+         p.chain,
+         p.tvl,
+         p.mcap,
+         COALESCE(f.total30d, 0) AS fees_30d,
+         COALESCE(r.total30d, 0) AS revenue_30d,
+         COALESCE(pr.total30d, 0) AS treasury_revenue_30d,
+         COALESCE(hr.total30d, 0) AS holders_revenue_30d,
+         COALESCE(ss.total30d, 0) AS supply_side_revenue_30d
+  FROM protocols p
+  LEFT JOIN fees f ON f.name = p.name
+  LEFT JOIN revenue r ON r.name = p.name
+  LEFT JOIN protocol_revenue pr ON pr.name = p.name
+  LEFT JOIN holders_revenue hr ON hr.name = p.name
+  LEFT JOIN supply_side_revenue ss ON ss.name = p.name
+  WHERE p.tvl > 50000000
+)
+SELECT name, category, chain, tvl, mcap,
+       fees_30d, revenue_30d,
+       treasury_revenue_30d, holders_revenue_30d, supply_side_revenue_30d,
+       ROUND(fees_30d / NULLIF(tvl, 0) * 100, 2) AS fees_pct_of_tvl,
+       ROUND(revenue_30d / NULLIF(fees_30d, 0) * 100, 2) AS revenue_capture_pct,
+       ROUND(treasury_revenue_30d / NULLIF(revenue_30d, 0) * 100, 2) AS treasury_share_pct,
+       ROUND(holders_revenue_30d / NULLIF(revenue_30d, 0) * 100, 2) AS holders_share_pct
+FROM protocol_stack
+WHERE revenue_30d > 1000000
+ORDER BY revenue_30d DESC, fees_30d DESC
+LIMIT 40`
+	},
+	{
 		title: 'Raised capital vs current TVL',
 		description: 'TVL built per dollar raised — capital efficiency survivors.',
 		subcategory: 'Cross-joins',

@@ -586,6 +586,9 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 						issuerSetStablecoinsAndGovernance.add(asset.issuer)
 					}
 					issuers.set(asset.issuer, (issuers.get(asset.issuer) ?? 0) + effectiveOnChainMcap)
+				} else {
+					// Surface assets without a known issuer as a selectable "Unknown" bucket so they can be filtered out.
+					issuers.set('Unknown', (issuers.get('Unknown') ?? 0) + effectiveOnChainMcap)
 				}
 			}
 		}

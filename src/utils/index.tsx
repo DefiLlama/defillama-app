@@ -4,6 +4,7 @@ import utc from 'dayjs/plugin/utc'
 import { renderPercentChange } from '~/components/PercentChange'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
+export { getPrevTvlFromChart } from './tvlChart'
 
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
@@ -497,13 +498,6 @@ export const getTokenDominance = (
 	if (dominance < 100) {
 		return dominance.toFixed(2)
 	} else return 100
-}
-
-/**
- * get tvl of specified day before last day using chart data
- */
-export const getPrevTvlFromChart = (chart: [number, number][], daysBefore: number): number | null => {
-	return chart[chart.length - 1 - daysBefore]?.[1] ?? null
 }
 
 export const getPrevVolumeFromChart = (

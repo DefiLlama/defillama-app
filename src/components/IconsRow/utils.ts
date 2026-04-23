@@ -16,7 +16,8 @@ export const toChainIconItems = (
 	return chains.map((chain) => ({
 		label: chain,
 		kind: 'chain',
-		href: getHref?.(chain)
+		href: getHref?.(chain),
+		size: 22
 	}))
 }
 

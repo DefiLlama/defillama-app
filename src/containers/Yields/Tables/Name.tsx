@@ -9,10 +9,13 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
+const MOBILE_PRIMARY_COLUMN_MAX_WIDTH = 'max-sm:max-w-[clamp(160px,40vw,260px)]'
+
 interface INameYieldPoolProps {
 	value: string
 	configID: string
 	url: string
+	rowIndex?: number
 	borrow?: boolean
 	withoutLink?: boolean
 	maxCharacters?: number
@@ -34,6 +37,7 @@ export function NameYieldPool({
 	value,
 	configID,
 	url,
+	rowIndex,
 	borrow: _borrow,
 	strategy,
 	withoutLink,
@@ -46,10 +50,16 @@ export function NameYieldPool({
 	const mc = maxCharacters ?? (width >= 1536 ? 20 : width >= 1280 ? 12 : 10)
 
 	return (
-		<span className="flex items-center gap-2">
+		<span className="flex min-w-0 items-center gap-2">
 			{bookmark ? <Bookmark readableName={value} configID={configID} data-lgonly /> : null}
 
-			{strategy ? null : <span className="vf-row-index shrink-0" aria-hidden="true" />}
+			{strategy ? null : rowIndex != null ? (
+				<span className="inline-block shrink-0 text-left tabular-nums" aria-hidden="true">
+					{rowIndex}
+				</span>
+			) : (
+				<span className="vf-row-index shrink-0" aria-hidden="true" />
+			)}
 
 			<a
 				href={url}
@@ -68,7 +78,9 @@ export function NameYieldPool({
 			>
 				{poolMeta ? (
 					<>
-						<span className="shrink-0 overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)">
+						<span
+							className={`min-w-0 shrink overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
+						>
 							{value}
 						</span>
 						<span className="ml-1 shrink overflow-hidden rounded-lg bg-(--bg-tertiary) px-1 py-0.5 text-xs text-ellipsis whitespace-nowrap text-black group-data-[tooltipcontent=true]:whitespace-break-spaces dark:text-white">
@@ -97,7 +109,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 								onClick={() => trackUmamiEvent('yields-pool-click')}
 							/>
 						}
-						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+						className={`flex min-w-0 shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
 						content={children}
 						data-fullwidth
 					>
@@ -105,7 +117,7 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 					</Tooltip>
 				) : (
 					<Tooltip
-						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+						className={`flex min-w-0 shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
 						content={children}
 						data-fullwidth
 					>
@@ -123,12 +135,16 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 					href={url}
 					target="_blank"
 					data-umami-event="yields-pool-click"
-					className="flex items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+					className={`flex min-w-0 items-center overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
 				>
 					{children}
 				</BasicLink>
 			) : (
-				<span className="flex items-center overflow-hidden text-ellipsis whitespace-nowrap">{children}</span>
+				<span
+					className={`flex min-w-0 items-center overflow-hidden text-ellipsis whitespace-nowrap ${MOBILE_PRIMARY_COLUMN_MAX_WIDTH}`}
+				>
+					{children}
+				</span>
 			)}
 		</>
 	)
@@ -171,9 +187,9 @@ export function NameYield({
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
-		<span className="relative flex items-center pl-6" {...props}>
+		<span className="relative flex items-center gap-2 pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? <AirdropIndicator raiseValuation={raiseValuation} /> : null}
-			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} size={22} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
@@ -181,7 +197,7 @@ export function NameYield({
 					href={tokenUrl}
 					data-umami-event="yields-project-filter-click"
 					data-umami-event-project={project}
-					className="ml-2 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 				>
 					{project}
 				</BasicLink>
@@ -190,13 +206,12 @@ export function NameYield({
 	)
 }
 
-//
 export function YieldsProject({ project, projectslug }: INameYield) {
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<span className="flex items-center gap-2">
-			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} size={22} />
 			<BasicLink
 				href={tokenUrl}
 				data-umami-event="yields-project-filter-click"

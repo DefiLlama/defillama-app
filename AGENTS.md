@@ -11,12 +11,14 @@ This file defines the commands and working conventions that all AI agents must f
 ## Approved Commands
 
 - Format code with `bun run format`
+- Run tests with `bun run test`
 - Run lint checks with `bun run lint`
 - Run TypeScript checks with `bun run ts`
 
 ## Forbidden Commands
 
 - Do not run `bun run build` or any other build command. Builds are expected to fail because of API rate limits.
+- Do not use `bun test`. Use `bun run test` so tests run through the repo's Vitest script.
 - Do not use `npx tsc`, `npx eslint`, or any other `npx` command. Use `bun x` instead when you need to run a package binary.
 - Do not use `npm run lint`, `npm run typecheck`, or any other `npm` command.
 

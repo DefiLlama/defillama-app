@@ -1,15 +1,22 @@
+import type { TokenDirectory } from '~/utils/tokenDirectory'
 import bridgeChainSlugsRaw from '../../../.cache/bridgeChainSlugs.json'
 import bridgeChainSlugToNameRaw from '../../../.cache/bridgeChainSlugToName.json'
 import bridgeProtocolSlugsRaw from '../../../.cache/bridgeProtocolSlugs.json'
 import categoriesAndTags from '../../../.cache/categoriesAndTags.json'
 import cexs from '../../../.cache/cexs.json'
 import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json'
+import chainDisplayNamesRaw from '../../../.cache/chainDisplayNames.json'
 import chainMetadata from '../../../.cache/chains.json'
+import emissionsProtocolsListRaw from '../../../.cache/emissionsProtocolsList.json'
+import liquidationsTokenSymbolsRaw from '../../../.cache/liquidationsTokenSymbols.json'
 import protocolLlamaswapDatasetRaw from '../../../.cache/llamaswap-protocols.json'
+import protocolDisplayNamesRaw from '../../../.cache/protocolDisplayNames.json'
 import protocolMetadata from '../../../.cache/protocols.json'
 import rwaList from '../../../.cache/rwa.json'
 import rwaPerpsList from '../../../.cache/rwaPerps.json'
 import tokenlistRaw from '../../../.cache/tokenlist.json'
+import tokenDirectoryRaw from '../../../.cache/tokens.json'
+import { createStringLookupMap } from './displayLookups'
 import { fetchCoreMetadata } from './fetch'
 import type {
 	ICategoriesAndTags,
@@ -30,6 +37,12 @@ const metadataCache: {
 	rwaList: IRWAList
 	rwaPerpsList: IRWAPerpsList
 	tokenlist: Record<string, ITokenListEntry>
+	tokenDirectory: TokenDirectory
+	protocolDisplayNames: Map<string, string>
+	chainDisplayNames: Map<string, string>
+	liquidationsTokenSymbols: string[]
+	liquidationsTokenSymbolsSet: Set<string>
+	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -46,6 +59,12 @@ const metadataCache: {
 		assetGroups: (rwaPerpsList as IRWAPerpsList).assetGroups ?? []
 	},
 	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
+	tokenDirectory: tokenDirectoryRaw as TokenDirectory,
+	protocolDisplayNames: createStringLookupMap(protocolDisplayNamesRaw as Record<string, string>),
+	chainDisplayNames: createStringLookupMap(chainDisplayNamesRaw as Record<string, string>),
+	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
+	liquidationsTokenSymbolsSet: new Set(liquidationsTokenSymbolsRaw as string[]),
+	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
 	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
 	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
 	bridgeChainSlugs: bridgeChainSlugsRaw as string[],
@@ -68,6 +87,11 @@ async function doRefresh(): Promise<void> {
 			rwaList: rwaListData,
 			rwaPerpsList: rwaPerpsListData,
 			tokenlist,
+			tokenDirectory,
+			protocolDisplayNames,
+			chainDisplayNames,
+			liquidationsTokenSymbols,
+			emissionsProtocolsList,
 			cgExchangeIdentifiers: cgExIds,
 			bridgeProtocolSlugs,
 			bridgeChainSlugs,
@@ -85,6 +109,16 @@ async function doRefresh(): Promise<void> {
 		metadataCache.rwaPerpsList = rwaPerpsListData
 		metadataCache.cgExchangeIdentifiers = cgExIds
 		metadataCache.tokenlist = tokenlist
+		if (Object.keys(tokenDirectory).length > 0) {
+			metadataCache.tokenDirectory = tokenDirectory
+		} else {
+			console.error('[metadata] refresh returned an empty token directory, keeping stale cache')
+		}
+		metadataCache.protocolDisplayNames = createStringLookupMap(protocolDisplayNames)
+		metadataCache.chainDisplayNames = createStringLookupMap(chainDisplayNames)
+		metadataCache.liquidationsTokenSymbols = liquidationsTokenSymbols
+		metadataCache.liquidationsTokenSymbolsSet = new Set(liquidationsTokenSymbols)
+		metadataCache.emissionsProtocolsList = emissionsProtocolsList
 		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
 		metadataCache.bridgeChainSlugs = bridgeChainSlugs
 		metadataCache.bridgeChainSlugToName = bridgeChainSlugToName

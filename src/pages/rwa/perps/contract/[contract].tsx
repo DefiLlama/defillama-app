@@ -6,6 +6,26 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
+function safeDecodeContractParam(value: string): string {
+	try {
+		return decodeURIComponent(value)
+	} catch {
+		return value
+	}
+}
+
+function resolveCanonicalContract(contractParam: string, contracts: string[]): string | null {
+	const normalizedContractParam = contractParam.toLowerCase()
+
+	for (const contract of contracts) {
+		if (contract.toLowerCase() === normalizedContractParam) {
+			return contract
+		}
+	}
+
+	return null
+}
+
 export async function getStaticPaths() {
 	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
@@ -29,11 +49,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		if (!metadataCache.rwaPerpsList.contracts.includes(params.contract)) {
+		const contractParam = safeDecodeContractParam(params.contract)
+		const canonicalContract = resolveCanonicalContract(contractParam, metadataCache.rwaPerpsList.contracts)
+		if (!canonicalContract) {
 			return { notFound: true }
 		}
 
-		const contract = await getRWAPerpsContractData({ contract: params.contract })
+		const contract = await getRWAPerpsContractData({ contract: canonicalContract })
 		if (!contract) {
 			return { notFound: true }
 		}

@@ -15,7 +15,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-import type { IDATOverviewPageProps } from './types'
+import type { IDATOverviewFlowSeries, IDATOverviewPageProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -34,33 +34,23 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 	const groupBy = normalizeChartGroup(readSingleQueryValue(router.query.groupBy)) ?? 'weekly'
 
 	const { chartData } = useMemo(() => {
-		const assetKeys: string[] = []
-		for (const asset in dailyFlowsByAsset) {
-			assetKeys.push(asset)
-		}
-
 		if (groupBy === 'cumulative') {
+			const series: Array<{ name: string; color: string; points: IDATOverviewFlowSeries['points'] }> = []
+			for (const name in dailyFlowsByAsset) {
+				const item = dailyFlowsByAsset[name]
+				series.push({ name: item.name, color: item.color, points: item.points })
+			}
 			return {
-				chartData: buildTimeSeriesChart({
-					kind: 'cumulativeLines',
-					series: assetKeys.map((asset) => {
-						const item = dailyFlowsByAsset[asset]
-						return {
-							name: item.name,
-							color: item.color,
-							points: item.points
-						}
-					})
-				})
+				chartData: buildTimeSeriesChart({ kind: 'cumulativeLines', series })
 			}
 		}
 
+		const series: IDATOverviewFlowSeries[] = []
+		for (const name in dailyFlowsByAsset) {
+			series.push(dailyFlowsByAsset[name])
+		}
 		return {
-			chartData: buildTimeSeriesChart({
-				kind: 'periodBars',
-				groupBy,
-				series: assetKeys.map((asset) => dailyFlowsByAsset[asset])
-			})
+			chartData: buildTimeSeriesChart({ kind: 'periodBars', groupBy, series })
 		}
 	}, [dailyFlowsByAsset, groupBy])
 	const deferredChartData = useDeferredValue(chartData)

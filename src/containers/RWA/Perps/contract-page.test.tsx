@@ -137,6 +137,24 @@ describe('rwa perps contract page', () => {
 		})
 	})
 
+	it('getStaticProps resolves lowercase contract params to the canonical contract', async () => {
+		const page = await setupPageModule({ contracts: ['xyz:META'], contractData: TEST_CONTRACT })
+
+		await expect(page.getStaticProps({ params: { contract: 'xyz:meta' } } as never)).resolves.toEqual({
+			props: { contract: TEST_CONTRACT },
+			revalidate: 123
+		})
+	})
+
+	it('getStaticProps resolves encoded lowercase contract params to the canonical contract', async () => {
+		const page = await setupPageModule({ contracts: ['xyz:META'], contractData: TEST_CONTRACT })
+
+		await expect(page.getStaticProps({ params: { contract: 'xyz%3ameta' } } as never)).resolves.toEqual({
+			props: { contract: TEST_CONTRACT },
+			revalidate: 123
+		})
+	})
+
 	it('uses the raw contract identifier in the SEO title', async () => {
 		const page = await setupPageModule({ contracts: ['xyz:META'], contractData: TEST_CONTRACT })
 

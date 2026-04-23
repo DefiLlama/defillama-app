@@ -30,6 +30,7 @@ import {
 	fetchProtocolTvlChart
 } from './api'
 import type { IProtocolValueChart, IProtocolMetricsV2, IProtocolExpenses } from './api.types'
+import { resolveProtocolCategory } from './category'
 import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
 import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
 import type { ProtocolChartsLabels } from './constants'
@@ -504,6 +505,11 @@ export const getProtocolOverviewPageData = async ({
 		throw new Error(`Unable to fetch protocol data for ${currentProtocolMetadata.displayName}`)
 	}
 
+	const resolvedCategory = resolveProtocolCategory({
+		protocolData,
+		liteProtocols: liteProtocolsData?.protocols ?? []
+	})
+
 	const otherProtocols = protocolData.otherProtocols?.map((p) => slug(p)) ?? []
 	const projectYields = yieldsData?.data?.filter(
 		({ project }: { project: string }) =>
@@ -588,10 +594,10 @@ export const getProtocolOverviewPageData = async ({
 	const protocolChainsSet = new Set(protocolData.chains ?? [])
 
 	const competitors =
-		liteProtocolsData && protocolData.category
+		liteProtocolsData && resolvedCategory
 			? (() => {
 					const rows: Array<{ name: string; tvl: number; commonChains: number }> = []
-					const currentCategory = protocolData.category.toLowerCase()
+					const currentCategory = resolvedCategory.toLowerCase()
 					const currentName = protocolData.name?.toLowerCase()
 					for (const protocol of liteProtocolsData.protocols) {
 						if (!protocol.category) continue
@@ -749,7 +755,7 @@ export const getProtocolOverviewPageData = async ({
 		protocolTvlChartData,
 		currentChainTvls: protocolData.currentChainTvls,
 		availableCharts,
-		category: protocolData.category
+		category: resolvedCategory
 	})
 
 	const protocolSlug = slug(currentProtocolMetadata.displayName ?? '')
@@ -892,14 +898,14 @@ export const getProtocolOverviewPageData = async ({
 	return {
 		id: String(protocolData.id),
 		name: name,
-		category: protocolData.category ?? null,
+		category: resolvedCategory,
 		tags: protocolData.tags ?? null,
 		otherProtocols: protocolData.otherProtocols ?? null,
 		deprecated: protocolData.deprecated ?? false,
 		chains: protocolData.chains ?? [],
 		currentTvlByChain: currentProtocolMetadata.tvl ? (protocolData.currentChainTvls ?? {}) : {},
 		description: protocolData.description ?? '',
-		website: protocolData.referralUrl ?? protocolData.url ?? null,
+		website: protocolData.referralUrl?.trim() || protocolData.url?.trim() || null,
 		twitter: protocolData.twitter ?? null,
 		safeHarbor: currentProtocolMetadata.safeHarbor ?? false,
 		github: protocolData.github

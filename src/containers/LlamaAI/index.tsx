@@ -46,9 +46,14 @@ import {
 	resumeAgenticStream,
 	stopAgenticExecution
 } from '~/containers/LlamaAI/fetchAgenticResponse'
-import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
+import type {
+	AgenticSSECallbacks,
+	CsvExport,
+	MdExport,
+	SpawnProgressData
+} from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
-import { useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import { useLlamaAISetting, useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -125,6 +130,7 @@ interface PersistedMessage {
 	chartData?: Record<string, unknown[]>
 	citations?: string[]
 	csvExports?: CsvExport[]
+	mdExports?: MdExport[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	metadata?: PersistedMessageMetadata
 	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
@@ -150,6 +156,7 @@ interface SharedSessionMessage {
 	chartData?: unknown[] | Record<string, unknown[]>
 	citations?: string[]
 	csvExports?: CsvExport[]
+	mdExports?: MdExport[]
 	savedAlertIds?: string[]
 }
 
@@ -275,7 +282,7 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
-		mdExports: message.metadata?.mdExports,
+		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		dashboards: dashboardConfig
 			? [
 					(() => {
@@ -388,7 +395,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 					]
 				: undefined,
 		csvExports: message.csvExports,
-		mdExports: message.metadata?.mdExports,
+		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		citations: message.citations,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
@@ -771,7 +778,8 @@ export function AgenticChat({
 		pinSession
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
-	const { notify, requestPermission } = useStreamNotification()
+	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
+	const { notify, primeAudio } = useStreamNotification({ soundEnabled: enableSoundNotifications })
 	const alertsModalStore = Ariakit.useDialogStore()
 	const settingsModalStore = Ariakit.useDialogStore()
 	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
@@ -1712,7 +1720,7 @@ export function AgenticChat({
 				.then(() => {
 					setViewError(null)
 					setPaginationError(null)
-					requestPermission()
+					primeAudio()
 					dispatchStream({ type: 'START_STREAM' })
 					currentMessageIdRef.current = null
 
@@ -1915,7 +1923,7 @@ export function AgenticChat({
 			updateSessionTitle,
 			moveSessionToTop,
 			researchModalStore,
-			requestPermission,
+			primeAudio,
 			notify,
 			settings.customInstructions,
 			settings.enablePremiumTools,
@@ -2191,7 +2199,7 @@ export function AgenticChat({
 							onClick={() => openShareModal()}
 							data-umami-event="llamaai-share-modal-open"
 							data-umami-event-source="header_controls"
-							className="absolute top-2.5 right-2.5 z-10 hidden items-center gap-1.5 rounded-md border border-[#e6e6e6] px-3 py-1.5 text-xs font-medium text-[#444] transition-colors hover:bg-[#f7f7f7] lg:flex dark:border-[#333] dark:text-[#ccc] dark:hover:bg-[#222324]"
+							className="absolute top-2.5 right-2.5 z-10 hidden items-center gap-1.5 rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-1.5 text-xs font-medium text-[#444] transition-colors hover:bg-[#f7f7f7] lg:flex dark:border-[#333] dark:text-[#ccc] dark:hover:bg-[#222324]"
 						>
 							<Icon name="share" height={14} width={14} />
 							Share

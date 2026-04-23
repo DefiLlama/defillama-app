@@ -1,7 +1,7 @@
 import MonacoEditor, { loader } from '@monaco-editor/react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
-import { registerSqlCompletions, type CompletionContext } from './completions'
+import { registerSqlCompletions, registerSqlHovers, type CompletionContext } from './completions'
 import type { RegisteredTable } from './useTableRegistry'
 
 loader.config({
@@ -16,6 +16,7 @@ const DARK_THEME_ID = 'llama-sql-dark'
 export interface EditorHandle {
 	revealLine: (line: number, column?: number) => void
 	focus: () => void
+	insertSnippet: (text: string) => void
 }
 
 interface EditorProps {
@@ -33,6 +34,11 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 	useEffect(() => {
 		contextRef.current = { tables }
 	}, [tables])
+
+	const onRunRef = useRef(onRun)
+	useEffect(() => {
+		onRunRef.current = onRun
+	}, [onRun])
 
 	useEffect(() => {
 		const root = typeof document !== 'undefined' ? document.documentElement : null
@@ -52,7 +58,26 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 				editor.setPosition({ lineNumber: line, column: column ?? 1 })
 				editor.focus()
 			},
-			focus: () => editorInstanceRef.current?.focus()
+			focus: () => editorInstanceRef.current?.focus(),
+			insertSnippet: (text: string) => {
+				const editor = editorInstanceRef.current
+				if (!editor) return
+				const selection = editor.getSelection()
+				const pos = selection ? null : editor.getPosition()
+				const range =
+					selection ??
+					(pos
+						? {
+								startLineNumber: pos.lineNumber,
+								startColumn: pos.column,
+								endLineNumber: pos.lineNumber,
+								endColumn: pos.column
+							}
+						: null)
+				if (!range) return
+				editor.executeEdits('schema-browser', [{ range, text, forceMoveMarkers: true }])
+				editor.focus()
+			}
 		}),
 		[]
 	)
@@ -62,19 +87,18 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 		monaco.editor.defineTheme(DARK_THEME_ID, llamaSqlDark)
 	}, [])
 
-	const handleMount = useCallback(
-		(editor: any, monaco: any) => {
-			editorInstanceRef.current = editor
-			editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRun())
+	const handleMount = useCallback((editor: any, monaco: any) => {
+		editorInstanceRef.current = editor
+		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => onRunRef.current())
 
-			const disposable = registerSqlCompletions(monaco, contextRef)
-			editor.onDidDispose(() => {
-				disposable.dispose()
-				if (editorInstanceRef.current === editor) editorInstanceRef.current = null
-			})
-		},
-		[onRun]
-	)
+		const completions = registerSqlCompletions(monaco, contextRef)
+		const hovers = registerSqlHovers(monaco, contextRef)
+		editor.onDidDispose(() => {
+			completions.dispose()
+			hovers.dispose()
+			if (editorInstanceRef.current === editor) editorInstanceRef.current = null
+		})
+	}, [])
 
 	return (
 		<div className="overflow-hidden rounded-[4px] border border-(--divider) bg-(--cards-bg)">

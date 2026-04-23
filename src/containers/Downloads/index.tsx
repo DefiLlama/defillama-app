@@ -1,19 +1,19 @@
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useCallback } from 'react'
-import { LoadingSpinner } from '~/components/Loaders'
+import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import type { ChartOptionsMap } from './chart-datasets'
 import { DownloadsCatalog as SimpleCatalog } from './DownloadsCatalog'
 import { ModeToggle, type DownloadsMode } from './sql/ModeToggle'
 
-// SQL workspace pulls in DuckDB-WASM + Monaco. Loading it dynamically keeps the simple-mode
+// SQL workspace pulls in the LlamaSQL engine + Monaco. Loading it dynamically keeps the simple-mode
 // bundle unchanged for users who never open SQL.
 const SqlWorkspace = dynamic(() => import('./sql/SqlWorkspace').then((m) => m.SqlWorkspace), {
 	ssr: false,
 	loading: () => (
-		<div className="flex h-64 items-center justify-center">
-			<LoadingSpinner size={20} />
+		<div className="flex min-h-[60vh] items-center justify-center">
+			<LocalLoader />
 		</div>
 	)
 })

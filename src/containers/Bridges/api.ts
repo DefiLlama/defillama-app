@@ -128,6 +128,19 @@ export function fetchBridgeTransactions(
 	)
 }
 
+export function fetchBridgeTransactionsClient(
+	bridgeId: string | number,
+	startTimestamp: number,
+	endTimestamp: number
+): Promise<RawBridgeTransactionsResponse> {
+	const params = new URLSearchParams({
+		starttimestamp: String(startTimestamp),
+		endtimestamp: String(endTimestamp)
+	})
+	const url = `/api/bridges/transactions/${encodeURIComponent(String(bridgeId))}?${params.toString()}`
+	return fetchJson<RawBridgeTransactionsResponse>(url)
+}
+
 export function fetchBridgeNetflows(period: BridgeNetflowPeriod): Promise<RawBridgeNetflowsResponse> {
 	const url = `${NETFLOWS_API}/${period}`
 	return fetchJson<RawBridgeNetflowsResponse | BridgeApiErrorEnvelope>(url).then((response) =>

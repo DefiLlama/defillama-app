@@ -73,7 +73,9 @@ const overviewData = {
 			contract: 'xyz:META',
 			venue: 'xyz',
 			openInterest: 100,
+			openInterestChange24h: 25,
 			volume24h: 50,
+			volume24hChange24h: -10,
 			price: 500,
 			priceChange24h: 5,
 			fundingRate: 0.00001,
@@ -264,6 +266,20 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		])
 	})
 
+	it('omits the access model column from the shared tables', () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(lastTableWithSearchProps.columns.map((column: any) => column.id)).not.toContain('accessModel')
+	})
+
+	it('shows 24h open interest and volume change columns in the shared tables', () => {
+		renderToStaticMarkup(<RWAPerpsDashboard mode="overview" data={overviewData} />)
+
+		expect(lastTableWithSearchProps.columns.map((column: any) => column.id)).toEqual(
+			expect.arrayContaining(['openInterestChange24h', 'volume24hChange24h', 'priceChange24h'])
+		)
+	})
+
 	it('shows an explicit empty state when time-series data only has a single timestamp', () => {
 		routerQuery = {
 			chartView: 'timeSeries',
@@ -406,7 +422,8 @@ describe('RWAPerpsDashboard treemap controls', () => {
 				type: 'line',
 				encode: { x: 'timestamp', y: 'Total' },
 				color: CHART_COLORS[0],
-				hideAreaStyle: true
+				hideAreaStyle: true,
+				excludeFromTooltipTotal: true
 			}
 		])
 	})

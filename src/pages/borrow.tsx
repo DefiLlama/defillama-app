@@ -96,7 +96,11 @@ export default function YieldBorrow(data) {
 			<Announcement announcementId="yields-disclaimer" version="2026-03">
 				{disclaimer}
 			</Announcement>
-			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
+			<Announcement
+				announcementId="kelp-warning"
+				version="2026-04"
+				className="border border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
+			>
 				{exploitWarning}
 			</Announcement>
 			<div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-start">

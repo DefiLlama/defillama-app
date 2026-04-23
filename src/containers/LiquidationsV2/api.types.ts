@@ -47,8 +47,6 @@ export type RawProtocolLiquidationsResponse = RawLiquidationsResponseBase<
 	RawMultiChainTokenMap
 >
 
-export type RawProtocolChainLiquidationsResponse = RawLiquidationsResponseBase<RawLiquidationPosition[], RawTokenMap>
-
 export interface NavLink {
 	label: string
 	to: string
@@ -143,6 +141,22 @@ export interface LiquidationsOverviewPageProps {
 	chainRows: OverviewChainRow[]
 }
 
+export interface LiquidationsOverviewShell {
+	protocolLinks: NavLink[]
+}
+
+export interface TokenLiquidationsSectionData {
+	tokenSymbol: string
+	timestamp: number
+	positionCount: number
+	protocolCount: number
+	chainCount: number
+	totalCollateralUsd: number
+	distributionChart: LiquidationsDistributionChartData
+	protocolRows: OverviewProtocolRow[]
+	chainRows: OverviewChainRow[]
+}
+
 export interface LiquidationsProtocolPageProps {
 	protocolLinks: NavLink[]
 	chainLinks: NavLink[]
@@ -158,6 +172,13 @@ export interface LiquidationsProtocolPageProps {
 	chainRows: ProtocolChainRow[]
 	ownerBlockExplorers: BlockExplorersResponse
 	positions: LiquidationPosition[]
+}
+
+export interface LiquidationsProtocolShell {
+	protocolLinks: NavLink[]
+	chainLinks: NavLink[]
+	protocolName: string
+	protocolSlug: string
 }
 
 export interface LiquidationsChainPageProps {
@@ -177,4 +198,13 @@ export interface LiquidationsChainPageProps {
 	chainRows: ProtocolChainRow[]
 	ownerBlockExplorers: BlockExplorersResponse
 	positions: LiquidationPosition[]
+}
+
+export interface LiquidationsChainShell {
+	protocolLinks: NavLink[]
+	chainLinks: NavLink[]
+	protocolName: string
+	protocolSlug: string
+	chainName: string
+	chainSlug: string
 }

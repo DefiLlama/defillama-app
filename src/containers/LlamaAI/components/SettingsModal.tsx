@@ -6,7 +6,7 @@ import {
 	type LlamaAISettingsActions,
 	type ModelOption
 } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useDarkModeManager, useLlamaAINotifyBannerDismissed } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const MAX_LENGTH = 500
@@ -57,6 +57,9 @@ export const SettingsModal = memo(function SettingsModal({
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const [isDark] = useDarkModeManager()
+	const [, markNotifBannerDismissed] = useLlamaAINotifyBannerDismissed()
+	const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
+	const [isRequestingNotif, setIsRequestingNotif] = useState(false)
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const baselineRef = useRef(settings.customInstructions.trim())
 	const draftValueRef = useRef(settings.customInstructions)
@@ -163,6 +166,37 @@ export const SettingsModal = memo(function SettingsModal({
 		void actions.setHackerMode(!settings.hackerMode)
 	}, [actions, settings.hackerMode])
 
+	const handleSoundToggle = useCallback(() => {
+		trackUmamiEvent('llamaai-sound-notifications-toggle')
+		void actions.setEnableSoundNotifications(!settings.enableSoundNotifications)
+	}, [actions, settings.enableSoundNotifications])
+
+	// Re-read permission each time the modal opens so external changes (e.g. user updates browser site
+	// settings) are reflected without a page reload.
+	useEffect(() => {
+		if (!isOpen) return
+		if (typeof window === 'undefined' || typeof Notification === 'undefined') {
+			setNotifPermission('unsupported')
+			return
+		}
+		setNotifPermission(Notification.permission)
+	}, [isOpen])
+
+	const handleNotifToggle = useCallback(() => {
+		if (notifPermission !== 'default' || isRequestingNotif) return
+		trackUmamiEvent('llamaai-notify-settings-enable')
+		setIsRequestingNotif(true)
+		// Browser may resolve to 'default' without prompting (quiet UI / throttling) — in that case
+		// mark the banner dismissed so we don't keep inviting the user to click a no-op.
+		Notification.requestPermission()
+			.then((next) => {
+				setNotifPermission(next)
+				if (next !== 'granted') markNotifBannerDismissed()
+			})
+			.catch(() => markNotifBannerDismissed())
+			.finally(() => setIsRequestingNotif(false))
+	}, [notifPermission, isRequestingNotif, markNotifBannerDismissed])
+
 	const handleModelChange = useCallback(
 		(e: React.ChangeEvent<HTMLSelectElement>) => {
 			void actions.setModel(e.target.value)
@@ -267,6 +301,70 @@ export const SettingsModal = memo(function SettingsModal({
 							</div>
 						</button>
 					</section>
+
+					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+						<button
+							type="button"
+							role="switch"
+							aria-checked={settings.enableSoundNotifications}
+							aria-label="Completion sound"
+							onClick={handleSoundToggle}
+							className="flex w-full items-center justify-between"
+						>
+							<div className="flex flex-col gap-0.5 text-left">
+								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Completion sound</p>
+								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
+									Play a short chime when LlamaAI finishes responding in a background tab.
+								</p>
+							</div>
+							<div
+								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
+									settings.enableSoundNotifications ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+								}`}
+							>
+								<div
+									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+										settings.enableSoundNotifications ? 'translate-x-4' : 'translate-x-0.5'
+									}`}
+								/>
+							</div>
+						</button>
+					</section>
+
+					{notifPermission !== 'unsupported' ? (
+						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+							<button
+								type="button"
+								role="switch"
+								aria-checked={notifPermission === 'granted'}
+								aria-label="Browser notifications"
+								onClick={handleNotifToggle}
+								className="flex w-full items-center justify-between"
+							>
+								<div className="flex flex-col gap-0.5 text-left">
+									<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Browser notifications</p>
+									<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
+										{notifPermission === 'granted'
+											? 'Enabled. Turn off in your browser site settings.'
+											: notifPermission === 'denied'
+												? 'Blocked. Re-enable in your browser site settings.'
+												: 'Get alerted when LlamaAI finishes responding while the tab is in the background.'}
+									</p>
+								</div>
+								<div
+									className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
+										notifPermission === 'granted' ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+									}`}
+								>
+									<div
+										className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+											notifPermission === 'granted' ? 'translate-x-4' : 'translate-x-0.5'
+										}`}
+									/>
+								</div>
+							</button>
+						</section>
+					) : null}
 
 					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 						<button

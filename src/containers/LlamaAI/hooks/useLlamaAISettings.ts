@@ -10,6 +10,7 @@ export const LLAMA_AI_ENABLE_MEMORY_KEY = 'llamaai-enable-memory'
 export const LLAMA_AI_ENABLE_PREMIUM_TOOLS_KEY = 'llamaai-enable-premium-tools'
 export const LLAMA_AI_HACKER_MODE_KEY = 'llamaai-hacker-mode'
 export const LLAMA_AI_MODEL_KEY = 'llamaai-model'
+export const LLAMA_AI_ENABLE_SOUND_KEY = 'llamaai-enable-sound'
 const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
 
 export interface LlamaAISettings {
@@ -18,6 +19,7 @@ export interface LlamaAISettings {
 	enablePremiumTools: boolean
 	hackerMode: boolean
 	model: string
+	enableSoundNotifications: boolean
 }
 
 export interface LlamaAISettingsActions {
@@ -26,6 +28,7 @@ export interface LlamaAISettingsActions {
 	setEnablePremiumTools: (value: boolean) => Promise<void>
 	setHackerMode: (value: boolean) => Promise<void>
 	setModel: (value: string) => Promise<void>
+	setEnableSoundNotifications: (value: boolean) => Promise<void>
 }
 
 type LlamaAISettingKey = keyof LlamaAISettings
@@ -47,7 +50,8 @@ const DEFAULT_SETTINGS: LlamaAISettings = {
 	enableMemory: true,
 	enablePremiumTools: true,
 	hackerMode: false,
-	model: ''
+	model: '',
+	enableSoundNotifications: true
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -68,6 +72,8 @@ function readStoredValue<K extends LlamaAISettingKey>(key: K, value: string | nu
 			return parseFalseByDefault(value) as LlamaAISettings[K]
 		case 'model':
 			return (value ?? DEFAULT_SETTINGS.model) as LlamaAISettings[K]
+		case 'enableSoundNotifications':
+			return parseTrueByDefault(value) as LlamaAISettings[K]
 	}
 }
 
@@ -100,6 +106,9 @@ function writeStoredValue<K extends LlamaAISettingKey>(key: K, value: LlamaAISet
 			}
 			return
 		}
+		case 'enableSoundNotifications':
+			setStorageItem(LLAMA_AI_ENABLE_SOUND_KEY, String(value))
+			return
 	}
 }
 
@@ -141,6 +150,9 @@ function normalizeServerSettings(value: unknown): LlamaAISettingsUpdate {
 	if (typeof value.model === 'string') {
 		normalized.model = value.model
 	}
+	if (typeof value.enableSoundNotifications === 'boolean') {
+		normalized.enableSoundNotifications = value.enableSoundNotifications
+	}
 	return normalized
 }
 
@@ -156,6 +168,8 @@ function getStorageKey(setting: LlamaAISettingKey) {
 			return LLAMA_AI_HACKER_MODE_KEY
 		case 'model':
 			return LLAMA_AI_MODEL_KEY
+		case 'enableSoundNotifications':
+			return LLAMA_AI_ENABLE_SOUND_KEY
 	}
 }
 
@@ -178,6 +192,7 @@ export function useLlamaAISettings() {
 	const enablePremiumTools = useLlamaAISetting('enablePremiumTools')
 	const hackerMode = useLlamaAISetting('hackerMode')
 	const model = useLlamaAISetting('model')
+	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
 
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
@@ -253,7 +268,8 @@ export function useLlamaAISettings() {
 			setEnableMemory: async (value: boolean) => persistSettings({ enableMemory: value }),
 			setEnablePremiumTools: async (value: boolean) => persistSettings({ enablePremiumTools: value }),
 			setHackerMode: async (value: boolean) => persistSettings({ hackerMode: value }),
-			setModel: async (value: string) => persistSettings({ model: value })
+			setModel: async (value: string) => persistSettings({ model: value }),
+			setEnableSoundNotifications: async (value: boolean) => persistSettings({ enableSoundNotifications: value })
 		}),
 		[persistSettings]
 	)
@@ -271,9 +287,18 @@ export function useLlamaAISettings() {
 			enableMemory,
 			enablePremiumTools,
 			hackerMode,
-			model: normalizedModel
+			model: normalizedModel,
+			enableSoundNotifications
 		}
-	}, [customInstructions, enableMemory, enablePremiumTools, hackerMode, model, availableModels])
+	}, [
+		customInstructions,
+		enableMemory,
+		enablePremiumTools,
+		hackerMode,
+		model,
+		availableModels,
+		enableSoundNotifications
+	])
 
 	return {
 		settings,

@@ -543,12 +543,39 @@ export const findStrategyPoolsFR = ({ token, filteredPools, perps }) => {
 	return finalPools
 }
 
+interface FilterablePool {
+	chain: string
+	project: string
+	projectName?: string
+	farmProject?: string
+	farmProjectName?: string
+	stablecoin?: boolean
+	exposure?: string
+	ilRisk?: string
+	hasMemeToken?: boolean
+	tvlUsd: number
+	farmTvlUsd?: number
+	audits?: string
+	outlier?: boolean
+	predictions?: {
+		predictedClass?: string
+		binnedConfidence?: number
+	}
+	airdrop?: boolean
+	apy: number
+	lsdTokenOnly?: boolean
+	borrow?: {
+		totalAvailableUsd?: number | null
+	}
+	ltv?: number | null
+}
+
 interface FilterPools {
 	selectedChainsSet: Set<string>
 	selectedAttributes?: Array<string>
 	selectedLendingProtocolsSet?: Set<string> | null
 	selectedFarmProtocolsSet?: Set<string> | null
-	pool: YieldsData['props']['pools'][number]
+	pool: FilterablePool
 	minTvl?: number | null
 	maxTvl?: number | null
 	minAvailable?: number | null
@@ -594,7 +621,9 @@ export const filterPool = ({
 
 	if (isValidTvlRange) {
 		toFilter =
-			toFilter && (minTvl != null ? pool.farmTvlUsd >= minTvl : true) && (maxTvl != null ? pool.tvlUsd <= maxTvl : true)
+			toFilter &&
+			(minTvl != null ? (pool.farmTvlUsd ?? 0) >= minTvl : true) &&
+			(maxTvl != null ? (pool.tvlUsd ?? 0) <= maxTvl : true)
 	}
 
 	const isValidAvailableRange = minAvailable != null || maxAvailable != null
@@ -602,8 +631,8 @@ export const filterPool = ({
 	if (isValidAvailableRange) {
 		toFilter =
 			toFilter &&
-			(minAvailable != null ? +(pool.borrow.totalAvailableUsd || 0) >= +minAvailable : true) &&
-			(maxAvailable != null ? +(pool.borrow.totalAvailableUsd || 0) <= +maxAvailable : true)
+			(minAvailable != null ? +(pool.borrow?.totalAvailableUsd || 0) >= +minAvailable : true) &&
+			(maxAvailable != null ? +(pool.borrow?.totalAvailableUsd || 0) <= +maxAvailable : true)
 	}
 
 	const isValidLtvValue = customLTV != null
@@ -639,8 +668,8 @@ export const lockupsCollateral = [
 ]
 export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
 
-export const exploitedProjects = ['resolv-protocol']
-export const exploitedTokens = ['USR']
+export const exploitedProjects = ['resolv-protocol', 'kelp']
+export const exploitedTokens = ['USR', 'RSETH']
 
 export function isExploitedPool(project: string, symbol: string): boolean {
 	return exploitedProjects.includes(project) || exploitedTokens.some((t) => symbol?.toUpperCase().includes(t))
@@ -650,7 +679,7 @@ export const disclaimer =
 	"DefiLlama doesn't audit nor endorse any of the protocols listed, we just focus on providing accurate data. Ape at your own risk."
 
 export const exploitWarning =
-	"USR is depegging following an exploit on Resolv (unauthorized minting of 50M unbacked USR). Protocol functions are paused. Follow Resolv's X for updates."
+	"KelpDAO paused rsETH across mainnet and several L2s on April 18, 2026 after suspicious cross-chain activity. Treat Kelp pools with extreme caution and follow KelpDAO's X for updates."
 
 export const earlyExit =
 	'Rewards are calculated assuming an early exit penalty applies. So this is the minimum APY you can expect when claiming your rewards early.'

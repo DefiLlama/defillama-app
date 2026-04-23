@@ -1,31 +1,49 @@
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
-import toast from 'react-hot-toast'
+import { matchSorter } from 'match-sorter'
+import { useRouter } from 'next/router'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from '~/components/Loaders'
+import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
+import { getStorageJSON, setStorageJSON } from '~/contexts/localStorageStore'
 import type { ChartOptionsMap } from '../chart-datasets'
-import { extractQueryConfig, generatePresetId, type QuerySavedConfig } from '../savedDownloads'
+import { chartDatasets } from '../chart-datasets'
+import { datasets } from '../datasets'
+import { extractQueryConfig, generatePresetId, type QuerySavedConfig, type QueryTableRef } from '../savedDownloads'
 import { SavePresetDialog } from '../SavePresetDialog'
-import { extractTableRefs, matchTableRef } from './completions'
+import { decodeDownloadConfig, decodeNotebookShare } from '../urlState'
+import type { ChartConfig } from './chartConfig'
 import { Editor, type EditorHandle } from './Editor'
 import type { ExampleQuery } from './examples'
 import { ExamplesPanel } from './ExamplesPanel'
-import { LoadTableModal } from './LoadTableModal'
-import { Keycap, SectionLabel, StatusDot } from './primitives'
+import { runSql } from './executor'
+import { NotebookView } from './notebook/NotebookView'
+import { Keycap, StatusDot } from './primitives'
+import { QueryTabBar } from './QueryTabBar'
 import { ResultsPanel } from './ResultsPanel'
+import { SchemaDrawer } from './SchemaDrawer'
+import { ShareQueryButton } from './ShareQueryButton'
 import { TableChipRail } from './TableChipRail'
 import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
-import { identifierize, prettyLabelForSource, type TableSource } from './useTableRegistry'
-import { useTableRegistry, type RegisteredTable } from './useTableRegistry'
+import { useSqlTabs, type LastRunMeta, type NotebookCell, type QueryTab } from './useSqlTabs'
+import {
+	identifierize,
+	prettyLabelForSource,
+	tableNameFor,
+	useTableRegistry,
+	type RegisteredTable,
+	type TableSource
+} from './useTableRegistry'
 
 const SQL_TABS = [
 	{ id: 'editor', label: 'Editor' },
-	{ id: 'tables', label: 'Tables' },
 	{ id: 'saved', label: 'Saved' }
 ] as const
 type SqlTab = (typeof SQL_TABS)[number]['id']
+
+const TOTAL_SCHEMA_COUNT = datasets.length + chartDatasets.length
+const PLAYBOOK_COLLAPSED_KEY = 'sql-studio:playbook-collapsed:v1'
 
 interface SqlWorkspaceProps {
 	chartOptionsMap: ChartOptionsMap
@@ -38,8 +56,8 @@ export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
 
 	if (loaders.userLoading) {
 		return (
-			<div className="flex h-64 items-center justify-center">
-				<LoadingSpinner size={20} />
+			<div className="flex min-h-[60vh] items-center justify-center">
+				<LocalLoader />
 			</div>
 		)
 	}
@@ -49,18 +67,6 @@ export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
 	}
 
 	return <SqlWorkspaceInner chartOptionsMap={chartOptionsMap} authorizedFetch={authorizedFetch} topRight={topRight} />
-}
-
-interface QueryResult {
-	columns: Array<{ name: string; type: string }>
-	rows: Record<string, unknown>[]
-}
-
-interface LastRunMeta {
-	durationMs: number
-	rows: number
-	cols: number
-	at: number
 }
 
 function SqlWorkspaceInner({
@@ -77,45 +83,48 @@ function SqlWorkspaceInner({
 	const { savedDownloads, saveDownload, deleteDownload, renameDownload } = useSavedDownloads()
 	const { recordRecent } = useRecentDownloads()
 
-	const [tab, setTab] = useState<SqlTab>('editor')
-	const [sql, setSql] = useState<string>(
-		`-- Lending vs DEX fees — daily series with 30-day moving averages.
--- CTE + FULL OUTER JOIN stitches two time-series, then a named WINDOW
--- smooths each one. Hit ⌘/Ctrl+Enter — missing tables auto-load and
--- the Chart tab will render four lines.
-WITH joined AS (
-  SELECT COALESCE(l.date, d.date) AS date,
-         COALESCE(l.value, 0)     AS lending,
-         COALESCE(d.value, 0)     AS dexs
-  FROM ts_category_fees_chart_lending l
-  FULL OUTER JOIN ts_category_fees_chart_dexs d
-    ON l.date = d.date
-)
-SELECT date,
-       lending,
-       dexs,
-       AVG(lending) OVER w AS lending_30d_avg,
-       AVG(dexs)    OVER w AS dexs_30d_avg,
-       lending / NULLIF(lending + dexs, 0) AS lending_share
-FROM joined
-WINDOW w AS (ORDER BY date ROWS BETWEEN 29 PRECEDING AND CURRENT ROW)
-QUALIFY ROW_NUMBER() OVER (ORDER BY date DESC) <= 365
-ORDER BY date DESC
-`
-	)
-	const [result, setResult] = useState<QueryResult | null>(null)
-	const [running, setRunning] = useState(false)
-	const [runError, setRunError] = useState<string | null>(null)
-	const [lastRun, setLastRun] = useState<LastRunMeta | null>(null)
-	const [loadTableOpen, setLoadTableOpen] = useState(false)
+	const [sectionTab, setSectionTab] = useState<SqlTab>('editor')
+	const [schemaDrawerOpen, setSchemaDrawerOpen] = useState(false)
 	const [savePresetOpen, setSavePresetOpen] = useState(false)
-	// Stage text surfaced in the status strip + results panel while we prep a query
-	// (e.g. "Loading fees…"). null once the query actually starts running — at that
-	// point `running` drives the UI.
-	const [loadingStage, setLoadingStage] = useState<string | null>(null)
-	// Title of whichever playbook / saved-query entry is currently being applied,
-	// so those lists can show a spinner on the clicked row.
-	const [busyTaskId, setBusyTaskId] = useState<string | null>(null)
+	const [chartPreferredTab, setChartPreferredTab] = useState<string | null>(null)
+	const [playbookCollapsed, setPlaybookCollapsed] = useState<boolean>(() =>
+		getStorageJSON<boolean>(PLAYBOOK_COLLAPSED_KEY, false)
+	)
+	const togglePlaybook = useCallback(() => {
+		setPlaybookCollapsed((prev) => {
+			const next = !prev
+			setStorageJSON(PLAYBOOK_COLLAPSED_KEY, next)
+			return next
+		})
+	}, [])
+
+	const {
+		tabs,
+		activeTab,
+		activeTabId,
+		openTab,
+		openNotebookTab,
+		closeTab,
+		focusTab,
+		focusByIndex,
+		focusDelta,
+		duplicateTab,
+		closeOthers,
+		closeToRight,
+		renameTab,
+		updateTab,
+		updateActiveTab,
+		setActiveSql,
+		setActiveChartConfig,
+		convertTabToNotebook,
+		updateCell,
+		addCell,
+		removeCell,
+		reorderCells,
+		focusCell,
+		setCellsDirty
+	} = useSqlTabs()
+
 	const editorRef = useRef<EditorHandle | null>(null)
 
 	const savedQueries = useMemo(
@@ -123,145 +132,394 @@ ORDER BY date DESC
 		[savedDownloads]
 	)
 
-	const runSql = useCallback(
-		async (rawSql: string) => {
+	const tableRefs = useMemo(
+		() =>
+			registry.tables.map((t) =>
+				t.source.kind === 'dataset'
+					? { kind: 'dataset' as const, slug: t.source.slug }
+					: { kind: 'chart' as const, slug: t.source.slug, param: t.source.param, paramLabel: t.source.paramLabel }
+			),
+		[registry.tables]
+	)
+
+	const runSqlForTab = useCallback(
+		async (tabId: string, rawSql: string) => {
 			if (!duckdb.conn) return
 			const trimmed = rawSql.trim()
 			if (!trimmed) return
-			setRunning(true)
-			setRunError(null)
-			const started = performance.now()
-			try {
-				const referenced = extractTableRefs(trimmed)
-				const loadedNames = new Set(registry.tables.map((t) => t.name))
-				const missingRefs = referenced.filter((r) => !loadedNames.has(r))
-
-				for (const ref of missingRefs) {
-					const match = matchTableRef(ref)
-					if (!match) continue
-					if (match.kind === 'dataset') {
-						toast.loading(`Loading ${match.definition.name}…`, { id: `auto-load-${ref}` })
-						const loaded = await registry.load({ kind: 'dataset', slug: match.slug })
-						toast.dismiss(`auto-load-${ref}`)
-						if (!loaded) {
-							throw new Error(`Could not auto-load table "${ref}" (${match.definition.name}).`)
-						}
-					} else {
-						const options = chartOptionsMap[match.definition.slug] ?? []
-						const resolvedOption = options.find((opt) => identifierize(opt.value) === match.paramIdentifier)
-						if (!resolvedOption) {
-							throw new Error(
-								`Table "${ref}" — couldn't resolve ${match.definition.paramLabel.toLowerCase()} "${match.paramIdentifier}" for ${match.definition.name}. Use "add" to browse valid options.`
-							)
-						}
-						toast.loading(`Loading ${match.definition.name} · ${resolvedOption.label}…`, {
-							id: `auto-load-${ref}`
-						})
-						const loaded = await registry.load({
-							kind: 'chart',
-							slug: match.definition.slug,
-							param: resolvedOption.value,
-							paramLabel: resolvedOption.label
-						})
-						toast.dismiss(`auto-load-${ref}`)
-						if (!loaded) {
-							throw new Error(
-								`Could not auto-load table "${ref}" (${match.definition.name} · ${resolvedOption.label}).`
-							)
-						}
-					}
+			updateTab(tabId, { running: true, runError: null, pendingTables: [] })
+			const res = await runSql(
+				{
+					conn: duckdb.conn,
+					loadedTables: registry.tables,
+					loadSource: registry.load,
+					chartOptionsMap
+				},
+				trimmed,
+				{
+					onPendingChange: (pending) => updateTab(tabId, { pendingTables: pending }),
+					onLoadingStage: (stage) => updateTab(tabId, { loadingStage: stage })
 				}
-
-				const arrow = await duckdb.conn.query(trimmed)
-				const columns = arrow.schema.fields.map((f) => ({ name: f.name, type: String(f.type) }))
-				const rows = arrow.toArray().map((r: any) => {
-					const obj: Record<string, unknown> = {}
-					for (const col of columns) obj[col.name] = r[col.name]
-					return obj
+			)
+			if (!res.ok) {
+				const err = (res as Extract<typeof res, { ok: false }>).error
+				updateTab(tabId, {
+					runError: err,
+					result: null,
+					running: false,
+					loadingStage: null
 				})
-				const durationMs = Math.round(performance.now() - started)
-				setResult({ columns, rows })
-				setLastRun({ durationMs, rows: rows.length, cols: columns.length, at: Date.now() })
-				const preset: QuerySavedConfig = {
-					id: generatePresetId(),
-					name: firstNonEmptyLine(trimmed).slice(0, 80),
-					createdAt: Date.now(),
-					lastRunAt: Date.now(),
-					...extractQueryConfig({
-						sql: trimmed,
-						tables: registry.tables.map((t) =>
-							t.source.kind === 'dataset'
-								? { kind: 'dataset', slug: t.source.slug }
-								: { kind: 'chart', slug: t.source.slug, param: t.source.param, paramLabel: t.source.paramLabel }
-						)
-					})
-				}
-				recordRecent(preset)
-			} catch (err) {
-				setRunError(err instanceof Error ? err.message : String(err))
-				setResult(null)
-			} finally {
-				setRunning(false)
+				scheduleTabPendingClear(updateTab, tabId)
+				return
 			}
+			const okRes = res as Extract<typeof res, { ok: true }>
+			updateTab(tabId, {
+				result: okRes.result,
+				lastRun: {
+					durationMs: okRes.durationMs,
+					rows: okRes.result.rows.length,
+					cols: okRes.result.columns.length,
+					at: Date.now()
+				},
+				dirty: false,
+				runError: null,
+				running: false,
+				loadingStage: null
+			})
+			const preset: QuerySavedConfig = {
+				id: generatePresetId(),
+				name: firstNonEmptyLine(trimmed).slice(0, 80),
+				createdAt: Date.now(),
+				lastRunAt: Date.now(),
+				...extractQueryConfig({
+					sql: trimmed,
+					tables: registry.tables.map((t) =>
+						t.source.kind === 'dataset'
+							? { kind: 'dataset', slug: t.source.slug }
+							: { kind: 'chart', slug: t.source.slug, param: t.source.param, paramLabel: t.source.paramLabel }
+					)
+				})
+			}
+			recordRecent(preset)
 		},
-		[duckdb.conn, registry, recordRecent, chartOptionsMap]
+		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab]
 	)
 
-	const runQuery = useCallback(() => runSql(sql), [runSql, sql])
+	const runQuery = useCallback(
+		() => runSqlForTab(activeTabId, activeTab.sql),
+		[runSqlForTab, activeTabId, activeTab.sql]
+	)
 
 	const prepareAndRun = useCallback(
-		async ({ taskId, tables, sql: nextSql }: { taskId: string; tables: TableSource[]; sql: string }) => {
-			setBusyTaskId(taskId)
-			setRunError(null)
-			setResult(null)
-			const openToastIds: string[] = []
+		async ({
+			tabId,
+			taskId,
+			tables: nextTables,
+			sql: nextSql
+		}: {
+			tabId: string
+			taskId: string
+			tables: TableSource[]
+			sql: string
+		}) => {
+			updateTab(tabId, {
+				busyTaskId: taskId,
+				runError: null,
+				result: null,
+				pendingTables: [],
+				sql: nextSql,
+				dirty: true
+			})
+			setSectionTab('editor')
 			try {
-				for (const [index, t] of tables.entries()) {
-					if (registry.tables.some((r) => sameSource(r.source, t))) continue
-					const label = prettyLabelForSource(t)
-					const stage = tables.length > 1 ? `Loading ${label} · ${index + 1}/${tables.length}` : `Loading ${label}`
-					setLoadingStage(`${stage}…`)
-					const tid = `apply-${taskId}-${index}`
-					openToastIds.push(tid)
-					toast.loading(`${stage}…`, { id: tid })
-					const loaded = await registry.load(t)
-					if (!loaded) {
-						toast.error(`Failed to load ${label}`, { id: tid })
-						throw new Error(`Could not load ${label}.`)
-					}
-					toast.success(`Loaded ${label}`, { id: tid, duration: 1200 })
+				const plan = nextTables
+					.filter((t) => !registry.tables.some((r) => sameSource(r.source, t)))
+					.map((t, index) => ({
+						key: `apply-${taskId}-${index}`,
+						source: t,
+						name: tableNameFor(t),
+						label: prettyLabelForSource(t)
+					}))
+
+				if (plan.length > 0) {
+					updateTab(tabId, {
+						pendingTables: plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' }))
+					})
 				}
-				setSql(nextSql)
-				setTab('editor')
-				setLoadingStage(null)
-				await runSql(nextSql)
+
+				for (const [index, step] of plan.entries()) {
+					updateTab(tabId, (t) => ({
+						pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p))
+					}))
+					const stagePrefix =
+						plan.length > 1 ? `Loading ${step.label} · ${index + 1}/${plan.length}` : `Loading ${step.label}`
+					updateTab(tabId, { loadingStage: `${stagePrefix}…` })
+					const loaded = await registry.load(step.source)
+					if (!loaded) {
+						updateTab(tabId, (t) => ({
+							pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p))
+						}))
+						throw new Error(`Could not load ${step.label}.`)
+					}
+					updateTab(tabId, (t) => ({
+						pendingTables: t.pendingTables.filter((p) => p.key !== step.key)
+					}))
+				}
+				updateTab(tabId, { loadingStage: null })
+				await runSqlForTab(tabId, nextSql)
 			} catch (err) {
-				for (const id of openToastIds) toast.dismiss(id)
-				setRunError(err instanceof Error ? err.message : String(err))
-				setResult(null)
+				updateTab(tabId, {
+					runError: err instanceof Error ? err.message : String(err),
+					result: null
+				})
+				scheduleTabPendingClear(updateTab, tabId)
 			} finally {
-				setLoadingStage(null)
-				setBusyTaskId(null)
+				updateTab(tabId, { loadingStage: null, busyTaskId: null })
 			}
 		},
-		[registry, runSql]
+		[registry, runSqlForTab, updateTab]
 	)
 
+	// --- Notebook cell execution ---
+
+	const cellViewNames = useCallback((cells: NotebookCell[]): Set<string> => {
+		const set = new Set<string>()
+		cells.forEach((_, i) => set.add(`cell_${i + 1}`))
+		return set
+	}, [])
+
+	const runSqlForCell = useCallback(
+		async (tabId: string, cellId: string): Promise<boolean> => {
+			if (!duckdb.conn) return false
+			const tab = tabs.find((t) => t.id === tabId)
+			if (!tab || tab.mode !== 'notebook' || !tab.cells) return false
+			const cellIdx = tab.cells.findIndex((c) => c.id === cellId)
+			if (cellIdx === -1) return false
+			const cell = tab.cells[cellIdx]
+			if (cell.type !== 'sql') return false
+			const trimmed = cell.source.trim()
+			if (!trimmed) return false
+
+			const cellName = `cell_${cellIdx + 1}`
+			const skipSet = cellViewNames(tab.cells)
+
+			updateCell(tabId, cellId, {
+				running: true,
+				runError: null,
+				pendingTables: [],
+				loadingStage: null
+			})
+
+			const res = await runSql(
+				{
+					conn: duckdb.conn,
+					loadedTables: registry.tables,
+					loadSource: registry.load,
+					chartOptionsMap
+				},
+				trimmed,
+				{
+					onPendingChange: (pending) => updateCell(tabId, cellId, { pendingTables: pending }),
+					onLoadingStage: (stage) => updateCell(tabId, cellId, { loadingStage: stage })
+				},
+				skipSet
+			)
+
+			if (res.ok) {
+				const okRes = res as Extract<typeof res, { ok: true }>
+				// Register output as a view for downstream cells.
+				try {
+					const viewSql = trimmed.replace(/;\s*$/g, '').trim()
+					await duckdb.conn.query(`CREATE OR REPLACE VIEW "${cellName}" AS (${viewSql})`)
+				} catch (viewErr) {
+					console.warn(`Failed to create view ${cellName}:`, viewErr)
+				}
+				updateCell(tabId, cellId, {
+					result: okRes.result,
+					lastRun: {
+						durationMs: okRes.durationMs,
+						rows: okRes.result.rows.length,
+						cols: okRes.result.columns.length,
+						at: Date.now()
+					},
+					dirty: false,
+					runError: null,
+					running: false,
+					loadingStage: null,
+					pendingTables: []
+				})
+				return true
+			}
+			const errRes = res as Extract<typeof res, { ok: false }>
+			updateCell(tabId, cellId, {
+				result: null,
+				runError: errRes.error,
+				running: false,
+				loadingStage: null
+			})
+			return false
+		},
+		[tabs, duckdb.conn, registry, chartOptionsMap, updateCell, cellViewNames]
+	)
+
+	const runCellsSequential = useCallback(
+		async (tabId: string, cellIds: string[]) => {
+			for (const id of cellIds) {
+				const ok = await runSqlForCell(tabId, id)
+				if (!ok) break
+			}
+		},
+		[runSqlForCell]
+	)
+
+	const runAllCellsInTab = useCallback(
+		async (tabId: string) => {
+			const tab = tabs.find((t) => t.id === tabId)
+			if (!tab || tab.mode !== 'notebook' || !tab.cells) return
+			const sqlCellIds = tab.cells.filter((c) => c.type === 'sql' && c.source.trim()).map((c) => c.id)
+			if (sqlCellIds.length === 0) return
+			// Clean up stale views so numbering is fresh.
+			if (duckdb.conn) {
+				const maxViews = Math.max(tab.cells.length + 4, 16)
+				for (let i = 1; i <= maxViews; i++) {
+					try {
+						await duckdb.conn.query(`DROP VIEW IF EXISTS "cell_${i}"`)
+					} catch {
+						/* noop */
+					}
+				}
+			}
+			await runCellsSequential(tabId, sqlCellIds)
+			setCellsDirty(tabId, false)
+		},
+		[tabs, duckdb.conn, runCellsSequential, setCellsDirty]
+	)
+
+	const runCellsAbove = useCallback(
+		async (tabId: string, targetCellId: string) => {
+			const tab = tabs.find((t) => t.id === tabId)
+			if (!tab || tab.mode !== 'notebook' || !tab.cells) return
+			const targetIdx = tab.cells.findIndex((c) => c.id === targetCellId)
+			if (targetIdx <= 0) return
+			const ids = tab.cells
+				.slice(0, targetIdx)
+				.filter((c) => c.type === 'sql' && c.source.trim())
+				.map((c) => c.id)
+			await runCellsSequential(tabId, ids)
+		},
+		[tabs, runCellsSequential]
+	)
+
+	const runCellsBelow = useCallback(
+		async (tabId: string, targetCellId: string) => {
+			const tab = tabs.find((t) => t.id === tabId)
+			if (!tab || tab.mode !== 'notebook' || !tab.cells) return
+			const targetIdx = tab.cells.findIndex((c) => c.id === targetCellId)
+			if (targetIdx === -1 || targetIdx >= tab.cells.length - 1) return
+			const ids = tab.cells
+				.slice(targetIdx + 1)
+				.filter((c) => c.type === 'sql' && c.source.trim())
+				.map((c) => c.id)
+			await runCellsSequential(tabId, ids)
+		},
+		[tabs, runCellsSequential]
+	)
+
+	const runCellAndAdvance = useCallback(
+		async (tabId: string, cellId: string) => {
+			const tab = tabs.find((t) => t.id === tabId)
+			if (!tab || tab.mode !== 'notebook' || !tab.cells) return
+			const idx = tab.cells.findIndex((c) => c.id === cellId)
+			if (idx === -1) return
+			await runSqlForCell(tabId, cellId)
+			const nextCell = tab.cells[idx + 1]
+			if (nextCell) {
+				focusCell(tabId, nextCell.id)
+			} else {
+				const newId = addCell(tabId, 'sql', idx + 1, true)
+				if (newId) focusCell(tabId, newId)
+			}
+		},
+		[tabs, runSqlForCell, focusCell, addCell]
+	)
+
+	// Drop cell views when notebook tab unmounts or becomes inactive
+	const activeTabRef = useRef(activeTabId)
+	activeTabRef.current = activeTabId
+	useEffect(() => {
+		return () => {
+			// Cleanup on workspace unmount — best-effort
+			if (!duckdb.conn) return
+			for (let i = 1; i <= 64; i++) {
+				duckdb.conn.query(`DROP VIEW IF EXISTS "cell_${i}"`).catch(() => undefined)
+			}
+		}
+	}, [duckdb.conn])
+
+	// --- Examples / saved queries / cookbook ---
+
 	const onApplyExample = useCallback(
-		(example: ExampleQuery) =>
-			prepareAndRun({ taskId: `example:${example.title}`, tables: example.tables, sql: example.sql }),
-		[prepareAndRun]
+		(example: ExampleQuery) => {
+			if (activeTab.mode === 'notebook' && activeTab.cells) {
+				const lastCell = activeTab.cells[activeTab.cells.length - 1]
+				const needsFreshCell = !lastCell || lastCell.type !== 'sql' || lastCell.source.trim().length > 0
+				const targetCellId: string | null = needsFreshCell
+					? addCell(activeTab.id, 'sql', activeTab.cells.length, true)
+					: lastCell!.id
+				if (!targetCellId) return
+				updateCell(activeTab.id, targetCellId, { source: example.sql, dirty: true })
+				return runSqlForCell(activeTab.id, targetCellId)
+			}
+			const newId = openTab({ sql: example.sql, title: example.title, focus: true })
+			return prepareAndRun({
+				tabId: newId,
+				taskId: `example:${example.title}`,
+				tables: example.tables,
+				sql: example.sql
+			})
+		},
+		[activeTab, openTab, prepareAndRun, addCell, updateCell, runSqlForCell]
 	)
 
 	const onLoadSavedQuery = useCallback(
-		(preset: QuerySavedConfig) =>
-			prepareAndRun({ taskId: `saved:${preset.id}`, tables: preset.tables, sql: preset.sql }),
-		[prepareAndRun]
+		(preset: QuerySavedConfig) => {
+			const existing = tabs.find((t) => t.mode === 'query' && t.sql === preset.sql)
+			if (existing) {
+				focusTab(existing.id)
+				setSectionTab('editor')
+				return
+			}
+			const newId = openTab({ sql: preset.sql, title: preset.name, focus: true })
+			return prepareAndRun({ tabId: newId, taskId: `saved:${preset.id}`, tables: preset.tables, sql: preset.sql })
+		},
+		[tabs, focusTab, openTab, prepareAndRun]
 	)
+
+	const onReplaceSql = useCallback(
+		(snippet: string) => {
+			openTab({ sql: snippet, focus: true })
+			setSectionTab('editor')
+		},
+		[openTab]
+	)
+
+	const onCookbookApply = useCallback(
+		(snippet: string) => {
+			const newId = openTab({ sql: snippet, focus: true })
+			setSectionTab('editor')
+			runSqlForTab(newId, snippet)
+		},
+		[openTab, runSqlForTab]
+	)
+
+	const onInsertAtCursor = useCallback((text: string) => {
+		setSectionTab('editor')
+		setTimeout(() => editorRef.current?.insertSnippet(text), 0)
+	}, [])
 
 	const onSavePreset = useCallback(
 		(name: string) => {
-			const trimmed = sql.trim()
+			const trimmed = activeTab.sql.trim()
 			if (!trimmed) return
 			const preset: QuerySavedConfig = {
 				id: generatePresetId(),
@@ -279,80 +537,308 @@ ORDER BY date DESC
 			saveDownload(preset, { replaceByName: true })
 			setSavePresetOpen(false)
 		},
-		[sql, registry.tables, saveDownload]
+		[activeTab.sql, registry.tables, saveDownload]
 	)
+
+	const onApplyFix = useCallback(
+		(oldId: string, newId: string) => {
+			updateActiveTab((t) => ({ sql: replaceIdentifier(t.sql, oldId, newId), dirty: true }))
+		},
+		[updateActiveTab]
+	)
+
+	const router = useRouter()
+	const hydratedRef = useRef(false)
+	const hydrationCtxRef = useRef({
+		tabs,
+		openTab,
+		openNotebookTab,
+		focusTab,
+		updateTab,
+		updateCell,
+		prepareAndRun,
+		runSqlForCell,
+		router
+	})
+	hydrationCtxRef.current = {
+		tabs,
+		openTab,
+		openNotebookTab,
+		focusTab,
+		updateTab,
+		updateCell,
+		prepareAndRun,
+		runSqlForCell,
+		router
+	}
+	useEffect(() => {
+		if (hydratedRef.current) return
+		if (!router.isReady) return
+		if (!duckdb.conn) return
+		const rawQuery = router.query as Record<string, string | string[] | undefined>
+		const ctx = hydrationCtxRef.current
+
+		const notebookDecoded = decodeNotebookShare(rawQuery)
+		if (notebookDecoded) {
+			hydratedRef.current = true
+			const cells = notebookDecoded.cells.map((c) => buildCellFromShared(c))
+			const newId = ctx.openNotebookTab({
+				cells,
+				title: notebookDecoded.title ?? 'Shared notebook',
+				focus: true
+			})
+			setSectionTab('editor')
+			void (async () => {
+				for (const cell of cells) {
+					if (cell.type === 'sql' && cell.source.trim()) {
+						await ctx.runSqlForCell(newId, cell.id)
+					}
+				}
+			})()
+			ctx.router.replace({ pathname: ctx.router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
+			return
+		}
+
+		const decoded = decodeDownloadConfig(rawQuery)
+		if (!decoded) {
+			hydratedRef.current = true
+			return
+		}
+		if (decoded.kind === 'query') {
+			hydratedRef.current = true
+			const existing = ctx.tabs.find((t) => t.mode === 'query' && t.sql === decoded.sql)
+			const tabId = existing ? existing.id : ctx.openTab({ sql: decoded.sql, focus: true })
+			if (existing) ctx.focusTab(existing.id)
+			if (decoded.chartConfig) {
+				ctx.updateTab(tabId, { chartConfig: decoded.chartConfig })
+				setChartPreferredTab(tabId)
+			}
+			setSectionTab('editor')
+			ctx.prepareAndRun({
+				tabId,
+				taskId: `share:${Date.now()}`,
+				tables: decoded.tables,
+				sql: decoded.sql
+			})
+			ctx.router.replace({ pathname: ctx.router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
+		}
+	}, [router.isReady, router.query, duckdb.conn])
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			const target = e.target as HTMLElement | null
+			const mod = e.metaKey || e.ctrlKey
+			if (!mod) return
+			if (e.key === 't' || e.key === 'T') {
+				if (e.shiftKey) return
+				e.preventDefault()
+				openTab({ focus: true })
+				setSectionTab('editor')
+				return
+			}
+			if (e.key === 'w' || e.key === 'W') {
+				if (tabs.length > 1) {
+					e.preventDefault()
+					closeTab(activeTabId)
+				}
+				return
+			}
+			if (e.shiftKey && (e.key === ']' || e.code === 'BracketRight')) {
+				e.preventDefault()
+				focusDelta(1)
+				return
+			}
+			if (e.shiftKey && (e.key === '[' || e.code === 'BracketLeft')) {
+				e.preventDefault()
+				focusDelta(-1)
+				return
+			}
+			if (/^[1-9]$/.test(e.key)) {
+				const editable =
+					target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+				if (editable) return
+				e.preventDefault()
+				focusByIndex(Number(e.key) - 1)
+			}
+		}
+		window.addEventListener('keydown', handler)
+		return () => window.removeEventListener('keydown', handler)
+	}, [openTab, closeTab, focusDelta, focusByIndex, tabs.length, activeTabId])
+
+	const notebookShareCells = useMemo(() => {
+		if (activeTab.mode !== 'notebook' || !activeTab.cells) return []
+		return activeTab.cells.map((c) => ({
+			type: c.type,
+			source: c.source,
+			chartConfig: c.chartConfig
+		}))
+	}, [activeTab])
 
 	return (
 		<div className="flex flex-col gap-3">
 			<StatusStrip
 				duckdbStatus={duckdb.status}
-				tableCount={registry.tables.length}
-				lastRun={lastRun}
-				running={running}
-				loadingStage={loadingStage}
-				error={!!runError}
+				lastRun={activeTab.lastRun}
+				running={activeTab.running || (activeTab.cells?.some((c) => c.running) ?? false)}
+				loadingStage={activeTab.loadingStage}
+				error={!!activeTab.runError || (activeTab.cells?.some((c) => !!c.runError) ?? false)}
 				topRight={topRight}
 			/>
 
-			<TabNav tab={tab} onChange={setTab} savedCount={savedQueries.length} />
+			<TabNav tab={sectionTab} onChange={setSectionTab} savedCount={savedQueries.length} />
 
-			{tab === 'editor' ? (
-				<div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+			{sectionTab === 'editor' ? (
+				<div
+					className={`grid grid-cols-1 gap-4 ${
+						playbookCollapsed ? 'lg:grid-cols-[minmax(0,1fr)_44px]' : 'lg:grid-cols-[minmax(0,1fr)_320px]'
+					}`}
+				>
 					<div className="flex min-w-0 flex-col gap-3">
+						<QueryTabBar
+							tabs={tabs}
+							activeTabId={activeTabId}
+							onFocus={focusTab}
+							onClose={closeTab}
+							onNewTab={() => openTab({ focus: true })}
+							onNewNotebookTab={() => openNotebookTab({ focus: true })}
+							onRename={renameTab}
+							onDuplicate={duplicateTab}
+							onCloseOthers={closeOthers}
+							onCloseToRight={closeToRight}
+							onConvertToNotebook={convertTabToNotebook}
+						/>
 						<TableChipRail
 							tables={registry.tables}
-							onAddTable={() => setLoadTableOpen(true)}
+							onBrowseSchema={() => setSchemaDrawerOpen(true)}
 							onRemove={registry.remove}
+							pending={
+								activeTab.mode === 'notebook'
+									? (activeTab.cells?.flatMap((c) => c.pendingTables) ?? [])
+									: activeTab.pendingTables
+							}
+							totalSchemaCount={TOTAL_SCHEMA_COUNT}
 						/>
-						<Editor ref={editorRef} value={sql} onChange={setSql} onRun={runQuery} tables={registry.tables} />
-						<EditorRunBar
-							running={running || !!loadingStage}
-							canRun={!!duckdb.conn && !!sql.trim()}
-							onRun={runQuery}
-							onSave={() => setSavePresetOpen(true)}
-						/>
-						{runError ? (
-							<ErrorBanner error={runError} onJump={(line, col) => editorRef.current?.revealLine(line, col)} />
+
+						{activeTab.mode === 'notebook' ? (
+							<NotebookView
+								tab={activeTab}
+								loadedTables={registry.tables}
+								canRun={!!duckdb.conn}
+								onCellSourceChange={(cellId, source) =>
+									updateCell(activeTab.id, cellId, (c) => ({
+										source,
+										dirty: source !== c.source ? true : c.dirty
+									}))
+								}
+								onCellFocus={(cellId) => focusCell(activeTab.id, cellId)}
+								onCellChartConfig={(cellId, next) =>
+									updateCell(activeTab.id, cellId, { chartConfig: next ?? undefined })
+								}
+								onCellPreferredView={(cellId, view) => updateCell(activeTab.id, cellId, { preferredView: view })}
+								onRunCell={async (cellId) => {
+									await runSqlForCell(activeTab.id, cellId)
+								}}
+								onRunCellAndAdvance={(cellId) => runCellAndAdvance(activeTab.id, cellId)}
+								onRunAbove={(cellId) => runCellsAbove(activeTab.id, cellId)}
+								onRunBelow={(cellId) => runCellsBelow(activeTab.id, cellId)}
+								onRunAll={() => runAllCellsInTab(activeTab.id)}
+								onAddCell={(type, atIndex) => {
+									addCell(activeTab.id, type, atIndex, true)
+								}}
+								onDeleteCell={(cellId) => removeCell(activeTab.id, cellId)}
+								onMoveCell={(cellId, direction) => {
+									const cells = activeTab.cells ?? []
+									const idx = cells.findIndex((c) => c.id === cellId)
+									if (idx === -1) return
+									const toIdx = direction === 'up' ? idx - 1 : idx + 1
+									if (toIdx < 0 || toIdx >= cells.length) return
+									reorderCells(activeTab.id, idx, toIdx)
+								}}
+								onReorderCell={(fromIdx, toIdx) => reorderCells(activeTab.id, fromIdx, toIdx)}
+								onConvertCellType={(cellId, nextType) =>
+									updateCell(activeTab.id, cellId, { type: nextType, result: null, runError: null, lastRun: null })
+								}
+								onDismissCellsDirty={() => setCellsDirty(activeTab.id, false)}
+							/>
+						) : (
+							<>
+								<Editor
+									key={activeTabId}
+									ref={editorRef}
+									value={activeTab.sql}
+									onChange={setActiveSql}
+									onRun={runQuery}
+									tables={registry.tables}
+								/>
+								<EditorRunBar
+									running={activeTab.running || !!activeTab.loadingStage}
+									canRun={!!duckdb.conn && !!activeTab.sql.trim()}
+									onRun={runQuery}
+									onSave={() => setSavePresetOpen(true)}
+									sql={activeTab.sql}
+									tables={tableRefs}
+									chartConfig={activeTab.chartConfig}
+									mode="query"
+									notebookCells={[]}
+									notebookTitle={activeTab.title}
+								/>
+								{activeTab.runError ? (
+									<ErrorBanner
+										error={activeTab.runError}
+										loadedTables={registry.tables}
+										onJump={(line, col) => editorRef.current?.revealLine(line, col)}
+										onApplyFix={onApplyFix}
+									/>
+								) : null}
+								<ResultsPanel
+									result={activeTab.result}
+									running={activeTab.running}
+									busyLabel={activeTab.loadingStage}
+									chartConfig={activeTab.chartConfig}
+									onChartConfigChange={setActiveChartConfig}
+									preferredView={chartPreferredTab === activeTabId ? 'chart' : undefined}
+									onConsumePreferredView={() => setChartPreferredTab(null)}
+									durationMs={activeTab.lastRun?.durationMs ?? null}
+								/>
+							</>
+						)}
+
+						{activeTab.mode === 'notebook' ? (
+							<div className="flex flex-wrap items-center justify-end gap-2">
+								<ShareQueryButton
+									sql=""
+									tables={tableRefs}
+									chartConfig={undefined}
+									disabled={!duckdb.conn}
+									mode="notebook"
+									notebookCells={notebookShareCells}
+									notebookTitle={activeTab.title}
+								/>
+							</div>
 						) : null}
-						<ResultsPanel result={result} running={running} busyLabel={loadingStage} />
 					</div>
 					<div className="lg:sticky lg:top-4 lg:self-start">
-						<ExamplesPanel onApply={onApplyExample} busyTaskId={busyTaskId} />
+						<ExamplesPanel
+							onApply={onApplyExample}
+							busyTaskId={activeTab.busyTaskId}
+							collapsed={playbookCollapsed}
+							onToggleCollapsed={togglePlaybook}
+						/>
 					</div>
 				</div>
-			) : tab === 'tables' ? (
-				<TablesTab
-					tables={registry.tables}
-					onAdd={() => setLoadTableOpen(true)}
-					onRemove={registry.remove}
-					loading={registry.loading}
-				/>
 			) : (
 				<SavedQueriesTab
 					savedQueries={savedQueries}
 					onOpen={onLoadSavedQuery}
 					onDelete={deleteDownload}
 					onRename={renameDownload}
-					busyTaskId={busyTaskId}
+					busyTaskId={activeTab.busyTaskId}
 				/>
 			)}
 
-			{loadTableOpen ? (
-				<LoadTableModal
-					chartOptionsMap={chartOptionsMap}
-					onClose={() => setLoadTableOpen(false)}
-					onLoad={async (source) => {
-						await registry.load(source)
-						setLoadTableOpen(false)
-					}}
-					loading={registry.loading}
-					existing={registry.tables}
-				/>
-			) : null}
-
 			{savePresetOpen ? (
 				<SavePresetDialog
-					suggestedName={firstNonEmptyLine(sql).slice(0, 60) || 'Untitled query'}
+					suggestedName={firstNonEmptyLine(activeTab.sql).slice(0, 60) || 'Untitled query'}
 					existingNames={savedDownloads.map((d) => d.name)}
 					title="Save SQL query"
 					description="Saved queries appear in the saved tab and in the main Saved list."
@@ -362,13 +848,46 @@ ORDER BY date DESC
 					onClose={() => setSavePresetOpen(false)}
 				/>
 			) : null}
+
+			<SchemaDrawer
+				open={schemaDrawerOpen}
+				onClose={() => setSchemaDrawerOpen(false)}
+				chartOptionsMap={chartOptionsMap}
+				loadedTables={registry.tables}
+				onLoad={registry.load}
+				onReplaceSql={onReplaceSql}
+				onInsertAtCursor={onInsertAtCursor}
+				onApplyAndRun={onCookbookApply}
+				loading={registry.loading}
+				totalDatasetCount={TOTAL_SCHEMA_COUNT}
+			/>
 		</div>
 	)
 }
 
+function buildCellFromShared(c: {
+	type: 'sql' | 'markdown' | 'chart'
+	source: string
+	chartConfig?: ChartConfig
+}): NotebookCell {
+	return {
+		id: Math.random().toString(36).slice(2, 10) + Date.now().toString(36),
+		type: c.type,
+		source: c.source,
+		chartConfig: c.chartConfig,
+		preferredView: undefined,
+		result: null,
+		running: false,
+		runError: null,
+		lastRun: null,
+		loadingStage: null,
+		pendingTables: [],
+		dirty: c.source.trim().length > 0
+	}
+}
+
 function StatusStrip({
 	duckdbStatus,
-	tableCount,
 	lastRun,
 	running,
 	loadingStage,
@@ -376,7 +895,6 @@ function StatusStrip({
 	topRight
 }: {
 	duckdbStatus: 'loading' | 'ready' | 'error'
-	tableCount: number
 	lastRun: LastRunMeta | null
 	running: boolean
 	loadingStage: string | null
@@ -390,8 +908,8 @@ function StatusStrip({
 	return (
 		<div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-(--divider) bg-(--cards-bg) px-3 py-2 text-xs text-(--text-secondary)">
 			<span className="flex items-center gap-1.5">
-				<StatusDot tone={envTone} blink={envTone === 'busy'} />
-				<span className="text-(--text-tertiary)">DuckDB</span>
+				<StatusDot tone={envTone} />
+				<span className="text-(--text-tertiary)">LlamaSQL</span>
 				<span
 					className={
 						duckdbStatus === 'ready'
@@ -403,13 +921,6 @@ function StatusStrip({
 				>
 					{duckdbStatus === 'ready' ? 'ready' : duckdbStatus === 'error' ? 'failed' : 'loading'}
 				</span>
-			</span>
-
-			<Divider />
-
-			<span>
-				<span className="text-(--text-tertiary)">Tables</span>{' '}
-				<span className="text-(--text-primary) tabular-nums">{tableCount}</span>
 			</span>
 
 			<Divider />
@@ -485,15 +996,36 @@ function EditorRunBar({
 	running,
 	canRun,
 	onRun,
-	onSave
+	onSave,
+	sql,
+	tables,
+	chartConfig,
+	mode,
+	notebookCells,
+	notebookTitle
 }: {
 	running: boolean
 	canRun: boolean
 	onRun: () => void
 	onSave: () => void
+	sql: string
+	tables: QueryTableRef[]
+	chartConfig: ChartConfig | undefined
+	mode: 'query' | 'notebook'
+	notebookCells: Array<{ type: 'sql' | 'markdown'; source: string; chartConfig?: ChartConfig }>
+	notebookTitle: string
 }) {
 	return (
 		<div className="flex flex-wrap items-center justify-end gap-2">
+			<ShareQueryButton
+				sql={sql}
+				tables={tables}
+				chartConfig={chartConfig}
+				disabled={!canRun}
+				mode={mode}
+				notebookCells={notebookCells}
+				notebookTitle={notebookTitle}
+			/>
 			<button
 				type="button"
 				onClick={onSave}
@@ -526,14 +1058,78 @@ function EditorRunBar({
 	)
 }
 
-function ErrorBanner({ error, onJump }: { error: string; onJump: (line: number, col?: number) => void }) {
+type ErrorFamily = 'table' | 'column' | 'group_by' | 'parse' | 'type' | 'load' | 'other'
+
+const FAMILY_LABEL: Record<ErrorFamily, string> = {
+	table: 'Table not found',
+	column: 'Column not found',
+	group_by: 'GROUP BY required',
+	parse: 'Parse error',
+	type: 'Type mismatch',
+	load: 'Load failed',
+	other: 'Query error'
+}
+
+const FAMILY_HINTS: Record<ErrorFamily, string[]> = {
+	table: [
+		'Identifiers must match a known dataset exactly — auto-load only kicks in for recognized slugs.',
+		'Browse the Schema tab for the right name, or pick a time-series param there (ts_<slug>_<param>).'
+	],
+	column: [
+		'Unquoted column names are case-insensitive. Wrap camelCase identifiers in double quotes: "totalRevenue24h".',
+		'Hover a table name in the editor to see its exact column list.'
+	],
+	group_by: [
+		'Non-aggregated columns must appear in GROUP BY — or wrap them with any_value() / arg_max().',
+		'LlamaSQL also allows GROUP BY positions: GROUP BY 1, 2.'
+	],
+	parse: [
+		'Check trailing commas, missing parentheses, and unterminated strings around the reported line.',
+		'⌘/ toggles a line comment — bisecting the query helps isolate parse errors.'
+	],
+	type: [
+		'CSV inference can land numeric-looking columns as VARCHAR. Use TRY_CAST(x AS DOUBLE) to coerce safely.',
+		'Unix-epoch date columns (raises, hacks) need to_timestamp(date) before date functions work.'
+	],
+	load: [
+		'The CSV endpoint rejected the fetch. Confirm your subscription is active and retry.',
+		'Check the network panel — a 401 means the session expired; a 5xx means retry after a moment.'
+	],
+	other: [
+		'Scan the message below — LlamaSQL errors usually quote the offending identifier.',
+		'For dialect specifics (QUALIFY, ASOF JOIN, PIVOT), the Shortcuts tab links the full reference.'
+	]
+}
+
+interface ErrorAnalysis {
+	family: ErrorFamily
+	offendingIdentifier?: string
+	suggestions: string[]
+}
+
+function ErrorBanner({
+	error,
+	loadedTables,
+	onJump,
+	onApplyFix
+}: {
+	error: string
+	loadedTables: RegisteredTable[]
+	onJump: (line: number, col?: number) => void
+	onApplyFix: (oldIdentifier: string, newIdentifier: string) => void
+}) {
 	const location = parseErrorLocation(error)
+	const [expanded, setExpanded] = useState(false)
+	const analysis = useMemo(() => analyzeError(error, loadedTables), [error, loadedTables])
+	const hints = FAMILY_HINTS[analysis.family]
+	const familyLabel = FAMILY_LABEL[analysis.family]
+
 	return (
-		<div className="flex flex-col gap-1.5 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2.5 text-red-700 dark:text-red-300">
+		<div className="flex flex-col gap-2 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2.5 text-red-700 dark:text-red-300">
 			<div className="flex flex-wrap items-center gap-2 text-xs">
 				<span className="inline-flex items-center gap-1.5 font-semibold">
 					<Icon name="alert-triangle" className="h-3.5 w-3.5" />
-					Query error
+					{familyLabel}
 				</span>
 				{location ? (
 					<>
@@ -548,80 +1144,118 @@ function ErrorBanner({ error, onJump }: { error: string; onJump: (line: number, 
 						</button>
 					</>
 				) : null}
+				{analysis.offendingIdentifier ? (
+					<>
+						<span className="text-red-500/50">·</span>
+						<code className="rounded-sm bg-red-500/10 px-1.5 py-px font-mono text-[11px] text-red-700 dark:text-red-300">
+							{analysis.offendingIdentifier}
+						</code>
+					</>
+				) : null}
 			</div>
-			<pre className="overflow-x-auto font-mono text-[11.5px] leading-snug whitespace-pre-wrap">{error}</pre>
+
+			{analysis.suggestions.length > 0 && analysis.offendingIdentifier ? (
+				<div className="flex flex-wrap items-center gap-1.5 text-[11.5px]">
+					<span className="text-red-600/90 dark:text-red-300/80">Did you mean</span>
+					{analysis.suggestions.map((s) => (
+						<button
+							key={s}
+							type="button"
+							onClick={() => onApplyFix(analysis.offendingIdentifier!, s)}
+							className="inline-flex items-center gap-1 rounded-sm border border-red-500/30 bg-red-500/5 px-1.5 py-0.5 font-mono text-[11px] text-red-700 transition-colors hover:border-red-500/60 hover:bg-red-500/10 dark:text-red-200"
+						>
+							<Icon name="arrow-right" className="h-2.5 w-2.5" />
+							{s}
+						</button>
+					))}
+					<span className="text-red-600/70 dark:text-red-300/60">?</span>
+				</div>
+			) : null}
+
+			<pre className="thin-scrollbar overflow-x-auto font-mono text-[11.5px] leading-snug whitespace-pre-wrap">
+				{error}
+			</pre>
+
+			{hints.length > 0 ? (
+				<div className="flex flex-col gap-1.5 border-t border-red-500/20 pt-2">
+					<button
+						type="button"
+						onClick={() => setExpanded((v) => !v)}
+						aria-expanded={expanded}
+						className="inline-flex items-center gap-1.5 self-start text-[11px] font-medium text-red-700/80 transition-colors hover:text-red-700 dark:text-red-300/80 dark:hover:text-red-200"
+					>
+						<Icon
+							name="chevron-right"
+							className={`h-3 w-3 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
+						/>
+						Common causes
+					</button>
+					{expanded ? (
+						<ul className="flex flex-col gap-1 pl-4 text-[11.5px] leading-relaxed text-red-700/90 dark:text-red-200/90">
+							{hints.map((h, i) => (
+								<li key={i} className="list-disc">
+									{h}
+								</li>
+							))}
+						</ul>
+					) : null}
+				</div>
+			) : null}
 		</div>
 	)
 }
 
-function TablesTab({
-	tables,
-	onAdd,
-	onRemove,
-	loading
-}: {
-	tables: RegisteredTable[]
-	onAdd: () => void
-	onRemove: (name: string) => void
-	loading: string | null
-}) {
-	return (
-		<div className="flex flex-col gap-3">
-			<SectionLabel
-				label="Loaded tables"
-				count={tables.length}
-				action={
-					<button
-						type="button"
-						onClick={onAdd}
-						disabled={!!loading}
-						className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-					>
-						<Icon name="plus" className="h-3.5 w-3.5" />
-						Add table
-					</button>
-				}
-			/>
-			{tables.length === 0 ? (
-				<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-12 text-center">
-					<Icon name="blocks" className="h-6 w-6 text-(--text-tertiary)" />
-					<p className="text-sm text-(--text-secondary)">No tables in this session.</p>
-					<p className="max-w-sm text-xs text-(--text-tertiary)">
-						Add a DefiLlama dataset or time-series to start querying.
-					</p>
-				</div>
-			) : (
-				<ul className="flex flex-col divide-y divide-(--divider) border-y border-(--divider)">
-					{tables.map((t) => (
-						<li key={t.name} className="flex flex-col gap-1.5 py-3">
-							<div className="flex items-center justify-between gap-3">
-								<div className="flex flex-wrap items-center gap-2">
-									<span className="font-mono text-sm font-semibold text-(--text-primary)">{t.name}</span>
-									<span className="rounded-sm bg-(--link-hover-bg) px-1.5 py-px text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">
-										{t.source.kind === 'dataset' ? 'Dataset' : 'Time series'}
-									</span>
-									<span className="text-xs text-(--text-tertiary) tabular-nums">
-										{t.rowCount.toLocaleString()} rows · {t.columns.length} cols
-									</span>
-								</div>
-								<button
-									type="button"
-									onClick={() => onRemove(t.name)}
-									aria-label={`Remove ${t.name}`}
-									className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500"
-								>
-									<Icon name="trash-2" className="h-3.5 w-3.5" />
-								</button>
-							</div>
-							<p className="truncate font-mono text-xs text-(--text-tertiary)">
-								{t.columns.map((c) => c.name).join(', ')}
-							</p>
-						</li>
-					))}
-				</ul>
-			)}
-		</div>
-	)
+const KNOWN_DATASET_IDENTIFIERS = datasets.map((d) => identifierize(d.slug))
+
+function analyzeError(error: string, loadedTables: RegisteredTable[]): ErrorAnalysis {
+	if (/^Could not auto-load table|^Could not load /i.test(error)) {
+		return { family: 'load', suggestions: [] }
+	}
+
+	const tableMatch =
+		error.match(/(?:Catalog Error|Binder Error)[^\n]*?(?:Table with name|Referenced table)\s+"?([A-Za-z_][\w]*)"?/i) ??
+		error.match(/Table with name\s+"?([A-Za-z_][\w]*)"?\s+does not exist/i) ??
+		error.match(/Table\s+"([A-Za-z_][\w]*)"\s+does not exist/i)
+	if (tableMatch) {
+		const offending = tableMatch[1]!
+		const pool = [...loadedTables.map((t) => t.name), ...KNOWN_DATASET_IDENTIFIERS]
+		const unique = [...new Set(pool)]
+		const suggestions = matchSorter(unique, offending)
+			.filter((s) => s.toLowerCase() !== offending.toLowerCase())
+			.slice(0, 3)
+		return { family: 'table', offendingIdentifier: offending, suggestions }
+	}
+
+	const columnMatch =
+		error.match(/Referenced column\s+"?([A-Za-z_][\w]*)"?\s+not found/i) ??
+		error.match(/column\s+"?([A-Za-z_][\w]*)"?\s+not found/i)
+	if (columnMatch) {
+		const offending = columnMatch[1]!
+		const cols = [...new Set(loadedTables.flatMap((t) => t.columns.map((c) => c.name)))]
+		const suggestions = matchSorter(cols, offending)
+			.filter((s) => s.toLowerCase() !== offending.toLowerCase())
+			.slice(0, 3)
+		return { family: 'column', offendingIdentifier: offending, suggestions }
+	}
+
+	if (/must appear in the GROUP BY/i.test(error)) {
+		return { family: 'group_by', suggestions: [] }
+	}
+
+	if (/Parser Error/i.test(error)) {
+		return { family: 'parse', suggestions: [] }
+	}
+
+	if (/Conversion Error|Invalid Input Error|Could not convert/i.test(error)) {
+		return { family: 'type', suggestions: [] }
+	}
+
+	return { family: 'other', suggestions: [] }
+}
+
+function replaceIdentifier(sql: string, oldIdentifier: string, newIdentifier: string): string {
+	const escaped = oldIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	return sql.replace(new RegExp(`\\b${escaped}\\b`, 'g'), newIdentifier)
 }
 
 function SavedQueriesTab({
@@ -715,6 +1349,13 @@ function sameSource(
 	if (a.kind === 'dataset' && b.kind === 'dataset') return a.slug === b.slug
 	if (a.kind === 'chart' && b.kind === 'chart') return a.slug === b.slug && a.param === b.param
 	return false
+}
+
+function scheduleTabPendingClear(
+	updateTab: (id: string, patch: Partial<QueryTab> | ((t: QueryTab) => Partial<QueryTab>)) => void,
+	tabId: string
+) {
+	window.setTimeout(() => updateTab(tabId, { pendingTables: [] }), 1400)
 }
 
 function firstNonEmptyLine(text: string): string {
