@@ -16,8 +16,9 @@ const dlResearchReports = [
 	{
 		title: 'State of RWAfi Q1 2026',
 		date: 'April 2026',
+		pages: 84,
+		href: 'https://assets.dlnews.com/dlresearch/The-State-of-RWAfi_Q1-2026_report.pdf',
 		author: 'DL Research',
-		comingSoon: true,
 		description:
 			'A comprehensive, data-led assessment of the real-world asset landscape across DeFi — covering tokenised equities, real estate, commodities, and the broader structural forces shaping the next phase of onchain capital markets.',
 		topics: ['Tokenised Equities', 'Real Estate', 'Commodities', 'Private Credit', 'Onchain Capital Markets'],
