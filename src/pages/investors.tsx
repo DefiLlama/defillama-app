@@ -189,7 +189,6 @@ export default function InvestorsPage() {
 					</div>
 
 					{[
-						{ icon: <SonicIcon />, name: 'Sonic' },
 						{ icon: <BerachainIcon />, name: 'Berachain' },
 						{ icon: <NearIcon />, name: 'NEAR' }
 					].map((item) => (
