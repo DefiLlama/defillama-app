@@ -245,7 +245,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">{formatUsd(totalMaxExposureUsd)}</p>
 					<p className="mt-1 text-sm text-(--text-secondary)">
 						{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)} (max additional borrows against {tokenSymbol}) +{' '}
-						{formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)} (bad debt if {tokenSymbol} got hacked now)
+						{formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)} (bad debt if {tokenSymbol} was hacked now)
 					</p>
 				</div>
 
