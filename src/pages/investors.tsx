@@ -169,7 +169,7 @@ export default function InvestorsPage() {
 								Fees, ecosystem, vertical integration, and network stats for Sonic
 							</p>
 							<div className="flex flex-wrap gap-1.5">
-								{['Financials', 'Lending', 'Rewards', 'Reports'].map((tag) => (
+								{['Financials', 'Vertical Integration', 'Yield', 'Network Stats'].map((tag) => (
 									<span
 										key={tag}
 										className="rounded-full bg-(--sl-accent-muted) px-2.5 py-0.5 text-[11px] font-medium text-(--sl-accent)"
