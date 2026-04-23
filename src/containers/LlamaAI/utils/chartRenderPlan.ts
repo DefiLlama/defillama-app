@@ -17,6 +17,7 @@ interface HBarRendererProps {
 	valueSymbol?: string
 	color?: string
 	colors?: string[]
+	logos?: string[]
 }
 
 interface BaseChartRenderPlan {
@@ -78,6 +79,7 @@ export function buildRenderPlan(
 				rendererProps: {
 					...adaptedChart.props,
 					solidChartAreaStyle: stylePolicy.solidAreaFill,
+					categoryLogos: state.showLabels ? adaptedChart.props.categoryLogos : undefined,
 					// Match legacy LlamaAI behavior only for charts that previously rendered through
 					// the old MultiSeriesChart component. Other cartesian charts keep MSC2 defaults.
 					hideDefaultLegend: usedLegacyMultiSeriesChart ? false : undefined
@@ -121,7 +123,8 @@ export function buildRenderPlan(
 					values: adaptedChart.data.map(([, value]) => value),
 					valueSymbol: adaptedChart.props.valueSymbol,
 					color: config.series[0]?.styling?.color || oldBlue,
-					colors: adaptedChart.props.colors
+					colors: adaptedChart.props.colors,
+					logos: state.showLabels ? adaptedChart.props.logos : undefined
 				},
 				controls,
 				exportModel,

@@ -99,11 +99,17 @@ export default function ScatterChart({
 			}
 		} else {
 			const dataWithSymbols = showLabels
-				? chartData.map((point: any) => ({
-						value: point,
-						symbol: `image://${getEntityIcon(entityType, point[3] || '')}`,
-						symbolSize: 20
-					}))
+				? chartData.map((point: any) => {
+						const slug = point[3] || ''
+						if (!slug || slug.toLowerCase() === 'unknown') {
+							return { value: point }
+						}
+						return {
+							value: point,
+							symbol: `image://${getEntityIcon(entityType, slug)}`,
+							symbolSize: 20
+						}
+					})
 				: chartData
 
 			series = [

@@ -90,6 +90,7 @@ export interface IHBarChartProps {
 	height?: string
 	color?: string
 	colors?: string[]
+	logos?: string[]
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
@@ -185,6 +186,12 @@ type MultiSeriesChart2BaseProps = {
 	dataset: MultiSeriesChart2Dataset
 	title?: string
 	headingAs?: 'h1' | 'h2'
+	/**
+	 * For category xAxis only. One entry per category in the dataset's dimension order.
+	 * When present, the xAxis text labels are hidden and a logo row is rendered underneath
+	 * the plot area, aligned with each category tick.
+	 */
+	categoryLogos?: string[]
 }
 
 export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
