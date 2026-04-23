@@ -29,3 +29,9 @@ export function equityIconUrl(symbol: string, size: number = 48): string {
 	// no lowercase
 	return `${ICONS_CDN}/equities/${encodeURIComponent(symbol)}?w=${size}&h=${size}`
 }
+
+export function geckoTokenIconUrl(nk: string, size: number = 48): string {
+	const raw = nk.startsWith('coingecko:') ? nk.slice('coingecko:'.length) : nk
+	const slug = raw.trim().toLowerCase()
+	return `https://token-icons.llamao.fi/icons/tokens/gecko/${encodeURIComponent(slug)}?w=${size}&h=${size}`
+}

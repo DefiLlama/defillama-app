@@ -43,13 +43,19 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 			)
 
 			const allowGrouping = !!config.displayOptions?.supportsGrouping && adaptedChart.groupingPolicy === 'always'
+			const hasCategoryLogos = !!(
+				adaptedChart.props &&
+				'categoryLogos' in adaptedChart.props &&
+				Array.isArray(adaptedChart.props.categoryLogos) &&
+				adaptedChart.props.categoryLogos.some(Boolean)
+			)
 			return {
 				allowStack: !!config.displayOptions?.canStack && stackEligibleSeries.length > 1,
 				allowPercentage: !!config.displayOptions?.canShowPercentage && percentageEligibleSeries.length > 1,
 				allowCumulative: !!config.displayOptions?.canShowCumulative && adaptedChart.isTimeChart,
 				allowGrouping,
 				allowHallmarks: adaptedChart.hasHallmarks,
-				allowLabels: false,
+				allowLabels: hasCategoryLogos,
 				groupingOptions: allowGrouping ? GROUPING_OPTIONS : []
 			}
 		}
@@ -73,16 +79,22 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 				allowLabels: true,
 				groupingOptions: []
 			}
-		case 'hbar':
+		case 'hbar': {
+			const hbarHasLogos = !!(
+				adaptedChart.props?.logos &&
+				adaptedChart.props.logos.length > 0 &&
+				adaptedChart.props.logos.some(Boolean)
+			)
 			return {
 				allowStack: false,
 				allowPercentage: false,
 				allowCumulative: false,
 				allowGrouping: false,
 				allowHallmarks: false,
-				allowLabels: false,
+				allowLabels: hbarHasLogos,
 				groupingOptions: []
 			}
+		}
 	}
 }
 
