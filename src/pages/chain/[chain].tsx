@@ -76,7 +76,7 @@ export default function Chain(props: InferGetStaticPropsType<typeof getStaticPro
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
-			announcement={<ChainOverviewAnnouncement />}
+			announcement={<ChainOverviewAnnouncement chainName={props.metadata.name} />}
 		>
 			<ChainOverview {...props} />
 		</Layout>

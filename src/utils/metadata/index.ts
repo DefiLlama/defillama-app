@@ -109,7 +109,11 @@ async function doRefresh(): Promise<void> {
 		metadataCache.rwaPerpsList = rwaPerpsListData
 		metadataCache.cgExchangeIdentifiers = cgExIds
 		metadataCache.tokenlist = tokenlist
-		metadataCache.tokenDirectory = tokenDirectory
+		if (Object.keys(tokenDirectory).length > 0) {
+			metadataCache.tokenDirectory = tokenDirectory
+		} else {
+			console.error('[metadata] refresh returned an empty token directory, keeping stale cache')
+		}
 		metadataCache.protocolDisplayNames = createStringLookupMap(protocolDisplayNames)
 		metadataCache.chainDisplayNames = createStringLookupMap(chainDisplayNames)
 		metadataCache.liquidationsTokenSymbols = liquidationsTokenSymbols
