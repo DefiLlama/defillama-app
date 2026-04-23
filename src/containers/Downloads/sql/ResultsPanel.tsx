@@ -17,6 +17,7 @@ interface ResultsPanelProps {
 	onChartConfigChange: (next: ChartConfig | null) => void
 	preferredView?: ResultsView
 	onConsumePreferredView?: () => void
+	durationMs?: number | null
 }
 
 export function ResultsPanel({
@@ -26,7 +27,8 @@ export function ResultsPanel({
 	chartConfig,
 	onChartConfigChange,
 	preferredView,
-	onConsumePreferredView
+	onConsumePreferredView,
+	durationMs
 }: ResultsPanelProps) {
 	const [view, setView] = useState<ResultsView>(preferredView ?? 'table')
 
@@ -84,6 +86,7 @@ export function ResultsPanel({
 					<span className="text-xs text-(--text-tertiary) tabular-nums">
 						{result.rows.length.toLocaleString()} row{result.rows.length === 1 ? '' : 's'} · {result.columns.length} col
 						{result.columns.length === 1 ? '' : 's'}
+						{durationMs != null ? ` · ${formatDuration(durationMs)}` : ''}
 					</span>
 				</div>
 				<div className="flex items-center gap-2">
@@ -125,6 +128,13 @@ function ViewToggle({
 			<ToggleButton active={view === 'chart'} onClick={() => onChange('chart')} label="Chart" icon="bar-chart-2" />
 		</div>
 	)
+}
+
+function formatDuration(ms: number): string {
+	if (ms < 1000) return `${ms}ms`
+	if (ms < 10_000) return `${(ms / 1000).toFixed(2)}s`
+	if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`
+	return `${Math.round(ms / 1000)}s`
 }
 
 function ToggleButton({

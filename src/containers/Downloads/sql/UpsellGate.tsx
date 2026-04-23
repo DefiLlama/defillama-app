@@ -21,8 +21,8 @@ const SAMPLE_ROWS = [
 
 const BENEFITS = [
 	{ title: 'Cross-dataset joins', body: 'Join fees, TVL, revenue, and more in a single query.' },
-	{ title: 'Full DuckDB dialect', body: 'Rolling windows, ranks, CTEs — 100% standard SQL support.' },
-	{ title: 'Runs in your browser', body: 'DuckDB-WASM compiles locally — no extra API cost, no rate limits.' },
+	{ title: 'Full LlamaSQL dialect', body: 'Rolling windows, ranks, CTEs — 100% standard SQL support.' },
+	{ title: 'Runs in your browser', body: 'LlamaSQL compiles locally — no extra API cost, no rate limits.' },
 	{ title: 'Export anywhere', body: 'Download results as CSV, Parquet, or Arrow for your own stack.' }
 ]
 
@@ -39,7 +39,7 @@ export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGatePro
 	const copy = isTrial
 		? 'Your trial includes preview-only CSV downloads. Upgrade to run SQL queries across the full DefiLlama catalogue in your browser.'
 		: isAuthenticated
-			? 'Upgrade to run SQL queries across every DefiLlama dataset in your browser — no API cost, arbitrary joins, full DuckDB dialect.'
+			? 'Upgrade to run SQL queries across every DefiLlama dataset in your browser — no API cost, arbitrary joins, full LlamaSQL dialect.'
 			: 'Sign in with a paid plan to run SQL queries across every DefiLlama dataset in your browser.'
 
 	return (
@@ -81,7 +81,7 @@ export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGatePro
 							{isAuthenticated ? 'Upgrade to Pro' : 'Subscribe'}
 						</button>
 						<p className="text-xs text-(--text-tertiary)">
-							Compute runs locally via DuckDB-WASM — no additional API cost.
+							Compute runs locally via LlamaSQL — no additional API cost.
 						</p>
 					</div>
 				</div>

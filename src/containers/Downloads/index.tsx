@@ -7,7 +7,7 @@ import type { ChartOptionsMap } from './chart-datasets'
 import { DownloadsCatalog as SimpleCatalog } from './DownloadsCatalog'
 import { ModeToggle, type DownloadsMode } from './sql/ModeToggle'
 
-// SQL workspace pulls in DuckDB-WASM + Monaco. Loading it dynamically keeps the simple-mode
+// SQL workspace pulls in the LlamaSQL engine + Monaco. Loading it dynamically keeps the simple-mode
 // bundle unchanged for users who never open SQL.
 const SqlWorkspace = dynamic(() => import('./sql/SqlWorkspace').then((m) => m.SqlWorkspace), {
 	ssr: false,

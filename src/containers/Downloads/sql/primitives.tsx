@@ -12,9 +12,12 @@ const TONE_CLASS: Record<StatusTone, string> = {
 
 export function StatusDot({ tone, blink = false }: { tone: StatusTone; blink?: boolean }) {
 	return (
-		<span aria-hidden="true" className={`relative inline-flex h-1.5 w-1.5 shrink-0 rounded-full ${TONE_CLASS[tone]}`}>
-			{blink ? <span className={`absolute inset-0 animate-ping rounded-full opacity-60 ${TONE_CLASS[tone]}`} /> : null}
-		</span>
+		<span
+			aria-hidden="true"
+			className={`relative inline-flex h-1.5 w-1.5 shrink-0 rounded-full ${TONE_CLASS[tone]} ${
+				blink ? 'animate-pulse' : ''
+			}`}
+		/>
 	)
 }
 

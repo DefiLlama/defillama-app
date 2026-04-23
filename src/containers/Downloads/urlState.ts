@@ -405,3 +405,89 @@ export function buildShareUrl(origin: string, pathname: string, input: SavedDown
 	const qs = params.toString()
 	return qs ? `${origin}${pathname}?${qs}` : `${origin}${pathname}`
 }
+
+// --- Notebook sharing ---
+// Notebook shares round-trip an ordered cell list via a single base64-encoded JSON
+// payload. We keep the key `k=nb` alongside the other `k=...` kinds so the page
+// hydrator can pick the right branch without guessing.
+
+export interface NotebookShareCell {
+	type: 'sql' | 'markdown' | 'chart'
+	source: string
+	chartConfig?: ChartConfig
+}
+
+export interface NotebookShareInput {
+	title?: string
+	cells: NotebookShareCell[]
+}
+
+export interface NotebookShareDecoded extends NotebookShareInput {
+	kind: 'notebook'
+}
+
+function urlSafeB64Encode(input: string): string {
+	const bytes = new TextEncoder().encode(input)
+	let binary = ''
+	for (const b of bytes) binary += String.fromCharCode(b)
+	return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
+}
+
+function urlSafeB64Decode(input: string): string {
+	const padded = input.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((input.length + 3) % 4)
+	const binary = atob(padded)
+	const bytes = new Uint8Array(binary.length)
+	for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+	return new TextDecoder().decode(bytes)
+}
+
+function sanitizeShareCell(raw: unknown): NotebookShareCell | null {
+	if (!raw || typeof raw !== 'object') return null
+	const r = raw as Record<string, unknown>
+	const type = r.type === 'markdown' ? 'markdown' : r.type === 'sql' ? 'sql' : r.type === 'chart' ? 'chart' : null
+	if (!type) return null
+	if (typeof r.source !== 'string') return null
+	const out: NotebookShareCell = { type, source: r.source }
+	if (r.chartConfig && typeof r.chartConfig === 'object') {
+		out.chartConfig = r.chartConfig as ChartConfig
+	}
+	return out
+}
+
+export function encodeNotebookShare(input: NotebookShareInput): Record<string, string> {
+	const payload = {
+		title: input.title,
+		cells: input.cells.map((c) => ({
+			type: c.type,
+			source: c.source,
+			...(c.chartConfig ? { chartConfig: c.chartConfig } : {})
+		}))
+	}
+	const json = JSON.stringify(payload)
+	return { k: 'nb', n: urlSafeB64Encode(json) }
+}
+
+export function decodeNotebookShare(query: Record<string, string | string[] | undefined>): NotebookShareDecoded | null {
+	const kind = firstStr(query.k)
+	if (kind !== 'nb') return null
+	const payload = firstStr(query.n)
+	if (!payload) return null
+	try {
+		const json = urlSafeB64Decode(payload)
+		const parsed = JSON.parse(json)
+		if (!parsed || typeof parsed !== 'object' || !Array.isArray((parsed as any).cells)) return null
+		const cells = ((parsed as any).cells as unknown[])
+			.map(sanitizeShareCell)
+			.filter((c): c is NotebookShareCell => c !== null)
+		if (cells.length === 0) return null
+		const title = typeof (parsed as any).title === 'string' ? ((parsed as any).title as string) : undefined
+		return { kind: 'notebook', title, cells }
+	} catch {
+		return null
+	}
+}
+
+export function buildNotebookShareUrl(origin: string, pathname: string, input: NotebookShareInput): string {
+	const params = new URLSearchParams(encodeNotebookShare(input))
+	return `${origin}${pathname}?${params.toString()}`
+}

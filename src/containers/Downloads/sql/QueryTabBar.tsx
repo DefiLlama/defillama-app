@@ -10,10 +10,12 @@ interface QueryTabBarProps {
 	onFocus: (id: string) => void
 	onClose: (id: string) => void
 	onNewTab: () => void
+	onNewNotebookTab: () => void
 	onRename: (id: string, title: string) => void
 	onDuplicate: (id: string) => void
 	onCloseOthers: (id: string) => void
 	onCloseToRight: (id: string) => void
+	onConvertToNotebook?: (id: string) => void
 }
 
 interface ContextMenuState {
@@ -27,10 +29,12 @@ export function QueryTabBar({
 	onFocus,
 	onClose,
 	onNewTab,
+	onNewNotebookTab,
 	onRename,
 	onDuplicate,
 	onCloseOthers,
-	onCloseToRight
+	onCloseToRight,
+	onConvertToNotebook
 }: QueryTabBarProps) {
 	const scrollerRef = useRef<HTMLDivElement | null>(null)
 	const activeRef = useRef<HTMLButtonElement | null>(null)
@@ -113,15 +117,7 @@ export function QueryTabBar({
 						/>
 					)
 				})}
-				<button
-					type="button"
-					onClick={onNewTab}
-					aria-label="New query tab"
-					title="New tab (⌘T)"
-					className="sticky right-0 mb-px ml-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--app-bg) text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
-				>
-					<Icon name="plus" className="h-3.5 w-3.5" />
-				</button>
+				<NewTabMenu onNewTab={onNewTab} onNewNotebook={onNewNotebookTab} />
 			</div>
 
 			{menu && menuTab ? (
@@ -143,7 +139,7 @@ export function QueryTabBar({
 							bottom: menu.anchor.y
 						})}
 						gutter={2}
-						className="z-50 min-w-[180px] rounded-md border border-(--divider) bg-(--cards-bg) p-1 text-xs text-(--text-primary) shadow-lg"
+						className="z-50 min-w-[200px] rounded-md border border-(--divider) bg-(--cards-bg) p-1 text-xs text-(--text-primary) shadow-lg"
 					>
 						<Ariakit.MenuItem
 							onClick={() => {
@@ -165,6 +161,18 @@ export function QueryTabBar({
 							<Icon name="copy" className="h-3 w-3 text-(--text-tertiary)" />
 							Duplicate
 						</Ariakit.MenuItem>
+						{menuTab.mode === 'query' && onConvertToNotebook ? (
+							<Ariakit.MenuItem
+								onClick={() => {
+									onConvertToNotebook(menu.id)
+									setMenu(null)
+								}}
+								className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
+							>
+								<Icon name="layers" className="h-3 w-3 text-(--text-tertiary)" />
+								Convert to notebook
+							</Ariakit.MenuItem>
+						) : null}
 						<div className="my-1 h-px bg-(--divider)" />
 						<Ariakit.MenuItem
 							disabled={!canClose}
@@ -206,6 +214,40 @@ export function QueryTabBar({
 	)
 }
 
+function NewTabMenu({ onNewTab, onNewNotebook }: { onNewTab: () => void; onNewNotebook: () => void }) {
+	return (
+		<Ariakit.MenuProvider>
+			<Ariakit.MenuButton
+				aria-label="New tab"
+				title="New tab (⌘T)"
+				className="sticky right-0 mb-px ml-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--app-bg) text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+			>
+				<Icon name="plus" className="h-3.5 w-3.5" />
+			</Ariakit.MenuButton>
+			<Ariakit.Menu
+				gutter={4}
+				className="z-50 min-w-[180px] rounded-md border border-(--divider) bg-(--cards-bg) p-1 text-xs text-(--text-primary) shadow-lg"
+			>
+				<Ariakit.MenuItem
+					onClick={onNewTab}
+					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
+				>
+					<Icon name="file-text" className="h-3 w-3 text-(--text-tertiary)" />
+					<span className="flex-1">New query tab</span>
+					<span className="font-mono text-[10px] text-(--text-tertiary)">⌘T</span>
+				</Ariakit.MenuItem>
+				<Ariakit.MenuItem
+					onClick={onNewNotebook}
+					className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 hover:bg-(--link-hover-bg)"
+				>
+					<Icon name="layers" className="h-3 w-3 text-(--text-tertiary)" />
+					<span className="flex-1">New notebook tab</span>
+				</Ariakit.MenuItem>
+			</Ariakit.Menu>
+		</Ariakit.MenuProvider>
+	)
+}
+
 interface TabPillProps {
 	tab: QueryTab
 	active: boolean
@@ -234,7 +276,7 @@ function TabPill({
 	activeRef
 }: TabPillProps) {
 	const base =
-		'group relative flex h-8 min-w-[120px] max-w-[220px] shrink-0 items-center gap-1.5 rounded-t-md border-x border-t px-2.5 pr-1.5 text-[13px] transition-colors before:pointer-events-none before:absolute before:-left-px before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-px before:bg-(--divider)/70 first:before:hidden aria-selected:before:hidden hover:before:hidden [[aria-selected=true]+&]:before:hidden'
+		'group relative flex h-8 min-w-[120px] max-w-[240px] shrink-0 items-center gap-1.5 rounded-t-md border-x border-t px-2.5 pr-1.5 text-[13px] transition-colors before:pointer-events-none before:absolute before:-left-px before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-px before:bg-(--divider)/70 first:before:hidden aria-selected:before:hidden hover:before:hidden [[aria-selected=true]+&]:before:hidden'
 	const activeCls = 'border-(--divider) bg-(--app-bg) text-(--text-primary)'
 	const inactiveCls =
 		'border-transparent bg-transparent text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
@@ -246,6 +288,10 @@ function TabPill({
 		}
 	}
 
+	const isNotebook = tab.mode === 'notebook'
+	const running = tab.running || (tab.cells?.some((c) => c.running) ?? false)
+	const dirty = tab.dirty || (tab.cells?.some((c) => c.dirty) ?? false)
+
 	return (
 		<button
 			ref={activeRef ?? undefined}
@@ -256,16 +302,23 @@ function TabPill({
 			onMouseDown={handleMouseDown}
 			onDoubleClick={onStartRename}
 			onContextMenu={onContextMenu}
-			title={tab.title}
+			title={isNotebook ? `Notebook · ${tab.title}` : tab.title}
 			className={`${base} ${active ? activeCls : inactiveCls}`}
 		>
 			<span aria-hidden className="flex h-3 w-3 shrink-0 items-center justify-center">
-				{tab.running ? (
+				{running ? (
 					<LoadingSpinner size={10} />
-				) : tab.dirty ? (
+				) : dirty ? (
 					<span className="h-1.5 w-1.5 rounded-full bg-pro-gold-300" />
 				) : null}
 			</span>
+			{isNotebook ? (
+				<Icon
+					name="layers"
+					aria-label="Notebook tab"
+					className={`h-3 w-3 shrink-0 ${active ? 'text-(--text-secondary)' : 'text-(--text-tertiary)'}`}
+				/>
+			) : null}
 			{isRenaming ? (
 				<RenameInput initial={tab.title} onCommit={onFinishRename} onCancel={onCancelRename} />
 			) : (

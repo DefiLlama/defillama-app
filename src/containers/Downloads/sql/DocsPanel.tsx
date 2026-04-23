@@ -245,7 +245,7 @@ const TYPES = new Set([
 ])
 
 // Kept manageable: the functions actually seen in our cookbook snippets plus
-// a handful of common DuckDB analytical helpers.
+// a handful of common LlamaSQL analytical helpers.
 const FUNCTIONS = new Set([
 	'abs',
 	'any_value',
@@ -527,7 +527,7 @@ function ExternalDocsLink() {
 			rel="noreferrer"
 			className="inline-flex items-center gap-1.5 self-start text-xs text-(--text-tertiary) transition-colors hover:text-(--primary)"
 		>
-			Full DuckDB reference
+			Full LlamaSQL reference
 			<Icon name="external-link" className="h-3 w-3" />
 		</a>
 	)

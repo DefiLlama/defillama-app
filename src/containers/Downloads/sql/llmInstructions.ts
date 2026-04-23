@@ -20,13 +20,13 @@ export function buildLlmInstructions(): string {
 function header(): string {
 	return `# DefiLlama SQL Studio — dataset reference
 
-This document describes every dataset queryable from the DefiLlama SQL Studio, the DuckDB dialect it runs on, and the conventions used to name tables and columns. Use it as reference material when drafting queries.`
+This document describes every dataset queryable from the DefiLlama SQL Studio, the LlamaSQL dialect it runs on, and the conventions used to name tables and columns. Use it as reference material when drafting queries.`
 }
 
 function overviewSection(): string {
 	return `## What this is
-- A browser-side DuckDB-WASM environment loaded with DefiLlama datasets as in-memory tables.
-- Data sources are the same endpoints that power the DefiLlama UI, fetched as CSV and registered into DuckDB on demand.
+- A browser-side LlamaSQL environment loaded with DefiLlama datasets as in-memory tables.
+- Data sources are the same endpoints that power the DefiLlama UI, fetched as CSV and registered into LlamaSQL on demand.
 - Tables referenced in SQL (after \`FROM\`, \`JOIN\`, \`PIVOT\`, \`UNPIVOT\`) are auto-loaded if their identifier matches a known dataset.
 - Two dataset flavours live side by side:
   - **Flat datasets** — one snapshot table per topic. Rows are entities (a protocol, a chain, a pool, a hack, a raise, etc.). Columns are current metrics.
@@ -35,7 +35,7 @@ function overviewSection(): string {
 
 function typesSection(): string {
 	return `## Column types at a glance
-DuckDB infers types from the CSVs DefiLlama serves. Treat these as the working assumptions:
+LlamaSQL infers types from the CSVs DefiLlama serves. Treat these as the working assumptions:
 
 | Pattern | Inferred type | Notes |
 |---|---|---|
@@ -47,7 +47,7 @@ DuckDB infers types from the CSVs DefiLlama serves. Treat these as the working a
 | Epoch millisecond columns (rare) | BIGINT | Use \`epoch_ms(ts)\` / divide by 1000 as needed. |
 | Mixed-case / dot-containing columns (e.g. \`"chainTvls.Ethereum"\`) | VARCHAR or DOUBLE | **Must be double-quoted**; once quoted, stay quoted. |
 | VARCHAR that looks numeric | VARCHAR | CSV inference is conservative; wrap with \`TRY_CAST(x AS DOUBLE)\` when comparing. |
-| \`rewardTokens\`, any list-looking field | VARCHAR | Usually a comma-joined string, not a DuckDB LIST. |`
+| \`rewardTokens\`, any list-looking field | VARCHAR | Usually a comma-joined string, not a native LIST. |`
 }
 
 function namingSection(): string {
@@ -66,8 +66,8 @@ Param values match the slugs used elsewhere in DefiLlama (e.g. \`aave-v3\`, not 
 }
 
 function dialectSection(): string {
-	return `## DuckDB dialect quick reference
-Short, non-exhaustive — full docs at https://duckdb.org/docs/sql/introduction.
+	return `## LlamaSQL dialect quick reference
+Short, non-exhaustive.
 
 - \`QUALIFY <cond>\` filters on window-function output without a subquery.
 - \`ASOF [LEFT|RIGHT|FULL] JOIN ... ON right.t <= left.t\` — nearest-prior match on \`t\`.

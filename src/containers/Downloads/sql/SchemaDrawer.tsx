@@ -20,8 +20,8 @@ type TabId = (typeof TABS)[number]['id']
 
 const DESCRIPTIONS: Record<TabId, string> = {
 	schema: 'Browse every queryable table. Insert a SELECT or load the CSV into this session.',
-	cookbook: 'Pragmatic DuckDB idioms against DefiLlama tables. Try it replaces the editor and runs.',
-	shortcuts: 'Editor keybindings and DuckDB dialect gotchas worth keeping in muscle memory.'
+	cookbook: 'Pragmatic LlamaSQL idioms against DefiLlama tables. Try it replaces the editor and runs.',
+	shortcuts: 'Editor keybindings and LlamaSQL dialect gotchas worth keeping in muscle memory.'
 }
 
 export function SchemaDrawer({

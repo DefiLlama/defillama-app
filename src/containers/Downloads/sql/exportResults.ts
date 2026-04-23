@@ -5,7 +5,7 @@ export interface QueryResult {
 	rows: Record<string, unknown>[]
 }
 
-// DuckDB/Arrow results contain native types that the CSV writer can't round-trip directly.
+// LlamaSQL/Arrow results contain native types that the CSV writer can't round-trip directly.
 // Convert once, here, and pass a CsvCell[][] to the shared downloadTabular pipeline so we
 // reuse the same escaping, file-naming, and analytics hooks as the rest of the app.
 export function exportQueryResult(result: QueryResult, format: DownloadFormat, filename = 'query-result'): void {
