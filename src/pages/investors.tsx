@@ -166,7 +166,7 @@ export default function InvestorsPage() {
 								<span className="text-lg font-semibold text-(--text-primary)">Sonic</span>
 							</div>
 							<p className="text-sm leading-relaxed text-(--text-secondary)">
-								Fees, ecosystem, vertical integration, and network stats for Sonic.
+								Fees, ecosystem, vertical integration, and network stats for Sonic
 							</p>
 							<div className="flex flex-wrap gap-1.5">
 								{['Financials', 'Lending', 'Rewards', 'Reports'].map((tag) => (
