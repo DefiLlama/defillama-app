@@ -13,7 +13,7 @@ import { buildYieldTableRowsWithBorrowData } from '~/containers/Yields/poolsPipe
 import {
 	fetchYieldConfigFromNetwork,
 	getYieldPageDataFromNetwork,
-	getLendBorrowDataFromNetwork
+	getLendBorrowDataFromYieldPageData
 } from '~/containers/Yields/queries/index'
 import { fetchJson } from '~/utils/async'
 import type { DatasetDomain, DatasetManifest } from './core'
@@ -32,9 +32,9 @@ async function buildYieldsDomain(rootDir: string): Promise<DomainBuildResult> {
 	const domainDir = getDomainDir(rootDir, 'yields')
 	await ensureDirectory(domainDir)
 
-	const [yieldPageData, lendBorrowData, yieldConfig] = await Promise.all([
-		getYieldPageDataFromNetwork(),
-		getLendBorrowDataFromNetwork(),
+	const yieldPageData = await getYieldPageDataFromNetwork()
+	const [lendBorrowData, yieldConfig] = await Promise.all([
+		getLendBorrowDataFromYieldPageData(yieldPageData),
 		fetchYieldConfigFromNetwork()
 	])
 	const transformedPools = buildYieldTableRowsWithBorrowData(
@@ -153,18 +153,30 @@ export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string)
 
 export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetManifest> {
 	const manifest = buildEmptyDatasetManifest()
+	const buildResults = await Promise.allSettled(
+		DATASET_DOMAINS.map(async (domain) => ({
+			domain,
+			result: await buildDatasetDomain(domain, rootDir)
+		}))
+	)
 	const failures: string[] = []
 	let latestBuiltAt = 0
 
-	for (const domain of DATASET_DOMAINS) {
-		try {
-			const result = await buildDatasetDomain(domain, rootDir)
-			manifest.domains[domain].builtAt = result.builtAt
-			if (result.builtAt > latestBuiltAt) {
-				latestBuiltAt = result.builtAt
-			}
-		} catch (error) {
-			failures.push(`${domain}: ${error instanceof Error ? error.message : String(error)}`)
+	for (let index = 0; index < buildResults.length; index += 1) {
+		const settledResult = buildResults[index]
+		const domain = DATASET_DOMAINS[index]
+
+		if (settledResult.status === 'rejected') {
+			failures.push(
+				`${domain}: ${settledResult.reason instanceof Error ? settledResult.reason.message : String(settledResult.reason)}`
+			)
+			continue
+		}
+
+		const { result } = settledResult.value
+		manifest.domains[domain].builtAt = result.builtAt
+		if (result.builtAt > latestBuiltAt) {
+			latestBuiltAt = result.builtAt
 		}
 	}
 

@@ -283,17 +283,19 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 const categoriesToKeepSet = new Set(['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending'])
 const categoriesToKeepWithoutUndercollateralizedSet = new Set(['Lending', 'CDP', 'NFT Lending'])
 
-export async function getLendBorrowDataFromNetwork() {
-	const props = (await getYieldPageDataFromNetwork()).props
+export async function getLendBorrowDataFromYieldPageData(yieldPageData: YieldPageData) {
+	const props = {
+		...yieldPageData.props,
+		pools: yieldPageData.props.pools.map((p) => ({
+			...p,
+			category: p.project === 'fraxlend' ? 'CDP' : p.category,
+			// on fraxlend apyBase = 0 on collateral, apyBase = optional lending of borrowed frax
+			apyBase: p.project === 'fraxlend' ? null : p.apyBase
+		}))
+	}
 	// treating fraxlend as cdp category otherwise the output
 	// from optimizer will be wrong (it would use the crossproduct
 	// btw collaterals eg eth -> crv, wbtc -> crv etc. instead of collateral -> frax only)
-	props.pools = props.pools.map((p) => ({
-		...p,
-		category: p.project === 'fraxlend' ? 'CDP' : p.category,
-		// on fraxlend apyBase = 0 on collateral, apyBase = optional lending of borrowed frax
-		apyBase: p.project === 'fraxlend' ? null : p.apyBase
-	}))
 
 	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
@@ -450,6 +452,10 @@ export async function getLendBorrowDataFromNetwork() {
 			symbols: [...tokenSymbols]
 		}
 	}
+}
+
+export async function getLendBorrowDataFromNetwork() {
+	return getLendBorrowDataFromYieldPageData(await getYieldPageDataFromNetwork())
 }
 
 export async function getLendBorrowData() {
