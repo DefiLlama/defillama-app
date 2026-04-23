@@ -38,6 +38,7 @@ export const YIELDS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/
 export const LIQUIDATIONS_SERVER_URL_V2 = API_KEY
 	? `https://pro-api.llama.fi/${API_KEY}/liquidations`
 	: 'https://api.llama.fi/liquidations'
+export const RISK_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/risks` : 'https://risks.llama.fi'
 
 // Core llama APIs
 export const CONFIG_API = `${SERVER_URL}/config`
@@ -98,9 +99,6 @@ export const YIELD_HOLDERS_API = '/api/datasets/holders'
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 export const TOKEN_DIRECTORY_API = `${SERVER_URL}/config/smol/token.json`
-
-// RISK
-export const RISK_SERVER_URL = process.env.RISK_SERVER_URL
 
 // External services
 export const AI_SERVER = 'https://ai.llama.fi'

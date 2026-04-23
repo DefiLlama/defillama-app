@@ -879,20 +879,20 @@
       "oldName": "Token Liquidity"
     },
     {
-      "name": "Yields: Watchlist",
-      "route": "/yields/watchlist",
-      "category": "Tools",
-      "description": "Watchlist of all pools that we track in our yields section",
-      "oldCategory": "Yields",
-      "oldName": "Watchlist"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
       "description": "Directory of all protocols websites on DefiLlama",
       "tab": "Protocols",
       "oldName": "Directory"
+    },
+    {
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist",
+      "category": "Tools",
+      "description": "Watchlist of all pools that we track in our yields section",
+      "oldCategory": "Yields",
+      "oldName": "Watchlist"
     },
     {
       "name": "Borrow Aggregator: Advanced",
