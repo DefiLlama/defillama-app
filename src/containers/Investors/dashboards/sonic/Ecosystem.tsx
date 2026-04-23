@@ -8,6 +8,7 @@ import {
 import { lazy, useEffect, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/Investors/index'
+import { lastNDaysZoom } from './chartDefaults'
 import { useEcosystemData, type TopProtocolEntry, type AssetCategory } from './ecosystemApi'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -308,7 +309,14 @@ export default function Ecosystem() {
 				<SectionHeader>Total Value Locked</SectionHeader>
 				<KpiCard label="Current TVL" value={data.tvl.currentFormatted} />
 				<ChartCard title={data.tvl.title}>
-					<AreaChart chartData={data.tvl.data} stacks={data.tvl.stacks} valueSymbol="$" title="" height="400px" />
+					<AreaChart
+						chartData={data.tvl.data}
+						stacks={data.tvl.stacks}
+						valueSymbol="$"
+						title=""
+						height="400px"
+						chartOptions={lastNDaysZoom(data.tvl.data.length)}
+					/>
 				</ChartCard>
 			</div>
 
@@ -322,7 +330,14 @@ export default function Ecosystem() {
 					<KpiCard label="All-Time Fees" value={data.fees.kpis.totalAllTime.formatted} />
 				</div>
 				<ChartCard title={data.fees.title}>
-					<BarChart chartData={data.fees.data} stacks={data.fees.stacks} valueSymbol="$" title="" height="400px" />
+					<BarChart
+						chartData={data.fees.data}
+						stacks={data.fees.stacks}
+						valueSymbol="$"
+						title=""
+						height="400px"
+						chartOptions={lastNDaysZoom(data.fees.data.length)}
+					/>
 				</ChartCard>
 				<SectionHeader>Top Protocols by Fees</SectionHeader>
 				<ProtocolTable data={data.fees.topProtocols} valueLabel="Fees" />
@@ -356,6 +371,7 @@ export default function Ecosystem() {
 						valueSymbol="$"
 						title=""
 						height="400px"
+						chartOptions={lastNDaysZoom(data.dexVolume.data.length)}
 					/>
 				</ChartCard>
 				<SectionHeader>Top DEXes by Volume</SectionHeader>
@@ -380,6 +396,7 @@ export default function Ecosystem() {
 						isStackedChart
 						hideGradient
 						height="400px"
+						chartOptions={lastNDaysZoom(data.stablecoins.data.length)}
 					/>
 				</ChartCard>
 			</div>

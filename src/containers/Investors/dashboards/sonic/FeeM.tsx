@@ -14,6 +14,7 @@ import type { IMultiSeriesChartProps } from '~/components/ECharts/types'
 import { useContentReady } from '~/containers/Investors/index'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
+import { lastNDaysZoom } from './chartDefaults'
 import { useFeeMData, type FeeMLeaderboardEntry } from './feemApi'
 import { SonicIcon } from './SonicHeader'
 
@@ -319,7 +320,13 @@ export default function FeeM() {
 			<div className="flex flex-col gap-4">
 				<SectionHeader>Daily Activity</SectionHeader>
 				<ChartCard title={data.dailyStatsTitle}>
-					<MultiSeriesChart series={data.dailyStatsSeries} valueSymbol="" yAxisSymbols={['', 'S']} height="400px" />
+					<MultiSeriesChart
+						series={data.dailyStatsSeries}
+						valueSymbol=""
+						yAxisSymbols={['', 'S']}
+						height="400px"
+						chartOptions={lastNDaysZoom(data.dailyStatsSeries[0]?.data.length ?? 0)}
+					/>
 				</ChartCard>
 			</div>
 
