@@ -148,6 +148,16 @@ export default function HBarChart({
 			true
 		)
 
+		if (hasLogos) {
+			;(instance as any).__llamaChartLogos = {
+				kind: 'hbar',
+				logos: logos!,
+				categories
+			}
+		} else {
+			delete (instance as any).__llamaChartLogos
+		}
+
 		const syncLogos = () => {
 			const layer = overlayRef.current
 			const inst = chartRef.current

@@ -1096,6 +1096,17 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			}
 		})
 
+		if (hasCategoryLogos) {
+			const categoryValues = datasetSource.map((row: any) => row?.[datasetDimensions[0]])
+			;(instance as any).__llamaChartLogos = {
+				kind: 'cartesian-x',
+				logos: categoryLogos!,
+				categoryValues
+			}
+		} else {
+			delete (instance as any).__llamaChartLogos
+		}
+
 		const syncCategoryLogos = () => {
 			const layer = categoryLogosOverlayRef.current
 			const inst = chartRef.current

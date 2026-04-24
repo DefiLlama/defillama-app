@@ -745,7 +745,7 @@ export function AgenticChat({
 
 	// Adapt the auth helper to the native fetch signature while preserving non-2xx responses for downstream error handling.
 	const authorizedFetchCompat = useCallback<typeof fetch>(
-		async (input, init) => {
+		async (input: RequestInfo | URL, init?: RequestInit) => {
 			const request = getAuthorizedFetchInput(input, init)
 			const response = await authorizedFetch(request.url, request.init)
 			if (!response) {
@@ -1594,7 +1594,7 @@ export function AgenticChat({
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
 	const handleNewChat = useCallback(async () => {
-		if (initialSessionId) {
+		if (initialSessionId || sharedSession) {
 			void Router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
@@ -1610,7 +1610,7 @@ export function AgenticChat({
 		attach()
 		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
-	}, [initialSessionId, abortActiveRequest, attach, clearConversationRuntimeState])
+	}, [initialSessionId, sharedSession, abortActiveRequest, attach, clearConversationRuntimeState])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
