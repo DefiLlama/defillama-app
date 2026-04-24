@@ -67,9 +67,36 @@ function formatProtocolChains(chainBreakdowns: ChainExposureSummary[]) {
 }
 
 function formatMinBadDebtValue(value: number | null | undefined, coverage: TokenRiskCoverageStatus) {
-	if (coverage === 'unavailable' || value == null) return 'Unavailable'
+	if (coverage === 'unavailable' || value == null) return '—'
 	if (coverage === 'partial') return `${formattedNum(value, true)} (partial)`
 	return formattedNum(value, true)
+}
+
+function ProtocolExposureSummaryText({
+	summary,
+	tokenSymbol
+}: {
+	summary: ExposureProtocolSummary
+	tokenSymbol: string
+}) {
+	const totalAtRiskUsd = summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
+
+	if (summary.minBadDebtAtPriceZeroCoverage === 'unavailable' || summary.totalMinBadDebtAtPriceZeroUsd == null) {
+		return (
+			<>
+				{formatUsd(totalAtRiskUsd)} at-risk exposure = {formatUsd(summary.totalCurrentMaxBorrowUsd)} additional
+				borrowable against {tokenSymbol}
+			</>
+		)
+	}
+
+	return (
+		<>
+			{formatUsd(totalAtRiskUsd)} at-risk exposure ={' '}
+			{formatMinBadDebtValue(summary.totalMinBadDebtAtPriceZeroUsd, summary.minBadDebtAtPriceZeroCoverage)} bad debt if
+			hacked + {formatUsd(summary.totalCurrentMaxBorrowUsd)} additional borrowable against {tokenSymbol}
+		</>
+	)
 }
 
 function ChainBreakdownTooltipContent({ chainBreakdowns }: { chainBreakdowns: ChainExposureSummary[] }) {
@@ -394,8 +421,14 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					<p className="text-sm text-(--text-secondary)">Maximum possible exposure to {tokenSymbol}</p>
 					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">{formatUsd(totalMaxExposureUsd)}</p>
 					<p className="mt-1 text-sm text-(--text-secondary)">
-						{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)} (max additional borrows against {tokenSymbol}) +{' '}
-						{formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)} (bad debt if {tokenSymbol} was hacked now)
+						{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)} (max additional borrows against {tokenSymbol})
+						{exposures.summary.totalMinBadDebtAtPriceZeroUsd == null ? null : (
+							<>
+								{' '}
+								+ {formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)} (bad debt if {tokenSymbol} was hacked
+								now)
+							</>
+						)}
 					</p>
 				</div>
 
@@ -418,14 +451,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
 									</div>
 									<p className="mt-1 text-sm text-(--text-secondary)">
-										{formatUsd(summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0))} at-risk
-										exposure ={' '}
-										{formatMinBadDebtValue(
-											summary.totalMinBadDebtAtPriceZeroUsd,
-											summary.minBadDebtAtPriceZeroCoverage
-										)}{' '}
-										bad debt if hacked + {formatUsd(summary.totalCurrentMaxBorrowUsd)} additional borrowable against{' '}
-										{tokenSymbol}
+										<ProtocolExposureSummaryText summary={summary} tokenSymbol={tokenSymbol} />
 									</p>
 									<div className="mt-1">
 										<ProtocolChainsLabel chainBreakdowns={summary.chainBreakdowns} />

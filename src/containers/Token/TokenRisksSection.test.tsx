@@ -131,9 +131,8 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain(
 			'$1,400 at-risk exposure = $400 bad debt if hacked + $1,000 additional borrowable against USDC'
 		)
-		expect(html).toContain(
-			'$500 at-risk exposure = Unavailable bad debt if hacked + $500 additional borrowable against USDC'
-		)
+		expect(html).toContain('$500 at-risk exposure = $500 additional borrowable against USDC')
+		expect(html).not.toContain('Unavailable bad debt if hacked')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -209,7 +208,7 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain('$50 (partial) bad debt if hacked')
 	})
 
-	it('shows unavailable bad-debt totals when no exposures report the metric', () => {
+	it('omits unavailable bad-debt wording when no exposures report the metric', () => {
 		const riskData = createRiskData()
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = null
 		riskData.exposures.summary.minBadDebtKnownCount = 0
@@ -222,6 +221,8 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain('Unavailable bad debt if hacked')
+		expect(html).toContain('$1,000 at-risk exposure = $1,000 additional borrowable against USDC')
+		expect(html).toContain('$500 at-risk exposure = $500 additional borrowable against USDC')
+		expect(html).not.toContain('Unavailable')
 	})
 })
