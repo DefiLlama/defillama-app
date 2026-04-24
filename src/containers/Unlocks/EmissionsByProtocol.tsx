@@ -1052,6 +1052,7 @@ const ChartContainer = ({
 									dataset={deferredScheduleChartData.dataset}
 									charts={deferredScheduleChartData.charts}
 									hallmarks={hallmarks}
+									hallmarkStyle="mark-line"
 									expandTo100Percent={chartType === 'bar'}
 									solidChartAreaStyle
 									valueSymbol={data.tokenPrice?.symbol ?? ''}

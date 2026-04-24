@@ -32,6 +32,7 @@ import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
+import { buildHallmarksMarkLine } from '../hallmarks'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -92,69 +93,18 @@ function createHatchPattern(color: string, opacity: number): { image: HTMLCanvas
 	return { image: canvas, repeat: 'repeat' }
 }
 
-const MIN_END_LABEL_HEIGHT_PX = 16
-
-function getPrimaryEncodedDimension(value: unknown): string | number | null {
-	if (Array.isArray(value)) return value[0] ?? null
-	return typeof value === 'string' || typeof value === 'number' ? value : null
-}
-
-function getSeriesValueFromParams(params: any, seriesKey: string | number | null): number {
-	const data = params?.data
-	if (typeof seriesKey === 'string' && data && typeof data === 'object' && !Array.isArray(data) && seriesKey in data) {
-		return Number(data[seriesKey])
-	}
-
-	if (Array.isArray(params?.value)) {
-		const encodedY = getPrimaryEncodedDimension(params?.encode?.y)
-		const dimensionNames = Array.isArray(params?.dimensionNames) ? params.dimensionNames : []
-		const dimensionIndex =
-			typeof encodedY === 'number'
-				? encodedY
-				: typeof encodedY === 'string'
-					? dimensionNames.indexOf(encodedY)
-					: typeof seriesKey === 'number'
-						? seriesKey
-						: typeof seriesKey === 'string'
-							? dimensionNames.indexOf(seriesKey)
-							: -1
-
-		if (dimensionIndex >= 0 && dimensionIndex < params.value.length) {
-			return Number(params.value[dimensionIndex])
-		}
-
-		return Number(params.value[1])
-	}
-
-	return Number(params?.value)
-}
-
 function createEndLabel({
 	text,
-	seriesKey,
-	yAxisIndex,
-	chartRef,
 	isThemeDark,
 	offset
 }: {
 	text: string
-	seriesKey: string | number | null
-	yAxisIndex: number
-	chartRef: { current: echarts.ECharts | null }
 	isThemeDark: boolean
 	offset: [number, number]
 }) {
 	return {
 		show: true,
-		formatter: (params: any) => {
-			const instance = chartRef.current
-			if (!instance) return text
-			const value = getSeriesValueFromParams(params, seriesKey)
-			const height = Math.abs(
-				instance.convertToPixel({ yAxisIndex }, value) - instance.convertToPixel({ yAxisIndex }, 0)
-			)
-			return !Number.isFinite(height) || height >= MIN_END_LABEL_HEIGHT_PX ? text : ''
-		},
+		formatter: text,
 		fontSize: 16,
 		fontWeight: 'bold',
 		color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
@@ -168,14 +118,14 @@ function buildSeries({
 	expandTo100Percent,
 	solidChartAreaStyle,
 	isThemeDark,
-	chartRef
+	hallmarksMarkLine
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
 	expandTo100Percent: boolean | undefined
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
-	chartRef: { current: echarts.ECharts | null }
+	hallmarksMarkLine?: ReturnType<typeof buildHallmarksMarkLine>
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -238,6 +188,9 @@ function buildSeries({
 		if (chart.type === 'line' && chart.hideAreaStyle) {
 			delete base.areaStyle
 		}
+		if (i === 0 && hallmarksMarkLine) {
+			base.markLine = hallmarksMarkLine
+		}
 		if (chart.isTBD) {
 			const hatch = createHatchPattern(resolvedColor, 0.4)
 			base.itemStyle = { ...base.itemStyle, opacity: 0.3 }
@@ -247,9 +200,6 @@ function buildSeries({
 			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
 			base.endLabel = createEndLabel({
 				text: 'TBD',
-				seriesKey: getPrimaryEncodedDimension(chart.encode?.y),
-				yAxisIndex: chart.yAxisIndex ?? 0,
-				chartRef,
 				isThemeDark,
 				offset: [-40, 10]
 			})
@@ -262,9 +212,6 @@ function buildSeries({
 			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
 			base.endLabel = createEndLabel({
 				text: 'Forecast',
-				seriesKey: getPrimaryEncodedDimension(chart.encode?.y),
-				yAxisIndex: chart.yAxisIndex ?? 0,
-				chartRef,
 				isThemeDark,
 				offset: [-80, 15]
 			})
@@ -360,6 +307,8 @@ function buildMultiYAxis({
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
 		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
+		const axisFormatter =
+			isPrimary && existingFormatter ? existingFormatter : (value: number) => formatAxisLabel(value, axisSymbol)
 
 		out.push({
 			...baseAxis,
@@ -378,7 +327,7 @@ function buildMultiYAxis({
 			},
 			axisLabel: {
 				...baseAxisLabel,
-				formatter: existingFormatter ?? ((value: number) => formatAxisLabel(value, axisSymbol)),
+				formatter: axisFormatter,
 				...(axisColor ? { color: axisColor } : {})
 			},
 			...(expandTo100Percent ? { max: 100, min: 0 } : {})
@@ -557,6 +506,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		chartOptions = {},
 		height,
 		hallmarks,
+		hallmarkStyle = 'event-rail',
 		expandTo100Percent,
 		valueSymbol = '$',
 		tooltipMaxItems,
@@ -732,6 +682,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				? autoExportsEnabled
 				: false
 
+	const hallmarksMarkLine = useMemo(
+		() =>
+			hallmarkStyle === 'mark-line' && hallmarks?.length
+				? buildHallmarksMarkLine({ hallmarks, isThemeDark, dateInMs: false })
+				: undefined,
+		[hallmarkStyle, hallmarks, isThemeDark]
+	)
+
 	const series = useMemo(() => {
 		return buildSeries({
 			effectiveCharts,
@@ -739,13 +697,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			expandTo100Percent,
 			solidChartAreaStyle,
 			isThemeDark,
-			chartRef
+			hallmarksMarkLine
 		})
-	}, [effectiveCharts, isThemeDark, expandTo100Percent, solidChartAreaStyle, selectedCharts])
+	}, [effectiveCharts, isThemeDark, expandTo100Percent, solidChartAreaStyle, selectedCharts, hallmarksMarkLine])
 
 	const eventRailData = useMemo(
-		() => buildEventRailData({ hallmarks, isThemeDark, dateInMs: false }).events,
-		[hallmarks, isThemeDark]
+		() =>
+			hallmarkStyle === 'event-rail' ? buildEventRailData({ hallmarks, isThemeDark, dateInMs: false }).events : [],
+		[hallmarkStyle, hallmarks, isThemeDark]
 	)
 
 	const seriesSymbols = useMemo(() => {

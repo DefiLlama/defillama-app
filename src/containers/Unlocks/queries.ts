@@ -110,12 +110,13 @@ interface EmissionsDataInput {
 					| Array<{
 							timestamp: number
 							unlocked?: number | null | undefined
+							rawEmission?: number | null | undefined
+							burned?: number | null | undefined
 					  }>
 					| undefined
 		  }>
 		| null
 		| undefined
-	tokenAllocation?: Record<string, number> | null | undefined
 }
 
 function buildEmissionsSeriesAndCategories(input: EmissionsDataInput | null | undefined): {

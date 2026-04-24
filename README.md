@@ -5,6 +5,7 @@
 Check it out live at: https://defillama.com
 
 ## Features
+
 - Real-time TVL tracking across 200+ chains and 6000+ protocols
 - DeFi yield aggregation and comparison
 - Stablecoin market analysis and tracking

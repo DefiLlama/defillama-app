@@ -10,8 +10,7 @@ import type {
 
 const PROTOCOL_EMISSIONS_API = `${SERVER_URL}/emissions`
 const PROTOCOL_EMISSIONS_LIST_API = `${DATASETS_SERVER_URL}/emissionsProtocolsList`
-const PROTOCOL_EMISSION_API = `${SERVER_URL}/emission`
-const PROTOCOL_EMISSION_API2 = `${DATASETS_SERVER_URL}/emissions`
+const PROTOCOL_EMISSION_API = `${DATASETS_SERVER_URL}/emissions`
 const EMISSION_BREAKDOWN_API = `${SERVER_URL}/emissionsBreakdown`
 const EMISSION_SUPPLY_METRICS_API = `${DATASETS_SERVER_URL}/emissionsSupplyMetrics`
 
@@ -51,10 +50,7 @@ function isProtocolEmissionDetail(value: unknown): value is ProtocolEmissionDeta
 }
 
 function parseProtocolEmissionApiResponse(raw: unknown): ProtocolEmissionDetail | null {
-	const body = unwrapPotentialJsonBody(raw)
-	if (body == null) return null
-
-	return isProtocolEmissionDetail(body) ? body : null
+	return isProtocolEmissionDetail(raw) ? raw : null
 }
 
 function parseEmissionSupplyMetrics(raw: unknown): EmissionSupplyMetrics | null {
@@ -166,7 +162,7 @@ export async function fetchProtocolEmissionFromDatasets(
 	const encodedProtocolName = encodeURIComponent(protocolName)
 
 	try {
-		const raw = await fetchJson<unknown>(`${PROTOCOL_EMISSION_API2}/${encodedProtocolName}`)
+		const raw = await fetchJson<unknown>(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`)
 		return parseProtocolEmissionSupplyMetricsEntry(raw)
 	} catch (error) {
 		console.error(`Failed to fetch protocol emission datasets entry for ${protocolName}:`, error)
