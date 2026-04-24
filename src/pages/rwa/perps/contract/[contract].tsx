@@ -57,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const contract = await getRWAPerpsContractData({ contract: canonicalContract })
 		if (!contract) {
-			return { notFound: true }
+			throw new Error(`Missing page data for route=/rwa/perps/contract/[contract] contract=${canonicalContract}`)
 		}
 
 		return {
