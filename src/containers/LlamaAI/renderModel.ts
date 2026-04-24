@@ -1,4 +1,10 @@
-import type { AlertProposedData, ChartConfiguration, DashboardArtifact, Message } from '~/containers/LlamaAI/types'
+import type {
+	AlertProposedData,
+	ChartConfiguration,
+	DashboardArtifact,
+	GeneratedImage,
+	Message
+} from '~/containers/LlamaAI/types'
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 export type ChartArtifactRecord = {
@@ -40,12 +46,19 @@ export type DashboardArtifactRecord = {
 	dashboard: DashboardArtifact
 }
 
+export type ImageArtifactRecord = {
+	type: 'image'
+	id: string
+	image: GeneratedImage
+}
+
 export type ArtifactRecord =
 	| ChartArtifactRecord
 	| CsvArtifactRecord
 	| MdArtifactRecord
 	| AlertArtifactRecord
 	| DashboardArtifactRecord
+	| ImageArtifactRecord
 
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
@@ -57,6 +70,7 @@ export type MessageRenderBlock =
 	| { type: 'md'; key: string; artifactId: string }
 	| { type: 'alert'; key: string; artifactId: string }
 	| { type: 'dashboard'; key: string; artifactId: string }
+	| { type: 'image'; key: string; artifactId: string }
 	| { type: 'action-group'; key: string; actions: Array<{ label: string; message: string }> }
 
 type ParsedRenderModel = {
@@ -114,6 +128,15 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 	if (message.dashboards) {
 		for (const dashboard of message.dashboards) {
 			artifacts.set(dashboard.id, { type: 'dashboard', id: dashboard.id, dashboard })
+		}
+	}
+
+	if (message.generatedImages) {
+		for (const image of message.generatedImages) {
+			// Fall back to the URL when the server didn't supply an id so the fallback renderer still surfaces the image.
+			const id = image.id ?? image.url
+			if (!id) continue
+			artifacts.set(id, { type: 'image', id, image })
 		}
 	}
 
@@ -230,6 +253,18 @@ export function parseMessageToRenderModel(
 				key: `dashboard-${part.dashboardId}-${blocks.length}`,
 				artifactId: part.dashboardId
 			})
+			continue
+		}
+
+		if (part.type === 'image') {
+			if (usedArtifactIds.has(part.imageId)) continue
+			usedArtifactIds.add(part.imageId)
+			blocks.push({
+				type: 'image',
+				key: `image-${part.imageId}-${blocks.length}`,
+				artifactId: part.imageId
+			})
+			continue
 		}
 	}
 
@@ -272,6 +307,10 @@ export function parseMessageToRenderModel(
 			}
 			if (artifact.type === 'dashboard') {
 				blocks.push({ type: 'dashboard', key: `dashboard-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			if (artifact.type === 'image') {
+				blocks.push({ type: 'image', key: `image-${artifactId}-fallback`, artifactId })
 				continue
 			}
 			blocks.push({ type: 'alert', key: `alert-${artifactId}-fallback`, artifactId })

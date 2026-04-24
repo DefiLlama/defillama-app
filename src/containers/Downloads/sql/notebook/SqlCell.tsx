@@ -33,16 +33,7 @@ interface SqlCellProps {
 }
 
 export const SqlCell = forwardRef<SqlCellHandle, SqlCellProps>(function SqlCell(
-	{
-		cell,
-		loadedTables,
-		onSourceChange,
-		onRun,
-		onRunAndAdvance,
-		onFocus,
-		onChartConfigChange,
-		onPreferredViewChange
-	},
+	{ cell, loadedTables, onSourceChange, onRun, onRunAndAdvance, onFocus, onChartConfigChange, onPreferredViewChange },
 	ref
 ) {
 	const [theme, setTheme] = useState<string>(() => computeTheme())

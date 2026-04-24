@@ -53,7 +53,7 @@ interface ActionPlaceholderData {
 }
 
 type ArtifactMatch =
-	| { index: number; length: number; type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard'; id: string }
+	| { index: number; length: number; type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' | 'image'; id: string }
 	| { index: number; length: number; type: 'action'; id: ActionPlaceholderData }
 
 export type ContentPart =
@@ -63,6 +63,7 @@ export type ContentPart =
 	| { type: 'md'; mdId: string }
 	| { type: 'alert'; alertId: string }
 	| { type: 'dashboard'; dashboardId: string }
+	| { type: 'image'; imageId: string }
 	| { type: 'action'; actionLabel: string; actionMessage: string }
 
 interface ParsedContent {
@@ -83,6 +84,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	const mdPlaceholderPattern = /\[MD:([^\]]+)\]/g
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
 	const dashboardPlaceholderPattern = /\[DASHBOARD:([^\]]+)\]/g
+	const imagePlaceholderPattern = /\[IMAGE:([^\]]+)\]/g
 	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
 	const parts: ContentPart[] = []
 
@@ -103,6 +105,9 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	}
 	while ((match = dashboardPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'dashboard', id: match[1] })
+	}
+	while ((match = imagePlaceholderPattern.exec(content)) !== null) {
+		allMatches.push({ index: match.index, length: match[0].length, type: 'image', id: match[1] })
 	}
 	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
 		const actionLabel = match[1].trim()
@@ -132,6 +137,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			parts.push({ type: 'md', mdId: m.id })
 		} else if (m.type === 'dashboard') {
 			parts.push({ type: 'dashboard', dashboardId: m.id })
+		} else if (m.type === 'image') {
+			parts.push({ type: 'image', imageId: m.id })
 		} else {
 			parts.push({ type: 'alert', alertId: m.id })
 		}

@@ -225,6 +225,7 @@ export interface Message {
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
 	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
+	generatedImages?: GeneratedImage[]
 	id?: string
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
@@ -236,6 +237,14 @@ export interface Message {
 export interface ChartSet {
 	charts: ChartConfiguration[]
 	chartData: Record<string, any[]>
+}
+
+export interface GeneratedImage {
+	id?: string
+	url: string
+	size?: string
+	prompt?: string
+	revised_prompt?: string
 }
 
 export interface ToolCall {
