@@ -30,6 +30,7 @@ import { extractPoolTokens } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import type { ITokenListEntry } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -84,7 +85,6 @@ type TokenPageProps = {
 }
 
 const INITIAL_TOKEN_PRERENDER_LIMIT = 30
-const TOKEN_PAGE_REVALIDATE_SECONDS = 10 * 60
 
 type TokenPageSection = {
 	label: string
@@ -264,7 +264,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		if (!record) {
 			return {
 				notFound: true,
-				revalidate: TOKEN_PAGE_REVALIDATE_SECONDS
+				revalidate: maxAgeForNext([22])
 			}
 		}
 
@@ -528,7 +528,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				canonicalUrl: record.route ?? `/token/${encodeURIComponent(record.symbol)}`,
 				visibleSections
 			},
-			revalidate: TOKEN_PAGE_REVALIDATE_SECONDS
+			revalidate: maxAgeForNext([22])
 		}
 	}
 )

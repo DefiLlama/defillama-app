@@ -265,6 +265,10 @@ vi.mock('~/layout', () => ({
 	default: ({ children }: { children: ReactNode }) => <div>{children}</div>
 }))
 
+vi.mock('~/utils/maxAgeForNext', () => ({
+	maxAgeForNext: () => 123
+}))
+
 vi.mock('~/utils/perf', () => ({
 	withPerformanceLogging: (_label: string, fn: any) => fn
 }))
@@ -559,7 +563,7 @@ describe('token page', () => {
 	it('getStaticProps returns notFound for an unknown token key', async () => {
 		await expect(getStaticProps({ params: { token: 'litecoin' } } as never)).resolves.toEqual({
 			notFound: true,
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -585,7 +589,7 @@ describe('token page', () => {
 				canonicalUrl: '/token/BTC',
 				visibleSections: ['token-overview', 'token-usage']
 			},
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -611,7 +615,7 @@ describe('token page', () => {
 				canonicalUrl: '/token/BTC',
 				visibleSections: ['token-overview', 'token-usage']
 			},
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -630,7 +634,7 @@ describe('token page', () => {
 	it('getStaticProps does not resolve by token name slug', async () => {
 		await expect(getStaticProps({ params: { token: 'bitcoin' } } as never)).resolves.toEqual({
 			notFound: true,
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -661,7 +665,7 @@ describe('token page', () => {
 				canonicalUrl: '/token/BTC',
 				visibleSections: ['token-overview', 'token-usage']
 			},
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -709,7 +713,7 @@ describe('token page', () => {
 				canonicalUrl: '/token/%24SWING',
 				visibleSections: ['token-overview', 'token-usage']
 			},
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -832,7 +836,7 @@ describe('token page', () => {
 				canonicalUrl: '/token/LINK',
 				visibleSections: ['token-overview', 'token-rights-and-value-accrual', 'token-usage']
 			},
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
@@ -986,7 +990,7 @@ describe('token page', () => {
 				canonicalUrl: '/token/AAVE',
 				visibleSections: ['token-overview', 'token-income-statement', 'token-usage']
 			},
-			revalidate: 600
+			revalidate: 123
 		})
 	})
 
