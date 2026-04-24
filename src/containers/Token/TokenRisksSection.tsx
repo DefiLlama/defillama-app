@@ -72,6 +72,11 @@ function formatMinBadDebtValue(value: number | null | undefined, coverage: Token
 	return formattedNum(value, true)
 }
 
+function formatProtocolSummaryBadDebt(value: number | null | undefined) {
+	if (value == null) return '--'
+	return formattedNum(value, true)
+}
+
 function ProtocolExposureSummaryText({
 	summary,
 	tokenSymbol
@@ -81,20 +86,11 @@ function ProtocolExposureSummaryText({
 }) {
 	const totalAtRiskUsd = summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
 
-	if (summary.minBadDebtAtPriceZeroCoverage === 'unavailable' || summary.totalMinBadDebtAtPriceZeroUsd == null) {
-		return (
-			<>
-				{formatUsd(totalAtRiskUsd)} at-risk exposure = {formatUsd(summary.totalCurrentMaxBorrowUsd)} additional
-				borrowable against {tokenSymbol}
-			</>
-		)
-	}
-
 	return (
 		<>
 			{formatUsd(totalAtRiskUsd)} at-risk exposure ={' '}
-			{formatMinBadDebtValue(summary.totalMinBadDebtAtPriceZeroUsd, summary.minBadDebtAtPriceZeroCoverage)} bad debt if
-			hacked + {formatUsd(summary.totalCurrentMaxBorrowUsd)} additional borrowable against {tokenSymbol}
+			{formatProtocolSummaryBadDebt(summary.totalMinBadDebtAtPriceZeroUsd)} bad debt if hacked +{' '}
+			{formatUsd(summary.totalCurrentMaxBorrowUsd)} additional borrowable against {tokenSymbol}
 		</>
 	)
 }
