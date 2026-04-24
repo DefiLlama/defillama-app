@@ -64,7 +64,7 @@ export const getStaticProps = withPerformanceLogging(
 			metricName: type
 		})
 
-		if (!data) throw new Error('Missing page data')
+		if (!data) throw new Error(`Missing page data for route=/revenue/chain/[chain] chain=${chain}`)
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', {
 			subPage: 'revenue',

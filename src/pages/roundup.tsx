@@ -74,6 +74,7 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 			}),
 			{ level: 'error' }
 		)
+		throw new Error(`Failed to fetch roundup messages: ${response.status} ${response.statusText}`)
 	}
 
 	const index = data.findIndex((d) => d.content.startsWith('🦙 Llama News Round-Up')) ?? null

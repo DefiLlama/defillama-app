@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 		metricName: type
 	})
 
-	if (!data) throw new Error('Missing page data')
+	if (!data) throw new Error('Missing page data for route=/fees')
 
 	const feesContext = {
 		total24h: data.total24h ?? null,

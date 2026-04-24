@@ -173,7 +173,7 @@ export const getProtocolOverviewPageData = async ({
 		oracleTvs,
 		blockExplorersData
 	]: [
-		IProtocolDataExtended | null,
+		IProtocolDataExtended,
 		IProtocolValueChart,
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		Awaited<ReturnType<typeof formatAdapterData>>,
@@ -210,8 +210,7 @@ export const getProtocolOverviewPageData = async ({
 		BlockExplorersResponse
 	] = await Promise.all([
 		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
-			async (data): Promise<IProtocolDataExtended | null> => {
-				if (!data) return null
+			async (data): Promise<IProtocolDataExtended> => {
 				try {
 					const geckoId = data.gecko_id
 					const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
@@ -428,20 +427,11 @@ export const getProtocolOverviewPageData = async ({
 							tvs[chain] = (tvs[chain] ?? 0) + nestedValue
 						}
 					}
-					let hasTvs = false
-					for (const _ in tvs) {
-						hasTvs = true
-						break
-					}
-					return hasTvs ? tvs : null
+					return Object.keys(tvs).length > 0 ? tvs : null
 				})
 			: null,
 		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	])
-
-	if (!protocolData) {
-		throw new Error(`Unable to fetch protocol data for ${currentProtocolMetadata.displayName}`)
-	}
 
 	const resolvedCategory = resolveProtocolCategory({
 		protocolData,
@@ -1047,7 +1037,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		)
 
 		if (!incomeStatement) {
-			throw new Error(`[getStaticProps] Missing income statement for ${metadata.displayName}`)
+			throw new Error(`Missing income statement for protocol=${metadata.displayName}`)
 		}
 
 		type IncomeStatementData = NonNullable<IProtocolOverviewPageData['incomeStatement']>['data']
@@ -1249,7 +1239,6 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			hasTokenHolderNetIncome: metricTypes.has('Token Holder Net Income')
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
-		console.log(err)
 		if (typeof window === 'undefined') {
 			throw err
 		}

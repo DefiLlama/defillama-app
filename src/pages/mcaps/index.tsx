@@ -9,7 +9,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const data = await getProtocolsMarketCapsByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
 
-	if (!data) throw new Error('Missing page data')
+	if (!data) throw new Error('Missing page data for route=/mcaps')
 
 	return {
 		props: data,

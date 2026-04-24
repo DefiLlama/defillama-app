@@ -33,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 			protocolMetadata: metadataCache.protocolMetadata
 		})
 
-		if (!data) throw new Error('Missing page data')
+		if (!data) throw new Error(`Missing page data for route=/active-loans/chain/[chain] chain=${chain}`)
 
 		return {
 			props: data,

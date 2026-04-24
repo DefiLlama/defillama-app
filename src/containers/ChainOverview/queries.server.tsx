@@ -557,8 +557,12 @@ export async function getChainOverviewData({
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
-		console.log(msg)
-		throw new Error(msg)
+		const errorWithContext = new Error(msg, { cause: error })
+		if (error instanceof Error && error.stack) {
+			errorWithContext.stack = `${errorWithContext.stack}\nCaused by: ${error.stack}`
+		}
+		console.log(errorWithContext)
+		throw errorWithContext
 	}
 }
 

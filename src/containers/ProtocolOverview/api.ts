@@ -78,7 +78,7 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 /**
  * Fetch aggregate TVL metrics for a protocol.
  */
-export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolMetricsV2 | null> => {
+export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolMetricsV2> => {
 	return fetchJson<IProtocolMetricsV2>(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`)
 }
 

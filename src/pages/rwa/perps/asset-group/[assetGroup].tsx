@@ -33,12 +33,20 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const assetGroup = params.assetGroup
+		const validAssetGroups = new Set(metadataCache.rwaPerpsList.assetGroups.map((group) => rwaSlug(group)))
+		if (!validAssetGroups.has(assetGroup)) {
+			return { notFound: true }
+		}
+
 		const data = await getRWAPerpsAssetGroupPage({
-			assetGroup: params.assetGroup,
+			assetGroup,
 			activeView: DEFAULT_CHART_VIEW
 		})
 
-		if (!data) throw new Error('Missing page data')
+		if (!data)
+			throw new Error(`Missing page data for route=/rwa/perps/asset-group/[assetGroup] assetGroup=${assetGroup}`)
 
 		return {
 			props: { data },

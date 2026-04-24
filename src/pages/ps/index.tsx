@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`revenue/ps/index`, async (
 		metricName: type
 	})
 
-	if (!data) throw new Error('Missing page data')
+	if (!data) throw new Error('Missing page data for route=/ps')
 
 	return {
 		props: data,

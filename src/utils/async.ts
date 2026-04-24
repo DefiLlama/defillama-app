@@ -58,6 +58,10 @@ function sanitizeResponseTextForError(text: string): string {
 	return `${trimmed.slice(0, 500)}…`
 }
 
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	let raw: string
 
@@ -466,13 +470,14 @@ export async function fetchJson<T = any>(
 			: lastErr && isTransientError(lastErr)
 				? 'transient'
 				: 'error'
+	const errorKindForLog = String(errorKind)
 	const errorMessage = lastErrWasHtml
 		? 'returned html page'
-		: (lastErr?.message.replace(`${sanitizedUrl}: `, '') ?? 'Unknown fetch error')
+		: (lastErr?.message.replace(new RegExp(`^${escapeRegExp(sanitizedUrl)}:\\s*`), '') ?? 'Unknown fetch error')
 	const finalLog = formatRuntimeLog({
 		event: 'fetchJson',
 		level: 'error',
-		status: errorKind,
+		status: errorKindForLog,
 		durationMs: elapsed,
 		target: sanitizedUrl,
 		message: errorMessage
