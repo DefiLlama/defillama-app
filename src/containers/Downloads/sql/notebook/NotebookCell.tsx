@@ -5,6 +5,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import type { ChartConfig } from '../chartConfig'
 import { Keycap } from '../primitives'
 import type { NotebookCell as NotebookCellType, NotebookCellType as CellType, ResultsView } from '../useSqlTabs'
+import type { RegisteredTable } from '../useTableRegistry'
 import { ChartCell, type ChartSourceOption } from './ChartCell'
 import { MarkdownCell } from './MarkdownCell'
 import { SqlCell, type SqlCellHandle } from './SqlCell'
@@ -15,9 +16,11 @@ interface NotebookCellProps {
 	total: number
 	focused: boolean
 	cellName: string
+	loadedTables: RegisteredTable[]
 	availableChartSources: ChartSourceOption[]
 	onSourceChange: (next: string) => void
 	onRun: () => void
+	onCancel: () => void
 	onRunAndAdvance: () => void
 	onRunAbove: () => void
 	onRunBelow: () => void
@@ -41,9 +44,11 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 		total,
 		focused,
 		cellName,
+		loadedTables,
 		availableChartSources,
 		onSourceChange,
 		onRun,
+		onCancel,
 		onRunAndAdvance,
 		onRunAbove,
 		onRunBelow,
@@ -137,25 +142,36 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 
 				<div className="ml-auto flex items-center gap-1">
 					{cell.type === 'sql' ? (
-						<button
-							type="button"
-							onClick={onRun}
-							disabled={!canRun || cell.running || !cell.source.trim()}
-							className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2 py-1 text-[11px] font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-						>
-							{cell.running ? (
+						cell.running ? (
+							<button
+								type="button"
+								onClick={onCancel}
+								title="Cancel query"
+								className="inline-flex items-center gap-1.5 rounded-md border border-red-500/50 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
+							>
 								<LoadingSpinner size={10} />
-							) : (
+								<svg className="h-2.5 w-2.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+									<rect x="6" y="6" width="12" height="12" rx="1" />
+								</svg>
+								Stop
+							</button>
+						) : (
+							<button
+								type="button"
+								onClick={onRun}
+								disabled={!canRun || !cell.source.trim()}
+								className="inline-flex items-center gap-1.5 rounded-md bg-(--primary) px-2 py-1 text-[11px] font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+							>
 								<svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 									<path d="M8 5v14l11-7z" />
 								</svg>
-							)}
-							Run
-							<span aria-hidden className="flex items-center gap-0.5">
-								<Keycap muted>⌘</Keycap>
-								<Keycap muted>↵</Keycap>
-							</span>
-						</button>
+								Run
+								<span aria-hidden className="flex items-center gap-0.5">
+									<Keycap muted>⌘</Keycap>
+									<Keycap muted>↵</Keycap>
+								</span>
+							</button>
+						)
 					) : null}
 
 					<CellMenu
@@ -177,6 +193,7 @@ export const NotebookCell = forwardRef<SqlCellHandle, NotebookCellProps>(functio
 				<SqlCell
 					ref={ref}
 					cell={cell}
+					loadedTables={loadedTables}
 					onSourceChange={onSourceChange}
 					onRun={onRun}
 					onRunAndAdvance={onRunAndAdvance}

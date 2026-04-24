@@ -26,7 +26,7 @@ export interface ExecutorCallbacks {
 
 export type ExecutorResult =
 	| { ok: true; result: QueryResult; durationMs: number; justLoaded: boolean }
-	| { ok: false; error: string }
+	| { ok: false; error: string; cancelled?: boolean }
 
 interface AutoLoadStep {
 	key: string
@@ -91,19 +91,31 @@ async function runWithFreshLoadRetry(conn: AsyncDuckDBConnection, sql: string, j
 	}
 }
 
+function cancelled(error = 'Cancelled'): ExecutorResult {
+	return { ok: false, error, cancelled: true }
+}
+
+function isAbortError(err: unknown): boolean {
+	return typeof err === 'object' && err !== null && (err as { name?: string }).name === 'AbortError'
+}
+
 /**
  * Shared SQL execution path used by query tabs and notebook cells.
  * - Extracts table refs from SQL
  * - Auto-loads missing datasets (skipping any names in `skipAutoLoad`)
  * - Executes the query and returns rows/columns
+ * - Respects `signal` for cancellation: best-effort conn.cancelSent() on abort,
+ *   and the returned result carries `cancelled: true` so callers can skip error UI.
  */
 export async function runSql(
 	ctx: ExecutorCtx,
 	sql: string,
 	callbacks: ExecutorCallbacks = {},
-	skipAutoLoad: ReadonlySet<string> = new Set()
+	skipAutoLoad: ReadonlySet<string> = new Set(),
+	signal?: AbortSignal
 ): Promise<ExecutorResult> {
 	if (!ctx.conn) return { ok: false, error: 'LlamaSQL connection not ready.' }
+	if (signal?.aborted) return cancelled()
 	const trimmed = sql.trim()
 	if (!trimmed) return { ok: false, error: 'Empty query.' }
 
@@ -121,6 +133,10 @@ export async function runSql(
 		let pending: PendingTable[] = plan.map((p) => ({ key: p.key, name: p.name, label: p.label, status: 'pending' }))
 
 		for (const [index, step] of plan.entries()) {
+			if (signal?.aborted) {
+				callbacks.onLoadingStage?.(null)
+				return cancelled()
+			}
 			pending = pending.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p))
 			callbacks.onPendingChange?.(pending)
 			const stagePrefix =
@@ -128,6 +144,10 @@ export async function runSql(
 			callbacks.onLoadingStage?.(`${stagePrefix}…`)
 
 			const loaded = await ctx.loadSource(step.source)
+			if (signal?.aborted) {
+				callbacks.onLoadingStage?.(null)
+				return cancelled()
+			}
 			if (!loaded) {
 				pending = pending.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p))
 				callbacks.onPendingChange?.(pending)
@@ -139,7 +159,28 @@ export async function runSql(
 		}
 		callbacks.onLoadingStage?.(null)
 
-		const arrow = await runWithFreshLoadRetry(ctx.conn, trimmed, plan.length > 0)
+		const conn = ctx.conn
+		const queryPromise = runWithFreshLoadRetry(conn, trimmed, plan.length > 0)
+		const arrow = signal
+			? await new Promise<any>((resolve, reject) => {
+					const onAbort = () => {
+						conn.cancelSent().catch(() => undefined)
+						reject(new DOMException('Cancelled', 'AbortError'))
+					}
+					signal.addEventListener('abort', onAbort, { once: true })
+					queryPromise.then(
+						(value) => {
+							signal.removeEventListener('abort', onAbort)
+							resolve(value)
+						},
+						(err) => {
+							signal.removeEventListener('abort', onAbort)
+							reject(err)
+						}
+					)
+				})
+			: await queryPromise
+
 		const columns = arrow.schema.fields.map((f: any) => ({ name: f.name, type: String(f.type) }))
 		const rows = arrow.toArray().map((r: any) => {
 			const obj: Record<string, unknown> = {}
@@ -155,6 +196,7 @@ export async function runSql(
 		}
 	} catch (err) {
 		callbacks.onLoadingStage?.(null)
+		if (isAbortError(err) || signal?.aborted) return cancelled()
 		return { ok: false, error: err instanceof Error ? err.message : String(err) }
 	}
 }
