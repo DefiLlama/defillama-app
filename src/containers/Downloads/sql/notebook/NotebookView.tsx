@@ -22,6 +22,7 @@ interface NotebookViewProps {
 	onCellChartConfig: (cellId: string, config: ChartConfig | null) => void
 	onCellPreferredView: (cellId: string, view: ResultsView | undefined) => void
 	onRunCell: (cellId: string) => Promise<void> | void
+	onCancelCell: (cellId: string) => void
 	onRunCellAndAdvance: (cellId: string) => Promise<void> | void
 	onRunAbove: (cellId: string) => Promise<void> | void
 	onRunBelow: (cellId: string) => Promise<void> | void
@@ -43,6 +44,7 @@ export function NotebookView({
 	onCellChartConfig,
 	onCellPreferredView,
 	onRunCell,
+	onCancelCell,
 	onRunCellAndAdvance,
 	onRunAbove,
 	onRunBelow,
@@ -358,10 +360,12 @@ export function NotebookView({
 								focused={cell.id === activeCellId}
 								cellName={cellNames[cell.id]}
 								canRun={canRun}
+								loadedTables={loadedTables}
 								upstreamDirty={upstreamDirtyByCellId[cell.id]}
 								availableChartSources={chartSourcesByCellId[cell.id] ?? []}
 								onSourceChange={(next) => onCellSourceChange(cell.id, next)}
 								onRun={() => onRunCell(cell.id)}
+								onCancel={() => onCancelCell(cell.id)}
 								onRunAndAdvance={() => onRunCellAndAdvance(cell.id)}
 								onRunAbove={() => onRunAbove(cell.id)}
 								onRunBelow={() => onRunBelow(cell.id)}

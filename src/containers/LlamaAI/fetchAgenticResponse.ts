@@ -3,6 +3,7 @@ import type {
 	AlertProposedData,
 	ChartConfiguration,
 	DashboardArtifact,
+	GeneratedImage,
 	MessageMetadata,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
@@ -37,6 +38,7 @@ export interface SpawnProgressData {
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
+	onGeneratedImages?: (images: GeneratedImage[]) => void
 	onProgress: (toolName: string, isPremium?: boolean) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string, startedAt?: number) => void
@@ -77,6 +79,11 @@ interface ChartsEvent {
 	type: 'charts'
 	charts?: ChartConfiguration[]
 	chartData?: Record<string, unknown[]>
+}
+
+interface GeneratedImagesEvent {
+	type: 'generated_images'
+	images?: GeneratedImage[]
 }
 
 interface CsvExportEvent {
@@ -171,6 +178,7 @@ type AgenticSSEEvent =
 	| ToolCallEvent
 	| ResponseChunkEvent
 	| ChartsEvent
+	| GeneratedImagesEvent
 	| CsvExportEvent
 	| MdExportEvent
 	| AlertProposedEvent
@@ -274,6 +282,9 @@ export function parseSSEStream(
 				}
 				case 'charts':
 					callbacks.onCharts(data.charts || [], data.chartData || {})
+					break
+				case 'generated_images':
+					callbacks.onGeneratedImages?.(data.images || [])
 					break
 				case 'csv_export':
 					callbacks.onCsvExport?.(data.exports || [])

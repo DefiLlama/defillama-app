@@ -8,6 +8,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import type { ProtocolEmissionResult } from '~/containers/Unlocks/types'
+import { handleSimpleFetchResponse } from '~/utils/async'
 
 const TOKEN_UNLOCKS_SECTION_ID = 'token-unlocks'
 
@@ -23,14 +24,8 @@ async function fetchTokenUnlocksClient(
 	authorizedFetch: (url: string) => Promise<Response | null>
 ): Promise<ProtocolEmissionResult> {
 	const res = await authorizedFetch(`/api/token-unlocks/${encodeURIComponent(resolvedUnlocksSlug)}`)
-	if (!res) {
-		throw new Error('Authentication required')
-	}
-	if (!res.ok) {
-		const errorData = await res.json().catch(() => null)
-		throw new Error(errorData?.error ?? `Failed to fetch token unlocks: ${res.status}`)
-	}
-	return res.json()
+	if (!res) throw new Error('Authentication required')
+	return handleSimpleFetchResponse(res).then((response) => response.json() as Promise<ProtocolEmissionResult>)
 }
 
 export function TokenUnlocksSection({ resolvedUnlocksSlug }: { resolvedUnlocksSlug?: string | null }) {

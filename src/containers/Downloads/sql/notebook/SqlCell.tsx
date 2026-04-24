@@ -2,8 +2,10 @@ import MonacoEditor, { loader } from '@monaco-editor/react'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { LoadingSpinner } from '~/components/Loaders'
 import type { ChartConfig } from '../chartConfig'
+import { ErrorBanner, replaceIdentifier } from '../ErrorBanner'
 import { ResultsPanel } from '../ResultsPanel'
 import type { NotebookCell, ResultsView } from '../useSqlTabs'
+import type { RegisteredTable } from '../useTableRegistry'
 
 loader.config({
 	paths: {
@@ -21,6 +23,7 @@ export interface SqlCellHandle {
 
 interface SqlCellProps {
 	cell: NotebookCell
+	loadedTables: RegisteredTable[]
 	onSourceChange: (next: string) => void
 	onRun: () => void
 	onRunAndAdvance: () => void
@@ -30,7 +33,7 @@ interface SqlCellProps {
 }
 
 export const SqlCell = forwardRef<SqlCellHandle, SqlCellProps>(function SqlCell(
-	{ cell, onSourceChange, onRun, onRunAndAdvance, onFocus, onChartConfigChange, onPreferredViewChange },
+	{ cell, loadedTables, onSourceChange, onRun, onRunAndAdvance, onFocus, onChartConfigChange, onPreferredViewChange },
 	ref
 ) {
 	const [theme, setTheme] = useState<string>(() => computeTheme())
@@ -132,9 +135,19 @@ export const SqlCell = forwardRef<SqlCellHandle, SqlCellProps>(function SqlCell(
 			</div>
 
 			{cell.runError ? (
-				<pre className="thin-scrollbar overflow-x-auto rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2 font-mono text-[11.5px] leading-snug whitespace-pre-wrap text-red-700 dark:text-red-300">
-					{cell.runError}
-				</pre>
+				<ErrorBanner
+					error={cell.runError}
+					loadedTables={loadedTables}
+					density="compact"
+					onJump={(line, column) => {
+						const editor = editorInstanceRef.current
+						if (!editor) return
+						editor.revealLineInCenter(line)
+						editor.setPosition({ lineNumber: line, column: column ?? 1 })
+						editor.focus()
+					}}
+					onApplyFix={(oldId, newId) => onSourceChange(replaceIdentifier(cell.source, oldId, newId))}
+				/>
 			) : null}
 
 			<ResultsPanel

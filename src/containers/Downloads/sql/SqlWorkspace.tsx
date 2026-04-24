@@ -1,4 +1,3 @@
-import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
@@ -14,6 +13,7 @@ import { SavePresetDialog } from '../SavePresetDialog'
 import { decodeDownloadConfig, decodeNotebookShare } from '../urlState'
 import type { ChartConfig } from './chartConfig'
 import { Editor, type EditorHandle } from './Editor'
+import { ErrorBanner, replaceIdentifier } from './ErrorBanner'
 import type { ExampleQuery } from './examples'
 import { ExamplesPanel } from './ExamplesPanel'
 import { runSql } from './executor'
@@ -28,7 +28,6 @@ import { UpsellGate } from './UpsellGate'
 import { useDuckDB } from './useDuckDB'
 import { useSqlTabs, type LastRunMeta, type NotebookCell, type QueryTab } from './useSqlTabs'
 import {
-	identifierize,
 	prettyLabelForSource,
 	tableNameFor,
 	useTableRegistry,
@@ -126,6 +125,32 @@ function SqlWorkspaceInner({
 	} = useSqlTabs()
 
 	const editorRef = useRef<EditorHandle | null>(null)
+	const runControllersRef = useRef(new Map<string, AbortController>())
+
+	const beginRun = useCallback((key: string): AbortController => {
+		const existing = runControllersRef.current.get(key)
+		if (existing) existing.abort()
+		const controller = new AbortController()
+		runControllersRef.current.set(key, controller)
+		return controller
+	}, [])
+
+	const endRun = useCallback((key: string, controller: AbortController) => {
+		if (runControllersRef.current.get(key) === controller) runControllersRef.current.delete(key)
+	}, [])
+
+	const cancelRun = useCallback((key: string) => {
+		const controller = runControllersRef.current.get(key)
+		if (controller) controller.abort()
+	}, [])
+
+	useEffect(() => {
+		const map = runControllersRef.current
+		return () => {
+			map.forEach((c) => c.abort())
+			map.clear()
+		}
+	}, [])
 
 	const savedQueries = useMemo(
 		() => savedDownloads.filter((d): d is QuerySavedConfig => d.kind === 'query'),
@@ -147,6 +172,7 @@ function SqlWorkspaceInner({
 			if (!duckdb.conn) return
 			const trimmed = rawSql.trim()
 			if (!trimmed) return
+			const controller = beginRun(`tab:${tabId}`)
 			updateTab(tabId, { running: true, runError: null, pendingTables: [] })
 			const res = await runSql(
 				{
@@ -159,12 +185,15 @@ function SqlWorkspaceInner({
 				{
 					onPendingChange: (pending) => updateTab(tabId, { pendingTables: pending }),
 					onLoadingStage: (stage) => updateTab(tabId, { loadingStage: stage })
-				}
+				},
+				undefined,
+				controller.signal
 			)
+			endRun(`tab:${tabId}`, controller)
 			if (!res.ok) {
-				const err = (res as Extract<typeof res, { ok: false }>).error
+				const errRes = res as Extract<typeof res, { ok: false }>
 				updateTab(tabId, {
-					runError: err,
+					runError: errRes.cancelled ? null : errRes.error,
 					result: null,
 					running: false,
 					loadingStage: null
@@ -202,7 +231,7 @@ function SqlWorkspaceInner({
 			}
 			recordRecent(preset)
 		},
-		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab]
+		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab, beginRun, endRun]
 	)
 
 	const runQuery = useCallback(
@@ -302,6 +331,7 @@ function SqlWorkspaceInner({
 
 			const cellName = `cell_${cellIdx + 1}`
 			const skipSet = cellViewNames(tab.cells)
+			const controller = beginRun(`cell:${cellId}`)
 
 			updateCell(tabId, cellId, {
 				running: true,
@@ -322,8 +352,10 @@ function SqlWorkspaceInner({
 					onPendingChange: (pending) => updateCell(tabId, cellId, { pendingTables: pending }),
 					onLoadingStage: (stage) => updateCell(tabId, cellId, { loadingStage: stage })
 				},
-				skipSet
+				skipSet,
+				controller.signal
 			)
+			endRun(`cell:${cellId}`, controller)
 
 			if (res.ok) {
 				const okRes = res as Extract<typeof res, { ok: true }>
@@ -353,13 +385,13 @@ function SqlWorkspaceInner({
 			const errRes = res as Extract<typeof res, { ok: false }>
 			updateCell(tabId, cellId, {
 				result: null,
-				runError: errRes.error,
+				runError: errRes.cancelled ? null : errRes.error,
 				running: false,
 				loadingStage: null
 			})
 			return false
 		},
-		[tabs, duckdb.conn, registry, chartOptionsMap, updateCell, cellViewNames]
+		[tabs, duckdb.conn, registry, chartOptionsMap, updateCell, cellViewNames, beginRun, endRun]
 	)
 
 	const runCellsSequential = useCallback(
@@ -738,6 +770,7 @@ function SqlWorkspaceInner({
 								onRunCell={async (cellId) => {
 									await runSqlForCell(activeTab.id, cellId)
 								}}
+								onCancelCell={(cellId) => cancelRun(`cell:${cellId}`)}
 								onRunCellAndAdvance={(cellId) => runCellAndAdvance(activeTab.id, cellId)}
 								onRunAbove={(cellId) => runCellsAbove(activeTab.id, cellId)}
 								onRunBelow={(cellId) => runCellsBelow(activeTab.id, cellId)}
@@ -774,6 +807,7 @@ function SqlWorkspaceInner({
 									running={activeTab.running || !!activeTab.loadingStage}
 									canRun={!!duckdb.conn && !!activeTab.sql.trim()}
 									onRun={runQuery}
+									onCancel={() => cancelRun(`tab:${activeTabId}`)}
 									onSave={() => setSavePresetOpen(true)}
 									sql={activeTab.sql}
 									tables={tableRefs}
@@ -996,6 +1030,7 @@ function EditorRunBar({
 	running,
 	canRun,
 	onRun,
+	onCancel,
 	onSave,
 	sql,
 	tables,
@@ -1007,6 +1042,7 @@ function EditorRunBar({
 	running: boolean
 	canRun: boolean
 	onRun: () => void
+	onCancel: () => void
 	onSave: () => void
 	sql: string
 	tables: QueryTableRef[]
@@ -1035,227 +1071,38 @@ function EditorRunBar({
 				<Icon name="bookmark" className="h-3.5 w-3.5" />
 				Save
 			</button>
-			<button
-				type="button"
-				onClick={onRun}
-				disabled={!canRun || running}
-				className="inline-flex items-center gap-2 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-			>
-				{running ? (
+			{running ? (
+				<button
+					type="button"
+					onClick={onCancel}
+					title="Cancel query"
+					className="inline-flex items-center gap-2 rounded-md border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
+				>
 					<LoadingSpinner size={12} />
-				) : (
+					<svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+						<rect x="6" y="6" width="12" height="12" rx="1" />
+					</svg>
+					Stop
+				</button>
+			) : (
+				<button
+					type="button"
+					onClick={onRun}
+					disabled={!canRun}
+					className="inline-flex items-center gap-2 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+				>
 					<svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
 						<path d="M8 5v14l11-7z" />
 					</svg>
-				)}
-				Run query
-				<span aria-hidden className="flex items-center gap-0.5">
-					<Keycap muted>⌘</Keycap>
-					<Keycap muted>↵</Keycap>
-				</span>
-			</button>
+					Run query
+					<span aria-hidden className="flex items-center gap-0.5">
+						<Keycap muted>⌘</Keycap>
+						<Keycap muted>↵</Keycap>
+					</span>
+				</button>
+			)}
 		</div>
 	)
-}
-
-type ErrorFamily = 'table' | 'column' | 'group_by' | 'parse' | 'type' | 'load' | 'other'
-
-const FAMILY_LABEL: Record<ErrorFamily, string> = {
-	table: 'Table not found',
-	column: 'Column not found',
-	group_by: 'GROUP BY required',
-	parse: 'Parse error',
-	type: 'Type mismatch',
-	load: 'Load failed',
-	other: 'Query error'
-}
-
-const FAMILY_HINTS: Record<ErrorFamily, string[]> = {
-	table: [
-		'Identifiers must match a known dataset exactly — auto-load only kicks in for recognized slugs.',
-		'Browse the Schema tab for the right name, or pick a time-series param there (ts_<slug>_<param>).'
-	],
-	column: [
-		'Unquoted column names are case-insensitive. Wrap camelCase identifiers in double quotes: "totalRevenue24h".',
-		'Hover a table name in the editor to see its exact column list.'
-	],
-	group_by: [
-		'Non-aggregated columns must appear in GROUP BY — or wrap them with any_value() / arg_max().',
-		'LlamaSQL also allows GROUP BY positions: GROUP BY 1, 2.'
-	],
-	parse: [
-		'Check trailing commas, missing parentheses, and unterminated strings around the reported line.',
-		'⌘/ toggles a line comment — bisecting the query helps isolate parse errors.'
-	],
-	type: [
-		'CSV inference can land numeric-looking columns as VARCHAR. Use TRY_CAST(x AS DOUBLE) to coerce safely.',
-		'Unix-epoch date columns (raises, hacks) need to_timestamp(date) before date functions work.'
-	],
-	load: [
-		'The CSV endpoint rejected the fetch. Confirm your subscription is active and retry.',
-		'Check the network panel — a 401 means the session expired; a 5xx means retry after a moment.'
-	],
-	other: [
-		'Scan the message below — LlamaSQL errors usually quote the offending identifier.',
-		'For dialect specifics (QUALIFY, ASOF JOIN, PIVOT), the Shortcuts tab links the full reference.'
-	]
-}
-
-interface ErrorAnalysis {
-	family: ErrorFamily
-	offendingIdentifier?: string
-	suggestions: string[]
-}
-
-function ErrorBanner({
-	error,
-	loadedTables,
-	onJump,
-	onApplyFix
-}: {
-	error: string
-	loadedTables: RegisteredTable[]
-	onJump: (line: number, col?: number) => void
-	onApplyFix: (oldIdentifier: string, newIdentifier: string) => void
-}) {
-	const location = parseErrorLocation(error)
-	const [expanded, setExpanded] = useState(false)
-	const analysis = useMemo(() => analyzeError(error, loadedTables), [error, loadedTables])
-	const hints = FAMILY_HINTS[analysis.family]
-	const familyLabel = FAMILY_LABEL[analysis.family]
-
-	return (
-		<div className="flex flex-col gap-2 rounded-md border border-red-500/30 bg-red-500/5 px-3 py-2.5 text-red-700 dark:text-red-300">
-			<div className="flex flex-wrap items-center gap-2 text-xs">
-				<span className="inline-flex items-center gap-1.5 font-semibold">
-					<Icon name="alert-triangle" className="h-3.5 w-3.5" />
-					{familyLabel}
-				</span>
-				{location ? (
-					<>
-						<span className="text-red-500/50">·</span>
-						<button
-							type="button"
-							onClick={() => onJump(location.line, location.column)}
-							className="font-medium underline-offset-2 hover:underline"
-						>
-							Jump to line {location.line}
-							{location.column != null ? `:${location.column}` : ''}
-						</button>
-					</>
-				) : null}
-				{analysis.offendingIdentifier ? (
-					<>
-						<span className="text-red-500/50">·</span>
-						<code className="rounded-sm bg-red-500/10 px-1.5 py-px font-mono text-[11px] text-red-700 dark:text-red-300">
-							{analysis.offendingIdentifier}
-						</code>
-					</>
-				) : null}
-			</div>
-
-			{analysis.suggestions.length > 0 && analysis.offendingIdentifier ? (
-				<div className="flex flex-wrap items-center gap-1.5 text-[11.5px]">
-					<span className="text-red-600/90 dark:text-red-300/80">Did you mean</span>
-					{analysis.suggestions.map((s) => (
-						<button
-							key={s}
-							type="button"
-							onClick={() => onApplyFix(analysis.offendingIdentifier!, s)}
-							className="inline-flex items-center gap-1 rounded-sm border border-red-500/30 bg-red-500/5 px-1.5 py-0.5 font-mono text-[11px] text-red-700 transition-colors hover:border-red-500/60 hover:bg-red-500/10 dark:text-red-200"
-						>
-							<Icon name="arrow-right" className="h-2.5 w-2.5" />
-							{s}
-						</button>
-					))}
-					<span className="text-red-600/70 dark:text-red-300/60">?</span>
-				</div>
-			) : null}
-
-			<pre className="thin-scrollbar overflow-x-auto font-mono text-[11.5px] leading-snug whitespace-pre-wrap">
-				{error}
-			</pre>
-
-			{hints.length > 0 ? (
-				<div className="flex flex-col gap-1.5 border-t border-red-500/20 pt-2">
-					<button
-						type="button"
-						onClick={() => setExpanded((v) => !v)}
-						aria-expanded={expanded}
-						className="inline-flex items-center gap-1.5 self-start text-[11px] font-medium text-red-700/80 transition-colors hover:text-red-700 dark:text-red-300/80 dark:hover:text-red-200"
-					>
-						<Icon
-							name="chevron-right"
-							className={`h-3 w-3 transition-transform duration-150 ${expanded ? 'rotate-90' : ''}`}
-						/>
-						Common causes
-					</button>
-					{expanded ? (
-						<ul className="flex flex-col gap-1 pl-4 text-[11.5px] leading-relaxed text-red-700/90 dark:text-red-200/90">
-							{hints.map((h, i) => (
-								<li key={i} className="list-disc">
-									{h}
-								</li>
-							))}
-						</ul>
-					) : null}
-				</div>
-			) : null}
-		</div>
-	)
-}
-
-const KNOWN_DATASET_IDENTIFIERS = datasets.map((d) => identifierize(d.slug))
-
-function analyzeError(error: string, loadedTables: RegisteredTable[]): ErrorAnalysis {
-	if (/^Could not auto-load table|^Could not load /i.test(error)) {
-		return { family: 'load', suggestions: [] }
-	}
-
-	const tableMatch =
-		error.match(/(?:Catalog Error|Binder Error)[^\n]*?(?:Table with name|Referenced table)\s+"?([A-Za-z_][\w]*)"?/i) ??
-		error.match(/Table with name\s+"?([A-Za-z_][\w]*)"?\s+does not exist/i) ??
-		error.match(/Table\s+"([A-Za-z_][\w]*)"\s+does not exist/i)
-	if (tableMatch) {
-		const offending = tableMatch[1]!
-		const pool = [...loadedTables.map((t) => t.name), ...KNOWN_DATASET_IDENTIFIERS]
-		const unique = [...new Set(pool)]
-		const suggestions = matchSorter(unique, offending)
-			.filter((s) => s.toLowerCase() !== offending.toLowerCase())
-			.slice(0, 3)
-		return { family: 'table', offendingIdentifier: offending, suggestions }
-	}
-
-	const columnMatch =
-		error.match(/Referenced column\s+"?([A-Za-z_][\w]*)"?\s+not found/i) ??
-		error.match(/column\s+"?([A-Za-z_][\w]*)"?\s+not found/i)
-	if (columnMatch) {
-		const offending = columnMatch[1]!
-		const cols = [...new Set(loadedTables.flatMap((t) => t.columns.map((c) => c.name)))]
-		const suggestions = matchSorter(cols, offending)
-			.filter((s) => s.toLowerCase() !== offending.toLowerCase())
-			.slice(0, 3)
-		return { family: 'column', offendingIdentifier: offending, suggestions }
-	}
-
-	if (/must appear in the GROUP BY/i.test(error)) {
-		return { family: 'group_by', suggestions: [] }
-	}
-
-	if (/Parser Error/i.test(error)) {
-		return { family: 'parse', suggestions: [] }
-	}
-
-	if (/Conversion Error|Invalid Input Error|Could not convert/i.test(error)) {
-		return { family: 'type', suggestions: [] }
-	}
-
-	return { family: 'other', suggestions: [] }
-}
-
-function replaceIdentifier(sql: string, oldIdentifier: string, newIdentifier: string): string {
-	const escaped = oldIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-	return sql.replace(new RegExp(`\\b${escaped}\\b`, 'g'), newIdentifier)
 }
 
 function SavedQueriesTab({
@@ -1271,6 +1118,8 @@ function SavedQueriesTab({
 	onRename: (id: string, name: string) => void
 	busyTaskId: string | null
 }) {
+	const [renamingId, setRenamingId] = useState<string | null>(null)
+
 	if (savedQueries.length === 0) {
 		return (
 			<div className="flex flex-col items-center gap-2 rounded-md border border-dashed border-(--divider) bg-(--cards-bg)/40 px-6 py-12 text-center">
@@ -1288,12 +1137,14 @@ function SavedQueriesTab({
 			{savedQueries.map((q) => {
 				const isBusy = busyTaskId === `saved:${q.id}`
 				const isDim = busy && !isBusy
+				const isRenaming = renamingId === q.id
 				return (
 					<li key={q.id} className={`group flex items-center justify-between gap-3 py-3 ${isDim ? 'opacity-40' : ''}`}>
 						<button
 							type="button"
-							onClick={() => onOpen(q)}
-							disabled={busy}
+							onClick={() => (isRenaming ? null : onOpen(q))}
+							onDoubleClick={() => setRenamingId(q.id)}
+							disabled={busy || isRenaming}
 							className="flex min-w-0 flex-1 items-center gap-2 text-left disabled:cursor-not-allowed"
 						>
 							{isBusy ? (
@@ -1305,19 +1156,28 @@ function SavedQueriesTab({
 								/>
 							)}
 							<span className="flex min-w-0 flex-1 flex-col gap-0.5">
-								<span className="truncate text-sm font-semibold text-(--text-primary) transition-colors group-hover:text-(--primary)">
-									{q.name}
-								</span>
+								{isRenaming ? (
+									<InlineRenameInput
+										initial={q.name}
+										onCommit={(next) => {
+											const trimmed = next.trim()
+											if (trimmed && trimmed !== q.name) onRename(q.id, trimmed)
+											setRenamingId(null)
+										}}
+										onCancel={() => setRenamingId(null)}
+									/>
+								) : (
+									<span className="truncate text-sm font-semibold text-(--text-primary) transition-colors group-hover:text-(--primary)">
+										{q.name}
+									</span>
+								)}
 								<span className="truncate font-mono text-xs text-(--text-tertiary)">{firstNonEmptyLine(q.sql)}</span>
 							</span>
 						</button>
 						<div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
 							<button
 								type="button"
-								onClick={() => {
-									const next = window.prompt('Rename query', q.name)
-									if (next && next !== q.name) onRename(q.id, next)
-								}}
+								onClick={() => setRenamingId(q.id)}
 								aria-label={`Rename ${q.name}`}
 								disabled={busy}
 								className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
@@ -1338,6 +1198,47 @@ function SavedQueriesTab({
 				)
 			})}
 		</ul>
+	)
+}
+
+function InlineRenameInput({
+	initial,
+	onCommit,
+	onCancel
+}: {
+	initial: string
+	onCommit: (value: string) => void
+	onCancel: () => void
+}) {
+	const [value, setValue] = useState(initial)
+	const inputRef = useRef<HTMLInputElement | null>(null)
+
+	useEffect(() => {
+		inputRef.current?.focus()
+		inputRef.current?.select()
+	}, [])
+
+	return (
+		<input
+			ref={inputRef}
+			value={value}
+			onChange={(e) => setValue(e.target.value)}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter') {
+					e.preventDefault()
+					onCommit(value)
+				} else if (e.key === 'Escape') {
+					e.preventDefault()
+					onCancel()
+				}
+				e.stopPropagation()
+			}}
+			onBlur={() => onCommit(value)}
+			onClick={(e) => e.stopPropagation()}
+			onDoubleClick={(e) => e.stopPropagation()}
+			onMouseDown={(e) => e.stopPropagation()}
+			className="min-w-0 rounded-sm bg-(--bg-primary) px-1 py-px text-sm font-semibold text-(--text-primary) ring-1 ring-(--primary) outline-none"
+		/>
 	)
 }
 
@@ -1372,13 +1273,4 @@ function formatDuration(ms: number): string {
 	if (ms < 10_000) return `${(ms / 1000).toFixed(2)}s`
 	if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`
 	return `${Math.round(ms / 1000)}s`
-}
-
-function parseErrorLocation(error: string): { line: number; column?: number } | null {
-	const match = error.match(/line\s+(\d+)(?:[^0-9]+(\d+))?/i)
-	if (!match) return null
-	const line = Number.parseInt(match[1]!, 10)
-	const column = match[2] ? Number.parseInt(match[2], 10) : undefined
-	if (!Number.isFinite(line) || line <= 0) return null
-	return { line, column }
 }

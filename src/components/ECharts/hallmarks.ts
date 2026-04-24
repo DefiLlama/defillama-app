@@ -11,26 +11,21 @@ export function buildHallmarksMarkLine({
 
 	return {
 		label: {
-			position: 'insideMiddleTop' as const,
+			position: 'end' as const,
 			width: 200,
 			color: isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
 			fontFamily: 'sans-serif',
-			overflow: 'truncate' as const
+			overflow: 'truncate' as const,
+			rotate: 0,
+			distance: 6,
+			formatter: (params: { name?: string; data?: { name?: string } }) => params.name ?? params.data?.name ?? ''
 		},
 		data: sorted.map(([date, event]) => {
 			const xAxis = dateInMs ? +date : +date * 1e3
-			return [
-				{
-					name: event,
-					xAxis,
-					yAxis: 0
-				},
-				{
-					name: 'end',
-					xAxis,
-					yAxis: 'max'
-				}
-			]
+			return {
+				name: event,
+				xAxis
+			}
 		})
 	}
 }

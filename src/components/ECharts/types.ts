@@ -171,6 +171,7 @@ type MultiSeriesChart2BaseProps = {
 	height?: string
 	groupBy?: ChartTimeGroupingWithCumulative
 	hallmarks?: [number, string][]
+	hallmarkStyle?: 'event-rail' | 'mark-line'
 	expandTo100Percent?: boolean
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean

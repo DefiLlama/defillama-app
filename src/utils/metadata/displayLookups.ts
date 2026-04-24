@@ -1,7 +1,8 @@
 import { slug } from '~/utils'
 
 const PROTOCOL_FALLBACKs = {
-	'morpho-v1': 'Morpho V1'
+	'morpho-v1': 'Morpho V1',
+	'sky-staking-engine': 'Sky Staking Engine'
 }
 
 export function buildProtocolDisplayNameLookupRecord(
@@ -25,14 +26,18 @@ export function buildProtocolDisplayNameLookupRecord(
 }
 
 export function buildChainDisplayNameLookupRecord(
-	chainMetadata: Record<string, { name?: string }>
+	chainMetadata: Record<string, { id?: string; name?: string }>
 ): Record<string, string> {
 	const lookup: Record<string, string> = {}
 
 	for (const key in chainMetadata) {
 		const metadata = chainMetadata[key]
 		if (!metadata?.name) continue
+		lookup[key] = metadata.name
 		lookup[slug(metadata.name)] = metadata.name
+		if (metadata.id) {
+			lookup[metadata.id] = metadata.name
+		}
 	}
 
 	return lookup

@@ -14,6 +14,15 @@ interface TokenPriceSnapshot {
 	price?: number | null
 }
 
+export interface TokenAllocationSplit {
+	current: Record<string, number>
+	final: Record<string, number>
+	progress?: Record<string, number>
+	bySection?: Record<string, unknown>
+}
+
+export type TokenAllocationPayload = TokenAllocationSplit | Record<string, number>
+
 export interface ProtocolEmission {
 	name: string
 	token: string
@@ -46,9 +55,11 @@ export interface ProtocolEmissionDetail {
 			data?: Array<{
 				timestamp: number
 				unlocked?: number | null
+				rawEmission?: number | null
+				burned?: number | null
 			}>
 		}> | null
-		tokenAllocation?: Record<string, number> | null
+		tokenAllocation?: TokenAllocationPayload | null
 	} | null
 	realTimeData?: {
 		data?: Array<{
@@ -56,9 +67,11 @@ export interface ProtocolEmissionDetail {
 			data?: Array<{
 				timestamp: number
 				unlocked?: number | null
+				rawEmission?: number | null
+				burned?: number | null
 			}>
 		}> | null
-		tokenAllocation?: Record<string, number> | null
+		tokenAllocation?: TokenAllocationPayload | null
 	} | null
 	unlockUsdChart?: unknown[] | null
 	futures?: Record<string, unknown> | null
@@ -82,11 +95,6 @@ export interface ProtocolEmissionSupplyMetricsEntry {
 }
 
 export type ProtocolEmissionSupplyMetricsMap = Record<string, ProtocolEmissionSupplyMetricsEntry>
-
-export interface TokenAllocationSplit {
-	current: Record<string, number>
-	final: Record<string, number>
-}
 
 // Chart/dataset types used by both API and queries
 export interface EmissionsDataset {

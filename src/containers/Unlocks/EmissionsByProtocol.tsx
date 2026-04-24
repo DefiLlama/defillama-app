@@ -82,10 +82,20 @@ interface IEmission {
 	forecastSections?: string[]
 }
 
-const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
+const getExtendedColors = ({
+	baseColors,
+	isPriceActive,
+	isMcapActive
+}: {
+	baseColors: Record<string, string>
+	isPriceActive: boolean
+	isMcapActive: boolean
+}) => {
 	const extended = { ...baseColors }
-	if (isPriceEnabled) {
+	if (isMcapActive) {
 		extended['Market Cap'] = '#0c5dff'
+	}
+	if (isPriceActive) {
 		extended['Price'] = '#ff4e21'
 	}
 	return extended
@@ -583,7 +593,10 @@ const ChartContainer = ({
 	const chartType: 'bar' | 'line' = readSingleQueryValue(router.query.chartType) === 'bar' ? 'bar' : 'line'
 	const allocationMode: 'current' | 'standard' =
 		readSingleQueryValue(router.query.groupAllocation) === 'true' ? 'standard' : 'current'
-	const isPriceAndMcapRequested = readSingleQueryValue(router.query.priceMcap) === 'true'
+	const legacyPriceMcapParam = readSingleQueryValue(router.query.priceMcap) === 'true'
+	const priceParam = readSingleQueryValue(router.query.price)
+	const isPriceRequested = legacyPriceMcapParam || priceParam !== 'false'
+	const isMcapRequested = legacyPriceMcapParam || readSingleQueryValue(router.query.mcap) === 'true'
 
 	const timeGroupingParam = readSingleQueryValue(router.query.groupBy)
 	const timeGrouping: TimeGrouping =
@@ -621,14 +634,16 @@ const ChartContainer = ({
 
 	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false) && !(hideTokenStats ?? false)
 	const resolvedGeckoId = data.geckoId ?? geckoId
-	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceAndMcapRequested
+	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceRequested || isMcapRequested
 	const priceChart = usePriceChart(shouldFetchPriceChart ? resolvedGeckoId : undefined)
 
-	const isPriceChartReady =
-		Boolean(priceChart.data?.data?.prices?.length) && Boolean(priceChart.data?.data?.mcaps?.length)
-	const isPriceAndMcapActive = isPriceAndMcapRequested && isPriceChartReady
-	const isPriceAndMcapLoading =
-		isPriceAndMcapRequested && !isPriceAndMcapActive && (priceChart.isLoading || priceChart.isFetching)
+	const isPriceChartReady = Boolean(priceChart.data?.data?.prices?.length)
+	const isMcapChartReady = Boolean(priceChart.data?.data?.mcaps?.length)
+	const isPriceActive = isPriceRequested && isPriceChartReady
+	const isMcapActive = isMcapRequested && isMcapChartReady
+	const isPriceOverlayLoading = isPriceRequested && !isPriceActive && (priceChart.isLoading || priceChart.isFetching)
+	const isMcapOverlayLoading = isMcapRequested && !isMcapActive && (priceChart.isLoading || priceChart.isFetching)
+	const isPriceOrMcapLoading = isPriceOverlayLoading || isMcapOverlayLoading
 
 	const chartMarketData = priceChart.data?.data?.coinData?.market_data
 	const chartPrices = priceChart.data?.data?.prices
@@ -656,7 +671,7 @@ const ChartContainer = ({
 		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
 	const percentChange = initialTokenMarketData?.priceChangePercent ?? percentChangeFromChart ?? null
 
-	const priceChartForOverlay = isPriceAndMcapActive ? priceChart.data?.data : null
+	const priceChartForOverlay = isPriceActive || isMcapActive ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {
 		if (!priceChartForOverlay) return null
 		const sourceData = priceChartForOverlay || {}
@@ -728,9 +743,9 @@ const ChartContainer = ({
 	)
 
 	const chartData = useMemo(() => {
-		// Keep chart data independent from the price query unless the overlay is enabled.
+		// Keep chart data independent from the price query unless an overlay is enabled.
 		// This prevents the schedule chart from re-rendering when price data finishes loading.
-		if (!isPriceAndMcapActive) {
+		if (!isPriceActive && !isMcapActive) {
 			return rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
 		}
 
@@ -742,13 +757,13 @@ const ChartContainer = ({
 				const mcap = normilizePriceChart?.mcaps?.[dateSec]
 				const price = normilizePriceChart?.prices?.[dateSec]
 
-				if (mcap) res['Market Cap'] = mcap
-				if (price) res['Price'] = price
+				if (isMcapActive && mcap) res['Market Cap'] = mcap
+				if (isPriceActive && price) res['Price'] = price
 
 				return res
 			})
 			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
-	}, [rawChartData, isPriceAndMcapActive, normilizePriceChart])
+	}, [rawChartData, isPriceActive, isMcapActive, normilizePriceChart])
 
 	const availableCategories =
 		allocationMode === 'standard'
@@ -829,19 +844,20 @@ const ChartContainer = ({
 			}
 		}
 		const finalStacks = chartType === 'bar' ? sortStacksByVolatility(stacks, displayData) : stacks
+		const overlayStacks = [...(isMcapActive ? ['Market Cap'] : []), ...(isPriceActive ? ['Price'] : [])]
 		return {
-			stacks: [...finalStacks, ...(isPriceAndMcapActive ? ['Market Cap', 'Price'] : [])].filter(Boolean),
-			customYAxis: isPriceAndMcapActive ? ['Market Cap', 'Price'] : [],
+			stacks: [...finalStacks, ...overlayStacks].filter(Boolean),
+			customYAxis: overlayStacks,
 			colors:
 				allocationMode === 'standard'
-					? isPriceAndMcapActive
-						? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
+					? isPriceActive || isMcapActive
+						? getExtendedColors({ baseColors: standardGroupColors, isPriceActive, isMcapActive })
 						: standardGroupColors
-					: isPriceAndMcapActive
-						? getExtendedColors(stackColors, true)
+					: isPriceActive || isMcapActive
+						? getExtendedColors({ baseColors: stackColors, isPriceActive, isMcapActive })
 						: stackColors
 		}
-	}, [isPriceAndMcapActive, selectedCategories, stackColors, allocationMode, displayData, chartType])
+	}, [isPriceActive, isMcapActive, selectedCategories, stackColors, allocationMode, displayData, chartType])
 
 	const dataset = useMemo<MultiSeriesChart2Dataset>(() => {
 		const stacks = chartConfig.stacks
@@ -1008,15 +1024,33 @@ const ChartContainer = ({
 								checked={chartType === 'bar'}
 							/>
 							{resolvedGeckoId ? (
-								<Switch
-									label="Price & MCap"
-									value="show=price-and-mcap"
-									onChange={() => {
-										void setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')
-									}}
-									checked={isPriceAndMcapRequested}
-									isLoading={isPriceAndMcapLoading}
-								/>
+								<>
+									<Switch
+										label="Price"
+										value="show=price"
+										onChange={() => {
+											void pushShallowQuery(router, {
+												price: isPriceRequested ? 'false' : undefined,
+												mcap: isMcapRequested ? 'true' : undefined,
+												priceMcap: undefined
+											})
+										}}
+										checked={isPriceRequested}
+										isLoading={isPriceOverlayLoading}
+									/>
+									<Switch
+										label="MCap"
+										value="show=mcap"
+										onChange={() => {
+											void pushShallowQuery(router, {
+												mcap: isMcapRequested ? undefined : 'true',
+												priceMcap: undefined
+											})
+										}}
+										checked={isMcapRequested}
+										isLoading={isMcapOverlayLoading}
+									/>
+								</>
 							) : null}
 							<TagGroup
 								selectedValue={timeGrouping}
@@ -1039,7 +1073,7 @@ const ChartContainer = ({
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
-						{isPriceAndMcapLoading ? (
+						{isPriceOrMcapLoading ? (
 							<div className="flex min-h-[360px] items-center justify-center">
 								<p className="flex items-center gap-1">
 									Loading
@@ -1052,6 +1086,7 @@ const ChartContainer = ({
 									dataset={deferredScheduleChartData.dataset}
 									charts={deferredScheduleChartData.charts}
 									hallmarks={hallmarks}
+									hallmarkStyle="mark-line"
 									expandTo100Percent={chartType === 'bar'}
 									solidChartAreaStyle
 									valueSymbol={data.tokenPrice?.symbol ?? ''}

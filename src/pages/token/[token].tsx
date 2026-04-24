@@ -545,7 +545,7 @@ export const getStaticPaths = async () => {
 	}
 
 	const metadataModule = await import('~/utils/metadata')
-	await metadataModule.refreshMetadataIfStale()
+
 	const tokenDirectory = metadataModule.default.tokenDirectory
 
 	const rankedRecords = []

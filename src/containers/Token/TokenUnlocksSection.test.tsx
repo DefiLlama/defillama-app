@@ -24,7 +24,6 @@ var queryState: {
 	error: null,
 	isLoading: false
 }
-
 vi.mock('next/router', () => ({
 	useRouter: () => ({ asPath: '/token/sol' })
 }))

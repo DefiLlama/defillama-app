@@ -87,7 +87,7 @@ const createRiskData = (): TokenRiskResponse => ({
 			minBadDebtAtPriceZeroUsd: 'Zero-price bad debt methodology'
 		}
 	},
-	limitations: ['Current exposure is a lower bound when some contributing markets return null for zero-price bad debt.']
+	limitations: ['Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.']
 })
 
 import { TokenRisksSection } from './TokenRisksSection'
@@ -110,17 +110,17 @@ describe('TokenRisksSection', () => {
 
 		expect(html).toContain('Showing collateral exposure for USDC on')
 		expect(html).toContain(
-			'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt.'
+			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.'
 		)
 		expect(html).toContain('Show exposure details')
 		expect(html).toContain('paginated-table:2')
 		expect(html).toContain('Asset|Asset methodology')
 		expect(html).toContain('Max Borrowable|Liquidity max borrow methodology')
-		expect(html).toContain('Current Exposure|Zero-price bad debt methodology')
+		expect(html).toContain('Bad Debt at $0|Zero-price bad debt methodology')
 		expect(html).toContain(
-			'Current Exposure</span> is the minimum known bad debt if the collateral asset price goes to zero'
+			'Bad Debt at $0</span> is the minimum known bad debt if the collateral asset price goes to zero'
 		)
-		expect(html).toContain('Current exposure totals remain lower bounds when a row is marked partial.')
+		expect(html).toContain('Bad debt at $0 totals remain lower bounds when a row is marked partial.')
 		expect(html).not.toContain('Borrowed Debt|')
 	})
 
@@ -128,8 +128,11 @@ describe('TokenRisksSection', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
 		expect(html.indexOf('Aave V3')).toBeLessThan(html.indexOf('Morpho Blue'))
-		expect(html).toContain('$1,400 max exposure = $1,000 max borrowable + $400 current exposure')
-		expect(html).toContain('$500 max exposure = $500 max borrowable + Unavailable current exposure')
+		expect(html).toContain(
+			'$1,400 at-risk exposure = $400 bad debt if hacked + $1,000 additional borrowable against USDC'
+		)
+		expect(html).toContain('$500 at-risk exposure = -- bad debt if hacked + $500 additional borrowable against USDC')
+		expect(html).not.toContain('Unavailable bad debt if hacked')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -139,6 +142,25 @@ describe('TokenRisksSection', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" riskData={riskData} />)
 
 		expect(html).toContain('<span class="font-medium text-(--text-primary)">onchain</span>')
+	})
+
+	it('shows a focusable chain breakdown trigger for multi-chain protocol summaries', () => {
+		const riskData = createRiskData()
+		riskData.exposures.rows = [
+			riskData.exposures.rows[0],
+			{
+				...riskData.exposures.rows[0],
+				chain: 'base',
+				chainDisplayName: 'Base',
+				currentMaxBorrowUsd: 300,
+				minBadDebtAtPriceZeroUsd: 25
+			}
+		]
+
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
+
+		expect(html).toContain('Show 2 chains exposure breakdown by chain')
+		expect(html).toContain('2 chains')
 	})
 
 	it('returns nothing when there are no exposure rows', () => {
@@ -159,7 +181,7 @@ describe('TokenRisksSection', () => {
 		expect(html).toBe('')
 	})
 
-	it('shows partial current exposure labels and unavailable totals when coverage is incomplete', () => {
+	it('shows partial bad-debt labels and unavailable totals when coverage is incomplete', () => {
 		const riskData = createRiskData()
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = 50
 		riskData.exposures.summary.minBadDebtKnownCount = 0
@@ -183,10 +205,11 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain('$50 (partial) current exposure')
+		expect(html).toContain('$50 bad debt if hacked')
+		expect(html).not.toContain('$50 (partial) bad debt if hacked')
 	})
 
-	it('shows unavailable current exposure totals when no exposures report the metric', () => {
+	it('omits unavailable bad-debt wording when no exposures report the metric', () => {
 		const riskData = createRiskData()
 		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = null
 		riskData.exposures.summary.minBadDebtKnownCount = 0
@@ -199,6 +222,10 @@ describe('TokenRisksSection', () => {
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).toContain('Unavailable current exposure')
+		expect(html).toContain(
+			'$1,000 at-risk exposure = -- bad debt if hacked + $1,000 additional borrowable against USDC'
+		)
+		expect(html).toContain('$500 at-risk exposure = -- bad debt if hacked + $500 additional borrowable against USDC')
+		expect(html).not.toContain('Unavailable')
 	})
 })

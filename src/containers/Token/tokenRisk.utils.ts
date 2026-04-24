@@ -19,7 +19,7 @@ export const TOKEN_RISK_LIMITATIONS_COMMON = [
 ] as const
 
 export const TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS =
-	'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
+	'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 
 function normalizeAddress(address: string | null | undefined): string {
 	return (address ?? '').trim().toLowerCase()
@@ -33,8 +33,57 @@ function normalizeSymbol(symbol: string | null | undefined): string {
 	return (symbol ?? '').replace(/[^a-z0-9]/gi, '').toLowerCase()
 }
 
-function buildAssetKey(chain: string, address: string): string {
-	return `${normalizeChain(chain)}:${normalizeAddress(address)}`
+const NATIVE_TOKEN_ADDRESSES = new Set([
+	'0x0000000000000000000000000000000000000000',
+	'0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+])
+export const CANONICAL_NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+const NATIVE_WRAPPED_SYMBOL_GROUPS = [
+	['ETH', 'WETH'],
+	['BNB', 'WBNB'],
+	['AVAX', 'WAVAX'],
+	['POL', 'WPOL'],
+	['XDAI', 'WXDAI'],
+	['XPL', 'WXPL']
+] as const
+
+const TOKEN_RISK_SYMBOL_ALIASES = new Map<string, Set<string>>()
+
+for (const group of NATIVE_WRAPPED_SYMBOL_GROUPS) {
+	const aliases = new Set(group.map((symbol) => normalizeSymbol(symbol)))
+
+	for (const symbol of aliases) {
+		TOKEN_RISK_SYMBOL_ALIASES.set(symbol, aliases)
+	}
+}
+
+function normalizeRiskAssetAddress(address: string | null | undefined): string {
+	const normalizedAddress = normalizeAddress(address)
+	return NATIVE_TOKEN_ADDRESSES.has(normalizedAddress) ? CANONICAL_NATIVE_TOKEN_ADDRESS : normalizedAddress
+}
+
+function getTokenRiskSymbolAliases(symbol: string | null | undefined): Set<string> {
+	const normalizedSymbol = normalizeSymbol(symbol)
+	return TOKEN_RISK_SYMBOL_ALIASES.get(normalizedSymbol) ?? new Set(normalizedSymbol ? [normalizedSymbol] : [])
+}
+
+export function hasNativeWrappedTokenRiskAlias(symbol: string | null | undefined): boolean {
+	return getTokenRiskSymbolAliases(symbol).size > 1
+}
+
+function buildAssetKey(chain: string, address: string, symbol?: string | null): string {
+	const normalizedAddress = normalizeRiskAssetAddress(address)
+	const normalizedChain = normalizeChain(chain)
+
+	if (normalizedAddress === CANONICAL_NATIVE_TOKEN_ADDRESS) {
+		const normalizedSymbol = normalizeSymbol(symbol)
+		return normalizedSymbol
+			? `${normalizedChain}:native:${normalizedSymbol}`
+			: `${normalizedChain}:${normalizedAddress}`
+	}
+
+	return `${normalizedChain}:${normalizedAddress}`
 }
 
 function hasActionableRiskMetrics(
@@ -46,6 +95,7 @@ function hasActionableRiskMetrics(
 
 export function resolveTokenRiskCandidates(
 	geckoId: string | null | undefined,
+	tokenSymbol: string | null | undefined,
 	protocolLlamaswapDataset: ProtocolLlamaswapMetadata | null | undefined
 ): TokenRiskCandidate[] {
 	if (!geckoId || !protocolLlamaswapDataset?.[geckoId]?.length) return []
@@ -58,14 +108,14 @@ export function resolveTokenRiskCandidates(
 		const address = normalizeAddress(chainEntry.address)
 		if (!chain || !address) continue
 
-		const key = buildAssetKey(chain, address)
+		const key = buildAssetKey(chain, address, tokenSymbol)
 		if (seen.has(key)) continue
 		seen.add(key)
 
 		candidates.push({
 			key,
 			chain,
-			address,
+			address: normalizeRiskAssetAddress(address),
 			displayName: chainEntry.displayName || chain
 		})
 	}
@@ -82,28 +132,47 @@ export function inferTokenRiskCandidatesFromBorrowCapacity({
 	tokens: TokenRiskBorrowCapacityTokenEntry[]
 	chainDisplayNames?: Map<string, string>
 }): TokenRiskCandidate[] {
-	const normalizedTokenSymbol = normalizeSymbol(tokenSymbol)
-	if (!normalizedTokenSymbol) return []
+	const tokenSymbolAliases = getTokenRiskSymbolAliases(tokenSymbol)
+	if (tokenSymbolAliases.size === 0) return []
 
 	const seen = new Set<string>()
 	const candidates: TokenRiskCandidate[] = []
 
 	for (const token of tokens) {
-		if (normalizeSymbol(token.asset.symbol) !== normalizedTokenSymbol) continue
+		if (!tokenSymbolAliases.has(normalizeSymbol(token.asset.symbol))) continue
 
 		const address = normalizeAddress(token.asset.address)
 		if (!address) continue
 
-		const key = buildAssetKey(token.chain, address)
+		const key = buildAssetKey(token.chain, address, token.asset.symbol)
 		if (seen.has(key)) continue
 		seen.add(key)
 
 		candidates.push({
 			key,
 			chain: token.chain,
-			address,
+			address: normalizeRiskAssetAddress(address),
 			displayName: chainDisplayNames?.get(token.chain) ?? token.chain
 		})
+	}
+
+	return candidates
+}
+
+export function mergeTokenRiskCandidates(
+	primaryCandidates: TokenRiskCandidate[],
+	supplementalCandidates: TokenRiskCandidate[]
+): TokenRiskCandidate[] {
+	if (primaryCandidates.length === 0) return supplementalCandidates
+	if (supplementalCandidates.length === 0) return primaryCandidates
+
+	const seen = new Set<string>()
+	const candidates: TokenRiskCandidate[] = []
+
+	for (const candidate of [...primaryCandidates, ...supplementalCandidates]) {
+		if (seen.has(candidate.key)) continue
+		seen.add(candidate.key)
+		candidates.push(candidate)
 	}
 
 	return candidates
@@ -115,7 +184,7 @@ export function indexBorrowCapacityByAssetKey(
 	const indexedTokens = new Map<string, TokenRiskBorrowCapacityTokenEntry[]>()
 
 	for (const token of tokens) {
-		const key = buildAssetKey(token.chain, token.asset.address)
+		const key = buildAssetKey(token.chain, token.asset.address, token.asset.symbol)
 		const existing = indexedTokens.get(key)
 		if (existing) {
 			existing.push(token)
