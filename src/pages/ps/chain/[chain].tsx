@@ -44,9 +44,9 @@ export const getStaticProps = withPerformanceLogging(
 			chain: metadataCache.chainMetadata[chain].name,
 			route: 'ps',
 			metricName: type
-		}).catch((e) => console.info(`Chain page data not found P/S : chain:${chain}`, e))
+		})
 
-		if (!data) return { notFound: true }
+		if (!data) throw new Error('Missing page data')
 
 		return {
 			props: data,

@@ -16,9 +16,9 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 		route: 'perps',
 		hasOpenInterest: true,
 		metricName: type
-	}).catch((e) => console.info(`Chain page data not found ${adapterType} : ALL_CHAINS`, e))
+	})
 
-	if (!data) return { notFound: true }
+	if (!data) throw new Error('Missing page data')
 
 	const perpsContext = {
 		total24h: data.total24h ?? null,

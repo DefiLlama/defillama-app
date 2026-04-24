@@ -16,9 +16,9 @@ export const getStaticProps = withPerformanceLogging(`fees/pf/index`, async () =
 		chain: 'All',
 		route: 'pf',
 		metricName: type
-	}).catch((e) => console.info(`Chain page data not found P/F : ALL_CHAINS`, e))
+	})
 
-	if (!data) return { notFound: true }
+	if (!data) throw new Error('Missing page data')
 
 	return {
 		props: data,

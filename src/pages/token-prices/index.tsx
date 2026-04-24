@@ -9,7 +9,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-token-prices/ind
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const data = await getProtocolsTokenPricesByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
 
-	if (!data) return { notFound: true }
+	if (!data) throw new Error('Missing page data')
 
 	return {
 		props: data,

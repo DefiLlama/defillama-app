@@ -13,6 +13,16 @@ set -a
 [ -f .env ] && . .env
 set +a
 
+# Capture the full build flow, including metadata failures, before the
+# notification step reads and uploads build.log.
+LOG_PIPE="$(mktemp -u "${TMPDIR:-/tmp}/defillama-build-log.XXXXXX")"
+mkfifo "$LOG_PIPE"
+tee build.log < "$LOG_PIPE" &
+TEE_PID=$!
+exec 3>&1 4>&2
+exec > "$LOG_PIPE" 2>&1
+rm "$LOG_PIPE"
+
 # Resolve branch name (build-msg.js has exhaustive CI provider fallbacks)
 BRANCH_NAME="${BRANCH_NAME:-${COOLIFY_BRANCH:-}}"
 if [ -z "$BRANCH_NAME" ] && [ -d .git ]; then
@@ -40,8 +50,8 @@ fi
 
 # 2. Run Next.js build, capturing output for log upload
 if [ "${BUILD_STATUS:-0}" -eq 0 ]; then
-  bun --bun next build 2>&1 | tee build.log
-  BUILD_STATUS=${PIPESTATUS[0]}
+  bun --bun next build
+  BUILD_STATUS=$?
 else
   echo "Skipping next build due to earlier failure"
 fi
@@ -74,7 +84,6 @@ echo "======================="
 [ -n "$BRANCH_NAME" ] && echo "🌿 [$BRANCH_NAME]"
 echo "======================="
 echo ""
-
 # 3. Sync static assets to/from R2 so new deployments can serve old build chunks
 if [ "${SKIP_ARTIFACT_SYNC:-0}" = "1" ]; then
   echo "SKIP_ARTIFACT_SYNC=1, skipping rclone sync"
@@ -84,6 +93,10 @@ elif [ $BUILD_STATUS -eq 0 ]; then
 else
   echo "Build failed, skipping .next artifact sync"
 fi
+
+exec 1>&3 2>&4
+exec 3>&- 4>&-
+wait "$TEE_PID"
 
 # 4. Send build status notification to Discord
 export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME

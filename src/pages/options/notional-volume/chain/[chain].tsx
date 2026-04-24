@@ -61,9 +61,9 @@ export const getStaticProps = withPerformanceLogging(
 			chain: metadataCache.chainMetadata[chain].name,
 			route: 'options/notional-volume',
 			metricName: type
-		}).catch((e) => console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chain}`, e))
+		})
 
-		if (!data) return { notFound: true }
+		if (!data) throw new Error('Missing page data')
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', {
 			subPage: 'options/notional-volume',

@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
-			return { notFound: true }
+			throw new Error('Missing page data')
 		}
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(normalizedName, 'protocol')

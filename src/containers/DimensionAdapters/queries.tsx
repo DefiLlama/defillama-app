@@ -3,7 +3,7 @@ import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { slug, getAnnualizedRatio } from '~/utils'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { fetchJson, formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
@@ -745,7 +745,16 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChains
 		}
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		postRuntimeLogs(
+			formatRuntimeLog({
+				event: 'chainsByFeesAdapter',
+				level: 'error',
+				status: 'error',
+				context: { adapterType, dataType },
+				message: getErrorMessage(error)
+			}),
+			{ level: 'error' }
+		)
 		throw error
 	}
 }
@@ -889,7 +898,16 @@ export const getChainsByAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		postRuntimeLogs(
+			formatRuntimeLog({
+				event: 'chainsByAdapter',
+				level: 'error',
+				status: 'error',
+				context: { adapterType, dataType },
+				message: getErrorMessage(error)
+			}),
+			{ level: 'error' }
+		)
 		throw error
 	}
 }
@@ -946,7 +964,15 @@ export const getChainsByREVPageData = async ({
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		postRuntimeLogs(
+			formatRuntimeLog({
+				event: 'chainsByREV',
+				level: 'error',
+				status: 'error',
+				message: getErrorMessage(error)
+			}),
+			{ level: 'error' }
+		)
 		throw error
 	}
 }
@@ -975,7 +1001,16 @@ export function getDimensionAdapterOverviewOfAllChains({
 
 		return chains
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		postRuntimeLogs(
+			formatRuntimeLog({
+				event: 'dimensionAdapterOverviewOfAllChains',
+				level: 'error',
+				status: 'error',
+				context: { adapterType, dataType },
+				message: getErrorMessage(error)
+			}),
+			{ level: 'error' }
+		)
 		throw error
 	}
 }

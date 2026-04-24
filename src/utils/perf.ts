@@ -1,7 +1,15 @@
 import type { ParsedUrlQuery } from 'querystring'
 import type { GetStaticProps, GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { postRuntimeLogs, sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
+import {
+	postRuntimeLogs,
+	sleep,
+	getJitteredDelay,
+	isTransientError,
+	getEnvNumber,
+	flushRuntimeLogs,
+	formatRuntimeLog
+} from './async'
 import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
 import { normalizeError, getErrorMessage } from './error'
 import { fetchWithPoolingOnServer } from './http-client'
@@ -9,6 +17,27 @@ import { fetchWithPoolingOnServer } from './http-client'
 const REDIS_URL = process.env.REDIS_URL as string
 
 const MAX_PAGE_BUILD_RETRIES = Math.max(1, getEnvNumber('PAGE_BUILD_MAX_RETRIES', 3))
+
+function getParamsContext(params: ParsedUrlQuery | undefined): Record<string, unknown> | undefined {
+	return params ? { params } : undefined
+}
+
+function truncateForLog(value: string, maxLength: number): string {
+	return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value
+}
+
+function getErrorStackPreview(error: Error | null): string | null {
+	if (!error?.stack) return null
+	return truncateForLog(
+		error.stack
+			.split('\n')
+			.slice(1, 4)
+			.map((line) => line.trim())
+			.filter(Boolean)
+			.join(' | '),
+		700
+	)
+}
 
 export const withPerformanceLogging = <T extends { [key: string]: any }, P extends ParsedUrlQuery = ParsedUrlQuery>(
 	filename: string,
@@ -26,7 +55,16 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 
 				if (elapsed > 10_000) {
 					await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [Date.now(), `${elapsed}ms`])
-					postRuntimeLogs(`[PAGE_BUILD] [${elapsed}ms] < ${filename} >` + (params ? ' ' + JSON.stringify(params) : ''))
+					postRuntimeLogs(
+						formatRuntimeLog({
+							event: 'PAGE_BUILD',
+							level: 'info',
+							status: 'slow',
+							durationMs: elapsed,
+							target: filename,
+							context: getParamsContext(params)
+						})
+					)
 				}
 
 				return props
@@ -36,6 +74,18 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 
 				if (canRetry) {
 					const delay = getJitteredDelay(100, attempt, 1000)
+					postRuntimeLogs(
+						formatRuntimeLog({
+							event: 'PAGE_BUILD',
+							level: 'retry',
+							status: `attempt ${attempt + 1}/${MAX_PAGE_BUILD_RETRIES}`,
+							target: filename,
+							context: { ...(getParamsContext(params) ?? {}), delayMs: delay },
+							message: `${lastError.name || 'Error'}: ${lastError.message}`,
+							stack: getErrorStackPreview(lastError)
+						}),
+						{ level: 'retry', forceConsole: true }
+					)
 					await sleep(delay)
 					continue
 				}
@@ -46,11 +96,19 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 		const elapsed = Date.now() - start
 		await setPageBuildTimes(`${filename} ERROR`, [Date.now(), `${elapsed}ms`])
 		postRuntimeLogs(
-			`[PAGE_BUILD] [error] [${elapsed}ms] < ${filename} >` +
-				(params ? ' ' + JSON.stringify(params) : '') +
-				` [${lastError?.message}]`,
+			formatRuntimeLog({
+				event: 'PAGE_BUILD',
+				level: 'error',
+				status: lastError && isTransientError(lastError) ? 'transient' : 'error',
+				durationMs: elapsed,
+				target: filename,
+				context: getParamsContext(params),
+				message: lastError ? `${lastError.name || 'Error'}: ${lastError.message}` : 'Unknown build error',
+				stack: getErrorStackPreview(lastError)
+			}),
 			{ level: 'error', forceConsole: true }
 		)
+		await flushRuntimeLogs()
 		throw lastError ?? new Error(`${filename}: Unknown build error`)
 	}
 }
@@ -58,6 +116,7 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
+	const start = Date.now()
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
@@ -66,7 +125,17 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			const response = await fetchWithPoolingOnServer(url, options)
 			return response
 		} catch (error) {
-			postRuntimeLogs(`fetch error for <${url}>`)
+			postRuntimeLogs(
+				formatRuntimeLog({
+					event: 'fetchOverCache',
+					level: 'error',
+					status: 'network',
+					durationMs: Date.now() - start,
+					target: String(url),
+					message: getErrorMessage(error)
+				}),
+				{ level: 'error' }
+			)
 			throw error
 		}
 	} else if (cache) {
@@ -119,7 +188,17 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 				})
 			}
 		} catch (err) {
-			postRuntimeLogs(`[fetchOverCache] [error] [504] < ${url} > ${getErrorMessage(err)}`, { level: 'error' })
+			postRuntimeLogs(
+				formatRuntimeLog({
+					event: 'fetchOverCache',
+					level: 'error',
+					status: 504,
+					durationMs: Date.now() - start,
+					target: String(url),
+					message: getErrorMessage(err)
+				}),
+				{ level: 'error' }
+			)
 			StatusCode = 504
 			responseInit = {
 				status: StatusCode,

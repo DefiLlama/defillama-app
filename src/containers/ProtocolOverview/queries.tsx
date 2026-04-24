@@ -229,129 +229,101 @@ export const getProtocolOverviewPageData = async ({
 			}
 		),
 		currentProtocolMetadata.tvl && !isOracleProtocol
-			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName ?? '') })
-					.then((chart) => chart ?? [])
-					.catch((): Array<[number, number]> => [])
+			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName ?? '') }).then(
+					(chart) => chart ?? []
+				)
 			: Promise.resolve([] as Array<[number, number]>),
 		currentProtocolMetadata.fees
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'Fees' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.revenue
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyRevenue',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'Revenue' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'Revenue' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.holdersRevenue
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyHoldersRevenue',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'HoldersRevenue' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.bribeRevenue
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyBribesRevenue',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'BribesRevenue' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.tokenTax
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
 					dataType: 'dailyTokenTaxes',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'TokenTaxes' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexs
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'dexs',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: data.methodology?.['Volume'] ? 'Volume' : 'dexs' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexsNotionalVolume
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'dexs',
 					dataType: 'dailyNotionalVolume',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'dexsNotionalVolume' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'dexsNotionalVolume' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.dexAggregators
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'aggregators',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'dexAggregators' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'dexAggregators' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.perps
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'derivatives',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'perps' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.openInterest
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'open-interest',
 					protocol: currentProtocolMetadata.displayName ?? '',
 					dataType: 'openInterestAtEnd'
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'openInterest' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.perpsAggregators
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'aggregator-derivatives',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'perpsAggregators' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'perpsAggregators' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.bridgeAggregators
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'bridge-aggregators',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'bridgeAggregators' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.optionsPremiumVolume
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyPremiumVolume',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'optionsPremiumVolume' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.optionsNotionalVolume
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'options',
 					dataType: 'dailyNotionalVolume',
 					protocol: currentProtocolMetadata.displayName ?? ''
-				})
-					.then((data) => formatAdapterData({ data, methodologyKey: 'optionsNotionalVolume' }))
-					.catch(() => null)
+				}).then((data) => formatAdapterData({ data, methodologyKey: 'optionsNotionalVolume' }))
 			: Promise.resolve(null),
 		currentProtocolMetadata.treasury
 			? fetchTreasuries()
@@ -372,18 +344,8 @@ export const getProtocolOverviewPageData = async ({
 							)
 						}
 					})
-					.catch(() => null)
 			: Promise.resolve(null),
-		currentProtocolMetadata.yields
-			? fetchJson<IYieldsDataResult>(YIELD_POOLS_API).catch((err) => {
-					console.log(
-						'[HTTP]:[ERROR]:[PROTOCOL_YIELD]:',
-						slug(currentProtocolMetadata.displayName),
-						err instanceof Error ? err.message : ''
-					)
-					return {}
-				})
-			: null,
+		currentProtocolMetadata.yields ? fetchJson<IYieldsDataResult>(YIELD_POOLS_API) : null,
 		fetchArticles({ tags: slug(currentProtocolMetadata.displayName) }).catch((err) => {
 			console.log(
 				'[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',
@@ -396,107 +358,83 @@ export const getProtocolOverviewPageData = async ({
 			? getProtocolIncentivesFromAggregatedEmissions({
 					protocolId,
 					protocolDisplayName: currentProtocolMetadata.displayName ?? ''
-				}).catch(() => null)
+				})
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
-			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName))
-					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
-					.catch(() => null)
+			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName)).then(
+					(data) => data?.supplyMetrics?.adjustedSupply ?? null
+				)
 			: null,
 		currentProtocolMetadata.activeUsers
 			? fetchAdapterProtocolMetrics({
 					protocol: currentProtocolMetadata.displayName,
 					adapterType: 'active-users'
-				})
-					.then((data) => data?.total24h ?? null)
-					.catch(() => null)
+				}).then((data) => data?.total24h ?? null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.newUsers
 			? fetchAdapterProtocolMetrics({
 					protocol: currentProtocolMetadata.displayName,
 					adapterType: 'new-users'
-				})
-					.then((data) => data?.total24h ?? null)
-					.catch(() => null)
+				}).then((data) => data?.total24h ?? null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.txCount
 			? fetchAdapterProtocolMetrics({
 					protocol: currentProtocolMetadata.displayName,
 					adapterType: 'active-users',
 					dataType: 'dailyTransactionsCount'
-				})
-					.then((data) => data?.total24h ?? null)
-					.catch(() => null)
+				}).then((data) => data?.total24h ?? null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.gasUsed
 			? fetchAdapterProtocolMetrics({
 					protocol: currentProtocolMetadata.displayName,
 					adapterType: 'active-users',
 					dataType: 'dailyGasUsed'
-				})
-					.then((data) => data?.total24h ?? null)
-					.catch(() => null)
+				}).then((data) => data?.total24h ?? null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.expenses && protocolId
-			? fetchProtocolExpenses()
-					.then((data) => data.find((item) => item.protocolId === protocolId) ?? null)
-					.catch(() => {
-						return null
-					})
+			? fetchProtocolExpenses().then((data) => data.find((item) => item.protocolId === protocolId) ?? null)
 			: null,
-		currentProtocolMetadata.liquidity
-			? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API).catch(() => {
-					return null
-				})
-			: null,
-		currentProtocolMetadata?.liquidity
-			? fetchLiquidityTokensDataset().catch(() => {
-					return []
-				})
-			: [],
+		currentProtocolMetadata.liquidity ? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API) : null,
+		currentProtocolMetadata?.liquidity ? fetchLiquidityTokensDataset() : [],
 		fetchProtocols().catch((): ProtocolsResponse => ({ protocols: [], chains: [], parentProtocols: [] })),
 		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
-			? fetchBridgeVolumeBySlug(slug(currentProtocolMetadata.displayName))
-					.then((data) => data.dailyVolumes || null)
-					.catch(() => null)
+			? fetchBridgeVolumeBySlug(slug(currentProtocolMetadata.displayName)).then((data) => data.dailyVolumes || null)
 			: null,
 		getProtocolIncomeStatement({ metadata: currentProtocolMetadata }),
 		oracleProtocolName
-			? fetchOracleProtocolChart({ protocol: oracleProtocolName })
-					.then((data): Array<[number, number]> | null => normalizeChartPointsToMs(data))
-					.catch(() => null)
+			? fetchOracleProtocolChart({ protocol: oracleProtocolName }).then((data): Array<[number, number]> | null =>
+					normalizeChartPointsToMs(data)
+				)
 			: null,
 		oracleProtocolName
-			? fetchOracleMetrics()
-					.then((data): Record<string, number> | null => {
-						const protocolTvsByOracle = data?.oraclesTVS?.[oracleProtocolName]
-						if (!protocolTvsByOracle) return null
-						const tvs: Record<string, number> = {}
+			? fetchOracleMetrics().then((data): Record<string, number> | null => {
+					const protocolTvsByOracle = data?.oraclesTVS?.[oracleProtocolName]
+					if (!protocolTvsByOracle) return null
+					const tvs: Record<string, number> = {}
 
-						const displayNameTvs = protocolTvsByOracle[displayName]
-						const slugNameTvs = protocolTvsByOracle[slug(displayName)]
-						const selectedProtocolTvs: Record<string, Record<string, number>> = displayNameTvs
-							? { [displayName]: displayNameTvs }
-							: slugNameTvs
-								? { [slug(displayName)]: slugNameTvs }
-								: (protocolTvsByOracle as unknown as Record<string, Record<string, number>>)
-						for (const protocolKey in selectedProtocolTvs) {
-							const chainTvs = selectedProtocolTvs[protocolKey]
-							for (const chain in chainTvs) {
-								const nestedValue = Number(chainTvs[chain])
-								if (!Number.isFinite(nestedValue)) continue
-								tvs[chain] = (tvs[chain] ?? 0) + nestedValue
-							}
+					const displayNameTvs = protocolTvsByOracle[displayName]
+					const slugNameTvs = protocolTvsByOracle[slug(displayName)]
+					const selectedProtocolTvs: Record<string, Record<string, number>> = displayNameTvs
+						? { [displayName]: displayNameTvs }
+						: slugNameTvs
+							? { [slug(displayName)]: slugNameTvs }
+							: (protocolTvsByOracle as unknown as Record<string, Record<string, number>>)
+					for (const protocolKey in selectedProtocolTvs) {
+						const chainTvs = selectedProtocolTvs[protocolKey]
+						for (const chain in chainTvs) {
+							const nestedValue = Number(chainTvs[chain])
+							if (!Number.isFinite(nestedValue)) continue
+							tvs[chain] = (tvs[chain] ?? 0) + nestedValue
 						}
-						let hasTvs = false
-						for (const _ in tvs) {
-							hasTvs = true
-							break
-						}
-						return hasTvs ? tvs : null
-					})
-					.catch(() => null)
+					}
+					let hasTvs = false
+					for (const _ in tvs) {
+						hasTvs = true
+						break
+					}
+					return hasTvs ? tvs : null
+				})
 			: null,
 		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	])
@@ -777,54 +715,38 @@ export const getProtocolOverviewPageData = async ({
 					fetchAdapterProtocolChartData({
 						...descriptor.chartRequest,
 						protocol: currentProtocolMetadata.displayName ?? ''
-					})
-						.then((data) => normalizeChartPointsToMs(data))
-						.catch(() => null)
+					}).then((data) => normalizeChartPointsToMs(data))
 			])
 		),
 		'Bridge Volume': () => Promise.resolve(normalizeBridgeVolumeToChartMs(bridgeVolumeData)),
 		Treasury: () =>
-			fetchProtocolTreasuryChart({ protocol: protocolSlug })
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null),
+			fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((data) => normalizeChartPointsToMs(data)),
 		Staking: () =>
-			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'staking' })
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null),
+			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'staking' }).then((data) => normalizeChartPointsToMs(data)),
 		'Active Loans': () =>
-			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' })
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null),
+			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' }).then((data) => normalizeChartPointsToMs(data)),
 		'Active Addresses': () =>
 			fetchAdapterProtocolChartData({
 				adapterType: 'active-users',
 				protocol: currentProtocolMetadata.displayName ?? ''
-			})
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null),
+			}).then((data) => normalizeChartPointsToMs(data)),
 		'New Addresses': () =>
 			fetchAdapterProtocolChartData({
 				adapterType: 'new-users',
 				protocol: currentProtocolMetadata.displayName ?? ''
-			})
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null),
+			}).then((data) => normalizeChartPointsToMs(data)),
 		Transactions: () =>
 			fetchAdapterProtocolChartData({
 				adapterType: 'active-users',
 				protocol: currentProtocolMetadata.displayName ?? '',
 				dataType: 'dailyTransactionsCount'
-			})
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null),
+			}).then((data) => normalizeChartPointsToMs(data)),
 		'Gas Used': () =>
 			fetchAdapterProtocolChartData({
 				adapterType: 'active-users',
 				protocol: currentProtocolMetadata.displayName ?? '',
 				dataType: 'dailyGasUsed'
-			})
-				.then((data) => normalizeChartPointsToMs(data))
-				.catch(() => null)
+			}).then((data) => normalizeChartPointsToMs(data))
 	}
 
 	const missingDefaultCharts = defaultToggledCharts.filter(
@@ -1122,10 +1044,10 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 
 		const incomeStatement = await fetchJson(
 			`${V2_SERVER_URL}/metrics/financial-statement/protocol/${slug(metadata.displayName)}?q=30`
-		).catch(() => null)
+		)
 
 		if (!incomeStatement) {
-			return null
+			throw new Error(`[getStaticProps] Missing income statement for ${metadata.displayName}`)
 		}
 
 		type IncomeStatementData = NonNullable<IProtocolOverviewPageData['incomeStatement']>['data']
@@ -1328,6 +1250,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)
+		if (typeof window === 'undefined') {
+			throw err
+		}
 		return null
 	}
 }

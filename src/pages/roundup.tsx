@@ -1,6 +1,6 @@
 import { Announcement } from '~/components/Announcement'
 import Layout from '~/layout'
-import { postRuntimeLogs } from '~/utils/async'
+import { formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -64,7 +64,16 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 	if (response.ok) {
 		data = await response.json()
 	} else {
-		postRuntimeLogs(`Failed to fetch roundup messages: ${response.status} ${response.statusText}`)
+		postRuntimeLogs(
+			formatRuntimeLog({
+				event: 'roundup',
+				level: 'error',
+				status: response.status,
+				target: 'https://discordapp.com/api/channels/965023197365960734/messages',
+				message: response.statusText || 'Failed to fetch roundup messages'
+			}),
+			{ level: 'error' }
+		)
 	}
 
 	const index = data.findIndex((d) => d.content.startsWith('🦙 Llama News Round-Up')) ?? null

@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => 
 		dataType: 'dailyVolume'
 	})
 
-	if (!data) return { notFound: true }
+	if (!data) throw new Error('Missing page data')
 
 	const chains: INftChainRow[] = (data.protocols ?? []).map((chain) => {
 		return {

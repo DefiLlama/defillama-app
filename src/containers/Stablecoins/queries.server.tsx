@@ -10,7 +10,7 @@ import {
 	type StablecoinChartDataPoint
 } from '~/containers/Stablecoins/utils'
 import { getPercentChange, slug } from '~/utils'
-import { postRuntimeLogs } from '~/utils/async'
+import { formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 import {
@@ -52,7 +52,16 @@ async function withStablecoinsCache<T>(key: string, fetcher: () => Promise<T>): 
 	} catch (error) {
 		const cached = await getObjectCache(cacheKey)
 		if (cached !== null) {
-			postRuntimeLogs(`[stablecoins] [cache] [fallback] < ${cacheKey} >`)
+			postRuntimeLogs(
+				formatRuntimeLog({
+					event: 'stablecoinsCache',
+					level: 'warn',
+					status: 'fallback',
+					target: cacheKey,
+					message: 'Using cached data after fetch failure'
+				}),
+				{ level: 'warn' }
+			)
 			return cached as T
 		}
 

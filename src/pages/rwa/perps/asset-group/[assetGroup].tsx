@@ -38,7 +38,7 @@ export const getStaticProps = withPerformanceLogging(
 			activeView: DEFAULT_CHART_VIEW
 		})
 
-		if (!data) return { notFound: true }
+		if (!data) throw new Error('Missing page data')
 
 		return {
 			props: { data },
