@@ -1,7 +1,8 @@
 import { slug } from '~/utils'
 
 const PROTOCOL_FALLBACKs = {
-	'morpho-v1': 'Morpho V1'
+	'morpho-v1': 'Morpho V1',
+	'sky-staking-engine': 'Sky Staking Engine'
 }
 
 export function buildProtocolDisplayNameLookupRecord(
