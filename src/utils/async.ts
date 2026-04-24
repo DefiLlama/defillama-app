@@ -17,6 +17,7 @@ const WEBHOOK_MIN_INTERVAL_MS = Math.max(250, getEnvNumber('RUNTIME_LOG_WEBHOOK_
 const LOG_SILENT =
 	process.env.RUNTIME_LOG_SILENT === '1' ||
 	(process.env.NODE_ENV === 'production' && process.env.RUNTIME_LOG_SILENT !== '0')
+const REGEXP_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g
 
 // ─────────────────────────────────────────────────────────────
 // Shared utilities (exported for perf.ts to reuse)
@@ -59,7 +60,7 @@ function sanitizeResponseTextForError(text: string): string {
 }
 
 function escapeRegExp(value: string): string {
-	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+	return value.replace(REGEXP_SPECIAL_CHARS, '\\$&')
 }
 
 function sanitizeUrlForLogs(input: RequestInfo | URL): string {
