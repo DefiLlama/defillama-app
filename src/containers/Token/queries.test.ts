@@ -150,7 +150,7 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.summary.minBadDebtKnownCount).toBe(1)
 		expect(payload?.exposures.summary.minBadDebtUnknownCount).toBe(1)
 		expect(payload?.limitations).toContain(
-			'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
+			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 		)
 	})
 
@@ -177,6 +177,259 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.summary.chainCount).toBe(2)
 	})
 
+	it('includes API symbol matches that metadata misses for native token risk rows', async () => {
+		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
+		mockedGetTokenRiskBorrowCapacity.mockResolvedValue({
+			...createBorrowCapacityResponse(),
+			tokens: [
+				{
+					asset: {
+						symbol: 'ETH',
+						address: '0x0000000000000000000000000000000000000000',
+						priceUsd: 3000
+					},
+					chain: 'ethereum',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 100,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 10
+					},
+					byProtocol: [
+						{
+							protocol: 'sparklend',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 100,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 10
+						}
+					]
+				},
+				{
+					asset: {
+						symbol: 'ETH',
+						address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+						priceUsd: 3000
+					},
+					chain: 'ethereum',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 25,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 5
+					},
+					byProtocol: [
+						{
+							protocol: 'fluid',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 25,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 5
+						}
+					]
+				},
+				{
+					asset: {
+						symbol: 'ETH',
+						address: '0x0000000000000000000000000000000000000000',
+						priceUsd: 3000
+					},
+					chain: 'optimism',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 50,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 15
+					},
+					byProtocol: [
+						{
+							protocol: 'aave-v3',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 50,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 15
+						}
+					]
+				},
+				{
+					asset: {
+						symbol: 'WETH',
+						address: '0xWethBsc',
+						priceUsd: 3000
+					},
+					chain: 'bsc',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 200,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 20
+					},
+					byProtocol: [
+						{
+							protocol: 'venus-core-pool',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 200,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 20
+						}
+					]
+				},
+				{
+					asset: {
+						symbol: 'WBTC',
+						address: '0xBtc',
+						priceUsd: 100000
+					},
+					chain: 'ethereum',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 1000,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 1000
+					},
+					byProtocol: [
+						{
+							protocol: 'aave-v3',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 1000,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 1000
+						}
+					]
+				}
+			]
+		} as never)
+
+		const payload = await getTokenRiskData({
+			geckoId: 'ethereum',
+			tokenSymbol: 'ETH',
+			protocolLlamaswapDataset: {
+				ethereum: [
+					{
+						chain: 'ethereum',
+						address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+						displayName: 'Ethereum'
+					}
+				]
+			},
+			displayLookups
+		})
+
+		expect(payload?.scopeCandidates).toEqual([
+			{
+				key: 'ethereum:native:eth',
+				chain: 'ethereum',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Ethereum'
+			},
+			{
+				key: 'optimism:native:eth',
+				chain: 'optimism',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'optimism'
+			},
+			{
+				key: 'bsc:0xwethbsc',
+				chain: 'bsc',
+				address: '0xwethbsc',
+				displayName: 'bsc'
+			}
+		])
+		expect(payload?.exposures.summary.totalCurrentMaxBorrowUsd).toBe(375)
+		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(50)
+		expect(payload?.exposures.summary.protocolCount).toBe(4)
+		expect(payload?.exposures.summary.chainCount).toBe(3)
+	})
+
+	it('supplements wrapped metadata candidates for native token alias pages', async () => {
+		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
+		mockedGetTokenRiskBorrowCapacity.mockResolvedValue({
+			...createBorrowCapacityResponse(),
+			tokens: [
+				{
+					asset: {
+						symbol: 'ETH',
+						address: '0x0000000000000000000000000000000000000000',
+						priceUsd: 3000
+					},
+					chain: 'ethereum',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 100,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 10
+					},
+					byProtocol: [
+						{
+							protocol: 'sparklend',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 100,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 10
+						}
+					]
+				},
+				{
+					asset: {
+						symbol: 'WETH',
+						address: '0xWethBsc',
+						priceUsd: 3000
+					},
+					chain: 'bsc',
+					totals: {
+						collateralMaxBorrowUsdGovernance: null,
+						collateralMaxBorrowUsdLiquidity: 200,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 20
+					},
+					byProtocol: [
+						{
+							protocol: 'venus-core-pool',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 200,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 20
+						}
+					]
+				}
+			]
+		} as never)
+
+		const payload = await getTokenRiskData({
+			geckoId: 'ethereum',
+			tokenSymbol: 'ETH',
+			protocolLlamaswapDataset: {
+				ethereum: [
+					{
+						chain: 'bsc',
+						address: '0xWethBsc',
+						displayName: 'BSC'
+					}
+				]
+			},
+			displayLookups
+		})
+
+		expect(payload?.scopeCandidates).toEqual([
+			{
+				key: 'bsc:0xwethbsc',
+				chain: 'bsc',
+				address: '0xwethbsc',
+				displayName: 'BSC'
+			},
+			{
+				key: 'ethereum:native:eth',
+				chain: 'ethereum',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Ethereum'
+			}
+		])
+		expect(payload?.exposures.summary.totalCurrentMaxBorrowUsd).toBe(300)
+		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(30)
+		expect(payload?.exposures.summary.protocolCount).toBe(2)
+		expect(payload?.exposures.summary.chainCount).toBe(2)
+	})
+
 	it('falls back to borrow capacity symbols when protocol llamaswap metadata is missing', async () => {
 		const mockedGetTokenRiskBorrowCapacity = vi.mocked(getTokenRiskBorrowCapacity)
 		mockedGetTokenRiskBorrowCapacity.mockResolvedValue(createBorrowCapacityResponse() as never)
@@ -198,7 +451,7 @@ describe('getTokenRiskData', () => {
 		expect(payload?.exposures.summary.totalCurrentMaxBorrowUsd).toBe(750)
 		expect(payload?.exposures.summary.totalMinBadDebtAtPriceZeroUsd).toBe(250)
 		expect(payload?.limitations).not.toContain(
-			'Current exposure is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
+			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 		)
 	})
 

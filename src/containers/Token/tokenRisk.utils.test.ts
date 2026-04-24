@@ -6,6 +6,7 @@ import {
 	indexBorrowCapacityByAssetKey,
 	inferTokenRiskCandidatesFromBorrowCapacity,
 	mergeIndexedBorrowCapacity,
+	mergeTokenRiskCandidates,
 	resolveTokenRiskCandidates
 } from './tokenRisk.utils'
 
@@ -50,7 +51,7 @@ function createTokenEntry(
 
 describe('tokenRisk utils', () => {
 	it('resolves token risk candidates from llamaswap metadata and dedupes by chain/address', () => {
-		const candidates = resolveTokenRiskCandidates('usdc', {
+		const candidates = resolveTokenRiskCandidates('usdc', 'USDC', {
 			usdc: [
 				{ chain: 'Ethereum', address: '0xA0b8', displayName: 'Ethereum' },
 				{ chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum duplicate' },
@@ -91,16 +92,37 @@ describe('tokenRisk utils', () => {
 		expect(merged).toHaveLength(2)
 	})
 
-	it('infers token risk candidates from borrow capacity symbols', () => {
+	it('canonicalizes native token sentinel addresses when indexing borrow capacity', () => {
+		const tokens = [
+			createTokenEntry({
+				asset: { symbol: 'ETH', address: '0x0000000000000000000000000000000000000000', priceUsd: 3000 }
+			}),
+			createTokenEntry({
+				asset: { symbol: 'ETH', address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', priceUsd: 3000 }
+			})
+		]
+
+		const indexedTokens = indexBorrowCapacityByAssetKey(tokens)
+		const merged = mergeIndexedBorrowCapacity(indexedTokens, ['ethereum:native:eth'])
+
+		expect(indexedTokens.get('ethereum:native:eth')).toHaveLength(2)
+		expect(merged).toHaveLength(2)
+	})
+
+	it('infers token risk candidates from borrow capacity symbols and native wrapped aliases', () => {
 		const candidates = inferTokenRiskCandidatesFromBorrowCapacity({
-			tokenSymbol: 'WSTETH',
+			tokenSymbol: 'ETH',
 			tokens: [
 				createTokenEntry({
-					asset: { symbol: 'wstETH', address: '0xAsset1', priceUsd: 100 }
+					asset: { symbol: 'ETH', address: '0x0000000000000000000000000000000000000000', priceUsd: 100 }
 				}),
 				createTokenEntry({
 					chain: 'base',
-					asset: { symbol: 'WSTETH', address: '0xAsset2', priceUsd: 100 }
+					asset: { symbol: 'WETH', address: '0xAsset2', priceUsd: 100 }
+				}),
+				createTokenEntry({
+					chain: 'ethereum',
+					asset: { symbol: 'WBTC', address: '0xBtc', priceUsd: 100 }
 				})
 			],
 			chainDisplayNames: new Map([
@@ -111,9 +133,9 @@ describe('tokenRisk utils', () => {
 
 		expect(candidates).toEqual([
 			{
-				key: 'ethereum:0xasset1',
+				key: 'ethereum:native:eth',
 				chain: 'ethereum',
-				address: '0xasset1',
+				address: '0x0000000000000000000000000000000000000000',
 				displayName: 'Ethereum'
 			},
 			{
@@ -121,6 +143,48 @@ describe('tokenRisk utils', () => {
 				chain: 'base',
 				address: '0xasset2',
 				displayName: 'Base'
+			}
+		])
+	})
+
+	it('dedupes merged token risk candidates by key while preserving primary metadata order', () => {
+		const candidates = mergeTokenRiskCandidates(
+			[
+				{
+					key: 'ethereum:native:eth',
+					chain: 'ethereum',
+					address: '0x0000000000000000000000000000000000000000',
+					displayName: 'Ethereum'
+				}
+			],
+			[
+				{
+					key: 'ethereum:native:eth',
+					chain: 'ethereum',
+					address: '0x0000000000000000000000000000000000000000',
+					displayName: 'Ethereum duplicate'
+				},
+				{
+					key: 'optimism:native:eth',
+					chain: 'optimism',
+					address: '0x0000000000000000000000000000000000000000',
+					displayName: 'Optimism'
+				}
+			]
+		)
+
+		expect(candidates).toEqual([
+			{
+				key: 'ethereum:native:eth',
+				chain: 'ethereum',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Ethereum'
+			},
+			{
+				key: 'optimism:native:eth',
+				chain: 'optimism',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Optimism'
 			}
 		])
 	})

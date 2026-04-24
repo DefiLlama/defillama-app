@@ -4,10 +4,13 @@ import type { TokenRiskBorrowCapacityResponse } from './api.types'
 import type { TokenRiskResponse } from './tokenRisk.types'
 import {
 	buildExposuresSection,
+	CANONICAL_NATIVE_TOKEN_ADDRESS,
 	filterTokenRiskCandidatesWithData,
+	hasNativeWrappedTokenRiskAlias,
 	indexBorrowCapacityByAssetKey,
 	inferTokenRiskCandidatesFromBorrowCapacity,
 	mergeIndexedBorrowCapacity,
+	mergeTokenRiskCandidates,
 	resolveTokenRiskCandidates,
 	TOKEN_RISK_LIMITATIONS_COMMON,
 	TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS
@@ -83,15 +86,21 @@ export async function getTokenRiskData({
 	borrowCapacitySnapshot
 }: TokenRiskQueryInput): Promise<TokenRiskResponse | null> {
 	const resolvedBorrowCapacitySnapshot = borrowCapacitySnapshot ?? (await getIndexedBorrowCapacityCache())
-	const metadataCandidates = resolveTokenRiskCandidates(geckoId, protocolLlamaswapDataset)
+	const metadataCandidates = resolveTokenRiskCandidates(geckoId, tokenSymbol, protocolLlamaswapDataset)
+	const inferredCandidates = inferTokenRiskCandidatesFromBorrowCapacity({
+		tokenSymbol,
+		tokens: resolvedBorrowCapacitySnapshot.data.tokens,
+		chainDisplayNames: displayLookups.chainDisplayNames
+	})
+	const shouldSupplementMetadataCandidates =
+		metadataCandidates.some((candidate) => candidate.address === CANONICAL_NATIVE_TOKEN_ADDRESS) ||
+		hasNativeWrappedTokenRiskAlias(tokenSymbol)
 	const candidates =
-		metadataCandidates.length > 0
-			? metadataCandidates
-			: inferTokenRiskCandidatesFromBorrowCapacity({
-					tokenSymbol,
-					tokens: resolvedBorrowCapacitySnapshot.data.tokens,
-					chainDisplayNames: displayLookups.chainDisplayNames
-				})
+		metadataCandidates.length > 0 && shouldSupplementMetadataCandidates
+			? mergeTokenRiskCandidates(metadataCandidates, inferredCandidates)
+			: metadataCandidates.length > 0
+				? metadataCandidates
+				: inferredCandidates
 	if (candidates.length === 0) return null
 
 	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, resolvedBorrowCapacitySnapshot.indexedTokens)

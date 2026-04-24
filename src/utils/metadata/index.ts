@@ -16,7 +16,7 @@ import rwaList from '../../../.cache/rwa.json'
 import rwaPerpsList from '../../../.cache/rwaPerps.json'
 import tokenlistRaw from '../../../.cache/tokenlist.json'
 import tokenDirectoryRaw from '../../../.cache/tokens.json'
-import { createStringLookupMap } from './displayLookups'
+import { buildChainDisplayNameLookupRecord, createStringLookupMap } from './displayLookups'
 import { fetchCoreMetadata } from './fetch'
 import type {
 	ICategoriesAndTags,
@@ -61,7 +61,10 @@ const metadataCache: {
 	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
 	tokenDirectory: tokenDirectoryRaw as TokenDirectory,
 	protocolDisplayNames: createStringLookupMap(protocolDisplayNamesRaw as Record<string, string>),
-	chainDisplayNames: createStringLookupMap(chainDisplayNamesRaw as Record<string, string>),
+	chainDisplayNames: createStringLookupMap({
+		...(chainDisplayNamesRaw as Record<string, string>),
+		...buildChainDisplayNameLookupRecord(chainMetadata)
+	}),
 	liquidationsTokenSymbols: liquidationsTokenSymbolsRaw as string[],
 	liquidationsTokenSymbolsSet: new Set(liquidationsTokenSymbolsRaw as string[]),
 	emissionsProtocolsList: emissionsProtocolsListRaw as string[],
