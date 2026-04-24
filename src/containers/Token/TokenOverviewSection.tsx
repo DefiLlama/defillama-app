@@ -36,10 +36,10 @@ const TOKEN_OVERVIEW_CHART_COLORS: Record<TokenOverviewChartLabel, string> = {
 
 const TOKEN_OVERVIEW_CHART_ORDER: TokenOverviewChartLabel[] = ['Token Price', 'Token Volume', 'Mcap', 'FDV']
 const FDV_TOOLTIP =
-	"Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko."
+	"Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating."
 const OUTSTANDING_FDV_TOOLTIP =
 	'Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
-const TOKEN_LIQUIDITY_TOOLTIP =
+const LIQUIDITY_TOOLTIP =
 	'Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data.'
 const CIRCULATING_SUPPLY_TOOLTIP =
 	'Circulating supply is the number of tokens currently available and circulating in the market.'
@@ -284,7 +284,7 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 				{overview.tokenLiquidity ? (
 					<MetricSection
 						label="Token Liquidity"
-						tooltip={TOKEN_LIQUIDITY_TOOLTIP}
+						tooltip={LIQUIDITY_TOOLTIP}
 						value={formatCurrency(overview.tokenLiquidity.total)}
 					>
 						{overview.tokenLiquidity.pools.slice(0, 6).map(([protocol, chain, value]) => (
@@ -470,7 +470,6 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									name="search"
 									inputMode="search"
 									placeholder="Search..."
-									autoFocus
 									value={metricsSearchValue}
 									className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 									onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
