@@ -43,7 +43,13 @@ export function SparklineChart({
 
 	useEffect(() => {
 		const dom = document.getElementById(id)
-		if (!dom) return
+		if (!dom) {
+			if (chartRef.current && !chartRef.current.isDisposed()) {
+				chartRef.current.dispose()
+			}
+			chartRef.current = null
+			return
+		}
 
 		let instance = echarts.getInstanceByDom(dom)
 		if (!instance) {
@@ -130,6 +136,8 @@ export function SparklineChart({
 
 		const shadowColor = rgb ? `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, 0.35)` : resolvedLine
 
+		if (instance.isDisposed()) return
+
 		if (!seriesData.length) {
 			instance.clear()
 		} else {
@@ -204,10 +212,6 @@ export function SparklineChart({
 				},
 				true
 			)
-		}
-
-		return () => {
-			chartRef.current = null
 		}
 	}, [id, seriesData, color, areaColor, smooth])
 

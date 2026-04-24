@@ -72,13 +72,21 @@ export function BarSparkline({ data, className, height = 48, focusable, maxBars 
 
 	useEffect(() => {
 		const dom = document.getElementById(id)
-		if (!dom) return
+		if (!dom) {
+			if (chartRef.current && !chartRef.current.isDisposed()) {
+				chartRef.current.dispose()
+			}
+			chartRef.current = null
+			return
+		}
 
 		let instance = echarts.getInstanceByDom(dom)
 		if (!instance) {
 			instance = echarts.init(dom, undefined, { renderer: 'canvas' })
 		}
 		chartRef.current = instance
+
+		if (instance.isDisposed()) return
 
 		if (!seriesData.length) {
 			instance.clear()
@@ -147,10 +155,6 @@ export function BarSparkline({ data, className, height = 48, focusable, maxBars 
 				},
 				true
 			)
-		}
-
-		return () => {
-			chartRef.current = null
 		}
 	}, [id, seriesData, barDataWithColors])
 

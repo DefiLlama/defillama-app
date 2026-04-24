@@ -12,7 +12,9 @@ export function useChartCleanup(id: string, onCleanup?: () => void) {
 			const node = document.getElementById(id)
 			if (node) {
 				const instance = echarts.getInstanceByDom(node)
-				instance?.dispose()
+				if (instance && !instance.isDisposed()) {
+					instance.dispose()
+				}
 			}
 			onCleanupRef.current?.()
 		}

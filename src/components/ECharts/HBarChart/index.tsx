@@ -192,12 +192,14 @@ export default function HBarChart({
 			}
 		}
 
-		instance.on('finished', syncLogos)
-		requestAnimationFrame(syncLogos)
+		if (!instance.isDisposed()) {
+			instance.on('finished', syncLogos)
+		}
+		const syncLogosFrame = requestAnimationFrame(syncLogos)
 
 		const observer = new ResizeObserver((entries) => {
 			const inst = chartRef.current
-			if (!inst) return
+			if (!inst || inst.isDisposed()) return
 			const entry = entries[0]
 			if (!entry) return
 			const width = entry.contentRect.width
@@ -210,11 +212,14 @@ export default function HBarChart({
 		observer.observe(chartDom)
 
 		return () => {
+			cancelAnimationFrame(syncLogosFrame)
 			observer.disconnect()
 			chartRef.current = null
 			emitReady(null)
-			instance?.off('finished', syncLogos)
-			instance?.dispose()
+			if (!instance.isDisposed()) {
+				instance.off('finished', syncLogos)
+				instance.dispose()
+			}
 		}
 	}, [id, categories, values, valueSymbol, color, colors, logos, hasLogos, isThemeDark])
 

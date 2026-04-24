@@ -425,7 +425,10 @@ export function attachEventHoverHandlers({
 	let clearMarkLineTimer: ReturnType<typeof setTimeout> | null = null
 	let activeMarkLineShapeKey: string | null = null
 
+	const isDisposed = () => disposed || instance.isDisposed()
+
 	const setEventMarkLineGraphic = (eventDate: number) => {
+		if (isDisposed()) return
 		const shape = getEventMarkLineShape(eventDate)
 		if (!shape) return
 		const nextShapeKey = `${shape.x1}:${shape.y1}:${shape.x2}:${shape.y2}`
@@ -444,18 +447,19 @@ export function attachEventHoverHandlers({
 	}
 
 	const syncActiveEventMarkLine = () => {
-		if (disposed || activeMarkLineEventDate == null) return
+		if (isDisposed() || activeMarkLineEventDate == null) return
 		setEventMarkLineGraphic(activeMarkLineEventDate)
 	}
 
 	const refreshEventRail = () => {
+		if (isDisposed()) return
 		instance.setOption({
 			series: [{ id: EVENT_RAIL_SERIES_ID, data: eventRailData }]
 		})
 	}
 
 	const clearEventMarkLineOnly = () => {
-		if (disposed || activeMarkLineEventDate == null) return
+		if (isDisposed() || activeMarkLineEventDate == null) return
 		activeMarkLineEventDate = null
 		activeMarkLineShapeKey = null
 		instance.setOption({
@@ -464,7 +468,7 @@ export function attachEventHoverHandlers({
 	}
 
 	const clearEventHover = () => {
-		if (disposed) return
+		if (isDisposed()) return
 		const shouldRefreshEventRail = hoverState.hoveredEventDate != null
 		hoverState.hoveredEventDate = null
 		clearEventMarkLineOnly()
@@ -482,7 +486,7 @@ export function attachEventHoverHandlers({
 	const hasEvents = eventRailData.length > 0
 	const hasPointEvents = eventRailData.some((event) => event.rangeStart == null)
 	const handleEventMouseOver = (params: { seriesName?: string; data?: unknown }) => {
-		if (disposed || params.seriesName !== 'Events') return
+		if (isDisposed() || params.seriesName !== 'Events') return
 		if (clearMarkLineTimer != null) {
 			clearTimeout(clearMarkLineTimer)
 			clearMarkLineTimer = null
@@ -510,15 +514,15 @@ export function attachEventHoverHandlers({
 	}
 
 	const handleEventMouseOut = (params: { seriesName?: string }) => {
-		if (disposed || params.seriesName !== 'Events') return
+		if (isDisposed() || params.seriesName !== 'Events') return
 		scheduleClearEventMarkLine()
 	}
 
-	if (hasEvents) {
+	if (hasEvents && !isDisposed()) {
 		instance.on('mouseover', handleEventMouseOver)
 		instance.on('mouseout', handleEventMouseOut)
 	}
-	if (hasPointEvents) {
+	if (hasPointEvents && !isDisposed()) {
 		instance.on('datazoom', syncActiveEventMarkLine)
 		instance.on('finished', syncActiveEventMarkLine)
 	}
@@ -528,18 +532,18 @@ export function attachEventHoverHandlers({
 			clearTimeout(clearMarkLineTimer)
 			clearMarkLineTimer = null
 		}
-		if (activeMarkLineEventDate != null) {
+		if (activeMarkLineEventDate != null && !instance.isDisposed()) {
 			instance.setOption({
 				graphic: [{ id: EVENT_MARKLINE_GRAPHIC_ID, invisible: true }]
 			})
 			activeMarkLineEventDate = null
 			activeMarkLineShapeKey = null
 		}
-		if (hasEvents) {
+		if (hasEvents && !instance.isDisposed()) {
 			instance.off('mouseover', handleEventMouseOver)
 			instance.off('mouseout', handleEventMouseOut)
 		}
-		if (hasPointEvents) {
+		if (hasPointEvents && !instance.isDisposed()) {
 			instance.off('datazoom', syncActiveEventMarkLine)
 			instance.off('finished', syncActiveEventMarkLine)
 		}

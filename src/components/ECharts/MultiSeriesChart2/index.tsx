@@ -73,6 +73,10 @@ function getZeroBaselineYAxisMin(extent: AxisExtent) {
 	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
 }
 
+function isChartDisposed(instance: echarts.ECharts) {
+	return instance.isDisposed()
+}
+
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
 function createHatchPattern(color: string, opacity: number): { image: HTMLCanvasElement; repeat: 'repeat' } | null {
@@ -1095,7 +1099,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				layer.appendChild(img)
 			}
 		}
-		instance.on('finished', syncCategoryLogos)
+		if (!isChartDisposed(instance)) {
+			instance.on('finished', syncCategoryLogos)
+		}
 		requestAnimationFrame(syncCategoryLogos)
 
 		globalOutCleanupRef.current?.()
@@ -1103,7 +1109,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		if (alwaysShowTooltip && series.length > 0 && datasetLength > 0) {
 			const dataIndex = datasetLength - 1
-			const showTip = () =>
+			const showTip = () => {
+				if (isChartDisposed(instance)) return
 				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
@@ -1114,18 +1121,25 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 					// Use tooltip.position in option by default.
 					position: [60, 0]
 				})
+			}
 
 			showTip()
 
 			const onGlobalOut = () => showTip()
-			instance.on('globalout', onGlobalOut)
+			if (!isChartDisposed(instance)) {
+				instance.on('globalout', onGlobalOut)
+			}
 			globalOutCleanupRef.current = () => {
+				if (isChartDisposed(instance)) return
 				instance.off('globalout', onGlobalOut)
 			}
 		} else {
-			instance.dispatchAction({ type: 'hideTip' })
+			if (!isChartDisposed(instance)) {
+				instance.dispatchAction({ type: 'hideTip' })
+			}
 		}
 		return () => {
+			if (isChartDisposed(instance)) return
 			instance.off('finished', syncCategoryLogos)
 		}
 	}, [

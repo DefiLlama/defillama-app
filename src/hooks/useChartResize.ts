@@ -32,7 +32,9 @@ import { useEffect } from 'react'
 export function useChartResize(instanceRef: RefObject<echarts.ECharts | null>) {
 	useEffect(() => {
 		const resize = () => {
-			instanceRef.current?.resize()
+			const instance = instanceRef.current
+			if (!instance || instance.isDisposed()) return
+			instance.resize()
 		}
 
 		window.addEventListener('resize', resize)

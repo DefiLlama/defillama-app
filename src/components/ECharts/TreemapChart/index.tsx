@@ -446,6 +446,7 @@ export default function TreemapChart({
 
 		// Container height changes don't automatically trigger echarts resize.
 		const raf = requestAnimationFrame(() => {
+			if (instance.isDisposed()) return
 			instance.resize()
 		})
 		return () => cancelAnimationFrame(raf)
