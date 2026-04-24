@@ -19,23 +19,28 @@ export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ p
 		return { notFound: true }
 	}
 
+	const normalizedChain = chain === 'all' ? 'All' : chain
 	const metadataModule = await import('~/utils/metadata')
 	await metadataModule.refreshMetadataIfStale()
 	const metadataCache = metadataModule.default
 
+	if (normalizedChain !== 'All' && !metadataCache.chainMetadata[slug(normalizedChain)]) {
+		return { notFound: true }
+	}
+
 	const data = await getChainOverviewData({
-		chain,
+		chain: normalizedChain,
 		chainMetadata: metadataCache.chainMetadata,
 		protocolMetadata: metadataCache.protocolMetadata,
 		protocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
 	})
 
 	if (!data) {
-		return { notFound: true }
+		throw new Error(`Missing page data for route=/chain/[chain] chain=${normalizedChain}`)
 	}
 
 	const { questions: entityQuestions } =
-		chain.toLowerCase() !== 'all' ? await fetchEntityQuestions(chain, 'chain') : { questions: [] }
+		normalizedChain !== 'All' ? await fetchEntityQuestions(normalizedChain, 'chain') : { questions: [] }
 
 	return {
 		props: { ...data, entityQuestions },

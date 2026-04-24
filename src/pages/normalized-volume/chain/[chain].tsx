@@ -59,9 +59,9 @@ export const getStaticProps = withPerformanceLogging(
 			chain: metadataCache.chainMetadata[chain].name,
 			route: 'normalized-volume',
 			metricName: type
-		}).catch((e) => console.info(`Chain page data not found ${adapterType} : chain:${chain}`, e))
+		})
 
-		if (!data) return { notFound: true }
+		if (!data) throw new Error(`Missing page data for route=/normalized-volume/chain/[chain] chain=${chain}`)
 
 		return {
 			props: data,

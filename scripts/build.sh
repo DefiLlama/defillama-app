@@ -13,6 +13,46 @@ set -a
 [ -f .env ] && . .env
 set +a
 
+# Capture the full build flow, including metadata failures, before the
+# notification step reads and uploads build.log.
+LOG_PIPE="$(mktemp -u "${TMPDIR:-/tmp}/defillama-build-log.XXXXXX")"
+TEE_PID=""
+BUILD_LOG_REDIRECTED=0
+
+cleanup_build_log_pipe() {
+  if [ "$BUILD_LOG_REDIRECTED" = "1" ]; then
+    exec 1>&3 2>&4 2>/dev/null || true
+    exec 3>&- 4>&- 2>/dev/null || true
+    BUILD_LOG_REDIRECTED=0
+  fi
+
+  if [ -n "$TEE_PID" ] && kill -0 "$TEE_PID" 2>/dev/null; then
+    kill "$TEE_PID" 2>/dev/null || true
+    wait "$TEE_PID" 2>/dev/null || true
+  fi
+
+  [ -n "$LOG_PIPE" ] && rm -f "$LOG_PIPE"
+}
+
+trap cleanup_build_log_pipe EXIT INT TERM
+
+if ! mkfifo "$LOG_PIPE"; then
+  echo "Failed to create build log pipe: $LOG_PIPE" >&2
+  exit 1
+fi
+
+tee build.log < "$LOG_PIPE" &
+TEE_PID=$!
+if ! kill -0 "$TEE_PID" 2>/dev/null; then
+  echo "Failed to start build log tee" >&2
+  exit 1
+fi
+
+exec 3>&1 4>&2
+exec > "$LOG_PIPE" 2>&1
+BUILD_LOG_REDIRECTED=1
+rm -f "$LOG_PIPE"
+
 # Resolve branch name (build-msg.js has exhaustive CI provider fallbacks)
 BRANCH_NAME="${BRANCH_NAME:-${COOLIFY_BRANCH:-}}"
 if [ -z "$BRANCH_NAME" ] && [ -d .git ]; then
@@ -40,8 +80,8 @@ fi
 
 # 2. Run Next.js build, capturing output for log upload
 if [ "${BUILD_STATUS:-0}" -eq 0 ]; then
-  bun --bun next build 2>&1 | tee build.log
-  BUILD_STATUS=${PIPESTATUS[0]}
+  bun --bun next build
+  BUILD_STATUS=$?
 else
   echo "Skipping next build due to earlier failure"
 fi
@@ -74,7 +114,6 @@ echo "======================="
 [ -n "$BRANCH_NAME" ] && echo "🌿 [$BRANCH_NAME]"
 echo "======================="
 echo ""
-
 # 3. Sync static assets to/from R2 so new deployments can serve old build chunks
 if [ "${SKIP_ARTIFACT_SYNC:-0}" = "1" ]; then
   echo "SKIP_ARTIFACT_SYNC=1, skipping rclone sync"
@@ -84,6 +123,13 @@ elif [ $BUILD_STATUS -eq 0 ]; then
 else
   echo "Build failed, skipping .next artifact sync"
 fi
+
+exec 1>&3 2>&4
+exec 3>&- 4>&-
+wait "$TEE_PID"
+TEE_PID=""
+BUILD_LOG_REDIRECTED=0
+trap - EXIT INT TERM
 
 # 4. Send build status notification to Discord
 export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME

@@ -31,9 +31,16 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getRWAPerpsVenuePage({ venue: params.venue, activeView: DEFAULT_CHART_VIEW })
-		if (!data) {
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const venue = params.venue
+		const validVenues = new Set(metadataCache.rwaPerpsList.venues.map((item) => rwaSlug(item)))
+		if (!validVenues.has(venue)) {
 			return { notFound: true }
+		}
+
+		const data = await getRWAPerpsVenuePage({ venue, activeView: DEFAULT_CHART_VIEW })
+		if (!data) {
+			throw new Error(`Missing page data for route=/rwa/perps/venue/[venue] venue=${venue}`)
 		}
 
 		return {

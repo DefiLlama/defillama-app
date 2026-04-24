@@ -116,14 +116,7 @@ const emptyMarketData: TokenOverviewMarketData = {
 function needsCoinDetailFallback(tokenEntry: ITokenListEntry | null): boolean {
 	if (!tokenEntry) return true
 
-	return (
-		tokenEntry.current_price == null ||
-		tokenEntry.circulating_supply == null ||
-		tokenEntry.total_supply == null ||
-		tokenEntry.market_cap == null ||
-		tokenEntry.fully_diluted_valuation == null ||
-		tokenEntry.total_volume == null
-	)
+	return tokenEntry.circulating_supply == null || tokenEntry.total_supply == null || tokenEntry.total_volume == null
 }
 
 type TokenOverviewCoinDetail = CoinGeckoCoinDetailResultForOptions<{
@@ -152,22 +145,39 @@ async function fetchTokenOverviewCoinDetail(geckoId: string): Promise<TokenOverv
 
 function buildTokenMarketDataFallback(
 	coinDetail: TokenOverviewCoinDetail | null | undefined,
-	currentPriceViaLlama: number | null
+	currentPriceViaLlama: { price?: number | null; timestamp?: number | null } | null
 ): TokenOverviewMarketData {
 	const marketData = coinDetail?.market_data
+	const currentPrice = currentPriceViaLlama?.price ?? marketData?.current_price?.usd ?? null
+	const circulatingSupply = marketData?.circulating_supply ?? null
+	const totalSupply = marketData?.total_supply ?? null
+	const maxSupply = marketData?.max_supply ?? null
+	const ath = resolveCurrentAth({
+		currentPrice,
+		currentPriceTimestamp: currentPriceViaLlama?.timestamp ?? null,
+		ath: marketData?.ath?.usd ?? null,
+		athDate: marketData?.ath_date?.usd ?? null
+	})
+	const atl = resolveCurrentAtl({
+		currentPrice,
+		currentPriceTimestamp: currentPriceViaLlama?.timestamp ?? null,
+		atl: marketData?.atl?.usd ?? null,
+		atlDate: marketData?.atl_date?.usd ?? null
+	})
 
 	return {
-		currentPrice: marketData?.current_price?.usd ?? currentPriceViaLlama,
+		currentPrice,
 		percentChange24h: null,
-		ath: marketData?.ath?.usd ?? null,
-		athDate: marketData?.ath_date?.usd ?? null,
-		atl: marketData?.atl?.usd ?? null,
-		atlDate: marketData?.atl_date?.usd ?? null,
-		circulatingSupply: marketData?.circulating_supply ?? null,
-		totalSupply: marketData?.total_supply ?? null,
-		maxSupply: marketData?.max_supply ?? null,
-		mcap: marketData?.market_cap?.usd ?? null,
-		fdv: marketData?.fully_diluted_valuation?.usd ?? null,
+		ath: ath.value,
+		athDate: ath.date,
+		atl: atl.value,
+		atlDate: atl.date,
+		circulatingSupply,
+		totalSupply,
+		maxSupply,
+		mcap: calculateMarketValue(currentPrice, circulatingSupply) ?? marketData?.market_cap?.usd ?? null,
+		fdv:
+			calculateMarketValue(currentPrice, maxSupply ?? totalSupply) ?? marketData?.fully_diluted_valuation?.usd ?? null,
 		volume24h: {
 			total: marketData?.total_volume?.usd ?? null,
 			cex: null,
@@ -176,11 +186,66 @@ function buildTokenMarketDataFallback(
 	}
 }
 
+function resolveCurrentAth({
+	currentPrice,
+	currentPriceTimestamp,
+	ath,
+	athDate
+}: {
+	currentPrice: number | null
+	currentPriceTimestamp: number | null
+	ath: number | null
+	athDate: string | null
+}): { value: number | null; date: string | null } {
+	if (currentPrice == null || ath == null || !Number.isFinite(currentPrice) || currentPrice <= ath) {
+		return { value: ath, date: athDate }
+	}
+
+	const currentDate =
+		currentPriceTimestamp != null && Number.isFinite(currentPriceTimestamp)
+			? new Date(currentPriceTimestamp * 1000).toISOString()
+			: new Date().toISOString()
+
+	return { value: currentPrice, date: currentDate }
+}
+
+function resolveCurrentAtl({
+	currentPrice,
+	currentPriceTimestamp,
+	atl,
+	atlDate
+}: {
+	currentPrice: number | null
+	currentPriceTimestamp: number | null
+	atl: number | null
+	atlDate: string | null
+}): { value: number | null; date: string | null } {
+	if (currentPrice == null || atl == null || !Number.isFinite(currentPrice) || currentPrice >= atl) {
+		return { value: atl, date: atlDate }
+	}
+
+	const currentDate =
+		currentPriceTimestamp != null && Number.isFinite(currentPriceTimestamp)
+			? new Date(currentPriceTimestamp * 1000).toISOString()
+			: new Date().toISOString()
+
+	return { value: currentPrice, date: currentDate }
+}
+
+function calculateMarketValue(price: number | null, supply: number | null): number | null {
+	if (price == null || supply == null || !Number.isFinite(price) || !Number.isFinite(supply)) {
+		return null
+	}
+
+	return price * supply
+}
+
 function buildTokenMarketData(
 	tokenEntry: ITokenListEntry | null,
 	tickers: CgChartResponse['data']['coinData']['tickers'] | undefined,
 	cgExchangeIdentifiers: string[],
-	marketDataFallback: TokenOverviewMarketData = emptyMarketData
+	marketDataFallback: TokenOverviewMarketData = emptyMarketData,
+	currentPriceTimestamp: number | null = null
 ): TokenOverviewMarketData {
 	if (!tokenEntry) {
 		return marketDataFallback
@@ -208,18 +273,38 @@ function buildTokenMarketData(
 		dexVolume = dex
 	}
 
-	return {
-		currentPrice: tokenEntry.current_price ?? marketDataFallback.currentPrice,
-		percentChange24h: tokenEntry.price_change_percentage_24h ?? marketDataFallback.percentChange24h,
+	const currentPrice = marketDataFallback.currentPrice ?? tokenEntry.current_price
+	const circulatingSupply = tokenEntry.circulating_supply ?? marketDataFallback.circulatingSupply
+	const totalSupply = tokenEntry.total_supply ?? marketDataFallback.totalSupply
+	const maxSupply = tokenEntry.max_supply ?? marketDataFallback.maxSupply
+	const ath = resolveCurrentAth({
+		currentPrice,
+		currentPriceTimestamp,
 		ath: tokenEntry.ath ?? marketDataFallback.ath,
-		athDate: tokenEntry.ath_date ?? marketDataFallback.athDate,
+		athDate: tokenEntry.ath_date ?? marketDataFallback.athDate
+	})
+	const atl = resolveCurrentAtl({
+		currentPrice,
+		currentPriceTimestamp,
 		atl: tokenEntry.atl ?? marketDataFallback.atl,
-		atlDate: tokenEntry.atl_date ?? marketDataFallback.atlDate,
-		circulatingSupply: tokenEntry.circulating_supply ?? marketDataFallback.circulatingSupply,
-		totalSupply: tokenEntry.total_supply ?? marketDataFallback.totalSupply,
-		maxSupply: tokenEntry.max_supply ?? marketDataFallback.maxSupply,
-		mcap: tokenEntry.market_cap ?? marketDataFallback.mcap,
-		fdv: tokenEntry.fully_diluted_valuation ?? marketDataFallback.fdv,
+		atlDate: tokenEntry.atl_date ?? marketDataFallback.atlDate
+	})
+
+	return {
+		currentPrice,
+		percentChange24h: tokenEntry.price_change_percentage_24h ?? marketDataFallback.percentChange24h,
+		ath: ath.value,
+		athDate: ath.date,
+		atl: atl.value,
+		atlDate: atl.date,
+		circulatingSupply,
+		totalSupply,
+		maxSupply,
+		mcap: calculateMarketValue(currentPrice, circulatingSupply) ?? tokenEntry.market_cap ?? marketDataFallback.mcap,
+		fdv:
+			calculateMarketValue(currentPrice, maxSupply ?? totalSupply) ??
+			tokenEntry.fully_diluted_valuation ??
+			marketDataFallback.fdv,
 		volume24h: {
 			total: tokenEntry.total_volume ?? marketDataFallback.volume24h.total,
 			cex: cexVolume,
@@ -407,9 +492,7 @@ export async function getTokenOverviewData({
 	] = await Promise.all([
 		geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
 		shouldFetchCoinDetail ? fetchTokenOverviewCoinDetail(geckoId) : Promise.resolve(null),
-		shouldFetchCoinDetail
-			? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null)
-			: Promise.resolve(null),
+		geckoId ? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null) : Promise.resolve(null),
 		shouldFetchProtocolData ? fetchProtocolOverviewMetrics(protocolSlug!).catch(() => null) : Promise.resolve(null),
 		source.kind === 'prefetched'
 			? Promise.resolve(source.raises)
@@ -439,12 +522,13 @@ export async function getTokenOverviewData({
 					])
 				: [null, null]
 
-	const marketDataFallback = buildTokenMarketDataFallback(coinDetail, currentPriceViaLlama?.price ?? null)
+	const marketDataFallback = buildTokenMarketDataFallback(coinDetail, currentPriceViaLlama)
 	const marketData = buildTokenMarketData(
 		tokenEntry,
 		cgChart?.data?.coinData?.tickers,
 		cgExchangeIdentifiers,
-		marketDataFallback
+		marketDataFallback,
+		currentPriceViaLlama?.timestamp ?? null
 	)
 	const treasury = shouldFetchTreasury ? buildTreasurySummary(treasuries) : null
 

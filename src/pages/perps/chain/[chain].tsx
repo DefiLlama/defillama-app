@@ -61,9 +61,9 @@ export const getStaticProps = withPerformanceLogging(
 			route: 'perps',
 			hasOpenInterest: metadataCache.chainMetadata[chain].openInterest,
 			metricName: type
-		}).catch((e) => console.info(`Chain page data not found ${adapterType} : chain:${chain}`, e))
+		})
 
-		if (!data) return { notFound: true }
+		if (!data) throw new Error(`Missing page data for route=/perps/chain/[chain] chain=${chain}`)
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', {
 			subPage: 'perps',

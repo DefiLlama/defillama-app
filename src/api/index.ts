@@ -6,7 +6,7 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { fetchJson, formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { getErrorMessage } from '~/utils/error'
 import type {
@@ -81,9 +81,16 @@ export async function fetchCoinPrices(
 		},
 		(batch, err) => {
 			postRuntimeLogs(
-				`Failed to fetch prices for batch: ${batch.join(', ')} (searchWidth=${options?.searchWidth ?? 'default'})`
+				formatRuntimeLog({
+					event: 'fetchCoinPrices',
+					level: 'error',
+					status: 'batch-failed',
+					target: `${COINS_PRICES_API_URL}/current`,
+					context: { coins: batch, searchWidth: options?.searchWidth ?? 'default' },
+					message: getErrorMessage(err)
+				}),
+				{ level: 'error' }
 			)
-			postRuntimeLogs(getErrorMessage(err))
 			return {}
 		}
 	)

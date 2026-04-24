@@ -10,6 +10,7 @@ import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -28,6 +29,10 @@ export const getStaticProps = withPerformanceLogging(
 		const chain = !params.chain || params.chain === 'all' ? 'All' : params.chain
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
+		if (chain !== 'All' && !metadataCache.chainMetadata[slug(chain)]) {
+			return { notFound: true }
+		}
+
 		const data = await getChainOverviewData({
 			chain: chain,
 			chainMetadata: metadataCache.chainMetadata,
@@ -35,7 +40,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
-			return { notFound: true }
+			throw new Error(`Missing page data for route=/chart/chain/[chain] chain=${chain}`)
 		}
 
 		return {

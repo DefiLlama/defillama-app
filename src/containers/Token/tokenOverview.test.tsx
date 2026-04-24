@@ -366,7 +366,7 @@ describe('tokenOverview helpers', () => {
 			dex: 200
 		})
 		expect(result.llamaswapChains).toBeNull()
-		expect(result.outstandingFDV).toBe(90000)
+		expect(result.outstandingFDV).toBe(99900)
 		expect(mocks.fetchTreasuryById).not.toHaveBeenCalled()
 	})
 
@@ -604,14 +604,16 @@ describe('tokenOverview helpers', () => {
 			source: { kind: 'network' }
 		})
 
-		expect(result.marketData.currentPrice).toBe(100)
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.mcap).toBe(2331)
+		expect(result.marketData.fdv).toBe(2331000)
 		expect(result.treasury).toBeNull()
 		expect(result.raises).toBeNull()
 		expect(result.tokenLiquidity).toBeNull()
 		expect(result.outstandingFDV).toBeNull()
 		expect(result.llamaswapChains).toBeNull()
 		expect(mocks.fetchCoinGeckoCoinById).not.toHaveBeenCalled()
-		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).not.toHaveBeenCalled()
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('bitcoin')
 	})
 
 	it('does not fetch CoinGecko coin detail when only max supply is missing from tokenlist data', async () => {
@@ -632,13 +634,68 @@ describe('tokenOverview helpers', () => {
 			source: { kind: 'network' }
 		})
 
-		expect(result.marketData.currentPrice).toBe(100)
+		expect(result.marketData.currentPrice).toBe(111)
 		expect(result.marketData.maxSupply).toBeNull()
 		expect(mocks.fetchCoinGeckoCoinById).not.toHaveBeenCalled()
-		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).not.toHaveBeenCalled()
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('ethereum')
 	})
 
-	it('falls back to the single-price endpoint when tokenlist market data is missing', async () => {
+	it('uses the current price snapshot as ATH when it exceeds the stored all-time high', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Bitcoin',
+				symbol: 'BTC'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'BTC',
+			geckoId: 'bitcoin',
+			tokenEntry: {
+				...tokenEntryFixture,
+				ath: 100,
+				ath_date: '2021-05-09'
+			},
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: { kind: 'network' }
+		})
+
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.ath).toBe(111)
+		expect(result.marketData.athDate).toBe('2024-04-02T00:00:00.000Z')
+	})
+
+	it('uses the current price snapshot as ATL when it is below the stored all-time low', async () => {
+		mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices.mockResolvedValueOnce({
+			price: 0.5,
+			symbol: 'BTC',
+			confidence: 0.99,
+			timestamp: 1712016000
+		})
+
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Bitcoin',
+				symbol: 'BTC'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'BTC',
+			geckoId: 'bitcoin',
+			tokenEntry: {
+				...tokenEntryFixture,
+				atl: 1,
+				atl_date: '2020-01-01'
+			},
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: { kind: 'network' }
+		})
+
+		expect(result.marketData.currentPrice).toBe(0.5)
+		expect(result.marketData.atl).toBe(0.5)
+		expect(result.marketData.atlDate).toBe('2024-04-02T00:00:00.000Z')
+	})
+
+	it('uses the single-price endpoint to derive price, market cap, and FDV', async () => {
 		const result = await getTokenOverviewData({
 			record: {
 				name: 'Wrapped stETH',
@@ -653,9 +710,9 @@ describe('tokenOverview helpers', () => {
 			source: { kind: 'network' }
 		})
 
-		expect(result.marketData.currentPrice).toBe(123)
-		expect(result.marketData.mcap).toBe(2222)
-		expect(result.marketData.fdv).toBe(3333)
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.mcap).toBe(2331)
+		expect(result.marketData.fdv).toBe(2331000)
 		expect(result.marketData.volume24h.total).toBe(4444)
 		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('wrapped-steth', {
 			localization: false,

@@ -17,6 +17,7 @@ const WEBHOOK_MIN_INTERVAL_MS = Math.max(250, getEnvNumber('RUNTIME_LOG_WEBHOOK_
 const LOG_SILENT =
 	process.env.RUNTIME_LOG_SILENT === '1' ||
 	(process.env.NODE_ENV === 'production' && process.env.RUNTIME_LOG_SILENT !== '0')
+const REGEXP_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g
 
 // ─────────────────────────────────────────────────────────────
 // Shared utilities (exported for perf.ts to reuse)
@@ -56,6 +57,10 @@ function sanitizeResponseTextForError(text: string): string {
 	const trimmed = text.trim()
 	if (trimmed.length <= 500) return trimmed
 	return `${trimmed.slice(0, 500)}…`
+}
+
+function escapeRegExp(value: string): string {
+	return value.replace(REGEXP_SPECIAL_CHARS, '\\$&')
 }
 
 function sanitizeUrlForLogs(input: RequestInfo | URL): string {
@@ -204,6 +209,26 @@ async function flushQueue(): Promise<void> {
 	}
 }
 
+export async function flushRuntimeLogs(timeoutMs: number = 2000): Promise<void> {
+	if (!webhookEnabled()) return
+
+	const deadline = Date.now() + timeoutMs
+
+	while ((logQueue.length > 0 || dropped > 0 || webhookInFlight) && Date.now() < deadline) {
+		if (flushTimer) {
+			clearTimeout(flushTimer)
+			flushTimer = null
+		}
+
+		await flushQueue()
+
+		if (logQueue.length === 0 && dropped === 0 && !webhookInFlight) return
+
+		const delay = Math.min(250, Math.max(25, webhookNextSendAt - Date.now()), Math.max(0, deadline - Date.now()))
+		if (delay > 0) await sleep(delay)
+	}
+}
+
 async function sendWebhook(content: string): Promise<{ ok: boolean; retryAfterMs?: number }> {
 	const url = process.env.RUNTIME_LOGS_WEBHOOK
 	if (!url) return { ok: false }
@@ -235,9 +260,60 @@ async function sendWebhook(content: string): Promise<{ ok: boolean; retryAfterMs
 	}
 }
 
+type RuntimeLogLevel = 'info' | 'warn' | 'error' | 'retry'
+
 type RuntimeLogOptions = {
-	level?: 'info' | 'error'
+	level?: RuntimeLogLevel
 	forceConsole?: boolean
+}
+
+type RuntimeLogContext = string | number | boolean | null | undefined | Record<string, unknown>
+
+function formatRuntimeLogContext(context: RuntimeLogContext): string | null {
+	if (context == null) return null
+	if (typeof context === 'string') return context
+	if (typeof context === 'number' || typeof context === 'boolean') return String(context)
+
+	try {
+		return JSON.stringify(context)
+	} catch {
+		return '[unserializable context]'
+	}
+}
+
+export function formatRuntimeLog({
+	event,
+	level,
+	status,
+	durationMs,
+	target,
+	context,
+	message,
+	stack
+}: {
+	event: string
+	level: RuntimeLogLevel
+	status?: string | number | null
+	durationMs?: number | null
+	target?: string | null
+	context?: RuntimeLogContext
+	message?: string | null
+	stack?: string | null
+}): string {
+	const parts = [`[${event}]`, `[${level}]`]
+	if (status != null && status !== '') parts.push(`[${status}]`)
+	if (durationMs != null) parts.push(`[${durationMs}ms]`)
+	if (target) parts.push(`< ${target} >`)
+
+	if (context != null) {
+		const contextText = formatRuntimeLogContext(context)
+		if (contextText) parts.push(contextText)
+	}
+
+	if (message) parts.push(message)
+	if (stack) parts.push(`[stack: ${stack}]`)
+
+	return parts.join(' ')
 }
 
 export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void {
@@ -311,7 +387,8 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 	// IMPORTANT: apply the same throttle/dedup gate to console to avoid event-loop spam.
 	// If webhook is disabled, console may be the only place logs go, so keep it even when throttled.
 	if ((!LOG_SILENT || forceConsole || level === 'error') && (!droppedForThrottle || !webhookEnabled())) {
-		const output = level === 'error' ? console.error : console.log
+		const output =
+			level === 'error' ? console.error : level === 'warn' || level === 'retry' ? console.warn : console.log
 		output(`\n${log}\n`)
 	}
 }
@@ -329,12 +406,14 @@ export async function fetchJson<T = any>(
 	const sanitizedUrl = sanitizeUrlForLogs(url)
 	let lastErr: Error | null = null
 	let lastErrWasHtml = false
+	let lastStatus: number | null = null
 
 	for (let attempt = 0; attempt < maxAttempts; attempt++) {
 		try {
 			const res = await fetchWithPoolingOnServer(url, options)
 
 			if (!res.ok) {
+				lastStatus = res.status
 				// Non-retryable client errors → fail fast
 				if (res.status >= 400 && res.status < 500 && !isRetryableStatus(res.status)) {
 					const text = await res.text().catch(() => res.statusText)
@@ -356,7 +435,15 @@ export async function fetchJson<T = any>(
 			const data = await res.json()
 			const elapsed = Date.now() - start
 			if (elapsed > 5000) {
-				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${sanitizedUrl} >`)
+				postRuntimeLogs(
+					formatRuntimeLog({
+						event: 'fetchJson',
+						level: 'info',
+						status: 'slow',
+						durationMs: elapsed,
+						target: sanitizedUrl
+					})
+				)
 			}
 
 			return data
@@ -377,9 +464,25 @@ export async function fetchJson<T = any>(
 
 	// Log on final failure only
 	const elapsed = Date.now() - start
-	const finalLog = lastErrWasHtml
-		? `[fetchJson] [error] [${elapsed}ms] [returned html page] < ${sanitizedUrl} >`
-		: `[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${sanitizedUrl} >`
+	const errorKind = lastErrWasHtml
+		? 'html'
+		: lastStatus != null
+			? lastStatus
+			: lastErr && isTransientError(lastErr)
+				? 'transient'
+				: 'error'
+	const errorKindForLog = String(errorKind)
+	const errorMessage = lastErrWasHtml
+		? 'returned html page'
+		: (lastErr?.message.replace(new RegExp(`^${escapeRegExp(sanitizedUrl)}:\\s*`), '') ?? 'Unknown fetch error')
+	const finalLog = formatRuntimeLog({
+		event: 'fetchJson',
+		level: 'error',
+		status: errorKindForLog,
+		durationMs: elapsed,
+		target: sanitizedUrl,
+		message: errorMessage
+	})
 	// Avoid spamming console when webhook logging is configured.
 	postRuntimeLogs(finalLog, { level: 'error', forceConsole: !webhookEnabled() })
 	if (!lastErr) {

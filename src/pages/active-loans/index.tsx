@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging(`active-loans/index`, async
 		protocolMetadata: metadataCache.protocolMetadata
 	})
 
-	if (!data) return { notFound: true }
+	if (!data) throw new Error('Missing page data for route=/active-loans')
 
 	return {
 		props: data,

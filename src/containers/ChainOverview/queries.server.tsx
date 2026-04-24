@@ -138,53 +138,42 @@ export async function getChainOverviewData({
 			}),
 			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset }),
 			currentChainMetadata.stablecoins
-				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name).catch((err) => {
-						console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
-						return null
-					})
+				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
 				: Promise.resolve(null),
 			!currentChainMetadata.inflows
 				? Promise.resolve(null)
-				: getBridgeOverviewPageData(currentChainMetadata.name)
-						.then((data) => {
-							const netInflows = data?.chainVolumeData?.length
-								? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
-								: null
+				: getBridgeOverviewPageData(currentChainMetadata.name).then((data) => {
+						const netInflows = data?.chainVolumeData?.length
+							? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
+							: null
 
-							if (netInflows === 0) {
-								return null
-							}
+						if (netInflows === 0) {
+							return null
+						}
 
-							return {
-								netInflows
-							}
-						})
-						.catch(() => null),
+						return {
+							netInflows
+						}
+					}),
 			!currentChainMetadata.chainActiveUsers
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
 						chain: currentChainMetadata.name,
 						adapterType: 'active-users'
-					})
-						.then((data) => data?.total24h ?? null)
-						.catch(() => null),
+					}).then((data) => data?.total24h ?? null),
 			!currentChainMetadata.txCount
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
 						chain: currentChainMetadata.name,
 						adapterType: 'active-users',
 						dataType: 'dailyTransactionsCount'
-					})
-						.then((data) => data?.total24h ?? null)
-						.catch(() => null),
+					}).then((data) => data?.total24h ?? null),
 			!currentChainMetadata.chainNewUsers
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
 						chain: currentChainMetadata.name,
 						adapterType: 'new-users'
-					})
-						.then((data) => data?.total24h ?? null)
-						.catch(() => null),
+					}).then((data) => data?.total24h ?? null),
 			fetchRaises(),
 			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id
@@ -201,9 +190,6 @@ export async function getChainOverviewData({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
 						dataType: 'dailyAppRevenue'
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.fees && chain !== 'All'
@@ -211,18 +197,12 @@ export async function getChainOverviewData({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
 						dataType: 'dailyAppFees'
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainFees
 				? fetchAdapterProtocolMetrics({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainRevenue
@@ -230,18 +210,12 @@ export async function getChainOverviewData({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
 						dataType: 'dailyRevenue'
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.perps
 				? fetchAdapterChainMetrics({
 						adapterType: 'derivatives',
 						chain: currentChainMetadata.name
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			fetchCexVolume(),
@@ -265,7 +239,7 @@ export async function getChainOverviewData({
 				: Promise.resolve(null),
 			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
 			currentChainMetadata.incentives && chain !== 'All'
-				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name).catch(() => null)
+				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
 				: Promise.resolve(null),
 			chain === 'All' ? getDATInflows() : Promise.resolve(null),
 			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
@@ -583,8 +557,12 @@ export async function getChainOverviewData({
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
-		console.log(msg)
-		throw new Error(msg)
+		const errorWithContext = new Error(msg, { cause: error })
+		if (error instanceof Error && error.stack) {
+			errorWithContext.stack = `${errorWithContext.stack}\nCaused by: ${error.stack}`
+		}
+		console.log(errorWithContext)
+		throw errorWithContext
 	}
 }
 
@@ -673,9 +651,6 @@ export const getProtocolsByChain = async ({
 			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
@@ -683,9 +658,6 @@ export const getProtocolsByChain = async ({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
 					dataType: 'dailyRevenue'
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
@@ -693,9 +665,6 @@ export const getProtocolsByChain = async ({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
 					dataType: 'dailyHoldersRevenue'
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.dexs
@@ -703,9 +672,6 @@ export const getProtocolsByChain = async ({
 					adapterType: 'dexs',
 					chain: currentChainMetadata.name,
 					excludeTotalDataChart: false
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		getProtocolEmissionsLookupFromAggregated().catch((err) => {
