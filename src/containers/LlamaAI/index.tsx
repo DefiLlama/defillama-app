@@ -132,6 +132,7 @@ interface PersistedMessage {
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
 	messageId?: string
@@ -151,6 +152,7 @@ interface SharedSessionMessage {
 	messageId?: string
 	timestamp: number
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	charts?: ChartConfiguration[]
 	chartData?: unknown[] | Record<string, unknown[]>
@@ -325,6 +327,7 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 		}),
 		savedAlertIds: message.savedAlertIds,
 		images: message.images,
+		generatedImages: message.generatedImages,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
@@ -404,6 +407,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 		}),
 		savedAlertIds: message.savedAlertIds,
 		images: message.images,
+		generatedImages: message.generatedImages,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		id: message.messageId ?? (index != null ? `shared-${index}` : undefined)
@@ -591,6 +595,13 @@ function createAgenticCallbacks({
 			const chartSet = { charts, chartData: chartData as Record<string, any[]> }
 			buffer.charts.push(chartSet)
 			dispatch({ type: 'APPEND_CHARTS', value: chartSet })
+		},
+		onGeneratedImages: (images) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			if (!images?.length) return
+			dispatch({ type: 'CLEAR_ACTIVITY' })
+			buffer.generatedImages.push(...images)
+			dispatch({ type: 'APPEND_GENERATED_IMAGES', value: images })
 		},
 		onCsvExport: (exports) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -854,6 +865,7 @@ export function AgenticChat({
 		alerts: streamingAlerts,
 		citations: streamingCitations,
 		toolExecutions: streamingToolExecutions,
+		generatedImages: streamingGeneratedImages,
 		thinking: streamingThinking,
 		activeToolCalls,
 		spawnProgress,
@@ -939,7 +951,8 @@ export function AgenticChat({
 			streamingCsvExports.length > 0 ||
 			streamingMdExports.length > 0 ||
 			streamingAlerts.length > 0 ||
-			streamingCitations.length > 0
+			streamingCitations.length > 0 ||
+			streamingGeneratedImages.length > 0
 		if (!hasContent) return null
 		return {
 			role: 'assistant',
@@ -949,7 +962,8 @@ export function AgenticChat({
 			mdExports: streamingMdExports.length > 0 ? streamingMdExports : undefined,
 			alerts: streamingAlerts.length > 0 ? streamingAlerts : undefined,
 			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
-			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined
+			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined,
+			generatedImages: streamingGeneratedImages.length > 0 ? streamingGeneratedImages : undefined
 		}
 	}, [
 		isStreaming,
@@ -959,7 +973,8 @@ export function AgenticChat({
 		streamingMdExports,
 		streamingAlerts,
 		streamingCitations,
-		streamingToolExecutions
+		streamingToolExecutions,
+		streamingGeneratedImages
 	])
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.

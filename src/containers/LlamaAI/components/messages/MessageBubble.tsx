@@ -277,16 +277,106 @@ function StreamingChartPlaceholder() {
 	)
 }
 
+function StreamingImagePlaceholder() {
+	return (
+		<div
+			className="my-2 flex w-full max-w-[220px] animate-pulse items-center justify-center overflow-hidden rounded-lg border border-(--old-blue)/20 bg-(--old-blue)/5"
+			style={{ aspectRatio: '1 / 1' }}
+		>
+			<div className="flex flex-col items-center gap-1.5 text-(--old-blue)">
+				<Icon name="image-plus" height={24} width={24} />
+				<p className="text-xs">Generating image…</p>
+			</div>
+		</div>
+	)
+}
+
+function parseAspectRatio(size?: string): string | undefined {
+	if (!size) return undefined
+	const match = size.match(/^(\d+)x(\d+)$/)
+	if (!match) return undefined
+	return `${match[1]} / ${match[2]}`
+}
+
+function GeneratedImageBlock({
+	url,
+	prompt,
+	size,
+	onImageClick
+}: {
+	url: string
+	prompt?: string
+	size?: string
+	onImageClick?: (url: string) => void
+}) {
+	const [loaded, setLoaded] = useState(false)
+	const [errored, setErrored] = useState(false)
+	const aspect = parseAspectRatio(size)
+	const interactive = !errored && !!onImageClick
+
+	if (errored) {
+		return (
+			<div
+				role="img"
+				aria-label={prompt ? `Failed to load generated image for prompt: ${prompt}` : 'Failed to load generated image'}
+				className="my-2 flex w-full max-w-sm flex-col items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 p-6 text-red-600 dark:text-red-400"
+				style={aspect ? { aspectRatio: aspect } : undefined}
+			>
+				<Icon name="alert-triangle" height={24} width={24} />
+				<p className="text-sm font-medium">Image failed to load</p>
+				<a
+					href={url}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-xs underline opacity-80 hover:opacity-100"
+				>
+					Open original
+				</a>
+			</div>
+		)
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={() => (interactive && url ? onImageClick?.(url) : undefined)}
+			title={prompt}
+			aria-label={prompt || 'Generated image'}
+			disabled={!interactive}
+			className={`group/genimg relative my-2 block w-full max-w-sm overflow-hidden rounded-lg border border-black/10 bg-black/5 transition focus-visible:ring-2 focus-visible:ring-(--old-blue) focus-visible:outline-none dark:border-white/10 dark:bg-white/5 ${interactive ? 'cursor-pointer hover:border-black/20 dark:hover:border-white/20' : 'cursor-default'}`}
+			style={aspect ? { aspectRatio: aspect } : undefined}
+		>
+			{!loaded ? (
+				<div
+					aria-hidden="true"
+					className="absolute inset-0 animate-pulse bg-gradient-to-br from-(--old-blue)/10 via-(--old-blue)/5 to-transparent"
+				/>
+			) : null}
+			<img
+				src={url}
+				alt={prompt || 'Generated image'}
+				loading="lazy"
+				decoding="async"
+				onLoad={() => setLoaded(true)}
+				onError={() => setErrored(true)}
+				className={`block h-auto w-full transition-all duration-500 ease-out ${loaded ? 'blur-0 scale-100 opacity-100' : 'scale-[1.02] opacity-0 blur-sm'}`}
+			/>
+		</button>
+	)
+}
+
 function ArtifactBlockRenderer({
 	block,
 	artifact,
 	isStreaming,
-	sessionId: _sessionId
+	sessionId: _sessionId,
+	onImageClick
 }: {
-	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' }>
+	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' | 'image' }>
 	artifact?: ArtifactRecord
 	isStreaming: boolean
 	sessionId?: string | null
+	onImageClick?: (url: string) => void
 }) {
 	if (block.type === 'chart') {
 		// Inline chart placeholders may arrive before the chart event, so keep rendering a skeleton until the artifact resolves.
@@ -333,6 +423,21 @@ function ArtifactBlockRenderer({
 		return <DashboardInlineCard dashboard={artifact.dashboard} />
 	}
 
+	if (block.type === 'image') {
+		if (!artifact) {
+			return isStreaming ? <StreamingImagePlaceholder /> : null
+		}
+		if (artifact.type !== 'image') return null
+		return (
+			<GeneratedImageBlock
+				url={artifact.image.url}
+				prompt={artifact.image.prompt}
+				size={artifact.image.size}
+				onImageClick={onImageClick}
+			/>
+		)
+	}
+
 	if (!artifact) {
 		return isStreaming ? <AlertArtifactLoading /> : null
 	}
@@ -358,7 +463,8 @@ function MessageContentBlock({
 	nextUserMessage,
 	hackerMode,
 	onTableFullscreenOpen,
-	messageId
+	messageId,
+	onImageClick
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -369,6 +475,7 @@ function MessageContentBlock({
 	hackerMode?: boolean
 	onTableFullscreenOpen?: () => void
 	messageId?: string
+	onImageClick?: (url: string) => void
 }) {
 	if (block.type === 'action-group') {
 		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
@@ -391,7 +498,15 @@ function MessageContentBlock({
 		return <SourcesList citations={block.citations} isStreaming={isStreaming} />
 	}
 
-	return <ArtifactBlockRenderer block={block} artifact={artifact} isStreaming={isStreaming} sessionId={sessionId} />
+	return (
+		<ArtifactBlockRenderer
+			block={block}
+			artifact={artifact}
+			isStreaming={isStreaming}
+			sessionId={sessionId}
+			onImageClick={onImageClick}
+		/>
+	)
 }
 
 function InlineContent({
@@ -403,7 +518,8 @@ function InlineContent({
 	nextUserMessage,
 	hackerMode,
 	showToolDetails = false,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	onImageClick
 }: {
 	message: Message
 	toolExecutions?: ToolExecution[]
@@ -414,6 +530,7 @@ function InlineContent({
 	hackerMode?: boolean
 	showToolDetails?: boolean
 	onTableFullscreenOpen?: () => void
+	onImageClick?: (url: string) => void
 }) {
 	const includeFallbackArtifacts = !isStreaming
 	const { artifactsById, blocks } = useMemo(
@@ -435,6 +552,7 @@ function InlineContent({
 						hackerMode={hackerMode}
 						onTableFullscreenOpen={onTableFullscreenOpen}
 						messageId={message.id}
+						onImageClick={onImageClick}
 					/>
 				</div>
 			))}
@@ -757,7 +875,9 @@ export function MessageBubble({
 				hackerMode={hackerMode}
 				showToolDetails={isLlama}
 				onTableFullscreenOpen={onTableFullscreenOpen}
+				onImageClick={setPreviewImage}
 			/>
+			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 			{message.id && !isDraft ? (
 				<ResponseControls
 					messageId={message.id}
