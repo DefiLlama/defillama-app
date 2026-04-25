@@ -12,7 +12,6 @@ import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
-import { NotificationPermissionBanner } from '~/containers/LlamaAI/components/NotificationPermissionBanner'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
 import {
@@ -20,6 +19,7 @@ import {
 	ToolProgressIndicator,
 	TypingIndicator
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 
@@ -539,7 +539,7 @@ export function ConversationView({
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-					<NotificationPermissionBanner />
+					<TipOrNotifyBanner />
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}

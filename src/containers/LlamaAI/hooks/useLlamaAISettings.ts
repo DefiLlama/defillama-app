@@ -11,7 +11,7 @@ export const LLAMA_AI_ENABLE_PREMIUM_TOOLS_KEY = 'llamaai-enable-premium-tools'
 export const LLAMA_AI_HACKER_MODE_KEY = 'llamaai-hacker-mode'
 export const LLAMA_AI_MODEL_KEY = 'llamaai-model'
 export const LLAMA_AI_ENABLE_SOUND_KEY = 'llamaai-enable-sound'
-const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
+export const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
 
 export interface LlamaAISettings {
 	customInstructions: string
@@ -40,9 +40,22 @@ export interface ModelOption {
 	label: string
 }
 
-interface SettingsQueryResult {
+export type TipDTO = {
+	id: string
+	family: string
+	variant: string
+	title: string
+	cta:
+		| { kind: 'link'; label: string; href: string; external: boolean }
+		| { kind: 'action'; label: string; action: string }
+		| { kind: 'none' }
+	dismissPolicy: { kind: 'permanent' } | { kind: 'snooze'; days: number }
+}
+
+export interface SettingsQueryResult {
 	settings: StoredLlamaAISettings
 	availableModels: ModelOption[]
+	tip: TipDTO | null
 }
 
 const DEFAULT_SETTINGS: LlamaAISettings = {
@@ -197,16 +210,18 @@ export function useLlamaAISettings() {
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
 		queryFn: async (): Promise<SettingsQueryResult> => {
-			if (!authorizedFetch || !isAuthenticated || !userId) return { settings: null, availableModels: [] }
+			if (!authorizedFetch || !isAuthenticated || !userId) return { settings: null, availableModels: [], tip: null }
 			const response = await authorizedFetch(`${AI_SERVER}/user-settings`)
-			if (!response?.ok) return { settings: null, availableModels: [] }
+			if (!response?.ok) return { settings: null, availableModels: [], tip: null }
 			const data = (await response.json().catch(() => null)) as {
 				settings?: unknown
 				availableModels?: ModelOption[]
+				tip?: TipDTO | null
 			} | null
 			return {
 				settings: normalizeServerSettings(data?.settings),
-				availableModels: Array.isArray(data?.availableModels) ? data.availableModels : []
+				availableModels: Array.isArray(data?.availableModels) ? data.availableModels : [],
+				tip: data?.tip ?? null
 			}
 		},
 		enabled: isAuthenticated && !!userId,
@@ -216,7 +231,7 @@ export function useLlamaAISettings() {
 	useEffect(() => {
 		if (!settingsQuery.data?.settings) return
 		applyStoredSettings(settingsQuery.data.settings)
-	}, [settingsQuery.data])
+	}, [settingsQuery.data?.settings])
 
 	useEffect(() => {
 		if (userId) return
@@ -241,7 +256,8 @@ export function useLlamaAISettings() {
 			applyStoredSettings(update)
 			queryClient.setQueryData<SettingsQueryResult>([...LLAMA_AI_SETTINGS_QUERY_KEY, userId], (previous) => ({
 				settings: mergeDefinedSettings(previous?.settings ?? null, update),
-				availableModels: previous?.availableModels ?? []
+				availableModels: previous?.availableModels ?? [],
+				tip: previous?.tip ?? null
 			}))
 		},
 		onError: (error) => {
@@ -304,6 +320,7 @@ export function useLlamaAISettings() {
 		settings,
 		actions,
 		availableModels,
+		tip: settingsQuery.data?.tip ?? null,
 		queryState: settingsQuery
 	}
 }
