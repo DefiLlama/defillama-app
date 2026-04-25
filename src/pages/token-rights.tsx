@@ -59,9 +59,9 @@ function resolveDisplayName(entry: IRawTokenRightsEntry, metadata: Record<string
 	if (!id) return null
 
 	const meta = metadata[id]
-	if (meta?.displayName) return meta.displayName
+	if (meta?.displayName == null) return null
 
-	return entry['Protocol Name'] || null
+	return meta.displayName
 }
 
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
