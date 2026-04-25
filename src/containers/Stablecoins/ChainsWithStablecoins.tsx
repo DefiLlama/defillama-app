@@ -4,7 +4,6 @@ import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import {
 	ChartGroupingSelector,
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
@@ -33,7 +32,7 @@ import { useCalcCirculating, useGroupChainsPegged } from '~/containers/Stablecoi
 import { useStablecoinChartSeriesData, useStablecoinVolumeChartData } from '~/containers/Stablecoins/queries.client'
 import { getStablecoinDominance, type IFormattedStablecoinChainRow } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, toNiceCsvDate } from '~/utils'
+import { formattedNum } from '~/utils'
 import { isTruthyQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { StablecoinVolumeChartKind } from './api.types'
 import { StablecoinsChainsTable } from './StablecoinsChainsTable'
@@ -243,28 +242,6 @@ export function ChainsWithStablecoins({
 		(chartType === 'marketCap' && (chartView === 'breakdown' || chartView === 'dominance')) ||
 		(chartType === 'volume' && chartView !== 'total')
 
-	const prepareCsv = () => {
-		if (chartType === 'marketCap' && (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap')) {
-			const rows: Array<Array<string | number | boolean>> = [['Name', 'Market Cap']]
-			for (const chain of chainTotals) {
-				rows.push([chain.name, chain.mcap ?? 0])
-			}
-			return { filename: 'stablecoinsChainTotals', rows }
-		}
-		const payload = volumeChartKind ? volumeChartQuery.data : selectedChartData
-		const dimensions = payload?.dataset.dimensions ?? ['timestamp']
-		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...dimensions.slice(1)]]
-		for (const row of payload?.dataset.source ?? []) {
-			const timestamp = Number(row.timestamp)
-			rows.push([
-				Number.isFinite(timestamp) ? timestamp : '',
-				Number.isFinite(timestamp) ? toNiceCsvDate(Math.floor(timestamp / 1e3)) : '',
-				...dimensions.slice(1).map((dimension) => row[dimension] ?? '')
-			])
-		}
-		return { filename: 'stablecoinsChainTotals', rows }
-	}
-
 	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
 		() => ({
 			id: `stablecoins-All-${mapChartStateToConfig(chartView)}`,
@@ -342,8 +319,6 @@ export function ChainsWithStablecoins({
 						<span className="text-(--text-label)">{topChain.name} Dominance</span>
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
-
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">

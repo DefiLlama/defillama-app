@@ -49,7 +49,7 @@ import { useCalcCirculating } from '~/containers/Stablecoins/hooks'
 import { useStablecoinChartSeriesData, useStablecoinVolumeChartData } from '~/containers/Stablecoins/queries.client'
 import { type FormattedStablecoinAsset } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { isTruthyQueryParam, parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { StablecoinVolumeChainChartKind, StablecoinVolumeGlobalChartKind } from './api.types'
 import { useFormatStablecoinQueryParams } from './hooks'
@@ -235,26 +235,26 @@ export function StablecoinsByChain({
 	}, [router.query.groupBy])
 	const chartTypeOptions = React.useMemo(() => getStablecoinChartTypeOptions(chartMode), [chartMode])
 	const chartViewOptions = React.useMemo(() => getStablecoinChartViewOptions(chartState), [chartState])
-	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const onChartTypeChange = React.useCallback(
 		(nextChartType: StablecoinChartCategory) => {
-			handleExportChartReady(null)
+			handleChartReady(null)
 			void pushShallowQuery(router, {
 				chartType: getStablecoinChartTypeQueryValue(chartMode, nextChartType),
 				chartView: undefined
 			})
 		},
-		[chartMode, handleExportChartReady, router]
+		[chartMode, handleChartReady, router]
 	)
 	const onChartViewChange = React.useCallback(
 		(nextChartView: string) => {
 			const view = nextChartView as StablecoinChartView
-			handleExportChartReady(null)
+			handleChartReady(null)
 			void pushShallowQuery(router, {
 				chartView: getStablecoinChartViewQueryValue(chartMode, chartType, view)
 			})
 		},
-		[chartMode, chartType, handleExportChartReady, router]
+		[chartMode, chartType, handleChartReady, router]
 	)
 	const onVolumeGroupByChange = React.useCallback(
 		(nextGroupBy: LowercaseDwmcGrouping) => {
@@ -289,7 +289,7 @@ export function StablecoinsByChain({
 		return value !== ''
 	})
 
-	// `handleExportChartReady` is passed to charts' `onReady` prop to share
+	// `handleChartReady` is passed to charts' `onReady` prop to share
 	// a single ECharts instance across CSV + PNG exports.
 
 	// Selected arrays already have excludes filtered out at hook level
@@ -477,28 +477,6 @@ export function StablecoinsByChain({
 		() => (volumeChartQuery.data ? groupStablecoinVolumeChartPayload(volumeChartQuery.data, volumeGroupBy) : null),
 		[volumeChartQuery.data, volumeGroupBy]
 	)
-	const prepareCsv = React.useCallback(() => {
-		if (isMarketCapTableChart) {
-			const rows: Array<Array<string | number | boolean>> = [['Name', 'Market Cap']]
-			for (const peggedAsset of peggedTotals) {
-				rows.push([peggedAsset.symbol ?? peggedAsset.name, peggedAsset.mcap ?? 0])
-			}
-			return { filename: 'stablecoins', rows }
-		}
-		const payload = isVolumeChart ? groupedVolumeChartData : selectedChartData
-		if (!payload) throw new Error('Chart data is still loading')
-		const dimensions = payload?.dataset.dimensions ?? ['timestamp']
-		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...dimensions.slice(1)]]
-		for (const row of payload?.dataset.source ?? []) {
-			const timestamp = Number(row.timestamp)
-			rows.push([
-				Number.isFinite(timestamp) ? timestamp : '',
-				Number.isFinite(timestamp) ? toNiceCsvDate(Math.floor(timestamp / 1e3)) : '',
-				...dimensions.slice(1).map((dimension) => row[dimension] ?? '')
-			])
-		}
-		return { filename: 'stablecoins', rows }
-	}, [groupedVolumeChartData, isMarketCapTableChart, isVolumeChart, peggedTotals, selectedChartData])
 
 	const deferredChainsCirculatingValues = React.useDeferredValue(chainsCirculatingValues)
 	const deferredSelectedChartData = React.useDeferredValue(selectedChartData)
@@ -545,7 +523,6 @@ export function StablecoinsByChain({
 
 			<PeggedFilters
 				pathname={selectedChain === 'All' ? '/stablecoins' : `/stablecoins/${selectedChain}`}
-				prepareCsv={prepareCsv}
 				availableBackings={availableBackings}
 				availablePegTypes={availablePegTypes}
 			/>
@@ -649,7 +626,7 @@ export function StablecoinsByChain({
 					</div>
 					{chartType === 'marketCap' && chartView === 'pie' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart chartData={deferredChainsCirculatingValues} onReady={handleExportChartReady} />
+							<PieChart chartData={deferredChainsCirculatingValues} onReady={handleChartReady} />
 						</React.Suspense>
 					) : chartType === 'marketCap' && chartView === 'hbar' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -658,7 +635,7 @@ export function StablecoinsByChain({
 								values={hbarValues}
 								colors={hbarColors}
 								valueSymbol="$"
-								onReady={handleExportChartReady}
+								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : chartType === 'marketCap' && chartView === 'treemap' ? (
@@ -667,14 +644,14 @@ export function StablecoinsByChain({
 								treeData={treemapData}
 								variant="rwa"
 								height="600px"
-								onReady={handleExportChartReady}
+								onReady={handleChartReady}
 								valueLabel="Market Cap"
 							/>
 						</React.Suspense>
 					) : chartType === 'inflows' && chartView === 'token' ? (
 						<TokenInflowsChartPanel
 							key={tokenInflowsSelectionKey}
-							onReady={handleExportChartReady}
+							onReady={handleChartReady}
 							tokenInflowNames={tokenInflowNames}
 							state={tokenInflowsChartState}
 						/>
@@ -683,7 +660,7 @@ export function StablecoinsByChain({
 							state={activeChartState}
 							hideDefaultLegend={!showDefaultLegend}
 							groupBy={isVolumeChart ? volumeGroupBy : undefined}
-							onReady={handleExportChartReady}
+							onReady={handleChartReady}
 						/>
 					)}
 				</div>

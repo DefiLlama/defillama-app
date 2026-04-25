@@ -116,7 +116,8 @@ const getStablecoinBridgeInfo = () => withStablecoinsCache('bridge-info', fetchS
 const sumRecordValues = (record: Record<string, number> | undefined): number => {
 	if (!record) return 0
 	let total = 0
-	for (const value of Object.values(record)) {
+	for (const key in record) {
+		const value = record[key]
 		if (Number.isFinite(value)) total += value
 	}
 	return total
@@ -195,25 +196,33 @@ const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
 	if (value == null || typeof value !== 'object' || Array.isArray(value)) return null
 
 	const normalized: NonNullable<StablecoinBridges> = {}
+	const bridgesRecord = value as Record<string, unknown>
+	let hasBridges = false
 
-	for (const [bridgeId, sourcesValue] of Object.entries(value)) {
+	for (const bridgeId in bridgesRecord) {
+		const sourcesValue = bridgesRecord[bridgeId]
 		if (sourcesValue == null || typeof sourcesValue !== 'object' || Array.isArray(sourcesValue)) continue
 
+		const sourcesRecord = sourcesValue as Record<string, unknown>
 		const normalizedSources: Record<string, { amount: number }> = {}
-		for (const [sourceChain, sourceValue] of Object.entries(sourcesValue)) {
+		let hasSources = false
+		for (const sourceChain in sourcesRecord) {
+			const sourceValue = sourcesRecord[sourceChain]
 			if (sourceValue == null || typeof sourceValue !== 'object' || Array.isArray(sourceValue)) continue
 			const amountRaw = (sourceValue as Record<string, unknown>).amount
 			const amount = typeof amountRaw === 'number' ? amountRaw : Number(amountRaw)
 			if (!Number.isFinite(amount)) continue
 			normalizedSources[sourceChain] = { amount }
+			hasSources = true
 		}
 
-		if (Object.keys(normalizedSources).length > 0) {
+		if (hasSources) {
 			normalized[bridgeId] = normalizedSources
+			hasBridges = true
 		}
 	}
 
-	return Object.keys(normalized).length > 0 ? normalized : null
+	return hasBridges ? normalized : null
 }
 
 const readStablecoinBridgesFromChart = (
@@ -514,7 +523,11 @@ export async function getStablecoinChainMcapSummary(chain: string | null): Promi
 		const chartParams = {
 			chartDataByAssetOrChain: chartDataByPeggedAsset,
 			assetsOrChainsList: peggedAssetNames,
-			filteredIndexes: Object.values(peggedNameToChartDataIndex),
+			filteredIndexes: (() => {
+				const indexes: number[] = []
+				for (const key in peggedNameToChartDataIndex) indexes.push(peggedNameToChartDataIndex[key])
+				return indexes
+			})(),
 			issuanceType: 'mcap',
 			selectedChain: chain ?? 'All',
 			doublecountedIds
@@ -623,28 +636,27 @@ const getStablecoinChainsSource = async (): Promise<StablecoinChainsSource> => {
 
 		const formattedPeggedChartDataByChain = peggedChartDataByChain.map((charts) => {
 			if (!charts) return null
-			return charts
-				.map((chart): { date: number; mcap: number | null } | null => {
-					const date = Number(chart.date)
-					if (!Number.isFinite(date)) return null
+			return charts.flatMap((chart): Array<{ date: number; mcap: number | null }> => {
+				const date = Number(chart.date)
+				if (!Number.isFinite(date)) return []
 
-					const rawMcap = chart.totalCirculatingUSD
-					let mcap: number | null = null
-					if (rawMcap && typeof rawMcap === 'object') {
-						let total = 0
-						let hasFinite = false
-						for (const value of Object.values(rawMcap)) {
-							const numeric = Number(value)
-							if (!Number.isFinite(numeric)) continue
-							total += numeric
-							hasFinite = true
-						}
-						mcap = hasFinite ? total : null
+				const rawMcap = chart.totalCirculatingUSD
+				let mcap: number | null = null
+				if (rawMcap && typeof rawMcap === 'object') {
+					let total = 0
+					let hasFinite = false
+					for (const key in rawMcap) {
+						const value = rawMcap[key]
+						const numeric = Number(value)
+						if (!Number.isFinite(numeric)) continue
+						total += numeric
+						hasFinite = true
 					}
+					mcap = hasFinite ? total : null
+				}
 
-					return { date, mcap }
-				})
-				.filter((point): point is { date: number; mcap: number | null } => point != null)
+				return [{ date, mcap }]
+			})
 		})
 
 		return {

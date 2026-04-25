@@ -5,12 +5,10 @@ import type {
 } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { CHART_COLORS } from '~/constants/colors'
-import { slug } from '~/utils'
 import type {
 	StablecoinVolumeBreakdownChartPoint,
 	StablecoinVolumeChartKind,
-	StablecoinVolumeChartResponse,
-	StablecoinVolumeTotalChartPoint
+	StablecoinVolumeChartResponse
 } from './api.types'
 
 export interface StablecoinVolumeChartPayload {
@@ -33,42 +31,14 @@ const MAX_BREAKDOWN_LIMIT = 50
 const TOTAL_VOLUME_NAME = 'Volume'
 const OTHERS_NAME = 'Others'
 
-const CHAIN_LABELS: Record<string, string> = {
-	avax: 'Avalanche',
-	bsc: 'BSC',
-	era: 'zkSync Era',
-	wc: 'World Chain'
-}
-
 const formatDimensionLabel = (key: string, chart: StablecoinVolumeChartKind): string => {
 	if (chart === 'token' || chart === 'currency') return key.toUpperCase()
-	if (CHAIN_LABELS[key]) return CHAIN_LABELS[key]
-
 	return key
-		.split(/[-_]/g)
-		.filter(Boolean)
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ')
-}
-
-const getFiniteNumber = (value: unknown): number => {
-	const numeric = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(numeric) ? numeric : 0
-}
-
-const toMilliseconds = (timestamp: unknown): number | null => {
-	const numeric = Number(timestamp)
-	if (!Number.isFinite(numeric)) return null
-	return numeric * 1e3
 }
 
 const clampLimit = (limit: number | undefined): number => {
-	if (limit == null || !Number.isFinite(limit)) return DEFAULT_BREAKDOWN_LIMIT
-	return Math.min(MAX_BREAKDOWN_LIMIT, Math.max(1, Math.floor(limit)))
-}
-
-const isTotalVolumePoint = (point: unknown): point is StablecoinVolumeTotalChartPoint => {
-	return Array.isArray(point) && typeof point[1] === 'number'
+	if (limit == null) return DEFAULT_BREAKDOWN_LIMIT
+	return Math.min(MAX_BREAKDOWN_LIMIT, limit)
 }
 
 const buildCharts = (names: string[], stacked: boolean): MultiSeriesChart2SeriesConfig[] => {
@@ -84,14 +54,10 @@ const buildCharts = (names: string[], stacked: boolean): MultiSeriesChart2Series
 }
 
 const buildTotalVolumePayload = (data: StablecoinVolumeChartResponse): StablecoinVolumeChartPayload => {
-	const source = data
-		.map((point): Record<string, number> | null => {
-			if (!isTotalVolumePoint(point)) return null
-			const timestamp = toMilliseconds(point[0])
-			if (timestamp == null) return null
-			return { timestamp, [TOTAL_VOLUME_NAME]: getFiniteNumber(point[1]) }
-		})
-		.filter((point): point is Record<string, number> => point != null)
+	const source = data.map((point) => ({
+		timestamp: point[0] * 1e3,
+		[TOTAL_VOLUME_NAME]: point[1] as number
+	}))
 
 	return {
 		dataset: {
@@ -114,14 +80,13 @@ const getLatestBreakdown = (points: StablecoinVolumeBreakdownChartPoint[]): Reco
 }
 
 const findDimensionKey = (points: StablecoinVolumeBreakdownChartPoint[], selectedDimension: string): string | null => {
-	const selected = slug(selectedDimension).replace(/_/g, '-')
 	const latest = getLatestBreakdown(points)
-	for (const key of Object.keys(latest)) {
-		if (slug(key).replace(/_/g, '-') === selected) return key
+	for (const key in latest) {
+		if (key === selectedDimension) return key
 	}
 	for (const [, breakdown] of points) {
-		for (const key of Object.keys(breakdown ?? {})) {
-			if (slug(key).replace(/_/g, '-') === selected) return key
+		for (const key in breakdown) {
+			if (key === selectedDimension) return key
 		}
 	}
 	return null
@@ -129,22 +94,24 @@ const findDimensionKey = (points: StablecoinVolumeBreakdownChartPoint[], selecte
 
 const getTopBreakdownKeys = (points: StablecoinVolumeBreakdownChartPoint[], limit: number): string[] => {
 	const latest = getLatestBreakdown(points)
-	return Object.entries(latest)
-		.map(([key, value]) => [key, getFiniteNumber(value)] as const)
-		.filter(([, value]) => value > 0)
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, limit)
-		.map(([key]) => key)
+	const entries: Array<{ key: string; value: number }> = []
+	for (const key in latest) {
+		const value = latest[key]
+		if (value > 0) entries.push({ key, value })
+	}
+	entries.sort((a, b) => b.value - a.value)
+	const keys: string[] = []
+	for (let i = 0; i < entries.length && i < limit; i++) {
+		keys.push(entries[i].key)
+	}
+	return keys
 }
 
 const buildBreakdownVolumePayload = (
 	data: StablecoinVolumeChartResponse,
 	options: StablecoinVolumeChartOptions
 ): StablecoinVolumeChartPayload => {
-	const points = data.filter(
-		(point): point is StablecoinVolumeBreakdownChartPoint =>
-			Array.isArray(point) && point[1] != null && typeof point[1] === 'object' && !Array.isArray(point[1])
-	)
+	const points = data as StablecoinVolumeBreakdownChartPoint[]
 
 	let selectedKey = options.selectedDimension ? findDimensionKey(points, options.selectedDimension) : null
 	if (!selectedKey && options.fallbackDimension) selectedKey = findDimensionKey(points, options.fallbackDimension)
@@ -165,33 +132,28 @@ const buildBreakdownVolumePayload = (
 	let hasOthersValue = false
 
 	const selectedKeysSet = new Set(keys)
-	const source = points
-		.map(([rawTimestamp, breakdown]) => {
-			const timestamp = toMilliseconds(rawTimestamp)
-			if (timestamp == null) return null
+	const source = points.map(([timestamp, breakdown]) => {
+		const row: Record<string, number> = { timestamp: timestamp * 1e3 }
+		for (const key of keys) {
+			const label = labelsByKey.get(key)
+			if (!label) continue
+			row[label] = breakdown[key] ?? 0
+		}
 
-			const row: Record<string, number> = { timestamp }
-			for (const key of keys) {
-				const label = labelsByKey.get(key)
-				if (!label) continue
-				row[label] = getFiniteNumber(breakdown[key])
+		if (includeOthers) {
+			let others = 0
+			for (const key in breakdown) {
+				if (selectedKeysSet.has(key)) continue
+				others += breakdown[key]
 			}
+			if (others > 0) hasOthersValue = true
+			row[OTHERS_NAME] = others
+		}
 
-			if (includeOthers) {
-				let others = 0
-				for (const [key, value] of Object.entries(breakdown)) {
-					if (selectedKeysSet.has(key)) continue
-					others += getFiniteNumber(value)
-				}
-				if (others > 0) hasOthersValue = true
-				row[OTHERS_NAME] = others
-			}
+		return row
+	})
 
-			return row
-		})
-		.filter((point): point is Record<string, number> => point != null)
-
-	const dimensions = ['timestamp', ...keys.map((key) => labelsByKey.get(key)).filter((key): key is string => !!key)]
+	const dimensions = ['timestamp', ...keys.flatMap((key) => labelsByKey.get(key) ?? [])]
 	if (includeOthers && hasOthersValue) dimensions.push(OTHERS_NAME)
 
 	const seriesNames = dimensions.filter((dimension) => dimension !== 'timestamp')

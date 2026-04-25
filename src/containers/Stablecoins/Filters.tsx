@@ -1,7 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Select } from '~/components/Select/Select'
@@ -380,13 +379,13 @@ function McapRange({
 function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu: boolean }) {
 	const router = useRouter()
 
-	// Only reset URL-driven filters (stablecoin filters are currently driven by query params)
-	const hasActiveQueryFilters = Object.entries(router.query).some(([key, value]) => {
-		if (key === 'chain') return false
-		if (value === undefined) return false
-		if (Array.isArray(value)) return value.length > 0
-		return value !== ''
-	})
+	let hasActiveQueryFilters = false
+	for (const key in router.query) {
+		const value = router.query[key]
+		if (key === 'chain' || value === undefined) continue
+		hasActiveQueryFilters = Array.isArray(value) ? value.length > 0 : value !== ''
+		if (hasActiveQueryFilters) break
+	}
 
 	return (
 		<button
@@ -404,13 +403,11 @@ function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu:
 function PeggedFiltersDropdowns({
 	pathname,
 	nestedMenu,
-	prepareCsv,
 	availableBackings,
 	availablePegTypes
 }: {
 	pathname: string
 	nestedMenu?: boolean
-	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 	availableBackings?: StablecoinFilterKey[]
 	availablePegTypes?: StablecoinFilterKey[]
 }) {
@@ -421,14 +418,12 @@ function PeggedFiltersDropdowns({
 			<PegType nestedMenu={!!nestedMenu} availablePegTypes={availablePegTypes} />
 			<McapRange nestedMenu={nestedMenu} placement="bottom-start" />
 			<ResetAllStablecoinFilters pathname={pathname} nestedMenu={!!nestedMenu} />
-			<CSVDownloadButton prepareCsv={prepareCsv} smol className="ml-auto" />
 		</>
 	)
 }
 
 export function PeggedFilters(props: {
 	pathname: string
-	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 	availableBackings?: StablecoinFilterKey[]
 	availablePegTypes?: StablecoinFilterKey[]
 }) {

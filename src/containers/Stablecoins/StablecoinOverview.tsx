@@ -158,7 +158,8 @@ export const PeggedAssetInfo = ({
 	const onUnreleasedToggle = React.useCallback(() => {
 		const nextValue = !includeUnreleased
 		const nextQuery: Record<string, string | string[]> = {}
-		for (const [key, value] of Object.entries(router.query)) {
+		for (const key in router.query) {
+			const value = router.query[key]
 			if (typeof value === 'undefined' || key === UNRELEASED_QUERY_KEY) continue
 			if (typeof value === 'string' || Array.isArray(value)) nextQuery[key] = value
 		}

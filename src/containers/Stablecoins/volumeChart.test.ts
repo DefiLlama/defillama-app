@@ -32,11 +32,11 @@ describe('buildStablecoinVolumeChartPayload', () => {
 			{ chart: 'chain', limit: 2 }
 		)
 
-		expect(payload.dataset.dimensions).toEqual(['timestamp', 'Ethereum', 'Tron', 'Others'])
+		expect(payload.dataset.dimensions).toEqual(['timestamp', 'ethereum', 'tron', 'Others'])
 		expect(payload.dataset.source[1]).toEqual({
 			timestamp: 1609545600000,
-			Ethereum: 120,
-			Tron: 90,
+			ethereum: 120,
+			tron: 90,
 			Others: 90
 		})
 		expect(payload.showTotalInTooltip).toBe(true)
@@ -49,7 +49,7 @@ describe('buildStablecoinVolumeChartPayload', () => {
 				[1609459200, { bsc: 25, ethereum: 100 }],
 				[1609545600, { bsc: 30, ethereum: 120 }]
 			],
-			{ chart: 'chain', selectedDimension: 'BSC' }
+			{ chart: 'chain', selectedDimension: 'bsc' }
 		)
 
 		expect(payload.dataset).toEqual({

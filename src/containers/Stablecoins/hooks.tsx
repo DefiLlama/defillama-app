@@ -314,9 +314,8 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 				finalData[item.name] = item
 			}
 		}
-		// Iterate own keys only to avoid inherited enumerable properties.
 		const finalDataArray: (typeof finalData)[string][] = []
-		for (const key of Object.keys(finalData)) {
+		for (const key in finalData) {
 			finalDataArray.push(finalData[key])
 		}
 		return finalDataArray.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
@@ -443,9 +442,8 @@ export const useGroupBridgeData = (
 				}
 			}
 		}
-		// Iterate own keys only to avoid inherited enumerable properties.
 		const finalDataArray: (typeof finalData)[string][] = []
-		for (const key of Object.keys(finalData)) {
+		for (const key in finalData) {
 			finalDataArray.push(finalData[key])
 		}
 		return finalDataArray.filter((chain) => chain.name).sort((a, b) => b.circulating - a.circulating)

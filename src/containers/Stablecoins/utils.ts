@@ -240,7 +240,6 @@ export function getStablecoinValueFromPoint(
 		const totalsRecord = issuanceTotals as Record<string, unknown>
 		let total = 0
 		for (const key in totalsRecord) {
-			if (!Object.hasOwn(totalsRecord, key)) continue
 			const value = totalsRecord[key]
 			const numeric = typeof value === 'number' ? value : Number(value)
 			if (Number.isFinite(numeric)) total += numeric
@@ -282,7 +281,6 @@ export const getStablecoinTopTokenFromChartData = (
 	let topMcap = DEFAULT_TOP_TOKEN.mcap
 
 	for (const key in latestRow) {
-		if (!Object.prototype.hasOwnProperty.call(latestRow, key)) continue
 		if (key === 'date') continue
 		const rawValue = latestRow[key]
 		const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
@@ -458,7 +456,9 @@ const buildStablecoinChartDataInternal = (
 
 	const peggedAreaChartData: IStablecoinAreaChartPoint[] = []
 	if (flags.area) {
-		const dates = Object.keys(unformattedAreaData).sort((a, b) => Number(a) - Number(b))
+		const dates: string[] = []
+		for (const date in unformattedAreaData) dates.push(date)
+		dates.sort((a, b) => Number(a) - Number(b))
 		for (const date of dates) {
 			peggedAreaChartData.push({ date, ...unformattedAreaData[date] })
 		}
@@ -466,7 +466,9 @@ const buildStablecoinChartDataInternal = (
 
 	const peggedAreaTotalData: IStablecoinMcapPoint[] = []
 	if (flags.total) {
-		const dates = Object.keys(unformattedTotalData).sort((a, b) => Number(a) - Number(b))
+		const dates: string[] = []
+		for (const date in unformattedTotalData) dates.push(date)
+		dates.sort((a, b) => Number(a) - Number(b))
 		for (const date of dates) {
 			const mcap = unformattedTotalData[date]
 			const normalizedMcap = Number.isFinite(mcap) ? mcap : 0
@@ -480,7 +482,9 @@ const buildStablecoinChartDataInternal = (
 
 	const stackedDataset: IStablecoinStackedPoint[] = []
 	if (flags.stacked) {
-		const dates = Object.keys(stackedDatasetObject).sort((a, b) => Number(a) - Number(b))
+		const dates: string[] = []
+		for (const date in stackedDatasetObject) dates.push(date)
+		dates.sort((a, b) => Number(a) - Number(b))
 		for (const date of dates) {
 			stackedDataset.push([date, stackedDatasetObject[date]])
 		}
