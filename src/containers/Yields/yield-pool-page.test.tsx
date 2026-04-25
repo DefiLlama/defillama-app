@@ -1,11 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it, vi } from 'vitest'
-
-vi.mock('~/layout', () => ({
-	default: ({ children }: { children: React.ReactNode }) => <>{children}</>
-}))
-
-import { ProtocolInformationCard } from '~/pages/yields/pool/[pool]'
+import { describe, expect, it } from 'vitest'
+import { ProtocolInformationCard } from './ProtocolInformationCard'
 
 describe('YieldPoolPage', () => {
 	it('renders an internal protocol link in the protocol information card', () => {
