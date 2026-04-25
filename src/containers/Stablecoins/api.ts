@@ -9,6 +9,8 @@ import type {
 	StablecoinPricesResponse,
 	StablecoinRatesResponse,
 	StablecoinRecentCoinsDataResponse,
+	StablecoinVolumeChartKind,
+	StablecoinVolumeChartResponse,
 	StablecoinsListResponse
 } from './api.types'
 
@@ -20,6 +22,7 @@ const PEGGEDCHART_COINS_RECENT_DATA_API = `${STABLECOINS_SERVER_URL}/stablecoinc
 const PEGGEDCONFIG_API = `${STABLECOINS_SERVER_URL}/config`
 const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
 const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
+const STABLECOIN_VOLUME_CHART_API = `${STABLECOINS_SERVER_URL}/chart/volume`
 
 /**
  * Fetch the stablecoin assets list.
@@ -75,6 +78,22 @@ export const fetchStablecoinChartApi = async (chainLabel: string): Promise<Stabl
  */
 export const fetchStablecoinChartAllApi = async (): Promise<StablecoinChartResponse> => {
 	return fetchJson<StablecoinChartResponse>(`${PEGGEDCHART_API}/all`)
+}
+
+/**
+ * Fetch stablecoin volume chart data.
+ */
+export const fetchStablecoinVolumeChartApi = async (
+	chart: StablecoinVolumeChartKind
+): Promise<StablecoinVolumeChartResponse> => {
+	const pathByChart: Record<StablecoinVolumeChartKind, string> = {
+		total: '',
+		chain: '/chain-breakdown',
+		token: '/token-breakdown',
+		currency: '/currency-breakdown'
+	}
+
+	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
 }
 
 /**

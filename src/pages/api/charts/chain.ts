@@ -3,8 +3,7 @@ import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { fetchRaises } from '~/containers/Raises/api'
-import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.server'
-import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
+import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 
@@ -26,23 +25,15 @@ const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
 
 const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapSeriesPoint[] | null> => {
 	try {
-		const data = await getStablecoinsByChainPageData(chain === 'All' ? null : chain)
-		const { peggedAreaTotalData } = buildStablecoinChartData({
-			chartDataByAssetOrChain: data.chartDataByPeggedAsset,
-			assetsOrChainsList: data.peggedAssetNames,
-			filteredIndexes: Object.values(data.peggedNameToChartDataIndex),
-			issuanceType: 'mcap',
-			selectedChain: chain,
-			doublecountedIds: data.doublecountedIds
-		})
-
-		return peggedAreaTotalData
-			.map(({ date, Mcap }): StablecoinMcapSeriesPoint | null => {
-				const timestamp = Number(date) * 1e3
-				if (!Number.isFinite(timestamp) || !Number.isFinite(Mcap)) return null
-				return [timestamp, Mcap]
-			})
-			.filter((point): point is StablecoinMcapSeriesPoint => point !== null)
+		const data = await getStablecoinOverviewChartSeries({ chain: chain === 'All' ? null : chain, chart: 'totalMcap' })
+		const series: StablecoinMcapSeriesPoint[] = []
+		for (const point of data.dataset.source) {
+			const timestamp = Number(point.timestamp)
+			const mcap = Number(point.Mcap)
+			if (!Number.isFinite(timestamp) || !Number.isFinite(mcap)) continue
+			series.push([timestamp, mcap])
+		}
+		return series
 	} catch (error) {
 		console.log('Failed to build stablecoin chart series', error)
 		return null

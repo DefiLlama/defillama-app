@@ -143,6 +143,8 @@ export type MultiSeriesChart2SeriesConfig = {
 	showSymbol?: boolean
 	symbol?: string
 	symbolSize?: number
+	barMinWidth?: number
+	barMaxWidth?: number
 	large?: boolean
 }
 

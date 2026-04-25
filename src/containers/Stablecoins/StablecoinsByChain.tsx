@@ -3,17 +3,41 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
-import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type {
+	IHBarChartProps,
+	IMultiSeriesChart2Props,
+	IPieChartProps,
+	ITreemapChartProps
+} from '~/components/ECharts/types'
 import { preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
-import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
+import type { StablecoinChartSeriesPayload, StablecoinOverviewChartType } from '~/containers/Stablecoins/chartSeries'
+import {
+	createStablecoinOverviewChartMode,
+	getStablecoinChartTypeLabel,
+	getStablecoinChartTypeOptions,
+	getStablecoinChartTypeQueryValue,
+	getStablecoinChartViewLabel,
+	getStablecoinChartViewOptions,
+	getStablecoinChartViewQueryValue,
+	parseStablecoinChartState,
+	type StablecoinChartType as StablecoinChartCategory,
+	type StablecoinChartView
+} from '~/containers/Stablecoins/chartState'
 import {
 	PeggedFilters,
 	stablecoinAttributeOptions,
@@ -21,27 +45,25 @@ import {
 	stablecoinPegTypeOptions,
 	type StablecoinFilterOption
 } from '~/containers/Stablecoins/Filters'
-import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
-import {
-	buildStablecoinChartData,
-	type FormattedStablecoinAsset,
-	getStablecoinDominance,
-	getStablecoinMcapStatsFromTotals,
-	getStablecoinTopTokenFromChartData,
-	type StablecoinChartDataPoint
-} from '~/containers/Stablecoins/utils'
+import { useCalcCirculating } from '~/containers/Stablecoins/hooks'
+import { useStablecoinChartSeriesData, useStablecoinVolumeChartData } from '~/containers/Stablecoins/queries.client'
+import { type FormattedStablecoinAsset } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, toNiceCsvDate } from '~/utils'
-import { isTruthyQueryParam, parseNumberQueryParam } from '~/utils/routerQuery'
+import { isTruthyQueryParam, parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import type { StablecoinVolumeChartKind } from './api.types'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { StablecoinsTable } from './StablecoinsAssetsTable'
+import { groupStablecoinVolumeChartPayload } from './volumeChart'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const HBarChart = React.lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
+const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 const EMPTY_CHAINS: string[] = []
-const EMPTY_IDS: number[] = []
+const MAX_HORIZONTAL_BARS = 9
 const STABLECOIN_FILTER_QUERY_KEYS = [
 	'attribute',
 	'excludeAttribute',
@@ -54,12 +76,8 @@ const STABLECOIN_FILTER_QUERY_KEYS = [
 ] as const
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
-type MultiSeriesCharts = NonNullable<IMultiSeriesChart2Props['charts']>
-
 type StablecoinFilterResolverParams = {
 	filteredPeggedAssets: FormattedStablecoinAsset[]
-	peggedNameToChartDataIndex: Record<string, number>
-	defaultFilteredIndexes: number[]
 	hasActiveStablecoinUrlFilters: boolean
 	selectedAttributes: string[]
 	selectedPegTypes: string[]
@@ -67,6 +85,11 @@ type StablecoinFilterResolverParams = {
 	minMcap: number | null
 	maxMcap: number | null
 }
+
+type MultiSeriesChartState =
+	| { status: 'loading' }
+	| { status: 'unavailable' }
+	| { status: 'ready'; data: StablecoinChartSeriesPayload }
 
 const stablecoinAttributeOptionsMap: Map<string, StablecoinFilterOption> = new Map(
 	stablecoinAttributeOptions.map((option) => [option.key, option])
@@ -105,25 +128,20 @@ const isWithinMcapRange = (
 
 const resolveFilteredStablecoinData = ({
 	filteredPeggedAssets,
-	peggedNameToChartDataIndex,
-	defaultFilteredIndexes,
 	hasActiveStablecoinUrlFilters,
 	selectedAttributes,
 	selectedPegTypes,
 	selectedBackings,
 	minMcap,
 	maxMcap
-}: StablecoinFilterResolverParams): { peggedAssets: FormattedStablecoinAsset[]; filteredIndexes: number[] } => {
+}: StablecoinFilterResolverParams): { peggedAssets: FormattedStablecoinAsset[] } => {
 	// Fast path: default page load (no URL filters) should avoid per-asset filtering work.
 	if (!hasActiveStablecoinUrlFilters) {
 		return {
-			peggedAssets: filteredPeggedAssets,
-			filteredIndexes: defaultFilteredIndexes
+			peggedAssets: filteredPeggedAssets
 		}
 	}
 
-	const chartDataIndexes: number[] = []
-	const seenChartDataIndexes = new Set<number>()
 	const peggedAssets: FormattedStablecoinAsset[] = []
 
 	for (const asset of filteredPeggedAssets) {
@@ -138,71 +156,115 @@ const resolveFilteredStablecoinData = ({
 
 		if (!isWithinMcapRange(asset, minMcap, maxMcap)) continue
 
-		const maybeIndex = peggedNameToChartDataIndex[asset.name]
-		const numericIndex = typeof maybeIndex === 'number' ? maybeIndex : Number(maybeIndex)
-		if (Number.isFinite(numericIndex) && !seenChartDataIndexes.has(numericIndex)) {
-			seenChartDataIndexes.add(numericIndex)
-			chartDataIndexes.push(numericIndex)
-		}
 		peggedAssets.push(asset)
 	}
 
-	return { peggedAssets, filteredIndexes: chartDataIndexes }
+	return { peggedAssets }
 }
 
 interface StablecoinsByChainProps {
 	selectedChain?: string
 	chains?: string[]
 	filteredPeggedAssets: FormattedStablecoinAsset[]
-	peggedAssetNames: string[]
-	peggedNameToChartDataIndex: Record<string, number>
-	chartDataByPeggedAsset: StablecoinChartDataPoint[][]
-	doublecountedIds?: number[]
 	availableBackings: string[]
 	availablePegTypes: string[]
+	defaultChartData: StablecoinChartSeriesPayload
 	entityQuestions?: string[]
 }
 
 const INFLOWS_TOOLTIP_FORMATTER = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
-const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
-	const mapping: Record<string, StablecoinChartType> = {
-		'Total Market Cap': 'totalMcap',
-		'Token Market Caps': 'tokenMcaps',
-		'Chain Market Caps': 'tokenMcaps',
-		Pie: 'pie',
-		Dominance: 'dominance',
-		'USD Inflows': 'usdInflows',
-		'Token Inflows': 'tokenInflows'
-	}
-	return mapping[displayType] || 'totalMcap'
+const mapChartStateToConfig = (
+	chartType: StablecoinChartCategory,
+	chartView: StablecoinChartView
+): StablecoinChartType => {
+	if (chartType === 'inflows') return chartView === 'token' ? 'tokenInflows' : 'usdInflows'
+	if (chartView === 'breakdown') return 'tokenMcaps'
+	if (chartView === 'dominance') return 'dominance'
+	if (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap') return 'pie'
+	return 'totalMcap'
 }
 
-const ALL_CHAIN_CHARTS = ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
-const CHAIN_CHARTS = ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
+const getOverviewChartType = (
+	chartType: StablecoinChartCategory,
+	chartView: StablecoinChartView
+): StablecoinOverviewChartType | null => {
+	if (chartType === 'inflows') return chartView === 'token' ? 'tokenInflows' : 'usdInflows'
+	if (chartType !== 'marketCap') return null
+	if (chartView === 'total') return 'totalMcap'
+	if (chartView === 'breakdown') return 'tokenMcaps'
+	if (chartView === 'dominance') return 'dominance'
+	return null
+}
+
+const getVolumeChartKind = (
+	chartType: StablecoinChartCategory,
+	chartView: StablecoinChartView,
+	selectedChain: string
+): StablecoinVolumeChartKind | null => {
+	if (chartType !== 'volume') return null
+	if (selectedChain !== 'All') return 'chain'
+	if (chartView === 'byChain') return 'chain'
+	if (chartView === 'byToken') return 'token'
+	if (chartView === 'byCurrency') return 'currency'
+	return 'total'
+}
 
 export function StablecoinsByChain({
 	selectedChain = 'All',
 	chains = EMPTY_CHAINS,
 	filteredPeggedAssets,
-	peggedAssetNames,
-	peggedNameToChartDataIndex,
-	chartDataByPeggedAsset,
-	doublecountedIds = EMPTY_IDS,
 	availableBackings,
 	availablePegTypes,
+	defaultChartData,
 	entityQuestions
 }: StablecoinsByChainProps) {
-	const [chartType, setChartType] = React.useState('Total Market Cap')
-
-	const chartTypeList = React.useMemo(
-		() => (selectedChain !== 'All' ? CHAIN_CHARTS : ALL_CHAIN_CHARTS),
-		[selectedChain]
-	)
-
-	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
-
 	const router = useRouter()
+	const chartMode = React.useMemo(() => createStablecoinOverviewChartMode(selectedChain), [selectedChain])
+	const chartState = parseStablecoinChartState(router.query, chartMode)
+	const chartType = chartState.type
+	const chartView = chartState.view
+	const volumeGroupBy = React.useMemo<LowercaseDwmcGrouping>(() => {
+		const value = Array.isArray(router.query.groupBy) ? router.query.groupBy[0] : router.query.groupBy
+		const normalized = value?.toLowerCase()
+		return DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === normalized)?.value ?? 'daily'
+	}, [router.query.groupBy])
+	const chartTypeOptions = React.useMemo(() => getStablecoinChartTypeOptions(chartMode), [chartMode])
+	const chartViewOptions = React.useMemo(() => getStablecoinChartViewOptions(chartState), [chartState])
+	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
+	const onChartTypeChange = React.useCallback(
+		(nextChartType: StablecoinChartCategory) => {
+			handleExportChartReady(null)
+			void pushShallowQuery(router, {
+				chartType: getStablecoinChartTypeQueryValue(chartMode, nextChartType),
+				chartView: undefined
+			})
+		},
+		[chartMode, handleExportChartReady, router]
+	)
+	const onChartViewChange = React.useCallback(
+		(nextChartView: string) => {
+			const view = nextChartView as StablecoinChartView
+			handleExportChartReady(null)
+			void pushShallowQuery(router, {
+				chartView: getStablecoinChartViewQueryValue(chartMode, chartType, view)
+			})
+		},
+		[chartMode, chartType, handleExportChartReady, router]
+	)
+	const onVolumeGroupByChange = React.useCallback(
+		(nextGroupBy: LowercaseDwmcGrouping) => {
+			void pushShallowQuery(router, { groupBy: nextGroupBy === 'daily' ? undefined : nextGroupBy })
+		},
+		[router]
+	)
+	const volumeChartKind = getVolumeChartKind(chartType, chartView, selectedChain)
+	const volumeChartDimension = volumeChartKind === 'chain' && selectedChain !== 'All' ? selectedChain : undefined
+	const volumeChartQuery = useStablecoinVolumeChartData({
+		chart: volumeChartKind,
+		dimension: volumeChartDimension,
+		enabled: volumeChartKind != null
+	})
 	const unreleasedQueryParam = router.query[UNRELEASED_QUERY_KEY]
 
 	const minMcap = parseNumberQueryParam(router.query.minMcap)
@@ -225,24 +287,9 @@ export function StablecoinsByChain({
 		stablecoinBackingOptions
 	})
 
-	const defaultFilteredIndexes = React.useMemo(() => {
-		// Keep table/chart/stats aligned by deriving default indexes from the same prefiltered assets list.
-		const indexes: number[] = []
-		const seen = new Set<number>()
-		for (const asset of filteredPeggedAssets) {
-			const maybeIndex = peggedNameToChartDataIndex[asset.name]
-			if (typeof maybeIndex !== 'number' || !Number.isFinite(maybeIndex) || seen.has(maybeIndex)) continue
-			seen.add(maybeIndex)
-			indexes.push(maybeIndex)
-		}
-		return indexes
-	}, [filteredPeggedAssets, peggedNameToChartDataIndex])
-
-	const { peggedAssets, filteredIndexes } = React.useMemo(() => {
+	const { peggedAssets } = React.useMemo(() => {
 		return resolveFilteredStablecoinData({
 			filteredPeggedAssets,
-			peggedNameToChartDataIndex,
-			defaultFilteredIndexes,
 			hasActiveStablecoinUrlFilters,
 			selectedAttributes,
 			selectedPegTypes,
@@ -252,8 +299,6 @@ export function StablecoinsByChain({
 		})
 	}, [
 		filteredPeggedAssets,
-		peggedNameToChartDataIndex,
-		defaultFilteredIndexes,
 		hasActiveStablecoinUrlFilters,
 		minMcap,
 		maxMcap,
@@ -261,18 +306,6 @@ export function StablecoinsByChain({
 		selectedPegTypes,
 		selectedBackings
 	])
-
-	const { peggedAreaChartData, peggedAreaTotalData, stackedDataset, tokenInflows, tokenInflowNames, usdInflows } =
-		React.useMemo(() => {
-			return buildStablecoinChartData({
-				chartDataByAssetOrChain: chartDataByPeggedAsset,
-				assetsOrChainsList: peggedAssetNames,
-				filteredIndexes,
-				issuanceType: 'mcap',
-				selectedChain,
-				doublecountedIds
-			})
-		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, selectedChain, doublecountedIds])
 
 	const chainOptions = React.useMemo(
 		() => ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) })),
@@ -284,66 +317,132 @@ export function StablecoinsByChain({
 	const chainsCirculatingValues = React.useMemo(() => {
 		return preparePieChartData({ data: peggedTotals, sliceIdentifier: 'symbol', sliceValue: 'mcap', limit: 10 })
 	}, [peggedTotals])
-
-	const { data: stackedData, dataWithExtraPeggedAndDominanceByDay } = useCalcGroupExtraPeggedByDay(
-		stackedDataset,
-		includeUnreleased
+	const hbarMarketCapData = React.useMemo(() => {
+		return preparePieChartData({
+			data: peggedTotals,
+			sliceIdentifier: 'symbol',
+			sliceValue: 'mcap',
+			limit: MAX_HORIZONTAL_BARS
+		})
+	}, [peggedTotals])
+	const rankedMarketCapData = React.useMemo(() => {
+		const data: Array<{ name: string; value: number; color: string }> = []
+		for (const asset of peggedTotals) {
+			const value = Number(asset.mcap ?? 0)
+			if (!Number.isFinite(value) || value <= 0) continue
+			data.push({
+				name: asset.symbol || asset.name,
+				value,
+				color: CHART_COLORS[data.length % CHART_COLORS.length]
+			})
+			if (data.length >= 20) break
+		}
+		return data
+	}, [peggedTotals])
+	const hbarCategories = React.useMemo(() => hbarMarketCapData.map((item) => item.name), [hbarMarketCapData])
+	const hbarValues = React.useMemo(() => hbarMarketCapData.map((item) => item.value), [hbarMarketCapData])
+	const hbarColors = React.useMemo(
+		() => hbarMarketCapData.map((_, index) => CHART_COLORS[index % CHART_COLORS.length]),
+		[hbarMarketCapData]
 	)
-
-	// Keep chart dimensions in sync with the filtered indexes & remove doublecounted series.
-	// This prevents NaN/undefined values from crashing ECharts (especially stacked % charts like Dominance).
-	const filteredPeggedNames = React.useMemo(() => {
-		const doublecountedSet = new Set(doublecountedIds)
-		const names: string[] = []
-		for (const i of filteredIndexes) {
-			if (doublecountedSet.has(i)) continue
-			const name = peggedAssetNames[i]
-			if (typeof name === 'string' && name) names.push(name)
+	const treemapData = React.useMemo(() => {
+		let total = 0
+		for (const item of rankedMarketCapData) {
+			total += item.value
 		}
-		return names
-	}, [doublecountedIds, filteredIndexes, peggedAssetNames])
-
-	const prepareCsv = React.useCallback(() => {
-		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
-		const sortedData = [...stackedData].sort((a, b) => a.date - b.date)
-		for (const day of sortedData) {
-			rows.push([
-				day.date,
-				toNiceCsvDate(day.date),
-				...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-				filteredPeggedNames.reduce((acc, curr) => acc + (day[curr] ?? 0), 0)
-			])
-		}
-		return { filename: 'stablecoins', rows }
-	}, [filteredPeggedNames, stackedData])
+		return rankedMarketCapData.map((item) => ({
+			name: item.name,
+			path: `Stablecoins/${item.name}`,
+			value: [
+				item.value,
+				total > 0 ? Number(((item.value / total) * 100).toFixed(2)) : 0,
+				total > 0 ? Number(((item.value / total) * 100).toFixed(2)) : 0
+			],
+			itemStyle: { color: item.color }
+		}))
+	}, [rankedMarketCapData])
 
 	let title = `Stablecoins Market Cap`
 	if (selectedChain !== 'All') {
 		title = `${selectedChain} Stablecoins Market Cap`
 	}
 
-	const mcapStats = getStablecoinMcapStatsFromTotals(peggedAreaTotalData)
-	const oneDay = mcapStats.change1d ?? '0'
-	const sevenDay = mcapStats.change7d ?? '0'
-	const thirtyDay = mcapStats.change30d ?? '0'
-	const oneDayUsd = formattedNum(String(mcapStats.change1dUsd ?? 0), true)
-	const sevenDayUsd = formattedNum(String(mcapStats.change7dUsd ?? 0), true)
-	const thirtyDayUsd = formattedNum(String(mcapStats.change30dUsd ?? 0), true)
+	const chartTypeConfig = mapChartStateToConfig(chartType, chartView)
+	const isVolumeChart = volumeChartKind != null
+	const overviewChartType = getOverviewChartType(chartType, chartView)
+	const isMarketCapTableChart =
+		chartType === 'marketCap' && (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap')
+	const overviewFilters = React.useMemo(
+		() => ({
+			attribute: router.query.attribute,
+			excludeAttribute: router.query.excludeAttribute,
+			pegtype: router.query.pegtype,
+			excludePegtype: router.query.excludePegtype,
+			backing: router.query.backing,
+			excludeBacking: router.query.excludeBacking,
+			minMcap: router.query.minMcap,
+			maxMcap: router.query.maxMcap
+		}),
+		[
+			router.query.attribute,
+			router.query.excludeAttribute,
+			router.query.pegtype,
+			router.query.excludePegtype,
+			router.query.backing,
+			router.query.excludeBacking,
+			router.query.minMcap,
+			router.query.maxMcap
+		]
+	)
+	const shouldFetchOverviewChart =
+		overviewChartType != null && (chartType !== 'marketCap' || chartView !== 'total' || hasActiveStablecoinUrlFilters)
+	const overviewChartQuery = useStablecoinChartSeriesData({
+		scope: 'overview',
+		chain: selectedChain,
+		chart: overviewChartType,
+		filters: overviewFilters,
+		enabled: shouldFetchOverviewChart
+	})
+	const summaryChartQuery = useStablecoinChartSeriesData({
+		scope: 'overview',
+		chain: selectedChain,
+		chart: 'totalMcap',
+		filters: overviewFilters,
+		enabled: isMarketCapTableChart && hasActiveStablecoinUrlFilters
+	})
+	const selectedChartData =
+		shouldFetchOverviewChart && overviewChartType
+			? (overviewChartQuery.data ?? null)
+			: overviewChartType
+				? defaultChartData
+				: null
+	const isSelectedChartLoading =
+		shouldFetchOverviewChart &&
+		(overviewChartQuery.isLoading ||
+			(selectedChartData == null && (overviewChartQuery.isFetching || overviewChartQuery.data != null)))
+	const isSelectedChartUnavailable =
+		shouldFetchOverviewChart && !isSelectedChartLoading && (overviewChartQuery.error != null || !selectedChartData)
+	const chartSummary =
+		(isMarketCapTableChart && hasActiveStablecoinUrlFilters
+			? summaryChartQuery.data?.summary
+			: selectedChartData?.summary) ?? defaultChartData.summary
+	const oneDay = chartSummary?.change1d ?? '0'
+	const sevenDay = chartSummary?.change7d ?? '0'
+	const thirtyDay = chartSummary?.change30d ?? '0'
+	const oneDayUsd = formattedNum(String(chartSummary?.change1dUsd ?? 0), true)
+	const sevenDayUsd = formattedNum(String(chartSummary?.change7dUsd ?? 0), true)
+	const thirtyDayUsd = formattedNum(String(chartSummary?.change30dUsd ?? 0), true)
 	const change1d = oneDay.startsWith('-') ? oneDay : `+${oneDay}`
 	const change7d = sevenDay.startsWith('-') ? sevenDay : `+${sevenDay}`
 	const change30d = thirtyDay.startsWith('-') ? thirtyDay : `+${thirtyDay}`
-	const totalMcapCurrent = mcapStats.totalMcapCurrent
+	const totalMcapCurrent = chartSummary?.totalMcapCurrent ?? null
 	const change1d_nol = oneDayUsd.startsWith('-') ? oneDayUsd : `+${oneDayUsd}`
 	const change7d_nol = sevenDayUsd.startsWith('-') ? sevenDayUsd : `+${sevenDayUsd}`
 	const change30d_nol = thirtyDayUsd.startsWith('-') ? thirtyDayUsd : `+${thirtyDayUsd}`
-
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
+	const dominance = chartSummary?.dominance ?? null
+	const topTokenSymbol = chartSummary?.topToken.symbol ?? 'USDT'
 
-	const topToken = getStablecoinTopTokenFromChartData(peggedAreaChartData)
-
-	const dominance = getStablecoinDominance(topToken, totalMcapCurrent)
-
-	const chartTypeConfig = mapChartTypeToConfig(chartType)
 	const stablecoinsChartConfig: StablecoinsChartConfig = {
 		id: `stablecoins-${selectedChain}-${chartTypeConfig}`,
 		kind: 'stablecoins',
@@ -353,107 +452,71 @@ export function StablecoinsByChain({
 
 	const getImageExportTitle = () => {
 		const chainPrefix = selectedChain !== 'All' ? `${selectedChain} ` : ''
-		return `${chainPrefix}Stablecoins - ${chartType}`
+		return `${chainPrefix}Stablecoins - ${getStablecoinChartTypeLabel(chartType)} ${getStablecoinChartViewLabel(chartView)}`
 	}
 
 	const getImageExportFilename = () => {
 		const chainSlug = selectedChain !== 'All' ? `${slug(selectedChain)}-` : ''
-		const chartSlug = chartType.toLowerCase().replace(/\s+/g, '-')
+		const chartSlug = `${chartType}-${chartView}`.toLowerCase()
 		return `stablecoins-${chainSlug}${chartSlug}`
 	}
 
-	const totalMcapDataset = React.useMemo(
-		() => ({
-			source: peggedAreaTotalData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-			dimensions: ['timestamp', 'Mcap']
-		}),
-		[peggedAreaTotalData]
-	)
-
-	const tokenMcapsData = React.useMemo(
-		() => ({
-			dataset: {
-				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...filteredPeggedNames]
-			},
-			charts: filteredPeggedNames.map((name, i) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
-				stack: 'tokenMcaps'
-			}))
-		}),
-		[peggedAreaChartData, filteredPeggedNames]
-	)
-
-	const dominanceData = React.useMemo(
-		() => ({
-			dataset: {
-				source: dataWithExtraPeggedAndDominanceByDay
-					.map(({ date, ...rest }) => {
-						const timestamp = Number(date) * 1e3
-						if (!Number.isFinite(timestamp)) return null
-
-						// Ensure every dimension exists and is numeric (ECharts can crash on undefined/NaN in stacked % charts)
-						const row: Record<string, number> = { timestamp }
-						for (const name of filteredPeggedNames) {
-							const raw = rest[name]
-							const value = typeof raw === 'number' ? raw : Number(raw)
-							row[name] = Number.isFinite(value) ? value : 0
-						}
-						return row
-					})
-					.filter((row): row is Record<string, number> => row != null),
-				dimensions: ['timestamp', ...filteredPeggedNames]
-			},
-			charts: filteredPeggedNames.map((name, i) => ({
-				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
-				stack: 'dominance'
-			}))
-		}),
-		[dataWithExtraPeggedAndDominanceByDay, filteredPeggedNames]
-	)
-
-	const tokenInflowsData = React.useMemo(() => {
-		const names = tokenInflowNames ?? []
-		if (!tokenInflows) return { dataset: { source: [], dimensions: ['timestamp'] }, charts: [] }
-		return {
-			dataset: {
-				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
-				dimensions: ['timestamp', ...names]
-			},
-			charts: names.map((name, i) => ({
-				type: 'bar' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
-				color: tokenColors[name] ?? CHART_COLORS[i % CHART_COLORS.length],
-				stack: 'tokenInflows'
-			}))
+	const prepareCsv = React.useCallback(() => {
+		if (isMarketCapTableChart) {
+			const rows: Array<Array<string | number | boolean>> = [['Name', 'Market Cap']]
+			for (const peggedAsset of peggedTotals) {
+				rows.push([peggedAsset.symbol ?? peggedAsset.name, peggedAsset.mcap ?? 0])
+			}
+			return { filename: 'stablecoins', rows }
 		}
-	}, [tokenInflows, tokenInflowNames])
+		const payload = isVolumeChart ? volumeChartQuery.data : selectedChartData
+		const dimensions = payload?.dataset.dimensions ?? ['timestamp']
+		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...dimensions.slice(1)]]
+		for (const row of payload?.dataset.source ?? []) {
+			const timestamp = Number(row.timestamp)
+			rows.push([
+				Number.isFinite(timestamp) ? timestamp : '',
+				Number.isFinite(timestamp) ? toNiceCsvDate(Math.floor(timestamp / 1e3)) : '',
+				...dimensions.slice(1).map((dimension) => row[dimension] ?? '')
+			])
+		}
+		return { filename: 'stablecoins', rows }
+	}, [isMarketCapTableChart, isVolumeChart, peggedTotals, selectedChartData, volumeChartQuery.data])
 
-	const usdInflowsDataset = React.useMemo(
-		() =>
-			usdInflows
-				? {
-						source: usdInflows.map(([d, v]) => ({ timestamp: +d * 1e3, Inflows: v })),
-						dimensions: ['timestamp', 'Inflows']
-					}
-				: { source: [], dimensions: ['timestamp', 'Inflows'] },
-		[usdInflows]
-	)
-	const deferredTokenInflowsData = React.useDeferredValue(tokenInflowsData)
-	const deferredTotalMcapDataset = React.useDeferredValue(totalMcapDataset)
-	const deferredTokenMcapsData = React.useDeferredValue(tokenMcapsData)
-	const deferredDominanceData = React.useDeferredValue(dominanceData)
 	const deferredChainsCirculatingValues = React.useDeferredValue(chainsCirculatingValues)
-	const deferredUsdInflowsDataset = React.useDeferredValue(usdInflowsDataset)
+	const deferredSelectedChartData = React.useDeferredValue(selectedChartData)
+	const groupedVolumeChartData = React.useMemo(
+		() => (volumeChartQuery.data ? groupStablecoinVolumeChartPayload(volumeChartQuery.data, volumeGroupBy) : null),
+		[volumeChartQuery.data, volumeGroupBy]
+	)
+	const deferredVolumeChartData = React.useDeferredValue(groupedVolumeChartData)
+	const isVolumeChartLoading =
+		deferredVolumeChartData == null &&
+		(volumeChartQuery.isLoading || volumeChartQuery.isFetching || volumeChartQuery.data != null)
+	const showDefaultLegend =
+		(chartType === 'marketCap' && (chartView === 'breakdown' || chartView === 'dominance')) ||
+		(chartType === 'volume' && chartView !== 'total')
+	let activeChartState: MultiSeriesChartState
+	if (isVolumeChart) {
+		if (isVolumeChartLoading) activeChartState = { status: 'loading' }
+		else if (volumeChartQuery.error || !deferredVolumeChartData) activeChartState = { status: 'unavailable' }
+		else activeChartState = { status: 'ready', data: deferredVolumeChartData }
+	} else if (isSelectedChartLoading || (selectedChartData != null && deferredSelectedChartData == null)) {
+		activeChartState = { status: 'loading' }
+	} else if (isSelectedChartUnavailable || !deferredSelectedChartData) {
+		activeChartState = { status: 'unavailable' }
+	} else {
+		activeChartState = { status: 'ready', data: deferredSelectedChartData }
+	}
 
-	const tokenInflowsSelectionKey = tokenInflowNames?.length ? tokenInflowNames.join('|') : ''
+	let tokenInflowsChartState: MultiSeriesChartState
+	if (isSelectedChartLoading || (selectedChartData != null && deferredSelectedChartData == null)) {
+		tokenInflowsChartState = { status: 'loading' }
+	} else if (isSelectedChartUnavailable || !deferredSelectedChartData)
+		tokenInflowsChartState = { status: 'unavailable' }
+	else tokenInflowsChartState = { status: 'ready', data: deferredSelectedChartData }
+	const tokenInflowNames = selectedChartData?.dataset.dimensions.slice(1) ?? []
+	const tokenInflowsSelectionKey = tokenInflowNames.length ? tokenInflowNames.join('|') : ''
 
 	return (
 		<>
@@ -526,86 +589,89 @@ export function StablecoinsByChain({
 						</p>
 					</details>
 					<p className="flex flex-col">
-						<span className="text-(--text-label)">{topToken.symbol} Dominance</span>
+						<span className="text-(--text-label)">{topTokenSymbol} Dominance</span>
 						<span className="font-jetbrains text-2xl font-semibold">{dominance}%</span>
 					</p>
 				</div>
 				<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					{chartType === 'Token Inflows' ? (
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+						<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+							{chartTypeOptions.map(({ key, name }) => (
+								<button
+									key={key}
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+									data-active={chartType === key}
+									onClick={() => onChartTypeChange(key)}
+								>
+									{name}
+								</button>
+							))}
+						</div>
+						<Select
+							allValues={chartViewOptions}
+							selectedValues={chartView}
+							setSelectedValues={onChartViewChange}
+							label={getStablecoinChartViewLabel(chartView)}
+							labelType="none"
+							variant="filter"
+						/>
+						{isVolumeChart || chartView === 'hbar' || chartView === 'treemap' ? null : (
+							<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
+						)}
+						{isVolumeChart ? (
+							<ChartGroupingSelector
+								value={volumeGroupBy}
+								options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+								onValueChange={onVolumeGroupByChange}
+							/>
+						) : null}
+						{chartType === 'marketCap' && chartView === 'treemap' ? (
+							<ChartRestoreButton chartInstance={exportChartInstance} />
+						) : null}
+						<ChartExportButtons
+							chartInstance={exportChartInstance}
+							filename={getImageExportFilename()}
+							title={getImageExportTitle()}
+						/>
+					</div>
+					{chartType === 'marketCap' && chartView === 'pie' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
+							<PieChart chartData={deferredChainsCirculatingValues} onReady={handleExportChartReady} />
+						</React.Suspense>
+					) : chartType === 'marketCap' && chartView === 'hbar' ? (
+						<React.Suspense fallback={<div className="min-h-[360px]" />}>
+							<HBarChart
+								categories={hbarCategories}
+								values={hbarValues}
+								colors={hbarColors}
+								valueSymbol="$"
+								onReady={handleExportChartReady}
+							/>
+						</React.Suspense>
+					) : chartType === 'marketCap' && chartView === 'treemap' ? (
+						<React.Suspense fallback={<div className="min-h-[600px]" />}>
+							<TreemapChart
+								treeData={treemapData}
+								variant="rwa"
+								height="600px"
+								onReady={handleExportChartReady}
+								valueLabel="Market Cap"
+							/>
+						</React.Suspense>
+					) : chartType === 'inflows' && chartView === 'token' ? (
 						<TokenInflowsChartPanel
 							key={tokenInflowsSelectionKey}
-							chartTypeList={chartTypeList}
-							chartType={chartType}
-							setChartType={setChartType}
-							stablecoinsChartConfig={stablecoinsChartConfig}
-							chartInstance={exportChartInstance}
-							exportFilename={getImageExportFilename()}
-							exportTitle={getImageExportTitle()}
 							onReady={handleExportChartReady}
-							tokenInflowNames={tokenInflowNames ?? []}
-							dataset={deferredTokenInflowsData.dataset}
-							charts={deferredTokenInflowsData.charts}
+							tokenInflowNames={tokenInflowNames}
+							state={tokenInflowsChartState}
 						/>
 					) : (
-						<>
-							<div className="flex items-center gap-2 p-2 pb-0">
-								<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-								<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
-								<ChartExportButtons
-									chartInstance={exportChartInstance}
-									filename={getImageExportFilename()}
-									title={getImageExportTitle()}
-								/>
-							</div>
-							{chartType === 'Total Market Cap' ? (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<MultiSeriesChart2
-										dataset={deferredTotalMcapDataset}
-										charts={TOTAL_MCAP_CHARTS}
-										valueSymbol="$"
-										onReady={handleExportChartReady}
-									/>
-								</React.Suspense>
-							) : chartType === 'Token Market Caps' ? (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<MultiSeriesChart2
-										dataset={deferredTokenMcapsData.dataset}
-										charts={deferredTokenMcapsData.charts}
-										stacked={true}
-										valueSymbol="$"
-										showTotalInTooltip
-										onReady={handleExportChartReady}
-									/>
-								</React.Suspense>
-							) : chartType === 'Dominance' ? (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<MultiSeriesChart2
-										dataset={deferredDominanceData.dataset}
-										charts={deferredDominanceData.charts}
-										stacked={true}
-										expandTo100Percent={true}
-										valueSymbol="%"
-										onReady={handleExportChartReady}
-									/>
-								</React.Suspense>
-							) : chartType === 'Pie' ? (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<PieChart
-										chartData={deferredChainsCirculatingValues}
-										stackColors={tokenColors}
-										onReady={handleExportChartReady}
-									/>
-								</React.Suspense>
-							) : chartType === 'USD Inflows' && usdInflows ? (
-								<React.Suspense fallback={<div className="min-h-[360px]" />}>
-									<MultiSeriesChart2
-										dataset={deferredUsdInflowsDataset}
-										charts={USD_INFLOWS_CHARTS}
-										onReady={handleExportChartReady}
-									/>
-								</React.Suspense>
-							) : null}
-						</>
+						<MultiSeriesChartPanel
+							state={activeChartState}
+							hideDefaultLegend={!showDefaultLegend}
+							groupBy={isVolumeChart ? volumeGroupBy : undefined}
+							onReady={handleExportChartReady}
+						/>
 					)}
 				</div>
 			</div>
@@ -616,29 +682,13 @@ export function StablecoinsByChain({
 }
 
 function TokenInflowsChartPanel({
-	chartTypeList,
-	chartType,
-	setChartType,
-	stablecoinsChartConfig,
-	chartInstance,
-	exportFilename,
-	exportTitle,
 	onReady,
 	tokenInflowNames,
-	dataset,
-	charts
+	state
 }: {
-	chartTypeList: string[]
-	chartType: string
-	setChartType: (next: string) => void
-	stablecoinsChartConfig: StablecoinsChartConfig
-	chartInstance: () => echarts.ECharts | null
-	exportFilename: string
-	exportTitle: string
 	onReady: (instance: echarts.ECharts | null) => void
 	tokenInflowNames: string[]
-	dataset: MultiSeriesChart2Dataset
-	charts: MultiSeriesCharts
+	state: MultiSeriesChartState
 }) {
 	const [selectedTokenInflows, setSelectedTokenInflows] = React.useState<string[]>(() => tokenInflowNames)
 	const selectedTokenInflowsSet = new Set(selectedTokenInflows)
@@ -646,8 +696,6 @@ function TokenInflowsChartPanel({
 	return (
 		<>
 			<div className="flex items-center gap-2 p-2 pb-0">
-				<ChartSelector options={chartTypeList} selectedChart={chartType} onClick={setChartType} />
-				<AddToDashboardButton chartConfig={stablecoinsChartConfig} smol />
 				{tokenInflowNames.length > 0 ? (
 					<SelectWithCombobox
 						allValues={tokenInflowNames}
@@ -659,21 +707,69 @@ function TokenInflowsChartPanel({
 						portal
 					/>
 				) : null}
-				<ChartExportButtons chartInstance={chartInstance} filename={exportFilename} title={exportTitle} />
 			</div>
-			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
-					selectedCharts={selectedTokenInflowsSet}
-					showTotalInTooltip
-					chartOptions={
-						selectedTokenInflowsSet.size > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } } : undefined
-					}
-					onReady={onReady}
-				/>
-			</React.Suspense>
+			<MultiSeriesChartPanel
+				state={state}
+				selectedCharts={selectedTokenInflowsSet}
+				chartOptions={
+					selectedTokenInflowsSet.size > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } } : undefined
+				}
+				onReady={onReady}
+			/>
 		</>
+	)
+}
+
+function MultiSeriesChartPanel({
+	state,
+	selectedCharts,
+	chartOptions,
+	hideDefaultLegend,
+	groupBy,
+	onReady
+}: {
+	state: MultiSeriesChartState
+	selectedCharts?: Set<string>
+	chartOptions?: IMultiSeriesChart2Props['chartOptions']
+	hideDefaultLegend?: boolean
+	groupBy?: IMultiSeriesChart2Props['groupBy']
+	onReady: (instance: echarts.ECharts | null) => void
+}) {
+	if (state.status === 'loading') {
+		return (
+			<div className="flex min-h-[360px] items-center justify-center text-sm text-(--text-label)">Loading chart...</div>
+		)
+	}
+	if (state.status === 'unavailable') {
+		return (
+			<div className="flex min-h-[360px] items-center justify-center text-sm text-(--text-label)">
+				Chart unavailable
+			</div>
+		)
+	}
+	if (state.data.charts.length === 0 || state.data.dataset.source.length === 0) {
+		return (
+			<div className="flex min-h-[360px] items-center justify-center text-sm text-(--text-label)">
+				Chart unavailable
+			</div>
+		)
+	}
+	return (
+		<React.Suspense fallback={<div className="min-h-[360px]" />}>
+			<MultiSeriesChart2
+				dataset={state.data.dataset}
+				charts={state.data.charts}
+				selectedCharts={selectedCharts}
+				stacked={state.data.stacked}
+				expandTo100Percent={state.data.expandTo100Percent}
+				valueSymbol={state.data.valueSymbol}
+				showTotalInTooltip={state.data.showTotalInTooltip}
+				chartOptions={chartOptions}
+				hideDefaultLegend={hideDefaultLegend}
+				groupBy={groupBy}
+				onReady={onReady}
+			/>
+		</React.Suspense>
 	)
 }
 
@@ -712,26 +808,4 @@ function handleRouting(selectedChain: string, queryParams: Record<string, string
 
 	if (selectedChain === 'All') return `/stablecoins${params}`
 	return `/stablecoins/${slug(selectedChain)}${params}`
-}
-
-const TOTAL_MCAP_CHARTS = [
-	{ type: 'line' as const, name: 'Mcap', encode: { x: 'timestamp', y: 'Mcap' }, color: CHART_COLORS[0] }
-]
-
-const USD_INFLOWS_CHARTS = [
-	{ type: 'bar' as const, name: 'Inflows', encode: { x: 'timestamp', y: 'Inflows' }, color: CHART_COLORS[0] }
-]
-
-const tokenColors: Record<string, string> = {
-	USDT: '#009393',
-	USDC: '#0B53BF',
-	DAI: '#F4B731',
-	USDe: '#3A3A3A',
-	BUIDL: '#111111',
-	USD1: '#D2B48C',
-	USDS: '#E67E22',
-	PYUSD: '#4A90E2',
-	USDTB: '#C0C0C0',
-	FDUSD: '#00FF00',
-	Others: '#FF1493'
 }
