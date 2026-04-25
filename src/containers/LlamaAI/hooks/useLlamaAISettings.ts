@@ -52,7 +52,7 @@ export type TipDTO = {
 	dismissPolicy: { kind: 'permanent' } | { kind: 'snooze'; days: number }
 }
 
-interface SettingsQueryResult {
+export interface SettingsQueryResult {
 	settings: StoredLlamaAISettings
 	availableModels: ModelOption[]
 	tip: TipDTO | null
@@ -231,7 +231,7 @@ export function useLlamaAISettings() {
 	useEffect(() => {
 		if (!settingsQuery.data?.settings) return
 		applyStoredSettings(settingsQuery.data.settings)
-	}, [settingsQuery.data])
+	}, [settingsQuery.data?.settings])
 
 	useEffect(() => {
 		if (userId) return

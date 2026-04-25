@@ -2136,6 +2136,15 @@ export function AgenticChat({
 		}
 	}, [initialPrompt, restoringSessionId, handleSubmit])
 
+	const tipActionHandlers = useMemo(
+		() => ({
+			openSettingsModal: settingsModalStore.show,
+			openAlertsModal: alertsModalStore.show,
+			toggleResearchMode: () => setIsResearchMode((v) => !v)
+		}),
+		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode]
+	)
+
 	if (!user && !readOnly && !sharedSession) {
 		return (
 			<>
@@ -2165,13 +2174,7 @@ export function AgenticChat({
 	}
 
 	return (
-		<TipActionProvider
-			handlers={{
-				openSettingsModal: settingsModalStore.show,
-				openAlertsModal: alertsModalStore.show,
-				toggleResearchMode: () => setIsResearchMode((v) => !v)
-			}}
-		>
+		<TipActionProvider handlers={tipActionHandlers}>
 			<LlamaAIChromeContext.Provider value={chromeValue}>
 				<div
 					className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:bottom-0 max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"

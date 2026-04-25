@@ -1,73 +1,92 @@
-import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useEffect } from 'react'
 import { AI_SERVER } from '~/constants'
 import {
 	LLAMA_AI_SETTINGS_QUERY_KEY,
 	useLlamaAISettings,
+	type SettingsQueryResult,
 	type TipDTO
 } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
+const seenTipIds = new Set<string>()
+type TipMutationKind = 'seen' | 'dismiss' | 'click'
+type TipMutationInput = { tipId: string; kind: TipMutationKind }
+
 export function useActiveTip(): {
 	tip: TipDTO | null
 	markSeen: (tip: TipDTO) => void
-	dismissTip: (tip: TipDTO) => void
-	clickTip: (tip: TipDTO, action: string) => void
+	dismissTip: (tip: TipDTO) => Promise<void>
+	clickTip: (tip: TipDTO, action: string) => Promise<void>
 } {
 	const { tip } = useLlamaAISettings()
 	const queryClient = useQueryClient()
 	const { authorizedFetch } = useAuthContext()
-	const seenRef = useRef<Set<string>>(new Set())
 
 	const clearTipInCache = useCallback(() => {
-		queryClient.setQueriesData({ queryKey: LLAMA_AI_SETTINGS_QUERY_KEY }, (old: any) =>
+		queryClient.setQueriesData({ queryKey: LLAMA_AI_SETTINGS_QUERY_KEY }, (old?: SettingsQueryResult | null) =>
 			old ? { ...old, tip: null } : old
 		)
 	}, [queryClient])
 
-	const post = useCallback(
-		(tipId: string, kind: 'seen' | 'dismiss' | 'click') => {
-			if (!authorizedFetch) return
-			void authorizedFetch(`${AI_SERVER}/user-tips/${encodeURIComponent(tipId)}/${kind}`, {
+	const { mutate: postTip, mutateAsync: postTipAsync } = useMutation({
+		mutationFn: async ({ tipId, kind }: TipMutationInput) => {
+			if (!authorizedFetch) throw new Error('Cannot update LlamaAI tip without an authenticated fetch client')
+			const response = await authorizedFetch(`${AI_SERVER}/user-tips/${encodeURIComponent(tipId)}/${kind}`, {
 				method: 'POST'
-			}).catch(() => {})
-		},
-		[authorizedFetch]
-	)
+			})
+			if (!response?.ok) throw new Error(`Failed to update LlamaAI tip ${kind}`)
+		}
+	})
 
 	const markSeen = useCallback(
 		(t: TipDTO) => {
-			if (seenRef.current.has(t.id)) return
-			seenRef.current.add(t.id)
+			if (seenTipIds.has(t.id)) return
+			seenTipIds.add(t.id)
 			trackUmamiEvent('llamaai-tip-impression', { tipId: t.id, variant: t.variant, family: t.family })
-			post(t.id, 'seen')
+			postTip(
+				{ tipId: t.id, kind: 'seen' },
+				{
+					onError: (error) => {
+						console.error('Failed to mark LlamaAI tip as seen', error)
+					}
+				}
+			)
 		},
-		[post]
+		[postTip]
 	)
 
 	const dismissTip = useCallback(
-		(t: TipDTO) => {
+		async (t: TipDTO) => {
 			trackUmamiEvent('llamaai-tip-dismiss', { tipId: t.id, variant: t.variant, family: t.family })
-			clearTipInCache()
-			post(t.id, 'dismiss')
+			try {
+				await postTipAsync({ tipId: t.id, kind: 'dismiss' })
+				clearTipInCache()
+			} catch (error) {
+				console.error('Failed to dismiss LlamaAI tip', error)
+			}
 		},
-		[clearTipInCache, post]
+		[clearTipInCache, postTipAsync]
 	)
 
 	const clickTip = useCallback(
-		(t: TipDTO, action: string) => {
+		async (t: TipDTO, action: string) => {
 			trackUmamiEvent('llamaai-tip-click', { tipId: t.id, variant: t.variant, family: t.family, action })
-			clearTipInCache()
-			post(t.id, 'click')
+			try {
+				await postTipAsync({ tipId: t.id, kind: 'click' })
+				clearTipInCache()
+			} catch (error) {
+				console.error('Failed to record LlamaAI tip click', error)
+			}
 		},
-		[clearTipInCache, post]
+		[clearTipInCache, postTipAsync]
 	)
 
 	useEffect(() => {
-		if (tip) markSeen(tip)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [tip?.id])
+		if (!tip) return
+		markSeen(tip)
+	}, [tip, markSeen])
 
 	return { tip, markSeen, dismissTip, clickTip }
 }
