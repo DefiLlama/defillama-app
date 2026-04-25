@@ -13,16 +13,18 @@ export type TokenDirectoryRecord = {
 
 export type TokenDirectory = Record<string, TokenDirectoryRecord>
 
-export function findTokenDirectoryRecordByDefiLlamaId(
+export function findTokenDirectoryRecordByGeckoId(
 	tokens: TokenDirectory,
-	defiLlamaId: string | null | undefined
+	geckoId: string | null | undefined
 ): TokenDirectoryRecord | null {
-	if (!defiLlamaId) return null
+	if (!geckoId) return null
+
+	const tokenNk = `coingecko:${geckoId.toLowerCase()}`
 
 	for (const key in tokens) {
 		const token = tokens[key]
 
-		if (token.protocolId === defiLlamaId || token.chainId === defiLlamaId) {
+		if (token.token_nk?.toLowerCase() === tokenNk) {
 			return token
 		}
 	}

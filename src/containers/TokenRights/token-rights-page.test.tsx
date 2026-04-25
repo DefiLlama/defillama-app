@@ -1,20 +1,31 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 
+const originalTokenRightsAlertWebhook = process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
+
 afterEach(() => {
+	if (originalTokenRightsAlertWebhook === undefined) {
+		delete process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
+	} else {
+		process.env.TOKEN_RIGHTS_ALERT_WEBHOOK = originalTokenRightsAlertWebhook
+	}
 	vi.clearAllMocks()
 	vi.resetModules()
 })
 
 function setupPageModule({
+	chainMetadata = {},
 	tokensJson = {},
 	tokenRightsEntries = [],
 	protocolMetadata = {}
 }: {
+	chainMetadata?: Record<string, unknown>
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
 } = {}) {
+	delete process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
+
 	vi.doMock('next/link', () => ({
 		default: () => null
 	}))
@@ -34,6 +45,12 @@ function setupPageModule({
 				.replaceAll(/[^a-z0-9]+/g, '-')
 				.replace(/^-+|-+$/g, '')
 	}))
+	vi.doMock('~/utils/async', () => ({
+		formatRuntimeLog: vi.fn(({ event, level, status, message }) =>
+			[event, level, status, message].filter(Boolean).join(' ')
+		),
+		postRuntimeLogs: vi.fn()
+	}))
 	vi.doMock('~/utils/icons', () => ({
 		tokenIconUrl: (value: string) => `icon:${value}`
 	}))
@@ -46,6 +63,7 @@ function setupPageModule({
 	vi.doMock('~/utils/metadata', () => ({
 		__esModule: true,
 		default: {
+			chainMetadata,
 			protocolMetadata,
 			tokenDirectory: tokensJson
 		},
@@ -56,19 +74,21 @@ function setupPageModule({
 }
 
 describe('token rights page', () => {
-	it('routes token rights entries to token pages when cached token metadata matches protocolId or chainId', async () => {
+	it('routes token rights entries to token pages when metadata gecko ids match token directory records', async () => {
 		const page = await setupPageModule({
+			chainMetadata: {
+				ethereum: { name: 'Ethereum', id: 'ethereum', gecko_id: 'ethereum' }
+			},
 			tokensJson: {
-				ldo: { name: 'Lido DAO', symbol: 'LDO', protocolId: '182', route: '/token/LDO' },
-				eth: { name: 'Ethereum', symbol: 'ETH', chainId: 'ethereum', route: '/token/ETH' }
+				ldo: { name: 'Lido DAO', symbol: 'LDO', token_nk: 'coingecko:lido-dao', route: '/token/LDO' },
+				eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum', route: '/token/ETH' }
 			},
 			tokenRightsEntries: [
 				{ 'Protocol Name': 'Ethereum', 'DefiLlama ID': 'ethereum' },
-				{ 'Protocol Name': 'Lido DAO', 'DefiLlama ID': '182' },
-				{ 'Protocol Name': 'Unknown Protocol', 'DefiLlama ID': '999' }
+				{ 'Protocol Name': 'Lido DAO', 'DefiLlama ID': '182' }
 			],
 			protocolMetadata: {
-				'182': { displayName: 'Lido' }
+				'182': { displayName: 'Lido', gecko_id: 'lido-dao' }
 			}
 		})
 
@@ -76,21 +96,25 @@ describe('token rights page', () => {
 			props: {
 				protocols: [
 					{ name: 'Ethereum', logo: 'icon:Ethereum', href: '/token/ETH' },
-					{ name: 'Lido', logo: 'icon:Lido', href: '/token/LDO' },
-					{
-						name: 'Unknown Protocol',
-						logo: 'icon:Unknown Protocol',
-						href: '/protocol/token-rights/unknown-protocol'
-					}
+					{ name: 'Lido', logo: 'icon:Lido', href: '/token/LDO' }
 				]
 			},
 			revalidate: 123
 		})
+		const { postRuntimeLogs } = await import('~/utils/async')
+		expect(postRuntimeLogs).not.toHaveBeenCalled()
 	})
 
-	it('skips entries without a DefiLlama id', async () => {
+	it('skips entries without token directory routes', async () => {
 		const page = await setupPageModule({
-			tokenRightsEntries: [{ 'Protocol Name': 'Missing ID', 'DefiLlama ID': '' }]
+			chainMetadata: {
+				ethereum: { name: 'Ethereum', id: 'ethereum', gecko_id: 'ethereum' }
+			},
+			tokenRightsEntries: [
+				{ 'Protocol Name': 'Missing ID', 'DefiLlama ID': '' },
+				{ 'Protocol Name': 'Unknown Protocol', 'DefiLlama ID': '999' },
+				{ 'Protocol Name': 'Ethereum', 'DefiLlama ID': 'ethereum' }
+			]
 		})
 
 		await expect(page.getStaticProps({} as never)).resolves.toEqual({
@@ -99,5 +123,7 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
+		const { postRuntimeLogs } = await import('~/utils/async')
+		expect(postRuntimeLogs).toHaveBeenCalledTimes(1)
 	})
 })
