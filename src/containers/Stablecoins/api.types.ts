@@ -99,7 +99,10 @@ export interface StablecoinChartResponse {
 	doublecountedIds?: string[]
 }
 
-export type StablecoinVolumeChartKind = 'total' | 'chain' | 'token' | 'currency'
+export type StablecoinVolumeGlobalChartKind = 'total' | 'chain' | 'token' | 'currency'
+export type StablecoinVolumeChainChartKind = 'total' | 'token' | 'currency'
+export type StablecoinVolumeTokenChartKind = 'total' | 'chain'
+export type StablecoinVolumeChartKind = StablecoinVolumeGlobalChartKind
 
 export type StablecoinVolumeTotalChartPoint = [timestamp: number, volume: number]
 

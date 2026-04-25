@@ -1,10 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { fetchStablecoinVolumeChartApi } from '~/containers/Stablecoins/api'
-import type { StablecoinVolumeChartKind } from '~/containers/Stablecoins/api.types'
+import {
+	fetchStablecoinChainVolumeChartApi,
+	fetchStablecoinTokenVolumeChartApi,
+	fetchStablecoinVolumeChartApi,
+	normalizeStablecoinVolumeChain
+} from '~/containers/Stablecoins/api'
+import type {
+	StablecoinVolumeChainChartKind,
+	StablecoinVolumeChartResponse,
+	StablecoinVolumeGlobalChartKind,
+	StablecoinVolumeTokenChartKind
+} from '~/containers/Stablecoins/api.types'
 import { STABLECOIN_CHART_CACHE_CONTROL } from '~/containers/Stablecoins/chartSeries'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
 
-const VALID_CHARTS = new Set<StablecoinVolumeChartKind>(['total', 'chain', 'token', 'currency'])
+const GLOBAL_CHARTS = new Set<StablecoinVolumeGlobalChartKind>(['total', 'chain', 'token', 'currency'])
+const CHAIN_CHARTS = new Set<StablecoinVolumeChainChartKind>(['total', 'token', 'currency'])
+const TOKEN_CHARTS = new Set<StablecoinVolumeTokenChartKind>(['total', 'chain'])
 
 const getStringParam = (value: string | string[] | undefined): string | undefined => {
 	if (Array.isArray(value)) return value[0]
@@ -24,19 +36,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(405).json({ error: 'Method Not Allowed' })
 	}
 
+	const scope = getStringParam(req.query.scope) ?? 'global'
 	const rawChart = getStringParam(req.query.chart)
-	if (!rawChart || !VALID_CHARTS.has(rawChart as StablecoinVolumeChartKind)) {
+	if (!rawChart) {
 		return res.status(400).json({ error: 'valid chart parameter is required' })
 	}
 
-	const chart = rawChart as StablecoinVolumeChartKind
-
 	try {
-		const data = await fetchStablecoinVolumeChartApi(chart)
+		let chart: StablecoinVolumeGlobalChartKind | StablecoinVolumeChainChartKind | StablecoinVolumeTokenChartKind
+		let data: StablecoinVolumeChartResponse
+		if (scope === 'global') {
+			if (!GLOBAL_CHARTS.has(rawChart as StablecoinVolumeGlobalChartKind)) {
+				return res.status(400).json({ error: 'unsupported global volume chart' })
+			}
+			chart = rawChart as StablecoinVolumeGlobalChartKind
+			data = await fetchStablecoinVolumeChartApi(chart)
+		} else if (scope === 'chain') {
+			if (!CHAIN_CHARTS.has(rawChart as StablecoinVolumeChainChartKind)) {
+				return res.status(400).json({ error: 'unsupported chain volume chart' })
+			}
+			const chain = getStringParam(req.query.chain)
+			if (!chain) return res.status(400).json({ error: 'chain parameter is required' })
+			chart = rawChart as StablecoinVolumeChainChartKind
+			data = await fetchStablecoinChainVolumeChartApi(normalizeStablecoinVolumeChain(chain), chart)
+		} else if (scope === 'token') {
+			if (!TOKEN_CHARTS.has(rawChart as StablecoinVolumeTokenChartKind)) {
+				return res.status(400).json({ error: 'unsupported token volume chart' })
+			}
+			const token = getStringParam(req.query.token)
+			if (!token) return res.status(400).json({ error: 'token parameter is required' })
+			chart = rawChart as StablecoinVolumeTokenChartKind
+			data = await fetchStablecoinTokenVolumeChartApi(token, chart)
+		} else {
+			return res.status(400).json({ error: 'unsupported scope' })
+		}
+
 		const payload = buildStablecoinVolumeChartPayload(data, {
 			chart,
-			selectedDimension: getStringParam(req.query.dimension),
-			fallbackDimension: getStringParam(req.query.fallbackDimension),
 			limit: parseLimit(req.query.limit)
 		})
 

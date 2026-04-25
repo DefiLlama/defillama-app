@@ -1,6 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
-import type { StablecoinVolumeChartKind } from '~/containers/Stablecoins/api.types'
+import type {
+	StablecoinVolumeChainChartKind,
+	StablecoinVolumeGlobalChartKind,
+	StablecoinVolumeTokenChartKind
+} from '~/containers/Stablecoins/api.types'
 import { STABLECOIN_CHART_STALE_TIME } from '~/containers/Stablecoins/chartSeries'
 import type {
 	StablecoinAssetChartType,
@@ -105,31 +109,56 @@ export const useStablecoinChartSeriesData = (query: StablecoinChartSeriesQuery) 
 	})
 }
 
-export const useStablecoinVolumeChartData = ({
-	chart,
-	dimension,
-	fallbackDimension,
-	limit = 20,
-	enabled = true
-}: {
-	chart: StablecoinVolumeChartKind | null
-	dimension?: string
-	fallbackDimension?: string
-	limit?: number
-	enabled?: boolean
-}) => {
+type StablecoinVolumeChartQuery =
+	| {
+			scope?: 'global'
+			chart: StablecoinVolumeGlobalChartKind | null
+			limit?: number
+			enabled?: boolean
+	  }
+	| {
+			scope: 'chain'
+			chain: string
+			chart: StablecoinVolumeChainChartKind | null
+			limit?: number
+			enabled?: boolean
+	  }
+	| {
+			scope: 'token'
+			token: string | null
+			chart: StablecoinVolumeTokenChartKind | null
+			limit?: number
+			enabled?: boolean
+	  }
+
+export const buildStablecoinVolumeChartUrl = (query: StablecoinVolumeChartQuery): string | null => {
+	if (!query.chart) return null
+	const params = new URLSearchParams({
+		scope: query.scope ?? 'global',
+		chart: query.chart,
+		limit: String(query.limit ?? 20)
+	})
+	if (query.scope === 'chain') {
+		params.set('chain', query.chain)
+	} else if (query.scope === 'token') {
+		if (!query.token) return null
+		params.set('token', query.token)
+	}
+	return `/api/stablecoins/volume-chart?${params.toString()}`
+}
+
+export const useStablecoinVolumeChartData = (query: StablecoinVolumeChartQuery) => {
+	const { enabled = true, ...queryKey } = query
+	const url = buildStablecoinVolumeChartUrl(query)
 	return useQuery({
-		queryKey: ['stablecoins', 'volume-chart', chart, dimension ?? null, fallbackDimension ?? null, limit],
+		queryKey: ['stablecoins', 'volume-chart', queryKey],
 		queryFn: () => {
-			if (!chart) return null
-			const params = new URLSearchParams({ chart, limit: String(limit) })
-			if (dimension) params.set('dimension', dimension)
-			if (fallbackDimension) params.set('fallbackDimension', fallbackDimension)
-			return fetchJson<StablecoinVolumeChartPayload>(`/api/stablecoins/volume-chart?${params.toString()}`)
+			if (!url) return null
+			return fetchJson<StablecoinVolumeChartPayload>(url)
 		},
 		staleTime: STABLECOIN_CHART_STALE_TIME,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: enabled && !!chart
+		enabled: enabled && !!url
 	})
 }

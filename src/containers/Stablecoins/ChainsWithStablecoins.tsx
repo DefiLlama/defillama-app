@@ -132,6 +132,7 @@ export function ChainsWithStablecoins({
 	)
 	const volumeChartKind = getVolumeChartKind(chartType, chartView)
 	const volumeChartQuery = useStablecoinVolumeChartData({
+		scope: 'global',
 		chart: volumeChartKind,
 		enabled: volumeChartKind != null
 	})

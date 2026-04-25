@@ -36,6 +36,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { peggedAssetIconUrl } from '~/utils/icons'
 import { isTruthyQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import type { StablecoinVolumeTokenChartKind } from './api.types'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
 import { groupStablecoinVolumeChartPayload } from './volumeChart'
@@ -61,6 +62,15 @@ const getAssetChartConfigType = (chartView: StablecoinChartView): StablecoinAsse
 	if (chartView === 'dominance') return 'chainDominance'
 	if (chartView === 'breakdown') return 'chainMcaps'
 	return 'chainPie'
+}
+
+const getAssetVolumeChartKind = (
+	chartType: StablecoinChartCategory,
+	chartView: StablecoinChartView
+): StablecoinVolumeTokenChartKind | null => {
+	if (chartType !== 'volume') return null
+	if (chartView === 'byChain') return 'chain'
+	return 'total'
 }
 
 export default function PeggedContainer(props: PeggedAssetPageProps) {
@@ -216,12 +226,13 @@ export const PeggedAssetInfo = ({
 				: chartType === 'marketCap' && chartView === 'dominance'
 					? 'chainDominance'
 					: null
-	const volumeDimension = symbol && symbol !== '-' ? symbol : name
+	const volumeChartKind = getAssetVolumeChartKind(chartType, chartView)
+	const volumeToken = symbol && symbol !== '-' ? symbol : null
 	const volumeChartQuery = useStablecoinVolumeChartData({
-		chart: chartType === 'volume' ? 'token' : null,
-		dimension: volumeDimension,
-		fallbackDimension: name,
-		enabled: chartType === 'volume'
+		scope: 'token',
+		token: volumeToken,
+		chart: volumeChartKind,
+		enabled: chartType === 'volume' && volumeToken != null
 	})
 	const usesDefaultChartData = selectedSeriesChart === 'totalCirc' && !includeUnreleased
 	const chartSeriesQuery = useStablecoinChartSeriesData({
@@ -351,7 +362,7 @@ export const PeggedAssetInfo = ({
 							data={selectedVolumeChartData}
 							isLoading={isVolumeChartLoading}
 							isError={!isVolumeChartLoading && volumeChartQuery.error != null}
-							hideDefaultLegend
+							hideDefaultLegend={chartView !== 'byChain'}
 							groupBy={volumeGroupBy}
 							onReady={handleChartReady}
 						/>

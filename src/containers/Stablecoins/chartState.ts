@@ -48,7 +48,8 @@ const VIEW_OPTIONS: Record<StablecoinChartView, StablecoinChartOption<Stablecoin
 const MARKET_CAP_VIEWS = ['total', 'breakdown', 'dominance', 'pie', 'hbar', 'treemap'] as const
 const ASSET_MARKET_CAP_VIEWS = ['total', 'breakdown', 'dominance', 'pie'] as const
 const VOLUME_VIEWS = ['total', 'byToken', 'byChain', 'byCurrency'] as const
-const TOTAL_ONLY_VOLUME_VIEWS = ['total'] as const
+const CHAIN_VOLUME_VIEWS = ['total', 'byToken', 'byCurrency'] as const
+const ASSET_VOLUME_VIEWS = ['total', 'byChain'] as const
 const INFLOW_VIEWS = ['usd', 'token'] as const
 
 function assertNever(value: never): never {
@@ -159,8 +160,8 @@ function getAllowedTypes(mode: StablecoinChartMode): readonly StablecoinChartTyp
 function getAllowedViews(mode: StablecoinChartMode, type: StablecoinChartType): readonly StablecoinChartView[] {
 	if (type === 'inflows') return mode.page === 'overview' ? INFLOW_VIEWS : []
 	if (type === 'volume') {
-		if (mode.page === 'overview' && mode.chain === 'chain') return TOTAL_ONLY_VOLUME_VIEWS
-		if (mode.page === 'asset') return TOTAL_ONLY_VOLUME_VIEWS
+		if (mode.page === 'overview' && mode.chain === 'chain') return CHAIN_VOLUME_VIEWS
+		if (mode.page === 'asset') return ASSET_VOLUME_VIEWS
 		return VOLUME_VIEWS
 	}
 	if (mode.page === 'asset') return ASSET_MARKET_CAP_VIEWS

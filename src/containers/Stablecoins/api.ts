@@ -1,4 +1,5 @@
 import { STABLECOINS_SERVER_URL } from '~/constants'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
 	StablecoinBridgeInfoResponse,
@@ -9,8 +10,10 @@ import type {
 	StablecoinPricesResponse,
 	StablecoinRatesResponse,
 	StablecoinRecentCoinsDataResponse,
-	StablecoinVolumeChartKind,
+	StablecoinVolumeChainChartKind,
 	StablecoinVolumeChartResponse,
+	StablecoinVolumeGlobalChartKind,
+	StablecoinVolumeTokenChartKind,
 	StablecoinsListResponse
 } from './api.types'
 
@@ -23,6 +26,23 @@ const PEGGEDCONFIG_API = `${STABLECOINS_SERVER_URL}/config`
 const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
 const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
 const STABLECOIN_VOLUME_CHART_API = `${STABLECOINS_SERVER_URL}/chart/volume`
+
+const STABLECOIN_VOLUME_CHAIN_ALIASES: Record<string, string> = {
+	avalanche: 'avax',
+	binance: 'bsc',
+	'binance-smart-chain': 'bsc',
+	bnb: 'bsc',
+	'bnb-chain': 'bsc',
+	worldchain: 'wc',
+	'world-chain': 'wc',
+	zksync: 'era',
+	'zksync-era': 'era'
+}
+
+export const normalizeStablecoinVolumeChain = (chain: string): string => {
+	const normalized = slug(chain).replace(/_/g, '-')
+	return STABLECOIN_VOLUME_CHAIN_ALIASES[normalized] ?? normalized
+}
 
 /**
  * Fetch the stablecoin assets list.
@@ -84,13 +104,40 @@ export const fetchStablecoinChartAllApi = async (): Promise<StablecoinChartRespo
  * Fetch stablecoin volume chart data.
  */
 export const fetchStablecoinVolumeChartApi = async (
-	chart: StablecoinVolumeChartKind
+	chart: StablecoinVolumeGlobalChartKind
 ): Promise<StablecoinVolumeChartResponse> => {
-	const pathByChart: Record<StablecoinVolumeChartKind, string> = {
+	const pathByChart: Record<StablecoinVolumeGlobalChartKind, string> = {
 		total: '',
 		chain: '/chain-breakdown',
 		token: '/token-breakdown',
 		currency: '/currency-breakdown'
+	}
+
+	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+}
+
+export const fetchStablecoinChainVolumeChartApi = async (
+	chain: string,
+	chart: StablecoinVolumeChainChartKind
+): Promise<StablecoinVolumeChartResponse> => {
+	const normalizedChain = normalizeStablecoinVolumeChain(chain)
+	const pathByChart: Record<StablecoinVolumeChainChartKind, string> = {
+		total: `/chain/${encodeURIComponent(normalizedChain)}`,
+		token: `/chain/${encodeURIComponent(normalizedChain)}/token-breakdown`,
+		currency: `/chain/${encodeURIComponent(normalizedChain)}/currency-breakdown`
+	}
+
+	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+}
+
+export const fetchStablecoinTokenVolumeChartApi = async (
+	token: string,
+	chart: StablecoinVolumeTokenChartKind
+): Promise<StablecoinVolumeChartResponse> => {
+	const encodedToken = encodeURIComponent(token)
+	const pathByChart: Record<StablecoinVolumeTokenChartKind, string> = {
+		total: `/token/${encodedToken}`,
+		chain: `/token/${encodedToken}/chain-breakdown`
 	}
 
 	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)

@@ -39,13 +39,37 @@ describe('stablecoin chart state', () => {
 		})
 	})
 
-	it('limits chain page volume to total', () => {
+	it('allows scoped chain page volume views', () => {
 		const state = parseStablecoinChartState(
 			{ chartType: 'volume', chartView: 'byToken' },
 			createStablecoinOverviewChartMode('Ethereum')
 		)
 
-		expect(state).toMatchObject({ type: 'volume', view: 'total' })
-		expect(getStablecoinChartViewOptions(state)).toEqual([{ key: 'total', name: 'Total' }])
+		expect(state).toMatchObject({ type: 'volume', view: 'byToken' })
+		expect(getStablecoinChartViewOptions(state)).toEqual([
+			{ key: 'total', name: 'Total' },
+			{ key: 'byToken', name: 'By Token' },
+			{ key: 'byCurrency', name: 'By Currency' }
+		])
+		expect(
+			parseStablecoinChartState(
+				{ chartType: 'volume', chartView: 'byChain' },
+				createStablecoinOverviewChartMode('Ethereum')
+			)
+		).toMatchObject({ type: 'volume', view: 'total' })
+	})
+
+	it('allows scoped asset page volume views', () => {
+		const state = parseStablecoinChartState({ chartType: 'volume', chartView: 'byChain' }, { page: 'asset' })
+
+		expect(state).toMatchObject({ type: 'volume', view: 'byChain' })
+		expect(getStablecoinChartViewOptions(state)).toEqual([
+			{ key: 'total', name: 'Total' },
+			{ key: 'byChain', name: 'By Chain' }
+		])
+		expect(parseStablecoinChartState({ chartType: 'volume', chartView: 'byToken' }, { page: 'asset' })).toMatchObject({
+			type: 'volume',
+			view: 'total'
+		})
 	})
 })

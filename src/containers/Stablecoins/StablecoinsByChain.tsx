@@ -51,7 +51,7 @@ import { type FormattedStablecoinAsset } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, toNiceCsvDate } from '~/utils'
 import { isTruthyQueryParam, parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
-import type { StablecoinVolumeChartKind } from './api.types'
+import type { StablecoinVolumeChainChartKind, StablecoinVolumeGlobalChartKind } from './api.types'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { StablecoinsTable } from './StablecoinsAssetsTable'
 import { groupStablecoinVolumeChartPayload } from './volumeChart'
@@ -201,9 +201,13 @@ const getVolumeChartKind = (
 	chartType: StablecoinChartCategory,
 	chartView: StablecoinChartView,
 	selectedChain: string
-): StablecoinVolumeChartKind | null => {
+): StablecoinVolumeGlobalChartKind | StablecoinVolumeChainChartKind | null => {
 	if (chartType !== 'volume') return null
-	if (selectedChain !== 'All') return 'chain'
+	if (selectedChain !== 'All') {
+		if (chartView === 'byToken') return 'token'
+		if (chartView === 'byCurrency') return 'currency'
+		return 'total'
+	}
 	if (chartView === 'byChain') return 'chain'
 	if (chartView === 'byToken') return 'token'
 	if (chartView === 'byCurrency') return 'currency'
@@ -259,12 +263,20 @@ export function StablecoinsByChain({
 		[router]
 	)
 	const volumeChartKind = getVolumeChartKind(chartType, chartView, selectedChain)
-	const volumeChartDimension = volumeChartKind === 'chain' && selectedChain !== 'All' ? selectedChain : undefined
-	const volumeChartQuery = useStablecoinVolumeChartData({
-		chart: volumeChartKind,
-		dimension: volumeChartDimension,
-		enabled: volumeChartKind != null
-	})
+	const volumeChartQuery = useStablecoinVolumeChartData(
+		selectedChain === 'All'
+			? {
+					scope: 'global',
+					chart: volumeChartKind as StablecoinVolumeGlobalChartKind | null,
+					enabled: volumeChartKind != null
+				}
+			: {
+					scope: 'chain',
+					chain: selectedChain,
+					chart: volumeChartKind as StablecoinVolumeChainChartKind | null,
+					enabled: volumeChartKind != null
+				}
+	)
 	const unreleasedQueryParam = router.query[UNRELEASED_QUERY_KEY]
 
 	const minMcap = parseNumberQueryParam(router.query.minMcap)
