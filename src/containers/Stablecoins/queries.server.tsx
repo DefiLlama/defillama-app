@@ -3,7 +3,7 @@ import {
 	formatPeggedAssetsData,
 	formatPeggedChainsData,
 	getPrevStablecoinTotalFromChart,
-	buildStablecoinChartData,
+	buildStablecoinAreaChartData,
 	buildStablecoinTotalChartData,
 	getStablecoinDominance,
 	getStablecoinMcapStatsFromTotals,
@@ -208,20 +208,12 @@ const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
 			normalizedSources[sourceChain] = { amount }
 		}
 
-		let hasNormalizedSources = false
-		for (const _sourceChain in normalizedSources) {
-			hasNormalizedSources = true
-			break
-		}
-		if (hasNormalizedSources) {
+		if (Object.keys(normalizedSources).length > 0) {
 			normalized[bridgeId] = normalizedSources
 		}
 	}
 
-	for (const _bridgeId in normalized) {
-		return normalized
-	}
-	return null
+	return Object.keys(normalized).length > 0 ? normalized : null
 }
 
 const readStablecoinBridgesFromChart = (
@@ -519,14 +511,16 @@ export async function getStablecoinChainMcapSummary(chain: string | null): Promi
 				doublecountedSourceIds: chainData.doublecountedIds
 			})
 
-		const { peggedAreaChartData, peggedAreaTotalData } = buildStablecoinChartData({
+		const chartParams = {
 			chartDataByAssetOrChain: chartDataByPeggedAsset,
 			assetsOrChainsList: peggedAssetNames,
 			filteredIndexes: Object.values(peggedNameToChartDataIndex),
 			issuanceType: 'mcap',
 			selectedChain: chain ?? 'All',
 			doublecountedIds
-		})
+		}
+		const { peggedAreaChartData } = buildStablecoinAreaChartData(chartParams)
+		const { peggedAreaTotalData } = buildStablecoinTotalChartData(chartParams)
 
 		const mcapStats = getStablecoinMcapStatsFromTotals(peggedAreaTotalData)
 		const topToken = getStablecoinTopTokenFromChartData(peggedAreaChartData)
@@ -696,11 +690,9 @@ export const getStablecoinChainsChartSeries = async (
 	includeUnreleased = false
 ): Promise<StablecoinChartSeriesPayload> => {
 	const source = await getStablecoinChainsSource()
-	const filteredIndexes = source.chainList.map((_, index) => index)
 	const baseParams = {
 		chartDataByAssetOrChain: source.peggedChartDataByChain,
 		assetsOrChainsList: source.chainList,
-		filteredIndexes,
 		issuanceType: 'mcap'
 	}
 

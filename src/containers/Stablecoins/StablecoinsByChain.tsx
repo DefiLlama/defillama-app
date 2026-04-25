@@ -461,6 +461,10 @@ export function StablecoinsByChain({
 		return `stablecoins-${chainSlug}${chartSlug}`
 	}
 
+	const groupedVolumeChartData = React.useMemo(
+		() => (volumeChartQuery.data ? groupStablecoinVolumeChartPayload(volumeChartQuery.data, volumeGroupBy) : null),
+		[volumeChartQuery.data, volumeGroupBy]
+	)
 	const prepareCsv = React.useCallback(() => {
 		if (isMarketCapTableChart) {
 			const rows: Array<Array<string | number | boolean>> = [['Name', 'Market Cap']]
@@ -469,7 +473,8 @@ export function StablecoinsByChain({
 			}
 			return { filename: 'stablecoins', rows }
 		}
-		const payload = isVolumeChart ? volumeChartQuery.data : selectedChartData
+		const payload = isVolumeChart ? groupedVolumeChartData : selectedChartData
+		if (!payload) throw new Error('Chart data is still loading')
 		const dimensions = payload?.dataset.dimensions ?? ['timestamp']
 		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...dimensions.slice(1)]]
 		for (const row of payload?.dataset.source ?? []) {
@@ -481,14 +486,10 @@ export function StablecoinsByChain({
 			])
 		}
 		return { filename: 'stablecoins', rows }
-	}, [isMarketCapTableChart, isVolumeChart, peggedTotals, selectedChartData, volumeChartQuery.data])
+	}, [groupedVolumeChartData, isMarketCapTableChart, isVolumeChart, peggedTotals, selectedChartData])
 
 	const deferredChainsCirculatingValues = React.useDeferredValue(chainsCirculatingValues)
 	const deferredSelectedChartData = React.useDeferredValue(selectedChartData)
-	const groupedVolumeChartData = React.useMemo(
-		() => (volumeChartQuery.data ? groupStablecoinVolumeChartPayload(volumeChartQuery.data, volumeGroupBy) : null),
-		[volumeChartQuery.data, volumeGroupBy]
-	)
 	const deferredVolumeChartData = React.useDeferredValue(groupedVolumeChartData)
 	const isVolumeChartLoading =
 		deferredVolumeChartData == null &&

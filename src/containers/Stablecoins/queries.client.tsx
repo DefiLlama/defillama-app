@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import type { StablecoinVolumeChartKind } from '~/containers/Stablecoins/api.types'
+import { STABLECOIN_CHART_STALE_TIME } from '~/containers/Stablecoins/chartSeries'
 import type {
 	StablecoinAssetChartType,
 	StablecoinChainsChartType,
@@ -10,7 +11,6 @@ import type {
 import { fetchJson } from '~/utils/async'
 
 type StablecoinMcapSeriesPoint = [number, number]
-const STABLECOIN_CHART_STALE_TIME = 5 * 60 * 1000
 
 export interface StablecoinVolumeChartPayload {
 	dataset: MultiSeriesChart2Dataset
@@ -63,7 +63,7 @@ type StablecoinChartSeriesQuery =
 			enabled?: boolean
 	  }
 
-const buildStablecoinChartSeriesUrl = (query: StablecoinChartSeriesQuery): string | null => {
+export const buildStablecoinChartSeriesUrl = (query: StablecoinChartSeriesQuery): string | null => {
 	if (!query.chart) return null
 	const params = new URLSearchParams({ scope: query.scope, chart: query.chart })
 	if (query.scope === 'overview') {
@@ -90,8 +90,9 @@ const buildStablecoinChartSeriesUrl = (query: StablecoinChartSeriesQuery): strin
 }
 
 export const useStablecoinChartSeriesData = (query: StablecoinChartSeriesQuery) => {
+	const { enabled = true, ...queryKey } = query
 	return useQuery({
-		queryKey: ['stablecoins', 'chart-series', query],
+		queryKey: ['stablecoins', 'chart-series', queryKey],
 		queryFn: () => {
 			const url = buildStablecoinChartSeriesUrl(query)
 			if (!url) return null
@@ -100,7 +101,7 @@ export const useStablecoinChartSeriesData = (query: StablecoinChartSeriesQuery) 
 		staleTime: STABLECOIN_CHART_STALE_TIME,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: (query.enabled ?? true) && !!query.chart
+		enabled: enabled && !!query.chart
 	})
 }
 

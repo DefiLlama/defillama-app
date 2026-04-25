@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchStablecoinVolumeChartApi } from '~/containers/Stablecoins/api'
 import type { StablecoinVolumeChartKind } from '~/containers/Stablecoins/api.types'
+import { STABLECOIN_CHART_CACHE_CONTROL } from '~/containers/Stablecoins/chartSeries'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
 
 const VALID_CHARTS = new Set<StablecoinVolumeChartKind>(['total', 'chain', 'token', 'currency'])
@@ -18,6 +19,11 @@ const parseLimit = (value: string | string[] | undefined): number | undefined =>
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+	if (req.method !== 'GET') {
+		res.setHeader('Allow', ['GET'])
+		return res.status(405).json({ error: 'Method Not Allowed' })
+	}
+
 	const rawChart = getStringParam(req.query.chart)
 	if (!rawChart || !VALID_CHARTS.has(rawChart as StablecoinVolumeChartKind)) {
 		return res.status(400).json({ error: 'valid chart parameter is required' })
@@ -34,10 +40,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			limit: parseLimit(req.query.limit)
 		})
 
-		res.setHeader('Cache-Control', 'public, max-age=300')
+		res.setHeader('Cache-Control', STABLECOIN_CHART_CACHE_CONTROL)
 		return res.status(200).json(payload)
 	} catch (error) {
-		console.log('Error fetching stablecoin volume chart:', error)
+		console.error('Error fetching stablecoin volume chart:', error)
 		return res.status(500).json({ error: 'Failed to fetch stablecoin volume chart' })
 	}
 }

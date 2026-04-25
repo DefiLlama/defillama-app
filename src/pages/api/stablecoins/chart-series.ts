@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		return res.status(400).json({ error: 'unsupported scope' })
 	} catch (error) {
-		console.log('Error fetching stablecoin chart series:', error)
+		console.error('Error fetching stablecoin chart series:', error)
 		return res.status(500).json({ error: 'Failed to fetch stablecoin chart series' })
 	}
 }

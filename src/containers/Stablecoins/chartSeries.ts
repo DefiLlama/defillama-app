@@ -151,7 +151,7 @@ export const buildTotalMcapPayload = (
 			const timestamp = Number(date) * 1e3
 			if (!Number.isFinite(timestamp)) continue
 			let total = 0
-			for (const name in values) {
+			for (const name of Object.keys(values)) {
 				const value = values[name]
 				total += (value.circulating ?? 0) + (value.unreleased ?? 0)
 			}
