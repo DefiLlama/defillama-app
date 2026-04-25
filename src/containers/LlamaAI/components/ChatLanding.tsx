@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
@@ -61,6 +62,7 @@ export function ChatLanding({
 			</div>
 			{!readOnly ? (
 				<>
+					{hasSeenWelcome ? <TipOrNotifyBanner /> : null}
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}
