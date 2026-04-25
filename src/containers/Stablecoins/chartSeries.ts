@@ -111,12 +111,14 @@ export const getTopStablecoinFromLatestPoints = ({
 	for (let i = 0; i < chartDataByAssetOrChain.length; i++) {
 		if (filteredIndexesSet && !filteredIndexesSet.has(i)) continue
 		if (doublecountedSet?.has(i)) continue
+		const symbol = assetsOrChainsList[i]
+		if (!symbol) continue
 		const chart = chartDataByAssetOrChain[i]
 		const latestPoint = chart?.[chart.length - 1]
 		const mcap = getStablecoinValueFromPoint(latestPoint, issuanceType)
 		if (typeof mcap !== 'number' || !Number.isFinite(mcap) || mcap <= topMcap) continue
 		topMcap = mcap
-		topSymbol = assetsOrChainsList[i] ?? topSymbol
+		topSymbol = symbol
 	}
 	return { symbol: topSymbol, mcap: topMcap }
 }

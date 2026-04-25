@@ -46,6 +46,7 @@ const HBarChart = React.lazy(() => import('~/components/ECharts/HBarChart')) as 
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 const UNRELEASED_QUERY_KEY = 'unreleased'
 const MAX_HORIZONTAL_BARS = 9
+const MAX_TREEMAP_ITEMS = 20
 
 interface ChainsWithStablecoinsProps {
 	chainCirculatings: IFormattedStablecoinChainRow[]
@@ -144,28 +145,6 @@ export function ChainsWithStablecoins({
 		includeUnreleased
 	)
 
-	const prepareCsv = () => {
-		if (chartType === 'marketCap' && (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap')) {
-			const rows: Array<Array<string | number | boolean>> = [['Name', 'Market Cap']]
-			for (const chain of chainTotals) {
-				rows.push([chain.name, chain.mcap ?? 0])
-			}
-			return { filename: 'stablecoinsChainTotals', rows }
-		}
-		const payload = volumeChartKind ? volumeChartQuery.data : selectedChartData
-		const dimensions = payload?.dataset.dimensions ?? ['timestamp']
-		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...dimensions.slice(1)]]
-		for (const row of payload?.dataset.source ?? []) {
-			const timestamp = Number(row.timestamp)
-			rows.push([
-				Number.isFinite(timestamp) ? timestamp : '',
-				Number.isFinite(timestamp) ? toNiceCsvDate(Math.floor(timestamp / 1e3)) : '',
-				...dimensions.slice(1).map((dimension) => row[dimension] ?? '')
-			])
-		}
-		return { filename: 'stablecoinsChainTotals', rows }
-	}
-
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
 
 	let topChain = { name: 'Ethereum', mcap: 0 }
@@ -200,16 +179,22 @@ export function ChainsWithStablecoins({
 				value,
 				color: CHART_COLORS[data.length % CHART_COLORS.length]
 			})
-			if (data.length >= 20) break
+			if (data.length >= MAX_TREEMAP_ITEMS) break
 		}
 		return data
 	}, [groupedChains])
-	const hbarCategories = React.useMemo(() => hbarMarketCapData.map((item) => item.name), [hbarMarketCapData])
-	const hbarValues = React.useMemo(() => hbarMarketCapData.map((item) => item.value), [hbarMarketCapData])
-	const hbarColors = React.useMemo(
-		() => hbarMarketCapData.map((_, index) => CHART_COLORS[index % CHART_COLORS.length]),
-		[hbarMarketCapData]
-	)
+	const hbarData = React.useMemo(() => {
+		const categories: string[] = []
+		const values: number[] = []
+		const colors: string[] = []
+		for (let i = 0; i < hbarMarketCapData.length; i++) {
+			const item = hbarMarketCapData[i]
+			categories.push(item.name)
+			values.push(item.value)
+			colors.push(CHART_COLORS[i % CHART_COLORS.length])
+		}
+		return { categories, values, colors }
+	}, [hbarMarketCapData])
 	const treemapData = React.useMemo(() => {
 		let total = 0
 		for (const item of rankedMarketCapData) {
@@ -257,6 +242,28 @@ export function ChainsWithStablecoins({
 	const showDefaultLegend =
 		(chartType === 'marketCap' && (chartView === 'breakdown' || chartView === 'dominance')) ||
 		(chartType === 'volume' && chartView !== 'total')
+
+	const prepareCsv = () => {
+		if (chartType === 'marketCap' && (chartView === 'pie' || chartView === 'hbar' || chartView === 'treemap')) {
+			const rows: Array<Array<string | number | boolean>> = [['Name', 'Market Cap']]
+			for (const chain of chainTotals) {
+				rows.push([chain.name, chain.mcap ?? 0])
+			}
+			return { filename: 'stablecoinsChainTotals', rows }
+		}
+		const payload = volumeChartKind ? volumeChartQuery.data : selectedChartData
+		const dimensions = payload?.dataset.dimensions ?? ['timestamp']
+		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...dimensions.slice(1)]]
+		for (const row of payload?.dataset.source ?? []) {
+			const timestamp = Number(row.timestamp)
+			rows.push([
+				Number.isFinite(timestamp) ? timestamp : '',
+				Number.isFinite(timestamp) ? toNiceCsvDate(Math.floor(timestamp / 1e3)) : '',
+				...dimensions.slice(1).map((dimension) => row[dimension] ?? '')
+			])
+		}
+		return { filename: 'stablecoinsChainTotals', rows }
+	}
 
 	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
 		() => ({
@@ -386,9 +393,9 @@ export function ChainsWithStablecoins({
 					) : chartType === 'marketCap' && chartView === 'hbar' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<HBarChart
-								categories={hbarCategories}
-								values={hbarValues}
-								colors={hbarColors}
+								categories={hbarData.categories}
+								values={hbarData.values}
+								colors={hbarData.colors}
 								valueSymbol="$"
 								onReady={handleChartReady}
 							/>

@@ -218,14 +218,8 @@ export const PeggedAssetInfo = ({
 		[name, chartView]
 	)
 
-	const selectedSeriesChart =
-		chartType === 'marketCap' && chartView === 'total'
-			? 'totalCirc'
-			: chartType === 'marketCap' && chartView === 'breakdown'
-				? 'chainMcaps'
-				: chartType === 'marketCap' && chartView === 'dominance'
-					? 'chainDominance'
-					: null
+	const assetChartType = chartType === 'marketCap' ? getAssetChartConfigType(chartView) : null
+	const selectedSeriesChart = assetChartType === 'chainPie' ? null : assetChartType
 	const volumeChartKind = getAssetVolumeChartKind(chartType, chartView)
 	const volumeToken = symbol && symbol !== '-' ? symbol : null
 	const volumeChartQuery = useStablecoinVolumeChartData({

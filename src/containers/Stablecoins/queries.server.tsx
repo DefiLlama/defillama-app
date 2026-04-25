@@ -560,7 +560,9 @@ type StablecoinChainsSource = {
 const toSignedChangeLabel = (value: string): string => {
 	const numericValue = Number.parseFloat(value.replace(/[^0-9.+-]/g, ''))
 	if (!Number.isNaN(numericValue) && numericValue === 0) return value
-	return value.startsWith('-') ? value : `+${value}`
+	const trimmedValue = value.trimStart()
+	if (trimmedValue.startsWith('+') || trimmedValue.startsWith('-')) return value
+	return `+${value}`
 }
 
 const getStablecoinChainsSource = async (): Promise<StablecoinChainsSource> => {

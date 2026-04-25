@@ -66,7 +66,7 @@ describe('/api/stablecoins/volume-chart', () => {
 		expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ valueSymbol: '$' }))
 	})
 
-	it('uses normalized chain volume fetchers', async () => {
+	it('uses chain scoped volume fetchers', async () => {
 		const req = {
 			method: 'GET',
 			query: { scope: 'chain', chain: 'zkSync Era', chart: 'currency' }
@@ -75,7 +75,7 @@ describe('/api/stablecoins/volume-chart', () => {
 
 		await handler(req, res)
 
-		expect(fetchChainMock).toHaveBeenCalledWith('era', 'currency')
+		expect(fetchChainMock).toHaveBeenCalledWith('zkSync Era', 'currency', expect.any(Object))
 		expect(res.status).toHaveBeenCalledWith(200)
 	})
 
@@ -102,5 +102,40 @@ describe('/api/stablecoins/volume-chart', () => {
 		expect(fetchChainMock).not.toHaveBeenCalled()
 		expect(res.status).toHaveBeenCalledWith(400)
 		expect(res.json).toHaveBeenCalledWith({ error: 'unsupported chain volume chart' })
+	})
+
+	it('rejects unsupported global volume charts', async () => {
+		const req = { method: 'GET', query: { scope: 'global', chart: 'unsupported' } } as unknown as NextApiRequest
+		const res = createRes()
+
+		await handler(req, res)
+
+		expect(fetchGlobalMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'unsupported global volume chart' })
+	})
+
+	it('rejects unsupported token volume charts', async () => {
+		const req = {
+			method: 'GET',
+			query: { scope: 'token', token: 'USDC', chart: 'currency' }
+		} as unknown as NextApiRequest
+		const res = createRes()
+
+		await handler(req, res)
+
+		expect(fetchTokenMock).not.toHaveBeenCalled()
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'unsupported token volume chart' })
+	})
+
+	it('rejects unknown scopes', async () => {
+		const req = { method: 'GET', query: { scope: 'bogus', chart: 'total' } } as unknown as NextApiRequest
+		const res = createRes()
+
+		await handler(req, res)
+
+		expect(res.status).toHaveBeenCalledWith(400)
+		expect(res.json).toHaveBeenCalledWith({ error: 'unsupported scope' })
 	})
 })

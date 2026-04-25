@@ -205,38 +205,8 @@ export function getPrevStablecoinTotalFromChart(
 ) {
 	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
-	if (!prevChart || typeof prevChart !== 'object') return null
-
-	// Dynamic key access — the issuanceType varies at runtime ('mcap', 'circulating', 'totalCirculatingUSD', etc.)
-	// so we use the allowed `as Record<string, unknown>` cast after the `typeof === 'object'` check above.
-	const chartRecord = prevChart as Record<string, unknown>
-	const issuanceTotals = chartRecord[issuanceType]
-	if (!pegType) {
-		if (typeof issuanceTotals === 'number') {
-			return Number.isFinite(issuanceTotals) ? issuanceTotals : null
-		}
-		if (typeof issuanceTotals === 'string') {
-			const numeric = Number(issuanceTotals)
-			return Number.isFinite(numeric) ? numeric : null
-		}
-		if (!issuanceTotals || typeof issuanceTotals !== 'object') return null
-		const totalsRecord = issuanceTotals as Record<string, unknown>
-		let total = 0
-		for (const key in totalsRecord) {
-			if (!Object.hasOwn(totalsRecord, key)) continue
-			const value = totalsRecord[key]
-			const numeric = typeof value === 'number' ? value : Number(value)
-			if (Number.isFinite(numeric)) total += numeric
-		}
-		return total
-	}
-
-	if (!issuanceTotals || typeof issuanceTotals !== 'object') return null
-	const totalsRecord = issuanceTotals as Record<string, unknown>
-	const target = totalsRecord[pegType]
-	if (pegType === 'bridges') return target
-	const numeric = typeof target === 'number' ? target : Number(target)
-	return Number.isFinite(numeric) ? numeric : null
+	if (pegType === 'bridges') return getStablecoinValueFromPoint(prevChart, issuanceType, pegType)
+	return getStablecoinValueFromPoint(prevChart, issuanceType, pegType)
 }
 
 export function getStablecoinValueFromPoint(

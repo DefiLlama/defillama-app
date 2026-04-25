@@ -27,21 +27,18 @@ const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
 const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
 const STABLECOIN_VOLUME_CHART_API = `${STABLECOINS_SERVER_URL}/chart/volume`
 
-const STABLECOIN_VOLUME_CHAIN_ALIASES: Record<string, string> = {
-	avalanche: 'avax',
-	binance: 'bsc',
-	'binance-smart-chain': 'bsc',
-	bnb: 'bsc',
-	'bnb-chain': 'bsc',
-	worldchain: 'wc',
-	'world-chain': 'wc',
-	zksync: 'era',
-	'zksync-era': 'era'
-}
+export type StablecoinVolumeChainMetadata = Record<string, { id: string; name: string }>
 
-export const normalizeStablecoinVolumeChain = (chain: string): string => {
-	const normalized = slug(chain).replace(/_/g, '-')
-	return STABLECOIN_VOLUME_CHAIN_ALIASES[normalized] ?? normalized
+export const getStablecoinVolumeChainId = (
+	chain: string,
+	chainMetadata: StablecoinVolumeChainMetadata
+): string | null => {
+	const chainSlug = slug(chain)
+	for (const key in chainMetadata) {
+		const metadata = chainMetadata[key]
+		if (slug(metadata.name) === chainSlug) return metadata.id
+	}
+	return null
 }
 
 /**
@@ -118,13 +115,15 @@ export const fetchStablecoinVolumeChartApi = async (
 
 export const fetchStablecoinChainVolumeChartApi = async (
 	chain: string,
-	chart: StablecoinVolumeChainChartKind
+	chart: StablecoinVolumeChainChartKind,
+	chainMetadata: StablecoinVolumeChainMetadata
 ): Promise<StablecoinVolumeChartResponse> => {
-	const normalizedChain = normalizeStablecoinVolumeChain(chain)
+	const chainId = getStablecoinVolumeChainId(chain, chainMetadata)
+	if (!chainId) throw new Error(`Stablecoin volume chain id not found for ${chain}`)
 	const pathByChart: Record<StablecoinVolumeChainChartKind, string> = {
-		total: `/chain/${encodeURIComponent(normalizedChain)}`,
-		token: `/chain/${encodeURIComponent(normalizedChain)}/token-breakdown`,
-		currency: `/chain/${encodeURIComponent(normalizedChain)}/currency-breakdown`
+		total: `/chain/${encodeURIComponent(chainId)}`,
+		token: `/chain/${encodeURIComponent(chainId)}/token-breakdown`,
+		currency: `/chain/${encodeURIComponent(chainId)}/currency-breakdown`
 	}
 
 	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)

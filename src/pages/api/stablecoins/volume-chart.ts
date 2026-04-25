@@ -2,8 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import {
 	fetchStablecoinChainVolumeChartApi,
 	fetchStablecoinTokenVolumeChartApi,
-	fetchStablecoinVolumeChartApi,
-	normalizeStablecoinVolumeChain
+	fetchStablecoinVolumeChartApi
 } from '~/containers/Stablecoins/api'
 import type {
 	StablecoinVolumeChainChartKind,
@@ -13,6 +12,7 @@ import type {
 } from '~/containers/Stablecoins/api.types'
 import { STABLECOIN_CHART_CACHE_CONTROL } from '~/containers/Stablecoins/chartSeries'
 import { buildStablecoinVolumeChartPayload } from '~/containers/Stablecoins/volumeChart'
+import metadataCache from '~/utils/metadata'
 
 const GLOBAL_CHARTS = new Set<StablecoinVolumeGlobalChartKind>(['total', 'chain', 'token', 'currency'])
 const CHAIN_CHARTS = new Set<StablecoinVolumeChainChartKind>(['total', 'token', 'currency'])
@@ -26,8 +26,8 @@ const getStringParam = (value: string | string[] | undefined): string | undefine
 const parseLimit = (value: string | string[] | undefined): number | undefined => {
 	const raw = getStringParam(value)
 	if (!raw) return undefined
-	const parsed = Number(raw)
-	return Number.isFinite(parsed) ? parsed : undefined
+	const parsed = Math.trunc(Number(raw))
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -58,7 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			const chain = getStringParam(req.query.chain)
 			if (!chain) return res.status(400).json({ error: 'chain parameter is required' })
 			chart = rawChart as StablecoinVolumeChainChartKind
-			data = await fetchStablecoinChainVolumeChartApi(normalizeStablecoinVolumeChain(chain), chart)
+			data = await fetchStablecoinChainVolumeChartApi(chain, chart, metadataCache.chainMetadata)
 		} else if (scope === 'token') {
 			if (!TOKEN_CHARTS.has(rawChart as StablecoinVolumeTokenChartKind)) {
 				return res.status(400).json({ error: 'unsupported token volume chart' })

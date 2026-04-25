@@ -7,9 +7,12 @@ vi.mock('~/utils/async', () => ({ fetchJson: fetchJsonMock }))
 import {
 	fetchStablecoinChainVolumeChartApi,
 	fetchStablecoinTokenVolumeChartApi,
-	fetchStablecoinVolumeChartApi,
-	normalizeStablecoinVolumeChain
+	fetchStablecoinVolumeChartApi
 } from './api'
+
+const chainMetadata = {
+	'zksync-era': { id: 'era', name: 'ZKsync Era' }
+}
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -17,10 +20,8 @@ beforeEach(() => {
 })
 
 describe('stablecoin volume api fetchers', () => {
-	it('normalizes chain path params for scoped volume routes', async () => {
-		expect(normalizeStablecoinVolumeChain('zkSync Era')).toBe('era')
-
-		await fetchStablecoinChainVolumeChartApi('zkSync Era', 'token')
+	it('resolves chain display names to metadata ids for scoped volume routes', async () => {
+		await fetchStablecoinChainVolumeChartApi('zkSync Era', 'token', chainMetadata)
 
 		expect(fetchJsonMock).toHaveBeenCalledWith(expect.stringContaining('/chart/volume/chain/era/token-breakdown'))
 	})

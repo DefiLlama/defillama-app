@@ -40,25 +40,6 @@ const CHAIN_LABELS: Record<string, string> = {
 	wc: 'World Chain'
 }
 
-const CHAIN_ALIASES: Record<string, string> = {
-	avalanche: 'avax',
-	binance: 'bsc',
-	'binance-smart-chain': 'bsc',
-	bnb: 'bsc',
-	'bnb-chain': 'bsc',
-	worldchain: 'wc',
-	'world-chain': 'wc',
-	zksync: 'era',
-	'zksync-era': 'era'
-}
-
-const normalizeDimensionKey = (value: string): string => slug(value).replace(/_/g, '-')
-
-const normalizeSelectedDimension = (value: string): string => {
-	const normalized = normalizeDimensionKey(value)
-	return CHAIN_ALIASES[normalized] ?? normalized
-}
-
 const formatDimensionLabel = (key: string, chart: StablecoinVolumeChartKind): string => {
 	if (chart === 'token' || chart === 'currency') return key.toUpperCase()
 	if (CHAIN_LABELS[key]) return CHAIN_LABELS[key]
@@ -133,14 +114,14 @@ const getLatestBreakdown = (points: StablecoinVolumeBreakdownChartPoint[]): Reco
 }
 
 const findDimensionKey = (points: StablecoinVolumeBreakdownChartPoint[], selectedDimension: string): string | null => {
-	const selected = normalizeSelectedDimension(selectedDimension)
+	const selected = slug(selectedDimension).replace(/_/g, '-')
 	const latest = getLatestBreakdown(points)
 	for (const key of Object.keys(latest)) {
-		if (normalizeSelectedDimension(key) === selected) return key
+		if (slug(key).replace(/_/g, '-') === selected) return key
 	}
 	for (const [, breakdown] of points) {
 		for (const key of Object.keys(breakdown ?? {})) {
-			if (normalizeSelectedDimension(key) === selected) return key
+			if (slug(key).replace(/_/g, '-') === selected) return key
 		}
 	}
 	return null
