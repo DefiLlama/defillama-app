@@ -86,8 +86,8 @@ export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async 
 
 	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
 
-	try {
-		if (isDatasetCacheEnabled()) {
+	if (isDatasetCacheEnabled()) {
+		try {
 			const { getYieldPoolRowFromCache, getYieldProtocolConfigFromCache } = await import('~/server/datasetCache/yields')
 			const row = await getYieldPoolRowFromCache(poolId)
 			if (!row) {
@@ -101,14 +101,13 @@ export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async 
 					poolId
 				}
 			}
+		} catch (error) {
+			console.log('[HTTP]:[ERROR]:[YIELD_POOL_CACHE_SSR]:', poolId, error instanceof Error ? error.message : '')
 		}
-
-		const props = await getYieldPoolPagePropsFromNetwork(poolId)
-		return props ? { props } : { notFound: true }
-	} catch (error) {
-		console.log('[HTTP]:[ERROR]:[YIELD_POOL_SSR]:', poolId, error instanceof Error ? error.message : '')
-		return { notFound: true }
 	}
+
+	const props = await getYieldPoolPagePropsFromNetwork(poolId)
+	return props ? { props } : { notFound: true }
 }
 
 const tvlApyCharts = [
