@@ -13,6 +13,29 @@ async function getYieldRows(): Promise<IYieldTableRow[]> {
 	return readJsonFile<IYieldTableRow[]>(`${getYieldsDomainDir()}/rows.json`)
 }
 
+let indexedYieldRowsCache: {
+	rows: IYieldTableRow[]
+	byPoolId: Map<string, IYieldTableRow>
+} | null = null
+
+async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
+	const rows = await getYieldRows()
+	if (indexedYieldRowsCache?.rows === rows) {
+		return indexedYieldRowsCache.byPoolId
+	}
+
+	const byPoolId = new Map<string, IYieldTableRow>()
+	for (const row of rows) {
+		byPoolId.set(row.configID, row)
+		if (row.id) {
+			byPoolId.set(row.id, row)
+		}
+	}
+
+	indexedYieldRowsCache = { rows, byPoolId }
+	return byPoolId
+}
+
 async function getLendBorrowData(): Promise<LendBorrowData> {
 	return readJsonFile<LendBorrowData>(`${getYieldsDomainDir()}/lend-borrow.json`)
 }
@@ -20,6 +43,16 @@ async function getLendBorrowData(): Promise<LendBorrowData> {
 export async function getYieldConfigFromCache(): Promise<YieldConfigResponse> {
 	await readDatasetManifest()
 	return readJsonFile<YieldConfigResponse>(`${getYieldsDomainDir()}/config.json`)
+}
+
+export async function getYieldPoolRowFromCache(poolId: string): Promise<IYieldTableRow | null> {
+	await readDatasetManifest()
+	return (await getIndexedYieldRows()).get(poolId) ?? null
+}
+
+export async function getYieldProtocolConfigFromCache(projectSlug: string): Promise<Record<string, unknown> | null> {
+	const config = await getYieldConfigFromCache()
+	return (projectSlug ? (config?.protocols?.[projectSlug] ?? null) : null) as Record<string, unknown> | null
 }
 
 export async function getTokenYieldsRowsFromCache(
