@@ -5,12 +5,37 @@ import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/qu
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
 
+type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
+
 function getYieldsDomainDir(): string {
 	return getDatasetDomainDir('yields')
 }
 
 async function getYieldRows(): Promise<IYieldTableRow[]> {
 	return readJsonFile<IYieldTableRow[]>(`${getYieldsDomainDir()}/rows.json`)
+}
+
+let indexedYieldRowsCache: {
+	rows: IYieldTableRow[]
+	byPoolId: Map<string, IYieldTableRow>
+} | null = null
+
+async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
+	const rows = await getYieldRows()
+	if (indexedYieldRowsCache?.rows === rows) {
+		return indexedYieldRowsCache.byPoolId
+	}
+
+	const byPoolId = new Map<string, IYieldTableRow>()
+	for (const row of rows) {
+		byPoolId.set(row.configID, row)
+		if (row.id) {
+			byPoolId.set(row.id, row)
+		}
+	}
+
+	indexedYieldRowsCache = { rows, byPoolId }
+	return byPoolId
 }
 
 async function getLendBorrowData(): Promise<LendBorrowData> {
@@ -20,6 +45,16 @@ async function getLendBorrowData(): Promise<LendBorrowData> {
 export async function getYieldConfigFromCache(): Promise<YieldConfigResponse> {
 	await readDatasetManifest()
 	return readJsonFile<YieldConfigResponse>(`${getYieldsDomainDir()}/config.json`)
+}
+
+export async function getYieldPoolRowFromCache(poolId: string): Promise<IYieldTableRow | null> {
+	await readDatasetManifest()
+	return (await getIndexedYieldRows()).get(poolId) ?? null
+}
+
+export async function getYieldProtocolConfigFromCache(projectSlug: string): Promise<YieldProtocolConfig | null> {
+	const config = await getYieldConfigFromCache()
+	return projectSlug ? (config?.protocols?.[projectSlug] ?? null) : null
 }
 
 export async function getTokenYieldsRowsFromCache(

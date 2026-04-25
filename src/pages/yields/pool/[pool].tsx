@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router'
+import type { GetServerSideProps } from 'next'
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useBlockExplorers } from '~/api/client'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
@@ -7,21 +7,16 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { CopyHelper } from '~/components/Copy'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
-import { Menu } from '~/components/Menu'
-import { NotFoundPage } from '~/components/NotFoundPage'
-import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { ProtocolInformationCard } from '~/containers/Yields/ProtocolInformationCard'
 import {
 	useYieldChartData,
 	useYieldChartLendBorrow,
-	useYieldConfigData,
-	useYieldPoolData,
 	useVolatility,
 	useHolderHistory,
 	useHolderStats
@@ -35,12 +30,16 @@ import {
 	type HolderWithChange
 } from '~/containers/Yields/queries/holderUtils'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
-import { formattedNum, slug } from '~/utils'
+import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { formattedNum } from '~/utils'
+import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -48,6 +47,60 @@ const MultiSeriesChart2 = lazy(
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const EMPTY_CHART_DATA: any[] = []
 const EMPTY_TVL_APY_DATASET = { source: [] as any[], dimensions: ['timestamp', 'APY', 'TVL'] }
+
+type YieldPoolPageProps = {
+	pool: IYieldTableRow
+	config: any | null
+	poolId: string
+}
+
+async function getYieldPoolPagePropsFromNetwork(poolId: string): Promise<YieldPoolPageProps | null> {
+	const { mapPoolToYieldTableRow } = await import('~/containers/Yields/poolsPipeline')
+	const poolResponse = await fetchJson<{ data?: any[] }>(`${YIELD_POOLS_LAMBDA_API}?pool=${encodeURIComponent(poolId)}`)
+	const rawPool = poolResponse?.data?.[0]
+	if (!rawPool) return null
+
+	const yieldConfig = await fetchJson<{ protocols?: Record<string, any> }>(YIELD_CONFIG_API).catch(() => null)
+	const config = rawPool.project ? (yieldConfig?.protocols?.[rawPool.project] ?? null) : null
+
+	return {
+		pool: mapPoolToYieldTableRow(rawPool),
+		config,
+		poolId
+	}
+}
+
+export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async ({ params, res }) => {
+	const poolParam = params?.pool
+	const poolId = typeof poolParam === 'string' ? poolParam : Array.isArray(poolParam) ? poolParam[0] : null
+
+	if (!poolId) {
+		return { notFound: true }
+	}
+
+	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
+
+	if (isDatasetCacheEnabled()) {
+		try {
+			const { getYieldPoolRowFromCache, getYieldProtocolConfigFromCache } = await import('~/server/datasetCache/yields')
+			const row = await getYieldPoolRowFromCache(poolId)
+			if (row) {
+				return {
+					props: {
+						pool: row,
+						config: await getYieldProtocolConfigFromCache(row.projectslug),
+						poolId
+					}
+				}
+			}
+		} catch (error) {
+			console.error('[HTTP]:[ERROR]:[YIELD_POOL_CACHE_SSR]:', poolId, error instanceof Error ? error.message : '')
+		}
+	}
+
+	const props = await getYieldPoolPagePropsFromNetwork(poolId)
+	return props ? { props } : { notFound: true }
+}
 
 const tvlApyCharts = [
 	{
@@ -467,110 +520,15 @@ const EMPTY_LIQUIDITY_DATASET: MultiSeriesChart2Dataset = {
 	dimensions: ['timestamp', 'Supplied', 'Borrowed', 'Available']
 }
 
-export function ProtocolInformationCard({
-	category,
-	projectName,
-	projectSlug,
-	config,
-	url
-}: {
-	category: string
-	projectName: string
-	projectSlug: string
-	config: any
-	url: string
-}) {
-	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-			<h3 className="text-base font-semibold">Information</h3>
-			{projectName && projectSlug ? (
-				<p className="flex items-center gap-1">
-					<span>Protocol:</span>
-					<BasicLink href={`/protocol/${projectSlug}`} className="hover:underline">
-						{projectName}
-					</BasicLink>
-				</p>
-			) : null}
-			<p className="flex items-center gap-1">
-				<span>Category:</span>
-				<BasicLink href={`/protocols/${slug(category)}`} className="hover:underline">
-					{category}
-				</BasicLink>
-			</p>
-
-			{config?.audits ? (
-				<>
-					<p className="flex items-center gap-1">
-						<span className="flex flex-nowrap items-center gap-1">
-							<span>Audits</span>
-							<QuestionHelper text="Audits are not a security guarantee" />
-							<span>:</span>
-						</span>
-						{config.audit_links?.length > 0 ? (
-							<Menu
-								name="Yes"
-								options={config.audit_links}
-								isExternal
-								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-							/>
-						) : (
-							<span>No</span>
-						)}
-					</p>
-					{config.audit_note ? <p>Audit Note: {config.audit_note}</p> : null}
-				</>
-			) : null}
-			<div className="flex flex-wrap gap-2">
-				{url ? (
-					<a
-						href={url}
-						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="earth" className="h-3 w-3" />
-						<span>Website</span>
-					</a>
-				) : null}
-				{config?.github?.length
-					? config.github.map((github) => (
-							<a
-								href={`https://github.com/${github}`}
-								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-								target="_blank"
-								rel="noopener noreferrer"
-								key={`${config.name}-github-${github}`}
-							>
-								<Icon name="github" className="h-3 w-3" />
-								<span>{config.github.length === 1 ? 'GitHub' : github}</span>
-							</a>
-						))
-					: null}
-				{config?.twitter ? (
-					<a
-						href={`https://x.com/${config.twitter}`}
-						className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Icon name="twitter" className="h-3 w-3" />
-						<span>Twitter</span>
-					</a>
-				) : null}
-			</div>
-		</div>
-	)
-}
-
-const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any; fetchingConfigData: boolean }) => {
-	const { query, isReady } = useRouter()
+const PageView = ({ pool, config, poolId }: { pool: IYieldTableRow; config: any; poolId: string }) => {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 	const { onRequestUpgrade, modal } = useYieldsUpgradePrompt()
 	const hasPremiumAccess = isClient && hasActiveSubscription
 
-	const poolData = pool?.data?.[0] ?? {}
-	const poolName = poolData.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData.symbol ?? '')
+	const poolData = pool
+	const chain = poolData.chains?.[0] ?? ''
+	const poolName = poolData.poolMeta ? `${poolData.pool} (${poolData.poolMeta})` : (poolData.pool ?? '')
 
 	const { chartInstance: tvlApyChartInstance, handleChartReady: handleTvlApyReady } = useGetChartInstance()
 
@@ -607,16 +565,14 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 		}
 	}, [holderDonutInstance])
 
-	const poolId = typeof query.pool === 'string' ? query.pool : null
-
 	const { data: chart, isLoading: fetchingChartData } = useYieldChartData(poolId)
 
 	const { data: chartBorrow, isLoading: fetchingChartDataBorrow } = useYieldChartLendBorrow(poolId)
 
 	const { data: volatility } = useVolatility()
 	const { data: holderHistory } = useHolderHistory(poolId)
-	const { data: holderStatsMap } = useHolderStats(poolData.pool ? [poolData.pool] : undefined)
-	const holderStats = poolData.pool ? holderStatsMap?.[poolData.pool] : null
+	const { data: holderStatsMap } = useHolderStats(poolData.configID ? [poolData.configID] : undefined)
+	const holderStats = poolData.configID ? holderStatsMap?.[poolData.configID] : null
 	const { data: blockExplorersData } = useBlockExplorers()
 	const holderChanges = useMemo(() => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 7)
@@ -624,58 +580,59 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 	const holderChanges30d = useMemo(() => {
 		return computeHolderChanges(holderStats?.top10Holders ?? null, holderHistory ?? null, 30)
 	}, [holderStats?.top10Holders, holderHistory])
-	const poolConfigId = poolData.pool ?? (typeof query.pool === 'string' ? query.pool : null)
+	const poolConfigId = poolData.configID ?? poolId
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
 	const apyStd30d = poolConfigId ? (volatility?.[poolConfigId]?.[2] ?? null) : null
 
 	// prepare csv data
 	const prepareCsv = () => {
-		if (!chart?.data || !query?.pool) return { filename: `yields`, rows: [] }
+		if (!chart?.data || !poolId) return { filename: `yields`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
 		for (const item of chart?.data ?? EMPTY_CHART_DATA) {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		}
 
-		return { filename: `${query.pool}`, rows: rows as (string | number | boolean)[][] }
+		return { filename: poolId, rows: rows as (string | number | boolean)[][] }
 	}
 
-	const apy = poolData.apy?.toFixed(2) ?? 0
-	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? 0
-	const apyDelta20pct = (apy * 0.8).toFixed(2)
+	const apyValue = poolData.apy ?? 0
+	const apy = apyValue.toFixed(2)
+	const apyMean30d = poolData.apyMean30d?.toFixed(2) ?? '0'
+	const apyDelta20pct = (apyValue * 0.8).toFixed(2)
 
-	let confidence = poolData.predictions?.binnedConfidence ?? null
+	let confidence: string | null = null
 
-	if (confidence) {
-		confidence = confidence === 1 ? 'Low' : confidence === 2 ? 'Medium' : 'High'
+	if (poolData.confidence) {
+		confidence = poolData.confidence === 1 ? 'Low' : poolData.confidence === 2 ? 'Medium' : 'High'
 		// on the frontend we round numerical values; eg values < 0.005 are displayed as 0.00;
 		// in the context of apy and predictions this sometimes can lead to the following:
 		// an apy is displayed as 0.00% and the outlook on /pool would read:
 		// "The algorithm predicts the current APY of 0.00% to not fall below 0.00% within the next 4 weeks. Confidence: High`"
 		// which is useless.
 		// solution: suppress the outlook and confidence values if apy < 0.005
-		confidence = apy >= 0.005 ? confidence : null
+		confidence = apyValue >= 0.005 ? confidence : null
 	}
 
-	const predictedDirection = poolData.predictions?.predictedClass === 'Down' ? '' : 'not'
+	const predictedDirection = poolData.outlook === 'Down' ? '' : 'not'
 
-	const projectName = config?.name ?? ''
-	const projectSlug = poolData.project ?? ''
+	const projectName = config?.name ?? poolData.project ?? ''
+	const projectSlug = poolData.projectslug ?? ''
 	const url = poolData.url ?? ''
-	const category = config?.category ?? ''
+	const category = config?.category ?? poolData.category ?? ''
 
-	const isLoading = fetchingChartData || fetchingConfigData || fetchingChartDataBorrow
+	const isLoading = fetchingChartData || fetchingChartDataBorrow
 
 	const getYieldsChartConfig = (chartType?: YieldChartType): YieldsChartConfig | null => {
-		if (!query.pool) return null
+		if (!poolId) return null
 		return {
-			id: chartType ? `yields-${query.pool}-${chartType}` : `yields-${query.pool}`,
+			id: chartType ? `yields-${poolId}-${chartType}` : `yields-${poolId}`,
 			kind: 'yields',
-			poolConfigId: query.pool as string,
+			poolConfigId,
 			poolName,
-			project: config?.name ?? poolData.project ?? '',
-			chain: poolData.chain ?? '',
+			project: projectName,
+			chain,
 			chartType
 		}
 	}
@@ -844,14 +801,6 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 		netBorrowApyDataset.source.length > 0 ||
 		poolLiquidityDataset.source.length > 0
 
-	if (!isReady || isLoading) {
-		return (
-			<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<LocalLoader />
-			</div>
-		)
-	}
-
 	return (
 		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
@@ -860,18 +809,18 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 						{poolName}
 
 						<span className="mr-auto font-normal">
-							({projectName} - {poolData.chain})
+							({projectName} - {chain})
 						</span>
 					</h1>
 
 					<div className="flex flex-col gap-2 text-base">
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">APY</span>
-							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apy}%`}</span>
+							<span className="ml-auto font-jetbrains text-(--apy-pink)">{apy}%</span>
 						</p>
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">30d Avg APY</span>
-							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
+							<span className="ml-auto font-jetbrains text-(--apy-pink)">{apyMean30d}%</span>
 						</p>
 						{poolConfigId ? (
 							<p className="flex items-center justify-between gap-1">
@@ -910,9 +859,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 						) : null}
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
-							<span className="ml-auto font-jetbrains text-(--apy-blue)">
-								{isLoading ? null : formattedNum(poolData.tvlUsd ?? 0, true)}
-							</span>
+							<span className="ml-auto font-jetbrains text-(--apy-blue)">{formattedNum(poolData.tvl ?? 0, true)}</span>
 						</p>
 					</div>
 
@@ -933,8 +880,8 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 						<AddToDashboardButton chartConfig={getYieldsChartConfig()} smol />
 						<ChartExportButtons
 							chartInstance={tvlApyChartInstance}
-							filename={`${query.pool}-tvl-apy`}
-							title={`${poolName} - ${projectName} (${poolData.chain})`}
+							filename={`${poolId}-tvl-apy`}
+							title={`${poolName} - ${projectName} (${chain})`}
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
@@ -964,7 +911,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy')} smol />
 									<ChartExportButtons
 										chartInstance={supplyApyChartInstance}
-										filename={`${query.pool}-supply-apy`}
+										filename={`${poolId}-supply-apy`}
 										title="Supply APY"
 									/>
 								</div>
@@ -986,7 +933,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 									<AddToDashboardButton chartConfig={getYieldsChartConfig('supply-apy-7d')} smol />
 									<ChartExportButtons
 										chartInstance={supplyApy7dChartInstance}
-										filename={`${query.pool}-supply-apy-7d-avg`}
+										filename={`${poolId}-supply-apy-7d-avg`}
 										title="7 day moving average of Supply APY"
 									/>
 								</div>
@@ -1017,7 +964,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('borrow-apy')} smol />
 								<ChartExportButtons
 									chartInstance={borrowApyChartInstance}
-									filename={`${query.pool}-borrow-apy`}
+									filename={`${poolId}-borrow-apy`}
 									title="Borrow APY"
 								/>
 							</div>
@@ -1039,7 +986,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('net-borrow-apy')} smol />
 								<ChartExportButtons
 									chartInstance={netBorrowApyChartInstance}
-									filename={`${query.pool}-net-borrow-apy`}
+									filename={`${poolId}-net-borrow-apy`}
 									title="Net Borrow APY"
 								/>
 							</div>
@@ -1070,7 +1017,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 								<AddToDashboardButton chartConfig={getYieldsChartConfig('pool-liquidity')} smol />
 								<ChartExportButtons
 									chartInstance={poolLiquidityChartInstance}
-									filename={`${query.pool}-pool-liquidity`}
+									filename={`${poolId}-pool-liquidity`}
 									title="Pool Liquidity"
 								/>
 							</div>
@@ -1119,7 +1066,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 								summary={holderChanges.summary}
 								balanceSummary={holderChanges.balanceSummary}
 								tokenDecimals={holderStats?.tokenDecimals ?? null}
-								chain={poolData.chain}
+								chain={chain}
 								blockExplorersData={blockExplorersData}
 								colors={HOLDER_COLORS}
 								hoveredIndex={holderDonutHoveredIndex}
@@ -1134,7 +1081,7 @@ const PageView = ({ pool, config, fetchingConfigData }: { pool: any; config: any
 								holderChange7d={holderStats.holderChange7d}
 								holderChange30d={holderStats.holderChange30d}
 								avgPositionUsd={holderStats.avgPositionUsd}
-								tvlUsd={poolData.tvlUsd ?? null}
+								tvlUsd={poolData.tvl ?? null}
 							/>
 						</div>
 					) : null}
@@ -1161,23 +1108,12 @@ const liquidityChartColors: Record<string, string> = {
 
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
-export default function YieldPoolPage(props) {
-	const { query, isReady } = useRouter()
-	const poolId = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+export default function YieldPoolPage(props: YieldPoolPageProps) {
+	const { poolId, pool, config } = props
+	const chain = pool.chains?.[0] ?? ''
 
-	const { data: pool, isLoading: fetchingPoolData } = useYieldPoolData(poolId)
-	const poolData = pool?.data?.[0]
-	const shouldRenderNotFound = isReady && !fetchingPoolData && !poolData
-
-	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData?.project ?? '')
-
-	if (shouldRenderNotFound) {
-		return <NotFoundPage />
-	}
-
-	const poolName = poolData?.poolMeta ? `${poolData.symbol} (${poolData.poolMeta})` : (poolData?.symbol ?? '')
-	const projectName = config?.name ?? ''
-	const chain = poolData?.chain ?? ''
+	const poolName = pool.poolMeta ? `${pool.pool} (${pool.poolMeta})` : (pool.pool ?? '')
+	const projectName = config?.name ?? pool.project ?? ''
 
 	const poolLabel =
 		poolName && projectName && chain ? `${poolName} (${projectName} - ${chain})` : poolName || poolId || ''
@@ -1189,13 +1125,7 @@ export default function YieldPoolPage(props) {
 
 	return (
 		<Layout title={title} description={description} canonicalUrl={poolId ? `/yields/pool/${poolId}` : null}>
-			{!isReady || fetchingPoolData ? (
-				<div className="flex h-full items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<LocalLoader />
-				</div>
-			) : (
-				<PageView {...props} pool={pool} config={config} fetchingConfigData={fetchingConfigData} />
-			)}
+			<PageView pool={pool} config={config} poolId={poolId} />
 		</Layout>
 	)
 }
