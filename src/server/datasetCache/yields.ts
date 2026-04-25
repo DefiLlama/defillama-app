@@ -5,6 +5,8 @@ import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/qu
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
 
+type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
+
 function getYieldsDomainDir(): string {
 	return getDatasetDomainDir('yields')
 }
@@ -50,9 +52,9 @@ export async function getYieldPoolRowFromCache(poolId: string): Promise<IYieldTa
 	return (await getIndexedYieldRows()).get(poolId) ?? null
 }
 
-export async function getYieldProtocolConfigFromCache(projectSlug: string): Promise<Record<string, unknown> | null> {
+export async function getYieldProtocolConfigFromCache(projectSlug: string): Promise<YieldProtocolConfig | null> {
 	const config = await getYieldConfigFromCache()
-	return (projectSlug ? (config?.protocols?.[projectSlug] ?? null) : null) as Record<string, unknown> | null
+	return projectSlug ? (config?.protocols?.[projectSlug] ?? null) : null
 }
 
 export async function getTokenYieldsRowsFromCache(

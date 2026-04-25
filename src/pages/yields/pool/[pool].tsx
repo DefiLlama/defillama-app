@@ -90,19 +90,17 @@ export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async 
 		try {
 			const { getYieldPoolRowFromCache, getYieldProtocolConfigFromCache } = await import('~/server/datasetCache/yields')
 			const row = await getYieldPoolRowFromCache(poolId)
-			if (!row) {
-				return { notFound: true }
-			}
-
-			return {
-				props: {
-					pool: row,
-					config: await getYieldProtocolConfigFromCache(row.projectslug),
-					poolId
+			if (row) {
+				return {
+					props: {
+						pool: row,
+						config: await getYieldProtocolConfigFromCache(row.projectslug),
+						poolId
+					}
 				}
 			}
 		} catch (error) {
-			console.log('[HTTP]:[ERROR]:[YIELD_POOL_CACHE_SSR]:', poolId, error instanceof Error ? error.message : '')
+			console.error('[HTTP]:[ERROR]:[YIELD_POOL_CACHE_SSR]:', poolId, error instanceof Error ? error.message : '')
 		}
 	}
 
@@ -742,7 +740,7 @@ const PageView = ({
 		return {
 			id: chartType ? `yields-${poolId}-${chartType}` : `yields-${poolId}`,
 			kind: 'yields',
-			poolConfigId: poolId,
+			poolConfigId,
 			poolName,
 			project: projectName,
 			chain,
@@ -1239,7 +1237,7 @@ export default function YieldPoolPage(props: YieldPoolPageProps) {
 
 	return (
 		<Layout title={title} description={description} canonicalUrl={poolId ? `/yields/pool/${poolId}` : null}>
-			<PageView {...props} pool={pool} config={config} fetchingConfigData={fetchingConfigData} />
+			<PageView pool={pool} config={config} poolId={poolId} fetchingConfigData={fetchingConfigData} />
 		</Layout>
 	)
 }
