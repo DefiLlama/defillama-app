@@ -33,7 +33,12 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
-import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
+import type {
+	ICategoriesAndTags,
+	IChainMetadata,
+	IProtocolMetadata,
+	ProtocolLlamaswapMetadata
+} from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
@@ -52,15 +57,32 @@ function computeTvlChartSummary(chart: Array<[number, number]>): {
 	return { totalValueUSD: lastValue, tvlPrevDay, valueChange24hUSD, change24h }
 }
 
+export function shouldFetchChainDexs({
+	chain,
+	currentChainMetadata,
+	categoriesAndTagsMetadata
+}: {
+	chain: string
+	currentChainMetadata: IChainMetadata
+	categoriesAndTagsMetadata?: ICategoriesAndTags
+}): boolean {
+	if (!currentChainMetadata.dexs) return false
+	if (chain === 'All' || currentChainMetadata.id === 'all') return true
+
+	return categoriesAndTagsMetadata?.configs?.Dexs?.chains?.includes(currentChainMetadata.id) ?? false
+}
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
 	protocolMetadata,
+	categoriesAndTagsMetadata,
 	protocolLlamaswapDataset = null
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
+	categoriesAndTagsMetadata: ICategoriesAndTags
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
 }): Promise<IChainOverviewData | null> {
 	const currentChainMetadata: IChainMetadata =
@@ -69,6 +91,8 @@ export async function getChainOverviewData({
 			: chainMetadata[slug(chain)]
 
 	if (!currentChainMetadata) return null
+
+	const shouldFetchDexs = shouldFetchChainDexs({ chain, currentChainMetadata, categoriesAndTagsMetadata })
 
 	try {
 		const [
@@ -136,7 +160,7 @@ export async function getChainOverviewData({
 					dcAndLsOverlap: []
 				}
 			}),
-			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset }),
+			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset, shouldFetchDexs }),
 			currentChainMetadata.stablecoins
 				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
 				: Promise.resolve(null),
@@ -419,7 +443,7 @@ export async function getChainOverviewData({
 		if (chainRevenue?.total24h != null) {
 			charts.push('Chain Revenue')
 		}
-		if (dexs?.total24h != null) {
+		if (shouldFetchDexs && dexs?.total24h != null) {
 			charts.push('DEXs Volume')
 		}
 		if (perps?.total24h != null) {
@@ -571,6 +595,7 @@ export const getProtocolsByChain = async ({
 	chainMetadata,
 	protocolMetadata,
 	protocolLlamaswapDataset = null,
+	shouldFetchDexs,
 	oracle = null,
 	fork = null
 }: {
@@ -578,6 +603,7 @@ export const getProtocolsByChain = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
+	shouldFetchDexs?: boolean
 	oracle?: string | null
 	fork?: string | null
 }) => {
@@ -587,6 +613,7 @@ export const getProtocolsByChain = async ({
 			: chainMetadata[slug(chain)]
 
 	if (!currentChainMetadata) return null
+	const shouldFetchDexsForChain = shouldFetchDexs ?? !!currentChainMetadata.dexs
 
 	const normalizedOracle = oracle ? slug(oracle) : null
 	const normalizedFork = fork ? slug(fork) : null
@@ -667,7 +694,7 @@ export const getProtocolsByChain = async ({
 					dataType: 'dailyHoldersRevenue'
 				})
 			: Promise.resolve(null),
-		currentChainMetadata.dexs
+		shouldFetchDexsForChain
 			? getAdapterChainOverview({
 					adapterType: 'dexs',
 					chain: currentChainMetadata.name,

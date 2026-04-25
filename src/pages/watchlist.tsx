@@ -14,7 +14,8 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 		getChainOverviewData({
 			chain: 'All',
 			chainMetadata: metadataCache.chainMetadata,
-			protocolMetadata: metadataCache.protocolMetadata
+			protocolMetadata: metadataCache.protocolMetadata,
+			categoriesAndTagsMetadata: metadataCache.categoriesAndTags
 		}),
 		getChainsByCategory({
 			chainMetadata: metadataCache.chainMetadata,

@@ -16,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	const chainData = await fetchChain({
 		chain: chain as string,
 		chainMetadata: metadataCache.chainMetadata,
+		categoriesAndTagsMetadata: metadataCache.categoriesAndTags,
 		protocolMetadata: metadataCache.protocolMetadata
 	})
 	const response = { chain: chainData }

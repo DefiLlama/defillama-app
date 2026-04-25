@@ -94,6 +94,15 @@ export interface ICategoriesAndTags {
 	categories: Array<string>
 	tags: Array<string>
 	tagCategoryMap: Record<string, string>
+	configs: Record<
+		string,
+		{
+			category: string
+			chains?: Array<string>
+			slug?: string
+			dexs?: boolean
+		}
+	>
 }
 
 export interface IRWAList {

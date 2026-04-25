@@ -148,7 +148,13 @@ export const REV_PROTOCOLS = {
 
 export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])
 
-export const categoryRoutesOutsideProtocolsSet = new Set(['rwa'])
+export const categoryRoutesOutsideProtocols: Record<string, string> = {
+	rwa: '/rwa',
+	dexs: '/dexs',
+	derivatives: '/perps',
+	'dex-aggregator': '/dex-aggregators',
+	'bridge-aggregator': '/bridge-aggregators'
+}
 
 export const getCategoryRoute = (categorySlug: string) =>
-	categoryRoutesOutsideProtocolsSet.has(categorySlug) ? `/${categorySlug}` : `/protocols/${categorySlug}`
+	categoryRoutesOutsideProtocols[categorySlug] ?? `/protocols/${categorySlug}`

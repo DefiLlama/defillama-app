@@ -8,7 +8,8 @@ export async function getCompareProtocolsPageData(): Promise<CompareProtocolsPro
 	const overviewData = await getChainOverviewData({
 		chain: 'All',
 		chainMetadata: metadataCache.chainMetadata,
-		protocolMetadata: metadataCache.protocolMetadata
+		protocolMetadata: metadataCache.protocolMetadata,
+		categoriesAndTagsMetadata: metadataCache.categoriesAndTags
 	})
 	const protocols: CompareProtocolsProps['protocols'] = overviewData?.protocols ?? []
 

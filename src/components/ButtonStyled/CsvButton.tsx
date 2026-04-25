@@ -95,7 +95,8 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const onClickLoading = isOnClickMode ? props.isLoading : false
 	const onClickHandler = isOnClickMode ? props.onClick : undefined
 	const prepareCsv = hasPrepareCsv(props) ? props.prepareCsv : undefined
-	const isLoading = !!(loaders.userLoading || onClickLoading || staticLoading)
+	const userLoading = !!loaders?.userLoading
+	const isLoading = !!(userLoading || onClickLoading || staticLoading)
 	const subscribeModalStore = Ariakit.useDialogStore({
 		open: shouldRenderModal,
 		setOpen: (value) => dispatch({ type: 'setShouldRenderModal', value })
@@ -147,22 +148,14 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 			return
 		}
 
-		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
+		if (!userLoading && isAuthenticated && hasActiveSubscription) {
 			await runDownload()
 			return
 		}
 
 		setSignupSource('csv')
 		subscribeModalStore.show()
-	}, [
-		hasActiveSubscription,
-		isAuthenticated,
-		isLoading,
-		isTrial,
-		loaders.userLoading,
-		runDownload,
-		subscribeModalStore
-	])
+	}, [hasActiveSubscription, isAuthenticated, isLoading, isTrial, runDownload, subscribeModalStore, userLoading])
 
 	return (
 		<>
