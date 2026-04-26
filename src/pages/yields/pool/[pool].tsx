@@ -47,6 +47,7 @@ const MultiSeriesChart2 = lazy(
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const EMPTY_CHART_DATA: any[] = []
 const EMPTY_TVL_APY_DATASET = { source: [] as any[], dimensions: ['timestamp', 'APY', 'TVL'] }
+const YIELD_POOL_CONFIG_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 type YieldPoolPageProps = {
 	pool: IYieldTableRow
@@ -78,13 +79,12 @@ export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async 
 		return { notFound: true }
 	}
 
-	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
-
 	if (isDatasetCacheEnabled()) {
 		try {
 			const { getYieldPoolRowFromCache, getYieldProtocolConfigFromCache } = await import('~/server/datasetCache/yields')
 			const row = await getYieldPoolRowFromCache(poolId)
 			if (row) {
+				res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
 				return {
 					props: {
 						pool: row,
@@ -93,10 +93,18 @@ export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async 
 					}
 				}
 			}
+
+			return { notFound: true }
 		} catch (error) {
 			console.error('[HTTP]:[ERROR]:[YIELD_POOL_CACHE_SSR]:', poolId, error instanceof Error ? error.message : '')
 		}
 	}
+
+	if (!YIELD_POOL_CONFIG_ID_REGEX.test(poolId)) {
+		return { notFound: true }
+	}
+
+	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
 
 	const props = await getYieldPoolPagePropsFromNetwork(poolId)
 	return props ? { props } : { notFound: true }
