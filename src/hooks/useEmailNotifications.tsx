@@ -39,7 +39,7 @@ interface SaveNotificationPreferencesRequest {
 	frequency: 'daily' | 'weekly'
 }
 
-const parseJsonSafely = async <T = unknown>(response: Response): Promise<T | null> => {
+const parseJsonSafely = async <T = unknown,>(response: Response): Promise<T | null> => {
 	const parsed = await response.json().catch(() => null)
 	return parsed as T | null
 }

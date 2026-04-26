@@ -313,7 +313,7 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 					</MetricSection>
 				) : null}
 				{overview.raises?.length ? (
-					<MetricSection label="Raises" value={formatRaiseAmount(totalRaised)}>
+					<MetricSection label="Total Raised" value={formatRaiseAmount(totalRaised)}>
 						{overview.raises.map((raise) => (
 							<SubMetricRow
 								key={`${raise.date}-${raise.round ?? 'raise'}`}
