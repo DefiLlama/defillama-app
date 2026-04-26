@@ -27,6 +27,7 @@ import {
 	getStablecoinChartViewOptions,
 	getStablecoinChartViewQueryValue,
 	parseStablecoinChartState,
+	parseStablecoinVolumeGroupBy,
 	type StablecoinChartType as StablecoinChartCategory,
 	type StablecoinChartView
 } from '~/containers/Stablecoins/chartState'
@@ -118,11 +119,7 @@ export const PeggedAssetInfo = ({
 	const chartState = parseStablecoinChartState(router.query, ASSET_CHART_MODE)
 	const chartType = chartState.type
 	const chartView = chartState.view
-	const volumeGroupBy = React.useMemo<LowercaseDwmcGrouping>(() => {
-		const value = Array.isArray(router.query.groupBy) ? router.query.groupBy[0] : router.query.groupBy
-		const normalized = value?.toLowerCase()
-		return DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === normalized)?.value ?? 'daily'
-	}, [router.query.groupBy])
+	const volumeGroupBy = React.useMemo(() => parseStablecoinVolumeGroupBy(router.query.groupBy), [router.query.groupBy])
 	const chartTypeOptions = React.useMemo(() => getStablecoinChartTypeOptions(ASSET_CHART_MODE), [])
 	const chartViewOptions = React.useMemo(() => getStablecoinChartViewOptions(chartState), [chartState])
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()

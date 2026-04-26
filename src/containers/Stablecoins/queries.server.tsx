@@ -519,15 +519,13 @@ export async function getStablecoinChainMcapSummary(chain: string | null): Promi
 				breakdown,
 				doublecountedSourceIds: chainData.doublecountedIds
 			})
+		const filteredIndexes: number[] = []
+		for (const key in peggedNameToChartDataIndex) filteredIndexes.push(peggedNameToChartDataIndex[key])
 
 		const chartParams = {
 			chartDataByAssetOrChain: chartDataByPeggedAsset,
 			assetsOrChainsList: peggedAssetNames,
-			filteredIndexes: (() => {
-				const indexes: number[] = []
-				for (const key in peggedNameToChartDataIndex) indexes.push(peggedNameToChartDataIndex[key])
-				return indexes
-			})(),
+			filteredIndexes,
 			issuanceType: 'mcap',
 			selectedChain: chain ?? 'All',
 			doublecountedIds

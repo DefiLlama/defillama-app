@@ -1,4 +1,5 @@
 import type { ParsedUrlQuery } from 'querystring'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { readSingleQueryValue } from '~/utils/routerQuery'
 
 export type StablecoinChartType = 'marketCap' | 'volume' | 'inflows'
@@ -64,6 +65,14 @@ export function parseStablecoinChartState(query: ParsedUrlQuery, mode: Stablecoi
 	const type = normalizeChartType(readSingleQueryValue(query.chartType), mode)
 	const view = normalizeChartView(readSingleQueryValue(query.chartView), mode, type)
 	return { mode, type, view }
+}
+
+export function parseStablecoinVolumeGroupBy(value: string | string[] | undefined): LowercaseDwmcGrouping {
+	const normalized = (Array.isArray(value) ? value[0] : value)?.toLowerCase()
+	for (const option of DWMC_GROUPING_OPTIONS_LOWERCASE) {
+		if (option.value === normalized) return option.value
+	}
+	return 'daily'
 }
 
 export function getStablecoinChartTypeOptions(

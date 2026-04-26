@@ -13,6 +13,8 @@ type StablecoinFilterableItem = Pick<
 	'pegDeviation' | 'yieldBearing' | 'pegMechanism' | 'pegType'
 >
 
+const isStablecoinChartQueryKey = (key: string) => key === 'chartType' || key === 'chartView' || key === 'groupBy'
+
 export type StablecoinFilterOption = {
 	name: string
 	key: string
@@ -380,17 +382,21 @@ function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu:
 	const router = useRouter()
 
 	let hasActiveQueryFilters = false
+	const chartQuery: Record<string, string | string[]> = {}
 	for (const key in router.query) {
 		const value = router.query[key]
 		if (key === 'chain' || value === undefined) continue
-		hasActiveQueryFilters = Array.isArray(value) ? value.length > 0 : value !== ''
-		if (hasActiveQueryFilters) break
+		if (isStablecoinChartQueryKey(key)) {
+			if (Array.isArray(value) ? value.length > 0 : value !== '') chartQuery[key] = value
+			continue
+		}
+		if (Array.isArray(value) ? value.length > 0 : value !== '') hasActiveQueryFilters = true
 	}
 
 	return (
 		<button
 			onClick={() => {
-				void router.push(pathname, undefined, { shallow: true })
+				void router.push({ pathname, query: chartQuery }, undefined, { shallow: true })
 			}}
 			disabled={!hasActiveQueryFilters}
 			className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"

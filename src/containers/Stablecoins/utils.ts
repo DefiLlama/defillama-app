@@ -205,7 +205,6 @@ export function getPrevStablecoinTotalFromChart(
 ) {
 	if (!chart) return null
 	const prevChart = chart[chart.length - 1 - daysBefore]
-	if (pegType === 'bridges') return getStablecoinValueFromPoint(prevChart, issuanceType, pegType)
 	return getStablecoinValueFromPoint(prevChart, issuanceType, pegType)
 }
 

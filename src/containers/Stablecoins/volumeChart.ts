@@ -81,13 +81,9 @@ const getLatestBreakdown = (points: StablecoinVolumeBreakdownChartPoint[]): Reco
 
 const findDimensionKey = (points: StablecoinVolumeBreakdownChartPoint[], selectedDimension: string): string | null => {
 	const latest = getLatestBreakdown(points)
-	for (const key in latest) {
-		if (key === selectedDimension) return key
-	}
+	if (selectedDimension in latest) return selectedDimension
 	for (const [, breakdown] of points) {
-		for (const key in breakdown) {
-			if (key === selectedDimension) return key
-		}
+		if (selectedDimension in breakdown) return selectedDimension
 	}
 	return null
 }
