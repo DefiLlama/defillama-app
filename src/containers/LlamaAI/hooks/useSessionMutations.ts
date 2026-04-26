@@ -1,7 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { AI_SERVER } from '~/constants'
-import { SESSIONS_QUERY_KEY, type SessionListData } from '~/containers/LlamaAI/hooks/useSessionList'
+import {
+	prependSessionToInfiniteData,
+	removeSessionFromInfiniteData,
+	removeSessionsFromInfiniteData,
+	SESSIONS_QUERY_KEY,
+	type SessionListInfiniteData,
+	updateSessionInInfiniteData
+} from '~/containers/LlamaAI/hooks/sessionListCache'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -91,16 +98,12 @@ export function useSessionMutations() {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
 
 			// Snapshot previous value for rollback
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
 			// Optimistically update
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
-				}
-			})
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				removeSessionFromInfiniteData(old, sessionId)
+			)
 
 			return { previous }
 		},
@@ -128,15 +131,11 @@ export function useSessionMutations() {
 		},
 		onMutate: async (sessionIds) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 			const idsSet = new Set(sessionIds)
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.filter((session) => !idsSet.has(session.sessionId))
-				}
-			})
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				removeSessionsFromInfiniteData(old, idsSet)
+			)
 			return { previous }
 		},
 		onError: (_err, _sessionIds, context) => {
@@ -168,21 +167,12 @@ export function useSessionMutations() {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
 
 			// Snapshot previous value for rollback
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
 			// Optimistically update
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.map((session) => {
-						if (session.sessionId === sessionId) {
-							return { ...session, title }
-						}
-						return session
-					})
-				}
-			})
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				updateSessionInInfiniteData(old, sessionId, (session) => ({ ...session, title }))
+			)
 
 			return { previous }
 		},
@@ -211,23 +201,14 @@ export function useSessionMutations() {
 		},
 		onMutate: async (sessionId) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.map((session) => {
-						if (session.sessionId === sessionId) {
-							return {
-								...session,
-								isPinned: !session.isPinned,
-								pinnedAt: !session.isPinned ? new Date().toISOString() : undefined
-							}
-						}
-						return session
-					})
-				}
-			})
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				updateSessionInInfiniteData(old, sessionId, (session) => ({
+					...session,
+					isPinned: !session.isPinned,
+					pinnedAt: !session.isPinned ? new Date().toISOString() : undefined
+				}))
+			)
 			return { previous }
 		},
 		onError: (_err, _sessionId, context) => {
@@ -251,13 +232,13 @@ export function useSessionMutations() {
 				title,
 				createdAt: new Date().toISOString(),
 				lastActivity: new Date().toISOString(),
-				isActive: true
+				isActive: true,
+				isOptimistic: true
 			}
 
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListData | undefined) => ({
-				usage: old?.usage ?? null,
-				sessions: [fakeSession, ...(old?.sessions ?? [])]
-			}))
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+				prependSessionToInfiniteData(old, fakeSession)
+			)
 		}
 
 		return sessionId

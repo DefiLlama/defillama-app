@@ -774,6 +774,10 @@ export function AgenticChat({
 		researchUsage,
 		isLoading: isLoadingSessions,
 		error: sessionListError,
+		hasNextPage: hasMoreSessions,
+		isFetchingNextPage: isFetchingMoreSessions,
+		loadMoreSessionsError,
+		fetchNextPage: loadMoreSessions,
 		moveSessionToTop
 	} = useSessionList()
 	const {
@@ -2202,6 +2206,10 @@ export function AgenticChat({
 								onBulkDelete={bulkDeleteSessions}
 								onPinSession={pinSession}
 								onSearchMatchClick={handleSearchMatchClick}
+								hasMoreSessions={hasMoreSessions}
+								isFetchingMoreSessions={isFetchingMoreSessions}
+								loadMoreSessionsError={loadMoreSessionsError}
+								onLoadMoreSessions={loadMoreSessions}
 							/>
 							<div className="flex min-h-11 lg:hidden" />
 						</>
