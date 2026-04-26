@@ -10,5 +10,6 @@ export interface IHackApiItem {
 	returnedFunds: number | null
 	defillamaId: number | null
 	language: string | null
+	source?: string
 	parentProtocolId?: string
 }

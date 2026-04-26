@@ -253,6 +253,7 @@ beforeEach(() => {
 					leadInvestors: ['Investor A'],
 					otherInvestors: [],
 					valuation: null,
+					source: 'Chain Announcement',
 					defillamaId: 'chain#xion'
 				},
 				{

@@ -161,16 +161,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 		setSignupSource('csv')
 		subscribeModalStore.show()
-	}, [
-		free,
-		hasActiveSubscription,
-		isAuthenticated,
-		isLoading,
-		isTrial,
-		loaders.userLoading,
-		runDownload,
-		subscribeModalStore
-	])
+	}, [free, hasActiveSubscription, isAuthenticated, isLoading, isTrial, runDownload, subscribeModalStore, userLoading])
 
 	return (
 		<>

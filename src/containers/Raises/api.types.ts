@@ -10,6 +10,7 @@ export interface RawRaise {
 	leadInvestors: string[]
 	otherInvestors: string[]
 	valuation: number | null
+	source?: string
 	defillamaId?: string
 }
 

@@ -4,6 +4,7 @@ export interface IProtocolRaise {
 	valuation: string
 	date: number
 	defillamaId: string
+	source?: string
 	leadInvestors?: Array<string>
 	otherInvestors?: Array<string>
 	investors?: Array<string>
