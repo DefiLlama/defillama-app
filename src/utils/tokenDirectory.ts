@@ -31,3 +31,18 @@ export function findTokenDirectoryRecordByGeckoId(
 
 	return null
 }
+
+export function findTokenDirectoryRecordByDefillamaId(
+	tokens: TokenDirectory,
+	defillamaId: string
+): TokenDirectoryRecord | null {
+	for (const key in tokens) {
+		const token = tokens[key]
+
+		if (token.protocolId === defillamaId || token.chainId === defillamaId) {
+			return token
+		}
+	}
+
+	return null
+}

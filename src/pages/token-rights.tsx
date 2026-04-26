@@ -8,7 +8,11 @@ import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
-import { findTokenDirectoryRecordByGeckoId, type TokenDirectory } from '~/utils/tokenDirectory'
+import {
+	findTokenDirectoryRecordByDefillamaId,
+	findTokenDirectoryRecordByGeckoId,
+	type TokenDirectory
+} from '~/utils/tokenDirectory'
 
 interface TokenRightsListItem {
 	name: string
@@ -115,7 +119,9 @@ function resolveTokenRightsListItem(
 	}
 
 	const geckoId = metadataMatch.metadata.gecko_id
-	if (!geckoId) {
+	let tokenRecord = findTokenDirectoryRecordByDefillamaId(tokenDirectory, defillamaId)
+
+	if (!tokenRecord && !geckoId) {
 		return {
 			type: 'skipped',
 			entry: {
@@ -126,7 +132,10 @@ function resolveTokenRightsListItem(
 		}
 	}
 
-	const tokenRecord = findTokenDirectoryRecordByGeckoId(tokenDirectory, geckoId)
+	if (!tokenRecord) {
+		tokenRecord = findTokenDirectoryRecordByGeckoId(tokenDirectory, geckoId)
+	}
+
 	if (!tokenRecord) {
 		return {
 			type: 'skipped',
@@ -168,6 +177,11 @@ function findTokenRightsMetadataByDefillamaId(
 ): TokenRightsMetadataMatch | null {
 	const chain = chainMetadata[defillamaId]
 	if (chain) return { source: 'chain', metadata: chain }
+
+	for (const key in chainMetadata) {
+		const cachedChain = chainMetadata[key]
+		if (cachedChain.id === defillamaId) return { source: 'chain', metadata: cachedChain }
+	}
 
 	const protocol = protocolMetadata[defillamaId]
 	if (protocol) return { source: 'protocol', metadata: protocol }

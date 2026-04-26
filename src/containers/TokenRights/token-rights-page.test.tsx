@@ -126,4 +126,56 @@ describe('token rights page', () => {
 		const { postRuntimeLogs } = await import('~/utils/async')
 		expect(postRuntimeLogs).toHaveBeenCalledTimes(1)
 	})
+
+	it('routes chain entries when the metadata cache key differs from the chain id', async () => {
+		const page = await setupPageModule({
+			chainMetadata: {
+				'plume-mainnet': { name: 'Plume Mainnet', id: 'plume_mainnet' }
+			},
+			tokensJson: {
+				plume: {
+					name: 'Plume',
+					symbol: 'PLUME',
+					chainId: 'plume_mainnet',
+					route: '/token/PLUME'
+				}
+			},
+			tokenRightsEntries: [{ 'Protocol Name': 'Plume', 'DefiLlama ID': 'plume_mainnet' }]
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+			props: {
+				protocols: [{ name: 'Plume Mainnet', logo: 'icon:Plume Mainnet', href: '/token/PLUME' }]
+			},
+			revalidate: 123
+		})
+		const { postRuntimeLogs } = await import('~/utils/async')
+		expect(postRuntimeLogs).not.toHaveBeenCalled()
+	})
+
+	it('routes protocol entries from token directory ids without a gecko id', async () => {
+		const page = await setupPageModule({
+			protocolMetadata: {
+				'7161': { displayName: 'Backpack SOL' }
+			},
+			tokensJson: {
+				bp: {
+					name: 'Backpack',
+					symbol: 'BP',
+					protocolId: '7161',
+					route: '/token/BP'
+				}
+			},
+			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '7161' }]
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+			props: {
+				protocols: [{ name: 'Backpack SOL', logo: 'icon:Backpack SOL', href: '/token/BP' }]
+			},
+			revalidate: 123
+		})
+		const { postRuntimeLogs } = await import('~/utils/async')
+		expect(postRuntimeLogs).not.toHaveBeenCalled()
+	})
 })

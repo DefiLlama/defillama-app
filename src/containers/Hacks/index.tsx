@@ -430,5 +430,5 @@ const hacksColumns = [
 	columnHelper.accessor('language', {
 		header: 'Language',
 		size: 140
-	}),
+	})
 ]
