@@ -1,4 +1,5 @@
 import { STABLECOINS_SERVER_URL } from '~/constants'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
 	StablecoinBridgeInfoResponse,
@@ -9,6 +10,10 @@ import type {
 	StablecoinPricesResponse,
 	StablecoinRatesResponse,
 	StablecoinRecentCoinsDataResponse,
+	StablecoinVolumeChainChartKind,
+	StablecoinVolumeChartResponse,
+	StablecoinVolumeGlobalChartKind,
+	StablecoinVolumeTokenChartKind,
 	StablecoinsListResponse
 } from './api.types'
 
@@ -20,6 +25,21 @@ const PEGGEDCHART_COINS_RECENT_DATA_API = `${STABLECOINS_SERVER_URL}/stablecoinc
 const PEGGEDCONFIG_API = `${STABLECOINS_SERVER_URL}/config`
 const PEGGEDPRICES_API = `${STABLECOINS_SERVER_URL}/stablecoinprices`
 const PEGGEDRATES_API = `${STABLECOINS_SERVER_URL}/rates`
+const STABLECOIN_VOLUME_CHART_API = `${STABLECOINS_SERVER_URL}/chart/volume`
+
+export type StablecoinVolumeChainMetadata = Record<string, { id: string; name: string }>
+
+export const getStablecoinVolumeChainId = (
+	chain: string,
+	chainMetadata: StablecoinVolumeChainMetadata
+): string | null => {
+	const chainSlug = slug(chain)
+	for (const key in chainMetadata) {
+		const metadata = chainMetadata[key]
+		if (slug(metadata.name) === chainSlug) return metadata.id
+	}
+	return null
+}
 
 /**
  * Fetch the stablecoin assets list.
@@ -75,6 +95,51 @@ export const fetchStablecoinChartApi = async (chainLabel: string): Promise<Stabl
  */
 export const fetchStablecoinChartAllApi = async (): Promise<StablecoinChartResponse> => {
 	return fetchJson<StablecoinChartResponse>(`${PEGGEDCHART_API}/all`)
+}
+
+/**
+ * Fetch stablecoin volume chart data.
+ */
+export const fetchStablecoinVolumeChartApi = async (
+	chart: StablecoinVolumeGlobalChartKind
+): Promise<StablecoinVolumeChartResponse> => {
+	const pathByChart: Record<StablecoinVolumeGlobalChartKind, string> = {
+		total: '',
+		chain: '/chain-breakdown',
+		token: '/token-breakdown',
+		currency: '/currency-breakdown'
+	}
+
+	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+}
+
+export const fetchStablecoinChainVolumeChartApi = async (
+	chain: string,
+	chart: StablecoinVolumeChainChartKind,
+	chainMetadata: StablecoinVolumeChainMetadata
+): Promise<StablecoinVolumeChartResponse> => {
+	const chainId = getStablecoinVolumeChainId(chain, chainMetadata)
+	if (!chainId) throw new Error(`Stablecoin volume chain id not found for ${chain}`)
+	const pathByChart: Record<StablecoinVolumeChainChartKind, string> = {
+		total: `/chain/${encodeURIComponent(chainId)}`,
+		token: `/chain/${encodeURIComponent(chainId)}/token-breakdown`,
+		currency: `/chain/${encodeURIComponent(chainId)}/currency-breakdown`
+	}
+
+	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
+}
+
+export const fetchStablecoinTokenVolumeChartApi = async (
+	token: string,
+	chart: StablecoinVolumeTokenChartKind
+): Promise<StablecoinVolumeChartResponse> => {
+	const encodedToken = encodeURIComponent(token)
+	const pathByChart: Record<StablecoinVolumeTokenChartKind, string> = {
+		total: `/token/${encodedToken}`,
+		chain: `/token/${encodedToken}/chain-breakdown`
+	}
+
+	return fetchJson<StablecoinVolumeChartResponse>(`${STABLECOIN_VOLUME_CHART_API}${pathByChart[chart]}`)
 }
 
 /**

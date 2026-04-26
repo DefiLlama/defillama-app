@@ -159,6 +159,8 @@ function buildSeries({
 			encode: chart.encode,
 			emphasis: { focus: 'series', shadowBlur: 10 },
 			itemStyle: { color: resolvedColor },
+			...(chart.type === 'bar' && chart.barMinWidth != null ? { barMinWidth: chart.barMinWidth } : {}),
+			...(chart.type === 'bar' && chart.barMaxWidth != null ? { barMaxWidth: chart.barMaxWidth } : {}),
 			...(chart.yAxisIndex != null ? { yAxisIndex: chart.yAxisIndex } : {})
 		}
 

@@ -99,6 +99,17 @@ export interface StablecoinChartResponse {
 	doublecountedIds?: string[]
 }
 
+export type StablecoinVolumeGlobalChartKind = 'total' | 'chain' | 'token' | 'currency'
+export type StablecoinVolumeChainChartKind = 'total' | 'token' | 'currency'
+export type StablecoinVolumeTokenChartKind = 'total' | 'chain'
+export type StablecoinVolumeChartKind = StablecoinVolumeGlobalChartKind
+
+export type StablecoinVolumeTotalChartPoint = [timestamp: number, volume: number]
+
+export type StablecoinVolumeBreakdownChartPoint = [timestamp: number, breakdown: Record<string, number>]
+
+export type StablecoinVolumeChartResponse = StablecoinVolumeTotalChartPoint[] | StablecoinVolumeBreakdownChartPoint[]
+
 export type StablecoinChartPoint = {
 	date: string
 	totalCirculatingUSD?: Record<string, number>

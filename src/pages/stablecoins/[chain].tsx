@@ -107,13 +107,10 @@ const pageName = ['Stablecoins', 'by', 'Market Cap']
 export default function StablecoinsByChainPage({
 	chains,
 	filteredPeggedAssets,
-	peggedAssetNames,
-	peggedNameToChartDataIndex,
-	chartDataByPeggedAsset,
-	doublecountedIds,
 	chain,
 	availableBackings,
 	availablePegTypes,
+	defaultChartData,
 	entityQuestions
 }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
@@ -127,12 +124,9 @@ export default function StablecoinsByChainPage({
 				chains={chains}
 				selectedChain={chain}
 				filteredPeggedAssets={filteredPeggedAssets}
-				peggedAssetNames={peggedAssetNames}
-				peggedNameToChartDataIndex={peggedNameToChartDataIndex}
-				chartDataByPeggedAsset={chartDataByPeggedAsset}
-				doublecountedIds={doublecountedIds}
 				availableBackings={availableBackings}
 				availablePegTypes={availablePegTypes}
+				defaultChartData={defaultChartData}
 				entityQuestions={entityQuestions}
 			/>
 		</Layout>

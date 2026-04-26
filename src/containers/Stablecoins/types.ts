@@ -5,6 +5,7 @@ import type {
 	StablecoinListAsset,
 	StablecoinsListResponse
 } from './api.types'
+import type { StablecoinChartSeriesPayload } from './chartSeries'
 import type { FormattedStablecoinAsset, IFormattedStablecoinChainRow } from './utils'
 
 type StablecoinOverviewChartPoint = {
@@ -28,19 +29,21 @@ export interface StablecoinOverviewChartInputs {
 export interface PeggedOverviewPageData {
 	chains: string[]
 	filteredPeggedAssets: FormattedStablecoinAsset[]
-	peggedAssetNames: string[]
-	peggedNameToChartDataIndex: Record<string, number>
-	chartDataByPeggedAsset: StablecoinOverviewChartPoint[][]
-	doublecountedIds: number[]
 	chain: string
+	defaultChartData: StablecoinChartSeriesPayload
 }
 
 export interface PeggedChainsPageData {
 	chainCirculatings: IFormattedStablecoinChainRow[]
-	chartData: StablecoinChartPoint[]
-	peggedChartDataByChain: Array<Array<{ date: number; mcap: number | null }> | null>
 	chainList: string[]
 	chainsGroupbyParent: Record<string, Record<string, string[]>>
+	change1d: string
+	change7d: string
+	change30d: string
+	totalMcapCurrent: number | null
+	change1d_nol: string
+	change7d_nol: string
+	change30d_nol: string
 }
 
 export type StablecoinBridges = Record<string, Record<string, { amount: number }>> | null
@@ -61,7 +64,8 @@ export interface PeggedAssetPageProps {
 		name: string
 		symbol: string
 	}>
-	peggedAssetData: StablecoinDetailResponse
+	peggedAssetData: Omit<StablecoinDetailResponse, 'chainBalances' | 'currentChainBalances' | 'tokens'>
+	defaultChartData: StablecoinChartSeriesPayload
 	totalCirculating: number | null
 	unreleased: number | null
 	mcap: number | null
