@@ -17,6 +17,7 @@ export interface EditorHandle {
 	revealLine: (line: number, column?: number) => void
 	focus: () => void
 	insertSnippet: (text: string) => void
+	getSelection: () => string | null
 }
 
 interface EditorProps {
@@ -77,6 +78,17 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 				if (!range) return
 				editor.executeEdits('schema-browser', [{ range, text, forceMoveMarkers: true }])
 				editor.focus()
+			},
+			getSelection: () => {
+				const editor = editorInstanceRef.current
+				if (!editor) return null
+				const selection = editor.getSelection()
+				if (!selection || selection.isEmpty?.()) return null
+				const model = editor.getModel?.()
+				if (!model) return null
+				const text = model.getValueInRange(selection)
+				const trimmed = typeof text === 'string' ? text.trim() : ''
+				return trimmed.length > 0 ? text : null
 			}
 		}),
 		[]

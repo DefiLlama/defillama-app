@@ -234,10 +234,11 @@ function SqlWorkspaceInner({
 		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab, beginRun, endRun]
 	)
 
-	const runQuery = useCallback(
-		() => runSqlForTab(activeTabId, activeTab.sql),
-		[runSqlForTab, activeTabId, activeTab.sql]
-	)
+	const runQuery = useCallback(() => {
+		const selection = editorRef.current?.getSelection() ?? null
+		const sqlToRun = selection ?? activeTab.sql
+		return runSqlForTab(activeTabId, sqlToRun)
+	}, [runSqlForTab, activeTabId, activeTab.sql])
 
 	const prepareAndRun = useCallback(
 		async ({
