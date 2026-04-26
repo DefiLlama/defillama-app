@@ -72,13 +72,14 @@ import {
 	type StreamDispatch
 } from '~/containers/LlamaAI/streamState'
 import type {
-	AlertProposedData,
 	ChartConfiguration,
 	DashboardArtifact,
 	DashboardItem,
 	Message,
 	ToolExecution
 } from '~/containers/LlamaAI/types'
+import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
+import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -92,26 +93,13 @@ const DashboardPanel = lazy(() =>
 	import('~/containers/LlamaAI/components/DashboardPanel').then((m) => ({ default: m.DashboardPanel }))
 )
 
-interface PersistedAlertIntent {
-	frequency?: 'daily' | 'weekly'
-	hour?: number
-	timezone?: string
-	dayOfWeek?: number
-	dataQuery?: string
-	title?: string
-	deliveryChannel?: 'email' | 'telegram'
-}
-
 interface PersistedToolExecution extends ToolExecution {
 	toolName?: string
 }
 
-interface PersistedMessageMetadata {
+interface PersistedMessageMetadata extends RestoredAlertMetadata {
 	toolExecutions?: PersistedToolExecution[]
 	thinking?: string
-	alertIntent?: PersistedAlertIntent
-	savedAlertId?: string
-	savedAlertIds?: string[]
 	quotedText?: string
 	dashboardConfig?: {
 		dashboardName?: string
@@ -322,6 +310,7 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 				]
 			: undefined,
 		alerts: buildRestoredAlerts({
+			content: message.content,
 			messageId: message.messageId,
 			metadata: message.metadata,
 			savedAlertIds: message.savedAlertIds
@@ -402,6 +391,7 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 		mdExports: message.mdExports ?? message.metadata?.mdExports,
 		citations: message.citations,
 		alerts: buildRestoredAlerts({
+			content: message.content,
 			messageId: message.messageId,
 			metadata: message.metadata,
 			savedAlertIds: message.savedAlertIds
@@ -422,37 +412,6 @@ interface AgenticChatProps {
 	onForkSubmit?: (prompt: string) => void
 	initialPrompt?: string
 	shareToken?: string
-}
-
-// Rebuild alert artifacts from persisted assistant metadata when restoring a session.
-function buildRestoredAlerts({
-	messageId,
-	metadata,
-	savedAlertIds
-}: {
-	messageId?: string
-	metadata?: PersistedMessageMetadata
-	savedAlertIds?: string[]
-}): AlertProposedData[] | undefined {
-	if (!metadata?.alertIntent) return undefined
-	const persistedAlertId =
-		metadata.savedAlertIds?.[0] || savedAlertIds?.[0] || metadata.savedAlertId || `restored_${messageId}`
-
-	return [
-		{
-			alertId: persistedAlertId,
-			title: metadata.alertIntent.title || metadata.alertIntent.dataQuery || '',
-			alertIntent: {
-				frequency: metadata.alertIntent.frequency || 'daily',
-				hour: metadata.alertIntent.hour ?? 9,
-				timezone: metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: metadata.alertIntent.dayOfWeek,
-				deliveryChannel: metadata.alertIntent.deliveryChannel || metadata.deliveryChannel
-			},
-			schedule_expression: '',
-			next_run_at: ''
-		}
-	]
 }
 
 // Consume the current streamed message id once the buffered assistant message is committed.
