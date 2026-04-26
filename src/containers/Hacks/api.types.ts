@@ -7,7 +7,6 @@ export interface IHackApiItem {
 	chain: string[] | null
 	bridgeHack: boolean
 	targetType: string
-	source?: string
 	returnedFunds: number | null
 	defillamaId: number | null
 	language: string | null

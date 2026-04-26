@@ -36,7 +36,6 @@ export interface TokenOverviewRaise {
 	date: number
 	round: string | null
 	amount: number | null
-	source: string | null
 	investors: string[]
 }
 
@@ -340,7 +339,6 @@ function buildRaisesSummary(raises: RawRaise[] | null): TokenOverviewRaise[] | n
 			date: raise.date,
 			round: raise.round ?? null,
 			amount: raise.amount ?? null,
-			source: raise.source ?? null,
 			investors: [...(raise.leadInvestors ?? []), ...(raise.otherInvestors ?? [])]
 		}))
 }

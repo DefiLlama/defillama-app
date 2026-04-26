@@ -4,8 +4,6 @@ import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -30,7 +28,6 @@ interface TokenData {
 	mcap: number
 	name: string
 	protocolId: string
-	sources: string[]
 	token: string
 	totalLocked: number
 	unlocksPerDay: number
@@ -47,7 +44,6 @@ interface IEmission {
 	datasets: { documented: EmissionsDataset; realtime: EmissionsDataset }
 	/** Pre-built MultiSeriesChart2 chart configs keyed by data type. */
 	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
-	sources: Array<string>
 	notes: Array<string>
 	events: Array<{
 		description?: string
@@ -505,46 +501,16 @@ function TokenAllocationBars({
 	)
 }
 
-function safeHostname(url: string): string {
-	try {
-		return new URL(url).hostname
-	} catch {
-		return url.length > 40 ? url.slice(0, 40) + '…' : url
-	}
-}
-
 function SourcesNotesSection({
-	sources,
 	notes,
 	futures
 }: {
-	sources: Array<string> | undefined
 	notes: Array<string> | undefined
 	futures: { openInterest?: number; fundingRate?: number } | undefined
 }) {
-	if (!sources?.length && !notes?.length && futures?.openInterest == null && futures?.fundingRate == null) return null
+	if (!notes?.length && futures?.openInterest == null && futures?.fundingRate == null) return null
 	return (
 		<div className="flex flex-wrap gap-2 *:flex-1">
-			{sources && sources.length > 0 ? (
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h3 className="text-base font-semibold">Sources</h3>
-					<ul className="list-disc space-y-1 pl-4 text-sm">
-						{sources.map((source) => (
-							<li key={source}>
-								<BasicLink
-									href={source}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
-								>
-									<span>{safeHostname(source)}</span>
-									<Icon name="external-link" height={14} width={14} />
-								</BasicLink>
-							</li>
-						))}
-					</ul>
-				</div>
-			) : null}
 			{notes && notes.length > 0 ? (
 				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<h3 className="text-base font-semibold">Notes</h3>
@@ -1156,7 +1122,7 @@ const ChartContainer = ({
 				</div>
 			) : null}
 
-			<SourcesNotesSection sources={data.sources} notes={data.notes} futures={data.futures} />
+			<SourcesNotesSection notes={data.notes} futures={data.futures} />
 		</>
 	)
 }

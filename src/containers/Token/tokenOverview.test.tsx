@@ -205,7 +205,6 @@ const overviewFixture: TokenOverviewData = {
 			date: 1704067200,
 			round: 'Series A',
 			amount: 50,
-			source: 'Blog',
 			investors: ['Investor A']
 		}
 	],
@@ -251,7 +250,6 @@ beforeEach(() => {
 					sector: '',
 					category: '',
 					categoryGroup: '',
-					source: 'Chain Announcement',
 					leadInvestors: ['Investor A'],
 					otherInvestors: [],
 					valuation: null,
@@ -266,7 +264,6 @@ beforeEach(() => {
 					sector: '',
 					category: '',
 					categoryGroup: '',
-					source: 'Protocol Blog',
 					leadInvestors: ['Investor B'],
 					otherInvestors: [],
 					valuation: null,
@@ -482,7 +479,7 @@ describe('tokenOverview helpers', () => {
 		})
 
 		expect(result.treasury?.total).toBe(100)
-		expect(result.raises?.[0]?.source).toBe('Protocol Blog')
+		expect(result.raises?.[0]?.round).toBe('Series A')
 		expect(result.tokenLiquidity).toEqual({
 			total: 75,
 			pools: [
@@ -846,7 +843,6 @@ describe('TokenOverviewSection component', () => {
 							date: 1704067200,
 							round: 'Series A',
 							amount: null,
-							source: 'Blog',
 							investors: ['Investor A']
 						}
 					]

@@ -578,7 +578,6 @@ const getAllProtocolEmissionsWithHistory = async ({
 
 type EnrichedProtocolEmission = ProtocolEmission & {
 	unlockEvents: null
-	sources: null
 	upcomingEvent: EmissionEvent[]
 	events: EmissionEvent[]
 	tPrice: number | null
@@ -725,7 +724,6 @@ export const getAllProtocolEmissions = async ({
 					...protocol,
 					// Reduce payload without mutating original object
 					unlockEvents: null,
-					sources: null,
 					upcomingEvent,
 					events: filteredEvents,
 					tPrice: coin?.price ?? null,
@@ -799,7 +797,6 @@ export function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		},
 		chartsConfigs: { documented: [], realtime: [] },
 		meta: {},
-		sources: [],
 		notes: [],
 		events: [],
 		token: null,
@@ -926,7 +923,6 @@ export const getProtocolEmissons = async (
 			datasets,
 			chartsConfigs,
 			meta: allEmissions?.find((p) => p?.token === metadata?.token) ?? {},
-			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: roundedEvents,
 			token: metadata?.token ?? null,

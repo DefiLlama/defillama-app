@@ -66,22 +66,6 @@ export const raisesColumns = [
 		enableSorting: false,
 		cell: (info) => <Tooltip content={info.getValue().join(', ')}>{info.getValue().join(', ')}</Tooltip>
 	}),
-	columnHelper.accessor('source', {
-		header: 'Link',
-		size: 60,
-		enableSorting: false,
-		cell: ({ getValue }) => (
-			<a
-				href={getValue()}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
-			>
-				<Icon name="arrow-up-right" height={14} width={14} />
-				<span className="sr-only">open in new tab</span>
-			</a>
-		)
-	}),
 	columnHelper.accessor((row) => formatRaiseAmount(row.valuation), {
 		id: 'valuation',
 		header: 'Valuation',
@@ -111,7 +95,6 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 		'category',
 		'sector',
 		'leadInvestors',
-		'source',
 		'valuation',
 		'chains',
 		'otherInvestors'
@@ -124,7 +107,6 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 		'category',
 		'sector',
 		'leadInvestors',
-		'source',
 		'valuation',
 		'chains',
 		'otherInvestors'

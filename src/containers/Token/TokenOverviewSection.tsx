@@ -322,7 +322,6 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 										? `${raise.round} · ${formatDateLabel(raise.date) ?? 'Unknown date'}`
 										: (formatDateLabel(raise.date) ?? 'Unknown date')
 								}
-								extra={raise.source ? <span className="text-xs text-(--text-tertiary)">{raise.source}</span> : null}
 								value={formatRaiseAmount(raise.amount)}
 							/>
 						))}

@@ -45,7 +45,6 @@ describe('getProtocolEmissons', () => {
 			metadata: {
 				events: [],
 				token: 'coingecko:chainlink',
-				sources: [],
 				notes: []
 			},
 			documentedData: {
@@ -80,7 +79,6 @@ describe('getProtocolEmissons', () => {
 			metadata: {
 				events: [],
 				token: 'coingecko:chainlink',
-				sources: [],
 				notes: []
 			},
 			documentedData: {

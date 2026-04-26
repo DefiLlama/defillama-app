@@ -78,7 +78,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 					/>
 				</label>
 
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol free />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
@@ -431,20 +431,4 @@ const hacksColumns = [
 		header: 'Language',
 		size: 140
 	}),
-	columnHelper.accessor('link', {
-		header: 'Link',
-		size: 40,
-		enableSorting: false,
-		cell: ({ getValue }) => (
-			<a
-				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
-				href={getValue()}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<Icon name="arrow-up-right" height={14} width={14} />
-				<span className="sr-only">open in new tab</span>
-			</a>
-		)
-	})
 ]

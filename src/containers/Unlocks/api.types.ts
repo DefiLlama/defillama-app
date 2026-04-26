@@ -30,7 +30,6 @@ export interface ProtocolEmission {
 	events?: EmissionEvent[] | null
 	tokenPrice?: TokenPriceSnapshot[] | null
 	unlockEvents?: unknown
-	sources?: unknown
 	tPrice?: number | null
 	tSymbol?: string | null
 	circSupply?: number | null
@@ -45,7 +44,6 @@ export interface ProtocolEmissionDetail {
 	gecko_id?: string | null
 	metadata?: {
 		token?: string | null
-		sources?: string[] | null
 		notes?: string[] | null
 		events?: EmissionEvent[] | null
 	} | null

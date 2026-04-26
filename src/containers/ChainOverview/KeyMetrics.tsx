@@ -341,7 +341,7 @@ function RaisesSection({ chainRaises }: { chainRaises: IChainOverviewData['chain
 			{sortedRaises.map((raise) => (
 				<p
 					className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
-					key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
+					key={`${raise.date}-${raise.amount}-${raise.round}`}
 				>
 					<span className="flex flex-wrap justify-between">
 						<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>

@@ -7,7 +7,6 @@ export interface RawRaise {
 	sector: string
 	category: string
 	categoryGroup: string
-	source: string
 	leadInvestors: string[]
 	otherInvestors: string[]
 	valuation: number | null
