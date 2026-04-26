@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { getServerSideProps } from '~/pages/yields/pool/[pool]'
+import { getServerSideProps, getYieldPoolAssetTokens } from '~/pages/yields/pool/[pool]'
 import { ProtocolInformationCard } from './ProtocolInformationCard'
 
 describe('YieldPoolPage', () => {
@@ -11,6 +11,24 @@ describe('YieldPoolPage', () => {
 
 		expect(html).toContain('href="/protocol/aerodrome"')
 		expect(html).toContain('>Aerodrome</a>')
+	})
+
+	it('renders internal token links for pool assets in the information card', () => {
+		const assetTokens = getYieldPoolAssetTokens('cbETH-cbBTC')
+		const html = renderToStaticMarkup(
+			<ProtocolInformationCard
+				category="Dexs"
+				projectName="Aerodrome"
+				projectSlug="aerodrome"
+				config={{}}
+				url=""
+				assetTokens={assetTokens}
+			/>
+		)
+
+		expect(html).toContain('href="/token/cbeth"')
+		expect(html).toContain('href="/token/cbbtc"')
+		expect(assetTokens).toEqual(['cbeth', 'cbbtc'])
 	})
 
 	it('returns not found for malformed pool ids before fetching data', async () => {

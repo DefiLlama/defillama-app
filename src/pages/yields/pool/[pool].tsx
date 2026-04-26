@@ -32,6 +32,7 @@ import {
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { useYieldsUpgradePrompt } from '~/containers/Yields/Tables/useYieldsUpgradePrompt'
+import { extractPoolTokens } from '~/containers/Yields/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
@@ -159,6 +160,11 @@ const HOLDER_COLORS = [
 function truncateAddress(addr: string): string {
 	if (!addr || addr.length < 12) return addr
 	return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+}
+
+export function getYieldPoolAssetTokens(poolSymbol?: string | null): string[] {
+	if (!poolSymbol) return []
+	return [...new Set(extractPoolTokens(poolSymbol))]
 }
 
 function ShareBadge({ status, change }: { status: HolderChangeStatus; change: number | null }) {
@@ -1102,6 +1108,7 @@ const PageView = ({ pool, config, poolId }: { pool: IYieldTableRow; config: any;
 				projectSlug={projectSlug}
 				config={config}
 				url={url}
+				assetTokens={getYieldPoolAssetTokens(poolData.pool)}
 			/>
 			{modal}
 		</>

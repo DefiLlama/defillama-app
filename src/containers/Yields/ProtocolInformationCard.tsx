@@ -9,13 +9,15 @@ export function ProtocolInformationCard({
 	projectName,
 	projectSlug,
 	config,
-	url
+	url,
+	assetTokens
 }: {
 	category: string
 	projectName: string
 	projectSlug: string
 	config: any
 	url: string
+	assetTokens?: string[]
 }) {
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
@@ -34,6 +36,20 @@ export function ProtocolInformationCard({
 					{category}
 				</BasicLink>
 			</p>
+
+			{assetTokens?.length ? (
+				<p className="flex flex-wrap items-center gap-1">
+					<span>Assets:</span>
+					{assetTokens.map((asset, index) => (
+						<span key={asset} className="inline-flex items-center gap-1">
+							<BasicLink href={`/token/${encodeURIComponent(asset)}`} className="hover:underline">
+								{asset.toUpperCase()}
+							</BasicLink>
+							{index < assetTokens.length - 1 ? <span>,</span> : null}
+						</span>
+					))}
+				</p>
+			) : null}
 
 			{config?.audits ? (
 				<>

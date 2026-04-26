@@ -496,11 +496,11 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		})
 
 		const seoTitle = record.tokenRights
-			? `${displayName} Price, Market Cap, Supply & Token Rights - DefiLlama`
-			: `${displayName} Price, Market Cap & Supply - DefiLlama`
+			? `${displayName} Price, Market Cap, Supply, Trading Volume & Token Rights`
+			: `${displayName} Price, Market Cap, Supply & Trading Volume`
 		const seoDescription = record.tokenRights
-			? `Track ${displayName} price, market cap, circulating supply, max supply, 24h trading volume, and token rights on DefiLlama.`
-			: `Track ${displayName} price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.`
+			? `Track ${displayName} price, market cap, circulating supply, max supply, trading volume, and token rights.`
+			: `Track ${displayName} price, market cap, circulating supply, max supply, and trading volume.`
 
 		return {
 			props: {

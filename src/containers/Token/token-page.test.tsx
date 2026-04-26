@@ -583,9 +583,8 @@ describe('token page', () => {
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
 				overview: overviewFixture,
-				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
-				seoDescription:
-					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
+				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
 				visibleSections: ['token-overview', 'token-usage']
 			},
@@ -609,9 +608,8 @@ describe('token page', () => {
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
 				overview: overviewFixture,
-				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
-				seoDescription:
-					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
+				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
 				visibleSections: ['token-overview', 'token-usage']
 			},
@@ -659,9 +657,8 @@ describe('token page', () => {
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
 				overview: overviewFixture,
-				seoTitle: 'BTC Price, Market Cap & Supply - DefiLlama',
-				seoDescription:
-					'Track BTC price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
+				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
 				visibleSections: ['token-overview', 'token-usage']
 			},
@@ -707,9 +704,8 @@ describe('token page', () => {
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
 				overview: overviewFixture,
-				seoTitle: 'Swing.xyz Price, Market Cap & Supply - DefiLlama',
-				seoDescription:
-					'Track Swing.xyz price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				seoTitle: 'Swing.xyz Price, Market Cap, Supply & Trading Volume',
+				seoDescription: 'Track Swing.xyz price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/%24SWING',
 				visibleSections: ['token-overview', 'token-usage']
 			},
@@ -830,9 +826,9 @@ describe('token page', () => {
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
 				overview: overviewFixture,
-				seoTitle: 'LINK Price, Market Cap, Supply & Token Rights - DefiLlama',
+				seoTitle: 'LINK Price, Market Cap, Supply, Trading Volume & Token Rights',
 				seoDescription:
-					'Track LINK price, market cap, circulating supply, max supply, 24h trading volume, and token rights on DefiLlama.',
+					'Track LINK price, market cap, circulating supply, max supply, trading volume, and token rights.',
 				canonicalUrl: '/token/LINK',
 				visibleSections: ['token-overview', 'token-rights-and-value-accrual', 'token-usage']
 			},
@@ -984,9 +980,8 @@ describe('token page', () => {
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
 				overview: overviewFixture,
-				seoTitle: 'AAVE Price, Market Cap & Supply - DefiLlama',
-				seoDescription:
-					'Track AAVE price, market cap, circulating supply, max supply, and 24h trading volume on DefiLlama.',
+				seoTitle: 'AAVE Price, Market Cap, Supply & Trading Volume',
+				seoDescription: 'Track AAVE price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/AAVE',
 				visibleSections: ['token-overview', 'token-income-statement', 'token-usage']
 			},
