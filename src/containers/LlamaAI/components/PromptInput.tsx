@@ -100,7 +100,7 @@ export function PromptInput({
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
 	const valueRef = useRef(value)
-	const selectedImageUrlsRef = useRef<string[]>([])
+	const selectedImageIdsRef = useRef<string[]>([])
 	const isSuggestedRef = useRef(false)
 	const shiftHeldRef = useRef(false)
 
@@ -203,7 +203,7 @@ export function PromptInput({
 	}, [value])
 
 	useEffect(() => {
-		selectedImageUrlsRef.current = imageUpload.selectedImages.map(({ url }) => url)
+		selectedImageIdsRef.current = imageUpload.selectedImages.map(({ id }) => id)
 	}, [imageUpload.selectedImages])
 
 	// Handle restore request (e.g., failed submission retry)
@@ -258,7 +258,7 @@ export function PromptInput({
 		setSubmitError((current) => (current ? null : current))
 	}, [])
 
-	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File; url: string }>) => {
+	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File }>) => {
 		const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
 		for (let i = 0; i < imagesToSend.length; i++) {
 			const file = imagesToSend[i].file
@@ -273,16 +273,15 @@ export function PromptInput({
 		return Promise.all(imagePromises)
 	}, [])
 
-	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ url: string }>) => {
+	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ id: string }>) => {
 		const currentValue = valueRef.current
-		const currentUrls = [...selectedImageUrlsRef.current]
+		const currentIds = selectedImageIdsRef.current
 		if (currentValue !== promptValue) return false
 
-		const submittedUrls = imagesToSend.map(({ url }) => url)
-		if (submittedUrls.length !== currentUrls.length) return false
+		if (imagesToSend.length !== currentIds.length) return false
 
-		for (let index = 0; index < submittedUrls.length; index++) {
-			if (submittedUrls[index] !== currentUrls[index]) return false
+		for (let index = 0; index < imagesToSend.length; index++) {
+			if (imagesToSend[index].id !== currentIds[index]) return false
 		}
 
 		return true
@@ -396,8 +395,9 @@ export function PromptInput({
 		const text = data.getData('text/plain')
 		if (!text || text.length < PASTE_TO_FILE_THRESHOLD || shiftHeldRef.current) return
 
-		event.preventDefault()
-		imageUpload.addPastedText(text)
+		if (imageUpload.addPastedText(text)) {
+			event.preventDefault()
+		}
 	}
 
 	const handleDrop = (event: React.DragEvent<HTMLFormElement>) => {

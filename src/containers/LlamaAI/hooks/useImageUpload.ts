@@ -3,6 +3,7 @@ import { errorToast } from '~/components/Toast'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface SelectedImage {
+	id: string
 	file: File
 	url: string
 	isPasted?: boolean
@@ -74,6 +75,7 @@ export function useImageUpload({
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const selectedImagesRef = useRef<SelectedImage[]>([])
 	const pastedCounterRef = useRef(0)
+	const attachmentCounterRef = useRef(0)
 
 	useEffect(() => {
 		selectedImagesRef.current = selectedImages
@@ -139,7 +141,8 @@ export function useImageUpload({
 			for (const file of valid) {
 				try {
 					const url = isImageType(file.type) ? URL.createObjectURL(file) : ''
-					newImages.push({ file, url })
+					attachmentCounterRef.current += 1
+					newImages.push({ id: `file-${attachmentCounterRef.current}`, file, url })
 				} catch (error) {
 					console.error('Failed to create object URL for file:', file.name, error)
 				}
@@ -148,7 +151,10 @@ export function useImageUpload({
 			if (newImages.length === 0) return
 
 			setSelectedImages((prev) => {
-				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
+				let existingBytes = 0
+				for (const img of prev) {
+					existingBytes += img.file.size
+				}
 				let addedBytes = 0
 				let countLimitHit = false
 				let totalSizeLimitHit = false
@@ -255,7 +261,7 @@ export function useImageUpload({
 
 	const addPastedText = useCallback(
 		(text: string) => {
-			if (!text) return
+			if (!text) return false
 			pastedCounterRef.current += 1
 			const filename = `Pasted-${pastedCounterRef.current}.txt`
 			const file = new File([text], filename, { type: 'text/plain', lastModified: Date.now() })
@@ -268,33 +274,40 @@ export function useImageUpload({
 						description: `Pasted content exceeds the ${limitMB}MB limit`
 					})
 				})
-				return
+				return false
 			}
 
+			const currentImages = selectedImagesRef.current
+			if (currentImages.length >= maxImages) {
+				queueMicrotask(() => {
+					errorToast({
+						title: 'File upload limit',
+						description: `You may upload only ${maxImages} files at a time`
+					})
+				})
+				return false
+			}
+
+			let existingBytes = 0
+			for (const img of currentImages) {
+				existingBytes += img.file.size
+			}
+			if (existingBytes + file.size > MAX_TOTAL_BYTES) {
+				const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+				queueMicrotask(() => {
+					errorToast({
+						title: 'Total upload size exceeded',
+						description: `Combined files must be under ${totalMB}MB`
+					})
+				})
+				return false
+			}
+
+			attachmentCounterRef.current += 1
+			const id = `paste-${attachmentCounterRef.current}`
 			trackUmamiEvent('llamaai-paste-as-file')
-			setSelectedImages((prev) => {
-				if (prev.length >= maxImages) {
-					queueMicrotask(() => {
-						errorToast({
-							title: 'File upload limit',
-							description: `You may upload only ${maxImages} files at a time`
-						})
-					})
-					return prev
-				}
-				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
-				if (existingBytes + file.size > MAX_TOTAL_BYTES) {
-					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
-					queueMicrotask(() => {
-						errorToast({
-							title: 'Total upload size exceeded',
-							description: `Combined files must be under ${totalMB}MB`
-						})
-					})
-					return prev
-				}
-				return [...prev, { file, url: '', isPasted: true, textContent: text }]
-			})
+			setSelectedImages((prev) => [...prev, { id, file, url: '', isPasted: true, textContent: text }])
+			return true
 		},
 		[maxImages, maxSizeBytes]
 	)

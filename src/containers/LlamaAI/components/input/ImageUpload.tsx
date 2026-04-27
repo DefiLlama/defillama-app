@@ -5,6 +5,7 @@ import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewM
 import { isReadableTextFile } from '~/containers/LlamaAI/hooks/useImageUpload'
 
 interface SelectedImage {
+	id: string
 	file: File
 	url: string
 	isPasted?: boolean
@@ -119,15 +120,14 @@ export function ImageUpload({
 			/>
 			{selectedImages.length > 0 ? (
 				<div className="flex flex-wrap gap-2">
-					{selectedImages.map(({ file, url, isPasted, textContent }, idx) => {
+					{selectedImages.map(({ id, file, url, isPasted, textContent }, idx) => {
 						const isImage = file.type.startsWith('image/')
-						const itemKey = url || `${file.name}-${file.size}-${file.lastModified}-${idx}`
 						const isTextChip = !!isPasted || isReadableTextFile(file)
 
 						if (isTextChip) {
 							return (
 								<TextChip
-									key={itemKey}
+									key={id}
 									file={file}
 									textContent={textContent ?? ''}
 									isPasted={!!isPasted}
@@ -154,7 +154,7 @@ export function ImageUpload({
 
 						return (
 							<div
-								key={itemKey}
+								key={id}
 								className="relative h-16 overflow-hidden rounded-lg"
 								style={{ width: isImage ? '4rem' : 'auto' }}
 							>
