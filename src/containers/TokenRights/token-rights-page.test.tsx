@@ -14,11 +14,13 @@ afterEach(() => {
 })
 
 function setupPageModule({
+	cexs = [],
 	chainMetadata = {},
 	tokensJson = {},
 	tokenRightsEntries = [],
 	protocolMetadata = {}
 }: {
+	cexs?: Array<Record<string, unknown>>
 	chainMetadata?: Record<string, unknown>
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
@@ -64,6 +66,7 @@ function setupPageModule({
 		__esModule: true,
 		default: {
 			chainMetadata,
+			cexs,
 			protocolMetadata,
 			tokenDirectory: tokensJson
 		},
@@ -177,5 +180,52 @@ describe('token rights page', () => {
 		})
 		const { postRuntimeLogs } = await import('~/utils/async')
 		expect(postRuntimeLogs).not.toHaveBeenCalled()
+	})
+
+	it('routes cex entries when the token rights name matches a cex slug', async () => {
+		const page = await setupPageModule({
+			cexs: [{ name: 'Backpack', slug: 'backpack' }],
+			tokensJson: {
+				bp: {
+					name: 'Backpack',
+					symbol: 'BP',
+					token_nk: 'coingecko:backpack',
+					route: '/token/BP'
+				}
+			},
+			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' }]
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+			props: {
+				protocols: [{ name: 'Backpack', logo: 'icon:Backpack', href: '/token/BP' }]
+			},
+			revalidate: 123
+		})
+		const { postRuntimeLogs } = await import('~/utils/async')
+		expect(postRuntimeLogs).not.toHaveBeenCalled()
+	})
+
+	it('skips cex entries when the matching token has no page route', async () => {
+		const page = await setupPageModule({
+			cexs: [{ name: 'Backpack', slug: 'backpack' }],
+			tokensJson: {
+				bp: {
+					name: 'Backpack',
+					symbol: 'BP',
+					token_nk: 'coingecko:backpack'
+				}
+			},
+			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' }]
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+			props: {
+				protocols: []
+			},
+			revalidate: 123
+		})
+		const { postRuntimeLogs } = await import('~/utils/async')
+		expect(postRuntimeLogs).toHaveBeenCalledTimes(1)
 	})
 })
