@@ -1,28 +1,62 @@
-import { AsyncLocalStorage } from 'async_hooks'
-import { Agent } from 'http'
-import { Agent as HttpsAgent } from 'https'
-
-// Create reusable HTTP agents for connection pooling
-const httpAgent = new Agent({
+const agentOptions = {
 	keepAlive: true,
 	keepAliveMsecs: 1000,
 	maxSockets: 50,
 	maxFreeSockets: 10,
 	timeout: 60000
-})
+}
 
-const httpsAgent = new HttpsAgent({
-	keepAlive: true,
-	keepAliveMsecs: 1000,
-	maxSockets: 50,
-	maxFreeSockets: 10,
-	timeout: 60000
-})
+type AgentLike = {
+	destroy(): void
+}
 
-const pageBuildSignalStorage = new AsyncLocalStorage<AbortSignal>()
+type AgentConstructor = new (options: typeof agentOptions) => AgentLike
 
-export function withPageBuildSignal<T>(signal: AbortSignal, callback: () => Promise<T>): Promise<T> {
-	return pageBuildSignalStorage.run(signal, callback)
+let httpAgentState: { httpAgent: AgentLike; httpsAgent: AgentLike } | null = null
+let cleanupRegistered = false
+
+type AsyncLocalStorageLike<T> = {
+	run<R>(store: T, callback: () => R): R
+	getStore(): T | undefined
+}
+
+let pageBuildSignalStorage: AsyncLocalStorageLike<AbortSignal> | null = null
+
+async function getPageBuildSignalStorage(): Promise<AsyncLocalStorageLike<AbortSignal>> {
+	if (pageBuildSignalStorage) return pageBuildSignalStorage
+
+	const { AsyncLocalStorage } = await import(/* webpackIgnore: true */ 'async_hooks')
+	pageBuildSignalStorage = new AsyncLocalStorage<AbortSignal>()
+	return pageBuildSignalStorage
+}
+
+async function getHttpAgentState(): Promise<{ httpAgent: AgentLike; httpsAgent: AgentLike }> {
+	if (httpAgentState) return httpAgentState
+
+	const [httpModule, httpsModule] = await Promise.all([
+		import(/* webpackIgnore: true */ 'http'),
+		import(/* webpackIgnore: true */ 'https')
+	])
+	const HttpAgent = httpModule.Agent as AgentConstructor
+	const HttpsAgent = httpsModule.Agent as AgentConstructor
+
+	httpAgentState = {
+		httpAgent: new HttpAgent(agentOptions),
+		httpsAgent: new HttpsAgent(agentOptions)
+	}
+
+	if (!cleanupRegistered && typeof process !== 'undefined' && typeof process.on === 'function') {
+		cleanupRegistered = true
+		process.on('SIGTERM', cleanupHttpAgents)
+		process.on('SIGINT', cleanupHttpAgents)
+	}
+
+	return httpAgentState
+}
+
+export async function withPageBuildSignal<T>(signal: AbortSignal, callback: () => Promise<T>): Promise<T> {
+	const storage = await getPageBuildSignalStorage()
+	return storage.run(signal, callback)
 }
 
 function abortWithSignal(controller: AbortController, signal: AbortSignal | undefined): (() => void) | null {
@@ -40,6 +74,7 @@ function abortWithSignal(controller: AbortController, signal: AbortSignal | unde
 // Internal fetch with connection pooling (not exported)
 const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
 	const urlObj = typeof url === 'string' ? new URL(url) : url
+	const { httpAgent, httpsAgent } = await getHttpAgentState()
 	const agent = urlObj.protocol === 'https:' ? httpsAgent : httpAgent
 
 	return fetch(url, {
@@ -51,13 +86,8 @@ const fetchWithConnectionPooling = async (url: string | URL, options: RequestIni
 
 // Cleanup function for process termination
 const cleanupHttpAgents = () => {
-	httpAgent.destroy()
-	httpsAgent.destroy()
-}
-
-if (typeof process !== 'undefined') {
-	process.on('SIGTERM', cleanupHttpAgents)
-	process.on('SIGINT', cleanupHttpAgents)
+	httpAgentState?.httpAgent.destroy()
+	httpAgentState?.httpsAgent.destroy()
 }
 
 // Fetch with connection pooling and timeout support
@@ -72,7 +102,8 @@ export const fetchWithPoolingOnServer = async (
 	const timeout = options?.timeout ?? 60_000
 	const id = setTimeout(() => controller.abort(), timeout)
 	const cleanupOptionSignal = abortWithSignal(controller, options?.signal)
-	const cleanupPageBuildSignal = abortWithSignal(controller, pageBuildSignalStorage.getStore())
+	const activePageBuildSignalStorage = isServer ? await getPageBuildSignalStorage() : null
+	const cleanupPageBuildSignal = abortWithSignal(controller, activePageBuildSignalStorage?.getStore())
 
 	try {
 		const response =
