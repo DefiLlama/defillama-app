@@ -5,6 +5,8 @@ import { trackUmamiEvent } from '~/utils/analytics/umami'
 interface SelectedImage {
 	file: File
 	url: string
+	isPasted?: boolean
+	textContent?: string
 }
 
 const ACCEPTED_TYPES = new Set([
@@ -38,6 +40,15 @@ function isAcceptedFile(file: File) {
 	return ACCEPTED_TYPES.has(file.type) || hasAcceptedExtension(file.name)
 }
 
+const READABLE_TEXT_TYPES = new Set(['text/plain', 'text/markdown', 'text/csv'])
+const READABLE_TEXT_EXTENSIONS = ['.txt', '.md', '.csv']
+
+export function isReadableTextFile(file: File): boolean {
+	if (READABLE_TEXT_TYPES.has(file.type)) return true
+	const lower = file.name.toLowerCase()
+	return READABLE_TEXT_EXTENSIONS.some((ext) => lower.endsWith(ext))
+}
+
 function maxSizeForType(type: string) {
 	return isImageType(type) ? IMAGE_MAX_SIZE : FILE_MAX_SIZE
 }
@@ -58,9 +69,11 @@ export function useImageUpload({
 	const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([])
 	const [isDragging, setIsDragging] = useState(false)
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string } | null>(null)
 	const dragCounterRef = useRef(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const selectedImagesRef = useRef<SelectedImage[]>([])
+	const pastedCounterRef = useRef(0)
 
 	useEffect(() => {
 		selectedImagesRef.current = selectedImages
@@ -178,6 +191,18 @@ export function useImageUpload({
 
 				return withinBudget
 			})
+
+			for (const { file } of newImages) {
+				if (!isReadableTextFile(file)) continue
+				file
+					.text()
+					.then((textContent) => {
+						setSelectedImages((prev) => prev.map((img) => (img.file === file ? { ...img, textContent } : img)))
+					})
+					.catch((error) => {
+						console.error('Failed to read text file content', file.name, error)
+					})
+			}
 		},
 		[maxImages, maxSizeBytes]
 	)
@@ -226,6 +251,52 @@ export function useImageUpload({
 			}
 		},
 		[addImages]
+	)
+
+	const addPastedText = useCallback(
+		(text: string) => {
+			if (!text) return
+			pastedCounterRef.current += 1
+			const filename = `Pasted-${pastedCounterRef.current}.txt`
+			const file = new File([text], filename, { type: 'text/plain', lastModified: Date.now() })
+			const sizeLimit = maxSizeBytes ?? FILE_MAX_SIZE
+			if (file.size > sizeLimit) {
+				const limitMB = Math.round(sizeLimit / (1024 * 1024))
+				queueMicrotask(() => {
+					errorToast({
+						title: 'Pasted text too large',
+						description: `Pasted content exceeds the ${limitMB}MB limit`
+					})
+				})
+				return
+			}
+
+			trackUmamiEvent('llamaai-paste-as-file')
+			setSelectedImages((prev) => {
+				if (prev.length >= maxImages) {
+					queueMicrotask(() => {
+						errorToast({
+							title: 'File upload limit',
+							description: `You may upload only ${maxImages} files at a time`
+						})
+					})
+					return prev
+				}
+				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
+				if (existingBytes + file.size > MAX_TOTAL_BYTES) {
+					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+					queueMicrotask(() => {
+						errorToast({
+							title: 'Total upload size exceeded',
+							description: `Combined files must be under ${totalMB}MB`
+						})
+					})
+					return prev
+				}
+				return [...prev, { file, url: '', isPasted: true, textContent: text }]
+			})
+		},
+		[maxImages, maxSizeBytes]
 	)
 
 	const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -283,8 +354,11 @@ export function useImageUpload({
 		isDragging,
 		previewImage,
 		setPreviewImage,
+		pastedPreview,
+		setPastedPreview,
 		fileInputRef,
 		addImages,
+		addPastedText,
 		removeImage,
 		clearImages,
 		handleImageSelect,

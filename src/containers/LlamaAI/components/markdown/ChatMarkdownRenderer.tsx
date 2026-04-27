@@ -7,7 +7,11 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
-import { escapeBareOrderedListMarkers, extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import {
+	escapeBareOrderedListMarkers,
+	extractLlamaLinks,
+	processCitationMarkers
+} from '~/containers/LlamaAI/utils/markdownHelpers'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
