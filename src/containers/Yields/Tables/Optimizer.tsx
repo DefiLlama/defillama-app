@@ -4,6 +4,7 @@ import {
 	getPaginationRowModel,
 	getSortedRowModel,
 	type PaginationState,
+	type Row,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
@@ -42,10 +43,8 @@ const OPTIMIZER_COLUMN_IDS = [
 ] as const
 type OptimizerColumnId = (typeof OPTIMIZER_COLUMN_IDS)[number]
 
-//  TODO fix types
-
-function OptimizerPoolCell({ row }: { row: { id: string; original: IYieldsOptimizerTableRow } }) {
-	const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
+function OptimizerPoolCell({ row }: { row: Row<IYieldsOptimizerTableRow> }) {
+	const name = `${row.original.symbol ?? ''} ➞ ${row.original.borrow?.symbol ?? ''}`
 	const rowIndex = usePaginatedTableDisplayRowNumber(row.id)
 
 	return (
@@ -543,7 +542,7 @@ export const OPTIMIZER_TABLE_CONFIG: YieldsTableConfig<
 
 const defaultSortingState = [{ id: 'borrowAvailableUsd', desc: true }]
 
-export function YieldsOptimizerTable({ data }) {
+export function YieldsOptimizerTable({ data }: { data: IYieldsOptimizerTableRow[] }) {
 	const router = useRouter()
 
 	const { excludeRewardApy } = router.query
@@ -606,7 +605,7 @@ export function PaginatedYieldsOptimizerTable({
 
 	const paginatedColumns = useMemo(() => preparePaginatedYieldsColumns(OPTIMIZER_TABLE_CONFIG, context), [context])
 
-	const table = useReactTable({
+	const table = useReactTable<IYieldsOptimizerTableRow>({
 		data,
 		columns: paginatedColumns,
 		state: {
