@@ -70,7 +70,9 @@ export function useImageUpload({
 	const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([])
 	const [isDragging, setIsDragging] = useState(false)
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
-	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string } | null>(null)
+	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string; isPasted?: boolean } | null>(
+		null
+	)
 	const dragCounterRef = useRef(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const selectedImagesRef = useRef<SelectedImage[]>([])
@@ -277,37 +279,40 @@ export function useImageUpload({
 				return false
 			}
 
-			const currentImages = selectedImagesRef.current
-			if (currentImages.length >= maxImages) {
-				queueMicrotask(() => {
-					errorToast({
-						title: 'File upload limit',
-						description: `You may upload only ${maxImages} files at a time`
+			let accepted = false
+			setSelectedImages((prev) => {
+				if (prev.length + 1 > maxImages) {
+					queueMicrotask(() => {
+						errorToast({
+							title: 'File upload limit',
+							description: `You may upload only ${maxImages} files at a time`
+						})
 					})
-				})
-				return false
-			}
+					return prev
+				}
 
-			let existingBytes = 0
-			for (const img of currentImages) {
-				existingBytes += img.file.size
-			}
-			if (existingBytes + file.size > MAX_TOTAL_BYTES) {
-				const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
-				queueMicrotask(() => {
-					errorToast({
-						title: 'Total upload size exceeded',
-						description: `Combined files must be under ${totalMB}MB`
+				let existingBytes = 0
+				for (const img of prev) {
+					existingBytes += img.file.size
+				}
+				if (existingBytes + file.size > MAX_TOTAL_BYTES) {
+					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+					queueMicrotask(() => {
+						errorToast({
+							title: 'Total upload size exceeded',
+							description: `Combined files must be under ${totalMB}MB`
+						})
 					})
-				})
-				return false
-			}
+					return prev
+				}
 
-			attachmentCounterRef.current += 1
-			const id = `paste-${attachmentCounterRef.current}`
-			trackUmamiEvent('llamaai-paste-as-file')
-			setSelectedImages((prev) => [...prev, { id, file, url: '', isPasted: true, textContent: text }])
-			return true
+				attachmentCounterRef.current += 1
+				const id = `paste-${attachmentCounterRef.current}`
+				trackUmamiEvent('llamaai-paste-as-file')
+				accepted = true
+				return [...prev, { id, file, url: '', isPasted: true, textContent: text }]
+			})
+			return accepted
 		},
 		[maxImages, maxSizeBytes]
 	)
