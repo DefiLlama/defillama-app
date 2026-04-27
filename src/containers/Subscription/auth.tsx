@@ -456,6 +456,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					redirectTo: `${window.location.origin}/subscription`
 				})
 
+				if (authData.meta?.isNew) {
+					try {
+						await fetch(`${AUTH_SERVER}/user/attribution`, {
+							method: 'POST',
+							headers: {
+								'Content-Type': 'application/json',
+								Authorization: `Bearer ${pb.authStore.token}`
+							},
+							body: JSON.stringify({
+								source: getSignupSource(),
+								referrer: getReferrer()
+							})
+						})
+					} catch {}
+				}
+
 				return authData
 			} catch (error) {
 				console.log('GitHub sign-in error:', error)
