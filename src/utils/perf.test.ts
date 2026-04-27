@@ -82,4 +82,18 @@ describe('withPerformanceLogging', () => {
 		await expect(getStaticProps({} as never)).resolves.toEqual({ props: { ok: true } })
 		expect(calls).toBe(2)
 	})
+
+	it('does not classify timeout text in another error as a page build timeout', async () => {
+		const { withPerformanceLogging } = await loadPerformanceLogging({ timeoutMs: 1_000, maxRetries: 2 })
+		let calls = 0
+
+		const getStaticProps = withPerformanceLogging('retry-page', async () => {
+			calls++
+			if (calls === 1) throw new Error('upstream page build timed out after gateway timeout')
+			return { props: { ok: true } }
+		})
+
+		await expect(getStaticProps({} as never)).resolves.toEqual({ props: { ok: true } })
+		expect(calls).toBe(2)
+	})
 })

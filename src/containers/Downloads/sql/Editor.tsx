@@ -249,12 +249,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 			}
 			const startPos = model.getPositionAt(start)
 			const endPos = model.getPositionAt(end)
-			const range = new monaco.Range(
-				startPos.lineNumber,
-				startPos.column,
-				endPos.lineNumber,
-				endPos.column
-			)
+			const range = new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column)
 			decorationIds = editor.deltaDecorations(decorationIds, [
 				{
 					range,

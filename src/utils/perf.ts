@@ -20,6 +20,13 @@ const MAX_PAGE_BUILD_RETRIES = Math.max(1, getEnvNumber('PAGE_BUILD_MAX_RETRIES'
 const PAGE_BUILD_TIMEOUT_MS = Math.max(1_000, getEnvNumber('PAGE_BUILD_TIMEOUT_MS', 15_000))
 const PAGE_BUILD_TIMEOUT_TEXT = 'page build timed out after'
 
+export class PageBuildTimeoutError extends Error {
+	constructor(filename: string, timeoutMs: number) {
+		super(`${filename}: ${PAGE_BUILD_TIMEOUT_TEXT} ${timeoutMs}ms`)
+		this.name = 'PageBuildTimeoutError'
+	}
+}
+
 function getParamsContext(params: ParsedUrlQuery | undefined): Record<string, unknown> | undefined {
 	return params ? { params } : undefined
 }
@@ -42,7 +49,7 @@ function getErrorStackPreview(error: Error | null): string | null {
 }
 
 function isPageBuildTimeoutError(error: Error | null): boolean {
-	return error?.message.includes(PAGE_BUILD_TIMEOUT_TEXT) ?? false
+	return error instanceof PageBuildTimeoutError
 }
 
 async function withPageBuildTimeout<T>(callback: () => T | Promise<T>, filename: string): Promise<T> {
@@ -51,7 +58,7 @@ async function withPageBuildTimeout<T>(callback: () => T | Promise<T>, filename:
 	const timeout = new Promise<never>((_, reject) => {
 		timeoutId = setTimeout(() => {
 			controller.abort()
-			reject(new Error(`${filename}: ${PAGE_BUILD_TIMEOUT_TEXT} ${PAGE_BUILD_TIMEOUT_MS}ms`))
+			reject(new PageBuildTimeoutError(filename, PAGE_BUILD_TIMEOUT_MS))
 		}, PAGE_BUILD_TIMEOUT_MS)
 	})
 

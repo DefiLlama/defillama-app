@@ -308,7 +308,12 @@ export function PromptInput({
 		if (event.defaultPrevented) return
 
 		// Handle enter for submission
-		if (event.key === 'Enter' && !event.shiftKey && !entityCombobox.hasRenderedItems && !event.nativeEvent.isComposing) {
+		if (
+			event.key === 'Enter' &&
+			!event.shiftKey &&
+			!entityCombobox.hasRenderedItems &&
+			!event.nativeEvent.isComposing
+		) {
 			event.preventDefault()
 			if (isStreaming) return
 			void submitForm(value)

@@ -236,7 +236,7 @@ function SqlWorkspaceInner({
 
 	const runQuery = useCallback(() => {
 		const selection = editorRef.current?.getSelection() ?? null
-		const stmtAtCursor = selection ? null : editorRef.current?.getStatementAtCursor() ?? null
+		const stmtAtCursor = selection ? null : (editorRef.current?.getStatementAtCursor() ?? null)
 		const sqlToRun = selection ?? stmtAtCursor ?? activeTab.sql
 		return runSqlForTab(activeTabId, sqlToRun)
 	}, [runSqlForTab, activeTabId, activeTab.sql])
