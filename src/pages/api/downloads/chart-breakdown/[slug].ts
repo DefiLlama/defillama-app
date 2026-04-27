@@ -3,6 +3,8 @@ import { SERVER_URL, V2_SERVER_URL } from '~/constants'
 import { chartDatasetsBySlug } from '~/containers/Downloads/chart-datasets'
 import { slug as toSlug } from '~/utils'
 import { validateSubscription } from '~/utils/apiAuth'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function sanitizeFilenameParam(s: string): string {
 	return s.replace(/["\r\n;\\]/g, '_').trim()
@@ -75,7 +77,7 @@ async function buildTvlBreakdownCsv(
 	category: string
 ): Promise<{ headers: string[]; rows: Array<Record<string, string>> } | null> {
 	const url = `${SERVER_URL}/simpleChainDataset/All?category=${encodeURIComponent(category)}`
-	const upstream = await fetch(url)
+	const upstream = await fetchWithPoolingOnServer(url)
 	if (!upstream.ok) return null
 	const text = await upstream.text()
 	const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0)
@@ -128,7 +130,10 @@ async function buildDimensionBreakdownCsv(
 	const breakdownUrl = `${V2_SERVER_URL}/chart/${adapterType}/protocol-breakdown${dtQs ? `?${dtQs}` : ''}`
 	const overviewUrl = `${SERVER_URL}/overview/${adapterType}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true${dtQs ? `&${dtQs}` : ''}`
 
-	const [breakdownResp, overviewResp] = await Promise.all([fetch(breakdownUrl), fetch(overviewUrl)])
+	const [breakdownResp, overviewResp] = await Promise.all([
+		fetchWithPoolingOnServer(breakdownUrl),
+		fetchWithPoolingOnServer(overviewUrl)
+	])
 	if (!breakdownResp.ok || !overviewResp.ok) return null
 
 	const [breakdownJson, overviewJson] = await Promise.all([breakdownResp.json(), overviewResp.json()])
@@ -191,7 +196,7 @@ async function buildDimensionBreakdownCsv(
 	return { headers, rows }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -249,7 +254,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 		return res.status(200).send(csv)
 	} catch (error) {
-		console.error(`Chart breakdown downloads proxy error (${datasetSlug}):`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Internal server error' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/downloads/chart-breakdown/[slug]', handler)

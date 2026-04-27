@@ -33,12 +33,14 @@ import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
 import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: { responseLimit: false }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.status(405).end()
 		return
@@ -151,11 +153,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 				(async () => {
 					const [chartResult, lendBorrowResult] = await Promise.allSettled([
 						withTimeout(
-							fetch(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+							fetchWithPoolingOnServer(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
 							10_000
 						),
 						withTimeout(
-							fetch(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+							fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) =>
+								r.ok ? r.json() : null
+							),
 							10_000
 						)
 					])
@@ -588,10 +592,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		writeLine({ type: 'done' })
 		res.end()
-	} catch {
+	} catch (error) {
+		recordRouteRuntimeError(error, 'apiRoute')
 		if (!res.destroyed) {
 			writeLine({ type: 'done' })
 			res.end()
 		}
 	}
 }
+
+export default withApiRouteTelemetry('/api/dashboard/[dashboardId]/stream', handler)

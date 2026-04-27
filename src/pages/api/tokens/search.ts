@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchCoinGeckoTokensListFromDataset } from '~/api/coingecko'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
@@ -33,7 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.status(200).json(options)
 	} catch (error) {
-		console.log('Error fetching token list:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch token list' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/tokens/search', handler)

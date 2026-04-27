@@ -1,5 +1,6 @@
 import { Agent } from 'http'
 import { Agent as HttpsAgent } from 'https'
+import { withOutboundTelemetry } from './telemetry'
 
 // Create reusable HTTP agents for connection pooling
 const httpAgent = new Agent({
@@ -42,22 +43,29 @@ if (typeof process !== 'undefined') {
 }
 
 // Fetch with connection pooling and timeout support
-export type FetchWithPoolingOnServerOptions = RequestInit & { timeout?: number }
+export type FetchWithPoolingOnServerOptions = RequestInit & {
+	timeout?: number
+	telemetry?: {
+		attempt?: number
+		maxAttempts?: number
+	}
+}
 
 export const fetchWithPoolingOnServer = async (
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions
 ): Promise<Response> => {
 	const isServer = typeof window === 'undefined'
+	const { timeout = 60_000, telemetry: _telemetry, ...requestOptions } = options ?? {}
 	const controller = new AbortController()
-	const timeout = options?.timeout ?? 60_000
 	const id = setTimeout(() => controller.abort(), timeout)
 
 	try {
-		const response =
+		const response = await withOutboundTelemetry(url, options, () =>
 			isServer && typeof url === 'string'
-				? await fetchWithConnectionPooling(url, { ...options, signal: controller.signal })
-				: await fetch(url, { ...options, signal: controller.signal })
+				? fetchWithConnectionPooling(url, { ...requestOptions, signal: controller.signal })
+				: fetch(url, { ...requestOptions, signal: controller.signal })
+		)
 		return response
 	} finally {
 		clearTimeout(id)

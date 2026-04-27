@@ -2,13 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
 
-export default async function handler(
-	req: NextApiRequest,
-	res: NextApiResponse<TokenBorrowRoutesResponse | { error: string }>
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse<TokenBorrowRoutesResponse | { error: string }>) {
 	try {
 		const tokenQuery = req.query.token
 		const token =
@@ -34,7 +32,9 @@ export default async function handler(
 
 		res.status(200).json(data)
 	} catch (error) {
-		console.error('Error fetching token borrow routes data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch token borrow routes data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/datasets/yields-token-borrow-routes', handler)

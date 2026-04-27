@@ -13,6 +13,12 @@ import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { validateSubscription } from '~/utils/apiAuth'
 import { fetchJson } from '~/utils/async'
+import {
+	addRouteTelemetryAttributes,
+	getPayloadBytes,
+	recordRouteRuntimeError,
+	withApiRouteTelemetry
+} from '~/utils/telemetry'
 
 export const config = { api: { responseLimit: false } }
 
@@ -213,7 +219,7 @@ async function dispatchFetch(type: string, params: any): Promise<any> {
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -237,11 +243,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	}
 
 	try {
+		const fetchStart = Date.now()
 		const data = await dispatchFetch(type as string, params)
+		const fetchAllMs = Date.now() - fetchStart
+		const constructStart = Date.now()
+		const body = { data }
+		addRouteTelemetryAttributes({
+			fetch_all_ms: fetchAllMs,
+			construct_response_ms: Date.now() - constructStart,
+			response_bytes: getPayloadBytes(body)
+		})
 		res.setHeader('Cache-Control', 'private, max-age=300')
-		return res.status(200).json({ data })
+		return res.status(200).json(body)
 	} catch (error) {
-		console.log(`Dashboard fetch error (${type}):`, error)
+		recordRouteRuntimeError(error, 'apiRoute', { type })
 		return res.status(500).json({ error: 'Failed to fetch data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/dashboard/fetch', handler)

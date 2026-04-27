@@ -1,6 +1,6 @@
 import { Announcement } from '~/components/Announcement'
 import Layout from '~/layout'
-import { formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -55,7 +55,7 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 
 	let data = []
 
-	const response = await fetch('https://discordapp.com/api/channels/965023197365960734/messages', {
+	const response = await fetchWithPoolingOnServer('https://discordapp.com/api/channels/965023197365960734/messages', {
 		method: 'GET',
 		headers: headers,
 		redirect: 'follow'
@@ -64,16 +64,6 @@ export const getStaticProps = withPerformanceLogging('roundup', async () => {
 	if (response.ok) {
 		data = await response.json()
 	} else {
-		postRuntimeLogs(
-			formatRuntimeLog({
-				event: 'roundup',
-				level: 'error',
-				status: response.status,
-				target: 'https://discordapp.com/api/channels/965023197365960734/messages',
-				message: response.statusText || 'Failed to fetch roundup messages'
-			}),
-			{ level: 'error' }
-		)
 		throw new Error(`Failed to fetch roundup messages: ${response.status} ${response.statusText}`)
 	}
 

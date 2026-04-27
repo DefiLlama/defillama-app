@@ -5,6 +5,7 @@ import type { CoinGeckoDerivativeExchange, CoinGeckoExchange } from '~/api/coing
 import type { IChainTvl } from '~/api/types'
 import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export interface ICexItem {
 	name: string
@@ -49,13 +50,13 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 		derivsById = new Map(derivsData.map((exchange) => [exchange.id, exchange]))
 		btcPrice = priceData['coingecko:bitcoin']?.price || 0
 	} catch (error) {
-		console.log('Error fetching CoinGecko data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 	}
 	try {
 		const cexData = await fetchCexs()
 		cexList = cexData.cexs || []
 	} catch (error) {
-		console.log('Error fetching CEX list:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 	}
 
 	const cexsWithData = await Promise.all(
@@ -118,7 +119,7 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 					...extra
 				}
 			} catch (error) {
-				console.log(`Error fetching data for ${c.name}:`, error)
+				recordRouteRuntimeError(error, 'apiRoute')
 				return {
 					...c,
 					tvl: 0,
@@ -136,4 +137,4 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 	res.status(200).json(sortedCexs)
 }
 
-export default getCexData
+export default withApiRouteTelemetry('/api/datasets/cex', getCexData)

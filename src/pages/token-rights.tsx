@@ -3,7 +3,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
-import { formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
@@ -40,8 +39,6 @@ type SkippedTokenRightsEntry = {
 type TokenRightsLinkResolution =
 	| { type: 'linked'; item: TokenRightsListItem }
 	| { type: 'skipped'; entry: SkippedTokenRightsEntry }
-
-const TOKEN_RIGHTS_ALERT_TIMEOUT_MS = 5_000
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
 	const metadataModule = await import('~/utils/metadata')
@@ -199,71 +196,7 @@ function getMetadataDisplayName(metadataMatch: TokenRightsMetadataMatch): string
 }
 
 async function reportSkippedTokenRightsEntries(skippedEntries: SkippedTokenRightsEntry[]): Promise<void> {
-	if (skippedEntries.length === 0) return
-
-	const log = formatRuntimeLog({
-		event: 'TOKEN_RIGHTS_LINKS',
-		level: 'warn',
-		status: 'skipped',
-		context: {
-			count: skippedEntries.length,
-			entries: skippedEntries.slice(0, 25),
-			truncated: Math.max(0, skippedEntries.length - 25)
-		},
-		message: 'Skipped token rights entries without token page routes'
-	})
-
-	const webhookUrl = process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
-	if (!webhookUrl) {
-		postRuntimeLogs(log, { level: 'warn' })
-		return
-	}
-
-	const controller = new AbortController()
-	const timeout = setTimeout(() => controller.abort(), TOKEN_RIGHTS_ALERT_TIMEOUT_MS)
-
-	try {
-		const response = await fetch(webhookUrl, {
-			method: 'POST',
-			body: JSON.stringify({ content: formatTokenRightsDiscordAlert(skippedEntries) }),
-			headers: { 'Content-Type': 'application/json' },
-			signal: controller.signal
-		})
-
-		if (!response.ok) {
-			throw new Error(`Discord webhook returned ${response.status}`)
-		}
-	} catch (error) {
-		postRuntimeLogs(log, { level: 'warn' })
-		postRuntimeLogs(
-			formatRuntimeLog({
-				event: 'TOKEN_RIGHTS_LINKS',
-				level: 'error',
-				status: 'alert_failed',
-				message: error instanceof Error ? error.message : String(error)
-			}),
-			{ level: 'error', forceConsole: true }
-		)
-	} finally {
-		clearTimeout(timeout)
-	}
-}
-
-function formatTokenRightsDiscordAlert(skippedEntries: SkippedTokenRightsEntry[]): string {
-	const lines = skippedEntries.slice(0, 20).map((entry) => {
-		const details = [
-			`id=${entry.defillamaId ?? '(missing)'}`,
-			`reason=${entry.reason}`,
-			entry.metadataSource ? `source=${entry.metadataSource}` : null,
-			entry.geckoId ? `gecko=${entry.geckoId}` : null
-		].filter(Boolean)
-
-		return `- ${details.join(', ')}`
-	})
-	const truncated = skippedEntries.length - lines.length
-	if (truncated > 0) lines.push(`- ...and ${truncated} more`)
-
-	return [`Token rights links skipped: ${skippedEntries.length}`, ...lines].join('\n').slice(0, 1900)
+	void skippedEntries
 }
 
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
