@@ -7,6 +7,7 @@ import { LoadingDots } from '~/components/Loaders'
 import { AI_SERVER } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { setReferrer } from '~/containers/Subscription/referrer'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -99,10 +100,13 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 	// `initialPrompt` below auto-fires AgenticChat's in-place fork.
 	const handleForkSubmit = useCallback(
 		(prompt: string) => {
+			if (shareToken) {
+				setReferrer(`shared-conversation:${shareToken}`)
+			}
 			setPendingMessage(prompt)
 			signInDialogStore.show()
 		},
-		[signInDialogStore]
+		[signInDialogStore, shareToken]
 	)
 
 	// After login, hand the saved message to AgenticChat as initialPrompt so it auto-submits in-place.
