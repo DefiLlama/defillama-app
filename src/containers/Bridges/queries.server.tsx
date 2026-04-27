@@ -57,7 +57,7 @@ type RetryOptions<T> = {
 }
 
 async function retryAsync<T>(operation: () => Promise<T>, options: RetryOptions<T>): Promise<T> {
-	const { attempts = 5, fallback, context, throwOnFailure = false, onFailureError } = options
+	const { attempts = 2, fallback, context, throwOnFailure = false, onFailureError } = options
 	let lastError: unknown = null
 	for (let i = 0; i < attempts; i++) {
 		try {
@@ -402,6 +402,17 @@ const getBridgeTxCounts = async (chain?: string) => {
 		context: `fetchBridgeTxCounts(${chain || 'all'})`,
 		fallback: { bridges: [] }
 	})
+}
+
+export async function getBridgeNetInflowsForChain(chain: string): Promise<{ netInflows: number | null } | null> {
+	const chart = await retryAsync(() => fetchBridgeVolumeByChain(chain), {
+		attempts: 1,
+		context: `fetchBridgeVolumeByChain(${chain})`,
+		fallback: [] as RawBridgeVolumePoint[]
+	})
+	const last = chart[chart.length - 1]
+	if (!last || last.depositUSD === 0) return null
+	return { netInflows: last.depositUSD }
 }
 
 export async function getBridgeOverviewPageData(chain, options: { includeBridgeTxCounts?: boolean } = {}) {

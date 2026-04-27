@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'async_hooks'
 import { Agent } from 'http'
 import { Agent as HttpsAgent } from 'https'
 
@@ -17,6 +18,24 @@ const httpsAgent = new HttpsAgent({
 	maxFreeSockets: 10,
 	timeout: 60000
 })
+
+const pageBuildSignalStorage = new AsyncLocalStorage<AbortSignal>()
+
+export function withPageBuildSignal<T>(signal: AbortSignal, callback: () => Promise<T>): Promise<T> {
+	return pageBuildSignalStorage.run(signal, callback)
+}
+
+function abortWithSignal(controller: AbortController, signal: AbortSignal | undefined): (() => void) | null {
+	if (!signal) return null
+	if (signal.aborted) {
+		controller.abort()
+		return null
+	}
+
+	const abort = () => controller.abort()
+	signal.addEventListener('abort', abort, { once: true })
+	return () => signal.removeEventListener('abort', abort)
+}
 
 // Internal fetch with connection pooling (not exported)
 const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
@@ -52,6 +71,8 @@ export const fetchWithPoolingOnServer = async (
 	const controller = new AbortController()
 	const timeout = options?.timeout ?? 60_000
 	const id = setTimeout(() => controller.abort(), timeout)
+	const cleanupOptionSignal = abortWithSignal(controller, options?.signal)
+	const cleanupPageBuildSignal = abortWithSignal(controller, pageBuildSignalStorage.getStore())
 
 	try {
 		const response =
@@ -61,5 +82,7 @@ export const fetchWithPoolingOnServer = async (
 		return response
 	} finally {
 		clearTimeout(id)
+		cleanupOptionSignal?.()
+		cleanupPageBuildSignal?.()
 	}
 }
