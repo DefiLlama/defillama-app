@@ -212,6 +212,16 @@ export function processCitationMarkers(text: string, citations?: string[]): stri
 }
 
 /**
+ * Escape lone "<digits>." lines so the markdown parser doesn't treat them as
+ * an ordered-list start (which renders the marker but no content, then gets
+ * visually clipped). A line that is just "15." with nothing after the period
+ * was meant as plain text — preserve it as such.
+ */
+export function escapeBareOrderedListMarkers(text: string): string {
+	return text.replace(/^(\d+)\.[ \t]*(?=\n|$)/gm, '$1\\.')
+}
+
+/**
  * Extract llama:// links from markdown content and build a map of text to URL.
  * Used for resolving entity links in markdown rendering.
  */

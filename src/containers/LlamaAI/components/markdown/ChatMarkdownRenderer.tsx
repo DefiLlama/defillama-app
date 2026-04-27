@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
-import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { escapeBareOrderedListMarkers, extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
@@ -384,7 +384,7 @@ export function ChatMarkdownRenderer({
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
-		const processedContent = processCitationMarkers(content, citations)
+		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
@@ -440,7 +440,7 @@ export function ChatMarkdownRenderer({
 			</ul>
 		),
 		ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-			<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
+			<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
 				{children}
 			</ol>
 		)
