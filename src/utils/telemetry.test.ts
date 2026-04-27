@@ -3,6 +3,7 @@ import { fetchJson } from './async'
 import { fetchWithPoolingOnServer } from './http-client'
 import {
 	flushTelemetry,
+	recordDomainEvent,
 	recordTelemetry,
 	telemetryTest,
 	withApiRouteTelemetry,
@@ -276,6 +277,52 @@ describe('telemetry client', () => {
 		})
 	})
 
+	it('sanitizes API request paths and query attributes', async () => {
+		vi.stubEnv('API_KEY', 'route-secret')
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withApiRouteTelemetry('/api/redact', async (_req, res) => {
+			res.end()
+		})(
+			apiRequest('GET', '/api/redact/abcdefghijklmnopqrstuvwxyz123456?api_key=route-secret&chain=ethereum'),
+			createApiResponse() as any
+		)
+
+		const route = sentEvents(fetchMock).find((event) => event.type === 'route_execution')
+		expect(route).toMatchObject({
+			request_path: '/api/redact/[REDACTED]?api_key=%5BREDACTED%5D&chain=ethereum',
+			attributes: { query: { api_key: '[REDACTED]', chain: 'ethereum' } }
+		})
+		expect(JSON.stringify(route)).not.toContain('route-secret')
+	})
+
+	it('records domain events on the active route trace', async () => {
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry('/token-rights', async () => {
+			recordDomainEvent('token_rights.alert', 'warn', 'token-rights', 'Skipped token rights entries', {
+				skipped_count: 1
+			})
+			return { props: {} }
+		})
+
+		const events = sentEvents(fetchMock)
+		const route = events.find((event) => event.type === 'route_execution')
+		const domainEvent = events.find((event) => event.type === 'domain_event')
+		expect(domainEvent).toMatchObject({
+			trace_id: route?.trace_id,
+			parent_span_id: route?.span_id,
+			route: '/token-rights',
+			event_name: 'token_rights.alert',
+			level: 'warn',
+			subject: 'token-rights',
+			message: 'Skipped token rights entries',
+			attributes: { skipped_count: 1 }
+		})
+	})
+
 	it('links outbound fetch events to the active route span', async () => {
 		const fetchMock = vi.fn(async (url: string) => {
 			if (url === 'https://api.llama.fi/test') {
@@ -323,6 +370,36 @@ describe('telemetry client', () => {
 			attributes: { api_group: 'api.llama.fi/test', response_bytes: 11 }
 		})
 		expect(outbound).not.toHaveProperty('apiGroup')
+	})
+
+	it('resolves relative server fetch URLs before pooling and telemetry', async () => {
+		vi.stubEnv('SITE_URL', 'https://defillama.test')
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === 'https://defillama.test/api/test?x=1') return new Response('{}', { status: 200 })
+			return new Response(null, { status: 204 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withRouteTelemetry(
+			{
+				route: 'relative-route',
+				operationType: 'apiRoute',
+				runtime: 'node',
+				flushTimeoutMs: 1000
+			},
+			async () => {
+				await fetchWithPoolingOnServer('/api/test?x=1')
+				return 'ok'
+			}
+		)
+
+		const outbound = sentEvents(fetchMock).find((event) => event.type === 'outbound_http_request')
+		expect(fetchMock.mock.calls.some(([url]) => url === 'https://defillama.test/api/test?x=1')).toBe(true)
+		expect(outbound).toMatchObject({
+			url: 'https://defillama.test/api/test?x=1',
+			host: 'defillama.test',
+			pathname: '/api/test'
+		})
 	})
 
 	it('records sanitized POST bodies for own server requests', async () => {
@@ -410,6 +487,11 @@ describe('telemetry client', () => {
 			}
 		})
 		expect(outbound).not.toHaveProperty('apiGroup')
+		const outboundRuntimeError = sentEvents(fetchMock).find((event) => event.type === 'runtime_error')
+		expect(outboundRuntimeError).toMatchObject({
+			phase: 'outboundFetch',
+			parent_span_id: outbound?.span_id
+		})
 		expect(JSON.stringify(outbound)).not.toContain('failed-secret')
 	})
 

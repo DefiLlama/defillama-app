@@ -13,12 +13,7 @@ import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { validateSubscription } from '~/utils/apiAuth'
 import { fetchJson } from '~/utils/async'
-import {
-	addRouteTelemetryAttributes,
-	getPayloadBytes,
-	recordRouteRuntimeError,
-	withApiRouteTelemetry
-} from '~/utils/telemetry'
+import { addRouteTelemetryAttributes, recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = { api: { responseLimit: false } }
 
@@ -248,13 +243,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		const fetchAllMs = Date.now() - fetchStart
 		const constructStart = Date.now()
 		const body = { data }
+		const payload = JSON.stringify(body)
 		addRouteTelemetryAttributes({
 			fetch_all_ms: fetchAllMs,
 			construct_response_ms: Date.now() - constructStart,
-			response_bytes: getPayloadBytes(body)
+			response_bytes: Buffer.byteLength(payload)
 		})
 		res.setHeader('Cache-Control', 'private, max-age=300')
-		return res.status(200).json(body)
+		res.setHeader('Content-Type', 'application/json')
+		return res.status(200).send(payload)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute', { type })
 		return res.status(500).json({ error: 'Failed to fetch data' })

@@ -22,15 +22,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			filteredTokens = allTokens.slice(0, 20)
 		}
 
-		const options = filteredTokens
-			.slice(0, 100)
-			.map((token) => ({
+		const options: { value: string; label: string; logo: string | null }[] = []
+		for (const token of filteredTokens) {
+			if (options.length >= 100) break
+			if (!token.symbol) continue
+
+			const name = token.name || token.symbol
+			const logo = token.image || token.image2 || null
+			options.push({
 				value: token.symbol,
-				label: `${token.name} (${token.symbol.toUpperCase()})`,
-				logo: token.image || token.image2 || null
-			}))
-			.map((t) => ({ ...t, logo: t?.logo?.replace('/0/', '') }))
-			.filter((token) => token.value && token.label)
+				label: `${name} (${token.symbol.toUpperCase()})`,
+				logo: logo?.replace('/0/', '') ?? null
+			})
+		}
 
 		res.status(200).json(options)
 	} catch (error) {

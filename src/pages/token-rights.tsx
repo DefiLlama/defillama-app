@@ -7,6 +7,7 @@ import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { recordDomainEvent } from '~/utils/telemetry'
 import {
 	findTokenDirectoryRecordByDefillamaId,
 	findTokenDirectoryRecordByGeckoId,
@@ -71,7 +72,7 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 	}
 
 	protocols.sort((a, b) => a.name.localeCompare(b.name))
-	await reportSkippedTokenRightsEntries(skippedEntries)
+	reportSkippedTokenRightsEntries(skippedEntries)
 
 	return {
 		props: { protocols },
@@ -195,8 +196,28 @@ function getMetadataDisplayName(metadataMatch: TokenRightsMetadataMatch): string
 	return metadataMatch.metadata.displayName ?? metadataMatch.metadata.name ?? null
 }
 
-async function reportSkippedTokenRightsEntries(skippedEntries: SkippedTokenRightsEntry[]): Promise<void> {
-	void skippedEntries
+function reportSkippedTokenRightsEntries(skippedEntries: SkippedTokenRightsEntry[]): void {
+	if (skippedEntries.length === 0) return
+
+	recordDomainEvent(
+		'token_rights.alert',
+		'warn',
+		'token-rights',
+		'Skipped token rights entries while building token-rights page',
+		{
+			skipped_count: skippedEntries.length,
+			reason_counts: countSkippedTokenRightsReasons(skippedEntries),
+			skipped_entries: skippedEntries
+		}
+	)
+}
+
+function countSkippedTokenRightsReasons(skippedEntries: SkippedTokenRightsEntry[]): Record<string, number> {
+	const counts: Record<string, number> = {}
+	for (const entry of skippedEntries) {
+		counts[entry.reason] = (counts[entry.reason] ?? 0) + 1
+	}
+	return counts
 }
 
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {

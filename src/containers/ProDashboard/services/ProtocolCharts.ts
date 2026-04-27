@@ -187,7 +187,9 @@ export default class ProtocolCharts {
 	}
 
 	static async getTokenData(geckoId: string) {
-		let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
+		if (!geckoId) return { mcaps: [], prices: [], volumes: [] }
+
+		const url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
 		const response = await fetchWithPoolingOnServer(url)
 		const { data } = await response.json()
 		return data

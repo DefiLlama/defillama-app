@@ -1,5 +1,3 @@
-import { AsyncLocalStorage } from 'async_hooks'
-import { randomUUID } from 'crypto'
 import type {
 	GetServerSideProps,
 	GetServerSidePropsContext,
@@ -95,11 +93,26 @@ type PageBuildFinishTickEvent = {
 	attributes?: TelemetryAttributes
 }
 
+type DomainEvent = {
+	type: 'domain_event'
+	trace_id?: string
+	span_id?: string
+	parent_span_id?: string
+	route?: string
+	event_name: 'token_rights.alert'
+	level: 'info' | 'warn' | 'error'
+	occurred_at: string
+	subject?: string
+	message?: string
+	attributes?: TelemetryAttributes
+}
+
 export type TelemetryEvent =
 	| RouteExecutionEvent
 	| OutboundHttpRequestEvent
 	| RuntimeErrorEvent
 	| PageBuildFinishTickEvent
+	| DomainEvent
 
 type RouteTelemetryContext = {
 	traceId: string
@@ -134,7 +147,12 @@ type OutboundTelemetryOptions = {
 	maxAttempts?: number
 }
 
-const telemetryContext = new AsyncLocalStorage<RouteTelemetryContext>()
+type AsyncLocalStorageLike<T> = {
+	run<R>(store: T, callback: () => R): R
+	getStore(): T | undefined
+}
+
+let telemetryContext: AsyncLocalStorageLike<RouteTelemetryContext> | null = null
 const queue: TelemetryEvent[] = []
 
 let retryBatch: PendingBatch | null = null
@@ -197,7 +215,8 @@ function isCircuitOpen(): boolean {
 }
 
 function newId(): string {
-	return randomUUID()
+	if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
+	return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 }
 
 function nowIso(): string {
@@ -281,8 +300,16 @@ function mergeRuntimeErrorAttributes(
 	return hasAttributes(merged) ? merged : undefined
 }
 
+async function getTelemetryContextStorage(): Promise<AsyncLocalStorageLike<RouteTelemetryContext>> {
+	if (telemetryContext) return telemetryContext
+
+	const { AsyncLocalStorage } = await import(/* webpackIgnore: true */ 'async_hooks')
+	telemetryContext = new AsyncLocalStorage<RouteTelemetryContext>()
+	return telemetryContext
+}
+
 export function currentTelemetryContext(): RouteTelemetryContext | undefined {
-	return telemetryContext.getStore()
+	return telemetryContext?.getStore()
 }
 
 export function addRouteTelemetryAttributes(attributes: TelemetryAttributes): void {
@@ -452,9 +479,33 @@ export function recordRouteRuntimeError(
 	recordRuntimeError(error, phase, attributes)
 }
 
+export function recordDomainEvent(
+	eventName: DomainEvent['event_name'],
+	level: DomainEvent['level'],
+	subject: string,
+	message: string,
+	attributes?: TelemetryAttributes
+): void {
+	const context = currentTelemetryContext()
+	recordTelemetry({
+		type: 'domain_event',
+		trace_id: context?.traceId,
+		span_id: newId(),
+		parent_span_id: context?.spanId,
+		route: context?.route,
+		event_name: eventName,
+		level,
+		occurred_at: nowIso(),
+		subject,
+		message,
+		...(attributes ? { attributes } : null)
+	})
+}
+
 export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, run: () => T | Promise<T>): Promise<T> {
 	if (!telemetryEnabled()) return run()
 
+	const storage = await getTelemetryContextStorage()
 	const context: RouteTelemetryContext = {
 		traceId: newId(),
 		spanId: newId(),
@@ -468,7 +519,7 @@ export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, r
 	let result: T | undefined
 
 	try {
-		result = await telemetryContext.run(context, run)
+		result = await storage.run(context, run)
 		const durationMs = Date.now() - started
 		const extraAttributes = options.getResultAttributes?.(result, durationMs, context)
 		const status = options.getStatus?.(result, durationMs) ?? routeStatus(durationMs)
@@ -494,7 +545,7 @@ export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, r
 			recordPageBuildFinishTick(options.route, context, status, durationMs)
 		}
 
-		await flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
+		void flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
 		return result
 	} catch (error) {
 		const durationMs = Date.now() - started
@@ -533,7 +584,7 @@ export async function withRouteTelemetry<T>(options: RouteTelemetryOptions<T>, r
 			recordPageBuildFinishTick(options.route, context, status, durationMs)
 		}
 
-		await flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
+		void flushTelemetry({ timeoutMs: options.flushTimeoutMs ?? 200, runtime: options.runtime })
 		throw error
 	}
 }
@@ -570,9 +621,9 @@ function getRequestPath(req: NextApiRequest): string | undefined {
 	if (!req.url) return undefined
 	try {
 		const url = new URL(req.url, 'http://localhost')
-		return `${url.pathname}${url.search}`
+		return sanitizeRequestPathForTelemetry(url)
 	} catch {
-		return req.url
+		return redactSecrets(req.url)
 	}
 }
 
@@ -585,7 +636,7 @@ function hasQuery(req: NextApiRequest): boolean {
 }
 
 function apiRouteTelemetryAttributes(req: NextApiRequest): TelemetryAttributes | undefined {
-	return hasQuery(req) ? { query: req.query } : undefined
+	return hasQuery(req) ? { query: sanitizeQueryForTelemetry(req.query) } : undefined
 }
 
 export function withApiRouteTelemetry(route: string, handler: NextApiHandler): NextApiHandler {
@@ -724,6 +775,49 @@ function sanitizeUrlForTelemetry(url: string): string {
 	} catch {
 		return redacted
 	}
+}
+
+function sanitizePathSegment(segment: string): string {
+	const redacted = redactSecrets(segment)
+	if (redacted !== segment) return redacted
+	return segment.length >= 24 && /^[A-Za-z0-9._~-]+$/.test(segment) ? '[REDACTED]' : segment
+}
+
+function sanitizeQueryValueForTelemetry(key: string, value: string): string {
+	if (isSensitiveKey(key)) return '[REDACTED]'
+	const redacted = redactSecrets(value)
+	if (redacted !== value) return redacted
+	return value.length >= 24 && /^[A-Za-z0-9._~-]+$/.test(value) ? '[REDACTED]' : value
+}
+
+function sanitizeRequestPathForTelemetry(url: URL): string {
+	const pathname = url.pathname
+		.split('/')
+		.map((segment) => (segment ? sanitizePathSegment(segment) : segment))
+		.join('/')
+	for (const [key, value] of url.searchParams) {
+		url.searchParams.set(key, sanitizeQueryValueForTelemetry(key, value))
+	}
+	return `${pathname}${url.search}`
+}
+
+function sanitizeQueryForTelemetry(query: NextApiRequest['query']): TelemetryAttributes {
+	const sanitized: TelemetryAttributes = {}
+
+	for (const key in query) {
+		const value = query[key]
+		if (Array.isArray(value)) {
+			const values: string[] = []
+			for (const item of value) {
+				values.push(sanitizeQueryValueForTelemetry(key, item))
+			}
+			sanitized[key] = values
+		} else if (value !== undefined) {
+			sanitized[key] = sanitizeQueryValueForTelemetry(key, value)
+		}
+	}
+
+	return sanitized
 }
 
 function urlParts(url: string): { host?: string; pathname?: string; apiGroup?: string } {
@@ -979,7 +1073,7 @@ export async function withOutboundTelemetry(
 			type: 'runtime_error',
 			trace_id: context.traceId,
 			span_id: newId(),
-			parent_span_id: context.spanId,
+			parent_span_id: spanId,
 			route: context.route,
 			phase: 'outboundFetch',
 			occurred_at: nowIso(),

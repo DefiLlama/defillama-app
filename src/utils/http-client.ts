@@ -1,45 +1,8 @@
-import { Agent } from 'http'
-import { Agent as HttpsAgent } from 'https'
 import { withOutboundTelemetry } from './telemetry'
 
-// Create reusable HTTP agents for connection pooling
-const httpAgent = new Agent({
-	keepAlive: true,
-	keepAliveMsecs: 1000,
-	maxSockets: 50,
-	maxFreeSockets: 10,
-	timeout: 60000
-})
-
-const httpsAgent = new HttpsAgent({
-	keepAlive: true,
-	keepAliveMsecs: 1000,
-	maxSockets: 50,
-	maxFreeSockets: 10,
-	timeout: 60000
-})
-
-// Internal fetch with connection pooling (not exported)
 const fetchWithConnectionPooling = async (url: string | URL, options: RequestInit = {}): Promise<Response> => {
-	const urlObj = typeof url === 'string' ? new URL(url) : url
-	const agent = urlObj.protocol === 'https:' ? httpsAgent : httpAgent
-
-	return fetch(url, {
-		...options,
-		// @ts-expect-error - Node.js fetch supports agent
-		agent
-	})
-}
-
-// Cleanup function for process termination
-const cleanupHttpAgents = () => {
-	httpAgent.destroy()
-	httpsAgent.destroy()
-}
-
-if (typeof process !== 'undefined') {
-	process.on('SIGTERM', cleanupHttpAgents)
-	process.on('SIGINT', cleanupHttpAgents)
+	const requestUrl = typeof url === 'string' ? new URL(url) : url
+	return fetch(requestUrl.toString(), options)
 }
 
 // Fetch with connection pooling and timeout support
@@ -51,20 +14,32 @@ export type FetchWithPoolingOnServerOptions = RequestInit & {
 	}
 }
 
+function serverFetchUrl(url: RequestInfo | URL): RequestInfo | URL {
+	if (typeof url !== 'string') return url
+	if (!url.startsWith('/')) return url
+
+	const base =
+		process.env.NEXT_PUBLIC_SITE_URL ||
+		process.env.SITE_URL ||
+		(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+	return new URL(url, base).toString()
+}
+
 export const fetchWithPoolingOnServer = async (
 	url: RequestInfo | URL,
 	options?: FetchWithPoolingOnServerOptions
 ): Promise<Response> => {
 	const isServer = typeof window === 'undefined'
 	const { timeout = 60_000, telemetry: _telemetry, ...requestOptions } = options ?? {}
+	const requestUrl = isServer ? serverFetchUrl(url) : url
 	const controller = new AbortController()
 	const id = setTimeout(() => controller.abort(), timeout)
 
 	try {
-		const response = await withOutboundTelemetry(url, options, () =>
-			isServer && typeof url === 'string'
-				? fetchWithConnectionPooling(url, { ...requestOptions, signal: controller.signal })
-				: fetch(url, { ...requestOptions, signal: controller.signal })
+		const response = await withOutboundTelemetry(requestUrl, options, () =>
+			isServer && typeof requestUrl === 'string'
+				? fetchWithConnectionPooling(requestUrl, { ...requestOptions, signal: controller.signal })
+				: fetch(requestUrl, { ...requestOptions, signal: controller.signal })
 		)
 		return response
 	} finally {

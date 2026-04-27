@@ -152,15 +152,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			phase2Promises.push(
 				(async () => {
 					const [chartResult, lendBorrowResult] = await Promise.allSettled([
-						withTimeout(
-							fetchWithPoolingOnServer(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
-							10_000
+						fetchWithPoolingOnServer(`${YIELD_CHART_API}/${poolConfigId}`, { timeout: 10_000 }).then((r) =>
+							r.ok ? r.json() : null
 						),
-						withTimeout(
-							fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) =>
-								r.ok ? r.json() : null
-							),
-							10_000
+						fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`, { timeout: 10_000 }).then((r) =>
+							r.ok ? r.json() : null
 						)
 					])
 					writeLine({
