@@ -3,6 +3,7 @@ import type { RecordAuthResponse } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
+import { getReferrer } from '~/containers/Subscription/referrer'
 import { clearSignupSource, getSignupSource } from '~/containers/Subscription/signupSource'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
@@ -288,6 +289,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					passwordConfirm,
 					auth_method: 'email',
 					source: getSignupSource(),
+					referrer: getReferrer(),
 					turnstile_token: turnstileToken,
 					promotionalEmails
 				})
@@ -421,7 +423,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					signature,
 					address,
 					issuedAt: issuedAt.toISOString(),
-					source: getSignupSource()
+					source: getSignupSource(),
+					referrer: getReferrer()
 				})
 			})
 
