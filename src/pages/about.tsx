@@ -97,12 +97,7 @@ function AboutPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
-					<a
-						className="text-(--blue) hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="/support"
-					>
+					<a className="text-(--blue) hover:underline" target="_blank" rel="noopener noreferrer" href="/support">
 						our support page
 					</a>
 					.
