@@ -76,28 +76,11 @@ function PressPage() {
 						className="text-(--blue) hover:underline"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://discord.defillama.com"
+						href="/support"
 					>
-						Discord
+						our support page
 					</a>
-					. If you want communication to be private you can use{' '}
-					<a
-						className="text-(--blue) hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="https://x.com/defillama"
-					>
-						Twitter
-					</a>{' '}
-					as a slower alternative, or, as an even slower option, you can also contact us by email at{' '}
-					<a
-						className="text-(--blue) hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="mailto:support@defillama.com"
-					>
-						support@defillama.com
-					</a>
+					.
 				</p>
 				<p>
 					DefiLlama is a part of{' '}
