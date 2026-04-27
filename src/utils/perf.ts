@@ -17,7 +17,7 @@ import { fetchWithPoolingOnServer, withPageBuildSignal } from './http-client'
 const REDIS_URL = process.env.REDIS_URL as string
 
 const MAX_PAGE_BUILD_RETRIES = Math.max(1, getEnvNumber('PAGE_BUILD_MAX_RETRIES', 3))
-const PAGE_BUILD_TIMEOUT_MS = Math.max(1_000, getEnvNumber('PAGE_BUILD_TIMEOUT_MS', 15_000))
+const PAGE_BUILD_TIMEOUT_MS = Math.max(1_000, getEnvNumber('PAGE_BUILD_TIMEOUT_MS', 60_000))
 const PAGE_BUILD_TIMEOUT_TEXT = 'page build timed out after'
 
 export class PageBuildTimeoutError extends Error {

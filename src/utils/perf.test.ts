@@ -6,9 +6,9 @@ vi.mock('~/utils/cache-client', () => ({
 	setPageBuildTimes: vi.fn()
 }))
 
-async function loadPerformanceLogging({ timeoutMs, maxRetries = 3 }: { timeoutMs: number; maxRetries?: number }) {
+async function loadPerformanceLogging({ timeoutMs, maxRetries = 3 }: { timeoutMs?: number; maxRetries?: number }) {
 	vi.resetModules()
-	vi.stubEnv('PAGE_BUILD_TIMEOUT_MS', String(timeoutMs))
+	vi.stubEnv('PAGE_BUILD_TIMEOUT_MS', timeoutMs === undefined ? 'default' : String(timeoutMs))
 	vi.stubEnv('PAGE_BUILD_MAX_RETRIES', String(maxRetries))
 	vi.stubEnv('RUNTIME_LOG_SILENT', '1')
 
@@ -38,6 +38,21 @@ describe('withPerformanceLogging', () => {
 
 		await result
 		expect(calls).toBe(1)
+	})
+
+	it('allows slow page builds within the default timeout', async () => {
+		vi.useFakeTimers()
+		const { withPerformanceLogging } = await loadPerformanceLogging({})
+
+		const getStaticProps = withPerformanceLogging('slow-valid-page', async () => {
+			await new Promise((resolve) => setTimeout(resolve, 16_000))
+			return { props: { ok: true } }
+		})
+		const result = expect(getStaticProps({} as never)).resolves.toEqual({ props: { ok: true } })
+
+		await vi.advanceTimersByTimeAsync(16_000)
+
+		await result
 	})
 
 	it('aborts fetches started by timed out page builds', async () => {
