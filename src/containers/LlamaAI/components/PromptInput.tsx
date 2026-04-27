@@ -17,6 +17,7 @@ import { InputTextarea } from '~/containers/LlamaAI/components/input/InputTextar
 import { MobileToolsPopover } from '~/containers/LlamaAI/components/input/MobileToolsPopover'
 import { ModeToggle } from '~/containers/LlamaAI/components/input/ModeToggle'
 import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton'
+import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
 import { fileToBase64, useImageUpload } from '~/containers/LlamaAI/hooks/useImageUpload'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
@@ -25,6 +26,8 @@ import { highlightWord } from '~/containers/LlamaAI/utils/textUtils'
 import { useMedia } from '~/hooks/useMedia'
 import type { FormSubmitEvent } from '~/types/forms'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+
+const PASTE_TO_FILE_THRESHOLD = 1500
 
 // Browser object URLs are only needed for local previews, so clean them up after use.
 function revokeImageUrls(images: Array<{ url: string }>) {
@@ -97,8 +100,29 @@ export function PromptInput({
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
 	const valueRef = useRef(value)
-	const selectedImageUrlsRef = useRef<string[]>([])
+	const selectedImageIdsRef = useRef<string[]>([])
 	const isSuggestedRef = useRef(false)
+	const shiftHeldRef = useRef(false)
+
+	useEffect(() => {
+		const onDown = (e: KeyboardEvent) => {
+			if (e.key === 'Shift') shiftHeldRef.current = true
+		}
+		const onUp = (e: KeyboardEvent) => {
+			if (e.key === 'Shift') shiftHeldRef.current = false
+		}
+		const onBlur = () => {
+			shiftHeldRef.current = false
+		}
+		window.addEventListener('keydown', onDown)
+		window.addEventListener('keyup', onUp)
+		window.addEventListener('blur', onBlur)
+		return () => {
+			window.removeEventListener('keydown', onDown)
+			window.removeEventListener('keyup', onUp)
+			window.removeEventListener('blur', onBlur)
+		}
+	}, [])
 
 	// Route all programmatic prompt edits through one helper so caret restoration stays consistent.
 	const applyPromptEdit = useCallback(
@@ -179,7 +203,7 @@ export function PromptInput({
 	}, [value])
 
 	useEffect(() => {
-		selectedImageUrlsRef.current = imageUpload.selectedImages.map(({ url }) => url)
+		selectedImageIdsRef.current = imageUpload.selectedImages.map(({ id }) => id)
 	}, [imageUpload.selectedImages])
 
 	// Handle restore request (e.g., failed submission retry)
@@ -234,7 +258,7 @@ export function PromptInput({
 		setSubmitError((current) => (current ? null : current))
 	}, [])
 
-	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File; url: string }>) => {
+	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File }>) => {
 		const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
 		for (let i = 0; i < imagesToSend.length; i++) {
 			const file = imagesToSend[i].file
@@ -249,16 +273,15 @@ export function PromptInput({
 		return Promise.all(imagePromises)
 	}, [])
 
-	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ url: string }>) => {
+	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ id: string }>) => {
 		const currentValue = valueRef.current
-		const currentUrls = [...selectedImageUrlsRef.current]
+		const currentIds = selectedImageIdsRef.current
 		if (currentValue !== promptValue) return false
 
-		const submittedUrls = imagesToSend.map(({ url }) => url)
-		if (submittedUrls.length !== currentUrls.length) return false
+		if (imagesToSend.length !== currentIds.length) return false
 
-		for (let index = 0; index < submittedUrls.length; index++) {
-			if (submittedUrls[index] !== currentUrls[index]) return false
+		for (let index = 0; index < imagesToSend.length; index++) {
+			if (imagesToSend[index].id !== currentIds[index]) return false
 		}
 
 		return true
@@ -308,7 +331,12 @@ export function PromptInput({
 		if (event.defaultPrevented) return
 
 		// Handle enter for submission
-		if (event.key === 'Enter' && !event.shiftKey && !entityCombobox.hasRenderedItems && !event.nativeEvent.isComposing) {
+		if (
+			event.key === 'Enter' &&
+			!event.shiftKey &&
+			!entityCombobox.hasRenderedItems &&
+			!event.nativeEvent.isComposing
+		) {
 			event.preventDefault()
 			if (isStreaming) return
 			void submitForm(value)
@@ -355,7 +383,21 @@ export function PromptInput({
 
 	const handlePaste = (event: React.ClipboardEvent<Element>) => {
 		clearSubmitError()
-		imageUpload.handlePaste(event)
+		const data = event.clipboardData
+		if (!data) return
+
+		const hasFile = Array.from(data.items).some((item) => item.kind === 'file')
+		if (hasFile) {
+			imageUpload.handlePaste(event)
+			return
+		}
+
+		const text = data.getData('text/plain')
+		if (!text || text.length < PASTE_TO_FILE_THRESHOLD || shiftHeldRef.current) return
+
+		if (imageUpload.addPastedText(text)) {
+			event.preventDefault()
+		}
 	}
 
 	const handleDrop = (event: React.DragEvent<HTMLFormElement>) => {
@@ -379,10 +421,13 @@ export function PromptInput({
 				selectedImages={imageUpload.selectedImages}
 				previewImage={imageUpload.previewImage}
 				setPreviewImage={imageUpload.setPreviewImage}
+				openPastedPreview={imageUpload.setPastedPreview}
 				removeImage={handleImageRemove}
 				fileInputRef={imageUpload.fileInputRef}
 				handleImageSelect={handleImageSelect}
 			/>
+
+			<PastedContentModal preview={imageUpload.pastedPreview} onClose={() => imageUpload.setPastedPreview(null)} />
 
 			{quotedText ? (
 				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/4 py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/4">

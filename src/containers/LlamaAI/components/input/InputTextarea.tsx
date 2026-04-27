@@ -49,7 +49,7 @@ export function InputTextarea({
 						ref={promptInputRef}
 						value={value}
 						rows={1}
-						maxLength={8000}
+						maxLength={200_000}
 						placeholder={placeholder}
 						onScroll={onScroll}
 						onPointerDown={combobox.hide}
