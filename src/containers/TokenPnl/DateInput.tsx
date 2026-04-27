@@ -42,7 +42,6 @@ export const DateInput = ({
 	const tryCommit = (next: string) => {
 		if (next === lastCommittedRef.current) return
 		if (!isPlausibleIsoDate(next)) return
-		lastCommittedRef.current = next
 		onChange(next)
 	}
 
