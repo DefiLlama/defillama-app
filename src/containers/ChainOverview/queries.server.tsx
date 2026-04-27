@@ -5,7 +5,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
-import { getBridgeNetInflowsForChain } from '~/containers/Bridges/queries.server'
+import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { fetchChainChart } from '~/containers/Chains/api'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
 import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
@@ -164,7 +164,21 @@ export async function getChainOverviewData({
 			currentChainMetadata.stablecoins
 				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
 				: Promise.resolve(null),
-			!currentChainMetadata.inflows ? Promise.resolve(null) : getBridgeNetInflowsForChain(currentChainMetadata.name),
+			!currentChainMetadata.inflows
+				? Promise.resolve(null)
+				: getBridgeOverviewPageData(currentChainMetadata.name).then((data) => {
+						const netInflows = data?.chainVolumeData?.length
+							? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
+							: null
+
+						if (netInflows === 0) {
+							return null
+						}
+
+						return {
+							netInflows
+						}
+					}),
 			!currentChainMetadata.chainActiveUsers
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
