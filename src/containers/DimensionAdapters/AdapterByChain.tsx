@@ -570,6 +570,8 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 type AdapterProtocolRow = IAdapterByChainPageData['protocols'][0]
 
 const columnHelper = createColumnHelper<AdapterProtocolRow>()
+const cantonIncentivesWarning =
+	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
 
 const NameColumn = (type: IProps['type']) =>
 	columnHelper.accessor('name', {
@@ -591,6 +593,7 @@ const NameColumn = (type: IProps['type']) =>
 				row.original.slug !== 'berachain-incentive-buys'
 					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
 					: protocolChartsKeys[type]
+			const showCantonIncentivesWarning = row.original.slug === 'canton' && (type === 'Fees' || type === 'Revenue')
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -620,12 +623,19 @@ const NameColumn = (type: IProps['type']) =>
 					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					<span className="-my-2 flex flex-col">
-						<BasicLink
-							href={`/${basePath}/${row.original.slug}${chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{value}
-						</BasicLink>
+						<span className="flex min-w-0 items-center gap-1">
+							<BasicLink
+								href={`/${basePath}/${row.original.slug}${chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''}`}
+								className="min-w-0 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+							>
+								{value}
+							</BasicLink>
+							{showCantonIncentivesWarning ? (
+								<Tooltip content={cantonIncentivesWarning}>
+									<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-(--warning)" />
+								</Tooltip>
+							) : null}
+						</span>
 
 						{row.original.chains ? (
 							<Tooltip
