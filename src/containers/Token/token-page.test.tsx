@@ -7,7 +7,7 @@ import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBor
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
-import { fetchTokenRightsEntryByDefillamaId } from '~/containers/TokenRights/api'
+import { fetchTokenRightsData, fetchTokenRightsEntryByDefillamaId } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
@@ -277,6 +277,7 @@ vi.mock('~/utils/perf', () => ({
 }))
 
 vi.mock('~/containers/TokenRights/api', () => ({
+	fetchTokenRightsData: vi.fn(() => Promise.resolve(state.tokenRightsEntries)),
 	fetchTokenRightsEntryByDefillamaId: vi.fn((defillamaId: string) =>
 		Promise.resolve(
 			(state.tokenRightsEntries as Array<Record<string, unknown>>).find(
@@ -856,6 +857,120 @@ describe('token page', () => {
 			},
 			revalidate: 123
 		})
+	})
+
+	it('getStaticProps includes token rights data for flagged tokens without protocol metadata', async () => {
+		state.tokenRightsEntries = [
+			{
+				'Protocol Name': 'Backpack',
+				Token: ['BP', 'sBP'],
+				'Token Type': ['Utility'],
+				'Brief description': 'desc',
+				'Governance Details (Summary)': 'gov summary',
+				'Governance Decisions': ['N/A'],
+				'Treasury Decisions': ['N/A'],
+				'Revenue Decisions': ['N/A'],
+				'Fee Switch Status': 'OFF',
+				Buybacks: ['N/A'],
+				Dividends: ['N/A'],
+				Burns: 'N/A',
+				'Associated Entities': [],
+				'DefiLlama ID': '4266'
+			}
+		]
+		state.tokensJson = {
+			bp: {
+				name: 'Backpack',
+				symbol: 'BP',
+				token_nk: 'coingecko:backpack',
+				route: '/token/BP',
+				tokenRights: true
+			}
+		}
+		state.tokenlist = {
+			backpack: {
+				symbol: 'bp',
+				current_price: 1,
+				price_change_24h: 0,
+				price_change_percentage_24h: 0,
+				ath: null,
+				ath_date: null,
+				atl: null,
+				atl_date: null,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				total_supply: null,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+
+		const result = await getStaticProps({ params: { token: 'bp' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.tokenRightsData?.overview).toEqual({
+			protocolName: 'Backpack',
+			tokens: ['BP', 'sBP'],
+			tokenTypes: ['Utility'],
+			description: 'desc',
+			utility: null,
+			lastUpdated: null
+		})
+		expect(result.props.visibleSections).toEqual(['token-overview', 'token-rights-and-value-accrual', 'token-usage'])
+		expect(fetchTokenRightsData).toHaveBeenCalledTimes(1)
+		expect(fetchTokenRightsEntryByDefillamaId).not.toHaveBeenCalled()
+	})
+
+	it('getStaticProps skips token rights for flagged tokens without a matching row', async () => {
+		state.tokenRightsEntries = [
+			{
+				'Protocol Name': 'Other',
+				Token: ['OTHER'],
+				'Token Type': ['Utility'],
+				'Brief description': 'desc',
+				'Governance Details (Summary)': 'gov summary',
+				'Governance Decisions': ['N/A'],
+				'Treasury Decisions': ['N/A'],
+				'Revenue Decisions': ['N/A'],
+				'Fee Switch Status': 'OFF',
+				Buybacks: ['N/A'],
+				Dividends: ['N/A'],
+				Burns: 'N/A',
+				'Associated Entities': [],
+				'DefiLlama ID': '9999'
+			}
+		]
+		state.tokensJson = {
+			bp: {
+				name: 'Backpack',
+				symbol: 'BP',
+				token_nk: 'coingecko:backpack',
+				tokenRights: true
+			}
+		}
+		state.tokenlist = {
+			backpack: {
+				symbol: 'bp',
+				current_price: 1,
+				price_change_percentage_24h: 0,
+				market_cap: 100,
+				fully_diluted_valuation: 150,
+				total_volume: 50,
+				circulating_supply: 20,
+				max_supply: 1000
+			}
+		}
+
+		const result = await getStaticProps({ params: { token: 'bp' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.tokenRightsData).toBeNull()
+		expect(result.props.visibleSections).toEqual(['token-overview', 'token-usage'])
 	})
 
 	it('getStaticProps resolves embedded unlocks by protocol display name when the slug is cached', async () => {

@@ -22,7 +22,7 @@ import { TokenUnlocksSection } from '~/containers/Token/TokenUnlocksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
 import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
-import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
+import type { IRawTokenRightsEntry, ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
@@ -176,6 +176,16 @@ const TOKEN_SECTIONS = {
 function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	if (!tokenNk?.startsWith('coingecko:')) return null
 	return tokenNk.slice('coingecko:'.length) || null
+}
+
+function findTokenRightsEntryByName(data: IRawTokenRightsEntry[], name: string): IRawTokenRightsEntry | null {
+	const tokenSlug = slug(name)
+
+	for (const entry of data) {
+		if (slug(entry['Protocol Name']) === tokenSlug) return entry
+	}
+
+	return null
 }
 
 function getBorrowRouteChainList(rows: TokenBorrowRoutesResponse['borrowAsCollateral']): string[] {
@@ -362,17 +372,27 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		})()
 
 		const tokenRightsPromise =
-			record.tokenRights && (record.chainId || record.protocolId)
+			record.tokenRights
 				? (async () => {
 						try {
+							const defillamaId = record.chainId || record.protocolId || null
+
 							if (shouldUseDatasetCache) {
-								const { fetchTokenRightsEntryFromCache } = await import('~/server/datasetCache/tokenRights')
-								const rawEntry = await fetchTokenRightsEntryFromCache(record.chainId || record.protocolId || '')
+								const { fetchTokenRightsEntriesFromCache, fetchTokenRightsEntryFromCache } = await import(
+									'~/server/datasetCache/tokenRights'
+								)
+								const rawEntry = defillamaId
+									? await fetchTokenRightsEntryFromCache(defillamaId)
+									: findTokenRightsEntryByName(await fetchTokenRightsEntriesFromCache(), record.name)
 								return rawEntry ? parseTokenRightsEntry(rawEntry) : null
 							}
 
-							const { fetchTokenRightsEntryByDefillamaId } = await import('~/containers/TokenRights/api')
-							const rawEntry = await fetchTokenRightsEntryByDefillamaId(record.chainId || record.protocolId || '')
+							const { fetchTokenRightsData, fetchTokenRightsEntryByDefillamaId } = await import(
+								'~/containers/TokenRights/api'
+							)
+							const rawEntry = defillamaId
+								? await fetchTokenRightsEntryByDefillamaId(defillamaId)
+								: findTokenRightsEntryByName(await fetchTokenRightsData(), record.name)
 							return rawEntry ? parseTokenRightsEntry(rawEntry) : null
 						} catch (error) {
 							console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
