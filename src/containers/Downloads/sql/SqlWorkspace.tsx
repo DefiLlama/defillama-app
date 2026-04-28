@@ -3,6 +3,7 @@ import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import { useRecentDownloads, useSavedDownloads } from '~/contexts/LocalStorage'
 import { getStorageJSON, setStorageJSON } from '~/contexts/localStorageStore'
 import type { ChartOptionsMap } from '../chart-datasets'
@@ -50,10 +51,13 @@ interface SqlWorkspaceProps {
 }
 
 export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
-	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
-	const allowed = isAuthenticated && hasActiveSubscription && !isTrial
+	const { isAuthenticated, isTrial, loaders, authorizedFetch, user } = useAuthContext()
+	const { subscription, isSubscriptionLoading } = useSubscribe()
+	const isApiPlan = subscription?.type === 'api' && subscription?.status === 'active'
+	const isLlama = !!user?.flags?.is_llama
+	const allowed = isAuthenticated && (isApiPlan || isLlama)
 
-	if (loaders.userLoading) {
+	if (loaders.userLoading || (isAuthenticated && isSubscriptionLoading && !isLlama)) {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<LocalLoader />
