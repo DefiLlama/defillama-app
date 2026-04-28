@@ -150,15 +150,17 @@ function ChainsChartCard({
 						portal
 					/>
 				) : null}
-				<button
-					type="button"
-					onClick={() => setStacked((prev) => !prev)}
-					aria-pressed={stacked}
-					data-state={stacked ? 'on' : 'off'}
-					className="flex shrink-0 items-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium hover:bg-(--btn-hover-bg) data-[state=on]:bg-(--old-blue) data-[state=on]:text-white"
-				>
-					<span>Compound</span>
-				</button>
+				{selectedChartsSet.size > 1 ? (
+					<button
+						type="button"
+						onClick={() => setStacked((prev) => !prev)}
+						aria-pressed={stacked}
+						data-state={stacked ? 'on' : 'off'}
+						className="flex shrink-0 items-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium hover:bg-(--btn-hover-bg) data-[state=on]:bg-(--old-blue) data-[state=on]:text-white"
+					>
+						<span>Compound</span>
+					</button>
+				) : null}
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -219,7 +221,7 @@ function TokenLineChartCard({
 						portal
 					/>
 				) : null}
-				{enableCompound ? (
+				{enableCompound && selectedChartsSet.size > 1 ? (
 					<button
 						type="button"
 						onClick={() => setStacked((prev) => !prev)}
