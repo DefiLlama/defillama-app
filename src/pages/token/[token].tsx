@@ -371,35 +371,32 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			})
 		})()
 
-		const tokenRightsPromise =
-			record.tokenRights
-				? (async () => {
-						try {
-							const defillamaId = record.chainId || record.protocolId || null
+		const tokenRightsPromise = record.tokenRights
+			? (async () => {
+					try {
+						const defillamaId = record.chainId || record.protocolId || null
 
-							if (shouldUseDatasetCache) {
-								const { fetchTokenRightsEntriesFromCache, fetchTokenRightsEntryFromCache } = await import(
-									'~/server/datasetCache/tokenRights'
-								)
-								const rawEntry = defillamaId
-									? await fetchTokenRightsEntryFromCache(defillamaId)
-									: findTokenRightsEntryByName(await fetchTokenRightsEntriesFromCache(), record.name)
-								return rawEntry ? parseTokenRightsEntry(rawEntry) : null
-							}
-
-							const { fetchTokenRightsData, fetchTokenRightsEntryByDefillamaId } = await import(
-								'~/containers/TokenRights/api'
-							)
+						if (shouldUseDatasetCache) {
+							const { fetchTokenRightsEntriesFromCache, fetchTokenRightsEntryFromCache } =
+								await import('~/server/datasetCache/tokenRights')
 							const rawEntry = defillamaId
-								? await fetchTokenRightsEntryByDefillamaId(defillamaId)
-								: findTokenRightsEntryByName(await fetchTokenRightsData(), record.name)
+								? await fetchTokenRightsEntryFromCache(defillamaId)
+								: findTokenRightsEntryByName(await fetchTokenRightsEntriesFromCache(), record.name)
 							return rawEntry ? parseTokenRightsEntry(rawEntry) : null
-						} catch (error) {
-							console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
-							return null
 						}
-					})()
-				: Promise.resolve(null)
+
+						const { fetchTokenRightsData, fetchTokenRightsEntryByDefillamaId } =
+							await import('~/containers/TokenRights/api')
+						const rawEntry = defillamaId
+							? await fetchTokenRightsEntryByDefillamaId(defillamaId)
+							: findTokenRightsEntryByName(await fetchTokenRightsData(), record.name)
+						return rawEntry ? parseTokenRightsEntry(rawEntry) : null
+					} catch (error) {
+						console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
+						return null
+					}
+				})()
+			: Promise.resolve(null)
 
 		const incomeStatementPromise = protocolMetadata
 			? getProtocolIncomeStatement({ metadata: protocolMetadata }).catch((error) => {
