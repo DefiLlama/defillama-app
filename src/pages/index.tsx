@@ -1,4 +1,5 @@
 import type { InferGetStaticPropsType } from 'next/types'
+import { getMetricFiltersLabel } from '~/components/Filters/options'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { ChainOverviewAnnouncement } from '~/containers/ChainOverview/Announcement'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
@@ -27,11 +28,15 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 })
 
 export default function HomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+<<<<<<< HEAD
 	const metricFiltersLabel = props.tvlAndFeesOptions.some(
 		(option) => option.key === 'bribes' || option.key === 'tokentax'
 	)
 		? 'Include TVL & Fees'
 		: 'Include in TVL'
+=======
+	const metricFiltersLabel = getMetricFiltersLabel(props.tvlAndFeesOptions)
+>>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 
 	return (
 		<Layout

@@ -1,4 +1,5 @@
 import type { InferGetStaticPropsType } from 'next'
+import { getMetricFiltersLabel } from '~/components/Filters/options'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { ChainOverviewAnnouncement } from '~/containers/ChainOverview/Announcement'
@@ -70,11 +71,15 @@ export async function getStaticPaths() {
 }
 
 export default function Chain(props: InferGetStaticPropsType<typeof getStaticProps>) {
+<<<<<<< HEAD
 	const metricFiltersLabel = props.tvlAndFeesOptions.some(
 		(option) => option.key === 'bribes' || option.key === 'tokentax'
 	)
 		? 'Include TVL & Fees'
 		: 'Include in TVL'
+=======
+	const metricFiltersLabel = getMetricFiltersLabel(props.tvlAndFeesOptions)
+>>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 
 	return (
 		<Layout

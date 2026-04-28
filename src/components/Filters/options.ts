@@ -44,5 +44,10 @@ export const feesOptions: Array<ToggleOption<FeesSettingKey>> = [
 	{ name: 'Token Tax', key: FEES_SETTINGS.TOKENTAX, help: null }
 ]
 
+export const getMetricFiltersLabel = (options: Array<{ key: string }>) =>
+	options.some((option) => option.key === FEES_SETTINGS.BRIBES || option.key === FEES_SETTINGS.TOKENTAX)
+		? 'Include TVL & Fees'
+		: 'Include in TVL'
+
 export const tvlOptionsMap = new Map(tvlOptions.map((option) => [option.key, option]))
 export const feesOptionsMap = new Map(feesOptions.map((option) => [option.key, option]))
