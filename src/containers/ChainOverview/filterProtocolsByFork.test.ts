@@ -71,4 +71,17 @@ describe('getAvailableForks', () => {
 	it('returns [] when forkedFrom arrays are present but empty', () => {
 		expect(getAvailableForks([make('A', []), make('B', [])])).toEqual([])
 	})
+
+	it('canonicalizes duplicate-cased fork labels and skips blank labels', () => {
+		const input: Protocol[] = [
+			make('A', ['Uniswap V2']),
+			make('B', ['uniswap v2']),
+			make('C', ['  Uniswap V2  ']),
+			make('D', ['']),
+			make('E', ['   ']),
+			make('F', ['Aave V3'])
+		]
+		const result = getAvailableForks(input)
+		expect(result).toEqual(['Aave V3', 'Uniswap V2'])
+	})
 })

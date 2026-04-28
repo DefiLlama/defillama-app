@@ -403,9 +403,13 @@ const ChainProtocolsTableInner = ({
 					variant="responsive"
 				/>
 
-				{availableForks.length > 0 && (
+				{(forkParam || availableForks.length > 0) && (
 					<SelectWithCombobox
-						allValues={availableForks}
+						allValues={
+							forkParam && !availableForks.includes(forkParam)
+								? [forkParam, ...availableForks]
+								: availableForks
+						}
 						selectedValues={forkParam ? [forkParam] : []}
 						setSelectedValues={(updater) => {
 							const next = typeof updater === 'function' ? updater(forkParam ? [forkParam] : []) : updater

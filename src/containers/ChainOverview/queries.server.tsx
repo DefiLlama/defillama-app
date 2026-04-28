@@ -1152,14 +1152,19 @@ export const getProtocolsByChain = async ({
 				protocolsStore[parentProtocol.id].emissions = parentEmissions
 			}
 
-			const parentForks = new Set<string>()
+			// Aggregate child forks onto the parent so the table-level fork filter, which operates on top-level rows, also catches grouped fork families. Dedupe by slug to collapse case/whitespace variants.
+			const parentForksBySlug = new Map<string, string>()
 			for (const child of parentStore[parentProtocol.id]) {
-				if (child.forkedFrom) {
-					for (const f of child.forkedFrom) parentForks.add(f)
+				if (!child.forkedFrom) continue
+				for (const f of child.forkedFrom) {
+					const trimmed = f.trim()
+					const key = slug(trimmed)
+					if (!key) continue
+					if (!parentForksBySlug.has(key)) parentForksBySlug.set(key, trimmed)
 				}
 			}
-			if (parentForks.size > 0) {
-				protocolsStore[parentProtocol.id].forkedFrom = Array.from(parentForks)
+			if (parentForksBySlug.size > 0) {
+				protocolsStore[parentProtocol.id].forkedFrom = Array.from(parentForksBySlug.values())
 			}
 		}
 	}
