@@ -5,7 +5,8 @@ export const INVESTORS_PROJECTS = [
 	{ id: 'berachain', name: 'Berachain', dashboardId: 't62luatlj9thwx2', customOnly: true },
 	{ id: 'aave', name: 'Aave', dashboardId: 'g3rswlkr9khxa03', customOnly: false },
 	{ id: 'sonic', name: 'Sonic', dashboardId: 's0n1cd4shb0ard1', customOnly: true },
-	{ id: 'near', name: 'NEAR', dashboardId: 'n34rr3v3nu3d4sh', customOnly: true }
+	{ id: 'near', name: 'NEAR', dashboardId: 'n34rr3v3nu3d4sh', customOnly: true },
+	{ id: 'flare', name: 'Flare', dashboardId: 'fl4r3d4shb0ard1', customOnly: true }
 ] as const
 
 export const INVESTORS_PROTOCOL_IDS: string[] = INVESTORS_PROJECTS.map((p) => p.id)
