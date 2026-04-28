@@ -81,8 +81,9 @@ export const PlotsPage = ({
 			})
 
 			if (toFilter) {
-				return acc.concat(curr)
-			} else return acc
+				acc.push(curr)
+			}
+			return acc
 		}, [])
 	}, [
 		minTvl,
