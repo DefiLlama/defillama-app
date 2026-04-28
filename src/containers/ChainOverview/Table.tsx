@@ -107,13 +107,10 @@ const ChainProtocolsTableInner = ({
 		return null
 	})()
 
-	const availableForks = useMemo(
-		() => getAvailableForks(finalProtocols as Array<{ forkedFrom?: string[] }>),
-		[finalProtocols]
-	)
+	const availableForks = useMemo(() => getAvailableForks(finalProtocols), [finalProtocols])
 
 	const protocolsForTable = useMemo(
-		() => filterProtocolsByFork(finalProtocols as Array<IProtocol & { forkedFrom?: string[] }>, forkParam) as IProtocol[],
+		() => filterProtocolsByFork(finalProtocols, forkParam),
 		[finalProtocols, forkParam]
 	)
 
