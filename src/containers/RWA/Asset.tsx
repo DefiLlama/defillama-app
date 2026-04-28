@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -14,6 +15,7 @@ import { chainIconUrl } from '~/utils/icons'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
+import { rwaSlug } from './rwaSlug'
 import { RWAYieldsTable } from './RWAYieldsTable'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -191,15 +193,16 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const attestationFrequency = Array.isArray(asset.attestationFrequency)
 		? asset.attestationFrequency.filter(Boolean).join('; ')
 		: asset.attestationFrequency || null
-	const parentPlatformLabel =
-		typeof asset.parentPlatform === 'string'
-			? asset.parentPlatform.trim() || null
-			: Array.isArray(asset.parentPlatform)
-				? asset.parentPlatform
-						.map((value) => value.trim())
-						.filter(Boolean)
-						.join(', ') || null
-				: null
+	const parentPlatforms: string[] = []
+	if (typeof asset.parentPlatform === 'string') {
+		const parentPlatform = asset.parentPlatform.trim()
+		if (parentPlatform) parentPlatforms.push(parentPlatform)
+	} else if (Array.isArray(asset.parentPlatform)) {
+		for (const value of asset.parentPlatform) {
+			const parentPlatform = value.trim()
+			if (parentPlatform) parentPlatforms.push(parentPlatform)
+		}
+	}
 
 	const { data: yieldChartRaw, isLoading: isLoadingYieldChart } = useYieldChartData(asset.nativeYieldPoolId)
 	const { chartInstance: nativeYieldChartInstance, handleChartReady: onNativeYieldChartReady } = useGetChartInstance()
@@ -459,7 +462,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<span className="flex flex-wrap items-center gap-1 font-medium">
 										{asset.category.map((category, idx) => (
 											<span key={category} className="flex items-center gap-0.5">
-												{category}
+												<BasicLink
+													href={`/rwa/category/${rwaSlug(category)}`}
+													className="text-(--link-text) hover:underline"
+												>
+													{category}
+												</BasicLink>
 												{definitions.category.values?.[category] ? (
 													<QuestionHelper text={definitions.category.values[category]} />
 												) : null}
@@ -529,10 +537,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									{asset.accessModelDescription ? <QuestionHelper text={asset.accessModelDescription} /> : null}
 								</span>
 							</p>
-							{parentPlatformLabel ? (
+							{parentPlatforms.length > 0 ? (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 									<span className="text-(--text-label)">Parent Platform</span>
-									<span className="font-medium">{parentPlatformLabel}</span>
+									<span className="flex flex-wrap items-center gap-x-1 font-medium">
+										{parentPlatforms.map((platform, idx) => (
+											<span key={`${platform}-${idx}`} className="flex items-center gap-0.5">
+												<BasicLink
+													href={`/rwa/platform/${rwaSlug(platform)}`}
+													className="text-(--link-text) hover:underline"
+												>
+													{platform}
+												</BasicLink>
+												{idx < parentPlatforms.length - 1 ? ',' : null}
+											</span>
+										))}
+									</span>
 								</p>
 							) : null}
 						</div>
