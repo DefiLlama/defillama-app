@@ -39,7 +39,7 @@ const FEATURES: { icon: IIcon['name']; title: string; body: string }[] = [
 	{
 		icon: 'link',
 		title: 'Share & export',
-		body: 'Encode any query or notebook to a URL anyone can open. Export CSV, Parquet, Arrow.'
+		body: 'Encode any query or notebook to a URL anyone can open. Export results to CSV or JSON.'
 	}
 ]
 
@@ -131,11 +131,7 @@ export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGatePro
 	const router = useRouter()
 	const subscriptionHref = `/subscription?returnUrl=${encodeURIComponent(router.asPath)}`
 
-	const heading = isTrial
-		? 'SQL Studio — available on the API plan'
-		: isAuthenticated
-			? 'Unlock SQL Studio'
-			: 'Sign in to unlock SQL Studio'
+	const heading = 'Unlock SQL Studio'
 
 	const copy = isTrial
 		? 'Your trial includes preview-only CSV downloads. Upgrade to the API plan to run SQL queries across every DefiLlama dataset in your browser.'
@@ -145,15 +141,16 @@ export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGatePro
 
 	return (
 		<div className="flex flex-col gap-14 pb-8">
-			{topRight ? <div className="flex justify-end">{topRight}</div> : null}
-
 			<section className="flex flex-col gap-8 lg:gap-10">
 				<header className="flex flex-col gap-5">
-					<div className="flex items-center gap-2">
-						<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-(--sub-brand-primary)" />
-						<span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-(--sub-brand-primary) uppercase">
-							API plan
-						</span>
+					<div className="flex items-center justify-between gap-3">
+						<div className="flex items-center gap-2">
+							<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-(--sub-brand-primary)" />
+							<span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-(--sub-brand-primary) uppercase">
+								API plan
+							</span>
+						</div>
+						{topRight ? <div className="shrink-0">{topRight}</div> : null}
 					</div>
 					<h2 className="text-4xl leading-[1.04] font-semibold tracking-tight text-balance text-(--text-primary) lg:text-5xl">
 						{heading}
