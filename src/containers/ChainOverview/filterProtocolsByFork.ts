@@ -1,14 +1,16 @@
 import { slug } from '~/utils'
-import type { IProtocol } from './types'
 
-type WithForkedFrom = IProtocol & { forkedFrom?: Array<string> }
+type ProtocolWithFork = { forkedFrom?: string[] }
 
-export function filterProtocolsByFork(protocols: WithForkedFrom[], fork: string | null | undefined): WithForkedFrom[] {
+export function filterProtocolsByFork<T extends ProtocolWithFork>(
+	protocols: T[],
+	fork: string | null | undefined
+): T[] {
 	if (!fork) return protocols
 	const normalized = slug(fork)
 	return protocols.filter((protocol) => {
 		const forkedFrom = protocol.forkedFrom
-		if (!forkedFrom || forkedFrom.length === 0) return false
+		if (!forkedFrom) return false
 		for (const forkName of forkedFrom) {
 			if (slug(forkName) === normalized) return true
 		}
@@ -16,7 +18,7 @@ export function filterProtocolsByFork(protocols: WithForkedFrom[], fork: string 
 	})
 }
 
-export function getAvailableForks(protocols: WithForkedFrom[]): string[] {
+export function getAvailableForks(protocols: readonly ProtocolWithFork[]): string[] {
 	const set = new Set<string>()
 	for (const p of protocols) {
 		const forks = p.forkedFrom
