@@ -32,11 +32,7 @@ type Tab = (typeof ALL_TABS)[number]
 
 const ALL_CATEGORY = 'All'
 
-export function DownloadsCatalog({
-	chartOptionsMap
-}: {
-	chartOptionsMap: ChartOptionsMap
-}) {
+export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
 	const { savedDownloads, deleteDownload, renameDownload } = useSavedDownloads()
 	const { recentDownloads, clearRecents } = useRecentDownloads()

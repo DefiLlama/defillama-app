@@ -1,4 +1,5 @@
 import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import type { ChartOptionsMap } from '../chart-datasets'
 import { datasets } from '../datasets'
 import { extractTableRefs, matchTableRef } from './completions'
@@ -118,6 +119,8 @@ export async function runSql(
 	if (signal?.aborted) return cancelled()
 	const trimmed = sql.trim()
 	if (!trimmed) return { ok: false, error: 'Empty query.' }
+
+	trackUmamiEvent('sql-studio-run-query')
 
 	const started = performance.now()
 	try {

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { type ReactNode } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
+import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { Keycap, TypeBadge, type ColumnKind } from './primitives'
 
 interface UpsellGateProps {
@@ -179,13 +180,7 @@ export function UpsellGate({ isAuthenticated, isTrial }: UpsellGateProps) {
 	)
 }
 
-function PricingCard({
-	isAuthenticated,
-	subscriptionHref
-}: {
-	isAuthenticated: boolean
-	subscriptionHref: string
-}) {
+function PricingCard({ isAuthenticated, subscriptionHref }: { isAuthenticated: boolean; subscriptionHref: string }) {
 	return (
 		<div className="flex flex-col gap-6 rounded-xl border border-(--sub-brand-primary)/30 bg-(--cards-bg) p-6 shadow-sm lg:sticky lg:top-4">
 			<div className="flex items-center gap-2">
@@ -197,13 +192,13 @@ function PricingCard({
 
 			<div className="flex flex-col gap-1.5">
 				<div className="flex items-baseline gap-1.5">
-					<span className="text-[3.25rem] leading-none font-semibold tracking-[-0.04em] tabular-nums text-(--text-primary)">
+					<span className="text-[3.25rem] leading-none font-semibold tracking-[-0.04em] text-(--text-primary) tabular-nums">
 						$300
 					</span>
 					<span className="text-base font-medium text-(--text-secondary)">/mo</span>
 				</div>
 				<span className="text-[12px] text-(--text-tertiary)">
-					or <span className="font-mono tabular-nums text-(--text-secondary)">$3,000</span> billed yearly
+					or <span className="font-mono text-(--text-secondary) tabular-nums">$3,000</span> billed yearly
 				</span>
 			</div>
 
@@ -224,12 +219,13 @@ function PricingCard({
 			<div className="flex flex-col gap-2">
 				<Link
 					href={subscriptionHref}
+					onClick={() => setSignupSource('sql-studio')}
 					className="group inline-flex items-center justify-center gap-2 rounded-md bg-(--sub-brand-primary) px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-(--sub-brand-primary)/90 hover:shadow-[0_4px_24px_-8px_rgba(31,103,210,0.5)]"
 				>
 					{isAuthenticated ? 'Upgrade to API plan' : 'Sign in & subscribe'}
 					<Icon
 						name="arrow-up-right"
-						className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+						className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
 					/>
 				</Link>
 				<span className="text-[11px] text-(--text-tertiary)">Cancel anytime · pay with card or crypto</span>
@@ -251,7 +247,7 @@ function FeatureTile({
 }) {
 	return (
 		<div className="group flex gap-4 border-t border-(--divider) py-5 transition-colors hover:border-(--sub-brand-primary)/40">
-			<span className="font-mono text-[11px] font-semibold tabular-nums text-(--text-tertiary)/70">
+			<span className="font-mono text-[11px] font-semibold text-(--text-tertiary)/70 tabular-nums">
 				{String(index).padStart(2, '0')}
 			</span>
 			<div className="flex flex-col gap-1.5">
@@ -271,16 +267,18 @@ function SamplePane() {
 			<div className="flex items-center justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/30 px-4 py-2">
 				<div className="flex items-center gap-2 truncate">
 					<Icon name="file-text" className="h-3.5 w-3.5 shrink-0 text-(--sub-brand-primary)" />
-					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">
-						revenue-capture.sql
-					</span>
+					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">revenue-capture.sql</span>
 				</div>
 				<span className="flex shrink-0 items-center gap-2 text-[11px]">
 					<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-pro-green-300" />
 					<span className="font-mono tracking-[0.12em] text-pro-green-300 uppercase">ready</span>
-					<span aria-hidden className="text-(--text-tertiary)/40">·</span>
-					<span className="font-mono tabular-nums text-(--text-tertiary)">412ms</span>
-					<span aria-hidden className="hidden text-(--text-tertiary)/40 sm:inline">·</span>
+					<span aria-hidden className="text-(--text-tertiary)/40">
+						·
+					</span>
+					<span className="font-mono text-(--text-tertiary) tabular-nums">412ms</span>
+					<span aria-hidden className="hidden text-(--text-tertiary)/40 sm:inline">
+						·
+					</span>
 					<span className="hidden sm:inline-flex">
 						<Keycap>⌘↵</Keycap>
 					</span>
@@ -300,10 +298,10 @@ function SamplePane() {
 						<KW>COALESCE</KW>(r.total30d, <NUM>0</NUM>) <KW>AS</KW> revenue_30d,
 						{'\n'}
 						{'       '}
-						<KW>COALESCE</KW>(r.total30d, <NUM>0</NUM>) / <KW>NULLIF</KW>(f.total30d, <NUM>0</NUM>) <KW>AS</KW> keep_ratio
+						<KW>COALESCE</KW>(r.total30d, <NUM>0</NUM>) / <KW>NULLIF</KW>(f.total30d, <NUM>0</NUM>) <KW>AS</KW>{' '}
+						keep_ratio
 						{'\n'}
-						<KW>FROM</KW> fees f
-						{'\n'}
+						<KW>FROM</KW> fees f{'\n'}
 						<KW>LEFT JOIN</KW> revenue r <KW>ON</KW> r.name = f.name
 						{'\n'}
 						<KW>WHERE</KW> f.total30d &gt; <NUM>100000</NUM>
@@ -326,7 +324,7 @@ function SamplePane() {
 					<span className="font-mono text-[10px] font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
 						30d fees by protocol
 					</span>
-					<span className="font-mono text-[10px] tabular-nums text-(--text-tertiary)">bar · top 7</span>
+					<span className="font-mono text-[10px] text-(--text-tertiary) tabular-nums">bar · top 7</span>
 				</div>
 				<FeesChart />
 			</div>
@@ -411,7 +409,7 @@ function FeesChart() {
 	return (
 		<div className="flex w-full" style={{ paddingBottom: 22 }}>
 			<div
-				className="flex shrink-0 flex-col-reverse justify-between font-mono text-[9.5px] tabular-nums text-(--text-tertiary)"
+				className="flex shrink-0 flex-col-reverse justify-between font-mono text-[9.5px] text-(--text-tertiary) tabular-nums"
 				style={{ width: Y_AXIS_WIDTH, height: CHART_HEIGHT }}
 			>
 				{ticks.map((t) => (
@@ -436,7 +434,7 @@ function FeesChart() {
 						const h = (b.value / yMax) * CHART_HEIGHT
 						return (
 							<div key={b.label} className="group relative flex flex-1 flex-col items-center justify-end">
-								<span className="mb-1 font-mono text-[10px] tabular-nums text-(--text-secondary)">
+								<span className="mb-1 font-mono text-[10px] text-(--text-secondary) tabular-nums">
 									{formatCompactUsd(b.value)}
 								</span>
 								<div
