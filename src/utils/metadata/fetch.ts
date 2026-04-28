@@ -1,4 +1,5 @@
 import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DIRECTORY_API } from '~/constants'
+import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api.types'
 import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
@@ -188,10 +189,12 @@ export async function fetchCoreMetadata({
 		}),
 		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
 		fetchWithDevFallback<TokenDirectory>(TOKEN_DIRECTORY_API, {}),
-		fetchWithDevFallback<{ tokens?: Record<string, Record<string, { symbol: string; decimals: number }>> }>(
-			LIQUIDATIONS_DATA_URL,
-			{ tokens: {} }
-		),
+		fetchWithDevFallback<RawAllLiquidationsResponse>(LIQUIDATIONS_DATA_URL, {
+			data: {},
+			tokens: {},
+			validThresholds: [],
+			timestamp: 0
+		}),
 		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
 	])
 
@@ -260,7 +263,7 @@ export async function fetchCoreMetadata({
 
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
-	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse.tokens ?? {})
+	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse)
 
 	return {
 		protocols,

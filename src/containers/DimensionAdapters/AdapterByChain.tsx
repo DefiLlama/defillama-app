@@ -620,12 +620,19 @@ const NameColumn = (type: IProps['type']) =>
 					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					<span className="-my-2 flex flex-col">
-						<BasicLink
-							href={`/${basePath}/${row.original.slug}${chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''}`}
-							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-						>
-							{value}
-						</BasicLink>
+						<span className="flex min-w-0 items-center gap-1">
+							<BasicLink
+								href={`/${basePath}/${row.original.slug}${chartKey ? `?tvl=false&events=false&${chartKey}=true` : ''}`}
+								className="min-w-0 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+							>
+								{value}
+							</BasicLink>
+							{row.original.warning ? (
+								<Tooltip content={row.original.warning}>
+									<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-(--warning)" />
+								</Tooltip>
+							) : null}
+						</span>
 
 						{row.original.chains ? (
 							<Tooltip

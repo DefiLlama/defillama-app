@@ -19,6 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
@@ -184,6 +185,11 @@ const NameColumn = (route: string) =>
 					>
 						{value}
 					</BasicLink>
+					{row.original.warning ? (
+						<Tooltip content={row.original.warning}>
+							<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-(--warning)" />
+						</Tooltip>
+					) : null}
 				</span>
 			)
 		},

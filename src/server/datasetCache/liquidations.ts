@@ -13,6 +13,7 @@ import {
 	buildLiquidationsOverviewPageData,
 	buildLiquidationsProtocolPageData,
 	buildTokenLiquidationsSectionData,
+	hasTokenLiquidationsData,
 	resolveChainId,
 	resolveProtocolId,
 	type LiquidationsMetadataCache
@@ -56,6 +57,15 @@ export async function getTokenLiquidationsFromCache(
 		getLiquidationsAllResponse()
 	])
 	return buildTokenLiquidationsSectionData(tokenSymbol, protocolsResponse, allResponse, metadataCache)
+}
+
+export async function hasTokenLiquidationsInCache(tokenSymbol: string): Promise<boolean> {
+	await readDatasetManifest()
+	const [protocolsResponse, allResponse] = await Promise.all([
+		getLiquidationsProtocolsResponse(),
+		getLiquidationsAllResponse()
+	])
+	return hasTokenLiquidationsData(tokenSymbol, protocolsResponse, allResponse)
 }
 
 async function resolveCachedLiquidationsProtocolId(

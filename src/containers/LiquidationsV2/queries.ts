@@ -544,6 +544,40 @@ export function buildTokenLiquidationsSectionData(
 	}
 }
 
+export function hasTokenLiquidationsData(
+	tokenSymbol: string,
+	protocolsResponse: RawProtocolsResponse,
+	allResponse: RawAllLiquidationsResponse
+): boolean {
+	const normalizedTokenSymbol = normalizeLiquidationsTokenSymbol(tokenSymbol)
+	if (!normalizedTokenSymbol) {
+		return false
+	}
+
+	for (const protocolId of protocolsResponse.protocols) {
+		const protocolData = allResponse.data[protocolId]
+		if (!protocolData) {
+			continue
+		}
+
+		for (const chainId in protocolData) {
+			const chainTokenMap = allResponse.tokens[chainId]
+			if (!chainTokenMap) {
+				continue
+			}
+
+			for (const position of protocolData[chainId]) {
+				const token = chainTokenMap[position.collateral]
+				if (normalizeLiquidationsTokenSymbol(token?.symbol) === normalizedTokenSymbol) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
 export function buildLiquidationsProtocolPageData(
 	protocolId: string,
 	protocolIds: string[],
@@ -680,6 +714,11 @@ export async function getTokenLiquidationsSectionDataFromNetwork(
 ): Promise<TokenLiquidationsSectionData | null> {
 	const { protocolsResponse, allResponse } = await getTokenLiquidationsSnapshot()
 	return buildTokenLiquidationsSectionData(tokenSymbol, protocolsResponse, allResponse, metadataCache)
+}
+
+export async function hasTokenLiquidationsDataFromNetwork(tokenSymbol: string): Promise<boolean> {
+	const { protocolsResponse, allResponse } = await getTokenLiquidationsSnapshot()
+	return hasTokenLiquidationsData(tokenSymbol, protocolsResponse, allResponse)
 }
 
 export async function getLiquidationsProtocolPageDataFromNetwork(

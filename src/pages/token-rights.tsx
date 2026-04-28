@@ -3,9 +3,10 @@ import { TokenLogo } from '~/components/TokenLogo'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { slug } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
+import type { ICexItem, IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 import { recordDomainEvent } from '~/utils/telemetry'
 import {
@@ -23,6 +24,7 @@ interface TokenRightsListItem {
 type TokenRightsMetadataMatch =
 	| { source: 'chain'; metadata: IChainMetadata }
 	| { source: 'protocol'; metadata: IProtocolMetadata }
+	| { source: 'cex'; metadata: ICexItem }
 
 type SkippedTokenRightsEntry = {
 	defillamaId: string | null
@@ -52,17 +54,18 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 			})()
 		: await import('~/containers/TokenRights/api').then((m) => m.fetchTokenRightsData())
 
-	const { chainMetadata, protocolMetadata, tokenDirectory } = metadataModule.default as {
+	const { chainMetadata, protocolMetadata, tokenDirectory, cexs } = metadataModule.default as {
 		chainMetadata: Record<string, IChainMetadata>
 		protocolMetadata: Record<string, IProtocolMetadata>
 		tokenDirectory: TokenDirectory
+		cexs: ICexItem[]
 	}
 
 	const protocols: TokenRightsListItem[] = []
 	const skippedEntries: SkippedTokenRightsEntry[] = []
 
 	for (const entry of entries) {
-		const resolved = resolveTokenRightsListItem(entry, { chainMetadata, protocolMetadata, tokenDirectory })
+		const resolved = resolveTokenRightsListItem(entry, { chainMetadata, protocolMetadata, tokenDirectory, cexs })
 
 		if (resolved.type === 'linked') {
 			protocols.push(resolved.item)
@@ -85,21 +88,24 @@ function resolveTokenRightsListItem(
 	{
 		chainMetadata,
 		protocolMetadata,
-		tokenDirectory
+		tokenDirectory,
+		cexs
 	}: {
 		chainMetadata: Record<string, IChainMetadata>
 		protocolMetadata: Record<string, IProtocolMetadata>
 		tokenDirectory: TokenDirectory
+		cexs: ICexItem[]
 	}
 ): TokenRightsLinkResolution {
 	const defillamaId = entry['DefiLlama ID']?.trim() || null
+	const protocolName = entry['Protocol Name'].trim()
 	const baseSkippedEntry = { defillamaId }
 
 	if (!defillamaId) {
 		return { type: 'skipped', entry: { ...baseSkippedEntry, reason: 'missing_defillama_id' } }
 	}
 
-	const metadataMatch = findTokenRightsMetadataByDefillamaId(defillamaId, chainMetadata, protocolMetadata)
+	const metadataMatch = findTokenRightsMetadata(defillamaId, protocolName, chainMetadata, protocolMetadata, cexs)
 	if (!metadataMatch) {
 		return { type: 'skipped', entry: { ...baseSkippedEntry, reason: 'missing_metadata' } }
 	}
@@ -116,8 +122,21 @@ function resolveTokenRightsListItem(
 		}
 	}
 
-	const geckoId = metadataMatch.metadata.gecko_id
+	const geckoId = metadataMatch.source === 'cex' ? metadataMatch.metadata.cgId : metadataMatch.metadata.gecko_id
 	let tokenRecord = findTokenDirectoryRecordByDefillamaId(tokenDirectory, defillamaId)
+
+	if (!tokenRecord && metadataMatch.source === 'cex') {
+		const cexSlug = slug(protocolName)
+
+		for (const key in tokenDirectory) {
+			const token = tokenDirectory[key]
+
+			if (slug(token.name) === cexSlug) {
+				tokenRecord = token
+				break
+			}
+		}
+	}
 
 	if (!tokenRecord && !geckoId) {
 		return {
@@ -168,10 +187,12 @@ function resolveTokenRightsListItem(
 	}
 }
 
-function findTokenRightsMetadataByDefillamaId(
+function findTokenRightsMetadata(
 	defillamaId: string,
+	name: string,
 	chainMetadata: Record<string, IChainMetadata>,
-	protocolMetadata: Record<string, IProtocolMetadata>
+	protocolMetadata: Record<string, IProtocolMetadata>,
+	cexs: ICexItem[]
 ): TokenRightsMetadataMatch | null {
 	const chain = chainMetadata[defillamaId]
 	if (chain) return { source: 'chain', metadata: chain }
@@ -184,6 +205,11 @@ function findTokenRightsMetadataByDefillamaId(
 	const protocol = protocolMetadata[defillamaId]
 	if (protocol) return { source: 'protocol', metadata: protocol }
 
+	const cexSlug = slug(name)
+	for (const cex of cexs) {
+		if (cex.slug && slug(cex.slug) === cexSlug) return { source: 'cex', metadata: cex }
+	}
+
 	return null
 }
 
@@ -193,7 +219,11 @@ function getMetadataDisplayName(metadataMatch: TokenRightsMetadataMatch): string
 		return chain.displayName ?? chain.name ?? null
 	}
 
-	return metadataMatch.metadata.displayName ?? metadataMatch.metadata.name ?? null
+	if (metadataMatch.source === 'protocol') {
+		return metadataMatch.metadata.displayName ?? metadataMatch.metadata.name ?? null
+	}
+
+	return metadataMatch.metadata.name ?? null
 }
 
 function reportSkippedTokenRightsEntries(skippedEntries: SkippedTokenRightsEntry[]): void {

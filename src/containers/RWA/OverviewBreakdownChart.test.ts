@@ -1,5 +1,86 @@
-import { describe, expect, it } from 'vitest'
-import { getOverviewBreakdownRequestState } from './OverviewBreakdownChart'
+import { Writable } from 'node:stream'
+import { createElement, type ReactElement } from 'react'
+import { renderToPipeableStream } from 'react-dom/server'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
+import {
+	buildOverviewBreakdownChartSeries,
+	getOverviewBreakdownRequestState,
+	RWAOverviewBreakdownChart
+} from './OverviewBreakdownChart'
+
+let routerQuery: Record<string, string | string[]> = {}
+let queryState: { data: any; isLoading: boolean; error: any } = {
+	data: null,
+	isLoading: false,
+	error: null
+}
+let lastChartProps: IMultiSeriesChart2Props | null = null
+
+vi.mock('next/router', () => ({
+	useRouter: () => ({ query: routerQuery })
+}))
+
+vi.mock('@tanstack/react-query', () => ({
+	useQuery: () => queryState
+}))
+
+vi.mock('~/components/ButtonStyled/ChartExportButtons', () => ({
+	ChartExportButtons: () => null
+}))
+
+vi.mock('~/components/ECharts/MultiSeriesChart2', () => ({
+	default: (props: IMultiSeriesChart2Props) => {
+		lastChartProps = props
+		return null
+	}
+}))
+
+vi.mock('~/components/Select/SelectWithCombobox', () => ({
+	SelectWithCombobox: () => null
+}))
+
+vi.mock('~/hooks/useGetChartInstance', () => ({
+	useGetChartInstance: () => ({
+		chartInstance: null,
+		handleChartReady: () => {}
+	})
+}))
+
+function renderAll(element: ReactElement) {
+	return new Promise<void>((resolve, reject) => {
+		let settled = false
+		const out = new Writable({
+			write(_chunk, _encoding, callback) {
+				callback()
+			}
+		})
+		const stream = renderToPipeableStream(element, {
+			onAllReady() {
+				stream.pipe(out)
+			},
+			onError(error) {
+				if (!settled) {
+					settled = true
+					reject(error)
+				}
+			}
+		})
+
+		out.on('finish', () => {
+			if (!settled) {
+				settled = true
+				resolve()
+			}
+		})
+	})
+}
+
+beforeEach(() => {
+	routerQuery = {}
+	queryState = { data: null, isLoading: false, error: null }
+	lastChartProps = null
+})
 
 describe('getOverviewBreakdownRequestState', () => {
 	it('uses the platform default state when there are no query params', () => {
@@ -51,5 +132,64 @@ describe('getOverviewBreakdownRequestState', () => {
 			},
 			isDefaultState: true
 		})
+	})
+
+	it('renders supplied total series with requested aggregate breakdown charts', async () => {
+		const dataset = {
+			source: [{ timestamp: 1, 'Total Active Mcap': 15, Ethereum: 10, Solana: 5 }],
+			dimensions: ['timestamp', 'Total Active Mcap', 'Ethereum', 'Solana']
+		}
+
+		await renderAll(
+			createElement(RWAOverviewBreakdownChart, {
+				page: { kind: 'chain' },
+				initialChartDataset: dataset,
+				stackLabel: 'Chains'
+			})
+		)
+
+		expect(lastChartProps?.dataset).toBe(dataset)
+		expect(lastChartProps?.hideDefaultLegend).toBe(false)
+		expect(lastChartProps?.stacked).toBeUndefined()
+		expect(lastChartProps?.showTotalInTooltip).toBe(false)
+		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Total Active Mcap', 'Ethereum', 'Solana'])
+		expect(lastChartProps?.charts?.[0]).toMatchObject({
+			name: 'Total Active Mcap',
+			hideAreaStyle: true,
+			excludeFromTooltipTotal: true
+		})
+	})
+
+	it('leaves category breakdown charts unchanged', async () => {
+		const dataset = {
+			source: [{ timestamp: 1, Treasuries: 10, Credit: 5 }],
+			dimensions: ['timestamp', 'Treasuries', 'Credit']
+		}
+
+		await renderAll(
+			createElement(RWAOverviewBreakdownChart, {
+				page: { kind: 'category' },
+				initialChartDataset: dataset,
+				stackLabel: 'Categories'
+			})
+		)
+
+		expect(lastChartProps?.dataset).toBe(dataset)
+		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Treasuries', 'Credit'])
+	})
+})
+
+describe('buildOverviewBreakdownChartSeries', () => {
+	it('uses total-series styling without excluding normal series', () => {
+		expect(buildOverviewBreakdownChartSeries(['timestamp', 'Total Active Mcap', 'Ethereum'])).toEqual([
+			expect.objectContaining({
+				name: 'Total Active Mcap',
+				hideAreaStyle: true,
+				excludeFromTooltipTotal: true
+			}),
+			expect.objectContaining({
+				name: 'Ethereum'
+			})
+		])
 	})
 })

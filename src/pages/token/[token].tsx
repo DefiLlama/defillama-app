@@ -279,15 +279,31 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		})
 		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
-		const hasLiquidations = metadataCache.liquidationsTokenSymbolsSet.has(
-			normalizeLiquidationsTokenSymbol(record.symbol) ?? ''
-		)
 		const shouldUseDatasetCache = isDatasetCacheEnabled()
+		const normalizedLiquidationsSymbol = normalizeLiquidationsTokenSymbol(record.symbol)
 		const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
 		const protocolDefiLlamaId = record.protocolId ?? protocolMetadata?.name ?? null
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
+		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
+		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
+			const liquidationsSymbol = normalizedLiquidationsSymbol
+			liquidationsPromise = (
+				shouldUseDatasetCache
+					? (async () => {
+							const { hasTokenLiquidationsInCache } = await import('~/server/datasetCache/liquidations')
+							return hasTokenLiquidationsInCache(liquidationsSymbol)
+						})()
+					: (async () => {
+							const { hasTokenLiquidationsDataFromNetwork } = await import('~/containers/LiquidationsV2/queries')
+							return hasTokenLiquidationsDataFromNetwork(liquidationsSymbol)
+						})()
+			).catch((error) => {
+				console.error(`Failed to load token liquidations data for ${record.symbol}`, error)
+				return false
+			})
+		}
 		const overviewPromise = (async () => {
 			if (!shouldUseDatasetCache) {
 				return getTokenOverviewData({
@@ -426,6 +442,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			resolvedIncomeStatementData,
 			yieldsRows,
 			tokenBorrowRoutesData,
+			hasLiquidations,
 			riskData,
 			riskTimelineData
 		] = await Promise.all([
@@ -443,6 +460,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
 				return null
 			}),
+			liquidationsPromise,
 			tokenRiskPromise,
 			tokenRiskTimelinePromise
 		])

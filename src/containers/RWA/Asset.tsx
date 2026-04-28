@@ -2,6 +2,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -14,6 +15,8 @@ import { chainIconUrl } from '~/utils/icons'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
+import { getRwaPlatforms } from './grouping'
+import { rwaSlug } from './rwaSlug'
 import { RWAYieldsTable } from './RWAYieldsTable'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -175,31 +178,23 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const onChainMcap = asset.onChainMcap ?? null
 	const activeMcap = asset.activeMcap ?? null
 	const defiActiveTv = asset.defiActiveTvl ?? null
-	const oracleProvider =
-		typeof asset.oracleProvider === 'string' && asset.oracleProvider.trim().length > 0 ? asset.oracleProvider : null
-	const oracleProofLink =
-		typeof asset.oracleProofLink === 'string' && asset.oracleProofLink.trim().length > 0 ? asset.oracleProofLink : null
-	const rwaGithub = typeof asset.rwaGithub === 'string' && asset.rwaGithub.trim().length > 0 ? asset.rwaGithub : null
-	const discord = typeof asset.discord === 'string' && asset.discord.trim().length > 0 ? asset.discord : null
-	const telegram = typeof asset.telegram === 'string' && asset.telegram.trim().length > 0 ? asset.telegram : null
-	const hasDiscord = asset.discord === true || discord !== null
-	const hasTelegram = asset.telegram === true || telegram !== null
-	const dateOfLastAttestation =
-		typeof asset.dateOfLastAttestation === 'string' && asset.dateOfLastAttestation.trim().length > 0
-			? asset.dateOfLastAttestation
-			: null
 	const attestationFrequency = Array.isArray(asset.attestationFrequency)
-		? asset.attestationFrequency.filter(Boolean).join('; ')
-		: asset.attestationFrequency || null
-	const parentPlatformLabel =
-		typeof asset.parentPlatform === 'string'
-			? asset.parentPlatform.trim() || null
-			: Array.isArray(asset.parentPlatform)
-				? asset.parentPlatform
-						.map((value) => value.trim())
-						.filter(Boolean)
-						.join(', ') || null
-				: null
+		? asset.attestationFrequency.length > 0
+			? asset.attestationFrequency.join('; ')
+			: null
+		: (asset.attestationFrequency ?? null)
+	const parentPlatforms = getRwaPlatforms(asset.parentPlatform)
+	let hasParentPlatformName = false
+	if (typeof asset.parentPlatform === 'string') {
+		hasParentPlatformName = asset.parentPlatform.trim().length > 0
+	} else if (Array.isArray(asset.parentPlatform)) {
+		for (const platform of asset.parentPlatform) {
+			if (platform.trim()) {
+				hasParentPlatformName = true
+				break
+			}
+		}
+	}
 
 	const { data: yieldChartRaw, isLoading: isLoadingYieldChart } = useYieldChartData(asset.nativeYieldPoolId)
 	const { chartInstance: nativeYieldChartInstance, handleChartReady: onNativeYieldChartReady } = useGetChartInstance()
@@ -235,12 +230,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			? BASE_TIME_SERIES_CHARTS.filter((chart) => chartDimensions.includes(String(chart.encode.y)))
 			: BASE_TIME_SERIES_CHARTS
 
-	// Get attestation links as array
-	const attestationLinks = asset.attestationLinks
-		? Array.isArray(asset.attestationLinks)
-			? asset.attestationLinks
-			: [asset.attestationLinks]
-		: []
+	const attestationLinks = asset.attestationLinks ?? []
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -293,9 +283,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							</a>
 						)
 					) : null}
-					{rwaGithub ? (
+					{asset.rwaGithub != null ? (
 						<a
-							href={rwaGithub}
+							href={asset.rwaGithub}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
@@ -304,39 +294,27 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							GitHub
 						</a>
 					) : null}
-					{hasDiscord ? (
-						discord ? (
-							<a
-								href={discord}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-							>
-								<Icon name="external-link" className="h-3 w-3" />
-								Discord
-							</a>
-						) : (
-							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
-								Discord
-							</span>
-						)
+					{typeof asset.discord === 'string' ? (
+						<a
+							href={asset.discord}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							Discord
+						</a>
 					) : null}
-					{hasTelegram ? (
-						telegram ? (
-							<a
-								href={telegram}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
-							>
-								<Icon name="external-link" className="h-3 w-3" />
-								Telegram
-							</a>
-						) : (
-							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
-								Telegram
-							</span>
-						)
+					{typeof asset.telegram === 'string' ? (
+						<a
+							href={asset.telegram}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							Telegram
+						</a>
 					) : null}
 				</div>
 			</div>
@@ -459,7 +437,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<span className="flex flex-wrap items-center gap-1 font-medium">
 										{asset.category.map((category, idx) => (
 											<span key={category} className="flex items-center gap-0.5">
-												{category}
+												<BasicLink
+													href={`/rwa/category/${rwaSlug(category)}`}
+													className="text-(--link-text) hover:underline"
+												>
+													{category}
+												</BasicLink>
 												{definitions.category.values?.[category] ? (
 													<QuestionHelper text={definitions.category.values[category]} />
 												) : null}
@@ -529,10 +512,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									{asset.accessModelDescription ? <QuestionHelper text={asset.accessModelDescription} /> : null}
 								</span>
 							</p>
-							{parentPlatformLabel ? (
+							{hasParentPlatformName ? (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 									<span className="text-(--text-label)">Parent Platform</span>
-									<span className="font-medium">{parentPlatformLabel}</span>
+									<span className="flex flex-wrap items-center gap-x-1 font-medium">
+										{parentPlatforms.map((platform, idx) => (
+											<span key={`${platform}-${idx}`} className="flex items-center gap-0.5">
+												<BasicLink
+													href={`/rwa/platform/${rwaSlug(platform)}`}
+													className="text-(--link-text) hover:underline"
+												>
+													{platform}
+												</BasicLink>
+												{idx < parentPlatforms.length - 1 ? ',' : null}
+											</span>
+										))}
+									</span>
 								</p>
 							) : null}
 						</div>
@@ -642,11 +637,11 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					</SectionCard>
 
 					{/* Oracle Metadata */}
-					{oracleProvider || oracleProofLink ? (
+					{asset.oracleProvider != null || asset.oracleProofLink != null ? (
 						<SectionCard title="Oracle">
-							{oracleProofLink ? (
+							{asset.oracleProofLink != null ? (
 								<a
-									href={oracleProofLink}
+									href={asset.oracleProofLink}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
@@ -654,7 +649,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<span className="flex items-center gap-2">
 										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
 										<span className="flex flex-col">
-											<span className="text-sm font-medium">{oracleProvider || 'Oracle Proof'}</span>
+											<span className="text-sm font-medium">{asset.oracleProvider ?? 'Oracle Proof'}</span>
 											<span className="text-xs text-(--text-disabled)">View oracle proof details</span>
 										</span>
 									</span>
@@ -662,14 +657,14 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</a>
 							) : (
 								<p className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-									<span className="text-sm font-medium">{oracleProvider}</span>
+									<span className="text-sm font-medium">{asset.oracleProvider}</span>
 								</p>
 							)}
 						</SectionCard>
 					) : null}
 
 					{/* Attestations */}
-					{attestationLinks.length > 0 || dateOfLastAttestation || attestationFrequency ? (
+					{attestationLinks.length > 0 || asset.dateOfLastAttestation != null || attestationFrequency != null ? (
 						<SectionCard
 							title={
 								<Tooltip content={definitions.attestations.description} className="underline decoration-dotted">
@@ -677,13 +672,13 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 							}
 						>
-							{dateOfLastAttestation ? (
+							{asset.dateOfLastAttestation != null ? (
 								<p className="mb-2 flex flex-col gap-1">
 									<span className="text-(--text-label)">Date of Last Attestation</span>
-									<span className="font-medium">{dateOfLastAttestation}</span>
+									<span className="font-medium">{asset.dateOfLastAttestation}</span>
 								</p>
 							) : null}
-							{attestationFrequency ? (
+							{attestationFrequency != null ? (
 								<p className="mb-2 flex flex-col gap-1">
 									<span className="text-(--text-label)">Attestation Frequency</span>
 									<span className="font-medium">{attestationFrequency}</span>

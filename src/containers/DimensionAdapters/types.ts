@@ -46,6 +46,7 @@ export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> &
 	methodology?: string | null
 	doublecounted?: boolean
 	zeroFeePerp?: boolean
+	warning?: string
 	breakdownAliases?: Array<string>
 	childProtocols?: Array<IProtocol>
 }
@@ -84,6 +85,7 @@ export interface IChainsByAdapterPageData {
 		tokenTax?: { total24h: number | null; total7d: number | null; total30d: number | null }
 		openInterest?: number | null
 		activeLiquidity?: number | null
+		warning?: string
 	}>
 	allChains: Array<string>
 }

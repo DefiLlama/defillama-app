@@ -106,6 +106,7 @@ const state: {
 	chainMetadata: Record<string, { name: string }>
 	liquidationsTokenSymbols: string[]
 	liquidationsTokenSymbolsSet: Set<string>
+	hasTokenLiquidationsData: boolean
 	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
@@ -123,6 +124,7 @@ const state: {
 	chainMetadata: {},
 	liquidationsTokenSymbols: [],
 	liquidationsTokenSymbolsSet: new Set<string>(),
+	hasTokenLiquidationsData: false,
 	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
@@ -159,6 +161,7 @@ function resetState() {
 	state.chainMetadata = {}
 	state.liquidationsTokenSymbols = []
 	state.liquidationsTokenSymbolsSet = new Set<string>()
+	state.hasTokenLiquidationsData = false
 	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
@@ -338,6 +341,10 @@ vi.mock('~/containers/Token/tokenYields.server', () => ({
 
 vi.mock('~/containers/Token/tokenBorrowRoutes.server', () => ({
 	getTokenBorrowRoutesDataFromNetwork: vi.fn(() => Promise.resolve(state.initialTokenBorrowRoutesData))
+}))
+
+vi.mock('~/containers/LiquidationsV2/queries', () => ({
+	hasTokenLiquidationsDataFromNetwork: vi.fn(() => Promise.resolve(state.hasTokenLiquidationsData))
 }))
 
 afterEach(() => {
@@ -617,7 +624,21 @@ describe('token page', () => {
 		})
 	})
 
-	it('getStaticProps enables the liquidations section when metadata includes the token symbol', async () => {
+	it('getStaticProps enables the liquidations section when metadata includes the token symbol with rows', async () => {
+		state.liquidationsTokenSymbols = ['BTC']
+		state.liquidationsTokenSymbolsSet = new Set(['BTC'])
+		state.hasTokenLiquidationsData = true
+
+		const result = await getStaticProps({ params: { token: 'btc' } } as never)
+
+		expect('props' in result).toBe(true)
+		if (!('props' in result)) throw new Error('expected props')
+
+		expect(result.props.hasLiquidations).toBe(true)
+		expect(result.props.visibleSections).toContain('token-liquidations')
+	})
+
+	it('getStaticProps skips the liquidations section when metadata has the token but no rows', async () => {
 		state.liquidationsTokenSymbols = ['BTC']
 		state.liquidationsTokenSymbolsSet = new Set(['BTC'])
 
@@ -626,7 +647,8 @@ describe('token page', () => {
 		expect('props' in result).toBe(true)
 		if (!('props' in result)) throw new Error('expected props')
 
-		expect(result.props.hasLiquidations).toBe(true)
+		expect(result.props.hasLiquidations).toBe(false)
+		expect(result.props.visibleSections).not.toContain('token-liquidations')
 	})
 
 	it('getStaticProps does not resolve by token name slug', async () => {

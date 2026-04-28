@@ -7,11 +7,13 @@ afterEach(() => {
 })
 
 function setupPageModule({
+	cexs = [],
 	chainMetadata = {},
 	tokensJson = {},
 	tokenRightsEntries = [],
 	protocolMetadata = {}
 }: {
+	cexs?: Array<Record<string, unknown>>
 	chainMetadata?: Record<string, unknown>
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
@@ -36,6 +38,9 @@ function setupPageModule({
 				.replaceAll(/[^a-z0-9]+/g, '-')
 				.replace(/^-+|-+$/g, '')
 	}))
+	vi.doMock('~/utils/telemetry', () => ({
+		recordDomainEvent: vi.fn()
+	}))
 	vi.doMock('~/utils/icons', () => ({
 		tokenIconUrl: (value: string) => `icon:${value}`
 	}))
@@ -49,6 +54,7 @@ function setupPageModule({
 		__esModule: true,
 		default: {
 			chainMetadata,
+			cexs,
 			protocolMetadata,
 			tokenDirectory: tokensJson
 		},
@@ -154,5 +160,62 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
+	})
+
+	it('routes cex entries when the token rights name matches a cex slug', async () => {
+		const page = await setupPageModule({
+			cexs: [{ name: 'Backpack', slug: 'backpack' }],
+			tokensJson: {
+				bp: {
+					name: 'Backpack',
+					symbol: 'BP',
+					token_nk: 'coingecko:backpack',
+					route: '/token/BP'
+				}
+			},
+			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' }]
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+			props: {
+				protocols: [{ name: 'Backpack', logo: 'icon:Backpack', href: '/token/BP' }]
+			},
+			revalidate: 123
+		})
+		const { recordDomainEvent } = await import('~/utils/telemetry')
+		expect(recordDomainEvent).not.toHaveBeenCalled()
+	})
+
+	it('skips cex entries when the matching token has no page route', async () => {
+		const page = await setupPageModule({
+			cexs: [{ name: 'Backpack', slug: 'backpack' }],
+			tokensJson: {
+				bp: {
+					name: 'Backpack',
+					symbol: 'BP',
+					token_nk: 'coingecko:backpack'
+				}
+			},
+			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' }]
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+			props: {
+				protocols: []
+			},
+			revalidate: 123
+		})
+		const { recordDomainEvent } = await import('~/utils/telemetry')
+		expect(recordDomainEvent).toHaveBeenCalledTimes(1)
+		expect(recordDomainEvent).toHaveBeenCalledWith(
+			'token_rights.alert',
+			'warn',
+			'token-rights',
+			'Skipped token rights entries while building token-rights page',
+			expect.objectContaining({
+				reason_counts: { missing_token_route: 1 },
+				skipped_count: 1
+			})
+		)
 	})
 })

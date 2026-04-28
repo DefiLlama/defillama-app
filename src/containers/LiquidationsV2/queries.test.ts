@@ -20,6 +20,7 @@ import {
 	getLiquidationsOverviewPageData,
 	getLiquidationsProtocolPageData,
 	getTokenLiquidationsSectionData,
+	hasTokenLiquidationsData,
 	resetTokenLiquidationsSnapshotCache
 } from './queries'
 
@@ -333,6 +334,36 @@ describe('LiquidationsV2 queries', () => {
 			collateralCount: 1,
 			totalCollateralUsd: 3000
 		})
+	})
+
+	it('checks token liquidation availability from current position rows', () => {
+		const protocolsResponse: RawProtocolsResponse = { protocols: ['aave-v3'] }
+		const allResponse: RawAllLiquidationsResponse = {
+			timestamp: 400,
+			validThresholds: ['all'],
+			tokens: {
+				ethereum: {
+					'ethereum:wsteth': { symbol: 'wstETH', decimals: 18 },
+					'ethereum:ldo': { symbol: 'LDO', decimals: 18 }
+				}
+			},
+			data: {
+				'aave-v3': {
+					ethereum: [
+						{
+							owner: '0x1',
+							liqPrice: 1,
+							collateral: 'ethereum:wsteth',
+							collateralAmount: 10,
+							collateralAmountUsd: 1000
+						}
+					]
+				}
+			}
+		}
+
+		expect(hasTokenLiquidationsData('wsteth', protocolsResponse, allResponse)).toBe(true)
+		expect(hasTokenLiquidationsData('ldo', protocolsResponse, allResponse)).toBe(false)
 	})
 
 	it('builds protocol and token liquidations data from a raw snapshot without network fetches', () => {
