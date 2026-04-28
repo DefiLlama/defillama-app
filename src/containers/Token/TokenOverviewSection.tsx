@@ -72,7 +72,7 @@ function formatPercent(value: number | null | undefined) {
 
 function formatRaiseAmount(value: number | null | undefined) {
 	if (value == null) return 'Undisclosed'
-	return formattedNum(value, true)
+	return formattedNum(value * 1_000_000, true)
 }
 
 function getTotalRaisedAmount(raises: TokenOverviewData['raises']): number | null {
