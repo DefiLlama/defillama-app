@@ -7,7 +7,6 @@ import { Keycap, TypeBadge, type ColumnKind } from './primitives'
 interface UpsellGateProps {
 	isAuthenticated: boolean
 	isTrial: boolean
-	topRight?: ReactNode
 }
 
 const FEATURES: { icon: IIcon['name']; title: string; body: string }[] = [
@@ -127,7 +126,7 @@ const SAMPLE_COLS: SampleCol[] = [
 	{ name: 'keep_ratio', kind: 'float', type: 'DOUBLE', width: 116 }
 ]
 
-export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGateProps) {
+export function UpsellGate({ isAuthenticated, isTrial }: UpsellGateProps) {
 	const router = useRouter()
 	const subscriptionHref = `/subscription?returnUrl=${encodeURIComponent(router.asPath)}`
 
@@ -143,14 +142,11 @@ export function UpsellGate({ isAuthenticated, isTrial, topRight }: UpsellGatePro
 		<div className="flex flex-col gap-14 pb-8">
 			<section className="flex flex-col gap-8 lg:gap-10">
 				<header className="flex flex-col gap-5">
-					<div className="flex items-center justify-between gap-3">
-						<div className="flex items-center gap-2">
-							<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-(--sub-brand-primary)" />
-							<span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-(--sub-brand-primary) uppercase">
-								API plan
-							</span>
-						</div>
-						{topRight ? <div className="shrink-0">{topRight}</div> : null}
+					<div className="flex items-center gap-2">
+						<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-(--sub-brand-primary)" />
+						<span className="font-mono text-[11px] font-semibold tracking-[0.18em] text-(--sub-brand-primary) uppercase">
+							API plan
+						</span>
 					</div>
 					<h2 className="text-4xl leading-[1.04] font-semibold tracking-tight text-balance text-(--text-primary) lg:text-5xl">
 						{heading}

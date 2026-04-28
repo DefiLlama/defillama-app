@@ -34,18 +34,44 @@ export function DownloadsCatalog({ chartOptionsMap }: DownloadsCatalogProps) {
 		[router]
 	)
 
-	if (mode === 'sql') {
-		return (
-			<SqlWorkspace
-				chartOptionsMap={chartOptionsMap}
-				topRight={<ModeToggle mode={mode} onChange={handleModeChange} size="sm" />}
-			/>
-		)
-	}
 	return (
-		<SimpleCatalog
-			chartOptionsMap={chartOptionsMap}
-			modeSwitcher={<ModeToggle mode={mode} onChange={handleModeChange} size="md" />}
-		/>
+		<div className="flex flex-col gap-6">
+			<ModeBand mode={mode} onChange={handleModeChange} />
+			{mode === 'sql' ? (
+				<SqlWorkspace chartOptionsMap={chartOptionsMap} />
+			) : (
+				<SimpleCatalog chartOptionsMap={chartOptionsMap} />
+			)}
+		</div>
+	)
+}
+
+function ModeBand({ mode, onChange }: { mode: DownloadsMode; onChange: (next: DownloadsMode) => void }) {
+	const isSql = mode === 'sql'
+	const title = isSql ? 'SQL Studio' : 'Power user? Try SQL Studio'
+	const subtitle = isSql
+		? "You're in SQL Studio — switch back to the simple catalog anytime."
+		: 'Run live SQL across every DefiLlama dataset — joins, rolling windows, and instant CSV exports.'
+
+	return (
+		<div className="flex flex-col gap-3 rounded-xl border border-(--sub-brand-primary)/25 bg-linear-to-br from-(--sub-brand-primary)/8 to-(--cards-bg) p-3 sm:flex-row sm:items-center sm:gap-5 sm:p-4">
+			<div className="flex flex-col gap-0.5">
+				<span className="text-sm font-semibold tracking-tight text-(--text-primary)">{title}</span>
+				<span className="text-xs leading-relaxed text-(--text-secondary)">{subtitle}</span>
+			</div>
+			{isSql ? null : (
+				<div aria-hidden className="hidden shrink-0 items-center sm:ml-auto sm:flex">
+					<span className="rounded-md border border-(--divider) bg-(--cards-bg) px-2.5 py-1 font-mono text-[10.5px] tracking-tight">
+						<span className="font-semibold text-(--sub-brand-primary)">SELECT</span>
+						<span className="text-(--text-tertiary)"> * </span>
+						<span className="font-semibold text-(--sub-brand-primary)">FROM</span>
+						<span className="text-(--text-secondary)"> chains</span>
+					</span>
+				</div>
+			)}
+			<div className={`shrink-0 ${isSql ? 'sm:ml-auto' : ''}`}>
+				<ModeToggle mode={mode} onChange={onChange} size="md" />
+			</div>
+		</div>
 	)
 }

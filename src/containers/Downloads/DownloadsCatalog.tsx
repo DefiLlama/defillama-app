@@ -33,11 +33,9 @@ type Tab = (typeof ALL_TABS)[number]
 const ALL_CATEGORY = 'All'
 
 export function DownloadsCatalog({
-	chartOptionsMap,
-	modeSwitcher
+	chartOptionsMap
 }: {
 	chartOptionsMap: ChartOptionsMap
-	modeSwitcher?: React.ReactNode
 }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
 	const { savedDownloads, deleteDownload, renameDownload } = useSavedDownloads()
@@ -199,31 +197,6 @@ export function DownloadsCatalog({
 					Download CSV datasets from DefiLlama. Click a dataset to preview and choose columns.
 				</p>
 			</div>
-
-			{modeSwitcher ? (
-				<div className="flex flex-col gap-3 rounded-xl border border-(--sub-brand-primary)/25 bg-linear-to-br from-(--sub-brand-primary)/8 to-(--cards-bg) p-3 sm:flex-row sm:items-center sm:gap-5 sm:p-4">
-					<div className="shrink-0">{modeSwitcher}</div>
-					<div className="flex flex-col gap-0.5">
-						<span className="text-sm font-semibold tracking-tight text-(--text-primary)">
-							Power user? Try SQL Studio
-						</span>
-						<span className="text-xs leading-relaxed text-(--text-secondary)">
-							Run live SQL across every DefiLlama dataset — joins, rolling windows, and instant CSV exports.
-						</span>
-					</div>
-					<div
-						aria-hidden
-						className="hidden shrink-0 items-center sm:ml-auto sm:flex"
-					>
-						<span className="rounded-md border border-(--divider) bg-(--cards-bg) px-2.5 py-1 font-mono text-[10.5px] tracking-tight">
-							<span className="font-semibold text-(--sub-brand-primary)">SELECT</span>
-							<span className="text-(--text-tertiary)"> * </span>
-							<span className="font-semibold text-(--sub-brand-primary)">FROM</span>
-							<span className="text-(--text-secondary)"> chains</span>
-						</span>
-					</div>
-				</div>
-			) : null}
 
 			{recentDownloads.length > 0 ? (
 				<RecentDownloadsStrip recents={recentDownloads} onRun={handleRunPreset} onClear={clearRecents} />

@@ -47,10 +47,9 @@ const PLAYBOOK_COLLAPSED_KEY = 'sql-studio:playbook-collapsed:v1'
 
 interface SqlWorkspaceProps {
 	chartOptionsMap: ChartOptionsMap
-	topRight?: ReactNode
 }
 
-export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
+export function SqlWorkspace({ chartOptionsMap }: SqlWorkspaceProps) {
 	const { isAuthenticated, isTrial, loaders, authorizedFetch, user } = useAuthContext()
 	const { subscription, isSubscriptionLoading } = useSubscribe()
 	const isApiPlan = subscription?.type === 'api' && subscription?.status === 'active'
@@ -66,20 +65,18 @@ export function SqlWorkspace({ chartOptionsMap, topRight }: SqlWorkspaceProps) {
 	}
 
 	if (!allowed) {
-		return <UpsellGate isAuthenticated={isAuthenticated} isTrial={isTrial} topRight={topRight} />
+		return <UpsellGate isAuthenticated={isAuthenticated} isTrial={isTrial} />
 	}
 
-	return <SqlWorkspaceInner chartOptionsMap={chartOptionsMap} authorizedFetch={authorizedFetch} topRight={topRight} />
+	return <SqlWorkspaceInner chartOptionsMap={chartOptionsMap} authorizedFetch={authorizedFetch} />
 }
 
 function SqlWorkspaceInner({
 	chartOptionsMap,
-	authorizedFetch,
-	topRight
+	authorizedFetch
 }: {
 	chartOptionsMap: ChartOptionsMap
 	authorizedFetch: ReturnType<typeof useAuthContext>['authorizedFetch']
-	topRight?: ReactNode
 }) {
 	const duckdb = useDuckDB()
 	const registry = useTableRegistry({ conn: duckdb.conn ?? null, authorizedFetch })
@@ -720,7 +717,6 @@ function SqlWorkspaceInner({
 				running={activeTab.running || (activeTab.cells?.some((c) => c.running) ?? false)}
 				loadingStage={activeTab.loadingStage}
 				error={!!activeTab.runError || (activeTab.cells?.some((c) => !!c.runError) ?? false)}
-				topRight={topRight}
 			/>
 
 			<TabNav tab={sectionTab} onChange={setSectionTab} savedCount={savedQueries.length} />
@@ -931,15 +927,13 @@ function StatusStrip({
 	lastRun,
 	running,
 	loadingStage,
-	error,
-	topRight
+	error
 }: {
 	duckdbStatus: 'loading' | 'ready' | 'error'
 	lastRun: LastRunMeta | null
 	running: boolean
 	loadingStage: string | null
 	error: boolean
-	topRight?: ReactNode
 }) {
 	const envTone = duckdbStatus === 'ready' ? 'ready' : duckdbStatus === 'error' ? 'error' : 'busy'
 	const busy = running || !!loadingStage
@@ -985,8 +979,6 @@ function StatusStrip({
 					<span className="text-(--text-tertiary)/80">idle</span>
 				)}
 			</span>
-
-			{topRight ? <span className="ml-auto flex items-center gap-2">{topRight}</span> : null}
 		</div>
 	)
 }
