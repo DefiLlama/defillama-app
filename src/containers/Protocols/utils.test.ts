@@ -11,8 +11,6 @@ const metric = (value: number) => ({
 	totalAllTime: value * 1000
 })
 
-<<<<<<< HEAD
-=======
 const emptyMetric = () => ({
 	total24h: null,
 	total7d: null,
@@ -22,7 +20,6 @@ const emptyMetric = () => ({
 	totalAllTime: null
 })
 
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 const protocol = (overrides: Partial<IProtocol> = {}): IProtocol => ({
 	name: 'Example',
 	slug: 'example',
@@ -74,8 +71,6 @@ describe('applyProtocolFeeSettings', () => {
 		expect(row.revenue?.ps).toBe(0.8)
 	})
 
-<<<<<<< HEAD
-=======
 	it('creates adjusted fee metrics when base metrics are missing but enabled extras exist', () => {
 		const [row] = applyProtocolFeeSettings({
 			protocols: [
@@ -123,7 +118,6 @@ describe('applyProtocolFeeSettings', () => {
 		expect(row.fees?.totalAllTime).toBe(110)
 	})
 
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 	it('applies fee extras to expanded child protocol rows', () => {
 		const [row] = applyProtocolFeeSettings({
 			protocols: [

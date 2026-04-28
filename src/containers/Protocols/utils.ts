@@ -246,25 +246,11 @@ type FeeSettings = {
 	tokentax?: boolean
 }
 
-<<<<<<< HEAD
-type FeeTotals = {
-	total24h: number | null
-	total7d: number | null
-	total30d: number | null
-	total1y?: number | null
-	monthlyAverage1y?: number | null
-	totalAllTime: number | null
-}
-
-const addFeeValue = (base: number | null | undefined, extra: number) => {
-	if (base != null) return base + extra
-=======
 type FeeTotals = NonNullable<IProtocol['holdersRevenue']>
 
 const addFeeValue = (base: number | null | undefined, extra: number) => {
 	if (base != null) return base + extra
 	// Preserve empty periods as null unless an enabled extra contributes value.
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 	return extra !== 0 ? extra : null
 }
 
@@ -276,44 +262,25 @@ const hasFeeTotals = (totals: FeeTotals | null | undefined) =>
 	totals?.monthlyAverage1y != null ||
 	totals?.totalAllTime != null
 
-<<<<<<< HEAD
-const applyExtraFeeTotals = <T extends FeeTotals | undefined>({
-=======
 const applyExtraFeeTotals = ({
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 	base,
 	bribeRevenue,
 	tokenTax,
 	extraFeesEnabled
 }: {
-<<<<<<< HEAD
-	base: T
-	bribeRevenue: FeeTotals | null | undefined
-	tokenTax: FeeTotals | null | undefined
-	extraFeesEnabled: FeeSettings
-}): T => {
-=======
 	base: FeeTotals | null | undefined
 	bribeRevenue: FeeTotals | null | undefined
 	tokenTax: FeeTotals | null | undefined
 	extraFeesEnabled: FeeSettings
 }): FeeTotals | undefined => {
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 	const bribes = extraFeesEnabled.bribes ? bribeRevenue : null
 	const taxes = extraFeesEnabled.tokentax ? tokenTax : null
 
 	if (!hasFeeTotals(base) && !hasFeeTotals(bribes) && !hasFeeTotals(taxes)) {
-<<<<<<< HEAD
-		return base
-	}
-
-	const adjusted = {
-=======
 		return undefined
 	}
 
 	return {
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 		...(base ?? {}),
 		total24h: addFeeValue(base?.total24h, (bribes?.total24h ?? 0) + (taxes?.total24h ?? 0)),
 		total7d: addFeeValue(base?.total7d, (bribes?.total7d ?? 0) + (taxes?.total7d ?? 0)),
@@ -324,31 +291,17 @@ const applyExtraFeeTotals = ({
 			(bribes?.monthlyAverage1y ?? 0) + (taxes?.monthlyAverage1y ?? 0)
 		),
 		totalAllTime: addFeeValue(base?.totalAllTime, (bribes?.totalAllTime ?? 0) + (taxes?.totalAllTime ?? 0))
-<<<<<<< HEAD
-	} as T
-
-	return adjusted
-}
-
-const applyProtocolFeeExtras = (protocol: IProtocol, extraFeesEnabled: FeeSettings): IProtocol => {
-	const fees = applyExtraFeeTotals({
-=======
 	}
 }
 
 const applyProtocolFeeExtras = (protocol: IProtocol, extraFeesEnabled: FeeSettings): IProtocol => {
 	const feeTotals = applyExtraFeeTotals({
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 		base: protocol.fees,
 		bribeRevenue: protocol.bribeRevenue,
 		tokenTax: protocol.tokenTax,
 		extraFeesEnabled
 	})
-<<<<<<< HEAD
-	const revenue = applyExtraFeeTotals({
-=======
 	const revenueTotals = applyExtraFeeTotals({
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 		base: protocol.revenue,
 		bribeRevenue: protocol.bribeRevenue,
 		tokenTax: protocol.tokenTax,
@@ -361,22 +314,12 @@ const applyProtocolFeeExtras = (protocol: IProtocol, extraFeesEnabled: FeeSettin
 		extraFeesEnabled
 	})
 
-<<<<<<< HEAD
-	if (fees) {
-		fees.pf = getAnnualizedRatio(protocol.mcap, fees.total30d)
-	}
-
-	if (revenue) {
-		revenue.ps = getAnnualizedRatio(protocol.mcap, revenue.total30d)
-	}
-=======
 	const fees: IProtocol['fees'] = feeTotals
 		? { ...feeTotals, pf: getAnnualizedRatio(protocol.mcap, feeTotals.total30d) }
 		: undefined
 	const revenue: IProtocol['revenue'] = revenueTotals
 		? { ...revenueTotals, ps: getAnnualizedRatio(protocol.mcap, revenueTotals.total30d) }
 		: undefined
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 
 	const childProtocols = protocol.childProtocols?.map((child) => applyProtocolFeeExtras(child, extraFeesEnabled))
 

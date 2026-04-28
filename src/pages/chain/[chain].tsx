@@ -71,15 +71,7 @@ export async function getStaticPaths() {
 }
 
 export default function Chain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-<<<<<<< HEAD
-	const metricFiltersLabel = props.tvlAndFeesOptions.some(
-		(option) => option.key === 'bribes' || option.key === 'tokentax'
-	)
-		? 'Include TVL & Fees'
-		: 'Include in TVL'
-=======
 	const metricFiltersLabel = getMetricFiltersLabel(props.tvlAndFeesOptions)
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 
 	return (
 		<Layout

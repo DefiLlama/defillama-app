@@ -2,10 +2,7 @@ import { fetchCoinPrices, fetchLlamaConfig } from '~/api'
 import { fetchCoinGeckoCoinById } from '~/api/coingecko'
 import type { CoinGeckoCoinDetailResult } from '~/api/coingecko.types'
 import { feesOptions, tvlOptions } from '~/components/Filters/options'
-<<<<<<< HEAD
-=======
 import type { ToggleOption } from '~/components/Filters/types'
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
@@ -78,11 +75,6 @@ export function shouldFetchChainDexs({
 	return categoriesAndTagsMetadata?.configs?.Dexs?.chains?.includes(currentChainMetadata.id) ?? false
 }
 
-<<<<<<< HEAD
-type DimensionProtocolMetric = IAdapterChainMetrics['protocols'][number]
-
-=======
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 const hasAnyDimensionTotal = (protocol: DimensionProtocolMetric) =>
 	protocol.total24h != null ||
 	protocol.total7d != null ||
@@ -317,11 +309,7 @@ export async function getChainOverviewData({
 			dcAndLsOverlap = []
 		} = chartData || {}
 
-<<<<<<< HEAD
-		const tvlAndFeesOptions: Array<{ name: string; key: string; help: string | null }> = [
-=======
 		const tvlAndFeesOptions: Array<ToggleOption<TvlSettingsKey | FeesSettingKey>> = [
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 			...tvlOptions.filter((o) => chartData?.[o.key]?.length),
 			...(feeExtraOptions ?? [])
 		]
@@ -1093,11 +1081,7 @@ export const getProtocolsByChain = async ({
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
 							for (const key1 in curr.bribeRevenue ?? {}) {
-<<<<<<< HEAD
-								acc[key1] = (acc[key1] ?? 0) + curr.bribeRevenue[key1]
-=======
 								acc[key1] = (acc[key1] ?? 0) + (curr.bribeRevenue[key1] ?? 0)
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 							}
 							return acc
 						},
@@ -1109,11 +1093,7 @@ export const getProtocolsByChain = async ({
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
 							for (const key1 in curr.tokenTax ?? {}) {
-<<<<<<< HEAD
-								acc[key1] = (acc[key1] ?? 0) + curr.tokenTax[key1]
-=======
 								acc[key1] = (acc[key1] ?? 0) + (curr.tokenTax[key1] ?? 0)
->>>>>>> 190b996ad (fix(chain-overview): include fee extras in protocol metrics)
 							}
 							return acc
 						},
