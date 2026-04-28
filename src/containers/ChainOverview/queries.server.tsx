@@ -890,6 +890,10 @@ export const getProtocolsByChain = async ({
 			childStore.deprecated = true
 		}
 
+		if (protocol.forkedFrom?.length) {
+			childStore.forkedFrom = protocol.forkedFrom
+		}
+
 		if (dimensionProtocols[protocol.defillamaId]?.fees) {
 			childStore.fees = dimensionProtocols[protocol.defillamaId].fees
 			childStore.fees.pf = protocol.mcap
@@ -1146,6 +1150,16 @@ export const getProtocolsByChain = async ({
 			}
 			if (parentEmissions) {
 				protocolsStore[parentProtocol.id].emissions = parentEmissions
+			}
+
+			const parentForks = new Set<string>()
+			for (const child of parentStore[parentProtocol.id]) {
+				if (child.forkedFrom) {
+					for (const f of child.forkedFrom) parentForks.add(f)
+				}
+			}
+			if (parentForks.size > 0) {
+				protocolsStore[parentProtocol.id].forkedFrom = Array.from(parentForks)
 			}
 		}
 	}
