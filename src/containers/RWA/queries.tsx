@@ -32,7 +32,7 @@ import type {
 	RWAAssetChartTarget
 } from './api.types'
 import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from './assetGroup'
-import { toBreakdownChartDataset } from './breakdownDataset'
+import { toBreakdownChartDataset, toOverviewBreakdownChartDataset } from './breakdownDataset'
 import {
 	aggregateRwaMetricData,
 	appendRwaChartDatasetTotal,
@@ -871,7 +871,12 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
 
 	return {
 		rows: rows.sort((a, b) => (b.base?.onChainMcap ?? 0) - (a.base?.onChainMcap ?? 0)),
-		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
+		initialChartDataset: toOverviewBreakdownChartDataset(activeMcapRows, {
+			breakdown: 'chain',
+			key: 'activeMcap',
+			includeStablecoin: false,
+			includeGovernance: false
+		})
 	}
 }
 
@@ -921,7 +926,12 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 
 	return {
 		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
-		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
+		initialChartDataset: toOverviewBreakdownChartDataset(activeMcapRows, {
+			breakdown: 'platform',
+			key: 'activeMcap',
+			includeStablecoin: false,
+			includeGovernance: false
+		})
 	}
 }
 
@@ -945,7 +955,12 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 
 	return {
 		rows: rows.sort((a, b) => b.base.onChainMcap - a.base.onChainMcap),
-		initialChartDataset: toBreakdownChartDataset(activeMcapRows)
+		initialChartDataset: toOverviewBreakdownChartDataset(activeMcapRows, {
+			breakdown: 'assetGroup',
+			key: 'activeMcap',
+			includeStablecoin: false,
+			includeGovernance: false
+		})
 	}
 }
 
