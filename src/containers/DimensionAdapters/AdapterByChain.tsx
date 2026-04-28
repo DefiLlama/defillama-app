@@ -570,8 +570,6 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 type AdapterProtocolRow = IAdapterByChainPageData['protocols'][0]
 
 const columnHelper = createColumnHelper<AdapterProtocolRow>()
-const cantonIncentivesWarning =
-	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
 
 const NameColumn = (type: IProps['type']) =>
 	columnHelper.accessor('name', {
@@ -593,7 +591,6 @@ const NameColumn = (type: IProps['type']) =>
 				row.original.slug !== 'berachain-incentive-buys'
 					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
 					: protocolChartsKeys[type]
-			const showCantonIncentivesWarning = row.original.slug === 'canton' && (type === 'Fees' || type === 'Revenue')
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -630,8 +627,8 @@ const NameColumn = (type: IProps['type']) =>
 							>
 								{value}
 							</BasicLink>
-							{showCantonIncentivesWarning ? (
-								<Tooltip content={cantonIncentivesWarning}>
+							{row.original.warning ? (
+								<Tooltip content={row.original.warning}>
 									<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-(--warning)" />
 								</Tooltip>
 							) : null}

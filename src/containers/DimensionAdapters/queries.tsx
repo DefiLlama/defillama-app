@@ -33,6 +33,8 @@ import {
 } from './utils'
 
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
+const CANTON_INCENTIVES_WARNING =
+	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
 
 function buildChainsChartData({
 	rawChartData,
@@ -381,6 +383,10 @@ export const getAdapterByChainPageData = async ({
 	const categories = new Set<string>()
 
 	for (const protocol of allProtocols) {
+		const warning =
+			protocol.slug === 'canton' && (metricName === 'Fees' || metricName === 'Revenue')
+				? CANTON_INCENTIVES_WARNING
+				: null
 		const methodology =
 			adapterType === 'fees'
 				? dataType === 'dailyRevenue'
@@ -420,6 +426,7 @@ export const getAdapterByChainPageData = async ({
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
+			...(warning ? { warning } : {}),
 			...(openInterestProtocols[protocol.name]?.total24h != null
 				? { openInterest: openInterestProtocols[protocol.name].total24h }
 				: {}),
@@ -472,6 +479,13 @@ export const getAdapterByChainPageData = async ({
 			: null
 		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
 		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
+		let warning: string | null = null
+		for (const p of parentProtocols[protocol]) {
+			if (p.warning) {
+				warning = p.warning
+				break
+			}
+		}
 		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
 			? parentProtocols[protocol].reduce(
 					(acc, p) => {
@@ -578,6 +592,7 @@ export const getAdapterByChainPageData = async ({
 				: {}),
 			...(doublecounted ? { doublecounted } : {}),
 			...(zeroFeePerp ? { zeroFeePerp } : {}),
+			...(warning ? { warning } : {}),
 			...(openInterest ? { openInterest } : {}),
 			...(activeLiquidity ? { activeLiquidity } : {}),
 			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
@@ -724,12 +739,18 @@ export const getChainsByFeesAdapterPageData = async ({
 
 		const chains = chainsData
 			.map((c) => {
+				const warning =
+					c.name === 'Canton' &&
+					(dataType === ADAPTER_DATA_TYPES.DAILY_FEES || dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE)
+						? CANTON_INCENTIVES_WARNING
+						: null
 				return {
 					name: c.name,
 					logo: chainIconUrl(c.name),
 					total24h: c.total24h ?? null,
 					total7d: c.total7d ?? null,
 					total30d: c.total30d ?? null,
+					...(warning ? { warning } : {}),
 					...(bribesByChain[c.name] ? { bribes: bribesByChain[c.name] } : {}),
 					...(tokenTaxesByChain[c.name] ? { tokenTax: tokenTaxesByChain[c.name] } : {})
 				}
@@ -876,12 +897,18 @@ export const getChainsByAdapterPageData = async ({
 
 		const chains = allChains
 			.map((chain) => {
+				const warning =
+					chain === 'Canton' &&
+					(dataType === ADAPTER_DATA_TYPES.DAILY_FEES || dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE)
+						? CANTON_INCENTIVES_WARNING
+						: null
 				return {
 					name: chain,
 					logo: chainIconUrl(chain),
 					total24h: chainsData[chain]?.['24h'] ?? null,
 					total7d: chainsData[chain]?.['7d'] ?? null,
 					total30d: chainsData[chain]?.['30d'] ?? null,
+					...(warning ? { warning } : {}),
 					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
 					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),
 					...(openInterestByChain[chain] ? { openInterest: openInterestByChain[chain] } : {}),
