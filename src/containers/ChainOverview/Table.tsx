@@ -38,6 +38,7 @@ import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
 import { evaluateFormula, getSortableValue } from './formula.service'
 import type { IProtocol } from './types'
+import { filterProtocolsByFork, getAvailableForks } from './filterProtocolsByFork'
 
 const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
 
@@ -97,6 +98,37 @@ const ChainProtocolsTableInner = ({
 	const finalProtocols = useMemo(() => {
 		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
+
+	// Fork filter — reads selection from URL (?fork=...), filters table data, exposes available forks for the dropdown
+	const forkParam = (() => {
+		const q = router.query.fork
+		if (typeof q === 'string') return q || null
+		if (Array.isArray(q)) return q[0] ?? null
+		return null
+	})()
+
+	const availableForks = useMemo(
+		() => getAvailableForks(finalProtocols as Array<{ forkedFrom?: string[] }>),
+		[finalProtocols]
+	)
+
+	const protocolsForTable = useMemo(
+		() => filterProtocolsByFork(finalProtocols as Array<IProtocol & { forkedFrom?: string[] }>, forkParam) as IProtocol[],
+		[finalProtocols, forkParam]
+	)
+
+	const handleForkChange = (next: string | null) => {
+		const nextQuery = { ...router.query }
+		if (next) {
+			nextQuery.fork = next
+		} else {
+			delete nextQuery.fork
+		}
+		router.replace({ pathname: router.pathname, query: nextQuery }, undefined, {
+			shallow: true,
+			scroll: false
+		})
+	}
 
 	const rawColumnsInStorage = useStorageItem(tableColumnOptionsKey, defaultColumns)
 	const columnsInStorage = useDeferredValue(rawColumnsInStorage)
@@ -297,7 +329,7 @@ const ChainProtocolsTableInner = ({
 	}, [customColumns])
 
 	const instance = useReactTable({
-		data: finalProtocols,
+		data: protocolsForTable,
 		columns: allColumns,
 		state: {
 			sorting,
@@ -367,6 +399,22 @@ const ChainProtocolsTableInner = ({
 					variant="responsive"
 				/>
 
+				{availableForks.length > 0 && (
+					<SelectWithCombobox
+						allValues={availableForks}
+						selectedValues={forkParam ? [forkParam] : []}
+						setSelectedValues={(updater) => {
+							const next = typeof updater === 'function' ? updater(forkParam ? [forkParam] : []) : updater
+							const lastValue = next[next.length - 1] ?? null
+							handleForkChange(lastValue)
+						}}
+						singleSelect
+						nestedMenu={false}
+						label="Forked from"
+						labelType="smol"
+						variant="filter"
+					/>
+				)}
 				<SelectWithCombobox
 					allValues={mergedColumns}
 					selectedValues={selectedColumns}
