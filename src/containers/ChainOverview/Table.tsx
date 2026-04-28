@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
@@ -100,8 +100,12 @@ const ChainProtocolsTableInner = ({
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
 	// Fork filter — reads selection from URL (?fork=...), filters table data, exposes available forks for the dropdown.
-	// Gate on router.isReady to avoid SSR/CSR hydration mismatch (router.query is empty during static generation).
-	const forkParam = router.isReady
+	// Defer the URL read until after the first client render so SSR and initial CSR HTML match (page is statically generated, so query params aren't in the SSR HTML).
+	const [hasMountedForFork, setHasMountedForFork] = useState(false)
+	useEffect(() => {
+		setHasMountedForFork(true)
+	}, [])
+	const forkParam = hasMountedForFork
 		? (() => {
 				const q = router.query.fork
 				if (typeof q === 'string') return q || null
