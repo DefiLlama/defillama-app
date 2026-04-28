@@ -9,7 +9,7 @@ interface YieldsTableHeaderProps {
 	activePreset: string | null
 	showColumnPanel: boolean
 	setShowColumnPanel: (show: boolean) => void
-	downloadCSV: () => void
+	downloadCSV?: () => void
 	poolName: string
 	setPoolName: (name: string) => void
 	showFiltersPanel: boolean
@@ -81,7 +81,7 @@ export function YieldsTableHeader({
 				</div>
 
 				<div className="flex items-center gap-2">
-					<ProTableCSVButton onClick={downloadCSV} smol />
+					{downloadCSV ? <ProTableCSVButton onClick={downloadCSV} smol /> : null}
 
 					<button
 						onClick={() => setShowFiltersPanel(!showFiltersPanel)}

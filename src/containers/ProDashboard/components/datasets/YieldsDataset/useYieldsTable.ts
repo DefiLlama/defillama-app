@@ -15,6 +15,7 @@ import {
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { toInternalSlug } from '~/utils/chainNormalizer'
+import { downloadCSV as downloadCSVFile } from '~/utils/download'
 import { yieldsDatasetColumns } from './columns'
 import type { YieldsFilters } from './YieldsFiltersPanel'
 
@@ -322,62 +323,49 @@ export function useYieldsTable({
 		})
 	}
 
-	// const downloadCSV = () => {
-	// 	if (!table) return
+	const downloadCSV = () => {
+		const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
+		const headerMap: Record<string, string> = {
+			pool: 'Pool',
+			project: 'Project',
+			chains: 'Chain',
+			tvl: 'TVL',
+			apy: 'APY',
+			apyBase: 'Base APY',
+			apyReward: 'Reward APY',
+			rewardTokensSymbols: 'Reward Tokens',
+			change1d: '24h Change',
+			change7d: '7d Change',
+			il7d: '7d IL',
+			apyBase7d: 'Base APY (7d)',
+			apyNet7d: 'Net APY (7d)',
+			apyMean30d: 'Mean APY (30d)',
+			volumeUsd1d: 'Volume (24h)',
+			volumeUsd7d: 'Volume (7d)',
+			apyBorrow: 'Borrow APY',
+			totalSupplyUsd: 'Total Supplied',
+			totalBorrowUsd: 'Total Borrowed',
+			totalAvailableUsd: 'Available',
+			ltv: 'LTV'
+		}
 
-	// 	const visibleColumnIds = columnOrder.filter((id) => columnVisibility[id] !== false)
-	// 	const headerMap: Record<string, string> = {
-	// 		pool: 'Pool',
-	// 		project: 'Project',
-	// 		chains: 'Chain',
-	// 		tvl: 'TVL',
-	// 		apy: 'APY',
-	// 		apyBase: 'Base APY',
-	// 		apyReward: 'Reward APY',
-	// 		rewardTokensSymbols: 'Reward Tokens',
-	// 		change1d: '24h Change',
-	// 		change7d: '7d Change',
-	// 		il7d: '7d IL',
-	// 		apyBase7d: 'Base APY (7d)',
-	// 		apyNet7d: 'Net APY (7d)',
-	// 		apyMean30d: 'Mean APY (30d)',
-	// 		volumeUsd1d: 'Volume (24h)',
-	// 		volumeUsd7d: 'Volume (7d)',
-	// 		apyBorrow: 'Borrow APY',
-	// 		totalSupplyUsd: 'Total Supplied',
-	// 		totalBorrowUsd: 'Total Borrowed',
-	// 		totalAvailableUsd: 'Available',
-	// 		ltv: 'LTV'
-	// 	}
+		const headers = visibleColumnIds.map((id) => headerMap[id] || id)
+		const rows = table.getSortedRowModel().rows
 
-	// 	const rows = table.getFilteredRowModel().rows
-	// 	const csvData = rows.map((row) => row.original)
+		const csvData = [
+			headers,
+			...rows.map((row) =>
+				visibleColumnIds.map((id) => {
+					const value = (row.original as any)?.[id]
+					if (value == null) return ''
+					if (Array.isArray(value)) return value.join(';')
+					return value
+				})
+			)
+		]
 
-	// 	const headers = visibleColumnIds.map((id) => headerMap[id] || id)
-
-	// 	const csvLines = csvData.map((item) =>
-	// 		visibleColumnIds
-	// 			.map((id) => {
-	// 				const value = item[id]
-	// 				if (value == null) return ''
-	// 				if (Array.isArray(value)) {
-	// 					return `"${value.join(';')}"`
-	// 				}
-	// 				if (typeof value === 'string') {
-	// 					return `"${value.replace(/"/g, '""')}"`
-	// 				}
-	// 				return value
-	// 			})
-	// 			.join(',')
-	// 	)
-
-	// 	const csvContent = [headers.join(','), ...csvLines].join('\n')
-
-	// 	downloadCSV('yields-data.csv', csvContent, { addTimestamp: true })
-	// }
-
-	// TODO: uncomment and implement the CSV download logic above
-	const downloadCSV = () => {}
+		downloadCSVFile('yields-data.csv', csvData, { addTimestamp: true })
+	}
 
 	const [poolName, setPoolName] = useTableSearch({ instance: table, columnToSearch: 'pool' })
 
