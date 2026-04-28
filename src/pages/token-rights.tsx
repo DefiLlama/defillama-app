@@ -8,7 +8,7 @@ import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { ICexItem, IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
-import { recordDomainEvent } from '~/utils/telemetry'
+import { flushTelemetry, recordDomainEvent } from '~/utils/telemetry'
 import {
 	findTokenDirectoryRecordByDefillamaId,
 	findTokenDirectoryRecordByGeckoId,
@@ -76,6 +76,9 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 
 	protocols.sort((a, b) => a.name.localeCompare(b.name))
 	reportSkippedTokenRightsEntries(skippedEntries)
+	if (skippedEntries.length > 0) {
+		await flushTelemetry({ timeoutMs: 2000, runtime: 'build' })
+	}
 
 	return {
 		props: { protocols },

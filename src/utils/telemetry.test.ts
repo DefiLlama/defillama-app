@@ -1,4 +1,6 @@
+import type { NextApiRequest } from 'next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 import { fetchJson } from './async'
 import { fetchWithPoolingOnServer } from './http-client'
 import {
@@ -47,39 +49,6 @@ function sentEvents(fetchMock: ReturnType<typeof vi.fn>): TelemetryEvent[] {
 	return batches.flatMap((batch) => batch.events)
 }
 
-function createApiResponse() {
-	const res = {
-		statusCode: 200,
-		headers: {} as Record<string, string>,
-		body: undefined as unknown,
-		chunks: [] as unknown[],
-		status(code: number) {
-			this.statusCode = code
-			return this
-		},
-		setHeader(key: string, value: string) {
-			this.headers[key] = value
-			return this
-		},
-		json(body: unknown) {
-			return this.send(JSON.stringify(body))
-		},
-		send(body: unknown) {
-			this.body = body
-			return this
-		},
-		write(chunk: unknown) {
-			this.chunks.push(chunk)
-			return true
-		},
-		end(chunk?: unknown) {
-			if (chunk !== undefined) this.chunks.push(chunk)
-			return this
-		}
-	}
-	return res
-}
-
 function ssrContext(path: string, statusCode = 200, params?: Record<string, string>, query?: Record<string, string>) {
 	return {
 		req: { method: 'GET' },
@@ -96,7 +65,7 @@ function apiRequest(method: string, url: string) {
 	for (const [key, value] of parsed.searchParams) {
 		query[key] = value
 	}
-	return { method, url, query } as any
+	return { method, url, query } as NextApiRequest
 }
 
 describe('telemetry client', () => {
@@ -113,7 +82,7 @@ describe('telemetry client', () => {
 
 	it('drops oldest queued events when the queue cap is exceeded', async () => {
 		vi.stubEnv('OPS_TELEMETRY_QUEUE_MAX', '3')
-		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 204 }))
 		vi.stubGlobal('fetch', fetchMock)
 
 		recordTelemetry(runtimeError('first'))
@@ -126,15 +95,16 @@ describe('telemetry client', () => {
 		expect(
 			batch.events.map((event: TelemetryEvent) => (event.type === 'runtime_error' ? event.error_message : ''))
 		).toEqual(['second', 'third', 'fourth'])
-		expect(fetchMock.mock.calls[0][0]).toBe(process.env.OPS_TELEMETRY_URL)
-		expect((fetchMock.mock.calls[0][1] as RequestInit).headers).toMatchObject({
+		const firstCall = fetchMock.mock.calls[0]
+		expect(firstCall[0]).toBe(process.env.OPS_TELEMETRY_URL)
+		expect(firstCall[1].headers).toMatchObject({
 			Authorization: 'Bearer secret',
 			'Idempotency-Key': expect.any(String)
 		})
 	})
 
 	it('reuses the idempotency key for retries and opens the circuit after failures', async () => {
-		const fetchMock = vi.fn(async () => new Response(null, { status: 500 }))
+		const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => new Response(null, { status: 500 }))
 		vi.stubGlobal('fetch', fetchMock)
 
 		recordTelemetry(runtimeError('retry me'))
@@ -143,9 +113,12 @@ describe('telemetry client', () => {
 		await flushTelemetry({ timeoutMs: 1000 })
 		await flushTelemetry({ timeoutMs: 1000 })
 
-		const firstHeaders = fetchMock.mock.calls[0][1].headers as Record<string, string>
-		const secondHeaders = fetchMock.mock.calls[1][1].headers as Record<string, string>
-		const thirdHeaders = fetchMock.mock.calls[2][1].headers as Record<string, string>
+		const firstCall = fetchMock.mock.calls[0]
+		const secondCall = fetchMock.mock.calls[1]
+		const thirdCall = fetchMock.mock.calls[2]
+		const firstHeaders = firstCall[1].headers as Record<string, string>
+		const secondHeaders = secondCall[1].headers as Record<string, string>
+		const thirdHeaders = thirdCall[1].headers as Record<string, string>
 
 		expect(fetchMock).toHaveBeenCalledTimes(3)
 		expect(firstHeaders['Idempotency-Key']).toBe(secondHeaders['Idempotency-Key'])
@@ -235,27 +208,54 @@ describe('telemetry client', () => {
 		})
 	})
 
+	it('sanitizes server-side props request paths, params, and query attributes', async () => {
+		vi.stubEnv('API_KEY', 'ssr-secret')
+		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
+		vi.stubGlobal('fetch', fetchMock)
+
+		const success = withServerSidePropsTelemetry('/ssr/[id]', async () => ({ props: {} }))
+		await success(
+			ssrContext(
+				'/ssr/abcdefghijklmnopqrstuvwxyz123456?api_key=ssr-secret&chain=ethereum',
+				200,
+				{ id: 'abcdefghijklmnopqrstuvwxyz123456', token: 'ssr-secret' },
+				{ api_key: 'ssr-secret', chain: 'ethereum' }
+			)
+		)
+
+		const route = sentEvents(fetchMock).find((event) => event.type === 'route_execution')
+		expect(route).toMatchObject({
+			request_path: '/ssr/[REDACTED]?api_key=%5BREDACTED%5D&chain=ethereum',
+			attributes: {
+				params: { id: '[REDACTED]', token: '[REDACTED]' },
+				query: { api_key: '[REDACTED]', chain: 'ethereum' }
+			}
+		})
+		expect(JSON.stringify(route)).not.toContain('ssr-secret')
+		expect(JSON.stringify(route)).not.toContain('abcdefghijklmnopqrstuvwxyz123456')
+	})
+
 	it('records API route JSON, send, write/end byte counts, status, and errors', async () => {
 		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
 		vi.stubGlobal('fetch', fetchMock)
 
 		await withApiRouteTelemetry('/api/json', async (_req, res) => {
 			res.status(201).json({ ok: true })
-		})(apiRequest('POST', '/api/json?x=1'), createApiResponse() as any)
+		})(apiRequest('POST', '/api/json?x=1'), createMockNextApiResponse())
 
 		await withApiRouteTelemetry('/api/send', async (_req, res) => {
 			res.send('hello')
-		})(apiRequest('GET', '/api/send'), createApiResponse() as any)
+		})(apiRequest('GET', '/api/send'), createMockNextApiResponse())
 
 		await withApiRouteTelemetry('/api/stream', async (_req, res) => {
 			res.write('ab')
 			res.end(Buffer.from('cd'))
-		})(apiRequest('GET', '/api/stream'), createApiResponse() as any)
+		})(apiRequest('GET', '/api/stream'), createMockNextApiResponse())
 
 		await expect(
 			withApiRouteTelemetry('/api/error', async () => {
 				throw new Error('api failed')
-			})(apiRequest('GET', '/api/error'), createApiResponse() as any)
+			})(apiRequest('GET', '/api/error'), createMockNextApiResponse())
 		).rejects.toThrow('api failed')
 
 		const events = sentEvents(fetchMock)
@@ -286,7 +286,7 @@ describe('telemetry client', () => {
 			res.end()
 		})(
 			apiRequest('GET', '/api/redact/abcdefghijklmnopqrstuvwxyz123456?api_key=route-secret&chain=ethereum'),
-			createApiResponse() as any
+			createMockNextApiResponse()
 		)
 
 		const route = sentEvents(fetchMock).find((event) => event.type === 'route_execution')
@@ -400,6 +400,48 @@ describe('telemetry client', () => {
 			host: 'defillama.test',
 			pathname: '/api/test'
 		})
+	})
+
+	it('propagates caller abort signals through server fetch timeouts', async () => {
+		const controller = new AbortController()
+		let fetchSignal: AbortSignal | null = null
+		const fetchMock = vi.fn(
+			async (_url: string, init: RequestInit) =>
+				new Promise<Response>((_resolve, reject) => {
+					fetchSignal = init.signal ?? null
+					fetchSignal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+				})
+		)
+		vi.stubGlobal('fetch', fetchMock)
+
+		const request = fetchWithPoolingOnServer('https://api.llama.fi/abort', {
+			signal: controller.signal,
+			timeout: 60_000
+		})
+		await Promise.resolve()
+		expect(fetchSignal?.aborted).toBe(false)
+
+		controller.abort()
+
+		await expect(request).rejects.toThrow('Aborted')
+		expect(fetchSignal?.aborted).toBe(true)
+	})
+
+	it('passes an already-aborted caller signal to fetch as aborted', async () => {
+		const controller = new AbortController()
+		controller.abort()
+		const fetchMock = vi.fn(async (_url: string, init: RequestInit) => {
+			expect(init.signal?.aborted).toBe(true)
+			throw new DOMException('Aborted', 'AbortError')
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(
+			fetchWithPoolingOnServer('https://api.llama.fi/already-aborted', {
+				signal: controller.signal,
+				timeout: 60_000
+			})
+		).rejects.toThrow('Aborted')
 	})
 
 	it('records sanitized POST bodies for own server requests', async () => {
@@ -552,7 +594,7 @@ describe('telemetry client', () => {
 		await withApiRouteTelemetry('/api/link', async (_req, res) => {
 			await fetchWithPoolingOnServer('https://api.llama.fi/api-link')
 			res.end()
-		})(apiRequest('GET', '/api/link'), createApiResponse() as any)
+		})(apiRequest('GET', '/api/link'), createMockNextApiResponse())
 
 		const events = sentEvents(fetchMock)
 		for (const routeName of ['/static-link', '/ssr-link', '/api/link']) {

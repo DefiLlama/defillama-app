@@ -151,13 +151,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		for (const poolConfigId of uniquePoolIds) {
 			phase2Promises.push(
 				(async () => {
+					const encodedPoolConfigId = encodeURIComponent(poolConfigId)
 					const [chartResult, lendBorrowResult] = await Promise.allSettled([
-						fetchWithPoolingOnServer(`${YIELD_CHART_API}/${poolConfigId}`, { timeout: 10_000 }).then((r) =>
+						fetchWithPoolingOnServer(`${YIELD_CHART_API}/${encodedPoolConfigId}`, { timeout: 10_000 }).then((r) =>
 							r.ok ? r.json() : null
 						),
-						fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`, { timeout: 10_000 }).then((r) =>
-							r.ok ? r.json() : null
-						)
+						fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${encodedPoolConfigId}`, {
+							timeout: 10_000
+						}).then((r) => (r.ok ? r.json() : null))
 					])
 					writeLine({
 						type: 'yieldsChartData',

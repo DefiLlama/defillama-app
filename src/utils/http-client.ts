@@ -32,17 +32,26 @@ export const fetchWithPoolingOnServer = async (
 	const isServer = typeof window === 'undefined'
 	const { timeout = 60_000, telemetry: _telemetry, ...requestOptions } = options ?? {}
 	const requestUrl = isServer ? serverFetchUrl(url) : url
-	const controller = new AbortController()
-	const id = setTimeout(() => controller.abort(), timeout)
+	const timeoutController = new AbortController()
+	const upstreamSignal = requestOptions.signal
+	const abortTimeoutController = () => timeoutController.abort()
+	const id = setTimeout(abortTimeoutController, timeout)
+
+	if (upstreamSignal?.aborted) {
+		timeoutController.abort()
+	} else {
+		upstreamSignal?.addEventListener('abort', abortTimeoutController)
+	}
 
 	try {
 		const response = await withOutboundTelemetry(requestUrl, options, () =>
 			isServer && typeof requestUrl === 'string'
-				? fetchWithConnectionPooling(requestUrl, { ...requestOptions, signal: controller.signal })
-				: fetch(requestUrl, { ...requestOptions, signal: controller.signal })
+				? fetchWithConnectionPooling(requestUrl, { ...requestOptions, signal: timeoutController.signal })
+				: fetch(requestUrl, { ...requestOptions, signal: timeoutController.signal })
 		)
 		return response
 	} finally {
 		clearTimeout(id)
+		upstreamSignal?.removeEventListener('abort', abortTimeoutController)
 	}
 }

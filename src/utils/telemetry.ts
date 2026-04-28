@@ -619,11 +619,14 @@ function recordPageBuildFinishTick(
 
 function getRequestPath(req: NextApiRequest): string | undefined {
 	if (!req.url) return undefined
+	return sanitizeRequestPathString(req.url)
+}
+
+function sanitizeRequestPathString(url: string): string {
 	try {
-		const url = new URL(req.url, 'http://localhost')
-		return sanitizeRequestPathForTelemetry(url)
+		return sanitizeRequestPathForTelemetry(new URL(url, 'http://localhost'))
 	} catch {
-		return redactSecrets(req.url)
+		return redactSecrets(url)
 	}
 }
 
@@ -643,10 +646,10 @@ export function withApiRouteTelemetry(route: string, handler: NextApiHandler): N
 	return async (req: NextApiRequest, res: NextApiResponse) => {
 		let responseBytes: number | undefined
 		let suppressResponseByteCapture = false
-		const originalJson = res.json.bind(res)
-		const originalSend = res.send.bind(res)
-		const originalWrite = res.write.bind(res)
-		const originalEnd = res.end.bind(res)
+		const originalJson = res.json
+		const originalSend = res.send
+		const originalWrite = res.write
+		const originalEnd = res.end
 
 		const addResponseBytes = (bytes: number | undefined) => {
 			if (bytes === undefined) return
@@ -658,7 +661,7 @@ export function withApiRouteTelemetry(route: string, handler: NextApiHandler): N
 			addResponseBytes(getPayloadBytes(body))
 			suppressResponseByteCapture = true
 			try {
-				return originalJson(body)
+				return originalJson.call(res, body)
 			} finally {
 				suppressResponseByteCapture = false
 			}
@@ -668,7 +671,7 @@ export function withApiRouteTelemetry(route: string, handler: NextApiHandler): N
 			if (!suppressResponseByteCapture) addResponseBytes(payloadBytes(body))
 			suppressResponseByteCapture = true
 			try {
-				return originalSend(body)
+				return originalSend.call(res, body)
 			} finally {
 				suppressResponseByteCapture = false
 			}
@@ -676,29 +679,36 @@ export function withApiRouteTelemetry(route: string, handler: NextApiHandler): N
 
 		res.write = ((chunk: unknown, ...args: unknown[]) => {
 			if (!suppressResponseByteCapture) addResponseBytes(payloadBytes(chunk))
-			return originalWrite(chunk, ...args)
+			return originalWrite.call(res, chunk, ...args)
 		}) as NextApiResponse['write']
 
 		res.end = ((chunk?: unknown, ...args: unknown[]) => {
 			if (!suppressResponseByteCapture) addResponseBytes(payloadBytes(chunk))
-			return originalEnd(chunk, ...args)
+			return originalEnd.call(res, chunk, ...args)
 		}) as NextApiResponse['end']
 
-		return withRouteTelemetry(
-			{
-				route,
-				operationType: 'apiRoute',
-				runtime: 'node',
-				method: req.method,
-				requestPath: getRequestPath(req),
-				flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_API_FLUSH_MS', 200),
-				attributes: apiRouteTelemetryAttributes(req),
-				getHttpStatus: () => res.statusCode,
-				getStatus: (_, durationMs) => (res.statusCode >= 500 ? 'error' : routeStatus(durationMs)),
-				getResultAttributes: () => (responseBytes === undefined ? {} : { response_bytes: responseBytes })
-			},
-			() => handler(req, res)
-		)
+		try {
+			return await withRouteTelemetry(
+				{
+					route,
+					operationType: 'apiRoute',
+					runtime: 'node',
+					method: req.method,
+					requestPath: getRequestPath(req),
+					flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_API_FLUSH_MS', 200),
+					attributes: apiRouteTelemetryAttributes(req),
+					getHttpStatus: () => res.statusCode,
+					getStatus: (_, durationMs) => (res.statusCode >= 500 ? 'error' : routeStatus(durationMs)),
+					getResultAttributes: () => (responseBytes === undefined ? {} : { response_bytes: responseBytes })
+				},
+				() => handler(req, res)
+			)
+		} finally {
+			res.json = originalJson
+			res.send = originalSend
+			res.write = originalWrite
+			res.end = originalEnd
+		}
 	}
 }
 
@@ -801,7 +811,7 @@ function sanitizeRequestPathForTelemetry(url: URL): string {
 	return `${pathname}${url.search}`
 }
 
-function sanitizeQueryForTelemetry(query: NextApiRequest['query']): TelemetryAttributes {
+function sanitizeQueryForTelemetry(query: Record<string, string | string[] | undefined>): TelemetryAttributes {
 	const sanitized: TelemetryAttributes = {}
 
 	for (const key in query) {
@@ -1152,8 +1162,8 @@ export function withServerSidePropsTelemetry<T extends { [key: string]: any }>(
 ): GetServerSideProps<T> {
 	return async (context: GetServerSidePropsContext) => {
 		const attributes: TelemetryAttributes = {}
-		if (context.params) attributes.params = context.params
-		if (context.query) attributes.query = context.query
+		if (context.params) attributes.params = sanitizeQueryForTelemetry(context.params)
+		if (context.query) attributes.query = sanitizeQueryForTelemetry(context.query)
 
 		return withRouteTelemetry(
 			{
@@ -1161,7 +1171,7 @@ export function withServerSidePropsTelemetry<T extends { [key: string]: any }>(
 				operationType: 'getServerSideProps',
 				runtime: 'node',
 				method: context.req.method,
-				requestPath: context.resolvedUrl,
+				requestPath: sanitizeRequestPathString(context.resolvedUrl),
 				flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_SSR_FLUSH_MS', 200),
 				attributes,
 				getHttpStatus: () => context.res.statusCode,

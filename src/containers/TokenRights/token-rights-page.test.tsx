@@ -39,6 +39,7 @@ function setupPageModule({
 				.replace(/^-+|-+$/g, '')
 	}))
 	vi.doMock('~/utils/telemetry', () => ({
+		flushTelemetry: vi.fn().mockResolvedValue(undefined),
 		recordDomainEvent: vi.fn()
 	}))
 	vi.doMock('~/utils/icons', () => ({
@@ -182,8 +183,9 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { recordDomainEvent } = await import('~/utils/telemetry')
+		const { flushTelemetry, recordDomainEvent } = await import('~/utils/telemetry')
 		expect(recordDomainEvent).not.toHaveBeenCalled()
+		expect(flushTelemetry).not.toHaveBeenCalled()
 	})
 
 	it('skips cex entries when the matching token has no page route', async () => {
@@ -205,7 +207,7 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { recordDomainEvent } = await import('~/utils/telemetry')
+		const { flushTelemetry, recordDomainEvent } = await import('~/utils/telemetry')
 		expect(recordDomainEvent).toHaveBeenCalledTimes(1)
 		expect(recordDomainEvent).toHaveBeenCalledWith(
 			'token_rights.alert',
@@ -217,5 +219,6 @@ describe('token rights page', () => {
 				skipped_count: 1
 			})
 		)
+		expect(flushTelemetry).toHaveBeenCalledWith({ timeoutMs: 2000, runtime: 'build' })
 	})
 })
