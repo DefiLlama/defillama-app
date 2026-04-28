@@ -2,7 +2,9 @@ import { DIMENSIONS_OVERVIEW_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { toInternalSlug } from '~/utils/chainNormalizer'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { METRIC_CONFIG_BASE, toSlug } from '~/utils/protocolSplit'
+import { recordRuntimeError } from '~/utils/telemetry'
 import type { ChartSeries, ProtocolSplitData } from './types'
 
 export const DIMENSIONS_METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
@@ -58,15 +60,14 @@ const fetchChainResults = async (chainsArray: string[], metric: string): Promise
 		}
 
 		try {
-			const response = await fetch(apiUrl)
+			const response = await fetchWithPoolingOnServer(apiUrl)
 			if (!response.ok) {
-				console.log(`API Error for ${metric} on ${singleChain}: ${response.status} - URL: ${apiUrl}`)
 				return null
 			}
 			const data = await response.json()
 			return { chain: singleChain, data }
 		} catch (error) {
-			console.log(`Error fetching data for ${singleChain}:`, error)
+			recordRuntimeError(error, 'pageBuild')
 			return null
 		}
 	})
@@ -101,7 +102,7 @@ const buildAggregatedBreakdown = async (
 		const config = DIMENSIONS_METRIC_CONFIG[metric]
 		let allUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) allUrl += `&dataType=${config.dataType}`
-		const allResp = await fetch(allUrl)
+		const allResp = await fetchWithPoolingOnServer(allUrl)
 		const allJson = await allResp.json()
 		const allBreakdown: Array<[number, Record<string, number>]> = allJson?.totalDataChartBreakdown || []
 		const allMap = toBreakdownMap(allBreakdown)
@@ -112,7 +113,7 @@ const buildAggregatedBreakdown = async (
 				let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${apiChain}?excludeTotalDataChartBreakdown=false`
 				if (config.dataType) url += `&dataType=${config.dataType}`
 				try {
-					const r = await fetch(url)
+					const r = await fetchWithPoolingOnServer(url)
 					if (!r.ok) return null
 					const j = await r.json()
 					return j

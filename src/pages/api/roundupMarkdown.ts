@@ -1,11 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function roundupMarkdown(req: NextApiRequest, res: NextApiResponse) {
+async function roundupMarkdown(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const headers = new Headers()
 		headers.append('Authorization', `Bot ${process.env.ROUND_UP_BOT_TOKEN}`)
 
-		const data = await fetch('https://discordapp.com/api/channels/965023197365960734/messages', {
+		const data = await fetchWithPoolingOnServer('https://discordapp.com/api/channels/965023197365960734/messages', {
 			method: 'GET',
 			headers: headers,
 			redirect: 'follow'
@@ -22,7 +24,9 @@ export default async function roundupMarkdown(req: NextApiRequest, res: NextApiR
 
 		return res.json(messages)
 	} catch (err) {
-		console.error('roundupMarkdown failed', err)
+		recordRouteRuntimeError(err, 'apiRoute')
 		return res.status(500).json('')
 	}
 }
+
+export default withApiRouteTelemetry('/api/roundupMarkdown', roundupMarkdown)

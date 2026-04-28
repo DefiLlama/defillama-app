@@ -1,5 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 const { fetchGlobalMock, fetchChainMock, fetchTokenMock } = vi.hoisted(() => ({
 	fetchGlobalMock: vi.fn(),
@@ -24,19 +25,6 @@ const volumeData = [
 	[1609545600, 125]
 ]
 
-function createRes() {
-	const res: Partial<NextApiResponse> = {
-		setHeader: vi.fn(),
-		status: vi.fn(),
-		json: vi.fn()
-	}
-
-	;(res.status as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-	;(res.json as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-
-	return res as NextApiResponse
-}
-
 beforeEach(() => {
 	vi.clearAllMocks()
 	fetchGlobalMock.mockResolvedValue(volumeData)
@@ -47,7 +35,7 @@ beforeEach(() => {
 describe('/api/stablecoins/volume-chart', () => {
 	it('rejects non-GET requests', async () => {
 		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -57,7 +45,7 @@ describe('/api/stablecoins/volume-chart', () => {
 
 	it('uses global volume fetchers', async () => {
 		const req = { method: 'GET', query: { scope: 'global', chart: 'token' } } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -71,7 +59,7 @@ describe('/api/stablecoins/volume-chart', () => {
 			method: 'GET',
 			query: { scope: 'chain', chain: 'zkSync Era', chart: 'currency' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -81,7 +69,7 @@ describe('/api/stablecoins/volume-chart', () => {
 
 	it('uses token scoped volume fetchers', async () => {
 		const req = { method: 'GET', query: { scope: 'token', token: 'USDT', chart: 'chain' } } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -90,7 +78,7 @@ describe('/api/stablecoins/volume-chart', () => {
 	})
 
 	it('rejects unsupported scope and chart combinations', async () => {
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		await handler(
 			{
 				method: 'GET',
@@ -106,7 +94,7 @@ describe('/api/stablecoins/volume-chart', () => {
 
 	it('rejects unsupported global volume charts', async () => {
 		const req = { method: 'GET', query: { scope: 'global', chart: 'unsupported' } } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -120,7 +108,7 @@ describe('/api/stablecoins/volume-chart', () => {
 			method: 'GET',
 			query: { scope: 'token', token: 'USDC', chart: 'currency' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -131,7 +119,7 @@ describe('/api/stablecoins/volume-chart', () => {
 
 	it('rejects unknown scopes', async () => {
 		const req = { method: 'GET', query: { scope: 'bogus', chart: 'total' } } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 

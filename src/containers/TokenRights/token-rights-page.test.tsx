@@ -1,14 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 
-const originalTokenRightsAlertWebhook = process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
-
 afterEach(() => {
-	if (originalTokenRightsAlertWebhook === undefined) {
-		delete process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
-	} else {
-		process.env.TOKEN_RIGHTS_ALERT_WEBHOOK = originalTokenRightsAlertWebhook
-	}
 	vi.clearAllMocks()
 	vi.resetModules()
 })
@@ -26,8 +19,6 @@ function setupPageModule({
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
 } = {}) {
-	delete process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
-
 	vi.doMock('next/link', () => ({
 		default: () => null
 	}))
@@ -47,11 +38,9 @@ function setupPageModule({
 				.replaceAll(/[^a-z0-9]+/g, '-')
 				.replace(/^-+|-+$/g, '')
 	}))
-	vi.doMock('~/utils/async', () => ({
-		formatRuntimeLog: vi.fn(({ event, level, status, message }) =>
-			[event, level, status, message].filter(Boolean).join(' ')
-		),
-		postRuntimeLogs: vi.fn()
+	vi.doMock('~/utils/telemetry', () => ({
+		flushTelemetry: vi.fn().mockResolvedValue(undefined),
+		recordDomainEvent: vi.fn()
 	}))
 	vi.doMock('~/utils/icons', () => ({
 		tokenIconUrl: (value: string) => `icon:${value}`
@@ -104,8 +93,6 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { postRuntimeLogs } = await import('~/utils/async')
-		expect(postRuntimeLogs).not.toHaveBeenCalled()
 	})
 
 	it('skips entries without token directory routes', async () => {
@@ -126,8 +113,6 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { postRuntimeLogs } = await import('~/utils/async')
-		expect(postRuntimeLogs).toHaveBeenCalledTimes(1)
 	})
 
 	it('routes chain entries when the metadata cache key differs from the chain id', async () => {
@@ -152,8 +137,6 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { postRuntimeLogs } = await import('~/utils/async')
-		expect(postRuntimeLogs).not.toHaveBeenCalled()
 	})
 
 	it('routes protocol entries from token directory ids without a gecko id', async () => {
@@ -178,8 +161,6 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { postRuntimeLogs } = await import('~/utils/async')
-		expect(postRuntimeLogs).not.toHaveBeenCalled()
 	})
 
 	it('routes cex entries when the token rights name matches a cex slug', async () => {
@@ -202,8 +183,9 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { postRuntimeLogs } = await import('~/utils/async')
-		expect(postRuntimeLogs).not.toHaveBeenCalled()
+		const { flushTelemetry, recordDomainEvent } = await import('~/utils/telemetry')
+		expect(recordDomainEvent).not.toHaveBeenCalled()
+		expect(flushTelemetry).not.toHaveBeenCalled()
 	})
 
 	it('skips cex entries when the matching token has no page route', async () => {
@@ -225,7 +207,18 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-		const { postRuntimeLogs } = await import('~/utils/async')
-		expect(postRuntimeLogs).toHaveBeenCalledTimes(1)
+		const { flushTelemetry, recordDomainEvent } = await import('~/utils/telemetry')
+		expect(recordDomainEvent).toHaveBeenCalledTimes(1)
+		expect(recordDomainEvent).toHaveBeenCalledWith(
+			'token_rights.alert',
+			'warn',
+			'token-rights',
+			'Skipped token rights entries while building token-rights page',
+			expect.objectContaining({
+				reason_counts: { missing_token_route: 1 },
+				skipped_count: 1
+			})
+		)
+		expect(flushTelemetry).toHaveBeenCalledWith({ timeoutMs: 2000, runtime: 'build' })
 	})
 })

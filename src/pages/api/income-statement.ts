@@ -2,8 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { slug } from '~/utils'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -37,7 +38,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'public, max-age=3600')
 		return res.status(200).json(data)
 	} catch (error) {
-		console.log('Failed to fetch income statement', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch income statement' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/income-statement', handler)

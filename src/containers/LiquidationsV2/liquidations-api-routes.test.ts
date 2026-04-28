@@ -1,5 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 vi.mock('~/containers/LiquidationsV2/queries', () => ({
 	getLiquidationsOverviewPageDataFromNetwork: vi.fn(),
@@ -34,32 +35,11 @@ import overviewHandler from '~/pages/api/liquidations/index'
 import tokenHandler from '~/pages/api/token-liquidations/[symbol]'
 import { validateSubscription } from '~/utils/apiAuth'
 
-const mockedValidateSubscription = validateSubscription as unknown as ReturnType<typeof vi.fn>
-const mockedGetLiquidationsOverviewPageData = getLiquidationsOverviewPageDataFromNetwork as unknown as ReturnType<
-	typeof vi.fn
->
-const mockedGetLiquidationsProtocolPageData = getLiquidationsProtocolPageDataFromNetwork as unknown as ReturnType<
-	typeof vi.fn
->
-const mockedGetLiquidationsChainPageData = getLiquidationsChainPageDataFromNetwork as unknown as ReturnType<
-	typeof vi.fn
->
-const mockedGetTokenLiquidationsSectionData = getTokenLiquidationsSectionDataFromNetwork as unknown as ReturnType<
-	typeof vi.fn
->
-
-function createRes() {
-	const res: Partial<NextApiResponse> = {
-		setHeader: vi.fn(),
-		status: vi.fn(),
-		json: vi.fn()
-	}
-
-	;(res.status as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-	;(res.json as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-
-	return res as NextApiResponse
-}
+const mockedValidateSubscription = vi.mocked(validateSubscription)
+const mockedGetLiquidationsOverviewPageData = vi.mocked(getLiquidationsOverviewPageDataFromNetwork)
+const mockedGetLiquidationsProtocolPageData = vi.mocked(getLiquidationsProtocolPageDataFromNetwork)
+const mockedGetLiquidationsChainPageData = vi.mocked(getLiquidationsChainPageDataFromNetwork)
+const mockedGetTokenLiquidationsSectionData = vi.mocked(getTokenLiquidationsSectionDataFromNetwork)
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -69,7 +49,7 @@ beforeEach(() => {
 describe('liquidations api routes', () => {
 	it('returns 405 for non-GET overview requests', async () => {
 		const req = { method: 'POST', headers: {} } as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await overviewHandler(req, res)
 
@@ -85,7 +65,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer bad' },
 			query: { protocol: 'sky' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedValidateSubscription.mockResolvedValue({
 			valid: false,
 			status: 403,
@@ -101,7 +81,7 @@ describe('liquidations api routes', () => {
 
 	it('returns overview data for authorized requests', async () => {
 		const req = { method: 'GET', headers: { authorization: 'Bearer ok' }, query: {} } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedGetLiquidationsOverviewPageData.mockResolvedValue({
 			protocolLinks: [{ label: 'Overview', to: '/liquidations' }],
 			timestamp: 1,
@@ -132,7 +112,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer ok' },
 			query: { protocol: 'sky', chain: 'arbitrum-one' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedGetLiquidationsChainPageData.mockResolvedValue({
 			protocolLinks: [{ label: 'Overview', to: '/liquidations' }],
 			chainLinks: [{ label: 'All Chains', to: '/liquidations/sky' }],
@@ -170,7 +150,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer ok' },
 			query: { symbol: 'wsteth' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedGetTokenLiquidationsSectionData.mockResolvedValue({
 			tokenSymbol: 'WSTETH',
 			timestamp: 1,
@@ -201,7 +181,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer ok' },
 			query: { symbol: 'missing' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedGetTokenLiquidationsSectionData.mockResolvedValue(null)
 
 		await tokenHandler(req, res)
@@ -212,7 +192,7 @@ describe('liquidations api routes', () => {
 
 	it('returns a 500 json error when overview auth validation throws', async () => {
 		const req = { method: 'GET', headers: { authorization: 'Bearer bad' }, query: {} } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
 
 		await overviewHandler(req, res)
@@ -227,7 +207,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer bad' },
 			query: { protocol: 'sky' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
 
 		await protocolHandler(req, res)
@@ -242,7 +222,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer bad' },
 			query: { protocol: 'sky', chain: 'arbitrum-one' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
 
 		await chainHandler(req, res)
@@ -257,7 +237,7 @@ describe('liquidations api routes', () => {
 			headers: { authorization: 'Bearer bad' },
 			query: { symbol: 'wsteth' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 		mockedValidateSubscription.mockRejectedValue(new Error('Auth service unavailable'))
 
 		await tokenHandler(req, res)

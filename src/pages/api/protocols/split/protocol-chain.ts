@@ -1,7 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { CHAIN_ONLY_METRICS, getProtocolChainSplitData } from '~/server/protocolSplit/protocolChainService'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const {
 			protocol,
@@ -62,10 +63,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.status(200).json(result)
 	} catch (error) {
-		console.log('Error in protocol-chain split API:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({
 			error: 'Failed to fetch protocol chain data',
 			details: error instanceof Error ? error.message : 'Unknown error'
 		})
 	}
 }
+
+export default withApiRouteTelemetry('/api/protocols/split/protocol-chain', handler)

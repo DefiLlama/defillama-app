@@ -2,6 +2,8 @@ import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DI
 import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api.types'
 import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRuntimeError } from '~/utils/telemetry'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
@@ -74,7 +76,7 @@ function sanitizeUrlForMetadataLogs(inputUrl: string): string {
 }
 
 async function fetchJson<T = any>(url: string): Promise<T> {
-	const res = await fetch(url)
+	const res = await fetchWithPoolingOnServer(url)
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
 	const urlToLog = sanitizeUrlForMetadataLogs(url)
@@ -144,7 +146,7 @@ export async function fetchCoreMetadata({
 	const fetchWithDevFallback = <T>(url: string, fallback: T): Promise<T> =>
 		isDev
 			? fetchJson<T>(url).catch((error) => {
-					console.error(`[metadata] dev: failed to fetch ${sanitizeUrlForMetadataLogs(url)}, using fallback:`, error)
+					recordRuntimeError(error, 'pageBuild')
 					return fallback
 				})
 			: fetchJson<T>(url)
@@ -198,7 +200,7 @@ export async function fetchCoreMetadata({
 
 	const emissionsProtocolsList = await (isDev
 		? fetchEmissionsProtocolsList().catch((error) => {
-				console.error('[metadata] dev: failed to fetch emissions protocols list, using fallback:', error)
+				recordRuntimeError(error, 'pageBuild')
 				return []
 			})
 		: fetchEmissionsProtocolsList())
@@ -252,7 +254,7 @@ export async function fetchCoreMetadata({
 		? await (isDev
 				? buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }).catch(
 						(error) => {
-							console.error('[metadata] dev: failed to build buy-on-llamaswap dataset, using fallback:', error)
+							recordRuntimeError(error, 'pageBuild')
 							return {} as ProtocolLlamaswapMetadata
 						}
 					)
