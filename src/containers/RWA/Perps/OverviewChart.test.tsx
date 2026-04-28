@@ -6,6 +6,7 @@ import {
 	getRWAPerpsOverviewChartTypeQueryPatch,
 	getRWAPerpsOverviewTimeSeriesMode,
 	getRWAPerpsOverviewTimeSeriesModeQueryPatch,
+	getRWAPerpsChartDatasetForSelectedStacks,
 	resolveRWAPerpsOverviewSelectedStacks
 } from './OverviewChart'
 
@@ -58,6 +59,39 @@ describe('OverviewChart helpers', () => {
 				excludeStacksQ: ['NVIDIA']
 			})
 		).toEqual(['Meta'])
+	})
+
+	it('slices selected stack datasets to the first non-null selected value', () => {
+		const dataset = {
+			source: [
+				{ timestamp: 1, Total: 10, PreStocks: null, Securitize: 10 },
+				{ timestamp: 2, Total: 11, PreStocks: null, Securitize: 11 },
+				{ timestamp: 3, Total: 23, PreStocks: 12, Securitize: 11 },
+				{ timestamp: 4, Total: 11, PreStocks: 0, Securitize: 11 }
+			],
+			dimensions: ['timestamp', 'Total', 'PreStocks', 'Securitize']
+		}
+
+		expect(
+			getRWAPerpsChartDatasetForSelectedStacks(dataset, ['PreStocks'], ['PreStocks', 'Securitize']).source
+		).toEqual([
+			{ timestamp: 3, Total: 23, PreStocks: 12, Securitize: 11 },
+			{ timestamp: 4, Total: 11, PreStocks: 0, Securitize: 11 }
+		])
+	})
+
+	it('keeps the full dataset when all stacks are selected', () => {
+		const dataset = {
+			source: [
+				{ timestamp: 1, PreStocks: null, Securitize: 10 },
+				{ timestamp: 2, PreStocks: 12, Securitize: 11 }
+			],
+			dimensions: ['timestamp', 'PreStocks', 'Securitize']
+		}
+
+		expect(
+			getRWAPerpsChartDatasetForSelectedStacks(dataset, ['PreStocks', 'Securitize'], ['PreStocks', 'Securitize'])
+		).toBe(dataset)
 	})
 
 	it('builds line series without point markers for non-volume metrics', () => {

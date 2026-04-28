@@ -958,7 +958,7 @@ describe('perps overview helpers', () => {
 		).toEqual(['timestamp', 'alpha', 'beta', 'gamma'])
 	})
 
-	it('groups multi-series datasets into a single total series', () => {
+	it('groups multi-series datasets into a single total series without changing row order', () => {
 		expect(
 			groupRWAPerpsTimeSeriesDataset({
 				source: [
@@ -969,14 +969,14 @@ describe('perps overview helpers', () => {
 			})
 		).toEqual({
 			source: [
-				{ timestamp: 1774483200000, Total: 105 },
-				{ timestamp: 1774569600000, Total: 100 }
+				{ timestamp: 1774569600000, Total: 100 },
+				{ timestamp: 1774483200000, Total: 105 }
 			],
 			dimensions: ['timestamp', 'Total']
 		})
 	})
 
-	it('appends a total overlay while preserving the original breakdown series', () => {
+	it('appends a total overlay while preserving the original breakdown series and row order', () => {
 		expect(
 			appendRWAPerpsTimeSeriesDatasetTotal({
 				source: [
@@ -987,8 +987,8 @@ describe('perps overview helpers', () => {
 			})
 		).toEqual({
 			source: [
-				{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined, Total: 105 },
-				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null, Total: 100 }
+				{ timestamp: 1774569600000, Meta: 80, NVIDIA: 20, ignored: null, Total: 100 },
+				{ timestamp: 1774483200000, Meta: 100, NVIDIA: '5', Gold: undefined, Total: 105 }
 			],
 			dimensions: ['timestamp', 'Total', 'Meta', 'NVIDIA', 'Gold']
 		})

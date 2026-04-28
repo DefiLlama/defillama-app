@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import {
 	buildOverviewBreakdownChartSeries,
+	getOverviewBreakdownChartDatasetForSelectedStacks,
 	getOverviewBreakdownRequestState,
 	RWAOverviewBreakdownChart
 } from './OverviewBreakdownChart'
@@ -176,6 +177,63 @@ describe('getOverviewBreakdownRequestState', () => {
 
 		expect(lastChartProps?.dataset).toBe(dataset)
 		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Treasuries', 'Credit'])
+	})
+
+	it('slices selected stack charts to the first non-null selected value', async () => {
+		routerQuery = { stacks: 'PreStocks' }
+		const dataset = {
+			source: [
+				{ timestamp: 1, 'Total Active Mcap': 10, PreStocks: null, Securitize: 10 },
+				{ timestamp: 2, 'Total Active Mcap': 11, PreStocks: null, Securitize: 11 },
+				{ timestamp: 3, 'Total Active Mcap': 23, PreStocks: 12, Securitize: 11 },
+				{ timestamp: 4, 'Total Active Mcap': 11, PreStocks: 0, Securitize: 11 }
+			],
+			dimensions: ['timestamp', 'Total Active Mcap', 'PreStocks', 'Securitize']
+		}
+
+		await renderAll(
+			createElement(RWAOverviewBreakdownChart, {
+				page: { kind: 'platform' },
+				initialChartDataset: dataset,
+				stackLabel: 'Platforms'
+			})
+		)
+
+		expect(lastChartProps?.dataset.source).toEqual([
+			{ timestamp: 3, 'Total Active Mcap': 23, PreStocks: 12, Securitize: 11 },
+			{ timestamp: 4, 'Total Active Mcap': 11, PreStocks: 0, Securitize: 11 }
+		])
+		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['PreStocks'])
+	})
+})
+
+describe('getOverviewBreakdownChartDatasetForSelectedStacks', () => {
+	const dataset = {
+		source: [
+			{ timestamp: 1, PreStocks: null, Securitize: 10 },
+			{ timestamp: 2, PreStocks: 12, Securitize: 11 },
+			{ timestamp: 3, PreStocks: 0, Securitize: 12 }
+		],
+		dimensions: ['timestamp', 'PreStocks', 'Securitize']
+	}
+
+	it('keeps the full dataset when all stacks are selected', () => {
+		expect(
+			getOverviewBreakdownChartDatasetForSelectedStacks(
+				dataset,
+				['PreStocks', 'Securitize'],
+				['PreStocks', 'Securitize']
+			)
+		).toBe(dataset)
+	})
+
+	it('preserves zero values after the selected stack starts', () => {
+		expect(
+			getOverviewBreakdownChartDatasetForSelectedStacks(dataset, ['PreStocks'], ['PreStocks', 'Securitize']).source
+		).toEqual([
+			{ timestamp: 2, PreStocks: 12, Securitize: 11 },
+			{ timestamp: 3, PreStocks: 0, Securitize: 12 }
+		])
 	})
 })
 

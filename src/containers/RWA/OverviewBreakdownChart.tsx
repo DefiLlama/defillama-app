@@ -131,6 +131,28 @@ export function buildOverviewBreakdownChartSeries(dimensions: string[]): Array<M
 	})
 }
 
+export function getOverviewBreakdownChartDatasetForSelectedStacks(
+	dataset: MultiSeriesChart2Dataset,
+	selectedStacks: string[],
+	stackOptions: string[]
+): MultiSeriesChart2Dataset {
+	if (selectedStacks.length === 0 || selectedStacks.length === stackOptions.length) return dataset
+
+	for (let i = 0; i < dataset.source.length; i++) {
+		const row = dataset.source[i]
+		for (const stack of selectedStacks) {
+			if (row[stack] != null) {
+				return {
+					...dataset,
+					source: dataset.source.slice(i)
+				}
+			}
+		}
+	}
+
+	return dataset
+}
+
 export function RWAOverviewBreakdownChart({
 	page,
 	initialChartDataset,
@@ -179,6 +201,10 @@ export function RWAOverviewBreakdownChart({
 		return stackOptions.filter((stack) => !excludedStacksSet.has(stack))
 	}, [excludeStacksQ, selectedStacksQ, stackOptions])
 	const selectedStacksSet = useMemo(() => new Set(selectedStacks), [selectedStacks])
+	const selectedDataset = useMemo(
+		() => getOverviewBreakdownChartDatasetForSelectedStacks(dataset, selectedStacks, stackOptions),
+		[dataset, selectedStacks, stackOptions]
+	)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onSelectChartType = (nextChartType: RWAChartMetricKey) => {
@@ -232,7 +258,7 @@ export function RWAOverviewBreakdownChart({
 			) : (
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={dataset}
+						dataset={selectedDataset}
 						charts={chartSeries}
 						hideDefaultLegend={false}
 						showTotalInTooltip={!dataset.dimensions.some(isRwaTotalSeriesLabel)}
