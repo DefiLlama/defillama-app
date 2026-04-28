@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -15,6 +15,7 @@ import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
+import { TagGroup } from '~/components/TagGroup'
 import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -22,6 +23,7 @@ import { slug } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
+import { computeTimeRangePreset, TIME_RANGE_PRESETS, type TimeRangePreset } from './timeRangePresets'
 import type { IChainOverviewData } from './types'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
@@ -105,6 +107,45 @@ export function ChainChartPanel({
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(metadata.name)
 	const imageExportTitle = metadata.name === 'All' ? 'All Chains' : metadata.name
+
+	const [activePreset, setActivePreset] = useState<TimeRangePreset | null>(null)
+	const presetDispatchedRef = useRef(false)
+
+	const handlePresetChange = (preset: TimeRangePreset) => {
+		setActivePreset(preset)
+		const chart = chainChartInstance()
+		if (!chart) return
+		const target = computeTimeRangePreset(preset)
+		presetDispatchedRef.current = true
+		if (target.kind === 'percent') {
+			chart.dispatchAction({ type: 'dataZoom', start: target.start, end: target.end })
+		} else {
+			chart.dispatchAction({
+				type: 'dataZoom',
+				startValue: target.startValue,
+				endValue: target.endValue
+			})
+		}
+	}
+
+	// When the user drives the brush directly, drop any active preset selection.
+	// ECharts emits `datazoom` for both user interactions and our own dispatchAction
+	// calls, so we use a ref to skip events that we triggered ourselves.
+	useEffect(() => {
+		const chart = chainChartInstance()
+		if (!chart) return
+		const handler = () => {
+			if (presetDispatchedRef.current) {
+				presetDispatchedRef.current = false
+				return
+			}
+			setActivePreset(null)
+		}
+		chart.on('datazoom', handler)
+		return () => {
+			chart.off('datazoom', handler)
+		}
+	}, [chainChartInstance, isFetchingChartData])
 
 	const updateGroupBy = (newGroupBy: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: newGroupBy })
@@ -251,6 +292,12 @@ export function ChainChartPanel({
 						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
 					/>
 				) : null}
+				<TagGroup
+					setValue={(v) => handlePresetChange(v as TimeRangePreset)}
+					selectedValue={activePreset}
+					values={TIME_RANGE_PRESETS}
+					variant="responsive"
+				/>
 				<EmbedChart />
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 				<ChartPngExportButton
