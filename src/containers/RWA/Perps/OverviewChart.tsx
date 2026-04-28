@@ -89,6 +89,28 @@ export function resolveRWAPerpsOverviewSelectedStacks({
 	return stackOptions.filter((stack) => !excludedStacksSet.has(stack))
 }
 
+export function getRWAPerpsChartDatasetForSelectedStacks(
+	dataset: MultiSeriesChart2Dataset,
+	selectedStacks: string[],
+	stackOptions: string[]
+): MultiSeriesChart2Dataset {
+	if (selectedStacks.length === 0 || selectedStacks.length === stackOptions.length) return dataset
+
+	for (let i = 0; i < dataset.source.length; i++) {
+		const row = dataset.source[i]
+		for (const stack of selectedStacks) {
+			if (row[stack] != null) {
+				return {
+					...dataset,
+					source: dataset.source.slice(i)
+				}
+			}
+		}
+	}
+
+	return dataset
+}
+
 function fetchOverviewBreakdownDataset(request: IRWAPerpsOverviewBreakdownRequest): Promise<MultiSeriesChart2Dataset> {
 	const searchParams = new URLSearchParams({
 		breakdown: request.breakdown,
@@ -167,7 +189,6 @@ export function RWAPerpsOverviewChart({
 			: shouldShowTotalOverlay
 				? appendRWAPerpsTimeSeriesDatasetTotal(rawDataset)
 				: rawDataset
-	const hasTimeSeriesHistory = useMemo(() => hasEnoughTimeSeriesHistory(dataset), [dataset])
 	const showLoadingState = !isDefaultState && isLoading
 	const chartSeries = useMemo<Array<MultiSeriesChart2SeriesConfig>>(
 		() =>
@@ -189,10 +210,21 @@ export function RWAPerpsOverviewChart({
 			}),
 		[excludeStacksQ, selectedStacksQ, stackOptions]
 	)
+	const selectedDataset = useMemo(
+		() =>
+			timeSeriesMode === 'breakdown'
+				? getRWAPerpsChartDatasetForSelectedStacks(dataset, selectedStacks, stackOptions)
+				: dataset,
+		[dataset, selectedStacks, stackOptions, timeSeriesMode]
+	)
+	const hasTimeSeriesHistory = useMemo(() => hasEnoughTimeSeriesHistory(selectedDataset), [selectedDataset])
 	const showStackSelect = timeSeriesMode === 'breakdown' && stackOptions.length > 1
 	const visibleCharts = useMemo(
-		() => (shouldShowTotalOverlay ? new Set(['Total', ...selectedStacks]) : undefined),
-		[selectedStacks, shouldShowTotalOverlay]
+		() =>
+			timeSeriesMode === 'breakdown'
+				? new Set(shouldShowTotalOverlay ? ['Total', ...selectedStacks] : selectedStacks)
+				: undefined,
+		[selectedStacks, shouldShowTotalOverlay, timeSeriesMode]
 	)
 	const legendSeriesNames = useMemo(
 		() =>
@@ -275,7 +307,7 @@ export function RWAPerpsOverviewChart({
 			) : (
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={dataset}
+						dataset={selectedDataset}
 						charts={chartSeries}
 						chartOptions={{ legend: { data: legendSeriesNames } }}
 						hideDefaultLegend={false}

@@ -1,5 +1,4 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { toUnixMsTimestamp } from './api'
 import type { IRWABreakdownChartResponse, RWAOverviewBreakdownRequest, RWAChartMetricKey } from './api.types'
 import { getRwaChartTotalLabel, isRwaTotalSeriesLabel } from './chartAggregation'
@@ -8,10 +7,12 @@ export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null)
 	if (!rows || rows.length === 0) return { source: [], dimensions: ['timestamp'] }
 
 	const seenSeries = new Set<string>()
-	const source: IRWABreakdownChartResponse = []
+	const source: MultiSeriesChart2Dataset['source'] = []
 
 	for (const row of rows) {
-		const normalizedRow: IRWABreakdownChartResponse[number] = { timestamp: toUnixMsTimestamp(Number(row.timestamp)) }
+		const normalizedRow: MultiSeriesChart2Dataset['source'][number] = {
+			timestamp: toUnixMsTimestamp(Number(row.timestamp))
+		}
 
 		for (const series in row) {
 			if (series === 'timestamp') continue
@@ -22,9 +23,14 @@ export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null)
 		source.push(normalizedRow)
 	}
 
+	const dimensions = ['timestamp']
+	for (const series of seenSeries) {
+		dimensions.push(series)
+	}
+
 	return {
-		source: ensureChronologicalRows(source),
-		dimensions: ['timestamp', ...seenSeries]
+		source,
+		dimensions
 	}
 }
 
