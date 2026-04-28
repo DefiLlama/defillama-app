@@ -163,7 +163,7 @@ function resolveTokenRightsListItem(
 				...baseSkippedEntry,
 				reason: 'missing_token',
 				metadataSource: metadataMatch.source,
-				geckoId
+				...(geckoId ? { geckoId } : null)
 			}
 		}
 	}
@@ -175,7 +175,7 @@ function resolveTokenRightsListItem(
 				...baseSkippedEntry,
 				reason: 'missing_token_route',
 				metadataSource: metadataMatch.source,
-				geckoId
+				...(geckoId ? { geckoId } : null)
 			}
 		}
 	}

@@ -95,9 +95,11 @@ describe('telemetry client', () => {
 		expect(
 			batch.events.map((event: TelemetryEvent) => (event.type === 'runtime_error' ? event.error_message : ''))
 		).toEqual(['second', 'third', 'fourth'])
-		const firstCall = fetchMock.mock.calls[0]
+		const firstCall = fetchMock.mock.calls[0]!
+		const firstInit = firstCall[1]
+		if (!firstInit) throw new Error('missing telemetry request init')
 		expect(firstCall[0]).toBe(process.env.OPS_TELEMETRY_URL)
-		expect(firstCall[1].headers).toMatchObject({
+		expect(firstInit.headers).toMatchObject({
 			Authorization: 'Bearer secret',
 			'Idempotency-Key': expect.any(String)
 		})
@@ -113,12 +115,16 @@ describe('telemetry client', () => {
 		await flushTelemetry({ timeoutMs: 1000 })
 		await flushTelemetry({ timeoutMs: 1000 })
 
-		const firstCall = fetchMock.mock.calls[0]
-		const secondCall = fetchMock.mock.calls[1]
-		const thirdCall = fetchMock.mock.calls[2]
-		const firstHeaders = firstCall[1].headers as Record<string, string>
-		const secondHeaders = secondCall[1].headers as Record<string, string>
-		const thirdHeaders = thirdCall[1].headers as Record<string, string>
+		const firstCall = fetchMock.mock.calls[0]!
+		const secondCall = fetchMock.mock.calls[1]!
+		const thirdCall = fetchMock.mock.calls[2]!
+		const firstInit = firstCall[1]
+		const secondInit = secondCall[1]
+		const thirdInit = thirdCall[1]
+		if (!firstInit || !secondInit || !thirdInit) throw new Error('missing telemetry request init')
+		const firstHeaders = firstInit.headers as Record<string, string>
+		const secondHeaders = secondInit.headers as Record<string, string>
+		const thirdHeaders = thirdInit.headers as Record<string, string>
 
 		expect(fetchMock).toHaveBeenCalledTimes(3)
 		expect(firstHeaders['Idempotency-Key']).toBe(secondHeaders['Idempotency-Key'])
@@ -404,12 +410,12 @@ describe('telemetry client', () => {
 
 	it('propagates caller abort signals through server fetch timeouts', async () => {
 		const controller = new AbortController()
-		let fetchSignal: AbortSignal | null = null
+		const fetchState: { signal?: AbortSignal } = {}
 		const fetchMock = vi.fn(
 			async (_url: string, init: RequestInit) =>
 				new Promise<Response>((_resolve, reject) => {
-					fetchSignal = init.signal ?? null
-					fetchSignal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+					fetchState.signal = init.signal ?? undefined
+					fetchState.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
 				})
 		)
 		vi.stubGlobal('fetch', fetchMock)
@@ -419,12 +425,14 @@ describe('telemetry client', () => {
 			timeout: 60_000
 		})
 		await Promise.resolve()
-		expect(fetchSignal?.aborted).toBe(false)
+		const signal = fetchState.signal
+		if (!signal) throw new Error('missing fetch signal')
+		expect(signal.aborted).toBe(false)
 
 		controller.abort()
 
 		await expect(request).rejects.toThrow('Aborted')
-		expect(fetchSignal?.aborted).toBe(true)
+		expect(signal.aborted).toBe(true)
 	})
 
 	it('passes an already-aborted caller signal to fetch as aborted', async () => {

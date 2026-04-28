@@ -650,6 +650,8 @@ export function withApiRouteTelemetry(route: string, handler: NextApiHandler): N
 		const originalSend = res.send
 		const originalWrite = res.write
 		const originalEnd = res.end
+		const write = originalWrite.bind(res)
+		const end = originalEnd.bind(res)
 
 		const addResponseBytes = (bytes: number | undefined) => {
 			if (bytes === undefined) return
@@ -677,14 +679,30 @@ export function withApiRouteTelemetry(route: string, handler: NextApiHandler): N
 			}
 		}) as NextApiResponse['send']
 
-		res.write = ((chunk: unknown, ...args: unknown[]) => {
+		res.write = ((
+			chunk: Parameters<NextApiResponse['write']>[0],
+			encodingOrCallback?: BufferEncoding | (() => void),
+			callback?: () => void
+		) => {
 			if (!suppressResponseByteCapture) addResponseBytes(payloadBytes(chunk))
-			return originalWrite.call(res, chunk, ...args)
+			if (typeof encodingOrCallback === 'function') return write(chunk, encodingOrCallback)
+			if (encodingOrCallback && callback) return write(chunk, encodingOrCallback, callback)
+			if (encodingOrCallback) return write(chunk, encodingOrCallback)
+			return write(chunk)
 		}) as NextApiResponse['write']
 
-		res.end = ((chunk?: unknown, ...args: unknown[]) => {
+		res.end = ((
+			chunk?: Parameters<NextApiResponse['end']>[0],
+			encodingOrCallback?: BufferEncoding | (() => void),
+			callback?: () => void
+		) => {
 			if (!suppressResponseByteCapture) addResponseBytes(payloadBytes(chunk))
-			return originalEnd.call(res, chunk, ...args)
+			if (typeof chunk === 'function') return end(chunk)
+			if (typeof encodingOrCallback === 'function') return end(chunk, encodingOrCallback)
+			if (encodingOrCallback && callback) return end(chunk, encodingOrCallback, callback)
+			if (encodingOrCallback) return end(chunk, encodingOrCallback)
+			if (chunk !== undefined) return end(chunk)
+			return end()
 		}) as NextApiResponse['end']
 
 		try {
