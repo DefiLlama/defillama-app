@@ -128,6 +128,31 @@ describe('formatAdapterData', () => {
 		).toBeNull()
 	})
 
+	it('uses single child methodology when adapter data has one child protocol', () => {
+		const result = formatAdapterData({
+			data: createAdapterMetrics({
+				childProtocols: [
+					{
+						name: 'gauntlet-legacy',
+						defillamaId: '1',
+						displayName: 'Gauntlet Legacy',
+						methodologyURL: 'https://example.com/legacy',
+						methodology: { Fees: 'Legacy fees methodology' },
+						breakdownMethodology: {},
+						defaultChartView: 'daily'
+					}
+				]
+			}),
+			methodologyKey: 'Fees'
+		})
+
+		expect(result).toMatchObject({
+			methodology: 'Legacy fees methodology',
+			methodologyURL: 'https://example.com/legacy',
+			defaultChartView: 'weekly'
+		})
+	})
+
 	it('preserves child methodology behavior', () => {
 		const result = formatAdapterData({
 			data: createAdapterMetrics({

@@ -58,10 +58,7 @@ export function formatAdapterData({
 		}
 
 		const areMethodologiesDifferent = new Set(childMethodologies.map((entry) => entry[1])).size > 1
-		const topChildMethodology =
-			data.childProtocols.length > 1
-				? childMethodologies.find((entry) => entry[0] === data.childProtocols?.[0]?.displayName)
-				: null
+		const topChildMethodology = childMethodologies.find((entry) => entry[0] === data.childProtocols?.[0]?.displayName)
 
 		return {
 			total24h: data.total24h ?? null,
