@@ -151,7 +151,7 @@ describe('getOverviewBreakdownRequestState', () => {
 		expect(lastChartProps?.dataset).toBe(dataset)
 		expect(lastChartProps?.hideDefaultLegend).toBe(false)
 		expect(lastChartProps?.stacked).toBeUndefined()
-		expect(lastChartProps?.showTotalInTooltip).toBe(true)
+		expect(lastChartProps?.showTotalInTooltip).toBe(false)
 		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Total Active Mcap', 'Ethereum', 'Solana'])
 		expect(lastChartProps?.charts?.[0]).toMatchObject({
 			name: 'Total Active Mcap',

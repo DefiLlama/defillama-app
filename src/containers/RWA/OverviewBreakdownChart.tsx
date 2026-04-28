@@ -235,7 +235,7 @@ export function RWAOverviewBreakdownChart({
 						dataset={dataset}
 						charts={chartSeries}
 						hideDefaultLegend={false}
-						showTotalInTooltip={!dataset.dimensions.includes('Total')}
+						showTotalInTooltip={!dataset.dimensions.some(isRwaTotalSeriesLabel)}
 						selectedCharts={selectedStacksSet}
 						onReady={handleChartReady}
 					/>

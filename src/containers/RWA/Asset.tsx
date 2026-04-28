@@ -15,6 +15,7 @@ import { chainIconUrl } from '~/utils/icons'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
+import { getRwaPlatforms } from './grouping'
 import { rwaSlug } from './rwaSlug'
 import { RWAYieldsTable } from './RWAYieldsTable'
 
@@ -182,8 +183,18 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			? asset.attestationFrequency.join('; ')
 			: null
 		: (asset.attestationFrequency ?? null)
-	const parentPlatforms =
-		typeof asset.parentPlatform === 'string' ? [asset.parentPlatform] : (asset.parentPlatform ?? [])
+	const parentPlatforms = getRwaPlatforms(asset.parentPlatform)
+	let hasParentPlatformName = false
+	if (typeof asset.parentPlatform === 'string') {
+		hasParentPlatformName = asset.parentPlatform.trim().length > 0
+	} else if (Array.isArray(asset.parentPlatform)) {
+		for (const platform of asset.parentPlatform) {
+			if (platform.trim()) {
+				hasParentPlatformName = true
+				break
+			}
+		}
+	}
 
 	const { data: yieldChartRaw, isLoading: isLoadingYieldChart } = useYieldChartData(asset.nativeYieldPoolId)
 	const { chartInstance: nativeYieldChartInstance, handleChartReady: onNativeYieldChartReady } = useGetChartInstance()
@@ -285,7 +296,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					) : null}
 					{typeof asset.discord === 'string' ? (
 						<a
-							href={asset.discord as string}
+							href={asset.discord}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
@@ -501,7 +512,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									{asset.accessModelDescription ? <QuestionHelper text={asset.accessModelDescription} /> : null}
 								</span>
 							</p>
-							{parentPlatforms.length > 0 ? (
+							{hasParentPlatformName ? (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 									<span className="text-(--text-label)">Parent Platform</span>
 									<span className="flex flex-wrap items-center gap-x-1 font-medium">
