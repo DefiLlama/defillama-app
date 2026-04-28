@@ -350,7 +350,7 @@ function createColumns(includeRwaPerps: boolean) {
 				header: 'DeFi Utilization',
 				cell: (info) => (info.getValue() != null ? `${formatNum(info.getValue(), 2)}%` : null),
 				id: 'utilization',
-				size: 120,
+				size: 140,
 				meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }
 			}
 		),

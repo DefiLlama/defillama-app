@@ -3,16 +3,22 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { MultiSeriesChart2Dataset, MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/Select/types'
+import { CHART_COLORS } from '~/constants/colors'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import { isTrueQueryParam, pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import type { RWAChartMetricKey, RWAOverviewBreakdownRequest, RWAOverviewPage } from './api.types'
-import { isRwaTotalSeriesLabel } from './chartAggregation'
+import {
+	getRwaChartSeriesColorSlots,
+	getRwaReservedSeriesColorSlot,
+	isRwaTotalSeriesLabel,
+	sortRwaChartSeriesLabels
+} from './chartAggregation'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -102,6 +108,29 @@ function fetchOverviewBreakdownDataset(request: RWAOverviewBreakdownRequest): Pr
 	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/overview-breakdown?${searchParams.toString()}`)
 }
 
+export function buildOverviewBreakdownChartSeries(dimensions: string[]): Array<MultiSeriesChart2SeriesConfig> {
+	const seriesDimensions = sortRwaChartSeriesLabels(dimensions.filter((dimension) => dimension !== 'timestamp'))
+	const colorSlots = getRwaChartSeriesColorSlots(seriesDimensions)
+
+	return seriesDimensions.map((name) => {
+		const reservedColorSlot = getRwaReservedSeriesColorSlot(name)
+		const isTotalSeries = isRwaTotalSeriesLabel(name)
+
+		return {
+			type: 'line',
+			name,
+			encode: { x: 'timestamp', y: name },
+			color: CHART_COLORS[colorSlots[name] % CHART_COLORS.length],
+			...(reservedColorSlot !== null
+				? {
+						hideAreaStyle: true,
+						...(isTotalSeries ? { excludeFromTooltipTotal: true } : {})
+					}
+				: {})
+		}
+	})
+}
+
 export function RWAOverviewBreakdownChart({
 	page,
 	initialChartDataset,
@@ -132,6 +161,7 @@ export function RWAOverviewBreakdownChart({
 	const dataset = isDefaultState ? initialChartDataset : (data ?? EMPTY_DATASET)
 	const showLoadingState = !isDefaultState && isLoading
 	const stackOptions = useMemo(() => dataset.dimensions.filter((dimension) => dimension !== 'timestamp'), [dataset])
+	const chartSeries = useMemo(() => buildOverviewBreakdownChartSeries(dataset.dimensions), [dataset.dimensions])
 	const selectedStacksQ = router.query[STACKS_QUERY_KEY] as string | string[] | undefined
 	const excludeStacksQ = router.query[EXCLUDE_STACKS_QUERY_KEY] as string | string[] | undefined
 	const selectedStacks = useMemo(() => {
@@ -203,6 +233,7 @@ export function RWAOverviewBreakdownChart({
 				<Suspense fallback={<div className="h-[360px]" />}>
 					<MultiSeriesChart2
 						dataset={dataset}
+						charts={chartSeries}
 						hideDefaultLegend={false}
 						showTotalInTooltip={!dataset.dimensions.some(isRwaTotalSeriesLabel)}
 						selectedCharts={selectedStacksSet}

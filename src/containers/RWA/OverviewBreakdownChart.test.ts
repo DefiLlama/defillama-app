@@ -3,7 +3,11 @@ import { createElement, type ReactElement } from 'react'
 import { renderToPipeableStream } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
-import { getOverviewBreakdownRequestState, RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
+import {
+	buildOverviewBreakdownChartSeries,
+	getOverviewBreakdownRequestState,
+	RWAOverviewBreakdownChart
+} from './OverviewBreakdownChart'
 
 let routerQuery: Record<string, string | string[]> = {}
 let queryState: { data: any; isLoading: boolean; error: any } = {
@@ -130,10 +134,10 @@ describe('getOverviewBreakdownRequestState', () => {
 		})
 	})
 
-	it('uses the default chart legend and unstacked series', async () => {
+	it('renders supplied total series with requested aggregate breakdown charts', async () => {
 		const dataset = {
-			source: [{ timestamp: 1, Ethereum: 10, Solana: 5 }],
-			dimensions: ['timestamp', 'Ethereum', 'Solana']
+			source: [{ timestamp: 1, 'Total Active Mcap': 15, Ethereum: 10, Solana: 5 }],
+			dimensions: ['timestamp', 'Total Active Mcap', 'Ethereum', 'Solana']
 		}
 
 		await renderAll(
@@ -147,7 +151,45 @@ describe('getOverviewBreakdownRequestState', () => {
 		expect(lastChartProps?.dataset).toBe(dataset)
 		expect(lastChartProps?.hideDefaultLegend).toBe(false)
 		expect(lastChartProps?.stacked).toBeUndefined()
-		expect(lastChartProps?.showTotalInTooltip).toBe(true)
-		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Ethereum', 'Solana'])
+		expect(lastChartProps?.showTotalInTooltip).toBe(false)
+		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Total Active Mcap', 'Ethereum', 'Solana'])
+		expect(lastChartProps?.charts?.[0]).toMatchObject({
+			name: 'Total Active Mcap',
+			hideAreaStyle: true,
+			excludeFromTooltipTotal: true
+		})
+	})
+
+	it('leaves category breakdown charts unchanged', async () => {
+		const dataset = {
+			source: [{ timestamp: 1, Treasuries: 10, Credit: 5 }],
+			dimensions: ['timestamp', 'Treasuries', 'Credit']
+		}
+
+		await renderAll(
+			createElement(RWAOverviewBreakdownChart, {
+				page: { kind: 'category' },
+				initialChartDataset: dataset,
+				stackLabel: 'Categories'
+			})
+		)
+
+		expect(lastChartProps?.dataset).toBe(dataset)
+		expect(Array.from(lastChartProps?.selectedCharts ?? [])).toEqual(['Treasuries', 'Credit'])
+	})
+})
+
+describe('buildOverviewBreakdownChartSeries', () => {
+	it('uses total-series styling without excluding normal series', () => {
+		expect(buildOverviewBreakdownChartSeries(['timestamp', 'Total Active Mcap', 'Ethereum'])).toEqual([
+			expect.objectContaining({
+				name: 'Total Active Mcap',
+				hideAreaStyle: true,
+				excludeFromTooltipTotal: true
+			}),
+			expect.objectContaining({
+				name: 'Ethereum'
+			})
+		])
 	})
 })

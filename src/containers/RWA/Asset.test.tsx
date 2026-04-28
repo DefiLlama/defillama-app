@@ -36,11 +36,14 @@ describe('RWAAssetPage', () => {
 	})
 
 	it('links parent platform names to RWA platform pages', () => {
-		const html = renderToStaticMarkup(<RWAAssetPage asset={{ ...baseAsset, parentPlatform: 'Plume Network' }} />)
+		const html = renderToStaticMarkup(
+			<RWAAssetPage asset={{ ...baseAsset, parentPlatform: [' Plume Network ', 'Plume Network'] }} />
+		)
 
 		expect(html).toContain('Parent Platform')
 		expect(html).toContain('href="/rwa/platform/plume-network"')
 		expect(html).toContain('Plume Network')
+		expect(html.match(/href="\/rwa\/platform\/plume-network"/g)).toHaveLength(1)
 	})
 
 	it('keeps hiding parent platform when no platform name exists', () => {
