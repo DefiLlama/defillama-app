@@ -54,7 +54,7 @@ describe('rwa breakdownDataset', () => {
 		})
 	})
 
-	it('converts leading zero values to null until a series has data', () => {
+	it('preserves zero values returned by the backend', () => {
 		expect(
 			toBreakdownChartDataset([
 				{ timestamp: 1, PreStocks: 0, Securitize: 10 },
@@ -64,27 +64,12 @@ describe('rwa breakdownDataset', () => {
 			])
 		).toEqual({
 			source: [
-				{ timestamp: 1_000, PreStocks: null, Securitize: 10 },
-				{ timestamp: 2_000, PreStocks: null, Securitize: 11 },
+				{ timestamp: 1_000, PreStocks: 0, Securitize: 10 },
+				{ timestamp: 2_000, PreStocks: 0, Securitize: 11 },
 				{ timestamp: 3_000, PreStocks: 12, Securitize: 12 },
 				{ timestamp: 4_000, PreStocks: 0, Securitize: 13 }
 			],
 			dimensions: ['timestamp', 'PreStocks', 'Securitize']
-		})
-	})
-
-	it('drops all-zero placeholder series from dimensions', () => {
-		expect(
-			toBreakdownChartDataset([
-				{ timestamp: 1, Placeholder: 0, Securitize: 10 },
-				{ timestamp: 2, Placeholder: 0, Securitize: 11 }
-			])
-		).toEqual({
-			source: [
-				{ timestamp: 1_000, Placeholder: null, Securitize: 10 },
-				{ timestamp: 2_000, Placeholder: null, Securitize: 11 }
-			],
-			dimensions: ['timestamp', 'Securitize']
 		})
 	})
 

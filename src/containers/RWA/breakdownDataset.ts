@@ -23,27 +23,9 @@ export function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null)
 		source.push(normalizedRow)
 	}
 
-	const startedSeries = new Set<string>()
-
-	for (const row of source) {
-		for (const series in row) {
-			if (series === 'timestamp') continue
-			const value = row[series]
-			if (value == null) continue
-			const numericValue = typeof value === 'number' ? value : Number(value)
-			if (numericValue !== 0) {
-				startedSeries.add(series)
-				continue
-			}
-			if (!startedSeries.has(series)) {
-				row[series] = null
-			}
-		}
-	}
-
 	const dimensions = ['timestamp']
 	for (const series of seenSeries) {
-		if (startedSeries.has(series)) dimensions.push(series)
+		dimensions.push(series)
 	}
 
 	return {
