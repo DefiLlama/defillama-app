@@ -127,6 +127,7 @@ function ChainsChartCard({
 	exportTitle: string
 }) {
 	const [selected, setSelected] = React.useState<string[]>(() => allValues)
+	const [stacked, setStacked] = React.useState(false)
 
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
@@ -149,6 +150,15 @@ function ChainsChartCard({
 						portal
 					/>
 				) : null}
+				<button
+					type="button"
+					onClick={() => setStacked((prev) => !prev)}
+					aria-pressed={stacked}
+					data-state={stacked ? 'on' : 'off'}
+					className="flex shrink-0 items-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium hover:bg-(--btn-hover-bg) data-[state=on]:bg-(--old-blue) data-[state=on]:text-white"
+				>
+					<span>Compound</span>
+				</button>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -157,6 +167,7 @@ function ChainsChartCard({
 					charts={deferredCharts}
 					valueSymbol="$"
 					selectedCharts={selectedChartsSet}
+					stacked={stacked}
 					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
 					onReady={handleChartReady}
 				/>
@@ -183,6 +194,7 @@ function TokenLineChartCard({
 	exportTitle: string
 }) {
 	const [selected, setSelected] = React.useState<string[]>(() => allValues)
+	const [stacked, setStacked] = React.useState(false)
 
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
@@ -205,6 +217,15 @@ function TokenLineChartCard({
 						portal
 					/>
 				) : null}
+				<button
+					type="button"
+					onClick={() => setStacked((prev) => !prev)}
+					aria-pressed={stacked}
+					data-state={stacked ? 'on' : 'off'}
+					className="flex shrink-0 items-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium hover:bg-(--btn-hover-bg) data-[state=on]:bg-(--old-blue) data-[state=on]:text-white"
+				>
+					<span>Compound</span>
+				</button>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -213,6 +234,7 @@ function TokenLineChartCard({
 					charts={deferredCharts}
 					valueSymbol={valueSymbol}
 					selectedCharts={selectedChartsSet}
+					stacked={stacked}
 					chartOptions={valueSymbol === '$' ? { tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } } : undefined}
 					onReady={handleChartReady}
 				/>
