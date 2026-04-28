@@ -99,13 +99,16 @@ const ChainProtocolsTableInner = ({
 		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
-	// Fork filter — reads selection from URL (?fork=...), filters table data, exposes available forks for the dropdown
-	const forkParam = (() => {
-		const q = router.query.fork
-		if (typeof q === 'string') return q || null
-		if (Array.isArray(q)) return q[0] ?? null
-		return null
-	})()
+	// Fork filter — reads selection from URL (?fork=...), filters table data, exposes available forks for the dropdown.
+	// Gate on router.isReady to avoid SSR/CSR hydration mismatch (router.query is empty during static generation).
+	const forkParam = router.isReady
+		? (() => {
+				const q = router.query.fork
+				if (typeof q === 'string') return q || null
+				if (Array.isArray(q)) return q[0] ?? null
+				return null
+			})()
+		: null
 
 	const availableForks = useMemo(() => getAvailableForks(finalProtocols), [finalProtocols])
 
