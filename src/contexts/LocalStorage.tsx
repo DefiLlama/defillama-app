@@ -211,10 +211,42 @@ const getResolvedTheme = (): 'dark' | 'light' => {
 	return 'dark'
 }
 
+const disableTransitions = () => {
+	const style = document.createElement('style')
+	style.appendChild(
+		document.createTextNode(
+			`*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}`
+		)
+	)
+	document.head.appendChild(style)
+
+	return () => {
+		;(() => window.getComputedStyle(document.body))()
+
+		setTimeout(() => {
+			document.head.removeChild(style)
+		}, 1)
+	}
+}
+
+const applyTheme = (isDarkMode: boolean) => {
+	if (!isDarkMode) {
+		document.documentElement.classList.remove('dark')
+		document.documentElement.classList.add('light')
+	} else {
+		document.documentElement.classList.remove('light')
+		document.documentElement.classList.add('dark')
+	}
+}
+
 const toggleDarkMode = () => {
 	const isDarkMode = getResolvedTheme() === 'dark'
+	const restoreTransitions = disableTransitions()
+
+	applyTheme(!isDarkMode)
 	setThemeCookie(!isDarkMode)
 	notifyKeyChange(THEME_SYNC_KEY)
+	restoreTransitions()
 }
 
 export function useDarkModeManager() {
@@ -227,13 +259,7 @@ export function useDarkModeManager() {
 	const isDarkMode = store === 'dark'
 
 	useEffect(() => {
-		if (!isDarkMode) {
-			document.documentElement.classList.remove('dark')
-			document.documentElement.classList.add('light')
-		} else {
-			document.documentElement.classList.remove('light')
-			document.documentElement.classList.add('dark')
-		}
+		applyTheme(isDarkMode)
 	}, [isDarkMode])
 
 	return [isDarkMode, toggleDarkMode] as [boolean, () => void]
