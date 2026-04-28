@@ -160,28 +160,32 @@ export const PlotsPage = ({
 			return Number.isFinite(n) ? parseFloat(n.toFixed(2)) : 0
 		}
 
-		const treeData = []
+		const treeDataByProject = new Map<
+			string,
+			{ tvl: number; children: { value: [unknown, number, number]; name: string; path: string }[] }
+		>()
 
-		const cData = poolsData.filter((p) => p.apyPct1D != null)
+		// structure into hierarchy in a single pass
+		for (const pool of poolsData) {
+			if (pool.apyPct1D == null) continue
 
-		// structure into hierarchy
-		for (let project of [...new Set(cData.map((p) => p.projectName))]) {
-			const projectData = cData.filter((p) => p.projectName === project)
-			const projectTvl = projectData.map((p) => p.tvlUsd).reduce((a, b) => a + b, 0)
-
-			treeData.push({
-				value: [projectTvl, null, null],
-				name: project,
-				path: project,
-				children: projectData.map((p) => ({
-					value: [p.tvlUsd, toFixed2Safe(p.apy), toFixed2Safe(p.apyPct1D)],
-					name: p.symbol,
-					path: `${p.projectName}/${p.symbol}`
-				}))
+			const project = pool.projectName
+			const projectData = treeDataByProject.get(project) ?? { tvl: 0, children: [] }
+			projectData.tvl += typeof pool.tvlUsd === 'number' && Number.isFinite(pool.tvlUsd) ? pool.tvlUsd : 0
+			projectData.children.push({
+				value: [pool.tvlUsd, toFixed2Safe(pool.apy), toFixed2Safe(pool.apyPct1D)],
+				name: pool.symbol,
+				path: `${pool.projectName}/${pool.symbol}`
 			})
+			treeDataByProject.set(project, projectData)
 		}
 
-		return treeData
+		return Array.from(treeDataByProject, ([project, projectData]) => ({
+			value: [projectData.tvl, null, null],
+			name: project,
+			path: project,
+			children: projectData.children
+		}))
 	}, [poolsData])
 
 	return (
