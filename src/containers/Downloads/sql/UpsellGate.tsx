@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { Keycap, TypeBadge, type ColumnKind } from './primitives'
@@ -112,24 +112,63 @@ const SAMPLE_ROWS: SampleRow[] = [
 	}
 ]
 
-interface SampleCol {
-	name: keyof Omit<SampleRow, 'short'>
+interface AltRow {
+	chain: string
+	tvl: number
+	change_30d: number
+	dominance: number
+}
+
+const ALT_ROWS: AltRow[] = [
+	{ chain: 'Ethereum', tvl: 92_510_000_000, change_30d: 0.043, dominance: 0.611 },
+	{ chain: 'Solana', tvl: 18_240_000_000, change_30d: 0.082, dominance: 0.121 },
+	{ chain: 'BSC', tvl: 9_840_000_000, change_30d: -0.012, dominance: 0.065 },
+	{ chain: 'Arbitrum', tvl: 8_120_000_000, change_30d: 0.018, dominance: 0.054 },
+	{ chain: 'Tron', tvl: 7_460_000_000, change_30d: 0.004, dominance: 0.049 }
+]
+
+interface TableCol<T> {
+	name: string
 	kind: ColumnKind
 	type: string
 	width: number
+	get: (row: T) => string | number
 }
 
-const SAMPLE_COLS: SampleCol[] = [
-	{ name: 'name', kind: 'text', type: 'VARCHAR', width: 192 },
-	{ name: 'category', kind: 'text', type: 'VARCHAR', width: 188 },
-	{ name: 'fees_30d', kind: 'float', type: 'BIGINT', width: 132 },
-	{ name: 'revenue_30d', kind: 'float', type: 'BIGINT', width: 132 },
-	{ name: 'keep_ratio', kind: 'float', type: 'DOUBLE', width: 116 }
+const SAMPLE_COLS: TableCol<SampleRow>[] = [
+	{ name: 'name', kind: 'text', type: 'VARCHAR', width: 192, get: (r) => r.name },
+	{ name: 'category', kind: 'text', type: 'VARCHAR', width: 188, get: (r) => r.category },
+	{ name: 'fees_30d', kind: 'float', type: 'BIGINT', width: 132, get: (r) => r.fees_30d },
+	{ name: 'revenue_30d', kind: 'float', type: 'BIGINT', width: 132, get: (r) => r.revenue_30d },
+	{ name: 'keep_ratio', kind: 'float', type: 'DOUBLE', width: 116, get: (r) => r.keep_ratio }
+]
+
+const ALT_COLS: TableCol<AltRow>[] = [
+	{ name: 'chain', kind: 'text', type: 'VARCHAR', width: 152, get: (r) => r.chain },
+	{ name: 'tvl', kind: 'float', type: 'BIGINT', width: 152, get: (r) => r.tvl },
+	{ name: 'change_30d', kind: 'float', type: 'DOUBLE', width: 142, get: (r) => r.change_30d },
+	{ name: 'dominance', kind: 'float', type: 'DOUBLE', width: 124, get: (r) => r.dominance }
+]
+
+type TabKey = 'notebook' | 'sql' | 'alt'
+
+interface TabDef {
+	key: TabKey
+	label: string
+	kind: 'notebook' | 'sql'
+	dirty?: boolean
+}
+
+const TABS: TabDef[] = [
+	{ key: 'notebook', label: 'revenue-capture.nb', kind: 'notebook' },
+	{ key: 'sql', label: 'fees-vs-revenue.sql', kind: 'sql' },
+	{ key: 'alt', label: 'chains-tvl.sql', kind: 'sql', dirty: true }
 ]
 
 export function UpsellGate({ isAuthenticated, isTrial }: UpsellGateProps) {
 	const router = useRouter()
 	const subscriptionHref = `/subscription?returnUrl=${encodeURIComponent(router.asPath)}`
+	const [activeTab, setActiveTab] = useState<TabKey>('notebook')
 
 	const heading = 'Unlock SQL Studio'
 
@@ -156,7 +195,7 @@ export function UpsellGate({ isAuthenticated, isTrial }: UpsellGateProps) {
 				</header>
 
 				<div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start lg:gap-8">
-					<SamplePane />
+					<ShowcasePane activeTab={activeTab} onTabChange={setActiveTab} />
 					<PricingCard isAuthenticated={isAuthenticated} subscriptionHref={subscriptionHref} />
 				</div>
 			</section>
@@ -261,13 +300,343 @@ function FeatureTile({
 	)
 }
 
-function SamplePane() {
+function ShowcasePane({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: (next: TabKey) => void }) {
 	return (
 		<div className="flex flex-col overflow-hidden rounded-xl border border-(--divider) bg-(--cards-bg) shadow-sm">
+			<TabStrip activeTab={activeTab} onTabChange={onTabChange} />
+			{activeTab === 'notebook' ? <NotebookBody /> : null}
+			{activeTab === 'sql' ? <QueryBody /> : null}
+			{activeTab === 'alt' ? <AltQueryBody /> : null}
+		</div>
+	)
+}
+
+function TabStrip({ activeTab, onTabChange }: { activeTab: TabKey; onTabChange: (next: TabKey) => void }) {
+	return (
+		<div
+			role="tablist"
+			aria-label="SQL Studio sample tabs"
+			className="thin-scrollbar flex items-stretch gap-1 overflow-x-auto border-b border-(--divider) bg-(--app-bg)/40 px-2 pt-2"
+		>
+			{TABS.map((t) => {
+				const isActive = activeTab === t.key
+				return (
+					<button
+						key={t.key}
+						type="button"
+						role="tab"
+						aria-selected={isActive}
+						onClick={() => onTabChange(t.key)}
+						className={`group -mb-px flex h-8 min-w-[148px] max-w-[220px] shrink-0 items-center gap-2 rounded-t-md border border-b-0 px-2.5 transition-colors ${
+							isActive
+								? 'border-(--divider) bg-(--cards-bg) text-(--text-primary)'
+								: 'border-transparent text-(--text-secondary) hover:bg-(--link-hover-bg)/40 hover:text-(--text-primary)'
+						}`}
+					>
+						<span className="flex h-3 w-3 shrink-0 items-center justify-center" aria-hidden>
+							{t.dirty ? <span className="h-1.5 w-1.5 rounded-full bg-pro-gold-300" /> : null}
+						</span>
+						<Icon
+							name={t.kind === 'notebook' ? 'layers' : 'file-text'}
+							className={`h-3 w-3 shrink-0 ${
+								isActive
+									? t.kind === 'notebook'
+										? 'text-(--sub-brand-primary)'
+										: 'text-(--text-secondary)'
+									: 'text-(--text-tertiary)'
+							}`}
+						/>
+						<span className="min-w-0 flex-1 truncate text-left font-mono text-[12px]">{t.label}</span>
+						<span
+							aria-hidden
+							className={`grid h-4 w-4 shrink-0 place-items-center rounded-sm transition-opacity ${
+								isActive
+									? 'opacity-50 hover:bg-(--link-hover-bg)/60 hover:opacity-100'
+									: 'opacity-0 group-hover:opacity-50'
+							}`}
+						>
+							<Icon name="x" className="h-2.5 w-2.5" />
+						</span>
+					</button>
+				)
+			})}
+			<button
+				type="button"
+				title="New tab (⌘T)"
+				onClick={(e) => e.preventDefault()}
+				className="-mb-px ml-auto inline-flex h-7 w-7 shrink-0 items-center justify-center self-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg)/40 hover:text-(--text-secondary)"
+			>
+				<Icon name="plus" className="h-3.5 w-3.5" />
+			</button>
+		</div>
+	)
+}
+
+function NotebookBody() {
+	return (
+		<div className="flex flex-col">
+			<NotebookHeader />
+			<div className="flex flex-col gap-2 px-3 py-3">
+				<MarkdownCell />
+				<SqlNotebookCell />
+				<ChartNotebookCell />
+				<AddCellBar />
+			</div>
+		</div>
+	)
+}
+
+function NotebookHeader() {
+	return (
+		<div className="flex items-center justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/30 px-4 py-2.5">
+			<div className="flex min-w-0 flex-col gap-0.5">
+				<span className="truncate text-[13px] font-semibold tracking-tight text-(--text-primary)">
+					Revenue capture across DeFi
+				</span>
+				<span className="font-mono text-[10.5px] text-(--text-tertiary) tabular-nums">
+					3 cells · 2 SQL · 1 chart · last run 412ms
+				</span>
+			</div>
+			<div className="flex shrink-0 items-center gap-2">
+				<span className="hidden items-center gap-1.5 sm:inline-flex">
+					<Keycap>⌘</Keycap>
+					<Keycap>↵</Keycap>
+				</span>
+				<button
+					type="button"
+					onClick={(e) => e.preventDefault()}
+					className="inline-flex items-center gap-1.5 rounded-md bg-(--sub-brand-primary) px-3 py-1 text-[11.5px] font-semibold text-white transition-colors hover:bg-(--sub-brand-primary)/90"
+				>
+					<PlayGlyph />
+					Run all
+				</button>
+			</div>
+		</div>
+	)
+}
+
+function PlayGlyph({ size = 5 }: { size?: number }) {
+	const half = size / 2
+	return (
+		<span
+			aria-hidden
+			className="block shrink-0"
+			style={{
+				width: 0,
+				height: 0,
+				borderTop: `${half}px solid transparent`,
+				borderBottom: `${half}px solid transparent`,
+				borderLeft: `${size}px solid currentColor`
+			}}
+		/>
+	)
+}
+
+function MarkdownCell() {
+	return (
+		<CellShell focused={false}>
+			<CellHeader name="cell_1" badge="md" />
+			<div className="px-3 pb-3 pl-9">
+				<h4 className="text-[15px] leading-snug font-semibold tracking-tight text-(--text-primary)">
+					Revenue capture across DeFi
+				</h4>
+				<p className="mt-1.5 text-[12.5px] leading-relaxed text-(--text-secondary)">
+					Which protocols earn the most fees, and how much do they keep as revenue? Joining{' '}
+					<InlineCode>fees</InlineCode> and <InlineCode>revenue</InlineCode> highlights the high-volume,
+					low-capture protocols.
+				</p>
+			</div>
+		</CellShell>
+	)
+}
+
+function InlineCode({ children }: { children: ReactNode }) {
+	return (
+		<code className="rounded-sm bg-(--app-bg)/70 px-1 py-px font-mono text-[11.5px] text-(--text-primary)">
+			{children}
+		</code>
+	)
+}
+
+function SqlNotebookCell() {
+	return (
+		<CellShell focused>
+			<CellHeader
+				name="cell_2"
+				badge="sql"
+				action={
+					<>
+						<button
+							type="button"
+							onClick={(e) => e.preventDefault()}
+							className="inline-flex items-center gap-1 rounded-md bg-(--sub-brand-primary) px-2 py-0.5 text-[10.5px] font-semibold text-white"
+						>
+							<PlayGlyph size={4} />
+							Run
+						</button>
+						<span className="hidden items-center gap-1 sm:inline-flex">
+							<Keycap muted>⌘</Keycap>
+							<Keycap muted>↵</Keycap>
+						</span>
+						<Icon name="ellipsis" className="h-3.5 w-3.5 text-(--text-tertiary)" />
+					</>
+				}
+			/>
+			<div className="px-3 pb-3 pl-9">
+				<pre className="thin-scrollbar overflow-x-auto rounded-md border border-(--divider) bg-(--app-bg)/60 px-3 py-2 font-mono text-[11px] leading-[1.55] text-(--text-primary)">
+					<code>
+						<KW>SELECT</KW> f.name, f.category,
+						{'\n'}
+						{'       '}f.total30d <KW>AS</KW> fees_30d,
+						{'\n'}
+						{'       '}
+						<KW>COALESCE</KW>(r.total30d, <NUM>0</NUM>) <KW>AS</KW> revenue_30d,
+						{'\n'}
+						{'       '}
+						<KW>COALESCE</KW>(r.total30d, <NUM>0</NUM>) / <KW>NULLIF</KW>(f.total30d, <NUM>0</NUM>) <KW>AS</KW>{' '}
+						keep_ratio
+						{'\n'}
+						<KW>FROM</KW> fees f <KW>LEFT JOIN</KW> revenue r <KW>ON</KW> r.name = f.name
+						{'\n'}
+						<KW>WHERE</KW> f.total30d &gt; <NUM>100000</NUM>
+						{'\n'}
+						<KW>ORDER BY</KW> f.total30d <KW>DESC</KW> <KW>LIMIT</KW> <NUM>7</NUM>;
+					</code>
+				</pre>
+
+				<div className="mt-2.5 flex items-center justify-between gap-2 text-[10.5px]">
+					<span className="font-mono text-(--text-tertiary) tabular-nums">7 rows · 5 cols · 412ms</span>
+					<span className="flex items-center gap-1.5 font-mono text-pro-green-300">
+						<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-pro-green-300" />
+						<span className="tracking-[0.12em] uppercase">cached</span>
+					</span>
+				</div>
+				<div className="mt-1.5 overflow-hidden rounded-md border border-(--divider)">
+					<GridTable rows={SAMPLE_ROWS.slice(0, 3)} cols={SAMPLE_COLS} />
+					<div className="border-t border-(--divider)/60 bg-(--app-bg)/30 px-3 py-1.5 font-mono text-[10px] text-(--text-tertiary)">
+						… 4 more rows
+					</div>
+				</div>
+			</div>
+		</CellShell>
+	)
+}
+
+function ChartNotebookCell() {
+	return (
+		<CellShell focused={false}>
+			<CellHeader
+				name="cell_3"
+				badge="chart"
+				action={
+					<span className="inline-flex items-center gap-1.5 rounded-md border border-(--divider) bg-(--cards-bg) px-2 py-0.5 font-mono text-[10.5px] text-(--text-secondary)">
+						<span className="text-(--text-tertiary)">source</span>
+						<span className="text-(--text-primary)">cell_2</span>
+						<span aria-hidden className="text-(--text-tertiary)/60">
+							·
+						</span>
+						<span className="tabular-nums">7 × 5</span>
+						<Icon name="chevron-down" className="h-3 w-3 text-(--text-tertiary)" />
+					</span>
+				}
+			/>
+			<div className="px-3 pb-3 pl-9">
+				<div className="rounded-md border border-(--divider) bg-(--app-bg)/30 px-3 pt-3">
+					<div className="mb-2 flex items-baseline justify-between">
+						<span className="font-mono text-[10px] font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
+							30d fees by protocol
+						</span>
+						<span className="font-mono text-[10px] text-(--text-tertiary) tabular-nums">bar · top 7</span>
+					</div>
+					<FeesChart height={108} />
+				</div>
+			</div>
+		</CellShell>
+	)
+}
+
+function CellShell({ focused, children }: { focused: boolean; children: ReactNode }) {
+	return (
+		<div
+			className={`relative rounded-md border transition-colors ${
+				focused
+					? 'border-(--sub-brand-primary)/45 bg-(--cards-bg) shadow-[0_0_0_2px_color-mix(in_oklch,var(--sub-brand-primary)_10%,transparent)]'
+					: 'border-(--divider) bg-(--cards-bg)/60 hover:border-(--divider)'
+			}`}
+		>
+			{children}
+		</div>
+	)
+}
+
+function CellHeader({
+	name,
+	badge,
+	action
+}: {
+	name: string
+	badge: 'sql' | 'md' | 'chart'
+	action?: ReactNode
+}) {
+	return (
+		<div className="flex items-center gap-2 px-3 pt-2 pb-1.5">
+			<Icon name="menu" className="h-3 w-3 shrink-0 text-(--text-tertiary)/35" />
+			<span className="font-mono text-[11px] text-(--text-tertiary)">{name}</span>
+			<CellTypeBadge kind={badge} />
+			{action ? <div className="ml-auto flex items-center gap-1.5">{action}</div> : null}
+		</div>
+	)
+}
+
+function CellTypeBadge({ kind }: { kind: 'sql' | 'md' | 'chart' }) {
+	const map = {
+		sql: { label: 'SQL', cls: 'bg-(--sub-brand-primary)/15 text-(--sub-brand-primary)' },
+		md: { label: 'MD', cls: 'bg-pro-purple-300/15 text-pro-purple-300' },
+		chart: { label: 'CHART', cls: 'bg-pro-gold-300/15 text-pro-gold-300' }
+	}[kind]
+	return (
+		<span
+			className={`inline-flex h-[14px] items-center rounded-[3px] px-1 font-mono text-[9px] font-bold tracking-wider uppercase ${map.cls}`}
+		>
+			{map.label}
+		</span>
+	)
+}
+
+function AddCellBar() {
+	return (
+		<div className="group flex items-center gap-2 pt-1">
+			<span aria-hidden className="h-px flex-1 bg-(--divider)" />
+			<span className="inline-flex items-center gap-3 rounded-md text-[11px] text-(--text-tertiary)">
+				<AddCellChip dot="bg-(--sub-brand-primary)" label="Query" />
+				<AddCellChip dot="bg-pro-gold-300" label="Visualize" />
+				<AddCellChip dot="bg-pro-purple-300" label="Narrate" />
+			</span>
+			<span aria-hidden className="h-px flex-1 bg-(--divider)" />
+		</div>
+	)
+}
+
+function AddCellChip({ dot, label }: { dot: string; label: string }) {
+	return (
+		<button
+			type="button"
+			onClick={(e) => e.preventDefault()}
+			className="inline-flex items-center gap-1.5 rounded-sm px-1 py-0.5 transition-colors hover:bg-(--link-hover-bg)/40 hover:text-(--text-primary)"
+		>
+			<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+			<span className="font-mono">{label}</span>
+		</button>
+	)
+}
+
+function QueryBody() {
+	return (
+		<div className="flex flex-col">
 			<div className="flex items-center justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/30 px-4 py-2">
 				<div className="flex items-center gap-2 truncate">
 					<Icon name="file-text" className="h-3.5 w-3.5 shrink-0 text-(--sub-brand-primary)" />
-					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">revenue-capture.sql</span>
+					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">fees-vs-revenue.sql</span>
 				</div>
 				<span className="flex shrink-0 items-center gap-2 text-[11px]">
 					<span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-pro-green-300" />
@@ -316,7 +685,7 @@ function SamplePane() {
 			</div>
 
 			<div className="border-b border-(--divider)">
-				<ResultsTable />
+				<GridTable rows={SAMPLE_ROWS} cols={SAMPLE_COLS} />
 			</div>
 
 			<div className="flex flex-col gap-3 px-4 py-3.5">
@@ -332,9 +701,49 @@ function SamplePane() {
 	)
 }
 
-function ResultsTable() {
-	const gridTemplate = SAMPLE_COLS.map((c) => `${c.width}px`).join(' ')
-	const totalWidth = SAMPLE_COLS.reduce((sum, c) => sum + c.width, 0)
+function AltQueryBody() {
+	return (
+		<div className="flex flex-col">
+			<div className="flex items-center justify-between gap-3 border-b border-(--divider) bg-(--app-bg)/30 px-4 py-2">
+				<div className="flex items-center gap-2 truncate">
+					<Icon name="file-text" className="h-3.5 w-3.5 shrink-0 text-(--text-tertiary)" />
+					<span className="truncate font-mono text-xs font-medium text-(--text-secondary)">chains-tvl.sql</span>
+					<span aria-hidden className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-pro-gold-300" />
+					<span className="font-mono text-[10px] tracking-[0.12em] text-pro-gold-300 uppercase">unsaved</span>
+				</div>
+				<span className="flex shrink-0 items-center gap-2 text-[11px]">
+					<span className="font-mono text-(--text-tertiary) tabular-nums">86ms</span>
+				</span>
+			</div>
+
+			<div className="border-b border-(--divider) bg-(--app-bg)/40 px-4 py-3">
+				<pre className="thin-scrollbar overflow-x-auto font-mono text-[11.5px] leading-[1.55] text-(--text-primary)">
+					<code>
+						<COMMENT>-- Top L1 chains by TVL with rolling 30d change and dominance</COMMENT>
+						{'\n'}
+						<KW>SELECT</KW> name <KW>AS</KW> chain, tvl,
+						{'\n'}
+						{'       '}rolling_30d_change <KW>AS</KW> change_30d,
+						{'\n'}
+						{'       '}tvl / <KW>SUM</KW>(tvl) <KW>OVER</KW> () <KW>AS</KW> dominance
+						{'\n'}
+						<KW>FROM</KW> chains
+						{'\n'}
+						<KW>WHERE</KW> tvl &gt; <NUM>1000000000</NUM>
+						{'\n'}
+						<KW>ORDER BY</KW> tvl <KW>DESC</KW> <KW>LIMIT</KW> <NUM>5</NUM>;
+					</code>
+				</pre>
+			</div>
+
+			<GridTable rows={ALT_ROWS} cols={ALT_COLS} />
+		</div>
+	)
+}
+
+function GridTable<T>({ rows, cols }: { rows: T[]; cols: TableCol<T>[] }) {
+	const gridTemplate = cols.map((c) => `${c.width}px`).join(' ')
+	const totalWidth = cols.reduce((sum, c) => sum + c.width, 0)
 	return (
 		<div className="thin-scrollbar overflow-x-auto">
 			<div style={{ width: totalWidth, minWidth: '100%' }}>
@@ -342,7 +751,7 @@ function ResultsTable() {
 					className="grid border-b border-(--divider) bg-(--cards-bg) font-mono text-[11px] text-(--text-secondary)"
 					style={{ gridTemplateColumns: gridTemplate, height: 42 }}
 				>
-					{SAMPLE_COLS.map((col) => {
+					{cols.map((col) => {
 						const isNumeric = col.kind === 'float' || col.kind === 'int'
 						return (
 							<div
@@ -362,18 +771,18 @@ function ResultsTable() {
 						)
 					})}
 				</div>
-				{SAMPLE_ROWS.map((row, i) => {
+				{rows.map((row, i) => {
 					const zebra = i % 2 === 1
 					return (
 						<div
-							key={row.name}
+							key={i}
 							className={`grid font-mono text-[11.5px] tabular-nums transition-colors hover:bg-(--primary)/5 ${
 								zebra ? 'bg-(--app-bg)/25' : ''
 							}`}
 							style={{ gridTemplateColumns: gridTemplate, height: 28 }}
 						>
-							{SAMPLE_COLS.map((col) => {
-								const value = row[col.name]
+							{cols.map((col) => {
+								const value = col.get(row)
 								const isNumeric = col.kind === 'float' || col.kind === 'int'
 								return (
 									<div
@@ -394,7 +803,7 @@ function ResultsTable() {
 	)
 }
 
-function FeesChart() {
+function FeesChart({ height = 132 }: { height?: number }) {
 	const data = SAMPLE_ROWS.map((r, i) => ({
 		label: r.short,
 		value: r.fees_30d,
@@ -403,14 +812,13 @@ function FeesChart() {
 	const dataMax = Math.max(...data.map((d) => d.value))
 	const yMax = niceCeiling(dataMax)
 	const ticks = Array.from({ length: 6 }, (_, i) => (yMax * i) / 5)
-	const CHART_HEIGHT = 132
 	const Y_AXIS_WIDTH = 38
 
 	return (
 		<div className="flex w-full" style={{ paddingBottom: 22 }}>
 			<div
 				className="flex shrink-0 flex-col-reverse justify-between font-mono text-[9.5px] text-(--text-tertiary) tabular-nums"
-				style={{ width: Y_AXIS_WIDTH, height: CHART_HEIGHT }}
+				style={{ width: Y_AXIS_WIDTH, height }}
 			>
 				{ticks.map((t) => (
 					<span key={t} className="pr-1.5 text-right">
@@ -429,9 +837,9 @@ function FeesChart() {
 					))}
 				</div>
 
-				<div className="relative flex items-end gap-2 px-1" style={{ height: CHART_HEIGHT }}>
+				<div className="relative flex items-end gap-2 px-1" style={{ height }}>
 					{data.map((b) => {
-						const h = (b.value / yMax) * CHART_HEIGHT
+						const h = (b.value / yMax) * height
 						return (
 							<div key={b.label} className="group relative flex flex-1 flex-col items-center justify-end">
 								<span className="mb-1 font-mono text-[10px] text-(--text-secondary) tabular-nums">
