@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
 	createRwaChartModeState,
 	getChartBreakdownOptions,
+	getChartBreakdownQueryValue,
 	getDefaultChartBreakdown,
 	getTreemapNestedByOptions,
-	parseRwaChartState
+	parseRwaChartState,
+	setChartBreakdown
 } from './chartState'
 
 describe('parseRwaChartState', () => {
@@ -14,6 +16,24 @@ describe('parseRwaChartState', () => {
 	})
 
 	it('falls back to the chain time-series default when the query value is invalid', () => {
+		const state = parseRwaChartState({ timeSeriesChartBreakdown: 'chain' }, createRwaChartModeState('chain', false))
+
+		expect(state).toMatchObject({
+			view: 'timeSeries',
+			breakdown: 'assetGroup'
+		})
+	})
+
+	it('defaults to assetName for issuer mode time-series', () => {
+		const state = parseRwaChartState({}, createRwaChartModeState('issuer', true))
+
+		expect(state).toMatchObject({
+			view: 'timeSeries',
+			breakdown: 'assetName'
+		})
+	})
+
+	it('does not accept assetName as a chain time-series breakdown', () => {
 		const state = parseRwaChartState({ timeSeriesChartBreakdown: 'assetName' }, createRwaChartModeState('chain', false))
 
 		expect(state).toMatchObject({
@@ -75,6 +95,7 @@ describe('chartState options', () => {
 		expect(getDefaultChartBreakdown(createRwaChartModeState('category', true), 'timeSeries')).toBe('assetGroup')
 		expect(getDefaultChartBreakdown(createRwaChartModeState('platform', true), 'timeSeries')).toBe('assetGroup')
 		expect(getDefaultChartBreakdown(createRwaChartModeState('assetGroup', true), 'timeSeries')).toBe('assetName')
+		expect(getDefaultChartBreakdown(createRwaChartModeState('issuer', true), 'timeSeries')).toBe('assetName')
 	})
 
 	it('adds chain only when the mode allows it', () => {
@@ -89,6 +110,34 @@ describe('chartState options', () => {
 
 		expect(withChain.map(({ key }) => key)).toContain('chain')
 		expect(withoutChain.map(({ key }) => key)).not.toContain('chain')
+	})
+
+	it('exposes assetName for issuer mode time-series, but not for chain mode', () => {
+		const chainOptions = getChartBreakdownOptions({
+			mode: createRwaChartModeState('chain', false),
+			view: 'timeSeries'
+		})
+		const issuerOptions = getChartBreakdownOptions({
+			mode: createRwaChartModeState('issuer', true),
+			view: 'timeSeries'
+		})
+
+		expect(chainOptions.map(({ key }) => key)).not.toContain('assetName')
+		expect(issuerOptions.map(({ key }) => key)).toContain('assetName')
+	})
+
+	it('omits the issuer default assetName from the time-series query value', () => {
+		const state = parseRwaChartState({}, createRwaChartModeState('issuer', true))
+		const nextState = setChartBreakdown(state, 'assetName')
+
+		expect(getChartBreakdownQueryValue(nextState)).toBeUndefined()
+	})
+
+	it('emits non-default issuer breakdowns into the time-series query value', () => {
+		const state = parseRwaChartState({}, createRwaChartModeState('issuer', true))
+		const nextState = setChartBreakdown(state, 'assetGroup')
+
+		expect(getChartBreakdownQueryValue(nextState)).toBe('assetGroup')
 	})
 
 	it('includes asset category as an asset-group treemap nested option', () => {

@@ -322,4 +322,185 @@ describe('rwa queries', () => {
 
 		expect(result.rows.map((row) => row.category)).toEqual(['Treasuries'])
 	})
+
+	it('returns null when issuer is combined with another filter', async () => {
+		const result = await getRWAAssetsOverview({
+			issuer: 'issuer-a',
+			platform: 'a',
+			rwaList: {
+				chains: [],
+				categories: [],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(result).toBeNull()
+	})
+
+	it('does not refetch /rwa/current when prefetched rows are provided', async () => {
+		fetchRWAActiveTVLsMock.mockClear()
+		const prefetched = [
+			{
+				id: 'x',
+				ticker: 'X',
+				assetName: 'X',
+				category: ['Treasuries'],
+				issuer: 'Issuer A',
+				onChainMcap: { Ethereum: 1 },
+				activeMcap: { Ethereum: 1 },
+				defiActiveTvl: { Ethereum: { Aave: 1 } }
+			}
+		]
+
+		await getRWAAssetsOverview({
+			issuer: 'issuer-a',
+			prefetchedRwaProjects: prefetched as never,
+			rwaList: {
+				chains: [],
+				categories: [],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(fetchRWAActiveTVLsMock).not.toHaveBeenCalled()
+	})
+
+	it('reuses the batched per-asset chart endpoint for issuer pages', async () => {
+		fetchRWAChartDataByAssetMock.mockClear()
+		const prefetched = [
+			{
+				id: 'x',
+				ticker: 'X',
+				assetName: 'X',
+				canonicalMarketId: 'issuer-a/x',
+				category: ['Treasuries'],
+				issuer: 'Issuer A',
+				onChainMcap: { Ethereum: 1 },
+				activeMcap: { Ethereum: 1 },
+				defiActiveTvl: { Ethereum: { Aave: 1 } }
+			}
+		]
+
+		await getRWAAssetsOverview({
+			issuer: 'issuer-a',
+			prefetchedRwaProjects: prefetched as never,
+			rwaList: {
+				chains: [],
+				categories: [],
+				platforms: [],
+				assetGroups: []
+			} as never
+		})
+
+		expect(fetchRWAChartDataByAssetMock).toHaveBeenCalledTimes(1)
+		expect(fetchRWAChartDataByAssetMock).toHaveBeenCalledWith(
+			expect.objectContaining({
+				target: { kind: 'all' },
+				includeStablecoins: true,
+				includeGovernance: true
+			})
+		)
+	})
+
+	it('returns the resolved issuer slug on the overview response so consumers do not have to merge it in', async () => {
+		const prefetched = [
+			{
+				id: 'x',
+				ticker: 'X',
+				assetName: 'X',
+				canonicalMarketId: 'issuer-a/x',
+				category: ['Treasuries'],
+				issuer: 'Issuer A',
+				onChainMcap: { Ethereum: 1 },
+				activeMcap: { Ethereum: 1 },
+				defiActiveTvl: { Ethereum: { Aave: 1 } }
+			}
+		]
+
+		const result = await getRWAAssetsOverview({
+			issuer: 'issuer-a',
+			prefetchedRwaProjects: prefetched as never,
+			rwaList: { chains: [], categories: [], platforms: [], assetGroups: [] } as never
+		})
+
+		expect(result?.issuerSlug).toBe('issuer-a')
+
+		const nonIssuerResult = await getRWAAssetsOverview({
+			prefetchedRwaProjects: prefetched as never,
+			rwaList: { chains: [], categories: [], platforms: [], assetGroups: [] } as never
+		})
+		expect(nonIssuerResult?.issuerSlug).toBeNull()
+	})
+
+	it('projects the batched chart down to just the issuer assets via the aggregation pipeline', async () => {
+		// Two assets from Issuer A and one from Issuer B all share the same global chart payload.
+		// The issuer page must end up with only Issuer A's series in `initialChartDataset`.
+		const prefetched = [
+			{
+				id: 'a1',
+				ticker: 'A1',
+				assetName: 'A One',
+				canonicalMarketId: 'issuer-a/one',
+				category: ['Treasuries'],
+				assetGroup: 'Treasuries',
+				issuer: 'Issuer A',
+				onChainMcap: { Ethereum: 100 },
+				activeMcap: { Ethereum: 90 },
+				defiActiveTvl: { Ethereum: { Aave: 10 } }
+			},
+			{
+				id: 'a2',
+				ticker: 'A2',
+				assetName: 'A Two',
+				canonicalMarketId: 'issuer-a/two',
+				category: ['Treasuries'],
+				assetGroup: 'Treasuries',
+				issuer: 'Issuer A',
+				onChainMcap: { Ethereum: 50 },
+				activeMcap: { Ethereum: 45 },
+				defiActiveTvl: { Ethereum: { Aave: 5 } }
+			},
+			{
+				id: 'b1',
+				ticker: 'B1',
+				assetName: 'B One',
+				canonicalMarketId: 'issuer-b/one',
+				category: ['Treasuries'],
+				assetGroup: 'Treasuries',
+				issuer: 'Issuer B',
+				onChainMcap: { Ethereum: 200 },
+				activeMcap: { Ethereum: 180 },
+				defiActiveTvl: { Ethereum: { Aave: 20 } }
+			}
+		]
+		fetchRWAChartDataByAssetMock.mockResolvedValue({
+			onChainMcap: [
+				{ timestamp: 1, 'issuer-a/one': 100, 'issuer-a/two': 50, 'issuer-b/one': 200 },
+				{ timestamp: 2, 'issuer-a/one': 110, 'issuer-a/two': 55, 'issuer-b/one': 220 }
+			],
+			activeMcap: [{ timestamp: 1, 'issuer-a/one': 90, 'issuer-a/two': 45, 'issuer-b/one': 180 }],
+			defiActiveTvl: [{ timestamp: 1, 'issuer-a/one': 10, 'issuer-a/two': 5, 'issuer-b/one': 20 }]
+		})
+
+		const result = await getRWAAssetsOverview({
+			issuer: 'issuer-a',
+			prefetchedRwaProjects: prefetched as never,
+			rwaList: {
+				chains: ['Ethereum'],
+				categories: ['Treasuries'],
+				platforms: [],
+				assetGroups: ['Treasuries']
+			} as never
+		})
+
+		const onChainDimensions = result?.initialChartDataset?.onChainMcap.dimensions ?? []
+		expect(onChainDimensions).toContain('A One')
+		expect(onChainDimensions).toContain('A Two')
+		expect(onChainDimensions).not.toContain('B One')
+
+		const onChainSourceFirstRow = result?.initialChartDataset?.onChainMcap.source?.[0] ?? {}
+		expect(onChainSourceFirstRow).not.toHaveProperty('B One')
+	})
 })

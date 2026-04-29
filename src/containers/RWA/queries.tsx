@@ -198,6 +198,9 @@ type RWAAssetsOverviewParams = {
 	category?: string
 	platform?: string
 	assetGroup?: string
+	issuer?: string
+	/** When provided, skips fetching `/rwa/current` again (e.g. issuer pages already loaded TVL rows to resolve the slug). */
+	prefetchedRwaProjects?: Array<IFetchedRWAProject>
 	rwaList: IRWAList
 }
 
@@ -215,9 +218,14 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		const selectedCategory = params.category ? rwaSlug(params.category) : undefined
 		const selectedPlatform = params.platform ? rwaSlug(params.platform) : undefined
 		const selectedAssetGroup = params.assetGroup ? rwaSlug(params.assetGroup) : undefined
+		const selectedIssuer = params.issuer ? rwaSlug(params.issuer) : undefined
 
 		const selectedCount =
-			Number(!!selectedChain) + Number(!!selectedCategory) + Number(!!selectedPlatform) + Number(!!selectedAssetGroup)
+			Number(!!selectedChain) +
+			Number(!!selectedCategory) +
+			Number(!!selectedPlatform) +
+			Number(!!selectedAssetGroup) +
+			Number(!!selectedIssuer)
 		if (selectedCount > 1) return null
 
 		const target: RWAAssetChartTarget = selectedChain
@@ -229,39 +237,52 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					: selectedAssetGroup
 						? { kind: 'assetGroup', slug: selectedAssetGroup }
 						: { kind: 'all' }
-		const mode: RWAOverviewMode = selectedAssetGroup
-			? 'assetGroup'
-			: selectedPlatform
-				? 'platform'
-				: selectedCategory
-					? 'category'
-					: 'chain'
+		const mode: RWAOverviewMode = selectedIssuer
+			? 'issuer'
+			: selectedAssetGroup
+				? 'assetGroup'
+				: selectedPlatform
+					? 'platform'
+					: selectedCategory
+						? 'category'
+						: 'chain'
 		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
 
+		// Issuer pages reuse the `{ kind: 'all' }` per-asset chart endpoint; `aggregateRwaMetricData`
+		// later projects it down to just the issuer's assets via `filteredData`, so no extra fan-out
+		// to per-asset endpoints is needed.
 		const [data, perpsMarkets, chartData, openInterestChartRows]: [
 			Array<IFetchedRWAProject>,
 			IRWAPerpsMarket[],
 			IRWAChartDataByAsset | null,
 			IRWAPerpsBreakdownChartResponse | null
 		] = await Promise.all([
-			fetchRWAActiveTVLs(),
+			params.prefetchedRwaProjects ?? fetchRWAActiveTVLs(),
 			fetchRWAPerpsCurrent().catch(() => []),
 			fetchRWAChartDataByAsset({
 				target,
 				includeStablecoins: defaultInclusion.includeStablecoins,
 				includeGovernance: defaultInclusion.includeGovernance
 			}),
-			selectedChain ? Promise.resolve(null) : fetchRWAPerpsContractBreakdownChartData({ key: 'openInterest' })
+			selectedChain || selectedIssuer
+				? Promise.resolve(null)
+				: fetchRWAPerpsContractBreakdownChartData({ key: 'openInterest' })
 		])
 
 		assert(data, 'Failed to get RWA assets list')
-		const filteredData = data.filter(
+		let filteredData = data.filter(
 			(item) => !(item.category ?? []).some((category) => !isCategoryIncludedInStandardRwaOverview(category))
 		)
+		if (selectedIssuer) {
+			filteredData = filteredData.filter((item) => item.issuer && rwaSlug(item.issuer) === selectedIssuer)
+		}
 		const filteredPerpsMarkets = perpsMarkets.map((market) => ({
 			...market,
 			category: (market.category ?? []).filter((category) => isCategoryIncludedInStandardRwaOverview(category))
 		}))
+		const issuerFilteredPerpsMarkets = selectedIssuer
+			? filteredPerpsMarkets.filter((m) => m.issuer && rwaSlug(m.issuer) === selectedIssuer)
+			: filteredPerpsMarkets
 		const hasUnknownAssetGroup = filteredData.some(
 			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP
 		)
@@ -274,13 +295,22 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		const chartDataMs: IRWAChartDataByAsset | null = chartData
 			? {
 					onChainMcap: ensureChronologicalRows(
-						(chartData.onChainMcap ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						(chartData.onChainMcap ?? []).map((row) => ({
+							...row,
+							timestamp: toUnixMsTimestamp(row.timestamp)
+						}))
 					),
 					activeMcap: ensureChronologicalRows(
-						(chartData.activeMcap ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						(chartData.activeMcap ?? []).map((row) => ({
+							...row,
+							timestamp: toUnixMsTimestamp(row.timestamp)
+						}))
 					),
 					defiActiveTvl: ensureChronologicalRows(
-						(chartData.defiActiveTvl ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
+						(chartData.defiActiveTvl ?? []).map((row) => ({
+							...row,
+							timestamp: toUnixMsTimestamp(row.timestamp)
+						}))
 					)
 				}
 			: null
@@ -322,7 +352,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
 			const platformCandidates = new Set(params.rwaList.platforms)
-			for (const market of filteredPerpsMarkets) {
+			for (const market of issuerFilteredPerpsMarkets) {
 				for (const platform of getRealRwaPlatforms(market.parentPlatform)) {
 					platformCandidates.add(platform)
 				}
@@ -593,7 +623,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			}
 		}
 
-		for (const market of filteredPerpsMarkets) {
+		for (const market of issuerFilteredPerpsMarkets) {
 			if (selectedChain) {
 				continue
 			}
@@ -726,7 +756,12 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		})
 
 		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
-		const aggregationMode: RWAChartAggregationMode = selectedAssetGroup ? 'assetName' : 'assetGroup'
+		// Issuer pages default the time series to per-asset lines in the UI; match that in `initialChartDataset`.
+		const aggregationMode: RWAChartAggregationMode = selectedAssetGroup
+			? 'assetName'
+			: selectedIssuer
+				? 'assetName'
+				: 'assetGroup'
 		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
 			includeStablecoins: defaultInclusion.includeStablecoins,
 			includeGovernance: defaultInclusion.includeGovernance,
@@ -842,7 +877,8 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			chainSlug: selectedChain ?? null,
 			categorySlug: selectedCategory ?? null,
 			platformSlug: selectedPlatform ?? null,
-			assetGroupSlug: selectedAssetGroup ?? null
+			assetGroupSlug: selectedAssetGroup ?? null,
+			issuerSlug: selectedIssuer ?? null
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')

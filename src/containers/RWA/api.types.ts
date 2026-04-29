@@ -215,6 +215,8 @@ export interface IRWAAssetsOverview {
 	categorySlug: string | null
 	platformSlug: string | null
 	assetGroupSlug: string | null
+	issuerSlug: string | null
+	issuerName?: string
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>

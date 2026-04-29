@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+// Issuer mode is now a first-class `RWAOverviewMode`, so the chart-state machinery handles
+// breakdown options/defaults uniformly without per-page carve-outs.
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
@@ -19,6 +21,7 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview, RWAAssetChartTarget } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import { RWAAssetsTable } from './AssetsTable'
 import {
 	emptyChartDatasets,
@@ -52,6 +55,7 @@ import {
 import { type RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
+import { getPrimaryRwaCategory, getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import {
 	useFilteredRwaAssets,
 	useRWATableQueryParams,
@@ -80,12 +84,97 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
 	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
+	const {
+		filterCategories,
+		filterPlatforms,
+		filterAssetGroups,
+		filterAssetClasses,
+		filterRwaClassifications,
+		filterAccessModels,
+		filterIssuers,
+		filterTypes
+	} = useMemo(() => {
+		const assets = props.assets
+		const sortedUnique = (values: Iterable<string>) => Array.from(new Set(values)).sort((a, b) => a.localeCompare(b))
+
+		const categories =
+			props.categories.length > 0
+				? props.categories
+				: sortedUnique(
+						assets.flatMap((asset) => {
+							const primary = getPrimaryRwaCategory(asset.category)
+							return primary ? [primary] : []
+						})
+					)
+
+		const platforms =
+			props.platforms.length > 0
+				? props.platforms
+				: sortedUnique(
+						assets.flatMap((asset) =>
+							getRwaPlatforms(asset.parentPlatform).filter((platform) => platform !== UNKNOWN_PLATFORM)
+						)
+					)
+
+		const assetGroups =
+			props.assetGroups.length > 0
+				? props.assetGroups
+				: sortedUnique(assets.map((asset) => normalizeRwaAssetGroup(asset.assetGroup)))
+
+		const assetClasses =
+			props.assetClasses.length > 0
+				? props.assetClasses
+				: sortedUnique(
+						assets.flatMap((asset) =>
+							(asset.assetClass ?? []).filter((assetClass): assetClass is string => Boolean(assetClass))
+						)
+					)
+
+		const rwaClassifications =
+			props.rwaClassifications.length > 0
+				? props.rwaClassifications
+				: sortedUnique(assets.flatMap((asset) => (asset.rwaClassification ? [asset.rwaClassification] : [])))
+
+		const accessModels =
+			props.accessModels.length > 0
+				? props.accessModels
+				: sortedUnique(assets.flatMap((asset) => (asset.accessModel ? [asset.accessModel] : [])))
+
+		const issuers =
+			props.issuers.length > 0 ? props.issuers : sortedUnique(assets.map((asset) => asset.issuer || 'Unknown'))
+
+		const types = props.types.length > 0 ? props.types : sortedUnique(assets.map((asset) => asset.type || 'Unknown'))
+
+		return {
+			filterCategories: categories,
+			filterPlatforms: platforms,
+			filterAssetGroups: assetGroups,
+			filterAssetClasses: assetClasses,
+			filterRwaClassifications: rwaClassifications,
+			filterAccessModels: accessModels,
+			filterIssuers: issuers,
+			filterTypes: types
+		}
+	}, [
+		props.assets,
+		props.categories,
+		props.platforms,
+		props.assetGroups,
+		props.assetClasses,
+		props.rwaClassifications,
+		props.accessModels,
+		props.issuers,
+		props.types
+	])
+
 	const mode = getRWAOverviewMode(props)
 	const isChainMode = mode === 'chain'
 	const isCategoryMode = mode === 'category'
 	const isPlatformMode = mode === 'platform'
 	const isAssetGroupMode = mode === 'assetGroup'
-	const canBreakdownByChain = isCategoryMode || isPlatformMode || isAssetGroupMode || props.selectedChain === 'All'
+	const isIssuerMode = mode === 'issuer'
+	const canBreakdownByChain =
+		isCategoryMode || isPlatformMode || isAssetGroupMode || isIssuerMode || props.selectedChain === 'All'
 	const chartMode = createRwaChartModeState(mode, canBreakdownByChain)
 	const chartState = parseRwaChartState(router.query, chartMode)
 	const chartTypeKey = chartState.metric
@@ -145,14 +234,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setSelfCustodyStates
 	} = useRWATableQueryParams({
 		assetNames: props.assetNames,
-		types: props.types,
-		categories: props.categories,
-		platforms: props.platforms,
-		assetClasses: props.assetClasses,
-		rwaClassifications: props.rwaClassifications,
-		accessModels: props.accessModels,
-		issuers: props.issuers,
-		assetGroups: props.assetGroups,
+		types: filterTypes,
+		categories: filterCategories,
+		platforms: filterPlatforms,
+		assetClasses: filterAssetClasses,
+		rwaClassifications: filterRwaClassifications,
+		accessModels: filterAccessModels,
+		issuers: filterIssuers,
+		assetGroups: filterAssetGroups,
 		categorySlug: props.categorySlug,
 		mode
 	})
@@ -197,6 +286,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
 	const chartTarget = getAssetChartTarget(props)
+	const defaultTimeSeriesBreakdown = getDefaultChartBreakdown(chartMode, 'timeSeries')
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
 		selectedMetric: chartTypeKey,
 		initialDataset: initialChartDataset[chartTypeKey],
@@ -208,8 +298,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		includeGovernance,
 		includeRwaPerps,
 		useInitialDataset:
-			!activeFilters &&
-			(timeSeriesBreakdown === getDefaultChartBreakdown(chartMode, 'timeSeries') || timeSeriesBreakdown === 'total')
+			!activeFilters && (timeSeriesBreakdown === defaultTimeSeriesBreakdown || timeSeriesBreakdown === 'total')
 	})
 
 	const {
@@ -386,7 +475,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	const showFilters = props.assets.length > 1
 
-	const showCharts = props.assets.length > 1
+	// Main overview hides charts for a single asset (nothing to compare). Issuer pages often have one token
+	// but still need the time series for that issuer's aggregated history.
+	const showCharts = props.assets.length > 1 || (isIssuerMode && props.assets.length > 0)
 
 	const { chartInstance: multiSeriesChart2Instance, handleChartReady: handleMultiSeriesChart2Ready } =
 		useChartImageExport()
@@ -612,7 +703,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					isChainMode,
 					isCategoryMode,
 					isPlatformMode,
-					isAssetGroupMode
+					isAssetGroupMode,
+					isIssuerMode
 				}}
 				options={{
 					assetNames: props.assetNames,
@@ -813,6 +905,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 }
 
 const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
+	if (props.issuerSlug) return 'issuer'
 	if (props.assetGroupLinks.length > 0) return 'assetGroup'
 	if (props.categoryLinks.length > 0) return 'category'
 	if (props.platformLinks.length > 0) return 'platform'
@@ -880,6 +973,7 @@ const getModeLinks = (
 	platformLinks: IRWAAssetsOverview['platformLinks'],
 	assetGroupLinks: IRWAAssetsOverview['assetGroupLinks']
 ) => {
+	if (mode === 'issuer') return []
 	if (mode === 'assetGroup') return assetGroupLinks
 	if (mode === 'category') return categoryLinks
 	if (mode === 'platform') return platformLinks
@@ -887,6 +981,7 @@ const getModeLinks = (
 }
 
 const getSelectedModeLabel = (mode: RWAOverviewMode, props: IRWAAssetsOverview) => {
+	if (mode === 'issuer') return props.issuerName ?? 'All'
 	if (mode === 'assetGroup') return props.selectedAssetGroup
 	if (mode === 'category') return props.selectedCategory
 	if (mode === 'platform') return props.selectedPlatform
@@ -902,6 +997,7 @@ const getRwaExportChartTitle = ({
 	metricLabel: string
 	selectedModeLabel: string
 }) => {
+	if (mode === 'issuer') return `RWA ${metricLabel} by ${selectedModeLabel}`
 	if (mode === 'assetGroup') return `RWA ${metricLabel} in ${selectedModeLabel}`
 	if (mode === 'category') return `RWA ${metricLabel} by Category`
 	if (!selectedModeLabel || selectedModeLabel === 'All') return `RWA ${metricLabel}`

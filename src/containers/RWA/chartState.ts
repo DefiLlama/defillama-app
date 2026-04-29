@@ -13,6 +13,7 @@ export type RWAChartModeState =
 	| { mode: 'category'; canBreakdownByChain: boolean }
 	| { mode: 'platform'; canBreakdownByChain: boolean }
 	| { mode: 'assetGroup'; canBreakdownByChain: boolean }
+	| { mode: 'issuer'; canBreakdownByChain: boolean }
 
 export type RWAChartState = {
 	mode: RWAChartModeState
@@ -55,7 +56,8 @@ const TIME_SERIES_BREAKDOWNS: Record<RWAOverviewMode, readonly RWAChartBreakdown
 	chain: ['assetGroup', 'category', 'assetClass', 'platform'],
 	category: ['assetGroup', 'assetClass', 'platform'],
 	platform: ['assetGroup', 'assetName', 'category', 'assetClass'],
-	assetGroup: ['assetName', 'assetClass', 'platform', 'category']
+	assetGroup: ['assetName', 'assetClass', 'platform', 'category'],
+	issuer: ['assetName', 'assetGroup', 'category', 'assetClass', 'platform']
 }
 
 const NON_TIME_SERIES_BREAKDOWNS: Record<
@@ -77,6 +79,10 @@ const NON_TIME_SERIES_BREAKDOWNS: Record<
 	assetGroup: {
 		withChain: ['assetName', 'assetClass', 'platform', 'category', 'chain'],
 		withoutChain: ['assetName', 'assetClass', 'platform', 'category']
+	},
+	issuer: {
+		withChain: ['assetName', 'assetGroup', 'category', 'assetClass', 'platform', 'chain'],
+		withoutChain: ['assetName', 'assetGroup', 'category', 'assetClass', 'platform']
 	}
 }
 
@@ -84,7 +90,8 @@ const NON_TIME_SERIES_DEFAULTS: Record<RWAOverviewMode, RWAChartBreakdown> = {
 	chain: 'assetGroup',
 	category: 'assetGroup',
 	platform: 'assetGroup',
-	assetGroup: 'assetName'
+	assetGroup: 'assetName',
+	issuer: 'assetName'
 }
 
 const TREEMAP_NESTED_BY_OPTIONS: Record<RwaTreemapParentGrouping, readonly RwaTreemapNestedBy[]> = {
@@ -129,6 +136,8 @@ export function createRwaChartModeState(mode: RWAOverviewMode, canBreakdownByCha
 		case 'platform':
 			return { mode, canBreakdownByChain }
 		case 'assetGroup':
+			return { mode, canBreakdownByChain }
+		case 'issuer':
 			return { mode, canBreakdownByChain }
 		default:
 			return assertNever(mode)

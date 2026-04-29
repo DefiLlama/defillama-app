@@ -521,6 +521,17 @@
       ]
     },
     {
+      "name": "RWA by Issuer",
+      "route": "/rwa/issuers",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by issuer",
+      "searchKeywords": [
+        "rwa issuers",
+        "rwas by issuer",
+        "real world assets by issuer"
+      ]
+    },
+    {
       "name": "RWA by Chain",
       "route": "/rwa/chains",
       "category": "RWA",
