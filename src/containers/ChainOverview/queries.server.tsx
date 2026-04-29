@@ -5,7 +5,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
-import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
+import { getBridgeChainNetInflows } from '~/containers/Bridges/queries.server'
 import { fetchChainChart } from '~/containers/Chains/api'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
 import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
@@ -72,6 +72,21 @@ export function shouldFetchChainDexs({
 	return categoriesAndTagsMetadata?.configs?.Dexs?.chains?.includes(currentChainMetadata.id) ?? false
 }
 
+export function shouldFetchChainPerps({
+	chain,
+	currentChainMetadata,
+	categoriesAndTagsMetadata
+}: {
+	chain: string
+	currentChainMetadata: IChainMetadata
+	categoriesAndTagsMetadata?: ICategoriesAndTags
+}): boolean {
+	if (!currentChainMetadata.perps) return false
+	if (chain === 'All' || currentChainMetadata.id === 'all') return true
+
+	return categoriesAndTagsMetadata?.configs?.Derivatives?.chains?.includes(currentChainMetadata.id) ?? false
+}
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
@@ -93,6 +108,7 @@ export async function getChainOverviewData({
 	if (!currentChainMetadata) return null
 
 	const shouldFetchDexs = shouldFetchChainDexs({ chain, currentChainMetadata, categoriesAndTagsMetadata })
+	const shouldFetchPerps = shouldFetchChainPerps({ chain, currentChainMetadata, categoriesAndTagsMetadata })
 
 	try {
 		const [
@@ -164,21 +180,7 @@ export async function getChainOverviewData({
 			currentChainMetadata.stablecoins
 				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
 				: Promise.resolve(null),
-			!currentChainMetadata.inflows
-				? Promise.resolve(null)
-				: getBridgeOverviewPageData(currentChainMetadata.name).then((data) => {
-						const netInflows = data?.chainVolumeData?.length
-							? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
-							: null
-
-						if (netInflows === 0) {
-							return null
-						}
-
-						return {
-							netInflows
-						}
-					}),
+			!currentChainMetadata.inflows ? Promise.resolve(null) : getBridgeChainNetInflows(currentChainMetadata.name),
 			!currentChainMetadata.chainActiveUsers
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
@@ -236,7 +238,7 @@ export async function getChainOverviewData({
 						dataType: 'dailyRevenue'
 					})
 				: Promise.resolve(null),
-			currentChainMetadata.perps
+			shouldFetchPerps
 				? fetchAdapterChainMetrics({
 						adapterType: 'derivatives',
 						chain: currentChainMetadata.name
@@ -446,7 +448,7 @@ export async function getChainOverviewData({
 		if (shouldFetchDexs && dexs?.total24h != null) {
 			charts.push('DEXs Volume')
 		}
-		if (perps?.total24h != null) {
+		if (shouldFetchPerps && perps?.total24h != null) {
 			charts.push('Perps Volume')
 		}
 		if (chainIncentives?.emissions24h != null) {
