@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner, LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -140,10 +140,43 @@ function SqlWorkspaceInner({
 		if (runControllersRef.current.get(key) === controller) runControllersRef.current.delete(key)
 	}, [])
 
-	const cancelRun = useCallback((key: string) => {
-		const controller = runControllersRef.current.get(key)
-		if (controller) controller.abort()
-	}, [])
+	const cancelRun = useCallback(
+		(key: string) => {
+			const controller = runControllersRef.current.get(key)
+			if (controller) {
+				controller.abort()
+				duckdb.conn?.cancelSent().catch(() => undefined)
+			}
+		},
+		[duckdb.conn]
+	)
+
+	const cancelTabRun = useCallback(
+		(tabId: string) => {
+			cancelRun(`tab:${tabId}`)
+			updateTab(tabId, {
+				runError: null,
+				running: false,
+				loadingStage: null,
+				busyTaskId: null,
+				pendingTables: []
+			})
+		},
+		[cancelRun, updateTab]
+	)
+
+	const cancelCellRun = useCallback(
+		(tabId: string, cellId: string) => {
+			cancelRun(`cell:${cellId}`)
+			updateCell(tabId, cellId, {
+				runError: null,
+				running: false,
+				loadingStage: null,
+				pendingTables: []
+			})
+		},
+		[cancelRun, updateCell]
+	)
 
 	useEffect(() => {
 		const map = runControllersRef.current
@@ -169,12 +202,13 @@ function SqlWorkspaceInner({
 	)
 
 	const runSqlForTab = useCallback(
-		async (tabId: string, rawSql: string) => {
-			if (!duckdb.conn) return
+		async (tabId: string, rawSql: string, existingController?: AbortController): Promise<boolean> => {
+			if (!duckdb.conn) return false
 			const trimmed = rawSql.trim()
-			if (!trimmed) return
-			const controller = beginRun(`tab:${tabId}`)
-			updateTab(tabId, { running: true, runError: null, pendingTables: [] })
+			if (!trimmed) return false
+			const runKey = `tab:${tabId}`
+			const controller = existingController ?? beginRun(runKey)
+			updateTab(tabId, { running: true, runError: null, loadingStage: null, pendingTables: [] })
 			const res = await runSql(
 				{
 					conn: duckdb.conn,
@@ -184,13 +218,18 @@ function SqlWorkspaceInner({
 				},
 				trimmed,
 				{
-					onPendingChange: (pending) => updateTab(tabId, { pendingTables: pending }),
-					onLoadingStage: (stage) => updateTab(tabId, { loadingStage: stage })
+					onPendingChange: (pending) => {
+						if (runControllersRef.current.get(runKey) === controller) updateTab(tabId, { pendingTables: pending })
+					},
+					onLoadingStage: (stage) => {
+						if (runControllersRef.current.get(runKey) === controller) updateTab(tabId, { loadingStage: stage })
+					}
 				},
 				undefined,
 				controller.signal
 			)
-			endRun(`tab:${tabId}`, controller)
+			if (runControllersRef.current.get(runKey) !== controller) return false
+			endRun(runKey, controller)
 			if (!res.ok) {
 				const errRes = res as Extract<typeof res, { ok: false }>
 				updateTab(tabId, {
@@ -200,7 +239,7 @@ function SqlWorkspaceInner({
 					loadingStage: null
 				})
 				scheduleTabPendingClear(updateTab, tabId)
-				return
+				return false
 			}
 			const okRes = res as Extract<typeof res, { ok: true }>
 			updateTab(tabId, {
@@ -231,6 +270,7 @@ function SqlWorkspaceInner({
 				})
 			}
 			recordRecent(preset)
+			return true
 		},
 		[duckdb.conn, registry, recordRecent, chartOptionsMap, updateTab, beginRun, endRun]
 	)
@@ -254,10 +294,21 @@ function SqlWorkspaceInner({
 			tables: TableSource[]
 			sql: string
 		}) => {
+			const runKey = `tab:${tabId}`
+			const controller = beginRun(runKey)
+			const finishRun = () => {
+				const current = runControllersRef.current.get(runKey)
+				if (current !== controller && current !== undefined) return false
+				endRun(runKey, controller)
+				updateTab(tabId, { loadingStage: null, busyTaskId: null, running: false })
+				return true
+			}
 			updateTab(tabId, {
 				busyTaskId: taskId,
+				running: true,
 				runError: null,
 				result: null,
+				loadingStage: null,
 				pendingTables: [],
 				sql: nextSql,
 				dirty: true
@@ -280,36 +331,62 @@ function SqlWorkspaceInner({
 				}
 
 				for (const [index, step] of plan.entries()) {
+					throwIfAborted(controller.signal)
+					if (runControllersRef.current.get(runKey) !== controller) return
 					updateTab(tabId, (t) => ({
 						pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'loading' } : p))
 					}))
 					const stagePrefix =
 						plan.length > 1 ? `Loading ${step.label} · ${index + 1}/${plan.length}` : `Loading ${step.label}`
 					updateTab(tabId, { loadingStage: `${stagePrefix}…` })
-					const loaded = await registry.load(step.source)
+					const loaded = await registry.load(step.source, controller.signal)
+					throwIfAborted(controller.signal)
+					if (runControllersRef.current.get(runKey) !== controller) return
 					if (!loaded) {
+						const error = `Could not load ${step.label}.`
 						updateTab(tabId, (t) => ({
 							pendingTables: t.pendingTables.map((p) => (p.key === step.key ? { ...p, status: 'failed' } : p))
 						}))
-						throw new Error(`Could not load ${step.label}.`)
+						updateTab(tabId, {
+							runError: error,
+							result: null,
+							running: false,
+							loadingStage: null
+						})
+						scheduleTabPendingClear(updateTab, tabId)
+						finishRun()
+						return
 					}
 					updateTab(tabId, (t) => ({
 						pendingTables: t.pendingTables.filter((p) => p.key !== step.key)
 					}))
 				}
 				updateTab(tabId, { loadingStage: null })
-				await runSqlForTab(tabId, nextSql)
+				await runSqlForTab(tabId, nextSql, controller)
+				finishRun()
 			} catch (err) {
+				if (runControllersRef.current.get(runKey) !== controller) return
+				if (isAbortError(err) || controller.signal.aborted) {
+					updateTab(tabId, {
+						runError: null,
+						result: null,
+						running: false,
+						loadingStage: null,
+						pendingTables: []
+					})
+					finishRun()
+					return
+				}
 				updateTab(tabId, {
 					runError: err instanceof Error ? err.message : String(err),
-					result: null
+					result: null,
+					running: false
 				})
 				scheduleTabPendingClear(updateTab, tabId)
-			} finally {
-				updateTab(tabId, { loadingStage: null, busyTaskId: null })
+				finishRun()
 			}
 		},
-		[registry, runSqlForTab, updateTab]
+		[registry, runSqlForTab, updateTab, beginRun, endRun]
 	)
 
 	// --- Notebook cell execution ---
@@ -334,7 +411,8 @@ function SqlWorkspaceInner({
 
 			const cellName = `cell_${cellIdx + 1}`
 			const skipSet = cellViewNames(tab.cells)
-			const controller = beginRun(`cell:${cellId}`)
+			const runKey = `cell:${cellId}`
+			const controller = beginRun(runKey)
 
 			updateCell(tabId, cellId, {
 				running: true,
@@ -352,13 +430,18 @@ function SqlWorkspaceInner({
 				},
 				trimmed,
 				{
-					onPendingChange: (pending) => updateCell(tabId, cellId, { pendingTables: pending }),
-					onLoadingStage: (stage) => updateCell(tabId, cellId, { loadingStage: stage })
+					onPendingChange: (pending) => {
+						if (runControllersRef.current.get(runKey) === controller)
+							updateCell(tabId, cellId, { pendingTables: pending })
+					},
+					onLoadingStage: (stage) => {
+						if (runControllersRef.current.get(runKey) === controller) updateCell(tabId, cellId, { loadingStage: stage })
+					}
 				},
 				skipSet,
 				controller.signal
 			)
-			endRun(`cell:${cellId}`, controller)
+			if (runControllersRef.current.get(runKey) !== controller) return false
 
 			if (res.ok) {
 				const okRes = res as Extract<typeof res, { ok: true }>
@@ -369,6 +452,19 @@ function SqlWorkspaceInner({
 				} catch (viewErr) {
 					console.warn(`Failed to create view ${cellName}:`, viewErr)
 				}
+				if (runControllersRef.current.get(runKey) !== controller) return false
+				if (controller.signal.aborted) {
+					endRun(runKey, controller)
+					updateCell(tabId, cellId, {
+						result: null,
+						runError: null,
+						running: false,
+						loadingStage: null,
+						pendingTables: []
+					})
+					return false
+				}
+				endRun(runKey, controller)
 				updateCell(tabId, cellId, {
 					result: okRes.result,
 					lastRun: {
@@ -386,6 +482,7 @@ function SqlWorkspaceInner({
 				return true
 			}
 			const errRes = res as Extract<typeof res, { ok: false }>
+			endRun(runKey, controller)
 			updateCell(tabId, cellId, {
 				result: null,
 				runError: errRes.cancelled ? null : errRes.error,
@@ -478,9 +575,6 @@ function SqlWorkspaceInner({
 		[tabs, runSqlForCell, focusCell, addCell]
 	)
 
-	// Drop cell views when notebook tab unmounts or becomes inactive
-	const activeTabRef = useRef(activeTabId)
-	activeTabRef.current = activeTabId
 	useEffect(() => {
 		return () => {
 			// Cleanup on workspace unmount — best-effort
@@ -584,53 +678,30 @@ function SqlWorkspaceInner({
 
 	const router = useRouter()
 	const hydratedRef = useRef(false)
-	const hydrationCtxRef = useRef({
-		tabs,
-		openTab,
-		openNotebookTab,
-		focusTab,
-		updateTab,
-		updateCell,
-		prepareAndRun,
-		runSqlForCell,
-		router
-	})
-	hydrationCtxRef.current = {
-		tabs,
-		openTab,
-		openNotebookTab,
-		focusTab,
-		updateTab,
-		updateCell,
-		prepareAndRun,
-		runSqlForCell,
-		router
-	}
 	useEffect(() => {
 		if (hydratedRef.current) return
 		if (!router.isReady) return
 		if (!duckdb.conn) return
 		const rawQuery = router.query as Record<string, string | string[] | undefined>
-		const ctx = hydrationCtxRef.current
 
 		const notebookDecoded = decodeNotebookShare(rawQuery)
 		if (notebookDecoded) {
 			hydratedRef.current = true
 			const cells = notebookDecoded.cells.map((c) => buildCellFromShared(c))
-			const newId = ctx.openNotebookTab({
+			const newId = openNotebookTab({
 				cells,
 				title: notebookDecoded.title ?? 'Shared notebook',
 				focus: true
 			})
-			setSectionTab('editor')
+			window.setTimeout(() => setSectionTab('editor'), 0)
 			void (async () => {
 				for (const cell of cells) {
 					if (cell.type === 'sql' && cell.source.trim()) {
-						await ctx.runSqlForCell(newId, cell.id)
+						await runSqlForCell(newId, cell.id)
 					}
 				}
 			})()
-			ctx.router.replace({ pathname: ctx.router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
+			router.replace({ pathname: router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
 			return
 		}
 
@@ -641,23 +712,37 @@ function SqlWorkspaceInner({
 		}
 		if (decoded.kind === 'query') {
 			hydratedRef.current = true
-			const existing = ctx.tabs.find((t) => t.mode === 'query' && t.sql === decoded.sql)
-			const tabId = existing ? existing.id : ctx.openTab({ sql: decoded.sql, focus: true })
-			if (existing) ctx.focusTab(existing.id)
+			const existing = tabs.find((t) => t.mode === 'query' && t.sql === decoded.sql)
+			const tabId = existing ? existing.id : openTab({ sql: decoded.sql, focus: true })
+			if (existing) focusTab(existing.id)
 			if (decoded.chartConfig) {
-				ctx.updateTab(tabId, { chartConfig: decoded.chartConfig })
-				setChartPreferredTab(tabId)
+				updateTab(tabId, { chartConfig: decoded.chartConfig })
+				window.setTimeout(() => setChartPreferredTab(tabId), 0)
 			}
-			setSectionTab('editor')
-			ctx.prepareAndRun({
-				tabId,
-				taskId: `share:${Date.now()}`,
-				tables: decoded.tables,
-				sql: decoded.sql
-			})
-			ctx.router.replace({ pathname: ctx.router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
+			window.setTimeout(() => setSectionTab('editor'), 0)
+			window.setTimeout(() => {
+				prepareAndRun({
+					tabId,
+					taskId: `share:${Date.now()}`,
+					tables: decoded.tables,
+					sql: decoded.sql
+				})
+			}, 0)
+			router.replace({ pathname: router.pathname, query: { mode: 'sql' } }, undefined, { shallow: true })
 		}
-	}, [router.isReady, router.query, duckdb.conn])
+	}, [
+		router,
+		router.isReady,
+		router.query,
+		duckdb.conn,
+		openNotebookTab,
+		runSqlForCell,
+		tabs,
+		openTab,
+		focusTab,
+		updateTab,
+		prepareAndRun
+	])
 
 	useEffect(() => {
 		const handler = (e: KeyboardEvent) => {
@@ -772,7 +857,7 @@ function SqlWorkspaceInner({
 								onRunCell={async (cellId) => {
 									await runSqlForCell(activeTab.id, cellId)
 								}}
-								onCancelCell={(cellId) => cancelRun(`cell:${cellId}`)}
+								onCancelCell={(cellId) => cancelCellRun(activeTab.id, cellId)}
 								onRunCellAndAdvance={(cellId) => runCellAndAdvance(activeTab.id, cellId)}
 								onRunAbove={(cellId) => runCellsAbove(activeTab.id, cellId)}
 								onRunBelow={(cellId) => runCellsBelow(activeTab.id, cellId)}
@@ -809,7 +894,7 @@ function SqlWorkspaceInner({
 									running={activeTab.running || !!activeTab.loadingStage}
 									canRun={!!duckdb.conn && !!activeTab.sql.trim()}
 									onRun={runQuery}
-									onCancel={() => cancelRun(`tab:${activeTabId}`)}
+									onCancel={() => cancelTabRun(activeTabId)}
 									onSave={() => setSavePresetOpen(true)}
 									sql={activeTab.sql}
 									tables={tableRefs}
@@ -1248,6 +1333,14 @@ function sameSource(
 	if (a.kind === 'dataset' && b.kind === 'dataset') return a.slug === b.slug
 	if (a.kind === 'chart' && b.kind === 'chart') return a.slug === b.slug && a.param === b.param
 	return false
+}
+
+function throwIfAborted(signal: AbortSignal): void {
+	if (signal.aborted) throw new DOMException('Cancelled', 'AbortError')
+}
+
+function isAbortError(err: unknown): boolean {
+	return typeof err === 'object' && err !== null && (err as { name?: string }).name === 'AbortError'
 }
 
 function scheduleTabPendingClear(
