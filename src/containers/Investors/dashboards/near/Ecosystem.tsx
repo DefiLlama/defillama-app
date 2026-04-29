@@ -1,10 +1,51 @@
 import { lazy } from 'react'
-import type { IChartProps, IMultiSeriesChartProps } from '~/components/ECharts/types'
-import { useEcosystemData, chartToTimeSeries } from './ecosystemApi'
+import type { IChartProps, IHBarChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { formattedNum } from '~/utils'
+import { useEcosystemData, chartToTimeSeries, type BreakdownChart, type ChannelBreakdown, type ChartData } from './ecosystemApi'
 import { NearIcon } from './NearHeader'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart')) as React.FC<IMultiSeriesChartProps>
+const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
+const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
+
+const BREAKDOWN_PALETTE = [
+	'#00C1DE', '#4cae4f', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
+	'#3b82f6', '#a855f7', '#10b981', '#eab308', '#06b6d4', '#dc2626', '#22c55e', '#0ea5e9',
+	'#d946ef', '#84cc16', '#f43f5e', '#6366f1'
+]
+
+function aggregateBreakdown(chart: BreakdownChart, topN: number): { name: string; value: number }[] {
+	const totals = chart.series.map((s) => ({
+		name: s.name,
+		value: s.data.reduce((a, b) => a + (b ?? 0), 0)
+	}))
+	totals.sort((a, b) => b.value - a.value)
+	if (totals.length <= topN) return totals
+	const top = totals.slice(0, topN)
+	const othersValue = totals.slice(topN).reduce((acc, t) => acc + t.value, 0)
+	if (othersValue > 0) top.push({ name: 'Others', value: othersValue })
+	return top
+}
+
+function channelsToBars(breakdown: ChannelBreakdown): { categories: string[]; values: number[] } {
+	const sorted = [...breakdown.channels].sort((a, b) => b.fees - a.fees)
+	return {
+		categories: sorted.map((c) => c.referral || 'unknown'),
+		values: sorted.map((c) => c.fees)
+	}
+}
+
+function lastSeriesValue(chart: ChartData | undefined, seriesName: string): number | undefined {
+	if (!chart) return undefined
+	const series = chart.series.find((s) => s.name === seriesName)
+	if (!series || series.data.length === 0) return undefined
+	for (let i = series.data.length - 1; i >= 0; i--) {
+		const v = series.data[i]
+		if (v != null && !Number.isNaN(v)) return v
+	}
+	return undefined
+}
 
 const PROTOCOL_STATS = [
 	{ label: 'TPS Capacity', value: '1M+', description: 'Transactions per second' },
@@ -32,6 +73,19 @@ function KpiCard({ label, value }: { label: string; value?: string }) {
 				<span className="text-2xl font-semibold text-(--text-primary)">{value}</span>
 			) : (
 				<div className="h-8 w-24 animate-pulse rounded bg-(--text-disabled) opacity-20" />
+			)}
+		</div>
+	)
+}
+
+function HeadlinePill({ label, value }: { label: string; value?: string }) {
+	return (
+		<div className="flex items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg) px-3 py-1">
+			<span className="text-xs font-medium text-(--text-label)">{label}</span>
+			{value ? (
+				<span className="text-sm font-semibold text-(--text-primary)">{value}</span>
+			) : (
+				<span className="inline-block h-4 w-12 animate-pulse rounded bg-(--text-disabled) opacity-20" />
 			)}
 		</div>
 	)
@@ -68,29 +122,40 @@ export default function Ecosystem() {
 	const eco = data?.ecosystem
 	const token = data?.tokenEconomics
 
-	const volumeSeries = intents
-		? (() => {
-				const ts = chartToTimeSeries(intents.volumeChart)
-				const daily = ts.find((s) => s.name === 'Daily Volume')
-				const cumulative = ts.find((s) => s.name === 'Cumulative Volume')
-				return [
-					cumulative && {
-						name: 'Cumulative Volume',
-						type: 'line' as const,
-						color: '#00C1DE',
-						data: cumulative.data,
-						yAxisIndex: 0
-					},
-					daily && {
-						name: 'Daily Volume',
-						type: 'bar' as const,
-						color: '#4cae4f',
-						data: daily.data,
-						yAxisIndex: 1
-					}
-				].filter(Boolean)
-			})()
-		: undefined
+	const buildDailyCumulativeSeries = (chart: typeof intents.volumeChart | undefined, dailyName: string, cumulativeName: string) => {
+		if (!chart) return undefined
+		const ts = chartToTimeSeries(chart)
+		const daily = ts.find((s) => s.name === dailyName)
+		const cumulative = ts.find((s) => s.name === cumulativeName)
+		return [
+			cumulative && {
+				name: cumulativeName,
+				type: 'line' as const,
+				color: '#00C1DE',
+				data: cumulative.data,
+				yAxisIndex: 0
+			},
+			daily && {
+				name: dailyName,
+				type: 'bar' as const,
+				color: '#4cae4f',
+				data: daily.data,
+				yAxisIndex: 1
+			}
+		].filter(Boolean)
+	}
+
+	const volumeSeries = buildDailyCumulativeSeries(intents?.volumeChart, 'Daily Volume', 'Cumulative Volume')
+	const feesSeries = buildDailyCumulativeSeries(intents?.feesChart, 'Daily Fees', 'Cumulative Fees')
+	const activitySeries = buildDailyCumulativeSeries(intents?.activityChart, 'Daily Swaps', 'Cumulative Swaps')
+
+	const tokenPie = intents ? aggregateBreakdown(intents.tokenBreakdown, 15) : undefined
+	const blockchainPie = intents ? aggregateBreakdown(intents.blockchainBreakdown, 15) : undefined
+	const channelBars = intents ? channelsToBars(intents.channelBreakdown) : undefined
+
+	const dailyVolumeRaw = lastSeriesValue(intents?.volumeChart, 'Daily Volume')
+	const dailyVolumeFormatted =
+		dailyVolumeRaw != null ? formattedNum(dailyVolumeRaw, true) : undefined
 
 	const txnsSeries = eco ? chartToTimeSeries(eco.txnsChart)[0]?.data : undefined
 	const activeAccountsSeries = eco ? chartToTimeSeries(eco.activeAccountsChart)[0]?.data : undefined
@@ -124,18 +189,25 @@ export default function Ecosystem() {
 			</div>
 
 			{/* NEAR Intents */}
-			<SectionTitle>NEAR Intents</SectionTitle>
-			<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-				<KpiCard label="All-Time Volume" value={intents?.kpis.allTimeVolume.formatted} />
-				<KpiCard label="Total Swaps" value={intents?.kpis.totalSwaps.formatted} />
-				<KpiCard label="30-Day Volume" value={intents?.kpis.volume30d.formatted} />
-				<KpiCard label="30-Day Unique Users" value={intents?.kpis.uniqueUsers30d.formatted} />
+			<div className="flex flex-wrap items-center justify-between gap-3">
+				<SectionTitle>NEAR Intents</SectionTitle>
+				<HeadlinePill label="Total Intent Fees" value={intents?.kpis.totalIntentFees.formatted} />
 			</div>
 			<div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+				<KpiCard label="All-Time Volume" value={intents?.kpis.allTimeVolume.formatted} />
+				<KpiCard label="30-Day Volume" value={intents?.kpis.volume30d.formatted} />
 				<KpiCard label="7-Day Volume" value={intents?.kpis.volume7d.formatted} />
+				<KpiCard label="Daily Volume" value={dailyVolumeFormatted} />
+
+				<KpiCard label="All-Time Swaps" value={intents?.kpis.totalSwaps.formatted} />
+				<KpiCard label="30-Day Swaps" value={intents?.kpis.swaps30d.formatted} />
+				<KpiCard label="7-Day Swaps" value={intents?.kpis.swaps7d.formatted} />
+				<KpiCard label="Daily Swaps" value={intents?.kpis.dailySwaps.formatted} />
+
+				<KpiCard label="Avg Trade Size" value={intents?.kpis.avgTradeSize.formatted} />
+				<KpiCard label="30-Day Unique Users" value={intents?.kpis.uniqueUsers30d.formatted} />
 				<KpiCard label="7-Day Unique Users" value={intents?.kpis.uniqueUsers7d.formatted} />
 				<KpiCard label="1-Day Unique Users" value={intents?.kpis.uniqueUsers1d.formatted} />
-				<KpiCard label="Avg Trade Size" value={intents?.kpis.avgTradeSize.formatted} />
 			</div>
 
 			{isLoading || !volumeSeries ? (
@@ -149,6 +221,80 @@ export default function Ecosystem() {
 						height="400px"
 						showAggregateInTooltip
 						chartOptions={{ series: { barMaxWidth: 40 } }}
+					/>
+				</ChartCard>
+			)}
+
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				{isLoading || !feesSeries ? (
+					<ChartSkeleton title="NEAR Intents Fees" />
+				) : (
+					<ChartCard title="NEAR Intents Fees">
+						<MultiSeriesChart
+							series={feesSeries}
+							valueSymbol="$"
+							yAxisSymbols={['$', '$']}
+							height="350px"
+							showAggregateInTooltip
+							chartOptions={{ series: { barMaxWidth: 30 } }}
+						/>
+					</ChartCard>
+				)}
+				{isLoading || !activitySeries ? (
+					<ChartSkeleton title="NEAR Intents Swap Activity" />
+				) : (
+					<ChartCard title="NEAR Intents Swap Activity">
+						<MultiSeriesChart
+							series={activitySeries}
+							valueSymbol=""
+							yAxisSymbols={['', '']}
+							height="350px"
+							showAggregateInTooltip
+							chartOptions={{ series: { barMaxWidth: 30 } }}
+						/>
+					</ChartCard>
+				)}
+			</div>
+
+			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+				{isLoading || !tokenPie ? (
+					<ChartSkeleton title="Volume by Token (All-Time, Top 15)" />
+				) : (
+					<ChartCard title="Volume by Token (All-Time, Top 15)">
+						<PieChart
+							chartData={tokenPie}
+							valueSymbol="$"
+							height="380px"
+							showLegend
+							legendPosition={{ orient: 'vertical', left: 'right', top: 'middle' }}
+						/>
+					</ChartCard>
+				)}
+				{isLoading || !blockchainPie ? (
+					<ChartSkeleton title="Volume by Blockchain (All-Time)" />
+				) : (
+					<ChartCard title="Volume by Blockchain (All-Time)">
+						<PieChart
+							chartData={blockchainPie}
+							valueSymbol="$"
+							height="380px"
+							showLegend
+							legendPosition={{ orient: 'vertical', left: 'right', top: 'middle' }}
+						/>
+					</ChartCard>
+				)}
+			</div>
+
+			{isLoading || !channelBars ? (
+				<ChartSkeleton title="Fees by Referral Channel" />
+			) : (
+				<ChartCard title="Fees by Referral Channel">
+					<HBarChart
+						categories={channelBars.categories}
+						values={channelBars.values}
+						valueSymbol="$"
+						height="400px"
+						colors={channelBars.categories.map((_, i) => BREAKDOWN_PALETTE[i % BREAKDOWN_PALETTE.length])}
 					/>
 				</ChartCard>
 			)}

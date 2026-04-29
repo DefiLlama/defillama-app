@@ -16,6 +16,26 @@ interface ChartData {
 	series: ChartSeries[]
 }
 
+interface ChannelEntry {
+	referral: string
+	fees: number
+	feesFormatted: string
+	sharePct: number
+	shareFormatted: string
+}
+
+interface ChannelBreakdown {
+	title: string
+	total: number
+	totalFormatted: string
+	channels: ChannelEntry[]
+}
+
+interface BreakdownChart extends ChartData {
+	total?: number
+	totalFormatted?: string
+}
+
 interface EcosystemResponse {
 	intents: {
 		kpis: {
@@ -27,8 +47,18 @@ interface EcosystemResponse {
 			volume7d: FormattedValue
 			volume30d: FormattedValue
 			avgTradeSize: FormattedValue
+			totalIntentFees: FormattedValue
+			cumulativeSwaps: FormattedValue
+			dailySwaps: FormattedValue
+			swaps7d: FormattedValue
+			swaps30d: FormattedValue
 		}
 		volumeChart: ChartData
+		feesChart: ChartData
+		activityChart: ChartData
+		tokenBreakdown: BreakdownChart
+		blockchainBreakdown: BreakdownChart
+		channelBreakdown: ChannelBreakdown
 	}
 	ecosystem: {
 		kpis: {
@@ -58,7 +88,7 @@ interface EcosystemResponse {
 	}
 }
 
-export type { FormattedValue, ChartData, EcosystemResponse }
+export type { FormattedValue, ChartData, EcosystemResponse, ChannelBreakdown, ChannelEntry, BreakdownChart }
 
 function chartToTimeSeries(chart: ChartData): Array<{ name: string; data: Array<[number, number]> }> {
 	return chart.series.map((s) => ({
