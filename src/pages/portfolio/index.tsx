@@ -56,7 +56,7 @@ const PRICE_IDS = ['coingecko:binancecoin', 'coingecko:tether', 'coingecko:panca
 
 interface PriceData {
 	price: number
-	change: number
+	change?: number
 }
 
 async function fetchPrices(): Promise<Record<string, PriceData>> {
@@ -72,7 +72,7 @@ async function fetchPrices(): Promise<Record<string, PriceData>> {
 			}
 			const mappedName = nameMap[sym]
 			if (mappedName) {
-				result[mappedName] = { price: priceData?.price || 0, change: 0 }
+				result[mappedName] = { price: priceData?.price || 0 }
 			}
 		}
 	} catch (e) {
@@ -88,7 +88,7 @@ async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000
 			return await fn()
 		} catch (e) {
 			lastError = e as Error
-			if (i < retries - 1) await new Promise((r) => setTimeout(r, delay * (i + 1)))
+			if (i < retries - 1) await new Promise((r) => setTimeout(r, delay * 2 ** i))
 		}
 	}
 	throw lastError ?? new Error('Unknown error')
@@ -98,6 +98,7 @@ async function fetchPortfolio(address: string): Promise<PortfolioData> {
 	const tokens: TokenBalance[] = []
 	let totalValue = 0
 	const debug: string[] = []
+	const normalizedAddress = getAddress(address)
 
 	let prices: Record<string, PriceData> = {}
 	try {
@@ -112,61 +113,51 @@ async function fetchPortfolio(address: string): Promise<PortfolioData> {
 	)
 
 	for (const [chainName, rpcList] of Object.entries(WORKING_RPCS)) {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		let client: any = null
-
-		for (const rpc of rpcList) {
-			try {
-				const chain = CHAIN_MAP[chainName as keyof typeof CHAIN_MAP]
-				if (!chain) {
-					debug.push(`${chainName} chain mapping missing`)
-					break
-				}
-				client = createPublicClient({ chain, transport: http(rpc) })
-				break
-			} catch {
-				debug.push(`${chainName} RPC ${rpc} failed`)
-			}
-		}
-
-		if (!client) {
-			debug.push(`${chainName} no RPC available`)
+		const chain = CHAIN_MAP[chainName as keyof typeof CHAIN_MAP]
+		if (!chain) {
+			debug.push(`${chainName} chain mapping missing`)
 			continue
 		}
+		let chainLoaded = false
 
-		try {
-			const nativeInfo = CHAIN_NATIVE[chainName]
+		for (const rpc of rpcList) {
+			const client = createPublicClient({ chain, transport: http(rpc, { timeout: 10_000 }) })
+			const rpcTokens: TokenBalance[] = []
+			let rpcTotalValue = 0
 			try {
-				const balance = await fetchWithRetry(() => client.getBalance({ address }))
-				const priceInfo = prices[nativeInfo.symbol] || { price: 0, change: 0 }
-				const balanceNum = Number(balance) / 1e18
-				const balanceUsd = balanceNum * priceInfo.price
-				debug.push(`${chainName} ${nativeInfo.symbol}: ${balanceNum.toFixed(6)} @ $${priceInfo.price}`)
+				await client.getChainId()
+				debug.push(`${chainName} RPC ${rpc} selected`)
 
-				if (balanceNum > 0) {
-					tokens.push({
-						symbol: nativeInfo.symbol,
-						name: nativeInfo.name,
-						address: '0x0',
-						balance: balanceNum,
-						balanceUsd,
-						chain: chainName,
-						chainId: CHAIN_ID_MAP[chainName] || chainName,
-						price: priceInfo.price,
-						priceChange24h: priceInfo.change
-					})
-					totalValue += balanceUsd
-				}
-			} catch (e) {
-				debug.push(`${chainName} native balance error: ${e}`)
-			}
-
-			for (const token of TOKENS[chainName] || []) {
-				let balance = 0n
+				const nativeInfo = CHAIN_NATIVE[chainName]
 				try {
-					balance = await fetchWithRetry(async () => {
-						const result = await client.readContract({
-							address: token.address,
+					const balance = await fetchWithRetry(() => client.getBalance({ address: normalizedAddress }))
+					const priceInfo = prices[nativeInfo.symbol] || { price: 0 }
+					const balanceNum = Number(balance) / 1e18
+					const balanceUsd = balanceNum * priceInfo.price
+					debug.push(`${chainName} ${nativeInfo.symbol}: ${balanceNum.toFixed(6)} @ $${priceInfo.price}`)
+
+					if (balanceNum > 0) {
+						rpcTokens.push({
+							symbol: nativeInfo.symbol,
+							name: nativeInfo.name,
+							address: '0x0',
+							balance: balanceNum,
+							balanceUsd,
+							chain: chainName,
+							chainId: CHAIN_ID_MAP[chainName] || chainName,
+							price: priceInfo.price,
+							priceChange24h: priceInfo.change
+						})
+						rpcTotalValue += balanceUsd
+					}
+				} catch (e) {
+					throw new Error(`${chainName} native balance error: ${String(e)}`)
+				}
+
+				for (const token of TOKENS[chainName] || []) {
+					const balance = await fetchWithRetry(async () => {
+						const result = await (client as any).readContract({
+							address: token.address as `0x${string}`,
 							abi: [
 								{
 									constant: true,
@@ -177,38 +168,45 @@ async function fetchPortfolio(address: string): Promise<PortfolioData> {
 								}
 							],
 							functionName: 'balanceOf',
-							args: [address]
+							args: [normalizedAddress]
 						})
 						return result
 					})
-				} catch {
-					debug.push(`${chainName} ${token.symbol} RPC error (treating as 0)`)
+
+					const balanceNum = Number(balance) / Math.pow(10, token.decimals)
+					if (balanceNum > 0) {
+						const priceInfo = prices[token.symbol] || { price: 0 }
+						const balanceUsd = balanceNum * priceInfo.price
+						debug.push(`${chainName} ${token.symbol}: ${balanceNum.toFixed(6)} @ $${priceInfo.price}`)
+
+						rpcTokens.push({
+							symbol: token.symbol,
+							name: token.name,
+							address: token.address,
+							balance: balanceNum,
+							balanceUsd,
+							chain: chainName,
+							chainId: TOKEN_NAME_MAP[token.symbol],
+							price: priceInfo.price,
+							priceChange24h: priceInfo.change
+						})
+						rpcTotalValue += balanceUsd
+					} else {
+						debug.push(`${chainName} ${token.symbol}: 0`)
+					}
 				}
 
-				const balanceNum = Number(balance) / Math.pow(10, token.decimals)
-				if (balanceNum > 0) {
-					const priceInfo = prices[token.symbol] || { price: 0, change: 0 }
-					const balanceUsd = balanceNum * priceInfo.price
-					debug.push(`${chainName} ${token.symbol}: ${balanceNum.toFixed(6)} @ $${priceInfo.price}`)
-
-					tokens.push({
-						symbol: token.symbol,
-						name: token.name,
-						address: token.address,
-						balance: balanceNum,
-						balanceUsd,
-						chain: chainName,
-						chainId: TOKEN_NAME_MAP[token.symbol],
-						price: priceInfo.price,
-						priceChange24h: priceInfo.change
-					})
-					totalValue += balanceUsd
-				} else {
-					debug.push(`${chainName} ${token.symbol}: 0`)
-				}
+				tokens.push(...rpcTokens)
+				totalValue += rpcTotalValue
+				chainLoaded = true
+				break
+			} catch (e) {
+				debug.push(`${chainName} RPC ${rpc} failed: ${String(e)}`)
 			}
-		} catch (e) {
-			debug.push(`${chainName} error: ${e}`)
+		}
+
+		if (!chainLoaded) {
+			debug.push(`${chainName} no RPC available`)
 		}
 	}
 
@@ -394,10 +392,12 @@ function PortfolioContent() {
 								</tr>
 							</thead>
 							<tbody>
-								{sorted.map((t, i) => {
-									const pct = typeof t.priceChange24h === 'number' ? t.priceChange24h : 0
+								{sorted.map((t) => {
+									const hasPct = typeof t.priceChange24h === 'number'
+									const pct = hasPct ? t.priceChange24h : null
+									const rowKey = `${t.chain}:${t.address}:${t.symbol}`
 									return (
-										<tr key={i} className="border-b border-(--cards-border) last:border-none">
+										<tr key={rowKey} className="border-b border-(--cards-border) last:border-none">
 											<td className="px-5 py-3">
 												<div className="flex items-center gap-3">
 													{t.address === '0x0' ? (
@@ -425,9 +425,12 @@ function PortfolioContent() {
 											<td className="px-5 py-3 font-medium text-(--text-primary)">
 												${t.balanceUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
 											</td>
-											<td className={`px-5 py-3 text-right ${pct >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-												{pct >= 0 ? '+' : ''}
-												{pct.toFixed(2)}%
+											<td
+												className={`px-5 py-3 text-right ${
+													!hasPct ? 'text-[--text-disabled]' : pct >= 0 ? 'text-green-500' : 'text-red-500'
+												}`}
+											>
+												{hasPct ? `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%` : '-'}
 											</td>
 										</tr>
 									)
