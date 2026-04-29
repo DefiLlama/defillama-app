@@ -7,6 +7,7 @@ import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { recordRuntimeError } from '~/utils/telemetry'
+import { toFiniteNumber } from '~/utils/weightedAggregation'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
@@ -35,12 +36,6 @@ import {
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
 	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
-
-const toFiniteNumber = (value: unknown): number | null => {
-	if (value == null) return null
-	const num = typeof value === 'number' ? value : Number(value)
-	return Number.isFinite(num) ? num : null
-}
 
 const getWeightedChange = (
 	protocols: Array<{
@@ -455,10 +450,10 @@ export const getAdapterByChainPageData = async ({
 			total30d: protocol.total30d ?? null,
 			total1y: protocol.total1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
-			change_1d: protocol.change_1d ?? null,
-			change_7d: protocol.change_7d ?? null,
-			change_1m: protocol.change_1m ?? null,
-			change_7dover7d: protocol.change_7dover7d ?? null,
+			change_1d: toFiniteNumber(protocol.change_1d),
+			change_7d: toFiniteNumber(protocol.change_7d),
+			change_1m: toFiniteNumber(protocol.change_1m),
+			change_7dover7d: toFiniteNumber(protocol.change_7dover7d),
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
