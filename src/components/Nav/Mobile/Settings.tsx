@@ -1,12 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { Icon } from '~/components/Icon'
-import { DARK_MODE, useDarkModeManager } from '~/contexts/LocalStorage'
+import { DARK_MODE } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 
 const EMPTY_FILTERS: { name: string; key: string }[] = []
 
 export function Settings({ metricFilters = EMPTY_FILTERS }: { metricFilters?: { name: string; key: string }[] }) {
-	const [darkMode, toggleDarkMode] = useDarkModeManager()
+	const { isDarkMode: darkMode, toggleDarkMode } = useTheme()
 
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(metricFilters)
 

@@ -4,7 +4,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
@@ -43,7 +43,7 @@ export default function PieChart({
 	...props
 }: IPieChartProps) {
 	const id = useId()
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 

@@ -1,7 +1,7 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { formattedNum } from '~/utils'
 import type { EmissionEvent } from './api.types'
 
@@ -47,7 +47,7 @@ export function UnconstrainedSmolLineChart({
 	className?: string
 	extraData?: ExtraData
 }) {
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const tooltipRef = useRef<HTMLDivElement>(null)
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)

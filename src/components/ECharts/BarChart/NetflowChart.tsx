@@ -4,7 +4,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { capitalizeFirstLetter, formattedNum } from '~/utils'
 
@@ -18,7 +18,7 @@ interface NetflowChartProps {
 
 export default function NetflowChart({ height, onReady, data: allData }: NetflowChartProps) {
 	const id = useId()
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const [period, setPeriod] = useState('month')
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const onReadyRef = useRef<NetflowChartProps['onReady']>(onReady)

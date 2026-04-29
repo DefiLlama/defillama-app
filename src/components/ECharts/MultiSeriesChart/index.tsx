@@ -1,6 +1,6 @@
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { ChartContainer } from '../ChartContainer'
@@ -55,7 +55,7 @@ export default function MultiSeriesChart({
 }: IMultiSeriesChartProps) {
 	const id = useId()
 
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 
 	const defaultChartSettings = useDefaults({
 		valueSymbol,

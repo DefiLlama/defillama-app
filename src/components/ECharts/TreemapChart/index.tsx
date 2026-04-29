@@ -9,7 +9,7 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import type { ITreemapChartProps } from '../types'
@@ -94,7 +94,7 @@ export default function TreemapChart({
 	const isRwaVariant = variant === 'rwa'
 	const isNarrativeLike = isNarrativeVariant || isRwaVariant
 
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const onReadyRef = useRef(onReady)
 	useEffect(() => {

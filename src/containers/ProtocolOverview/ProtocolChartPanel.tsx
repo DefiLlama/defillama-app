@@ -15,7 +15,8 @@ import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
-import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
@@ -73,7 +74,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
 		return new URLSearchParams(queryString)
 	}, [router.asPath])
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const { chartInstance: overviewChartInstance, handleChartReady: handleOverviewChartReady } = useChartImageExport()
 	const overviewImageFilename = slug(props.name)
 	const overviewImageTitle = props.name

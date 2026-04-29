@@ -10,7 +10,7 @@ import {
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import * as React from 'react'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { IOrderBookChartProps } from './types'
@@ -30,7 +30,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 	const id = React.useId()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 	const chartRef = React.useRef<echarts.ECharts | null>(null)
 
 	// Stable resize listener - never re-attaches when dependencies change

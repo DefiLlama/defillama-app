@@ -3,7 +3,7 @@ import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'rea
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -78,7 +78,7 @@ export default function BarChart({
 
 	const hideLegend = hideDefaultLegend || stackKeys.length < 2
 
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 
 	const defaultChartSettings = useDefaults({
 		color,

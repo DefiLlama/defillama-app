@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import { useLlamaAISetting } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 
 export const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -224,7 +224,7 @@ function formatTime(seconds: number) {
 }
 
 export function useHackerMode() {
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 	const enabled = useLlamaAISetting('hackerMode')
 	return enabled && isDark
 }

@@ -1,20 +1,12 @@
-import { useDeferredValue, useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useDeferredValue, useMemo, useSyncExternalStore } from 'react'
 import { MAX_RECENT_DOWNLOADS, sameSavedConfigShape, type SavedDownload } from '~/containers/Downloads/savedDownloads'
 import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
-import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
-import {
-	getStorageItem,
-	notifyKeyChange,
-	setStorageItem,
-	subscribeToStorageKey,
-	useStorageItem
-} from './localStorageStore'
+import { getStorageItem, setStorageItem, subscribeToStorageKey, useStorageItem } from './localStorageStore'
 
 const DEFILLAMA = 'DEFILLAMA' as const
 const PINNED_METRICS_KEY = 'pinned-metrics' as const
-export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
 export const DARK_MODE = 'DARK_MODE' as const
@@ -195,48 +187,6 @@ export function subscribeToLocalStorage(callback: () => void) {
 
 export function subscribeToPinnedMetrics(callback: () => void) {
 	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
-}
-
-const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
-
-const getResolvedTheme = (): 'dark' | 'light' => {
-	const themeCookie = getThemeCookie()
-	if (themeCookie) return themeCookie
-
-	if (typeof document !== 'undefined') {
-		if (document.documentElement.classList.contains('light')) return 'light'
-		if (document.documentElement.classList.contains('dark')) return 'dark'
-	}
-
-	return 'dark'
-}
-
-const toggleDarkMode = () => {
-	const isDarkMode = getResolvedTheme() === 'dark'
-	setThemeCookie(!isDarkMode)
-	notifyKeyChange(THEME_SYNC_KEY)
-}
-
-export function useDarkModeManager() {
-	const store = useSyncExternalStore(
-		subscribeToTheme,
-		() => getResolvedTheme(),
-		() => 'dark'
-	)
-
-	const isDarkMode = store === 'dark'
-
-	useEffect(() => {
-		if (!isDarkMode) {
-			document.documentElement.classList.remove('dark')
-			document.documentElement.classList.add('light')
-		} else {
-			document.documentElement.classList.remove('light')
-			document.documentElement.classList.add('dark')
-		}
-	}, [isDarkMode])
-
-	return [isDarkMode, toggleDarkMode] as [boolean, () => void]
 }
 
 export const readAppStorageRaw = () => getStorageItem(DEFILLAMA)

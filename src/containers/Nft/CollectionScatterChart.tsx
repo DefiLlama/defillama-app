@@ -11,7 +11,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import * as React from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import type { ICollectionScatterChartProps } from './types'
@@ -33,7 +33,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	const id = React.useId()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 	const chartRef = React.useRef<echarts.ECharts | null>(null)
 
 	useChartResize(chartRef)

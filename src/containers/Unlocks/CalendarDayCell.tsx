@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { formattedNum, slug } from '~/utils'
 import type { DailyUnlocks, DayInfo } from './calendarTypes'
 import { interpolateColor } from './colorUtils'
@@ -16,7 +16,7 @@ interface CalendarDayCellProps {
 }
 
 export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unlocksData, maxUnlockValue }) => {
-	const [isDarkMode] = useDarkModeManager()
+	const { isDarkMode } = useTheme()
 
 	if (!dayInfo.date) return <div className="h-24 w-full bg-(--cards-bg) opacity-40"></div>
 

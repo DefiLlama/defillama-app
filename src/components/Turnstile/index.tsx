@@ -1,5 +1,5 @@
 import { Turnstile as TurnstileWidget } from '@marsidev/react-turnstile'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 
 interface TurnstileProps {
 	onVerify: (token: string) => void
@@ -9,7 +9,7 @@ interface TurnstileProps {
 }
 
 export const Turnstile = ({ onVerify, onError, onExpire, className }: TurnstileProps) => {
-	const [isDarkMode] = useDarkModeManager()
+	const { isDarkMode } = useTheme()
 	const theme: 'light' | 'dark' = isDarkMode ? 'dark' : 'light'
 	const siteKey = '0x4AAAAAABjeuAHi7HNPyGmv'
 
