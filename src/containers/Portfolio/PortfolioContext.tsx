@@ -18,7 +18,7 @@ const STORAGE_KEY = 'portfolio-wallet-address'
 
 export function PortfolioProvider({ children }: { children: ReactNode }) {
 	const [storedAddress, setStoredAddress] = useState<string | null>(null)
-	const { address: walletAddress, isConnected } = useAccount()
+	const { address: walletAddress, isConnected, isConnecting } = useAccount()
 	const { disconnect } = useDisconnect()
 	const { openConnectModal } = useConnectModal()
 
@@ -55,7 +55,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 			value={{
 				connectedAddress: walletAddress,
 				isConnected: isConnected && !!walletAddress,
-				isConnecting: false,
+				isConnecting,
 				connectWallet,
 				disconnectWallet,
 				storeWalletAddress,

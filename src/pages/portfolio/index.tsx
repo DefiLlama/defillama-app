@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useCallback } from 'react'
 import { createPublicClient, http, getAddress } from 'viem'
 import { bsc } from 'viem/chains'
-import { Icon } from '~/components/Icon'
-import { TokenLogo } from '~/components/TokenLogo'
-import { LocalLoader, LoadingSpinner } from '~/components/Loaders'
 import { fetchCoinPrices } from '~/api'
+import { Icon } from '~/components/Icon'
+import { LocalLoader, LoadingSpinner } from '~/components/Loaders'
+import { TokenLogo } from '~/components/TokenLogo'
 import { usePortfolio } from '~/containers/Portfolio/PortfolioContext'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
@@ -33,6 +33,10 @@ const TOKENS: Record<string, { address: string; decimals: number; symbol: string
 
 const WORKING_RPCS: Record<string, string[]> = {
 	bsc: ['https://bsc-dataseed1.defibit.io', 'https://bsc-rpc.publicnode.com']
+}
+
+const CHAIN_MAP = {
+	bsc
 }
 
 const CHAIN_ID_MAP: Record<string, string> = {
@@ -113,7 +117,12 @@ async function fetchPortfolio(address: string): Promise<PortfolioData> {
 
 		for (const rpc of rpcList) {
 			try {
-				client = createPublicClient({ chain: bsc, transport: http(rpc) })
+				const chain = CHAIN_MAP[chainName as keyof typeof CHAIN_MAP]
+				if (!chain) {
+					debug.push(`${chainName} chain mapping missing`)
+					break
+				}
+				client = createPublicClient({ chain, transport: http(rpc) })
 				break
 			} catch {
 				debug.push(`${chainName} RPC ${rpc} failed`)
@@ -182,20 +191,18 @@ async function fetchPortfolio(address: string): Promise<PortfolioData> {
 					const balanceUsd = balanceNum * priceInfo.price
 					debug.push(`${chainName} ${token.symbol}: ${balanceNum.toFixed(6)} @ $${priceInfo.price}`)
 
-					if (balanceNum > 0) {
-						tokens.push({
-							symbol: token.symbol,
-							name: token.name,
-							address: token.address,
-							balance: balanceNum,
-							balanceUsd,
-							chain: chainName,
-							chainId: TOKEN_NAME_MAP[token.symbol],
-							price: priceInfo.price,
-							priceChange24h: priceInfo.change
-						})
-						totalValue += balanceUsd
-					}
+					tokens.push({
+						symbol: token.symbol,
+						name: token.name,
+						address: token.address,
+						balance: balanceNum,
+						balanceUsd,
+						chain: chainName,
+						chainId: TOKEN_NAME_MAP[token.symbol],
+						price: priceInfo.price,
+						priceChange24h: priceInfo.change
+					})
+					totalValue += balanceUsd
 				} else {
 					debug.push(`${chainName} ${token.symbol}: 0`)
 				}
@@ -208,12 +215,12 @@ async function fetchPortfolio(address: string): Promise<PortfolioData> {
 	return { address, tokens, totalValueUsd: totalValue, debug }
 }
 
-function AddressInput({ onSubmit }: { onSubmit: (address: string) => void }) {
+function AddressInput({ onSubmit }: { onSubmit: (address: string) => void | Promise<void> }) {
 	const [val, setVal] = useState('')
 	const [err, setErr] = useState('')
 	const [isLoading, setIsLoading] = useState(false)
 
-	const submit = (e: React.FormEvent) => {
+	const submit = async (e: React.FormEvent) => {
 		e.preventDefault()
 		const a = val.trim()
 		if (!a) {
@@ -224,7 +231,7 @@ function AddressInput({ onSubmit }: { onSubmit: (address: string) => void }) {
 			setErr('')
 			setIsLoading(true)
 			try {
-				onSubmit(getAddress(a))
+				await Promise.resolve(onSubmit(getAddress(a)))
 			} finally {
 				setIsLoading(false)
 			}
@@ -264,7 +271,7 @@ function PortfolioContent() {
 		return fetchPortfolio(addr)
 	}, [addr])
 
-	const { data, isLoading, isError, error, refetch } = useQuery({
+	const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
 		queryKey: ['portfolio', addr],
 		queryFn,
 		enabled: !!addr,
@@ -286,7 +293,10 @@ function PortfolioContent() {
 			<div className="flex flex-col items-center justify-center gap-4 py-20">
 				<Icon name="wallet" className="h-16 w-16 text-blue-500" />
 				<h2 className="text-xl font-semibold text-(--text-primary)">View Your Portfolio</h2>
-				<button onClick={connectWallet} className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+				<button
+					onClick={connectWallet}
+					className="flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+				>
 					<Icon name="wallet" className="h-4 w-4" />
 					<span>Connect Wallet</span>
 				</button>
@@ -313,9 +323,13 @@ function PortfolioContent() {
 				<Icon name="alert-triangle" className="h-10 w-10 text-yellow-500" />
 				<p className="text-red-500">Failed to load portfolio</p>
 				<p className="text-xs text-[--text-disabled]">{error instanceof Error ? error.message : 'Unknown error'}</p>
-				<button onClick={() => refetch()} className="flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-					<LoadingSpinner size={12} />
-					<span>Try again</span>
+				<button
+					onClick={() => refetch()}
+					disabled={isLoading || isFetching}
+					className="flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+				>
+					{isLoading || isFetching ? <LoadingSpinner size={12} /> : <Icon name="repeat" className="h-3 w-3" />}
+					<span>{isLoading || isFetching ? 'Retrying...' : 'Try again'}</span>
 				</button>
 			</div>
 		)
@@ -333,18 +347,24 @@ function PortfolioContent() {
 					</div>
 					<div className="flex gap-2">
 						{manual && (
-							<button onClick={() => setManual(null)} className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg)">
+							<button
+								onClick={() => setManual(null)}
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg)"
+							>
 								Clear
 							</button>
 						)}
 						{connectedAddress && (
-							<button onClick={disconnectWallet} className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg)">
+							<button
+								onClick={disconnectWallet}
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg)"
+							>
 								Disconnect
 							</button>
 						)}
 					</div>
 				</div>
-				<p className="mt-2 break-all text-xs text-[--text-disabled]">{data?.address}</p>
+				<p className="mt-2 text-xs break-all text-[--text-disabled]">{data?.address}</p>
 				<details className="mt-2 text-xs">
 					<summary className="cursor-pointer text-[--text-disabled]">Debug</summary>
 					<pre className="mt-1 whitespace-pre-wrap text-[--text-disabled]">{data?.debug.join('\n')}</pre>
@@ -374,35 +394,44 @@ function PortfolioContent() {
 								</tr>
 							</thead>
 							<tbody>
-								{sorted.map((t, i) => (
-									<tr key={i} className="border-b border-(--cards-border) last:border-none">
-										<td className="px-5 py-3">
-											<div className="flex items-center gap-3">
-												{t.address === '0x0' ? (
-													<TokenLogo name={t.chainId || t.chain} kind="chain" alt={t.symbol} />
-												) : (
-													<TokenLogo name={t.chainId || t.symbol} kind="token" alt={t.symbol} />
-												)}
-												<div>
-													<p className="font-medium text-(--text-primary)">{t.symbol}</p>
-													<p className="text-xs text-[--text-disabled]">{t.name}</p>
+								{sorted.map((t, i) => {
+									const pct = typeof t.priceChange24h === 'number' ? t.priceChange24h : 0
+									return (
+										<tr key={i} className="border-b border-(--cards-border) last:border-none">
+											<td className="px-5 py-3">
+												<div className="flex items-center gap-3">
+													{t.address === '0x0' ? (
+														<TokenLogo name={t.chainId || t.chain} kind="chain" alt={t.symbol} />
+													) : (
+														<TokenLogo name={t.chainId || t.symbol} kind="token" alt={t.symbol} />
+													)}
+													<div>
+														<p className="font-medium text-(--text-primary)">{t.symbol}</p>
+														<p className="text-xs text-[--text-disabled]">{t.name}</p>
+													</div>
 												</div>
-											</div>
-										</td>
-										<td className="px-5 py-3">
-											<span className="rounded-full bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500">{t.chain}</span>
-										</td>
-										<td className="px-5 py-3 font-medium text-(--text-primary)">{t.balance.toLocaleString('en-US', { maximumFractionDigits: 6 })}</td>
-										<td className="px-5 py-3 text-(--text-primary)">${t.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-										<td className="px-5 py-3 font-medium text-(--text-primary)">
-											${t.balanceUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-										</td>
-										<td className={`px-5 py-3 text-right ${t.priceChange24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-											{t.priceChange24h >= 0 ? '+' : ''}
-											{t.priceChange24h.toFixed(2)}%
-										</td>
-									</tr>
-								))}
+											</td>
+											<td className="px-5 py-3">
+												<span className="rounded-full bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-500">
+													{t.chain}
+												</span>
+											</td>
+											<td className="px-5 py-3 font-medium text-(--text-primary)">
+												{t.balance.toLocaleString('en-US', { maximumFractionDigits: 6 })}
+											</td>
+											<td className="px-5 py-3 text-(--text-primary)">
+												${t.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+											</td>
+											<td className="px-5 py-3 font-medium text-(--text-primary)">
+												${t.balanceUsd.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+											</td>
+											<td className={`px-5 py-3 text-right ${pct >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+												{pct >= 0 ? '+' : ''}
+												{pct.toFixed(2)}%
+											</td>
+										</tr>
+									)
+								})}
 							</tbody>
 						</table>
 					</div>

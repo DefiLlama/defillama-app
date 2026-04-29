@@ -2,7 +2,7 @@ import { Icon } from '~/components/Icon'
 import { usePortfolio } from '~/containers/Portfolio/PortfolioContext'
 import { useIsClient } from '~/hooks/useIsClient'
 
-export function WalletConnectButton({ asPath: _asPath }: { asPath: string }) {
+export function WalletConnectButton() {
 	const { isConnected, connectedAddress, connectWallet, disconnectWallet, storedAddress } = usePortfolio()
 	const isClient = useIsClient()
 
