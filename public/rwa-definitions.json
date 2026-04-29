@@ -201,5 +201,25 @@
 	"totalStablecoinsMcap": {
 		"label": "Total Stablecoins Marketcap",
 		"description": "Total USD value of all stablecoins in the dataset that exist on chain across tracked chains in the current selection"
+	},
+	"issuersLeaderboardIssuerCount": {
+		"label": "Issuers",
+		"description": "Number of distinct issuers with at least one asset in this leaderboard after applying the stablecoin and governance inclusion toggles."
+	},
+	"issuersLeaderboardTotalOnchainMcap": {
+		"label": "Total Onchain Mcap",
+		"description": "Sum of each issuer's on-chain market cap in this view (same inclusion rules as the table and treemap). Used as the basis for concentration metrics."
+	},
+	"issuerConcentrationHHI": {
+		"label": "HHI",
+		"description": "Herfindahl–Hirschman Index over issuer shares of on-chain mcap in this view. Ranges from 1 (one issuer is 100% of the total) toward 0 as exposure is split across more issuers."
+	},
+	"issuerConcentrationTop5Share": {
+		"label": "Top 5 share",
+		"description": "Combined share of total on-chain mcap in this view held by the five largest issuers (by on-chain mcap)."
+	},
+	"issuerConcentrationNakamoto50": {
+		"label": "Nakamoto (50%)",
+		"description": "Smallest number of issuers whose combined on-chain mcap share reaches at least 50% of the total in this view (ordered from largest issuer downward)."
 	}
 }

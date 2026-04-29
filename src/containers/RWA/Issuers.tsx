@@ -6,8 +6,10 @@ import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { Tooltip } from '~/components/Tooltip'
 import { formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import { definitions } from './definitions'
 import { computeHHI, computeNakamotoCoefficient, computeTopNShare } from './issuerStats'
 import { getRWAOverviewCsvFileName, getRWAOverviewInclusion } from './overviewTableData'
 import { rwaSlug } from './rwaSlug'
@@ -128,6 +130,7 @@ export function RWAIssuers({ rows }: { rows: RWAIssuerSegmentedRow[] }) {
 		[rows, inclusion]
 	)
 	const issuerShares = useMemo(() => data.map((r) => r.onChainMcap ?? 0).filter((v) => v > 0), [data])
+	const totalOnChainMcap = useMemo(() => data.reduce((sum, r) => sum + (r.onChainMcap ?? 0), 0), [data])
 	const hhi = computeHHI(issuerShares)
 	const top5 = computeTopNShare(issuerShares, 5)
 	const nakamoto50 = computeNakamotoCoefficient(issuerShares, 0.5)
@@ -156,23 +159,52 @@ export function RWAIssuers({ rows }: { rows: RWAIssuerSegmentedRow[] }) {
 					onChange={onToggleGovernance}
 				/>
 			</div>
-			<div className="grid grid-cols-2 gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 sm:grid-cols-4">
-				<div className="flex flex-col gap-0.5">
-					<span className="text-xs text-(--text-tertiary)">Issuers</span>
-					<span className="text-base font-semibold">{formattedNum(data.length, false)}</span>
-				</div>
-				<div className="flex flex-col gap-0.5">
-					<span className="text-xs text-(--text-tertiary)">HHI</span>
-					<span className="text-base font-semibold">{hhi.toFixed(3)}</span>
-				</div>
-				<div className="flex flex-col gap-0.5">
-					<span className="text-xs text-(--text-tertiary)">Top 5 share</span>
-					<span className="text-base font-semibold">{(top5 * 100).toFixed(1)}%</span>
-				</div>
-				<div className="flex flex-col gap-0.5">
-					<span className="text-xs text-(--text-tertiary)">Nakamoto (50%)</span>
-					<span className="text-base font-semibold">{formattedNum(nakamoto50, false)}</span>
-				</div>
+			<div className="flex flex-col gap-2 md:flex-row md:items-center">
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.issuersLeaderboardIssuerCount.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.issuersLeaderboardIssuerCount.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(data.length, false)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.issuersLeaderboardTotalOnchainMcap.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.issuersLeaderboardTotalOnchainMcap.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOnChainMcap, true)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.issuerConcentrationHHI.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.issuerConcentrationHHI.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{hhi.toFixed(3)}</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.issuerConcentrationTop5Share.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.issuerConcentrationTop5Share.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{(top5 * 100).toFixed(1)}%</span>
+				</p>
+				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+					<Tooltip
+						content={definitions.issuerConcentrationNakamoto50.description}
+						className="text-(--text-label) underline decoration-dotted"
+					>
+						{definitions.issuerConcentrationNakamoto50.label}
+					</Tooltip>
+					<span className="font-jetbrains text-2xl font-medium">{formattedNum(nakamoto50, false)}</span>
+				</p>
 			</div>
 
 			{treemapTreeData.length ? (
