@@ -75,7 +75,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 				}
 			}
 
-			const aggregatedProtocols = Array.from(allProtocolsMap.values()).map((protocol) => finalizeAggregatedProtocol(protocol))
+			const aggregatedProtocols = Array.from(allProtocolsMap.values()).map((protocol) =>
+				finalizeAggregatedProtocol(protocol)
+			)
 
 			const sortedProtocols = aggregatedProtocols
 				.filter((p: any) => p.total24h > 0)

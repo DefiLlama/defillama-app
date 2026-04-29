@@ -60,7 +60,9 @@ const getWeightedChange = (
 
 	for (const protocol of protocols) {
 		const change =
-			changeKey === 'change_7d' ? toFiniteNumber(protocol.change_7d ?? protocol.change_7dover7d) : toFiniteNumber(protocol[changeKey])
+			changeKey === 'change_7d'
+				? toFiniteNumber(protocol.change_7d ?? protocol.change_7dover7d)
+				: toFiniteNumber(protocol[changeKey])
 		const weight = toFiniteNumber(protocol[weightKey])
 		if (change == null || weight == null || weight <= 0) continue
 		numerator += change * weight
