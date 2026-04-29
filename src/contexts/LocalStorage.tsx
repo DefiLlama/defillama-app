@@ -9,7 +9,6 @@ const DEFILLAMA = 'DEFILLAMA' as const
 const PINNED_METRICS_KEY = 'pinned-metrics' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
-export const DARK_MODE = 'DARK_MODE' as const
 export const DEFAULT_PORTFOLIO_NAME = 'main' as const
 const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const

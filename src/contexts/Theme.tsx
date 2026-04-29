@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useSyncExternalStore } from 'react'
 import { getThemeCookie, setThemeCookie } from '~/utils/cookies'
-import { notifyKeyChange, subscribeToStorageKey } from './localStorageStore'
+import { setStorageItem, subscribeToStorageKey } from './localStorageStore'
 
 type ThemeContextType = {
 	isDarkMode: boolean
@@ -10,6 +10,7 @@ type ThemeContextType = {
 const ThemeContext = createContext<ThemeContextType | null>(null)
 
 export const THEME_SYNC_KEY = 'defillama-theme' as const
+export const DARK_MODE = 'DARK_MODE' as const
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 	const store = useSyncExternalStore(
@@ -33,8 +34,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 	}, [])
 
 	const toggleDarkMode = useCallback(() => {
+		const nextTheme = !isDarkMode ? 'dark' : 'light'
 		setThemeCookie(!isDarkMode)
-		notifyKeyChange(THEME_SYNC_KEY)
+		setStorageItem(THEME_SYNC_KEY, nextTheme)
 	}, [isDarkMode])
 
 	useEffect(() => {
