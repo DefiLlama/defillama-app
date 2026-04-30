@@ -7,6 +7,8 @@ export type MetricPeriodFields = {
 	total14dto7d?: NullableNumber
 	total30d?: NullableNumber
 	total60dto30d?: NullableNumber
+	total7DaysAgo?: NullableNumber
+	total30DaysAgo?: NullableNumber
 	total1y?: NullableNumber
 	totalAllTime?: NullableNumber
 	change_1d?: NullableNumber
@@ -23,6 +25,8 @@ const SUM_FIELDS = [
 	'total14dto7d',
 	'total30d',
 	'total60dto30d',
+	'total7DaysAgo',
+	'total30DaysAgo',
 	'total1y',
 	'totalAllTime'
 ] as const
@@ -41,10 +45,10 @@ function getPercentChange(valueNow: NullableNumber, valuePrevious: NullableNumbe
 
 export function deriveMetricChanges<T extends MetricPeriodFields>(protocol: T): T {
 	protocol.change_1d = getPercentChange(protocol.total24h, protocol.total48hto24h)
-	protocol.change_7d = getPercentChange(protocol.total7d, protocol.total14dto7d)
-	protocol.change_1m = getPercentChange(protocol.total30d, protocol.total60dto30d)
-	protocol.change_7dover7d = protocol.change_7d
-	protocol.change_30dover30d = protocol.change_1m
+	protocol.change_7d = getPercentChange(protocol.total24h, protocol.total7DaysAgo)
+	protocol.change_1m = getPercentChange(protocol.total24h, protocol.total30DaysAgo)
+	protocol.change_7dover7d = getPercentChange(protocol.total7d, protocol.total14dto7d)
+	protocol.change_30dover30d = getPercentChange(protocol.total30d, protocol.total60dto30d)
 
 	return protocol
 }

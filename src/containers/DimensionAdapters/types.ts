@@ -25,6 +25,8 @@ export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> &
 	total14dto7d?: number | null
 	total30d: number | null
 	total60dto30d?: number | null
+	total7DaysAgo?: number | null
+	total30DaysAgo?: number | null
 	total1y: number | null
 	totalAllTime: number | null
 	change_1d?: number | null

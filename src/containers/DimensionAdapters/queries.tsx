@@ -421,6 +421,8 @@ export const getAdapterByChainPageData = async ({
 			total14dto7d: protocol.total14dto7d ?? null,
 			total30d: protocol.total30d ?? null,
 			total60dto30d: protocol.total60dto30d ?? null,
+			total7DaysAgo: protocol.total7DaysAgo ?? null,
+			total30DaysAgo: protocol.total30DaysAgo ?? null,
 			total1y: protocol.total1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
 			change_1d: protocol.change_1d ?? null,
