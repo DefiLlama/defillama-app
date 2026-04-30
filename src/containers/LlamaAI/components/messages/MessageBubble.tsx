@@ -166,14 +166,23 @@ function ActionButtonGroup({
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
 				?.compositeId ?? null)
 		: null
-	const [optimisticClicked, setOptimisticClicked] = useState<{ id: string; scope: string } | null>(null)
-	const clicked = alreadyClicked ?? (optimisticClicked?.scope === optimisticScope ? optimisticClicked.id : null)
-	const isClicked = clicked !== null
+	const [optimisticClickedIds, setOptimisticClickedIds] = useState<{ ids: Set<string>; scope: string } | null>(null)
+	const clickedIds = new Set<string>()
+	if (alreadyClicked) clickedIds.add(alreadyClicked)
+	if (optimisticClickedIds?.scope === optimisticScope) {
+		for (const id of optimisticClickedIds.ids) {
+			clickedIds.add(id)
+		}
+	}
 
 	const handleActionClick = (action: { label: string; message: string; compositeId: string }) => {
-		if (!onActionClick || isClicked) return
+		if (!onActionClick) return
 		trackUmamiEvent('llamaai-action-click', { label: action.label })
-		setOptimisticClicked({ id: action.compositeId, scope: optimisticScope })
+		setOptimisticClickedIds((current) => {
+			const ids = current?.scope === optimisticScope ? new Set(current.ids) : new Set<string>()
+			ids.add(action.compositeId)
+			return { ids, scope: optimisticScope }
+		})
 		onActionClick(action.message)
 	}
 
@@ -194,16 +203,14 @@ function ActionButtonGroup({
 							<button
 								key={actionKey}
 								type="button"
-								disabled={isClicked || !onActionClick}
+								disabled={!onActionClick}
 								onClick={() => handleActionClick(action)}
 								className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${
-									!isClicked
+									!clickedIds.has(action.compositeId)
 										? onActionClick
 											? 'bg-[#2172e5] text-white hover:bg-[#1b5fbd] active:scale-[0.97] dark:bg-[#4190f7] dark:hover:bg-[#3279de]'
 											: 'bg-[#e6e6e6] text-[#999] dark:bg-[#333] dark:text-[#666]'
-										: clicked === action.compositeId
-											? 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
-											: 'pointer-events-none bg-[#e6e6e6] text-[#999] opacity-50 dark:bg-[#333] dark:text-[#666]'
+										: 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
 								}`}
 							>
 								{action.label}
@@ -215,16 +222,14 @@ function ActionButtonGroup({
 						<button
 							key={actionKey}
 							type="button"
-							disabled={isClicked || !onActionClick}
+							disabled={!onActionClick}
 							onClick={() => handleActionClick(action)}
 							className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 ${
-								!isClicked
+								!clickedIds.has(action.compositeId)
 									? onActionClick
 										? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/6 active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/6'
 										: 'border-[#e6e6e6] text-[#999] dark:border-[#333] dark:text-[#666]'
-									: clicked === action.compositeId
-										? 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
-										: 'pointer-events-none border-[#e6e6e6] text-[#999] opacity-50 dark:border-[#333] dark:text-[#666]'
+									: 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
 							}`}
 						>
 							{action.label}
@@ -249,16 +254,14 @@ function ActionButtonGroup({
 					<button
 						key={actionKey}
 						type="button"
-						disabled={isClicked || !onActionClick}
+						disabled={!onActionClick}
 						onClick={() => handleActionClick(action)}
 						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
-							!isClicked
+							!clickedIds.has(action.compositeId)
 								? onActionClick
 									? 'border-[#2172e5]/10 bg-[#2172e5]/4 text-[#2172e5]/55 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
 									: 'border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/30 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/25'
-								: clicked === action.compositeId
-									? 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
-									: 'pointer-events-none border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/20 opacity-50 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/15'
+								: 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
 						}`}
 					>
 						{action.label}

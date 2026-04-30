@@ -10,6 +10,7 @@ export const LLAMA_AI_ENABLE_MEMORY_KEY = 'llamaai-enable-memory'
 export const LLAMA_AI_ENABLE_PREMIUM_TOOLS_KEY = 'llamaai-enable-premium-tools'
 export const LLAMA_AI_HACKER_MODE_KEY = 'llamaai-hacker-mode'
 export const LLAMA_AI_MODEL_KEY = 'llamaai-model'
+export const LLAMA_AI_EFFORT_KEY = 'llamaai-effort'
 export const LLAMA_AI_ENABLE_SOUND_KEY = 'llamaai-enable-sound'
 export const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
 
@@ -19,6 +20,7 @@ export interface LlamaAISettings {
 	enablePremiumTools: boolean
 	hackerMode: boolean
 	model: string
+	effort: string
 	enableSoundNotifications: boolean
 }
 
@@ -28,6 +30,7 @@ export interface LlamaAISettingsActions {
 	setEnablePremiumTools: (value: boolean) => Promise<void>
 	setHackerMode: (value: boolean) => Promise<void>
 	setModel: (value: string) => Promise<void>
+	setEffort: (value: string) => Promise<void>
 	setEnableSoundNotifications: (value: boolean) => Promise<void>
 }
 
@@ -36,6 +39,11 @@ type LlamaAISettingsUpdate = Partial<LlamaAISettings>
 type StoredLlamaAISettings = Partial<LlamaAISettings> | null
 
 export interface ModelOption {
+	id: string
+	label: string
+}
+
+export interface EffortOption {
 	id: string
 	label: string
 }
@@ -55,6 +63,7 @@ export type TipDTO = {
 export interface SettingsQueryResult {
 	settings: StoredLlamaAISettings
 	availableModels: ModelOption[]
+	availableEfforts: EffortOption[]
 	tip: TipDTO | null
 }
 
@@ -64,6 +73,7 @@ const DEFAULT_SETTINGS: LlamaAISettings = {
 	enablePremiumTools: true,
 	hackerMode: false,
 	model: '',
+	effort: '',
 	enableSoundNotifications: true
 }
 
@@ -72,6 +82,13 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const parseTrueByDefault = (value: string | null) => value !== 'false'
 const parseFalseByDefault = (value: string | null) => value === 'true'
+
+function isEffortAvailableForModel(effort: string, model: string) {
+	const isClaude = model === '' || model.startsWith('anthropic/')
+	if (isClaude) return effort !== 'minimal'
+	if (model.startsWith('openai/')) return effort !== 'max'
+	return true
+}
 
 function readStoredValue<K extends LlamaAISettingKey>(key: K, value: string | null): LlamaAISettings[K] {
 	switch (key) {
@@ -85,6 +102,8 @@ function readStoredValue<K extends LlamaAISettingKey>(key: K, value: string | nu
 			return parseFalseByDefault(value) as LlamaAISettings[K]
 		case 'model':
 			return (value ?? DEFAULT_SETTINGS.model) as LlamaAISettings[K]
+		case 'effort':
+			return (value ?? DEFAULT_SETTINGS.effort) as LlamaAISettings[K]
 		case 'enableSoundNotifications':
 			return parseTrueByDefault(value) as LlamaAISettings[K]
 	}
@@ -116,6 +135,15 @@ function writeStoredValue<K extends LlamaAISettingKey>(key: K, value: LlamaAISet
 				removeStorageItem(LLAMA_AI_MODEL_KEY)
 			} else {
 				setStorageItem(LLAMA_AI_MODEL_KEY, nextModel)
+			}
+			return
+		}
+		case 'effort': {
+			const nextEffort = String(value).trim()
+			if (nextEffort.length === 0) {
+				removeStorageItem(LLAMA_AI_EFFORT_KEY)
+			} else {
+				setStorageItem(LLAMA_AI_EFFORT_KEY, nextEffort)
 			}
 			return
 		}
@@ -162,6 +190,13 @@ function normalizeServerSettings(value: unknown): LlamaAISettingsUpdate {
 	}
 	if (typeof value.model === 'string') {
 		normalized.model = value.model
+	} else if (typeof value.modelOverride === 'string') {
+		normalized.model = value.modelOverride
+	}
+	if (typeof value.effort === 'string') {
+		normalized.effort = value.effort
+	} else if (typeof value.effortOverride === 'string') {
+		normalized.effort = value.effortOverride
 	}
 	if (typeof value.enableSoundNotifications === 'boolean') {
 		normalized.enableSoundNotifications = value.enableSoundNotifications
@@ -181,6 +216,8 @@ function getStorageKey(setting: LlamaAISettingKey) {
 			return LLAMA_AI_HACKER_MODE_KEY
 		case 'model':
 			return LLAMA_AI_MODEL_KEY
+		case 'effort':
+			return LLAMA_AI_EFFORT_KEY
 		case 'enableSoundNotifications':
 			return LLAMA_AI_ENABLE_SOUND_KEY
 	}
@@ -205,22 +242,27 @@ export function useLlamaAISettings() {
 	const enablePremiumTools = useLlamaAISetting('enablePremiumTools')
 	const hackerMode = useLlamaAISetting('hackerMode')
 	const model = useLlamaAISetting('model')
+	const effort = useLlamaAISetting('effort')
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
 
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
 		queryFn: async (): Promise<SettingsQueryResult> => {
-			if (!authorizedFetch || !isAuthenticated || !userId) return { settings: null, availableModels: [], tip: null }
+			if (!authorizedFetch || !isAuthenticated || !userId) {
+				return { settings: null, availableModels: [], availableEfforts: [], tip: null }
+			}
 			const response = await authorizedFetch(`${AI_SERVER}/user-settings`)
-			if (!response?.ok) return { settings: null, availableModels: [], tip: null }
+			if (!response?.ok) return { settings: null, availableModels: [], availableEfforts: [], tip: null }
 			const data = (await response.json().catch(() => null)) as {
 				settings?: unknown
 				availableModels?: ModelOption[]
+				availableEfforts?: EffortOption[]
 				tip?: TipDTO | null
 			} | null
 			return {
 				settings: normalizeServerSettings(data?.settings),
 				availableModels: Array.isArray(data?.availableModels) ? data.availableModels : [],
+				availableEfforts: Array.isArray(data?.availableEfforts) ? data.availableEfforts : [],
 				tip: data?.tip ?? null
 			}
 		},
@@ -257,6 +299,7 @@ export function useLlamaAISettings() {
 			queryClient.setQueryData<SettingsQueryResult>([...LLAMA_AI_SETTINGS_QUERY_KEY, userId], (previous) => ({
 				settings: mergeDefinedSettings(previous?.settings ?? null, update),
 				availableModels: previous?.availableModels ?? [],
+				availableEfforts: previous?.availableEfforts ?? [],
 				tip: previous?.tip ?? null
 			}))
 		},
@@ -285,6 +328,7 @@ export function useLlamaAISettings() {
 			setEnablePremiumTools: async (value: boolean) => persistSettings({ enablePremiumTools: value }),
 			setHackerMode: async (value: boolean) => persistSettings({ hackerMode: value }),
 			setModel: async (value: string) => persistSettings({ model: value }),
+			setEffort: async (value: string) => persistSettings({ effort: value }),
 			setEnableSoundNotifications: async (value: boolean) => persistSettings({ enableSoundNotifications: value })
 		}),
 		[persistSettings]
@@ -294,16 +338,28 @@ export function useLlamaAISettings() {
 		() => settingsQuery.data?.availableModels ?? [],
 		[settingsQuery.data?.availableModels]
 	)
+	const availableEfforts = useMemo(
+		() => settingsQuery.data?.availableEfforts ?? [],
+		[settingsQuery.data?.availableEfforts]
+	)
 
 	const settings = useMemo<LlamaAISettings>(() => {
 		const normalizedModel =
 			model === '' || availableModels.length === 0 || availableModels.some((m) => m.id === model) ? model : ''
+		const normalizedEffort =
+			effort === '' ||
+			(availableEfforts.length > 0 &&
+				availableEfforts.some((e) => e.id === effort) &&
+				isEffortAvailableForModel(effort, normalizedModel))
+				? effort
+				: ''
 		return {
 			customInstructions,
 			enableMemory,
 			enablePremiumTools,
 			hackerMode,
 			model: normalizedModel,
+			effort: normalizedEffort,
 			enableSoundNotifications
 		}
 	}, [
@@ -313,6 +369,8 @@ export function useLlamaAISettings() {
 		hackerMode,
 		model,
 		availableModels,
+		effort,
+		availableEfforts,
 		enableSoundNotifications
 	])
 
@@ -320,6 +378,7 @@ export function useLlamaAISettings() {
 		settings,
 		actions,
 		availableModels,
+		availableEfforts,
 		tip: settingsQuery.data?.tip ?? null,
 		queryState: settingsQuery
 	}
