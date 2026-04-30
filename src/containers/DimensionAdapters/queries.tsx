@@ -7,6 +7,7 @@ import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { recordRuntimeError } from '~/utils/telemetry'
+import { toFiniteNumber } from '~/utils/weightedAggregation'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
@@ -35,6 +36,36 @@ import {
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
 	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
+
+const getWeightedChange = (
+	protocols: Array<{
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		change_1d?: number | null
+		change_7d?: number | null
+		change_1m?: number | null
+		change_7dover7d?: number | null
+	}>,
+	changeKey: 'change_1d' | 'change_7d' | 'change_1m',
+	weightKey: 'total24h' | 'total7d' | 'total30d'
+) => {
+	let numerator = 0
+	let denominator = 0
+
+	for (const protocol of protocols) {
+		const change =
+			changeKey === 'change_7d'
+				? toFiniteNumber(protocol.change_7d ?? protocol.change_7dover7d)
+				: toFiniteNumber(protocol[changeKey])
+		const weight = toFiniteNumber(protocol[weightKey])
+		if (change == null || weight == null || weight <= 0) continue
+		numerator += change * weight
+		denominator += weight
+	}
+
+	return denominator > 0 ? numerator / denominator : null
+}
 
 function buildChainsChartData({
 	rawChartData,
@@ -419,6 +450,10 @@ export const getAdapterByChainPageData = async ({
 			total30d: protocol.total30d ?? null,
 			total1y: protocol.total1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
+			change_1d: toFiniteNumber(protocol.change_1d),
+			change_7d: toFiniteNumber(protocol.change_7d),
+			change_1m: toFiniteNumber(protocol.change_1m),
+			change_7dover7d: toFiniteNumber(protocol.change_7dover7d),
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
@@ -544,6 +579,9 @@ export const getAdapterByChainPageData = async ({
 		const methodology: Array<string> = Array.from(methodologySet)
 
 		const pfOrPs = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
+		const change_1d = getWeightedChange(parentProtocols[protocol], 'change_1d', 'total24h')
+		const change_7d = getWeightedChange(parentProtocols[protocol], 'change_7d', 'total7d')
+		const change_1m = getWeightedChange(parentProtocols[protocol], 'change_1m', 'total30d')
 
 		let topProtocol = parentProtocols[protocol][0]
 		for (const p of parentProtocols[protocol]) {
@@ -571,6 +609,9 @@ export const getAdapterByChainPageData = async ({
 			total30d,
 			total1y,
 			totalAllTime,
+			...(change_1d != null ? { change_1d } : {}),
+			...(change_7d != null ? { change_7d } : {}),
+			...(change_1m != null ? { change_1m } : {}),
 			mcap: protocolsMcap[protocol] ?? null,
 			breakdownAliases: Array.from(breakdownAliasSet),
 			childProtocols: parentProtocols[protocol],

@@ -4,6 +4,7 @@ import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
+import { applyWeightedChange, finalizeAggregatedProtocol } from '~/utils/weightedAggregation'
 
 const adapterType = ADAPTER_TYPES.DEXS
 const metricName = 'DEX Volume'
@@ -59,19 +60,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 						existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
 						existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
 						existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+						applyWeightedChange(existing, 'change_7d', protocol.total7d, protocol.change_7d ?? protocol.change_7dover7d)
 						existing.chains = [...new Set([...existing.chains, chainName])]
 					} else {
-						allProtocolsMap.set(key, {
+						const entry = {
 							...protocol,
 							chains: [chainName],
 							logo: protocol.logo,
 							slug: protocol.slug
-						})
+						}
+						applyWeightedChange(entry, 'change_7d', protocol.total7d, protocol.change_7d ?? protocol.change_7dover7d)
+						allProtocolsMap.set(key, entry)
 					}
 				}
 			}
 
-			const aggregatedProtocols = Array.from(allProtocolsMap.values())
+			const aggregatedProtocols = Array.from(allProtocolsMap.values()).map((protocol) =>
+				finalizeAggregatedProtocol(protocol)
+			)
 
 			const sortedProtocols = aggregatedProtocols
 				.filter((p: any) => p.total24h > 0)
