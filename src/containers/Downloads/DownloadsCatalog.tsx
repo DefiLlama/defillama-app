@@ -32,13 +32,7 @@ type Tab = (typeof ALL_TABS)[number]
 
 const ALL_CATEGORY = 'All'
 
-export function DownloadsCatalog({
-	chartOptionsMap,
-	headerTrailing
-}: {
-	chartOptionsMap: ChartOptionsMap
-	headerTrailing?: React.ReactNode
-}) {
+export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, loaders, authorizedFetch } = useAuthContext()
 	const { savedDownloads, deleteDownload, renameDownload } = useSavedDownloads()
 	const { recentDownloads, clearRecents } = useRecentDownloads()
@@ -193,14 +187,11 @@ export function DownloadsCatalog({
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="flex flex-wrap items-start justify-between gap-3">
-				<div className="flex flex-col gap-1">
-					<h1 className="text-2xl font-semibold">Downloads</h1>
-					<p className="text-sm text-(--text-secondary)">
-						Download CSV datasets from DefiLlama. Click a dataset to preview and choose columns.
-					</p>
-				</div>
-				{headerTrailing ? <div className="shrink-0 pt-1">{headerTrailing}</div> : null}
+			<div className="flex flex-col gap-1">
+				<h1 className="text-2xl font-semibold">Downloads</h1>
+				<p className="text-sm text-(--text-secondary)">
+					Download CSV datasets from DefiLlama. Click a dataset to preview and choose columns.
+				</p>
 			</div>
 
 			{recentDownloads.length > 0 ? (

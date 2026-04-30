@@ -14,6 +14,7 @@ import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/pr
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import type { NormalizedRow } from './components/UnifiedTable/types'
 import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
 import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
@@ -125,8 +126,8 @@ export async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; cha
 export async function fetchAppMetadata(): Promise<ProDashboardServerProps['appMetadata']> {
 	try {
 		const [protocols, chains, pfPs] = await Promise.all([
-			fetch(`${CONFIG_API}/smol/appMetadata-protocols.json`).then((r) => (r.ok ? r.json() : null)),
-			fetch(`${CONFIG_API}/smol/appMetadata-chains.json`).then((r) => (r.ok ? r.json() : null)),
+			fetchWithPoolingOnServer(`${CONFIG_API}/smol/appMetadata-protocols.json`).then((r) => (r.ok ? r.json() : null)),
+			fetchWithPoolingOnServer(`${CONFIG_API}/smol/appMetadata-chains.json`).then((r) => (r.ok ? r.json() : null)),
 			fetchPfPsProtocols().catch(() => ({ pf: [] as string[], ps: [] as string[] }))
 		])
 
@@ -167,11 +168,13 @@ async function fetchAllYieldsChartData(
 		Array.from(uniquePoolIds).map(async (poolConfigId) => {
 			const [chartResult, lendBorrowResult] = await Promise.allSettled([
 				withTimeout(
-					fetch(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+					fetchWithPoolingOnServer(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
 					CHART_FETCH_TIMEOUT
 				),
 				withTimeout(
-					fetch(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+					fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) =>
+						r.ok ? r.json() : null
+					),
 					CHART_FETCH_TIMEOUT
 				)
 			])

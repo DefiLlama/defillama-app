@@ -1,8 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchChain } from '~/containers/CompareChains/chainFetcher'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
+import { withApiRouteTelemetry } from '~/utils/telemetry'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { chain } = req.query
 	const cacheKey = `object-chain-${chain}`
 
@@ -24,3 +25,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 	await setObjectCache(cacheKey, response)
 	return res.json(response)
 }
+
+export default withApiRouteTelemetry('/api/cache/chain/[chain]', handler)

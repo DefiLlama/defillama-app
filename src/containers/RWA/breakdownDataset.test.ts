@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import {
 	appendOverviewBreakdownTotalSeries,
 	toBreakdownChartDataset,
@@ -16,7 +15,7 @@ describe('rwa breakdownDataset', () => {
 		})
 	}
 
-	it('sorts chart rows chronologically before building the dataset', () => {
+	it('keeps server row order while building the dataset', () => {
 		expect(
 			toBreakdownChartDataset([
 				{ timestamp: 1774569600000, Ethereum: 130 },
@@ -24,14 +23,14 @@ describe('rwa breakdownDataset', () => {
 			])
 		).toEqual({
 			source: [
-				{ timestamp: 1774483200000, Solana: 120 },
-				{ timestamp: 1774569600000, Ethereum: 130 }
+				{ timestamp: 1774569600000, Ethereum: 130 },
+				{ timestamp: 1774483200000, Solana: 120 }
 			],
 			dimensions: ['timestamp', 'Ethereum', 'Solana']
 		})
 	})
 
-	it('converts second timestamps to milliseconds before ensureChronologicalRows sorts rows', () => {
+	it('converts second timestamps to milliseconds', () => {
 		expect(
 			toBreakdownChartDataset([
 				{ timestamp: 1_774_576_000, Ethereum: 130 },
@@ -39,20 +38,38 @@ describe('rwa breakdownDataset', () => {
 			])
 		).toEqual({
 			source: [
-				{ timestamp: 1_774_489_600_000, Solana: 120 },
-				{ timestamp: 1_774_576_000_000, Ethereum: 130 }
+				{ timestamp: 1_774_576_000_000, Ethereum: 130 },
+				{ timestamp: 1_774_489_600_000, Solana: 120 }
 			],
 			dimensions: ['timestamp', 'Ethereum', 'Solana']
 		})
 	})
 
-	it('keeps single-row input unchanged through ensureChronologicalRows and builds the expected dataset', () => {
+	it('keeps single-row input unchanged and builds the expected dataset', () => {
 		const singleRow = [{ timestamp: 1_774_489_600_000, Ethereum: 120 }]
 
-		expect(ensureChronologicalRows(singleRow)).toBe(singleRow)
 		expect(toBreakdownChartDataset(singleRow)).toEqual({
 			source: singleRow,
 			dimensions: ['timestamp', 'Ethereum']
+		})
+	})
+
+	it('preserves zero values returned by the backend', () => {
+		expect(
+			toBreakdownChartDataset([
+				{ timestamp: 1, PreStocks: 0, Securitize: 10 },
+				{ timestamp: 2, PreStocks: 0, Securitize: 11 },
+				{ timestamp: 3, PreStocks: 12, Securitize: 12 },
+				{ timestamp: 4, PreStocks: 0, Securitize: 13 }
+			])
+		).toEqual({
+			source: [
+				{ timestamp: 1_000, PreStocks: 0, Securitize: 10 },
+				{ timestamp: 2_000, PreStocks: 0, Securitize: 11 },
+				{ timestamp: 3_000, PreStocks: 12, Securitize: 12 },
+				{ timestamp: 4_000, PreStocks: 0, Securitize: 13 }
+			],
+			dimensions: ['timestamp', 'PreStocks', 'Securitize']
 		})
 	})
 
@@ -61,19 +78,19 @@ describe('rwa breakdownDataset', () => {
 			appendOverviewBreakdownTotalSeries(
 				{
 					source: [
-						{ timestamp: 1, Ethereum: 10, Solana: 5 },
+						{ timestamp: 1, Ethereum: 10, Solana: 5, PreStocks: null },
 						{ timestamp: 2, Ethereum: 7, Solana: 8 }
 					],
-					dimensions: ['timestamp', 'Ethereum', 'Solana']
+					dimensions: ['timestamp', 'Ethereum', 'Solana', 'PreStocks']
 				},
 				'onChainMcap'
 			)
 		).toEqual({
 			source: [
-				{ timestamp: 1, 'Total Onchain Mcap': 15, Ethereum: 10, Solana: 5 },
+				{ timestamp: 1, 'Total Onchain Mcap': 15, Ethereum: 10, Solana: 5, PreStocks: null },
 				{ timestamp: 2, 'Total Onchain Mcap': 15, Ethereum: 7, Solana: 8 }
 			],
-			dimensions: ['timestamp', 'Total Onchain Mcap', 'Ethereum', 'Solana']
+			dimensions: ['timestamp', 'Total Onchain Mcap', 'Ethereum', 'Solana', 'PreStocks']
 		})
 	})
 

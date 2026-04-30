@@ -2,10 +2,11 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getProtocolEmissons, isEmptyProtocolEmissionResult } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { validateSubscription } from '~/utils/apiAuth'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const NO_STORE_CACHE_CONTROL = 'no-store'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		res.setHeader('Cache-Control', NO_STORE_CACHE_CONTROL)
@@ -33,8 +34,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(200).json(data)
 	} catch (error) {
-		console.error(`Failed to fetch token unlocks for ${protocol}:`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.setHeader('Cache-Control', 'private, no-store')
 		return res.status(500).json({ error: 'Internal server error' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/token-unlocks/[protocol]', handler)

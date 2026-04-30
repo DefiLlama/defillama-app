@@ -41,6 +41,7 @@ import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { recordRuntimeError, withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -72,7 +73,7 @@ async function getYieldPoolPagePropsFromNetwork(poolId: string): Promise<YieldPo
 	}
 }
 
-export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async ({ params, res }) => {
+const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async ({ params, res }) => {
 	const poolParam = params?.pool
 	const poolId = typeof poolParam === 'string' ? poolParam : Array.isArray(poolParam) ? poolParam[0] : null
 
@@ -97,7 +98,7 @@ export const getServerSideProps: GetServerSideProps<YieldPoolPageProps> = async 
 
 			return { notFound: true }
 		} catch (error) {
-			console.error('[HTTP]:[ERROR]:[YIELD_POOL_CACHE_SSR]:', poolId, error instanceof Error ? error.message : '')
+			recordRuntimeError(error, 'pageBuild')
 		}
 	}
 
@@ -1144,3 +1145,5 @@ export default function YieldPoolPage(props: YieldPoolPageProps) {
 		</Layout>
 	)
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/yields/pool/[pool]', getServerSidePropsHandler)

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { ICategoriesAndTags, IChainMetadata } from '~/utils/metadata/types'
-import { shouldFetchChainDexs } from './queries.server'
+import { shouldFetchChainDexs, shouldFetchChainPerps } from './queries.server'
 
 const categoriesAndTagsMetadata = {
-	categories: ['Dexs', 'OTC Marketplace'],
+	categories: ['Dexs', 'Derivatives', 'OTC Marketplace'],
 	tags: [],
 	tagCategoryMap: {},
 	configs: {
@@ -18,6 +18,12 @@ const categoriesAndTagsMetadata = {
 			chains: ['provenance'],
 			slug: 'otc-marketplace',
 			dexs: true
+		},
+		Derivatives: {
+			category: 'Derivatives',
+			chains: ['ethereum'],
+			slug: 'derivatives',
+			perps: true
 		}
 	}
 } satisfies ICategoriesAndTags
@@ -64,6 +70,56 @@ describe('shouldFetchChainDexs', () => {
 
 		expect(
 			shouldFetchChainDexs({
+				chain: 'All',
+				currentChainMetadata: allChains,
+				categoriesAndTagsMetadata
+			})
+		).toBe(true)
+	})
+})
+
+describe('shouldFetchChainPerps', () => {
+	it('skips perps when the chain has the metadata flag but is not in the Derivatives category', () => {
+		const xdc = {
+			name: 'XDC',
+			id: 'xdc',
+			perps: true
+		} satisfies IChainMetadata
+
+		expect(
+			shouldFetchChainPerps({
+				chain: 'xdc',
+				currentChainMetadata: xdc,
+				categoriesAndTagsMetadata
+			})
+		).toBe(false)
+	})
+
+	it('fetches perps when the chain id is in the Derivatives category', () => {
+		const ethereum = {
+			name: 'Ethereum',
+			id: 'ethereum',
+			perps: true
+		} satisfies IChainMetadata
+
+		expect(
+			shouldFetchChainPerps({
+				chain: 'ethereum',
+				currentChainMetadata: ethereum,
+				categoriesAndTagsMetadata
+			})
+		).toBe(true)
+	})
+
+	it('keeps All chains perps enabled', () => {
+		const allChains = {
+			name: 'All',
+			id: 'all',
+			perps: true
+		} satisfies IChainMetadata
+
+		expect(
+			shouldFetchChainPerps({
 				chain: 'All',
 				currentChainMetadata: allChains,
 				categoriesAndTagsMetadata

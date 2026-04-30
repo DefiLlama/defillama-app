@@ -1,4 +1,5 @@
 import type { AsyncDuckDBConnection } from '@duckdb/duckdb-wasm'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import type { ChartOptionsMap } from '../chart-datasets'
 import { datasets } from '../datasets'
 import { extractTableRefs, matchTableRef } from './completions'
@@ -15,7 +16,7 @@ import {
 export interface ExecutorCtx {
 	conn: AsyncDuckDBConnection | null
 	loadedTables: RegisteredTable[]
-	loadSource: (source: TableSource) => Promise<RegisteredTable | null>
+	loadSource: (source: TableSource, signal?: AbortSignal) => Promise<RegisteredTable | null>
 	chartOptionsMap: ChartOptionsMap
 }
 
@@ -119,6 +120,8 @@ export async function runSql(
 	const trimmed = sql.trim()
 	if (!trimmed) return { ok: false, error: 'Empty query.' }
 
+	trackUmamiEvent('sql-studio-run-query')
+
 	const started = performance.now()
 	try {
 		const referenced = extractTableRefs(trimmed)
@@ -143,7 +146,7 @@ export async function runSql(
 				plan.length > 1 ? `Loading ${step.label} · ${index + 1}/${plan.length}` : `Loading ${step.label}`
 			callbacks.onLoadingStage?.(`${stagePrefix}…`)
 
-			const loaded = await ctx.loadSource(step.source)
+			const loaded = await ctx.loadSource(step.source, signal)
 			if (signal?.aborted) {
 				callbacks.onLoadingStage?.(null)
 				return cancelled()
@@ -178,6 +181,7 @@ export async function runSql(
 							reject(err)
 						}
 					)
+					if (signal.aborted) onAbort()
 				})
 			: await queryPromise
 

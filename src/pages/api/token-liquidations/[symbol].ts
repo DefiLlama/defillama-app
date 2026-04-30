@@ -3,6 +3,7 @@ import { getTokenLiquidationsSectionDataFromNetwork } from '~/containers/Liquida
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { validateSubscription } from '~/utils/apiAuth'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
@@ -10,7 +11,7 @@ export const config = {
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	res.setHeader('Cache-Control', 'private, no-store')
 
 	if (req.method !== 'GET') {
@@ -55,7 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		return res.status(200).json(data)
 	} catch (error) {
-		console.error(`Failed to fetch token liquidations for ${symbol}:`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch token liquidations data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/token-liquidations/[symbol]', handler)

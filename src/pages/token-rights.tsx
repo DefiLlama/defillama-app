@@ -4,11 +4,11 @@ import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { slug } from '~/utils'
-import { formatRuntimeLog, postRuntimeLogs } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { ICexItem, IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { flushTelemetry, recordDomainEvent } from '~/utils/telemetry'
 import {
 	findTokenDirectoryRecordByDefillamaId,
 	findTokenDirectoryRecordByGeckoId,
@@ -43,8 +43,6 @@ type TokenRightsLinkResolution =
 	| { type: 'linked'; item: TokenRightsListItem }
 	| { type: 'skipped'; entry: SkippedTokenRightsEntry }
 
-const TOKEN_RIGHTS_ALERT_TIMEOUT_MS = 5_000
-
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
 	const metadataModule = await import('~/utils/metadata')
 	await metadataModule.refreshMetadataIfStale()
@@ -77,7 +75,10 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 	}
 
 	protocols.sort((a, b) => a.name.localeCompare(b.name))
-	await reportSkippedTokenRightsEntries(skippedEntries)
+	reportSkippedTokenRightsEntries(skippedEntries)
+	if (skippedEntries.length > 0) {
+		await flushTelemetry({ timeoutMs: 2000, runtime: 'build' })
+	}
 
 	return {
 		props: { protocols },
@@ -162,7 +163,7 @@ function resolveTokenRightsListItem(
 				...baseSkippedEntry,
 				reason: 'missing_token',
 				metadataSource: metadataMatch.source,
-				geckoId
+				...(geckoId ? { geckoId } : null)
 			}
 		}
 	}
@@ -174,7 +175,7 @@ function resolveTokenRightsListItem(
 				...baseSkippedEntry,
 				reason: 'missing_token_route',
 				metadataSource: metadataMatch.source,
-				geckoId
+				...(geckoId ? { geckoId } : null)
 			}
 		}
 	}
@@ -228,72 +229,28 @@ function getMetadataDisplayName(metadataMatch: TokenRightsMetadataMatch): string
 	return metadataMatch.metadata.name ?? null
 }
 
-async function reportSkippedTokenRightsEntries(skippedEntries: SkippedTokenRightsEntry[]): Promise<void> {
+function reportSkippedTokenRightsEntries(skippedEntries: SkippedTokenRightsEntry[]): void {
 	if (skippedEntries.length === 0) return
 
-	const log = formatRuntimeLog({
-		event: 'TOKEN_RIGHTS_LINKS',
-		level: 'warn',
-		status: 'skipped',
-		context: {
-			count: skippedEntries.length,
-			entries: skippedEntries.slice(0, 25),
-			truncated: Math.max(0, skippedEntries.length - 25)
-		},
-		message: 'Skipped token rights entries without token page routes'
-	})
-
-	const webhookUrl = process.env.TOKEN_RIGHTS_ALERT_WEBHOOK
-	if (!webhookUrl) {
-		postRuntimeLogs(log, { level: 'warn' })
-		return
-	}
-
-	const controller = new AbortController()
-	const timeout = setTimeout(() => controller.abort(), TOKEN_RIGHTS_ALERT_TIMEOUT_MS)
-
-	try {
-		const response = await fetch(webhookUrl, {
-			method: 'POST',
-			body: JSON.stringify({ content: formatTokenRightsDiscordAlert(skippedEntries) }),
-			headers: { 'Content-Type': 'application/json' },
-			signal: controller.signal
-		})
-
-		if (!response.ok) {
-			throw new Error(`Discord webhook returned ${response.status}`)
+	recordDomainEvent(
+		'token_rights.alert',
+		'warn',
+		'token-rights',
+		'Skipped token rights entries while building token-rights page',
+		{
+			skipped_count: skippedEntries.length,
+			reason_counts: countSkippedTokenRightsReasons(skippedEntries),
+			skipped_entries: skippedEntries
 		}
-	} catch (error) {
-		postRuntimeLogs(log, { level: 'warn' })
-		postRuntimeLogs(
-			formatRuntimeLog({
-				event: 'TOKEN_RIGHTS_LINKS',
-				level: 'error',
-				status: 'alert_failed',
-				message: error instanceof Error ? error.message : String(error)
-			}),
-			{ level: 'error', forceConsole: true }
-		)
-	} finally {
-		clearTimeout(timeout)
-	}
+	)
 }
 
-function formatTokenRightsDiscordAlert(skippedEntries: SkippedTokenRightsEntry[]): string {
-	const lines = skippedEntries.slice(0, 20).map((entry) => {
-		const details = [
-			`id=${entry.defillamaId ?? '(missing)'}`,
-			`reason=${entry.reason}`,
-			entry.metadataSource ? `source=${entry.metadataSource}` : null,
-			entry.geckoId ? `gecko=${entry.geckoId}` : null
-		].filter(Boolean)
-
-		return `- ${details.join(', ')}`
-	})
-	const truncated = skippedEntries.length - lines.length
-	if (truncated > 0) lines.push(`- ...and ${truncated} more`)
-
-	return [`Token rights links skipped: ${skippedEntries.length}`, ...lines].join('\n').slice(0, 1900)
+function countSkippedTokenRightsReasons(skippedEntries: SkippedTokenRightsEntry[]): Record<string, number> {
+	const counts: Record<string, number> = {}
+	for (const entry of skippedEntries) {
+		counts[entry.reason] = (counts[entry.reason] ?? 0) + 1
+	}
+	return counts
 }
 
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {

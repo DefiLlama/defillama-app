@@ -3,12 +3,13 @@ import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_REVENUE
 const metricName = 'Revenue'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { chains } = req.query
@@ -88,7 +89,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		}
 	} catch (error) {
-		console.log('Error fetching revenue data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch revenue data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/datasets/revenue', handler)

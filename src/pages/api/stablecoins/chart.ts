@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type StablecoinMcapSeriesPoint = [number, number]
 
@@ -18,7 +19,7 @@ function buildStablecoinMcapSeries(
 		.sort((a, b) => a[0] - b[0])
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const { chain } = req.query
 
 	if (typeof chain !== 'string' || chain.length === 0) {
@@ -32,7 +33,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'public, max-age=300')
 		return res.status(200).json(buildStablecoinMcapSeries(data.aggregated))
 	} catch (error) {
-		console.log('Error fetching stablecoin chart:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch stablecoin chart' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/stablecoins/chart', handler)

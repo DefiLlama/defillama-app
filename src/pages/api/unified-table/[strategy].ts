@@ -4,6 +4,7 @@ import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/Unified
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
 import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
 import { toRawArrayParam } from '~/utils/routerQuery'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const MAX_CHAIN_FILTERS = 100
 const MAX_CHAIN_NAME_LENGTH = 200
@@ -26,7 +27,7 @@ const parseQueryToConfig = (query: NextApiRequest['query']): UnifiedTableConfig 
 	return config
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -55,7 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Cache-Control', 'public, max-age=300')
 		return res.status(200).json({ rows, chainMetrics })
 	} catch (error) {
-		console.log('Failed to fetch unified table data', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to load unified table data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/unified-table/[strategy]', handler)

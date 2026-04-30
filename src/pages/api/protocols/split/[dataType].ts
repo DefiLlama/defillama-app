@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { DIMENSIONS_METRIC_CONFIG, getDimensionsSplitData } from '~/server/protocolSplit/dimensionsSplit'
 import { getTvlSplitData } from '~/server/protocolSplit/tvlSplit'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -40,7 +41,7 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 
 		res.status(200).json(result)
 	} catch (error) {
-		console.log('Error handling TVL request:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({
 			error: 'Failed to fetch TVL data',
 			message: error instanceof Error ? error.message : 'Unknown error'
@@ -48,7 +49,7 @@ async function handleTVLRequest(req: NextApiRequest, res: NextApiResponse) {
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const {
 			dataType,
@@ -101,10 +102,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.status(200).json(result)
 	} catch (error) {
 		const metric = req.query.dataType as string
-		console.log(`Error in ${metric} split API:`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({
 			error: `Failed to fetch protocol ${metric} data`,
 			details: error instanceof Error ? error.message : 'Unknown error'
 		})
 	}
 }
+
+export default withApiRouteTelemetry('/api/protocols/split/[dataType]', handler)

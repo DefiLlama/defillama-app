@@ -163,16 +163,14 @@ export function groupRWAPerpsTimeSeriesDataset(dataset: MultiSeriesChart2Dataset
 	if (dataset.source.length === 0 || seriesDimensions.length === 0) return EMPTY_CHART_DATASET
 
 	return {
-		source: ensureChronologicalRows(
-			dataset.source.map((row) => ({
-				timestamp: row.timestamp,
-				Total: seriesDimensions.reduce((sum, dimension) => {
-					const value = row[dimension]
-					const numericValue = typeof value === 'number' ? value : Number(value)
-					return Number.isFinite(numericValue) ? sum + numericValue : sum
-				}, 0)
-			}))
-		),
+		source: dataset.source.map((row) => ({
+			timestamp: row.timestamp,
+			Total: seriesDimensions.reduce((sum, dimension) => {
+				const value = row[dimension]
+				const numericValue = typeof value === 'number' ? value : Number(value)
+				return Number.isFinite(numericValue) ? sum + numericValue : sum
+			}, 0)
+		})),
 		dimensions: ['timestamp', 'Total']
 	}
 }
@@ -183,17 +181,15 @@ export function appendRWAPerpsTimeSeriesDatasetTotal(dataset: MultiSeriesChart2D
 	if (seriesDimensions.length === 0) return dataset
 
 	return {
-		source: ensureChronologicalRows(
-			dataset.source.map((row) => ({
-				...row,
-				timestamp: row.timestamp,
-				Total: seriesDimensions.reduce((sum, dimension) => {
-					const value = row[dimension]
-					const numericValue = typeof value === 'number' ? value : Number(value)
-					return Number.isFinite(numericValue) ? sum + numericValue : sum
-				}, 0)
-			}))
-		),
+		source: dataset.source.map((row) => ({
+			...row,
+			timestamp: row.timestamp,
+			Total: seriesDimensions.reduce((sum, dimension) => {
+				const value = row[dimension]
+				const numericValue = typeof value === 'number' ? value : Number(value)
+				return Number.isFinite(numericValue) ? sum + numericValue : sum
+			}, 0)
+		})),
 		dimensions: ['timestamp', 'Total', ...seriesDimensions]
 	}
 }

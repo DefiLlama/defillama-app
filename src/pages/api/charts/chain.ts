@@ -6,6 +6,7 @@ import { fetchRaises } from '~/containers/Raises/api'
 import { getStablecoinOverviewChartSeries } from '~/containers/Stablecoins/queries.server'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = unknown[] | Record<string, unknown> | { error: string } | null
 type StablecoinMcapSeriesPoint = [number, number]
@@ -35,12 +36,12 @@ const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapS
 		}
 		return series
 	} catch (error) {
-		console.log('Failed to build stablecoin chart series', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return null
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		setNoStoreHeaders(res)
@@ -162,7 +163,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 						: null
 				)
 				.catch((error) => {
-					console.log(error)
+					recordRouteRuntimeError(error, 'apiRoute')
 					return null
 				})
 
@@ -197,7 +198,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		return res.status(400).json({ error: `Unsupported kind: ${kind}` })
 	} catch (error) {
 		setNoStoreHeaders(res)
-		console.log('Failed to fetch chain chart data', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to load chain chart data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/charts/chain', handler)

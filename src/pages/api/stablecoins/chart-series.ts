@@ -11,6 +11,7 @@ import {
 	getStablecoinOverviewChartSeries
 } from '~/containers/Stablecoins/queries.server'
 import { isTruthyQueryParam } from '~/utils/routerQuery'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const OVERVIEW_CHARTS = new Set<StablecoinOverviewChartType>([
 	'totalMcap',
@@ -27,7 +28,7 @@ const getStringParam = (value: string | string[] | undefined): string | undefine
 	return value
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -94,7 +95,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		return res.status(400).json({ error: 'unsupported scope' })
 	} catch (error) {
-		console.error('Error fetching stablecoin chart series:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch stablecoin chart series' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/stablecoins/chart-series', handler)

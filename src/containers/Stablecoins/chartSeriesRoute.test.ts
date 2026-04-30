@@ -1,5 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 const { getAssetMock, getChainsMock, getOverviewMock } = vi.hoisted(() => ({
 	getAssetMock: vi.fn(),
@@ -21,19 +22,6 @@ const payload = {
 	valueSymbol: '$'
 }
 
-function createRes() {
-	const res: Partial<NextApiResponse> = {
-		setHeader: vi.fn(),
-		status: vi.fn(),
-		json: vi.fn()
-	}
-
-	;(res.status as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-	;(res.json as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-
-	return res as NextApiResponse
-}
-
 beforeEach(() => {
 	vi.clearAllMocks()
 	getAssetMock.mockResolvedValue(payload)
@@ -44,7 +32,7 @@ beforeEach(() => {
 describe('/api/stablecoins/chart-series', () => {
 	it('rejects non-GET requests', async () => {
 		const req = { method: 'POST', query: {} } as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -64,7 +52,7 @@ describe('/api/stablecoins/chart-series', () => {
 				minMcap: '100'
 			}
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -93,7 +81,7 @@ describe('/api/stablecoins/chart-series', () => {
 			method: 'GET',
 			query: { scope: 'asset', stablecoin: 'missing', chart: 'totalCirc' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 
@@ -106,7 +94,7 @@ describe('/api/stablecoins/chart-series', () => {
 			method: 'GET',
 			query: { scope: 'chains', chart: 'dominance', unreleased: 'true' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 

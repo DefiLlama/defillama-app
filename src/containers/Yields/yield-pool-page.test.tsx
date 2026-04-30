@@ -35,6 +35,8 @@ describe('YieldPoolPage', () => {
 		const res = { setHeader: vi.fn() }
 
 		const result = await getServerSideProps({
+			req: { method: 'GET' },
+			resolvedUrl: '/yields/pool/79e042b5-e55d-4a4e-b0b0-6661a570470b%252525253Cgrok%3Arender',
 			params: {
 				pool: '79e042b5-e55d-4a4e-b0b0-6661a570470b%252525253Cgrok%3Arender'
 			},

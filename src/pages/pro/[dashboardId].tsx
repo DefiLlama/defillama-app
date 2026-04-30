@@ -11,10 +11,11 @@ import { fetchDashboardConfig } from '~/containers/ProDashboard/queries.server'
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+const getServerSidePropsHandler: GetServerSideProps = async (context) => {
 	const dashboardId = context.params?.dashboardId as string
 
 	if (dashboardId === 'new') {
@@ -217,3 +218,5 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 		</>
 	)
 }
+
+export const getServerSideProps = withServerSidePropsTelemetry('/pro/[dashboardId]', getServerSidePropsHandler)
