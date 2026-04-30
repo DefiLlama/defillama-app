@@ -126,6 +126,7 @@ interface TotalsByPeriod {
 	total24h?: number | null
 	total7d?: number | null
 	total30d?: number | null
+	total1y?: number | null
 	totalAllTime?: number | null
 }
 
@@ -150,10 +151,14 @@ export const getAdjustedTotals = (
 	const t30d = extraTvlsEnabled.tokentax ? tokenTax?.total30d : 0
 	const tAll = extraTvlsEnabled.tokentax ? tokenTax?.totalAllTime : 0
 
+	const b1y = extraTvlsEnabled.bribes ? bribeRevenue?.total1y : 0
+	const t1y = extraTvlsEnabled.tokentax ? tokenTax?.total1y : 0
+
 	return {
 		total24h: (base?.total24h ?? 0) + (b24h ?? 0) + (t24h ?? 0),
 		total7d: (base?.total7d ?? 0) + (b7d ?? 0) + (t7d ?? 0),
 		total30d: (base?.total30d ?? 0) + (b30d ?? 0) + (t30d ?? 0),
+		total1y: base?.total1y != null ? (base.total1y ?? 0) + (b1y ?? 0) + (t1y ?? 0) : null,
 		totalAllTime: (base?.totalAllTime ?? 0) + (bAll ?? 0) + (tAll ?? 0)
 	}
 }

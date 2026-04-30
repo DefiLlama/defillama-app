@@ -88,6 +88,7 @@ describe('KeyMetrics', () => {
 					total24h: 12,
 					total7d: 70,
 					total30d: 300,
+					total1y: 3500,
 					totalAllTime: 1500,
 					chainBreakdown: {
 						Ethereum: {

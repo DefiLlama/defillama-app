@@ -365,10 +365,12 @@ interface MetricDefinition {
 
 interface MetricConfig {
 	total30d?: number | null
+	total1y?: number | null
 	total7d?: number | null
 	total24h?: number | null
 	totalAllTime?: number | null
 	emissions30d?: number | null
+	emissions1y?: number | null
 	emissions7d?: number | null
 	emissions24h?: number | null
 	emissionsAllTime?: number | null
@@ -392,10 +394,11 @@ const buildMetrics = (
 
 	if (isIncentives) {
 		if (data.emissions30d != null) {
+			const annualizedValue = data.emissions1y != null ? data.emissions1y : data.emissions30d * ANNUALIZATION_FACTOR
 			metrics.push({
 				name: `${prefix} (Annualized)`,
 				tooltipContent: defs?.annualized,
-				value: data.emissions30d * ANNUALIZATION_FACTOR
+				value: annualizedValue
 			})
 			metrics.push({ name: `${prefix} 30d`, tooltipContent: defs?.['30d'], value: data.emissions30d })
 		}
@@ -410,10 +413,11 @@ const buildMetrics = (
 		}
 	} else {
 		if (data.total30d != null) {
+			const annualizedValue = data.total1y != null ? data.total1y : data.total30d * ANNUALIZATION_FACTOR
 			metrics.push({
 				name: `${label} (Annualized)`,
 				tooltipContent: defs?.annualized,
-				value: data.total30d * ANNUALIZATION_FACTOR
+				value: annualizedValue
 			})
 			metrics.push({
 				name: `${label} 30d`,
@@ -560,6 +564,10 @@ function Earnings(props: IKeyMetricsProps) {
 		adjustedRevenue && revenue?.total30d != null && incentivesData?.emissions30d != null
 			? adjustedRevenue.total30d - incentivesData.emissions30d
 			: null
+	const earnings1y =
+		adjustedRevenue?.total1y != null && incentivesData?.emissions1y != null
+			? adjustedRevenue.total1y - incentivesData.emissions1y
+			: null
 	const earningsAllTime =
 		adjustedRevenue && revenue?.totalAllTime != null && incentivesData?.emissionsAllTime != null
 			? adjustedRevenue.totalAllTime - incentivesData.emissionsAllTime
@@ -568,10 +576,11 @@ function Earnings(props: IKeyMetricsProps) {
 	const metrics = []
 
 	if (earnings30d != null) {
+		const annualizedEarnings = earnings1y != null ? earnings1y : earnings30d * ANNUALIZATION_FACTOR
 		metrics.push({
 			name: 'Earnings (Annualized)',
 			tooltipContent: definitions.earnings.protocol.annualized,
-			value: earnings30d * ANNUALIZATION_FACTOR
+			value: annualizedEarnings
 		})
 		metrics.push({ name: 'Earnings 30d', tooltipContent: definitions.earnings.protocol['30d'], value: earnings30d })
 	}

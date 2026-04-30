@@ -8,6 +8,7 @@ export interface ChainIncentivesSummary {
 }
 
 export interface ProtocolIncentivesSummary extends ChainIncentivesSummary {
+	emissions1y: number | null
 	emissionsAllTime: number | null
 	emissionsMonthlyAverage1y: number | null
 	methodology: string

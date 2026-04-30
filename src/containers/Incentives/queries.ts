@@ -354,6 +354,7 @@ export function extractProtocolIncentivesFromAggregatedEmissions({
 		emissions24h: protocolEmissionsData.emission24h ?? null,
 		emissions7d: protocolEmissionsData.emission7d ?? null,
 		emissions30d: protocolEmissionsData.emission30d ?? null,
+		emissions1y: protocolEmissionsData.emissions1y ?? null,
 		emissionsAllTime: protocolEmissionsData.emissionsAllTime ?? null,
 		emissionsMonthlyAverage1y: protocolEmissionsData.emissionsMonthlyAverage1y ?? null,
 		methodology: INCENTIVES_METHODOLOGY
