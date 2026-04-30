@@ -275,14 +275,14 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		)
 		let filteredData = standardFilteredData
 		if (selectedIssuer) {
-			filteredData = filteredData.filter((item) => item.issuer && rwaSlug(item.issuer) === selectedIssuer)
+			filteredData = filteredData.filter((item) => rwaSlug(item.issuer ?? 'Unknown') === selectedIssuer)
 		}
 		const filteredPerpsMarkets = perpsMarkets.map((market) => ({
 			...market,
 			category: (market.category ?? []).filter((category) => isCategoryIncludedInStandardRwaOverview(category))
 		}))
 		const issuerFilteredPerpsMarkets = selectedIssuer
-			? filteredPerpsMarkets.filter((m) => m.issuer && rwaSlug(m.issuer) === selectedIssuer)
+			? filteredPerpsMarkets.filter((m) => rwaSlug(m.issuer ?? 'Unknown') === selectedIssuer)
 			: filteredPerpsMarkets
 		const hasUnknownAssetGroup = filteredData.some(
 			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP

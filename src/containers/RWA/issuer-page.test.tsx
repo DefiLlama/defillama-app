@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const fetchRWAActiveTVLsMock = vi.fn()
 const getRWAAssetsOverviewMock = vi.fn()
@@ -20,6 +20,11 @@ vi.mock('~/utils/metadata', () => ({
 import { getStaticProps } from '~/pages/rwa/issuer/[issuer]'
 
 describe('/rwa/issuer/[issuer]', () => {
+	beforeEach(() => {
+		fetchRWAActiveTVLsMock.mockReset()
+		getRWAAssetsOverviewMock.mockReset()
+	})
+
 	it('returns notFound when issuer slug does not match dataset', async () => {
 		fetchRWAActiveTVLsMock.mockResolvedValue([{ id: 'a', issuer: 'IssuerA' }])
 		const res = await getStaticProps({ params: { issuer: 'nope' } } as never)
