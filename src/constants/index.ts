@@ -10,6 +10,7 @@ export const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE
 
 // Base servers
 export const AUTH_SERVER = process.env.NEXT_PUBLIC_AUTH_SERVER_URL ?? 'https://auth.llama.fi'
+export const FEATURES_SERVER = process.env.NEXT_PUBLIC_FEATURES_SERVER_URL ?? 'https://features.llama.fi'
 export const CACHE_SERVER = 'https://fe-cache.llama.fi'
 export const DATASETS_SERVER_URL = API_KEY
 	? `https://pro-api.llama.fi/${API_KEY}/datasets`
