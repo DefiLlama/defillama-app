@@ -509,6 +509,43 @@ describe('token page', () => {
 		expect(navHtml).not.toContain('>Unlocks<')
 	})
 
+	it('renders the markets section when hasMarkets is true', () => {
+		const html = renderToStaticMarkup(
+			<TokenPage
+				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
+				displayName="BTC"
+				tokenRightsData={null}
+				incomeStatementData={null}
+				incomeStatementProtocolName={null}
+				incomeStatementHasIncentives={false}
+				tokenRiskData={null}
+				tokenRiskTimelineData={null}
+				initialYieldsRows={[]}
+				initialYieldsRowCount={0}
+				initialYieldsChainList={[]}
+				initialYieldsTokensList={[]}
+				initialTokenBorrowRoutesData={null}
+				initialTokenBorrowRoutesCounts={null}
+				initialTokenBorrowRoutesChainLists={null}
+				geckoId="bitcoin"
+				hasLiquidations={false}
+				hasMarkets={true}
+				overview={overviewFixture}
+				seoTitle="title"
+				seoDescription="description"
+				canonicalUrl="/token/btc"
+				visibleSections={['token-overview', 'token-markets', 'token-usage']}
+			/>
+		)
+		const navHtml = html.match(/<nav[^>]*aria-label="Token page sections"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
+
+		expect(html).toContain('token-markets-section')
+		expect(html).toContain('id="token-markets"')
+		expect(navHtml).toContain('>Markets<')
+		expect(html.indexOf('token-markets-section')).toBeGreaterThan(html.indexOf('token-overview-section'))
+		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-markets-section'))
+	})
+
 	it('renders each yield-related section from its own prefetched dataset', () => {
 		const html = renderToStaticMarkup(
 			<TokenPage

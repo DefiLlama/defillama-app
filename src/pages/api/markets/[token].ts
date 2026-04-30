@@ -10,7 +10,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	const url = `${MARKETS_SERVER_URL}/tokens/${encodeURIComponent(token.toLowerCase())}.json`
-	console.log('url', url)
 	try {
 		const data = await fetchJson(url)
 		res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300')

@@ -151,7 +151,8 @@ export async function fetchTokenLiquidationsForAliases(
 		.map((result) => result.value)
 
 	if (parts.length === 0) return null
-	if (parts.length === 1) return parts[0]
+	const displaySymbol = symbol.toUpperCase()
+	if (parts.length === 1) return { ...parts[0], tokenSymbol: displaySymbol }
 
-	return mergeTokenLiquidations(parts, symbol.toUpperCase())
+	return mergeTokenLiquidations(parts, displaySymbol)
 }
