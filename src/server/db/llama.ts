@@ -14,10 +14,10 @@ declare global {
 	var __LLAMA_DB__: DbInstance | undefined
 }
 
-const createDb = () => pgp(connectionString)
+// const createDb = () => pgp(connectionString)
 
-export const llamaDb: DbInstance = globalThis.__LLAMA_DB__ ?? createDb()
+export const llamaDb: DbInstance = globalThis.__LLAMA_DB__ ?? pgp(connectionString)
 
-if (process.env.NODE_ENV !== 'production') {
-	globalThis.__LLAMA_DB__ = llamaDb
-}
+// if (process.env.NODE_ENV !== 'production') {
+// 	globalThis.__LLAMA_DB__ = llamaDb
+// }

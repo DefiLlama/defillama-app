@@ -1,9 +1,12 @@
 import { LIQUIDATIONS_SERVER_URL_V2 } from '~/constants'
+import { getAliasGroup } from '~/constants/tokenAliases'
 import { fetchJson } from '~/utils/async'
 import type {
 	LiquidationsChainPageProps,
 	LiquidationsOverviewPageProps,
 	LiquidationsProtocolPageProps,
+	OverviewChainRow,
+	OverviewProtocolRow,
 	RawAllLiquidationsResponse,
 	RawProtocolLiquidationsResponse,
 	RawProtocolsResponse,
@@ -77,4 +80,78 @@ export async function fetchTokenLiquidationsClient(
 		`/api/token-liquidations/${encodeURIComponent(symbol.toUpperCase())}`,
 		fetchFn
 	)
+}
+
+function mergeProtocolRows(rows: OverviewProtocolRow[]): OverviewProtocolRow[] {
+	const byId = new Map<string, OverviewProtocolRow>()
+	for (const row of rows) {
+		const existing = byId.get(row.id)
+		if (!existing) {
+			byId.set(row.id, { ...row })
+			continue
+		}
+		existing.positionCount += row.positionCount
+		existing.totalCollateralUsd += row.totalCollateralUsd
+		existing.collateralCount += row.collateralCount
+		existing.chainCount = Math.max(existing.chainCount, row.chainCount)
+	}
+	return Array.from(byId.values())
+}
+
+function mergeChainRows(rows: OverviewChainRow[]): OverviewChainRow[] {
+	const byId = new Map<string, OverviewChainRow>()
+	for (const row of rows) {
+		const existing = byId.get(row.id)
+		if (!existing) {
+			byId.set(row.id, { ...row })
+			continue
+		}
+		existing.positionCount += row.positionCount
+		existing.totalCollateralUsd += row.totalCollateralUsd
+		existing.collateralCount += row.collateralCount
+		existing.protocolCount = Math.max(existing.protocolCount, row.protocolCount)
+	}
+	return Array.from(byId.values())
+}
+
+function mergeTokenLiquidations(
+	parts: TokenLiquidationsSectionData[],
+	displaySymbol: string
+): TokenLiquidationsSectionData {
+	const protocolRows = mergeProtocolRows(parts.flatMap((part) => part.protocolRows))
+	const chainRows = mergeChainRows(parts.flatMap((part) => part.chainRows))
+	const tokens = parts
+		.flatMap((part) => part.distributionChart.tokens)
+		.sort((a, b) => (b.totalUsd ?? 0) - (a.totalUsd ?? 0))
+	const positionCount = protocolRows.reduce((acc, row) => acc + row.positionCount, 0)
+	const totalCollateralUsd = protocolRows.reduce((acc, row) => acc + row.totalCollateralUsd, 0)
+	const timestamp = parts.reduce((acc, part) => Math.max(acc, part.timestamp), 0)
+
+	return {
+		tokenSymbol: displaySymbol,
+		timestamp,
+		positionCount,
+		protocolCount: protocolRows.length,
+		chainCount: chainRows.length,
+		totalCollateralUsd,
+		distributionChart: { tokens },
+		protocolRows,
+		chainRows
+	}
+}
+
+export async function fetchTokenLiquidationsForAliases(
+	symbol: string,
+	fetchFn: ((url: string) => Promise<Response | null>) | typeof fetch = fetch
+): Promise<TokenLiquidationsSectionData | null> {
+	const aliases = getAliasGroup(symbol)
+	const settled = await Promise.allSettled(aliases.map((alias) => fetchTokenLiquidationsClient(alias, fetchFn)))
+	const parts = settled
+		.filter((result): result is PromiseFulfilledResult<TokenLiquidationsSectionData> => result.status === 'fulfilled')
+		.map((result) => result.value)
+
+	if (parts.length === 0) return null
+	if (parts.length === 1) return parts[0]
+
+	return mergeTokenLiquidations(parts, symbol.toUpperCase())
 }
