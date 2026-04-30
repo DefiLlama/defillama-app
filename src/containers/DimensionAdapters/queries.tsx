@@ -7,7 +7,6 @@ import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { recordRuntimeError } from '~/utils/telemetry'
-import { toFiniteNumber } from '~/utils/weightedAggregation'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
@@ -16,6 +15,7 @@ import {
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, getChainMetadataKey } from './constants'
+import { mergeMetricPeriods, type MetricPeriodFields } from './metricPeriods'
 import type {
 	IAdapterByChainPageData,
 	IAdapterChainOverview,
@@ -36,36 +36,6 @@ import {
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
 const CANTON_INCENTIVES_WARNING =
 	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
-
-const getWeightedChange = (
-	protocols: Array<{
-		total24h: number | null
-		total7d: number | null
-		total30d: number | null
-		change_1d?: number | null
-		change_7d?: number | null
-		change_1m?: number | null
-		change_7dover7d?: number | null
-	}>,
-	changeKey: 'change_1d' | 'change_7d' | 'change_1m',
-	weightKey: 'total24h' | 'total7d' | 'total30d'
-) => {
-	let numerator = 0
-	let denominator = 0
-
-	for (const protocol of protocols) {
-		const change =
-			changeKey === 'change_7d'
-				? toFiniteNumber(protocol.change_7d ?? protocol.change_7dover7d)
-				: toFiniteNumber(protocol[changeKey])
-		const weight = toFiniteNumber(protocol[weightKey])
-		if (change == null || weight == null || weight <= 0) continue
-		numerator += change * weight
-		denominator += weight
-	}
-
-	return denominator > 0 ? numerator / denominator : null
-}
 
 function buildChainsChartData({
 	rawChartData,
@@ -446,14 +416,20 @@ export const getAdapterByChainPageData = async ({
 			chains: protocol.chains,
 			category: protocol.category ?? null,
 			total24h: protocol.total24h ?? null,
+			total48hto24h: protocol.total48hto24h ?? null,
 			total7d: protocol.total7d ?? null,
+			total14dto7d: protocol.total14dto7d ?? null,
 			total30d: protocol.total30d ?? null,
+			total60dto30d: protocol.total60dto30d ?? null,
+			total7DaysAgo: protocol.total7DaysAgo ?? null,
+			total30DaysAgo: protocol.total30DaysAgo ?? null,
 			total1y: protocol.total1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
-			change_1d: toFiniteNumber(protocol.change_1d),
-			change_7d: toFiniteNumber(protocol.change_7d),
-			change_1m: toFiniteNumber(protocol.change_1m),
-			change_7dover7d: toFiniteNumber(protocol.change_7dover7d),
+			change_1d: protocol.change_1d ?? null,
+			change_7d: protocol.change_7d ?? null,
+			change_1m: protocol.change_1m ?? null,
+			change_7dover7d: protocol.change_7dover7d ?? null,
+			change_30dover30d: protocol.change_30dover30d ?? null,
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
@@ -497,21 +473,17 @@ export const getAdapterByChainPageData = async ({
 			}
 			continue
 		}
-		const total24h = parentProtocols[protocol].some((p) => p.total24h != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total24h ?? 0), 0)
-			: null
-		const total7d = parentProtocols[protocol].some((p) => p.total7d != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total7d ?? 0), 0)
-			: null
-		const total30d = parentProtocols[protocol].some((p) => p.total30d != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total30d ?? 0), 0)
-			: null
-		const total1y = parentProtocols[protocol].some((p) => p.total1y != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total1y ?? 0), 0)
-			: null
-		const totalAllTime = parentProtocols[protocol].some((p) => p.totalAllTime != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
-			: null
+		const periodTotals = parentProtocols[protocol].reduce<MetricPeriodFields>(
+			(acc, p) => mergeMetricPeriods(acc, p),
+			{}
+		)
+		const totals = {
+			total24h: periodTotals.total24h ?? null,
+			total7d: periodTotals.total7d ?? null,
+			total30d: periodTotals.total30d ?? null,
+			total1y: periodTotals.total1y ?? null,
+			totalAllTime: periodTotals.totalAllTime ?? null
+		}
 		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
 		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
 		let warning: string | null = null
@@ -578,10 +550,8 @@ export const getAdapterByChainPageData = async ({
 		}
 		const methodology: Array<string> = Array.from(methodologySet)
 
-		const pfOrPs = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
-		const change_1d = getWeightedChange(parentProtocols[protocol], 'change_1d', 'total24h')
-		const change_7d = getWeightedChange(parentProtocols[protocol], 'change_7d', 'total7d')
-		const change_1m = getWeightedChange(parentProtocols[protocol], 'change_1m', 'total30d')
+		const pfOrPs =
+			protocolsMcap[protocol] && totals.total30d ? getAnnualizedRatio(protocolsMcap[protocol], totals.total30d) : null
 
 		let topProtocol = parentProtocols[protocol][0]
 		for (const p of parentProtocols[protocol]) {
@@ -604,14 +574,8 @@ export const getAdapterByChainPageData = async ({
 			logo: tokenIconUrl(protocol),
 			category: topProtocol.category ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
-			total24h,
-			total7d,
-			total30d,
-			total1y,
-			totalAllTime,
-			...(change_1d != null ? { change_1d } : {}),
-			...(change_7d != null ? { change_7d } : {}),
-			...(change_1m != null ? { change_1m } : {}),
+			...periodTotals,
+			...totals,
 			mcap: protocolsMcap[protocol] ?? null,
 			breakdownAliases: Array.from(breakdownAliasSet),
 			childProtocols: parentProtocols[protocol],
