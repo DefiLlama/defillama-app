@@ -742,8 +742,9 @@ const ChartContainer = ({
 		const stepMs = filtered.length >= 2 ? Math.max(last.timestamp - prev.timestamp, dayMs) : dayMs
 		const numSteps = Math.max(Math.round(totalExtensionMs / stepMs), 1)
 		const padding: typeof filtered = []
+		const { Price, 'Market Cap': mcap, ...lastWithoutOverlays } = last
 		for (let i = 1; i <= numSteps; i++) {
-			padding.push({ ...last, timestamp: last.timestamp + i * stepMs })
+			padding.push({ ...lastWithoutOverlays, timestamp: last.timestamp + i * stepMs })
 		}
 		return [...filtered, ...padding]
 	}, [rawChartData, isPriceActive, isMcapActive, normilizePriceChart])
