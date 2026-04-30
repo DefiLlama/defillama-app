@@ -282,6 +282,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		minDefiActiveTvlToActiveMcapPct,
 		maxDefiActiveTvlToActiveMcapPct
 	})
+	const totalAssetCount = useMemo(
+		() => filteredAssets.filter((asset) => asset.kind === 'spot').length,
+		[filteredAssets]
+	)
 
 	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
@@ -810,15 +814,27 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalOpenInterest, true)}</span>
 					</p>
 				) : null}
-				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-					<Tooltip
-						content={definitions.totalAssetIssuers.description}
-						className="text-(--text-label) underline decoration-dotted"
-					>
-						{definitions.totalAssetIssuers.label}
-					</Tooltip>
-					<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalIssuersCount, false)}</span>
-				</p>
+				{isIssuerMode ? (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+						<Tooltip
+							content={definitions.totalAssetCount.description}
+							className="text-(--text-label) underline decoration-dotted"
+						>
+							{definitions.totalAssetCount.label}
+						</Tooltip>
+						<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalAssetCount, false)}</span>
+					</p>
+				) : (
+					<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+						<Tooltip
+							content={definitions.totalAssetIssuers.description}
+							className="text-(--text-label) underline decoration-dotted"
+						>
+							{definitions.totalAssetIssuers.label}
+						</Tooltip>
+						<span className="font-jetbrains text-2xl font-medium">{formattedNum(totalIssuersCount, false)}</span>
+					</p>
+				)}
 			</div>
 			{showCharts ? (
 				<>
