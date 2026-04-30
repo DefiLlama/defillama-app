@@ -781,7 +781,7 @@ export function AgenticChat({
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
-	const { settings, actions, availableModels } = useLlamaAISettings()
+	const { settings, actions, availableModels, availableEfforts } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -1764,6 +1764,7 @@ export function AgenticChat({
 						customInstructions: settings.customInstructions || undefined,
 						enablePremiumTools: settings.enablePremiumTools,
 						model: settings.model || undefined,
+						effort: settings.effort || undefined,
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						shareToken: currentShareToken,
@@ -1917,6 +1918,7 @@ export function AgenticChat({
 			quotedText,
 			isMobileChatView,
 			settings.model,
+			settings.effort,
 			sharedSession,
 			shareToken,
 			hasUser,
@@ -2382,6 +2384,7 @@ export function AgenticChat({
 							settings={settings}
 							actions={actions}
 							availableModels={availableModels}
+							availableEfforts={availableEfforts}
 						/>
 					) : null}
 				</div>

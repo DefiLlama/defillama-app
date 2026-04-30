@@ -548,7 +548,7 @@ export function PromptInput({
 					<SubmitButton
 						isStreaming={isStreaming}
 						isPending={isPending}
-						hasValue={value.trim().length > 0}
+						hasValue={value.trim().length > 0 || imageUpload.selectedImages.length > 0}
 						onStop={handleStopRequest}
 					/>
 				</div>
