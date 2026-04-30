@@ -185,6 +185,8 @@ export interface IRWAAssetsOverview {
 	selectedChain: string
 	categoryLinks: Array<{ label: string; to: string }>
 	selectedCategory: string
+	issuerLinks: Array<{ label: string; to: string }>
+	selectedIssuer: string
 	totals: {
 		onChainMcap: number
 		activeMcap: number

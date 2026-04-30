@@ -452,22 +452,32 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			props.chainLinks,
 			props.categoryLinks,
 			props.platformLinks,
-			props.assetGroupLinks
+			props.assetGroupLinks,
+			props.issuerLinks
 		)
 
-		// Only preserve query filters/toggles on chain mode. In category/platform mode, links should be "clean".
-		const shouldPreserveQuery = isChainMode
+		// Preserve query filters/toggles on chain + issuer pages. In category/platform mode, links should be "clean".
+		const shouldPreserveQuery = isChainMode || isIssuerMode
 		if (!shouldPreserveQuery) return baseLinks
 
-		const { chain: _chain, category: _category, platform: _platform, ...restQuery } = router.query
+		const {
+			chain: _chain,
+			category: _category,
+			platform: _platform,
+			assetGroup: _assetGroup,
+			issuer: _issuer,
+			...restQuery
+		} = router.query
 		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
 		if (!qs) return baseLinks
 		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
 	}, [
 		isChainMode,
+		isIssuerMode,
 		mode,
 		props.assetGroupLinks,
 		props.categoryLinks,
+		props.issuerLinks,
 		props.platformLinks,
 		props.chainLinks,
 		router.query
@@ -971,9 +981,10 @@ const getModeLinks = (
 	chainLinks: IRWAAssetsOverview['chainLinks'],
 	categoryLinks: IRWAAssetsOverview['categoryLinks'],
 	platformLinks: IRWAAssetsOverview['platformLinks'],
-	assetGroupLinks: IRWAAssetsOverview['assetGroupLinks']
+	assetGroupLinks: IRWAAssetsOverview['assetGroupLinks'],
+	issuerLinks: IRWAAssetsOverview['issuerLinks']
 ) => {
-	if (mode === 'issuer') return []
+	if (mode === 'issuer') return issuerLinks
 	if (mode === 'assetGroup') return assetGroupLinks
 	if (mode === 'category') return categoryLinks
 	if (mode === 'platform') return platformLinks
@@ -981,7 +992,7 @@ const getModeLinks = (
 }
 
 const getSelectedModeLabel = (mode: RWAOverviewMode, props: IRWAAssetsOverview) => {
-	if (mode === 'issuer') return props.issuerName ?? 'All'
+	if (mode === 'issuer') return props.selectedIssuer
 	if (mode === 'assetGroup') return props.selectedAssetGroup
 	if (mode === 'category') return props.selectedCategory
 	if (mode === 'platform') return props.selectedPlatform

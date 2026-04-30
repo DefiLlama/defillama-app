@@ -270,9 +270,10 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		])
 
 		assert(data, 'Failed to get RWA assets list')
-		let filteredData = data.filter(
+		const standardFilteredData = data.filter(
 			(item) => !(item.category ?? []).some((category) => !isCategoryIncludedInStandardRwaOverview(category))
 		)
+		let filteredData = standardFilteredData
 		if (selectedIssuer) {
 			filteredData = filteredData.filter((item) => item.issuer && rwaSlug(item.issuer) === selectedIssuer)
 		}
@@ -383,6 +384,41 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			if (!actualAssetGroupName) {
 				return null
 			}
+		}
+
+		// `selectedIssuer` comes from the URL and is slugified; resolve a display name (original casing/spaces)
+		// and build the issuer nav links from the full (non-issuer-filtered) dataset so the issuer page can
+		// navigate across issuers like category/platform pages do.
+		let actualIssuerName: string | null = null
+		let issuerLinks: Array<{ label: string; to: string }> = []
+		if (selectedIssuer) {
+			for (const item of standardFilteredData) {
+				const issuer = item.issuer
+				if (typeof issuer !== 'string' || issuer.length === 0) continue
+				if (rwaSlug(issuer) === selectedIssuer) {
+					actualIssuerName = issuer
+					break
+				}
+			}
+			if (!actualIssuerName) {
+				return null
+			}
+
+			const mcapByIssuer = new Map<string, number>()
+			for (const item of standardFilteredData) {
+				const issuer = item.issuer
+				if (typeof issuer !== 'string' || issuer.length === 0) continue
+				let sum = 0
+				for (const value of Object.values(item.onChainMcap ?? {})) {
+					if (Number.isFinite(value)) sum += value
+				}
+				mcapByIssuer.set(issuer, (mcapByIssuer.get(issuer) ?? 0) + sum)
+			}
+			const issuerNavValues = Array.from(mcapByIssuer.entries())
+				.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+				.map(([issuer]) => ({ label: issuer, to: `/rwa/issuer/${rwaSlug(issuer)}` }))
+
+			issuerLinks = [{ label: 'All', to: '/rwa/issuers' }, ...issuerNavValues]
 		}
 
 		const assets: IRWAAssetsOverview['assets'] = []
@@ -841,6 +877,8 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					? [{ label: 'All', to: '/rwa/categories' }, ...categoryNavValues]
 					: [],
 			selectedCategory: actualCategoryName ?? 'All',
+			issuerLinks,
+			selectedIssuer: actualIssuerName ?? 'All',
 			platformLinks:
 				selectedPlatform && platformNavValues.length > 0
 					? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues]

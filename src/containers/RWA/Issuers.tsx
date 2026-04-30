@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import TreemapChart from '~/components/ECharts/TreemapChart'
 import { BasicLink } from '~/components/Link'
+import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
@@ -134,6 +135,13 @@ export function RWAIssuers({ rows }: { rows: RWAIssuerSegmentedRow[] }) {
 	const hhi = computeHHI(issuerShares)
 	const top5 = computeTopNShare(issuerShares, 5)
 	const nakamoto50 = computeNakamotoCoefficient(issuerShares, 0.5)
+	const issuerLinks = useMemo(
+		() => [
+			{ label: 'All', to: '/rwa/issuers' },
+			...data.map((row) => ({ label: row.issuer, to: `/rwa/issuer/${rwaSlug(row.issuer)}` }))
+		],
+		[data]
+	)
 
 	const treemapTreeData = useMemo((): RwaTreemapNode[] => {
 		const pieData = data.filter((r) => (r.onChainMcap ?? 0) > 0).map((r) => ({ name: r.issuer, value: r.onChainMcap }))
@@ -143,6 +151,7 @@ export function RWAIssuers({ rows }: { rows: RWAIssuerSegmentedRow[] }) {
 
 	return (
 		<div className="flex flex-col gap-2">
+			<RowLinksWithDropdown links={issuerLinks} activeLink="All" />
 			<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<Switch
 					label="Stablecoins"

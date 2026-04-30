@@ -416,6 +416,17 @@ describe('rwa queries', () => {
 				onChainMcap: { Ethereum: 1 },
 				activeMcap: { Ethereum: 1 },
 				defiActiveTvl: { Ethereum: { Aave: 1 } }
+			},
+			{
+				id: 'y',
+				ticker: 'Y',
+				assetName: 'Y',
+				canonicalMarketId: 'issuer-b/y',
+				category: ['Treasuries'],
+				issuer: 'Issuer B',
+				onChainMcap: { Ethereum: 2 },
+				activeMcap: { Ethereum: 2 },
+				defiActiveTvl: { Ethereum: { Aave: 2 } }
 			}
 		]
 
@@ -426,12 +437,15 @@ describe('rwa queries', () => {
 		})
 
 		expect(result?.issuerSlug).toBe('issuer-a')
+		expect(result?.selectedIssuer).toBe('Issuer A')
+		expect(result?.issuerLinks.map((l) => l.label)).toEqual(['All', 'Issuer B', 'Issuer A'])
 
 		const nonIssuerResult = await getRWAAssetsOverview({
 			prefetchedRwaProjects: prefetched as never,
 			rwaList: { chains: [], categories: [], platforms: [], assetGroups: [] } as never
 		})
 		expect(nonIssuerResult?.issuerSlug).toBeNull()
+		expect(nonIssuerResult?.issuerLinks).toEqual([])
 	})
 
 	it('projects the batched chart down to just the issuer assets via the aggregation pipeline', async () => {
