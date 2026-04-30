@@ -107,6 +107,7 @@ const state: {
 	liquidationsTokenSymbols: string[]
 	liquidationsTokenSymbolsSet: Set<string>
 	hasTokenLiquidationsData: boolean
+	hasTokenMarkets: boolean
 	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
@@ -125,6 +126,7 @@ const state: {
 	liquidationsTokenSymbols: [],
 	liquidationsTokenSymbolsSet: new Set<string>(),
 	hasTokenLiquidationsData: false,
+	hasTokenMarkets: false,
 	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
@@ -162,6 +164,7 @@ function resetState() {
 	state.liquidationsTokenSymbols = []
 	state.liquidationsTokenSymbolsSet = new Set<string>()
 	state.hasTokenLiquidationsData = false
+	state.hasTokenMarkets = false
 	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
@@ -233,6 +236,14 @@ vi.mock('~/containers/Token/TokenUsageSection', () => ({
 
 vi.mock('~/containers/Token/TokenLiquidationsSection', () => ({
 	TokenLiquidationsSection: () => <section id="token-liquidations">token-liquidations-section</section>
+}))
+
+vi.mock('~/containers/Token/TokenMarketsSection', () => ({
+	TokenMarketsSection: () => <section id="token-markets">token-markets-section</section>
+}))
+
+vi.mock('~/containers/Token/api', () => ({
+	hasTokenMarketsFromNetwork: vi.fn(() => Promise.resolve(state.hasTokenMarkets))
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
@@ -385,6 +396,7 @@ describe('token page', () => {
 				}}
 				geckoId="bitcoin"
 				hasLiquidations
+				hasMarkets={false}
 				resolvedUnlocksSlug="chainlink"
 				overview={overviewFixture}
 				seoTitle="title"
@@ -471,6 +483,7 @@ describe('token page', () => {
 				initialTokenBorrowRoutesChainLists={null}
 				geckoId="bitcoin"
 				hasLiquidations={false}
+				hasMarkets={false}
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -527,6 +540,7 @@ describe('token page', () => {
 				}}
 				geckoId="bitcoin"
 				hasLiquidations={false}
+				hasMarkets={false}
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -590,6 +604,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
@@ -615,6 +630,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
@@ -679,6 +695,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
@@ -726,6 +743,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'Swing.xyz Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track Swing.xyz price, market cap, circulating supply, max supply, and trading volume.',
@@ -848,6 +866,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'LINK Price, Market Cap, Supply, Trading Volume & Token Rights',
 				seoDescription:
@@ -1116,6 +1135,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'AAVE Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track AAVE price, market cap, circulating supply, max supply, and trading volume.',

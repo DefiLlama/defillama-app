@@ -211,7 +211,8 @@ export function LiquidationsDistributionChart({
 	allowedBreakdownModes = DEFAULT_BREAKDOWN_MODES,
 	defaultBreakdownMode = 'total',
 	hideTokenSelector = false,
-	defaultChartMode = 'cumulative'
+	defaultChartMode = 'cumulative',
+	tokenStateMode = 'query'
 }: {
 	chart: LiquidationsDistributionChartData
 	timestamp: number
@@ -220,6 +221,7 @@ export function LiquidationsDistributionChart({
 	defaultBreakdownMode?: BreakdownMode
 	hideTokenSelector?: boolean
 	defaultChartMode?: ChartMode
+	tokenStateMode?: 'query' | 'local'
 }) {
 	const router = useRouter()
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
@@ -242,10 +244,19 @@ export function LiquidationsDistributionChart({
 		[allowedBreakdownModes]
 	)
 	const defaultToken = chart.tokens[0]?.key ?? null
+	const [localToken, setLocalToken] = React.useState<string | null>(defaultToken)
+	React.useEffect(() => {
+		setLocalToken((current) => {
+			if (current && chart.tokens.some((entry) => entry.key === current)) return current
+			return defaultToken
+		})
+	}, [chart.tokens, defaultToken])
 	const chartState = React.useMemo(() => {
 		const token = hideTokenSelector
 			? defaultToken
-			: resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
+			: tokenStateMode === 'local'
+				? (localToken ?? defaultToken)
+				: resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
 		const metric = getLiquidationsChartMetric(readSingleQueryValue(router.query[METRIC_QUERY_PARAM]))
 		const mode = getLiquidationsChartMode(readSingleQueryValue(router.query[VIEW_QUERY_PARAM]), defaultChartMode)
 		const breakdownMode = getLiquidationsChartBreakdownMode(
@@ -253,13 +264,16 @@ export function LiquidationsDistributionChart({
 			allowedBreakdownModes,
 			defaultBreakdownMode
 		)
-		const tokenLabel = chart.tokens.find((entry) => entry.key === token)?.label ?? 'Token'
+		const selectedTokenEntry = chart.tokens.find((entry) => entry.key === token)
+		const tokenLabel = selectedTokenEntry?.label ?? 'Token'
+		const tokenTotalUsd = selectedTokenEntry?.totalUsd ?? null
 		const breakdownLabel = breakdownOptions.find((option) => option.key === breakdownMode)?.name ?? 'Total'
 		const modeLabel = CHART_MODE_OPTIONS.find((option) => option.key === mode)?.name ?? 'Cumulative'
 
 		return {
 			token,
 			tokenLabel,
+			tokenTotalUsd,
 			metric,
 			mode,
 			modeLabel,
@@ -274,15 +288,21 @@ export function LiquidationsDistributionChart({
 		defaultBreakdownMode,
 		defaultToken,
 		hideTokenSelector,
-		router.query
+		localToken,
+		router.query,
+		tokenStateMode
 	])
 
 	const setSelectedToken = React.useCallback(
 		(nextToken: string) => {
 			if (nextToken === chartState.token) return
+			if (tokenStateMode === 'local') {
+				setLocalToken(nextToken)
+				return
+			}
 			void pushShallowQuery(router, getLiquidationsChartTokenQueryPatch(nextToken, defaultToken))
 		},
-		[chartState.token, defaultToken, router]
+		[chartState.token, defaultToken, router, tokenStateMode]
 	)
 	const setMetric = React.useCallback(
 		(nextMetric: Metric) => {
@@ -479,7 +499,7 @@ export function LiquidationsDistributionChart({
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center gap-2 p-2">
-				<div className="mr-auto min-w-0">
+				<div className="mr-auto flex min-w-0 flex-wrap items-center gap-2">
 					{hideTokenSelector ? null : (
 						<SelectWithCombobox
 							allValues={tokenOptions}
@@ -499,6 +519,11 @@ export function LiquidationsDistributionChart({
 							portal
 						/>
 					)}
+					{chartState.tokenTotalUsd != null ? (
+						<span className="text-xs text-(--text-label)">
+							Collateral: <span className="font-medium text-(--text-primary)">{formattedNum(chartState.tokenTotalUsd, true)}</span>
+						</span>
+					) : null}
 				</div>
 				{showBreakdownSelector ? (
 					<Select

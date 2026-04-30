@@ -12,7 +12,7 @@ import { LiquidationsTableTabs } from '~/containers/LiquidationsV2/TableTabs'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { formattedNum } from '~/utils'
-import { fetchTokenLiquidationsClient } from '../LiquidationsV2/api'
+import { fetchTokenLiquidationsForAliases } from '../LiquidationsV2/api'
 import type { OverviewChainRow, OverviewProtocolRow, TokenLiquidationsSectionData } from '../LiquidationsV2/api.types'
 
 const TOKEN_LIQUIDATIONS_SECTION_ID = 'token-liquidations'
@@ -121,8 +121,8 @@ const chainColumns = [
 async function fetchTokenLiquidationsRows(
 	tokenSymbol: string,
 	authorizedFetch: (url: string) => Promise<Response | null>
-): Promise<TokenLiquidationsSectionData> {
-	return fetchTokenLiquidationsClient(tokenSymbol, authorizedFetch)
+): Promise<TokenLiquidationsSectionData | null> {
+	return fetchTokenLiquidationsForAliases(tokenSymbol, authorizedFetch)
 }
 
 export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string }) {
@@ -239,7 +239,7 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 					timestamp={data.timestamp}
 					title={`${data.tokenSymbol} Liquidation Distribution`}
 					defaultBreakdownMode="protocol"
-					hideTokenSelector
+					tokenStateMode="local"
 				/>
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
