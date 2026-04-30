@@ -20,14 +20,18 @@ type ApiProtocol = IAdapterChainMetrics['protocols'][0]
 export type IProtocol = Pick<ApiProtocol, 'name' | 'slug' | 'logo' | 'chains'> & {
 	category: ApiProtocol['category'] | null
 	total24h: number | null
+	total48hto24h?: number | null
 	total7d: number | null
+	total14dto7d?: number | null
 	total30d: number | null
+	total60dto30d?: number | null
 	total1y: number | null
 	totalAllTime: number | null
 	change_1d?: number | null
 	change_7d?: number | null
 	change_1m?: number | null
 	change_7dover7d?: number | null
+	change_30dover30d?: number | null
 	mcap: number | null
 	bribes?: {
 		total24h: number | null
