@@ -220,16 +220,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
 }
 
-function escapeHtml(value: string): string {
-	return value
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;')
-		.replace(/\//g, '&#47;')
-}
-
 function normalizeLiquidationsChartTokenKey(value: string): string {
 	return value
 		.trim()
@@ -303,17 +293,17 @@ function getLiquidationsTooltipHtml(params: unknown, metric: Metric, tokenLabel:
 	const first = paramList[0]
 	const axisValue =
 		isRecord(first) && 'axisValue' in first ? Number((first as { axisValue?: unknown }).axisValue) : Number.NaN
-	const axisLabel = escapeHtml(Number.isFinite(axisValue) ? formatLiqPrice(axisValue) : '')
+	const axisLabel = Number.isFinite(axisValue) ? formatLiqPrice(axisValue) : ''
 	const total = paramList.reduce((sum, param) => sum + getTooltipValue(param), 0)
-	const totalLabel = escapeHtml(formatMetricValue(total, metric, tokenLabel))
+	const totalLabel = formatMetricValue(total, metric, tokenLabel)
 	const rows: string[] = []
 
 	for (const param of paramList) {
 		if (!isRecord(param)) continue
 		const value = getTooltipValue(param)
-		const rowValue = escapeHtml(formatMetricValue(value, metric, tokenLabel))
-		const seriesName = escapeHtml(typeof param.seriesName === 'string' ? param.seriesName : '')
-		const marker = escapeHtml(typeof param.marker === 'string' ? param.marker : '')
+		const rowValue = formatMetricValue(value, metric, tokenLabel)
+		const seriesName = typeof param.seriesName === 'string' ? param.seriesName : ''
+		const marker = typeof param.marker === 'string' ? param.marker : ''
 		rows.push(`<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px;">
 								<span style="display:inline-flex; align-items:center; gap:6px; min-width:0;">
 									${marker}

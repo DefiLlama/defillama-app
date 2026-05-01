@@ -51,17 +51,6 @@ function renderFundingRate(value: number | null | undefined): string {
 	return `${pct.toFixed(4)}%`
 }
 
-function getSafeExternalUrl(value: string | null | undefined): string | null {
-	if (!value) return null
-
-	try {
-		const url = new URL(value)
-		return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null
-	} catch {
-		return null
-	}
-}
-
 const venueColumn = columnHelper.accessor('exchange', {
 	id: 'exchange',
 	header: 'Venue',
