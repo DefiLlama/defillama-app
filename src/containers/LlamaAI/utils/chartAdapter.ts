@@ -326,13 +326,9 @@ const getNumericTooltipValueFromParams = (item: any): number | null => {
 
 export const createCategoryTooltipFormatter = (
 	valueSymbol: string,
-	charts: LlamaAICartesianSeriesConfig[] = [],
-	overrideSymbol?: string
+	charts: LlamaAICartesianSeriesConfig[] = []
 ): ((params: unknown) => string) => {
-	const symbolBySeries = new Map(
-		charts.map((chart) => [chart.name, overrideSymbol ?? chart.valueSymbol ?? valueSymbol])
-	)
-	const fallbackSymbol = overrideSymbol ?? valueSymbol
+	const symbolBySeries = new Map(charts.map((chart) => [chart.name, chart.valueSymbol ?? valueSymbol]))
 
 	return (params: unknown) => {
 		const items = Array.isArray(params) ? params : params ? [params] : []
@@ -349,7 +345,7 @@ export const createCategoryTooltipFormatter = (
 					marker: item?.marker ?? '',
 					seriesName,
 					value,
-					symbol: symbolBySeries.get(seriesName) ?? fallbackSymbol
+					symbol: symbolBySeries.get(seriesName) ?? valueSymbol
 				}
 			})
 			.filter(
@@ -367,7 +363,7 @@ export const createCategoryTooltipFormatter = (
 		const lines = values
 			.map(
 				(item) =>
-					`<div>${item.marker} ${item.seriesName}: ${formatChartValue(item.value, item.symbol ?? fallbackSymbol)}</div>`
+					`<div>${item.marker} ${item.seriesName}: ${formatChartValue(item.value, item.symbol ?? valueSymbol)}</div>`
 			)
 			.join('')
 
@@ -377,11 +373,9 @@ export const createCategoryTooltipFormatter = (
 
 export const createTimeTooltipFormatter = (
 	valueSymbol: string,
-	charts: LlamaAICartesianSeriesConfig[] = [],
-	overrideSymbol?: string
+	charts: LlamaAICartesianSeriesConfig[] = []
 ): ((params: unknown) => string) => {
-	const seriesSymbols = new Map(charts.map((c) => [c.name, overrideSymbol ?? c.valueSymbol ?? valueSymbol]))
-	const fallbackSymbol = overrideSymbol ?? valueSymbol
+	const seriesSymbols = new Map(charts.map((c) => [c.name, c.valueSymbol ?? valueSymbol]))
 
 	return (params: unknown) => {
 		const items = Array.isArray(params) ? params : params ? [params] : []
@@ -405,7 +399,7 @@ export const createTimeTooltipFormatter = (
 				return {
 					color: it?.color ?? '#888',
 					name,
-					symbol: seriesSymbols.get(name) ?? fallbackSymbol,
+					symbol: seriesSymbols.get(name) ?? valueSymbol,
 					value
 				}
 			})

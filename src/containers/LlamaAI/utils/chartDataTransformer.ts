@@ -198,8 +198,8 @@ export class ChartDataTransformer {
 			? (() => {
 					const charts = transformedChart.props.charts ?? []
 					return transformedChart.axisType === 'category'
-						? createCategoryTooltipFormatter('%', charts, '%')
-						: createTimeTooltipFormatter('%', charts, '%')
+						? createCategoryTooltipFormatter('%', charts)
+						: createTimeTooltipFormatter('%', charts)
 				})()
 			: undefined
 
