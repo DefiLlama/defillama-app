@@ -522,9 +522,7 @@ export function LiquidationsDistributionChart({
 					{chartState.tokenTotalUsd != null ? (
 						<span className="text-xs text-(--text-label)">
 							Collateral:{' '}
-							<span className="font-medium text-(--text-primary)">
-								{formattedNum(chartState.tokenTotalUsd, true)}
-							</span>
+							<span className="font-medium text-(--text-primary)">{formattedNum(chartState.tokenTotalUsd, true)}</span>
 						</span>
 					) : null}
 				</div>

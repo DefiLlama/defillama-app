@@ -149,13 +149,7 @@ function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): 
 	return CATEGORY_TABS.map((tab) => tab.id).filter((category) => getCategoryRows(data, venue, category).length > 0)
 }
 
-function HeaderStrip({
-	totals,
-	showOi
-}: {
-	totals: TokenMarketCategoryTotals
-	showOi: boolean
-}) {
+function HeaderStrip({ totals, showOi }: { totals: TokenMarketCategoryTotals; showOi: boolean }) {
 	return (
 		<div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3.5 py-2.5">
 			<div className="flex items-baseline gap-1.5">
@@ -276,7 +270,10 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 
 	const sectionHeader = (
 		<div className="flex flex-wrap items-center justify-between gap-2 border-b border-(--cards-border) p-3">
-			<h2 className="group relative flex scroll-mt-24 items-center gap-1 text-xl font-bold" id={TOKEN_MARKETS_SECTION_ID}>
+			<h2
+				className="group relative flex scroll-mt-24 items-center gap-1 text-xl font-bold"
+				id={TOKEN_MARKETS_SECTION_ID}
+			>
 				Markets
 				<a
 					aria-hidden="true"
