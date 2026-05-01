@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import dayjs from 'dayjs'
-import { useMemo, useState } from 'react'
+import { useMemo, useReducer } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -39,6 +39,10 @@ const columnHelper = createColumnHelper<TokenMarketPair>()
 function renderNullableNum(value: number | null | undefined, isUsd = false): string {
 	if (value == null) return '–'
 	return formattedNum(value, isUsd)
+}
+
+function NullableNum({ value, isUsd = false }: { value: number | null | undefined; isUsd?: boolean }) {
+	return <>{value == null ? '–' : formattedNum(value, isUsd)}</>
 }
 
 function renderFundingRate(value: number | null | undefined): string {
@@ -146,7 +150,11 @@ function getCategoryTotals(
 }
 
 function getAvailableCategories(data: TokenMarketsResponse, venue: VenueTabId): TokenMarketCategory[] {
-	return CATEGORY_TABS.map((tab) => tab.id).filter((category) => getCategoryRows(data, venue, category).length > 0)
+	const categories: TokenMarketCategory[] = []
+	for (const tab of CATEGORY_TABS) {
+		if (getCategoryRows(data, venue, tab.id).length > 0) categories.push(tab.id)
+	}
+	return categories
 }
 
 function HeaderStrip({ totals, showOi }: { totals: TokenMarketCategoryTotals; showOi: boolean }) {
@@ -158,12 +166,16 @@ function HeaderStrip({ totals, showOi }: { totals: TokenMarketCategoryTotals; sh
 			</div>
 			<div className="flex items-baseline gap-1.5">
 				<span className="text-sm text-(--text-label)">24h Volume</span>
-				<span className="text-sm font-medium">{renderNullableNum(totals.total_volume_24h, true)}</span>
+				<span className="text-sm font-medium">
+					<NullableNum value={totals.total_volume_24h} isUsd />
+				</span>
 			</div>
 			{showOi ? (
 				<div className="flex items-baseline gap-1.5">
 					<span className="text-sm text-(--text-label)">Open Interest</span>
-					<span className="text-sm font-medium">{renderNullableNum(totals.total_oi_usd, true)}</span>
+					<span className="text-sm font-medium">
+						<NullableNum value={totals.total_oi_usd} isUsd />
+					</span>
 				</div>
 			) : null}
 		</div>
@@ -206,8 +218,8 @@ interface TokenMarketsSectionProps {
 }
 
 export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
-	const [venueTab, setVenueTab] = useState<VenueTabId>('dex')
-	const [categoryTab, setCategoryTab] = useState<TokenMarketCategory>('spot')
+	const [venueTab, setVenueTab] = useReducer((_: VenueTabId, next: VenueTabId) => next, 'dex')
+	const [categoryTab, setCategoryTab] = useReducer((_: TokenMarketCategory, next: TokenMarketCategory) => next, 'spot')
 
 	const { data, error, isLoading } = useQuery({
 		queryKey: ['token-markets', tokenSymbol],
@@ -234,31 +246,30 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 		[availableCategoriesByVenue]
 	)
 
-	const effectiveVenueTab = useMemo<VenueTabId>(() => {
-		if (visibleVenueTabs.some((tab) => tab.id === venueTab)) return venueTab
-		return visibleVenueTabs[0]?.id ?? venueTab
-	}, [visibleVenueTabs, venueTab])
+	const selectedVenueTab = visibleVenueTabs.some((tab) => tab.id === venueTab)
+		? venueTab
+		: (visibleVenueTabs[0]?.id ?? venueTab)
 
 	const visibleCategoryTabs = useMemo(() => {
-		const available = new Set(availableCategoriesByVenue[effectiveVenueTab])
+		const available = new Set(availableCategoriesByVenue[selectedVenueTab])
 		return CATEGORY_TABS.filter((tab) => available.has(tab.id))
-	}, [availableCategoriesByVenue, effectiveVenueTab])
+	}, [availableCategoriesByVenue, selectedVenueTab])
 
-	const effectiveCategoryTab = useMemo<TokenMarketCategory>(() => {
+	const selectedCategoryTab = useMemo<TokenMarketCategory>(() => {
 		if (visibleCategoryTabs.some((tab) => tab.id === categoryTab)) return categoryTab
 		return visibleCategoryTabs[0]?.id ?? categoryTab
 	}, [visibleCategoryTabs, categoryTab])
 
 	const rows = useMemo(
-		() => (data ? getCategoryRows(data, effectiveVenueTab, effectiveCategoryTab) : []),
-		[data, effectiveVenueTab, effectiveCategoryTab]
+		() => (data ? getCategoryRows(data, selectedVenueTab, selectedCategoryTab) : []),
+		[data, selectedVenueTab, selectedCategoryTab]
 	)
 	const totals = useMemo(
-		() => (data ? getCategoryTotals(data, effectiveVenueTab, effectiveCategoryTab) : EMPTY_TOTALS),
-		[data, effectiveVenueTab, effectiveCategoryTab]
+		() => (data ? getCategoryTotals(data, selectedVenueTab, selectedCategoryTab) : EMPTY_TOTALS),
+		[data, selectedVenueTab, selectedCategoryTab]
 	)
 
-	const isPerpCategory = effectiveCategoryTab !== 'spot'
+	const isPerpCategory = selectedCategoryTab !== 'spot'
 	const columns = isPerpCategory ? PERP_COLUMNS : SPOT_COLUMNS
 
 	const lastUpdated = useMemo(() => {
@@ -266,7 +277,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 		const parsed = dayjs(data.last_updated)
 		if (!parsed.isValid()) return null
 		return { absolute: parsed.format('MMM D, YYYY HH:mm UTC'), relative: parsed.fromNow() }
-	}, [data?.last_updated])
+	}, [data])
 
 	const sectionHeader = (
 		<div className="flex flex-wrap items-center justify-between gap-2 border-b border-(--cards-border) p-3">
@@ -316,7 +327,7 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 			<div className="flex flex-col gap-3 p-3">
 				<Tabs
 					tabs={visibleVenueTabs}
-					activeTab={effectiveVenueTab}
+					activeTab={selectedVenueTab}
 					onChange={(id) => setVenueTab(id)}
 					ariaLabel="Market venue"
 				/>
@@ -325,20 +336,20 @@ export function TokenMarketsSection({ tokenSymbol }: TokenMarketsSectionProps) {
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<TableWithSearch
-						key={`${effectiveVenueTab}-${effectiveCategoryTab}`}
+						key={`${selectedVenueTab}-${selectedCategoryTab}`}
 						data={rows}
 						columns={columns}
 						leadingControls={
 							<Tabs
 								tabs={visibleCategoryTabs}
-								activeTab={effectiveCategoryTab}
+								activeTab={selectedCategoryTab}
 								onChange={(id) => setCategoryTab(id)}
 								ariaLabel="Market category"
 							/>
 						}
 						columnToSearch="exchange"
 						placeholder="Search exchanges..."
-						csvFileName={`token-markets-${tokenSymbol}-${effectiveVenueTab}-${effectiveCategoryTab}`}
+						csvFileName={`token-markets-${tokenSymbol}-${selectedVenueTab}-${selectedCategoryTab}`}
 						embedded
 						sortingState={[{ id: 'volume_24h', desc: true }]}
 					/>

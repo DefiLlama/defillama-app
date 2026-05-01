@@ -197,11 +197,12 @@ function findTokenRightsEntryByName(data: IRawTokenRightsEntry[], name: string):
 }
 
 function getBorrowRouteChainList(rows: TokenBorrowRoutesResponse['borrowAsCollateral']): string[] {
-	return [
-		...new Set(
-			rows.map((row) => row.chains[0]).filter((chain): chain is string => typeof chain === 'string' && chain.length > 0)
-		)
-	].sort()
+	const chains = new Set<string>()
+	for (const row of rows) {
+		const chain = row.chains[0]
+		if (typeof chain === 'string' && chain.length > 0) chains.add(chain)
+	}
+	return Array.from(chains).toSorted()
 }
 
 function getVisibleTokenSections({
@@ -509,12 +510,17 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 
 		const initialYieldsRowCount = yieldsRows.length
 		const initialYieldsRows: IYieldTableRow[] = yieldsRows.slice(0, DEFAULT_TABLE_PAGE_SIZE)
-		const initialYieldsChainList = [
-			...new Set(yieldsRows.map((row) => row.chains[0]).filter((chain): chain is string => Boolean(chain)))
-		].sort()
-		const initialYieldsTokensList = [
-			...new Set(yieldsRows.flatMap((row) => extractPoolTokens(row.pool)).map((poolToken) => poolToken.toUpperCase()))
-		].sort()
+		const initialYieldsChains = new Set<string>()
+		const initialYieldsTokens = new Set<string>()
+		for (const row of yieldsRows) {
+			const chain = row.chains[0]
+			if (chain) initialYieldsChains.add(chain)
+			for (const poolToken of extractPoolTokens(row.pool)) {
+				initialYieldsTokens.add(poolToken.toUpperCase())
+			}
+		}
+		const initialYieldsChainList = Array.from(initialYieldsChains).toSorted()
+		const initialYieldsTokensList = Array.from(initialYieldsTokens).toSorted()
 		const initialTokenBorrowRoutesCounts: TokenPageProps['initialTokenBorrowRoutesCounts'] = tokenBorrowRoutesData
 			? {
 					borrowAsCollateral: tokenBorrowRoutesData.borrowAsCollateral.length,

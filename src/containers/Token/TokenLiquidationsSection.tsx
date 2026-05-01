@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -158,11 +158,6 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 		</div>
 	)
 
-	const tabs = useMemo(
-		() => <LiquidationsTableTabs tabs={TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />,
-		[activeTab]
-	)
-
 	if (loaders.userLoading || isLoading) {
 		return (
 			<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -221,6 +216,8 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 		return null
 	}
 
+	const tabs = <LiquidationsTableTabs tabs={TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
+
 	return (
 		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			{sectionHeader}
@@ -239,6 +236,7 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 					timestamp={data.timestamp}
 					title={`${data.tokenSymbol} Liquidation Distribution`}
 					defaultBreakdownMode="protocol"
+					hideTokenSelector
 					tokenStateMode="local"
 				/>
 
