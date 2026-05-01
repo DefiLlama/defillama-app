@@ -120,7 +120,7 @@ describe('ChartDataTransformer', () => {
 		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
 
 		const formatter = transformed.props.chartOptions?.tooltip?.formatter
-		expect(typeof formatter).toBe('function')
+		if (typeof formatter !== 'function') throw new Error('Expected tooltip formatter')
 
 		const row = transformed.props.dataset.source[0]
 		const tooltip = formatter([
@@ -139,7 +139,7 @@ describe('ChartDataTransformer', () => {
 		if (transformed.chartType !== 'cartesian') throw new Error('Expected cartesian chart')
 
 		const formatter = transformed.props.chartOptions?.tooltip?.formatter
-		expect(typeof formatter).toBe('function')
+		if (typeof formatter !== 'function') throw new Error('Expected tooltip formatter')
 
 		const row = transformed.props.dataset.source[0]
 		const tooltip = formatter([

@@ -18,6 +18,11 @@ export type MetricPeriodFields = {
 	change_30dover30d?: NullableNumber
 }
 
+type MetricPeriodChanges = Pick<
+	MetricPeriodFields,
+	'change_1d' | 'change_7d' | 'change_1m' | 'change_7dover7d' | 'change_30dover30d'
+>
+
 const SUM_FIELDS = [
 	'total24h',
 	'total48hto24h',
@@ -43,7 +48,7 @@ function getPercentChange(valueNow: NullableNumber, valuePrevious: NullableNumbe
 	return Number.isFinite(percent) ? percent : null
 }
 
-export function deriveMetricChanges<T extends MetricPeriodFields>(protocol: T): T {
+export function deriveMetricChanges<T extends MetricPeriodFields>(protocol: T): T & MetricPeriodChanges {
 	protocol.change_1d = getPercentChange(protocol.total24h, protocol.total48hto24h)
 	protocol.change_7d = getPercentChange(protocol.total24h, protocol.total7DaysAgo)
 	protocol.change_1m = getPercentChange(protocol.total24h, protocol.total30DaysAgo)
@@ -53,7 +58,10 @@ export function deriveMetricChanges<T extends MetricPeriodFields>(protocol: T): 
 	return protocol
 }
 
-export function mergeMetricPeriods<T extends MetricPeriodFields>(existing: T, protocol: MetricPeriodFields): T {
+export function mergeMetricPeriods<T extends MetricPeriodFields>(
+	existing: T,
+	protocol: MetricPeriodFields
+): T & MetricPeriodChanges {
 	for (const field of SUM_FIELDS) {
 		existing[field] = sumNullable(existing[field], protocol[field])
 	}
