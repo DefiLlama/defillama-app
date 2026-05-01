@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import dayjs from 'dayjs'
-import { useMemo, useReducer } from 'react'
+import { type KeyboardEvent, useMemo, useReducer, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -49,6 +49,17 @@ function renderFundingRate(value: number | null | undefined): string {
 	if (value == null) return '–'
 	const pct = value * 100
 	return `${pct.toFixed(4)}%`
+}
+
+function getSafeExternalUrl(value: string | null | undefined): string | null {
+	if (!value) return null
+
+	try {
+		const url = new URL(value)
+		return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : null
+	} catch {
+		return null
+	}
 }
 
 const venueColumn = columnHelper.accessor('exchange', {
@@ -193,17 +204,44 @@ function Tabs<T extends string>({
 	onChange: (id: T) => void
 	ariaLabel: string
 }) {
+	const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
+	const focusTab = (index: number) => {
+		const tab = tabs[index]
+		if (!tab) return
+		onChange(tab.id)
+		buttonRefs.current[index]?.focus()
+	}
+	const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+		if (event.key === 'ArrowLeft') {
+			event.preventDefault()
+			focusTab((index - 1 + tabs.length) % tabs.length)
+		} else if (event.key === 'ArrowRight') {
+			event.preventDefault()
+			focusTab((index + 1) % tabs.length)
+		} else if (event.key === 'Home') {
+			event.preventDefault()
+			focusTab(0)
+		} else if (event.key === 'End') {
+			event.preventDefault()
+			focusTab(tabs.length - 1)
+		}
+	}
+
 	return (
 		<div className="flex items-center overflow-x-auto" role="tablist" aria-label={ariaLabel}>
-			{tabs.map((tab) => (
+			{tabs.map((tab, index) => (
 				<button
 					key={tab.id}
+					ref={(node) => {
+						buttonRefs.current[index] = node
+					}}
 					type="button"
 					role="tab"
 					aria-selected={activeTab === tab.id}
 					tabIndex={activeTab === tab.id ? 0 : -1}
 					data-active={activeTab === tab.id}
 					onClick={() => onChange(tab.id)}
+					onKeyDown={(event) => handleKeyDown(event, index)}
 					className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 				>
 					{tab.label}

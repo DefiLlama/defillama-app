@@ -54,6 +54,10 @@ const ALIAS_TO_CANONICAL = (() => {
 	const map = new Map<string, string>()
 	for (const canonical in CANONICAL_TOKEN_ALIASES) {
 		for (const alias of CANONICAL_TOKEN_ALIASES[canonical]) {
+			const existing = map.get(alias)
+			if (existing && existing !== canonical) {
+				throw new Error(`Token alias "${alias}" maps to both "${existing}" and "${canonical}"`)
+			}
 			map.set(alias, canonical)
 		}
 	}
