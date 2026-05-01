@@ -1,6 +1,7 @@
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import type { AdaptedLlamaAICartesianChart, LlamaAICartesianDatasetRow } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
+import { createCategoryTooltipFormatter, createTimeTooltipFormatter } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { ChartCapabilities, ChartViewState } from '~/containers/LlamaAI/utils/chartCapabilities'
 
 type GroupingInterval = 'day' | 'week' | 'month' | 'quarter' | 'year'
@@ -193,9 +194,19 @@ export class ChartDataTransformer {
 						return typeof v !== 'number' || (v >= 0 && v <= 100)
 					})
 			)
+		const percentageTooltipFormatter = isPercentage
+			? (() => {
+					const charts = transformedChart.props.charts ?? []
+					return transformedChart.axisType === 'category'
+						? createCategoryTooltipFormatter('%', charts, '%')
+						: createTimeTooltipFormatter('%', charts, '%')
+				})()
+			: undefined
+
 		const percentageChartOptions: Record<string, any> | undefined = isPercentage
 			? {
 					grid: { top: 24, right: 12, bottom: 68, left: 12 },
+					tooltip: { formatter: percentageTooltipFormatter },
 					...(!hasSecondaryAxis
 						? {
 								yAxis: {
