@@ -26,10 +26,14 @@ export async function fetchTokenMarkets(tokenSymbol: string): Promise<TokenMarke
 
 export async function hasTokenMarketsFromNetwork(tokenSymbol: string): Promise<boolean> {
 	const url = `${MARKETS_SERVER_URL}/tokens/${encodeURIComponent(tokenSymbol.toLowerCase())}.json`
+	const controller = new AbortController()
+	const timeout = setTimeout(() => controller.abort(), 5000)
 	try {
-		const res = await fetch(url, { method: 'HEAD' })
+		const res = await fetch(url, { method: 'HEAD', signal: controller.signal })
 		return res.ok
 	} catch {
 		return false
+	} finally {
+		clearTimeout(timeout)
 	}
 }
