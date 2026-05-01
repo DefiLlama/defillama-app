@@ -395,11 +395,11 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 						const defillamaId = record.chainId || record.protocolId || null
 
 						if (shouldUseDatasetCache) {
-							const { fetchTokenRightsEntriesFromCache, fetchTokenRightsEntryFromCache } =
+							const { fetchTokenRightsEntryFromCache, fetchTokenRightsEntryByNameFromCache } =
 								await import('~/server/datasetCache/tokenRights')
 							const rawEntry = defillamaId
 								? await fetchTokenRightsEntryFromCache(defillamaId)
-								: findTokenRightsEntryByName(await fetchTokenRightsEntriesFromCache(), record.name)
+								: await fetchTokenRightsEntryByNameFromCache(record.name)
 							return rawEntry ? parseTokenRightsEntry(rawEntry) : null
 						}
 

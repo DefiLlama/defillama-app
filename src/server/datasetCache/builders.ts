@@ -7,6 +7,7 @@ import { fetchProtocolsList, fetchAllLiquidations } from '~/containers/Liquidati
 import { fetchRaisesFromNetwork } from '~/containers/Raises/api'
 import { getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
 import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
+import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import { fetchTreasuriesFromNetwork } from '~/containers/Treasuries/api'
 import { buildYieldTableRowsWithBorrowData } from '~/containers/Yields/poolsPipeline'
@@ -15,9 +16,13 @@ import {
 	getYieldPageDataFromNetwork,
 	getLendBorrowDataFromYieldPageData
 } from '~/containers/Yields/queries/index'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import { getYieldPoolTokenVariantSet } from '~/containers/Yields/tokenFilter'
 import { fetchJson } from '~/utils/async'
 import type { DatasetDomain, DatasetManifest } from './core'
 import { DATASET_DOMAINS, buildEmptyDatasetManifest, ensureDirectory, writeJsonFile } from './core'
+import { getDatasetIndexFileName } from './indexKeys'
+import { buildTokenRightsIndexes } from './tokenRightsIndex'
 
 type DomainBuildResult = {
 	builtAt: number
@@ -25,6 +30,28 @@ type DomainBuildResult = {
 
 function getDomainDir(rootDir: string, domain: DatasetDomain): string {
 	return path.join(rootDir, domain)
+}
+
+async function writeTokenYieldIndexes(domainDir: string, rows: IYieldTableRow[]): Promise<void> {
+	const byToken = new Map<string, IYieldTableRow[]>()
+
+	for (const row of rows) {
+		for (const token of getYieldPoolTokenVariantSet(row.pool)) {
+			const tokenRows = byToken.get(token)
+			if (tokenRows) {
+				tokenRows.push(row)
+			} else {
+				byToken.set(token, [row])
+			}
+		}
+	}
+
+	const byTokenDir = path.join(domainDir, 'by-token')
+	await ensureDirectory(byTokenDir)
+
+	for (const [token, tokenRows] of byToken) {
+		await writeJsonFile(path.join(byTokenDir, getDatasetIndexFileName(token)), filterTokenYieldRows(tokenRows, ''))
+	}
 }
 
 async function buildYieldsDomain(rootDir: string): Promise<DomainBuildResult> {
@@ -45,6 +72,7 @@ async function buildYieldsDomain(rootDir: string): Promise<DomainBuildResult> {
 	await writeJsonFile(`${domainDir}/rows.json`, transformedPools)
 	await writeJsonFile(`${domainDir}/config.json`, yieldConfig)
 	await writeJsonFile(`${domainDir}/lend-borrow.json`, lendBorrowData)
+	await writeTokenYieldIndexes(domainDir, transformedPools)
 
 	return { builtAt }
 }
@@ -55,7 +83,11 @@ async function buildTokenRightsDomain(rootDir: string): Promise<DomainBuildResul
 	await ensureDirectory(domainDir)
 
 	const entries = await fetchJson<IRawTokenRightsEntry[]>(`${SERVER_URL}/token-rights`)
+	const indexes = buildTokenRightsIndexes(entries)
+
 	await writeJsonFile(`${domainDir}/full.json`, entries)
+	await writeJsonFile(`${domainDir}/by-defillama-id.json`, indexes.byDefillamaId)
+	await writeJsonFile(`${domainDir}/by-protocol-name.json`, indexes.byProtocolName)
 
 	return { builtAt }
 }
