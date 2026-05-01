@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -12,7 +12,7 @@ import { LiquidationsTableTabs } from '~/containers/LiquidationsV2/TableTabs'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { formattedNum } from '~/utils'
-import { fetchTokenLiquidationsClient } from '../LiquidationsV2/api'
+import { fetchTokenLiquidationsForAliases } from '../LiquidationsV2/api'
 import type { OverviewChainRow, OverviewProtocolRow, TokenLiquidationsSectionData } from '../LiquidationsV2/api.types'
 
 const TOKEN_LIQUIDATIONS_SECTION_ID = 'token-liquidations'
@@ -121,8 +121,8 @@ const chainColumns = [
 async function fetchTokenLiquidationsRows(
 	tokenSymbol: string,
 	authorizedFetch: (url: string) => Promise<Response | null>
-): Promise<TokenLiquidationsSectionData> {
-	return fetchTokenLiquidationsClient(tokenSymbol, authorizedFetch)
+): Promise<TokenLiquidationsSectionData | null> {
+	return fetchTokenLiquidationsForAliases(tokenSymbol, authorizedFetch)
 }
 
 export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string }) {
@@ -156,11 +156,6 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 				<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 			</h2>
 		</div>
-	)
-
-	const tabs = useMemo(
-		() => <LiquidationsTableTabs tabs={TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />,
-		[activeTab]
 	)
 
 	if (loaders.userLoading || isLoading) {
@@ -221,6 +216,8 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 		return null
 	}
 
+	const tabs = <LiquidationsTableTabs tabs={TABS} activeTab={activeTab} setActiveTab={handleSetActiveTab} />
+
 	return (
 		<section className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			{sectionHeader}
@@ -240,6 +237,7 @@ export function TokenLiquidationsSection({ tokenSymbol }: { tokenSymbol: string 
 					title={`${data.tokenSymbol} Liquidation Distribution`}
 					defaultBreakdownMode="protocol"
 					hideTokenSelector
+					tokenStateMode="local"
 				/>
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

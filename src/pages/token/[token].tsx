@@ -2,6 +2,7 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { Fragment, type ReactNode } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
+import { hasTokenMarketsFromNetwork } from '~/containers/Token/api'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import { DEFAULT_TABLE_PAGE_SIZE } from '~/containers/Token/tableUtils'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
@@ -9,6 +10,7 @@ import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRo
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
+import { TokenMarketsSection } from '~/containers/Token/TokenMarketsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
 import { TokenPageSectionNav } from '~/containers/Token/TokenPageSectionNav'
@@ -42,6 +44,7 @@ type TokenRouteParams = {
 
 type TokenPageSectionId =
 	| 'token-overview'
+	| 'token-markets'
 	| 'token-income-statement'
 	| 'token-risks'
 	| 'token-risk-timeline'
@@ -76,6 +79,7 @@ type TokenPageProps = {
 		borrowAsDebt: string[]
 	} | null
 	hasLiquidations: boolean
+	hasMarkets: boolean
 	resolvedUnlocksSlug?: string
 	overview: Awaited<ReturnType<typeof getTokenOverviewData>>
 	seoTitle: string
@@ -97,6 +101,10 @@ const TOKEN_SECTIONS = {
 		render: ({ overview, geckoId, record }) => (
 			<TokenOverviewSection overview={overview} geckoId={geckoId} logo={record.logo} />
 		)
+	},
+	'token-markets': {
+		label: 'Markets',
+		render: ({ record }) => <TokenMarketsSection tokenSymbol={record.symbol} />
 	},
 	'token-income-statement': {
 		label: 'Income Statement',
@@ -189,11 +197,12 @@ function findTokenRightsEntryByName(data: IRawTokenRightsEntry[], name: string):
 }
 
 function getBorrowRouteChainList(rows: TokenBorrowRoutesResponse['borrowAsCollateral']): string[] {
-	return [
-		...new Set(
-			rows.map((row) => row.chains[0]).filter((chain): chain is string => typeof chain === 'string' && chain.length > 0)
-		)
-	].sort()
+	const chains = new Set<string>()
+	for (const row of rows) {
+		const chain = row.chains[0]
+		if (typeof chain === 'string' && chain.length > 0) chains.add(chain)
+	}
+	return Array.from(chains).toSorted()
 }
 
 function getVisibleTokenSections({
@@ -204,6 +213,7 @@ function getVisibleTokenSections({
 	tokenRiskTimelineData,
 	tokenRightsData,
 	hasLiquidations,
+	hasMarkets,
 	resolvedUnlocksSlug,
 	initialYieldsRowCount,
 	initialTokenBorrowRoutesCounts
@@ -216,6 +226,7 @@ function getVisibleTokenSections({
 	| 'tokenRiskTimelineData'
 	| 'tokenRightsData'
 	| 'hasLiquidations'
+	| 'hasMarkets'
 	| 'resolvedUnlocksSlug'
 	| 'initialYieldsRowCount'
 	| 'initialTokenBorrowRoutesCounts'
@@ -234,6 +245,9 @@ function getVisibleTokenSections({
 	}
 	if (tokenRiskTimelineData) {
 		visibleSections.push('token-risk-timeline')
+	}
+	if (hasMarkets) {
+		visibleSections.push('token-markets')
 	}
 	if (tokenRightsData) {
 		visibleSections.push('token-rights-and-value-accrual')
@@ -296,6 +310,10 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
+		const marketsPromise: Promise<boolean> = hasTokenMarketsFromNetwork(record.symbol).catch((error) => {
+			console.error(`Failed to probe token markets for ${record.symbol}`, error)
+			return false
+		})
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol
@@ -461,7 +479,8 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			tokenBorrowRoutesData,
 			hasLiquidations,
 			riskData,
-			riskTimelineData
+			riskTimelineData,
+			hasMarkets
 		] = await Promise.all([
 			overviewPromise,
 			tokenRightsPromise,
@@ -479,7 +498,8 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			}),
 			liquidationsPromise,
 			tokenRiskPromise,
-			tokenRiskTimelinePromise
+			tokenRiskTimelinePromise,
+			marketsPromise
 		])
 
 		if (resolvedIncomeStatementData) {
@@ -490,12 +510,17 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 
 		const initialYieldsRowCount = yieldsRows.length
 		const initialYieldsRows: IYieldTableRow[] = yieldsRows.slice(0, DEFAULT_TABLE_PAGE_SIZE)
-		const initialYieldsChainList = [
-			...new Set(yieldsRows.map((row) => row.chains[0]).filter((chain): chain is string => Boolean(chain)))
-		].sort()
-		const initialYieldsTokensList = [
-			...new Set(yieldsRows.flatMap((row) => extractPoolTokens(row.pool)).map((poolToken) => poolToken.toUpperCase()))
-		].sort()
+		const initialYieldsChains = new Set<string>()
+		const initialYieldsTokens = new Set<string>()
+		for (const row of yieldsRows) {
+			const chain = row.chains[0]
+			if (chain) initialYieldsChains.add(chain)
+			for (const poolToken of extractPoolTokens(row.pool)) {
+				initialYieldsTokens.add(poolToken.toUpperCase())
+			}
+		}
+		const initialYieldsChainList = Array.from(initialYieldsChains).toSorted()
+		const initialYieldsTokensList = Array.from(initialYieldsTokens).toSorted()
 		const initialTokenBorrowRoutesCounts: TokenPageProps['initialTokenBorrowRoutesCounts'] = tokenBorrowRoutesData
 			? {
 					borrowAsCollateral: tokenBorrowRoutesData.borrowAsCollateral.length,
@@ -525,6 +550,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			tokenRiskTimelineData,
 			tokenRightsData,
 			hasLiquidations,
+			hasMarkets,
 			resolvedUnlocksSlug,
 			initialYieldsRowCount,
 			initialTokenBorrowRoutesCounts
@@ -556,6 +582,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				initialTokenBorrowRoutesCounts,
 				initialTokenBorrowRoutesChainLists,
 				hasLiquidations,
+				hasMarkets,
 				...(resolvedUnlocksSlug ? { resolvedUnlocksSlug } : {}),
 				overview,
 				seoTitle,

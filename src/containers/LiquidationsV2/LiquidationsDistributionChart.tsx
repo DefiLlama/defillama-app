@@ -21,6 +21,16 @@ const MultiSeriesChart2 = React.lazy(
 type Metric = 'usd' | 'amount'
 type BreakdownMode = 'total' | 'protocol' | 'chain'
 type ChartMode = 'cumulative' | 'distribution'
+type LiquidationsChartState = {
+	token: string | null
+	tokenLabel: string
+	tokenTotalUsd: number | null
+	metric: Metric
+	mode: ChartMode
+	modeLabel: string
+	breakdownMode: BreakdownMode
+	breakdownLabel: string
+}
 const TOKEN_QUERY_PARAM = 'token'
 const METRIC_QUERY_PARAM = 'metric'
 const BREAKDOWN_QUERY_PARAM = 'breakdown'
@@ -35,6 +45,155 @@ const CHART_MODE_OPTIONS: ReadonlyArray<{ key: ChartMode; name: string }> = [
 	{ key: 'distribution', name: 'Distribution' }
 ]
 const DEFAULT_BREAKDOWN_MODES = BREAKDOWN_OPTIONS.map((option) => option.key)
+
+function LiquidationsDistributionChartCard({
+	breakdownOptions,
+	chartOptions,
+	chartState,
+	deferredChartModel,
+	displayOptions,
+	onChartReady,
+	setBreakdownMode,
+	setChartMode,
+	setMetric,
+	setSelectedToken,
+	timestamp,
+	title,
+	tokenOptions,
+	chartInstanceRef
+}: {
+	breakdownOptions: Array<{ key: BreakdownMode; name: string }>
+	chartOptions: IMultiSeriesChart2Props['chartOptions']
+	chartState: LiquidationsChartState
+	deferredChartModel: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] }
+	displayOptions: {
+		hideTokenSelector: boolean
+		shouldHideDataZoom: boolean
+		showBreakdownLegend: boolean
+		showBreakdownSelector: boolean
+	}
+	onChartReady: (instance: ECharts | null) => void
+	setBreakdownMode: (mode: BreakdownMode) => void
+	setChartMode: (mode: ChartMode) => void
+	setMetric: (metric: Metric) => void
+	setSelectedToken: (token: string) => void
+	timestamp: number
+	title: string | undefined
+	tokenOptions: Array<{ key: string; name: string }>
+	chartInstanceRef: React.MutableRefObject<ECharts | null>
+}) {
+	return (
+		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="flex flex-wrap items-center gap-2 p-2">
+				{displayOptions.hideTokenSelector ? (
+					<div className="mr-auto" />
+				) : (
+					<div className="mr-auto flex min-w-0 flex-wrap items-center gap-2">
+						<SelectWithCombobox
+							allValues={tokenOptions}
+							selectedValues={chartState.token ? [chartState.token] : []}
+							setSelectedValues={(values) => {
+								const nextToken = values[0]
+								if (nextToken) setSelectedToken(nextToken)
+							}}
+							label={`Token: ${chartState.tokenLabel}`}
+							singleSelect
+							labelType="none"
+							variant="filter"
+							triggerProps={{
+								className:
+									'flex items-center justify-between gap-2 rounded-md border border-(--old-blue) bg-(--link-bg) px-2 py-1.5 text-xs font-medium text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+							}}
+							portal
+						/>
+						{chartState.tokenTotalUsd != null ? (
+							<span className="text-xs text-(--text-label)">
+								Collateral:{' '}
+								<span className="font-medium text-(--text-primary)">
+									{formattedNum(chartState.tokenTotalUsd, true)}
+								</span>
+							</span>
+						) : null}
+					</div>
+				)}
+				{displayOptions.showBreakdownSelector ? (
+					<Select
+						allValues={breakdownOptions}
+						selectedValues={chartState.breakdownMode}
+						setSelectedValues={(value: string) => setBreakdownMode(value as BreakdownMode)}
+						label={chartState.breakdownLabel}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+					<button
+						data-active={chartState.mode === 'cumulative'}
+						onClick={() => setChartMode('cumulative')}
+						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						Cumulative
+					</button>
+					<button
+						data-active={chartState.mode === 'distribution'}
+						onClick={() => setChartMode('distribution')}
+						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						Distribution
+					</button>
+				</div>
+				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+					<button
+						data-active={chartState.metric === 'usd'}
+						onClick={() => setMetric('usd')}
+						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						USD
+					</button>
+					<button
+						data-active={chartState.metric === 'amount'}
+						onClick={() => setMetric('amount')}
+						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						Amount
+					</button>
+				</div>
+				<ChartExportButtons
+					chartInstance={() => chartInstanceRef.current}
+					filename={slug(
+						[title ?? 'liquidation-distribution', chartState.token, chartState.modeLabel, chartState.breakdownLabel]
+							.filter(Boolean)
+							.join('-')
+					)}
+					title={[
+						title ?? 'Liquidation Distribution',
+						chartState.token,
+						chartState.modeLabel,
+						chartState.breakdownLabel
+					]
+						.filter(Boolean)
+						.join(' - ')}
+					smol
+				/>
+			</div>
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={deferredChartModel.dataset}
+					charts={deferredChartModel.charts}
+					chartOptions={chartOptions}
+					containerClassName="min-h-[360px]"
+					hideDataZoom={displayOptions.shouldHideDataZoom}
+					hideDefaultLegend={!displayOptions.showBreakdownLegend}
+					onReady={onChartReady}
+					valueSymbol={chartState.metric === 'usd' ? '$' : ''}
+				/>
+			</React.Suspense>
+			<div className="flex items-center justify-end gap-1 px-4 pb-3 text-xs text-(--text-label) italic opacity-70">
+				<span>Snapshot {new Date(timestamp * 1000).toUTCString()}</span>
+			</div>
+		</div>
+	)
+}
 
 function formatLiqPrice(value: number): string {
 	if (!Number.isFinite(value) || value <= 0) return '$0'
@@ -59,6 +218,16 @@ function formatMetricValue(value: number, metric: Metric, tokenLabel: string): s
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null
+}
+
+function escapeHtml(value: string): string {
+	return value
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;')
+		.replace(/\//g, '&#47;')
 }
 
 function normalizeLiquidationsChartTokenKey(value: string): string {
@@ -123,6 +292,52 @@ export function getLiquidationsChartTokenQueryPatch(nextToken: string, defaultTo
 	return {
 		[TOKEN_QUERY_PARAM]: nextToken === defaultToken ? undefined : nextToken
 	}
+}
+
+function getLiquidationsTooltipHtml(params: unknown, metric: Metric, tokenLabel: string): string {
+	const paramList = (Array.isArray(params) ? params : []).filter((param) => {
+		if (!isRecord(param)) return false
+		const value = getTooltipValue(param)
+		return value > 0
+	})
+	const first = paramList[0]
+	const axisValue =
+		isRecord(first) && 'axisValue' in first ? Number((first as { axisValue?: unknown }).axisValue) : Number.NaN
+	const axisLabel = escapeHtml(Number.isFinite(axisValue) ? formatLiqPrice(axisValue) : '')
+	const total = paramList.reduce((sum, param) => sum + getTooltipValue(param), 0)
+	const totalLabel = escapeHtml(formatMetricValue(total, metric, tokenLabel))
+	const rows: string[] = []
+
+	for (const param of paramList) {
+		if (!isRecord(param)) continue
+		const value = getTooltipValue(param)
+		const rowValue = escapeHtml(formatMetricValue(value, metric, tokenLabel))
+		const seriesName = escapeHtml(typeof param.seriesName === 'string' ? param.seriesName : '')
+		const marker = escapeHtml(typeof param.marker === 'string' ? param.marker : '')
+		rows.push(`<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px;">
+								<span style="display:inline-flex; align-items:center; gap:6px; min-width:0;">
+									${marker}
+									<span style="color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${seriesName}</span>
+								</span>
+								<span style="color:var(--text-primary); font-variant-numeric:tabular-nums; text-align:right;">${rowValue}</span>
+							</div>`)
+	}
+
+	return `<div style="min-width:220px; background:var(--cards-bg); border:1px solid var(--cards-border); box-shadow:0 18px 48px var(--tooltip-shadow, rgba(0, 0, 0, 0.24)); backdrop-filter:blur(10px); color:var(--text-primary); border-radius:10px; padding:12px 14px; font-size:12px; line-height:1.45;">
+						<div style="margin-bottom:8px;">
+							<div style="font-size:11px; color:var(--text-label); text-transform:uppercase; letter-spacing:0.08em;">Liq Price</div>
+							<div style="font-size:15px; font-weight:600; color:var(--text-primary);">${axisLabel}</div>
+						</div>
+						<div style="display:flex; flex-direction:column; gap:6px;">
+							${rows.join('')}
+						</div>
+						<div style="margin-top:8px;">
+							<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid var(--cards-border); font-size:12px;">
+								<span style="color:var(--text-label);">Total</span>
+								<span style="color:var(--text-primary); font-weight:600; font-variant-numeric:tabular-nums;">${totalLabel}</span>
+							</div>
+						</div>
+					</div>`
 }
 
 export function resolveLiquidationsChartTokenKey(
@@ -211,7 +426,8 @@ export function LiquidationsDistributionChart({
 	allowedBreakdownModes = DEFAULT_BREAKDOWN_MODES,
 	defaultBreakdownMode = 'total',
 	hideTokenSelector = false,
-	defaultChartMode = 'cumulative'
+	defaultChartMode = 'cumulative',
+	tokenStateMode = 'query'
 }: {
 	chart: LiquidationsDistributionChartData
 	timestamp: number
@@ -220,6 +436,7 @@ export function LiquidationsDistributionChart({
 	defaultBreakdownMode?: BreakdownMode
 	hideTokenSelector?: boolean
 	defaultChartMode?: ChartMode
+	tokenStateMode?: 'query' | 'local'
 }) {
 	const router = useRouter()
 	const chartInstanceRef = React.useRef<ECharts | null>(null)
@@ -242,10 +459,15 @@ export function LiquidationsDistributionChart({
 		[allowedBreakdownModes]
 	)
 	const defaultToken = chart.tokens[0]?.key ?? null
+	const [localToken, setLocalToken] = React.useReducer((_: string | null, next: string | null) => next, defaultToken)
 	const chartState = React.useMemo(() => {
+		const selectedLocalToken =
+			localToken && chart.tokens.some((entry) => entry.key === localToken) ? localToken : defaultToken
 		const token = hideTokenSelector
 			? defaultToken
-			: resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
+			: tokenStateMode === 'local'
+				? selectedLocalToken
+				: resolveLiquidationsChartTokenKey(chart, readSingleQueryValue(router.query[TOKEN_QUERY_PARAM]))
 		const metric = getLiquidationsChartMetric(readSingleQueryValue(router.query[METRIC_QUERY_PARAM]))
 		const mode = getLiquidationsChartMode(readSingleQueryValue(router.query[VIEW_QUERY_PARAM]), defaultChartMode)
 		const breakdownMode = getLiquidationsChartBreakdownMode(
@@ -253,13 +475,16 @@ export function LiquidationsDistributionChart({
 			allowedBreakdownModes,
 			defaultBreakdownMode
 		)
-		const tokenLabel = chart.tokens.find((entry) => entry.key === token)?.label ?? 'Token'
+		const selectedTokenEntry = chart.tokens.find((entry) => entry.key === token)
+		const tokenLabel = selectedTokenEntry?.label ?? 'Token'
+		const tokenTotalUsd = selectedTokenEntry?.totalUsd ?? null
 		const breakdownLabel = breakdownOptions.find((option) => option.key === breakdownMode)?.name ?? 'Total'
 		const modeLabel = CHART_MODE_OPTIONS.find((option) => option.key === mode)?.name ?? 'Cumulative'
 
 		return {
 			token,
 			tokenLabel,
+			tokenTotalUsd,
 			metric,
 			mode,
 			modeLabel,
@@ -274,15 +499,21 @@ export function LiquidationsDistributionChart({
 		defaultBreakdownMode,
 		defaultToken,
 		hideTokenSelector,
-		router.query
+		localToken,
+		router.query,
+		tokenStateMode
 	])
 
 	const setSelectedToken = React.useCallback(
 		(nextToken: string) => {
 			if (nextToken === chartState.token) return
+			if (tokenStateMode === 'local') {
+				setLocalToken(nextToken)
+				return
+			}
 			void pushShallowQuery(router, getLiquidationsChartTokenQueryPatch(nextToken, defaultToken))
 		},
-		[chartState.token, defaultToken, router]
+		[chartState.token, defaultToken, router, tokenStateMode]
 	)
 	const setMetric = React.useCallback(
 		(nextMetric: Metric) => {
@@ -414,51 +645,7 @@ export function LiquidationsDistributionChart({
 						}
 					}
 				},
-				formatter: (params: unknown) => {
-					const paramList = (Array.isArray(params) ? params : []).filter((param) => {
-						if (!isRecord(param)) return false
-						const value = getTooltipValue(param)
-						return value > 0
-					})
-					const first = paramList[0]
-					const axisValue =
-						isRecord(first) && 'axisValue' in first ? Number((first as { axisValue?: unknown }).axisValue) : Number.NaN
-					const axisLabel = Number.isFinite(axisValue) ? formatLiqPrice(axisValue) : ''
-					const total = paramList.reduce((sum, param) => sum + getTooltipValue(param), 0)
-					const totalLabel = formatMetricValue(total, chartState.metric, chartState.tokenLabel)
-					const rows = paramList
-						.map((param) => {
-							if (!isRecord(param)) return null
-							const value = getTooltipValue(param)
-							const rowValue = formatMetricValue(value, chartState.metric, chartState.tokenLabel)
-							const seriesName = typeof param.seriesName === 'string' ? param.seriesName : ''
-							const marker = typeof param.marker === 'string' ? param.marker : ''
-							return `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px;">
-								<span style="display:inline-flex; align-items:center; gap:6px; min-width:0;">
-									${marker}
-									<span style="color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${seriesName}</span>
-								</span>
-								<span style="color:var(--text-primary); font-variant-numeric:tabular-nums; text-align:right;">${rowValue}</span>
-							</div>`
-						})
-						.filter((row): row is string => typeof row === 'string')
-						.join('')
-					const totalBlock = `<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:8px; border-top:1px solid var(--cards-border); font-size:12px;">
-						<span style="color:var(--text-label);">Total</span>
-						<span style="color:var(--text-primary); font-weight:600; font-variant-numeric:tabular-nums;">${totalLabel}</span>
-					</div>`
-
-					return `<div style="min-width:220px; background:var(--cards-bg); border:1px solid var(--cards-border); box-shadow:0 18px 48px var(--tooltip-shadow, rgba(0, 0, 0, 0.24)); backdrop-filter:blur(10px); color:var(--text-primary); border-radius:10px; padding:12px 14px; font-size:12px; line-height:1.45;">
-						<div style="margin-bottom:8px;">
-							<div style="font-size:11px; color:var(--text-label); text-transform:uppercase; letter-spacing:0.08em;">Liq Price</div>
-							<div style="font-size:15px; font-weight:600; color:var(--text-primary);">${axisLabel}</div>
-						</div>
-						<div style="display:flex; flex-direction:column; gap:6px;">
-							${rows}
-						</div>
-						<div style="margin-top:8px;">${totalBlock}</div>
-					</div>`
-				}
+				formatter: (params: unknown) => getLiquidationsTooltipHtml(params, chartState.metric, chartState.tokenLabel)
 			}
 		}
 
@@ -477,105 +664,22 @@ export function LiquidationsDistributionChart({
 	}
 
 	return (
-		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-wrap items-center gap-2 p-2">
-				<div className="mr-auto min-w-0">
-					{hideTokenSelector ? null : (
-						<SelectWithCombobox
-							allValues={tokenOptions}
-							selectedValues={chartState.token ? [chartState.token] : []}
-							setSelectedValues={(values) => {
-								const nextToken = values[0]
-								if (nextToken) setSelectedToken(nextToken)
-							}}
-							label={`Token: ${chartState.tokenLabel}`}
-							singleSelect
-							labelType="none"
-							variant="filter"
-							triggerProps={{
-								className:
-									'flex items-center justify-between gap-2 rounded-md border border-(--old-blue) bg-(--link-bg) px-2 py-1.5 text-xs font-medium text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
-							}}
-							portal
-						/>
-					)}
-				</div>
-				{showBreakdownSelector ? (
-					<Select
-						allValues={breakdownOptions}
-						selectedValues={chartState.breakdownMode}
-						setSelectedValues={(value: string) => setBreakdownMode(value as BreakdownMode)}
-						label={chartState.breakdownLabel}
-						labelType="none"
-						variant="filter"
-					/>
-				) : null}
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					<button
-						data-active={chartState.mode === 'cumulative'}
-						onClick={() => setChartMode('cumulative')}
-						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						Cumulative
-					</button>
-					<button
-						data-active={chartState.mode === 'distribution'}
-						onClick={() => setChartMode('distribution')}
-						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						Distribution
-					</button>
-				</div>
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					<button
-						data-active={chartState.metric === 'usd'}
-						onClick={() => setMetric('usd')}
-						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						USD
-					</button>
-					<button
-						data-active={chartState.metric === 'amount'}
-						onClick={() => setMetric('amount')}
-						className="inline-flex shrink-0 items-center justify-center px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-					>
-						Amount
-					</button>
-				</div>
-				<ChartExportButtons
-					chartInstance={() => chartInstanceRef.current}
-					filename={slug(
-						[title ?? 'liquidation-distribution', chartState.token, chartState.modeLabel, chartState.breakdownLabel]
-							.filter(Boolean)
-							.join('-')
-					)}
-					title={[
-						title ?? 'Liquidation Distribution',
-						chartState.token,
-						chartState.modeLabel,
-						chartState.breakdownLabel
-					]
-						.filter(Boolean)
-						.join(' - ')}
-					smol
-				/>
-			</div>
-			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<MultiSeriesChart2
-					dataset={deferredChartModel.dataset}
-					charts={deferredChartModel.charts}
-					chartOptions={chartOptions}
-					containerClassName="min-h-[360px]"
-					hideDataZoom={shouldHideDataZoom}
-					hideDefaultLegend={!showBreakdownLegend}
-					onReady={onChartReady}
-					valueSymbol={chartState.metric === 'usd' ? '$' : ''}
-				/>
-			</React.Suspense>
-			<div className="flex items-center justify-end gap-1 px-4 pb-3 text-xs text-(--text-label) italic opacity-70">
-				<span>Snapshot {new Date(timestamp * 1000).toUTCString()}</span>
-			</div>
-		</div>
+		<LiquidationsDistributionChartCard
+			breakdownOptions={breakdownOptions}
+			chartOptions={chartOptions}
+			chartState={chartState}
+			deferredChartModel={deferredChartModel}
+			displayOptions={{ hideTokenSelector, shouldHideDataZoom, showBreakdownLegend, showBreakdownSelector }}
+			onChartReady={onChartReady}
+			setBreakdownMode={setBreakdownMode}
+			setChartMode={setChartMode}
+			setMetric={setMetric}
+			setSelectedToken={setSelectedToken}
+			timestamp={timestamp}
+			title={title}
+			tokenOptions={tokenOptions}
+			chartInstanceRef={chartInstanceRef}
+		/>
 	)
 }
 

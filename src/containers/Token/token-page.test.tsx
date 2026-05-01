@@ -107,6 +107,7 @@ const state: {
 	liquidationsTokenSymbols: string[]
 	liquidationsTokenSymbolsSet: Set<string>
 	hasTokenLiquidationsData: boolean
+	hasTokenMarkets: boolean
 	emissionsProtocolsList: string[]
 	incomeStatementData: unknown
 	tokenRiskData: TokenRiskResponse | null
@@ -125,6 +126,7 @@ const state: {
 	liquidationsTokenSymbols: [],
 	liquidationsTokenSymbolsSet: new Set<string>(),
 	hasTokenLiquidationsData: false,
+	hasTokenMarkets: false,
 	emissionsProtocolsList: [],
 	incomeStatementData: null,
 	tokenRiskData: null,
@@ -162,6 +164,7 @@ function resetState() {
 	state.liquidationsTokenSymbols = []
 	state.liquidationsTokenSymbolsSet = new Set<string>()
 	state.hasTokenLiquidationsData = false
+	state.hasTokenMarkets = false
 	state.emissionsProtocolsList = []
 	state.incomeStatementData = null
 	state.tokenRiskData = null
@@ -233,6 +236,14 @@ vi.mock('~/containers/Token/TokenUsageSection', () => ({
 
 vi.mock('~/containers/Token/TokenLiquidationsSection', () => ({
 	TokenLiquidationsSection: () => <section id="token-liquidations">token-liquidations-section</section>
+}))
+
+vi.mock('~/containers/Token/TokenMarketsSection', () => ({
+	TokenMarketsSection: () => <section id="token-markets">token-markets-section</section>
+}))
+
+vi.mock('~/containers/Token/api', () => ({
+	hasTokenMarketsFromNetwork: vi.fn(() => Promise.resolve(state.hasTokenMarkets))
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
@@ -385,6 +396,7 @@ describe('token page', () => {
 				}}
 				geckoId="bitcoin"
 				hasLiquidations
+				hasMarkets={false}
 				resolvedUnlocksSlug="chainlink"
 				overview={overviewFixture}
 				seoTitle="title"
@@ -471,6 +483,7 @@ describe('token page', () => {
 				initialTokenBorrowRoutesChainLists={null}
 				geckoId="bitcoin"
 				hasLiquidations={false}
+				hasMarkets={false}
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -494,6 +507,43 @@ describe('token page', () => {
 		expect(navHtml).not.toContain('>Risks<')
 		expect(navHtml).not.toContain('>Liquidations<')
 		expect(navHtml).not.toContain('>Unlocks<')
+	})
+
+	it('renders the markets section when hasMarkets is true', () => {
+		const html = renderToStaticMarkup(
+			<TokenPage
+				record={{ name: 'Bitcoin', symbol: 'BTC', token_nk: 'coingecko:bitcoin' }}
+				displayName="BTC"
+				tokenRightsData={null}
+				incomeStatementData={null}
+				incomeStatementProtocolName={null}
+				incomeStatementHasIncentives={false}
+				tokenRiskData={null}
+				tokenRiskTimelineData={null}
+				initialYieldsRows={[]}
+				initialYieldsRowCount={0}
+				initialYieldsChainList={[]}
+				initialYieldsTokensList={[]}
+				initialTokenBorrowRoutesData={null}
+				initialTokenBorrowRoutesCounts={null}
+				initialTokenBorrowRoutesChainLists={null}
+				geckoId="bitcoin"
+				hasLiquidations={false}
+				hasMarkets={true}
+				overview={overviewFixture}
+				seoTitle="title"
+				seoDescription="description"
+				canonicalUrl="/token/btc"
+				visibleSections={['token-overview', 'token-markets', 'token-usage']}
+			/>
+		)
+		const navHtml = html.match(/<nav[^>]*aria-label="Token page sections"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? ''
+
+		expect(html).toContain('token-markets-section')
+		expect(html).toContain('id="token-markets"')
+		expect(navHtml).toContain('>Markets<')
+		expect(html.indexOf('token-markets-section')).toBeGreaterThan(html.indexOf('token-overview-section'))
+		expect(html.indexOf('token-usage-section')).toBeGreaterThan(html.indexOf('token-markets-section'))
 	})
 
 	it('renders each yield-related section from its own prefetched dataset', () => {
@@ -527,6 +577,7 @@ describe('token page', () => {
 				}}
 				geckoId="bitcoin"
 				hasLiquidations={false}
+				hasMarkets={false}
 				overview={overviewFixture}
 				seoTitle="title"
 				seoDescription="description"
@@ -590,6 +641,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
@@ -615,6 +667,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
@@ -679,6 +732,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
@@ -726,6 +780,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'Swing.xyz Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track Swing.xyz price, market cap, circulating supply, max supply, and trading volume.',
@@ -848,6 +903,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'LINK Price, Market Cap, Supply, Trading Volume & Token Rights',
 				seoDescription:
@@ -1116,6 +1172,7 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
+				hasMarkets: false,
 				overview: overviewFixture,
 				seoTitle: 'AAVE Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track AAVE price, market cap, circulating supply, max supply, and trading volume.',
