@@ -181,7 +181,9 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 	}
 
 	if (failures.length > 0) {
-		throw new Error(`Failed to build dataset domains:\n${failures.join('\n')}`)
+		const message = `Failed to build dataset domains:\n${failures.join('\n')}`
+		if (process.env.NODE_ENV === 'production') throw new Error(message)
+		console.warn('[datasetCache] dev: continuing despite domain failures:\n' + failures.join('\n'))
 	}
 
 	manifest.builtAt = latestBuiltAt || Date.now()
