@@ -372,13 +372,15 @@ function ArtifactBlockRenderer({
 	block,
 	artifact,
 	isStreaming,
-	sessionId: _sessionId,
+	sessionId,
+	messageId,
 	onImageClick
 }: {
 	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' | 'image' }>
 	artifact?: ArtifactRecord
 	isStreaming: boolean
 	sessionId?: string | null
+	messageId?: string
 	onImageClick?: (url: string) => void
 }) {
 	if (block.type === 'chart') {
@@ -387,7 +389,14 @@ function ArtifactBlockRenderer({
 			return isStreaming ? <StreamingChartPlaceholder /> : null
 		}
 		if (artifact.type !== 'chart') return null
-		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} />
+		return (
+			<ChartRenderer
+				charts={artifact.charts}
+				chartData={artifact.chartData}
+				sessionId={sessionId}
+				messageId={messageId}
+			/>
+		)
 	}
 
 	if (block.type === 'csv') {
@@ -402,6 +411,8 @@ function ArtifactBlockRenderer({
 					rowCount: artifact.rowCount,
 					filename: artifact.filename
 				}}
+				sessionId={sessionId}
+				messageId={messageId}
 			/>
 		)
 	}
@@ -417,6 +428,8 @@ function ArtifactBlockRenderer({
 					url: artifact.url,
 					filename: artifact.filename
 				}}
+				sessionId={sessionId}
+				messageId={messageId}
 			/>
 		)
 	}
@@ -507,6 +520,7 @@ function MessageContentBlock({
 			artifact={artifact}
 			isStreaming={isStreaming}
 			sessionId={sessionId}
+			messageId={messageId}
 			onImageClick={onImageClick}
 		/>
 	)
@@ -860,7 +874,13 @@ export function MessageBubble({
 					</div>
 				) : null}
 				<p>{message.content}</p>
-				<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
+				<ImagePreviewModal
+					imageUrl={previewImage}
+					onClose={() => setPreviewImage(null)}
+					source="user-upload"
+					sessionId={sessionId}
+					messageId={message.id}
+				/>
 			</div>
 		)
 	}
@@ -880,7 +900,13 @@ export function MessageBubble({
 				onTableFullscreenOpen={onTableFullscreenOpen}
 				onImageClick={setPreviewImage}
 			/>
-			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
+			<ImagePreviewModal
+				imageUrl={previewImage}
+				onClose={() => setPreviewImage(null)}
+				source="generated"
+				sessionId={sessionId}
+				messageId={message.id}
+			/>
 			{message.id && !isDraft ? (
 				<ResponseControls
 					messageId={message.id}

@@ -54,6 +54,7 @@ export interface AgenticSSECallbacks {
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
 	onTokenLimit?: () => void
+	onContextWarning?: (warning: ContextWarningPayload) => void
 	onError: (content: string) => void
 	onDone: () => void
 }
@@ -154,6 +155,19 @@ interface TokenLimitEvent {
 	upgradeUrl?: string
 }
 
+export interface ContextWarningPayload {
+	kind: 'long_thread'
+	reason: 'tokens' | 'messages'
+	message: string
+	thresholds?: { input_tokens?: number; messages?: number }
+	observed?: { input_tokens?: number; messages?: number }
+}
+
+interface ContextWarningEvent {
+	type: 'context_warning'
+	content: ContextWarningPayload
+}
+
 interface ErrorEvent {
 	type: 'error'
 	content?: string
@@ -192,6 +206,7 @@ type AgenticSSEEvent =
 	| MessageIdEvent
 	| MessageMetadataEvent
 	| TokenLimitEvent
+	| ContextWarningEvent
 	| ErrorEvent
 	| DoneEvent
 
@@ -341,6 +356,9 @@ export function parseSSEStream(
 					break
 				case 'token_limit':
 					callbacks.onTokenLimit?.()
+					break
+				case 'context_warning':
+					if (data.content) callbacks.onContextWarning?.(data.content)
 					break
 				case 'error':
 					callbacks.onError(data.content || 'Unknown error')

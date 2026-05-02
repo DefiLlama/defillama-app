@@ -1,5 +1,5 @@
 import type { Dispatch } from 'react'
-import type { CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
+import type { ContextWarningPayload, CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type {
 	AlertProposedData,
 	ChartSet,
@@ -61,6 +61,7 @@ export interface StreamState {
 	error: string | null
 	lastFailedRequest: FailedRequest | null
 	rateLimitDetails: RateLimitDetails | null
+	contextWarning: ContextWarningPayload | null
 }
 
 export interface StreamBuffer {
@@ -107,6 +108,7 @@ export type StreamAction =
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
+	| { type: 'SET_CONTEXT_WARNING'; value: ContextWarningPayload | null }
 
 // Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
@@ -140,7 +142,8 @@ export const createInitialStreamState = (): StreamState => ({
 	...createEmptyRuntimeState(),
 	error: null,
 	lastFailedRequest: null,
-	rateLimitDetails: null
+	rateLimitDetails: null,
+	contextWarning: null
 })
 
 // Keep a mutable buffer while SSE events arrive, then commit it as one assistant message at the end.
@@ -264,6 +267,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					lastErrorMessage: null
 				}
 			}
+		case 'SET_CONTEXT_WARNING':
+			return { ...state, contextWarning: action.value }
 		default:
 			return state
 	}

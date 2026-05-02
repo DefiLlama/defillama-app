@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -116,12 +117,21 @@ export function PDFExportButton({ sessionId, messageId, exportType, className }:
 				const blob = await pdfResponse.blob()
 				const url = window.URL.createObjectURL(blob)
 				const a = document.createElement('a')
+				const pdfFilename = `llama-ai-export-${Date.now()}.pdf`
 				a.href = url
-				a.download = `llama-ai-export-${Date.now()}.pdf`
+				a.download = pdfFilename
 				document.body.appendChild(a)
 				a.click()
 				document.body.removeChild(a)
 				window.URL.revokeObjectURL(url)
+				trackUmamiEvent('llamaai-download', {
+					kind: 'pdf',
+					filename: pdfFilename,
+					exportType,
+					theme: isDark ? 'dark' : 'light',
+					sessionId: sessionId ?? '',
+					messageId: messageId ?? ''
+				})
 				toast.success('PDF downloaded!', { id: 'pdf-export' })
 				setIsLoading(false)
 			} catch (error) {

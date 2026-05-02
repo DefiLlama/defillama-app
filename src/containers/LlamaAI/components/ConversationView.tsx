@@ -11,6 +11,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
+import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWarningBanner'
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
@@ -20,6 +21,7 @@ import {
 	TypingIndicator
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
+import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
 import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 
@@ -72,6 +74,9 @@ interface ConversationViewProps {
 	onClearQuotedText?: () => void
 	onTableFullscreenOpen?: () => void
 	onShare?: (messageId?: string) => void
+	contextWarning?: ContextWarningPayload | null
+	onDismissContextWarning?: () => void
+	onStartNewChat?: () => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -294,7 +299,10 @@ export function ConversationView({
 	quotedText,
 	onClearQuotedText,
 	onTableFullscreenOpen,
-	onShare
+	onShare,
+	contextWarning,
+	onDismissContextWarning,
+	onStartNewChat
 }: ConversationViewProps) {
 	const { isFullscreen, sidebarVisible } = useLlamaAIChrome()
 	const isLiveExchange = isStreaming || recovery.status === 'reconnecting' || Boolean(error)
@@ -539,7 +547,15 @@ export function ConversationView({
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-					<TipOrNotifyBanner />
+					{contextWarning && onStartNewChat && onDismissContextWarning ? (
+						<ContextWarningBanner
+							warning={contextWarning}
+							onStartNewChat={onStartNewChat}
+							onDismiss={onDismissContextWarning}
+						/>
+					) : (
+						<TipOrNotifyBanner />
+					)}
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}

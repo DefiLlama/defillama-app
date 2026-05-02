@@ -12,6 +12,7 @@ import {
 	extractLlamaLinks,
 	processCitationMarkers
 } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
@@ -96,12 +97,14 @@ function TableWrapper({
 	children,
 	isStreaming = false,
 	tableProps,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	messageId
 }: {
 	children: ReactNode
 	isStreaming: boolean
 	tableProps?: ComponentPropsWithoutRef<'table'>
 	onTableFullscreenOpen?: () => void
+	messageId?: string
 }) {
 	const tableRef = useRef<HTMLDivElement>(null)
 	const fullscreenDialogStore = Ariakit.useDialogStore()
@@ -128,7 +131,16 @@ function TableWrapper({
 		}
 
 		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-		return { filename: `table-${timestamp}`, rows }
+		const filename = `table-${timestamp}`
+		const headerRow = rows[0] ?? []
+		trackUmamiEvent('llamaai-download', {
+			kind: 'table-csv',
+			filename,
+			rowCount: Math.max(0, rows.length - 1),
+			columns: headerRow.join('|').slice(0, 480),
+			messageId: messageId ?? ''
+		})
+		return { filename, rows }
 	}
 
 	return (
@@ -418,7 +430,12 @@ export function ChatMarkdownRenderer({
 			return EntityLinkRenderer(props)
 		},
 		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-			<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
+			<TableWrapper
+				isStreaming={isStreaming}
+				tableProps={props}
+				onTableFullscreenOpen={onTableFullscreenOpen}
+				messageId={messageId}
+			>
 				{children}
 			</TableWrapper>
 		),
