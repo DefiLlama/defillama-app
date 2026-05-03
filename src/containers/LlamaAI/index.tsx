@@ -652,6 +652,10 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTokenLimit?.()
 		},
+		onContextWarning: (warning) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_CONTEXT_WARNING', value: warning })
+		},
 		onError: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			dispatch({ type: 'SET_ERROR', value: content })
@@ -839,7 +843,8 @@ export function AgenticChat({
 		recovery,
 		error,
 		lastFailedRequest,
-		rateLimitDetails
+		rateLimitDetails,
+		contextWarning
 	} = streamState
 
 	const sharedMessages = useMemo(
@@ -1569,6 +1574,7 @@ export function AgenticChat({
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
+		dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })
 	}, [clearRecoveryController, resetPromptTransition])
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
@@ -2326,6 +2332,9 @@ export function AgenticChat({
 								onClearQuotedText={() => setQuotedText(null)}
 								onTableFullscreenOpen={hideSidebar}
 								onShare={openShareModal}
+								contextWarning={contextWarning}
+								onDismissContextWarning={() => dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })}
+								onStartNewChat={() => void handleNewChat()}
 							/>
 						)}
 					</div>

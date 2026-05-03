@@ -181,7 +181,7 @@ export function ImageUpload({
 					})}
 				</div>
 			) : null}
-			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
+			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} source="input-preview" />
 		</>
 	)
 }
