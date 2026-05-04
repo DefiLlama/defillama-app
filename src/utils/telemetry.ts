@@ -853,6 +853,8 @@ function encodeStaticRouteSegment(segment: string): string {
 	return sanitized === '[REDACTED]' ? sanitized : encodeURIComponent(sanitized)
 }
 
+const UNRESOLVED_STATIC_ROUTE_TOKEN_PATTERN = /\[\[?\.{3}(?!REDACTED\]?\])[^/\]]+\]?\]|\[(?!REDACTED\])[^/\]]+\]/
+
 export function staticRouteTelemetryAttributes(
 	params?: Record<string, string | string[] | undefined>
 ): TelemetryAttributes | undefined {
@@ -886,7 +888,11 @@ export function buildStaticRouteRequestPath(
 		}
 	}
 
-	return replaced ? (path.startsWith('/') ? path : `/${path}`) : undefined
+	if (!replaced || UNRESOLVED_STATIC_ROUTE_TOKEN_PATTERN.test(path)) {
+		return undefined
+	}
+
+	return path.startsWith('/') ? path : `/${path}`
 }
 
 function urlParts(url: string): { host?: string; pathname?: string; apiGroup?: string } {

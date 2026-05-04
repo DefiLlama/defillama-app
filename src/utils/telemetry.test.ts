@@ -141,6 +141,8 @@ describe('telemetry client', () => {
 
 		expect(buildStaticRouteRequestPath('chain/[chain]', { chain: 'ethereum' })).toBe('/chain/ethereum')
 		expect(buildStaticRouteRequestPath('/chain/[chain]', { chain: 'ethereum' })).toBe('/chain/ethereum')
+		expect(buildStaticRouteRequestPath('/chain/[chain]/[protocol]', { chain: 'ethereum' })).toBeUndefined()
+		expect(buildStaticRouteRequestPath('/chain/[chain]', { chain: 'a'.repeat(24) })).toBe('/chain/[REDACTED]')
 
 		await withStaticRouteTelemetry(
 			'/chain/[chain]',

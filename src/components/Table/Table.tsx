@@ -377,7 +377,7 @@ export function VirtualTable<T extends RowData>({
 				stickyScrollbar.removeEventListener('scroll', handleStickyScroll)
 			}
 		}
-	}, [rows.length, isSmallScreen, headerGroups.length, visibleLeafColumns.length])
+	}, [rows.length, isSmallScreen, headerGroups.length, visibleLeafColumns.length, skipVirtualization, useStickyHeader])
 
 	if (hasNoVisibleColumns) {
 		return (

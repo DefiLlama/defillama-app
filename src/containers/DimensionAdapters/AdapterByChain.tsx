@@ -670,21 +670,23 @@ const definitionColumn = columnHelper.accessor((protocol) => protocol.methodolog
 	}
 })
 
-const metricColumnWidthClassBySize: Record<number, string> = {
+type MetricColumnSize = 128 | 152 | 160 | 180
+
+const metricColumnWidthClassBySize: Record<MetricColumnSize, string> = {
 	128: 'w-[128px]',
 	152: 'w-[152px]',
 	160: 'w-[160px]',
 	180: 'w-[min(180px,40vw)]'
 }
 
-const getMetricColumnWidthClass = (size: number) => metricColumnWidthClassBySize[size] ?? 'w-[160px]'
+const getMetricColumnWidthClass = (size: MetricColumnSize) => metricColumnWidthClassBySize[size]
 
 const centeredMetricColumn = (
 	id: string,
 	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number,
+	size: MetricColumnSize,
 	csvHeader?: string
 ) =>
 	columnHelper.accessor(accessor, {
@@ -704,7 +706,7 @@ const endMetricColumn = (
 	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number
+	size: MetricColumnSize
 ) =>
 	columnHelper.accessor(accessor, {
 		id,
@@ -722,7 +724,7 @@ const doubleCountedMetricColumn = (
 	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number,
+	size: MetricColumnSize,
 	csvHeader?: string
 ) =>
 	columnHelper.accessor(accessor, {
@@ -752,7 +754,7 @@ const reportedPerpVolumeColumn = (
 	header: string,
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number
+	size: MetricColumnSize
 ) =>
 	columnHelper.accessor(accessor, {
 		id,
@@ -796,7 +798,7 @@ const openInterestMetricColumn = (
 	header: string,
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number,
+	size: MetricColumnSize,
 	align: 'center' | 'end' = 'center'
 ) =>
 	columnHelper.accessor(accessor, {

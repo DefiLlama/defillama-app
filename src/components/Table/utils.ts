@@ -45,7 +45,7 @@ function sortColumnOrders({
 	columnOrders?: ColumnOrdersByBreakpoint | null
 	width?: number | null
 }) {
-	if (!width) {
+	if (width == null) {
 		return
 	}
 

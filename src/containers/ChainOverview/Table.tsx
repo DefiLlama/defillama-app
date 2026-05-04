@@ -201,6 +201,7 @@ const ChainProtocolsTableInner = ({
 	const allColumns = useMemo<ColumnDef<IProtocol>[]>(() => {
 		const customColumnDefs = customColumns.map((col, idx) => {
 			const columnId = `custom_formula_${idx}`
+			const displayFormat = col.determinedFormat || col.formatType
 
 			return columnHelper.accessor(
 				(row) => {
@@ -211,8 +212,7 @@ const ChainProtocolsTableInner = ({
 						return null
 					}
 
-					const usedFormat = col.determinedFormat || col.formatType
-					return getSortableValue(value, usedFormat)
+					return getSortableValue(value, displayFormat)
 				},
 				{
 					id: columnId,
@@ -233,8 +233,7 @@ const ChainProtocolsTableInner = ({
 							)
 						}
 
-						const usedFormat = col.determinedFormat || col.formatType
-						if (usedFormat === 'boolean' && typeof value === 'boolean') {
+						if (displayFormat === 'boolean' && typeof value === 'boolean') {
 							return (
 								<span title={value ? 'True' : 'False'} className="flex items-center">
 									{value ? '✅' : '❌'}
@@ -242,10 +241,9 @@ const ChainProtocolsTableInner = ({
 							)
 						}
 
-						return <span className="flex items-center">{formatValue(value, usedFormat)}</span>
+						return <span className="flex items-center">{formatValue(value, displayFormat)}</span>
 					},
 					sortingFn: (rowA, rowB, sortColumnId) => {
-						const usedFormat = col.determinedFormat || col.formatType
 						const sortEntry = sortingRef.current.find((s) => s.id === sortColumnId)
 						const desc = sortEntry?.desc ?? true
 
@@ -264,9 +262,9 @@ const ChainProtocolsTableInner = ({
 							return 0
 						}
 
-						if (usedFormat === 'string') {
+						if (displayFormat === 'string') {
 							return String(a).localeCompare(String(b))
-						} else if (usedFormat === 'boolean') {
+						} else if (displayFormat === 'boolean') {
 							if (a === true && b === false) return 1
 							if (a === false && b === true) return -1
 							return 0
@@ -275,8 +273,9 @@ const ChainProtocolsTableInner = ({
 						}
 					},
 					meta: {
-						headerClassName: 'w-[140px]',
-						align: 'end',
+						headerClassName:
+							displayFormat === 'string' ? 'w-[220px]' : displayFormat === 'boolean' ? 'w-[110px]' : 'w-[140px]',
+						align: displayFormat === 'string' ? 'start' : displayFormat === 'boolean' ? 'center' : 'end',
 						headerHelperText: col.formula
 					}
 				}

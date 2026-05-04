@@ -4,7 +4,8 @@ import * as ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 
 const SRC_DIR = path.join(process.cwd(), 'src')
-const TABLE_USAGE_PATTERN = /components\/Table\/(Table|TableWithSearch)['"]|<VirtualTable\b|<TableWithSearch\b/
+const TABLE_USAGE_PATTERN =
+	/components\/Table\/(Table|TableWithSearch)['"]|<VirtualTable\b|<TableWithSearch\b|\b\w+TableWrapper\b|<\w+TableWrapper\b/
 
 function sourceFiles(dir: string): string[] {
 	const files: string[] = []
