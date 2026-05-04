@@ -1,6 +1,5 @@
 import {
 	type ColumnFiltersState,
-	type ColumnSizingState,
 	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
@@ -22,7 +21,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
@@ -82,7 +81,6 @@ export function RecentlyListedProtocolsTable({
 	forkedList?: Record<string, boolean>
 }) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'listedAt' }])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
@@ -97,7 +95,6 @@ export function RecentlyListedProtocolsTable({
 		state: {
 			sorting,
 			expanded,
-			columnSizing,
 			columnFilters
 		},
 		defaultColumn: {
@@ -106,15 +103,12 @@ export function RecentlyListedProtocolsTable({
 		enableSortingRemoval: false,
 		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	})
-
-	useSortColumnSizesAndOrders({ instance, columnSizes })
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
@@ -272,7 +266,9 @@ const protocolsColumns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[180px] lg:w-[240px] xl:w-[200px]'
+		}
 	}),
 	columnHelper.accessor('category', {
 		header: 'Category',
@@ -300,93 +296,55 @@ const protocolsColumns = [
 				''
 			)
 		},
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'TVL',
 		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
-		},
-		size: 140
+		}
 	}),
 	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 7 days'
-		},
-		size: 140
+		}
 	}),
 	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 30 days'
-		},
-		size: 140
+		}
 	}),
 	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap/TVL',
 		cell: (info) => <>{info.getValue() ?? null}</>,
-		size: 100,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
 		}
 	})
 ]
-
-const columnSizes = {
-	0: {
-		rank: 60,
-		compare: 80,
-		name: 180,
-		category: 140,
-		change_1d: 140,
-		change_7d: 140,
-		change_1m: 140,
-		tvl: 120,
-		mcaptvl: 110,
-		totalRaised: 168
-	},
-	1024: {
-		rank: 60,
-		compare: 80,
-		name: 240,
-		category: 140,
-		change_1d: 140,
-		change_7d: 140,
-		change_1m: 140,
-		tvl: 120,
-		mcaptvl: 110,
-		totalRaised: 168
-	},
-	1280: {
-		rank: 60,
-		compare: 80,
-		name: 200,
-		category: 140,
-		change_1d: 140,
-		change_7d: 140,
-		change_1m: 140,
-		tvl: 120,
-		mcaptvl: 110,
-		totalRaised: 168
-	}
-}
-
 type ProtocolTvlRow = RecentProtocolTableRow & {
 	strikeTvl?: boolean
 	parentExcluded?: boolean
@@ -458,8 +416,8 @@ const listedAtColumn = columnHelper.accessor('listedAt', {
 		const listedAt = getValue()
 		return listedAt != null ? toNiceDaysAgo(listedAt) : ''
 	},
-	size: 120,
 	meta: {
+		headerClassName: 'w-[120px]',
 		align: 'end'
 	}
 })
@@ -478,8 +436,8 @@ const airdropsColumns = [
 			const totalRaised = getValue()
 			return <>{totalRaised != null ? formattedNum(totalRaised, true) : ''}</>
 		},
-		size: 168,
 		meta: {
+			headerClassName: 'w-[168px]',
 			align: 'end'
 		}
 	}),

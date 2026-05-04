@@ -133,9 +133,9 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Pool',
 			enableSorting: false,
 			cell: ({ getValue, row }) => <PoolNameCell value={getValue()} row={row} />,
-			size: 200,
 			meta: {
-				headerClassName: 'min-w-[160px] sm:min-w-[200px]'
+				headerClassName:
+					'w-[120px] min-[812px]:w-[200px] xl:w-[240px] 2xl:w-[280px] min-[1600px]:w-[320px] min-[1640px]:w-[360px] min-[1720px]:w-[420px]'
 			}
 		}),
 		columnHelper.accessor('project', {
@@ -150,9 +150,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					raiseValuation={row.original.raiseValuation}
 				/>
 			),
-			size: 200,
 			meta: {
-				headerClassName: 'min-w-[140px] pl-9 sm:min-w-[200px]'
+				headerClassName: 'pl-9 w-[200px]'
 			}
 		}),
 		columnHelper.accessor('chains', {
@@ -161,9 +160,9 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			enableSorting: false,
 			cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
 			meta: {
+				headerClassName: 'w-[60px]',
 				align: 'end'
-			},
-			size: 60
+			}
 		}),
 		columnHelper.accessor((row) => row.tvl ?? undefined, {
 			id: 'tvl',
@@ -179,8 +178,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: 'Note for lending pools: TVL = Available Liquidity = (Supplied - Borrowed)'
 			}
@@ -211,8 +210,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 100,
 			meta: {
+				headerClassName: 'w-[100px]',
 				align: 'end',
 				headerHelperText:
 					'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
@@ -236,8 +235,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText:
 					'Annualised percentage yield from trading fees/supplying. For dexs we use the 24h fees and scale those to a year.'
@@ -266,8 +265,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText: 'Annualised percentage yield from incentives.'
 			}
@@ -277,8 +276,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '7d Base APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 140,
 			meta: {
+				headerClassName: 'w-[130px] min-[812px]:w-[140px]',
 				align: 'end',
 				headerHelperText: `Annualised percentage yield based on the trading fees from the last 7 days. ${uniswapV3}`
 			}
@@ -288,8 +287,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '7d IL',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 100,
 			meta: {
+				headerClassName: 'w-[90px]',
 				align: 'end',
 				headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs holding the underlying assets instead. ${uniswapV3}`
 			}
@@ -299,8 +298,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '30d Avg APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 125,
 			meta: {
+				headerClassName: 'w-[125px]',
 				align: 'end'
 			}
 		}),
@@ -321,8 +320,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					/>
 				)
 			},
-			size: 110,
 			meta: {
+				headerClassName: 'w-[110px]',
 				align: 'end',
 				headerHelperText: 'Measures yield consistency over the last 30 days.'
 			}
@@ -332,8 +331,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Peg',
 			enableSorting: true,
 			cell: ({ row }) => <PegHealthIndicator deviation={row.original.pegDeviation} price={row.original.pegPrice} />,
-			size: 100,
 			meta: {
+				headerClassName: 'w-[100px]',
 				align: 'end',
 				headerHelperText: 'Live peg deviation from $1.00 target price.'
 			}
@@ -343,8 +342,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '30d Median APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText: '30-day median APY — more robust than average, resistant to outlier spikes.'
 			}
@@ -354,8 +353,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '30d Std Dev',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: 'Standard deviation of daily APY over the last 30 days. Measures yield volatility.'
 			}
@@ -383,8 +382,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</BasicLink>
 				)
 			},
-			size: 125,
 			meta: {
+				headerClassName: 'w-[125px]',
 				align: 'end'
 			}
 		}),
@@ -393,8 +392,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '1d Volume',
 			enableSorting: true,
 			cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText: '$ Volume in the last 24 hours.'
 			}
@@ -404,8 +403,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: '7d Volume',
 			enableSorting: true,
 			cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText: '$ Volume in the last 7 days'
 			}
@@ -415,8 +414,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Inception APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 140,
 			meta: {
+				headerClassName: 'w-[150px]',
 				align: 'end',
 				headerHelperText: 'Annualised percentage yield since inception'
 			}
@@ -441,8 +440,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 100,
 			meta: {
+				headerClassName: 'w-[100px]',
 				align: 'end',
 				headerHelperText:
 					'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
@@ -453,8 +452,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Base APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText:
 					'Annualised percentage yield from trading fees/supplying inclusive of LSD APY (if applicable). For dexs we use the 24h fees and scale those to a year.'
@@ -465,8 +464,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Net Borrow APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign fontWeight={700} />,
-			size: 140,
 			meta: {
+				headerClassName: 'w-[160px]',
 				align: 'end',
 				headerHelperText: 'Total net APY for borrowing (Borrow Base APY + Borrow Reward APY).'
 			}
@@ -476,8 +475,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Borrow Base APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 160,
 			meta: {
+				headerClassName: 'w-[170px]',
 				align: 'end',
 				headerHelperText: 'Interest borrowers pay to lenders.'
 			}
@@ -487,8 +486,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 			header: 'Borrow Reward APY',
 			enableSorting: true,
 			cell: (info) => <PercentChange percent={info.getValue()} noSign />,
-			size: 160,
 			meta: {
+				headerClassName: 'w-[180px]',
 				align: 'end',
 				headerHelperText: 'Incentive reward APY for borrowing.'
 			}
@@ -507,8 +506,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[110px]',
 				align: 'end',
 				headerHelperText: 'Max loan to value (collateral factor)'
 			}
@@ -527,8 +526,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end'
 			}
 		}),
@@ -546,8 +545,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: 'Amount of borrowed collateral'
 			}
@@ -571,8 +570,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</Tooltip>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[130px]',
 				align: 'end',
 				headerHelperText: 'Number of unique token holders. Hover for 7d/30d change.'
 			}
@@ -597,8 +596,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</Tooltip>
 				)
 			},
-			size: 110,
 			meta: {
+				headerClassName: 'w-[110px]',
 				align: 'end',
 				headerHelperText: 'Percentage of TVL held by the top 10 holders. Higher = more concentrated.'
 			}
@@ -612,8 +611,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 				if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
 				return <span className="tabular-nums">{formattedNum(val, true)}</span>
 			},
-			size: 160,
 			meta: {
+				headerClassName: 'w-[160px]',
 				align: 'end',
 				headerHelperText: 'Average position size in USD (TVL / holder count).'
 			}
@@ -641,8 +640,8 @@ function createPoolsColumns({ hasPremiumAccess, isClient, onRequestUpgrade }: Po
 					</span>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end'
 			}
 		})
@@ -785,240 +784,11 @@ const columnOrders: Record<number, readonly PoolsColumnId[]> = {
 		'apyChart30d'
 	]
 }
-
-const columnSizes: Record<number, Partial<Record<PoolsColumnId, number>>> = {
-	0: {
-		pool: 120,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 130,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	},
-	812: {
-		pool: 200,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 140,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	},
-	1280: {
-		pool: 240,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 140,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	},
-	1536: {
-		pool: 280,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 140,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	},
-	1600: {
-		pool: 320,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 140,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	},
-	1640: {
-		pool: 360,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 140,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	},
-	1720: {
-		pool: 420,
-		project: 200,
-		chains: 60,
-		tvl: 120,
-		apy: 100,
-		apyIncludingLsdApy: 100,
-		apyBase: 140,
-		apyBaseIncludingLsdApy: 140,
-		apyReward: 140,
-		apyBase7d: 140,
-		il7d: 90,
-		apyMean30d: 125,
-		cv30d: 110,
-		pegDeviation: 100,
-		apyMedian30d: 140,
-		apyStd30d: 120,
-		volumeUsd1d: 140,
-		volumeUsd7d: 140,
-		apyBaseInception: 150,
-		apyChart30d: 125,
-		apyBorrow: 160,
-		apyBaseBorrow: 170,
-		apyRewardBorrow: 180,
-		ltv: 110,
-		totalSupplyUsd: 120,
-		totalBorrowUsd: 120,
-		totalAvailableUsd: 120,
-		holderCount: 130,
-		top10Pct: 110,
-		avgPositionUsd: 160
-	}
-}
-
 export const POOLS_TABLE_CONFIG: YieldsTableConfig<IYieldTableRow, PoolsColumnId, PoolsTableConfigContext> = {
 	kind: 'pools',
 	columnIds: POOLS_COLUMN_IDS,
 	columns: createPoolsColumns,
 	columnOrders,
-	columnSizes,
 	columnVisibility: ({ query, hasPremiumAccess }) =>
 		decodePoolsColumnVisibilityQuery(query as Record<string, string | string[] | undefined>, {
 			hasPremiumAccess,
@@ -1059,7 +829,6 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 			<YieldsTableWrapper
 				{...props}
 				columns={resolvedConfig.columns}
-				columnSizes={resolvedConfig.columnSizes}
 				columnOrders={resolvedConfig.columnOrders}
 				columnVisibility={resolvedConfig.columnVisibility}
 			/>

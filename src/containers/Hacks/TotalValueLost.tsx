@@ -48,6 +48,9 @@ const columns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
 		}
 	}),
 	columnHelper.accessor((row) => row.totalHacked, {
@@ -55,6 +58,7 @@ const columns = [
 		header: 'Total Hacked',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'center'
 		}
 	}),
@@ -63,6 +67,7 @@ const columns = [
 		header: 'Returned Funds',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'center'
 		}
 	}),
@@ -71,6 +76,7 @@ const columns = [
 		header: 'Net User Loss',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'center',
 			headerHelperText: 'Total Hacked - Returned Funds'
 		}

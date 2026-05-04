@@ -67,16 +67,18 @@ const columns = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('netTreasury', {
 		header: 'Net Treasury',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end',
 			headerHelperText: "Value of tokens owned by a protocol, excluding it's own token"
-		},
-		size: 128
+		}
 	})
 ]
 
