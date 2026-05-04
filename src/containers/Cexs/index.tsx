@@ -119,7 +119,9 @@ const columns = [
 				</span>
 			)
 		},
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('currentTvl', {
 		header: 'Assets',
@@ -132,8 +134,8 @@ const columns = [
 			const value = info.getValue()
 			return <>{value != null ? formattedNum(value, true) : null}</>
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText:
 				'This excludes IOU assets issued by the CEX that are already counted on another chain, such as Binance-pegged BTC in BSC, which is already counted in Bitcoin chain'
@@ -163,15 +165,14 @@ const columns = [
 				</span>
 			)
 		},
-		size: 145,
 		meta: {
+			headerClassName: 'w-[145px]',
 			align: 'end',
 			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'
 		}
 	}),
 	columnHelper.accessor('inflows_24h', {
 		header: '24h Inflows',
-		size: 120,
 		cell: (info) => {
 			const value = info.getValue()
 			return (
@@ -181,12 +182,12 @@ const columns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('inflows_1w', {
 		header: '7d Inflows',
-		size: 120,
 		cell: (info) => {
 			const value = info.getValue()
 			return (
@@ -196,12 +197,12 @@ const columns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('inflows_1m', {
 		header: '1m Inflows',
-		size: 120,
 		cell: (info) => {
 			const value = info.getValue()
 			return (
@@ -211,22 +212,23 @@ const columns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('spotVolume', {
 		header: 'Spot Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 125,
 		meta: {
+			headerClassName: 'w-[125px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('oi', {
 		header: '24h Open Interest',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 160,
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end'
 		}
 	}),
@@ -236,24 +238,24 @@ const columns = [
 			const value = info.getValue()
 			return value != null ? Number(Number(value).toFixed(2)) + 'x' : null
 		},
-		size: 130,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end',
 			headerHelperText: 'Open Interest / Clean Assets'
 		}
 	}),
 	columnHelper.accessor('customRange', {
 		header: 'Custom range Inflows',
-		size: 200,
 		cell: ({ row }) => <CustomRangeCell cexSlug={row.original.slug ?? null} coin={row.original.coin ?? null} />,
 		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('auditor', {
 		header: 'Auditor',
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -263,8 +265,8 @@ const columns = [
 			const value = getValue()
 			return <>{value == null ? null : toNiceDayMonthAndYear(value)}</>
 		},
-		size: 130,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end'
 		}
 	})

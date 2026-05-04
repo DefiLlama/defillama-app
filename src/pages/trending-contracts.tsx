@@ -166,51 +166,53 @@ const columns = (chain: string) => [
 			)
 		},
 		enableSorting: false,
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('txns', {
 		header: 'Transactions',
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('txns_percentage_growth', {
 		header: 'Tx Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('active_accounts', {
 		header: 'Active Accounts',
-		size: 150,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('accounts_percentage_growth', {
 		header: 'Account Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 150,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('gas_spend', {
 		header: 'Gas Spent',
 		cell: (info) => <>{info.getValue()?.toFixed(2)} ETH</>,
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('gas_spend_percentage_growth', {
 		header: 'Gas Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

@@ -49,14 +49,16 @@ const columns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor((row) => row.totalHacked, {
 		id: 'Total Hacked',
 		header: 'Total Hacked',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 130,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'center'
 		}
 	}),
@@ -64,8 +66,8 @@ const columns = [
 		id: 'Returned Funds',
 		header: 'Returned Funds',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 150,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'center'
 		}
 	}),
@@ -73,8 +75,8 @@ const columns = [
 		id: 'Net User Loss',
 		header: 'Net User Loss',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'center',
 			headerHelperText: 'Total Hacked - Returned Funds'
 		}

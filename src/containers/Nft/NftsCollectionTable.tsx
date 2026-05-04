@@ -66,67 +66,69 @@ const columns = [
 				</span>
 			)
 		},
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('floorPrice', {
 		header: 'Floor Price',
-		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('floorPricePctChange1Day', {
 		header: '1d Change',
-		size: 120,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('floorPricePctChange7Day', {
 		header: '7d Change',
-		size: 120,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('volume1d', {
 		header: 'Volume 1d',
-		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('volume7d', {
 		header: 'Volume 7d',
-		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('sales1d', {
 		header: 'Sales 1d',
-		size: 120,
 		cell: (info) => (info.getValue() != null ? info.getValue() : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('totalSupply', {
 		header: 'Total Supply',
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('onSaleCount', {
 		header: 'On Sale',
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

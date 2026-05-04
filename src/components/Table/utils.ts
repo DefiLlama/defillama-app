@@ -1,20 +1,17 @@
-import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react-table'
+import type { ColumnOrderState, Table } from '@tanstack/react-table'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import type { CsvCell } from '~/utils/csvCell'
 
 type BreakpointMap<T> = Record<number, T>
-export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
 export type ColumnOrdersByBreakpoint = BreakpointMap<ColumnOrderState>
 
 type ColumnTableInstance = {
-	setColumnSizing: (sizing: ColumnSizingState) => void
 	setColumnOrder: (order: ColumnOrderState) => void
 	getState: () => {
-		columnSizing?: ColumnSizingState
 		columnOrder?: ColumnOrderState
 	}
-	getAllLeafColumns?: () => Array<{ id: string; getSize?: () => number }>
+	getAllLeafColumns?: () => Array<{ id: string }>
 }
 
 const isColumnOrderEqual = (current: ColumnOrderState, next: ColumnOrderState) => {
@@ -24,49 +21,6 @@ const isColumnOrderEqual = (current: ColumnOrderState, next: ColumnOrderState) =
 		if (current[i] !== next[i]) return false
 	}
 	return true
-}
-
-const isColumnSizingEqual = (current: ColumnSizingState, next: ColumnSizingState) => {
-	if (current === next) return true
-	let currentKeyCount = 0
-	for (const key in current) {
-		currentKeyCount++
-		if (current[key] !== next[key]) return false
-	}
-
-	let nextKeyCount = 0
-	for (const _key in next) {
-		nextKeyCount++
-	}
-
-	if (currentKeyCount !== nextKeyCount) return false
-	return true
-}
-
-const getSizingForKeys = (
-	keysSource: ColumnSizingState,
-	currentSizing?: ColumnSizingState,
-	columns?: Array<{ id: string; getSize?: () => number }>
-) => {
-	const sizing: ColumnSizingState = {}
-	for (const key in keysSource) {
-		const value = currentSizing?.[key]
-		if (value != null) {
-			sizing[key] = value
-		}
-	}
-	if (columns) {
-		const columnsById = new Map(columns.map((col) => [col.id, col]))
-		for (const key in keysSource) {
-			if (sizing[key] == null) {
-				const size = columnsById.get(key)?.getSize?.()
-				if (size != null) {
-					sizing[key] = size
-				}
-			}
-		}
-	}
-	return sizing
 }
 
 export function splitArrayByFalsyValues<T extends object, K extends keyof T>(data: T[], column: K) {
@@ -82,15 +36,12 @@ export function splitArrayByFalsyValues<T extends object, K extends keyof T>(dat
 	)
 }
 
-// Utility function to sort column sizes and orders based on width
-function sortColumnSizesAndOrders({
+function sortColumnOrders({
 	instance,
-	columnSizes,
 	columnOrders,
 	width
 }: {
 	instance: ColumnTableInstance
-	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
 	width?: number | null
 }) {
@@ -98,7 +49,7 @@ function sortColumnSizesAndOrders({
 		return
 	}
 
-	const { columnSizing: currentSizing, columnOrder: currentOrder } = instance.getState()
+	const { columnOrder: currentOrder } = instance.getState()
 	const columns = instance.getAllLeafColumns?.()
 
 	const effectiveOrder =
@@ -109,14 +60,6 @@ function sortColumnSizesAndOrders({
 			.map(([size, value]) => [Number(size), value] as const)
 			.sort(([a], [b]) => b - a)
 			.find(([size]) => width >= size)?.[1]
-	}
-
-	if (columnSizes && currentSizing != null) {
-		const size = getBreakpointValue(columnSizes)
-		const effectiveSizing = size ? getSizingForKeys(size, currentSizing, columns) : currentSizing
-		if (size !== undefined && effectiveSizing != null && !isColumnSizingEqual(effectiveSizing, size)) {
-			instance.setColumnSizing(size)
-		}
 	}
 
 	if (columnOrders && currentOrder != null) {
@@ -153,20 +96,18 @@ export function useTableSearch<T>({
 	return [search, setSearch]
 }
 
-export function useSortColumnSizesAndOrders({
+export function useSortColumnOrders({
 	instance,
-	columnSizes,
 	columnOrders
 }: {
 	instance: ColumnTableInstance
-	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
 }) {
 	const width = useBreakpointWidth()
 
 	useEffect(() => {
-		sortColumnSizesAndOrders({ instance, columnSizes, columnOrders, width })
-	}, [instance, columnSizes, columnOrders, width])
+		sortColumnOrders({ instance, columnOrders, width })
+	}, [instance, columnOrders, width])
 }
 
 export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {

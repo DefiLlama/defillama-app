@@ -10,6 +10,9 @@ function sourceFiles(dir: string): string[] {
 	const files: string[] = []
 	for (const entry of readdirSync(dir)) {
 		const fullPath = path.join(dir, entry)
+		if (fullPath.includes(`${path.sep}containers${path.sep}ProDashboard${path.sep}`)) {
+			continue
+		}
 		const stats = statSync(fullPath)
 		if (stats.isDirectory()) {
 			files.push(...sourceFiles(fullPath))
@@ -49,12 +52,17 @@ function getObjectProperty(node: ts.ObjectLiteralExpression, property: string): 
 	}
 }
 
+function hasMetaProperty(config: ts.ObjectLiteralExpression, property: string) {
+	const meta = getObjectProperty(config, 'meta')
+	return Boolean(meta && ts.isObjectLiteralExpression(meta) && hasObjectProperty(meta, property))
+}
+
 function compactNodeText(sourceFile: ts.SourceFile, node: ts.Node | undefined) {
 	return node?.getText(sourceFile).replace(/\s+/g, ' ').slice(0, 120) ?? ''
 }
 
 describe('VirtualTable column sizing', () => {
-	it('keeps VirtualTable leaf columns explicitly sized', () => {
+	it('keeps shared VirtualTable leaf columns explicitly CSS-sized through headerClassName', () => {
 		const failures: string[] = []
 
 		for (const file of sourceFiles(SRC_DIR)) {
@@ -84,7 +92,7 @@ describe('VirtualTable column sizing', () => {
 				}
 
 				const config = node.arguments[node.arguments.length - 1]
-				if (!config || !ts.isObjectLiteralExpression(config) || hasObjectProperty(config, 'size')) {
+				if (!config || !ts.isObjectLiteralExpression(config)) {
 					ts.forEachChild(node, visit)
 					return
 				}
@@ -93,7 +101,17 @@ describe('VirtualTable column sizing', () => {
 				const position = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
 				const id = compactNodeText(sourceFile, getObjectProperty(config, 'id') ?? node.arguments[0])
 				const header = compactNodeText(sourceFile, getObjectProperty(config, 'header'))
-				failures.push(`${relativePath}:${position.line + 1} ${method} ${id}${header ? ` / ${header}` : ''}`)
+				const label = `${relativePath}:${position.line + 1} ${method} ${id}${header ? ` / ${header}` : ''}`
+
+				if (hasObjectProperty(config, 'size')) {
+					failures.push(`${label} still uses size`)
+				}
+				if (hasMetaProperty(config, 'colClassName')) {
+					failures.push(`${label} still uses meta.colClassName`)
+				}
+				if (!hasMetaProperty(config, 'headerClassName')) {
+					failures.push(`${label} missing meta.headerClassName`)
+				}
 				ts.forEachChild(node, visit)
 			}
 

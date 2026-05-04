@@ -45,24 +45,32 @@ const forksColumn = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('forkedProtocols', {
 		header: 'Forked Protocols',
-		size: 150,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[150px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'Forks TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 120,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('ftot', {
 		header: 'Forks TVL / Original TVL',
 		cell: (info) => (info.getValue() != null ? `${formattedNum(info.getValue())}%` : null),
-		size: 210,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[min(210px,40vw)]',
+			align: 'end'
+		}
 	})
 ]
 

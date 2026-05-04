@@ -18,7 +18,7 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -89,7 +89,7 @@ export function ChainsByCategoryTable({
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({
+	useSortColumnOrders({
 		instance,
 		columnOrders: chainsTableColumnOrders
 	})
@@ -272,20 +272,22 @@ const columns = [
 				</span>
 			)
 		},
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('protocols', {
 		header: 'Protocols',
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'DeFi TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 		}
@@ -293,8 +295,8 @@ const columns = [
 	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
 		}
@@ -302,8 +304,8 @@ const columns = [
 	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 7 days'
 		}
@@ -311,8 +313,8 @@ const columns = [
 	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 30 days'
 		}
@@ -374,8 +376,8 @@ const columns = [
 					</Tooltip>
 				)
 			},
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: 'Value of all tokens held on the chain'
 			}
@@ -384,8 +386,8 @@ const columns = [
 	columnHelper.accessor('stablesMcap', {
 		header: 'Stables MCap',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 128,
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'end',
 			headerHelperText: 'Sum of market cap of all stablecoins on the chain'
 		}
@@ -394,8 +396,8 @@ const columns = [
 		header: '24h DEXs Volume',
 		enableSorting: true,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 152,
 		meta: {
+			headerClassName: 'w-[152px]',
 			align: 'end',
 			headerHelperText: 'Sum of 24h volume on all DEXs on the chain. Updated daily at 00:00UTC'
 		}
@@ -404,8 +406,8 @@ const columns = [
 		header: `24h Chain Fees`,
 		enableSorting: true,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: definitions.fees.chain['24h']
 		}
@@ -414,8 +416,8 @@ const columns = [
 		header: `24h App Revenue`,
 		enableSorting: true,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 180,
 		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
 			align: 'end',
 			headerHelperText: definitions.appRevenue.chain['24h']
 		}
@@ -423,8 +425,8 @@ const columns = [
 	columnHelper.accessor('activeUsers24h', {
 		header: '24h Active Addresses',
 		cell: (info) => <>{info.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
-		size: 180,
 		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
 			align: 'end',
 			headerHelperText: 'Active addresses in the last 24h'
 		}
@@ -432,8 +434,8 @@ const columns = [
 	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap / DeFi TVL',
 		cell: (info) => (info.getValue() != null ? String(info.getValue()) : null),
-		size: 148,
 		meta: {
+			headerClassName: 'w-[148px]',
 			align: 'end',
 			headerHelperText: 'Market cap / DeFi TVL ratio'
 		}
@@ -441,8 +443,8 @@ const columns = [
 	columnHelper.accessor('nftVolume24h', {
 		header: '24h NFT Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 148,
 		meta: {
+			headerClassName: 'w-[148px]',
 			align: 'end',
 			headerHelperText: 'Sum of 24h volume on all NFTs on the chain. Updated daily at 00:00UTC'
 		}

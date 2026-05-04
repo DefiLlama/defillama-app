@@ -72,7 +72,9 @@ const venueColumn = columnHelper.accessor('exchange', {
 			label
 		)
 	},
-	size: 180
+	meta: {
+		headerClassName: 'w-[min(180px,40vw)]'
+	}
 })
 
 const pairColumn = columnHelper.accessor('symbol', {
@@ -80,39 +82,49 @@ const pairColumn = columnHelper.accessor('symbol', {
 	header: 'Pair',
 	enableSorting: false,
 	cell: ({ getValue }) => <span className="text-sm uppercase">{getValue()}</span>,
-	size: 140
+	meta: {
+		headerClassName: 'w-[140px]'
+	}
 })
 
 const priceColumn = columnHelper.accessor((row) => row.price ?? undefined, {
 	id: 'price',
 	header: 'Price',
 	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	size: 110,
-	meta: { align: 'end' }
+	meta: {
+		headerClassName: 'w-[110px]',
+		align: 'end'
+	}
 })
 
 const volumeColumn = columnHelper.accessor((row) => row.volume_24h ?? undefined, {
 	id: 'volume_24h',
 	header: '24h Volume',
 	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	size: 120,
-	meta: { align: 'end' }
+	meta: {
+		headerClassName: 'w-[120px]',
+		align: 'end'
+	}
 })
 
 const oiColumn = columnHelper.accessor((row) => row.oi_usd ?? undefined, {
 	id: 'oi_usd',
 	header: 'Open Interest',
 	cell: ({ getValue }) => renderNullableNum(getValue() ?? null, true),
-	size: 140,
-	meta: { align: 'end' }
+	meta: {
+		headerClassName: 'w-[140px]',
+		align: 'end'
+	}
 })
 
 const fundingColumn = columnHelper.accessor((row) => row.funding_rate_8h ?? undefined, {
 	id: 'funding_rate_8h',
 	header: 'Funding (8h)',
 	cell: ({ row }) => renderFundingRate(row.original.funding_rate_8h),
-	size: 130,
-	meta: { align: 'end' }
+	meta: {
+		headerClassName: 'w-[130px]',
+		align: 'end'
+	}
 })
 
 const SPOT_COLUMNS: ColumnDef<TokenMarketPair, any>[] = [venueColumn, pairColumn, priceColumn, volumeColumn]

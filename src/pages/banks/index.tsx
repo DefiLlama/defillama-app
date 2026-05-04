@@ -25,14 +25,16 @@ const banksTableColumns = [
 	columnHelper.accessor('1', {
 		header: 'Name',
 		enableSorting: false,
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('date', {
 		header: 'Closing date',
 		sortingFn: sortingFns.datetime,
 		cell: (info) => (info.getValue() ? toNiceDateYear(info.getValue()) : ''),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -40,8 +42,8 @@ const banksTableColumns = [
 		id: 'assets',
 		header: 'Assets',
 		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : ''),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -49,8 +51,8 @@ const banksTableColumns = [
 		id: 'assets-inflation-adjusted',
 		header: 'Assets (inflation adjusted)',
 		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : ''),
-		size: 220,
 		meta: {
+			headerClassName: 'w-[min(220px,40vw)]',
 			align: 'end'
 		}
 	})

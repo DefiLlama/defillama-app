@@ -268,11 +268,15 @@ export const calendarColumns = [
 				</span>
 			)
 		},
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('type', {
 		header: 'Type',
-		size: 100
+		meta: {
+			headerClassName: 'w-[100px]'
+		}
 	}),
 	columnHelper.accessor('timestamp', {
 		id: 'timestamp',
@@ -280,7 +284,9 @@ export const calendarColumns = [
 		cell: ({ getValue, row }) => {
 			return <SimpleUpcomingEvent timestamp={getValue() / 1e3} name={row.original.name} />
 		},
-		size: 800
+		meta: {
+			headerClassName: 'w-[min(800px,40vw)]'
+		}
 	})
 ]
 

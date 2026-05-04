@@ -47,13 +47,17 @@ const bridgedChainColumns = [
 	columnHelper.accessor('name', {
 		header: 'Token',
 		enableSorting: false,
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor((row) => (row.value ? +row.value : undefined), {
 		id: 'value',
 		header: 'Total Bridged',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120
+		meta: {
+			headerClassName: 'w-[120px]'
+		}
 	})
 ]
 

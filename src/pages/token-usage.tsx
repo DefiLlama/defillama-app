@@ -223,21 +223,23 @@ const columns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('category', {
 		header: 'Category',
 		enableSorting: false,
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('amountUsd', {
 		header: 'Amount',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

@@ -95,20 +95,22 @@ const columns = [
 				</span>
 			)
 		},
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('headcount', {
 		header: 'Headcount',
-		size: 110,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('sumAnnualUsdExpenses', {
 		header: 'Annual Expenses',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 150,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -126,6 +128,8 @@ const columns = [
 					<Icon name="arrow-up-right" height={14} width={14} className="shrink-0" />
 				</a>
 			) : null,
-		size: 90
+		meta: {
+			headerClassName: 'w-[90px]'
+		}
 	})
 ]

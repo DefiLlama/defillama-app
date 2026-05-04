@@ -439,24 +439,26 @@ const CoinPerformanceColumn = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('change', {
 		header: 'Δ%',
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	}),
 	columnHelper.accessor('volume1D', {
 		header: '24h Volume',
@@ -465,9 +467,9 @@ const CoinPerformanceColumn = [
 			return <>{value != null ? formattedNum(value, true) : null}</>
 		},
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	})
 ]
 
@@ -498,38 +500,40 @@ const CategoryPerformanceColumn = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('change', {
 		header: 'Δ%',
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	}),
 	columnHelper.accessor('volume1D', {
 		header: '24h Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('nbCoins', {
 		header: '# of Coins',
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end'
-		},
-		size: 110
+		}
 	})
 ]

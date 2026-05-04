@@ -1,6 +1,5 @@
 import {
 	type ColumnOrderState,
-	type ColumnSizingState,
 	getCoreRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
@@ -12,8 +11,8 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { useSortColumnOrders } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 const EMPTY_SORTING: SortingState = []
@@ -22,7 +21,6 @@ const PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const
 interface IYieldsTableWrapper {
 	data: any
 	columns: any
-	columnSizes: ColumnSizesByBreakpoint
 	columnOrders: ColumnOrdersByBreakpoint
 	rowSize?: number
 	columnVisibility?: Record<string, boolean>
@@ -36,7 +34,6 @@ interface IYieldsTableWrapper {
 export const YieldsTableWrapper = ({
 	data,
 	columns,
-	columnSizes,
 	columnOrders,
 	rowSize,
 	columnVisibility,
@@ -48,7 +45,6 @@ export const YieldsTableWrapper = ({
 }: IYieldsTableWrapper) => {
 	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [pagination, setPagination] = React.useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: initialPageSize
@@ -60,7 +56,6 @@ export const YieldsTableWrapper = ({
 		state: {
 			sorting,
 			columnOrder,
-			columnSizing,
 			columnVisibility,
 			...(enablePagination ? { pagination } : {})
 		},
@@ -78,7 +73,6 @@ export const YieldsTableWrapper = ({
 			}
 		},
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnVisibilityChange: setColumnVisibility
 			? (updater) => React.startTransition(() => setColumnVisibility(updater))
 			: undefined,
@@ -88,7 +82,7 @@ export const YieldsTableWrapper = ({
 		...(enablePagination ? { getPaginationRowModel: getPaginationRowModel(), autoResetPageIndex: false } : {})
 	})
 
-	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
+	useSortColumnOrders({ instance, columnOrders })
 
 	React.useEffect(() => {
 		if (!enablePagination) return
