@@ -688,19 +688,3 @@ export async function resumeAgenticStream({
 
 	return parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
 }
-
-export async function switchActiveLeaf(
-	sessionId: string,
-	leafMessageId: string,
-	fetchFn?: typeof fetch
-): Promise<{ activeLeafMessageId: string; messages?: unknown[] }> {
-	const response = await (fetchFn || fetch)(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ leafMessageId })
-	})
-	if (!response.ok) {
-		throw new Error(await getResponseErrorMessage(response, 'Failed to switch branch'))
-	}
-	return response.json()
-}

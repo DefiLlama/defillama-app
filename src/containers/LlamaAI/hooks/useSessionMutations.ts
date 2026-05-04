@@ -79,6 +79,36 @@ export function useSessionMutations() {
 		}
 	})
 
+	const switchActiveLeafMutation = useMutation({
+		mutationKey: ['llamaai', 'switch-active-leaf'],
+		mutationFn: async ({ sessionId, leafMessageId }: { sessionId: string; leafMessageId: string }) => {
+			try {
+				const response = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ leafMessageId })
+				})
+					.then((res) => assertResponse(res, 'Failed to switch branch'))
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+
+				return response as {
+					activeLeafMessageId: string
+					messages?: unknown[]
+					pagination?: {
+						hasMore?: boolean
+						cursor?: number | null
+						hasNewer?: boolean
+						newerCursor?: number | null
+					}
+				}
+			} catch (error) {
+				console.error('[llama-ai] [switchActiveLeaf] failed:', getErrorMessage(error))
+				throw error instanceof Error ? error : new Error('Failed to switch branch')
+			}
+		}
+	})
+
 	// Delete from both the backend and the optimistic sidebar/session cache.
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
@@ -320,10 +350,12 @@ export function useSessionMutations() {
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
+		switchActiveLeaf: switchActiveLeafMutation.mutateAsync,
 		deleteSession: deleteSessionMutation.mutateAsync,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
+		isSwitchingActiveLeaf: switchActiveLeafMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending,
 		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,

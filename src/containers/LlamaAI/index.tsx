@@ -45,7 +45,6 @@ import {
 	checkActiveExecution,
 	fetchAgenticResponse,
 	resumeAgenticStream,
-	switchActiveLeaf,
 	stopAgenticExecution
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type {
@@ -172,7 +171,7 @@ interface UsageLimitError extends Error {
 	upgradeUrl?: string
 }
 
-type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'branch' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
 
 type RecoveryController = {
@@ -768,12 +767,14 @@ export function AgenticChat({
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
+		switchActiveLeaf,
 		deleteSession,
 		updateSessionTitle,
 		isDeletingSession,
 		isUpdatingTitle,
 		bulkDeleteSessions,
-		pinSession
+		pinSession,
+		isSwitchingActiveLeaf
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
@@ -2091,14 +2092,37 @@ export function AgenticChat({
 				}
 				// siblingInfo arrives via SSE `sibling_info` mid-stream — no extra restore call needed
 			} catch (err) {
-				if (!controller.signal.aborted) {
-					setMessages(messagesSnapshot)
-					setActiveLeafMessageId(activeLeafSnapshot)
-					setViewError(getErrorMessage(err))
+				const editError = err as UsageLimitError
+				if (controller.signal.aborted || editError?.name === 'AbortError') {
+					appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 					dispatchStream({ type: 'RESET_STREAM' })
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+					return
 				}
+				if (eventCounter.count > 0 && isTemporaryConnectivityError(editError)) {
+					buffer.receivedEventCount = eventCounter.count
+					if (
+						startRecoveryCycle({
+							targetSessionId: sessionId,
+							buffer,
+							failedRequest: null,
+							error: editError instanceof Error ? editError : new Error(getErrorMessage(editError))
+						})
+					) {
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						return
+					}
+				}
+				setMessages(messagesSnapshot)
+				setActiveLeafMessageId(activeLeafSnapshot)
+				setViewError(getErrorMessage(editError))
+				dispatchStream({ type: 'RESET_STREAM' })
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 				throw err
 			} finally {
+				if (abortControllerRef.current === controller) {
+					abortControllerRef.current = null
+				}
 				settleState.resolve()
 				if (activeRequestSettleRef.current?.requestId === requestId) {
 					activeRequestSettleRef.current = null
@@ -2123,6 +2147,7 @@ export function AgenticChat({
 			settings.effort,
 			settings.model,
 			setMessageSiblingInfo,
+			startRecoveryCycle,
 			triggerPromptTransition,
 			updateSessionTitle
 		]
@@ -2132,26 +2157,34 @@ export function AgenticChat({
 		async (leafMessageId: string) => {
 			if (!sessionId || isStreaming) return
 			await abortActiveRequest()
+			const requestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'branch', sessionId)
+			setViewError(null)
+			setPaginationError(null)
 			try {
-				const result = await switchActiveLeaf(sessionId, leafMessageId, authorizedFetchCompat)
+				const result = await switchActiveLeaf({ sessionId, leafMessageId })
+				if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) return
 				setActiveLeafMessageId(result.activeLeafMessageId)
 				if (Array.isArray(result.messages)) {
-					setMessages(mapPersistedMessages(result.messages as PersistedMessage[]))
+					const restored = mapPersistedMessages(result.messages as PersistedMessage[])
+					setMessages(restored)
+					setConversationViewResetKey((current) => current + 1)
+					dispatchDashboardPanel({ type: 'RESTORE', value: restored.flatMap((message) => message.dashboards || []) })
+					setPaginationState(normalizePaginationState(result.pagination))
+					dispatchStream({ type: 'SET_ERROR', value: null })
+					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+					dispatchStream({ type: 'RESET_RECOVERY' })
 				} else {
-					const requestId = beginRequest(
-						activeRequestIdRef,
-						activeRequestKindRef,
-						activeSessionIdRef,
-						'restore',
-						sessionId
-					)
 					await restoreSessionSnapshot(sessionId, requestId)
 				}
 			} catch (switchError) {
-				setViewError(getErrorMessage(switchError))
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setViewError(getErrorMessage(switchError))
+				}
+			} finally {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			}
 		},
-		[abortActiveRequest, authorizedFetchCompat, isStreaming, restoreSessionSnapshot, sessionId]
+		[abortActiveRequest, isStreaming, restoreSessionSnapshot, sessionId, switchActiveLeaf]
 	)
 
 	// Stop the active streamed response while preserving already-buffered output.
@@ -2489,6 +2522,7 @@ export function AgenticChat({
 										handleActionClick={handleActionClick}
 										onEditMessage={handleEditMessage}
 										onBranchSwitch={handleBranchSwitch}
+										isBranchSwitching={isSwitchingActiveLeaf}
 										isResearchMode={isResearchMode}
 										setIsResearchMode={setIsResearchMode}
 										researchUsage={researchUsage}
@@ -2549,6 +2583,7 @@ export function AgenticChat({
 								handleActionClick={handleActionClick}
 								onEditMessage={handleEditMessage}
 								onBranchSwitch={handleBranchSwitch}
+								isBranchSwitching={isSwitchingActiveLeaf}
 								isResearchMode={isResearchMode}
 								setIsResearchMode={setIsResearchMode}
 								researchUsage={researchUsage}

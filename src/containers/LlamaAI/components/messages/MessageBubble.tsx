@@ -800,10 +800,12 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 
 function BranchArrows({
 	info,
-	onSwitch
+	onSwitch,
+	disabled = false
 }: {
 	info: NonNullable<Message['siblingInfo']>
 	onSwitch: (leafMessageId: string) => void
+	disabled?: boolean
 }) {
 	const { currentVersion, totalVersions, siblings } = info
 	const goPrev = currentVersion > 1 ? siblings[currentVersion - 2]?.leafMessageId : null
@@ -817,8 +819,8 @@ function BranchArrows({
 				render={
 					<button
 						type="button"
-						disabled={!goPrev}
-						onClick={() => goPrev && onSwitch(goPrev)}
+						disabled={disabled || !goPrev}
+						onClick={() => !disabled && goPrev && onSwitch(goPrev)}
 						aria-label="Previous version"
 					/>
 				}
@@ -835,8 +837,8 @@ function BranchArrows({
 				render={
 					<button
 						type="button"
-						disabled={!goNext}
-						onClick={() => goNext && onSwitch(goNext)}
+						disabled={disabled || !goNext}
+						onClick={() => !disabled && goNext && onSwitch(goNext)}
 						aria-label="Next version"
 					/>
 				}
@@ -858,6 +860,7 @@ export function MessageBubble({
 	onActionClick,
 	onEditMessage,
 	onBranchSwitch,
+	isBranchSwitching = false,
 	nextUserMessage,
 	onShare,
 	onTableFullscreenOpen,
@@ -874,6 +877,7 @@ export function MessageBubble({
 	onActionClick?: (message: string) => void
 	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
 	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	nextUserMessage?: string
 	onShare?: (messageId?: string) => void
 	onTableFullscreenOpen?: () => void
@@ -906,10 +910,9 @@ export function MessageBubble({
 	}
 	if (message.role === 'user') {
 		const isPersistedId = !!message.id && !/^(local|persisted|shared)-/.test(message.id)
-		const hasStableId = !!message.id
-		const canEdit = hasStableId && !!onEditMessage
+		const canEdit = isPersistedId && !!onEditMessage
 		const canSwitchBranch = isPersistedId && !!onBranchSwitch
-		const hasControls = hasStableId && !isDraft && !readOnly && (canEdit || canSwitchBranch)
+		const hasControls = isPersistedId && !isDraft && !readOnly && (canEdit || canSwitchBranch)
 		return (
 			<div
 				id={anchorId}
@@ -1014,7 +1017,7 @@ export function MessageBubble({
 				) : hasControls ? (
 					<div className="mt-1 flex items-center gap-0.5 opacity-100 transition-opacity duration-150 sm:opacity-0 sm:group-hover/msg:opacity-100 sm:focus-within:opacity-100">
 						{canSwitchBranch && message.siblingInfo && message.siblingInfo.totalVersions > 1 && onBranchSwitch ? (
-							<BranchArrows info={message.siblingInfo} onSwitch={onBranchSwitch} />
+							<BranchArrows info={message.siblingInfo} onSwitch={onBranchSwitch} disabled={isBranchSwitching} />
 						) : null}
 						{canEdit ? (
 							<Tooltip

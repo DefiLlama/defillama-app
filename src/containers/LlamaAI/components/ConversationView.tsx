@@ -67,6 +67,7 @@ interface ConversationViewProps {
 	handleActionClick: (message: string) => void
 	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
 	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
@@ -108,6 +109,7 @@ function ConversationMessageItem({
 	onActionClick,
 	onEditMessage,
 	onBranchSwitch,
+	isBranchSwitching,
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef
@@ -122,6 +124,7 @@ function ConversationMessageItem({
 	onActionClick?: (message: string) => void
 	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
 	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
@@ -136,6 +139,7 @@ function ConversationMessageItem({
 			onActionClick={onActionClick}
 			onEditMessage={onEditMessage}
 			onBranchSwitch={onBranchSwitch}
+			isBranchSwitching={isBranchSwitching}
 			nextUserMessage={nextUserMessage}
 			onShare={onShare}
 			onTableFullscreenOpen={onTableFullscreenOpen}
@@ -301,6 +305,7 @@ export function ConversationView({
 	handleActionClick,
 	onEditMessage,
 	onBranchSwitch,
+	isBranchSwitching,
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
@@ -450,6 +455,7 @@ export function ConversationView({
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 											onEditMessage={!readOnly ? onEditMessage : undefined}
 											onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+											isBranchSwitching={isBranchSwitching}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
@@ -483,6 +489,7 @@ export function ConversationView({
 												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
 												onEditMessage={!readOnly ? onEditMessage : undefined}
 												onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
+												isBranchSwitching={isBranchSwitching}
 												onTableFullscreenOpen={onTableFullscreenOpen}
 												anchorId={getMessageAnchorId(message.id)}
 												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
