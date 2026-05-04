@@ -178,6 +178,21 @@ export function useChatScroll({
 		}
 	}, [items, scrollContainerRef])
 
+	useEffect(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		const resizeObserver = new ResizeObserver(() => {
+			if (modeRef.current === 'attached') {
+				container.scrollTop = container.scrollHeight
+			}
+			syncScrollToBottomVisibility(container)
+			lastScrollTopRef.current = container.scrollTop
+		})
+		resizeObserver.observe(container)
+		return () => resizeObserver.disconnect()
+	}, [scrollContainerRef, syncScrollToBottomVisibility])
+
 	// Keyboard open: when the soft keyboard appears and we're attached, snap to bottom
 	// so the latest content stays visible above the input.
 	useEffect(() => {

@@ -62,23 +62,29 @@ export function ChatLanding({
 			</div>
 			{!readOnly ? (
 				<>
-					{hasSeenWelcome ? <TipOrNotifyBanner /> : null}
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={isStreaming}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-						restoreRequest={null}
-						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={researchUsage}
-						onOpenAlerts={onOpenAlerts}
-						quotedText={quotedText}
-						onClearQuotedText={onClearQuotedText}
-						walkthroughActive={!hasSeenWelcome}
-					/>
+					<div className="relative w-full">
+						{hasSeenWelcome ? (
+							<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
+								<TipOrNotifyBanner />
+							</div>
+						) : null}
+						<PromptInput
+							handleSubmit={handleSubmit}
+							promptInputRef={promptInputRef}
+							isPending={isStreaming}
+							handleStopRequest={handleStopRequest}
+							isStreaming={isStreaming}
+							restoreRequest={null}
+							placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+							isResearchMode={isResearchMode}
+							setIsResearchMode={setIsResearchMode}
+							researchUsage={researchUsage}
+							onOpenAlerts={onOpenAlerts}
+							quotedText={quotedText}
+							onClearQuotedText={onClearQuotedText}
+							walkthroughActive={!hasSeenWelcome}
+						/>
+					</div>
 
 					<CapabilityRow promptInputRef={promptInputRef} />
 				</>

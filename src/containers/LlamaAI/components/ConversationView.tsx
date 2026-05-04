@@ -1,5 +1,6 @@
 import {
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 	type Dispatch,
@@ -84,7 +85,7 @@ interface ConversationViewProps {
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
 // submitted prompt slightly below the top edge on both mobile and desktop.
-const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
+const ACTIVE_EXCHANGE_TOP_OFFSET_PX = 12
 
 function getMessageTailSnapshot(messages: Message[]): readonly [Message | null, Message | null] {
 	return [messages.at(-2) ?? null, messages.at(-1) ?? null] as const
@@ -324,6 +325,7 @@ export function ConversationView({
 	const handledAnchorIdRef = useRef<string | null>(null)
 	const highlightTimeoutRef = useRef<number | null>(null)
 	const pendingScrollHighlightRef = useRef<(() => void) | null>(null)
+	const [activeExchangeMinHeight, setActiveExchangeMinHeight] = useState<number | null>(null)
 	const targetAnchorId = typeof window !== 'undefined' ? getMessageAnchorIdFromHash(window.location.hash) : null
 
 	useEffect(() => {
@@ -414,6 +416,33 @@ export function ConversationView({
 		return null
 	})()
 
+	useLayoutEffect(() => {
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		const updateMinHeight = () => {
+			const paddingBottom = Number.parseFloat(window.getComputedStyle(container).paddingBottom) || 0
+			setActiveExchangeMinHeight(Math.max(0, container.clientHeight - paddingBottom - ACTIVE_EXCHANGE_TOP_OFFSET_PX))
+		}
+
+		updateMinHeight()
+		const resizeObserver = new ResizeObserver(updateMinHeight)
+		resizeObserver.observe(container)
+		window.addEventListener('resize', updateMinHeight)
+		return () => {
+			resizeObserver.disconnect()
+			window.removeEventListener('resize', updateMinHeight)
+		}
+	}, [scrollContainerRef])
+
+	useLayoutEffect(() => {
+		if (!shouldSpaceLastExchange || activeExchangeMinHeight == null) return
+		const container = scrollContainerRef.current
+		if (container) {
+			container.scrollTop = container.scrollHeight
+		}
+	}, [activeExchangeMinHeight, scrollContainerRef, shouldSpaceLastExchange])
+
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
@@ -471,11 +500,12 @@ export function ConversationView({
 
 								{shouldSpaceLastExchange ? (
 									<div
-										className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
+										className={`flex flex-col gap-2.5 ${
 											animateActiveExchange && isLiveExchange
-												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
+												? 'motion-safe:animate-[llamaActiveExchangeEnter_0.18s_ease-out_both]'
 												: ''
 										}`}
+										style={activeExchangeMinHeight != null ? { minHeight: activeExchangeMinHeight } : undefined}
 									>
 										{lastExchangeMessages.map((message, i) => (
 											<ConversationMessageItem
@@ -574,9 +604,12 @@ export function ConversationView({
 							onStartNewChat={onStartNewChat}
 							onDismiss={onDismissContextWarning}
 						/>
-					) : (
-						<TipOrNotifyBanner />
-					)}
+					) : null}
+					{!contextWarning ? (
+						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
+							<TipOrNotifyBanner />
+						</div>
+					) : null}
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}
