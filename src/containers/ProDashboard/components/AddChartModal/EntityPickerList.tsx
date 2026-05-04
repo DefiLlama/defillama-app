@@ -37,8 +37,44 @@ export function EntityPickerList({
 
 	const filteredEntities = useMemo(() => {
 		if (!searchQuery) return entities
-		return matchSorter(entities, searchQuery, { keys: ['label'] })
+
+		const rankedEntities = matchSorter(entities, searchQuery, { keys: ['label'] })
+		const rankedValues = new Set(rankedEntities.map((entity) => entity.value))
+		const childrenByVisibleParent = new Map<string, EntityOption[]>()
+
+		for (const entity of rankedEntities) {
+			if (!entity.isChild || !entity.parentValue || !rankedValues.has(entity.parentValue)) continue
+			const children = childrenByVisibleParent.get(entity.parentValue) || []
+			children.push(entity)
+			childrenByVisibleParent.set(entity.parentValue, children)
+		}
+
+		if (childrenByVisibleParent.size === 0) return rankedEntities
+
+		const groupedEntities: EntityOption[] = []
+		const addedValues = new Set<string>()
+
+		for (const entity of rankedEntities) {
+			if (addedValues.has(entity.value)) continue
+			if (entity.isChild && entity.parentValue && rankedValues.has(entity.parentValue)) continue
+
+			groupedEntities.push(entity)
+			addedValues.add(entity.value)
+
+			const children = childrenByVisibleParent.get(entity.value)
+			if (!children) continue
+
+			for (const child of children) {
+				if (addedValues.has(child.value)) continue
+				groupedEntities.push(child)
+				addedValues.add(child.value)
+			}
+		}
+
+		return groupedEntities
 	}, [entities, searchQuery])
+
+	const visibleEntityValues = useMemo(() => new Set(filteredEntities.map((entity) => entity.value)), [filteredEntities])
 
 	const virtualizer = useVirtualizer({
 		count: filteredEntities.length,
@@ -103,10 +139,7 @@ export function EntityPickerList({
 							if (!entity) return null
 							const isSelected = selectedEntities.includes(entity.value)
 							const iconUrl = getItemIconUrl(mode, null, entity.value)
-							const previousEntity = filteredEntities[row.index - 1]
-							const isChild =
-								entity.isChild &&
-								(!searchQuery || (!!entity.parentValue && previousEntity?.value === entity.parentValue))
+							const isChild = entity.isChild && !!entity.parentValue && visibleEntityValues.has(entity.parentValue)
 
 							return (
 								<button
