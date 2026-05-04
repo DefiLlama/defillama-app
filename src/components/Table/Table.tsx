@@ -458,6 +458,7 @@ export function VirtualTable<T extends RowData>({
 									const isRepeatedLeafHeader =
 										header.isPlaceholder && !rowSpannedHeader && header.subHeaders.length === 0
 									const isLastHeaderRow = headerGroup.depth === headerGroups.length - 1
+									const isGroupedChildHeader = headerGroup.depth > 0 && !isRepeatedLeafHeader
 
 									return (
 										<th
@@ -479,7 +480,7 @@ export function VirtualTable<T extends RowData>({
 												boxShadow: isSticky ? '-1px 0 0 0 var(--divider) inset' : undefined
 											}}
 											className={`overflow-hidden border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
-												rowSpannedHeader || headerGroup.depth === 0 ? 'border-t' : ''
+												rowSpannedHeader || headerGroup.depth === 0 || isGroupedChildHeader ? 'border-t' : ''
 											} ${rowSpannedHeader || isLastHeaderRow ? 'border-b' : ''} ${
 												compact ? 'h-[50px] border-t-black/10 border-r-transparent px-5 dark:border-t-white/10' : ''
 											} ${isRepeatedLeafHeader ? 'p-0' : ''}`}
