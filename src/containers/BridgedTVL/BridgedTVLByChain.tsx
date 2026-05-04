@@ -46,12 +46,14 @@ const columnHelper = createColumnHelper<BridgedChainRow>()
 const bridgedChainColumns = [
 	columnHelper.accessor('name', {
 		header: 'Token',
-		enableSorting: false
+		enableSorting: false,
+		size: 220
 	}),
 	columnHelper.accessor((row) => (row.value ? +row.value : undefined), {
 		id: 'value',
 		header: 'Total Bridged',
-		cell: (info) => formattedNum(info.getValue(), true)
+		cell: (info) => formattedNum(info.getValue(), true),
+		size: 120
 	})
 ]
 

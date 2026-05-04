@@ -19,7 +19,8 @@ const columns = [
 	columnHelper.accessor('name', {
 		header: 'Project',
 		enableSorting: false,
-		cell: (info) => <YieldsProject project={info.getValue()} projectslug={info.getValue()} />
+		cell: (info) => <YieldsProject project={info.getValue()} projectslug={info.getValue()} />,
+		size: 220
 	}),
 	columnHelper.accessor('airdrop', {
 		header: 'Airdrop',
@@ -38,19 +39,22 @@ const columns = [
 		},
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 90
 	}),
 	columnHelper.accessor('category', {
 		header: 'Category',
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 140
 	}),
 	columnHelper.accessor('protocols', {
 		header: 'Pools',
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 90
 	}),
 	columnHelper.accessor((row) => row.tvl ?? undefined, {
 		id: 'tvl',
@@ -58,14 +62,16 @@ const columns = [
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 120
 	}),
 	columnHelper.accessor('audits', {
 		header: 'Audits',
 		cell: (info) => (info.getValue() ? 'Yes' : 'No'),
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 90
 	}),
 	columnHelper.accessor((row) => row.medianApy ?? undefined, {
 		id: 'medianApy',
@@ -73,7 +79,8 @@ const columns = [
 		cell: (info) => <PercentChange percent={info.getValue()} noSign />,
 		meta: {
 			align: 'end'
-		}
+		},
+		size: 120
 	})
 ]
 

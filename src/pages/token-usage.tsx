@@ -222,11 +222,13 @@ const columns = [
 					)}
 				</span>
 			)
-		}
+		},
+		size: 240
 	}),
 	columnHelper.accessor('category', {
 		header: 'Category',
 		enableSorting: false,
+		size: 140,
 		meta: {
 			align: 'end'
 		}
@@ -234,6 +236,7 @@ const columns = [
 	columnHelper.accessor('amountUsd', {
 		header: 'Amount',
 		cell: (info) => formattedNum(info.getValue(), true),
+		size: 120,
 		meta: {
 			align: 'end'
 		}

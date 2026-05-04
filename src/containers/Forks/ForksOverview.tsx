@@ -44,20 +44,24 @@ const forksColumn = [
 					</BasicLink>
 				</span>
 			)
-		}
+		},
+		size: 240
 	}),
 	columnHelper.accessor('forkedProtocols', {
 		header: 'Forked Protocols',
+		size: 150,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'Forks TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('ftot', {
 		header: 'Forks TVL / Original TVL',
 		cell: (info) => (info.getValue() != null ? `${formattedNum(info.getValue())}%` : null),
+		size: 210,
 		meta: { align: 'end' }
 	})
 ]

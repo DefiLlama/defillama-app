@@ -180,6 +180,7 @@ const columns = [
 	columnHelper.accessor('tvl', {
 		header: 'TVL',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -187,6 +188,7 @@ const columns = [
 	columnHelper.accessor('fees', {
 		header: '24h Fees',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		size: 100,
 		meta: {
 			align: 'end'
 		}
@@ -194,6 +196,7 @@ const columns = [
 	columnHelper.accessor('revenue', {
 		header: '24h Revenue',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		size: 125,
 		meta: {
 			align: 'end'
 		}
@@ -201,6 +204,7 @@ const columns = [
 	columnHelper.accessor('dexVolume', {
 		header: '24h DEX Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		size: 150,
 		meta: {
 			align: 'end'
 		}
@@ -219,6 +223,7 @@ const columns = [
 				<span className="sr-only">open in new tab</span>
 			</a>
 		),
+		size: 120,
 		meta: {
 			align: 'end'
 		}

@@ -118,7 +118,8 @@ const columns = [
 					)}
 				</span>
 			)
-		}
+		},
+		size: 220
 	}),
 	columnHelper.accessor('currentTvl', {
 		header: 'Assets',

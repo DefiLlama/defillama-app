@@ -48,12 +48,14 @@ const columns = [
 					</BasicLink>
 				</span>
 			)
-		}
+		},
+		size: 240
 	}),
 	columnHelper.accessor((row) => row.totalHacked, {
 		id: 'Total Hacked',
 		header: 'Total Hacked',
 		cell: (info) => formattedNum(info.getValue(), true),
+		size: 130,
 		meta: {
 			align: 'center'
 		}
@@ -62,6 +64,7 @@ const columns = [
 		id: 'Returned Funds',
 		header: 'Returned Funds',
 		cell: (info) => formattedNum(info.getValue(), true),
+		size: 150,
 		meta: {
 			align: 'center'
 		}
@@ -70,6 +73,7 @@ const columns = [
 		id: 'Net User Loss',
 		header: 'Net User Loss',
 		cell: (info) => formattedNum(info.getValue(), true),
+		size: 140,
 		meta: {
 			align: 'center',
 			headerHelperText: 'Total Hacked - Returned Funds'

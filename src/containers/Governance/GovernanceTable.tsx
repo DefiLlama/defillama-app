@@ -115,31 +115,37 @@ const proposalsCompoundColumns = [
 	columnHelper.accessor('title', {
 		header: 'Title',
 		enableSorting: false,
-		cell: (info) => <TitleCell info={info} />
+		cell: (info) => <TitleCell info={info} />,
+		size: 360
 	}),
 	columnHelper.accessor('start', {
 		header: 'Start',
 		cell: (info) => <DateCell info={info} />,
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('end', {
 		header: 'End',
 		cell: (info) => <DateCell info={info} />,
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('state', {
 		header: 'State',
 		cell: (info) => String(info.getValue() ?? ''),
+		size: 90,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('scores_total', {
 		header: 'Votes',
 		cell: (info) => formattedNum(info.getValue()),
+		size: 110,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
 		cell: (info) => <ControversyCell info={info} />,
+		size: 130,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	})
 ]
@@ -148,16 +154,19 @@ const proposalsSnapshotColumns = [
 	columnHelper.accessor('title', {
 		header: 'Title',
 		enableSorting: false,
-		cell: (info) => <TitleCell info={info} />
+		cell: (info) => <TitleCell info={info} />,
+		size: 360
 	}),
 	columnHelper.accessor('start', {
 		header: 'Start',
 		cell: (info) => <DateCell info={info} />,
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('end', {
 		header: 'End',
 		cell: (info) => <DateCell info={info} />,
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor((row) => (row.state === 'closed' ? 0 : 1), {
@@ -168,11 +177,13 @@ const proposalsSnapshotColumns = [
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>
 		),
+		size: 90,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('scores_total', {
 		header: 'Votes',
 		cell: (info) => formattedNum(info.getValue()),
+		size: 110,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('winningChoice', {
@@ -184,11 +195,13 @@ const proposalsSnapshotColumns = [
 			return text || '-'
 		},
 		enableSorting: false,
+		size: 180,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
 		cell: (info) => <ControversyCell info={info} />,
+		size: 130,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	}),
 	columnHelper.accessor('discussion', {
@@ -200,6 +213,7 @@ const proposalsSnapshotColumns = [
 					View
 				</a>
 			) : null,
+		size: 110,
 		meta: { align: 'end' }
 	})
 ]
@@ -208,31 +222,37 @@ const proposalsTallyColumns = [
 	columnHelper.accessor('title', {
 		header: 'Title',
 		enableSorting: false,
-		cell: (info) => <TitleCell info={info} />
+		cell: (info) => <TitleCell info={info} />,
+		size: 360
 	}),
 	columnHelper.accessor('start', {
 		header: 'Start',
 		cell: (info) => <DateCell info={info} />,
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('end', {
 		header: 'End',
 		cell: (info) => <DateCell info={info} />,
+		size: 120,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('state', {
 		header: 'State',
 		cell: (info) => String(info.getValue() ?? ''),
+		size: 90,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('scores_total', {
 		header: 'Votes',
 		cell: (info) => formattedNum(info.getValue()),
+		size: 110,
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
 		cell: (info) => <ControversyCell info={info} />,
+		size: 130,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
 	})
 ]

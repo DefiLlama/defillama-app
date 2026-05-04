@@ -99,6 +99,7 @@ const columns = [
 	}),
 	columnHelper.accessor('headcount', {
 		header: 'Headcount',
+		size: 110,
 		meta: {
 			align: 'end'
 		}
@@ -106,6 +107,7 @@ const columns = [
 	columnHelper.accessor('sumAnnualUsdExpenses', {
 		header: 'Annual Expenses',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		size: 150,
 		meta: {
 			align: 'end'
 		}
@@ -123,6 +125,7 @@ const columns = [
 				>
 					<Icon name="arrow-up-right" height={14} width={14} className="shrink-0" />
 				</a>
-			) : null
+			) : null,
+		size: 90
 	})
 ]

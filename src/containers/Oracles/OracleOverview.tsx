@@ -71,12 +71,14 @@ export const OracleOverview = ({
 							</BasicLink>
 						</span>
 					)
-				}
+				},
+				size: 240
 			}),
 			columnHelper.accessor('category', {
 				header: 'Category',
 				enableSorting: false,
 				cell: ({ getValue }) => getValue() ?? 'Unknown',
+				size: 140,
 				meta: {
 					align: 'center'
 				}
@@ -93,6 +95,7 @@ export const OracleOverview = ({
 						</span>
 					)
 				},
+				size: 120,
 				meta: {
 					align: 'center'
 				}

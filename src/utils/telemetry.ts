@@ -848,6 +848,47 @@ function sanitizeQueryForTelemetry(query: Record<string, string | string[] | und
 	return sanitized
 }
 
+function encodeStaticRouteSegment(segment: string): string {
+	const sanitized = sanitizePathSegment(segment)
+	return sanitized === '[REDACTED]' ? sanitized : encodeURIComponent(sanitized)
+}
+
+export function staticRouteTelemetryAttributes(
+	params?: Record<string, string | string[] | undefined>
+): TelemetryAttributes | undefined {
+	if (!params) return undefined
+
+	return { params: sanitizeQueryForTelemetry(params) }
+}
+
+export function buildStaticRouteRequestPath(
+	route: string,
+	params?: Record<string, string | string[] | undefined>
+): string | undefined {
+	if (!params) return undefined
+
+	let path = route
+	let replaced = false
+
+	for (const key in params) {
+		const value = params[key]
+		if (value === undefined) continue
+
+		const replacement = Array.isArray(value)
+			? value.map((segment) => encodeStaticRouteSegment(segment)).join('/')
+			: encodeStaticRouteSegment(value)
+
+		for (const token of [`[[...${key}]]`, `[...${key}]`, `[${key}]`]) {
+			if (path.includes(token)) {
+				path = path.split(token).join(replacement)
+				replaced = true
+			}
+		}
+	}
+
+	return replaced ? (path.startsWith('/') ? path : `/${path}`) : undefined
+}
+
 function urlParts(url: string): { host?: string; pathname?: string; apiGroup?: string } {
 	try {
 		const parsed = new URL(url)
@@ -1141,7 +1182,8 @@ export function shouldInstrumentStaticRoute(route: string): boolean {
 export async function withStaticRouteTelemetry<T>(
 	route: string,
 	run: () => Promise<GetStaticPropsResult<T>>,
-	attributes?: TelemetryAttributes
+	attributes?: TelemetryAttributes,
+	requestPath?: string
 ): Promise<GetStaticPropsResult<T>> {
 	return withRouteTelemetry(
 		{
@@ -1149,6 +1191,7 @@ export async function withStaticRouteTelemetry<T>(
 			operationType: 'getStaticProps',
 			runtime: 'build',
 			flushTimeoutMs: getEnvNumber('OPS_TELEMETRY_BUILD_FLUSH_MS', 2000),
+			...(requestPath ? { requestPath } : null),
 			attributes,
 			getResultAttributes: getStaticPropsTelemetryAttributes,
 			getStatus: staticPropsStatus

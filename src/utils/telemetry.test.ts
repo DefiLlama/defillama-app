@@ -4,9 +4,11 @@ import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 import { fetchJson } from './async'
 import { fetchWithPoolingOnServer } from './http-client'
 import {
+	buildStaticRouteRequestPath,
 	flushTelemetry,
 	recordDomainEvent,
 	recordTelemetry,
+	staticRouteTelemetryAttributes,
 	telemetryTest,
 	withApiRouteTelemetry,
 	withRouteTelemetry,
@@ -137,9 +139,15 @@ describe('telemetry client', () => {
 		const fetchMock = vi.fn(async () => new Response(null, { status: 204 }))
 		vi.stubGlobal('fetch', fetchMock)
 
-		await withStaticRouteTelemetry('/chain/[chain]', async () => ({ props: { ok: true } }), {
-			params: { chain: 'ethereum' }
-		})
+		expect(buildStaticRouteRequestPath('chain/[chain]', { chain: 'ethereum' })).toBe('/chain/ethereum')
+		expect(buildStaticRouteRequestPath('/chain/[chain]', { chain: 'ethereum' })).toBe('/chain/ethereum')
+
+		await withStaticRouteTelemetry(
+			'/chain/[chain]',
+			async () => ({ props: { ok: true } }),
+			staticRouteTelemetryAttributes({ chain: 'ethereum' }),
+			buildStaticRouteRequestPath('/chain/[chain]', { chain: 'ethereum' })
+		)
 		await withStaticRouteTelemetry('/second', async () => ({ props: { ok: true } }))
 
 		const events = sentEvents(fetchMock)
@@ -149,7 +157,11 @@ describe('telemetry client', () => {
 		expect(routes).toHaveLength(2)
 		expect(ticks).toHaveLength(2)
 		expect(routes[0].trace_id).not.toBe(routes[1].trace_id)
-		expect(routes[0]).toMatchObject({ route: '/chain/[chain]', attributes: { params: { chain: 'ethereum' } } })
+		expect(routes[0]).toMatchObject({
+			route: '/chain/[chain]',
+			request_path: '/chain/ethereum',
+			attributes: { params: { chain: 'ethereum' } }
+		})
 		expect(ticks[0]).toMatchObject({
 			parent_span_id: routes[0].span_id,
 			route: '/chain/[chain]',

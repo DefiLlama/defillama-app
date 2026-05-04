@@ -165,10 +165,12 @@ const columns = (chain: string) => [
 				</a>
 			)
 		},
-		enableSorting: false
+		enableSorting: false,
+		size: 240
 	}),
 	columnHelper.accessor('txns', {
 		header: 'Transactions',
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -176,12 +178,14 @@ const columns = (chain: string) => [
 	columnHelper.accessor('txns_percentage_growth', {
 		header: 'Tx Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
+		size: 120,
 		meta: {
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('active_accounts', {
 		header: 'Active Accounts',
+		size: 150,
 		meta: {
 			align: 'end'
 		}
@@ -189,6 +193,7 @@ const columns = (chain: string) => [
 	columnHelper.accessor('accounts_percentage_growth', {
 		header: 'Account Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
+		size: 150,
 		meta: {
 			align: 'end'
 		}
@@ -196,6 +201,7 @@ const columns = (chain: string) => [
 	columnHelper.accessor('gas_spend', {
 		header: 'Gas Spent',
 		cell: (info) => <>{info.getValue()?.toFixed(2)} ETH</>,
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -203,6 +209,7 @@ const columns = (chain: string) => [
 	columnHelper.accessor('gas_spend_percentage_growth', {
 		header: 'Gas Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
+		size: 120,
 		meta: {
 			align: 'end'
 		}

@@ -64,22 +64,26 @@ const protocolColumns = [
 					</BasicLink>
 				</span>
 			)
-		}
+		},
+		size: 220
 	}),
 	protocolColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
+		size: 110,
 		meta: { align: 'end' }
 	}),
 	protocolColumnHelper.accessor((row) => row.chainCount ?? undefined, {
 		id: 'chainCount',
 		header: 'Chains',
+		size: 90,
 		meta: { align: 'end' }
 	}),
 	protocolColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
+		size: 145,
 		meta: { align: 'end' }
 	})
 ]
@@ -98,22 +102,26 @@ const chainColumns = [
 					<span>{chain}</span>
 				</span>
 			)
-		}
+		},
+		size: 180
 	}),
 	chainColumnHelper.accessor((row) => row.positionCount ?? undefined, {
 		id: 'positionCount',
 		header: 'Positions',
+		size: 110,
 		meta: { align: 'end' }
 	}),
 	chainColumnHelper.accessor((row) => row.protocolCount ?? undefined, {
 		id: 'protocolCount',
 		header: 'Protocols',
+		size: 110,
 		meta: { align: 'end' }
 	}),
 	chainColumnHelper.accessor((row) => row.totalCollateralUsd ?? undefined, {
 		id: 'totalCollateralUsd',
 		header: 'Collateral USD',
 		cell: ({ getValue }) => formattedNum(getValue(), true),
+		size: 145,
 		meta: { align: 'end' }
 	})
 ]

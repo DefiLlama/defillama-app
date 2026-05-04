@@ -231,7 +231,8 @@ const columns = [
 					</BasicLink>
 				</span>
 			)
-		}
+		},
+		size: 240
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',

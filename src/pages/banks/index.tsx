@@ -31,6 +31,7 @@ const banksTableColumns = [
 		header: 'Closing date',
 		sortingFn: sortingFns.datetime,
 		cell: (info) => (info.getValue() ? toNiceDateYear(info.getValue()) : ''),
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -39,6 +40,7 @@ const banksTableColumns = [
 		id: 'assets',
 		header: 'Assets',
 		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : ''),
+		size: 120,
 		meta: {
 			align: 'end'
 		}
@@ -47,6 +49,7 @@ const banksTableColumns = [
 		id: 'assets-inflation-adjusted',
 		header: 'Assets (inflation adjusted)',
 		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : ''),
+		size: 220,
 		meta: {
 			align: 'end'
 		}
