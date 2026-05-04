@@ -1,6 +1,7 @@
 import Router from 'next/router'
 import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefCallback } from 'react'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
@@ -797,6 +798,56 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 	return TOOL_DATA_RENDERERS[name]?.(data) ?? null
 }
 
+function BranchArrows({
+	info,
+	onSwitch
+}: {
+	info: NonNullable<Message['siblingInfo']>
+	onSwitch: (leafMessageId: string) => void
+}) {
+	const { currentVersion, totalVersions, siblings } = info
+	const goPrev = currentVersion > 1 ? siblings[currentVersion - 2]?.leafMessageId : null
+	const goNext = currentVersion < totalVersions ? siblings[currentVersion]?.leafMessageId : null
+	const arrowClass =
+		'rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#999] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc] dark:disabled:hover:text-[#666]'
+	return (
+		<div className="flex items-center gap-0.5">
+			<Tooltip
+				content="Previous version"
+				render={
+					<button
+						type="button"
+						disabled={!goPrev}
+						onClick={() => goPrev && onSwitch(goPrev)}
+						aria-label="Previous version"
+					/>
+				}
+				className={arrowClass}
+			>
+				<Icon name="chevron-left" height={14} width={14} />
+			</Tooltip>
+			<span className="px-0.5 text-[11px] text-[#999] tabular-nums dark:text-[#666]">
+				{currentVersion}
+				<span className="opacity-50">/{totalVersions}</span>
+			</span>
+			<Tooltip
+				content="Next version"
+				render={
+					<button
+						type="button"
+						disabled={!goNext}
+						onClick={() => goNext && onSwitch(goNext)}
+						aria-label="Next version"
+					/>
+				}
+				className={arrowClass}
+			>
+				<Icon name="chevron-right" height={14} width={14} />
+			</Tooltip>
+		</div>
+	)
+}
+
 export function MessageBubble({
 	message,
 	sessionId,
@@ -805,6 +856,8 @@ export function MessageBubble({
 	isLlama = false,
 	isLatestAssistant = false,
 	onActionClick,
+	onEditMessage,
+	onBranchSwitch,
 	nextUserMessage,
 	onShare,
 	onTableFullscreenOpen,
@@ -819,6 +872,8 @@ export function MessageBubble({
 	isLlama?: boolean
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
 	nextUserMessage?: string
 	onShare?: (messageId?: string) => void
 	onTableFullscreenOpen?: () => void
@@ -827,53 +882,161 @@ export function MessageBubble({
 	anchorClassName?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const [isEditing, setIsEditing] = useState(false)
+	const [isSaving, setIsSaving] = useState(false)
+	const [draftText, setDraftText] = useState(message.content || '')
 	const hackerMode = useHackerMode()
+	const handleCancelEdit = () => {
+		if (isSaving) return
+		setIsEditing(false)
+		setDraftText(message.content || '')
+	}
+	const handleSaveEdit = async () => {
+		const next = draftText.trim()
+		if (!message.id || !next || next === message.content?.trim() || isSaving) return
+		setIsSaving(true)
+		try {
+			await onEditMessage?.(message.id, next, message)
+			setIsEditing(false)
+		} catch {
+			// textarea stays open with draft preserved; parent rolled back state and surfaced an error
+		} finally {
+			setIsSaving(false)
+		}
+	}
 	if (message.role === 'user') {
+		const isPersistedId = !!message.id && !/^(local|persisted|shared)-/.test(message.id)
+		const hasStableId = !!message.id
+		const canEdit = hasStableId && !!onEditMessage
+		const canSwitchBranch = isPersistedId && !!onBranchSwitch
+		const hasControls = hasStableId && !isDraft && !readOnly && (canEdit || canSwitchBranch)
 		return (
 			<div
 				id={anchorId}
 				ref={anchorRef}
-				className={`ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425] ${anchorClassName ?? ''}`}
+				className={`group/msg ml-auto flex w-full max-w-[80%] flex-col items-end ${anchorClassName ?? ''}`}
 			>
-				{message.quotedText ? (
-					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
-						<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
-					</div>
-				) : null}
-				{message.images && message.images.length > 0 ? (
-					<div className="mb-2.5 flex flex-wrap gap-3">
-						{message.images.map((image) => {
-							const isImage = image.mimeType?.startsWith('image/')
-							const displayName = image.originalFilename || image.filename || 'File'
-							if (isImage) {
+				<div
+					className={`${isEditing ? 'w-full' : 'w-fit max-w-full'} rounded-lg rounded-tr-none px-3.5 py-2.5 wrap-break-word transition-[background-color,box-shadow] duration-150 ${
+						isEditing
+							? 'bg-white shadow-[inset_0_0_0_1px_rgba(59,130,246,0.35)] dark:bg-[#1a1c1d] dark:shadow-[inset_0_0_0_1px_rgba(96,165,250,0.3)]'
+							: 'bg-[#ececec] dark:bg-[#222425]'
+					}`}
+				>
+					{message.quotedText ? (
+						<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
+							<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
+						</div>
+					) : null}
+					{message.images && message.images.length > 0 ? (
+						<div className="mb-2.5 flex flex-wrap gap-3">
+							{message.images.map((image) => {
+								const isImage = image.mimeType?.startsWith('image/')
+								const displayName = image.originalFilename || image.filename || 'File'
+								if (isImage) {
+									return (
+										<button
+											key={`sent-image-${image.url}`}
+											type="button"
+											onClick={() => setPreviewImage(image.url)}
+											className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+										>
+											<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
+										</button>
+									)
+								}
 								return (
-									<button
-										key={`sent-image-${image.url}`}
-										type="button"
-										onClick={() => setPreviewImage(image.url)}
-										className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+									<a
+										key={`sent-file-${image.url}`}
+										href={image.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex h-16 items-center gap-2 rounded-lg bg-black/10 px-3 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15"
 									>
-										<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
-									</button>
+										<Icon name="file-text" height={18} width={18} />
+										<span className="max-w-[120px] truncate text-xs">{displayName}</span>
+										<Icon name="external-link" height={12} width={12} className="opacity-50" />
+									</a>
 								)
-							}
-							return (
-								<a
-									key={`sent-file-${image.url}`}
-									href={image.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex h-16 items-center gap-2 rounded-lg bg-black/10 px-3 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15"
-								>
-									<Icon name="file-text" height={18} width={18} />
-									<span className="max-w-[120px] truncate text-xs">{displayName}</span>
-									<Icon name="external-link" height={12} width={12} className="opacity-50" />
-								</a>
-							)
-						})}
+							})}
+						</div>
+					) : null}
+					{isEditing ? (
+						<textarea
+							value={draftText}
+							onChange={(event) => setDraftText(event.target.value)}
+							onKeyDown={(event) => {
+								if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') handleSaveEdit()
+								if (event.key === 'Escape') handleCancelEdit()
+							}}
+							className="block w-full resize-none bg-transparent leading-snug focus:outline-none"
+							rows={Math.min(10, Math.max(2, draftText.split('\n').length + 1))}
+							autoFocus
+						/>
+					) : (
+						<p className="whitespace-pre-wrap">{message.content}</p>
+					)}
+				</div>
+
+				{isEditing ? (
+					<div className="mt-2 flex w-full items-center gap-3">
+						<p className="mr-auto text-[11px] text-[#999] dark:text-[#666]">
+							{isPersistedId ? 'Saving creates a new branch' : 'This will replace your message'}
+							<span className="hidden sm:inline">
+								{' · '}
+								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+									⌘↵
+								</kbd>
+								<span className="mx-1">save</span>
+								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+									esc
+								</kbd>
+								<span className="ml-1">cancel</span>
+							</span>
+						</p>
+						<button
+							type="button"
+							onClick={handleCancelEdit}
+							disabled={isSaving}
+							className="rounded-md px-2.5 py-1 text-[12px] text-[#666] transition-colors hover:bg-black/5 hover:text-[#222] disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#999] dark:hover:bg-white/5 dark:hover:text-white"
+						>
+							Cancel
+						</button>
+						<button
+							type="button"
+							onClick={handleSaveEdit}
+							disabled={isSaving || !draftText.trim() || draftText.trim() === message.content?.trim()}
+							className="rounded-md bg-blue-600 px-3 py-1 text-[12px] font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-blue-600"
+						>
+							{isSaving ? 'Saving…' : 'Save'}
+						</button>
+					</div>
+				) : hasControls ? (
+					<div className="mt-1 flex items-center gap-0.5 opacity-100 transition-opacity duration-150 sm:opacity-0 sm:group-hover/msg:opacity-100 sm:focus-within:opacity-100">
+						{canSwitchBranch && message.siblingInfo && message.siblingInfo.totalVersions > 1 && onBranchSwitch ? (
+							<BranchArrows info={message.siblingInfo} onSwitch={onBranchSwitch} />
+						) : null}
+						{canEdit ? (
+							<Tooltip
+								content="Edit message"
+								render={
+									<button
+										type="button"
+										onClick={() => {
+											setIsEditing(true)
+											setDraftText(message.content || '')
+										}}
+										aria-label="Edit message"
+									/>
+								}
+								className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
+							>
+								<Icon name="pencil" height={14} width={14} />
+							</Tooltip>
+						) : null}
 					</div>
 				) : null}
-				<p>{message.content}</p>
+
 				<ImagePreviewModal
 					imageUrl={previewImage}
 					onClose={() => setPreviewImage(null)}

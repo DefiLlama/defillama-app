@@ -65,6 +65,8 @@ interface ConversationViewProps {
 	) => void
 	handleStopRequest: () => void
 	handleActionClick: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
@@ -104,6 +106,8 @@ function ConversationMessageItem({
 	isLlama,
 	isLatestAssistant,
 	onActionClick,
+	onEditMessage,
+	onBranchSwitch,
 	onTableFullscreenOpen,
 	anchorId,
 	anchorRef
@@ -116,6 +120,8 @@ function ConversationMessageItem({
 	isLlama: boolean
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
 	onTableFullscreenOpen?: () => void
 	anchorId?: string
 	anchorRef?: RefCallback<HTMLDivElement>
@@ -128,6 +134,8 @@ function ConversationMessageItem({
 			isLlama={isLlama}
 			isLatestAssistant={isLatestAssistant}
 			onActionClick={onActionClick}
+			onEditMessage={onEditMessage}
+			onBranchSwitch={onBranchSwitch}
 			nextUserMessage={nextUserMessage}
 			onShare={onShare}
 			onTableFullscreenOpen={onTableFullscreenOpen}
@@ -291,6 +299,8 @@ export function ConversationView({
 	handleSubmit,
 	handleStopRequest,
 	handleActionClick,
+	onEditMessage,
+	onBranchSwitch,
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
@@ -438,6 +448,8 @@ export function ConversationView({
 											isLlama={isLlama}
 											isLatestAssistant={message.id === lastAssistantId}
 											onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+											onEditMessage={!readOnly ? onEditMessage : undefined}
+											onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
 											onTableFullscreenOpen={onTableFullscreenOpen}
 											anchorId={getMessageAnchorId(message.id)}
 											anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
@@ -469,6 +481,8 @@ export function ConversationView({
 												isLlama={isLlama}
 												isLatestAssistant={message.id === lastAssistantId}
 												onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+												onEditMessage={!readOnly ? onEditMessage : undefined}
+												onBranchSwitch={!readOnly && !isStreaming ? onBranchSwitch : undefined}
 												onTableFullscreenOpen={onTableFullscreenOpen}
 												anchorId={getMessageAnchorId(message.id)}
 												anchorRef={getAnchorRef(getMessageAnchorId(message.id))}
