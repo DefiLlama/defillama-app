@@ -1057,7 +1057,12 @@ export function AgenticChat({
 		void handleLoadNewerMessages()
 	})
 
-	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
+	const {
+		attach,
+		scrollToBottom,
+		isAttached: isScrollAttached,
+		showScrollToBottom
+	} = useChatScroll({
 		scrollContainerRef,
 		isStreaming,
 		items: effectiveMessages,
@@ -2515,6 +2520,7 @@ export function AgenticChat({
 										scrollContainerRef={scrollContainerRef}
 										messagesEndRef={messagesEndRef}
 										promptInputRef={promptInputRef}
+										isScrollAttached={isScrollAttached}
 										showScrollToBottom={showScrollToBottom}
 										scrollToBottom={scrollToBottom}
 										handleSubmit={handleSubmit}
@@ -2576,6 +2582,7 @@ export function AgenticChat({
 								scrollContainerRef={scrollContainerRef}
 								messagesEndRef={messagesEndRef}
 								promptInputRef={promptInputRef}
+								isScrollAttached={isScrollAttached}
 								showScrollToBottom={showScrollToBottom}
 								scrollToBottom={scrollToBottom}
 								handleSubmit={handleSubmit}

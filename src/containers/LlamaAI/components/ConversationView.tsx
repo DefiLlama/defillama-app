@@ -55,6 +55,7 @@ interface ConversationViewProps {
 	scrollContainerRef: RefObject<HTMLDivElement | null>
 	messagesEndRef: RefObject<HTMLDivElement | null>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
+	isScrollAttached: boolean
 	showScrollToBottom: boolean
 	scrollToBottom: () => void
 	handleSubmit: (
@@ -299,6 +300,7 @@ export function ConversationView({
 	scrollContainerRef,
 	messagesEndRef,
 	promptInputRef,
+	isScrollAttached,
 	showScrollToBottom,
 	scrollToBottom,
 	handleSubmit,
@@ -436,12 +438,12 @@ export function ConversationView({
 	}, [scrollContainerRef])
 
 	useLayoutEffect(() => {
-		if (!shouldSpaceLastExchange || activeExchangeMinHeight == null) return
+		if (!shouldSpaceLastExchange || !isScrollAttached || activeExchangeMinHeight == null) return
 		const container = scrollContainerRef.current
 		if (container) {
 			container.scrollTop = container.scrollHeight
 		}
-	}, [activeExchangeMinHeight, scrollContainerRef, shouldSpaceLastExchange])
+	}, [activeExchangeMinHeight, isScrollAttached, scrollContainerRef, shouldSpaceLastExchange])
 
 	return (
 		<>

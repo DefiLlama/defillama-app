@@ -969,8 +969,17 @@ export function MessageBubble({
 							value={draftText}
 							onChange={(event) => setDraftText(event.target.value)}
 							onKeyDown={(event) => {
-								if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') handleSaveEdit()
-								if (event.key === 'Escape') handleCancelEdit()
+								if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+									event.preventDefault()
+									event.stopPropagation()
+									void handleSaveEdit()
+									return
+								}
+								if (event.key === 'Escape') {
+									event.preventDefault()
+									event.stopPropagation()
+									handleCancelEdit()
+								}
 							}}
 							className="block w-full resize-none bg-transparent leading-snug focus:outline-none"
 							rows={Math.min(10, Math.max(2, draftText.split('\n').length + 1))}

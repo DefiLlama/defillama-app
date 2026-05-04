@@ -15,6 +15,67 @@ import { useAuthContext } from '~/containers/Subscription/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 
+type SwitchActiveLeafResponse = {
+	activeLeafMessageId: string
+	messages?: unknown[]
+	pagination?: {
+		hasMore?: boolean
+		cursor?: number | null
+		hasNewer?: boolean
+		newerCursor?: number | null
+	}
+}
+
+function assertSwitchActiveLeafResponse(response: unknown): asserts response is SwitchActiveLeafResponse {
+	if (!response || typeof response !== 'object' || Array.isArray(response)) {
+		throw new Error('Invalid branch switch response')
+	}
+
+	const result = response as {
+		activeLeafMessageId?: unknown
+		messages?: unknown
+		pagination?: unknown
+	}
+
+	if (typeof result.activeLeafMessageId !== 'string' || result.activeLeafMessageId.trim() === '') {
+		throw new Error('Invalid branch switch response: missing active leaf message')
+	}
+
+	if (result.messages !== undefined && !Array.isArray(result.messages)) {
+		throw new Error('Invalid branch switch response: messages must be an array')
+	}
+
+	if (result.pagination === undefined) return
+
+	if (!result.pagination || typeof result.pagination !== 'object' || Array.isArray(result.pagination)) {
+		throw new Error('Invalid branch switch response: pagination must be an object')
+	}
+
+	const pagination = result.pagination as {
+		hasMore?: unknown
+		cursor?: unknown
+		hasNewer?: unknown
+		newerCursor?: unknown
+	}
+
+	if (pagination.hasMore !== undefined && typeof pagination.hasMore !== 'boolean') {
+		throw new Error('Invalid branch switch response: pagination.hasMore must be a boolean')
+	}
+	if (pagination.cursor !== undefined && pagination.cursor !== null && typeof pagination.cursor !== 'number') {
+		throw new Error('Invalid branch switch response: pagination.cursor must be a number or null')
+	}
+	if (pagination.hasNewer !== undefined && typeof pagination.hasNewer !== 'boolean') {
+		throw new Error('Invalid branch switch response: pagination.hasNewer must be a boolean')
+	}
+	if (
+		pagination.newerCursor !== undefined &&
+		pagination.newerCursor !== null &&
+		typeof pagination.newerCursor !== 'number'
+	) {
+		throw new Error('Invalid branch switch response: pagination.newerCursor must be a number or null')
+	}
+}
+
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
@@ -83,7 +144,7 @@ export function useSessionMutations() {
 		mutationKey: ['llamaai', 'switch-active-leaf'],
 		mutationFn: async ({ sessionId, leafMessageId }: { sessionId: string; leafMessageId: string }) => {
 			try {
-				const response = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
+				const response: unknown = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ leafMessageId })
@@ -92,16 +153,8 @@ export function useSessionMutations() {
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
-				return response as {
-					activeLeafMessageId: string
-					messages?: unknown[]
-					pagination?: {
-						hasMore?: boolean
-						cursor?: number | null
-						hasNewer?: boolean
-						newerCursor?: number | null
-					}
-				}
+				assertSwitchActiveLeafResponse(response)
+				return response
 			} catch (error) {
 				console.error('[llama-ai] [switchActiveLeaf] failed:', getErrorMessage(error))
 				throw error instanceof Error ? error : new Error('Failed to switch branch')
