@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { createElement, useMemo, useRef } from 'react'
+import { createElement, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -309,6 +309,55 @@ function getSingleTextChild(children: ReactNode): string | null {
 	return typeof children === 'string' ? children : null
 }
 
+function getCodeLanguage(children: ReactNode): string | null {
+	if (!children || typeof children !== 'object' || !('props' in children)) return null
+	const className = (children as any).props?.className
+	if (typeof className !== 'string') return null
+	const match = className.match(/language-(\S+)/)
+	return match ? match[1] : null
+}
+
+type MarkdownPreProps = ComponentPropsWithoutRef<'pre'> & { node?: unknown }
+
+function CodeBlock({ children, node: _node, className, ...props }: MarkdownPreProps) {
+	const [copied, setCopied] = useState(false)
+	const language = getCodeLanguage(children)
+
+	const handleCopy = async () => {
+		const text = extractText(children)
+		if (!text) return
+		try {
+			await navigator.clipboard.writeText(text)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 1500)
+		} catch {
+			// silent
+		}
+	}
+
+	return (
+		<div className="group relative">
+			{language ? (
+				<span className="pointer-events-none absolute top-2 left-3 z-10 font-mono text-[11px] tracking-wide text-white/50 select-none">
+					{language}
+				</span>
+			) : null}
+			<button
+				type="button"
+				onClick={handleCopy}
+				aria-label={copied ? 'Copied' : 'Copy code'}
+				data-copied={copied || undefined}
+				className="absolute top-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
+			>
+				<Icon name={copied ? 'check' : 'copy'} height={14} width={14} />
+			</button>
+			<pre {...props} className={`${language ? '!pt-8' : ''} ${className ?? ''}`}>
+				{children}
+			</pre>
+		</div>
+	)
+}
+
 function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
 	const className =
 		'mx-px inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-[4px] border border-[rgba(31,103,210,0.2)] bg-[rgba(31,103,210,0.08)] px-1 text-[11px] leading-none font-medium text-[#1f67d2] no-underline hover:border-[rgba(31,103,210,0.35)] hover:bg-[rgba(31,103,210,0.15)]'
@@ -464,7 +513,8 @@ export function ChatMarkdownRenderer({
 			<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
 				{children}
 			</ol>
-		)
+		),
+		pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
 	}
 
 	;(markdownComponents as Record<string, any>)['citation-badge'] = ({
