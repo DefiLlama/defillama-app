@@ -1,5 +1,6 @@
 import { flexRender, type Row, type RowData, type Table } from '@tanstack/react-table'
 import { type VirtualItem, useWindowVirtualizer } from '@tanstack/react-virtual'
+import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
@@ -15,6 +16,7 @@ interface ITableProps<T extends RowData = RowData> {
 	rowSize?: number
 	stripedBg?: boolean
 	style?: React.CSSProperties
+	className?: string
 	compact?: boolean
 	useStickyHeader?: boolean
 	scrollMargin?: number
@@ -129,6 +131,8 @@ export function VirtualTable<T extends RowData>({
 	compact = false,
 	useStickyHeader = true,
 	scrollMargin,
+	className,
+	style,
 	...props
 }: ITableProps<T>) {
 	const router = useRouter()
@@ -487,8 +491,11 @@ export function VirtualTable<T extends RowData>({
 			<div
 				{...props}
 				ref={tableContainerRef}
-				className="relative isolate thin-scrollbar w-full overflow-x-auto overflow-y-visible overscroll-x-contain rounded-md bg-(--cards-bg)"
-				style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
+				className={clsx(
+					'relative isolate thin-scrollbar w-full overflow-x-auto overflow-y-visible overscroll-x-contain rounded-md bg-(--cards-bg)',
+					className
+				)}
+				style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch', ...style }}
 			>
 				<table
 					style={{

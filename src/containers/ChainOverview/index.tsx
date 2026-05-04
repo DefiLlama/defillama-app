@@ -1,4 +1,3 @@
-import { lazy, Suspense } from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -6,9 +5,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
+import { ChainProtocolsTable } from './Table'
 import type { IChainOverviewData } from './types'
-
-const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
 export function ChainOverview(props: IChainOverviewData) {
 	return (
@@ -67,18 +65,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					))}
 				</div>
 			) : null}
-			{props.protocols.length > 0 ? (
-				<Suspense
-					fallback={
-						<div
-							style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-							className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
-						/>
-					}
-				>
-					<Table protocols={props.protocols} />
-				</Suspense>
-			) : null}
+			{props.protocols.length > 0 ? <ChainProtocolsTable protocols={props.protocols} /> : null}
 		</>
 	)
 }
