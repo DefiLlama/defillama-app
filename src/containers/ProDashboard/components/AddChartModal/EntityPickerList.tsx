@@ -10,6 +10,7 @@ interface EntityOption {
 	label: string
 	logo?: string
 	isChild?: boolean
+	parentValue?: string
 }
 
 interface EntityPickerListProps {
@@ -32,11 +33,12 @@ export function EntityPickerList({
 	const [search, setSearch] = useState('')
 	const deferredSearch = useDeferredValue(search)
 	const listRef = useRef<HTMLDivElement | null>(null)
+	const searchQuery = deferredSearch.trim()
 
 	const filteredEntities = useMemo(() => {
-		if (!deferredSearch) return entities
-		return matchSorter(entities, deferredSearch, { keys: ['label'] })
-	}, [entities, deferredSearch])
+		if (!searchQuery) return entities
+		return matchSorter(entities, searchQuery, { keys: ['label'] })
+	}, [entities, searchQuery])
 
 	const virtualizer = useVirtualizer({
 		count: filteredEntities.length,
@@ -101,7 +103,10 @@ export function EntityPickerList({
 							if (!entity) return null
 							const isSelected = selectedEntities.includes(entity.value)
 							const iconUrl = getItemIconUrl(mode, null, entity.value)
-							const isChild = entity.isChild
+							const previousEntity = filteredEntities[row.index - 1]
+							const isChild =
+								entity.isChild &&
+								(!searchQuery || (!!entity.parentValue && previousEntity?.value === entity.parentValue))
 
 							return (
 								<button
