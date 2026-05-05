@@ -80,21 +80,23 @@ const stablecoinsByChainColumns = [
 				</span>
 			)
 		},
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('change_7d', {
 		header: '7d Change',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('mcap', {
 		header: 'Stables Mcap',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 132,
 		meta: {
+			headerClassName: 'w-[132px]',
 			align: 'end'
 		}
 	}),
@@ -124,8 +126,8 @@ const stablecoinsByChainColumns = [
 					</div>
 				)
 			},
-			size: 170,
 			meta: {
+				headerClassName: 'w-[170px]',
 				align: 'end'
 			}
 		}
@@ -133,24 +135,24 @@ const stablecoinsByChainColumns = [
 	columnHelper.accessor('minted', {
 		header: 'Total Mcap Issued On',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 180,
 		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('bridgedTo', {
 		header: 'Total Mcap Bridged To',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 185,
 		meta: {
+			headerClassName: 'w-[min(185px,40vw)]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('mcaptvl', {
 		header: 'Stables Mcap / DeFi Tvl',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
-		size: 195,
 		meta: {
+			headerClassName: 'w-[min(195px,40vw)]',
 			align: 'end'
 		}
 	})

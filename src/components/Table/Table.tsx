@@ -1,5 +1,6 @@
 import { flexRender, type Row, type RowData, type Table } from '@tanstack/react-table'
 import { type VirtualItem, useWindowVirtualizer } from '@tanstack/react-virtual'
+import clsx from 'clsx'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
@@ -13,9 +14,9 @@ interface ITableProps<T extends RowData = RowData> {
 	instance: Table<T>
 	skipVirtualization?: boolean
 	rowSize?: number
-	columnResizeMode?: 'onChange' | 'onEnd'
 	stripedBg?: boolean
 	style?: React.CSSProperties
+	className?: string
 	compact?: boolean
 	useStickyHeader?: boolean
 	scrollMargin?: number
@@ -23,14 +24,39 @@ interface ITableProps<T extends RowData = RowData> {
 
 const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 
+interface StickyHeaderLayout {
+	left: number
+	width: number
+	tableWidth: number
+	headerHeight: number
+	scrollLeft: number
+}
+
+const areNumberArraysEqual = (a: Array<number>, b: Array<number>) => {
+	if (a.length !== b.length) return false
+
+	for (let i = 0; i < a.length; i++) {
+		if (a[i] !== b[i]) return false
+	}
+
+	return true
+}
+
+const isSameStickyHeaderLayout = (a: StickyHeaderLayout | null, b: StickyHeaderLayout) =>
+	Boolean(
+		a &&
+		a.left === b.left &&
+		a.width === b.width &&
+		a.tableWidth === b.tableWidth &&
+		a.headerHeight === b.headerHeight &&
+		a.scrollLeft === b.scrollLeft
+	)
+
 interface TableRowProps<T extends RowData = RowData> {
 	row: Row<T>
 	index: number
-	virtualRow?: VirtualItem
-	gridTemplateColumns: string
-	totalTableWidth: number
-	skipVirtualization?: boolean
-	scrollMargin: number
+	virtualRow?: VirtualItem | null
+	measureElement?: (node: HTMLTableRowElement | null) => void
 	subRowOrdinalById: Map<string, number>
 	firstColumnId: string | undefined
 	stripedBg: boolean
@@ -42,99 +68,76 @@ function TableRow<T extends RowData>({
 	row: rowToRender,
 	index: i,
 	virtualRow,
-	gridTemplateColumns,
-	totalTableWidth,
-	skipVirtualization,
-	scrollMargin,
+	measureElement,
 	subRowOrdinalById,
 	firstColumnId,
 	stripedBg,
 	isChainPage,
 	compact
 }: TableRowProps<T>) {
-	const trStyle: React.CSSProperties = {
-		display: 'grid',
-		gridTemplateColumns,
-		minWidth: `${totalTableWidth}px`,
-		...(skipVirtualization || !virtualRow
-			? { position: 'relative' }
-			: {
-					position: 'absolute',
-					top: 0,
-					left: 0,
-					width: '100%',
-					height: `${virtualRow.size}px`,
-					opacity: (rowToRender.original as Record<string, unknown>)?.disabled ? 0.3 : 1,
-					transform: `translateY(${virtualRow.start - scrollMargin}px)`
-				})
-	}
-
 	return (
-		<React.Fragment>
-			<div
-				style={{
-					...trStyle,
-					...(rowToRender.depth > 0
-						? {
-								['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowToRender.id) ?? rowToRender.index + 1}"`
-							}
-						: null)
-				}}
-				data-depth={rowToRender.depth}
-				className="vf-row"
-			>
-				{rowToRender
-					.getVisibleCells()
-					.filter((cell) => !cell.column.columnDef.meta?.hidden)
-					.map((cell) => {
-						const textAlign = cell.column.columnDef.meta?.align ?? 'start'
-						const isSticky = cell.column.id === firstColumnId
-						return (
-							<div
-								key={cell.id}
-								data-lighter={stripedBg && i % 2 === 0}
-								data-chainpage={isChainPage}
-								className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
-									compact ? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10' : ''
-								}`}
-								style={{
-									textAlign,
-									justifyContent: compact
-										? textAlign === 'center'
-											? 'center'
-											: textAlign === 'end'
-												? 'flex-end'
-												: 'flex-start'
-										: undefined,
-									position: isSticky ? 'sticky' : undefined,
-									left: isSticky ? 0 : undefined,
-									zIndex: isSticky ? 1 : undefined,
-									background: isSticky ? 'var(--cards-bg)' : undefined
-								}}
-							>
-								{flexRender(cell.column.columnDef.cell, cell.getContext())}
-							</div>
-						)
-					})}
-			</div>
-		</React.Fragment>
+		<tr
+			data-index={virtualRow?.index}
+			ref={measureElement}
+			style={{
+				opacity: (rowToRender.original as Record<string, unknown>)?.disabled ? 0.3 : 1,
+				...(rowToRender.depth > 0
+					? {
+							['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowToRender.id) ?? rowToRender.index + 1}"`
+						}
+					: null)
+			}}
+			data-depth={rowToRender.depth}
+			className="vf-row"
+		>
+			{rowToRender
+				.getVisibleCells()
+				.filter((cell) => !cell.column.columnDef.meta?.hidden)
+				.map((cell) => {
+					const textAlign = cell.column.columnDef.meta?.align ?? 'start'
+					const isSticky = cell.column.id === firstColumnId
+					return (
+						<td
+							key={cell.id}
+							data-lighter={stripedBg && i % 2 === 0}
+							data-chainpage={isChainPage}
+							className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
+								compact ? 'border-r-0 border-t-black/10 px-5 dark:border-t-white/10' : ''
+							}`}
+							style={{
+								textAlign,
+								verticalAlign: compact ? 'middle' : undefined,
+								position: isSticky ? 'sticky' : undefined,
+								left: isSticky ? 0 : undefined,
+								zIndex: isSticky ? 1 : undefined,
+								background: isSticky ? 'var(--cards-bg)' : undefined,
+								borderRightColor: isSticky ? 'transparent' : undefined,
+								boxShadow: isSticky && !compact ? '-1px 0 0 var(--divider) inset' : undefined
+							}}
+						>
+							{flexRender(cell.column.columnDef.cell, cell.getContext())}
+						</td>
+					)
+				})}
+		</tr>
 	)
 }
 
 export function VirtualTable<T extends RowData>({
 	instance,
 	skipVirtualization,
-	columnResizeMode: _columnResizeMode,
 	rowSize,
 	stripedBg = false,
 	compact = false,
 	useStickyHeader = true,
 	scrollMargin,
+	className,
+	style,
 	...props
 }: ITableProps<T>) {
 	const router = useRouter()
 	const isSmallScreen = useMedia('(max-width: 768px)')
-	const tableContainerRef = useRef<HTMLTableSectionElement>(null)
+	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const { rows } = instance.getRowModel()
 
 	const subRowOrdinalById = React.useMemo(() => {
@@ -167,20 +170,33 @@ export function VirtualTable<T extends RowData>({
 		overscan: 5,
 		scrollMargin: scrollMargin ?? containerOffset
 	})
+	useEffect(() => {
+		rowVirtualizer.measure()
+	}, [rowVirtualizer, rows.length, containerOffset])
 	const virtualItems = rowVirtualizer.getVirtualItems()
-	const tableHeaderRef = useRef<HTMLDivElement>(null)
+	const tableHeaderRef = useRef<HTMLTableSectionElement>(null)
+	const stickyHeaderTableRef = useRef<HTMLTableElement>(null)
 	const stickyScrollbarRef = useRef<HTMLDivElement>(null)
 	const stickyScrollbarContentRef = useRef<HTMLDivElement>(null)
-	const firstColumn = instance.getVisibleLeafColumns()[0]
+	const [stickyHeaderLayout, setStickyHeaderLayout] = useState<StickyHeaderLayout | null>(null)
+	const [leafColumnWidths, setLeafColumnWidths] = useState<Array<number>>([])
+	const visibleLeafColumns = instance
+		.getVisibleLeafColumns()
+		.filter((column) => !isGroupingColumn(column.id) && !column.columnDef.meta?.hidden)
+	const firstColumn = visibleLeafColumns[0]
 	const firstColumnId = firstColumn?.id
-	//const firstColumnWidth = firstColumn?.getSize() || 240
-	const totalTableWidth = instance.getTotalSize()
 	const isChainPage =
 		router.pathname === '/' || router.pathname.startsWith('/chain') || router.pathname.startsWith('/protocols')
 
-	const visibleLeafColumns = instance.getVisibleLeafColumns().filter((column) => !isGroupingColumn(column.id))
-	const gridTemplateColumns =
-		visibleLeafColumns.map((column) => `minmax(${column.getSize() ?? 100}px, 1fr)`).join(' ') || '1fr'
+	const headerGroups = instance.getHeaderGroups()
+	const rowSpannedHeaderIds = new Set<string>()
+	for (const headerGroup of headerGroups) {
+		for (const header of headerGroup.headers) {
+			if (header.isPlaceholder && header.subHeaders.length === 1 && header.subHeaders[0].colSpan === 1) {
+				rowSpannedHeaderIds.add(header.subHeaders[0].id)
+			}
+		}
+	}
 
 	const hasNoVisibleColumns = visibleLeafColumns.length === 0
 
@@ -199,76 +215,64 @@ export function VirtualTable<T extends RowData>({
 		return () => window.removeEventListener('keydown', onKeyDown)
 	}, [])
 
-	// useEffectEvent for scroll/resize - always reads latest props without re-subscribing
-	const onScrollOrResize = useEffectEvent(() => {
-		if (!useStickyHeader) return
+	const updateStickyHeader = useEffectEvent((tableWrapperEl: HTMLElement) => {
+		const tableHeader = tableHeaderRef.current
+		if (!useStickyHeader || skipVirtualization || !tableHeader) {
+			setStickyHeaderLayout(null)
+			return
+		}
 
-		const tableWrapperEl = document.getElementById('table-wrapper')
-		const tableHeaderDuplicate = document.getElementById('table-header-dup')
+		const tableRect = tableWrapperEl.getBoundingClientRect()
+		const headerRect = tableHeader.getBoundingClientRect()
+		const shouldShowStickyHeader = tableRect.top <= 0 && tableRect.bottom > headerRect.height
 
-		if (
-			!skipVirtualization &&
-			tableHeaderRef.current &&
-			tableWrapperEl &&
-			tableWrapperEl.getBoundingClientRect().top <= 20 &&
-			tableHeaderDuplicate
-		) {
-			// Batch DOM reads first
-			const scrollLeft = tableWrapperEl.scrollLeft
-			const offsetWidth = tableWrapperEl.offsetWidth
-			const headerHeight = instance.getHeaderGroups().length * 45
+		if (!shouldShowStickyHeader) {
+			setStickyHeaderLayout(null)
+			return
+		}
 
-			// Batch DOM writes using cssText for single reflow
-			tableHeaderRef.current.style.cssText = `
-				display: flex;
-				flex-direction: column;
-				z-index: 10;
-				position: fixed;
-				top: 0px;
-				width: ${offsetWidth}px;
-				overflow-x: overlay;
-			`
-			tableHeaderDuplicate.style.cssText = `height: ${headerHeight}px;`
-			tableHeaderRef.current.scrollLeft = scrollLeft
-		} else if (tableHeaderRef.current) {
-			const offsetWidth = tableWrapperEl?.offsetWidth || 0
-			// Batch DOM writes using cssText for single reflow
-			tableHeaderRef.current.style.cssText = `
-				display: flex;
-				flex-direction: column;
-				z-index: 10;
-				position: relative;
-				width: ${offsetWidth}px;
-				overflow-x: initial;
-			`
-			if (tableHeaderDuplicate) {
-				tableHeaderDuplicate.style.cssText = 'height: 0px;'
+		const widthsByColumnId = new Map<string, number>()
+		const leafHeaderCells = tableHeader.querySelectorAll<HTMLTableCellElement>('th[data-leaf-column-id]')
+		for (const cell of leafHeaderCells) {
+			const columnId = cell.dataset.leafColumnId
+			if (columnId) {
+				widthsByColumnId.set(columnId, cell.getBoundingClientRect().width)
 			}
 		}
+
+		const nextLeafColumnWidths: Array<number> = []
+		for (const column of visibleLeafColumns) {
+			nextLeafColumnWidths.push(widthsByColumnId.get(column.id) ?? 0)
+		}
+
+		setLeafColumnWidths((prev) => (areNumberArraysEqual(prev, nextLeafColumnWidths) ? prev : nextLeafColumnWidths))
+
+		const nextLayout = {
+			left: tableRect.left,
+			width: tableWrapperEl.offsetWidth,
+			tableWidth: tableWrapperEl.scrollWidth,
+			headerHeight: headerRect.height,
+			scrollLeft: tableWrapperEl.scrollLeft
+		}
+
+		setStickyHeaderLayout((prev) => (isSameStickyHeaderLayout(prev, nextLayout) ? prev : nextLayout))
 	})
 
 	// useEffectEvent for table scroll - reads skipVirtualization without re-subscribing
 	const onTableScroll = useEffectEvent((tableWrapperEl: HTMLElement, isMobile: boolean) => {
-		const scrollLeft = tableWrapperEl.scrollLeft
-
-		// Sync header horizontal scroll
-		if (tableHeaderRef.current) {
-			if (!skipVirtualization) {
-				tableHeaderRef.current.scrollLeft = scrollLeft
-			} else {
-				tableHeaderRef.current.scrollLeft = 0
-			}
+		if (stickyHeaderTableRef.current) {
+			stickyHeaderTableRef.current.style.setProperty('--vf-header-scroll-left', `${tableWrapperEl.scrollLeft}px`)
 		}
 
 		// Sync sticky scrollbar (desktop only)
 		if (!isMobile && stickyScrollbarRef.current) {
-			stickyScrollbarRef.current.scrollLeft = scrollLeft
+			stickyScrollbarRef.current.scrollLeft = tableWrapperEl.scrollLeft
 		}
 	})
 
 	// Consolidated scroll/resize handlers with RAF optimization
 	useEffect(() => {
-		const tableWrapperEl = document.getElementById('table-wrapper')
+		const tableWrapperEl = tableContainerRef.current
 		if (!tableWrapperEl) return
 
 		const isMobile = isSmallScreen || 'ontouchstart' in window
@@ -293,9 +297,7 @@ export function VirtualTable<T extends RowData>({
 
 			windowScrollRaf = requestAnimationFrame(() => {
 				windowScrollRaf = null
-
-				// Update sticky header
-				onScrollOrResize()
+				updateStickyHeader(tableWrapperEl)
 
 				// Update sticky scrollbar visibility (desktop only)
 				if (!isMobile && stickyScrollbarRef.current && stickyScrollbarContentRef.current) {
@@ -344,7 +346,6 @@ export function VirtualTable<T extends RowData>({
 		const handleResize = () => {
 			clearTimeout(resizeTimeout)
 			resizeTimeout = setTimeout(() => {
-				onScrollOrResize()
 				handleWindowScroll() // Update sticky scrollbar on resize
 			}, 100) // Increased to 100ms for better performance
 		}
@@ -361,10 +362,10 @@ export function VirtualTable<T extends RowData>({
 		window.addEventListener('scroll', handleWindowScroll, { passive: true })
 		window.addEventListener('resize', handleResize, { passive: true })
 
+		handleWindowScroll()
+
 		if (!isMobile && stickyScrollbar) {
 			stickyScrollbar.addEventListener('scroll', handleStickyScroll, { passive: true })
-			// Initial update for sticky scrollbar
-			handleWindowScroll()
 		}
 
 		return () => {
@@ -380,7 +381,7 @@ export function VirtualTable<T extends RowData>({
 				stickyScrollbar.removeEventListener('scroll', handleStickyScroll)
 			}
 		}
-	}, [totalTableWidth, rows.length, isSmallScreen])
+	}, [rows.length, isSmallScreen, headerGroups.length, visibleLeafColumns.length, skipVirtualization, useStickyHeader])
 
 	if (hasNoVisibleColumns) {
 		return (
@@ -397,162 +398,259 @@ export function VirtualTable<T extends RowData>({
 	}
 
 	const rowScrollMargin = rowVirtualizer.options.scrollMargin
+	const firstVirtualItem = virtualItems[0]
+	const lastVirtualItem = virtualItems[virtualItems.length - 1]
+	const topSpacerHeight =
+		!skipVirtualization && firstVirtualItem ? Math.max(0, firstVirtualItem.start - rowScrollMargin) : 0
+	const bottomSpacerHeight =
+		!skipVirtualization && lastVirtualItem
+			? Math.max(0, rowVirtualizer.getTotalSize() - (lastVirtualItem.end - rowScrollMargin))
+			: 0
+
+	const renderHeaderRows = ({ isStickyMirror = false }: { isStickyMirror?: boolean } = {}) =>
+		headerGroups.map((headerGroup) => {
+			const headers = headerGroup.headers.filter(
+				(header) => !rowSpannedHeaderIds.has(header.id) && !header.column.columnDef.meta?.hidden
+			)
+			if (!headers.length) {
+				return null
+			}
+			return (
+				<tr key={headerGroup.id}>
+					{headers.map((header) => {
+						const rowSpannedHeader =
+							header.isPlaceholder && header.subHeaders.length === 1 && header.subHeaders[0].colSpan === 1
+								? header.subHeaders[0]
+								: null
+						const headerToRender = rowSpannedHeader ?? header
+						const meta = headerToRender.column.columnDef.meta
+						const value = flexRender(headerToRender.column.columnDef.header, headerToRender.getContext())
+						const isSticky = headerToRender.column.id === firstColumnId
+						const isRepeatedLeafHeader = header.isPlaceholder && !rowSpannedHeader && header.subHeaders.length === 0
+						const isLastHeaderRow = headerGroup.depth === headerGroups.length - 1
+						const isGroupedChildHeader = headerGroup.depth > 0 && !isRepeatedLeafHeader
+						const isLeafHeader = headerToRender.subHeaders.length === 0
+						const isTopGroupedHeader = headerGroup.depth === 0 && headerGroups.length > 1
+
+						return (
+							<th
+								key={header.id}
+								colSpan={rowSpannedHeader ? 1 : header.colSpan}
+								rowSpan={rowSpannedHeader ? headerGroups.length - headerGroup.depth : undefined}
+								data-chainpage={isChainPage}
+								data-align={meta?.align ?? 'start'}
+								data-leaf-column-id={isLeafHeader ? headerToRender.column.id : undefined}
+								style={{
+									position: isSticky ? 'sticky' : undefined,
+									left: isSticky ? 0 : undefined,
+									transform:
+										isStickyMirror && !isSticky
+											? 'translateX(calc(var(--vf-header-scroll-left, 0px) * -1))'
+											: undefined,
+									zIndex: isSticky ? 20 : undefined,
+									background: 'var(--cards-bg)',
+									borderRightColor: isSticky ? 'transparent' : undefined,
+									boxShadow: isSticky && !compact ? '-1px 0 0 0 var(--divider) inset' : undefined
+								}}
+								className={`overflow-hidden border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
+									rowSpannedHeader || headerGroup.depth === 0 || isGroupedChildHeader ? 'border-t' : ''
+								} ${rowSpannedHeader || isLastHeaderRow ? 'border-b' : ''} ${
+									compact ? 'h-[50px] border-r-0 border-t-black/10 px-5 dark:border-t-white/10' : ''
+								} ${isRepeatedLeafHeader ? 'p-0' : ''} ${isLeafHeader ? (meta?.headerClassName ?? '') : ''}`}
+							>
+								{isRepeatedLeafHeader ? null : (
+									<span
+										className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
+										data-align={meta?.align ?? (isTopGroupedHeader ? 'center' : 'start')}
+									>
+										<HeaderWithTooltip
+											content={meta?.headerHelperText}
+											onClick={
+												!headerToRender.isPlaceholder && headerToRender.column.getCanSort()
+													? () => React.startTransition(() => headerToRender.column.toggleSorting())
+													: null
+											}
+											tabIndex={isStickyMirror ? -1 : undefined}
+										>
+											{headerToRender.isPlaceholder ? null : value}
+											{!headerToRender.isPlaceholder && headerToRender.column.getCanSort() ? (
+												<SortIcon dir={headerToRender.column.getIsSorted()} />
+											) : null}
+										</HeaderWithTooltip>
+									</span>
+								)}
+							</th>
+						)
+					})}
+				</tr>
+			)
+		})
 
 	return (
-		<div
-			{...props}
-			ref={tableContainerRef}
-			id="table-wrapper"
-			className="relative isolate thin-scrollbar w-full overflow-auto overscroll-x-contain rounded-md bg-(--cards-bg)"
-			style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}
-		>
-			<div ref={tableHeaderRef} id="table-header" style={{ display: 'flex', flexDirection: 'column', zIndex: 10 }}>
-				{instance.getHeaderGroups().map((headerGroup) => {
-					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
-					if (!headers.length) {
-						return null
-					}
-					return (
-						<div
-							key={headerGroup.id}
-							style={{ display: 'grid', gridTemplateColumns, minWidth: `${totalTableWidth}px` }}
-						>
-							{headers.map((header) => {
-								const meta = header.column.columnDef.meta
-								const value = flexRender(header.column.columnDef.header, header.getContext())
-								const isSticky = header.column.id === firstColumnId //first column is sticky
-
-								return (
-									<div
-										key={header.id}
-										data-chainpage={isChainPage}
-										data-align={meta?.align ?? 'start'}
-										style={{
-											gridColumn: `span ${header.colSpan}`,
-											position: isSticky ? 'sticky' : undefined,
-											left: isSticky ? 0 : undefined,
-											zIndex: isSticky ? 10 : undefined,
-											background: 'var(--cards-bg)'
-										}}
-										className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap last:border-r-0 ${
-											compact
-												? 'flex min-h-[50px] items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'
-												: ''
-										}`}
-									>
-										<span
-											className="relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end"
-											data-align={
-												meta?.align ??
-												(headerGroup.depth === 0 && instance.getHeaderGroups().length > 1 ? 'center' : 'start')
-											}
-										>
-											{header.isPlaceholder ? null : (
-												<HeaderWithTooltip
-													content={meta?.headerHelperText}
-													onClick={
-														header.column.getCanSort()
-															? () => React.startTransition(() => header.column.toggleSorting())
-															: null
-													}
-												>
-													{value}
-													{header.column.getCanSort() ? <SortIcon dir={header.column.getIsSorted()} /> : null}
-												</HeaderWithTooltip>
-											)}
-										</span>
-									</div>
-								)
-							})}
-						</div>
-					)
-				})}
-			</div>
-
-			<div id="table-header-dup"></div>
-
+		<>
 			<div
-				className="vf-row-counter"
-				style={
-					skipVirtualization
-						? { ['--vf-row-offset' as string]: '0' }
-						: {
-								height: `${rowVirtualizer.getTotalSize()}px`,
-								width: '100%',
-								position: 'relative',
-								['--vf-row-offset' as string]: `${virtualItems?.[0]?.index ?? 0}`
-							}
-				}
+				{...props}
+				ref={tableContainerRef}
+				className={clsx(
+					'relative isolate thin-scrollbar w-full overflow-x-auto overflow-y-visible overscroll-x-contain rounded-md bg-(--cards-bg)',
+					className
+				)}
+				style={{ maxWidth: '100%', WebkitOverflowScrolling: 'touch', ...style }}
 			>
-				{skipVirtualization
-					? rows.map((row, i) => (
-							<TableRow
-								key={row.id}
-								row={row}
-								index={i}
-								gridTemplateColumns={gridTemplateColumns}
-								totalTableWidth={totalTableWidth}
-								skipVirtualization={skipVirtualization}
-								scrollMargin={rowScrollMargin}
-								subRowOrdinalById={subRowOrdinalById}
-								firstColumnId={firstColumnId}
-								stripedBg={stripedBg}
-								isChainPage={isChainPage}
-								compact={compact}
-							/>
-						))
-					: virtualItems.map((virtualRow) => (
-							<TableRow
-								key={rows[virtualRow.index].id}
-								row={rows[virtualRow.index]}
-								index={virtualRow.index}
-								virtualRow={virtualRow}
-								gridTemplateColumns={gridTemplateColumns}
-								totalTableWidth={totalTableWidth}
-								scrollMargin={rowScrollMargin}
-								subRowOrdinalById={subRowOrdinalById}
-								firstColumnId={firstColumnId}
-								stripedBg={stripedBg}
-								isChainPage={isChainPage}
-								compact={compact}
-							/>
+				<table
+					style={{
+						width: '100%',
+						minWidth: '100%',
+						tableLayout: 'fixed',
+						borderCollapse: 'separate',
+						borderSpacing: 0
+					}}
+				>
+					<colgroup>
+						{visibleLeafColumns.map((column) => (
+							<col key={column.id} className={column.columnDef.meta?.headerClassName} />
 						))}
-			</div>
+					</colgroup>
 
-			{/* Sticky horizontal scrollbar */}
-			<div
-				ref={stickyScrollbarRef}
-				className="thin-scrollbar"
-				style={{
-					position: 'fixed',
-					bottom: 0,
-					height: '12px',
-					overflowX: 'auto',
-					overflowY: 'hidden',
-					zIndex: 999,
-					display: 'none',
-					backgroundColor: 'var(--cards-bg)'
-				}}
-			>
-				<div ref={stickyScrollbarContentRef} style={{ height: '1px' }} />
+					<thead ref={tableHeaderRef} style={{ display: 'table-header-group', zIndex: 10 }}>
+						{renderHeaderRows()}
+					</thead>
+
+					<tbody
+						className="vf-row-counter"
+						style={{ ['--vf-row-offset' as string]: skipVirtualization ? '0' : `${virtualItems?.[0]?.index ?? 0}` }}
+					>
+						{skipVirtualization ? (
+							rows.map((row, i) => (
+								<TableRow
+									key={row.id}
+									row={row}
+									index={i}
+									subRowOrdinalById={subRowOrdinalById}
+									firstColumnId={firstColumnId}
+									stripedBg={stripedBg}
+									isChainPage={isChainPage}
+									compact={compact}
+								/>
+							))
+						) : (
+							<>
+								{topSpacerHeight > 0 ? (
+									<tr aria-hidden="true">
+										<td
+											colSpan={visibleLeafColumns.length}
+											className="border-0 p-0"
+											style={{ height: `${topSpacerHeight}px` }}
+										/>
+									</tr>
+								) : null}
+								{virtualItems.map((virtualRow) => (
+									<TableRow
+										key={rows[virtualRow.index].id}
+										row={rows[virtualRow.index]}
+										index={virtualRow.index}
+										virtualRow={virtualRow}
+										measureElement={(node) => {
+											if (node) rowVirtualizer.measureElement(node)
+										}}
+										subRowOrdinalById={subRowOrdinalById}
+										firstColumnId={firstColumnId}
+										stripedBg={stripedBg}
+										isChainPage={isChainPage}
+										compact={compact}
+									/>
+								))}
+								{bottomSpacerHeight > 0 ? (
+									<tr aria-hidden="true">
+										<td
+											colSpan={visibleLeafColumns.length}
+											className="border-0 p-0"
+											style={{ height: `${bottomSpacerHeight}px` }}
+										/>
+									</tr>
+								) : null}
+							</>
+						)}
+					</tbody>
+				</table>
+
+				{stickyHeaderLayout ? (
+					<div
+						aria-hidden="true"
+						className="overflow-hidden bg-(--cards-bg)"
+						style={{
+							position: 'fixed',
+							top: 0,
+							left: stickyHeaderLayout.left,
+							width: stickyHeaderLayout.width,
+							height: stickyHeaderLayout.headerHeight,
+							zIndex: 998
+						}}
+					>
+						<table
+							ref={stickyHeaderTableRef}
+							style={{
+								width: `${stickyHeaderLayout.tableWidth}px`,
+								minWidth: `${stickyHeaderLayout.tableWidth}px`,
+								tableLayout: 'fixed',
+								borderCollapse: 'separate',
+								borderSpacing: 0,
+								['--vf-header-scroll-left' as string]: `${stickyHeaderLayout.scrollLeft}px`
+							}}
+						>
+							<colgroup>
+								{visibleLeafColumns.map((column, index) => (
+									<col
+										key={column.id}
+										className={column.columnDef.meta?.headerClassName}
+										style={leafColumnWidths[index] ? { width: `${leafColumnWidths[index]}px` } : undefined}
+									/>
+								))}
+							</colgroup>
+							<thead style={{ display: 'table-header-group', zIndex: 10 }}>
+								{renderHeaderRows({ isStickyMirror: true })}
+							</thead>
+						</table>
+					</div>
+				) : null}
+
+				{/* Sticky horizontal scrollbar */}
+				<div
+					ref={stickyScrollbarRef}
+					className="thin-scrollbar"
+					style={{
+						position: 'fixed',
+						bottom: 0,
+						height: '12px',
+						overflowX: 'auto',
+						overflowY: 'hidden',
+						zIndex: 999,
+						display: 'none',
+						backgroundColor: 'var(--cards-bg)'
+					}}
+				>
+					<div ref={stickyScrollbarContentRef} style={{ height: '1px' }} />
+				</div>
 			</div>
-		</div>
+		</>
 	)
 }
 
 const HeaderWithTooltip = ({
 	children,
 	content,
-	onClick
+	onClick,
+	tabIndex
 }: {
 	children: React.ReactNode
 	content?: string
 	onClick: (() => void) | null
+	tabIndex?: number
 }) => {
 	if (onClick) {
 		if (!content)
 			return (
-				<button onClick={onClick} className="flex items-center gap-1">
+				<button type="button" tabIndex={tabIndex} onClick={onClick} className="flex items-center gap-1">
 					{children}
 				</button>
 			)
@@ -560,7 +658,7 @@ const HeaderWithTooltip = ({
 			<Tooltip
 				content={content}
 				className="underline decoration-dotted"
-				render={<button className="flex items-center gap-1" />}
+				render={<button type="button" tabIndex={tabIndex} className="flex items-center gap-1" />}
 				onClick={onClick}
 			>
 				{children}

@@ -17,6 +17,9 @@ import { ProtocolChartPanel } from './ProtocolChartPanel'
 import type { IProtocolOverviewPageData } from './types'
 
 const IncomeStatement = lazy(() => import('./IncomeStatement').then((module) => ({ default: module.IncomeStatement })))
+const CexMarketsSection = lazy(() =>
+	import('~/containers/Cexs/CexMarketsSection').then((module) => ({ default: module.CexMarketsSection }))
+)
 
 export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 	const router = useRouter()
@@ -115,6 +118,11 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</div>
 				<AdditionalInfo {...props} />
+				{props.cexMarketsExchange ? (
+					<Suspense fallback={<></>}>
+						<CexMarketsSection exchange={props.cexMarketsExchange} name={props.name} />
+					</Suspense>
+				) : null}
 				{props.incomeStatement?.data ? (
 					<Suspense fallback={<></>}>
 						<IncomeStatement

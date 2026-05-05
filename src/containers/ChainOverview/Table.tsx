@@ -6,7 +6,6 @@ import {
 	getSortedRowModel,
 	useReactTable,
 	type ColumnDef,
-	type ColumnSizingState,
 	type ExpandedState,
 	type SortingState
 } from '@tanstack/react-table'
@@ -195,7 +194,6 @@ const ChainProtocolsTableInner = ({
 	const [sorting, setSorting] = useState<SortingState>([
 		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
 	])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 	const sortingRef = useRef(sorting)
 	sortingRef.current = sorting
@@ -203,6 +201,7 @@ const ChainProtocolsTableInner = ({
 	const allColumns = useMemo<ColumnDef<IProtocol>[]>(() => {
 		const customColumnDefs = customColumns.map((col, idx) => {
 			const columnId = `custom_formula_${idx}`
+			const displayFormat = col.determinedFormat || col.formatType
 
 			return columnHelper.accessor(
 				(row) => {
@@ -213,8 +212,7 @@ const ChainProtocolsTableInner = ({
 						return null
 					}
 
-					const usedFormat = col.determinedFormat || col.formatType
-					return getSortableValue(value, usedFormat)
+					return getSortableValue(value, displayFormat)
 				},
 				{
 					id: columnId,
@@ -235,8 +233,7 @@ const ChainProtocolsTableInner = ({
 							)
 						}
 
-						const usedFormat = col.determinedFormat || col.formatType
-						if (usedFormat === 'boolean' && typeof value === 'boolean') {
+						if (displayFormat === 'boolean' && typeof value === 'boolean') {
 							return (
 								<span title={value ? 'True' : 'False'} className="flex items-center">
 									{value ? '✅' : '❌'}
@@ -244,10 +241,9 @@ const ChainProtocolsTableInner = ({
 							)
 						}
 
-						return <span className="flex items-center">{formatValue(value, usedFormat)}</span>
+						return <span className="flex items-center">{formatValue(value, displayFormat)}</span>
 					},
 					sortingFn: (rowA, rowB, sortColumnId) => {
-						const usedFormat = col.determinedFormat || col.formatType
 						const sortEntry = sortingRef.current.find((s) => s.id === sortColumnId)
 						const desc = sortEntry?.desc ?? true
 
@@ -266,9 +262,9 @@ const ChainProtocolsTableInner = ({
 							return 0
 						}
 
-						if (usedFormat === 'string') {
+						if (displayFormat === 'string') {
 							return String(a).localeCompare(String(b))
-						} else if (usedFormat === 'boolean') {
+						} else if (displayFormat === 'boolean') {
 							if (a === true && b === false) return 1
 							if (a === false && b === true) return -1
 							return 0
@@ -276,8 +272,12 @@ const ChainProtocolsTableInner = ({
 							return Number(a) - Number(b)
 						}
 					},
-					size: 140,
-					meta: { align: 'end', headerHelperText: col.formula }
+					meta: {
+						headerClassName:
+							displayFormat === 'string' ? 'w-[220px]' : displayFormat === 'boolean' ? 'w-[110px]' : 'w-[140px]',
+						align: displayFormat === 'string' ? 'start' : displayFormat === 'boolean' ? 'center' : 'end',
+						headerHelperText: col.formula
+					}
 				}
 			)
 		})
@@ -302,7 +302,6 @@ const ChainProtocolsTableInner = ({
 		state: {
 			sorting,
 			expanded,
-			columnSizing,
 			columnVisibility
 		},
 		defaultColumn: {
@@ -313,7 +312,6 @@ const ChainProtocolsTableInner = ({
 		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
 		getSubRows: (row: IProtocol) => row.childProtocols,
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
-		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -626,7 +624,9 @@ const columns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('category', {
 		id: 'category',
@@ -645,8 +645,8 @@ const columns = [
 				</BasicLink>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		}
 	}),
@@ -666,40 +666,40 @@ const columns = [
 						)
 					) : null,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end',
 					headerHelperText: 'Value of all coins held in smart contracts of the protocol'
-				},
-				size: 120
+				}
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change1d ?? undefined, {
 				id: 'change_1d',
 				header: '1d Change',
 				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 				meta: {
+					headerClassName: 'w-[110px]',
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
-				},
-				size: 110
+				}
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change7d ?? undefined, {
 				id: 'change_7d',
 				header: '7d Change',
 				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 				meta: {
+					headerClassName: 'w-[110px]',
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
-				},
-				size: 110
+				}
 			}),
 			columnHelper.accessor((row) => row.tvlChange?.change1m ?? undefined, {
 				id: 'change_1m',
 				header: '1m Change',
 				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 				meta: {
+					headerClassName: 'w-[110px]',
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
-				},
-				size: 110
+				}
 			})
 		],
 		meta: { headerHelperText: 'Value of all coins held in smart contracts of the protocol' }
@@ -709,10 +709,10 @@ const columns = [
 		header: 'Market Cap',
 		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'Current protocol token market cap'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor((row) => row.tokenPrice ?? undefined, {
 		id: 'token_price',
@@ -731,17 +731,17 @@ const columns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end',
 			headerHelperText: 'Current protocol token price'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor((row) => row.mcaptvl ?? undefined, {
 		id: 'mcaptvl',
 		header: 'Mcap/TVL',
 		cell: (info) => info.getValue() ?? null,
-		size: 110,
 		meta: {
+			headerClassName: 'w-[110px]',
 			align: 'end',
 			headerHelperText: 'Market cap / TVL ratio'
 		}
@@ -755,260 +755,260 @@ const columns = [
 				header: 'Fees 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[100px]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['24h']
-				},
-				size: 100
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.total24h ?? undefined, {
 				id: 'revenue_24h',
 				header: 'Revenue 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['24h']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => row.holdersRevenue?.total24h ?? undefined, {
 				id: 'holdersRevenue_24h',
 				header: 'Holders Revenue 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['24h']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.emissions?.total24h ?? undefined, {
 				id: 'emissions_24h',
 				header: 'Incentives 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['24h']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => row.fees?.total7d ?? undefined, {
 				id: 'fees_7d',
 				header: 'Fees 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[100px]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['7d']
-				},
-				size: 100
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.total7d ?? undefined, {
 				id: 'revenue_7d',
 				header: 'Revenue 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['7d']
-				},
-				size: 120
+				}
 			}),
 			columnHelper.accessor((row) => row.holdersRevenue?.total7d ?? undefined, {
 				id: 'holdersRevenue_7d',
 				header: 'Holders Revenue 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['7d']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.emissions?.total7d ?? undefined, {
 				id: 'emissions_7d',
 				header: 'Incentives 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['7d']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => row.fees?.total30d ?? undefined, {
 				id: 'fees_30d',
 				header: 'Fees 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[100px]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['30d']
-				},
-				size: 100
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.total30d ?? undefined, {
 				id: 'revenue_30d',
 				header: 'Revenue 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['30d']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => row.holdersRevenue?.total30d ?? undefined, {
 				id: 'holdersRevenue_30d',
 				header: 'Holders Revenue 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['30d']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.emissions?.total30d ?? undefined, {
 				id: 'emissions_30d',
 				header: 'Incentives 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['30d']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => row.fees?.total1y ?? undefined, {
 				id: 'fees_1y',
 				header: 'Fees 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[100px]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['1y']
-				},
-				size: 100
+				}
 			}),
 			columnHelper.accessor((row) => row.fees?.monthlyAverage1y ?? undefined, {
 				id: 'average_fees_1y',
 				header: 'Monthly Avg 1Y Fees',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['monthlyAverage1y']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.total1y ?? undefined, {
 				id: 'revenue_1y',
 				header: 'Revenue 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['1y']
-				},
-				size: 120
+				}
 			}),
 			columnHelper.accessor((row) => row.holdersRevenue?.total1y ?? undefined, {
 				id: 'holdersRevenue_1y',
 				header: 'Holders Revenue 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['1y']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.monthlyAverage1y ?? undefined, {
 				id: 'average_revenue_1y',
 				header: 'Monthly Avg 1Y Rev',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['monthlyAverage1y']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.holdersRevenue?.monthlyAverage1y ?? undefined, {
 				id: 'average_holdersRevenue_1y',
 				header: 'Monthly Avg 1Y Holders Revenue',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(260px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['monthlyAverage1y']
-				},
-				size: 260
+				}
 			}),
 			columnHelper.accessor((row) => row.emissions?.total1y ?? undefined, {
 				id: 'emissions_1y',
 				header: 'Incentives 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['1y']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => row.emissions?.monthlyAverage1y ?? undefined, {
 				id: 'average_emissions_1y',
 				header: 'Monthly Avg 1Y Incentives',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(220px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['monthlyAverage1y']
-				},
-				size: 220
+				}
 			}),
 			columnHelper.accessor((row) => row.fees?.totalAllTime ?? undefined, {
 				id: 'fees_cumulative',
 				header: 'Cumulative Fees',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[150px]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['cumulative']
-				},
-				size: 150
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.totalAllTime ?? undefined, {
 				id: 'cumulativeRevenue',
 				header: 'Cumulative Revenue',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['cumulative']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.holdersRevenue?.totalAllTime ?? undefined, {
 				id: 'cumulativeHoldersRevenue',
 				header: 'Cumulative Holders Revenue',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(220px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['cumulative']
-				},
-				size: 220
+				}
 			}),
 			columnHelper.accessor((row) => row.emissions?.totalAllTime ?? undefined, {
 				id: 'cumulativeEmissions',
 				header: 'Cumulative Incentives',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['cumulative']
-				},
-				size: 180
+				}
 			}),
 			columnHelper.accessor((row) => row.fees?.pf ?? undefined, {
 				id: 'pf',
 				header: 'P/F',
 				cell: (info) => (info.getValue() != null ? `${info.getValue()}x` : null),
 				meta: {
+					headerClassName: 'w-[80px]',
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['pf']
-				},
-				size: 80
+				}
 			}),
 			columnHelper.accessor((row) => row.revenue?.ps ?? undefined, {
 				id: 'ps',
 				header: 'P/S',
 				cell: (info) => (info.getValue() != null ? `${info.getValue()}x` : null),
 				meta: {
+					headerClassName: 'w-[80px]',
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['ps']
-				},
-				size: 80
+				}
 			}),
 			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total24h, row.emissions?.total24h), {
 				id: 'earnings_24h',
@@ -1016,10 +1016,10 @@ const columns = [
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.earnings.protocol['24h']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total7d, row.emissions?.total7d), {
 				id: 'earnings_7d',
@@ -1027,50 +1027,50 @@ const columns = [
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.earnings.protocol['7d']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total30d, row.emissions?.total30d), {
 				id: 'earnings_30d',
 				header: 'Earnings 30d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.earnings.protocol['30d']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => getEarningsValue(row.revenue?.total1y, row.emissions?.total1y), {
 				id: 'earnings_1y',
 				header: 'Earnings 1Y',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[125px]',
 					align: 'end',
 					headerHelperText: definitions.earnings.protocol['1y']
-				},
-				size: 125
+				}
 			}),
 			columnHelper.accessor((row) => getEarningsValue(row.revenue?.monthlyAverage1y, row.emissions?.monthlyAverage1y), {
 				id: 'average_earnings_1y',
 				header: 'Monthly Avg 1Y Earnings',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(200px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
-				},
-				size: 200
+				}
 			}),
 			columnHelper.accessor((row) => getEarningsValue(row.revenue?.totalAllTime, row.emissions?.totalAllTime), {
 				id: 'cumulativeEarnings',
 				header: 'Cumulative Earnings',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(180px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.earnings.protocol['cumulative']
-				},
-				size: 180
+				}
 			})
 		],
 		meta: {
@@ -1087,40 +1087,40 @@ const columns = [
 				header: 'Spot Volume 24h',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[150px]',
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['24h']
-				},
-				size: 150
+				}
 			}),
 			columnHelper.accessor((row) => row.dexs?.total7d ?? undefined, {
 				id: 'dex_volume_7d',
 				header: 'Spot Volume 7d',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[150px]',
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['7d']
-				},
-				size: 150
+				}
 			}),
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d ?? undefined, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
 				cell: ({ getValue }) => (getValue() !== 0 ? <PercentChange percent={getValue()} /> : null),
 				meta: {
+					headerClassName: 'w-[140px]',
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']
-				},
-				size: 140
+				}
 			}),
 			columnHelper.accessor((row) => row.dexs?.totalAllTime ?? undefined, {
 				id: 'dex_cumulative_volume',
 				header: 'Spot Cumulative Volume',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
+					headerClassName: 'w-[min(200px,40vw)]',
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['cumulative']
-				},
-				size: 200
+				}
 			})
 		],
 		meta: {

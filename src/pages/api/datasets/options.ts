@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { mergeMetricPeriods } from '~/containers/DimensionAdapters/metricPeriods'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -58,9 +59,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 					if (allProtocolsMap.has(key)) {
 						const existing = allProtocolsMap.get(key)
-						existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
-						existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
-						existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+						mergeMetricPeriods(existing, protocol)
 						existing.chains = Array.from(new Set([...(existing.chains || []), chainName]))
 						existing.chainBreakdown = existing.chainBreakdown || {}
 						existing.chainBreakdown[normalizedChainKey] = {

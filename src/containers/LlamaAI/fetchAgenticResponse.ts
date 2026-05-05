@@ -53,7 +53,10 @@ export interface AgenticSSECallbacks {
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
+	onUserMessageId?: (messageId: string) => void
+	onSiblingInfo?: (messageId: string, siblingInfo: SiblingInfoEvent['siblingInfo']) => void
 	onTokenLimit?: () => void
+	onContextWarning?: (warning: ContextWarningPayload) => void
 	onError: (content: string) => void
 	onDone: () => void
 }
@@ -149,9 +152,37 @@ interface MessageIdEvent {
 	messageId: string
 }
 
+interface UserMessageIdEvent {
+	type: 'user_message_id'
+	messageId: string
+}
+
+interface SiblingInfoEvent {
+	type: 'sibling_info'
+	messageId: string
+	siblingInfo: {
+		currentVersion: number
+		totalVersions: number
+		siblings: Array<{ messageId: string; leafMessageId: string }>
+	}
+}
+
 interface TokenLimitEvent {
 	type: 'token_limit'
 	upgradeUrl?: string
+}
+
+export interface ContextWarningPayload {
+	kind: 'long_thread'
+	reason: 'tokens' | 'messages'
+	message: string
+	thresholds?: { input_tokens?: number; messages?: number }
+	observed?: { input_tokens?: number; messages?: number }
+}
+
+interface ContextWarningEvent {
+	type: 'context_warning'
+	content: ContextWarningPayload
 }
 
 interface ErrorEvent {
@@ -190,8 +221,11 @@ type AgenticSSEEvent =
 	| CitationsEvent
 	| TitleEvent
 	| MessageIdEvent
+	| UserMessageIdEvent
+	| SiblingInfoEvent
 	| MessageMetadataEvent
 	| TokenLimitEvent
+	| ContextWarningEvent
 	| ErrorEvent
 	| DoneEvent
 
@@ -231,7 +265,9 @@ interface FetchAgenticResponseParams {
 	isSuggestedQuestion?: boolean
 	blockedSkills?: string[]
 	model?: string
+	effort?: string
 	shareToken?: string
+	editMessageId?: string
 	fetchFn?: typeof fetch
 	eventCounter?: { count: number }
 }
@@ -338,8 +374,17 @@ export function parseSSEStream(
 				case 'message_id':
 					callbacks.onMessageId?.(data.messageId)
 					break
+				case 'user_message_id':
+					callbacks.onUserMessageId?.(data.messageId)
+					break
+				case 'sibling_info':
+					callbacks.onSiblingInfo?.(data.messageId, data.siblingInfo)
+					break
 				case 'token_limit':
 					callbacks.onTokenLimit?.()
+					break
+				case 'context_warning':
+					if (data.content) callbacks.onContextWarning?.(data.content)
 					break
 				case 'error':
 					callbacks.onError(data.content || 'Unknown error')
@@ -420,7 +465,9 @@ export async function fetchAgenticResponse({
 	isSuggestedQuestion,
 	blockedSkills,
 	model,
+	effort,
 	shareToken,
+	editMessageId,
 	fetchFn,
 	eventCounter
 }: FetchAgenticResponseParams) {
@@ -442,7 +489,9 @@ export async function fetchAgenticResponse({
 		isSuggestedQuestion?: true
 		blockedSkills?: string[]
 		model?: string
+		effort?: string
 		shareToken?: string
+		editMessageId?: string
 	} = {
 		message,
 		stream: true,
@@ -495,8 +544,16 @@ export async function fetchAgenticResponse({
 		requestBody.model = model
 	}
 
+	if (effort) {
+		requestBody.effort = effort
+	}
+
 	if (shareToken) {
 		requestBody.shareToken = shareToken
+	}
+
+	if (editMessageId) {
+		requestBody.editMessageId = editMessageId
 	}
 
 	const response = await doFetch(`${AI_SERVER}/agentic`, {

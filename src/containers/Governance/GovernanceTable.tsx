@@ -115,32 +115,51 @@ const proposalsCompoundColumns = [
 	columnHelper.accessor('title', {
 		header: 'Title',
 		enableSorting: false,
-		cell: (info) => <TitleCell info={info} />
+		cell: (info) => <TitleCell info={info} />,
+		meta: {
+			headerClassName: 'w-[min(360px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('start', {
 		header: 'Start',
 		cell: (info) => <DateCell info={info} />,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('end', {
 		header: 'End',
 		cell: (info) => <DateCell info={info} />,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('state', {
 		header: 'State',
 		cell: (info) => String(info.getValue() ?? ''),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[90px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('scores_total', {
 		header: 'Votes',
 		cell: (info) => formattedNum(info.getValue()),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
 		cell: (info) => <ControversyCell info={info} />,
-		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
+		meta: {
+			headerClassName: 'w-[130px]',
+			align: 'end',
+			headerHelperText: 'It is calculated by number of votes * how close result is to 50%'
+		}
 	})
 ]
 
@@ -148,17 +167,26 @@ const proposalsSnapshotColumns = [
 	columnHelper.accessor('title', {
 		header: 'Title',
 		enableSorting: false,
-		cell: (info) => <TitleCell info={info} />
+		cell: (info) => <TitleCell info={info} />,
+		meta: {
+			headerClassName: 'w-[min(360px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('start', {
 		header: 'Start',
 		cell: (info) => <DateCell info={info} />,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('end', {
 		header: 'End',
 		cell: (info) => <DateCell info={info} />,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor((row) => (row.state === 'closed' ? 0 : 1), {
 		id: 'state',
@@ -168,12 +196,18 @@ const proposalsSnapshotColumns = [
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>
 		),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[90px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('scores_total', {
 		header: 'Votes',
 		cell: (info) => formattedNum(info.getValue()),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('winningChoice', {
 		header: 'Winning Choice',
@@ -184,12 +218,19 @@ const proposalsSnapshotColumns = [
 			return text || '-'
 		},
 		enableSorting: false,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
 		cell: (info) => <ControversyCell info={info} />,
-		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
+		meta: {
+			headerClassName: 'w-[130px]',
+			align: 'end',
+			headerHelperText: 'It is calculated by number of votes * how close result is to 50%'
+		}
 	}),
 	columnHelper.accessor('discussion', {
 		header: 'Discussion',
@@ -200,7 +241,10 @@ const proposalsSnapshotColumns = [
 					View
 				</a>
 			) : null,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	})
 ]
 
@@ -208,32 +252,51 @@ const proposalsTallyColumns = [
 	columnHelper.accessor('title', {
 		header: 'Title',
 		enableSorting: false,
-		cell: (info) => <TitleCell info={info} />
+		cell: (info) => <TitleCell info={info} />,
+		meta: {
+			headerClassName: 'w-[min(360px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('start', {
 		header: 'Start',
 		cell: (info) => <DateCell info={info} />,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('end', {
 		header: 'End',
 		cell: (info) => <DateCell info={info} />,
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[120px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('state', {
 		header: 'State',
 		cell: (info) => String(info.getValue() ?? ''),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[90px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('scores_total', {
 		header: 'Votes',
 		cell: (info) => formattedNum(info.getValue()),
-		meta: { align: 'end' }
+		meta: {
+			headerClassName: 'w-[110px]',
+			align: 'end'
+		}
 	}),
 	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
 		cell: (info) => <ControversyCell info={info} />,
-		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
+		meta: {
+			headerClassName: 'w-[130px]',
+			align: 'end',
+			headerHelperText: 'It is calculated by number of votes * how close result is to 50%'
+		}
 	})
 ]
 

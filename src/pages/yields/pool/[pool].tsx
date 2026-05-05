@@ -1064,8 +1064,9 @@ const PageView = ({ pool, config, poolId }: { pool: IYieldTableRow; config: any;
 									showLegend={false}
 									customLabel={{ show: false }}
 									formatTooltip={(p) => {
-										const val = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
-										return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${val.toFixed(2)}%</b>`
+										const param = p as { value?: number | string; marker?: string; name?: string }
+										const val = typeof param.value === 'number' ? param.value : Number(param.value ?? 0)
+										return `${param.marker ?? ''}${param.name ?? ''}: <b>${val.toFixed(2)}%</b>`
 									}}
 									exportButtons="auto"
 									onReady={setHolderDonutInstance}

@@ -1,10 +1,14 @@
 import * as Ariakit from '@ariakit/react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface ImagePreviewModalProps {
 	imageUrl: string | null
 	onClose: () => void
+	source?: 'user-upload' | 'generated' | 'input-preview'
+	sessionId?: string | null
+	messageId?: string
 }
 
 function extractFilename(url: string): string {
@@ -17,7 +21,7 @@ function extractFilename(url: string): string {
 	}
 }
 
-export function ImagePreviewModal({ imageUrl, onClose }: ImagePreviewModalProps) {
+export function ImagePreviewModal({ imageUrl, onClose, source, sessionId, messageId }: ImagePreviewModalProps) {
 	const [copied, setCopied] = useState(false)
 	const [downloading, setDownloading] = useState(false)
 
@@ -29,6 +33,14 @@ export function ImagePreviewModal({ imageUrl, onClose }: ImagePreviewModalProps)
 		if (!imageUrl) return
 		try {
 			await navigator.clipboard.writeText(imageUrl)
+			trackUmamiEvent('llamaai-download', {
+				kind: 'image-copy-url',
+				filename: extractFilename(imageUrl),
+				url: imageUrl,
+				source: source ?? '',
+				sessionId: sessionId ?? '',
+				messageId: messageId ?? ''
+			})
 			setCopied(true)
 			setTimeout(() => setCopied(false), 1500)
 		} catch {
@@ -50,6 +62,14 @@ export function ImagePreviewModal({ imageUrl, onClose }: ImagePreviewModalProps)
 			link.click()
 			document.body.removeChild(link)
 			URL.revokeObjectURL(objectUrl)
+			trackUmamiEvent('llamaai-download', {
+				kind: 'image',
+				filename: extractFilename(imageUrl),
+				url: imageUrl,
+				source: source ?? '',
+				sessionId: sessionId ?? '',
+				messageId: messageId ?? ''
+			})
 		} catch {
 			// Fallback: open in new tab if CORS blocks the fetch.
 			window.open(imageUrl, '_blank', 'noopener,noreferrer')

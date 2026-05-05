@@ -534,11 +534,12 @@ export function useProtocolsAndChains() {
 				name: toDisplayName(chain.name)
 			}))
 			const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
+			const parentGeckoIds = new Map(parentProtocols.map((pp: any) => [pp.id, pp.gecko_id || null]))
 
 			const baseProtocols = (protocolsData.protocols || []).map((p) => ({
 				...p,
 				slug: sluggifyProtocol(p.name),
-				geckoId: p.geckoId || null,
+				geckoId: p.geckoId || parentGeckoIds.get(p.parentProtocol) || null,
 				parentProtocol: p.parentProtocol || null
 			}))
 
@@ -558,7 +559,7 @@ export function useProtocolsAndChains() {
 				logo: pp.logo,
 				slug: sluggifyProtocol(pp.name),
 				tvl: parentTotals.get(pp.id) || 0,
-				geckoId: null,
+				geckoId: pp.gecko_id || null,
 				parentProtocol: null
 			}))
 

@@ -5,7 +5,12 @@ import { sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async
 import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
 import { normalizeError } from './error'
 import { fetchWithPoolingOnServer } from './http-client'
-import { recordRuntimeError, withStaticRouteTelemetry } from './telemetry'
+import {
+	buildStaticRouteRequestPath,
+	staticRouteTelemetryAttributes,
+	recordRuntimeError,
+	withStaticRouteTelemetry
+} from './telemetry'
 
 const REDIS_URL = process.env.REDIS_URL as string
 
@@ -17,7 +22,8 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 ): GetStaticProps<T, P> => {
 	return async (context: GetStaticPropsContext<P>) => {
 		const run = async () => runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context)
-		return withStaticRouteTelemetry(filename, run, context.params ? { params: context.params } : undefined)
+		const attributes = staticRouteTelemetryAttributes(context.params)
+		return withStaticRouteTelemetry(filename, run, attributes, buildStaticRouteRequestPath(filename, context.params))
 	}
 }
 

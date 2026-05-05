@@ -231,12 +231,14 @@ const columns = [
 					</BasicLink>
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
 		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
 		enableSorting: false,
-		size: 200,
 		cell: ({ row }) => {
 			const chains = row.original.chains ?? []
 			return (
@@ -246,23 +248,24 @@ const columns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
 			align: 'end',
 			headerHelperText: 'Chains secured by the oracle'
 		}
 	}),
 	columnHelper.accessor('protocolsSecured', {
 		header: 'Protocols',
-		size: 100,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('tvl', {
 		header: 'TVS',
 		enableSorting: true,
-		size: 140,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end',
 			headerHelperText: 'Total Value Secured by the Oracle'
 		}

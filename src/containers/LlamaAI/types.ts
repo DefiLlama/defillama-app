@@ -228,6 +228,12 @@ export interface Message {
 	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
 	generatedImages?: GeneratedImage[]
 	id?: string
+	parentId?: string
+	siblingInfo?: {
+		currentVersion: number
+		totalVersions: number
+		siblings: Array<{ messageId: string; leafMessageId: string }>
+	}
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
 	thinking?: string

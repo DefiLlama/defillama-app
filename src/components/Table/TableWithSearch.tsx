@@ -2,7 +2,6 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	type ExpandedState,
 	type RowData,
 	type VisibilityState,
@@ -18,8 +17,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from './utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from './utils'
+import type { ColumnOrdersByBreakpoint } from './utils'
 
 const EMPTY_SORTING: SortingState = []
 
@@ -33,7 +32,6 @@ interface ITableWithSearchBaseProps<T extends RowData> {
 	header?: string | null
 	leadingControls?: React.ReactNode | null
 	headingAs?: 'h1' | 'h2'
-	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
 	sortingState?: SortingState
 	columnVisibility?: VisibilityState | null
@@ -66,7 +64,6 @@ export function TableWithSearch<T extends RowData>({
 	header = null,
 	leadingControls = null,
 	headingAs: HeadingTag = 'h2',
-	columnSizes = null,
 	columnOrders = null,
 	sortingState = EMPTY_SORTING,
 	columnVisibility: columnVisibilityProp = null,
@@ -81,7 +78,6 @@ export function TableWithSearch<T extends RowData>({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(columnVisibilityProp ?? {})
 
@@ -92,7 +88,6 @@ export function TableWithSearch<T extends RowData>({
 			sorting,
 			columnFilters,
 			expanded,
-			columnSizing,
 			columnOrder,
 			columnVisibility
 		},
@@ -110,7 +105,6 @@ export function TableWithSearch<T extends RowData>({
 			}),
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
 		onColumnVisibilityChange: (updater) => React.startTransition(() => setColumnVisibility(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
@@ -146,7 +140,7 @@ export function TableWithSearch<T extends RowData>({
 		[instance, selectedColumns]
 	)
 
-	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
+	useSortColumnOrders({ instance, columnOrders })
 
 	const controls = (
 		<div className="flex w-full flex-wrap items-center justify-end gap-3 p-3">

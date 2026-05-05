@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import {
+	type EffortOption,
 	type LlamaAISettings,
 	type LlamaAISettingsActions,
 	type ModelOption
@@ -12,6 +13,13 @@ import { trackUmamiEvent } from '~/utils/analytics/umami'
 const MAX_LENGTH = 500
 
 type ModalStatus = 'closed' | 'open_clean' | 'open_dirty' | 'committing'
+
+function isEffortAvailableForModel(effort: string, model: string) {
+	const isClaude = model === '' || model.startsWith('anthropic/')
+	if (isClaude) return effort !== 'minimal'
+	if (model.startsWith('openai/')) return effort !== 'max'
+	return true
+}
 
 type ModalAction =
 	| { type: 'OPEN' }
@@ -30,6 +38,7 @@ interface SettingsModalProps {
 	settings: LlamaAISettings
 	actions: LlamaAISettingsActions
 	availableModels?: ModelOption[]
+	availableEfforts?: EffortOption[]
 }
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -53,7 +62,8 @@ export const SettingsModal = memo(function SettingsModal({
 	dialogStore,
 	settings,
 	actions,
-	availableModels
+	availableModels,
+	availableEfforts
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const [isDark] = useDarkModeManager()
@@ -199,9 +209,22 @@ export const SettingsModal = memo(function SettingsModal({
 
 	const handleModelChange = useCallback(
 		(e: React.ChangeEvent<HTMLSelectElement>) => {
-			void actions.setModel(e.target.value)
+			const nextModel = e.target.value
+			void actions.setModel(nextModel)
+			if (settings.effort && !isEffortAvailableForModel(settings.effort, nextModel)) {
+				void actions.setEffort('')
+			}
 		},
-		[actions]
+		[actions, settings.effort]
+	)
+
+	const handleEffortChange = useCallback(
+		(e: React.ChangeEvent<HTMLSelectElement>) => {
+			const nextEffort = e.target.value
+			if (nextEffort && !isEffortAvailableForModel(nextEffort, settings.model)) return
+			void actions.setEffort(nextEffort)
+		},
+		[actions, settings.model]
 	)
 
 	const showClear = modalState.status === 'open_dirty' || settings.customInstructions.trim().length > 0
@@ -461,6 +484,33 @@ export const SettingsModal = memo(function SettingsModal({
 									))}
 								</select>
 							</div>
+							{availableEfforts && availableEfforts.length > 0 ? (
+								<div className="mt-4 flex flex-col gap-1.5">
+									<label htmlFor="llamaai-effort-select" className="text-sm font-medium text-[#1a1a1a] dark:text-white">
+										Effort
+									</label>
+									<p className="text-xs text-[#777] dark:text-[#919296]">
+										Adjust reasoning effort for supported models.
+									</p>
+									<select
+										id="llamaai-effort-select"
+										value={settings.effort}
+										onChange={handleEffortChange}
+										className="mt-1 w-full rounded-lg border border-[#e6e6e6] bg-[#fafafa] px-3 py-2 text-sm text-[#1a1a1a] transition-colors outline-none focus:border-[#1853A8] dark:border-[#39393E] dark:bg-[#1a1b1c] dark:text-white dark:focus:border-[#4B86DB]"
+									>
+										<option value="">Default</option>
+										{availableEfforts.map((effort) => (
+											<option
+												key={effort.id}
+												value={effort.id}
+												disabled={!isEffortAvailableForModel(effort.id, settings.model)}
+											>
+												{effort.label}
+											</option>
+										))}
+									</select>
+								</div>
+							) : null}
 						</section>
 					) : null}
 				</div>

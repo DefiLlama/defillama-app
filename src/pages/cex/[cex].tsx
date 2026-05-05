@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { fetchCexs } from '~/containers/Cexs/api'
+import { fetchCexs, fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
+import { findExchangeMarketsListEntry } from '~/containers/Cexs/markets'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
@@ -31,24 +32,35 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		const data = await getProtocolOverviewPageData({
-			protocolId: slug(exchangeData.slug),
-			currentProtocolMetadata: {
-				displayName: exchangeData.slug?.split('-')?.join(' ') ?? exchangeData.name,
-				tvl: true,
-				stablecoins: true
-			},
-			isCEX: true,
-			chainMetadata: metadataCache.chainMetadata,
-			tokenlist: metadataCache.tokenlist,
-			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
-		})
+		const cexMarketsExchangePromise = fetchExchangeMarketsListFromNetwork()
+			.then((list) => findExchangeMarketsListEntry(list, exchangeData.slug ?? ''))
+			.then((entry) => entry?.exchange ?? null)
+			.catch((error) => {
+				console.error(`Failed to load CEX markets list for ${exchangeData.slug}`, error)
+				return null
+			})
+
+		const [data, cexMarketsExchange] = await Promise.all([
+			getProtocolOverviewPageData({
+				protocolId: slug(exchangeData.slug),
+				currentProtocolMetadata: {
+					displayName: exchangeData.slug?.split('-')?.join(' ') ?? exchangeData.name,
+					tvl: true,
+					stablecoins: true
+				},
+				isCEX: true,
+				chainMetadata: metadataCache.chainMetadata,
+				tokenlist: metadataCache.tokenlist,
+				cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
+			}),
+			cexMarketsExchangePromise
+		])
 
 		if (!data) {
 			return { notFound: true }
 		}
 
-		return { props: data, revalidate: maxAgeForNext([22]) }
+		return { props: { ...data, cexMarketsExchange }, revalidate: maxAgeForNext([22]) }
 	}
 )
 

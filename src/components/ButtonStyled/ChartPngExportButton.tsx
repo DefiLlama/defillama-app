@@ -976,6 +976,7 @@ interface ChartPngExportButtonProps {
 	iconUrl?: string
 	expandLegend?: boolean
 	pngProfile?: PngExportProfile
+	onExport?: (info: { kind: 'download' | 'copy'; filename: string }) => void
 }
 
 export function ChartPngExportButton({
@@ -986,7 +987,8 @@ export function ChartPngExportButton({
 	filename,
 	iconUrl,
 	expandLegend,
-	pngProfile = 'default'
+	pngProfile = 'default',
+	onExport
 }: ChartPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
@@ -1051,6 +1053,7 @@ export function ChartPngExportButton({
 			}
 			const imageFilename = `${safeFilename}_${new Date().toISOString().split('T')[0]}.png`
 			downloadDataURL(imageFilename, dataURL)
+			onExport?.({ kind: 'download', filename: imageFilename })
 		} catch (error) {
 			console.log('Error exporting chart image:', error)
 			toast.error('Failed to export chart image')
@@ -1074,7 +1077,10 @@ export function ChartPngExportButton({
 
 		navigator.clipboard
 			.write([new ClipboardItem({ 'image/png': blobPromise })])
-			.then(() => toast.success('Image copied to clipboard'))
+			.then(() => {
+				toast.success('Image copied to clipboard')
+				onExport?.({ kind: 'copy', filename: filename || 'chart' })
+			})
 			.catch((error) => {
 				console.log('Error copying chart image:', error)
 				toast.error('Failed to copy image to clipboard')
