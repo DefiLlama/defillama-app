@@ -7,7 +7,8 @@ import { mainnet, optimism } from 'wagmi/chains'
 const config = getDefaultConfig({
 	appName: 'DefiLlama',
 	projectId: 'abcbcfd99b02bb0d7057fc19b2f8a2ad',
-	chains: [optimism, mainnet]
+	chains: [optimism, mainnet],
+	ssr: true
 })
 
 export const WalletProvider = ({ children }: { children: ReactNode }) => {

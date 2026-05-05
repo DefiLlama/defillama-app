@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLiquidationsOverviewPageData } from '~/containers/LiquidationsV2/queries'
+import { getLiquidationsOverviewPageDataFromNetwork } from '~/containers/LiquidationsV2/queries'
+import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { validateSubscription } from '~/utils/apiAuth'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export const config = {
 	api: {
@@ -8,7 +10,7 @@ export const config = {
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	res.setHeader('Cache-Control', 'private, no-store')
 
 	if (req.method !== 'GET') {
@@ -25,14 +27,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const metadataModule = await import('~/utils/metadata')
 		await metadataModule.refreshMetadataIfStale()
 
-		const data = await getLiquidationsOverviewPageData({
-			chainMetadata: metadataModule.default.chainMetadata,
-			protocolMetadata: metadataModule.default.protocolMetadata
-		})
+		const shouldUseDatasetCache = isDatasetCacheEnabled()
+		const data = shouldUseDatasetCache
+			? await (async () => {
+					const { getLiquidationsOverviewFromCache } = await import('~/server/datasetCache/liquidations')
+					return getLiquidationsOverviewFromCache({
+						chainMetadata: metadataModule.default.chainMetadata,
+						protocolMetadata: metadataModule.default.protocolMetadata
+					})
+				})()
+			: await getLiquidationsOverviewPageDataFromNetwork({
+					chainMetadata: metadataModule.default.chainMetadata,
+					protocolMetadata: metadataModule.default.protocolMetadata
+				})
 
 		return res.status(200).json(data)
 	} catch (error) {
-		console.error('Failed to fetch liquidations overview data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to fetch liquidations overview data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/liquidations', handler)

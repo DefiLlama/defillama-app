@@ -165,11 +165,15 @@ const columns = (chain: string) => [
 				</a>
 			)
 		},
-		enableSorting: false
+		enableSorting: false,
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('txns', {
 		header: 'Transactions',
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -177,12 +181,14 @@ const columns = (chain: string) => [
 		header: 'Tx Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('active_accounts', {
 		header: 'Active Accounts',
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -190,6 +196,7 @@ const columns = (chain: string) => [
 		header: 'Account Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -197,6 +204,7 @@ const columns = (chain: string) => [
 		header: 'Gas Spent',
 		cell: (info) => <>{info.getValue()?.toFixed(2)} ETH</>,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	}),
@@ -204,6 +212,7 @@ const columns = (chain: string) => [
 		header: 'Gas Growth',
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import type { PaginationState, SortingState } from '@tanstack/react-table'
 import {
 	createColumnHelper,
@@ -12,88 +13,32 @@ import { PaginatedTable } from '~/components/Table/PaginatedTable'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { DEFAULT_TABLE_PAGE_SIZE, resolveUpdater, TABLE_PAGE_SIZE_OPTIONS } from './tableUtils'
-import type { TokenRiskBorrowCapsRow, TokenRiskCollateralRiskRow, TokenRiskResponse } from './tokenRisk.types'
+import type { TokenRiskCoverageStatus, TokenRiskExposureRow, TokenRiskResponse } from './tokenRisk.types'
 
 const TOKEN_RISKS_SECTION_ID = 'token-risks'
-const borrowCapsColumnHelper = createColumnHelper<TokenRiskBorrowCapsRow>()
-const collateralRiskColumnHelper = createColumnHelper<TokenRiskCollateralRiskRow>()
+const exposureColumnHelper = createColumnHelper<TokenRiskExposureRow>()
+const DEFAULT_EXPOSURES_SORTING: SortingState = [{ id: 'currentMaxBorrowUsd', desc: true }]
 
-type RiskTone = 'neutral' | 'good' | 'warning' | 'danger'
-type BorrowCapsProtocolSummary = {
+type ExposureProtocolSummary = {
 	protocol: string
 	protocolDisplayName: string
-	totalAvailableToBorrowUsd: number
-	totalDebtBorrowedUsd: number
-	totalBorrowCapUsd: number | null
-	chainDisplayNames: string[]
+	totalCurrentMaxBorrowUsd: number
+	totalMinBadDebtAtPriceZeroUsd: number | null
+	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
+	chainBreakdowns: ChainExposureSummary[]
 }
 
-type CollateralProtocolSummary = {
-	protocol: string
-	protocolDisplayName: string
-	totalAvailableToBorrowUsd: number
-	totalDebtBorrowedUsd: number
-	totalBorrowCapUsd: number
-	chainDisplayNames: string[]
+type ChainExposureSummary = {
+	chain: string
+	chainDisplayName: string
+	totalCurrentMaxBorrowUsd: number
+	totalMinBadDebtAtPriceZeroUsd: number | null
+	minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus
 }
-
-const DEFAULT_BORROW_CAPS_SORTING: SortingState = [{ id: 'borrowCapUsd', desc: true }]
-const DEFAULT_COLLATERAL_RISK_SORTING: SortingState = [{ id: 'availableToBorrowUsd', desc: true }]
 
 function formatUsd(value: number | null | undefined) {
-	if (value == null) return 'Uncapped'
+	if (value == null) return 'Unavailable'
 	return formattedNum(value, true)
-}
-
-function formatPercent(value: number | null | undefined, fractionDigits = 1) {
-	if (value == null || Number.isNaN(value)) return '-'
-	return `${(value * 100).toFixed(fractionDigits)}%`
-}
-
-function getToneClassName(tone: RiskTone) {
-	switch (tone) {
-		case 'good':
-			return 'border-green-500/25 bg-green-500/5 text-green-600 dark:text-green-400'
-		case 'warning':
-			return 'border-yellow-500/25 bg-yellow-500/5 text-yellow-600 dark:text-yellow-400'
-		case 'danger':
-			return 'border-red-500/25 bg-red-500/5 text-red-600 dark:text-red-400'
-		default:
-			return 'border-(--cards-border) bg-(--app-bg) text-(--text-primary)'
-	}
-}
-
-function getUtilizationTone(value: number | null | undefined): RiskTone {
-	if (value == null || Number.isNaN(value)) return 'neutral'
-	if (value < 0.5) return 'good'
-	if (value <= 0.8) return 'warning'
-	return 'danger'
-}
-
-function getHeadroomTone(remaining: number | null | undefined, total: number | null | undefined): RiskTone {
-	if (remaining == null || total == null || total <= 0) return 'neutral'
-	const headroomRatio = remaining / total
-	if (headroomRatio > 0.3) return 'good'
-	if (headroomRatio > 0.1) return 'warning'
-	return 'danger'
-}
-
-function getLiquidationBufferTone(value: number | null | undefined): RiskTone {
-	if (value == null || Number.isNaN(value)) return 'neutral'
-	if (value >= 0.05) return 'good'
-	if (value >= 0.02) return 'warning'
-	return 'danger'
-}
-
-function MetricPill({ value, tone, title }: { value: string; tone: RiskTone; title?: string }) {
-	return (
-		<span
-			className={`inline-flex rounded-full border px-2 py-1 text-xs font-medium ${getToneClassName(tone)}`}
-			title={title}
-		>
-			{value}
-		</span>
-	)
 }
 
 function TableEntityCell({
@@ -115,397 +60,332 @@ function TableEntityCell({
 	)
 }
 
-function formatProtocolChains(chainDisplayNames: string[]) {
-	if (chainDisplayNames.length === 0) return ''
-	if (chainDisplayNames.length === 1) return chainDisplayNames[0]
-	return `${chainDisplayNames.length} chains`
+function formatProtocolChains(chainBreakdowns: ChainExposureSummary[]) {
+	if (chainBreakdowns.length === 0) return ''
+	if (chainBreakdowns.length === 1) return chainBreakdowns[0].chainDisplayName
+	return `${chainBreakdowns.length} chains`
 }
 
-function createBorrowCapsColumns(methodologies: TokenRiskResponse['borrowCaps']['methodologies']) {
+function formatMinBadDebtValue(value: number | null | undefined, coverage: TokenRiskCoverageStatus) {
+	if (coverage === 'unavailable' || value == null) return '—'
+	if (coverage === 'partial') return `${formattedNum(value, true)} (partial)`
+	return formattedNum(value, true)
+}
+
+function formatProtocolSummaryBadDebt(value: number | null | undefined) {
+	if (value == null) return '--'
+	return formattedNum(value, true)
+}
+
+function ProtocolExposureSummaryText({
+	summary,
+	tokenSymbol
+}: {
+	summary: ExposureProtocolSummary
+	tokenSymbol: string
+}) {
+	const totalAtRiskUsd = summary.totalCurrentMaxBorrowUsd + (summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
+
+	return (
+		<>
+			{formatUsd(totalAtRiskUsd)} at-risk exposure ={' '}
+			{formatProtocolSummaryBadDebt(summary.totalMinBadDebtAtPriceZeroUsd)} bad debt if hacked +{' '}
+			{formatUsd(summary.totalCurrentMaxBorrowUsd)} additional borrowable against {tokenSymbol}
+		</>
+	)
+}
+
+function ChainBreakdownTooltipContent({ chainBreakdowns }: { chainBreakdowns: ChainExposureSummary[] }) {
+	return (
+		<div className="w-80 max-w-[calc(100vw-2rem)] space-y-2 text-xs">
+			<p className="font-medium text-(--text-primary)">Breakdown by chain</p>
+			<div className="space-y-1">
+				{chainBreakdowns.map((chain) => (
+					<div
+						key={`${chain.chain}-${chain.chainDisplayName}`}
+						className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-0.5 border-b border-(--cards-border) pb-1.5 last:border-b-0 last:pb-0"
+					>
+						<span className="flex min-w-0 items-center gap-1.5 font-medium text-(--text-primary)">
+							<TokenLogo
+								name={chain.chainDisplayName}
+								kind="chain"
+								size={14}
+								alt={`Logo of ${chain.chainDisplayName}`}
+								title={chain.chain}
+							/>
+							<span className="truncate">{chain.chainDisplayName}</span>
+						</span>
+						<span className="text-right text-(--text-primary)">
+							{formatUsd(chain.totalCurrentMaxBorrowUsd + (chain.totalMinBadDebtAtPriceZeroUsd ?? 0))}
+						</span>
+						<span className="text-(--text-secondary)">Bad debt if hacked</span>
+						<span className="text-right text-(--text-secondary)">
+							{formatMinBadDebtValue(chain.totalMinBadDebtAtPriceZeroUsd, chain.minBadDebtAtPriceZeroCoverage)}
+						</span>
+						<span className="text-(--text-secondary)">Additional borrowable</span>
+						<span className="text-right text-(--text-secondary)">{formatUsd(chain.totalCurrentMaxBorrowUsd)}</span>
+					</div>
+				))}
+			</div>
+		</div>
+	)
+}
+
+function ProtocolChainsLabel({ chainBreakdowns }: { chainBreakdowns: ChainExposureSummary[] }) {
+	const label = formatProtocolChains(chainBreakdowns)
+	if (!label) return null
+
+	return (
+		<Ariakit.HovercardProvider placement="bottom-start" timeout={150}>
+			<Ariakit.HovercardAnchor
+				render={
+					<button
+						type="button"
+						className="cursor-help text-left text-xs text-(--text-secondary) underline decoration-dotted underline-offset-2 hover:text-(--text-primary) focus-visible:text-(--text-primary)"
+						aria-label={`Show ${label} exposure breakdown by chain`}
+					/>
+				}
+			>
+				{label}
+			</Ariakit.HovercardAnchor>
+			<Ariakit.Hovercard
+				className="z-50 max-h-[calc(100dvh-80px)] overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-sm shadow-sm lg:max-h-(--popover-available-height) dark:border-[hsl(204,3%,32%)]"
+				gutter={6}
+				portal
+				unmountOnHide
+			>
+				<ChainBreakdownTooltipContent chainBreakdowns={chainBreakdowns} />
+			</Ariakit.Hovercard>
+		</Ariakit.HovercardProvider>
+	)
+}
+
+function createExposureColumns(methodologies: TokenRiskResponse['exposures']['methodologies']) {
 	return [
-		borrowCapsColumnHelper.accessor('protocolDisplayName', {
+		exposureColumnHelper.accessor('protocolDisplayName', {
 			header: 'Protocol',
 			enableSorting: false,
 			cell: ({ row, getValue }) => (
 				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="token" title={row.original.protocol} />
 			)
 		}),
-		borrowCapsColumnHelper.accessor('chainDisplayName', {
+		exposureColumnHelper.accessor('chainDisplayName', {
 			header: 'Chain',
 			enableSorting: false,
 			cell: ({ row, getValue }) => (
 				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="chain" title={row.original.chain} />
 			)
 		}),
-		borrowCapsColumnHelper.accessor('debtSymbol', {
+		exposureColumnHelper.accessor('assetSymbol', {
 			header: 'Asset',
-			enableSorting: false
-		}),
-		borrowCapsColumnHelper.accessor('borrowCapUsd', {
-			header: 'Borrow Cap',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.borrowCapUsd
-			}
-		}),
-		borrowCapsColumnHelper.accessor('debtTotalBorrowedUsd', {
-			header: 'Borrowed',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.debtTotalBorrowedUsd
-			}
-		}),
-		borrowCapsColumnHelper.accessor('remainingCapUsd', {
-			header: 'Cap Headroom',
 			cell: ({ row, getValue }) => (
-				<MetricPill
-					value={formatUsd(getValue())}
-					tone={getHeadroomTone(getValue(), row.original.borrowCapUsd)}
-					title={`Remaining borrow-cap headroom for ${row.original.debtSymbol} in this market.`}
-				/>
+				<div className="flex flex-col">
+					<span>{getValue()}</span>
+					<span className="font-mono text-xs text-(--text-secondary)">{row.original.assetAddress}</span>
+				</div>
 			),
 			meta: {
-				align: 'end',
-				headerHelperText: 'Borrow cap minus current borrowed amount for the debt asset in this market.'
+				headerHelperText: methodologies.asset
 			}
 		}),
-		borrowCapsColumnHelper.accessor('availableToBorrowUsd', {
-			header: 'Available',
+		exposureColumnHelper.accessor('currentMaxBorrowUsd', {
+			header: 'Max Borrowable',
 			cell: ({ getValue }) => formatUsd(getValue()),
 			meta: {
 				align: 'end',
-				headerHelperText: methodologies.availableToBorrowUsd
+				headerHelperText: methodologies.currentMaxBorrowUsd
 			}
 		}),
-		borrowCapsColumnHelper.accessor('debtUtilization', {
-			header: 'Utilization',
-			cell: ({ row, getValue }) => (
-				<MetricPill
-					value={formatPercent(getValue())}
-					tone={getUtilizationTone(getValue())}
-					title={`${formatUsd(row.original.debtTotalBorrowedUsd)} borrowed of ${formatUsd(
-						row.original.borrowCapUsd
-					)} cap.`}
-				/>
-			),
+		exposureColumnHelper.accessor('minBadDebtAtPriceZeroUsd', {
+			id: 'minBadDebtAtPriceZeroUsd',
+			header: 'Bad Debt at $0',
+			cell: ({ row, getValue }) => formatMinBadDebtValue(getValue(), row.original.minBadDebtAtPriceZeroCoverage),
 			meta: {
 				align: 'end',
-				headerHelperText: methodologies.debtUtilization
+				headerHelperText: methodologies.minBadDebtAtPriceZeroUsd
 			}
-		}),
-		borrowCapsColumnHelper.accessor('eligibleCollateralCount', {
-			header: 'Eligible Collateral',
-			cell: ({ row, getValue }) => {
-				const count = getValue()
-				const preview = row.original.eligibleCollateralSymbols.slice(0, 3).join(', ')
-				return preview ? `${count} (${preview}${count > 3 ? '…' : ''})` : String(count)
-			}
-		}),
-		borrowCapsColumnHelper.accessor('market', {
-			header: 'Market',
-			enableSorting: false,
-			cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>
-		})
-	]
-}
-
-function createCollateralRiskColumns(methodologies: TokenRiskResponse['collateralRisk']['methodologies']) {
-	return [
-		collateralRiskColumnHelper.accessor('protocolDisplayName', {
-			header: 'Protocol',
-			enableSorting: false,
-			cell: ({ row, getValue }) => (
-				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="token" title={row.original.protocol} />
-			)
-		}),
-		collateralRiskColumnHelper.accessor('chainDisplayName', {
-			header: 'Chain',
-			enableSorting: false,
-			cell: ({ row, getValue }) => (
-				<TableEntityCell label={getValue()} logoName={getValue()} logoKind="chain" title={row.original.chain} />
-			)
-		}),
-		collateralRiskColumnHelper.accessor('debtSymbol', {
-			header: 'Debt Asset',
-			enableSorting: false
-		}),
-		collateralRiskColumnHelper.accessor('borrowCapUsd', {
-			header: 'Cap',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: 'Borrowing cap against this collateral route, calculated as borrowed plus available.'
-			}
-		}),
-		collateralRiskColumnHelper.accessor('availableToBorrowUsd', {
-			header: 'Available',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.availableToBorrowUsd
-			}
-		}),
-		collateralRiskColumnHelper.accessor('debtTotalBorrowedUsd', {
-			header: 'Borrowed',
-			cell: ({ getValue }) => formatUsd(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.debtTotalBorrowedUsd
-			}
-		}),
-		collateralRiskColumnHelper.accessor('maxLtv', {
-			header: 'Max LTV',
-			cell: ({ getValue }) => formatPercent(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.maxLtv
-			}
-		}),
-		collateralRiskColumnHelper.accessor('liquidationThreshold', {
-			header: 'Liq Threshold',
-			cell: ({ getValue }) => formatPercent(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.liquidationThreshold
-			}
-		}),
-		collateralRiskColumnHelper.accessor('liquidationBuffer', {
-			header: 'Buffer',
-			cell: ({ getValue }) => (
-				<MetricPill
-					value={formatPercent(getValue())}
-					tone={getLiquidationBufferTone(getValue())}
-					title="Gap between max LTV and liquidation threshold."
-				/>
-			),
-			meta: {
-				align: 'end',
-				headerHelperText: 'Gap between max LTV and liquidation threshold.'
-			}
-		}),
-		collateralRiskColumnHelper.accessor('liquidationPenalty', {
-			header: 'Penalty',
-			cell: ({ getValue }) => formatPercent(getValue()),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.liquidationPenalty
-			}
-		}),
-		collateralRiskColumnHelper.accessor('borrowApy', {
-			header: 'Borrow APY',
-			cell: ({ getValue }) => formatPercent(getValue(), 2),
-			meta: {
-				align: 'end'
-			}
-		}),
-		collateralRiskColumnHelper.accessor('isolationMode', {
-			header: 'Isolation',
-			enableSorting: false,
-			cell: ({ getValue }) =>
-				getValue() ? (
-					<MetricPill value="Isolated" tone="warning" title="Collateral is restricted to isolated borrowing." />
-				) : (
-					<MetricPill value="Open" tone="good" title="Collateral is not restricted to isolation mode." />
-				),
-			meta: {
-				headerHelperText: methodologies.isolationMode
-			}
-		}),
-		collateralRiskColumnHelper.accessor('debtCeilingUsd', {
-			header: 'Debt Ceiling',
-			cell: ({ getValue }) => (getValue() == null ? '-' : formatUsd(getValue())),
-			meta: {
-				align: 'end',
-				headerHelperText: methodologies.debtCeilingUsd
-			}
-		}),
-		collateralRiskColumnHelper.accessor('market', {
-			header: 'Market',
-			enableSorting: false,
-			cell: ({ getValue }) => <span className="font-mono text-xs">{getValue()}</span>
 		})
 	]
 }
 
 export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: string; riskData: TokenRiskResponse }) {
-	const { borrowCaps, collateralRisk, scopeCandidates } = riskData
-	const [borrowCapsSorting, setBorrowCapsSorting] = useState<SortingState>(DEFAULT_BORROW_CAPS_SORTING)
-	const [collateralRiskSorting, setCollateralRiskSorting] = useState<SortingState>(DEFAULT_COLLATERAL_RISK_SORTING)
-	const [borrowCapsPagination, setBorrowCapsPagination] = useState<PaginationState>({
+	const { exposures, scopeCandidates } = riskData
+	const [sorting, setSorting] = useState<SortingState>(DEFAULT_EXPOSURES_SORTING)
+	const [pagination, setPagination] = useState<PaginationState>({
 		pageIndex: 0,
 		pageSize: DEFAULT_TABLE_PAGE_SIZE
 	})
-	const [collateralRiskPagination, setCollateralRiskPagination] = useState<PaginationState>({
-		pageIndex: 0,
-		pageSize: DEFAULT_TABLE_PAGE_SIZE
-	})
-	const borrowCapsColumns = useMemo(() => createBorrowCapsColumns(borrowCaps.methodologies), [borrowCaps.methodologies])
-	const collateralRiskColumns = useMemo(
-		() => createCollateralRiskColumns(collateralRisk.methodologies),
-		[collateralRisk.methodologies]
-	)
 
-	const borrowCapsTable = useReactTable({
-		data: borrowCaps.rows,
-		columns: borrowCapsColumns,
+	const exposureColumns = useMemo(() => createExposureColumns(exposures.methodologies), [exposures.methodologies])
+
+	const exposureTable = useReactTable({
+		data: exposures.rows,
+		columns: exposureColumns,
 		state: {
-			sorting: borrowCapsSorting,
-			pagination: borrowCapsPagination
+			sorting,
+			pagination
 		},
 		enableSortingRemoval: false,
-		onSortingChange: (updater) =>
-			startTransition(() => setBorrowCapsSorting(resolveUpdater(updater, borrowCapsSorting))),
-		onPaginationChange: (updater) =>
-			startTransition(() => setBorrowCapsPagination(resolveUpdater(updater, borrowCapsPagination))),
+		onSortingChange: (updater) => startTransition(() => setSorting(resolveUpdater(updater, sorting))),
+		onPaginationChange: (updater) => startTransition(() => setPagination(resolveUpdater(updater, pagination))),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getPaginationRowModel: getPaginationRowModel()
 	})
 
-	const collateralRiskTable = useReactTable({
-		data: collateralRisk.rows,
-		columns: collateralRiskColumns,
-		state: {
-			sorting: collateralRiskSorting,
-			pagination: collateralRiskPagination
-		},
-		enableSortingRemoval: false,
-		onSortingChange: (updater) =>
-			startTransition(() => setCollateralRiskSorting(resolveUpdater(updater, collateralRiskSorting))),
-		onPaginationChange: (updater) =>
-			startTransition(() => setCollateralRiskPagination(resolveUpdater(updater, collateralRiskPagination))),
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel(),
-		getPaginationRowModel: getPaginationRowModel()
-	})
-	const borrowCapsProtocolSummaries = useMemo<BorrowCapsProtocolSummary[]>(() => {
+	const protocolSummaries = useMemo<ExposureProtocolSummary[]>(() => {
 		const grouped = new Map<
 			string,
 			{
 				protocol: string
 				protocolDisplayName: string
-				totalAvailableToBorrowUsd: number
-				totalDebtBorrowedUsd: number
-				totalBorrowCapUsd: number
-				hasCap: boolean
-				chainDisplayNames: Set<string>
+				totalCurrentMaxBorrowUsd: number
+				totalMinBadDebtAtPriceZeroUsd: number | null
+				hasKnownMinBadDebt: boolean
+				hasUnknownMinBadDebt: boolean
+				chainBreakdowns: Map<
+					string,
+					{
+						chain: string
+						chainDisplayName: string
+						totalCurrentMaxBorrowUsd: number
+						totalMinBadDebtAtPriceZeroUsd: number | null
+						hasKnownMinBadDebt: boolean
+						hasUnknownMinBadDebt: boolean
+					}
+				>
 			}
 		>()
 
-		for (const row of borrowCaps.rows) {
-			const existing = grouped.get(row.protocol)
+		const addChainBreakdown = (
+			summary: {
+				chainBreakdowns: Map<
+					string,
+					{
+						chain: string
+						chainDisplayName: string
+						totalCurrentMaxBorrowUsd: number
+						totalMinBadDebtAtPriceZeroUsd: number | null
+						hasKnownMinBadDebt: boolean
+						hasUnknownMinBadDebt: boolean
+					}
+				>
+			},
+			row: TokenRiskExposureRow
+		) => {
+			const chainKey = `${row.chain}|${row.chainDisplayName}`
+			const existing = summary.chainBreakdowns.get(chainKey)
 
 			if (existing) {
-				existing.totalAvailableToBorrowUsd += row.availableToBorrowUsd
-				existing.totalDebtBorrowedUsd += row.debtTotalBorrowedUsd
-				if (row.borrowCapUsd != null && row.borrowCapUsd > 0) {
-					existing.totalBorrowCapUsd += row.borrowCapUsd
-					existing.hasCap = true
+				existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
+				if (row.minBadDebtAtPriceZeroUsd != null) {
+					existing.totalMinBadDebtAtPriceZeroUsd =
+						(existing.totalMinBadDebtAtPriceZeroUsd ?? 0) + row.minBadDebtAtPriceZeroUsd
+					existing.hasKnownMinBadDebt = true
 				}
-				existing.chainDisplayNames.add(row.chainDisplayName)
-				continue
+				if (row.minBadDebtAtPriceZeroCoverage !== 'known') {
+					existing.hasUnknownMinBadDebt = true
+				}
+				return
 			}
 
-			grouped.set(row.protocol, {
-				protocol: row.protocol,
-				protocolDisplayName: row.protocolDisplayName,
-				totalAvailableToBorrowUsd: row.availableToBorrowUsd,
-				totalDebtBorrowedUsd: row.debtTotalBorrowedUsd,
-				totalBorrowCapUsd: row.borrowCapUsd != null && row.borrowCapUsd > 0 ? row.borrowCapUsd : 0,
-				hasCap: row.borrowCapUsd != null && row.borrowCapUsd > 0,
-				chainDisplayNames: new Set([row.chainDisplayName])
+			summary.chainBreakdowns.set(chainKey, {
+				chain: row.chain,
+				chainDisplayName: row.chainDisplayName,
+				totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
+				totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
+				hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
+				hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known'
 			})
 		}
 
-		return [...grouped.values()]
-			.map((summary) => ({
-				protocol: summary.protocol,
-				protocolDisplayName: summary.protocolDisplayName,
-				totalAvailableToBorrowUsd: summary.totalAvailableToBorrowUsd,
-				totalDebtBorrowedUsd: summary.totalDebtBorrowedUsd,
-				totalBorrowCapUsd: summary.hasCap ? summary.totalBorrowCapUsd : null,
-				chainDisplayNames: [...summary.chainDisplayNames].sort((a, b) => a.localeCompare(b))
-			}))
-			.sort((a, b) => {
-				if (a.totalAvailableToBorrowUsd !== b.totalAvailableToBorrowUsd) {
-					return b.totalAvailableToBorrowUsd - a.totalAvailableToBorrowUsd
-				}
-				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
-			})
-	}, [borrowCaps.rows])
-	const collateralProtocolSummaries = useMemo<CollateralProtocolSummary[]>(() => {
-		const grouped = new Map<
-			string,
-			{
-				protocol: string
-				protocolDisplayName: string
-				totalAvailableToBorrowUsd: number
-				totalDebtBorrowedUsd: number
-				totalBorrowCapUsd: number
-				chainDisplayNames: Set<string>
-			}
-		>()
-
-		for (const row of collateralRisk.rows) {
+		for (const row of exposures.rows) {
 			const existing = grouped.get(row.protocol)
 
 			if (existing) {
-				existing.totalAvailableToBorrowUsd += row.availableToBorrowUsd
-				existing.totalDebtBorrowedUsd += row.debtTotalBorrowedUsd
-				existing.totalBorrowCapUsd += row.borrowCapUsd
-				existing.chainDisplayNames.add(row.chainDisplayName)
+				existing.totalCurrentMaxBorrowUsd += row.currentMaxBorrowUsd
+				if (row.minBadDebtAtPriceZeroUsd != null) {
+					existing.totalMinBadDebtAtPriceZeroUsd =
+						(existing.totalMinBadDebtAtPriceZeroUsd ?? 0) + row.minBadDebtAtPriceZeroUsd
+					existing.hasKnownMinBadDebt = true
+				}
+				if (row.minBadDebtAtPriceZeroCoverage !== 'known') {
+					existing.hasUnknownMinBadDebt = true
+				}
+				addChainBreakdown(existing, row)
 				continue
 			}
 
-			grouped.set(row.protocol, {
+			const protocolSummary = {
 				protocol: row.protocol,
 				protocolDisplayName: row.protocolDisplayName,
-				totalAvailableToBorrowUsd: row.availableToBorrowUsd,
-				totalDebtBorrowedUsd: row.debtTotalBorrowedUsd,
-				totalBorrowCapUsd: row.borrowCapUsd,
-				chainDisplayNames: new Set([row.chainDisplayName])
-			})
+				totalCurrentMaxBorrowUsd: row.currentMaxBorrowUsd,
+				totalMinBadDebtAtPriceZeroUsd: row.minBadDebtAtPriceZeroUsd,
+				hasKnownMinBadDebt: row.minBadDebtAtPriceZeroUsd != null,
+				hasUnknownMinBadDebt: row.minBadDebtAtPriceZeroCoverage !== 'known',
+				chainBreakdowns: new Map()
+			}
+			addChainBreakdown(protocolSummary, row)
+			grouped.set(row.protocol, protocolSummary)
 		}
 
 		return [...grouped.values()]
-			.map((summary) => ({
-				protocol: summary.protocol,
-				protocolDisplayName: summary.protocolDisplayName,
-				totalAvailableToBorrowUsd: summary.totalAvailableToBorrowUsd,
-				totalDebtBorrowedUsd: summary.totalDebtBorrowedUsd,
-				totalBorrowCapUsd: summary.totalBorrowCapUsd,
-				chainDisplayNames: [...summary.chainDisplayNames].sort((a, b) => a.localeCompare(b))
-			}))
+			.map((summary) => {
+				const minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus = summary.hasKnownMinBadDebt
+					? summary.hasUnknownMinBadDebt
+						? 'partial'
+						: 'known'
+					: 'unavailable'
+				const chainBreakdowns = [...summary.chainBreakdowns.values()]
+					.map<ChainExposureSummary>((chain) => {
+						const chainMinBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus = chain.hasKnownMinBadDebt
+							? chain.hasUnknownMinBadDebt
+								? 'partial'
+								: 'known'
+							: 'unavailable'
+
+						return {
+							chain: chain.chain,
+							chainDisplayName: chain.chainDisplayName,
+							totalCurrentMaxBorrowUsd: chain.totalCurrentMaxBorrowUsd,
+							totalMinBadDebtAtPriceZeroUsd: chain.totalMinBadDebtAtPriceZeroUsd,
+							minBadDebtAtPriceZeroCoverage: chainMinBadDebtAtPriceZeroCoverage
+						}
+					})
+					.sort((a, b) => {
+						const aTotal = a.totalCurrentMaxBorrowUsd + (a.totalMinBadDebtAtPriceZeroUsd ?? 0)
+						const bTotal = b.totalCurrentMaxBorrowUsd + (b.totalMinBadDebtAtPriceZeroUsd ?? 0)
+						if (aTotal !== bTotal) return bTotal - aTotal
+						return a.chainDisplayName.localeCompare(b.chainDisplayName)
+					})
+
+				return {
+					protocol: summary.protocol,
+					protocolDisplayName: summary.protocolDisplayName,
+					totalCurrentMaxBorrowUsd: summary.totalCurrentMaxBorrowUsd,
+					totalMinBadDebtAtPriceZeroUsd: summary.totalMinBadDebtAtPriceZeroUsd,
+					minBadDebtAtPriceZeroCoverage,
+					chainBreakdowns
+				}
+			})
 			.sort((a, b) => {
-				if (a.totalAvailableToBorrowUsd !== b.totalAvailableToBorrowUsd) {
-					return b.totalAvailableToBorrowUsd - a.totalAvailableToBorrowUsd
+				if (a.totalCurrentMaxBorrowUsd !== b.totalCurrentMaxBorrowUsd) {
+					return b.totalCurrentMaxBorrowUsd - a.totalCurrentMaxBorrowUsd
 				}
-				if (a.totalBorrowCapUsd !== b.totalBorrowCapUsd) {
-					return b.totalBorrowCapUsd - a.totalBorrowCapUsd
-				}
+
 				return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
 			})
-	}, [collateralRisk.rows])
-	const hasCollateralPrimary = collateralProtocolSummaries.length > 0
-	const totalAvailableToBorrowUsd = useMemo(
-		() => borrowCapsProtocolSummaries.reduce((sum, summary) => sum + summary.totalAvailableToBorrowUsd, 0),
-		[borrowCapsProtocolSummaries]
-	)
-	const totalBorrowedUsd = useMemo(
-		() => borrowCapsProtocolSummaries.reduce((sum, summary) => sum + summary.totalDebtBorrowedUsd, 0),
-		[borrowCapsProtocolSummaries]
-	)
-	const totalCollateralAvailableToBorrowUsd = collateralRisk.summary.totalAvailableToBorrowUsd
-	const totalCollateralBorrowedUsd = collateralRisk.summary.totalBorrowedUsd
-	const totalCollateralBorrowCapUsd = collateralRisk.summary.totalBorrowCapUsd
+	}, [exposures.rows])
+
 	const selectedCandidateDisplayName = useMemo(() => {
 		if (scopeCandidates.length === 1) return scopeCandidates[0].displayName
 		return 'onchain'
 	}, [scopeCandidates])
 
-	if (!hasCollateralPrimary && borrowCapsProtocolSummaries.length === 0) {
+	const totalMaxExposureUsd =
+		exposures.summary.totalCurrentMaxBorrowUsd + (exposures.summary.totalMinBadDebtAtPriceZeroUsd ?? 0)
+
+	if (exposures.rows.length === 0) {
 		return null
 	}
 
@@ -514,7 +394,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 			<div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--cards-border) p-3">
 				<div className="min-w-0">
 					<h2
-						className="group relative flex min-w-0 scroll-mt-4 items-center gap-1 text-xl font-bold"
+						className="group relative flex min-w-0 scroll-mt-24 items-center gap-1 text-xl font-bold"
 						id={TOKEN_RISKS_SECTION_ID}
 					>
 						Risks
@@ -527,39 +407,30 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 					</h2>
 					<p className="mt-1 max-w-4xl text-sm text-(--text-secondary)">
-						{hasCollateralPrimary
-							? `How much can still be borrowed right now using ${tokenSymbol} as collateral across lending protocols.`
-							: `How much ${tokenSymbol} is currently available to borrow across lending protocols.`}
+						How much debt can be issued against {tokenSymbol} as collateral across lending protocols.
 					</p>
 				</div>
 			</div>
 
 			<div className="flex flex-1 flex-col gap-3 p-3">
 				<div className="rounded-md border border-(--cards-border) p-4">
-					<p className="text-sm text-(--text-secondary)">
-						{hasCollateralPrimary
-							? `Total available to borrow using ${tokenSymbol} as collateral`
-							: `Total ${tokenSymbol} available to borrow`}
-					</p>
-					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">
-						{hasCollateralPrimary
-							? formatUsd(totalCollateralAvailableToBorrowUsd)
-							: formatUsd(totalAvailableToBorrowUsd)}
-					</p>
+					<p className="text-sm text-(--text-secondary)">Maximum possible exposure to {tokenSymbol}</p>
+					<p className="mt-1 text-2xl font-semibold text-(--text-primary)">{formatUsd(totalMaxExposureUsd)}</p>
 					<p className="mt-1 text-sm text-(--text-secondary)">
-						{hasCollateralPrimary
-							? `${formatUsd(totalCollateralBorrowedUsd)} currently borrowed across the reachable debt markets${
-									totalCollateralBorrowCapUsd > 0
-										? ` (${formatUsd(totalCollateralBorrowCapUsd)} derived route capacity)`
-										: ''
-								}`
-							: `${formatUsd(totalBorrowedUsd)} borrowed across these lending markets`}
+						{formatUsd(exposures.summary.totalCurrentMaxBorrowUsd)} (max additional borrows against {tokenSymbol})
+						{exposures.summary.totalMinBadDebtAtPriceZeroUsd == null ? null : (
+							<>
+								{' '}
+								+ {formatUsd(exposures.summary.totalMinBadDebtAtPriceZeroUsd)} (bad debt if {tokenSymbol} was hacked
+								now)
+							</>
+						)}
 					</p>
 				</div>
 
 				<div className="rounded-md border border-(--cards-border) p-3">
 					<div className="space-y-3">
-						{(hasCollateralPrimary ? collateralProtocolSummaries : borrowCapsProtocolSummaries).map((summary) => (
+						{protocolSummaries.map((summary) => (
 							<div
 								key={summary.protocol}
 								className="flex flex-col gap-2 border-b border-(--cards-border) pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
@@ -576,17 +447,11 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 										<p className="font-medium text-(--text-primary)">{summary.protocolDisplayName}</p>
 									</div>
 									<p className="mt-1 text-sm text-(--text-secondary)">
-										{hasCollateralPrimary
-											? `${formatUsd(summary.totalAvailableToBorrowUsd)} available (${formatUsd(
-													summary.totalDebtBorrowedUsd
-												)} borrowed in route debt markets / ${formatUsd(summary.totalBorrowCapUsd)} derived route capacity)`
-											: `${formatUsd(summary.totalAvailableToBorrowUsd)} available (${formatUsd(
-													summary.totalDebtBorrowedUsd
-												)} borrowed${summary.totalBorrowCapUsd != null ? ` / ${formatUsd(summary.totalBorrowCapUsd)} cap` : ''})`}
+										<ProtocolExposureSummaryText summary={summary} tokenSymbol={tokenSymbol} />
 									</p>
-									<p className="mt-1 text-xs text-(--text-secondary)">
-										{formatProtocolChains(summary.chainDisplayNames)}
-									</p>
+									<div className="mt-1">
+										<ProtocolChainsLabel chainBreakdowns={summary.chainBreakdowns} />
+									</div>
 								</div>
 							</div>
 						))}
@@ -594,7 +459,7 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 				</div>
 
 				<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-					<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
+					<summary className="-m-3 flex cursor-pointer list-none items-center justify-between gap-3 p-3 text-sm font-medium">
 						<span>Methodology and limitations</span>
 						<Icon
 							name="chevron-down"
@@ -604,12 +469,14 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 						/>
 					</summary>
 					<p className="mt-2 text-sm text-(--text-secondary)">
-						Showing {hasCollateralPrimary ? 'collateral-side' : 'debt-side'} borrowing capacity for {tokenSymbol} on{' '}
-						<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>. The headline
-						total and protocol lines use{' '}
-						{hasCollateralPrimary
-							? `${tokenSymbol} collateral routes where available is what can still be borrowed now, and derived route capacity is available plus the current borrowed amount in each reachable debt market.`
-							: `${tokenSymbol} debt routes where the asset itself is borrowed as debt.`}
+						Showing collateral exposure for {tokenSymbol} on{' '}
+						<span className="font-medium text-(--text-primary)">{selectedCandidateDisplayName}</span>.{' '}
+						<span className="font-medium text-(--text-primary)">Max Borrowable</span> uses the backend&apos;s{' '}
+						liquidity-bounded borrow-capacity metric (`collateralMaxBorrowUsdLiquidity`) for the maximum additional USD
+						debt that can be issued against the asset right now.{' '}
+						<span className="font-medium text-(--text-primary)">Bad Debt at $0</span> is the minimum known bad debt if
+						the collateral asset price goes to zero; null rows are excluded from this total rather than treated as zero,
+						so totals may remain lower bounds.
 					</p>
 					<ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
 						{riskData.limitations.map((limitation) => (
@@ -618,62 +485,22 @@ export function TokenRisksSection({ tokenSymbol, riskData }: { tokenSymbol: stri
 					</ul>
 				</details>
 
-				{riskData.collateralRisk.rows.length > 0 ? (
-					<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-						<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-							<span>
-								{hasCollateralPrimary ? `Show ${tokenSymbol} collateral details` : 'Show collateral-side details'}
-							</span>
-							<Icon
-								name="chevron-down"
-								height={16}
-								width={16}
-								className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-							/>
-						</summary>
-						<p className="mt-2 text-sm text-(--text-secondary)">
-							{hasCollateralPrimary
-								? `Each row is a lending route where ${tokenSymbol} is accepted as collateral. Available is what can still be borrowed now. Derived route capacity is available plus the current borrowed amount in that route's debt market.`
-								: `These rows show what users can borrow by posting ${tokenSymbol} as collateral, which is different from how much ${tokenSymbol} itself is available to borrow as debt.`}
-						</p>
-						<PaginatedTable table={collateralRiskTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
-					</details>
-				) : null}
-
-				{riskData.borrowCaps.rows.length > 0 ? (
-					<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-						<summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
-							<span>Show borrow-cap details</span>
-							<Icon
-								name="chevron-down"
-								height={16}
-								width={16}
-								className="shrink-0 transition-transform duration-200 group-open:rotate-180"
-							/>
-						</summary>
-						<p className="mt-2 text-sm text-(--text-secondary)">
-							These rows show markets where {tokenSymbol} itself is borrowed as debt. Current capped markets total{' '}
-							<span className="font-medium text-(--text-primary)">
-								{formatUsd(riskData.borrowCaps.summary.totalBorrowCapUsd)}
-							</span>{' '}
-							of borrow capacity, with{' '}
-							<span className="font-medium text-(--text-primary)">
-								{formatUsd(riskData.borrowCaps.summary.totalBorrowedUsd)}
-							</span>{' '}
-							borrowed and{' '}
-							<span className="font-medium text-(--text-primary)">
-								{formatUsd(riskData.borrowCaps.summary.remainingCapUsd)}
-							</span>{' '}
-							of remaining cap headroom.
-						</p>
-						<p className="mt-2 text-sm text-(--text-secondary)">
-							Borrow cap equals borrowed plus remaining cap headroom.{' '}
-							<span className="font-medium text-(--text-primary)">Available</span> can be lower than cap headroom when
-							pool liquidity or debt ceilings are the tighter constraint.
-						</p>
-						<PaginatedTable table={borrowCapsTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
-					</details>
-				) : null}
+				<details className="group rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+					<summary className="-m-3 flex cursor-pointer list-none items-center justify-between gap-3 p-3 text-sm font-medium">
+						<span>Show exposure details</span>
+						<Icon
+							name="chevron-down"
+							height={16}
+							width={16}
+							className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+						/>
+					</summary>
+					<p className="mt-2 text-sm text-(--text-secondary)">
+						Each row is one protocol-chain exposure for {tokenSymbol} as collateral. Bad debt at $0 totals remain lower
+						bounds when a row is marked partial.
+					</p>
+					<PaginatedTable table={exposureTable} pageSizeOptions={TABLE_PAGE_SIZE_OPTIONS} className="mt-3" />
+				</details>
 			</div>
 		</section>
 	)

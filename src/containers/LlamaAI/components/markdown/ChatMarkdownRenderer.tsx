@@ -1,13 +1,18 @@
 import * as Ariakit from '@ariakit/react'
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { createElement, useMemo, useRef } from 'react'
+import { createElement, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import type { Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
-import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
+import {
+	escapeBareOrderedListMarkers,
+	extractLlamaLinks,
+	processCitationMarkers
+} from '~/containers/LlamaAI/utils/markdownHelpers'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 import { SANITIZE_REHYPE_PLUGINS } from './sanitizeConfig'
 
@@ -92,17 +97,21 @@ function TableWrapper({
 	children,
 	isStreaming = false,
 	tableProps,
-	onTableFullscreenOpen
+	onTableFullscreenOpen,
+	messageId
 }: {
 	children: ReactNode
 	isStreaming: boolean
 	tableProps?: ComponentPropsWithoutRef<'table'>
 	onTableFullscreenOpen?: () => void
+	messageId?: string
 }) {
 	const tableRef = useRef<HTMLDivElement>(null)
 	const fullscreenDialogStore = Ariakit.useDialogStore()
 
 	const mergedTableClassName = `z-10 w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`
+	const inlineTableClassName = `llamaai-table-inline ${mergedTableClassName}`
+	const fullscreenTableClassName = `llamaai-table-fullscreen ${mergedTableClassName}`
 
 	const openTableFullscreen = () => {
 		onTableFullscreenOpen?.()
@@ -122,7 +131,16 @@ function TableWrapper({
 		}
 
 		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-		return { filename: `table-${timestamp}`, rows }
+		const filename = `table-${timestamp}`
+		const headerRow = rows[0] ?? []
+		trackUmamiEvent('llamaai-download', {
+			kind: 'table-csv',
+			filename,
+			rowCount: Math.max(0, rows.length - 1),
+			columns: headerRow.join('|').slice(0, 480),
+			messageId: messageId ?? ''
+		})
+		return { filename, rows }
 	}
 
 	return (
@@ -144,8 +162,8 @@ function TableWrapper({
 							<Icon name="x" height={16} width={16} />
 						</Ariakit.DialogDismiss>
 					</div>
-					<div className="min-h-0 flex-1 overflow-auto">
-						<div className="relative overflow-x-auto">
+					<div className="min-h-0 flex-1 overflow-auto overscroll-contain">
+						<div className="relative">
 							<div className="pointer-events-none sticky left-0 z-0 h-0 w-full max-sm:hidden" style={{ top: '50%' }}>
 								<img
 									src="/assets/defillama-dark-neutral.webp"
@@ -162,7 +180,7 @@ function TableWrapper({
 									className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 								/>
 							</div>
-							<table {...tableProps} className={mergedTableClassName}>
+							<table {...tableProps} className={fullscreenTableClassName}>
 								{children}
 							</table>
 						</div>
@@ -218,7 +236,7 @@ function TableWrapper({
 						className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 					/>
 				</div>
-				<table {...tableProps} className={mergedTableClassName}>
+				<table {...tableProps} className={inlineTableClassName}>
 					{children}
 				</table>
 			</div>
@@ -275,7 +293,13 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 		)
 	}
 	return (
-		<a href={href} target="_blank" rel="noreferrer noopener" {...props}>
+		<a
+			href={href}
+			target="_blank"
+			rel="noreferrer noopener"
+			className="text-(--link-text) no-underline hover:underline"
+			{...props}
+		>
 			{children}
 		</a>
 	)
@@ -283,6 +307,55 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 
 function getSingleTextChild(children: ReactNode): string | null {
 	return typeof children === 'string' ? children : null
+}
+
+function getCodeLanguage(children: ReactNode): string | null {
+	if (!children || typeof children !== 'object' || !('props' in children)) return null
+	const className = (children as any).props?.className
+	if (typeof className !== 'string') return null
+	const match = className.match(/language-(\S+)/)
+	return match ? match[1] : null
+}
+
+type MarkdownPreProps = ComponentPropsWithoutRef<'pre'> & { node?: unknown }
+
+function CodeBlock({ children, node: _node, className, ...props }: MarkdownPreProps) {
+	const [copied, setCopied] = useState(false)
+	const language = getCodeLanguage(children)
+
+	const handleCopy = async () => {
+		const text = extractText(children)
+		if (!text) return
+		try {
+			await navigator.clipboard.writeText(text)
+			setCopied(true)
+			setTimeout(() => setCopied(false), 1500)
+		} catch {
+			// silent
+		}
+	}
+
+	return (
+		<div className="group relative">
+			{language ? (
+				<span className="pointer-events-none absolute top-2 left-3 z-10 font-mono text-[11px] tracking-wide text-white/50 select-none">
+					{language}
+				</span>
+			) : null}
+			<button
+				type="button"
+				onClick={handleCopy}
+				aria-label={copied ? 'Copied' : 'Copy code'}
+				data-copied={copied || undefined}
+				className="absolute top-1.5 right-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-md text-white/60 opacity-0 transition-[opacity,background-color,color] group-hover:opacity-100 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white focus-visible:opacity-100 focus-visible:outline-none data-copied:opacity-100"
+			>
+				<Icon name={copied ? 'check' : 'copy'} height={14} width={14} />
+			</button>
+			<pre {...props} className={`${language ? '!pt-8' : ''} ${className ?? ''}`}>
+				{children}
+			</pre>
+		</div>
+	)
 }
 
 function CitationBadge({ children, href }: { children?: ReactNode; href?: string }) {
@@ -376,7 +449,7 @@ export function ChatMarkdownRenderer({
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
-		const processedContent = processCitationMarkers(content, citations)
+		const processedContent = escapeBareOrderedListMarkers(processCitationMarkers(content, citations))
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
@@ -406,14 +479,19 @@ export function ChatMarkdownRenderer({
 			return EntityLinkRenderer(props)
 		},
 		table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
-			<TableWrapper isStreaming={isStreaming} tableProps={props} onTableFullscreenOpen={onTableFullscreenOpen}>
+			<TableWrapper
+				isStreaming={isStreaming}
+				tableProps={props}
+				onTableFullscreenOpen={onTableFullscreenOpen}
+				messageId={messageId}
+			>
 				{children}
 			</TableWrapper>
 		),
 		th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
 			<th
 				{...props}
-				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
+				className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
 			>
 				{children}
 			</th>
@@ -421,7 +499,7 @@ export function ChatMarkdownRenderer({
 		td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
 			<td
 				{...props}
-				className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
+				className={`border border-[#e6e6e6] bg-white px-3 py-2 align-top whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] [.llamaai-table-fullscreen_&]:[overflow-wrap:anywhere] [.llamaai-table-fullscreen_&]:break-words [.llamaai-table-fullscreen_&]:whitespace-normal ${props.className ?? ''}`}
 			>
 				{children}
 			</td>
@@ -432,10 +510,11 @@ export function ChatMarkdownRenderer({
 			</ul>
 		),
 		ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-			<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
+			<ol {...props} className={`grid list-decimal gap-1 pl-8 ${props.className ?? ''}`}>
 				{children}
 			</ol>
-		)
+		),
+		pre: ({ children, ...props }: MarkdownPreProps) => <CodeBlock {...props}>{children}</CodeBlock>
 	}
 
 	;(markdownComponents as Record<string, any>)['citation-badge'] = ({

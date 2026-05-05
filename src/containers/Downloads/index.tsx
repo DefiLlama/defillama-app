@@ -2,13 +2,10 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useCallback } from 'react'
 import { LocalLoader } from '~/components/Loaders'
-import { useAuthContext } from '~/containers/Subscription/auth'
 import type { ChartOptionsMap } from './chart-datasets'
 import { DownloadsCatalog as SimpleCatalog } from './DownloadsCatalog'
 import { ModeToggle, type DownloadsMode } from './sql/ModeToggle'
 
-// SQL workspace pulls in DuckDB-WASM + Monaco. Loading it dynamically keeps the simple-mode
-// bundle unchanged for users who never open SQL.
 const SqlWorkspace = dynamic(() => import('./sql/SqlWorkspace').then((m) => m.SqlWorkspace), {
 	ssr: false,
 	loading: () => (
@@ -24,15 +21,9 @@ interface DownloadsCatalogProps {
 
 export function DownloadsCatalog({ chartOptionsMap }: DownloadsCatalogProps) {
 	const router = useRouter()
-	const { user, loaders } = useAuthContext()
-	// SQL workspace is gated behind the internal `is_llama` flag.
-	// While the user is loading we hide the toggle (and ignore ?mode=sql) so we don't flash UI
-	// that the viewer can't access.
-	const sqlEnabled = !loaders.userLoading && !!user?.flags?.is_llama
 
 	const rawMode = router.query.mode
-	const requestedMode: DownloadsMode = (Array.isArray(rawMode) ? rawMode[0] : rawMode) === 'sql' ? 'sql' : 'simple'
-	const mode: DownloadsMode = sqlEnabled ? requestedMode : 'simple'
+	const mode: DownloadsMode = (Array.isArray(rawMode) ? rawMode[0] : rawMode) === 'sql' ? 'sql' : 'simple'
 
 	const handleModeChange = useCallback(
 		(next: DownloadsMode) => {
@@ -43,10 +34,44 @@ export function DownloadsCatalog({ chartOptionsMap }: DownloadsCatalogProps) {
 		[router]
 	)
 
-	const toggle = sqlEnabled ? <ModeToggle mode={mode} onChange={handleModeChange} /> : null
+	return (
+		<div className="flex flex-col gap-6">
+			<ModeBand mode={mode} onChange={handleModeChange} />
+			{mode === 'sql' ? (
+				<SqlWorkspace chartOptionsMap={chartOptionsMap} />
+			) : (
+				<SimpleCatalog chartOptionsMap={chartOptionsMap} />
+			)}
+		</div>
+	)
+}
 
-	if (mode === 'sql') {
-		return <SqlWorkspace chartOptionsMap={chartOptionsMap} topRight={toggle} />
-	}
-	return <SimpleCatalog chartOptionsMap={chartOptionsMap} headerTrailing={toggle} />
+function ModeBand({ mode, onChange }: { mode: DownloadsMode; onChange: (next: DownloadsMode) => void }) {
+	const isSql = mode === 'sql'
+	const title = isSql ? 'SQL Studio' : 'Power user? Try SQL Studio'
+	const subtitle = isSql
+		? "You're in SQL Studio — switch back to the simple catalog anytime."
+		: 'Run live SQL across every DefiLlama dataset — joins, rolling windows, and instant CSV exports.'
+
+	return (
+		<div className="flex flex-col gap-3 rounded-xl border border-(--sub-brand-primary)/25 bg-linear-to-br from-(--sub-brand-primary)/8 to-(--cards-bg) p-3 sm:flex-row sm:items-center sm:gap-5 sm:p-4">
+			<div className="flex flex-col gap-0.5">
+				<span className="text-sm font-semibold tracking-tight text-(--text-primary)">{title}</span>
+				<span className="text-xs leading-relaxed text-(--text-secondary)">{subtitle}</span>
+			</div>
+			{isSql ? null : (
+				<div aria-hidden className="hidden shrink-0 items-center sm:ml-auto sm:flex">
+					<span className="rounded-md border border-(--divider) bg-(--cards-bg) px-2.5 py-1 font-mono text-[10.5px] tracking-tight">
+						<span className="font-semibold text-(--sub-brand-primary)">SELECT</span>
+						<span className="text-(--text-tertiary)"> * </span>
+						<span className="font-semibold text-(--sub-brand-primary)">FROM</span>
+						<span className="text-(--text-secondary)"> chains</span>
+					</span>
+				</div>
+			)}
+			<div className={`shrink-0 ${isSql ? 'sm:ml-auto' : ''}`}>
+				<ModeToggle mode={mode} onChange={onChange} size="md" />
+			</div>
+		</div>
+	)
 }

@@ -13,6 +13,7 @@ import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -377,7 +378,7 @@ const CATEGORY_TAGS: Record<string, string> = {
 export const getStaticProps = withPerformanceLogging('ai', async () => {
 	let landingQuestions: LandingQuestion[] = []
 	try {
-		const res = await fetch(`${AI_SERVER}/suggested-questions/landing`)
+		const res = await fetchWithPoolingOnServer(`${AI_SERVER}/suggested-questions/landing`)
 		if (res.ok) {
 			const data = await res.json()
 			if (data?.questions?.length) {

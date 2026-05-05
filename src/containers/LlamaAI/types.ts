@@ -14,6 +14,8 @@ export interface ChartConfiguration {
 			label: string
 			type: 'time' | 'category' | 'value'
 			valueSymbol?: string
+			entityType?: 'protocol' | 'chain' | 'token' | 'stablecoin' | 'equity'
+			logoCategories?: string[]
 		}
 		yAxes: Array<{
 			id: string
@@ -80,6 +82,7 @@ export interface ChatSession {
 	isPinned?: boolean
 	pinnedAt?: string
 	forkedFromShareToken?: string | null
+	isOptimistic?: boolean
 }
 
 export interface ResearchUsage {
@@ -222,8 +225,22 @@ export interface Message {
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
-	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
+	generatedImages?: GeneratedImage[]
 	id?: string
+	parentId?: string
+	siblingInfo?: {
+		currentVersion: number
+		totalVersions: number
+		siblings: Array<{ messageId: string; leafMessageId: string }>
+	}
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
 	thinking?: string
@@ -234,6 +251,14 @@ export interface Message {
 export interface ChartSet {
 	charts: ChartConfiguration[]
 	chartData: Record<string, any[]>
+}
+
+export interface GeneratedImage {
+	id?: string
+	url: string
+	size?: string
+	prompt?: string
+	revised_prompt?: string
 }
 
 export interface ToolCall {

@@ -1,6 +1,8 @@
 import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { matchSorter } from 'match-sorter'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
@@ -11,13 +13,15 @@ import {
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
-import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
+import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
-import ProtocolChart from '~/containers/ProtocolOverview/Chart'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
+import { fetchTokenMarkets } from './api'
+import type { TokenMarketCategory, TokenMarketsResponse, TokenMarketsTotalsByCategory } from './tokenMarkets.types'
 import {
 	buildDisplayedTokenChartData,
 	TOKEN_OVERVIEW_DEFAULT_CHARTS,
@@ -35,19 +39,32 @@ const TOKEN_OVERVIEW_CHART_COLORS: Record<TokenOverviewChartLabel, string> = {
 
 const TOKEN_OVERVIEW_CHART_ORDER: TokenOverviewChartLabel[] = ['Token Price', 'Token Volume', 'Mcap', 'FDV']
 const FDV_TOOLTIP =
-	"Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko."
+	"Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating."
 const OUTSTANDING_FDV_TOOLTIP =
 	'Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
-const TOKEN_LIQUIDITY_TOOLTIP =
+const LIQUIDITY_TOOLTIP =
 	'Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data.'
 const CIRCULATING_SUPPLY_TOOLTIP =
 	'Circulating supply is the number of tokens currently available and circulating in the market.'
 const MAX_SUPPLY_TOOLTIP = 'Max supply is the maximum number of tokens that can ever exist for this asset.'
 const MARKET_CAP_TOOLTIP = 'Market cap is calculated by multiplying the circulating supply by the current token price.'
 const VOLUME_24H_TOOLTIP = 'Volume 24h is the total dollar value traded across tracked markets over the last 24 hours.'
+const OPEN_INTEREST_TOOLTIP =
+	'Open Interest is the total notional USD value of outstanding perpetual contracts across tracked markets.'
 const TREASURY_TOOLTIP = 'Treasury is the value of assets held by the entity issuing or stewarding this token.'
+
+const MARKET_CATEGORY_LABELS: Record<TokenMarketCategory, string> = {
+	spot: 'Spot',
+	linear_perp: 'Linear Perp',
+	inverse_perp: 'Inverse Perp'
+}
+const MARKET_CATEGORY_ORDER: TokenMarketCategory[] = ['spot', 'linear_perp', 'inverse_perp']
 const TOKEN_OVERVIEW_CHART_QUERY_KEY = 'chart'
 const TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY = 'chartGroup'
+
+const DeferredProtocolChart = dynamic(() => import('~/containers/ProtocolOverview/Chart'), {
+	loading: () => <div className="min-h-[360px]" />
+})
 
 function formatCurrency(value: number | null | undefined) {
 	if (value == null) return 'N/A'
@@ -67,7 +84,7 @@ function formatPercent(value: number | null | undefined) {
 
 function formatRaiseAmount(value: number | null | undefined) {
 	if (value == null) return 'Undisclosed'
-	return formattedNum(value, true)
+	return formattedNum(value * 1_000_000, true)
 }
 
 function getTotalRaisedAmount(raises: TokenOverviewData['raises']): number | null {
@@ -116,11 +133,13 @@ function areTokenOverviewChartsEqual(a: TokenOverviewChartLabel[], b: TokenOverv
 	return a.length === b.length && a.every((value, index) => value === b[index])
 }
 
-function TokenHeader({
+export function TokenPageHero({
 	overview,
+	logo,
 	headingAs: Heading = 'h1'
 }: {
 	overview: TokenOverviewData
+	logo?: string | null
 	headingAs?: 'h1' | 'div'
 }) {
 	const percentChange = formatPercent(overview.marketData.percentChange24h)
@@ -131,9 +150,13 @@ function TokenHeader({
 			: 'rgba(211, 0, 0, 0.7)'
 
 	return (
-		<div className="flex flex-col gap-3">
+		<div className="flex flex-col gap-6">
 			<div className="flex flex-wrap items-center gap-2 text-xl">
-				<TokenLogo name={overview.name} kind="token" size={24} alt={`Logo of ${overview.name}`} />
+				{logo ? (
+					<TokenLogo src={logo} fallbackSrc={tokenIconUrl(overview.name)} size={24} alt={`Logo of ${overview.name}`} />
+				) : (
+					<TokenLogo name={overview.name} kind="token" size={24} alt={`Logo of ${overview.name}`} />
+				)}
 				<Heading className="flex flex-wrap items-center gap-2 text-xl">
 					<span className="font-bold">{overview.name}</span>
 					{overview.symbol ? <span className="font-normal">({overview.symbol})</span> : null}
@@ -147,6 +170,7 @@ function TokenHeader({
 			{hasPriceBreakdown ? (
 				<details className="group/price">
 					<summary className="flex flex-wrap items-center gap-x-3 gap-y-1">
+						<span className="basis-full text-sm text-(--text-label)">Token Price</span>
 						<span className="font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 							{formatCurrency(overview.marketData.currentPrice)}
 						</span>
@@ -198,6 +222,7 @@ function TokenHeader({
 				</details>
 			) : (
 				<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+					<span className="basis-full text-sm text-(--text-label)">Token Price</span>
 					<span className="font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 						{formatCurrency(overview.marketData.currentPrice)}
 					</span>
@@ -212,8 +237,92 @@ function TokenHeader({
 	)
 }
 
+function getCategoryMetric(
+	totals: TokenMarketsTotalsByCategory,
+	category: TokenMarketCategory,
+	metric: 'volume' | 'oi'
+): number | null {
+	const entry = totals[category]
+	if (!entry) return null
+	return metric === 'volume' ? (entry.total_volume_24h ?? null) : (entry.total_oi_usd ?? null)
+}
+
+function sumVenueMetric(totals: TokenMarketsTotalsByCategory, metric: 'volume' | 'oi'): number | null {
+	let sum = 0
+	let hasValue = false
+	for (const category of MARKET_CATEGORY_ORDER) {
+		const value = getCategoryMetric(totals, category, metric)
+		if (value != null) {
+			sum += value
+			hasValue = true
+		}
+	}
+	return hasValue ? sum : null
+}
+
+function MarketsCategoryBreakdown({
+	totals,
+	metric
+}: {
+	totals: TokenMarketsTotalsByCategory
+	metric: 'volume' | 'oi'
+}) {
+	const visibleCategories = metric === 'oi' ? MARKET_CATEGORY_ORDER.filter((c) => c !== 'spot') : MARKET_CATEGORY_ORDER
+	return (
+		<>
+			{visibleCategories.map((category) => {
+				const value = getCategoryMetric(totals, category, metric)
+				return (
+					<SubMetricRow
+						key={category}
+						label={MARKET_CATEGORY_LABELS[category]}
+						value={value == null ? 'N/A' : formatCurrency(value)}
+					/>
+				)
+			})}
+		</>
+	)
+}
+
+function MarketsMetricSection({
+	label,
+	tooltip,
+	totalValue,
+	markets,
+	metric
+}: {
+	label: string
+	tooltip: string
+	totalValue: number | null
+	markets: TokenMarketsResponse
+	metric: 'volume' | 'oi'
+}) {
+	const cexValue = sumVenueMetric(markets.totals.cex, metric)
+	const dexValue = sumVenueMetric(markets.totals.dex, metric)
+	return (
+		<MetricSection label={label} tooltip={tooltip} value={formatCurrency(totalValue)}>
+			<SubMetricSection label="CEX" value={cexValue == null ? 'N/A' : formatCurrency(cexValue)}>
+				<MarketsCategoryBreakdown totals={markets.totals.cex} metric={metric} />
+			</SubMetricSection>
+			<SubMetricSection label="DEX" value={dexValue == null ? 'N/A' : formatCurrency(dexValue)}>
+				<MarketsCategoryBreakdown totals={markets.totals.dex} metric={metric} />
+			</SubMetricSection>
+		</MetricSection>
+	)
+}
+
 function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 	const totalRaised = getTotalRaisedAmount(overview.raises)
+	const { data: markets } = useQuery({
+		queryKey: ['token-markets', overview.symbol],
+		queryFn: () => fetchTokenMarkets(overview.symbol),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: Boolean(overview.symbol)
+	})
+	const marketsHasVolume = markets != null && (markets.total_volume_24h ?? 0) > 0
+	const marketsHasOi = markets != null && (markets.total_oi_usd ?? 0) > 0
 
 	return (
 		<div className="flex flex-1 flex-col gap-2">
@@ -221,6 +330,16 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 				Key Metrics
 			</h2>
 			<div className="flex flex-col">
+				{overview.marketData.mcap != null ? (
+					<MetricRow label="Market Cap" tooltip={MARKET_CAP_TOOLTIP} value={formatCurrency(overview.marketData.mcap)} />
+				) : null}
+				{overview.marketData.fdv != null ? (
+					<MetricRow
+						label="Fully Diluted Valuation"
+						tooltip={FDV_TOOLTIP}
+						value={formatCurrency(overview.marketData.fdv)}
+					/>
+				) : null}
 				{overview.marketData.circulatingSupply != null ? (
 					<MetricRow
 						label="Circ. Supply"
@@ -235,16 +354,6 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 						value={formatSupply(overview.marketData.maxSupply, overview.symbol)}
 					/>
 				) : null}
-				{overview.marketData.mcap != null ? (
-					<MetricRow label="Market Cap" tooltip={MARKET_CAP_TOOLTIP} value={formatCurrency(overview.marketData.mcap)} />
-				) : null}
-				{overview.marketData.fdv != null ? (
-					<MetricRow
-						label="Fully Diluted Valuation"
-						tooltip={FDV_TOOLTIP}
-						value={formatCurrency(overview.marketData.fdv)}
-					/>
-				) : null}
 				{overview.outstandingFDV != null ? (
 					<MetricRow
 						label="Outstanding FDV"
@@ -252,9 +361,17 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 						value={formatCurrency(overview.outstandingFDV)}
 					/>
 				) : null}
-				{overview.marketData.volume24h.total != null ||
-				overview.marketData.volume24h.cex != null ||
-				overview.marketData.volume24h.dex != null ? (
+				{marketsHasVolume && markets ? (
+					<MarketsMetricSection
+						label="Volume 24h"
+						tooltip={VOLUME_24H_TOOLTIP}
+						totalValue={markets.total_volume_24h ?? null}
+						markets={markets}
+						metric="volume"
+					/>
+				) : overview.marketData.volume24h.total != null ||
+				  overview.marketData.volume24h.cex != null ||
+				  overview.marketData.volume24h.dex != null ? (
 					<MetricSection
 						label="Volume 24h"
 						tooltip={VOLUME_24H_TOOLTIP}
@@ -268,10 +385,19 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 						) : null}
 					</MetricSection>
 				) : null}
+				{marketsHasOi && markets ? (
+					<MarketsMetricSection
+						label="Open Interest"
+						tooltip={OPEN_INTEREST_TOOLTIP}
+						totalValue={markets.total_oi_usd ?? null}
+						markets={markets}
+						metric="oi"
+					/>
+				) : null}
 				{overview.tokenLiquidity ? (
 					<MetricSection
 						label="Token Liquidity"
-						tooltip={TOKEN_LIQUIDITY_TOOLTIP}
+						tooltip={LIQUIDITY_TOOLTIP}
 						value={formatCurrency(overview.tokenLiquidity.total)}
 					>
 						{overview.tokenLiquidity.pools.slice(0, 6).map(([protocol, chain, value]) => (
@@ -300,7 +426,7 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 					</MetricSection>
 				) : null}
 				{overview.raises?.length ? (
-					<MetricSection label="Raises" value={formatRaiseAmount(totalRaised)}>
+					<MetricSection label="Total Raised" value={formatRaiseAmount(totalRaised)}>
 						{overview.raises.map((raise) => (
 							<SubMetricRow
 								key={`${raise.date}-${raise.round ?? 'raise'}`}
@@ -309,7 +435,6 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 										? `${raise.round} · ${formatDateLabel(raise.date) ?? 'Unknown date'}`
 										: (formatDateLabel(raise.date) ?? 'Unknown date')
 								}
-								extra={raise.source ? <span className="text-xs text-(--text-tertiary)">{raise.source}</span> : null}
 								value={formatRaiseAmount(raise.amount)}
 							/>
 						))}
@@ -381,7 +506,11 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 		() => activeCharts.filter((chart) => !displayedChartData[chart]?.length),
 		[activeCharts, displayedChartData]
 	)
-	const hasChartData = Object.keys(displayedChartData).length > 0
+	let hasChartData = false
+	for (const _chart in displayedChartData) {
+		hasChartData = true
+		break
+	}
 	const shouldWaitForClient = !isClient && geckoId != null && pendingCharts.length > 0
 	const showLoadingState = isClient && geckoId != null && pendingCharts.length > 0 && isLoading
 	const loadingLabel =
@@ -453,7 +582,6 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									name="search"
 									inputMode="search"
 									placeholder="Search..."
-									autoFocus
 									value={metricsSearchValue}
 									className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 									onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
@@ -516,7 +644,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 						<LoadingDots />
 					</p>
 				) : hasChartData ? (
-					<ProtocolChart
+					<DeferredProtocolChart
 						key={`${groupBy}:${activeCharts.join('|')}`}
 						chartData={displayedChartData}
 						chartColors={TOKEN_OVERVIEW_CHART_COLORS}
@@ -540,24 +668,29 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 	)
 }
 
-export function TokenOverviewSection({ overview, geckoId }: { overview: TokenOverviewData; geckoId: string | null }) {
+export function TokenOverviewSection({
+	overview,
+	geckoId,
+	logo
+}: {
+	overview: TokenOverviewData
+	geckoId: string | null
+	logo?: string | null
+}) {
 	return (
-		<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-			<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
-				<TokenHeader overview={overview} headingAs="h1" />
-				<TokenMetrics overview={overview} />
-			</div>
-			<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
-				<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<div className="xl:hidden">
-						<TokenHeader overview={overview} headingAs="div" />
-					</div>
-					<TokenChartPanel overview={overview} geckoId={geckoId} />
-				</div>
-				<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">
+		<section className="scroll-mt-24" id="token-overview">
+			<h2 className="sr-only">Overview</h2>
+			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
+				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
+					<TokenPageHero overview={overview} logo={logo} />
 					<TokenMetrics overview={overview} />
 				</div>
+				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
+					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+						<TokenChartPanel overview={overview} geckoId={geckoId} />
+					</div>
+				</div>
 			</div>
-		</div>
+		</section>
 	)
 }

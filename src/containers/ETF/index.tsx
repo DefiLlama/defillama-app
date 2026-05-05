@@ -218,23 +218,25 @@ const columns = [
 				</span>
 			)
 		},
-		size: 100
+		meta: {
+			headerClassName: 'w-[100px]'
+		}
 	}),
 	columnHelper.accessor('issuer', {
 		header: 'Issuer',
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end'
-		},
-		size: 160
+		}
 	}),
 	columnHelper.accessor('chain', {
 		header: 'Coin',
 		enableSorting: true,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue())} />,
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end'
-		},
-		size: 160
+		}
 	}),
 	columnHelper.accessor('flows', {
 		header: 'Flows',
@@ -253,24 +255,24 @@ const columns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('aum', {
 		header: 'AUM',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor('volume', {
 		header: 'Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	})
 ]

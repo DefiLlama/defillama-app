@@ -19,6 +19,11 @@ const formatKeyMetricsValue = (value: number | string | null) => {
 	return formattedNum(value, true)
 }
 
+const formatNullableCurrency = (value: number | null | undefined) => {
+	if (value == null || Number.isNaN(value)) return 'N/A'
+	return formattedNum(value, true)
+}
+
 interface KeyMetricsProps {
 	metadata: IChainOverviewData['metadata']
 	stablecoins: IChainOverviewData['stablecoins']
@@ -336,7 +341,7 @@ function RaisesSection({ chainRaises }: { chainRaises: IChainOverviewData['chain
 			{sortedRaises.map((raise) => (
 				<p
 					className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
-					key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
+					key={`${raise.date}-${raise.amount}-${raise.round}`}
 				>
 					<span className="flex flex-wrap justify-between">
 						<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>
@@ -422,17 +427,17 @@ function ChainTokenInfo({ chainTokenInfo }: { chainTokenInfo: IChainOverviewData
 				value={
 					<span className="flex items-center gap-2">
 						<BuyOnLlamaswap chains={chainTokenInfo.llamaswapChains} placement="chain_overview_stats" />
-						{formattedNum(chainTokenInfo.current_price, true)}
+						{formatNullableCurrency(chainTokenInfo.current_price)}
 					</span>
 				}
 			/>
 			<ChainMetricRow
 				label={`$${chainTokenInfo.token_symbol} Market Cap`}
-				value={formattedNum(chainTokenInfo.market_cap ?? 0, true)}
+				value={formatNullableCurrency(chainTokenInfo.market_cap)}
 			/>
 			<ChainMetricRow
 				label={`$${chainTokenInfo.token_symbol} FDV`}
-				value={formattedNum(chainTokenInfo.fully_diluted_valuation ?? 0, true)}
+				value={formatNullableCurrency(chainTokenInfo.fully_diluted_valuation)}
 			/>
 		</>
 	)

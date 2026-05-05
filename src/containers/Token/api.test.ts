@@ -22,13 +22,11 @@ beforeEach(() => {
 })
 
 describe('token risk api', () => {
-	it('encodes tokenChainAndAddress in lending risk requests', async () => {
+	it('requests the borrow capacity snapshot', async () => {
 		const api = await import('./api')
 
-		await api.getTokenRiskLendingRisks('ethereum:0xabc/def?foo bar#baz')
+		await api.getTokenRiskBorrowCapacity()
 
-		expect(mocks.fetchJson).toHaveBeenCalledWith(
-			'https://risk.example.com/get-lending-risks/ethereum%3A0xabc%2Fdef%3Ffoo%20bar%23baz'
-		)
+		expect(mocks.fetchJson).toHaveBeenCalledWith('https://risk.example.com/get-borrow-capacity-by-asset')
 	})
 })

@@ -116,4 +116,20 @@ describe('TokenRightsByProtocol', () => {
 		expect(html).toContain('Primary Value Accrual')
 		expect(html).toContain('Value accrues via buybacks.')
 	})
+
+	it('uses an h2 for the embedded token page header variant', () => {
+		const html = renderToStaticMarkup(
+			<TokenRightsByProtocol
+				name="Test Protocol"
+				symbol="TEST"
+				raises={null}
+				tokenRightsData={baseTokenRightsData}
+				headerVariant="embedded"
+			/>
+		)
+
+		expect(html).toMatch(/<h2[^>]*>[\s\S]*Token Rights and Value Accrual[\s\S]*<\/h2>/)
+		expect(html).toContain('Token Rights and Value Accrual')
+		expect(html).not.toContain('<h1')
+	})
 })

@@ -32,8 +32,6 @@ const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
-const columnResizeMode = 'onChange'
-
 function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -41,7 +39,6 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const instance = useReactTable({
 		data,
 		columns: hacksColumns,
-		columnResizeMode,
 		state: {
 			columnFilters,
 			sorting
@@ -78,9 +75,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 					/>
 				</label>
 
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol free />
 			</div>
-			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
+			<VirtualTable instance={instance} />
 		</div>
 	)
 }
@@ -379,29 +376,37 @@ const hacksColumns = [
 	columnHelper.accessor('name', {
 		header: 'Name',
 		enableSorting: false,
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('date', {
 		cell: ({ getValue }) => toNiceDayMonthAndYear(getValue()),
-		size: 120,
+		meta: {
+			headerClassName: 'w-[120px]'
+		},
 		header: 'Date'
 	}),
 	columnHelper.accessor('amount', {
 		header: 'Amount lost',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	}),
 	columnHelper.accessor('chains', {
 		header: 'Chains',
 		enableSorting: false,
 		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
-		size: 60
+		meta: {
+			headerClassName: 'w-[60px]'
+		}
 	}),
 	columnHelper.accessor('classification', {
 		header: 'Classification',
 		enableSorting: false,
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			headerHelperText:
 				'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 		},
@@ -417,7 +422,9 @@ const hacksColumns = [
 	columnHelper.accessor('technique', {
 		header: 'Technique',
 		enableSorting: false,
-		size: 200,
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]'
+		},
 		cell: ({ getValue }) => {
 			const value = getValue()
 			return (
@@ -429,22 +436,8 @@ const hacksColumns = [
 	}),
 	columnHelper.accessor('language', {
 		header: 'Language',
-		size: 140
-	}),
-	columnHelper.accessor('link', {
-		header: 'Link',
-		size: 40,
-		enableSorting: false,
-		cell: ({ getValue }) => (
-			<a
-				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
-				href={getValue()}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<Icon name="arrow-up-right" height={14} width={14} />
-				<span className="sr-only">open in new tab</span>
-			</a>
-		)
+		meta: {
+			headerClassName: 'w-[140px]'
+		}
 	})
 ]

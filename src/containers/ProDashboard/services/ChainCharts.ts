@@ -9,6 +9,8 @@ import {
 } from '~/containers/OnchainUsersAndTxs/api'
 import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRuntimeError } from '~/utils/telemetry'
 import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
 
@@ -69,7 +71,7 @@ export default class ChainCharts {
 				return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
 			}
 		} catch (error) {
-			console.log('Error merging chain data:', error)
+			recordRuntimeError(error, 'pageBuild')
 		}
 
 		return []
@@ -90,7 +92,7 @@ export default class ChainCharts {
 		const url = dataType
 			? `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
 			: `${DIMENSIONS_OVERVIEW_API}/${endpoint}/${encodedChain}`
-		const response = await fetch(url)
+		const response = await fetchWithPoolingOnServer(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}
@@ -99,7 +101,7 @@ export default class ChainCharts {
 		if (!chain) return []
 		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
-		const response = await fetch(`${api}/chain$${encodedChain}`)
+		const response = await fetchWithPoolingOnServer(`${api}/chain$${encodedChain}`)
 		const data = await response.json()
 		return convertToNumberFormat(data ?? [])
 	}
@@ -153,7 +155,7 @@ export default class ChainCharts {
 		const url = dataType
 			? `${DIMENSIONS_SUMMARY_API}/${endpoint}/${encodedChain}?dataType=${dataType}`
 			: `${DIMENSIONS_SUMMARY_API}/${endpoint}/${encodedChain}`
-		const response = await fetch(url)
+		const response = await fetchWithPoolingOnServer(url)
 		const data = await response.json()
 		return convertToNumberFormat(data.totalDataChart ?? [])
 	}
@@ -202,7 +204,7 @@ export default class ChainCharts {
 			}
 			return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
 		} catch (error) {
-			console.log('Error merging chain assets data:', error)
+			recordRuntimeError(error, 'pageBuild')
 			return []
 		}
 	}
@@ -210,7 +212,7 @@ export default class ChainCharts {
 	private static async getTokenData(geckoId: string) {
 		if (!geckoId) return null
 		const url = `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`
-		const response = await fetch(url)
+		const response = await fetchWithPoolingOnServer(url)
 		const { data } = await response.json()
 		return data
 	}
@@ -235,7 +237,6 @@ export default class ChainCharts {
 		const metadata = CHART_METADATA[chartType]
 
 		if (!metadata) {
-			console.log(`Unknown chart type: ${chartType}`)
 			return []
 		}
 
@@ -260,7 +261,6 @@ export default class ChainCharts {
 				}
 				return []
 			default:
-				console.log(`Unknown metadata type: ${metadata.type}`)
 				return []
 		}
 	}

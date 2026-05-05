@@ -12,7 +12,6 @@ export interface ProtocolEmissionWithHistory extends ProtocolEmission {
 	lastEvent?: EmissionEvent[] | null
 	historicalPrice?: Array<[number, number]>
 	unlockEvents?: null
-	sources?: null
 }
 
 export interface ProtocolEmissionResult {
@@ -25,7 +24,6 @@ export interface ProtocolEmissionResult {
 	datasets: { documented: EmissionsDataset; realtime: EmissionsDataset }
 	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
 	meta: ProtocolEmission | Record<string, never>
-	sources: string[]
 	notes: string[]
 	events: EmissionEvent[]
 	token: string | null
@@ -40,4 +38,5 @@ export interface ProtocolEmissionResult {
 	tokenPrice: { price?: number; symbol?: string }
 	unlockUsdChart: unknown[] | null
 	tbdSections: string[]
+	forecastSections: string[]
 }

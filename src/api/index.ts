@@ -6,9 +6,9 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
-import { getErrorMessage } from '~/utils/error'
+import { recordRuntimeError } from '~/utils/telemetry'
 import type {
 	CoinsChartResponse,
 	CoinsPricesResponse,
@@ -80,10 +80,11 @@ export async function fetchCoinPrices(
 			return response.coins ?? {}
 		},
 		(batch, err) => {
-			postRuntimeLogs(
-				`Failed to fetch prices for batch: ${batch.join(', ')} (searchWidth=${options?.searchWidth ?? 'default'})`
-			)
-			postRuntimeLogs(getErrorMessage(err))
+			recordRuntimeError(err, 'outboundFetch', {
+				target: `${COINS_PRICES_API_URL}/current`,
+				coins: batch,
+				search_width: options?.searchWidth ?? 'default'
+			})
 			return {}
 		}
 	)
@@ -124,8 +125,24 @@ export async function fetchCoinsChart(params: {
 // ---------------------------------------------------------------------------
 
 /** Fetch the list of all protocols that have liquidity data available. */
-export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+export async function fetchLiquidityTokensDatasetFromNetwork(): Promise<ProtocolLiquidityTokensResponse> {
 	return fetchJson<ProtocolLiquidityTokensResponse>(LIQUIDITY_API_URL)
+}
+
+/** Fetch the list of all protocols that have liquidity data available. */
+export async function fetchLiquidityTokensDataset(): Promise<ProtocolLiquidityTokensResponse> {
+	return fetchLiquidityTokensDatasetFromNetwork()
+}
+
+export async function fetchLiquidityDatasetEntryByProtocolId(
+	protocolId: string
+): Promise<ProtocolLiquidityTokensResponse[number] | null> {
+	if (!protocolId) {
+		return null
+	}
+
+	const data = await fetchLiquidityTokensDataset()
+	return data.find((entry) => entry.id === protocolId) ?? null
 }
 
 /** Fetch the full GitHub Pages LlamaSwap protocol-liquidity dataset keyed by CoinGecko ID. */

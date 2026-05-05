@@ -66,9 +66,9 @@ const columns = [
 		header: 'Pool',
 		enableSorting: false,
 		cell: ({ row }) => <OptimizerPoolCell row={row} />,
-		size: 400,
 		meta: {
-			headerClassName: 'min-w-[180px] sm:min-w-[220px] xl:min-w-[280px]'
+			headerClassName:
+				'w-[160px] min-[812px]:w-[210px] 2xl:w-[240px] min-[1600px]:w-[280px] min-[1640px]:w-[320px] min-[1720px]:w-[420px]'
 		}
 	}),
 	columnHelper.accessor('project', {
@@ -85,9 +85,8 @@ const columns = [
 				borrow={true}
 			/>
 		),
-		size: 140,
 		meta: {
-			headerClassName: 'min-w-[120px] pl-9 sm:min-w-[140px]'
+			headerClassName: 'pl-9 w-[180px]'
 		}
 	}),
 	columnHelper.accessor('chains', {
@@ -96,9 +95,9 @@ const columns = [
 		enableSorting: false,
 		cell: (info) => <IconsRow items={toChainIconItems(info.getValue())} />,
 		meta: {
+			headerClassName: 'w-[60px]',
 			align: 'end'
-		},
-		size: 60
+		}
 	}),
 	columnHelper.accessor((row) => row.borrowAvailableUsd ?? undefined, {
 		id: 'borrowAvailableUsd',
@@ -115,8 +114,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -135,8 +134,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 180,
 		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
 			align: 'end'
 		}
 	}),
@@ -155,8 +154,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 180,
 		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
 			align: 'end'
 		}
 	}),
@@ -171,8 +170,8 @@ const columns = [
 				</ColoredAPY>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -187,8 +186,8 @@ const columns = [
 				</ColoredAPY>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -199,8 +198,8 @@ const columns = [
 		cell: ({ getValue }) => {
 			return <ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -226,8 +225,8 @@ const columns = [
 				</>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end',
 			headerHelperText: 'Lending Reward - Borrowing Cost * LTV'
 		}
@@ -250,8 +249,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end',
 			headerHelperText: 'Total reward APY for lending.'
 		}
@@ -267,8 +266,8 @@ const columns = [
 				</ColoredAPY>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end',
 			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
 		}
@@ -288,8 +287,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[80px]',
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
@@ -308,8 +307,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[100px]',
 			align: 'end'
 		}
 	}),
@@ -327,8 +326,8 @@ const columns = [
 				</span>
 			)
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[100px] min-[812px]:w-[120px]',
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
@@ -407,100 +406,6 @@ const columnOrders: Record<number, readonly OptimizerColumnId[]> = {
 		'totalBorrowUsd'
 	]
 }
-
-const columnSizes: Record<number, Partial<Record<OptimizerColumnId, number>>> = {
-	0: {
-		pool: 160,
-		project: 180,
-		chains: 60,
-		borrowAvailableUsd: 100,
-		totalBase: 100,
-		lendingBase: 150,
-		borrowBase: 150,
-		totalReward: 100,
-		lendingReward: 150,
-		borrowReward: 150,
-		ltv: 80,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 100
-	},
-	812: {
-		pool: 210,
-		project: 180,
-		chains: 60,
-		borrowAvailableUsd: 100,
-		totalBase: 100,
-		lendingBase: 150,
-		borrowBase: 150,
-		totalReward: 100,
-		lendingReward: 150,
-		borrowReward: 150,
-		ltv: 80,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 120
-	},
-	1536: {
-		pool: 240,
-		project: 180,
-		chains: 60,
-		borrowAvailableUsd: 100,
-		totalBase: 100,
-		lendingBase: 150,
-		borrowBase: 150,
-		totalReward: 100,
-		lendingReward: 150,
-		borrowReward: 150,
-		ltv: 80,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 120
-	},
-	1600: {
-		pool: 280,
-		project: 180,
-		chains: 60,
-		borrowAvailableUsd: 100,
-		totalBase: 100,
-		lendingBase: 150,
-		borrowBase: 150,
-		totalReward: 100,
-		lendingReward: 150,
-		borrowReward: 150,
-		ltv: 80,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 120
-	},
-	1640: {
-		pool: 320,
-		project: 180,
-		chains: 60,
-		borrowAvailableUsd: 100,
-		totalBase: 100,
-		lendingBase: 150,
-		borrowBase: 150,
-		totalReward: 100,
-		lendingReward: 150,
-		borrowReward: 150,
-		ltv: 80,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 120
-	},
-	1720: {
-		pool: 420,
-		project: 180,
-		chains: 60,
-		borrowAvailableUsd: 100,
-		totalBase: 100,
-		lendingBase: 150,
-		borrowBase: 150,
-		totalReward: 100,
-		lendingReward: 150,
-		borrowReward: 150,
-		ltv: 80,
-		totalSupplyUsd: 100,
-		totalBorrowUsd: 120
-	}
-}
-
 interface OptimizerTableConfigContext {
 	excludeRewardApy: boolean
 	withAmount: boolean
@@ -515,7 +420,6 @@ export const OPTIMIZER_TABLE_CONFIG: YieldsTableConfig<
 	columnIds: OPTIMIZER_COLUMN_IDS,
 	columns,
 	columnOrders,
-	columnSizes,
 	defaultSorting: [{ id: 'borrowAvailableUsd', desc: true }],
 	columnVisibility: ({ excludeRewardApy, withAmount }) =>
 		excludeRewardApy
@@ -564,7 +468,6 @@ export function YieldsOptimizerTable({ data }) {
 		<YieldsTableWrapper
 			data={data}
 			columns={resolvedConfig.columns}
-			columnSizes={resolvedConfig.columnSizes}
 			columnOrders={resolvedConfig.columnOrders}
 			sortingState={resolvedConfig.defaultSorting ?? defaultSortingState}
 			columnVisibility={resolvedConfig.columnVisibility}
@@ -575,13 +478,21 @@ export function YieldsOptimizerTable({ data }) {
 export function PaginatedYieldsOptimizerTable({
 	data,
 	initialPageSize = 10,
+	initialPageIndex = 0,
 	excludeRewardApy = false,
-	withAmount = false
+	withAmount = false,
+	sortingState = defaultSortingState,
+	onSortingChange,
+	interactionDisabled = false
 }: {
 	data: IYieldsOptimizerTableRow[]
 	initialPageSize?: number
+	initialPageIndex?: number
 	excludeRewardApy?: boolean
 	withAmount?: boolean
+	sortingState?: SortingState
+	onSortingChange?: (sortingState: SortingState) => void
+	interactionDisabled?: boolean
 }) {
 	const context = useMemo(
 		() => ({
@@ -590,9 +501,9 @@ export function PaginatedYieldsOptimizerTable({
 		}),
 		[excludeRewardApy, withAmount]
 	)
-	const [sorting, setSorting] = useState<SortingState>(defaultSortingState)
+	const [sorting, setSorting] = useState<SortingState>([...sortingState])
 	const [pagination, setPagination] = useState<PaginationState>({
-		pageIndex: 0,
+		pageIndex: initialPageIndex,
 		pageSize: initialPageSize
 	})
 
@@ -610,7 +521,11 @@ export function PaginatedYieldsOptimizerTable({
 		},
 		enableSortingRemoval: false,
 		onSortingChange: (updater) =>
-			startTransition(() => setSorting((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
+			startTransition(() => {
+				const nextSorting = typeof updater === 'function' ? updater(sorting) : updater
+				setSorting(nextSorting)
+				onSortingChange?.(nextSorting)
+			}),
 		onPaginationChange: (updater) =>
 			startTransition(() => setPagination((prev) => (typeof updater === 'function' ? updater(prev) : updater))),
 		getCoreRowModel: getCoreRowModel(),
@@ -619,5 +534,11 @@ export function PaginatedYieldsOptimizerTable({
 		autoResetPageIndex: false
 	})
 
-	return <PaginatedTable table={table} pageSizeOptions={[10, 20, 30, 50] as const} />
+	return (
+		<PaginatedTable
+			table={table}
+			pageSizeOptions={[10, 20, 30, 50] as const}
+			interactionDisabled={interactionDisabled}
+		/>
+	)
 }

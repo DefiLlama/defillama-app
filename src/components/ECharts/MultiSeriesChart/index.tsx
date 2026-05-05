@@ -119,6 +119,7 @@ export default function MultiSeriesChart({
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const hasNotifiedReadyRef = useRef(false)
 	const onReadyRef = useRef(onReady)
+	const globalOutCleanupRef = useRef<(() => void) | null>(null)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -250,22 +251,35 @@ export default function MultiSeriesChart({
 			series: seriesWithHallmarks
 		})
 
-		if (alwaysShowTooltip && seriesWithHallmarks.length > 0 && seriesWithHallmarks[0].data.length > 0) {
-			instance.dispatchAction({
-				type: 'showTip',
-				seriesIndex: 0,
-				dataIndex: seriesWithHallmarks[0].data.length - 1,
-				position: [60, 0]
-			})
+		globalOutCleanupRef.current?.()
+		globalOutCleanupRef.current = null
 
-			instance.on('globalout', () => {
+		if (alwaysShowTooltip && seriesWithHallmarks.length > 0 && seriesWithHallmarks[0].data.length > 0) {
+			const showTip = () => {
+				if (instance.isDisposed()) return
 				instance.dispatchAction({
 					type: 'showTip',
 					seriesIndex: 0,
 					dataIndex: seriesWithHallmarks[0].data.length - 1,
 					position: [60, 0]
 				})
-			})
+			}
+
+			showTip()
+
+			const onGlobalOut = () => showTip()
+			if (!instance.isDisposed()) {
+				instance.on('globalout', onGlobalOut)
+			}
+			globalOutCleanupRef.current = () => {
+				if (instance.isDisposed()) return
+				instance.off('globalout', onGlobalOut)
+			}
+		}
+
+		return () => {
+			globalOutCleanupRef.current?.()
+			globalOutCleanupRef.current = null
 		}
 	}, [
 		defaultChartSettings,
@@ -281,6 +295,8 @@ export default function MultiSeriesChart({
 	])
 
 	useChartCleanup(id, () => {
+		globalOutCleanupRef.current?.()
+		globalOutCleanupRef.current = null
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
 			onReadyRef.current?.(null)

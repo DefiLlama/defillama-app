@@ -1,5 +1,5 @@
 import { CACHE_SERVER, COINGECKO_KEY, DATASETS_SERVER_URL } from '~/constants'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import type {
 	CgChartResponse,
 	CgMarketChartResponse,
@@ -109,12 +109,6 @@ export async function fetchCoinGeckoTokensListFromDataset(): Promise<Array<IResp
 	}
 
 	const validTokens = data.filter(isCGMarketsApiItem)
-	const malformedCount = data.length - validTokens.length
-	if (malformedCount > 0) {
-		postRuntimeLogs(
-			`[fetchCoinGeckoTokensListFromDataset] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API_URL}`
-		)
-	}
 
 	return validTokens
 }

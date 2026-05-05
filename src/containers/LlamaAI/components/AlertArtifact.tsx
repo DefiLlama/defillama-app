@@ -57,7 +57,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	defaultTitle
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const [title, setTitle] = useState(defaultTitle || alertId.replace(/_/g, ' '))
+	const [title, setTitle] = useState(defaultTitle || 'Untitled alert')
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency)
 	const [hour, setHour] = useState(alertIntent.hour)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
@@ -65,6 +65,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [savedDbId, setSavedDbId] = useState<string | null>(savedAlertIds?.includes(alertId) ? alertId : null)
 	const [hasRetriedTest, setHasRetriedTest] = useState(false)
 
+	const deliveryChannel = alertIntent.deliveryChannel || 'email'
 	const isSaved = savedDbId !== null
 
 	const {
@@ -108,7 +109,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			alertId,
 			title: title.trim(),
 			alertConfig: { frequency, hour, dayOfWeek, timezone },
-			delivery_channel: alertIntent.deliveryChannel || 'email'
+			delivery_channel: deliveryChannel
 		})
 	}
 
@@ -160,7 +161,11 @@ export const AlertArtifact = memo(function AlertArtifact({
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 					<h3 className="m-0 text-sm font-medium text-(--text1)">Schedule Alert</h3>
-					<p className="m-0 text-xs text-(--text3)">Get this data delivered to your inbox</p>
+					<p className="m-0 text-xs text-(--text3)">
+						{deliveryChannel === 'telegram'
+							? 'Get this data delivered to Telegram'
+							: 'Get this data delivered to your inbox'}
+					</p>
 				</div>
 			</div>
 
@@ -268,9 +273,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			{testMutation.isSuccess ? (
 				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
 					<Icon name="check" className="h-3.5 w-3.5" />
-					{alertIntent.deliveryChannel === 'telegram'
-						? 'Test sent! Check your Telegram'
-						: 'Test sent! Check your inbox'}
+					{deliveryChannel === 'telegram' ? 'Test sent! Check your Telegram' : 'Test sent! Check your inbox'}
 				</p>
 			) : null}
 

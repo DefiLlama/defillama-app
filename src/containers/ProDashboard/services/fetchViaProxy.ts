@@ -1,8 +1,9 @@
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 const PROXY_URL = '/api/dashboard/fetch'
 
 async function proxyFetch<T>(type: string, params: Record<string, any>, authToken: string): Promise<T> {
 	const url = `${PROXY_URL}?type=${encodeURIComponent(type)}&params=${encodeURIComponent(JSON.stringify(params))}`
-	const res = await fetch(url, {
+	const res = await fetchWithPoolingOnServer(url, {
 		headers: {
 			Authorization: `Bearer ${authToken}`
 		}

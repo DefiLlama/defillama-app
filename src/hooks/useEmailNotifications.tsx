@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { AUTH_SERVER } from '~/constants'
+import { FEATURES_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
@@ -39,7 +39,7 @@ interface SaveNotificationPreferencesRequest {
 	frequency: 'daily' | 'weekly'
 }
 
-const parseJsonSafely = async <T = unknown>(response: Response): Promise<T | null> => {
+const parseJsonSafely = async <T = unknown,>(response: Response): Promise<T | null> => {
 	const parsed = await response.json().catch(() => null)
 	return parsed as T | null
 }
@@ -70,7 +70,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				return null
 			}
 
-			const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
+			const url = new URL(`${FEATURES_SERVER}/watchlist/preferences`)
 			url.searchParams.append('portfolioName', portfolioName)
 
 			const response = await authorizedFetch(url.toString(), {
@@ -108,7 +108,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			}
 
 			const response = await authorizedFetch(
-				`${AUTH_SERVER}/watchlist/preferences`,
+				`${FEATURES_SERVER}/watchlist/preferences`,
 				{
 					method: 'POST',
 					headers: {
@@ -143,7 +143,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			}
 
 			const response = await authorizedFetch(
-				`${AUTH_SERVER}/watchlist/status`,
+				`${FEATURES_SERVER}/watchlist/status`,
 				{
 					method: 'PATCH',
 					headers: {
@@ -176,7 +176,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				throw new Error('Not authenticated')
 			}
 
-			const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
+			const url = new URL(`${FEATURES_SERVER}/watchlist/preferences`)
 			url.searchParams.append('portfolioName', portfolioNameToDelete)
 
 			const response = await authorizedFetch(

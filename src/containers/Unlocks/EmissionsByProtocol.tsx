@@ -4,8 +4,6 @@ import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -30,7 +28,6 @@ interface TokenData {
 	mcap: number
 	name: string
 	protocolId: string
-	sources: string[]
 	token: string
 	totalLocked: number
 	unlocksPerDay: number
@@ -47,7 +44,6 @@ interface IEmission {
 	datasets: { documented: EmissionsDataset; realtime: EmissionsDataset }
 	/** Pre-built MultiSeriesChart2 chart configs keyed by data type. */
 	chartsConfigs: { documented: EmissionsChartConfig; realtime: EmissionsChartConfig }
-	sources: Array<string>
 	notes: Array<string>
 	events: Array<{
 		description?: string
@@ -79,12 +75,23 @@ interface IEmission {
 	name: string
 	meta: Partial<TokenData>
 	tbdSections?: string[]
+	forecastSections?: string[]
 }
 
-const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: boolean) => {
+const getExtendedColors = ({
+	baseColors,
+	isPriceActive,
+	isMcapActive
+}: {
+	baseColors: Record<string, string>
+	isPriceActive: boolean
+	isMcapActive: boolean
+}) => {
 	const extended = { ...baseColors }
-	if (isPriceEnabled) {
+	if (isMcapActive) {
 		extended['Market Cap'] = '#0c5dff'
+	}
+	if (isPriceActive) {
 		extended['Price'] = '#ff4e21'
 	}
 	return extended
@@ -142,12 +149,14 @@ export function EmissionsByProtocol({
 	data,
 	isEmissionsPage,
 	initialTokenMarketData,
-	disableClientTokenStatsFetch
+	disableClientTokenStatsFetch,
+	hideTokenStats
 }: {
 	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
+	hideTokenStats?: boolean
 }) {
 	const router = useRouter()
 	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
@@ -161,6 +170,7 @@ export function EmissionsByProtocol({
 				isEmissionsPage={isEmissionsPage}
 				initialTokenMarketData={initialTokenMarketData}
 				disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+				hideTokenStats={hideTokenStats}
 			/>
 		</div>
 	)
@@ -331,6 +341,7 @@ const getDesktopPieLegendPosition = (itemsCount: number) =>
 const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_TBD_SECTIONS: string[] = []
+const EMPTY_FORECAST_SECTIONS: string[] = []
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
 const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
@@ -490,46 +501,16 @@ function TokenAllocationBars({
 	)
 }
 
-function safeHostname(url: string): string {
-	try {
-		return new URL(url).hostname
-	} catch {
-		return url.length > 40 ? url.slice(0, 40) + '…' : url
-	}
-}
-
 function SourcesNotesSection({
-	sources,
 	notes,
 	futures
 }: {
-	sources: Array<string> | undefined
 	notes: Array<string> | undefined
 	futures: { openInterest?: number; fundingRate?: number } | undefined
 }) {
-	if (!sources?.length && !notes?.length && futures?.openInterest == null && futures?.fundingRate == null) return null
+	if (!notes?.length && futures?.openInterest == null && futures?.fundingRate == null) return null
 	return (
 		<div className="flex flex-wrap gap-2 *:flex-1">
-			{sources && sources.length > 0 ? (
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h3 className="text-base font-semibold">Sources</h3>
-					<ul className="list-disc space-y-1 pl-4 text-sm">
-						{sources.map((source) => (
-							<li key={source}>
-								<BasicLink
-									href={source}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
-								>
-									<span>{safeHostname(source)}</span>
-									<Icon name="external-link" height={14} width={14} />
-								</BasicLink>
-							</li>
-						))}
-					</ul>
-				</div>
-			) : null}
 			{notes && notes.length > 0 ? (
 				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<h3 className="text-base font-semibold">Notes</h3>
@@ -557,12 +538,14 @@ const ChartContainer = ({
 	data,
 	isEmissionsPage,
 	initialTokenMarketData,
-	disableClientTokenStatsFetch
+	disableClientTokenStatsFetch,
+	hideTokenStats
 }: {
 	data: IEmission | ProtocolEmissionResult
 	isEmissionsPage?: boolean
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
+	hideTokenStats?: boolean
 }) => {
 	const width = useBreakpointWidth()
 	const router = useRouter()
@@ -576,7 +559,10 @@ const ChartContainer = ({
 	const chartType: 'bar' | 'line' = readSingleQueryValue(router.query.chartType) === 'bar' ? 'bar' : 'line'
 	const allocationMode: 'current' | 'standard' =
 		readSingleQueryValue(router.query.groupAllocation) === 'true' ? 'standard' : 'current'
-	const isPriceAndMcapRequested = readSingleQueryValue(router.query.priceMcap) === 'true'
+	const legacyPriceMcapParam = readSingleQueryValue(router.query.priceMcap) === 'true'
+	const priceParam = readSingleQueryValue(router.query.price)
+	const isPriceRequested = legacyPriceMcapParam || priceParam !== 'false'
+	const isMcapRequested = legacyPriceMcapParam || readSingleQueryValue(router.query.mcap) === 'true'
 
 	const timeGroupingParam = readSingleQueryValue(router.query.groupBy)
 	const timeGrouping: TimeGrouping =
@@ -601,6 +587,7 @@ const ChartContainer = ({
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
 	const tbdSections = data.tbdSections ?? EMPTY_TBD_SECTIONS
+	const forecastSections = data.forecastSections ?? EMPTY_FORECAST_SECTIONS
 	const tokenAllocation = useMemo(
 		() => data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION,
 		[data.tokenAllocation, dataType]
@@ -611,16 +598,18 @@ const ChartContainer = ({
 
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
-	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
+	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false) && !(hideTokenStats ?? false)
 	const resolvedGeckoId = data.geckoId ?? geckoId
-	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceAndMcapRequested
+	const shouldFetchPriceChart = shouldPrefetchTokenStats || isPriceRequested || isMcapRequested
 	const priceChart = usePriceChart(shouldFetchPriceChart ? resolvedGeckoId : undefined)
 
-	const isPriceChartReady =
-		Boolean(priceChart.data?.data?.prices?.length) && Boolean(priceChart.data?.data?.mcaps?.length)
-	const isPriceAndMcapActive = isPriceAndMcapRequested && isPriceChartReady
-	const isPriceAndMcapLoading =
-		isPriceAndMcapRequested && !isPriceAndMcapActive && (priceChart.isLoading || priceChart.isFetching)
+	const isPriceChartReady = Boolean(priceChart.data?.data?.prices?.length)
+	const isMcapChartReady = Boolean(priceChart.data?.data?.mcaps?.length)
+	const isPriceActive = isPriceRequested && isPriceChartReady
+	const isMcapActive = isMcapRequested && isMcapChartReady
+	const isPriceOverlayLoading = isPriceRequested && !isPriceActive && (priceChart.isLoading || priceChart.isFetching)
+	const isMcapOverlayLoading = isMcapRequested && !isMcapActive && (priceChart.isLoading || priceChart.isFetching)
+	const isPriceOrMcapLoading = isPriceOverlayLoading || isMcapOverlayLoading
 
 	const chartMarketData = priceChart.data?.data?.coinData?.market_data
 	const chartPrices = priceChart.data?.data?.prices
@@ -648,7 +637,7 @@ const ChartContainer = ({
 		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
 	const percentChange = initialTokenMarketData?.priceChangePercent ?? percentChangeFromChart ?? null
 
-	const priceChartForOverlay = isPriceAndMcapActive ? priceChart.data?.data : null
+	const priceChartForOverlay = isPriceActive || isMcapActive ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {
 		if (!priceChartForOverlay) return null
 		const sourceData = priceChartForOverlay || {}
@@ -720,27 +709,45 @@ const ChartContainer = ({
 	)
 
 	const chartData = useMemo(() => {
-		// Keep chart data independent from the price query unless the overlay is enabled.
+		// Keep chart data independent from the price query unless an overlay is enabled.
 		// This prevents the schedule chart from re-rendering when price data finishes loading.
-		if (!isPriceAndMcapActive) {
-			return rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
+		const filtered =
+			!isPriceActive && !isMcapActive
+				? rawChartData?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
+				: rawChartData
+						?.map((chartItem) => {
+							const dateSec = Math.floor(chartItem.timestamp / 1e3)
+							const res = { ...chartItem }
+
+							const mcap = normilizePriceChart?.mcaps?.[dateSec]
+							const price = normilizePriceChart?.prices?.[dateSec]
+
+							if (isMcapActive && mcap) res['Market Cap'] = mcap
+							if (isPriceActive && price) res['Price'] = price
+
+							return res
+						})
+						?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
+
+		// Append a flat extension past the last datapoint so the final datapoints aren't squashed against the chart edge
+		// with a minimum of 10 days
+		if (!filtered || filtered.length === 0) return filtered
+		const dayMs = 24 * 60 * 60 * 1000
+		const last = filtered[filtered.length - 1]
+		const prev = filtered[filtered.length - 2]
+		const spanStart = rawChartData[0].timestamp
+		const spanEnd = rawChartData[rawChartData.length - 1].timestamp
+		const extensionDays = Math.max(Math.round(((spanEnd - spanStart) * 0.05) / dayMs), 10)
+		const totalExtensionMs = extensionDays * dayMs
+		const stepMs = filtered.length >= 2 ? Math.max(last.timestamp - prev.timestamp, dayMs) : dayMs
+		const numSteps = Math.max(Math.round(totalExtensionMs / stepMs), 1)
+		const padding: typeof filtered = []
+		const { Price: _Price, 'Market Cap': _mcap, ...lastWithoutOverlays } = last
+		for (let i = 1; i <= numSteps; i++) {
+			padding.push({ ...lastWithoutOverlays, timestamp: last.timestamp + i * stepMs })
 		}
-
-		return rawChartData
-			?.map((chartItem) => {
-				const dateSec = Math.floor(chartItem.timestamp / 1e3)
-				const res = { ...chartItem }
-
-				const mcap = normilizePriceChart?.mcaps?.[dateSec]
-				const price = normilizePriceChart?.prices?.[dateSec]
-
-				if (mcap) res['Market Cap'] = mcap
-				if (price) res['Price'] = price
-
-				return res
-			})
-			?.filter((chartItem) => sumValuesExcludingKey(chartItem, 'timestamp') > 0)
-	}, [rawChartData, isPriceAndMcapActive, normilizePriceChart])
+		return [...filtered, ...padding]
+	}, [rawChartData, isPriceActive, isMcapActive, normilizePriceChart])
 
 	const availableCategories =
 		allocationMode === 'standard'
@@ -821,19 +828,20 @@ const ChartContainer = ({
 			}
 		}
 		const finalStacks = chartType === 'bar' ? sortStacksByVolatility(stacks, displayData) : stacks
+		const overlayStacks = [...(isMcapActive ? ['Market Cap'] : []), ...(isPriceActive ? ['Price'] : [])]
 		return {
-			stacks: [...finalStacks, ...(isPriceAndMcapActive ? ['Market Cap', 'Price'] : [])].filter(Boolean),
-			customYAxis: isPriceAndMcapActive ? ['Market Cap', 'Price'] : [],
+			stacks: [...finalStacks, ...overlayStacks].filter(Boolean),
+			customYAxis: overlayStacks,
 			colors:
 				allocationMode === 'standard'
-					? isPriceAndMcapActive
-						? { ...standardGroupColors, Price: '#ff4e21', 'Market Cap': '#0c5dff' }
+					? isPriceActive || isMcapActive
+						? getExtendedColors({ baseColors: standardGroupColors, isPriceActive, isMcapActive })
 						: standardGroupColors
-					: isPriceAndMcapActive
-						? getExtendedColors(stackColors, true)
+					: isPriceActive || isMcapActive
+						? getExtendedColors({ baseColors: stackColors, isPriceActive, isMcapActive })
 						: stackColors
 		}
-	}, [isPriceAndMcapActive, selectedCategories, stackColors, allocationMode, displayData, chartType])
+	}, [isPriceActive, isMcapActive, selectedCategories, stackColors, allocationMode, displayData, chartType])
 
 	const dataset = useMemo<MultiSeriesChart2Dataset>(() => {
 		const stacks = chartConfig.stacks
@@ -880,6 +888,7 @@ const ChartContainer = ({
 			const yIdx = customYAxis?.indexOf(name) ?? -1
 			const isOverlay = yIdx !== -1
 			const isTBD = tbdSections.includes(name)
+			const isForecast = forecastSections.includes(name)
 			return {
 				type: isOverlay ? 'line' : chartType,
 				name: formatUnlockLabel(name),
@@ -887,10 +896,11 @@ const ChartContainer = ({
 				color: colors[name],
 				...(!isOverlay ? { stack: 'A' } : {}),
 				...(isOverlay ? { yAxisIndex: yIdx + 1, valueSymbol: '$', hideAreaStyle: true } : {}),
-				...(isTBD ? { isTBD: true } : {})
+				...(isTBD ? { isTBD: true } : {}),
+				...(isForecast ? { isForecast: true } : {})
 			}
 		})
-	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType, tbdSections])
+	}, [chartConfig.stacks, chartConfig.colors, chartConfig.customYAxis, chartType, tbdSections, forecastSections])
 
 	const unlockedPercent =
 		data.meta?.totalLocked != null && data.meta?.maxSupply != null
@@ -952,13 +962,15 @@ const ChartContainer = ({
 		<>
 			{isEmissionsPage ? <TokenHeader name={data.name} tokenPrice={tokenPrice} percentChange={percentChange} /> : null}
 
-			<TokenStats
-				tokenCircSupply={tokenCircSupply}
-				tokenMaxSupply={tokenMaxSupply}
-				tokenMcap={tokenMcap}
-				tokenVolume={tokenVolume}
-				symbol={data.tokenPrice?.symbol}
-			/>
+			{hideTokenStats ? null : (
+				<TokenStats
+					tokenCircSupply={tokenCircSupply}
+					tokenMaxSupply={tokenMaxSupply}
+					tokenMcap={tokenMcap}
+					tokenVolume={tokenVolume}
+					symbol={data.tokenPrice?.symbol}
+				/>
+			)}
 
 			{data.chartData?.realtime?.length > 0 ? (
 				<TagGroup
@@ -996,15 +1008,33 @@ const ChartContainer = ({
 								checked={chartType === 'bar'}
 							/>
 							{resolvedGeckoId ? (
-								<Switch
-									label="Price & MCap"
-									value="show=price-and-mcap"
-									onChange={() => {
-										void setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')
-									}}
-									checked={isPriceAndMcapRequested}
-									isLoading={isPriceAndMcapLoading}
-								/>
+								<>
+									<Switch
+										label="Price"
+										value="show=price"
+										onChange={() => {
+											void pushShallowQuery(router, {
+												price: isPriceRequested ? 'false' : undefined,
+												mcap: isMcapRequested ? 'true' : undefined,
+												priceMcap: undefined
+											})
+										}}
+										checked={isPriceRequested}
+										isLoading={isPriceOverlayLoading}
+									/>
+									<Switch
+										label="MCap"
+										value="show=mcap"
+										onChange={() => {
+											void pushShallowQuery(router, {
+												mcap: isMcapRequested ? undefined : 'true',
+												priceMcap: undefined
+											})
+										}}
+										checked={isMcapRequested}
+										isLoading={isMcapOverlayLoading}
+									/>
+								</>
 							) : null}
 							<TagGroup
 								selectedValue={timeGrouping}
@@ -1027,7 +1057,7 @@ const ChartContainer = ({
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
-						{isPriceAndMcapLoading ? (
+						{isPriceOrMcapLoading ? (
 							<div className="flex min-h-[360px] items-center justify-center">
 								<p className="flex items-center gap-1">
 									Loading
@@ -1040,6 +1070,7 @@ const ChartContainer = ({
 									dataset={deferredScheduleChartData.dataset}
 									charts={deferredScheduleChartData.charts}
 									hallmarks={hallmarks}
+									hallmarkStyle="mark-line"
 									expandTo100Percent={chartType === 'bar'}
 									solidChartAreaStyle
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
@@ -1109,7 +1140,7 @@ const ChartContainer = ({
 				</div>
 			) : null}
 
-			<SourcesNotesSection sources={data.sources} notes={data.notes} futures={data.futures} />
+			<SourcesNotesSection notes={data.notes} futures={data.futures} />
 		</>
 	)
 }
@@ -1119,13 +1150,15 @@ export const UnlocksCharts = ({
 	initialData,
 	initialTokenMarketData,
 	disableClientTokenStatsFetch,
-	isEmissionsPage
+	isEmissionsPage,
+	hideTokenStats
 }: {
 	protocolName: string
 	initialData?: IEmission | ProtocolEmissionResult | null
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
+	hideTokenStats?: boolean
 }) => {
 	const router = useRouter()
 	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
@@ -1156,6 +1189,7 @@ export const UnlocksCharts = ({
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}
 			disableClientTokenStatsFetch={disableClientTokenStatsFetch}
+			hideTokenStats={hideTokenStats}
 		/>
 	)
 }

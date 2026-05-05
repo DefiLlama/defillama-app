@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('~/containers/Yields/queries/index', () => ({
-	getLendBorrowData: vi.fn()
+	getLendBorrowDataFromNetwork: vi.fn()
 }))
 
-import { getLendBorrowData } from '~/containers/Yields/queries/index'
+import { getLendBorrowDataFromNetwork } from '~/containers/Yields/queries/index'
 import { getTokenBorrowRoutesData } from './tokenBorrowRoutes.server'
 
-const mockedGetLendBorrowData = getLendBorrowData as unknown as ReturnType<typeof vi.fn>
+const mockedGetLendBorrowData = getLendBorrowDataFromNetwork as unknown as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
 	vi.clearAllMocks()

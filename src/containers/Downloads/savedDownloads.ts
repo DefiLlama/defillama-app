@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { chartDatasetsBySlug, type ChartDatasetDefinition } from './chart-datasets'
 import type { DatasetDefinition } from './datasets'
+import type { ChartConfig } from './sql/chartConfig'
 
 export type SavedDownloadKind = 'dataset' | 'chart' | 'multiMetric' | 'query'
 export type SavedSortDir = 'asc' | 'desc'
@@ -62,6 +63,7 @@ export interface QuerySavedConfig extends SavedDownloadBase {
 	kind: 'query'
 	sql: string
 	tables: QueryTableRef[]
+	chartConfig?: ChartConfig
 }
 
 export type SavedDownload = DatasetSavedConfig | ChartSavedConfig | MultiMetricSavedConfig | QuerySavedConfig
@@ -181,6 +183,7 @@ export function extractMultiMetricConfig(input: MultiMetricExtractInput): MultiM
 export interface QueryExtractInput {
 	sql: string
 	tables: QueryTableRef[]
+	chartConfig?: ChartConfig
 }
 
 export function extractQueryConfig(input: QueryExtractInput): QueryInput {
@@ -191,7 +194,8 @@ export function extractQueryConfig(input: QueryExtractInput): QueryInput {
 			t.kind === 'dataset'
 				? { kind: 'dataset', slug: t.slug }
 				: { kind: 'chart', slug: t.slug, param: t.param, ...(t.paramLabel ? { paramLabel: t.paramLabel } : {}) }
-		)
+		),
+		...(input.chartConfig ? { chartConfig: input.chartConfig } : {})
 	}
 }
 

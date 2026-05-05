@@ -30,10 +30,8 @@ var routerState = {
 }
 
 vi.mock('@tanstack/react-query', () => ({
-	useQuery: (options: { initialData?: unknown }) =>
-		queryState.data === undefined && options.initialData !== undefined
-			? { data: options.initialData, error: null, isLoading: false }
-			: queryState
+	useQuery: (options: { enabled?: boolean }) =>
+		options.enabled === false ? { data: undefined, error: null, isLoading: false } : queryState
 }))
 
 vi.mock('next/router', () => ({
@@ -55,7 +53,8 @@ vi.mock('~/components/Icon', () => ({
 }))
 
 vi.mock('~/components/Loaders', () => ({
-	LocalLoader: () => <div>loader</div>
+	LocalLoader: () => <div>loader</div>,
+	LoadingSpinner: () => <div>spinner</div>
 }))
 
 vi.mock('~/containers/Yields/Filters/APYRange', () => ({
@@ -87,13 +86,15 @@ vi.mock('~/containers/Yields/Tables/Pools', () => ({
 	PaginatedYieldsPoolTable: ({
 		data,
 		enablePagination,
-		initialPageSize
+		initialPageSize,
+		initialPageIndex
 	}: {
 		data: Array<{ pool: string }>
 		enablePagination?: boolean
 		initialPageSize?: number
+		initialPageIndex?: number
 	}) => (
-		<div>{`yields-table:${data.length}:${enablePagination ? 'paginated' : 'plain'}:${initialPageSize ?? 'default'}`}</div>
+		<div>{`yields-table:${data.length}:${enablePagination ? 'paginated' : 'plain'}:${initialPageSize ?? 'default'}:${initialPageIndex ?? 0}`}</div>
 	)
 }))
 
@@ -160,7 +161,7 @@ describe('TokenYieldsSection', () => {
 		expect(html).toContain('TVL Range')
 		expect(html).toContain('APY')
 		expect(html).toContain('Columns')
-		expect(html).toContain('yields-table:1:paginated:10')
+		expect(html).toContain('yields-table:1:paginated:10:0')
 	})
 
 	it('renders prefetched rows without waiting for a client fetch', () => {
@@ -170,11 +171,57 @@ describe('TokenYieldsSection', () => {
 			isLoading: true
 		}
 
-		const html = renderToStaticMarkup(<TokenYieldsSection tokenSymbol="ETH" initialData={[makeYieldRow()]} />)
+		const html = renderToStaticMarkup(
+			<TokenYieldsSection tokenSymbol="ETH" initialData={[makeYieldRow()]} initialRowCount={1} />
+		)
 
 		expect(html).toContain('Tracking 1 pool, average APY 5.10%')
-		expect(html).toContain('yields-table:1:paginated:10')
+		expect(html).toContain('yields-table:1:paginated:10:0')
 		expect(html).not.toContain('loader')
+	})
+
+	it('shows deferred pagination controls when only the first page is prefetched', () => {
+		queryState = {
+			data: undefined,
+			error: null,
+			isLoading: false
+		}
+
+		const html = renderToStaticMarkup(
+			<TokenYieldsSection
+				tokenSymbol="ETH"
+				initialData={[makeYieldRow()]}
+				initialRowCount={25}
+				initialChainList={['Ethereum']}
+				initialTokensList={['ETH', 'STETH']}
+			/>
+		)
+
+		expect(html).toContain('Showing 1 of 25 pools')
+		expect(html).toContain('Page 1 of 3')
+	})
+
+	it('shows a background loading indicator while filters trigger a full fetch over prefetched rows', () => {
+		queryState = {
+			data: undefined,
+			error: null,
+			isLoading: false
+		}
+		routerState.query = { chain: 'Ethereum' }
+
+		const html = renderToStaticMarkup(
+			<TokenYieldsSection
+				tokenSymbol="ETH"
+				initialData={[makeYieldRow()]}
+				initialRowCount={25}
+				initialChainList={['Ethereum']}
+				initialTokensList={['ETH', 'STETH']}
+			/>
+		)
+
+		expect(html).toContain('spinner')
+		expect(html).toContain('Loading full dataset...')
+		expect(html).toContain('yields-table:1:paginated:10:0')
 	})
 
 	it('ignores null APYs when computing the average', () => {
@@ -201,7 +248,7 @@ describe('TokenYieldsSection', () => {
 
 	it('shows a loader while data is loading', () => {
 		queryState = {
-			data: [],
+			data: undefined,
 			error: null,
 			isLoading: true
 		}

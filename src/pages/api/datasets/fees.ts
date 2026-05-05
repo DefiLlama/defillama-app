@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { mergeMetricPeriods } from '~/containers/DimensionAdapters/metricPeriods'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const adapterType = ADAPTER_TYPES.FEES
 const metricName = 'Fees'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { chains } = req.query
@@ -57,10 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					const key = protocol.defillamaId || protocol.name
 					if (allProtocolsMap.has(key)) {
 						const existing = allProtocolsMap.get(key)
-						existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
-						existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
-						existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
-						existing.total1y = (existing.total1y || 0) + (protocol.total1y || 0)
+						mergeMetricPeriods(existing, protocol)
 						existing.chains = [...new Set([...existing.chains, chainName])]
 					} else {
 						allProtocolsMap.set(key, {
@@ -82,7 +81,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		}
 	} catch (error) {
-		console.log('Error fetching fees data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch fees data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/datasets/fees', handler)

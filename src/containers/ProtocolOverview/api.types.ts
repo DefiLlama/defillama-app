@@ -2,9 +2,9 @@ export interface IProtocolRaise {
 	round: string
 	amount: number
 	valuation: string
-	source: string
 	date: number
 	defillamaId: string
+	source?: string
 	leadInvestors?: Array<string>
 	otherInvestors?: Array<string>
 	investors?: Array<string>

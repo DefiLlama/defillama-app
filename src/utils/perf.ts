@@ -1,10 +1,16 @@
 import type { ParsedUrlQuery } from 'querystring'
-import type { GetStaticProps, GetStaticPropsContext } from 'next'
+import type { GetStaticProps, GetStaticPropsContext, GetStaticPropsResult } from 'next'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { postRuntimeLogs, sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
+import { sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
 import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
-import { normalizeError, getErrorMessage } from './error'
+import { normalizeError } from './error'
 import { fetchWithPoolingOnServer } from './http-client'
+import {
+	buildStaticRouteRequestPath,
+	staticRouteTelemetryAttributes,
+	recordRuntimeError,
+	withStaticRouteTelemetry
+} from './telemetry'
 
 const REDIS_URL = process.env.REDIS_URL as string
 
@@ -15,49 +21,63 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 	getStaticPropsFunction: GetStaticProps<T, P>
 ): GetStaticProps<T, P> => {
 	return async (context: GetStaticPropsContext<P>) => {
-		const start = Date.now()
-		const { params } = context
-		let lastError: Error | null = null
-
-		for (let attempt = 0; attempt < MAX_PAGE_BUILD_RETRIES; attempt++) {
-			try {
-				const props = await getStaticPropsFunction(context)
-				const elapsed = Date.now() - start
-
-				if (elapsed > 10_000) {
-					await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [Date.now(), `${elapsed}ms`])
-					postRuntimeLogs(`[PAGE_BUILD] [${elapsed}ms] < ${filename} >` + (params ? ' ' + JSON.stringify(params) : ''))
-				}
-
-				return props
-			} catch (error) {
-				lastError = normalizeError(error)
-				const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError)
-
-				if (canRetry) {
-					const delay = getJitteredDelay(100, attempt, 1000)
-					await sleep(delay)
-					continue
-				}
-				break
-			}
-		}
-
-		const elapsed = Date.now() - start
-		await setPageBuildTimes(`${filename} ERROR`, [Date.now(), `${elapsed}ms`])
-		postRuntimeLogs(
-			`[PAGE_BUILD] [error] [${elapsed}ms] < ${filename} >` +
-				(params ? ' ' + JSON.stringify(params) : '') +
-				` [${lastError?.message}]`,
-			{ level: 'error', forceConsole: true }
-		)
-		throw lastError ?? new Error(`${filename}: Unknown build error`)
+		const run = async () => runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context)
+		const attributes = staticRouteTelemetryAttributes(context.params)
+		return withStaticRouteTelemetry(filename, run, attributes, buildStaticRouteRequestPath(filename, context.params))
 	}
+}
+
+async function runPerformanceLoggedStaticProps<
+	T extends { [key: string]: any },
+	P extends ParsedUrlQuery = ParsedUrlQuery
+>(
+	filename: string,
+	getStaticPropsFunction: GetStaticProps<T, P>,
+	context: GetStaticPropsContext<P>
+): Promise<GetStaticPropsResult<T>> {
+	const start = Date.now()
+	const { params } = context
+	let lastError: Error | null = null
+
+	for (let attempt = 0; attempt < MAX_PAGE_BUILD_RETRIES; attempt++) {
+		try {
+			const props = await getStaticPropsFunction(context)
+			const elapsed = Date.now() - start
+
+			if (elapsed > 10_000) {
+				await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [Date.now(), `${elapsed}ms`])
+			}
+
+			return props
+		} catch (error) {
+			lastError = normalizeError(error)
+			const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError)
+
+			if (canRetry) {
+				const delay = getJitteredDelay(100, attempt, 1000)
+				recordRuntimeError(lastError, 'pageBuild', {
+					route: filename,
+					attempt: attempt + 1,
+					max_attempts: MAX_PAGE_BUILD_RETRIES,
+					delay_ms: delay,
+					params
+				})
+				await sleep(delay)
+				continue
+			}
+			break
+		}
+	}
+
+	const elapsed = Date.now() - start
+	await setPageBuildTimes(`${filename} ERROR`, [Date.now(), `${elapsed}ms`])
+	throw lastError ?? new Error(`${filename}: Unknown build error`)
 }
 
 type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
 
 export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOverCacheOptions): Promise<Response> => {
+	const start = Date.now()
 	const cacheKey = 'defillama-cache:' + url.toString().replace(/^https?:\/\//, '')
 	const cache = REDIS_URL ? await getCache(cacheKey) : null
 
@@ -66,7 +86,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			const response = await fetchWithPoolingOnServer(url, options)
 			return response
 		} catch (error) {
-			postRuntimeLogs(`fetch error for <${url}>`)
+			recordRuntimeError(error, 'outboundFetch', { url: String(url), duration_ms: Date.now() - start })
 			throw error
 		}
 	} else if (cache) {
@@ -119,7 +139,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 				})
 			}
 		} catch (err) {
-			postRuntimeLogs(`[fetchOverCache] [error] [504] < ${url} > ${getErrorMessage(err)}`, { level: 'error' })
+			recordRuntimeError(err, 'outboundFetch', { url: String(url), duration_ms: Date.now() - start, status: 504 })
 			StatusCode = 504
 			responseInit = {
 				status: StatusCode,

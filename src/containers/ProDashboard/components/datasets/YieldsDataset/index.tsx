@@ -90,7 +90,6 @@ export function YieldsDataset({
 					activePreset={activePreset}
 					showColumnPanel={false}
 					setShowColumnPanel={() => {}}
-					downloadCSV={() => {}}
 					poolName=""
 					setPoolName={() => {}}
 					showFiltersPanel={false}
@@ -115,7 +114,6 @@ export function YieldsDataset({
 					activePreset={activePreset}
 					showColumnPanel={false}
 					setShowColumnPanel={() => {}}
-					downloadCSV={() => {}}
 					poolName=""
 					setPoolName={() => {}}
 					showFiltersPanel={false}

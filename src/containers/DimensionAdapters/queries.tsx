@@ -3,10 +3,10 @@ import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { slug, getAnnualizedRatio } from '~/utils'
-import { fetchJson, postRuntimeLogs } from '~/utils/async'
-import { getErrorMessage } from '~/utils/error'
+import { fetchJson } from '~/utils/async'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
+import { recordRuntimeError } from '~/utils/telemetry'
 import {
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
@@ -15,6 +15,7 @@ import {
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
 import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, getChainMetadataKey } from './constants'
+import { mergeMetricPeriods, type MetricPeriodFields } from './metricPeriods'
 import type {
 	IAdapterByChainPageData,
 	IAdapterChainOverview,
@@ -33,6 +34,8 @@ import {
 } from './utils'
 
 const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
+const CANTON_INCENTIVES_WARNING =
+	'Canton is currently distributing massive incentives, so its fees and revenue should be interpreted with that context.'
 
 function buildChainsChartData({
 	rawChartData,
@@ -381,6 +384,10 @@ export const getAdapterByChainPageData = async ({
 	const categories = new Set<string>()
 
 	for (const protocol of allProtocols) {
+		const warning =
+			protocol.slug === 'canton' && (metricName === 'Fees' || metricName === 'Revenue')
+				? CANTON_INCENTIVES_WARNING
+				: null
 		const methodology =
 			adapterType === 'fees'
 				? dataType === 'dailyRevenue'
@@ -409,10 +416,20 @@ export const getAdapterByChainPageData = async ({
 			chains: protocol.chains,
 			category: protocol.category ?? null,
 			total24h: protocol.total24h ?? null,
+			total48hto24h: protocol.total48hto24h ?? null,
 			total7d: protocol.total7d ?? null,
+			total14dto7d: protocol.total14dto7d ?? null,
 			total30d: protocol.total30d ?? null,
+			total60dto30d: protocol.total60dto30d ?? null,
+			total7DaysAgo: protocol.total7DaysAgo ?? null,
+			total30DaysAgo: protocol.total30DaysAgo ?? null,
 			total1y: protocol.total1y ?? null,
 			totalAllTime: protocol.totalAllTime ?? null,
+			change_1d: protocol.change_1d ?? null,
+			change_7d: protocol.change_7d ?? null,
+			change_1m: protocol.change_1m ?? null,
+			change_7dover7d: protocol.change_7dover7d ?? null,
+			change_30dover30d: protocol.change_30dover30d ?? null,
 			mcap: protocolsMcap[protocol.name] ?? null,
 			...(bribesProtocols[protocol.name] ? { bribes: bribesProtocols[protocol.name] } : {}),
 			...(tokenTaxesProtocols[protocol.name] ? { tokenTax: tokenTaxesProtocols[protocol.name] } : {}),
@@ -420,6 +437,7 @@ export const getAdapterByChainPageData = async ({
 			...(methodology ? { methodology: methodology.endsWith('.') ? methodology.slice(0, -1) : methodology } : {}),
 			...(protocol.doublecounted ? { doublecounted: protocol.doublecounted } : {}),
 			...(ZERO_FEE_PERPS.has(protocol.displayName) ? { zeroFeePerp: true } : {}),
+			...(warning ? { warning } : {}),
 			...(openInterestProtocols[protocol.name]?.total24h != null
 				? { openInterest: openInterestProtocols[protocol.name].total24h }
 				: {}),
@@ -455,23 +473,26 @@ export const getAdapterByChainPageData = async ({
 			}
 			continue
 		}
-		const total24h = parentProtocols[protocol].some((p) => p.total24h != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total24h ?? 0), 0)
-			: null
-		const total7d = parentProtocols[protocol].some((p) => p.total7d != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total7d ?? 0), 0)
-			: null
-		const total30d = parentProtocols[protocol].some((p) => p.total30d != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total30d ?? 0), 0)
-			: null
-		const total1y = parentProtocols[protocol].some((p) => p.total1y != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.total1y ?? 0), 0)
-			: null
-		const totalAllTime = parentProtocols[protocol].some((p) => p.totalAllTime != null)
-			? parentProtocols[protocol].reduce((acc, p) => acc + (p.totalAllTime ?? 0), 0)
-			: null
+		const periodTotals = parentProtocols[protocol].reduce<MetricPeriodFields>(
+			(acc, p) => mergeMetricPeriods(acc, p),
+			{}
+		)
+		const totals = {
+			total24h: periodTotals.total24h ?? null,
+			total7d: periodTotals.total7d ?? null,
+			total30d: periodTotals.total30d ?? null,
+			total1y: periodTotals.total1y ?? null,
+			totalAllTime: periodTotals.totalAllTime ?? null
+		}
 		const doublecounted = parentProtocols[protocol].some((p) => p.doublecounted)
 		const zeroFeePerp = parentProtocols[protocol].some((p) => p.zeroFeePerp)
+		let warning: string | null = null
+		for (const p of parentProtocols[protocol]) {
+			if (p.warning) {
+				warning = p.warning
+				break
+			}
+		}
 		const bribes = parentProtocols[protocol].some((p) => p.bribes != null)
 			? parentProtocols[protocol].reduce(
 					(acc, p) => {
@@ -529,7 +550,8 @@ export const getAdapterByChainPageData = async ({
 		}
 		const methodology: Array<string> = Array.from(methodologySet)
 
-		const pfOrPs = protocolsMcap[protocol] && total30d ? getAnnualizedRatio(protocolsMcap[protocol], total30d) : null
+		const pfOrPs =
+			protocolsMcap[protocol] && totals.total30d ? getAnnualizedRatio(protocolsMcap[protocol], totals.total30d) : null
 
 		let topProtocol = parentProtocols[protocol][0]
 		for (const p of parentProtocols[protocol]) {
@@ -552,11 +574,8 @@ export const getAdapterByChainPageData = async ({
 			logo: tokenIconUrl(protocol),
 			category: topProtocol.category ?? null,
 			chains: Array.from(new Set(parentProtocols[protocol].map((p) => p.chains ?? []).flat())),
-			total24h,
-			total7d,
-			total30d,
-			total1y,
-			totalAllTime,
+			...periodTotals,
+			...totals,
 			mcap: protocolsMcap[protocol] ?? null,
 			breakdownAliases: Array.from(breakdownAliasSet),
 			childProtocols: parentProtocols[protocol],
@@ -578,6 +597,7 @@ export const getAdapterByChainPageData = async ({
 				: {}),
 			...(doublecounted ? { doublecounted } : {}),
 			...(zeroFeePerp ? { zeroFeePerp } : {}),
+			...(warning ? { warning } : {}),
 			...(openInterest ? { openInterest } : {}),
 			...(activeLiquidity ? { activeLiquidity } : {}),
 			...(normalizedVolume24h != null ? { normalizedVolume24h } : {})
@@ -724,12 +744,18 @@ export const getChainsByFeesAdapterPageData = async ({
 
 		const chains = chainsData
 			.map((c) => {
+				const warning =
+					c.name === 'Canton' &&
+					(dataType === ADAPTER_DATA_TYPES.DAILY_FEES || dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE)
+						? CANTON_INCENTIVES_WARNING
+						: null
 				return {
 					name: c.name,
 					logo: chainIconUrl(c.name),
 					total24h: c.total24h ?? null,
 					total7d: c.total7d ?? null,
 					total30d: c.total30d ?? null,
+					...(warning ? { warning } : {}),
 					...(bribesByChain[c.name] ? { bribes: bribesByChain[c.name] } : {}),
 					...(tokenTaxesByChain[c.name] ? { tokenTax: tokenTaxesByChain[c.name] } : {})
 				}
@@ -745,7 +771,7 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChains
 		}
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		recordRuntimeError(error, 'pageBuild', { event: 'chainsByFeesAdapter', adapterType, dataType })
 		throw error
 	}
 }
@@ -867,12 +893,18 @@ export const getChainsByAdapterPageData = async ({
 
 		const chains = allChains
 			.map((chain) => {
+				const warning =
+					chain === 'Canton' &&
+					(dataType === ADAPTER_DATA_TYPES.DAILY_FEES || dataType === ADAPTER_DATA_TYPES.DAILY_REVENUE)
+						? CANTON_INCENTIVES_WARNING
+						: null
 				return {
 					name: chain,
 					logo: chainIconUrl(chain),
 					total24h: chainsData[chain]?.['24h'] ?? null,
 					total7d: chainsData[chain]?.['7d'] ?? null,
 					total30d: chainsData[chain]?.['30d'] ?? null,
+					...(warning ? { warning } : {}),
 					...(bribesByChain[chain] ? { bribes: bribesByChain[chain] } : {}),
 					...(tokenTaxesByChain[chain] ? { tokenTax: tokenTaxesByChain[chain] } : {}),
 					...(openInterestByChain[chain] ? { openInterest: openInterestByChain[chain] } : {}),
@@ -889,7 +921,7 @@ export const getChainsByAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		recordRuntimeError(error, 'pageBuild', { event: 'chainsByAdapter', adapterType, dataType })
 		throw error
 	}
 }
@@ -946,7 +978,7 @@ export const getChainsByREVPageData = async ({
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		recordRuntimeError(error, 'pageBuild', { event: 'chainsByREV' })
 		throw error
 	}
 }
@@ -975,7 +1007,7 @@ export function getDimensionAdapterOverviewOfAllChains({
 
 		return chains
 	} catch (error) {
-		postRuntimeLogs(getErrorMessage(error))
+		recordRuntimeError(error, 'pageBuild', { event: 'dimensionAdapterOverviewOfAllChains', adapterType, dataType })
 		throw error
 	}
 }

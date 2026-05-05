@@ -128,7 +128,14 @@
         "pegged"
       ],
       "oldCategory": "Yields",
-      "oldName": "Stablecoin Yields"
+      "oldName": "Stablecoin Yields",
+      "searchKeywords": [
+        "stablecoin yields",
+        "stable yields",
+        "stablecoin apy",
+        "stablecoin",
+        "stable"
+      ]
     },
     {
       "name": "Yields: Leveraged Lending",
@@ -320,16 +327,6 @@
       "oldName": "DEXs (Chains)"
     },
     {
-      "name": "Bridge Aggregator Volume by Protocol",
-      "route": "/bridge-aggregators",
-      "category": "Volume",
-      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
-      "totalTrackedKey": "bridgeAggregators.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Volume",
-      "oldName": "Bridge Aggregators"
-    },
-    {
       "name": "DEX Aggregator Volume by Protocol",
       "route": "/dex-aggregators",
       "category": "Volume",
@@ -338,6 +335,16 @@
       "tab": "Protocols",
       "oldCategory": "Volume",
       "oldName": "DEX Aggregators"
+    },
+    {
+      "name": "Bridge Aggregator Volume by Protocol",
+      "route": "/bridge-aggregators",
+      "category": "Volume",
+      "description": "Sum of the value of all assets that were bridged through a bridge aggregator",
+      "totalTrackedKey": "bridgeAggregators.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Volume",
+      "oldName": "Bridge Aggregators"
     },
     {
       "name": "Perp Volume by Chain",
@@ -453,7 +460,8 @@
         "stablecoin chains",
         "stablecoins by chain",
         "stablecoin supply",
-        "stablecoin supply by chain"
+        "stablecoin",
+        "stable"
       ]
     },
     {
@@ -535,6 +543,17 @@
       ]
     },
     {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category",
+      "searchKeywords": [
+        "rwa categories",
+        "rwas by category",
+        "real world assets by category"
+      ]
+    },
+    {
       "name": "RWA: Perps",
       "route": "/rwa/perps",
       "category": "RWA",
@@ -547,17 +566,6 @@
         "rwa perp",
         "real world asset perps",
         "real world assets perps"
-      ]
-    },
-    {
-      "name": "RWA by Category",
-      "route": "/rwa/categories",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by category",
-      "searchKeywords": [
-        "rwa categories",
-        "rwas by category",
-        "real world assets by category"
       ]
     },
     {
@@ -594,6 +602,22 @@
       ]
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -612,22 +636,6 @@
       "tab": "Chains",
       "oldCategory": "Bridges",
       "oldName": "Chains"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
     },
     {
       "name": "NFTs: Marketplaces",
@@ -665,6 +673,31 @@
       "oldName": "Volume (Chains)"
     },
     {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
       "category": "Equities, ETFs & DATs",
@@ -693,31 +726,6 @@
       "category": "Equities, ETFs & DATs",
       "description": "Live company rankings by market cap, price, volume, and price change",
       "oldName": "Equities"
-    },
-    {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
     },
     {
       "name": "Raises: Overview",
@@ -871,14 +879,6 @@
       "oldName": "Token Liquidity"
     },
     {
-      "name": "Yields: Watchlist",
-      "route": "/yields/watchlist",
-      "category": "Tools",
-      "description": "Watchlist of all pools that we track in our yields section",
-      "oldCategory": "Yields",
-      "oldName": "Watchlist"
-    },
-    {
       "name": "Protocols Website Directory",
       "route": "/directory",
       "category": "Tools",
@@ -893,6 +893,14 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
+    },
+    {
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist",
+      "category": "Tools",
+      "description": "Watchlist of all pools that we track in our yields section",
+      "oldCategory": "Yields",
+      "oldName": "Watchlist"
     },
     {
       "name": "Transactions by Bridge",

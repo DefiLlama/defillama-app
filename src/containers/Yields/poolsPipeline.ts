@@ -40,6 +40,17 @@ interface MapPoolToRowOptions {
 	holderStats?: HolderStatsMap
 }
 
+interface LendBorrowPoolSupplement {
+	pool: string
+	apyBaseBorrow?: number | null
+	apyRewardBorrow?: number | null
+	apyBorrow?: number | null
+	totalSupplyUsd?: number | null
+	totalBorrowUsd?: number | null
+	totalAvailableUsd?: number | null
+	ltv?: number | null
+}
+
 export function mapPoolToYieldTableRow(
 	curr: NormalizedYieldPool,
 	{ stablecoinInfoBySymbol, volatility, holderStats }: MapPoolToRowOptions = {}
@@ -114,6 +125,35 @@ export function mapPoolToYieldTableRow(
 		holderChange30d: holderStats?.[curr.pool]?.holderChange30d ?? null,
 		apyChart30d: curr.pool ? `https://yield-charts.llama.fi/yield-chart/${curr.pool}` : null
 	} as unknown as IYieldTableRow
+}
+
+export function buildYieldTableRowsWithBorrowData(
+	yieldPools: NormalizedYieldPool[],
+	lendBorrowPools: LendBorrowPoolSupplement[]
+): IYieldTableRow[] {
+	const lendBorrowMap = new Map<string, LendBorrowPoolSupplement>()
+	for (const entry of lendBorrowPools) {
+		lendBorrowMap.set(entry.pool, entry)
+	}
+
+	const rows: IYieldTableRow[] = []
+	for (const pool of yieldPools) {
+		const baseRow = mapPoolToYieldTableRow(pool)
+		const lendBorrowEntry = lendBorrowMap.get(pool.pool)
+
+		rows.push({
+			...baseRow,
+			apyBaseBorrow: lendBorrowEntry?.apyBaseBorrow ?? baseRow.apyBaseBorrow ?? null,
+			apyRewardBorrow: lendBorrowEntry?.apyRewardBorrow ?? baseRow.apyRewardBorrow ?? null,
+			apyBorrow: lendBorrowEntry?.apyBorrow ?? baseRow.apyBorrow ?? null,
+			totalSupplyUsd: lendBorrowEntry?.totalSupplyUsd ?? baseRow.totalSupplyUsd ?? null,
+			totalBorrowUsd: lendBorrowEntry?.totalBorrowUsd ?? baseRow.totalBorrowUsd ?? null,
+			totalAvailableUsd: lendBorrowEntry?.totalAvailableUsd ?? baseRow.totalAvailableUsd ?? null,
+			ltv: lendBorrowEntry?.ltv ?? baseRow.ltv ?? null
+		})
+	}
+
+	return rows
 }
 
 export function buildPoolsTableRows({

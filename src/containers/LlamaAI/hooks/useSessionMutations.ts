@@ -1,12 +1,80 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { AI_SERVER } from '~/constants'
-import { SESSIONS_QUERY_KEY, type SessionListData } from '~/containers/LlamaAI/hooks/useSessionList'
+import {
+	prependSessionToInfiniteData,
+	removeSessionFromInfiniteData,
+	removeSessionsFromInfiniteData,
+	SESSIONS_QUERY_KEY,
+	type SessionListInfiniteData,
+	updateSessionInInfiniteData
+} from '~/containers/LlamaAI/hooks/sessionListCache'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
+
+type SwitchActiveLeafResponse = {
+	activeLeafMessageId: string
+	messages?: unknown[]
+	pagination?: {
+		hasMore?: boolean
+		cursor?: number | null
+		hasNewer?: boolean
+		newerCursor?: number | null
+	}
+}
+
+function assertSwitchActiveLeafResponse(response: unknown): asserts response is SwitchActiveLeafResponse {
+	if (!response || typeof response !== 'object' || Array.isArray(response)) {
+		throw new Error('Invalid branch switch response')
+	}
+
+	const result = response as {
+		activeLeafMessageId?: unknown
+		messages?: unknown
+		pagination?: unknown
+	}
+
+	if (typeof result.activeLeafMessageId !== 'string' || result.activeLeafMessageId.trim() === '') {
+		throw new Error('Invalid branch switch response: missing active leaf message')
+	}
+
+	if (result.messages !== undefined && !Array.isArray(result.messages)) {
+		throw new Error('Invalid branch switch response: messages must be an array')
+	}
+
+	if (result.pagination === undefined) return
+
+	if (!result.pagination || typeof result.pagination !== 'object' || Array.isArray(result.pagination)) {
+		throw new Error('Invalid branch switch response: pagination must be an object')
+	}
+
+	const pagination = result.pagination as {
+		hasMore?: unknown
+		cursor?: unknown
+		hasNewer?: unknown
+		newerCursor?: unknown
+	}
+
+	if (pagination.hasMore !== undefined && typeof pagination.hasMore !== 'boolean') {
+		throw new Error('Invalid branch switch response: pagination.hasMore must be a boolean')
+	}
+	if (pagination.cursor !== undefined && pagination.cursor !== null && typeof pagination.cursor !== 'number') {
+		throw new Error('Invalid branch switch response: pagination.cursor must be a number or null')
+	}
+	if (pagination.hasNewer !== undefined && typeof pagination.hasNewer !== 'boolean') {
+		throw new Error('Invalid branch switch response: pagination.hasNewer must be a boolean')
+	}
+	if (
+		pagination.newerCursor !== undefined &&
+		pagination.newerCursor !== null &&
+		typeof pagination.newerCursor !== 'number'
+	) {
+		throw new Error('Invalid branch switch response: pagination.newerCursor must be a number or null')
+	}
+}
 
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
@@ -72,6 +140,28 @@ export function useSessionMutations() {
 		}
 	})
 
+	const switchActiveLeafMutation = useMutation({
+		mutationKey: ['llamaai', 'switch-active-leaf'],
+		mutationFn: async ({ sessionId, leafMessageId }: { sessionId: string; leafMessageId: string }) => {
+			try {
+				const response: unknown = await authorizedFetch(`${AI_SERVER}/agentic/${sessionId}/active-leaf`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ leafMessageId })
+				})
+					.then((res) => assertResponse(res, 'Failed to switch branch'))
+					.then(handleSimpleFetchResponse)
+					.then((res) => res.json())
+
+				assertSwitchActiveLeafResponse(response)
+				return response
+			} catch (error) {
+				console.error('[llama-ai] [switchActiveLeaf] failed:', getErrorMessage(error))
+				throw error instanceof Error ? error : new Error('Failed to switch branch')
+			}
+		}
+	})
+
 	// Delete from both the backend and the optimistic sidebar/session cache.
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
@@ -91,16 +181,12 @@ export function useSessionMutations() {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
 
 			// Snapshot previous value for rollback
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
 			// Optimistically update
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.filter((session) => session.sessionId !== sessionId)
-				}
-			})
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				removeSessionFromInfiniteData(old, sessionId)
+			)
 
 			return { previous }
 		},
@@ -128,15 +214,11 @@ export function useSessionMutations() {
 		},
 		onMutate: async (sessionIds) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 			const idsSet = new Set(sessionIds)
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.filter((session) => !idsSet.has(session.sessionId))
-				}
-			})
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				removeSessionsFromInfiniteData(old, idsSet)
+			)
 			return { previous }
 		},
 		onError: (_err, _sessionIds, context) => {
@@ -168,21 +250,12 @@ export function useSessionMutations() {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
 
 			// Snapshot previous value for rollback
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
 			// Optimistically update
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.map((session) => {
-						if (session.sessionId === sessionId) {
-							return { ...session, title }
-						}
-						return session
-					})
-				}
-			})
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				updateSessionInInfiniteData(old, sessionId, (session) => ({ ...session, title }))
+			)
 
 			return { previous }
 		},
@@ -211,23 +284,14 @@ export function useSessionMutations() {
 		},
 		onMutate: async (sessionId) => {
 			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
-			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
-				if (!old) return { sessions: [], usage: null }
-				return {
-					...old,
-					sessions: old.sessions.map((session) => {
-						if (session.sessionId === sessionId) {
-							return {
-								...session,
-								isPinned: !session.isPinned,
-								pinnedAt: !session.isPinned ? new Date().toISOString() : undefined
-							}
-						}
-						return session
-					})
-				}
-			})
+			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
+				updateSessionInInfiniteData(old, sessionId, (session) => ({
+					...session,
+					isPinned: !session.isPinned,
+					pinnedAt: !session.isPinned ? new Date().toISOString() : undefined
+				}))
+			)
 			return { previous }
 		},
 		onError: (_err, _sessionId, context) => {
@@ -251,13 +315,13 @@ export function useSessionMutations() {
 				title,
 				createdAt: new Date().toISOString(),
 				lastActivity: new Date().toISOString(),
-				isActive: true
+				isActive: true,
+				isOptimistic: true
 			}
 
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListData | undefined) => ({
-				usage: old?.usage ?? null,
-				sessions: [fakeSession, ...(old?.sessions ?? [])]
-			}))
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+				prependSessionToInfiniteData(old, fakeSession)
+			)
 		}
 
 		return sessionId
@@ -339,10 +403,12 @@ export function useSessionMutations() {
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
+		switchActiveLeaf: switchActiveLeafMutation.mutateAsync,
 		deleteSession: deleteSessionMutation.mutateAsync,
 		updateSessionTitle: updateTitleMutation.mutateAsync,
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
+		isSwitchingActiveLeaf: switchActiveLeafMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
 		isUpdatingTitle: updateTitleMutation.isPending,
 		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,

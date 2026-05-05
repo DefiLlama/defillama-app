@@ -6,9 +6,61 @@ import { EXAMPLE_QUERIES, SUBCATEGORY_META, type ExampleQuery, type ExampleSubca
 interface ExamplesPanelProps {
 	onApply: (example: ExampleQuery) => void
 	busyTaskId?: string | null
+	collapsed?: boolean
+	onToggleCollapsed?: () => void
 }
 
-export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
+export function ExamplesPanel({ onApply, busyTaskId, collapsed = false, onToggleCollapsed }: ExamplesPanelProps) {
+	if (collapsed) {
+		return <CollapsedExamplesRail onExpand={onToggleCollapsed} />
+	}
+	return <ExpandedExamplesPanel onApply={onApply} busyTaskId={busyTaskId} onCollapse={onToggleCollapsed} />
+}
+
+function CollapsedExamplesRail({ onExpand }: { onExpand?: () => void }) {
+	return (
+		<aside className="flex flex-col items-stretch gap-2 rounded-md border border-(--divider) bg-(--cards-bg) p-1.5">
+			<button
+				type="button"
+				onClick={onExpand}
+				title="Expand playbook"
+				aria-label="Expand playbook"
+				className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+			>
+				<Icon name="panel-left-open" className="h-3.5 w-3.5 rotate-180" />
+			</button>
+			<button
+				type="button"
+				onClick={onExpand}
+				title={`Playbook · ${EXAMPLE_QUERIES.length} queries`}
+				aria-label={`Playbook · ${EXAMPLE_QUERIES.length} queries`}
+				className="group flex flex-1 flex-col items-center gap-2 rounded-md px-1 py-3 text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
+			>
+				<Icon
+					name="sparkles"
+					className="h-3.5 w-3.5 text-(--text-tertiary) transition-colors group-hover:text-(--primary)"
+				/>
+				<span
+					className="font-semibold tracking-[0.16em] uppercase [writing-mode:vertical-rl]"
+					style={{ transform: 'rotate(180deg)' }}
+				>
+					Playbook
+				</span>
+				<span className="tabular-nums">{EXAMPLE_QUERIES.length}</span>
+			</button>
+		</aside>
+	)
+}
+
+function ExpandedExamplesPanel({
+	onApply,
+	busyTaskId,
+	onCollapse
+}: {
+	onApply: (example: ExampleQuery) => void
+	busyTaskId?: string | null
+	onCollapse?: () => void
+}) {
 	const [filter, setFilter] = useState('')
 	const [hoveredGroup, setHoveredGroup] = useState<ExampleSubcategory | null>(null)
 
@@ -47,7 +99,20 @@ export function ExamplesPanel({ onApply, busyTaskId }: ExamplesPanelProps) {
 					<h3 className="text-sm font-semibold tracking-tight text-(--text-primary)">Playbook</h3>
 					<span className="text-[11px] text-(--text-tertiary) tabular-nums">{EXAMPLE_QUERIES.length}</span>
 				</div>
-				<Icon name="sparkles" className="h-3.5 w-3.5 text-(--text-tertiary)" />
+				<div className="flex items-center gap-1">
+					<Icon name="sparkles" className="h-3.5 w-3.5 text-(--text-tertiary)" />
+					{onCollapse ? (
+						<button
+							type="button"
+							onClick={onCollapse}
+							title="Collapse playbook"
+							aria-label="Collapse playbook"
+							className="flex h-5 w-5 items-center justify-center rounded-sm text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+						>
+							<Icon name="panel-left-close" className="h-3 w-3 rotate-180" />
+						</button>
+					) : null}
+				</div>
 			</header>
 
 			<div className="relative">

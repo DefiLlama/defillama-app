@@ -236,7 +236,8 @@ const ChartByType = ({
 	hallmarks?: [number, string][]
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<LowercaseDwmcGrouping>('daily')
-	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
+	const uniqueBreakdownNames = React.useMemo(() => Array.from(new Set(breakdownNames)), [breakdownNames])
+	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(() => uniqueBreakdownNames)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
@@ -382,10 +383,10 @@ const ChartByType = ({
 		}
 
 		// Build chart config
-		const allColors = getNDistinctColors(breakdownNames.length)
+		const allColors = getNDistinctColors(uniqueBreakdownNames.length)
 		const stackColors: Record<string, string> = {}
-		for (let i = 0; i < breakdownNames.length; i++) {
-			stackColors[breakdownNames[i]] = allColors[i]
+		for (let i = 0; i < uniqueBreakdownNames.length; i++) {
+			stackColors[uniqueBreakdownNames[i]] = allColors[i]
 		}
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
@@ -401,7 +402,7 @@ const ChartByType = ({
 			dataset: { source, dimensions: ['timestamp', ...selectedTypes] },
 			charts: chartsConfig
 		}
-	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
+	}, [uniqueBreakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
 	const deferredMainChartData = React.useDeferredValue(mainChartData)
 
 	return (
@@ -415,7 +416,7 @@ const ChartByType = ({
 					className="ml-auto text-xs font-medium"
 				/>
 				<SelectWithCombobox
-					allValues={breakdownNames}
+					allValues={uniqueBreakdownNames}
 					selectedValues={selectedTypes}
 					setSelectedValues={setSelectedTypes}
 					label={chartType === 'version' ? 'Versions' : 'Chains'}

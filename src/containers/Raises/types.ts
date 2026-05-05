@@ -7,7 +7,6 @@ export interface IRaise {
 	sector: string
 	leadInvestors: string[]
 	otherInvestors: string[]
-	source: string
 	valuation: number | null
 	chains: string[]
 }

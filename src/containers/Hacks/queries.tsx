@@ -19,7 +19,6 @@ export async function getHacksPageData(): Promise<IHacksPageData> {
 			name: h.name,
 			technique: h.technique ?? '',
 			bridge: h.bridgeHack,
-			link: h.source ?? '',
 			language: h.language ?? ''
 		}))
 		.sort((a, b) => b.date - a.date)

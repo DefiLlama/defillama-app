@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RawRaise } from '~/containers/Raises/api.types'
@@ -10,15 +11,27 @@ import {
 	type TokenOverviewData,
 	getTokenOverviewData
 } from './tokenOverview'
-import { TokenOverviewSection } from './TokenOverviewSection'
+import { TokenOverviewSection, TokenPageHero } from './TokenOverviewSection'
+
+function getRecordKeys<T extends Record<string, unknown>>(record: T): string[] {
+	const keys: string[] = []
+
+	for (const key in record) {
+		keys.push(key)
+	}
+
+	return keys
+}
 
 const mocks = vi.hoisted(() => ({
 	fetchCoinGeckoChartByIdWithCacheFallback: vi.fn(),
+	fetchCoinGeckoCoinById: vi.fn(),
+	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: vi.fn(),
 	fetchProtocolOverviewMetrics: vi.fn(),
-	fetchRaises: vi.fn(),
-	fetchTreasuries: vi.fn(),
+	fetchRaisesByDefillamaId: vi.fn(),
+	fetchTreasuryById: vi.fn(),
 	fetchProtocolEmissionFromDatasets: vi.fn(),
-	fetchLiquidityTokensDataset: vi.fn(),
+	fetchLiquidityDatasetEntryByProtocolId: vi.fn(),
 	fetchJson: vi.fn(),
 	useFetchTokenOverviewChartData: vi.fn()
 }))
@@ -30,12 +43,23 @@ let routerState = {
 }
 let lastProtocolChartProps: any = null
 
+function renderTokenOverviewSection(props: Parameters<typeof TokenOverviewSection>[0]) {
+	const client = new QueryClient()
+	return renderToStaticMarkup(
+		<QueryClientProvider client={client}>
+			<TokenOverviewSection {...props} />
+		</QueryClientProvider>
+	)
+}
+
 vi.mock('next/router', () => ({
 	useRouter: () => routerState
 }))
 
 vi.mock('~/api/coingecko', () => ({
-	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback
+	fetchCoinGeckoChartByIdWithCacheFallback: mocks.fetchCoinGeckoChartByIdWithCacheFallback,
+	fetchCoinGeckoCoinById: mocks.fetchCoinGeckoCoinById,
+	fetchCoinPriceByCoinGeckoIdViaLlamaPrices: mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices
 }))
 
 vi.mock('~/containers/ProtocolOverview/api', () => ({
@@ -43,11 +67,11 @@ vi.mock('~/containers/ProtocolOverview/api', () => ({
 }))
 
 vi.mock('~/containers/Raises/api', () => ({
-	fetchRaises: mocks.fetchRaises
+	fetchRaisesByDefillamaId: mocks.fetchRaisesByDefillamaId
 }))
 
 vi.mock('~/containers/Treasuries/api', () => ({
-	fetchTreasuries: mocks.fetchTreasuries
+	fetchTreasuryById: mocks.fetchTreasuryById
 }))
 
 vi.mock('~/containers/Unlocks/api', () => ({
@@ -55,7 +79,7 @@ vi.mock('~/containers/Unlocks/api', () => ({
 }))
 
 vi.mock('~/api', () => ({
-	fetchLiquidityTokensDataset: mocks.fetchLiquidityTokensDataset
+	fetchLiquidityDatasetEntryByProtocolId: mocks.fetchLiquidityDatasetEntryByProtocolId
 }))
 
 vi.mock('~/utils/async', () => ({
@@ -128,6 +152,28 @@ const cgChartFixture = {
 	}
 }
 
+const cgCoinDetailFixture = {
+	id: 'bitcoin',
+	symbol: 'btc',
+	name: 'Bitcoin',
+	image: {
+		small: 'https://example.com/btc.png'
+	},
+	market_data: {
+		current_price: { usd: 123 },
+		market_cap: { usd: 2222 },
+		fully_diluted_valuation: { usd: 3333 },
+		total_volume: { usd: 4444 },
+		circulating_supply: 21,
+		total_supply: 1000,
+		max_supply: 21000,
+		ath: { usd: 150 },
+		ath_date: { usd: '2024-02-01' },
+		atl: { usd: 1 },
+		atl_date: { usd: '2020-01-01' }
+	}
+}
+
 const overviewFixture: TokenOverviewData = {
 	name: 'Bitcoin',
 	displayName: 'BTC',
@@ -169,7 +215,6 @@ const overviewFixture: TokenOverviewData = {
 			date: 1704067200,
 			round: 'Series A',
 			amount: 50,
-			source: 'Blog',
 			investors: ['Investor A']
 		}
 	],
@@ -195,87 +240,90 @@ beforeEach(() => {
 	}
 	lastProtocolChartProps = null
 	mocks.fetchCoinGeckoChartByIdWithCacheFallback.mockResolvedValue(cgChartFixture)
-	mocks.fetchProtocolOverviewMetrics.mockResolvedValue({ id: 'proto-data' })
-	mocks.fetchRaises.mockResolvedValue({
-		raises: [
-			{
-				date: 1704067200,
-				name: 'Chain Raise',
-				round: 'Strategic',
-				amount: 25,
-				chains: [],
-				sector: '',
-				category: '',
-				categoryGroup: '',
-				source: 'Chain Announcement',
-				leadInvestors: ['Investor A'],
-				otherInvestors: [],
-				valuation: null,
-				defillamaId: 'chain#xion'
-			},
-			{
-				date: 1706745600,
-				name: 'Protocol Raise',
-				round: 'Series A',
-				amount: 50,
-				chains: [],
-				sector: '',
-				category: '',
-				categoryGroup: '',
-				source: 'Protocol Blog',
-				leadInvestors: ['Investor B'],
-				otherInvestors: [],
-				valuation: null,
-				defillamaId: 'parent#test-protocol'
-			}
-		] satisfies RawRaise[]
+	mocks.fetchCoinGeckoCoinById.mockResolvedValue(cgCoinDetailFixture)
+	mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices.mockResolvedValue({
+		price: 111,
+		symbol: 'BTC',
+		confidence: 0.99,
+		timestamp: 1712016000
 	})
-	mocks.fetchTreasuries.mockResolvedValue([
-		{
-			id: 'parent#test-protocol-treasury',
-			name: 'Treasury',
-			address: null,
-			symbol: 'TRE',
-			url: '',
-			description: '',
-			chain: 'Ethereum',
-			logo: '',
-			audits: '',
-			gecko_id: null,
-			cmcId: null,
-			category: 'treasury',
-			chains: [],
-			module: '',
-			treasury: '',
-			twitter: '',
-			slug: '',
-			tvl: 0,
-			change_1h: null,
-			change_1d: null,
-			change_7d: null,
-			tokenBreakdowns: {
-				majors: 10,
-				stablecoins: 20,
-				ownTokens: 30,
-				others: 40
-			},
-			mcap: null
-		}
-	] satisfies RawTreasuriesResponse)
+	mocks.fetchProtocolOverviewMetrics.mockResolvedValue({ id: 'proto-data' })
+	mocks.fetchRaisesByDefillamaId.mockImplementation(
+		async (defillamaId: string) =>
+			[
+				{
+					date: 1704067200,
+					name: 'Chain Raise',
+					round: 'Strategic',
+					amount: 25,
+					chains: [],
+					sector: '',
+					category: '',
+					categoryGroup: '',
+					leadInvestors: ['Investor A'],
+					otherInvestors: [],
+					valuation: null,
+					source: 'Chain Announcement',
+					defillamaId: 'chain#xion'
+				},
+				{
+					date: 1706745600,
+					name: 'Protocol Raise',
+					round: 'Series A',
+					amount: 50,
+					chains: [],
+					sector: '',
+					category: '',
+					categoryGroup: '',
+					leadInvestors: ['Investor B'],
+					otherInvestors: [],
+					valuation: null,
+					defillamaId: 'parent#test-protocol'
+				}
+			].filter((raise) => raise.defillamaId === defillamaId) satisfies RawRaise[]
+	)
+	mocks.fetchTreasuryById.mockResolvedValue({
+		id: 'parent#test-protocol-treasury',
+		name: 'Treasury',
+		address: null,
+		symbol: 'TRE',
+		url: '',
+		description: '',
+		chain: 'Ethereum',
+		logo: '',
+		audits: '',
+		gecko_id: null,
+		cmcId: null,
+		category: 'treasury',
+		chains: [],
+		module: '',
+		treasury: '',
+		twitter: '',
+		slug: '',
+		tvl: 0,
+		change_1h: null,
+		change_1d: null,
+		change_7d: null,
+		tokenBreakdowns: {
+			majors: 10,
+			stablecoins: 20,
+			ownTokens: 30,
+			others: 40
+		},
+		mcap: null
+	} satisfies RawTreasuriesResponse[number])
 	mocks.fetchProtocolEmissionFromDatasets.mockResolvedValue({
 		supplyMetrics: {
 			adjustedSupply: 900
 		}
 	})
-	mocks.fetchLiquidityTokensDataset.mockResolvedValue([
-		{
-			id: 'proto-data',
-			tokenPools: [
-				{ project: 'pool-one', chain: 'Ethereum', tvlUsd: 50 },
-				{ project: 'pool-two', chain: 'Base', tvlUsd: 25 }
-			]
-		}
-	])
+	mocks.fetchLiquidityDatasetEntryByProtocolId.mockResolvedValue({
+		id: 'proto-data',
+		tokenPools: [
+			{ project: 'pool-one', chain: 'Ethereum', symbol: 'TEST', tvlUsd: 50 },
+			{ project: 'pool-two', chain: 'Base', symbol: 'TEST', tvlUsd: 25 }
+		]
+	})
 	mocks.fetchJson.mockImplementation((url: string) => {
 		if (url.includes('/supply/')) {
 			return Promise.resolve({ data: { total_supply: 1000 } })
@@ -308,7 +356,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.treasury).toBeNull()
@@ -325,8 +374,8 @@ describe('tokenOverview helpers', () => {
 			dex: 200
 		})
 		expect(result.llamaswapChains).toBeNull()
-		expect(result.outstandingFDV).toBe(90000)
-		expect(mocks.fetchTreasuries).not.toHaveBeenCalled()
+		expect(result.outstandingFDV).toBe(99900)
+		expect(mocks.fetchTreasuryById).not.toHaveBeenCalled()
 	})
 
 	it('fetches treasury by protocol when protocolId exists without chainId', async () => {
@@ -341,7 +390,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: overviewFixture.llamaswapChains
+			llamaswapChains: overviewFixture.llamaswapChains,
+			source: { kind: 'network' }
 		})
 
 		expect(result.treasury).toEqual({
@@ -358,7 +408,99 @@ describe('tokenOverview helpers', () => {
 				amount: 50
 			})
 		])
-		expect(mocks.fetchTreasuries).toHaveBeenCalledOnce()
+		expect(mocks.fetchTreasuryById).toHaveBeenCalledOnce()
+	})
+
+	it('uses prefetched raises, treasury, yield config, and liquidity info without fetching them again', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Test Protocol',
+				symbol: 'TEST',
+				protocolId: 'parent#test-protocol'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'TEST',
+			geckoId: 'bitcoin',
+			tokenEntry: tokenEntryFixture,
+			protocolMetadata: protocolMetadataFixture,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: {
+				kind: 'prefetched',
+				raises: [
+					{
+						date: 1706745600,
+						name: 'Protocol Raise',
+						round: 'Series A',
+						amount: 50,
+						chains: [],
+						sector: '',
+						category: '',
+						categoryGroup: '',
+						source: 'Protocol Blog',
+						leadInvestors: ['Investor B'],
+						otherInvestors: [],
+						valuation: null,
+						defillamaId: 'parent#test-protocol'
+					}
+				],
+				treasury: {
+					id: 'parent#test-protocol-treasury',
+					name: 'Treasury',
+					address: null,
+					symbol: 'TRE',
+					url: '',
+					description: '',
+					chain: 'Ethereum',
+					logo: '',
+					audits: '',
+					gecko_id: null,
+					cmcId: null,
+					category: 'treasury',
+					chains: [],
+					module: '',
+					treasury: '',
+					twitter: '',
+					slug: '',
+					tvl: 0,
+					change_1h: null,
+					change_1d: null,
+					change_7d: null,
+					tokenBreakdowns: {
+						majors: 10,
+						stablecoins: 20,
+						ownTokens: 30,
+						others: 40
+					},
+					mcap: null
+				},
+				yieldConfig: {
+					protocols: {
+						'pool-one': { name: 'Pool One' },
+						'pool-two': { name: 'Pool Two' }
+					}
+				},
+				liquidityInfo: {
+					id: 'proto-data',
+					tokenPools: [
+						{ project: 'pool-one', chain: 'Ethereum', symbol: 'TEST', tvlUsd: 50 },
+						{ project: 'pool-two', chain: 'Base', symbol: 'TEST', tvlUsd: 25 }
+					]
+				}
+			}
+		})
+
+		expect(result.treasury?.total).toBe(100)
+		expect(result.raises?.[0]?.round).toBe('Series A')
+		expect(result.tokenLiquidity).toEqual({
+			total: 75,
+			pools: [
+				['Pool One', 'Ethereum', 50],
+				['Pool Two', 'Base', 25]
+			]
+		})
+		expect(mocks.fetchRaisesByDefillamaId).not.toHaveBeenCalled()
+		expect(mocks.fetchTreasuryById).not.toHaveBeenCalled()
+		expect(mocks.fetchLiquidityDatasetEntryByProtocolId).not.toHaveBeenCalled()
 	})
 
 	it('prefers the protocol slug metadata and max supply when building overview data', async () => {
@@ -381,7 +523,8 @@ describe('tokenOverview helpers', () => {
 				displayName: 'Uniswap'
 			} as IProtocolMetadata,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(mocks.fetchProtocolOverviewMetrics).toHaveBeenCalledWith('uniswap')
@@ -404,6 +547,7 @@ describe('tokenOverview helpers', () => {
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
 			llamaswapChains: null,
+			source: { kind: 'network' },
 			prefetchedCharts: ['Token Price']
 		})
 
@@ -439,7 +583,8 @@ describe('tokenOverview helpers', () => {
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: protocolMetadataFixture,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
 		expect(result.tokenLiquidity).toEqual({
@@ -455,22 +600,142 @@ describe('tokenOverview helpers', () => {
 		const result = await getTokenOverviewData({
 			record: {
 				name: 'Bitcoin',
-				symbol: 'BTC'
+				symbol: 'BTC',
+				logo: 'https://metadata.example.com/btc.png'
 			} satisfies TokenDirectoryRecord,
 			displayName: 'BTC',
 			geckoId: 'bitcoin',
 			tokenEntry: tokenEntryFixture,
 			protocolMetadata: null,
 			cgExchangeIdentifiers: ['binance'],
-			llamaswapChains: null
+			llamaswapChains: null,
+			source: { kind: 'network' }
 		})
 
-		expect(result.marketData.currentPrice).toBe(100)
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.mcap).toBe(2331)
+		expect(result.marketData.fdv).toBe(2331000)
 		expect(result.treasury).toBeNull()
 		expect(result.raises).toBeNull()
 		expect(result.tokenLiquidity).toBeNull()
 		expect(result.outstandingFDV).toBeNull()
 		expect(result.llamaswapChains).toBeNull()
+		expect(mocks.fetchCoinGeckoCoinById).not.toHaveBeenCalled()
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('bitcoin')
+	})
+
+	it('does not fetch CoinGecko coin detail when only max supply is missing from tokenlist data', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Ethereum',
+				symbol: 'ETH'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'ETH',
+			geckoId: 'ethereum',
+			tokenEntry: {
+				...tokenEntryFixture,
+				max_supply: null
+			},
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: { kind: 'network' }
+		})
+
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.maxSupply).toBeNull()
+		expect(mocks.fetchCoinGeckoCoinById).not.toHaveBeenCalled()
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('ethereum')
+	})
+
+	it('uses the current price snapshot as ATH when it exceeds the stored all-time high', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Bitcoin',
+				symbol: 'BTC'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'BTC',
+			geckoId: 'bitcoin',
+			tokenEntry: {
+				...tokenEntryFixture,
+				ath: 100,
+				ath_date: '2021-05-09'
+			},
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: { kind: 'network' }
+		})
+
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.ath).toBe(111)
+		expect(result.marketData.athDate).toBe('2024-04-02T00:00:00.000Z')
+	})
+
+	it('uses the current price snapshot as ATL when it is below the stored all-time low', async () => {
+		mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices.mockResolvedValueOnce({
+			price: 0.5,
+			symbol: 'BTC',
+			confidence: 0.99,
+			timestamp: 1712016000
+		})
+
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Bitcoin',
+				symbol: 'BTC'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'BTC',
+			geckoId: 'bitcoin',
+			tokenEntry: {
+				...tokenEntryFixture,
+				atl: 1,
+				atl_date: '2020-01-01'
+			},
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: { kind: 'network' }
+		})
+
+		expect(result.marketData.currentPrice).toBe(0.5)
+		expect(result.marketData.atl).toBe(0.5)
+		expect(result.marketData.atlDate).toBe('2024-04-02T00:00:00.000Z')
+	})
+
+	it('uses the single-price endpoint to derive price, market cap, and FDV', async () => {
+		const result = await getTokenOverviewData({
+			record: {
+				name: 'Wrapped stETH',
+				symbol: 'WSTETH'
+			} satisfies TokenDirectoryRecord,
+			displayName: 'WSTETH',
+			geckoId: 'wrapped-steth',
+			tokenEntry: null,
+			protocolMetadata: null,
+			cgExchangeIdentifiers: ['binance'],
+			llamaswapChains: null,
+			source: { kind: 'network' }
+		})
+
+		expect(result.marketData.currentPrice).toBe(111)
+		expect(result.marketData.mcap).toBe(2331)
+		expect(result.marketData.fdv).toBe(2331000)
+		expect(result.marketData.volume24h.total).toBe(4444)
+		expect(mocks.fetchCoinGeckoCoinById).toHaveBeenCalledWith('wrapped-steth', {
+			localization: false,
+			tickers: false,
+			marketData: true,
+			communityData: false,
+			developerData: false,
+			sparkline: false,
+			includeCategoriesDetails: false
+		})
+		expect(mocks.fetchCoinPriceByCoinGeckoIdViaLlamaPrices).toHaveBeenCalledWith('wrapped-steth')
+		expect(result.rawChartData['Token Price']).toEqual([
+			[1711929600000, 100],
+			[1712016000000, 110]
+		])
 	})
 
 	it('builds token volume chart data from the coingecko chart payload', () => {
@@ -509,7 +774,7 @@ describe('tokenOverview helpers', () => {
 			groupBy: 'daily'
 		})
 
-		expect(Object.keys(displayed)).toEqual(['Token Price'])
+		expect(getRecordKeys(displayed)).toEqual(['Token Price'])
 	})
 
 	it('supports non-price chart combinations when toggled on', () => {
@@ -536,44 +801,68 @@ describe('tokenOverview helpers', () => {
 			groupBy: 'daily'
 		})
 
-		expect(Object.keys(displayed)).toEqual(['Token Volume', 'Mcap', 'FDV'])
+		expect(getRecordKeys(displayed)).toEqual(['Token Volume', 'Mcap', 'FDV'])
+	})
+})
+
+describe('TokenPageHero component', () => {
+	it('renders the token identity, price breakdown, and buy action in the page hero', () => {
+		const html = renderToStaticMarkup(
+			<TokenPageHero overview={overviewFixture} logo="https://metadata.example.com/btc.png" />
+		)
+
+		expect(html).toContain('Bitcoin')
+		expect(html).toContain('(BTC)')
+		expect(html).toContain('Token Price')
+		expect(html).toContain('All Time High')
+		expect(html).toContain('All Time Low')
+		expect(html).toContain('Buy Now')
 	})
 })
 
 describe('TokenOverviewSection component', () => {
-	it('renders nested price and volume breakdown metrics', () => {
-		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+	it('renders the overview chart shell and key metrics without duplicating the page hero', () => {
+		const html = renderTokenOverviewSection({
+			overview: overviewFixture,
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
-		expect(html).toContain('All Time High')
-		expect(html).toContain('All Time Low')
-		expect(html).not.toContain('>Price<')
+		expect(html).toContain('Bitcoin')
+		expect(html).toContain('(BTC)')
 		expect(html).toContain('Buy Now')
+		expect((html.match(/Buy Now/g) || []).length).toBe(1)
+		expect((html.match(/\(BTC\)/g) || []).length).toBe(1)
+		expect((html.match(/id="token-key-metrics"/g) || []).length).toBe(1)
+		expect(html).toContain('Overview')
+		expect(html).toContain('Key Metrics')
 		expect(html).toContain('Add Metrics')
 		expect(html).toContain('$BTC Price')
 		expect(html).toContain('CEX Volume')
 		expect(html).toContain('DEX Volume')
+		expect(html).toContain('Total Raised')
 		expect(html).toContain('Sum of value locked in DEX pools that include that token')
-		expect(html).toContain('protocol-chart')
+		expect(html).toContain('min-h-[360px]')
+		expect(html.indexOf('Market Cap')).toBeLessThan(html.indexOf('Circ. Supply'))
+		expect(html.indexOf('Fully Diluted Valuation')).toBeLessThan(html.indexOf('Circ. Supply'))
 	})
 
 	it('shows undisclosed raises without falling back to $0 and exposes chart controls to assistive tech', () => {
-		const html = renderToStaticMarkup(
-			<TokenOverviewSection
-				overview={{
-					...overviewFixture,
-					raises: [
-						{
-							date: 1704067200,
-							round: 'Series A',
-							amount: null,
-							source: 'Blog',
-							investors: ['Investor A']
-						}
-					]
-				}}
-				geckoId="bitcoin"
-			/>
-		)
+		const html = renderTokenOverviewSection({
+			overview: {
+				...overviewFixture,
+				raises: [
+					{
+						date: 1704067200,
+						round: 'Series A',
+						amount: null,
+						investors: ['Investor A']
+					}
+				]
+			},
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).toContain('Undisclosed')
 		expect(html).not.toContain('>$0<')
@@ -586,7 +875,11 @@ describe('TokenOverviewSection component', () => {
 			chart: 'Token Volume'
 		}
 
-		const html = renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+		const html = renderTokenOverviewSection({
+			overview: overviewFixture,
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).not.toContain('fetching $BTC Volume')
 		expect(html).not.toContain('Chart unavailable for this token right now.')
@@ -608,22 +901,25 @@ describe('TokenOverviewSection component', () => {
 			isLoading: false
 		})
 
-		renderToStaticMarkup(<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" />)
+		renderTokenOverviewSection({
+			overview: overviewFixture,
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(lastProtocolChartProps.groupBy).toBe('weekly')
-		expect(Object.keys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
+		expect(getRecordKeys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
 	})
 
 	it('shows a graceful fallback when market chart data is unavailable', () => {
-		const html = renderToStaticMarkup(
-			<TokenOverviewSection
-				overview={{
-					...overviewFixture,
-					rawChartData: {}
-				}}
-				geckoId={null}
-			/>
-		)
+		const html = renderTokenOverviewSection({
+			overview: {
+				...overviewFixture,
+				rawChartData: {}
+			},
+			geckoId: null,
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).toContain('Chart unavailable without CoinGecko market data.')
 	})

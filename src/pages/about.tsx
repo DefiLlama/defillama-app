@@ -97,31 +97,8 @@ function AboutPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 				<hr className="border-black/20 dark:border-white/20" />
 				<p>
 					The best way to contact us and the one in which you'll get a reply the fastest is through our{' '}
-					<a
-						className="text-(--blue) hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="https://discord.defillama.com"
-					>
-						Discord
-					</a>
-					. If you want communication to be private you can use{' '}
-					<a
-						className="text-(--blue) hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="https://x.com/defillama"
-					>
-						Twitter
-					</a>{' '}
-					as a slower alternative, or, as an even slower option, you can also contact us by email at{' '}
-					<a
-						className="text-(--blue) hover:underline"
-						target="_blank"
-						rel="noopener noreferrer"
-						href="mailto:support@defillama.com"
-					>
-						support@defillama.com
+					<a className="text-(--blue) hover:underline" target="_blank" rel="noopener noreferrer" href="/support">
+						our support page
 					</a>
 					.
 				</p>

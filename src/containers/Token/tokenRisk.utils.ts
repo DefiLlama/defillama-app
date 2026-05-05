@@ -1,17 +1,10 @@
 import type { ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
+import type { TokenRiskBorrowCapacityMethodologies, TokenRiskBorrowCapacityTokenEntry } from './api.types'
 import type {
-	TokenRiskLendingRisksResponse,
-	TokenRiskLendingRoutesBucket,
-	TokenRiskRoute,
-	TokenRiskRouteMethodologies
-} from './api.types'
-import type {
-	TokenRiskBorrowCapsRow,
-	TokenRiskBorrowCapsSection,
 	TokenRiskCandidate,
-	TokenRiskCollateralRiskRow,
-	TokenRiskCollateralRiskSection,
-	TokenRiskSelectedChainRisk
+	TokenRiskCoverageStatus,
+	TokenRiskExposuresSection,
+	TokenRiskExposureRow
 } from './tokenRisk.types'
 
 interface TokenRiskDisplayLookups {
@@ -20,13 +13,13 @@ interface TokenRiskDisplayLookups {
 }
 
 export const TOKEN_RISK_LIMITATIONS_COMMON = [
-	'Borrow caps are a strong risk signal, but they are not a full protocol risk rating.',
-	'This v1 covers route-derived lending risk only and does not include multisigs, timelocks, audits, oracle incidents, listing discussions, curator reports, or protocol backstops.',
+	'These metrics describe lending exposure only and are not a full protocol risk rating.',
+	'This view does not include multisigs, timelocks, audits, oracle incidents, listing discussions, curator reports, or protocol backstops.',
 	'Chain-specific drilldown is exact only when the token resolves to a concrete chain:address.'
 ] as const
 
-export const TOKEN_RISK_LIMITATION_DEBT_SIDE =
-	'Debt-side totals repeat across many collateral routes, so this data cannot estimate collateral-specific lender loss.'
+export const TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS =
+	'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt; null rows are excluded instead of being treated as zero.'
 
 function normalizeAddress(address: string | null | undefined): string {
 	return (address ?? '').trim().toLowerCase()
@@ -36,16 +29,73 @@ function normalizeChain(chain: string | null | undefined): string {
 	return (chain ?? '').trim().toLowerCase()
 }
 
-function buildRouteAssetKey(chain: string, address: string): string {
-	return `${normalizeChain(chain)}:${normalizeAddress(address)}`
+function normalizeSymbol(symbol: string | null | undefined): string {
+	return (symbol ?? '').replace(/[^a-z0-9]/gi, '').toLowerCase()
 }
 
-function uniqueSorted(values: Iterable<string>): string[] {
-	return [...new Set(values)].sort((a, b) => a.localeCompare(b))
+const NATIVE_TOKEN_ADDRESSES = new Set([
+	'0x0000000000000000000000000000000000000000',
+	'0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+])
+export const CANONICAL_NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+const NATIVE_WRAPPED_SYMBOL_GROUPS = [
+	['ETH', 'WETH'],
+	['BNB', 'WBNB'],
+	['AVAX', 'WAVAX'],
+	['POL', 'WPOL'],
+	['XDAI', 'WXDAI'],
+	['XPL', 'WXPL']
+] as const
+
+const TOKEN_RISK_SYMBOL_ALIASES = new Map<string, Set<string>>()
+
+for (const group of NATIVE_WRAPPED_SYMBOL_GROUPS) {
+	const aliases = new Set(group.map((symbol) => normalizeSymbol(symbol)))
+
+	for (const symbol of aliases) {
+		TOKEN_RISK_SYMBOL_ALIASES.set(symbol, aliases)
+	}
+}
+
+function normalizeRiskAssetAddress(address: string | null | undefined): string {
+	const normalizedAddress = normalizeAddress(address)
+	return NATIVE_TOKEN_ADDRESSES.has(normalizedAddress) ? CANONICAL_NATIVE_TOKEN_ADDRESS : normalizedAddress
+}
+
+function getTokenRiskSymbolAliases(symbol: string | null | undefined): Set<string> {
+	const normalizedSymbol = normalizeSymbol(symbol)
+	return TOKEN_RISK_SYMBOL_ALIASES.get(normalizedSymbol) ?? new Set(normalizedSymbol ? [normalizedSymbol] : [])
+}
+
+export function hasNativeWrappedTokenRiskAlias(symbol: string | null | undefined): boolean {
+	return getTokenRiskSymbolAliases(symbol).size > 1
+}
+
+function buildAssetKey(chain: string, address: string, symbol?: string | null): string {
+	const normalizedAddress = normalizeRiskAssetAddress(address)
+	const normalizedChain = normalizeChain(chain)
+
+	if (normalizedAddress === CANONICAL_NATIVE_TOKEN_ADDRESS) {
+		const normalizedSymbol = normalizeSymbol(symbol)
+		return normalizedSymbol
+			? `${normalizedChain}:native:${normalizedSymbol}`
+			: `${normalizedChain}:${normalizedAddress}`
+	}
+
+	return `${normalizedChain}:${normalizedAddress}`
+}
+
+function hasActionableRiskMetrics(
+	row: Pick<TokenRiskExposureRow, 'currentMaxBorrowUsd' | 'minBadDebtAtPriceZeroUsd'>
+): boolean {
+	if (row.currentMaxBorrowUsd > 0) return true
+	return (row.minBadDebtAtPriceZeroUsd ?? 0) > 0
 }
 
 export function resolveTokenRiskCandidates(
 	geckoId: string | null | undefined,
+	tokenSymbol: string | null | undefined,
 	protocolLlamaswapDataset: ProtocolLlamaswapMetadata | null | undefined
 ): TokenRiskCandidate[] {
 	if (!geckoId || !protocolLlamaswapDataset?.[geckoId]?.length) return []
@@ -58,14 +108,14 @@ export function resolveTokenRiskCandidates(
 		const address = normalizeAddress(chainEntry.address)
 		if (!chain || !address) continue
 
-		const key = buildRouteAssetKey(chain, address)
+		const key = buildAssetKey(chain, address, tokenSymbol)
 		if (seen.has(key)) continue
 		seen.add(key)
 
 		candidates.push({
 			key,
 			chain,
-			address,
+			address: normalizeRiskAssetAddress(address),
 			displayName: chainEntry.displayName || chain
 		})
 	}
@@ -73,234 +123,203 @@ export function resolveTokenRiskCandidates(
 	return candidates
 }
 
-export function filterTokenRiskCandidatesWithData(
-	candidates: TokenRiskCandidate[],
-	indexedRoutes: Map<string, TokenRiskLendingRoutesBucket>
+export function inferTokenRiskCandidatesFromBorrowCapacity({
+	tokenSymbol,
+	tokens,
+	chainDisplayNames
+}: {
+	tokenSymbol: string | null | undefined
+	tokens: TokenRiskBorrowCapacityTokenEntry[]
+	chainDisplayNames?: Map<string, string>
+}): TokenRiskCandidate[] {
+	const tokenSymbolAliases = getTokenRiskSymbolAliases(tokenSymbol)
+	if (tokenSymbolAliases.size === 0) return []
+
+	const seen = new Set<string>()
+	const candidates: TokenRiskCandidate[] = []
+
+	for (const token of tokens) {
+		if (!tokenSymbolAliases.has(normalizeSymbol(token.asset.symbol))) continue
+
+		const address = normalizeAddress(token.asset.address)
+		if (!address) continue
+
+		const key = buildAssetKey(token.chain, address, token.asset.symbol)
+		if (seen.has(key)) continue
+		seen.add(key)
+
+		candidates.push({
+			key,
+			chain: token.chain,
+			address: normalizeRiskAssetAddress(address),
+			displayName: chainDisplayNames?.get(token.chain) ?? token.chain
+		})
+	}
+
+	return candidates
+}
+
+export function mergeTokenRiskCandidates(
+	primaryCandidates: TokenRiskCandidate[],
+	supplementalCandidates: TokenRiskCandidate[]
 ): TokenRiskCandidate[] {
-	return candidates.filter((candidate) => {
-		const bucket = indexedRoutes.get(candidate.key)
-		return Boolean(bucket && (bucket.asDebt.length > 0 || bucket.asCollateral.length > 0))
-	})
-}
+	if (primaryCandidates.length === 0) return supplementalCandidates
+	if (supplementalCandidates.length === 0) return primaryCandidates
 
-export function indexBorrowRoutesByAssetKey(routes: TokenRiskRoute[]): Map<string, TokenRiskLendingRoutesBucket> {
-	const indexedRoutes = new Map<string, TokenRiskLendingRoutesBucket>()
+	const seen = new Set<string>()
+	const candidates: TokenRiskCandidate[] = []
 
-	for (const route of routes) {
-		const collateralKey = buildRouteAssetKey(route.chain, route.collateral.address)
-		const debtKey = buildRouteAssetKey(route.chain, route.debt.address)
-
-		if (!indexedRoutes.has(collateralKey)) {
-			indexedRoutes.set(collateralKey, {
-				asDebt: [],
-				asCollateral: []
-			})
-		}
-		if (!indexedRoutes.has(debtKey)) {
-			indexedRoutes.set(debtKey, {
-				asDebt: [],
-				asCollateral: []
-			})
-		}
-
-		indexedRoutes.get(collateralKey)?.asCollateral.push(route)
-		indexedRoutes.get(debtKey)?.asDebt.push(route)
+	for (const candidate of [...primaryCandidates, ...supplementalCandidates]) {
+		if (seen.has(candidate.key)) continue
+		seen.add(candidate.key)
+		candidates.push(candidate)
 	}
 
-	return indexedRoutes
+	return candidates
 }
 
-export function mergeIndexedBuckets(
-	indexedRoutes: Map<string, TokenRiskLendingRoutesBucket>,
-	candidateKeys: string[]
-): TokenRiskLendingRoutesBucket {
-	if (candidateKeys.length === 0) {
-		return {
-			asDebt: [],
-			asCollateral: []
-		}
-	}
+export function indexBorrowCapacityByAssetKey(
+	tokens: TokenRiskBorrowCapacityTokenEntry[]
+): Map<string, TokenRiskBorrowCapacityTokenEntry[]> {
+	const indexedTokens = new Map<string, TokenRiskBorrowCapacityTokenEntry[]>()
 
-	return candidateKeys.reduce<TokenRiskLendingRoutesBucket>(
-		(acc, candidateKey) => {
-			const bucket = indexedRoutes.get(candidateKey)
-			if (!bucket) return acc
-
-			acc.asDebt.push(...bucket.asDebt)
-			acc.asCollateral.push(...bucket.asCollateral)
-			return acc
-		},
-		{ asDebt: [], asCollateral: [] }
-	)
-}
-
-export function buildBorrowCapsSection(
-	bucket: TokenRiskLendingRoutesBucket,
-	methodologies: Pick<
-		TokenRiskRouteMethodologies,
-		'borrowCapUsd' | 'debtTotalBorrowedUsd' | 'debtUtilization' | 'availableToBorrowUsd'
-	>,
-	displayLookups?: TokenRiskDisplayLookups
-): TokenRiskBorrowCapsSection {
-	const groupedRows = new Map<
-		string,
-		{
-			route: TokenRiskRoute
-			collateralSymbols: Set<string>
-			collateralKeys: Set<string>
-		}
-	>()
-
-	for (const route of bucket.asDebt) {
-		const groupKey = `${route.protocol}|${route.chain}|${route.market}|${normalizeAddress(route.debt.address)}`
-		const existing = groupedRows.get(groupKey)
-
+	for (const token of tokens) {
+		const key = buildAssetKey(token.chain, token.asset.address, token.asset.symbol)
+		const existing = indexedTokens.get(key)
 		if (existing) {
-			existing.collateralSymbols.add(route.collateral.symbol)
-			existing.collateralKeys.add(buildRouteAssetKey(route.chain, route.collateral.address))
+			existing.push(token)
 			continue
 		}
 
-		groupedRows.set(groupKey, {
-			route,
-			collateralSymbols: new Set([route.collateral.symbol]),
-			collateralKeys: new Set([buildRouteAssetKey(route.chain, route.collateral.address)])
-		})
+		indexedTokens.set(key, [token])
 	}
 
-	const rows: TokenRiskBorrowCapsRow[] = [...groupedRows.values()]
-		.map(({ route, collateralSymbols, collateralKeys }) => {
-			const borrowCapUsd = route.borrowCapUsd ?? null
-			const remainingCapUsd = borrowCapUsd == null ? null : Math.max(borrowCapUsd - route.debtTotalBorrowedUsd, 0)
-
-			return {
-				protocol: route.protocol,
-				protocolDisplayName: displayLookups?.protocolDisplayNames.get(route.protocol) ?? route.protocol,
-				chain: route.chain,
-				chainDisplayName: displayLookups?.chainDisplayNames.get(route.chain) ?? route.chain,
-				market: route.market,
-				debtSymbol: route.debt.symbol,
-				borrowCapUsd,
-				debtTotalBorrowedUsd: route.debtTotalBorrowedUsd,
-				debtTotalSupplyUsd: route.debtTotalSupplyUsd,
-				remainingCapUsd,
-				availableToBorrowUsd: route.availableToBorrowUsd,
-				debtUtilization: route.debtUtilization ?? null,
-				eligibleCollateralCount: collateralKeys.size,
-				eligibleCollateralSymbols: uniqueSorted(collateralSymbols)
-			}
-		})
-		.sort((a, b) => {
-			const aCap = a.borrowCapUsd ?? Number.NEGATIVE_INFINITY
-			const bCap = b.borrowCapUsd ?? Number.NEGATIVE_INFINITY
-			if (aCap !== bCap) return bCap - aCap
-			if (a.debtTotalBorrowedUsd !== b.debtTotalBorrowedUsd) return b.debtTotalBorrowedUsd - a.debtTotalBorrowedUsd
-			return a.market.localeCompare(b.market)
-		})
-
-	const cappedRows = rows.filter((row) => row.borrowCapUsd != null && row.borrowCapUsd > 0)
-	const totalBorrowCapUsd = cappedRows.reduce((sum, row) => sum + (row.borrowCapUsd ?? 0), 0)
-	const totalBorrowedUsd = cappedRows.reduce((sum, row) => sum + row.debtTotalBorrowedUsd, 0)
-	const remainingCapUsd = cappedRows.reduce((sum, row) => sum + (row.remainingCapUsd ?? 0), 0)
-
-	return {
-		summary: {
-			totalBorrowCapUsd,
-			totalBorrowedUsd,
-			remainingCapUsd,
-			capUtilization: totalBorrowCapUsd > 0 ? totalBorrowedUsd / totalBorrowCapUsd : null,
-			protocolCount: new Set(rows.map((row) => row.protocol)).size,
-			chainCount: new Set(rows.map((row) => row.chain)).size,
-			marketCount: rows.length
-		},
-		rows,
-		methodologies: {
-			borrowCapUsd: methodologies.borrowCapUsd,
-			debtTotalBorrowedUsd: methodologies.debtTotalBorrowedUsd,
-			debtUtilization: methodologies.debtUtilization,
-			availableToBorrowUsd: methodologies.availableToBorrowUsd
-		}
-	}
+	return indexedTokens
 }
 
-export function buildCollateralRiskSection(
-	bucket: TokenRiskLendingRoutesBucket,
+export function filterTokenRiskCandidatesWithData(
+	candidates: TokenRiskCandidate[],
+	indexedTokens: Map<string, TokenRiskBorrowCapacityTokenEntry[]>
+): TokenRiskCandidate[] {
+	return candidates.filter((candidate) => {
+		const tokens = indexedTokens.get(candidate.key)
+		return Boolean(tokens && tokens.length > 0)
+	})
+}
+
+export function mergeIndexedBorrowCapacity(
+	indexedTokens: Map<string, TokenRiskBorrowCapacityTokenEntry[]>,
+	candidateKeys: string[]
+): TokenRiskBorrowCapacityTokenEntry[] {
+	if (candidateKeys.length === 0) return []
+
+	const merged: TokenRiskBorrowCapacityTokenEntry[] = []
+
+	for (const candidateKey of candidateKeys) {
+		const tokens = indexedTokens.get(candidateKey)
+		if (!tokens) continue
+		merged.push(...tokens)
+	}
+
+	return merged
+}
+
+export function buildExposuresSection(
+	tokens: TokenRiskBorrowCapacityTokenEntry[],
 	methodologies: Pick<
-		TokenRiskRouteMethodologies,
-		| 'availableToBorrowUsd'
-		| 'debtTotalBorrowedUsd'
-		| 'maxLtv'
-		| 'liquidationThreshold'
-		| 'liquidationPenalty'
-		| 'isolationMode'
-		| 'debtCeilingUsd'
+		TokenRiskBorrowCapacityMethodologies,
+		'asset' | 'collateralMaxBorrowUsdLiquidity' | 'minBadDebtAtPriceZeroUsd'
 	>,
 	displayLookups?: TokenRiskDisplayLookups
-): TokenRiskCollateralRiskSection {
-	const rows: TokenRiskCollateralRiskRow[] = bucket.asCollateral
-		.map((route) => ({
-			protocol: route.protocol,
-			protocolDisplayName: displayLookups?.protocolDisplayNames.get(route.protocol) ?? route.protocol,
-			chain: route.chain,
-			chainDisplayName: displayLookups?.chainDisplayNames.get(route.chain) ?? route.chain,
-			market: route.market,
-			debtSymbol: route.debt.symbol,
-			debtTotalSupplyUsd: route.debtTotalSupplyUsd,
-			debtTotalBorrowedUsd: route.debtTotalBorrowedUsd,
-			borrowCapUsd: route.availableToBorrowUsd + route.debtTotalBorrowedUsd,
-			maxLtv: route.maxLtv,
-			liquidationThreshold: route.liquidationThreshold,
-			liquidationPenalty: route.liquidationPenalty,
-			liquidationBuffer: route.liquidationThreshold - route.maxLtv,
-			borrowApy: route.borrowApy,
-			isolationMode: Boolean(route.isolationMode),
-			debtCeilingUsd: route.debtCeilingUsd ?? null,
-			availableToBorrowUsd: route.availableToBorrowUsd
-		}))
-		.sort((a, b) => {
-			if (a.availableToBorrowUsd !== b.availableToBorrowUsd) {
-				return b.availableToBorrowUsd - a.availableToBorrowUsd
+): TokenRiskExposuresSection {
+	type GroupedExposureRow = TokenRiskExposureRow & {
+		minBadDebtKnownInputs: number
+		minBadDebtUnknownInputs: number
+	}
+
+	const groupedRows = new Map<string, GroupedExposureRow>()
+
+	for (const token of tokens) {
+		for (const protocolEntry of token.byProtocol) {
+			const groupKey = `${protocolEntry.protocol}|${token.chain}|${normalizeAddress(token.asset.address)}`
+			const existing = groupedRows.get(groupKey)
+
+			if (existing) {
+				existing.currentMaxBorrowUsd += protocolEntry.collateralMaxBorrowUsdLiquidity
+				if (protocolEntry.minBadDebtAtPriceZeroUsd == null) {
+					existing.minBadDebtUnknownInputs += 1
+				} else {
+					existing.minBadDebtAtPriceZeroUsd =
+						(existing.minBadDebtAtPriceZeroUsd ?? 0) + protocolEntry.minBadDebtAtPriceZeroUsd
+					existing.minBadDebtKnownInputs += 1
+				}
+				continue
 			}
-			return b.borrowCapUsd - a.borrowCapUsd
+
+			groupedRows.set(groupKey, {
+				protocol: protocolEntry.protocol,
+				protocolDisplayName: displayLookups?.protocolDisplayNames.get(protocolEntry.protocol) ?? protocolEntry.protocol,
+				chain: token.chain,
+				chainDisplayName: displayLookups?.chainDisplayNames.get(token.chain) ?? token.chain,
+				assetSymbol: token.asset.symbol,
+				assetAddress: normalizeAddress(token.asset.address),
+				currentMaxBorrowUsd: protocolEntry.collateralMaxBorrowUsdLiquidity,
+				minBadDebtAtPriceZeroUsd: protocolEntry.minBadDebtAtPriceZeroUsd,
+				minBadDebtAtPriceZeroCoverage: protocolEntry.minBadDebtAtPriceZeroUsd == null ? 'unavailable' : 'known',
+				minBadDebtKnownInputs: protocolEntry.minBadDebtAtPriceZeroUsd == null ? 0 : 1,
+				minBadDebtUnknownInputs: protocolEntry.minBadDebtAtPriceZeroUsd == null ? 1 : 0
+			})
+		}
+	}
+
+	const rows = [...groupedRows.values()]
+		.map<TokenRiskExposureRow>(({ minBadDebtKnownInputs, minBadDebtUnknownInputs, ...row }) => {
+			let minBadDebtAtPriceZeroCoverage: TokenRiskCoverageStatus = 'unavailable'
+
+			if (minBadDebtKnownInputs > 0 && minBadDebtUnknownInputs === 0) {
+				minBadDebtAtPriceZeroCoverage = 'known'
+			} else if (minBadDebtKnownInputs > 0) {
+				minBadDebtAtPriceZeroCoverage = 'partial'
+			}
+
+			return {
+				...row,
+				minBadDebtAtPriceZeroCoverage
+			}
+		})
+		.filter(hasActionableRiskMetrics)
+		.sort((a, b) => {
+			if (a.currentMaxBorrowUsd !== b.currentMaxBorrowUsd) {
+				return b.currentMaxBorrowUsd - a.currentMaxBorrowUsd
+			}
+
+			return a.protocolDisplayName.localeCompare(b.protocolDisplayName)
 		})
 
-	const liquidationBuffers = rows.map((row) => row.liquidationBuffer).filter((value) => Number.isFinite(value))
-	const totalBorrowedUsd = rows.reduce((sum, row) => sum + row.debtTotalBorrowedUsd, 0)
-	const totalAvailableToBorrowUsd = rows.reduce((sum, row) => sum + row.availableToBorrowUsd, 0)
+	const totalCurrentMaxBorrowUsd = tokens.reduce((sum, token) => sum + token.totals.collateralMaxBorrowUsdLiquidity, 0)
+	const minBadDebtRowsWithKnownValues = rows.filter((row) => row.minBadDebtAtPriceZeroUsd != null)
+	const totalMinBadDebtAtPriceZeroUsd =
+		minBadDebtRowsWithKnownValues.length > 0
+			? minBadDebtRowsWithKnownValues.reduce((sum, row) => sum + (row.minBadDebtAtPriceZeroUsd ?? 0), 0)
+			: null
+	const minBadDebtKnownCount = rows.filter((row) => row.minBadDebtAtPriceZeroCoverage === 'known').length
+	const minBadDebtUnknownCount = rows.length - minBadDebtKnownCount
 
 	return {
 		summary: {
-			totalBorrowCapUsd: totalBorrowedUsd + totalAvailableToBorrowUsd,
-			totalBorrowedUsd,
-			totalAvailableToBorrowUsd,
-			routeCount: rows.length,
-			isolatedRouteCount: rows.filter((row) => row.isolationMode).length,
-			minLiquidationBuffer: liquidationBuffers.length > 0 ? Math.min(...liquidationBuffers) : null,
-			maxLiquidationBuffer: liquidationBuffers.length > 0 ? Math.max(...liquidationBuffers) : null
+			totalCurrentMaxBorrowUsd,
+			totalMinBadDebtAtPriceZeroUsd,
+			exposureCount: rows.length,
+			protocolCount: new Set(rows.map((row) => row.protocol)).size,
+			chainCount: new Set(rows.map((row) => row.chain)).size,
+			minBadDebtKnownCount,
+			minBadDebtUnknownCount
 		},
 		rows,
 		methodologies: {
-			availableToBorrowUsd: methodologies.availableToBorrowUsd,
-			debtTotalBorrowedUsd: methodologies.debtTotalBorrowedUsd,
-			maxLtv: methodologies.maxLtv,
-			liquidationThreshold: methodologies.liquidationThreshold,
-			liquidationPenalty: methodologies.liquidationPenalty,
-			isolationMode: methodologies.isolationMode,
-			debtCeilingUsd: methodologies.debtCeilingUsd
+			asset: methodologies.asset,
+			currentMaxBorrowUsd: methodologies.collateralMaxBorrowUsdLiquidity,
+			minBadDebtAtPriceZeroUsd: methodologies.minBadDebtAtPriceZeroUsd
 		}
-	}
-}
-
-export function buildSelectedChainRisk(
-	candidateKey: string,
-	selectedChainRisk: TokenRiskLendingRisksResponse | null,
-	fallbackBucket: TokenRiskLendingRoutesBucket
-): TokenRiskSelectedChainRisk {
-	return {
-		candidateKey,
-		timestamp: selectedChainRisk?.timestamp ?? null,
-		hourlyTimestamp: selectedChainRisk?.hourlyTimestamp ?? null,
-		methodologies: selectedChainRisk?.methodologies ?? null,
-		bucket: selectedChainRisk?.results?.[candidateKey] ?? fallbackBucket
 	}
 }

@@ -30,7 +30,8 @@ vi.mock('~/components/Icon', () => ({
 }))
 
 vi.mock('~/components/Loaders', () => ({
-	LocalLoader: () => <div>loader</div>
+	LocalLoader: () => <div>loader</div>,
+	LoadingSpinner: () => <div>spinner</div>
 }))
 
 vi.mock('~/components/Select/SelectWithCombobox', () => ({
@@ -40,18 +41,18 @@ vi.mock('~/components/Select/SelectWithCombobox', () => ({
 vi.mock('~/containers/Yields/Tables/Optimizer', () => ({
 	PaginatedYieldsOptimizerTable: ({
 		data,
-		initialPageSize
+		initialPageSize,
+		initialPageIndex
 	}: {
 		data: Array<{ symbol: string; borrow: { symbol: string } }>
 		initialPageSize?: number
-	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}`}</div>
+		initialPageIndex?: number
+	}) => <div>{`optimizer-table:${data.length}:${initialPageSize ?? 'default'}:${initialPageIndex ?? 0}`}</div>
 }))
 
 vi.mock('./useTokenBorrowRoutes', () => ({
-	useTokenBorrowRoutes: (_tokenSymbol: string, initialData?: unknown) =>
-		strategiesState.data === undefined && initialData !== undefined
-			? { data: initialData, error: null, isLoading: false }
-			: strategiesState
+	useTokenBorrowRoutes: (_tokenSymbol: string, options?: { enabled?: boolean }) =>
+		options?.enabled === false ? { data: undefined, error: null, isLoading: false } : strategiesState
 }))
 
 afterEach(() => {
@@ -156,7 +157,7 @@ describe('TokenBorrowSection', () => {
 
 		expect(html).toContain('Tracking 1 route')
 		expect(html).toContain('Available')
-		expect(html).toContain('optimizer-table:1:10')
+		expect(html).toContain('optimizer-table:1:10:0')
 	})
 
 	it('renders prefetched strategies without waiting for a client fetch', () => {
@@ -171,12 +172,43 @@ describe('TokenBorrowSection', () => {
 					borrowAsCollateral: [makeBorrowRow()],
 					borrowAsDebt: []
 				}}
+				initialCounts={{
+					borrowAsCollateral: 1,
+					borrowAsDebt: 0
+				}}
 			/>
 		)
 
 		expect(html).toContain('Tracking 1 route')
-		expect(html).toContain('optimizer-table:1:10')
+		expect(html).toContain('optimizer-table:1:10:0')
 		expect(html).not.toContain('loader')
+	})
+
+	it('shows deferred pagination controls when only the first page is prefetched', () => {
+		strategiesState.data = undefined
+		strategiesState.error = null
+		strategiesState.isLoading = false
+
+		const html = renderToStaticMarkup(
+			<TokenBorrowSection
+				tokenSymbol="ETH"
+				initialData={{
+					borrowAsCollateral: [makeBorrowRow()],
+					borrowAsDebt: []
+				}}
+				initialCounts={{
+					borrowAsCollateral: 25,
+					borrowAsDebt: 0
+				}}
+				initialChains={{
+					borrowAsCollateral: ['Ethereum'],
+					borrowAsDebt: []
+				}}
+			/>
+		)
+
+		expect(html).toContain('Showing 1 of 25 routes')
+		expect(html).toContain('Page 1 of 3')
 	})
 
 	it('renders both borrow tab labels', () => {

@@ -1,4 +1,4 @@
-// Curated DuckDB reference content — the idioms that actually hit DefiLlama data.
+// Curated LlamaSQL reference content — the idioms that actually hit DefiLlama data.
 // Kept short on purpose: surface what a user reaches for, not the full manual.
 
 export type TechniqueName =
@@ -22,7 +22,7 @@ export type TechniqueName =
 
 // Each technique doc is surfaced as a tooltip on the chip — keep to one tight sentence.
 export const TECHNIQUE_DOCS: Record<TechniqueName, string> = {
-	QUALIFY: 'Filter on a window function result without wrapping in a subquery. DuckDB-specific.',
+	QUALIFY: 'Filter on a window function result without wrapping in a subquery. LlamaSQL-specific.',
 	row_number: 'Window function that assigns a unique rank within each partition.',
 	'PARTITION BY': 'Restarts the window frame for each group — think GROUP BY for windows.',
 	date_trunc: "Floors a date to the start of 'day' / 'week' / 'month' / 'quarter' / 'year'.",
@@ -33,7 +33,7 @@ export const TECHNIQUE_DOCS: Record<TechniqueName, string> = {
 	COALESCE: 'Returns the first non-null argument. Pairs with FULL OUTER JOIN to fill gaps.',
 	CTE: 'WITH name AS (…) — names a query step for readability and reuse.',
 	'ASOF JOIN': 'Match each left row to the most recent right row at or before it. Great when dates don’t line up.',
-	PIVOT: 'Reshape long → wide. ON <column> USING <agg>(value). DuckDB-native.',
+	PIVOT: 'Reshape long → wide. ON <column> USING <agg>(value). LlamaSQL-native.',
 	approx_quantile: 'Fast approximate percentile. Cheap on large series, deterministic within a query.',
 	arg_max: 'Return the value of one column at the max of another — no GROUP BY acrobatics.',
 	'FILTER (WHERE)': 'Aggregate only rows matching a condition. Cleaner than SUM(CASE WHEN …).',
@@ -227,7 +227,7 @@ export interface DialectTip {
 export const DIALECT_TIPS: DialectTip[] = [
 	{
 		title: 'Case-insensitive identifiers',
-		body: 'Unquoted names are case-insensitive. Once you quote a camelCase column (e.g. "totalRevenue24h"), you must keep quoting it — DuckDB treats quoted names as exact.'
+		body: 'Unquoted names are case-insensitive. Once you quote a camelCase column (e.g. "totalRevenue24h"), you must keep quoting it — LlamaSQL treats quoted names as exact.'
 	},
 	{
 		title: 'Reserved & mixed-case columns',

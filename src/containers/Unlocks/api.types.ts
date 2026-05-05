@@ -14,6 +14,15 @@ interface TokenPriceSnapshot {
 	price?: number | null
 }
 
+export interface TokenAllocationSplit {
+	current: Record<string, number>
+	final: Record<string, number>
+	progress?: Record<string, number>
+	bySection?: Record<string, unknown>
+}
+
+export type TokenAllocationPayload = TokenAllocationSplit | Record<string, number>
+
 export interface ProtocolEmission {
 	name: string
 	token: string
@@ -21,7 +30,6 @@ export interface ProtocolEmission {
 	events?: EmissionEvent[] | null
 	tokenPrice?: TokenPriceSnapshot[] | null
 	unlockEvents?: unknown
-	sources?: unknown
 	tPrice?: number | null
 	tSymbol?: string | null
 	circSupply?: number | null
@@ -36,7 +44,6 @@ export interface ProtocolEmissionDetail {
 	gecko_id?: string | null
 	metadata?: {
 		token?: string | null
-		sources?: string[] | null
 		notes?: string[] | null
 		events?: EmissionEvent[] | null
 	} | null
@@ -46,9 +53,11 @@ export interface ProtocolEmissionDetail {
 			data?: Array<{
 				timestamp: number
 				unlocked?: number | null
+				rawEmission?: number | null
+				burned?: number | null
 			}>
 		}> | null
-		tokenAllocation?: Record<string, number> | null
+		tokenAllocation?: TokenAllocationPayload | null
 	} | null
 	realTimeData?: {
 		data?: Array<{
@@ -56,15 +65,17 @@ export interface ProtocolEmissionDetail {
 			data?: Array<{
 				timestamp: number
 				unlocked?: number | null
+				rawEmission?: number | null
+				burned?: number | null
 			}>
 		}> | null
-		tokenAllocation?: Record<string, number> | null
+		tokenAllocation?: TokenAllocationPayload | null
 	} | null
 	unlockUsdChart?: unknown[] | null
 	futures?: Record<string, unknown> | null
 	categories?: Record<string, string[]> | null
 	componentData?: {
-		sections?: Record<string, { isTBD?: boolean; [key: string]: unknown }>
+		sections?: Record<string, { isTBD?: boolean; isForecast?: boolean; colorFrom?: string; [key: string]: unknown }>
 	} | null
 }
 
@@ -82,11 +93,6 @@ export interface ProtocolEmissionSupplyMetricsEntry {
 }
 
 export type ProtocolEmissionSupplyMetricsMap = Record<string, ProtocolEmissionSupplyMetricsEntry>
-
-export interface TokenAllocationSplit {
-	current: Record<string, number>
-	final: Record<string, number>
-}
 
 // Chart/dataset types used by both API and queries
 export interface EmissionsDataset {

@@ -21,6 +21,7 @@ interface CSVDownloadButtonProps {
 	replaceClassName?: boolean
 	smol?: boolean
 	children?: ReactNode
+	free?: boolean
 }
 
 // Option 1: With prepareCsv
@@ -87,7 +88,7 @@ function csvDownloadButtonReducer(
 
 // use children to pass in the text
 export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
-	const { className, replaceClassName, smol, children } = props
+	const { className, replaceClassName, smol, children, free } = props
 	const [state, dispatch] = useReducer(csvDownloadButtonReducer, initialCSVDownloadButtonState)
 	const { staticLoading, shouldRenderModal, trialCsvLimitOpen } = state
 	const { isAuthenticated, loaders, hasActiveSubscription, isTrial } = useAuthContext()
@@ -95,7 +96,8 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const onClickLoading = isOnClickMode ? props.isLoading : false
 	const onClickHandler = isOnClickMode ? props.onClick : undefined
 	const prepareCsv = hasPrepareCsv(props) ? props.prepareCsv : undefined
-	const isLoading = !!(loaders.userLoading || onClickLoading || staticLoading)
+	const userLoading = !!loaders?.userLoading
+	const isLoading = !!(userLoading || onClickLoading || staticLoading)
 	const subscribeModalStore = Ariakit.useDialogStore({
 		open: shouldRenderModal,
 		setOpen: (value) => dispatch({ type: 'setShouldRenderModal', value })
@@ -142,27 +144,24 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const handleButtonClick = useCallback(async () => {
 		if (isLoading) return
 
+		if (free) {
+			await runDownload()
+			return
+		}
+
 		if (isTrial) {
 			dispatch({ type: 'setTrialCsvLimitOpen', value: true })
 			return
 		}
 
-		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
+		if (!userLoading && isAuthenticated && hasActiveSubscription) {
 			await runDownload()
 			return
 		}
 
 		setSignupSource('csv')
 		subscribeModalStore.show()
-	}, [
-		hasActiveSubscription,
-		isAuthenticated,
-		isLoading,
-		isTrial,
-		loaders.userLoading,
-		runDownload,
-		subscribeModalStore
-	])
+	}, [free, hasActiveSubscription, isAuthenticated, isLoading, isTrial, runDownload, subscribeModalStore, userLoading])
 
 	return (
 		<>

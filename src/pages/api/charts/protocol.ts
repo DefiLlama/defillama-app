@@ -15,6 +15,7 @@ import { normalizeBridgeVolumeToChartMs } from '~/containers/ProtocolOverview/ch
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = unknown[] | Record<string, unknown> | { error: string } | null
 const SUCCESS_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=600'
@@ -102,7 +103,7 @@ const parseAdapterBreakdownRequest = (params: {
 	}
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
 	if (req.method !== 'GET' && req.method !== 'POST') {
 		res.setHeader('Allow', ['GET', 'POST'])
 		setNoStoreHeaders(res)
@@ -335,7 +336,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		return res.status(400).json({ error: `Unsupported kind: ${kind}` })
 	} catch (error) {
 		setNoStoreHeaders(res)
-		console.error('Failed to fetch protocol chart data', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to load protocol chart data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/charts/protocol', handler)

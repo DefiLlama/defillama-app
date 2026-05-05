@@ -26,7 +26,8 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
 			params.protocol,
-			metadataCache.tokenlist
+			metadataCache.tokenlist,
+			metadataCache.emissionsProtocolsList
 		)
 
 		if (!emissions) {

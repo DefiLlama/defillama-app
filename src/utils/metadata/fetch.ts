@@ -1,8 +1,13 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, TOKEN_DIRECTORY_API } from '~/constants'
+import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DIRECTORY_API } from '~/constants'
+import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api.types'
+import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRuntimeError } from '~/utils/telemetry'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
+import { extractLiquidationsTokenSymbols } from './liquidations'
 import type {
 	ICategoriesAndTags,
 	ICexItem,
@@ -71,7 +76,7 @@ function sanitizeUrlForMetadataLogs(inputUrl: string): string {
 }
 
 async function fetchJson<T = any>(url: string): Promise<T> {
-	const res = await fetch(url)
+	const res = await fetchWithPoolingOnServer(url)
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
 	const urlToLog = sanitizeUrlForMetadataLogs(url)
@@ -107,6 +112,8 @@ export async function fetchCoreMetadata({
 	tokenDirectory: TokenDirectory
 	protocolDisplayNames: Record<string, string>
 	chainDisplayNames: Record<string, string>
+	liquidationsTokenSymbols: string[]
+	emissionsProtocolsList: string[]
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
 	bridgeChainSlugs: string[]
@@ -123,6 +130,7 @@ export async function fetchCoreMetadata({
 	const DATASETS_SERVER_URL = API_KEY
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
+	const LIQUIDATIONS_DATA_URL = `${LIQUIDATIONS_SERVER_URL_V2}/all?zz=14`
 
 	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=14`
 	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=14`
@@ -138,7 +146,7 @@ export async function fetchCoreMetadata({
 	const fetchWithDevFallback = <T>(url: string, fallback: T): Promise<T> =>
 		isDev
 			? fetchJson<T>(url).catch((error) => {
-					console.error(`[metadata] dev: failed to fetch ${sanitizeUrlForMetadataLogs(url)}, using fallback:`, error)
+					recordRuntimeError(error, 'pageBuild')
 					return fallback
 				})
 			: fetchJson<T>(url)
@@ -152,6 +160,7 @@ export async function fetchCoreMetadata({
 		rwaPerpsList,
 		tokenlistArray,
 		tokenDirectory,
+		liquidationsResponse,
 		bridgesResponse
 	] = await Promise.all([
 		fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
@@ -159,7 +168,8 @@ export async function fetchCoreMetadata({
 		fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
 			categories: [],
 			tags: [],
-			tagCategoryMap: {}
+			tagCategoryMap: {},
+			configs: {}
 		}),
 		fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
 		fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
@@ -179,8 +189,21 @@ export async function fetchCoreMetadata({
 		}),
 		fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
 		fetchWithDevFallback<TokenDirectory>(TOKEN_DIRECTORY_API, {}),
+		fetchWithDevFallback<RawAllLiquidationsResponse>(LIQUIDATIONS_DATA_URL, {
+			data: {},
+			tokens: {},
+			validThresholds: [],
+			timestamp: 0
+		}),
 		fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
 	])
+
+	const emissionsProtocolsList = await (isDev
+		? fetchEmissionsProtocolsList().catch((error) => {
+				recordRuntimeError(error, 'pageBuild')
+				return []
+			})
+		: fetchEmissionsProtocolsList())
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -231,7 +254,7 @@ export async function fetchCoreMetadata({
 		? await (isDev
 				? buildProtocolLlamaswapDataset({ chains, protocols, existingDataset: existingProtocolLlamaswapDataset }).catch(
 						(error) => {
-							console.error('[metadata] dev: failed to build buy-on-llamaswap dataset, using fallback:', error)
+							recordRuntimeError(error, 'pageBuild')
 							return {} as ProtocolLlamaswapMetadata
 						}
 					)
@@ -240,6 +263,7 @@ export async function fetchCoreMetadata({
 
 	const protocolDisplayNames = buildProtocolDisplayNameLookupRecord(protocols)
 	const chainDisplayNames = buildChainDisplayNameLookupRecord(chains)
+	const liquidationsTokenSymbols = extractLiquidationsTokenSymbols(liquidationsResponse)
 
 	return {
 		protocols,
@@ -253,6 +277,8 @@ export async function fetchCoreMetadata({
 		tokenDirectory,
 		protocolDisplayNames,
 		chainDisplayNames,
+		liquidationsTokenSymbols,
+		emissionsProtocolsList,
 		bridgeProtocolSlugs,
 		bridgeChainSlugs,
 		bridgeChainSlugToName,

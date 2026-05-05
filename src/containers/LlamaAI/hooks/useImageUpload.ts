@@ -3,8 +3,11 @@ import { errorToast } from '~/components/Toast'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface SelectedImage {
+	id: string
 	file: File
 	url: string
+	isPasted?: boolean
+	textContent?: string
 }
 
 const ACCEPTED_TYPES = new Set([
@@ -38,6 +41,15 @@ function isAcceptedFile(file: File) {
 	return ACCEPTED_TYPES.has(file.type) || hasAcceptedExtension(file.name)
 }
 
+const READABLE_TEXT_TYPES = new Set(['text/plain', 'text/markdown', 'text/csv'])
+const READABLE_TEXT_EXTENSIONS = ['.txt', '.md', '.csv']
+
+export function isReadableTextFile(file: File): boolean {
+	if (READABLE_TEXT_TYPES.has(file.type)) return true
+	const lower = file.name.toLowerCase()
+	return READABLE_TEXT_EXTENSIONS.some((ext) => lower.endsWith(ext))
+}
+
 function maxSizeForType(type: string) {
 	return isImageType(type) ? IMAGE_MAX_SIZE : FILE_MAX_SIZE
 }
@@ -58,9 +70,14 @@ export function useImageUpload({
 	const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([])
 	const [isDragging, setIsDragging] = useState(false)
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string; isPasted?: boolean } | null>(
+		null
+	)
 	const dragCounterRef = useRef(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const selectedImagesRef = useRef<SelectedImage[]>([])
+	const pastedCounterRef = useRef(0)
+	const attachmentCounterRef = useRef(0)
 
 	useEffect(() => {
 		selectedImagesRef.current = selectedImages
@@ -126,7 +143,8 @@ export function useImageUpload({
 			for (const file of valid) {
 				try {
 					const url = isImageType(file.type) ? URL.createObjectURL(file) : ''
-					newImages.push({ file, url })
+					attachmentCounterRef.current += 1
+					newImages.push({ id: `file-${attachmentCounterRef.current}`, file, url })
 				} catch (error) {
 					console.error('Failed to create object URL for file:', file.name, error)
 				}
@@ -134,73 +152,93 @@ export function useImageUpload({
 
 			if (newImages.length === 0) return
 
-			setSelectedImages((prev) => {
-				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
-				let addedBytes = 0
-				let countLimitHit = false
-				let totalSizeLimitHit = false
-				const withinBudget: SelectedImage[] = [...prev]
+			const selected = selectedImagesRef.current
+			let existingBytes = 0
+			for (const img of selected) {
+				existingBytes += img.file.size
+			}
 
-				for (const img of newImages) {
-					if (withinBudget.length >= maxImages) {
-						countLimitHit = true
-						if (img.url) URL.revokeObjectURL(img.url)
-						continue
-					}
-					if (existingBytes + addedBytes + img.file.size > MAX_TOTAL_BYTES) {
-						totalSizeLimitHit = true
-						if (img.url) URL.revokeObjectURL(img.url)
-						continue
-					}
-					addedBytes += img.file.size
-					withinBudget.push(img)
+			let addedBytes = 0
+			let countLimitHit = false
+			let totalSizeLimitHit = false
+			const acceptedImages: SelectedImage[] = []
+
+			for (const img of newImages) {
+				if (selected.length + acceptedImages.length >= maxImages) {
+					countLimitHit = true
+					if (img.url) URL.revokeObjectURL(img.url)
+					continue
 				}
+				if (existingBytes + addedBytes + img.file.size > MAX_TOTAL_BYTES) {
+					totalSizeLimitHit = true
+					if (img.url) URL.revokeObjectURL(img.url)
+					continue
+				}
+				addedBytes += img.file.size
+				acceptedImages.push(img)
+			}
 
-				if (countLimitHit) {
-					queueMicrotask(() => {
-						errorToast({
-							title: 'File upload limit',
-							description: `You may upload only ${maxImages} files at a time`
-						})
+			if (countLimitHit) {
+				queueMicrotask(() => {
+					errorToast({
+						title: 'File upload limit',
+						description: `You may upload only ${maxImages} files at a time`
 					})
-				}
+				})
+			}
 
-				if (totalSizeLimitHit && withinBudget.length === prev.length) {
-					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
-					queueMicrotask(() => {
-						errorToast({
-							title: 'Total upload size exceeded',
-							description: `Combined files must be under ${totalMB}MB`
-						})
+			if (totalSizeLimitHit && acceptedImages.length === 0) {
+				const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+				queueMicrotask(() => {
+					errorToast({
+						title: 'Total upload size exceeded',
+						description: `Combined files must be under ${totalMB}MB`
 					})
-					return prev
-				}
+				})
+			}
 
-				return withinBudget
-			})
+			if (acceptedImages.length === 0) return
+
+			const nextImages = [...selected, ...acceptedImages]
+			selectedImagesRef.current = nextImages
+			setSelectedImages(nextImages)
+
+			for (const { id, file } of acceptedImages) {
+				if (!isReadableTextFile(file)) continue
+				file
+					.text()
+					.then((textContent) => {
+						const current = selectedImagesRef.current
+						const nextWithText = current.map((img) => (img.id === id ? { ...img, textContent } : img))
+						selectedImagesRef.current = nextWithText
+						setSelectedImages(nextWithText)
+					})
+					.catch((error) => {
+						console.error('Failed to read text file content', file.name, error)
+					})
+			}
 		},
 		[maxImages, maxSizeBytes]
 	)
 
 	const removeImage = useCallback((idx: number) => {
-		setSelectedImages((prev) => {
-			const removed = prev[idx]
-			if (removed?.url) URL.revokeObjectURL(removed.url)
-			return prev.filter((_, i) => i !== idx)
-		})
+		const selected = selectedImagesRef.current
+		const removed = selected[idx]
+		if (removed?.url) URL.revokeObjectURL(removed.url)
+		const nextImages = selected.filter((_, i) => i !== idx)
+		selectedImagesRef.current = nextImages
+		setSelectedImages(nextImages)
 	}, [])
 
-	// Using functional setState to avoid selectedImages dependency (rerender-functional-setstate)
-	// This makes the callback stable - doesn't recreate on selectedImages changes
 	const clearImages = useCallback((revokeUrls = true) => {
-		setSelectedImages((prev) => {
-			if (revokeUrls) {
-				for (const { url } of prev) {
-					if (url) URL.revokeObjectURL(url)
-				}
+		const selected = selectedImagesRef.current
+		if (revokeUrls) {
+			for (const { url } of selected) {
+				if (url) URL.revokeObjectURL(url)
 			}
-			return []
-		})
+		}
+		selectedImagesRef.current = []
+		setSelectedImages([])
 	}, [])
 
 	const handleImageSelect = useCallback(
@@ -226,6 +264,61 @@ export function useImageUpload({
 			}
 		},
 		[addImages]
+	)
+
+	const addPastedText = useCallback(
+		(text: string) => {
+			if (!text) return false
+			pastedCounterRef.current += 1
+			const filename = `Pasted-${pastedCounterRef.current}.txt`
+			const file = new File([text], filename, { type: 'text/plain', lastModified: Date.now() })
+			const sizeLimit = maxSizeBytes ?? FILE_MAX_SIZE
+			if (file.size > sizeLimit) {
+				const limitMB = Math.round(sizeLimit / (1024 * 1024))
+				queueMicrotask(() => {
+					errorToast({
+						title: 'Pasted text too large',
+						description: `Pasted content exceeds the ${limitMB}MB limit`
+					})
+				})
+				return false
+			}
+
+			const selected = selectedImagesRef.current
+			if (selected.length + 1 > maxImages) {
+				queueMicrotask(() => {
+					errorToast({
+						title: 'File upload limit',
+						description: `You may upload only ${maxImages} files at a time`
+					})
+				})
+				return false
+			}
+
+			let existingBytes = 0
+			for (const img of selected) {
+				existingBytes += img.file.size
+			}
+			if (existingBytes + file.size > MAX_TOTAL_BYTES) {
+				const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+				queueMicrotask(() => {
+					errorToast({
+						title: 'Total upload size exceeded',
+						description: `Combined files must be under ${totalMB}MB`
+					})
+				})
+				return false
+			}
+
+			attachmentCounterRef.current += 1
+			const id = `paste-${attachmentCounterRef.current}`
+			const nextImages = [...selected, { id, file, url: '', isPasted: true, textContent: text }]
+			trackUmamiEvent('llamaai-paste-as-file')
+			selectedImagesRef.current = nextImages
+			setSelectedImages(nextImages)
+			return true
+		},
+		[maxImages, maxSizeBytes]
 	)
 
 	const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -283,8 +376,11 @@ export function useImageUpload({
 		isDragging,
 		previewImage,
 		setPreviewImage,
+		pastedPreview,
+		setPastedPreview,
 		fileInputRef,
 		addImages,
+		addPastedText,
 		removeImage,
 		clearImages,
 		handleImageSelect,

@@ -13,7 +13,7 @@ export const getStaticProps = withPerformanceLogging(`total-staked/index`, async
 		protocolMetadata: metadataCache.protocolMetadata
 	})
 
-	if (!data) return { notFound: true }
+	if (!data) throw new Error('Missing page data for route=/total-staked')
 
 	return {
 		props: data,

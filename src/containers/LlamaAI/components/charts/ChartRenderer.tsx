@@ -14,6 +14,7 @@ import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '~/conta
 import { ChartDataTransformer } from '~/containers/LlamaAI/utils/chartDataTransformer'
 import { buildRenderPlan, type ChartRenderPlan } from '~/containers/LlamaAI/utils/chartRenderPlan'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
@@ -28,6 +29,8 @@ interface ChartRendererProps {
 	hasError?: boolean
 	chartTypes?: string[]
 	resizeTrigger?: number
+	sessionId?: string | null
+	messageId?: string
 }
 
 interface SingleChartProps {
@@ -35,6 +38,8 @@ interface SingleChartProps {
 	data: any[]
 	isActive: boolean
 	title?: string
+	sessionId?: string | null
+	messageId?: string
 }
 
 type ChartAction =
@@ -131,16 +136,50 @@ function ChartExportButtonsSlot({
 	chartInstance,
 	exportModel,
 	renderPlan,
-	chartTitle
+	chartTitle,
+	chartId,
+	sessionId,
+	messageId
 }: {
 	chartInstance: () => any
 	exportModel: ChartRenderPlan['exportModel']
 	renderPlan: ChartRenderPlan
 	chartTitle: string | undefined
+	chartId: string
+	sessionId?: string | null
+	messageId?: string
 }) {
 	const prepareCsvDirect = useMemo(
 		() => (exportModel ? () => ({ filename: exportModel.csvFilename, rows: exportModel.csvRows }) : undefined),
 		[exportModel]
+	)
+
+	const onCsvExport = useCallback(
+		(info: { filename: string }) => {
+			trackUmamiEvent('llamaai-download', {
+				kind: 'chart-csv',
+				filename: info.filename,
+				chartId,
+				chartTitle: chartTitle ?? '',
+				sessionId: sessionId ?? '',
+				messageId: messageId ?? ''
+			})
+		},
+		[chartId, chartTitle, sessionId, messageId]
+	)
+
+	const onPngExport = useCallback(
+		(info: { kind: 'download' | 'copy'; filename: string }) => {
+			trackUmamiEvent('llamaai-download', {
+				kind: info.kind === 'copy' ? 'chart-png-copy' : 'chart-png',
+				filename: info.filename,
+				chartId,
+				chartTitle: chartTitle ?? '',
+				sessionId: sessionId ?? '',
+				messageId: messageId ?? ''
+			})
+		},
+		[chartId, chartTitle, sessionId, messageId]
 	)
 
 	return (
@@ -152,6 +191,8 @@ function ChartExportButtonsSlot({
 			showCsv={!!exportModel}
 			prepareCsvDirect={prepareCsvDirect}
 			pngProfile={exportModel?.pngProfile}
+			onCsvExport={onCsvExport}
+			onPngExport={onPngExport}
 		/>
 	)
 }
@@ -167,7 +208,7 @@ function tryBuildPresentation(config: ChartConfiguration, data: any[], chartStat
 	}
 }
 
-function SingleChart({ config, data, isActive, title }: SingleChartProps) {
+function SingleChart({ config, data, isActive, title, sessionId, messageId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const handleStackedChange = useCallback((stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }), [])
@@ -257,6 +298,9 @@ function SingleChart({ config, data, isActive, title }: SingleChartProps) {
 					exportModel={exportModel}
 					renderPlan={renderPlan}
 					chartTitle={chartTitle}
+					chartId={config.id}
+					sessionId={sessionId}
+					messageId={messageId}
 				/>
 			</ChartControls>
 			{chartContent}
@@ -290,9 +334,15 @@ export function ChartRenderer({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	sessionId,
+	messageId
 }: ChartRendererProps) {
-	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger }} />
+	return (
+		<ChartRendererMemoized
+			{...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, messageId }}
+		/>
+	)
 }
 
 function ChartRendererImpl({
@@ -301,7 +351,9 @@ function ChartRendererImpl({
 	isLoading = false,
 	hasError = false,
 	chartTypes,
-	resizeTrigger = 0
+	resizeTrigger = 0,
+	sessionId,
+	messageId
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
@@ -374,6 +426,8 @@ function ChartRendererImpl({
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					title={chart.title}
+					sessionId={sessionId}
+					messageId={messageId}
 				/>
 			))}
 		</div>
@@ -385,6 +439,8 @@ const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
 		prev.isLoading === next.isLoading &&
 		prev.hasError === next.hasError &&
 		prev.resizeTrigger === next.resizeTrigger &&
+		prev.sessionId === next.sessionId &&
+		prev.messageId === next.messageId &&
 		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
 		areChartsEqual(prev.charts, next.charts) &&
 		areChartDataEqual(prev.chartData, next.chartData)

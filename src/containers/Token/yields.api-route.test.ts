@@ -1,27 +1,16 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest } from 'next'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 const { getTokenYieldsRowsMock } = vi.hoisted(() => ({
 	getTokenYieldsRowsMock: vi.fn()
 }))
 
 vi.mock('~/containers/Token/tokenYields.server', () => ({
-	getTokenYieldsRows: getTokenYieldsRowsMock
+	getTokenYieldsRowsFromNetwork: getTokenYieldsRowsMock
 }))
 
 import handler from '~/pages/api/datasets/yields'
-
-function createRes() {
-	const res: Partial<NextApiResponse> = {
-		status: vi.fn(),
-		json: vi.fn()
-	}
-
-	;(res.status as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-	;(res.json as ReturnType<typeof vi.fn>).mockImplementation(() => res as NextApiResponse)
-
-	return res as NextApiResponse
-}
 
 beforeEach(() => {
 	vi.clearAllMocks()
@@ -34,7 +23,7 @@ describe('yields api route', () => {
 			method: 'GET',
 			query: { token: 'ETH', chains: 'Ethereum' }
 		} as unknown as NextApiRequest
-		const res = createRes()
+		const res = createMockNextApiResponse()
 
 		await handler(req, res)
 

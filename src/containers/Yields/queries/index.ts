@@ -10,19 +10,21 @@ import {
 	YIELD_URL_API
 } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
-import { fetchRaises } from '~/containers/Raises/api'
+import { fetchRaisesFromNetwork } from '~/containers/Raises/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchJson } from '~/utils/async'
 import { buildRaiseValuations, formatYieldsPageData } from './utils'
 
-export async function getYieldPageData() {
+export type YieldConfigResponse = { protocols?: Record<string, { name?: string }> } | null
+
+export async function getYieldPageDataFromNetwork() {
 	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
 		fetchJson(YIELD_POOLS_API),
 		fetchJson(YIELD_CONFIG_API),
 		fetchJson(YIELD_URL_API),
 		fetchJson(YIELD_CHAIN_API),
 		fetchProtocols(),
-		fetchRaises().catch((): { raises: [] } => ({ raises: [] }))
+		fetchRaisesFromNetwork().catch((): { raises: [] } => ({ raises: [] }))
 	])
 
 	let poolsAndConfig = [poolsData, configData, urlsData, chainsData, protocolsData]
@@ -230,6 +232,20 @@ export async function getYieldPageData() {
 	}
 }
 
+export async function fetchYieldConfigFromNetwork(): Promise<YieldConfigResponse> {
+	return fetchJson<YieldConfigResponse>(YIELD_CONFIG_API)
+}
+
+export async function getYieldPageData() {
+	return getYieldPageDataFromNetwork()
+}
+
+export async function fetchYieldConfig(): Promise<YieldConfigResponse> {
+	return fetchYieldConfigFromNetwork()
+}
+
+export type YieldPageData = Awaited<ReturnType<typeof getYieldPageDataFromNetwork>>
+
 export async function getYieldMedianData() {
 	let data = await fetchJson(YIELD_MEDIAN_API)
 	// for the 4th of june we have low nb of datapoints which is skewing the median/
@@ -267,17 +283,19 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 const categoriesToKeepSet = new Set(['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending'])
 const categoriesToKeepWithoutUndercollateralizedSet = new Set(['Lending', 'CDP', 'NFT Lending'])
 
-export async function getLendBorrowData() {
-	const props = (await getYieldPageData()).props
+export async function getLendBorrowDataFromYieldPageData(yieldPageData: YieldPageData) {
+	const props = {
+		...yieldPageData.props,
+		pools: yieldPageData.props.pools.map((p) => ({
+			...p,
+			category: p.project === 'fraxlend' ? 'CDP' : p.category,
+			// on fraxlend apyBase = 0 on collateral, apyBase = optional lending of borrowed frax
+			apyBase: p.project === 'fraxlend' ? null : p.apyBase
+		}))
+	}
 	// treating fraxlend as cdp category otherwise the output
 	// from optimizer will be wrong (it would use the crossproduct
 	// btw collaterals eg eth -> crv, wbtc -> crv etc. instead of collateral -> frax only)
-	props.pools = props.pools.map((p) => ({
-		...p,
-		category: p.project === 'fraxlend' ? 'CDP' : p.category,
-		// on fraxlend apyBase = 0 on collateral, apyBase = optional lending of borrowed frax
-		apyBase: p.project === 'fraxlend' ? null : p.apyBase
-	}))
 
 	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
@@ -435,6 +453,16 @@ export async function getLendBorrowData() {
 		}
 	}
 }
+
+export async function getLendBorrowDataFromNetwork() {
+	return getLendBorrowDataFromYieldPageData(await getYieldPageDataFromNetwork())
+}
+
+export async function getLendBorrowData() {
+	return getLendBorrowDataFromNetwork()
+}
+
+export type LendBorrowData = Awaited<ReturnType<typeof getLendBorrowDataFromNetwork>>
 
 export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 	let pools = lendBorrowPools.filter((p) => p.ltv > 0 && p.totalBorrowUsd > 0 && p.project !== 'marginfi') // Can't loop same asset on marginfi

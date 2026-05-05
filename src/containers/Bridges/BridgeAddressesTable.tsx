@@ -51,7 +51,9 @@ export function BridgeAddressesTable({ data }: { data: BridgeAddressesTableRow[]
 						</a>
 					)
 				},
-				size: 120
+				meta: {
+					headerClassName: 'w-[120px]'
+				}
 			}),
 			columnHelper.display({
 				id: 'chainName',
@@ -62,31 +64,31 @@ export function BridgeAddressesTable({ data }: { data: BridgeAddressesTableRow[]
 						address: row.original.address,
 						urlType: 'address'
 					})?.chainDisplayName ?? null,
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			}),
 			columnHelper.accessor('deposited', {
 				header: 'Deposited',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			}),
 			columnHelper.accessor('withdrawn', {
 				header: 'Withdrawn',
 				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			}),
 			columnHelper.accessor('txs', {
 				header: 'Total Transactions',
-				size: 120,
 				meta: {
+					headerClassName: 'w-[120px]',
 					align: 'end'
 				}
 			})

@@ -5,7 +5,7 @@ import { tvlOptions } from '~/components/Filters/options'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
-import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
+import { getBridgeChainNetInflows } from '~/containers/Bridges/queries.server'
 import { fetchChainChart } from '~/containers/Chains/api'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
 import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
@@ -33,7 +33,12 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
-import type { IChainMetadata, IProtocolMetadata, ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
+import type {
+	ICategoriesAndTags,
+	IChainMetadata,
+	IProtocolMetadata,
+	ProtocolLlamaswapMetadata
+} from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
@@ -52,15 +57,47 @@ function computeTvlChartSummary(chart: Array<[number, number]>): {
 	return { totalValueUSD: lastValue, tvlPrevDay, valueChange24hUSD, change24h }
 }
 
+export function shouldFetchChainDexs({
+	chain,
+	currentChainMetadata,
+	categoriesAndTagsMetadata
+}: {
+	chain: string
+	currentChainMetadata: IChainMetadata
+	categoriesAndTagsMetadata?: ICategoriesAndTags
+}): boolean {
+	if (!currentChainMetadata.dexs) return false
+	if (chain === 'All' || currentChainMetadata.id === 'all') return true
+
+	return categoriesAndTagsMetadata?.configs?.Dexs?.chains?.includes(currentChainMetadata.id) ?? false
+}
+
+export function shouldFetchChainPerps({
+	chain,
+	currentChainMetadata,
+	categoriesAndTagsMetadata
+}: {
+	chain: string
+	currentChainMetadata: IChainMetadata
+	categoriesAndTagsMetadata?: ICategoriesAndTags
+}): boolean {
+	if (!currentChainMetadata.perps) return false
+	if (chain === 'All' || currentChainMetadata.id === 'all') return true
+
+	return categoriesAndTagsMetadata?.configs?.Derivatives?.chains?.includes(currentChainMetadata.id) ?? false
+}
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
 	protocolMetadata,
+	categoriesAndTagsMetadata,
 	protocolLlamaswapDataset = null
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
+	categoriesAndTagsMetadata: ICategoriesAndTags
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
 }): Promise<IChainOverviewData | null> {
 	const currentChainMetadata: IChainMetadata =
@@ -69,6 +106,9 @@ export async function getChainOverviewData({
 			: chainMetadata[slug(chain)]
 
 	if (!currentChainMetadata) return null
+
+	const shouldFetchDexs = shouldFetchChainDexs({ chain, currentChainMetadata, categoriesAndTagsMetadata })
+	const shouldFetchPerps = shouldFetchChainPerps({ chain, currentChainMetadata, categoriesAndTagsMetadata })
 
 	try {
 		const [
@@ -136,55 +176,30 @@ export async function getChainOverviewData({
 					dcAndLsOverlap: []
 				}
 			}),
-			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset }),
+			getProtocolsByChain({ chain, chainMetadata, protocolMetadata, protocolLlamaswapDataset, shouldFetchDexs }),
 			currentChainMetadata.stablecoins
-				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name).catch((err) => {
-						console.log('ERROR fetching stablecoins data of chain', currentChainMetadata.name, err)
-						return null
-					})
+				? getStablecoinChainMcapSummary(chain === 'All' ? null : currentChainMetadata.name)
 				: Promise.resolve(null),
-			!currentChainMetadata.inflows
-				? Promise.resolve(null)
-				: getBridgeOverviewPageData(currentChainMetadata.name)
-						.then((data) => {
-							const netInflows = data?.chainVolumeData?.length
-								? (data.chainVolumeData[data.chainVolumeData.length - 1]['Deposits'] ?? null)
-								: null
-
-							if (netInflows === 0) {
-								return null
-							}
-
-							return {
-								netInflows
-							}
-						})
-						.catch(() => null),
+			!currentChainMetadata.inflows ? Promise.resolve(null) : getBridgeChainNetInflows(currentChainMetadata.name),
 			!currentChainMetadata.chainActiveUsers
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
 						chain: currentChainMetadata.name,
 						adapterType: 'active-users'
-					})
-						.then((data) => data?.total24h ?? null)
-						.catch(() => null),
+					}).then((data) => data?.total24h ?? null),
 			!currentChainMetadata.txCount
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
 						chain: currentChainMetadata.name,
 						adapterType: 'active-users',
 						dataType: 'dailyTransactionsCount'
-					})
-						.then((data) => data?.total24h ?? null)
-						.catch(() => null),
+					}).then((data) => data?.total24h ?? null),
 			!currentChainMetadata.chainNewUsers
 				? Promise.resolve(null)
 				: fetchAdapterChainMetrics({
 						chain: currentChainMetadata.name,
 						adapterType: 'new-users'
-					})
-						.then((data) => data?.total24h ?? null)
-						.catch(() => null),
+					}).then((data) => data?.total24h ?? null),
 			fetchRaises(),
 			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id
@@ -201,9 +216,6 @@ export async function getChainOverviewData({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
 						dataType: 'dailyAppRevenue'
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.fees && chain !== 'All'
@@ -211,18 +223,12 @@ export async function getChainOverviewData({
 						adapterType: 'fees',
 						chain: currentChainMetadata.name,
 						dataType: 'dailyAppFees'
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainFees
 				? fetchAdapterProtocolMetrics({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			currentChainMetadata.chainRevenue
@@ -230,18 +236,12 @@ export async function getChainOverviewData({
 						adapterType: 'fees',
 						protocol: currentChainMetadata.name,
 						dataType: 'dailyRevenue'
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
-			currentChainMetadata.perps
+			shouldFetchPerps
 				? fetchAdapterChainMetrics({
 						adapterType: 'derivatives',
 						chain: currentChainMetadata.name
-					}).catch((err) => {
-						console.log(err)
-						return null
 					})
 				: Promise.resolve(null),
 			fetchCexVolume(),
@@ -265,7 +265,7 @@ export async function getChainOverviewData({
 				: Promise.resolve(null),
 			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
 			currentChainMetadata.incentives && chain !== 'All'
-				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name).catch(() => null)
+				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name)
 				: Promise.resolve(null),
 			chain === 'All' ? getDATInflows() : Promise.resolve(null),
 			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
@@ -445,10 +445,10 @@ export async function getChainOverviewData({
 		if (chainRevenue?.total24h != null) {
 			charts.push('Chain Revenue')
 		}
-		if (dexs?.total24h != null) {
+		if (shouldFetchDexs && dexs?.total24h != null) {
 			charts.push('DEXs Volume')
 		}
-		if (perps?.total24h != null) {
+		if (shouldFetchPerps && perps?.total24h != null) {
 			charts.push('Perps Volume')
 		}
 		if (chainIncentives?.emissions24h != null) {
@@ -583,8 +583,12 @@ export async function getChainOverviewData({
 		}
 	} catch (error) {
 		const msg = `Error fetching chainOverview:${chain} ${error instanceof Error ? error.message : 'Failed to fetch'}`
-		console.log(msg)
-		throw new Error(msg)
+		const errorWithContext = new Error(msg, { cause: error })
+		if (error instanceof Error && error.stack) {
+			errorWithContext.stack = `${errorWithContext.stack}\nCaused by: ${error.stack}`
+		}
+		console.log(errorWithContext)
+		throw errorWithContext
 	}
 }
 
@@ -593,6 +597,7 @@ export const getProtocolsByChain = async ({
 	chainMetadata,
 	protocolMetadata,
 	protocolLlamaswapDataset = null,
+	shouldFetchDexs,
 	oracle = null,
 	fork = null
 }: {
@@ -600,6 +605,7 @@ export const getProtocolsByChain = async ({
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	protocolLlamaswapDataset?: ProtocolLlamaswapMetadata | null
+	shouldFetchDexs?: boolean
 	oracle?: string | null
 	fork?: string | null
 }) => {
@@ -609,6 +615,7 @@ export const getProtocolsByChain = async ({
 			: chainMetadata[slug(chain)]
 
 	if (!currentChainMetadata) return null
+	const shouldFetchDexsForChain = shouldFetchDexs ?? !!currentChainMetadata.dexs
 
 	const normalizedOracle = oracle ? slug(oracle) : null
 	const normalizedFork = fork ? slug(fork) : null
@@ -673,9 +680,6 @@ export const getProtocolsByChain = async ({
 			? fetchAdapterChainMetrics({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
@@ -683,9 +687,6 @@ export const getProtocolsByChain = async ({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
 					dataType: 'dailyRevenue'
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		currentChainMetadata.fees
@@ -693,19 +694,13 @@ export const getProtocolsByChain = async ({
 					adapterType: 'fees',
 					chain: currentChainMetadata.name,
 					dataType: 'dailyHoldersRevenue'
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
-		currentChainMetadata.dexs
+		shouldFetchDexsForChain
 			? getAdapterChainOverview({
 					adapterType: 'dexs',
 					chain: currentChainMetadata.name,
 					excludeTotalDataChart: false
-				}).catch((err) => {
-					console.log(err)
-					return null
 				})
 			: Promise.resolve(null),
 		getProtocolEmissionsLookupFromAggregated().catch((err) => {

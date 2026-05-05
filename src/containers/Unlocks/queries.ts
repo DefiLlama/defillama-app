@@ -2,7 +2,7 @@ import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
-import { fetchProtocolEmission, fetchAllProtocolEmissions, fetchEmissionsProtocolsList } from './api'
+import { fetchProtocolEmission, fetchAllProtocolEmissions } from './api'
 import type {
 	EmissionsDataset,
 	EmissionsChartRow,
@@ -110,12 +110,13 @@ interface EmissionsDataInput {
 					| Array<{
 							timestamp: number
 							unlocked?: number | null | undefined
+							rawEmission?: number | null | undefined
+							burned?: number | null | undefined
 					  }>
 					| undefined
 		  }>
 		| null
 		| undefined
-	tokenAllocation?: Record<string, number> | null | undefined
 }
 
 function buildEmissionsSeriesAndCategories(input: EmissionsDataInput | null | undefined): {
@@ -173,10 +174,48 @@ function buildPieFromChart(chart: EmissionsChartRow[]): Array<{ name: string; va
 	return pie
 }
 
-function buildColorsForPie(pie: Array<{ name: string }>): Record<string, string> {
+function buildColorsForPie(
+	pie: Array<{ name: string }>,
+	colorFrom: Record<string, string> = {}
+): Record<string, string> {
 	const colors: Record<string, string> = {}
-	const palette = getNDistinctColors(pie.length)
-	for (let i = 0; i < pie.length; i++) colors[pie[i].name] = palette[i]
+	const names = new Set(pie.map((p) => p.name))
+	const baseNameCache = new Map<string, string>()
+	const baseNameOf = (name: string): string => {
+		const cached = baseNameCache.get(name)
+		if (cached) return cached
+
+		const visited: string[] = []
+		const seen = new Set<string>()
+		let current = name
+
+		for (;;) {
+			const next = colorFrom[current]
+			if (!next || !names.has(next)) break
+			if (seen.has(next)) {
+				const cycle = [...visited, current, next].filter((item, index, arr) => arr.indexOf(item) === index)
+				current = cycle.toSorted()[0]
+				break
+			}
+			visited.push(current)
+			seen.add(current)
+			current = next
+		}
+
+		for (const visitedName of visited) {
+			baseNameCache.set(visitedName, current)
+		}
+		baseNameCache.set(name, current)
+		return current
+	}
+	const primary = pie.filter((p) => baseNameOf(p.name) === p.name)
+	const palette = getNDistinctColors(primary.length)
+	for (let i = 0; i < primary.length; i++) colors[primary[i].name] = palette[i]
+	for (const p of pie) {
+		if (colors[p.name]) continue
+		const base = baseNameOf(p.name)
+		if (colors[base]) colors[p.name] = colors[base]
+	}
 	return colors
 }
 
@@ -311,9 +350,10 @@ export async function getProtocolEmissionsPieData(protocolName: string): Promise
 		documented: buildPieFromChart(documentedChart),
 		realtime: buildPieFromChart(realtimeChart)
 	}
+	const colorFromMap = extractColorFromMap(res)
 	const stackColors = {
-		documented: buildColorsForPie(pieChartData.documented),
-		realtime: buildColorsForPie(pieChartData.realtime)
+		documented: buildColorsForPie(pieChartData.documented, colorFromMap),
+		realtime: buildColorsForPie(pieChartData.realtime, colorFromMap)
 	}
 
 	const allEmissions = await fetchAllProtocolEmissions()
@@ -538,7 +578,6 @@ const getAllProtocolEmissionsWithHistory = async ({
 
 type EnrichedProtocolEmission = ProtocolEmission & {
 	unlockEvents: null
-	sources: null
 	upcomingEvent: EmissionEvent[]
 	events: EmissionEvent[]
 	tPrice: number | null
@@ -685,7 +724,6 @@ export const getAllProtocolEmissions = async ({
 					...protocol,
 					// Reduce payload without mutating original object
 					unlockEvents: null,
-					sources: null,
 					upcomingEvent,
 					events: filteredEvents,
 					tPrice: coin?.price ?? null,
@@ -723,18 +761,32 @@ export const getAllProtocolEmissions = async ({
 }
 
 const EMPTY_TBD_SECTIONS: string[] = []
+const EMPTY_FORECAST_SECTIONS: string[] = []
 
-function extractTbdSections(res: ProtocolEmissionDetail): string[] {
+function extractSections(res: ProtocolEmissionDetail, flag: string): string[] {
 	const sections = res.componentData?.sections
-	if (!sections) return EMPTY_TBD_SECTIONS
-	const tbd: string[] = []
+	if (!sections) return []
+	const matches: string[] = []
 	for (const [name, section] of Object.entries(sections)) {
-		if (section?.isTBD) tbd.push(name)
+		if (section?.[flag]) matches.push(name)
 	}
-	return tbd.length > 0 ? tbd : EMPTY_TBD_SECTIONS
+	return matches
 }
 
-function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
+function extractColorFromMap(res: ProtocolEmissionDetail): Record<string, string> {
+	const sections = res.componentData?.sections
+	if (!sections) return {}
+	const map: Record<string, string> = {}
+	for (const [name, section] of Object.entries(sections)) {
+		const target = section?.colorFrom
+		if (typeof target === 'string' && target && target !== name && sections[target]) {
+			map[name] = target
+		}
+	}
+	return map
+}
+
+export function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 	return {
 		chartData: { documented: [], realtime: [] },
 		pieChartData: { documented: [], realtime: [] },
@@ -745,7 +797,6 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		},
 		chartsConfigs: { documented: [], realtime: [] },
 		meta: {},
-		sources: [],
 		notes: [],
 		events: [],
 		token: null,
@@ -762,15 +813,38 @@ function createEmptyProtocolEmissionResult(): ProtocolEmissionResult {
 		name: null,
 		tokenPrice: {},
 		unlockUsdChart: null,
-		tbdSections: EMPTY_TBD_SECTIONS
+		tbdSections: EMPTY_TBD_SECTIONS,
+		forecastSections: EMPTY_FORECAST_SECTIONS
 	}
 }
 
-export const getProtocolEmissons = async (protocolName: string): Promise<ProtocolEmissionResult> => {
+export function isEmptyProtocolEmissionResult(result: ProtocolEmissionResult | null | undefined): boolean {
+	if (!result) return true
+
+	return (
+		result.categories.documented.length === 0 && result.categories.realtime.length === 0 && result.events.length === 0
+	)
+}
+
+export const getProtocolEmissons = async (
+	protocolName: string,
+	options?: {
+		emissionsProtocolsList?: string[]
+		skipAvailabilityCheck?: boolean
+	}
+): Promise<ProtocolEmissionResult> => {
 	try {
 		const emptyResult = createEmptyProtocolEmissionResult()
-		const list = await fetchEmissionsProtocolsList()
-		if (!list.includes(protocolName)) return emptyResult
+		if (!protocolName) return emptyResult
+
+		const shouldCheckAvailability = !options?.skipAvailabilityCheck
+		if (
+			shouldCheckAvailability &&
+			options?.emissionsProtocolsList &&
+			!options.emissionsProtocolsList.includes(protocolName)
+		) {
+			return emptyResult
+		}
 
 		const [res, allEmissions] = await Promise.all([
 			fetchProtocolEmission(protocolName),
@@ -798,9 +872,10 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			realtime: buildPieFromChart(chartData.realtime)
 		}
 
+		const colorFromMap = extractColorFromMap(res)
 		const stackColors = {
-			documented: buildColorsForPie(pieChartData.documented),
-			realtime: buildColorsForPie(pieChartData.realtime)
+			documented: buildColorsForPie(pieChartData.documented, colorFromMap),
+			realtime: buildColorsForPie(pieChartData.realtime, colorFromMap)
 		}
 
 		const roundedEvents = roundEmissionEvents(metadata?.events)
@@ -848,7 +923,6 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			datasets,
 			chartsConfigs,
 			meta: allEmissions?.find((p) => p?.token === metadata?.token) ?? {},
-			sources: metadata?.sources ?? [],
 			notes: metadata?.notes ?? [],
 			events: roundedEvents,
 			token: metadata?.token ?? null,
@@ -868,7 +942,8 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 			name: name || null,
 			tokenPrice,
 			unlockUsdChart: res.unlockUsdChart ?? null,
-			tbdSections: extractTbdSections(res)
+			tbdSections: extractSections(res, 'isTBD'),
+			forecastSections: extractSections(res, 'isForecast')
 		}
 	} catch (e) {
 		console.log(e)

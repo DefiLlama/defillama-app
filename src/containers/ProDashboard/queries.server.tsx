@@ -1,4 +1,4 @@
-import { AUTH_SERVER, CONFIG_API, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { CONFIG_API, FEATURES_SERVER, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -14,6 +14,7 @@ import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/pr
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
 import type { NormalizedRow } from './components/UnifiedTable/types'
 import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
 import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
@@ -57,7 +58,7 @@ export interface ProDashboardServerProps {
 
 export async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
 	try {
-		const url = `${AUTH_SERVER}/dashboards/${dashboardId}`
+		const url = `${FEATURES_SERVER}/dashboards/${dashboardId}`
 		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
 		const response = await fetchFn(url)
 		if (!response.ok) return null
@@ -77,11 +78,12 @@ export async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; cha
 		}))
 
 		const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
+		const parentGeckoIds = new Map(parentProtocols.map((pp: any) => [pp.id, pp.gecko_id || null]))
 
 		const baseProtocols = (protocolsData.protocols || []).map((p: any) => ({
 			...p,
 			slug: sluggifyProtocol(p.name),
-			geckoId: p.geckoId || null,
+			geckoId: p.geckoId || parentGeckoIds.get(p.parentProtocol) || null,
 			parentProtocol: p.parentProtocol || null
 		}))
 
@@ -103,7 +105,7 @@ export async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; cha
 				logo: pp.logo ?? null,
 				slug: nameSlug || `id-${pp.id}`,
 				tvl: parentTotals.get(pp.id) || 0,
-				geckoId: null,
+				geckoId: pp.gecko_id || null,
 				parentProtocol: null
 			}
 		})
@@ -125,8 +127,8 @@ export async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; cha
 export async function fetchAppMetadata(): Promise<ProDashboardServerProps['appMetadata']> {
 	try {
 		const [protocols, chains, pfPs] = await Promise.all([
-			fetch(`${CONFIG_API}/smol/appMetadata-protocols.json`).then((r) => (r.ok ? r.json() : null)),
-			fetch(`${CONFIG_API}/smol/appMetadata-chains.json`).then((r) => (r.ok ? r.json() : null)),
+			fetchWithPoolingOnServer(`${CONFIG_API}/smol/appMetadata-protocols.json`).then((r) => (r.ok ? r.json() : null)),
+			fetchWithPoolingOnServer(`${CONFIG_API}/smol/appMetadata-chains.json`).then((r) => (r.ok ? r.json() : null)),
 			fetchPfPsProtocols().catch(() => ({ pf: [] as string[], ps: [] as string[] }))
 		])
 
@@ -167,11 +169,13 @@ async function fetchAllYieldsChartData(
 		Array.from(uniquePoolIds).map(async (poolConfigId) => {
 			const [chartResult, lendBorrowResult] = await Promise.allSettled([
 				withTimeout(
-					fetch(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+					fetchWithPoolingOnServer(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
 					CHART_FETCH_TIMEOUT
 				),
 				withTimeout(
-					fetch(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+					fetchWithPoolingOnServer(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) =>
+						r.ok ? r.json() : null
+					),
 					CHART_FETCH_TIMEOUT
 				)
 			])

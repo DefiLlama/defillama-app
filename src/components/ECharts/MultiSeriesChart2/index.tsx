@@ -32,6 +32,7 @@ import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
+import { buildHallmarksMarkLine } from '../hallmarks'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -72,6 +73,10 @@ function getZeroBaselineYAxisMin(extent: AxisExtent) {
 	return typeof extent.min === 'number' && extent.min < 0 ? extent.min : 0
 }
 
+function isChartDisposed(instance: echarts.ECharts) {
+	return instance.isDisposed()
+}
+
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
 function createHatchPattern(color: string, opacity: number): { image: HTMLCanvasElement; repeat: 'repeat' } | null {
@@ -92,18 +97,39 @@ function createHatchPattern(color: string, opacity: number): { image: HTMLCanvas
 	return { image: canvas, repeat: 'repeat' }
 }
 
+function createEndLabel({
+	text,
+	isThemeDark,
+	offset
+}: {
+	text: string
+	isThemeDark: boolean
+	offset: [number, number]
+}) {
+	return {
+		show: true,
+		formatter: text,
+		fontSize: 16,
+		fontWeight: 'bold',
+		color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+		offset
+	}
+}
+
 function buildSeries({
 	effectiveCharts,
 	selectedCharts,
 	expandTo100Percent,
 	solidChartAreaStyle,
-	isThemeDark
+	isThemeDark,
+	hallmarksMarkLine
 }: {
 	effectiveCharts: IMultiSeriesChart2Props['charts']
 	selectedCharts: IMultiSeriesChart2Props['selectedCharts']
 	expandTo100Percent: boolean | undefined
 	solidChartAreaStyle: boolean
 	isThemeDark: boolean
+	hallmarksMarkLine?: ReturnType<typeof buildHallmarksMarkLine>
 }) {
 	const out: any[] = []
 	let someSeriesHasYAxisIndex = false
@@ -133,6 +159,8 @@ function buildSeries({
 			encode: chart.encode,
 			emphasis: { focus: 'series', shadowBlur: 10 },
 			itemStyle: { color: resolvedColor },
+			...(chart.type === 'bar' && chart.barMinWidth != null ? { barMinWidth: chart.barMinWidth } : {}),
+			...(chart.type === 'bar' && chart.barMaxWidth != null ? { barMaxWidth: chart.barMaxWidth } : {}),
 			...(chart.yAxisIndex != null ? { yAxisIndex: chart.yAxisIndex } : {})
 		}
 
@@ -166,7 +194,9 @@ function buildSeries({
 		if (chart.type === 'line' && chart.hideAreaStyle) {
 			delete base.areaStyle
 		}
-
+		if (i === 0 && hallmarksMarkLine) {
+			base.markLine = hallmarksMarkLine
+		}
 		if (chart.isTBD) {
 			const hatch = createHatchPattern(resolvedColor, 0.4)
 			base.itemStyle = { ...base.itemStyle, opacity: 0.3 }
@@ -174,15 +204,23 @@ function buildSeries({
 				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
 			}
 			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
-
-			base.endLabel = {
-				show: true,
-				formatter: 'TBD',
-				fontSize: 16,
-				fontWeight: 'bold',
-				color: isThemeDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+			base.endLabel = createEndLabel({
+				text: 'TBD',
+				isThemeDark,
 				offset: [-40, 10]
+			})
+		} else if (chart.isForecast) {
+			const hatch = createHatchPattern(resolvedColor, 0.8)
+			base.itemStyle = { ...base.itemStyle, opacity: 0.5 }
+			if (base.areaStyle) {
+				base.areaStyle = hatch ? { color: hatch, opacity: 0.6 } : { ...base.areaStyle, opacity: 0.1 }
 			}
+			base.lineStyle = { ...(base.lineStyle ?? {}), type: 'dashed', width: 1.5, opacity: 0.5 }
+			base.endLabel = createEndLabel({
+				text: 'Forecast',
+				isThemeDark,
+				offset: [-80, 15]
+			})
 		}
 
 		out.push(base)
@@ -275,6 +313,8 @@ function buildMultiYAxis({
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
 		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
+		const axisFormatter =
+			isPrimary && existingFormatter ? existingFormatter : (value: number) => formatAxisLabel(value, axisSymbol)
 
 		out.push({
 			...baseAxis,
@@ -293,7 +333,7 @@ function buildMultiYAxis({
 			},
 			axisLabel: {
 				...baseAxisLabel,
-				formatter: existingFormatter ?? ((value: number) => formatAxisLabel(value, axisSymbol)),
+				formatter: axisFormatter,
 				...(axisColor ? { color: axisColor } : {})
 			},
 			...(expandTo100Percent ? { max: 100, min: 0 } : {})
@@ -463,12 +503,16 @@ function createTooltipFormatter({
 	}
 }
 
+const CATEGORY_LOGO_SIZE = 22
+const CATEGORY_LOGO_BOTTOM_GAP = 10
+
 export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const {
 		charts,
 		chartOptions = {},
 		height,
 		hallmarks,
+		hallmarkStyle = 'event-rail',
 		expandTo100Percent,
 		valueSymbol = '$',
 		tooltipMaxItems,
@@ -486,7 +530,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		exportButtons,
 		title,
 		headingAs,
-		containerClassName
+		containerClassName,
+		categoryLogos
 	} = props
 
 	const id = useId()
@@ -494,6 +539,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const categoryLogosOverlayRef = useRef<HTMLDivElement>(null)
+	const hasCategoryLogos = !!(categoryLogos && categoryLogos.length > 0 && categoryLogos.some(Boolean))
 	const eventHoverCleanupRef = useRef<(() => void) | null>(null)
 	const globalOutCleanupRef = useRef<(() => void) | null>(null)
 	// Per-component tooltip size cache (used by tooltip.position). Keeping this in a ref avoids
@@ -641,19 +688,29 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				? autoExportsEnabled
 				: false
 
+	const hallmarksMarkLine = useMemo(
+		() =>
+			hallmarkStyle === 'mark-line' && hallmarks?.length
+				? buildHallmarksMarkLine({ hallmarks, isThemeDark, dateInMs: false })
+				: undefined,
+		[hallmarkStyle, hallmarks, isThemeDark]
+	)
+
 	const series = useMemo(() => {
 		return buildSeries({
 			effectiveCharts,
 			selectedCharts,
 			expandTo100Percent,
 			solidChartAreaStyle,
-			isThemeDark
+			isThemeDark,
+			hallmarksMarkLine
 		})
-	}, [effectiveCharts, isThemeDark, expandTo100Percent, solidChartAreaStyle, selectedCharts])
+	}, [effectiveCharts, isThemeDark, expandTo100Percent, solidChartAreaStyle, selectedCharts, hallmarksMarkLine])
 
 	const eventRailData = useMemo(
-		() => buildEventRailData({ hallmarks, isThemeDark, dateInMs: false }).events,
-		[hallmarks, isThemeDark]
+		() =>
+			hallmarkStyle === 'event-rail' ? buildEventRailData({ hallmarks, isThemeDark, dateInMs: false }).events : [],
+		[hallmarkStyle, hallmarks, isThemeDark]
 	)
 
 	const seriesSymbols = useMemo(() => {
@@ -921,6 +978,10 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		if (!hasExplicitGridBottom) {
 			finalGrid.bottom = getMainGridBottom({ shouldShowEventRail, shouldHideDataZoom })
 		}
+		if (hasCategoryLogos) {
+			finalGrid.bottom = Number(finalGrid.bottom ?? 12) + CATEGORY_LOGO_SIZE + CATEGORY_LOGO_BOTTOM_GAP
+			finalGrid.outerBoundsContain = undefined
+		}
 
 		const { min: timeRangeMin, max: timeRangeMax } = shouldShowEventRail
 			? getSortedDatasetTimeBounds(datasetSource, 'timestamp')
@@ -932,7 +993,15 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			Number.isFinite(timeRangeMax) &&
 			timeRangeMin < timeRangeMax
 
-		const finalXAxis = shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		let finalXAxis: any =
+			shouldShowEventRail && hasTimeRange ? { ...xAxis, min: timeRangeMin, max: timeRangeMax } : xAxis
+		if (hasCategoryLogos) {
+			finalXAxis = {
+				...finalXAxis,
+				axisLabel: { ...(finalXAxis?.axisLabel ?? {}), show: false },
+				axisTick: { ...(finalXAxis?.axisTick ?? {}), show: false }
+			}
+		}
 		const finalYAxisBase =
 			finalYAxis && finalYAxis.length > 0
 				? finalYAxis
@@ -992,12 +1061,58 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			}
 		})
 
+		if (hasCategoryLogos) {
+			const categoryValues = datasetSource.map((row: any) => row?.[datasetDimensions[0]])
+			;(instance as any).__llamaChartLogos = {
+				kind: 'cartesian-x',
+				logos: categoryLogos!,
+				categoryValues
+			}
+		} else {
+			delete (instance as any).__llamaChartLogos
+		}
+
+		const syncCategoryLogos = () => {
+			const layer = categoryLogosOverlayRef.current
+			const inst = chartRef.current
+			if (!layer) return
+			layer.innerHTML = ''
+			if (!hasCategoryLogos || !inst || inst.isDisposed()) return
+			const categoryValues = datasetSource.map((row: any) => row?.[datasetDimensions[0]])
+			const gridBottom = Number(finalGrid.bottom)
+			const chartHeight = inst.getHeight()
+			if (typeof chartHeight !== 'number' || !Number.isFinite(chartHeight)) return
+			const centerY = chartHeight - gridBottom + CATEGORY_LOGO_BOTTOM_GAP / 2 + CATEGORY_LOGO_SIZE / 2
+			const darkBg = isThemeDark ? '#1a1a1a' : '#fff'
+			for (let i = 0; i < categoryValues.length; i++) {
+				const url = categoryLogos?.[i]
+				if (!url) continue
+				const catVal = categoryValues[i]
+				if (catVal == null) continue
+				const x = inst.convertToPixel({ xAxisIndex: 0 }, catVal as any)
+				if (typeof x !== 'number' || !Number.isFinite(x)) continue
+				const img = document.createElement('img')
+				img.src = url
+				img.alt = ''
+				img.loading = 'lazy'
+				img.decoding = 'async'
+				img.title = String(catVal)
+				img.style.cssText = `position:absolute;left:${x - CATEGORY_LOGO_SIZE / 2}px;top:${centerY - CATEGORY_LOGO_SIZE / 2}px;width:${CATEGORY_LOGO_SIZE}px;height:${CATEGORY_LOGO_SIZE}px;border-radius:50%;object-fit:cover;background:${darkBg};pointer-events:none;`
+				layer.appendChild(img)
+			}
+		}
+		if (!isChartDisposed(instance)) {
+			instance.on('finished', syncCategoryLogos)
+		}
+		requestAnimationFrame(syncCategoryLogos)
+
 		globalOutCleanupRef.current?.()
 		globalOutCleanupRef.current = null
 
 		if (alwaysShowTooltip && series.length > 0 && datasetLength > 0) {
 			const dataIndex = datasetLength - 1
-			const showTip = () =>
+			const showTip = () => {
+				if (isChartDisposed(instance)) return
 				instance.dispatchAction({
 					type: 'showTip',
 					// index of series, which is optional when trigger of tooltip is axis
@@ -1008,16 +1123,26 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 					// Use tooltip.position in option by default.
 					position: [60, 0]
 				})
+			}
 
 			showTip()
 
 			const onGlobalOut = () => showTip()
-			instance.on('globalout', onGlobalOut)
+			if (!isChartDisposed(instance)) {
+				instance.on('globalout', onGlobalOut)
+			}
 			globalOutCleanupRef.current = () => {
+				if (isChartDisposed(instance)) return
 				instance.off('globalout', onGlobalOut)
 			}
 		} else {
-			instance.dispatchAction({ type: 'hideTip' })
+			if (!isChartDisposed(instance)) {
+				instance.dispatchAction({ type: 'hideTip' })
+			}
+		}
+		return () => {
+			if (isChartDisposed(instance)) return
+			instance.off('finished', syncCategoryLogos)
 		}
 	}, [
 		id,
@@ -1035,7 +1160,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		eventRailData,
 		tooltipGroupBy,
 		isThemeDark,
-		effectiveCharts
+		effectiveCharts,
+		categoryLogos,
+		hasCategoryLogos
 	])
 
 	return (
@@ -1044,6 +1171,11 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			className={containerClassName ? 'flex flex-1 flex-col' : undefined}
 			chartClassName={containerClassName ?? 'h-[360px]'}
 			chartStyle={!containerClassName && height ? { height } : undefined}
+			overlay={
+				hasCategoryLogos ? (
+					<div ref={categoryLogosOverlayRef} className="pointer-events-none absolute inset-0" aria-hidden />
+				) : null
+			}
 			header={
 				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 					<ChartHeader

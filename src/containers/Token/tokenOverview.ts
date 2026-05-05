@@ -1,16 +1,22 @@
-import { fetchLiquidityTokensDataset } from '~/api'
-import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
-import type { CgChartResponse } from '~/api/coingecko.types'
+import { fetchLiquidityDatasetEntryByProtocolId } from '~/api'
+import {
+	fetchCoinGeckoChartByIdWithCacheFallback,
+	fetchCoinGeckoCoinById,
+	fetchCoinPriceByCoinGeckoIdViaLlamaPrices
+} from '~/api/coingecko'
+import type { CgChartResponse, CoinGeckoCoinDetailResultForOptions } from '~/api/coingecko.types'
 import type { ProtocolLiquidityTokensResponse } from '~/api/types'
 import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatLineChart } from '~/components/ECharts/utils'
-import { CACHE_SERVER, YIELD_CONFIG_API } from '~/constants'
+import { CACHE_SERVER } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { normalizeChartPointsToMs } from '~/containers/ProtocolOverview/chartSeries.utils'
-import { fetchRaises } from '~/containers/Raises/api'
+import { fetchRaisesByDefillamaId } from '~/containers/Raises/api'
 import type { RawRaise } from '~/containers/Raises/api.types'
-import { fetchTreasuries } from '~/containers/Treasuries/api'
+import { fetchTreasuryById } from '~/containers/Treasuries/api'
+import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
+import { fetchYieldConfig, type YieldConfigResponse } from '~/containers/Yields/queries/index'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IProtocolLlamaswapChain, IProtocolMetadata, ITokenListEntry } from '~/utils/metadata/types'
@@ -30,7 +36,7 @@ export interface TokenOverviewRaise {
 	date: number
 	round: string | null
 	amount: number | null
-	source: string | null
+	source?: string
 	investors: string[]
 }
 
@@ -73,7 +79,17 @@ export interface TokenOverviewData {
 	rawChartData: TokenOverviewRawChartData
 }
 
-type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
+type TokenOverviewDataSource =
+	| {
+			kind: 'network'
+	  }
+	| {
+			kind: 'prefetched'
+			raises: RawRaise[] | null
+			treasury: RawTreasuriesResponse[number] | null
+			yieldConfig: YieldConfigResponse | null
+			liquidityInfo: ProtocolLiquidityTokensResponse[number] | null
+	  }
 
 export const TOKEN_OVERVIEW_DEFAULT_CHARTS: TokenOverviewChartLabel[] = ['Token Price']
 export const TOKEN_OVERVIEW_ALL_CHARTS: TokenOverviewChartLabel[] = ['Token Price', 'Token Volume', 'Mcap', 'FDV']
@@ -97,12 +113,143 @@ const emptyMarketData: TokenOverviewMarketData = {
 	}
 }
 
+function needsCoinDetailFallback(tokenEntry: ITokenListEntry | null): boolean {
+	if (!tokenEntry) return true
+
+	return tokenEntry.circulating_supply == null || tokenEntry.total_supply == null || tokenEntry.total_volume == null
+}
+
+type TokenOverviewCoinDetail = CoinGeckoCoinDetailResultForOptions<{
+	localization: false
+	tickers: false
+	marketData: true
+	communityData: false
+	developerData: false
+	sparkline: false
+	includeCategoriesDetails: false
+}>
+
+async function fetchTokenOverviewCoinDetail(geckoId: string): Promise<TokenOverviewCoinDetail | null> {
+	if (!geckoId) return null
+
+	return fetchCoinGeckoCoinById(geckoId, {
+		localization: false,
+		tickers: false,
+		marketData: true,
+		communityData: false,
+		developerData: false,
+		sparkline: false,
+		includeCategoriesDetails: false
+	}).catch(() => null)
+}
+
+function buildTokenMarketDataFallback(
+	coinDetail: TokenOverviewCoinDetail | null | undefined,
+	currentPriceViaLlama: { price?: number | null; timestamp?: number | null } | null
+): TokenOverviewMarketData {
+	const marketData = coinDetail?.market_data
+	const currentPrice = currentPriceViaLlama?.price ?? marketData?.current_price?.usd ?? null
+	const circulatingSupply = marketData?.circulating_supply ?? null
+	const totalSupply = marketData?.total_supply ?? null
+	const maxSupply = marketData?.max_supply ?? null
+	const ath = resolveCurrentAth({
+		currentPrice,
+		currentPriceTimestamp: currentPriceViaLlama?.timestamp ?? null,
+		ath: marketData?.ath?.usd ?? null,
+		athDate: marketData?.ath_date?.usd ?? null
+	})
+	const atl = resolveCurrentAtl({
+		currentPrice,
+		currentPriceTimestamp: currentPriceViaLlama?.timestamp ?? null,
+		atl: marketData?.atl?.usd ?? null,
+		atlDate: marketData?.atl_date?.usd ?? null
+	})
+
+	return {
+		currentPrice,
+		percentChange24h: null,
+		ath: ath.value,
+		athDate: ath.date,
+		atl: atl.value,
+		atlDate: atl.date,
+		circulatingSupply,
+		totalSupply,
+		maxSupply,
+		mcap: calculateMarketValue(currentPrice, circulatingSupply) ?? marketData?.market_cap?.usd ?? null,
+		fdv:
+			calculateMarketValue(currentPrice, maxSupply ?? totalSupply) ?? marketData?.fully_diluted_valuation?.usd ?? null,
+		volume24h: {
+			total: marketData?.total_volume?.usd ?? null,
+			cex: null,
+			dex: null
+		}
+	}
+}
+
+function resolveCurrentAth({
+	currentPrice,
+	currentPriceTimestamp,
+	ath,
+	athDate
+}: {
+	currentPrice: number | null
+	currentPriceTimestamp: number | null
+	ath: number | null
+	athDate: string | null
+}): { value: number | null; date: string | null } {
+	if (currentPrice == null || ath == null || !Number.isFinite(currentPrice) || currentPrice <= ath) {
+		return { value: ath, date: athDate }
+	}
+
+	const currentDate =
+		currentPriceTimestamp != null && Number.isFinite(currentPriceTimestamp)
+			? new Date(currentPriceTimestamp * 1000).toISOString()
+			: new Date().toISOString()
+
+	return { value: currentPrice, date: currentDate }
+}
+
+function resolveCurrentAtl({
+	currentPrice,
+	currentPriceTimestamp,
+	atl,
+	atlDate
+}: {
+	currentPrice: number | null
+	currentPriceTimestamp: number | null
+	atl: number | null
+	atlDate: string | null
+}): { value: number | null; date: string | null } {
+	if (currentPrice == null || atl == null || !Number.isFinite(currentPrice) || currentPrice >= atl) {
+		return { value: atl, date: atlDate }
+	}
+
+	const currentDate =
+		currentPriceTimestamp != null && Number.isFinite(currentPriceTimestamp)
+			? new Date(currentPriceTimestamp * 1000).toISOString()
+			: new Date().toISOString()
+
+	return { value: currentPrice, date: currentDate }
+}
+
+function calculateMarketValue(price: number | null, supply: number | null): number | null {
+	if (price == null || supply == null || !Number.isFinite(price) || !Number.isFinite(supply)) {
+		return null
+	}
+
+	return price * supply
+}
+
 function buildTokenMarketData(
 	tokenEntry: ITokenListEntry | null,
 	tickers: CgChartResponse['data']['coinData']['tickers'] | undefined,
-	cgExchangeIdentifiers: string[]
+	cgExchangeIdentifiers: string[],
+	marketDataFallback: TokenOverviewMarketData = emptyMarketData,
+	currentPriceTimestamp: number | null = null
 ): TokenOverviewMarketData {
-	if (!tokenEntry) return emptyMarketData
+	if (!tokenEntry) {
+		return marketDataFallback
+	}
 
 	let cexVolume: number | null = null
 	let dexVolume: number | null = null
@@ -126,20 +273,40 @@ function buildTokenMarketData(
 		dexVolume = dex
 	}
 
+	const currentPrice = marketDataFallback.currentPrice ?? tokenEntry.current_price
+	const circulatingSupply = tokenEntry.circulating_supply ?? marketDataFallback.circulatingSupply
+	const totalSupply = tokenEntry.total_supply ?? marketDataFallback.totalSupply
+	const maxSupply = tokenEntry.max_supply ?? marketDataFallback.maxSupply
+	const ath = resolveCurrentAth({
+		currentPrice,
+		currentPriceTimestamp,
+		ath: tokenEntry.ath ?? marketDataFallback.ath,
+		athDate: tokenEntry.ath_date ?? marketDataFallback.athDate
+	})
+	const atl = resolveCurrentAtl({
+		currentPrice,
+		currentPriceTimestamp,
+		atl: tokenEntry.atl ?? marketDataFallback.atl,
+		atlDate: tokenEntry.atl_date ?? marketDataFallback.atlDate
+	})
+
 	return {
-		currentPrice: tokenEntry.current_price ?? null,
-		percentChange24h: tokenEntry.price_change_percentage_24h ?? null,
-		ath: tokenEntry.ath ?? null,
-		athDate: tokenEntry.ath_date ?? null,
-		atl: tokenEntry.atl ?? null,
-		atlDate: tokenEntry.atl_date ?? null,
-		circulatingSupply: tokenEntry.circulating_supply ?? null,
-		totalSupply: tokenEntry.total_supply ?? null,
-		maxSupply: tokenEntry.max_supply ?? null,
-		mcap: tokenEntry.market_cap ?? null,
-		fdv: tokenEntry.fully_diluted_valuation ?? null,
+		currentPrice,
+		percentChange24h: tokenEntry.price_change_percentage_24h ?? marketDataFallback.percentChange24h,
+		ath: ath.value,
+		athDate: ath.date,
+		atl: atl.value,
+		atlDate: atl.date,
+		circulatingSupply,
+		totalSupply,
+		maxSupply,
+		mcap: calculateMarketValue(currentPrice, circulatingSupply) ?? tokenEntry.market_cap ?? marketDataFallback.mcap,
+		fdv:
+			calculateMarketValue(currentPrice, maxSupply ?? totalSupply) ??
+			tokenEntry.fully_diluted_valuation ??
+			marketDataFallback.fdv,
 		volume24h: {
-			total: tokenEntry.total_volume ?? null,
+			total: tokenEntry.total_volume ?? marketDataFallback.volume24h.total,
 			cex: cexVolume,
 			dex: dexVolume
 		}
@@ -173,7 +340,7 @@ function buildRaisesSummary(raises: RawRaise[] | null): TokenOverviewRaise[] | n
 			date: raise.date,
 			round: raise.round ?? null,
 			amount: raise.amount ?? null,
-			source: raise.source ?? null,
+			source: raise.source,
 			investors: [...(raise.leadInvestors ?? []), ...(raise.otherInvestors ?? [])]
 		}))
 }
@@ -184,38 +351,40 @@ function buildTokenLiquiditySummary({
 	liquidityInfo
 }: {
 	protocolDataId: string | null
-	yieldsConfig: IYieldsConfigResult
-	liquidityInfo: ProtocolLiquidityTokensResponse | null
+	yieldsConfig: YieldConfigResponse
+	liquidityInfo: ProtocolLiquidityTokensResponse[number] | null
 }): TokenOverviewTokenLiquidity | null {
 	if (!protocolDataId || !yieldsConfig?.protocols || !liquidityInfo) return null
 
-	const tokenPools =
-		liquidityInfo.find((protocol: ProtocolLiquidityTokensResponse[number]) => protocol.id === protocolDataId)
-			?.tokenPools ?? []
+	const tokenPools = liquidityInfo.id === protocolDataId ? (liquidityInfo.tokenPools ?? []) : []
 
 	if (tokenPools.length === 0) return null
 
-	const liquidityAggregated = tokenPools.reduce(
-		(agg: Record<string, Record<string, number>>, pool: { project: string; chain: string; tvlUsd: number }) => {
-			if (!agg[pool.project]) agg[pool.project] = {}
-			agg[pool.project][pool.chain] = pool.tvlUsd + (agg[pool.project][pool.chain] ?? 0)
-			return agg
-		},
-		{} as Record<string, Record<string, number>>
-	)
+	const liquidityAggregated: Record<string, Record<string, number>> = {}
+	for (const pool of tokenPools) {
+		if (!liquidityAggregated[pool.project]) {
+			liquidityAggregated[pool.project] = {}
+		}
+
+		const currentValue = liquidityAggregated[pool.project][pool.chain] ?? 0
+		liquidityAggregated[pool.project][pool.chain] = currentValue + pool.tvlUsd
+	}
 
 	const rows: Array<[string, string, number]> = []
+	let total = 0
 	for (const protocolSlug in liquidityAggregated) {
 		const protocolName = yieldsConfig.protocols?.[protocolSlug]?.name ?? protocolSlug
 
 		const chainValues = liquidityAggregated[protocolSlug]
 		for (const chainName in chainValues) {
-			rows.push([protocolName, chainName, Number(chainValues[chainName])])
+			const liquidityValue = Number(chainValues[chainName])
+			rows.push([protocolName, chainName, liquidityValue])
+			total += liquidityValue
 		}
 	}
 
 	rows.sort((a, b) => b[2] - a[2])
-	return rows.length > 0 ? { pools: rows, total: rows.reduce((sum, row) => sum + row[2], 0) } : null
+	return rows.length > 0 ? { pools: rows, total } : null
 }
 
 async function fetchTotalSupply(geckoId: string): Promise<number | null> {
@@ -286,6 +455,7 @@ export async function getTokenOverviewData({
 	protocolMetadata,
 	cgExchangeIdentifiers,
 	llamaswapChains,
+	source,
 	prefetchedCharts = TOKEN_OVERVIEW_ALL_CHARTS
 }: {
 	record: TokenDirectoryRecord
@@ -295,6 +465,7 @@ export async function getTokenOverviewData({
 	protocolMetadata: IProtocolMetadata | null
 	cgExchangeIdentifiers: string[]
 	llamaswapChains: IProtocolLlamaswapChain[] | null
+	source: TokenOverviewDataSource
 	prefetchedCharts?: TokenOverviewChartLabel[]
 }): Promise<TokenOverviewData> {
 	const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
@@ -306,41 +477,62 @@ export async function getTokenOverviewData({
 	const shouldFetchRaises = Boolean(chainDefiLlamaId || protocolDefiLlamaId)
 	const shouldFetchLiquidity = Boolean(shouldFetchProtocolData && protocolMetadata?.liquidity)
 	const shouldFetchOutstandingFdv = Boolean(shouldFetchProtocolData && protocolMetadata?.emissions)
+	const shouldFetchCoinDetail = Boolean(geckoId && needsCoinDetailFallback(tokenEntry))
 	const totalSupply = tokenEntry?.max_supply ?? tokenEntry?.total_supply ?? null
 
 	const [
 		cgChart,
+		coinDetail,
+		currentPriceViaLlama,
 		protocolData,
 		raisesData,
 		treasuries,
 		adjustedSupply,
-		yieldsConfig,
-		liquidityInfo,
 		fetchedTotalSupply
 	] = await Promise.all([
 		geckoId ? fetchCoinGeckoChartByIdWithCacheFallback(geckoId).catch(() => null) : Promise.resolve(null),
+		shouldFetchCoinDetail ? fetchTokenOverviewCoinDetail(geckoId) : Promise.resolve(null),
+		geckoId ? fetchCoinPriceByCoinGeckoIdViaLlamaPrices(geckoId).catch(() => null) : Promise.resolve(null),
 		shouldFetchProtocolData ? fetchProtocolOverviewMetrics(protocolSlug!).catch(() => null) : Promise.resolve(null),
-		shouldFetchRaises ? fetchRaises().catch(() => ({ raises: [] as RawRaise[] })) : Promise.resolve(null),
-		shouldFetchTreasury ? fetchTreasuries().catch(() => []) : Promise.resolve(null),
+		source.kind === 'prefetched'
+			? Promise.resolve(source.raises)
+			: shouldFetchRaises
+				? fetchRaisesByDefillamaId(chainDefiLlamaId ?? protocolDefiLlamaId!).catch(() => [] as RawRaise[])
+				: Promise.resolve(null),
+		source.kind === 'prefetched'
+			? Promise.resolve(source.treasury)
+			: shouldFetchTreasury
+				? fetchTreasuryById(`${protocolDefiLlamaId}-treasury`).catch(() => null)
+				: Promise.resolve(null),
 		shouldFetchOutstandingFdv
 			? fetchProtocolEmissionFromDatasets(protocolSlug!)
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: Promise.resolve(null),
-		shouldFetchLiquidity ? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API).catch(() => null) : Promise.resolve(null),
-		shouldFetchLiquidity ? fetchLiquidityTokensDataset().catch(() => null) : Promise.resolve(null),
 		geckoId ? fetchTotalSupply(geckoId) : Promise.resolve(null)
 	])
 
-	const marketData = buildTokenMarketData(tokenEntry, cgChart?.data?.coinData?.tickers, cgExchangeIdentifiers)
-	const treasury =
-		shouldFetchTreasury && treasuries
-			? buildTreasurySummary(treasuries.find((item) => item.id === `${protocolDefiLlamaId}-treasury`) ?? null)
-			: null
+	const [yieldsConfig, liquidityInfo] =
+		source.kind === 'prefetched'
+			? [source.yieldConfig, source.liquidityInfo]
+			: shouldFetchLiquidity && protocolData?.id
+				? await Promise.all([
+						fetchYieldConfig().catch(() => null),
+						fetchLiquidityDatasetEntryByProtocolId(protocolData.id).catch(() => null)
+					])
+				: [null, null]
 
-	const matchedRaises = raisesData
-		? (raisesData.raises.filter((raise) => raise.defillamaId === (chainDefiLlamaId ?? protocolDefiLlamaId)) ?? [])
-		: []
+	const marketDataFallback = buildTokenMarketDataFallback(coinDetail, currentPriceViaLlama)
+	const marketData = buildTokenMarketData(
+		tokenEntry,
+		cgChart?.data?.coinData?.tickers,
+		cgExchangeIdentifiers,
+		marketDataFallback,
+		currentPriceViaLlama?.timestamp ?? null
+	)
+	const treasury = shouldFetchTreasury ? buildTreasurySummary(treasuries) : null
+
+	const matchedRaises = raisesData ?? []
 
 	const tokenLiquidity = buildTokenLiquiditySummary({
 		protocolDataId: protocolData?.id ?? null,

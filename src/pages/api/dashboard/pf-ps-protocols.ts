@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { llamaDb } from '~/server/db/llama'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 interface ProtocolAvailability {
 	protocol: string
@@ -12,7 +13,7 @@ interface ResponseData {
 	ps: string[]
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData | { error: string }>) {
+async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData | { error: string }>) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -44,7 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 		res.setHeader('Cache-Control', 'public, max-age=3600')
 		return res.status(200).json({ pf, ps })
 	} catch (error) {
-		console.log('Failed to fetch pf/ps protocols', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Failed to load pf/ps protocol availability' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/dashboard/pf-ps-protocols', handler)

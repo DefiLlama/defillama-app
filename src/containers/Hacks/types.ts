@@ -10,7 +10,6 @@ export interface IHacksPageData {
 		name: string
 		technique: string
 		bridge: boolean
-		link: string
 		language: string
 	}>
 	monthlyHacksChartData: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] }

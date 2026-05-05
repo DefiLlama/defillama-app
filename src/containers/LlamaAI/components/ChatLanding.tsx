@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
@@ -61,22 +62,29 @@ export function ChatLanding({
 			</div>
 			{!readOnly ? (
 				<>
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={isStreaming}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-						restoreRequest={null}
-						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={researchUsage}
-						onOpenAlerts={onOpenAlerts}
-						quotedText={quotedText}
-						onClearQuotedText={onClearQuotedText}
-						walkthroughActive={!hasSeenWelcome}
-					/>
+					<div className="relative w-full">
+						{hasSeenWelcome ? (
+							<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
+								<TipOrNotifyBanner />
+							</div>
+						) : null}
+						<PromptInput
+							handleSubmit={handleSubmit}
+							promptInputRef={promptInputRef}
+							isPending={isStreaming}
+							handleStopRequest={handleStopRequest}
+							isStreaming={isStreaming}
+							restoreRequest={null}
+							placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+							isResearchMode={isResearchMode}
+							setIsResearchMode={setIsResearchMode}
+							researchUsage={researchUsage}
+							onOpenAlerts={onOpenAlerts}
+							quotedText={quotedText}
+							onClearQuotedText={onClearQuotedText}
+							walkthroughActive={!hasSeenWelcome}
+						/>
+					</div>
 
 					<CapabilityRow promptInputRef={promptInputRef} />
 				</>

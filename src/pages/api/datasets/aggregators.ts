@@ -1,13 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { mergeMetricPeriods } from '~/containers/DimensionAdapters/metricPeriods'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const adapterType = ADAPTER_TYPES.AGGREGATORS
 const metricName = 'DEX Aggregator Volume'
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 		const { chains } = req.query
@@ -57,28 +59,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 					if (allProtocolsMap.has(key)) {
 						const existing = allProtocolsMap.get(key)
-						existing.total24h = (existing.total24h || 0) + (protocol.total24h || 0)
-						existing.total7d = (existing.total7d || 0) + (protocol.total7d || 0)
-						existing.total30d = (existing.total30d || 0) + (protocol.total30d || 0)
+						mergeMetricPeriods(existing, protocol)
 						existing.chains = Array.from(new Set([...(existing.chains || []), chainName]))
 						existing.chainBreakdown = existing.chainBreakdown || {}
 						existing.chainBreakdown[normalizedChainKey] = {
 							...protocol,
+							change_7d: protocol.change_7d ?? protocol.change_7dover7d,
 							chain: chainName
 						}
 					} else {
-						allProtocolsMap.set(key, {
+						const entry = {
 							...protocol,
 							chains: [chainName],
 							chainBreakdown: {
 								[normalizedChainKey]: {
 									...protocol,
+									change_7d: protocol.change_7d ?? protocol.change_7dover7d,
 									chain: chainName
 								}
 							},
 							logo: protocol.logo,
 							slug: protocol.slug
-						})
+						}
+						allProtocolsMap.set(key, entry)
 					}
 				}
 			}
@@ -92,7 +95,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.status(200).json(sortedProtocols)
 		}
 	} catch (error) {
-		console.log('Error fetching aggregators data:', error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		res.status(500).json({ error: 'Failed to fetch aggregators data' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/datasets/aggregators', handler)

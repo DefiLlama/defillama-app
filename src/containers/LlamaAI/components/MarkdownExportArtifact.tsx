@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface MarkdownExportArtifactProps {
 	mdExport: {
@@ -9,6 +10,8 @@ interface MarkdownExportArtifactProps {
 		url: string
 		filename: string
 	}
+	sessionId?: string | null
+	messageId?: string
 }
 
 async function downloadMarkdownFile({ url, filename }: { url: string; filename: string }) {
@@ -33,7 +36,7 @@ async function downloadMarkdownFile({ url, filename }: { url: string; filename: 
 	}
 }
 
-export function MarkdownExportArtifact({ mdExport }: MarkdownExportArtifactProps) {
+export function MarkdownExportArtifact({ mdExport, sessionId, messageId }: MarkdownExportArtifactProps) {
 	const safeUrl = sanitizeUrl(mdExport.url)
 	const downloadMarkdownMutation = useMutation({
 		mutationFn: downloadMarkdownFile
@@ -45,7 +48,17 @@ export function MarkdownExportArtifact({ mdExport }: MarkdownExportArtifactProps
 		<button
 			type="button"
 			disabled={downloadMarkdownMutation.isPending}
-			onClick={() => downloadMarkdownMutation.mutate({ url: safeUrl, filename: mdExport.filename })}
+			onClick={() => {
+				trackUmamiEvent('llamaai-download', {
+					kind: 'artifact-md',
+					filename: mdExport.filename,
+					title: mdExport.title,
+					artifactId: mdExport.id,
+					sessionId: sessionId ?? '',
+					messageId: messageId ?? ''
+				})
+				downloadMarkdownMutation.mutate({ url: safeUrl, filename: mdExport.filename })
+			}}
 			className="flex w-full items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 text-left transition-colors hover:border-[#2172E5] hover:bg-[#2172E5]/5 disabled:cursor-not-allowed disabled:opacity-70 dark:border-[#222324] dark:bg-[#181A1C] dark:hover:border-[#2172E5]"
 		>
 			<span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2172E5]/10">

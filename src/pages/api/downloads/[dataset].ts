@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { datasetsBySlug, type DatasetDefinition } from '~/containers/Downloads/datasets'
 import { slug as toSlug } from '~/utils'
 import { validateSubscription } from '~/utils/apiAuth'
+import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 function sanitize(s: string): string {
 	return s.replace(/[\r\n]+/g, ' ').trim()
@@ -147,7 +149,7 @@ function filterProtocolsByChain(items: any[], chain: string): any[] {
 		})
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		res.setHeader('Allow', ['GET'])
 		return res.status(405).json({ error: 'Method Not Allowed' })
@@ -184,7 +186,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			fetchUrl = insertChainIntoOverviewUrl(dataset.url, chainParam)
 		}
 
-		const upstream = await fetch(fetchUrl)
+		const upstream = await fetchWithPoolingOnServer(fetchUrl)
 		if (!upstream.ok) {
 			return res.status(502).json({ error: `Upstream API returned ${upstream.status}` })
 		}
@@ -216,7 +218,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		}
 		return res.status(200).send(csv)
 	} catch (error) {
-		console.error(`Downloads proxy error (${datasetSlug}):`, error)
+		recordRouteRuntimeError(error, 'apiRoute')
 		return res.status(500).json({ error: 'Internal server error' })
 	}
 }
+
+export default withApiRouteTelemetry('/api/downloads/[dataset]', handler)

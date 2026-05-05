@@ -1,24 +1,27 @@
 import type { ProtocolLlamaswapMetadata } from '~/utils/metadata/types'
-import { getTokenRiskBorrowRoutes } from './api'
-import type { TokenRiskBorrowRoutesResponse } from './api.types'
+import { getTokenRiskBorrowCapacity } from './api'
+import type { TokenRiskBorrowCapacityResponse } from './api.types'
 import type { TokenRiskResponse } from './tokenRisk.types'
 import {
-	buildBorrowCapsSection,
-	buildCollateralRiskSection,
+	buildExposuresSection,
+	CANONICAL_NATIVE_TOKEN_ADDRESS,
 	filterTokenRiskCandidatesWithData,
-	indexBorrowRoutesByAssetKey,
-	mergeIndexedBuckets,
+	hasNativeWrappedTokenRiskAlias,
+	indexBorrowCapacityByAssetKey,
+	inferTokenRiskCandidatesFromBorrowCapacity,
+	mergeIndexedBorrowCapacity,
+	mergeTokenRiskCandidates,
 	resolveTokenRiskCandidates,
 	TOKEN_RISK_LIMITATIONS_COMMON,
-	TOKEN_RISK_LIMITATION_DEBT_SIDE
+	TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS
 } from './tokenRisk.utils'
 
-const BORROW_ROUTES_CACHE_TTL_MS = 5 * 60 * 1000
+const BORROW_CAPACITY_CACHE_TTL_MS = 5 * 60 * 1000
 
-type IndexedBorrowRoutesCache = {
-	data: TokenRiskBorrowRoutesResponse
-	indexedRoutes: ReturnType<typeof indexBorrowRoutesByAssetKey>
-	fetchedAt: number
+type IndexedBorrowCapacityCache = {
+	data: TokenRiskBorrowCapacityResponse
+	indexedTokens: ReturnType<typeof indexBorrowCapacityByAssetKey>
+	fetchedAt?: number
 }
 
 type TokenRiskDisplayLookups = {
@@ -28,76 +31,101 @@ type TokenRiskDisplayLookups = {
 
 type TokenRiskQueryInput = {
 	geckoId: string
+	tokenSymbol: string
 	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
 	displayLookups: TokenRiskDisplayLookups
+	borrowCapacitySnapshot?: IndexedBorrowCapacityCache
 }
 
-let borrowRoutesCache: IndexedBorrowRoutesCache | null = null
-let borrowRoutesInFlight: Promise<IndexedBorrowRoutesCache> | null = null
+let borrowCapacityCache: IndexedBorrowCapacityCache | null = null
+let borrowCapacityInFlight: Promise<IndexedBorrowCapacityCache> | null = null
 
-async function getIndexedBorrowRoutesCache(): Promise<IndexedBorrowRoutesCache> {
+export function resetTokenRiskBorrowRoutesCache() {
+	borrowCapacityCache = null
+	borrowCapacityInFlight = null
+}
+
+async function getIndexedBorrowCapacityCache(): Promise<IndexedBorrowCapacityCache> {
 	const now = Date.now()
-	if (borrowRoutesCache && now - borrowRoutesCache.fetchedAt < BORROW_ROUTES_CACHE_TTL_MS) {
-		return borrowRoutesCache
+	if (
+		borrowCapacityCache &&
+		borrowCapacityCache.fetchedAt &&
+		now - borrowCapacityCache.fetchedAt < BORROW_CAPACITY_CACHE_TTL_MS
+	) {
+		return borrowCapacityCache
 	}
 
-	if (borrowRoutesInFlight) {
-		return borrowRoutesInFlight
+	if (borrowCapacityInFlight) {
+		return borrowCapacityInFlight
 	}
 
-	borrowRoutesInFlight = getTokenRiskBorrowRoutes()
-		.then((data) => ({
+	borrowCapacityInFlight = (async () => {
+		const data = await getTokenRiskBorrowCapacity()
+		return {
 			data,
-			indexedRoutes: indexBorrowRoutesByAssetKey(data.routes),
+			indexedTokens: indexBorrowCapacityByAssetKey(data.tokens),
 			fetchedAt: Date.now()
-		}))
+		}
+	})()
 		.then((cacheValue) => {
-			borrowRoutesCache = cacheValue
+			borrowCapacityCache = cacheValue
 			return cacheValue
 		})
 		.finally(() => {
-			borrowRoutesInFlight = null
+			borrowCapacityInFlight = null
 		})
 
-	return borrowRoutesInFlight
+	return borrowCapacityInFlight
 }
 
 export async function getTokenRiskData({
 	geckoId,
+	tokenSymbol,
 	protocolLlamaswapDataset,
-	displayLookups
+	displayLookups,
+	borrowCapacitySnapshot
 }: TokenRiskQueryInput): Promise<TokenRiskResponse | null> {
-	const candidates = resolveTokenRiskCandidates(geckoId, protocolLlamaswapDataset)
+	const resolvedBorrowCapacitySnapshot = borrowCapacitySnapshot ?? (await getIndexedBorrowCapacityCache())
+	const metadataCandidates = resolveTokenRiskCandidates(geckoId, tokenSymbol, protocolLlamaswapDataset)
+	const inferredCandidates = inferTokenRiskCandidatesFromBorrowCapacity({
+		tokenSymbol,
+		tokens: resolvedBorrowCapacitySnapshot.data.tokens,
+		chainDisplayNames: displayLookups.chainDisplayNames
+	})
+	const shouldSupplementMetadataCandidates =
+		metadataCandidates.some((candidate) => candidate.address === CANONICAL_NATIVE_TOKEN_ADDRESS) ||
+		hasNativeWrappedTokenRiskAlias(tokenSymbol)
+	const candidates =
+		metadataCandidates.length > 0 && shouldSupplementMetadataCandidates
+			? mergeTokenRiskCandidates(metadataCandidates, inferredCandidates)
+			: metadataCandidates.length > 0
+				? metadataCandidates
+				: inferredCandidates
 	if (candidates.length === 0) return null
 
-	const borrowRoutesSnapshot = await getIndexedBorrowRoutesCache()
-	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, borrowRoutesSnapshot.indexedRoutes)
+	const scopeCandidates = filterTokenRiskCandidatesWithData(candidates, resolvedBorrowCapacitySnapshot.indexedTokens)
 	if (scopeCandidates.length === 0) return null
 
-	const activeBucket = mergeIndexedBuckets(
-		borrowRoutesSnapshot.indexedRoutes,
+	const activeTokens = mergeIndexedBorrowCapacity(
+		resolvedBorrowCapacitySnapshot.indexedTokens,
 		scopeCandidates.map((candidate) => candidate.key)
 	)
 
-	const borrowCaps = buildBorrowCapsSection(activeBucket, borrowRoutesSnapshot.data.methodologies, displayLookups)
-	const collateralRisk = buildCollateralRiskSection(
-		activeBucket,
-		borrowRoutesSnapshot.data.methodologies,
+	const exposures = buildExposuresSection(
+		activeTokens,
+		resolvedBorrowCapacitySnapshot.data.methodologies,
 		displayLookups
 	)
-
-	if (borrowCaps.rows.length === 0 && collateralRisk.rows.length === 0) return null
+	if (exposures.rows.length === 0) return null
 
 	return {
 		candidates,
 		scopeCandidates,
 		selectedCandidateKey: null,
-		borrowCaps,
-		collateralRisk,
-		selectedChainRisk: null,
+		exposures,
 		limitations: [
 			...TOKEN_RISK_LIMITATIONS_COMMON,
-			...(borrowCaps.rows.length > 0 ? [TOKEN_RISK_LIMITATION_DEBT_SIDE] : [])
+			...(exposures.summary.minBadDebtUnknownCount > 0 ? [TOKEN_RISK_LIMITATION_MIN_BAD_DEBT_NULLS] : [])
 		]
 	}
 }

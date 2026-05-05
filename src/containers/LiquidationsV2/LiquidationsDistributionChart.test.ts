@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { LiquidationsDistributionChartData } from './api.types'
 import {
+	buildCumulativeLiquidationsChartView,
 	getLiquidationsChartBreakdownMode,
 	getLiquidationsChartBreakdownQueryPatch,
 	getLiquidationsChartMetric,
 	getLiquidationsChartMetricQueryPatch,
+	getLiquidationsChartMode,
+	getLiquidationsChartModeQueryPatch,
 	getLiquidationsChartTokenQueryPatch,
 	getTooltipValue,
 	getLiquidationsChartView,
@@ -172,9 +175,55 @@ describe('LiquidationsDistributionChart helpers', () => {
 		expect(getLiquidationsChartView(chart, 'WBTC', 'protocol')).toEqual(chart.tokens[0].breakdowns.protocol)
 	})
 
+	it('builds cumulative liquidation totals from right to left across price buckets', () => {
+		expect(
+			buildCumulativeLiquidationsChartView({
+				bins: [0, 10, 20],
+				series: [
+					{
+						key: 'Aave',
+						label: 'Aave',
+						usd: [10, 20, 30],
+						amount: [1, 2, 3],
+						totalUsd: 60
+					},
+					{
+						key: 'Compound',
+						label: 'Compound',
+						usd: [5, 0, 15],
+						amount: [0.5, 0, 1.5],
+						totalUsd: 20
+					}
+				]
+			})
+		).toEqual({
+			bins: [0, 10, 20],
+			series: [
+				{
+					key: 'Aave',
+					label: 'Aave',
+					usd: [60, 50, 30],
+					amount: [6, 5, 3],
+					totalUsd: 60
+				},
+				{
+					key: 'Compound',
+					label: 'Compound',
+					usd: [20, 15, 15],
+					amount: [2, 1.5, 1.5],
+					totalUsd: 20
+				}
+			]
+		})
+	})
+
 	it('normalizes metric and breakdown query state', () => {
 		expect(getLiquidationsChartMetric(undefined)).toBe('usd')
 		expect(getLiquidationsChartMetric('amount')).toBe('amount')
+		expect(getLiquidationsChartMode(undefined)).toBe('cumulative')
+		expect(getLiquidationsChartMode('distribution')).toBe('distribution')
+		expect(getLiquidationsChartMode('invalid')).toBe('cumulative')
+		expect(getLiquidationsChartMode(undefined, 'distribution')).toBe('distribution')
 		expect(getLiquidationsChartBreakdownMode(undefined)).toBe('total')
 		expect(getLiquidationsChartBreakdownMode('protocol')).toBe('protocol')
 		expect(getLiquidationsChartBreakdownMode('protocol', ['total', 'chain'])).toBe('total')
@@ -186,8 +235,14 @@ describe('LiquidationsDistributionChart helpers', () => {
 	it('drops default chart state from query patches', () => {
 		expect(getLiquidationsChartMetricQueryPatch('usd')).toEqual({ metric: undefined })
 		expect(getLiquidationsChartMetricQueryPatch('amount')).toEqual({ metric: 'amount' })
+		expect(getLiquidationsChartModeQueryPatch('cumulative')).toEqual({ view: undefined })
+		expect(getLiquidationsChartModeQueryPatch('distribution')).toEqual({ view: 'distribution' })
+		expect(getLiquidationsChartModeQueryPatch('distribution', 'distribution')).toEqual({ view: undefined })
+		expect(getLiquidationsChartModeQueryPatch('cumulative', 'distribution')).toEqual({ view: 'cumulative' })
 		expect(getLiquidationsChartBreakdownQueryPatch('total')).toEqual({ breakdown: undefined })
 		expect(getLiquidationsChartBreakdownQueryPatch('chain')).toEqual({ breakdown: 'chain' })
+		expect(getLiquidationsChartBreakdownQueryPatch('total', 'chain')).toEqual({ breakdown: 'total' })
+		expect(getLiquidationsChartBreakdownQueryPatch('chain', 'chain')).toEqual({ breakdown: undefined })
 		expect(getLiquidationsChartTokenQueryPatch('WBTC', 'WBTC')).toEqual({ token: undefined })
 		expect(getLiquidationsChartTokenQueryPatch('ethereum:eth', 'WBTC')).toEqual({ token: 'ethereum:eth' })
 	})

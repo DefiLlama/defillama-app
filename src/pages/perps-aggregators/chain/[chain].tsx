@@ -60,9 +60,9 @@ export const getStaticProps = withPerformanceLogging(
 			chain: metadataCache.chainMetadata[chain].name,
 			route: 'perps-aggregators',
 			metricName: type
-		}).catch((e) => console.info(`Chain page data not found ${adapterType} : chain:${chain}`, e))
+		})
 
-		if (!data) return { notFound: true }
+		if (!data) throw new Error(`Missing page data for route=/perps-aggregators/chain/[chain] chain=${chain}`)
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(chain, 'chain', {
 			subPage: 'perps-aggregators',

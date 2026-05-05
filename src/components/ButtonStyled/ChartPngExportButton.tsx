@@ -126,6 +126,175 @@ async function getChartPngDataURL(
 	return canvas.toDataURL('image/png')
 }
 
+// --- Category logo overlay (for charts with axis logos) ---
+
+const EXPORT_CATEGORY_LOGO_SIZE = 44
+const EXPORT_CATEGORY_LOGO_GAP = 16
+const EXPORT_HBAR_LOGO_SIZE = 36
+const EXPORT_HBAR_LOGO_GAP = 12
+const EXPORT_HBAR_LEFT_PAD = 16
+const EXPORT_HBAR_LABEL_FONT = `${EXPORT_FONT_SIZE}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
+const EXPORT_HBAR_LABEL_MAX_WIDTH = 360
+
+type ChartLogosData =
+	| { kind: 'cartesian-x'; logos: string[]; categoryValues: any[] }
+	| { kind: 'hbar'; logos: string[]; categories: string[] }
+
+function readStashedChartLogos(chart: echarts.ECharts): ChartLogosData | undefined {
+	const data = (chart as any).__llamaChartLogos
+	if (!data || typeof data !== 'object') return undefined
+	if (data.kind === 'cartesian-x' && Array.isArray(data.logos) && Array.isArray(data.categoryValues)) {
+		return data
+	}
+	if (data.kind === 'hbar' && Array.isArray(data.logos) && Array.isArray(data.categories)) {
+		return data
+	}
+	return undefined
+}
+
+async function loadProxiedImage(url: string): Promise<HTMLImageElement | null> {
+	if (!url) return null
+	try {
+		const response = await fetch(`/api/icon-proxy?url=${encodeURIComponent(url)}`)
+		if (!response.ok) return null
+		const blob = await response.blob()
+		const dataUrl = await new Promise<string>((resolve, reject) => {
+			const reader = new FileReader()
+			reader.onloadend = () => {
+				if (typeof reader.result === 'string') resolve(reader.result)
+				else reject(new Error('Failed to read icon'))
+			}
+			reader.onerror = reject
+			reader.readAsDataURL(blob)
+		})
+		const img = new Image()
+		await new Promise<void>((resolve, reject) => {
+			img.onload = () => resolve()
+			img.onerror = reject
+			img.src = dataUrl
+		})
+		return img
+	} catch {
+		return null
+	}
+}
+
+function truncateToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string {
+	if (ctx.measureText(text).width <= maxWidth) return text
+	let lo = 0
+	let hi = text.length
+	while (lo < hi) {
+		const mid = (lo + hi + 1) >> 1
+		if (ctx.measureText(text.slice(0, mid) + '…').width <= maxWidth) lo = mid
+		else hi = mid - 1
+	}
+	return lo > 0 ? text.slice(0, lo) + '…' : text
+}
+
+async function composeLogoOverlay(opts: {
+	baseDataURL: string
+	tempChart: echarts.ECharts
+	logosData: ChartLogosData
+	isDark: boolean
+	gridBottom: number
+	chartCssWidth: number
+	chartCssHeight: number
+}): Promise<string> {
+	const { baseDataURL, tempChart, logosData, isDark, gridBottom, chartCssWidth, chartCssHeight } = opts
+
+	const loadedImgs = await Promise.all(
+		logosData.logos.map((url) => (url ? loadProxiedImage(url) : Promise.resolve(null)))
+	)
+
+	const chartImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+		const img = new Image()
+		img.onload = () => resolve(img)
+		img.onerror = reject
+		img.src = baseDataURL
+	})
+
+	const dpr = chartImg.width / chartCssWidth
+	const canvas = document.createElement('canvas')
+	canvas.width = chartImg.width
+	canvas.height = chartImg.height
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return baseDataURL
+
+	ctx.drawImage(chartImg, 0, 0)
+	ctx.scale(dpr, dpr)
+
+	const logoBgColor = isDark ? '#1a1a1a' : '#ffffff'
+
+	if (logosData.kind === 'cartesian-x') {
+		const centerY = chartCssHeight - gridBottom + EXPORT_CATEGORY_LOGO_GAP / 2 + EXPORT_CATEGORY_LOGO_SIZE / 2
+		for (let i = 0; i < logosData.categoryValues.length; i++) {
+			const img = loadedImgs[i]
+			if (!img) continue
+			const catVal = logosData.categoryValues[i]
+			if (catVal == null) continue
+			const x = tempChart.convertToPixel({ xAxisIndex: 0 }, catVal as any)
+			if (typeof x !== 'number' || !Number.isFinite(x)) continue
+			ctx.save()
+			ctx.beginPath()
+			ctx.arc(x, centerY, EXPORT_CATEGORY_LOGO_SIZE / 2, 0, 2 * Math.PI)
+			ctx.fillStyle = logoBgColor
+			ctx.fill()
+			ctx.clip()
+			ctx.drawImage(
+				img,
+				x - EXPORT_CATEGORY_LOGO_SIZE / 2,
+				centerY - EXPORT_CATEGORY_LOGO_SIZE / 2,
+				EXPORT_CATEGORY_LOGO_SIZE,
+				EXPORT_CATEGORY_LOGO_SIZE
+			)
+			ctx.restore()
+		}
+	} else {
+		ctx.font = EXPORT_HBAR_LABEL_FONT
+		ctx.textBaseline = 'middle'
+		ctx.fillStyle = isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'
+		const textX = EXPORT_HBAR_LEFT_PAD + EXPORT_HBAR_LOGO_SIZE + EXPORT_HBAR_LOGO_GAP
+		for (let i = 0; i < logosData.categories.length; i++) {
+			const y = tempChart.convertToPixel({ yAxisIndex: 0 }, i)
+			if (typeof y !== 'number' || !Number.isFinite(y)) continue
+			const img = loadedImgs[i]
+			if (img) {
+				ctx.save()
+				ctx.beginPath()
+				ctx.arc(EXPORT_HBAR_LEFT_PAD + EXPORT_HBAR_LOGO_SIZE / 2, y, EXPORT_HBAR_LOGO_SIZE / 2, 0, 2 * Math.PI)
+				ctx.fillStyle = logoBgColor
+				ctx.fill()
+				ctx.clip()
+				ctx.drawImage(
+					img,
+					EXPORT_HBAR_LEFT_PAD,
+					y - EXPORT_HBAR_LOGO_SIZE / 2,
+					EXPORT_HBAR_LOGO_SIZE,
+					EXPORT_HBAR_LOGO_SIZE
+				)
+				ctx.restore()
+			}
+			const text = truncateToWidth(ctx, logosData.categories[i], EXPORT_HBAR_LABEL_MAX_WIDTH)
+			ctx.fillText(text, textX, y)
+		}
+	}
+
+	return canvas.toDataURL('image/png')
+}
+
+function computeHBarLeftGridForExport(categories: string[]): number {
+	const c = document.createElement('canvas').getContext('2d')
+	if (!c) return EXPORT_HBAR_LEFT_PAD + EXPORT_HBAR_LOGO_SIZE + EXPORT_HBAR_LOGO_GAP + EXPORT_HBAR_LABEL_MAX_WIDTH + 16
+	c.font = EXPORT_HBAR_LABEL_FONT
+	let maxW = 0
+	for (const cat of categories) {
+		const w = Math.ceil(c.measureText(cat).width)
+		if (w > maxW) maxW = w
+	}
+	const labelW = Math.min(maxW, EXPORT_HBAR_LABEL_MAX_WIDTH)
+	return EXPORT_HBAR_LEFT_PAD + EXPORT_HBAR_LOGO_SIZE + EXPORT_HBAR_LOGO_GAP + labelW + 16
+}
+
 // --- Icon loading ---
 
 async function loadCircularIcon(url: string): Promise<string | null> {
@@ -654,6 +823,7 @@ async function renderClonedChartExport(
 	const currentOptions = originalChart.getOption()
 
 	const flags = detectSeriesFlags(currentOptions)
+	const stashedLogos = readStashedChartLogos(originalChart)
 	let exportHeight = IMAGE_EXPORT_HEIGHT
 	if (pngProfile === 'hbar' && flags.isHorizontalBarChart) {
 		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
@@ -718,13 +888,23 @@ async function renderClonedChartExport(
 			const hasXAxisName = Array.isArray(currentOptions.xAxis) && currentOptions.xAxis.some((a: any) => !!a?.name)
 			const scatterLeftPad = flags.isScatterChart && hasYAxisName ? 48 : 16
 			const scatterBottomPad = flags.isScatterChart && hasXAxisName ? 48 : expandLegend ? 32 : 16
+			let gridLeft: number = scatterLeftPad
+			let gridBottom: number = scatterBottomPad
+			let outerBoundsContain: string | undefined = 'axisLabel'
+			if (stashedLogos?.kind === 'cartesian-x') {
+				gridBottom = scatterBottomPad + EXPORT_CATEGORY_LOGO_SIZE + EXPORT_CATEGORY_LOGO_GAP
+				outerBoundsContain = undefined
+			} else if (stashedLogos?.kind === 'hbar') {
+				gridLeft = computeHBarLeftGridForExport(stashedLogos.categories)
+				outerBoundsContain = undefined
+			}
 			currentOptions.grid = {
-				left: scatterLeftPad,
-				bottom: scatterBottomPad,
+				left: gridLeft,
+				bottom: gridBottom,
 				top: layout.gridTop,
 				right: 16,
 				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel'
+				outerBoundsContain
 			}
 		}
 
@@ -753,11 +933,30 @@ async function renderClonedChartExport(
 
 		await waitForChartRender(tempChart)
 
-		return await getChartPngDataURL(tempChart, {
+		const baseDataURL = await getChartPngDataURL(tempChart, {
 			pixelRatio: 2,
 			backgroundColor: isDark ? '#0b1214' : '#ffffff',
 			excludeComponents: ['toolbox', 'dataZoom']
 		})
+
+		if (!stashedLogos) {
+			return baseDataURL
+		}
+
+		try {
+			return await composeLogoOverlay({
+				baseDataURL,
+				tempChart,
+				logosData: stashedLogos,
+				isDark,
+				gridBottom: Number((currentOptions.grid as any)?.bottom ?? 16),
+				chartCssWidth: IMAGE_EXPORT_WIDTH,
+				chartCssHeight: exportHeight
+			})
+		} catch (error) {
+			console.log('Failed to compose logo overlay:', error)
+			return baseDataURL
+		}
 	} finally {
 		tempChart.dispose()
 	}
@@ -777,6 +976,7 @@ interface ChartPngExportButtonProps {
 	iconUrl?: string
 	expandLegend?: boolean
 	pngProfile?: PngExportProfile
+	onExport?: (info: { kind: 'download' | 'copy'; filename: string }) => void
 }
 
 export function ChartPngExportButton({
@@ -787,7 +987,8 @@ export function ChartPngExportButton({
 	filename,
 	iconUrl,
 	expandLegend,
-	pngProfile = 'default'
+	pngProfile = 'default',
+	onExport
 }: ChartPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
@@ -852,6 +1053,7 @@ export function ChartPngExportButton({
 			}
 			const imageFilename = `${safeFilename}_${new Date().toISOString().split('T')[0]}.png`
 			downloadDataURL(imageFilename, dataURL)
+			onExport?.({ kind: 'download', filename: imageFilename })
 		} catch (error) {
 			console.log('Error exporting chart image:', error)
 			toast.error('Failed to export chart image')
@@ -875,7 +1077,10 @@ export function ChartPngExportButton({
 
 		navigator.clipboard
 			.write([new ClipboardItem({ 'image/png': blobPromise })])
-			.then(() => toast.success('Image copied to clipboard'))
+			.then(() => {
+				toast.success('Image copied to clipboard')
+				onExport?.({ kind: 'copy', filename: filename || 'chart' })
+			})
 			.catch((error) => {
 				console.log('Error copying chart image:', error)
 				toast.error('Failed to copy image to clipboard')

@@ -1,6 +1,7 @@
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import type { AdaptedLlamaAICartesianChart, LlamaAICartesianDatasetRow } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
+import { createCategoryTooltipFormatter, createTimeTooltipFormatter } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { ChartCapabilities, ChartViewState } from '~/containers/LlamaAI/utils/chartCapabilities'
 
 type GroupingInterval = 'day' | 'week' | 'month' | 'quarter' | 'year'
@@ -31,6 +32,40 @@ function cloneChartOptions(chartOptions: AdaptedLlamaAICartesianChart['props']['
 	}
 
 	return deepCloneValue(chartOptions)
+}
+
+function sortPrimarySeriesByTotalDesc(chart: AdaptedLlamaAICartesianChart): AdaptedLlamaAICartesianChart {
+	const next = cloneCartesianChart(chart)
+	const primaryNames = new Set(next.seriesMeta.filter((s) => (s.yAxisIndex ?? 0) === 0).map((s) => s.name))
+	if (primaryNames.size < 2) return next
+
+	const totals = new Map<string, number>()
+	for (const row of next.props.dataset.source) {
+		for (const name of primaryNames) {
+			const v = row[name]
+			if (typeof v === 'number' && !Number.isNaN(v)) {
+				totals.set(name, (totals.get(name) ?? 0) + Math.abs(v))
+			}
+		}
+	}
+	const rank = (name: string) => totals.get(name) ?? 0
+
+	const cmp = (a: string, b: string, aPrimary: boolean, bPrimary: boolean) => {
+		if (!aPrimary && !bPrimary) return 0
+		if (!aPrimary) return 1
+		if (!bPrimary) return -1
+		return rank(b) - rank(a)
+	}
+
+	next.props.charts = (next.props.charts ?? [])
+		.slice()
+		.sort((a, b) => cmp(a.name, b.name, primaryNames.has(a.name), primaryNames.has(b.name)))
+
+	next.seriesMeta = next.seriesMeta
+		.slice()
+		.sort((a, b) => cmp(a.name, b.name, (a.yAxisIndex ?? 0) === 0, (b.yAxisIndex ?? 0) === 0))
+
+	return next
 }
 
 function cloneCartesianChart(chart: AdaptedLlamaAICartesianChart): AdaptedLlamaAICartesianChart {
@@ -159,9 +194,19 @@ export class ChartDataTransformer {
 						return typeof v !== 'number' || (v >= 0 && v <= 100)
 					})
 			)
+		const percentageTooltipFormatter = isPercentage
+			? (() => {
+					const charts = transformedChart.props.charts ?? []
+					return transformedChart.axisType === 'category'
+						? createCategoryTooltipFormatter('%', charts)
+						: createTimeTooltipFormatter('%', charts)
+				})()
+			: undefined
+
 		const percentageChartOptions: Record<string, any> | undefined = isPercentage
 			? {
 					grid: { top: 24, right: 12, bottom: 68, left: 12 },
+					tooltip: { formatter: percentageTooltipFormatter },
 					...(!hasSecondaryAxis
 						? {
 								yAxis: {
@@ -295,7 +340,8 @@ export class ChartDataTransformer {
 	}
 
 	static toStacked(chart: AdaptedLlamaAICartesianChart): AdaptedLlamaAICartesianChart {
-		const nextChart = cloneCartesianChart(chart)
+		const sorted = sortPrimarySeriesByTotalDesc(chart)
+		const nextChart = cloneCartesianChart(sorted)
 		nextChart.props.charts =
 			nextChart.props.charts?.map((series) => {
 				const isPrimaryAxis = (series.yAxisIndex ?? 0) === 0
@@ -309,7 +355,7 @@ export class ChartDataTransformer {
 	}
 
 	static toPercentage(chart: AdaptedLlamaAICartesianChart, shouldStack: boolean = true): AdaptedLlamaAICartesianChart {
-		const nextChart = cloneCartesianChart(chart)
+		const nextChart = cloneCartesianChart(shouldStack ? sortPrimarySeriesByTotalDesc(chart) : chart)
 		const primarySeries = nextChart.seriesMeta.filter((series) => (series.yAxisIndex ?? 0) === 0)
 		if (primarySeries.length === 0) return nextChart
 

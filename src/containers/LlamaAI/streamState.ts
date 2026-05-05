@@ -1,9 +1,10 @@
 import type { Dispatch } from 'react'
-import type { CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
+import type { ContextWarningPayload, CsvExport, MdExport } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type {
 	AlertProposedData,
 	ChartSet,
 	DashboardArtifact,
+	GeneratedImage,
 	Message,
 	MessageMetadata,
 	SpawnAgentStatus,
@@ -46,6 +47,7 @@ export interface StreamState {
 	mdExports: MdExport[]
 	alerts: AlertProposedData[]
 	dashboards: DashboardArtifact[]
+	generatedImages: GeneratedImage[]
 	citations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
@@ -59,6 +61,7 @@ export interface StreamState {
 	error: string | null
 	lastFailedRequest: FailedRequest | null
 	rateLimitDetails: RateLimitDetails | null
+	contextWarning: ContextWarningPayload | null
 }
 
 export interface StreamBuffer {
@@ -68,6 +71,7 @@ export interface StreamBuffer {
 	mdExports: MdExport[]
 	alerts: AlertProposedData[]
 	dashboards: DashboardArtifact[]
+	generatedImages: GeneratedImage[]
 	citations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
@@ -90,6 +94,7 @@ export type StreamAction =
 	| { type: 'APPEND_MD_EXPORTS'; value: MdExport[] }
 	| { type: 'APPEND_ALERT'; value: AlertProposedData }
 	| { type: 'APPEND_DASHBOARD'; value: DashboardArtifact }
+	| { type: 'APPEND_GENERATED_IMAGES'; value: GeneratedImage[] }
 	| { type: 'MERGE_CITATIONS'; value: string[] }
 	| { type: 'APPEND_TOOL_EXECUTION'; value: ToolExecution }
 	| { type: 'SET_MESSAGE_METADATA'; value: MessageMetadata }
@@ -103,6 +108,7 @@ export type StreamAction =
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
 	| { type: 'RESET_RECOVERY' }
+	| { type: 'SET_CONTEXT_WARNING'; value: ContextWarningPayload | null }
 
 // Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
@@ -114,6 +120,7 @@ const createEmptyRuntimeState = () => ({
 	mdExports: [] as MdExport[],
 	alerts: [] as AlertProposedData[],
 	dashboards: [] as DashboardArtifact[],
+	generatedImages: [] as GeneratedImage[],
 	citations: [] as string[],
 	toolExecutions: [] as ToolExecution[],
 	thinking: '',
@@ -135,7 +142,8 @@ export const createInitialStreamState = (): StreamState => ({
 	...createEmptyRuntimeState(),
 	error: null,
 	lastFailedRequest: null,
-	rateLimitDetails: null
+	rateLimitDetails: null,
+	contextWarning: null
 })
 
 // Keep a mutable buffer while SSE events arrive, then commit it as one assistant message at the end.
@@ -146,6 +154,7 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	mdExports: [],
 	alerts: [],
 	dashboards: [],
+	generatedImages: [],
 	citations: [],
 	toolExecutions: [],
 	thinking: '',
@@ -194,6 +203,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, alerts: [...state.alerts, action.value] }
 		case 'APPEND_DASHBOARD':
 			return { ...state, dashboards: [...state.dashboards, action.value] }
+		case 'APPEND_GENERATED_IMAGES':
+			return { ...state, generatedImages: [...state.generatedImages, ...action.value] }
 		case 'MERGE_CITATIONS':
 			return { ...state, citations: [...new Set([...state.citations, ...action.value])] }
 		case 'APPEND_TOOL_EXECUTION':
@@ -256,6 +267,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 					lastErrorMessage: null
 				}
 			}
+		case 'SET_CONTEXT_WARNING':
+			return { ...state, contextWarning: action.value }
 		default:
 			return state
 	}
@@ -271,6 +284,7 @@ export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string):
 		mdExports: buffer.mdExports.length > 0 ? buffer.mdExports : undefined,
 		alerts: buffer.alerts.length > 0 ? buffer.alerts : undefined,
 		dashboards: buffer.dashboards.length > 0 ? buffer.dashboards : undefined,
+		generatedImages: buffer.generatedImages.length > 0 ? buffer.generatedImages : undefined,
 		citations: buffer.citations.length > 0 ? buffer.citations : undefined,
 		toolExecutions: buffer.toolExecutions.length > 0 ? buffer.toolExecutions : undefined,
 		thinking: buffer.thinking || undefined,

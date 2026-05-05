@@ -2,7 +2,7 @@ import type * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
-type EChartsFormatterParams = Record<string, unknown>
+type EChartsFormatterParams = unknown
 
 type ChartDataItem = any
 
@@ -90,6 +90,7 @@ export interface IHBarChartProps {
 	height?: string
 	color?: string
 	colors?: string[]
+	logos?: string[]
 	onReady?: (instance: echarts.ECharts | null) => void
 }
 
@@ -134,12 +135,16 @@ export type MultiSeriesChart2SeriesConfig = {
 	excludeFromTooltipTotal?: boolean
 	/** Mark this series as tentative/TBD — renders with reduced opacity and dashed border. */
 	isTBD?: boolean
+	/** Mark this series as a forecast — renders with reduced opacity and dashed border. */
+	isForecast?: boolean
 	// Optional: enable point markers on line series.
 	// Note: ECharts "large" mode disables symbols, so `showSymbol: true` will
 	// implicitly disable large mode unless `large` is explicitly set.
 	showSymbol?: boolean
 	symbol?: string
 	symbolSize?: number
+	barMinWidth?: number
+	barMaxWidth?: number
 	large?: boolean
 }
 
@@ -168,6 +173,7 @@ type MultiSeriesChart2BaseProps = {
 	height?: string
 	groupBy?: ChartTimeGroupingWithCumulative
 	hallmarks?: [number, string][]
+	hallmarkStyle?: 'event-rail' | 'mark-line'
 	expandTo100Percent?: boolean
 	valueSymbol?: string
 	alwaysShowTooltip?: boolean
@@ -185,6 +191,12 @@ type MultiSeriesChart2BaseProps = {
 	dataset: MultiSeriesChart2Dataset
 	title?: string
 	headingAs?: 'h1' | 'h2'
+	/**
+	 * For category xAxis only. One entry per category in the dataset's dimension order.
+	 * When present, the xAxis text labels are hidden and a logo row is rendered underneath
+	 * the plot area, aligned with each category tick.
+	 */
+	categoryLogos?: string[]
 }
 
 export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {

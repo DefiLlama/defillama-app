@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
@@ -19,8 +18,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
-import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { formatNum, formattedNum } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
@@ -42,7 +40,6 @@ export function RWAAssetsTable({
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'activeMcap.total', desc: true }])
 	const [expanded, setExpanded] = useState<ExpandedState>({})
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
 	const [searchValue, setSearchValue] = useState('')
@@ -66,7 +63,6 @@ export function RWAAssetsTable({
 			sorting,
 			columnFilters,
 			expanded,
-			columnSizing,
 			columnOrder
 		},
 		defaultColumn: {
@@ -78,15 +74,12 @@ export function RWAAssetsTable({
 		getSubRows: (row: any) => row.subRows,
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
-		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	})
-
-	useSortColumnSizesAndOrders({ instance, columnSizes })
 
 	const columnsOptions = useMemo(
 		() =>
@@ -264,14 +257,16 @@ function createColumns(includeRwaPerps: boolean) {
 					</span>
 				)
 			},
-			size: 240
+			meta: {
+				headerClassName: 'w-[180px] sm:w-[240px]'
+			}
 		}),
 		columnHelper.accessor((asset) => asset.price ?? undefined, {
 			id: 'price',
 			header: 'Token Price',
 			cell: (info) => (info.getValue() != null ? <span>{formattedNum(info.getValue(), true)}</span> : null),
-			size: 120,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end'
 			}
 		}),
@@ -282,9 +277,9 @@ function createColumns(includeRwaPerps: boolean) {
 				const value = info.getValue()
 				return <span className="overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 			},
-			size: 168,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[168px]',
 				align: 'end'
 			}
 		}),
@@ -300,10 +295,10 @@ function createColumns(includeRwaPerps: boolean) {
 				/>
 			),
 			meta: {
+				headerClassName: 'w-[168px]',
 				headerHelperText: includeRwaPerps ? MIXED_ACTIVE_HELP : definitions.activeMcap.description,
 				align: 'end'
-			},
-			size: 168
+			}
 		}),
 		columnHelper.accessor((asset) => getOnChainMetricValue(asset) ?? undefined, {
 			id: 'onChainMcap.total',
@@ -316,8 +311,8 @@ function createColumns(includeRwaPerps: boolean) {
 					description={definitions.onChainMcap.description}
 				/>
 			),
-			size: 168,
 			meta: {
+				headerClassName: 'w-[168px]',
 				headerHelperText: definitions.onChainMcap.description,
 				align: 'end'
 			}
@@ -334,10 +329,10 @@ function createColumns(includeRwaPerps: boolean) {
 				/>
 			),
 			meta: {
+				headerClassName: 'w-[168px]',
 				headerHelperText: definitions.defiActiveTvl.description,
 				align: 'end'
-			},
-			size: 168
+			}
 		}),
 		columnHelper.accessor(
 			(asset) =>
@@ -350,8 +345,11 @@ function createColumns(includeRwaPerps: boolean) {
 				header: 'DeFi Utilization',
 				cell: (info) => (info.getValue() != null ? `${formatNum(info.getValue(), 2)}%` : null),
 				id: 'utilization',
-				size: 120,
-				meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }
+				meta: {
+					headerClassName: 'w-[140px]',
+					align: 'end',
+					headerHelperText: 'DeFi Active TVL / Active Mcap'
+				}
 			}
 		),
 		columnHelper.accessor((asset) => formatAssetPlatforms(asset), {
@@ -381,9 +379,9 @@ function createColumns(includeRwaPerps: boolean) {
 					</Tooltip>
 				)
 			},
-			size: 168,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[168px]',
 				align: 'end',
 				headerHelperText: PLATFORM_COLUMN_HELP
 			}
@@ -415,9 +413,9 @@ function createColumns(includeRwaPerps: boolean) {
 					</span>
 				)
 			},
-			size: 168,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[168px]',
 				align: 'end',
 				headerHelperText: definitions.category.description
 			}
@@ -466,9 +464,9 @@ function createColumns(includeRwaPerps: boolean) {
 					</Tooltip>
 				)
 			},
-			size: 168,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[168px]',
 				align: 'end',
 				headerHelperText: definitions.assetClass.description
 			}
@@ -509,9 +507,9 @@ function createColumns(includeRwaPerps: boolean) {
 					</span>
 				)
 			},
-			size: 180,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[min(180px,40vw)]',
 				align: 'end',
 				headerHelperText: definitions.accessModel.description
 			}
@@ -534,9 +532,9 @@ function createColumns(includeRwaPerps: boolean) {
 				}
 				return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 			},
-			size: 120,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: definitions.type.description
 			}
@@ -563,9 +561,9 @@ function createColumns(includeRwaPerps: boolean) {
 				}
 				return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 			},
-			size: 180,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[min(180px,40vw)]',
 				align: 'end',
 				headerHelperText: definitions.rwaClassification.description
 			}
@@ -581,9 +579,9 @@ function createColumns(includeRwaPerps: boolean) {
 					</span>
 				)
 			},
-			size: 168,
 			enableSorting: false,
 			meta: {
+				headerClassName: 'w-[168px]',
 				align: 'end',
 				headerHelperText: definitions.issuer.description
 			}
@@ -597,10 +595,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: definitions.redeemable.description
-			},
-			size: 120
+			}
 		}),
 		columnHelper.accessor((asset) => asset.attestations ?? undefined, {
 			id: 'attestations',
@@ -611,10 +609,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: definitions.attestations.description
-			},
-			size: 120
+			}
 		}),
 		columnHelper.accessor((asset) => asset.cexListed ?? undefined, {
 			id: 'cexListed',
@@ -625,10 +623,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: definitions.cexListed.description
-			},
-			size: 120
+			}
 		}),
 		columnHelper.accessor((asset) => asset.kycForMintRedeem ?? undefined, {
 			id: 'kycForMintRedeem',
@@ -639,10 +637,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[min(188px,40vw)]',
 				align: 'end',
 				headerHelperText: definitions.kycForMintRedeem.description
-			},
-			size: 188
+			}
 		}),
 		columnHelper.accessor((asset) => asset.kycAllowlistedWhitelistedToTransferHold ?? undefined, {
 			id: 'kycAllowlistedWhitelistedToTransferHold',
@@ -653,10 +651,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[min(332px,40vw)]',
 				align: 'end',
 				headerHelperText: definitions.kycAllowlistedWhitelistedToTransferHold.description
-			},
-			size: 332
+			}
 		}),
 		columnHelper.accessor((asset) => asset.transferable ?? undefined, {
 			id: 'transferable',
@@ -667,10 +665,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: definitions.transferable.description
-			},
-			size: 120
+			}
 		}),
 		columnHelper.accessor((asset) => asset.selfCustody ?? undefined, {
 			id: 'selfCustody',
@@ -681,10 +679,10 @@ function createColumns(includeRwaPerps: boolean) {
 				</span>
 			),
 			meta: {
+				headerClassName: 'w-[120px]',
 				align: 'end',
 				headerHelperText: definitions.selfCustody.description
-			},
-			size: 120
+			}
 		})
 	]
 }
@@ -737,9 +735,4 @@ const TVLBreakdownCell = ({
 			{formattedNum(value, true)}
 		</Tooltip>
 	)
-}
-
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: { name: 180 },
-	640: { name: 240 }
 }

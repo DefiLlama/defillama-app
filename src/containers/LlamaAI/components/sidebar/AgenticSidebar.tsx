@@ -1,4 +1,4 @@
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { type Virtualizer, useVirtualizer } from '@tanstack/react-virtual'
 import {
 	type CSSProperties,
 	lazy,
@@ -43,6 +43,10 @@ interface AgenticSidebarProps {
 	onBulkDelete?: (sessionIds: string[]) => Promise<void>
 	onPinSession?: (sessionId: string) => Promise<void>
 	onSearchMatchClick?: (sessionId: string, messageId: string) => void
+	hasMoreSessions?: boolean
+	isFetchingMoreSessions?: boolean
+	loadMoreSessionsError?: string | null
+	onLoadMoreSessions?: () => void
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -61,6 +65,7 @@ function getGroupName(lastActivity: string, now: number) {
 type VirtualItem =
 	| { type: 'header'; groupName: string; isFirst: boolean }
 	| { type: 'session'; session: ChatSession; groupName: string }
+	| { type: 'loader'; isFetching: boolean; loadError: string | null; onLoadMore?: () => void }
 
 const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	item,
@@ -103,6 +108,28 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 		)
 	}
 
+	if (item.type === 'loader') {
+		if (item.loadError) {
+			return (
+				<div style={itemStyle} className="flex items-center justify-center py-1.5">
+					<button
+						type="button"
+						onClick={() => item.onLoadMore?.()}
+						className="rounded-sm px-2 py-1 text-xs text-[#666] hover:bg-[#f7f7f7] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						Retry loading chats
+					</button>
+				</div>
+			)
+		}
+
+		return (
+			<div style={itemStyle} className="flex items-center justify-center py-2 text-xs text-[#666] dark:text-[#919296]">
+				{item.isFetching ? <LoadingSpinner size={12} /> : null}
+			</div>
+		)
+	}
+
 	return (
 		<AgenticSessionItem
 			session={item.session}
@@ -139,7 +166,11 @@ export function AgenticSidebar({
 	hasCustomInstructions,
 	onBulkDelete,
 	onPinSession,
-	onSearchMatchClick
+	onSearchMatchClick,
+	hasMoreSessions = false,
+	isFetchingMoreSessions = false,
+	loadMoreSessionsError = null,
+	onLoadMoreSessions
 }: AgenticSidebarProps) {
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -210,11 +241,12 @@ export function AgenticSidebar({
 	)
 
 	const [nowMs] = useState(() => Date.now())
+	const trimmedSearchQuery = searchQuery.trim()
 
 	const filteredSessions = useMemo(() => {
-		if (!searchQuery.trim()) return sessions
+		if (!trimmedSearchQuery) return sessions
 		return sessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
-	}, [sessions, searchQuery])
+	}, [sessions, searchQuery, trimmedSearchQuery])
 
 	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
 		const pinned = filteredSessions
@@ -251,8 +283,41 @@ export function AgenticSidebar({
 				items.push({ type: 'session', session, groupName })
 			}
 		}
+		if (hasMoreSessions && !trimmedSearchQuery) {
+			items.push({
+				type: 'loader',
+				isFetching: isFetchingMoreSessions,
+				loadError: loadMoreSessionsError,
+				onLoadMore: onLoadMoreSessions
+			})
+		}
 		return items
-	}, [pinnedSessions, groupedSessions])
+	}, [
+		pinnedSessions,
+		groupedSessions,
+		hasMoreSessions,
+		isFetchingMoreSessions,
+		loadMoreSessionsError,
+		onLoadMoreSessions,
+		trimmedSearchQuery
+	])
+
+	const handleVirtualizerChange = useEffectEvent((instance: Virtualizer<HTMLDivElement, Element>) => {
+		if (
+			loadMoreSessionsError ||
+			!hasMoreSessions ||
+			isFetchingMoreSessions ||
+			trimmedSearchQuery ||
+			!onLoadMoreSessions
+		)
+			return
+
+		const virtualizedItems = instance.getVirtualItems()
+		const lastVirtualItem = virtualizedItems[virtualizedItems.length - 1]
+		if (!lastVirtualItem || lastVirtualItem.index < instance.options.count - 3) return
+
+		onLoadMoreSessions()
+	})
 
 	const virtualizer = useVirtualizer({
 		count: virtualItems.length,
@@ -262,17 +327,22 @@ export function AgenticSidebar({
 			if (item.type === 'header') {
 				return item.isFirst ? 20 : 32
 			}
+			if (item.type === 'loader') {
+				return 36
+			}
 			return 32
 		},
-		overscan: 5
+		overscan: 5,
+		onChange: handleVirtualizerChange
 	})
+	const virtualizedItems = virtualizer.getVirtualItems()
 
 	const onClickOutside = useEffectEvent((event: MouseEvent) => {
 		if (
 			event.target instanceof Node &&
 			sidebarRef.current &&
 			!sidebarRef.current.contains(event.target) &&
-			!(event.target instanceof Element && event.target.closest('[role="dialog"]')) &&
+			!(event.target instanceof Element && event.target.closest('[role="dialog"], [role="menu"]')) &&
 			document.documentElement.clientWidth < 1024
 		) {
 			hideSidebar()
@@ -397,7 +467,7 @@ export function AgenticSidebar({
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						You don't have any chats yet
 					</p>
-				) : searchQuery.trim() && (searchResults.length > 0 || isSearching) ? (
+				) : trimmedSearchQuery && (searchResults.length > 0 || isSearching) ? (
 					<SearchResults
 						results={searchResults}
 						isSearching={isSearching}
@@ -411,7 +481,7 @@ export function AgenticSidebar({
 							onSessionSelect(sessionId)
 						}}
 					/>
-				) : filteredSessions.length === 0 && searchQuery.trim() && !isSearching && searchResults.length === 0 ? (
+				) : filteredSessions.length === 0 && trimmedSearchQuery && !isSearching && searchResults.length === 0 ? (
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						No chats matching &ldquo;{searchQuery}&rdquo;
 					</p>
@@ -423,7 +493,7 @@ export function AgenticSidebar({
 							position: 'relative'
 						}}
 					>
-						{virtualizer.getVirtualItems().map((virtualItem) => {
+						{virtualizedItems.map((virtualItem) => {
 							const item = virtualItems[virtualItem.index]
 							const itemStyle: CSSProperties = {
 								position: 'absolute',
@@ -439,7 +509,9 @@ export function AgenticSidebar({
 									key={
 										item.type === 'header'
 											? `header-${item.groupName}`
-											: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
+											: item.type === 'loader'
+												? 'session-loader'
+												: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
 									}
 									item={item}
 									itemStyle={itemStyle}

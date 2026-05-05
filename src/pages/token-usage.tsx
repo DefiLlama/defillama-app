@@ -222,12 +222,16 @@ const columns = [
 					)}
 				</span>
 			)
+		},
+		meta: {
+			headerClassName: 'w-[min(240px,40vw)]'
 		}
 	}),
 	columnHelper.accessor('category', {
 		header: 'Category',
 		enableSorting: false,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		}
 	}),
@@ -235,6 +239,7 @@ const columns = [
 		header: 'Amount',
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
 		}
 	})

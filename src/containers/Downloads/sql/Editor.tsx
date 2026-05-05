@@ -13,10 +13,112 @@ loader.config({
 const LIGHT_THEME_ID = 'llama-sql-light'
 const DARK_THEME_ID = 'llama-sql-dark'
 
+const ACTIVE_STMT_STYLE_ID = 'llama-sql-active-stmt-style'
+const ACTIVE_STMT_CLASS = 'llama-sql-active-stmt'
+const ACTIVE_STMT_GUTTER_CLASS = 'llama-sql-active-stmt-gutter'
+
+function ensureActiveStmtStyles() {
+	if (typeof document === 'undefined') return
+	if (document.getElementById(ACTIVE_STMT_STYLE_ID)) return
+	const style = document.createElement('style')
+	style.id = ACTIVE_STMT_STYLE_ID
+	style.textContent = `
+.${ACTIVE_STMT_CLASS} { background-color: rgba(122, 162, 255, 0.10); border-radius: 2px; }
+:root.light .${ACTIVE_STMT_CLASS}, [data-theme="light"] .${ACTIVE_STMT_CLASS} { background-color: rgba(29, 78, 216, 0.07); }
+.${ACTIVE_STMT_GUTTER_CLASS} { background-color: rgba(122, 162, 255, 0.55); width: 2px !important; margin-left: 2px; }
+:root.light .${ACTIVE_STMT_GUTTER_CLASS}, [data-theme="light"] .${ACTIVE_STMT_GUTTER_CLASS} { background-color: rgba(29, 78, 216, 0.45); }
+`
+	document.head.appendChild(style)
+}
+
 export interface EditorHandle {
 	revealLine: (line: number, column?: number) => void
 	focus: () => void
 	insertSnippet: (text: string) => void
+	getSelection: () => string | null
+	getStatementAtCursor: () => string | null
+}
+
+function collectStatementSemicolons(sql: string): number[] {
+	const out: number[] = []
+	let inSingle = false
+	let inDouble = false
+	let inLineComment = false
+	let inBlockComment = false
+	for (let i = 0; i < sql.length; i++) {
+		const ch = sql[i]
+		const next = sql[i + 1]
+		if (inLineComment) {
+			if (ch === '\n') inLineComment = false
+			continue
+		}
+		if (inBlockComment) {
+			if (ch === '*' && next === '/') {
+				inBlockComment = false
+				i++
+			}
+			continue
+		}
+		if (inSingle) {
+			if (ch === "'") {
+				if (next === "'") {
+					i++
+					continue
+				}
+				inSingle = false
+			}
+			continue
+		}
+		if (inDouble) {
+			if (ch === '"') {
+				if (next === '"') {
+					i++
+					continue
+				}
+				inDouble = false
+			}
+			continue
+		}
+		if (ch === '-' && next === '-') {
+			inLineComment = true
+			i++
+			continue
+		}
+		if (ch === '/' && next === '*') {
+			inBlockComment = true
+			i++
+			continue
+		}
+		if (ch === "'") {
+			inSingle = true
+			continue
+		}
+		if (ch === '"') {
+			inDouble = true
+			continue
+		}
+		if (ch === ';') out.push(i)
+	}
+	return out
+}
+
+function findStatementBoundsAtOffset(sql: string, offset: number): { start: number; end: number } {
+	const semicolons = collectStatementSemicolons(sql)
+	let stmtIdx = semicolons.length
+	for (let i = 0; i < semicolons.length; i++) {
+		if (offset <= semicolons[i]) {
+			stmtIdx = i
+			break
+		}
+	}
+	let start = stmtIdx === 0 ? 0 : semicolons[stmtIdx - 1] + 1
+	let end = stmtIdx < semicolons.length ? semicolons[stmtIdx] + 1 : sql.length
+	if (stmtIdx > 0 && sql.slice(start, offset).trim().length === 0) {
+		stmtIdx -= 1
+		start = stmtIdx === 0 ? 0 : semicolons[stmtIdx - 1] + 1
+		end = semicolons[stmtIdx] + 1
+	}
+	return { start, end }
 }
 
 interface EditorProps {
@@ -77,6 +179,30 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 				if (!range) return
 				editor.executeEdits('schema-browser', [{ range, text, forceMoveMarkers: true }])
 				editor.focus()
+			},
+			getSelection: () => {
+				const editor = editorInstanceRef.current
+				if (!editor) return null
+				const selection = editor.getSelection()
+				if (!selection || selection.isEmpty?.()) return null
+				const model = editor.getModel?.()
+				if (!model) return null
+				const text = model.getValueInRange(selection)
+				const trimmed = typeof text === 'string' ? text.trim() : ''
+				return trimmed.length > 0 ? text : null
+			},
+			getStatementAtCursor: () => {
+				const editor = editorInstanceRef.current
+				if (!editor) return null
+				const model = editor.getModel?.()
+				const position = editor.getPosition?.()
+				if (!model || !position) return null
+				const sql = model.getValue()
+				if (!sql) return null
+				const offset = model.getOffsetAt(position)
+				const { start, end } = findStatementBoundsAtOffset(sql, offset)
+				const slice = sql.slice(start, end)
+				return slice.trim().length > 0 ? slice : null
 			}
 		}),
 		[]
@@ -93,7 +219,57 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor({ va
 
 		const completions = registerSqlCompletions(monaco, contextRef)
 		const hovers = registerSqlHovers(monaco, contextRef)
+
+		ensureActiveStmtStyles()
+		let decorationIds: string[] = []
+		const updateActiveStmt = () => {
+			const model = editor.getModel?.()
+			const position = editor.getPosition?.()
+			const selection = editor.getSelection?.()
+			if (!model || !position) {
+				decorationIds = editor.deltaDecorations(decorationIds, [])
+				return
+			}
+			if (selection && !selection.isEmpty?.()) {
+				decorationIds = editor.deltaDecorations(decorationIds, [])
+				return
+			}
+			const sql = model.getValue() ?? ''
+			if (!sql) {
+				decorationIds = editor.deltaDecorations(decorationIds, [])
+				return
+			}
+			const offset = model.getOffsetAt(position)
+			let { start, end } = findStatementBoundsAtOffset(sql, offset)
+			while (start < end && /\s/.test(sql[start])) start++
+			while (end > start && /\s/.test(sql[end - 1])) end--
+			if (start >= end) {
+				decorationIds = editor.deltaDecorations(decorationIds, [])
+				return
+			}
+			const startPos = model.getPositionAt(start)
+			const endPos = model.getPositionAt(end)
+			const range = new monaco.Range(startPos.lineNumber, startPos.column, endPos.lineNumber, endPos.column)
+			decorationIds = editor.deltaDecorations(decorationIds, [
+				{
+					range,
+					options: {
+						className: ACTIVE_STMT_CLASS,
+						linesDecorationsClassName: ACTIVE_STMT_GUTTER_CLASS,
+						stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+					}
+				}
+			])
+		}
+		const cursorSub = editor.onDidChangeCursorPosition(updateActiveStmt)
+		const selectionSub = editor.onDidChangeCursorSelection(updateActiveStmt)
+		const contentSub = editor.onDidChangeModelContent(updateActiveStmt)
+		updateActiveStmt()
+
 		editor.onDidDispose(() => {
+			cursorSub.dispose()
+			selectionSub.dispose()
+			contentSub.dispose()
 			completions.dispose()
 			hovers.dispose()
 			if (editorInstanceRef.current === editor) editorInstanceRef.current = null

@@ -1,7 +1,18 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useMemo, useRef } from 'react'
+import { lazy, Suspense, useMemo, useRef } from 'react'
 import type { QueryResult } from './exportResults'
 import { inferColumnKind, TypeBadge } from './primitives'
+
+interface SparklineShim {
+	data?: Array<[number, number | null | undefined]>
+	color?: string
+	height?: number | string
+	smooth?: boolean
+}
+
+const SparklineChart = lazy(() =>
+	import('~/components/ECharts/SparklineChart').then((m) => ({ default: m.SparklineChart }))
+) as unknown as React.FC<SparklineShim>
 
 const ROW_HEIGHT = 28
 const HEADER_HEIGHT = 42
@@ -25,8 +36,18 @@ export function ResultsGrid({ result }: ResultsGridProps) {
 	const columnMeta = useMemo(
 		() =>
 			result.columns.map((c) => {
-				const kind = inferColumnKind(c.type)
-				const width = estimateColumnWidth(c.name, result.rows, kind)
+				let kind = inferColumnKind(c.type)
+				if (kind === 'other') {
+					const sample = result.rows.find((row) => row[c.name] != null)
+					if (
+						sample &&
+						Array.isArray(sample[c.name]) &&
+						(sample[c.name] as any[]).every((v) => v == null || typeof v === 'number')
+					) {
+						kind = 'list'
+					}
+				}
+				const width = kind === 'list' ? 140 : estimateColumnWidth(c.name, result.rows, kind)
 				return { ...c, kind, width }
 			}),
 		[result]
@@ -92,6 +113,7 @@ export function ResultsGrid({ result }: ResultsGridProps) {
 									const value = row[col.name]
 									const isNull = value === null || value === undefined || value === ''
 									const isNumeric = col.kind === 'int' || col.kind === 'float'
+									const isList = col.kind === 'list' && Array.isArray(value)
 									return (
 										<div
 											role="cell"
@@ -99,11 +121,22 @@ export function ResultsGrid({ result }: ResultsGridProps) {
 											className={`flex items-center truncate border-l border-(--divider)/30 px-2.5 first:border-l-0 ${
 												isNumeric ? 'justify-end text-(--text-primary)' : 'text-(--text-primary)'
 											} ${isNull ? 'text-(--text-tertiary)/50' : ''}`}
-											title={isNull ? '' : cellToTitle(value)}
+											title={isNull || isList ? '' : cellToTitle(value)}
 										>
-											<span className="truncate">
-												{isNull ? <span aria-hidden>·</span> : formatCell(value, col.kind)}
-											</span>
+											{isList ? (
+												<Suspense fallback={<span className="text-[10px] text-(--text-tertiary)">…</span>}>
+													<SparklineChart
+														data={(value as Array<number | null>).map(
+															(n, idx) => [idx, n ?? null] as [number, number | null]
+														)}
+														height={20}
+													/>
+												</Suspense>
+											) : (
+												<span className="truncate">
+													{isNull ? <span aria-hidden>·</span> : formatCell(value, col.kind)}
+												</span>
+											)}
 										</div>
 									)
 								})}

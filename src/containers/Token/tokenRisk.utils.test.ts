@@ -1,72 +1,57 @@
 import { describe, expect, it } from 'vitest'
-import type { TokenRiskLendingRisksResponse, TokenRiskRoute } from './api.types'
+import type { TokenRiskBorrowCapacityResponse } from './api.types'
 import {
-	buildBorrowCapsSection,
-	buildCollateralRiskSection,
+	buildExposuresSection,
 	filterTokenRiskCandidatesWithData,
-	indexBorrowRoutesByAssetKey,
-	mergeIndexedBuckets,
+	indexBorrowCapacityByAssetKey,
+	inferTokenRiskCandidatesFromBorrowCapacity,
+	mergeIndexedBorrowCapacity,
+	mergeTokenRiskCandidates,
 	resolveTokenRiskCandidates
 } from './tokenRisk.utils'
 
-const methodologies: TokenRiskLendingRisksResponse['methodologies'] = {
-	asDebt: 'Debt routes',
-	asCollateral: 'Collateral routes',
-	protocol: 'Protocol',
+const methodologies: TokenRiskBorrowCapacityResponse['methodologies'] = {
+	asset: 'Asset',
 	chain: 'Chain',
-	market: 'Market',
-	collateral: 'Collateral asset',
-	debt: 'Debt asset',
-	collateralTotalSupplyUsd: 'Collateral total supply',
-	debtTotalSupplyUsd: 'Debt total supply',
-	debtTotalBorrowedUsd: 'Debt total borrowed',
-	debtUtilization: 'Debt utilization',
-	maxLtv: 'Max LTV',
-	liquidationThreshold: 'Liquidation threshold',
-	liquidationPenalty: 'Liquidation penalty',
-	availableToBorrowUsd: 'Available to borrow',
-	borrowCapUsd: 'Borrow cap',
-	isolationMode: 'Isolation mode',
-	debtCeilingUsd: 'Debt ceiling',
-	borrowApy: 'Borrow APY',
-	collateralSupplyApy: 'Collateral supply APY'
+	protocol: 'Protocol',
+	collateralMaxBorrowUsdGovernance: 'Governance max borrow',
+	collateralMaxBorrowUsdLiquidity: 'Liquidity max borrow',
+	collateralBorrowedDebtUsd: 'Borrowed debt',
+	minBadDebtAtPriceZeroUsd: 'Min bad debt at zero'
 }
 
-function createRoute(overrides: Partial<TokenRiskRoute>): TokenRiskRoute {
+function createTokenEntry(
+	overrides: Partial<TokenRiskBorrowCapacityResponse['tokens'][number]>
+): TokenRiskBorrowCapacityResponse['tokens'][number] {
 	return {
-		protocol: 'aave-v3',
-		chain: 'ethereum',
-		market: 'core-market',
-		collateral: {
-			symbol: 'WBTC',
-			address: '0xCollateral',
-			priceUsd: 100
-		},
-		debt: {
+		asset: {
 			symbol: 'USDC',
-			address: '0xDebt',
+			address: '0xAsset',
 			priceUsd: 1
 		},
-		collateralTotalSupplyUsd: 1000,
-		debtTotalSupplyUsd: 800,
-		debtTotalBorrowedUsd: 400,
-		debtUtilization: 0.5,
-		maxLtv: 0.75,
-		liquidationThreshold: 0.8,
-		liquidationPenalty: 0.05,
-		availableToBorrowUsd: 200,
-		borrowCapUsd: 1000,
-		isolationMode: false,
-		debtCeilingUsd: null,
-		borrowApy: 0.04,
-		collateralSupplyApy: 0,
+		chain: 'ethereum',
+		totals: {
+			collateralMaxBorrowUsdGovernance: 1100,
+			collateralMaxBorrowUsdLiquidity: 1000,
+			collateralBorrowedDebtUsd: 400,
+			minBadDebtAtPriceZeroUsd: 400
+		},
+		byProtocol: [
+			{
+				protocol: 'aave-v3',
+				collateralMaxBorrowUsdGovernance: 1100,
+				collateralMaxBorrowUsdLiquidity: 1000,
+				collateralBorrowedDebtUsd: 400,
+				minBadDebtAtPriceZeroUsd: 400
+			}
+		],
 		...overrides
 	}
 }
 
 describe('tokenRisk utils', () => {
 	it('resolves token risk candidates from llamaswap metadata and dedupes by chain/address', () => {
-		const candidates = resolveTokenRiskCandidates('usdc', {
+		const candidates = resolveTokenRiskCandidates('usdc', 'USDC', {
 			usdc: [
 				{ chain: 'Ethereum', address: '0xA0b8', displayName: 'Ethereum' },
 				{ chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum duplicate' },
@@ -90,152 +75,341 @@ describe('tokenRisk utils', () => {
 		])
 	})
 
-	it('indexes borrow routes by chain-address key and merges buckets across candidates', () => {
-		const routes = [
-			createRoute({
-				chain: 'Ethereum',
-				collateral: { symbol: 'WBTC', address: '0xCollateral1', priceUsd: 100 }
+	it('indexes borrow capacity by chain-address key and merges rows across candidates', () => {
+		const tokens = [
+			createTokenEntry({
+				asset: { symbol: 'USDC', address: '0xAsset1', priceUsd: 1 }
 			}),
-			createRoute({
+			createTokenEntry({
 				chain: 'base',
-				collateral: { symbol: 'cbBTC', address: '0xCollateral2', priceUsd: 100 },
-				debt: { symbol: 'USDC', address: '0xDebt2', priceUsd: 1 }
+				asset: { symbol: 'USDC', address: '0xAsset2', priceUsd: 1 }
 			})
 		]
 
-		const indexedRoutes = indexBorrowRoutesByAssetKey(routes)
-		const merged = mergeIndexedBuckets(indexedRoutes, ['ethereum:0xdebt', 'base:0xdebt2'])
+		const indexedTokens = indexBorrowCapacityByAssetKey(tokens)
+		const merged = mergeIndexedBorrowCapacity(indexedTokens, ['ethereum:0xasset1', 'base:0xasset2'])
 
-		expect(merged.asDebt).toHaveLength(2)
-		expect(merged.asCollateral).toHaveLength(0)
+		expect(merged).toHaveLength(2)
 	})
 
-	it('returns a fresh empty bucket when there are no candidate keys', () => {
-		const first = mergeIndexedBuckets(new Map(), [])
-		const second = mergeIndexedBuckets(new Map(), [])
+	it('canonicalizes native token sentinel addresses when indexing borrow capacity', () => {
+		const tokens = [
+			createTokenEntry({
+				asset: { symbol: 'ETH', address: '0x0000000000000000000000000000000000000000', priceUsd: 3000 }
+			}),
+			createTokenEntry({
+				asset: { symbol: 'ETH', address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', priceUsd: 3000 }
+			})
+		]
 
-		first.asDebt.push(createRoute({}))
+		const indexedTokens = indexBorrowCapacityByAssetKey(tokens)
+		const merged = mergeIndexedBorrowCapacity(indexedTokens, ['ethereum:native:eth'])
 
-		expect(second).toEqual({
-			asDebt: [],
-			asCollateral: []
+		expect(indexedTokens.get('ethereum:native:eth')).toHaveLength(2)
+		expect(merged).toHaveLength(2)
+	})
+
+	it('infers token risk candidates from borrow capacity symbols and native wrapped aliases', () => {
+		const candidates = inferTokenRiskCandidatesFromBorrowCapacity({
+			tokenSymbol: 'ETH',
+			tokens: [
+				createTokenEntry({
+					asset: { symbol: 'ETH', address: '0x0000000000000000000000000000000000000000', priceUsd: 100 }
+				}),
+				createTokenEntry({
+					chain: 'base',
+					asset: { symbol: 'WETH', address: '0xAsset2', priceUsd: 100 }
+				}),
+				createTokenEntry({
+					chain: 'ethereum',
+					asset: { symbol: 'WBTC', address: '0xBtc', priceUsd: 100 }
+				})
+			],
+			chainDisplayNames: new Map([
+				['ethereum', 'Ethereum'],
+				['base', 'Base']
+			])
 		})
+
+		expect(candidates).toEqual([
+			{
+				key: 'ethereum:native:eth',
+				chain: 'ethereum',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Ethereum'
+			},
+			{
+				key: 'base:0xasset2',
+				chain: 'base',
+				address: '0xasset2',
+				displayName: 'Base'
+			}
+		])
 	})
 
-	it('filters scope candidates down to chains that have borrow or collateral routes', () => {
-		const routes = [
-			createRoute({
+	it('dedupes merged token risk candidates by key while preserving primary metadata order', () => {
+		const candidates = mergeTokenRiskCandidates(
+			[
+				{
+					key: 'ethereum:native:eth',
+					chain: 'ethereum',
+					address: '0x0000000000000000000000000000000000000000',
+					displayName: 'Ethereum'
+				}
+			],
+			[
+				{
+					key: 'ethereum:native:eth',
+					chain: 'ethereum',
+					address: '0x0000000000000000000000000000000000000000',
+					displayName: 'Ethereum duplicate'
+				},
+				{
+					key: 'optimism:native:eth',
+					chain: 'optimism',
+					address: '0x0000000000000000000000000000000000000000',
+					displayName: 'Optimism'
+				}
+			]
+		)
+
+		expect(candidates).toEqual([
+			{
+				key: 'ethereum:native:eth',
 				chain: 'ethereum',
-				debt: { symbol: 'USDC', address: '0xDebt', priceUsd: 1 }
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Ethereum'
+			},
+			{
+				key: 'optimism:native:eth',
+				chain: 'optimism',
+				address: '0x0000000000000000000000000000000000000000',
+				displayName: 'Optimism'
+			}
+		])
+	})
+
+	it('filters scope candidates down to assets that have borrow capacity data', () => {
+		const indexedTokens = indexBorrowCapacityByAssetKey([
+			createTokenEntry({
+				chain: 'ethereum',
+				asset: { symbol: 'USDC', address: '0xAsset', priceUsd: 1 }
 			})
-		]
-		const indexedRoutes = indexBorrowRoutesByAssetKey(routes)
+		])
 		const candidates = [
-			{ key: 'ethereum:0xdebt', chain: 'ethereum', address: '0xdebt', displayName: 'Ethereum' },
+			{ key: 'ethereum:0xasset', chain: 'ethereum', address: '0xasset', displayName: 'Ethereum' },
 			{ key: 'base:0x8335', chain: 'base', address: '0x8335', displayName: 'Base' }
 		]
 
-		expect(filterTokenRiskCandidatesWithData(candidates, indexedRoutes)).toEqual([candidates[0]])
+		expect(filterTokenRiskCandidatesWithData(candidates, indexedTokens)).toEqual([candidates[0]])
 	})
 
-	it('dedupes borrow-cap rows by debt market and computes cap totals/headroom', () => {
-		const bucket = {
-			asDebt: [
-				createRoute({
-					collateral: { symbol: 'WBTC', address: '0xCollateral1', priceUsd: 100 }
-				}),
-				createRoute({
-					collateral: { symbol: 'wstETH', address: '0xCollateral2', priceUsd: 100 }
-				}),
-				createRoute({
-					protocol: 'spark',
-					chain: 'ethereum',
-					market: 'spark-market',
-					borrowCapUsd: null,
-					availableToBorrowUsd: 50
+	it('builds rows from protocol-level liquidity borrow capacity and keeps current exposure partial when needed', () => {
+		const section = buildExposuresSection(
+			[
+				createTokenEntry({
+					totals: {
+						collateralMaxBorrowUsdGovernance: 1800,
+						collateralMaxBorrowUsdLiquidity: 1500,
+						collateralBorrowedDebtUsd: null,
+						minBadDebtAtPriceZeroUsd: 400
+					},
+					byProtocol: [
+						{
+							protocol: 'aave-v3',
+							collateralMaxBorrowUsdGovernance: 1200,
+							collateralMaxBorrowUsdLiquidity: 1000,
+							collateralBorrowedDebtUsd: 400,
+							minBadDebtAtPriceZeroUsd: 400
+						},
+						{
+							protocol: 'morpho-blue',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 500,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: null
+						}
+					]
 				})
 			],
-			asCollateral: []
-		}
-
-		const section = buildBorrowCapsSection(bucket, methodologies)
+			methodologies
+		)
 
 		expect(section.rows).toHaveLength(2)
-		expect(section.rows[0].eligibleCollateralCount).toBe(2)
-		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
-		expect(section.rows[0].chainDisplayName).toBe('ethereum')
-		expect(section.summary.totalBorrowCapUsd).toBe(1000)
-		expect(section.summary.totalBorrowedUsd).toBe(400)
-		expect(section.summary.remainingCapUsd).toBe(600)
-		expect(section.summary.capUtilization).toBe(0.4)
-		expect(section.summary.marketCount).toBe(2)
+		expect(section.summary.totalCurrentMaxBorrowUsd).toBe(1500)
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBe(400)
+		expect(section.summary.minBadDebtKnownCount).toBe(1)
+		expect(section.summary.minBadDebtUnknownCount).toBe(1)
+		expect(section.rows[0].currentMaxBorrowUsd).toBe(1000)
+		expect(section.rows[0]).not.toHaveProperty('collateralBorrowedDebtUsd')
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('known')
+		expect(section.rows[1].minBadDebtAtPriceZeroCoverage).toBe('unavailable')
 	})
 
-	it('computes collateral-risk totals, isolation counts, and liquidation buffers', () => {
-		const bucket = {
-			asDebt: [],
-			asCollateral: [
-				createRoute({
-					debt: { symbol: 'USDT', address: '0xUsdt', priceUsd: 1 },
-					availableToBorrowUsd: 300,
-					maxLtv: 0.7,
-					liquidationThreshold: 0.78,
-					isolationMode: true,
-					debtCeilingUsd: 5000
+	it('dedupes identical protocol-chain-asset rows and sums liquidity-based max borrow', () => {
+		const section = buildExposuresSection(
+			[
+				createTokenEntry({
+					totals: {
+						collateralMaxBorrowUsdGovernance: 100,
+						collateralMaxBorrowUsdLiquidity: 100,
+						collateralBorrowedDebtUsd: 10,
+						minBadDebtAtPriceZeroUsd: 10
+					},
+					byProtocol: [
+						{
+							protocol: 'aave-v3',
+							collateralMaxBorrowUsdGovernance: 100,
+							collateralMaxBorrowUsdLiquidity: 100,
+							collateralBorrowedDebtUsd: 10,
+							minBadDebtAtPriceZeroUsd: 10
+						}
+					]
 				}),
-				createRoute({
-					debt: { symbol: 'DAI', address: '0xDai', priceUsd: 1 },
-					availableToBorrowUsd: 150,
-					maxLtv: 0.65,
-					liquidationThreshold: 0.8,
-					isolationMode: false,
-					debtCeilingUsd: null
+				createTokenEntry({
+					totals: {
+						collateralMaxBorrowUsdGovernance: 25,
+						collateralMaxBorrowUsdLiquidity: 25,
+						collateralBorrowedDebtUsd: 5,
+						minBadDebtAtPriceZeroUsd: 5
+					},
+					byProtocol: [
+						{
+							protocol: 'aave-v3',
+							collateralMaxBorrowUsdGovernance: 25,
+							collateralMaxBorrowUsdLiquidity: 25,
+							collateralBorrowedDebtUsd: 5,
+							minBadDebtAtPriceZeroUsd: 5
+						}
+					]
 				})
-			]
-		}
+			],
+			methodologies
+		)
 
-		const section = buildCollateralRiskSection(bucket, methodologies)
-
-		expect(section.summary.totalBorrowCapUsd).toBe(1250)
-		expect(section.summary.totalBorrowedUsd).toBe(800)
-		expect(section.summary.totalAvailableToBorrowUsd).toBe(450)
-		expect(section.summary.routeCount).toBe(2)
-		expect(section.summary.isolatedRouteCount).toBe(1)
-		expect(section.summary.minLiquidationBuffer).toBeCloseTo(0.08)
-		expect(section.summary.maxLiquidationBuffer).toBeCloseTo(0.15)
-		expect(section.rows[0].debtSymbol).toBe('USDT')
-		expect(section.rows[0].borrowCapUsd).toBe(700)
-		expect(section.rows[0].protocolDisplayName).toBe('aave-v3')
-		expect(section.rows[0].chainDisplayName).toBe('ethereum')
+		expect(section.rows).toHaveLength(1)
+		expect(section.rows[0].currentMaxBorrowUsd).toBe(125)
+		expect(section.rows[0].minBadDebtAtPriceZeroUsd).toBe(15)
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('known')
+		expect(section.summary.totalCurrentMaxBorrowUsd).toBe(125)
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBe(15)
 	})
 
-	it('sorts collateral-risk rows by available liquidity before implied cap', () => {
-		const bucket = {
-			asDebt: [],
-			asCollateral: [
-				createRoute({
-					protocol: 'aave-v3',
-					availableToBorrowUsd: 0,
-					debtTotalBorrowedUsd: 1000,
-					borrowCapUsd: 1000
+	it('marks zero-price bad debt as partial when grouped rows mix known and null values', () => {
+		const section = buildExposuresSection(
+			[
+				createTokenEntry({
+					byProtocol: [
+						{
+							protocol: 'fluid',
+							collateralMaxBorrowUsdGovernance: 200,
+							collateralMaxBorrowUsdLiquidity: 200,
+							collateralBorrowedDebtUsd: 100,
+							minBadDebtAtPriceZeroUsd: 100
+						}
+					]
 				}),
-				createRoute({
-					protocol: 'morpho-v3',
-					availableToBorrowUsd: 123,
-					debtTotalBorrowedUsd: 0,
-					borrowCapUsd: 123
-				}),
-				createRoute({
-					protocol: 'compound-v3',
-					availableToBorrowUsd: 900,
-					debtTotalBorrowedUsd: 50,
-					borrowCapUsd: 950
+				createTokenEntry({
+					byProtocol: [
+						{
+							protocol: 'fluid',
+							collateralMaxBorrowUsdGovernance: 50,
+							collateralMaxBorrowUsdLiquidity: 50,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: null
+						}
+					]
 				})
-			]
-		}
+			],
+			methodologies
+		)
 
-		const section = buildCollateralRiskSection(bucket, methodologies)
+		expect(section.rows).toHaveLength(1)
+		expect(section.rows[0].minBadDebtAtPriceZeroUsd).toBe(100)
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('partial')
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBe(100)
+		expect(section.summary.minBadDebtKnownCount).toBe(0)
+		expect(section.summary.minBadDebtUnknownCount).toBe(1)
+	})
 
-		expect(section.rows.map((row) => row.protocol)).toEqual(['compound-v3', 'morpho-v3', 'aave-v3'])
+	it('keeps zero-price bad debt unavailable when every merged contribution is null', () => {
+		const section = buildExposuresSection(
+			[
+				createTokenEntry({
+					byProtocol: [
+						{
+							protocol: 'morpho-blue',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 100,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: null
+						}
+					]
+				}),
+				createTokenEntry({
+					byProtocol: [
+						{
+							protocol: 'morpho-blue',
+							collateralMaxBorrowUsdGovernance: null,
+							collateralMaxBorrowUsdLiquidity: 50,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: null
+						}
+					]
+				})
+			],
+			methodologies
+		)
+
+		expect(section.rows).toHaveLength(1)
+		expect(section.rows[0].minBadDebtAtPriceZeroUsd).toBeNull()
+		expect(section.rows[0].minBadDebtAtPriceZeroCoverage).toBe('unavailable')
+		expect(section.summary.totalMinBadDebtAtPriceZeroUsd).toBeNull()
+		expect(section.summary.minBadDebtKnownCount).toBe(0)
+		expect(section.summary.minBadDebtUnknownCount).toBe(1)
+	})
+
+	it('filters out protocol rows with zero borrowable capacity and no current exposure', () => {
+		const section = buildExposuresSection(
+			[
+				createTokenEntry({
+					totals: {
+						collateralMaxBorrowUsdGovernance: 125,
+						collateralMaxBorrowUsdLiquidity: 125,
+						collateralBorrowedDebtUsd: 1.64,
+						minBadDebtAtPriceZeroUsd: 1.64
+					},
+					byProtocol: [
+						{
+							protocol: 'morpho-v1',
+							collateralMaxBorrowUsdGovernance: 125,
+							collateralMaxBorrowUsdLiquidity: 125,
+							collateralBorrowedDebtUsd: 1.64,
+							minBadDebtAtPriceZeroUsd: 1.64
+						},
+						{
+							protocol: 'aave-v3',
+							collateralMaxBorrowUsdGovernance: 0,
+							collateralMaxBorrowUsdLiquidity: 0,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: null
+						},
+						{
+							protocol: 'compound-v2',
+							collateralMaxBorrowUsdGovernance: 0,
+							collateralMaxBorrowUsdLiquidity: 0,
+							collateralBorrowedDebtUsd: null,
+							minBadDebtAtPriceZeroUsd: 0
+						}
+					]
+				})
+			],
+			methodologies
+		)
+
+		expect(section.rows).toHaveLength(1)
+		expect(section.rows[0].protocol).toBe('morpho-v1')
+		expect(section.summary.exposureCount).toBe(1)
+		expect(section.summary.protocolCount).toBe(1)
 	})
 })

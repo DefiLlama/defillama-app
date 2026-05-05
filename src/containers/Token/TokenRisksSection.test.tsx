@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import type { TokenRiskResponse } from './tokenRisk.types'
@@ -9,12 +8,6 @@ vi.mock('~/components/Icon', () => ({
 
 vi.mock('~/components/TokenLogo', () => ({
 	TokenLogo: ({ name }: { name: string }) => <span>{`logo:${name}`}</span>
-}))
-
-vi.mock('~/components/Tooltip', () => ({
-	Tooltip: ({ children, className }: { children: ReactNode; className?: string }) => (
-		<span className={className}>{children}</span>
-	)
 }))
 
 vi.mock('~/components/Table/PaginatedTable', () => ({
@@ -54,15 +47,15 @@ const createRiskData = (): TokenRiskResponse => ({
 	],
 	scopeCandidates: [{ key: 'ethereum:0xa0b8', chain: 'ethereum', address: '0xa0b8', displayName: 'Ethereum' }],
 	selectedCandidateKey: null,
-	borrowCaps: {
+	exposures: {
 		summary: {
-			totalBorrowCapUsd: 1000,
-			totalBorrowedUsd: 400,
-			remainingCapUsd: 600,
-			capUtilization: 0.4,
-			protocolCount: 1,
+			totalCurrentMaxBorrowUsd: 1500,
+			totalMinBadDebtAtPriceZeroUsd: 400,
+			exposureCount: 2,
+			protocolCount: 2,
 			chainCount: 1,
-			marketCount: 1
+			minBadDebtKnownCount: 1,
+			minBadDebtUnknownCount: 1
 		},
 		rows: [
 			{
@@ -70,178 +63,76 @@ const createRiskData = (): TokenRiskResponse => ({
 				protocolDisplayName: 'Aave V3',
 				chain: 'ethereum',
 				chainDisplayName: 'Ethereum',
-				debtSymbol: 'USDC',
-				borrowCapUsd: 1000,
-				debtTotalBorrowedUsd: 400,
-				debtTotalSupplyUsd: 800,
-				remainingCapUsd: 600,
-				availableToBorrowUsd: 200,
-				debtUtilization: 0.5,
-				eligibleCollateralCount: 2,
-				eligibleCollateralSymbols: ['WBTC', 'wstETH'],
-				market: 'core-market'
-			}
-		],
-		methodologies: {
-			borrowCapUsd: 'Borrow cap methodology',
-			debtTotalBorrowedUsd: 'Borrowed methodology',
-			debtUtilization: 'Utilization methodology',
-			availableToBorrowUsd: 'Available methodology'
-		}
-	},
-	collateralRisk: {
-		summary: {
-			totalBorrowCapUsd: 800,
-			totalBorrowedUsd: 300,
-			totalAvailableToBorrowUsd: 500,
-			routeCount: 1,
-			isolatedRouteCount: 1,
-			minLiquidationBuffer: 0.08,
-			maxLiquidationBuffer: 0.08
-		},
-		rows: [
+				assetSymbol: 'USDC',
+				assetAddress: '0xa0b8',
+				currentMaxBorrowUsd: 1000,
+				minBadDebtAtPriceZeroUsd: 400,
+				minBadDebtAtPriceZeroCoverage: 'known'
+			},
 			{
-				protocol: 'aave-v3',
-				protocolDisplayName: 'Aave V3',
+				protocol: 'morpho-blue',
+				protocolDisplayName: 'Morpho Blue',
 				chain: 'ethereum',
 				chainDisplayName: 'Ethereum',
-				debtSymbol: 'WBTC',
-				debtTotalSupplyUsd: 800,
-				debtTotalBorrowedUsd: 300,
-				borrowCapUsd: 800,
-				maxLtv: 0.7,
-				liquidationThreshold: 0.78,
-				liquidationPenalty: 0.04,
-				liquidationBuffer: 0.08,
-				borrowApy: 0.02,
-				isolationMode: true,
-				debtCeilingUsd: 1000,
-				availableToBorrowUsd: 500,
-				market: 'core-market'
+				assetSymbol: 'USDC',
+				assetAddress: '0xa0b8',
+				currentMaxBorrowUsd: 500,
+				minBadDebtAtPriceZeroUsd: null,
+				minBadDebtAtPriceZeroCoverage: 'unavailable'
 			}
 		],
 		methodologies: {
-			availableToBorrowUsd: 'Available methodology',
-			debtTotalBorrowedUsd: 'Borrowed methodology',
-			maxLtv: 'Max LTV methodology',
-			liquidationThreshold: 'Threshold methodology',
-			liquidationPenalty: 'Penalty methodology',
-			isolationMode: 'Isolation methodology',
-			debtCeilingUsd: 'Ceiling methodology'
+			asset: 'Asset methodology',
+			currentMaxBorrowUsd: 'Liquidity max borrow methodology',
+			minBadDebtAtPriceZeroUsd: 'Zero-price bad debt methodology'
 		}
 	},
-	selectedChainRisk: null,
-	limitations: ['Borrow caps are not a full risk rating.']
+	limitations: ['Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.']
 })
 
 import { TokenRisksSection } from './TokenRisksSection'
 
 describe('TokenRisksSection', () => {
-	it('renders the collateral-side summary from preloaded risk data', () => {
+	it('renders the combined maximum possible exposure headline from preloaded risk data', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		expect(html).toContain('Total available to borrow using USDC as collateral')
-		expect(html).toContain('$500')
-		expect(html).toContain('$300 currently borrowed across the reachable debt markets ($800 derived route capacity)')
-		expect(html).toContain('Aave V3')
-		expect(html).toContain('$500 available ($300 borrowed in route debt markets / $800 derived route capacity)')
-		expect(html).toContain('Ethereum')
-		expect(html).toContain('How much can still be borrowed right now using USDC as collateral across lending protocols')
+		expect(html).toContain('How much debt can be issued against USDC as collateral across lending protocols')
+		expect(html).toContain('Maximum possible exposure to USDC')
+		expect(html).toContain('$1,900')
+		expect(html).toContain('$1,500 (max additional borrows against USDC)')
+		expect(html).toContain('$400 (bad debt if USDC was hacked now)')
+		expect(html).not.toContain('Debt already borrowed against USDC')
+		expect(html).not.toContain('borrowed debt')
 	})
 
-	it('shows methodology and both detail disclosures when data exists', () => {
+	it('shows methodology, limitations, and the exposure details disclosure', () => {
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		expect(html).toContain('Showing collateral-side borrowing capacity for USDC on')
-		expect(html).toContain('Borrow caps are not a full risk rating.')
-		expect(html).toContain('Show USDC collateral details')
-		expect(html).toContain('Show borrow-cap details')
-		expect(html).toContain('paginated-table:1')
-		expect(html).toContain('derived route capacity is available plus the current borrowed amount')
-		expect(html).toContain('Cap|Borrowing cap against this collateral route, calculated as borrowed plus available.')
-		expect(html).toContain('Borrowed|Borrowed methodology')
-		expect(html).toContain('Available|Available methodology')
-		expect(html).toContain('Max LTV|Max LTV methodology')
+		expect(html).toContain('Showing collateral exposure for USDC on')
+		expect(html).toContain(
+			'Bad debt at $0 is a lower bound when some contributing markets return null for zero-price bad debt.'
+		)
+		expect(html).toContain('Show exposure details')
+		expect(html).toContain('paginated-table:2')
+		expect(html).toContain('Asset|Asset methodology')
+		expect(html).toContain('Max Borrowable|Liquidity max borrow methodology')
+		expect(html).toContain('Bad Debt at $0|Zero-price bad debt methodology')
+		expect(html).toContain(
+			'Bad Debt at $0</span> is the minimum known bad debt if the collateral asset price goes to zero'
+		)
+		expect(html).toContain('Bad debt at $0 totals remain lower bounds when a row is marked partial.')
+		expect(html).not.toContain('Borrowed Debt|')
 	})
 
-	it('prioritizes collateral protocols by available liquidity instead of implied cap', () => {
-		const riskData = createRiskData()
-		riskData.collateralRisk.summary = {
-			totalBorrowCapUsd: 1373,
-			totalBorrowedUsd: 350,
-			totalAvailableToBorrowUsd: 1023,
-			routeCount: 3,
-			isolatedRouteCount: 1,
-			minLiquidationBuffer: 0.08,
-			maxLiquidationBuffer: 0.08
-		}
-		riskData.collateralRisk.rows = [
-			{
-				protocol: 'aave-v3',
-				protocolDisplayName: 'Aave V3',
-				chain: 'ethereum',
-				chainDisplayName: 'Ethereum',
-				debtSymbol: 'WBTC',
-				debtTotalSupplyUsd: 800,
-				debtTotalBorrowedUsd: 300,
-				borrowCapUsd: 1000,
-				maxLtv: 0.7,
-				liquidationThreshold: 0.78,
-				liquidationPenalty: 0.04,
-				liquidationBuffer: 0.08,
-				borrowApy: 0.02,
-				isolationMode: true,
-				debtCeilingUsd: 1000,
-				availableToBorrowUsd: 0,
-				market: 'aave-market'
-			},
-			{
-				protocol: 'morpho-v3',
-				protocolDisplayName: 'Morpho V3',
-				chain: 'ethereum',
-				chainDisplayName: 'Ethereum',
-				debtSymbol: 'USDC',
-				debtTotalSupplyUsd: 123,
-				debtTotalBorrowedUsd: 0,
-				borrowCapUsd: 123,
-				maxLtv: 0.7,
-				liquidationThreshold: 0.78,
-				liquidationPenalty: 0.04,
-				liquidationBuffer: 0.08,
-				borrowApy: 0.02,
-				isolationMode: false,
-				debtCeilingUsd: null,
-				availableToBorrowUsd: 123,
-				market: 'morpho-market'
-			},
-			{
-				protocol: 'compound-v3',
-				protocolDisplayName: 'Compound V3',
-				chain: 'ethereum',
-				chainDisplayName: 'Ethereum',
-				debtSymbol: 'USDC',
-				debtTotalSupplyUsd: 950,
-				debtTotalBorrowedUsd: 50,
-				borrowCapUsd: 250,
-				maxLtv: 0.7,
-				liquidationThreshold: 0.78,
-				liquidationPenalty: 0.04,
-				liquidationBuffer: 0.08,
-				borrowApy: 0.02,
-				isolationMode: false,
-				debtCeilingUsd: null,
-				availableToBorrowUsd: 900,
-				market: 'compound-market'
-			}
-		]
+	it('prioritizes protocols by total max borrowable', () => {
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={createRiskData()} />)
 
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="LINK" riskData={riskData} />)
-
-		expect(html).toContain('Total available to borrow using LINK as collateral')
-		expect(html).toContain('$1,023')
-		expect(html.indexOf('Compound V3')).toBeLessThan(html.indexOf('Morpho V3'))
-		expect(html.indexOf('Morpho V3')).toBeLessThan(html.indexOf('Aave V3'))
-		expect(html).toContain('$0 available ($300 borrowed in route debt markets / $1,000 derived route capacity)')
+		expect(html.indexOf('Aave V3')).toBeLessThan(html.indexOf('Morpho Blue'))
+		expect(html).toContain(
+			'$1,400 at-risk exposure = $400 bad debt if hacked + $1,000 additional borrowable against USDC'
+		)
+		expect(html).toContain('$500 at-risk exposure = -- bad debt if hacked + $500 additional borrowable against USDC')
+		expect(html).not.toContain('Unavailable bad debt if hacked')
 	})
 
 	it('uses onchain copy when multiple scoped chains are present', () => {
@@ -253,60 +144,88 @@ describe('TokenRisksSection', () => {
 		expect(html).toContain('<span class="font-medium text-(--text-primary)">onchain</span>')
 	})
 
-	it('hides empty detail disclosures', () => {
+	it('shows a focusable chain breakdown trigger for multi-chain protocol summaries', () => {
 		const riskData = createRiskData()
-		riskData.collateralRisk.rows = []
-		riskData.collateralRisk.summary = {
-			totalBorrowCapUsd: 0,
-			totalBorrowedUsd: 0,
-			totalAvailableToBorrowUsd: 0,
-			routeCount: 0,
-			isolatedRouteCount: 0,
-			minLiquidationBuffer: null,
-			maxLiquidationBuffer: null
-		}
-		riskData.borrowCaps.rows = []
-		riskData.borrowCaps.summary = {
-			totalBorrowCapUsd: 0,
-			totalBorrowedUsd: 0,
-			remainingCapUsd: 0,
-			capUtilization: null,
-			protocolCount: 0,
-			chainCount: 0,
-			marketCount: 0
-		}
+		riskData.exposures.rows = [
+			riskData.exposures.rows[0],
+			{
+				...riskData.exposures.rows[0],
+				chain: 'base',
+				chainDisplayName: 'Base',
+				currentMaxBorrowUsd: 300,
+				minBadDebtAtPriceZeroUsd: 25
+			}
+		]
 
-		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="AAVE" riskData={riskData} />)
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
 
-		expect(html).not.toContain('Show AAVE collateral details')
-		expect(html).not.toContain('Show borrow-cap details')
+		expect(html).toContain('Show 2 chains exposure breakdown by chain')
+		expect(html).toContain('2 chains')
 	})
 
-	it('returns nothing when there are no collateral-side or debt-side protocol summaries', () => {
+	it('returns nothing when there are no exposure rows', () => {
 		const riskData = createRiskData()
-		riskData.collateralRisk.rows = []
-		riskData.collateralRisk.summary = {
-			totalBorrowCapUsd: 0,
-			totalBorrowedUsd: 0,
-			totalAvailableToBorrowUsd: 0,
-			routeCount: 0,
-			isolatedRouteCount: 0,
-			minLiquidationBuffer: null,
-			maxLiquidationBuffer: null
-		}
-		riskData.borrowCaps.rows = []
-		riskData.borrowCaps.summary = {
-			totalBorrowCapUsd: 0,
-			totalBorrowedUsd: 0,
-			remainingCapUsd: 0,
-			capUtilization: null,
+		riskData.exposures.rows = []
+		riskData.exposures.summary = {
+			totalCurrentMaxBorrowUsd: 0,
+			totalMinBadDebtAtPriceZeroUsd: null,
+			exposureCount: 0,
 			protocolCount: 0,
 			chainCount: 0,
-			marketCount: 0
+			minBadDebtKnownCount: 0,
+			minBadDebtUnknownCount: 0
 		}
 
 		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="AAVE" riskData={riskData} />)
 
 		expect(html).toBe('')
+	})
+
+	it('shows partial bad-debt labels and unavailable totals when coverage is incomplete', () => {
+		const riskData = createRiskData()
+		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = 50
+		riskData.exposures.summary.minBadDebtKnownCount = 0
+		riskData.exposures.summary.minBadDebtUnknownCount = 2
+		riskData.exposures.rows = [
+			{
+				...riskData.exposures.rows[0],
+				protocol: 'fluid',
+				protocolDisplayName: 'Fluid',
+				minBadDebtAtPriceZeroUsd: 50,
+				minBadDebtAtPriceZeroCoverage: 'partial'
+			},
+			{
+				...riskData.exposures.rows[1],
+				protocol: 'fluid',
+				protocolDisplayName: 'Fluid',
+				minBadDebtAtPriceZeroUsd: null,
+				minBadDebtAtPriceZeroCoverage: 'unavailable'
+			}
+		]
+
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
+
+		expect(html).toContain('$50 bad debt if hacked')
+		expect(html).not.toContain('$50 (partial) bad debt if hacked')
+	})
+
+	it('omits unavailable bad-debt wording when no exposures report the metric', () => {
+		const riskData = createRiskData()
+		riskData.exposures.summary.totalMinBadDebtAtPriceZeroUsd = null
+		riskData.exposures.summary.minBadDebtKnownCount = 0
+		riskData.exposures.summary.minBadDebtUnknownCount = 2
+		riskData.exposures.rows = riskData.exposures.rows.map((row) => ({
+			...row,
+			minBadDebtAtPriceZeroUsd: null,
+			minBadDebtAtPriceZeroCoverage: 'unavailable' as const
+		}))
+
+		const html = renderToStaticMarkup(<TokenRisksSection tokenSymbol="USDC" riskData={riskData} />)
+
+		expect(html).toContain(
+			'$1,000 at-risk exposure = -- bad debt if hacked + $1,000 additional borrowable against USDC'
+		)
+		expect(html).toContain('$500 at-risk exposure = -- bad debt if hacked + $500 additional borrowable against USDC')
+		expect(html).not.toContain('Unavailable')
 	})
 })

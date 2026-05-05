@@ -438,7 +438,7 @@ export const FAQ_ITEMS: FaqItem[] = [
 	},
 	{
 		question: 'Can I pay with Crypto?',
-		answer: 'Yes, crypto payment is available for monthly subscriptions via stablecoins on most major EVM chains.'
+		answer: 'Yes, crypto payment is available for monthly and yearly subscriptions on most major EVM chains.'
 	},
 	{
 		question: 'Is there a way to try the service first?',

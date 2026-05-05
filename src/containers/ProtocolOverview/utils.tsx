@@ -1,5 +1,4 @@
 import type { IProtocolMetricsV2 } from '~/containers/ProtocolOverview/api.types'
-import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
 
 export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
@@ -32,7 +31,6 @@ export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 
 		// Validate date format first
 		if (!isValidDateFormat(banner.until)) {
-			postRuntimeLogs(`Invalid date format for ${protocolData.name} banner`)
 			continue
 		}
 
