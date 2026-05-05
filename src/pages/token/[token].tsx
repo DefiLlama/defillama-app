@@ -315,7 +315,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		const normalizedMarketsSymbol = record.symbol.toLowerCase()
 		let marketsAvailable = false
 		for (const tokenMarket of tokenMarketsList.tokens) {
-			if (tokenMarket.symbol === normalizedMarketsSymbol) {
+			if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
 				marketsAvailable = true
 				break
 			}

@@ -62,7 +62,8 @@ export function ProtocolOverviewLayout({
 	seoTitle,
 	seoDescription,
 	entityQuestions,
-	cexMarketsExchange
+	cexMarketsExchange,
+	cexMarketsSlug
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -84,6 +85,7 @@ export function ProtocolOverviewLayout({
 	seoDescription?: string
 	entityQuestions?: string[]
 	cexMarketsExchange?: string | null
+	cexMarketsSlug?: string | null
 }) {
 	const { user } = useAuthContext()
 
@@ -160,6 +162,7 @@ export function ProtocolOverviewLayout({
 	}, [metrics])
 
 	const entitySlug = slug(name)
+	const cexMarketsRouteSlug = cexMarketsSlug ? slug(cexMarketsSlug) : null
 	const shouldNoIndex = !standaloneCanonicals[tab] || noIndexProtocolSlugs.has(entitySlug)
 	const canonicalUrl = isCEX
 		? tab === 'assets'
@@ -167,7 +170,9 @@ export function ProtocolOverviewLayout({
 			: tab === 'stablecoins'
 				? `/cex/stablecoins/${entitySlug}`
 				: tab === 'markets'
-					? `/cex/markets/${entitySlug}`
+					? cexMarketsRouteSlug
+						? `/cex/markets/${cexMarketsRouteSlug}`
+						: null
 					: `/cex/${entitySlug}`
 		: !tab || tab === 'information'
 			? `/protocol/${entitySlug}`
@@ -330,9 +335,9 @@ export function ProtocolOverviewLayout({
 									Stablecoin Info
 								</ButtonLink>
 							) : null}
-							{cexMarketsExchange ? (
+							{cexMarketsExchange && cexMarketsRouteSlug ? (
 								<ButtonLink
-									href={`/cex/markets/${slug(name)}`}
+									href={`/cex/markets/${cexMarketsRouteSlug}`}
 									data-active={tab === 'markets'}
 									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 								>

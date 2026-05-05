@@ -16,6 +16,7 @@ interface CexMarketsPageProps {
 	category: string | null
 	metrics: IProtocolPageMetrics
 	cexMarketsExchange: string
+	cexMarketsSlug: string
 }
 
 const CEX_MARKETS_METRICS: IProtocolPageMetrics = {
@@ -78,9 +79,11 @@ export const getStaticProps = withPerformanceLogging(
 			.default as ExchangeMarketsListResponse
 		const normalizedCexSlug = slug(exchangeData.slug ?? '')
 		let cexMarketsExchange: string | null = null
+		let cexMarketsSlug: string | null = null
 		for (const entry of exchangesList.cex.spot) {
 			if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
 				cexMarketsExchange = entry.exchange
+				cexMarketsSlug = entry.defillama_slug
 				break
 			}
 		}
@@ -88,6 +91,7 @@ export const getStaticProps = withPerformanceLogging(
 			for (const entry of exchangesList.cex.linear_perp) {
 				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
 					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
 					break
 				}
 			}
@@ -96,12 +100,13 @@ export const getStaticProps = withPerformanceLogging(
 			for (const entry of exchangesList.cex.inverse_perp) {
 				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
 					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
 					break
 				}
 			}
 		}
 
-		if (!cexMarketsExchange) {
+		if (!cexMarketsExchange || !cexMarketsSlug) {
 			return { notFound: true }
 		}
 
@@ -117,7 +122,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData.otherProtocols ?? [],
 				category: protocolData.category ?? null,
 				metrics: CEX_MARKETS_METRICS,
-				cexMarketsExchange
+				cexMarketsExchange,
+				cexMarketsSlug
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -140,7 +146,8 @@ export default function CexMarketsPage({
 	otherProtocols,
 	category,
 	metrics,
-	cexMarketsExchange
+	cexMarketsExchange,
+	cexMarketsSlug
 }: CexMarketsPageProps) {
 	return (
 		<ProtocolOverviewLayout
@@ -151,6 +158,7 @@ export default function CexMarketsPage({
 			metrics={metrics}
 			tab="markets"
 			cexMarketsExchange={cexMarketsExchange}
+			cexMarketsSlug={cexMarketsSlug}
 			seoTitle={`${name} Markets - DefiLlama`}
 			seoDescription={`Track ${name} spot and perpetual markets on DefiLlama.`}
 		>

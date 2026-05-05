@@ -9,8 +9,8 @@ const canonicalProtocolActiveLoansAaveRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/active-loans\/aave")[^>]*\/?>/
 const canonicalProtocolDefiSwapRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/defi-swap")[^>]*\/?>/
-const canonicalCexMarketsBinanceRegex =
-	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/cex\/markets\/binance")[^>]*\/?>/
+const canonicalCexMarketsCryptoComRegex =
+	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/cex\/markets\/crypto-com")[^>]*\/?>/
 const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="noindex")[^>]*\/?>/
 
 const metrics: IProtocolPageMetrics = {
@@ -309,11 +309,12 @@ describe('ProtocolOverviewLayout SEO', () => {
 				ProtocolOverviewLayout as React.ComponentType<any>,
 				{
 					isCEX: true,
-					name: 'Binance',
+					name: 'Crypto.com',
 					category: 'CEX',
 					metrics,
 					tab: 'markets',
-					cexMarketsExchange: 'binance'
+					cexMarketsExchange: 'cryptocom',
+					cexMarketsSlug: 'Crypto-com'
 				},
 				null
 			)
@@ -327,7 +328,7 @@ describe('ProtocolOverviewLayout SEO', () => {
 				ProtocolOverviewLayoutWithoutMarkets as React.ComponentType<any>,
 				{
 					isCEX: true,
-					name: 'Binance',
+					name: 'Crypto.com',
 					category: 'CEX',
 					metrics,
 					tab: 'information',
@@ -337,11 +338,11 @@ describe('ProtocolOverviewLayout SEO', () => {
 			)
 		)
 
-		expect(withMarkets).toMatch(canonicalCexMarketsBinanceRegex)
-		expect(withMarkets).toContain('href="/cex/markets/binance"')
+		expect(withMarkets).toMatch(canonicalCexMarketsCryptoComRegex)
+		expect(withMarkets).toContain('href="/cex/markets/crypto-com"')
 		expect(withMarkets).toContain('>Markets</a>')
 		expect(withMarkets).not.toMatch(robotsNoindexRegex)
-		expect(withoutMarkets).not.toContain('href="/cex/markets/binance"')
+		expect(withoutMarkets).not.toContain('href="/cex/markets/crypto-com"')
 	})
 })
 

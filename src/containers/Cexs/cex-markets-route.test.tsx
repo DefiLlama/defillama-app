@@ -3,7 +3,7 @@ import { getStaticProps as getCexStaticProps } from '~/pages/cex/[cex]'
 import { getStaticProps as getCexMarketsStaticProps } from '~/pages/cex/markets/[cex]'
 
 const cexs = [
-	{ name: 'Binance', slug: 'Binance-CEX' },
+	{ name: 'Crypto.com', slug: 'Crypto-com' },
 	{ name: 'No Markets', slug: 'no-markets' }
 ]
 
@@ -12,8 +12,8 @@ vi.mock('../../../.cache/datasets/markets/exchanges-list.json', () => ({
 		cex: {
 			spot: [
 				{
-					defillama_slug: 'Binance-CEX',
-					exchange: 'binance',
+					defillama_slug: 'Crypto-com',
+					exchange: 'cryptocom',
 					market_count: 1,
 					total_volume_24h: 1
 				}
@@ -73,10 +73,10 @@ vi.mock('~/utils/metadata', () => ({
 vi.mock('~/containers/ProtocolOverview/queries', () => ({
 	getProtocolOverviewPageData: vi.fn(({ protocolId }: { protocolId: string }) =>
 		Promise.resolve({
-			name: protocolId === 'no-markets' ? 'No Markets' : 'Binance',
+			name: protocolId === 'no-markets' ? 'No Markets' : 'Crypto.com',
 			category: 'CEX',
 			metrics: { tvl: true, stablecoins: true },
-			seoTitle: protocolId === 'no-markets' ? 'No Markets' : 'Binance',
+			seoTitle: protocolId === 'no-markets' ? 'No Markets' : 'Crypto.com',
 			seoDescription: 'CEX overview'
 		})
 	)
@@ -86,16 +86,17 @@ vi.mock('~/containers/ProtocolOverview/api', () => ({
 	fetchProtocolOverviewMetrics: vi.fn((exchangeName: string) =>
 		exchangeName === 'no-markets'
 			? Promise.resolve({ name: 'No Markets', category: 'CEX', otherProtocols: [] })
-			: Promise.resolve({ name: 'Binance', category: 'CEX', otherProtocols: [] })
+			: Promise.resolve({ name: 'Crypto.com', category: 'CEX', otherProtocols: [] })
 	)
 }))
 
 describe('CEX markets routes', () => {
 	it('adds the markets exchange to the CEX overview props when the cached list matches', async () => {
-		await expect(getCexStaticProps({ params: { cex: 'binance-cex' } } as never)).resolves.toMatchObject({
+		await expect(getCexStaticProps({ params: { cex: 'crypto-com' } } as never)).resolves.toMatchObject({
 			props: {
-				name: 'Binance',
-				cexMarketsExchange: 'binance'
+				name: 'Crypto.com',
+				cexMarketsExchange: 'cryptocom',
+				cexMarketsSlug: 'Crypto-com'
 			},
 			revalidate: 123
 		})
@@ -112,10 +113,11 @@ describe('CEX markets routes', () => {
 	})
 
 	it('returns props for the standalone markets tab when cached markets exist', async () => {
-		await expect(getCexMarketsStaticProps({ params: { cex: 'binance-cex' } } as never)).resolves.toMatchObject({
+		await expect(getCexMarketsStaticProps({ params: { cex: 'crypto-com' } } as never)).resolves.toMatchObject({
 			props: {
-				name: 'Binance',
-				cexMarketsExchange: 'binance'
+				name: 'Crypto.com',
+				cexMarketsExchange: 'cryptocom',
+				cexMarketsSlug: 'Crypto-com'
 			},
 			revalidate: 123
 		})

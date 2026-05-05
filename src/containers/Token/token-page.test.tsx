@@ -248,7 +248,7 @@ vi.mock('../../../.cache/datasets/markets/tokens-list.json', () => ({
 			{
 				exchange_count: 1,
 				market_count: 1,
-				symbol: 'btc',
+				symbol: 'BTC',
 				total_oi_usd: 1,
 				total_volume_24h: 1
 			}

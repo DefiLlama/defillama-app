@@ -36,9 +36,11 @@ export const getStaticProps = withPerformanceLogging(
 			.default as ExchangeMarketsListResponse
 		const normalizedCexSlug = slug(exchangeData.slug ?? '')
 		let cexMarketsExchange: string | null = null
+		let cexMarketsSlug: string | null = null
 		for (const entry of exchangesList.cex.spot) {
 			if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
 				cexMarketsExchange = entry.exchange
+				cexMarketsSlug = entry.defillama_slug
 				break
 			}
 		}
@@ -46,6 +48,7 @@ export const getStaticProps = withPerformanceLogging(
 			for (const entry of exchangesList.cex.linear_perp) {
 				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
 					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
 					break
 				}
 			}
@@ -54,6 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 			for (const entry of exchangesList.cex.inverse_perp) {
 				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
 					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
 					break
 				}
 			}
@@ -76,7 +80,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		return { props: { ...data, cexMarketsExchange }, revalidate: maxAgeForNext([22]) }
+		return { props: { ...data, cexMarketsExchange, cexMarketsSlug }, revalidate: maxAgeForNext([22]) }
 	}
 )
 
