@@ -7,9 +7,9 @@
 	"sideEffects": false,
 	"scripts": {
 		"analyze": "bun --bun next experimental-analyze",
-		"dev": "bun run build:metadata && bun --bun next dev",
+		"dev": "NODE_ENV=development bun run build:metadata && bun --bun next dev",
 		"build:metadata": "sh ./scripts/buildMetadata.sh",
-		"build": "bun run build:metadata && bun --bun next build",
+		"build": "NODE_ENV=production bun run build:metadata && bun --bun next build",
 		"start": "./scripts/prestart.sh & bun --bun next start",
 		"test": "vitest run",
 		"test:types": "tsc -p tsconfig.vitest.json --noEmit",
