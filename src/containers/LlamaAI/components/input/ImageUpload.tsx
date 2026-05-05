@@ -44,31 +44,33 @@ function fileExtensionLabel(name: string): string {
 		.slice(0, 4)
 }
 
-function TextChip({
-	file,
+export function TextChip({
+	name,
+	sizeBytes,
 	textContent,
 	isPasted,
 	onOpen,
 	onRemove
 }: {
-	file: File
+	name: string
+	sizeBytes: number
 	textContent: string
 	isPasted: boolean
 	onOpen: () => void
-	onRemove: () => void
+	onRemove?: () => void
 }) {
 	const topLine = isPasted
-		? (textContent.split('\n').find((line) => line.trim().length > 0) ?? '').trim() || file.name
-		: file.name
-	const badgeLabel = isPasted ? 'Pasted' : fileExtensionLabel(file.name)
-	const size = formatBytes(file.size)
+		? (textContent.split('\n').find((line) => line.trim().length > 0) ?? '').trim() || name
+		: name
+	const badgeLabel = isPasted ? 'Pasted' : fileExtensionLabel(name)
+	const size = formatBytes(sizeBytes)
 	const removeLabel = isPasted ? 'Remove pasted content' : 'Remove file'
 	return (
 		<div className="group relative">
 			<button
 				type="button"
 				onClick={onOpen}
-				title={isPasted ? 'Open pasted content' : `Open ${file.name}`}
+				title={isPasted ? 'Open pasted content' : `Open ${name}`}
 				className="flex h-16 w-52 cursor-pointer flex-col justify-between rounded-lg border border-[#E6E6E6] bg-[#fafafa] px-3 py-2 text-left transition-colors hover:border-(--old-blue)/40 hover:bg-[#f0f0f0] dark:border-[#39393E] dark:bg-[#1a1b1c] dark:hover:border-(--old-blue)/40 dark:hover:bg-[#222324]"
 			>
 				<p
@@ -87,14 +89,16 @@ function TextChip({
 					<span className="font-sans text-[10px] text-[#888] dark:text-[#666]">{size}</span>
 				</div>
 			</button>
-			<button
-				type="button"
-				onClick={onRemove}
-				className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80 focus-visible:opacity-100"
-			>
-				<Icon name="x" height={12} width={12} />
-				<span className="sr-only">{removeLabel}</span>
-			</button>
+			{onRemove ? (
+				<button
+					type="button"
+					onClick={onRemove}
+					className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80 focus-visible:opacity-100"
+				>
+					<Icon name="x" height={12} width={12} />
+					<span className="sr-only">{removeLabel}</span>
+				</button>
+			) : null}
 		</div>
 	)
 }
@@ -128,7 +132,8 @@ export function ImageUpload({
 							return (
 								<TextChip
 									key={id}
-									file={file}
+									name={file.name}
+									sizeBytes={file.size}
 									textContent={textContent ?? ''}
 									isPasted={!!isPasted}
 									onOpen={async () => {

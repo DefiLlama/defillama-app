@@ -225,7 +225,14 @@ export interface Message {
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
 	dashboards?: DashboardArtifact[]
-	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: GeneratedImage[]
 	id?: string
 	parentId?: string

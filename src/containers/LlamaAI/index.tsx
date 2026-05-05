@@ -120,7 +120,14 @@ interface PersistedMessage {
 	citations?: string[]
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
@@ -143,7 +150,14 @@ interface SharedSessionMessage {
 	content: string
 	messageId?: string
 	timestamp: number
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	charts?: ChartConfiguration[]

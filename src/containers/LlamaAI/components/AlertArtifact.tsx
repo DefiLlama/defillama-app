@@ -57,7 +57,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	defaultTitle
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const [title, setTitle] = useState(defaultTitle || alertId.replace(/_/g, ' '))
+	const [title, setTitle] = useState(defaultTitle || 'Untitled alert')
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency)
 	const [hour, setHour] = useState(alertIntent.hour)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
