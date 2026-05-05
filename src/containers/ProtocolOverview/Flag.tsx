@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import type { FormSubmitEvent } from '~/types/forms'
 import { fetchJson } from '~/utils/async'
@@ -165,9 +166,16 @@ export function Flag({
 					<button
 						name="submit-btn"
 						disabled={loading}
-						className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
+						className="mt-3 flex items-center justify-center gap-2 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
 					>
-						Report
+						{loading ? (
+							<>
+								<LoadingSpinner size={16} />
+								<span>Submitting...</span>
+							</>
+						) : (
+							'Report'
+						)}
 					</button>
 					{error ? (
 						<small className="text-center text-red-500">Something went wrong, couldn't submit report</small>

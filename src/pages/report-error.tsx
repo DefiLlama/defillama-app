@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
+import { LoadingSpinner } from '~/components/Loaders'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 
@@ -88,9 +89,16 @@ function ReportError() {
 					<button
 						name="submit-btn"
 						disabled={isPending}
-						className="mt-3 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
+						className="mt-3 flex items-center justify-center gap-2 rounded-md bg-(--link-active-bg) p-3 text-white disabled:opacity-50"
 					>
-						{isPending ? 'Submitting...' : 'Report'}
+						{isPending ? (
+							<>
+								<LoadingSpinner size={16} />
+								<span>Submitting...</span>
+							</>
+						) : (
+							'Report'
+						)}
 					</button>
 					{error ? <small className="text-center text-red-500">{error.message}</small> : null}
 				</form>
