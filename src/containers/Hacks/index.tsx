@@ -35,6 +35,9 @@ const MultiSeriesChart2 = React.lazy(
 function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
+	const router = useRouter()
+	const searchInputRef = React.useRef<HTMLInputElement | null>(null)
+	const initialSearchAppliedRef = React.useRef(false)
 
 	const instance = useReactTable({
 		data,
@@ -56,6 +59,17 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
+	React.useEffect(() => {
+		if (!router.isReady || initialSearchAppliedRef.current) return
+		const raw = router.query.search
+		const value = Array.isArray(raw) ? raw[0] : raw
+		if (typeof value === 'string' && value.trim()) {
+			initialSearchAppliedRef.current = true
+			setProjectName(value.trim())
+			if (searchInputRef.current) searchInputRef.current.value = value.trim()
+		}
+	}, [router.isReady, router.query.search, setProjectName])
+
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
@@ -68,6 +82,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
+						ref={searchInputRef}
 						name="search"
 						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."

@@ -1331,3 +1331,185 @@
 	height: 1em;
 	width: 1em;
 }
+
+/* Articles surface */
+
+.article-editor-prose {
+	max-width: 68ch;
+	margin-inline: auto;
+}
+
+/* Tiptap empty-doc placeholder */
+.article-editor-prose p.is-editor-empty:first-child::before,
+.article-editor-prose .is-empty::before {
+	content: attr(data-placeholder);
+	color: var(--text-tertiary);
+	float: left;
+	height: 0;
+	pointer-events: none;
+}
+
+/* Entity link inserted by mention command */
+.article-editor-prose a[data-article-entity-link] {
+	color: var(--link-text);
+	font-weight: 500;
+}
+
+/* Active mention query decoration in editor */
+.ProseMirror .article-entity-suggestion-query {
+	background: color-mix(in oklch, var(--link-text) 12%, transparent);
+	border-radius: 3px;
+	padding: 0 2px;
+}
+
+/* Entity hover popover */
+.article-entity-popover {
+	white-space: normal;
+}
+
+.article-title-input {
+	min-height: 1.2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.article-entity-popover {
+		transition: none;
+	}
+}
+
+/* Article code-block syntax highlighting (lowlight + highlight.js classes) */
+.article-prose pre.hljs,
+.ProseMirror pre {
+	background: var(--cards-bg);
+	border: 1px solid var(--cards-border);
+	border-radius: 6px;
+	padding: 14px 16px;
+	overflow-x: auto;
+	font-size: 12.5px;
+	line-height: 1.55;
+}
+.article-prose pre code,
+.ProseMirror pre code {
+	background: transparent;
+	padding: 0;
+	color: var(--text-primary);
+	font-family: var(--font-jetbrains, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+.hljs-comment, .hljs-quote { color: color-mix(in oklch, var(--text-tertiary) 90%, transparent); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-tag { color: #c678dd; }
+.hljs-string, .hljs-title, .hljs-section, .hljs-attribute, .hljs-literal, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-addition { color: #98c379; }
+.hljs-deletion, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-meta { color: #e06c75; }
+.hljs-doctag, .hljs-attr { color: #d19a66; }
+.hljs-symbol, .hljs-bullet, .hljs-link { color: #56b6c2; }
+.hljs-number { color: #d19a66; }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
+
+/* Task list checkboxes inside ProseMirror */
+.ProseMirror ul[data-type="taskList"] {
+	list-style: none;
+	padding: 0;
+}
+.ProseMirror ul[data-type="taskList"] li {
+	display: flex;
+	gap: 0.5rem;
+	align-items: flex-start;
+}
+.ProseMirror ul[data-type="taskList"] li > label {
+	margin-top: 0.35rem;
+	flex-shrink: 0;
+}
+.ProseMirror ul[data-type="taskList"] li > div {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+	color: var(--text-tertiary);
+	text-decoration: line-through;
+}
+
+/* Highlight mark in editor */
+.ProseMirror mark {
+	background: #fff3a3;
+	color: black;
+	padding: 0 2px;
+	border-radius: 2px;
+}
+.dark .ProseMirror mark {
+	background: #5a4a16;
+	color: #fde9a0;
+}
+
+/* Tables inside the article editor */
+.ProseMirror .tableWrapper {
+	overflow-x: auto;
+	margin: 1.5rem 0;
+	border: 1px solid var(--cards-border);
+	border-radius: 6px;
+}
+.ProseMirror table {
+	border-collapse: collapse;
+	margin: 0;
+	width: 100%;
+	table-layout: auto;
+	font-size: 13.5px;
+	line-height: 1.5;
+}
+.ProseMirror table td,
+.ProseMirror table th {
+	border-right: 1px solid var(--cards-border);
+	border-bottom: 1px solid var(--cards-border);
+	padding: 10px 14px;
+	vertical-align: top;
+	min-width: 9rem;
+	position: relative;
+	box-sizing: border-box;
+}
+.ProseMirror table tr:last-child td,
+.ProseMirror table tr:last-child th {
+	border-bottom: 0;
+}
+.ProseMirror table td:last-child,
+.ProseMirror table th:last-child {
+	border-right: 0;
+}
+.ProseMirror table th {
+	background: color-mix(in oklch, var(--app-bg) 80%, var(--text-primary) 4%);
+	font-weight: 600;
+	color: var(--text-primary);
+	text-align: left;
+	letter-spacing: 0.01em;
+}
+.ProseMirror table p {
+	margin: 0;
+}
+.ProseMirror table p.is-empty::before {
+	content: '';
+	display: inline-block;
+	width: 0;
+	height: 1.4em;
+}
+.ProseMirror table .selectedCell {
+	background: color-mix(in oklch, var(--link-text) 14%, transparent);
+}
+.ProseMirror table .selectedCell::after {
+	content: '';
+	pointer-events: none;
+	position: absolute;
+	inset: 0;
+	background: transparent;
+	box-shadow: inset 0 0 0 1px var(--link-text);
+}
+.ProseMirror table .column-resize-handle {
+	background: var(--link-text);
+	bottom: -2px;
+	pointer-events: none;
+	position: absolute;
+	right: -2px;
+	top: 0;
+	width: 3px;
+}
+.ProseMirror.resize-cursor {
+	cursor: ew-resize;
+	cursor: col-resize;
+}

@@ -1,0 +1,2426 @@
+{
+  "contentVersion": 1,
+  "rendererVersion": 1,
+  "editorSchemaVersion": 1,
+  "title": "The mid-2026 DeFi map",
+  "subtitle": "Where capital sits, where it moves, and what the on-chain data actually says about the second half of the cycle.",
+  "slug": "mid-2026-defi-map",
+  "status": "draft",
+  "author": "DefiLlama Research",
+  "seoDescription": "Where we are Halfway through 2026, on-chain capital allocation has split cleanly into three lanes: yield-bearing collateral, stablecoin liquidity, and execution",
+  "excerpt": "Where we are\nHalfway through 2026, on-chain capital allocation has split cleanly into three lanes: yield-bearing collateral, stablecoin liquidity, and execution-tier infrastructure.",
+  "coverImage": null,
+  "contentJson": {
+    "type": "doc",
+    "content": [
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Where we are"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Halfway through 2026, on-chain capital allocation has split cleanly into three lanes: "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "bold"
+              }
+            ],
+            "text": "yield-bearing collateral"
+          },
+          {
+            "type": "text",
+            "text": ", "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "bold"
+              }
+            ],
+            "text": "stablecoin liquidity"
+          },
+          {
+            "type": "text",
+            "text": ", and "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "bold"
+              }
+            ],
+            "text": "execution-tier infrastructure"
+          },
+          {
+            "type": "text",
+            "text": ". Each lane has a clear leader, a credible challenger, and a long tail. This piece walks through where the deposits actually sit — and which numbers we think are worth tracking through the rest of the year."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Total "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "highlight"
+              }
+            ],
+            "text": "TVL"
+          },
+          {
+            "type": "text",
+            "text": " across DeFi sits near $182B at the time of writing, up roughly 14% YTD. "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "protocol",
+                  "slug": "lido",
+                  "label": "Lido",
+                  "route": "/protocol/lido",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "Lido"
+          },
+          {
+            "type": "text",
+            "text": " remains the single largest pool. "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "protocol",
+                  "slug": "aave",
+                  "label": "Aave",
+                  "route": "/protocol/aave",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "Aave"
+          },
+          {
+            "type": "text",
+            "text": " is the largest lender on "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "chain",
+                  "slug": "Ethereum",
+                  "label": "Ethereum",
+                  "route": "/chain/Ethereum",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "Ethereum"
+          },
+          {
+            "type": "text",
+            "text": ". What changed most this cycle? "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "italic"
+              }
+            ],
+            "text": "Where new deposits land — not how big the pie is."
+          }
+        ]
+      },
+      {
+        "type": "callout",
+        "attrs": {
+          "tone": "note"
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Charts and embedded dashboards in this piece pull from the DefiLlama API on render. If a number looks stale, the daily snapshot hasn't ticked over yet — refresh in a minute."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Liquid staking and the long Lido shadow"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Liquid staking is still the largest sector in DeFi by TVL, and "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "protocol",
+                  "slug": "lido",
+                  "label": "Lido",
+                  "route": "/protocol/lido",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "Lido"
+          },
+          {
+            "type": "text",
+            "text": " accounts for the bulk of it — though its share of staked ETH has slipped from ~32% at the 2024 peak to roughly 27% today as native and exchange-staked ETH grew faster. The chart below tracks total deposited ETH, valued in USD."
+          }
+        ]
+      },
+      {
+        "type": "defillamaChart",
+        "attrs": {
+          "config": {
+            "entities": [
+              { "entityType": "protocol", "slug": "lido", "name": "Lido", "geckoId": "lido-dao" }
+            ],
+            "chartType": "tvl",
+            "range": "365d",
+            "caption": "Lido TVL — the bellwether for liquid-staking demand."
+          }
+        }
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Three forces are shaping what comes next:"
+          }
+        ]
+      },
+      {
+        "type": "bulletList",
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "Restaking saturation. "
+                  },
+                  {
+                    "type": "text",
+                    "text": "Yield premia have compressed as more vaults compete for the same operator slots. The marginal AVS now pays less than the marginal validator earns from beacon-chain rewards alone."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "L2 settlement migration. "
+                  },
+                  {
+                    "type": "text",
+                    "text": "More LST liquidity is moving off mainnet into rollup-native wrappers — wstETH on "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "entityLink",
+                        "attrs": {
+                          "entityType": "chain",
+                          "slug": "Base",
+                          "label": "Base",
+                          "route": "/chain/Base",
+                          "snapshot": null
+                        }
+                      }
+                    ],
+                    "text": "Base"
+                  },
+                  {
+                    "type": "text",
+                    "text": " is up nearly 4× year-over-year."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "Issuer concentration. "
+                  },
+                  {
+                    "type": "text",
+                    "text": "The top three issuers still control the majority of LST validator share. Worth watching, even if Lido's individual share is shrinking."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "callout",
+        "attrs": {
+          "tone": "data"
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "Quick number: "
+              },
+              {
+                "type": "text",
+                "text": "LSTs and LRTs combined still represent roughly "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "highlight"
+                  }
+                ],
+                "text": "36% of all DeFi TVL"
+              },
+              {
+                "type": "text",
+                "text": " — more than lending, DEX liquidity, and bridges combined."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Issuer share, ranked by TVL contribution as of last weekly snapshot:"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Issuer"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "TVL"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Share of staked ETH"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "30d Δ"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "entityLink",
+                            "attrs": {
+                              "entityType": "protocol",
+                              "slug": "lido",
+                              "label": "Lido",
+                              "route": "/protocol/lido",
+                              "snapshot": null
+                            }
+                          }
+                        ],
+                        "text": "Lido"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$31.4B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "27.1%"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "+1.8%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Rocket Pool"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$4.9B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "4.2%"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "−0.4%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Binance staked ETH"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$3.1B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "2.6%"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "+5.2%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Mantle mETH"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$2.3B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "1.9%"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "+8.0%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "The interesting movement isn't at the top. It's the cluster of mid-cap issuers (Mantle, Frax, Stader) collectively gaining share at the expense of Rocket Pool and centralized stakers. Below is the announcement that kicked off the rebalance:"
+          }
+        ]
+      },
+      {
+        "type": "articleEmbed",
+        "attrs": {
+          "config": {
+            "provider": "twitter",
+            "url": "https://x.com/DefiLlama/status/2051327854026109301",
+            "sourceUrl": "https://x.com/DefiLlama/status/2051327854026109301",
+            "title": "DefiLlama TEST",
+            "caption": "Reshare from DefiLlama summarizing the Q1 2026 LST share shift.",
+            "aspectRatio": "auto"
+          }
+        }
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Lending: Aave still wins, but margins are thinning"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Lending TVL on "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "protocol",
+                  "slug": "aave",
+                  "label": "Aave",
+                  "route": "/protocol/aave",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "Aave"
+          },
+          {
+            "type": "text",
+            "text": " has been remarkably steady through the cycle. The interesting story is on the "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "italic"
+              }
+            ],
+            "text": "fee"
+          },
+          {
+            "type": "text",
+            "text": " side, where compressed spreads have started to flow through to protocol revenue."
+          }
+        ]
+      },
+      {
+        "type": "defillamaChart",
+        "attrs": {
+          "config": {
+            "entities": [
+              { "entityType": "protocol", "slug": "aave-v3", "name": "Aave V3", "geckoId": "aave" },
+              { "entityType": "protocol", "slug": "compound-v3", "name": "Compound V3" },
+              { "entityType": "protocol", "slug": "morpho-blue", "name": "Morpho Blue" }
+            ],
+            "chartType": "tvl",
+            "range": "365d",
+            "logScale": true,
+            "annotations": [
+              { "date": "2024-01-15", "label": "Aave V3 deploys on Scroll" }
+            ],
+            "caption": "Lending TVL — Aave V3 vs Compound V3 vs Morpho Blue, log-scaled."
+          }
+        }
+      },
+      {
+        "type": "blockquote",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "If you assume liquidity is migratory, you're underestimating how much of it is just collateralizing the same loan, year after year."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Paul Frambot's writeup on Morpho's vault model is the cleanest framing of why the spread economics differ — worth reading before drawing conclusions from the table below:"
+          }
+        ]
+      },
+      {
+        "type": "articleEmbed",
+        "attrs": {
+          "config": {
+            "provider": "mirror",
+            "url": "https://mirror.xyz/morpho.eth/aHR0cHM6Ly9taXJyb3IueHl6L21vcnBoby1ibHVlLXZhdWx0LWVjb25vbWljcw",
+            "sourceUrl": "https://mirror.xyz/morpho.eth/aHR0cHM6Ly9taXJyb3IueHl6L21vcnBoby1ibHVlLXZhdWx0LWVjb25vbWljcw",
+            "title": "Vault economics in Morpho Blue, end-to-end",
+            "caption": "Paul Frambot, Morpho — Mirror, February 2026.",
+            "aspectRatio": "auto"
+          }
+        }
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 3
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "A useful sanity check"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "When evaluating a lending market, "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "code"
+              }
+            ],
+            "text": "fees / borrowed_supply"
+          },
+          {
+            "type": "text",
+            "text": " is the single most useful ratio for protocol health. The discontinued metrics — "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "strike"
+              }
+            ],
+            "text": "deposits / TVL"
+          },
+          {
+            "type": "text",
+            "text": " — were always noisier than they looked, and "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "underline"
+              }
+            ],
+            "text": "borrow utilization on its own"
+          },
+          {
+            "type": "text",
+            "text": " misses the spread side entirely."
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Snapshot of the top five lending markets, ranked by net deposits:"
+          }
+        ]
+      },
+      {
+        "type": "table",
+        "content": [
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Protocol"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Net deposits"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Borrowed"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "30d fees"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableHeader",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Fee / borrowed"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "entityLink",
+                            "attrs": {
+                              "entityType": "protocol",
+                              "slug": "aave-v3",
+                              "label": "Aave V3",
+                              "route": "/protocol/aave-v3",
+                              "snapshot": null
+                            }
+                          }
+                        ],
+                        "text": "Aave V3"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$24.1B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$11.6B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$78M"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "0.67%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Spark"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$5.8B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$2.4B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$22M"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "0.92%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Morpho Blue"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$4.6B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$2.0B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$19M"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "0.95%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Compound V3"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$2.1B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$0.7B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$5M"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "0.71%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "tableRow",
+            "content": [
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Fluid"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$1.6B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$0.6B"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "$6M"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "tableCell",
+                "attrs": {
+                  "colspan": 1,
+                  "rowspan": 1,
+                  "colwidth": null,
+                  "align": null
+                },
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "code"
+                          }
+                        ],
+                        "text": "1.00%"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Morpho Blue and Fluid both run leaner than Aave on a fee-per-unit-borrowed basis — they pass more spread to lenders. Aave still wins on absolute revenue because the borrowing book is 5× larger. The structural question for the next quarter: does that ratio cross over for any major protocol?"
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Stablecoin flows"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "stablecoin",
+                  "slug": "tether",
+                  "label": "Tether",
+                  "route": "/stablecoin/tether",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "Tether"
+          },
+          {
+            "type": "text",
+            "text": " continues to dominate circulating supply, but the share gap with "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "entityLink",
+                "attrs": {
+                  "entityType": "stablecoin",
+                  "slug": "usd-coin",
+                  "label": "USDC",
+                  "route": "/stablecoin/usd-coin",
+                  "snapshot": null
+                }
+              }
+            ],
+            "text": "USDC"
+          },
+          {
+            "type": "text",
+            "text": " has narrowed every quarter since Q3 2025, and yield-bearing stables (sUSDe, sUSDS) collectively crossed "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "highlight"
+              }
+            ],
+            "text": "$15B in supply"
+          },
+          {
+            "type": "text",
+            "text": " for the first time in March. Where the supply lives is now as informative as how much there is."
+          }
+        ]
+      },
+      {
+        "type": "defillamaChart",
+        "attrs": {
+          "config": {
+            "entities": [
+              { "entityType": "chain", "slug": "Ethereum", "name": "Ethereum" },
+              { "entityType": "chain", "slug": "Solana", "name": "Solana" },
+              { "entityType": "chain", "slug": "Base", "name": "Base" }
+            ],
+            "chartType": "tvl",
+            "range": "90d",
+            "caption": "Chain TVL over the last 90 days — Ethereum, Solana, Base side by side."
+          }
+        }
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Three observations from chain-level flow data over the last 90 days:"
+          }
+        ]
+      },
+      {
+        "type": "orderedList",
+        "attrs": {
+          "start": 1,
+          "type": null
+        },
+        "content": [
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "entityLink",
+                        "attrs": {
+                          "entityType": "chain",
+                          "slug": "Solana",
+                          "label": "Solana",
+                          "route": "/chain/Solana",
+                          "snapshot": null
+                        }
+                      }
+                    ],
+                    "text": "Solana"
+                  },
+                  {
+                    "type": "text",
+                    "text": " net stablecoin inflows turned positive again in March after seven months of bleed — most of it driven by USDC native issuance, not bridged USDT."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "entityLink",
+                        "attrs": {
+                          "entityType": "chain",
+                          "slug": "Base",
+                          "label": "Base",
+                          "route": "/chain/Base",
+                          "snapshot": null
+                        }
+                      }
+                    ],
+                    "text": "Base"
+                  },
+                  {
+                    "type": "text",
+                    "text": " remains the largest non-mainnet host of USDC liquidity. Native issuance on Base hit a fresh ATH of $3.6B."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "listItem",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "entityLink",
+                        "attrs": {
+                          "entityType": "chain",
+                          "slug": "Tron",
+                          "label": "Tron",
+                          "route": "/chain/Tron",
+                          "snapshot": null
+                        }
+                      }
+                    ],
+                    "text": "Tron"
+                  },
+                  {
+                    "type": "text",
+                    "text": "'s USDT supply has plateaued for the first time in three years. Migration to Plasma and to USD1 on Tron is the obvious culprit."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "For a longer read on why Layer-2 stablecoin issuance pulled away from mainnet this cycle, our Q1 sector recap walked through the issuer-by-issuer mechanics:"
+          }
+        ]
+      },
+      {
+        "type": "articleEmbed",
+        "attrs": {
+          "config": {
+            "provider": "medium",
+            "url": "https://medium.com/defillama/q1-2026-stablecoin-recap-9f3e2a1b4c7d",
+            "sourceUrl": "https://medium.com/defillama/q1-2026-stablecoin-recap-9f3e2a1b4c7d",
+            "title": "Q1 2026 stablecoin recap: where issuance went",
+            "caption": "Companion piece — DefiLlama on Medium, March 2026.",
+            "aspectRatio": "auto"
+          }
+        }
+      },
+      {
+        "type": "horizontalRule"
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Risk and what we're watching"
+          }
+        ]
+      },
+      {
+        "type": "callout",
+        "attrs": {
+          "tone": "warning"
+        },
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "Heads-up: "
+              },
+              {
+                "type": "text",
+                "text": "two of the largest LRT vaults are now collateralized by overlapping operator sets. A single slashing event would touch both. We flagged this internally in March; the operator overlap has since increased, not decreased."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Hasu's Flashbots newsletter has been tracking restaking risk concentration since 2024. The April issue is the most thorough public framing of the operator-overlap problem we've seen:"
+          }
+        ]
+      },
+      {
+        "type": "articleEmbed",
+        "attrs": {
+          "config": {
+            "provider": "substack",
+            "url": "https://restakers.substack.com/p/the-operator-bottleneck",
+            "sourceUrl": "https://restakers.substack.com/p/the-operator-bottleneck",
+            "title": "Restaking and the operator bottleneck",
+            "caption": "Restakers newsletter — April 2026 issue.",
+            "aspectRatio": "auto"
+          }
+        }
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Research backlog for the rest of the quarter:"
+          }
+        ]
+      },
+      {
+        "type": "taskList",
+        "content": [
+          {
+            "type": "taskItem",
+            "attrs": {
+              "checked": true
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Monitor LST/LRT issuer concentration weekly."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "taskItem",
+            "attrs": {
+              "checked": true
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Track restaking AVS revenue dispersion."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "taskItem",
+            "attrs": {
+              "checked": false
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Build dashboard for cross-chain stablecoin net flows."
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "taskItem",
+            "attrs": {
+              "checked": false
+            },
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Backfill historical lending utilization series across Aave V2/V3 forks."
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 4
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Last quarter, in three sentences"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Restaking yields halved. Lending fees compressed. Stablecoin issuance moved decisively to Layer 2s. Each of those was a thread we expected — but the speed surprised us."
+          }
+        ]
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "Methodology"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Every number in this piece is pulled directly from DefiLlama's public API. Aggregations and ratios are computed in-place; nothing is stored. Example query for protocol TVL:"
+          }
+        ]
+      },
+      {
+        "type": "codeBlock",
+        "attrs": {
+          "language": "bash"
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "curl -s https://api.llama.fi/protocol/lido \\\n  | jq '{tvl: .tvl[-1].totalLiquidityUSD, change_30d: .tvl[-1].totalLiquidityUSD / .tvl[-30].totalLiquidityUSD - 1}'"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "The full set of queries used to produce every chart and table in this piece — including the lending fee/borrowed ratios and the cross-chain stablecoin flow aggregations — is published as a gist:"
+          }
+        ]
+      },
+      {
+        "type": "articleEmbed",
+        "attrs": {
+          "config": {
+            "provider": "github",
+            "url": "https://gist.github.com/defillama/8f2c1a4b9e7d3f6a2c1b0e9d8a4f3c2e",
+            "sourceUrl": "https://gist.github.com/defillama/8f2c1a4b9e7d3f6a2c1b0e9d8a4f3c2e",
+            "title": "Mid-2026 DeFi map — query collection",
+            "caption": "Bash + jq. Reproducible against the public DefiLlama API.",
+            "aspectRatio": "auto"
+          }
+        }
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "All values shown are USD-denominated and use end-of-day snapshots. For sector totals we sum across the public protocol list — categories are documented at "
+          },
+          {
+            "type": "text",
+            "marks": [
+              {
+                "type": "link",
+                "attrs": {
+                  "href": "https://defillama.com/categories",
+                  "target": "_blank",
+                  "rel": "noopener noreferrer nofollow",
+                  "class": null,
+                  "title": null
+                }
+              }
+            ],
+            "text": "defillama.com/categories"
+          },
+          {
+            "type": "text",
+            "text": ". For a deeper walkthrough of how we aggregate, the team covered the full pipeline in this interview:"
+          }
+        ]
+      },
+      {
+        "type": "articleEmbed",
+        "attrs": {
+          "config": {
+            "provider": "youtube",
+            "url": "https://www.youtube.com/embed/ANe_HW4X8oc",
+            "sourceUrl": "https://www.youtube.com/watch?v=ANe_HW4X8oc",
+            "title": "SpaceX",
+            "caption": "Starship - Test Like You Fly",
+            "aspectRatio": "16/9"
+          }
+        }
+      },
+      {
+        "type": "heading",
+        "attrs": {
+          "level": 2
+        },
+        "content": [
+          {
+            "type": "text",
+            "text": "References"
+          }
+        ]
+      },
+      {
+        "type": "paragraph",
+        "content": [
+          {
+            "type": "text",
+            "text": "Liquid staking sector overview"
+          },
+          {
+            "type": "citation",
+            "attrs": {
+              "id": "1",
+              "label": "1",
+              "url": "https://defillama.com/lsd",
+              "title": "DefiLlama LSD dashboard"
+            }
+          },
+          {
+            "type": "text",
+            "text": ". Lending sector overview"
+          },
+          {
+            "type": "citation",
+            "attrs": {
+              "id": "2",
+              "label": "2",
+              "url": "https://defillama.com/protocols/Lending",
+              "title": "DefiLlama Lending sector"
+            }
+          },
+          {
+            "type": "text",
+            "text": ". Stablecoin dashboard and chain breakdowns"
+          },
+          {
+            "type": "citation",
+            "attrs": {
+              "id": "3",
+              "label": "3",
+              "url": "https://defillama.com/stablecoins",
+              "title": "DefiLlama Stablecoins"
+            }
+          },
+          {
+            "type": "text",
+            "text": ". Restaking AVS revenue series"
+          },
+          {
+            "type": "citation",
+            "attrs": {
+              "id": "4",
+              "label": "4",
+              "url": "https://defillama.com/lrts",
+              "title": "DefiLlama LRTs dashboard"
+            }
+          },
+          {
+            "type": "text",
+            "text": "."
+          }
+        ]
+      }
+    ]
+  },
+  "plainText": "Where we are\nHalfway through 2026, on-chain capital allocation has split cleanly into three lanes: yield-bearing collateral, stablecoin liquidity, and execution-tier infrastructure. Each lane has a clear leader, a credible challenger, and a long tail. This piece walks through where the deposits actually sit — and which numbers we think are worth tracking through the rest of the year.\nTotal TVL across DeFi sits near $182B at the time of writing, up roughly 14% YTD. Lido remains the single largest pool. Aave is the largest lender on Ethereum. What changed most this cycle? Where new deposits land — not how big the pie is.\nCharts and embedded dashboards in this piece pull from the DefiLlama API on render. If a number looks stale, the daily snapshot hasn't ticked over yet — refresh in a minute.\nLiquid staking and the long Lido shadow\nLiquid staking is still the largest sector in DeFi by TVL, and Lido accounts for the bulk of it — though its share of staked ETH has slipped from ~32% at the 2024 peak to roughly 27% today as native and exchange-staked ETH grew faster. The chart below tracks total deposited ETH, valued in USD.\n[Chart: Lido]\nThree forces are shaping what comes next:\nRestaking saturation. Yield premia have compressed as more vaults compete for the same operator slots. The marginal AVS now pays less than the marginal validator earns from beacon-chain rewards alone.\nL2 settlement migration. More LST liquidity is moving off mainnet into rollup-native wrappers — wstETH on Base is up nearly 4× year-over-year.\nIssuer concentration. The top three issuers still control the majority of LST validator share. Worth watching, even if Lido's individual share is shrinking.\nQuick number: LSTs and LRTs combined still represent roughly 36% of all DeFi TVL — more than lending, DEX liquidity, and bridges combined.\nIssuer share, ranked by TVL contribution as of last weekly snapshot:\nIssuer\nTVL\nShare of staked ETH\n30d Δ\nLido\n$31.4B\n27.1%\n+1.8%\nRocket Pool\n$4.9B\n4.2%\n−0.4%\nBinance staked ETH\n$3.1B\n2.6%\n+5.2%\nMantle mETH\n$2.3B\n1.9%\n+8.0%\nThe interesting movement isn't at the top. It's the cluster of mid-cap issuers (Mantle, Frax, Stader) collectively gaining share at the expense of Rocket Pool and centralized stakers. Below is the announcement that kicked off the rebalance:\n[Embed: DefiLlama on the LST issuer rebalance]\nLending: Aave still wins, but margins are thinning\nLending TVL on Aave has been remarkably steady through the cycle. The interesting story is on the fee side, where compressed spreads have started to flow through to protocol revenue.\n[Chart: Aave V3]\nIf you assume liquidity is migratory, you're underestimating how much of it is just collateralizing the same loan, year after year.\nPaul Frambot's writeup on Morpho's vault model is the cleanest framing of why the spread economics differ — worth reading before drawing conclusions from the table below:\n[Embed: Vault economics in Morpho Blue, end-to-end]\nA useful sanity check\nWhen evaluating a lending market, fees / borrowed_supply is the single most useful ratio for protocol health. The discontinued metrics — deposits / TVL — were always noisier than they looked, and borrow utilization on its own misses the spread side entirely.\nSnapshot of the top five lending markets, ranked by net deposits:\nProtocol\nNet deposits\nBorrowed\n30d fees\nFee / borrowed\nAave V3\n$24.1B\n$11.6B\n$78M\n0.67%\nSpark\n$5.8B\n$2.4B\n$22M\n0.92%\nMorpho Blue\n$4.6B\n$2.0B\n$19M\n0.95%\nCompound V3\n$2.1B\n$0.7B\n$5M\n0.71%\nFluid\n$1.6B\n$0.6B\n$6M\n1.00%\nMorpho Blue and Fluid both run leaner than Aave on a fee-per-unit-borrowed basis — they pass more spread to lenders. Aave still wins on absolute revenue because the borrowing book is 5× larger. The structural question for the next quarter: does that ratio cross over for any major protocol?\nStablecoin flows\nTether continues to dominate circulating supply, but the share gap with USDC has narrowed every quarter since Q3 2025, and yield-bearing stables (sUSDe, sUSDS) collectively crossed $15B in supply for the first time in March. Where the supply lives is now as informative as how much there is.\n[Chart: Ethereum]\nThree observations from chain-level flow data over the last 90 days:\nSolana net stablecoin inflows turned positive again in March after seven months of bleed — most of it driven by USDC native issuance, not bridged USDT.\nBase remains the largest non-mainnet host of USDC liquidity. Native issuance on Base hit a fresh ATH of $3.6B.\nTron's USDT supply has plateaued for the first time in three years. Migration to Plasma and to USD1 on Tron is the obvious culprit.\nFor a longer read on why Layer-2 stablecoin issuance pulled away from mainnet this cycle, our Q1 sector recap walked through the issuer-by-issuer mechanics:\n[Embed: Q1 2026 stablecoin recap: where issuance went]\nRisk and what we're watching\nHeads-up: two of the largest LRT vaults are now collateralized by overlapping operator sets. A single slashing event would touch both. We flagged this internally in March; the operator overlap has since increased, not decreased.\nHasu's Flashbots newsletter has been tracking restaking risk concentration since 2024. The April issue is the most thorough public framing of the operator-overlap problem we've seen:\n[Embed: Restaking and the operator bottleneck]\nResearch backlog for the rest of the quarter:\nMonitor LST/LRT issuer concentration weekly.\nTrack restaking AVS revenue dispersion.\nBuild dashboard for cross-chain stablecoin net flows.\nBackfill historical lending utilization series across Aave V2/V3 forks.\nLast quarter, in three sentences\nRestaking yields halved. Lending fees compressed. Stablecoin issuance moved decisively to Layer 2s. Each of those was a thread we expected — but the speed surprised us.\nMethodology\nEvery number in this piece is pulled directly from DefiLlama's public API. Aggregations and ratios are computed in-place; nothing is stored. Example query for protocol TVL:\ncurl -s https://api.llama.fi/protocol/lido \\\n  | jq '{tvl: .tvl[-1].totalLiquidityUSD, change_30d: .tvl[-1].totalLiquidityUSD / .tvl[-30].totalLiquidityUSD - 1}'\nThe full set of queries used to produce every chart and table in this piece — including the lending fee/borrowed ratios and the cross-chain stablecoin flow aggregations — is published as a gist:\n[Embed: Mid-2026 DeFi map — query collection]\nAll values shown are USD-denominated and use end-of-day snapshots. For sector totals we sum across the public protocol list — categories are documented at defillama.com/categories. For a deeper walkthrough of how we aggregate, the team covered the full pipeline in this interview:\n[Embed: SpaceX]\nReferences\nLiquid staking sector overview[1]. Lending sector overview[2]. Stablecoin dashboard and chain breakdowns[3]. Restaking AVS revenue series[4].",
+  "entities": [
+    {
+      "entityType": "protocol",
+      "slug": "lido",
+      "label": "Lido",
+      "route": "/protocol/lido"
+    },
+    {
+      "entityType": "protocol",
+      "slug": "aave",
+      "label": "Aave",
+      "route": "/protocol/aave"
+    },
+    {
+      "entityType": "chain",
+      "slug": "Ethereum",
+      "label": "Ethereum",
+      "route": "/chain/Ethereum"
+    },
+    {
+      "entityType": "chain",
+      "slug": "Base",
+      "label": "Base",
+      "route": "/chain/Base"
+    },
+    {
+      "entityType": "protocol",
+      "slug": "aave-v3",
+      "label": "Aave V3",
+      "route": "/protocol/aave-v3"
+    },
+    {
+      "entityType": "stablecoin",
+      "slug": "tether",
+      "label": "Tether",
+      "route": "/stablecoin/tether"
+    },
+    {
+      "entityType": "stablecoin",
+      "slug": "usd-coin",
+      "label": "USDC",
+      "route": "/stablecoin/usd-coin"
+    },
+    {
+      "entityType": "chain",
+      "slug": "Solana",
+      "label": "Solana",
+      "route": "/chain/Solana"
+    },
+    {
+      "entityType": "chain",
+      "slug": "Tron",
+      "label": "Tron",
+      "route": "/chain/Tron"
+    }
+  ],
+  "charts": [
+    {
+      "entityType": "protocol",
+      "slug": "lido",
+      "chartType": "tvl",
+      "name": "Lido",
+      "geckoId": "lido-dao",
+      "caption": "Lido TVL — the bellwether for liquid-staking demand."
+    },
+    {
+      "entityType": "protocol",
+      "slug": "aave-v3",
+      "chartType": "tvl",
+      "name": "Aave V3",
+      "geckoId": "aave",
+      "caption": "Aave V3 TVL — sticky liquidity even through risk-off weeks."
+    },
+    {
+      "entityType": "chain",
+      "slug": "Ethereum",
+      "chartType": "tvl",
+      "name": "Ethereum",
+      "caption": "Ethereum TVL — still the deepest stablecoin liquidity venue."
+    }
+  ],
+  "citations": [
+    {
+      "id": "1",
+      "label": "1",
+      "url": "https://defillama.com/lsd",
+      "title": "DefiLlama LSD dashboard"
+    },
+    {
+      "id": "2",
+      "label": "2",
+      "url": "https://defillama.com/protocols/Lending",
+      "title": "DefiLlama Lending sector"
+    },
+    {
+      "id": "3",
+      "label": "3",
+      "url": "https://defillama.com/stablecoins",
+      "title": "DefiLlama Stablecoins"
+    },
+    {
+      "id": "4",
+      "label": "4",
+      "url": "https://defillama.com/lrts",
+      "title": "DefiLlama LRTs dashboard"
+    }
+  ],
+  "embeds": [
+    {
+      "provider": "twitter",
+      "url": "https://twitter.com/i/status/1872413200012345678",
+      "sourceUrl": "https://x.com/DefiLlama/status/1872413200012345678",
+      "title": "DefiLlama on the LST issuer rebalance",
+      "caption": "Reshare from DefiLlama summarizing the Q1 2026 LST share shift.",
+      "aspectRatio": "auto"
+    },
+    {
+      "provider": "mirror",
+      "url": "https://mirror.xyz/morpho.eth/aHR0cHM6Ly9taXJyb3IueHl6L21vcnBoby1ibHVlLXZhdWx0LWVjb25vbWljcw",
+      "sourceUrl": "https://mirror.xyz/morpho.eth/aHR0cHM6Ly9taXJyb3IueHl6L21vcnBoby1ibHVlLXZhdWx0LWVjb25vbWljcw",
+      "title": "Vault economics in Morpho Blue, end-to-end",
+      "caption": "Paul Frambot, Morpho — Mirror, February 2026.",
+      "aspectRatio": "auto"
+    },
+    {
+      "provider": "medium",
+      "url": "https://medium.com/defillama/q1-2026-stablecoin-recap-9f3e2a1b4c7d",
+      "sourceUrl": "https://medium.com/defillama/q1-2026-stablecoin-recap-9f3e2a1b4c7d",
+      "title": "Q1 2026 stablecoin recap: where issuance went",
+      "caption": "Companion piece — DefiLlama on Medium, March 2026.",
+      "aspectRatio": "auto"
+    },
+    {
+      "provider": "substack",
+      "url": "https://restakers.substack.com/p/the-operator-bottleneck",
+      "sourceUrl": "https://restakers.substack.com/p/the-operator-bottleneck",
+      "title": "Restaking and the operator bottleneck",
+      "caption": "Restakers newsletter — April 2026 issue.",
+      "aspectRatio": "auto"
+    },
+    {
+      "provider": "github",
+      "url": "https://gist.github.com/defillama/8f2c1a4b9e7d3f6a2c1b0e9d8a4f3c2e",
+      "sourceUrl": "https://gist.github.com/defillama/8f2c1a4b9e7d3f6a2c1b0e9d8a4f3c2e",
+      "title": "Mid-2026 DeFi map — query collection",
+      "caption": "Bash + jq. Reproducible against the public DefiLlama API.",
+      "aspectRatio": "auto"
+    },
+    {
+      "provider": "youtube",
+      "url": "https://www.youtube.com/embed/ANe_HW4X8oc",
+      "sourceUrl": "https://www.youtube.com/watch?v=ANe_HW4X8oc",
+      "title": "SpaceX",
+      "caption": "Starship - Test Like You Fly",
+      "aspectRatio": "16/9"
+    }
+  ],
+  "createdAt": "2026-05-01T11:45:24.618Z",
+  "updatedAt": "2026-05-04T13:05:28.974Z",
+  "publishedAt": null
+}
