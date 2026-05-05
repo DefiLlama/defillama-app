@@ -953,8 +953,9 @@ export function MessageBubble({
 										</button>
 									)
 								}
+								const normalizedMime = image.mimeType?.split(';')[0].trim().toLowerCase()
 								const isTextMime =
-									image.mimeType === 'text/plain' || image.mimeType === 'text/markdown' || image.mimeType === 'text/csv'
+									normalizedMime === 'text/plain' || normalizedMime === 'text/markdown' || normalizedMime === 'text/csv'
 								if (isTextMime) {
 									const isPasted = !!image.originalFilename && /^Pasted-\d+/.test(image.originalFilename)
 									return (
