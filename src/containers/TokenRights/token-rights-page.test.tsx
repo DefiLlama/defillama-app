@@ -10,6 +10,8 @@ function setupPageModule({
 	cexs = [],
 	chainMetadata = {},
 	holdersRevenueProtocols = [],
+	liteProtocols = [],
+	parentProtocols = [],
 	tokensJson = {},
 	tokenRightsEntries = [],
 	protocolMetadata = {}
@@ -17,6 +19,8 @@ function setupPageModule({
 	cexs?: Array<Record<string, unknown>>
 	chainMetadata?: Record<string, unknown>
 	holdersRevenueProtocols?: Array<Record<string, unknown>>
+	liteProtocols?: Array<Record<string, unknown>>
+	parentProtocols?: Array<Record<string, unknown>>
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
@@ -29,6 +33,9 @@ function setupPageModule({
 	}))
 	vi.doMock('~/containers/DimensionAdapters/api', () => ({
 		fetchAdapterChainMetrics: vi.fn().mockResolvedValue({ protocols: holdersRevenueProtocols })
+	}))
+	vi.doMock('~/containers/Protocols/api', () => ({
+		fetchProtocols: vi.fn().mockResolvedValue({ protocols: liteProtocols, parentProtocols })
 	}))
 	vi.doMock('~/layout', () => ({
 		default: () => null
@@ -148,6 +155,63 @@ describe('token rights page', () => {
 				]
 			},
 			revalidate: 123
+		})
+	})
+
+	it('uses child protocol holders revenue for parent token-rights rows', async () => {
+		const page = await setupPageModule({
+			tokenRightsEntries: [
+				tokenRightsEntry({
+					'Protocol Name': 'Uniswap',
+					Token: ['UNI'],
+					'DefiLlama ID': 'parent#uniswap'
+				})
+			],
+			holdersRevenueProtocols: [
+				{ defillamaId: '2198', total24h: 700 },
+				{ defillamaId: '339', total24h: 300 }
+			],
+			liteProtocols: [
+				{ defillamaId: '2198', parentProtocol: 'parent#uniswap' },
+				{ defillamaId: '339', parentProtocol: 'parent#uniswap' }
+			],
+			parentProtocols: [{ id: 'parent#uniswap', name: 'Uniswap' }],
+			protocolMetadata: {
+				'parent#uniswap': { displayName: 'Uniswap', gecko_id: 'uniswap' }
+			}
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
+			props: {
+				protocols: [{ name: 'Uniswap', holdersRevenue24h: 1000 }]
+			}
+		})
+	})
+
+	it('prefers direct holders revenue over summed child protocol revenue', async () => {
+		const page = await setupPageModule({
+			tokenRightsEntries: [
+				tokenRightsEntry({
+					'Protocol Name': 'Uniswap',
+					Token: ['UNI'],
+					'DefiLlama ID': 'parent#uniswap'
+				})
+			],
+			holdersRevenueProtocols: [
+				{ defillamaId: 'parent#uniswap', total24h: 900 },
+				{ defillamaId: '2198', total24h: 700 }
+			],
+			liteProtocols: [{ defillamaId: '2198', parentProtocol: 'parent#uniswap' }],
+			parentProtocols: [{ id: 'parent#uniswap', name: 'Uniswap' }],
+			protocolMetadata: {
+				'parent#uniswap': { displayName: 'Uniswap', gecko_id: 'uniswap' }
+			}
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
+			props: {
+				protocols: [{ name: 'Uniswap', holdersRevenue24h: 900 }]
+			}
 		})
 	})
 
