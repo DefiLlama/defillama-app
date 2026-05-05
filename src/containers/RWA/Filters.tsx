@@ -81,6 +81,7 @@ type RWAFilterModes = {
 	isCategoryMode: boolean
 	isPlatformMode: boolean
 	isAssetGroupMode: boolean
+	isIssuerMode: boolean
 }
 
 type RWAFilterOptions = {
@@ -353,7 +354,9 @@ function Filters({
 			label: 'Access Model'
 		},
 		{
-			enabled: options.issuers.length > 1,
+			// On an issuer page the dataset is already restricted to one issuer, so the dropdown
+			// would be a single useless option — hide it entirely.
+			enabled: !modes.isIssuerMode && options.issuers.length > 1,
 			allValues: options.issuers,
 			selectedValues: selections.selectedIssuers,
 			includeQueryKey: 'issuers',

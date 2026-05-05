@@ -5,7 +5,8 @@ const tabs = [
 	{ id: 'chains', name: 'Chains', route: '/rwa/chains' },
 	{ id: 'platforms', name: 'Platforms', route: '/rwa/platforms' },
 	{ id: 'assetGroups', name: 'Asset Groups', route: '/rwa/asset-groups' },
-	{ id: 'categories', name: 'Categories', route: '/rwa/categories' }
+	{ id: 'categories', name: 'Categories', route: '/rwa/categories' },
+	{ id: 'issuers', name: 'Issuers', route: '/rwa/issuers' }
 ] as const
 
 export type RWATab = (typeof tabs)[number]['id']

@@ -1,6 +1,6 @@
 import { rwaSlug } from './rwaSlug'
 
-export type RWAOverviewMode = 'chain' | 'category' | 'platform' | 'assetGroup'
+export type RWAOverviewMode = 'chain' | 'category' | 'platform' | 'assetGroup' | 'issuer'
 
 export type RWAOverviewInclusionDefaults = {
 	includeStablecoins: boolean
@@ -24,8 +24,11 @@ export function getDefaultRWAOverviewInclusion(
 	mode: RWAOverviewMode,
 	categorySlug?: string | null
 ): RWAOverviewInclusionDefaults {
+	// Issuer pages must surface every asset for that issuer by default — a stablecoin-only issuer
+	// (Circle, Tether) or governance-only issuer (Lido) would otherwise render empty totals/charts
+	// until the user toggled the corresponding inclusion flag.
+	if (mode === 'issuer') return { includeStablecoins: true, includeGovernance: true }
 	const isYieldWrapperCategory = mode === 'category' && categorySlug === RWA_YIELD_WRAPPER_SLUG
-
 	return {
 		includeStablecoins: isYieldWrapperCategory,
 		includeGovernance: isYieldWrapperCategory
@@ -37,7 +40,7 @@ export function isTypeIncludedByDefault(
 	mode: RWAOverviewMode,
 	categorySlug?: string | null
 ): boolean {
-	if (mode === 'platform' || mode === 'assetGroup') return true
+	if (mode === 'platform' || mode === 'assetGroup' || mode === 'issuer') return true
 	if (mode === 'category' && categorySlug === RWA_YIELD_WRAPPER_SLUG) return true
 	return !DEFAULT_EXCLUDED_TYPES.has(type || 'Unknown')
 }
