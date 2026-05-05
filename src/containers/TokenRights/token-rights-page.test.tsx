@@ -93,6 +93,33 @@ function tokenRightsEntry(overrides: Record<string, unknown>) {
 	}
 }
 
+function tokenRightsListItem(overrides: Record<string, unknown>) {
+	return {
+		name: 'Protocol',
+		logo: 'icon:Protocol',
+		href: '/protocol/protocol',
+		tokens: ['TOKEN'],
+		holdersRevenue24h: null,
+		governanceRights: [false, false, false] as [boolean, boolean, boolean],
+		governanceRightDetails: [null, null, null] as [string | null, string | null, string | null],
+		economicRights: [false, false, false] as [boolean, boolean, boolean],
+		economicRightDetails: [null, null, null] as [string | null, string | null, string | null],
+		feeSwitchStatus: 'OFF' as const,
+		feeSwitchDetails: null,
+		valueAccrual: null,
+		valueAccrualDetails: null,
+		equityRevenueCapture: null,
+		equityRevenueCaptureDetails: null,
+		lastUpdated: null,
+		hasBuybacks: false,
+		hasDividends: false,
+		hasBurns: false,
+		hasEquityCapture: false,
+		hasNoEquityCapture: false,
+		...overrides
+	}
+}
+
 describe('token rights page', () => {
 	it('builds table rows with rights, pending fee switch, and holders revenue', async () => {
 		const page = await setupPageModule({
@@ -335,7 +362,7 @@ describe('token rights page', () => {
 	it('filters rows by multiple selected filters and token search', async () => {
 		const page = await setupPageModule()
 		const rows = [
-			{
+			tokenRightsListItem({
 				name: 'Aave',
 				tokens: ['AAVE', 'stkAAVE'],
 				feeSwitchStatus: 'ON',
@@ -344,8 +371,8 @@ describe('token rights page', () => {
 				hasBurns: false,
 				hasEquityCapture: false,
 				hasNoEquityCapture: true
-			},
-			{
+			}),
+			tokenRightsListItem({
 				name: 'Ethena',
 				tokens: ['ENA', 'sENA'],
 				feeSwitchStatus: 'PENDING',
@@ -354,8 +381,8 @@ describe('token rights page', () => {
 				hasBurns: false,
 				hasEquityCapture: false,
 				hasNoEquityCapture: true
-			},
-			{
+			}),
+			tokenRightsListItem({
 				name: 'Axelar',
 				tokens: ['AXL'],
 				feeSwitchStatus: 'OFF',
@@ -364,7 +391,7 @@ describe('token rights page', () => {
 				hasBurns: false,
 				hasEquityCapture: true,
 				hasNoEquityCapture: false
-			}
+			})
 		]
 
 		expect(page.filterTokenRightsRows(rows, ['feeSwitchOn', 'hasBuybacks'], '')).toEqual([rows[0]])
@@ -375,9 +402,9 @@ describe('token rights page', () => {
 	it('counts stats from filtered rows', async () => {
 		const page = await setupPageModule()
 		const stats = page.getTokenRightsStats([
-			{ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: false },
-			{ feeSwitchStatus: 'PENDING', hasBuybacks: false, hasDividends: true },
-			{ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: true }
+			tokenRightsListItem({ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: false }),
+			tokenRightsListItem({ feeSwitchStatus: 'PENDING', hasBuybacks: false, hasDividends: true }),
+			tokenRightsListItem({ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: true })
 		])
 
 		expect(stats).toEqual({ feeSwitchOn: 2, buybacks: 2, dividends: 2 })
