@@ -144,6 +144,30 @@ function HeaderStrip({
 	)
 }
 
+function SummaryMetric({ label, value }: { label: string; value: string }) {
+	return (
+		<div className="flex min-w-0 flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<span className="text-xs text-(--text-label)">{label}</span>
+			<span className="font-jetbrains text-lg font-semibold">{value}</span>
+		</div>
+	)
+}
+
+function MarketsSummary({ data }: { data: ExchangeMarketsResponse }) {
+	return (
+		<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-5">
+			<SummaryMetric label="Volume 24h" value={renderNullableNum(data.total_volume_24h, true)} />
+			<SummaryMetric label="Open Interest" value={renderNullableNum(data.total_oi_usd, true)} />
+			<SummaryMetric label="Spot Markets" value={formattedNum(data.categories.spot?.market_count ?? 0)} />
+			<SummaryMetric label="Linear Perp Markets" value={formattedNum(data.categories.linear_perp?.market_count ?? 0)} />
+			<SummaryMetric
+				label="Inverse Perp Markets"
+				value={formattedNum(data.categories.inverse_perp?.market_count ?? 0)}
+			/>
+		</div>
+	)
+}
+
 function Tabs<T extends string>({
 	tabs,
 	activeTab,
@@ -275,6 +299,7 @@ export function CexMarketsSection({ exchange, name }: CexMarketsSectionProps) {
 		<section className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			{sectionHeader}
 			<div className="flex flex-col gap-3 p-3">
+				<MarketsSummary data={data} />
 				<HeaderStrip data={data} category={selectedCategoryTab} showOi={isPerpCategory} />
 
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

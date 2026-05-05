@@ -9,6 +9,8 @@ const canonicalProtocolActiveLoansAaveRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/active-loans\/aave")[^>]*\/?>/
 const canonicalProtocolDefiSwapRegex =
 	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/protocol\/defi-swap")[^>]*\/?>/
+const canonicalCexMarketsCryptoComRegex =
+	/<link\b(?=[^>]*\brel="canonical")(?=[^>]*\bhref="https:\/\/defillama\.com\/cex\/markets\/crypto-com")[^>]*\/?>/
 const robotsNoindexRegex = /<meta\b(?=[^>]*\bname="robots")(?=[^>]*\bcontent="noindex")[^>]*\/?>/
 
 const metrics: IProtocolPageMetrics = {
@@ -194,13 +196,21 @@ function setupLayoutMocks() {
 				title,
 				description,
 				canonicalUrl,
-				noIndex
+				noIndex,
+				children
 			}: {
 				title: string
 				description: string | null | undefined
 				canonicalUrl: string | null | undefined
 				noIndex?: boolean
-			}) => React.createElement(SEO, { title, description, canonicalUrl, noIndex })
+				children?: React.ReactNode
+			}) =>
+				React.createElement(
+					React.Fragment,
+					null,
+					React.createElement(SEO, { title, description, canonicalUrl, noIndex }),
+					children
+				)
 		}
 	})
 }
@@ -288,6 +298,51 @@ describe('ProtocolOverviewLayout SEO', () => {
 
 		expect(markup).toMatch(canonicalProtocolActiveLoansAaveRegex)
 		expect(markup).not.toMatch(robotsNoindexRegex)
+	})
+
+	it('shows the CEX markets tab only when a markets exchange exists', async () => {
+		setupLayoutMocks()
+
+		const { ProtocolOverviewLayout } = await import('./Layout')
+		const withMarkets = renderToStaticMarkup(
+			React.createElement(
+				ProtocolOverviewLayout as React.ComponentType<any>,
+				{
+					isCEX: true,
+					name: 'Crypto.com',
+					category: 'CEX',
+					metrics,
+					tab: 'markets',
+					cexMarketsExchange: 'cryptocom',
+					cexMarketsSlug: 'Crypto-com'
+				},
+				null
+			)
+		)
+
+		vi.resetModules()
+		setupLayoutMocks()
+		const { ProtocolOverviewLayout: ProtocolOverviewLayoutWithoutMarkets } = await import('./Layout')
+		const withoutMarkets = renderToStaticMarkup(
+			React.createElement(
+				ProtocolOverviewLayoutWithoutMarkets as React.ComponentType<any>,
+				{
+					isCEX: true,
+					name: 'Crypto.com',
+					category: 'CEX',
+					metrics,
+					tab: 'information',
+					cexMarketsExchange: null
+				},
+				null
+			)
+		)
+
+		expect(withMarkets).toMatch(canonicalCexMarketsCryptoComRegex)
+		expect(withMarkets).toContain('href="/cex/markets/crypto-com"')
+		expect(withMarkets).toContain('>Markets</a>')
+		expect(withMarkets).not.toMatch(robotsNoindexRegex)
+		expect(withoutMarkets).not.toContain('href="/cex/markets/crypto-com"')
 	})
 })
 

@@ -3,6 +3,8 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
 	output: 'standalone',
 	outputFileTracingIncludes: {
+		'/cex/*': ['./.cache/datasets/**/*'],
+		'/cex/markets/*': ['./.cache/datasets/**/*'],
 		'/token/*': ['./.cache/datasets/**/*'],
 		'/token-rights': ['./.cache/datasets/**/*'],
 		'/protocol/token-rights/*': ['./.cache/datasets/**/*'],
