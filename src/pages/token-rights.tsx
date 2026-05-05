@@ -12,6 +12,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import type { ProtocolLite, ParentProtocolLite } from '~/containers/Protocols/api.types'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
@@ -34,10 +35,15 @@ interface TokenRightsListItem {
 	tokens: string[]
 	holdersRevenue24h: number | null
 	governanceRights: [boolean, boolean, boolean]
+	governanceRightDetails: [string | null, string | null, string | null]
 	economicRights: [boolean, boolean, boolean]
+	economicRightDetails: [string | null, string | null, string | null]
 	feeSwitchStatus: TokenRightsFeeSwitchStatus
+	feeSwitchDetails: string | null
 	valueAccrual: string | null
+	valueAccrualDetails: string | null
 	equityRevenueCapture: string | null
+	equityRevenueCaptureDetails: string | null
 	lastUpdated: string | null
 	hasBuybacks: boolean
 	hasDividends: boolean
@@ -74,6 +80,14 @@ type TokenRightsLinkResolution =
 
 const columnHelper = createColumnHelper<TokenRightsListItem>()
 
+const TOKEN_RIGHTS_PILL_TOOLTIPS = {
+	feeSwitch:
+		'Whether the protocol has activated a mechanism to direct a share of fees to token holders through buybacks, revenue sharing or token burns. Status can be ON, OFF or PENDING.',
+	valueAccrual: 'The main mechanism by which value accrues to token holders',
+	equityRevenueCapture:
+		'Whether any equity entity (Labs, parent company) captures protocol revenue separately from token holders. Active means equity holders receive revenue that could otherwise flow to token holders.'
+} as const
+
 const TOKEN_RIGHTS_FILTERS: Array<{ key: TokenRightsFilter; label: string }> = [
 	{ key: 'feeSwitchOn', label: 'Fee Switch ON' },
 	{ key: 'hasBuybacks', label: 'Has Buybacks' },
@@ -109,12 +123,14 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 		tokenDirectory: TokenDirectory
 		cexs: ICexItem[]
 	}
-	const holdersRevenueByDefillamaId: Record<string, number> = {}
-	for (const protocol of holdersRevenue?.protocols ?? []) {
-		if (protocol.total24h != null) {
-			holdersRevenueByDefillamaId[protocol.defillamaId] = protocol.total24h
-		}
-	}
+	const { protocols: liteProtocols, parentProtocols } = await import('~/containers/Protocols/api')
+		.then((m) => m.fetchProtocols())
+		.catch(() => ({ protocols: [], parentProtocols: [] }))
+	const holdersRevenueByDefillamaId = buildHoldersRevenueByDefillamaId(
+		holdersRevenue?.protocols ?? [],
+		liteProtocols,
+		parentProtocols
+	)
 
 	const protocols: TokenRightsListItem[] = []
 	const skippedEntries: SkippedTokenRightsEntry[] = []
@@ -264,10 +280,23 @@ function buildTokenRightsListItem({
 			hasActiveTokens(entry['Treasury Decisions']),
 			hasActiveTokens(entry['Revenue Decisions'])
 		],
+		governanceRightDetails: [
+			trimToNull(entry['Governance details']),
+			trimToNull(entry['Treasury Details']),
+			trimToNull(entry['Revenue Details'])
+		],
 		economicRights: [hasBuybacks, hasDividends, hasBurns],
+		economicRightDetails: [
+			trimToNull(entry['Buyback Details']),
+			trimToNull(entry['Dividends Details']),
+			trimToNull(entry['Burn Details'])
+		],
 		feeSwitchStatus: toFeeSwitchStatus(entry['Fee Switch Status']),
+		feeSwitchDetails: trimToNull(entry['Fee Switch Details']),
 		valueAccrual: trimToNull(entry['Value Accrual']),
+		valueAccrualDetails: trimToNull(entry['Value Accrual Details']),
 		equityRevenueCapture,
+		equityRevenueCaptureDetails: trimToNull(entry['Equity Statement']),
 		lastUpdated: trimToNull(entry['Last Updated']),
 		hasBuybacks,
 		hasDividends,
@@ -275,6 +304,45 @@ function buildTokenRightsListItem({
 		hasEquityCapture: equityRevenueCapture === 'Yes' || equityRevenueCapture === 'Partial',
 		hasNoEquityCapture: equityRevenueCapture === 'No'
 	}
+}
+
+function buildHoldersRevenueByDefillamaId(
+	holdersRevenueProtocols: Array<{ defillamaId: string; total24h: number | null }>,
+	liteProtocols: ProtocolLite[],
+	parentProtocols: ParentProtocolLite[]
+): Record<string, number> {
+	const holdersRevenueByDefillamaId: Record<string, number> = {}
+	const holdersRevenueByParentId: Record<string, number> = {}
+	const liteProtocolByDefillamaId: Record<string, ProtocolLite> = {}
+	const knownParentIds: Record<string, true> = {}
+
+	for (const parent of parentProtocols) {
+		knownParentIds[parent.id] = true
+	}
+
+	for (const protocol of liteProtocols) {
+		liteProtocolByDefillamaId[protocol.defillamaId] = protocol
+	}
+
+	for (const protocol of holdersRevenueProtocols) {
+		if (protocol.total24h == null) continue
+
+		holdersRevenueByDefillamaId[protocol.defillamaId] = protocol.total24h
+
+		const liteProtocol = liteProtocolByDefillamaId[protocol.defillamaId]
+		if (liteProtocol?.parentProtocol) {
+			holdersRevenueByParentId[liteProtocol.parentProtocol] =
+				(holdersRevenueByParentId[liteProtocol.parentProtocol] ?? 0) + protocol.total24h
+		}
+	}
+
+	for (const parentId in holdersRevenueByParentId) {
+		if (holdersRevenueByDefillamaId[parentId] == null && knownParentIds[parentId]) {
+			holdersRevenueByDefillamaId[parentId] = holdersRevenueByParentId[parentId]
+		}
+	}
+
+	return holdersRevenueByDefillamaId
 }
 
 function trimToNull(value: string | undefined | null): string | null {
@@ -603,8 +671,12 @@ const columns = [
 	columnHelper.accessor('governanceRights', {
 		header: 'Governance',
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<RightsDots rights={getValue()} labels={['Governance decisions', 'Treasury decisions', 'Revenue decisions']} />
+		cell: ({ getValue, row }) => (
+			<RightsDots
+				rights={getValue()}
+				labels={['Governance decisions', 'Treasury decisions', 'Revenue decisions']}
+				details={row.original.governanceRightDetails}
+			/>
 		),
 		meta: {
 			headerClassName: 'w-[130px]',
@@ -615,7 +687,13 @@ const columns = [
 	columnHelper.accessor('economicRights', {
 		header: 'Economic Rights',
 		enableSorting: false,
-		cell: ({ getValue }) => <RightsDots rights={getValue()} labels={['Buybacks', 'Dividends', 'Burns']} />,
+		cell: ({ getValue, row }) => (
+			<RightsDots
+				rights={getValue()}
+				labels={['Buybacks', 'Dividends', 'Burns']}
+				details={row.original.economicRightDetails}
+			/>
+		),
 		meta: {
 			headerClassName: 'w-[150px]',
 			align: 'center',
@@ -625,7 +703,7 @@ const columns = [
 	columnHelper.accessor('feeSwitchStatus', {
 		header: 'Fee Switch',
 		enableSorting: false,
-		cell: ({ getValue }) => <FeeSwitchBadge status={getValue()} />,
+		cell: ({ getValue, row }) => <FeeSwitchBadge status={getValue()} details={row.original.feeSwitchDetails} />,
 		meta: {
 			headerClassName: 'w-[120px]',
 			align: 'center',
@@ -635,10 +713,15 @@ const columns = [
 	columnHelper.accessor('valueAccrual', {
 		header: 'Value Accrual',
 		enableSorting: false,
-		cell: ({ getValue }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue()
 			return value && value !== 'N/A' ? (
-				<StatusPill label={value} tone="positive" className="whitespace-nowrap" />
+				<TooltipStatusPill
+					label={value}
+					tone="positive"
+					tooltip={row.original.valueAccrualDetails ?? TOKEN_RIGHTS_PILL_TOOLTIPS.valueAccrual}
+					className="whitespace-nowrap"
+				/>
 			) : (
 				<span className="text-(--text-tertiary)">-</span>
 			)
@@ -651,7 +734,9 @@ const columns = [
 	columnHelper.accessor('equityRevenueCapture', {
 		header: 'Equity Revenue Capture',
 		enableSorting: false,
-		cell: ({ getValue }) => <EquityCaptureBadge value={getValue()} />,
+		cell: ({ getValue, row }) => (
+			<EquityCaptureBadge value={getValue()} details={row.original.equityRevenueCaptureDetails} />
+		),
 		meta: {
 			headerClassName: 'w-[190px]',
 			align: 'center',
@@ -684,60 +769,66 @@ function TokenPills({ tokens }: { tokens: string[] }) {
 	)
 }
 
-function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; labels: [string, string, string] }) {
-	const content = (
-		<div className="flex flex-col gap-1">
-			{rights.map((active, index) => (
-				<span key={labels[index]}>
-					{labels[index]}: {active ? 'Active' : 'Inactive'}
-				</span>
-			))}
-		</div>
-	)
+function RightsDots({
+	rights,
+	labels,
+	details
+}: {
+	rights: [boolean, boolean, boolean]
+	labels: [string, string, string]
+	details: [string | null, string | null, string | null]
+}) {
+	const content = rights
+		.map((active, index) => details[index] ?? `${labels[index]}: ${active ? 'Active' : 'Inactive'}`)
+		.join('\n\n')
 
 	return (
-		<Tooltip content={content} className="justify-center">
-			<span className="flex items-center justify-center gap-2">
-				{rights.map((active, index) => (
-					<span
-						key={labels[index]}
-						className={
-							active
-								? 'h-3 w-3 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]'
-								: 'h-3 w-3 rounded-full border-2 border-green-600/40'
-						}
-					/>
-				))}
-			</span>
+		<Tooltip content={content} render={<button type="button" />} className="mx-auto justify-center gap-2">
+			{rights.map((active, index) => (
+				<span
+					key={labels[index]}
+					className={
+						active
+							? 'h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+							: 'h-3 w-3 rounded-full border-2 border-green-600/40'
+					}
+				/>
+			))}
 		</Tooltip>
 	)
 }
 
-function FeeSwitchBadge({ status }: { status: TokenRightsFeeSwitchStatus }) {
+function FeeSwitchBadge({ status, details }: { status: TokenRightsFeeSwitchStatus; details: string | null }) {
 	if (status === 'UNKNOWN') return <span className="text-(--text-tertiary)">-</span>
-	if (status === 'ON') return <StatusPill label="YES" tone="positive" />
-	if (status === 'PENDING') return <StatusPill label="PENDING" tone="pending" />
-	return <StatusPill label="NO" tone="negative" />
+	const tooltip = details ?? TOKEN_RIGHTS_PILL_TOOLTIPS.feeSwitch
+	if (status === 'ON') {
+		return <TooltipStatusPill label="ON" tone="positive" tooltip={tooltip} />
+	}
+	if (status === 'PENDING') {
+		return <TooltipStatusPill label="PENDING" tone="pending" tooltip={tooltip} />
+	}
+	return <TooltipStatusPill label="OFF" tone="negative" tooltip={tooltip} />
 }
 
-function EquityCaptureBadge({ value }: { value: string | null }) {
+function EquityCaptureBadge({ value, details }: { value: string | null; details: string | null }) {
 	if (!value) return <span className="text-(--text-tertiary)">-</span>
-	if (value === 'No') return <StatusPill label="No" tone="positive" />
-	if (value === 'Yes') return <StatusPill label="Yes" tone="negative" />
-	if (value === 'Partial') return <StatusPill label="Partial" tone="pending" />
-	return <StatusPill label={value} tone="neutral" />
+	const tooltip = details ?? TOKEN_RIGHTS_PILL_TOOLTIPS.equityRevenueCapture
+	if (value === 'No') {
+		return <TooltipStatusPill label="No" tone="positive" tooltip={tooltip} />
+	}
+	if (value === 'Yes') {
+		return <TooltipStatusPill label="Yes" tone="negative" tooltip={tooltip} />
+	}
+	if (value === 'Partial') {
+		return <TooltipStatusPill label="Partial" tone="pending" tooltip={tooltip} />
+	}
+	return <TooltipStatusPill label={value} tone="neutral" tooltip={tooltip} />
 }
 
-function StatusPill({
-	label,
-	tone,
-	className: extraClassName = ''
-}: {
-	label: string
-	tone: 'positive' | 'negative' | 'pending' | 'neutral'
-	className?: string
-}) {
-	const className =
+type StatusPillTone = 'positive' | 'negative' | 'pending' | 'neutral'
+
+function getStatusPillClassName(tone: StatusPillTone, extraClassName = '') {
+	const toneClassName =
 		tone === 'positive'
 			? 'border-green-600/40 bg-green-600/10 text-green-700 dark:text-green-400'
 			: tone === 'negative'
@@ -746,13 +837,41 @@ function StatusPill({
 					? 'border-amber-600/40 bg-amber-600/10 text-amber-700 dark:text-amber-400'
 					: 'border-(--cards-border) bg-(--app-bg) text-(--text-secondary)'
 
+	return `mx-auto inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium ${toneClassName} ${extraClassName}`
+}
+
+function TooltipStatusPill({
+	label,
+	tone,
+	tooltip,
+	className: extraClassName = ''
+}: {
+	label: string
+	tone: StatusPillTone
+	tooltip: string
+	className?: string
+}) {
 	return (
-		<span
-			className={`inline-flex items-center justify-center rounded-md border px-2.5 py-1 font-mono text-xs font-semibold ${className} ${extraClassName}`}
+		<Tooltip
+			content={tooltip}
+			render={<button type="button" />}
+			className={getStatusPillClassName(tone, extraClassName)}
 		>
 			{label}
-		</span>
+		</Tooltip>
 	)
+}
+
+function StatusPill({
+	label,
+	tone,
+	className: extraClassName = ''
+}: {
+	label: string
+	tone: StatusPillTone
+	className?: string
+}) {
+	return <span className={getStatusPillClassName(tone, extraClassName)}>{label}</span>
 }
 
 function TokenRightsLegend() {
@@ -760,7 +879,7 @@ function TokenRightsLegend() {
 		<div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-(--text-secondary)">
 			<span className="text-xs font-semibold tracking-widest text-(--text-label) uppercase">Legend</span>
 			<span className="inline-flex items-center gap-2">
-				<span className="h-3 w-3 rounded-full bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
+				<span className="h-3 w-3 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]" />
 				Active
 			</span>
 			<span className="inline-flex items-center gap-2">
@@ -768,11 +887,11 @@ function TokenRightsLegend() {
 				Inactive
 			</span>
 			<span className="inline-flex items-center gap-2">
-				<StatusPill label="YES" tone="positive" />
+				<StatusPill label="ON" tone="positive" />
 				Fee Switch ON
 			</span>
 			<span className="inline-flex items-center gap-2">
-				<StatusPill label="NO" tone="negative" />
+				<StatusPill label="OFF" tone="negative" />
 				Fee Switch OFF
 			</span>
 			<span className="inline-flex items-center gap-2">

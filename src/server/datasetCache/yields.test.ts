@@ -3,8 +3,16 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { writeDatasetManifest, writeJsonFile } from './core'
+import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from './core'
 import { getTokenYieldsRowsFromCache } from './yields'
+
+function createDatasetManifestDomains(): DatasetManifest['domains'] {
+	const domains = {} as DatasetManifest['domains']
+	for (const domain of DATASET_DOMAINS) {
+		domains[domain] = { builtAt: Date.now() }
+	}
+	return domains
+}
 
 describe('dataset cache yields reader', () => {
 	let tempDir = ''
@@ -16,15 +24,7 @@ describe('dataset cache yields reader', () => {
 			{
 				artifactVersion: 1,
 				builtAt: Date.now(),
-				domains: {
-					yields: { builtAt: Date.now() },
-					'token-rights': { builtAt: Date.now() },
-					risk: { builtAt: Date.now() },
-					raises: { builtAt: Date.now() },
-					treasuries: { builtAt: Date.now() },
-					liquidity: { builtAt: Date.now() },
-					liquidations: { builtAt: Date.now() }
-				}
+				domains: createDatasetManifestDomains()
 			},
 			tempDir
 		)

@@ -10,6 +10,8 @@ function setupPageModule({
 	cexs = [],
 	chainMetadata = {},
 	holdersRevenueProtocols = [],
+	liteProtocols = [],
+	parentProtocols = [],
 	tokensJson = {},
 	tokenRightsEntries = [],
 	protocolMetadata = {}
@@ -17,6 +19,8 @@ function setupPageModule({
 	cexs?: Array<Record<string, unknown>>
 	chainMetadata?: Record<string, unknown>
 	holdersRevenueProtocols?: Array<Record<string, unknown>>
+	liteProtocols?: Array<Record<string, unknown>>
+	parentProtocols?: Array<Record<string, unknown>>
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
@@ -29,6 +33,9 @@ function setupPageModule({
 	}))
 	vi.doMock('~/containers/DimensionAdapters/api', () => ({
 		fetchAdapterChainMetrics: vi.fn().mockResolvedValue({ protocols: holdersRevenueProtocols })
+	}))
+	vi.doMock('~/containers/Protocols/api', () => ({
+		fetchProtocols: vi.fn().mockResolvedValue({ protocols: liteProtocols, parentProtocols })
 	}))
 	vi.doMock('~/layout', () => ({
 		default: () => null
@@ -82,6 +89,33 @@ function tokenRightsEntry(overrides: Record<string, unknown>) {
 		'Value Accrual': 'N/A',
 		'Equity Revenue Capture': 'Unknown',
 		'DefiLlama ID': '1',
+		...overrides
+	}
+}
+
+function tokenRightsListItem(overrides: Record<string, unknown>) {
+	return {
+		name: 'Protocol',
+		logo: 'icon:Protocol',
+		href: '/protocol/protocol',
+		tokens: ['TOKEN'],
+		holdersRevenue24h: null,
+		governanceRights: [false, false, false] as [boolean, boolean, boolean],
+		governanceRightDetails: [null, null, null] as [string | null, string | null, string | null],
+		economicRights: [false, false, false] as [boolean, boolean, boolean],
+		economicRightDetails: [null, null, null] as [string | null, string | null, string | null],
+		feeSwitchStatus: 'OFF' as const,
+		feeSwitchDetails: null,
+		valueAccrual: null,
+		valueAccrualDetails: null,
+		equityRevenueCapture: null,
+		equityRevenueCaptureDetails: null,
+		lastUpdated: null,
+		hasBuybacks: false,
+		hasDividends: false,
+		hasBurns: false,
+		hasEquityCapture: false,
+		hasNoEquityCapture: false,
 		...overrides
 	}
 }
@@ -148,6 +182,63 @@ describe('token rights page', () => {
 				]
 			},
 			revalidate: 123
+		})
+	})
+
+	it('uses child protocol holders revenue for parent token-rights rows', async () => {
+		const page = await setupPageModule({
+			tokenRightsEntries: [
+				tokenRightsEntry({
+					'Protocol Name': 'Uniswap',
+					Token: ['UNI'],
+					'DefiLlama ID': 'parent#uniswap'
+				})
+			],
+			holdersRevenueProtocols: [
+				{ defillamaId: '2198', total24h: 700 },
+				{ defillamaId: '339', total24h: 300 }
+			],
+			liteProtocols: [
+				{ defillamaId: '2198', parentProtocol: 'parent#uniswap' },
+				{ defillamaId: '339', parentProtocol: 'parent#uniswap' }
+			],
+			parentProtocols: [{ id: 'parent#uniswap', name: 'Uniswap' }],
+			protocolMetadata: {
+				'parent#uniswap': { displayName: 'Uniswap', gecko_id: 'uniswap' }
+			}
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
+			props: {
+				protocols: [{ name: 'Uniswap', holdersRevenue24h: 1000 }]
+			}
+		})
+	})
+
+	it('prefers direct holders revenue over summed child protocol revenue', async () => {
+		const page = await setupPageModule({
+			tokenRightsEntries: [
+				tokenRightsEntry({
+					'Protocol Name': 'Uniswap',
+					Token: ['UNI'],
+					'DefiLlama ID': 'parent#uniswap'
+				})
+			],
+			holdersRevenueProtocols: [
+				{ defillamaId: 'parent#uniswap', total24h: 900 },
+				{ defillamaId: '2198', total24h: 700 }
+			],
+			liteProtocols: [{ defillamaId: '2198', parentProtocol: 'parent#uniswap' }],
+			parentProtocols: [{ id: 'parent#uniswap', name: 'Uniswap' }],
+			protocolMetadata: {
+				'parent#uniswap': { displayName: 'Uniswap', gecko_id: 'uniswap' }
+			}
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
+			props: {
+				protocols: [{ name: 'Uniswap', holdersRevenue24h: 900 }]
+			}
 		})
 	})
 
@@ -271,7 +362,7 @@ describe('token rights page', () => {
 	it('filters rows by multiple selected filters and token search', async () => {
 		const page = await setupPageModule()
 		const rows = [
-			{
+			tokenRightsListItem({
 				name: 'Aave',
 				tokens: ['AAVE', 'stkAAVE'],
 				feeSwitchStatus: 'ON',
@@ -280,8 +371,8 @@ describe('token rights page', () => {
 				hasBurns: false,
 				hasEquityCapture: false,
 				hasNoEquityCapture: true
-			},
-			{
+			}),
+			tokenRightsListItem({
 				name: 'Ethena',
 				tokens: ['ENA', 'sENA'],
 				feeSwitchStatus: 'PENDING',
@@ -290,8 +381,8 @@ describe('token rights page', () => {
 				hasBurns: false,
 				hasEquityCapture: false,
 				hasNoEquityCapture: true
-			},
-			{
+			}),
+			tokenRightsListItem({
 				name: 'Axelar',
 				tokens: ['AXL'],
 				feeSwitchStatus: 'OFF',
@@ -300,7 +391,7 @@ describe('token rights page', () => {
 				hasBurns: false,
 				hasEquityCapture: true,
 				hasNoEquityCapture: false
-			}
+			})
 		]
 
 		expect(page.filterTokenRightsRows(rows, ['feeSwitchOn', 'hasBuybacks'], '')).toEqual([rows[0]])
@@ -311,9 +402,9 @@ describe('token rights page', () => {
 	it('counts stats from filtered rows', async () => {
 		const page = await setupPageModule()
 		const stats = page.getTokenRightsStats([
-			{ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: false },
-			{ feeSwitchStatus: 'PENDING', hasBuybacks: false, hasDividends: true },
-			{ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: true }
+			tokenRightsListItem({ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: false }),
+			tokenRightsListItem({ feeSwitchStatus: 'PENDING', hasBuybacks: false, hasDividends: true }),
+			tokenRightsListItem({ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: true })
 		])
 
 		expect(stats).toEqual({ feeSwitchOn: 2, buybacks: 2, dividends: 2 })
