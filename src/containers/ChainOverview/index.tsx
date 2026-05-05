@@ -117,7 +117,7 @@ const linksToOtherLlamaApps = [
 	{
 		name: '2025 DeFi Report',
 		description: '',
-		href: 'https://assets.dlnews.com/dlresearch/State-of-DeFi-2025.pdf',
+		href: '/reports',
 		icon: (
 			<svg width={44} height={44}>
 				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
