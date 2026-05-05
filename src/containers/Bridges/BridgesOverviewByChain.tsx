@@ -4,6 +4,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { Switch } from '~/components/Switch'
 import { BridgesTable, type BridgesTableHandle } from '~/containers/Bridges/BridgesTable'
 import { BridgeVolumeChart } from '~/containers/Bridges/BridgeVolumeChart'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
@@ -99,6 +100,7 @@ export function BridgesOverviewByChain({
 	const [chartType, setChartType] = React.useState(selectedChain === 'All' ? 'Volumes' : 'Bridge Volume')
 	const [chartView, setChartView] = React.useState<'default' | 'netflow' | 'volume'>('netflow')
 	const [activeTab, setActiveTab] = React.useState<'bridges' | 'messaging' | 'largeTxs'>('bridges')
+	const [includeMessaging, setIncludeMessaging] = React.useState(false)
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
@@ -208,11 +210,17 @@ export function BridgesOverviewByChain({
 		return { filename: fileName, rows }
 	}
 
+	const bridgesTableData = React.useMemo(() => {
+		if (activeTab === 'messaging') return messagingProtocols
+		if (includeMessaging) return [...(filteredBridges ?? []), ...(messagingProtocols ?? [])]
+		return filteredBridges
+	}, [activeTab, includeMessaging, filteredBridges, messagingProtocols])
+
 	const { dayTotalVolume, weekTotalVolume, monthTotalVolume } = React.useMemo(() => {
 		let dayTotalVolume, weekTotalVolume, monthTotalVolume
 		dayTotalVolume = weekTotalVolume = monthTotalVolume = 0
 
-		const bridgesToCalculate = activeTab === 'bridges' ? filteredBridges : messagingProtocols
+		const bridgesToCalculate = activeTab === 'bridges' ? bridgesTableData : messagingProtocols
 
 		if (bridgesToCalculate) {
 			for (const bridge of bridgesToCalculate ?? []) {
@@ -233,7 +241,7 @@ export function BridgesOverviewByChain({
 			}
 		}
 		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
-	}, [chainVolumeData, selectedChain, filteredBridges, messagingProtocols, activeTab])
+	}, [chainVolumeData, selectedChain, bridgesTableData, messagingProtocols, activeTab])
 
 	const prepareActiveTabCsv = React.useCallback(() => {
 		if (activeTab === 'largeTxs') {
@@ -418,6 +426,15 @@ export function BridgesOverviewByChain({
 						</button>
 					</div>
 
+					{activeTab === 'bridges' ? (
+						<Switch
+							label="Include Messaging Protocols"
+							value="include-messaging-protocols"
+							checked={includeMessaging}
+							onChange={() => setIncludeMessaging((prev) => !prev)}
+						/>
+					) : null}
+
 					<label className="relative w-full max-w-full sm:max-w-[280px]">
 						<span className="sr-only">Search bridges</span>
 						<Icon
@@ -447,9 +464,15 @@ export function BridgesOverviewByChain({
 				) : (
 					<BridgesTable
 						ref={bridgesTableRef}
-						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
+						data={bridgesTableData}
 						searchValue={deferredSearchValue}
-						csvFileName={activeTab === 'messaging' ? 'messaging-protocols' : 'bridges'}
+						csvFileName={
+							activeTab === 'messaging'
+								? 'messaging-protocols'
+								: includeMessaging
+									? 'bridges-and-messaging-protocols'
+									: 'bridges'
+						}
 					/>
 				)}
 			</div>
