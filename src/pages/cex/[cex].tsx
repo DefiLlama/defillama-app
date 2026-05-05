@@ -31,6 +31,37 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
+		const { fetchExchangeMarketsListFromCache } = await import('~/server/datasetCache/markets')
+		const exchangesList = await fetchExchangeMarketsListFromCache()
+		const normalizedCexSlug = slug(exchangeData.slug ?? '')
+		let cexMarketsExchange: string | null = null
+		let cexMarketsSlug: string | null = null
+		for (const entry of exchangesList.cex.spot) {
+			if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
+				cexMarketsExchange = entry.exchange
+				cexMarketsSlug = entry.defillama_slug
+				break
+			}
+		}
+		if (!cexMarketsExchange) {
+			for (const entry of exchangesList.cex.linear_perp) {
+				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
+					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
+					break
+				}
+			}
+		}
+		if (!cexMarketsExchange) {
+			for (const entry of exchangesList.cex.inverse_perp) {
+				if (entry.defillama_slug && slug(entry.defillama_slug) === normalizedCexSlug) {
+					cexMarketsExchange = entry.exchange
+					cexMarketsSlug = entry.defillama_slug
+					break
+				}
+			}
+		}
+
 		const data = await getProtocolOverviewPageData({
 			protocolId: slug(exchangeData.slug),
 			currentProtocolMetadata: {
@@ -48,7 +79,7 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		return { props: data, revalidate: maxAgeForNext([22]) }
+		return { props: { ...data, cexMarketsExchange, cexMarketsSlug }, revalidate: maxAgeForNext([22]) }
 	}
 )
 

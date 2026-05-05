@@ -436,6 +436,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				detailHref: item.canonicalMarketId ? `/rwa/asset/${encodeURIComponent(item.canonicalMarketId)}` : '',
 				canonicalMarketId: item.canonicalMarketId ?? '',
 				assetName: item.assetName ?? '',
+				logo: item.logo ?? null,
 				ticker: item.ticker,
 				primaryChain: item.primaryChain ?? null,
 				chain: item.chain ?? null,

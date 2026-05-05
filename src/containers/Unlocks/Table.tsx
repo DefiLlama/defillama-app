@@ -1,6 +1,5 @@
 import {
 	type ColumnFiltersState,
-	type ColumnSizingState,
 	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
@@ -145,7 +144,6 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const filteredData = useMemo(() => {
@@ -234,7 +232,6 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 			sorting,
 			columnFilters,
 			expanded,
-			columnSizing,
 			columnVisibility
 		},
 		defaultColumn: {
@@ -244,7 +241,6 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 		filterFromLeafRows: true,
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
-		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
@@ -418,7 +414,9 @@ const emissionsColumns = [
 				</div>
 			)
 		},
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]'
+		}
 	}),
 	columnHelper.accessor((row) => (row.tPrice != null ? +row.tPrice : undefined), {
 		id: 'tPrice',
@@ -430,9 +428,9 @@ const emissionsColumns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[80px]',
 			align: 'end'
-		},
-		size: 80
+		}
 	}),
 	columnHelper.accessor((row) => (row.mcap != null ? +row.mcap : undefined), {
 		id: 'mcap',
@@ -443,9 +441,9 @@ const emissionsColumns = [
 			return <div className="flex h-full items-center justify-end">{formattedNum(value, true)}</div>
 		},
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'end'
-		},
-		size: 120
+		}
 	}),
 	columnHelper.accessor(
 		(row) => {
@@ -477,8 +475,8 @@ const emissionsColumns = [
 					</div>
 				)
 			},
-			size: 140,
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end'
 			}
 		}
@@ -513,11 +511,11 @@ const emissionsColumns = [
 			)
 		},
 		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
 			align: 'end',
 			headerHelperText:
 				"Price trend shown from 7 days before to 7 days after the most recent major unlock event. Doesn't include Non-Circulating and Farming emissions."
-		},
-		size: 180
+		}
 	}),
 	columnHelper.accessor(
 		(row) => {
@@ -538,10 +536,10 @@ const emissionsColumns = [
 				)
 			},
 			meta: {
+				headerClassName: 'w-[140px]',
 				align: 'end',
 				headerHelperText: 'Price change 7 days after the most recent major unlock event'
-			},
-			size: 140
+			}
 		}
 	),
 	columnHelper.accessor((row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined), {
@@ -558,8 +556,8 @@ const emissionsColumns = [
 				</div>
 			)
 		},
-		size: 140,
 		meta: {
+			headerClassName: 'w-[140px]',
 			align: 'end'
 		}
 	})
@@ -598,6 +596,8 @@ const upcomingEventColumn = (nowSec: number) =>
 					/>
 				)
 			},
-			size: 400
+			meta: {
+				headerClassName: 'w-[min(400px,40vw)]'
+			}
 		}
 	)

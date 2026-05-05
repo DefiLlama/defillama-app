@@ -283,6 +283,28 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							</a>
 						)
 					) : null}
+					{asset.linkedin ? (
+						<a
+							href={asset.linkedin}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							LinkedIn
+						</a>
+					) : null}
+					{asset.docs ? (
+						<a
+							href={asset.docs}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							Docs
+						</a>
+					) : null}
 					{asset.rwaGithub != null ? (
 						<a
 							href={asset.rwaGithub}

@@ -3,9 +3,17 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
-import { writeDatasetManifest, writeJsonFile } from './core'
+import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from './core'
 import { fetchTokenRightsEntryByNameFromCache, fetchTokenRightsEntryFromCache } from './tokenRights'
 import { buildTokenRightsIndexes } from './tokenRightsIndex'
+
+function createDatasetManifestDomains(): DatasetManifest['domains'] {
+	const domains = {} as DatasetManifest['domains']
+	for (const domain of DATASET_DOMAINS) {
+		domains[domain] = { builtAt: Date.now() }
+	}
+	return domains
+}
 
 const makeEntry = (protocolName: string, defillamaId: string): IRawTokenRightsEntry => ({
 	'Protocol Name': protocolName,
@@ -34,15 +42,7 @@ describe('dataset cache token rights reader', () => {
 			{
 				artifactVersion: 1,
 				builtAt: Date.now(),
-				domains: {
-					yields: { builtAt: Date.now() },
-					'token-rights': { builtAt: Date.now() },
-					risk: { builtAt: Date.now() },
-					raises: { builtAt: Date.now() },
-					treasuries: { builtAt: Date.now() },
-					liquidity: { builtAt: Date.now() },
-					liquidations: { builtAt: Date.now() }
-				}
+				domains: createDatasetManifestDomains()
 			},
 			tempDir
 		)

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RawRaise } from '~/containers/Raises/api.types'
@@ -41,6 +42,15 @@ let routerState = {
 	push: vi.fn()
 }
 let lastProtocolChartProps: any = null
+
+function renderTokenOverviewSection(props: Parameters<typeof TokenOverviewSection>[0]) {
+	const client = new QueryClient()
+	return renderToStaticMarkup(
+		<QueryClientProvider client={client}>
+			<TokenOverviewSection {...props} />
+		</QueryClientProvider>
+	)
+}
 
 vi.mock('next/router', () => ({
 	useRouter: () => routerState
@@ -812,9 +822,11 @@ describe('TokenPageHero component', () => {
 
 describe('TokenOverviewSection component', () => {
 	it('renders the overview chart shell and key metrics without duplicating the page hero', () => {
-		const html = renderToStaticMarkup(
-			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
-		)
+		const html = renderTokenOverviewSection({
+			overview: overviewFixture,
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).toContain('Bitcoin')
 		expect(html).toContain('(BTC)')
@@ -836,23 +848,21 @@ describe('TokenOverviewSection component', () => {
 	})
 
 	it('shows undisclosed raises without falling back to $0 and exposes chart controls to assistive tech', () => {
-		const html = renderToStaticMarkup(
-			<TokenOverviewSection
-				overview={{
-					...overviewFixture,
-					raises: [
-						{
-							date: 1704067200,
-							round: 'Series A',
-							amount: null,
-							investors: ['Investor A']
-						}
-					]
-				}}
-				geckoId="bitcoin"
-				logo="https://metadata.example.com/btc.png"
-			/>
-		)
+		const html = renderTokenOverviewSection({
+			overview: {
+				...overviewFixture,
+				raises: [
+					{
+						date: 1704067200,
+						round: 'Series A',
+						amount: null,
+						investors: ['Investor A']
+					}
+				]
+			},
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).toContain('Undisclosed')
 		expect(html).not.toContain('>$0<')
@@ -865,9 +875,11 @@ describe('TokenOverviewSection component', () => {
 			chart: 'Token Volume'
 		}
 
-		const html = renderToStaticMarkup(
-			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
-		)
+		const html = renderTokenOverviewSection({
+			overview: overviewFixture,
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).not.toContain('fetching $BTC Volume')
 		expect(html).not.toContain('Chart unavailable for this token right now.')
@@ -889,25 +901,25 @@ describe('TokenOverviewSection component', () => {
 			isLoading: false
 		})
 
-		renderToStaticMarkup(
-			<TokenOverviewSection overview={overviewFixture} geckoId="bitcoin" logo="https://metadata.example.com/btc.png" />
-		)
+		renderTokenOverviewSection({
+			overview: overviewFixture,
+			geckoId: 'bitcoin',
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(lastProtocolChartProps.groupBy).toBe('weekly')
 		expect(getRecordKeys(lastProtocolChartProps.chartData)).toEqual(['Token Volume'])
 	})
 
 	it('shows a graceful fallback when market chart data is unavailable', () => {
-		const html = renderToStaticMarkup(
-			<TokenOverviewSection
-				overview={{
-					...overviewFixture,
-					rawChartData: {}
-				}}
-				geckoId={null}
-				logo="https://metadata.example.com/btc.png"
-			/>
-		)
+		const html = renderTokenOverviewSection({
+			overview: {
+				...overviewFixture,
+				rawChartData: {}
+			},
+			geckoId: null,
+			logo: 'https://metadata.example.com/btc.png'
+		})
 
 		expect(html).toContain('Chart unavailable without CoinGecko market data.')
 	})

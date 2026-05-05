@@ -543,6 +543,17 @@
       ]
     },
     {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category",
+      "searchKeywords": [
+        "rwa categories",
+        "rwas by category",
+        "real world assets by category"
+      ]
+    },
+    {
       "name": "RWA: Perps",
       "route": "/rwa/perps",
       "category": "RWA",
@@ -555,17 +566,6 @@
         "rwa perp",
         "real world asset perps",
         "real world assets perps"
-      ]
-    },
-    {
-      "name": "RWA by Category",
-      "route": "/rwa/categories",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by category",
-      "searchKeywords": [
-        "rwa categories",
-        "rwas by category",
-        "real world assets by category"
       ]
     },
     {
@@ -602,6 +602,22 @@
       ]
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -620,22 +636,6 @@
       "tab": "Chains",
       "oldCategory": "Bridges",
       "oldName": "Chains"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
     },
     {
       "name": "NFTs: Marketplaces",
@@ -673,6 +673,31 @@
       "oldName": "Volume (Chains)"
     },
     {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
       "category": "Equities, ETFs & DATs",
@@ -703,29 +728,22 @@
       "oldName": "Equities"
     },
     {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
+      "name": "Raises: Overview",
+      "route": "/raises",
+      "category": "Raises",
+      "description": "Total amount of capital raised by a project",
+      "totalTrackedKey": "raises.total",
+      "oldCategory": "Raises",
       "oldName": "Overview"
     },
     {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
+      "name": "Investors",
+      "route": "/raises/investors",
+      "category": "Raises",
+      "description": "List of investors that have invested in a project",
+      "totalTrackedKey": "raises.investors",
+      "oldCategory": "Raises",
+      "oldName": "Investors"
     },
     {
       "name": "Treasuries",
@@ -750,24 +768,6 @@
       "category": "Treasury",
       "description": "Treasury by entity",
       "totalTrackedKey": "treasury.entities"
-    },
-    {
-      "name": "Raises: Overview",
-      "route": "/raises",
-      "category": "Raises",
-      "description": "Total amount of capital raised by a project",
-      "totalTrackedKey": "raises.total",
-      "oldCategory": "Raises",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Investors",
-      "route": "/raises/investors",
-      "category": "Raises",
-      "description": "List of investors that have invested in a project",
-      "totalTrackedKey": "raises.investors",
-      "oldCategory": "Raises",
-      "oldName": "Investors"
     },
     {
       "name": "CEXs",

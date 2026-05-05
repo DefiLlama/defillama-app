@@ -3,9 +3,10 @@ import { fetchLiquidityTokensDatasetFromNetwork } from '~/api'
 import { fetchBlockExplorers } from '~/api'
 import type { BlockExplorersResponse } from '~/api/types'
 import { SERVER_URL } from '~/constants'
+import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
 import { fetchProtocolsList, fetchAllLiquidations } from '~/containers/LiquidationsV2/api'
 import { fetchRaisesFromNetwork } from '~/containers/Raises/api'
-import { getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
+import { fetchTokenMarketsListFromNetwork, getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
 import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
 import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
@@ -164,6 +165,22 @@ async function buildLiquidationsDomain(rootDir: string): Promise<DomainBuildResu
 	return { builtAt }
 }
 
+async function buildMarketsDomain(rootDir: string): Promise<DomainBuildResult> {
+	const builtAt = Date.now()
+	const domainDir = getDomainDir(rootDir, 'markets')
+	await ensureDirectory(domainDir)
+
+	const [tokensList, exchangesList] = await Promise.all([
+		fetchTokenMarketsListFromNetwork(),
+		fetchExchangeMarketsListFromNetwork()
+	])
+
+	await writeJsonFile(`${domainDir}/tokens-list.json`, tokensList)
+	await writeJsonFile(`${domainDir}/exchanges-list.json`, exchangesList)
+
+	return { builtAt }
+}
+
 export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string): Promise<DomainBuildResult> {
 	switch (domain) {
 		case 'yields':
@@ -180,6 +197,8 @@ export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string)
 			return buildLiquidityDomain(rootDir)
 		case 'liquidations':
 			return buildLiquidationsDomain(rootDir)
+		case 'markets':
+			return buildMarketsDomain(rootDir)
 	}
 }
 
@@ -213,7 +232,12 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 	}
 
 	if (failures.length > 0) {
-		throw new Error(`Failed to build dataset domains:\n${failures.join('\n')}`)
+		const message = `Failed to build dataset domains:\n${failures.join('\n')}`
+		if (process.env.NODE_ENV === 'development') {
+			console.warn('[datasetCache] dev: continuing despite domain failures:\n' + failures.join('\n'))
+		} else {
+			throw new Error(message)
+		}
 	}
 
 	manifest.builtAt = latestBuiltAt || Date.now()

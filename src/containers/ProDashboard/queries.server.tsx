@@ -1,4 +1,4 @@
-import { AUTH_SERVER, CONFIG_API, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { CONFIG_API, FEATURES_SERVER, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -58,7 +58,7 @@ export interface ProDashboardServerProps {
 
 export async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
 	try {
-		const url = `${AUTH_SERVER}/dashboards/${dashboardId}`
+		const url = `${FEATURES_SERVER}/dashboards/${dashboardId}`
 		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
 		const response = await fetchFn(url)
 		if (!response.ok) return null

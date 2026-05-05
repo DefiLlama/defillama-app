@@ -11,7 +11,8 @@ export const DATASET_DOMAINS = [
 	'raises',
 	'treasuries',
 	'liquidity',
-	'liquidations'
+	'liquidations',
+	'markets'
 ] as const
 
 export type DatasetDomain = (typeof DATASET_DOMAINS)[number]

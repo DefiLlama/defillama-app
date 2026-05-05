@@ -172,6 +172,8 @@ export interface IProtocolOverviewPageData {
 		note: string | null
 	} | null
 	isCEX?: boolean
+	cexMarketsExchange?: string | null
+	cexMarketsSlug?: string | null
 	hasKeyMetrics?: boolean
 	competitors?: Array<{ name: string; tvl: number }>
 	hacks: Array<IHackApiItem>

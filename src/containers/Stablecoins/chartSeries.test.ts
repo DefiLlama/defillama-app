@@ -82,6 +82,9 @@ describe('stablecoin chart series builders', () => {
 			}))
 		)
 		expect(payload.dataset.dimensions).toEqual(['timestamp', 'USDT', 'USDC'])
+		expect(payload.stacked).toBe(false)
+		expect(payload.showTotalInTooltip).toBe(false)
+		expect(payload.charts.every((chart) => !('stack' in chart))).toBe(true)
 	})
 
 	it('matches the legacy inflow outputs', () => {
@@ -107,11 +110,20 @@ describe('stablecoin chart series builders', () => {
 		expect(payload.valueSymbol).toBe('%')
 		expect(payload.expandTo100Percent).toBe(true)
 		expect(payload.stacked).toBe(true)
+		expect(payload.charts.every((chart) => chart.type === 'line' && chart.stack === 'dominance')).toBe(true)
 		expect(payload.dataset.dimensions).toEqual(['timestamp', 'USDT', 'USDC'])
 		expect(payload.dataset.source.at(-1)).toMatchObject({
 			timestamp: 1609632000000,
 			USDT: 62.5,
 			USDC: 37.5
 		})
+	})
+
+	it('keeps token inflows stacked because they render as bars', () => {
+		const payload = buildTokenInflowsPayload(params)
+
+		expect(payload.stacked).toBe(true)
+		expect(payload.showTotalInTooltip).toBe(true)
+		expect(payload.charts.every((chart) => chart.type === 'bar' && chart.stack === 'tokenInflows')).toBe(true)
 	})
 })

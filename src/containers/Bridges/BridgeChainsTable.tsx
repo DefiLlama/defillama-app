@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -14,8 +13,8 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum, slug } from '~/utils'
 
@@ -51,7 +50,9 @@ const bridgeChainsColumn = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[160px] min-[480px]:w-[180px]'
+		}
 	}),
 	columnHelper.accessor('prevDayNetFlow', {
 		header: '24h Net Flow',
@@ -61,24 +62,24 @@ const bridgeChainsColumn = [
 			if (value === 0) return <>$0</>
 			return <span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px] min-[480px]:w-[140px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('prevDayUsdDeposits', {
 		header: '24h Deposits',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[130px] min-[480px]:w-[150px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('prevDayUsdWithdrawals', {
 		header: '24h Withdrawals',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[130px] min-[480px]:w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -90,24 +91,24 @@ const bridgeChainsColumn = [
 			if (value === 0) return <>$0</>
 			return <span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
 		},
-		size: 120,
 		meta: {
+			headerClassName: 'w-[120px] min-[480px]:w-[140px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('prevWeekUsdDeposits', {
 		header: '7d Deposits',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[130px] min-[480px]:w-[150px]',
 			align: 'end'
 		}
 	}),
 	columnHelper.accessor('prevWeekUsdWithdrawals', {
 		header: '7d Withdrawals',
 		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
 		meta: {
+			headerClassName: 'w-[130px] min-[480px]:w-[150px]',
 			align: 'end'
 		}
 	}),
@@ -120,9 +121,9 @@ const bridgeChainsColumn = [
 			return value
 		},
 		meta: {
+			headerClassName: 'w-[145px]',
 			align: 'end'
-		},
-		size: 145
+		}
 	})
 ]
 
@@ -148,53 +149,16 @@ const bridgeChainsColumnOrders: ColumnOrdersByBreakpoint = {
 		'prevWeekNetFlow'
 	]
 }
-
-const bridgeChainsColumnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		name: 160,
-		prevDayNetFlow: 120,
-		prevDayUsdWithdrawals: 130,
-		prevDayUsdDeposits: 130,
-		prevWeekNetFlow: 120,
-		prevWeekUsdWithdrawals: 130,
-		prevWeekUsdDeposits: 130,
-		topTokenWithdrawnSymbol: 145
-	},
-	480: {
-		name: 180,
-		prevDayNetFlow: 140,
-		prevDayUsdWithdrawals: 150,
-		prevDayUsdDeposits: 150,
-		prevWeekNetFlow: 140,
-		prevWeekUsdWithdrawals: 150,
-		prevWeekUsdDeposits: 150,
-		topTokenWithdrawnSymbol: 145
-	},
-	1024: {
-		name: 180,
-		prevDayNetFlow: 140,
-		prevDayUsdWithdrawals: 150,
-		prevDayUsdDeposits: 150,
-		prevWeekNetFlow: 140,
-		prevWeekUsdWithdrawals: 150,
-		prevWeekUsdDeposits: 150,
-		topTokenWithdrawnSymbol: 145
-	}
-}
-
 export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'prevDayNetFlow', desc: true }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
-
 	const instance = useReactTable({
 		data,
 		columns: bridgeChainsColumn,
 		state: {
 			sorting,
 			columnOrder,
-			columnSizing,
 			columnFilters
 		},
 		defaultColumn: {
@@ -203,7 +167,6 @@ export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 		enableSortingRemoval: false,
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
-		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -212,9 +175,8 @@ export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	useSortColumnSizesAndOrders({
+	useSortColumnOrders({
 		instance,
-		columnSizes: bridgeChainsColumnSizes,
 		columnOrders: bridgeChainsColumnOrders
 	})
 

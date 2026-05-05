@@ -2,7 +2,6 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { Fragment, type ReactNode } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
-import { hasTokenMarketsFromNetwork } from '~/containers/Token/api'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import { DEFAULT_TABLE_PAGE_SIZE } from '~/containers/Token/tableUtils'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
@@ -310,10 +309,16 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
-		const marketsPromise: Promise<boolean> = hasTokenMarketsFromNetwork(record.symbol).catch((error) => {
-			console.error(`Failed to probe token markets for ${record.symbol}`, error)
-			return false
-		})
+		const { fetchTokenMarketsListFromCache } = await import('~/server/datasetCache/markets')
+		const tokenMarketsList = await fetchTokenMarketsListFromCache()
+		const normalizedMarketsSymbol = record.symbol.toLowerCase()
+		let marketsAvailable = false
+		for (const tokenMarket of tokenMarketsList.tokens) {
+			if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
+				marketsAvailable = true
+				break
+			}
+		}
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol
@@ -499,7 +504,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			liquidationsPromise,
 			tokenRiskPromise,
 			tokenRiskTimelinePromise,
-			marketsPromise
+			marketsAvailable
 		])
 
 		if (resolvedIncomeStatementData) {

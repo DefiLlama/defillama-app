@@ -9,12 +9,18 @@ afterEach(() => {
 function setupPageModule({
 	cexs = [],
 	chainMetadata = {},
+	holdersRevenueProtocols = [],
+	liteProtocols = [],
+	parentProtocols = [],
 	tokensJson = {},
 	tokenRightsEntries = [],
 	protocolMetadata = {}
 }: {
 	cexs?: Array<Record<string, unknown>>
 	chainMetadata?: Record<string, unknown>
+	holdersRevenueProtocols?: Array<Record<string, unknown>>
+	liteProtocols?: Array<Record<string, unknown>>
+	parentProtocols?: Array<Record<string, unknown>>
 	tokensJson?: TokenDirectory
 	tokenRightsEntries?: unknown[]
 	protocolMetadata?: Record<string, unknown>
@@ -22,16 +28,20 @@ function setupPageModule({
 	vi.doMock('next/link', () => ({
 		default: () => null
 	}))
-	vi.doMock('~/components/TokenLogo', () => ({
-		TokenLogo: () => null
-	}))
 	vi.doMock('~/containers/TokenRights/api', () => ({
 		fetchTokenRightsData: vi.fn().mockResolvedValue(tokenRightsEntries)
+	}))
+	vi.doMock('~/containers/DimensionAdapters/api', () => ({
+		fetchAdapterChainMetrics: vi.fn().mockResolvedValue({ protocols: holdersRevenueProtocols })
+	}))
+	vi.doMock('~/containers/Protocols/api', () => ({
+		fetchProtocols: vi.fn().mockResolvedValue({ protocols: liteProtocols, parentProtocols })
 	}))
 	vi.doMock('~/layout', () => ({
 		default: () => null
 	}))
 	vi.doMock('~/utils', () => ({
+		formattedNum: (value: number) => `$${value}`,
 		slug: (value: string) =>
 			value
 				.toLowerCase()
@@ -65,8 +75,53 @@ function setupPageModule({
 	return import('~/pages/token-rights')
 }
 
+function tokenRightsEntry(overrides: Record<string, unknown>) {
+	return {
+		'Protocol Name': 'Protocol',
+		Token: ['TOKEN'],
+		'Governance Decisions': ['N/A'],
+		'Treasury Decisions': ['N/A'],
+		'Revenue Decisions': ['N/A'],
+		'Fee Switch Status': 'OFF',
+		Buybacks: ['N/A'],
+		Dividends: ['N/A'],
+		Burns: 'N/A',
+		'Value Accrual': 'N/A',
+		'Equity Revenue Capture': 'Unknown',
+		'DefiLlama ID': '1',
+		...overrides
+	}
+}
+
+function tokenRightsListItem(overrides: Record<string, unknown>) {
+	return {
+		name: 'Protocol',
+		logo: 'icon:Protocol',
+		href: '/protocol/protocol',
+		tokens: ['TOKEN'],
+		holdersRevenue24h: null,
+		governanceRights: [false, false, false] as [boolean, boolean, boolean],
+		governanceRightDetails: [null, null, null] as [string | null, string | null, string | null],
+		economicRights: [false, false, false] as [boolean, boolean, boolean],
+		economicRightDetails: [null, null, null] as [string | null, string | null, string | null],
+		feeSwitchStatus: 'OFF' as const,
+		feeSwitchDetails: null,
+		valueAccrual: null,
+		valueAccrualDetails: null,
+		equityRevenueCapture: null,
+		equityRevenueCaptureDetails: null,
+		lastUpdated: null,
+		hasBuybacks: false,
+		hasDividends: false,
+		hasBurns: false,
+		hasEquityCapture: false,
+		hasNoEquityCapture: false,
+		...overrides
+	}
+}
+
 describe('token rights page', () => {
-	it('routes token rights entries to token pages when metadata gecko ids match token directory records', async () => {
+	it('builds table rows with rights, pending fee switch, and holders revenue', async () => {
 		const page = await setupPageModule({
 			chainMetadata: {
 				ethereum: { name: 'Ethereum', id: 'ethereum', gecko_id: 'ethereum' }
@@ -76,40 +131,132 @@ describe('token rights page', () => {
 				eth: { name: 'Ethereum', symbol: 'ETH', token_nk: 'coingecko:ethereum', route: '/token/ETH' }
 			},
 			tokenRightsEntries: [
-				{ 'Protocol Name': 'Ethereum', 'DefiLlama ID': 'ethereum' },
-				{ 'Protocol Name': 'Lido DAO', 'DefiLlama ID': '182' }
+				tokenRightsEntry({
+					'Protocol Name': 'Ethereum',
+					Token: ['ETH'],
+					'DefiLlama ID': 'ethereum',
+					'Governance Decisions': ['ETH'],
+					'Treasury Decisions': ['N/A'],
+					'Revenue Decisions': ['ETH'],
+					Buybacks: ['N/A'],
+					Dividends: ['N/A'],
+					Burns: 'Active',
+					'Fee Switch Status': 'PENDING',
+					'Value Accrual': 'Deflationary supply reduction',
+					'Equity Revenue Capture': 'No',
+					'Last Updated': '2026-03-01'
+				}),
+				tokenRightsEntry({ 'Protocol Name': 'Lido DAO', Token: ['LDO'], 'DefiLlama ID': '182' })
 			],
+			holdersRevenueProtocols: [{ defillamaId: 'ethereum', total24h: 1200 }],
 			protocolMetadata: {
 				'182': { displayName: 'Lido', gecko_id: 'lido-dao' }
 			}
 		})
 
-		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+		const result = await page.getStaticProps({} as never)
+		expect(result).toMatchObject({
 			props: {
 				protocols: [
-					{ name: 'Ethereum', logo: 'icon:Ethereum', href: '/token/ETH' },
-					{ name: 'Lido', logo: 'icon:Lido', href: '/token/LDO' }
+					{
+						name: 'Ethereum',
+						logo: 'icon:Ethereum',
+						href: '/token/ETH',
+						tokens: ['ETH'],
+						holdersRevenue24h: 1200,
+						governanceRights: [true, false, true],
+						economicRights: [false, false, true],
+						feeSwitchStatus: 'PENDING',
+						valueAccrual: 'Deflationary supply reduction',
+						equityRevenueCapture: 'No',
+						hasNoEquityCapture: true
+					},
+					{
+						name: 'Lido',
+						logo: 'icon:Lido',
+						href: '/token/LDO',
+						tokens: ['LDO'],
+						holdersRevenue24h: null,
+						feeSwitchStatus: 'OFF'
+					}
 				]
 			},
 			revalidate: 123
 		})
 	})
 
-	it('skips entries without token directory routes', async () => {
+	it('uses child protocol holders revenue for parent token-rights rows', async () => {
+		const page = await setupPageModule({
+			tokenRightsEntries: [
+				tokenRightsEntry({
+					'Protocol Name': 'Uniswap',
+					Token: ['UNI'],
+					'DefiLlama ID': 'parent#uniswap'
+				})
+			],
+			holdersRevenueProtocols: [
+				{ defillamaId: '2198', total24h: 700 },
+				{ defillamaId: '339', total24h: 300 }
+			],
+			liteProtocols: [
+				{ defillamaId: '2198', parentProtocol: 'parent#uniswap' },
+				{ defillamaId: '339', parentProtocol: 'parent#uniswap' }
+			],
+			parentProtocols: [{ id: 'parent#uniswap', name: 'Uniswap' }],
+			protocolMetadata: {
+				'parent#uniswap': { displayName: 'Uniswap', gecko_id: 'uniswap' }
+			}
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
+			props: {
+				protocols: [{ name: 'Uniswap', holdersRevenue24h: 1000 }]
+			}
+		})
+	})
+
+	it('prefers direct holders revenue over summed child protocol revenue', async () => {
+		const page = await setupPageModule({
+			tokenRightsEntries: [
+				tokenRightsEntry({
+					'Protocol Name': 'Uniswap',
+					Token: ['UNI'],
+					'DefiLlama ID': 'parent#uniswap'
+				})
+			],
+			holdersRevenueProtocols: [
+				{ defillamaId: 'parent#uniswap', total24h: 900 },
+				{ defillamaId: '2198', total24h: 700 }
+			],
+			liteProtocols: [{ defillamaId: '2198', parentProtocol: 'parent#uniswap' }],
+			parentProtocols: [{ id: 'parent#uniswap', name: 'Uniswap' }],
+			protocolMetadata: {
+				'parent#uniswap': { displayName: 'Uniswap', gecko_id: 'uniswap' }
+			}
+		})
+
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
+			props: {
+				protocols: [{ name: 'Uniswap', holdersRevenue24h: 900 }]
+			}
+		})
+	})
+
+	it('skips entries without metadata and keeps valid metadata rows without a route', async () => {
 		const page = await setupPageModule({
 			chainMetadata: {
 				ethereum: { name: 'Ethereum', id: 'ethereum', gecko_id: 'ethereum' }
 			},
 			tokenRightsEntries: [
-				{ 'Protocol Name': 'Missing ID', 'DefiLlama ID': '' },
-				{ 'Protocol Name': 'Unknown Protocol', 'DefiLlama ID': '999' },
-				{ 'Protocol Name': 'Ethereum', 'DefiLlama ID': 'ethereum' }
+				tokenRightsEntry({ 'Protocol Name': 'Missing ID', 'DefiLlama ID': '' }),
+				tokenRightsEntry({ 'Protocol Name': 'Unknown Protocol', 'DefiLlama ID': '999' }),
+				tokenRightsEntry({ 'Protocol Name': 'Ethereum', 'DefiLlama ID': 'ethereum' })
 			]
 		})
 
-		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
 			props: {
-				protocols: []
+				protocols: [{ name: 'Ethereum', href: null }]
 			},
 			revalidate: 123
 		})
@@ -128,10 +275,10 @@ describe('token rights page', () => {
 					route: '/token/PLUME'
 				}
 			},
-			tokenRightsEntries: [{ 'Protocol Name': 'Plume', 'DefiLlama ID': 'plume_mainnet' }]
+			tokenRightsEntries: [tokenRightsEntry({ 'Protocol Name': 'Plume', 'DefiLlama ID': 'plume_mainnet' })]
 		})
 
-		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
 			props: {
 				protocols: [{ name: 'Plume Mainnet', logo: 'icon:Plume Mainnet', href: '/token/PLUME' }]
 			},
@@ -152,10 +299,10 @@ describe('token rights page', () => {
 					route: '/token/BP'
 				}
 			},
-			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '7161' }]
+			tokenRightsEntries: [tokenRightsEntry({ 'Protocol Name': 'Backpack', 'DefiLlama ID': '7161' })]
 		})
 
-		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
 			props: {
 				protocols: [{ name: 'Backpack SOL', logo: 'icon:Backpack SOL', href: '/token/BP' }]
 			},
@@ -174,10 +321,10 @@ describe('token rights page', () => {
 					route: '/token/BP'
 				}
 			},
-			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' }]
+			tokenRightsEntries: [tokenRightsEntry({ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' })]
 		})
 
-		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
 			props: {
 				protocols: [{ name: 'Backpack', logo: 'icon:Backpack', href: '/token/BP' }]
 			},
@@ -188,7 +335,7 @@ describe('token rights page', () => {
 		expect(flushTelemetry).not.toHaveBeenCalled()
 	})
 
-	it('skips cex entries when the matching token has no page route', async () => {
+	it('renders cex entries as text when the matching token has no page route', async () => {
 		const page = await setupPageModule({
 			cexs: [{ name: 'Backpack', slug: 'backpack' }],
 			tokensJson: {
@@ -198,27 +345,68 @@ describe('token rights page', () => {
 					token_nk: 'coingecko:backpack'
 				}
 			},
-			tokenRightsEntries: [{ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' }]
+			tokenRightsEntries: [tokenRightsEntry({ 'Protocol Name': 'Backpack', 'DefiLlama ID': '4266' })]
 		})
 
-		await expect(page.getStaticProps({} as never)).resolves.toEqual({
+		await expect(page.getStaticProps({} as never)).resolves.toMatchObject({
 			props: {
-				protocols: []
+				protocols: [{ name: 'Backpack', href: null }]
 			},
 			revalidate: 123
 		})
 		const { flushTelemetry, recordDomainEvent } = await import('~/utils/telemetry')
-		expect(recordDomainEvent).toHaveBeenCalledTimes(1)
-		expect(recordDomainEvent).toHaveBeenCalledWith(
-			'token_rights.alert',
-			'warn',
-			'token-rights',
-			'Skipped token rights entries while building token-rights page',
-			expect.objectContaining({
-				reason_counts: { missing_token_route: 1 },
-				skipped_count: 1
+		expect(recordDomainEvent).not.toHaveBeenCalled()
+		expect(flushTelemetry).not.toHaveBeenCalled()
+	})
+
+	it('filters rows by multiple selected filters and token search', async () => {
+		const page = await setupPageModule()
+		const rows = [
+			tokenRightsListItem({
+				name: 'Aave',
+				tokens: ['AAVE', 'stkAAVE'],
+				feeSwitchStatus: 'ON',
+				hasBuybacks: true,
+				hasDividends: false,
+				hasBurns: false,
+				hasEquityCapture: false,
+				hasNoEquityCapture: true
+			}),
+			tokenRightsListItem({
+				name: 'Ethena',
+				tokens: ['ENA', 'sENA'],
+				feeSwitchStatus: 'PENDING',
+				hasBuybacks: false,
+				hasDividends: true,
+				hasBurns: false,
+				hasEquityCapture: false,
+				hasNoEquityCapture: true
+			}),
+			tokenRightsListItem({
+				name: 'Axelar',
+				tokens: ['AXL'],
+				feeSwitchStatus: 'OFF',
+				hasBuybacks: false,
+				hasDividends: false,
+				hasBurns: false,
+				hasEquityCapture: true,
+				hasNoEquityCapture: false
 			})
-		)
-		expect(flushTelemetry).toHaveBeenCalledWith({ timeoutMs: 2000, runtime: 'build' })
+		]
+
+		expect(page.filterTokenRightsRows(rows, ['feeSwitchOn', 'hasBuybacks'], '')).toEqual([rows[0]])
+		expect(page.filterTokenRightsRows(rows, ['hasDividends'], 'sena')).toEqual([rows[1]])
+		expect(page.filterTokenRightsRows(rows, ['feeSwitchOn'], 'axl')).toEqual([])
+	})
+
+	it('counts stats from filtered rows', async () => {
+		const page = await setupPageModule()
+		const stats = page.getTokenRightsStats([
+			tokenRightsListItem({ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: false }),
+			tokenRightsListItem({ feeSwitchStatus: 'PENDING', hasBuybacks: false, hasDividends: true }),
+			tokenRightsListItem({ feeSwitchStatus: 'ON', hasBuybacks: true, hasDividends: true })
+		])
+
+		expect(stats).toEqual({ feeSwitchOn: 2, buybacks: 2, dividends: 2 })
 	})
 })

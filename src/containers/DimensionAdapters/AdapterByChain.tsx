@@ -1,7 +1,6 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -21,8 +20,8 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders, useTableSearch } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute } from '~/constants'
@@ -238,7 +237,6 @@ export function AdapterByChain(props: IProps) {
 
 	const [sorting, setSorting] = useState<SortingState>(defaultSortingByType[props.type] ?? defaultSortingByType.default)
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
 
 	const instance = useReactTable({
@@ -247,7 +245,6 @@ export function AdapterByChain(props: IProps) {
 		state: {
 			sorting,
 			columnFilters,
-			columnSizing,
 			columnOrder
 		},
 		defaultColumn: {
@@ -258,7 +255,6 @@ export function AdapterByChain(props: IProps) {
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
-		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -267,9 +263,8 @@ export function AdapterByChain(props: IProps) {
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-	useSortColumnSizesAndOrders({
+	useSortColumnOrders({
 		instance,
-		columnSizes,
 		columnOrders
 	})
 	const metricName = props.type
@@ -453,14 +448,6 @@ export function AdapterByChain(props: IProps) {
 		</>
 	)
 }
-
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: { name: 180, definition: 400 },
-	640: { name: 240, definition: 400 },
-	768: { name: 280, definition: 400 },
-	1536: { name: 280, definition: 400 }
-}
-
 const columnOrders: ColumnOrdersByBreakpoint = {
 	0: [
 		'name',
@@ -646,7 +633,9 @@ const NameColumn = (type: IProps['type']) =>
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[180px] sm:w-[240px] md:w-[280px]'
+		}
 	})
 
 const categoryColumn = (align?: 'center') =>
@@ -661,8 +650,10 @@ const categoryColumn = (align?: 'center') =>
 			) : (
 				''
 			),
-		size: 128,
-		meta: align ? { align } : undefined
+		meta: {
+			headerClassName: 'w-[128px]',
+			...(align ? { align } : {})
+		}
 	})
 
 const definitionColumn = columnHelper.accessor((protocol) => protocol.methodology ?? null, {
@@ -674,15 +665,28 @@ const definitionColumn = columnHelper.accessor((protocol) => protocol.methodolog
 		</Tooltip>
 	),
 	enableSorting: false,
-	size: 400
+	meta: {
+		headerClassName: 'w-[400px]'
+	}
 })
+
+type MetricColumnSize = 128 | 152 | 160 | 180
+
+const metricColumnWidthClassBySize: Record<MetricColumnSize, string> = {
+	128: 'w-[128px]',
+	152: 'w-[152px]',
+	160: 'w-[160px]',
+	180: 'w-[min(180px,40vw)]'
+}
+
+const getMetricColumnWidthClass = (size: MetricColumnSize) => metricColumnWidthClassBySize[size]
 
 const centeredMetricColumn = (
 	id: string,
 	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number,
+	size: MetricColumnSize,
 	csvHeader?: string
 ) =>
 	columnHelper.accessor(accessor, {
@@ -690,11 +694,11 @@ const centeredMetricColumn = (
 		header,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: getMetricColumnWidthClass(size),
 			align: 'center',
 			headerHelperText,
 			...(csvHeader ? { csvHeader } : {})
-		},
-		size
+		}
 	})
 
 const endMetricColumn = (
@@ -702,17 +706,17 @@ const endMetricColumn = (
 	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number
+	size: MetricColumnSize
 ) =>
 	columnHelper.accessor(accessor, {
 		id,
 		header,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: getMetricColumnWidthClass(size),
 			align: 'end',
 			headerHelperText
-		},
-		size
+		}
 	})
 
 const doubleCountedMetricColumn = (
@@ -720,7 +724,7 @@ const doubleCountedMetricColumn = (
 	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number,
+	size: MetricColumnSize,
 	csvHeader?: string
 ) =>
 	columnHelper.accessor(accessor, {
@@ -738,11 +742,11 @@ const doubleCountedMetricColumn = (
 			return info.getValue() != null ? formattedNum(info.getValue(), true) : null
 		},
 		meta: {
+			headerClassName: getMetricColumnWidthClass(size),
 			align: 'center',
 			headerHelperText,
 			...(csvHeader ? { csvHeader } : {})
-		},
-		size
+		}
 	})
 
 const reportedPerpVolumeColumn = (
@@ -750,7 +754,7 @@ const reportedPerpVolumeColumn = (
 	header: string,
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number
+	size: MetricColumnSize
 ) =>
 	columnHelper.accessor(accessor, {
 		id,
@@ -783,10 +787,10 @@ const reportedPerpVolumeColumn = (
 			return <>{formattedNum(info.getValue(), true)}</>
 		},
 		meta: {
+			headerClassName: getMetricColumnWidthClass(size),
 			align: 'center',
 			headerHelperText
-		},
-		size
+		}
 	})
 
 const openInterestMetricColumn = (
@@ -794,7 +798,7 @@ const openInterestMetricColumn = (
 	header: string,
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
-	size: number,
+	size: MetricColumnSize,
 	align: 'center' | 'end' = 'center'
 ) =>
 	columnHelper.accessor(accessor, {
@@ -812,10 +816,10 @@ const openInterestMetricColumn = (
 			return info.getValue() != null ? formattedNum(info.getValue(), true) : null
 		},
 		meta: {
+			headerClassName: getMetricColumnWidthClass(size),
 			align,
 			headerHelperText
-		},
-		size
+		}
 	})
 
 const pfOrPsColumn = (label: 'P/F' | 'P/S', headerHelperText: string) =>
@@ -824,10 +828,10 @@ const pfOrPsColumn = (label: 'P/F' | 'P/S', headerHelperText: string) =>
 		header: label,
 		cell: (info) => (info.getValue() != null ? info.getValue() : null),
 		meta: {
+			headerClassName: 'w-[120px]',
 			align: 'center',
 			headerHelperText
-		},
-		size: 120
+		}
 	})
 
 const getColumnsByType = (isChain: boolean = false) => {
