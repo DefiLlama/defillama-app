@@ -7,8 +7,10 @@ import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/compon
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
+import { TextChip } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/MarkdownExportArtifact'
+import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
 	ThinkingPanel,
@@ -886,6 +888,9 @@ export function MessageBubble({
 	anchorClassName?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string; isPasted?: boolean } | null>(
+		null
+	)
 	const [isEditing, setIsEditing] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
 	const [draftText, setDraftText] = useState(message.content || '')
@@ -946,6 +951,33 @@ export function MessageBubble({
 										>
 											<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
 										</button>
+									)
+								}
+								const normalizedMime = image.mimeType?.split(';')[0].trim().toLowerCase()
+								const isTextMime =
+									normalizedMime === 'text/plain' || normalizedMime === 'text/markdown' || normalizedMime === 'text/csv'
+								if (isTextMime) {
+									const isPasted = !!image.originalFilename && /^Pasted-\d+/.test(image.originalFilename)
+									return (
+										<TextChip
+											key={`sent-file-${image.url}`}
+											name={displayName}
+											sizeBytes={image.size ?? 0}
+											textContent={image.textContent ?? ''}
+											isPasted={isPasted}
+											onOpen={async () => {
+												let content = image.textContent
+												if (typeof content !== 'string') {
+													try {
+														const res = await fetch(image.url)
+														content = res.ok ? await res.text() : ''
+													} catch {
+														content = ''
+													}
+												}
+												setPastedPreview({ content, filename: displayName, isPasted })
+											}}
+										/>
 									)
 								}
 								return (
@@ -1056,6 +1088,7 @@ export function MessageBubble({
 					sessionId={sessionId}
 					messageId={message.id}
 				/>
+				<PastedContentModal preview={pastedPreview} onClose={() => setPastedPreview(null)} />
 			</div>
 		)
 	}
