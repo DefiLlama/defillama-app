@@ -54,13 +54,3 @@ export async function getTrialCsvDownloadCount(authHeader: string): Promise<numb
 	const count = data?.record?.flags?.csvDownload
 	return typeof count === 'number' ? count : 0
 }
-
-export async function trackCsvDownload(authHeader: string): Promise<void> {
-	await fetchWithPoolingOnServer(`${AUTH_SERVER}/user/track-csv-download`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: authHeader
-		}
-	}).catch(() => {})
-}
