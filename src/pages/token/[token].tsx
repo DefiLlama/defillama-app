@@ -2,7 +2,6 @@ import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { Fragment, type ReactNode } from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
-import { hasTokenMarketsFromNetwork } from '~/containers/Token/api'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import { DEFAULT_TABLE_PAGE_SIZE } from '~/containers/Token/tableUtils'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
@@ -10,6 +9,7 @@ import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRo
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
+import type { TokenMarketsListResponse } from '~/containers/Token/tokenMarkets.types'
 import { TokenMarketsSection } from '~/containers/Token/TokenMarketsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
@@ -310,10 +310,16 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
-		const marketsPromise: Promise<boolean> = hasTokenMarketsFromNetwork(record.symbol).catch((error) => {
-			console.error(`Failed to probe token markets for ${record.symbol}`, error)
-			return false
-		})
+		const tokenMarketsList = (await import('../../../.cache/datasets/markets/tokens-list.json'))
+			.default as TokenMarketsListResponse
+		const normalizedMarketsSymbol = record.symbol.toLowerCase()
+		let marketsAvailable = false
+		for (const tokenMarket of tokenMarketsList.tokens) {
+			if (tokenMarket.symbol === normalizedMarketsSymbol) {
+				marketsAvailable = true
+				break
+			}
+		}
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol
@@ -499,7 +505,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			liquidationsPromise,
 			tokenRiskPromise,
 			tokenRiskTimelinePromise,
-			marketsPromise
+			marketsAvailable
 		])
 
 		if (resolvedIncomeStatementData) {

@@ -242,8 +242,18 @@ vi.mock('~/containers/Token/TokenMarketsSection', () => ({
 	TokenMarketsSection: () => <section id="token-markets">token-markets-section</section>
 }))
 
-vi.mock('~/containers/Token/api', () => ({
-	hasTokenMarketsFromNetwork: vi.fn(() => Promise.resolve(state.hasTokenMarkets))
+vi.mock('../../../.cache/datasets/markets/tokens-list.json', () => ({
+	default: {
+		tokens: [
+			{
+				exchange_count: 1,
+				market_count: 1,
+				symbol: 'btc',
+				total_oi_usd: 1,
+				total_volume_24h: 1
+			}
+		]
+	}
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
@@ -641,12 +651,12 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
-				hasMarkets: false,
+				hasMarkets: true,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
-				visibleSections: ['token-overview', 'token-usage']
+				visibleSections: ['token-overview', 'token-markets', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -667,12 +677,12 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
-				hasMarkets: false,
+				hasMarkets: true,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
-				visibleSections: ['token-overview', 'token-usage']
+				visibleSections: ['token-overview', 'token-markets', 'token-usage']
 			},
 			revalidate: 123
 		})
@@ -732,12 +742,12 @@ describe('token page', () => {
 				initialYieldsRows: [],
 				initialTokenBorrowRoutesData: null,
 				hasLiquidations: false,
-				hasMarkets: false,
+				hasMarkets: true,
 				overview: overviewFixture,
 				seoTitle: 'BTC Price, Market Cap, Supply & Trading Volume',
 				seoDescription: 'Track BTC price, market cap, circulating supply, max supply, and trading volume.',
 				canonicalUrl: '/token/BTC',
-				visibleSections: ['token-overview', 'token-usage']
+				visibleSections: ['token-overview', 'token-markets', 'token-usage']
 			},
 			revalidate: 123
 		})

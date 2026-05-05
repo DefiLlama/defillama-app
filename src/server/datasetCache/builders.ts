@@ -3,9 +3,10 @@ import { fetchLiquidityTokensDatasetFromNetwork } from '~/api'
 import { fetchBlockExplorers } from '~/api'
 import type { BlockExplorersResponse } from '~/api/types'
 import { SERVER_URL } from '~/constants'
+import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
 import { fetchProtocolsList, fetchAllLiquidations } from '~/containers/LiquidationsV2/api'
 import { fetchRaisesFromNetwork } from '~/containers/Raises/api'
-import { getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
+import { fetchTokenMarketsListFromNetwork, getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
 import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import { fetchTreasuriesFromNetwork } from '~/containers/Treasuries/api'
@@ -132,6 +133,22 @@ async function buildLiquidationsDomain(rootDir: string): Promise<DomainBuildResu
 	return { builtAt }
 }
 
+async function buildMarketsDomain(rootDir: string): Promise<DomainBuildResult> {
+	const builtAt = Date.now()
+	const domainDir = getDomainDir(rootDir, 'markets')
+	await ensureDirectory(domainDir)
+
+	const [tokensList, exchangesList] = await Promise.all([
+		fetchTokenMarketsListFromNetwork(),
+		fetchExchangeMarketsListFromNetwork()
+	])
+
+	await writeJsonFile(`${domainDir}/tokens-list.json`, tokensList)
+	await writeJsonFile(`${domainDir}/exchanges-list.json`, exchangesList)
+
+	return { builtAt }
+}
+
 export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string): Promise<DomainBuildResult> {
 	switch (domain) {
 		case 'yields':
@@ -148,6 +165,8 @@ export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string)
 			return buildLiquidityDomain(rootDir)
 		case 'liquidations':
 			return buildLiquidationsDomain(rootDir)
+		case 'markets':
+			return buildMarketsDomain(rootDir)
 	}
 }
 

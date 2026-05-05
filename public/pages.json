@@ -673,6 +673,31 @@
       "oldName": "Volume (Chains)"
     },
     {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
       "name": "Digital Asset Treasuries (DATs)",
       "route": "/digital-asset-treasuries",
       "category": "Equities, ETFs & DATs",
@@ -701,31 +726,6 @@
       "category": "Equities, ETFs & DATs",
       "description": "Live company rankings by market cap, price, volume, and price change",
       "oldName": "Equities"
-    },
-    {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
     },
     {
       "name": "Raises: Overview",

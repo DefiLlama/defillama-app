@@ -17,6 +17,7 @@ const tabs = {
 	tvl: { id: 'tvl', name: 'TVL', route: '/protocol/tvl' },
 	borrowed: { id: 'borrowed', name: 'Active Loans', route: '/protocol/active-loans' },
 	stablecoins: { id: 'stablecoins', name: 'Stablecoin Info', route: '/protocol/stablecoins' },
+	markets: { id: 'markets', name: 'Markets', route: '/cex/markets' },
 	bridges: { id: 'bridges', name: 'Bridge Info', route: '/protocol/bridges' },
 	treasury: { id: 'treasury', name: 'Treasury', route: '/protocol/treasury' },
 	unlocks: { id: 'unlocks', name: 'Unlocks', route: '/protocol/unlocks' },
@@ -39,6 +40,7 @@ const tabs = {
 
 const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
 	information: '/protocol',
+	markets: '/cex/markets',
 	borrowed: '/protocol/active-loans',
 	unlocks: '/unlocks',
 	governance: '/governance',
@@ -59,7 +61,8 @@ export function ProtocolOverviewLayout({
 	warningBanners,
 	seoTitle,
 	seoDescription,
-	entityQuestions
+	entityQuestions,
+	cexMarketsExchange
 }: {
 	children: React.ReactNode
 	isCEX?: boolean
@@ -80,6 +83,7 @@ export function ProtocolOverviewLayout({
 	seoTitle?: string
 	seoDescription?: string
 	entityQuestions?: string[]
+	cexMarketsExchange?: string | null
 }) {
 	const { user } = useAuthContext()
 
@@ -162,7 +166,9 @@ export function ProtocolOverviewLayout({
 			? `/cex/assets/${entitySlug}`
 			: tab === 'stablecoins'
 				? `/cex/stablecoins/${entitySlug}`
-				: `/cex/${entitySlug}`
+				: tab === 'markets'
+					? `/cex/markets/${entitySlug}`
+					: `/cex/${entitySlug}`
 		: !tab || tab === 'information'
 			? `/protocol/${entitySlug}`
 			: tab === 'tvl'
@@ -322,6 +328,15 @@ export function ProtocolOverviewLayout({
 									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 								>
 									Stablecoin Info
+								</ButtonLink>
+							) : null}
+							{cexMarketsExchange ? (
+								<ButtonLink
+									href={`/cex/markets/${slug(name)}`}
+									data-active={tab === 'markets'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									Markets
 								</ButtonLink>
 							) : null}
 						</>
