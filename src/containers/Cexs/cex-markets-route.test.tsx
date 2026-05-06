@@ -7,8 +7,8 @@ const cexs = [
 	{ name: 'No Markets', slug: 'no-markets' }
 ]
 
-vi.mock('../../../.cache/datasets/markets/exchanges-list.json', () => ({
-	default: {
+vi.mock('~/server/datasetCache/markets', () => ({
+	fetchExchangeMarketsListFromCache: vi.fn().mockResolvedValue({
 		cex: {
 			spot: [
 				{
@@ -38,7 +38,7 @@ vi.mock('../../../.cache/datasets/markets/exchanges-list.json', () => ({
 				inverse_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null }
 			}
 		}
-	}
+	})
 }))
 
 vi.mock('~/constants', async (importOriginal) => {

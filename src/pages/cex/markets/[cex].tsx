@@ -2,7 +2,6 @@ import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CexMarketsSection } from '~/containers/Cexs/CexMarketsSection'
-import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
@@ -75,8 +74,8 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const exchangesList = (await import('../../../../.cache/datasets/markets/exchanges-list.json'))
-			.default as ExchangeMarketsListResponse
+		const { fetchExchangeMarketsListFromCache } = await import('~/server/datasetCache/markets')
+		const exchangesList = await fetchExchangeMarketsListFromCache()
 		const normalizedCexSlug = slug(exchangeData.slug ?? '')
 		let cexMarketsExchange: string | null = null
 		let cexMarketsSlug: string | null = null
