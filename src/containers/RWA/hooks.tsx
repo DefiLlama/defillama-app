@@ -26,7 +26,12 @@ import {
 	type RWAChartDataset,
 	type RWAChartAggregationMode
 } from './chartAggregation'
-import { getDefaultRWAOverviewInclusion, getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
+import {
+	getDefaultRWAOverviewInclusion,
+	getDefaultSelectedTypes,
+	type RWAOverviewInclusionContext,
+	type RWAOverviewMode
+} from './constants'
 import { computeWeightedGroups, getPrimaryRwaCategory, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
@@ -117,7 +122,10 @@ export const useRWATableQueryParams = ({
 	rwaClassifications,
 	accessModels,
 	issuers,
+	chainSlug,
 	categorySlug,
+	platformSlug,
+	assetGroupSlug,
 	mode
 }: {
 	assetNames: string[]
@@ -129,7 +137,10 @@ export const useRWATableQueryParams = ({
 	rwaClassifications: string[]
 	accessModels: string[]
 	issuers: string[]
+	chainSlug?: string | null
 	categorySlug?: string | null
+	platformSlug?: string | null
+	assetGroupSlug?: string | null
 	mode: RWAOverviewMode
 }) => {
 	const router = useRouter()
@@ -169,7 +180,13 @@ export const useRWATableQueryParams = ({
 		transferableStates: transferableStatesQ,
 		selfCustodyStates: selfCustodyStatesQ
 	} = router.query
-	const defaultInclusion = getDefaultRWAOverviewInclusion(mode, categorySlug)
+	const defaultInclusion = getDefaultRWAOverviewInclusion({
+		mode,
+		chainSlug,
+		categorySlug,
+		platformSlug,
+		assetGroupSlug
+	})
 
 	const {
 		selectedAssetNames,
@@ -1241,10 +1258,9 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 
 export function hasActiveChartFilters(
 	query: NextRouter['query'],
-	mode: RWAOverviewMode,
-	categorySlug?: string | null
+	inclusionContext: RWAOverviewInclusionContext
 ): boolean {
-	const defaultInclusion = getDefaultRWAOverviewInclusion(mode, categorySlug)
+	const defaultInclusion = getDefaultRWAOverviewInclusion(inclusionContext)
 
 	for (const key of CHART_FILTER_QUERY_KEYS) {
 		if (key === 'includeStablecoins') {

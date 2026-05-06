@@ -173,7 +173,28 @@ async function buildMarketsDomain(rootDir: string): Promise<DomainBuildResult> {
 	const [tokensList, exchangesList] = await Promise.all([
 		fetchTokenMarketsListFromNetwork(),
 		fetchExchangeMarketsListFromNetwork()
-	])
+	]).catch((error) => {
+		console.warn('[datasetCache] skipping markets cache:', error instanceof Error ? error.message : String(error))
+
+		const emptyTotals = {
+			spot: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
+			linear_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
+			inverse_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null }
+		}
+		const emptyExchanges = { spot: [], linear_perp: [], inverse_perp: [] }
+
+		return [
+			{ tokens: [] },
+			{
+				cex: emptyExchanges,
+				dex: emptyExchanges,
+				totals: {
+					cex: emptyTotals,
+					dex: emptyTotals
+				}
+			}
+		]
+	})
 
 	await writeJsonFile(`${domainDir}/tokens-list.json`, tokensList)
 	await writeJsonFile(`${domainDir}/exchanges-list.json`, exchangesList)

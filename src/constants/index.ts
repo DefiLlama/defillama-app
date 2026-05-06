@@ -40,9 +40,7 @@ export const LIQUIDATIONS_SERVER_URL_V2 = API_KEY
 	? `https://pro-api.llama.fi/${API_KEY}/liquidations`
 	: 'https://api.llama.fi/liquidations'
 export const RISK_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/risks` : 'https://risks.llama.fi'
-export const MARKETS_SERVER_URL =
-	process.env.MARKETS_SERVER_URL ??
-	(API_KEY ? `https://pro-api.llama.fi/${API_KEY}/markets` : 'https://pro-api.llama.fi/markets')
+export const MARKETS_SERVER_URL = process.env.MARKETS_SERVER_URL
 
 // Core llama APIs
 export const CONFIG_API = `${SERVER_URL}/config`
