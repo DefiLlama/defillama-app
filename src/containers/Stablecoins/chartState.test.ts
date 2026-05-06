@@ -16,14 +16,14 @@ describe('stablecoin chart state', () => {
 	it('uses chains page defaults', () => {
 		expect(parseStablecoinChartState({}, { page: 'chains' })).toMatchObject({
 			type: 'marketCap',
-			view: 'pie'
+			view: 'total'
 		})
 	})
 
 	it('uses asset page defaults', () => {
 		expect(parseStablecoinChartState({}, { page: 'asset' })).toMatchObject({
 			type: 'marketCap',
-			view: 'pie'
+			view: 'total'
 		})
 	})
 
