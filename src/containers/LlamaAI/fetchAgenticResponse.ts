@@ -293,9 +293,10 @@ export function parseSSEStream(
 	callbacks: AgenticSSECallbacks,
 	abortSignal?: AbortSignal,
 	eventCounter?: { count: number }
-) {
+): Promise<{ sawDone: boolean }> {
 	const decoder = new TextDecoder()
 	let lineBuffer = ''
+	let sawDone = false
 
 	const handleLine = (line: string) => {
 		if (!line.startsWith('data: ')) return
@@ -303,6 +304,7 @@ export function parseSSEStream(
 		try {
 			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
 			if (eventCounter) eventCounter.count++
+			if (data.type === 'done') sawDone = true
 
 			switch (data.type) {
 				case 'session':
@@ -440,6 +442,7 @@ export function parseSSEStream(
 					handleLine(line)
 				}
 			}
+			return { sawDone }
 		} finally {
 			try {
 				reader.releaseLock()
@@ -594,7 +597,13 @@ export async function fetchAgenticResponse({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(response.body.getReader(), callbacks, abortSignal, eventCounter)
+	const { sawDone } = await parseSSEStream(response.body.getReader(), callbacks, abortSignal, eventCounter)
+	if (!sawDone && !abortSignal?.aborted) {
+		// Server stream closed cleanly but never sent a `done` event — likely a
+		// dropped final chunk or upstream restart. Surface it as a connectivity
+		// error so the recovery cycle can probe /agentic/active and replay.
+		throw new Error('Stream ended without done event')
+	}
 }
 
 export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
@@ -686,5 +695,8 @@ export async function resumeAgenticStream({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
+	const { sawDone } = await parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
+	if (!sawDone && !abortSignal?.aborted) {
+		throw new Error('Stream ended without done event')
+	}
 }

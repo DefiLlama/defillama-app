@@ -326,6 +326,13 @@ export function PromptInput({
 
 	// Let the combobox own navigation keys first, then submit on Enter when no suggestion is active.
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+		// Ariakit's composite proxy forwards Enter to the active @ suggestion, swallowing
+		// the textarea's native newline. Stop propagation so Shift+Enter inserts a line break.
+		if (event.key === 'Enter' && event.shiftKey) {
+			event.stopPropagation()
+			return
+		}
+
 		// First let entity combobox handle the event
 		entityCombobox.handleKeyDown(event)
 		if (event.defaultPrevented) return
