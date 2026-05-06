@@ -115,7 +115,7 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
-		name: '2025 DeFi Report',
+		name: 'Research Reports',
 		description: '',
 		href: '/reports',
 		icon: (
