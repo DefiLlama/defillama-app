@@ -193,6 +193,15 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 						</div>
 					)}
 
+					{diff < 0 && (
+						<div className="flex items-start gap-2 rounded-lg border border-(--error)/30 bg-(--error)/5 p-3">
+							<Icon name="alert-triangle" height={14} width={14} className="mt-0.5 shrink-0 text-(--error)" />
+							<p className="text-xs leading-5 text-(--sub-ink-primary) dark:text-white">
+								Seats will be removed immediately and the payment for the current billing period will not be refunded.
+							</p>
+						</div>
+					)}
+
 					<button
 						onClick={() => void handleSubmit()}
 						disabled={isPending || !hasChange}
@@ -221,8 +230,8 @@ export function ManageSeatsModal({ isOpen, onClose, subscription }: ManageSeatsM
 				title={`Cancel ${label} Subscription`}
 				description={
 					subscription.seats.occupiedSeats > 0
-						? `Cancel this ${label} subscription at the end of the current billing period? Assigned members keep access until the period ends, and you will not be billed again. You can undo this by increasing the seat count before the period ends.`
-						: `Cancel this ${label} subscription at the end of the current billing period? You will not be billed again. You can undo this by increasing the seat count before the period ends.`
+						? `Cancel this ${label} subscription at the end of the current billing period? Assigned members keep access until the period ends, and you will not be billed again.`
+						: `Cancel this ${label} subscription at the end of the current billing period? You will not be billed again.`
 				}
 				confirmLabel="Cancel Subscription"
 				confirmVariant="danger"
