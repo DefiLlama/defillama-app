@@ -40,16 +40,15 @@ function computeNextBillingDate(createdAt: string, billingInterval: 'month' | 'y
 	const created = new Date(isoLike)
 	if (isNaN(created.getTime())) return null
 
-	const next = new Date(created)
 	const now = new Date()
-	let safety = 0
-	while (next <= now && safety < 1200) {
-		if (billingInterval === 'month') {
-			next.setMonth(next.getMonth() + 1)
-		} else {
-			next.setFullYear(next.getFullYear() + 1)
-		}
-		safety += 1
+	const next = new Date(created)
+	if (billingInterval === 'year') {
+		const elapsedYears = now.getFullYear() - created.getFullYear()
+		next.setFullYear(created.getFullYear() + elapsedYears + 1)
+	} else {
+		const elapsedMonths =
+			(now.getFullYear() - created.getFullYear()) * 12 + (now.getMonth() - created.getMonth())
+		next.setMonth(created.getMonth() + elapsedMonths + 1)
 	}
 	return next
 }
