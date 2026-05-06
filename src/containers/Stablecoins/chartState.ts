@@ -114,10 +114,9 @@ export function getDefaultStablecoinChartView(
 	if (type === 'inflows') return 'usd'
 	switch (mode.page) {
 		case 'overview':
-			return 'total'
 		case 'chains':
 		case 'asset':
-			return 'pie'
+			return 'total'
 		default:
 			return assertNever(mode)
 	}

@@ -512,20 +512,39 @@ describe('resolveRWAOverviewInclusionFlag', () => {
 
 describe('hasActiveChartFilters', () => {
 	it('ignores inclusion params that resolve to the current defaults', () => {
-		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, 'category', 'rwa-yield-wrapper')).toBe(false)
-		expect(hasActiveChartFilters({ includeGovernance: 'true' }, 'category', 'rwa-yield-wrapper')).toBe(false)
-		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, 'chain', null)).toBe(false)
-		expect(hasActiveChartFilters({ includeRwaPerps: 'false' }, 'chain', null)).toBe(false)
+		expect(
+			hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
+		).toBe(false)
+		expect(
+			hasActiveChartFilters({ includeGovernance: 'true' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
+		).toBe(false)
+		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
+			false
+		)
+		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'chain' })).toBe(false)
+		expect(hasActiveChartFilters({ includeRwaPerps: 'false' }, { mode: 'chain' })).toBe(false)
 	})
 
 	it('treats inclusion params as active when they override the current defaults', () => {
-		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, 'category', 'rwa-yield-wrapper')).toBe(true)
-		expect(hasActiveChartFilters({ includeGovernance: 'false' }, 'category', 'rwa-yield-wrapper')).toBe(true)
-		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, 'chain', null)).toBe(true)
+		expect(
+			hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
+		).toBe(true)
+		expect(
+			hasActiveChartFilters({ includeGovernance: 'false' }, { mode: 'category', categorySlug: 'rwa-yield-wrapper' })
+		).toBe(true)
+		expect(hasActiveChartFilters({ includeStablecoins: 'false' }, { mode: 'platform', platformSlug: 'apyx' })).toBe(
+			true
+		)
+		expect(hasActiveChartFilters({ includeStablecoins: 'true' }, { mode: 'chain' })).toBe(true)
 	})
 
 	it('still treats non-inclusion query filters as active', () => {
-		expect(hasActiveChartFilters({ minActiveMcapToOnChainMcapPct: '10' }, 'category', 'rwa-yield-wrapper')).toBe(true)
+		expect(
+			hasActiveChartFilters(
+				{ minActiveMcapToOnChainMcapPct: '10' },
+				{ mode: 'category', categorySlug: 'rwa-yield-wrapper' }
+			)
+		).toBe(true)
 	})
 })
 

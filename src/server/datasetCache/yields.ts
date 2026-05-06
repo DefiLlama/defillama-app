@@ -3,7 +3,9 @@ import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRo
 import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
 import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
+import { getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
 import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { getDatasetIndexFileName, isFileNotFoundError } from './indexKeys'
 
 type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
 
@@ -13,6 +15,35 @@ function getYieldsDomainDir(): string {
 
 async function getYieldRows(): Promise<IYieldTableRow[]> {
 	return readJsonFile<IYieldTableRow[]>(`${getYieldsDomainDir()}/rows.json`)
+}
+
+async function getIndexedTokenYieldRows(token: string): Promise<IYieldTableRow[] | null> {
+	const variants = getYieldTokenVariantSet(token)
+	if (variants.size === 0) {
+		return null
+	}
+
+	const rowsById = new Map<string, IYieldTableRow>()
+	let foundIndex = false
+
+	for (const variant of variants) {
+		try {
+			const rows = await readJsonFile<IYieldTableRow[]>(
+				`${getYieldsDomainDir()}/by-token/${getDatasetIndexFileName(variant)}`
+			)
+			foundIndex = true
+			for (const row of rows) {
+				rowsById.set(row.configID || row.id || row.pool, row)
+			}
+		} catch (error) {
+			if (isFileNotFoundError(error)) {
+				continue
+			}
+			throw error
+		}
+	}
+
+	return foundIndex ? Array.from(rowsById.values()) : null
 }
 
 let indexedYieldRowsCache: {
@@ -62,6 +93,11 @@ export async function getTokenYieldsRowsFromCache(
 	chains?: string | string[]
 ): Promise<IYieldTableRow[]> {
 	await readDatasetManifest()
+	const indexedRows = token.trim() ? await getIndexedTokenYieldRows(token) : null
+	if (indexedRows) {
+		return filterTokenYieldRows(indexedRows, '', chains)
+	}
+
 	return filterTokenYieldRows(await getYieldRows(), token, chains)
 }
 

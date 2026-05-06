@@ -37,6 +37,7 @@ jobs:
         run: bun run build:metadata
         env:
           API_KEY: ${{ secrets.API_KEY }}
+          MARKETS_SERVER_URL: ${{ secrets.MARKETS_SERVER_URL }}
 
       - name: Typecheck
         run: bun run ts

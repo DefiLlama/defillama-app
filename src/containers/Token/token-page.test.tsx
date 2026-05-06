@@ -242,8 +242,8 @@ vi.mock('~/containers/Token/TokenMarketsSection', () => ({
 	TokenMarketsSection: () => <section id="token-markets">token-markets-section</section>
 }))
 
-vi.mock('../../../.cache/datasets/markets/tokens-list.json', () => ({
-	default: {
+vi.mock('~/server/datasetCache/markets', () => ({
+	fetchTokenMarketsListFromCache: vi.fn().mockResolvedValue({
 		tokens: [
 			{
 				exchange_count: 1,
@@ -253,7 +253,21 @@ vi.mock('../../../.cache/datasets/markets/tokens-list.json', () => ({
 				total_volume_24h: 1
 			}
 		]
-	}
+	})
+}))
+
+vi.mock('~/containers/Token/api', () => ({
+	fetchTokenMarketsListFromNetwork: vi.fn().mockResolvedValue({
+		tokens: [
+			{
+				exchange_count: 1,
+				market_count: 1,
+				symbol: 'BTC',
+				total_oi_usd: 1,
+				total_volume_24h: 1
+			}
+		]
+	})
 }))
 
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({

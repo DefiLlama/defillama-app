@@ -310,14 +310,27 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
-		const tokenMarketsList = (await import('../../../.cache/datasets/markets/tokens-list.json'))
-			.default as TokenMarketsListResponse
 		const normalizedMarketsSymbol = record.symbol.toLowerCase()
 		let marketsAvailable = false
-		for (const tokenMarket of tokenMarketsList.tokens) {
-			if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
-				marketsAvailable = true
-				break
+		let tokenMarketsList: TokenMarketsListResponse | null = null
+		try {
+			if (shouldUseDatasetCache) {
+				const { fetchTokenMarketsListFromCache } = await import('~/server/datasetCache/markets')
+				tokenMarketsList = await fetchTokenMarketsListFromCache()
+			} else {
+				const { fetchTokenMarketsListFromNetwork } = await import('~/containers/Token/api')
+				tokenMarketsList = await fetchTokenMarketsListFromNetwork()
+			}
+		} catch (error) {
+			console.error(`Failed to load token markets list for ${record.symbol}`, error)
+			marketsAvailable = false
+		}
+		if (tokenMarketsList) {
+			for (const tokenMarket of tokenMarketsList.tokens) {
+				if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
+					marketsAvailable = true
+					break
+				}
 			}
 		}
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
@@ -401,11 +414,11 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 						const defillamaId = record.chainId || record.protocolId || null
 
 						if (shouldUseDatasetCache) {
-							const { fetchTokenRightsEntriesFromCache, fetchTokenRightsEntryFromCache } =
+							const { fetchTokenRightsEntryFromCache, fetchTokenRightsEntryByNameFromCache } =
 								await import('~/server/datasetCache/tokenRights')
 							const rawEntry = defillamaId
 								? await fetchTokenRightsEntryFromCache(defillamaId)
-								: findTokenRightsEntryByName(await fetchTokenRightsEntriesFromCache(), record.name)
+								: await fetchTokenRightsEntryByNameFromCache(record.name)
 							return rawEntry ? parseTokenRightsEntry(rawEntry) : null
 						}
 

@@ -7,23 +7,26 @@ export interface EntityResult {
 	name: string
 	logo: string | null
 	type: string
+	deprecated?: boolean
+	subName?: string
 }
 
 /**
  * Fetch entities (chains, protocols, stablecoins, categories) matching the query.
  */
 async function fetchEntities(query: string): Promise<EntityResult[]> {
-	return searchApi<EntityResult>({
+	// `pages` index only exposes `type` as a filterable attribute, so deprecated/subName
+	// have to be filtered out client-side after the fetch. We over-fetch to leave headroom
+	// once the unwanted hits are removed.
+	const hits = await searchApi<EntityResult>({
 		indexUid: 'pages',
-		limit: 10,
+		limit: 25,
 		offset: 0,
 		q: query,
-		filter: [
-			['type = Chain', 'type = Protocol', 'type = Stablecoin', 'type = Category'],
-			['deprecated = false', 'NOT deprecated EXISTS'],
-			'NOT subName EXISTS'
-		]
+		filter: [['type = Chain', 'type = Protocol', 'type = Stablecoin', 'type = Category']]
 	})
+
+	return hits.filter((hit) => !hit.deprecated && !hit.subName).slice(0, 10)
 }
 
 /**
