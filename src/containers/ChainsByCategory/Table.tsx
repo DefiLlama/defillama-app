@@ -269,6 +269,11 @@ const columns = [
 					>
 						{value}
 					</BasicLink>
+					{value === 'MegaETH' ? (
+						<Tooltip content="Most of MegaETH TVL comes from Ethena depositing it's balance sheet">
+							<Icon name="alert-triangle" height={14} width={14} className="shrink-0 text-(--warning)" />
+						</Tooltip>
+					) : null}
 				</span>
 			)
 		},
