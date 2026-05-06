@@ -57,11 +57,18 @@ function getRWAOverviewPath({
 	platformSlug,
 	assetGroupSlug
 }: RWAOverviewInclusionContext): RWAOverviewPath | null {
-	if (mode === 'chain') return chainSlug ? `/rwa/chain/${chainSlug}` : '/rwa'
-	if (mode === 'category') return categorySlug ? `/rwa/category/${categorySlug}` : '/rwa/categories'
-	if (mode === 'platform') return platformSlug ? `/rwa/platform/${platformSlug}` : '/rwa/platforms'
-	if (mode === 'assetGroup') return assetGroupSlug ? `/rwa/asset-group/${assetGroupSlug}` : '/rwa/asset-groups'
-	return null
+	switch (mode) {
+		case 'chain':
+			return chainSlug ? `/rwa/chain/${chainSlug}` : '/rwa'
+		case 'category':
+			return categorySlug ? `/rwa/category/${categorySlug}` : '/rwa/categories'
+		case 'platform':
+			return platformSlug ? `/rwa/platform/${platformSlug}` : '/rwa/platforms'
+		case 'assetGroup':
+			return assetGroupSlug ? `/rwa/asset-group/${assetGroupSlug}` : '/rwa/asset-groups'
+		default:
+			return null
+	}
 }
 
 export function isTypeIncludedByDefault(
