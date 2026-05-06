@@ -236,7 +236,13 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				: selectedCategory
 					? 'category'
 					: 'chain'
-		const defaultInclusion = getDefaultRWAOverviewInclusion(mode, selectedCategory ?? null)
+		const defaultInclusion = getDefaultRWAOverviewInclusion({
+			mode,
+			chainSlug: selectedChain,
+			categorySlug: selectedCategory,
+			platformSlug: selectedPlatform,
+			assetGroupSlug: selectedAssetGroup
+		})
 
 		const [data, perpsMarkets, chartData, openInterestChartRows]: [
 			Array<IFetchedRWAProject>,
