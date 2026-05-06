@@ -158,8 +158,8 @@ const CYCLE_PRICING: Record<
 	},
 	yearly: {
 		free: { priceMain: '$0', priceUnit: '/month' },
-		pro: { priceMain: '$40.83', priceUnit: '/month', priceSecondary: '$490 /year' },
-		api: { priceMain: '$250', priceUnit: '/month', priceSecondary: '$3,000 /year' },
+		pro: { priceMain: '$490', priceUnit: '/year', priceSecondary: '$40.83 /month' },
+		api: { priceMain: '$3,000', priceUnit: '/year', priceSecondary: '$250 /month' },
 		enterprise: {}
 	}
 }
