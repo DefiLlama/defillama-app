@@ -1,4 +1,4 @@
-import { FEATURE_SERVER } from '~/constants'
+import { FEATURES_SERVER } from '~/constants'
 import type { ArticleAuthorProfile, ArticleDocument, LocalArticleDocument } from './types'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
@@ -29,7 +29,7 @@ export type ArticleAuthorResponse = {
 }
 
 function articleUrl(path: string) {
-	return `${FEATURE_SERVER.replace(/\/$/, '')}${path}`
+	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
 
 function buildSavePayload(article: LocalArticleDocument) {
