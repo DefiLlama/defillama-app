@@ -2,18 +2,14 @@ import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppMetadata } from '~/containers/ProDashboard/AppMetadataContext'
+import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
 import {
 	getChartQueryFn,
 	getChartQueryKey,
 	ProxyAuthTokenContext,
 	useProtocolsAndChains
 } from '~/containers/ProDashboard/queries'
-import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
-import {
-	CHART_TYPES,
-	getChainChartTypes,
-	getProtocolChartTypes
-} from '~/containers/ProDashboard/types'
+import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '~/containers/ProDashboard/types'
 import { tokenIconUrl, chainIconUrl } from '~/utils/icons'
 import type {
 	ArticleChartAnnotation,
@@ -449,7 +445,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 											{active ? (
 												<span className="font-jetbrains text-[10px] text-(--link-text)">✓</span>
 											) : tvl ? (
-												<span className="shrink-0 text-[11px] tabular-nums text-(--text-tertiary)">{tvl}</span>
+												<span className="shrink-0 text-[11px] text-(--text-tertiary) tabular-nums">{tvl}</span>
 											) : null}
 										</button>
 									</li>
@@ -459,7 +455,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 					</ul>
 				</aside>
 
-				<section className="flex min-h-0 flex-col overflow-y-auto thin-scrollbar">
+				<section className="flex thin-scrollbar min-h-0 flex-col overflow-y-auto">
 					{picked.length === 0 ? (
 						<div className="flex flex-1 flex-col items-center justify-center gap-2 px-8 py-16 text-center">
 							<div className="text-sm font-medium text-(--text-primary)">
@@ -497,9 +493,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 
 							<div className="grid gap-3 px-5 pb-3">
 								<div className="grid gap-1.5">
-									<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">
-										Chart
-									</span>
+									<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">Chart</span>
 									{metaLoading && availableTypes.length === 0 ? (
 										<div className="text-xs text-(--text-tertiary)">Loading available charts…</div>
 									) : availableTypes.length === 0 ? (

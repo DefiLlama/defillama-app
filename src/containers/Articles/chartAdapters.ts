@@ -1,9 +1,4 @@
-import type {
-	ArticleChartAnnotation,
-	ArticleChartConfig,
-	ArticleChartEntity,
-	ArticleChartRange
-} from './types'
+import type { ArticleChartAnnotation, ArticleChartConfig, ArticleChartEntity, ArticleChartRange } from './types'
 
 const VALID_RANGES: ReadonlySet<ArticleChartRange> = new Set(['30d', '90d', '365d', 'all'])
 
@@ -16,15 +11,12 @@ function validateEntity(value: unknown): ArticleChartEntity | null {
 	if (candidate.entityType !== 'protocol' && candidate.entityType !== 'chain') return null
 	if (typeof candidate.slug !== 'string' || candidate.slug.trim().length === 0) return null
 	const slug = candidate.slug.trim()
-	const name =
-		typeof candidate.name === 'string' && candidate.name.trim().length > 0 ? candidate.name.trim() : slug
+	const name = typeof candidate.name === 'string' && candidate.name.trim().length > 0 ? candidate.name.trim() : slug
 	return {
 		entityType: candidate.entityType,
 		slug,
 		name,
-		...(typeof candidate.geckoId === 'string' && candidate.geckoId.trim()
-			? { geckoId: candidate.geckoId.trim() }
-			: {})
+		...(typeof candidate.geckoId === 'string' && candidate.geckoId.trim() ? { geckoId: candidate.geckoId.trim() } : {})
 	}
 }
 
@@ -34,8 +26,7 @@ function validateAnnotation(value: unknown): ArticleChartAnnotation | null {
 	if (typeof candidate.date !== 'string' || !candidate.date.trim()) return null
 	const ts = Date.parse(candidate.date)
 	if (Number.isNaN(ts)) return null
-	const label =
-		typeof candidate.label === 'string' && candidate.label.trim().length > 0 ? candidate.label.trim() : ''
+	const label = typeof candidate.label === 'string' && candidate.label.trim().length > 0 ? candidate.label.trim() : ''
 	if (!label) return null
 	return { date: new Date(ts).toISOString(), label: label.slice(0, 80) }
 }
@@ -73,8 +64,6 @@ export function validateArticleChartConfig(value: unknown): ArticleChartConfig |
 		...(range ? { range } : {}),
 		...(candidate.logScale === true ? { logScale: true } : {}),
 		...(annotations.length > 0 ? { annotations } : {}),
-		...(typeof candidate.caption === 'string' && candidate.caption.trim()
-			? { caption: candidate.caption.trim() }
-			: {})
+		...(typeof candidate.caption === 'string' && candidate.caption.trim() ? { caption: candidate.caption.trim() } : {})
 	}
 }

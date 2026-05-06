@@ -29,7 +29,7 @@ function EmbedNodeView({ node, selected, deleteNode, getPos }: NodeViewProps) {
 			<div className="flex items-start justify-between gap-3 px-4 py-3">
 				<div className="min-w-0">
 					<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
-						<span className="rounded-sm border border-(--cards-border) bg-(--app-bg) px-1.5 py-0.5 font-jetbrains text-[10px] uppercase tracking-wider text-(--text-secondary)">
+						<span className="rounded-sm border border-(--cards-border) bg-(--app-bg) px-1.5 py-0.5 font-jetbrains text-[10px] tracking-wider text-(--text-secondary) uppercase">
 							{providerLabel}
 						</span>
 						<span className="truncate">{config.sourceUrl}</span>

@@ -1,25 +1,10 @@
 export type ArticleVersion = 1
 
 export type ArticleStatus = 'draft' | 'published'
-export type ArticleEntityType =
-	| 'protocol'
-	| 'chain'
-	| 'stablecoin'
-	| 'metric'
-	| 'hack'
-	| 'category'
-	| 'cex'
-	| 'bridge'
+export type ArticleEntityType = 'protocol' | 'chain' | 'stablecoin' | 'metric' | 'hack' | 'category' | 'cex' | 'bridge'
 export type ArticleChartEntityType = 'protocol' | 'chain'
 export type ArticleCalloutTone = 'note' | 'warning' | 'data'
-export type ArticleEmbedProvider =
-	| 'twitter'
-	| 'youtube'
-	| 'medium'
-	| 'mirror'
-	| 'substack'
-	| 'github'
-	| 'iframe'
+export type ArticleEmbedProvider = 'twitter' | 'youtube' | 'medium' | 'mirror' | 'substack' | 'github' | 'iframe'
 export type ArticleEmbedAspectRatio = '16/9' | '4/3' | '1/1' | 'auto'
 
 export type ArticleEmbedConfig = {
@@ -97,7 +82,20 @@ export type ArticleExtractionResult = {
 	embeds: ArticleEmbedConfig[]
 }
 
+export type ArticleAuthorProfile = {
+	id: string
+	pbUserId: string
+	slug: string
+	displayName: string
+	bio?: string | null
+	avatarUrl?: string | null
+	socials: Record<string, string>
+	createdAt: string
+	updatedAt: string
+}
+
 export type LocalArticleDocument = {
+	id?: string
 	contentVersion: ArticleVersion
 	rendererVersion: ArticleVersion
 	editorSchemaVersion: ArticleVersion
@@ -107,6 +105,7 @@ export type LocalArticleDocument = {
 	slug: string
 	status: ArticleStatus
 	author?: string
+	authorProfile?: ArticleAuthorProfile
 
 	seoTitle?: string
 	seoDescription?: string
@@ -119,10 +118,18 @@ export type LocalArticleDocument = {
 	charts: ArticleChartConfig[]
 	citations: ArticleCitation[]
 	embeds: ArticleEmbedConfig[]
+	tags: string[]
+	featuredRank?: number | null
+	featuredUntil?: string | null
 
 	createdAt: string
 	updatedAt: string
 	publishedAt: string | null
+}
+
+export type ArticleDocument = LocalArticleDocument & {
+	id: string
+	authorProfile: ArticleAuthorProfile
 }
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: string }

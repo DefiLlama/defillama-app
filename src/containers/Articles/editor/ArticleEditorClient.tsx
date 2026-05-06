@@ -2,15 +2,24 @@ import * as Ariakit from '@ariakit/react'
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
+import { useAuthContext } from '~/containers/Subscription/auth'
+import { SignInModal } from '~/containers/Subscription/SignInModal'
+import {
+	createArticle,
+	deleteArticle,
+	getOwnedArticle,
+	publishArticle,
+	unpublishArticle,
+	updateArticle as updateRemoteArticle
+} from '../api'
 import { createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
 import { EmbedPicker } from './EmbedPicker'
 import { createArticleEditorExtensions } from './extensions'
-
-type ArticleApiResponse = { article: LocalArticleDocument | null } | { error: string }
 
 function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: string }) {
 	const props = {
@@ -320,15 +329,7 @@ function RailDivider() {
 	return <span aria-hidden className="mx-1 h-5 w-px bg-(--cards-border)" />
 }
 
-function TableRailButton({
-	label,
-	onClick,
-	children
-}: {
-	label: string
-	onClick: () => void
-	children: ReactNode
-}) {
+function TableRailButton({ label, onClick, children }: { label: string; onClick: () => void; children: ReactNode }) {
 	return (
 		<button
 			type="button"
@@ -358,8 +359,7 @@ function TableControlsOverlay({ editor }: { editor: Editor }) {
 			try {
 				const { from } = editor.view.state.selection
 				const dom = editor.view.domAtPos(from).node
-				let el: HTMLElement | null =
-					dom.nodeType === 1 ? (dom as HTMLElement) : dom.parentElement
+				let el: HTMLElement | null = dom.nodeType === 1 ? (dom as HTMLElement) : dom.parentElement
 				while (el && el.tagName !== 'TABLE') el = el.parentElement
 				return el && root.contains(el) ? el : null
 			} catch {
@@ -438,52 +438,31 @@ function TableControlsOverlay({ editor }: { editor: Editor }) {
 					Table
 				</span>
 				<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
-				<TableRailButton
-					label="Toggle header row"
-					onClick={() => editor.chain().focus().toggleHeaderRow().run()}
-				>
+				<TableRailButton label="Toggle header row" onClick={() => editor.chain().focus().toggleHeaderRow().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">HDR</span>
 				</TableRailButton>
 				<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
-				<TableRailButton
-					label="Add row above"
-					onClick={() => editor.chain().focus().addRowBefore().run()}
-				>
+				<TableRailButton label="Add row above" onClick={() => editor.chain().focus().addRowBefore().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">↑R</span>
 				</TableRailButton>
-				<TableRailButton
-					label="Add row below"
-					onClick={() => editor.chain().focus().addRowAfter().run()}
-				>
+				<TableRailButton label="Add row below" onClick={() => editor.chain().focus().addRowAfter().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">↓R</span>
 				</TableRailButton>
 				<TableRailButton label="Delete row" onClick={() => editor.chain().focus().deleteRow().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">−R</span>
 				</TableRailButton>
 				<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
-				<TableRailButton
-					label="Add column left"
-					onClick={() => editor.chain().focus().addColumnBefore().run()}
-				>
+				<TableRailButton label="Add column left" onClick={() => editor.chain().focus().addColumnBefore().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">←C</span>
 				</TableRailButton>
-				<TableRailButton
-					label="Add column right"
-					onClick={() => editor.chain().focus().addColumnAfter().run()}
-				>
+				<TableRailButton label="Add column right" onClick={() => editor.chain().focus().addColumnAfter().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">→C</span>
 				</TableRailButton>
-				<TableRailButton
-					label="Delete column"
-					onClick={() => editor.chain().focus().deleteColumn().run()}
-				>
+				<TableRailButton label="Delete column" onClick={() => editor.chain().focus().deleteColumn().run()}>
 					<span className="font-jetbrains text-[10px] tracking-wider">−C</span>
 				</TableRailButton>
 				<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
-				<TableRailButton
-					label="Delete table"
-					onClick={() => editor.chain().focus().deleteTable().run()}
-				>
+				<TableRailButton label="Delete table" onClick={() => editor.chain().focus().deleteTable().run()}>
 					<Icon name="x" className="h-3.5 w-3.5" />
 				</TableRailButton>
 			</div>
@@ -613,7 +592,9 @@ function MetaSection({ title, children }: { title: string; children: ReactNode }
 	)
 }
 
-export function ArticleEditorClient() {
+export function ArticleEditorClient({ articleId }: { articleId?: string }) {
+	const router = useRouter()
+	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
 	const [article, setArticle] = useState<LocalArticleDocument>(() => createEmptyLocalArticle())
 	const [isLoading, setIsLoading] = useState(true)
 	const [isSaving, setIsSaving] = useState(false)
@@ -628,6 +609,23 @@ export function ArticleEditorClient() {
 	const metaDialog = Ariakit.useDialogStore()
 	const [editingChart, setEditingChart] = useState<{ config: ArticleChartConfig; pos: number } | null>(null)
 	const [editingEmbed, setEditingEmbed] = useState<{ config: ArticleEmbedConfig; pos: number } | null>(null)
+	const [saveError, setSaveError] = useState(false)
+	const [slugEditing, setSlugEditing] = useState(false)
+	const [slugDraft, setSlugDraft] = useState('')
+	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const autoCreatingRef = useRef(false)
+	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
+	const articleIdRef = useRef<string | undefined>(article.id)
+	articleIdRef.current = article.id
+
+	const scheduleAutosave = useCallback(() => {
+		if (debounceRef.current) clearTimeout(debounceRef.current)
+		if (!articleIdRef.current) return
+		debounceRef.current = setTimeout(() => {
+			debounceRef.current = null
+			void saveRef.current({ silent: true })
+		}, 1500)
+	}, [])
 
 	useTicker()
 
@@ -645,29 +643,46 @@ export function ArticleEditorClient() {
 			const text = instance.getText()
 			setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0)
 			setIsDirty(true)
+			scheduleAutosave()
 		}
 	})
 
 	const flags = useEditorFlags(editor)
 
 	useEffect(() => {
+		if (!editor) return
+		if (loaders.userLoading) return
+		if (!isAuthenticated) {
+			setIsLoading(false)
+			return
+		}
+		if (!articleId) {
+			if (autoCreatingRef.current) return
+			autoCreatingRef.current = true
+			setIsLoading(true)
+			createArticle(createEmptyLocalArticle(), authorizedFetch)
+				.then((saved) => {
+					void router.replace(`/articles/edit/${saved.id}`)
+				})
+				.catch((error) => {
+					autoCreatingRef.current = false
+					setIsLoading(false)
+					toast.error(error instanceof Error ? error.message : 'Failed to create draft')
+				})
+			return
+		}
 		let cancelled = false
-		fetch('/api/articles/local')
-			.then(async (r) => {
-				const data = (await r.json()) as ArticleApiResponse
-				if (!r.ok || 'error' in data) throw new Error('error' in data ? data.error : 'Failed to load article')
-				return data.article
-			})
+		setIsLoading(true)
+		getOwnedArticle(articleId, authorizedFetch)
 			.then((loaded) => {
 				if (cancelled) return
-				if (loaded) {
-					setArticle(loaded)
-					editor?.commands.setContent(loaded.contentJson, { emitUpdate: false })
-					setIsDirty(false)
-					const text = loaded.plainText || ''
-					setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0)
-					setSavedAt(loaded.updatedAt)
-				}
+				setArticle(loaded)
+				editor.commands.setContent(loaded.contentJson, { emitUpdate: false })
+				setIsDirty(false)
+				setSaveError(false)
+				const text = loaded.plainText || ''
+				setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0)
+				setSavedAt(loaded.updatedAt)
 			})
 			.catch((error) => {
 				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load article')
@@ -678,7 +693,7 @@ export function ArticleEditorClient() {
 		return () => {
 			cancelled = true
 		}
-	}, [editor])
+	}, [articleId, authorizedFetch, isAuthenticated, loaders.userLoading, editor, router])
 
 	const updateArticle = useCallback(
 		<K extends keyof LocalArticleDocument>(key: K, value: LocalArticleDocument[K]) => {
@@ -688,32 +703,38 @@ export function ArticleEditorClient() {
 				...(key === 'title' && current.slug === 'local-article' ? { slug: slugFromTitle(String(value)) } : {})
 			}))
 			setIsDirty(true)
+			scheduleAutosave()
 		},
-		[]
+		[scheduleAutosave]
 	)
 
-	const saveArticle = async () => {
+	const saveArticle = async (opts: { silent?: boolean } = {}) => {
 		if (!editor) return
+		if (!isAuthenticated) {
+			if (!opts.silent) toast.error('Please sign in to save articles')
+			return
+		}
+		if (debounceRef.current) {
+			clearTimeout(debounceRef.current)
+			debounceRef.current = null
+		}
 		setIsSaving(true)
 		try {
 			const normalized = normalizeLocalArticleDocument({ ...article, contentJson: editor.getJSON() })
 			if (normalized.ok === false) throw new Error(normalized.error)
-			const response = await fetch('/api/articles/local', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(normalized.value)
-			})
-			const data = (await response.json()) as ArticleApiResponse
-			if (!response.ok || 'error' in data) throw new Error('error' in data ? data.error : 'Failed to save article')
-			if (data.article) {
-				setArticle(data.article)
-				editor.commands.setContent(data.article.contentJson, { emitUpdate: false })
-				setSavedAt(data.article.updatedAt)
+			const saved = article.id
+				? await updateRemoteArticle(article.id, normalized.value, authorizedFetch)
+				: await createArticle(normalized.value, authorizedFetch)
+			setArticle(saved)
+			setSavedAt(saved.updatedAt)
+			setSaveError(false)
+			if (!article.id) {
+				void router.replace(`/articles/edit/${saved.id}`)
 			}
 			setIsDirty(false)
-			toast.success('Saved')
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to save article')
+			setSaveError(true)
+			if (!opts.silent) toast.error(error instanceof Error ? error.message : 'Failed to save article')
 		} finally {
 			setIsSaving(false)
 		}
@@ -753,7 +774,31 @@ export function ArticleEditorClient() {
 		setLinkEdit(null)
 	}
 
-	const saveRef = useRef(saveArticle)
+	const beginSlugEdit = useCallback(() => {
+		setSlugDraft(article.slug)
+		setSlugEditing(true)
+	}, [article.slug])
+
+	const cancelSlugEdit = useCallback(() => {
+		setSlugEditing(false)
+	}, [])
+
+	const commitSlugEdit = useCallback(() => {
+		const next = slugFromTitle(slugDraft)
+		if (!next || next === article.slug) {
+			setSlugEditing(false)
+			return
+		}
+		setArticle((current) => ({ ...current, slug: next }))
+		setIsDirty(true)
+		setSlugEditing(false)
+		if (debounceRef.current) {
+			clearTimeout(debounceRef.current)
+			debounceRef.current = null
+		}
+		void saveRef.current({ silent: true })
+	}, [slugDraft, article.slug])
+
 	saveRef.current = saveArticle
 
 	useEffect(() => {
@@ -777,15 +822,10 @@ export function ArticleEditorClient() {
 		return () => window.removeEventListener('beforeunload', handler)
 	}, [isDirty])
 
-	const dirtyRef = useRef(isDirty)
-	dirtyRef.current = isDirty
-	const savingRef = useRef(isSaving)
-	savingRef.current = isSaving
 	useEffect(() => {
-		const id = setInterval(() => {
-			if (dirtyRef.current && !savingRef.current) saveRef.current()
-		}, 30_000)
-		return () => clearInterval(id)
+		return () => {
+			if (debounceRef.current) clearTimeout(debounceRef.current)
+		}
 	}, [])
 
 	useEffect(() => {
@@ -856,6 +896,52 @@ export function ArticleEditorClient() {
 		[editor, editingEmbed]
 	)
 
+	const [isPublishing, setIsPublishing] = useState(false)
+
+	const handlePublish = async () => {
+		if (!article.id) {
+			toast.error('Save the article before publishing')
+			return
+		}
+		setIsPublishing(true)
+		try {
+			const saved = await publishArticle(article.id, authorizedFetch)
+			setArticle(saved)
+			setSavedAt(saved.updatedAt)
+			toast.success('Published')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to publish')
+		} finally {
+			setIsPublishing(false)
+		}
+	}
+
+	const handleUnpublish = async () => {
+		if (!article.id) return
+		setIsPublishing(true)
+		try {
+			const saved = await unpublishArticle(article.id, authorizedFetch)
+			setArticle(saved)
+			setSavedAt(saved.updatedAt)
+			toast.success('Moved to drafts')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to unpublish')
+		} finally {
+			setIsPublishing(false)
+		}
+	}
+
+	const handleDeleteArticle = async () => {
+		if (!article.id) return
+		if (!confirm('Delete this article? This cannot be undone.')) return
+		try {
+			await deleteArticle(article.id, authorizedFetch)
+			void router.replace('/articles')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to delete')
+		}
+	}
+
 	const insertCallout = (tone: ArticleCalloutTone) => editor?.chain().focus().insertCallout(tone).run()
 
 	const insertCitation = () => {
@@ -863,13 +949,32 @@ export function ArticleEditorClient() {
 		const text = editor.state.doc.textBetween(0, editor.state.doc.content.size, '\n')
 		const existing = (text.match(/\[(\d+)\]/g) ?? []).map((m) => Number(m.slice(1, -1)))
 		const next = existing.length ? Math.max(...existing) + 1 : 1
-		editor.chain().focus().insertCitation({ id: String(next), label: String(next) }).run()
+		editor
+			.chain()
+			.focus()
+			.insertCitation({ id: String(next), label: String(next) })
+			.run()
 	}
 
 	if (isLoading) {
 		return (
 			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
 				Loading article…
+			</div>
+		)
+	}
+
+	if (!isAuthenticated) {
+		return (
+			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
+				<h1 className="text-xl font-semibold text-(--text-primary)">Sign in to write articles</h1>
+				<p className="text-sm text-(--text-secondary)">
+					Article drafts, revisions, and author profiles are saved to your DefiLlama account.
+				</p>
+				<SignInModal
+					text="Sign in"
+					className="mr-auto rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white"
+				/>
 			</div>
 		)
 	}
@@ -938,76 +1043,177 @@ export function ArticleEditorClient() {
 
 	const titleSerif = "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
 
+	const isPublished = article.status === 'published'
+	const pillState: 'saving' | 'saved' | 'unsaved' | 'error' | 'idle' = isSaving
+		? 'saving'
+		: saveError
+			? 'error'
+			: isDirty
+				? 'unsaved'
+				: savedAt
+					? 'saved'
+					: 'idle'
+	const pillLabel = (() => {
+		switch (pillState) {
+			case 'saving':
+				return 'Saving…'
+			case 'saved':
+				return savedLabel ? `Saved ${savedLabel}` : 'Saved'
+			case 'unsaved':
+				return 'Unsaved'
+			case 'error':
+				return 'Offline — typing locally'
+			default:
+				return 'Ready'
+		}
+	})()
+	const pillDot = (() => {
+		switch (pillState) {
+			case 'saving':
+				return 'bg-(--text-secondary) animate-pulse'
+			case 'saved':
+				return 'bg-emerald-500'
+			case 'unsaved':
+				return 'bg-amber-500'
+			case 'error':
+				return 'bg-red-500'
+			default:
+				return 'bg-(--text-tertiary)/50'
+		}
+	})()
+
 	return (
 		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] px-4 pb-32 sm:px-6">
 			<header
 				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 ${
-					article.status === 'published'
-						? 'border-emerald-500/25'
-						: 'border-(--cards-border)'
+					isPublished ? 'border-emerald-500/25' : 'border-(--cards-border)'
 				}`}
 			>
-				<nav className="flex min-w-0 items-center gap-3 text-sm">
-					<span
-						aria-hidden
-						className={`h-2 w-2 rounded-full ${
-							article.status === 'published'
-								? 'bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]'
-								: 'bg-amber-500 shadow-[0_0_0_3px_rgba(245,158,11,0.18)]'
-						}`}
-					/>
-					<Link href="/articles/local" className="text-(--text-tertiary) hover:text-(--text-primary)">
+				<nav className="flex min-w-0 items-center gap-2.5 text-sm">
+					<Link href="/articles" className="text-(--text-tertiary) hover:text-(--text-primary)">
 						Articles
 					</Link>
-					<span aria-hidden className="text-(--text-tertiary)/60">/</span>
-					<span className="font-jetbrains max-w-[28ch] truncate text-xs tracking-tight text-(--text-secondary)">
-						{article.slug}
+					<span aria-hidden className="text-(--text-tertiary)/50">
+						›
 					</span>
-					<span className="font-jetbrains hidden text-[10px] tracking-[0.2em] text-(--text-tertiary)/70 uppercase sm:inline">
+					{slugEditing ? (
+						<input
+							autoFocus
+							value={slugDraft}
+							onChange={(event) => setSlugDraft(event.target.value)}
+							onBlur={commitSlugEdit}
+							onKeyDown={(event) => {
+								if (event.key === 'Enter') {
+									event.preventDefault()
+									commitSlugEdit()
+								}
+								if (event.key === 'Escape') {
+									event.preventDefault()
+									cancelSlugEdit()
+								}
+							}}
+							className="font-jetbrains w-[24ch] rounded border border-(--link-text)/40 bg-(--app-bg) px-1.5 py-0.5 text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
+						/>
+					) : (
+						<button
+							type="button"
+							onClick={beginSlugEdit}
+							title="Click to edit slug"
+							className="font-jetbrains group flex max-w-[32ch] items-center gap-1 truncate rounded px-1 py-0.5 text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+						>
+							<span className="truncate">{article.slug}</span>
+							<span
+								aria-hidden
+								className="opacity-0 transition-opacity group-hover:opacity-100 text-(--text-tertiary)"
+							>
+								✎
+							</span>
+						</button>
+					)}
+					<span aria-hidden className="text-(--text-tertiary)/40">
+						·
+					</span>
+					<span
+						className={`font-jetbrains text-[10px] font-medium tracking-[0.22em] uppercase ${
+							isPublished ? 'text-emerald-500' : 'text-amber-500'
+						}`}
+					>
 						{article.status}
 					</span>
 				</nav>
-				<div className="flex items-center gap-1">
-					<button
-						type="button"
-						onClick={() => metaDialog.show()}
-						aria-label="Article meta"
-						title="Article meta"
-						className="flex h-9 w-9 items-center justify-center rounded-md text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+
+				<div className="flex items-center gap-2">
+					<span
+						aria-live="polite"
+						className="font-jetbrains hidden items-center gap-1.5 px-1 text-[11px] text-(--text-secondary) sm:flex"
 					>
-						<Icon name="sliders" className="h-4 w-4" />
-					</button>
-					<Link
-						href="/articles/local"
-						className="flex h-9 items-center gap-1.5 rounded-md px-3 text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
-					>
-						<Icon name="eye" className="h-4 w-4" />
-						<span>Preview</span>
-					</Link>
-					<button
-						type="button"
-						disabled={isSaving || !editor}
-						onClick={saveArticle}
-						title="Save (⌘S)"
-						className="ml-1 flex h-9 items-center gap-2 rounded-md bg-(--link-text) px-3 text-xs font-medium text-white shadow-[0_4px_14px_-6px_color-mix(in_oklab,var(--link-text)_70%,transparent)] transition-all hover:shadow-[0_6px_18px_-6px_color-mix(in_oklab,var(--link-text)_85%,transparent)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
-					>
-						<span
-							aria-hidden
-							className={`h-1.5 w-1.5 rounded-full ${
-								isSaving
-									? 'animate-pulse bg-white'
-									: savedLabel
-										? 'bg-emerald-300'
-										: 'bg-white/60'
-							}`}
-						/>
-						<span className="min-w-[3.5rem] text-left">
-							{isSaving ? 'Saving…' : savedLabel ? `Saved ${savedLabel}` : 'Save'}
-						</span>
-						<kbd className="font-jetbrains hidden rounded border border-white/20 bg-white/10 px-1 py-px text-[9px] tracking-wider text-white/80 sm:inline">
-							⌘S
-						</kbd>
-					</button>
+						<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${pillDot}`} />
+						<span className="tabular-nums">{pillLabel}</span>
+					</span>
+
+					{isPublished ? (
+						<Ariakit.MenuProvider>
+							<Ariakit.MenuButton className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40">
+								<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+								<span>Live</span>
+								<span aria-hidden className="text-(--text-tertiary)">▾</span>
+							</Ariakit.MenuButton>
+							<Ariakit.Menu
+								gutter={6}
+								className="z-50 grid min-w-[180px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
+							>
+								<Ariakit.MenuItem
+									render={
+										<Link
+											href={`/articles/${article.slug}`}
+											target="_blank"
+											rel="noreferrer"
+											className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+										/>
+									}
+								>
+									<span className="flex items-center gap-2">
+										<Icon name="eye" className="h-3.5 w-3.5" />
+										View
+									</span>
+									<Icon name="external" className="h-3 w-3 text-(--text-tertiary)" />
+								</Ariakit.MenuItem>
+								<Ariakit.MenuItem
+									onClick={() => metaDialog.show()}
+									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+								>
+									<Icon name="sliders" className="h-3.5 w-3.5" />
+									Edit listing
+								</Ariakit.MenuItem>
+								<Ariakit.MenuItem
+									onClick={handleUnpublish}
+									disabled={isPublishing}
+									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+								>
+									<Icon name="undo" className="h-3.5 w-3.5" />
+									Move to drafts
+								</Ariakit.MenuItem>
+								<span aria-hidden className="my-1 h-px bg-(--cards-border)" />
+								<Ariakit.MenuItem
+									onClick={handleDeleteArticle}
+									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
+								>
+									<Icon name="x" className="h-3.5 w-3.5" />
+									Delete
+								</Ariakit.MenuItem>
+							</Ariakit.Menu>
+						</Ariakit.MenuProvider>
+					) : article.id ? (
+						<button
+							type="button"
+							disabled={isPublishing}
+							onClick={() => metaDialog.show()}
+							className="flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.55)] disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							<span>Publish</span>
+							<span aria-hidden>→</span>
+						</button>
+					) : null}
 				</div>
 			</header>
 
@@ -1185,9 +1391,7 @@ export function ArticleEditorClient() {
 									<span className="font-jetbrains text-[10px] text-(--text-tertiary)">↗</span>
 								</Ariakit.MenuItem>
 								<Ariakit.MenuItem
-									onClick={() =>
-										editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-									}
+									onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
 									className="flex items-center justify-between rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 								>
 									<span>Table</span>
@@ -1246,18 +1450,10 @@ export function ArticleEditorClient() {
 				<div className="pointer-events-none sticky bottom-6 z-30 mt-10 flex justify-center">
 					<div className="article-editor-rail pointer-events-auto inline-flex items-stretch gap-1 rounded-2xl border border-(--cards-border) bg-(--cards-bg)/95 p-1.5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] backdrop-blur supports-[backdrop-filter]:bg-(--cards-bg)/80">
 						<div className="hidden items-center gap-1 pl-1 sm:flex">
-							<RailButton
-								label="Undo"
-								disabled={!flags.canUndo}
-								onClick={() => editor.chain().focus().undo().run()}
-							>
+							<RailButton label="Undo" disabled={!flags.canUndo} onClick={() => editor.chain().focus().undo().run()}>
 								<Icon name="undo" className="h-4 w-4" />
 							</RailButton>
-							<RailButton
-								label="Redo"
-								disabled={!flags.canRedo}
-								onClick={() => editor.chain().focus().redo().run()}
-							>
+							<RailButton label="Redo" disabled={!flags.canRedo} onClick={() => editor.chain().focus().redo().run()}>
 								<Icon name="redo" className="h-4 w-4" />
 							</RailButton>
 							<RailDivider />
@@ -1336,9 +1532,7 @@ export function ArticleEditorClient() {
 									className="z-50 grid min-w-[200px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 								>
 									<Ariakit.MenuItem
-										onClick={() =>
-											editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-										}
+										onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
 										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
 									>
 										<span className="flex items-center gap-2">
@@ -1369,7 +1563,9 @@ export function ArticleEditorClient() {
 														<Icon name="callout" className="h-3.5 w-3.5" />
 														Callout
 													</span>
-													<span aria-hidden className="text-(--text-tertiary)">›</span>
+													<span aria-hidden className="text-(--text-tertiary)">
+														›
+													</span>
 												</Ariakit.MenuButton>
 											}
 										/>
@@ -1404,7 +1600,7 @@ export function ArticleEditorClient() {
 
 						<RailDivider />
 
-						<div className="hidden shrink-0 items-center gap-3 px-2 font-jetbrains text-[10px] whitespace-nowrap tracking-wider text-(--text-tertiary) uppercase md:flex">
+						<div className="hidden shrink-0 items-center gap-3 px-2 font-jetbrains text-[10px] tracking-wider whitespace-nowrap text-(--text-tertiary) uppercase md:flex">
 							<span>{wordCount.toLocaleString()} words</span>
 							<span aria-hidden className="h-3 w-px bg-(--cards-border)" />
 							<span>{readMins} min</span>
@@ -1420,10 +1616,17 @@ export function ArticleEditorClient() {
 				}
 				className="fixed top-0 right-0 bottom-0 z-50 flex w-full max-w-md translate-x-full flex-col overflow-y-auto border-l border-(--cards-border) bg-(--cards-bg) p-6 shadow-2xl transition-transform duration-300 data-[enter]:translate-x-0 data-[leave]:translate-x-full"
 			>
-				<div className="mb-6 flex items-center justify-between">
-					<Ariakit.DialogHeading className="text-base font-semibold tracking-tight text-(--text-primary)">
-						Article meta
-					</Ariakit.DialogHeading>
+				<div className="mb-1 flex items-start justify-between gap-3">
+					<div className="grid gap-1">
+						<Ariakit.DialogHeading className="text-lg font-semibold tracking-tight text-(--text-primary)">
+							{isPublished ? 'Edit listing' : 'Review & publish'}
+						</Ariakit.DialogHeading>
+						<p className="text-xs text-(--text-tertiary)">
+							{isPublished
+								? 'These details appear on the public article page and in shares.'
+								: 'A quick review before this goes live.'}
+						</p>
+					</div>
 					<Ariakit.DialogDismiss
 						aria-label="Close"
 						className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
@@ -1431,80 +1634,118 @@ export function ArticleEditorClient() {
 						<Icon name="x" className="h-4 w-4" />
 					</Ariakit.DialogDismiss>
 				</div>
-				<div className="grid gap-6">
-					<MetaSection title="Identity">
+
+				<div className="mt-6 grid gap-6">
+					<MetaSection title="URL">
 						<label className="grid gap-1.5">
-							<span className="text-xs text-(--text-secondary)">Author</span>
 							<input
-								value={article.author ?? ''}
-								onChange={(e) => updateArticle('author', e.target.value || undefined)}
-								placeholder="Byline shown above the article"
-								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+								value={article.slug}
+								onChange={(event) => updateArticle('slug', event.target.value)}
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 font-jetbrains text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
 							/>
+							<span className="font-jetbrains truncate text-[10px] text-(--text-tertiary)">
+								defillama.com/articles/<span className="text-(--text-secondary)">{article.slug}</span>
+							</span>
 						</label>
+					</MetaSection>
+
+					<MetaSection title="Listing">
 						<label className="grid gap-1.5">
 							<span className="text-xs text-(--text-secondary)">Subtitle</span>
 							<input
 								value={article.subtitle ?? ''}
-								onChange={(e) => updateArticle('subtitle', e.target.value)}
-								placeholder="Optional secondary line"
+								onChange={(event) => updateArticle('subtitle', event.target.value)}
+								placeholder="Optional secondary line shown on cards"
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
 						</label>
 						<label className="grid gap-1.5">
-							<span className="text-xs text-(--text-secondary)">Slug</span>
+							<span className="text-xs text-(--text-secondary)">Excerpt</span>
+							<textarea
+								value={article.excerpt ?? ''}
+								onChange={(event) => updateArticle('excerpt', event.target.value)}
+								placeholder="Auto-derived from your first paragraph. Override here if you want."
+								rows={3}
+								className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+						<label className="grid gap-1.5">
+							<span className="text-xs text-(--text-secondary)">Tags</span>
 							<input
-								value={article.slug}
-								onChange={(e) => updateArticle('slug', e.target.value)}
-								className="font-jetbrains rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
+								value={(article.tags ?? []).join(', ')}
+								onChange={(event) =>
+									updateArticle(
+										'tags',
+										event.target.value
+											.split(',')
+											.map((tag) => tag.trim())
+											.filter(Boolean)
+									)
+								}
+								placeholder="stablecoins, lending, ethereum"
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
 						</label>
 					</MetaSection>
 
-					<MetaSection title="Publishing">
-						<div className="grid gap-1.5">
-							<span className="text-xs text-(--text-secondary)">Status</span>
-							<div className="flex rounded-md border border-(--cards-border) p-0.5">
-								{(['draft', 'published'] as const).map((value) => {
-									const active = article.status === value
-									return (
-										<button
-											key={value}
-											type="button"
-											onClick={() => updateArticle('status', value)}
-											className={`flex-1 rounded px-2 py-1 text-xs capitalize transition-colors ${
-												active
-													? 'bg-(--link-button) text-(--link-text)'
-													: 'text-(--text-tertiary) hover:text-(--text-primary)'
-											}`}
-										>
-											{value}
-										</button>
-									)
-								})}
-							</div>
-						</div>
-					</MetaSection>
-
-					<MetaSection title="Discovery">
+					<MetaSection title="Cover">
 						<label className="grid gap-1.5">
-							<span className="text-xs text-(--text-secondary)">Cover image URL</span>
 							<input
 								value={article.coverImage?.url ?? ''}
-								onChange={(e) =>
+								onChange={(event) =>
 									updateArticle(
 										'coverImage',
-										e.target.value.trim() ? { url: e.target.value, alt: article.title } : null
+										event.target.value.trim() ? { url: event.target.value, alt: article.title } : null
 									)
 								}
 								placeholder="https://…"
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
+							{article.coverImage?.url ? (
+								<img
+									src={article.coverImage.url}
+									alt=""
+									className="mt-1 max-h-32 w-full rounded-md border border-(--cards-border) object-cover"
+								/>
+							) : null}
 						</label>
-						<p className="text-xs text-(--text-tertiary)">
-							Social previews and search snippets are generated from the article's opening lines.
-						</p>
 					</MetaSection>
+				</div>
+
+				<div className="mt-auto grid gap-2 border-t border-(--cards-border) pt-4">
+					{isPublished ? (
+						<button
+							type="button"
+							disabled={isSaving}
+							onClick={async () => {
+								await saveArticle()
+								metaDialog.hide()
+							}}
+							className="flex h-10 items-center justify-center rounded-md bg-(--link-text) px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{isSaving ? 'Saving…' : 'Save changes'}
+						</button>
+					) : (
+						<button
+							type="button"
+							disabled={isPublishing || !article.id}
+							onClick={async () => {
+								if (isDirty) await saveArticle()
+								await handlePublish()
+								metaDialog.hide()
+							}}
+							className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{isPublishing ? 'Publishing…' : 'Publish now'}
+						</button>
+					)}
+					<button
+						type="button"
+						onClick={() => metaDialog.hide()}
+						className="text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
+					>
+						{isPublished ? 'Cancel' : 'Keep editing'}
+					</button>
 				</div>
 			</Ariakit.Dialog>
 
@@ -1514,11 +1755,7 @@ export function ArticleEditorClient() {
 				onInsert={handleChartSubmit}
 			/>
 
-			<EmbedPicker
-				store={embedDialog}
-				initialConfig={editingEmbed?.config ?? null}
-				onInsert={handleEmbedSubmit}
-			/>
+			<EmbedPicker store={embedDialog} initialConfig={editingEmbed?.config ?? null} onInsert={handleEmbedSubmit} />
 		</div>
 	)
 }

@@ -1,6 +1,15 @@
 import type { ArticleEntityRef, ArticleEntityType } from './types'
 
-export const ARTICLE_ENTITY_TYPES = ['protocol', 'chain', 'stablecoin', 'metric', 'hack', 'category', 'cex', 'bridge'] as const
+export const ARTICLE_ENTITY_TYPES = [
+	'protocol',
+	'chain',
+	'stablecoin',
+	'metric',
+	'hack',
+	'category',
+	'cex',
+	'bridge'
+] as const
 
 export const VALID_ENTITY_TYPES: ReadonlySet<ArticleEntityType> = new Set(ARTICLE_ENTITY_TYPES)
 

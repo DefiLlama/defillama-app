@@ -1,4 +1,5 @@
 import { common, createLowlight } from 'lowlight'
+import Link from 'next/link'
 import { createElement, useEffect, useState, type ReactNode } from 'react'
 import { validateArticleChartConfig } from '../chartAdapters'
 import { validateEmbedConfig } from '../embedProviders'
@@ -120,12 +121,17 @@ function applyMark(children: ReactNode, mark: TiptapMark, key: string) {
 			label: stringAttr(mark.attrs, 'label') || getTiptapNodeText({ type: 'text', text: String(children) }),
 			route: stringAttr(mark.attrs, 'route')
 		})
-		const snapshot = mark.attrs && typeof mark.attrs === 'object' ? (mark.attrs as { snapshot?: unknown }).snapshot : null
+		const snapshot =
+			mark.attrs && typeof mark.attrs === 'object' ? (mark.attrs as { snapshot?: unknown }).snapshot : null
 		return (
 			<EntityPreviewLink
 				key={key}
 				entity={entity}
-				snapshot={snapshot && typeof snapshot === 'object' ? (snapshot as Parameters<typeof EntityPreviewLink>[0]['snapshot']) : null}
+				snapshot={
+					snapshot && typeof snapshot === 'object'
+						? (snapshot as Parameters<typeof EntityPreviewLink>[0]['snapshot'])
+						: null
+				}
 			>
 				{children}
 			</EntityPreviewLink>
@@ -201,18 +207,9 @@ function renderCallout(node: TiptapJson, key: string, ctx: RenderContext) {
 function renderTaskItem(node: TiptapJson, key: string, ctx: RenderContext) {
 	const checked = !!node.attrs?.checked
 	return (
-		<li key={key} className="article-task-item flex items-start gap-2 not-prose pl-0" data-checked={checked}>
-			<input
-				type="checkbox"
-				checked={checked}
-				readOnly
-				className="mt-1.5 h-3.5 w-3.5 shrink-0 accent-(--link-text)"
-			/>
-			<div
-				className={`min-w-0 flex-1 ${
-					checked ? 'text-(--text-tertiary) line-through' : 'text-(--text-primary)'
-				}`}
-			>
+		<li key={key} className="article-task-item not-prose flex items-start gap-2 pl-0" data-checked={checked}>
+			<input type="checkbox" checked={checked} readOnly className="mt-1.5 h-3.5 w-3.5 shrink-0 accent-(--link-text)" />
+			<div className={`min-w-0 flex-1 ${checked ? 'text-(--text-tertiary) line-through' : 'text-(--text-primary)'}`}>
 				{renderChildren(node, key, ctx)}
 			</div>
 		</li>
@@ -251,7 +248,7 @@ function renderNode(node: TiptapJson, key: string, ctx: RenderContext): ReactNod
 	if (node.type === 'orderedList') return <ol key={key}>{renderChildren(node, key, ctx)}</ol>
 	if (node.type === 'taskList')
 		return (
-			<ul key={key} className="article-task-list grid gap-1.5 list-none pl-0">
+			<ul key={key} className="article-task-list grid list-none gap-1.5 pl-0">
 				{renderChildren(node, key, ctx)}
 			</ul>
 		)
@@ -447,7 +444,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 	const publishedLabel =
 		article.status === 'published' && article.publishedAt
 			? formatHeaderDate(article.publishedAt)
-			: formatHeaderDate(article.updatedAt) ?? 'Draft'
+			: (formatHeaderDate(article.updatedAt) ?? 'Draft')
 	const ctx: RenderContext = { figureCount: { value: 0 } }
 
 	const toc: TocEntry[] = []
@@ -468,15 +465,22 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 					<h1 className="text-4xl leading-[1.05] font-semibold tracking-tight text-(--text-primary) md:text-5xl">
 						{article.title}
 					</h1>
-					{article.subtitle ? (
-						<p className="text-lg leading-snug text-(--text-secondary)">{article.subtitle}</p>
-					) : null}
+					{article.subtitle ? <p className="text-lg leading-snug text-(--text-secondary)">{article.subtitle}</p> : null}
 					{article.author ? (
 						<div className="mt-2 flex items-center gap-2 border-t border-(--cards-border) pt-3 text-xs text-(--text-tertiary)">
 							<span className="flex h-7 w-7 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-[10px] font-medium text-(--text-secondary)">
 								{article.author.slice(0, 2).toUpperCase()}
 							</span>
-							<span className="text-sm text-(--text-primary)">{article.author}</span>
+							{article.authorProfile ? (
+								<Link
+									href={`/articles/authors/${article.authorProfile.slug}`}
+									className="text-sm text-(--text-primary) hover:text-(--link-text)"
+								>
+									{article.author}
+								</Link>
+							) : (
+								<span className="text-sm text-(--text-primary)">{article.author}</span>
+							)}
 						</div>
 					) : null}
 				</header>
@@ -496,8 +500,8 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 					</figure>
 				) : null}
 
-				<div className="article-prose break-words [overflow-wrap:anywhere]">
-					<div className="prose prose-neutral max-w-none dark:prose-invert prose-headings:tracking-tight prose-headings:font-semibold prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-2xl prose-h3:mt-7 prose-h3:mb-2 prose-h3:text-lg prose-p:leading-[1.65] prose-li:my-1 [&_li>p]:my-0 [&_li>p]:leading-[1.55] prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:not-italic prose-blockquote:text-(--text-secondary) prose-a:text-(--link-text) prose-a:no-underline prose-a:font-medium hover:prose-a:underline prose-strong:text-(--text-primary) prose-code:text-(--link-text) prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-[0.92em] prose-code:before:hidden prose-code:after:hidden prose-pre:bg-(--cards-bg) prose-pre:border prose-pre:border-(--cards-border) prose-pre:text-(--text-primary) prose-hr:border-(--cards-border) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_p]:my-0">
+				<div className="article-prose [overflow-wrap:anywhere] break-words">
+					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-2xl prose-h3:mt-7 prose-h3:mb-2 prose-h3:text-lg prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-li:my-1 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_li>p]:my-0 [&_li>p]:leading-[1.55]">
 						{renderNode(article.contentJson, 'article-root', ctx)}
 					</div>
 				</div>

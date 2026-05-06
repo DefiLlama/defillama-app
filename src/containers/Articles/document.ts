@@ -46,6 +46,21 @@ function normalizeDate(value: unknown, fallback: string) {
 	return Number.isNaN(date.getTime()) ? fallback : date.toISOString()
 }
 
+function normalizeTags(value: unknown): string[] {
+	if (!Array.isArray(value)) return []
+	const seen = new Set<string>()
+	const tags: string[] = []
+	for (const item of value) {
+		if (typeof item !== 'string') continue
+		const normalized = normalizeSlug(item)
+		if (!normalized || seen.has(normalized)) continue
+		seen.add(normalized)
+		tags.push(normalized)
+		if (tags.length >= 12) break
+	}
+	return tags
+}
+
 function normalizeCoverImage(value: unknown): ArticleImage | null | undefined {
 	if (value == null) return null
 	if (!isRecord(value)) return undefined
@@ -125,11 +140,15 @@ export function normalizeLocalArticleDocument(
 			contentVersion: ARTICLE_CONTENT_VERSION,
 			rendererVersion: ARTICLE_RENDERER_VERSION,
 			editorSchemaVersion: ARTICLE_EDITOR_SCHEMA_VERSION,
+			...(optionalString(input.id) ? { id: optionalString(input.id) } : {}),
 			title,
 			...(optionalString(input.subtitle) ? { subtitle: optionalString(input.subtitle) } : {}),
 			slug,
 			status,
 			...(optionalString(input.author) ? { author: optionalString(input.author) } : {}),
+			...(isRecord(input.authorProfile)
+				? { authorProfile: input.authorProfile as LocalArticleDocument['authorProfile'] }
+				: {}),
 			...(optionalString(input.seoTitle) ? { seoTitle: optionalString(input.seoTitle) } : {}),
 			...(seoDescription ? { seoDescription } : {}),
 			...(excerpt ? { excerpt } : {}),
@@ -140,6 +159,11 @@ export function normalizeLocalArticleDocument(
 			charts: extracted.charts,
 			citations: extracted.citations,
 			embeds: extracted.embeds,
+			tags: normalizeTags(input.tags),
+			...(typeof input.featuredRank === 'number' && Number.isInteger(input.featuredRank)
+				? { featuredRank: input.featuredRank }
+				: {}),
+			...(optionalString(input.featuredUntil) ? { featuredUntil: normalizeDate(input.featuredUntil, now) } : {}),
 			createdAt,
 			updatedAt,
 			publishedAt
@@ -154,6 +178,7 @@ export function createEmptyLocalArticle(now = new Date().toISOString()): LocalAr
 			slug: 'local-article',
 			status: 'draft',
 			coverImage: null,
+			tags: [],
 			contentJson: EMPTY_ARTICLE_CONTENT,
 			createdAt: now,
 			updatedAt: now,

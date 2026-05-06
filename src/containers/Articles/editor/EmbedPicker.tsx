@@ -1,10 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-	detectEmbed,
-	getEmbedProviderLabel,
-	type EmbedDetection
-} from '../embedProviders'
+import { detectEmbed, getEmbedProviderLabel, type EmbedDetection } from '../embedProviders'
 import type { ArticleEmbedAspectRatio, ArticleEmbedConfig } from '../types'
 
 type Props = {
@@ -79,7 +75,7 @@ export function EmbedPicker({ store, onInsert, initialConfig }: Props) {
 
 			<div className="grid gap-4 px-5 py-4">
 				<label className="grid gap-1.5">
-					<span className="font-jetbrains text-[10px] uppercase tracking-[0.18em] text-(--text-tertiary)">URL</span>
+					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">URL</span>
 					<input
 						autoFocus
 						value={rawUrl}
@@ -91,7 +87,7 @@ export function EmbedPicker({ store, onInsert, initialConfig }: Props) {
 				</label>
 
 				<label className="grid gap-1.5">
-					<span className="font-jetbrains text-[10px] uppercase tracking-[0.18em] text-(--text-tertiary)">
+					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 						Title (optional)
 					</span>
 					<input
@@ -103,7 +99,7 @@ export function EmbedPicker({ store, onInsert, initialConfig }: Props) {
 				</label>
 
 				<label className="grid gap-1.5">
-					<span className="font-jetbrains text-[10px] uppercase tracking-[0.18em] text-(--text-tertiary)">
+					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 						Caption (optional)
 					</span>
 					<textarea
@@ -116,7 +112,7 @@ export function EmbedPicker({ store, onInsert, initialConfig }: Props) {
 				</label>
 
 				<div className="grid gap-1.5">
-					<span className="font-jetbrains text-[10px] uppercase tracking-[0.18em] text-(--text-tertiary)">Aspect</span>
+					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">Aspect</span>
 					<div className="flex items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-0.5 text-xs">
 						{ASPECT_OPTIONS.map((opt) => {
 							const active = aspectValue === opt.value
@@ -176,7 +172,7 @@ function DetectionLine({
 	if (!detection) return null
 	return (
 		<span className="flex items-center gap-2 text-[11px] text-(--text-secondary)">
-			<span className="rounded-sm border border-(--cards-border) bg-(--app-bg) px-1.5 py-0.5 font-jetbrains text-[10px] uppercase tracking-wider text-(--text-secondary)">
+			<span className="rounded-sm border border-(--cards-border) bg-(--app-bg) px-1.5 py-0.5 font-jetbrains text-[10px] tracking-wider text-(--text-secondary) uppercase">
 				{getEmbedProviderLabel(detection.provider)}
 			</span>
 			<span className="truncate text-(--text-tertiary)">{detection.url}</span>

@@ -59,7 +59,7 @@ function EmbedFigure({
 					) : null}
 				</div>
 				{figureLabel ? (
-					<span className="font-jetbrains hidden shrink-0 text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase sm:inline">
+					<span className="hidden shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase sm:inline">
 						{figureLabel}
 					</span>
 				) : null}
@@ -73,7 +73,7 @@ function EmbedFigure({
 						{figureLabel ? <span className="mr-1.5 font-semibold text-(--text-primary)">{figureLabel}.</span> : null}
 						<span>{config.caption || config.title || providerLabel}</span>
 					</div>
-					<div className="font-jetbrains shrink-0 text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+					<div className="shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 						Source ·{' '}
 						<a
 							href={config.sourceUrl}
@@ -105,7 +105,7 @@ function IframeEmbed({ config }: { config: ArticleEmbedConfig }) {
 				loading="lazy"
 				referrerPolicy="no-referrer-when-downgrade"
 				allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-				sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
+				sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation"
 				className="h-full w-full border-0"
 			/>
 		</div>
@@ -128,9 +128,7 @@ function TweetFallback({ config }: { config: ArticleEmbedConfig }) {
 					Open ↗
 				</span>
 			</div>
-			<div className="text-sm leading-snug text-(--text-primary)">
-				{config.title || 'View this post on X'}
-			</div>
+			<div className="text-sm leading-snug text-(--text-primary)">{config.title || 'View this post on X'}</div>
 			{config.caption ? <div className="text-xs text-(--text-tertiary)">{config.caption}</div> : null}
 			<div className="truncate font-jetbrains text-[11px] text-(--text-tertiary)">{config.sourceUrl}</div>
 		</a>
@@ -204,7 +202,10 @@ function TweetEmbed({ config }: { config: ArticleEmbedConfig }) {
 	}
 
 	return (
-		<div ref={containerRef} className="grid place-items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-4">
+		<div
+			ref={containerRef}
+			className="grid place-items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-4"
+		>
 			{visible ? (
 				<blockquote className="twitter-tweet" data-dnt="true" cite={config.url}>
 					<a href={config.url} target="_blank" rel="noreferrer noopener">

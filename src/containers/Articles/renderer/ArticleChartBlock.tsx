@@ -1,7 +1,7 @@
 import { useQueries } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useMemo } from 'react'
-import { getChartQueryFn, getChartQueryKey, ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
 import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
+import { getChartQueryFn, getChartQueryKey, ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
 import { CHART_TYPES } from '~/containers/ProDashboard/types'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import { getArticleEntityRoute } from '../entityLinks'
@@ -172,13 +172,13 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 							<span className="font-jetbrains text-[9px] tracking-[0.2em] text-(--text-tertiary) uppercase">
 								Latest
 							</span>
-							<span className="font-jetbrains text-base font-semibold tabular-nums text-(--text-primary)">
+							<span className="font-jetbrains text-base font-semibold text-(--text-primary) tabular-nums">
 								{latestLabel}
 							</span>
 						</div>
 					) : null}
 					{figureLabel ? (
-						<span className="font-jetbrains hidden text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase sm:inline">
+						<span className="hidden font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase sm:inline">
 							{figureLabel}
 						</span>
 					) : null}
@@ -203,18 +203,14 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 			<div className="article-chart-body relative">
 				<div className="h-[380px] w-full">
 					{isLoading ? (
-						<div className="flex h-full items-center justify-center text-xs text-(--text-tertiary)">
-							Loading chart…
-						</div>
+						<div className="flex h-full items-center justify-center text-xs text-(--text-tertiary)">Loading chart…</div>
 					) : isError || seriesWithMarkers.length === 0 ? (
 						<div className="flex h-full items-center justify-center text-xs text-(--text-tertiary)">
 							No data available
 						</div>
 					) : (
 						<Suspense
-							fallback={
-								<div className="flex h-full items-center justify-center text-xs text-(--text-tertiary)">…</div>
-							}
+							fallback={<div className="flex h-full items-center justify-center text-xs text-(--text-tertiary)">…</div>}
 						>
 							<MultiSeriesChart
 								series={seriesWithMarkers}
@@ -231,20 +227,18 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 
 			<figcaption className="flex flex-wrap items-baseline justify-between gap-3 border-t border-(--cards-border) pt-2 text-[13px] leading-snug text-(--text-secondary)">
 				<div className="min-w-0 flex-1">
-					{figureLabel ? (
-						<span className="mr-1.5 font-semibold text-(--text-primary)">{figureLabel}.</span>
-					) : null}
+					{figureLabel ? <span className="mr-1.5 font-semibold text-(--text-primary)">{figureLabel}.</span> : null}
 					<span>
 						{config.caption ||
 							`${config.entities.map((e) => e.name).join(' vs ')} ${chartLabel.toLowerCase()}, USD-denominated.`}
 					</span>
 					{config.logScale ? (
-						<span className="ml-2 rounded border border-(--cards-border) px-1.5 py-px font-jetbrains text-[10px] uppercase tracking-wider text-(--text-tertiary)">
+						<span className="ml-2 rounded border border-(--cards-border) px-1.5 py-px font-jetbrains text-[10px] tracking-wider text-(--text-tertiary) uppercase">
 							log scale
 						</span>
 					) : null}
 				</div>
-				<div className="font-jetbrains shrink-0 text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+				<div className="shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 					Source ·{' '}
 					<a
 						href={route}

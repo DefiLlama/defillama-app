@@ -1395,35 +1395,73 @@
 	color: var(--text-primary);
 	font-family: var(--font-jetbrains, ui-monospace, SFMono-Regular, Menlo, monospace);
 }
-.hljs-comment, .hljs-quote { color: color-mix(in oklch, var(--text-tertiary) 90%, transparent); font-style: italic; }
-.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-name, .hljs-tag { color: #c678dd; }
-.hljs-string, .hljs-title, .hljs-section, .hljs-attribute, .hljs-literal, .hljs-template-tag, .hljs-template-variable, .hljs-type, .hljs-addition { color: #98c379; }
-.hljs-deletion, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-meta { color: #e06c75; }
-.hljs-doctag, .hljs-attr { color: #d19a66; }
-.hljs-symbol, .hljs-bullet, .hljs-link { color: #56b6c2; }
-.hljs-number { color: #d19a66; }
-.hljs-emphasis { font-style: italic; }
-.hljs-strong { font-weight: 600; }
+.hljs-comment,
+.hljs-quote {
+	color: color-mix(in oklch, var(--text-tertiary) 90%, transparent);
+	font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-name,
+.hljs-tag {
+	color: #c678dd;
+}
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type,
+.hljs-addition {
+	color: #98c379;
+}
+.hljs-deletion,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-meta {
+	color: #e06c75;
+}
+.hljs-doctag,
+.hljs-attr {
+	color: #d19a66;
+}
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+	color: #56b6c2;
+}
+.hljs-number {
+	color: #d19a66;
+}
+.hljs-emphasis {
+	font-style: italic;
+}
+.hljs-strong {
+	font-weight: 600;
+}
 
 /* Task list checkboxes inside ProseMirror */
-.ProseMirror ul[data-type="taskList"] {
+.ProseMirror ul[data-type='taskList'] {
 	list-style: none;
 	padding: 0;
 }
-.ProseMirror ul[data-type="taskList"] li {
+.ProseMirror ul[data-type='taskList'] li {
 	display: flex;
 	gap: 0.5rem;
 	align-items: flex-start;
 }
-.ProseMirror ul[data-type="taskList"] li > label {
+.ProseMirror ul[data-type='taskList'] li > label {
 	margin-top: 0.35rem;
 	flex-shrink: 0;
 }
-.ProseMirror ul[data-type="taskList"] li > div {
+.ProseMirror ul[data-type='taskList'] li > div {
 	flex: 1 1 auto;
 	min-width: 0;
 }
-.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+.ProseMirror ul[data-type='taskList'] li[data-checked='true'] > div {
 	color: var(--text-tertiary);
 	text-decoration: line-through;
 }

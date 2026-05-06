@@ -108,8 +108,7 @@ function mirrorUrl(url: URL): string | null {
 
 function substackUrl(url: URL): string | null {
 	const host = url.hostname.toLowerCase()
-	const isSubstack =
-		host === 'substack.com' || host === 'www.substack.com' || host.endsWith('.substack.com')
+	const isSubstack = host === 'substack.com' || host === 'www.substack.com' || host.endsWith('.substack.com')
 	if (!isSubstack) return null
 	if (url.pathname.length <= 1) return null
 	return url.toString()

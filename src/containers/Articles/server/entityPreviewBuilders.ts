@@ -1,6 +1,6 @@
 import { fetchBridges } from '~/containers/Bridges/api'
-import { fetchChainsByCategoryAll, fetchChainsList } from '~/containers/Chains/api'
 import { fetchCexs } from '~/containers/Cexs/api'
+import { fetchChainsByCategoryAll, fetchChainsList } from '~/containers/Chains/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'

@@ -69,9 +69,7 @@ function ChartNodeView({ node, selected, deleteNode, getPos }: NodeViewProps) {
 	const handleEdit = () => {
 		const pos = typeof getPos === 'function' ? getPos() : null
 		if (typeof pos !== 'number') return
-		document.dispatchEvent(
-			new CustomEvent('article:edit-chart', { detail: { config, pos } })
-		)
+		document.dispatchEvent(new CustomEvent('article:edit-chart', { detail: { config, pos } }))
 	}
 	return (
 		<NodeViewWrapper
@@ -142,7 +140,9 @@ function CalloutNodeView({ node, updateAttributes }: NodeViewProps) {
 								type="button"
 								onClick={() => updateAttributes({ tone: value })}
 								className={`rounded px-2 py-0.5 text-xs capitalize transition-colors ${
-									active ? 'bg-(--link-button) text-(--link-text)' : 'text-(--text-tertiary) hover:text-(--text-primary)'
+									active
+										? 'bg-(--link-button) text-(--link-text)'
+										: 'text-(--text-tertiary) hover:text-(--text-primary)'
 								}`}
 							>
 								{value}
@@ -183,11 +183,7 @@ function CitationNodeView({ node, selected, deleteNode, updateAttributes, editor
 					: 'border-(--cards-border) bg-(--link-button)/60 text-(--link-text)'
 			}`}
 		>
-			<button
-				type="button"
-				onClick={() => editable && setOpen((o) => !o)}
-				className="px-1 py-0.5 tracking-wider"
-			>
+			<button type="button" onClick={() => editable && setOpen((o) => !o)} className="px-1 py-0.5 tracking-wider">
 				[{label}]
 			</button>
 			{selected && editable ? (
@@ -207,7 +203,7 @@ function CitationNodeView({ node, selected, deleteNode, updateAttributes, editor
 					className="absolute top-full left-0 z-50 mt-1 grid w-72 gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 font-sans shadow-xl"
 				>
 					<div className="flex items-center gap-1.5">
-						<label className="w-12 shrink-0 text-[10px] uppercase tracking-wider text-(--text-tertiary)">Label</label>
+						<label className="w-12 shrink-0 text-[10px] tracking-wider text-(--text-tertiary) uppercase">Label</label>
 						<input
 							value={(node.attrs.label as string) || ''}
 							onChange={(e) => updateAttributes({ label: e.target.value, id: e.target.value || node.attrs.id })}
@@ -215,7 +211,7 @@ function CitationNodeView({ node, selected, deleteNode, updateAttributes, editor
 						/>
 					</div>
 					<div className="flex items-center gap-1.5">
-						<label className="w-12 shrink-0 text-[10px] uppercase tracking-wider text-(--text-tertiary)">URL</label>
+						<label className="w-12 shrink-0 text-[10px] tracking-wider text-(--text-tertiary) uppercase">URL</label>
 						<input
 							value={url}
 							onChange={(e) => updateAttributes({ url: e.target.value })}
@@ -224,7 +220,7 @@ function CitationNodeView({ node, selected, deleteNode, updateAttributes, editor
 						/>
 					</div>
 					<div className="flex items-center gap-1.5">
-						<label className="w-12 shrink-0 text-[10px] uppercase tracking-wider text-(--text-tertiary)">Title</label>
+						<label className="w-12 shrink-0 text-[10px] tracking-wider text-(--text-tertiary) uppercase">Title</label>
 						<input
 							value={title}
 							onChange={(e) => updateAttributes({ title: e.target.value })}
@@ -263,7 +259,9 @@ export const EntityLink = Mark.create({
 		const { entityType, slug, route, label, snapshot, ...rest } = HTMLAttributes as Record<string, unknown>
 		void label
 		void snapshot
-		const href = (route as string) || (entityType && slug ? getArticleEntityRoute(entityType as ArticleEntityType, slug as string) : undefined)
+		const href =
+			(route as string) ||
+			(entityType && slug ? getArticleEntityRoute(entityType as ArticleEntityType, slug as string) : undefined)
 		return [
 			'a',
 			mergeAttributes(rest, {

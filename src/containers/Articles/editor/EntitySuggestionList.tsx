@@ -65,7 +65,7 @@ function MetricChip({ item }: { item: ArticleEntitySuggestionItem }) {
 		if (!tvl && !change) return null
 		return (
 			<span className="ml-1 flex shrink-0 flex-col items-end gap-0.5 leading-none">
-				{tvl ? <span className="text-[11px] tabular-nums text-(--text-secondary)">{tvl}</span> : null}
+				{tvl ? <span className="text-[11px] text-(--text-secondary) tabular-nums">{tvl}</span> : null}
 				{change ? <span className={`text-[10px] tabular-nums ${changeColor(p.change7d)}`}>{change}</span> : null}
 			</span>
 		)
@@ -204,10 +204,16 @@ export const EntitySuggestionList = forwardRef<EntitySuggestionListHandle, Props
 					)}
 				</span>
 				<span className="shrink-0">
-					{loading ? 'Searching…' : totalCount ? (filter === 'all' ? `${totalCount}` : `${filteredCount}/${totalCount}`) : '—'}
+					{loading
+						? 'Searching…'
+						: totalCount
+							? filter === 'all'
+								? `${totalCount}`
+								: `${filteredCount}/${totalCount}`
+							: '—'}
 				</span>
 			</div>
-			<div className="thin-scrollbar flex items-center gap-1 overflow-x-auto border-b border-(--cards-border) px-2 py-1.5">
+			<div className="flex thin-scrollbar items-center gap-1 overflow-x-auto border-b border-(--cards-border) px-2 py-1.5">
 				{FILTER_ORDER.map((f) => {
 					const enabled = f.key === 'all' || availableTypes.has(f.key)
 					const active = f.key === filter
@@ -220,7 +226,7 @@ export const EntitySuggestionList = forwardRef<EntitySuggestionListHandle, Props
 								event.preventDefault()
 								if (enabled) setFilter(f.key)
 							}}
-							className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider transition-colors ${
+							className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium tracking-wider uppercase transition-colors ${
 								active
 									? 'border-(--link-text) bg-(--link-text) text-white'
 									: enabled
@@ -240,9 +246,7 @@ export const EntitySuggestionList = forwardRef<EntitySuggestionListHandle, Props
 					</div>
 				) : (
 					<>
-						{showRecents
-							? recents.map((i) => renderItem(i, { recent: true }))
-							: null}
+						{showRecents ? recents.map((i) => renderItem(i, { recent: true })) : null}
 						{showRecents ? <div className="my-1 border-t border-(--cards-border)" /> : null}
 						{filtered.map((i) => renderItem(i))}
 					</>

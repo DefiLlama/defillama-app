@@ -239,6 +239,7 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 		const domain = DATASET_DOMAINS[index]
 
 		if (settledResult.status === 'rejected') {
+			manifest.domains[domain].builtAt = 0
 			failures.push(
 				`${domain}: ${settledResult.reason instanceof Error ? settledResult.reason.message : String(settledResult.reason)}`
 			)
@@ -253,12 +254,11 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 	}
 
 	if (failures.length > 0) {
-		const message = `Failed to build dataset domains:\n${failures.join('\n')}`
-		if (process.env.NODE_ENV === 'development') {
-			console.warn('[datasetCache] dev: continuing despite domain failures:\n' + failures.join('\n'))
-		} else {
+		const message = `Skipped dataset domains:\n${failures.join('\n')}`
+		if (process.env.DATASET_CACHE_STRICT === '1') {
 			throw new Error(message)
 		}
+		console.warn(`[buildDatasetCache] ${message}`)
 	}
 
 	manifest.builtAt = latestBuiltAt || Date.now()

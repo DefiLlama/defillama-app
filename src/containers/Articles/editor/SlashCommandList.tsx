@@ -59,7 +59,7 @@ export const SlashCommandList = forwardRef<SlashCommandListHandle, Props>(functi
 					return (
 						<div key={item.id}>
 							{showHeader ? (
-								<div className="px-3 pt-2 pb-1 text-[9px] font-medium uppercase tracking-wider text-(--text-tertiary)">
+								<div className="px-3 pt-2 pb-1 text-[9px] font-medium tracking-wider text-(--text-tertiary) uppercase">
 									{item.group}
 								</div>
 							) : null}
@@ -76,7 +76,7 @@ export const SlashCommandList = forwardRef<SlashCommandListHandle, Props>(functi
 									active ? 'bg-(--link-button)' : 'hover:bg-(--link-hover-bg)'
 								}`}
 							>
-								<span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--cards-border) bg-(--app-bg) text-[11px] font-jetbrains text-(--text-secondary)">
+								<span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-(--cards-border) bg-(--app-bg) font-jetbrains text-[11px] text-(--text-secondary)">
 									{item.icon}
 								</span>
 								<span className="flex min-w-0 flex-1 flex-col">

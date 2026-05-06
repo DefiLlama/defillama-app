@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { buildEntityPreview } from '~/containers/Articles/server/entityPreviewBuilders'
 import { isPreviewableEntityType } from '~/containers/Articles/entityPreviewTypes'
+import { buildEntityPreview } from '~/containers/Articles/server/entityPreviewBuilders'
 import type { ArticleEntityType } from '~/containers/Articles/types'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
