@@ -9,6 +9,7 @@ import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRo
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
+import type { TokenMarketsListResponse } from '~/containers/Token/tokenMarkets.types'
 import { TokenMarketsSection } from '~/containers/Token/TokenMarketsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
@@ -309,14 +310,27 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
-		const { fetchTokenMarketsListFromCache } = await import('~/server/datasetCache/markets')
-		const tokenMarketsList = await fetchTokenMarketsListFromCache()
 		const normalizedMarketsSymbol = record.symbol.toLowerCase()
 		let marketsAvailable = false
-		for (const tokenMarket of tokenMarketsList.tokens) {
-			if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
-				marketsAvailable = true
-				break
+		let tokenMarketsList: TokenMarketsListResponse | null = null
+		try {
+			if (shouldUseDatasetCache) {
+				const { fetchTokenMarketsListFromCache } = await import('~/server/datasetCache/markets')
+				tokenMarketsList = await fetchTokenMarketsListFromCache()
+			} else {
+				const { fetchTokenMarketsListFromNetwork } = await import('~/containers/Token/api')
+				tokenMarketsList = await fetchTokenMarketsListFromNetwork()
+			}
+		} catch (error) {
+			console.error(`Failed to load token markets list for ${record.symbol}`, error)
+			marketsAvailable = false
+		}
+		if (tokenMarketsList) {
+			for (const tokenMarket of tokenMarketsList.tokens) {
+				if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
+					marketsAvailable = true
+					break
+				}
 			}
 		}
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)

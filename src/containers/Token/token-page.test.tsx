@@ -256,6 +256,20 @@ vi.mock('~/server/datasetCache/markets', () => ({
 	})
 }))
 
+vi.mock('~/containers/Token/api', () => ({
+	fetchTokenMarketsListFromNetwork: vi.fn().mockResolvedValue({
+		tokens: [
+			{
+				exchange_count: 1,
+				market_count: 1,
+				symbol: 'BTC',
+				total_oi_usd: 1,
+				total_volume_24h: 1
+			}
+		]
+	})
+}))
+
 vi.mock('~/containers/Token/TokenYieldsSection', () => ({
 	TokenYieldsSection: () => <section id="token-yields">token-yields-section</section>
 }))
