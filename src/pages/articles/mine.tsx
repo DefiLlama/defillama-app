@@ -129,6 +129,12 @@ function MyArticlesContent() {
 					</div>
 					<div className="flex items-center gap-2">
 						<Link
+							href="/articles/profile"
+							className="rounded-md border border-(--cards-border) px-3 py-2 text-sm text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary)"
+						>
+							Edit profile
+						</Link>
+						<Link
 							href="/articles"
 							className="rounded-md border border-(--cards-border) px-3 py-2 text-sm text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary)"
 						>

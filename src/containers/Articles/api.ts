@@ -167,3 +167,32 @@ export async function listMyArticles(
 export async function deleteArticle(id: string, authorizedFetch: AuthorizedFetch): Promise<void> {
 	await parseResponse(await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}`), { method: 'DELETE' }))
 }
+
+export type AuthorProfileUpdate = {
+	displayName?: string
+	slug?: string
+	bio?: string | null
+	avatarUrl?: string | null
+	socials?: Record<string, string>
+}
+
+export async function getMyAuthorProfile(authorizedFetch: AuthorizedFetch): Promise<ArticleAuthorProfile> {
+	const data = await parseResponse<{ author: ArticleAuthorProfile }>(
+		await authorizedFetch(articleUrl('/article-authors/me'))
+	)
+	return data.author
+}
+
+export async function updateMyAuthorProfile(
+	payload: AuthorProfileUpdate,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleAuthorProfile> {
+	const data = await parseResponse<{ author: ArticleAuthorProfile }>(
+		await authorizedFetch(articleUrl('/article-authors/me'), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		})
+	)
+	return data.author
+}

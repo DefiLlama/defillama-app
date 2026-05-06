@@ -15,6 +15,7 @@ import type {
 } from '../types'
 import { ArticleChartBlock } from './ArticleChartBlock'
 import { ArticleEmbedBlock } from './ArticleEmbedBlock'
+import { ArticleImageBlock } from './ArticleImageBlock'
 import { EntityPreviewLink } from './EntityPreviewLink'
 
 const lowlight = createLowlight(common)
@@ -270,6 +271,9 @@ function renderNode(node: TiptapJson, key: string, ctx: RenderContext): ReactNod
 		if (!config) return null
 		ctx.figureCount.value += 1
 		return <ArticleEmbedBlock key={key} config={config} index={ctx.figureCount.value} />
+	}
+	if (node.type === 'articleImage') {
+		return <ArticleImageBlock key={key} attrs={node.attrs as Parameters<typeof ArticleImageBlock>[0]['attrs']} />
 	}
 	if (node.type === 'table') return renderTable(node, key, ctx)
 	if (node.type === 'tableRow') return renderTableRow(node, key, ctx)

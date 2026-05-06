@@ -34,6 +34,18 @@ function aspectClass(aspect: string) {
 	return 'aspect-video'
 }
 
+function shortenUrl(sourceUrl: string) {
+	try {
+		const url = new URL(sourceUrl)
+		const host = url.hostname.replace(/^www\./, '')
+		const path = url.pathname.length > 1 ? url.pathname : ''
+		const trimmed = path.length > 36 ? `${path.slice(0, 33)}…` : path
+		return `${host}${trimmed}`
+	} catch {
+		return sourceUrl
+	}
+}
+
 function EmbedFigure({
 	config,
 	children,
@@ -45,47 +57,32 @@ function EmbedFigure({
 }) {
 	const figureLabel = typeof index === 'number' ? `Fig. ${String(index).padStart(2, '0')}` : null
 	const providerLabel = getEmbedProviderLabel(config.provider)
-	return (
-		<figure className="article-embed-figure not-prose my-10 grid gap-3">
-			<header className="flex items-end justify-between gap-4 border-t border-(--text-primary)/80 pt-3">
-				<div className="min-w-0">
-					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-						{providerLabel}
-					</span>
-					{config.title ? (
-						<div className="truncate text-[15px] font-semibold tracking-tight text-(--text-primary)">
-							{config.title}
-						</div>
-					) : null}
-				</div>
-				{figureLabel ? (
-					<span className="hidden shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase sm:inline">
-						{figureLabel}
-					</span>
-				) : null}
-			</header>
+	const captionText = config.caption || config.title
 
+	return (
+		<figure className="article-embed-figure not-prose my-8 grid gap-2">
 			<div className="article-embed-body relative">{children}</div>
 
-			{config.caption || config.sourceUrl ? (
-				<figcaption className="flex flex-wrap items-baseline justify-between gap-3 border-t border-(--cards-border) pt-2 text-[13px] leading-snug text-(--text-secondary)">
-					<div className="min-w-0 flex-1">
-						{figureLabel ? <span className="mr-1.5 font-semibold text-(--text-primary)">{figureLabel}.</span> : null}
-						<span>{config.caption || config.title || providerLabel}</span>
-					</div>
-					<div className="shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-						Source ·{' '}
-						<a
-							href={config.sourceUrl}
-							target="_blank"
-							rel="noreferrer noopener"
-							className="text-(--text-tertiary) hover:text-(--link-text)"
-						>
-							{providerLabel}
-						</a>
-					</div>
-				</figcaption>
-			) : null}
+			<figcaption className="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-1 border-t border-(--cards-border) pt-2 text-[12.5px] leading-snug text-(--text-secondary)">
+				<div className="min-w-0 flex-1">
+					{figureLabel ? (
+						<span className="mr-2 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+							{figureLabel}
+						</span>
+					) : null}
+					{captionText ? <span>{captionText}</span> : null}
+				</div>
+				{config.sourceUrl ? (
+					<a
+						href={config.sourceUrl}
+						target="_blank"
+						rel="noreferrer noopener"
+						className="shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase transition-colors hover:text-(--link-text)"
+					>
+						{providerLabel} ↗
+					</a>
+				) : null}
+			</figcaption>
 		</figure>
 	)
 }
@@ -112,30 +109,29 @@ function IframeEmbed({ config }: { config: ArticleEmbedConfig }) {
 	)
 }
 
-function TweetFallback({ config }: { config: ArticleEmbedConfig }) {
+function LinkCard({ config, action }: { config: ArticleEmbedConfig; action: string }) {
+	const display = shortenUrl(config.sourceUrl)
 	return (
 		<a
 			href={config.sourceUrl}
 			target="_blank"
 			rel="noreferrer noopener"
-			className="group flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--app-bg) p-5 no-underline transition-colors hover:border-(--link-text)/60"
+			className="group flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) p-5 no-underline transition-colors hover:border-(--link-text)/50"
 		>
-			<div className="flex items-center justify-between gap-3">
-				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-					Tweet · X.com
-				</span>
-				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase group-hover:text-(--link-text)">
-					Open ↗
+			<div className="flex items-baseline justify-between gap-4">
+				<div className="min-w-0 flex-1 text-base leading-snug font-semibold text-(--text-primary) group-hover:text-(--link-text)">
+					{config.title || `Open ${display}`}
+				</div>
+				<span className="shrink-0 font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase transition-colors group-hover:text-(--link-text)">
+					{action} ↗
 				</span>
 			</div>
-			<div className="text-sm leading-snug text-(--text-primary)">{config.title || 'View this post on X'}</div>
-			{config.caption ? <div className="text-xs text-(--text-tertiary)">{config.caption}</div> : null}
-			<div className="truncate font-jetbrains text-[11px] text-(--text-tertiary)">{config.sourceUrl}</div>
+			<div className="truncate font-jetbrains text-[11px] text-(--text-tertiary)">{display}</div>
 		</a>
 	)
 }
 
-function TweetEmbed({ config }: { config: ArticleEmbedConfig }) {
+function TweetEmbed({ config, action }: { config: ArticleEmbedConfig; action: string }) {
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const [visible, setVisible] = useState(false)
 	const [resolved, setResolved] = useState(false)
@@ -198,14 +194,11 @@ function TweetEmbed({ config }: { config: ArticleEmbedConfig }) {
 	}, [visible])
 
 	if (failed && !resolved) {
-		return <TweetFallback config={config} />
+		return <LinkCard config={config} action={action} />
 	}
 
 	return (
-		<div
-			ref={containerRef}
-			className="grid place-items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-4"
-		>
+		<div ref={containerRef} className="grid min-h-32 place-items-center">
 			{visible ? (
 				<blockquote className="twitter-tweet" data-dnt="true" cite={config.url}>
 					<a href={config.url} target="_blank" rel="noreferrer noopener">
@@ -213,42 +206,11 @@ function TweetEmbed({ config }: { config: ArticleEmbedConfig }) {
 					</a>
 				</blockquote>
 			) : (
-				<div className="flex h-32 items-center justify-center text-xs text-(--text-tertiary)">Loading tweet…</div>
+				<div className="flex h-32 items-center justify-center font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+					Loading…
+				</div>
 			)}
-			{!resolved && !failed && visible ? (
-				<div className="pointer-events-none absolute inset-0 -z-10" aria-hidden />
-			) : null}
 		</div>
-	)
-}
-
-function LinkCard({ config, action }: { config: ArticleEmbedConfig; action: string }) {
-	let host = ''
-	try {
-		host = new URL(config.sourceUrl).hostname.replace(/^www\./, '')
-	} catch {}
-	const providerLabel = getEmbedProviderLabel(config.provider)
-	return (
-		<a
-			href={config.sourceUrl}
-			target="_blank"
-			rel="noreferrer noopener"
-			className="group flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--app-bg) p-5 no-underline transition-colors hover:border-(--link-text)/60"
-		>
-			<div className="flex items-center justify-between gap-3">
-				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-					{providerLabel} · {host}
-				</span>
-				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase group-hover:text-(--link-text)">
-					{action} ↗
-				</span>
-			</div>
-			<div className="text-base leading-snug font-medium text-(--text-primary)">
-				{config.title || `Open on ${providerLabel}`}
-			</div>
-			{config.caption ? <div className="text-sm leading-snug text-(--text-secondary)">{config.caption}</div> : null}
-			<div className="truncate font-jetbrains text-[11px] text-(--text-tertiary)">{config.sourceUrl}</div>
-		</a>
 	)
 }
 
@@ -256,21 +218,23 @@ const LINK_CARD_ACTIONS: Partial<Record<ArticleEmbedConfig['provider'], string>>
 	medium: 'Read',
 	mirror: 'Read',
 	substack: 'Read',
-	github: 'View'
+	github: 'View',
+	twitter: 'Open'
 }
 
 export function ArticleEmbedBlock({ config, index }: { config: ArticleEmbedConfig; index?: number }) {
+	const action = LINK_CARD_ACTIONS[config.provider] || 'Open'
 	if (config.provider === 'twitter') {
 		return (
 			<EmbedFigure config={config} index={index}>
-				<TweetEmbed config={config} />
+				<TweetEmbed config={config} action={action} />
 			</EmbedFigure>
 		)
 	}
 	if (config.provider in LINK_CARD_ACTIONS) {
 		return (
 			<EmbedFigure config={config} index={index}>
-				<LinkCard config={config} action={LINK_CARD_ACTIONS[config.provider] || 'Open'} />
+				<LinkCard config={config} action={action} />
 			</EmbedFigure>
 		)
 	}

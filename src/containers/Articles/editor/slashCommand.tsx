@@ -140,6 +140,18 @@ const ALL_ITEMS: SlashCommandItem[] = [
 		}
 	},
 	{
+		id: 'image',
+		title: 'Image',
+		description: 'Upload an image from your device',
+		icon: 'IMG',
+		group: 'Blocks',
+		keywords: ['image', 'photo', 'picture', 'upload', 'screenshot'],
+		action: (editor, range) => {
+			editor.chain().focus().deleteRange(range).run()
+			document.dispatchEvent(new CustomEvent('article:trigger-image-upload'))
+		}
+	},
+	{
 		id: 'callout-note',
 		title: 'Callout · Note',
 		description: 'Neutral aside',

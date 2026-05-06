@@ -19,6 +19,7 @@ const BLOCK_TEXT_NODES = new Set([
 	'callout',
 	'defillamaChart',
 	'articleEmbed',
+	'articleImage',
 	'tableCell',
 	'tableHeader'
 ])
@@ -106,6 +107,13 @@ export function extractArticleContent(contentJson: TiptapJson): ArticleExtractio
 				addUnique(embeds, `${embed.provider}:${embed.url}`, embed)
 				textParts.push(`[Embed: ${embed.title || embed.caption || embed.sourceUrl}]`)
 			}
+		}
+
+		if (node.type === 'articleImage') {
+			const alt = stringAttr(node.attrs, 'alt')?.trim() ?? ''
+			const caption = stringAttr(node.attrs, 'caption')?.trim() ?? ''
+			const label = caption ? (alt ? `${alt} — ${caption}` : caption) : alt || 'image'
+			textParts.push(`[Image: ${label}]`)
 		}
 
 		const shouldPad = node.type && BLOCK_TEXT_NODES.has(node.type)

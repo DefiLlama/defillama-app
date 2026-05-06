@@ -19,7 +19,10 @@ import { createEmptyLocalArticle, normalizeLocalArticleDocument } from '../docum
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
 import { EmbedPicker } from './EmbedPicker'
+import { ImageUploadButton } from '../upload/ImageUploadButton'
+import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { createArticleEditorExtensions } from './extensions'
+import { triggerInlineImagePicker, type ArticleImageUploadFn } from './nodes/ArticleImage'
 
 function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: string }) {
 	const props = {
@@ -603,7 +606,18 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [wordCount, setWordCount] = useState(0)
 	const [linkEdit, setLinkEdit] = useState<{ url: string } | null>(null)
 	const linkInputRef = useRef<HTMLInputElement | null>(null)
-	const extensions = useMemo(() => createArticleEditorExtensions(), [])
+	const inlineUploadRef = useRef<ArticleImageUploadFn | null>(null)
+	const inlineArticleIdRef = useRef<string | null | undefined>(undefined)
+	const inlineMissingArticleRef = useRef<() => void>(() => {})
+	const extensions = useMemo(
+		() =>
+			createArticleEditorExtensions({
+				uploadRef: inlineUploadRef,
+				articleIdRef: inlineArticleIdRef,
+				onMissingArticleId: () => inlineMissingArticleRef.current?.()
+			}),
+		[]
+	)
 	const chartDialog = Ariakit.useDialogStore()
 	const embedDialog = Ariakit.useDialogStore()
 	const metaDialog = Ariakit.useDialogStore()
@@ -617,6 +631,28 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
 	const articleIdRef = useRef<string | undefined>(article.id)
 	articleIdRef.current = article.id
+
+	const { uploadFile: uploadInlineImageRaw } = useImageUpload({
+		scope: 'article-inline',
+		articleId: article.id ?? null
+	})
+
+	const uploadInlineImage = useCallback<ArticleImageUploadFn>(
+		(file: File): Promise<UploadResult> => {
+			return toast.promise(uploadInlineImageRaw(file), {
+				loading: 'Uploading image…',
+				success: 'Image inserted',
+				error: (err) => (err instanceof Error ? err.message : 'Upload failed')
+			})
+		},
+		[uploadInlineImageRaw]
+	)
+
+	inlineUploadRef.current = uploadInlineImage
+	inlineArticleIdRef.current = article.id
+	inlineMissingArticleRef.current = () => {
+		toast.error('Save the draft first to attach images')
+	}
 
 	const scheduleAutosave = useCallback(() => {
 		if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -857,6 +893,19 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			document.removeEventListener('article:open-embed-picker', openHandler)
 		}
 	}, [embedDialog])
+
+	useEffect(() => {
+		const handler = () => {
+			if (!editor) return
+			if (!inlineArticleIdRef.current) {
+				toast.error('Save the draft first to attach images')
+				return
+			}
+			void triggerInlineImagePicker(editor, inlineUploadRef)
+		}
+		document.addEventListener('article:trigger-image-upload', handler)
+		return () => document.removeEventListener('article:trigger-image-upload', handler)
+	}, [editor])
 
 	const chartDialogOpen = Ariakit.useStoreState(chartDialog, 'open')
 	useEffect(() => {
@@ -1689,26 +1738,17 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 					</MetaSection>
 
 					<MetaSection title="Cover">
-						<label className="grid gap-1.5">
-							<input
-								value={article.coverImage?.url ?? ''}
-								onChange={(event) =>
-									updateArticle(
-										'coverImage',
-										event.target.value.trim() ? { url: event.target.value, alt: article.title } : null
-									)
-								}
-								placeholder="https://…"
-								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-							/>
-							{article.coverImage?.url ? (
-								<img
-									src={article.coverImage.url}
-									alt=""
-									className="mt-1 max-h-32 w-full rounded-md border border-(--cards-border) object-cover"
-								/>
-							) : null}
-						</label>
+						<ImageUploadButton
+							scope="article-cover"
+							articleId={articleId}
+							currentUrl={article.coverImage?.url ?? null}
+							onUploaded={(result) =>
+								updateArticle('coverImage', { url: result.url, alt: article.title })
+							}
+							onCleared={() => updateArticle('coverImage', null)}
+							label="cover image"
+							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
+						/>
 					</MetaSection>
 				</div>
 

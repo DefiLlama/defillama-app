@@ -18,6 +18,7 @@ import { getArticleEntityRoute } from '../entityLinks'
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEntityType } from '../types'
 import { ArticleEmbed } from './EmbedNode'
 import { ArticleEntitySuggestion } from './entitySuggestion'
+import { ArticleImage, type ArticleImageOptions } from './nodes/ArticleImage'
 import { ArticleSlashCommand } from './slashCommand'
 
 const lowlight = createLowlight(common)
@@ -407,7 +408,7 @@ export const Citation = Node.create({
 	}
 })
 
-export function createArticleEditorExtensions() {
+export function createArticleEditorExtensions(imageOptions?: Partial<ArticleImageOptions>) {
 	return [
 		StarterKit.configure({
 			heading: { levels: [2, 3, 4] },
@@ -439,6 +440,11 @@ export function createArticleEditorExtensions() {
 		ArticleSlashCommand,
 		DefillamaChart,
 		ArticleEmbed,
+		ArticleImage.configure({
+			uploadRef: imageOptions?.uploadRef ?? null,
+			articleIdRef: imageOptions?.articleIdRef ?? null,
+			onMissingArticleId: imageOptions?.onMissingArticleId ?? null
+		}),
 		Callout,
 		Citation
 	]

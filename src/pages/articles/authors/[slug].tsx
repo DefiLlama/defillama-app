@@ -43,17 +43,25 @@ function SocialLink({ kind, value }: { kind: string; value: string }) {
 	)
 }
 
-function YourArticlesChip({ authorPbUserId }: { authorPbUserId: string }) {
+function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 	const { user, isAuthenticated } = useAuthContext()
 	const isMine = isAuthenticated && !!user?.id && user.id === authorPbUserId
 	if (!isMine) return null
 	return (
-		<Link
-			href="/articles/mine"
-			className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
-		>
-			Your articles →
-		</Link>
+		<>
+			<Link
+				href="/articles/profile"
+				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
+			>
+				Edit profile
+			</Link>
+			<Link
+				href="/articles/mine"
+				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
+			>
+				Your articles →
+			</Link>
+		</>
 	)
 }
 
@@ -127,123 +135,155 @@ function AuthorContent({ slug }: { slug: string }) {
 	const lead = articles[0]
 	const rest = articles.slice(1)
 
+	const socialEntries = author.socials
+		? Object.entries(author.socials).filter(([, value]) => Boolean(value))
+		: []
+
 	return (
-		<div className="mx-auto grid w-full max-w-4xl gap-6 px-1 pb-16">
-			<header className="grid gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 md:p-6">
-				<div className="flex items-start gap-4">
-					{author.avatarUrl ? (
-						<img
-							src={author.avatarUrl}
-							alt=""
-							className="h-20 w-20 shrink-0 rounded-full border border-(--cards-border) object-cover"
-						/>
-					) : (
-						<div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border border-(--cards-border) bg-(--app-bg) text-xl font-semibold text-(--text-secondary)">
-							{author.displayName.slice(0, 2).toUpperCase()}
-						</div>
-					)}
-					<div className="grid min-w-0 gap-1.5">
-						<h1 className="text-2xl font-semibold tracking-tight text-(--text-primary) md:text-3xl">
+		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">
+			<div className="flex items-center justify-between gap-3">
+				<Link
+					href="/articles"
+					className="inline-flex items-center gap-1 text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
+				>
+					<span aria-hidden>←</span> All articles
+				</Link>
+				<div className="flex flex-wrap items-center gap-1.5">
+					<OwnerChips authorPbUserId={author.pbUserId} />
+				</div>
+			</div>
+
+			<header className="grid gap-6 border-b border-(--cards-border) pb-10 md:grid-cols-[auto_minmax(0,1fr)] md:gap-8 md:pb-12">
+				{author.avatarUrl ? (
+					<img
+						src={author.avatarUrl}
+						alt=""
+						className="h-24 w-24 shrink-0 rounded-full border border-(--cards-border) object-cover md:h-32 md:w-32"
+					/>
+				) : (
+					<div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-2xl font-semibold text-(--text-secondary) md:h-32 md:w-32 md:text-3xl">
+						{author.displayName.slice(0, 2).toUpperCase()}
+					</div>
+				)}
+				<div className="grid min-w-0 gap-4">
+					<div className="grid gap-1.5">
+						<h1 className="text-3xl leading-tight font-semibold tracking-tight text-(--text-primary) md:text-5xl">
 							{author.displayName}
 						</h1>
 						<p className="font-jetbrains text-xs text-(--text-tertiary)">@{author.slug}</p>
-						{author.bio ? (
-							<p className="max-w-prose text-sm leading-relaxed text-(--text-secondary)">{author.bio}</p>
+					</div>
+					{author.bio ? (
+						<p className="max-w-prose text-base leading-relaxed text-(--text-secondary)">{author.bio}</p>
+					) : null}
+					<div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-xs text-(--text-tertiary)">
+						<span>
+							<strong className="font-semibold text-(--text-primary)">{articles.length}</strong>{' '}
+							{articles.length === 1 ? 'article' : 'articles'}
+						</span>
+						{yearsLabel ? (
+							<>
+								<span aria-hidden>·</span>
+								<span className="font-jetbrains">{yearsLabel}</span>
+							</>
 						) : null}
-						<div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-(--text-tertiary)">
-							<span>
-								{articles.length} {articles.length === 1 ? 'article' : 'articles'}
-							</span>
-							{yearsLabel ? (
-								<>
-									<span aria-hidden>·</span>
-									<span>{yearsLabel}</span>
-								</>
-							) : null}
-							{totalMinutes > 0 ? (
-								<>
-									<span aria-hidden>·</span>
-									<span>{totalMinutes} min reading</span>
-								</>
-							) : null}
+						{totalMinutes > 0 ? (
+							<>
+								<span aria-hidden>·</span>
+								<span>
+									<strong className="font-semibold text-(--text-primary)">{totalMinutes}</strong> min reading
+								</span>
+							</>
+						) : null}
+					</div>
+					{socialEntries.length > 0 ? (
+						<div className="flex flex-wrap gap-1.5 pt-1">
+							{socialEntries.map(([kind, value]) => (
+								<SocialLink key={kind} kind={kind} value={value} />
+							))}
 						</div>
-					</div>
+					) : null}
 				</div>
-				{(author.socials && Object.keys(author.socials).length > 0) || author.pbUserId ? (
-					<div className="flex flex-wrap gap-1.5">
-						{author.socials &&
-							Object.entries(author.socials).map(([kind, value]) =>
-								value ? <SocialLink key={kind} kind={kind} value={value} /> : null
-							)}
-						<YourArticlesChip authorPbUserId={author.pbUserId} />
-					</div>
-				) : null}
 			</header>
 
 			{articles.length === 0 ? (
-				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-sm text-(--text-secondary)">
-					No published articles yet.
+				<div className="rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-10 text-center">
+					<p className="text-sm text-(--text-secondary)">No published articles yet.</p>
 				</div>
 			) : (
 				<>
 					{lead ? (
-						<section className="grid gap-3">
-							<h2 className="text-sm font-semibold tracking-[0.16em] text-(--text-tertiary) uppercase">Latest</h2>
+						<section>
 							<Link
 								href={`/articles/${lead.slug}`}
-								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:bg-(--link-button) md:grid-cols-[minmax(0,1fr)_minmax(0,280px)]"
+								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)]"
 							>
-								<div className="order-2 grid content-start gap-2 p-5 md:order-1">
-									<div className="text-xs text-(--text-tertiary)">
-										{formatDate(lead.publishedAt)} · {readingMinutes(lead)} min read
+								<div className="order-2 grid content-start gap-3 p-6 md:order-1 md:p-8">
+									<div className="flex items-center gap-2 text-[11px] tracking-wide text-(--text-tertiary) uppercase">
+										<span className="font-jetbrains">Latest</span>
+										<span aria-hidden>·</span>
+										<span>{formatDate(lead.publishedAt)}</span>
+										<span aria-hidden>·</span>
+										<span>{readingMinutes(lead)} min read</span>
 									</div>
-									<h3 className="text-xl leading-tight font-semibold text-(--text-primary) group-hover:text-(--link-text) md:text-2xl">
+									<h2 className="text-2xl leading-[1.15] font-semibold tracking-tight text-(--text-primary) group-hover:text-(--link-text) md:text-3xl">
 										{lead.title}
-									</h3>
+									</h2>
 									{lead.subtitle ? (
-										<p className="text-sm leading-snug text-(--text-secondary)">{lead.subtitle}</p>
+										<p className="text-base leading-snug text-(--text-secondary)">{lead.subtitle}</p>
 									) : lead.excerpt ? (
-										<p className="line-clamp-3 text-sm text-(--text-secondary)">{lead.excerpt}</p>
+										<p className="line-clamp-3 text-sm leading-relaxed text-(--text-secondary)">{lead.excerpt}</p>
 									) : null}
 								</div>
 								{lead.coverImage?.url ? (
-									<img
-										src={lead.coverImage.url}
-										alt=""
-										className="order-1 h-40 w-full object-cover md:order-2 md:h-full"
-									/>
+									<div className="order-1 overflow-hidden md:order-2">
+										<img
+											src={lead.coverImage.url}
+											alt=""
+											className="h-44 w-full object-cover transition-transform duration-500 group-hover:scale-[1.02] md:h-full"
+										/>
+									</div>
 								) : null}
 							</Link>
 						</section>
 					) : null}
 
 					{rest.length ? (
-						<section className="grid gap-3">
-							<div className="flex items-end justify-between gap-2">
+						<section className="grid gap-4">
+							<div className="flex items-baseline justify-between gap-2 border-b border-(--cards-border) pb-3">
 								<h2 className="text-sm font-semibold tracking-[0.16em] text-(--text-tertiary) uppercase">
 									Archive
 								</h2>
-								<p className="text-xs text-(--text-tertiary)">
+								<p className="font-jetbrains text-xs text-(--text-tertiary)">
 									{rest.length} {rest.length === 1 ? 'note' : 'notes'}
 								</p>
 							</div>
-							<ul className="grid rounded-md border border-(--cards-border) bg-(--cards-bg) px-4">
+							<ul className="grid">
 								{rest.map((article) => (
 									<li
 										key={article.id}
-										className="grid grid-cols-[80px_minmax(0,1fr)] items-baseline gap-4 border-t border-(--cards-border) py-4 first:border-t-0 sm:grid-cols-[100px_minmax(0,1fr)]"
+										className="grid grid-cols-[64px_minmax(0,1fr)] items-baseline gap-5 border-b border-(--cards-border) py-5 last:border-b-0 sm:grid-cols-[88px_minmax(0,1fr)] sm:gap-6"
 									>
-										<div className="font-jetbrains text-[11px] tracking-tight text-(--text-tertiary)">
+										<div className="font-jetbrains text-[11px] tracking-tight text-(--text-tertiary) tabular-nums">
 											{formatShort(article.publishedAt)}
 										</div>
-										<Link href={`/articles/${article.slug}`} className="group grid gap-1">
-											<h3 className="text-base leading-tight font-semibold text-(--text-primary) group-hover:text-(--link-text)">
+										<Link href={`/articles/${article.slug}`} className="group grid gap-1.5">
+											<h3 className="text-base leading-tight font-semibold text-(--text-primary) transition-colors group-hover:text-(--link-text) md:text-lg">
 												{article.title}
 											</h3>
 											{article.excerpt ? (
-												<p className="line-clamp-2 text-sm text-(--text-secondary)">{article.excerpt}</p>
+												<p className="line-clamp-2 text-sm leading-relaxed text-(--text-secondary)">
+													{article.excerpt}
+												</p>
 											) : null}
-											<div className="text-xs text-(--text-tertiary)">{readingMinutes(article)} min read</div>
+											<div className="flex items-center gap-2 text-[11px] text-(--text-tertiary)">
+												<span>{readingMinutes(article)} min read</span>
+												{article.tags && article.tags.length > 0 ? (
+													<>
+														<span aria-hidden>·</span>
+														<span className="font-jetbrains">{article.tags[0]}</span>
+													</>
+												) : null}
+											</div>
 										</Link>
 									</li>
 								))}
