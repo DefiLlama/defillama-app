@@ -29,4 +29,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 }
 
-export default withApiRouteTelemetry('/api/articles/entities/preview', handler)
+export default withApiRouteTelemetry('/api/research/entities/preview', handler)

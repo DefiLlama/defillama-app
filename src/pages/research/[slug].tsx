@@ -22,7 +22,7 @@ function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	return (
 		<div className="pointer-events-none fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 justify-center sm:bottom-8">
 			<Link
-				href={`/articles/edit/${article.id}`}
+				href={`/research/edit/${article.id}`}
 				className="pointer-events-auto flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm font-medium text-(--text-primary) shadow-lg transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
 				<svg
@@ -37,7 +37,7 @@ function OwnerEditChip({ article }: { article: ArticleDocument }) {
 					<path d="M12 20h9" />
 					<path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z" />
 				</svg>
-				Edit article
+				Edit research
 			</Link>
 		</div>
 	)
@@ -66,7 +66,7 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 			})
 			.catch((err) => {
 				if (cancelled) return
-				setError(err instanceof ArticleApiError ? err.message : 'Failed to load article')
+				setError(err instanceof ArticleApiError ? err.message : 'Failed to load research')
 			})
 			.finally(() => {
 				if (!cancelled) setIsLoading(false)
@@ -87,9 +87,9 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 	if (notFound) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Article not found</h1>
-				<Link href="/articles" className="text-sm text-(--link-text) hover:underline">
-					Browse all articles →
+				<h1 className="text-xl font-semibold text-(--text-primary)">Research not found</h1>
+				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
+					Browse all research →
 				</Link>
 			</div>
 		)
@@ -98,7 +98,7 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 	if (error || !article) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load article</h1>
+				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load research</h1>
 				<p className="text-sm text-(--text-secondary)">{error}</p>
 			</div>
 		)
@@ -126,9 +126,9 @@ export default function ArticlePage() {
 
 	return (
 		<Layout
-			title="Article - DefiLlama"
-			description="DefiLlama article."
-			canonicalUrl={slug ? `/articles/${slug}` : '/articles'}
+			title="Research - DefiLlama"
+			description="DefiLlama research."
+			canonicalUrl={slug ? `/research/${slug}` : '/research'}
 			noIndex
 			hideDesktopSearch
 		>

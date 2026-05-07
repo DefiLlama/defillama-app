@@ -50,16 +50,16 @@ function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 	return (
 		<>
 			<Link
-				href="/articles/profile"
+				href="/research/profile"
 				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
 				Edit profile
 			</Link>
 			<Link
-				href="/articles/mine"
+				href="/research/mine"
 				className="rounded-md border border-(--cards-border) px-2.5 py-1 text-xs text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--link-text)"
 			>
-				Your articles →
+				Your research →
 			</Link>
 		</>
 	)
@@ -109,8 +109,8 @@ function AuthorContent({ slug }: { slug: string }) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Author not found</h1>
-				<Link href="/articles" className="text-sm text-(--link-text) hover:underline">
-					Browse all articles →
+				<Link href="/research" className="text-sm text-(--link-text) hover:underline">
+					Browse all research →
 				</Link>
 			</div>
 		)
@@ -143,10 +143,10 @@ function AuthorContent({ slug }: { slug: string }) {
 		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">
 			<div className="flex items-center justify-between gap-3">
 				<Link
-					href="/articles"
+					href="/research"
 					className="inline-flex items-center gap-1 text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 				>
-					<span aria-hidden>←</span> All articles
+					<span aria-hidden>←</span> All research
 				</Link>
 				<div className="flex flex-wrap items-center gap-1.5">
 					<OwnerChips authorPbUserId={author.pbUserId} />
@@ -178,7 +178,7 @@ function AuthorContent({ slug }: { slug: string }) {
 					<div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-xs text-(--text-tertiary)">
 						<span>
 							<strong className="font-semibold text-(--text-primary)">{articles.length}</strong>{' '}
-							{articles.length === 1 ? 'article' : 'articles'}
+							{articles.length === 1 ? 'piece' : 'pieces'}
 						</span>
 						{yearsLabel ? (
 							<>
@@ -207,14 +207,14 @@ function AuthorContent({ slug }: { slug: string }) {
 
 			{articles.length === 0 ? (
 				<div className="rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-10 text-center">
-					<p className="text-sm text-(--text-secondary)">No published articles yet.</p>
+					<p className="text-sm text-(--text-secondary)">No published research yet.</p>
 				</div>
 			) : (
 				<>
 					{lead ? (
 						<section>
 							<Link
-								href={`/articles/${lead.slug}`}
+								href={`/research/${lead.slug}`}
 								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)]"
 							>
 								<div className="order-2 grid content-start gap-3 p-6 md:order-1 md:p-8">
@@ -267,7 +267,7 @@ function AuthorContent({ slug }: { slug: string }) {
 											{formatShort(article.publishedAt)}
 										</div>
 										{article.coverImage?.url ? (
-											<Link href={`/articles/${article.slug}`} className="block">
+											<Link href={`/research/${article.slug}`} className="block">
 												<img
 													src={article.coverImage.url}
 													alt=""
@@ -282,7 +282,7 @@ function AuthorContent({ slug }: { slug: string }) {
 												aria-hidden
 											/>
 										)}
-										<Link href={`/articles/${article.slug}`} className="group grid gap-1.5">
+										<Link href={`/research/${article.slug}`} className="group grid gap-1.5">
 											<h3 className="text-base leading-tight font-semibold text-(--text-primary) transition-colors group-hover:text-(--link-text) md:text-lg">
 												{article.title}
 											</h3>
@@ -319,8 +319,8 @@ export default function ArticleAuthorPage() {
 	return (
 		<Layout
 			title="Author - DefiLlama"
-			description="Read DefiLlama articles by this author."
-			canonicalUrl={slug ? `/articles/authors/${slug}` : '/articles'}
+			description="Read DefiLlama research by this author."
+			canonicalUrl={slug ? `/research/authors/${slug}` : '/research'}
 			noIndex
 			hideDesktopSearch
 		>

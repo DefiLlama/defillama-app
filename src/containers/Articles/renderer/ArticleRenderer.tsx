@@ -508,7 +508,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 							</span>
 							{article.authorProfile ? (
 								<Link
-									href={`/articles/authors/${article.authorProfile.slug}`}
+									href={`/research/authors/${article.authorProfile.slug}`}
 									className="text-sm text-(--text-primary) hover:text-(--link-text)"
 								>
 									{article.author}

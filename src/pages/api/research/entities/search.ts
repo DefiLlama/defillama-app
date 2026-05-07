@@ -75,4 +75,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 	}
 }
 
-export default withApiRouteTelemetry('/api/articles/entities/search', handler)
+export default withApiRouteTelemetry('/api/research/entities/search', handler)

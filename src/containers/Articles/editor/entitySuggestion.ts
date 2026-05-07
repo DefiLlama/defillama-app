@@ -12,7 +12,7 @@ const EMPTY_ITEMS: ArticleEntitySuggestionItem[] = []
 
 async function fetchEntitySuggestions(query: string, signal?: AbortSignal): Promise<ArticleEntitySuggestionItem[]> {
 	try {
-		const response = await fetch(`/api/articles/entities/search?q=${encodeURIComponent(query)}`, { signal })
+		const response = await fetch(`/api/research/entities/search?q=${encodeURIComponent(query)}`, { signal })
 		if (!response.ok) return EMPTY_ITEMS
 		const data = (await response.json()) as SuggestionResponse
 		return Array.isArray(data.entities) ? data.entities : EMPTY_ITEMS
