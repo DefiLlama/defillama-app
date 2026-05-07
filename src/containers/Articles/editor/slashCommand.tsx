@@ -152,6 +152,18 @@ const ALL_ITEMS: SlashCommandItem[] = [
 		}
 	},
 	{
+		id: 'people',
+		title: 'People panel',
+		description: 'Image + bio cards (moderators, contributors, panelists)',
+		icon: '◐',
+		group: 'Custom',
+		keywords: ['people', 'bio', 'panel', 'moderator', 'interviewee', 'speaker', 'contributor', 'about', 'team'],
+		action: (editor, range) => {
+			editor.chain().focus().deleteRange(range).run()
+			document.dispatchEvent(new CustomEvent('article:open-people-panel-picker'))
+		}
+	},
+	{
 		id: 'callout-note',
 		title: 'Callout · Note',
 		description: 'Neutral aside',

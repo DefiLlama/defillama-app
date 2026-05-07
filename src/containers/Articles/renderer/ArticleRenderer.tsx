@@ -2,6 +2,7 @@ import { common, createLowlight } from 'lowlight'
 import Link from 'next/link'
 import { createElement, useEffect, useState, type ReactNode } from 'react'
 import { validateArticleChartConfig } from '../chartAdapters'
+import { validateArticlePeoplePanel } from '../editor/peoplePanel'
 import { validateEmbedConfig } from '../embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from '../entityLinks'
 import { getTiptapNodeText } from '../extractors'
@@ -16,6 +17,7 @@ import type {
 import { ArticleChartBlock } from './ArticleChartBlock'
 import { ArticleEmbedBlock } from './ArticleEmbedBlock'
 import { ArticleImageBlock } from './ArticleImageBlock'
+import { ArticlePeoplePanelBlock } from './ArticlePeoplePanelBlock'
 import { EntityPreviewLink } from './EntityPreviewLink'
 
 const lowlight = createLowlight(common)
@@ -274,6 +276,11 @@ function renderNode(node: TiptapJson, key: string, ctx: RenderContext): ReactNod
 	}
 	if (node.type === 'articleImage') {
 		return <ArticleImageBlock key={key} attrs={node.attrs as Parameters<typeof ArticleImageBlock>[0]['attrs']} />
+	}
+	if (node.type === 'articlePeoplePanel') {
+		const config = validateArticlePeoplePanel(node.attrs?.config)
+		if (!config) return null
+		return <ArticlePeoplePanelBlock key={key} config={config} />
 	}
 	if (node.type === 'table') return renderTable(node, key, ctx)
 	if (node.type === 'tableRow') return renderTableRow(node, key, ctx)

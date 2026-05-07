@@ -19,6 +19,8 @@ import { createEmptyLocalArticle, normalizeLocalArticleDocument } from '../docum
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
 import { EmbedPicker } from './EmbedPicker'
+import { PeoplePanelDialog } from './PeoplePanelDialog'
+import type { ArticlePeoplePanelConfig } from './peoplePanel'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { createArticleEditorExtensions } from './extensions'
@@ -290,6 +292,23 @@ function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: strin
 					<circle cx="6" cy="12" r="1" fill="currentColor" stroke="none" />
 					<circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
 					<circle cx="18" cy="12" r="1" fill="currentColor" stroke="none" />
+				</svg>
+			)
+		case 'image':
+			return (
+				<svg {...props}>
+					<rect x="3" y="5" width="18" height="14" rx="1.5" />
+					<circle cx="9" cy="10" r="1.5" />
+					<path d="m21 16-5-5-4 4-2-2-7 7" />
+				</svg>
+			)
+		case 'people':
+			return (
+				<svg {...props}>
+					<circle cx="9" cy="9" r="3" />
+					<path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+					<circle cx="16.5" cy="10.5" r="2.5" />
+					<path d="M14.5 19a4.5 4.5 0 0 1 6 0" />
 				</svg>
 			)
 		default:
@@ -620,9 +639,11 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	)
 	const chartDialog = Ariakit.useDialogStore()
 	const embedDialog = Ariakit.useDialogStore()
+	const peoplePanelDialog = Ariakit.useDialogStore()
 	const metaDialog = Ariakit.useDialogStore()
 	const [editingChart, setEditingChart] = useState<{ config: ArticleChartConfig; pos: number } | null>(null)
 	const [editingEmbed, setEditingEmbed] = useState<{ config: ArticleEmbedConfig; pos: number } | null>(null)
+	const [editingPanel, setEditingPanel] = useState<{ config: ArticlePeoplePanelConfig; pos: number } | null>(null)
 	const [saveError, setSaveError] = useState(false)
 	const [slugEditing, setSlugEditing] = useState(false)
 	const [slugDraft, setSlugDraft] = useState('')
@@ -907,6 +928,25 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		return () => document.removeEventListener('article:trigger-image-upload', handler)
 	}, [editor])
 
+	useEffect(() => {
+		const editHandler = (event: Event) => {
+			const detail = (event as CustomEvent<{ config: ArticlePeoplePanelConfig | null; pos: number }>).detail
+			if (!detail || typeof detail.pos !== 'number') return
+			setEditingPanel(detail.config ? { config: detail.config, pos: detail.pos } : null)
+			peoplePanelDialog.show()
+		}
+		const openHandler = () => {
+			setEditingPanel(null)
+			peoplePanelDialog.show()
+		}
+		document.addEventListener('article:edit-people-panel', editHandler)
+		document.addEventListener('article:open-people-panel-picker', openHandler)
+		return () => {
+			document.removeEventListener('article:edit-people-panel', editHandler)
+			document.removeEventListener('article:open-people-panel-picker', openHandler)
+		}
+	}, [peoplePanelDialog])
+
 	const chartDialogOpen = Ariakit.useStoreState(chartDialog, 'open')
 	useEffect(() => {
 		if (!chartDialogOpen) setEditingChart(null)
@@ -916,6 +956,11 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	useEffect(() => {
 		if (!embedDialogOpen) setEditingEmbed(null)
 	}, [embedDialogOpen])
+
+	const peoplePanelDialogOpen = Ariakit.useStoreState(peoplePanelDialog, 'open')
+	useEffect(() => {
+		if (!peoplePanelDialogOpen) setEditingPanel(null)
+	}, [peoplePanelDialogOpen])
 
 	const handleChartSubmit = useCallback(
 		(config: ArticleChartConfig) => {
@@ -943,6 +988,19 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			}
 		},
 		[editor, editingEmbed]
+	)
+
+	const handlePeoplePanelSubmit = useCallback(
+		(config: ArticlePeoplePanelConfig) => {
+			if (!editor) return
+			if (editingPanel) {
+				editor.chain().focus().updatePeoplePanel({ pos: editingPanel.pos, config }).run()
+				setEditingPanel(null)
+			} else {
+				editor.chain().focus().insertPeoplePanel(config).run()
+			}
+		},
+		[editor, editingPanel]
 	)
 
 	const [isPublishing, setIsPublishing] = useState(false)
@@ -1456,6 +1514,20 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									<span>Embed</span>
 									<span className="font-jetbrains text-[10px] text-(--text-tertiary)">URL</span>
 								</Ariakit.MenuItem>
+								<Ariakit.MenuItem
+									onClick={() => document.dispatchEvent(new CustomEvent('article:trigger-image-upload'))}
+									className="flex items-center justify-between rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+								>
+									<span>Image</span>
+									<span className="font-jetbrains text-[10px] text-(--text-tertiary)">Upload</span>
+								</Ariakit.MenuItem>
+								<Ariakit.MenuItem
+									onClick={() => document.dispatchEvent(new CustomEvent('article:open-people-panel-picker'))}
+									className="flex items-center justify-between rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+								>
+									<span>People panel</span>
+									<span className="font-jetbrains text-[10px] text-(--text-tertiary)">Bios</span>
+								</Ariakit.MenuItem>
 								<Ariakit.MenuProvider>
 									<Ariakit.MenuItem
 										render={
@@ -1602,6 +1674,26 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 											Embed
 										</span>
 										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">URL</span>
+									</Ariakit.MenuItem>
+									<Ariakit.MenuItem
+										onClick={() => document.dispatchEvent(new CustomEvent('article:trigger-image-upload'))}
+										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+									>
+										<span className="flex items-center gap-2">
+											<Icon name="image" className="h-3.5 w-3.5" />
+											Image
+										</span>
+										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">Upload</span>
+									</Ariakit.MenuItem>
+									<Ariakit.MenuItem
+										onClick={() => document.dispatchEvent(new CustomEvent('article:open-people-panel-picker'))}
+										className="flex items-center justify-between gap-3 rounded px-2 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+									>
+										<span className="flex items-center gap-2">
+											<Icon name="people" className="h-3.5 w-3.5" />
+											People panel
+										</span>
+										<span className="font-jetbrains text-[10px] text-(--text-tertiary)">Bios</span>
 									</Ariakit.MenuItem>
 									<span aria-hidden className="my-1 h-px bg-(--cards-border)" />
 									<Ariakit.MenuProvider>
@@ -1796,6 +1888,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			/>
 
 			<EmbedPicker store={embedDialog} initialConfig={editingEmbed?.config ?? null} onInsert={handleEmbedSubmit} />
+
+			<PeoplePanelDialog
+				store={peoplePanelDialog}
+				articleId={article.id ?? null}
+				initialConfig={editingPanel?.config ?? null}
+				onSubmit={handlePeoplePanelSubmit}
+			/>
 		</div>
 	)
 }

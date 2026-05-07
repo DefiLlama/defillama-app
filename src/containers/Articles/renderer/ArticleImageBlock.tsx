@@ -16,6 +16,7 @@ export type ArticleImageBlockAttrs = {
 	src?: string | null
 	alt?: string | null
 	caption?: string | null
+	href?: string | null
 	width?: number | null
 	height?: number | null
 	widthMode?: ArticleImageWidthMode | string | null
@@ -31,20 +32,36 @@ export function ArticleImageBlock({ attrs }: { attrs: ArticleImageBlockAttrs | n
 	if (!src) return null
 	const alt = attrs?.alt ?? ''
 	const caption = attrs?.caption ?? ''
+	const href = (attrs?.href ?? '').trim()
 	const widthMode = normalizeWidthMode(attrs?.widthMode)
 	const aspectStyle =
 		attrs?.width && attrs?.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined
 
+	const imgEl = (
+		<img
+			src={src}
+			alt={alt}
+			loading="lazy"
+			decoding="async"
+			className={`block w-full ${widthModeImageClass[widthMode]}`}
+			style={aspectStyle}
+		/>
+	)
+
 	return (
 		<figure className={`not-prose my-8 ${widthModeWrapClass[widthMode]}`} data-article-image data-width-mode={widthMode}>
-			<img
-				src={src}
-				alt={alt}
-				loading="lazy"
-				decoding="async"
-				className={`block w-full ${widthModeImageClass[widthMode]}`}
-				style={aspectStyle}
-			/>
+			{href ? (
+				<a
+					href={href}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="block transition-opacity hover:opacity-90"
+				>
+					{imgEl}
+				</a>
+			) : (
+				imgEl
+			)}
 			{caption ? (
 				<figcaption
 					className={`mt-2 text-xs leading-relaxed text-(--text-tertiary) ${

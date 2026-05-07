@@ -114,11 +114,19 @@ export type ArticleImageAttrs = {
 	src: string | null
 	alt: string
 	caption: string
+	href: string
 	width: number | null
 	height: number | null
 	widthMode: ArticleImageWidthMode
 	uploading: boolean
 	placeholderId: string | null
+}
+
+export function normalizeImageHref(value: string): string {
+	const trimmed = (value ?? '').trim()
+	if (!trimmed) return ''
+	if (/^(https?:\/\/|mailto:)/i.test(trimmed)) return trimmed
+	return `https://${trimmed}`
 }
 
 declare module '@tiptap/core' {
@@ -208,6 +216,14 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 			src: { default: null },
 			alt: { default: '' },
 			caption: { default: '' },
+			href: {
+				default: '',
+				parseHTML: (el) => el.getAttribute('data-href') ?? '',
+				renderHTML: (attrs) => {
+					const value = typeof attrs.href === 'string' ? attrs.href : ''
+					return value ? { 'data-href': value } : {}
+				}
+			},
 			width: { default: null },
 			height: { default: null },
 			widthMode: {
@@ -262,6 +278,7 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 							src: null,
 							alt: '',
 							caption: '',
+							href: '',
 							width: null,
 							height: null,
 							widthMode: 'default',

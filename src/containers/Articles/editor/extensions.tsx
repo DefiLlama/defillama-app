@@ -19,6 +19,7 @@ import type { ArticleCalloutTone, ArticleChartConfig, ArticleEntityType } from '
 import { ArticleEmbed } from './EmbedNode'
 import { ArticleEntitySuggestion } from './entitySuggestion'
 import { ArticleImage, type ArticleImageOptions } from './nodes/ArticleImage'
+import { ArticlePeoplePanel } from './nodes/ArticlePeoplePanel'
 import { ArticleSlashCommand } from './slashCommand'
 
 const lowlight = createLowlight(common)
@@ -445,6 +446,7 @@ export function createArticleEditorExtensions(imageOptions?: Partial<ArticleImag
 			articleIdRef: imageOptions?.articleIdRef ?? null,
 			onMissingArticleId: imageOptions?.onMissingArticleId ?? null
 		}),
+		ArticlePeoplePanel,
 		Callout,
 		Citation
 	]

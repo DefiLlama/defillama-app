@@ -261,11 +261,27 @@ function AuthorContent({ slug }: { slug: string }) {
 								{rest.map((article) => (
 									<li
 										key={article.id}
-										className="grid grid-cols-[64px_minmax(0,1fr)] items-baseline gap-5 border-b border-(--cards-border) py-5 last:border-b-0 sm:grid-cols-[88px_minmax(0,1fr)] sm:gap-6"
+										className="grid grid-cols-[64px_72px_minmax(0,1fr)] items-start gap-4 border-b border-(--cards-border) py-5 last:border-b-0 sm:grid-cols-[88px_96px_minmax(0,1fr)] sm:gap-6"
 									>
-										<div className="font-jetbrains text-[11px] tracking-tight text-(--text-tertiary) tabular-nums">
+										<div className="font-jetbrains pt-1 text-[11px] tracking-tight text-(--text-tertiary) tabular-nums">
 											{formatShort(article.publishedAt)}
 										</div>
+										{article.coverImage?.url ? (
+											<Link href={`/articles/${article.slug}`} className="block">
+												<img
+													src={article.coverImage.url}
+													alt=""
+													loading="lazy"
+													decoding="async"
+													className="aspect-[4/3] w-full rounded-sm border border-(--cards-border) object-cover"
+												/>
+											</Link>
+										) : (
+											<div
+												className="aspect-[4/3] w-full rounded-sm border border-(--cards-border) bg-(--app-bg)"
+												aria-hidden
+											/>
+										)}
 										<Link href={`/articles/${article.slug}`} className="group grid gap-1.5">
 											<h3 className="text-base leading-tight font-semibold text-(--text-primary) transition-colors group-hover:text-(--link-text) md:text-lg">
 												{article.title}

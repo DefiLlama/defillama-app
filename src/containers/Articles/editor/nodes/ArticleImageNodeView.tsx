@@ -1,6 +1,6 @@
 import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react'
 import { useEffect, useRef, useState } from 'react'
-import type { ArticleImageAttrs, ArticleImageWidthMode } from './ArticleImage'
+import { normalizeImageHref, type ArticleImageAttrs, type ArticleImageWidthMode } from './ArticleImage'
 
 const widthModeFigureClass: Record<ArticleImageWidthMode, string> = {
 	default: '',
@@ -38,23 +38,34 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	const widthMode: ArticleImageWidthMode = (attrs.widthMode ?? 'default') as ArticleImageWidthMode
 	const [altOpen, setAltOpen] = useState(false)
 	const [altDraft, setAltDraft] = useState(attrs.alt ?? '')
+	const [linkOpen, setLinkOpen] = useState(false)
+	const [linkDraft, setLinkDraft] = useState(attrs.href ?? '')
 	const [captionDraft, setCaptionDraft] = useState(attrs.caption ?? '')
 	const [captionFocused, setCaptionFocused] = useState(false)
 	const [showCaption, setShowCaption] = useState(Boolean(attrs.caption))
 	const captionInputRef = useRef<HTMLTextAreaElement | null>(null)
+	const linkInputRef = useRef<HTMLInputElement | null>(null)
 
 	useEffect(() => {
 		setAltDraft(attrs.alt ?? '')
 	}, [attrs.alt])
 
 	useEffect(() => {
+		setLinkDraft(attrs.href ?? '')
+	}, [attrs.href])
+
+	useEffect(() => {
 		setCaptionDraft(attrs.caption ?? '')
 		if (attrs.caption) setShowCaption(true)
 	}, [attrs.caption])
 
+	useEffect(() => {
+		if (linkOpen) setTimeout(() => linkInputRef.current?.focus(), 0)
+	}, [linkOpen])
+
 	const isEditable = editor?.isEditable !== false
 	const isUploading = Boolean(attrs.uploading)
-	const showOverlay = isEditable && (selected || altOpen)
+	const showOverlay = isEditable && (selected || altOpen || linkOpen)
 
 	const setWidthMode = (mode: ArticleImageWidthMode) => {
 		updateAttributes({ widthMode: mode })
@@ -63,6 +74,17 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	const commitAlt = () => {
 		updateAttributes({ alt: altDraft.trim() })
 		setAltOpen(false)
+	}
+
+	const commitLink = () => {
+		updateAttributes({ href: normalizeImageHref(linkDraft) })
+		setLinkOpen(false)
+	}
+
+	const clearLink = () => {
+		setLinkDraft('')
+		updateAttributes({ href: '' })
+		setLinkOpen(false)
 	}
 
 	const commitCaption = () => {
@@ -148,7 +170,10 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						<span aria-hidden className="w-1.5 bg-transparent" />
 						<button
 							type="button"
-							onClick={() => setAltOpen((v) => !v)}
+							onClick={() => {
+								setAltOpen((v) => !v)
+								if (linkOpen) setLinkOpen(false)
+							}}
 							title={attrs.alt ? `Alt: ${attrs.alt}` : 'Add alt text'}
 							className={`flex items-center gap-1.5 px-2.5 py-1.5 transition-colors ${
 								altOpen
@@ -161,6 +186,27 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 								aria-hidden
 								className={`h-[5px] w-[5px] rounded-full transition-colors ${
 									attrs.alt ? 'bg-(--link-text)' : 'bg-(--text-tertiary)/40'
+								}`}
+							/>
+						</button>
+						<button
+							type="button"
+							onClick={() => {
+								setLinkOpen((v) => !v)
+								if (altOpen) setAltOpen(false)
+							}}
+							title={attrs.href ? `Links to: ${attrs.href}` : 'Add link'}
+							className={`flex items-center gap-1.5 px-2.5 py-1.5 transition-colors ${
+								linkOpen
+									? 'bg-(--app-bg) text-(--text-primary)'
+									: 'text-(--text-tertiary) hover:bg-(--app-bg) hover:text-(--text-primary)'
+							}`}
+						>
+							<span>Link</span>
+							<span
+								aria-hidden
+								className={`h-[5px] w-[5px] rounded-full transition-colors ${
+									attrs.href ? 'bg-(--link-text)' : 'bg-(--text-tertiary)/40'
 								}`}
 							/>
 						</button>
@@ -190,6 +236,69 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						>
 							Remove
 						</button>
+					</div>
+				) : null}
+
+				{linkOpen && !isUploading ? (
+					<div
+						contentEditable={false}
+						onMouseDown={(e) => e.stopPropagation()}
+						className="absolute top-13 right-3 z-10 grid w-80 gap-3 border border-(--cards-border) bg-(--cards-bg) p-3"
+					>
+						<label className="grid gap-1.5">
+							<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+								Image link
+							</span>
+							<input
+								ref={linkInputRef}
+								type="url"
+								inputMode="url"
+								value={linkDraft}
+								onChange={(e) => setLinkDraft(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Escape') {
+										e.preventDefault()
+										setLinkDraft(attrs.href ?? '')
+										setLinkOpen(false)
+									}
+									if (e.key === 'Enter' && !e.shiftKey) {
+										e.preventDefault()
+										commitLink()
+									}
+								}}
+								placeholder="https://…"
+								className="w-full border border-(--cards-border) bg-(--app-bg) px-2 py-1.5 text-xs leading-snug text-(--text-primary) outline-none focus:border-(--link-text)/60"
+							/>
+						</label>
+						<div className="font-jetbrains flex items-center justify-between text-[10px] tracking-[0.18em] uppercase">
+							{attrs.href ? (
+								<button
+									type="button"
+									onClick={clearLink}
+									className="px-1 py-1 text-(--text-tertiary) transition-colors hover:text-red-500"
+								>
+									Remove
+								</button>
+							) : (
+								<button
+									type="button"
+									onClick={() => {
+										setLinkDraft(attrs.href ?? '')
+										setLinkOpen(false)
+									}}
+									className="px-1 py-1 text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
+								>
+									Cancel
+								</button>
+							)}
+							<button
+								type="button"
+								onClick={commitLink}
+								className="bg-(--text-primary) px-3 py-1.5 text-(--cards-bg) transition-opacity hover:opacity-90"
+							>
+								Save
+							</button>
+						</div>
 					</div>
 				) : null}
 
