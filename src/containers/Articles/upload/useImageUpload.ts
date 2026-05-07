@@ -38,6 +38,17 @@ function validateClient(file: File): string | null {
 	return null
 }
 
+async function fileToBase64(file: File): Promise<string> {
+	const buf = await file.arrayBuffer()
+	const bytes = new Uint8Array(buf)
+	let binary = ''
+	const chunkSize = 0x8000
+	for (let i = 0; i < bytes.length; i += chunkSize) {
+		binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize))
+	}
+	return btoa(binary)
+}
+
 export function useImageUpload(args: { scope: UploadScope; articleId?: string | null }) {
 	const { authorizedFetch } = useAuthContext()
 	const [isUploading, setIsUploading] = useState(false)
@@ -47,16 +58,21 @@ export function useImageUpload(args: { scope: UploadScope; articleId?: string | 
 			const clientError = validateClient(file)
 			if (clientError) throw new ImageUploadError(clientError, 400)
 
-			const fd = new FormData()
-			fd.append('file', file)
-			fd.append('scope', args.scope)
-			if (args.articleId) fd.append('articleId', args.articleId)
+			const dataBase64 = await fileToBase64(file)
+			const payload = {
+				scope: args.scope,
+				...(args.articleId ? { articleId: args.articleId } : {}),
+				filename: file.name,
+				mimeType: file.type,
+				dataBase64
+			}
 
 			setIsUploading(true)
 			try {
 				const response = await authorizedFetch(uploadUrl(), {
 					method: 'POST',
-					body: fd
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(payload)
 				})
 				if (!response) throw new ImageUploadError('Please sign in to continue', 401)
 				const text = await response.text()
