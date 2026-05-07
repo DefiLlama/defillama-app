@@ -1,4 +1,5 @@
 import { validateArticleChartConfig } from './chartAdapters'
+import { validateArticlePeoplePanel } from './editor/peoplePanel'
 import { validateEmbedConfig } from './embedProviders'
 import { createArticleEntityRef, isValidArticleEntityType } from './entityLinks'
 import type {
@@ -20,6 +21,7 @@ const BLOCK_TEXT_NODES = new Set([
 	'defillamaChart',
 	'articleEmbed',
 	'articleImage',
+	'articlePeoplePanel',
 	'tableCell',
 	'tableHeader'
 ])
@@ -114,6 +116,17 @@ export function extractArticleContent(contentJson: TiptapJson): ArticleExtractio
 			const caption = stringAttr(node.attrs, 'caption')?.trim() ?? ''
 			const label = caption ? (alt ? `${alt} — ${caption}` : caption) : alt || 'image'
 			textParts.push(`[Image: ${label}]`)
+		}
+
+		if (node.type === 'articlePeoplePanel') {
+			const config = validateArticlePeoplePanel(node.attrs?.config)
+			if (config) {
+				if (config.label) textParts.push(`[Section: ${config.label}]\n`)
+				for (const item of config.items) {
+					if (item.name) textParts.push(`${item.name}\n`)
+					if (item.bio) textParts.push(`${item.bio}\n`)
+				}
+			}
 		}
 
 		const shouldPad = node.type && BLOCK_TEXT_NODES.has(node.type)
