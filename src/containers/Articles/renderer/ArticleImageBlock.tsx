@@ -32,11 +32,14 @@ export function ArticleImageBlock({ attrs }: { attrs: ArticleImageBlockAttrs | n
 	const alt = attrs?.alt ?? ''
 	const caption = attrs?.caption ?? ''
 	const widthMode = normalizeWidthMode(attrs?.widthMode)
-	const aspectStyle =
-		attrs?.width && attrs?.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined
+	const aspectStyle = attrs?.width && attrs?.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined
 
 	return (
-		<figure className={`not-prose my-8 ${widthModeWrapClass[widthMode]}`} data-article-image data-width-mode={widthMode}>
+		<figure
+			className={`not-prose my-8 ${widthModeWrapClass[widthMode]}`}
+			data-article-image
+			data-width-mode={widthMode}
+		>
 			<img
 				src={src}
 				alt={alt}

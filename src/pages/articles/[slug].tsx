@@ -14,10 +14,7 @@ import Layout from '~/layout'
 function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
 	const isOwner =
-		isAuthenticated &&
-		!!user?.id &&
-		!!article.authorProfile?.pbUserId &&
-		user.id === article.authorProfile.pbUserId
+		isAuthenticated && !!user?.id && !!article.authorProfile?.pbUserId && user.id === article.authorProfile.pbUserId
 	if (!isOwner) return null
 	return (
 		<div className="pointer-events-none fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 justify-center sm:bottom-8">

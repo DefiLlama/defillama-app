@@ -97,11 +97,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						src={attrs.src}
 						alt={attrs.alt || ''}
 						className="block w-full"
-						style={
-							attrs.width && attrs.height
-								? { aspectRatio: `${attrs.width} / ${attrs.height}` }
-								: undefined
-						}
+						style={attrs.width && attrs.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined}
 					/>
 				) : (
 					<div className="flex aspect-[4/3] w-full items-center justify-center bg-(--app-bg) text-(--text-tertiary)">
@@ -125,7 +121,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 					<div
 						contentEditable={false}
 						onMouseDown={(e) => e.stopPropagation()}
-						className="font-jetbrains absolute top-3 right-3 flex items-stretch divide-x divide-(--cards-border) border border-(--cards-border) bg-(--cards-bg)/95 text-[10px] tracking-[0.18em] uppercase backdrop-blur-sm"
+						className="absolute top-3 right-3 flex items-stretch divide-x divide-(--cards-border) border border-(--cards-border) bg-(--cards-bg)/95 font-jetbrains text-[10px] tracking-[0.18em] uppercase backdrop-blur-sm"
 					>
 						{widthModeOptions.map((opt) => {
 							const active = widthMode === opt.value
@@ -222,7 +218,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 								className="w-full resize-none border border-(--cards-border) bg-(--app-bg) px-2 py-1.5 text-xs leading-snug text-(--text-primary) outline-none focus:border-(--link-text)/60"
 							/>
 						</label>
-						<div className="font-jetbrains flex items-center justify-between text-[10px] tracking-[0.18em] uppercase">
+						<div className="flex items-center justify-between font-jetbrains text-[10px] tracking-[0.18em] uppercase">
 							<button
 								type="button"
 								onClick={() => {
@@ -258,7 +254,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						}}
 						placeholder="Add a caption…"
 						rows={Math.min(3, Math.max(1, captionDraft.split('\n').length))}
-						className={`w-full resize-none border-l-2 bg-transparent px-3 py-1 text-sm leading-snug text-(--text-secondary) outline-none transition-colors ${
+						className={`w-full resize-none border-l-2 bg-transparent px-3 py-1 text-sm leading-snug text-(--text-secondary) transition-colors outline-none ${
 							captionFocused ? 'border-(--link-text)' : 'border-(--cards-border)'
 						}`}
 					/>

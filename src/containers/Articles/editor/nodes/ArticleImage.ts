@@ -43,7 +43,10 @@ function fileFromDrop(event: DragEvent): File | null {
 function altFromFile(file: File) {
 	const base = file.name?.trim() ?? ''
 	if (!base) return ''
-	return base.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').slice(0, 120)
+	return base
+		.replace(/\.[^.]+$/, '')
+		.replace(/[-_]+/g, ' ')
+		.slice(0, 120)
 }
 
 function pickInlineImageFile(): Promise<File | null> {

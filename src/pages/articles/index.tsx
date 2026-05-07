@@ -82,11 +82,7 @@ function HeroCard({ article }: { article: ArticleDocument }) {
 				) : null}
 			</div>
 			{article.coverImage?.url ? (
-				<img
-					src={article.coverImage.url}
-					alt=""
-					className="order-1 h-48 w-full object-cover md:order-2 md:h-full"
-				/>
+				<img src={article.coverImage.url} alt="" className="order-1 h-48 w-full object-cover md:order-2 md:h-full" />
 			) : null}
 		</Link>
 	)
@@ -108,9 +104,7 @@ function FeaturedDigest({ articles }: { articles: ArticleDocument[] }) {
 						<h3 className="text-base leading-tight font-semibold text-(--text-primary) group-hover:text-(--link-text)">
 							{article.title}
 						</h3>
-						{article.excerpt ? (
-							<p className="line-clamp-3 text-sm text-(--text-secondary)">{article.excerpt}</p>
-						) : null}
+						{article.excerpt ? <p className="line-clamp-3 text-sm text-(--text-secondary)">{article.excerpt}</p> : null}
 					</Link>
 				))}
 			</div>
@@ -166,7 +160,7 @@ function TopicRail({ articles }: { articles: ArticleDocument[] }) {
 								className="group flex items-center justify-between rounded-md px-2 py-1.5 text-sm text-(--text-secondary) hover:bg-(--link-button) hover:text-(--text-primary)"
 							>
 								<span className="capitalize">{tag.replace(/-/g, ' ')}</span>
-								<span className="text-xs tabular-nums text-(--text-tertiary)">{count}</span>
+								<span className="text-xs text-(--text-tertiary) tabular-nums">{count}</span>
 							</Link>
 						</li>
 					))}
@@ -205,9 +199,7 @@ function ArticlesContent() {
 		let cancelled = false
 		setIsLoading(true)
 		Promise.all([
-			isFiltered
-				? Promise.resolve(EMPTY_LIST)
-				: listArticles({ sort: 'featured', limit: 6 }, authorizedFetch),
+			isFiltered ? Promise.resolve(EMPTY_LIST) : listArticles({ sort: 'featured', limit: 6 }, authorizedFetch),
 			listArticles({ sort: 'newest', limit: 30, query, tags: tag ? [tag] : undefined }, authorizedFetch)
 		])
 			.then(([f, n]) => {

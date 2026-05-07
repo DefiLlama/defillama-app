@@ -151,13 +151,7 @@ function formatJoined(iso: string | null | undefined): string {
 	return new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(d)
 }
 
-function LivePreview({
-	state,
-	createdAt
-}: {
-	state: FormState
-	createdAt: string | null | undefined
-}) {
+function LivePreview({ state, createdAt }: { state: FormState; createdAt: string | null | undefined }) {
 	const displayName = state.displayName.trim() || 'Your name'
 	const slug = state.slug.trim() || 'your-handle'
 	const initials = displayName.slice(0, 2).toUpperCase()
@@ -188,9 +182,7 @@ function LivePreview({
 					</div>
 				)}
 				<div className="grid min-w-0 gap-1.5">
-					<h2 className="text-xl font-semibold tracking-tight text-(--text-primary) md:text-2xl">
-						{displayName}
-					</h2>
+					<h2 className="text-xl font-semibold tracking-tight text-(--text-primary) md:text-2xl">{displayName}</h2>
 					<p className="font-jetbrains text-xs text-(--text-tertiary)">@{slug}</p>
 					{state.bio.trim() ? (
 						<p className="line-clamp-3 max-w-prose text-sm leading-relaxed text-(--text-secondary)">
@@ -218,15 +210,7 @@ function LivePreview({
 	)
 }
 
-function Section({
-	title,
-	description,
-	children
-}: {
-	title: string
-	description: ReactNode
-	children: ReactNode
-}) {
+function Section({ title, description, children }: { title: string; description: ReactNode; children: ReactNode }) {
 	return (
 		<section className="grid gap-6 border-t border-(--cards-border) py-8 md:grid-cols-[220px_minmax(0,1fr)] md:gap-x-12 md:py-10">
 			<div>
@@ -348,9 +332,7 @@ export function AuthorProfileForm() {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Sign in to edit your profile</h1>
-				<p className="text-sm text-(--text-secondary)">
-					Your author profile is tied to your DefiLlama account.
-				</p>
+				<p className="text-sm text-(--text-secondary)">Your author profile is tied to your DefiLlama account.</p>
 				<SignInModal
 					text="Sign in"
 					className="mr-auto rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white"
@@ -379,9 +361,7 @@ export function AuthorProfileForm() {
 						<span aria-hidden>←</span> My articles
 					</Link>
 					<h1 className="mt-2 text-3xl font-semibold tracking-tight text-(--text-primary)">Profile</h1>
-					<p className="mt-1 text-sm text-(--text-secondary)">
-						How readers see you on article and author pages.
-					</p>
+					<p className="mt-1 text-sm text-(--text-secondary)">How readers see you on article and author pages.</p>
 				</div>
 				<Link
 					href={`/articles/authors/${profile.slug}`}
@@ -421,7 +401,7 @@ export function AuthorProfileForm() {
 						maxLength={DISPLAY_NAME_MAX}
 						value={state.displayName}
 						onChange={(e) => update({ displayName: e.target.value })}
-						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) outline-none transition-colors focus:border-(--link-text)/60"
+						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
 					/>
 					{displayNameError ? <span className="text-xs text-red-500">{displayNameError}</span> : null}
 				</label>
@@ -439,7 +419,7 @@ export function AuthorProfileForm() {
 				<label className="grid gap-1.5">
 					<span className="text-sm font-medium text-(--text-primary)">Public URL</span>
 					<div className="flex items-stretch overflow-hidden rounded-md border border-(--cards-border) bg-(--app-bg) transition-colors focus-within:border-(--link-text)/60">
-						<span className="font-jetbrains border-r border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-xs text-(--text-tertiary)">
+						<span className="border-r border-(--cards-border) bg-(--cards-bg) px-3 py-2 font-jetbrains text-xs text-(--text-tertiary)">
 							/articles/authors/
 						</span>
 						<input
@@ -447,7 +427,7 @@ export function AuthorProfileForm() {
 							maxLength={SLUG_MAX}
 							value={state.slug}
 							onChange={(e) => update({ slug: e.target.value })}
-							className="font-jetbrains w-full bg-transparent px-3 py-2 text-sm text-(--text-primary) outline-none"
+							className="w-full bg-transparent px-3 py-2 font-jetbrains text-sm text-(--text-primary) outline-none"
 							spellCheck={false}
 							autoCapitalize="none"
 							autoCorrect="off"
@@ -479,15 +459,12 @@ export function AuthorProfileForm() {
 						value={state.bio}
 						onChange={(e) => update({ bio: e.target.value })}
 						placeholder="Researcher covering DeFi liquidity, MEV, and stablecoins."
-						className="w-full resize-y rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm leading-relaxed text-(--text-primary) outline-none transition-colors focus:border-(--link-text)/60"
+						className="w-full resize-y rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm leading-relaxed text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
 					/>
 				</label>
 			</Section>
 
-			<Section
-				title="Links"
-				description="Shown as chips on your author page. Empty fields are dropped on save."
-			>
+			<Section title="Links" description="Shown as chips on your author page. Empty fields are dropped on save.">
 				<div className="grid gap-3 sm:grid-cols-2">
 					{PRESET_SOCIALS.map((kind) => (
 						<label key={kind.id} className="grid gap-1.5">
@@ -498,7 +475,7 @@ export function AuthorProfileForm() {
 								value={state.socials[kind.id] || ''}
 								onChange={(e) => updateSocial(kind.id, e.target.value)}
 								placeholder={kind.placeholder}
-								className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) outline-none transition-colors focus:border-(--link-text)/60"
+								className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
 							/>
 						</label>
 					))}
@@ -508,11 +485,7 @@ export function AuthorProfileForm() {
 					<div className="grid gap-3 border-t border-(--cards-border) pt-4">
 						<div className="flex items-center justify-between gap-2">
 							<h3 className="text-sm font-medium text-(--text-primary)">Custom links</h3>
-							<button
-								type="button"
-								onClick={addCustom}
-								className="text-xs text-(--link-text) hover:underline"
-							>
+							<button type="button" onClick={addCustom} className="text-xs text-(--link-text) hover:underline">
 								+ add another
 							</button>
 						</div>
@@ -533,7 +506,7 @@ export function AuthorProfileForm() {
 										onChange={(e) => updateCustom(index, { key: e.target.value })}
 										placeholder="kind"
 										maxLength={40}
-										className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) outline-none transition-colors focus:border-(--link-text)/60"
+										className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
 									/>
 									<input
 										type="text"
@@ -541,7 +514,7 @@ export function AuthorProfileForm() {
 										onChange={(e) => updateCustom(index, { value: e.target.value })}
 										placeholder="https://…"
 										maxLength={SOCIAL_VALUE_MAX}
-										className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) outline-none transition-colors focus:border-(--link-text)/60"
+										className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
 									/>
 									<button
 										type="button"
@@ -585,9 +558,7 @@ export function AuthorProfileForm() {
 					<span className="inline-flex items-center gap-2 text-xs text-(--text-tertiary)">
 						<span
 							aria-hidden
-							className={`h-1.5 w-1.5 rounded-full transition-colors ${
-								dirty ? 'bg-amber-500' : 'bg-emerald-500'
-							}`}
+							className={`h-1.5 w-1.5 rounded-full transition-colors ${dirty ? 'bg-amber-500' : 'bg-emerald-500'}`}
 						/>
 						{dirty ? 'Unsaved changes' : 'All changes saved'}
 					</span>

@@ -135,9 +135,7 @@ function AuthorContent({ slug }: { slug: string }) {
 	const lead = articles[0]
 	const rest = articles.slice(1)
 
-	const socialEntries = author.socials
-		? Object.entries(author.socials).filter(([, value]) => Boolean(value))
-		: []
+	const socialEntries = author.socials ? Object.entries(author.socials).filter(([, value]) => Boolean(value)) : []
 
 	return (
 		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">
@@ -250,9 +248,7 @@ function AuthorContent({ slug }: { slug: string }) {
 					{rest.length ? (
 						<section className="grid gap-4">
 							<div className="flex items-baseline justify-between gap-2 border-b border-(--cards-border) pb-3">
-								<h2 className="text-sm font-semibold tracking-[0.16em] text-(--text-tertiary) uppercase">
-									Archive
-								</h2>
+								<h2 className="text-sm font-semibold tracking-[0.16em] text-(--text-tertiary) uppercase">Archive</h2>
 								<p className="font-jetbrains text-xs text-(--text-tertiary)">
 									{rest.length} {rest.length === 1 ? 'note' : 'notes'}
 								</p>

@@ -17,10 +17,10 @@ import {
 } from '../api'
 import { createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
-import { ArticleChartPickerDialog } from './ArticleChartPicker'
-import { EmbedPicker } from './EmbedPicker'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
+import { ArticleChartPickerDialog } from './ArticleChartPicker'
+import { EmbedPicker } from './EmbedPicker'
 import { createArticleEditorExtensions } from './extensions'
 import { triggerInlineImagePicker, type ArticleImageUploadFn } from './nodes/ArticleImage'
 
@@ -1161,20 +1161,17 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									cancelSlugEdit()
 								}
 							}}
-							className="font-jetbrains w-[24ch] rounded border border-(--link-text)/40 bg-(--app-bg) px-1.5 py-0.5 text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
+							className="w-[24ch] rounded border border-(--link-text)/40 bg-(--app-bg) px-1.5 py-0.5 font-jetbrains text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
 						/>
 					) : (
 						<button
 							type="button"
 							onClick={beginSlugEdit}
 							title="Click to edit slug"
-							className="font-jetbrains group flex max-w-[32ch] items-center gap-1 truncate rounded px-1 py-0.5 text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+							className="group flex max-w-[32ch] items-center gap-1 truncate rounded px-1 py-0.5 font-jetbrains text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 						>
 							<span className="truncate">{article.slug}</span>
-							<span
-								aria-hidden
-								className="opacity-0 transition-opacity group-hover:opacity-100 text-(--text-tertiary)"
-							>
+							<span aria-hidden className="text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100">
 								✎
 							</span>
 						</button>
@@ -1194,7 +1191,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				<div className="flex items-center gap-2">
 					<span
 						aria-live="polite"
-						className="font-jetbrains hidden items-center gap-1.5 px-1 text-[11px] text-(--text-secondary) sm:flex"
+						className="hidden items-center gap-1.5 px-1 font-jetbrains text-[11px] text-(--text-secondary) sm:flex"
 					>
 						<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${pillDot}`} />
 						<span className="tabular-nums">{pillLabel}</span>
@@ -1205,7 +1202,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							<Ariakit.MenuButton className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40">
 								<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
 								<span>Live</span>
-								<span aria-hidden className="text-(--text-tertiary)">▾</span>
+								<span aria-hidden className="text-(--text-tertiary)">
+									▾
+								</span>
 							</Ariakit.MenuButton>
 							<Ariakit.Menu
 								gutter={6}
@@ -1692,7 +1691,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								onChange={(event) => updateArticle('slug', event.target.value)}
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 font-jetbrains text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
 							/>
-							<span className="font-jetbrains truncate text-[10px] text-(--text-tertiary)">
+							<span className="truncate font-jetbrains text-[10px] text-(--text-tertiary)">
 								defillama.com/articles/<span className="text-(--text-secondary)">{article.slug}</span>
 							</span>
 						</label>
@@ -1742,9 +1741,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							scope="article-cover"
 							articleId={articleId}
 							currentUrl={article.coverImage?.url ?? null}
-							onUploaded={(result) =>
-								updateArticle('coverImage', { url: result.url, alt: article.title })
-							}
+							onUploaded={(result) => updateArticle('coverImage', { url: result.url, alt: article.title })}
 							onCleared={() => updateArticle('coverImage', null)}
 							label="cover image"
 							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
