@@ -4,8 +4,6 @@ import { ReactNodeViewRenderer } from '@tiptap/react'
 import type { UploadResult } from '../../upload/useImageUpload'
 import { ArticleImageNodeView } from './ArticleImageNodeView'
 
-export type ArticleImageWidthMode = 'default' | 'wide' | 'full'
-
 export type ArticleImageUploadFn = (file: File, placeholderId: string) => Promise<UploadResult>
 
 export type ArticleImageOptions = {
@@ -117,7 +115,6 @@ export type ArticleImageAttrs = {
 	href: string
 	width: number | null
 	height: number | null
-	widthMode: ArticleImageWidthMode
 	uploading: boolean
 	placeholderId: string | null
 }
@@ -144,14 +141,6 @@ declare module '@tiptap/core' {
 			failArticleImage: (placeholderId: string) => ReturnType
 		}
 	}
-}
-
-const VALID_WIDTH_MODES: ReadonlySet<ArticleImageWidthMode> = new Set(['default', 'wide', 'full'])
-
-function normalizeWidthMode(value: unknown): ArticleImageWidthMode {
-	return typeof value === 'string' && VALID_WIDTH_MODES.has(value as ArticleImageWidthMode)
-		? (value as ArticleImageWidthMode)
-		: 'default'
 }
 
 export const ArticleImage = Node.create<ArticleImageOptions>({
@@ -226,11 +215,6 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 			},
 			width: { default: null },
 			height: { default: null },
-			widthMode: {
-				default: 'default',
-				parseHTML: (el) => normalizeWidthMode(el.getAttribute('data-width-mode')),
-				renderHTML: (attrs) => ({ 'data-width-mode': normalizeWidthMode(attrs.widthMode) })
-			},
 			uploading: { default: false, rendered: false },
 			placeholderId: { default: null, rendered: false }
 		}
@@ -242,10 +226,8 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 
 	renderHTML({ node, HTMLAttributes }) {
 		const { src, alt, caption } = node.attrs as ArticleImageAttrs
-		const widthMode = normalizeWidthMode(node.attrs.widthMode)
 		const figureAttrs = mergeAttributes(HTMLAttributes, {
-			'data-article-image': 'true',
-			'data-width-mode': widthMode
+			'data-article-image': 'true'
 		})
 		const img: ['img', Record<string, string>] = [
 			'img',
@@ -281,7 +263,6 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 							href: '',
 							width: null,
 							height: null,
-							widthMode: 'default',
 							uploading: true,
 							placeholderId
 						}

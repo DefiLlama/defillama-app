@@ -17,7 +17,7 @@ export function ArticlePeoplePanelNodeView({ node, selected, deleteNode, getPos,
 	return (
 		<NodeViewWrapper
 			data-people-panel-wrapper
-			className={`not-prose relative my-6 border bg-(--cards-bg) p-5 transition-colors ${
+			className={`not-prose relative my-6 rounded-md border bg-(--cards-bg) p-5 transition-colors ${
 				selected ? 'border-(--link-text)' : 'border-(--cards-border)'
 			}`}
 		>
@@ -27,7 +27,7 @@ export function ArticlePeoplePanelNodeView({ node, selected, deleteNode, getPos,
 				<button
 					type="button"
 					onClick={handleEdit}
-					className="font-jetbrains w-full py-6 text-center text-[11px] tracking-[0.18em] text-(--text-tertiary) uppercase hover:text-(--text-primary)"
+					className="w-full rounded-md py-6 text-center text-sm text-(--text-tertiary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 				>
 					Empty people panel — click to configure
 				</button>
@@ -37,19 +37,19 @@ export function ArticlePeoplePanelNodeView({ node, selected, deleteNode, getPos,
 				<div
 					contentEditable={false}
 					onMouseDown={(e) => e.stopPropagation()}
-					className="font-jetbrains absolute top-3 right-3 flex items-stretch divide-x divide-(--cards-border) border border-(--cards-border) bg-(--cards-bg)/95 text-[10px] tracking-[0.18em] uppercase backdrop-blur-sm"
+					className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-md"
 				>
 					<button
 						type="button"
 						onClick={handleEdit}
-						className="px-2.5 py-1.5 text-(--text-tertiary) transition-colors hover:bg-(--app-bg) hover:text-(--text-primary)"
+						className="rounded-md px-2 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 					>
 						Edit
 					</button>
 					<button
 						type="button"
 						onClick={() => deleteNode()}
-						className="px-2.5 py-1.5 text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500"
+						className="rounded-md px-2 py-1 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-red-500/10 hover:text-red-500"
 					>
 						Remove
 					</button>
