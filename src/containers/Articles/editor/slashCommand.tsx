@@ -43,6 +43,24 @@ const ALL_ITEMS: SlashCommandItem[] = [
 		action: (editor, range) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 4 }).run()
 	},
 	{
+		id: 'h5',
+		title: 'Heading 5',
+		description: 'Sub-minor heading',
+		icon: 'H5',
+		group: 'Structure',
+		keywords: ['heading', 'h5'],
+		action: (editor, range) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 5 }).run()
+	},
+	{
+		id: 'h6',
+		title: 'Heading 6',
+		description: 'Smallest heading',
+		icon: 'H6',
+		group: 'Structure',
+		keywords: ['heading', 'h6'],
+		action: (editor, range) => editor.chain().focus().deleteRange(range).setNode('heading', { level: 6 }).run()
+	},
+	{
 		id: 'paragraph',
 		title: 'Paragraph',
 		description: 'Plain body text',
@@ -189,6 +207,15 @@ const ALL_ITEMS: SlashCommandItem[] = [
 		group: 'Custom',
 		keywords: ['callout', 'warning', 'risk', 'caveat'],
 		action: (editor, range) => editor.chain().focus().deleteRange(range).insertCallout('warning').run()
+	},
+	{
+		id: 'callout-pullquote',
+		title: 'Pullquote',
+		description: 'Featured quote with rules above and below',
+		icon: '"',
+		group: 'Custom',
+		keywords: ['callout', 'pullquote', 'pull quote', 'highlight', 'quote'],
+		action: (editor, range) => editor.chain().focus().deleteRange(range).insertCallout('pullquote').run()
 	},
 	{
 		id: 'citation',

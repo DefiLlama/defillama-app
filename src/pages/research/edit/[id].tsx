@@ -1,4 +1,5 @@
 import dynamic from 'next/dynamic'
+import { useRouter } from 'next/router'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
@@ -9,25 +10,26 @@ const ArticleEditorClient = dynamic(
 	{
 		ssr: false,
 		loading: () => (
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">Loading article editor...</div>
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">Loading research editor...</div>
 		)
 	}
 )
 
-export default function NewArticlePage() {
+export default function EditArticlePage() {
+	const router = useRouter()
+	const id = typeof router.query.id === 'string' ? router.query.id : undefined
+
 	return (
 		<Layout
-			title="Article Editor - DefiLlama"
-			description="Local article editor for DefiLlama research pages."
-			canonicalUrl="/articles/new"
+			title="Edit research - DefiLlama"
+			description="Edit a DefiLlama research draft."
+			canonicalUrl={id ? `/research/edit/${id}` : '/research/edit'}
 			noIndex
 			hideDesktopSearch
 		>
 			<ArticleProxyAuthProvider>
 				<AppMetadataProvider>
-					<ArticlesAccessGate>
-						<ArticleEditorClient />
-					</ArticlesAccessGate>
+					<ArticlesAccessGate>{id ? <ArticleEditorClient articleId={id} /> : null}</ArticlesAccessGate>
 				</AppMetadataProvider>
 			</ArticleProxyAuthProvider>
 		</Layout>

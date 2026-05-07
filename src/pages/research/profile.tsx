@@ -8,7 +8,7 @@ export default function AuthorProfilePage() {
 		<Layout
 			title="Profile - DefiLlama"
 			description="Edit your author profile."
-			canonicalUrl="/articles/profile"
+			canonicalUrl="/research/profile"
 			noIndex
 			hideDesktopSearch
 		>

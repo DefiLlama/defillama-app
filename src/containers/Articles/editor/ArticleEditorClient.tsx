@@ -719,7 +719,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setIsLoading(true)
 			createArticle(createEmptyLocalArticle(), authorizedFetch)
 				.then((saved) => {
-					void router.replace(`/articles/edit/${saved.id}`)
+					void router.replace(`/research/edit/${saved.id}`)
 				})
 				.catch((error) => {
 					autoCreatingRef.current = false
@@ -742,7 +742,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				setSavedAt(loaded.updatedAt)
 			})
 			.catch((error) => {
-				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load article')
+				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load research')
 			})
 			.finally(() => {
 				if (!cancelled) setIsLoading(false)
@@ -768,7 +768,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const saveArticle = async (opts: { silent?: boolean } = {}) => {
 		if (!editor) return
 		if (!isAuthenticated) {
-			if (!opts.silent) toast.error('Please sign in to save articles')
+			if (!opts.silent) toast.error('Please sign in to save research')
 			return
 		}
 		if (debounceRef.current) {
@@ -786,12 +786,12 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setSavedAt(saved.updatedAt)
 			setSaveError(false)
 			if (!article.id) {
-				void router.replace(`/articles/edit/${saved.id}`)
+				void router.replace(`/research/edit/${saved.id}`)
 			}
 			setIsDirty(false)
 		} catch (error) {
 			setSaveError(true)
-			if (!opts.silent) toast.error(error instanceof Error ? error.message : 'Failed to save article')
+			if (!opts.silent) toast.error(error instanceof Error ? error.message : 'Failed to save research')
 		} finally {
 			setIsSaving(false)
 		}
@@ -1007,7 +1007,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const handlePublish = async () => {
 		if (!article.id) {
-			toast.error('Save the article before publishing')
+			toast.error('Save the draft before publishing')
 			return
 		}
 		setIsPublishing(true)
@@ -1040,10 +1040,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const handleDeleteArticle = async () => {
 		if (!article.id) return
-		if (!confirm('Delete this article? This cannot be undone.')) return
+		if (!confirm('Delete this draft? This cannot be undone.')) return
 		try {
 			await deleteArticle(article.id, authorizedFetch)
-			void router.replace('/articles')
+			void router.replace('/research')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to delete')
 		}
@@ -1066,7 +1066,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	if (isLoading) {
 		return (
 			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
-				Loading article…
+				Loading research…
 			</div>
 		)
 	}
@@ -1074,7 +1074,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	if (!isAuthenticated) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
-				<h1 className="text-xl font-semibold text-(--text-primary)">Sign in to write articles</h1>
+				<h1 className="text-xl font-semibold text-(--text-primary)">Sign in to write research</h1>
 				<p className="text-sm text-(--text-secondary)">
 					Article drafts, revisions, and author profiles are saved to your DefiLlama account.
 				</p>
@@ -1197,7 +1197,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				}`}
 			>
 				<nav className="flex min-w-0 items-center gap-2.5 text-sm">
-					<Link href="/articles" className="text-(--text-tertiary) hover:text-(--text-primary)">
+					<Link href="/research" className="text-(--text-tertiary) hover:text-(--text-primary)">
 						Articles
 					</Link>
 					<span aria-hidden className="text-(--text-tertiary)/50">
@@ -1271,7 +1271,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								<Ariakit.MenuItem
 									render={
 										<Link
-											href={`/articles/${article.slug}`}
+											href={`/research/${article.slug}`}
 											target="_blank"
 											rel="noreferrer"
 											className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
@@ -1542,7 +1542,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										gutter={4}
 										className="z-50 grid min-w-[140px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 									>
-										{(['note', 'data', 'warning'] as ArticleCalloutTone[]).map((tone) => (
+										{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((tone) => (
 											<Ariakit.MenuItem
 												key={tone}
 												onClick={() => insertCallout(tone)}
@@ -1713,7 +1713,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 											gutter={4}
 											className="z-50 grid min-w-[140px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 										>
-											{(['note', 'data', 'warning'] as ArticleCalloutTone[]).map((tone) => (
+											{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((tone) => (
 												<Ariakit.MenuItem
 													key={tone}
 													onClick={() => insertCallout(tone)}
@@ -1784,7 +1784,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 font-jetbrains text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
 							/>
 							<span className="truncate font-jetbrains text-[10px] text-(--text-tertiary)">
-								defillama.com/articles/<span className="text-(--text-secondary)">{article.slug}</span>
+								defillama.com/research/<span className="text-(--text-secondary)">{article.slug}</span>
 							</span>
 						</label>
 					</MetaSection>
@@ -1833,11 +1833,79 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							scope="article-cover"
 							articleId={articleId}
 							currentUrl={article.coverImage?.url ?? null}
-							onUploaded={(result) => updateArticle('coverImage', { url: result.url, alt: article.title })}
+							onUploaded={(result) =>
+								updateArticle('coverImage', {
+									...(article.coverImage ?? {}),
+									url: result.url,
+									alt: article.coverImage?.alt || article.title
+								})
+							}
 							onCleared={() => updateArticle('coverImage', null)}
 							label="cover image"
 							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
 						/>
+						{article.coverImage ? (
+							<div className="mt-3 grid gap-2">
+								<label className="grid gap-1">
+									<span className="text-[11px] text-(--text-tertiary)">Headline</span>
+									<input
+										value={article.coverImage.headline ?? ''}
+										onChange={(event) =>
+											updateArticle('coverImage', {
+												...article.coverImage!,
+												headline: event.target.value
+											})
+										}
+										placeholder="Image title"
+										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+									/>
+								</label>
+								<label className="grid gap-1">
+									<span className="text-[11px] text-(--text-tertiary)">Caption</span>
+									<input
+										value={article.coverImage.caption ?? ''}
+										onChange={(event) =>
+											updateArticle('coverImage', {
+												...article.coverImage!,
+												caption: event.target.value
+											})
+										}
+										placeholder="Caption shown under the cover"
+										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+									/>
+								</label>
+								<div className="grid grid-cols-2 gap-2">
+									<label className="grid gap-1">
+										<span className="text-[11px] text-(--text-tertiary)">Credit</span>
+										<input
+											value={article.coverImage.credit ?? ''}
+											onChange={(event) =>
+												updateArticle('coverImage', {
+													...article.coverImage!,
+													credit: event.target.value
+												})
+											}
+											placeholder="Photographer"
+											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+										/>
+									</label>
+									<label className="grid gap-1">
+										<span className="text-[11px] text-(--text-tertiary)">Copyright</span>
+										<input
+											value={article.coverImage.copyright ?? ''}
+											onChange={(event) =>
+												updateArticle('coverImage', {
+													...article.coverImage!,
+													copyright: event.target.value
+												})
+											}
+											placeholder="Rights holder"
+											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+										/>
+									</label>
+								</div>
+							</div>
+						) : null}
 					</MetaSection>
 				</div>
 

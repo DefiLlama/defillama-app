@@ -59,6 +59,10 @@ const calloutToneStyles: Record<ArticleCalloutTone, { wrap: string; tone: string
 	warning: {
 		wrap: 'border-[#d89b2a] bg-[#fff8e6] text-[#4d3606] dark:bg-[#30230b] dark:text-[#f4d28e]',
 		tone: 'text-[#a17317] dark:text-[#f4d28e]'
+	},
+	pullquote: {
+		wrap: 'border-y border-x-0 border-(--link-text)/30 bg-transparent rounded-none px-2',
+		tone: 'text-(--link-text)'
 	}
 }
 
@@ -134,7 +138,7 @@ function CalloutNodeView({ node, updateAttributes }: NodeViewProps) {
 			<div className="mb-2 flex items-center justify-between gap-2">
 				<span className={`text-xs font-medium capitalize ${styles.tone}`}>{tone}</span>
 				<div className="flex rounded border border-(--cards-border) p-0.5">
-					{(['note', 'data', 'warning'] as ArticleCalloutTone[]).map((value) => {
+					{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((value) => {
 						const active = value === tone
 						return (
 							<button
@@ -412,7 +416,7 @@ export const Citation = Node.create({
 export function createArticleEditorExtensions(imageOptions?: Partial<ArticleImageOptions>) {
 	return [
 		StarterKit.configure({
-			heading: { levels: [2, 3, 4] },
+			heading: { levels: [2, 3, 4, 5, 6] },
 			link: false,
 			codeBlock: false
 		}),

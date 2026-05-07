@@ -64,7 +64,7 @@ function fetchEntityPreview(
 	slug: string,
 	signal?: AbortSignal
 ): Promise<EntityPreview | null> {
-	const url = `/api/articles/entities/preview?type=${encodeURIComponent(type)}&slug=${encodeURIComponent(slug)}`
+	const url = `/api/research/entities/preview?type=${encodeURIComponent(type)}&slug=${encodeURIComponent(slug)}`
 	return fetch(url, { signal })
 		.then((r) => (r.ok ? r.json() : null))
 		.then((j) => (j && typeof j === 'object' ? ((j.preview as EntityPreview | null) ?? null) : null))

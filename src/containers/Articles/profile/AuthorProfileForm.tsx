@@ -355,16 +355,16 @@ export function AuthorProfileForm() {
 			<header className="flex flex-wrap items-end justify-between gap-3 pt-2 pb-6">
 				<div>
 					<Link
-						href="/articles/mine"
+						href="/research/mine"
 						className="inline-flex items-center gap-1 text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 					>
 						<span aria-hidden>←</span> My articles
 					</Link>
 					<h1 className="mt-2 text-3xl font-semibold tracking-tight text-(--text-primary)">Profile</h1>
-					<p className="mt-1 text-sm text-(--text-secondary)">How readers see you on article and author pages.</p>
+					<p className="mt-1 text-sm text-(--text-secondary)">How readers see you on research and author pages.</p>
 				</div>
 				<Link
-					href={`/articles/authors/${profile.slug}`}
+					href={`/research/authors/${profile.slug}`}
 					target="_blank"
 					rel="noreferrer"
 					className="inline-flex items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
@@ -420,7 +420,7 @@ export function AuthorProfileForm() {
 					<span className="text-sm font-medium text-(--text-primary)">Public URL</span>
 					<div className="flex items-stretch overflow-hidden rounded-md border border-(--cards-border) bg-(--app-bg) transition-colors focus-within:border-(--link-text)/60">
 						<span className="border-r border-(--cards-border) bg-(--cards-bg) px-3 py-2 font-jetbrains text-xs text-(--text-tertiary)">
-							/articles/authors/
+							/research/authors/
 						</span>
 						<input
 							type="text"
@@ -438,7 +438,7 @@ export function AuthorProfileForm() {
 					) : slugChanged ? (
 						<span className="inline-flex items-center gap-1.5 text-xs text-amber-500">
 							<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-							Old links to <span className="font-jetbrains">/articles/authors/{initial?.slug}</span> will 404.
+							Old links to <span className="font-jetbrains">/research/authors/{initial?.slug}</span> will 404.
 						</span>
 					) : null}
 				</label>
@@ -446,7 +446,7 @@ export function AuthorProfileForm() {
 
 			<Section
 				title="Bio"
-				description="One or two sentences. Shown at the top of your author page and in article bylines."
+				description="One or two sentences. Shown at the top of your author page and in research bylines."
 			>
 				<label className="grid gap-1.5">
 					<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">

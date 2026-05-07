@@ -3,7 +3,7 @@ export type ArticleVersion = 1
 export type ArticleStatus = 'draft' | 'published'
 export type ArticleEntityType = 'protocol' | 'chain' | 'stablecoin' | 'metric' | 'hack' | 'category' | 'cex' | 'bridge'
 export type ArticleChartEntityType = 'protocol' | 'chain'
-export type ArticleCalloutTone = 'note' | 'warning' | 'data'
+export type ArticleCalloutTone = 'note' | 'warning' | 'data' | 'pullquote'
 export type ArticleEmbedProvider = 'twitter' | 'youtube' | 'medium' | 'mirror' | 'substack' | 'github' | 'iframe'
 export type ArticleEmbedAspectRatio = '16/9' | '4/3' | '1/1' | 'auto'
 
@@ -33,6 +33,9 @@ export type ArticleImage = {
 	url: string
 	alt?: string
 	caption?: string
+	credit?: string
+	copyright?: string
+	headline?: string
 	width?: number
 	height?: number
 }

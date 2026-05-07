@@ -71,7 +71,7 @@ function MyArticlesContent() {
 			})
 			.catch((err) => {
 				if (cancelled) return
-				setError(err instanceof ArticleApiError ? err.message : 'Failed to load articles')
+				setError(err instanceof ArticleApiError ? err.message : 'Failed to load research')
 			})
 			.finally(() => {
 				if (!cancelled) setIsLoading(false)
@@ -115,7 +115,7 @@ function MyArticlesContent() {
 			<header className="grid gap-3 border-b border-(--cards-border) py-6">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<div>
-						<h1 className="text-3xl font-semibold tracking-tight text-(--text-primary)">My articles</h1>
+						<h1 className="text-3xl font-semibold tracking-tight text-(--text-primary)">My research</h1>
 						<p className="mt-1 text-sm text-(--text-secondary)">
 							{drafts.length} draft{drafts.length === 1 ? '' : 's'}
 							<span className="mx-2 text-(--text-tertiary)">·</span>
@@ -124,18 +124,18 @@ function MyArticlesContent() {
 					</div>
 					<div className="flex items-center gap-2">
 						<Link
-							href="/articles/profile"
+							href="/research/profile"
 							className="rounded-md border border-(--cards-border) px-3 py-2 text-sm text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary)"
 						>
 							Edit profile
 						</Link>
 						<Link
-							href="/articles"
+							href="/research"
 							className="rounded-md border border-(--cards-border) px-3 py-2 text-sm text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary)"
 						>
 							Browse all
 						</Link>
-						<Link href="/articles/new" className="rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white">
+						<Link href="/research/new" className="rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white">
 							Write
 						</Link>
 					</div>
@@ -172,7 +172,7 @@ function MyArticlesContent() {
 			{filtered.length === 0 ? (
 				<div className="grid gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-8 text-center">
 					<h2 className="text-lg font-semibold text-(--text-primary)">
-						{filter === 'all' ? 'No articles yet' : `No ${filter}s`}
+						{filter === 'all' ? 'No research yet' : `No ${filter}s`}
 					</h2>
 					<p className="mx-auto max-w-md text-sm text-(--text-secondary)">
 						{filter === 'all'
@@ -181,10 +181,10 @@ function MyArticlesContent() {
 					</p>
 					{filter === 'all' ? (
 						<Link
-							href="/articles/new"
+							href="/research/new"
 							className="mx-auto mt-2 rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white"
 						>
-							New article
+							New research
 						</Link>
 					) : null}
 				</div>
@@ -200,7 +200,7 @@ function MyArticlesContent() {
 								key={article.id}
 								className="group grid grid-cols-[1fr_auto] items-center gap-3 border-t border-(--cards-border) px-4 py-3 transition-colors first:border-t-0 hover:bg-(--link-hover-bg)"
 							>
-								<Link href={`/articles/edit/${article.id}`} className="grid min-w-0 gap-1">
+								<Link href={`/research/edit/${article.id}`} className="grid min-w-0 gap-1">
 									<div className="flex flex-wrap items-center gap-2">
 										<StatusBadge status={article.status} />
 										<h3 className="truncate text-base font-semibold text-(--text-primary) group-hover:text-(--link-text)">
@@ -225,7 +225,7 @@ function MyArticlesContent() {
 								<div className="flex shrink-0 items-center gap-1">
 									{article.status === 'published' ? (
 										<Link
-											href={`/articles/${article.slug}`}
+											href={`/research/${article.slug}`}
 											target="_blank"
 											rel="noreferrer"
 											aria-label="View"
@@ -247,7 +247,7 @@ function MyArticlesContent() {
 										</Link>
 									) : null}
 									<Link
-										href={`/articles/edit/${article.id}`}
+										href={`/research/edit/${article.id}`}
 										className="flex h-8 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary)"
 									>
 										Edit
@@ -286,9 +286,9 @@ function MyArticlesContent() {
 export default function MyArticlesPage() {
 	return (
 		<Layout
-			title="My articles - DefiLlama"
-			description="Drafts and published articles."
-			canonicalUrl="/articles/mine"
+			title="My research - DefiLlama"
+			description="Drafts and published research."
+			canonicalUrl="/research/mine"
 			noIndex
 			hideDesktopSearch
 		>

@@ -72,7 +72,7 @@ function ByLine({
 		<div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-(--text-tertiary) ${className}`}>
 			{article.authorProfile ? (
 				<Link
-					href={`/articles/authors/${article.authorProfile.slug}`}
+					href={`/research/authors/${article.authorProfile.slug}`}
 					className="font-medium text-(--text-secondary) transition-colors hover:text-(--text-primary)"
 				>
 					{article.authorProfile.displayName}
@@ -89,7 +89,7 @@ function ByLine({
 function LeadCard({ article }: { article: ArticleDocument }) {
 	return (
 		<Link
-			href={`/articles/${article.slug}`}
+			href={`/research/${article.slug}`}
 			className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
 		>
 			<div className="order-2 grid content-start gap-3 p-5 md:order-1 md:p-6">
@@ -139,7 +139,7 @@ function FeaturedDigest({ articles }: { articles: ArticleDocument[] }) {
 				{articles.map((article) => (
 					<Link
 						key={article.id}
-						href={`/articles/${article.slug}`}
+						href={`/research/${article.slug}`}
 						className="group grid content-start overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40"
 					>
 						{article.coverImage?.url ? (
@@ -174,7 +174,7 @@ function ArchiveRow({ article }: { article: ArticleDocument }) {
 	return (
 		<li>
 			<Link
-				href={`/articles/${article.slug}`}
+				href={`/research/${article.slug}`}
 				className="group grid grid-cols-[80px_minmax(0,1fr)] items-start gap-3 border-b border-(--cards-border) py-4 transition-colors last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-4"
 			>
 				{article.coverImage?.url ? (
@@ -257,7 +257,7 @@ function TrendingTags({ articles }: { articles: ArticleDocument[] }) {
 				{tags.map(([tag, count]) => (
 					<li key={tag}>
 						<Link
-							href={`/articles?tag=${encodeURIComponent(tag)}`}
+							href={`/research?tag=${encodeURIComponent(tag)}`}
 							className="group flex items-center justify-between rounded-sm px-1.5 py-1.5 text-[13px] text-(--text-secondary) transition-colors hover:bg-(--link-button) hover:text-(--text-primary)"
 						>
 							<span className="capitalize">{tag.replace(/-/g, ' ')}</span>
@@ -277,10 +277,10 @@ function MineLink() {
 	if (!isAuthenticated) return null
 	return (
 		<Link
-			href="/articles/mine"
+			href="/research/mine"
 			className="rounded-md border border-(--cards-border) px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
 		>
-			My articles
+			My research
 		</Link>
 	)
 }
@@ -290,26 +290,26 @@ function Masthead({ query, tag }: { query: string; tag: string }) {
 		<header className="grid gap-4 border-b border-(--cards-border) pb-5">
 			<div className="flex flex-wrap items-end justify-between gap-3">
 				<div className="grid gap-1">
-					<h1 className="text-2xl font-bold tracking-tight text-(--text-primary)">Articles</h1>
+					<h1 className="text-2xl font-bold tracking-tight text-(--text-primary)">Research</h1>
 					<p className="text-sm text-(--text-secondary)">
-						Research notes, data explainers, and market context from the DefiLlama ecosystem.
+						Research notes, data explainers, and market context from the DL Research team.
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
 					<MineLink />
 					<Link
-						href="/articles/new"
+						href="/research/new"
 						className="rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
 					>
 						Write
 					</Link>
 				</div>
 			</div>
-			<form className="flex flex-wrap gap-2" action="/articles">
+			<form className="flex flex-wrap gap-2" action="/research">
 				<input
 					name="q"
 					defaultValue={query}
-					placeholder="Search articles"
+					placeholder="Search research"
 					className="min-w-0 flex-1 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 				/>
 				<input
@@ -460,7 +460,7 @@ function ArticlesContent() {
 									</ul>
 								) : (
 									<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-6 text-sm text-(--text-secondary)">
-										No published articles found.
+										No published research found.
 									</div>
 								)}
 							</section>
@@ -481,9 +481,9 @@ function ArticlesContent() {
 export default function ArticlesPage() {
 	return (
 		<Layout
-			title="Articles - DefiLlama"
-			description="Read DefiLlama articles and research with live protocol, chain, and market data."
-			canonicalUrl="/articles"
+			title="Research - DefiLlama"
+			description="Read DefiLlama research with live protocol, chain, and market data."
+			canonicalUrl="/research"
 			noIndex
 			hideDesktopSearch
 		>
