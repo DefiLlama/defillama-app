@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
+import type { IYieldsOptimizerBorrowLeg, IYieldsOptimizerTableRow } from '~/containers/Yields/Tables/types'
 
 const strategiesState: {
 	data?: any
@@ -70,37 +70,15 @@ import { TokenBorrowSection, filterBorrowRows } from './TokenBorrowSection'
 
 function makeBorrowRow(
 	overrides: Partial<IYieldsOptimizerTableRow> = {},
-	borrowOverrides: Partial<IYieldsOptimizerTableRow> = {}
+	borrowOverrides: Partial<IYieldsOptimizerBorrowLeg> = {}
 ): IYieldsOptimizerTableRow {
-	const borrowRow: IYieldsOptimizerTableRow = {
-		pool: 'ETH-USDC',
-		projectslug: 'aave-v3',
-		project: 'Aave',
-		projectName: 'Aave',
-		chains: ['Ethereum'],
-		tvl: 1_000_000,
-		apy: 5,
-		apyBase: 4,
-		apyReward: 1,
-		rewardTokensSymbols: [],
-		rewards: [],
-		change1d: null,
-		change7d: null,
-		confidence: null,
-		url: 'https://example.com/pool',
-		category: 'Lending',
-		configID: 'pool-1',
+	const borrowLeg: IYieldsOptimizerBorrowLeg = {
 		symbol: 'USDC',
-		borrow: undefined as unknown as IYieldsOptimizerTableRow,
-		rewardTokensNames: [],
 		totalAvailableUsd: 500_000,
-		lendUSDAmount: 0,
-		borrowUSDAmount: 0,
-		lendAmount: 0,
-		borrowAmount: 0,
+		apyBaseBorrow: 0,
+		apyRewardBorrow: 0,
 		...borrowOverrides
 	}
-	borrowRow.borrow = borrowRow
 
 	return {
 		pool: 'ETH-USDC',
@@ -121,7 +99,7 @@ function makeBorrowRow(
 		category: 'Lending',
 		configID: 'pool-1',
 		symbol: 'ETH',
-		borrow: borrowRow,
+		borrow: borrowLeg,
 		rewardTokensNames: [],
 		totalAvailableUsd: 500_000,
 		lendUSDAmount: 0,
