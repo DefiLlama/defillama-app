@@ -93,4 +93,41 @@ describe('restored alert render model', () => {
 			}
 		])
 	})
+
+	it('appends a fallback alert block when alerts exist without an inline placeholder', () => {
+		const alerts = buildRestoredAlerts({
+			messageId: 'message-1',
+			metadata: { alertIntent }
+		})
+		const message: Message = {
+			role: 'assistant',
+			id: 'message-1',
+			content: 'Scheduled.',
+			alerts
+		}
+
+		const model = parseMessageToRenderModel(message)
+
+		expect(model.blocks.some((b) => b.type === 'alert' && b.artifactId === 'restored_message-1')).toBe(true)
+		expect(model.artifactsById.get('restored_message-1')).toMatchObject({ type: 'alert' })
+	})
+
+	it('does not duplicate blocks for repeated identical alert placeholders', () => {
+		const alerts = buildRestoredAlerts({
+			content: '[ALERT:dup]',
+			messageId: 'message-1',
+			metadata: { alertIntent }
+		})
+		const message: Message = {
+			role: 'assistant',
+			id: 'message-1',
+			content: '[ALERT:dup]\n\n[ALERT:dup]',
+			alerts
+		}
+
+		const model = parseMessageToRenderModel(message)
+		const alertBlocks = model.blocks.filter((b) => b.type === 'alert')
+		expect(alertBlocks).toHaveLength(1)
+		expect(alertBlocks[0]).toMatchObject({ type: 'alert', artifactId: 'dup' })
+	})
 })
