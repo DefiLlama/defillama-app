@@ -70,9 +70,14 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 	const [captionDraft, setCaptionDraft] = useState(attrs.caption ?? '')
 	const [captionFocused, setCaptionFocused] = useState(false)
 	const [showCaption, setShowCaption] = useState(Boolean(attrs.caption))
+	const [creditOpen, setCreditOpen] = useState(false)
+	const [creditDraft, setCreditDraft] = useState(attrs.credit ?? '')
+	const [copyrightDraft, setCopyrightDraft] = useState(attrs.copyright ?? '')
+	const [headlineDraft, setHeadlineDraft] = useState(attrs.headline ?? '')
 	const captionInputRef = useRef<HTMLTextAreaElement | null>(null)
 	const linkInputRef = useRef<HTMLInputElement | null>(null)
 	const altInputRef = useRef<HTMLTextAreaElement | null>(null)
+	const headlineInputRef = useRef<HTMLInputElement | null>(null)
 
 	useEffect(() => {
 		setAltDraft(attrs.alt ?? '')
@@ -95,9 +100,26 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 		if (altOpen) setTimeout(() => altInputRef.current?.focus(), 0)
 	}, [altOpen])
 
+	useEffect(() => {
+		setCreditDraft(attrs.credit ?? '')
+	}, [attrs.credit])
+
+	useEffect(() => {
+		setCopyrightDraft(attrs.copyright ?? '')
+	}, [attrs.copyright])
+
+	useEffect(() => {
+		setHeadlineDraft(attrs.headline ?? '')
+	}, [attrs.headline])
+
+	useEffect(() => {
+		if (creditOpen) setTimeout(() => headlineInputRef.current?.focus(), 0)
+	}, [creditOpen])
+
 	const isEditable = editor?.isEditable !== false
 	const isUploading = Boolean(attrs.uploading)
-	const showOverlay = isEditable && (selected || altOpen || linkOpen)
+	const showOverlay = isEditable && (selected || altOpen || linkOpen || creditOpen)
+	const hasCreditMeta = Boolean(attrs.credit || attrs.copyright || attrs.headline)
 
 	const commitAlt = () => {
 		updateAttributes({ alt: altDraft.trim() })
@@ -130,6 +152,22 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 		const trimmed = captionDraft.trim()
 		updateAttributes({ caption: trimmed })
 		if (!trimmed) setShowCaption(false)
+	}
+
+	const commitCredit = () => {
+		updateAttributes({
+			credit: creditDraft.trim(),
+			copyright: copyrightDraft.trim(),
+			headline: headlineDraft.trim()
+		})
+		setCreditOpen(false)
+	}
+
+	const cancelCredit = () => {
+		setCreditDraft(attrs.credit ?? '')
+		setCopyrightDraft(attrs.copyright ?? '')
+		setHeadlineDraft(attrs.headline ?? '')
+		setCreditOpen(false)
 	}
 
 	return (
@@ -179,6 +217,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 							onClick={() => {
 								setAltOpen((v) => !v)
 								if (linkOpen) setLinkOpen(false)
+								if (creditOpen) setCreditOpen(false)
 							}}
 							title={attrs.alt ? `Alt: ${attrs.alt}` : 'Add alt text'}
 						/>
@@ -189,6 +228,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 							onClick={() => {
 								setLinkOpen((v) => !v)
 								if (altOpen) setAltOpen(false)
+								if (creditOpen) setCreditOpen(false)
 							}}
 							title={attrs.href ? `Links to: ${attrs.href}` : 'Add link'}
 						/>
@@ -198,6 +238,17 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 							active={showCaption}
 							onClick={toggleCaption}
 							title={showCaption ? 'Remove caption' : 'Add caption'}
+						/>
+						<ToolbarButton
+							label="Credit"
+							indicator={hasCreditMeta}
+							active={creditOpen}
+							onClick={() => {
+								setCreditOpen((v) => !v)
+								if (altOpen) setAltOpen(false)
+								if (linkOpen) setLinkOpen(false)
+							}}
+							title={hasCreditMeta ? 'Edit headline / credit / copyright' : 'Add headline, credit, or copyright'}
 						/>
 						<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
 						<ToolbarButton label="Remove" tone="danger" onClick={() => deleteNode()} title="Remove image" />
@@ -257,6 +308,81 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 							<button
 								type="button"
 								onClick={commitLink}
+								className="rounded-md bg-(--link-button) px-3 py-1.5 text-xs font-medium text-(--link-text) transition-colors hover:brightness-110"
+							>
+								Save
+							</button>
+						</div>
+					</div>
+				) : null}
+
+				{creditOpen && !isUploading ? (
+					<div
+						contentEditable={false}
+						onMouseDown={(e) => e.stopPropagation()}
+						className="absolute top-13 right-3 z-10 grid w-80 gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 shadow-lg"
+					>
+						<label className="grid gap-1.5">
+							<span className="text-xs font-medium text-(--text-secondary)">Headline</span>
+							<input
+								ref={headlineInputRef}
+								value={headlineDraft}
+								onChange={(e) => setHeadlineDraft(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Escape') {
+										e.preventDefault()
+										cancelCredit()
+									}
+								}}
+								placeholder="Image title"
+								className="w-full rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+						<label className="grid gap-1.5">
+							<span className="text-xs font-medium text-(--text-secondary)">Credit</span>
+							<input
+								value={creditDraft}
+								onChange={(e) => setCreditDraft(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Escape') {
+										e.preventDefault()
+										cancelCredit()
+									}
+								}}
+								placeholder="Photographer or illustrator"
+								className="w-full rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+						<label className="grid gap-1.5">
+							<span className="text-xs font-medium text-(--text-secondary)">Copyright</span>
+							<input
+								value={copyrightDraft}
+								onChange={(e) => setCopyrightDraft(e.target.value)}
+								onKeyDown={(e) => {
+									if (e.key === 'Escape') {
+										e.preventDefault()
+										cancelCredit()
+									}
+									if (e.key === 'Enter' && !e.shiftKey) {
+										e.preventDefault()
+										commitCredit()
+									}
+								}}
+								placeholder="Rights holder"
+								className="w-full rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+						<div className="flex items-center justify-between">
+							<button
+								type="button"
+								onClick={cancelCredit}
+								className="rounded-md px-2 py-1 text-xs text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+							>
+								Cancel
+							</button>
+							<button
+								type="button"
+								onClick={commitCredit}
 								className="rounded-md bg-(--link-button) px-3 py-1.5 text-xs font-medium text-(--link-text) transition-colors hover:brightness-110"
 							>
 								Save

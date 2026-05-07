@@ -187,6 +187,16 @@ function renderCitation(node: TiptapJson, key: string) {
 
 function renderCallout(node: TiptapJson, key: string, ctx: RenderContext) {
 	const tone = (stringAttr(node.attrs, 'tone') as ArticleCalloutTone | undefined) || 'note'
+	if (tone === 'pullquote') {
+		return (
+			<aside
+				key={key}
+				className="article-pullquote my-8 border-y border-(--link-text)/30 px-2 py-6 text-center text-xl leading-snug font-medium text-(--text-primary) [&_p]:my-0"
+			>
+				{renderChildren(node, key, ctx)}
+			</aside>
+		)
+	}
 	const wrap =
 		tone === 'warning'
 			? 'border-[#d89b2a]/60 bg-[#fff8e6] text-[#4d3606] dark:bg-[#30230b] dark:text-[#f4d28e]'
@@ -239,6 +249,20 @@ function renderNode(node: TiptapJson, key: string, ctx: RenderContext): ReactNod
 				<h4 key={key} id={id}>
 					{renderChildren(node, key, ctx)}
 				</h4>
+			)
+		}
+		if (level === 5) {
+			return (
+				<h5 key={key} id={id}>
+					{renderChildren(node, key, ctx)}
+				</h5>
+			)
+		}
+		if (level === 6) {
+			return (
+				<h6 key={key} id={id}>
+					{renderChildren(node, key, ctx)}
+				</h6>
 			)
 		}
 		return (
@@ -497,18 +521,37 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				</header>
 
 				{article.coverImage ? (
-					<figure className="mb-10 overflow-hidden rounded-md border border-(--cards-border)">
-						<img
-							src={article.coverImage.url}
-							alt={article.coverImage.alt || ''}
-							className="max-h-[440px] w-full object-cover"
-						/>
-						{article.coverImage.caption ? (
-							<figcaption className="border-t border-(--cards-border) bg-(--cards-bg) px-4 py-2 text-xs text-(--text-tertiary)">
-								{article.coverImage.caption}
-							</figcaption>
-						) : null}
-					</figure>
+					(() => {
+						const cover = article.coverImage
+						const headline = (cover.headline ?? '').trim()
+						const caption = (cover.caption ?? '').trim()
+						const credit = (cover.credit ?? '').trim()
+						const copyright = (cover.copyright ?? '').trim()
+						const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(
+							Boolean
+						)
+						const hasMeta = headline || caption || metaParts.length > 0
+						return (
+							<figure className="mb-10 overflow-hidden rounded-md border border-(--cards-border)">
+								<img
+									src={cover.url}
+									alt={cover.alt || ''}
+									className="max-h-[440px] w-full object-cover"
+								/>
+								{hasMeta ? (
+									<figcaption className="grid gap-1 border-t border-(--cards-border) bg-(--cards-bg) px-4 py-2 text-xs text-(--text-tertiary)">
+										{headline ? (
+											<span className="font-medium text-(--text-secondary)">{headline}</span>
+										) : null}
+										{caption ? <span>{caption}</span> : null}
+										{metaParts.length > 0 ? (
+											<span className="text-(--text-tertiary)/80">{metaParts.join(' · ')}</span>
+										) : null}
+									</figcaption>
+								) : null}
+							</figure>
+						)
+					})()
 				) : null}
 
 				<div className="article-prose [overflow-wrap:anywhere] break-words">

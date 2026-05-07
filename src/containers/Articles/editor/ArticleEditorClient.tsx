@@ -1543,7 +1543,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										gutter={4}
 										className="z-50 grid min-w-[140px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 									>
-										{(['note', 'data', 'warning'] as ArticleCalloutTone[]).map((tone) => (
+										{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((tone) => (
 											<Ariakit.MenuItem
 												key={tone}
 												onClick={() => insertCallout(tone)}
@@ -1714,7 +1714,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 											gutter={4}
 											className="z-50 grid min-w-[140px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 										>
-											{(['note', 'data', 'warning'] as ArticleCalloutTone[]).map((tone) => (
+											{(['note', 'data', 'warning', 'pullquote'] as ArticleCalloutTone[]).map((tone) => (
 												<Ariakit.MenuItem
 													key={tone}
 													onClick={() => insertCallout(tone)}
@@ -1835,12 +1835,78 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							articleId={articleId}
 							currentUrl={article.coverImage?.url ?? null}
 							onUploaded={(result) =>
-								updateArticle('coverImage', { url: result.url, alt: article.title })
+								updateArticle('coverImage', {
+									...(article.coverImage ?? {}),
+									url: result.url,
+									alt: article.coverImage?.alt || article.title
+								})
 							}
 							onCleared={() => updateArticle('coverImage', null)}
 							label="cover image"
 							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
 						/>
+						{article.coverImage ? (
+							<div className="mt-3 grid gap-2">
+								<label className="grid gap-1">
+									<span className="text-[11px] text-(--text-tertiary)">Headline</span>
+									<input
+										value={article.coverImage.headline ?? ''}
+										onChange={(event) =>
+											updateArticle('coverImage', {
+												...article.coverImage!,
+												headline: event.target.value
+											})
+										}
+										placeholder="Image title"
+										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+									/>
+								</label>
+								<label className="grid gap-1">
+									<span className="text-[11px] text-(--text-tertiary)">Caption</span>
+									<input
+										value={article.coverImage.caption ?? ''}
+										onChange={(event) =>
+											updateArticle('coverImage', {
+												...article.coverImage!,
+												caption: event.target.value
+											})
+										}
+										placeholder="Caption shown under the cover"
+										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+									/>
+								</label>
+								<div className="grid grid-cols-2 gap-2">
+									<label className="grid gap-1">
+										<span className="text-[11px] text-(--text-tertiary)">Credit</span>
+										<input
+											value={article.coverImage.credit ?? ''}
+											onChange={(event) =>
+												updateArticle('coverImage', {
+													...article.coverImage!,
+													credit: event.target.value
+												})
+											}
+											placeholder="Photographer"
+											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+										/>
+									</label>
+									<label className="grid gap-1">
+										<span className="text-[11px] text-(--text-tertiary)">Copyright</span>
+										<input
+											value={article.coverImage.copyright ?? ''}
+											onChange={(event) =>
+												updateArticle('coverImage', {
+													...article.coverImage!,
+													copyright: event.target.value
+												})
+											}
+											placeholder="Rights holder"
+											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+										/>
+									</label>
+								</div>
+							</div>
+						) : null}
 					</MetaSection>
 				</div>
 

@@ -70,6 +70,9 @@ function normalizeCoverImage(value: unknown): ArticleImage | null | undefined {
 		url,
 		...(optionalString(value.alt) ? { alt: optionalString(value.alt) } : {}),
 		...(optionalString(value.caption) ? { caption: optionalString(value.caption) } : {}),
+		...(optionalString(value.credit) ? { credit: optionalString(value.credit) } : {}),
+		...(optionalString(value.copyright) ? { copyright: optionalString(value.copyright) } : {}),
+		...(optionalString(value.headline) ? { headline: optionalString(value.headline) } : {}),
 		...(typeof value.width === 'number' && Number.isFinite(value.width) ? { width: value.width } : {}),
 		...(typeof value.height === 'number' && Number.isFinite(value.height) ? { height: value.height } : {})
 	}

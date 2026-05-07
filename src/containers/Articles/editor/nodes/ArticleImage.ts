@@ -112,6 +112,9 @@ export type ArticleImageAttrs = {
 	src: string | null
 	alt: string
 	caption: string
+	credit: string
+	copyright: string
+	headline: string
 	href: string
 	width: number | null
 	height: number | null
@@ -205,6 +208,30 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 			src: { default: null },
 			alt: { default: '' },
 			caption: { default: '' },
+			credit: {
+				default: '',
+				parseHTML: (el) => el.getAttribute('data-credit') ?? '',
+				renderHTML: (attrs) => {
+					const value = typeof attrs.credit === 'string' ? attrs.credit : ''
+					return value ? { 'data-credit': value } : {}
+				}
+			},
+			copyright: {
+				default: '',
+				parseHTML: (el) => el.getAttribute('data-copyright') ?? '',
+				renderHTML: (attrs) => {
+					const value = typeof attrs.copyright === 'string' ? attrs.copyright : ''
+					return value ? { 'data-copyright': value } : {}
+				}
+			},
+			headline: {
+				default: '',
+				parseHTML: (el) => el.getAttribute('data-headline') ?? '',
+				renderHTML: (attrs) => {
+					const value = typeof attrs.headline === 'string' ? attrs.headline : ''
+					return value ? { 'data-headline': value } : {}
+				}
+			},
 			href: {
 				default: '',
 				parseHTML: (el) => el.getAttribute('data-href') ?? '',
@@ -260,6 +287,9 @@ export const ArticleImage = Node.create<ArticleImageOptions>({
 							src: null,
 							alt: '',
 							caption: '',
+							credit: '',
+							copyright: '',
+							headline: '',
 							href: '',
 							width: null,
 							height: null,
