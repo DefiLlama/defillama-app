@@ -1,12 +1,6 @@
 import { validateArticleChartConfig } from './chartAdapters'
 import { extractArticleContent } from './extractors'
-import type {
-	ArticleImage,
-	ArticleSnapshotPayload,
-	LocalArticleDocument,
-	TiptapJson,
-	ValidationResult
-} from './types'
+import type { ArticleImage, ArticleSnapshotPayload, LocalArticleDocument, TiptapJson, ValidationResult } from './types'
 
 export const ARTICLE_CONTENT_VERSION = 1
 export const ARTICLE_RENDERER_VERSION = 1
@@ -144,9 +138,7 @@ export function normalizeLocalArticleDocument(
 	const seoDescription = optionalString(input.seoDescription) ?? (derivedSeo || undefined)
 
 	const pending = isRecord(input.pending) ? (input.pending as ArticleSnapshotPayload) : null
-	const pendingUpdatedAt = optionalString(input.pendingUpdatedAt)
-		? normalizeDate(input.pendingUpdatedAt, now)
-		: null
+	const pendingUpdatedAt = optionalString(input.pendingUpdatedAt) ? normalizeDate(input.pendingUpdatedAt, now) : null
 	const pendingActorPbUserId = optionalString(input.pendingActorPbUserId) ?? null
 
 	return {

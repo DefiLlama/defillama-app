@@ -162,7 +162,8 @@ function DetectionLine({
 	if (status === 'empty') {
 		return (
 			<span className="text-[11px] text-(--text-tertiary)">
-				Tweet, YouTube, Telegram post, Flourish, Datawrapper, Medium, Substack, or GitHub gist. Other domains are blocked.
+				Tweet, YouTube, Telegram post, Flourish, Datawrapper, Medium, Substack, or GitHub gist. Other domains are
+				blocked.
 			</span>
 		)
 	}

@@ -258,27 +258,27 @@ function MyArticlesContent() {
 										Edit
 									</Link>
 									{article.viewerRole !== 'collaborator' ? (
-									<button
-										type="button"
-										aria-label="Delete"
-										title="Delete"
-										disabled={isDeleting}
-										onClick={() => handleDelete(article)}
-										className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-									>
-										<svg
-											viewBox="0 0 24 24"
-											className="h-3.5 w-3.5"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth="1.75"
-											strokeLinecap="round"
-											strokeLinejoin="round"
+										<button
+											type="button"
+											aria-label="Delete"
+											title="Delete"
+											disabled={isDeleting}
+											onClick={() => handleDelete(article)}
+											className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
 										>
-											<line x1="6" y1="6" x2="18" y2="18" />
-											<line x1="6" y1="18" x2="18" y2="6" />
-										</svg>
-									</button>
+											<svg
+												viewBox="0 0 24 24"
+												className="h-3.5 w-3.5"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.75"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<line x1="6" y1="6" x2="18" y2="18" />
+												<line x1="6" y1="18" x2="18" y2="6" />
+											</svg>
+										</button>
 									) : null}
 								</div>
 							</li>

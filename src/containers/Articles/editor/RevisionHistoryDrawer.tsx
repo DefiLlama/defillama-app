@@ -6,6 +6,7 @@ import {
 	listArticleRevisions,
 	restoreArticleRevisionToPending
 } from '../api'
+import { ArticleRenderer } from '../renderer/ArticleRenderer'
 import type {
 	ArticleDocument,
 	ArticleRevision,
@@ -13,14 +14,7 @@ import type {
 	ArticleRevisionSummary,
 	LocalArticleDocument
 } from '../types'
-import { ArticleRenderer } from '../renderer/ArticleRenderer'
-import {
-	diffMetadata,
-	diffParagraphs,
-	diffStats,
-	type FieldChange,
-	type ParagraphDiffOp
-} from './revisionDiff'
+import { diffMetadata, diffParagraphs, diffStats, type FieldChange, type ParagraphDiffOp } from './revisionDiff'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
 
@@ -182,13 +176,7 @@ function EventGlyph({ type, active }: { type: ArticleRevisionEventType; active: 
 	)
 }
 
-function StatusBadge({
-	label,
-	tone
-}: {
-	label: string
-	tone: 'live' | 'pending'
-}) {
+function StatusBadge({ label, tone }: { label: string; tone: 'live' | 'pending' }) {
 	const styles =
 		tone === 'live'
 			? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -199,7 +187,7 @@ function StatusBadge({
 		>
 			<span
 				aria-hidden
-				className={`h-1 w-1 rounded-full ${tone === 'live' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}
+				className={`h-1 w-1 rounded-full ${tone === 'live' ? 'bg-emerald-500' : 'animate-pulse bg-amber-500'}`}
 			/>
 			{label}
 		</span>
@@ -402,10 +390,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 		return c
 	}, [items])
 
-	const selectedIndex = useMemo(
-		() => filtered.findIndex((entry) => entry.id === selectedId),
-		[filtered, selectedId]
-	)
+	const selectedIndex = useMemo(() => filtered.findIndex((entry) => entry.id === selectedId), [filtered, selectedId])
 
 	const moveSelection = useCallback(
 		(delta: number) => {
@@ -506,9 +491,8 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 	useEffect(() => {
 		if (viewMode !== 'diff') return
 		if (baseAvailability[baseMode]) return
-		const fallback: BaseMode | null = (['previous', 'live', 'pending'] as BaseMode[]).find(
-			(mode) => baseAvailability[mode]
-		) ?? null
+		const fallback: BaseMode | null =
+			(['previous', 'live', 'pending'] as BaseMode[]).find((mode) => baseAvailability[mode]) ?? null
 		if (fallback && fallback !== baseMode) setBaseMode(fallback)
 	}, [viewMode, baseMode, baseAvailability])
 
@@ -566,7 +550,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 							Revision history
 						</h2>
 						<p className="font-jetbrains text-[11px] text-(--text-tertiary)">
-							<span className="tabular-nums text-(--text-secondary)">{counts.all}</span> entries
+							<span className="text-(--text-secondary) tabular-nums">{counts.all}</span> entries
 							<span aria-hidden> · </span>
 							<kbd className="rounded border border-(--cards-border) px-1 py-px text-[9px] tracking-tight">J/K</kbd>
 							<span> navigate </span>
@@ -614,11 +598,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 										}`}
 									>
 										<span>{FILTER_LABELS[key]}</span>
-										<span
-											className={`tabular-nums ${
-												isActive ? 'text-(--cards-bg)/70' : 'text-(--text-tertiary)/60'
-											}`}
-										>
+										<span className={`tabular-nums ${isActive ? 'text-(--cards-bg)/70' : 'text-(--text-tertiary)/60'}`}>
 											{counts[key]}
 										</span>
 									</button>
@@ -665,16 +645,11 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 																onClick={() => setSelectedId(entry.id)}
 																aria-current={isSelected}
 																className={`relative flex w-full items-start gap-3 px-5 py-3 text-left transition-colors ${
-																	isSelected
-																		? 'bg-(--link-button)'
-																		: 'hover:bg-(--link-hover-bg)/60'
+																	isSelected ? 'bg-(--link-button)' : 'hover:bg-(--link-hover-bg)/60'
 																}`}
 															>
 																{isSelected ? (
-																	<span
-																		aria-hidden
-																		className="absolute top-0 bottom-0 left-0 w-0.5 bg-(--link-text)"
-																	/>
+																	<span aria-hidden className="absolute top-0 bottom-0 left-0 w-0.5 bg-(--link-text)" />
 																) : null}
 																<span className="relative z-10 mt-0.5 grid h-5 w-5 place-items-center rounded-full bg-(--cards-bg)">
 																	<EventGlyph type={entry.eventType} active={isSelected} />
@@ -687,9 +662,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 																			{EVENT_LABELS[entry.eventType] ?? entry.eventType}
 																		</span>
 																		{isLive ? <StatusBadge label="Live" tone="live" /> : null}
-																		{isPendingAnchor ? (
-																			<StatusBadge label="Pending" tone="pending" />
-																		) : null}
+																		{isPendingAnchor ? <StatusBadge label="Pending" tone="pending" /> : null}
 																	</div>
 																	<div className="mt-1 flex items-baseline gap-2">
 																		<span className="font-jetbrains text-[12px] text-(--text-primary) tabular-nums">
@@ -875,7 +848,7 @@ function PreviewSpecimenHeader({
 	return (
 		<div className="border-b border-(--cards-border) bg-(--cards-bg)">
 			<div className="grid grid-cols-[1fr_auto] items-start gap-6 px-7 py-5">
-				<div className="min-w-0 grid gap-2">
+				<div className="grid min-w-0 gap-2">
 					<div className="flex flex-wrap items-center gap-2">
 						<span
 							className={`inline-flex items-center gap-1.5 rounded-sm border border-(--cards-border) bg-(--app-bg) px-2 py-0.5 font-jetbrains text-[10px] font-medium tracking-[0.18em] uppercase ${tone}`}
@@ -918,11 +891,7 @@ function PreviewSpecimenHeader({
 									<div className="flex items-center gap-1.5">
 										<dt className="text-(--text-tertiary)/60">by</dt>
 										<dd className="flex items-center gap-1.5 text-(--text-secondary)">
-											<ActorAvatar
-												name={revision.actor.displayName}
-												url={revision.actor.avatarUrl}
-												size={14}
-											/>
+											<ActorAvatar name={revision.actor.displayName} url={revision.actor.avatarUrl} size={14} />
 											{revision.actor.displayName}
 										</dd>
 									</div>
@@ -1111,7 +1080,8 @@ function DiffPane({
 		)
 	}
 	if (!baseAvailable) {
-		const label = baseMode === 'previous' ? 'an earlier revision' : baseMode === 'live' ? 'a live revision' : 'a pending revision'
+		const label =
+			baseMode === 'previous' ? 'an earlier revision' : baseMode === 'live' ? 'a live revision' : 'a pending revision'
 		return (
 			<div className="grid h-full place-items-center px-6">
 				<div className="max-w-sm text-center">
@@ -1150,9 +1120,7 @@ function DiffPane({
 	}
 
 	const noBodyChanges =
-		diff.stats.added === 0 &&
-		diff.stats.removed === 0 &&
-		diff.paragraphs.every((op) => op.type === 'equal')
+		diff.stats.added === 0 && diff.stats.removed === 0 && diff.paragraphs.every((op) => op.type === 'equal')
 	const noMetadataChanges = diff.metadata.length === 0
 
 	if (noBodyChanges && noMetadataChanges) {
@@ -1172,9 +1140,7 @@ function DiffPane({
 							<polyline points="5 12 10 17 19 8" />
 						</svg>
 					</div>
-					<p className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
-						Identical
-					</p>
+					<p className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">Identical</p>
 					<p className="mt-2 text-sm text-(--text-secondary)">
 						No textual or metadata changes between these revisions.
 					</p>
@@ -1227,18 +1193,14 @@ function MetadataDiffSection({ changes }: { changes: FieldChange[] }) {
 
 function MetaValue({ value, tone }: { value: string | null; tone: 'add' | 'remove' }) {
 	if (value == null) {
-		return (
-			<span className="font-jetbrains text-[11px] text-(--text-tertiary)/60 italic">empty</span>
-		)
+		return <span className="font-jetbrains text-[11px] text-(--text-tertiary)/60 italic">empty</span>
 	}
 	const styles =
 		tone === 'remove'
 			? 'border-red-500/30 bg-red-500/5 text-red-600 dark:text-red-400 line-through'
 			: 'border-emerald-500/30 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400'
 	return (
-		<span
-			className={`inline-block max-w-full truncate rounded-sm border px-2 py-0.5 text-[12px] ${styles}`}
-		>
+		<span className={`inline-block max-w-full truncate rounded-sm border px-2 py-0.5 text-[12px] ${styles}`}>
 			{value}
 		</span>
 	)
@@ -1248,9 +1210,7 @@ function BodyDiffSection({ ops }: { ops: ParagraphDiffOp[] }) {
 	return (
 		<section className="grid gap-3">
 			<header>
-				<h4 className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">
-					Body
-				</h4>
+				<h4 className="font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase">Body</h4>
 			</header>
 			<div className="grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				{ops.map((op, idx) => (
@@ -1276,12 +1236,9 @@ function DiffParagraph({ op }: { op: ParagraphDiffOp }) {
 	if (op.type === 'add') {
 		return (
 			<div
-				className={`${baseClasses} bg-emerald-500/[0.07] ring-1 ring-emerald-500/20 ring-inset text-(--text-primary)`}
+				className={`${baseClasses} bg-emerald-500/[0.07] text-(--text-primary) ring-1 ring-emerald-500/20 ring-inset`}
 			>
-				<span
-					aria-hidden
-					className="pt-0.5 text-center font-jetbrains text-[11px] font-medium text-emerald-500"
-				>
+				<span aria-hidden className="pt-0.5 text-center font-jetbrains text-[11px] font-medium text-emerald-500">
 					+
 				</span>
 				<p className="text-[14px]">{op.value}</p>
@@ -1291,7 +1248,7 @@ function DiffParagraph({ op }: { op: ParagraphDiffOp }) {
 	if (op.type === 'remove') {
 		return (
 			<div
-				className={`${baseClasses} bg-red-500/[0.06] ring-1 ring-red-500/20 ring-inset text-red-500/85 dark:text-red-400/85 line-through`}
+				className={`${baseClasses} bg-red-500/[0.06] text-red-500/85 line-through ring-1 ring-red-500/20 ring-inset dark:text-red-400/85`}
 			>
 				<span
 					aria-hidden
@@ -1304,13 +1261,8 @@ function DiffParagraph({ op }: { op: ParagraphDiffOp }) {
 		)
 	}
 	return (
-		<div
-			className={`${baseClasses} bg-amber-500/[0.04] ring-1 ring-amber-500/20 ring-inset text-(--text-primary)`}
-		>
-			<span
-				aria-hidden
-				className="pt-0.5 text-center font-jetbrains text-[11px] font-medium text-amber-500"
-			>
+		<div className={`${baseClasses} bg-amber-500/[0.04] text-(--text-primary) ring-1 ring-amber-500/20 ring-inset`}>
+			<span aria-hidden className="pt-0.5 text-center font-jetbrains text-[11px] font-medium text-amber-500">
 				~
 			</span>
 			<p className="text-[14px] [overflow-wrap:anywhere]">
@@ -1318,18 +1270,12 @@ function DiffParagraph({ op }: { op: ParagraphDiffOp }) {
 					if (word.type === 'equal') return <span key={idx}>{word.value}</span>
 					if (word.type === 'add')
 						return (
-							<span
-								key={idx}
-								className="rounded-[2px] bg-emerald-500/15 px-0.5 text-emerald-700 dark:text-emerald-300"
-							>
+							<span key={idx} className="rounded-[2px] bg-emerald-500/15 px-0.5 text-emerald-700 dark:text-emerald-300">
 								{word.value}
 							</span>
 						)
 					return (
-						<span
-							key={idx}
-							className="rounded-[2px] bg-red-500/12 px-0.5 text-red-600 line-through dark:text-red-400"
-						>
+						<span key={idx} className="rounded-[2px] bg-red-500/12 px-0.5 text-red-600 line-through dark:text-red-400">
 							{word.value}
 						</span>
 					)
@@ -1356,14 +1302,8 @@ function InlineConfirm({
 	onCancel: () => void
 	disabled: boolean
 }) {
-	const accent =
-		tone === 'danger'
-			? 'border-red-500/40 bg-red-500/5'
-			: 'border-(--link-text)/40 bg-(--link-text)/5'
-	const button =
-		tone === 'danger'
-			? 'bg-red-500 hover:bg-red-500/90'
-			: 'bg-(--link-text) hover:opacity-90'
+	const accent = tone === 'danger' ? 'border-red-500/40 bg-red-500/5' : 'border-(--link-text)/40 bg-(--link-text)/5'
+	const button = tone === 'danger' ? 'bg-red-500 hover:bg-red-500/90' : 'bg-(--link-text) hover:opacity-90'
 	return (
 		<div
 			role="alertdialog"
@@ -1403,12 +1343,8 @@ function TimelineSkeleton() {
 			{[0.9, 0.7, 0.55, 0.85, 0.6, 0.7].map((scale, idx) => (
 				<div key={idx} className="flex items-start gap-3 py-2">
 					<span aria-hidden className="mt-1 h-2 w-2 rounded-full bg-(--cards-border)" />
-					<div className="flex-1 grid gap-1.5">
-						<span
-							aria-hidden
-							className="h-2 rounded bg-(--cards-border)"
-							style={{ width: `${scale * 100}%` }}
-						/>
+					<div className="grid flex-1 gap-1.5">
+						<span aria-hidden className="h-2 rounded bg-(--cards-border)" style={{ width: `${scale * 100}%` }} />
 						<span aria-hidden className="h-2 w-24 rounded bg-(--cards-border)/60" />
 					</div>
 				</div>

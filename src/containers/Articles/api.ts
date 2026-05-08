@@ -161,10 +161,7 @@ export async function unpublishArticle(id: string, authorizedFetch: AuthorizedFe
 	return data.article
 }
 
-export async function discardPendingEdits(
-	id: string,
-	authorizedFetch: AuthorizedFetch
-): Promise<ArticleDocument> {
+export async function discardPendingEdits(id: string, authorizedFetch: AuthorizedFetch): Promise<ArticleDocument> {
 	const data = await parseResponse<{ article: ArticleDocument }>(
 		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/discard-pending`), {
 			method: 'POST'
@@ -194,9 +191,7 @@ export async function getArticleRevision(
 ): Promise<ArticleRevision> {
 	const data = await parseResponse<{ revision: ArticleRevision }>(
 		await authorizedFetch(
-			articleUrl(
-				`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}`
-			)
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}`)
 		)
 	)
 	return data.revision
@@ -225,9 +220,7 @@ export async function deleteArticleRevision(
 ): Promise<void> {
 	await parseResponse(
 		await authorizedFetch(
-			articleUrl(
-				`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}`
-			),
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}`),
 			{ method: 'DELETE' }
 		)
 	)

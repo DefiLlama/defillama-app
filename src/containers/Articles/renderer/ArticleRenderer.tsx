@@ -495,7 +495,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 	const minutes = readingMinutes(article.plainText || '')
 
 	return (
-		<div className="article-page animate-fadein mx-auto grid w-full max-w-[1180px] gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,760px)_220px]">
+		<div className="article-page mx-auto grid w-full max-w-[1180px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,760px)_220px]">
 			<article className="article-published min-w-0">
 				<header className="grid gap-4 pt-10 pb-8">
 					<div className="flex flex-wrap items-center gap-2 text-xs text-(--text-tertiary)">
@@ -509,62 +509,62 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 						{article.title}
 					</h1>
 					{article.subtitle ? <p className="text-lg leading-snug text-(--text-secondary)">{article.subtitle}</p> : null}
-					{article.author ? (
-						(() => {
-							const ownerLink = article.authorProfile ? (
-								<Link
-									key={article.authorProfile.id}
-									href={`/research/authors/${article.authorProfile.slug}`}
-									className="text-sm text-(--text-primary) hover:text-(--link-text)"
-								>
-									{article.author}
-								</Link>
-							) : (
-								<span key="owner" className="text-sm text-(--text-primary)">
-									{article.author}
-								</span>
-							)
-							const coAuthorLinks = (article.coAuthors ?? []).map((profile) => (
-								<Link
-									key={profile.id}
-									href={`/research/authors/${profile.slug}`}
-									className="text-sm text-(--text-primary) hover:text-(--link-text)"
-								>
-									{profile.displayName}
-								</Link>
-							))
-							const links = [ownerLink, ...coAuthorLinks]
-							const avatars = [
-								{ key: 'owner', label: article.author },
-								...(article.coAuthors ?? []).map((p) => ({ key: p.id, label: p.displayName }))
-							]
-							return (
-								<div className="mt-2 flex flex-wrap items-center gap-2 border-t border-(--cards-border) pt-3 text-xs text-(--text-tertiary)">
-									<div className="flex -space-x-2">
-										{avatars.map((entry) => (
-											<span
-												key={entry.key}
-												className="flex h-7 w-7 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-[10px] font-medium text-(--text-secondary)"
-												title={entry.label}
-											>
-												{entry.label.slice(0, 2).toUpperCase()}
-											</span>
-										))}
-									</div>
-									<span className="flex flex-wrap items-center gap-1">
-										<span>By</span>
-										{links.map((node, index) => (
-											<span key={index} className="flex items-center gap-1">
-												{node}
-												{index < links.length - 2 ? <span>,</span> : null}
-												{index === links.length - 2 ? <span>and</span> : null}
-											</span>
-										))}
+					{article.author
+						? (() => {
+								const ownerLink = article.authorProfile ? (
+									<Link
+										key={article.authorProfile.id}
+										href={`/research/authors/${article.authorProfile.slug}`}
+										className="text-sm text-(--text-primary) hover:text-(--link-text)"
+									>
+										{article.author}
+									</Link>
+								) : (
+									<span key="owner" className="text-sm text-(--text-primary)">
+										{article.author}
 									</span>
-								</div>
-							)
-						})()
-					) : null}
+								)
+								const coAuthorLinks = (article.coAuthors ?? []).map((profile) => (
+									<Link
+										key={profile.id}
+										href={`/research/authors/${profile.slug}`}
+										className="text-sm text-(--text-primary) hover:text-(--link-text)"
+									>
+										{profile.displayName}
+									</Link>
+								))
+								const links = [ownerLink, ...coAuthorLinks]
+								const avatars = [
+									{ key: 'owner', label: article.author },
+									...(article.coAuthors ?? []).map((p) => ({ key: p.id, label: p.displayName }))
+								]
+								return (
+									<div className="mt-2 flex flex-wrap items-center gap-2 border-t border-(--cards-border) pt-3 text-xs text-(--text-tertiary)">
+										<div className="flex -space-x-2">
+											{avatars.map((entry) => (
+												<span
+													key={entry.key}
+													className="flex h-7 w-7 items-center justify-center rounded-full border border-(--cards-border) bg-(--cards-bg) text-[10px] font-medium text-(--text-secondary)"
+													title={entry.label}
+												>
+													{entry.label.slice(0, 2).toUpperCase()}
+												</span>
+											))}
+										</div>
+										<span className="flex flex-wrap items-center gap-1">
+											<span>By</span>
+											{links.map((node, index) => (
+												<span key={index} className="flex items-center gap-1">
+													{node}
+													{index < links.length - 2 ? <span>,</span> : null}
+													{index === links.length - 2 ? <span>and</span> : null}
+												</span>
+											))}
+										</span>
+									</div>
+								)
+							})()
+						: null}
 				</header>
 
 				{article.coverImage

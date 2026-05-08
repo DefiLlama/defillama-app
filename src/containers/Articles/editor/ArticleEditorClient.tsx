@@ -29,7 +29,6 @@ import type {
 	ArticleEmbedConfig,
 	LocalArticleDocument
 } from '../types'
-import { RevisionHistoryDrawer } from './RevisionHistoryDrawer'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
@@ -38,6 +37,7 @@ import { createArticleEditorExtensions } from './extensions'
 import { triggerInlineImagePicker, type ArticleImageUploadFn } from './nodes/ArticleImage'
 import type { ArticlePeoplePanelConfig } from './peoplePanel'
 import { PeoplePanelDialog } from './PeoplePanelDialog'
+import { RevisionHistoryDrawer } from './RevisionHistoryDrawer'
 
 function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: string }) {
 	const props = {
@@ -1176,7 +1176,11 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			toast.success('Co-author added')
 		} catch (error) {
 			const message =
-				error instanceof ArticleApiError ? error.message : error instanceof Error ? error.message : 'Failed to add co-author'
+				error instanceof ArticleApiError
+					? error.message
+					: error instanceof Error
+						? error.message
+						: 'Failed to add co-author'
 			setCollaboratorError(message)
 		} finally {
 			setCollaboratorAdding(false)
@@ -1331,7 +1335,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})()
 
 	return (
-		<div className="article-editor-shell animate-fadein relative mx-auto w-full max-w-[760px] px-4 pb-32 sm:px-6">
+		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] animate-fadein px-4 pb-32 sm:px-6">
 			<header
 				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 ${
 					isPublished ? 'border-emerald-500/25' : 'border-(--cards-border)'
@@ -1405,7 +1409,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						title={pillState === 'error' ? 'Click to retry. Cmd/Ctrl+S also saves.' : 'Cmd/Ctrl+S to save'}
 						disabled={pillState === 'saving' || pillState === 'idle'}
 						onClick={() => void saveArticle()}
-						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors sm:flex disabled:cursor-default ${
+						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors disabled:cursor-default sm:flex ${
 							pillState === 'error'
 								? 'border-red-500/40 bg-red-500/5 text-red-500 hover:bg-red-500/10'
 								: pillState === 'unsaved'
@@ -1478,7 +1482,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								<Ariakit.MenuButton className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40">
 									<span
 										aria-hidden
-										className={`h-1.5 w-1.5 rounded-full ${hasPendingEdits ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}
+										className={`h-1.5 w-1.5 rounded-full ${hasPendingEdits ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'}`}
 									/>
 									<span>{hasPendingEdits ? 'Live · Pending' : 'Live'}</span>
 									<span aria-hidden className="text-(--text-tertiary)">
@@ -2234,9 +2238,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								)}
 							</div>
 						) : isCollaborator ? (
-							<span className="text-[11px] text-(--text-tertiary)">
-								Only the owner can manage authors.
-							</span>
+							<span className="text-[11px] text-(--text-tertiary)">Only the owner can manage authors.</span>
 						) : null}
 					</MetaSection>
 

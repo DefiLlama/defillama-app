@@ -41,6 +41,7 @@
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
+	--animate-ken-burns: ken-burns 32s ease-in-out infinite alternate;
 
 	@keyframes dot1 {
 		0%,
@@ -193,6 +194,20 @@
 				0 0 16px rgba(91, 133, 255, 0.2),
 				0 0 20px rgba(91, 133, 255, 0.15);
 		}
+	}
+	@keyframes ken-burns {
+		0% {
+			transform: scale(1) translate3d(0, 0, 0);
+		}
+		100% {
+			transform: scale(1.06) translate3d(-1.5%, -1%, 0);
+		}
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animate-ken-burns {
+		animation: none !important;
 	}
 }
 
@@ -1370,8 +1385,7 @@
 	width: var(--scan-size);
 	aspect-ratio: 1;
 	overflow: visible;
-	filter:
-		drop-shadow(0 14px 28px color-mix(in oklch, var(--text-primary) 22%, transparent))
+	filter: drop-shadow(0 14px 28px color-mix(in oklch, var(--text-primary) 22%, transparent))
 		drop-shadow(0 4px 10px color-mix(in oklch, var(--link-text) 28%, transparent));
 }
 

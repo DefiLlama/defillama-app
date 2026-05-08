@@ -8,7 +8,11 @@ const WORD_TOKENIZE = /(\s+)/
 
 const MAX_WORD_DIFF_TOKENS = 4000
 
-function lcs<T>(a: T[], b: T[], eq: (x: T, y: T) => boolean = (x, y) => x === y): { type: 'equal' | 'add' | 'remove'; index: number }[] {
+function lcs<T>(
+	a: T[],
+	b: T[],
+	eq: (x: T, y: T) => boolean = (x, y) => x === y
+): { type: 'equal' | 'add' | 'remove'; index: number }[] {
 	const n = a.length
 	const m = b.length
 	const dp: Uint32Array[] = []
@@ -87,9 +91,7 @@ export type ParagraphDiffOp =
 
 export function diffParagraphs(oldText: string, newText: string): ParagraphDiffOp[] {
 	if (oldText === newText) {
-		return oldText
-			? [{ type: 'equal', value: oldText }]
-			: []
+		return oldText ? [{ type: 'equal', value: oldText }] : []
 	}
 	const oldParas = oldText.split(PARAGRAPH_SPLIT).filter((p) => p.length > 0)
 	const newParas = newText.split(PARAGRAPH_SPLIT).filter((p) => p.length > 0)
@@ -171,8 +173,7 @@ export function diffMetadata(
 
 	const beforeTags = normalizeTags(before.tags)
 	const afterTags = normalizeTags(after.tags)
-	const tagsEqual =
-		beforeTags.length === afterTags.length && beforeTags.every((tag, idx) => tag === afterTags[idx])
+	const tagsEqual = beforeTags.length === afterTags.length && beforeTags.every((tag, idx) => tag === afterTags[idx])
 	if (!tagsEqual) {
 		changes.push({
 			key: 'tags',

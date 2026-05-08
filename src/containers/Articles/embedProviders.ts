@@ -136,7 +136,8 @@ function telegramEmbedUrl(url: URL): string | null {
 function flourishEmbedUrl(url: URL): string | null {
 	const host = url.hostname.toLowerCase()
 	if (host === 'flo.uri.sh') return url.toString()
-	const isFlourish = host === 'public.flourish.studio' || host === 'app.flourish.studio' || host.endsWith('.flourish.studio')
+	const isFlourish =
+		host === 'public.flourish.studio' || host === 'app.flourish.studio' || host.endsWith('.flourish.studio')
 	if (!isFlourish) return null
 	if (url.pathname.includes('/embed')) return url.toString()
 	const trimmed = url.pathname.replace(/\/+$/, '')

@@ -125,10 +125,7 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 							<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
 							Draft preview · only visible to authors
 						</span>
-						<Link
-							href={`/research/edit/${article.id}`}
-							className="font-medium text-amber-600 hover:underline"
-						>
+						<Link href={`/research/edit/${article.id}`} className="font-medium text-amber-600 hover:underline">
 							Edit
 						</Link>
 					</div>
