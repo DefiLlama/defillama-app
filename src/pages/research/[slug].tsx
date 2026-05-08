@@ -6,6 +6,7 @@ import { ArticleApiError, getArticleBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
+import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -13,9 +14,11 @@ import Layout from '~/layout'
 
 function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
-	const isOwner =
-		isAuthenticated && !!user?.id && !!article.authorProfile?.pbUserId && user.id === article.authorProfile.pbUserId
-	if (!isOwner) return null
+	const canEdit =
+		article.viewerRole === 'owner' ||
+		article.viewerRole === 'collaborator' ||
+		(isAuthenticated && !!user?.id && !!article.authorProfile?.pbUserId && user.id === article.authorProfile.pbUserId)
+	if (!canEdit) return null
 	return (
 		<div className="pointer-events-none fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 justify-center sm:bottom-8">
 			<Link
@@ -74,11 +77,7 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 	}, [authorizedFetch, slug])
 
 	if (isLoading) {
-		return (
-			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
-				Loading…
-			</div>
-		)
+		return <ResearchLoader />
 	}
 
 	if (notFound) {
@@ -110,6 +109,20 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 				</Head>
 			) : null}
 			<AppMetadataProvider>
+				{article.status === 'draft' ? (
+					<div className="mx-auto mt-4 flex w-full max-w-[1180px] items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-sm text-amber-600 sm:px-6">
+						<span className="flex items-center gap-2">
+							<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+							Draft preview · only visible to authors
+						</span>
+						<Link
+							href={`/research/edit/${article.id}`}
+							className="font-medium text-amber-600 hover:underline"
+						>
+							Edit
+						</Link>
+					</div>
+				) : null}
 				<ArticleRenderer article={article} />
 				<OwnerEditChip article={article} />
 			</AppMetadataProvider>
@@ -130,7 +143,9 @@ export default function ArticlePage() {
 			hideDesktopSearch
 		>
 			<ArticleProxyAuthProvider>
-				<ArticlesAccessGate>{slug ? <ArticleBySlugContent slug={slug} /> : null}</ArticlesAccessGate>
+				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
+					{slug ? <ArticleBySlugContent slug={slug} /> : <ResearchLoader />}
+				</ArticlesAccessGate>
 			</ArticleProxyAuthProvider>
 		</Layout>
 	)

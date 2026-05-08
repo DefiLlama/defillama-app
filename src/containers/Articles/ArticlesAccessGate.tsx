@@ -10,9 +10,15 @@ export function useHasArticlesAccess() {
 	}
 }
 
-export function ArticlesAccessGate({ children }: { children: ReactNode }) {
+export function ArticlesAccessGate({
+	children,
+	loadingFallback = null
+}: {
+	children: ReactNode
+	loadingFallback?: ReactNode
+}) {
 	const { isLoading, hasAccess } = useHasArticlesAccess()
-	if (isLoading) return null
+	if (isLoading) return <>{loadingFallback}</>
 	if (!hasAccess) return null
 	return <>{children}</>
 }

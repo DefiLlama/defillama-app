@@ -1,5 +1,5 @@
 import { FEATURES_SERVER } from '~/constants'
-import type { ArticleAuthorProfile, ArticleDocument, LocalArticleDocument } from './types'
+import type { ArticleAuthorProfile, ArticleCollaborator, ArticleDocument, LocalArticleDocument } from './types'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
 type FetchLike = (url: string, options?: RequestInit) => Promise<Response>
@@ -195,4 +195,42 @@ export async function updateMyAuthorProfile(
 		})
 	)
 	return data.author
+}
+
+export async function listCollaborators(
+	articleId: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleCollaborator[]> {
+	const data = await parseResponse<{ collaborators: ArticleCollaborator[] }>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(articleId)}/collaborators`))
+	)
+	return data.collaborators
+}
+
+export async function addCollaborator(
+	articleId: string,
+	email: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleCollaborator> {
+	const data = await parseResponse<{ collaborator: ArticleCollaborator }>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(articleId)}/collaborators`), {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ email })
+		})
+	)
+	return data.collaborator
+}
+
+export async function removeCollaborator(
+	articleId: string,
+	pbUserId: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<void> {
+	await parseResponse(
+		await authorizedFetch(
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/collaborators/${encodeURIComponent(pbUserId)}`),
+			{ method: 'DELETE' }
+		)
+	)
 }

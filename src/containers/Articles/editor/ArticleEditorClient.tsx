@@ -8,15 +8,26 @@ import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import {
+	addCollaborator,
+	ArticleApiError,
 	createArticle,
 	deleteArticle,
 	getOwnedArticle,
+	listCollaborators,
 	publishArticle,
+	removeCollaborator,
 	unpublishArticle,
 	updateArticle as updateRemoteArticle
 } from '../api'
 import { createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
-import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
+import { ResearchLoader } from '../ResearchLoader'
+import type {
+	ArticleCalloutTone,
+	ArticleChartConfig,
+	ArticleCollaborator,
+	ArticleEmbedConfig,
+	LocalArticleDocument
+} from '../types'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
@@ -647,6 +658,11 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [saveError, setSaveError] = useState(false)
 	const [slugEditing, setSlugEditing] = useState(false)
 	const [slugDraft, setSlugDraft] = useState('')
+	const [collaborators, setCollaborators] = useState<ArticleCollaborator[]>([])
+	const [collaboratorsLoading, setCollaboratorsLoading] = useState(false)
+	const [collaboratorEmail, setCollaboratorEmail] = useState('')
+	const [collaboratorAdding, setCollaboratorAdding] = useState(false)
+	const [collaboratorError, setCollaboratorError] = useState<string | null>(null)
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
 	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
@@ -1049,6 +1065,67 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	}
 
+	const isOwner = article.viewerRole === 'owner'
+	const isCollaborator = article.viewerRole === 'collaborator'
+
+	const refreshCollaborators = useCallback(async () => {
+		if (!article.id) return
+		setCollaboratorsLoading(true)
+		try {
+			const list = await listCollaborators(article.id, authorizedFetch)
+			setCollaborators(list)
+		} catch (error) {
+			if (error instanceof ArticleApiError && error.status === 403) {
+				setCollaborators([])
+			} else if (error instanceof Error) {
+				toast.error(error.message)
+			}
+		} finally {
+			setCollaboratorsLoading(false)
+		}
+	}, [article.id, authorizedFetch])
+
+	useEffect(() => {
+		if (!article.id) {
+			setCollaborators([])
+			return
+		}
+		void refreshCollaborators()
+	}, [article.id, refreshCollaborators])
+
+	const handleAddCollaborator = async () => {
+		if (!article.id) return
+		const email = collaboratorEmail.trim()
+		if (!email) {
+			setCollaboratorError('Enter an email address')
+			return
+		}
+		setCollaboratorAdding(true)
+		setCollaboratorError(null)
+		try {
+			await addCollaborator(article.id, email, authorizedFetch)
+			setCollaboratorEmail('')
+			await refreshCollaborators()
+			toast.success('Co-author added')
+		} catch (error) {
+			const message =
+				error instanceof ArticleApiError ? error.message : error instanceof Error ? error.message : 'Failed to add co-author'
+			setCollaboratorError(message)
+		} finally {
+			setCollaboratorAdding(false)
+		}
+	}
+
+	const handleRemoveCollaborator = async (pbUserId: string) => {
+		if (!article.id) return
+		try {
+			await removeCollaborator(article.id, pbUserId, authorizedFetch)
+			await refreshCollaborators()
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to remove co-author')
+		}
+	}
+
 	const insertCallout = (tone: ArticleCalloutTone) => editor?.chain().focus().insertCallout(tone).run()
 
 	const insertCitation = () => {
@@ -1064,11 +1141,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	}
 
 	if (isLoading) {
-		return (
-			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
-				Loading research…
-			</div>
-		)
+		return <ResearchLoader />
 	}
 
 	if (!isAuthenticated) {
@@ -1190,7 +1263,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})()
 
 	return (
-		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] px-4 pb-32 sm:px-6">
+		<div className="article-editor-shell animate-fadein relative mx-auto w-full max-w-[760px] px-4 pb-32 sm:px-6">
 			<header
 				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 ${
 					isPublished ? 'border-emerald-500/25' : 'border-(--cards-border)'
@@ -1299,26 +1372,41 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									<Icon name="undo" className="h-3.5 w-3.5" />
 									Move to drafts
 								</Ariakit.MenuItem>
-								<span aria-hidden className="my-1 h-px bg-(--cards-border)" />
-								<Ariakit.MenuItem
-									onClick={handleDeleteArticle}
-									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
-								>
-									<Icon name="x" className="h-3.5 w-3.5" />
-									Delete
-								</Ariakit.MenuItem>
+								{isOwner ? (
+									<>
+										<span aria-hidden className="my-1 h-px bg-(--cards-border)" />
+										<Ariakit.MenuItem
+											onClick={handleDeleteArticle}
+											className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
+										>
+											<Icon name="x" className="h-3.5 w-3.5" />
+											Delete
+										</Ariakit.MenuItem>
+									</>
+								) : null}
 							</Ariakit.Menu>
 						</Ariakit.MenuProvider>
 					) : article.id ? (
-						<button
-							type="button"
-							disabled={isPublishing}
-							onClick={() => metaDialog.show()}
-							className="flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.55)] disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							<span>Publish</span>
-							<span aria-hidden>→</span>
-						</button>
+						<>
+							<Link
+								href={`/research/${article.slug}`}
+								target="_blank"
+								rel="noreferrer"
+								className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+							>
+								<Icon name="eye" className="h-3.5 w-3.5" />
+								<span>Preview</span>
+							</Link>
+							<button
+								type="button"
+								disabled={isPublishing}
+								onClick={() => metaDialog.show()}
+								className="flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.55)] disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								<span>Publish</span>
+								<span aria-hidden>→</span>
+							</button>
+						</>
 					) : null}
 				</div>
 			</header>
@@ -1339,7 +1427,14 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 					className="mt-3 w-full bg-transparent text-lg leading-snug text-(--text-secondary) italic placeholder:text-(--text-tertiary)/60 focus:outline-none md:text-xl"
 				/>
 				{article.author ? (
-					<div className="mt-4 text-xs tracking-[0.18em] text-(--text-tertiary) uppercase">By {article.author}</div>
+					<div className="mt-4 text-xs tracking-[0.18em] text-(--text-tertiary) uppercase">
+						{(() => {
+							const names = [article.author, ...(article.coAuthors ?? []).map((p) => p.displayName)]
+							if (names.length <= 1) return `By ${names[0]}`
+							if (names.length === 2) return `By ${names[0]} and ${names[1]}`
+							return `By ${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
+						})()}
+					</div>
 				) : null}
 			</div>
 
@@ -1826,6 +1921,92 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
 						</label>
+					</MetaSection>
+
+					<MetaSection title="Authors">
+						<div className="grid gap-2">
+							{collaboratorsLoading && collaborators.length === 0 ? (
+								<div className="text-xs text-(--text-tertiary)">Loading…</div>
+							) : null}
+							{collaborators.map((entry) => (
+								<div
+									key={entry.pbUserId}
+									className="flex items-center justify-between gap-3 rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2"
+								>
+									<div className="flex min-w-0 items-center gap-2">
+										{entry.profile.avatarUrl ? (
+											// eslint-disable-next-line @next/next/no-img-element
+											<img
+												src={entry.profile.avatarUrl}
+												alt=""
+												className="h-7 w-7 shrink-0 rounded-full object-cover"
+											/>
+										) : (
+											<span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-(--link-button) text-[11px] font-medium text-(--link-text)">
+												{entry.profile.displayName.slice(0, 2).toUpperCase()}
+											</span>
+										)}
+										<div className="min-w-0">
+											<div className="truncate text-sm text-(--text-primary)">{entry.profile.displayName}</div>
+											<div className="text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+												{entry.role === 'owner' ? 'Owner' : 'Co-author'}
+											</div>
+										</div>
+									</div>
+									{isOwner && entry.role === 'collaborator' ? (
+										<button
+											type="button"
+											onClick={() => handleRemoveCollaborator(entry.pbUserId)}
+											className="text-xs text-(--text-tertiary) transition-colors hover:text-red-500"
+										>
+											Remove
+										</button>
+									) : null}
+								</div>
+							))}
+						</div>
+						{isOwner ? (
+							<div className="grid gap-1.5">
+								<div className="flex gap-2">
+									<input
+										type="email"
+										value={collaboratorEmail}
+										onChange={(event) => {
+											setCollaboratorEmail(event.target.value)
+											if (collaboratorError) setCollaboratorError(null)
+										}}
+										onKeyDown={(event) => {
+											if (event.key === 'Enter') {
+												event.preventDefault()
+												void handleAddCollaborator()
+											}
+										}}
+										placeholder="Add co-author by email"
+										disabled={collaboratorAdding}
+										className="flex-1 rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none disabled:opacity-60"
+									/>
+									<button
+										type="button"
+										onClick={handleAddCollaborator}
+										disabled={collaboratorAdding || !collaboratorEmail.trim()}
+										className="rounded-md bg-(--link-text) px-3 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										{collaboratorAdding ? 'Adding…' : 'Add'}
+									</button>
+								</div>
+								{collaboratorError ? (
+									<span className="text-xs text-red-500">{collaboratorError}</span>
+								) : (
+									<span className="text-[11px] text-(--text-tertiary)">
+										Co-authors can edit, publish, and unpublish. Only you can manage authors or delete.
+									</span>
+								)}
+							</div>
+						) : isCollaborator ? (
+							<span className="text-[11px] text-(--text-tertiary)">
+								Only the owner can manage authors.
+							</span>
+						) : null}
 					</MetaSection>
 
 					<MetaSection title="Cover">

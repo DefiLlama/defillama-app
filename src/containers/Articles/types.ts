@@ -97,6 +97,16 @@ export type ArticleAuthorProfile = {
 	updatedAt: string
 }
 
+export type ArticleViewerRole = 'owner' | 'collaborator'
+
+export type ArticleCollaborator = {
+	pbUserId: string
+	profile: ArticleAuthorProfile
+	role: ArticleViewerRole
+	addedAt: string
+	addedByPbUserId: string | null
+}
+
 export type LocalArticleDocument = {
 	id?: string
 	contentVersion: ArticleVersion
@@ -109,6 +119,8 @@ export type LocalArticleDocument = {
 	status: ArticleStatus
 	author?: string
 	authorProfile?: ArticleAuthorProfile
+	coAuthors?: ArticleAuthorProfile[]
+	viewerRole?: ArticleViewerRole
 
 	seoTitle?: string
 	seoDescription?: string

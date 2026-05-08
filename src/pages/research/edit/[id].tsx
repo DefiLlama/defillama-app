@@ -2,6 +2,7 @@ import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import Layout from '~/layout'
 
@@ -9,9 +10,7 @@ const ArticleEditorClient = dynamic(
 	() => import('~/containers/Articles/editor/ArticleEditorClient').then((mod) => mod.ArticleEditorClient),
 	{
 		ssr: false,
-		loading: () => (
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">Loading research editor...</div>
-		)
+		loading: () => <ResearchLoader />
 	}
 )
 
@@ -29,7 +28,9 @@ export default function EditArticlePage() {
 		>
 			<ArticleProxyAuthProvider>
 				<AppMetadataProvider>
-					<ArticlesAccessGate>{id ? <ArticleEditorClient articleId={id} /> : null}</ArticlesAccessGate>
+					<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
+						{id ? <ArticleEditorClient articleId={id} /> : <ResearchLoader />}
+					</ArticlesAccessGate>
 				</AppMetadataProvider>
 			</ArticleProxyAuthProvider>
 		</Layout>

@@ -205,6 +205,11 @@ function MyArticlesContent() {
 								<Link href={`/research/edit/${article.id}`} className="grid min-w-0 gap-1">
 									<div className="flex flex-wrap items-center gap-2">
 										<StatusBadge status={article.status} />
+										{article.viewerRole === 'collaborator' ? (
+											<span className="inline-flex items-center rounded bg-(--link-button) px-2 py-0.5 text-[11px] font-medium text-(--link-text)">
+												Co-author
+											</span>
+										) : null}
 										<h3 className="truncate text-base font-semibold text-(--text-primary) group-hover:text-(--link-text)">
 											{article.title || 'Untitled'}
 										</h3>
@@ -225,35 +230,34 @@ function MyArticlesContent() {
 								</Link>
 
 								<div className="flex shrink-0 items-center gap-1">
-									{article.status === 'published' ? (
-										<Link
-											href={`/research/${article.slug}`}
-											target="_blank"
-											rel="noreferrer"
-											aria-label="View"
-											title="View"
-											className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
+									<Link
+										href={`/research/${article.slug}`}
+										target="_blank"
+										rel="noreferrer"
+										aria-label={article.status === 'published' ? 'View' : 'Preview'}
+										title={article.status === 'published' ? 'View' : 'Preview'}
+										className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
+									>
+										<svg
+											viewBox="0 0 24 24"
+											className="h-4 w-4"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="1.75"
+											strokeLinecap="round"
+											strokeLinejoin="round"
 										>
-											<svg
-												viewBox="0 0 24 24"
-												className="h-4 w-4"
-												fill="none"
-												stroke="currentColor"
-												strokeWidth="1.75"
-												strokeLinecap="round"
-												strokeLinejoin="round"
-											>
-												<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-												<circle cx="12" cy="12" r="3" />
-											</svg>
-										</Link>
-									) : null}
+											<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+											<circle cx="12" cy="12" r="3" />
+										</svg>
+									</Link>
 									<Link
 										href={`/research/edit/${article.id}`}
 										className="flex h-8 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs text-(--text-secondary) hover:border-(--link-text)/40 hover:text-(--text-primary)"
 									>
 										Edit
 									</Link>
+									{article.viewerRole !== 'collaborator' ? (
 									<button
 										type="button"
 										aria-label="Delete"
@@ -275,6 +279,7 @@ function MyArticlesContent() {
 											<line x1="6" y1="18" x2="18" y2="6" />
 										</svg>
 									</button>
+									) : null}
 								</div>
 							</li>
 						)
