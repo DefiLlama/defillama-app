@@ -15,6 +15,8 @@ import Layout from '~/layout'
 
 type Filter = 'all' | 'draft' | 'published'
 
+const EMPTY_ARTICLES: ArticleDocument[] = []
+
 function formatRelative(iso: string | null | undefined) {
 	if (!iso) return '—'
 	const date = new Date(iso)
@@ -81,7 +83,7 @@ function MyArticlesContent() {
 		}
 	}, [authorizedFetch, isAuthenticated, loaders.userLoading])
 
-	const articles = data?.items ?? []
+	const articles = data?.items ?? EMPTY_ARTICLES
 	const drafts = useMemo(() => articles.filter((a) => a.status === 'draft'), [articles])
 	const published = useMemo(() => articles.filter((a) => a.status === 'published'), [articles])
 	const filtered = filter === 'draft' ? drafts : filter === 'published' ? published : articles

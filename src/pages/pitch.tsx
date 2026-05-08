@@ -1,95 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import Layout from '~/layout'
-import { fetchJson } from '~/utils/async'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-interface VC {
-	name: string
-	lastRound: number
-	categories: Set<string>
-	roundTypes: Set<string>
-	chains: Set<string>
-	numInvestments: number
-	defiCategories: Set<string>
-}
-
-async function generateVCList(): Promise<VC[]> {
-	const [raises, protocolsCategoryById] = await Promise.all([
-		fetchJson('https://api.llama.fi/raises').then((r) => r.raises),
-		fetchJson('https://api.llama.fi/protocols').then((protocols) =>
-			protocols.reduce((acc, p) => {
-				acc[p.id] = p.category
-				return acc
-			}, {})
-		)
-	])
-	return Object.values(
-		raises.reduce((acc, raise) => {
-			const defiCategory = protocolsCategoryById[raise.defillamaId]
-			const investors = raise.leadInvestors.concat(raise.otherInvestors)
-			for (const vc of investors) {
-				if (!acc[vc]) {
-					acc[vc] = {
-						name: vc,
-						lastRound: raise.date,
-						categories: new Set([raise.category]),
-						roundTypes: new Set([raise.round]),
-						chains: new Set(raise.chains),
-						numInvestments: 1,
-						defiCategories: new Set([defiCategory])
-					}
-				} else {
-					acc[vc].lastRound = Math.max(acc[vc].lastRound, raise.date)
-					acc[vc].categories.add(raise.category)
-					acc[vc].roundTypes.add(raise.round)
-					acc[vc].chains.add(...raise.chains)
-					acc[vc].numInvestments += 1
-					acc[vc].defiCategories.add(defiCategory)
-				}
-			}
-			return acc
-		}, {})
-	)
-}
-
-export const getStaticProps = withPerformanceLogging('pitch', async () => {
-	return { notFound: true }
-	const vcList = await generateVCList()
-	const categories = Array.from(
-		new Set(
-			vcList.flatMap((vc) =>
-				Array.from(vc.categories)
-					?.filter(Boolean)
-					?.map((x) => x.trim())
-			)
-		)
-	)
-	const chainsSet = new Set<string>()
-	const defiCategoriesSet = new Set<string>()
-	const roundTypesSet = new Set<string>()
-	for (const vc of vcList) {
-		for (const x of vc.chains) if (x) chainsSet.add(x.trim())
-		for (const x of vc.defiCategories) if (x) defiCategoriesSet.add(x.trim())
-		for (const x of vc.roundTypes) if (x) roundTypesSet.add(x.trim())
-	}
-	const chains = Array.from(chainsSet)
-	const defiCategories = Array.from(defiCategoriesSet)
-	const roundTypes = Array.from(roundTypesSet)
-	const lastRounds = vcList.map((vc) => vc.lastRound).sort((a, b) => b - a)
-
-	return {
-		props: {
-			categories,
-			chains,
-			defiCategories,
-			roundTypes,
-			lastRounds: lastRounds.slice(0, 10)
-		},
-		revalidate: maxAgeForNext([22])
-	}
-})
+export const getStaticProps = withPerformanceLogging('pitch', async () => ({ notFound: true }))
 
 const unixToDateString = (unixTimestamp) => {
 	if (!unixTimestamp) return ''
