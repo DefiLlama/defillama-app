@@ -17,8 +17,10 @@ import {
 	listCollaborators,
 	publishArticle,
 	removeCollaborator,
+	transferOwnership,
 	unpublishArticle,
-	updateArticle as updateRemoteArticle
+	updateArticle as updateRemoteArticle,
+	updateCollaborator
 } from '../api'
 import { applyPendingToLocalArticle, createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
 import { ResearchLoader } from '../ResearchLoader'
@@ -1197,6 +1199,30 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	}
 
+	const handleToggleHidden = async (pbUserId: string, nextHidden: boolean) => {
+		if (!article.id) return
+		try {
+			await updateCollaborator(article.id, pbUserId, { hidden: nextHidden }, authorizedFetch)
+			await refreshCollaborators()
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to update co-author')
+		}
+	}
+
+	const handleTransferOwnership = async (pbUserId: string, displayName: string) => {
+		if (!article.id) return
+		if (!confirm(`Transfer ownership to ${displayName}? You will become a co-author and lose owner-only controls.`)) return
+		try {
+			const updated = await transferOwnership(article.id, { pbUserId }, authorizedFetch)
+			const merged = applyPendingToLocalArticle(updated, updated.pending)
+			setArticle(merged)
+			await refreshCollaborators()
+			toast.success(`${displayName} is now the owner`)
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to transfer ownership')
+		}
+	}
+
 	const insertCallout = (tone: ArticleCalloutTone) => editor?.chain().focus().insertCallout(tone).run()
 
 	const insertCitation = () => {
@@ -2184,18 +2210,40 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										<div className="min-w-0">
 											<div className="truncate text-sm text-(--text-primary)">{entry.profile.displayName}</div>
 											<div className="text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-												{entry.role === 'owner' ? 'Owner' : 'Co-author'}
+												{entry.role === 'owner'
+													? 'Owner'
+													: entry.hidden
+														? 'Co-author · Hidden'
+														: 'Co-author'}
 											</div>
 										</div>
 									</div>
 									{isOwner && entry.role === 'collaborator' ? (
-										<button
-											type="button"
-											onClick={() => handleRemoveCollaborator(entry.pbUserId)}
-											className="text-xs text-(--text-tertiary) transition-colors hover:text-red-500"
-										>
-											Remove
-										</button>
+										<div className="flex items-center gap-3">
+											<button
+												type="button"
+												onClick={() => handleToggleHidden(entry.pbUserId, !entry.hidden)}
+												className="text-xs text-(--text-tertiary) transition-colors hover:text-(--link-text)"
+												title={entry.hidden ? 'Show in byline' : 'Hide from byline'}
+											>
+												{entry.hidden ? 'Show' : 'Hide'}
+											</button>
+											<button
+												type="button"
+												onClick={() => handleTransferOwnership(entry.pbUserId, entry.profile.displayName)}
+												className="text-xs text-(--text-tertiary) transition-colors hover:text-(--link-text)"
+												title="Transfer ownership to this co-author"
+											>
+												Make owner
+											</button>
+											<button
+												type="button"
+												onClick={() => handleRemoveCollaborator(entry.pbUserId)}
+												className="text-xs text-(--text-tertiary) transition-colors hover:text-red-500"
+											>
+												Remove
+											</button>
+										</div>
 									) : null}
 								</div>
 							))}

@@ -306,3 +306,37 @@ export async function removeCollaborator(
 		)
 	)
 }
+
+export async function updateCollaborator(
+	articleId: string,
+	pbUserId: string,
+	patch: { hidden: boolean },
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleCollaborator> {
+	const data = await parseResponse<{ collaborator: ArticleCollaborator }>(
+		await authorizedFetch(
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/collaborators/${encodeURIComponent(pbUserId)}`),
+			{
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(patch)
+			}
+		)
+	)
+	return data.collaborator
+}
+
+export async function transferOwnership(
+	articleId: string,
+	target: { email?: string; pbUserId?: string },
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleDocument> {
+	const data = await parseResponse<{ article: ArticleDocument }>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(articleId)}/transfer-owner`), {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(target)
+		})
+	)
+	return data.article
+}

@@ -105,6 +105,7 @@ export type ArticleCollaborator = {
 	role: ArticleViewerRole
 	addedAt: string
 	addedByPbUserId: string | null
+	hidden: boolean
 }
 
 export type LocalArticleDocument = {
