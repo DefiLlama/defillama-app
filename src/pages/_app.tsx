@@ -10,6 +10,7 @@ import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
+import { ThemeProvider } from '~/contexts/Theme'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useReferrer } from '~/hooks/useReferrer'
@@ -158,7 +159,9 @@ const AppWrapper = (props: AppProps) => {
 			<QueryClientProvider client={client}>
 				<AuthProvider>
 					<UserSettingsSync />
-					<App {...props} />
+					<ThemeProvider>
+						<App {...props} />
+					</ThemeProvider>
 				</AuthProvider>
 				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
 			</QueryClientProvider>

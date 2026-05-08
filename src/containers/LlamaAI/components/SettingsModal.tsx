@@ -7,7 +7,8 @@ import {
 	type LlamaAISettingsActions,
 	type ModelOption
 } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
-import { useDarkModeManager, useLlamaAINotifyBannerDismissed } from '~/contexts/LocalStorage'
+import { useLlamaAINotifyBannerDismissed } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const MAX_LENGTH = 500
@@ -66,7 +67,7 @@ export const SettingsModal = memo(function SettingsModal({
 	availableEfforts
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 	const [, markNotifBannerDismissed] = useLlamaAINotifyBannerDismissed()
 	const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
 	const [isRequestingNotif, setIsRequestingNotif] = useState(false)

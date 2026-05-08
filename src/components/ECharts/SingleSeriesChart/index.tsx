@@ -1,6 +1,6 @@
 import * as echarts from 'echarts/core'
 import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { buildHallmarksMarkLine } from '../hallmarks'
 import type { ISingleSeriesChartProps } from '../types'
@@ -28,7 +28,7 @@ export default function SingleSeriesChart({
 }: ISingleSeriesChartProps) {
 	const id = useId()
 
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 
 	const defaultChartSettings = useDefaults({
 		color,

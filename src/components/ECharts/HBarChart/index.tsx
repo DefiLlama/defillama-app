@@ -3,7 +3,7 @@ import { GraphicComponent, GridComponent, TooltipComponent } from 'echarts/compo
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useEffectEvent, useId, useRef } from 'react'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { formatTooltipValue } from '../formatters'
 import type { IHBarChartProps } from '../types'
 
@@ -42,7 +42,7 @@ export default function HBarChart({
 	onReady
 }: IHBarChartProps) {
 	const id = useId()
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const overlayRef = useRef<HTMLDivElement>(null)
 	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {

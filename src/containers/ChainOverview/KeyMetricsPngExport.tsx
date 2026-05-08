@@ -1,7 +1,7 @@
 import { useState, type RefObject } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { downloadDataURL } from '~/utils/download'
 interface KeyMetricsPngExportButtonProps {
 	containerRef: RefObject<HTMLDivElement | null>
@@ -143,7 +143,7 @@ export function KeyMetricsPngExportButton({
 	hasTvlData = false
 }: KeyMetricsPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 
 	const handleExport = async () => {
 		if (isLoading || !containerRef.current) return

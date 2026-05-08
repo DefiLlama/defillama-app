@@ -6,13 +6,13 @@ import {
 	readAppStorage,
 	readAppStorageRaw,
 	subscribeToLocalStorage,
-	THEME_SYNC_KEY,
 	WATCHLIST_KEYS,
 	type AppStorage,
 	type WatchlistStore,
 	writeAppStorage
 } from '~/contexts/LocalStorage'
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { THEME_SYNC_KEY } from '~/contexts/Theme'
 import { useDebouncedCallback } from './useDebounce'
 
 const USER_CONFIG_QUERY_KEY = ['user-config']

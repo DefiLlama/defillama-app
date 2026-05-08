@@ -2,7 +2,7 @@ import * as echarts from 'echarts/core'
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -61,7 +61,7 @@ export default function AreaChart({
 
 	const chartsStack = stacks || customLegendOptions
 
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 
 	const defaultChartSettings = useDefaults({
 		color,

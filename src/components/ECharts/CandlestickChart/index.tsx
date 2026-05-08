@@ -12,7 +12,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { oldBlue } from '~/constants/colors'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
 import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../formatters'
@@ -43,7 +43,7 @@ const BASE_BOTTOM = DATAZOOM_HEIGHT
 
 export default function CandleStickAndVolumeChart({ data, indicators = EMPTY_INDICATORS }: ICandlestickChartProps) {
 	const id = useId()
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
 

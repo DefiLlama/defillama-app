@@ -1,6 +1,6 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { formattedNum } from '~/utils'
 
 const COLOR_MAP = {
@@ -38,7 +38,7 @@ export function SmolLineChart({
 	color: 'green' | 'red'
 	className?: string
 }) {
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const containerRef = useRef<HTMLDivElement>(null)
 	const tooltipRef = useRef<HTMLDivElement>(null)
 	const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)

@@ -2,7 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { CopyHelper } from './Copy'
 
 export function EmbedChart() {
@@ -10,7 +11,7 @@ export function EmbedChart() {
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
-	const [isDarkTheme] = useDarkModeManager()
+	const { isDarkMode: isDarkTheme } = useTheme()
 
 	const url = React.useMemo(() => {
 		let path = router.asPath === '/' ? '/chain/All' : router.asPath.split('#')[0].split('?')[0]

@@ -24,7 +24,7 @@ import {
 	mergeGraphicWithEventMarkLinePlaceholder
 } from '~/components/ECharts/hallmarkEventRail'
 import { CHART_COLORS } from '~/constants/colors'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useMedia } from '~/hooks/useMedia'
@@ -536,7 +536,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 	const id = useId()
 
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const categoryLogosOverlayRef = useRef<HTMLDivElement>(null)

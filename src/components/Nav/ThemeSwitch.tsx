@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 
 interface ThemeSwitchProps {
 	className?: string
@@ -12,7 +12,7 @@ function joinClasses(...classes: Array<string | undefined>) {
 }
 
 export function ThemeSwitch({ className, variant = 'default', size = 'md' }: ThemeSwitchProps) {
-	const [, toggleDarkMode] = useDarkModeManager()
+	const { toggleDarkMode } = useTheme()
 
 	if (variant === 'pill') {
 		const controlSize = size === 'sm' ? 'h-7 w-7' : 'h-9 w-9'

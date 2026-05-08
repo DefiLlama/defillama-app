@@ -9,7 +9,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useAuthContext } from '~/containers/Subscription/auth'
-import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { formattedNum } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { ChainChartPanel } from './ChainChartPanel'
@@ -37,7 +38,7 @@ export function Stats(props: IStatsProps) {
 		return new URLSearchParams(queryString)
 	}, [router.asPath])
 
-	const [darkMode] = useDarkModeManager()
+	const { isDarkMode: darkMode } = useTheme()
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 

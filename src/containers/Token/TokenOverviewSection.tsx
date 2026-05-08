@@ -15,7 +15,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
@@ -447,7 +447,7 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 
 function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; geckoId: string | null }) {
 	const router = useRouter()
-	const [isThemeDark] = useDarkModeManager()
+	const { isDarkMode: isThemeDark } = useTheme()
 	const isClient = useIsClient()
 	const availableCharts = useMemo(
 		() =>

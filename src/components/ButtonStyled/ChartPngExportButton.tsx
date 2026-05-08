@@ -5,7 +5,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useTheme } from '~/contexts/Theme'
 import { downloadDataURL } from '~/utils/download'
 
 // --- Shared profile type (single source of truth) ---
@@ -994,7 +994,7 @@ export function ChartPngExportButton({
 	const router = useRouter()
 	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
 
-	const [isDark] = useDarkModeManager()
+	const { isDarkMode: isDark } = useTheme()
 
 	const generateDataURL = async (): Promise<string | null> => {
 		const _chartInstance = chartInstance()
