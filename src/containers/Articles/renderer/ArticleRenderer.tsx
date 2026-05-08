@@ -108,6 +108,14 @@ function applyMark(children: ReactNode, mark: TiptapMark, key: string) {
 	if (mark.type === 'link') {
 		const href = stringAttr(mark.attrs, 'href')
 		if (!href) return children
+		const sameTab = stringAttr(mark.attrs, 'target') === '_self'
+		if (sameTab) {
+			return (
+				<a key={key} href={href}>
+					{children}
+				</a>
+			)
+		}
 		return (
 			<a key={key} href={href} target="_blank" rel="noreferrer noopener">
 				{children}

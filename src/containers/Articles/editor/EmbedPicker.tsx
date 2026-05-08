@@ -80,7 +80,7 @@ export function EmbedPicker({ store, onInsert, initialConfig }: Props) {
 						autoFocus
 						value={rawUrl}
 						onChange={(e) => setRawUrl(e.target.value)}
-						placeholder="x.com / youtube.com / medium.com / mirror.xyz / substack.com / gist.github.com"
+						placeholder="x.com · youtube · t.me · flourish · datawrapper · medium · substack · github"
 						className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 					/>
 					<DetectionLine status={detectionStatus} detection={detection} />
@@ -162,7 +162,7 @@ function DetectionLine({
 	if (status === 'empty') {
 		return (
 			<span className="text-[11px] text-(--text-tertiary)">
-				Tweet, YouTube, Medium, Mirror, Substack, or GitHub gist. URLs from other domains are blocked.
+				Tweet, YouTube, Telegram post, Flourish, Datawrapper, Medium, Substack, or GitHub gist. Other domains are blocked.
 			</span>
 		)
 	}

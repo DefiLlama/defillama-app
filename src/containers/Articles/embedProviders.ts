@@ -20,7 +20,16 @@ export const EMBED_ALLOWLIST_HOSTS = new Set([
 	'github.com',
 	'www.github.com',
 	'defillama.com',
-	'www.defillama.com'
+	'www.defillama.com',
+	't.me',
+	'www.t.me',
+	'flourish.studio',
+	'public.flourish.studio',
+	'app.flourish.studio',
+	'flo.uri.sh',
+	'datawrapper.de',
+	'www.datawrapper.de',
+	'datawrapper.dwcdn.net'
 ])
 
 export function isEmbedHostAllowed(host: string): boolean {
@@ -29,6 +38,8 @@ export function isEmbedHostAllowed(host: string): boolean {
 	if (lower.endsWith('.medium.com')) return true
 	if (lower.endsWith('.mirror.xyz')) return true
 	if (lower.endsWith('.substack.com')) return true
+	if (lower.endsWith('.flourish.studio')) return true
+	if (lower.endsWith('.dwcdn.net')) return true
 	return false
 }
 
@@ -114,6 +125,24 @@ function substackUrl(url: URL): string | null {
 	return url.toString()
 }
 
+function telegramEmbedUrl(url: URL): string | null {
+	const host = url.hostname.toLowerCase()
+	if (host !== 't.me' && host !== 'www.t.me') return null
+	const match = url.pathname.match(/^\/([A-Za-z0-9_]+)\/(\d+)\/?$/)
+	if (!match) return null
+	return `https://t.me/${match[1]}/${match[2]}?embed=1&dark=auto`
+}
+
+function flourishEmbedUrl(url: URL): string | null {
+	const host = url.hostname.toLowerCase()
+	if (host === 'flo.uri.sh') return url.toString()
+	const isFlourish = host === 'public.flourish.studio' || host === 'app.flourish.studio' || host.endsWith('.flourish.studio')
+	if (!isFlourish) return null
+	if (url.pathname.includes('/embed')) return url.toString()
+	const trimmed = url.pathname.replace(/\/+$/, '')
+	return `${url.origin}${trimmed}/embed${url.search}`
+}
+
 function githubUrl(url: URL): string | null {
 	const host = url.hostname.toLowerCase()
 	if (host === 'gist.github.com') {
@@ -189,6 +218,26 @@ export function detectEmbed(rawUrl: string): EmbedDetection | null {
 			url: github,
 			sourceUrl: url.toString(),
 			aspectRatio: 'auto'
+		}
+	}
+
+	const telegram = telegramEmbedUrl(url)
+	if (telegram) {
+		return {
+			provider: 'iframe',
+			url: telegram,
+			sourceUrl: url.toString(),
+			aspectRatio: 'auto'
+		}
+	}
+
+	const flourish = flourishEmbedUrl(url)
+	if (flourish) {
+		return {
+			provider: 'iframe',
+			url: flourish,
+			sourceUrl: url.toString(),
+			aspectRatio: '16/9'
 		}
 	}
 

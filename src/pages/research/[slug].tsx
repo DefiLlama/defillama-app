@@ -102,12 +102,22 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 
 	return (
 		<>
-			{article.coverImage?.url ? (
-				<Head>
-					<meta property="og:image" content={article.coverImage.url} />
-					<meta name="twitter:image" content={article.coverImage.url} />
-				</Head>
-			) : null}
+			<Head>
+				{article.seoTitle ? <title>{article.seoTitle}</title> : null}
+				{article.seoTitle ? <meta key="og:title" property="og:title" content={article.seoTitle} /> : null}
+				{article.seoTitle ? <meta key="twitter:title" name="twitter:title" content={article.seoTitle} /> : null}
+				{article.seoDescription ? <meta key="description" name="description" content={article.seoDescription} /> : null}
+				{article.seoDescription ? (
+					<meta key="og:description" property="og:description" content={article.seoDescription} />
+				) : null}
+				{article.seoDescription ? (
+					<meta key="twitter:description" name="twitter:description" content={article.seoDescription} />
+				) : null}
+				{article.coverImage?.url ? <meta key="og:image" property="og:image" content={article.coverImage.url} /> : null}
+				{article.coverImage?.url ? (
+					<meta key="twitter:image" name="twitter:image" content={article.coverImage.url} />
+				) : null}
+			</Head>
 			<AppMetadataProvider>
 				{article.status === 'draft' ? (
 					<div className="mx-auto mt-4 flex w-full max-w-[1180px] items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-sm text-amber-600 sm:px-6">

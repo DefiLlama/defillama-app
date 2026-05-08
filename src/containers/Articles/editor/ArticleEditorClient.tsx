@@ -634,7 +634,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [isDirty, setIsDirty] = useState(false)
 	const [savedAt, setSavedAt] = useState<string | null>(null)
 	const [wordCount, setWordCount] = useState(0)
-	const [linkEdit, setLinkEdit] = useState<{ url: string } | null>(null)
+	const [linkEdit, setLinkEdit] = useState<{ url: string; newTab: boolean } | null>(null)
 	const linkInputRef = useRef<HTMLInputElement | null>(null)
 	const inlineUploadRef = useRef<ArticleImageUploadFn | null>(null)
 	const inlineArticleIdRef = useRef<string | null | undefined>(undefined)
@@ -792,6 +792,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			debounceRef.current = null
 		}
 		setIsSaving(true)
+		if (!opts.silent) setSaveError(false)
 		try {
 			const normalized = normalizeLocalArticleDocument({ ...article, contentJson: editor.getJSON() })
 			if (normalized.ok === false) throw new Error(normalized.error)
@@ -815,8 +816,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const openLinkEditor = useCallback(() => {
 		if (!editor) return
-		const previous = (editor.getAttributes('link').href as string | undefined) ?? ''
-		setLinkEdit({ url: previous })
+		const attrs = editor.getAttributes('link')
+		const previous = (attrs.href as string | undefined) ?? ''
+		const previousTarget = attrs.target as string | undefined
+		setLinkEdit({ url: previous, newTab: previousTarget !== '_self' })
 		setTimeout(() => linkInputRef.current?.focus(), 0)
 	}, [editor])
 
@@ -835,14 +838,19 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		openLinkEditor()
 	}, [editor, openLinkEditor])
 
-	const applyLink = (raw: string) => {
+	const applyLink = (raw: string, newTab: boolean) => {
 		if (!editor) return
 		const url = raw.trim()
 		if (url === '') {
 			editor.chain().focus().extendMarkRange('link').unsetLink().run()
 		} else {
 			const href = /^[a-z]+:|^\//i.test(url) ? url : `https://${url}`
-			editor.chain().focus().extendMarkRange('link').setLink({ href }).run()
+			editor
+				.chain()
+				.focus()
+				.extendMarkRange('link')
+				.setLink({ href, target: newTab ? '_blank' : '_self' })
+				.run()
 		}
 		setLinkEdit(null)
 	}
@@ -1320,13 +1328,44 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				</nav>
 
 				<div className="flex items-center gap-2">
-					<span
+					<button
+						type="button"
 						aria-live="polite"
-						className="hidden items-center gap-1.5 px-1 font-jetbrains text-[11px] text-(--text-secondary) sm:flex"
+						aria-label={
+							pillState === 'error'
+								? 'Save failed — retry'
+								: pillState === 'unsaved'
+									? 'Save now'
+									: pillState === 'saving'
+										? 'Saving'
+										: pillState === 'saved'
+											? `Saved ${savedLabel ?? ''} — save again`
+											: 'Save'
+						}
+						title={pillState === 'error' ? 'Click to retry. Cmd/Ctrl+S also saves.' : 'Cmd/Ctrl+S to save'}
+						disabled={pillState === 'saving' || pillState === 'idle'}
+						onClick={() => void saveArticle()}
+						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors sm:flex disabled:cursor-default ${
+							pillState === 'error'
+								? 'border-red-500/40 bg-red-500/5 text-red-500 hover:bg-red-500/10'
+								: pillState === 'unsaved'
+									? 'border-amber-500/35 bg-amber-500/5 text-amber-600 hover:bg-amber-500/10 dark:text-amber-400'
+									: 'border-transparent text-(--text-secondary) hover:border-(--cards-border) hover:bg-(--link-hover-bg) disabled:hover:border-transparent disabled:hover:bg-transparent'
+						}`}
 					>
 						<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${pillDot}`} />
-						<span className="tabular-nums">{pillLabel}</span>
-					</span>
+						<span className="tabular-nums">
+							{pillState === 'error' ? 'Save failed · Retry' : pillState === 'unsaved' ? 'Save' : pillLabel}
+						</span>
+						{pillState === 'unsaved' || pillState === 'error' ? (
+							<kbd
+								aria-hidden
+								className="hidden rounded border border-current/25 px-1 py-px font-jetbrains text-[9px] tracking-wider opacity-70 lg:inline"
+							>
+								⌘S
+							</kbd>
+						) : null}
+					</button>
 
 					{isPublished ? (
 						<Ariakit.MenuProvider>
@@ -1470,14 +1509,14 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								<form
 									onSubmit={(e) => {
 										e.preventDefault()
-										applyLink(linkEdit.url)
+										applyLink(linkEdit.url, linkEdit.newTab)
 									}}
 									className="flex items-center gap-1"
 								>
 									<input
 										ref={linkInputRef}
 										value={linkEdit.url}
-										onChange={(e) => setLinkEdit({ url: e.target.value })}
+										onChange={(e) => setLinkEdit({ url: e.target.value, newTab: linkEdit.newTab })}
 										onKeyDown={(e) => {
 											if (e.key === 'Escape') {
 												e.preventDefault()
@@ -1488,6 +1527,23 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										className="w-64 rounded-md bg-transparent px-2 py-1 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-none"
 									/>
 									<button
+										type="button"
+										role="switch"
+										aria-checked={linkEdit.newTab}
+										aria-label="Open in new tab"
+										title={linkEdit.newTab ? 'Opens in new tab' : 'Opens in same tab'}
+										onClick={() => setLinkEdit({ url: linkEdit.url, newTab: !linkEdit.newTab })}
+										className={`flex h-7 items-center gap-1 rounded-md px-1.5 font-jetbrains text-[10px] tracking-[0.16em] uppercase transition-colors ${
+											linkEdit.newTab
+												? 'bg-(--link-button) text-(--link-text)'
+												: 'text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
+										}`}
+									>
+										<Icon name="external" className="h-3 w-3" />
+										<span>New tab</span>
+									</button>
+									<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
+									<button
 										type="submit"
 										aria-label="Save link"
 										className="rounded-md p-1 text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
@@ -1496,7 +1552,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									</button>
 									<button
 										type="button"
-										onClick={() => applyLink('')}
+										onClick={() => applyLink('', linkEdit.newTab)}
 										aria-label="Remove link"
 										className="rounded-md p-1 text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
 									>
@@ -1872,16 +1928,40 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 				<div className="mt-6 grid gap-6">
 					<MetaSection title="URL">
-						<label className="grid gap-1.5">
-							<input
-								value={article.slug}
-								onChange={(event) => updateArticle('slug', event.target.value)}
-								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 font-jetbrains text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
-							/>
+						<div className="grid gap-1.5">
+							<div className="flex items-stretch gap-1.5">
+								<input
+									value={article.slug}
+									onChange={(event) => updateArticle('slug', event.target.value)}
+									className="flex-1 rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 font-jetbrains text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
+								/>
+								{(() => {
+									const candidate = slugFromTitle(article.title)
+									const disabled = !article.title.trim() || candidate === article.slug
+									return (
+										<button
+											type="button"
+											disabled={disabled}
+											onClick={() => updateArticle('slug', candidate)}
+											title={
+												disabled
+													? candidate === article.slug
+														? 'Slug already matches title'
+														: 'Add a title first'
+													: `Regenerate as ${candidate}`
+											}
+											className="flex shrink-0 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-2.5 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-secondary) uppercase transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-(--cards-border) disabled:hover:text-(--text-secondary)"
+										>
+											<span aria-hidden>↻</span>
+											<span>Regenerate</span>
+										</button>
+									)
+								})()}
+							</div>
 							<span className="truncate font-jetbrains text-[10px] text-(--text-tertiary)">
 								defillama.com/research/<span className="text-(--text-secondary)">{article.slug}</span>
 							</span>
-						</label>
+						</div>
 					</MetaSection>
 
 					<MetaSection title="Listing">
@@ -1919,6 +1999,40 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								}
 								placeholder="stablecoins, lending, ethereum"
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+					</MetaSection>
+
+					<MetaSection title="Search & social">
+						<label className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Meta title</span>
+								<span className="font-jetbrains text-[10px] text-(--text-tertiary)">
+									{(article.seoTitle ?? '').length}/70
+								</span>
+							</span>
+							<input
+								value={article.seoTitle ?? ''}
+								onChange={(event) => updateArticle('seoTitle', event.target.value)}
+								placeholder={article.title || 'Falls back to article title'}
+								maxLength={120}
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+						<label className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Meta description</span>
+								<span className="font-jetbrains text-[10px] text-(--text-tertiary)">
+									{(article.seoDescription ?? '').length}/160
+								</span>
+							</span>
+							<textarea
+								value={article.seoDescription ?? ''}
+								onChange={(event) => updateArticle('seoDescription', event.target.value)}
+								placeholder="Shown in search results and link previews. Falls back to the excerpt."
+								rows={3}
+								maxLength={300}
+								className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
 						</label>
 					</MetaSection>

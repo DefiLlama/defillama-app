@@ -420,7 +420,26 @@ export function createArticleEditorExtensions(imageOptions?: Partial<ArticleImag
 			link: false,
 			codeBlock: false
 		}),
-		Link.configure({
+		Link.extend({
+			addAttributes() {
+				const parent = this.parent?.() ?? {}
+				return {
+					...parent,
+					target: {
+						default: '_blank',
+						parseHTML: (el) => {
+							const value = el.getAttribute('target')
+							return value === '_self' ? '_self' : '_blank'
+						},
+						renderHTML: (attrs) => {
+							const target = attrs.target === '_self' ? '_self' : '_blank'
+							if (target === '_self') return {}
+							return { target: '_blank', rel: 'noreferrer noopener' }
+						}
+					}
+				}
+			}
+		}).configure({
 			openOnClick: false,
 			autolink: true,
 			defaultProtocol: 'https'
