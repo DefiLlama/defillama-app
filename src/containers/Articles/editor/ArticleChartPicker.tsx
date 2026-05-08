@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppMetadata } from '~/containers/ProDashboard/AppMetadataContext'
+import { ChartTypePills } from '~/containers/ProDashboard/components/AddChartModal/ChartTypePills'
 import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
 import {
 	getChartQueryFn,
@@ -11,12 +12,13 @@ import {
 } from '~/containers/ProDashboard/queries'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from '~/containers/ProDashboard/types'
 import { tokenIconUrl, chainIconUrl } from '~/utils/icons'
+import { validateArticleChartConfig } from '../chartAdapters'
 import type {
 	ArticleChartAnnotation,
 	ArticleChartConfig,
-	ArticleChartEntity,
 	ArticleChartEntityType,
-	ArticleChartRange
+	ArticleChartRange,
+	ArticleChartSeries
 } from '../types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -25,7 +27,7 @@ const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
 const CHAIN_CHART_TYPES = getChainChartTypes()
 
 const SERIES_COLORS = ['#3e6dcc', '#e07b39', '#16a34a', '#a855f7']
-const MAX_ENTITIES = 4
+const MAX_SERIES = 4
 const MAX_ANNOTATIONS = 5
 
 const RANGES: Array<{ value: ArticleChartRange; label: string }> = [
@@ -50,12 +52,8 @@ type Props = {
 	initialConfig?: ArticleChartConfig | null
 }
 
-function entityKey(entity: { entityType: ArticleChartEntityType; slug: string }) {
-	return `${entity.entityType}:${entity.slug}`
-}
-
-function entityLogo(entity: Entity | ArticleChartEntity) {
-	if ('logo' in entity && entity.logo) return entity.logo
+function entityLogo(entity: { entityType: ArticleChartEntityType; slug: string; logo?: string }) {
+	if (entity.logo) return entity.logo
 	if (entity.entityType === 'chain') return chainIconUrl(entity.slug)
 	return tokenIconUrl(entity.slug)
 }
@@ -70,15 +68,13 @@ function compactUsd(value: number | undefined) {
 }
 
 function MultiPreview({
-	entities,
-	chartType,
+	series,
 	range,
 	logScale,
 	annotations,
 	height
 }: {
-	entities: ArticleChartEntity[]
-	chartType: string
+	series: ArticleChartSeries[]
 	range: ArticleChartRange
 	logScale: boolean
 	annotations: ArticleChartAnnotation[]
@@ -86,16 +82,16 @@ function MultiPreview({
 }) {
 	const authToken = useContext(ProxyAuthTokenContext)
 	const queries = useQueries({
-		queries: entities.map((entity) => ({
+		queries: series.map((s) => ({
 			queryKey: [
 				'pro-dashboard',
-				...getChartQueryKey(chartType, entity.entityType, entity.slug, entity.geckoId ?? null, range as TimePeriod)
+				...getChartQueryKey(s.chartType, s.entityType, s.slug, s.geckoId ?? null, range as TimePeriod)
 			],
 			queryFn: getChartQueryFn(
-				chartType,
-				entity.entityType,
-				entity.slug,
-				entity.geckoId ?? null,
+				s.chartType,
+				s.entityType,
+				s.slug,
+				s.geckoId ?? null,
 				range as TimePeriod,
 				undefined,
 				undefined,
@@ -110,27 +106,27 @@ function MultiPreview({
 
 	const isLoading = queries.some((q) => q.isLoading)
 	const isError = queries.length > 0 && queries.every((q) => q.isError)
-	const meta = CHART_TYPES[chartType as keyof typeof CHART_TYPES]
 
-	const series = useMemo(() => {
-		return entities
-			.map((entity, i) => {
+	const chartSeries = useMemo(() => {
+		return series
+			.map((s, i) => {
 				const data = queries[i]?.data as Array<[number, number | null]> | undefined
 				if (!data || data.length === 0) return null
+				const meta = CHART_TYPES[s.chartType as keyof typeof CHART_TYPES]
 				return {
-					name: entity.name,
+					name: `${s.name} · ${meta?.title || s.chartType}`,
 					type: (meta?.chartType === 'bar' ? 'bar' : 'line') as 'line' | 'bar',
 					color: SERIES_COLORS[i % SERIES_COLORS.length],
 					data,
-					...(meta?.chartType === 'area' && entities.length === 1 ? { areaStyle: {} } : {})
+					...(meta?.chartType === 'area' && series.length === 1 ? { areaStyle: {} } : {})
 				}
 			})
 			.filter(<T,>(v: T | null): v is T => v !== null)
-	}, [queries, meta, entities])
+	}, [queries, series])
 
 	const seriesWithMarkers = useMemo(() => {
-		if (annotations.length === 0 || series.length === 0) return series
-		const [first, ...rest] = series
+		if (annotations.length === 0 || chartSeries.length === 0) return chartSeries
+		const [first, ...rest] = chartSeries
 		return [
 			{
 				...first,
@@ -151,7 +147,7 @@ function MultiPreview({
 			},
 			...rest
 		]
-	}, [series, annotations])
+	}, [chartSeries, annotations])
 
 	const chartOptions = useMemo(
 		() => ({
@@ -170,7 +166,7 @@ function MultiPreview({
 			</div>
 		)
 	}
-	if (isError || series.length === 0) {
+	if (isError || seriesWithMarkers.length === 0) {
 		return (
 			<div className="flex items-center justify-center text-xs text-(--text-tertiary)" style={{ height: heightPx }}>
 				No data available
@@ -197,16 +193,23 @@ function MultiPreview({
 	)
 }
 
+function seriesId(s: ArticleChartSeries) {
+	return `${s.entityType}:${s.slug}:${s.chartType}`
+}
+
+const DEFAULT_METRIC = 'tvl'
+
 export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Props) {
 	const open = Ariakit.useStoreState(store, 'open')
 	const [tab, setTab] = useState<ArticleChartEntityType>('protocol')
 	const [query, setQuery] = useState('')
-	const [picked, setPicked] = useState<ArticleChartEntity[]>([])
-	const [chartType, setChartType] = useState<string | null>(null)
+	const [series, setSeries] = useState<ArticleChartSeries[]>([])
 	const [caption, setCaption] = useState('')
 	const [range, setRange] = useState<ArticleChartRange>('all')
 	const [logScale, setLogScale] = useState(false)
 	const [annotations, setAnnotations] = useState<ArticleChartAnnotation[]>([])
+	const [protocolMetric, setProtocolMetric] = useState<string>(DEFAULT_METRIC)
+	const [chainMetric, setChainMetric] = useState<string>(DEFAULT_METRIC)
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const { data: catalog, isLoading: catalogLoading } = useProtocolsAndChains()
@@ -215,27 +218,39 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 	useEffect(() => {
 		if (!open) {
 			setQuery('')
-			setPicked([])
-			setChartType(null)
+			setSeries([])
 			setCaption('')
 			setRange('all')
 			setLogScale(false)
 			setAnnotations([])
 			setTab('protocol')
+			setProtocolMetric(DEFAULT_METRIC)
+			setChainMetric(DEFAULT_METRIC)
 		} else if (initialConfig) {
-			const firstEntity = initialConfig.entities[0]
-			if (firstEntity) setTab(firstEntity.entityType)
-			setChartType(initialConfig.chartType)
-			setCaption(initialConfig.caption ?? '')
-			setRange(initialConfig.range ?? 'all')
-			setLogScale(initialConfig.logScale ?? false)
-			setAnnotations(initialConfig.annotations ?? [])
-			setPicked(initialConfig.entities.map((e) => ({ ...e })))
+			const normalized = validateArticleChartConfig(initialConfig)
+			const normalizedSeries = normalized?.series ?? []
+			const firstSeries = normalizedSeries[0]
+			if (firstSeries) setTab(firstSeries.entityType)
+			setCaption(normalized?.caption ?? '')
+			setRange(normalized?.range ?? 'all')
+			setLogScale(normalized?.logScale ?? false)
+			setAnnotations(normalized?.annotations ?? [])
+			setSeries(normalizedSeries.map((s) => ({ ...s })))
+			const lastProtocol = [...normalizedSeries].reverse().find((s) => s.entityType === 'protocol')
+			const lastChain = [...normalizedSeries].reverse().find((s) => s.entityType === 'chain')
+			if (lastProtocol) setProtocolMetric(lastProtocol.chartType)
+			if (lastChain) setChainMetric(lastChain.chartType)
 			requestAnimationFrame(() => inputRef.current?.focus())
 		} else {
 			requestAnimationFrame(() => inputRef.current?.focus())
 		}
 	}, [open, initialConfig])
+
+	const currentMetric = tab === 'protocol' ? protocolMetric : chainMetric
+	const setCurrentMetric = (next: string) => {
+		if (tab === 'protocol') setProtocolMetric(next)
+		else setChainMetric(next)
+	}
 
 	const entities = useMemo<Entity[]>(() => {
 		if (!catalog) return []
@@ -260,65 +275,109 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 		}))
 	}, [catalog, tab])
 
+	const availableTypesForEntity = (entityType: ArticleChartEntityType, slug: string, geckoId?: string | null) => {
+		const order = entityType === 'protocol' ? PROTOCOL_CHART_TYPES : CHAIN_CHART_TYPES
+		const fn = entityType === 'protocol' ? availableProtocolChartTypes : availableChainChartTypes
+		const allowed = new Set(fn(slug, { hasGeckoId: !!geckoId }))
+		return order.filter((t) => allowed.has(t))
+	}
+
 	const filteredEntities = useMemo(() => {
 		const q = query.trim().toLowerCase()
-		const list = q
-			? entities.filter((e) => e.name.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q))
-			: entities
-		return list.slice(0, 200)
-	}, [entities, query])
+		const fn = tab === 'protocol' ? availableProtocolChartTypes : availableChainChartTypes
+		const supportsCurrent = (e: Entity) => {
+			const allowed = new Set(fn(e.slug, { hasGeckoId: !!e.geckoId }))
+			return allowed.has(currentMetric)
+		}
+		const list = entities.filter(supportsCurrent)
+		const searched = q
+			? list.filter((e) => e.name.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q))
+			: list
+		return searched.slice(0, 200)
+	}, [entities, query, tab, currentMetric, availableProtocolChartTypes, availableChainChartTypes])
 
-	const pickedKeys = useMemo(() => new Set(picked.map(entityKey)), [picked])
+	const chartTypeOptions = useMemo(() => {
+		const order = tab === 'protocol' ? PROTOCOL_CHART_TYPES : CHAIN_CHART_TYPES
+		return order.map((value) => ({
+			value,
+			label: CHART_TYPES[value as keyof typeof CHART_TYPES]?.title || value,
+			available: true
+		}))
+	}, [tab])
 
-	const togglePick = (entity: Entity) => {
-		const key = entityKey(entity)
-		setPicked((prev) => {
-			if (prev.some((p) => entityKey(p) === key)) return prev.filter((p) => entityKey(p) !== key)
-			if (prev.length >= MAX_ENTITIES) return prev
-			const next: ArticleChartEntity = {
-				entityType: entity.entityType,
-				slug: entity.slug,
-				name: entity.name,
-				...(entity.geckoId ? { geckoId: entity.geckoId } : {})
+	const toggleEntity = (entity: Entity) => {
+		const candidate: ArticleChartSeries = {
+			entityType: entity.entityType,
+			slug: entity.slug,
+			name: entity.name,
+			...(entity.geckoId ? { geckoId: entity.geckoId } : {}),
+			chartType: currentMetric
+		}
+		const id = seriesId(candidate)
+		setSeries((prev) => {
+			if (prev.some((s) => seriesId(s) === id)) {
+				return prev.filter((s) => seriesId(s) !== id)
 			}
-			return [...prev, next]
+			if (prev.length >= MAX_SERIES) return prev
+			return [...prev, candidate]
 		})
 	}
 
-	const removePicked = (key: string) => {
-		setPicked((prev) => prev.filter((p) => entityKey(p) !== key))
+	const removeSeries = (id: string) => {
+		setSeries((prev) => prev.filter((s) => seriesId(s) !== id))
 	}
 
-	const availableTypes = useMemo<string[]>(() => {
-		if (picked.length === 0) return []
-		const order = picked[0].entityType === 'protocol' ? PROTOCOL_CHART_TYPES : CHAIN_CHART_TYPES
-		const fn = picked[0].entityType === 'protocol' ? availableProtocolChartTypes : availableChainChartTypes
-		const sets = picked.map((p) => new Set(fn(p.slug, { hasGeckoId: !!p.geckoId })))
-		return order.filter((t) => sets.every((s) => s.has(t)))
-	}, [picked, availableProtocolChartTypes, availableChainChartTypes])
-
-	useEffect(() => {
-		if (picked.length === 0) {
-			setChartType(null)
-			return
-		}
-		if (chartType && availableTypes.includes(chartType)) return
-		setChartType(availableTypes[0] ?? null)
-	}, [picked, availableTypes, chartType])
-
-	const handleSwitchTab = (value: ArticleChartEntityType) => {
-		if (picked.length > 0 && picked[0].entityType !== value) setPicked([])
-		setTab(value)
-		setChartType(null)
-		setQuery('')
+	const updateSeriesChartType = (id: string, chartType: string) => {
+		setSeries((prev) => {
+			const next = prev.map((s) => (seriesId(s) === id ? { ...s, chartType } : s))
+			const seenIds = new Set<string>()
+			return next.filter((s) => {
+				const sid = seriesId(s)
+				if (seenIds.has(sid)) return false
+				seenIds.add(sid)
+				return true
+			})
+		})
 	}
 
-	const canInsert = picked.length > 0 && !!chartType
+	const canInsert = series.length > 0
 	const handleInsert = () => {
-		if (!canInsert || !chartType) return
+		if (!canInsert) return
+		const seenIds = new Set<string>()
+		const dedupedSeries = series.filter((s) => {
+			const id = seriesId(s)
+			if (seenIds.has(id)) return false
+			seenIds.add(id)
+			return true
+		})
+		const seenEntities = new Set<string>()
+		const entitiesLegacy = dedupedSeries
+			.map((s) => ({
+				entityType: s.entityType,
+				slug: s.slug,
+				name: s.name,
+				...(s.geckoId ? { geckoId: s.geckoId } : {})
+			}))
+			.filter((e) => {
+				const key = `${e.entityType}:${e.slug}`
+				if (seenEntities.has(key)) return false
+				seenEntities.add(key)
+				return true
+			})
+		const counts = new Map<string, number>()
+		for (const s of dedupedSeries) counts.set(s.chartType, (counts.get(s.chartType) ?? 0) + 1)
+		let chartTypeLegacy = dedupedSeries[0].chartType
+		let bestCount = 0
+		for (const [type, count] of counts) {
+			if (count > bestCount) {
+				chartTypeLegacy = type
+				bestCount = count
+			}
+		}
 		onInsert({
-			entities: picked,
-			chartType,
+			series: dedupedSeries,
+			entities: entitiesLegacy,
+			chartType: chartTypeLegacy,
 			...(range !== 'all' ? { range } : {}),
 			...(logScale ? { logScale: true } : {}),
 			...(annotations.length > 0 ? { annotations } : {}),
@@ -326,8 +385,6 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 		})
 		store.hide()
 	}
-
-	const chartTitle = chartType ? CHART_TYPES[chartType as keyof typeof CHART_TYPES]?.title || chartType : null
 
 	const updateAnnotation = (index: number, patch: Partial<ArticleChartAnnotation>) => {
 		setAnnotations((prev) => prev.map((a, i) => (i === index ? { ...a, ...patch } : a)))
@@ -340,7 +397,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 		setAnnotations((prev) => prev.filter((_, i) => i !== index))
 	}
 
-	const lockedTab = picked.length > 0 ? picked[0].entityType : null
+	const selectedIds = useMemo(() => new Set(series.map(seriesId)), [series])
 
 	return (
 		<Ariakit.Dialog
@@ -359,16 +416,17 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 				>
 					{(['protocol', 'chain'] as const).map((value) => {
 						const active = tab === value
-						const disabled = lockedTab !== null && lockedTab !== value
 						return (
 							<button
 								key={value}
 								role="tab"
 								aria-selected={active}
 								type="button"
-								disabled={disabled}
-								onClick={() => handleSwitchTab(value)}
-								className={`rounded px-3 py-1 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+								onClick={() => {
+									setTab(value)
+									setQuery('')
+								}}
+								className={`rounded px-3 py-1 font-medium transition-colors ${
 									active
 										? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
 										: 'text-(--text-tertiary) hover:text-(--text-primary)'
@@ -379,9 +437,9 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 						)
 					})}
 				</div>
-				{picked.length > 0 ? (
+				{series.length > 0 ? (
 					<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-						{picked.length} / {MAX_ENTITIES} selected
+						{series.length} / {MAX_SERIES} series
 					</span>
 				) : null}
 				<div className="ml-auto">
@@ -393,7 +451,19 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 
 			<div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[300px_1fr]">
 				<aside className="flex min-h-0 flex-col border-(--cards-border) bg-(--app-bg)/40 md:border-r">
-					<div className="px-3 pt-3 pb-2">
+					<div className="grid gap-2 px-3 pt-3 pb-2">
+						<div>
+							<span className="mb-1 block text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">
+								Metric to add
+							</span>
+							<ChartTypePills
+								chartTypes={chartTypeOptions}
+								selectedType={currentMetric}
+								onSelect={setCurrentMetric}
+								isLoading={metaLoading}
+								mode={tab}
+							/>
+						</div>
 						<div className="relative">
 							<svg
 								aria-hidden
@@ -422,29 +492,39 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 							<li className="px-3 py-8 text-center text-xs text-(--text-tertiary)">No results</li>
 						) : (
 							filteredEntities.map((entity) => {
-								const key = entityKey(entity)
-								const active = pickedKeys.has(key)
+								const candidateId = `${entity.entityType}:${entity.slug}:${currentMetric}`
+								const checked = selectedIds.has(candidateId)
 								const tvl = compactUsd(entity.tvl)
-								const limitReached = !active && picked.length >= MAX_ENTITIES
+								const limitReached = !checked && series.length >= MAX_SERIES
 								return (
-									<li key={key}>
+									<li key={`${entity.entityType}:${entity.slug}`}>
 										<button
 											type="button"
-											onClick={() => togglePick(entity)}
+											onClick={() => toggleEntity(entity)}
 											disabled={limitReached}
-											className={`group flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-												active
-													? 'bg-(--link-button) text-(--link-text)'
-													: 'text-(--text-primary) hover:bg-(--link-hover-bg)'
+											aria-pressed={checked}
+											className={`group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+												checked ? 'bg-(--link-button) text-(--link-text)' : 'text-(--text-primary) hover:bg-(--link-hover-bg)'
 											}`}
 										>
+											<span
+												className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors ${
+													checked
+														? 'border-(--link-text) bg-(--link-text)'
+														: 'border-(--form-control-border) bg-(--cards-bg) group-hover:border-(--text-tertiary)'
+												}`}
+											>
+												{checked ? (
+													<svg viewBox="0 0 12 12" className="h-2.5 w-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
+														<path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
+													</svg>
+												) : null}
+											</span>
 											<span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
 												<img src={entityLogo(entity)} alt="" className="h-full w-full object-cover" />
 											</span>
 											<span className="min-w-0 flex-1 truncate text-sm">{entity.name}</span>
-											{active ? (
-												<span className="font-jetbrains text-[10px] text-(--link-text)">✓</span>
-											) : tvl ? (
+											{tvl ? (
 												<span className="shrink-0 text-[11px] text-(--text-tertiary) tabular-nums">{tvl}</span>
 											) : null}
 										</button>
@@ -456,130 +536,121 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 				</aside>
 
 				<section className="flex thin-scrollbar min-h-0 flex-col overflow-y-auto">
-					{picked.length === 0 ? (
+					{series.length === 0 ? (
 						<div className="flex flex-1 flex-col items-center justify-center gap-2 px-8 py-16 text-center">
-							<div className="text-sm font-medium text-(--text-primary)">
-								Pick up to {MAX_ENTITIES} {tab === 'protocol' ? 'protocols' : 'chains'}
-							</div>
-							<p className="max-w-xs text-xs text-(--text-tertiary)">
-								Click entities on the left to add them. Compare up to four series in a single figure.
+							<div className="text-sm font-medium text-(--text-primary)">Pick up to {MAX_SERIES} series</div>
+							<p className="max-w-sm text-xs leading-relaxed text-(--text-tertiary)">
+								Choose a metric from the left, then tick any protocols or chains to add them as series. Switch metric or
+								tab to mix different metrics and entity types on a single chart.
 							</p>
 						</div>
 					) : (
 						<>
-							<div className="flex flex-wrap items-center gap-1.5 px-5 pt-4 pb-3">
-								{picked.map((entity, i) => (
-									<span
-										key={entityKey(entity)}
-										className="inline-flex items-center gap-1.5 rounded-full border border-(--cards-border) bg-(--app-bg) py-1 pr-1 pl-2.5"
-									>
-										<span
-											aria-hidden
-											className="h-2 w-2 rounded-full"
-											style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
-										/>
-										<span className="text-[12px] font-medium text-(--text-primary)">{entity.name}</span>
-										<button
-											type="button"
-											onClick={() => removePicked(entityKey(entity))}
-											aria-label={`Remove ${entity.name}`}
-											className="flex h-5 w-5 items-center justify-center rounded-full text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
-										>
-											×
-										</button>
-									</span>
-								))}
+							<div className="grid gap-2 px-5 pt-4 pb-3">
+								<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">Series</span>
+								<ul className="grid gap-1.5">
+									{series.map((s, i) => {
+										const id = seriesId(s)
+										const types = availableTypesForEntity(s.entityType, s.slug, s.geckoId)
+										return (
+											<li
+												key={id}
+												className="grid grid-cols-[12px_1fr_auto_24px] items-center gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-1.5"
+											>
+												<span
+													aria-hidden
+													className="h-2 w-2 rounded-full"
+													style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
+												/>
+												<span className="flex min-w-0 items-center gap-2">
+													<span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
+														<img src={entityLogo(s)} alt="" className="h-full w-full object-cover" />
+													</span>
+													<span className="truncate text-[12px] font-medium text-(--text-primary)">{s.name}</span>
+													<span className="font-jetbrains text-[9px] tracking-[0.16em] text-(--text-tertiary) uppercase">
+														{s.entityType}
+													</span>
+												</span>
+												<select
+													value={s.chartType}
+													onChange={(e) => updateSeriesChartType(id, e.target.value)}
+													className="rounded border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
+												>
+													{types.map((type) => {
+														const meta = CHART_TYPES[type as keyof typeof CHART_TYPES]
+														return (
+															<option key={type} value={type}>
+																{meta?.title || type}
+															</option>
+														)
+													})}
+												</select>
+												<button
+													type="button"
+													onClick={() => removeSeries(id)}
+													aria-label={`Remove ${s.name}`}
+													className="flex h-6 w-6 items-center justify-center rounded text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+												>
+													×
+												</button>
+											</li>
+										)
+									})}
+								</ul>
+								{metaLoading ? (
+									<div className="text-[11px] text-(--text-tertiary)">Loading available chart types…</div>
+								) : null}
 							</div>
 
-							<div className="grid gap-3 px-5 pb-3">
+							<div className="flex flex-wrap items-center gap-3 px-5 pb-3">
 								<div className="grid gap-1.5">
-									<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">Chart</span>
-									{metaLoading && availableTypes.length === 0 ? (
-										<div className="text-xs text-(--text-tertiary)">Loading available charts…</div>
-									) : availableTypes.length === 0 ? (
-										<div className="text-xs text-(--text-tertiary)">No charts available for this combination.</div>
-									) : (
-										<div className="flex flex-wrap gap-1.5">
-											{availableTypes.map((type) => {
-												const meta = CHART_TYPES[type as keyof typeof CHART_TYPES]
-												const active = chartType === type
-												return (
-													<button
-														key={type}
-														type="button"
-														onClick={() => setChartType(type)}
-														className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-															active
-																? 'border-(--link-text) bg-(--link-text) text-white'
-																: 'border-(--cards-border) text-(--text-secondary) hover:border-(--link-text)/50 hover:text-(--text-primary)'
-														}`}
-													>
-														{meta?.title || type}
-													</button>
-												)
-											})}
-										</div>
-									)}
-								</div>
-
-								<div className="flex flex-wrap items-center gap-3">
-									<div className="grid gap-1.5">
-										<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">
-											Range
-										</span>
-										<div className="flex items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-0.5 text-xs">
-											{RANGES.map((r) => {
-												const active = range === r.value
-												return (
-													<button
-														key={r.value}
-														type="button"
-														onClick={() => setRange(r.value)}
-														className={`rounded px-2.5 py-1 font-medium transition-colors ${
-															active
-																? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
-																: 'text-(--text-tertiary) hover:text-(--text-primary)'
-														}`}
-													>
-														{r.label}
-													</button>
-												)
-											})}
-										</div>
+									<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">Range</span>
+									<div className="flex items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-0.5 text-xs">
+										{RANGES.map((r) => {
+											const active = range === r.value
+											return (
+												<button
+													key={r.value}
+													type="button"
+													onClick={() => setRange(r.value)}
+													className={`rounded px-2.5 py-1 font-medium transition-colors ${
+														active
+															? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
+															: 'text-(--text-tertiary) hover:text-(--text-primary)'
+													}`}
+												>
+													{r.label}
+												</button>
+											)
+										})}
 									</div>
-									<label className="flex cursor-pointer items-center gap-2 self-end pb-1 text-xs text-(--text-secondary)">
-										<input
-											type="checkbox"
-											checked={logScale}
-											onChange={(e) => setLogScale(e.target.checked)}
-											className="h-3.5 w-3.5 accent-(--link-text)"
-										/>
-										<span>Log scale (Y-axis)</span>
-									</label>
 								</div>
+								<label className="flex cursor-pointer items-center gap-2 self-end pb-1 text-xs text-(--text-secondary)">
+									<input
+										type="checkbox"
+										checked={logScale}
+										onChange={(e) => setLogScale(e.target.checked)}
+										className="h-3.5 w-3.5 accent-(--link-text)"
+									/>
+									<span>Log scale (Y-axis)</span>
+								</label>
 							</div>
 
 							<div className="relative min-h-0 flex-1 border-t border-(--cards-border) bg-(--app-bg)">
-								{chartType ? (
-									<>
-										<div className="pointer-events-none absolute top-3 left-5 z-10 flex items-center gap-2">
-											<span className="rounded-full border border-(--cards-border) bg-(--cards-bg)/80 px-2 py-0.5 text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase backdrop-blur">
-												Preview
-											</span>
-											<span className="text-xs font-medium text-(--text-primary)">{chartTitle}</span>
-										</div>
-										<div className="px-3 pt-2 pb-3">
-											<MultiPreview
-												entities={picked}
-												chartType={chartType}
-												range={range}
-												logScale={logScale}
-												annotations={annotations}
-												height={300}
-											/>
-										</div>
-									</>
-								) : null}
+								<div className="pointer-events-none absolute top-3 left-5 z-10 flex items-center gap-2">
+									<span className="rounded-full border border-(--cards-border) bg-(--cards-bg)/80 px-2 py-0.5 text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase backdrop-blur">
+										Preview
+									</span>
+								</div>
+								<div className="px-3 pt-2 pb-3">
+									<MultiPreview
+										series={series}
+										range={range}
+										logScale={logScale}
+										annotations={annotations}
+										height={300}
+									/>
+								</div>
 							</div>
 
 							<div className="grid gap-2 border-t border-(--cards-border) px-5 py-3">

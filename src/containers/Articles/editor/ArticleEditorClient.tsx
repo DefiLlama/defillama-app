@@ -22,6 +22,7 @@ import {
 	updateArticle as updateRemoteArticle,
 	updateCollaborator
 } from '../api'
+import { validateArticleChartConfig } from '../chartAdapters'
 import { applyPendingToLocalArticle, createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
 import { ResearchLoader } from '../ResearchLoader'
 import type {
@@ -919,7 +920,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		const handler = (event: Event) => {
 			const detail = (event as CustomEvent<{ config: ArticleChartConfig; pos: number }>).detail
 			if (!detail) return
-			setEditingChart({ config: detail.config, pos: detail.pos })
+			const normalized = validateArticleChartConfig(detail.config)
+			if (!normalized) return
+			setEditingChart({ config: normalized, pos: detail.pos })
 			chartDialog.show()
 		}
 		document.addEventListener('article:edit-chart', handler)

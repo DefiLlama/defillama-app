@@ -5,13 +5,13 @@ import { getChartQueryFn, getChartQueryKey, ProxyAuthTokenContext } from '~/cont
 import { CHART_TYPES } from '~/containers/ProDashboard/types'
 import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import { getArticleEntityRoute } from '../entityLinks'
-import type { ArticleChartConfig, ArticleChartEntity, ArticleChartRange } from '../types'
+import type { ArticleChartConfig, ArticleChartEntityType, ArticleChartRange, ArticleChartSeries } from '../types'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 
 const SERIES_COLORS = ['#3e6dcc', '#e07b39', '#16a34a', '#a855f7']
 
-function entityLogo(entity: ArticleChartEntity) {
+function entityLogo(entity: { entityType: ArticleChartEntityType; slug: string }) {
 	return entity.entityType === 'chain' ? chainIconUrl(entity.slug) : tokenIconUrl(entity.slug)
 }
 
@@ -42,24 +42,41 @@ function lastValue(data: Array<[number, number | null]> | undefined): number | n
 	return Array.isArray(last) ? (last[1] as number | null) : null
 }
 
+function seriesDisplayName(s: ArticleChartSeries) {
+	const meta = CHART_TYPES[s.chartType as keyof typeof CHART_TYPES]
+	return meta?.title ? `${s.name} ${meta.title}` : s.name
+}
+
+function uniqueChartTypeTitles(series: ArticleChartSeries[]) {
+	const seen = new Set<string>()
+	const out: string[] = []
+	for (const s of series) {
+		if (seen.has(s.chartType)) continue
+		seen.add(s.chartType)
+		const meta = CHART_TYPES[s.chartType as keyof typeof CHART_TYPES]
+		out.push(meta?.title || s.chartType)
+	}
+	return out
+}
+
 export function ArticleChartBlock({ config, index }: { config: ArticleChartConfig; index?: number }) {
-	const meta = CHART_TYPES[config.chartType as keyof typeof CHART_TYPES]
-	const chartLabel = meta?.title || config.chartType
+	const series = config.series
 	const timePeriod = rangeToTimePeriod(config.range)
+	const chartLabel = uniqueChartTypeTitles(series).join(' / ')
 
 	const authToken = useContext(ProxyAuthTokenContext)
 
 	const queries = useQueries({
-		queries: config.entities.map((entity) => ({
+		queries: series.map((s) => ({
 			queryKey: [
 				'pro-dashboard',
-				...getChartQueryKey(config.chartType, entity.entityType, entity.slug, entity.geckoId ?? null, timePeriod)
+				...getChartQueryKey(s.chartType, s.entityType, s.slug, s.geckoId ?? null, timePeriod)
 			],
 			queryFn: getChartQueryFn(
-				config.chartType,
-				entity.entityType,
-				entity.slug,
-				entity.geckoId ?? null,
+				s.chartType,
+				s.entityType,
+				s.slug,
+				s.geckoId ?? null,
 				timePeriod,
 				undefined,
 				undefined,
@@ -75,23 +92,23 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 	const isLoading = queries.some((q) => q.isLoading)
 	const isError = queries.length > 0 && queries.every((q) => q.isError)
 
-	const series = useMemo(() => {
-		return config.entities
-			.map((entity, i) => {
+	const chartSeries = useMemo(() => {
+		return series
+			.map((s, i) => {
 				const data = queries[i]?.data as Array<[number, number | null]> | undefined
 				if (!data || data.length === 0) return null
-				const baseColor = SERIES_COLORS[i % SERIES_COLORS.length]
+				const meta = CHART_TYPES[s.chartType as keyof typeof CHART_TYPES]
 				const seriesType = (meta?.chartType === 'bar' ? 'bar' : 'line') as 'line' | 'bar'
 				return {
-					name: entity.name,
+					name: seriesDisplayName(s),
 					type: seriesType,
-					color: baseColor,
+					color: SERIES_COLORS[i % SERIES_COLORS.length],
 					data,
-					...(meta?.chartType === 'area' && config.entities.length === 1 ? { areaStyle: {} } : {})
+					...(meta?.chartType === 'area' && series.length === 1 ? { areaStyle: {} } : {})
 				}
 			})
 			.filter(<T,>(v: T | null): v is T => v !== null)
-	}, [queries, meta, config.entities])
+	}, [queries, series])
 
 	const primaryLatest = useMemo(() => {
 		const data = queries[0]?.data as Array<[number, number | null]> | undefined
@@ -99,11 +116,23 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 	}, [queries])
 
 	const figureLabel = typeof index === 'number' ? `Fig. ${String(index).padStart(2, '0')}` : null
-	const primaryEntity = config.entities[0]
-	const route = primaryEntity ? getArticleEntityRoute(primaryEntity.entityType, primaryEntity.slug) : '/'
-	const latestLabel = config.entities.length === 1 ? compactUsd(primaryLatest) : null
+	const primarySeries = series[0]
+	const route = primarySeries ? getArticleEntityRoute(primarySeries.entityType, primarySeries.slug) : '/'
+	const latestLabel = series.length === 1 ? compactUsd(primaryLatest) : null
 	const rangeLabel = RANGE_LABEL[config.range ?? 'all']
-	const isMulti = config.entities.length > 1
+	const isMulti = series.length > 1
+
+	const uniqueEntities = useMemo(() => {
+		const seen = new Set<string>()
+		const out: ArticleChartSeries[] = []
+		for (const s of series) {
+			const key = `${s.entityType}:${s.slug}`
+			if (seen.has(key)) continue
+			seen.add(key)
+			out.push(s)
+		}
+		return out
+	}, [series])
 
 	const annotationMarkLine = useMemo(() => {
 		if (!config.annotations || config.annotations.length === 0) return null
@@ -124,10 +153,10 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 	}, [config.annotations])
 
 	const seriesWithMarkers = useMemo(() => {
-		if (!annotationMarkLine || series.length === 0) return series
-		const [first, ...rest] = series
+		if (!annotationMarkLine || chartSeries.length === 0) return chartSeries
+		const [first, ...rest] = chartSeries
 		return [{ ...first, markLine: annotationMarkLine }, ...rest]
-	}, [series, annotationMarkLine])
+	}, [chartSeries, annotationMarkLine])
 
 	const chartOptions = useMemo(
 		() => ({
@@ -137,13 +166,19 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 		[config.logScale]
 	)
 
+	const titleText = useMemo(() => {
+		const allSameEntity = uniqueEntities.length === 1
+		if (allSameEntity) return uniqueEntities[0].name
+		return uniqueEntities.map((s) => s.name).join(' vs ')
+	}, [uniqueEntities])
+
 	return (
 		<figure className="article-chart-figure not-prose my-10 grid gap-3">
 			<header className="flex items-end justify-between gap-4 border-t border-(--text-primary)/80 pt-3">
 				<div className="flex min-w-0 items-center gap-3">
-					{isMulti ? (
+					{uniqueEntities.length > 1 ? (
 						<span className="flex shrink-0 -space-x-2">
-							{config.entities.slice(0, 4).map((e) => (
+							{uniqueEntities.slice(0, 4).map((e) => (
 								<span
 									key={`${e.entityType}:${e.slug}`}
 									className="relative flex h-7 w-7 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)"
@@ -152,14 +187,14 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 								</span>
 							))}
 						</span>
-					) : primaryEntity ? (
+					) : primarySeries ? (
 						<span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg)">
-							<img src={entityLogo(primaryEntity)} alt="" className="h-full w-full object-cover" />
+							<img src={entityLogo(primarySeries)} alt="" className="h-full w-full object-cover" />
 						</span>
 					) : null}
 					<div className="flex min-w-0 flex-col leading-tight">
 						<span className="truncate text-[15px] font-semibold tracking-tight text-(--text-primary)">
-							{config.entities.map((e) => e.name).join(' vs ')}
+							{titleText}
 						</span>
 						<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 							{chartLabel} · {rangeLabel}
@@ -187,14 +222,14 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 
 			{isMulti ? (
 				<div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[11px] text-(--text-secondary)">
-					{config.entities.map((entity, i) => (
-						<span key={`${entity.entityType}:${entity.slug}`} className="inline-flex items-center gap-1.5">
+					{series.map((s, i) => (
+						<span key={`${s.entityType}:${s.slug}:${s.chartType}`} className="inline-flex items-center gap-1.5">
 							<span
 								aria-hidden
 								className="h-2 w-2 rounded-full"
 								style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
 							/>
-							<span className="text-(--text-primary)">{entity.name}</span>
+							<span className="text-(--text-primary)">{seriesDisplayName(s)}</span>
 						</span>
 					))}
 				</div>
@@ -230,7 +265,7 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 					{figureLabel ? <span className="mr-1.5 font-semibold text-(--text-primary)">{figureLabel}.</span> : null}
 					<span>
 						{config.caption ||
-							`${config.entities.map((e) => e.name).join(' vs ')} ${chartLabel.toLowerCase()}, USD-denominated.`}
+							`${uniqueEntities.map((e) => e.name).join(' vs ')} ${chartLabel.toLowerCase()}, USD-denominated.`}
 					</span>
 					{config.logScale ? (
 						<span className="ml-2 rounded border border-(--cards-border) px-1.5 py-px font-jetbrains text-[10px] tracking-wider text-(--text-tertiary) uppercase">

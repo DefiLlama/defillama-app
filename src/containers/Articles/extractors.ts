@@ -87,10 +87,10 @@ export function extractArticleContent(contentJson: TiptapJson): ArticleExtractio
 		if (node.type === 'defillamaChart') {
 			const config = validateArticleChartConfig(node.attrs?.config)
 			if (config) {
-				const entityKey = config.entities.map((e) => `${e.entityType}:${e.slug}`).join('+')
-				const key = `${entityKey}:${config.chartType}:${config.range ?? 'all'}`
+				const seriesKey = config.series.map((s) => `${s.entityType}:${s.slug}:${s.chartType}`).join('+')
+				const key = `${seriesKey}:${config.range ?? 'all'}`
 				addUnique(charts, key, config)
-				const label = config.entities.map((e) => e.name).join(' vs ')
+				const label = config.series.map((s) => s.name).join(' vs ')
 				textParts.push(`[Chart: ${label}]`)
 			}
 		}

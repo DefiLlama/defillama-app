@@ -14,6 +14,7 @@ import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer, type NodeViewP
 import StarterKit from '@tiptap/starter-kit'
 import { common, createLowlight } from 'lowlight'
 import { useEffect, useRef, useState } from 'react'
+import { validateArticleChartConfig } from '../chartAdapters'
 import { getArticleEntityRoute } from '../entityLinks'
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEntityType } from '../types'
 import { ArticleEmbed } from './EmbedNode'
@@ -67,11 +68,27 @@ const calloutToneStyles: Record<ArticleCalloutTone, { wrap: string; tone: string
 }
 
 function ChartNodeView({ node, selected, deleteNode, getPos }: NodeViewProps) {
-	const config = node.attrs.config as ArticleChartConfig
-	const entityNames = config.entities.map((e) => e.name).join(' vs ')
-	const title = `${entityNames} · ${config.chartType}`
+	const rawConfig = node.attrs.config as ArticleChartConfig
+	const config = validateArticleChartConfig(rawConfig) ?? rawConfig
+	const series = config.series ?? []
+	const seenEntities = new Set<string>()
+	const uniqueEntityNames: string[] = []
+	for (const s of series) {
+		const key = `${s.entityType}:${s.slug}`
+		if (seenEntities.has(key)) continue
+		seenEntities.add(key)
+		uniqueEntityNames.push(s.name)
+	}
+	const seenChartTypes = new Set<string>()
+	const uniqueChartTypes: string[] = []
+	for (const s of series) {
+		if (seenChartTypes.has(s.chartType)) continue
+		seenChartTypes.add(s.chartType)
+		uniqueChartTypes.push(s.chartType)
+	}
+	const title = `${uniqueEntityNames.join(' vs ')} · ${uniqueChartTypes.join(' / ')}`
 	const rangeLabel = config.range && config.range !== 'all' ? config.range : 'all time'
-	const subtitle = `${config.entities.length === 1 ? config.entities[0].entityType : `${config.entities.length} series`} · ${rangeLabel}${config.logScale ? ' · log' : ''}${config.annotations?.length ? ` · ${config.annotations.length} marker${config.annotations.length === 1 ? '' : 's'}` : ''}`
+	const subtitle = `${series.length === 1 ? series[0].entityType : `${series.length} series`} · ${rangeLabel}${config.logScale ? ' · log' : ''}${config.annotations?.length ? ` · ${config.annotations.length} marker${config.annotations.length === 1 ? '' : 's'}` : ''}`
 	const handleEdit = () => {
 		const pos = typeof getPos === 'function' ? getPos() : null
 		if (typeof pos !== 'number') return

@@ -58,6 +58,7 @@ describe('local article documents', () => {
 		])
 		expect(result.value.charts).toHaveLength(1)
 		expect(result.value.charts[0]).toMatchObject({
+			series: [{ entityType: 'protocol', slug: 'aave', name: 'Aave', chartType: 'fees' }],
 			entities: [{ entityType: 'protocol', slug: 'aave', name: 'Aave' }],
 			chartType: 'fees'
 		})

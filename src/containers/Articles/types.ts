@@ -56,12 +56,21 @@ export type ArticleChartEntity = {
 	geckoId?: string | null
 }
 
+export type ArticleChartSeries = {
+	entityType: ArticleChartEntityType
+	slug: string
+	name: string
+	geckoId?: string | null
+	chartType: string
+}
+
 export type ArticleChartAnnotation = {
 	date: string
 	label: string
 }
 
 export type ArticleChartConfig = {
+	series: ArticleChartSeries[]
 	entities: ArticleChartEntity[]
 	chartType: string
 	range?: ArticleChartRange
