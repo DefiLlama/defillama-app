@@ -50,7 +50,7 @@ function TagChips({ tags, max = 3 }: { tags: string[] | null | undefined; max?: 
 			{tags.slice(0, max).map((t) => (
 				<span
 					key={t}
-					className="font-jetbrains rounded-sm border border-(--cards-border) bg-(--app-bg) px-1.5 py-0.5 text-[10px] tracking-wider text-(--text-secondary) uppercase"
+					className="rounded-sm border border-(--cards-border) bg-(--app-bg) px-1.5 py-0.5 font-jetbrains text-[10px] tracking-wider text-(--text-secondary) uppercase"
 				>
 					{t}
 				</span>
@@ -175,7 +175,7 @@ function ArchiveRow({ article }: { article: ArticleDocument }) {
 		<li>
 			<Link
 				href={`/research/${article.slug}`}
-				className="group grid grid-cols-[80px_minmax(0,1fr)] items-start gap-3 border-b border-(--cards-border) py-4 last:border-b-0 transition-colors sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-4"
+				className="group grid grid-cols-[80px_minmax(0,1fr)] items-start gap-3 border-b border-(--cards-border) py-4 transition-colors last:border-b-0 sm:grid-cols-[96px_minmax(0,1fr)] sm:gap-4"
 			>
 				{article.coverImage?.url ? (
 					<img
@@ -261,7 +261,7 @@ function TrendingTags({ articles }: { articles: ArticleDocument[] }) {
 							className="group flex items-center justify-between rounded-sm px-1.5 py-1.5 text-[13px] text-(--text-secondary) transition-colors hover:bg-(--link-button) hover:text-(--text-primary)"
 						>
 							<span className="capitalize">{tag.replace(/-/g, ' ')}</span>
-							<span className="font-jetbrains text-[10px] tabular-nums text-(--text-tertiary) group-hover:text-(--link-text)">
+							<span className="font-jetbrains text-[10px] text-(--text-tertiary) tabular-nums group-hover:text-(--link-text)">
 								{count}
 							</span>
 						</Link>
@@ -379,9 +379,7 @@ function ArticlesContent() {
 		let cancelled = false
 		setIsLoading(true)
 		Promise.all([
-			isFiltered
-				? Promise.resolve(EMPTY_LIST)
-				: listArticles({ sort: 'featured', limit: 6 }, authorizedFetch),
+			isFiltered ? Promise.resolve(EMPTY_LIST) : listArticles({ sort: 'featured', limit: 6 }, authorizedFetch),
 			listArticles({ sort: 'newest', limit: 30, query, tags: tag ? [tag] : undefined }, authorizedFetch)
 		])
 			.then(([f, n]) => {

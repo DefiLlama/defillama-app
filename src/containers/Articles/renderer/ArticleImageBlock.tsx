@@ -19,8 +19,7 @@ export function ArticleImageBlock({ attrs }: { attrs: ArticleImageBlockAttrs | n
 	const copyright = (attrs?.copyright ?? '').trim()
 	const headline = (attrs?.headline ?? '').trim()
 	const href = (attrs?.href ?? '').trim()
-	const aspectStyle =
-		attrs?.width && attrs?.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined
+	const aspectStyle = attrs?.width && attrs?.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined
 	const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(Boolean)
 
 	const imgEl = (
@@ -39,12 +38,7 @@ export function ArticleImageBlock({ attrs }: { attrs: ArticleImageBlockAttrs | n
 	return (
 		<figure className="not-prose mx-auto my-8" data-article-image>
 			{href ? (
-				<a
-					href={href}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="block transition-opacity hover:opacity-90"
-				>
+				<a href={href} target="_blank" rel="noopener noreferrer" className="block transition-opacity hover:opacity-90">
 					{imgEl}
 				</a>
 			) : (
@@ -54,9 +48,7 @@ export function ArticleImageBlock({ attrs }: { attrs: ArticleImageBlockAttrs | n
 				<figcaption className="mt-2 grid gap-1 text-xs leading-relaxed text-(--text-tertiary)">
 					{headline ? <span className="font-medium text-(--text-secondary)">{headline}</span> : null}
 					{caption ? <span>{caption}</span> : null}
-					{metaParts.length > 0 ? (
-						<span className="text-(--text-tertiary)/80">{metaParts.join(' · ')}</span>
-					) : null}
+					{metaParts.length > 0 ? <span className="text-(--text-tertiary)/80">{metaParts.join(' · ')}</span> : null}
 				</figcaption>
 			) : null}
 		</figure>

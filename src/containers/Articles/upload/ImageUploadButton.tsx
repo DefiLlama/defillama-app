@@ -76,7 +76,7 @@ export function ImageUploadButton({
 							onClick={open}
 							disabled={isUploading}
 							aria-label="Replace avatar"
-							className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-(--cards-border) outline-none transition-[border-color] hover:border-(--link-text)/50 focus-visible:border-(--link-text)/70 disabled:cursor-not-allowed disabled:opacity-60"
+							className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-(--cards-border) transition-[border-color] outline-none hover:border-(--link-text)/50 focus-visible:border-(--link-text)/70 disabled:cursor-not-allowed disabled:opacity-60"
 						>
 							{/* eslint-disable-next-line @next/next/no-img-element */}
 							<img
@@ -96,9 +96,7 @@ export function ImageUploadButton({
 							className="group flex h-24 w-24 shrink-0 flex-col items-center justify-center gap-1 rounded-full border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							<PhotoIcon className="h-5 w-5" />
-							<span className="text-[10px] font-medium tracking-wider uppercase">
-								{isUploading ? '…' : 'Upload'}
-							</span>
+							<span className="text-[10px] font-medium tracking-wider uppercase">{isUploading ? '…' : 'Upload'}</span>
 						</button>
 					)}
 					<div className="flex min-w-0 flex-col gap-2 pt-1">
@@ -136,7 +134,7 @@ export function ImageUploadButton({
 								onClick={open}
 								disabled={isUploading}
 								aria-label="Replace cover image"
-								className="group relative block h-36 w-full overflow-hidden rounded-md border border-(--cards-border) outline-none transition-[border-color] hover:border-(--link-text)/50 focus-visible:border-(--link-text)/70 disabled:cursor-not-allowed"
+								className="group relative block h-36 w-full overflow-hidden rounded-md border border-(--cards-border) transition-[border-color] outline-none hover:border-(--link-text)/50 focus-visible:border-(--link-text)/70 disabled:cursor-not-allowed"
 							>
 								{/* eslint-disable-next-line @next/next/no-img-element */}
 								<img

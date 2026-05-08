@@ -182,9 +182,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						src={attrs.src}
 						alt={attrs.alt || ''}
 						className="block w-full"
-						style={
-							attrs.width && attrs.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined
-						}
+						style={attrs.width && attrs.height ? { aspectRatio: `${attrs.width} / ${attrs.height}` } : undefined}
 					/>
 				) : (
 					<div className="flex aspect-[4/3] w-full items-center justify-center bg-(--app-bg) text-(--text-tertiary)">
@@ -455,7 +453,7 @@ export function ArticleImageNodeView({ node, selected, updateAttributes, deleteN
 						}}
 						placeholder="Add a caption…"
 						rows={Math.min(3, Math.max(1, captionDraft.split('\n').length))}
-						className={`w-full resize-none rounded-md border bg-transparent px-3 py-2 text-sm leading-snug text-(--text-secondary) outline-none transition-colors ${
+						className={`w-full resize-none rounded-md border bg-transparent px-3 py-2 text-sm leading-snug text-(--text-secondary) transition-colors outline-none ${
 							captionFocused ? 'border-(--link-text)' : 'border-(--cards-border)'
 						}`}
 					/>

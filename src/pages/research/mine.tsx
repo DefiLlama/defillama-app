@@ -38,15 +38,10 @@ function StatusBadge({ status }: { status: 'draft' | 'published' }) {
 	return (
 		<span
 			className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-[11px] font-medium ${
-				isPublished
-					? 'bg-emerald-500/10 text-emerald-500'
-					: 'bg-amber-500/10 text-amber-500'
+				isPublished ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
 			}`}
 		>
-			<span
-				aria-hidden
-				className={`h-1.5 w-1.5 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`}
-			/>
+			<span aria-hidden className={`h-1.5 w-1.5 rounded-full ${isPublished ? 'bg-emerald-500' : 'bg-amber-500'}`} />
 			{isPublished ? 'Published' : 'Draft'}
 		</span>
 	)
@@ -140,10 +135,7 @@ function MyArticlesContent() {
 						>
 							Browse all
 						</Link>
-						<Link
-							href="/research/new"
-							className="rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white"
-						>
+						<Link href="/research/new" className="rounded-md bg-(--link-text) px-3 py-2 text-sm font-medium text-white">
 							Write
 						</Link>
 					</div>
@@ -151,8 +143,7 @@ function MyArticlesContent() {
 
 				<div className="flex items-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-0.5 text-sm sm:w-fit">
 					{(['all', 'draft', 'published'] as const).map((value) => {
-						const count =
-							value === 'all' ? articles.length : value === 'draft' ? drafts.length : published.length
+						const count = value === 'all' ? articles.length : value === 'draft' ? drafts.length : published.length
 						const active = filter === value
 						const label = value === 'all' ? 'All' : value === 'draft' ? 'Drafts' : 'Published'
 						return (
@@ -207,7 +198,7 @@ function MyArticlesContent() {
 						return (
 							<li
 								key={article.id}
-								className="group grid grid-cols-[1fr_auto] items-center gap-3 border-t border-(--cards-border) px-4 py-3 first:border-t-0 transition-colors hover:bg-(--link-hover-bg)"
+								className="group grid grid-cols-[1fr_auto] items-center gap-3 border-t border-(--cards-border) px-4 py-3 transition-colors first:border-t-0 hover:bg-(--link-hover-bg)"
 							>
 								<Link href={`/research/edit/${article.id}`} className="grid min-w-0 gap-1">
 									<div className="flex flex-wrap items-center gap-2">
@@ -219,7 +210,7 @@ function MyArticlesContent() {
 									<div className="flex flex-wrap items-center gap-2 text-xs text-(--text-tertiary)">
 										<span>Updated {updated}</span>
 										<span aria-hidden>·</span>
-										<span className="font-jetbrains truncate text-[11px]">/{article.slug}</span>
+										<span className="truncate font-jetbrains text-[11px]">/{article.slug}</span>
 										{words > 0 ? (
 											<>
 												<span aria-hidden>·</span>

@@ -387,16 +387,22 @@ export class ChartDataTransformer {
 			})
 		)
 
+		// Time-series charts use the legacy stacked-area convention for percentages.
+		// Category-axis charts keep their native primitive (bars stay bars).
+		const isCategoryAxis = nextChart.axisType === 'category'
+
 		nextChart.props.charts =
 			nextChart.props.charts?.map((series) => {
 				if (!primarySeriesNames.has(series.name)) return series
 
 				const { hideAreaStyle: _hideAreaStyle, stack: _stack, ...rest } = series
+				const nextType = isCategoryAxis ? series.type : ('line' as const)
+				const isLineType = nextType === 'line'
 				return {
 					...rest,
-					type: 'line' as const,
+					type: nextType,
 					valueSymbol: '%',
-					...(shouldStack && allPositive ? { stack: 'total' } : { hideAreaStyle: true })
+					...(shouldStack && allPositive ? { stack: 'total' } : isLineType ? { hideAreaStyle: true } : {})
 				}
 			}) ?? []
 

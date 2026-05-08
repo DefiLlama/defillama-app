@@ -520,39 +520,31 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 					) : null}
 				</header>
 
-				{article.coverImage ? (
-					(() => {
-						const cover = article.coverImage
-						const headline = (cover.headline ?? '').trim()
-						const caption = (cover.caption ?? '').trim()
-						const credit = (cover.credit ?? '').trim()
-						const copyright = (cover.copyright ?? '').trim()
-						const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(
-							Boolean
-						)
-						const hasMeta = headline || caption || metaParts.length > 0
-						return (
-							<figure className="mb-10 overflow-hidden rounded-md border border-(--cards-border)">
-								<img
-									src={cover.url}
-									alt={cover.alt || ''}
-									className="max-h-[440px] w-full object-cover"
-								/>
-								{hasMeta ? (
-									<figcaption className="grid gap-1 border-t border-(--cards-border) bg-(--cards-bg) px-4 py-2 text-xs text-(--text-tertiary)">
-										{headline ? (
-											<span className="font-medium text-(--text-secondary)">{headline}</span>
-										) : null}
-										{caption ? <span>{caption}</span> : null}
-										{metaParts.length > 0 ? (
-											<span className="text-(--text-tertiary)/80">{metaParts.join(' · ')}</span>
-										) : null}
-									</figcaption>
-								) : null}
-							</figure>
-						)
-					})()
-				) : null}
+				{article.coverImage
+					? (() => {
+							const cover = article.coverImage
+							const headline = (cover.headline ?? '').trim()
+							const caption = (cover.caption ?? '').trim()
+							const credit = (cover.credit ?? '').trim()
+							const copyright = (cover.copyright ?? '').trim()
+							const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(Boolean)
+							const hasMeta = headline || caption || metaParts.length > 0
+							return (
+								<figure className="mb-10 overflow-hidden rounded-md border border-(--cards-border)">
+									<img src={cover.url} alt={cover.alt || ''} className="max-h-[440px] w-full object-cover" />
+									{hasMeta ? (
+										<figcaption className="grid gap-1 border-t border-(--cards-border) bg-(--cards-bg) px-4 py-2 text-xs text-(--text-tertiary)">
+											{headline ? <span className="font-medium text-(--text-secondary)">{headline}</span> : null}
+											{caption ? <span>{caption}</span> : null}
+											{metaParts.length > 0 ? (
+												<span className="text-(--text-tertiary)/80">{metaParts.join(' · ')}</span>
+											) : null}
+										</figcaption>
+									) : null}
+								</figure>
+							)
+						})()
+					: null}
 
 				<div className="article-prose [overflow-wrap:anywhere] break-words">
 					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:mb-3 prose-h2:text-2xl prose-h3:mt-7 prose-h3:mb-2 prose-h3:text-lg prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-li:my-1 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_li>p]:my-0 [&_li>p]:leading-[1.55]">

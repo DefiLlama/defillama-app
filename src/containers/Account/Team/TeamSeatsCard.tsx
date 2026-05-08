@@ -46,8 +46,7 @@ function computeNextBillingDate(createdAt: string, billingInterval: 'month' | 'y
 		const elapsedYears = now.getFullYear() - created.getFullYear()
 		next.setFullYear(created.getFullYear() + elapsedYears + 1)
 	} else {
-		const elapsedMonths =
-			(now.getFullYear() - created.getFullYear()) * 12 + (now.getMonth() - created.getMonth())
+		const elapsedMonths = (now.getFullYear() - created.getFullYear()) * 12 + (now.getMonth() - created.getMonth())
 		next.setMonth(created.getMonth() + elapsedMonths + 1)
 	}
 	return next

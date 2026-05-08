@@ -32,7 +32,7 @@ import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimi
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
-import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { getToolLabel } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TipActionProvider } from '~/containers/LlamaAI/components/TipActionContext'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
@@ -615,7 +615,7 @@ function createAgenticCallbacks({
 		},
 		onProgress: (toolName, isPremium) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			const label = TOOL_LABELS[toolName] || toolName
+			const label = getToolLabel(toolName)
 			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label, ...(isPremium && { isPremium }) }
 			dispatch({ type: 'APPEND_TOOL_CALL', value: toolCall })
 		},

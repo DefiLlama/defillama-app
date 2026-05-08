@@ -13,9 +13,9 @@ import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/Markdown
 import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
+	getToolLabel,
 	ThinkingPanel,
 	TOOL_ICONS,
-	TOOL_LABELS,
 	useHackerMode
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import {
@@ -588,6 +588,16 @@ function InlineContent({
 	)
 }
 
+const formatStepDuration = (ms: number): string => {
+	if (ms < 1000) return `${ms}ms`
+	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+	const m = Math.floor(ms / 60000)
+	const s = Math.floor((ms % 60000) / 1000)
+	return `${m}m ${s}s`
+}
+
+const formatStepCost = (usd: number): string => (usd < 0.01 ? `$${usd.toFixed(3)}` : `$${usd.toFixed(2)}`)
+
 function ToolExecutionPanel({
 	toolExecutions,
 	showDetails = false
@@ -597,6 +607,11 @@ function ToolExecutionPanel({
 }) {
 	const totalTime = toolExecutions.reduce((sum, execution) => sum + execution.executionTimeMs, 0)
 	const successCount = toolExecutions.filter((execution) => execution.success).length
+	const failedCount = toolExecutions.length - successCount
+	const totalCost = toolExecutions.reduce((sum, execution) => {
+		const cost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
+		return Number.isFinite(cost) ? sum + cost : sum
+	}, 0)
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
 	const getRowKey = createOccurrenceKeyFactory()
@@ -625,12 +640,19 @@ function ToolExecutionPanel({
 					<path d="M9 18l6-6-6-6" />
 				</svg>
 				<span className="flex-1 text-xs text-[#666] dark:text-[#919296]">
-					{toolExecutions.length} tool call{toolExecutions.length !== 1 ? 's' : ''}
+					{toolExecutions.length} step{toolExecutions.length !== 1 ? 's' : ''}
 				</span>
-				<span className="text-xs text-[#999] dark:text-[#666]">
-					{successCount}/{toolExecutions.length} ok
+				{failedCount > 0 ? (
+					<span className="text-[10px] text-amber-600 dark:text-amber-400">{failedCount} failed</span>
+				) : null}
+				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
+					{formatStepDuration(totalTime)}
 				</span>
-				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">{totalTime}ms</span>
+				{totalCost > 0 ? (
+					<span className="font-mono text-[10px] text-amber-600 tabular-nums dark:text-amber-400">
+						{formatStepCost(totalCost)}
+					</span>
+				) : null}
 			</summary>
 			<div
 				ref={contentRef}
@@ -651,10 +673,10 @@ function ToolExecutionPanel({
 function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolExecution; showDetails?: boolean }) {
 	const [showPreview, setShowPreview] = useState(false)
 	const meta = TOOL_ICONS[execution.name] || { icon: 'sparkles', color: '#919296' }
-	const label = TOOL_LABELS[execution.name] || execution.name
+	const label = getToolLabel(execution.name)
 	const hasDetails = showDetails && (execution.resultPreview?.length || execution.sqlQuery || execution.toolData)
 	const parsedCost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
-	const premiumCostLabel = Number.isFinite(parsedCost) ? ` $${parsedCost.toFixed(3)}` : ''
+	const premiumCostLabel = Number.isFinite(parsedCost) ? ` ${formatStepCost(parsedCost)}` : ''
 
 	return (
 		<div className="flex flex-col">
@@ -670,16 +692,15 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 						Premium{premiumCostLabel}
 					</span>
 				) : null}
-				{execution.success ? (
-					<span className="text-[10px] text-green-600 dark:text-green-400">ok</span>
-				) : (
-					<span className="text-[10px] text-red-500">err</span>
-				)}
+				<span
+					aria-label={execution.success ? 'succeeded' : 'failed'}
+					className={`h-1.5 w-1.5 shrink-0 rounded-full ${execution.success ? 'bg-green-500 dark:bg-green-400' : 'bg-red-500'}`}
+				/>
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
-					{execution.executionTimeMs}ms
+					{formatStepDuration(execution.executionTimeMs)}
 				</span>
 				{showDetails && execution.resultCount != null ? (
-					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} rows</span>
+					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} results</span>
 				) : null}
 			</button>
 			{showPreview && execution.sqlQuery ? (
@@ -715,7 +736,7 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 			) : null}
 			{showPreview && execution.toolData ? <ToolDataView name={execution.name} data={execution.toolData} /> : null}
 			{!execution.success && execution.error ? (
-				<p className="mt-0.5 text-[10px] text-red-500">{execution.error}</p>
+				<p className="mt-0.5 ml-5 text-[10px] text-red-500/80 dark:text-red-400/80">{execution.error}</p>
 			) : null}
 		</div>
 	)

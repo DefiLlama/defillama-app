@@ -212,7 +212,7 @@ function PersonRow({ item, idx, total, articleId, showErrors, onChange, onRemove
 				type="button"
 				disabled={isUploading || !articleId}
 				onClick={() => inputRef.current?.click()}
-				className="group relative aspect-square overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg) outline-none transition-[border-color] hover:border-(--link-text)/50 disabled:cursor-not-allowed disabled:opacity-60"
+				className="group relative aspect-square overflow-hidden rounded-full border border-(--cards-border) bg-(--cards-bg) transition-[border-color] outline-none hover:border-(--link-text)/50 disabled:cursor-not-allowed disabled:opacity-60"
 				aria-label={item.src ? 'Replace image' : 'Upload image'}
 			>
 				{item.src ? (
@@ -260,7 +260,7 @@ function PersonRow({ item, idx, total, articleId, showErrors, onChange, onRemove
 					onClick={() => onMove(-1)}
 					disabled={idx === 0}
 					title="Move up"
-					className="font-jetbrains border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-[10px] text-(--text-tertiary) transition-colors hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
+					className="border border-(--cards-border) bg-(--cards-bg) px-2 py-1 font-jetbrains text-[10px] text-(--text-tertiary) transition-colors hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
 				>
 					↑
 				</button>
@@ -269,7 +269,7 @@ function PersonRow({ item, idx, total, articleId, showErrors, onChange, onRemove
 					onClick={() => onMove(1)}
 					disabled={idx === total - 1}
 					title="Move down"
-					className="font-jetbrains border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-[10px] text-(--text-tertiary) transition-colors hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
+					className="border border-(--cards-border) bg-(--cards-bg) px-2 py-1 font-jetbrains text-[10px] text-(--text-tertiary) transition-colors hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
 				>
 					↓
 				</button>
@@ -278,7 +278,7 @@ function PersonRow({ item, idx, total, articleId, showErrors, onChange, onRemove
 					onClick={onRemove}
 					disabled={total === 1}
 					title="Remove"
-					className="font-jetbrains border border-(--cards-border) bg-(--cards-bg) px-2 py-1 text-[10px] text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+					className="border border-(--cards-border) bg-(--cards-bg) px-2 py-1 font-jetbrains text-[10px] text-(--text-tertiary) transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
 				>
 					×
 				</button>
