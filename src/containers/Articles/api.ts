@@ -1,5 +1,12 @@
 import { FEATURES_SERVER } from '~/constants'
-import type { ArticleAuthorProfile, ArticleCollaborator, ArticleDocument, LocalArticleDocument } from './types'
+import type {
+	ArticleAuthorProfile,
+	ArticleCollaborator,
+	ArticleDocument,
+	ArticleRevision,
+	ArticleRevisionListResponse,
+	LocalArticleDocument
+} from './types'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
 type FetchLike = (url: string, options?: RequestInit) => Promise<Response>
@@ -32,12 +39,12 @@ function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
 
-function buildSavePayload(article: LocalArticleDocument) {
+function buildSavePayload(article: LocalArticleDocument, options: { includeStatus?: boolean } = {}) {
 	return {
 		title: article.title,
 		subtitle: article.subtitle,
 		slug: article.slug,
-		status: article.status,
+		...(options.includeStatus ? { status: article.status } : {}),
 		seoTitle: article.seoTitle,
 		seoDescription: article.seoDescription,
 		excerpt: article.excerpt,
@@ -119,7 +126,7 @@ export async function createArticle(
 		await authorizedFetch(articleUrl('/articles'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(buildSavePayload(article))
+			body: JSON.stringify(buildSavePayload(article, { includeStatus: true }))
 		})
 	)
 	return data.article
@@ -152,6 +159,78 @@ export async function unpublishArticle(id: string, authorizedFetch: AuthorizedFe
 		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/unpublish`), { method: 'POST' })
 	)
 	return data.article
+}
+
+export async function discardPendingEdits(
+	id: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleDocument> {
+	const data = await parseResponse<{ article: ArticleDocument }>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/discard-pending`), {
+			method: 'POST'
+		})
+	)
+	return data.article
+}
+
+export async function listArticleRevisions(
+	id: string,
+	params: { limit?: number; cursor?: string } = {},
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleRevisionListResponse> {
+	const search = new URLSearchParams()
+	appendSearchParam(search, 'limit', params.limit)
+	appendSearchParam(search, 'cursor', params.cursor)
+	const suffix = search.toString() ? `?${search.toString()}` : ''
+	return parseResponse<ArticleRevisionListResponse>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}/revisions${suffix}`))
+	)
+}
+
+export async function getArticleRevision(
+	articleId: string,
+	revisionId: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleRevision> {
+	const data = await parseResponse<{ revision: ArticleRevision }>(
+		await authorizedFetch(
+			articleUrl(
+				`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}`
+			)
+		)
+	)
+	return data.revision
+}
+
+export async function restoreArticleRevisionToPending(
+	articleId: string,
+	revisionId: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleDocument> {
+	const data = await parseResponse<{ article: ArticleDocument }>(
+		await authorizedFetch(
+			articleUrl(
+				`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}/restore-pending`
+			),
+			{ method: 'POST' }
+		)
+	)
+	return data.article
+}
+
+export async function deleteArticleRevision(
+	articleId: string,
+	revisionId: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<void> {
+	await parseResponse(
+		await authorizedFetch(
+			articleUrl(
+				`/articles/${encodeURIComponent(articleId)}/revisions/${encodeURIComponent(revisionId)}`
+			),
+			{ method: 'DELETE' }
+		)
+	)
 }
 
 export async function listMyArticles(

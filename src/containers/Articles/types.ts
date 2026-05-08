@@ -140,11 +140,50 @@ export type LocalArticleDocument = {
 	createdAt: string
 	updatedAt: string
 	publishedAt: string | null
+
+	pending?: ArticleSnapshotPayload | null
+	pendingUpdatedAt?: string | null
+	pendingActorPbUserId?: string | null
 }
 
 export type ArticleDocument = LocalArticleDocument & {
 	id: string
 	authorProfile: ArticleAuthorProfile
+}
+
+export type ArticleSnapshotPayload = Omit<
+	LocalArticleDocument,
+	'id' | 'authorProfile' | 'coAuthors' | 'viewerRole' | 'pending' | 'pendingUpdatedAt' | 'pendingActorPbUserId'
+> & {
+	id?: string
+}
+
+export type ArticleRevisionEventType =
+	| 'create'
+	| 'save'
+	| 'publish'
+	| 'unpublish'
+	| 'delete'
+	| 'pending_save'
+	| 'discard_pending'
+	| 'restore_pending'
+
+export type ArticleRevisionSummary = {
+	id: string
+	articleId: string
+	eventType: ArticleRevisionEventType
+	actorPbUserId: string | null
+	actor: ArticleAuthorProfile | null
+	createdAt: string
+}
+
+export type ArticleRevision = ArticleRevisionSummary & {
+	snapshot: ArticleSnapshotPayload
+}
+
+export type ArticleRevisionListResponse = {
+	items: ArticleRevisionSummary[]
+	nextCursor: string | null
 }
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: string }

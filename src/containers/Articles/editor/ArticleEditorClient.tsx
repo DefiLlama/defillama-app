@@ -12,6 +12,7 @@ import {
 	ArticleApiError,
 	createArticle,
 	deleteArticle,
+	discardPendingEdits,
 	getOwnedArticle,
 	listCollaborators,
 	publishArticle,
@@ -19,7 +20,7 @@ import {
 	unpublishArticle,
 	updateArticle as updateRemoteArticle
 } from '../api'
-import { createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
+import { applyPendingToLocalArticle, createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
 import { ResearchLoader } from '../ResearchLoader'
 import type {
 	ArticleCalloutTone,
@@ -28,6 +29,7 @@ import type {
 	ArticleEmbedConfig,
 	LocalArticleDocument
 } from '../types'
+import { RevisionHistoryDrawer } from './RevisionHistoryDrawer'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
@@ -749,13 +751,14 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		getOwnedArticle(articleId, authorizedFetch)
 			.then((loaded) => {
 				if (cancelled) return
-				setArticle(loaded)
-				editor.commands.setContent(loaded.contentJson, { emitUpdate: false })
+				const merged = applyPendingToLocalArticle(loaded, loaded.pending)
+				setArticle(merged)
+				editor.commands.setContent(merged.contentJson, { emitUpdate: false })
 				setIsDirty(false)
 				setSaveError(false)
-				const text = loaded.plainText || ''
+				const text = merged.plainText || ''
 				setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0)
-				setSavedAt(loaded.updatedAt)
+				setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
 			})
 			.catch((error) => {
 				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load research')
@@ -799,8 +802,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			const saved = article.id
 				? await updateRemoteArticle(article.id, normalized.value, authorizedFetch)
 				: await createArticle(normalized.value, authorizedFetch)
-			setArticle(saved)
-			setSavedAt(saved.updatedAt)
+			const merged = applyPendingToLocalArticle(saved, saved.pending)
+			setArticle(merged)
+			setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
 			setSaveError(false)
 			if (!article.id) {
 				void router.replace(`/research/edit/${saved.id}`)
@@ -1028,6 +1032,18 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	)
 
 	const [isPublishing, setIsPublishing] = useState(false)
+	const [isDiscarding, setIsDiscarding] = useState(false)
+	const [historyOpen, setHistoryOpen] = useState(false)
+
+	const flushPendingSave = useCallback(async () => {
+		if (debounceRef.current) {
+			clearTimeout(debounceRef.current)
+			debounceRef.current = null
+			await saveRef.current({ silent: true })
+		} else if (isDirty) {
+			await saveRef.current({ silent: true })
+		}
+	}, [isDirty])
 
 	const handlePublish = async () => {
 		if (!article.id) {
@@ -1036,10 +1052,12 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 		setIsPublishing(true)
 		try {
+			await flushPendingSave()
 			const saved = await publishArticle(article.id, authorizedFetch)
-			setArticle(saved)
-			setSavedAt(saved.updatedAt)
-			toast.success('Published')
+			const merged = applyPendingToLocalArticle(saved, saved.pending)
+			setArticle(merged)
+			setSavedAt(merged.updatedAt)
+			toast.success(article.status === 'published' ? 'Update published' : 'Published')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to publish')
 		} finally {
@@ -1052,8 +1070,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		setIsPublishing(true)
 		try {
 			const saved = await unpublishArticle(article.id, authorizedFetch)
-			setArticle(saved)
-			setSavedAt(saved.updatedAt)
+			const merged = applyPendingToLocalArticle(saved, saved.pending)
+			setArticle(merged)
+			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
+			setSavedAt(merged.updatedAt)
 			toast.success('Moved to drafts')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to unpublish')
@@ -1061,6 +1081,45 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setIsPublishing(false)
 		}
 	}
+
+	const handleDiscardPending = async () => {
+		if (!article.id) return
+		if (!confirm('Discard pending changes? The live version will not be modified.')) return
+		setIsDiscarding(true)
+		try {
+			if (debounceRef.current) {
+				clearTimeout(debounceRef.current)
+				debounceRef.current = null
+			}
+			const saved = await discardPendingEdits(article.id, authorizedFetch)
+			const merged = applyPendingToLocalArticle(saved, saved.pending)
+			setArticle(merged)
+			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
+			setSavedAt(merged.updatedAt)
+			setIsDirty(false)
+			toast.success('Pending changes discarded')
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : 'Failed to discard changes')
+		} finally {
+			setIsDiscarding(false)
+		}
+	}
+
+	const handleRevisionRestored = useCallback(
+		(saved: LocalArticleDocument) => {
+			if (debounceRef.current) {
+				clearTimeout(debounceRef.current)
+				debounceRef.current = null
+			}
+			const merged = applyPendingToLocalArticle(saved, saved.pending)
+			setArticle(merged)
+			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
+			setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
+			setIsDirty(false)
+			setSaveError(false)
+		},
+		[editor]
+	)
 
 	const handleDeleteArticle = async () => {
 		if (!article.id) return
@@ -1232,6 +1291,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const titleSerif = "ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
 
 	const isPublished = article.status === 'published'
+	const hasPendingEdits = isPublished && article.pending != null
 	const pillState: 'saving' | 'saved' | 'unsaved' | 'error' | 'idle' = isSaving
 		? 'saving'
 		: saveError
@@ -1367,64 +1427,121 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						) : null}
 					</button>
 
-					{isPublished ? (
-						<Ariakit.MenuProvider>
-							<Ariakit.MenuButton className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40">
-								<span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-								<span>Live</span>
-								<span aria-hidden className="text-(--text-tertiary)">
-									▾
-								</span>
-							</Ariakit.MenuButton>
-							<Ariakit.Menu
-								gutter={6}
-								className="z-50 grid min-w-[180px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
+					{article.id ? (
+						<button
+							type="button"
+							onClick={() => setHistoryOpen(true)}
+							title="Revision history"
+							className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+						>
+							<svg
+								className="h-4 w-4"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								strokeWidth="1.75"
+								strokeLinecap="round"
+								strokeLinejoin="round"
 							>
-								<Ariakit.MenuItem
-									render={
-										<Link
-											href={`/research/${article.slug}`}
-											target="_blank"
-											rel="noreferrer"
-											className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
-										/>
-									}
-								>
-									<span className="flex items-center gap-2">
-										<Icon name="eye" className="h-3.5 w-3.5" />
-										View
+								<circle cx="12" cy="12" r="9" />
+								<polyline points="12 7 12 12 15.5 14" />
+							</svg>
+						</button>
+					) : null}
+
+					{isPublished ? (
+						<>
+							{hasPendingEdits ? (
+								<>
+									<button
+										type="button"
+										disabled={isPublishing || isDiscarding}
+										onClick={handleDiscardPending}
+										className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-red-500/50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										{isDiscarding ? 'Discarding…' : 'Discard'}
+									</button>
+									<button
+										type="button"
+										disabled={isPublishing || isDiscarding}
+										onClick={async () => {
+											await handlePublish()
+										}}
+										className="flex h-9 items-center gap-1.5 rounded-md bg-emerald-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 hover:shadow-[0_6px_16px_-4px_rgba(16,185,129,0.55)] disabled:cursor-not-allowed disabled:opacity-50"
+									>
+										<span>{isPublishing ? 'Publishing…' : 'Publish update'}</span>
+										<span aria-hidden>→</span>
+									</button>
+								</>
+							) : null}
+							<Ariakit.MenuProvider>
+								<Ariakit.MenuButton className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-primary) transition-colors hover:border-(--link-text)/40">
+									<span
+										aria-hidden
+										className={`h-1.5 w-1.5 rounded-full ${hasPendingEdits ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}
+									/>
+									<span>{hasPendingEdits ? 'Live · Pending' : 'Live'}</span>
+									<span aria-hidden className="text-(--text-tertiary)">
+										▾
 									</span>
-									<Icon name="external" className="h-3 w-3 text-(--text-tertiary)" />
-								</Ariakit.MenuItem>
-								<Ariakit.MenuItem
-									onClick={() => metaDialog.show()}
-									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+								</Ariakit.MenuButton>
+								<Ariakit.Menu
+									gutter={6}
+									className="z-50 grid min-w-[180px] gap-0.5 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 shadow-xl"
 								>
-									<Icon name="sliders" className="h-3.5 w-3.5" />
-									Edit listing
-								</Ariakit.MenuItem>
-								<Ariakit.MenuItem
-									onClick={handleUnpublish}
-									disabled={isPublishing}
-									className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
-								>
-									<Icon name="undo" className="h-3.5 w-3.5" />
-									Move to drafts
-								</Ariakit.MenuItem>
-								{isOwner ? (
-									<>
-										<span aria-hidden className="my-1 h-px bg-(--cards-border)" />
-										<Ariakit.MenuItem
-											onClick={handleDeleteArticle}
-											className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
-										>
-											<Icon name="x" className="h-3.5 w-3.5" />
-											Delete
-										</Ariakit.MenuItem>
-									</>
-								) : null}
-							</Ariakit.Menu>
-						</Ariakit.MenuProvider>
+									<Ariakit.MenuItem
+										render={
+											<Link
+												href={`/research/${article.slug}`}
+												target="_blank"
+												rel="noreferrer"
+												className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+											/>
+										}
+									>
+										<span className="flex items-center gap-2">
+											<Icon name="eye" className="h-3.5 w-3.5" />
+											View live
+										</span>
+										<Icon name="external" className="h-3 w-3 text-(--text-tertiary)" />
+									</Ariakit.MenuItem>
+									<Ariakit.MenuItem
+										onClick={() => metaDialog.show()}
+										className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+									>
+										<Icon name="sliders" className="h-3.5 w-3.5" />
+										Edit listing
+									</Ariakit.MenuItem>
+									<Ariakit.MenuItem
+										onClick={() => setHistoryOpen(true)}
+										className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+									>
+										<Icon name="check" className="h-3.5 w-3.5" />
+										Revision history
+									</Ariakit.MenuItem>
+									<Ariakit.MenuItem
+										onClick={handleUnpublish}
+										disabled={isPublishing}
+										className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
+									>
+										<Icon name="undo" className="h-3.5 w-3.5" />
+										Move to drafts
+									</Ariakit.MenuItem>
+									{isOwner ? (
+										<>
+											<span aria-hidden className="my-1 h-px bg-(--cards-border)" />
+											<Ariakit.MenuItem
+												onClick={handleDeleteArticle}
+												className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
+											>
+												<Icon name="x" className="h-3.5 w-3.5" />
+												Delete
+											</Ariakit.MenuItem>
+										</>
+									) : null}
+								</Ariakit.Menu>
+							</Ariakit.MenuProvider>
+						</>
 					) : article.id ? (
 						<>
 							<Link
@@ -2206,17 +2323,31 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 				<div className="mt-auto grid gap-2 border-t border-(--cards-border) pt-4">
 					{isPublished ? (
-						<button
-							type="button"
-							disabled={isSaving}
-							onClick={async () => {
-								await saveArticle()
-								metaDialog.hide()
-							}}
-							className="flex h-10 items-center justify-center rounded-md bg-(--link-text) px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{isSaving ? 'Saving…' : 'Save changes'}
-						</button>
+						hasPendingEdits ? (
+							<button
+								type="button"
+								disabled={isPublishing || isDiscarding}
+								onClick={async () => {
+									await handlePublish()
+									metaDialog.hide()
+								}}
+								className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								{isPublishing ? 'Publishing…' : 'Publish update'}
+							</button>
+						) : (
+							<button
+								type="button"
+								disabled={isSaving}
+								onClick={async () => {
+									await saveArticle()
+									metaDialog.hide()
+								}}
+								className="flex h-10 items-center justify-center rounded-md bg-(--link-text) px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								{isSaving ? 'Saving…' : 'Save changes'}
+							</button>
+						)
 					) : (
 						<button
 							type="button"
@@ -2240,6 +2371,16 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 					</button>
 				</div>
 			</Ariakit.Dialog>
+
+			{article.id ? (
+				<RevisionHistoryDrawer
+					open={historyOpen}
+					onClose={() => setHistoryOpen(false)}
+					articleId={article.id}
+					authorizedFetch={authorizedFetch}
+					onRestored={handleRevisionRestored}
+				/>
+			) : null}
 
 			<ArticleChartPickerDialog
 				store={chartDialog}

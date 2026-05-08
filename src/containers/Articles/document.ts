@@ -1,6 +1,12 @@
 import { validateArticleChartConfig } from './chartAdapters'
 import { extractArticleContent } from './extractors'
-import type { ArticleImage, LocalArticleDocument, TiptapJson, ValidationResult } from './types'
+import type {
+	ArticleImage,
+	ArticleSnapshotPayload,
+	LocalArticleDocument,
+	TiptapJson,
+	ValidationResult
+} from './types'
 
 export const ARTICLE_CONTENT_VERSION = 1
 export const ARTICLE_RENDERER_VERSION = 1
@@ -137,6 +143,12 @@ export function normalizeLocalArticleDocument(
 	const excerpt = optionalString(input.excerpt) ?? (derivedExcerpt || undefined)
 	const seoDescription = optionalString(input.seoDescription) ?? (derivedSeo || undefined)
 
+	const pending = isRecord(input.pending) ? (input.pending as ArticleSnapshotPayload) : null
+	const pendingUpdatedAt = optionalString(input.pendingUpdatedAt)
+		? normalizeDate(input.pendingUpdatedAt, now)
+		: null
+	const pendingActorPbUserId = optionalString(input.pendingActorPbUserId) ?? null
+
 	return {
 		ok: true,
 		value: {
@@ -169,9 +181,35 @@ export function normalizeLocalArticleDocument(
 			...(optionalString(input.featuredUntil) ? { featuredUntil: normalizeDate(input.featuredUntil, now) } : {}),
 			createdAt,
 			updatedAt,
-			publishedAt
+			publishedAt,
+			pending,
+			pendingUpdatedAt,
+			pendingActorPbUserId
 		}
 	}
+}
+
+export function applyPendingToLocalArticle(
+	live: LocalArticleDocument,
+	pending: ArticleSnapshotPayload | null | undefined
+): LocalArticleDocument {
+	if (!pending) return live
+	const merged: LocalArticleDocument = {
+		...live,
+		...(pending as Partial<LocalArticleDocument>),
+		id: live.id,
+		status: live.status,
+		authorProfile: live.authorProfile,
+		coAuthors: live.coAuthors,
+		viewerRole: live.viewerRole,
+		publishedAt: live.publishedAt,
+		createdAt: live.createdAt,
+		updatedAt: pending.updatedAt ?? live.updatedAt,
+		pending: live.pending ?? null,
+		pendingUpdatedAt: live.pendingUpdatedAt ?? null,
+		pendingActorPbUserId: live.pendingActorPbUserId ?? null
+	}
+	return merged
 }
 
 export function createEmptyLocalArticle(now = new Date().toISOString()): LocalArticleDocument {
