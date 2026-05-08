@@ -24,7 +24,7 @@ describe('article revision diffs', () => {
 		])
 	})
 
-	it('summarizes word counts across modified paragraphs', () => {
+	it('summarizes word counts across all paragraph changes', () => {
 		const diff = diffParagraphs(
 			'Intro\n\nAave fees rose\n\nConclusion',
 			'Intro\n\nAave fees fell sharply\n\nConclusion\n\nNew note'
