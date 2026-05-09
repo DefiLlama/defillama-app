@@ -1,3 +1,4 @@
+import { matchSorter } from 'match-sorter'
 import { createArticleEntityRef } from './entityLinks'
 import type { EntityPreview } from './entityPreviewTypes'
 import type { ArticleEntityRef, ArticleEntityType } from './types'
@@ -81,14 +82,12 @@ export function normalizeArticleEntitySearchHit(hit: ArticleSearchEntityHit): Ar
 }
 
 export function getStaticArticleEntitySuggestions(query: string, limit = 8): ArticleEntitySuggestionItem[] {
-	const normalizedQuery = query.trim().toLowerCase()
+	const normalizedQuery = query.trim()
 	if (!normalizedQuery) return STATIC_FALLBACK.slice(0, limit)
-	return STATIC_FALLBACK.filter(
-		(item) =>
-			item.label.toLowerCase().includes(normalizedQuery) ||
-			item.slug.toLowerCase().includes(normalizedQuery) ||
-			item.entityType.toLowerCase().includes(normalizedQuery)
-	).slice(0, limit)
+	return matchSorter(STATIC_FALLBACK, normalizedQuery, {
+		keys: ['label', 'slug', 'entityType'],
+		threshold: matchSorter.rankings.CONTAINS
+	}).slice(0, limit)
 }
 
 function routePathname(route: string): string {

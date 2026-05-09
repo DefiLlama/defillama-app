@@ -1,9 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
 import type { MultiSelectOption } from './types'
+
+const DEFAULT_VIEWABLE_MATCHES = 10
 
 export const MultiSelectCombobox = ({
 	data,
@@ -17,22 +19,28 @@ export const MultiSelectCombobox = ({
 	setSelectedValues: (values: string[]) => void
 }) => {
 	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const matches = useMemo(() => {
-		if (!deferredSearchValue) return data
+		if (!searchValue) return data
 
-		return matchSorter(data, deferredSearchValue, {
+		return matchSorter(data, searchValue, {
 			keys: ['label'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [data, deferredSearchValue])
+	}, [data, searchValue])
 
-	const [viewableMatches, setViewableMatches] = useState(10)
+	const [viewableMatches, setViewableMatches] = useState(DEFAULT_VIEWABLE_MATCHES)
 
 	const [open, setOpen] = useState(false)
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!open) {
+			setSearchValue('')
+			setViewableMatches(DEFAULT_VIEWABLE_MATCHES)
+		}
+	}, [open])
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -99,7 +107,10 @@ export const MultiSelectCombobox = ({
 					<input
 						placeholder="Search..."
 						className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
-						onInput={(e) => setSearchValue(e.currentTarget.value)}
+						onInput={(e) => {
+							const nextValue = e.currentTarget.value
+							startTransition(() => setSearchValue(nextValue))
+						}}
 					/>
 				</span>
 
