@@ -1784,15 +1784,6 @@ export function AgenticChat({
 		) => {
 			const trimmed = prompt.trim()
 			const hasImages = images && images.length > 0
-			if (promptSubmissionLockRef.current && !isStreaming) {
-				abortControllerRef.current?.abort()
-				abortControllerRef.current = null
-				activeRequestSettleRef.current?.resolve()
-				activeRequestSettleRef.current = null
-				activeRequestKindRef.current = 'idle'
-				activeSessionIdRef.current = null
-				promptSubmissionLockRef.current = false
-			}
 			if ((!trimmed && !hasImages) || isStreaming || promptSubmissionLockRef.current) return
 
 			// Shared session: fork in-place — seed messages + sessionId, then continue with normal submit flow

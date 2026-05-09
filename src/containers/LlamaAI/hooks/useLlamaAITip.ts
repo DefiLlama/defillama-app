@@ -51,7 +51,8 @@ export function useActiveTip(): {
 	const { authorizedFetch, user } = useAuthContext()
 	const userId = user?.id ?? null
 
-	const [displayTip, setDisplayTip] = useState<TipDTO | null>(() => readCachedTip(userId))
+	const [cachedTip, setCachedTip] = useState<TipDTO | null>(() => readCachedTip(userId))
+	const tip = isResolved ? serverTip : cachedTip
 
 	useEffect(() => {
 		if (!isResolved) return
@@ -59,14 +60,14 @@ export function useActiveTip(): {
 	}, [isResolved, serverTip, userId])
 
 	useEffect(() => {
-		setDisplayTip(readCachedTip(userId))
+		setCachedTip(readCachedTip(userId))
 	}, [userId])
 
 	const clearTipInCache = useCallback(() => {
 		queryClient.setQueriesData({ queryKey: LLAMA_AI_SETTINGS_QUERY_KEY }, (old?: SettingsQueryResult | null) =>
 			old ? { ...old, tip: null } : old
 		)
-		setDisplayTip(null)
+		setCachedTip(null)
 		writeCachedTip(userId, null)
 	}, [queryClient, userId])
 
@@ -124,9 +125,9 @@ export function useActiveTip(): {
 	)
 
 	useEffect(() => {
-		if (!displayTip) return
-		markSeen(displayTip)
-	}, [displayTip, markSeen])
+		if (!tip) return
+		markSeen(tip)
+	}, [tip, markSeen])
 
-	return { tip: displayTip, isResolved, markSeen, dismissTip, clickTip }
+	return { tip, isResolved, markSeen, dismissTip, clickTip }
 }
