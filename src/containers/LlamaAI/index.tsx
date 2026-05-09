@@ -65,6 +65,7 @@ import {
 	buildAssistantMessage,
 	createInitialStreamState,
 	createStreamBuffer,
+	hasStreamBufferContent,
 	streamReducer,
 	type ChatPageContext,
 	type FailedRequest,
@@ -460,18 +461,7 @@ function appendBufferedAssistantMessage(
 	currentMessageIdRef: RefObject<string | null>,
 	appendMessage: (message: Message) => void
 ) {
-	const hasBufferedContent =
-		buffer.text ||
-		buffer.charts.length > 0 ||
-		buffer.csvExports.length > 0 ||
-		buffer.mdExports.length > 0 ||
-		buffer.alerts.length > 0 ||
-		buffer.dashboards.length > 0 ||
-		buffer.citations.length > 0 ||
-		buffer.toolExecutions.length > 0 ||
-		buffer.thinking
-
-	if (!hasBufferedContent) {
+	if (!hasStreamBufferContent(buffer)) {
 		currentMessageIdRef.current = null
 		return
 	}
@@ -550,6 +540,7 @@ function createAgenticCallbacks({
 	appendMessage,
 	replaceLocalUserMessageId,
 	setMessageSiblingInfo,
+	deferEmptyDone,
 	notify
 }: {
 	requestId: number
@@ -565,6 +556,7 @@ function createAgenticCallbacks({
 	appendMessage: (message: Message) => void
 	replaceLocalUserMessageId?: (realId: string) => void
 	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
+	deferEmptyDone?: boolean
 	notify: () => void
 }): AgenticSSECallbacks {
 	return {
@@ -698,10 +690,12 @@ function createAgenticCallbacks({
 		},
 		onError: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.error = content
 			dispatch({ type: 'SET_ERROR', value: content })
 		},
 		onDone: () => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			if (deferEmptyDone && !buffer.error && !hasStreamBufferContent(buffer)) return
 			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 			dispatch({ type: 'RESET_STREAM' })
 			notify()
@@ -1867,6 +1861,13 @@ export function AgenticChat({
 					const eventCounter = { count: 0 }
 					const currentShareToken = !shareTokenConsumedRef.current ? shareToken : undefined
 					if (currentShareToken) shareTokenConsumedRef.current = true
+					const failedRequest: FailedRequest = {
+						prompt: trimmed,
+						entities: entities?.length ? entities : undefined,
+						images: images?.length ? images : undefined,
+						pageContext
+					}
+					let didFetchResolve = false
 
 					void fetchAgenticResponse({
 						message: trimmed,
@@ -1896,6 +1897,7 @@ export function AgenticChat({
 							appendMessage,
 							replaceLocalUserMessageId,
 							setMessageSiblingInfo,
+							deferEmptyDone: true,
 							notify,
 							onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 							onTokenLimit: () => setShowTokenLimitModal(true),
@@ -1924,14 +1926,11 @@ export function AgenticChat({
 							}
 						})
 					})
+						.then(() => {
+							didFetchResolve = true
+						})
 						.catch(async (err: UsageLimitError) => {
 							if (!isActiveRequest(activeRequestIdRef, requestId)) return
-							const failedRequest: FailedRequest = {
-								prompt: trimmed,
-								entities: entities?.length ? entities : undefined,
-								images: images?.length ? images : undefined,
-								pageContext
-							}
 							if (err?.name === 'AbortError') {
 								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 								dispatchStream({ type: 'RESET_STREAM' })
@@ -1994,8 +1993,37 @@ export function AgenticChat({
 							dispatchStream({ type: 'RESET_STREAM' })
 							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 						})
-						.then(() => {
-							if (isActiveRequest(activeRequestIdRef, requestId)) {
+						.then(async () => {
+							let handedOffToResume = false
+							let recoveryStarted = false
+							if (
+								didFetchResolve &&
+								isActiveRequest(activeRequestIdRef, requestId) &&
+								currentSessionId &&
+								!buffer.error &&
+								!hasStreamBufferContent(buffer)
+							) {
+								buffer.receivedEventCount = eventCounter.count
+								const resumeSessionId = currentSessionId
+								handedOffToResume = await resumeRunningExecution({
+									targetSessionId: resumeSessionId,
+									buffer,
+									resetStream: false,
+									onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+										recoveryStarted = startRecoveryCycle({
+											targetSessionId: resumeSessionId,
+											buffer: streamBuffer,
+											failedRequest,
+											error: disconnectError
+										})
+									}
+								})
+								if (!handedOffToResume && !recoveryStarted && isActiveRequest(activeRequestIdRef, requestId)) {
+									dispatchStream({ type: 'RESET_STREAM' })
+								}
+							}
+
+							if (!handedOffToResume && isActiveRequest(activeRequestIdRef, requestId)) {
 								setActiveLeafMessageId(currentMessageIdRef.current)
 								abortControllerRef.current = null
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
@@ -2028,6 +2056,7 @@ export function AgenticChat({
 			appendMessage,
 			replaceLocalUserMessageId,
 			abortActiveRequest,
+			resumeRunningExecution,
 			startRecoveryCycle,
 			setMessageSiblingInfo,
 			sessionTitle,
@@ -2119,6 +2148,7 @@ export function AgenticChat({
 						appendMessage,
 						replaceLocalUserMessageId,
 						setMessageSiblingInfo,
+						deferEmptyDone: true,
 						notify,
 						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 						onTokenLimit: () => setShowTokenLimitModal(true),
@@ -2128,6 +2158,31 @@ export function AgenticChat({
 						}
 					})
 				})
+				if (isActiveRequest(activeRequestIdRef, requestId) && !buffer.error && !hasStreamBufferContent(buffer)) {
+					buffer.receivedEventCount = eventCounter.count
+					let recoveryStarted = false
+					const handedOffToResume = await resumeRunningExecution({
+						targetSessionId: sessionId,
+						buffer,
+						resetStream: false,
+						onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+							recoveryStarted = startRecoveryCycle({
+								targetSessionId: sessionId,
+								buffer: streamBuffer,
+								failedRequest: null,
+								error: disconnectError
+							})
+						}
+					})
+					if (handedOffToResume) return
+					if (recoveryStarted) {
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						return
+					}
+					if (isActiveRequest(activeRequestIdRef, requestId)) {
+						dispatchStream({ type: 'RESET_STREAM' })
+					}
+				}
 				if (isActiveRequest(activeRequestIdRef, requestId)) {
 					setActiveLeafMessageId(currentMessageIdRef.current)
 					abortControllerRef.current = null
@@ -2184,6 +2239,7 @@ export function AgenticChat({
 			isResearchMode,
 			messages,
 			notify,
+			resumeRunningExecution,
 			sessionId,
 			settings.customInstructions,
 			settings.enablePremiumTools,
