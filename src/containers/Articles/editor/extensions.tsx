@@ -13,9 +13,11 @@ import Underline from '@tiptap/extension-underline'
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import { common, createLowlight } from 'lowlight'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { validateArticleChartConfig } from '../chartAdapters'
 import { getArticleEntityRoute } from '../entityLinks'
+import { ArticleChartBlock } from '../renderer/ArticleChartBlock'
 import type { ArticleCalloutTone, ArticleChartConfig, ArticleEntityType } from '../types'
 import { ArticleEmbed } from './EmbedNode'
 import { ArticleEntitySuggestion } from './entitySuggestion'
@@ -67,54 +69,119 @@ const calloutToneStyles: Record<ArticleCalloutTone, { wrap: string; tone: string
 	}
 }
 
-function ChartNodeView({ node, selected, deleteNode, getPos }: NodeViewProps) {
+function ChartCaptionEditor({
+	config,
+	uniqueEntityNames,
+	chartLabel,
+	onChange
+}: {
+	config: ArticleChartConfig
+	uniqueEntityNames: string[]
+	chartLabel: string
+	onChange: (caption: string) => void
+}) {
+	const [draft, setDraft] = useState(config.caption ?? '')
+	const ref = useRef<HTMLTextAreaElement | null>(null)
+
+	useEffect(() => {
+		setDraft(config.caption ?? '')
+	}, [config.caption])
+
+	useEffect(() => {
+		const el = ref.current
+		if (!el) return
+		el.style.height = 'auto'
+		el.style.height = `${el.scrollHeight}px`
+	}, [draft])
+
+	const placeholder = `${uniqueEntityNames.join(' vs ') || 'Entity'} ${chartLabel.toLowerCase() || 'chart'}, USD-denominated.`
+
+	return (
+		<textarea
+			ref={ref}
+			value={draft}
+			rows={1}
+			placeholder={placeholder}
+			onChange={(e) => setDraft(e.target.value)}
+			onBlur={() => {
+				const next = draft.trim()
+				if (next === (config.caption ?? '').trim()) return
+				onChange(next)
+			}}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter' && !e.shiftKey) {
+					e.preventDefault()
+					;(e.target as HTMLTextAreaElement).blur()
+				}
+			}}
+			onMouseDown={(e) => e.stopPropagation()}
+			className="w-full resize-none border-b border-dashed border-transparent bg-transparent text-[13px] leading-snug text-(--text-secondary) outline-none placeholder:text-(--text-tertiary)/70 hover:border-(--cards-border) focus:border-(--link-text)/60 focus:text-(--text-primary)"
+		/>
+	)
+}
+
+function ChartNodeView({ node, selected, deleteNode, getPos, updateAttributes }: NodeViewProps) {
 	const rawConfig = node.attrs.config as ArticleChartConfig
 	const config = validateArticleChartConfig(rawConfig) ?? rawConfig
-	const series = config.series ?? []
-	const seenEntities = new Set<string>()
-	const uniqueEntityNames: string[] = []
-	for (const s of series) {
-		const key = `${s.entityType}:${s.slug}`
-		if (seenEntities.has(key)) continue
-		seenEntities.add(key)
-		uniqueEntityNames.push(s.name)
-	}
-	const seenChartTypes = new Set<string>()
-	const uniqueChartTypes: string[] = []
-	for (const s of series) {
-		if (seenChartTypes.has(s.chartType)) continue
-		seenChartTypes.add(s.chartType)
-		uniqueChartTypes.push(s.chartType)
-	}
-	const title = `${uniqueEntityNames.join(' vs ')} · ${uniqueChartTypes.join(' / ')}`
-	const rangeLabel = config.range && config.range !== 'all' ? config.range : 'all time'
-	const subtitle = `${series.length === 1 ? series[0].entityType : `${series.length} series`} · ${rangeLabel}${config.logScale ? ' · log' : ''}${config.annotations?.length ? ` · ${config.annotations.length} marker${config.annotations.length === 1 ? '' : 's'}` : ''}`
+
 	const handleEdit = () => {
 		const pos = typeof getPos === 'function' ? getPos() : null
 		if (typeof pos !== 'number') return
 		document.dispatchEvent(new CustomEvent('article:edit-chart', { detail: { config, pos } }))
 	}
+
+	const handleCaptionChange = (caption: string) => {
+		updateAttributes({ config: { ...config, caption: caption || undefined } })
+	}
+
+	const seriesCount = config.series?.length ?? 0
+	const chartTypeSet = new Set(config.series?.map((s) => s.chartType) ?? [])
+	const uniqueEntityNames = useMemo(() => {
+		const seen = new Set<string>()
+		const out: string[] = []
+		for (const s of config.series ?? []) {
+			const key = `${s.entityType}:${s.slug}`
+			if (seen.has(key)) continue
+			seen.add(key)
+			out.push(s.name)
+		}
+		return out
+	}, [config.series])
+	const chartLabel = [...chartTypeSet].join(' / ')
+	const tagLabel =
+		seriesCount === 0
+			? 'Empty chart'
+			: seriesCount === 1
+				? `${config.series[0].entityType} · ${chartLabel}`
+				: `${seriesCount} series · ${chartLabel}`
+
 	return (
-		<NodeViewWrapper
-			data-article-chart
-			className={`my-4 overflow-hidden rounded-md border bg-(--cards-bg) ${
-				selected ? 'border-(--link-text)' : 'border-(--cards-border)'
-			}`}
-		>
-			<div className="flex items-start justify-between gap-3 px-4 py-3">
-				<div className="min-w-0">
-					<div className="text-xs text-(--text-tertiary)">DefiLlama chart</div>
-					<div className="mt-1 truncate text-sm font-medium text-(--text-primary)">{title}</div>
-					<div className="mt-0.5 text-xs text-(--text-tertiary) capitalize">{subtitle}</div>
-					{config.caption ? <p className="mt-2 text-sm text-(--text-secondary)">{config.caption}</p> : null}
-				</div>
-				<div
-					contentEditable={false}
-					className="flex shrink-0 items-center gap-1.5"
-					onMouseDown={(e) => e.stopPropagation()}
-				>
+		<NodeViewWrapper data-article-chart className="group relative my-6 pl-4 sm:pl-6">
+			<span
+				aria-hidden
+				className={`pointer-events-none absolute top-2 bottom-2 left-0 w-px transition-colors duration-150 ${
+					selected
+						? 'bg-(--link-text)'
+						: 'bg-(--cards-border) group-hover:bg-(--text-tertiary) group-focus-within:bg-(--text-tertiary)'
+				}`}
+			/>
+
+			<div
+				contentEditable={false}
+				onMouseDown={(e) => e.stopPropagation()}
+				className={`pointer-events-none absolute -top-2 right-0 left-4 z-10 flex items-center justify-between gap-2 transition-opacity duration-150 sm:left-6 ${
+					selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus-within:opacity-100'
+				}`}
+			>
+				<span className="pointer-events-auto inline-flex items-center gap-1.5 rounded-xs border border-(--cards-border) bg-(--cards-bg) px-2 py-1 font-jetbrains text-[10px] tracking-[0.22em] text-(--text-tertiary) uppercase shadow-xs">
+					<Icon name="bar-chart-2" className="h-3 w-3 text-(--link-text)" />
+					{tagLabel}
+				</span>
+				<span className="pointer-events-auto flex items-stretch divide-x divide-(--cards-border) overflow-hidden rounded-xs border border-(--cards-border) bg-(--cards-bg) shadow-xs">
 					<button
 						type="button"
+						title="Edit chart"
+						aria-label="Edit chart"
 						onMouseDown={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
@@ -123,12 +190,15 @@ function ChartNodeView({ node, selected, deleteNode, getPos }: NodeViewProps) {
 							e.stopPropagation()
 							handleEdit()
 						}}
-						className="rounded-md border border-(--cards-border) px-2 py-1 text-xs text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+						className="flex items-center gap-1.5 px-2.5 py-1 font-jetbrains text-[10px] tracking-[0.2em] text-(--text-secondary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--link-text)"
 					>
+						<Icon name="pencil" className="h-3 w-3" />
 						Edit
 					</button>
 					<button
 						type="button"
+						title="Remove chart"
+						aria-label="Remove chart"
 						onMouseDown={(e) => {
 							e.preventDefault()
 							e.stopPropagation()
@@ -137,11 +207,36 @@ function ChartNodeView({ node, selected, deleteNode, getPos }: NodeViewProps) {
 							e.stopPropagation()
 							deleteNode()
 						}}
-						className="rounded-md border border-(--cards-border) px-2 py-1 text-xs text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+						className="flex items-center gap-1.5 px-2.5 py-1 font-jetbrains text-[10px] tracking-[0.2em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-[#d8492a]"
 					>
+						<Icon name="trash-2" className="h-3 w-3" />
 						Remove
 					</button>
-				</div>
+				</span>
+			</div>
+
+			<div
+				contentEditable={false}
+				onClickCapture={(e) => {
+					const target = e.target as HTMLElement | null
+					if (target && target.closest('a')) {
+						e.preventDefault()
+						e.stopPropagation()
+					}
+				}}
+				className="relative"
+			>
+				<ArticleChartBlock
+					config={config}
+					captionSlot={
+						<ChartCaptionEditor
+							config={config}
+							uniqueEntityNames={uniqueEntityNames}
+							chartLabel={chartLabel}
+							onChange={handleCaptionChange}
+						/>
+					}
+				/>
 			</div>
 		</NodeViewWrapper>
 	)

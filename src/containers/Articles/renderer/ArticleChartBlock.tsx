@@ -1,5 +1,5 @@
 import { useQueries } from '@tanstack/react-query'
-import { lazy, Suspense, useContext, useMemo } from 'react'
+import { lazy, Suspense, useContext, useMemo, type ReactNode } from 'react'
 import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
 import { getChartQueryFn, getChartQueryKey, ProxyAuthTokenContext } from '~/containers/ProDashboard/queries'
 import { CHART_TYPES } from '~/containers/ProDashboard/types'
@@ -59,7 +59,15 @@ function uniqueChartTypeTitles(series: ArticleChartSeries[]) {
 	return out
 }
 
-export function ArticleChartBlock({ config, index }: { config: ArticleChartConfig; index?: number }) {
+export function ArticleChartBlock({
+	config,
+	index,
+	captionSlot
+}: {
+	config: ArticleChartConfig
+	index?: number
+	captionSlot?: ReactNode
+}) {
 	const series = config.series
 	const timePeriod = rangeToTimePeriod(config.range)
 	const chartLabel = uniqueChartTypeTitles(series).join(' / ')
@@ -261,10 +269,14 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 			<figcaption className="flex flex-wrap items-baseline justify-between gap-3 border-t border-(--cards-border) pt-2 text-[13px] leading-snug text-(--text-secondary)">
 				<div className="min-w-0 flex-1">
 					{figureLabel ? <span className="mr-1.5 font-semibold text-(--text-primary)">{figureLabel}.</span> : null}
-					<span>
-						{config.caption ||
-							`${uniqueEntities.map((e) => e.name).join(' vs ')} ${chartLabel.toLowerCase()}, USD-denominated.`}
-					</span>
+					{captionSlot !== undefined ? (
+						captionSlot
+					) : (
+						<span>
+							{config.caption ||
+								`${uniqueEntities.map((e) => e.name).join(' vs ')} ${chartLabel.toLowerCase()}, USD-denominated.`}
+						</span>
+					)}
 					{config.logScale ? (
 						<span className="ml-2 rounded border border-(--cards-border) px-1.5 py-px font-jetbrains text-[10px] tracking-wider text-(--text-tertiary) uppercase">
 							log scale

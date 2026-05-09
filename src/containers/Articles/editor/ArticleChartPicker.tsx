@@ -46,6 +46,47 @@ type Entity = {
 	geckoId?: string | null
 }
 
+function ChartTypeSelect({
+	value,
+	options,
+	onChange
+}: {
+	value: string
+	options: string[]
+	onChange: (next: string) => void
+}) {
+	const labelFor = (key: string) => CHART_TYPES[key as keyof typeof CHART_TYPES]?.title || key
+	return (
+		<Ariakit.SelectProvider value={value} setValue={(v) => onChange(typeof v === 'string' ? v : v[0])}>
+			<Ariakit.Select
+				className="flex h-7 w-44 items-center justify-between gap-2 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2.5 text-xs text-(--text-primary) transition-colors hover:border-(--text-tertiary) focus-visible:border-(--link-text) focus-visible:outline-none data-[state=open]:border-(--link-text)"
+				aria-label="Chart type"
+			>
+				<span className="truncate text-left">{labelFor(value)}</span>
+				<Ariakit.SelectArrow className="shrink-0 text-(--text-tertiary)" />
+			</Ariakit.Select>
+			<Ariakit.SelectPopover
+				gutter={4}
+				sameWidth
+				portal
+				unmountOnHide
+				className="z-[90] flex max-h-72 flex-col overflow-auto rounded-md border border-(--cards-border) bg-(--cards-bg) py-1 text-xs shadow-lg outline-none"
+			>
+				{options.map((option) => (
+					<Ariakit.SelectItem
+						key={option}
+						value={option}
+						className="flex shrink-0 cursor-pointer items-center justify-between gap-3 px-2.5 py-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary) data-active-item:bg-(--link-hover-bg) data-active-item:text-(--text-primary)"
+					>
+						<span className="truncate">{labelFor(option)}</span>
+						<Ariakit.SelectItemCheck className="shrink-0 text-(--link-text)" />
+					</Ariakit.SelectItem>
+				))}
+			</Ariakit.SelectPopover>
+		</Ariakit.SelectProvider>
+	)
+}
+
 type Props = {
 	store: Ariakit.DialogStore
 	onInsert: (config: ArticleChartConfig) => void
@@ -548,20 +589,11 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 														{s.entityType}
 													</span>
 												</span>
-												<select
+												<ChartTypeSelect
 													value={s.chartType}
-													onChange={(e) => updateSeriesChartType(id, e.target.value)}
-													className="rounded border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-xs text-(--text-primary) focus:border-(--link-text) focus:outline-none"
-												>
-													{types.map((type) => {
-														const meta = CHART_TYPES[type as keyof typeof CHART_TYPES]
-														return (
-															<option key={type} value={type}>
-																{meta?.title || type}
-															</option>
-														)
-													})}
-												</select>
+													options={types}
+													onChange={(next) => updateSeriesChartType(id, next)}
+												/>
 												<button
 													type="button"
 													onClick={() => removeSeries(id)}
@@ -602,15 +634,37 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 										})}
 									</div>
 								</div>
-								<label className="flex cursor-pointer items-center gap-2 self-end pb-1 text-xs text-(--text-secondary)">
-									<input
-										type="checkbox"
-										checked={logScale}
-										onChange={(e) => setLogScale(e.target.checked)}
-										className="h-3.5 w-3.5 accent-(--link-text)"
-									/>
-									<span>Log scale (Y-axis)</span>
-								</label>
+								<div className="grid gap-1.5">
+									<span className="text-[10px] font-medium tracking-wide text-(--text-tertiary) uppercase">Y-axis</span>
+									<div
+										role="radiogroup"
+										aria-label="Y-axis scale"
+										className="flex items-center rounded-md border border-(--cards-border) bg-(--app-bg) p-0.5 text-xs"
+									>
+										{[
+											{ value: false, label: 'Linear' },
+											{ value: true, label: 'Log' }
+										].map((opt) => {
+											const active = logScale === opt.value
+											return (
+												<button
+													key={String(opt.value)}
+													type="button"
+													role="radio"
+													aria-checked={active}
+													onClick={() => setLogScale(opt.value)}
+													className={`rounded px-2.5 py-1 font-medium transition-colors ${
+														active
+															? 'bg-(--cards-bg) text-(--text-primary) shadow-sm'
+															: 'text-(--text-tertiary) hover:text-(--text-primary)'
+													}`}
+												>
+													{opt.label}
+												</button>
+											)
+										})}
+									</div>
+								</div>
 							</div>
 
 							<div className="relative min-h-0 flex-1 border-t border-(--cards-border) bg-(--app-bg)">
