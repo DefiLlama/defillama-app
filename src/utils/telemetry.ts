@@ -1144,17 +1144,19 @@ export async function withOutboundTelemetry(
 			...fields,
 			...(attributes ? { attributes } : null)
 		})
-		recordTelemetry({
-			type: 'runtime_error',
-			trace_id: context.traceId,
-			span_id: newId(),
-			parent_span_id: spanId,
-			route: context.route,
-			phase: 'outboundFetch',
-			occurred_at: nowIso(),
-			...fields,
-			attributes: mergeRuntimeErrorAttributes(context, { url: sanitizedUrl })
-		})
+		if (status !== 'timeout') {
+			recordTelemetry({
+				type: 'runtime_error',
+				trace_id: context.traceId,
+				span_id: newId(),
+				parent_span_id: spanId,
+				route: context.route,
+				phase: 'outboundFetch',
+				occurred_at: nowIso(),
+				...fields,
+				attributes: mergeRuntimeErrorAttributes(context, { url: sanitizedUrl })
+			})
+		}
 		throw error
 	}
 }
