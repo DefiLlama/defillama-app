@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
+import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Router from 'next/router'
 import '~/tailwind.css'
@@ -32,6 +32,11 @@ const isChunkLoadError = (error: unknown) => {
 }
 
 const client = new QueryClient()
+
+const ReactQueryDevtools =
+	process.env.NODE_ENV === 'development'
+		? dynamic(() => import('@tanstack/react-query-devtools').then((m) => ({ default: m.ReactQueryDevtools })))
+		: () => null
 
 function App({ Component, pageProps }: AppProps) {
 	const reloadInProgressRef = useRef(false)
