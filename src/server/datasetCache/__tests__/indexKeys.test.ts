@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
-import { getDatasetIndexFileName } from './indexKeys'
+import { getDatasetIndexFileName } from '../indexKeys'
 
 describe('getDatasetIndexFileName', () => {
 	it('keeps short encoded keys readable', () => {

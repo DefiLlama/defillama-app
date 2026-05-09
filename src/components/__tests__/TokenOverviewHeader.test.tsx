@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { TokenOverviewHeader } from './TokenOverviewHeader'
+import { TokenOverviewHeader } from '../TokenOverviewHeader'
 
 describe('TokenOverviewHeader', () => {
 	it('renders the top token stats layout used by unlocks and token pages', () => {

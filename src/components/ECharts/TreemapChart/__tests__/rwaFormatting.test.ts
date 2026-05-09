@@ -4,7 +4,7 @@ import {
 	formatRwaTreemapTooltip,
 	formatRwaUpperLabel,
 	normalizeTreemapValue
-} from './rwaFormatting'
+} from '../rwaFormatting'
 
 describe('rwa treemap formatting', () => {
 	it('keeps flat box and upper labels name-only', () => {

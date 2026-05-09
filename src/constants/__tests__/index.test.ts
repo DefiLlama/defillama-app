@@ -16,7 +16,7 @@ async function importConstantsWithEnv(env: Record<string, string | undefined>) {
 		}
 	}
 
-	return import('./index')
+	return import('../index')
 }
 
 afterEach(() => {

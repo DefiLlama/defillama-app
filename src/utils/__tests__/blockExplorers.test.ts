@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { findBlockExplorerChain, getBlockExplorerNew } from './blockExplorers'
+import { findBlockExplorerChain, getBlockExplorerNew } from '../blockExplorers'
 
 const blockExplorers = [
 	{

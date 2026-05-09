@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildChainDisplayNameLookupRecord } from './displayLookups'
+import { buildChainDisplayNameLookupRecord } from '../displayLookups'
 
 describe('metadata display lookups', () => {
 	it('indexes chain display names by metadata key, slugged name, and chain id', () => {

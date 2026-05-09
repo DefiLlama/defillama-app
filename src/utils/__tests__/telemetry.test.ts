@@ -1,8 +1,8 @@
 import type { NextApiRequest } from 'next'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
-import { fetchJson } from './async'
-import { fetchWithPoolingOnServer } from './http-client'
+import { fetchJson } from '../async'
+import { fetchWithPoolingOnServer } from '../http-client'
 import {
 	buildStaticRouteRequestPath,
 	flushTelemetry,
@@ -15,7 +15,7 @@ import {
 	withServerSidePropsTelemetry,
 	withStaticRouteTelemetry,
 	type TelemetryEvent
-} from './telemetry'
+} from '../telemetry'
 
 function runtimeError(message: string): TelemetryEvent {
 	return {

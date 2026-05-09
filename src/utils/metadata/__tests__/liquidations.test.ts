@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { extractLiquidationsTokenSymbols, normalizeLiquidationsTokenSymbol } from './liquidations'
+import { extractLiquidationsTokenSymbols, normalizeLiquidationsTokenSymbol } from '../liquidations'
 
 describe('liquidations metadata helpers', () => {
 	it('normalizes token symbols case-insensitively', () => {

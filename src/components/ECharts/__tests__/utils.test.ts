@@ -8,7 +8,7 @@ import {
 	mergeDeep,
 	prepareChartCsv,
 	preparePieChartData
-} from './utils'
+} from '../utils'
 
 const toSec = (year: number, month: number, day: number) => Date.UTC(year, month - 1, day) / 1000
 const toMs = (year: number, month: number, day: number) => Date.UTC(year, month - 1, day)

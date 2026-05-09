@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildTimeSeriesChart } from './timeSeriesChartBuilder'
+import { buildTimeSeriesChart } from '../timeSeriesChartBuilder'
 
 const toMs = (year: number, month: number, day: number) => Date.UTC(year, month - 1, day)
 
