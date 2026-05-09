@@ -173,6 +173,7 @@ export function VirtualTable<T extends RowData>({
 	)
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
+		// Virtual rows are fixed-height; keep rowSize aligned with rendered row CSS/content.
 		estimateSize: () => estimatedRowSize,
 		initialOffset: 0,
 		initialRect: initialVirtualizerRect,

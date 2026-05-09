@@ -18,7 +18,14 @@ type ColumnTableInstance = {
 	getState: () => {
 		columnOrder?: ColumnOrderState
 	}
+	getAllColumns?: () => Array<ColumnTableColumn>
 	getAllLeafColumns?: () => Array<{ id: string }>
+}
+
+type ColumnTableColumn = {
+	id: string
+	columns?: ColumnTableColumn[]
+	getLeafColumns?: () => Array<{ id: string }>
 }
 
 const isColumnOrderEqual = (current: ColumnOrderState, next: ColumnOrderState) => {
@@ -80,6 +87,30 @@ const getCurrentColumnOrderBreakpoint = (entries: ColumnOrderEntry[], defaultCol
 const getOrderForBreakpoint = (entries: ColumnOrderEntry[], breakpoint: number | null) => {
 	if (breakpoint == null) return null
 	return entries.find(([size]) => size === breakpoint)?.[1] ?? null
+}
+
+const appendLeafColumnIds = (columns: ColumnTableColumn[], columnIds: ColumnOrderState) => {
+	for (const column of columns) {
+		if (column.columns && column.columns.length > 0) {
+			appendLeafColumnIds(column.columns, columnIds)
+		} else {
+			const leafColumns = column.getLeafColumns?.()
+			if (!leafColumns || leafColumns.length === 0) {
+				columnIds.push(column.id)
+				continue
+			}
+			for (const leafColumn of leafColumns) {
+				columnIds.push(leafColumn.id)
+			}
+		}
+	}
+}
+
+const getLeafColumnIds = (columns: ColumnTableColumn[]) => {
+	const columnIds: ColumnOrderState = []
+	appendLeafColumnIds(columns, columnIds)
+
+	return columnIds
 }
 
 export function splitArrayByFalsyValues<T extends object, K extends keyof T>(data: T[], column: K) {
@@ -175,9 +206,11 @@ export function useSortColumnOrders({
 	instance: ColumnTableInstance
 	columnOrders?: ColumnOrdersByBreakpoint | null
 }) {
+	const allColumns = instance.getAllColumns?.()
 	const defaultColumnOrder = useMemo(
-		() => instance.getAllLeafColumns?.().map((column) => column.id) ?? null,
-		[instance]
+		() =>
+			allColumns ? getLeafColumnIds(allColumns) : (instance.getAllLeafColumns?.().map((column) => column.id) ?? null),
+		[allColumns, instance]
 	)
 	const columnOrderEntries = useMemo(() => (columnOrders ? getColumnOrderEntries(columnOrders) : []), [columnOrders])
 	const fixedColumnOrder = useMemo(() => getFixedColumnOrder(columnOrderEntries), [columnOrderEntries])
