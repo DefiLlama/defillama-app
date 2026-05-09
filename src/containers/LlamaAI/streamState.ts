@@ -75,6 +75,7 @@ export interface StreamBuffer {
 	citations: string[]
 	toolExecutions: ToolExecution[]
 	thinking: string
+	error: string | null
 	hasStartedText: boolean
 	spawnStarted: boolean
 	receivedEventCount: number
@@ -158,10 +159,26 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	citations: [],
 	toolExecutions: [],
 	thinking: '',
+	error: null,
 	hasStartedText: false,
 	spawnStarted: false,
 	receivedEventCount: 0
 })
+
+export function hasStreamBufferContent(buffer: StreamBuffer) {
+	return Boolean(
+		buffer.text ||
+		buffer.charts.length > 0 ||
+		buffer.csvExports.length > 0 ||
+		buffer.mdExports.length > 0 ||
+		buffer.alerts.length > 0 ||
+		buffer.dashboards.length > 0 ||
+		buffer.generatedImages.length > 0 ||
+		buffer.citations.length > 0 ||
+		buffer.toolExecutions.length > 0 ||
+		buffer.thinking
+	)
+}
 
 // Drive the live streaming UI without mutating message history until the request is complete.
 export function streamReducer(state: StreamState, action: StreamAction): StreamState {
