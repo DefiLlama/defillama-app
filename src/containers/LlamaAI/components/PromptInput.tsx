@@ -285,7 +285,7 @@ export function PromptInput({
 
 			return true
 		},
-		[imageUpload.getSelectedImageIds]
+		[imageUpload]
 	)
 
 	// Submit the prompt plus any selected entities/images, then clear the local composer state.

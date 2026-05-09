@@ -16,11 +16,7 @@ import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWar
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
-import {
-	SpawnProgressCard,
-	ToolProgressIndicator,
-	TypingIndicator
-} from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { SpawnProgressCard, ToolProgressIndicator } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
