@@ -1647,7 +1647,7 @@ export function AgenticChat({
 
 		if (controller && settleState?.requestId === requestId) {
 			controller.abort()
-			await waitForRequestSettle(settleState).catch(() => {})
+			await waitForRequestSettle(settleState)
 		}
 
 		activeRequestIdRef.current += 1
