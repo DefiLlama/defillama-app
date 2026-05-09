@@ -80,13 +80,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		minLastRoundTime: ''
 	})
 
-	const [projectInfo, setProjectInfo] = useState({
-		projectName: '',
-		link: '',
-		textPitch: '',
-		founderEmail: ''
-	})
-
 	const [paymentLink, setPaymentLink] = useState('')
 	const paymentMutation = useMutation({
 		mutationFn: createPayment,
@@ -115,11 +108,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		setFilters((prevFilters) => ({ ...prevFilters, [name]: value }))
 	}
 
-	const handleProjectInfoChange = (e) => {
-		const { name, value } = e.target
-		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
-	}
-
 	const { data: investorResult, isLoading } = useQuery({
 		queryKey: ['pitch', 'investors', filters],
 		queryFn: () => fetchInvestors(filters),
@@ -134,6 +122,13 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()
+		const formData = new FormData(e.currentTarget)
+		const projectInfo = {
+			projectName: (formData.get('projectName') as string) ?? '',
+			link: (formData.get('link') as string) ?? '',
+			textPitch: (formData.get('textPitch') as string) ?? '',
+			founderEmail: (formData.get('founderEmail') as string) ?? ''
+		}
 		paymentMutation.mutate({ projectInfo, filters })
 	}
 
@@ -247,8 +242,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								<input
 									type="text"
 									name="projectName"
-									value={projectInfo.projectName}
-									onChange={handleProjectInfoChange}
 									required
 									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
@@ -257,8 +250,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								<span className="">Link for further info:</span>
 								<input
 									name="link"
-									value={projectInfo.link}
-									onChange={handleProjectInfoChange}
 									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
 							</label>
@@ -266,8 +257,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								<span className="">Short Pitch:</span>
 								<textarea
 									name="textPitch"
-									value={projectInfo.textPitch}
-									onChange={handleProjectInfoChange}
 									required
 									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
@@ -277,8 +266,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								<input
 									type="email"
 									name="founderEmail"
-									value={projectInfo.founderEmail}
-									onChange={handleProjectInfoChange}
 									required
 									className="rounded-md border border-(--form-control-border) bg-white p-1.5 text-base text-black dark:bg-black dark:text-white"
 								/>
