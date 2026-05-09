@@ -1,4 +1,4 @@
-import { useQueries, useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
@@ -7,11 +7,11 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { formattedNum, slug, toNiceDayMonthAndYear } from '~/utils'
-import { fetchCexInflowsProxy } from './api'
+import { fetchCexInflowsBatchProxy } from './api'
 import { DateFilter } from './DateFilter'
 import type { ICex } from './types'
 
-type CexRow = ICex & { customRange: number | null }
+type CexRow = ICex & { customRange: number | null; customRangeEnabled: boolean; customRangeLoading: boolean }
 
 const DEFAULT_SORTING_STATE = [{ id: 'cleanAssetsTvl', desc: true }]
 
@@ -20,24 +20,16 @@ const getDateTimestamp = (dateString: string | string[] | undefined): number | n
 	return Number.isNaN(Number(dateString)) ? null : Number(dateString)
 }
 
-function CustomRangeCell({ cexSlug, coin }: { cexSlug: string | null; coin: string | null }) {
-	const router = useRouter()
-	const { authorizedFetch } = useAuthContext()
-
-	const startDate = getDateTimestamp(router.query.startDate)
-	const endDate = getDateTimestamp(router.query.endDate)
-
-	const { data, isLoading } = useQuery({
-		queryKey: ['cex-inflows', cexSlug, startDate, endDate],
-		queryFn: () => fetchCexInflowsProxy(cexSlug!, startDate! / 1e3, endDate! / 1e3, coin ?? '', authorizedFetch),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		enabled: !!cexSlug && !!startDate && !!endDate,
-		retry: false
-	})
-
-	if (!startDate || !endDate || !cexSlug) return null
-
+function CustomRangeCell({
+	enabled,
+	isLoading,
+	value
+}: {
+	enabled: boolean
+	isLoading: boolean
+	value: number | null
+}) {
+	if (!enabled) return null
 	if (isLoading) {
 		return (
 			<span className="relative ml-auto block h-4 w-16 overflow-hidden rounded bg-black/5 dark:bg-white/10">
@@ -46,7 +38,6 @@ function CustomRangeCell({ cexSlug, coin }: { cexSlug: string | null; coin: stri
 		)
 	}
 
-	const value = data?.outflows ?? null
 	return (
 		<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 			{value != null ? formattedNum(value, true) : ''}
@@ -60,21 +51,33 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 
 	const startDate = getDateTimestamp(router.query.startDate)
 	const endDate = getDateTimestamp(router.query.endDate)
+	const customRangeCexs = useMemo(
+		() =>
+			cexs
+				.filter((c): c is ICex & { slug: string } => typeof c.slug === 'string')
+				.map((c) => ({ slug: c.slug, tokensToExclude: c.coin ?? '' })),
+		[cexs]
+	)
 
-	const queries = useQueries({
-		queries: cexs.map((c) => ({
-			queryKey: ['cex-inflows', c.slug ?? null, startDate, endDate],
-			queryFn: () => fetchCexInflowsProxy(c.slug!, startDate! / 1e3, endDate! / 1e3, c.coin ?? '', authorizedFetch),
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			enabled: !!c.slug && !!startDate && !!endDate,
-			retry: false
-		}))
+	const customRangeEnabled = !!startDate && !!endDate && customRangeCexs.length > 0
+	const { data: customRangeData, isLoading: customRangeLoading } = useQuery({
+		queryKey: ['cex-inflows-batch', customRangeCexs, startDate, endDate],
+		queryFn: () => fetchCexInflowsBatchProxy(customRangeCexs, startDate! / 1e3, endDate! / 1e3, authorizedFetch),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		enabled: customRangeEnabled,
+		retry: false
 	})
 
 	const enrichedData = useMemo<CexRow[]>(
-		() => cexs.map((c, i) => ({ ...c, customRange: queries[i]?.data?.outflows ?? null })),
-		[cexs, queries]
+		() =>
+			cexs.map((c) => ({
+				...c,
+				customRange: c.slug ? (customRangeData?.[c.slug]?.outflows ?? null) : null,
+				customRangeEnabled: customRangeEnabled && !!c.slug,
+				customRangeLoading: customRangeEnabled && customRangeLoading
+			})),
+		[cexs, customRangeData, customRangeEnabled, customRangeLoading]
 	)
 
 	return (
@@ -246,7 +249,13 @@ const columns = [
 	}),
 	columnHelper.accessor('customRange', {
 		header: 'Custom range Inflows',
-		cell: ({ row }) => <CustomRangeCell cexSlug={row.original.slug ?? null} coin={row.original.coin ?? null} />,
+		cell: ({ row }) => (
+			<CustomRangeCell
+				enabled={row.original.customRangeEnabled}
+				isLoading={row.original.customRangeLoading}
+				value={row.original.customRange}
+			/>
+		),
 		meta: {
 			headerClassName: 'w-[min(200px,40vw)]',
 			align: 'end'

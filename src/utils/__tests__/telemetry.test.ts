@@ -559,6 +559,36 @@ describe('telemetry client', () => {
 		expect(JSON.stringify(outbound)).not.toContain('failed-secret')
 	})
 
+	it('records timeout failures as outbound events without duplicating outbound runtime errors', async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === process.env.OPS_TELEMETRY_URL) return new Response(null, { status: 204 })
+			throw new DOMException('The operation was aborted.', 'AbortError')
+		})
+		vi.stubGlobal('fetch', fetchMock)
+
+		await expect(
+			withRouteTelemetry(
+				{
+					route: 'timeout-route',
+					operationType: 'apiRoute',
+					runtime: 'node',
+					flushTimeoutMs: 1000
+				},
+				async () => {
+					await fetchWithPoolingOnServer('https://api.llama.fi/slow', { timeout: 1234 })
+				}
+			)
+		).rejects.toThrow('aborted')
+
+		const events = sentEvents(fetchMock)
+		const outbound = events.find((event) => event.type === 'outbound_http_request')
+		expect(outbound).toMatchObject({
+			status: 'timeout',
+			url: 'https://api.llama.fi/slow'
+		})
+		expect(events).not.toContainEqual(expect.objectContaining({ type: 'runtime_error', phase: 'outboundFetch' }))
+	})
+
 	it('redacts JSON body keys before truncating large request bodies', async () => {
 		vi.stubEnv('OPS_TELEMETRY_REQUEST_BODY_MAX_BYTES', '80')
 		const fetchMock = vi.fn(async (url: string) => {
