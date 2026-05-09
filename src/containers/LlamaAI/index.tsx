@@ -1827,9 +1827,6 @@ export function AgenticChat({
 						currentSessionId = createFakeSession()
 						setSessionId(currentSessionId)
 						isFirstMessageRef.current = false
-						if (typeof window !== 'undefined') {
-							window.history.replaceState(null, '', `/ai/chat/${currentSessionId}`)
-						}
 					}
 
 					const currentQuotedText = quotedText
@@ -1998,6 +1995,7 @@ export function AgenticChat({
 						})
 						.then(async () => {
 							let handedOffToResume = false
+							let recoveryStarted = false
 							if (
 								didFetchResolve &&
 								isActiveRequest(activeRequestIdRef, requestId) &&
@@ -2005,13 +2003,14 @@ export function AgenticChat({
 								!buffer.error &&
 								!hasStreamBufferContent(buffer)
 							) {
+								buffer.receivedEventCount = eventCounter.count
 								const resumeSessionId = currentSessionId
 								handedOffToResume = await resumeRunningExecution({
 									targetSessionId: resumeSessionId,
 									buffer,
 									resetStream: false,
 									onTemporaryDisconnect: (disconnectError, streamBuffer) => {
-										startRecoveryCycle({
+										recoveryStarted = startRecoveryCycle({
 											targetSessionId: resumeSessionId,
 											buffer: streamBuffer,
 											failedRequest,
@@ -2019,7 +2018,7 @@ export function AgenticChat({
 										})
 									}
 								})
-								if (!handedOffToResume && isActiveRequest(activeRequestIdRef, requestId)) {
+								if (!handedOffToResume && !recoveryStarted && isActiveRequest(activeRequestIdRef, requestId)) {
 									dispatchStream({ type: 'RESET_STREAM' })
 								}
 							}
@@ -2160,12 +2159,14 @@ export function AgenticChat({
 					})
 				})
 				if (isActiveRequest(activeRequestIdRef, requestId) && !buffer.error && !hasStreamBufferContent(buffer)) {
+					buffer.receivedEventCount = eventCounter.count
+					let recoveryStarted = false
 					const handedOffToResume = await resumeRunningExecution({
 						targetSessionId: sessionId,
 						buffer,
 						resetStream: false,
 						onTemporaryDisconnect: (disconnectError, streamBuffer) => {
-							startRecoveryCycle({
+							recoveryStarted = startRecoveryCycle({
 								targetSessionId: sessionId,
 								buffer: streamBuffer,
 								failedRequest: null,
@@ -2174,6 +2175,10 @@ export function AgenticChat({
 						}
 					})
 					if (handedOffToResume) return
+					if (recoveryStarted) {
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						return
+					}
 					if (isActiveRequest(activeRequestIdRef, requestId)) {
 						dispatchStream({ type: 'RESET_STREAM' })
 					}
