@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { matchSorter } from 'match-sorter'
 import dynamic from 'next/dynamic'
@@ -12,13 +13,15 @@ import {
 } from '~/components/ECharts/ChartGroupingSelector'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
-import { MetricRow, MetricSection, SubMetricRow } from '~/components/MetricPrimitives'
+import { MetricRow, MetricSection, SubMetricRow, SubMetricSection } from '~/components/MetricPrimitives'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
 import { formattedNum } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
+import { fetchTokenMarkets } from './api'
+import type { TokenMarketCategory, TokenMarketsResponse, TokenMarketsTotalsByCategory } from './tokenMarkets.types'
 import {
 	buildDisplayedTokenChartData,
 	TOKEN_OVERVIEW_DEFAULT_CHARTS,
@@ -46,7 +49,16 @@ const CIRCULATING_SUPPLY_TOOLTIP =
 const MAX_SUPPLY_TOOLTIP = 'Max supply is the maximum number of tokens that can ever exist for this asset.'
 const MARKET_CAP_TOOLTIP = 'Market cap is calculated by multiplying the circulating supply by the current token price.'
 const VOLUME_24H_TOOLTIP = 'Volume 24h is the total dollar value traded across tracked markets over the last 24 hours.'
+const OPEN_INTEREST_TOOLTIP =
+	'Open Interest is the total notional USD value of outstanding perpetual contracts across tracked markets.'
 const TREASURY_TOOLTIP = 'Treasury is the value of assets held by the entity issuing or stewarding this token.'
+
+const MARKET_CATEGORY_LABELS: Record<TokenMarketCategory, string> = {
+	spot: 'Spot',
+	linear_perp: 'Linear Perp',
+	inverse_perp: 'Inverse Perp'
+}
+const MARKET_CATEGORY_ORDER: TokenMarketCategory[] = ['spot', 'linear_perp', 'inverse_perp']
 const TOKEN_OVERVIEW_CHART_QUERY_KEY = 'chart'
 const TOKEN_OVERVIEW_CHART_GROUP_QUERY_KEY = 'chartGroup'
 
@@ -225,8 +237,92 @@ export function TokenPageHero({
 	)
 }
 
+function getCategoryMetric(
+	totals: TokenMarketsTotalsByCategory,
+	category: TokenMarketCategory,
+	metric: 'volume' | 'oi'
+): number | null {
+	const entry = totals[category]
+	if (!entry) return null
+	return metric === 'volume' ? (entry.total_volume_24h ?? null) : (entry.total_oi_usd ?? null)
+}
+
+function sumVenueMetric(totals: TokenMarketsTotalsByCategory, metric: 'volume' | 'oi'): number | null {
+	let sum = 0
+	let hasValue = false
+	for (const category of MARKET_CATEGORY_ORDER) {
+		const value = getCategoryMetric(totals, category, metric)
+		if (value != null) {
+			sum += value
+			hasValue = true
+		}
+	}
+	return hasValue ? sum : null
+}
+
+function MarketsCategoryBreakdown({
+	totals,
+	metric
+}: {
+	totals: TokenMarketsTotalsByCategory
+	metric: 'volume' | 'oi'
+}) {
+	const visibleCategories = metric === 'oi' ? MARKET_CATEGORY_ORDER.filter((c) => c !== 'spot') : MARKET_CATEGORY_ORDER
+	return (
+		<>
+			{visibleCategories.map((category) => {
+				const value = getCategoryMetric(totals, category, metric)
+				return (
+					<SubMetricRow
+						key={category}
+						label={MARKET_CATEGORY_LABELS[category]}
+						value={value == null ? 'N/A' : formatCurrency(value)}
+					/>
+				)
+			})}
+		</>
+	)
+}
+
+function MarketsMetricSection({
+	label,
+	tooltip,
+	totalValue,
+	markets,
+	metric
+}: {
+	label: string
+	tooltip: string
+	totalValue: number | null
+	markets: TokenMarketsResponse
+	metric: 'volume' | 'oi'
+}) {
+	const cexValue = sumVenueMetric(markets.totals.cex, metric)
+	const dexValue = sumVenueMetric(markets.totals.dex, metric)
+	return (
+		<MetricSection label={label} tooltip={tooltip} value={formatCurrency(totalValue)}>
+			<SubMetricSection label="CEX" value={cexValue == null ? 'N/A' : formatCurrency(cexValue)}>
+				<MarketsCategoryBreakdown totals={markets.totals.cex} metric={metric} />
+			</SubMetricSection>
+			<SubMetricSection label="DEX" value={dexValue == null ? 'N/A' : formatCurrency(dexValue)}>
+				<MarketsCategoryBreakdown totals={markets.totals.dex} metric={metric} />
+			</SubMetricSection>
+		</MetricSection>
+	)
+}
+
 function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 	const totalRaised = getTotalRaisedAmount(overview.raises)
+	const { data: markets } = useQuery({
+		queryKey: ['token-markets', overview.symbol],
+		queryFn: () => fetchTokenMarkets(overview.symbol),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: Boolean(overview.symbol)
+	})
+	const marketsHasVolume = markets != null && (markets.total_volume_24h ?? 0) > 0
+	const marketsHasOi = markets != null && (markets.total_oi_usd ?? 0) > 0
 
 	return (
 		<div className="flex flex-1 flex-col gap-2">
@@ -265,9 +361,17 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 						value={formatCurrency(overview.outstandingFDV)}
 					/>
 				) : null}
-				{overview.marketData.volume24h.total != null ||
-				overview.marketData.volume24h.cex != null ||
-				overview.marketData.volume24h.dex != null ? (
+				{marketsHasVolume && markets ? (
+					<MarketsMetricSection
+						label="Volume 24h"
+						tooltip={VOLUME_24H_TOOLTIP}
+						totalValue={markets.total_volume_24h ?? null}
+						markets={markets}
+						metric="volume"
+					/>
+				) : overview.marketData.volume24h.total != null ||
+				  overview.marketData.volume24h.cex != null ||
+				  overview.marketData.volume24h.dex != null ? (
 					<MetricSection
 						label="Volume 24h"
 						tooltip={VOLUME_24H_TOOLTIP}
@@ -280,6 +384,15 @@ function TokenMetrics({ overview }: { overview: TokenOverviewData }) {
 							<SubMetricRow label="DEX Volume" value={formatCurrency(overview.marketData.volume24h.dex)} />
 						) : null}
 					</MetricSection>
+				) : null}
+				{marketsHasOi && markets ? (
+					<MarketsMetricSection
+						label="Open Interest"
+						tooltip={OPEN_INTEREST_TOOLTIP}
+						totalValue={markets.total_oi_usd ?? null}
+						markets={markets}
+						metric="oi"
+					/>
 				) : null}
 				{overview.tokenLiquidity ? (
 					<MetricSection
@@ -471,7 +584,7 @@ function TokenChartPanel({ overview, geckoId }: { overview: TokenOverviewData; g
 									placeholder="Search..."
 									value={metricsSearchValue}
 									className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
-									onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+									onChange={(e) => setMetricsSearchValue(e.currentTarget.value)}
 								/>
 							</label>
 

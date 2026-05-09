@@ -16,6 +16,8 @@ export interface IFetchedRWAProject {
 	assetGroup?: string | null
 	website?: string[] | null
 	twitter?: string[] | null
+	docs?: string | false | null
+	linkedin?: string | false | null
 	primaryChain?: string | null
 	chain?: string[] | null
 	contracts?: RWAContractsByChain | null
@@ -49,7 +51,7 @@ export interface IFetchedRWAProject {
 	coingeckoId?: string | null
 	oracleProvider?: string | null
 	oracleProofLink?: string | null
-	logo?: string | string[] | null
+	logo?: string | false | null
 	rwaGithub?: string | null
 	dateOfLastAttestation?: string | null
 	attestationFrequency?: string | string[] | null
@@ -117,6 +119,7 @@ export type RWAOverviewAssetBase = {
 	kind: 'spot' | 'perps'
 	detailHref: string
 	assetName: string
+	logo?: string | false | null
 	ticker: string
 	primaryChain: string | null
 	chain: string[] | null

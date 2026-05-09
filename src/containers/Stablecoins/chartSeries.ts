@@ -199,6 +199,7 @@ export const buildAreaPayload = (
 	options: {
 		chartNames?: string[]
 		stackName: string
+		stacked?: boolean
 		valueSymbol?: string
 		summary?: boolean
 	}
@@ -206,6 +207,7 @@ export const buildAreaPayload = (
 	const { peggedAreaChartData } = buildStablecoinAreaChartData(params)
 	const chartNames =
 		options.chartNames ?? getSeriesNames(params.assetsOrChainsList, params.filteredIndexes, params.doublecountedIds)
+	const stacked = options.stacked ?? false
 	const source: MultiSeriesChart2Dataset['source'] = []
 	for (const point of peggedAreaChartData) {
 		const timestamp = Number(point.date) * 1e3
@@ -222,15 +224,15 @@ export const buildAreaPayload = (
 		name,
 		encode: { x: 'timestamp', y: name },
 		color: TOKEN_COLORS[name] ?? CHART_COLORS[i % CHART_COLORS.length],
-		stack: options.stackName
+		...(stacked ? { stack: options.stackName } : {})
 	}))
 
 	const payload: StablecoinChartSeriesPayload = {
 		dataset: { source, dimensions: ['timestamp', ...chartNames] },
 		charts,
-		stacked: true,
+		stacked,
 		valueSymbol: options.valueSymbol ?? '$',
-		showTotalInTooltip: true
+		showTotalInTooltip: stacked
 	}
 
 	if (options.summary) {

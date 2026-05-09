@@ -20,7 +20,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -187,6 +187,7 @@ export function ColumnManager({
 		customColumnExpanded: false
 	})
 	const { search, groupFilter, activeId, customColumnExpanded } = uiState
+	const deferredSearch = useDeferredValue(search)
 
 	const [customColumnState, setCustomColumnState] = useState<{
 		customName: string
@@ -308,14 +309,14 @@ export function ColumnManager({
 	const selectedColumnsSet = useMemo(() => new Set(selectedColumns), [selectedColumns])
 
 	const filteredColumns = useMemo(() => {
-		const term = search.trim().toLowerCase()
+		const term = deferredSearch.trim().toLowerCase()
 		return allColumns.filter((column) => {
 			if (column.id === 'name') return false
 			if (groupFilter !== 'all' && column.group !== groupFilter) return false
 			if (term && !column.header.toLowerCase().includes(term)) return false
 			return true
 		})
-	}, [allColumns, groupFilter, search])
+	}, [allColumns, deferredSearch, groupFilter])
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -708,8 +709,7 @@ export function ColumnManager({
 							className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 						/>
 						<input
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
+							onInput={(e) => setSearch(e.currentTarget.value)}
 							placeholder="Search columns..."
 							className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1.5 pr-2.5 pl-8 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
 						/>

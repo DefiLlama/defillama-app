@@ -64,56 +64,58 @@ const columns = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('weeklyChange', {
 		header: 'Volume change',
-		size: 160,
 		cell: (info) => (info.getValue() != null ? <PercentChange percent={info.getValue()} /> : null),
 		meta: {
+			headerClassName: 'w-[160px]',
 			align: 'end',
 			headerHelperText: 'Change of last 7d volume over the previous 7d volume'
 		}
 	}),
 	columnHelper.accessor('1DayVolume', {
 		header: 'Volume 1d',
-		size: 130,
 		cell: (info) => <EthVolumeCell value={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end',
 			headerHelperText: '24h rolling volume'
 		}
 	}),
 	columnHelper.accessor('7DayVolume', {
 		header: 'Volume 7d',
-		size: 130,
 		cell: (info) => <EthVolumeCell value={info.getValue()} />,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end',
 			headerHelperText: '7day rolling volume'
 		}
 	}),
 	columnHelper.accessor('pctOfTotal', {
 		header: 'Market Share',
-		size: 150,
 		cell: (info) => (Number.isFinite(Number(info.getValue())) ? `${Number(info.getValue()).toFixed(2)}%` : null),
 		meta: {
+			headerClassName: 'w-[150px]',
 			align: 'end',
 			headerHelperText: 'based on Volume 1d'
 		}
 	}),
 	columnHelper.accessor('1DayNbTrades', {
 		header: 'Trades 1d',
-		size: 130,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end',
 			headerHelperText: '24h rolling trades'
 		}
 	}),
 	columnHelper.accessor('7DayNbTrades', {
 		header: 'Trades 7d',
-		size: 130,
 		meta: {
+			headerClassName: 'w-[130px]',
 			align: 'end',
 			headerHelperText: '7day rolling trades'
 		}

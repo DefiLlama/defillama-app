@@ -5,6 +5,14 @@ import { useAuthContext } from '../Subscription/auth'
 export const ChainOverviewAnnouncement = ({ chainName }: { chainName?: string }) => {
 	const { user } = useAuthContext()
 
+	if (chainName === 'MegaETH') {
+		return (
+			<Announcement announcementId="megaeth-ethena-tvl" version="2026-05-06" warning>
+				Most of MegaETH TVL comes from Ethena depositing it&apos;s balance sheet
+			</Announcement>
+		)
+	}
+
 	if (chainName === 'Sonic') {
 		return (
 			<Announcement

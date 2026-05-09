@@ -118,15 +118,14 @@ export function SelectWithCombobox({
 	)
 
 	const [searchValue, setSearchValue] = React.useState('')
-	const deferredSearchValue = React.useDeferredValue(searchValue)
 
 	const matches = React.useMemo(() => {
-		if (!deferredSearchValue) return allValues
+		if (!searchValue) return allValues
 
 		if (valuesAreAnArrayOfStrings) {
 			return matchSorter(
 				allValues.filter((value): value is string => typeof value === 'string'),
-				deferredSearchValue,
+				searchValue,
 				{
 					threshold: matchSorter.rankings.CONTAINS
 				}
@@ -135,13 +134,13 @@ export function SelectWithCombobox({
 
 		return matchSorter(
 			allValues.filter((value): value is SelectOption => typeof value !== 'string'),
-			deferredSearchValue,
+			searchValue,
 			{
 				keys: ['name'],
 				threshold: matchSorter.rankings.CONTAINS
 			}
 		)
-	}, [valuesAreAnArrayOfStrings, allValues, deferredSearchValue])
+	}, [valuesAreAnArrayOfStrings, allValues, searchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

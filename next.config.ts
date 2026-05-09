@@ -3,6 +3,8 @@ import type { NextConfig } from 'next'
 const nextConfig: NextConfig = {
 	output: 'standalone',
 	outputFileTracingIncludes: {
+		'/cex/*': ['./.cache/datasets/**/*'],
+		'/cex/markets/*': ['./.cache/datasets/**/*'],
 		'/token/*': ['./.cache/datasets/**/*'],
 		'/token-rights': ['./.cache/datasets/**/*'],
 		'/protocol/token-rights/*': ['./.cache/datasets/**/*'],
@@ -15,6 +17,7 @@ const nextConfig: NextConfig = {
 	},
 	reactStrictMode: true,
 	reactCompiler: true,
+	bundlePagesRouterDependencies: true,
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
 	redirects() {

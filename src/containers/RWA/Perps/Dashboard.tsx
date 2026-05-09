@@ -115,8 +115,10 @@ const overviewColumns = [
 				</BasicLink>
 			</span>
 		),
-		meta: { headerHelperText: d.contract.description },
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]',
+			headerHelperText: d.contract.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.venue, {
 		id: 'venue',
@@ -129,15 +131,19 @@ const overviewColumns = [
 				{info.getValue()}
 			</BasicLink>
 		),
-		meta: { headerHelperText: d.venue.description },
-		size: 168
+		meta: {
+			headerClassName: 'w-[168px]',
+			headerHelperText: d.venue.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
 		id: 'assetClass',
 		header: d.assetClass.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.assetClass.description },
-		size: 176
+		meta: {
+			headerClassName: 'w-[176px]',
+			headerHelperText: d.assetClass.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
 		id: 'baseAssetGroup',
@@ -154,225 +160,312 @@ const overviewColumns = [
 			) : (
 				''
 			),
-		meta: { headerHelperText: d.assetGroup.description },
-		size: 136
+		meta: {
+			headerClassName: 'w-[136px]',
+			headerHelperText: d.assetGroup.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.referenceAsset ?? '', {
 		id: 'baseAsset',
 		header: d.baseAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.baseAsset.description },
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]',
+			headerHelperText: d.baseAsset.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
 		id: 'category',
 		header: d.category.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.category.description },
-		size: 132
+		meta: {
+			headerClassName: 'w-[132px]',
+			headerHelperText: d.category.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.openInterest ?? undefined, {
 		id: 'openInterest',
 		header: d.openInterest.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.openInterest.description },
-		size: 136
+		meta: {
+			headerClassName: 'w-[136px]',
+			align: 'end',
+			headerHelperText: d.openInterest.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.openInterestChange24h ?? undefined, {
 		id: 'openInterestChange24h',
 		header: d.openInterestChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end', headerHelperText: d.openInterestChange24h.description },
-		size: 148
+		meta: {
+			headerClassName: 'w-[148px]',
+			align: 'end',
+			headerHelperText: d.openInterestChange24h.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.volume24h ?? undefined, {
 		id: 'volume24h',
 		header: d.volume24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.volume24h.description },
-		size: 126
+		meta: {
+			headerClassName: 'w-[126px]',
+			align: 'end',
+			headerHelperText: d.volume24h.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.volume24hChange24h ?? undefined, {
 		id: 'volume24hChange24h',
 		header: d.volume24hChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end', headerHelperText: d.volume24hChange24h.description },
-		size: 172
+		meta: {
+			headerClassName: 'w-[172px]',
+			align: 'end',
+			headerHelperText: d.volume24hChange24h.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.price ?? undefined, {
 		id: 'price',
 		header: d.price.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.price.description },
-		size: 88
+		meta: {
+			headerClassName: 'w-[88px]',
+			align: 'end',
+			headerHelperText: d.price.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.priceChange24h ?? undefined, {
 		id: 'priceChange24h',
 		header: d.priceChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end', headerHelperText: d.priceChange24h.description },
-		size: 156
+		meta: {
+			headerClassName: 'w-[156px]',
+			align: 'end',
+			headerHelperText: d.priceChange24h.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => (row.fundingRate == null ? undefined : row.fundingRate * 100), {
 		id: 'fundingRate',
 		header: d.fundingRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.fundingRate.description },
-		size: 180
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
+			align: 'end',
+			headerHelperText: d.fundingRate.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => (row.premium == null ? undefined : row.premium * 100), {
 		id: 'premium',
 		header: d.premium.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.premium.description },
-		size: 108
+		meta: {
+			headerClassName: 'w-[108px]',
+			align: 'end',
+			headerHelperText: d.premium.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.maxLeverage ?? undefined, {
 		id: 'maxLeverage',
 		header: d.maxLeverage.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
-		meta: { align: 'end', headerHelperText: d.maxLeverage.description },
-		size: 128
+		meta: {
+			headerClassName: 'w-[128px]',
+			align: 'end',
+			headerHelperText: d.maxLeverage.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.parentPlatform, {
 		id: 'parentPlatform',
 		header: d.parentPlatform.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.parentPlatform.description },
-		size: 156
+		meta: {
+			headerClassName: 'w-[156px]',
+			headerHelperText: d.parentPlatform.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.marginAsset, {
 		id: 'marginAsset',
 		header: d.marginAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.marginAsset.description },
-		size: 132
+		meta: {
+			headerClassName: 'w-[132px]',
+			headerHelperText: d.marginAsset.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.settlementAsset, {
 		id: 'settlementAsset',
 		header: d.settlementAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.settlementAsset.description },
-		size: 156
+		meta: {
+			headerClassName: 'w-[156px]',
+			headerHelperText: d.settlementAsset.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
 		header: d.issuer.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.issuer.description },
-		size: 96
+		meta: {
+			headerClassName: 'w-[96px]',
+			headerHelperText: d.issuer.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
 		header: d.oracleProvider.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.oracleProvider.description },
-		size: 164
+		meta: {
+			headerClassName: 'w-[164px]',
+			headerHelperText: d.oracleProvider.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
 		header: d.rwaClassification.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.rwaClassification.description },
-		size: 170
+		meta: {
+			headerClassName: 'w-[170px]',
+			headerHelperText: d.rwaClassification.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => (row.makerFeeRate == null ? undefined : row.makerFeeRate * 100), {
 		id: 'makerFeeRate',
 		header: d.makerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.makerFeeRate.description },
-		size: 112
+		meta: {
+			headerClassName: 'w-[112px]',
+			align: 'end',
+			headerHelperText: d.makerFeeRate.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => (row.takerFeeRate == null ? undefined : row.takerFeeRate * 100), {
 		id: 'takerFeeRate',
 		header: d.takerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.takerFeeRate.description },
-		size: 112
+		meta: {
+			headerClassName: 'w-[112px]',
+			align: 'end',
+			headerHelperText: d.takerFeeRate.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => (row.deployerFeeShare == null ? undefined : row.deployerFeeShare * 100), {
 		id: 'deployerFeeShare',
 		header: d.deployerFeeShare.label,
 		cell: (info) => (info.getValue() == null ? '-' : `${formattedNum(info.getValue(), false)}%`),
-		meta: { align: 'end', headerHelperText: d.deployerFeeShare.description },
-		size: 154
+		meta: {
+			headerClassName: 'w-[154px]',
+			align: 'end',
+			headerHelperText: d.deployerFeeShare.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.cumulativeFunding ?? undefined, {
 		id: 'cumulativeFunding',
 		header: d.cumulativeFunding.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.cumulativeFunding.description },
-		size: 168
+		meta: {
+			headerClassName: 'w-[168px]',
+			align: 'end',
+			headerHelperText: d.cumulativeFunding.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.oraclePx ?? undefined, {
 		id: 'oraclePx',
 		header: d.oraclePx.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.oraclePx.description },
-		size: 92
+		meta: {
+			headerClassName: 'w-[92px]',
+			align: 'end',
+			headerHelperText: d.oraclePx.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.midPx ?? undefined, {
 		id: 'midPx',
 		header: d.midPx.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.midPx.description },
-		size: 88
+		meta: {
+			headerClassName: 'w-[88px]',
+			align: 'end',
+			headerHelperText: d.midPx.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.prevDayPx ?? undefined, {
 		id: 'prevDayPx',
 		header: d.prevDayPx.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.prevDayPx.description },
-		size: 116
+		meta: {
+			headerClassName: 'w-[116px]',
+			align: 'end',
+			headerHelperText: d.prevDayPx.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.volume7d ?? undefined, {
 		id: 'volume7d',
 		header: d.volume7d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.volume7d.description },
-		size: 118
+		meta: {
+			headerClassName: 'w-[118px]',
+			align: 'end',
+			headerHelperText: d.volume7d.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.volume30d ?? undefined, {
 		id: 'volume30d',
 		header: d.volume30d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.volume30d.description },
-		size: 126
+		meta: {
+			headerClassName: 'w-[126px]',
+			align: 'end',
+			headerHelperText: d.volume30d.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.volumeAllTime ?? undefined, {
 		id: 'volumeAllTime',
 		header: d.volumeAllTime.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.volumeAllTime.description },
-		size: 146
+		meta: {
+			headerClassName: 'w-[146px]',
+			align: 'end',
+			headerHelperText: d.volumeAllTime.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees24h ?? undefined, {
 		id: 'estimatedProtocolFees24h',
 		header: d.estimatedProtocolFees24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees24h.description },
-		size: 188
+		meta: {
+			headerClassName: 'w-[min(188px,40vw)]',
+			align: 'end',
+			headerHelperText: d.estimatedProtocolFees24h.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees7d ?? undefined, {
 		id: 'estimatedProtocolFees7d',
 		header: d.estimatedProtocolFees7d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees7d.description },
-		size: 188
+		meta: {
+			headerClassName: 'w-[min(188px,40vw)]',
+			align: 'end',
+			headerHelperText: d.estimatedProtocolFees7d.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFees30d ?? undefined, {
 		id: 'estimatedProtocolFees30d',
 		header: d.estimatedProtocolFees30d.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees30d.description },
-		size: 188
+		meta: {
+			headerClassName: 'w-[min(188px,40vw)]',
+			align: 'end',
+			headerHelperText: d.estimatedProtocolFees30d.description
+		}
 	}),
 	overviewColumnHelper.accessor((row) => row.estimatedProtocolFeesAllTime ?? undefined, {
 		id: 'estimatedProtocolFeesAllTime',
 		header: d.estimatedProtocolFeesAllTime.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.estimatedProtocolFeesAllTime.description },
-		size: 210
+		meta: {
+			headerClassName: 'w-[min(210px,40vw)]',
+			align: 'end',
+			headerHelperText: d.estimatedProtocolFeesAllTime.description
+		}
 	})
 ]
 
@@ -392,15 +485,19 @@ const venueColumns = [
 				</BasicLink>
 			</span>
 		),
-		meta: { headerHelperText: d.contract.description },
-		size: 220
+		meta: {
+			headerClassName: 'w-[min(220px,40vw)]',
+			headerHelperText: d.contract.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.referenceAsset ?? '', {
 		id: 'baseAsset',
 		header: d.baseAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.baseAsset.description },
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]',
+			headerHelperText: d.baseAsset.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.referenceAssetGroup ?? '', {
 		id: 'baseAssetGroup',
@@ -417,148 +514,203 @@ const venueColumns = [
 			) : (
 				''
 			),
-		meta: { headerHelperText: d.assetGroup.description },
-		size: 136
+		meta: {
+			headerClassName: 'w-[136px]',
+			headerHelperText: d.assetGroup.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.assetClass?.[0] ?? '', {
 		id: 'assetClass',
 		header: d.assetClass.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.assetClass.description },
-		size: 176
+		meta: {
+			headerClassName: 'w-[176px]',
+			headerHelperText: d.assetClass.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.category?.join(', ') ?? '', {
 		id: 'category',
 		header: d.category.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.category.description },
-		size: 132
+		meta: {
+			headerClassName: 'w-[132px]',
+			headerHelperText: d.category.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.issuer ?? '', {
 		id: 'issuer',
 		header: d.issuer.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.issuer.description },
-		size: 96
+		meta: {
+			headerClassName: 'w-[96px]',
+			headerHelperText: d.issuer.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.marginAsset, {
 		id: 'marginAsset',
 		header: d.marginAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.marginAsset.description },
-		size: 132
+		meta: {
+			headerClassName: 'w-[132px]',
+			headerHelperText: d.marginAsset.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.settlementAsset, {
 		id: 'settlementAsset',
 		header: d.settlementAsset.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.settlementAsset.description },
-		size: 156
+		meta: {
+			headerClassName: 'w-[156px]',
+			headerHelperText: d.settlementAsset.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.openInterest ?? undefined, {
 		id: 'openInterest',
 		header: d.openInterest.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.openInterest.description },
-		size: 136
+		meta: {
+			headerClassName: 'w-[136px]',
+			align: 'end',
+			headerHelperText: d.openInterest.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.openInterestChange24h ?? undefined, {
 		id: 'openInterestChange24h',
 		header: d.openInterestChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end', headerHelperText: d.openInterestChange24h.description },
-		size: 148
+		meta: {
+			headerClassName: 'w-[148px]',
+			align: 'end',
+			headerHelperText: d.openInterestChange24h.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.volume24h ?? undefined, {
 		id: 'volume24h',
 		header: d.volume24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.volume24h.description },
-		size: 126
+		meta: {
+			headerClassName: 'w-[126px]',
+			align: 'end',
+			headerHelperText: d.volume24h.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.volume24hChange24h ?? undefined, {
 		id: 'volume24hChange24h',
 		header: d.volume24hChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end', headerHelperText: d.volume24hChange24h.description },
-		size: 172
+		meta: {
+			headerClassName: 'w-[172px]',
+			align: 'end',
+			headerHelperText: d.volume24hChange24h.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.price ?? undefined, {
 		id: 'price',
 		header: d.price.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.price.description },
-		size: 88
+		meta: {
+			headerClassName: 'w-[88px]',
+			align: 'end',
+			headerHelperText: d.price.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.priceChange24h ?? undefined, {
 		id: 'priceChange24h',
 		header: d.priceChange24h.label,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
-		meta: { align: 'end', headerHelperText: d.priceChange24h.description },
-		size: 156
+		meta: {
+			headerClassName: 'w-[156px]',
+			align: 'end',
+			headerHelperText: d.priceChange24h.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => (row.fundingRate == null ? undefined : row.fundingRate * 100), {
 		id: 'fundingRate',
 		header: d.fundingRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.fundingRate.description },
-		size: 180
+		meta: {
+			headerClassName: 'w-[min(180px,40vw)]',
+			align: 'end',
+			headerHelperText: d.fundingRate.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => (row.premium == null ? undefined : row.premium * 100), {
 		id: 'premium',
 		header: d.premium.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.premium.description },
-		size: 108
+		meta: {
+			headerClassName: 'w-[108px]',
+			align: 'end',
+			headerHelperText: d.premium.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.maxLeverage ?? undefined, {
 		id: 'maxLeverage',
 		header: d.maxLeverage.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}x`,
-		meta: { align: 'end', headerHelperText: d.maxLeverage.description },
-		size: 128
+		meta: {
+			headerClassName: 'w-[128px]',
+			align: 'end',
+			headerHelperText: d.maxLeverage.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.rwaClassification ?? '', {
 		id: 'rwaClassification',
 		header: d.rwaClassification.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.rwaClassification.description },
-		size: 170
+		meta: {
+			headerClassName: 'w-[170px]',
+			headerHelperText: d.rwaClassification.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.oracleProvider ?? '', {
 		id: 'oracleProvider',
 		header: d.oracleProvider.label,
 		enableSorting: false,
-		meta: { headerHelperText: d.oracleProvider.description },
-		size: 164
+		meta: {
+			headerClassName: 'w-[164px]',
+			headerHelperText: d.oracleProvider.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => (row.makerFeeRate == null ? undefined : row.makerFeeRate * 100), {
 		id: 'makerFeeRate',
 		header: d.makerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.makerFeeRate.description },
-		size: 112
+		meta: {
+			headerClassName: 'w-[112px]',
+			align: 'end',
+			headerHelperText: d.makerFeeRate.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => (row.takerFeeRate == null ? undefined : row.takerFeeRate * 100), {
 		id: 'takerFeeRate',
 		header: d.takerFeeRate.label,
 		cell: (info) => `${formattedNum(info.getValue(), false)}%`,
-		meta: { align: 'end', headerHelperText: d.takerFeeRate.description },
-		size: 112
+		meta: {
+			headerClassName: 'w-[112px]',
+			align: 'end',
+			headerHelperText: d.takerFeeRate.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.cumulativeFunding ?? undefined, {
 		id: 'cumulativeFunding',
 		header: d.cumulativeFunding.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.cumulativeFunding.description },
-		size: 168
+		meta: {
+			headerClassName: 'w-[168px]',
+			align: 'end',
+			headerHelperText: d.cumulativeFunding.description
+		}
 	}),
 	venueColumnHelper.accessor((row) => row.estimatedProtocolFees24h ?? undefined, {
 		id: 'estimatedProtocolFees24h',
 		header: d.estimatedProtocolFees24h.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: d.estimatedProtocolFees24h.description },
-		size: 188
+		meta: {
+			headerClassName: 'w-[min(188px,40vw)]',
+			align: 'end',
+			headerHelperText: d.estimatedProtocolFees24h.description
+		}
 	})
 ]
 

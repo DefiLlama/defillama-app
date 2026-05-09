@@ -239,7 +239,6 @@ export const DesktopSearch = ({ hideLlamaAiCta = false }: { hideLlamaAiCta?: boo
 					<Ariakit.Combobox
 						id="desktop-search-input"
 						placeholder="Search..."
-						autoSelect
 						ref={inputField}
 						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.75 pl-7 text-black focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden focus-visible:outline-hidden lg:py-1.25 dark:text-white"
 					/>
@@ -327,7 +326,7 @@ const SearchItem = ({
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex flex-wrap items-center gap-2 px-2 py-2 cv-auto-40 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
+			className="flex flex-wrap items-center gap-2 px-2 py-2 outline-hidden cv-auto-40 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
 			render={
 				<BasicLink
 					href={route.route}
@@ -344,6 +343,7 @@ const SearchItem = ({
 			}}
 			value={route.route}
 			setValueOnClick={false}
+			focusOnHover
 			hideOnClick
 		>
 			{route.logo ? (

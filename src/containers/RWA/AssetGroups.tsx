@@ -4,7 +4,7 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import type {} from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAAssetGroupsOverviewRow, RWAOverviewPage } from './api.types'
@@ -42,43 +42,51 @@ const columns = [
 				</span>
 			)
 		},
-		size: 240
+		meta: {
+			headerClassName: 'w-[180px] sm:w-[240px]'
+		}
 	}),
 	columnHelper.accessor((row) => row.assetCount ?? undefined, {
 		id: 'assetCount',
 		header: definitions.totalAssetCount.label,
 		cell: (info) => formattedNum(info.getValue(), false),
-		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]',
+			align: 'end',
+			headerHelperText: definitions.totalAssetCount.description
+		}
 	}),
 	columnHelper.accessor((row) => row.activeMcap ?? undefined, {
 		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
+			align: 'end',
+			headerHelperText: definitions.totalActiveMcap.description
+		}
 	}),
 	columnHelper.accessor((row) => row.onChainMcap ?? undefined, {
 		id: 'onChainMcap',
 		header: definitions.totalOnChainMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
-		size: 208
+		meta: {
+			headerClassName: 'w-[min(208px,40vw)]',
+			align: 'end',
+			headerHelperText: definitions.totalOnChainMcap.description
+		}
 	}),
 	columnHelper.accessor((row) => row.defiActiveTvl ?? undefined, {
 		id: 'defiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end',
+			headerHelperText: definitions.totalDefiActiveTvl.description
+		}
 	})
 ]
-
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: { assetGroup: 180 },
-	640: { assetGroup: 240 }
-}
-
 export function RWAAssetGroups({
 	assetGroups,
 	initialChartDataset,
@@ -133,7 +141,6 @@ export function RWAAssetGroups({
 				columnToSearch="assetGroup"
 				header="Asset Groups"
 				headingAs="h1"
-				columnSizes={columnSizes}
 				csvFileName={csvFileName}
 				sortingState={[{ id: 'activeMcap', desc: true }]}
 			/>

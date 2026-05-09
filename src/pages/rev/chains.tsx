@@ -76,25 +76,27 @@ const columns = [
 				</span>
 			)
 		},
-		size: 280
+		meta: {
+			headerClassName: 'w-[min(280px,40vw)]'
+		}
 	}),
 	columnHelper.accessor('total24h', {
 		header: 'REV 24h',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'center',
 			headerHelperText: definitions.rev.chain['24h']
-		},
-		size: 128
+		}
 	}),
 	columnHelper.accessor('total30d', {
 		header: 'REV 30d',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
+			headerClassName: 'w-[128px]',
 			align: 'center',
 			headerHelperText: definitions.rev.chain['30d']
-		},
-		size: 128
+		}
 	})
 ]
 

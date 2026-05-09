@@ -19,11 +19,15 @@ const columns = [
 	columnHelper.accessor('name', {
 		header: 'Name',
 		enableSorting: false,
-		size: 120
+		meta: {
+			headerClassName: 'w-[120px]'
+		}
 	}),
 	columnHelper.accessor('page', {
 		header: 'Claim Page',
-		size: 100,
+		meta: {
+			headerClassName: 'w-[100px]'
+		},
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (

@@ -1,18 +1,21 @@
 import Router from 'next/router'
 import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode, type RefCallback } from 'react'
 import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
+import { TextChip } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 import { MarkdownExportArtifact } from '~/containers/LlamaAI/components/MarkdownExportArtifact'
+import { PastedContentModal } from '~/containers/LlamaAI/components/PastedContentModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import {
+	getToolLabel,
 	ThinkingPanel,
 	TOOL_ICONS,
-	TOOL_LABELS,
 	useHackerMode
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import {
@@ -166,14 +169,23 @@ function ActionButtonGroup({
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
 				?.compositeId ?? null)
 		: null
-	const [optimisticClicked, setOptimisticClicked] = useState<{ id: string; scope: string } | null>(null)
-	const clicked = alreadyClicked ?? (optimisticClicked?.scope === optimisticScope ? optimisticClicked.id : null)
-	const isClicked = clicked !== null
+	const [optimisticClickedIds, setOptimisticClickedIds] = useState<{ ids: Set<string>; scope: string } | null>(null)
+	const clickedIds = new Set<string>()
+	if (alreadyClicked) clickedIds.add(alreadyClicked)
+	if (optimisticClickedIds?.scope === optimisticScope) {
+		for (const id of optimisticClickedIds.ids) {
+			clickedIds.add(id)
+		}
+	}
 
 	const handleActionClick = (action: { label: string; message: string; compositeId: string }) => {
-		if (!onActionClick || isClicked) return
+		if (!onActionClick) return
 		trackUmamiEvent('llamaai-action-click', { label: action.label })
-		setOptimisticClicked({ id: action.compositeId, scope: optimisticScope })
+		setOptimisticClickedIds((current) => {
+			const ids = current?.scope === optimisticScope ? new Set(current.ids) : new Set<string>()
+			ids.add(action.compositeId)
+			return { ids, scope: optimisticScope }
+		})
 		onActionClick(action.message)
 	}
 
@@ -194,16 +206,14 @@ function ActionButtonGroup({
 							<button
 								key={actionKey}
 								type="button"
-								disabled={isClicked || !onActionClick}
+								disabled={!onActionClick}
 								onClick={() => handleActionClick(action)}
 								className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${
-									!isClicked
+									!clickedIds.has(action.compositeId)
 										? onActionClick
 											? 'bg-[#2172e5] text-white hover:bg-[#1b5fbd] active:scale-[0.97] dark:bg-[#4190f7] dark:hover:bg-[#3279de]'
 											: 'bg-[#e6e6e6] text-[#999] dark:bg-[#333] dark:text-[#666]'
-										: clicked === action.compositeId
-											? 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
-											: 'pointer-events-none bg-[#e6e6e6] text-[#999] opacity-50 dark:bg-[#333] dark:text-[#666]'
+										: 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
 								}`}
 							>
 								{action.label}
@@ -215,16 +225,14 @@ function ActionButtonGroup({
 						<button
 							key={actionKey}
 							type="button"
-							disabled={isClicked || !onActionClick}
+							disabled={!onActionClick}
 							onClick={() => handleActionClick(action)}
 							className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 ${
-								!isClicked
+								!clickedIds.has(action.compositeId)
 									? onActionClick
 										? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/6 active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/6'
 										: 'border-[#e6e6e6] text-[#999] dark:border-[#333] dark:text-[#666]'
-									: clicked === action.compositeId
-										? 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
-										: 'pointer-events-none border-[#e6e6e6] text-[#999] opacity-50 dark:border-[#333] dark:text-[#666]'
+									: 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
 							}`}
 						>
 							{action.label}
@@ -249,16 +257,14 @@ function ActionButtonGroup({
 					<button
 						key={actionKey}
 						type="button"
-						disabled={isClicked || !onActionClick}
+						disabled={!onActionClick}
 						onClick={() => handleActionClick(action)}
 						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
-							!isClicked
+							!clickedIds.has(action.compositeId)
 								? onActionClick
 									? 'border-[#2172e5]/10 bg-[#2172e5]/4 text-[#2172e5]/55 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
 									: 'border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/30 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/25'
-								: clicked === action.compositeId
-									? 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
-									: 'pointer-events-none border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/20 opacity-50 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/15'
+								: 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
 						}`}
 					>
 						{action.label}
@@ -369,13 +375,15 @@ function ArtifactBlockRenderer({
 	block,
 	artifact,
 	isStreaming,
-	sessionId: _sessionId,
+	sessionId,
+	messageId,
 	onImageClick
 }: {
 	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'md' | 'alert' | 'dashboard' | 'image' }>
 	artifact?: ArtifactRecord
 	isStreaming: boolean
 	sessionId?: string | null
+	messageId?: string
 	onImageClick?: (url: string) => void
 }) {
 	if (block.type === 'chart') {
@@ -384,7 +392,14 @@ function ArtifactBlockRenderer({
 			return isStreaming ? <StreamingChartPlaceholder /> : null
 		}
 		if (artifact.type !== 'chart') return null
-		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} />
+		return (
+			<ChartRenderer
+				charts={artifact.charts}
+				chartData={artifact.chartData}
+				sessionId={sessionId}
+				messageId={messageId}
+			/>
+		)
 	}
 
 	if (block.type === 'csv') {
@@ -399,6 +414,8 @@ function ArtifactBlockRenderer({
 					rowCount: artifact.rowCount,
 					filename: artifact.filename
 				}}
+				sessionId={sessionId}
+				messageId={messageId}
 			/>
 		)
 	}
@@ -414,6 +431,8 @@ function ArtifactBlockRenderer({
 					url: artifact.url,
 					filename: artifact.filename
 				}}
+				sessionId={sessionId}
+				messageId={messageId}
 			/>
 		)
 	}
@@ -504,6 +523,7 @@ function MessageContentBlock({
 			artifact={artifact}
 			isStreaming={isStreaming}
 			sessionId={sessionId}
+			messageId={messageId}
 			onImageClick={onImageClick}
 		/>
 	)
@@ -568,6 +588,16 @@ function InlineContent({
 	)
 }
 
+const formatStepDuration = (ms: number): string => {
+	if (ms < 1000) return `${ms}ms`
+	if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`
+	const m = Math.floor(ms / 60000)
+	const s = Math.floor((ms % 60000) / 1000)
+	return `${m}m ${s}s`
+}
+
+const formatStepCost = (usd: number): string => (usd < 0.01 ? `$${usd.toFixed(3)}` : `$${usd.toFixed(2)}`)
+
 function ToolExecutionPanel({
 	toolExecutions,
 	showDetails = false
@@ -577,6 +607,11 @@ function ToolExecutionPanel({
 }) {
 	const totalTime = toolExecutions.reduce((sum, execution) => sum + execution.executionTimeMs, 0)
 	const successCount = toolExecutions.filter((execution) => execution.success).length
+	const failedCount = toolExecutions.length - successCount
+	const totalCost = toolExecutions.reduce((sum, execution) => {
+		const cost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
+		return Number.isFinite(cost) ? sum + cost : sum
+	}, 0)
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
 	const getRowKey = createOccurrenceKeyFactory()
@@ -605,12 +640,19 @@ function ToolExecutionPanel({
 					<path d="M9 18l6-6-6-6" />
 				</svg>
 				<span className="flex-1 text-xs text-[#666] dark:text-[#919296]">
-					{toolExecutions.length} tool call{toolExecutions.length !== 1 ? 's' : ''}
+					{toolExecutions.length} step{toolExecutions.length !== 1 ? 's' : ''}
 				</span>
-				<span className="text-xs text-[#999] dark:text-[#666]">
-					{successCount}/{toolExecutions.length} ok
+				{failedCount > 0 ? (
+					<span className="text-[10px] text-amber-600 dark:text-amber-400">{failedCount} failed</span>
+				) : null}
+				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
+					{formatStepDuration(totalTime)}
 				</span>
-				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">{totalTime}ms</span>
+				{totalCost > 0 ? (
+					<span className="font-mono text-[10px] text-amber-600 tabular-nums dark:text-amber-400">
+						{formatStepCost(totalCost)}
+					</span>
+				) : null}
 			</summary>
 			<div
 				ref={contentRef}
@@ -631,10 +673,10 @@ function ToolExecutionPanel({
 function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolExecution; showDetails?: boolean }) {
 	const [showPreview, setShowPreview] = useState(false)
 	const meta = TOOL_ICONS[execution.name] || { icon: 'sparkles', color: '#919296' }
-	const label = TOOL_LABELS[execution.name] || execution.name
+	const label = getToolLabel(execution.name)
 	const hasDetails = showDetails && (execution.resultPreview?.length || execution.sqlQuery || execution.toolData)
 	const parsedCost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
-	const premiumCostLabel = Number.isFinite(parsedCost) ? ` $${parsedCost.toFixed(3)}` : ''
+	const premiumCostLabel = Number.isFinite(parsedCost) ? ` ${formatStepCost(parsedCost)}` : ''
 
 	return (
 		<div className="flex flex-col">
@@ -650,16 +692,15 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 						Premium{premiumCostLabel}
 					</span>
 				) : null}
-				{execution.success ? (
-					<span className="text-[10px] text-green-600 dark:text-green-400">ok</span>
-				) : (
-					<span className="text-[10px] text-red-500">err</span>
-				)}
+				<span
+					aria-label={execution.success ? 'succeeded' : 'failed'}
+					className={`h-1.5 w-1.5 shrink-0 rounded-full ${execution.success ? 'bg-green-500 dark:bg-green-400' : 'bg-red-500'}`}
+				/>
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
-					{execution.executionTimeMs}ms
+					{formatStepDuration(execution.executionTimeMs)}
 				</span>
 				{showDetails && execution.resultCount != null ? (
-					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} rows</span>
+					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} results</span>
 				) : null}
 			</button>
 			{showPreview && execution.sqlQuery ? (
@@ -695,7 +736,7 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 			) : null}
 			{showPreview && execution.toolData ? <ToolDataView name={execution.name} data={execution.toolData} /> : null}
 			{!execution.success && execution.error ? (
-				<p className="mt-0.5 text-[10px] text-red-500">{execution.error}</p>
+				<p className="mt-0.5 ml-5 text-[10px] text-red-500/80 dark:text-red-400/80">{execution.error}</p>
 			) : null}
 		</div>
 	)
@@ -780,6 +821,58 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 	return TOOL_DATA_RENDERERS[name]?.(data) ?? null
 }
 
+function BranchArrows({
+	info,
+	onSwitch,
+	disabled = false
+}: {
+	info: NonNullable<Message['siblingInfo']>
+	onSwitch: (leafMessageId: string) => void
+	disabled?: boolean
+}) {
+	const { currentVersion, totalVersions, siblings } = info
+	const goPrev = currentVersion > 1 ? siblings[currentVersion - 2]?.leafMessageId : null
+	const goNext = currentVersion < totalVersions ? siblings[currentVersion]?.leafMessageId : null
+	const arrowClass =
+		'rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#999] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc] dark:disabled:hover:text-[#666]'
+	return (
+		<div className="flex items-center gap-0.5">
+			<Tooltip
+				content="Previous version"
+				render={
+					<button
+						type="button"
+						disabled={disabled || !goPrev}
+						onClick={() => !disabled && goPrev && onSwitch(goPrev)}
+						aria-label="Previous version"
+					/>
+				}
+				className={arrowClass}
+			>
+				<Icon name="chevron-left" height={14} width={14} />
+			</Tooltip>
+			<span className="px-0.5 text-[11px] text-[#999] tabular-nums dark:text-[#666]">
+				{currentVersion}
+				<span className="opacity-50">/{totalVersions}</span>
+			</span>
+			<Tooltip
+				content="Next version"
+				render={
+					<button
+						type="button"
+						disabled={disabled || !goNext}
+						onClick={() => !disabled && goNext && onSwitch(goNext)}
+						aria-label="Next version"
+					/>
+				}
+				className={arrowClass}
+			>
+				<Icon name="chevron-right" height={14} width={14} />
+			</Tooltip>
+		</div>
+	)
+}
+
 export function MessageBubble({
 	message,
 	sessionId,
@@ -788,6 +881,9 @@ export function MessageBubble({
 	isLlama = false,
 	isLatestAssistant = false,
 	onActionClick,
+	onEditMessage,
+	onBranchSwitch,
+	isBranchSwitching = false,
 	nextUserMessage,
 	onShare,
 	onTableFullscreenOpen,
@@ -802,6 +898,9 @@ export function MessageBubble({
 	isLlama?: boolean
 	isLatestAssistant?: boolean
 	onActionClick?: (message: string) => void
+	onEditMessage?: (messageId: string, newText: string, original: Message) => Promise<void>
+	onBranchSwitch?: (leafMessageId: string) => void
+	isBranchSwitching?: boolean
 	nextUserMessage?: string
 	onShare?: (messageId?: string) => void
 	onTableFullscreenOpen?: () => void
@@ -810,54 +909,207 @@ export function MessageBubble({
 	anchorClassName?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const [pastedPreview, setPastedPreview] = useState<{ content: string; filename: string; isPasted?: boolean } | null>(
+		null
+	)
+	const [isEditing, setIsEditing] = useState(false)
+	const [isSaving, setIsSaving] = useState(false)
+	const [draftText, setDraftText] = useState(message.content || '')
 	const hackerMode = useHackerMode()
+	const handleCancelEdit = () => {
+		if (isSaving) return
+		setIsEditing(false)
+		setDraftText(message.content || '')
+	}
+	const handleSaveEdit = async () => {
+		const next = draftText.trim()
+		if (!message.id || !next || next === message.content?.trim() || isSaving) return
+		setIsSaving(true)
+		try {
+			await onEditMessage?.(message.id, next, message)
+			setIsEditing(false)
+		} catch {
+			// textarea stays open with draft preserved; parent rolled back state and surfaced an error
+		} finally {
+			setIsSaving(false)
+		}
+	}
 	if (message.role === 'user') {
+		const isPersistedId = !!message.id && !/^(local|persisted|shared)-/.test(message.id)
+		const canEdit = isPersistedId && !!onEditMessage
+		const canSwitchBranch = isPersistedId && !!onBranchSwitch
+		const hasControls = isPersistedId && !isDraft && !readOnly && (canEdit || canSwitchBranch)
 		return (
 			<div
 				id={anchorId}
 				ref={anchorRef}
-				className={`ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425] ${anchorClassName ?? ''}`}
+				className={`group/msg ml-auto flex w-full max-w-[80%] flex-col items-end ${anchorClassName ?? ''}`}
 			>
-				{message.quotedText ? (
-					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
-						<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
-					</div>
-				) : null}
-				{message.images && message.images.length > 0 ? (
-					<div className="mb-2.5 flex flex-wrap gap-3">
-						{message.images.map((image) => {
-							const isImage = image.mimeType?.startsWith('image/')
-							const displayName = image.originalFilename || image.filename || 'File'
-							if (isImage) {
+				<div
+					className={`${isEditing ? 'w-full' : 'w-fit max-w-full'} rounded-lg rounded-tr-none px-3.5 py-2.5 wrap-break-word transition-[background-color,box-shadow] duration-150 ${
+						isEditing
+							? 'bg-white shadow-[inset_0_0_0_1px_rgba(59,130,246,0.35)] dark:bg-[#1a1c1d] dark:shadow-[inset_0_0_0_1px_rgba(96,165,250,0.3)]'
+							: 'bg-[#ececec] dark:bg-[#222425]'
+					}`}
+				>
+					{message.quotedText ? (
+						<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
+							<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">{message.quotedText}</p>
+						</div>
+					) : null}
+					{message.images && message.images.length > 0 ? (
+						<div className="mb-2.5 flex flex-wrap gap-3">
+							{message.images.map((image) => {
+								const isImage = image.mimeType?.startsWith('image/')
+								const displayName = image.originalFilename || image.filename || 'File'
+								if (isImage) {
+									return (
+										<button
+											key={`sent-image-${image.url}`}
+											type="button"
+											onClick={() => setPreviewImage(image.url)}
+											className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+										>
+											<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
+										</button>
+									)
+								}
+								const normalizedMime = image.mimeType?.split(';')[0].trim().toLowerCase()
+								const isTextMime =
+									normalizedMime === 'text/plain' || normalizedMime === 'text/markdown' || normalizedMime === 'text/csv'
+								if (isTextMime) {
+									const isPasted = !!image.originalFilename && /^Pasted-\d+/.test(image.originalFilename)
+									return (
+										<TextChip
+											key={`sent-file-${image.url}`}
+											name={displayName}
+											sizeBytes={image.size ?? 0}
+											textContent={image.textContent ?? ''}
+											isPasted={isPasted}
+											onOpen={async () => {
+												let content = image.textContent
+												if (typeof content !== 'string') {
+													try {
+														const res = await fetch(image.url)
+														content = res.ok ? await res.text() : ''
+													} catch {
+														content = ''
+													}
+												}
+												setPastedPreview({ content, filename: displayName, isPasted })
+											}}
+										/>
+									)
+								}
 								return (
-									<button
-										key={`sent-image-${image.url}`}
-										type="button"
-										onClick={() => setPreviewImage(image.url)}
-										className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+									<a
+										key={`sent-file-${image.url}`}
+										href={image.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="flex h-16 items-center gap-2 rounded-lg bg-black/10 px-3 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15"
 									>
-										<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
-									</button>
+										<Icon name="file-text" height={18} width={18} />
+										<span className="max-w-[120px] truncate text-xs">{displayName}</span>
+										<Icon name="external-link" height={12} width={12} className="opacity-50" />
+									</a>
 								)
-							}
-							return (
-								<a
-									key={`sent-file-${image.url}`}
-									href={image.url}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex h-16 items-center gap-2 rounded-lg bg-black/10 px-3 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15"
-								>
-									<Icon name="file-text" height={18} width={18} />
-									<span className="max-w-[120px] truncate text-xs">{displayName}</span>
-									<Icon name="external-link" height={12} width={12} className="opacity-50" />
-								</a>
-							)
-						})}
+							})}
+						</div>
+					) : null}
+					{isEditing ? (
+						<textarea
+							value={draftText}
+							onChange={(event) => setDraftText(event.target.value)}
+							onKeyDown={(event) => {
+								if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+									event.preventDefault()
+									event.stopPropagation()
+									void handleSaveEdit()
+									return
+								}
+								if (event.key === 'Escape') {
+									event.preventDefault()
+									event.stopPropagation()
+									handleCancelEdit()
+								}
+							}}
+							className="block w-full resize-none bg-transparent leading-snug focus:outline-none"
+							rows={Math.min(10, Math.max(2, draftText.split('\n').length + 1))}
+							autoFocus
+						/>
+					) : (
+						<p className="whitespace-pre-wrap">{message.content}</p>
+					)}
+				</div>
+
+				{isEditing ? (
+					<div className="mt-2 flex w-full items-center gap-3">
+						<p className="mr-auto text-[11px] text-[#999] dark:text-[#666]">
+							{isPersistedId ? 'Saving creates a new branch' : 'This will replace your message'}
+							<span className="hidden sm:inline">
+								{' · '}
+								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+									⌘↵
+								</kbd>
+								<span className="mx-1">save</span>
+								<kbd className="rounded border border-black/10 bg-white/70 px-1 py-px font-mono text-[10px] text-[#666] dark:border-white/10 dark:bg-white/5 dark:text-[#888]">
+									esc
+								</kbd>
+								<span className="ml-1">cancel</span>
+							</span>
+						</p>
+						<button
+							type="button"
+							onClick={handleCancelEdit}
+							disabled={isSaving}
+							className="rounded-md px-2.5 py-1 text-[12px] text-[#666] transition-colors hover:bg-black/5 hover:text-[#222] disabled:cursor-not-allowed disabled:opacity-40 dark:text-[#999] dark:hover:bg-white/5 dark:hover:text-white"
+						>
+							Cancel
+						</button>
+						<button
+							type="button"
+							onClick={handleSaveEdit}
+							disabled={isSaving || !draftText.trim() || draftText.trim() === message.content?.trim()}
+							className="rounded-md bg-blue-600 px-3 py-1 text-[12px] font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-blue-600"
+						>
+							{isSaving ? 'Saving…' : 'Save'}
+						</button>
+					</div>
+				) : hasControls ? (
+					<div className="mt-1 flex items-center gap-0.5 opacity-100 transition-opacity duration-150 sm:opacity-0 sm:group-hover/msg:opacity-100 sm:focus-within:opacity-100">
+						{canSwitchBranch && message.siblingInfo && message.siblingInfo.totalVersions > 1 && onBranchSwitch ? (
+							<BranchArrows info={message.siblingInfo} onSwitch={onBranchSwitch} disabled={isBranchSwitching} />
+						) : null}
+						{canEdit ? (
+							<Tooltip
+								content="Edit message"
+								render={
+									<button
+										type="button"
+										onClick={() => {
+											setIsEditing(true)
+											setDraftText(message.content || '')
+										}}
+										aria-label="Edit message"
+									/>
+								}
+								className="rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
+							>
+								<Icon name="pencil" height={14} width={14} />
+							</Tooltip>
+						) : null}
 					</div>
 				) : null}
-				<p>{message.content}</p>
-				<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
+
+				<ImagePreviewModal
+					imageUrl={previewImage}
+					onClose={() => setPreviewImage(null)}
+					source="user-upload"
+					sessionId={sessionId}
+					messageId={message.id}
+				/>
+				<PastedContentModal preview={pastedPreview} onClose={() => setPastedPreview(null)} />
 			</div>
 		)
 	}
@@ -877,7 +1129,13 @@ export function MessageBubble({
 				onTableFullscreenOpen={onTableFullscreenOpen}
 				onImageClick={setPreviewImage}
 			/>
-			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
+			<ImagePreviewModal
+				imageUrl={previewImage}
+				onClose={() => setPreviewImage(null)}
+				source="generated"
+				sessionId={sessionId}
+				messageId={message.id}
+			/>
 			{message.id && !isDraft ? (
 				<ResponseControls
 					messageId={message.id}

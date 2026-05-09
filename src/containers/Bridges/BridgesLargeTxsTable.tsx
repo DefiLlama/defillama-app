@@ -1,6 +1,5 @@
 import {
 	type ColumnOrderState,
-	type ColumnSizingState,
 	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
@@ -12,8 +11,8 @@ import { useBlockExplorers } from '~/api/client'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnOrders } from '~/components/Table/utils'
+import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { formattedNum, slug, toNiceDayAndHour } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 
@@ -41,39 +40,10 @@ const largeTxsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['date', 'symbol', 'usdValue', 'isDeposit', 'bridge', 'txHash'],
 	1024: ['date', 'bridge', 'isDeposit', 'symbol', 'usdValue', 'txHash']
 }
-
-const largeTxsColumnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		date: 120,
-		bridge: 140,
-		usdValue: 120,
-		isDeposit: 140,
-		symbol: 100,
-		txHash: 160
-	},
-	480: {
-		date: 120,
-		bridge: 140,
-		usdValue: 120,
-		isDeposit: 140,
-		symbol: 120,
-		txHash: 160
-	},
-	1024: {
-		date: 140,
-		bridge: 160,
-		usdValue: 120,
-		isDeposit: 140,
-		symbol: 120,
-		txHash: 160
-	}
-}
-
 export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle, BridgesLargeTxsTableProps>(
 	function BridgesLargeTxsTable({ data, csvFileName = 'bridge-transactions' }, ref) {
 		const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
 		const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-		const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 		const { data: blockExplorersData } = useBlockExplorers()
 
 		const columns = React.useMemo(
@@ -81,7 +51,9 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 				columnHelper.accessor('date', {
 					header: 'Timestamp',
 					cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
-					size: 120
+					meta: {
+						headerClassName: 'w-[120px] lg:w-[140px]'
+					}
 				}),
 				columnHelper.accessor('bridge', {
 					header: 'Bridge',
@@ -97,7 +69,9 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 							</BasicLink>
 						)
 					},
-					size: 180
+					meta: {
+						headerClassName: 'w-[140px] lg:w-[160px]'
+					}
 				}),
 				columnHelper.accessor('isDeposit', {
 					header: 'Deposit/Withdrawal',
@@ -109,8 +83,8 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 							</span>
 						)
 					},
-					size: 120,
 					meta: {
+						headerClassName: 'w-[140px]',
 						align: 'end'
 					}
 				}),
@@ -145,16 +119,16 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 							</a>
 						)
 					},
-					size: 100,
 					meta: {
+						headerClassName: 'w-[100px] min-[480px]:w-[120px]',
 						align: 'end'
 					}
 				}),
 				columnHelper.accessor('usdValue', {
 					header: 'Value',
 					cell: (info) => formattedNum(info.getValue(), true),
-					size: 120,
 					meta: {
+						headerClassName: 'w-[120px]',
 						align: 'end'
 					}
 				}),
@@ -187,9 +161,9 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 						)
 					},
 					meta: {
+						headerClassName: 'w-[160px]',
 						align: 'end'
-					},
-					size: 100
+					}
 				})
 			],
 			[blockExplorersData]
@@ -200,8 +174,7 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 			columns,
 			state: {
 				sorting,
-				columnOrder,
-				columnSizing
+				columnOrder
 			},
 			defaultColumn: {
 				sortUndefined: 'last'
@@ -209,14 +182,12 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 			enableSortingRemoval: false,
 			onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 			onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
-			onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 			getCoreRowModel: getCoreRowModel(),
 			getSortedRowModel: getSortedRowModel()
 		})
 
-		useSortColumnSizesAndOrders({
+		useSortColumnOrders({
 			instance,
-			columnSizes: largeTxsColumnSizes,
 			columnOrders: largeTxsColumnOrders
 		})
 

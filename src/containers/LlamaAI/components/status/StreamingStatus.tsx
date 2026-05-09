@@ -56,6 +56,8 @@ export const TOOL_LABELS: Record<string, string> = {
 	x_get_community_members: 'Fetching community members',
 	x_get_community_posts: 'Fetching community posts',
 	query_allium: 'Querying onchain data',
+	query_dune: 'Querying Dune',
+	x_semantic_search: 'Searching X/Twitter',
 	apollo_org_search: 'Searching organizations',
 	apollo_people_search: 'Searching people',
 	apollo_people_enrich: 'Enriching people data',
@@ -89,6 +91,13 @@ export const TOOL_LABELS: Record<string, string> = {
 	nansen_pm_pnl: 'Fetching market PnL',
 	nansen_pm_ohlcv: 'Fetching market OHLCV'
 }
+
+export const getToolLabel = (name: string): string =>
+	TOOL_LABELS[name] ??
+	name
+		.split('_')
+		.map((word) => (word ? word[0].toUpperCase() + word.slice(1) : word))
+		.join(' ')
 
 export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	execute_sql: { icon: 'layers', color: '#6366f1' },
@@ -141,6 +150,8 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	x_get_community_members: { icon: 'twitter', color: '#94a3b8' },
 	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' },
 	query_allium: { icon: 'layers', color: '#6366f1' },
+	query_dune: { icon: 'layers', color: '#f59e0b' },
+	x_semantic_search: { icon: 'twitter', color: '#94a3b8' },
 	apollo_org_search: { icon: 'search', color: '#8b5cf6' },
 	apollo_people_search: { icon: 'users', color: '#8b5cf6' },
 	apollo_people_enrich: { icon: 'users', color: '#a78bfa' },
@@ -325,16 +336,18 @@ export function ToolProgressIndicator({
 	thinking,
 	isCompacting,
 	spawnProgress,
+	isWaiting,
 	executionStartedAt
 }: {
 	toolCalls: ToolCall[]
 	thinking?: string
 	isCompacting?: boolean
 	spawnProgress?: Map<string, SpawnAgentStatus>
+	isWaiting?: boolean
 	executionStartedAt?: number
 }) {
 	const hasSpawn = spawnProgress && spawnProgress.size > 0
-	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn
+	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting
 	const hackerMode = useHackerMode()
 
 	if (!hasActivity) return null
@@ -415,7 +428,7 @@ export function ToolProgressIndicator({
 									<span className="text-xs text-[#666] dark:text-[#919296]">
 										{agent.id}
 										{agent.status === 'tool_call' && agent.tool ? (
-											<span className="opacity-60"> — {TOOL_LABELS[agent.tool] || agent.tool}</span>
+											<span className="opacity-60"> — {getToolLabel(agent.tool)}</span>
 										) : null}
 										{agent.status === 'thinking' ? <span className="opacity-60"> — Thinking...</span> : null}
 										{agent.status === 'completed' ? <span className="opacity-60"> — Done</span> : null}
@@ -532,7 +545,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 							<p className="m-0 text-xs text-[#666] dark:text-[#919296]">
 								{agent.id}
 								{agent.status === 'tool_call' && agent.tool ? (
-									<span className="opacity-60"> - {TOOL_LABELS[agent.tool] || agent.tool}</span>
+									<span className="opacity-60"> - {getToolLabel(agent.tool)}</span>
 								) : null}
 								{agent.status === 'completed' ? (
 									<span className="opacity-60">

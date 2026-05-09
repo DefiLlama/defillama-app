@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import {
+	type EffortOption,
 	type LlamaAISettings,
 	type LlamaAISettingsActions,
 	type ModelOption
@@ -12,6 +13,15 @@ import { trackUmamiEvent } from '~/utils/analytics/umami'
 const MAX_LENGTH = 500
 
 type ModalStatus = 'closed' | 'open_clean' | 'open_dirty' | 'committing'
+
+type TabId = 'persona' | 'app' | 'capabilities' | 'lab'
+
+function isEffortAvailableForModel(effort: string, model: string) {
+	const isClaude = model === '' || model.startsWith('anthropic/')
+	if (isClaude) return effort !== 'minimal'
+	if (model.startsWith('openai/')) return effort !== 'max'
+	return true
+}
 
 type ModalAction =
 	| { type: 'OPEN' }
@@ -30,6 +40,7 @@ interface SettingsModalProps {
 	settings: LlamaAISettings
 	actions: LlamaAISettingsActions
 	availableModels?: ModelOption[]
+	availableEfforts?: EffortOption[]
 }
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -53,13 +64,15 @@ export const SettingsModal = memo(function SettingsModal({
 	dialogStore,
 	settings,
 	actions,
-	availableModels
+	availableModels,
+	availableEfforts
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const [isDark] = useDarkModeManager()
 	const [, markNotifBannerDismissed] = useLlamaAINotifyBannerDismissed()
 	const [notifPermission, setNotifPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
 	const [isRequestingNotif, setIsRequestingNotif] = useState(false)
+	const [activeTab, setActiveTab] = useState<TabId>('persona')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 	const baselineRef = useRef(settings.customInstructions.trim())
 	const draftValueRef = useRef(settings.customInstructions)
@@ -142,6 +155,12 @@ export const SettingsModal = memo(function SettingsModal({
 		void commitDraft({ closeAfterCommit: true })
 	}, [commitDraft, isOpen])
 
+	useEffect(() => {
+		if (activeTab === 'lab' && !isDark) {
+			setActiveTab('persona')
+		}
+	}, [activeTab, isDark])
+
 	const handleClear = useCallback(() => {
 		if (textareaRef.current) {
 			textareaRef.current.value = ''
@@ -171,8 +190,59 @@ export const SettingsModal = memo(function SettingsModal({
 		void actions.setEnableSoundNotifications(!settings.enableSoundNotifications)
 	}, [actions, settings.enableSoundNotifications])
 
-	// Re-read permission each time the modal opens so external changes (e.g. user updates browser site
-	// settings) are reflected without a page reload.
+	const handleEnterToSendToggle = useCallback(() => {
+		trackUmamiEvent('llamaai-enter-to-send-toggle')
+		void actions.setEnterToSend(!settings.enterToSend)
+	}, [actions, settings.enterToSend])
+
+	const [spendCapDraft, setSpendCapDraft] = useState<string>(settings.spendCapPerMessage.toFixed(2))
+	const lastCommittedSpendCapRef = useRef<number>(settings.spendCapPerMessage)
+
+	useEffect(() => {
+		if (settings.spendCapPerMessage !== lastCommittedSpendCapRef.current) {
+			lastCommittedSpendCapRef.current = settings.spendCapPerMessage
+			setSpendCapDraft(settings.spendCapPerMessage.toFixed(2))
+		}
+	}, [settings.spendCapPerMessage])
+
+	const commitSpendCap = useCallback(
+		(raw: string) => {
+			const parsed = Number(raw)
+			if (!Number.isFinite(parsed) || parsed < 0) {
+				setSpendCapDraft(lastCommittedSpendCapRef.current.toFixed(2))
+				return
+			}
+			setSpendCapDraft(parsed.toFixed(2))
+			if (parsed === lastCommittedSpendCapRef.current) return
+			lastCommittedSpendCapRef.current = parsed
+			trackUmamiEvent('llamaai-spend-cap-change')
+			void actions.setSpendCapPerMessage(parsed)
+		},
+		[actions]
+	)
+
+	const handleSpendCapChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setSpendCapDraft(e.target.value)
+	}, [])
+
+	const handleSpendCapBlur = useCallback(
+		(e: React.FocusEvent<HTMLInputElement>) => {
+			commitSpendCap(e.target.value)
+		},
+		[commitSpendCap]
+	)
+
+	const handleSpendCapKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLInputElement>) => {
+			if (e.key === 'Enter') {
+				e.preventDefault()
+				commitSpendCap((e.target as HTMLInputElement).value)
+				;(e.target as HTMLInputElement).blur()
+			}
+		},
+		[commitSpendCap]
+	)
+
 	useEffect(() => {
 		if (!isOpen) return
 		if (typeof window === 'undefined' || typeof Notification === 'undefined') {
@@ -186,8 +256,6 @@ export const SettingsModal = memo(function SettingsModal({
 		if (notifPermission !== 'default' || isRequestingNotif) return
 		trackUmamiEvent('llamaai-notify-settings-enable')
 		setIsRequestingNotif(true)
-		// Browser may resolve to 'default' without prompting (quiet UI / throttling) — in that case
-		// mark the banner dismissed so we don't keep inviting the user to click a no-op.
 		Notification.requestPermission()
 			.then((next) => {
 				setNotifPermission(next)
@@ -199,272 +267,432 @@ export const SettingsModal = memo(function SettingsModal({
 
 	const handleModelChange = useCallback(
 		(e: React.ChangeEvent<HTMLSelectElement>) => {
-			void actions.setModel(e.target.value)
+			const nextModel = e.target.value
+			void actions.setModel(nextModel)
+			if (settings.effort && !isEffortAvailableForModel(settings.effort, nextModel)) {
+				void actions.setEffort('')
+			}
 		},
-		[actions]
+		[actions, settings.effort]
+	)
+
+	const handleEffortChange = useCallback(
+		(e: React.ChangeEvent<HTMLSelectElement>) => {
+			const nextEffort = e.target.value
+			if (nextEffort && !isEffortAvailableForModel(nextEffort, settings.model)) return
+			void actions.setEffort(nextEffort)
+		},
+		[actions, settings.model]
 	)
 
 	const showClear = modalState.status === 'open_dirty' || settings.customInstructions.trim().length > 0
+	const notifSupported = notifPermission !== 'unsupported'
+
+	const tabs: Array<{ id: TabId; label: string; icon: 'pencil' | 'gear-settings' | 'sparkles' | 'flame' }> = [
+		{ id: 'persona', label: 'Persona', icon: 'pencil' },
+		{ id: 'app', label: 'App', icon: 'gear-settings' },
+		{ id: 'capabilities', label: 'Capabilities', icon: 'sparkles' }
+	]
+	if (isDark) tabs.push({ id: 'lab', label: 'Lab', icon: 'flame' })
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<Ariakit.Dialog
-				className="dialog max-h-[85vh] max-w-lg gap-0 overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl dark:border-[#39393E] dark:bg-[#222429]"
-				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
+				className="dialog max-h-[88vh] w-full max-w-[720px] gap-0 overflow-hidden rounded-2xl border border-black/5 bg-white p-0 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.35)] dark:border-white/[0.06] dark:bg-[#17181C] dark:shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)]"
+				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-md" />}
 				portal
 				unmountOnHide
 			>
-				<header className="flex items-center justify-between border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-					<div className="flex items-center gap-3">
-						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-(--old-blue)/10 dark:bg-(--old-blue)/15">
-							<Icon name="settings" className="h-5 w-5 text-[#1853A8] dark:text-[#4B86DB]" />
+				<header className="relative overflow-hidden border-b border-black/[0.06] dark:border-white/[0.05]">
+					<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1853A8]/[0.05] via-transparent to-transparent dark:from-[#4B86DB]/[0.07]" />
+					<div className="relative flex items-center justify-between gap-4 px-5 py-4 sm:px-6 sm:py-5">
+						<div className="flex items-center gap-3">
+							<div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#1853A8]/15 to-[#1853A8]/5 ring-1 ring-[#1853A8]/15 ring-inset dark:from-[#4B86DB]/20 dark:to-[#4B86DB]/5 dark:ring-[#4B86DB]/20">
+								<Icon name="settings" className="h-[18px] w-[18px] text-[#1853A8] dark:text-[#4B86DB]" />
+							</div>
+							<div className="flex flex-col leading-tight">
+								<h2 className="m-0 text-[15px] font-semibold tracking-tight text-black dark:text-white">Settings</h2>
+								<p className="m-0 mt-0.5 text-[11px] text-[#777] dark:text-[#919296]">Tune how LlamaAI works for you</p>
+							</div>
 						</div>
-						<h2 className="text-lg font-semibold text-black dark:text-white">Settings</h2>
+						<Ariakit.DialogDismiss className="-mr-1.5 rounded-lg p-2 text-[#666] transition-colors hover:bg-black/[0.05] hover:text-black dark:text-gray-400 dark:hover:bg-white/[0.06] dark:hover:text-white">
+							<Icon name="x" className="h-4 w-4" />
+						</Ariakit.DialogDismiss>
 					</div>
-					<Ariakit.DialogDismiss className="rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
-						<Icon name="x" className="h-5 w-5" />
-					</Ariakit.DialogDismiss>
 				</header>
 
-				<div className="thin-scrollbar max-h-[calc(85vh-73px)] overflow-y-auto">
-					<section className="flex flex-col gap-1.5 px-5 py-4">
-						<div className="flex items-center justify-between">
-							<label
-								htmlFor="llamaai-custom-instructions"
-								className="text-sm font-medium text-[#1a1a1a] dark:text-white"
-							>
-								Custom Instructions
-							</label>
-							{showClear ? (
+				<div className="flex flex-col sm:min-h-[480px] sm:flex-row">
+					<nav
+						aria-label="Settings sections"
+						className="flex shrink-0 gap-1 overflow-x-auto border-b border-black/[0.06] px-2 py-2 sm:w-[180px] sm:flex-col sm:gap-0.5 sm:overflow-visible sm:border-r sm:border-b-0 sm:bg-black/[0.015] sm:p-3 dark:border-white/[0.05] dark:sm:bg-white/[0.012]"
+					>
+						{tabs.map((tab) => {
+							const isActive = activeTab === tab.id
+							return (
 								<button
+									key={tab.id}
 									type="button"
-									onClick={handleClear}
-									className="text-xs text-[#999] transition-colors hover:text-red-500"
-								>
-									Clear
-								</button>
-							) : null}
-						</div>
-						<p className="text-xs text-[#777] dark:text-[#919296]">
-							Tell LlamaAI how to respond. These apply to every conversation.
-						</p>
-						<textarea
-							ref={textareaRef}
-							id="llamaai-custom-instructions"
-							defaultValue={settings.customInstructions}
-							maxLength={MAX_LENGTH}
-							onBlur={() => void commitDraft()}
-							onInput={syncDirtyState}
-							onKeyDown={(e) => {
-								if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-									e.preventDefault()
-									void commitDraft().then(() => dialogStore.hide())
-								}
-							}}
-							placeholder="e.g., Be concise and lead with numbers. Always include % changes."
-							className="mt-1 w-full resize-none rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 text-sm text-[#1a1a1a] placeholder-[#aaa] transition-colors outline-none focus:border-[#1853A8] dark:border-[#39393E] dark:bg-[#1a1b1c] dark:text-white dark:placeholder-[#555] dark:focus:border-[#4B86DB]"
-							rows={4}
-						/>
-						<div className="flex items-center justify-between text-[11px] text-[#999] dark:text-[#666]">
-							<p className="m-0">
-								{charCount}/{MAX_LENGTH} characters
-							</p>
-							<p className="m-0 hidden sm:inline">⌘+Enter to save &amp; close</p>
-						</div>
-					</section>
-
-					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-						<button
-							type="button"
-							role="switch"
-							aria-checked={settings.enableMemory}
-							aria-label="Remember my preferences"
-							onClick={handleMemoryToggle}
-							className="flex w-full items-center justify-between"
-						>
-							<div className="flex flex-col gap-0.5 text-left">
-								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Remember my preferences</p>
-								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
-									Let LlamaAI remember your preferences across conversations for personalized responses.
-								</p>
-							</div>
-							<div
-								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-									settings.enableMemory ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
-								}`}
-							>
-								<div
-									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-										settings.enableMemory ? 'translate-x-4' : 'translate-x-0.5'
-									}`}
-								/>
-							</div>
-						</button>
-					</section>
-
-					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-						<button
-							type="button"
-							role="switch"
-							aria-checked={settings.enableSoundNotifications}
-							aria-label="Completion sound"
-							onClick={handleSoundToggle}
-							className="flex w-full items-center justify-between"
-						>
-							<div className="flex flex-col gap-0.5 text-left">
-								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Completion sound</p>
-								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
-									Play a short chime when LlamaAI finishes responding in a background tab.
-								</p>
-							</div>
-							<div
-								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-									settings.enableSoundNotifications ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
-								}`}
-							>
-								<div
-									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-										settings.enableSoundNotifications ? 'translate-x-4' : 'translate-x-0.5'
-									}`}
-								/>
-							</div>
-						</button>
-					</section>
-
-					{notifPermission !== 'unsupported' ? (
-						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-							<button
-								type="button"
-								role="switch"
-								aria-checked={notifPermission === 'granted'}
-								aria-label="Browser notifications"
-								onClick={handleNotifToggle}
-								className="flex w-full items-center justify-between"
-							>
-								<div className="flex flex-col gap-0.5 text-left">
-									<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Browser notifications</p>
-									<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
-										{notifPermission === 'granted'
-											? 'Enabled. Turn off in your browser site settings.'
-											: notifPermission === 'denied'
-												? 'Blocked. Re-enable in your browser site settings.'
-												: 'Get alerted when LlamaAI finishes responding while the tab is in the background.'}
-									</p>
-								</div>
-								<div
-									className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-										notifPermission === 'granted' ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+									onClick={() => setActiveTab(tab.id)}
+									className={`group relative flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-colors ${
+										isActive
+											? 'bg-white text-[#1853A8] shadow-[0_1px_2px_rgba(0,0,0,0.05)] ring-1 ring-black/[0.06] dark:bg-white/[0.06] dark:text-[#4B86DB] dark:shadow-none dark:ring-white/[0.06]'
+											: 'text-[#666] hover:bg-black/[0.03] hover:text-black dark:text-[#a0a0a5] dark:hover:bg-white/[0.03] dark:hover:text-white'
 									}`}
 								>
-									<div
-										className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-											notifPermission === 'granted' ? 'translate-x-4' : 'translate-x-0.5'
+									<Icon
+										name={tab.icon}
+										className={`h-[14px] w-[14px] shrink-0 ${
+											isActive ? 'text-[#1853A8] dark:text-[#4B86DB]' : 'text-[#999] dark:text-[#777]'
 										}`}
 									/>
+									<span>{tab.label}</span>
+								</button>
+							)
+						})}
+					</nav>
+
+					<div className="thin-scrollbar max-h-[calc(88vh-130px)] flex-1 overflow-y-auto sm:max-h-[calc(88vh-81px)]">
+						<div className="px-5 py-5 sm:px-6 sm:py-6">
+							{activeTab === 'persona' && (
+								<div className="space-y-6">
+									<div>
+										<SectionHeading
+											title="Custom Instructions"
+											subtitle="Tell LlamaAI how to respond. Applied to every conversation."
+										/>
+										<div className="mt-3 space-y-2">
+											<div className="relative">
+												<textarea
+													ref={textareaRef}
+													id="llamaai-custom-instructions"
+													defaultValue={settings.customInstructions}
+													maxLength={MAX_LENGTH}
+													onBlur={() => void commitDraft()}
+													onInput={syncDirtyState}
+													onKeyDown={(e) => {
+														if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+															e.preventDefault()
+															void commitDraft().then(() => dialogStore.hide())
+														}
+													}}
+													placeholder="e.g., Be concise and lead with numbers. Always include % changes."
+													className="w-full resize-none rounded-xl border border-black/[0.08] bg-black/[0.015] p-3.5 text-sm text-[#1a1a1a] placeholder-[#aaa] transition-all outline-none focus:border-[#1853A8]/40 focus:bg-white focus:ring-4 focus:ring-[#1853A8]/[0.08] dark:border-white/[0.08] dark:bg-white/[0.02] dark:text-white dark:placeholder-[#555] dark:focus:border-[#4B86DB]/40 dark:focus:bg-white/[0.04] dark:focus:ring-[#4B86DB]/[0.1]"
+													rows={5}
+												/>
+												{showClear ? (
+													<button
+														type="button"
+														onClick={handleClear}
+														className="absolute top-2.5 right-2.5 rounded-md px-2 py-1 text-[10px] font-medium text-[#999] transition-colors hover:bg-red-500/10 hover:text-red-500"
+													>
+														Clear
+													</button>
+												) : null}
+											</div>
+											<div className="flex items-center justify-between font-mono text-[10.5px] text-[#999] dark:text-[#666]">
+												<span>
+													{charCount}/{MAX_LENGTH}
+												</span>
+												<span className="hidden sm:inline">⌘↵ to save & close</span>
+											</div>
+										</div>
+									</div>
+
+									<SettingsCard>
+										<ToggleRow
+											label="Remember preferences"
+											description="Let LlamaAI remember your preferences across conversations for personalized responses."
+											checked={settings.enableMemory}
+											onClick={handleMemoryToggle}
+										/>
+									</SettingsCard>
 								</div>
-							</button>
-						</section>
-					) : null}
+							)}
 
-					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-						<button
-							type="button"
-							role="switch"
-							aria-checked={settings.enablePremiumTools}
-							aria-label="Premium data tools"
-							onClick={handlePremiumToolsToggle}
-							className="flex w-full items-center justify-between"
-						>
-							<div className="flex flex-col gap-0.5 text-left">
-								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Premium data tools</p>
-								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
-									Enable paid tools like X/Twitter data, people search, and smart money analytics. Uses your external
-									data balance
-								</p>
-							</div>
-							<div
-								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-									settings.enablePremiumTools ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
-								}`}
-							>
-								<div
-									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
-										settings.enablePremiumTools ? 'translate-x-4' : 'translate-x-0.5'
-									}`}
-								/>
-							</div>
-						</button>
-					</section>
+							{activeTab === 'app' && (
+								<div className="space-y-5">
+									<SectionHeading title="Interface" subtitle="How LlamaAI interacts with you in this browser." />
+									<SettingsCard>
+										<ToggleRow
+											label="Completion sound"
+											description="Play a short chime when LlamaAI finishes responding in a background tab."
+											checked={settings.enableSoundNotifications}
+											onClick={handleSoundToggle}
+										/>
+										<RowDivider />
+										<ToggleRow
+											label="Enter to send"
+											description={
+												settings.enterToSend
+													? 'Press Enter to send and Shift+Enter for a new line.'
+													: 'Press Enter for a new line and Shift+Enter to send.'
+											}
+											checked={settings.enterToSend}
+											onClick={handleEnterToSendToggle}
+										/>
+										{notifSupported ? (
+											<>
+												<RowDivider />
+												<ToggleRow
+													label="Browser notifications"
+													description={
+														notifPermission === 'granted'
+															? 'Enabled. Turn off in your browser site settings.'
+															: notifPermission === 'denied'
+																? 'Blocked. Re-enable in your browser site settings.'
+																: 'Get alerted when LlamaAI finishes responding while the tab is in the background.'
+													}
+													checked={notifPermission === 'granted'}
+													onClick={handleNotifToggle}
+													interactive={notifPermission === 'default' && !isRequestingNotif}
+												/>
+											</>
+										) : null}
+									</SettingsCard>
+								</div>
+							)}
 
-					{isDark ? (
-						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-							<button
-								type="button"
-								role="switch"
-								aria-checked={settings.hackerMode}
-								aria-label="Hacker Mode"
-								onClick={handleHackerToggle}
-								className="flex w-full items-center justify-between"
-							>
-								<div className="flex items-center gap-3 text-left">
-									<img src="/assets/llamaai/hackerllama.webp" alt="Hacker Llama" className="h-9 w-9 rounded-lg" />
-									<div className="flex flex-col gap-0.5">
-										<p
-											className={`m-0 text-sm font-medium ${
-												settings.hackerMode
-													? 'font-mono text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
-													: 'text-[#1a1a1a] dark:text-white'
+							{activeTab === 'capabilities' && (
+								<div className="space-y-6">
+									<div>
+										<SectionHeading title="Premium tools" subtitle="Paid data sources for deeper research." />
+										<div className="mt-3 space-y-3">
+											<SettingsCard>
+												<ToggleRow
+													label="Enable premium tools"
+													description="X/Twitter data, people search, and smart-money analytics. Uses your external data balance."
+													checked={settings.enablePremiumTools}
+													onClick={handlePremiumToolsToggle}
+												/>
+											</SettingsCard>
+											{settings.enablePremiumTools ? (
+												<div className="rounded-xl border border-black/[0.06] bg-black/[0.015] p-4 dark:border-white/[0.06] dark:bg-white/[0.015]">
+													<label
+														htmlFor="llamaai-spend-cap"
+														className="block text-[13px] font-medium text-[#1a1a1a] dark:text-white"
+													>
+														Spend cap per message
+													</label>
+													<p className="mt-1 text-xs text-[#777] dark:text-[#919296]">
+														Max external-data spend per message in USD. Each new message gets a fresh budget. Default
+														$0.50.
+													</p>
+													<div className="mt-3 flex items-center gap-1 rounded-lg border border-black/[0.08] bg-white px-3 py-2 transition-colors focus-within:border-[#1853A8]/40 focus-within:ring-4 focus-within:ring-[#1853A8]/[0.08] dark:border-white/[0.08] dark:bg-[#1a1b1c] dark:focus-within:border-[#4B86DB]/40 dark:focus-within:ring-[#4B86DB]/[0.1]">
+														<span className="font-mono text-sm text-[#999] dark:text-[#666]">$</span>
+														<input
+															id="llamaai-spend-cap"
+															type="number"
+															inputMode="decimal"
+															min={0}
+															step={0.05}
+															value={spendCapDraft}
+															onChange={handleSpendCapChange}
+															onBlur={handleSpendCapBlur}
+															onKeyDown={handleSpendCapKeyDown}
+															className="w-full bg-transparent font-mono text-sm text-[#1a1a1a] outline-none dark:text-white"
+														/>
+													</div>
+												</div>
+											) : null}
+										</div>
+									</div>
+
+									{availableModels && availableModels.length > 0 ? (
+										<div>
+											<SectionHeading title="Model" subtitle="Override the AI model that powers your responses." />
+											<div className="mt-3 space-y-3 rounded-xl border border-black/[0.06] bg-black/[0.015] p-4 dark:border-white/[0.06] dark:bg-white/[0.015]">
+												<SelectField
+													id="llamaai-model-select"
+													label="Model"
+													value={settings.model}
+													onChange={handleModelChange}
+												>
+													<option value="">Default (Sonnet 4.6)</option>
+													{availableModels.map((m) => (
+														<option key={m.id} value={m.id}>
+															{m.label}
+														</option>
+													))}
+												</SelectField>
+												{availableEfforts && availableEfforts.length > 0 ? (
+													<SelectField
+														id="llamaai-effort-select"
+														label="Reasoning effort"
+														value={settings.effort}
+														onChange={handleEffortChange}
+													>
+														<option value="">Default</option>
+														{availableEfforts.map((effort) => (
+															<option
+																key={effort.id}
+																value={effort.id}
+																disabled={!isEffortAvailableForModel(effort.id, settings.model)}
+															>
+																{effort.label}
+															</option>
+														))}
+													</SelectField>
+												) : null}
+											</div>
+										</div>
+									) : null}
+								</div>
+							)}
+
+							{activeTab === 'lab' && isDark ? (
+								<div className="space-y-5">
+									<SectionHeading title="Experimental" subtitle="Bleeding-edge modes. Things may get weird." />
+									<button
+										type="button"
+										role="switch"
+										aria-checked={settings.hackerMode}
+										aria-label="Hacker Mode"
+										onClick={handleHackerToggle}
+										className={`group relative flex w-full items-center justify-between gap-4 overflow-hidden rounded-xl p-4 text-left transition-all ${
+											settings.hackerMode
+												? 'bg-[#0a0a0a] shadow-[0_0_40px_rgba(0,255,65,0.08)] ring-1 ring-[#00ff41]/30'
+												: 'bg-white/[0.02] ring-1 ring-white/[0.08] hover:ring-white/[0.16]'
+										}`}
+									>
+										{settings.hackerMode ? (
+											<div className="pointer-events-none absolute inset-0 opacity-40">
+												<div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,255,65,0.18)_1px,transparent_1px)] bg-[length:14px_14px]" />
+											</div>
+										) : null}
+										<div className="relative flex items-center gap-3">
+											<img src="/assets/llamaai/hackerllama.webp" alt="" className="h-11 w-11 rounded-lg shadow-sm" />
+											<div className="flex flex-col gap-0.5">
+												<p
+													className={`m-0 text-sm font-medium ${
+														settings.hackerMode
+															? 'font-mono text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
+															: 'text-white'
+													}`}
+												>
+													{settings.hackerMode ? '> hacker_mode --active' : 'Hacker Mode'}
+												</p>
+												<p className="m-0 text-xs text-[#919296]">
+													Watch the llama hack through your questions in green.
+												</p>
+											</div>
+										</div>
+										<div
+											className={`relative ml-3 h-[22px] w-[38px] shrink-0 rounded-full transition-colors ${
+												settings.hackerMode ? 'bg-[#00ff41] shadow-[0_0_10px_rgba(0,255,65,0.45)]' : 'bg-white/15'
 											}`}
 										>
-											{settings.hackerMode ? '> hacker_mode --active' : 'Hacker Mode'}
-										</p>
-										<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
-											Watch the llama hack through your questions in green.
-										</p>
-									</div>
+											<div
+												className={`absolute top-[3px] h-4 w-4 rounded-full shadow transition-transform duration-200 ${
+													settings.hackerMode ? 'translate-x-[19px] bg-[#0d0d0d]' : 'translate-x-[3px] bg-white'
+												}`}
+											/>
+										</div>
+									</button>
 								</div>
-								<div
-									className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
-										settings.hackerMode
-											? 'bg-[#00ff41] shadow-[0_0_8px_rgba(0,255,65,0.4)]'
-											: 'bg-[#d1d1d1] dark:bg-[#555]'
-									}`}
-								>
-									<div
-										className={`absolute top-0.5 h-4 w-4 rounded-full shadow transition-transform ${
-											settings.hackerMode ? 'translate-x-4 bg-[#0d0d0d]' : 'translate-x-0.5 bg-white'
-										}`}
-									/>
-								</div>
-							</button>
-						</section>
-					) : null}
-
-					{availableModels && availableModels.length > 0 ? (
-						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-							<div className="flex flex-col gap-1.5">
-								<label htmlFor="llamaai-model-select" className="text-sm font-medium text-[#1a1a1a] dark:text-white">
-									Model
-								</label>
-								<p className="text-xs text-[#777] dark:text-[#919296]">Override the AI model used for responses.</p>
-								<select
-									id="llamaai-model-select"
-									value={settings.model}
-									onChange={handleModelChange}
-									className="mt-1 w-full rounded-lg border border-[#e6e6e6] bg-[#fafafa] px-3 py-2 text-sm text-[#1a1a1a] transition-colors outline-none focus:border-[#1853A8] dark:border-[#39393E] dark:bg-[#1a1b1c] dark:text-white dark:focus:border-[#4B86DB]"
-								>
-									<option value="">Default (Sonnet 4.6)</option>
-									{availableModels.map((m) => (
-										<option key={m.id} value={m.id}>
-											{m.label}
-										</option>
-									))}
-								</select>
-							</div>
-						</section>
-					) : null}
+							) : null}
+						</div>
+					</div>
 				</div>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
 })
+
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+	return (
+		<div className="space-y-1">
+			<h3 className="m-0 text-[13px] font-semibold tracking-tight text-[#1a1a1a] dark:text-white">{title}</h3>
+			{subtitle ? <p className="m-0 text-xs text-[#777] dark:text-[#919296]">{subtitle}</p> : null}
+		</div>
+	)
+}
+
+function SettingsCard({ children }: { children: React.ReactNode }) {
+	return (
+		<div className="overflow-hidden rounded-xl border border-black/[0.06] bg-black/[0.015] dark:border-white/[0.06] dark:bg-white/[0.015]">
+			{children}
+		</div>
+	)
+}
+
+function RowDivider() {
+	return <div className="mx-4 h-px bg-black/[0.05] dark:bg-white/[0.05]" />
+}
+
+function ToggleRow({
+	label,
+	description,
+	checked,
+	onClick,
+	interactive = true
+}: {
+	label: string
+	description: string
+	checked: boolean
+	onClick: () => void
+	interactive?: boolean
+}) {
+	return (
+		<button
+			type="button"
+			role="switch"
+			aria-checked={checked}
+			aria-label={label}
+			onClick={onClick}
+			disabled={!interactive}
+			className="group flex w-full items-start justify-between gap-4 px-4 py-3.5 text-left transition-colors hover:bg-black/[0.02] disabled:cursor-default disabled:hover:bg-transparent dark:hover:bg-white/[0.02]"
+		>
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+				<p className="m-0 text-[13.5px] font-medium text-[#1a1a1a] dark:text-white">{label}</p>
+				<p className="m-0 text-xs leading-relaxed text-[#777] dark:text-[#919296]">{description}</p>
+			</div>
+			<div
+				className={`relative mt-0.5 h-[22px] w-[38px] shrink-0 rounded-full transition-colors ${
+					checked ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-black/15 dark:bg-white/15'
+				}`}
+			>
+				<div
+					className={`absolute top-[3px] h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+						checked ? 'translate-x-[19px]' : 'translate-x-[3px]'
+					}`}
+				/>
+			</div>
+		</button>
+	)
+}
+
+function SelectField({
+	id,
+	label,
+	value,
+	onChange,
+	children
+}: {
+	id: string
+	label: string
+	value: string
+	onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
+	children: React.ReactNode
+}) {
+	return (
+		<div className="flex flex-col gap-1.5">
+			<label htmlFor={id} className="text-[12px] font-medium text-[#666] dark:text-[#a0a0a5]">
+				{label}
+			</label>
+			<div className="relative">
+				<select
+					id={id}
+					value={value}
+					onChange={onChange}
+					className="w-full appearance-none rounded-lg border border-black/[0.08] bg-white px-3 py-2 pr-9 text-sm text-[#1a1a1a] transition-colors outline-none focus:border-[#1853A8]/40 focus:ring-4 focus:ring-[#1853A8]/[0.08] dark:border-white/[0.08] dark:bg-[#1a1b1c] dark:text-white dark:focus:border-[#4B86DB]/40 dark:focus:ring-[#4B86DB]/[0.1]"
+				>
+					{children}
+				</select>
+				<Icon
+					name="chevron-down"
+					className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[#999] dark:text-[#666]"
+				/>
+			</div>
+		</div>
+	)
+}

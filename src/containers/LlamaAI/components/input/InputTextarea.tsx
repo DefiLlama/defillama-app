@@ -12,6 +12,7 @@ interface InputTextareaProps {
 	isStreaming?: boolean
 	onScroll: () => void
 	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+	onKeyDownCapture: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
 	onPaste: (e: React.ClipboardEvent<Element>) => void
 	onCompositionStart?: () => void
@@ -29,6 +30,7 @@ export function InputTextarea({
 	isStreaming,
 	onScroll,
 	onChange,
+	onKeyDownCapture,
 	onKeyDown,
 	onPaste,
 	onCompositionStart,
@@ -54,6 +56,7 @@ export function InputTextarea({
 						onScroll={onScroll}
 						onPointerDown={combobox.hide}
 						onChange={onChange}
+						onKeyDownCapture={onKeyDownCapture}
 						onKeyDown={onKeyDown}
 						onPaste={onPaste}
 						onCompositionStart={onCompositionStart}

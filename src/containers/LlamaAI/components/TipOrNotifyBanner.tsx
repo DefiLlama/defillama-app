@@ -1,8 +1,8 @@
 import { LlamaAITipBanner } from '~/containers/LlamaAI/components/LlamaAITipBanner'
 import { NotificationPermissionBanner } from '~/containers/LlamaAI/components/NotificationPermissionBanner'
-import { useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import { useActiveTip } from '~/containers/LlamaAI/hooks/useLlamaAITip'
 
 export function TipOrNotifyBanner() {
-	const { tip } = useLlamaAISettings()
+	const { tip } = useActiveTip()
 	return tip ? <LlamaAITipBanner /> : <NotificationPermissionBanner />
 }

@@ -1098,6 +1098,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				img.decoding = 'async'
 				img.title = String(catVal)
 				img.style.cssText = `position:absolute;left:${x - CATEGORY_LOGO_SIZE / 2}px;top:${centerY - CATEGORY_LOGO_SIZE / 2}px;width:${CATEGORY_LOGO_SIZE}px;height:${CATEGORY_LOGO_SIZE}px;border-radius:50%;object-fit:cover;background:${darkBg};pointer-events:none;`
+				img.onerror = () => img.remove()
 				layer.appendChild(img)
 			}
 		}

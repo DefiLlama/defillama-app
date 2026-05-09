@@ -153,7 +153,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		accessModels: props.accessModels,
 		issuers: props.issuers,
 		assetGroups: props.assetGroups,
+		chainSlug: props.chainSlug,
 		categorySlug: props.categorySlug,
+		platformSlug: props.platformSlug,
+		assetGroupSlug: props.assetGroupSlug,
 		mode
 	})
 
@@ -194,7 +197,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		maxDefiActiveTvlToActiveMcapPct
 	})
 
-	const activeFilters = hasActiveChartFilters(router.query, mode, props.categorySlug)
+	const activeFilters = hasActiveChartFilters(router.query, {
+		mode,
+		chainSlug: props.chainSlug,
+		categorySlug: props.categorySlug,
+		platformSlug: props.platformSlug,
+		assetGroupSlug: props.assetGroupSlug
+	})
 	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
 	const chartTarget = getAssetChartTarget(props)
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({

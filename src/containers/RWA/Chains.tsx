@@ -5,7 +5,7 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import type {} from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
@@ -45,50 +45,61 @@ const columns = [
 				</span>
 			)
 		},
-		size: 220
+		meta: {
+			headerClassName: 'w-[160px] sm:w-[220px]'
+		}
 	}),
 	columnHelper.accessor((row) => row.totalAssetIssuers ?? undefined, {
 		id: 'totalAssetIssuers',
 		header: definitions.totalAssetIssuers.label,
 		cell: (info) => formattedNum(info.getValue(), false),
-		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end',
+			headerHelperText: definitions.totalAssetIssuers.description
+		}
 	}),
 	columnHelper.accessor((row) => row.totalAssetCount ?? undefined, {
 		id: 'totalAssetCount',
 		header: definitions.totalAssetCount.label,
 		cell: (info) => formattedNum(info.getValue(), false),
-		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
-		size: 160
+		meta: {
+			headerClassName: 'w-[160px]',
+			align: 'end',
+			headerHelperText: definitions.totalAssetCount.description
+		}
 	}),
 	columnHelper.accessor((row) => row.totalActiveMcap ?? undefined, {
 		id: 'totalActiveMcap',
 		header: definitions.totalActiveMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
-		size: 200
+		meta: {
+			headerClassName: 'w-[min(200px,40vw)]',
+			align: 'end',
+			headerHelperText: definitions.totalActiveMcap.description
+		}
 	}),
 	columnHelper.accessor((row) => row.totalOnChainMcap ?? undefined, {
 		id: 'totalOnChainMcap',
 		header: definitions.totalOnChainMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
-		size: 208
+		meta: {
+			headerClassName: 'w-[min(208px,40vw)]',
+			align: 'end',
+			headerHelperText: definitions.totalOnChainMcap.description
+		}
 	}),
 	columnHelper.accessor((row) => row.totalDefiActiveTvl ?? undefined, {
 		id: 'totalDefiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
 		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 140
+		meta: {
+			headerClassName: 'w-[140px]',
+			align: 'end',
+			headerHelperText: definitions.totalDefiActiveTvl.description
+		}
 	})
 ]
-
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: { chain: 160 },
-	640: { chain: 220 }
-}
-
 export function RWAChains({
 	chains,
 	initialChartDataset,
@@ -213,7 +224,6 @@ export function RWAChains({
 				columnToSearch="chain"
 				header="Chains"
 				headingAs="h1"
-				columnSizes={columnSizes}
 				csvFileName={csvFileName}
 				sortingState={[{ id: 'totalActiveMcap', desc: true }]}
 			/>

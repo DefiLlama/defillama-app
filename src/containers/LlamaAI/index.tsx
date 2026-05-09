@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
 import {
 	lazy,
@@ -32,7 +33,7 @@ import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimi
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { ShareModal } from '~/containers/LlamaAI/components/ShareModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
-import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { getToolLabel } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TipActionProvider } from '~/containers/LlamaAI/components/TipActionContext'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
@@ -120,11 +121,20 @@ interface PersistedMessage {
 	citations?: string[]
 	csvExports?: CsvExport[]
 	mdExports?: MdExport[]
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
 	messageId?: string
+	parentId?: string
+	siblingInfo?: Message['siblingInfo']
 	timestamp?: string | number
 	savedAlertIds?: string[]
 }
@@ -132,6 +142,7 @@ interface PersistedMessage {
 interface SharedSession {
 	session: { sessionId: string; title: string; createdAt: string; isPublic: boolean }
 	messages: SharedSessionMessage[]
+	activeLeafMessageId?: string
 	isPublicView: true
 }
 
@@ -140,7 +151,14 @@ interface SharedSessionMessage {
 	content: string
 	messageId?: string
 	timestamp: number
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{
+		url: string
+		mimeType: string
+		filename?: string
+		originalFilename?: string
+		textContent?: string
+		size?: number
+	}>
 	generatedImages?: Array<{ id?: string; url: string; size?: string; prompt?: string; revised_prompt?: string }>
 	metadata?: PersistedMessageMetadata
 	charts?: ChartConfiguration[]
@@ -153,6 +171,7 @@ interface SharedSessionMessage {
 
 interface SessionRestoreResult {
 	messages?: PersistedMessage[]
+	activeLeafMessageId?: string
 	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
 }
 
@@ -167,7 +186,7 @@ interface UsageLimitError extends Error {
 	upgradeUrl?: string
 }
 
-type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'branch' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
 
 type RecoveryController = {
@@ -323,6 +342,8 @@ function mapPersistedMessage(message: PersistedMessage, index?: number): Message
 		quotedText: message.metadata?.quotedText,
 		messageMetadata: message.messageMetadata,
 		id: message.messageId ?? (index != null ? `persisted-${index}` : undefined),
+		parentId: message.parentId,
+		siblingInfo: message.siblingInfo,
 		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
 	}
 }
@@ -360,14 +381,12 @@ function normalizePaginationState(
 ): {
 	hasMore: boolean
 	cursor: number | null
-	isLoadingMore: false
 	hasNewer?: boolean
 	newerCursor?: number | null
 } {
 	return {
 		hasMore: pagination?.hasMore || false,
 		cursor: pagination?.cursor ?? null,
-		isLoadingMore: false,
 		hasNewer: pagination?.hasNewer ?? false,
 		newerCursor: pagination?.newerCursor ?? null
 	}
@@ -507,6 +526,15 @@ function createRequestSettleState(requestId: number): Exclude<RequestSettleState
 	return { requestId, promise, resolve }
 }
 
+function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, timeoutMs = 5000) {
+	return Promise.race([
+		settleState.promise,
+		new Promise<void>((resolve) => {
+			window.setTimeout(resolve, timeoutMs)
+		})
+	])
+}
+
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
@@ -520,6 +548,8 @@ function createAgenticCallbacks({
 	onTokenLimit,
 	onDashboardArtifact,
 	appendMessage,
+	replaceLocalUserMessageId,
+	setMessageSiblingInfo,
 	notify
 }: {
 	requestId: number
@@ -533,6 +563,8 @@ function createAgenticCallbacks({
 	onTokenLimit?: () => void
 	onDashboardArtifact?: (dashboard: DashboardArtifact) => void
 	appendMessage: (message: Message) => void
+	replaceLocalUserMessageId?: (realId: string) => void
+	setMessageSiblingInfo?: (messageId: string, siblingInfo: Message['siblingInfo']) => void
 	notify: () => void
 }): AgenticSSECallbacks {
 	return {
@@ -591,7 +623,7 @@ function createAgenticCallbacks({
 		},
 		onProgress: (toolName, isPremium) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			const label = TOOL_LABELS[toolName] || toolName
+			const label = getToolLabel(toolName)
 			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label, ...(isPremium && { isPremium }) }
 			dispatch({ type: 'APPEND_TOOL_CALL', value: toolCall })
 		},
@@ -644,6 +676,14 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			currentMessageIdRef.current = messageId
 		},
+		onUserMessageId: (messageId) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			replaceLocalUserMessageId?.(messageId)
+		},
+		onSiblingInfo: (messageId, siblingInfo) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			setMessageSiblingInfo?.(messageId, siblingInfo)
+		},
 		onTitle: (title) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTitle?.(title)
@@ -651,6 +691,10 @@ function createAgenticCallbacks({
 		onTokenLimit: () => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTokenLimit?.()
+		},
+		onContextWarning: (warning) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_CONTEXT_WARNING', value: warning })
 		},
 		onError: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -745,12 +789,14 @@ export function AgenticChat({
 		restoreSession,
 		loadMoreMessages,
 		loadNewerMessages,
+		switchActiveLeaf,
 		deleteSession,
 		updateSessionTitle,
 		isDeletingSession,
 		isUpdatingTitle,
 		bulkDeleteSessions,
-		pinSession
+		pinSession,
+		isSwitchingActiveLeaf
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar, hideSidebar, isFullscreen, toggleFullscreen } = useSidebarVisibility()
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
@@ -764,6 +810,7 @@ export function AgenticChat({
 	})
 
 	const [messages, setMessages] = useState<Message[]>([])
+	const [activeLeafMessageId, setActiveLeafMessageId] = useState<string | null>(null)
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
@@ -781,7 +828,7 @@ export function AgenticChat({
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
-	const { settings, actions, availableModels } = useLlamaAISettings()
+	const { settings, actions, availableModels, availableEfforts } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -802,11 +849,9 @@ export function AgenticChat({
 	const [paginationState, setPaginationState] = useState<{
 		hasMore: boolean
 		cursor: number | null
-		isLoadingMore: boolean
 		hasNewer?: boolean
 		newerCursor?: number | null
-		isLoadingNewer?: boolean
-	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	}>({ hasMore: false, cursor: null })
 	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
@@ -839,7 +884,8 @@ export function AgenticChat({
 		recovery,
 		error,
 		lastFailedRequest,
-		rateLimitDetails
+		rateLimitDetails,
+		contextWarning
 	} = streamState
 
 	const sharedMessages = useMemo(
@@ -847,6 +893,7 @@ export function AgenticChat({
 		[sharedSession]
 	)
 	const forkedFromShared = sharedSession && sessionId
+	const isSharedView = !!sharedSession && !forkedFromShared
 	const effectiveMessages = (forkedFromShared ? null : sharedMessages) ?? messages
 	const effectiveSessionId = (forkedFromShared ? sessionId : sharedSession?.session.sessionId) ?? sessionId
 	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
@@ -941,9 +988,30 @@ export function AgenticChat({
 		streamingGeneratedImages
 	])
 
+	const loadMoreMessagesMutation = useMutation({
+		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
+			loadMoreMessages(targetSessionId, cursor)
+	})
+	const loadNewerMessagesMutation = useMutation({
+		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
+			loadNewerMessages(targetSessionId, cursor)
+	})
+	const isLoadingMoreCurrentSession =
+		loadMoreMessagesMutation.isPending && loadMoreMessagesMutation.variables?.targetSessionId === sessionId
+	const isLoadingNewerCurrentSession =
+		loadNewerMessagesMutation.isPending && loadNewerMessagesMutation.variables?.targetSessionId === sessionId
+	const renderedPaginationState = useMemo(
+		() => ({
+			...paginationState,
+			isLoadingMore: isLoadingMoreCurrentSession,
+			isLoadingNewer: isLoadingNewerCurrentSession
+		}),
+		[paginationState, isLoadingMoreCurrentSession, isLoadingNewerCurrentSession]
+	)
+
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || isStreaming) return
+		if (!sessionId || !paginationState.hasMore || loadMoreMessagesMutation.isPending || isStreaming) return
 
 		const requestId = beginRequest(
 			activeRequestIdRef,
@@ -953,20 +1021,19 @@ export function AgenticChat({
 			sessionId
 		)
 		setPaginationError(null)
-		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 		await waitForNextPaint()
 		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
-		const result = await loadMoreMessages(sessionId, paginationState.cursor!).catch(() => {
-			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
-				setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
-				setPaginationError('Failed to load older messages')
-			}
-			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			return null
-		})
+		const result = await loadMoreMessagesMutation
+			.mutateAsync({ targetSessionId: sessionId, cursor: paginationState.cursor! })
+			.catch(() => {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setPaginationError('Failed to load older messages')
+				}
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return null
+			})
 		if (!result) return
 		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
-			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
@@ -980,11 +1047,11 @@ export function AgenticChat({
 
 		setPaginationState(normalizePaginationState(result.pagination))
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-	}, [sessionId, paginationState, loadMoreMessages, isStreaming])
+	}, [sessionId, paginationState, loadMoreMessagesMutation, isStreaming])
 
 	// Load newer messages when the user reaches the bottom of a mid-conversation restore window.
 	const handleLoadNewerMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasNewer || paginationState.isLoadingNewer || isStreaming) return
+		if (!sessionId || !paginationState.hasNewer || loadNewerMessagesMutation.isPending || isStreaming) return
 
 		const requestId = beginRequest(
 			activeRequestIdRef,
@@ -994,18 +1061,17 @@ export function AgenticChat({
 			sessionId
 		)
 		setPaginationError(null)
-		setPaginationState((prev) => ({ ...prev, isLoadingNewer: true }))
-		const result = await loadNewerMessages(sessionId, paginationState.newerCursor!).catch(() => {
-			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
-				setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
-				setPaginationError('Failed to load newer messages')
-			}
-			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			return null
-		})
+		const result = await loadNewerMessagesMutation
+			.mutateAsync({ targetSessionId: sessionId, cursor: paginationState.newerCursor! })
+			.catch(() => {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setPaginationError('Failed to load newer messages')
+				}
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return null
+			})
 		if (!result) return
 		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
-			setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
@@ -1015,12 +1081,11 @@ export function AgenticChat({
 
 		setPaginationState((prev) => ({
 			...prev,
-			isLoadingNewer: false,
 			hasNewer: result.pagination?.hasNewer ?? false,
 			newerCursor: result.pagination?.newerCursor ?? null
 		}))
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-	}, [sessionId, paginationState, loadNewerMessages, isStreaming])
+	}, [sessionId, paginationState, loadNewerMessagesMutation, isStreaming])
 
 	// Expose the load-more callback through a stable event wrapper for the scroll listener.
 	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
@@ -1031,12 +1096,17 @@ export function AgenticChat({
 		void handleLoadNewerMessages()
 	})
 
-	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
+	const {
+		attach,
+		scrollToBottom,
+		isAttached: isScrollAttached,
+		showScrollToBottom
+	} = useChatScroll({
 		scrollContainerRef,
 		isStreaming,
 		items: effectiveMessages,
 		hasMessages,
-		paginationState,
+		paginationState: renderedPaginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
 		onLoadNewerMessages: handleLoadNewerMessagesEvent,
 		keyboardOpen,
@@ -1093,6 +1163,33 @@ export function AgenticChat({
 				return prev.map((m) => (m.id === message.id ? message : m))
 			}
 			return [...prev, message]
+		})
+	}, [])
+
+	// When the backend persists a freshly-sent user message, swap the
+	// optimistic `local-N` id for the real UUID so edit/branch controls work.
+	const replaceLocalUserMessageId = useCallback((realId: string) => {
+		setMessages((prev) => {
+			for (let i = prev.length - 1; i >= 0; i--) {
+				const m = prev[i]
+				if (m.role === 'user' && m.id?.startsWith('local-')) {
+					const next = prev.slice()
+					next[i] = { ...m, id: realId }
+					return next
+				}
+			}
+			return prev
+		})
+	}, [])
+
+	// Apply siblingInfo to a specific message by id (avoids a full restore roundtrip after edits).
+	const setMessageSiblingInfo = useCallback((messageId: string, siblingInfo: Message['siblingInfo']) => {
+		setMessages((prev) => {
+			const idx = prev.findIndex((m) => m.id === messageId)
+			if (idx < 0) return prev
+			const next = prev.slice()
+			next[idx] = { ...next[idx], siblingInfo }
+			return next
 		})
 	}, [])
 
@@ -1181,6 +1278,8 @@ export function AgenticChat({
 						currentMessageIdRef,
 						toolCallIdRef,
 						appendMessage,
+						replaceLocalUserMessageId,
+						setMessageSiblingInfo,
 						notify,
 						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 						onTokenLimit: () => setShowTokenLimitModal(true),
@@ -1262,6 +1361,8 @@ export function AgenticChat({
 				currentMessageIdRef,
 				toolCallIdRef,
 				appendMessage,
+				replaceLocalUserMessageId,
+				setMessageSiblingInfo,
 				notify,
 				onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 				onTokenLimit: () => setShowTokenLimitModal(true),
@@ -1317,7 +1418,16 @@ export function AgenticChat({
 
 			return true
 		},
-		[authorizedFetchCompat, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
+		[
+			authorizedFetchCompat,
+			appendMessage,
+			clearRecoveryController,
+			moveSessionToTop,
+			notify,
+			replaceLocalUserMessageId,
+			setMessageSiblingInfo,
+			updateSessionTitle
+		]
 	)
 
 	const restoreSessionSnapshot = useCallback(
@@ -1341,6 +1451,11 @@ export function AgenticChat({
 			}
 
 			setMessages(restored)
+			setActiveLeafMessageId(
+				'activeLeafMessageId' in result
+					? (result.activeLeafMessageId ?? restored[restored.length - 1]?.id ?? null)
+					: (restored[restored.length - 1]?.id ?? null)
+			)
 			setConversationViewResetKey((current) => current + 1)
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
@@ -1356,7 +1471,6 @@ export function AgenticChat({
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
-				isLoadingMore: false,
 				hasNewer: result.pagination?.hasNewer ?? false,
 				newerCursor: result.pagination?.newerCursor ?? null
 			})
@@ -1547,7 +1661,7 @@ export function AgenticChat({
 
 		if (controller && settleState?.requestId === requestId) {
 			controller.abort()
-			await settleState.promise.catch(() => {})
+			await waitForRequestSettle(settleState)
 		}
 
 		activeRequestIdRef.current += 1
@@ -1569,6 +1683,7 @@ export function AgenticChat({
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
+		dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })
 	}, [clearRecoveryController, resetPromptTransition])
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
@@ -1587,7 +1702,7 @@ export function AgenticChat({
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
-		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
+		setPaginationState({ hasMore: false, cursor: null })
 		promptInputRef.current?.focus()
 	}, [initialSessionId, sharedSession, abortActiveRequest, attach, clearConversationRuntimeState])
 
@@ -1764,6 +1879,7 @@ export function AgenticChat({
 						customInstructions: settings.customInstructions || undefined,
 						enablePremiumTools: settings.enablePremiumTools,
 						model: settings.model || undefined,
+						effort: settings.effort || undefined,
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						shareToken: currentShareToken,
@@ -1778,6 +1894,8 @@ export function AgenticChat({
 							currentMessageIdRef,
 							toolCallIdRef,
 							appendMessage,
+							replaceLocalUserMessageId,
+							setMessageSiblingInfo,
 							notify,
 							onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
 							onTokenLimit: () => setShowTokenLimitModal(true),
@@ -1854,7 +1972,7 @@ export function AgenticChat({
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
+							if (currentSessionId && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -1878,6 +1996,7 @@ export function AgenticChat({
 						})
 						.then(() => {
 							if (isActiveRequest(activeRequestIdRef, requestId)) {
+								setActiveLeafMessageId(currentMessageIdRef.current)
 								abortControllerRef.current = null
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 							}
@@ -1907,8 +2026,10 @@ export function AgenticChat({
 			settings.customInstructions,
 			settings.enablePremiumTools,
 			appendMessage,
+			replaceLocalUserMessageId,
 			abortActiveRequest,
 			startRecoveryCycle,
+			setMessageSiblingInfo,
 			sessionTitle,
 			sessions,
 			attach,
@@ -1917,11 +2038,196 @@ export function AgenticChat({
 			quotedText,
 			isMobileChatView,
 			settings.model,
+			settings.effort,
 			sharedSession,
 			shareToken,
 			hasUser,
 			onForkSubmit
 		]
+	)
+
+	const handleEditMessage = useCallback(
+		async (messageId: string, newText: string, original: Message): Promise<void> => {
+			const trimmed = newText.trim()
+			if (!sessionId || !trimmed) return
+			const idx = messages.findIndex((message) => message.id === messageId && message.role === 'user')
+			if (idx < 0) return
+
+			const messagesSnapshot = messages
+			const activeLeafSnapshot = activeLeafMessageId
+			const truncated = messages.slice(0, idx)
+			const isBranchingEdit = !/^(local|persisted|shared)-/.test(messageId)
+
+			// Abort any in-flight submission FIRST — its `.finally` releases the prompt lock,
+			// otherwise the lock check below would always bail during streaming.
+			try {
+				await abortActiveRequest()
+			} catch {
+				return
+			}
+
+			if (promptSubmissionLockRef.current) return
+			promptSubmissionLockRef.current = true
+			triggerPromptTransition('conversation')
+
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'START_STREAM' })
+			currentMessageIdRef.current = null
+			setMessages([
+				...truncated,
+				{
+					role: 'user',
+					content: trimmed,
+					images: original.images,
+					quotedText: original.quotedText,
+					id: `local-edit-${Date.now()}`
+				}
+			])
+			attach()
+
+			const buffer = createStreamBuffer()
+			const controller = new AbortController()
+			abortControllerRef.current = controller
+			const requestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'prompt', sessionId)
+			const settleState = createRequestSettleState(requestId)
+			activeRequestSettleRef.current = settleState
+			const eventCounter = { count: 0 }
+
+			try {
+				await fetchAgenticResponse({
+					message: trimmed,
+					sessionId,
+					editMessageId: isBranchingEdit ? messageId : undefined,
+					researchMode: isResearchMode,
+					quotedText: original.quotedText || undefined,
+					customInstructions: settings.customInstructions || undefined,
+					enablePremiumTools: settings.enablePremiumTools,
+					model: settings.model || undefined,
+					effort: settings.effort || undefined,
+					blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
+					abortSignal: controller.signal,
+					fetchFn: authorizedFetchCompat,
+					eventCounter,
+					callbacks: createAgenticCallbacks({
+						requestId,
+						activeRequestIdRef,
+						buffer,
+						dispatch: dispatchStream,
+						currentMessageIdRef,
+						toolCallIdRef,
+						appendMessage,
+						replaceLocalUserMessageId,
+						setMessageSiblingInfo,
+						notify,
+						onDashboardArtifact: (dashboard) => dispatchDashboardPanel({ type: 'APPEND', value: dashboard }),
+						onTokenLimit: () => setShowTokenLimitModal(true),
+						onTitle: (title) => {
+							setSessionTitle(title)
+							updateSessionTitle({ sessionId, title }).catch(() => {})
+						}
+					})
+				})
+				if (isActiveRequest(activeRequestIdRef, requestId)) {
+					setActiveLeafMessageId(currentMessageIdRef.current)
+					abortControllerRef.current = null
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				}
+				// siblingInfo arrives via SSE `sibling_info` mid-stream — no extra restore call needed
+			} catch (err) {
+				const editError = err as UsageLimitError
+				if (controller.signal.aborted || editError?.name === 'AbortError') {
+					appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+					dispatchStream({ type: 'RESET_STREAM' })
+					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+					return
+				}
+				if (isTemporaryConnectivityError(editError)) {
+					buffer.receivedEventCount = eventCounter.count
+					if (
+						startRecoveryCycle({
+							targetSessionId: sessionId,
+							buffer,
+							failedRequest: null,
+							error: editError instanceof Error ? editError : new Error(getErrorMessage(editError))
+						})
+					) {
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						return
+					}
+				}
+				setMessages(messagesSnapshot)
+				setActiveLeafMessageId(activeLeafSnapshot)
+				setViewError(getErrorMessage(editError))
+				dispatchStream({ type: 'RESET_STREAM' })
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				throw err
+			} finally {
+				if (abortControllerRef.current === controller) {
+					abortControllerRef.current = null
+				}
+				settleState.resolve()
+				if (activeRequestSettleRef.current?.requestId === requestId) {
+					activeRequestSettleRef.current = null
+				}
+				promptSubmissionLockRef.current = false
+			}
+		},
+		[
+			activeLeafMessageId,
+			appendMessage,
+			replaceLocalUserMessageId,
+			attach,
+			authorizedFetchCompat,
+			abortActiveRequest,
+			isMobileChatView,
+			isResearchMode,
+			messages,
+			notify,
+			sessionId,
+			settings.customInstructions,
+			settings.enablePremiumTools,
+			settings.effort,
+			settings.model,
+			setMessageSiblingInfo,
+			startRecoveryCycle,
+			triggerPromptTransition,
+			updateSessionTitle
+		]
+	)
+
+	const handleBranchSwitch = useCallback(
+		async (leafMessageId: string) => {
+			if (!sessionId || isStreaming) return
+			await abortActiveRequest()
+			const requestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'branch', sessionId)
+			setViewError(null)
+			setPaginationError(null)
+			try {
+				const result = await switchActiveLeaf({ sessionId, leafMessageId })
+				if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) return
+				setActiveLeafMessageId(result.activeLeafMessageId)
+				if (Array.isArray(result.messages)) {
+					const restored = mapPersistedMessages(result.messages as PersistedMessage[])
+					setMessages(restored)
+					setConversationViewResetKey((current) => current + 1)
+					dispatchDashboardPanel({ type: 'RESTORE', value: restored.flatMap((message) => message.dashboards || []) })
+					setPaginationState(normalizePaginationState(result.pagination))
+					dispatchStream({ type: 'SET_ERROR', value: null })
+					dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+					dispatchStream({ type: 'RESET_RECOVERY' })
+				} else {
+					await restoreSessionSnapshot(sessionId, requestId)
+				}
+			} catch (switchError) {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setViewError(getErrorMessage(switchError))
+				}
+			} finally {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+			}
+		},
+		[abortActiveRequest, isStreaming, restoreSessionSnapshot, sessionId, switchActiveLeaf]
 	)
 
 	// Stop the active streamed response while preserving already-buffered output.
@@ -2103,9 +2409,10 @@ export function AgenticChat({
 		() => ({
 			openSettingsModal: settingsModalStore.show,
 			openAlertsModal: alertsModalStore.show,
-			toggleResearchMode: () => setIsResearchMode((v) => !v)
+			toggleResearchMode: () => setIsResearchMode((v) => !v),
+			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode]
+		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
 
 	if (!user && !readOnly && !sharedSession) {
@@ -2183,11 +2490,11 @@ export function AgenticChat({
 								onOpenSettings={settingsModalStore.show}
 								hasCustomInstructions={settings.customInstructions.trim().length > 0}
 								sessionTitle={effectiveSessionTitle}
-								canShare={!sharedSession && effectiveMessages.length > 0}
+								canShare={!isSharedView && effectiveMessages.length > 0}
 								onShare={() => openShareModal()}
 							/>
 						) : null}
-						{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
+						{!readOnly && !isSharedView && effectiveMessages.length > 0 ? (
 							<button
 								onClick={() => openShareModal()}
 								data-umami-event="llamaai-share-modal-open"
@@ -2213,6 +2520,7 @@ export function AgenticChat({
 								>
 									<ChatLanding
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 										handleSubmit={handleSubmit}
 										promptInputRef={promptInputRef}
@@ -2224,12 +2532,14 @@ export function AgenticChat({
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 									/>
 								</div>
 								<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 									<ConversationView
 										key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										messages={effectiveMessages}
 										sessionId={effectiveSessionId}
 										isLlama={isLlama}
@@ -2242,7 +2552,7 @@ export function AgenticChat({
 										streamingThinking={streamingThinking}
 										streamingDraft={streamingDraft}
 										isCompacting={isCompacting}
-										paginationState={paginationState}
+										paginationState={renderedPaginationState}
 										paginationError={paginationError}
 										recovery={recovery}
 										error={visibleError}
@@ -2252,11 +2562,15 @@ export function AgenticChat({
 										scrollContainerRef={scrollContainerRef}
 										messagesEndRef={messagesEndRef}
 										promptInputRef={promptInputRef}
+										isScrollAttached={isScrollAttached}
 										showScrollToBottom={showScrollToBottom}
 										scrollToBottom={scrollToBottom}
 										handleSubmit={handleSubmit}
 										handleStopRequest={handleStopRequest}
 										handleActionClick={handleActionClick}
+										onEditMessage={handleEditMessage}
+										onBranchSwitch={handleBranchSwitch}
+										isBranchSwitching={isSwitchingActiveLeaf}
 										isResearchMode={isResearchMode}
 										setIsResearchMode={setIsResearchMode}
 										researchUsage={researchUsage}
@@ -2264,6 +2578,7 @@ export function AgenticChat({
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 										onTableFullscreenOpen={hideSidebar}
 										onShare={openShareModal}
 									/>
@@ -2272,6 +2587,7 @@ export function AgenticChat({
 						) : !hasMessages && !visibleError ? (
 							<ChatLanding
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 								handleSubmit={handleSubmit}
 								promptInputRef={promptInputRef}
@@ -2283,11 +2599,13 @@ export function AgenticChat({
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 							/>
 						) : (
 							<ConversationView
 								key={`conversation-${conversationViewResetKey}`}
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								messages={effectiveMessages}
 								sessionId={effectiveSessionId}
 								isLlama={isLlama}
@@ -2300,7 +2618,7 @@ export function AgenticChat({
 								spawnIsResearchMode={spawnIsResearchMode}
 								streamingDraft={streamingDraft}
 								isCompacting={isCompacting}
-								paginationState={paginationState}
+								paginationState={renderedPaginationState}
 								paginationError={paginationError}
 								recovery={recovery}
 								error={visibleError}
@@ -2310,11 +2628,15 @@ export function AgenticChat({
 								scrollContainerRef={scrollContainerRef}
 								messagesEndRef={messagesEndRef}
 								promptInputRef={promptInputRef}
+								isScrollAttached={isScrollAttached}
 								showScrollToBottom={showScrollToBottom}
 								scrollToBottom={scrollToBottom}
 								handleSubmit={handleSubmit}
 								handleStopRequest={handleStopRequest}
 								handleActionClick={handleActionClick}
+								onEditMessage={handleEditMessage}
+								onBranchSwitch={handleBranchSwitch}
+								isBranchSwitching={isSwitchingActiveLeaf}
 								isResearchMode={isResearchMode}
 								setIsResearchMode={setIsResearchMode}
 								researchUsage={researchUsage}
@@ -2322,8 +2644,12 @@ export function AgenticChat({
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 								onTableFullscreenOpen={hideSidebar}
 								onShare={openShareModal}
+								contextWarning={contextWarning}
+								onDismissContextWarning={() => dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })}
+								onStartNewChat={() => void handleNewChat()}
 							/>
 						)}
 					</div>
@@ -2382,6 +2708,7 @@ export function AgenticChat({
 							settings={settings}
 							actions={actions}
 							availableModels={availableModels}
+							availableEfforts={availableEfforts}
 						/>
 					) : null}
 				</div>

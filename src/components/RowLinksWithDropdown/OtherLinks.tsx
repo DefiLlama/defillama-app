@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { startTransition, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
@@ -15,14 +15,13 @@ interface IProps {
 
 export function OtherLinks({ options, name, isActive, className }: IProps) {
 	const [searchValue, setSearchValue] = useState('')
-	const deferredSearchValue = useDeferredValue(searchValue)
 	const matches = useMemo(() => {
-		if (!deferredSearchValue) return options
-		return matchSorter(options, deferredSearchValue, {
+		if (!searchValue) return options
+		return matchSorter(options, searchValue, {
 			keys: ['label'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [options, deferredSearchValue])
+	}, [options, searchValue])
 
 	const [viewableMatches, setViewableMatches] = useState(20)
 	const comboboxRef = useRef<HTMLDivElement>(null)
