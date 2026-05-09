@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { formatValue } from '../../utils'
 import { useAuthContext } from '../Subscription/auth'
@@ -56,24 +56,6 @@ export function CustomColumnModal({
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
-
-	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
-	useEffect(() => {
-		if (isOpen) {
-			queueMicrotask(() => {
-				setState({
-					name: initialName,
-					formula: initialFormula,
-					formatType: initialFormatType,
-					error: null,
-					showSuggestions: false,
-					suggestions: [],
-					highlighted: 0,
-					fieldWarning: null
-				})
-			})
-		}
-	}, [isOpen, initialName, initialFormula, initialFormatType])
 
 	const handleFormulaChange = (e) => {
 		const value = e.target.value

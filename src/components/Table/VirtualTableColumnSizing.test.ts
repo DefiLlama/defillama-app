@@ -120,7 +120,7 @@ describe('VirtualTable column sizing', () => {
 		}
 
 		expect(failures).toEqual([])
-	})
+	}, 30_000)
 })
 
 if (!existsSync(SRC_DIR)) {

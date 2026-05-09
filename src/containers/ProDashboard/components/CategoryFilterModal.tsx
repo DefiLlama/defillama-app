@@ -40,13 +40,6 @@ export function CategoryFilterModal({
 	const [selectedInclude, setSelectedInclude] = React.useState<string[]>(initialInclude)
 	const [selectedExclude, setSelectedExclude] = React.useState<string[]>(initialExclude)
 
-	React.useEffect(() => {
-		if (isOpen) {
-			setSelectedInclude(initialInclude)
-			setSelectedExclude(initialExclude)
-		}
-	}, [isOpen, initialInclude, initialExclude])
-
 	const categoryOptions = React.useMemo(
 		() =>
 			categories.map((category) => ({

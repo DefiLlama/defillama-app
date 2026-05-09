@@ -18,11 +18,7 @@ import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 import type { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
-export function useModalActions(
-	editItem: DashboardItemConfig | null | undefined,
-	isOpen: boolean,
-	onClose: () => void
-) {
+export function useModalActions(editItem: DashboardItemConfig | null | undefined, onClose: () => void) {
 	const { protocols, chains, protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const {
@@ -46,7 +42,7 @@ export function useModalActions(
 		handleEditItem
 	} = useProDashboardEditorActions()
 
-	const { state, actions } = useModalState(editItem, isOpen)
+	const { state, actions } = useModalState(editItem)
 
 	const selectedProtocolData = useMemo(
 		() => protocols.find((p: Protocol) => p.slug === state.selectedProtocol),

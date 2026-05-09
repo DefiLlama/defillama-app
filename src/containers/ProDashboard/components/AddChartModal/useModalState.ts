@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer } from 'react'
+import { useCallback, useMemo, useReducer } from 'react'
 import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import { initializeFromEditItem, modalReducer } from './modalReducer'
 import type {
@@ -10,17 +10,8 @@ import type {
 	ModalState
 } from './types'
 
-export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
+export function useModalState(editItem?: DashboardItemConfig | null) {
 	const [state, dispatch] = useReducer(modalReducer, editItem, initializeFromEditItem)
-
-	useEffect(() => {
-		if (isOpen) {
-			dispatch({
-				type: 'INITIALIZE_FROM_EDIT_ITEM',
-				payload: { editItem: editItem ?? null }
-			})
-		}
-	}, [editItem, isOpen])
 
 	const resetState = useCallback(() => {
 		dispatch({ type: 'RESET_STATE' })

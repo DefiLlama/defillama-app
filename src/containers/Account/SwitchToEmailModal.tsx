@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useMutation } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -14,6 +15,45 @@ interface SwitchToEmailModalProps {
 
 type Step = 'email' | 'confirm' | 'success'
 
+async function requestSwitchToEmailOtp(email: string) {
+	const response = await fetch(`${AUTH_SERVER}/switch-to-email/request`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${pb.authStore.token}`
+		},
+		body: JSON.stringify({ email })
+	})
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => null)
+		throw new Error(errorData?.error || errorData?.message || 'Failed to send verification code')
+	}
+}
+
+async function confirmSwitchToEmail(payload: {
+	email: string
+	otp: string
+	password: string
+	passwordConfirm: string
+}) {
+	const response = await fetch(`${AUTH_SERVER}/switch-to-email/confirm`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${pb.authStore.token}`
+		},
+		body: JSON.stringify(payload)
+	})
+
+	if (!response.ok) {
+		const errorData = await response.json().catch(() => null)
+		throw new Error(errorData?.error || errorData?.message || 'Failed to switch to email authentication')
+	}
+
+	return response.json()
+}
+
 export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEmailModalProps) {
 	const [step, setStep] = useState<Step>('email')
 	const [email, setEmail] = useState(defaultEmail ?? '')
@@ -21,10 +61,12 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 	const [password, setPassword] = useState('')
 	const [passwordConfirm, setPasswordConfirm] = useState('')
 	const [error, setError] = useState('')
-	const [isLoading, setIsLoading] = useState(false)
 	const [showPassword, setShowPassword] = useState(false)
 	const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
 	const resendRef = useRef<ResendCooldownHandle>(null)
+	const requestOtpMutation = useMutation({ mutationFn: requestSwitchToEmailOtp })
+	const confirmMutation = useMutation({ mutationFn: confirmSwitchToEmail })
+	const isLoading = requestOtpMutation.isPending || confirmMutation.isPending
 
 	const resetState = () => {
 		setStep('email')
@@ -33,7 +75,8 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 		setPassword('')
 		setPasswordConfirm('')
 		setError('')
-		setIsLoading(false)
+		requestOtpMutation.reset()
+		confirmMutation.reset()
 		setShowPassword(false)
 		setShowPasswordConfirm(false)
 	}
@@ -48,29 +91,13 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 		if (!email || isLoading) return
 
 		setError('')
-		setIsLoading(true)
 
 		try {
-			const response = await fetch(`${AUTH_SERVER}/switch-to-email/request`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${pb.authStore.token}`
-				},
-				body: JSON.stringify({ email })
-			})
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => null)
-				throw new Error(errorData?.error || errorData?.message || 'Failed to send verification code')
-			}
-
+			await requestOtpMutation.mutateAsync(email)
 			resendRef.current?.start()
 			setStep('confirm')
 		} catch (err: any) {
 			setError(err.message || 'Failed to send verification code. Please try again.')
-		} finally {
-			setIsLoading(false)
 		}
 	}
 
@@ -89,24 +116,9 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 		}
 
 		setError('')
-		setIsLoading(true)
 
 		try {
-			const response = await fetch(`${AUTH_SERVER}/switch-to-email/confirm`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${pb.authStore.token}`
-				},
-				body: JSON.stringify({ email, otp, password, passwordConfirm })
-			})
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => null)
-				throw new Error(errorData?.error || errorData?.message || 'Failed to switch to email authentication')
-			}
-
-			const data = await response.json()
+			const data = await confirmMutation.mutateAsync({ email, otp, password, passwordConfirm })
 
 			if (data.token) {
 				pb.authStore.save(data.token)
@@ -115,8 +127,6 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 			setStep('success')
 		} catch (err: any) {
 			setError(err.message || 'Failed to switch to email authentication. Please try again.')
-		} finally {
-			setIsLoading(false)
 		}
 	}
 
@@ -124,29 +134,13 @@ export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEm
 		if (isLoading) return
 
 		setError('')
-		setIsLoading(true)
 
 		try {
-			const response = await fetch(`${AUTH_SERVER}/switch-to-email/request`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${pb.authStore.token}`
-				},
-				body: JSON.stringify({ email })
-			})
-
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => null)
-				throw new Error(errorData?.error || errorData?.message || 'Failed to resend verification code')
-			}
-
+			await requestOtpMutation.mutateAsync(email)
 			resendRef.current?.start()
 			toast.success('Verification code resent!')
 		} catch (err: any) {
 			setError(err.message || 'Failed to resend verification code.')
-		} finally {
-			setIsLoading(false)
 		}
 	}
 

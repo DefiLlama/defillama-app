@@ -1,12 +1,8 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
-import {
-	ArticleApiError,
-	deleteArticle as deleteArticleApi,
-	listMyArticles,
-	type ArticleListResponse
-} from '~/containers/Articles/api'
+import { deleteArticle as deleteArticleApi, listMyArticles, type ArticleListResponse } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -51,37 +47,27 @@ function StatusBadge({ status }: { status: 'draft' | 'published' }) {
 
 function MyArticlesContent() {
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
-	const [data, setData] = useState<ArticleListResponse | null>(null)
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
+	const queryClient = useQueryClient()
 	const [filter, setFilter] = useState<Filter>('all')
-	const [deletingId, setDeletingId] = useState<string | null>(null)
-
-	useEffect(() => {
-		if (loaders.userLoading) return
-		if (!isAuthenticated) {
-			setIsLoading(false)
-			return
+	const myArticlesQueryKey = ['research', 'my-articles'] as const
+	const { data, isLoading, error } = useQuery({
+		queryKey: myArticlesQueryKey,
+		queryFn: () => listMyArticles({ limit: 50 }, authorizedFetch),
+		enabled: !loaders.userLoading && isAuthenticated,
+		retry: false
+	})
+	const deleteArticleMutation = useMutation({
+		mutationFn: (articleId: string) => deleteArticleApi(articleId, authorizedFetch),
+		onSuccess: (_, articleId) => {
+			queryClient.setQueryData<ArticleListResponse | undefined>(myArticlesQueryKey, (current) =>
+				current ? { ...current, items: current.items.filter((a) => a.id !== articleId) } : current
+			)
+			toast.success('Deleted')
+		},
+		onError: (err) => {
+			toast.error(err instanceof Error ? err.message : 'Failed to delete')
 		}
-		let cancelled = false
-		setIsLoading(true)
-		listMyArticles({ limit: 50 }, authorizedFetch)
-			.then((response) => {
-				if (cancelled) return
-				setData(response)
-				setError(null)
-			})
-			.catch((err) => {
-				if (cancelled) return
-				setError(err instanceof ArticleApiError ? err.message : 'Failed to load research')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [authorizedFetch, isAuthenticated, loaders.userLoading])
+	})
 
 	const articles = data?.items ?? EMPTY_ARTICLES
 	const drafts = useMemo(() => articles.filter((a) => a.status === 'draft'), [articles])
@@ -90,18 +76,7 @@ function MyArticlesContent() {
 
 	const handleDelete = async (article: ArticleDocument) => {
 		if (!confirm(`Delete "${article.title || 'Untitled'}"? This cannot be undone.`)) return
-		setDeletingId(article.id)
-		try {
-			await deleteArticleApi(article.id, authorizedFetch)
-			setData((current) =>
-				current ? { ...current, items: current.items.filter((a) => a.id !== article.id) } : current
-			)
-			toast.success('Deleted')
-		} catch (err) {
-			toast.error(err instanceof Error ? err.message : 'Failed to delete')
-		} finally {
-			setDeletingId(null)
-		}
+		deleteArticleMutation.mutate(article.id)
 	}
 
 	if (loaders.userLoading || (isAuthenticated && isLoading)) {
@@ -168,7 +143,9 @@ function MyArticlesContent() {
 			</header>
 
 			{error ? (
-				<div className="rounded-md border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-500">{error}</div>
+				<div className="rounded-md border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-500">
+					{error instanceof Error ? error.message : 'Failed to load research'}
+				</div>
 			) : null}
 
 			{filtered.length === 0 ? (
@@ -196,7 +173,7 @@ function MyArticlesContent() {
 						const updated = formatRelative(article.updatedAt)
 						const words = wordCount(article.plainText) || wordCount(article.excerpt)
 						const minutes = Math.max(1, Math.ceil(words / 220))
-						const isDeleting = deletingId === article.id
+						const isDeleting = deleteArticleMutation.variables === article.id && deleteArticleMutation.isPending
 						return (
 							<li
 								key={article.id}

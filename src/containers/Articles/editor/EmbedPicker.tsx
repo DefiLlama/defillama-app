@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { detectEmbed, getEmbedProviderLabel, type EmbedDetection } from '../embedProviders'
 import type { ArticleEmbedAspectRatio, ArticleEmbedConfig } from '../types'
 
@@ -17,23 +17,10 @@ const ASPECT_OPTIONS: { value: ArticleEmbedAspectRatio; label: string }[] = [
 ]
 
 export function EmbedPicker({ store, onInsert, initialConfig }: Props) {
-	const open = Ariakit.useStoreState(store, 'open')
 	const [rawUrl, setRawUrl] = useState(initialConfig?.sourceUrl ?? '')
 	const [title, setTitle] = useState(initialConfig?.title ?? '')
 	const [caption, setCaption] = useState(initialConfig?.caption ?? '')
 	const [aspectRatio, setAspectRatio] = useState<ArticleEmbedAspectRatio | null>(initialConfig?.aspectRatio ?? null)
-	const initialKey = useRef<string | null>(null)
-
-	useEffect(() => {
-		if (!open) return
-		const key = initialConfig ? `${initialConfig.provider}:${initialConfig.url}` : ''
-		if (initialKey.current === key) return
-		initialKey.current = key
-		setRawUrl(initialConfig?.sourceUrl ?? '')
-		setTitle(initialConfig?.title ?? '')
-		setCaption(initialConfig?.caption ?? '')
-		setAspectRatio(initialConfig?.aspectRatio ?? null)
-	}, [open, initialConfig])
 
 	const detection: EmbedDetection | null = useMemo(() => detectEmbed(rawUrl), [rawUrl])
 	const detectionStatus = rawUrl.trim().length === 0 ? 'empty' : detection ? 'ok' : 'invalid'

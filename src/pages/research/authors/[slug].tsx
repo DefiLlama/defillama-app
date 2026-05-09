@@ -1,7 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { ArticleApiError, getAuthorBySlug, type ArticleAuthorResponse } from '~/containers/Articles/api'
+import { ArticleApiError, getAuthorBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -67,35 +67,16 @@ function OwnerChips({ authorPbUserId }: { authorPbUserId: string }) {
 
 function AuthorContent({ slug }: { slug: string }) {
 	const { authorizedFetch } = useAuthContext()
-	const [data, setData] = useState<ArticleAuthorResponse | null>(null)
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-	const [notFound, setNotFound] = useState(false)
-
-	useEffect(() => {
-		if (!slug) return
-		let cancelled = false
-		setIsLoading(true)
-		getAuthorBySlug(slug, authorizedFetch)
-			.then((response) => {
-				if (cancelled) return
-				if (!response) setNotFound(true)
-				else {
-					setData(response)
-					setError(null)
-				}
-			})
-			.catch((err) => {
-				if (cancelled) return
-				setError(err instanceof ArticleApiError ? err.message : 'Failed to load author')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [authorizedFetch, slug])
+	const {
+		data = null,
+		isLoading,
+		error
+	} = useQuery({
+		queryKey: ['research', 'author', slug],
+		queryFn: () => getAuthorBySlug(slug, authorizedFetch),
+		enabled: !!slug,
+		retry: false
+	})
 
 	if (isLoading) {
 		return (
@@ -105,7 +86,7 @@ function AuthorContent({ slug }: { slug: string }) {
 		)
 	}
 
-	if (notFound) {
+	if (!data && !error) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Author not found</h1>
@@ -117,10 +98,11 @@ function AuthorContent({ slug }: { slug: string }) {
 	}
 
 	if (error || !data) {
+		const message = error instanceof ArticleApiError ? error.message : 'Failed to load author'
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load author</h1>
-				<p className="text-sm text-(--text-secondary)">{error}</p>
+				<p className="text-sm text-(--text-secondary)">{message}</p>
 			</div>
 		)
 	}

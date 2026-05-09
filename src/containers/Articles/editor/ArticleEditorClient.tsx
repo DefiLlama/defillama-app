@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { EditorContent, useEditor, useEditorState, type Editor } from '@tiptap/react'
 import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus'
 import Link from 'next/link'
@@ -25,13 +26,7 @@ import {
 import { validateArticleChartConfig } from '../chartAdapters'
 import { applyPendingToLocalArticle, createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
 import { ResearchLoader } from '../ResearchLoader'
-import type {
-	ArticleCalloutTone,
-	ArticleChartConfig,
-	ArticleCollaborator,
-	ArticleEmbedConfig,
-	LocalArticleDocument
-} from '../types'
+import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
@@ -633,9 +628,8 @@ function MetaSection({ title, children }: { title: string; children: ReactNode }
 export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
+	const queryClient = useQueryClient()
 	const [article, setArticle] = useState<LocalArticleDocument>(() => createEmptyLocalArticle())
-	const [isLoading, setIsLoading] = useState(true)
-	const [isSaving, setIsSaving] = useState(false)
 	const [isDirty, setIsDirty] = useState(false)
 	const [savedAt, setSavedAt] = useState<string | null>(null)
 	const [wordCount, setWordCount] = useState(0)
@@ -663,13 +657,11 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [saveError, setSaveError] = useState(false)
 	const [slugEditing, setSlugEditing] = useState(false)
 	const [slugDraft, setSlugDraft] = useState('')
-	const [collaborators, setCollaborators] = useState<ArticleCollaborator[]>([])
-	const [collaboratorsLoading, setCollaboratorsLoading] = useState(false)
 	const [collaboratorEmail, setCollaboratorEmail] = useState('')
-	const [collaboratorAdding, setCollaboratorAdding] = useState(false)
 	const [collaboratorError, setCollaboratorError] = useState<string | null>(null)
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
+	const hydratedArticleIdRef = useRef<string | null>(null)
 	const saveRef = useRef<(opts?: { silent?: boolean }) => Promise<void>>(async () => {})
 	const articleIdRef = useRef<string | undefined>(article.id)
 	articleIdRef.current = article.id
@@ -726,53 +718,77 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})
 
 	const flags = useEditorFlags(editor)
+	const articleQueryKey = ['research', 'owned-article', articleId] as const
+	const ownedArticleQuery = useQuery({
+		queryKey: articleQueryKey,
+		queryFn: () => getOwnedArticle(articleId!, authorizedFetch),
+		enabled: !!editor && !loaders.userLoading && isAuthenticated && !!articleId,
+		retry: false,
+		refetchOnWindowFocus: false
+	})
+	const createArticleMutation = useMutation({
+		mutationFn: () => createArticle(createEmptyLocalArticle(), authorizedFetch),
+		onSuccess: (saved) => {
+			void router.replace(`/research/edit/${saved.id}`)
+		},
+		onError: (error) => {
+			autoCreatingRef.current = false
+			toast.error(error instanceof Error ? error.message : 'Failed to create draft')
+		}
+	})
+	const saveArticleMutation = useMutation({
+		mutationFn: ({
+			targetArticleId,
+			articlePayload
+		}: {
+			targetArticleId?: string
+			articlePayload: LocalArticleDocument
+		}) =>
+			targetArticleId
+				? updateRemoteArticle(targetArticleId, articlePayload, authorizedFetch)
+				: createArticle(articlePayload, authorizedFetch)
+	})
+	const isLoading = loaders.userLoading || ownedArticleQuery.isLoading || createArticleMutation.isPending
+	const isSaving = saveArticleMutation.isPending
 
 	useEffect(() => {
 		if (!editor) return
 		if (loaders.userLoading) return
 		if (!isAuthenticated) {
-			setIsLoading(false)
 			return
 		}
 		if (!articleId) {
 			if (autoCreatingRef.current) return
 			autoCreatingRef.current = true
-			setIsLoading(true)
-			createArticle(createEmptyLocalArticle(), authorizedFetch)
-				.then((saved) => {
-					void router.replace(`/research/edit/${saved.id}`)
-				})
-				.catch((error) => {
-					autoCreatingRef.current = false
-					setIsLoading(false)
-					toast.error(error instanceof Error ? error.message : 'Failed to create draft')
-				})
-			return
+			createArticleMutation.mutate()
 		}
-		let cancelled = false
-		setIsLoading(true)
-		getOwnedArticle(articleId, authorizedFetch)
-			.then((loaded) => {
-				if (cancelled) return
-				const merged = applyPendingToLocalArticle(loaded, loaded.pending)
-				setArticle(merged)
-				editor.commands.setContent(merged.contentJson, { emitUpdate: false })
-				setIsDirty(false)
-				setSaveError(false)
-				const text = merged.plainText || ''
-				setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0)
-				setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
-			})
-			.catch((error) => {
-				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load research')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
-		return () => {
-			cancelled = true
+	}, [articleId, createArticleMutation, editor, isAuthenticated, loaders.userLoading])
+
+	useEffect(() => {
+		hydratedArticleIdRef.current = null
+	}, [articleId])
+
+	useEffect(() => {
+		if (!editor || !ownedArticleQuery.data) return
+		if (hydratedArticleIdRef.current === ownedArticleQuery.data.id) return
+		hydratedArticleIdRef.current = ownedArticleQuery.data.id
+		const merged = applyPendingToLocalArticle(ownedArticleQuery.data, ownedArticleQuery.data.pending)
+		setArticle(merged)
+		editor.commands.setContent(merged.contentJson, { emitUpdate: false })
+		setIsDirty(false)
+		setSaveError(false)
+		const text = merged.plainText || ''
+		setWordCount(text.trim() ? text.trim().split(/\s+/).length : 0)
+		setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
+	}, [editor, ownedArticleQuery.data])
+
+	useEffect(() => {
+		if (ownedArticleQuery.error) {
+			toast.error(
+				ownedArticleQuery.error instanceof Error ? ownedArticleQuery.error.message : 'Failed to load research'
+			)
 		}
-	}, [articleId, authorizedFetch, isAuthenticated, loaders.userLoading, editor, router])
+	}, [ownedArticleQuery.error])
 
 	const updateArticle = useCallback(
 		<K extends keyof LocalArticleDocument>(key: K, value: LocalArticleDocument[K]) => {
@@ -797,16 +813,17 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			clearTimeout(debounceRef.current)
 			debounceRef.current = null
 		}
-		setIsSaving(true)
 		if (!opts.silent) setSaveError(false)
 		try {
 			const normalized = normalizeLocalArticleDocument({ ...article, contentJson: editor.getJSON() })
 			if (normalized.ok === false) throw new Error(normalized.error)
-			const saved = article.id
-				? await updateRemoteArticle(article.id, normalized.value, authorizedFetch)
-				: await createArticle(normalized.value, authorizedFetch)
+			const saved = await saveArticleMutation.mutateAsync({
+				targetArticleId: article.id,
+				articlePayload: normalized.value
+			})
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
+			if (saved.id) queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
 			setSaveError(false)
 			if (!article.id) {
@@ -816,8 +833,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		} catch (error) {
 			setSaveError(true)
 			if (!opts.silent) toast.error(error instanceof Error ? error.message : 'Failed to save research')
-		} finally {
-			setIsSaving(false)
 		}
 	}
 
@@ -1036,9 +1051,73 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		[editor, editingPanel]
 	)
 
-	const [isPublishing, setIsPublishing] = useState(false)
-	const [isDiscarding, setIsDiscarding] = useState(false)
 	const [historyOpen, setHistoryOpen] = useState(false)
+	const collaboratorsQueryKey = useMemo(() => ['research', 'article-collaborators', article.id] as const, [article.id])
+	const collaboratorsQuery = useQuery({
+		queryKey: collaboratorsQueryKey,
+		queryFn: async () => {
+			try {
+				return await listCollaborators(article.id!, authorizedFetch)
+			} catch (error) {
+				if (error instanceof ArticleApiError && error.status === 403) return []
+				throw error
+			}
+		},
+		enabled: !!article.id,
+		retry: false
+	})
+	const collaborators = collaboratorsQuery.data ?? []
+	const collaboratorsLoading = collaboratorsQuery.isLoading
+	const collaboratorsLoadError =
+		collaboratorsQuery.error instanceof Error
+			? collaboratorsQuery.error.message
+			: collaboratorsQuery.error
+				? 'Failed to load co-authors'
+				: null
+	const publishMutation = useMutation({
+		mutationFn: (targetArticleId: string) => publishArticle(targetArticleId, authorizedFetch)
+	})
+	const unpublishMutation = useMutation({
+		mutationFn: (targetArticleId: string) => unpublishArticle(targetArticleId, authorizedFetch)
+	})
+	const discardPendingMutation = useMutation({
+		mutationFn: (targetArticleId: string) => discardPendingEdits(targetArticleId, authorizedFetch)
+	})
+	const deleteArticleMutation = useMutation({
+		mutationFn: (targetArticleId: string) => deleteArticle(targetArticleId, authorizedFetch),
+		onSuccess: () => {
+			void router.replace('/research')
+		},
+		onError: (error) => {
+			toast.error(error instanceof Error ? error.message : 'Failed to delete')
+		}
+	})
+	const addCollaboratorMutation = useMutation({
+		mutationFn: ({ targetArticleId, email }: { targetArticleId: string; email: string }) =>
+			addCollaborator(targetArticleId, email, authorizedFetch)
+	})
+	const removeCollaboratorMutation = useMutation({
+		mutationFn: ({ targetArticleId, pbUserId }: { targetArticleId: string; pbUserId: string }) =>
+			removeCollaborator(targetArticleId, pbUserId, authorizedFetch)
+	})
+	const updateCollaboratorMutation = useMutation({
+		mutationFn: ({
+			targetArticleId,
+			pbUserId,
+			hidden
+		}: {
+			targetArticleId: string
+			pbUserId: string
+			hidden: boolean
+		}) => updateCollaborator(targetArticleId, pbUserId, { hidden }, authorizedFetch)
+	})
+	const transferOwnershipMutation = useMutation({
+		mutationFn: ({ targetArticleId, pbUserId }: { targetArticleId: string; pbUserId: string }) =>
+			transferOwnership(targetArticleId, { pbUserId }, authorizedFetch)
+	})
+	const isPublishing = publishMutation.isPending || unpublishMutation.isPending
+	const isDiscarding = discardPendingMutation.isPending
+	const collaboratorAdding = addCollaboratorMutation.isPending
 
 	const flushPendingSave = useCallback(async () => {
 		if (debounceRef.current) {
@@ -1055,58 +1134,52 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			toast.error('Save the draft before publishing')
 			return
 		}
-		setIsPublishing(true)
 		try {
 			await flushPendingSave()
-			const saved = await publishArticle(article.id, authorizedFetch)
+			const saved = await publishMutation.mutateAsync(article.id)
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
+			queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			setSavedAt(merged.updatedAt)
 			toast.success(article.status === 'published' ? 'Update published' : 'Published')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to publish')
-		} finally {
-			setIsPublishing(false)
 		}
 	}
 
 	const handleUnpublish = async () => {
 		if (!article.id) return
-		setIsPublishing(true)
 		try {
-			const saved = await unpublishArticle(article.id, authorizedFetch)
+			const saved = await unpublishMutation.mutateAsync(article.id)
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
+			queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
 			toast.success('Moved to drafts')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to unpublish')
-		} finally {
-			setIsPublishing(false)
 		}
 	}
 
 	const handleDiscardPending = async () => {
 		if (!article.id) return
 		if (!confirm('Discard pending changes? The live version will not be modified.')) return
-		setIsDiscarding(true)
 		try {
 			if (debounceRef.current) {
 				clearTimeout(debounceRef.current)
 				debounceRef.current = null
 			}
-			const saved = await discardPendingEdits(article.id, authorizedFetch)
+			const saved = await discardPendingMutation.mutateAsync(article.id)
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
+			queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
 			setIsDirty(false)
 			toast.success('Pending changes discarded')
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to discard changes')
-		} finally {
-			setIsDiscarding(false)
 		}
 	}
 
@@ -1129,12 +1202,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const handleDeleteArticle = async () => {
 		if (!article.id) return
 		if (!confirm('Delete this draft? This cannot be undone.')) return
-		try {
-			await deleteArticle(article.id, authorizedFetch)
-			void router.replace('/research')
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to delete')
-		}
+		deleteArticleMutation.mutate(article.id)
 	}
 
 	const isOwner = article.viewerRole === 'owner'
@@ -1142,28 +1210,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const refreshCollaborators = useCallback(async () => {
 		if (!article.id) return
-		setCollaboratorsLoading(true)
-		try {
-			const list = await listCollaborators(article.id, authorizedFetch)
-			setCollaborators(list)
-		} catch (error) {
-			if (error instanceof ArticleApiError && error.status === 403) {
-				setCollaborators([])
-			} else if (error instanceof Error) {
-				toast.error(error.message)
-			}
-		} finally {
-			setCollaboratorsLoading(false)
-		}
-	}, [article.id, authorizedFetch])
-
-	useEffect(() => {
-		if (!article.id) {
-			setCollaborators([])
-			return
-		}
-		void refreshCollaborators()
-	}, [article.id, refreshCollaborators])
+		await queryClient.invalidateQueries({ queryKey: collaboratorsQueryKey })
+	}, [article.id, collaboratorsQueryKey, queryClient])
 
 	const handleAddCollaborator = async () => {
 		if (!article.id) return
@@ -1172,10 +1220,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setCollaboratorError('Enter an email address')
 			return
 		}
-		setCollaboratorAdding(true)
 		setCollaboratorError(null)
 		try {
-			await addCollaborator(article.id, email, authorizedFetch)
+			await addCollaboratorMutation.mutateAsync({ targetArticleId: article.id, email })
 			setCollaboratorEmail('')
 			await refreshCollaborators()
 			toast.success('Co-author added')
@@ -1187,15 +1234,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						? error.message
 						: 'Failed to add co-author'
 			setCollaboratorError(message)
-		} finally {
-			setCollaboratorAdding(false)
 		}
 	}
 
 	const handleRemoveCollaborator = async (pbUserId: string) => {
 		if (!article.id) return
 		try {
-			await removeCollaborator(article.id, pbUserId, authorizedFetch)
+			await removeCollaboratorMutation.mutateAsync({ targetArticleId: article.id, pbUserId })
 			await refreshCollaborators()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to remove co-author')
@@ -1205,7 +1250,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const handleToggleHidden = async (pbUserId: string, nextHidden: boolean) => {
 		if (!article.id) return
 		try {
-			await updateCollaborator(article.id, pbUserId, { hidden: nextHidden }, authorizedFetch)
+			await updateCollaboratorMutation.mutateAsync({ targetArticleId: article.id, pbUserId, hidden: nextHidden })
 			await refreshCollaborators()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to update co-author')
@@ -1217,9 +1262,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		if (!confirm(`Transfer ownership to ${displayName}? You will become a co-author and lose owner-only controls.`))
 			return
 		try {
-			const updated = await transferOwnership(article.id, { pbUserId }, authorizedFetch)
+			const updated = await transferOwnershipMutation.mutateAsync({ targetArticleId: article.id, pbUserId })
 			const merged = applyPendingToLocalArticle(updated, updated.pending)
 			setArticle(merged)
+			queryClient.setQueryData(['research', 'owned-article', updated.id], updated)
 			await refreshCollaborators()
 			toast.success(`${displayName} is now the owner`)
 		} catch (error) {
@@ -2193,6 +2239,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							{collaboratorsLoading && collaborators.length === 0 ? (
 								<div className="text-xs text-(--text-tertiary)">Loading…</div>
 							) : null}
+							{collaboratorsLoadError ? <div className="text-xs text-red-500">{collaboratorsLoadError}</div> : null}
 							{collaborators.map((entry) => (
 								<div
 									key={entry.pbUserId}
@@ -2422,9 +2469,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				</div>
 			</Ariakit.Dialog>
 
-			{article.id ? (
+			{article.id && historyOpen ? (
 				<RevisionHistoryDrawer
-					open={historyOpen}
+					key={article.id}
 					onClose={() => setHistoryOpen(false)}
 					articleId={article.id}
 					authorizedFetch={authorizedFetch}
@@ -2432,20 +2479,33 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				/>
 			) : null}
 
-			<ArticleChartPickerDialog
-				store={chartDialog}
-				initialConfig={editingChart?.config ?? null}
-				onInsert={handleChartSubmit}
-			/>
+			{chartDialogOpen ? (
+				<ArticleChartPickerDialog
+					key={editingChart ? `edit-chart-${editingChart.pos}` : 'new-chart'}
+					store={chartDialog}
+					initialConfig={editingChart?.config ?? null}
+					onInsert={handleChartSubmit}
+				/>
+			) : null}
 
-			<EmbedPicker store={embedDialog} initialConfig={editingEmbed?.config ?? null} onInsert={handleEmbedSubmit} />
+			{embedDialogOpen ? (
+				<EmbedPicker
+					key={editingEmbed ? `edit-embed-${editingEmbed.pos}` : 'new-embed'}
+					store={embedDialog}
+					initialConfig={editingEmbed?.config ?? null}
+					onInsert={handleEmbedSubmit}
+				/>
+			) : null}
 
-			<PeoplePanelDialog
-				store={peoplePanelDialog}
-				articleId={article.id ?? null}
-				initialConfig={editingPanel?.config ?? null}
-				onSubmit={handlePeoplePanelSubmit}
-			/>
+			{peoplePanelDialogOpen ? (
+				<PeoplePanelDialog
+					key={editingPanel ? `edit-people-panel-${editingPanel.pos}` : 'new-people-panel'}
+					store={peoplePanelDialog}
+					articleId={article.id ?? null}
+					initialConfig={editingPanel?.config ?? null}
+					onSubmit={handlePeoplePanelSubmit}
+				/>
+			) : null}
 		</div>
 	)
 }

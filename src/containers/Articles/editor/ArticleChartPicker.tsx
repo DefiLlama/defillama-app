@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueries } from '@tanstack/react-query'
-import { lazy, Suspense, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useContext, useMemo, useState } from 'react'
 import { useAppMetadata } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartTypePills } from '~/containers/ProDashboard/components/AddChartModal/ChartTypePills'
 import type { TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
@@ -200,51 +200,22 @@ function seriesId(s: ArticleChartSeries) {
 const DEFAULT_METRIC = 'tvl'
 
 export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Props) {
-	const open = Ariakit.useStoreState(store, 'open')
-	const [tab, setTab] = useState<ArticleChartEntityType>('protocol')
+	const normalizedInitialConfig = useMemo(() => validateArticleChartConfig(initialConfig), [initialConfig])
+	const initialSeries = normalizedInitialConfig?.series ?? []
+	const initialFirstSeries = initialSeries[0]
+	const initialLastProtocol = [...initialSeries].reverse().find((s) => s.entityType === 'protocol')
+	const initialLastChain = [...initialSeries].reverse().find((s) => s.entityType === 'chain')
+	const [tab, setTab] = useState<ArticleChartEntityType>(initialFirstSeries?.entityType ?? 'protocol')
 	const [query, setQuery] = useState('')
-	const [series, setSeries] = useState<ArticleChartSeries[]>([])
-	const [caption, setCaption] = useState('')
-	const [range, setRange] = useState<ArticleChartRange>('all')
-	const [logScale, setLogScale] = useState(false)
-	const [annotations, setAnnotations] = useState<ArticleChartAnnotation[]>([])
-	const [protocolMetric, setProtocolMetric] = useState<string>(DEFAULT_METRIC)
-	const [chainMetric, setChainMetric] = useState<string>(DEFAULT_METRIC)
-	const inputRef = useRef<HTMLInputElement>(null)
-
+	const [series, setSeries] = useState<ArticleChartSeries[]>(() => initialSeries.map((s) => ({ ...s })))
+	const [caption, setCaption] = useState(normalizedInitialConfig?.caption ?? '')
+	const [range, setRange] = useState<ArticleChartRange>(normalizedInitialConfig?.range ?? 'all')
+	const [logScale, setLogScale] = useState(normalizedInitialConfig?.logScale ?? false)
+	const [annotations, setAnnotations] = useState<ArticleChartAnnotation[]>(normalizedInitialConfig?.annotations ?? [])
+	const [protocolMetric, setProtocolMetric] = useState<string>(initialLastProtocol?.chartType ?? DEFAULT_METRIC)
+	const [chainMetric, setChainMetric] = useState<string>(initialLastChain?.chartType ?? DEFAULT_METRIC)
 	const { data: catalog, isLoading: catalogLoading } = useProtocolsAndChains()
 	const { availableProtocolChartTypes, availableChainChartTypes, loading: metaLoading } = useAppMetadata()
-
-	useEffect(() => {
-		if (!open) {
-			setQuery('')
-			setSeries([])
-			setCaption('')
-			setRange('all')
-			setLogScale(false)
-			setAnnotations([])
-			setTab('protocol')
-			setProtocolMetric(DEFAULT_METRIC)
-			setChainMetric(DEFAULT_METRIC)
-		} else if (initialConfig) {
-			const normalized = validateArticleChartConfig(initialConfig)
-			const normalizedSeries = normalized?.series ?? []
-			const firstSeries = normalizedSeries[0]
-			if (firstSeries) setTab(firstSeries.entityType)
-			setCaption(normalized?.caption ?? '')
-			setRange(normalized?.range ?? 'all')
-			setLogScale(normalized?.logScale ?? false)
-			setAnnotations(normalized?.annotations ?? [])
-			setSeries(normalizedSeries.map((s) => ({ ...s })))
-			const lastProtocol = [...normalizedSeries].reverse().find((s) => s.entityType === 'protocol')
-			const lastChain = [...normalizedSeries].reverse().find((s) => s.entityType === 'chain')
-			if (lastProtocol) setProtocolMetric(lastProtocol.chartType)
-			if (lastChain) setChainMetric(lastChain.chartType)
-			requestAnimationFrame(() => inputRef.current?.focus())
-		} else {
-			requestAnimationFrame(() => inputRef.current?.focus())
-		}
-	}, [open, initialConfig])
 
 	const currentMetric = tab === 'protocol' ? protocolMetric : chainMetric
 	const setCurrentMetric = (next: string) => {
@@ -475,7 +446,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 								<path d="m20 20-3.5-3.5" strokeLinecap="round" />
 							</svg>
 							<input
-								ref={inputRef}
+								autoFocus
 								value={query}
 								onChange={(event) => setQuery(event.target.value)}
 								placeholder={tab === 'protocol' ? 'Search protocols' : 'Search chains'}

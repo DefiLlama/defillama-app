@@ -1,3 +1,4 @@
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import {
@@ -19,7 +20,6 @@ import { diffMetadata, diffParagraphs, diffStats, type FieldChange, type Paragra
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
 
 type Props = {
-	open: boolean
 	onClose: () => void
 	articleId: string
 	authorizedFetch: AuthorizedFetch
@@ -221,114 +221,96 @@ function ActorAvatar({ name, url, size = 16 }: { name: string; url?: string | nu
 	)
 }
 
-export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetch, onRestored }: Props) {
-	const [items, setItems] = useState<ArticleRevisionSummary[]>([])
-	const [nextCursor, setNextCursor] = useState<string | null>(null)
-	const [isLoading, setIsLoading] = useState(false)
-	const [isLoadingMore, setIsLoadingMore] = useState(false)
-	const [selectedId, setSelectedId] = useState<string | null>(null)
-	const [selectedRevision, setSelectedRevision] = useState<ArticleRevision | null>(null)
-	const [isLoadingRevision, setIsLoadingRevision] = useState(false)
-	const [isRestoring, setIsRestoring] = useState(false)
-	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onRestored }: Props) {
+	const [selectedIdState, setSelectedId] = useState<string | null>(null)
 	const [filter, setFilter] = useState<FilterKey>('all')
 	const [confirming, setConfirming] = useState<null | 'restore' | 'delete'>(null)
 	const [viewMode, setViewMode] = useState<ViewMode>('preview')
 	const [baseMode, setBaseMode] = useState<BaseMode>('previous')
-	const [snapshotCache, setSnapshotCache] = useState<Record<string, ArticleRevision>>({})
 	const listRef = useRef<HTMLDivElement | null>(null)
-
-	const loadFirstPage = useCallback(async () => {
-		setIsLoading(true)
-		try {
-			const res = await listArticleRevisions(articleId, { limit: 30 }, authorizedFetch)
-			setItems(res.items)
-			setNextCursor(res.nextCursor)
-			if (res.items[0]) setSelectedId(res.items[0].id)
-			else setSelectedId(null)
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to load history')
-		} finally {
-			setIsLoading(false)
-		}
-	}, [articleId, authorizedFetch])
+	const queryClient = useQueryClient()
+	const revisionsQueryKey = useMemo(() => ['research', 'article-revisions', articleId] as const, [articleId])
+	const revisionsQuery = useInfiniteQuery({
+		queryKey: revisionsQueryKey,
+		queryFn: ({ pageParam }) => listArticleRevisions(articleId, { limit: 30, cursor: pageParam }, authorizedFetch),
+		initialPageParam: undefined as string | undefined,
+		getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+		retry: false
+	})
+	const items = useMemo(() => revisionsQuery.data?.pages.flatMap((page) => page.items) ?? [], [revisionsQuery.data])
+	const selectedId = selectedIdState ?? items[0]?.id ?? null
+	const selectedRevisionQuery = useQuery({
+		queryKey: ['research', 'article-revision', articleId, selectedId],
+		queryFn: () => getArticleRevision(articleId, selectedId!, authorizedFetch),
+		enabled: !!selectedId,
+		retry: false
+	})
+	const selectedRevision = selectedRevisionQuery.data ?? null
+	const isLoading = revisionsQuery.isLoading
+	const isLoadingMore = revisionsQuery.isFetchingNextPage
+	const isLoadingRevision = selectedRevisionQuery.isLoading
+	const restoreRevisionMutation = useMutation({
+		mutationFn: (revisionId: string) => restoreArticleRevisionToPending(articleId, revisionId, authorizedFetch)
+	})
+	const deleteRevisionMutation = useMutation({
+		mutationFn: (revisionId: string) => deleteArticleRevision(articleId, revisionId, authorizedFetch)
+	})
+	const isRestoring = restoreRevisionMutation.isPending
+	const pendingDeleteId = deleteRevisionMutation.isPending ? (deleteRevisionMutation.variables ?? null) : null
 
 	useEffect(() => {
-		if (!open) return
-		setConfirming(null)
-		void loadFirstPage()
-	}, [open, loadFirstPage])
+		if (revisionsQuery.error) {
+			toast.error(revisionsQuery.error instanceof Error ? revisionsQuery.error.message : 'Failed to load history')
+		}
+	}, [revisionsQuery.error])
 
 	useEffect(() => {
-		setConfirming(null)
-	}, [selectedId])
-
-	useEffect(() => {
-		if (!open || !selectedId) {
-			setSelectedRevision(null)
-			return
+		if (selectedRevisionQuery.error) {
+			toast.error(
+				selectedRevisionQuery.error instanceof Error ? selectedRevisionQuery.error.message : 'Failed to load revision'
+			)
 		}
-		const cached = snapshotCache[selectedId]
-		if (cached) {
-			setSelectedRevision(cached)
-			setIsLoadingRevision(false)
-			return
-		}
-		let cancelled = false
-		setIsLoadingRevision(true)
-		getArticleRevision(articleId, selectedId, authorizedFetch)
-			.then((rev) => {
-				if (cancelled) return
-				setSelectedRevision(rev)
-				setSnapshotCache((prev) => (prev[rev.id] ? prev : { ...prev, [rev.id]: rev }))
-			})
-			.catch((error) => {
-				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load revision')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoadingRevision(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [open, selectedId, articleId, authorizedFetch, snapshotCache])
+	}, [selectedRevisionQuery.error])
 
 	const loadMore = useCallback(async () => {
-		if (!nextCursor) return
-		setIsLoadingMore(true)
-		try {
-			const res = await listArticleRevisions(articleId, { limit: 30, cursor: nextCursor }, authorizedFetch)
-			setItems((prev) => [...prev, ...res.items])
-			setNextCursor(res.nextCursor)
-		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to load more history')
-		} finally {
-			setIsLoadingMore(false)
-		}
-	}, [articleId, authorizedFetch, nextCursor])
+		if (!revisionsQuery.hasNextPage) return
+		await revisionsQuery.fetchNextPage()
+	}, [revisionsQuery])
+
+	const selectRevision = useCallback((revisionId: string) => {
+		setConfirming(null)
+		setSelectedId(revisionId)
+	}, [])
 
 	const handleRestore = useCallback(async () => {
 		if (!selectedId) return
-		setIsRestoring(true)
 		try {
-			const saved = await restoreArticleRevisionToPending(articleId, selectedId, authorizedFetch)
+			const saved = await restoreRevisionMutation.mutateAsync(selectedId)
 			toast.success('Restored as pending')
 			onRestored(saved)
 			onClose()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to restore revision')
 		} finally {
-			setIsRestoring(false)
 			setConfirming(null)
 		}
-	}, [articleId, authorizedFetch, onRestored, onClose, selectedId])
+	}, [restoreRevisionMutation, onRestored, onClose, selectedId])
 
 	const handleDelete = useCallback(
 		async (revisionId: string) => {
-			setPendingDeleteId(revisionId)
 			try {
-				await deleteArticleRevision(articleId, revisionId, authorizedFetch)
-				setItems((prev) => prev.filter((entry) => entry.id !== revisionId))
+				await deleteRevisionMutation.mutateAsync(revisionId)
+				queryClient.setQueryData<typeof revisionsQuery.data>(revisionsQueryKey, (current) =>
+					current
+						? {
+								...current,
+								pages: current.pages.map((page) => ({
+									...page,
+									items: page.items.filter((entry) => entry.id !== revisionId)
+								}))
+							}
+						: current
+				)
 				if (selectedId === revisionId) {
 					setSelectedId((current) => {
 						if (current !== revisionId) return current
@@ -340,11 +322,10 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 			} catch (error) {
 				toast.error(error instanceof Error ? error.message : 'Failed to delete revision')
 			} finally {
-				setPendingDeleteId(null)
 				setConfirming(null)
 			}
 		},
-		[articleId, authorizedFetch, items, selectedId]
+		[deleteRevisionMutation, items, queryClient, revisionsQueryKey, selectedId]
 	)
 
 	const liveAnchorId = useMemo(() => {
@@ -397,13 +378,15 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 			if (filtered.length === 0) return
 			const nextIndex = Math.min(filtered.length - 1, Math.max(0, selectedIndex + delta))
 			const next = filtered[nextIndex]
-			if (next) setSelectedId(next.id)
+			if (next) {
+				setConfirming(null)
+				setSelectedId(next.id)
+			}
 		},
 		[filtered, selectedIndex]
 	)
 
 	useEffect(() => {
-		if (!open) return
 		const handler = (event: KeyboardEvent) => {
 			if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return
 			if (event.key === 'Escape') {
@@ -429,7 +412,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 		}
 		window.addEventListener('keydown', handler)
 		return () => window.removeEventListener('keydown', handler)
-	}, [open, onClose, moveSelection, confirming, selectedId])
+	}, [onClose, moveSelection, confirming, selectedId])
 
 	useEffect(() => {
 		if (!selectedId || !listRef.current) return
@@ -496,24 +479,22 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 		if (fallback && fallback !== baseMode) setBaseMode(fallback)
 	}, [viewMode, baseMode, baseAvailability])
 
-	useEffect(() => {
-		if (viewMode !== 'diff' || !baseId) return
-		if (snapshotCache[baseId]) return
-		let cancelled = false
-		getArticleRevision(articleId, baseId, authorizedFetch)
-			.then((rev) => {
-				if (cancelled) return
-				setSnapshotCache((prev) => (prev[rev.id] ? prev : { ...prev, [rev.id]: rev }))
-			})
-			.catch((error) => {
-				if (!cancelled) toast.error(error instanceof Error ? error.message : 'Failed to load base revision')
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [viewMode, baseId, articleId, authorizedFetch, snapshotCache])
+	const baseRevisionQuery = useQuery({
+		queryKey: ['research', 'article-revision', articleId, baseId],
+		queryFn: () => getArticleRevision(articleId, baseId!, authorizedFetch),
+		enabled: viewMode === 'diff' && !!baseId,
+		retry: false
+	})
 
-	const baseRevision = baseId ? (snapshotCache[baseId] ?? null) : null
+	useEffect(() => {
+		if (baseRevisionQuery.error) {
+			toast.error(
+				baseRevisionQuery.error instanceof Error ? baseRevisionQuery.error.message : 'Failed to load base revision'
+			)
+		}
+	}, [baseRevisionQuery.error])
+
+	const baseRevision = baseRevisionQuery.data ?? null
 
 	const diff = useMemo(() => {
 		if (viewMode !== 'diff' || !selectedRevision || !baseRevision) return null
@@ -526,8 +507,6 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 		const stats = diffStats(paragraphs)
 		return { paragraphs, metadata, stats }
 	}, [viewMode, selectedRevision, baseRevision])
-
-	if (!open) return null
 
 	return (
 		<div className="fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Revision history">
@@ -642,7 +621,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 														>
 															<button
 																type="button"
-																onClick={() => setSelectedId(entry.id)}
+																onClick={() => selectRevision(entry.id)}
 																aria-current={isSelected}
 																className={`relative flex w-full items-start gap-3 px-5 py-3 text-left transition-colors ${
 																	isSelected ? 'bg-(--link-button)' : 'hover:bg-(--link-hover-bg)/60'
@@ -690,7 +669,7 @@ export function RevisionHistoryDrawer({ open, onClose, articleId, authorizedFetc
 											</ul>
 										</section>
 									))}
-									{nextCursor ? (
+									{revisionsQuery.hasNextPage ? (
 										<div className="px-5 py-4">
 											<button
 												type="button"
