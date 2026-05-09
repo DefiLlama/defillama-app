@@ -24,11 +24,15 @@ This file defines the commands and working conventions that all AI agents must f
 
 ## Required Verification
 
-After completing any task, run these commands in order:
+After completing a task that changes source code, tests, scripts, type declarations, or project/tooling configuration, run these commands in order:
 
 1. `bun run format`
 2. `bun run lint`
 3. `bun run ts`
+
+Do not run the full verification sequence for tasks that only inspect, explain, review, branch, commit, or run explicitly requested commands without making code changes.
+Do not run the full verification sequence for documentation-only or instruction-only edits unless the user explicitly asks.
+If the user asks to run specific commands, run only those commands unless code changes are needed to complete the request.
 
 Do not run `bun run build` as part of verification.
 
