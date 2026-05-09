@@ -31,5 +31,5 @@ export async function fetchTreasuryById(treasuryId: string): Promise<RawTreasuri
  * Fetch entity metadata used by the treasuries page.
  */
 export async function fetchEntities(): Promise<RawEntitiesResponse> {
-	return fetchJson<RawEntitiesResponse>(`${SERVER_URL}/entities`)
+	return fetchJson<RawEntitiesResponse>(`${SERVER_URL}/entities`, { timeout: getSlowJsonTimeoutMs() })
 }

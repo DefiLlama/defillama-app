@@ -48,10 +48,13 @@ describe('cache lifetime jitter', () => {
 
 		const header = jitterCacheControlHeader('public, max-age=60, s-maxage=300, stale-while-revalidate=300', 'markets')
 		const match = header.match(/s-maxage=(\d+)/)
+		const sMaxage = Number(match?.[1])
 
 		expect(header).toContain('public, max-age=60')
 		expect(header).toContain('stale-while-revalidate=300')
-		expect(Number(match?.[1])).toBeGreaterThanOrEqual(60)
+		expect(sMaxage).not.toBeNaN()
+		expect(sMaxage).toBeGreaterThanOrEqual(60)
+		expect(sMaxage).toBeLessThanOrEqual(1500)
 	})
 
 	it('stores jitter metadata without making it enumerable', () => {

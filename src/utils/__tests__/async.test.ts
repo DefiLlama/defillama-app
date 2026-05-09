@@ -97,6 +97,20 @@ describe('fetchJson singleflight', () => {
 		expect(fetchMock).toHaveBeenCalledTimes(1)
 	})
 
+	it('does not share requests with different timeout budgets', async () => {
+		vi.stubEnv('SERVER_FETCH_JSON_SINGLEFLIGHT', '1')
+		const fetchMock = vi.fn(async () => jsonResponse({ ok: true }))
+		vi.stubGlobal('fetch', fetchMock)
+		const { fetchJson } = await import('../async')
+
+		await Promise.all([
+			fetchJson('https://api.llama.fi/timeout-scoped', { timeout: 10_000 }),
+			fetchJson('https://api.llama.fi/timeout-scoped', { timeout: 45_000 })
+		])
+
+		expect(fetchMock).toHaveBeenCalledTimes(2)
+	})
+
 	it('does not singleflight Request inputs', async () => {
 		vi.stubEnv('SERVER_FETCH_JSON_SINGLEFLIGHT', '1')
 		const fetchMock = vi.fn(async () => jsonResponse({ ok: true }))

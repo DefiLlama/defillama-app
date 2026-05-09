@@ -116,7 +116,7 @@ function resolvedUrlString(url: RequestInfo | URL): string | null {
 	return null
 }
 
-function singleflightKey(url: RequestInfo | URL, options?: RequestInit): string | null {
+function singleflightKey(url: RequestInfo | URL, options?: FetchWithPoolingOnServerOptions): string | null {
 	if (!envEnabled('SERVER_FETCH_JSON_SINGLEFLIGHT')) return null
 	if (typeof window !== 'undefined') return null
 	if (isRequestInput(url)) return null
@@ -127,7 +127,7 @@ function singleflightKey(url: RequestInfo | URL, options?: RequestInit): string 
 	try {
 		const parsed = new URL(raw)
 		if (!PUBLIC_SINGLEFLIGHT_HOSTS.has(parsed.hostname)) return null
-		return `${requestMethod(options)} ${parsed.toString()}`
+		return `${requestMethod(options)} ${parsed.toString()} timeout=${options?.timeout ?? getDefaultJsonTimeoutMs()}`
 	} catch {
 		return null
 	}

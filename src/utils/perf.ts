@@ -33,7 +33,7 @@ function jitterStaticPropsRevalidate<T extends { [key: string]: any }>(
 	result: GetStaticPropsResult<T>,
 	key: string
 ): GetStaticPropsResult<T> {
-	if (!('props' in result) || typeof result.revalidate !== 'number') return result
+	if (typeof result.revalidate !== 'number') return result
 
 	const jittered = jitterCacheSeconds(result.revalidate, key)
 	const next = { ...result, revalidate: jittered.seconds }

@@ -23,8 +23,9 @@ describe('withPerformanceLogging', () => {
 		expect(readCacheJitterMeta(result)).toEqual({ cache_jitter_seconds: expected.offsetSeconds })
 	})
 
-	it('does not add revalidate jitter metadata to notFound results', async () => {
+	it('jitters numeric getStaticProps revalidate values on notFound results', async () => {
 		vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '1200')
+		vi.stubEnv('NEXT_BUILD_ID', 'build-a')
 		const { withPerformanceLogging } = await import('../perf')
 
 		const wrapped = withPerformanceLogging('protocol/[protocol]', async () => ({
@@ -32,9 +33,10 @@ describe('withPerformanceLogging', () => {
 			revalidate: 3600
 		}))
 		const result = await wrapped({ params: { protocol: 'missing' } } as never)
+		const expected = jitterCacheSeconds(3600, 'protocol/[protocol]:/protocol/missing')
 
-		expect(result).toEqual({ notFound: true, revalidate: 3600 })
-		expect(readCacheJitterMeta(result)).toBeUndefined()
+		expect(result).toEqual({ notFound: true, revalidate: expected.seconds })
+		expect(readCacheJitterMeta(result)).toEqual({ cache_jitter_seconds: expected.offsetSeconds })
 	})
 
 	it('stops retrying transient page build failures once the cumulative budget is exceeded', async () => {

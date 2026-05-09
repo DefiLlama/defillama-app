@@ -24,6 +24,13 @@ export function parseContractBreakdownRequest(
 	}
 }
 
+function buildContractBreakdownCacheJitterKey(request: IRWAPerpsContractBreakdownRequest): string {
+	const searchParams = new URLSearchParams({ key: request.key })
+	if (request.venue) searchParams.set('venue', request.venue)
+	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	return `/api/rwa/perps/contract-breakdown?${searchParams.toString()}`
+}
+
 async function handler(req: NextApiRequest, res: NextApiResponse) {
 	if (req.method !== 'GET') {
 		return res.status(405).json({ error: 'Method not allowed' })
@@ -39,13 +46,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		if (rows == null) {
 			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 		}
+		const cacheJitterKey = req.url ?? buildContractBreakdownCacheJitterKey(request)
 
 		res.setHeader(
 			'Cache-Control',
-			jitterCacheControlHeader(
-				'public, s-maxage=3600, stale-while-revalidate=1800',
-				req.url ?? '/api/rwa/perps/contract-breakdown'
-			)
+			jitterCacheControlHeader('public, s-maxage=3600, stale-while-revalidate=1800', cacheJitterKey)
 		)
 		return res.status(200).json(toRWAPerpsBreakdownChartDataset(rows))
 	} catch (error) {
