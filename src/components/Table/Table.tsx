@@ -23,6 +23,11 @@ interface ITableProps<T extends RowData = RowData> {
 }
 
 const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
+const DEFAULT_VIRTUAL_ROW_SIZE = 50
+const INITIAL_VIRTUAL_WINDOW_ROWS = 18
+
+const getInitialVirtualizerHeight = (rowCount: number, rowHeight: number) =>
+	Math.min(rowCount, INITIAL_VIRTUAL_WINDOW_ROWS) * rowHeight
 
 interface StickyHeaderLayout {
 	left: number
@@ -56,7 +61,7 @@ interface TableRowProps<T extends RowData = RowData> {
 	row: Row<T>
 	index: number
 	virtualRow?: VirtualItem | null
-	measureElement?: (node: HTMLTableRowElement | null) => void
+	rowHeight?: number
 	subRowOrdinalById: Map<string, number>
 	firstColumnId: string | undefined
 	stripedBg: boolean
@@ -68,7 +73,7 @@ function TableRow<T extends RowData>({
 	row: rowToRender,
 	index: i,
 	virtualRow,
-	measureElement,
+	rowHeight,
 	subRowOrdinalById,
 	firstColumnId,
 	stripedBg,
@@ -78,8 +83,8 @@ function TableRow<T extends RowData>({
 	return (
 		<tr
 			data-index={virtualRow?.index}
-			ref={measureElement}
 			style={{
+				height: rowHeight,
 				opacity: (rowToRender.original as Record<string, unknown>)?.disabled ? 0.3 : 1,
 				...(rowToRender.depth > 0
 					? {
@@ -164,9 +169,17 @@ export function VirtualTable<T extends RowData>({
 		}
 	}, [])
 
+	const estimatedRowSize = rowSize ?? DEFAULT_VIRTUAL_ROW_SIZE
+	const initialVirtualizerRect = React.useMemo(
+		() => ({ width: 0, height: getInitialVirtualizerHeight(rows.length, estimatedRowSize) }),
+		[rows.length, estimatedRowSize]
+	)
 	const rowVirtualizer = useWindowVirtualizer({
 		count: rows.length,
-		estimateSize: () => rowSize || 50,
+		// Virtual rows are fixed-height; keep rowSize aligned with rendered row CSS/content.
+		estimateSize: () => estimatedRowSize,
+		initialOffset: 0,
+		initialRect: initialVirtualizerRect,
 		overscan: 5,
 		scrollMargin: scrollMargin ?? containerOffset
 	})
@@ -526,6 +539,7 @@ export function VirtualTable<T extends RowData>({
 									key={row.id}
 									row={row}
 									index={i}
+									rowHeight={rowSize}
 									subRowOrdinalById={subRowOrdinalById}
 									firstColumnId={firstColumnId}
 									stripedBg={stripedBg}
@@ -550,9 +564,7 @@ export function VirtualTable<T extends RowData>({
 										row={rows[virtualRow.index]}
 										index={virtualRow.index}
 										virtualRow={virtualRow}
-										measureElement={(node) => {
-											if (node) rowVirtualizer.measureElement(node)
-										}}
+										rowHeight={virtualRow.size}
 										subRowOrdinalById={subRowOrdinalById}
 										firstColumnId={firstColumnId}
 										stripedBg={stripedBg}

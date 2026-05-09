@@ -26,7 +26,7 @@ const columns = [
 	})
 ]
 
-function TestVirtualTable() {
+function TestVirtualTable({ rowSize }: { rowSize?: number }) {
 	const data: TestRow[] = Array.from({ length: 40 }, (_, index) => ({
 		name: `Asset ${index + 1}`,
 		mcap: index + 1
@@ -37,7 +37,7 @@ function TestVirtualTable() {
 		getCoreRowModel: getCoreRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return <VirtualTable instance={instance} rowSize={rowSize} />
 }
 
 describe('VirtualTable SSR', () => {
@@ -47,5 +47,11 @@ describe('VirtualTable SSR', () => {
 		expect(html).toContain('Asset 1')
 		expect(html).toContain('Asset 2')
 		expect(html).not.toContain('Asset 40')
+	})
+
+	it('applies the estimated row height to rendered virtual rows', () => {
+		const html = renderToStaticMarkup(<TestVirtualTable rowSize={64} />)
+
+		expect(html).toContain('height:64px')
 	})
 })
