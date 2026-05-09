@@ -27,7 +27,7 @@ import { SignInModal } from '~/containers/Subscription/SignInModal'
 import type { BillingCycle, PlanKey } from '~/containers/Subscription/types'
 import { useSubscriptionPageState } from '~/containers/Subscription/usePageState'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 import { safeInternalPath } from '~/utils/routerQuery'
 
 const StripeCheckoutModal = lazy(() =>

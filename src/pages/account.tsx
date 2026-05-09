@@ -8,7 +8,7 @@ import { ManageAccount } from '~/containers/Account/ManageAccount'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import Layout from '~/layout'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 
 export default function Account() {
 	const router = useRouter()

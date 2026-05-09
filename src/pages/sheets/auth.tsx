@@ -7,7 +7,7 @@ import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
 import { SignInFlow } from '~/containers/Subscription/SignInDialog'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 export default function AuthPage() {
