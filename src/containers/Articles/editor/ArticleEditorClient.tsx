@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import {
@@ -96,6 +97,13 @@ function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: strin
 				<svg {...props}>
 					<path d="M10 13a4 4 0 0 0 5.5 0l3-3a4 4 0 0 0-5.5-5.5l-1.5 1.5" />
 					<path d="M14 11a4 4 0 0 0-5.5 0l-3 3a4 4 0 0 0 5.5 5.5l1.5-1.5" />
+				</svg>
+			)
+		case 'pencil':
+			return (
+				<svg {...props}>
+					<path d="M14 4l6 6-10 10H4v-6z" />
+					<line x1="13" y1="5" x2="19" y2="11" />
 				</svg>
 			)
 		case 'plus':
@@ -534,6 +542,7 @@ type EditorFlags = {
 	code: boolean
 	highlight: boolean
 	link: boolean
+	entityLink: boolean
 	h2: boolean
 	h3: boolean
 	bulletList: boolean
@@ -553,6 +562,7 @@ const EMPTY_FLAGS: EditorFlags = {
 	code: false,
 	highlight: false,
 	link: false,
+	entityLink: false,
 	h2: false,
 	h3: false,
 	bulletList: false,
@@ -578,6 +588,7 @@ function useEditorFlags(editor: Editor | null): EditorFlags {
 							code: e.isActive('code'),
 							highlight: e.isActive('highlight'),
 							link: e.isActive('link'),
+							entityLink: e.isActive('entityLink'),
 							h2: e.isActive('heading', { level: 2 }),
 							h3: e.isActive('heading', { level: 3 }),
 							bulletList: e.isActive('bulletList'),
@@ -595,6 +606,36 @@ function useEditorFlags(editor: Editor | null): EditorFlags {
 				return ka.every((k) => a[k] === b[k])
 			}
 		}) ?? EMPTY_FLAGS
+	)
+}
+
+type ActiveEntityLink = {
+	entityType: string | null
+	slug: string | null
+	label: string | null
+	route: string | null
+}
+
+function useActiveEntityLink(editor: Editor | null): ActiveEntityLink | null {
+	return (
+		useEditorState({
+			editor,
+			selector: ({ editor: e }) => {
+				if (!e || !e.isActive('entityLink')) return null
+				const a = e.getAttributes('entityLink')
+				return {
+					entityType: (a.entityType as string | null) ?? null,
+					slug: (a.slug as string | null) ?? null,
+					label: (a.label as string | null) ?? null,
+					route: (a.route as string | null) ?? null
+				}
+			},
+			equalityFn: (a, b) => {
+				if (!a && !b) return true
+				if (!a || !b) return false
+				return a.entityType === b.entityType && a.slug === b.slug && a.route === b.route && a.label === b.label
+			}
+		}) ?? null
 	)
 }
 
@@ -722,6 +763,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})
 
 	const flags = useEditorFlags(editor)
+	const activeEntity = useActiveEntityLink(editor)
 	const ownedArticleQueryKey = articleQueryKey(articleId)
 	const ownedArticleQuery = useQuery({
 		queryKey: ownedArticleQueryKey,
@@ -883,6 +925,22 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 		setLinkEdit(null)
 	}
+
+	const unsetActiveEntityLink = useCallback(() => {
+		if (!editor) return
+		editor.chain().focus().extendMarkRange('entityLink').unsetEntityLink().run()
+	}, [editor])
+
+	const openActiveEntityLink = useCallback(() => {
+		if (!activeEntity?.route) return
+		window.open(activeEntity.route, '_blank', 'noopener,noreferrer')
+	}, [activeEntity?.route])
+
+	const changeActiveEntityLink = useCallback(() => {
+		if (!editor) return
+		const label = activeEntity?.label ?? ''
+		editor.chain().focus().extendMarkRange('entityLink').deleteSelection().insertContent(' @' + label).run()
+	}, [editor, activeEntity?.label])
 
 	const beginSlugEdit = useCallback(() => {
 		setSlugDraft(article.slug)
@@ -1693,8 +1751,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						options={{ placement: 'top' }}
 						shouldShow={({ editor: e, from, to, state }) => {
 							if (linkEdit) return true
-							if (from === to) return false
 							if (!e.isEditable) return false
+							if (e.isActive('entityLink') && e.isFocused) return true
+							if (from === to) return false
 							let blocked = false
 							state.doc.nodesBetween(from, to, (n) => {
 								if (
@@ -1777,6 +1836,66 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										</a>
 									) : null}
 								</form>
+							) : flags.entityLink && activeEntity ? (
+								<div className="flex items-center gap-1">
+									<span className="flex items-center gap-2 px-2 py-1">
+										{activeEntity.slug ? (
+											<span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
+												<img
+													src={
+														activeEntity.entityType === 'chain'
+															? chainIconUrl(activeEntity.slug)
+															: tokenIconUrl(activeEntity.slug)
+													}
+													alt=""
+													className="h-full w-full object-cover"
+													onError={(e) => {
+													e.currentTarget.style.visibility = 'hidden'
+												}}
+												/>
+											</span>
+										) : null}
+										<span className="max-w-[160px] truncate text-sm font-medium text-(--text-primary)">
+											{activeEntity.label || activeEntity.slug || 'Entity'}
+										</span>
+										<span className="font-jetbrains text-[9px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											{activeEntity.entityType ?? ''}
+										</span>
+									</span>
+									<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
+									<button
+										type="button"
+										aria-label="Change entity"
+										title="Change entity"
+										onClick={changeActiveEntityLink}
+										className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-secondary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+									>
+										<Icon name="pencil" className="h-3 w-3" />
+										<span>Change</span>
+									</button>
+									<button
+										type="button"
+										aria-label="Unlink entity"
+										title="Unlink entity"
+										onClick={unsetActiveEntityLink}
+										className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+									>
+										<Icon name="x" className="h-3 w-3" />
+										<span>Unlink</span>
+									</button>
+									{activeEntity.route ? (
+										<button
+											type="button"
+											aria-label="Open entity"
+											title="Open entity in new tab"
+											onClick={openActiveEntityLink}
+											className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+										>
+											<Icon name="external" className="h-3 w-3" />
+											<span>Open</span>
+										</button>
+									) : null}
+								</div>
 							) : (
 								<>
 									{markButtons.map((b) => (
