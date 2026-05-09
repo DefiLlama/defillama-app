@@ -7,6 +7,8 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
+const DEFAULT_VIEWABLE_MATCHES = 20
+
 export function YieldsSearch({
 	lend = false,
 	searchData,
@@ -26,14 +28,17 @@ export function YieldsSearch({
 		})
 	}, [searchData, searchValue])
 
-	const [viewableMatches, setViewableMatches] = React.useState(20)
+	const [viewableMatches, setViewableMatches] = React.useState(DEFAULT_VIEWABLE_MATCHES)
 
 	const [open, setOpen] = React.useState(false)
 
 	const comboboxRef = React.useRef<HTMLDivElement>(null)
 
 	React.useEffect(() => {
-		if (!open) setSearchValue('')
+		if (!open) {
+			setSearchValue('')
+			setViewableMatches(DEFAULT_VIEWABLE_MATCHES)
+		}
 	}, [open])
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {

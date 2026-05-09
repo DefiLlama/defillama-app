@@ -596,7 +596,10 @@ function ParamCombobox({
 
 	const matches = useMemo(() => {
 		if (!search) return options.slice(0, 200)
-		return matchSorter(options, search, { keys: ['label', 'value'] }).slice(0, 200)
+		return matchSorter(options, search, {
+			keys: ['label', 'value'],
+			threshold: matchSorter.rankings.CONTAINS
+		}).slice(0, 200)
 	}, [options, search])
 
 	const current = options.find((o) => o.value === value)

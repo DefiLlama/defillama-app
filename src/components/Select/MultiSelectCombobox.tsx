@@ -5,6 +5,8 @@ import { Icon } from '~/components/Icon'
 import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
 import type { MultiSelectOption } from './types'
 
+const DEFAULT_VIEWABLE_MATCHES = 10
+
 export const MultiSelectCombobox = ({
 	data,
 	placeholder,
@@ -27,14 +29,17 @@ export const MultiSelectCombobox = ({
 		})
 	}, [data, searchValue])
 
-	const [viewableMatches, setViewableMatches] = useState(10)
+	const [viewableMatches, setViewableMatches] = useState(DEFAULT_VIEWABLE_MATCHES)
 
 	const [open, setOpen] = useState(false)
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		if (!open) setSearchValue('')
+		if (!open) {
+			setSearchValue('')
+			setViewableMatches(DEFAULT_VIEWABLE_MATCHES)
+		}
 	}, [open])
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {

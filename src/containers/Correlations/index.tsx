@@ -25,13 +25,14 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 	const [search, setSearch] = useState('')
 	const deferredSearch = useDeferredValue(search)
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
-	const filteredCoins =
+	const filteredCoins = (
 		deferredSearch === ''
 			? coinsData
 			: matchSorter(coinsData, deferredSearch, {
 					keys: [(coin) => coin.symbol ?? '', (coin) => coin.name ?? ''],
 					threshold: matchSorter.rankings.CONTAINS
-				}).filter((coin) => !selectedCoins[coin.id])
+				})
+	).filter((coin) => !selectedCoins[coin.id])
 
 	const [resultsLength, setResultsLength] = useState(10)
 
