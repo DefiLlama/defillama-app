@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useState, type ReactNode } from 'react'
 import { chainIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
@@ -388,29 +389,29 @@ export function EntityPreviewLink({
 	const logo = entityLogoUrl(entity)
 	const typeLabel = TYPE_LABEL[entity.entityType] ?? entity.entityType.toUpperCase()
 	const previewable = isPreviewableEntityType(entity.entityType)
-	const [hovered, setHovered] = useState(false)
+	const [open, setOpen] = useState(false)
 
 	const { data: liveData, isFetching } = useQuery({
 		queryKey: ['article-entity-preview', entity.entityType, entity.slug],
 		queryFn: ({ signal }) => fetchEntityPreview(entity.entityType, entity.slug, signal),
-		enabled: previewable && hovered,
+		enabled: previewable && open,
 		staleTime: 1000 * 60 * 5,
 		gcTime: 1000 * 60 * 30,
 		refetchOnWindowFocus: false
 	})
 
 	const preview = liveData ?? snapshot ?? null
-	const loading = previewable && hovered && isFetching && !preview
+	const loading = previewable && open && isFetching && !preview
 
 	return (
-		<span
-			className="article-entity-link group relative inline-block align-baseline"
-			onMouseEnter={() => setHovered(true)}
-			onFocus={() => setHovered(true)}
-		>
-			<a
-				href={entity.route}
-				className="inline-flex items-baseline gap-1 font-medium text-(--link-text) no-underline decoration-(--link-text)/30 underline-offset-[3px] hover:underline"
+		<Ariakit.HovercardProvider open={open} setOpen={setOpen} showTimeout={120} hideTimeout={120} placement="top">
+			<Ariakit.HovercardAnchor
+				render={
+					<a
+						href={entity.route}
+						className="article-entity-link inline-flex items-baseline gap-1 align-baseline font-medium text-(--link-text) no-underline decoration-(--link-text)/30 underline-offset-[3px] hover:underline"
+					/>
+				}
 			>
 				{logo ? (
 					<img
@@ -422,12 +423,14 @@ export function EntityPreviewLink({
 					/>
 				) : null}
 				{children}
-			</a>
-			<span
-				role="tooltip"
-				className="article-entity-popover invisible absolute bottom-full left-1/2 z-30 mb-2 w-80 -translate-x-1/2 translate-y-1 rounded-md border border-(--cards-border) bg-(--cards-bg) opacity-0 shadow-xl transition-all duration-150 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:visible group-hover:translate-y-0 group-hover:opacity-100"
+			</Ariakit.HovercardAnchor>
+			<Ariakit.Hovercard
+				portal
+				gutter={8}
+				unmountOnHide
+				className="article-entity-popover z-50 w-80 rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-xl outline-none"
 			>
-				<span className="flex items-center gap-3 px-3 pt-3 pb-2">
+				<div className="flex items-center gap-3 px-3 pt-3 pb-2">
 					<span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
 						{logo ? (
 							<img src={logo} alt="" height={36} width={36} className="h-full w-full object-cover" />
@@ -435,17 +438,17 @@ export function EntityPreviewLink({
 							<span className="text-[10px] text-(--text-tertiary)">{entity.label.slice(0, 2).toUpperCase()}</span>
 						)}
 					</span>
-					<span className="flex min-w-0 flex-col">
+					<div className="flex min-w-0 flex-col">
 						<span className="truncate text-sm font-semibold text-(--text-primary)">{entity.label}</span>
 						<span className="truncate text-xs text-(--text-tertiary)">{typeLabel}</span>
-					</span>
-				</span>
+					</div>
+				</div>
 				<PreviewBody entity={entity} preview={preview} loading={loading} />
-				<span className="flex items-center justify-between gap-2 border-t border-(--cards-border) px-3 py-2 text-xs">
+				<div className="flex items-center justify-between gap-2 border-t border-(--cards-border) px-3 py-2 text-xs">
 					<span className="text-(--text-tertiary)">Open page</span>
 					<span className="truncate text-(--link-text)">{entity.route}</span>
-				</span>
-			</span>
-		</span>
+				</div>
+			</Ariakit.Hovercard>
+		</Ariakit.HovercardProvider>
 	)
 }
