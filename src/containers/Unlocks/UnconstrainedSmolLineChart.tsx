@@ -1,7 +1,8 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useDeferredLayoutEffect } from '~/hooks/useDeferredLayoutEffect'
 import { formattedNum } from '~/utils'
 import type { EmissionEvent } from './api.types'
 
@@ -70,7 +71,7 @@ export function UnconstrainedSmolLineChart({
 
 	const onMouseLeave = useCallback(() => setHoveredIndex(null), [])
 
-	useLayoutEffect(() => {
+	useDeferredLayoutEffect(() => {
 		const el = tooltipRef.current
 		if (!el || hoveredIndex == null) return
 		const flipX = mousePos.x + 12 + el.offsetWidth > window.innerWidth
