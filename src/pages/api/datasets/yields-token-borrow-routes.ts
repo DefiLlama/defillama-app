@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const CACHE_CONTROL = 'public, s-maxage=300, stale-while-revalidate=3600'
@@ -21,7 +22,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<TokenBorrowRout
 			return
 		}
 
-		res.setHeader('Cache-Control', CACHE_CONTROL)
+		res.setHeader('Cache-Control', jitterCacheControlHeader(CACHE_CONTROL, req.url ?? token))
 		const shouldUseDatasetCache = isDatasetCacheEnabled()
 		const data = shouldUseDatasetCache
 			? await (async () => {

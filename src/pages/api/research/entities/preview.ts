@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { isPreviewableEntityType } from '~/containers/Articles/entityPreviewTypes'
 import { buildEntityPreview } from '~/containers/Articles/server/entityPreviewBuilders'
 import type { ArticleEntityType } from '~/containers/Articles/types'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 const getQueryParam = (value: string | string[] | undefined): string => {
@@ -21,7 +22,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	try {
 		const preview = await buildEntityPreview(type, slug)
-		res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, s-maxage=300, stale-while-revalidate=600', req.url ?? `${type}:${slug}`)
+		)
 		return res.status(200).json({ preview })
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')

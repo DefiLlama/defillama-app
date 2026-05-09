@@ -3,6 +3,7 @@ import { fetchRWAPerpsContractBreakdownChartData } from '~/containers/RWA/Perps/
 import { toRWAPerpsBreakdownChartDataset } from '~/containers/RWA/Perps/breakdownDataset'
 import { parseChartMetricKey, parseOptionalTarget } from '~/containers/RWA/Perps/requestParsers'
 import type { IRWAPerpsContractBreakdownRequest } from '~/containers/RWA/Perps/types'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 export function parseContractBreakdownRequest(
@@ -39,7 +40,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(502).json({ error: 'Failed to fetch upstream chart data' })
 		}
 
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader(
+				'public, s-maxage=3600, stale-while-revalidate=1800',
+				req.url ?? '/api/rwa/perps/contract-breakdown'
+			)
+		)
 		return res.status(200).json(toRWAPerpsBreakdownChartDataset(rows))
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')

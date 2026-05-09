@@ -1,5 +1,5 @@
 import { normalizeError } from './error'
-import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from './http-client'
+import { fetchWithPoolingOnServer, serverFetchUrl, type FetchWithPoolingOnServerOptions } from './http-client'
 import { recordRuntimeError } from './telemetry'
 
 // ─────────────────────────────────────────────────────────────
@@ -12,7 +12,37 @@ export function getEnvNumber(name: string, fallback: number): number {
 	return Number.isFinite(parsed) ? parsed : fallback
 }
 
+export function getFastJsonTimeoutMs(): number {
+	return getEnvNumber('SERVER_FETCH_JSON_FAST_TIMEOUT_MS', 10_000)
+}
+
+export function getSlowJsonTimeoutMs(): number {
+	return getEnvNumber('SERVER_FETCH_JSON_SLOW_TIMEOUT_MS', 45_000)
+}
+
+function getDefaultJsonTimeoutMs(): number {
+	return typeof window === 'undefined' ? getEnvNumber('SERVER_FETCH_JSON_TIMEOUT_MS', 25_000) : 60_000
+}
+
 const REGEXP_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g
+const PUBLIC_SINGLEFLIGHT_HOSTS = new Set([
+	'api.llama.fi',
+	'pro-api.llama.fi',
+	'fe-cache.llama.fi',
+	'defillama-datasets.llama.fi',
+	'raw.githubusercontent.com',
+	'yields.llama.fi',
+	'coins.llama.fi',
+	'stablecoins.llama.fi',
+	'bridges.llama.fi',
+	'nft.llama.fi',
+	'fdv-server.llama.fi',
+	'etfs.llama.fi',
+	'risks.llama.fi',
+	'users.llama.fi',
+	'ask.llama.fi'
+])
+const fetchJsonSingleflight = new Map<string, { promise: Promise<unknown>; waiters: number }>()
 
 // ─────────────────────────────────────────────────────────────
 // Shared utilities (exported for perf.ts to reuse)
@@ -56,6 +86,83 @@ function sanitizeResponseTextForError(text: string): string {
 
 function escapeRegExp(value: string): string {
 	return value.replace(REGEXP_SPECIAL_CHARS, '\\$&')
+}
+
+function envEnabled(name: string, fallback = false): boolean {
+	const raw = process.env[name]
+	if (raw === undefined) return fallback
+	return raw === '1' || raw.toLowerCase() === 'true'
+}
+
+function requestMethod(options?: RequestInit): string {
+	return (options?.method ?? 'GET').toUpperCase()
+}
+
+function hasUnsafeSingleflightHeaders(options?: RequestInit): boolean {
+	if (!options?.headers) return false
+	const headers = new Headers(options.headers)
+	return headers.has('authorization') || headers.has('cookie')
+}
+
+function isRequestInput(url: RequestInfo | URL): url is Request {
+	return typeof Request !== 'undefined' && url instanceof Request
+}
+
+function resolvedUrlString(url: RequestInfo | URL): string | null {
+	const resolved = typeof window === 'undefined' ? serverFetchUrl(url) : url
+	if (typeof resolved === 'string') return resolved
+	if (resolved instanceof URL) return resolved.toString()
+	if (typeof (resolved as any)?.url === 'string') return (resolved as any).url
+	return null
+}
+
+function singleflightKey(url: RequestInfo | URL, options?: RequestInit): string | null {
+	if (!envEnabled('SERVER_FETCH_JSON_SINGLEFLIGHT')) return null
+	if (typeof window !== 'undefined') return null
+	if (isRequestInput(url)) return null
+	if (requestMethod(options) !== 'GET' || options?.body || hasUnsafeSingleflightHeaders(options)) return null
+
+	const raw = resolvedUrlString(url)
+	if (!raw) return null
+	try {
+		const parsed = new URL(raw)
+		if (!PUBLIC_SINGLEFLIGHT_HOSTS.has(parsed.hostname)) return null
+		return `${requestMethod(options)} ${parsed.toString()}`
+	} catch {
+		return null
+	}
+}
+
+function waitForSingleflight<T>(promise: Promise<unknown>, waitMs: number): Promise<T> {
+	let timeout: ReturnType<typeof setTimeout> | undefined
+	const timeoutPromise = new Promise<never>((_resolve, reject) => {
+		timeout = setTimeout(() => reject(new Error(`singleflight wait timeout after ${waitMs}ms`)), waitMs)
+	})
+	return Promise.race([promise, timeoutPromise]).finally(() => {
+		if (timeout) clearTimeout(timeout)
+	}) as Promise<T>
+}
+
+async function runSingleflight<T>(key: string, waitMs: number, run: () => Promise<T>): Promise<T> {
+	const maxWaiters = Math.max(0, getEnvNumber('SERVER_FETCH_JSON_SINGLEFLIGHT_MAX_WAITERS', 20))
+	const existing = fetchJsonSingleflight.get(key)
+
+	if (existing && existing.waiters < maxWaiters) {
+		existing.waiters++
+		try {
+			return await waitForSingleflight<T>(existing.promise, waitMs)
+		} finally {
+			existing.waiters--
+		}
+	}
+
+	const promise = run().finally(() => {
+		if (fetchJsonSingleflight.get(key)?.promise === promise) {
+			fetchJsonSingleflight.delete(key)
+		}
+	}) as Promise<unknown>
+	fetchJsonSingleflight.set(key, { promise, waiters: 0 })
+	return promise as Promise<T>
 }
 
 function sanitizeUrlForLogs(input: RequestInfo | URL): string {
@@ -113,6 +220,27 @@ export async function fetchJson<T = any>(
 	options?: FetchWithPoolingOnServerOptions,
 	extraRetry: boolean = false
 ): Promise<T> {
+	const timeout = options?.timeout ?? getDefaultJsonTimeoutMs()
+	const requestOptions = { ...options, timeout }
+	const key = singleflightKey(url, requestOptions)
+	if (key) {
+		const waitMs = Math.max(1, getEnvNumber('SERVER_FETCH_JSON_SINGLEFLIGHT_WAIT_MS', timeout))
+		return runSingleflight<T>(key, waitMs, () =>
+			fetchJsonWithRetries<T>(
+				url,
+				{ ...requestOptions, telemetry: { ...requestOptions.telemetry, singleflightRole: 'leader' } },
+				extraRetry
+			)
+		)
+	}
+	return fetchJsonWithRetries<T>(url, requestOptions, extraRetry)
+}
+
+async function fetchJsonWithRetries<T = any>(
+	url: RequestInfo | URL,
+	options: FetchWithPoolingOnServerOptions,
+	extraRetry: boolean = false
+): Promise<T> {
 	const maxAttempts = extraRetry ? 3 : 2
 	const sanitizedUrl = sanitizeUrlForLogs(url)
 	let lastErr: Error | null = null
@@ -123,7 +251,7 @@ export async function fetchJson<T = any>(
 		try {
 			const res = await fetchWithPoolingOnServer(url, {
 				...options,
-				telemetry: { attempt: attempt + 1, maxAttempts }
+				telemetry: { ...options.telemetry, attempt: attempt + 1, maxAttempts }
 			})
 
 			if (!res.ok) {

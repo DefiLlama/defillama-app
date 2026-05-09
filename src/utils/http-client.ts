@@ -11,10 +11,11 @@ export type FetchWithPoolingOnServerOptions = RequestInit & {
 	telemetry?: {
 		attempt?: number
 		maxAttempts?: number
+		singleflightRole?: 'leader'
 	}
 }
 
-function serverFetchUrl(url: RequestInfo | URL): RequestInfo | URL {
+export function serverFetchUrl(url: RequestInfo | URL): RequestInfo | URL {
 	if (typeof url !== 'string') return url
 	if (!url.startsWith('/')) return url
 

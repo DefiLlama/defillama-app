@@ -4,6 +4,7 @@ import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchAllProtocolEmissions } from '~/containers/Unlocks/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 
 const baseUrl = `https://defillama.com`
 
@@ -333,7 +334,10 @@ export async function getServerSideProps({ res }) {
 	])
 
 	res.setHeader('Content-Type', 'text/xml')
-	res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600')
+	res.setHeader(
+		'Cache-Control',
+		jitterCacheControlHeader('public, max-age=300, s-maxage=1800, stale-while-revalidate=3600', 'sitemap.xml')
+	)
 	// we send the XML to the browser
 	res.write(sitemap)
 	res.end()

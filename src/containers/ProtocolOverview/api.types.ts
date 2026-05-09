@@ -101,6 +101,7 @@ export interface IProtocolChartV2Params {
 	key?: string
 	currency?: string
 	breakdownType?: ProtocolChartBreakdownType
+	timeout?: number
 }
 
 export interface IProtocolExpenses {

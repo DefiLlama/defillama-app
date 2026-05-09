@@ -3,6 +3,7 @@ import { fetchCoinGeckoChartByIdWithCacheFallback } from '~/api/coingecko'
 import type { CgChartResponse } from '~/api/coingecko.types'
 import { CACHE_SERVER } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = CgChartResponse | { totalSupply: number | null } | { error: string } | null
@@ -12,8 +13,8 @@ const NO_STORE_CACHE_CONTROL = 'no-store'
 const getQueryParam = (value: string | string[] | undefined): string | undefined =>
 	Array.isArray(value) ? value[0] : value
 
-const setSuccessCacheHeaders = (res: NextApiResponse<ResponseData>) => {
-	res.setHeader('Cache-Control', SUCCESS_CACHE_CONTROL)
+const setSuccessCacheHeaders = (req: NextApiRequest, res: NextApiResponse<ResponseData>) => {
+	res.setHeader('Cache-Control', jitterCacheControlHeader(SUCCESS_CACHE_CONTROL, req.url ?? '/api/charts/coingecko'))
 }
 
 const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
@@ -44,7 +45,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			if (totalSupply === null) {
 				setNoStoreHeaders(res)
 			} else {
-				setSuccessCacheHeaders(res)
+				setSuccessCacheHeaders(req, res)
 			}
 			return res.status(200).json({ totalSupply })
 		}
@@ -56,7 +57,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			return res.status(200).json(null)
 		}
 
-		setSuccessCacheHeaders(res)
+		setSuccessCacheHeaders(req, res)
 		return res.status(200).json(chart)
 	} catch (error) {
 		setNoStoreHeaders(res)

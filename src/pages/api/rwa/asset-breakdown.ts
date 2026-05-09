@@ -10,6 +10,7 @@ import type {
 } from '~/containers/RWA/api.types'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchJson } from '~/utils/async'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type RWAAssetBreakdownRequest = {
@@ -133,7 +134,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		})
 		const rows = normalizeAssetBreakdownRows(raw[request.key] ?? [])
 
-		res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=1800')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader(
+				'public, s-maxage=3600, stale-while-revalidate=1800',
+				req.url ?? '/api/rwa/asset-breakdown'
+			)
+		)
 		return res.status(200).json(rows)
 	} catch (error) {
 		recordRouteRuntimeError(error, 'apiRoute')

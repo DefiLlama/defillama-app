@@ -1,5 +1,5 @@
 import { DATASETS_SERVER_URL, SERVER_URL } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, getSlowJsonTimeoutMs } from '~/utils/async'
 import type {
 	EmissionSupplyMetrics,
 	ProtocolEmission,
@@ -162,7 +162,9 @@ export async function fetchProtocolEmissionFromDatasets(
 	const encodedProtocolName = encodeURIComponent(protocolName)
 
 	try {
-		const raw = await fetchJson<unknown>(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`)
+		const raw = await fetchJson<unknown>(`${PROTOCOL_EMISSION_API}/${encodedProtocolName}`, {
+			timeout: getSlowJsonTimeoutMs()
+		})
 		return parseProtocolEmissionSupplyMetricsEntry(raw)
 	} catch (error) {
 		console.error(`Failed to fetch protocol emission datasets entry for ${protocolName}:`, error)
@@ -175,7 +177,7 @@ export async function fetchProtocolEmissionFromDatasets(
  */
 export async function fetchEmissionSupplyMetrics(): Promise<ProtocolEmissionSupplyMetricsMap> {
 	try {
-		const raw = await fetchJson<unknown>(EMISSION_SUPPLY_METRICS_API)
+		const raw = await fetchJson<unknown>(EMISSION_SUPPLY_METRICS_API, { timeout: getSlowJsonTimeoutMs() })
 		return parseProtocolEmissionSupplyMetricsMap(raw)
 	} catch (error) {
 		console.error('Failed to fetch emissions supply metrics:', error)

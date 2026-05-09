@@ -655,4 +655,40 @@ describe('telemetry client', () => {
 		expect(outbound.map((event) => event.max_attempts)).toEqual([2, 2])
 		expect(outbound.map((event) => event.status)).toEqual(['http_error', 'success'])
 	})
+
+	it('records the singleflight leader role on outbound fetch telemetry', async () => {
+		vi.stubEnv('SERVER_FETCH_JSON_SINGLEFLIGHT', '1')
+		vi.stubEnv('SERVER_FETCH_JSON_TIMEOUT_MS', '1000')
+		let upstreamCalls = 0
+		const fetchMock = vi.fn(
+			async (url: string) =>
+				new Promise<Response>((resolve) => {
+					if (url === 'https://api.llama.fi/singleflight') {
+						upstreamCalls++
+						setTimeout(() => resolve(new Response('{"ok":true}', { status: 200 })), 10)
+						return
+					}
+
+					resolve(new Response(null, { status: 204 }))
+				})
+		)
+		vi.stubGlobal('fetch', fetchMock)
+
+		await withStaticRouteTelemetry('/singleflight-page', async () => {
+			await Promise.all([
+				fetchJson('https://api.llama.fi/singleflight'),
+				fetchJson('https://api.llama.fi/singleflight')
+			])
+			return { props: {} }
+		})
+
+		const outbound = sentEvents(fetchMock).filter((event) => event.type === 'outbound_http_request')
+		expect(upstreamCalls).toBe(1)
+		expect(outbound).toHaveLength(1)
+		expect(outbound[0]).toMatchObject({
+			attributes: {
+				singleflight_role: 'leader'
+			}
+		})
+	})
 })

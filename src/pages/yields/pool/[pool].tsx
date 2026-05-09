@@ -40,7 +40,7 @@ import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { jitterCacheControlHeader, maxAgeForNext } from '~/utils/maxAgeForNext'
 import { recordRuntimeError, withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const MultiSeriesChart2 = lazy(
@@ -86,7 +86,13 @@ const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async 
 			const { getYieldPoolRowFromCache, getYieldProtocolConfigFromCache } = await import('~/server/datasetCache/yields')
 			const row = await getYieldPoolRowFromCache(poolId)
 			if (row) {
-				res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
+				res.setHeader(
+					'Cache-Control',
+					jitterCacheControlHeader(
+						`public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`,
+						`yields/pool/${poolId}:cache`
+					)
+				)
 				return {
 					props: {
 						pool: row,
@@ -106,7 +112,13 @@ const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async 
 		return { notFound: true }
 	}
 
-	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
+	res.setHeader(
+		'Cache-Control',
+		jitterCacheControlHeader(
+			`public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`,
+			`yields/pool/${poolId}:network`
+		)
+	)
 
 	const props = await getYieldPoolPagePropsFromNetwork(poolId)
 	return props ? { props } : { notFound: true }

@@ -6,7 +6,7 @@ import {
 	SEARCH_API_URL,
 	SERVER_URL
 } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, getFastJsonTimeoutMs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { recordRuntimeError } from '~/utils/telemetry'
 import type {
@@ -165,5 +165,5 @@ const BLOCK_EXPLORERS_API_URL = `${DATASETS_SERVER_URL}/blockExplorers.json`
 
 /** Fetch block explorer URLs for all chains from the datasets server. */
 export async function fetchBlockExplorers(): Promise<BlockExplorersResponse> {
-	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL)
+	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL, { timeout: getFastJsonTimeoutMs() })
 }
