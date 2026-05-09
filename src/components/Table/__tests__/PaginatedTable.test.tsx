@@ -1,7 +1,7 @@
 import { createColumnHelper, getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { PaginatedTable } from './PaginatedTable'
+import { PaginatedTable } from '../PaginatedTable'
 
 vi.mock('~/components/Icon', () => ({
 	Icon: ({ name }: { name: string }) => <span>{name}</span>

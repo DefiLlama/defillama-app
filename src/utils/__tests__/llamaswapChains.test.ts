@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { mergeProtocolLlamaswapChains } from './llamaswapChains'
+import { mergeProtocolLlamaswapChains } from '../llamaswapChains'
 
 describe('mergeProtocolLlamaswapChains', () => {
 	it('keeps the GitHub ordering and appends only missing CoinGecko chains', () => {

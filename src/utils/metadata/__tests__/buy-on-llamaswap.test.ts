@@ -5,7 +5,7 @@ import {
 	normalizeChainGeckoIdLlamaswapChains,
 	protocolHasOnlyUnsupportedLlamaswapChains,
 	sortProtocolLlamaswapChainsByMetadataOrder
-} from './buy-on-llamaswap'
+} from '../buy-on-llamaswap'
 
 vi.mock('~/api/coingecko', () => ({
 	fetchCoinGeckoCoinsList: vi.fn()

@@ -7,6 +7,8 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
+const DEFAULT_VIEWABLE_MATCHES = 20
+
 export function YieldsSearch({
 	lend = false,
 	searchData,
@@ -17,21 +19,27 @@ export function YieldsSearch({
 	value: string
 }) {
 	const [searchValue, setSearchValue] = React.useState('')
-	const deferredSearchValue = React.useDeferredValue(searchValue)
 
 	const matches = React.useMemo(() => {
-		if (!deferredSearchValue) return searchData
-		return matchSorter(searchData, deferredSearchValue, {
+		if (!searchValue) return searchData
+		return matchSorter(searchData, searchValue, {
 			keys: [(item) => item.name.replace('₮', 'T'), (item) => item.symbol.replace('₮', 'T')],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [searchData, deferredSearchValue])
+	}, [searchData, searchValue])
 
-	const [viewableMatches, setViewableMatches] = React.useState(20)
+	const [viewableMatches, setViewableMatches] = React.useState(DEFAULT_VIEWABLE_MATCHES)
 
 	const [open, setOpen] = React.useState(false)
 
 	const comboboxRef = React.useRef<HTMLDivElement>(null)
+
+	React.useEffect(() => {
+		if (!open) {
+			setSearchValue('')
+			setViewableMatches(DEFAULT_VIEWABLE_MATCHES)
+		}
+	}, [open])
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()
@@ -53,6 +61,7 @@ export function YieldsSearch({
 		<div className="relative flex flex-col rounded-md">
 			<Ariakit.ComboboxProvider
 				defaultValue={value ?? ''}
+				resetValueOnHide
 				setValue={(nextValue) => {
 					React.startTransition(() => {
 						setSearchValue(nextValue)
@@ -79,7 +88,8 @@ export function YieldsSearch({
 					<input
 						placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
 						onInput={(e) => {
-							setSearchValue(e.currentTarget.value)
+							const nextValue = e.currentTarget.value
+							React.startTransition(() => setSearchValue(nextValue))
 						}}
 						className="mb-4 rounded-md border border-(--form-control-border) bg-white p-4 text-base text-black sm:hidden dark:bg-[#22242a] dark:text-white"
 					/>

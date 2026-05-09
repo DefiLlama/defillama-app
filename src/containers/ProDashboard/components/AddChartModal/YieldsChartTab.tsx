@@ -92,7 +92,7 @@ const yieldsChartUiReducer = (state: YieldsChartUiState, action: YieldsChartUiAc
 			}
 			return { ...state, sortColumn: action.column, sortDirection: 'desc' }
 		case 'set_show_pool_picker':
-			return { ...state, showPoolPicker: action.value }
+			return action.value ? { ...state, showPoolPicker: true } : { ...state, poolSearch: '', showPoolPicker: false }
 		default:
 			return state
 	}
@@ -154,6 +154,7 @@ export function YieldsChartTab({
 	const projectListRef = useRef<HTMLDivElement | null>(null)
 	const tokenListRef = useRef<HTMLDivElement | null>(null)
 	const poolListRef = useRef<HTMLDivElement | null>(null)
+	const tokenSearchInputRef = useRef<HTMLInputElement | null>(null)
 	const chainPopover = usePopoverStore({ placement: 'bottom-start' })
 	const projectPopover = usePopoverStore({ placement: 'bottom-start' })
 	const tokenPopover = usePopoverStore({ placement: 'bottom-start' })
@@ -531,8 +532,7 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											value={chainSearch}
-											onChange={(e) => dispatchUi({ type: 'set_chain_search', value: e.target.value })}
+											onInput={(e) => dispatchUi({ type: 'set_chain_search', value: e.currentTarget.value })}
 											placeholder="Search chains..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -640,8 +640,7 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											value={projectSearch}
-											onChange={(e) => dispatchUi({ type: 'set_project_search', value: e.target.value })}
+											onInput={(e) => dispatchUi({ type: 'set_project_search', value: e.currentTarget.value })}
 											placeholder="Search projects..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -749,8 +748,8 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											value={tokenSearch}
-											onChange={(e) => dispatchUi({ type: 'set_token_search', value: e.target.value })}
+											ref={tokenSearchInputRef}
+											onInput={(e) => dispatchUi({ type: 'set_token_search', value: e.currentTarget.value })}
 											placeholder="Search tokens..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -805,6 +804,7 @@ export function YieldsChartTab({
 												type="button"
 												onClick={() => {
 													onSelectedYieldTokensChange([])
+													if (tokenSearchInputRef.current) tokenSearchInputRef.current.value = ''
 													dispatchUi({ type: 'set_token_search', value: '' })
 												}}
 												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
@@ -913,8 +913,7 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											value={poolSearch}
-											onChange={(e) => dispatchUi({ type: 'set_pool_search', value: e.target.value })}
+											onInput={(e) => dispatchUi({ type: 'set_pool_search', value: e.currentTarget.value })}
 											placeholder="Search pools..."
 											className="w-48 rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>

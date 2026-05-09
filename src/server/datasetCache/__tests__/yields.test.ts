@@ -3,9 +3,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from './core'
-import { getDatasetIndexFileName } from './indexKeys'
-import { getTokenYieldsRowsFromCache } from './yields'
+import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from '../core'
+import { getDatasetIndexFileName } from '../indexKeys'
+import { getTokenYieldsRowsFromCache } from '../yields'
 
 function createDatasetManifestDomains(): DatasetManifest['domains'] {
 	const domains = {} as DatasetManifest['domains']

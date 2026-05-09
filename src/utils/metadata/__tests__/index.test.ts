@@ -4,7 +4,7 @@ const { fetchCoreMetadataMock } = vi.hoisted(() => ({
 	fetchCoreMetadataMock: vi.fn()
 }))
 
-vi.mock('./fetch', () => ({
+vi.mock('../fetch', () => ({
 	fetchCoreMetadata: fetchCoreMetadataMock
 }))
 
@@ -57,7 +57,7 @@ describe('metadata refresh', () => {
 	it('keeps the existing token directory when a refresh returns an empty one', async () => {
 		fetchCoreMetadataMock.mockResolvedValue(createMetadataPayload())
 
-		const metadataModule = await import('./index')
+		const metadataModule = await import('../index')
 		const metadata = metadataModule.default
 		const existingDirectory = {
 			aave: {
@@ -94,7 +94,7 @@ describe('metadata refresh', () => {
 			})
 		)
 
-		const metadataModule = await import('./index')
+		const metadataModule = await import('../index')
 		const metadata = metadataModule.default
 
 		metadata.tokenDirectory = {

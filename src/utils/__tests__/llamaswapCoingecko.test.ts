@@ -6,7 +6,7 @@ import {
 	mapSupportedCoinGeckoPlatformsToLlamaswapChains,
 	normalizeEvmContractAddress,
 	parseCoinGeckoLlamaswapChainsByTickerVolume
-} from './llamaswapCoingecko'
+} from '../llamaswapCoingecko'
 
 describe('getLlamaswapChainByGeckoPlatform', () => {
 	it('resolves Hyperliquid aliases to the hyperevm LlamaSwap chain', () => {

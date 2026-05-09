@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getPrevTvlFromChart } from './tvlChart'
+import { getPrevTvlFromChart } from '../tvlChart'
 
 describe('getPrevTvlFromChart', () => {
 	it('returns the latest chart value for day zero', () => {

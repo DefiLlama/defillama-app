@@ -12,14 +12,13 @@ interface IProps {
 
 export function BridgeChainSelector({ options, currentChain, handleClick }: IProps) {
 	const [searchValue, setSearchValue] = React.useState('')
-	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const matches = React.useMemo(() => {
-		if (!deferredSearchValue) return options
-		return matchSorter(options, deferredSearchValue, {
+		if (!searchValue) return options
+		return matchSorter(options, searchValue, {
 			keys: ['name'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
-	}, [options, deferredSearchValue])
+	}, [options, searchValue])
 
 	const [viewableMatches, setViewableMatches] = React.useState(20)
 

@@ -2,6 +2,7 @@ import { Extension, type Editor, type Range } from '@tiptap/core'
 import { PluginKey } from '@tiptap/pm/state'
 import { ReactRenderer } from '@tiptap/react'
 import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from '@tiptap/suggestion'
+import { matchSorter } from 'match-sorter'
 import { SlashCommandList, type SlashCommandListHandle } from './SlashCommandList'
 
 export type SlashCommandItem = {
@@ -239,12 +240,11 @@ const ALL_ITEMS: SlashCommandItem[] = [
 ]
 
 function filterItems(query: string): SlashCommandItem[] {
-	const q = query.trim().toLowerCase()
+	const q = query.trim()
 	if (!q) return ALL_ITEMS
-	return ALL_ITEMS.filter((item) => {
-		if (item.title.toLowerCase().includes(q)) return true
-		if (item.description.toLowerCase().includes(q)) return true
-		return (item.keywords ?? []).some((k) => k.toLowerCase().includes(q))
+	return matchSorter(ALL_ITEMS, q, {
+		keys: ['title', 'description', (item) => item.keywords ?? []],
+		threshold: matchSorter.rankings.CONTAINS
 	})
 }
 

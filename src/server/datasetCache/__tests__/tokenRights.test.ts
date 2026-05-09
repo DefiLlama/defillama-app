@@ -3,9 +3,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
-import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from './core'
-import { fetchTokenRightsEntryByNameFromCache, fetchTokenRightsEntryFromCache } from './tokenRights'
-import { buildTokenRightsIndexes } from './tokenRightsIndex'
+import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from '../core'
+import { fetchTokenRightsEntryByNameFromCache, fetchTokenRightsEntryFromCache } from '../tokenRights'
+import { buildTokenRightsIndexes } from '../tokenRightsIndex'
 
 function createDatasetManifestDomains(): DatasetManifest['domains'] {
 	const domains = {} as DatasetManifest['domains']

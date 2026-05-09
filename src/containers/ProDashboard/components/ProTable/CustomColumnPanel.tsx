@@ -1,6 +1,7 @@
 'use no memo'
 
 import { Parser } from 'expr-eval'
+import { matchSorter } from 'match-sorter'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { formatPreviewNumber } from '../UnifiedTable/utils/customColumns'
@@ -247,13 +248,10 @@ export function CustomColumnPanel({
 	const filteredSuggestions = React.useMemo(() => {
 		if (!autocompleteFilter.trim()) return autocompleteSuggestions
 
-		const filter = autocompleteFilter.toLowerCase()
-		return autocompleteSuggestions.filter(
-			(suggestion) =>
-				suggestion.display.toLowerCase().includes(filter) ||
-				suggestion.description.toLowerCase().includes(filter) ||
-				suggestion.value.toLowerCase().includes(filter)
-		)
+		return matchSorter(autocompleteSuggestions, autocompleteFilter, {
+			keys: ['display', 'description', 'value'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
 	}, [autocompleteSuggestions, autocompleteFilter])
 
 	const insertVariable = (variableKey: string) => {
