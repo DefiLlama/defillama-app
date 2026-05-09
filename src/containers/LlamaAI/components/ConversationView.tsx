@@ -16,11 +16,7 @@ import { ContextWarningBanner } from '~/containers/LlamaAI/components/ContextWar
 import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { SectionsTOC } from '~/containers/LlamaAI/components/SectionsTOC'
-import {
-	SpawnProgressCard,
-	ToolProgressIndicator,
-	TypingIndicator
-} from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { SpawnProgressCard, ToolProgressIndicator } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import type { ContextWarningPayload } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { RecoveryState } from '~/containers/LlamaAI/streamState'
@@ -28,6 +24,7 @@ import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } fro
 
 interface ConversationViewProps {
 	readOnly: boolean
+	isSharedView?: boolean
 	messages: Message[]
 	sessionId: string | null
 	isLlama: boolean
@@ -77,6 +74,7 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 	onTableFullscreenOpen?: () => void
 	onShare?: (messageId?: string) => void
 	contextWarning?: ContextWarningPayload | null
@@ -195,16 +193,6 @@ function ConversationLiveStatus({
 }) {
 	return (
 		<>
-			{isStreaming &&
-			activeToolCalls.length === 0 &&
-			spawnProgress.size === 0 &&
-			!streamingDraft?.content &&
-			!streamingThinking &&
-			!isCompacting &&
-			!hasStreamingCharts(streamingDraft?.charts) ? (
-				<TypingIndicator />
-			) : null}
-
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -220,6 +208,15 @@ function ConversationLiveStatus({
 						thinking={streamingThinking}
 						isCompacting={isCompacting}
 						spawnProgress={spawnProgress.size > 0 ? spawnProgress : undefined}
+						isWaiting={
+							isStreaming &&
+							activeToolCalls.length === 0 &&
+							spawnProgress.size === 0 &&
+							!streamingDraft?.content &&
+							!streamingThinking &&
+							!isCompacting &&
+							!hasStreamingCharts(streamingDraft?.charts)
+						}
 						executionStartedAt={executionStartedAt}
 					/>
 				)}
@@ -278,6 +275,7 @@ function ConversationLiveStatus({
 
 export function ConversationView({
 	readOnly,
+	isSharedView = false,
 	messages,
 	sessionId,
 	isLlama,
@@ -316,6 +314,7 @@ export function ConversationView({
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
+	enterToSend,
 	onTableFullscreenOpen,
 	onShare,
 	contextWarning,
@@ -600,14 +599,14 @@ export function ConversationView({
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-					{contextWarning && onStartNewChat && onDismissContextWarning ? (
+					{!isSharedView && contextWarning && onStartNewChat && onDismissContextWarning ? (
 						<ContextWarningBanner
 							warning={contextWarning}
 							onStartNewChat={onStartNewChat}
 							onDismiss={onDismissContextWarning}
 						/>
 					) : null}
-					{!contextWarning ? (
+					{!isSharedView && !contextWarning ? (
 						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
 							<TipOrNotifyBanner />
 						</div>
@@ -626,6 +625,7 @@ export function ConversationView({
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}
+						enterToSend={enterToSend}
 					/>
 				</div>
 			) : null}

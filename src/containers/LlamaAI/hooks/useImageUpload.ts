@@ -241,6 +241,8 @@ export function useImageUpload({
 		setSelectedImages([])
 	}, [])
 
+	const getSelectedImageIds = useCallback(() => selectedImagesRef.current.map(({ id }) => id), [])
+
 	const handleImageSelect = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
 			if (e.target.files) {
@@ -383,6 +385,7 @@ export function useImageUpload({
 		addPastedText,
 		removeImage,
 		clearImages,
+		getSelectedImageIds,
 		handleImageSelect,
 		handlePaste,
 		handleDragEnter,

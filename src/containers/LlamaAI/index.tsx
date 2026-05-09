@@ -527,6 +527,15 @@ function createRequestSettleState(requestId: number): Exclude<RequestSettleState
 	return { requestId, promise, resolve }
 }
 
+function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, timeoutMs = 5000) {
+	return Promise.race([
+		settleState.promise,
+		new Promise<void>((resolve) => {
+			window.setTimeout(resolve, timeoutMs)
+		})
+	])
+}
+
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
@@ -887,6 +896,7 @@ export function AgenticChat({
 		[sharedSession]
 	)
 	const forkedFromShared = sharedSession && sessionId
+	const isSharedView = !!sharedSession && !forkedFromShared
 	const effectiveMessages = (forkedFromShared ? null : sharedMessages) ?? messages
 	const effectiveSessionId = (forkedFromShared ? sessionId : sharedSession?.session.sessionId) ?? sessionId
 	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
@@ -1637,7 +1647,7 @@ export function AgenticChat({
 
 		if (controller && settleState?.requestId === requestId) {
 			controller.abort()
-			await settleState.promise.catch(() => {})
+			await waitForRequestSettle(settleState)
 		}
 
 		activeRequestIdRef.current += 1
@@ -1948,7 +1958,7 @@ export function AgenticChat({
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
+							if (currentSessionId && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -2118,7 +2128,7 @@ export function AgenticChat({
 					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 					return
 				}
-				if (eventCounter.count > 0 && isTemporaryConnectivityError(editError)) {
+				if (isTemporaryConnectivityError(editError)) {
 					buffer.receivedEventCount = eventCounter.count
 					if (
 						startRecoveryCycle({
@@ -2385,9 +2395,10 @@ export function AgenticChat({
 		() => ({
 			openSettingsModal: settingsModalStore.show,
 			openAlertsModal: alertsModalStore.show,
-			toggleResearchMode: () => setIsResearchMode((v) => !v)
+			toggleResearchMode: () => setIsResearchMode((v) => !v),
+			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode]
+		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
 
 	if (!user && !readOnly && !sharedSession) {
@@ -2465,11 +2476,11 @@ export function AgenticChat({
 								onOpenSettings={settingsModalStore.show}
 								hasCustomInstructions={settings.customInstructions.trim().length > 0}
 								sessionTitle={effectiveSessionTitle}
-								canShare={!sharedSession && effectiveMessages.length > 0}
+								canShare={!isSharedView && effectiveMessages.length > 0}
 								onShare={() => openShareModal()}
 							/>
 						) : null}
-						{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
+						{!readOnly && !isSharedView && effectiveMessages.length > 0 ? (
 							<button
 								onClick={() => openShareModal()}
 								data-umami-event="llamaai-share-modal-open"
@@ -2495,6 +2506,7 @@ export function AgenticChat({
 								>
 									<ChatLanding
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 										handleSubmit={handleSubmit}
 										promptInputRef={promptInputRef}
@@ -2506,12 +2518,14 @@ export function AgenticChat({
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 									/>
 								</div>
 								<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 									<ConversationView
 										key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										messages={effectiveMessages}
 										sessionId={effectiveSessionId}
 										isLlama={isLlama}
@@ -2550,6 +2564,7 @@ export function AgenticChat({
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 										onTableFullscreenOpen={hideSidebar}
 										onShare={openShareModal}
 									/>
@@ -2558,6 +2573,7 @@ export function AgenticChat({
 						) : !hasMessages && !visibleError ? (
 							<ChatLanding
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 								handleSubmit={handleSubmit}
 								promptInputRef={promptInputRef}
@@ -2569,11 +2585,13 @@ export function AgenticChat({
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 							/>
 						) : (
 							<ConversationView
 								key={`conversation-${conversationViewResetKey}`}
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								messages={effectiveMessages}
 								sessionId={effectiveSessionId}
 								isLlama={isLlama}
@@ -2612,6 +2630,7 @@ export function AgenticChat({
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 								onTableFullscreenOpen={hideSidebar}
 								onShare={openShareModal}
 								contextWarning={contextWarning}

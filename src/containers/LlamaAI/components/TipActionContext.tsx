@@ -4,6 +4,7 @@ export type TipActionHandlers = {
 	openSettingsModal?: () => void
 	openAlertsModal?: () => void
 	toggleResearchMode?: () => void
+	submitPrompt?: (prompt: string) => void
 }
 
 const TipActionContext = createContext<TipActionHandlers>({})

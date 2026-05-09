@@ -12,7 +12,11 @@ export const LLAMA_AI_HACKER_MODE_KEY = 'llamaai-hacker-mode'
 export const LLAMA_AI_MODEL_KEY = 'llamaai-model'
 export const LLAMA_AI_EFFORT_KEY = 'llamaai-effort'
 export const LLAMA_AI_ENABLE_SOUND_KEY = 'llamaai-enable-sound'
+export const LLAMA_AI_ENTER_TO_SEND_KEY = 'llamaai-enter-to-send'
+export const LLAMA_AI_SPEND_CAP_KEY = 'llamaai-spend-cap-per-message'
 export const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
+
+export const LLAMA_AI_SPEND_CAP_DEFAULT = 0.5
 
 export interface LlamaAISettings {
 	customInstructions: string
@@ -22,6 +26,8 @@ export interface LlamaAISettings {
 	model: string
 	effort: string
 	enableSoundNotifications: boolean
+	enterToSend: boolean
+	spendCapPerMessage: number
 }
 
 export interface LlamaAISettingsActions {
@@ -32,6 +38,8 @@ export interface LlamaAISettingsActions {
 	setModel: (value: string) => Promise<void>
 	setEffort: (value: string) => Promise<void>
 	setEnableSoundNotifications: (value: boolean) => Promise<void>
+	setEnterToSend: (value: boolean) => Promise<void>
+	setSpendCapPerMessage: (value: number) => Promise<void>
 }
 
 type LlamaAISettingKey = keyof LlamaAISettings
@@ -53,9 +61,10 @@ export type TipDTO = {
 	family: string
 	variant: string
 	title: string
+	placement: 'banner' | 'greeting'
 	cta:
 		| { kind: 'link'; label: string; href: string; external: boolean }
-		| { kind: 'action'; label: string; action: string }
+		| { kind: 'action'; label: string; action: string; prompt?: string }
 		| { kind: 'none' }
 	dismissPolicy: { kind: 'permanent' } | { kind: 'snooze'; days: number }
 }
@@ -74,7 +83,14 @@ const DEFAULT_SETTINGS: LlamaAISettings = {
 	hackerMode: false,
 	model: '',
 	effort: '',
-	enableSoundNotifications: true
+	enableSoundNotifications: true,
+	enterToSend: true,
+	spendCapPerMessage: LLAMA_AI_SPEND_CAP_DEFAULT
+}
+
+function normalizeSpendCap(value: number): number {
+	if (!Number.isFinite(value) || value < 0) return LLAMA_AI_SPEND_CAP_DEFAULT
+	return value
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -106,6 +122,12 @@ function readStoredValue<K extends LlamaAISettingKey>(key: K, value: string | nu
 			return (value ?? DEFAULT_SETTINGS.effort) as LlamaAISettings[K]
 		case 'enableSoundNotifications':
 			return parseTrueByDefault(value) as LlamaAISettings[K]
+		case 'enterToSend':
+			return parseTrueByDefault(value) as LlamaAISettings[K]
+		case 'spendCapPerMessage': {
+			const parsed = value == null ? NaN : Number(value)
+			return normalizeSpendCap(parsed) as LlamaAISettings[K]
+		}
 	}
 }
 
@@ -149,6 +171,12 @@ function writeStoredValue<K extends LlamaAISettingKey>(key: K, value: LlamaAISet
 		}
 		case 'enableSoundNotifications':
 			setStorageItem(LLAMA_AI_ENABLE_SOUND_KEY, String(value))
+			return
+		case 'enterToSend':
+			setStorageItem(LLAMA_AI_ENTER_TO_SEND_KEY, String(value))
+			return
+		case 'spendCapPerMessage':
+			setStorageItem(LLAMA_AI_SPEND_CAP_KEY, String(normalizeSpendCap(Number(value))))
 			return
 	}
 }
@@ -201,6 +229,12 @@ function normalizeServerSettings(value: unknown): LlamaAISettingsUpdate {
 	if (typeof value.enableSoundNotifications === 'boolean') {
 		normalized.enableSoundNotifications = value.enableSoundNotifications
 	}
+	if (typeof value.enterToSend === 'boolean') {
+		normalized.enterToSend = value.enterToSend
+	}
+	if (typeof value.spendCapPerMessage === 'number') {
+		normalized.spendCapPerMessage = normalizeSpendCap(value.spendCapPerMessage)
+	}
 	return normalized
 }
 
@@ -220,6 +254,10 @@ function getStorageKey(setting: LlamaAISettingKey) {
 			return LLAMA_AI_EFFORT_KEY
 		case 'enableSoundNotifications':
 			return LLAMA_AI_ENABLE_SOUND_KEY
+		case 'enterToSend':
+			return LLAMA_AI_ENTER_TO_SEND_KEY
+		case 'spendCapPerMessage':
+			return LLAMA_AI_SPEND_CAP_KEY
 	}
 }
 
@@ -244,6 +282,8 @@ export function useLlamaAISettings() {
 	const model = useLlamaAISetting('model')
 	const effort = useLlamaAISetting('effort')
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
+	const enterToSend = useLlamaAISetting('enterToSend')
+	const spendCapPerMessage = useLlamaAISetting('spendCapPerMessage')
 
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
@@ -329,7 +369,9 @@ export function useLlamaAISettings() {
 			setHackerMode: async (value: boolean) => persistSettings({ hackerMode: value }),
 			setModel: async (value: string) => persistSettings({ model: value }),
 			setEffort: async (value: string) => persistSettings({ effort: value }),
-			setEnableSoundNotifications: async (value: boolean) => persistSettings({ enableSoundNotifications: value })
+			setEnableSoundNotifications: async (value: boolean) => persistSettings({ enableSoundNotifications: value }),
+			setEnterToSend: async (value: boolean) => persistSettings({ enterToSend: value }),
+			setSpendCapPerMessage: async (value: number) => persistSettings({ spendCapPerMessage: normalizeSpendCap(value) })
 		}),
 		[persistSettings]
 	)
@@ -360,7 +402,9 @@ export function useLlamaAISettings() {
 			hackerMode,
 			model: normalizedModel,
 			effort: normalizedEffort,
-			enableSoundNotifications
+			enableSoundNotifications,
+			enterToSend,
+			spendCapPerMessage
 		}
 	}, [
 		customInstructions,
@@ -371,7 +415,9 @@ export function useLlamaAISettings() {
 		availableModels,
 		effort,
 		availableEfforts,
-		enableSoundNotifications
+		enableSoundNotifications,
+		enterToSend,
+		spendCapPerMessage
 	])
 
 	return {

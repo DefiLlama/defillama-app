@@ -18,7 +18,7 @@ export function LlamaAITipBanner() {
 			return
 		}
 		void clickTip(tip, tip.cta.action)
-		runAction(tip.cta.action, actions)
+		runAction(tip.cta.action, actions, tip.cta.kind === 'action' ? tip.cta.prompt : undefined)
 	}
 
 	return (
@@ -49,7 +49,7 @@ export function LlamaAITipBanner() {
 	)
 }
 
-function runAction(action: string, actions: ReturnType<typeof useTipActions>) {
+function runAction(action: string, actions: ReturnType<typeof useTipActions>, prompt?: string) {
 	switch (action) {
 		case 'open-settings':
 			actions.openSettingsModal?.()
@@ -59,6 +59,9 @@ function runAction(action: string, actions: ReturnType<typeof useTipActions>) {
 			break
 		case 'open-research-mode':
 			actions.toggleResearchMode?.()
+			break
+		case 'submit-prompt':
+			if (prompt) actions.submitPrompt?.(prompt)
 			break
 		default:
 			console.warn('Unknown tip action', action)
