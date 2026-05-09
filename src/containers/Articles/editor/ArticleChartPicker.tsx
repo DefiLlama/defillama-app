@@ -290,9 +290,7 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 			return allowed.has(currentMetric)
 		}
 		const list = entities.filter(supportsCurrent)
-		const searched = q
-			? list.filter((e) => e.name.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q))
-			: list
+		const searched = q ? list.filter((e) => e.name.toLowerCase().includes(q) || e.slug.toLowerCase().includes(q)) : list
 		return searched.slice(0, 200)
 	}, [entities, query, tab, currentMetric, availableProtocolChartTypes, availableChainChartTypes])
 
@@ -504,7 +502,9 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 											disabled={limitReached}
 											aria-pressed={checked}
 											className={`group flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-												checked ? 'bg-(--link-button) text-(--link-text)' : 'text-(--text-primary) hover:bg-(--link-hover-bg)'
+												checked
+													? 'bg-(--link-button) text-(--link-text)'
+													: 'text-(--text-primary) hover:bg-(--link-hover-bg)'
 											}`}
 										>
 											<span
@@ -515,7 +515,13 @@ export function ArticleChartPickerDialog({ store, onInsert, initialConfig }: Pro
 												}`}
 											>
 												{checked ? (
-													<svg viewBox="0 0 12 12" className="h-2.5 w-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5">
+													<svg
+														viewBox="0 0 12 12"
+														className="h-2.5 w-2.5 text-white"
+														fill="none"
+														stroke="currentColor"
+														strokeWidth="2.5"
+													>
 														<path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
 													</svg>
 												) : null}

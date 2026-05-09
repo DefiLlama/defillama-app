@@ -17,9 +17,7 @@ describe('validateArticleChartConfig', () => {
 	it('accepts a chain series with optional fields', () => {
 		expect(
 			validateArticleChartConfig({
-				series: [
-					{ entityType: 'chain', slug: 'Ethereum', name: 'Ethereum', geckoId: 'ethereum', chartType: 'tvl' }
-				],
+				series: [{ entityType: 'chain', slug: 'Ethereum', name: 'Ethereum', geckoId: 'ethereum', chartType: 'tvl' }],
 				range: '90d',
 				logScale: true,
 				caption: 'TVL trend'

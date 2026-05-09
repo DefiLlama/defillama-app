@@ -193,9 +193,7 @@ export function ArticleChartBlock({ config, index }: { config: ArticleChartConfi
 						</span>
 					) : null}
 					<div className="flex min-w-0 flex-col leading-tight">
-						<span className="truncate text-[15px] font-semibold tracking-tight text-(--text-primary)">
-							{titleText}
-						</span>
+						<span className="truncate text-[15px] font-semibold tracking-tight text-(--text-primary)">{titleText}</span>
 						<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 							{chartLabel} · {rangeLabel}
 						</span>

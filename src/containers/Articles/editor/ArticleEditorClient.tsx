@@ -1214,7 +1214,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 
 	const handleTransferOwnership = async (pbUserId: string, displayName: string) => {
 		if (!article.id) return
-		if (!confirm(`Transfer ownership to ${displayName}? You will become a co-author and lose owner-only controls.`)) return
+		if (!confirm(`Transfer ownership to ${displayName}? You will become a co-author and lose owner-only controls.`))
+			return
 		try {
 			const updated = await transferOwnership(article.id, { pbUserId }, authorizedFetch)
 			const merged = applyPendingToLocalArticle(updated, updated.pending)
@@ -2213,11 +2214,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										<div className="min-w-0">
 											<div className="truncate text-sm text-(--text-primary)">{entry.profile.displayName}</div>
 											<div className="text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
-												{entry.role === 'owner'
-													? 'Owner'
-													: entry.hidden
-														? 'Co-author · Hidden'
-														: 'Co-author'}
+												{entry.role === 'owner' ? 'Owner' : entry.hidden ? 'Co-author · Hidden' : 'Co-author'}
 											</div>
 										</div>
 									</div>

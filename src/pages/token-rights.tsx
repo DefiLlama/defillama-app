@@ -35,9 +35,7 @@ interface TokenRightsListItem {
 	tokens: string[]
 	holdersRevenue24h: number | null
 	governanceRights: [boolean, boolean, boolean]
-	governanceRightDetails: [string | null, string | null, string | null]
 	economicRights: [boolean, boolean, boolean]
-	economicRightDetails: [string | null, string | null, string | null]
 	feeSwitchStatus: TokenRightsFeeSwitchStatus
 	feeSwitchDetails: string | null
 	valueAccrual: string | null
@@ -280,17 +278,7 @@ function buildTokenRightsListItem({
 			hasActiveTokens(entry['Treasury Decisions']),
 			hasActiveTokens(entry['Revenue Decisions'])
 		],
-		governanceRightDetails: [
-			trimToNull(entry['Governance details']),
-			trimToNull(entry['Treasury Details']),
-			trimToNull(entry['Revenue Details'])
-		],
 		economicRights: [hasBuybacks, hasDividends, hasBurns],
-		economicRightDetails: [
-			trimToNull(entry['Buyback Details']),
-			trimToNull(entry['Dividends Details']),
-			trimToNull(entry['Burn Details'])
-		],
 		feeSwitchStatus: toFeeSwitchStatus(entry['Fee Switch Status']),
 		feeSwitchDetails: trimToNull(entry['Fee Switch Details']),
 		valueAccrual: trimToNull(entry['Value Accrual']),
@@ -671,12 +659,8 @@ const columns = [
 	columnHelper.accessor('governanceRights', {
 		header: 'Governance',
 		enableSorting: false,
-		cell: ({ getValue, row }) => (
-			<RightsDots
-				rights={getValue()}
-				labels={['Governance decisions', 'Treasury decisions', 'Revenue decisions']}
-				details={row.original.governanceRightDetails}
-			/>
+		cell: ({ getValue }) => (
+			<RightsDots rights={getValue()} labels={['Governance decisions', 'Treasury decisions', 'Revenue decisions']} />
 		),
 		meta: {
 			headerClassName: 'w-[130px]',
@@ -687,13 +671,7 @@ const columns = [
 	columnHelper.accessor('economicRights', {
 		header: 'Economic Rights',
 		enableSorting: false,
-		cell: ({ getValue, row }) => (
-			<RightsDots
-				rights={getValue()}
-				labels={['Buybacks', 'Dividends', 'Burns']}
-				details={row.original.economicRightDetails}
-			/>
-		),
+		cell: ({ getValue }) => <RightsDots rights={getValue()} labels={['Buybacks', 'Dividends', 'Burns']} />,
 		meta: {
 			headerClassName: 'w-[150px]',
 			align: 'center',
@@ -769,21 +747,28 @@ function TokenPills({ tokens }: { tokens: string[] }) {
 	)
 }
 
-function RightsDots({
-	rights,
-	labels,
-	details
-}: {
-	rights: [boolean, boolean, boolean]
-	labels: [string, string, string]
-	details: [string | null, string | null, string | null]
-}) {
-	const content = rights
-		.map((active, index) => details[index] ?? `${labels[index]}: ${active ? 'Active' : 'Inactive'}`)
-		.join('\n\n')
+function RightsDots({ rights, labels }: { rights: [boolean, boolean, boolean]; labels: [string, string, string] }) {
+	const content = (
+		<div className="flex flex-col gap-1">
+			{rights.map((active, index) => (
+				<span key={labels[index]} className="flex items-center gap-2">
+					<span
+						className={
+							active
+								? 'h-2 w-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.55)]'
+								: 'h-2 w-2 rounded-full border border-green-600/40'
+						}
+					/>
+					<span>
+						{labels[index]}: {active ? 'Active' : 'Inactive'}
+					</span>
+				</span>
+			))}
+		</div>
+	)
 
 	return (
-		<Tooltip content={content} render={<button type="button" />} className="mx-auto justify-center gap-2">
+		<Tooltip content={content} className="justify-center gap-2">
 			{rights.map((active, index) => (
 				<span
 					key={labels[index]}
