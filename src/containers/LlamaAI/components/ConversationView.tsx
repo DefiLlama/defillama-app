@@ -77,6 +77,7 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 	onTableFullscreenOpen?: () => void
 	onShare?: (messageId?: string) => void
 	contextWarning?: ContextWarningPayload | null
@@ -195,16 +196,6 @@ function ConversationLiveStatus({
 }) {
 	return (
 		<>
-			{isStreaming &&
-			activeToolCalls.length === 0 &&
-			spawnProgress.size === 0 &&
-			!streamingDraft?.content &&
-			!streamingThinking &&
-			!isCompacting &&
-			!hasStreamingCharts(streamingDraft?.charts) ? (
-				<TypingIndicator />
-			) : null}
-
 			<div style={{ overflowAnchor: 'none' }}>
 				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard
@@ -220,6 +211,15 @@ function ConversationLiveStatus({
 						thinking={streamingThinking}
 						isCompacting={isCompacting}
 						spawnProgress={spawnProgress.size > 0 ? spawnProgress : undefined}
+						isWaiting={
+							isStreaming &&
+							activeToolCalls.length === 0 &&
+							spawnProgress.size === 0 &&
+							!streamingDraft?.content &&
+							!streamingThinking &&
+							!isCompacting &&
+							!hasStreamingCharts(streamingDraft?.charts)
+						}
 						executionStartedAt={executionStartedAt}
 					/>
 				)}
@@ -316,6 +316,7 @@ export function ConversationView({
 	onOpenAlerts,
 	quotedText,
 	onClearQuotedText,
+	enterToSend,
 	onTableFullscreenOpen,
 	onShare,
 	contextWarning,
@@ -626,6 +627,7 @@ export function ConversationView({
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}
+						enterToSend={enterToSend}
 					/>
 				</div>
 			) : null}

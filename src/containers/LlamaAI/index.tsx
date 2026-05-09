@@ -527,6 +527,15 @@ function createRequestSettleState(requestId: number): Exclude<RequestSettleState
 	return { requestId, promise, resolve }
 }
 
+function waitForRequestSettle(settleState: Exclude<RequestSettleState, null>, timeoutMs = 5000) {
+	return Promise.race([
+		settleState.promise,
+		new Promise<void>((resolve) => {
+			window.setTimeout(resolve, timeoutMs)
+		})
+	])
+}
+
 // Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
@@ -1637,7 +1646,7 @@ export function AgenticChat({
 
 		if (controller && settleState?.requestId === requestId) {
 			controller.abort()
-			await settleState.promise.catch(() => {})
+			await waitForRequestSettle(settleState).catch(() => {})
 		}
 
 		activeRequestIdRef.current += 1
@@ -1774,6 +1783,15 @@ export function AgenticChat({
 		) => {
 			const trimmed = prompt.trim()
 			const hasImages = images && images.length > 0
+			if (promptSubmissionLockRef.current && !isStreaming) {
+				abortControllerRef.current?.abort()
+				abortControllerRef.current = null
+				activeRequestSettleRef.current?.resolve()
+				activeRequestSettleRef.current = null
+				activeRequestKindRef.current = 'idle'
+				activeSessionIdRef.current = null
+				promptSubmissionLockRef.current = false
+			}
 			if ((!trimmed && !hasImages) || isStreaming || promptSubmissionLockRef.current) return
 
 			// Shared session: fork in-place — seed messages + sessionId, then continue with normal submit flow
@@ -1948,7 +1966,7 @@ export function AgenticChat({
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && eventCounter.count > 0 && isTemporaryConnectivityError(err)) {
+							if (currentSessionId && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -2118,7 +2136,7 @@ export function AgenticChat({
 					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 					return
 				}
-				if (eventCounter.count > 0 && isTemporaryConnectivityError(editError)) {
+				if (isTemporaryConnectivityError(editError)) {
 					buffer.receivedEventCount = eventCounter.count
 					if (
 						startRecoveryCycle({
@@ -2506,6 +2524,7 @@ export function AgenticChat({
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 									/>
 								</div>
 								<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
@@ -2550,6 +2569,7 @@ export function AgenticChat({
 										onOpenAlerts={alertsModalStore.show}
 										quotedText={quotedText}
 										onClearQuotedText={() => setQuotedText(null)}
+										enterToSend={settings.enterToSend}
 										onTableFullscreenOpen={hideSidebar}
 										onShare={openShareModal}
 									/>
@@ -2569,6 +2589,7 @@ export function AgenticChat({
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 							/>
 						) : (
 							<ConversationView
@@ -2612,6 +2633,7 @@ export function AgenticChat({
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								enterToSend={settings.enterToSend}
 								onTableFullscreenOpen={hideSidebar}
 								onShare={openShareModal}
 								contextWarning={contextWarning}

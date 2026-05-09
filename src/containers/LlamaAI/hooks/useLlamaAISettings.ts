@@ -12,6 +12,7 @@ export const LLAMA_AI_HACKER_MODE_KEY = 'llamaai-hacker-mode'
 export const LLAMA_AI_MODEL_KEY = 'llamaai-model'
 export const LLAMA_AI_EFFORT_KEY = 'llamaai-effort'
 export const LLAMA_AI_ENABLE_SOUND_KEY = 'llamaai-enable-sound'
+export const LLAMA_AI_ENTER_TO_SEND_KEY = 'llamaai-enter-to-send'
 export const LLAMA_AI_SETTINGS_QUERY_KEY = ['llama-ai-settings'] as const
 
 export interface LlamaAISettings {
@@ -22,6 +23,7 @@ export interface LlamaAISettings {
 	model: string
 	effort: string
 	enableSoundNotifications: boolean
+	enterToSend: boolean
 }
 
 export interface LlamaAISettingsActions {
@@ -32,6 +34,7 @@ export interface LlamaAISettingsActions {
 	setModel: (value: string) => Promise<void>
 	setEffort: (value: string) => Promise<void>
 	setEnableSoundNotifications: (value: boolean) => Promise<void>
+	setEnterToSend: (value: boolean) => Promise<void>
 }
 
 type LlamaAISettingKey = keyof LlamaAISettings
@@ -74,7 +77,8 @@ const DEFAULT_SETTINGS: LlamaAISettings = {
 	hackerMode: false,
 	model: '',
 	effort: '',
-	enableSoundNotifications: true
+	enableSoundNotifications: true,
+	enterToSend: true
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -105,6 +109,8 @@ function readStoredValue<K extends LlamaAISettingKey>(key: K, value: string | nu
 		case 'effort':
 			return (value ?? DEFAULT_SETTINGS.effort) as LlamaAISettings[K]
 		case 'enableSoundNotifications':
+			return parseTrueByDefault(value) as LlamaAISettings[K]
+		case 'enterToSend':
 			return parseTrueByDefault(value) as LlamaAISettings[K]
 	}
 }
@@ -149,6 +155,9 @@ function writeStoredValue<K extends LlamaAISettingKey>(key: K, value: LlamaAISet
 		}
 		case 'enableSoundNotifications':
 			setStorageItem(LLAMA_AI_ENABLE_SOUND_KEY, String(value))
+			return
+		case 'enterToSend':
+			setStorageItem(LLAMA_AI_ENTER_TO_SEND_KEY, String(value))
 			return
 	}
 }
@@ -201,6 +210,9 @@ function normalizeServerSettings(value: unknown): LlamaAISettingsUpdate {
 	if (typeof value.enableSoundNotifications === 'boolean') {
 		normalized.enableSoundNotifications = value.enableSoundNotifications
 	}
+	if (typeof value.enterToSend === 'boolean') {
+		normalized.enterToSend = value.enterToSend
+	}
 	return normalized
 }
 
@@ -220,6 +232,8 @@ function getStorageKey(setting: LlamaAISettingKey) {
 			return LLAMA_AI_EFFORT_KEY
 		case 'enableSoundNotifications':
 			return LLAMA_AI_ENABLE_SOUND_KEY
+		case 'enterToSend':
+			return LLAMA_AI_ENTER_TO_SEND_KEY
 	}
 }
 
@@ -244,6 +258,7 @@ export function useLlamaAISettings() {
 	const model = useLlamaAISetting('model')
 	const effort = useLlamaAISetting('effort')
 	const enableSoundNotifications = useLlamaAISetting('enableSoundNotifications')
+	const enterToSend = useLlamaAISetting('enterToSend')
 
 	const settingsQuery = useQuery({
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
@@ -329,7 +344,8 @@ export function useLlamaAISettings() {
 			setHackerMode: async (value: boolean) => persistSettings({ hackerMode: value }),
 			setModel: async (value: string) => persistSettings({ model: value }),
 			setEffort: async (value: string) => persistSettings({ effort: value }),
-			setEnableSoundNotifications: async (value: boolean) => persistSettings({ enableSoundNotifications: value })
+			setEnableSoundNotifications: async (value: boolean) => persistSettings({ enableSoundNotifications: value }),
+			setEnterToSend: async (value: boolean) => persistSettings({ enterToSend: value })
 		}),
 		[persistSettings]
 	)
@@ -360,7 +376,8 @@ export function useLlamaAISettings() {
 			hackerMode,
 			model: normalizedModel,
 			effort: normalizedEffort,
-			enableSoundNotifications
+			enableSoundNotifications,
+			enterToSend
 		}
 	}, [
 		customInstructions,
@@ -371,7 +388,8 @@ export function useLlamaAISettings() {
 		availableModels,
 		effort,
 		availableEfforts,
-		enableSoundNotifications
+		enableSoundNotifications,
+		enterToSend
 	])
 
 	return {

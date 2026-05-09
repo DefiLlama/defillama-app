@@ -181,6 +181,11 @@ export const SettingsModal = memo(function SettingsModal({
 		void actions.setEnableSoundNotifications(!settings.enableSoundNotifications)
 	}, [actions, settings.enableSoundNotifications])
 
+	const handleEnterToSendToggle = useCallback(() => {
+		trackUmamiEvent('llamaai-enter-to-send-toggle')
+		void actions.setEnterToSend(!settings.enterToSend)
+	}, [actions, settings.enterToSend])
+
 	// Re-read permission each time the modal opens so external changes (e.g. user updates browser site
 	// settings) are reflected without a page reload.
 	useEffect(() => {
@@ -348,6 +353,37 @@ export const SettingsModal = memo(function SettingsModal({
 								<div
 									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
 										settings.enableSoundNotifications ? 'translate-x-4' : 'translate-x-0.5'
+									}`}
+								/>
+							</div>
+						</button>
+					</section>
+
+					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+						<button
+							type="button"
+							role="switch"
+							aria-checked={settings.enterToSend}
+							aria-label="Enter to send"
+							onClick={handleEnterToSendToggle}
+							className="flex w-full items-center justify-between"
+						>
+							<div className="flex flex-col gap-0.5 text-left">
+								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Enter to send</p>
+								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
+									{settings.enterToSend
+										? 'Press Enter to send and Shift+Enter for a new line.'
+										: 'Press Enter for a new line and Shift+Enter to send.'}
+								</p>
+							</div>
+							<div
+								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
+									settings.enterToSend ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+								}`}
+							>
+								<div
+									className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+										settings.enterToSend ? 'translate-x-4' : 'translate-x-0.5'
 									}`}
 								/>
 							</div>

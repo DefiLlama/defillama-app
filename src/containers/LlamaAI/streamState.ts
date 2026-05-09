@@ -276,17 +276,19 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 
 // Convert the buffered stream payload into the same message shape used for restored history.
 export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string): Message {
+	const nonEmpty = <T>(value: T[] | undefined) => (value && value.length > 0 ? value : undefined)
+
 	return {
 		role: 'assistant',
 		content: buffer.text || undefined,
-		charts: buffer.charts.length > 0 ? buffer.charts : undefined,
-		csvExports: buffer.csvExports.length > 0 ? buffer.csvExports : undefined,
-		mdExports: buffer.mdExports.length > 0 ? buffer.mdExports : undefined,
-		alerts: buffer.alerts.length > 0 ? buffer.alerts : undefined,
-		dashboards: buffer.dashboards.length > 0 ? buffer.dashboards : undefined,
-		generatedImages: buffer.generatedImages.length > 0 ? buffer.generatedImages : undefined,
-		citations: buffer.citations.length > 0 ? buffer.citations : undefined,
-		toolExecutions: buffer.toolExecutions.length > 0 ? buffer.toolExecutions : undefined,
+		charts: nonEmpty(buffer.charts),
+		csvExports: nonEmpty(buffer.csvExports),
+		mdExports: nonEmpty(buffer.mdExports),
+		alerts: nonEmpty(buffer.alerts),
+		dashboards: nonEmpty(buffer.dashboards),
+		generatedImages: nonEmpty(buffer.generatedImages),
+		citations: nonEmpty(buffer.citations),
+		toolExecutions: nonEmpty(buffer.toolExecutions),
 		thinking: buffer.thinking || undefined,
 		messageMetadata: buffer.messageMetadata,
 		id: messageId

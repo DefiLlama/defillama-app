@@ -336,16 +336,18 @@ export function ToolProgressIndicator({
 	thinking,
 	isCompacting,
 	spawnProgress,
+	isWaiting,
 	executionStartedAt
 }: {
 	toolCalls: ToolCall[]
 	thinking?: string
 	isCompacting?: boolean
 	spawnProgress?: Map<string, SpawnAgentStatus>
+	isWaiting?: boolean
 	executionStartedAt?: number
 }) {
 	const hasSpawn = spawnProgress && spawnProgress.size > 0
-	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn
+	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting || hasSpawn || !!isWaiting
 	const hackerMode = useHackerMode()
 
 	if (!hasActivity) return null

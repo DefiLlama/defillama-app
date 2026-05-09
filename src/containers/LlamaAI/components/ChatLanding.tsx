@@ -35,6 +35,7 @@ export interface ChatLandingProps {
 	onOpenAlerts: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	enterToSend: boolean
 }
 
 export function ChatLanding({
@@ -49,7 +50,8 @@ export function ChatLanding({
 	researchUsage,
 	onOpenAlerts,
 	quotedText,
-	onClearQuotedText
+	onClearQuotedText,
+	enterToSend
 }: ChatLandingProps) {
 	const { hasActiveSubscription } = useAuthContext()
 	const [hasSeenWelcome, markWelcomeSeen] = useLlamaAIWelcome(hasActiveSubscription)
@@ -82,6 +84,7 @@ export function ChatLanding({
 							onOpenAlerts={onOpenAlerts}
 							quotedText={quotedText}
 							onClearQuotedText={onClearQuotedText}
+							enterToSend={enterToSend}
 							walkthroughActive={!hasSeenWelcome}
 						/>
 					</div>
