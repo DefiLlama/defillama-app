@@ -13,6 +13,7 @@ import {
 	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useTableSearch } from '~/components/Table/utils'
 import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -33,7 +34,6 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		pageIndex: 0,
 		pageSize: 10
 	})
-	const [protocolName, setProtocolName] = React.useState('')
 	const { data, isLoading, error } = useBridgeAggregatorsData(chains)
 
 	const instance = useReactTable({
@@ -60,6 +60,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 		getPaginationRowModel: getPaginationRowModel(),
 		autoResetPageIndex: false
 	})
+	const [, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	React.useEffect(() => {
 		const defaultOrder = bridgeAggregatorsDatasetColumns.map((column) => column.id as string)
@@ -170,8 +171,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 						<input
 							type="text"
 							placeholder="Search protocols..."
-							value={protocolName}
-							onChange={(e) => setProtocolName(e.target.value)}
+							onInput={(e) => setProtocolName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

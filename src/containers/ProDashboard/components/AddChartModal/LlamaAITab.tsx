@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { matchSorter } from 'match-sorter'
+import { useDeferredValue, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AI_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -25,6 +26,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	const { authorizedFetch, user, hasActiveSubscription } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [searchQuery, setSearchQuery] = useState('')
+	const deferredSearchQuery = useDeferredValue(searchQuery)
 	const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
 	const { data, isLoading, error } = useQuery({
@@ -84,15 +86,12 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 		)
 	}
 
-	const filteredCharts = data?.filter((chart) => {
-		if (!searchQuery) return true
-		const query = searchQuery.toLowerCase()
-		return (
-			chart.title?.toLowerCase().includes(query) ||
-			chart.original_query?.toLowerCase().includes(query) ||
-			chart.description?.toLowerCase().includes(query)
-		)
-	})
+	const filteredCharts = deferredSearchQuery
+		? matchSorter(data ?? [], deferredSearchQuery, {
+				keys: ['title', 'original_query', 'description'],
+				threshold: matchSorter.rankings.CONTAINS
+			})
+		: data
 
 	if (!data?.length) {
 		return (
@@ -111,8 +110,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 				<input
 					type="text"
 					placeholder="Search saved charts..."
-					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
+					onInput={(e) => setSearchQuery(e.currentTarget.value)}
 					className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
 			</div>

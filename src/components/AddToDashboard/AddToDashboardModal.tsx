@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
+import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { startTransition, type KeyboardEvent, useCallback, useDeferredValue, useId, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -261,9 +262,12 @@ export function AddToDashboardModal({
 	const deferredSearch = useDeferredValue(search)
 
 	const filteredDashboards = useMemo(() => {
-		const query = deferredSearch.trim().toLowerCase()
+		const query = deferredSearch.trim()
 		if (!query) return dashboards
-		return dashboards.filter((dashboard) => dashboard.name.toLowerCase().includes(query))
+		return matchSorter(dashboards, query, {
+			keys: ['name'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
 	}, [dashboards, deferredSearch])
 
 	const dashboardNameById = useMemo(() => {
@@ -381,8 +385,8 @@ export function AddToDashboardModal({
 					<Icon name="search" className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 pro-text3" />
 					<input
 						type="text"
-						defaultValue=""
-						onChange={(e) => startTransition(() => setSearch(e.target.value))}
+						value={search}
+						onChange={(e) => setSearch(e.currentTarget.value)}
 						onKeyDown={handleSearchKeyDown}
 						placeholder="Search dashboards..."
 						className="w-full rounded-md border pro-border pro-bg2 py-2 pr-3 pl-9 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-pro-blue-300/40 focus:ring-1 focus:ring-pro-blue-300/30 focus:outline-hidden"
