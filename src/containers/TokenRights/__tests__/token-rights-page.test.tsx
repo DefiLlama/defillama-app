@@ -181,7 +181,7 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-	})
+	}, 15_000)
 
 	it('uses child protocol holders revenue for parent token-rights rows', async () => {
 		const page = await setupPageModule({

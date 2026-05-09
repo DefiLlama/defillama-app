@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useImageUpload, type UploadResult } from '../upload/useImageUpload'
 import {
 	makeEmptyPeoplePanelConfig,
@@ -16,27 +16,12 @@ type Props = {
 }
 
 export function PeoplePanelDialog({ store, articleId, onSubmit, initialConfig }: Props) {
-	const open = Ariakit.useStoreState(store, 'open')
-	const [label, setLabel] = useState('')
-	const [items, setItems] = useState<ArticlePeoplePanelItem[]>([makeEmptyPeoplePanelItem()])
+	const initialPanel = initialConfig ?? makeEmptyPeoplePanelConfig()
+	const [label, setLabel] = useState(initialPanel.label)
+	const [items, setItems] = useState<ArticlePeoplePanelItem[]>(
+		initialPanel.items.length > 0 ? initialPanel.items : [makeEmptyPeoplePanelItem()]
+	)
 	const [showErrors, setShowErrors] = useState(false)
-	const initialKey = useRef<string | null>(null)
-
-	useEffect(() => {
-		if (!open) return
-		const key = initialConfig ? JSON.stringify(initialConfig) : ''
-		if (initialKey.current === key) return
-		initialKey.current = key
-		setShowErrors(false)
-		if (initialConfig) {
-			setLabel(initialConfig.label)
-			setItems(initialConfig.items.length > 0 ? initialConfig.items : [makeEmptyPeoplePanelItem()])
-		} else {
-			const empty = makeEmptyPeoplePanelConfig()
-			setLabel(empty.label)
-			setItems(empty.items)
-		}
-	}, [open, initialConfig])
 
 	const updateItem = (idx: number, patch: Partial<ArticlePeoplePanelItem>) => {
 		setItems((prev) => prev.map((item, i) => (i === idx ? { ...item, ...patch } : item)))

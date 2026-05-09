@@ -106,6 +106,7 @@ const ChainProtocolsTableInner = ({
 	>(undefined)
 
 	const customColumnDialogStore = Ariakit.useDialogStore()
+	const customColumnDialogOpen = Ariakit.useStoreState(customColumnDialogStore, 'open')
 	const handleAddCustomColumn = () => {
 		setCustomColumnModalEditIndex(null)
 		setCustomColumnModalInitialValues(undefined)
@@ -393,13 +394,15 @@ const ChainProtocolsTableInner = ({
 				/>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
-			<CustomColumnModal
-				dialogStore={customColumnDialogStore}
-				onSave={handleSaveCustomColumn}
-				sampleRow={sampleRow}
-				key={`custom-index-${customColumnModalEditIndex}`}
-				{...(customColumnModalInitialValues ?? EMPTY_CUSTOM_COLUMN_VALUES)}
-			/>
+			{customColumnDialogOpen ? (
+				<CustomColumnModal
+					dialogStore={customColumnDialogStore}
+					onSave={handleSaveCustomColumn}
+					sampleRow={sampleRow}
+					key={`custom-index-${customColumnModalEditIndex}`}
+					{...(customColumnModalInitialValues ?? EMPTY_CUSTOM_COLUMN_VALUES)}
+				/>
+			) : null}
 		</div>
 	)
 }

@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 
 interface CancelSubscriptionModalProps {
@@ -17,20 +16,20 @@ export function CancelSubscriptionModal({
 	isLoading,
 	variant = 'trial'
 }: CancelSubscriptionModalProps) {
-	const [message, setMessage] = useState('')
-
 	const isTrial = variant === 'trial'
 
 	const handleClose = () => {
 		if (isLoading) return
-		setMessage('')
 		onClose()
 	}
 
-	const handleConfirm = async () => {
+	const handleConfirm = async (e: React.FormEvent<HTMLFormElement>) => {
+		if (isLoading) return
+		e.preventDefault()
+		const formData = new FormData(e.currentTarget)
+		const message = ((formData.get('message') as string) ?? '').trim()
 		try {
 			await onConfirm(message || undefined)
-			setMessage('')
 		} catch {
 			// error handled by mutation
 		}
@@ -44,13 +43,14 @@ export function CancelSubscriptionModal({
 				portal
 				unmountOnHide
 			>
-				<div className="flex flex-col gap-5 px-5 py-6">
+				<form onSubmit={handleConfirm} className="flex flex-col gap-5 px-5 py-6">
 					{/* Header */}
 					<div className="flex items-center justify-between">
 						<h3 className="text-xl leading-7 font-semibold text-(--sub-ink-primary) dark:text-white">
 							{isTrial ? 'Cancel Free Trial' : 'Cancel Subscription'}
 						</h3>
 						<Ariakit.DialogDismiss
+							type="button"
 							disabled={isLoading}
 							className="rounded-full p-1 text-(--sub-ink-primary) transition-colors disabled:opacity-50 dark:text-white"
 						>
@@ -72,8 +72,7 @@ export function CancelSubscriptionModal({
 						</label>
 						<textarea
 							id="cancel-reason"
-							value={message}
-							onChange={(e) => setMessage(e.target.value)}
+							name="message"
 							placeholder="Let us know why you're cancelling..."
 							rows={3}
 							className="w-full resize-none rounded-lg border border-(--sub-border-muted) bg-transparent p-3 text-sm text-(--sub-ink-primary) outline-none placeholder:text-(--sub-text-muted) focus:border-(--sub-brand-primary) dark:border-(--sub-border-strong) dark:text-white"
@@ -83,20 +82,21 @@ export function CancelSubscriptionModal({
 					{/* Actions */}
 					<div className="flex flex-col gap-2">
 						<button
-							onClick={() => void handleConfirm()}
+							type="submit"
 							disabled={isLoading}
 							className="flex h-10 w-full items-center justify-center rounded-lg bg-(--error) text-sm font-medium text-white disabled:opacity-50"
 						>
 							{isLoading ? 'Cancelling...' : 'Confirm Cancellation'}
 						</button>
 						<Ariakit.DialogDismiss
+							type="button"
 							disabled={isLoading}
 							className="flex h-10 w-full items-center justify-center rounded-lg border border-(--sub-border-muted) text-sm text-(--sub-text-muted) disabled:opacity-50 dark:border-(--sub-border-strong)"
 						>
 							{isTrial ? 'Keep Trial' : 'Keep Subscription'}
 						</Ariakit.DialogDismiss>
 					</div>
-				</div>
+				</form>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

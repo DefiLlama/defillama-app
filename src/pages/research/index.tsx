@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -935,35 +936,24 @@ function ArticlesContent() {
 	const tag = getQueryParam(router.query.tag).trim()
 	const isFiltered = !!(query || tag)
 
-	const [featured, setFeatured] = useState<ArticleListResponse>(EMPTY_LIST)
-	const [newest, setNewest] = useState<ArticleListResponse>(EMPTY_LIST)
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
+	const {
+		data: response,
+		isLoading,
+		error
+	} = useQuery({
+		queryKey: ['research', 'articles', { query, tag, isFiltered }],
+		queryFn: async () => {
+			const [featured, newest] = await Promise.all([
+				isFiltered ? Promise.resolve(EMPTY_LIST) : listArticles({ sort: 'featured', limit: 8 }, authorizedFetch),
+				listArticles({ sort: 'newest', limit: 36, query, tags: tag ? [tag] : undefined }, authorizedFetch)
+			])
+			return { featured, newest }
+		},
+		retry: false
+	})
 
-	useEffect(() => {
-		let cancelled = false
-		setIsLoading(true)
-		Promise.all([
-			isFiltered ? Promise.resolve(EMPTY_LIST) : listArticles({ sort: 'featured', limit: 8 }, authorizedFetch),
-			listArticles({ sort: 'newest', limit: 36, query, tags: tag ? [tag] : undefined }, authorizedFetch)
-		])
-			.then(([f, n]) => {
-				if (cancelled) return
-				setFeatured(f)
-				setNewest(n)
-				setError(null)
-			})
-			.catch((err) => {
-				if (cancelled) return
-				setError(err instanceof ArticleApiError ? err.message : 'Failed to load articles')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [authorizedFetch, isFiltered, query, tag])
+	const featured = response?.featured ?? EMPTY_LIST
+	const newest = response?.newest ?? EMPTY_LIST
 
 	const data = useMemo<LandingData>(() => {
 		const articles = uniqueArticles([...featured.items, ...newest.items])
@@ -985,10 +975,11 @@ function ArticlesContent() {
 	if (isLoading) return isFiltered ? <ResearchLoader /> : <LoadingPlaceholder />
 
 	if (error) {
+		const message = error instanceof ArticleApiError ? error.message : 'Failed to load articles'
 		return (
 			<div className="mx-auto grid w-full max-w-3xl gap-3 border border-red-500/30 bg-red-500/5 p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load research</h1>
-				<p className="text-sm text-red-500">{error}</p>
+				<p className="text-sm text-red-500">{message}</p>
 			</div>
 		)
 	}

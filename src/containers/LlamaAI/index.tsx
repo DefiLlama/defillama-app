@@ -1,4 +1,5 @@
 import * as Ariakit from '@ariakit/react'
+import { useMutation } from '@tanstack/react-query'
 import Router from 'next/router'
 import {
 	lazy,
@@ -380,14 +381,12 @@ function normalizePaginationState(
 ): {
 	hasMore: boolean
 	cursor: number | null
-	isLoadingMore: false
 	hasNewer?: boolean
 	newerCursor?: number | null
 } {
 	return {
 		hasMore: pagination?.hasMore || false,
 		cursor: pagination?.cursor ?? null,
-		isLoadingMore: false,
 		hasNewer: pagination?.hasNewer ?? false,
 		newerCursor: pagination?.newerCursor ?? null
 	}
@@ -850,11 +849,9 @@ export function AgenticChat({
 	const [paginationState, setPaginationState] = useState<{
 		hasMore: boolean
 		cursor: number | null
-		isLoadingMore: boolean
 		hasNewer?: boolean
 		newerCursor?: number | null
-		isLoadingNewer?: boolean
-	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	}>({ hasMore: false, cursor: null })
 	const [conversationViewResetKey, setConversationViewResetKey] = useState(0)
 	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
@@ -991,9 +988,30 @@ export function AgenticChat({
 		streamingGeneratedImages
 	])
 
+	const loadMoreMessagesMutation = useMutation({
+		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
+			loadMoreMessages(targetSessionId, cursor)
+	})
+	const loadNewerMessagesMutation = useMutation({
+		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
+			loadNewerMessages(targetSessionId, cursor)
+	})
+	const isLoadingMoreCurrentSession =
+		loadMoreMessagesMutation.isPending && loadMoreMessagesMutation.variables?.targetSessionId === sessionId
+	const isLoadingNewerCurrentSession =
+		loadNewerMessagesMutation.isPending && loadNewerMessagesMutation.variables?.targetSessionId === sessionId
+	const renderedPaginationState = useMemo(
+		() => ({
+			...paginationState,
+			isLoadingMore: isLoadingMoreCurrentSession,
+			isLoadingNewer: isLoadingNewerCurrentSession
+		}),
+		[paginationState, isLoadingMoreCurrentSession, isLoadingNewerCurrentSession]
+	)
+
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || isStreaming) return
+		if (!sessionId || !paginationState.hasMore || loadMoreMessagesMutation.isPending || isStreaming) return
 
 		const requestId = beginRequest(
 			activeRequestIdRef,
@@ -1003,20 +1021,19 @@ export function AgenticChat({
 			sessionId
 		)
 		setPaginationError(null)
-		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 		await waitForNextPaint()
 		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
-		const result = await loadMoreMessages(sessionId, paginationState.cursor!).catch(() => {
-			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
-				setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
-				setPaginationError('Failed to load older messages')
-			}
-			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			return null
-		})
+		const result = await loadMoreMessagesMutation
+			.mutateAsync({ targetSessionId: sessionId, cursor: paginationState.cursor! })
+			.catch(() => {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setPaginationError('Failed to load older messages')
+				}
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return null
+			})
 		if (!result) return
 		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
-			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
@@ -1030,11 +1047,11 @@ export function AgenticChat({
 
 		setPaginationState(normalizePaginationState(result.pagination))
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-	}, [sessionId, paginationState, loadMoreMessages, isStreaming])
+	}, [sessionId, paginationState, loadMoreMessagesMutation, isStreaming])
 
 	// Load newer messages when the user reaches the bottom of a mid-conversation restore window.
 	const handleLoadNewerMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasNewer || paginationState.isLoadingNewer || isStreaming) return
+		if (!sessionId || !paginationState.hasNewer || loadNewerMessagesMutation.isPending || isStreaming) return
 
 		const requestId = beginRequest(
 			activeRequestIdRef,
@@ -1044,18 +1061,17 @@ export function AgenticChat({
 			sessionId
 		)
 		setPaginationError(null)
-		setPaginationState((prev) => ({ ...prev, isLoadingNewer: true }))
-		const result = await loadNewerMessages(sessionId, paginationState.newerCursor!).catch(() => {
-			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
-				setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
-				setPaginationError('Failed to load newer messages')
-			}
-			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			return null
-		})
+		const result = await loadNewerMessagesMutation
+			.mutateAsync({ targetSessionId: sessionId, cursor: paginationState.newerCursor! })
+			.catch(() => {
+				if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+					setPaginationError('Failed to load newer messages')
+				}
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				return null
+			})
 		if (!result) return
 		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
-			setPaginationState((prev) => ({ ...prev, isLoadingNewer: false }))
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
@@ -1065,12 +1081,11 @@ export function AgenticChat({
 
 		setPaginationState((prev) => ({
 			...prev,
-			isLoadingNewer: false,
 			hasNewer: result.pagination?.hasNewer ?? false,
 			newerCursor: result.pagination?.newerCursor ?? null
 		}))
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-	}, [sessionId, paginationState, loadNewerMessages, isStreaming])
+	}, [sessionId, paginationState, loadNewerMessagesMutation, isStreaming])
 
 	// Expose the load-more callback through a stable event wrapper for the scroll listener.
 	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
@@ -1091,7 +1106,7 @@ export function AgenticChat({
 		isStreaming,
 		items: effectiveMessages,
 		hasMessages,
-		paginationState,
+		paginationState: renderedPaginationState,
 		onLoadMoreMessages: handleLoadMoreMessagesEvent,
 		onLoadNewerMessages: handleLoadNewerMessagesEvent,
 		keyboardOpen,
@@ -1456,7 +1471,6 @@ export function AgenticChat({
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
-				isLoadingMore: false,
 				hasNewer: result.pagination?.hasNewer ?? false,
 				newerCursor: result.pagination?.newerCursor ?? null
 			})
@@ -1688,7 +1702,7 @@ export function AgenticChat({
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
-		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
+		setPaginationState({ hasMore: false, cursor: null })
 		promptInputRef.current?.focus()
 	}, [initialSessionId, sharedSession, abortActiveRequest, attach, clearConversationRuntimeState])
 
@@ -2538,7 +2552,7 @@ export function AgenticChat({
 										streamingThinking={streamingThinking}
 										streamingDraft={streamingDraft}
 										isCompacting={isCompacting}
-										paginationState={paginationState}
+										paginationState={renderedPaginationState}
 										paginationError={paginationError}
 										recovery={recovery}
 										error={visibleError}
@@ -2604,7 +2618,7 @@ export function AgenticChat({
 								spawnIsResearchMode={spawnIsResearchMode}
 								streamingDraft={streamingDraft}
 								isCompacting={isCompacting}
-								paginationState={paginationState}
+								paginationState={renderedPaginationState}
 								paginationError={paginationError}
 								recovery={recovery}
 								error={visibleError}

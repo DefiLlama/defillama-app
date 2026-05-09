@@ -1,7 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
 import { ArticleApiError, getArticleBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
@@ -45,42 +45,22 @@ function OwnerEditChip({ article }: { article: ArticleDocument }) {
 
 function ArticleBySlugContent({ slug }: { slug: string }) {
 	const { authorizedFetch } = useAuthContext()
-	const [article, setArticle] = useState<ArticleDocument | null>(null)
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-	const [notFound, setNotFound] = useState(false)
-
-	useEffect(() => {
-		if (!slug) return
-		let cancelled = false
-		setIsLoading(true)
-		getArticleBySlug(slug, authorizedFetch)
-			.then((doc) => {
-				if (cancelled) return
-				if (!doc) {
-					setNotFound(true)
-				} else {
-					setArticle(doc)
-					setError(null)
-				}
-			})
-			.catch((err) => {
-				if (cancelled) return
-				setError(err instanceof ArticleApiError ? err.message : 'Failed to load research')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [authorizedFetch, slug])
+	const {
+		data: article = null,
+		isLoading,
+		error
+	} = useQuery({
+		queryKey: ['research', 'article', slug],
+		queryFn: () => getArticleBySlug(slug, authorizedFetch),
+		enabled: !!slug,
+		retry: false
+	})
 
 	if (isLoading) {
 		return <ResearchLoader />
 	}
 
-	if (notFound) {
+	if (!article && !error) {
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Research not found</h1>
@@ -92,10 +72,11 @@ function ArticleBySlugContent({ slug }: { slug: string }) {
 	}
 
 	if (error || !article) {
+		const message = error instanceof ArticleApiError ? error.message : 'Failed to load research'
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load research</h1>
-				<p className="text-sm text-(--text-secondary)">{error}</p>
+				<p className="text-sm text-(--text-secondary)">{message}</p>
 			</div>
 		)
 	}

@@ -1,5 +1,6 @@
+import { useMutation, useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import {
 	ArticleApiError,
@@ -227,40 +228,33 @@ export function AuthorProfileForm() {
 	const [profile, setProfile] = useState<ArticleAuthorProfile | null>(null)
 	const [initial, setInitial] = useState<FormState | null>(null)
 	const [state, setState] = useState<FormState | null>(null)
-	const [isLoading, setIsLoading] = useState(true)
-	const [loadError, setLoadError] = useState<string | null>(null)
-	const [isSaving, setIsSaving] = useState(false)
 	const [showCustom, setShowCustom] = useState(false)
+	const hydratedProfileIdRef = useRef<string | null>(null)
+	const {
+		data: loadedProfile,
+		isLoading,
+		error: loadError
+	} = useQuery({
+		queryKey: ['research', 'author-profile'],
+		queryFn: () => getMyAuthorProfile(authorizedFetch),
+		enabled: !loaders.userLoading && isAuthenticated,
+		retry: false,
+		refetchOnWindowFocus: false
+	})
+	const updateProfileMutation = useMutation({
+		mutationFn: (payload: AuthorProfileUpdate) => updateMyAuthorProfile(payload, authorizedFetch)
+	})
 
 	useEffect(() => {
-		if (loaders.userLoading) return
-		if (!isAuthenticated) {
-			setIsLoading(false)
-			return
-		}
-		let cancelled = false
-		setIsLoading(true)
-		getMyAuthorProfile(authorizedFetch)
-			.then((response) => {
-				if (cancelled) return
-				const next = profileToForm(response)
-				setProfile(response)
-				setInitial(next)
-				setState(next)
-				setShowCustom(next.customSocials.length > 0)
-				setLoadError(null)
-			})
-			.catch((err) => {
-				if (cancelled) return
-				setLoadError(err instanceof ArticleApiError ? err.message : 'Failed to load profile')
-			})
-			.finally(() => {
-				if (!cancelled) setIsLoading(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [authorizedFetch, isAuthenticated, loaders.userLoading])
+		if (!loadedProfile) return
+		if (hydratedProfileIdRef.current === loadedProfile.id) return
+		hydratedProfileIdRef.current = loadedProfile.id
+		const next = profileToForm(loadedProfile)
+		setProfile(loadedProfile)
+		setInitial(next)
+		setState(next)
+		setShowCustom(next.customSocials.length > 0)
+	}, [loadedProfile])
 
 	const dirty = useMemo(() => (state && initial ? !formsEqual(state, initial) : false), [state, initial])
 	const slugError = state ? validateSlug(state.slug) : null
@@ -300,9 +294,8 @@ export function AuthorProfileForm() {
 		if (!state || !initial || hasError || !dirty) return
 		const payload = buildPayload(state, initial)
 		if (Object.keys(payload).length === 0) return
-		setIsSaving(true)
 		try {
-			const updated = await updateMyAuthorProfile(payload, authorizedFetch)
+			const updated = await updateProfileMutation.mutateAsync(payload)
 			const next = profileToForm(updated)
 			setProfile(updated)
 			setInitial(next)
@@ -315,8 +308,6 @@ export function AuthorProfileForm() {
 			}
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to save')
-		} finally {
-			setIsSaving(false)
 		}
 	}
 
@@ -342,10 +333,11 @@ export function AuthorProfileForm() {
 	}
 
 	if (loadError || !state || !profile) {
+		const message = loadError instanceof ArticleApiError ? loadError.message : 'Failed to load profile'
 		return (
 			<div className="mx-auto grid max-w-xl gap-3 rounded-md border border-red-500/30 bg-red-500/5 p-6">
 				<h1 className="text-xl font-semibold text-(--text-primary)">Couldn't load profile</h1>
-				<p className="text-sm text-(--text-secondary)">{loadError || 'Unknown error'}</p>
+				<p className="text-sm text-(--text-secondary)">{message}</p>
 			</div>
 		)
 	}
@@ -566,17 +558,17 @@ export function AuthorProfileForm() {
 						<button
 							type="button"
 							onClick={handleReset}
-							disabled={!dirty || isSaving}
+							disabled={!dirty || updateProfileMutation.isPending}
 							className="rounded-md px-3 py-2 text-sm text-(--text-secondary) transition-colors hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
 						>
 							Discard
 						</button>
 						<button
 							type="submit"
-							disabled={!dirty || hasError || isSaving}
+							disabled={!dirty || hasError || updateProfileMutation.isPending}
 							className="rounded-md bg-(--link-text) px-4 py-2 text-sm font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
 						>
-							{isSaving ? 'Saving…' : 'Save changes'}
+							{updateProfileMutation.isPending ? 'Saving…' : 'Save changes'}
 						</button>
 					</div>
 				</div>

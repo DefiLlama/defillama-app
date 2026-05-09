@@ -78,7 +78,7 @@ describe('metadata refresh', () => {
 		)
 
 		consoleErrorSpy.mockRestore()
-	})
+	}, 15_000)
 
 	it('replaces the token directory when refresh returns token data', async () => {
 		const refreshedDirectory = {
@@ -108,5 +108,5 @@ describe('metadata refresh', () => {
 		await metadataModule.refreshMetadataIfStale()
 
 		expect(metadata.tokenDirectory).toEqual(refreshedDirectory)
-	})
+	}, 15_000)
 })

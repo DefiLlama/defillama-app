@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ArticleApiError, listArticles } from '../api'
 
-const createFetchMock = (response: Response) => vi.fn(async (_url: string, _options?: RequestInit) => response)
+const createFetchMock = (response: Response) => vi.fn(async (_url: string, _options?: RequestInit) => response.clone())
 
 describe('articles api client', () => {
 	it('builds discovery query parameters', async () => {
