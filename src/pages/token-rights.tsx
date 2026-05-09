@@ -5,8 +5,9 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import { matchSorter } from 'match-sorter'
 import Link from 'next/link'
-import { startTransition, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -436,10 +437,11 @@ function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 	const [activeFilters, setActiveFilters] = useState<TokenRightsFilter[]>([])
 	const [searchValue, setSearchValue] = useState('')
 	const [sorting, setSorting] = useState<SortingState>([])
+	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const filteredProtocols = useMemo(
-		() => filterTokenRightsRows(protocols, activeFilters, searchValue),
-		[protocols, activeFilters, searchValue]
+		() => filterTokenRightsRows(protocols, activeFilters, deferredSearchValue),
+		[protocols, activeFilters, deferredSearchValue]
 	)
 	const stats = useMemo(() => getTokenRightsStats(filteredProtocols), [filteredProtocols])
 	const latestUpdated = useMemo(() => getLatestUpdatedMonth(protocols), [protocols])
@@ -504,10 +506,8 @@ function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 								className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 							/>
 							<input
-								value={searchValue}
-								onChange={(event) => {
-									const nextValue = event.currentTarget.value
-									startTransition(() => setSearchValue(nextValue))
+								onInput={(event) => {
+									setSearchValue(event.currentTarget.value)
 								}}
 								placeholder="Search protocol..."
 								className="w-full rounded-md border border-(--form-control-border) bg-(--app-bg) p-1.5 pl-7 text-sm text-(--text-primary) placeholder:text-(--text-tertiary)"
@@ -543,23 +543,16 @@ export function filterTokenRightsRows(
 	activeFilters: TokenRightsFilter[],
 	searchValue: string
 ): TokenRightsListItem[] {
-	const normalizedSearch = searchValue.trim().toLowerCase()
+	const normalizedSearch = searchValue.trim()
+	const source = normalizedSearch
+		? matchSorter(protocols, normalizedSearch, {
+				keys: ['name', (protocol) => protocol.tokens],
+				threshold: matchSorter.rankings.CONTAINS
+			})
+		: protocols
 	const filtered: TokenRightsListItem[] = []
 
-	for (const protocol of protocols) {
-		if (normalizedSearch) {
-			let matchesSearch = protocol.name.toLowerCase().includes(normalizedSearch)
-			if (!matchesSearch) {
-				for (const token of protocol.tokens) {
-					if (token.toLowerCase().includes(normalizedSearch)) {
-						matchesSearch = true
-						break
-					}
-				}
-			}
-			if (!matchesSearch) continue
-		}
-
+	for (const protocol of source) {
 		let matchesFilters = true
 		for (const filter of activeFilters) {
 			if (

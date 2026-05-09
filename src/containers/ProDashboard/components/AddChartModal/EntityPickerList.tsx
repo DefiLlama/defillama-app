@@ -102,8 +102,7 @@ export function EntityPickerList({
 						className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 					/>
 					<input
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onInput={(e) => setSearch(e.currentTarget.value)}
 						placeholder={`Search ${mode === 'chain' ? 'chains' : 'protocols'}...`}
 						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-8 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
