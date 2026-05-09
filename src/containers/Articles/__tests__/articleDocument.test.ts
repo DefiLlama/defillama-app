@@ -112,4 +112,71 @@ describe('local article documents', () => {
 		expect(result.value.updatedAt).toBe(now)
 		expect(result.value.publishedAt).toBeNull()
 	})
+
+	it('extracts embeds, images, and people panels into searchable article text', () => {
+		const result = normalizeLocalArticleDocument(
+			{
+				title: 'Research primitives',
+				contentJson: {
+					type: 'doc',
+					content: [
+						{
+							type: 'articleEmbed',
+							attrs: {
+								config: {
+									provider: 'iframe',
+									url: 'https://datawrapper.dwcdn.net/abcd1/3/',
+									sourceUrl: 'https://www.datawrapper.de/_/abcd1/',
+									title: 'Stablecoin flows'
+								}
+							}
+						},
+						{
+							type: 'articleImage',
+							attrs: {
+								src: 'https://images.example.com/chart.png',
+								alt: 'Supply chart',
+								caption: 'USDC supply by chain'
+							}
+						},
+						{
+							type: 'articlePeoplePanel',
+							attrs: {
+								config: {
+									label: 'Contributors',
+									items: [
+										{
+											src: 'https://images.example.com/alice.png',
+											name: 'Alice',
+											bio: 'Stablecoin researcher',
+											href: 'alice.example'
+										}
+									]
+								}
+							}
+						}
+					]
+				}
+			},
+			null,
+			now
+		)
+
+		expect(result.ok).toBe(true)
+		if (!result.ok) return
+		expect(result.value.embeds).toEqual([
+			{
+				provider: 'iframe',
+				url: 'https://datawrapper.dwcdn.net/abcd1/3/',
+				sourceUrl: 'https://www.datawrapper.de/_/abcd1/',
+				title: 'Stablecoin flows'
+			}
+		])
+		expect(result.value.plainText).toContain('[Embed: Stablecoin flows]')
+		expect(result.value.plainText).toContain('[Image: Supply chart')
+		expect(result.value.plainText).toContain('USDC supply by chain')
+		expect(result.value.plainText).toContain('[Section: Contributors]')
+		expect(result.value.plainText).toContain('Alice')
+		expect(result.value.plainText).toContain('Stablecoin researcher')
+	})
 })
