@@ -61,6 +61,7 @@ interface TableRowProps<T extends RowData = RowData> {
 	row: Row<T>
 	index: number
 	virtualRow?: VirtualItem | null
+	rowHeight?: number
 	subRowOrdinalById: Map<string, number>
 	firstColumnId: string | undefined
 	stripedBg: boolean
@@ -72,6 +73,7 @@ function TableRow<T extends RowData>({
 	row: rowToRender,
 	index: i,
 	virtualRow,
+	rowHeight,
 	subRowOrdinalById,
 	firstColumnId,
 	stripedBg,
@@ -82,6 +84,7 @@ function TableRow<T extends RowData>({
 		<tr
 			data-index={virtualRow?.index}
 			style={{
+				height: rowHeight,
 				opacity: (rowToRender.original as Record<string, unknown>)?.disabled ? 0.3 : 1,
 				...(rowToRender.depth > 0
 					? {
@@ -536,6 +539,7 @@ export function VirtualTable<T extends RowData>({
 									key={row.id}
 									row={row}
 									index={i}
+									rowHeight={rowSize}
 									subRowOrdinalById={subRowOrdinalById}
 									firstColumnId={firstColumnId}
 									stripedBg={stripedBg}
@@ -560,6 +564,7 @@ export function VirtualTable<T extends RowData>({
 										row={rows[virtualRow.index]}
 										index={virtualRow.index}
 										virtualRow={virtualRow}
+										rowHeight={virtualRow.size}
 										subRowOrdinalById={subRowOrdinalById}
 										firstColumnId={firstColumnId}
 										stripedBg={stripedBg}
