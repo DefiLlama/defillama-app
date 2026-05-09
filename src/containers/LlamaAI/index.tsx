@@ -986,13 +986,17 @@ export function AgenticChat({
 		mutationFn: ({ targetSessionId, cursor }: { targetSessionId: string; cursor: number }) =>
 			loadNewerMessages(targetSessionId, cursor)
 	})
+	const isLoadingMoreCurrentSession =
+		loadMoreMessagesMutation.isPending && loadMoreMessagesMutation.variables?.targetSessionId === sessionId
+	const isLoadingNewerCurrentSession =
+		loadNewerMessagesMutation.isPending && loadNewerMessagesMutation.variables?.targetSessionId === sessionId
 	const renderedPaginationState = useMemo(
 		() => ({
 			...paginationState,
-			isLoadingMore: loadMoreMessagesMutation.isPending,
-			isLoadingNewer: loadNewerMessagesMutation.isPending
+			isLoadingMore: isLoadingMoreCurrentSession,
+			isLoadingNewer: isLoadingNewerCurrentSession
 		}),
-		[paginationState, loadMoreMessagesMutation.isPending, loadNewerMessagesMutation.isPending]
+		[paginationState, isLoadingMoreCurrentSession, isLoadingNewerCurrentSession]
 	)
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.

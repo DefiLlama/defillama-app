@@ -616,6 +616,10 @@ type MarkButton = {
 
 type BlockItem = { label: string; hint?: string; run: () => void }
 
+function articleQueryKey(articleId: string | undefined) {
+	return ['research', 'owned-article', articleId] as const
+}
+
 function MetaSection({ title, children }: { title: string; children: ReactNode }) {
 	return (
 		<section className="grid gap-3">
@@ -718,9 +722,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})
 
 	const flags = useEditorFlags(editor)
-	const articleQueryKey = ['research', 'owned-article', articleId] as const
+	const ownedArticleQueryKey = articleQueryKey(articleId)
 	const ownedArticleQuery = useQuery({
-		queryKey: articleQueryKey,
+		queryKey: ownedArticleQueryKey,
 		queryFn: () => getOwnedArticle(articleId!, authorizedFetch),
 		enabled: !!editor && !loaders.userLoading && isAuthenticated && !!articleId,
 		retry: false,
@@ -748,6 +752,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				? updateRemoteArticle(targetArticleId, articlePayload, authorizedFetch)
 				: createArticle(articlePayload, authorizedFetch)
 	})
+	const setOwnedArticleCache = (saved: LocalArticleDocument) => {
+		if (saved.id) queryClient.setQueryData(articleQueryKey(saved.id), saved)
+	}
 	const isLoading = loaders.userLoading || ownedArticleQuery.isLoading || createArticleMutation.isPending
 	const isSaving = saveArticleMutation.isPending
 
@@ -823,7 +830,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			})
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
-			if (saved.id) queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
+			setOwnedArticleCache(saved)
 			setSavedAt(merged.pendingUpdatedAt ?? merged.updatedAt)
 			setSaveError(false)
 			if (!article.id) {
@@ -1075,13 +1082,16 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				? 'Failed to load co-authors'
 				: null
 	const publishMutation = useMutation({
-		mutationFn: (targetArticleId: string) => publishArticle(targetArticleId, authorizedFetch)
+		mutationFn: (targetArticleId: string) => publishArticle(targetArticleId, authorizedFetch),
+		onSuccess: (saved) => setOwnedArticleCache(saved)
 	})
 	const unpublishMutation = useMutation({
-		mutationFn: (targetArticleId: string) => unpublishArticle(targetArticleId, authorizedFetch)
+		mutationFn: (targetArticleId: string) => unpublishArticle(targetArticleId, authorizedFetch),
+		onSuccess: (saved) => setOwnedArticleCache(saved)
 	})
 	const discardPendingMutation = useMutation({
-		mutationFn: (targetArticleId: string) => discardPendingEdits(targetArticleId, authorizedFetch)
+		mutationFn: (targetArticleId: string) => discardPendingEdits(targetArticleId, authorizedFetch),
+		onSuccess: (saved) => setOwnedArticleCache(saved)
 	})
 	const deleteArticleMutation = useMutation({
 		mutationFn: (targetArticleId: string) => deleteArticle(targetArticleId, authorizedFetch),
@@ -1094,11 +1104,17 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})
 	const addCollaboratorMutation = useMutation({
 		mutationFn: ({ targetArticleId, email }: { targetArticleId: string; email: string }) =>
-			addCollaborator(targetArticleId, email, authorizedFetch)
+			addCollaborator(targetArticleId, email, authorizedFetch),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: collaboratorsQueryKey })
+		}
 	})
 	const removeCollaboratorMutation = useMutation({
 		mutationFn: ({ targetArticleId, pbUserId }: { targetArticleId: string; pbUserId: string }) =>
-			removeCollaborator(targetArticleId, pbUserId, authorizedFetch)
+			removeCollaborator(targetArticleId, pbUserId, authorizedFetch),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: collaboratorsQueryKey })
+		}
 	})
 	const updateCollaboratorMutation = useMutation({
 		mutationFn: ({
@@ -1109,11 +1125,18 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			targetArticleId: string
 			pbUserId: string
 			hidden: boolean
-		}) => updateCollaborator(targetArticleId, pbUserId, { hidden }, authorizedFetch)
+		}) => updateCollaborator(targetArticleId, pbUserId, { hidden }, authorizedFetch),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: collaboratorsQueryKey })
+		}
 	})
 	const transferOwnershipMutation = useMutation({
 		mutationFn: ({ targetArticleId, pbUserId }: { targetArticleId: string; pbUserId: string }) =>
-			transferOwnership(targetArticleId, { pbUserId }, authorizedFetch)
+			transferOwnership(targetArticleId, { pbUserId }, authorizedFetch),
+		onSuccess: (updated) => {
+			setOwnedArticleCache(updated)
+			void queryClient.invalidateQueries({ queryKey: collaboratorsQueryKey })
+		}
 	})
 	const isPublishing = publishMutation.isPending || unpublishMutation.isPending
 	const isDiscarding = discardPendingMutation.isPending
@@ -1139,7 +1162,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			const saved = await publishMutation.mutateAsync(article.id)
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
-			queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			setSavedAt(merged.updatedAt)
 			toast.success(article.status === 'published' ? 'Update published' : 'Published')
 		} catch (error) {
@@ -1153,7 +1175,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			const saved = await unpublishMutation.mutateAsync(article.id)
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
-			queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
 			toast.success('Moved to drafts')
@@ -1173,7 +1194,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			const saved = await discardPendingMutation.mutateAsync(article.id)
 			const merged = applyPendingToLocalArticle(saved, saved.pending)
 			setArticle(merged)
-			queryClient.setQueryData(['research', 'owned-article', saved.id], saved)
 			editor?.commands.setContent(merged.contentJson, { emitUpdate: false })
 			setSavedAt(merged.updatedAt)
 			setIsDirty(false)
@@ -1208,11 +1228,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const isOwner = article.viewerRole === 'owner'
 	const isCollaborator = article.viewerRole === 'collaborator'
 
-	const refreshCollaborators = useCallback(async () => {
-		if (!article.id) return
-		await queryClient.invalidateQueries({ queryKey: collaboratorsQueryKey })
-	}, [article.id, collaboratorsQueryKey, queryClient])
-
 	const handleAddCollaborator = async () => {
 		if (!article.id) return
 		const email = collaboratorEmail.trim()
@@ -1224,7 +1239,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		try {
 			await addCollaboratorMutation.mutateAsync({ targetArticleId: article.id, email })
 			setCollaboratorEmail('')
-			await refreshCollaborators()
 			toast.success('Co-author added')
 		} catch (error) {
 			const message =
@@ -1241,7 +1255,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		if (!article.id) return
 		try {
 			await removeCollaboratorMutation.mutateAsync({ targetArticleId: article.id, pbUserId })
-			await refreshCollaborators()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to remove co-author')
 		}
@@ -1251,7 +1264,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		if (!article.id) return
 		try {
 			await updateCollaboratorMutation.mutateAsync({ targetArticleId: article.id, pbUserId, hidden: nextHidden })
-			await refreshCollaborators()
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to update co-author')
 		}
@@ -1265,8 +1277,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			const updated = await transferOwnershipMutation.mutateAsync({ targetArticleId: article.id, pbUserId })
 			const merged = applyPendingToLocalArticle(updated, updated.pending)
 			setArticle(merged)
-			queryClient.setQueryData(['research', 'owned-article', updated.id], updated)
-			await refreshCollaborators()
 			toast.success(`${displayName} is now the owner`)
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : 'Failed to transfer ownership')

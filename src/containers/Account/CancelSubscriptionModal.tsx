@@ -24,6 +24,7 @@ export function CancelSubscriptionModal({
 	}
 
 	const handleConfirm = async (e: React.FormEvent<HTMLFormElement>) => {
+		if (isLoading) return
 		e.preventDefault()
 		const formData = new FormData(e.currentTarget)
 		const message = ((formData.get('message') as string) ?? '').trim()

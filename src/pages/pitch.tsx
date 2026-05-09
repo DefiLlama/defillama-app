@@ -17,7 +17,7 @@ const dateStringToUnix = (dateString): number | null => {
 	return Math.floor(timestamp / 1000)
 }
 
-const fetchInvestors = async (filters) => {
+const buildFiltersData = (filters) => {
 	const body: Record<string, any> = {}
 	for (const key in filters) {
 		const v = filters[key]
@@ -25,11 +25,14 @@ const fetchInvestors = async (filters) => {
 			body[key] = v
 		}
 	}
+	return body
+}
 
+const fetchInvestors = async (filters) => {
 	const response = await fetch('https://vc-emails.llama.fi/vc-list', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ filters: body })
+		body: JSON.stringify({ filters: buildFiltersData(filters) })
 	})
 
 	const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -43,17 +46,10 @@ const fetchInvestors = async (filters) => {
 }
 
 const createPayment = async ({ projectInfo, filters }) => {
-	const filtersData: Record<string, any> = {}
-	for (const key in filters) {
-		const v = filters[key]
-		if (v && v.length !== 0) {
-			filtersData[key] = v
-		}
-	}
 	const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ ...projectInfo, filters: filtersData })
+		body: JSON.stringify({ ...projectInfo, filters: buildFiltersData(filters) })
 	})
 	if (!response.ok) {
 		let message = `Payment request failed (${response.status})`
@@ -119,6 +115,12 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 	const matchedInvestors = investorResult?.count ?? null
 	const totalCost = investorResult?.totalCost ?? null
+	const paymentError =
+		paymentMutation.error instanceof Error
+			? paymentMutation.error.message
+			: paymentMutation.error
+				? 'Unable to create payment link'
+				: null
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()
@@ -277,6 +279,11 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 							>
 								{paymentMutation.isPending ? 'Submitting...' : 'Submit'}
 							</button>
+							{paymentError ? (
+								<p role="alert" className="rounded-md border border-red-400 bg-red-50 p-2 text-sm text-red-700">
+									We couldn't create the payment link. {paymentError}. Please try again.
+								</p>
+							) : null}
 						</form>
 					</div>
 					<div className="flex h-fit w-full max-w-xs flex-col gap-2 rounded-md bg-(--bg-secondary) p-4 shadow-sm lg:sticky lg:top-10">

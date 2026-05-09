@@ -255,6 +255,8 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 	const deleteRevisionMutation = useMutation({
 		mutationFn: (revisionId: string) => deleteArticleRevision(articleId, revisionId, authorizedFetch)
 	})
+	const { mutateAsync: restoreRevision } = restoreRevisionMutation
+	const { mutateAsync: deleteRevision } = deleteRevisionMutation
 	const isRestoring = restoreRevisionMutation.isPending
 	const pendingDeleteId = deleteRevisionMutation.isPending ? (deleteRevisionMutation.variables ?? null) : null
 
@@ -285,7 +287,7 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 	const handleRestore = useCallback(async () => {
 		if (!selectedId) return
 		try {
-			const saved = await restoreRevisionMutation.mutateAsync(selectedId)
+			const saved = await restoreRevision(selectedId)
 			toast.success('Restored as pending')
 			onRestored(saved)
 			onClose()
@@ -294,12 +296,12 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 		} finally {
 			setConfirming(null)
 		}
-	}, [restoreRevisionMutation, onRestored, onClose, selectedId])
+	}, [restoreRevision, onRestored, onClose, selectedId])
 
 	const handleDelete = useCallback(
 		async (revisionId: string) => {
 			try {
-				await deleteRevisionMutation.mutateAsync(revisionId)
+				await deleteRevision(revisionId)
 				queryClient.setQueryData<typeof revisionsQuery.data>(revisionsQueryKey, (current) =>
 					current
 						? {
@@ -325,7 +327,7 @@ export function RevisionHistoryDrawer({ onClose, articleId, authorizedFetch, onR
 				setConfirming(null)
 			}
 		},
-		[deleteRevisionMutation, items, queryClient, revisionsQueryKey, selectedId]
+		[deleteRevision, items, queryClient, revisionsQueryKey, selectedId]
 	)
 
 	const liveAnchorId = useMemo(() => {

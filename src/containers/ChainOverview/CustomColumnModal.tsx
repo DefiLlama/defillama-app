@@ -159,7 +159,7 @@ export function CustomColumnModal({
 		}
 		if (!isAuthenticated || !hasActiveSubscription) {
 			setSignupSource('custom-columns')
-			subscribeModalStore.show()
+			setShouldRenderModal(true)
 			return
 		}
 		setState((prev) => ({ ...prev, error: null }))

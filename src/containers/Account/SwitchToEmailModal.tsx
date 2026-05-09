@@ -15,6 +15,15 @@ interface SwitchToEmailModalProps {
 
 type Step = 'email' | 'confirm' | 'success'
 
+interface SwitchToEmailErrorResponse {
+	error?: string
+	message?: string
+}
+
+interface SwitchToEmailResponse {
+	token?: string
+}
+
 async function requestSwitchToEmailOtp(email: string) {
 	const response = await fetch(`${AUTH_SERVER}/switch-to-email/request`, {
 		method: 'POST',
@@ -26,7 +35,7 @@ async function requestSwitchToEmailOtp(email: string) {
 	})
 
 	if (!response.ok) {
-		const errorData = await response.json().catch(() => null)
+		const errorData = (await response.json().catch(() => null)) as SwitchToEmailErrorResponse | null
 		throw new Error(errorData?.error || errorData?.message || 'Failed to send verification code')
 	}
 }
@@ -36,7 +45,7 @@ async function confirmSwitchToEmail(payload: {
 	otp: string
 	password: string
 	passwordConfirm: string
-}) {
+}): Promise<SwitchToEmailResponse> {
 	const response = await fetch(`${AUTH_SERVER}/switch-to-email/confirm`, {
 		method: 'POST',
 		headers: {
@@ -47,11 +56,11 @@ async function confirmSwitchToEmail(payload: {
 	})
 
 	if (!response.ok) {
-		const errorData = await response.json().catch(() => null)
+		const errorData = (await response.json().catch(() => null)) as SwitchToEmailErrorResponse | null
 		throw new Error(errorData?.error || errorData?.message || 'Failed to switch to email authentication')
 	}
 
-	return response.json()
+	return (await response.json()) as SwitchToEmailResponse
 }
 
 export function SwitchToEmailModal({ isOpen, onClose, defaultEmail }: SwitchToEmailModalProps) {
