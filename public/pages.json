@@ -1019,6 +1019,11 @@
       "icon": "house"
     },
     {
+      "name": "Portfolio",
+      "route": "/portfolio",
+      "icon": "wallet"
+    },
+    {
       "name": "Metrics",
       "route": "/metrics",
       "icon": "bar-chart-2"

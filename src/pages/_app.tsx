@@ -1,19 +1,29 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
+import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import Router from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
-import { useEffect, useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
+import { PortfolioProvider } from '~/containers/Portfolio/PortfolioContext'
 import { AuthProvider } from '~/containers/Subscription/auth'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useReferrer } from '~/hooks/useReferrer'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
+
+const WalletProvider = dynamic(
+	async () => {
+		const mod = await import('~/layout/WalletProvider')
+		return { default: mod.WalletProvider }
+	},
+	{ ssr: false }
+)
 
 NProgress.configure({ showSpinner: false })
 
@@ -156,10 +166,14 @@ const AppWrapper = (props: AppProps) => {
 	return (
 		<>
 			<QueryClientProvider client={client}>
-				<AuthProvider>
-					<UserSettingsSync />
-					<App {...props} />
-				</AuthProvider>
+				<WalletProvider>
+					<AuthProvider>
+						<PortfolioProvider>
+							<UserSettingsSync />
+							<App {...props} />
+						</PortfolioProvider>
+					</AuthProvider>
+				</WalletProvider>
 				<ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
 			</QueryClientProvider>
 		</>
