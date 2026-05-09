@@ -24,6 +24,7 @@ import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } fro
 
 interface ConversationViewProps {
 	readOnly: boolean
+	isSharedView?: boolean
 	messages: Message[]
 	sessionId: string | null
 	isLlama: boolean
@@ -274,6 +275,7 @@ function ConversationLiveStatus({
 
 export function ConversationView({
 	readOnly,
+	isSharedView = false,
 	messages,
 	sessionId,
 	isLlama,
@@ -597,14 +599,14 @@ export function ConversationView({
 			{!readOnly ? (
 				<div className="llamaai-chat-width relative mx-auto flex w-full flex-col gap-2 pb-2.5">
 					<div className="absolute -top-8 right-0 left-0 h-8 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-					{contextWarning && onStartNewChat && onDismissContextWarning ? (
+					{!isSharedView && contextWarning && onStartNewChat && onDismissContextWarning ? (
 						<ContextWarningBanner
 							warning={contextWarning}
 							onStartNewChat={onStartNewChat}
 							onDismiss={onDismissContextWarning}
 						/>
 					) : null}
-					{!contextWarning ? (
+					{!isSharedView && !contextWarning ? (
 						<div className="absolute right-0 bottom-[calc(100%+8px)] left-0 z-20">
 							<TipOrNotifyBanner />
 						</div>

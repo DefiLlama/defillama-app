@@ -896,6 +896,7 @@ export function AgenticChat({
 		[sharedSession]
 	)
 	const forkedFromShared = sharedSession && sessionId
+	const isSharedView = !!sharedSession && !forkedFromShared
 	const effectiveMessages = (forkedFromShared ? null : sharedMessages) ?? messages
 	const effectiveSessionId = (forkedFromShared ? sessionId : sharedSession?.session.sessionId) ?? sessionId
 	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
@@ -2403,9 +2404,10 @@ export function AgenticChat({
 		() => ({
 			openSettingsModal: settingsModalStore.show,
 			openAlertsModal: alertsModalStore.show,
-			toggleResearchMode: () => setIsResearchMode((v) => !v)
+			toggleResearchMode: () => setIsResearchMode((v) => !v),
+			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode]
+		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
 
 	if (!user && !readOnly && !sharedSession) {
@@ -2483,11 +2485,11 @@ export function AgenticChat({
 								onOpenSettings={settingsModalStore.show}
 								hasCustomInstructions={settings.customInstructions.trim().length > 0}
 								sessionTitle={effectiveSessionTitle}
-								canShare={!sharedSession && effectiveMessages.length > 0}
+								canShare={!isSharedView && effectiveMessages.length > 0}
 								onShare={() => openShareModal()}
 							/>
 						) : null}
-						{!readOnly && !sharedSession && effectiveMessages.length > 0 ? (
+						{!readOnly && !isSharedView && effectiveMessages.length > 0 ? (
 							<button
 								onClick={() => openShareModal()}
 								data-umami-event="llamaai-share-modal-open"
@@ -2513,6 +2515,7 @@ export function AgenticChat({
 								>
 									<ChatLanding
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 										handleSubmit={handleSubmit}
 										promptInputRef={promptInputRef}
@@ -2531,6 +2534,7 @@ export function AgenticChat({
 									<ConversationView
 										key={`shared-${effectiveSessionId ?? 'snapshot'}`}
 										readOnly={readOnly}
+										isSharedView={isSharedView}
 										messages={effectiveMessages}
 										sessionId={effectiveSessionId}
 										isLlama={isLlama}
@@ -2578,6 +2582,7 @@ export function AgenticChat({
 						) : !hasMessages && !visibleError ? (
 							<ChatLanding
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 								handleSubmit={handleSubmit}
 								promptInputRef={promptInputRef}
@@ -2595,6 +2600,7 @@ export function AgenticChat({
 							<ConversationView
 								key={`conversation-${conversationViewResetKey}`}
 								readOnly={readOnly}
+								isSharedView={isSharedView}
 								messages={effectiveMessages}
 								sessionId={effectiveSessionId}
 								isLlama={isLlama}

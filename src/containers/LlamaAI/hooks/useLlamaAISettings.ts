@@ -56,9 +56,10 @@ export type TipDTO = {
 	family: string
 	variant: string
 	title: string
+	placement: 'banner' | 'greeting'
 	cta:
 		| { kind: 'link'; label: string; href: string; external: boolean }
-		| { kind: 'action'; label: string; action: string }
+		| { kind: 'action'; label: string; action: string; prompt?: string }
 		| { kind: 'none' }
 	dismissPolicy: { kind: 'permanent' } | { kind: 'snooze'; days: number }
 }
