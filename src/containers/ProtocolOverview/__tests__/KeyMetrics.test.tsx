@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
+import type { IKeyMetricsProps } from '../KeyMetrics'
 import type { IProtocolPageMetrics } from '../types'
 
 vi.mock('~/contexts/LocalStorage', () => ({
@@ -72,40 +73,47 @@ const metrics: IProtocolPageMetrics = {
 	tokenRights: false
 }
 
+const renderKeyMetrics = async (props: IKeyMetricsProps) => {
+	const { KeyMetrics } = await import('../KeyMetrics')
+
+	return renderToStaticMarkup(<KeyMetrics {...props} />)
+}
+
+const baseProps = {
+	name: 'Gauntlet',
+	metrics,
+	hasKeyMetrics: true,
+	category: 'Analytics',
+	openSmolStatsSummaryByDefault: true,
+	formatPrice: (value: number | string | null) => (value == null ? null : `$${Math.round(Number(value))}`)
+}
+
 describe('KeyMetrics', () => {
 	it('renders chain rows for fee breakdown metrics', async () => {
-		const { KeyMetrics } = await import('../KeyMetrics')
-
-		const markup = renderToStaticMarkup(
-			<KeyMetrics
-				name="Gauntlet"
-				metrics={metrics}
-				hasKeyMetrics={true}
-				category="Analytics"
-				openSmolStatsSummaryByDefault={true}
-				formatPrice={(value) => `$${value}`}
-				fees={{
-					total24h: 12,
-					total7d: 70,
-					total30d: 300,
-					totalAllTime: 1500,
-					chainBreakdown: {
-						Ethereum: {
-							total24h: 4,
-							total7d: 28,
-							total30d: 120,
-							totalAllTime: 700
-						},
-						Base: {
-							total24h: 8,
-							total7d: 42,
-							total30d: 180,
-							totalAllTime: 800
-						}
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			fees: {
+				total24h: 12,
+				total7d: 70,
+				total30d: 300,
+				total1y: 3500,
+				totalAllTime: 1500,
+				chainBreakdown: {
+					Ethereum: {
+						total24h: 4,
+						total7d: 28,
+						total30d: 120,
+						totalAllTime: 700
+					},
+					Base: {
+						total24h: 8,
+						total7d: 42,
+						total30d: 180,
+						totalAllTime: 800
 					}
-				}}
-			/>
-		)
+				}
+			}
+		})
 
 		expect(markup).toContain('Fees 30d')
 		expect(markup).toContain('Ethereum')
@@ -113,5 +121,66 @@ describe('KeyMetrics', () => {
 		expect(markup).toContain('$120')
 		expect(markup).toContain('$180')
 		expect(markup.indexOf('Base')).toBeLessThan(markup.indexOf('Ethereum'))
+	})
+
+	it('uses trailing 12-month fees for annualized metrics when available', async () => {
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			fees: {
+				total24h: null,
+				total7d: null,
+				total30d: 100,
+				total1y: 3500,
+				totalAllTime: null,
+				chainBreakdown: null
+			}
+		})
+
+		expect(markup).toContain('Fees (Annualized)')
+		expect(markup).toContain('$3500')
+		expect(markup).not.toContain('$1220')
+	})
+
+	it('falls back to 30d annualized fees when trailing 12-month fees are missing', async () => {
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			fees: {
+				total24h: null,
+				total7d: null,
+				total30d: 100,
+				total1y: null,
+				totalAllTime: null,
+				chainBreakdown: null
+			}
+		})
+
+		expect(markup).toContain('Fees (Annualized)')
+		expect(markup).toContain('$1220')
+	})
+
+	it('uses trailing 12-month revenue and incentives for annualized earnings when both are available', async () => {
+		const markup = await renderKeyMetrics({
+			...baseProps,
+			revenue: {
+				total24h: null,
+				total7d: null,
+				total30d: 400,
+				total1y: 5000,
+				totalAllTime: null,
+				chainBreakdown: null
+			},
+			incentives: {
+				emissions24h: 0,
+				emissions7d: 0,
+				emissions30d: 100,
+				emissions1y: 1400,
+				emissionsAllTime: 0,
+				emissionsMonthlyAverage1y: 0
+			}
+		})
+
+		expect(markup).toContain('Earnings (Annualized)')
+		expect(markup).toContain('$3600')
+		expect(markup).not.toContain('$3660')
 	})
 })
