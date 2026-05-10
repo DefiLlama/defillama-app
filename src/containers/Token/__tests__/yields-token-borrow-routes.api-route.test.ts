@@ -1,5 +1,5 @@
 import type { NextApiRequest } from 'next'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMockNextApiResponse } from '~/utils/test/nextApiMocks'
 
 const { getTokenBorrowRoutesDataMock } = vi.hoisted(() => ({
@@ -14,10 +14,15 @@ import handler from '~/pages/api/datasets/yields-token-borrow-routes'
 
 beforeEach(() => {
 	vi.clearAllMocks()
+	vi.stubEnv('NEXT_STATIC_REVALIDATE_JITTER_SECONDS', '0')
 	getTokenBorrowRoutesDataMock.mockResolvedValue({
 		borrowAsCollateral: [{ symbol: 'ETH' }],
 		borrowAsDebt: [{ borrow: { symbol: 'ETH' } }]
 	})
+})
+
+afterEach(() => {
+	vi.unstubAllEnvs()
 })
 
 describe('yields-token-borrow-routes api route', () => {

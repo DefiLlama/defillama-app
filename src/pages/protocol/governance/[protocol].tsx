@@ -21,7 +21,6 @@ export const getStaticProps = withPerformanceLogging(
 		const { protocol } = params
 		const normalizedName = slug(protocol)
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined

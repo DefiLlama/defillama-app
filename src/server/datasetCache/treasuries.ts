@@ -1,17 +1,15 @@
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
-function getTreasuriesDomainDir(): string {
-	return getDatasetDomainDir('treasuries')
-}
+const TREASURIES_FILES = DATASET_DOMAIN_ARTIFACTS.treasuries.files
 
 export async function fetchTreasuryByIdFromCache(treasuryId: string): Promise<RawTreasuriesResponse[number] | null> {
-	await readDatasetManifest()
 	if (!treasuryId) {
 		return null
 	}
 
-	const payload = await readJsonFile<RawTreasuriesResponse>(`${getTreasuriesDomainDir()}/full.json`)
+	const payload = await readDatasetDomainJson<RawTreasuriesResponse>('treasuries', TREASURIES_FILES.full)
 	for (const treasury of payload) {
 		if (treasury.id === treasuryId) {
 			return treasury

@@ -1,6 +1,6 @@
 import type { ParsedUrlQuery } from 'querystring'
 import type { GetStaticProps, GetStaticPropsContext, GetStaticPropsResult } from 'next'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { attachCacheJitterMeta, jitterCacheSeconds, maxAgeForNext } from '~/utils/maxAgeForNext'
 import { sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
 import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
 import { normalizeError } from './error'
@@ -15,16 +15,29 @@ import {
 const REDIS_URL = process.env.REDIS_URL as string
 
 const MAX_PAGE_BUILD_RETRIES = Math.max(1, getEnvNumber('PAGE_BUILD_MAX_RETRIES', 3))
+const PAGE_BUILD_RETRY_BUDGET_MS = Math.max(0, getEnvNumber('PAGE_BUILD_RETRY_BUDGET_MS', 20_000))
 
 export const withPerformanceLogging = <T extends { [key: string]: any }, P extends ParsedUrlQuery = ParsedUrlQuery>(
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T, P>
 ): GetStaticProps<T, P> => {
 	return async (context: GetStaticPropsContext<P>) => {
-		const run = async () => runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context)
+		const requestPath = buildStaticRouteRequestPath(filename, context.params)
+		const run = async () => runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context, requestPath)
 		const attributes = staticRouteTelemetryAttributes(context.params)
-		return withStaticRouteTelemetry(filename, run, attributes, buildStaticRouteRequestPath(filename, context.params))
+		return withStaticRouteTelemetry(filename, run, attributes, requestPath)
 	}
+}
+
+function jitterStaticPropsRevalidate<T extends { [key: string]: any }>(
+	result: GetStaticPropsResult<T>,
+	key: string
+): GetStaticPropsResult<T> {
+	if (typeof result.revalidate !== 'number') return result
+
+	const jittered = jitterCacheSeconds(result.revalidate, key)
+	const next = { ...result, revalidate: jittered.seconds }
+	return attachCacheJitterMeta(next, { cache_jitter_seconds: jittered.offsetSeconds })
 }
 
 async function runPerformanceLoggedStaticProps<
@@ -33,15 +46,17 @@ async function runPerformanceLoggedStaticProps<
 >(
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T, P>,
-	context: GetStaticPropsContext<P>
+	context: GetStaticPropsContext<P>,
+	requestPath: string | undefined
 ): Promise<GetStaticPropsResult<T>> {
 	const start = Date.now()
 	const { params } = context
 	let lastError: Error | null = null
+	const jitterKey = `${filename}:${requestPath ?? JSON.stringify(params ?? '')}`
 
 	for (let attempt = 0; attempt < MAX_PAGE_BUILD_RETRIES; attempt++) {
 		try {
-			const props = await getStaticPropsFunction(context)
+			const props = jitterStaticPropsRevalidate(await getStaticPropsFunction(context), jitterKey)
 			const elapsed = Date.now() - start
 
 			if (elapsed > 10_000) {
@@ -51,7 +66,9 @@ async function runPerformanceLoggedStaticProps<
 			return props
 		} catch (error) {
 			lastError = normalizeError(error)
-			const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError)
+			const elapsed = Date.now() - start
+			const retryBudgetAvailable = PAGE_BUILD_RETRY_BUDGET_MS === 0 || elapsed < PAGE_BUILD_RETRY_BUDGET_MS
+			const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError) && retryBudgetAvailable
 
 			if (canRetry) {
 				const delay = getJitteredDelay(100, attempt, 1000)
@@ -60,6 +77,8 @@ async function runPerformanceLoggedStaticProps<
 					attempt: attempt + 1,
 					max_attempts: MAX_PAGE_BUILD_RETRIES,
 					delay_ms: delay,
+					retry_budget_ms: PAGE_BUILD_RETRY_BUDGET_MS,
+					elapsed_ms: elapsed,
 					params
 				})
 				await sleep(delay)
@@ -127,7 +146,7 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 			}
 
 			// if error, cache for 10 minutes only
-			const ttl = StatusCode >= 400 ? 600 : options?.ttl || maxAgeForNext([21])
+			const ttl = StatusCode >= 400 ? 600 : options?.ttl || jitterCacheSeconds(maxAgeForNext([21]), cacheKey).seconds
 			await setCache(payload, ttl)
 			blob = new Blob([arrayBuffer])
 

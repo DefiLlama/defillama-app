@@ -4,12 +4,10 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
 import { DEFAULT_TABLE_PAGE_SIZE } from '~/containers/Token/tableUtils'
-import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { TokenBorrowSection } from '~/containers/Token/TokenBorrowSection'
 import { TokenIncomeStatementSection } from '~/containers/Token/TokenIncomeStatementSection'
 import { TokenLiquidationsSection } from '~/containers/Token/TokenLiquidationsSection'
-import type { TokenMarketsListResponse } from '~/containers/Token/tokenMarkets.types'
 import { TokenMarketsSection } from '~/containers/Token/TokenMarketsSection'
 import { getTokenOverviewData, TOKEN_OVERVIEW_DEFAULT_CHARTS } from '~/containers/Token/tokenOverview'
 import { TokenOverviewSection } from '~/containers/Token/TokenOverviewSection'
@@ -22,15 +20,25 @@ import { TokenRiskTimelineSection } from '~/containers/Token/TokenRiskTimelineSe
 import { resolveTokenUnlockSlug } from '~/containers/Token/tokenUnlocks'
 import { TokenUnlocksSection } from '~/containers/Token/TokenUnlocksSection'
 import { TokenUsageSection } from '~/containers/Token/TokenUsageSection'
-import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
 import { TokenYieldsSection } from '~/containers/Token/TokenYieldsSection'
-import type { IRawTokenRightsEntry, ITokenRightsData } from '~/containers/TokenRights/api.types'
+import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { extractPoolTokens } from '~/containers/Yields/utils'
 import Layout from '~/layout'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { isDatasetCacheIntegrityError } from '~/server/datasetCache/core'
+import { hasTokenLiquidationsData } from '~/server/datasetCache/runtime/liquidations'
+import { fetchLiquidityEntryByProtocolId } from '~/server/datasetCache/runtime/liquidity'
+import { fetchTokenMarketsList } from '~/server/datasetCache/runtime/markets'
+import { fetchRaisesByDefillamaId } from '~/server/datasetCache/runtime/raises'
+import { getIndexedTokenRiskBorrowCapacity } from '~/server/datasetCache/runtime/risk'
+import {
+	fetchTokenRightsEntryByDefillamaId,
+	fetchTokenRightsEntryByName
+} from '~/server/datasetCache/runtime/tokenRights'
+import { fetchTreasuryById } from '~/server/datasetCache/runtime/treasuries'
+import { getTokenBorrowRoutes, getTokenYieldsRows, getYieldConfig } from '~/server/datasetCache/runtime/yields'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
@@ -186,14 +194,16 @@ function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	return tokenNk.slice('coingecko:'.length) || null
 }
 
-function findTokenRightsEntryByName(data: IRawTokenRightsEntry[], name: string): IRawTokenRightsEntry | null {
-	const tokenSlug = slug(name)
+function isTokenPageIntegrityError(error: unknown): boolean {
+	return isDatasetCacheIntegrityError(error)
+}
 
-	for (const entry of data) {
-		if (slug(entry['Protocol Name']) === tokenSlug) return entry
+function downgradeTokenPageDataError<T>(error: unknown, message: string, fallback: T): T {
+	if (isTokenPageIntegrityError(error)) {
+		throw error
 	}
-
-	return null
+	console.error(message, error)
+	return fallback
 }
 
 function getBorrowRouteChainList(rows: TokenBorrowRoutesResponse['borrowAsCollateral']): string[] {
@@ -280,7 +290,6 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const normalizedToken = slug(token)
 		const record = metadataCache.tokenDirectory[normalizedToken]
@@ -303,7 +312,6 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		})
 		const llamaswapChains = geckoId ? (metadataCache.protocolLlamaswapDataset?.[geckoId] ?? null) : null
 		const displayName = slug(record.symbol) === normalizedToken ? record.symbol : record.name
-		const shouldUseDatasetCache = isDatasetCacheEnabled()
 		const normalizedLiquidationsSymbol = normalizeLiquidationsTokenSymbol(record.symbol)
 		const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
 		const protocolDefiLlamaId = record.protocolId ?? protocolMetadata?.name ?? null
@@ -311,82 +319,35 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
 		const normalizedMarketsSymbol = record.symbol.toLowerCase()
-		let marketsAvailable = false
-		let tokenMarketsList: TokenMarketsListResponse | null = null
-		try {
-			if (shouldUseDatasetCache) {
-				const { fetchTokenMarketsListFromCache } = await import('~/server/datasetCache/markets')
-				tokenMarketsList = await fetchTokenMarketsListFromCache()
-			} else {
-				const { fetchTokenMarketsListFromNetwork } = await import('~/containers/Token/api')
-				tokenMarketsList = await fetchTokenMarketsListFromNetwork()
-			}
-		} catch (error) {
-			console.error(`Failed to load token markets list for ${record.symbol}`, error)
-			marketsAvailable = false
-		}
-		if (tokenMarketsList) {
-			for (const tokenMarket of tokenMarketsList.tokens) {
-				if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
-					marketsAvailable = true
-					break
+		const marketsAvailablePromise = fetchTokenMarketsList()
+			.then((tokenMarketsList) => {
+				for (const tokenMarket of tokenMarketsList.tokens) {
+					if (tokenMarket.symbol.toLowerCase() === normalizedMarketsSymbol) {
+						return true
+					}
 				}
-			}
-		}
+				return false
+			})
+			.catch((error) =>
+				downgradeTokenPageDataError(error, `Failed to load token markets list for ${record.symbol}`, false)
+			)
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol
-			liquidationsPromise = (
-				shouldUseDatasetCache
-					? (async () => {
-							const { hasTokenLiquidationsInCache } = await import('~/server/datasetCache/liquidations')
-							return hasTokenLiquidationsInCache(liquidationsSymbol)
-						})()
-					: (async () => {
-							const { hasTokenLiquidationsDataFromNetwork } = await import('~/containers/LiquidationsV2/queries')
-							return hasTokenLiquidationsDataFromNetwork(liquidationsSymbol)
-						})()
-			).catch((error) => {
-				console.error(`Failed to load token liquidations data for ${record.symbol}`, error)
-				return false
-			})
+			liquidationsPromise = hasTokenLiquidationsData(liquidationsSymbol).catch((error) =>
+				downgradeTokenPageDataError(error, `Failed to load token liquidations data for ${record.symbol}`, false)
+			)
 		}
 		const overviewPromise = (async () => {
-			if (!shouldUseDatasetCache) {
-				return getTokenOverviewData({
-					record,
-					displayName,
-					geckoId,
-					tokenEntry,
-					protocolMetadata,
-					cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers ?? [],
-					llamaswapChains,
-					source: { kind: 'network' },
-					prefetchedCharts: TOKEN_OVERVIEW_DEFAULT_CHARTS
-				})
-			}
-
 			const shouldFetchRaises = Boolean(chainDefiLlamaId || protocolDefiLlamaId)
 			const shouldFetchTreasury = Boolean(!record.chainId && protocolDefiLlamaId)
 			const shouldFetchLiquidity = Boolean(protocolMetadata?.liquidity && protocolDefiLlamaId)
-			const [raisesCacheModule, treasuriesCacheModule, yieldsCacheModule, liquidityCacheModule] = await Promise.all([
-				shouldFetchRaises ? import('~/server/datasetCache/raises') : Promise.resolve(null),
-				shouldFetchTreasury ? import('~/server/datasetCache/treasuries') : Promise.resolve(null),
-				shouldFetchLiquidity ? import('~/server/datasetCache/yields') : Promise.resolve(null),
-				shouldFetchLiquidity ? import('~/server/datasetCache/liquidity') : Promise.resolve(null)
-			])
 			const [raises, treasury, yieldConfig, liquidityInfo] = await Promise.all([
-				raisesCacheModule && (chainDefiLlamaId || protocolDefiLlamaId)
-					? raisesCacheModule.fetchRaisesByDefillamaIdFromCache(chainDefiLlamaId ?? protocolDefiLlamaId!)
-					: Promise.resolve(null),
+				shouldFetchRaises ? fetchRaisesByDefillamaId(chainDefiLlamaId ?? protocolDefiLlamaId!) : Promise.resolve(null),
 				// Treasury shards are keyed by the upstream `${defillamaId}-treasury` convention.
-				treasuriesCacheModule && protocolDefiLlamaId
-					? treasuriesCacheModule.fetchTreasuryByIdFromCache(`${protocolDefiLlamaId}-treasury`)
-					: Promise.resolve(null),
-				yieldsCacheModule ? yieldsCacheModule.getYieldConfigFromCache() : Promise.resolve(null),
-				liquidityCacheModule && protocolDefiLlamaId
-					? liquidityCacheModule.fetchLiquidityEntryByProtocolIdFromCache(protocolDefiLlamaId)
-					: Promise.resolve(null)
+				shouldFetchTreasury ? fetchTreasuryById(`${protocolDefiLlamaId}-treasury`) : Promise.resolve(null),
+				shouldFetchLiquidity ? getYieldConfig() : Promise.resolve(null),
+				shouldFetchLiquidity ? fetchLiquidityEntryByProtocolId(protocolDefiLlamaId!) : Promise.resolve(null)
 			])
 
 			return getTokenOverviewData({
@@ -412,25 +373,16 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			? (async () => {
 					try {
 						const defillamaId = record.chainId || record.protocolId || null
-
-						if (shouldUseDatasetCache) {
-							const { fetchTokenRightsEntryFromCache, fetchTokenRightsEntryByNameFromCache } =
-								await import('~/server/datasetCache/tokenRights')
-							const rawEntry = defillamaId
-								? await fetchTokenRightsEntryFromCache(defillamaId)
-								: await fetchTokenRightsEntryByNameFromCache(record.name)
-							return rawEntry ? parseTokenRightsEntry(rawEntry) : null
-						}
-
-						const { fetchTokenRightsData, fetchTokenRightsEntryByDefillamaId } =
-							await import('~/containers/TokenRights/api')
 						const rawEntry = defillamaId
 							? await fetchTokenRightsEntryByDefillamaId(defillamaId)
-							: findTokenRightsEntryByName(await fetchTokenRightsData(), record.name)
+							: await fetchTokenRightsEntryByName(record.name)
 						return rawEntry ? parseTokenRightsEntry(rawEntry) : null
 					} catch (error) {
-						console.error(`Failed to load token rights data for ${record.chainId || record.protocolId}`, error)
-						return null
+						return downgradeTokenPageDataError(
+							error,
+							`Failed to load token rights data for ${record.chainId || record.protocolId}`,
+							null
+						)
 					}
 				})()
 			: Promise.resolve(null)
@@ -447,13 +399,6 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 
 		const tokenRiskPromise = geckoId
 			? (async () => {
-					const borrowCapacitySnapshot = shouldUseDatasetCache
-						? await (async () => {
-								const { getIndexedTokenRiskBorrowCapacityFromCache } = await import('~/server/datasetCache/risk')
-								return getIndexedTokenRiskBorrowCapacityFromCache()
-							})()
-						: undefined
-
 					return getTokenRiskData({
 						geckoId,
 						tokenSymbol: record.symbol,
@@ -462,25 +407,17 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 							protocolDisplayNames: metadataCache.protocolDisplayNames,
 							chainDisplayNames: metadataCache.chainDisplayNames
 						},
-						borrowCapacitySnapshot
+						borrowCapacitySnapshot: await getIndexedTokenRiskBorrowCapacity()
 					})
 				})().catch((error) => {
-					console.error(`Failed to load token risk data for ${geckoId}`, error)
-					return null
+					return downgradeTokenPageDataError(error, `Failed to load token risk data for ${geckoId}`, null)
 				})
 			: Promise.resolve(null)
 
 		const yieldsRowsPromise = record.is_yields
-			? (shouldUseDatasetCache
-					? (async () => {
-							const { getTokenYieldsRowsFromCache } = await import('~/server/datasetCache/yields')
-							return getTokenYieldsRowsFromCache(record.symbol)
-						})()
-					: getTokenYieldsRowsFromNetwork(record.symbol)
-				).catch((error) => {
-					console.error(`Failed to load token yields data for ${record.symbol}`, error)
-					return []
-				})
+			? getTokenYieldsRows(record.symbol).catch((error) =>
+					downgradeTokenPageDataError(error, `Failed to load token yields data for ${record.symbol}`, [])
+				)
 			: Promise.resolve([])
 
 		const tokenRiskTimelinePromise = record.symbol
@@ -505,20 +442,13 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			tokenRightsPromise,
 			incomeStatementPromise,
 			yieldsRowsPromise,
-			(shouldUseDatasetCache
-				? (async () => {
-						const { getTokenBorrowRoutesFromCache } = await import('~/server/datasetCache/yields')
-						return getTokenBorrowRoutesFromCache(record.symbol)
-					})()
-				: getTokenBorrowRoutesDataFromNetwork(record.symbol)
-			).catch((error) => {
-				console.error(`Failed to load token borrow routes data for ${record.symbol}`, error)
-				return null
-			}),
+			getTokenBorrowRoutes(record.symbol).catch((error) =>
+				downgradeTokenPageDataError(error, `Failed to load token borrow routes data for ${record.symbol}`, null)
+			),
 			liquidationsPromise,
 			tokenRiskPromise,
 			tokenRiskTimelinePromise,
-			marketsAvailable
+			marketsAvailablePromise
 		])
 
 		if (resolvedIncomeStatementData) {

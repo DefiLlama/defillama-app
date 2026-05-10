@@ -1,22 +1,20 @@
 import type { TokenRiskBorrowCapacityResponse, TokenRiskBorrowCapacityTokenEntry } from '~/containers/Token/api.types'
 import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
+
+const RISK_FILES = DATASET_DOMAIN_ARTIFACTS.risk.files
 
 type IndexedBorrowCapacityJson = {
 	data: TokenRiskBorrowCapacityResponse
 	indexedTokens: Record<string, TokenRiskBorrowCapacityTokenEntry[]>
 }
 
-function getRiskDomainDir(): string {
-	return getDatasetDomainDir('risk')
-}
-
 export async function getIndexedTokenRiskBorrowCapacityFromCache(): Promise<{
 	data: TokenRiskBorrowCapacityResponse
 	indexedTokens: Map<string, TokenRiskBorrowCapacityTokenEntry[]>
 }> {
-	await readDatasetManifest()
-	const payload = await readJsonFile<IndexedBorrowCapacityJson>(`${getRiskDomainDir()}/indexed.json`)
+	const payload = await readDatasetDomainJson<IndexedBorrowCapacityJson>('risk', RISK_FILES.indexed)
 
 	return {
 		data: payload.data,

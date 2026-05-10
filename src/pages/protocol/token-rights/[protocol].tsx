@@ -9,7 +9,7 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { fetchTokenRightsEntryByDefillamaId } from '~/server/datasetCache/runtime/tokenRights'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -41,7 +41,6 @@ export const getStaticProps = withPerformanceLogging(
 		const { protocol } = params
 		const normalizedName = slug(protocol)
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 
@@ -58,15 +57,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const defillamaId = metadata[0]
-		const shouldUseDatasetCache = isDatasetCacheEnabled()
-
 		const [rawEntry, protocolData] = await Promise.all([
-			shouldUseDatasetCache
-				? (async () => {
-						const { fetchTokenRightsEntryFromCache } = await import('~/server/datasetCache/tokenRights')
-						return fetchTokenRightsEntryFromCache(defillamaId)
-					})()
-				: import('~/containers/TokenRights/api').then((m) => m.fetchTokenRightsEntryByDefillamaId(defillamaId)),
+			fetchTokenRightsEntryByDefillamaId(defillamaId),
 			fetchProtocolOverviewMetrics(protocol)
 		])
 

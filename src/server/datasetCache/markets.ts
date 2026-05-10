@@ -1,17 +1,14 @@
 import type { ExchangeMarketsListResponse } from '~/containers/Cexs/markets.types'
 import type { TokenMarketsListResponse } from '~/containers/Token/tokenMarkets.types'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
-function getMarketsDomainDir(): string {
-	return getDatasetDomainDir('markets')
-}
+const MARKET_FILES = DATASET_DOMAIN_ARTIFACTS.markets.files
 
 export async function fetchExchangeMarketsListFromCache(): Promise<ExchangeMarketsListResponse> {
-	await readDatasetManifest()
-	return readJsonFile<ExchangeMarketsListResponse>(`${getMarketsDomainDir()}/exchanges-list.json`)
+	return readDatasetDomainJson<ExchangeMarketsListResponse>('markets', MARKET_FILES.exchangesList)
 }
 
 export async function fetchTokenMarketsListFromCache(): Promise<TokenMarketsListResponse> {
-	await readDatasetManifest()
-	return readJsonFile<TokenMarketsListResponse>(`${getMarketsDomainDir()}/tokens-list.json`)
+	return readDatasetDomainJson<TokenMarketsListResponse>('markets', MARKET_FILES.tokensList)
 }

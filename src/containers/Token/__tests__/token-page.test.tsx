@@ -3,14 +3,19 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { getTokenRiskData } from '~/containers/Token/queries'
-import { getTokenBorrowRoutesDataFromNetwork } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
-import { getTokenYieldsRowsFromNetwork } from '~/containers/Token/tokenYields.server'
-import { fetchTokenRightsData, fetchTokenRightsEntryByDefillamaId } from '~/containers/TokenRights/api'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
+import { DatasetCacheIntegrityError } from '~/server/datasetCache/core'
+import { hasTokenLiquidationsData } from '~/server/datasetCache/runtime/liquidations'
+import {
+	fetchTokenRightsEntries,
+	fetchTokenRightsEntryByDefillamaId,
+	fetchTokenRightsEntryByName
+} from '~/server/datasetCache/runtime/tokenRights'
+import { getTokenBorrowRoutes, getTokenYieldsRows } from '~/server/datasetCache/runtime/yields'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
 import type { TokenRiskResponse } from '../tokenRisk.types'
@@ -213,6 +218,13 @@ function makeYieldRow(overrides: Partial<IYieldTableRow> = {}): IYieldTableRow {
 	}
 }
 
+function normalizeName(value: string): string {
+	return value
+		.toLowerCase()
+		.replaceAll(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+}
+
 vi.mock('~/constants', async (importOriginal) => {
 	const actual = await importOriginal<typeof import('~/constants')>()
 	return {
@@ -242,22 +254,8 @@ vi.mock('~/containers/Token/TokenMarketsSection', () => ({
 	TokenMarketsSection: () => <section id="token-markets">token-markets-section</section>
 }))
 
-vi.mock('~/server/datasetCache/markets', () => ({
-	fetchTokenMarketsListFromCache: vi.fn().mockResolvedValue({
-		tokens: [
-			{
-				exchange_count: 1,
-				market_count: 1,
-				symbol: 'BTC',
-				total_oi_usd: 1,
-				total_volume_24h: 1
-			}
-		]
-	})
-}))
-
-vi.mock('~/containers/Token/api', () => ({
-	fetchTokenMarketsListFromNetwork: vi.fn().mockResolvedValue({
+vi.mock('~/server/datasetCache/runtime/markets', () => ({
+	fetchTokenMarketsList: vi.fn().mockResolvedValue({
 		tokens: [
 			{
 				exchange_count: 1,
@@ -311,15 +309,23 @@ vi.mock('~/utils/perf', () => ({
 	withPerformanceLogging: (_label: string, fn: any) => fn
 }))
 
-vi.mock('~/containers/TokenRights/api', () => ({
-	fetchTokenRightsData: vi.fn(() => Promise.resolve(state.tokenRightsEntries)),
+vi.mock('~/server/datasetCache/runtime/tokenRights', () => ({
+	fetchTokenRightsEntries: vi.fn(() => Promise.resolve(state.tokenRightsEntries)),
 	fetchTokenRightsEntryByDefillamaId: vi.fn((defillamaId: string) =>
 		Promise.resolve(
 			(state.tokenRightsEntries as Array<Record<string, unknown>>).find(
 				(entry) => entry['DefiLlama ID'] === defillamaId
 			) ?? null
 		)
-	)
+	),
+	fetchTokenRightsEntryByName: vi.fn((protocolName: string) => {
+		const normalizedName = normalizeName(protocolName)
+		return Promise.resolve(
+			(state.tokenRightsEntries as Array<Record<string, unknown>>).find(
+				(entry) => normalizeName(String(entry['Protocol Name'] ?? '')) === normalizedName
+			) ?? null
+		)
+	})
 }))
 
 vi.mock('~/utils/metadata', () => ({
@@ -371,16 +377,31 @@ vi.mock('~/containers/Token/tokenRiskTimeline.server', () => ({
 	getTokenRiskTimelineData: vi.fn(() => Promise.resolve(state.tokenRiskTimelineData))
 }))
 
-vi.mock('~/containers/Token/tokenYields.server', () => ({
-	getTokenYieldsRowsFromNetwork: vi.fn(() => Promise.resolve(state.initialYieldsRows))
+vi.mock('~/server/datasetCache/runtime/yields', () => ({
+	getTokenYieldsRows: vi.fn(() => Promise.resolve(state.initialYieldsRows)),
+	getTokenBorrowRoutes: vi.fn(() => Promise.resolve(state.initialTokenBorrowRoutesData)),
+	getYieldConfig: vi.fn(() => Promise.resolve(null))
 }))
 
-vi.mock('~/containers/Token/tokenBorrowRoutes.server', () => ({
-	getTokenBorrowRoutesDataFromNetwork: vi.fn(() => Promise.resolve(state.initialTokenBorrowRoutesData))
+vi.mock('~/server/datasetCache/runtime/liquidations', () => ({
+	hasTokenLiquidationsData: vi.fn(() => Promise.resolve(state.hasTokenLiquidationsData)),
+	getTokenLiquidationsSectionData: vi.fn()
 }))
 
-vi.mock('~/containers/LiquidationsV2/queries', () => ({
-	hasTokenLiquidationsDataFromNetwork: vi.fn(() => Promise.resolve(state.hasTokenLiquidationsData))
+vi.mock('~/server/datasetCache/runtime/raises', () => ({
+	fetchRaisesByDefillamaId: vi.fn().mockResolvedValue([])
+}))
+
+vi.mock('~/server/datasetCache/runtime/treasuries', () => ({
+	fetchTreasuryById: vi.fn().mockResolvedValue(null)
+}))
+
+vi.mock('~/server/datasetCache/runtime/liquidity', () => ({
+	fetchLiquidityEntryByProtocolId: vi.fn().mockResolvedValue(null)
+}))
+
+vi.mock('~/server/datasetCache/runtime/risk', () => ({
+	getIndexedTokenRiskBorrowCapacity: vi.fn().mockResolvedValue({})
 }))
 
 afterEach(() => {
@@ -1000,7 +1021,8 @@ describe('token page', () => {
 			lastUpdated: null
 		})
 		expect(result.props.visibleSections).toEqual(['token-overview', 'token-rights-and-value-accrual', 'token-usage'])
-		expect(fetchTokenRightsData).toHaveBeenCalledTimes(1)
+		expect(fetchTokenRightsEntryByName).toHaveBeenCalledWith('Backpack')
+		expect(fetchTokenRightsEntries).not.toHaveBeenCalled()
 		expect(fetchTokenRightsEntryByDefillamaId).not.toHaveBeenCalled()
 	})
 
@@ -1340,8 +1362,8 @@ describe('token page', () => {
 		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(fetchTokenRightsEntryByDefillamaId).mockRejectedValueOnce(new Error('token rights failed'))
 		vi.mocked(getProtocolIncomeStatement).mockRejectedValueOnce(new Error('income failed'))
-		vi.mocked(getTokenYieldsRowsFromNetwork).mockRejectedValueOnce(new Error('yields failed'))
-		vi.mocked(getTokenBorrowRoutesDataFromNetwork).mockRejectedValueOnce(new Error('borrow routes failed'))
+		vi.mocked(getTokenYieldsRows).mockRejectedValueOnce(new Error('yields failed'))
+		vi.mocked(getTokenBorrowRoutes).mockRejectedValueOnce(new Error('borrow routes failed'))
 		vi.mocked(getTokenRiskData).mockRejectedValueOnce(new Error('risk failed'))
 
 		const result = await getStaticProps({ params: { token: 'link' } } as never)
@@ -1371,6 +1393,18 @@ describe('token page', () => {
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
 
 		consoleErrorSpy.mockRestore()
+	})
+
+	it('rethrows dataset cache integrity errors from optional dataset sections', async () => {
+		state.liquidationsTokenSymbolsSet = new Set(['BTC'])
+		const integrityError = new DatasetCacheIntegrityError(
+			'liquidations',
+			'raw/all.json',
+			new Error('corrupt liquidations index')
+		)
+		vi.mocked(hasTokenLiquidationsData).mockRejectedValueOnce(integrityError)
+
+		await expect(getStaticProps({ params: { token: 'btc' } } as never)).rejects.toThrow('corrupt liquidations index')
 	})
 
 	it('renders the risks section only when getStaticProps returns token risk data', async () => {

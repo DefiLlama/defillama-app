@@ -4,13 +4,18 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from '../core'
-import { getDatasetIndexFileName } from '../indexKeys'
-import { getTokenYieldsRowsFromCache } from '../yields'
+import {
+	getTokenYieldsRowsFromCache,
+	getYieldsConfigPath,
+	getYieldsLendBorrowPath,
+	getYieldsRowsPath,
+	getYieldsTokenIndexPath
+} from '../yields'
 
 function createDatasetManifestDomains(): DatasetManifest['domains'] {
 	const domains = {} as DatasetManifest['domains']
 	for (const domain of DATASET_DOMAINS) {
-		domains[domain] = { builtAt: Date.now() }
+		domains[domain] = { status: 'ready', builtAt: Date.now() }
 	}
 	return domains
 }
@@ -59,7 +64,7 @@ describe('dataset cache yields reader', () => {
 		vi.stubEnv('DATASET_CACHE_DIR', tempDir)
 		await writeDatasetManifest(
 			{
-				artifactVersion: 1,
+				artifactVersion: 2,
 				builtAt: Date.now(),
 				domains: createDatasetManifestDomains()
 			},
@@ -77,9 +82,9 @@ describe('dataset cache yields reader', () => {
 	it('reads token yields by filtering cached rows', async () => {
 		const rows: IYieldTableRow[] = [btcRow, ethRow]
 
-		await writeJsonFile(path.join(tempDir, 'yields', 'rows.json'), rows)
-		await writeJsonFile(path.join(tempDir, 'yields', 'config.json'), { protocols: {} })
-		await writeJsonFile(path.join(tempDir, 'yields', 'lend-borrow.json'), { props: { pools: [] } })
+		await writeJsonFile(getYieldsRowsPath(tempDir), rows)
+		await writeJsonFile(getYieldsConfigPath(tempDir), { protocols: {} })
+		await writeJsonFile(getYieldsLendBorrowPath(tempDir), { props: { pools: [] } })
 
 		const result = await getTokenYieldsRowsFromCache('BTC')
 
@@ -87,8 +92,8 @@ describe('dataset cache yields reader', () => {
 	})
 
 	it('uses token yield index files when available', async () => {
-		await writeJsonFile(path.join(tempDir, 'yields', 'rows.json'), [ethRow])
-		await writeJsonFile(path.join(tempDir, 'yields', 'by-token', getDatasetIndexFileName('btc')), [btcRow])
+		await writeJsonFile(getYieldsRowsPath(tempDir), [ethRow, btcRow])
+		await writeJsonFile(getYieldsTokenIndexPath('btc', tempDir), [btcRow.configID])
 
 		const result = await getTokenYieldsRowsFromCache('BTC')
 
@@ -96,8 +101,8 @@ describe('dataset cache yields reader', () => {
 	})
 
 	it('unions token yield index files for wrapper variants', async () => {
-		await writeJsonFile(path.join(tempDir, 'yields', 'rows.json'), [])
-		await writeJsonFile(path.join(tempDir, 'yields', 'by-token', getDatasetIndexFileName('btc')), [btcRow])
+		await writeJsonFile(getYieldsRowsPath(tempDir), [btcRow])
+		await writeJsonFile(getYieldsTokenIndexPath('btc', tempDir), [btcRow.configID])
 
 		const result = await getTokenYieldsRowsFromCache('WBTC')
 
@@ -106,8 +111,8 @@ describe('dataset cache yields reader', () => {
 
 	it('applies chain filters to indexed token yield rows', async () => {
 		const arbitrumRow = { ...btcRow, configID: 'pool-3', chains: ['Arbitrum'], apy: 3 }
-		await writeJsonFile(path.join(tempDir, 'yields', 'rows.json'), [])
-		await writeJsonFile(path.join(tempDir, 'yields', 'by-token', getDatasetIndexFileName('btc')), [arbitrumRow, btcRow])
+		await writeJsonFile(getYieldsRowsPath(tempDir), [arbitrumRow, btcRow])
+		await writeJsonFile(getYieldsTokenIndexPath('btc', tempDir), [arbitrumRow.configID, btcRow.configID])
 
 		const result = await getTokenYieldsRowsFromCache('BTC', 'Ethereum')
 

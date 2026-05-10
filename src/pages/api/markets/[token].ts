@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { MARKETS_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -17,7 +18,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	const url = `${MARKETS_SERVER_URL}/tokens/${encodeURIComponent(token.toLowerCase())}.json`
 	try {
 		const data = await fetchJson(url)
-		res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, max-age=60, s-maxage=300, stale-while-revalidate=300', req.url ?? token)
+		)
 		return res.status(200).json(data)
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'Failed to load token markets'

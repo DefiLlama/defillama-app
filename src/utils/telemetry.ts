@@ -7,6 +7,7 @@ import type {
 	NextApiRequest,
 	NextApiResponse
 } from 'next'
+import { readCacheJitterMeta } from '~/utils/maxAgeForNext'
 
 type TelemetryRuntime = 'node' | 'browser' | 'lambda' | 'build'
 type RouteStatus = 'success' | 'slow' | 'timeout' | 'error'
@@ -145,6 +146,7 @@ type RouteTelemetryOptions<T> = {
 type OutboundTelemetryOptions = {
 	attempt?: number
 	maxAttempts?: number
+	singleflightRole?: 'leader'
 }
 
 type AsyncLocalStorageLike<T> = {
@@ -1022,7 +1024,7 @@ function requestAttributes(
 	apiGroupValue: string | undefined,
 	method: string,
 	url: string,
-	options?: RequestInit
+	options?: RequestInit & { telemetry?: OutboundTelemetryOptions }
 ): TelemetryAttributes | undefined {
 	const attributes: TelemetryAttributes = {}
 	let hasOutboundAttributes = false
@@ -1035,6 +1037,10 @@ function requestAttributes(
 	}
 	if (apiGroupValue) {
 		attributes.api_group = apiGroupValue
+		hasOutboundAttributes = true
+	}
+	if (options?.telemetry?.singleflightRole) {
+		attributes.singleflight_role = options.telemetry.singleflightRole
 		hasOutboundAttributes = true
 	}
 	for (const key in requestBody) {
@@ -1177,6 +1183,10 @@ export function getStaticPropsTelemetryAttributes<T>(result: GetStaticPropsResul
 
 	if ('revalidate' in result && typeof result.revalidate === 'number') {
 		attributes.revalidate_seconds = result.revalidate
+	}
+	const jitterMeta = readCacheJitterMeta(result)
+	if (jitterMeta) {
+		attributes.cache_jitter_seconds = jitterMeta.cache_jitter_seconds
 	}
 
 	return attributes

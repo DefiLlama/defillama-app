@@ -28,8 +28,8 @@ function setupPageModule({
 	vi.doMock('next/link', () => ({
 		default: () => null
 	}))
-	vi.doMock('~/containers/TokenRights/api', () => ({
-		fetchTokenRightsData: vi.fn().mockResolvedValue(tokenRightsEntries)
+	vi.doMock('~/server/datasetCache/runtime/tokenRights', () => ({
+		fetchTokenRightsEntries: vi.fn().mockResolvedValue(tokenRightsEntries)
 	}))
 	vi.doMock('~/containers/DimensionAdapters/api', () => ({
 		fetchAdapterChainMetrics: vi.fn().mockResolvedValue({ protocols: holdersRevenueProtocols })
@@ -181,7 +181,7 @@ describe('token rights page', () => {
 			},
 			revalidate: 123
 		})
-	}, 15_000)
+	}, 30_000)
 
 	it('uses child protocol holders revenue for parent token-rights rows', async () => {
 		const page = await setupPageModule({

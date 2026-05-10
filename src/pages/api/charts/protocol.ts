@@ -15,6 +15,7 @@ import { normalizeBridgeVolumeToChartMs } from '~/containers/ProtocolOverview/ch
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
 type ResponseData = unknown[] | Record<string, unknown> | { error: string } | null
@@ -45,8 +46,8 @@ const getBodyParam = (value: unknown): string | undefined => (typeof value === '
 const getArrayBodyParam = (value: unknown): string[] | null =>
 	Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : null
 
-const setSuccessCacheHeaders = (res: NextApiResponse<ResponseData>) => {
-	res.setHeader('Cache-Control', SUCCESS_CACHE_CONTROL)
+const setSuccessCacheHeaders = (req: NextApiRequest, res: NextApiResponse<ResponseData>) => {
+	res.setHeader('Cache-Control', jitterCacheControlHeader(SUCCESS_CACHE_CONTROL, req.url ?? '/api/charts/protocol'))
 }
 
 const setNoStoreHeaders = (res: NextApiResponse<ResponseData>) => {
@@ -141,7 +142,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				protocol,
 				...(validatedDataType ? { dataType: validatedDataType } : {})
 			})
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -159,7 +160,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			}
 
 			const data = await fetchAdapterProtocolChartDataByBreakdownType(parsedRequest.value)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -187,7 +188,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 
 			const data =
 				kind === 'tvl' ? await fetchProtocolTvlChart(chartParams) : await fetchProtocolTreasuryChart(chartParams)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -199,7 +200,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			}
 
 			const data = await fetchProtocolTokenLiquidityChart(protocolId)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -228,7 +229,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -255,7 +256,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 					: null
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -275,7 +276,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -292,7 +293,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -304,7 +305,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 			}
 
 			const data = await fetchAndFormatGovernanceData(apis)
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 
@@ -328,7 +329,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				return res.status(200).json(null)
 			}
 
-			setSuccessCacheHeaders(res)
+			setSuccessCacheHeaders(req, res)
 			return res.status(200).json(data)
 		}
 

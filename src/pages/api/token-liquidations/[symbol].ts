@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenLiquidationsSectionDataFromNetwork } from '~/containers/LiquidationsV2/queries'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { getTokenLiquidationsSectionData } from '~/server/datasetCache/runtime/liquidations'
 import { validateSubscription } from '~/utils/apiAuth'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -31,24 +30,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const normalizedSymbol = normalizeLiquidationsTokenSymbol(symbol)
 
 		if (!normalizedSymbol || !metadataModule.default.liquidationsTokenSymbolsSet.has(normalizedSymbol)) {
 			return res.status(404).json({ error: 'Token liquidations not found' })
 		}
 
-		const shouldUseDatasetCache = isDatasetCacheEnabled()
 		const metadataCache = {
 			chainMetadata: metadataModule.default.chainMetadata,
 			protocolMetadata: metadataModule.default.protocolMetadata
 		}
-		const data = shouldUseDatasetCache
-			? await (async () => {
-					const { getTokenLiquidationsFromCache } = await import('~/server/datasetCache/liquidations')
-					return getTokenLiquidationsFromCache(normalizedSymbol, metadataCache)
-				})()
-			: await getTokenLiquidationsSectionDataFromNetwork(normalizedSymbol, metadataCache)
+		const data = await getTokenLiquidationsSectionData(normalizedSymbol, metadataCache)
 
 		if (!data) {
 			return res.status(404).json({ error: 'Token liquidations not found' })

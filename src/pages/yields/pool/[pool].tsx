@@ -9,7 +9,6 @@ import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { YIELD_CONFIG_API, YIELD_POOLS_LAMBDA_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -36,12 +35,11 @@ import { extractPoolTokens } from '~/containers/Yields/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { getYieldPoolPageData, type YieldPoolPageData } from '~/server/datasetCache/runtime/yields'
 import { formattedNum } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { recordRuntimeError, withServerSidePropsTelemetry } from '~/utils/telemetry'
+import { jitterCacheControlHeader, maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withServerSidePropsTelemetry } from '~/utils/telemetry'
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -49,29 +47,8 @@ const MultiSeriesChart2 = lazy(
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const EMPTY_CHART_DATA: any[] = []
 const EMPTY_TVL_APY_DATASET = { source: [] as any[], dimensions: ['timestamp', 'APY', 'TVL'] }
-const YIELD_POOL_CONFIG_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-type YieldPoolPageProps = {
-	pool: IYieldTableRow
-	config: any | null
-	poolId: string
-}
-
-async function getYieldPoolPagePropsFromNetwork(poolId: string): Promise<YieldPoolPageProps | null> {
-	const { mapPoolToYieldTableRow } = await import('~/containers/Yields/poolsPipeline')
-	const poolResponse = await fetchJson<{ data?: any[] }>(`${YIELD_POOLS_LAMBDA_API}?pool=${encodeURIComponent(poolId)}`)
-	const rawPool = poolResponse?.data?.[0]
-	if (!rawPool) return null
-
-	const yieldConfig = await fetchJson<{ protocols?: Record<string, any> }>(YIELD_CONFIG_API).catch(() => null)
-	const config = rawPool.project ? (yieldConfig?.protocols?.[rawPool.project] ?? null) : null
-
-	return {
-		pool: mapPoolToYieldTableRow(rawPool),
-		config,
-		poolId
-	}
-}
+type YieldPoolPageProps = YieldPoolPageData
 
 const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async ({ params, res }) => {
 	const poolParam = params?.pool
@@ -81,35 +58,21 @@ const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async 
 		return { notFound: true }
 	}
 
-	if (isDatasetCacheEnabled()) {
-		try {
-			const { getYieldPoolRowFromCache, getYieldProtocolConfigFromCache } = await import('~/server/datasetCache/yields')
-			const row = await getYieldPoolRowFromCache(poolId)
-			if (row) {
-				res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
-				return {
-					props: {
-						pool: row,
-						config: await getYieldProtocolConfigFromCache(row.projectslug),
-						poolId
-					}
-				}
-			}
+	const result = await getYieldPoolPageData(poolId)
 
-			return { notFound: true }
-		} catch (error) {
-			recordRuntimeError(error, 'pageBuild')
-		}
-	}
-
-	if (!YIELD_POOL_CONFIG_ID_REGEX.test(poolId)) {
+	if (!result.data) {
 		return { notFound: true }
 	}
 
-	res.setHeader('Cache-Control', `public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`)
+	res.setHeader(
+		'Cache-Control',
+		jitterCacheControlHeader(
+			`public, s-maxage=${maxAgeForNext([22])}, stale-while-revalidate=3600`,
+			`yields/pool/${poolId}:${result.source}`
+		)
+	)
 
-	const props = await getYieldPoolPagePropsFromNetwork(poolId)
-	return props ? { props } : { notFound: true }
+	return { props: result.data }
 }
 
 const tvlApyCharts = [

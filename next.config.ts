@@ -1,19 +1,33 @@
 import type { NextConfig } from 'next'
+import { getDatasetCacheTraceIncludes, type DatasetDomain } from './src/server/datasetCache/registry'
+
+const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTraceIncludes(...domains)
 
 const nextConfig: NextConfig = {
 	output: 'standalone',
 	outputFileTracingIncludes: {
-		'/cex/*': ['./.cache/datasets/**/*'],
-		'/cex/markets/*': ['./.cache/datasets/**/*'],
-		'/token/*': ['./.cache/datasets/**/*'],
-		'/token-rights': ['./.cache/datasets/**/*'],
-		'/protocol/token-rights/*': ['./.cache/datasets/**/*'],
-		'/protocol/yields/*': ['./.cache/datasets/**/*'],
-		'/api/datasets/*': ['./.cache/datasets/**/*'],
-		'/api/token-liquidations/*': ['./.cache/datasets/**/*'],
-		'/api/liquidations': ['./.cache/datasets/**/*'],
-		'/api/liquidations/*': ['./.cache/datasets/**/*'],
-		'/api/liquidations/*/*': ['./.cache/datasets/**/*']
+		'/cex/*': datasetCacheIncludes('markets'),
+		'/cex/markets/*': datasetCacheIncludes('markets'),
+		'/token/*': datasetCacheIncludes(
+			'markets',
+			'liquidations',
+			'raises',
+			'treasuries',
+			'yields',
+			'liquidity',
+			'token-rights',
+			'risk'
+		),
+		'/token-rights': datasetCacheIncludes('token-rights'),
+		'/protocol/token-rights/*': datasetCacheIncludes('token-rights'),
+		'/protocol/yields/*': datasetCacheIncludes('yields'),
+		'/yields/pool/*': datasetCacheIncludes('yields'),
+		'/api/datasets/yields': datasetCacheIncludes('yields'),
+		'/api/datasets/yields-token-borrow-routes': datasetCacheIncludes('yields'),
+		'/api/token-liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/liquidations': datasetCacheIncludes('liquidations'),
+		'/api/liquidations/*': datasetCacheIncludes('liquidations'),
+		'/api/liquidations/*/*': datasetCacheIncludes('liquidations')
 	},
 	reactStrictMode: true,
 	reactCompiler: true,

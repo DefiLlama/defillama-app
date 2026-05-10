@@ -234,6 +234,7 @@ export const useFetchProtocolChartData = ({
 	const selectedDenomination = toggledMetrics.denomination
 		? chartDenominationBySymbol.get(toggledMetrics.denomination)
 		: null
+	const hasAnyToggledChart = availableCharts.some((chartLabel) => toggledMetrics[protocolCharts[chartLabel]] === 'true')
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[name] ?? name
 	const prefetchedChartsInSeconds = useMemo(() => {
 		const normalized: Partial<Record<ProtocolChartsLabels, Array<[number, number]>>> = {}
@@ -258,7 +259,7 @@ export const useFetchProtocolChartData = ({
 		return normalized
 	}, [prefetchedChartsInSeconds])
 
-	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
+	const denominationGeckoId = isRouterReady && hasAnyToggledChart ? (selectedDenomination?.geckoId ?? null) : null
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<Record<
 		string,
 		number
@@ -324,35 +325,95 @@ export const useFetchProtocolChartData = ({
 		enabled: !!(isRouterReady && metrics.liquidity && toggledMetrics.tokenLiquidity === 'true')
 	})
 
+	const isTvlToggled = toggledMetrics.tvl === 'true'
+	const isTotalAssetsToggled = toggledMetrics.totalAssets === 'true'
+	const isTvsToggled = toggledMetrics.tvs === 'true'
+	const isMcapToggled = toggledMetrics.mcap === 'true'
+	const isTokenPriceToggled = toggledMetrics.tokenPrice === 'true'
+	const isTokenVolumeToggled = toggledMetrics.tokenVolume === 'true'
+	const isFdvToggled = toggledMetrics.fdv === 'true'
+	const isUnlocksToggled = toggledMetrics.unlocks === 'true'
+	const isIncentivesToggled = toggledMetrics.incentives === 'true'
+	const isStakingTvlToggled = toggledMetrics.staking_tvl === 'true'
+	const isBorrowedTvlToggled = toggledMetrics.borrowed_tvl === 'true'
+	const isNftVolumeToggled = toggledMetrics.nftVolume === 'true'
+	const isActiveAddressesToggled = toggledMetrics.activeAddresses === 'true'
+	const isNewAddressesToggled = toggledMetrics.newAddresses === 'true'
+	const isTransactionsToggled = toggledMetrics.transactions === 'true'
+	const isGasUsedToggled = toggledMetrics.gasUsed === 'true'
+	const isTreasuryToggled = toggledMetrics.treasury === 'true'
+	const isUsdInflowsToggled = toggledMetrics.usdInflows === 'true'
+	const isBridgeVolumeToggled = toggledMetrics.bridgeVolume === 'true'
+	const primaryTvlChartLabel: ProtocolChartsLabels = isCEX ? 'Total Assets' : 'TVL'
+	const isPrimaryTvlToggled = isCEX ? isTotalAssetsToggled : isTvlToggled
+	const needsCompositeTvlChart = isPrimaryTvlToggled || isUsdInflowsToggled
+
 	const shouldFetchStakingTvl = !!(
 		isRouterReady &&
 		currentTvlByChain?.staking != null &&
-		(tvlSettings?.staking || toggledMetrics.staking_tvl === 'true')
+		((needsCompositeTvlChart && tvlSettings?.staking) || isStakingTvlToggled)
 	)
 	const shouldFetchBorrowedTvl = !!(
 		isRouterReady &&
 		currentTvlByChain?.borrowed != null &&
-		(tvlSettings?.borrowed || toggledMetrics.borrowed_tvl === 'true')
+		((needsCompositeTvlChart && tvlSettings?.borrowed) || isBorrowedTvlToggled)
 	)
-	const shouldFetchPool2Tvl = !!(isRouterReady && currentTvlByChain?.pool2 != null && tvlSettings?.pool2)
+	const shouldFetchPool2Tvl = !!(
+		isRouterReady &&
+		needsCompositeTvlChart &&
+		currentTvlByChain?.pool2 != null &&
+		tvlSettings?.pool2
+	)
 	const shouldFetchDoubleCountedTvl = !!(
 		isRouterReady &&
+		needsCompositeTvlChart &&
 		currentTvlByChain?.doublecounted != null &&
 		tvlSettings?.doublecounted
 	)
 	const shouldFetchLiquidStakingTvl = !!(
 		isRouterReady &&
+		needsCompositeTvlChart &&
 		currentTvlByChain?.liquidstaking != null &&
 		tvlSettings?.liquidstaking
 	)
-	const shouldFetchVestingTvl = !!(isRouterReady && currentTvlByChain?.vesting != null && tvlSettings?.vesting)
-	const shouldFetchGovTokensTvl = !!(isRouterReady && currentTvlByChain?.govtokens != null && tvlSettings?.govtokens)
+	const shouldFetchVestingTvl = !!(
+		isRouterReady &&
+		needsCompositeTvlChart &&
+		currentTvlByChain?.vesting != null &&
+		tvlSettings?.vesting
+	)
+	const shouldFetchGovTokensTvl = !!(
+		isRouterReady &&
+		needsCompositeTvlChart &&
+		currentTvlByChain?.govtokens != null &&
+		tvlSettings?.govtokens
+	)
 	const baseTvlChartData = useMemo((): Array<[number, number]> => {
 		if (isCEX) {
 			return prefetchedChartsInSeconds['Total Assets'] ?? prefetchedChartsInSeconds['TVL'] ?? []
 		}
 		return prefetchedChartsInSeconds['TVL'] ?? []
 	}, [prefetchedChartsInSeconds, isCEX])
+	const shouldFetchBaseTvlChart = !!(
+		isRouterReady &&
+		metrics.tvl &&
+		needsCompositeTvlChart &&
+		baseTvlChartData.length === 0 &&
+		availableCharts.includes(primaryTvlChartLabel)
+	)
+	const { data: fetchedBaseTvlChart = null, isLoading: fetchingBaseTvlChart } = useFetchProtocolTVLChart({
+		protocol: protocolSlug,
+		enabled: shouldFetchBaseTvlChart
+	})
+	const resolvedBaseTvlChartData = useMemo(
+		(): Array<[number, number]> =>
+			baseTvlChartData.length > 0
+				? baseTvlChartData
+				: fetchedBaseTvlChart
+					? normalizeSeriesToSeconds(fetchedBaseTvlChart)
+					: [],
+		[baseTvlChartData, fetchedBaseTvlChart]
+	)
 
 	const { data: pool2TvlChart = null, isLoading: fetchingPool2TvlChart } = useFetchProtocolTVLChart({
 		protocol: protocolSlug,
@@ -415,14 +476,14 @@ export const useFetchProtocolChartData = ({
 	const tvlChart = useMemo(
 		() =>
 			buildTvlChart({
-				tvlChartData: baseTvlChartData,
+				tvlChartData: resolvedBaseTvlChartData,
 				extraTvlCharts,
 				tvlSettings,
 				currentTvlByChain,
 				groupBy,
 				denominationPriceHistory
 			}),
-		[baseTvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain]
+		[resolvedBaseTvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain]
 	)
 
 	const feesDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Fees']
@@ -762,7 +823,7 @@ export const useFetchProtocolChartData = ({
 		if (!isUsdInflowsEnabled) return null
 
 		const tvlChartInUsd = buildTvlChart({
-			tvlChartData: baseTvlChartData,
+			tvlChartData: resolvedBaseTvlChartData,
 			extraTvlCharts,
 			tvlSettings,
 			currentTvlByChain,
@@ -770,7 +831,7 @@ export const useFetchProtocolChartData = ({
 			denominationPriceHistory: null
 		})
 		return buildUsdInflowsFromTvlChart(tvlChartInUsd)
-	}, [isUsdInflowsEnabled, baseTvlChartData, extraTvlCharts, tvlSettings, currentTvlByChain])
+	}, [isUsdInflowsEnabled, resolvedBaseTvlChartData, extraTvlCharts, tvlSettings, currentTvlByChain])
 	const fetchingUsdInflows = false
 
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
@@ -853,26 +914,6 @@ export const useFetchProtocolChartData = ({
 		enabled: isNftVolumeEnabled
 	})
 
-	const isTvlToggled = toggledMetrics.tvl === 'true'
-	const isTotalAssetsToggled = toggledMetrics.totalAssets === 'true'
-	const isTvsToggled = toggledMetrics.tvs === 'true'
-	const isMcapToggled = toggledMetrics.mcap === 'true'
-	const isTokenPriceToggled = toggledMetrics.tokenPrice === 'true'
-	const isTokenVolumeToggled = toggledMetrics.tokenVolume === 'true'
-	const isFdvToggled = toggledMetrics.fdv === 'true'
-	const isUnlocksToggled = toggledMetrics.unlocks === 'true'
-	const isIncentivesToggled = toggledMetrics.incentives === 'true'
-	const isStakingTvlToggled = toggledMetrics.staking_tvl === 'true'
-	const isBorrowedTvlToggled = toggledMetrics.borrowed_tvl === 'true'
-	const isNftVolumeToggled = toggledMetrics.nftVolume === 'true'
-	const isActiveAddressesToggled = toggledMetrics.activeAddresses === 'true'
-	const isNewAddressesToggled = toggledMetrics.newAddresses === 'true'
-	const isTransactionsToggled = toggledMetrics.transactions === 'true'
-	const isGasUsedToggled = toggledMetrics.gasUsed === 'true'
-	const isTreasuryToggled = toggledMetrics.treasury === 'true'
-	const isUsdInflowsToggled = toggledMetrics.usdInflows === 'true'
-	const isBridgeVolumeToggled = toggledMetrics.bridgeVolume === 'true'
-
 	const showNonUsdDenomination = !!(
 		selectedDenomination &&
 		selectedDenomination.symbol !== 'USD' &&
@@ -883,30 +924,30 @@ export const useFetchProtocolChartData = ({
 	const chartData = useMemo(() => {
 		const loadingStates: ReadonlyArray<{ isLoading: boolean; label: string }> = [
 			{ isLoading: !!denominationGeckoId && fetchingDenominationPriceHistory, label: 'Denomination Price History' },
-			{
-				isLoading:
-					(isMcapToggled || isTokenPriceToggled || isTokenVolumeToggled || isFdvToggled) && fetchingProtocolTokenData,
-				label: 'Mcap, Token price, Token volume'
-			},
-			{ isLoading: isFdvToggled && fetchingTokenTotalSupply, label: 'Token Supply' },
+			{ isLoading: isMcapToggled && fetchingProtocolTokenData, label: 'Mcap' },
+			{ isLoading: isTokenPriceToggled && fetchingProtocolTokenData, label: 'Token Price' },
+			{ isLoading: isTokenVolumeToggled && fetchingProtocolTokenData, label: 'Token Volume' },
+			{ isLoading: isFdvToggled && (fetchingProtocolTokenData || fetchingTokenTotalSupply), label: 'FDV' },
 			{ isLoading: toggledMetrics.tokenLiquidity === 'true' && fetchingTokenLiquidity, label: 'Token Liquidity' },
+			{ isLoading: shouldFetchBaseTvlChart && fetchingBaseTvlChart, label: primaryTvlChartLabel },
+			{ isLoading: shouldFetchPool2Tvl && fetchingPool2TvlChart, label: primaryTvlChartLabel },
+			{ isLoading: shouldFetchStakingTvl && fetchingStakingTvlChart, label: 'Staking' },
+			{ isLoading: shouldFetchBorrowedTvl && fetchingBorrowedTvlChart, label: 'Active Loans' },
 			{
 				isLoading:
-					(shouldFetchPool2Tvl && fetchingPool2TvlChart) ||
-					(shouldFetchStakingTvl && fetchingStakingTvlChart) ||
-					(shouldFetchBorrowedTvl && fetchingBorrowedTvlChart) ||
 					(shouldFetchDoubleCountedTvl && fetchingDoubleCountedTvlChart) ||
 					(shouldFetchLiquidStakingTvl && fetchingLiquidStakingTvlChart) ||
 					(shouldFetchVestingTvl && fetchingVestingTvlChart) ||
 					(shouldFetchGovTokensTvl && fetchingGovTokensTvlChart),
-				label: 'TVL Breakdown'
+				label: primaryTvlChartLabel
 			},
 			{ isLoading: isTvsToggled && fetchingTvs, label: 'TVS' },
-			{ isLoading: isFeesEnabled && fetchingFees, label: 'Fees' },
-			{ isLoading: isRevenueEnabled && fetchingRevenue, label: 'Revenue' },
-			{ isLoading: isHoldersRevenueEnabled && fetchingHoldersRevenue, label: 'Holders Revenue' },
-			{ isLoading: isBribesEnabled && fetchingBribes, label: 'Bribes' },
-			{ isLoading: isTokenTaxesEnabled && fetchingTokenTaxes, label: 'Token Taxes' },
+			{ isLoading: isFeesEnabled && (fetchingFees || fetchingBribes || fetchingTokenTaxes), label: 'Fees' },
+			{ isLoading: isRevenueEnabled && (fetchingRevenue || fetchingBribes || fetchingTokenTaxes), label: 'Revenue' },
+			{
+				isLoading: isHoldersRevenueEnabled && (fetchingHoldersRevenue || fetchingBribes || fetchingTokenTaxes),
+				label: 'Holders Revenue'
+			},
 			{ isLoading: isDexVolumeEnabled && fetchingDexVolume, label: 'DEX Volume' },
 			{ isLoading: isDexNotionalVolumeEnabled && fetchingDexNotionalVolume, label: 'DEX Notional Volume' },
 			{ isLoading: isPerpsVolumeEnabled && fetchingPerpVolume, label: 'Perp Volume' },
@@ -922,11 +963,17 @@ export const useFetchProtocolChartData = ({
 				isLoading: isBridgeAggregatorsVolumeEnabled && fetchingBridgeAggregatorVolume,
 				label: 'Bridge Aggregator Volume'
 			},
-			{ isLoading: isUnlocksEnabled && fetchingUnlocksAndIncentives, label: 'Emissions' },
+			{ isLoading: isUnlocksToggled && fetchingUnlocksAndIncentives, label: 'Unlocks' },
+			{ isLoading: isIncentivesToggled && fetchingUnlocksAndIncentives, label: 'Incentives' },
 			{ isLoading: isTreasuryToggled && fetchingTreasury, label: 'Treasury' },
 			{ isLoading: isUsdInflowsToggled && fetchingUsdInflows, label: 'USD Inflows' },
 			{ isLoading: toggledMetrics.medianApy === 'true' && fetchingMedianAPY, label: 'Median APY' },
-			{ isLoading: isGovernanceEnabled && fetchingGovernanceData, label: 'Governance' },
+			{ isLoading: toggledMetrics.totalProposals === 'true' && fetchingGovernanceData, label: 'Total Proposals' },
+			{
+				isLoading: toggledMetrics.successfulProposals === 'true' && fetchingGovernanceData,
+				label: 'Successful Proposals'
+			},
+			{ isLoading: toggledMetrics.maxVotes === 'true' && fetchingGovernanceData, label: 'Max Votes' },
 			{ isLoading: isNftVolumeToggled && fetchingNftVolume, label: 'NFT Volume' },
 			{ isLoading: isActiveAddressesToggled && fetchingActiveAddresses, label: 'Active Addresses' },
 			{ isLoading: isNewAddressesToggled && fetchingNewAddresses, label: 'New Addresses' },
@@ -934,15 +981,10 @@ export const useFetchProtocolChartData = ({
 			{ isLoading: isGasUsedToggled && fetchingGasUsed, label: 'Gas Used' },
 			{ isLoading: isBridgeVolumeToggled && fetchingBridgeVolume, label: 'Bridge Volume' }
 		]
-		const loadingCharts = loadingStates.filter((state) => state.isLoading).map((state) => state.label)
-		if (loadingCharts.length > 0) {
-			return {
-				finalCharts: {} as Record<string, Array<[string | number, number | null]>>,
-				valueSymbol,
-				loadingCharts: loadingCharts.join(', ').toLowerCase(),
-				failedMetrics: [] as ProtocolChartsLabels[]
-			}
-		}
+		const loadingCharts = Array.from(
+			new Set(loadingStates.filter((state) => state.isLoading).map((state) => state.label))
+		)
+		const loadingChartSet = new Set(loadingCharts)
 
 		const charts: { [key in ProtocolChartsLabels]?: Array<[number, number | null]> } = {}
 
@@ -1284,10 +1326,11 @@ export const useFetchProtocolChartData = ({
 		const failedMetrics = availableCharts.filter((chartLabel) => {
 			const queryParamKey = protocolCharts[chartLabel]
 			if (!queryParamKey || toggledMetrics[queryParamKey] !== 'true') return false
+			if (loadingChartSet.has(chartLabel)) return false
 			return !Object.prototype.hasOwnProperty.call(filteredCharts, chartLabel)
 		})
 
-		return { finalCharts: filteredCharts, valueSymbol, loadingCharts: '', failedMetrics }
+		return { finalCharts: filteredCharts, valueSymbol, loadingCharts, failedMetrics }
 	}, [
 		tvlChart,
 		fetchingDenominationPriceHistory,
@@ -1298,6 +1341,8 @@ export const useFetchProtocolChartData = ({
 		tokenTotalSupply,
 		fetchingTokenLiquidity,
 		tokenLiquidityData,
+		fetchingBaseTvlChart,
+		shouldFetchBaseTvlChart,
 		fetchingPool2TvlChart,
 		shouldFetchPool2Tvl,
 		fetchingStakingTvlChart,
@@ -1316,8 +1361,6 @@ export const useFetchProtocolChartData = ({
 		isFeesEnabled,
 		isRevenueEnabled,
 		isHoldersRevenueEnabled,
-		isBribesEnabled,
-		isTokenTaxesEnabled,
 		isDexVolumeEnabled,
 		isDexNotionalVolumeEnabled,
 		isPerpsVolumeEnabled,
@@ -1327,7 +1370,6 @@ export const useFetchProtocolChartData = ({
 		isDexAggregatorsVolumeEnabled,
 		isPerpsAggregatorsVolumeEnabled,
 		isBridgeAggregatorsVolumeEnabled,
-		isUnlocksEnabled,
 		fetchingFees,
 		feesDataChart,
 		fetchingRevenue,
@@ -1374,7 +1416,6 @@ export const useFetchProtocolChartData = ({
 		transactionsData,
 		fetchingGasUsed,
 		gasUsedData,
-		isGovernanceEnabled,
 		fetchingGovernanceData,
 		governanceData,
 		fetchingNftVolume,
@@ -1400,6 +1441,7 @@ export const useFetchProtocolChartData = ({
 		isTreasuryToggled,
 		isUsdInflowsToggled,
 		isBridgeVolumeToggled,
+		primaryTvlChartLabel,
 		toggledMetrics,
 		groupBy,
 		extraTvlCharts,

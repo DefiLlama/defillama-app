@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchExchangeMarketsFromNetwork } from '~/containers/Cexs/api'
+import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { withApiRouteTelemetry } from '~/utils/telemetry'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -15,7 +16,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 	try {
 		const data = await fetchExchangeMarketsFromNetwork(exchange)
-		res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=300')
+		res.setHeader(
+			'Cache-Control',
+			jitterCacheControlHeader('public, max-age=60, s-maxage=300, stale-while-revalidate=300', req.url ?? exchange)
+		)
 		return res.status(200).json(data)
 	} catch (error) {
 		const message = error instanceof Error ? error.message : 'Failed to load exchange markets'
