@@ -1,4 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
@@ -6,12 +7,39 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TagGroup } from '~/components/TagGroup'
 import { getCategoryRoute } from '~/constants'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPercentChange, slug } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { categoriesPageExcludedExtraTvls } from './constants'
-import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
+import type { ChainTypeFilter, IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
+
+const CHAIN_TYPE_VALUES = ['All', 'EVM', 'Non-EVM'] as const
+type ChainTypeLabel = (typeof CHAIN_TYPE_VALUES)[number]
+
+const CHAIN_TYPE_LABEL_TO_FILTER: Record<ChainTypeLabel, ChainTypeFilter> = {
+	All: 'all',
+	EVM: 'evm',
+	'Non-EVM': 'non-evm'
+}
+
+const CHAIN_TYPE_FILTER_TO_LABEL: Record<ChainTypeFilter, ChainTypeLabel> = {
+	all: 'All',
+	evm: 'EVM',
+	'non-evm': 'Non-EVM'
+}
+
+const QUERY_VALUE_TO_FILTER: Record<string, ChainTypeFilter> = {
+	evm: 'evm',
+	'non-evm': 'non-evm'
+}
+
+const parseChainTypeQuery = (raw: string | undefined): ChainTypeFilter => {
+	if (!raw) return 'all'
+	return QUERY_VALUE_TO_FILTER[raw.toLowerCase()] ?? 'all'
+}
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 const columnHelper = createColumnHelper<IProtocolsCategoriesTableRow>()
@@ -124,7 +152,27 @@ const categoriesColumns = [
 ]
 
 export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
-	const { categories, tableData, chartSource, categoryColors, extraTvlCharts } = props
+	const { categories, tableData, tableDataEvm, tableDataNonEvm, chartSource, categoryColors, extraTvlCharts } = props
+	const router = useRouter()
+	const chainTypeFilter = parseChainTypeQuery(readSingleQueryValue(router.query.chainType))
+	const selectedTagLabel: ChainTypeLabel = CHAIN_TYPE_FILTER_TO_LABEL[chainTypeFilter]
+
+	const handleChainTypeChange = React.useCallback(
+		(label: ChainTypeLabel) => {
+			const filter = CHAIN_TYPE_LABEL_TO_FILTER[label]
+			void pushShallowQuery(router, {
+				chainType: filter === 'all' ? undefined : filter
+			})
+		},
+		[router]
+	)
+
+	const activeTableData = React.useMemo(() => {
+		if (chainTypeFilter === 'evm') return tableDataEvm
+		if (chainTypeFilter === 'non-evm') return tableDataNonEvm
+		return tableData
+	}, [chainTypeFilter, tableData, tableDataEvm, tableDataNonEvm])
+
 	const [selectedCategories, setSelectedCategories] = React.useState<Array<string>>(categories)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
@@ -172,7 +220,8 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const finalCategoriesList = React.useMemo(() => {
-		if (enabledTvls.length === 0) return tableData
+		const sourceTableData = activeTableData
+		if (enabledTvls.length === 0 || chainTypeFilter !== 'all') return sourceTableData
 
 		const applyEnabledExtraTvls = (row: IProtocolsCategoriesTableRow): IProtocolsCategoriesTableRow => {
 			let tvl = row.tvl
@@ -207,14 +256,20 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 			return updatedRow
 		}
 
-		return tableData.map(applyEnabledExtraTvls)
-	}, [enabledTvls, tableData])
+		return sourceTableData.map(applyEnabledExtraTvls)
+	}, [activeTableData, chainTypeFilter, enabledTvls])
 
 	return (
 		<>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">TVL by Category</h1>
+					<TagGroup
+						values={CHAIN_TYPE_VALUES}
+						selectedValue={selectedTagLabel}
+						setValue={handleChainTypeChange}
+						label="Chain type:"
+					/>
 					<SelectWithCombobox
 						allValues={categories}
 						selectedValues={selectedCategories}
@@ -235,6 +290,11 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 						showTotalInTooltip
 					/>
 				</React.Suspense>
+				{chainTypeFilter !== 'all' ? (
+					<p className="px-3 pb-3 text-xs text-(--text-tertiary)">
+						Chart shows total TVL across all chains; the chain-type filter applies to the table only.
+					</p>
+				) : null}
 			</div>
 
 			<React.Suspense

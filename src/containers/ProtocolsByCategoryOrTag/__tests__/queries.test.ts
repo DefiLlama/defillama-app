@@ -6,6 +6,7 @@ const {
 	fetchProtocolsMock,
 	fetchAdapterChainMetricsMock,
 	fetchAdapterChainChartDataMock,
+	fetchCategoriesSummaryMock,
 	fetchCategoryChartMock,
 	fetchTagChartMock,
 	fetchJsonMock
@@ -13,6 +14,7 @@ const {
 	fetchProtocolsMock: vi.fn(),
 	fetchAdapterChainMetricsMock: vi.fn(),
 	fetchAdapterChainChartDataMock: vi.fn(),
+	fetchCategoriesSummaryMock: vi.fn(),
 	fetchCategoryChartMock: vi.fn(),
 	fetchTagChartMock: vi.fn(),
 	fetchJsonMock: vi.fn()
@@ -32,12 +34,12 @@ vi.mock('~/utils/async', () => ({
 }))
 
 vi.mock('../api', () => ({
-	fetchCategoriesSummary: vi.fn(),
+	fetchCategoriesSummary: fetchCategoriesSummaryMock,
 	fetchCategoryChart: fetchCategoryChartMock,
 	fetchTagChart: fetchTagChartMock
 }))
 
-import { buildCategoryCharts, getProtocolsByCategoryOrTag } from '../queries'
+import { buildCategoryCharts, getProtocolsByCategoryOrTag, getProtocolsCategoriesPageData } from '../queries'
 
 const makeAdapterMetrics = (protocols: IAdapterChainMetrics['protocols']): IAdapterChainMetrics =>
 	({
@@ -256,5 +258,139 @@ describe('ProtocolsByCategoryOrTag queries', () => {
 		expect(parent?.subRows?.map((row) => row.name)).toEqual(['Interface Child A', 'Interface Child B'])
 		expect(parent?.dexVolume?.total24h).toBe(50)
 		expect(parent?.perpVolume?.total24h).toBe(10)
+	})
+})
+
+describe('getProtocolsCategoriesPageData EVM filter', () => {
+	const makeChainTvlPoint = (tvl: number) => ({
+		tvl,
+		tvlPrevDay: tvl,
+		tvlPrevWeek: tvl,
+		tvlPrevMonth: tvl
+	})
+
+	const SPECIAL_KEYS = new Set(['borrowed', 'staking', 'pool2', 'doublecounted', 'liquidstaking', 'dcAndLsOverlap'])
+	const makeProtocol = ({
+		defillamaId,
+		name,
+		category,
+		chainTvls,
+		chains
+	}: {
+		defillamaId: string
+		name: string
+		category: string
+		chainTvls: ProtocolLite['chainTvls']
+		chains: string[]
+	}): ProtocolLite => {
+		const tvl = Object.entries(chainTvls).reduce((sum, [key, point]) => {
+			if (SPECIAL_KEYS.has(key) || key.includes('-')) return sum
+			return sum + (point.tvl ?? 0)
+		}, 0)
+		return {
+			name,
+			symbol: '',
+			logo: '',
+			url: '',
+			category,
+			tags: [],
+			chains,
+			chainTvls,
+			tvl,
+			tvlPrevDay: tvl,
+			tvlPrevWeek: tvl,
+			tvlPrevMonth: tvl,
+			mcap: null,
+			defillamaId
+		}
+	}
+
+	beforeEach(() => {
+		fetchAdapterChainMetricsMock.mockResolvedValue(null)
+		fetchCategoriesSummaryMock.mockResolvedValue({
+			chart: {},
+			categories: ['DEX', 'Lending']
+		})
+		fetchJsonMock.mockImplementation(async (url: string) => {
+			if (url.endsWith('/chains')) {
+				return [
+					{ name: 'Ethereum', chainId: 1 },
+					{ name: 'BSC', chainId: 56 },
+					{ name: 'Solana', chainId: null },
+					{ name: 'Bitcoin', chainId: null }
+				]
+			}
+			return null
+		})
+
+		fetchProtocolsMock.mockResolvedValue({
+			protocols: [
+				makeProtocol({
+					defillamaId: 'evm-only',
+					name: 'EVM Only DEX',
+					category: 'DEX',
+					chainTvls: {
+						Ethereum: makeChainTvlPoint(100),
+						BSC: makeChainTvlPoint(50)
+					},
+					chains: ['Ethereum', 'BSC']
+				}),
+				makeProtocol({
+					defillamaId: 'non-evm-only',
+					name: 'Solana DEX',
+					category: 'DEX',
+					chainTvls: {
+						Solana: makeChainTvlPoint(80)
+					},
+					chains: ['Solana']
+				}),
+				makeProtocol({
+					defillamaId: 'mixed',
+					name: 'Mixed Lending',
+					category: 'Lending',
+					chainTvls: {
+						Ethereum: makeChainTvlPoint(40),
+						Bitcoin: makeChainTvlPoint(60),
+						borrowed: makeChainTvlPoint(999),
+						'Ethereum-borrowed': makeChainTvlPoint(999)
+					},
+					chains: ['Ethereum', 'Bitcoin']
+				})
+			],
+			parentProtocols: [],
+			chains: []
+		})
+	})
+
+	afterEach(() => {
+		vi.clearAllMocks()
+	})
+
+	it('splits per-protocol TVL across EVM and non-EVM tables and skips special chainTvl keys', async () => {
+		const result = await getProtocolsCategoriesPageData()
+
+		const findRow = (rows: typeof result.tableData, name: string) => rows.find((row) => row.name === name)
+
+		expect(findRow(result.tableData, 'DEX')?.tvl).toBe(230)
+		expect(findRow(result.tableData, 'Lending')?.tvl).toBe(100)
+
+		expect(findRow(result.tableDataEvm, 'DEX')?.tvl).toBe(150)
+		expect(findRow(result.tableDataEvm, 'DEX')?.protocols).toBe(1)
+		expect(findRow(result.tableDataEvm, 'Lending')?.tvl).toBe(40)
+		expect(findRow(result.tableDataEvm, 'Lending')?.protocols).toBe(1)
+
+		expect(findRow(result.tableDataNonEvm, 'DEX')?.tvl).toBe(80)
+		expect(findRow(result.tableDataNonEvm, 'DEX')?.protocols).toBe(1)
+		expect(findRow(result.tableDataNonEvm, 'Lending')?.tvl).toBe(60)
+		expect(findRow(result.tableDataNonEvm, 'Lending')?.protocols).toBe(1)
+	})
+
+	it('keeps EVM and non-EVM tables sorted by TVL desc and includes every category key', async () => {
+		const result = await getProtocolsCategoriesPageData()
+
+		// EVM: DEX=150, Lending=40
+		expect(result.tableDataEvm.map((row) => row.name)).toEqual(['DEX', 'Lending'])
+		// Non-EVM: DEX=80, Lending=60
+		expect(result.tableDataNonEvm.map((row) => row.name)).toEqual(['DEX', 'Lending'])
 	})
 })

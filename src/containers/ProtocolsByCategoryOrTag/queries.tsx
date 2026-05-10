@@ -1,4 +1,5 @@
-import { ZERO_FEE_PERPS } from '~/constants'
+import { YIELD_CHAIN_API, ZERO_FEE_PERPS } from '~/constants'
+import { buildEvmChainsSet } from '~/constants/chains'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
@@ -956,11 +957,79 @@ function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories'])
 	return []
 }
 
+type ChainsApiEntry = { name: string; chainId: number | null }
+
+const SPECIAL_CHAIN_TVL_KEYS = new Set([
+	'doublecounted',
+	'liquidstaking',
+	'dcAndLsOverlap',
+	'staking',
+	'pool2',
+	'borrowed',
+	'offers',
+	'excludeParent',
+	'vesting'
+])
+
+const computeProtocolEvmSplit = (
+	protocol: Pick<ProtocolLite, 'chainTvls'>,
+	evmChainsSet: Set<string>
+): {
+	tvlEvm: number
+	tvlNonEvm: number
+	tvlPrevDayEvm: number
+	tvlPrevDayNonEvm: number
+	tvlPrevWeekEvm: number
+	tvlPrevWeekNonEvm: number
+	tvlPrevMonthEvm: number
+	tvlPrevMonthNonEvm: number
+} => {
+	let tvlEvm = 0
+	let tvlNonEvm = 0
+	let tvlPrevDayEvm = 0
+	let tvlPrevDayNonEvm = 0
+	let tvlPrevWeekEvm = 0
+	let tvlPrevWeekNonEvm = 0
+	let tvlPrevMonthEvm = 0
+	let tvlPrevMonthNonEvm = 0
+
+	for (const [chainTvlKey, chainTvlValue] of Object.entries(protocol.chainTvls ?? {})) {
+		if (SPECIAL_CHAIN_TVL_KEYS.has(chainTvlKey)) continue
+		if (chainTvlKey.includes('-')) continue
+		if (TVL_SETTINGS_KEYS_SET.has(chainTvlKey)) continue
+
+		const isEvm = evmChainsSet.has(chainTvlKey) || evmChainsSet.has(chainTvlKey.toLowerCase())
+		if (isEvm) {
+			tvlEvm += chainTvlValue.tvl ?? 0
+			tvlPrevDayEvm += chainTvlValue.tvlPrevDay ?? 0
+			tvlPrevWeekEvm += chainTvlValue.tvlPrevWeek ?? 0
+			tvlPrevMonthEvm += chainTvlValue.tvlPrevMonth ?? 0
+		} else {
+			tvlNonEvm += chainTvlValue.tvl ?? 0
+			tvlPrevDayNonEvm += chainTvlValue.tvlPrevDay ?? 0
+			tvlPrevWeekNonEvm += chainTvlValue.tvlPrevWeek ?? 0
+			tvlPrevMonthNonEvm += chainTvlValue.tvlPrevMonth ?? 0
+		}
+	}
+
+	return {
+		tvlEvm,
+		tvlNonEvm,
+		tvlPrevDayEvm,
+		tvlPrevDayNonEvm,
+		tvlPrevWeekEvm,
+		tvlPrevWeekNonEvm,
+		tvlPrevMonthEvm,
+		tvlPrevMonthNonEvm
+	}
+}
+
 export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCategoriesPageData> {
-	const [{ protocols }, revenueData, { chart, categories }]: [
+	const [{ protocols }, revenueData, { chart, categories }, chainsList]: [
 		ProtocolsResponse,
 		IAdapterChainMetrics | null,
-		CategoriesApiResponse
+		CategoriesApiResponse,
+		Array<ChainsApiEntry> | null
 	] = await Promise.all([
 		fetchProtocols(),
 		fetchAdapterChainMetrics({
@@ -968,8 +1037,11 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			chain: 'All',
 			dataType: 'dailyRevenue'
 		}).catch(() => null),
-		fetchCategoriesSummary()
+		fetchCategoriesSummary(),
+		fetchJson<Array<ChainsApiEntry>>(YIELD_CHAIN_API).catch(() => null)
 	])
+
+	const evmChainsSet = buildEvmChainsSet(chainsList ?? [])
 
 	const revenueByProtocol: Record<string, number> = {}
 	for (const protocol of revenueData?.protocols ?? []) {
@@ -977,36 +1049,45 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	}
 
 	const categoryRows = new Map<string, CategoryAggregateRow>()
+	const categoryRowsEvm = new Map<string, CategoryAggregateRow>()
+	const categoryRowsNonEvm = new Map<string, CategoryAggregateRow>()
 	const tagRowsByCategory = new Map<string, Map<string, CategoryAggregateRow>>()
+	const tagRowsByCategoryEvm = new Map<string, Map<string, CategoryAggregateRow>>()
+	const tagRowsByCategoryNonEvm = new Map<string, Map<string, CategoryAggregateRow>>()
 
-	const getOrCreateCategoryRow = (categoryName: string): CategoryAggregateRow => {
-		const existingRow = categoryRows.get(categoryName)
-		if (existingRow != null) return existingRow
+	const makeGetOrCreateCategoryRow = (rowsMap: Map<string, CategoryAggregateRow>) => {
+		return (categoryName: string): CategoryAggregateRow => {
+			const existingRow = rowsMap.get(categoryName)
+			if (existingRow != null) return existingRow
 
-		const newRow = createCategoryAggregateRow(categoryName)
-		categoryRows.set(categoryName, newRow)
-		return newRow
-	}
-
-	const getOrCreateTagRow = ({
-		categoryName,
-		tagName
-	}: {
-		categoryName: string
-		tagName: string
-	}): CategoryAggregateRow => {
-		const tagsByName = tagRowsByCategory.get(categoryName) ?? new Map<string, CategoryAggregateRow>()
-		if (!tagRowsByCategory.has(categoryName)) {
-			tagRowsByCategory.set(categoryName, tagsByName)
+			const newRow = createCategoryAggregateRow(categoryName)
+			rowsMap.set(categoryName, newRow)
+			return newRow
 		}
-
-		const existingRow = tagsByName.get(tagName)
-		if (existingRow != null) return existingRow
-
-		const newRow = createCategoryAggregateRow(tagName)
-		tagsByName.set(tagName, newRow)
-		return newRow
 	}
+
+	const makeGetOrCreateTagRow = (tagsByCategoryMap: Map<string, Map<string, CategoryAggregateRow>>) => {
+		return ({ categoryName, tagName }: { categoryName: string; tagName: string }): CategoryAggregateRow => {
+			const tagsByName = tagsByCategoryMap.get(categoryName) ?? new Map<string, CategoryAggregateRow>()
+			if (!tagsByCategoryMap.has(categoryName)) {
+				tagsByCategoryMap.set(categoryName, tagsByName)
+			}
+
+			const existingRow = tagsByName.get(tagName)
+			if (existingRow != null) return existingRow
+
+			const newRow = createCategoryAggregateRow(tagName)
+			tagsByName.set(tagName, newRow)
+			return newRow
+		}
+	}
+
+	const getOrCreateCategoryRow = makeGetOrCreateCategoryRow(categoryRows)
+	const getOrCreateCategoryRowEvm = makeGetOrCreateCategoryRow(categoryRowsEvm)
+	const getOrCreateCategoryRowNonEvm = makeGetOrCreateCategoryRow(categoryRowsNonEvm)
+	const getOrCreateTagRow = makeGetOrCreateTagRow(tagRowsByCategory)
+	const getOrCreateTagRowEvm = makeGetOrCreateTagRow(tagRowsByCategoryEvm)
+	const getOrCreateTagRowNonEvm = makeGetOrCreateTagRow(tagRowsByCategoryNonEvm)
 
 	for (const protocol of protocols) {
 		const categoryName = protocol.category
@@ -1017,6 +1098,11 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		const protocolTvlPrevWeek = protocol.tvlPrevWeek ?? 0
 		const protocolTvlPrevMonth = protocol.tvlPrevMonth ?? 0
 
+		const split = computeProtocolEvmSplit(protocol, evmChainsSet)
+		const totalSplitTvl = split.tvlEvm + split.tvlNonEvm
+		const evmRevenue = totalSplitTvl > 0 ? (split.tvlEvm / totalSplitTvl) * protocolRevenue : 0
+		const nonEvmRevenue = totalSplitTvl > 0 ? (split.tvlNonEvm / totalSplitTvl) * protocolRevenue : 0
+
 		const categoryRow = getOrCreateCategoryRow(categoryName)
 		categoryRow.protocols += 1
 		categoryRow.tvl += protocolTvl
@@ -1024,6 +1110,26 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		categoryRow.tvlPrevWeek += protocolTvlPrevWeek
 		categoryRow.tvlPrevMonth += protocolTvlPrevMonth
 		categoryRow.revenue += protocolRevenue
+
+		if (split.tvlEvm > 0) {
+			const categoryRowEvm = getOrCreateCategoryRowEvm(categoryName)
+			categoryRowEvm.protocols += 1
+			categoryRowEvm.tvl += split.tvlEvm
+			categoryRowEvm.tvlPrevDay += split.tvlPrevDayEvm
+			categoryRowEvm.tvlPrevWeek += split.tvlPrevWeekEvm
+			categoryRowEvm.tvlPrevMonth += split.tvlPrevMonthEvm
+			categoryRowEvm.revenue += evmRevenue
+		}
+
+		if (split.tvlNonEvm > 0) {
+			const categoryRowNonEvm = getOrCreateCategoryRowNonEvm(categoryName)
+			categoryRowNonEvm.protocols += 1
+			categoryRowNonEvm.tvl += split.tvlNonEvm
+			categoryRowNonEvm.tvlPrevDay += split.tvlPrevDayNonEvm
+			categoryRowNonEvm.tvlPrevWeek += split.tvlPrevWeekNonEvm
+			categoryRowNonEvm.tvlPrevMonth += split.tvlPrevMonthNonEvm
+			categoryRowNonEvm.revenue += nonEvmRevenue
+		}
 
 		const protocolTags = protocol.tags ?? []
 		for (const tagName of protocolTags) {
@@ -1034,6 +1140,26 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			tagRow.tvlPrevWeek += protocolTvlPrevWeek
 			tagRow.tvlPrevMonth += protocolTvlPrevMonth
 			tagRow.revenue += protocolRevenue
+
+			if (split.tvlEvm > 0) {
+				const tagRowEvm = getOrCreateTagRowEvm({ categoryName, tagName })
+				tagRowEvm.protocols += 1
+				tagRowEvm.tvl += split.tvlEvm
+				tagRowEvm.tvlPrevDay += split.tvlPrevDayEvm
+				tagRowEvm.tvlPrevWeek += split.tvlPrevWeekEvm
+				tagRowEvm.tvlPrevMonth += split.tvlPrevMonthEvm
+				tagRowEvm.revenue += evmRevenue
+			}
+
+			if (split.tvlNonEvm > 0) {
+				const tagRowNonEvm = getOrCreateTagRowNonEvm({ categoryName, tagName })
+				tagRowNonEvm.protocols += 1
+				tagRowNonEvm.tvl += split.tvlNonEvm
+				tagRowNonEvm.tvlPrevDay += split.tvlPrevDayNonEvm
+				tagRowNonEvm.tvlPrevWeek += split.tvlPrevWeekNonEvm
+				tagRowNonEvm.tvlPrevMonth += split.tvlPrevMonthNonEvm
+				tagRowNonEvm.revenue += nonEvmRevenue
+			}
 		}
 
 		for (const extraTvlKey of CATEGORIES_PAGE_INCLUDED_EXTRA_TVL_KEYS) {
@@ -1085,30 +1211,39 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		categoryColors[categoryName] = allColors[index] ?? '#999999'
 	}
 
-	const tableData: Array<IProtocolsCategoriesTableRow> = []
-	for (const categoryName of categoryKeys) {
-		const categoryRow = categoryRows.get(categoryName)
-		if (categoryRow == null) continue
+	const buildTableData = (
+		rowsMap: Map<string, CategoryAggregateRow>,
+		tagsByCategoryMap: Map<string, Map<string, CategoryAggregateRow>>
+	): Array<IProtocolsCategoriesTableRow> => {
+		const rows: Array<IProtocolsCategoriesTableRow> = []
+		for (const categoryName of categoryKeys) {
+			const categoryRow = rowsMap.get(categoryName) ?? createCategoryAggregateRow(categoryName)
 
-		const tagRows = tagRowsByCategory.get(categoryName)
-		const subRows: Array<IProtocolsCategoriesTableRow> = []
-		for (const [tagName, tagRow] of tagRows?.entries() ?? []) {
-			subRows.push(
+			const tagRows = tagsByCategoryMap.get(categoryName)
+			const subRows: Array<IProtocolsCategoriesTableRow> = []
+			for (const [tagName, tagRow] of tagRows?.entries() ?? []) {
+				subRows.push(
+					toCategoryTableRow({
+						row: tagRow,
+						description: protocolCategoryConfig[tagName]?.description ?? ''
+					})
+				)
+			}
+
+			rows.push(
 				toCategoryTableRow({
-					row: tagRow,
-					description: protocolCategoryConfig[tagName]?.description ?? ''
+					row: categoryRow,
+					description: protocolCategoryConfig[categoryName]?.description ?? '',
+					subRows
 				})
 			)
 		}
-
-		tableData.push(
-			toCategoryTableRow({
-				row: categoryRow,
-				description: protocolCategoryConfig[categoryName]?.description ?? '',
-				subRows
-			})
-		)
+		return rows
 	}
+
+	const tableData = buildTableData(categoryRows, tagRowsByCategory)
+	const tableDataEvm = buildTableData(categoryRowsEvm, tagRowsByCategoryEvm)
+	const tableDataNonEvm = buildTableData(categoryRowsNonEvm, tagRowsByCategoryNonEvm)
 
 	const extraTvlCharts: IProtocolsCategoriesPageData['extraTvlCharts'] = {}
 	for (const categoryName of categoryKeys) {
@@ -1122,7 +1257,9 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	for (const [date, chartByCategory] of Object.entries(chart ?? {})) {
 		const timestamp = Number(date) * 1e3
 
-		const chartRow: IProtocolsCategoriesPageData['chartSource'][number] = { timestamp }
+		const chartRow: IProtocolsCategoriesPageData['chartSource'][number] = {
+			timestamp
+		}
 		for (const categoryName of categoryKeys) {
 			const categoryChartMetrics = chartByCategory?.[categoryName]
 			const tvlValue = categoryChartMetrics?.tvl
@@ -1142,6 +1279,8 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	return {
 		categories: categoryKeys,
 		tableData: tableData.toSorted((a, b) => b.tvl - a.tvl),
+		tableDataEvm: tableDataEvm.toSorted((a, b) => b.tvl - a.tvl),
+		tableDataNonEvm: tableDataNonEvm.toSorted((a, b) => b.tvl - a.tvl),
 		chartSource,
 		categoryColors,
 		extraTvlCharts
