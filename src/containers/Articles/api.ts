@@ -39,20 +39,26 @@ function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
 
+function nullableText(value: string | null | undefined): string | null {
+	if (typeof value !== 'string') return null
+	const trimmed = value.trim()
+	return trimmed === '' ? null : value
+}
+
 function buildSavePayload(article: LocalArticleDocument, options: { includeStatus?: boolean } = {}) {
 	return {
 		title: article.title,
-		subtitle: article.subtitle,
+		subtitle: nullableText(article.subtitle),
 		slug: article.slug,
 		...(options.includeStatus ? { status: article.status } : {}),
-		seoTitle: article.seoTitle,
-		seoDescription: article.seoDescription,
-		excerpt: article.excerpt,
+		seoTitle: nullableText(article.seoTitle),
+		seoDescription: nullableText(article.seoDescription),
+		excerpt: nullableText(article.excerpt),
 		coverImage: article.coverImage ?? null,
 		contentJson: article.contentJson,
 		tags: article.tags ?? [],
-		...(typeof article.featuredRank === 'number' ? { featuredRank: article.featuredRank } : {}),
-		...(article.featuredUntil ? { featuredUntil: article.featuredUntil } : {})
+		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
+		featuredUntil: article.featuredUntil ? article.featuredUntil : null
 	}
 }
 

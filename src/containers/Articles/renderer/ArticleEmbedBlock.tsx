@@ -100,9 +100,9 @@ function IframeEmbed({ config }: { config: ArticleEmbedConfig }) {
 				src={config.url}
 				title={config.title || config.sourceUrl}
 				loading="lazy"
-				referrerPolicy="no-referrer-when-downgrade"
-				allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-				sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation"
+				referrerPolicy="no-referrer"
+				allow="encrypted-media; picture-in-picture; fullscreen"
+				sandbox="allow-scripts allow-popups allow-presentation"
 				className="h-full w-full border-0"
 			/>
 		</div>

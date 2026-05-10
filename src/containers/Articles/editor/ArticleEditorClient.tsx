@@ -385,6 +385,20 @@ function TableRailButton({ label, onClick, children }: { label: string; onClick:
 	)
 }
 
+const SAFE_LINK_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
+
+function sanitizeLinkHref(raw: string): string | null {
+	const value = raw.trim()
+	if (!value) return null
+	if (value.startsWith('#') || value.startsWith('/') || value.startsWith('?')) return value
+	const schemeMatch = value.match(/^([a-z][a-z0-9+.-]*):/i)
+	if (schemeMatch) {
+		const scheme = (schemeMatch[1] + ':').toLowerCase()
+		return SAFE_LINK_SCHEMES.has(scheme) ? value : null
+	}
+	return `https://${value}`
+}
+
 function TableControlsOverlay({ editor }: { editor: Editor }) {
 	const [target, setTarget] = useState<HTMLElement | null>(null)
 	const [rect, setRect] = useState<DOMRect | null>(null)
@@ -914,15 +928,20 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		const url = raw.trim()
 		if (url === '') {
 			editor.chain().focus().extendMarkRange('link').unsetLink().run()
-		} else {
-			const href = /^[a-z]+:|^\//i.test(url) ? url : `https://${url}`
-			editor
-				.chain()
-				.focus()
-				.extendMarkRange('link')
-				.setLink({ href, target: newTab ? '_blank' : '_self' })
-				.run()
+			setLinkEdit(null)
+			return
 		}
+		const href = sanitizeLinkHref(url)
+		if (!href) {
+			toast.error('That link is not allowed')
+			return
+		}
+		editor
+			.chain()
+			.focus()
+			.extendMarkRange('link')
+			.setLink({ href, target: newTab ? '_blank' : '_self' })
+			.run()
 		setLinkEdit(null)
 	}
 
@@ -989,6 +1008,28 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		window.addEventListener('beforeunload', handler)
 		return () => window.removeEventListener('beforeunload', handler)
 	}, [isDirty])
+
+	useEffect(() => {
+		const hasInflight = () => isSaving || createArticleMutation.isPending
+		const handler = (nextUrl: string) => {
+			if (nextUrl === router.asPath) return
+			if (debounceRef.current) {
+				clearTimeout(debounceRef.current)
+				debounceRef.current = null
+				void saveRef.current({ silent: true })
+			}
+			if (!isDirty && !hasInflight()) return
+			const message = hasInflight()
+				? 'A save is still in progress. Leave anyway?'
+				: 'You have unsaved changes. Leave anyway?'
+			if (typeof window !== 'undefined' && !window.confirm(message)) {
+				router.events.emit('routeChangeError', new Error('routeChange aborted'), nextUrl, { shallow: false })
+				throw 'routeChange aborted to preserve unsaved changes'
+			}
+		}
+		router.events.on('routeChangeStart', handler)
+		return () => router.events.off('routeChangeStart', handler)
+	}, [isDirty, isSaving, createArticleMutation.isPending, router])
 
 	useEffect(() => {
 		return () => {
