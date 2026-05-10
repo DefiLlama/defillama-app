@@ -8,6 +8,7 @@ import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
+import { LastUpdatedProvider } from '~/components/LastUpdated'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
@@ -35,6 +36,7 @@ const client = new QueryClient()
 
 function App({ Component, pageProps }: AppProps) {
 	const reloadInProgressRef = useRef(false)
+	const { generatedAt, ...componentPageProps } = pageProps
 
 	useEffect(() => {
 		const handleRouteChange = () => {
@@ -147,7 +149,9 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			<Component {...pageProps} />
+			<LastUpdatedProvider generatedAt={generatedAt}>
+				<Component {...componentPageProps} />
+			</LastUpdatedProvider>
 		</>
 	)
 }

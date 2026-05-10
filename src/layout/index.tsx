@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
+import { LastUpdated } from '~/components/LastUpdated'
 import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
@@ -15,6 +16,7 @@ interface ILayoutProps extends ISEOProps {
 	metricFiltersLabel?: string
 	pageName?: Array<string>
 	announcement?: React.ReactNode
+	generatedAt?: string | number | Date
 	hideDesktopSearchLlamaAiButton?: boolean
 	hideDesktopSearch?: boolean
 }
@@ -29,6 +31,7 @@ function Layout({
 	metricFilters,
 	metricFiltersLabel,
 	announcement,
+	generatedAt,
 	hideDesktopSearchLlamaAiButton = false,
 	hideDesktopSearch = false,
 	...props
@@ -53,6 +56,7 @@ function Layout({
 				)}
 				{announcement ?? null}
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
+				<LastUpdated generatedAt={generatedAt} />
 				{children}
 			</main>
 			{isClient ? (

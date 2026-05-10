@@ -16,10 +16,12 @@ const REDIS_URL = process.env.REDIS_URL as string
 
 const MAX_PAGE_BUILD_RETRIES = Math.max(1, getEnvNumber('PAGE_BUILD_MAX_RETRIES', 3))
 
+type GeneratedAtProps = { generatedAt: string }
+
 export const withPerformanceLogging = <T extends { [key: string]: any }, P extends ParsedUrlQuery = ParsedUrlQuery>(
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T, P>
-): GetStaticProps<T, P> => {
+): GetStaticProps<T & GeneratedAtProps, P> => {
 	return async (context: GetStaticPropsContext<P>) => {
 		const run = async () => runPerformanceLoggedStaticProps(filename, getStaticPropsFunction, context)
 		const attributes = staticRouteTelemetryAttributes(context.params)
@@ -34,7 +36,7 @@ async function runPerformanceLoggedStaticProps<
 	filename: string,
 	getStaticPropsFunction: GetStaticProps<T, P>,
 	context: GetStaticPropsContext<P>
-): Promise<GetStaticPropsResult<T>> {
+): Promise<GetStaticPropsResult<T & GeneratedAtProps>> {
 	const start = Date.now()
 	const { params } = context
 	let lastError: Error | null = null
@@ -48,7 +50,7 @@ async function runPerformanceLoggedStaticProps<
 				await setPageBuildTimes(`${filename} ${JSON.stringify(params ?? '')}`, [Date.now(), `${elapsed}ms`])
 			}
 
-			return props
+			return addGeneratedAt(props)
 		} catch (error) {
 			lastError = normalizeError(error)
 			const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError)
@@ -72,6 +74,21 @@ async function runPerformanceLoggedStaticProps<
 	const elapsed = Date.now() - start
 	await setPageBuildTimes(`${filename} ERROR`, [Date.now(), `${elapsed}ms`])
 	throw lastError ?? new Error(`${filename}: Unknown build error`)
+}
+
+async function addGeneratedAt<T>(result: GetStaticPropsResult<T>): Promise<GetStaticPropsResult<T & GeneratedAtProps>> {
+	if ('props' in result) {
+		const props = await result.props
+		return {
+			...result,
+			props: {
+				...props,
+				generatedAt: new Date().toISOString()
+			}
+		}
+	}
+
+	return result
 }
 
 type FetchOverCacheOptions = RequestInit & { ttl?: string | number; silent?: boolean; timeout?: number }
