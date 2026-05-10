@@ -393,6 +393,18 @@ describe('getProtocolsCategoriesPageData EVM filter', () => {
 		// Non-EVM: DEX=80, Lending=60
 		expect(result.tableDataNonEvm.map((row) => row.name)).toEqual(['DEX', 'Lending'])
 	})
+
+	it('disables EVM filter gracefully when /chains fetch fails', async () => {
+		fetchJsonMock.mockImplementation(async (url: string) => {
+			if (url.endsWith('/chains')) throw new Error('network error')
+			return null
+		})
+
+		const result = await getProtocolsCategoriesPageData()
+
+		expect(result.isEvmFilterAvailable).toBe(false)
+		expect(result.tableData.length).toBeGreaterThan(0)
+	})
 })
 
 describe('getProtocolsCategoriesPageData revenue allocation', () => {
