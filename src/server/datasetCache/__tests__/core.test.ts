@@ -1,9 +1,10 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	DATASET_DOMAINS,
+	DatasetCacheIntegrityError,
 	DatasetDomainUnavailableError,
 	buildEmptyDatasetManifest,
 	readDatasetDomainJson,
@@ -98,6 +99,44 @@ describe('dataset cache JSON reader', () => {
 
 		await expect(readDatasetDomainJson('yields', 'rows.json')).resolves.toEqual([{ pool: 'a' }])
 		vi.unstubAllEnvs()
+	})
+
+	it('rejects domain JSON paths that escape the domain directory', async () => {
+		tempDir = await mkdtemp(path.join(os.tmpdir(), 'dataset-cache-core-'))
+		vi.stubEnv('DATASET_CACHE_DIR', tempDir)
+		await writeDatasetManifest(buildEmptyDatasetManifest(), tempDir)
+
+		await expect(readDatasetDomainJson('yields', '../manifest.json')).rejects.toThrow(
+			'Dataset cache path escapes domain "yields"'
+		)
+		vi.unstubAllEnvs()
+	})
+
+	it('reports ready-domain file read failures as integrity errors', async () => {
+		tempDir = await mkdtemp(path.join(os.tmpdir(), 'dataset-cache-core-'))
+		vi.stubEnv('DATASET_CACHE_DIR', tempDir)
+		await writeDatasetManifest(buildEmptyDatasetManifest(), tempDir)
+		await mkdir(path.join(tempDir, 'yields'), { recursive: true })
+		await writeFile(path.join(tempDir, 'yields', 'rows.json'), '{')
+
+		await expect(readDatasetDomainJson('yields', 'rows.json')).rejects.toBeInstanceOf(DatasetCacheIntegrityError)
+		vi.unstubAllEnvs()
+	})
+
+	it('evicts stale cached JSON when background refresh fails', async () => {
+		tempDir = await mkdtemp(path.join(os.tmpdir(), 'dataset-cache-core-'))
+		const filePath = path.join(tempDir, 'payload.json')
+		const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		await writeJsonFile(filePath, { version: 1 })
+		await expect(readJsonFile(filePath)).resolves.toEqual({ version: 1 })
+		await writeFile(filePath, '{')
+		await expect(readJsonFile(filePath)).resolves.toEqual({ version: 1 })
+
+		await vi.waitFor(async () => {
+			await expect(readJsonFile(filePath)).rejects.toThrow()
+		})
+		consoleWarnSpy.mockRestore()
 	})
 
 	it('writes ready status for all empty manifest domains', () => {

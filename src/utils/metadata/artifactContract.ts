@@ -101,10 +101,6 @@ export function getMetadataArtifactEntries(payload: CoreMetadataPayload): Array<
 	return entries
 }
 
-function hasRecordEntries(value: Record<string, unknown>): boolean {
-	return Object.keys(value).length > 0
-}
-
 export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): MetadataCache {
 	return {
 		chainMetadata: payload.chains,
@@ -112,10 +108,7 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 		categoriesAndTags: payload.categoriesAndTags,
 		cexs: payload.cexs,
 		rwaList: payload.rwaList,
-		rwaPerpsList: {
-			...payload.rwaPerpsList,
-			assetGroups: payload.rwaPerpsList.assetGroups ?? []
-		},
+		rwaPerpsList: payload.rwaPerpsList,
 		tokenlist: payload.tokenlist,
 		tokenDirectory: payload.tokenDirectory,
 		protocolDisplayNames: createStringLookupMap(payload.protocolDisplayNames),
@@ -135,35 +128,17 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 }
 
 export function applyMetadataRefresh(metadataCache: MetadataCache, payload: CoreMetadataPayload): void {
-	if (hasRecordEntries(payload.protocols)) {
-		metadataCache.protocolMetadata = payload.protocols
-		metadataCache.protocolDisplayNames = createStringLookupMap(payload.protocolDisplayNames)
-	} else {
-		console.error('[metadata] refresh returned empty protocol metadata, keeping stale cache')
-	}
-
-	if (hasRecordEntries(payload.chains)) {
-		metadataCache.chainMetadata = payload.chains
-		metadataCache.chainDisplayNames = createStringLookupMap(payload.chainDisplayNames)
-	} else {
-		console.error('[metadata] refresh returned empty chain metadata, keeping stale cache')
-	}
-
+	metadataCache.protocolMetadata = payload.protocols
+	metadataCache.protocolDisplayNames = createStringLookupMap(payload.protocolDisplayNames)
+	metadataCache.chainMetadata = payload.chains
+	metadataCache.chainDisplayNames = createStringLookupMap(payload.chainDisplayNames)
 	metadataCache.categoriesAndTags = payload.categoriesAndTags
 	metadataCache.cexs = payload.cexs
 	metadataCache.rwaList = payload.rwaList
 	metadataCache.rwaPerpsList = payload.rwaPerpsList
 	metadataCache.cgExchangeIdentifiers = payload.cgExchangeIdentifiers
-	if (hasRecordEntries(payload.tokenlist)) {
-		metadataCache.tokenlist = payload.tokenlist
-	} else {
-		console.error('[metadata] refresh returned an empty tokenlist, keeping stale cache')
-	}
-	if (hasRecordEntries(payload.tokenDirectory)) {
-		metadataCache.tokenDirectory = payload.tokenDirectory
-	} else {
-		console.error('[metadata] refresh returned an empty token directory, keeping stale cache')
-	}
+	metadataCache.tokenlist = payload.tokenlist
+	metadataCache.tokenDirectory = payload.tokenDirectory
 	metadataCache.liquidationsTokenSymbols = payload.liquidationsTokenSymbols
 	metadataCache.liquidationsTokenSymbolsSet = new Set(payload.liquidationsTokenSymbols)
 	metadataCache.emissionsProtocolsList = payload.emissionsProtocolsList

@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { YIELD_CHAIN_API, YIELD_CONFIG_API, YIELD_LEND_BORROW_API, YIELD_POOLS_API, YIELD_URL_API } from '~/constants'
+import {
+	YIELD_CHAIN_API,
+	YIELD_CONFIG_API,
+	YIELD_LEND_BORROW_API,
+	YIELD_POOLS_API,
+	YIELD_TOKEN_CATEGORIES_API,
+	YIELD_URL_API
+} from '~/constants'
 
 const {
 	fetchJsonMock,
@@ -42,6 +49,7 @@ function mockYieldApiResponses() {
 		if (url === YIELD_URL_API) return Promise.resolve({})
 		if (url === YIELD_CHAIN_API) return Promise.resolve([])
 		if (url === YIELD_LEND_BORROW_API) return Promise.resolve([])
+		if (url === YIELD_TOKEN_CATEGORIES_API) return Promise.resolve({})
 		return Promise.resolve({})
 	})
 	fetchProtocolsMock.mockResolvedValue({ protocols: [], parentProtocols: [] })
@@ -69,6 +77,7 @@ describe('yield network queries', () => {
 		expect(fetchJsonMock).toHaveBeenCalledWith(YIELD_CONFIG_API, { timeout: 180_000 })
 		expect(fetchJsonMock).toHaveBeenCalledWith(YIELD_URL_API, { timeout: 180_000 })
 		expect(fetchJsonMock).toHaveBeenCalledWith(YIELD_CHAIN_API, { timeout: 180_000 })
+		expect(fetchJsonMock).toHaveBeenCalledWith(YIELD_TOKEN_CATEGORIES_API, { timeout: 180_000 })
 	})
 
 	it('passes explicit long timeouts to the yield config API', async () => {

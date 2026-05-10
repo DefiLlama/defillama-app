@@ -17,7 +17,7 @@ import {
 } from '../yields'
 import { readThroughDatasetCache } from './source'
 
-const YIELD_POOL_CONFIG_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const YIELD_POOL_CONFIG_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export type YieldPoolPageData = {
 	pool: IYieldTableRow

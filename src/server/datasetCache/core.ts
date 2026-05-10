@@ -51,8 +51,24 @@ export class DatasetDomainUnavailableError extends Error {
 	}
 }
 
+export class DatasetCacheIntegrityError extends Error {
+	constructor(
+		public readonly domain: DatasetDomain,
+		public readonly relativePath: string,
+		cause: unknown
+	) {
+		const message = cause instanceof Error ? cause.message : String(cause)
+		super(`Dataset cache domain "${domain}" has invalid artifact "${relativePath}": ${message}`)
+		this.name = 'DatasetCacheIntegrityError'
+	}
+}
+
 export function isDatasetDomainUnavailableError(error: unknown): error is DatasetDomainUnavailableError {
 	return error instanceof DatasetDomainUnavailableError
+}
+
+export function isDatasetCacheIntegrityError(error: unknown): error is DatasetCacheIntegrityError {
+	return error instanceof DatasetCacheIntegrityError
 }
 
 export function getDatasetCacheRootDir(): string {
@@ -91,7 +107,17 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
 
 export async function readDatasetDomainJson<T>(domain: DatasetDomain, relativePath: string): Promise<T> {
 	await assertDatasetDomainReady(domain)
-	return readJsonFile<T>(path.join(getDatasetDomainDir(domain), relativePath))
+	const domainDir = getDatasetDomainDir(domain)
+	const targetPath = path.resolve(domainDir, relativePath)
+	const relativeTargetPath = path.relative(domainDir, targetPath)
+	if (relativeTargetPath.startsWith('..') || path.isAbsolute(relativeTargetPath)) {
+		throw new Error(`Dataset cache path escapes domain "${domain}": ${relativePath}`)
+	}
+	try {
+		return await readJsonFile<T>(targetPath)
+	} catch (error) {
+		throw new DatasetCacheIntegrityError(domain, relativePath, error)
+	}
 }
 
 export async function writeJsonFile(filePath: string, value: unknown): Promise<void> {

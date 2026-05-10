@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, stat } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -55,5 +55,20 @@ describe('dataset cache publish', () => {
 
 		await expect(publishDatasetCache()).rejects.toThrow('build failed')
 		await expect(stat(`${rootDir}.tmp`)).rejects.toThrow()
+	})
+
+	it('recovers a backup before refreshing metadata', async () => {
+		tempDir = await mkdtemp(path.join(os.tmpdir(), 'dataset-cache-publish-'))
+		const rootDir = path.join(tempDir, 'datasets')
+		const backupDir = `${rootDir}.bak`
+		vi.stubEnv('DATASET_CACHE_DIR', rootDir)
+		refreshMetadataIfStaleMock.mockRejectedValue(new Error('metadata failed'))
+		await mkdir(backupDir, { recursive: true })
+		await writeFile(path.join(backupDir, 'marker.txt'), 'restored')
+		const { publishDatasetCache } = await import('../publish')
+
+		await expect(publishDatasetCache()).rejects.toThrow('metadata failed')
+
+		await expect(readFile(path.join(rootDir, 'marker.txt'), 'utf8')).resolves.toBe('restored')
 	})
 })

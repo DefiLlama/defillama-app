@@ -12,6 +12,8 @@ const CACHE_DIR = path.join(__dirname, '../.cache')
 const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
 
 const FIVE_MINUTES = 5 * 60 * 1000
+const isLocalDevWithoutApiKey = process.env.NODE_ENV === 'development' && !process.env.API_KEY
+const shouldWriteStubCacheOnFailure = process.env.CI || process.env.NODE_ENV === 'development'
 let defillamaPages
 try {
 	const fileContent = fs.readFileSync(path.join('public', 'pages.json'), 'utf8')
@@ -25,6 +27,19 @@ try {
 }
 
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
+
+function writeStubCacheArtifacts() {
+	if (!fs.existsSync(CACHE_DIR)) {
+		fs.mkdirSync(CACHE_DIR, { recursive: true })
+	}
+	for (const [file, data] of getMetadataArtifactEntries(METADATA_CI_STUBS)) {
+		const filePath = path.join(CACHE_DIR, file)
+		if (!fs.existsSync(filePath)) {
+			fs.writeFileSync(filePath, JSON.stringify(data))
+		}
+	}
+	fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
+}
 
 async function pullData() {
 	const endAt = Date.now()
@@ -173,17 +188,9 @@ async function pullData() {
 	} catch (error) {
 		console.log('Error pulling data:', error)
 
-		if (process.env.CI) {
-			console.log('CI detected — writing empty stub cache so typecheck can proceed.')
-			if (!fs.existsSync(CACHE_DIR)) {
-				fs.mkdirSync(CACHE_DIR)
-			}
-			for (const [file, data] of getMetadataArtifactEntries(METADATA_CI_STUBS)) {
-				const filePath = path.join(CACHE_DIR, file)
-				if (!fs.existsSync(filePath)) {
-					fs.writeFileSync(filePath, JSON.stringify(data))
-				}
-			}
+		if (shouldWriteStubCacheOnFailure) {
+			console.log('Writing empty metadata stub cache so local dev and CI can proceed.')
+			writeStubCacheArtifacts()
 			process.exit(0)
 		}
 
@@ -202,7 +209,11 @@ function shouldPullData() {
 	return Date.now() - lastPull > FIVE_MINUTES
 }
 
-if (shouldPullData()) {
+if (isLocalDevWithoutApiKey) {
+	console.log('No API_KEY in local development — using existing metadata cache or empty stubs.')
+	writeStubCacheArtifacts()
+	process.exit(0)
+} else if (shouldPullData()) {
 	pullData()
 		.then(() => {
 			process.exit(0) // Exit successfully

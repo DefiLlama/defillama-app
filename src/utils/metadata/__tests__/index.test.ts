@@ -122,11 +122,12 @@ function createDeferred<T>() {
 
 describe('metadata refresh', () => {
 	beforeEach(() => {
+		vi.unstubAllEnvs()
 		vi.resetModules()
 		fetchCoreMetadataMock.mockReset()
 	})
 
-	it('keeps the existing token directory when a refresh returns an empty one', async () => {
+	it('applies an empty token directory refresh payload directly', async () => {
 		const { applyMetadataRefresh, createMetadataCacheFromArtifacts } = await import('../artifactContract')
 		const existingDirectory = {
 			aave: {
@@ -135,7 +136,6 @@ describe('metadata refresh', () => {
 				route: '/token/AAVE'
 			}
 		}
-		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const metadata = createMetadataCacheFromArtifacts(
 			createMetadataPayload({
 				tokenDirectory: existingDirectory
@@ -144,15 +144,10 @@ describe('metadata refresh', () => {
 
 		applyMetadataRefresh(metadata, createMetadataPayload())
 
-		expect(metadata.tokenDirectory).toEqual(existingDirectory)
-		expect(consoleErrorSpy).toHaveBeenCalledWith(
-			'[metadata] refresh returned an empty token directory, keeping stale cache'
-		)
-
-		consoleErrorSpy.mockRestore()
+		expect(metadata.tokenDirectory).toEqual({})
 	})
 
-	it('keeps the existing protocol metadata when a refresh returns empty protocol data', async () => {
+	it('applies empty protocol metadata refresh payloads directly', async () => {
 		const { applyMetadataRefresh, createMetadataCacheFromArtifacts } = await import('../artifactContract')
 		const existingProtocols = {
 			'parent#aave': {
@@ -161,7 +156,6 @@ describe('metadata refresh', () => {
 				tvl: true
 			}
 		}
-		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 		const metadata = createMetadataCacheFromArtifacts(
 			createMetadataPayload({
 				protocols: existingProtocols,
@@ -179,13 +173,8 @@ describe('metadata refresh', () => {
 			})
 		)
 
-		expect(metadata.protocolMetadata).toEqual(existingProtocols)
-		expect(metadata.protocolDisplayNames.get('aave')).toBe('Aave')
-		expect(consoleErrorSpy).toHaveBeenCalledWith(
-			'[metadata] refresh returned empty protocol metadata, keeping stale cache'
-		)
-
-		consoleErrorSpy.mockRestore()
+		expect(metadata.protocolMetadata).toEqual({})
+		expect(metadata.protocolDisplayNames.size).toBe(0)
 	})
 
 	it('replaces the token directory when refresh returns token data', async () => {
@@ -254,4 +243,29 @@ describe('metadata refresh', () => {
 		expect(metadata.protocolDisplayNames.get('morpho')).toBe('Morpho')
 		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
 	}, 15_000)
+
+	it('applies the refresh cooldown after failed refreshes', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		fetchCoreMetadataMock.mockRejectedValue(new Error('metadata failed'))
+		const metadataModule = await import('../index')
+
+		await metadataModule.refreshMetadataIfStale()
+		await metadataModule.refreshMetadataIfStale()
+
+		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
+		expect(consoleErrorSpy).toHaveBeenCalledWith('[metadata] refresh failed, keeping stale cache:', expect.any(Error))
+		consoleErrorSpy.mockRestore()
+	})
+
+	it('skips refresh in local development without an API key', async () => {
+		vi.stubEnv('NODE_ENV', 'development')
+		vi.stubEnv('API_KEY', '')
+		const metadataModule = await import('../index')
+
+		await metadataModule.refreshMetadataIfStale()
+		metadataModule.refreshMetadataInBackgroundIfStale()
+
+		expect(fetchCoreMetadataMock).not.toHaveBeenCalled()
+	})
 })

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { getFastJsonTimeoutMs } from '~/utils/async'
 
 const fetchAdapterProtocolChartData = vi.fn()
 const fetchProtocolTvlChart = vi.fn().mockResolvedValue([])
@@ -147,7 +148,7 @@ describe('getProtocolOverviewPageData', () => {
 				protocolLlamaswapDataset: {}
 			})
 
-			expect(fetchProtocolTvlChart).toHaveBeenCalledWith({ protocol: 'test-protocol', timeout: 10_000 })
+			expect(fetchProtocolTvlChart).toHaveBeenCalledWith({ protocol: 'test-protocol', timeout: getFastJsonTimeoutMs() })
 			expect(data.availableCharts).toContain('TVL')
 			expect(data.defaultToggledCharts).toEqual(['TVL'])
 			expect(data.initialMultiSeriesChartData).toEqual({})

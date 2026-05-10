@@ -136,6 +136,11 @@ async function readIndexAsRows(filePath: string, rowById: Map<string, YieldRow>)
 		.filter((row): row is YieldRow => Boolean(row))
 }
 
+async function readIndexAsRowIds(filePath: string): Promise<string[]> {
+	const entries = await readJsonFile<Array<YieldRow | string>>(filePath)
+	return entries.map((entry) => (isYieldRow(entry) ? getRowId(entry) : entry)).filter(Boolean)
+}
+
 async function main() {
 	const datasetRoot = getDatasetRootDir()
 	const yieldsDir = path.join(datasetRoot, 'yields')
@@ -152,28 +157,20 @@ async function main() {
 	const rows = await readJsonFile<YieldRow[]>(rowsPath)
 	const rowById = new Map(rows.map((row) => [getRowId(row), row] as const).filter(([id]) => Boolean(id)))
 	const sizeEstimate = await collectIndexSizeEstimate(byTokenDir, rowById)
-	const referenceIndexJsonByToken = new Map<string, string>()
-	const fullRowIndexJsonByToken = new Map<string, string>()
+	const indexFilePathByToken = new Map<string, string | null>()
 
 	for (const token of tokens) {
 		const filePath = path.join(byTokenDir, getDatasetIndexFileName(token))
-		if (!(await pathExists(filePath))) {
-			referenceIndexJsonByToken.set(token, '[]')
-			fullRowIndexJsonByToken.set(token, '[]')
-			continue
-		}
-		const tokenRows = await readIndexAsRows(filePath, rowById)
-		const rowIds = tokenRows.map(getRowId).filter(Boolean)
-		referenceIndexJsonByToken.set(token, JSON.stringify(rowIds))
-		fullRowIndexJsonByToken.set(token, JSON.stringify(tokenRows))
+		indexFilePathByToken.set(token, (await pathExists(filePath)) ? filePath : null)
 	}
 
 	const fullRowCold = []
 	for (const token of tokens) {
 		const { value, durationMs } = await measure(async () => {
-			const filePath = path.join(byTokenDir, getDatasetIndexFileName(token))
-			if (await pathExists(filePath)) {
-				return dedupeRows(JSON.parse(fullRowIndexJsonByToken.get(token) ?? '[]') as YieldRow[])
+			const filePath = indexFilePathByToken.get(token)
+			if (filePath) {
+				const tokenRows = await readIndexAsRows(filePath, rowById)
+				return dedupeRows(tokenRows)
 			}
 			return fallbackFilterRows(await readJsonFile<YieldRow[]>(rowsPath), token)
 		})
@@ -183,11 +180,11 @@ async function main() {
 	const fullRowWarmCache = new Map<string, YieldRow[]>()
 	const referenceWarmCache = new Map<string, string[]>()
 	for (const token of tokens) {
-		const filePath = path.join(byTokenDir, getDatasetIndexFileName(token))
-		if (await pathExists(filePath)) {
+		const filePath = indexFilePathByToken.get(token)
+		if (filePath) {
 			fullRowWarmCache.set(token, dedupeRows(await readIndexAsRows(filePath, rowById)))
 		}
-		referenceWarmCache.set(token, JSON.parse(referenceIndexJsonByToken.get(token) ?? '[]') as string[])
+		referenceWarmCache.set(token, filePath ? await readIndexAsRowIds(filePath) : [])
 	}
 
 	const referenceCold = []
@@ -195,7 +192,8 @@ async function main() {
 		const { value, durationMs } = await measure(async () => {
 			const coldRows = await readJsonFile<YieldRow[]>(rowsPath)
 			const coldRowById = new Map(coldRows.map((row) => [getRowId(row), row] as const).filter(([id]) => Boolean(id)))
-			const ids = JSON.parse(referenceIndexJsonByToken.get(token) ?? '[]') as string[]
+			const filePath = indexFilePathByToken.get(token)
+			const ids = filePath ? await readIndexAsRowIds(filePath) : []
 			if (ids.length === 0) return fallbackFilterRows(coldRows, token)
 			return ids.map((id) => coldRowById.get(id)).filter((row): row is YieldRow => Boolean(row))
 		})
@@ -227,6 +225,12 @@ async function main() {
 			: ((sizeEstimate.fullRowBytes - sizeEstimate.referenceBytes) / sizeEstimate.fullRowBytes) * 100
 	const fullRowWarmP95 = percentile(fullRowWarmDurations, 0.95)
 	const referenceWarmP95 = percentile(referenceWarmDurations, 0.95)
+	const detectedIndexFormat =
+		sizeEstimate.referenceFileCount === sizeEstimate.fileCount
+			? 'reference'
+			: sizeEstimate.fullRowFileCount === sizeEstimate.fileCount
+				? 'full-row'
+				: 'mixed'
 	const switchToReferenceIndexes = referenceSizeReductionPct >= 70 && referenceWarmP95 <= fullRowWarmP95 + 10
 
 	console.log(
@@ -241,12 +245,7 @@ async function main() {
 					estimatedFullRowByTokenBytes: sizeEstimate.fullRowBytes,
 					estimatedReferenceByTokenBytes: sizeEstimate.referenceBytes,
 					estimatedReferenceSizeReductionPct: Number(referenceSizeReductionPct.toFixed(2)),
-					detectedIndexFormat:
-						sizeEstimate.referenceFileCount === sizeEstimate.fileCount
-							? 'reference'
-							: sizeEstimate.fullRowFileCount === sizeEstimate.fileCount
-								? 'full-row'
-								: 'mixed',
+					detectedIndexFormat,
 					fullRowFileCount: sizeEstimate.fullRowFileCount,
 					referenceFileCount: sizeEstimate.referenceFileCount
 				},
@@ -272,9 +271,12 @@ async function main() {
 						? 'reference indexes meet the configured size and warm-latency thresholds'
 						: 'keep full-row indexes unless both size and warm-latency thresholds are met'
 				},
-				nextStep: switchToReferenceIndexes
-					? 'regenerate .cache/datasets so yields/by-token files contain row ids instead of full rows'
-					: 'keep the current full-row yields/by-token artifact'
+				nextStep:
+					detectedIndexFormat === 'reference'
+						? 'current .cache/datasets already uses reference yields/by-token indexes'
+						: switchToReferenceIndexes
+							? 'regenerate .cache/datasets so yields/by-token files contain row ids instead of full rows'
+							: 'keep the current full-row yields/by-token artifact'
 			},
 			null,
 			2

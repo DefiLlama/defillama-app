@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
 	METADATA_ARTIFACT_FILES,
 	METADATA_CI_STUBS,
@@ -76,9 +76,8 @@ describe('metadata artifact contract', () => {
 		expect(metadata.liquidationsTokenSymbolsSet.has('ETH')).toBe(true)
 	})
 
-	it('keeps stale critical maps when refresh payloads are empty', () => {
+	it('applies refresh payloads directly', () => {
 		const metadata = createMetadataCacheFromArtifacts(createPayload())
-		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		applyMetadataRefresh(
 			metadata,
@@ -90,12 +89,9 @@ describe('metadata artifact contract', () => {
 			})
 		)
 
-		expect(metadata.protocolMetadata['parent#aave'].displayName).toBe('Aave')
-		expect(metadata.tokenDirectory.aave.name).toBe('Aave')
-		expect(metadata.tokenlist.aave.symbol).toBe('AAVE')
-		expect(consoleErrorSpy).toHaveBeenCalledWith(
-			'[metadata] refresh returned empty protocol metadata, keeping stale cache'
-		)
-		consoleErrorSpy.mockRestore()
+		expect(metadata.protocolMetadata).toEqual({})
+		expect(metadata.protocolDisplayNames.size).toBe(0)
+		expect(metadata.tokenDirectory).toEqual({})
+		expect(metadata.tokenlist).toEqual({})
 	})
 })

@@ -169,7 +169,7 @@ export async function getYieldPageDataFromNetwork(options: YieldFetchOptions = {
 
 	// fetch token categories for yields filtering (tokenized assets, meme tokens, etc.)
 	try {
-		const tokenCategories = await fetchJson(YIELD_TOKEN_CATEGORIES_API)
+		const tokenCategories = await fetchJsonWithOptionalTimeout(YIELD_TOKEN_CATEGORIES_API, options)
 		data['tokenCategories'] = tokenCategories && typeof tokenCategories === 'object' ? tokenCategories : {}
 
 		// Dynamically add token filter options for non-meme categories

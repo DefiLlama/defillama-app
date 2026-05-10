@@ -58,6 +58,7 @@ function refreshJsonFileInBackground(filePath: string): void {
 
 	const refresh = readAndCacheJsonFile(filePath)
 		.catch((error) => {
+			jsonCache.delete(filePath)
 			console.warn(`[datasetCache] failed to refresh ${path.basename(filePath)}:`, error)
 		})
 		.then(() => undefined)

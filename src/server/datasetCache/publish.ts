@@ -15,15 +15,16 @@ export async function publishDatasetCache(): Promise<void> {
 	const parentDir = path.dirname(rootDir)
 	const tempDir = path.join(parentDir, `${path.basename(rootDir)}.tmp`)
 	const backupDir = path.join(parentDir, `${path.basename(rootDir)}.bak`)
-	const metadataModule = await import('~/utils/metadata')
 
 	await ensureDirectory(parentDir)
-	await metadataModule.refreshMetadataIfStale()
-	await recoverDirectoryReplacement(rootDir, backupDir)
-	await removeDirectory(tempDir)
-	await ensureDirectory(tempDir)
 
 	try {
+		await recoverDirectoryReplacement(rootDir, backupDir)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		await removeDirectory(tempDir)
+		await ensureDirectory(tempDir)
+
 		const manifest = await buildAllDatasetDomains(tempDir)
 		await writeDatasetManifest(manifest, tempDir)
 		await readDatasetManifestFrom(tempDir)

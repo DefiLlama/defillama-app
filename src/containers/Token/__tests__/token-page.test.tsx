@@ -8,6 +8,8 @@ import type { TokenOverviewData } from '~/containers/Token/tokenOverview'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import TokenPage, { getStaticPaths, getStaticProps } from '~/pages/token/[token]'
+import { DatasetCacheIntegrityError } from '~/server/datasetCache/core'
+import { hasTokenLiquidationsData } from '~/server/datasetCache/runtime/liquidations'
 import {
 	fetchTokenRightsEntries,
 	fetchTokenRightsEntryByDefillamaId,
@@ -1391,6 +1393,18 @@ describe('token page', () => {
 		expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to load token risk data for chainlink', expect.any(Error))
 
 		consoleErrorSpy.mockRestore()
+	})
+
+	it('rethrows dataset cache integrity errors from optional dataset sections', async () => {
+		state.liquidationsTokenSymbolsSet = new Set(['BTC'])
+		const integrityError = new DatasetCacheIntegrityError(
+			'liquidations',
+			'raw/all.json',
+			new Error('corrupt liquidations index')
+		)
+		vi.mocked(hasTokenLiquidationsData).mockRejectedValueOnce(integrityError)
+
+		await expect(getStaticProps({ params: { token: 'btc' } } as never)).rejects.toThrow('corrupt liquidations index')
 	})
 
 	it('renders the risks section only when getStaticProps returns token risk data', async () => {
