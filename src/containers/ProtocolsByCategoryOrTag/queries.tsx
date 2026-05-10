@@ -998,7 +998,7 @@ const computeProtocolEvmSplit = (
 		if (chainTvlKey.includes('-')) continue
 		if (TVL_SETTINGS_KEYS_SET.has(chainTvlKey)) continue
 
-		const isEvm = evmChainsSet.has(chainTvlKey) || evmChainsSet.has(chainTvlKey.toLowerCase())
+		const isEvm = evmChainsSet.has(chainTvlKey)
 		if (isEvm) {
 			tvlEvm += chainTvlValue.tvl ?? 0
 			tvlPrevDayEvm += chainTvlValue.tvlPrevDay ?? 0
@@ -1108,9 +1108,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		// Presence by chain (not TVL) so revenue-only / zero-TVL protocols still
 		// land in the right bucket. Falls back to TVL signal when `chains` is empty.
 		const protocolChains = protocol.chains ?? []
-		const evmChainCount = protocolChains.filter(
-			(chainName) => evmChainsSet.has(chainName) || evmChainsSet.has(chainName.toLowerCase())
-		).length
+		const evmChainCount = protocolChains.filter((chainName) => evmChainsSet.has(chainName)).length
 		const nonEvmChainCount = protocolChains.length - evmChainCount
 		const protocolHasEvm = split.tvlEvm > 0 || evmChainCount > 0
 		const protocolHasNonEvm = split.tvlNonEvm > 0 || nonEvmChainCount > 0
