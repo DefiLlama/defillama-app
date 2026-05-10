@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { buildTokenBorrowRoutesData } from '~/containers/Token/tokenBorrowRoutes.server'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
 import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
@@ -9,12 +10,58 @@ import { getDatasetIndexFileName, isFileNotFoundError } from './indexKeys'
 
 type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
 
-function getYieldsDomainDir(): string {
-	return getDatasetDomainDir('yields')
+export const YIELDS_DATASET_FILES = {
+	rows: 'rows.json',
+	config: 'config.json',
+	lendBorrow: 'lend-borrow.json',
+	byTokenDir: 'by-token'
+} as const
+
+export function getYieldsDomainDir(rootDir?: string): string {
+	return rootDir ? path.join(rootDir, 'yields') : getDatasetDomainDir('yields')
+}
+
+export function getYieldsRowsPath(rootDir?: string): string {
+	return path.join(getYieldsDomainDir(rootDir), YIELDS_DATASET_FILES.rows)
+}
+
+export function getYieldsConfigPath(rootDir?: string): string {
+	return path.join(getYieldsDomainDir(rootDir), YIELDS_DATASET_FILES.config)
+}
+
+export function getYieldsLendBorrowPath(rootDir?: string): string {
+	return path.join(getYieldsDomainDir(rootDir), YIELDS_DATASET_FILES.lendBorrow)
+}
+
+export function getYieldsByTokenDir(rootDir?: string): string {
+	return path.join(getYieldsDomainDir(rootDir), YIELDS_DATASET_FILES.byTokenDir)
+}
+
+export function getYieldsTokenIndexPath(token: string, rootDir?: string): string {
+	return path.join(getYieldsByTokenDir(rootDir), getDatasetIndexFileName(token))
+}
+
+export function getYieldRowCacheId(row: Pick<IYieldTableRow, 'configID' | 'id' | 'pool'>): string {
+	return row.configID || row.id || row.pool
 }
 
 async function getYieldRows(): Promise<IYieldTableRow[]> {
-	return readJsonFile<IYieldTableRow[]>(`${getYieldsDomainDir()}/rows.json`)
+	return readJsonFile<IYieldTableRow[]>(getYieldsRowsPath())
+}
+
+async function resolveTokenYieldIndexEntries(rowIds: string[]): Promise<IYieldTableRow[]> {
+	const rows: IYieldTableRow[] = []
+	const rowById = await getIndexedYieldRows()
+
+	for (const rowId of rowIds) {
+		if (!rowId) continue
+		const row = rowById.get(rowId)
+		if (row) {
+			rows.push(row)
+		}
+	}
+
+	return rows
 }
 
 async function getIndexedTokenYieldRows(token: string): Promise<IYieldTableRow[] | null> {
@@ -28,12 +75,11 @@ async function getIndexedTokenYieldRows(token: string): Promise<IYieldTableRow[]
 
 	for (const variant of variants) {
 		try {
-			const rows = await readJsonFile<IYieldTableRow[]>(
-				`${getYieldsDomainDir()}/by-token/${getDatasetIndexFileName(variant)}`
-			)
+			const indexEntries = await readJsonFile<string[]>(getYieldsTokenIndexPath(variant))
+			const rows = await resolveTokenYieldIndexEntries(indexEntries)
 			foundIndex = true
 			for (const row of rows) {
-				rowsById.set(row.configID || row.id || row.pool, row)
+				rowsById.set(getYieldRowCacheId(row), row)
 			}
 		} catch (error) {
 			if (isFileNotFoundError(error)) {
@@ -59,9 +105,10 @@ async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
 
 	const byPoolId = new Map<string, IYieldTableRow>()
 	for (const row of rows) {
-		byPoolId.set(row.configID, row)
-		if (row.id) {
-			byPoolId.set(row.id, row)
+		for (const cacheId of [row.configID, row.id, row.pool]) {
+			if (cacheId) {
+				byPoolId.set(cacheId, row)
+			}
 		}
 	}
 
@@ -70,12 +117,12 @@ async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
 }
 
 async function getLendBorrowData(): Promise<LendBorrowData> {
-	return readJsonFile<LendBorrowData>(`${getYieldsDomainDir()}/lend-borrow.json`)
+	return readJsonFile<LendBorrowData>(getYieldsLendBorrowPath())
 }
 
 export async function getYieldConfigFromCache(): Promise<YieldConfigResponse> {
 	await readDatasetManifest()
-	return readJsonFile<YieldConfigResponse>(`${getYieldsDomainDir()}/config.json`)
+	return readJsonFile<YieldConfigResponse>(getYieldsConfigPath())
 }
 
 export async function getYieldPoolRowFromCache(poolId: string): Promise<IYieldTableRow | null> {

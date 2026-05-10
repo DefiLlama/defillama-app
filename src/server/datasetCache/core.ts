@@ -1,6 +1,7 @@
-import { randomUUID } from 'node:crypto'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { readDatasetCacheJson, writeDatasetCacheJson } from './jsonCache'
+export { readJsonFileOnce, writeJsonFileAtomically } from './jsonIo'
 
 export const DATASET_CACHE_ARTIFACT_VERSION = 1
 
@@ -21,27 +22,6 @@ export type DatasetManifest = {
 	artifactVersion: number
 	builtAt: number
 	domains: Record<DatasetDomain, { builtAt: number }>
-}
-
-type JsonCacheEntry = {
-	stat: {
-		mtimeMs: number
-		size: number
-		ino: number
-	}
-	value: unknown
-}
-
-const jsonCache = new Map<string, JsonCacheEntry>()
-const jsonCacheRefreshInFlight = new Map<string, Promise<void>>()
-const jsonCacheVersions = new Map<string, number>()
-
-function getJsonCacheVersion(filePath: string): number {
-	return jsonCacheVersions.get(filePath) ?? 0
-}
-
-function bumpJsonCacheVersion(filePath: string): void {
-	jsonCacheVersions.set(filePath, getJsonCacheVersion(filePath) + 1)
 }
 
 export function getDatasetCacheRootDir(): string {
@@ -74,83 +54,12 @@ export async function removeDirectory(targetPath: string): Promise<void> {
 	await fs.rm(targetPath, { recursive: true, force: true })
 }
 
-async function loadJsonFile<T>(filePath: string): Promise<T> {
-	const cacheVersion = getJsonCacheVersion(filePath)
-	const stat = await fs.stat(filePath)
-	const cached = jsonCache.get(filePath)
-	if (
-		cached &&
-		cached.stat.mtimeMs === stat.mtimeMs &&
-		cached.stat.size === stat.size &&
-		cached.stat.ino === stat.ino
-	) {
-		return cached.value as T
-	}
-
-	const fileContent = await fs.readFile(filePath, 'utf8')
-	const parsed = JSON.parse(fileContent) as T
-	if (getJsonCacheVersion(filePath) === cacheVersion) {
-		jsonCache.set(filePath, {
-			stat: {
-				mtimeMs: stat.mtimeMs,
-				size: stat.size,
-				ino: stat.ino
-			},
-			value: parsed
-		})
-	}
-
-	return parsed
-}
-
-function refreshJsonFileInBackground(filePath: string): void {
-	if (jsonCacheRefreshInFlight.has(filePath)) {
-		return
-	}
-
-	const refresh = loadJsonFile(filePath)
-		.catch((error) => {
-			console.warn(`[datasetCache] failed to refresh ${path.basename(filePath)}:`, error)
-		})
-		.then(() => undefined)
-		.finally(() => {
-			jsonCacheRefreshInFlight.delete(filePath)
-		})
-
-	jsonCacheRefreshInFlight.set(filePath, refresh)
-}
-
 export async function readJsonFile<T>(filePath: string): Promise<T> {
-	const cached = jsonCache.get(filePath)
-	if (cached) {
-		refreshJsonFileInBackground(filePath)
-		return cached.value as T
-	}
-
-	return loadJsonFile<T>(filePath)
+	return readDatasetCacheJson<T>(filePath)
 }
 
 export async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
-	await ensureDirectory(path.dirname(filePath))
-	const tempPath = `${filePath}.tmp-${process.pid}-${randomUUID()}`
-	let handle: Awaited<ReturnType<typeof fs.open>> | null = null
-
-	try {
-		handle = await fs.open(tempPath, 'w')
-		await handle.writeFile(JSON.stringify(value))
-		await handle.sync()
-		await handle.close()
-		handle = null
-		await fs.rename(tempPath, filePath)
-		bumpJsonCacheVersion(filePath)
-		jsonCache.delete(filePath)
-	} catch (error) {
-		if (handle) {
-			await handle.close().catch(() => undefined)
-		}
-		await fs.rm(tempPath, { force: true }).catch(() => undefined)
-		throw error
-	}
+	await writeDatasetCacheJson(filePath, value)
 }
 
 export async function readDatasetManifest(): Promise<DatasetManifest> {
