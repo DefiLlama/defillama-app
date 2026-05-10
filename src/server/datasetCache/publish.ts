@@ -3,12 +3,30 @@ import { buildAllDatasetDomains } from './builders'
 import {
 	ensureDirectory,
 	getDatasetCacheRootDir,
+	type DatasetManifest,
 	readDatasetManifestFrom,
 	recoverDirectoryReplacement,
 	removeDirectory,
 	replaceDirectoryWithBackup,
 	writeDatasetManifest
 } from './core'
+
+const DEFAULT_DATASET_CACHE_MAX_AGE_MS = 5 * 60 * 1000
+
+function getDatasetCacheMaxAgeMs(): number {
+	const raw = process.env.DATASET_CACHE_MAX_AGE_MS
+	if (raw == null) return DEFAULT_DATASET_CACHE_MAX_AGE_MS
+
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_DATASET_CACHE_MAX_AGE_MS
+}
+
+function shouldUseRecentDatasetCache(manifest: DatasetManifest): boolean {
+	if (process.env.DATASET_CACHE_FORCE_REFRESH === '1') return false
+
+	const maxAgeMs = getDatasetCacheMaxAgeMs()
+	return Date.now() - manifest.builtAt <= maxAgeMs
+}
 
 export async function publishDatasetCache(): Promise<void> {
 	const rootDir = getDatasetCacheRootDir()
@@ -20,8 +38,12 @@ export async function publishDatasetCache(): Promise<void> {
 
 	try {
 		await recoverDirectoryReplacement(rootDir, backupDir)
-		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
+		const currentManifest = await readDatasetManifestFrom(rootDir).catch(() => null)
+		if (currentManifest && shouldUseRecentDatasetCache(currentManifest)) {
+			console.log('[buildDatasetCache] Dataset cache was built recently. No need to rebuild.')
+			return
+		}
+
 		await removeDirectory(tempDir)
 		await ensureDirectory(tempDir)
 

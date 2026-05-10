@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getYieldPoolPageData } from '../runtime/yields'
 
 const { fetchJsonMock, mapPoolToYieldTableRowMock } = vi.hoisted(() => ({
 	fetchJsonMock: vi.fn(),
@@ -50,8 +51,6 @@ describe('dataset cache yields runtime adapter', () => {
 			projectslug: 'aave',
 			chains: ['Ethereum']
 		})
-		const { getYieldPoolPageData } = await import('../runtime/yields')
-
 		const result = await getYieldPoolPageData(poolId)
 
 		expect(fetchJsonMock.mock.calls[0][0]).toContain(encodeURIComponent(poolId))
@@ -61,8 +60,6 @@ describe('dataset cache yields runtime adapter', () => {
 	it.each(['79e042b5-e55d-4a4e-b0b0-6661a570470', '79e042b5-e55d-4a4e-b0b0-6661a570470z'])(
 		'returns null for invalid yield pool IDs',
 		async (poolId) => {
-			const { getYieldPoolPageData } = await import('../runtime/yields')
-
 			await expect(getYieldPoolPageData(poolId)).resolves.toEqual({
 				source: 'network',
 				data: null
@@ -75,8 +72,6 @@ describe('dataset cache yields runtime adapter', () => {
 	it('surfaces yield pool network failures', async () => {
 		const poolId = '79e042b5-e55d-4a4e-b0b0-6661a570470b'
 		fetchJsonMock.mockRejectedValueOnce(new Error('network failed'))
-		const { getYieldPoolPageData } = await import('../runtime/yields')
-
 		await expect(getYieldPoolPageData(poolId)).rejects.toThrow('network failed')
 		expect(mapPoolToYieldTableRowMock).not.toHaveBeenCalled()
 	})
@@ -84,8 +79,6 @@ describe('dataset cache yields runtime adapter', () => {
 	it('returns null for missing yield pool response data', async () => {
 		const poolId = '79e042b5-e55d-4a4e-b0b0-6661a570470b'
 		fetchJsonMock.mockResolvedValueOnce({})
-		const { getYieldPoolPageData } = await import('../runtime/yields')
-
 		await expect(getYieldPoolPageData(poolId)).resolves.toEqual({
 			source: 'network',
 			data: null

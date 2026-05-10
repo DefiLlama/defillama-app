@@ -234,6 +234,7 @@ export const useFetchProtocolChartData = ({
 	const selectedDenomination = toggledMetrics.denomination
 		? chartDenominationBySymbol.get(toggledMetrics.denomination)
 		: null
+	const hasAnyToggledChart = availableCharts.some((chartLabel) => toggledMetrics[protocolCharts[chartLabel]] === 'true')
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[name] ?? name
 	const prefetchedChartsInSeconds = useMemo(() => {
 		const normalized: Partial<Record<ProtocolChartsLabels, Array<[number, number]>>> = {}
@@ -258,7 +259,7 @@ export const useFetchProtocolChartData = ({
 		return normalized
 	}, [prefetchedChartsInSeconds])
 
-	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
+	const denominationGeckoId = isRouterReady && hasAnyToggledChart ? (selectedDenomination?.geckoId ?? null) : null
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<Record<
 		string,
 		number
@@ -344,41 +345,59 @@ export const useFetchProtocolChartData = ({
 	const isUsdInflowsToggled = toggledMetrics.usdInflows === 'true'
 	const isBridgeVolumeToggled = toggledMetrics.bridgeVolume === 'true'
 	const primaryTvlChartLabel: ProtocolChartsLabels = isCEX ? 'Total Assets' : 'TVL'
+	const isPrimaryTvlToggled = isCEX ? isTotalAssetsToggled : isTvlToggled
+	const needsCompositeTvlChart = isPrimaryTvlToggled || isUsdInflowsToggled
 
 	const shouldFetchStakingTvl = !!(
 		isRouterReady &&
 		currentTvlByChain?.staking != null &&
-		(tvlSettings?.staking || toggledMetrics.staking_tvl === 'true')
+		((needsCompositeTvlChart && tvlSettings?.staking) || isStakingTvlToggled)
 	)
 	const shouldFetchBorrowedTvl = !!(
 		isRouterReady &&
 		currentTvlByChain?.borrowed != null &&
-		(tvlSettings?.borrowed || toggledMetrics.borrowed_tvl === 'true')
+		((needsCompositeTvlChart && tvlSettings?.borrowed) || isBorrowedTvlToggled)
 	)
-	const shouldFetchPool2Tvl = !!(isRouterReady && currentTvlByChain?.pool2 != null && tvlSettings?.pool2)
+	const shouldFetchPool2Tvl = !!(
+		isRouterReady &&
+		needsCompositeTvlChart &&
+		currentTvlByChain?.pool2 != null &&
+		tvlSettings?.pool2
+	)
 	const shouldFetchDoubleCountedTvl = !!(
 		isRouterReady &&
+		needsCompositeTvlChart &&
 		currentTvlByChain?.doublecounted != null &&
 		tvlSettings?.doublecounted
 	)
 	const shouldFetchLiquidStakingTvl = !!(
 		isRouterReady &&
+		needsCompositeTvlChart &&
 		currentTvlByChain?.liquidstaking != null &&
 		tvlSettings?.liquidstaking
 	)
-	const shouldFetchVestingTvl = !!(isRouterReady && currentTvlByChain?.vesting != null && tvlSettings?.vesting)
-	const shouldFetchGovTokensTvl = !!(isRouterReady && currentTvlByChain?.govtokens != null && tvlSettings?.govtokens)
+	const shouldFetchVestingTvl = !!(
+		isRouterReady &&
+		needsCompositeTvlChart &&
+		currentTvlByChain?.vesting != null &&
+		tvlSettings?.vesting
+	)
+	const shouldFetchGovTokensTvl = !!(
+		isRouterReady &&
+		needsCompositeTvlChart &&
+		currentTvlByChain?.govtokens != null &&
+		tvlSettings?.govtokens
+	)
 	const baseTvlChartData = useMemo((): Array<[number, number]> => {
 		if (isCEX) {
 			return prefetchedChartsInSeconds['Total Assets'] ?? prefetchedChartsInSeconds['TVL'] ?? []
 		}
 		return prefetchedChartsInSeconds['TVL'] ?? []
 	}, [prefetchedChartsInSeconds, isCEX])
-	const isPrimaryTvlToggled = isCEX ? isTotalAssetsToggled : isTvlToggled
 	const shouldFetchBaseTvlChart = !!(
 		isRouterReady &&
 		metrics.tvl &&
-		isPrimaryTvlToggled &&
+		needsCompositeTvlChart &&
 		baseTvlChartData.length === 0 &&
 		availableCharts.includes(primaryTvlChartLabel)
 	)
@@ -387,7 +406,12 @@ export const useFetchProtocolChartData = ({
 		enabled: shouldFetchBaseTvlChart
 	})
 	const resolvedBaseTvlChartData = useMemo(
-		(): Array<[number, number]> => (baseTvlChartData.length > 0 ? baseTvlChartData : (fetchedBaseTvlChart ?? [])),
+		(): Array<[number, number]> =>
+			baseTvlChartData.length > 0
+				? baseTvlChartData
+				: fetchedBaseTvlChart
+					? normalizeSeriesToSeconds(fetchedBaseTvlChart)
+					: [],
 		[baseTvlChartData, fetchedBaseTvlChart]
 	)
 
