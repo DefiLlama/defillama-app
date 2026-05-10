@@ -98,7 +98,6 @@ const TOKEN_RIGHTS_FILTERS: Array<{ key: TokenRightsFilter; label: string }> = [
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
 	const metadataModule = await import('~/utils/metadata')
-	await metadataModule.refreshMetadataIfStale()
 	const holdersRevenue = await import('~/containers/DimensionAdapters/api')
 		.then((m) =>
 			m.fetchAdapterChainMetrics({

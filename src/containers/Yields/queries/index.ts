@@ -16,13 +16,17 @@ import { fetchJson } from '~/utils/async'
 import { buildRaiseValuations, formatYieldsPageData } from './utils'
 
 export type YieldConfigResponse = { protocols?: Record<string, { name?: string }> } | null
+type YieldFetchOptions = { timeout?: number }
 
-export async function getYieldPageDataFromNetwork() {
+const fetchJsonWithOptionalTimeout = <T = any>(url: string, options: YieldFetchOptions = {}) =>
+	fetchJson<T>(url, options.timeout != null ? { timeout: options.timeout } : undefined)
+
+export async function getYieldPageDataFromNetwork(options: YieldFetchOptions = {}) {
 	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
-		fetchJson(YIELD_POOLS_API),
-		fetchJson(YIELD_CONFIG_API),
-		fetchJson(YIELD_URL_API),
-		fetchJson(YIELD_CHAIN_API),
+		fetchJsonWithOptionalTimeout(YIELD_POOLS_API, options),
+		fetchJsonWithOptionalTimeout(YIELD_CONFIG_API, options),
+		fetchJsonWithOptionalTimeout(YIELD_URL_API, options),
+		fetchJsonWithOptionalTimeout(YIELD_CHAIN_API, options),
 		fetchProtocols(),
 		fetchRaisesFromNetwork().catch((): { raises: [] } => ({ raises: [] }))
 	])
@@ -232,8 +236,8 @@ export async function getYieldPageDataFromNetwork() {
 	}
 }
 
-export async function fetchYieldConfigFromNetwork(): Promise<YieldConfigResponse> {
-	return fetchJson<YieldConfigResponse>(YIELD_CONFIG_API)
+export async function fetchYieldConfigFromNetwork(options: YieldFetchOptions = {}): Promise<YieldConfigResponse> {
+	return fetchJsonWithOptionalTimeout<YieldConfigResponse>(YIELD_CONFIG_API, options)
 }
 
 export async function getYieldPageData() {
@@ -283,7 +287,10 @@ export type YieldsData = Awaited<ReturnType<typeof getYieldPageData>>
 const categoriesToKeepSet = new Set(['Lending', 'Undercollateralized Lending', 'CDP', 'NFT Lending'])
 const categoriesToKeepWithoutUndercollateralizedSet = new Set(['Lending', 'CDP', 'NFT Lending'])
 
-export async function getLendBorrowDataFromYieldPageData(yieldPageData: YieldPageData) {
+export async function getLendBorrowDataFromYieldPageData(
+	yieldPageData: YieldPageData,
+	options: YieldFetchOptions = {}
+) {
 	const props = {
 		...yieldPageData.props,
 		pools: yieldPageData.props.pools.map((p) => ({
@@ -300,7 +307,7 @@ export async function getLendBorrowDataFromYieldPageData(yieldPageData: YieldPag
 	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
 	// get new borrow fields
-	let dataBorrow = await fetchJson(YIELD_LEND_BORROW_API)
+	let dataBorrow = await fetchJsonWithOptionalTimeout(YIELD_LEND_BORROW_API, options)
 	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho

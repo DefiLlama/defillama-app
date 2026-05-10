@@ -27,7 +27,7 @@ import { fetchProtocolExpenses, fetchProtocolOverviewMetrics, fetchProtocolTvlCh
 import type { IProtocolValueChart, IProtocolMetricsV2, IProtocolExpenses } from './api.types'
 import { resolveProtocolCategory } from './category'
 import { normalizeChartPointsToMs } from './chartSeries.utils'
-import { buildAvailableCharts } from './defaultCharts'
+import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
 import { formatAdapterData } from './formatAdapterData'
 import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
@@ -692,9 +692,15 @@ export const getProtocolOverviewPageData = async ({
 	}
 	const availableChartSet = new Set(availableCharts)
 	const primaryTvlChartLabel = isCEX ? 'Total Assets' : ('TVL' as const)
-	const defaultToggledCharts = (
-		Object.keys(initialMultiSeriesChartData) as IProtocolOverviewPageData['defaultToggledCharts']
-	).filter((chartLabel) => availableChartSet.has(chartLabel))
+	const defaultToggledCharts = buildDefaultToggledCharts({
+		isCEX,
+		isOracleProtocol,
+		protocolMetricsTvl: Boolean(currentProtocolMetadata.tvl),
+		protocolTvlChartData,
+		currentChainTvls: protocolData.currentChainTvls ?? undefined,
+		availableCharts,
+		category: resolvedCategory
+	})
 	if (protocolTvlChartSeed.failed && availableChartSet.has(primaryTvlChartLabel)) {
 		defaultToggledCharts.unshift(primaryTvlChartLabel)
 	}

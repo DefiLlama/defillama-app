@@ -1,4 +1,7 @@
-import type { ProtocolChartsLabels } from './constants'
+import { protocolCategoryConfig } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
+
+const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts
 
 interface IBuildAvailableChartsParams {
 	isCEX: boolean
@@ -70,4 +73,79 @@ export function buildAvailableCharts(params: IBuildAvailableChartsParams): Proto
 	if (params.hasTransactions) charts.push('Transactions')
 	if (params.hasGasUsed) charts.push('Gas Used')
 	return charts
+}
+
+interface IBuildDefaultToggledChartsParams {
+	isCEX: boolean
+	isOracleProtocol: boolean
+	protocolMetricsTvl: boolean
+	protocolTvlChartData: Array<[number, number]>
+	currentChainTvls?: Record<string, number>
+	availableCharts: ProtocolChartsLabels[]
+	category?: string | null
+}
+
+export function buildDefaultToggledCharts({
+	isCEX,
+	isOracleProtocol,
+	protocolMetricsTvl,
+	protocolTvlChartData,
+	currentChainTvls,
+	availableCharts,
+	category
+}: IBuildDefaultToggledChartsParams): ProtocolChartsLabels[] {
+	const defaultToggledCharts: ProtocolChartsLabels[] = []
+	const pushUniqueIfAvailable = (label: ProtocolChartsLabels) => {
+		if (!availableCharts.includes(label)) return
+		if (defaultToggledCharts.includes(label)) return
+		defaultToggledCharts.push(label)
+	}
+
+	if (isOracleProtocol) {
+		pushUniqueIfAvailable('TVS')
+	}
+
+	if (protocolMetricsTvl) {
+		if (protocolTvlChartData.length === 0 || protocolTvlChartData.every(([, value]) => value === 0)) {
+			const hasStaking = (currentChainTvls?.staking ?? 0) > 0
+			if (hasStaking) pushUniqueIfAvailable('Staking')
+			const hasBorrowed = (currentChainTvls?.borrowed ?? 0) > 0
+			if (!hasStaking && hasBorrowed) pushUniqueIfAvailable('Active Loans')
+		} else {
+			pushUniqueIfAvailable(isCEX ? 'Total Assets' : 'TVL')
+		}
+	}
+
+	const categoryDefaultChart = category ? protocolCategoryConfig[category]?.defaultChart : null
+	const categoryDefaultChartLabel = categoryDefaultChart
+		? (Object.keys(protocolCharts) as ProtocolChartsLabels[]).find(
+				(chartLabel) => protocolCharts[chartLabel] === categoryDefaultChart
+			)
+		: null
+
+	if (
+		categoryDefaultChartLabel &&
+		isProtocolChartsLabel(categoryDefaultChartLabel) &&
+		availableCharts.includes(categoryDefaultChartLabel)
+	) {
+		pushUniqueIfAvailable(categoryDefaultChartLabel)
+	} else if (!isCEX) {
+		const cannotShowAsDefault = new Set<ProtocolChartsLabels>([
+			'TVL',
+			'Total Assets',
+			'TVS',
+			'Mcap',
+			'Token Price',
+			'Token Volume',
+			'Token Liquidity',
+			'FDV',
+			'Total Proposals',
+			'Successful Proposals',
+			'Max Votes'
+		])
+		const fallbackLabel = availableCharts.find((chart) => !cannotShowAsDefault.has(chart))
+		if (fallbackLabel) pushUniqueIfAvailable(fallbackLabel)
+	}
+
+	return defaultToggledCharts
 }

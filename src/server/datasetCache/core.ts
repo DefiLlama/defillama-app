@@ -33,6 +33,16 @@ type JsonCacheEntry = {
 }
 
 const jsonCache = new Map<string, JsonCacheEntry>()
+const jsonCacheRefreshInFlight = new Map<string, Promise<void>>()
+const jsonCacheVersions = new Map<string, number>()
+
+function getJsonCacheVersion(filePath: string): number {
+	return jsonCacheVersions.get(filePath) ?? 0
+}
+
+function bumpJsonCacheVersion(filePath: string): void {
+	jsonCacheVersions.set(filePath, getJsonCacheVersion(filePath) + 1)
+}
 
 export function getDatasetCacheRootDir(): string {
 	const cacheDir = process.env.DATASET_CACHE_DIR
@@ -64,7 +74,8 @@ export async function removeDirectory(targetPath: string): Promise<void> {
 	await fs.rm(targetPath, { recursive: true, force: true })
 }
 
-export async function readJsonFile<T>(filePath: string): Promise<T> {
+async function loadJsonFile<T>(filePath: string): Promise<T> {
+	const cacheVersion = getJsonCacheVersion(filePath)
 	const stat = await fs.stat(filePath)
 	const cached = jsonCache.get(filePath)
 	if (
@@ -78,16 +89,45 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
 
 	const fileContent = await fs.readFile(filePath, 'utf8')
 	const parsed = JSON.parse(fileContent) as T
-	jsonCache.set(filePath, {
-		stat: {
-			mtimeMs: stat.mtimeMs,
-			size: stat.size,
-			ino: stat.ino
-		},
-		value: parsed
-	})
+	if (getJsonCacheVersion(filePath) === cacheVersion) {
+		jsonCache.set(filePath, {
+			stat: {
+				mtimeMs: stat.mtimeMs,
+				size: stat.size,
+				ino: stat.ino
+			},
+			value: parsed
+		})
+	}
 
 	return parsed
+}
+
+function refreshJsonFileInBackground(filePath: string): void {
+	if (jsonCacheRefreshInFlight.has(filePath)) {
+		return
+	}
+
+	const refresh = loadJsonFile(filePath)
+		.catch((error) => {
+			console.warn(`[datasetCache] failed to refresh ${path.basename(filePath)}:`, error)
+		})
+		.then(() => undefined)
+		.finally(() => {
+			jsonCacheRefreshInFlight.delete(filePath)
+		})
+
+	jsonCacheRefreshInFlight.set(filePath, refresh)
+}
+
+export async function readJsonFile<T>(filePath: string): Promise<T> {
+	const cached = jsonCache.get(filePath)
+	if (cached) {
+		refreshJsonFileInBackground(filePath)
+		return cached.value as T
+	}
+
+	return loadJsonFile<T>(filePath)
 }
 
 export async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
@@ -102,6 +142,7 @@ export async function writeJsonFile(filePath: string, value: unknown): Promise<v
 		await handle.close()
 		handle = null
 		await fs.rename(tempPath, filePath)
+		bumpJsonCacheVersion(filePath)
 		jsonCache.delete(filePath)
 	} catch (error) {
 		if (handle) {

@@ -19,7 +19,7 @@ import {
 } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getYieldPoolTokenVariantSet } from '~/containers/Yields/tokenFilter'
-import { fetchJson } from '~/utils/async'
+import { fetchJson, getEnvNumber } from '~/utils/async'
 import type { DatasetDomain, DatasetManifest } from './core'
 import { DATASET_DOMAINS, buildEmptyDatasetManifest, ensureDirectory, writeJsonFile } from './core'
 import { getDatasetIndexFileName } from './indexKeys'
@@ -31,6 +31,10 @@ type DomainBuildResult = {
 
 function getDomainDir(rootDir: string, domain: DatasetDomain): string {
 	return path.join(rootDir, domain)
+}
+
+function getDatasetCacheFetchTimeoutMs(): number {
+	return getEnvNumber('DATASET_CACHE_FETCH_TIMEOUT_MS', 180_000)
 }
 
 async function writeTokenYieldIndexes(domainDir: string, rows: IYieldTableRow[]): Promise<void> {
@@ -60,10 +64,11 @@ async function buildYieldsDomain(rootDir: string): Promise<DomainBuildResult> {
 	const domainDir = getDomainDir(rootDir, 'yields')
 	await ensureDirectory(domainDir)
 
-	const yieldPageData = await getYieldPageDataFromNetwork()
+	const timeout = getDatasetCacheFetchTimeoutMs()
+	const yieldPageData = await getYieldPageDataFromNetwork({ timeout })
 	const [lendBorrowData, yieldConfig] = await Promise.all([
-		getLendBorrowDataFromYieldPageData(yieldPageData),
-		fetchYieldConfigFromNetwork()
+		getLendBorrowDataFromYieldPageData(yieldPageData, { timeout }),
+		fetchYieldConfigFromNetwork({ timeout })
 	])
 	const transformedPools = buildYieldTableRowsWithBorrowData(
 		yieldPageData.props.pools ?? [],

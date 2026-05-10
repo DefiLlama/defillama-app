@@ -10,7 +10,7 @@ const pageName = ['Overview']
 
 export const getStaticProps = withPerformanceLogging('index', async () => {
 	const metadataModule = await import('~/utils/metadata')
-	await metadataModule.refreshMetadataIfStale()
+	metadataModule.refreshMetadataInBackgroundIfStale()
 	const metadataCache = metadataModule.default
 	const data = await getChainOverviewData({
 		chain: 'All',

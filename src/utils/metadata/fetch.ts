@@ -39,11 +39,21 @@ type RawCexsResponse = {
 
 type RawTokenListItem = ITokenListEntry & { id: string }
 
+const DEFAULT_METADATA_FETCH_TIMEOUT_MS = 180_000
+
 const normalizeSlug = (value: unknown): string =>
 	String(value ?? '')
 		.toLowerCase()
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
+
+function getMetadataFetchTimeoutMs(): number {
+	const raw = process.env.METADATA_FETCH_TIMEOUT_MS
+	if (raw == null) return DEFAULT_METADATA_FETCH_TIMEOUT_MS
+
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_METADATA_FETCH_TIMEOUT_MS
+}
 
 const dedupeNonEmpty = (values: string[]): string[] => {
 	const seen = new Set<string>()
@@ -76,7 +86,7 @@ function sanitizeUrlForMetadataLogs(inputUrl: string): string {
 }
 
 async function fetchJson<T = any>(url: string): Promise<T> {
-	const res = await fetchWithPoolingOnServer(url)
+	const res = await fetchWithPoolingOnServer(url, { timeout: getMetadataFetchTimeoutMs() })
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
 	const urlToLog = sanitizeUrlForMetadataLogs(url)
@@ -199,11 +209,11 @@ export async function fetchCoreMetadata({
 	])
 
 	const emissionsProtocolsList = await (isDev
-		? fetchEmissionsProtocolsList().catch((error) => {
+		? fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() }).catch((error) => {
 				recordRuntimeError(error, 'pageBuild')
 				return []
 			})
-		: fetchEmissionsProtocolsList())
+		: fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() }))
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {

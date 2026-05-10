@@ -25,7 +25,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 
 		const shouldUseDatasetCache = isDatasetCacheEnabled()
 		const data = shouldUseDatasetCache

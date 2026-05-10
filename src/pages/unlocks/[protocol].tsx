@@ -21,7 +21,6 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 
 		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(

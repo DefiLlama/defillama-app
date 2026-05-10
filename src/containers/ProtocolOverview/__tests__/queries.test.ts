@@ -80,7 +80,7 @@ describe('getProtocolOverviewPageData', () => {
 		fetchProtocolTvlChart.mockClear()
 	})
 
-	it('defaults to seeded charts only', async () => {
+	it('default-toggles secondary charts without server-prefetching their series', async () => {
 		const { getProtocolOverviewPageData } = await import('../queries')
 
 		const data = await getProtocolOverviewPageData({
@@ -96,7 +96,7 @@ describe('getProtocolOverviewPageData', () => {
 		})
 
 		expect(data.availableCharts).toContain('Fees')
-		expect(data.defaultToggledCharts).not.toContain('Fees')
+		expect(data.defaultToggledCharts).toContain('Fees')
 		expect(data.initialMultiSeriesChartData).toEqual({})
 		expect(fetchAdapterProtocolChartData).not.toHaveBeenCalled()
 	})

@@ -141,9 +141,11 @@ export async function fetchAllProtocolEmissions(): Promise<ProtocolEmission[]> {
 /**
  * Fetch the list of protocol names that have emissions data
  */
-export async function fetchEmissionsProtocolsList(): Promise<string[]> {
+export async function fetchEmissionsProtocolsList(options: { timeout?: number } = {}): Promise<string[]> {
 	try {
-		const res = await fetchJson<string[]>(PROTOCOL_EMISSIONS_LIST_API)
+		const res = await fetchJson<string[]>(PROTOCOL_EMISSIONS_LIST_API, {
+			timeout: options.timeout ?? getSlowJsonTimeoutMs()
+		})
 		if (!Array.isArray(res)) return []
 		return res
 	} catch (error) {

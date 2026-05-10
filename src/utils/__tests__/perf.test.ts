@@ -1,3 +1,4 @@
+import type { GetStaticPropsContext } from 'next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { jitterCacheSeconds, readCacheJitterMeta } from '../maxAgeForNext'
 
@@ -16,7 +17,8 @@ describe('withPerformanceLogging', () => {
 			props: { ok: true },
 			revalidate: 3600
 		}))
-		const result = await wrapped({ params: { protocol: 'uniswap' } } as never)
+		const context = { params: { protocol: 'uniswap' } } satisfies GetStaticPropsContext
+		const result = await wrapped(context)
 		const expected = jitterCacheSeconds(3600, 'protocol/[protocol]:/protocol/uniswap')
 
 		expect(result).toMatchObject({ props: { ok: true }, revalidate: expected.seconds })
@@ -32,7 +34,8 @@ describe('withPerformanceLogging', () => {
 			notFound: true,
 			revalidate: 3600
 		}))
-		const result = await wrapped({ params: { protocol: 'missing' } } as never)
+		const context = { params: { protocol: 'missing' } } satisfies GetStaticPropsContext
+		const result = await wrapped(context)
 		const expected = jitterCacheSeconds(3600, 'protocol/[protocol]:/protocol/missing')
 
 		expect(result).toEqual({ notFound: true, revalidate: expected.seconds })
@@ -51,7 +54,8 @@ describe('withPerformanceLogging', () => {
 			throw new Error('timeout from upstream')
 		})
 
-		await expect(wrapped({ params: {} } as never)).rejects.toThrow('timeout from upstream')
+		const context = { params: {} } satisfies GetStaticPropsContext
+		await expect(wrapped(context)).rejects.toThrow('timeout from upstream')
 		expect(calls).toBe(1)
 	})
 })

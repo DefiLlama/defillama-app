@@ -80,6 +80,10 @@ const REFRESH_TTL_MS = 60 * 60 * 1000 // 1 hour
 let lastRefreshMs = 0
 let refreshInFlight: Promise<void> | null = null
 
+function hasRecordEntries(value: Record<string, unknown>): boolean {
+	return Object.keys(value).length > 0
+}
+
 async function doRefresh(): Promise<void> {
 	try {
 		const {
@@ -104,21 +108,36 @@ async function doRefresh(): Promise<void> {
 			existingProtocolLlamaswapDataset: metadataCache.protocolLlamaswapDataset
 		})
 
-		metadataCache.protocolMetadata = protocols
-		metadataCache.chainMetadata = chains
+		const hasProtocolMetadata = hasRecordEntries(protocols)
+		const hasChainMetadata = hasRecordEntries(chains)
+
+		if (hasProtocolMetadata) {
+			metadataCache.protocolMetadata = protocols
+			metadataCache.protocolDisplayNames = createStringLookupMap(protocolDisplayNames)
+		} else {
+			console.error('[metadata] refresh returned empty protocol metadata, keeping stale cache')
+		}
+		if (hasChainMetadata) {
+			metadataCache.chainMetadata = chains
+			metadataCache.chainDisplayNames = createStringLookupMap(chainDisplayNames)
+		} else {
+			console.error('[metadata] refresh returned empty chain metadata, keeping stale cache')
+		}
 		metadataCache.categoriesAndTags = catAndTags
 		metadataCache.cexs = cexData
 		metadataCache.rwaList = rwaListData
 		metadataCache.rwaPerpsList = rwaPerpsListData
 		metadataCache.cgExchangeIdentifiers = cgExIds
-		metadataCache.tokenlist = tokenlist
+		if (hasRecordEntries(tokenlist)) {
+			metadataCache.tokenlist = tokenlist
+		} else {
+			console.error('[metadata] refresh returned an empty tokenlist, keeping stale cache')
+		}
 		if (Object.keys(tokenDirectory).length > 0) {
 			metadataCache.tokenDirectory = tokenDirectory
 		} else {
 			console.error('[metadata] refresh returned an empty token directory, keeping stale cache')
 		}
-		metadataCache.protocolDisplayNames = createStringLookupMap(protocolDisplayNames)
-		metadataCache.chainDisplayNames = createStringLookupMap(chainDisplayNames)
 		metadataCache.liquidationsTokenSymbols = liquidationsTokenSymbols
 		metadataCache.liquidationsTokenSymbolsSet = new Set(liquidationsTokenSymbols)
 		metadataCache.emissionsProtocolsList = emissionsProtocolsList
@@ -134,18 +153,18 @@ async function doRefresh(): Promise<void> {
 }
 
 /**
- * Refresh metadata cache if stale (older than TTL).
- * Safe to call from multiple concurrent requests—only one refresh runs at a time.
+ * Start a metadata refresh if stale (older than TTL).
+ * Safe to call from multiple concurrent requests: only one refresh runs at a time.
  */
-export async function refreshMetadataIfStale(): Promise<void> {
+function startMetadataRefreshIfStale(): Promise<void> | null {
 	const now = Date.now()
 	if (now - lastRefreshMs < REFRESH_TTL_MS) {
 		// Cache is fresh
-		return
+		return null
 	}
 
 	if (refreshInFlight !== null) {
-		// Another refresh is already running; wait for it
+		// Another refresh is already running
 		return refreshInFlight
 	}
 
@@ -154,6 +173,20 @@ export async function refreshMetadataIfStale(): Promise<void> {
 	})
 
 	return refreshInFlight
+}
+
+/**
+ * Refresh metadata cache if stale (older than TTL), waiting for the refresh to complete.
+ */
+export async function refreshMetadataIfStale(): Promise<void> {
+	await startMetadataRefreshIfStale()
+}
+
+/**
+ * Start refreshing stale metadata in the background while callers continue using the current cache.
+ */
+export function refreshMetadataInBackgroundIfStale(): void {
+	void startMetadataRefreshIfStale()
 }
 
 export default metadataCache

@@ -17,7 +17,6 @@ export const getStaticProps = withPerformanceLogging(
 
 		const exchangeName = params.cex
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const cexs = metadataCache.cexs
 

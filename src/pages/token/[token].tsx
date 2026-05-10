@@ -280,7 +280,6 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		}
 
 		const metadataModule = await import('~/utils/metadata')
-		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 		const normalizedToken = slug(token)
 		const record = metadataCache.tokenDirectory[normalizedToken]

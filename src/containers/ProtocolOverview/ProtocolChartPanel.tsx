@@ -157,6 +157,9 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 		[finalCharts, valueSymbol]
 	)
 	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
+	const loadingChartSet = useMemo(() => new Set(loadingCharts), [loadingCharts])
+	const loadingChartsText = loadingCharts.join(', ').toLowerCase()
+	const hasVisibleCharts = Object.keys(deferredChartRenderModel.chartData).length > 0
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 	const [metricsSearchValue, setMetricsSearchValue] = useState('')
@@ -306,7 +309,14 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 							}}
 						>
 							<span>{tchart.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}</span>
-							<Icon name="x" className="h-3.5 w-3.5" />
+							{loadingChartSet.has(tchart) ? (
+								<span
+									aria-label={`${tchart} is loading`}
+									className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+								/>
+							) : (
+								<Icon name="x" className="h-3.5 w-3.5" />
+							)}
 						</span>
 					</label>
 				))}
@@ -379,9 +389,9 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				</div>
 			</div>
 			<div className="relative flex min-h-[360px] flex-col">
-				{!isClient ? null : loadingCharts ? (
+				{!isClient ? null : !hasVisibleCharts && loadingCharts.length > 0 ? (
 					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
-						fetching {loadingCharts}
+						fetching {loadingChartsText}
 						<LoadingDots />
 					</p>
 				) : (
@@ -399,7 +409,13 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						/>
 					</Suspense>
 				)}
-				{isClient && !loadingCharts && failedMetrics.length > 0 ? (
+				{isClient && hasVisibleCharts && loadingCharts.length > 0 ? (
+					<p className="absolute bottom-2 left-2 z-10 flex items-center gap-1 rounded-full border border-(--cards-border) bg-(--bg-main) px-2 py-1 text-xs text-(--text-tertiary)">
+						<span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+						<span>Fetching {loadingChartsText}</span>
+					</p>
+				) : null}
+				{isClient && failedMetrics.length > 0 ? (
 					<Ariakit.PopoverProvider>
 						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 							<Icon name="alert-triangle" className="h-3.5 w-3.5" />
