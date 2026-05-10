@@ -1104,8 +1104,34 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 
 		const split = computeProtocolEvmSplit(protocol, evmChainsSet)
 		const totalSplitTvl = split.tvlEvm + split.tvlNonEvm
-		const evmRevenue = totalSplitTvl > 0 ? (split.tvlEvm / totalSplitTvl) * protocolRevenue : 0
-		const nonEvmRevenue = totalSplitTvl > 0 ? (split.tvlNonEvm / totalSplitTvl) * protocolRevenue : 0
+
+		// Presence by chain (not TVL) so revenue-only / zero-TVL protocols still
+		// land in the right bucket. Falls back to TVL signal when `chains` is empty.
+		const protocolChains = protocol.chains ?? []
+		const evmChainCount = protocolChains.filter(
+			(chainName) => evmChainsSet.has(chainName) || evmChainsSet.has(chainName.toLowerCase())
+		).length
+		const nonEvmChainCount = protocolChains.length - evmChainCount
+		const protocolHasEvm = split.tvlEvm > 0 || evmChainCount > 0
+		const protocolHasNonEvm = split.tvlNonEvm > 0 || nonEvmChainCount > 0
+
+		// Revenue: prefer the TVL-weighted share so the EVM table reflects the
+		// EVM share of value. When TVL signal is unavailable (zero or missing),
+		// fall back to chain-count share so revenue isn't dropped from the splits.
+		let evmRevenue = 0
+		let nonEvmRevenue = 0
+		if (protocolRevenue > 0) {
+			if (totalSplitTvl > 0) {
+				evmRevenue = (split.tvlEvm / totalSplitTvl) * protocolRevenue
+				nonEvmRevenue = (split.tvlNonEvm / totalSplitTvl) * protocolRevenue
+			} else {
+				const totalChainCount = evmChainCount + nonEvmChainCount
+				if (totalChainCount > 0) {
+					evmRevenue = (evmChainCount / totalChainCount) * protocolRevenue
+					nonEvmRevenue = (nonEvmChainCount / totalChainCount) * protocolRevenue
+				}
+			}
+		}
 
 		const categoryRow = getOrCreateCategoryRow(categoryName)
 		categoryRow.protocols += 1
@@ -1115,7 +1141,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		categoryRow.tvlPrevMonth += protocolTvlPrevMonth
 		categoryRow.revenue += protocolRevenue
 
-		if (split.tvlEvm > 0) {
+		if (protocolHasEvm) {
 			const categoryRowEvm = getOrCreateCategoryRowEvm(categoryName)
 			categoryRowEvm.protocols += 1
 			categoryRowEvm.tvl += split.tvlEvm
@@ -1125,7 +1151,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			categoryRowEvm.revenue += evmRevenue
 		}
 
-		if (split.tvlNonEvm > 0) {
+		if (protocolHasNonEvm) {
 			const categoryRowNonEvm = getOrCreateCategoryRowNonEvm(categoryName)
 			categoryRowNonEvm.protocols += 1
 			categoryRowNonEvm.tvl += split.tvlNonEvm
@@ -1145,7 +1171,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			tagRow.tvlPrevMonth += protocolTvlPrevMonth
 			tagRow.revenue += protocolRevenue
 
-			if (split.tvlEvm > 0) {
+			if (protocolHasEvm) {
 				const tagRowEvm = getOrCreateTagRowEvm({ categoryName, tagName })
 				tagRowEvm.protocols += 1
 				tagRowEvm.tvl += split.tvlEvm
@@ -1155,7 +1181,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 				tagRowEvm.revenue += evmRevenue
 			}
 
-			if (split.tvlNonEvm > 0) {
+			if (protocolHasNonEvm) {
 				const tagRowNonEvm = getOrCreateTagRowNonEvm({ categoryName, tagName })
 				tagRowNonEvm.protocols += 1
 				tagRowNonEvm.tvl += split.tvlNonEvm
