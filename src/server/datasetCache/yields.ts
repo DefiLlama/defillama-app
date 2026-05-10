@@ -5,7 +5,7 @@ import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
 import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { getDatasetDomainDir, readDatasetDomainJson } from './core'
 import { getDatasetIndexFileName, isFileNotFoundError } from './indexKeys'
 
 type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
@@ -46,7 +46,7 @@ export function getYieldRowCacheId(row: Pick<IYieldTableRow, 'configID' | 'id' |
 }
 
 async function getYieldRows(): Promise<IYieldTableRow[]> {
-	return readJsonFile<IYieldTableRow[]>(getYieldsRowsPath())
+	return readDatasetDomainJson<IYieldTableRow[]>('yields', YIELDS_DATASET_FILES.rows)
 }
 
 async function resolveTokenYieldIndexEntries(rowIds: string[]): Promise<IYieldTableRow[]> {
@@ -75,7 +75,10 @@ async function getIndexedTokenYieldRows(token: string): Promise<IYieldTableRow[]
 
 	for (const variant of variants) {
 		try {
-			const indexEntries = await readJsonFile<string[]>(getYieldsTokenIndexPath(variant))
+			const indexEntries = await readDatasetDomainJson<string[]>(
+				'yields',
+				`${YIELDS_DATASET_FILES.byTokenDir}/${getDatasetIndexFileName(variant)}`
+			)
 			const rows = await resolveTokenYieldIndexEntries(indexEntries)
 			foundIndex = true
 			for (const row of rows) {
@@ -117,16 +120,14 @@ async function getIndexedYieldRows(): Promise<Map<string, IYieldTableRow>> {
 }
 
 async function getLendBorrowData(): Promise<LendBorrowData> {
-	return readJsonFile<LendBorrowData>(getYieldsLendBorrowPath())
+	return readDatasetDomainJson<LendBorrowData>('yields', YIELDS_DATASET_FILES.lendBorrow)
 }
 
 export async function getYieldConfigFromCache(): Promise<YieldConfigResponse> {
-	await readDatasetManifest()
-	return readJsonFile<YieldConfigResponse>(getYieldsConfigPath())
+	return readDatasetDomainJson<YieldConfigResponse>('yields', YIELDS_DATASET_FILES.config)
 }
 
 export async function getYieldPoolRowFromCache(poolId: string): Promise<IYieldTableRow | null> {
-	await readDatasetManifest()
 	return (await getIndexedYieldRows()).get(poolId) ?? null
 }
 
@@ -139,7 +140,6 @@ export async function getTokenYieldsRowsFromCache(
 	token: string,
 	chains?: string | string[]
 ): Promise<IYieldTableRow[]> {
-	await readDatasetManifest()
 	const indexedRows = token.trim() ? await getIndexedTokenYieldRows(token) : null
 	if (indexedRows) {
 		return filterTokenYieldRows(indexedRows, '', chains)
@@ -149,13 +149,11 @@ export async function getTokenYieldsRowsFromCache(
 }
 
 export async function getTokenBorrowRoutesFromCache(token: string): Promise<TokenBorrowRoutesResponse> {
-	await readDatasetManifest()
 	const lendBorrowData = await getLendBorrowData()
 	return buildTokenBorrowRoutesData(token, lendBorrowData.props.pools)
 }
 
 export async function getProtocolYieldRowsFromCache(protocolSlugs: string[]): Promise<IYieldTableRow[]> {
-	await readDatasetManifest()
 	const protocolSlugSet = new Set<string>()
 	for (const protocolSlug of protocolSlugs) {
 		if (protocolSlug) {

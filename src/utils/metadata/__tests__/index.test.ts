@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { CoreMetadataPayload } from '../artifactContract'
 
 const { fetchCoreMetadataMock } = vi.hoisted(() => ({
 	fetchCoreMetadataMock: vi.fn()
@@ -49,7 +50,7 @@ const defaultTokenListEntry = {
 	max_supply: null
 }
 
-function createMetadataPayload(overrides: Record<string, unknown> = {}) {
+function createMetadataPayload(overrides: Partial<CoreMetadataPayload> = {}): CoreMetadataPayload {
 	return {
 		protocols: {
 			'parent#aave': {
@@ -67,7 +68,8 @@ function createMetadataPayload(overrides: Record<string, unknown> = {}) {
 		categoriesAndTags: {
 			categories: [],
 			tags: [],
-			tagCategoryMap: {}
+			tagCategoryMap: {},
+			configs: {}
 		},
 		cexs: [],
 		rwaList: {
@@ -125,10 +127,7 @@ describe('metadata refresh', () => {
 	})
 
 	it('keeps the existing token directory when a refresh returns an empty one', async () => {
-		fetchCoreMetadataMock.mockResolvedValue(createMetadataPayload())
-
-		const metadataModule = await import('../index')
-		const metadata = metadataModule.default
+		const { applyMetadataRefresh, createMetadataCacheFromArtifacts } = await import('../artifactContract')
 		const existingDirectory = {
 			aave: {
 				name: 'Aave',
@@ -137,10 +136,13 @@ describe('metadata refresh', () => {
 			}
 		}
 		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const metadata = createMetadataCacheFromArtifacts(
+			createMetadataPayload({
+				tokenDirectory: existingDirectory
+			})
+		)
 
-		metadata.tokenDirectory = existingDirectory
-
-		await metadataModule.refreshMetadataIfStale()
+		applyMetadataRefresh(metadata, createMetadataPayload())
 
 		expect(metadata.tokenDirectory).toEqual(existingDirectory)
 		expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -148,18 +150,10 @@ describe('metadata refresh', () => {
 		)
 
 		consoleErrorSpy.mockRestore()
-	}, 15_000)
+	})
 
 	it('keeps the existing protocol metadata when a refresh returns empty protocol data', async () => {
-		fetchCoreMetadataMock.mockResolvedValue(
-			createMetadataPayload({
-				protocols: {},
-				protocolDisplayNames: {}
-			})
-		)
-
-		const metadataModule = await import('../index')
-		const metadata = metadataModule.default
+		const { applyMetadataRefresh, createMetadataCacheFromArtifacts } = await import('../artifactContract')
 		const existingProtocols = {
 			'parent#aave': {
 				name: 'aave',
@@ -168,11 +162,22 @@ describe('metadata refresh', () => {
 			}
 		}
 		const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+		const metadata = createMetadataCacheFromArtifacts(
+			createMetadataPayload({
+				protocols: existingProtocols,
+				protocolDisplayNames: {
+					aave: 'Aave'
+				}
+			})
+		)
 
-		metadata.protocolMetadata = existingProtocols
-		metadata.protocolDisplayNames = new Map([['aave', 'Aave']])
-
-		await metadataModule.refreshMetadataIfStale()
+		applyMetadataRefresh(
+			metadata,
+			createMetadataPayload({
+				protocols: {},
+				protocolDisplayNames: {}
+			})
+		)
 
 		expect(metadata.protocolMetadata).toEqual(existingProtocols)
 		expect(metadata.protocolDisplayNames.get('aave')).toBe('Aave')
@@ -181,9 +186,10 @@ describe('metadata refresh', () => {
 		)
 
 		consoleErrorSpy.mockRestore()
-	}, 15_000)
+	})
 
 	it('replaces the token directory when refresh returns token data', async () => {
+		const { applyMetadataRefresh, createMetadataCacheFromArtifacts } = await import('../artifactContract')
 		const refreshedDirectory = {
 			morpho: {
 				name: 'Morpho',
@@ -191,27 +197,27 @@ describe('metadata refresh', () => {
 				route: '/token/MORPHO'
 			}
 		}
-		fetchCoreMetadataMock.mockResolvedValue(
+		const metadata = createMetadataCacheFromArtifacts(
+			createMetadataPayload({
+				tokenDirectory: {
+					aave: {
+						name: 'Aave',
+						symbol: 'AAVE',
+						route: '/token/AAVE'
+					}
+				}
+			})
+		)
+
+		applyMetadataRefresh(
+			metadata,
 			createMetadataPayload({
 				tokenDirectory: refreshedDirectory
 			})
 		)
 
-		const metadataModule = await import('../index')
-		const metadata = metadataModule.default
-
-		metadata.tokenDirectory = {
-			aave: {
-				name: 'Aave',
-				symbol: 'AAVE',
-				route: '/token/AAVE'
-			}
-		}
-
-		await metadataModule.refreshMetadataIfStale()
-
 		expect(metadata.tokenDirectory).toEqual(refreshedDirectory)
-	}, 15_000)
+	})
 
 	it('starts a background refresh without blocking and dedupes concurrent callers', async () => {
 		const refreshedProtocols = {
@@ -226,12 +232,13 @@ describe('metadata refresh', () => {
 
 		const metadataModule = await import('../index')
 		const metadata = metadataModule.default
+		const initialProtocolMetadata = metadata.protocolMetadata
 
 		metadataModule.refreshMetadataInBackgroundIfStale()
 		metadataModule.refreshMetadataInBackgroundIfStale()
 
 		expect(fetchCoreMetadataMock).toHaveBeenCalledTimes(1)
-		expect(metadata.protocolMetadata).toEqual({})
+		expect(metadata.protocolMetadata).toBe(initialProtocolMetadata)
 
 		deferred.resolve(
 			createMetadataPayload({

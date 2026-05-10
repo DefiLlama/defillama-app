@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLiquidationsProtocolPageDataFromNetwork } from '~/containers/LiquidationsV2/queries'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { getLiquidationsProtocolPageData } from '~/server/datasetCache/runtime/liquidations'
 import { validateSubscription } from '~/utils/apiAuth'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -31,19 +30,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 		const metadataModule = await import('~/utils/metadata')
 
-		const shouldUseDatasetCache = isDatasetCacheEnabled()
-		const data = shouldUseDatasetCache
-			? await (async () => {
-					const { getLiquidationsProtocolFromCache } = await import('~/server/datasetCache/liquidations')
-					return getLiquidationsProtocolFromCache(protocol, {
-						chainMetadata: metadataModule.default.chainMetadata,
-						protocolMetadata: metadataModule.default.protocolMetadata
-					})
-				})()
-			: await getLiquidationsProtocolPageDataFromNetwork(protocol, {
-					chainMetadata: metadataModule.default.chainMetadata,
-					protocolMetadata: metadataModule.default.protocolMetadata
-				})
+		const data = await getLiquidationsProtocolPageData(protocol, {
+			chainMetadata: metadataModule.default.chainMetadata,
+			protocolMetadata: metadataModule.default.protocolMetadata
+		})
 
 		if (!data) {
 			return res.status(404).json({ error: 'Liquidations protocol not found' })

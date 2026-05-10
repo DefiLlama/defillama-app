@@ -1,5 +1,11 @@
 import { normalizeError } from './error'
 import { fetchWithPoolingOnServer, serverFetchUrl, type FetchWithPoolingOnServerOptions } from './http-client'
+import {
+	looksLikeHtmlDocument,
+	redactApiKeyFromUrl,
+	sanitizeDefiLlamaProApiUrl,
+	sanitizeResponseTextForError
+} from './http-error-format'
 import { recordRuntimeError } from './telemetry'
 
 // ─────────────────────────────────────────────────────────────
@@ -66,22 +72,6 @@ export function isTransientError(err: unknown): boolean {
 
 function isRetryableStatus(status: number): boolean {
 	return status === 408 || status === 429 || (status >= 500 && status < 600)
-}
-
-function looksLikeHtmlDocument(text: string): boolean {
-	// We specifically want to catch "Cloudflare HTML error page" type responses.
-	// Keep this cheap: no regex, small checks, case-insensitive.
-	const s = text.trimStart().slice(0, 2048).toLowerCase()
-	return s.startsWith('<!doctype html') || s.startsWith('<html') || (s.includes('<head') && s.includes('</html>'))
-}
-
-function sanitizeResponseTextForError(text: string): string {
-	if (!text) return ''
-	if (looksLikeHtmlDocument(text)) return '[html error page]'
-	// Keep logs/errors small; avoid huge payloads (and accidental PII) in exceptions.
-	const trimmed = text.trim()
-	if (trimmed.length <= 500) return trimmed
-	return `${trimmed.slice(0, 500)}…`
 }
 
 function escapeRegExp(value: string): string {
@@ -177,10 +167,7 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	// Minimal behavior:
 	// - If SERVER_URL / V2_SERVER_URL (or lowercase variants) is set, strip it from logged URL.
 	// - If not set, log as-is.
-	const apiKey = process.env.API_KEY
-	if (apiKey && raw.includes(apiKey)) {
-		raw = raw.replaceAll(apiKey, '[REDACTED]')
-	}
+	raw = redactApiKeyFromUrl(raw)
 
 	const serverUrlCandidates = [
 		process.env.SERVER_URL,
@@ -202,8 +189,7 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 		const parsed = new URL(raw)
 		// Fallback when env candidates are unavailable in client runtime.
 		if (parsed.hostname === 'api.llama.fi' || parsed.hostname === 'pro-api.llama.fi') {
-			const pathWithoutBase = parsed.pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
-			return `${pathWithoutBase}${parsed.search}${parsed.hash}` || '/'
+			return sanitizeDefiLlamaProApiUrl(raw)
 		}
 	} catch {
 		// raw can be a relative URL; keep as-is.

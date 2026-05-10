@@ -3,8 +3,10 @@ import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api
 import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
 import { getErrorMessage } from '~/utils/error'
 import { fetchWithPoolingOnServer } from '~/utils/http-client'
+import { previewResponseBody, sanitizeDefiLlamaProApiUrl } from '~/utils/http-error-format'
 import { recordRuntimeError } from '~/utils/telemetry'
 import type { TokenDirectory } from '~/utils/tokenDirectory'
+import type { CoreMetadataPayload } from './artifactContract'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
 import { extractLiquidationsTokenSymbols } from './liquidations'
@@ -64,25 +66,8 @@ const dedupeNonEmpty = (values: string[]): string[] => {
 	return [...seen]
 }
 
-function previewResponseBody(body: string, length = 200): string {
-	return body.replace(/\s+/g, ' ').trim().slice(0, length)
-}
-
 function sanitizeUrlForMetadataLogs(inputUrl: string): string {
-	try {
-		const parsed = new URL(inputUrl)
-		let pathname = parsed.pathname
-
-		// Normalize pro-api paths to avoid exposing API key segments.
-		pathname = pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
-		pathname = pathname.replace(/^\/[^/]+\/rwa(\/|$)/, '/rwa$1')
-		pathname = pathname.replace(/^\/[^/]+\/rwa-perps(\/|$)/, '/rwa-perps$1')
-		pathname = pathname.replace(/^\/[^/]+\/bridges(\/|$)/, '/bridges$1')
-
-		return `${pathname}${parsed.search}${parsed.hash}` || '/'
-	} catch {
-		return inputUrl
-	}
+	return sanitizeDefiLlamaProApiUrl(inputUrl)
 }
 
 async function fetchJson<T = any>(url: string): Promise<T> {
@@ -111,25 +96,7 @@ export async function fetchCoreMetadata({
 	existingProtocolLlamaswapDataset
 }: {
 	existingProtocolLlamaswapDataset?: ProtocolLlamaswapMetadata
-} = {}): Promise<{
-	protocols: Record<string, IProtocolMetadata>
-	chains: Record<string, IChainMetadata>
-	categoriesAndTags: ICategoriesAndTags
-	cexs: ICexItem[]
-	rwaList: IRWAList
-	rwaPerpsList: IRWAPerpsList
-	tokenlist: Record<string, ITokenListEntry>
-	tokenDirectory: TokenDirectory
-	protocolDisplayNames: Record<string, string>
-	chainDisplayNames: Record<string, string>
-	liquidationsTokenSymbols: string[]
-	emissionsProtocolsList: string[]
-	cgExchangeIdentifiers: string[]
-	bridgeProtocolSlugs: string[]
-	bridgeChainSlugs: string[]
-	bridgeChainSlugToName: Record<string, string>
-	protocolLlamaswapDataset: ProtocolLlamaswapMetadata
-}> {
+} = {}): Promise<CoreMetadataPayload> {
 	const API_KEY = process.env.API_KEY
 	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
 	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'

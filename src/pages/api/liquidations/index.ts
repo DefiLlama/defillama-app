@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLiquidationsOverviewPageDataFromNetwork } from '~/containers/LiquidationsV2/queries'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { getLiquidationsOverviewPageData } from '~/server/datasetCache/runtime/liquidations'
 import { validateSubscription } from '~/utils/apiAuth'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -26,19 +25,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
 		const metadataModule = await import('~/utils/metadata')
 
-		const shouldUseDatasetCache = isDatasetCacheEnabled()
-		const data = shouldUseDatasetCache
-			? await (async () => {
-					const { getLiquidationsOverviewFromCache } = await import('~/server/datasetCache/liquidations')
-					return getLiquidationsOverviewFromCache({
-						chainMetadata: metadataModule.default.chainMetadata,
-						protocolMetadata: metadataModule.default.protocolMetadata
-					})
-				})()
-			: await getLiquidationsOverviewPageDataFromNetwork({
-					chainMetadata: metadataModule.default.chainMetadata,
-					protocolMetadata: metadataModule.default.protocolMetadata
-				})
+		const data = await getLiquidationsOverviewPageData({
+			chainMetadata: metadataModule.default.chainMetadata,
+			protocolMetadata: metadataModule.default.protocolMetadata
+		})
 
 		return res.status(200).json(data)
 	} catch (error) {

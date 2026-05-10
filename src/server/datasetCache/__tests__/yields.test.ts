@@ -15,7 +15,7 @@ import {
 function createDatasetManifestDomains(): DatasetManifest['domains'] {
 	const domains = {} as DatasetManifest['domains']
 	for (const domain of DATASET_DOMAINS) {
-		domains[domain] = { builtAt: Date.now() }
+		domains[domain] = { status: 'ready', builtAt: Date.now() }
 	}
 	return domains
 }
@@ -64,7 +64,7 @@ describe('dataset cache yields reader', () => {
 		vi.stubEnv('DATASET_CACHE_DIR', tempDir)
 		await writeDatasetManifest(
 			{
-				artifactVersion: 1,
+				artifactVersion: 2,
 				builtAt: Date.now(),
 				domains: createDatasetManifestDomains()
 			},

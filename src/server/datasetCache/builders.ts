@@ -185,7 +185,11 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 		const domain = DATASET_DOMAINS[index]
 
 		if (settledResult.status === 'rejected') {
-			manifest.domains[domain].builtAt = 0
+			manifest.domains[domain] = {
+				status: 'failed',
+				builtAt: 0,
+				error: settledResult.reason instanceof Error ? settledResult.reason.message : String(settledResult.reason)
+			}
 			failures.push(
 				`${domain}: ${settledResult.reason instanceof Error ? settledResult.reason.message : String(settledResult.reason)}`
 			)
@@ -193,7 +197,7 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 		}
 
 		const { result } = settledResult.value
-		manifest.domains[domain].builtAt = result.builtAt
+		manifest.domains[domain] = { status: 'ready', builtAt: result.builtAt }
 		if (result.builtAt > latestBuiltAt) {
 			latestBuiltAt = result.builtAt
 		}

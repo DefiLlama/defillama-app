@@ -1,16 +1,11 @@
 import type { RawRaise } from '~/containers/Raises/api.types'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
-
-function getRaisesDomainDir(): string {
-	return getDatasetDomainDir('raises')
-}
+import { readDatasetDomainJson } from './core'
 
 export async function fetchRaisesByDefillamaIdFromCache(defillamaId: string): Promise<RawRaise[]> {
-	await readDatasetManifest()
 	if (!defillamaId) {
 		return []
 	}
 
-	const payload = await readJsonFile<{ raises: RawRaise[] }>(`${getRaisesDomainDir()}/full.json`)
+	const payload = await readDatasetDomainJson<{ raises: RawRaise[] }>('raises', 'full.json')
 	return payload.raises.filter((raise) => raise.defillamaId === defillamaId)
 }

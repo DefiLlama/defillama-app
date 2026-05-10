@@ -4,6 +4,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { getMetadataArtifactEntries, METADATA_CI_STUBS } from '../src/utils/metadata/artifactContract'
 import { fetchCoreMetadata } from '../src/utils/metadata/fetch'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -30,28 +31,7 @@ async function pullData() {
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
 
 	try {
-		const [
-			{
-				protocols,
-				chains,
-				categoriesAndTags,
-				cexs,
-				rwaList,
-				rwaPerpsList,
-				tokenlist,
-				tokenDirectory,
-				protocolDisplayNames,
-				chainDisplayNames,
-				liquidationsTokenSymbols,
-				emissionsProtocolsList,
-				cgExchangeIdentifiers,
-				bridgeProtocolSlugs,
-				bridgeChainSlugs,
-				bridgeChainSlugToName,
-				protocolLlamaswapDataset
-			},
-			{ tastyMetrics, trendingRoutes }
-		] = await Promise.all([
+		const [metadataPayload, { tastyMetrics, trendingRoutes }] = await Promise.all([
 			fetchCoreMetadata(),
 			process.env.TASTY_API_URL
 				? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
@@ -84,24 +64,9 @@ async function pullData() {
 			fs.mkdirSync(CACHE_DIR)
 		}
 
-		fs.writeFileSync(path.join(CACHE_DIR, 'chains.json'), JSON.stringify(chains))
-		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
-		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
-		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
-		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
-		fs.writeFileSync(path.join(CACHE_DIR, 'rwaPerps.json'), JSON.stringify(rwaPerpsList))
-
-		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
-		fs.writeFileSync(path.join(CACHE_DIR, 'tokens.json'), JSON.stringify(tokenDirectory))
-		fs.writeFileSync(path.join(CACHE_DIR, 'protocolDisplayNames.json'), JSON.stringify(protocolDisplayNames))
-		fs.writeFileSync(path.join(CACHE_DIR, 'chainDisplayNames.json'), JSON.stringify(chainDisplayNames))
-		fs.writeFileSync(path.join(CACHE_DIR, 'liquidationsTokenSymbols.json'), JSON.stringify(liquidationsTokenSymbols))
-		fs.writeFileSync(path.join(CACHE_DIR, 'emissionsProtocolsList.json'), JSON.stringify(emissionsProtocolsList))
-		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
-		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeProtocolSlugs.json'), JSON.stringify(bridgeProtocolSlugs))
-		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugs.json'), JSON.stringify(bridgeChainSlugs))
-		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugToName.json'), JSON.stringify(bridgeChainSlugToName))
-		fs.writeFileSync(path.join(CACHE_DIR, 'llamaswap-protocols.json'), JSON.stringify(protocolLlamaswapDataset))
+		for (const [file, data] of getMetadataArtifactEntries(metadataPayload)) {
+			fs.writeFileSync(path.join(CACHE_DIR, file), JSON.stringify(data))
+		}
 
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
@@ -213,26 +178,7 @@ async function pullData() {
 			if (!fs.existsSync(CACHE_DIR)) {
 				fs.mkdirSync(CACHE_DIR)
 			}
-			const stubs = {
-				'chains.json': {},
-				'protocols.json': {},
-				'categoriesAndTags.json': { categories: [], tags: [], tagCategoryMap: {} },
-				'cexs.json': [],
-				'rwa.json': { tickers: [], platforms: [], chains: [], assetGroups: [], categories: [], idMap: {} },
-				'rwaPerps.json': { contracts: [], venues: [], categories: [], total: 0 },
-				'tokenlist.json': {},
-				'tokens.json': {},
-				'protocolDisplayNames.json': {},
-				'chainDisplayNames.json': {},
-				'liquidationsTokenSymbols.json': [],
-				'emissionsProtocolsList.json': [],
-				'cgExchangeIdentifiers.json': [],
-				'bridgeProtocolSlugs.json': [],
-				'bridgeChainSlugs.json': [],
-				'bridgeChainSlugToName.json': {},
-				'llamaswap-protocols.json': {}
-			}
-			for (const [file, data] of Object.entries(stubs)) {
+			for (const [file, data] of getMetadataArtifactEntries(METADATA_CI_STUBS)) {
 				const filePath = path.join(CACHE_DIR, file)
 				if (!fs.existsSync(filePath)) {
 					fs.writeFileSync(filePath, JSON.stringify(data))

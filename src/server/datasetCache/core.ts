@@ -3,7 +3,7 @@ import path from 'node:path'
 import { readDatasetCacheJson, writeDatasetCacheJson } from './jsonCache'
 export { readJsonFileOnce, writeJsonFileAtomically } from './jsonIo'
 
-export const DATASET_CACHE_ARTIFACT_VERSION = 1
+export const DATASET_CACHE_ARTIFACT_VERSION = 2
 
 export const DATASET_DOMAINS = [
 	'yields',
@@ -18,10 +18,41 @@ export const DATASET_DOMAINS = [
 
 export type DatasetDomain = (typeof DATASET_DOMAINS)[number]
 
+export type DatasetDomainManifestEntry =
+	| {
+			status: 'ready'
+			builtAt: number
+	  }
+	| {
+			status: 'failed'
+			builtAt: 0
+			error: string
+	  }
+
 export type DatasetManifest = {
-	artifactVersion: number
+	artifactVersion: typeof DATASET_CACHE_ARTIFACT_VERSION
 	builtAt: number
-	domains: Record<DatasetDomain, { builtAt: number }>
+	domains: Record<DatasetDomain, DatasetDomainManifestEntry>
+}
+
+type RawDatasetManifest = {
+	artifactVersion?: unknown
+	builtAt?: unknown
+	domains?: Partial<Record<DatasetDomain, unknown>>
+}
+
+export class DatasetDomainUnavailableError extends Error {
+	constructor(
+		public readonly domain: DatasetDomain,
+		public readonly reason: string
+	) {
+		super(`Dataset cache domain "${domain}" is unavailable: ${reason}`)
+		this.name = 'DatasetDomainUnavailableError'
+	}
+}
+
+export function isDatasetDomainUnavailableError(error: unknown): error is DatasetDomainUnavailableError {
+	return error instanceof DatasetDomainUnavailableError
 }
 
 export function getDatasetCacheRootDir(): string {
@@ -58,6 +89,11 @@ export async function readJsonFile<T>(filePath: string): Promise<T> {
 	return readDatasetCacheJson<T>(filePath)
 }
 
+export async function readDatasetDomainJson<T>(domain: DatasetDomain, relativePath: string): Promise<T> {
+	await assertDatasetDomainReady(domain)
+	return readJsonFile<T>(path.join(getDatasetDomainDir(domain), relativePath))
+}
+
 export async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
 	await writeDatasetCacheJson(filePath, value)
 }
@@ -67,21 +103,58 @@ export async function readDatasetManifest(): Promise<DatasetManifest> {
 }
 
 export async function readDatasetManifestFrom(rootDir: string): Promise<DatasetManifest> {
-	const manifest = await readJsonFile<DatasetManifest>(path.join(rootDir, 'manifest.json'))
+	const manifest = await readJsonFile<RawDatasetManifest>(path.join(rootDir, 'manifest.json'))
 	if (manifest.artifactVersion !== DATASET_CACHE_ARTIFACT_VERSION) {
 		throw new Error(
 			`Dataset cache artifact version mismatch: expected ${DATASET_CACHE_ARTIFACT_VERSION}, got ${manifest.artifactVersion}`
 		)
 	}
-
-	for (const domain of DATASET_DOMAINS) {
-		const builtAt = manifest.domains?.[domain]?.builtAt
-		if (typeof builtAt !== 'number' || !Number.isFinite(builtAt)) {
-			throw new Error(`Dataset cache manifest is missing builtAt for ${domain}`)
-		}
+	if (typeof manifest.builtAt !== 'number' || !Number.isFinite(manifest.builtAt) || manifest.builtAt <= 0) {
+		throw new Error('Dataset cache manifest has invalid builtAt')
 	}
 
-	return manifest
+	const domains = {} as Record<DatasetDomain, DatasetDomainManifestEntry>
+
+	for (const domain of DATASET_DOMAINS) {
+		const entry = manifest.domains?.[domain]
+		if (!entry || typeof entry !== 'object') {
+			throw new Error(`Dataset cache manifest is missing ${domain}`)
+		}
+		const rawEntry = entry as Record<string, unknown>
+		if (rawEntry.status === 'ready') {
+			if (typeof rawEntry.builtAt !== 'number' || !Number.isFinite(rawEntry.builtAt) || rawEntry.builtAt <= 0) {
+				throw new Error(`Dataset cache manifest has invalid builtAt for ${domain}`)
+			}
+			domains[domain] = { status: 'ready', builtAt: rawEntry.builtAt }
+			continue
+		}
+		if (rawEntry.status === 'failed') {
+			if (rawEntry.builtAt !== 0 || typeof rawEntry.error !== 'string' || rawEntry.error.length === 0) {
+				throw new Error(`Dataset cache manifest has invalid failure state for ${domain}`)
+			}
+			domains[domain] = { status: 'failed', builtAt: 0, error: rawEntry.error }
+			continue
+		}
+
+		throw new Error(`Dataset cache manifest has invalid status for ${domain}`)
+	}
+
+	return {
+		artifactVersion: DATASET_CACHE_ARTIFACT_VERSION,
+		builtAt: manifest.builtAt,
+		domains
+	}
+}
+
+export async function assertDatasetDomainReady(
+	domain: DatasetDomain
+): Promise<DatasetDomainManifestEntry & { status: 'ready' }> {
+	const manifest = await readDatasetManifest()
+	const entry = manifest.domains[domain]
+	if (entry.status === 'failed') {
+		throw new DatasetDomainUnavailableError(domain, entry.error)
+	}
+	return entry
 }
 
 export async function writeDatasetManifest(
@@ -146,10 +219,10 @@ export async function replaceDirectoryWithBackup(params: {
 }
 
 export function buildEmptyDatasetManifest(now = Date.now()): DatasetManifest {
-	const domains = {} as Record<DatasetDomain, { builtAt: number }>
+	const domains = {} as Record<DatasetDomain, DatasetDomainManifestEntry>
 
 	for (const domain of DATASET_DOMAINS) {
-		domains[domain] = { builtAt: now }
+		domains[domain] = { status: 'ready', builtAt: now }
 	}
 
 	return {

@@ -16,7 +16,7 @@ import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapter
 import type { ProtocolLite, ParentProtocolLite } from '~/containers/Protocols/api.types'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
-import { isDatasetCacheEnabled } from '~/server/datasetCache/config'
+import { fetchTokenRightsEntries } from '~/server/datasetCache/runtime/tokenRights'
 import { formattedNum, slug } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -107,13 +107,7 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 			})
 		)
 		.catch(() => null)
-	const shouldUseDatasetCache = isDatasetCacheEnabled()
-	const entries = shouldUseDatasetCache
-		? await (async () => {
-				const { fetchTokenRightsEntriesFromCache } = await import('~/server/datasetCache/tokenRights')
-				return fetchTokenRightsEntriesFromCache()
-			})()
-		: await import('~/containers/TokenRights/api').then((m) => m.fetchTokenRightsData())
+	const entries = await fetchTokenRightsEntries()
 
 	const { chainMetadata, protocolMetadata, tokenDirectory, cexs } = metadataModule.default as {
 		chainMetadata: Record<string, IChainMetadata>

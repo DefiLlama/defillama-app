@@ -1,27 +1,22 @@
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import { findProtocolEntry } from '~/containers/TokenRights/utils'
-import { getDatasetDomainDir, readDatasetManifest, readJsonFile } from './core'
+import { readDatasetDomainJson } from './core'
 import { isFileNotFoundError } from './indexKeys'
 import { normalizeTokenRightsProtocolName } from './tokenRightsIndex'
 
-function getTokenRightsDomainDir(): string {
-	return getDatasetDomainDir('token-rights')
-}
-
 export async function fetchTokenRightsEntriesFromCache(): Promise<IRawTokenRightsEntry[]> {
-	await readDatasetManifest()
-	return readJsonFile(`${getTokenRightsDomainDir()}/full.json`)
+	return readDatasetDomainJson<IRawTokenRightsEntry[]>('token-rights', 'full.json')
 }
 
 export async function fetchTokenRightsEntryFromCache(defillamaId: string): Promise<IRawTokenRightsEntry | null> {
-	await readDatasetManifest()
 	if (!defillamaId) {
 		return null
 	}
 
 	try {
-		const byDefillamaId = await readJsonFile<Record<string, IRawTokenRightsEntry>>(
-			`${getTokenRightsDomainDir()}/by-defillama-id.json`
+		const byDefillamaId = await readDatasetDomainJson<Record<string, IRawTokenRightsEntry>>(
+			'token-rights',
+			'by-defillama-id.json'
 		)
 		return byDefillamaId[defillamaId] ?? null
 	} catch (error) {
@@ -35,15 +30,15 @@ export async function fetchTokenRightsEntryFromCache(defillamaId: string): Promi
 }
 
 export async function fetchTokenRightsEntryByNameFromCache(protocolName: string): Promise<IRawTokenRightsEntry | null> {
-	await readDatasetManifest()
 	const normalizedName = normalizeTokenRightsProtocolName(protocolName)
 	if (!normalizedName) {
 		return null
 	}
 
 	try {
-		const byProtocolName = await readJsonFile<Record<string, IRawTokenRightsEntry>>(
-			`${getTokenRightsDomainDir()}/by-protocol-name.json`
+		const byProtocolName = await readDatasetDomainJson<Record<string, IRawTokenRightsEntry>>(
+			'token-rights',
+			'by-protocol-name.json'
 		)
 		return byProtocolName[normalizedName] ?? null
 	} catch (error) {
