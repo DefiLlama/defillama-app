@@ -100,7 +100,8 @@ export const YIELD_HOLDERS_API = '/api/datasets/holders'
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
-export const TOKEN_DIRECTORY_API = `${SERVER_URL}/config/smol/token.json`
+// The pro token-directory cache can serve truncated JSON; keep this endpoint on the public API for now.
+export const TOKEN_DIRECTORY_API = 'https://api.llama.fi/config/smol/token.json'
 
 // External services
 export const AI_SERVER = 'https://ai.llama.fi'

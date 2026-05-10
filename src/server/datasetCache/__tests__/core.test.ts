@@ -7,6 +7,7 @@ import {
 	DatasetCacheIntegrityError,
 	DatasetDomainUnavailableError,
 	buildEmptyDatasetManifest,
+	isMissingDatasetArtifactError,
 	readDatasetDomainJson,
 	readDatasetManifestFrom,
 	readJsonFile,
@@ -122,6 +123,14 @@ describe('dataset cache JSON reader', () => {
 
 		await expect(readDatasetDomainJson('yields', 'rows.json')).rejects.toBeInstanceOf(DatasetCacheIntegrityError)
 		vi.unstubAllEnvs()
+	})
+
+	it('recognizes missing artifacts through wrapped integrity errors', () => {
+		const missingFileError = Object.assign(new Error('missing artifact'), { code: 'ENOENT' })
+		const integrityError = new DatasetCacheIntegrityError('yields', 'rows.json', missingFileError)
+
+		expect(isMissingDatasetArtifactError(integrityError)).toBe(true)
+		expect(isMissingDatasetArtifactError(new Error('bad json'))).toBe(false)
 	})
 
 	it('evicts stale cached JSON when background refresh fails', async () => {

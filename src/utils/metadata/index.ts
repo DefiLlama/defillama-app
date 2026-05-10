@@ -1,6 +1,7 @@
 import { applyMetadataRefresh } from './artifactContract'
 import { createMetadataCacheFromGeneratedArtifacts } from './artifacts'
 import { fetchCoreMetadata } from './fetch'
+import { shouldSkipMetadataRefresh } from './policy'
 
 const metadataCache = createMetadataCacheFromGeneratedArtifacts()
 
@@ -8,10 +9,6 @@ const metadataCache = createMetadataCacheFromGeneratedArtifacts()
 const REFRESH_TTL_MS = 60 * 60 * 1000
 let lastRefreshMs = 0
 let refreshInFlight: Promise<void> | null = null
-
-function shouldSkipRefreshForLocalDev(): boolean {
-	return process.env.NODE_ENV === 'development' && !process.env.API_KEY
-}
 
 async function doRefresh(): Promise<void> {
 	try {
@@ -33,7 +30,7 @@ async function doRefresh(): Promise<void> {
 function startMetadataRefreshIfStale(): Promise<void> | null {
 	// Local contributors without an API key should still be able to boot dev
 	// from generated or stub artifacts; affected pages can resolve to 404s.
-	if (shouldSkipRefreshForLocalDev()) {
+	if (shouldSkipMetadataRefresh()) {
 		return null
 	}
 

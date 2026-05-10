@@ -3,7 +3,13 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
-import { DATASET_DOMAINS, type DatasetManifest, writeDatasetManifest, writeJsonFile } from '../core'
+import {
+	DATASET_DOMAINS,
+	DatasetCacheIntegrityError,
+	type DatasetManifest,
+	writeDatasetManifest,
+	writeJsonFile
+} from '../core'
 import { fetchTokenRightsEntryByNameFromCache, fetchTokenRightsEntryFromCache } from '../tokenRights'
 import { buildTokenRightsIndexes } from '../tokenRightsIndex'
 
@@ -65,12 +71,12 @@ describe('dataset cache token rights reader', () => {
 		await expect(fetchTokenRightsEntryFromCache('parent#aave')).resolves.toEqual(indexedEntry)
 	})
 
-	it('falls back to the full token rights list when the ID index is absent', async () => {
+	it('fails loudly when the DefiLlama ID index is absent from a ready domain', async () => {
 		const entry = makeEntry('Aave', 'parent#aave')
 
 		await writeJsonFile(path.join(tempDir, 'token-rights', 'full.json'), [entry])
 
-		await expect(fetchTokenRightsEntryFromCache('parent#aave')).resolves.toEqual(entry)
+		await expect(fetchTokenRightsEntryFromCache('parent#aave')).rejects.toBeInstanceOf(DatasetCacheIntegrityError)
 	})
 
 	it('reads token rights by protocol name from the index', async () => {
@@ -83,11 +89,11 @@ describe('dataset cache token rights reader', () => {
 		await expect(fetchTokenRightsEntryByNameFromCache('Aave DAO')).resolves.toEqual(indexedEntry)
 	})
 
-	it('falls back to the full token rights list when the name index is absent', async () => {
+	it('fails loudly when the protocol-name index is absent from a ready domain', async () => {
 		const entry = makeEntry('Aave DAO', 'parent#aave')
 
 		await writeJsonFile(path.join(tempDir, 'token-rights', 'full.json'), [entry])
 
-		await expect(fetchTokenRightsEntryByNameFromCache('Aave DAO')).resolves.toEqual(entry)
+		await expect(fetchTokenRightsEntryByNameFromCache('Aave DAO')).rejects.toBeInstanceOf(DatasetCacheIntegrityError)
 	})
 })

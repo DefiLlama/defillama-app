@@ -5,16 +5,17 @@ import { filterTokenYieldRows } from '~/containers/Token/tokenYields.server'
 import type { LendBorrowData, YieldConfigResponse } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getYieldTokenVariantSet } from '~/containers/Yields/tokenFilter'
-import { getDatasetDomainDir, readDatasetDomainJson } from './core'
-import { getDatasetIndexFileName, isFileNotFoundError } from './indexKeys'
+import { getDatasetDomainDir, isMissingDatasetArtifactError, readDatasetDomainJson } from './core'
+import { getDatasetIndexFileName } from './indexKeys'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
 
 type YieldProtocolConfig = NonNullable<NonNullable<YieldConfigResponse>['protocols']>[string]
 
 export const YIELDS_DATASET_FILES = {
-	rows: 'rows.json',
-	config: 'config.json',
-	lendBorrow: 'lend-borrow.json',
-	byTokenDir: 'by-token'
+	rows: DATASET_DOMAIN_ARTIFACTS.yields.files.rows,
+	config: DATASET_DOMAIN_ARTIFACTS.yields.files.config,
+	lendBorrow: DATASET_DOMAIN_ARTIFACTS.yields.files.lendBorrow,
+	byTokenDir: DATASET_DOMAIN_ARTIFACTS.yields.optionalShardDirs.byToken
 } as const
 
 export function getYieldsDomainDir(rootDir?: string): string {
@@ -85,7 +86,7 @@ async function getIndexedTokenYieldRows(token: string): Promise<IYieldTableRow[]
 				rowsById.set(getYieldRowCacheId(row), row)
 			}
 		} catch (error) {
-			if (isFileNotFoundError(error)) {
+			if (isMissingDatasetArtifactError(error)) {
 				continue
 			}
 			throw error

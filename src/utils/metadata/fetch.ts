@@ -1,60 +1,16 @@
-import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS, LIQUIDATIONS_SERVER_URL_V2, TOKEN_DIRECTORY_API } from '~/constants'
-import type { RawAllLiquidationsResponse } from '~/containers/LiquidationsV2/api.types'
-import { fetchEmissionsProtocolsList } from '~/containers/Unlocks/api'
-import { getErrorMessage } from '~/utils/error'
-import { fetchWithPoolingOnServer } from '~/utils/http-client'
-import { sanitizeDefiLlamaProApiUrl, sanitizeResponseTextForError } from '~/utils/http-error-format'
-import type { TokenDirectory } from '~/utils/tokenDirectory'
+import { ENABLE_LLAMASWAP_PROTOCOLS_CHAINS } from '~/constants'
 import type { CoreMetadataPayload } from './artifactContract'
 import { buildProtocolLlamaswapDataset } from './buy-on-llamaswap'
 import { buildChainDisplayNameLookupRecord, buildProtocolDisplayNameLookupRecord } from './displayLookups'
 import { extractLiquidationsTokenSymbols } from './liquidations'
-import type {
-	ICategoriesAndTags,
-	ICexItem,
-	IChainMetadata,
-	IProtocolMetadata,
-	IRWAList,
-	IRWAPerpsList,
-	ITokenListEntry,
-	ProtocolLlamaswapMetadata
-} from './types'
-
-type RawBridgeInfo = {
-	id?: number
-	name?: string
-	displayName?: string
-	slug?: string
-	chains?: string[]
-	destinationChain?: string
-}
-
-type RawBridgesResponse = {
-	bridges?: RawBridgeInfo[]
-}
-
-type RawCexsResponse = {
-	cexs: ICexItem[]
-	cg_volume_cexs: string[]
-}
-
-type RawTokenListItem = ITokenListEntry & { id: string }
-
-const DEFAULT_METADATA_FETCH_TIMEOUT_MS = 180_000
+import { fetchCoreMetadataSources } from './sources'
+import type { ITokenListEntry, ProtocolLlamaswapMetadata } from './types'
 
 const normalizeSlug = (value: unknown): string =>
 	String(value ?? '')
 		.toLowerCase()
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
-
-function getMetadataFetchTimeoutMs(): number {
-	const raw = process.env.METADATA_FETCH_TIMEOUT_MS
-	if (raw == null) return DEFAULT_METADATA_FETCH_TIMEOUT_MS
-
-	const parsed = Number(raw)
-	return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_METADATA_FETCH_TIMEOUT_MS
-}
 
 const dedupeNonEmpty = (values: string[]): string[] => {
 	const seen = new Set<string>()
@@ -65,59 +21,12 @@ const dedupeNonEmpty = (values: string[]): string[] => {
 	return [...seen]
 }
 
-function sanitizeUrlForMetadataLogs(inputUrl: string): string {
-	return sanitizeDefiLlamaProApiUrl(inputUrl)
-}
-
-async function fetchJson<T = any>(url: string): Promise<T> {
-	const res = await fetchWithPoolingOnServer(url, { timeout: getMetadataFetchTimeoutMs() })
-	const body = await res.text()
-	const contentType = res.headers.get('content-type') ?? 'unknown'
-	const urlToLog = sanitizeUrlForMetadataLogs(url)
-	if (!res.ok) {
-		throw new Error(
-			`Metadata request failed for URL: ${urlToLog} (status ${res.status}). Body preview: "${sanitizeResponseTextForError(body)}"`
-		)
-	}
-
-	try {
-		return JSON.parse(body) as T
-	} catch (error) {
-		throw new Error(
-			`Failed to parse JSON for URL: ${urlToLog} (status ${res.status}, content-type ${contentType}). Body preview: "${sanitizeResponseTextForError(
-				body
-			)}". Original error: ${getErrorMessage(error)}`
-		)
-	}
-}
-
 export async function fetchCoreMetadata({
 	existingProtocolLlamaswapDataset
 }: {
 	existingProtocolLlamaswapDataset?: ProtocolLlamaswapMetadata
 } = {}): Promise<CoreMetadataPayload> {
-	const API_KEY = process.env.API_KEY
-	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
-	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
-	const RWA_PERPS_SERVER_URL = API_KEY
-		? `https://pro-api.llama.fi/${API_KEY}/rwa-perps`
-		: 'https://api.llama.fi/rwa-perps'
-	const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
-	const DATASETS_SERVER_URL = API_KEY
-		? `https://pro-api.llama.fi/${API_KEY}/datasets`
-		: 'https://defillama-datasets.llama.fi'
-	const LIQUIDATIONS_DATA_URL = `${LIQUIDATIONS_SERVER_URL_V2}/all?zz=14`
-
-	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json?zz=14`
-	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json?zz=14`
-	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json?zz=14`
-	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs?zz=14`
-	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?zz=14`
-	const RWA_PERPS_LIST_DATA_URL = `${RWA_PERPS_SERVER_URL}/list?zz=14`
-	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json?zz=14`
-	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
-
-	const [
+	const {
 		protocols,
 		chains,
 		categoriesAndTags,
@@ -129,19 +38,7 @@ export async function fetchCoreMetadata({
 		liquidationsResponse,
 		bridgesResponse,
 		emissionsProtocolsList
-	] = await Promise.all([
-		fetchJson<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL),
-		fetchJson<Record<string, IChainMetadata>>(CHAINS_DATA_URL),
-		fetchJson<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL),
-		fetchJson<RawCexsResponse>(CEXS_DATA_URL),
-		fetchJson<IRWAList>(RWA_LIST_DATA_URL),
-		fetchJson<IRWAPerpsList>(RWA_PERPS_LIST_DATA_URL),
-		fetchJson<RawTokenListItem[]>(TOKENLIST_DATA_URL),
-		fetchJson<TokenDirectory>(TOKEN_DIRECTORY_API),
-		fetchJson<RawAllLiquidationsResponse>(LIQUIDATIONS_DATA_URL),
-		fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL),
-		fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() })
-	])
+	} = await fetchCoreMetadataSources()
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {

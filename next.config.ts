@@ -1,9 +1,7 @@
 import type { NextConfig } from 'next'
+import { getDatasetCacheTraceIncludes, type DatasetDomain } from './src/server/datasetCache/registry'
 
-const datasetCacheIncludes = (...domains: string[]) => [
-	'./.cache/datasets/manifest.json',
-	...domains.map((domain) => `./.cache/datasets/${domain}/**/*`)
-]
+const datasetCacheIncludes = (...domains: DatasetDomain[]) => getDatasetCacheTraceIncludes(...domains)
 
 const nextConfig: NextConfig = {
 	output: 'standalone',

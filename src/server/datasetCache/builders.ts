@@ -1,172 +1,10 @@
-import path from 'node:path'
-import { fetchLiquidityTokensDatasetFromNetwork } from '~/api'
-import { fetchBlockExplorers } from '~/api'
-import type { BlockExplorersResponse } from '~/api/types'
-import { SERVER_URL } from '~/constants'
-import { fetchExchangeMarketsListFromNetwork } from '~/containers/Cexs/api'
-import { fetchProtocolsList, fetchAllLiquidations } from '~/containers/LiquidationsV2/api'
-import { fetchRaisesFromNetwork } from '~/containers/Raises/api'
-import { fetchTokenMarketsListFromNetwork, getTokenRiskBorrowCapacityFromNetwork } from '~/containers/Token/api'
-import { indexBorrowCapacityByAssetKey } from '~/containers/Token/tokenRisk.utils'
-import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
-import { fetchTreasuriesFromNetwork } from '~/containers/Treasuries/api'
-import { fetchJson } from '~/utils/async'
+import { isDatasetCacheStrict } from './config'
 import type { DatasetDomain, DatasetManifest } from './core'
-import { DATASET_DOMAINS, buildEmptyDatasetManifest, ensureDirectory, writeJsonFile } from './core'
-import { buildTokenRightsIndexes } from './tokenRightsIndex'
-import { buildYieldsDomain } from './yields.builder'
+import { buildEmptyDatasetManifest } from './core'
+import { DATASET_DOMAINS, getDatasetDomainBuildAdapter, type DatasetDomainBuildResult } from './registry'
 
-type DomainBuildResult = {
-	builtAt: number
-}
-
-function getDomainDir(rootDir: string, domain: DatasetDomain): string {
-	return path.join(rootDir, domain)
-}
-
-async function buildTokenRightsDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'token-rights')
-	await ensureDirectory(domainDir)
-
-	const entries = await fetchJson<IRawTokenRightsEntry[]>(`${SERVER_URL}/token-rights`)
-	const indexes = buildTokenRightsIndexes(entries)
-
-	await writeJsonFile(`${domainDir}/full.json`, entries)
-	await writeJsonFile(`${domainDir}/by-defillama-id.json`, indexes.byDefillamaId)
-	await writeJsonFile(`${domainDir}/by-protocol-name.json`, indexes.byProtocolName)
-
-	return { builtAt }
-}
-
-async function buildRiskDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'risk')
-	await ensureDirectory(domainDir)
-
-	const data = await getTokenRiskBorrowCapacityFromNetwork()
-	const indexedTokens = indexBorrowCapacityByAssetKey(data.tokens)
-	const indexedRecord: Record<string, typeof data.tokens> = {}
-
-	for (const [assetKey, tokens] of indexedTokens) {
-		indexedRecord[assetKey] = tokens
-	}
-
-	await writeJsonFile(`${domainDir}/indexed.json`, {
-		data,
-		indexedTokens: indexedRecord
-	})
-
-	return { builtAt }
-}
-
-async function buildRaisesDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'raises')
-	await ensureDirectory(domainDir)
-
-	const raises = await fetchRaisesFromNetwork()
-	await writeJsonFile(`${domainDir}/full.json`, raises)
-
-	return { builtAt }
-}
-
-async function buildTreasuriesDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'treasuries')
-	await ensureDirectory(domainDir)
-
-	const treasuries = await fetchTreasuriesFromNetwork()
-	await writeJsonFile(`${domainDir}/full.json`, treasuries)
-
-	return { builtAt }
-}
-
-async function buildLiquidityDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'liquidity')
-	await ensureDirectory(domainDir)
-
-	const liquidity = await fetchLiquidityTokensDatasetFromNetwork()
-	await writeJsonFile(`${domainDir}/full.json`, liquidity)
-
-	return { builtAt }
-}
-
-async function buildLiquidationsDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'liquidations')
-	await ensureDirectory(domainDir)
-
-	const [protocolsResponse, allResponse, blockExplorers] = await Promise.all([
-		fetchProtocolsList(),
-		fetchAllLiquidations(),
-		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
-	])
-
-	await writeJsonFile(`${domainDir}/raw/protocols.json`, protocolsResponse)
-	await writeJsonFile(`${domainDir}/raw/all.json`, allResponse)
-	await writeJsonFile(`${domainDir}/raw/block-explorers.json`, blockExplorers)
-
-	return { builtAt }
-}
-
-async function buildMarketsDomain(rootDir: string): Promise<DomainBuildResult> {
-	const builtAt = Date.now()
-	const domainDir = getDomainDir(rootDir, 'markets')
-	await ensureDirectory(domainDir)
-
-	const [tokensList, exchangesList] = await Promise.all([
-		fetchTokenMarketsListFromNetwork(),
-		fetchExchangeMarketsListFromNetwork()
-	]).catch((error) => {
-		console.warn('[datasetCache] skipping markets cache:', error instanceof Error ? error.message : String(error))
-
-		const emptyTotals = {
-			spot: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
-			linear_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null },
-			inverse_perp: { exchange_count: 0, total_oi_usd: null, total_volume_24h: null }
-		}
-		const emptyExchanges = { spot: [], linear_perp: [], inverse_perp: [] }
-
-		return [
-			{ tokens: [] },
-			{
-				cex: emptyExchanges,
-				dex: emptyExchanges,
-				totals: {
-					cex: emptyTotals,
-					dex: emptyTotals
-				}
-			}
-		]
-	})
-
-	await writeJsonFile(`${domainDir}/tokens-list.json`, tokensList)
-	await writeJsonFile(`${domainDir}/exchanges-list.json`, exchangesList)
-
-	return { builtAt }
-}
-
-export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string): Promise<DomainBuildResult> {
-	switch (domain) {
-		case 'yields':
-			return buildYieldsDomain(rootDir)
-		case 'token-rights':
-			return buildTokenRightsDomain(rootDir)
-		case 'risk':
-			return buildRiskDomain(rootDir)
-		case 'raises':
-			return buildRaisesDomain(rootDir)
-		case 'treasuries':
-			return buildTreasuriesDomain(rootDir)
-		case 'liquidity':
-			return buildLiquidityDomain(rootDir)
-		case 'liquidations':
-			return buildLiquidationsDomain(rootDir)
-		case 'markets':
-			return buildMarketsDomain(rootDir)
-	}
+export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string): Promise<DatasetDomainBuildResult> {
+	return getDatasetDomainBuildAdapter(domain)(rootDir)
 }
 
 export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetManifest> {
@@ -205,7 +43,7 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 
 	if (failures.length > 0) {
 		const message = `Skipped dataset domains:\n${failures.join('\n')}`
-		if (process.env.DATASET_CACHE_STRICT === '1') {
+		if (isDatasetCacheStrict()) {
 			throw new Error(message)
 		}
 		console.warn(`[buildDatasetCache] ${message}`)

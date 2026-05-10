@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { buildAllDatasetDomains } from './builders'
+import { getDatasetCacheMaxAgeMs, getDatasetCacheRootDir, shouldForceDatasetCacheRefresh } from './config'
 import {
 	ensureDirectory,
-	getDatasetCacheRootDir,
 	type DatasetManifest,
 	readDatasetManifestFrom,
 	recoverDirectoryReplacement,
@@ -11,18 +11,8 @@ import {
 	writeDatasetManifest
 } from './core'
 
-const DEFAULT_DATASET_CACHE_MAX_AGE_MS = 5 * 60 * 1000
-
-function getDatasetCacheMaxAgeMs(): number {
-	const raw = process.env.DATASET_CACHE_MAX_AGE_MS
-	if (raw == null) return DEFAULT_DATASET_CACHE_MAX_AGE_MS
-
-	const parsed = Number(raw)
-	return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_DATASET_CACHE_MAX_AGE_MS
-}
-
 function shouldUseRecentDatasetCache(manifest: DatasetManifest): boolean {
-	if (process.env.DATASET_CACHE_FORCE_REFRESH === '1') return false
+	if (shouldForceDatasetCacheRefresh()) return false
 
 	const maxAgeMs = getDatasetCacheMaxAgeMs()
 	return Date.now() - manifest.builtAt <= maxAgeMs

@@ -1,22 +1,13 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
+import { getDatasetCacheRootDir } from './config'
 import { readDatasetCacheJson, writeDatasetCacheJson } from './jsonCache'
+import { DATASET_DOMAINS, type DatasetDomain } from './registry'
 export { readJsonFileOnce, writeJsonFileAtomically } from './jsonIo'
+export { getDatasetCacheRootDir } from './config'
+export { DATASET_DOMAINS, type DatasetDomain } from './registry'
 
 export const DATASET_CACHE_ARTIFACT_VERSION = 2
-
-export const DATASET_DOMAINS = [
-	'yields',
-	'token-rights',
-	'risk',
-	'raises',
-	'treasuries',
-	'liquidity',
-	'liquidations',
-	'markets'
-] as const
-
-export type DatasetDomain = (typeof DATASET_DOMAINS)[number]
 
 export type DatasetDomainManifestEntry =
 	| {
@@ -58,7 +49,7 @@ export class DatasetCacheIntegrityError extends Error {
 		cause: unknown
 	) {
 		const message = cause instanceof Error ? cause.message : String(cause)
-		super(`Dataset cache domain "${domain}" has invalid artifact "${relativePath}": ${message}`)
+		super(`Dataset cache domain "${domain}" has invalid artifact "${relativePath}": ${message}`, { cause })
 		this.name = 'DatasetCacheIntegrityError'
 	}
 }
@@ -71,13 +62,17 @@ export function isDatasetCacheIntegrityError(error: unknown): error is DatasetCa
 	return error instanceof DatasetCacheIntegrityError
 }
 
-export function getDatasetCacheRootDir(): string {
-	const cacheDir = process.env.DATASET_CACHE_DIR
-	if (cacheDir) {
-		return path.resolve(process.cwd(), cacheDir)
+export function isMissingDatasetArtifactError(error: unknown): boolean {
+	if (typeof error !== 'object' || error === null) {
+		return false
 	}
-
-	return path.resolve(process.cwd(), '.cache/datasets')
+	if ('code' in error && error.code === 'ENOENT') {
+		return true
+	}
+	if ('cause' in error) {
+		return isMissingDatasetArtifactError(error.cause)
+	}
+	return false
 }
 
 export function getDatasetDomainDir(domain: DatasetDomain): string {

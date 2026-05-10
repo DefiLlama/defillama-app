@@ -1,6 +1,9 @@
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { performance } from 'node:perf_hooks'
+import { getDatasetCacheRootDir } from '~/server/datasetCache/config'
+import { getDatasetIndexFileName } from '~/server/datasetCache/indexKeys'
+import { DATASET_DOMAIN_ARTIFACTS } from '~/server/datasetCache/registry'
 
 type YieldRow = {
 	configID?: string
@@ -11,18 +14,6 @@ type YieldRow = {
 
 const FIXED_TOKENS = ['eth', 'weth', 'usdc', 'btc', 'aave']
 const MISSING_TOKEN = '__missing_yield_token__'
-
-function getDatasetRootDir(): string {
-	return path.resolve(process.cwd(), process.env.DATASET_CACHE_DIR ?? '.cache/datasets')
-}
-
-function getDatasetIndexFileName(key: string): string {
-	const encodedName = `${encodeURIComponent(key)}.json`
-	if (Buffer.byteLength(encodedName) <= 240) {
-		return encodedName
-	}
-	throw new Error(`Benchmark token ${key} is too long for the local index filename helper`)
-}
 
 async function readJsonFile<T>(filePath: string): Promise<T> {
 	return JSON.parse(await fs.readFile(filePath, 'utf8')) as T
@@ -142,10 +133,11 @@ async function readIndexAsRowIds(filePath: string): Promise<string[]> {
 }
 
 async function main() {
-	const datasetRoot = getDatasetRootDir()
+	const datasetRoot = getDatasetCacheRootDir()
+	const yieldsArtifacts = DATASET_DOMAIN_ARTIFACTS.yields
 	const yieldsDir = path.join(datasetRoot, 'yields')
-	const byTokenDir = path.join(yieldsDir, 'by-token')
-	const rowsPath = path.join(yieldsDir, 'rows.json')
+	const byTokenDir = path.join(yieldsDir, yieldsArtifacts.optionalShardDirs.byToken)
+	const rowsPath = path.join(yieldsDir, yieldsArtifacts.files.rows)
 
 	if (!(await pathExists(rowsPath)) || !(await pathExists(byTokenDir))) {
 		throw new Error(`Expected generated yields dataset under ${yieldsDir}`)

@@ -19,17 +19,20 @@ import {
 	type LiquidationsMetadataCache
 } from '~/containers/LiquidationsV2/queries'
 import { readDatasetDomainJson } from './core'
+import { DATASET_DOMAIN_ARTIFACTS } from './registry'
+
+const LIQUIDATIONS_FILES = DATASET_DOMAIN_ARTIFACTS.liquidations.files
 
 async function getLiquidationsProtocolsResponse(): Promise<RawProtocolsResponse> {
-	return readDatasetDomainJson<RawProtocolsResponse>('liquidations', 'raw/protocols.json')
+	return readDatasetDomainJson<RawProtocolsResponse>('liquidations', LIQUIDATIONS_FILES.rawProtocols)
 }
 
 async function getLiquidationsAllResponse(): Promise<RawAllLiquidationsResponse> {
-	return readDatasetDomainJson<RawAllLiquidationsResponse>('liquidations', 'raw/all.json')
+	return readDatasetDomainJson<RawAllLiquidationsResponse>('liquidations', LIQUIDATIONS_FILES.rawAll)
 }
 
 async function getLiquidationsBlockExplorers(): Promise<BlockExplorersResponse> {
-	return readDatasetDomainJson<BlockExplorersResponse>('liquidations', 'raw/block-explorers.json')
+	return readDatasetDomainJson<BlockExplorersResponse>('liquidations', LIQUIDATIONS_FILES.rawBlockExplorers)
 }
 
 export async function getLiquidationsOverviewFromCache(

@@ -7,7 +7,7 @@ import {
 } from '~/containers/Yields/queries/index'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { getYieldPoolTokenVariantSet } from '~/containers/Yields/tokenFilter'
-import { getEnvNumber } from '~/utils/async'
+import { getDatasetCacheFetchTimeoutMs } from './config'
 import { ensureDirectory, writeJsonFile } from './core'
 import {
 	getYieldsByTokenDir,
@@ -21,10 +21,6 @@ import {
 
 type DomainBuildResult = {
 	builtAt: number
-}
-
-function getDatasetCacheFetchTimeoutMs(): number {
-	return getEnvNumber('DATASET_CACHE_FETCH_TIMEOUT_MS', 180_000)
 }
 
 async function writeTokenYieldIndexes(rootDir: string, rows: IYieldTableRow[]): Promise<void> {
