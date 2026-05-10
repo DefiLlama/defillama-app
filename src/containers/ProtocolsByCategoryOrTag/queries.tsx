@@ -1038,9 +1038,13 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			dataType: 'dailyRevenue'
 		}).catch(() => null),
 		fetchCategoriesSummary(),
-		fetchJson<Array<ChainsApiEntry>>(YIELD_CHAIN_API).catch(() => null)
+		fetchJson<Array<ChainsApiEntry>>(YIELD_CHAIN_API).catch((err) => {
+			console.error('[categories] failed to fetch chains list for EVM filter; toggle will be disabled', err)
+			return null
+		})
 	])
 
+	const isEvmFilterAvailable = chainsList != null
 	const evmChainsSet = buildEvmChainsSet(chainsList ?? [])
 
 	const revenueByProtocol: Record<string, number> = {}
@@ -1281,6 +1285,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		tableData: tableData.toSorted((a, b) => b.tvl - a.tvl),
 		tableDataEvm: tableDataEvm.toSorted((a, b) => b.tvl - a.tvl),
 		tableDataNonEvm: tableDataNonEvm.toSorted((a, b) => b.tvl - a.tvl),
+		isEvmFilterAvailable,
 		chartSource,
 		categoryColors,
 		extraTvlCharts

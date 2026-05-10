@@ -90,6 +90,7 @@ export interface IProtocolsCategoriesPageData {
 	tableData: Array<IProtocolsCategoriesTableRow>
 	tableDataEvm: Array<IProtocolsCategoriesTableRow>
 	tableDataNonEvm: Array<IProtocolsCategoriesTableRow>
+	isEvmFilterAvailable: boolean
 	chartSource: Array<IProtocolsCategoriesChartRow>
 	categoryColors: Record<string, string>
 	extraTvlCharts: Record<string, Record<string, Record<number, number>>>

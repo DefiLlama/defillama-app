@@ -152,9 +152,19 @@ const categoriesColumns = [
 ]
 
 export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
-	const { categories, tableData, tableDataEvm, tableDataNonEvm, chartSource, categoryColors, extraTvlCharts } = props
+	const {
+		categories,
+		tableData,
+		tableDataEvm,
+		tableDataNonEvm,
+		isEvmFilterAvailable,
+		chartSource,
+		categoryColors,
+		extraTvlCharts
+	} = props
 	const router = useRouter()
-	const chainTypeFilter = parseChainTypeQuery(readSingleQueryValue(router.query.chainType))
+	const rawChainTypeFilter = parseChainTypeQuery(readSingleQueryValue(router.query.chainType))
+	const chainTypeFilter: ChainTypeFilter = isEvmFilterAvailable ? rawChainTypeFilter : 'all'
 	const selectedTagLabel: ChainTypeLabel = CHAIN_TYPE_FILTER_TO_LABEL[chainTypeFilter]
 
 	const handleChainTypeChange = React.useCallback(
@@ -264,12 +274,14 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">TVL by Category</h1>
-					<TagGroup
-						values={CHAIN_TYPE_VALUES}
-						selectedValue={selectedTagLabel}
-						setValue={handleChainTypeChange}
-						label="Chain type:"
-					/>
+					{isEvmFilterAvailable ? (
+						<TagGroup
+							values={CHAIN_TYPE_VALUES}
+							selectedValue={selectedTagLabel}
+							setValue={handleChainTypeChange}
+							label="Chain type:"
+						/>
+					) : null}
 					<SelectWithCombobox
 						allValues={categories}
 						selectedValues={selectedCategories}
