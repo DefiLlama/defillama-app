@@ -304,7 +304,8 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 				</React.Suspense>
 				{chainTypeFilter !== 'all' ? (
 					<p className="px-3 pb-3 text-xs text-(--text-tertiary)">
-						Chart shows total TVL across all chains; the chain-type filter applies to the table only.
+						Chart shows total TVL across all chains. TVL toggles (staking, borrowed, …) are not applied while a
+						chain-type filter is active.
 					</p>
 				) : null}
 			</div>
