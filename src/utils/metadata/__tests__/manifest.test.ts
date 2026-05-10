@@ -101,6 +101,7 @@ describe('metadata artifact manifest', () => {
 		expect(isMetadataArtifactManifestFresh(createMetadataArtifactManifest('ready', 1_000), 1_100, 500)).toBe(true)
 		expect(isMetadataArtifactManifestFresh(createMetadataArtifactManifest('stub', 1_000), 1_100, 500)).toBe(false)
 		expect(isMetadataArtifactManifestFresh(createMetadataArtifactManifest('ready', 1_000), 2_000, 500)).toBe(false)
+		expect(isMetadataArtifactManifestFresh(createMetadataArtifactManifest('ready', 2_000), 1_000, 500)).toBe(false)
 		expect(isMetadataArtifactManifestFresh(null, 1_100, 500)).toBe(false)
 	})
 })

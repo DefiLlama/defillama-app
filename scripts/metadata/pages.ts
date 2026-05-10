@@ -62,21 +62,11 @@ export function buildTrendingPages(
 	trendingRoutes: TastyMetricsResult['trendingRoutes']
 ): DefillamaPage[] {
 	return trendingRoutes
-		.filter(
-			([route]) => !['/chain/', '/metrics', '/tools', '/subscription', '/pro'].some((page) => route.includes(page))
-		)
+		.filter(([route]) => !isExcludedTrendingRoute(route))
 		.slice(0, 5)
 		.map(([route]) => {
 			const pageData = findPageByRoute(defillamaPages, route)
-			const name =
-				pageData?.name ??
-				(route.includes('/')
-					? `${route
-							.split('/')
-							.slice(0, -1)
-							.map((part) => capitalize(part))
-							.join(' ')}: ${capitalize(route.split('/').pop() ?? '')}`
-					: route)
+			const name = pageData?.name ?? buildRouteLabel(route)
 
 			return {
 				name,
@@ -96,12 +86,32 @@ export async function writePagesAndTrendingIfNeeded(
 	finalDefillamaPages: DefillamaPages,
 	trendingPages: DefillamaPage[]
 ): Promise<void> {
+	await fs.writeFile(path.join(repoRoot, 'public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
+
 	if (trendingPages.length === 0) {
 		return
 	}
 
-	await fs.writeFile(path.join(repoRoot, 'public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
 	await fs.writeFile(path.join(repoRoot, 'public', 'trending.json'), JSON.stringify(trendingPages, null, 2))
+}
+
+function isExcludedTrendingRoute(route: string): boolean {
+	if (route === '/pro' || route.startsWith('/pro/')) {
+		return true
+	}
+	return ['/chain/', '/metrics', '/tools', '/subscription'].some((page) => route.includes(page))
+}
+
+function buildRouteLabel(route: string): string {
+	const parts = route.split('/').filter(Boolean)
+	if (parts.length === 0) return route
+	if (parts.length === 1) return capitalize(parts[0] ?? '')
+
+	const prefix = parts
+		.slice(0, -1)
+		.map((part) => capitalize(part))
+		.join(' ')
+	return `${prefix}: ${capitalize(parts[parts.length - 1] ?? '')}`
 }
 
 function groupAndSortByCategory(items: DefillamaPage[], tastyMetrics: Record<string, number>): DefillamaPage[] {

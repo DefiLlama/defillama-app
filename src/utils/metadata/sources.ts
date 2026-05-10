@@ -15,7 +15,7 @@ import type {
 } from './types'
 import { getMetadataUpstreamBase } from './upstream'
 
-export type RawTokenListItem = ITokenListEntry & { id: string }
+export type RawTokenListItem = ITokenListEntry & { id?: string }
 
 export type CoreMetadataSources = {
 	protocols: Record<string, IProtocolMetadata>

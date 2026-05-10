@@ -1,10 +1,26 @@
+import path from 'node:path'
+import { getDatasetCacheRootDir } from './config'
+
 export type DatasetDomainBuildResult = {
 	builtAt: number
 }
 
 export type DatasetDomainBuildAdapter = (rootDir: string) => Promise<DatasetDomainBuildResult>
 
-export const DATASET_CACHE_MANIFEST_TRACE_INCLUDE = './.cache/datasets/manifest.json'
+function getDatasetCacheTraceRootPattern(): string {
+	const cacheRootDir = getDatasetCacheRootDir()
+	const relativeRoot = path.relative(process.cwd(), cacheRootDir).split(path.sep).join('/')
+	if (!relativeRoot || relativeRoot === '.') {
+		return '.'
+	}
+	return relativeRoot.startsWith('..') || path.isAbsolute(relativeRoot)
+		? cacheRootDir.split(path.sep).join('/')
+		: `./${relativeRoot}`
+}
+
+const DATASET_CACHE_TRACE_ROOT_INCLUDE = getDatasetCacheTraceRootPattern()
+
+export const DATASET_CACHE_MANIFEST_TRACE_INCLUDE = `${DATASET_CACHE_TRACE_ROOT_INCLUDE}/manifest.json`
 
 export type DatasetDomainArtifactContract = {
 	files: Readonly<Record<string, string>>
@@ -127,7 +143,7 @@ export function getDatasetCacheTraceIncludes(...domains: DatasetDomain[]): strin
 
 	for (const domain of domains) {
 		for (const folder of DATASET_CACHE_REGISTRY[domain].traceFolders) {
-			includes.add(`./.cache/datasets/${folder}/**/*`)
+			includes.add(`${DATASET_CACHE_TRACE_ROOT_INCLUDE}/${folder}/**/*`)
 		}
 	}
 

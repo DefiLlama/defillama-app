@@ -2,9 +2,9 @@ import { runPullMetadataCommand } from './metadata/pullCommand'
 
 runPullMetadataCommand()
 	.then(({ exitCode }) => {
-		process.exit(exitCode)
+		process.exitCode = exitCode
 	})
 	.catch((error) => {
-		console.log('Fatal error:', error)
-		process.exit(1)
+		console.error('Fatal error:', error)
+		process.exitCode = 1
 	})

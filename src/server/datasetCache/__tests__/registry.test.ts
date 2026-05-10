@@ -62,8 +62,8 @@ describe('dataset cache registry', () => {
 			'/api/liquidations/*/*': ['liquidations']
 		}
 
-		for (const route in expectedRouteDomains) {
-			expect(includes[route]).toEqual(getDatasetCacheTraceIncludes(...expectedRouteDomains[route]))
+		for (const [route, domains] of Object.entries(expectedRouteDomains)) {
+			expect(includes[route]).toEqual(getDatasetCacheTraceIncludes(...domains))
 		}
 	})
 })

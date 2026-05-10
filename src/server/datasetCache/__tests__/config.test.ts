@@ -20,6 +20,10 @@ describe('dataset cache config', () => {
 		vi.stubEnv('DATASET_CACHE_DIR', '.cache/custom-datasets')
 
 		expect(getDatasetCacheRootDir()).toBe(path.resolve(process.cwd(), '.cache/custom-datasets'))
+
+		vi.stubEnv('DATASET_CACHE_DIR', '   ')
+
+		expect(getDatasetCacheRootDir()).toBe(path.resolve(process.cwd(), '.cache/datasets'))
 	})
 
 	it('centralizes dataset cache policy env flags', () => {
@@ -47,5 +51,11 @@ describe('dataset cache config', () => {
 
 		expect(getDatasetCacheMaxAgeMs()).toBe(120)
 		expect(getDatasetCacheFetchTimeoutMs()).toBe(240)
+
+		vi.stubEnv('DATASET_CACHE_MAX_AGE_MS', '0')
+		vi.stubEnv('DATASET_CACHE_FETCH_TIMEOUT_MS', '0')
+
+		expect(getDatasetCacheMaxAgeMs()).toBe(0)
+		expect(getDatasetCacheFetchTimeoutMs()).toBe(180_000)
 	})
 })

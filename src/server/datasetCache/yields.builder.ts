@@ -39,6 +39,7 @@ async function writeTokenYieldIndexes(rootDir: string, rows: IYieldTableRow[]): 
 
 	await ensureDirectory(getYieldsByTokenDir(rootDir))
 
+	const writePromises = []
 	for (const [token, tokenRows] of byToken) {
 		const rowIds = Array.from(
 			new Set(
@@ -47,8 +48,9 @@ async function writeTokenYieldIndexes(rootDir: string, rows: IYieldTableRow[]): 
 					.filter((rowId) => rowId.length > 0)
 			)
 		)
-		await writeJsonFile(getYieldsTokenIndexPath(token, rootDir), rowIds)
+		writePromises.push(writeJsonFile(getYieldsTokenIndexPath(token, rootDir), rowIds))
 	}
+	await Promise.all(writePromises)
 }
 
 export async function buildYieldsDomain(rootDir: string): Promise<DomainBuildResult> {
@@ -66,10 +68,12 @@ export async function buildYieldsDomain(rootDir: string): Promise<DomainBuildRes
 		lendBorrowData.props.pools ?? []
 	)
 
-	await writeJsonFile(getYieldsRowsPath(rootDir), transformedPools)
-	await writeJsonFile(getYieldsConfigPath(rootDir), yieldConfig)
-	await writeJsonFile(getYieldsLendBorrowPath(rootDir), lendBorrowData)
-	await writeTokenYieldIndexes(rootDir, transformedPools)
+	await Promise.all([
+		writeJsonFile(getYieldsRowsPath(rootDir), transformedPools),
+		writeJsonFile(getYieldsConfigPath(rootDir), yieldConfig),
+		writeJsonFile(getYieldsLendBorrowPath(rootDir), lendBorrowData),
+		writeTokenYieldIndexes(rootDir, transformedPools)
+	])
 
 	return { builtAt }
 }

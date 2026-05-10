@@ -16,6 +16,8 @@ describe('metadata stub policy', () => {
 
 	it('allows stub writes only in CI or development', () => {
 		expect(shouldWriteMetadataStubsOnFailure({ CI: 'true', NODE_ENV: 'production' })).toBe(true)
+		expect(shouldWriteMetadataStubsOnFailure({ CI: 'false', NODE_ENV: 'production' })).toBe(false)
+		expect(shouldWriteMetadataStubsOnFailure({ CI: '1', NODE_ENV: 'production' })).toBe(true)
 		expect(shouldWriteMetadataStubsOnFailure({ NODE_ENV: 'development' })).toBe(true)
 		expect(shouldWriteMetadataStubsOnFailure({ NODE_ENV: 'production' })).toBe(false)
 	})

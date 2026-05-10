@@ -309,6 +309,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 							{loadingChartSet.has(tchart) ? (
 								<span
 									aria-label={`${tchart} is loading`}
+									role="status"
 									className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
 								/>
 							) : (
@@ -386,7 +387,14 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				</div>
 			</div>
 			<div className="relative flex min-h-[360px] flex-col">
-				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+				<Suspense
+					fallback={
+						<div className="m-auto flex min-h-[360px] items-center justify-center" role="status" aria-live="polite">
+							<span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+							<span className="sr-only">Loading chart...</span>
+						</div>
+					}
+				>
 					<ProtocolChart
 						chartData={deferredChartRenderModel.chartData}
 						chartColors={props.chartColors}
@@ -395,7 +403,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						groupBy={groupBy}
 						hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 						rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
-						unlockTokenSymbol={props.token.symbol}
+						unlockTokenSymbol={props.token?.symbol}
 						onReady={handleOverviewChartReady}
 					/>
 				</Suspense>

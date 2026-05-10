@@ -30,10 +30,12 @@ export function isMetadataArtifactManifestFresh(
 	now = Date.now(),
 	ttlMs = METADATA_PULL_TTL_MS
 ): boolean {
+	const age = manifest ? now - manifest.pulledAt : 0
 	return (
 		manifest !== null &&
 		manifest.artifactVersion === METADATA_ARTIFACT_VERSION &&
 		manifest.status === 'ready' &&
-		now - manifest.pulledAt <= ttlMs
+		age >= 0 &&
+		age <= ttlMs
 	)
 }

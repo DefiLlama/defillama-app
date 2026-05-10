@@ -1,7 +1,7 @@
 export type MetadataPolicyEnv = {
-	[key: string]: string | undefined
+	[key: string]: string | boolean | undefined
 	API_KEY?: string
-	CI?: string
+	CI?: string | boolean
 	NODE_ENV?: string
 }
 
@@ -10,7 +10,8 @@ export function isLocalDevWithoutApiKey(env: MetadataPolicyEnv = process.env): b
 }
 
 export function shouldWriteMetadataStubsOnFailure(env: MetadataPolicyEnv = process.env): boolean {
-	return Boolean(env.CI) || env.NODE_ENV === 'development'
+	const ci = env.CI === true || env.CI === 'true' || env.CI === '1'
+	return ci || env.NODE_ENV === 'development'
 }
 
 export function shouldSkipMetadataRefresh(env: MetadataPolicyEnv = process.env): boolean {

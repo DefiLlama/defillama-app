@@ -17,6 +17,8 @@ type FetchTastyMetricsOptions = {
 	startAt: number
 }
 
+const TASTY_METRICS_TIMEOUT_MS = 15_000
+
 const emptyTastyMetrics = (): TastyMetricsResult => ({
 	tastyMetrics: {},
 	trendingRoutes: []
@@ -34,11 +36,21 @@ export async function fetchTastyMetrics({
 	}
 
 	try {
+		const controller = new AbortController()
+		const timeoutId = setTimeout(() => controller.abort(), TASTY_METRICS_TIMEOUT_MS)
 		const response = await fetchFn(`${env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
 			headers: {
 				Authorization: `Bearer ${env.TASTY_API_KEY}`
-			}
+			},
+			signal: controller.signal
+		}).finally(() => {
+			clearTimeout(timeoutId)
 		})
+
+		if (!response.ok) {
+			throw new Error(`Tasty metrics request failed with ${response.status}: ${await response.text()}`)
+		}
+
 		const rows = (await response.json()) as Array<{ x: string; y: number }>
 		const tastyMetrics: Record<string, number> = {}
 		const trendingRoutes: Array<[string, number]> = []
