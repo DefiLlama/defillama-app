@@ -25,9 +25,21 @@ import { pushShallowQuery } from '~/utils/routerQuery'
 import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import type { IChainOverviewData } from './types'
 
+// Chart.tsx's destructured props are inferred as required (no defaults, no explicit types),
+// so its component type lists `color`, `chartOptions`, and `height` as required even though
+// Chart.tsx tolerates them being undefined at runtime. Rather than reaching past Chart.tsx
+// here (out of scope), assert the panel-facing prop shape this component actually uses.
+type ChainCoreChartProps = {
+	chartData: any
+	valueSymbol: string
+	isThemeDark: boolean
+	groupBy: ChartTimeGroupingWithCumulative
+	onReady: (instance: unknown) => void
+}
+
 const ChainCoreChart = dynamic(() => import('~/containers/ChainOverview/Chart'), {
 	loading: () => <div className="m-auto flex min-h-[360px] items-center justify-center" />
-}) as any
+}) as React.ComponentType<ChainCoreChartProps>
 
 type ChainMetricOption = {
 	id: ChainChartLabels

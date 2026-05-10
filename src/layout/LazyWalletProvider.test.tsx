@@ -12,6 +12,9 @@ describe('LazyWalletProvider', () => {
 		// next/dynamic was called with a factory. Importing the LazyWalletProvider module
 		// must not eagerly invoke the factory, otherwise it would synchronously pull the
 		// wagmi/rainbowkit/wagmi-chains stack into every consumer's initial bundle.
+		// (We intentionally don't await the factory here — doing so would resolve
+		// rainbowkit's CSS-side-effect import through Vite/PostCSS, which the project's
+		// node-env vitest config doesn't handle.)
 		expect(typeof loader).toBe('function')
 	})
 
