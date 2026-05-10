@@ -94,4 +94,22 @@ describe('metadata artifact contract', () => {
 		expect(metadata.tokenDirectory).toEqual({})
 		expect(metadata.tokenlist).toEqual({})
 	})
+
+	it('rebuilds chain display-name fallbacks during refresh', () => {
+		const metadata = createMetadataCacheFromArtifacts(createPayload())
+
+		applyMetadataRefresh(
+			metadata,
+			createPayload({
+				chains: {
+					Arbitrum: { name: 'Arbitrum One', id: 'arbitrum' }
+				},
+				chainDisplayNames: {}
+			})
+		)
+
+		expect(metadata.chainDisplayNames.get('Arbitrum')).toBe('Arbitrum One')
+		expect(metadata.chainDisplayNames.get('arbitrum-one')).toBe('Arbitrum One')
+		expect(metadata.chainDisplayNames.get('arbitrum')).toBe('Arbitrum One')
+	})
 })

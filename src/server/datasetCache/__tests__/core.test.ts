@@ -20,6 +20,7 @@ describe('dataset cache JSON reader', () => {
 	let tempDir = ''
 
 	afterEach(async () => {
+		vi.restoreAllMocks()
 		vi.unstubAllEnvs()
 		if (tempDir) {
 			await rm(tempDir, { recursive: true, force: true })

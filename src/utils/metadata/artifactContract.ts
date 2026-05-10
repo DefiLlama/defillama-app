@@ -112,10 +112,7 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 		tokenlist: payload.tokenlist,
 		tokenDirectory: payload.tokenDirectory,
 		protocolDisplayNames: createStringLookupMap(payload.protocolDisplayNames),
-		chainDisplayNames: createStringLookupMap({
-			...payload.chainDisplayNames,
-			...buildChainDisplayNameLookupRecord(payload.chains)
-		}),
+		chainDisplayNames: createChainDisplayNameMap(payload),
 		liquidationsTokenSymbols: payload.liquidationsTokenSymbols,
 		liquidationsTokenSymbolsSet: new Set(payload.liquidationsTokenSymbols),
 		emissionsProtocolsList: payload.emissionsProtocolsList,
@@ -127,11 +124,18 @@ export function createMetadataCacheFromArtifacts(payload: CoreMetadataPayload): 
 	}
 }
 
+function createChainDisplayNameMap(payload: CoreMetadataPayload): Map<string, string> {
+	return createStringLookupMap({
+		...payload.chainDisplayNames,
+		...buildChainDisplayNameLookupRecord(payload.chains)
+	})
+}
+
 export function applyMetadataRefresh(metadataCache: MetadataCache, payload: CoreMetadataPayload): void {
 	metadataCache.protocolMetadata = payload.protocols
 	metadataCache.protocolDisplayNames = createStringLookupMap(payload.protocolDisplayNames)
 	metadataCache.chainMetadata = payload.chains
-	metadataCache.chainDisplayNames = createStringLookupMap(payload.chainDisplayNames)
+	metadataCache.chainDisplayNames = createChainDisplayNameMap(payload)
 	metadataCache.categoriesAndTags = payload.categoriesAndTags
 	metadataCache.cexs = payload.cexs
 	metadataCache.rwaList = payload.rwaList

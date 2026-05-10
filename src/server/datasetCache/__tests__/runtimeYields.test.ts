@@ -57,4 +57,39 @@ describe('dataset cache yields runtime adapter', () => {
 		expect(fetchJsonMock.mock.calls[0][0]).toContain(encodeURIComponent(poolId))
 		expect(result.data?.poolId).toBe(poolId)
 	})
+
+	it.each(['79e042b5-e55d-4a4e-b0b0-6661a570470', '79e042b5-e55d-4a4e-b0b0-6661a570470z'])(
+		'returns null for invalid yield pool IDs',
+		async (poolId) => {
+			const { getYieldPoolPageData } = await import('../runtime/yields')
+
+			await expect(getYieldPoolPageData(poolId)).resolves.toEqual({
+				source: 'network',
+				data: null
+			})
+			expect(fetchJsonMock).not.toHaveBeenCalled()
+			expect(mapPoolToYieldTableRowMock).not.toHaveBeenCalled()
+		}
+	)
+
+	it('surfaces yield pool network failures', async () => {
+		const poolId = '79e042b5-e55d-4a4e-b0b0-6661a570470b'
+		fetchJsonMock.mockRejectedValueOnce(new Error('network failed'))
+		const { getYieldPoolPageData } = await import('../runtime/yields')
+
+		await expect(getYieldPoolPageData(poolId)).rejects.toThrow('network failed')
+		expect(mapPoolToYieldTableRowMock).not.toHaveBeenCalled()
+	})
+
+	it('returns null for missing yield pool response data', async () => {
+		const poolId = '79e042b5-e55d-4a4e-b0b0-6661a570470b'
+		fetchJsonMock.mockResolvedValueOnce({})
+		const { getYieldPoolPageData } = await import('../runtime/yields')
+
+		await expect(getYieldPoolPageData(poolId)).resolves.toEqual({
+			source: 'network',
+			data: null
+		})
+		expect(mapPoolToYieldTableRowMock).not.toHaveBeenCalled()
+	})
 })

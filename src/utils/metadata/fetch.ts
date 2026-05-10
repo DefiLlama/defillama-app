@@ -127,7 +127,8 @@ export async function fetchCoreMetadata({
 		tokenlistArray,
 		tokenDirectory,
 		liquidationsResponse,
-		bridgesResponse
+		bridgesResponse,
+		emissionsProtocolsList
 	] = await Promise.all([
 		fetchJson<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL),
 		fetchJson<Record<string, IChainMetadata>>(CHAINS_DATA_URL),
@@ -138,10 +139,9 @@ export async function fetchCoreMetadata({
 		fetchJson<RawTokenListItem[]>(TOKENLIST_DATA_URL),
 		fetchJson<TokenDirectory>(TOKEN_DIRECTORY_API),
 		fetchJson<RawAllLiquidationsResponse>(LIQUIDATIONS_DATA_URL),
-		fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL)
+		fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL),
+		fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() })
 	])
-
-	const emissionsProtocolsList = await fetchEmissionsProtocolsList({ timeout: getMetadataFetchTimeoutMs() })
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {

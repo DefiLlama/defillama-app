@@ -13,7 +13,6 @@ import {
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
-import { LoadingDots } from '~/components/Loaders'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -158,8 +157,6 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	)
 	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 	const loadingChartSet = useMemo(() => new Set(loadingCharts), [loadingCharts])
-	const loadingChartsText = loadingCharts.join(', ').toLowerCase()
-	const hasVisibleCharts = Object.keys(deferredChartRenderModel.chartData).length > 0
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 	const [metricsSearchValue, setMetricsSearchValue] = useState('')
@@ -389,32 +386,19 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				</div>
 			</div>
 			<div className="relative flex min-h-[360px] flex-col">
-				{!isClient ? null : !hasVisibleCharts && loadingCharts.length > 0 ? (
-					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
-						fetching {loadingChartsText}
-						<LoadingDots />
-					</p>
-				) : (
-					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<ProtocolChart
-							chartData={deferredChartRenderModel.chartData}
-							chartColors={props.chartColors}
-							isThemeDark={isThemeDark}
-							valueSymbol={deferredChartRenderModel.valueSymbol}
-							groupBy={groupBy}
-							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
-							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
-							unlockTokenSymbol={props.token.symbol}
-							onReady={handleOverviewChartReady}
-						/>
-					</Suspense>
-				)}
-				{isClient && hasVisibleCharts && loadingCharts.length > 0 ? (
-					<p className="absolute bottom-2 left-2 z-10 flex items-center gap-1 rounded-full border border-(--cards-border) bg-(--bg-main) px-2 py-1 text-xs text-(--text-tertiary)">
-						<span className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
-						<span>Fetching {loadingChartsText}</span>
-					</p>
-				) : null}
+				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+					<ProtocolChart
+						chartData={deferredChartRenderModel.chartData}
+						chartColors={props.chartColors}
+						isThemeDark={isThemeDark}
+						valueSymbol={deferredChartRenderModel.valueSymbol}
+						groupBy={groupBy}
+						hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
+						rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
+						unlockTokenSymbol={props.token.symbol}
+						onReady={handleOverviewChartReady}
+					/>
+				</Suspense>
 				{isClient && failedMetrics.length > 0 ? (
 					<Ariakit.PopoverProvider>
 						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
