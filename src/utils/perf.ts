@@ -90,6 +90,13 @@ async function runPerformanceLoggedStaticProps<
 
 	const elapsed = Date.now() - start
 	await setPageBuildTimes(`${filename} ERROR`, [Date.now(), `${elapsed}ms`])
+	if (process.env.NODE_ENV === 'development') {
+		console.error(
+			`[page-build] ${filename} failed after ${elapsed}ms`,
+			params ? { params } : undefined,
+			lastError?.message ?? lastError
+		)
+	}
 	throw lastError ?? new Error(`${filename}: Unknown build error`)
 }
 

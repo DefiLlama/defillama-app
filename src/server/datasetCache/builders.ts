@@ -7,7 +7,13 @@ export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string)
 	return getDatasetDomainBuildAdapter(domain)(rootDir)
 }
 
-export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetManifest> {
+export async function buildAllDatasetDomains(
+	rootDir: string,
+	{
+		strict = isDatasetCacheStrict(),
+		failureLogPrefix = '[dev:prepare] Dataset cache'
+	}: { strict?: boolean; failureLogPrefix?: string | null } = {}
+): Promise<DatasetManifest> {
 	const manifest = buildEmptyDatasetManifest()
 	const buildResults = await Promise.allSettled(
 		DATASET_DOMAINS.map(async (domain) => ({
@@ -43,10 +49,12 @@ export async function buildAllDatasetDomains(rootDir: string): Promise<DatasetMa
 
 	if (failures.length > 0) {
 		const message = `Skipped dataset domains:\n${failures.join('\n')}`
-		if (isDatasetCacheStrict()) {
+		if (strict) {
 			throw new Error(message)
 		}
-		console.warn(`[buildDatasetCache] ${message}`)
+		if (failureLogPrefix) {
+			console.warn(`${failureLogPrefix}: ${message}`)
+		}
 	}
 
 	manifest.builtAt = latestBuiltAt || Date.now()

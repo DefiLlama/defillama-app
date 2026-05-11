@@ -162,7 +162,7 @@ function ChartNodeView({ node, selected, deleteNode, getPos, updateAttributes }:
 				className={`pointer-events-none absolute top-2 bottom-2 left-0 w-px transition-colors duration-150 ${
 					selected
 						? 'bg-(--link-text)'
-						: 'bg-(--cards-border) group-hover:bg-(--text-tertiary) group-focus-within:bg-(--text-tertiary)'
+						: 'bg-(--cards-border) group-focus-within:bg-(--text-tertiary) group-hover:bg-(--text-tertiary)'
 				}`}
 			/>
 

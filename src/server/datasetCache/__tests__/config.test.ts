@@ -31,15 +31,26 @@ describe('dataset cache config', () => {
 
 		expect(isDatasetCacheEnabled()).toBe(true)
 		expect(isDatasetCacheStrict()).toBe(false)
+		expect(isDatasetCacheStrict({ phase: 'refresh' })).toBe(false)
 		expect(shouldForceDatasetCacheRefresh()).toBe(false)
 
 		vi.stubEnv('DATASET_CACHE_DISABLE', '1')
-		vi.stubEnv('DATASET_CACHE_STRICT', '1')
 		vi.stubEnv('DATASET_CACHE_FORCE_REFRESH', '1')
 
 		expect(isDatasetCacheEnabled()).toBe(false)
-		expect(isDatasetCacheStrict()).toBe(true)
+		expect(isDatasetCacheStrict()).toBe(false)
 		expect(shouldForceDatasetCacheRefresh()).toBe(true)
+	})
+
+	it('uses strict dataset cache only for production build mode', () => {
+		vi.stubEnv('NODE_ENV', 'production')
+
+		expect(isDatasetCacheStrict()).toBe(true)
+		expect(isDatasetCacheStrict({ phase: 'refresh' })).toBe(false)
+
+		vi.stubEnv('NODE_ENV', 'development')
+
+		expect(isDatasetCacheStrict()).toBe(false)
 	})
 
 	it('centralizes dataset cache numeric env values', () => {

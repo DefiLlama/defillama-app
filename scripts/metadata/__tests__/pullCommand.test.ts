@@ -3,7 +3,11 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { METADATA_ARTIFACT_FILES, type CoreMetadataPayload } from '../../../src/utils/metadata/artifactContract'
-import { getMetadataCacheDir, readMetadataArtifactManifest } from '../../../src/utils/metadata/artifactWriter'
+import {
+	getMetadataCacheDir,
+	readMetadataArtifactManifest,
+	writeMetadataArtifacts
+} from '../../../src/utils/metadata/artifactWriter'
 import { METADATA_MANIFEST_FILE, createMetadataArtifactManifest } from '../../../src/utils/metadata/manifest'
 import { runPullMetadataCommand } from '../pullCommand'
 
@@ -64,11 +68,7 @@ describe('pull metadata command', () => {
 	it('skips pulls when the metadata manifest is fresh', async () => {
 		const repoRoot = await createRepoRoot()
 		const cacheDir = getMetadataCacheDir(repoRoot)
-		await fs.mkdir(cacheDir, { recursive: true })
-		await fs.writeFile(
-			path.join(cacheDir, METADATA_MANIFEST_FILE),
-			JSON.stringify(createMetadataArtifactManifest('ready', 1_000), null, 2)
-		)
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 1_000)
 		const fetchMetadata = vi.fn()
 
 		const result = await runPullMetadataCommand({
@@ -81,6 +81,27 @@ describe('pull metadata command', () => {
 
 		expect(result.exitCode).toBe(0)
 		expect(fetchMetadata).not.toHaveBeenCalled()
+	})
+
+	it('pulls again when a fresh ready manifest has missing artifacts', async () => {
+		const repoRoot = await createRepoRoot()
+		const cacheDir = getMetadataCacheDir(repoRoot)
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 1_000)
+		await fs.rm(path.join(cacheDir, METADATA_ARTIFACT_FILES.cexs))
+		const fetchMetadata = vi.fn().mockResolvedValue(createPayload())
+
+		const result = await runPullMetadataCommand({
+			env: { NODE_ENV: 'production' } as NodeJS.ProcessEnv,
+			fetchMetadata,
+			fetchMetrics: vi.fn().mockResolvedValue({ tastyMetrics: {}, trendingRoutes: [] }),
+			logger: { log: vi.fn() },
+			now: 1_100,
+			repoRoot
+		})
+
+		expect(result.exitCode).toBe(0)
+		expect(fetchMetadata).toHaveBeenCalledTimes(1)
+		expect(await fs.readFile(path.join(cacheDir, METADATA_ARTIFACT_FILES.cexs), 'utf8')).toBe('[]')
 	})
 
 	it('pulls stale or missing metadata and writes ready artifacts', async () => {
@@ -124,11 +145,7 @@ describe('pull metadata command', () => {
 	it('keeps an existing ready manifest in local development without an API key', async () => {
 		const repoRoot = await createRepoRoot()
 		const cacheDir = getMetadataCacheDir(repoRoot)
-		await fs.mkdir(cacheDir, { recursive: true })
-		await fs.writeFile(
-			path.join(cacheDir, METADATA_MANIFEST_FILE),
-			JSON.stringify(createMetadataArtifactManifest('ready', 3_000), null, 2)
-		)
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 3_000)
 		const fetchMetadata = vi.fn()
 
 		const result = await runPullMetadataCommand({
@@ -144,11 +161,26 @@ describe('pull metadata command', () => {
 		expect((await readMetadataArtifactManifest(cacheDir))?.status).toBe('ready')
 	})
 
-	it('writes stubs and exits successfully after CI pull failures', async () => {
+	it('exits non-zero after production CI pull failures', async () => {
 		const repoRoot = await createRepoRoot()
 
 		const result = await runPullMetadataCommand({
 			env: { CI: 'true', NODE_ENV: 'production' } as NodeJS.ProcessEnv,
+			fetchMetadata: vi.fn().mockRejectedValue(new Error('upstream failed')),
+			logger: { log: vi.fn() },
+			now: 4_000,
+			repoRoot
+		})
+
+		expect(result.exitCode).toBe(1)
+		await expect(readMetadataArtifactManifest(getMetadataCacheDir(repoRoot))).resolves.toBeNull()
+	})
+
+	it('writes stubs and exits successfully after development pull failures', async () => {
+		const repoRoot = await createRepoRoot()
+
+		const result = await runPullMetadataCommand({
+			env: { API_KEY: 'dev-key', NODE_ENV: 'development' } as NodeJS.ProcessEnv,
 			fetchMetadata: vi.fn().mockRejectedValue(new Error('upstream failed')),
 			logger: { log: vi.fn() },
 			now: 4_000,

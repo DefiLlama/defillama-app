@@ -3,6 +3,7 @@ import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { tvlOptionsMap } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -223,24 +224,31 @@ function TokenLineChartCard({
 
 function TokensBreakdownPieChartCard({
 	title,
-	chartData,
+	tokenBreakdownLatest,
 	exportFilenameBase,
 	exportTitle
 }: {
 	title: string
-	chartData: Array<{ name: string; value: number }>
+	tokenBreakdownLatest: Record<string, number>
 	exportFilenameBase: string
 	exportTitle: string
 }) {
-	const allTokens = React.useMemo(() => chartData.map((d) => d.name), [chartData])
-	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(allTokens)
-	const selectedTokensSet = React.useMemo(() => new Set(selectedTokens), [selectedTokens])
+	const allTokens = React.useMemo(
+		() =>
+			Object.keys(tokenBreakdownLatest).sort((a, b) => (tokenBreakdownLatest[b] ?? 0) - (tokenBreakdownLatest[a] ?? 0)),
+		[tokenBreakdownLatest]
+	)
+	const [selectedTokens, setSelectedTokens] = React.useState<string[]>(() => allTokens)
 
-	const filteredChartData = React.useMemo(() => {
+	const chartData = React.useMemo(() => {
 		if (selectedTokens.length === 0) return []
-		return chartData.filter((d) => selectedTokensSet.has(d.name))
-	}, [chartData, selectedTokens.length, selectedTokensSet])
-	const deferredFilteredChartData = React.useDeferredValue(filteredChartData)
+		const selectedBreakdown: Record<string, number> = {}
+		for (const token of selectedTokens) {
+			selectedBreakdown[token] = tokenBreakdownLatest[token] ?? 0
+		}
+		return preparePieChartData({ data: selectedBreakdown, limit: 15 })
+	}, [selectedTokens, tokenBreakdownLatest])
+	const deferredChartData = React.useDeferredValue(chartData)
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
@@ -262,7 +270,7 @@ function TokensBreakdownPieChartCard({
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<PieChart chartData={deferredFilteredChartData} onReady={handleChartReady} />
+				<PieChart chartData={deferredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -380,6 +388,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		tokenRawDataset,
 		tokenRawCharts,
 		tokenBreakdownUSD,
+		tokenBreakdownLatest,
+		tokenBreakdownLatestKey,
 		tokenBreakdownPieChart,
 		usdInflowsDataset,
 		tokenInflowsDataset,
@@ -452,9 +462,9 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 
 					{tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0 ? (
 						<TokensBreakdownPieChartCard
-							key={tokenBreakdownPieChart.map((d) => d.name).join('|')}
+							key={tokenBreakdownLatestKey}
 							title="Tokens Breakdown (USD)"
-							chartData={tokenBreakdownPieChart}
+							tokenBreakdownLatest={tokenBreakdownLatest}
 							exportFilenameBase={buildFilename('tokens-breakdown-usd')}
 							exportTitle={buildTitle('Tokens Breakdown (USD)')}
 						/>

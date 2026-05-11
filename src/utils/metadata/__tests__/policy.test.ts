@@ -14,10 +14,10 @@ describe('metadata stub policy', () => {
 		expect(shouldSkipMetadataRefresh({ NODE_ENV: 'production', API_KEY: '' })).toBe(false)
 	})
 
-	it('allows stub writes only in CI or development', () => {
-		expect(shouldWriteMetadataStubsOnFailure({ CI: 'true', NODE_ENV: 'production' })).toBe(true)
+	it('allows stub writes only in development', () => {
+		expect(shouldWriteMetadataStubsOnFailure({ CI: 'true', NODE_ENV: 'production' })).toBe(false)
 		expect(shouldWriteMetadataStubsOnFailure({ CI: 'false', NODE_ENV: 'production' })).toBe(false)
-		expect(shouldWriteMetadataStubsOnFailure({ CI: '1', NODE_ENV: 'production' })).toBe(true)
+		expect(shouldWriteMetadataStubsOnFailure({ CI: '1', NODE_ENV: 'production' })).toBe(false)
 		expect(shouldWriteMetadataStubsOnFailure({ NODE_ENV: 'development' })).toBe(true)
 		expect(shouldWriteMetadataStubsOnFailure({ NODE_ENV: 'production' })).toBe(false)
 	})

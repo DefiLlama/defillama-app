@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { METADATA_ARTIFACT_FILES, type CoreMetadataPayload } from '../artifactContract'
 import {
 	getMetadataManifestPath,
+	getMissingMetadataArtifacts,
+	hasMetadataArtifactFiles,
 	readMetadataArtifactManifest,
 	writeMetadataArtifacts,
 	writeMissingMetadataStubArtifacts
@@ -95,6 +97,20 @@ describe('metadata artifact manifest', () => {
 			aave: { name: 'Aave' }
 		})
 		expect(await fs.readFile(getMetadataManifestPath(cacheDir), 'utf8')).toContain('"status": "stub"')
+	})
+
+	it('detects missing files from a ready manifest', async () => {
+		const cacheDir = await createTempDir()
+		await writeMetadataArtifacts(cacheDir, createPayload(), 'ready', 123)
+		const manifest = await readMetadataArtifactManifest(cacheDir)
+		if (!manifest) throw new Error('missing manifest')
+
+		expect(await hasMetadataArtifactFiles(cacheDir, manifest)).toBe(true)
+
+		await fs.rm(path.join(cacheDir, METADATA_ARTIFACT_FILES.cexs))
+
+		expect(await hasMetadataArtifactFiles(cacheDir, manifest)).toBe(false)
+		expect(await getMissingMetadataArtifacts(cacheDir, manifest)).toEqual([METADATA_ARTIFACT_FILES.cexs])
 	})
 
 	it('treats only fresh ready manifests as pull skips', () => {

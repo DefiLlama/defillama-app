@@ -28,6 +28,25 @@ export async function readMetadataArtifactManifest(cacheDir: string): Promise<Me
 	}
 }
 
+export async function getMissingMetadataArtifacts(
+	cacheDir: string,
+	manifest: MetadataArtifactManifest
+): Promise<string[]> {
+	const missingArtifacts: string[] = []
+
+	for (const artifact of manifest.artifacts) {
+		if (!(await fileExists(path.join(cacheDir, artifact)))) {
+			missingArtifacts.push(artifact)
+		}
+	}
+
+	return missingArtifacts
+}
+
+export async function hasMetadataArtifactFiles(cacheDir: string, manifest: MetadataArtifactManifest): Promise<boolean> {
+	return (await getMissingMetadataArtifacts(cacheDir, manifest)).length === 0
+}
+
 export async function writeMetadataArtifacts(
 	cacheDir: string,
 	payload: CoreMetadataPayload,

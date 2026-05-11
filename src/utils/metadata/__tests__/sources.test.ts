@@ -95,4 +95,20 @@ describe('metadata source adapters', () => {
 			expect.anything()
 		)
 	})
+
+	it('logs the named metadata source when an upstream request fails', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+		fetchWithPoolingOnServerMock.mockImplementation((url: string) => {
+			if (url.endsWith('/cexs?zz=14')) {
+				return Promise.resolve(new Response('upstream failed', { status: 503 }))
+			}
+			return Promise.resolve(jsonResponse(responseForUrl(url)))
+		})
+		const { fetchCoreMetadataSources } = await import('../sources')
+
+		await expect(fetchCoreMetadataSources()).rejects.toThrow('Metadata request failed')
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('[dev:prepare] Metadata cache: CEX metadata API failed:'))
+
+		warn.mockRestore()
+	})
 })

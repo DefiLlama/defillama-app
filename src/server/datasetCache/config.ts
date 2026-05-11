@@ -4,6 +4,8 @@ const DEFAULT_DATASET_CACHE_ROOT_DIR = '.cache/datasets'
 const DEFAULT_DATASET_CACHE_MAX_AGE_MS = 5 * 60 * 1000
 const DEFAULT_DATASET_CACHE_FETCH_TIMEOUT_MS = 180_000
 
+export type DatasetCachePolicyPhase = 'build' | 'refresh'
+
 function getEnvNumber(name: string, fallback: number, { allowZero }: { allowZero: boolean }): number {
 	const raw = process.env[name]?.trim()
 	if (!raw) return fallback
@@ -20,8 +22,8 @@ export function isDatasetCacheEnabled(): boolean {
 	return process.env.NODE_ENV !== 'test' && process.env.DATASET_CACHE_DISABLE !== '1'
 }
 
-export function isDatasetCacheStrict(): boolean {
-	return process.env.DATASET_CACHE_STRICT === '1'
+export function isDatasetCacheStrict({ phase = 'build' }: { phase?: DatasetCachePolicyPhase } = {}): boolean {
+	return phase === 'build' && process.env.NODE_ENV === 'production'
 }
 
 export function shouldForceDatasetCacheRefresh(): boolean {

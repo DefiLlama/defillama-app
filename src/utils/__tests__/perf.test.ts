@@ -4,6 +4,7 @@ import { jitterCacheSeconds, readCacheJitterMeta } from '../maxAgeForNext'
 
 describe('withPerformanceLogging', () => {
 	afterEach(() => {
+		vi.restoreAllMocks()
 		vi.resetModules()
 		vi.unstubAllEnvs()
 	})
@@ -57,5 +58,25 @@ describe('withPerformanceLogging', () => {
 		const context = { params: {} } satisfies GetStaticPropsContext
 		await expect(wrapped(context)).rejects.toThrow('timeout from upstream')
 		expect(calls).toBe(1)
+	})
+
+	it('logs final page build failures in development', async () => {
+		vi.stubEnv('NODE_ENV', 'development')
+		vi.stubEnv('PAGE_BUILD_MAX_RETRIES', '1')
+		const error = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+		const { withPerformanceLogging } = await import('../perf')
+
+		const wrapped = withPerformanceLogging('cex/[cex]', async () => {
+			throw new Error('overview API failed')
+		})
+
+		await expect(wrapped({ params: { cex: 'bybit' } } satisfies GetStaticPropsContext)).rejects.toThrow(
+			'overview API failed'
+		)
+		expect(error).toHaveBeenCalledWith(
+			expect.stringContaining('[page-build] cex/[cex] failed after'),
+			{ params: { cex: 'bybit' } },
+			'overview API failed'
+		)
 	})
 })

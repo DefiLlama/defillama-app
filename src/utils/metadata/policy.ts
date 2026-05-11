@@ -10,8 +10,7 @@ export function isLocalDevWithoutApiKey(env: MetadataPolicyEnv = process.env): b
 }
 
 export function shouldWriteMetadataStubsOnFailure(env: MetadataPolicyEnv = process.env): boolean {
-	const ci = env.CI === true || env.CI === 'true' || env.CI === '1'
-	return ci || env.NODE_ENV === 'development'
+	return env.NODE_ENV === 'development'
 }
 
 export function shouldSkipMetadataRefresh(env: MetadataPolicyEnv = process.env): boolean {

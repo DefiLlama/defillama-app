@@ -22,6 +22,6 @@ Disallow: /
 fs.writeFileSync(robotsFilePath, robotsContents, 'utf8')
 
 console.log(
-	`robots.txt generated (${shouldAllowIndexing ? 'indexing allowed' : 'indexing blocked'}). ` +
-		`ROBOTS_ALLOW_INDEXING=${process.env.ROBOTS_ALLOW_INDEXING ?? 'unset'}`
+	`[dev:prepare] robots.txt: generated with ${shouldAllowIndexing ? 'indexing allowed' : 'indexing blocked'} ` +
+		`(ROBOTS_ALLOW_INDEXING=${process.env.ROBOTS_ALLOW_INDEXING ?? 'unset'})`
 )

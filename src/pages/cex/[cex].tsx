@@ -26,6 +26,7 @@ export const getStaticProps = withPerformanceLogging(
 		)
 
 		if (!exchangeData) {
+			console.warn(`[cex/[cex]] ${exchangeName} not found in metadata cache (${cexs.length} CEX entries loaded)`)
 			return {
 				notFound: true
 			}
@@ -75,6 +76,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
+			console.warn(`[cex/[cex]] ${exchangeName} matched metadata but overview data was unavailable`)
 			return { notFound: true }
 		}
 

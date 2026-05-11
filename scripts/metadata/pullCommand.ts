@@ -1,6 +1,8 @@
 import type { CoreMetadataPayload } from '../../src/utils/metadata/artifactContract'
 import {
 	getMetadataCacheDir,
+	getMissingMetadataArtifacts,
+	hasMetadataArtifactFiles,
 	readMetadataArtifactManifest,
 	writeMetadataArtifacts,
 	writeMissingMetadataStubArtifacts
@@ -39,20 +41,33 @@ export async function runPullMetadataCommand({
 }: PullMetadataCommandOptions = {}): Promise<PullMetadataCommandResult> {
 	const cacheDir = getMetadataCacheDir(repoRoot)
 	const manifest = await readMetadataArtifactManifest(cacheDir)
+	const hasCompleteArtifacts = manifest ? await hasMetadataArtifactFiles(cacheDir, manifest) : false
+	const missingArtifacts =
+		manifest && !hasCompleteArtifacts ? await getMissingMetadataArtifacts(cacheDir, manifest) : []
 
 	if (isLocalDevWithoutApiKey(env)) {
-		if (manifest?.status === 'ready') {
-			logger.log('No API_KEY in local development — using existing metadata cache.')
+		if (manifest?.status === 'ready' && hasCompleteArtifacts) {
+			logger.log('[dev:prepare] Metadata cache: no API_KEY in local development; using existing cache')
 			return { exitCode: 0 }
 		}
-		logger.log('No API_KEY in local development — using existing metadata cache or empty stubs.')
+		if (manifest?.status === 'ready') {
+			logger.log(
+				`[dev:prepare] Metadata cache: no API_KEY and existing cache is missing ${missingArtifacts.join(', ')}; writing stubs for missing artifacts`
+			)
+		}
+		logger.log('[dev:prepare] Metadata cache: no API_KEY in local development; using existing cache or empty stubs')
 		await writeMissingMetadataStubArtifacts(cacheDir, now)
 		return { exitCode: 0 }
 	}
 
-	if (isMetadataArtifactManifestFresh(manifest, now)) {
-		logger.log('Metadata was pulled recently. No need to pull again.')
+	if (isMetadataArtifactManifestFresh(manifest, now) && hasCompleteArtifacts) {
+		logger.log('[dev:prepare] Metadata cache: recently refreshed; skipping pull')
 		return { exitCode: 0 }
+	}
+	if (isMetadataArtifactManifestFresh(manifest, now)) {
+		logger.log(
+			`[dev:prepare] Metadata cache: manifest is fresh but missing ${missingArtifacts.join(', ')}; pulling again`
+		)
 	}
 
 	const endAt = now
@@ -74,13 +89,13 @@ export async function runPullMetadataCommand({
 		const trendingPages = buildTrendingPages(defillamaPages, metrics.trendingRoutes)
 		await writePagesAndTrendingIfNeeded(repoRoot, finalDefillamaPages, trendingPages)
 
-		logger.log('Data pulled and cached successfully.')
+		logger.log('[dev:prepare] Metadata cache: pulled and cached data')
 		return { exitCode: 0 }
 	} catch (error) {
-		logger.log('Error pulling data:', error)
+		logger.log('[dev:prepare] Metadata cache: failed to pull data', error)
 
 		if (shouldWriteMetadataStubsOnFailure(env)) {
-			logger.log('Writing empty metadata stub cache so local dev and CI can proceed.')
+			logger.log('[dev:prepare] Metadata cache: writing empty stubs so local dev and CI can proceed')
 			await writeMissingMetadataStubArtifacts(cacheDir, now)
 			return { exitCode: 0 }
 		}
