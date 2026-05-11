@@ -997,15 +997,6 @@
       "description": "Browser extension for safe crypto domain search and scam prevention"
     },
     {
-      "name": "DLNews",
-      "route": "https://www.dlnews.com",
-      "category": "Tools",
-      "description": "An independent news organisation that provides in-depth reporting on the largely misunderstood world of cryptocurrency and decentralised finance",
-      "keys": [
-        "news"
-      ]
-    },
-    {
       "name": "DefiLlama for Investors",
       "route": "https://investors.defillama.com",
       "category": "Tools",

@@ -115,34 +115,12 @@ const linksToOtherLlamaApps = [
 		background: <span className="llama-app-background" />
 	},
 	{
-		name: 'Research Reports',
+		name: '',
 		description: '',
 		href: '/reports',
 		icon: (
-			<svg width={44} height={44}>
-				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
-			</svg>
-		),
-		background: <span className="llama-app-background" />
-	},
-	{
-		name: 'DLNews',
-		description: '',
-		href: 'https://www.dlnews.com',
-		icon: (
-			<svg width={44} height={44}>
-				<use href={`/assets/dlnews-smol.svg#dlnews-logo`} />
-			</svg>
-		),
-		background: <span className="llama-app-background" />
-	},
-	{
-		name: 'DL Research',
-		description: '',
-		href: 'https://www.dlnews.com/research',
-		icon: (
-			<svg width={44} height={44}>
-				<use href={`/assets/dlresearch.svg#dlresearch-logo`} />
+			<svg aria-label="DefiLlama Research" role="img" height={44} width={128} className="z-10 object-contain">
+				<use href="/assets/defillama-research.svg#defillama-research-logo" />
 			</svg>
 		),
 		background: <span className="llama-app-background" />

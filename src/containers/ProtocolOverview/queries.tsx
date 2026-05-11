@@ -150,7 +150,6 @@ export const getProtocolOverviewPageData = async ({
 		optionsNotionalVolumeData,
 		treasury,
 		yieldsData,
-		articles,
 		incentives,
 		adjustedSupply,
 		activeUsers,
@@ -186,7 +185,6 @@ export const getProtocolOverviewPageData = async ({
 		Awaited<ReturnType<typeof formatAdapterData>>,
 		IProtocolOverviewPageData['treasury'],
 		IYieldsDataResult,
-		IArticle[],
 		IProtocolOverviewPageData['incentives'],
 		number | null,
 		number | null,
@@ -347,14 +345,6 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.yields
 			? fetchJson<IYieldsDataResult>(YIELD_POOLS_API, { timeout: getSlowJsonTimeoutMs() })
 			: null,
-		fetchArticles({ tags: slug(currentProtocolMetadata.displayName) }).catch((err) => {
-			console.log(
-				'[HTTP]:[ERROR]:[PROTOCOL_ARTICLE]:',
-				slug(currentProtocolMetadata.displayName),
-				err instanceof Error ? err.message : ''
-			)
-			return []
-		}),
 		currentProtocolMetadata?.incentives && protocolId
 			? getProtocolIncentivesFromAggregatedEmissions({
 					protocolId,
@@ -820,7 +810,7 @@ export const getProtocolOverviewPageData = async ({
 		unlocks: null,
 		governance: null,
 		yields,
-		articles,
+		articles: [],
 		incentives,
 		users:
 			activeUsers || newUsers || transactions || gasUsd
