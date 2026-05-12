@@ -49,8 +49,11 @@ export async function listProjects(fetcher: AuthedFetch): Promise<ProjectWithSta
 	return data.projects ?? []
 }
 
-export async function getProject(fetcher: AuthedFetch, id: string): Promise<Project> {
-	const data = await unwrap<{ project: Project }>(fetcher(`${AI_SERVER}/projects/${id}`), 'Failed to load project')
+export async function getProject(fetcher: AuthedFetch, id: string): Promise<ProjectWithStats> {
+	const data = await unwrap<{ project: ProjectWithStats }>(
+		fetcher(`${AI_SERVER}/projects/${id}`),
+		'Failed to load project'
+	)
 	return data.project
 }
 
@@ -102,25 +105,19 @@ export async function listProjectFiles(
 
 export async function uploadProjectFiles(fetcher: AuthedFetch, id: string, files: File[]): Promise<ImportResult> {
 	const form = new FormData()
-	for (const file of files) form.append('file', file, file.name)
+	for (const file of files) {
+		// Folder uploads (<input webkitdirectory> or drag-and-drop a folder) populate
+		// webkitRelativePath with the file's path inside the dropped tree. Forward it as
+		// the multipart filename so the server preserves directory structure.
+		const path = (file as any).webkitRelativePath || file.name
+		form.append('file', file, path)
+	}
 	return unwrap(
 		fetcher(`${AI_SERVER}/projects/${id}/files`, {
 			method: 'POST',
 			body: form
 		}),
 		'Failed to upload files'
-	)
-}
-
-export async function importZip(fetcher: AuthedFetch, id: string, zip: File): Promise<ImportResult> {
-	const form = new FormData()
-	form.append('file', zip, zip.name)
-	return unwrap(
-		fetcher(`${AI_SERVER}/projects/${id}/files/import-zip`, {
-			method: 'POST',
-			body: form
-		}),
-		'Failed to import zip'
 	)
 }
 

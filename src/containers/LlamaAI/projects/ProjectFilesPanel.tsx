@@ -9,7 +9,6 @@ import { GitHubConnectModal } from './GitHubConnectModal'
 import {
 	useDeleteProjectFile,
 	useDisconnectSource,
-	useImportZip,
 	useProjectFiles,
 	useProjectSources,
 	useUploadProjectFiles
@@ -26,19 +25,24 @@ function formatBytes(bytes: number | string): string {
 
 interface ProjectFilesPanelProps {
 	projectId: string
-	bytesUsed: number
-	bytesLimit: number | null
+	projectBytesUsed: number
+	projectBytesLimit: number | null
+	projectFileCount: number
+	projectFileLimit: number | null
 	tier: 'free' | 'trial' | 'paid' | 'llama'
 }
 
-export function ProjectFilesPanel({ projectId, bytesUsed, bytesLimit, tier }: ProjectFilesPanelProps) {
-	const limitDisplay = bytesLimit === null ? '∞' : formatBytes(bytesLimit)
-	const percent = bytesLimit === null || bytesLimit === 0 ? 0 : Math.min(100, (bytesUsed / bytesLimit) * 100)
-
+export function ProjectFilesPanel({
+	projectId,
+	projectBytesUsed,
+	projectBytesLimit,
+	projectFileCount,
+	projectFileLimit,
+	tier,
+}: ProjectFilesPanelProps) {
 	const filesQuery = useProjectFiles(projectId)
 	const sourcesQuery = useProjectSources(projectId)
 	const upload = useUploadProjectFiles(projectId)
-	const zipUpload = useImportZip(projectId)
 	const deleteFile = useDeleteProjectFile(projectId)
 	const disconnect = useDisconnectSource(projectId)
 
@@ -54,33 +58,32 @@ export function ProjectFilesPanel({ projectId, bytesUsed, bytesLimit, tier }: Pr
 		return map
 	}, [sources])
 
+	const projectPercent =
+		projectBytesLimit === null || projectBytesLimit === 0
+			? 0
+			: Math.min(100, (projectBytesUsed / projectBytesLimit) * 100)
+
 	const handleFiles = useCallback(
 		async (fileList: File[]) => {
 			if (fileList.length === 0) return
-			const isZip = (f: File) => /\.zip$/i.test(f.name) || f.type === 'application/zip'
-			const zips = fileList.filter(isZip)
-			const others = fileList.filter((f) => !isZip(f))
-
+			const isArchive = (f: File) => /\.(zip|tar|tgz|gz|7z|rar)$/i.test(f.name) || f.type === 'application/zip'
+			const archives = fileList.filter(isArchive)
+			const others = fileList.filter((f) => !isArchive(f))
+			if (archives.length > 0) {
+				toast.error('Archive uploads are not supported. Unzip and drop the folder instead.')
+			}
+			if (others.length === 0) return
 			try {
-				if (others.length > 0) {
-					const res = await upload.mutateAsync(others)
-					if (res.imported.length > 0) {
-						toast.success(`Uploaded ${res.imported.length} file${res.imported.length === 1 ? '' : 's'}`)
-					}
-					for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
+				const res = await upload.mutateAsync(others)
+				if (res.imported.length > 0) {
+					toast.success(`Uploaded ${res.imported.length} file${res.imported.length === 1 ? '' : 's'}`)
 				}
-				for (const zip of zips) {
-					const res = await zipUpload.mutateAsync(zip)
-					if (res.imported.length > 0) {
-						toast.success(`Imported ${res.imported.length} entries from ${zip.name}`)
-					}
-					for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
-				}
+				for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
 			} catch (err) {
 				toast.error(err instanceof Error ? err.message : 'Upload failed')
 			}
 		},
-		[upload, zipUpload]
+		[upload]
 	)
 
 	const onPick = () => fileInputRef.current?.click()
@@ -164,18 +167,23 @@ export function ProjectFilesPanel({ projectId, bytesUsed, bytesLimit, tier }: Pr
 			</header>
 
 			<div className="flex flex-col gap-1">
-				<div className="flex justify-between text-[10px] text-[#666] dark:text-[#919296]">
+				<div className="flex items-baseline justify-between gap-2 text-[10px] text-[#666] dark:text-[#919296]">
 					<span>
-						{formatBytes(bytesUsed)} used of {limitDisplay}
+						{projectBytesLimit
+							? `${formatBytes(projectBytesUsed)} / ${formatBytes(projectBytesLimit)} used`
+							: `${formatBytes(projectBytesUsed)} used`}
+						{projectFileLimit ? ` · ${projectFileCount} / ${projectFileLimit} files` : ` · ${projectFileCount} files`}
 					</span>
 					{tier === 'free' ? <span className="text-yellow-600 dark:text-yellow-500">Free tier</span> : null}
 				</div>
-				<div className="h-1 w-full overflow-hidden rounded-full bg-[#f0f0f0] dark:bg-[#222324]">
-					<div
-						className={`h-full transition-all ${percent > 90 ? 'bg-red-500' : 'bg-(--old-blue)'}`}
-						style={{ width: `${percent}%` }}
-					/>
-				</div>
+				{projectBytesLimit ? (
+					<div className="h-1 w-full overflow-hidden rounded-full bg-[#f0f0f0] dark:bg-[#222324]">
+						<div
+							className={`h-full transition-all ${projectPercent > 90 ? 'bg-red-500' : 'bg-(--old-blue)'}`}
+							style={{ width: `${projectPercent}%` }}
+						/>
+					</div>
+				) : null}
 			</div>
 
 			{githubSources.length > 0 ? (
@@ -272,7 +280,7 @@ export function ProjectFilesPanel({ projectId, bytesUsed, bytesLimit, tier }: Pr
 				)}
 			</div>
 
-			{upload.isPending || zipUpload.isPending ? (
+			{upload.isPending ? (
 				<p className="flex items-center gap-1.5 text-xs text-[#666] dark:text-[#919296]">
 					<LoadingSpinner size={10} /> Uploading…
 				</p>

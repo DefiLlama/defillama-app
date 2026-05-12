@@ -11,7 +11,6 @@ import {
 	disconnectSource,
 	getProject,
 	getProjectUsage,
-	importZip,
 	listGithubInstallations,
 	listInstallationRepos,
 	listProjectFiles,
@@ -136,18 +135,7 @@ export function useUploadProjectFiles(id: string) {
 		mutationFn: (files: File[]) => uploadProjectFiles(authorizedFetch, id, files),
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: projectFilesKey(id) })
-			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
-		}
-	})
-}
-
-export function useImportZip(id: string) {
-	const { authorizedFetch } = useAuthContext()
-	const qc = useQueryClient()
-	return useMutation({
-		mutationFn: (zip: File) => importZip(authorizedFetch, id, zip),
-		onSuccess: () => {
-			void qc.invalidateQueries({ queryKey: projectFilesKey(id) })
+			void qc.invalidateQueries({ queryKey: projectKey(id) })
 			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
 		}
 	})
@@ -160,6 +148,7 @@ export function useAddTextFile(id: string) {
 		mutationFn: (body: { name: string; content: string }) => addTextFile(authorizedFetch, id, body.name, body.content),
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: projectFilesKey(id) })
+			void qc.invalidateQueries({ queryKey: projectKey(id) })
 			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
 		}
 	})
@@ -172,6 +161,7 @@ export function useDeleteProjectFile(id: string) {
 		mutationFn: (fileId: string) => deleteProjectFile(authorizedFetch, id, fileId),
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: projectFilesKey(id) })
+			void qc.invalidateQueries({ queryKey: projectKey(id) })
 			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
 		}
 	})

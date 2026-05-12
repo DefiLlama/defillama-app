@@ -72,7 +72,9 @@ export interface ProjectUsage {
 	file_count: number
 	project_count: number
 	limits: {
-		bytes: number | null
+		user_bytes: number | null
+		project_bytes: number
+		project_files: number
 		projects: number | null
 	}
 }

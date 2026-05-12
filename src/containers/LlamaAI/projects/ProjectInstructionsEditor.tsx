@@ -61,7 +61,7 @@ export function ProjectInstructionsEditor({ projectId, value }: ProjectInstructi
 				className="resize-y rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-2 text-xs text-inherit placeholder:text-[#999] focus:border-(--old-blue) focus:outline-none dark:border-[#2a2b2c] dark:placeholder:text-[#555]"
 			/>
 			<p className="text-[10px] text-[#999] dark:text-[#555]">
-				{draft.length}/{MAX_LENGTH} chars · saved automatically on blur
+				{draft.length}/{MAX_LENGTH} chars · saved automatically
 			</p>
 		</section>
 	)

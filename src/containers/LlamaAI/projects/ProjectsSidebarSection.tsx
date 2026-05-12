@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { LoadingSpinner } from '~/components/Loaders'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
@@ -12,6 +11,7 @@ import { getProjectTier } from './tier'
 import type { ProjectWithStats } from './types'
 
 const VISIBLE_LIMIT = 10
+const NESTED_SESSIONS_LIMIT = 5
 
 interface ProjectsSidebarSectionProps {
 	currentProjectId?: string | null
@@ -92,9 +92,18 @@ export function ProjectsSidebarSection({
 					</button>
 
 					{isLoading ? (
-						<div className="flex items-center justify-center py-2">
-							<LoadingSpinner size={10} />
-						</div>
+						<ul aria-hidden className="flex flex-col">
+							{[0, 1, 2].map((i) => (
+								<li
+									key={i}
+									className="flex h-[26px] items-center gap-1.5 px-2 py-1"
+									style={{ opacity: 1 - i * 0.25 }}
+								>
+									<span className="h-3 w-3 shrink-0 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
+									<span className="h-3 flex-1 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
+								</li>
+							))}
+						</ul>
 					) : visible.length === 0 ? (
 						<p className="px-2 py-1 text-[10px] text-[#999] dark:text-[#555]">No projects yet</p>
 					) : (
@@ -115,15 +124,10 @@ export function ProjectsSidebarSection({
 										>
 											<Icon name="folder-plus" height={12} width={12} className="shrink-0 opacity-60" />
 											<span className="min-w-0 flex-1 truncate">{p.name}</span>
-											{p.file_count > 0 ? (
-												<span className="shrink-0 text-[10px] text-[#999] tabular-nums dark:text-[#555]">
-													{p.file_count}
-												</span>
-											) : null}
 										</button>
 										{isActive && nestedSessions.length > 0 ? (
 											<ul className="mt-0.5 mb-1 flex flex-col border-l border-[#e6e6e6] pl-1.5 dark:border-[#222324]">
-												{nestedSessions.slice(0, 8).map((s) => {
+												{nestedSessions.slice(0, NESTED_SESSIONS_LIMIT).map((s) => {
 													const isCurrent = s.sessionId === currentSessionId
 													return (
 														<li key={s.sessionId}>
@@ -141,7 +145,7 @@ export function ProjectsSidebarSection({
 														</li>
 													)
 												})}
-												{nestedSessions.length > 8 ? (
+												{nestedSessions.length > NESTED_SESSIONS_LIMIT ? (
 													<li>
 														<button
 															type="button"

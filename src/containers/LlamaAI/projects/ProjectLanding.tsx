@@ -108,8 +108,10 @@ export function ProjectLanding({
 		}
 	}
 
-	const totalBytes = usage.data?.bytes_used ?? 0
-	const limit = usage.data?.limits.bytes ?? null
+	const projectBytesLimit = usage.data?.limits.project_bytes ?? null
+	const projectFileLimit = usage.data?.limits.project_files ?? null
+	const projectBytesUsed = project.data.total_bytes ?? 0
+	const projectFileCount = project.data.file_count ?? 0
 
 	return (
 		<div className="mx-auto flex h-full w-full max-w-[760px] flex-col overflow-y-auto px-6 pt-6 pb-16">
@@ -263,7 +265,14 @@ export function ProjectLanding({
 				) : (
 					<section className="flex flex-col gap-8">
 						<ProjectInstructionsEditor projectId={projectId} value={project.data.custom_instructions} />
-						<ProjectFilesPanel projectId={projectId} bytesUsed={totalBytes} bytesLimit={limit} tier={tier} />
+						<ProjectFilesPanel
+							projectId={projectId}
+							projectBytesUsed={projectBytesUsed}
+							projectBytesLimit={projectBytesLimit}
+							projectFileCount={projectFileCount}
+							projectFileLimit={projectFileLimit}
+							tier={tier}
+						/>
 					</section>
 				)}
 			</div>

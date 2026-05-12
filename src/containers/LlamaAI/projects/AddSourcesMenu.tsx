@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { AddTextContentModal } from './AddTextContentModal'
 import { GitHubConnectModal } from './GitHubConnectModal'
-import { useImportZip, useUploadProjectFiles } from './hooks'
+import { useUploadProjectFiles } from './hooks'
 
 interface AddSourcesMenuProps {
 	projectId: string
@@ -15,40 +15,33 @@ interface AddSourcesMenuProps {
 
 export function AddSourcesMenu({ projectId, trigger, menuClassName, gutter = 6 }: AddSourcesMenuProps) {
 	const upload = useUploadProjectFiles(projectId)
-	const zipUpload = useImportZip(projectId)
 	const addTextStore = Ariakit.useDialogStore()
 	const githubStore = Ariakit.useDialogStore()
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const folderInputRef = useRef<HTMLInputElement>(null)
 
 	const handleFiles = useCallback(
 		async (fileList: File[]) => {
 			if (fileList.length === 0) return
-			const isZip = (f: File) => /\.zip$/i.test(f.name) || f.type === 'application/zip'
-			const zips = fileList.filter(isZip)
-			const others = fileList.filter((f) => !isZip(f))
+			const isArchive = (f: File) => /\.(zip|tar|tgz|gz|7z|rar)$/i.test(f.name) || f.type === 'application/zip'
+			const archives = fileList.filter(isArchive)
+			const others = fileList.filter((f) => !isArchive(f))
+			if (archives.length > 0) {
+				toast.error(`Archive uploads are not supported. Unzip and drop the folder instead.`)
+			}
+			if (others.length === 0) return
 			try {
-				if (others.length > 0) {
-					const res = await upload.mutateAsync(others)
-					if (res.imported.length > 0) {
-						toast.success(`Uploaded ${res.imported.length} file${res.imported.length === 1 ? '' : 's'}`)
-					}
-					for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
+				const res = await upload.mutateAsync(others)
+				if (res.imported.length > 0) {
+					toast.success(`Uploaded ${res.imported.length} file${res.imported.length === 1 ? '' : 's'}`)
 				}
-				for (const zip of zips) {
-					const res = await zipUpload.mutateAsync(zip)
-					if (res.imported.length > 0) {
-						toast.success(`Imported ${res.imported.length} entries from ${zip.name}`)
-					}
-					for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
-				}
+				for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
 			} catch (err) {
 				toast.error(err instanceof Error ? err.message : 'Upload failed')
 			}
 		},
-		[upload, zipUpload]
+		[upload]
 	)
-
-	const onPick = () => fileInputRef.current?.click()
 
 	return (
 		<>
@@ -62,11 +55,18 @@ export function AddSourcesMenu({ projectId, trigger, menuClassName, gutter = 6 }
 					}
 				>
 					<Ariakit.MenuItem
-						onClick={onPick}
+						onClick={() => fileInputRef.current?.click()}
 						className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#1c1d1e]"
 					>
 						<Icon name="file-plus" height={15} width={15} className="text-[#666] dark:text-[#919296]" />
-						Upload from device
+						Upload files
+					</Ariakit.MenuItem>
+					<Ariakit.MenuItem
+						onClick={() => folderInputRef.current?.click()}
+						className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#1c1d1e]"
+					>
+						<Icon name="file-plus" height={15} width={15} className="text-[#666] dark:text-[#919296]" />
+						Upload folder
 					</Ariakit.MenuItem>
 					<Ariakit.MenuItem
 						onClick={() => addTextStore.show()}
@@ -93,6 +93,20 @@ export function AddSourcesMenu({ projectId, trigger, menuClassName, gutter = 6 }
 					const list = e.target.files ? Array.from(e.target.files) : []
 					void handleFiles(list)
 					if (fileInputRef.current) fileInputRef.current.value = ''
+				}}
+			/>
+			<input
+				ref={folderInputRef}
+				type="file"
+				multiple
+				hidden
+				// @ts-expect-error — non-standard attribute supported by Chromium/WebKit/Firefox.
+				webkitdirectory=""
+				directory=""
+				onChange={(e) => {
+					const list = e.target.files ? Array.from(e.target.files) : []
+					void handleFiles(list)
+					if (folderInputRef.current) folderInputRef.current.value = ''
 				}}
 			/>
 			<AddTextContentModal dialogStore={addTextStore} projectId={projectId} />

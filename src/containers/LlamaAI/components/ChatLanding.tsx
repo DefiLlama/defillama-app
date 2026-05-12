@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
-import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef } from 'react'
+import { type Dispatch, type RefObject, type SetStateAction, useCallback, useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
@@ -64,6 +64,11 @@ export function ChatLanding({
 	const tipActions = useTipActions()
 	const greetingTip = !readOnly && !isSharedView && hasSeenWelcome && tip?.placement === 'greeting' ? tip : null
 	const showBanner = !readOnly && !isSharedView && hasSeenWelcome && !greetingTip
+
+	useEffect(() => {
+		if (readOnly || isSharedView || !hasSeenWelcome) return
+		promptInputRef.current?.focus()
+	}, [readOnly, isSharedView, hasSeenWelcome, promptInputRef])
 
 	const onGreetingCta = () => {
 		if (!greetingTip || greetingTip.cta.kind === 'none') return

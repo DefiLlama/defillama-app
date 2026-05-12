@@ -364,11 +364,12 @@ export function AgenticSidebar({
 			className={`llamaai-agentic-sidebar relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
 			<header className="flex flex-col gap-2 p-4 pb-2">
-				<div className="flex items-center">
-					{sessions.length > 0 ? (
+				<div className="flex h-6 items-center">
+					{isLoading || sessions.length > 0 ? (
 						<button
 							onClick={selectMode ? exitSelectMode : () => setSelectMode(true)}
-							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors ${
+							disabled={isLoading && sessions.length === 0}
+							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors disabled:invisible ${
 								selectMode
 									? 'bg-(--old-blue)/12 text-(--old-blue)'
 									: 'text-[#666] hover:text-[#333] dark:text-[#919296] dark:hover:text-white'
@@ -424,7 +425,7 @@ export function AgenticSidebar({
 					<span>New Chat</span>
 				</button>
 
-				{sessions.length > 0 ? (
+				{isLoading || sessions.length > 0 ? (
 					<div className="group/search relative flex items-center rounded-md bg-[#f5f5f5] transition-colors focus-within:bg-[#ebebeb] dark:bg-[#1a1a1b] dark:focus-within:bg-[#222324]">
 						<Icon
 							name="search"
@@ -437,7 +438,8 @@ export function AgenticSidebar({
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							placeholder="Search"
-							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none dark:placeholder:text-[#555]"
+							disabled={isLoading && sessions.length === 0}
+							className="min-w-0 flex-1 bg-transparent py-1.5 pr-2 pl-2 text-[11px] text-inherit placeholder:text-[#aaa] focus:outline-none disabled:cursor-default dark:placeholder:text-[#555]"
 						/>
 						{isSearching ? (
 							<Icon name="search" height={11} width={11} className="mr-1.5 shrink-0 animate-pulse text-[#999]" />
@@ -545,28 +547,6 @@ export function AgenticSidebar({
 				)}
 			</nav>
 
-			{balance ? (
-				<Tooltip
-					content={
-						hasActiveSubscription
-							? 'Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more.'
-							: 'Subscribe to a plan to top up your external data balance.'
-					}
-					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
-					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
-				>
-					<div className="flex min-w-0 items-center gap-2">
-						<Icon name="package" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />
-						<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
-					</div>
-					<span
-						className={`shrink-0 font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
-					>
-						${totalAvailable.toFixed(2)}
-					</span>
-				</Tooltip>
-			) : null}
-
 			{selectMode ? (
 				<footer className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e6e6] px-4 py-2 dark:border-[#222324]">
 					<button
@@ -605,6 +585,28 @@ export function AgenticSidebar({
 					</div>
 					<span>Settings</span>
 				</button>
+			) : null}
+
+			{balance ? (
+				<Tooltip
+					content={
+						hasActiveSubscription
+							? 'Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more.'
+							: 'Subscribe to a plan to top up your external data balance.'
+					}
+					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
+					className={`absolute right-0 left-0 flex min-h-[52px] items-center justify-between overflow-hidden border-t border-[#e6e6e6] bg-(--cards-bg) px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324] ${selectMode || onOpenSettings ? 'bottom-[52px]' : 'bottom-0'}`}
+				>
+					<div className="flex min-w-0 items-center gap-2">
+						<Icon name="package" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />
+						<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
+					</div>
+					<span
+						className={`shrink-0 font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
+					>
+						${totalAvailable.toFixed(2)}
+					</span>
+				</Tooltip>
 			) : null}
 
 			{isTopupModalOpen ? (

@@ -26,6 +26,11 @@ export function GitHubConnectModal({ dialogStore, projectId }: GitHubConnectModa
 		if (!isOpen) return
 		void installs.refetch()
 		void repos.refetch()
+		// Reset per-connect form state every time the modal opens so a successful previous connect
+		// (or a cancelled attempt) does not leak its selection into the next session.
+		setSelectedRepo('')
+		setRepoQuery('')
+		setBranch('')
 		// installs/repos are intentionally excluded — React Query returns a new wrapper object every
 		// render, which would refetch on every keystroke. refetch itself is stable per query.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,6 +68,7 @@ export function GitHubConnectModal({ dialogStore, projectId }: GitHubConnectModa
 			toast.success(`Connected ${repo.full_name}`)
 			dialogStore.hide()
 			setSelectedRepo('')
+			setRepoQuery('')
 			setBranch('')
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Failed to connect repository')
@@ -132,6 +138,7 @@ export function GitHubConnectModal({ dialogStore, projectId }: GitHubConnectModa
 									onChange={(e) => {
 										setSelectedInstallId(Number(e.target.value))
 										setSelectedRepo('')
+										setRepoQuery('')
 									}}
 									className="rounded-md border border-[#e6e6e6] bg-(--cards-bg) px-3 py-2 text-sm text-inherit focus:border-(--old-blue) focus:outline-none dark:border-[#2a2b2c]"
 								>

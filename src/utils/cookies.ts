@@ -157,7 +157,12 @@ export const getHeadBootstrapScript = (): string => `
 		}
 
 		function isInteractiveLlamaAIPath(pathname) {
-			return pathname === '/ai/chat' || pathname.startsWith('/ai/chat/');
+			return pathname === '/ai/chat' || pathname.startsWith('/ai/chat/')
+				|| pathname === '/ai/projects' || pathname.startsWith('/ai/projects/');
+		}
+
+		function isProjectsLlamaAIPath(pathname) {
+			return pathname === '/ai/projects' || pathname.startsWith('/ai/projects/');
 		}
 
 		var root = document.documentElement;
@@ -204,7 +209,7 @@ export const getHeadBootstrapScript = (): string => `
 			return;
 		}
 
-		if (getCookieValue(document.cookie, '${LLAMAAI_FULLSCREEN_COOKIE_NAME}') === 'true') {
+		if (isProjectsLlamaAIPath(pathname) || getCookieValue(document.cookie, '${LLAMAAI_FULLSCREEN_COOKIE_NAME}') === 'true') {
 			root.setAttribute('${LLAMAAI_FULLSCREEN_ATTRIBUTE}', 'true');
 		} else {
 			root.removeAttribute('${LLAMAAI_FULLSCREEN_ATTRIBUTE}');
