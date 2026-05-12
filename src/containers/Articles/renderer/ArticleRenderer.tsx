@@ -810,10 +810,16 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				</div>
 			</article>
 
-			<aside className="hidden border-l border-(--cards-border) pt-10 pl-5 lg:block">
-				<div className="sticky top-24 grid max-h-[calc(100vh-7rem)] gap-10 overflow-y-auto pr-2 pb-6 [scrollbar-color:var(--cards-border)_transparent] [scrollbar-width:thin]">
-					{toc.length > 1 ? <ArticleToc toc={toc} /> : null}
-					<ShareBlock url={shareUrl} title={article.title} />
+			<aside className="hidden border-l border-(--cards-border) pt-10 pl-5 lg:block lg:min-h-[calc(100vh_-_7rem)]">
+				<div className="sticky top-24 flex flex-col gap-8 pb-6" style={{ height: 'calc(100vh - 7rem)' }}>
+					{toc.length > 1 ? (
+						<div className="min-h-0 flex-1 overflow-y-auto pr-2 [scrollbar-color:var(--cards-border)_transparent] [scrollbar-width:thin]">
+							<ArticleToc toc={toc} />
+						</div>
+					) : null}
+					<div className="mt-auto shrink-0 pr-2">
+						<ShareBlock url={shareUrl} title={article.title} />
+					</div>
 				</div>
 			</aside>
 		</div>

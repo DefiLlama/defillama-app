@@ -138,6 +138,15 @@ function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: strin
 					<line x1="6" y1="18" x2="18" y2="6" />
 				</svg>
 			)
+		case 'trash':
+			return (
+				<svg {...props}>
+					<polyline points="3 6 5 6 21 6" />
+					<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+					<line x1="10" y1="11" x2="10" y2="17" />
+					<line x1="14" y1="11" x2="14" y2="17" />
+				</svg>
+			)
 		case 'external':
 			return (
 				<svg {...props}>
@@ -807,6 +816,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const embedDialog = Ariakit.useDialogStore()
 	const peoplePanelDialog = Ariakit.useDialogStore()
 	const metaDialog = Ariakit.useDialogStore()
+	const deleteDialog = Ariakit.useDialogStore()
+	const coverDetailsDialog = Ariakit.useDialogStore()
 	const [editingChart, setEditingChart] = useState<{ config: ArticleChartConfig; pos: number } | null>(null)
 	const [editingEmbed, setEditingEmbed] = useState<{ config: ArticleEmbedConfig; pos: number } | null>(null)
 	const [editingPanel, setEditingPanel] = useState<{ config: ArticlePeoplePanelConfig; pos: number } | null>(null)
@@ -827,6 +838,12 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		scope: 'article-inline',
 		articleId: article.id ?? null
 	})
+	const { uploadWithToast: uploadCoverImage, isUploading: isUploadingCover } = useImageUpload({
+		scope: 'article-cover',
+		articleId: article.id ?? null
+	})
+	const coverFileInputRef = useRef<HTMLInputElement>(null)
+	const [coverHovered, setCoverHovered] = useState(false)
 
 	const uploadInlineImage = useCallback<ArticleImageUploadFn>(
 		(file: File): Promise<UploadResult> => {
@@ -1439,10 +1456,42 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		[editor]
 	)
 
-	const handleDeleteArticle = async () => {
+	const handleCoverFile = async (file: File | null | undefined) => {
+		if (!file) return
+		try {
+			const result = await uploadCoverImage(file)
+			updateArticle('coverImage', {
+				...(article.coverImage ?? {}),
+				url: result.url,
+				alt: article.coverImage?.alt || article.title
+			})
+		} catch {
+			// surfaced via toast
+		} finally {
+			if (coverFileInputRef.current) coverFileInputRef.current.value = ''
+		}
+	}
+
+	const openCoverPicker = () => coverFileInputRef.current?.click()
+
+	const updateCoverField = (key: 'headline' | 'caption' | 'credit' | 'copyright', value: string) => {
+		if (!article.coverImage) return
+		updateArticle('coverImage', {
+			...article.coverImage,
+			[key]: value
+		})
+	}
+
+	const handleDeleteArticle = () => {
 		if (!article.id) return
-		if (!confirm('Delete this draft? This cannot be undone.')) return
-		deleteArticleMutation.mutate(article.id)
+		deleteDialog.show()
+	}
+
+	const confirmDeleteArticle = () => {
+		if (!article.id) return
+		deleteArticleMutation.mutate(article.id, {
+			onSettled: () => deleteDialog.hide()
+		})
 	}
 
 	const isOwner = article.viewerRole === 'owner'
@@ -1851,7 +1900,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 												onClick={handleDeleteArticle}
 												className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
 											>
-												<Icon name="x" className="h-3.5 w-3.5" />
+												<Icon name="trash" className="h-3.5 w-3.5" />
 												Delete
 											</Ariakit.MenuItem>
 										</>
@@ -1882,6 +1931,18 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									<span>Set section to preview</span>
 								</button>
 							)}
+							{isOwner ? (
+								<button
+									type="button"
+									aria-label="Delete draft"
+									title="Delete draft"
+									disabled={deleteArticleMutation.isPending}
+									onClick={handleDeleteArticle}
+									className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+								>
+									<Icon name="trash" className="h-3.5 w-3.5" />
+								</button>
+							) : null}
 							<button
 								type="button"
 								disabled={isPublishing}
@@ -1920,6 +1981,134 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							return `By ${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`
 						})()}
 					</div>
+				) : null}
+			</div>
+
+			<div className="mt-5 mb-4">
+				<input
+					ref={coverFileInputRef}
+					type="file"
+					accept="image/png,image/jpeg,image/webp,image/gif"
+					className="sr-only"
+					onChange={(e) => handleCoverFile(e.target.files?.[0])}
+				/>
+				{article.coverImage?.url ? (
+					<figure className="grid gap-2">
+						<div
+							className="group relative aspect-[700/400] w-full overflow-hidden rounded-md border border-(--cards-border)"
+							onMouseEnter={() => setCoverHovered(true)}
+							onMouseLeave={() => setCoverHovered(false)}
+						>
+							{/* eslint-disable-next-line @next/next/no-img-element */}
+							<img
+								src={article.coverImage.url}
+								alt={article.coverImage.alt || article.title || ''}
+								className="block h-full w-full object-cover"
+							/>
+							<div
+								className={`pointer-events-none absolute inset-0 flex items-end justify-end gap-2 bg-gradient-to-t from-black/55 via-black/10 to-transparent p-3 transition-opacity ${
+									coverHovered || isUploadingCover ? 'opacity-100' : 'opacity-0'
+								}`}
+							>
+								<button
+									type="button"
+									onClick={() => coverDetailsDialog.show()}
+									className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-md border border-white/30 bg-black/40 px-2.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/55"
+								>
+									<Icon name="pencil" className="h-3.5 w-3.5" />
+									<span>Edit details</span>
+								</button>
+								<button
+									type="button"
+									disabled={isUploadingCover}
+									onClick={openCoverPicker}
+									className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-md border border-white/30 bg-black/40 px-2.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/55 disabled:cursor-not-allowed disabled:opacity-60"
+								>
+									{isUploadingCover ? 'Uploading…' : 'Replace'}
+								</button>
+								<button
+									type="button"
+									disabled={isUploadingCover}
+									aria-label="Remove cover"
+									title="Remove cover"
+									onClick={() => updateArticle('coverImage', null)}
+									className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-md border border-white/30 bg-black/40 text-white backdrop-blur-sm transition-colors hover:border-red-400/60 hover:bg-red-500/70 disabled:cursor-not-allowed disabled:opacity-60"
+								>
+									<Icon name="trash" className="h-3.5 w-3.5" />
+								</button>
+							</div>
+						</div>
+						{(() => {
+							const headline = (article.coverImage.headline ?? '').trim()
+							const caption = (article.coverImage.caption ?? '').trim()
+							const credit = (article.coverImage.credit ?? '').trim()
+							const copyright = (article.coverImage.copyright ?? '').trim()
+							const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(
+								Boolean
+							)
+							const hasAny = headline || caption || metaParts.length > 0
+							if (!hasAny) {
+								return (
+									<button
+										type="button"
+										onClick={() => coverDetailsDialog.show()}
+										className="flex items-center gap-1.5 self-start rounded-md border border-dashed border-(--cards-border) px-2.5 py-1 text-[11px] font-medium text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+									>
+										<Icon name="plus" className="h-3 w-3" />
+										<span>Add caption & credits</span>
+									</button>
+								)
+							}
+							return (
+								<figcaption className="group/cap flex items-start justify-between gap-3">
+									<div className="grid gap-0.5 text-xs">
+										{headline ? (
+											<span className="font-medium text-(--text-secondary)">{headline}</span>
+										) : null}
+										{caption ? <span className="text-(--text-tertiary)">{caption}</span> : null}
+										{metaParts.length > 0 ? (
+											<span className="text-(--text-tertiary)/75">{metaParts.join(' · ')}</span>
+										) : null}
+									</div>
+									<button
+										type="button"
+										onClick={() => coverDetailsDialog.show()}
+										aria-label="Edit cover details"
+										title="Edit cover details"
+										className="shrink-0 rounded-md p-1.5 text-(--text-tertiary) opacity-0 transition-opacity hover:bg-(--link-hover-bg) hover:text-(--text-primary) group-hover/cap:opacity-100 focus-visible:opacity-100"
+									>
+										<Icon name="pencil" className="h-3.5 w-3.5" />
+									</button>
+								</figcaption>
+							)
+						})()}
+					</figure>
+				) : (
+					<button
+						type="button"
+						disabled={isUploadingCover}
+						onClick={openCoverPicker}
+						className="group flex aspect-[700/400] w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						<svg
+							viewBox="0 0 24 24"
+							className="h-6 w-6"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<rect x="3" y="3" width="18" height="18" rx="2" />
+							<circle cx="9" cy="9" r="2" />
+							<path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21" />
+						</svg>
+						<span className="text-sm font-medium">{isUploadingCover ? 'Uploading…' : 'Add cover image'}</span>
+						<span className="text-[11px] text-(--text-tertiary)/80">PNG, JPEG, WebP, or GIF · up to 8 MB</span>
+					</button>
+				)}
+				{publishErrors.coverImage ? (
+					<p className="mt-2 text-xs text-red-500">{publishErrors.coverImage}</p>
 				) : null}
 			</div>
 
@@ -2820,90 +3009,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							<span className="text-[11px] text-(--text-tertiary)">Only the owner can manage authors.</span>
 						) : null}
 					</MetaSection>
-
-					<MetaSection title="Cover">
-						<ImageUploadButton
-							scope="article-cover"
-							articleId={articleId}
-							currentUrl={article.coverImage?.url ?? null}
-							onUploaded={(result) =>
-								updateArticle('coverImage', {
-									...(article.coverImage ?? {}),
-									url: result.url,
-									alt: article.coverImage?.alt || article.title
-								})
-							}
-							onCleared={() => updateArticle('coverImage', null)}
-							label="cover image"
-							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
-						/>
-						<MetaFieldHint error={publishErrors.coverImage} />
-						{article.coverImage ? (
-							<div className="mt-3 grid gap-2">
-								<label className="grid gap-1">
-									<span className="text-[11px] text-(--text-tertiary)">Headline</span>
-									<input
-										value={article.coverImage.headline ?? ''}
-										onChange={(event) =>
-											updateArticle('coverImage', {
-												...article.coverImage!,
-												headline: event.target.value
-											})
-										}
-										placeholder="Image title"
-										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-									/>
-								</label>
-								<label className="grid gap-1">
-									<span className="text-[11px] text-(--text-tertiary)">Caption</span>
-									<input
-										value={article.coverImage.caption ?? ''}
-										onChange={(event) =>
-											updateArticle('coverImage', {
-												...article.coverImage!,
-												caption: event.target.value
-											})
-										}
-										placeholder="Caption shown under the cover"
-										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-									/>
-									<MetaFieldHint error={publishErrors['coverImage.caption']} />
-								</label>
-								<div className="grid grid-cols-2 gap-2">
-									<label className="grid gap-1">
-										<span className="text-[11px] text-(--text-tertiary)">Credit</span>
-										<input
-											value={article.coverImage.credit ?? ''}
-											onChange={(event) =>
-												updateArticle('coverImage', {
-													...article.coverImage!,
-													credit: event.target.value
-												})
-											}
-											placeholder="Photographer"
-											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-										/>
-										<MetaFieldHint error={publishErrors['coverImage.credit']} />
-									</label>
-									<label className="grid gap-1">
-										<span className="text-[11px] text-(--text-tertiary)">Copyright</span>
-										<input
-											value={article.coverImage.copyright ?? ''}
-											onChange={(event) =>
-												updateArticle('coverImage', {
-													...article.coverImage!,
-													copyright: event.target.value
-												})
-											}
-											placeholder="Rights holder"
-											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-										/>
-										<MetaFieldHint error={publishErrors['coverImage.copyright']} />
-									</label>
-								</div>
-							</div>
-						) : null}
-					</MetaSection>
 				</div>
 
 				<div className="mt-auto grid gap-2 border-t border-(--cards-border) pt-4">
@@ -2953,6 +3058,135 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						className="text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 					>
 						{isPublished ? 'Cancel' : 'Keep editing'}
+					</button>
+				</div>
+			</Ariakit.Dialog>
+
+			<Ariakit.Dialog
+				store={coverDetailsDialog}
+				backdrop={
+					<div className="fixed inset-0 z-40 bg-black/40 opacity-0 backdrop-blur-sm transition-opacity duration-150 data-[enter]:opacity-100 data-[leave]:opacity-0" />
+				}
+				className="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5 shadow-2xl opacity-0 transition-opacity duration-150 data-[enter]:opacity-100"
+			>
+				<div className="mb-4 flex items-start justify-between gap-3">
+					<div className="grid gap-1">
+						<Ariakit.DialogHeading className="text-base font-semibold tracking-tight text-(--text-primary)">
+							Cover details
+						</Ariakit.DialogHeading>
+						<p className="text-xs text-(--text-tertiary)">
+							Optional captions and attribution shown below the cover.
+						</p>
+					</div>
+					<Ariakit.DialogDismiss
+						aria-label="Close"
+						className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
+					>
+						<Icon name="x" className="h-4 w-4" />
+					</Ariakit.DialogDismiss>
+				</div>
+
+				<div className="grid gap-3">
+					<label className="grid gap-1">
+						<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Headline</span>
+						<input
+							value={article.coverImage?.headline ?? ''}
+							onChange={(e) => updateCoverField('headline', e.target.value)}
+							placeholder="Image title"
+							className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+						/>
+					</label>
+					<label className="grid gap-1">
+						<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Caption</span>
+						<input
+							value={article.coverImage?.caption ?? ''}
+							onChange={(e) => updateCoverField('caption', e.target.value)}
+							placeholder="Caption shown under the cover"
+							className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+						/>
+						{publishErrors['coverImage.caption'] ? (
+							<span className="text-[11px] text-red-500">{publishErrors['coverImage.caption']}</span>
+						) : null}
+					</label>
+					<div className="grid grid-cols-2 gap-2">
+						<label className="grid gap-1">
+							<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Credit</span>
+							<input
+								value={article.coverImage?.credit ?? ''}
+								onChange={(e) => updateCoverField('credit', e.target.value)}
+								placeholder="Photographer"
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+							{publishErrors['coverImage.credit'] ? (
+								<span className="text-[11px] text-red-500">{publishErrors['coverImage.credit']}</span>
+							) : null}
+						</label>
+						<label className="grid gap-1">
+							<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Copyright</span>
+							<input
+								value={article.coverImage?.copyright ?? ''}
+								onChange={(e) => updateCoverField('copyright', e.target.value)}
+								placeholder="Rights holder"
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+							{publishErrors['coverImage.copyright'] ? (
+								<span className="text-[11px] text-red-500">{publishErrors['coverImage.copyright']}</span>
+							) : null}
+						</label>
+					</div>
+				</div>
+
+				<div className="mt-5 flex justify-end">
+					<Ariakit.DialogDismiss className="flex h-9 items-center rounded-md bg-(--link-text) px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90">
+						Done
+					</Ariakit.DialogDismiss>
+				</div>
+			</Ariakit.Dialog>
+
+			<Ariakit.Dialog
+				store={deleteDialog}
+				backdrop={
+					<div className="fixed inset-0 z-40 bg-black/40 opacity-0 backdrop-blur-sm transition-opacity duration-150 data-[enter]:opacity-100 data-[leave]:opacity-0" />
+				}
+				className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5 shadow-2xl opacity-0 transition-opacity duration-150 data-[enter]:opacity-100"
+			>
+				<div className="flex items-start gap-3">
+					<div
+						aria-hidden
+						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
+					>
+						<Icon name="trash" className="h-4 w-4" />
+					</div>
+					<div className="grid gap-1">
+						<Ariakit.DialogHeading className="text-base font-semibold tracking-tight text-(--text-primary)">
+							{isPublished ? 'Delete this article?' : 'Delete this draft?'}
+						</Ariakit.DialogHeading>
+						<Ariakit.DialogDescription className="text-sm text-(--text-secondary)">
+							{article.title ? (
+								<>
+									<span className="font-medium text-(--text-primary)">{article.title}</span> will be permanently removed. This cannot be undone.
+								</>
+							) : (
+								<>This will be permanently removed. This cannot be undone.</>
+							)}
+						</Ariakit.DialogDescription>
+					</div>
+				</div>
+				<div className="mt-5 flex justify-end gap-2">
+					<Ariakit.DialogDismiss
+						disabled={deleteArticleMutation.isPending}
+						className="flex h-9 items-center rounded-md border border-(--cards-border) bg-transparent px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						Cancel
+					</Ariakit.DialogDismiss>
+					<button
+						type="button"
+						onClick={confirmDeleteArticle}
+						disabled={deleteArticleMutation.isPending}
+						className="flex h-9 items-center gap-1.5 rounded-md bg-red-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(220,38,38,0.45)] transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						<Icon name="trash" className="h-3.5 w-3.5" />
+						<span>{deleteArticleMutation.isPending ? 'Deleting…' : 'Delete'}</span>
 					</button>
 				</div>
 			</Ariakit.Dialog>
