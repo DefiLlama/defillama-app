@@ -1639,7 +1639,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})()
 	const articleViewHref = article.section
 		? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
-		: `/research/${article.slug}`
+		: '/research'
 
 	return (
 		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] animate-fadein px-4 pb-32 sm:px-6">

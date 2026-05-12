@@ -9,7 +9,7 @@ function articleCanonicalPath(article: LocalArticleDocument): string {
 		const sectionSlug = ARTICLE_SECTION_SLUGS[article.section]
 		return `/research/${sectionSlug}/${article.slug}`
 	}
-	return `/research/${article.slug}`
+	return '/research'
 }
 
 export function articleCanonicalUrl(article: LocalArticleDocument): string {

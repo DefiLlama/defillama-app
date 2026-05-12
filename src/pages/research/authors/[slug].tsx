@@ -12,7 +12,7 @@ function articleHref(article: ArticleDocument) {
 	if (article.section) {
 		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
 	}
-	return `/research/${article.slug}`
+	return '/research'
 }
 
 function formatDate(value: string | null) {
