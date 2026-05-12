@@ -140,10 +140,7 @@ export async function listArticleSections(
 	return parseResponse(await fetchFn(articleUrl(`/articles/sections?${search}`)))
 }
 
-export async function listSpotlightArticles(
-	limit = 6,
-	fetchFn: FetchLike = fetch
-): Promise<ArticleSpotlightResponse> {
+export async function listSpotlightArticles(limit = 6, fetchFn: FetchLike = fetch): Promise<ArticleSpotlightResponse> {
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'limit', limit)
 	return parseResponse(await fetchFn(articleUrl(`/articles/spotlight?${search}`)))

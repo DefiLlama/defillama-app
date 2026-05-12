@@ -6,9 +6,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
-import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import {
 	addCollaborator,
 	ArticleApiError,
@@ -738,9 +738,7 @@ function MetaSwitch({
 		>
 			<span className="grid min-w-0 gap-0.5">
 				<span className="text-sm font-medium text-(--text-primary)">{label}</span>
-				{description ? (
-					<span className="text-[11px] leading-snug text-(--text-tertiary)">{description}</span>
-				) : null}
+				{description ? <span className="text-[11px] leading-snug text-(--text-tertiary)">{description}</span> : null}
 			</span>
 			<Ariakit.Checkbox
 				checked={checked}
@@ -752,7 +750,7 @@ function MetaSwitch({
 						type="button"
 						role="switch"
 						aria-checked={checked}
-						className={`relative mt-0.5 inline-flex h-[18px] w-8 shrink-0 items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--link-text)/40 focus-visible:ring-offset-1 focus-visible:ring-offset-(--cards-bg) ${
+						className={`relative mt-0.5 inline-flex h-[18px] w-8 shrink-0 items-center rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-(--link-text)/40 focus-visible:ring-offset-1 focus-visible:ring-offset-(--cards-bg) focus-visible:outline-none ${
 							checked
 								? 'border-(--link-text)/60 bg-(--link-text)'
 								: 'border-(--cards-border) bg-(--app-bg) group-hover:border-(--text-tertiary)'
@@ -760,9 +758,7 @@ function MetaSwitch({
 					>
 						<span
 							className={`absolute top-1/2 inline-block h-3 w-3 -translate-y-1/2 rounded-full shadow-sm transition-all duration-200 ease-out ${
-								checked
-									? 'left-[15px] bg-white'
-									: 'left-[2px] bg-(--text-tertiary) group-hover:bg-(--text-secondary)'
+								checked ? 'left-[15px] bg-white' : 'left-[2px] bg-(--text-tertiary) group-hover:bg-(--text-secondary)'
 							}`}
 						/>
 					</button>
@@ -1063,7 +1059,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const changeActiveEntityLink = useCallback(() => {
 		if (!editor) return
 		const label = activeEntity?.label ?? ''
-		editor.chain().focus().extendMarkRange('entityLink').deleteSelection().insertContent(' @' + label).run()
+		editor
+			.chain()
+			.focus()
+			.extendMarkRange('entityLink')
+			.deleteSelection()
+			.insertContent(' @' + label)
+			.run()
 	}, [editor, activeEntity?.label])
 
 	const beginSlugEdit = useCallback(() => {
@@ -2029,8 +2031,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 													alt=""
 													className="h-full w-full object-cover"
 													onError={(e) => {
-													e.currentTarget.style.visibility = 'hidden'
-												}}
+														e.currentTarget.style.visibility = 'hidden'
+													}}
 												/>
 											</span>
 										) : null}
@@ -2525,7 +2527,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 											First publish
 										</span>
-										<span className="font-jetbrains text-[11px] tabular-nums text-(--text-secondary)">
+										<span className="font-jetbrains text-[11px] text-(--text-secondary) tabular-nums">
 											{formatArticleDate(article.firstPublishedAt)}
 										</span>
 									</div>
@@ -2535,7 +2537,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
 											Last publish
 										</span>
-										<span className="font-jetbrains text-[11px] tabular-nums text-(--text-secondary)">
+										<span className="font-jetbrains text-[11px] text-(--text-secondary) tabular-nums">
 											{formatArticleDate(article.lastPublishedAt)}
 										</span>
 									</div>
@@ -2590,7 +2592,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								})()}
 							</div>
 							<span className="truncate font-jetbrains text-[10px] text-(--text-tertiary)">
-								defillama.com/research/{article.section ? `${ARTICLE_SECTION_SLUGS[article.section]}/` : ""}<span className="text-(--text-secondary)">{article.slug}</span>
+								defillama.com/research/{article.section ? `${ARTICLE_SECTION_SLUGS[article.section]}/` : ''}
+								<span className="text-(--text-secondary)">{article.slug}</span>
 							</span>
 						</div>
 					</MetaSection>
@@ -2618,7 +2621,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						<div className="grid gap-1.5">
 							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
 								<span>Topics</span>
-								<span className="font-jetbrains text-[10px] tabular-nums text-(--text-tertiary)">
+								<span className="font-jetbrains text-[10px] text-(--text-tertiary) tabular-nums">
 									{(article.tags ?? []).length}/12
 								</span>
 							</span>
@@ -2634,7 +2637,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									)
 								}
 								placeholder="stablecoins, lending, ethereum"
-								className={`rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) transition-colors focus:outline-none ${
+								className={`rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors placeholder:text-(--text-tertiary) focus:outline-none ${
 									publishErrors.tags
 										? 'border-red-500/60 focus:border-red-500'
 										: 'border-(--form-control-border) focus:border-(--link-text)'

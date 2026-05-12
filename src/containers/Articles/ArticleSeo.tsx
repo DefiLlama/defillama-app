@@ -68,7 +68,9 @@ function buildJsonLd(article: LocalArticleDocument): Record<string, unknown> {
 			url: article.coverImage.url,
 			caption: article.coverImage.caption,
 			...(article.coverImage.credit ? { creditText: article.coverImage.credit } : {}),
-			...(article.coverImage.copyright ? { copyrightHolder: { '@type': 'Organization', name: article.coverImage.copyright } } : {})
+			...(article.coverImage.copyright
+				? { copyrightHolder: { '@type': 'Organization', name: article.coverImage.copyright } }
+				: {})
 		}
 	}
 	if (article.seoDescription) {
@@ -108,15 +110,14 @@ export function ArticleSeo({ article }: { article: LocalArticleDocument }) {
 				<meta key="article:modified_time" property="article:modified_time" content={lastPublished} />
 			) : null}
 			{article.coverImage?.url ? <meta key="og:image" property="og:image" content={article.coverImage.url} /> : null}
-			{article.coverImage?.url ? <meta key="twitter:image" name="twitter:image" content={article.coverImage.url} /> : null}
+			{article.coverImage?.url ? (
+				<meta key="twitter:image" name="twitter:image" content={article.coverImage.url} />
+			) : null}
 			{article.coverImage?.caption ? (
 				<meta key="og:image:alt" property="og:image:alt" content={article.coverImage.caption} />
 			) : null}
 			{isPublished ? (
-				<script
-					type="application/ld+json"
-					dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(article)) }}
-				/>
+				<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(article)) }} />
 			) : null}
 		</Head>
 	)

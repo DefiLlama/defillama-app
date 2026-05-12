@@ -209,27 +209,27 @@ function MyArticlesContent() {
 
 								<div className="flex shrink-0 items-center gap-1">
 									{article.section ? (
-									<Link
-										href={`/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`}
-										target="_blank"
-										rel="noreferrer"
-										aria-label={article.status === 'published' ? 'View' : 'Preview'}
-										title={article.status === 'published' ? 'View' : 'Preview'}
-										className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
-									>
-										<svg
-											viewBox="0 0 24 24"
-											className="h-4 w-4"
-											fill="none"
-											stroke="currentColor"
-											strokeWidth="1.75"
-											strokeLinecap="round"
-											strokeLinejoin="round"
+										<Link
+											href={`/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`}
+											target="_blank"
+											rel="noreferrer"
+											aria-label={article.status === 'published' ? 'View' : 'Preview'}
+											title={article.status === 'published' ? 'View' : 'Preview'}
+											className="flex h-8 w-8 items-center justify-center rounded-md text-(--text-secondary) hover:bg-(--cards-bg) hover:text-(--text-primary)"
 										>
-											<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
-											<circle cx="12" cy="12" r="3" />
-										</svg>
-									</Link>
+											<svg
+												viewBox="0 0 24 24"
+												className="h-4 w-4"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="1.75"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+												<circle cx="12" cy="12" r="3" />
+											</svg>
+										</Link>
 									) : null}
 									<Link
 										href={`/research/edit/${article.id}`}

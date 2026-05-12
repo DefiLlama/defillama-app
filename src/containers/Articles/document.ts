@@ -56,7 +56,10 @@ function normalizeDate(value: unknown, fallback: string) {
 
 function normalizeSection(value: unknown): ArticleSection | null {
 	if (typeof value !== 'string') return null
-	const lower = value.trim().toLowerCase().replace(/[\s-]+/g, '_')
+	const lower = value
+		.trim()
+		.toLowerCase()
+		.replace(/[\s-]+/g, '_')
 	return ARTICLE_SECTIONS.includes(lower as ArticleSection) ? (lower as ArticleSection) : null
 }
 
@@ -151,19 +154,13 @@ export function normalizeLocalArticleDocument(
 	const previousPublishedAt = existing?.publishedAt ?? null
 	const incomingPublishedAt = typeof input.publishedAt === 'string' ? input.publishedAt : null
 	const publishedAt =
-		status === 'published'
-			? normalizeDate(incomingPublishedAt, previousPublishedAt ?? now)
-			: previousPublishedAt
-	const firstPublishedAt =
-		normalizeOptionalDate(input.firstPublishedAt) ?? existing?.firstPublishedAt ?? null
-	const lastPublishedAt =
-		normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
-	const displayDate =
-		normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
+		status === 'published' ? normalizeDate(incomingPublishedAt, previousPublishedAt ?? now) : previousPublishedAt
+	const firstPublishedAt = normalizeOptionalDate(input.firstPublishedAt) ?? existing?.firstPublishedAt ?? null
+	const lastPublishedAt = normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
+	const displayDate = normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
 	const section = normalizeSection(input.section) ?? existing?.section ?? null
-	const spotlight = typeof input.spotlight === 'boolean' ? input.spotlight : existing?.spotlight ?? false
-	const brandByline =
-		typeof input.brandByline === 'boolean' ? input.brandByline : existing?.brandByline ?? false
+	const spotlight = typeof input.spotlight === 'boolean' ? input.spotlight : (existing?.spotlight ?? false)
+	const brandByline = typeof input.brandByline === 'boolean' ? input.brandByline : (existing?.brandByline ?? false)
 	const extracted = extractArticleContent(contentJson)
 	const trimmedPlain = extracted.plainText.trim()
 	const firstSentenceMatch = trimmedPlain.match(/^[\s\S]*?[.!?](?:\s|$)/)

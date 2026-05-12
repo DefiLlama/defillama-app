@@ -1,13 +1,7 @@
 export type ArticleVersion = 1
 
 export type ArticleStatus = 'draft' | 'published'
-export type ArticleSection =
-	| 'interview'
-	| 'report'
-	| 'introducing'
-	| 'opinion'
-	| 'roundtables'
-	| 'press_release'
+export type ArticleSection = 'interview' | 'report' | 'introducing' | 'opinion' | 'roundtables' | 'press_release'
 
 export const ARTICLE_SECTIONS: ArticleSection[] = [
 	'interview',

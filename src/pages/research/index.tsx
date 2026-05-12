@@ -761,10 +761,7 @@ function IndexItem({ article, index }: { article: ArticleDocument; index: number
 			style={accentStyle(accent)}
 			className="relative border-b border-(--cards-border) py-3 first:pt-0 last:border-b-0"
 		>
-			<Link
-				href={articleHref(article)}
-				className="group grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-3"
-			>
+			<Link href={articleHref(article)} className="group grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-3">
 				<span className="font-jetbrains text-[10px] text-(--accent) tabular-nums">
 					{String(index + 1).padStart(2, '0')}
 				</span>
