@@ -1859,15 +1859,27 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						</>
 					) : article.id ? (
 						<>
-							<Link
-								href={articleViewHref}
-								target="_blank"
-								rel="noreferrer"
-								className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
-							>
-								<Icon name="eye" className="h-3.5 w-3.5" />
-								<span>Preview</span>
-							</Link>
+							{article.section ? (
+								<Link
+									href={articleViewHref}
+									target="_blank"
+									rel="noreferrer"
+									className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+								>
+									<Icon name="eye" className="h-3.5 w-3.5" />
+									<span>Preview</span>
+								</Link>
+							) : (
+								<button
+									type="button"
+									onClick={() => metaDialog.show()}
+									title="Set a section to preview this draft"
+									className="flex h-9 items-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-transparent px-3 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-secondary)"
+								>
+									<Icon name="eye" className="h-3.5 w-3.5" />
+									<span>Set section to preview</span>
+								</button>
+							)}
 							<button
 								type="button"
 								disabled={isPublishing}
@@ -2578,7 +2590,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								})()}
 							</div>
 							<span className="truncate font-jetbrains text-[10px] text-(--text-tertiary)">
-								defillama.com/research/<span className="text-(--text-secondary)">{article.slug}</span>
+								defillama.com/research/{article.section ? `${ARTICLE_SECTION_SLUGS[article.section]}/` : ""}<span className="text-(--text-secondary)">{article.slug}</span>
 							</span>
 						</div>
 					</MetaSection>
