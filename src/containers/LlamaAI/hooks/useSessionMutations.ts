@@ -252,7 +252,7 @@ export function useSessionMutations() {
 			// Snapshot previous value for rollback
 			const previous = queryClient.getQueryData<SessionListInfiniteData>([SESSIONS_QUERY_KEY, user?.id])
 
-			// Optimistically update
+			// Optimistically update the global session cache
 			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListInfiniteData | undefined) =>
 				updateSessionInInfiniteData(old, sessionId, (session) => ({ ...session, title }))
 			)
@@ -266,7 +266,6 @@ export function useSessionMutations() {
 			}
 		},
 		onSettled: () => {
-			// Always invalidate after mutation settles (success or error)
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
@@ -305,27 +304,31 @@ export function useSessionMutations() {
 	})
 
 	// Insert a temporary session into the cache so first-message submits have a stable local target.
-	const createFakeSession = useCallback(() => {
-		const sessionId = crypto.randomUUID()
-		const title = 'New Chat'
+	const createFakeSession = useCallback(
+		(projectId?: string | null) => {
+			const sessionId = crypto.randomUUID()
+			const title = 'New Chat'
 
-		if (user) {
-			const fakeSession: ChatSession = {
-				sessionId,
-				title,
-				createdAt: new Date().toISOString(),
-				lastActivity: new Date().toISOString(),
-				isActive: true,
-				isOptimistic: true
+			if (user) {
+				const fakeSession: ChatSession = {
+					sessionId,
+					title,
+					createdAt: new Date().toISOString(),
+					lastActivity: new Date().toISOString(),
+					isActive: true,
+					isOptimistic: true,
+					projectId: projectId ?? null
+				}
+
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
+					prependSessionToInfiniteData(old, fakeSession)
+				)
 			}
 
-			queryClient.setQueryData([SESSIONS_QUERY_KEY, user.id], (old: SessionListInfiniteData | undefined) =>
-				prependSessionToInfiniteData(old, fakeSession)
-			)
-		}
-
-		return sessionId
-	}, [user, queryClient])
+			return sessionId
+		},
+		[user, queryClient]
+	)
 
 	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
@@ -346,7 +349,8 @@ export function useSessionMutations() {
 						hasNewer: result.hasNewer ?? false,
 						newerCursor: result.newerCursor
 					},
-					streaming: result.streaming
+					streaming: result.streaming,
+					projectId: result.projectId ?? null
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))

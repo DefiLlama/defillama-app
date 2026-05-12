@@ -44,7 +44,12 @@ const getCookieValue = (cookieString: string, cookieName: string): string | null
 }
 
 const isInteractiveLlamaAIPath = (pathname: string): boolean => {
-	return pathname === '/ai/chat' || pathname.startsWith('/ai/chat/')
+	return (
+		pathname === '/ai/chat' ||
+		pathname.startsWith('/ai/chat/') ||
+		pathname === '/ai/projects' ||
+		pathname.startsWith('/ai/projects/')
+	)
 }
 
 const syncLlamaAIChromeAttributesForPath = (pathname: string, fullscreen: boolean, sidebarHidden: boolean): void => {

@@ -3,10 +3,11 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import Router from 'next/router'
+import Script from 'next/script'
 import '~/tailwind.css'
 import '~/nprogress.css'
-import Script from 'next/script'
 import NProgress from 'nprogress'
+import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
@@ -14,6 +15,14 @@ import { useAuthBridge } from '~/hooks/useAuthBridge'
 import { useParentAuthTracker } from '~/hooks/useParentAuthTracker'
 import { useReferrer } from '~/hooks/useReferrer'
 import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
+
+type NextPageWithLayout = AppProps['Component'] & {
+	getLayout?: (page: ReactElement) => ReactElement
+}
+
+type AppPropsWithLayout = AppProps & {
+	Component: NextPageWithLayout
+}
 
 NProgress.configure({ showSpinner: false })
 
@@ -33,7 +42,7 @@ const isChunkLoadError = (error: unknown) => {
 
 const client = new QueryClient()
 
-function App({ Component, pageProps }: AppProps) {
+function App({ Component, pageProps }: AppPropsWithLayout) {
 	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {
@@ -130,6 +139,7 @@ function App({ Component, pageProps }: AppProps) {
 	useParentAuthTracker()
 	useUmamiIdentityTracker()
 	useReferrer()
+	const getLayout = Component.getLayout ?? ((page: ReactElement) => page)
 
 	return (
 		<>
@@ -147,12 +157,12 @@ function App({ Component, pageProps }: AppProps) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			<Component {...pageProps} />
+			{getLayout(<Component {...pageProps} />)}
 		</>
 	)
 }
 
-const AppWrapper = (props: AppProps) => {
+const AppWrapper = (props: AppPropsWithLayout) => {
 	return (
 		<>
 			<QueryClientProvider client={client}>

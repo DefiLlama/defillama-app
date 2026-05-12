@@ -1,6 +1,5 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import Router from 'next/router'
 import {
 	lazy,
 	memo,
@@ -61,6 +60,8 @@ import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutati
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
+import { ProjectLanding } from '~/containers/LlamaAI/projects/ProjectLanding'
+import { getProjectTier } from '~/containers/LlamaAI/projects/tier'
 import {
 	buildAssistantMessage,
 	createInitialStreamState,
@@ -85,6 +86,9 @@ import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredA
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
+import { useLlamaAINavigate, useProjectHomeSignal } from '~/contexts/LlamaAINavigate'
+import { useLlamaAIRouteContext, type LlamaAIRouteState } from '~/contexts/LlamaAIRouteState'
+import { useOptionalSessionAliases } from '~/contexts/SessionAliasRegistry'
 import { useMedia } from '~/hooks/useMedia'
 
 const SubscribeProModal = lazy(() =>
@@ -425,13 +429,18 @@ function mapSharedSessionMessage(message: SharedSessionMessage, index?: number):
 	}
 }
 
+export interface LandingOverrideApi {
+	handleSubmit: (prompt: string) => void
+	isStreaming: boolean
+}
+
 interface AgenticChatProps {
-	initialSessionId?: string
 	sharedSession?: SharedSession
 	readOnly?: boolean
 	onForkSubmit?: (prompt: string) => void
 	initialPrompt?: string
 	shareToken?: string
+	rightPanel?: React.ReactNode
 }
 
 // Consume the current streamed message id once the buffered assistant message is committed.
@@ -704,16 +713,33 @@ function createAgenticCallbacks({
 }
 
 export function AgenticChat({
-	initialSessionId,
 	sharedSession,
 	readOnly = false,
 	onForkSubmit,
 	initialPrompt,
-	shareToken
+	shareToken,
+	rightPanel
 }: AgenticChatProps = {}) {
-	const { authorizedFetch, user } = useAuthContext()
+	const { authorizedFetch, user, hasActiveSubscription, isTrial } = useAuthContext()
 	const hasUser = !!user
 	const isMobileChatView = useMedia('(max-width: 1023px)')
+	const route = useLlamaAIRouteContext()
+	const navigate = useLlamaAINavigate()
+	const projectHomeSignal = useProjectHomeSignal()
+	const projectHomeSignalRef = useRef(projectHomeSignal)
+	const sessionAliases = useOptionalSessionAliases()
+	const resolveSessionAlias = useCallback((id: string) => sessionAliases?.resolve(id) ?? id, [sessionAliases])
+	const registerSessionAlias = useCallback(
+		(fakeId: string, realId: string) => {
+			sessionAliases?.register(fakeId, realId)
+		},
+		[sessionAliases]
+	)
+	const routeProjectId = route.kind === 'project' ? route.projectId : null
+	const routeInitialPrompt = route.kind === 'chat-session' ? route.initialPrompt : initialPrompt
+	const routeShareToken = route.kind === 'chat-session' ? route.shareToken : undefined
+	const effectiveShareToken = shareToken ?? routeShareToken
+	const projectTier = getProjectTier(user, hasActiveSubscription, isTrial)
 
 	// Send shareToken only on the first agentic request so the backend can copy shared messages.
 	// Uses a "consumed" flag so we always read the current prop but only forward it once per mount.
@@ -807,6 +833,7 @@ export function AgenticChat({
 	const [activeLeafMessageId, setActiveLeafMessageId] = useState<string | null>(null)
 	const [sessionId, setSessionId] = useState<string | null>(null)
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
+	const [currentSessionProjectId, setCurrentSessionProjectId] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [quotedText, setQuotedText] = useState<string | null>(null)
@@ -824,14 +851,11 @@ export function AgenticChat({
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
 	const { settings, actions, availableModels, availableEfforts } = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
-	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
-		initialSessionId && !sharedSession ? initialSessionId : null
-	)
+	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
 	const [viewError, setViewError] = useState<string | null>(null)
 	const [paginationError, setPaginationError] = useState<string | null>(null)
 	const researchModalStore = Ariakit.useDialogStore()
 	const currentMessageIdRef = useRef<string | null>(null)
-	const pendingInitialSessionIdRef = useRef(initialSessionId)
 	const activeRequestIdRef = useRef(0)
 	const activeRequestKindRef = useRef<RequestKind>('idle')
 	const activeSessionIdRef = useRef<string | null>(null)
@@ -858,6 +882,10 @@ export function AgenticChat({
 	const promptSubmissionLockRef = useRef(false)
 	const isFirstMessageRef = useRef(true)
 	const promptTransitionTimerRef = useRef<number | null>(null)
+	const currentSessionIdRef = useRef<string | null>(null)
+	const currentSessionProjectIdRef = useRef<string | null>(null)
+	const previousRouteRef = useRef<LlamaAIRouteState | null>(null)
+	const consumedInitialPromptRef = useRef<{ sessionId: string; prompt: string } | null>(null)
 	const {
 		isStreaming,
 		isCompacting,
@@ -890,8 +918,12 @@ export function AgenticChat({
 	const isSharedView = !!sharedSession && !forkedFromShared
 	const effectiveMessages = (forkedFromShared ? null : sharedMessages) ?? messages
 	const effectiveSessionId = (forkedFromShared ? sessionId : sharedSession?.session.sessionId) ?? sessionId
-	const sessionListTitle = sessionId ? (sessions.find((s) => s.sessionId === sessionId)?.title ?? null) : null
+	const routeSessionId = route.kind === 'chat-session' ? resolveSessionAlias(route.sessionId) : null
+	const lookupSessionId = sessionId ?? routeSessionId ?? null
+	const sessionListEntry = lookupSessionId ? (sessions.find((s) => s.sessionId === lookupSessionId) ?? null) : null
+	const sessionListTitle = sessionListEntry?.title ?? null
 	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
+	const effectiveProjectId = routeProjectId ?? currentSessionProjectId ?? sessionListEntry?.projectId ?? null
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
 	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
@@ -900,6 +932,14 @@ export function AgenticChat({
 	const shouldAnimateConversationTransition =
 		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
 	const shouldStartDetachedForAnchor = typeof window !== 'undefined' && /^#msg-/.test(window.location.hash)
+
+	useEffect(() => {
+		currentSessionIdRef.current = sessionId
+	}, [sessionId])
+
+	useEffect(() => {
+		currentSessionProjectIdRef.current = currentSessionProjectId
+	}, [currentSessionProjectId])
 
 	useEffect(() => {
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
@@ -1454,6 +1494,7 @@ export function AgenticChat({
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
+			setCurrentSessionProjectId('projectId' in result ? (result.projectId ?? null) : null)
 
 			const allDashboards = restored.flatMap((m) => m.dashboards || [])
 			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })
@@ -1680,30 +1721,40 @@ export function AgenticChat({
 		dispatchStream({ type: 'SET_CONTEXT_WARNING', value: null })
 	}, [clearRecoveryController, resetPromptTransition])
 
-	// Start a brand-new chat, or route away from a session page back to the base chat route.
-	const handleNewChat = useCallback(async () => {
-		if (initialSessionId || sharedSession) {
-			void Router.push('/ai/chat', undefined, { shallow: true })
-			return
-		}
+	const clearConversationState = useCallback(async () => {
 		await abortActiveRequest()
 		clearConversationRuntimeState()
 		setMessages([])
+		setActiveLeafMessageId(null)
 		setConversationViewResetKey((current) => current + 1)
 		setSessionId(null)
 		setSessionTitle(null)
+		setCurrentSessionProjectId(null)
 		dispatchDashboardPanel({ type: 'RESET' })
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
 		attach()
 		setPaginationState({ hasMore: false, cursor: null })
+	}, [abortActiveRequest, attach, clearConversationRuntimeState])
+
+	// Start a brand-new chat, or route away from a session page back to the base chat route.
+	const handleNewChat = useCallback(async () => {
+		if (route.kind !== 'chat-new' || sharedSession) {
+			void navigate.toNewChat()
+			return
+		}
+		await clearConversationState()
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sharedSession, abortActiveRequest, attach, clearConversationRuntimeState])
+	}, [clearConversationState, navigate, route.kind, sharedSession])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string, options?: { around?: string }) => {
-			if (selectedSessionId === restoredSessionIdRef.current && selectedSessionId === sessionId && !options?.around)
+			if (
+				selectedSessionId === restoredSessionIdRef.current &&
+				selectedSessionId === currentSessionIdRef.current &&
+				!options?.around
+			)
 				return
 			setRestoringSessionId(selectedSessionId)
 			await abortActiveRequest()
@@ -1731,11 +1782,6 @@ export function AgenticChat({
 			}
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			window.history.replaceState(
-				null,
-				'',
-				`/ai/chat/${selectedSessionId}${options?.around ? `#msg-${options.around}` : ''}`
-			)
 			setRestoringSessionId(null)
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1765,7 +1811,6 @@ export function AgenticChat({
 			}
 		},
 		[
-			sessionId,
 			abortActiveRequest,
 			clearConversationRuntimeState,
 			restoreSessionSnapshot,
@@ -1776,10 +1821,73 @@ export function AgenticChat({
 
 	const handleSearchMatchClick = useCallback(
 		(targetSessionId: string, messageId: string) => {
-			void handleSessionSelect(targetSessionId, { around: messageId })
+			void navigate.toSession(targetSessionId, { around: messageId })
 		},
-		[handleSessionSelect]
+		[navigate]
 	)
+
+	// Same-URL project clicks (sidebar click while already on /ai/projects/[id]) bump the project-home
+	// signal so we can reset the inline chat back to the project landing — Next.js doesn't fire route
+	// change events for same-URL navigation, so we need a separate trigger.
+	useEffect(() => {
+		if (projectHomeSignal === projectHomeSignalRef.current) return
+		projectHomeSignalRef.current = projectHomeSignal
+		if (readOnly || sharedSession) return
+		if (route.kind !== 'project') return
+		void clearConversationState()
+	}, [projectHomeSignal, route.kind, readOnly, sharedSession, clearConversationState])
+
+	useEffect(() => {
+		if (readOnly || sharedSession) return
+		if (route.kind === 'unknown') return
+
+		const previousRoute = previousRouteRef.current
+
+		// Bail out if the route hasn't actually changed. The effect can re-fire if a callback
+		// in its dep list re-creates (e.g. after we dispatch state changes inside the transition),
+		// and re-running the transition body would loop the clear/restore actions indefinitely.
+		if (previousRoute && previousRoute.kind === route.kind) {
+			if (route.kind === 'chat-new') return
+			if (route.kind === 'chat-session' && previousRoute.kind === 'chat-session' && previousRoute.sessionId === route.sessionId)
+				return
+			if (route.kind === 'project' && previousRoute.kind === 'project' && previousRoute.projectId === route.projectId)
+				return
+		}
+		previousRouteRef.current = route
+
+		const transition = async () => {
+			if (route.kind === 'chat-new') {
+				await clearConversationState()
+				promptInputRef.current?.focus()
+				return
+			}
+
+			if (route.kind === 'chat-session') {
+				const nextSessionId = resolveSessionAlias(route.sessionId)
+				if (nextSessionId === currentSessionIdRef.current) return
+
+				setMessages([])
+				setActiveLeafMessageId(null)
+				setSessionTitle(null)
+				dispatchDashboardPanel({ type: 'RESET' })
+				setPaginationState({ hasMore: false, cursor: null })
+				restoredSessionIdRef.current = null
+				const hash = typeof window !== 'undefined' ? window.location.hash : ''
+				const anchorMatch = hash.match(/^#msg-(.+)$/)
+				await handleSessionSelect(nextSessionId, anchorMatch ? { around: anchorMatch[1] } : undefined)
+				return
+			}
+
+			if (route.kind === 'project') {
+				// Always reset to the project landing on navigation. The submit-from-landing flow
+				// keeps the inline chat visible because URL doesn't change (no transition fires);
+				// any actual navigation to /ai/projects/[id] should land you on the project home.
+				await clearConversationState()
+			}
+		}
+
+		void transition()
+	}, [route, readOnly, sharedSession, clearConversationState, resolveSessionAlias, handleSessionSelect])
 
 	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
 	const handleSubmit = useCallback(
@@ -1813,19 +1921,22 @@ export function AgenticChat({
 					currentMessageIdRef.current = null
 
 					let currentSessionId = sessionId
+					const submitProjectId = routeProjectId ?? currentSessionProjectId
 
 					// Fork shared session in-place: seed messages, create session, update URL
 					if (sharedSession && !currentSessionId) {
-						currentSessionId = createFakeSession()
+						currentSessionId = createFakeSession(submitProjectId)
 						setSessionId(currentSessionId)
+						setCurrentSessionProjectId(submitProjectId)
 						setSessionTitle(sharedSession.session.title)
 						const seeded = sharedSession.messages.map((msg, i) => mapSharedSessionMessage(msg, i))
 						setMessages(seeded)
 						isFirstMessageRef.current = false
-						window.history.replaceState(null, '', `/ai/chat/${currentSessionId}`)
+						void navigate.toSession(currentSessionId, { replace: true })
 					} else if (isFirstMessageRef.current && !currentSessionId) {
-						currentSessionId = createFakeSession()
+						currentSessionId = createFakeSession(submitProjectId)
 						setSessionId(currentSessionId)
+						setCurrentSessionProjectId(submitProjectId)
 						isFirstMessageRef.current = false
 					}
 
@@ -1859,7 +1970,7 @@ export function AgenticChat({
 					activeRequestSettleRef.current = settleState
 
 					const eventCounter = { count: 0 }
-					const currentShareToken = !shareTokenConsumedRef.current ? shareToken : undefined
+					const currentShareToken = !shareTokenConsumedRef.current ? effectiveShareToken : undefined
 					if (currentShareToken) shareTokenConsumedRef.current = true
 					const failedRequest: FailedRequest = {
 						prompt: trimmed,
@@ -1884,6 +1995,7 @@ export function AgenticChat({
 						isSuggestedQuestion,
 						blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
 						shareToken: currentShareToken,
+						projectId: submitProjectId,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
 						eventCounter,
@@ -1907,6 +2019,9 @@ export function AgenticChat({
 								setSessionId(id)
 								currentSessionId = id
 								activeSessionIdRef.current = id
+								if (previousSessionId && previousSessionId !== id) {
+									registerSessionAlias(previousSessionId, id)
+								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
 									void createSession({
 										sessionId: id,
@@ -2069,7 +2184,11 @@ export function AgenticChat({
 			settings.model,
 			settings.effort,
 			sharedSession,
-			shareToken,
+			effectiveShareToken,
+			routeProjectId,
+			currentSessionProjectId,
+			navigate,
+			registerSessionAlias,
 			hasUser,
 			onForkSubmit
 		]
@@ -2135,6 +2254,7 @@ export function AgenticChat({
 					model: settings.model || undefined,
 					effort: settings.effort || undefined,
 					blockedSkills: isMobileChatView ? ['dashboard'] : undefined,
+					projectId: currentSessionProjectId,
 					abortSignal: controller.signal,
 					fetchFn: authorizedFetchCompat,
 					eventCounter,
@@ -2241,6 +2361,7 @@ export function AgenticChat({
 			notify,
 			resumeRunningExecution,
 			sessionId,
+			currentSessionProjectId,
 			settings.customInstructions,
 			settings.enablePremiumTools,
 			settings.effort,
@@ -2348,14 +2469,14 @@ export function AgenticChat({
 
 	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
 	useEffect(() => {
-		if (initialSessionId || sharedSession) return
+		if (route.kind !== 'chat-new' || sharedSession) return
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		const isSuggested = consumePendingSuggestedFlag()
 		if (pendingPrompt) {
 			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
 		}
-	}, [initialSessionId, sharedSession])
+	}, [route.kind, sharedSession])
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
 	// Resets the recovery grace period so it doesn't immediately exhaust after mobile sleep
@@ -2421,25 +2542,6 @@ export function AgenticChat({
 		return () => window.clearInterval(intervalId)
 	}, [isStreaming, error, sessionId, readOnly, resumeRunningExecution])
 
-	// Mirror route param updates into a ref so the restore effect can consume them once.
-	useEffect(() => {
-		pendingInitialSessionIdRef.current = initialSessionId
-	}, [initialSessionId])
-
-	// Restore the requested session as soon as the routed session id becomes available.
-	// If the URL contains a #msg-<id> hash, extract it and pass as the `around` anchor
-	// so the restore window centers on that message instead of loading from the bottom.
-	useEffect(() => {
-		const nextSessionId = pendingInitialSessionIdRef.current
-		if (!nextSessionId) return
-
-		pendingInitialSessionIdRef.current = undefined
-		restoredSessionIdRef.current = null
-		const hash = typeof window !== 'undefined' ? window.location.hash : ''
-		const anchorMatch = hash.match(/^#msg-(.+)$/)
-		void handleSessionSelect(nextSessionId, anchorMatch ? { around: anchorMatch[1] } : undefined)
-	}, [initialSessionId, handleSessionSelect])
-
 	// Shared/public sessions are read-only snapshots, so they should never create a fake local session.
 	useEffect(() => {
 		if (!sharedSession) return
@@ -2447,19 +2549,29 @@ export function AgenticChat({
 	}, [sharedSession])
 
 	// Auto-send the initial prompt after a forked session finishes restoring.
-	const initialPromptSentRef = useRef(false)
 	useEffect(() => {
-		if (!initialPrompt || initialPromptSentRef.current) return
+		if (!routeInitialPrompt) return
+		if (!sharedSession && !routeSessionId) return
+		const nextToken = { sessionId: routeSessionId ?? 'shared', prompt: routeInitialPrompt }
+		const currentToken = consumedInitialPromptRef.current
+		if (currentToken?.sessionId === nextToken.sessionId && currentToken.prompt === nextToken.prompt) return
+		consumedInitialPromptRef.current = nextToken
+	}, [routeInitialPrompt, routeSessionId, sharedSession])
+
+	useEffect(() => {
+		const token = consumedInitialPromptRef.current
+		if (!token) return
 		if (restoringSessionId) return
-		initialPromptSentRef.current = true
+		if (!sharedSession && resolveSessionAlias(token.sessionId) !== sessionId) return
+		consumedInitialPromptRef.current = null
 		const frameId = window.requestAnimationFrame(() => {
-			handleSubmit(initialPrompt)
+			handleSubmit(token.prompt)
 		})
 
 		return () => {
 			window.cancelAnimationFrame(frameId)
 		}
-	}, [initialPrompt, restoringSessionId, handleSubmit])
+	}, [restoringSessionId, sessionId, sharedSession, resolveSessionAlias, handleSubmit])
 
 	const tipActionHandlers = useMemo(
 		() => ({
@@ -2470,6 +2582,22 @@ export function AgenticChat({
 		}),
 		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
+
+	const landingOverride =
+		route.kind === 'project'
+			? (api: LandingOverrideApi) => (
+					<ProjectLanding
+						projectId={route.projectId}
+						tier={projectTier}
+						initialTab={route.initialTab}
+						onSubmit={api.handleSubmit}
+						isStreaming={api.isStreaming}
+						onPickSession={(nextSessionId) => {
+							void navigate.toSession(nextSessionId)
+						}}
+					/>
+				)
+			: null
 
 	if (!user && !readOnly && !sharedSession) {
 		return (
@@ -2512,10 +2640,10 @@ export function AgenticChat({
 								sessions={sessions}
 								isLoading={isLoadingSessions}
 								loadError={sessionListError}
-								currentSessionId={sessionId}
+								currentSessionId={routeSessionId ?? sessionId ?? null}
 								restoringSessionId={restoringSessionId}
 								onSessionSelect={(nextSessionId) => {
-									void handleSessionSelect(nextSessionId)
+									void navigate.toSession(nextSessionId)
 								}}
 								onNewChat={handleNewChat}
 								onDelete={deleteSession}
@@ -2532,6 +2660,7 @@ export function AgenticChat({
 								isFetchingMoreSessions={isFetchingMoreSessions}
 								loadMoreSessionsError={loadMoreSessionsError}
 								onLoadMoreSessions={loadMoreSessions}
+								currentProjectId={effectiveProjectId}
 							/>
 							<div className="flex min-h-11 lg:hidden" />
 						</>
@@ -2574,22 +2703,26 @@ export function AgenticChat({
 									aria-hidden="true"
 									className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
 								>
-									<ChatLanding
-										readOnly={readOnly}
-										isSharedView={isSharedView}
-										title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-										handleSubmit={handleSubmit}
-										promptInputRef={promptInputRef}
-										handleStopRequest={handleStopRequest}
-										isStreaming={isStreaming}
-										isResearchMode={isResearchMode}
-										setIsResearchMode={setIsResearchMode}
-										researchUsage={researchUsage}
-										onOpenAlerts={alertsModalStore.show}
-										quotedText={quotedText}
-										onClearQuotedText={() => setQuotedText(null)}
-										enterToSend={settings.enterToSend}
-									/>
+									{landingOverride ? (
+										landingOverride({ handleSubmit, isStreaming })
+									) : (
+										<ChatLanding
+											readOnly={readOnly}
+											isSharedView={isSharedView}
+											title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+											handleSubmit={handleSubmit}
+											promptInputRef={promptInputRef}
+											handleStopRequest={handleStopRequest}
+											isStreaming={isStreaming}
+											isResearchMode={isResearchMode}
+											setIsResearchMode={setIsResearchMode}
+											researchUsage={researchUsage}
+											onOpenAlerts={alertsModalStore.show}
+											quotedText={quotedText}
+											onClearQuotedText={() => setQuotedText(null)}
+											enterToSend={settings.enterToSend}
+										/>
+									)}
 								</div>
 								<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
 									<ConversationView
@@ -2641,22 +2774,26 @@ export function AgenticChat({
 								</div>
 							</div>
 						) : !hasMessages && !visibleError ? (
-							<ChatLanding
-								readOnly={readOnly}
-								isSharedView={isSharedView}
-								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
-								handleSubmit={handleSubmit}
-								promptInputRef={promptInputRef}
-								handleStopRequest={handleStopRequest}
-								isStreaming={isStreaming}
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={researchUsage}
-								onOpenAlerts={alertsModalStore.show}
-								quotedText={quotedText}
-								onClearQuotedText={() => setQuotedText(null)}
-								enterToSend={settings.enterToSend}
-							/>
+							landingOverride ? (
+								landingOverride({ handleSubmit, isStreaming })
+							) : (
+								<ChatLanding
+									readOnly={readOnly}
+									isSharedView={isSharedView}
+									title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+									isResearchMode={isResearchMode}
+									setIsResearchMode={setIsResearchMode}
+									researchUsage={researchUsage}
+									onOpenAlerts={alertsModalStore.show}
+									quotedText={quotedText}
+									onClearQuotedText={() => setQuotedText(null)}
+									enterToSend={settings.enterToSend}
+								/>
+							)
 						) : (
 							<ConversationView
 								key={`conversation-${conversationViewResetKey}`}
@@ -2709,6 +2846,11 @@ export function AgenticChat({
 							/>
 						)}
 					</div>
+					{rightPanel ? (
+						<aside className="hidden w-[340px] shrink-0 flex-col overflow-y-auto rounded-lg border border-[#e6e6e6] bg-(--cards-bg) lg:ml-2 lg:flex dark:border-[#222324]">
+							{rightPanel}
+						</aside>
+					) : null}
 					{dashboardVersions.length > 0 ? (
 						<Suspense fallback={null}>
 							<DashboardPanel

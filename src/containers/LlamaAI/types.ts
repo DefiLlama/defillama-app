@@ -83,6 +83,7 @@ export interface ChatSession {
 	pinnedAt?: string
 	forkedFromShareToken?: string | null
 	isOptimistic?: boolean
+	projectId?: string | null
 }
 
 export interface ResearchUsage {

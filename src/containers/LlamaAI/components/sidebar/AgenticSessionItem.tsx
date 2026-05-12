@@ -1,6 +1,5 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import Router from 'next/router'
 import { memo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -10,6 +9,7 @@ import { AI_SERVER } from '~/constants'
 import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
+import { MoveToProjectMenuItem } from '~/containers/LlamaAI/projects/MoveToProjectMenu'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -34,7 +34,7 @@ interface AgenticSessionItemProps {
 export const AgenticSessionItem = memo(function AgenticSessionItem({
 	session,
 	isActive,
-	onSessionSelect: _onSessionSelect,
+	onSessionSelect,
 	onDelete,
 	onUpdateTitle,
 	isRestoring,
@@ -78,7 +78,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
 		trackUmamiEvent('llamaai-session-click')
-		void Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
+		onSessionSelect(sessionId)
 		if (document.documentElement.clientWidth < 1024) {
 			hideSidebar()
 		}
@@ -294,6 +294,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							)}
 							{session.isPublic ? 'Make Private' : 'Make Public'}
 						</Ariakit.MenuItem>
+						<MoveToProjectMenuItem sessionId={session.sessionId} />
 						<Ariakit.MenuItem
 							onClick={() => {
 								void handleDelete()

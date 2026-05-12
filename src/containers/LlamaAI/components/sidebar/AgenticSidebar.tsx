@@ -18,6 +18,7 @@ import { useLlamaAIChrome } from '~/containers/LlamaAI/chrome'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import { SearchResults } from '~/containers/LlamaAI/components/sidebar/SearchResults'
 import { useSemanticSearch } from '~/containers/LlamaAI/hooks/useSemanticSearch'
+import { ProjectsSidebarSection } from '~/containers/LlamaAI/projects/ProjectsSidebarSection'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -47,6 +48,7 @@ interface AgenticSidebarProps {
 	isFetchingMoreSessions?: boolean
 	loadMoreSessionsError?: string | null
 	onLoadMoreSessions?: () => void
+	currentProjectId?: string | null
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -170,7 +172,8 @@ export function AgenticSidebar({
 	hasMoreSessions = false,
 	isFetchingMoreSessions = false,
 	loadMoreSessionsError = null,
-	onLoadMoreSessions
+	onLoadMoreSessions,
+	currentProjectId = null
 }: AgenticSidebarProps) {
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -244,8 +247,9 @@ export function AgenticSidebar({
 	const trimmedSearchQuery = searchQuery.trim()
 
 	const filteredSessions = useMemo(() => {
-		if (!trimmedSearchQuery) return sessions
-		return sessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
+		const nonProjectSessions = sessions.filter((s) => !s.projectId)
+		if (!trimmedSearchQuery) return nonProjectSessions
+		return nonProjectSessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
 	}, [sessions, searchQuery, trimmedSearchQuery])
 
 	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
@@ -450,9 +454,17 @@ export function AgenticSidebar({
 				) : null}
 			</header>
 
+			<div className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
+				<ProjectsSidebarSection
+					currentProjectId={currentProjectId}
+					currentSessionId={currentSessionId}
+					sessions={sessions}
+				/>
+			</div>
+
 			<nav
 				ref={scrollContainerRef}
-				className="thin-scrollbar flex-1 overflow-auto overscroll-contain p-4 pt-0 pr-1"
+				className="thin-scrollbar flex-1 overflow-auto overscroll-contain p-4 pt-3 pr-1"
 				aria-label="Chat history"
 			>
 				{isLoading ? (
