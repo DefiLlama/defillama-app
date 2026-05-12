@@ -26,18 +26,17 @@ export function ExternalLinkInterstitial({ href, onClose }: ExternalLinkIntersti
 			>
 				<div className="mb-4 flex items-center justify-between">
 					<h2 className="text-xl font-semibold pro-text1">Leaving DefiLlama</h2>
-					<Ariakit.DialogDismiss
-						className="rounded-md pro-hover-bg p-1 pro-text1 transition-colors"
-						aria-label="Close"
-					>
+					<Ariakit.DialogDismiss className="rounded-md pro-hover-bg p-1 pro-text1 transition-colors" aria-label="Close">
 						<Icon name="x" height={20} width={20} />
 					</Ariakit.DialogDismiss>
 				</div>
 
-				<p className="mb-2 pro-text2">You are about to visit an external site. DefiLlama is not responsible for its content.</p>
-				<div className="mb-6 break-all rounded-md border pro-border bg-(--bg-tertiary) p-3 text-sm pro-text1">
+				<p className="mb-2 pro-text2">
+					You are about to visit an external site. DefiLlama is not responsible for its content.
+				</p>
+				<div className="mb-6 rounded-md border pro-border bg-(--bg-tertiary) p-3 text-sm break-all pro-text1">
 					<div className="font-medium">{hostname}</div>
-					<div className="mt-1 text-xs pro-text2 break-all">{href}</div>
+					<div className="mt-1 text-xs break-all pro-text2">{href}</div>
 				</div>
 
 				<div className="flex justify-end gap-3">

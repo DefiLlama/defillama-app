@@ -6,6 +6,8 @@ import type {
 	ArticleRevision,
 	ArticleRevisionListResponse,
 	ArticleSection,
+	Banner,
+	BannerPayload,
 	LocalArticleDocument
 } from './types'
 
@@ -387,4 +389,74 @@ export async function transferOwnership(
 		})
 	)
 	return data.article
+}
+
+export async function listBanners(authorizedFetch: AuthorizedFetch): Promise<Banner[]> {
+	const data = await parseResponse<{ banners: Banner[] }>(await authorizedFetch(articleUrl('/banners')))
+	return data.banners
+}
+
+export async function getBanner(id: string, authorizedFetch: AuthorizedFetch): Promise<Banner> {
+	const data = await parseResponse<{ banner: Banner }>(
+		await authorizedFetch(articleUrl(`/banners/${encodeURIComponent(id)}`))
+	)
+	return data.banner
+}
+
+export async function createBanner(payload: BannerPayload, authorizedFetch: AuthorizedFetch): Promise<Banner> {
+	const data = await parseResponse<{ banner: Banner }>(
+		await authorizedFetch(articleUrl('/banners'), {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		})
+	)
+	return data.banner
+}
+
+export async function updateBanner(
+	id: string,
+	payload: Partial<BannerPayload>,
+	authorizedFetch: AuthorizedFetch
+): Promise<Banner> {
+	const data = await parseResponse<{ banner: Banner }>(
+		await authorizedFetch(articleUrl(`/banners/${encodeURIComponent(id)}`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		})
+	)
+	return data.banner
+}
+
+export async function deleteBanner(id: string, authorizedFetch: AuthorizedFetch): Promise<void> {
+	await parseResponse(
+		await authorizedFetch(articleUrl(`/banners/${encodeURIComponent(id)}`), {
+			method: 'DELETE'
+		})
+	)
+}
+
+export async function getLandingBanner(authorizedFetch: AuthorizedFetch): Promise<Banner | null> {
+	const data = await parseResponse<{ banner: Banner | null }>(
+		await authorizedFetch(articleUrl('/banners/lookup/landing'))
+	)
+	return data.banner
+}
+
+export async function getSectionBanner(
+	section: ArticleSection,
+	authorizedFetch: AuthorizedFetch
+): Promise<Banner | null> {
+	const data = await parseResponse<{ banner: Banner | null }>(
+		await authorizedFetch(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
+	)
+	return data.banner
+}
+
+export async function getArticleBanner(articleId: string, authorizedFetch: AuthorizedFetch): Promise<Banner | null> {
+	const data = await parseResponse<{ banner: Banner | null }>(
+		await authorizedFetch(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
+	)
+	return data.banner
 }

@@ -3,8 +3,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { SANITIZE_REHYPE_PLUGINS } from '~/containers/LlamaAI/components/markdown/sanitizeConfig'
 import type { TextConfig } from '../types'
-import { ExternalLinkInterstitial } from './ExternalLinkInterstitial'
 import { isExternalLink } from './externalLink'
+import { ExternalLinkInterstitial } from './ExternalLinkInterstitial'
 
 interface TextCardProps {
 	text: TextConfig

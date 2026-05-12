@@ -14,6 +14,7 @@ import {
 } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
@@ -251,6 +252,17 @@ function WriteLink() {
 			className="inline-flex min-h-9 items-center bg-(--link-text) px-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
 		>
 			Write
+		</Link>
+	)
+}
+
+function AdminLink() {
+	return (
+		<Link
+			href="/research/admin"
+			className="inline-flex min-h-9 items-center border border-(--cards-border) px-3 text-sm text-(--text-secondary) transition-colors hover:border-(--link-text) hover:text-(--text-primary)"
+		>
+			Admin
 		</Link>
 	)
 }
@@ -906,6 +918,7 @@ function MagazineFront({
 						<span className="font-semibold text-(--link-text)">Research</span>
 					</h1>
 					<div className="flex flex-wrap items-center gap-2 lg:justify-end">
+						<AdminLink />
 						<MineLink />
 						<WriteLink />
 					</div>
@@ -1026,13 +1039,16 @@ function ArticlesContent() {
 	}
 
 	return (
-		<MagazineFront
-			data={data}
-			query={query}
-			tag={tag}
-			spotlight={spotlight?.items ?? []}
-			sections={sections?.sections ?? []}
-		/>
+		<>
+			<ArticleBannerStrip scope="landing" />
+			<MagazineFront
+				data={data}
+				query={query}
+				tag={tag}
+				spotlight={spotlight?.items ?? []}
+				sections={sections?.sections ?? []}
+			/>
+		</>
 	)
 }
 

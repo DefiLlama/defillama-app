@@ -6,6 +6,7 @@ import { ArticleApiError, getArticleBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { ArticleSeo } from '~/containers/Articles/ArticleSeo'
+import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument } from '~/containers/Articles/types'
@@ -113,6 +114,7 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 	return (
 		<>
 			<ArticleSeo article={article} />
+			<ArticleBannerStrip scope="article" articleId={article.id} section={article.section ?? null} />
 			<AppMetadataProvider>
 				{article.status === 'draft' ? (
 					<div className="mx-auto mt-4 flex w-full max-w-[1180px] items-center justify-between gap-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-sm text-amber-600 sm:px-6">

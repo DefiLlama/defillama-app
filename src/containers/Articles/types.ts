@@ -242,3 +242,37 @@ export type ArticleRevisionListResponse = {
 }
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: string }
+
+export type BannerScope = 'landing' | 'section' | 'article'
+
+export const BANNER_SCOPES: BannerScope[] = ['landing', 'section', 'article']
+
+export const BANNER_SCOPE_LABELS: Record<BannerScope, string> = {
+	landing: 'Research landing page',
+	section: 'Section',
+	article: 'Specific article'
+}
+
+export type Banner = {
+	id: string
+	scope: BannerScope
+	section: ArticleSection | null
+	articleId: string | null
+	text: string
+	linkUrl: string | null
+	linkLabel: string | null
+	enabled: boolean
+	createdByPbUserId: string
+	createdAt: string
+	updatedAt: string
+}
+
+export type BannerPayload = {
+	scope: BannerScope
+	section?: ArticleSection | null
+	articleId?: string | null
+	text: string
+	linkUrl?: string | null
+	linkLabel?: string | null
+	enabled?: boolean
+}
