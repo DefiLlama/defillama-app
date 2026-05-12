@@ -41,6 +41,13 @@ export function MoveToProjectMenuItem({ sessionId }: MoveToProjectMenuItemProps)
 					<div className="flex items-center justify-center px-3 py-2">
 						<LoadingSpinner size={12} />
 					</div>
+				) : projects.isError ? (
+					<div className="flex flex-col gap-1 px-3 py-2 text-xs text-[#666] dark:text-[#919296]">
+						<span>Failed to load projects</span>
+						<button type="button" onClick={() => void projects.refetch()} className="self-start text-(--old-blue)">
+							Retry
+						</button>
+					</div>
 				) : !projects.data || projects.data.length === 0 ? (
 					<div className="px-3 py-2 text-xs text-[#666] dark:text-[#919296]">No projects yet</div>
 				) : (

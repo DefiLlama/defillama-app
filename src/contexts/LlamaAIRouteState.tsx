@@ -10,7 +10,8 @@ export type LlamaAIRouteState =
 const LlamaAIRouteContext = createContext<LlamaAIRouteState>({ kind: 'unknown' })
 
 function firstString(value: string | string[] | undefined) {
-	return typeof value === 'string' ? value : undefined
+	if (typeof value === 'string') return value
+	return Array.isArray(value) ? value[0] : undefined
 }
 
 export function useLlamaAIRouteState(): LlamaAIRouteState {
@@ -38,11 +39,12 @@ export function useLlamaAIRouteState(): LlamaAIRouteState {
 		if (router.pathname === '/ai/projects/[id]') {
 			const projectId = firstString(router.query.id)
 			if (!projectId) return { kind: 'unknown' }
+			const tab = firstString(router.query.tab)
 
 			return {
 				kind: 'project',
 				projectId,
-				initialTab: router.query.tab === 'sources' ? 'sources' : 'chats'
+				initialTab: tab === 'sources' ? 'sources' : 'chats'
 			}
 		}
 

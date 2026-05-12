@@ -30,7 +30,7 @@ export function CreateProjectModal({
 			setName(project?.name ?? '')
 			setDescription(project?.description ?? '')
 		}
-	}, [isOpen, project?.id, project?.name, project?.description])
+	}, [isOpen, project])
 
 	const submit = async (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -43,7 +43,7 @@ export function CreateProjectModal({
 			} else {
 				const created = await create.mutateAsync({
 					name: trimmed,
-					description: description.trim() || undefined
+					description: description.trim() || null
 				})
 				onCreated?.(created)
 				toast.success('Project created')

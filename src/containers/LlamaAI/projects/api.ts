@@ -26,6 +26,13 @@ async function unwrap<T>(p: Promise<Response | null>, fallback: string): Promise
 		}
 		throw new Error(message)
 	}
+	if (res.status === 204 || res.headers.get('content-length') === '0') {
+		return undefined as T
+	}
+	const contentType = res.headers.get('content-type') ?? ''
+	if (!contentType.includes('application/json')) {
+		return undefined as T
+	}
 	return res.json() as Promise<T>
 }
 
@@ -59,7 +66,7 @@ export async function getProject(fetcher: AuthedFetch, id: string): Promise<Proj
 
 export async function createProject(
 	fetcher: AuthedFetch,
-	body: { name: string; description?: string; icon?: string; color?: string }
+	body: { name: string; description?: string | null; icon?: string; color?: string }
 ): Promise<Project> {
 	const data = await unwrap<{ project: Project }>(
 		fetcher(`${AI_SERVER}/projects`, {

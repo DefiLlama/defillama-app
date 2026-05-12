@@ -54,8 +54,11 @@ export function DeleteProjectModal({ dialogStore, project, onDeleted }: DeletePr
 					</Ariakit.DialogDismiss>
 					<button
 						type="button"
-						onClick={() => void onConfirm()}
-						disabled={remove.isPending}
+						onClick={() => {
+							if (!project) return
+							void onConfirm()
+						}}
+						disabled={remove.isPending || !project}
 						className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-50 dark:text-red-400"
 					>
 						{remove.isPending ? <LoadingSpinner size={12} /> : null}

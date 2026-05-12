@@ -178,6 +178,7 @@ interface SessionRestoreResult {
 	messages?: PersistedMessage[]
 	activeLeafMessageId?: string
 	pagination?: { hasMore?: boolean; cursor?: number | null; hasNewer?: boolean; newerCursor?: number | null }
+	projectId?: string | null
 }
 
 interface RestoreSessionSnapshotResult {
@@ -1494,7 +1495,7 @@ export function AgenticChat({
 			setSessionId(targetSessionId)
 			const match = sessions.find((session) => session.sessionId === targetSessionId)
 			setSessionTitle(match?.title || null)
-			setCurrentSessionProjectId('projectId' in result ? (result.projectId ?? null) : null)
+			setCurrentSessionProjectId(result.projectId ?? null)
 
 			const allDashboards = restored.flatMap((m) => m.dashboards || [])
 			dispatchDashboardPanel({ type: 'RESTORE', value: allDashboards })

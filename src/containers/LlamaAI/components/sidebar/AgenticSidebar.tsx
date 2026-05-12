@@ -249,8 +249,8 @@ export function AgenticSidebar({
 	const filteredSessions = useMemo(() => {
 		const nonProjectSessions = sessions.filter((s) => !s.projectId)
 		if (!trimmedSearchQuery) return nonProjectSessions
-		return nonProjectSessions.filter((s) => s.title.toLowerCase().includes(searchQuery.toLowerCase()))
-	}, [sessions, searchQuery, trimmedSearchQuery])
+		return nonProjectSessions.filter((s) => s.title.toLowerCase().includes(trimmedSearchQuery.toLowerCase()))
+	}, [sessions, trimmedSearchQuery])
 
 	const { pinnedSessions, unpinnedSessions } = useMemo(() => {
 		const pinned = filteredSessions
