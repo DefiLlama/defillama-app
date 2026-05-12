@@ -48,6 +48,20 @@ function normalizeSlug(value: string) {
 		.slice(0, 120)
 }
 
+export const DRAFT_SLUG_PREFIX = 'draft-'
+
+export function generateDraftSlug() {
+	const random =
+		typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+			? crypto.randomUUID().replace(/-/g, '').slice(0, 10)
+			: Math.random().toString(36).slice(2, 12)
+	return `${DRAFT_SLUG_PREFIX}${random}`
+}
+
+export function isDraftPlaceholderSlug(slug: string) {
+	return slug.startsWith(DRAFT_SLUG_PREFIX)
+}
+
 function normalizeDate(value: unknown, fallback: string) {
 	if (typeof value !== 'string') return fallback
 	const date = new Date(value)
@@ -136,7 +150,7 @@ export function normalizeLocalArticleDocument(
 	const title = optionalString(input.title) || 'Untitled research'
 	const seoTitle = optionalString(input.seoTitle)
 	const slugSource = optionalString(input.slug) || seoTitle || title
-	const slug = normalizeSlug(slugSource) || 'local-article'
+	const slug = normalizeSlug(slugSource) || generateDraftSlug()
 	const status = input.status === 'published' ? 'published' : 'draft'
 	const contentJson = normalizeContentJson(input.contentJson)
 
@@ -274,7 +288,7 @@ export function createEmptyLocalArticle(now = new Date().toISOString()): LocalAr
 	const normalized = normalizeLocalArticleDocument(
 		{
 			title: 'Untitled research',
-			slug: 'local-article',
+			slug: generateDraftSlug(),
 			status: 'draft',
 			coverImage: null,
 			tags: [],
