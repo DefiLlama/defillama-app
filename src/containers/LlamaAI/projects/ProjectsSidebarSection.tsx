@@ -94,11 +94,7 @@ export function ProjectsSidebarSection({
 					{isLoading ? (
 						<ul aria-hidden className="flex flex-col">
 							{[0, 1, 2].map((i) => (
-								<li
-									key={i}
-									className="flex h-[26px] items-center gap-1.5 px-2 py-1"
-									style={{ opacity: 1 - i * 0.25 }}
-								>
+								<li key={i} className="flex h-[26px] items-center gap-1.5 px-2 py-1" style={{ opacity: 1 - i * 0.25 }}>
 									<span className="h-3 w-3 shrink-0 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
 									<span className="h-3 flex-1 rounded-sm bg-[#e6e6e6] dark:bg-[#222324]" />
 								</li>

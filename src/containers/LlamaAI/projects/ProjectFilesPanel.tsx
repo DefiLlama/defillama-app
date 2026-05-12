@@ -38,7 +38,7 @@ export function ProjectFilesPanel({
 	projectBytesLimit,
 	projectFileCount,
 	projectFileLimit,
-	tier,
+	tier
 }: ProjectFilesPanelProps) {
 	const filesQuery = useProjectFiles(projectId)
 	const sourcesQuery = useProjectSources(projectId)

@@ -1848,7 +1848,11 @@ export function AgenticChat({
 		// and re-running the transition body would loop the clear/restore actions indefinitely.
 		if (previousRoute && previousRoute.kind === route.kind) {
 			if (route.kind === 'chat-new') return
-			if (route.kind === 'chat-session' && previousRoute.kind === 'chat-session' && previousRoute.sessionId === route.sessionId)
+			if (
+				route.kind === 'chat-session' &&
+				previousRoute.kind === 'chat-session' &&
+				previousRoute.sessionId === route.sessionId
+			)
 				return
 			if (route.kind === 'project' && previousRoute.kind === 'project' && previousRoute.projectId === route.projectId)
 				return
