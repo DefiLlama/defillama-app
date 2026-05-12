@@ -3,13 +3,29 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { ArticleApiError, listArticles, type ArticleListResponse } from '~/containers/Articles/api'
+import {
+	ArticleApiError,
+	listArticleSections,
+	listArticles,
+	listSpotlightArticles,
+	type ArticleListResponse,
+	type ArticleSectionListResponse,
+	type ArticleSpotlightResponse
+} from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+
+function articleHref(article: { slug: string; section?: ArticleSection | null }): string {
+	if (article.section) {
+		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
+	}
+	return `/research/${article.slug}`
+}
 
 type LandingData = {
 	articles: ArticleDocument[]
@@ -443,7 +459,7 @@ function ResultRow({ article }: { article: ArticleDocument }) {
 	return (
 		<li>
 			<Link
-				href={`/research/${article.slug}`}
+				href={articleHref(article)}
 				style={accentStyle(accent)}
 				className="group grid grid-cols-[120px_minmax(0,1fr)] gap-3 border-b border-(--cards-border) py-5 transition-colors last:border-b-0 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-5"
 			>
@@ -625,7 +641,7 @@ function MagazineLead({ article }: { article: ArticleDocument }) {
 	const captionTag = article.tags?.[0]
 	const caption = `${captionTag ? humanizeTag(captionTag).toUpperCase() : 'COVER'} · ${formatDate(article.publishedAt, { month: 'short', day: 'numeric' })}`
 	return (
-		<Link href={`/research/${article.slug}`} style={accentStyle(accent)} className="group grid gap-5">
+		<Link href={articleHref(article)} style={accentStyle(accent)} className="group grid gap-5">
 			<HeroCover cover={cover} caption={caption} minutes={readingMinutes(article)} />
 			<div className="grid gap-4 border-t border-(--cards-border) pt-4">
 				<div className="flex items-center gap-2 font-jetbrains text-[11px] tracking-[0.18em] text-(--text-tertiary) uppercase">
@@ -654,7 +670,7 @@ function MagazineSideStory({ article, label }: { article: ArticleDocument; label
 	const primaryTag = article.tags?.[0]
 	return (
 		<Link
-			href={`/research/${article.slug}`}
+			href={articleHref(article)}
 			style={accentStyle(accent)}
 			className="group relative grid gap-3 border-t border-(--cards-border) pt-4"
 		>
@@ -687,7 +703,7 @@ function SignalCard({ article }: { article: ArticleDocument }) {
 	const primaryTag = article.tags?.[0]
 	return (
 		<Link
-			href={`/research/${article.slug}`}
+			href={articleHref(article)}
 			style={accentStyle(accent)}
 			className="group grid content-start gap-3 transition-colors md:px-5 md:first:pl-0 md:last:pr-0"
 		>
@@ -746,7 +762,7 @@ function IndexItem({ article, index }: { article: ArticleDocument; index: number
 			className="relative border-b border-(--cards-border) py-3 first:pt-0 last:border-b-0"
 		>
 			<Link
-				href={`/research/${article.slug}`}
+				href={articleHref(article)}
 				className="group grid grid-cols-[20px_minmax(0,1fr)] items-baseline gap-3"
 			>
 				<span className="font-jetbrains text-[10px] text-(--accent) tabular-nums">
@@ -790,7 +806,7 @@ function ArchiveRow({ article }: { article: ArticleDocument }) {
 	return (
 		<li style={accentStyle(accent)} className="border-b border-(--cards-border) last:border-b-0">
 			<Link
-				href={`/research/${article.slug}`}
+				href={articleHref(article)}
 				className="group grid grid-cols-[64px_minmax(0,1fr)] gap-4 py-5 sm:grid-cols-[92px_180px_minmax(0,1fr)] sm:gap-5"
 			>
 				<span className="pt-1 font-jetbrains text-[11px] text-(--text-tertiary) tabular-nums">
@@ -864,7 +880,19 @@ function ArchiveSection({ articles, totalItems }: { articles: ArticleDocument[];
 	)
 }
 
-function MagazineFront({ data, query, tag }: { data: LandingData; query: string; tag: string }) {
+function MagazineFront({
+	data,
+	query,
+	tag,
+	spotlight,
+	sections
+}: {
+	data: LandingData
+	query: string
+	tag: string
+	spotlight: ArticleDocument[]
+	sections: { section: string; items: ArticleDocument[] }[]
+}) {
 	const tagStats = getTagStats(data.articles, 10)
 	if (query || tag) {
 		return <FilteredResults query={query} tag={tag} articles={data.latest} totalItems={data.totalItems} />
@@ -910,6 +938,7 @@ function MagazineFront({ data, query, tag }: { data: LandingData; query: string;
 						</div>
 						<MagazineIndex articles={indexArticles} />
 					</section>
+					<SpotlightStrip items={spotlight} />
 					{featureRow.length ? (
 						<section className="grid gap-4">
 							<SectionHeader label="Features" />
@@ -920,6 +949,7 @@ function MagazineFront({ data, query, tag }: { data: LandingData; query: string;
 							</div>
 						</section>
 					) : null}
+					<SectionWidgets sections={sections} />
 					<ArchiveSection articles={data.latest} totalItems={data.totalItems} />
 				</>
 			) : (
@@ -949,6 +979,20 @@ function ArticlesContent() {
 			])
 			return { featured, newest }
 		},
+		retry: false
+	})
+
+	const { data: spotlight } = useQuery<ArticleSpotlightResponse>({
+		queryKey: ['research', 'spotlight'],
+		queryFn: () => listSpotlightArticles(6, authorizedFetch),
+		enabled: !isFiltered,
+		retry: false
+	})
+
+	const { data: sections } = useQuery<ArticleSectionListResponse>({
+		queryKey: ['research', 'sections'],
+		queryFn: () => listArticleSections(6, authorizedFetch),
+		enabled: !isFiltered,
 		retry: false
 	})
 
@@ -984,7 +1028,70 @@ function ArticlesContent() {
 		)
 	}
 
-	return <MagazineFront data={data} query={query} tag={tag} />
+	return (
+		<MagazineFront
+			data={data}
+			query={query}
+			tag={tag}
+			spotlight={spotlight?.items ?? []}
+			sections={sections?.sections ?? []}
+		/>
+	)
+}
+
+function SpotlightStrip({ items }: { items: ArticleDocument[] }) {
+	if (!items.length) return null
+	return (
+		<section className="grid gap-4">
+			<div className="flex items-end justify-between gap-3 border-t border-(--link-text)/40 pt-3">
+				<h2 className="flex items-center gap-2.5 font-jetbrains text-[11px] font-semibold tracking-[0.24em] text-(--link-text) uppercase">
+					<span aria-hidden className="inline-block h-1.5 w-1.5 rotate-45 bg-(--link-text)" />
+					Spotlight
+				</h2>
+				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
+					Editor’s picks · {items.length}
+				</span>
+			</div>
+			<div className="grid gap-6 border-b border-(--cards-border) pb-6 md:grid-cols-3 md:gap-0 md:divide-x md:divide-(--cards-border)">
+				{items.slice(0, 3).map((article) => (
+					<SignalCard key={article.id} article={article} />
+				))}
+			</div>
+		</section>
+	)
+}
+
+function SectionWidgets({ sections }: { sections: { section: string; items: ArticleDocument[] }[] }) {
+	if (!sections.length) return null
+	return (
+		<div className="grid gap-12">
+			{sections.map((bucket, index) => {
+				const section = bucket.section as ArticleSection
+				const label = ARTICLE_SECTION_LABELS[section] ?? bucket.section
+				if (!bucket.items?.length) return null
+				const number = String(index + 1).padStart(2, '0')
+				return (
+					<section key={bucket.section} className="grid gap-4">
+						<div className="flex items-end justify-between gap-3 border-t border-(--cards-border) pt-3">
+							<h2 className="flex items-baseline gap-3 font-jetbrains text-[11px] font-semibold tracking-[0.22em] text-(--text-primary) uppercase">
+								<span className="text-(--text-tertiary) tabular-nums">{number}</span>
+								<span aria-hidden className="h-px w-6 self-center bg-(--text-tertiary)/60" />
+								{label}
+							</h2>
+							<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
+								{bucket.items.length} {bucket.items.length === 1 ? 'story' : 'stories'}
+							</span>
+						</div>
+						<div className="grid gap-6 md:grid-cols-3">
+							{bucket.items.slice(0, 6).map((article) => (
+								<SignalCard key={article.id} article={article} />
+							))}
+						</div>
+					</section>
+				)
+			})}
+		</div>
+	)
 }
 
 export default function ArticlesPage() {

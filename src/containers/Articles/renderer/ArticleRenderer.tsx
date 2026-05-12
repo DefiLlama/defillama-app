@@ -14,6 +14,7 @@ import type {
 	TiptapJson,
 	TiptapMark
 } from '../types'
+import { ARTICLE_SECTION_LABELS } from '../types'
 import { ArticleChartBlock } from './ArticleChartBlock'
 import { ArticleEmbedBlock } from './ArticleEmbedBlock'
 import { ArticleImageBlock } from './ArticleImageBlock'
@@ -484,23 +485,40 @@ function ArticleToc({ toc }: { toc: TocEntry[] }) {
 }
 
 export function ArticleRenderer({ article }: { article: LocalArticleDocument }) {
-	const publishedLabel =
-		article.status === 'published' && article.publishedAt
-			? formatHeaderDate(article.publishedAt)
-			: (formatHeaderDate(article.updatedAt) ?? 'Draft')
+	const visibleDateIso =
+		article.displayDate ??
+		(article.status === 'published' ? article.publishedAt ?? article.lastPublishedAt ?? null : article.updatedAt)
+	const publishedLabel = visibleDateIso
+		? formatHeaderDate(visibleDateIso)
+		: article.status === 'published'
+			? null
+			: 'Draft'
 	const ctx: RenderContext = { figureCount: { value: 0 } }
 
 	const toc: TocEntry[] = []
 	collectToc(article.contentJson, toc)
 	const minutes = readingMinutes(article.plainText || '')
 
+	const sectionLabel = article.section ? ARTICLE_SECTION_LABELS[article.section] : null
+	const brandByline = article.brandByline === true
+
 	return (
 		<div className="article-page mx-auto grid w-full max-w-[1180px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,760px)_220px]">
 			<article className="article-published min-w-0">
 				<header className="grid gap-4 pt-10 pb-8">
+					{sectionLabel ? (
+						<span className="flex items-center gap-3 text-[11px] font-semibold tracking-[0.24em] text-(--link-text) uppercase">
+							<span aria-hidden className="h-px w-8 bg-(--link-text)/60" />
+							{sectionLabel}
+						</span>
+					) : null}
 					<div className="flex flex-wrap items-center gap-2 text-xs text-(--text-tertiary)">
-						<span>{publishedLabel}</span>
-						<span aria-hidden>·</span>
+						{publishedLabel ? (
+							<>
+								<span>{publishedLabel}</span>
+								<span aria-hidden>·</span>
+							</>
+						) : null}
 						<span className="capitalize">{article.status}</span>
 						<span aria-hidden>·</span>
 						<span>{minutes} min read</span>
@@ -509,7 +527,19 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 						{article.title}
 					</h1>
 					{article.subtitle ? <p className="text-lg leading-snug text-(--text-secondary)">{article.subtitle}</p> : null}
-					{article.author
+					{brandByline ? (
+						<div className="mt-2 flex flex-wrap items-center gap-2 border-t border-(--cards-border) pt-3 text-xs text-(--text-tertiary)">
+							<span className="flex items-center gap-1">
+								<span>By</span>
+								<Link
+									href="/research/authors"
+									className="text-sm text-(--text-primary) hover:text-(--link-text)"
+								>
+									DefiLlama Research
+								</Link>
+							</span>
+						</div>
+					) : article.author
 						? (() => {
 								const ownerLink = article.authorProfile ? (
 									<Link

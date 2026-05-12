@@ -25,9 +25,21 @@ import {
 	updateCollaborator
 } from '../api'
 import { validateArticleChartConfig } from '../chartAdapters'
-import { applyPendingToLocalArticle, createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
+import {
+	applyPendingToLocalArticle,
+	createEmptyLocalArticle,
+	normalizeLocalArticleDocument,
+	validateLocalArticleForPublish
+} from '../document'
 import { ResearchLoader } from '../ResearchLoader'
-import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
+import type {
+	ArticleCalloutTone,
+	ArticleChartConfig,
+	ArticleEmbedConfig,
+	ArticleSection,
+	LocalArticleDocument
+} from '../types'
+import { ARTICLE_SECTIONS, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '../types'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
@@ -536,6 +548,27 @@ function slugFromTitle(title: string) {
 	)
 }
 
+function toDateTimeLocal(iso: string | null | undefined): string {
+	if (!iso) return ''
+	const date = new Date(iso)
+	if (Number.isNaN(date.getTime())) return ''
+	const pad = (n: number) => n.toString().padStart(2, '0')
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function fromDateTimeLocal(value: string): string | null {
+	if (!value) return null
+	const date = new Date(value)
+	return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+function formatArticleDate(iso: string | null | undefined): string {
+	if (!iso) return ''
+	const date = new Date(iso)
+	if (Number.isNaN(date.getTime())) return ''
+	return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+}
+
 function formatRelative(iso: string | null | undefined) {
 	if (!iso) return null
 	const date = new Date(iso)
@@ -684,6 +717,74 @@ function MetaSection({ title, children }: { title: string; children: ReactNode }
 	)
 }
 
+function MetaSwitch({
+	checked,
+	onCheckedChange,
+	label,
+	description,
+	disabled
+}: {
+	checked: boolean
+	onCheckedChange: (next: boolean) => void
+	label: string
+	description?: string
+	disabled?: boolean
+}) {
+	return (
+		<label
+			className={`group flex items-start justify-between gap-4 rounded-md border border-transparent px-3 py-2.5 transition-colors hover:border-(--cards-border) hover:bg-(--app-bg)/40 ${
+				disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+			}`}
+		>
+			<span className="grid min-w-0 gap-0.5">
+				<span className="text-sm font-medium text-(--text-primary)">{label}</span>
+				{description ? (
+					<span className="text-[11px] leading-snug text-(--text-tertiary)">{description}</span>
+				) : null}
+			</span>
+			<Ariakit.Checkbox
+				checked={checked}
+				onChange={(event) => onCheckedChange(event.currentTarget.checked)}
+				disabled={disabled}
+				render={(props) => (
+					<button
+						{...props}
+						type="button"
+						role="switch"
+						aria-checked={checked}
+						className={`relative mt-0.5 inline-flex h-[18px] w-8 shrink-0 items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--link-text)/40 focus-visible:ring-offset-1 focus-visible:ring-offset-(--cards-bg) ${
+							checked
+								? 'border-(--link-text)/60 bg-(--link-text)'
+								: 'border-(--cards-border) bg-(--app-bg) group-hover:border-(--text-tertiary)'
+						}`}
+					>
+						<span
+							className={`absolute top-1/2 inline-block h-3 w-3 -translate-y-1/2 rounded-full shadow-sm transition-all duration-200 ease-out ${
+								checked
+									? 'left-[15px] bg-white'
+									: 'left-[2px] bg-(--text-tertiary) group-hover:bg-(--text-secondary)'
+							}`}
+						/>
+					</button>
+				)}
+			/>
+		</label>
+	)
+}
+
+function MetaFieldHint({ children, error }: { children?: ReactNode; error?: string | null }) {
+	if (error) {
+		return (
+			<span className="flex items-center gap-1.5 text-[11px] text-red-500">
+				<span aria-hidden className="inline-block h-1 w-1 rounded-full bg-red-500" />
+				{error}
+			</span>
+		)
+	}
+	if (!children) return null
+	return <span className="text-[11px] leading-snug text-(--text-tertiary)">{children}</span>
+}
+
 export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
@@ -718,6 +819,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [slugDraft, setSlugDraft] = useState('')
 	const [collaboratorEmail, setCollaboratorEmail] = useState('')
 	const [collaboratorError, setCollaboratorError] = useState<string | null>(null)
+	const [publishErrors, setPublishErrors] = useState<Record<string, string>>({})
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
 	const hydratedArticleIdRef = useRef<string | null>(null)
@@ -837,7 +939,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		hydratedArticleIdRef.current = ownedArticleQuery.data.id
 		const merged = applyPendingToLocalArticle(ownedArticleQuery.data, ownedArticleQuery.data.pending)
 		setArticle(merged)
-		editor.commands.setContent(merged.contentJson, { emitUpdate: false })
+		queueMicrotask(() => {
+			if (editor.isDestroyed) return
+			editor.commands.setContent(merged.contentJson, { emitUpdate: false })
+		})
 		setIsDirty(false)
 		setSaveError(false)
 		const text = merged.plainText || ''
@@ -1251,11 +1356,18 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	}, [isDirty])
 
-	const handlePublish = async () => {
+	const handlePublish = async (): Promise<boolean> => {
 		if (!article.id) {
 			toast.error('Save the draft before publishing')
-			return
+			return false
 		}
+		const localErrors = validateLocalArticleForPublish(article)
+		if (localErrors.length > 0) {
+			setPublishErrors(Object.fromEntries(localErrors.map((e) => [e.field, e.message])))
+			toast.error('Fix required fields before publishing')
+			return false
+		}
+		setPublishErrors({})
 		try {
 			await flushPendingSave()
 			const saved = await publishMutation.mutateAsync(article.id)
@@ -1263,8 +1375,15 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setArticle(merged)
 			setSavedAt(merged.updatedAt)
 			toast.success(article.status === 'published' ? 'Update published' : 'Published')
+			return true
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to publish')
+			if (error instanceof ArticleApiError && error.validationErrors?.length) {
+				setPublishErrors(Object.fromEntries(error.validationErrors.map((e) => [e.field, e.message])))
+				toast.error(error.message)
+			} else {
+				toast.error(error instanceof Error ? error.message : 'Failed to publish')
+			}
+			return false
 		}
 	}
 
@@ -1518,11 +1637,14 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				return 'bg-(--text-tertiary)/50'
 		}
 	})()
+	const articleViewHref = article.section
+		? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
+		: `/research/${article.slug}`
 
 	return (
 		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] animate-fadein px-4 pb-32 sm:px-6">
 			<header
-				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 ${
+				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 lg:-mx-[80px] lg:px-2 xl:-mx-[170px] xl:px-4 ${
 					isPublished ? 'border-emerald-500/25' : 'border-(--cards-border)'
 				}`}
 			>
@@ -1556,7 +1678,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							type="button"
 							onClick={beginSlugEdit}
 							title="Click to edit slug"
-							className="group flex max-w-[32ch] items-center gap-1 truncate rounded px-1 py-0.5 font-jetbrains text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+							className={`group flex ${
+								hasPendingEdits ? 'max-w-[18ch] sm:max-w-[24ch] lg:max-w-[32ch]' : 'max-w-[24ch] sm:max-w-[32ch]'
+							} items-center gap-1 truncate rounded px-1 py-0.5 font-jetbrains text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)`}
 						>
 							<span className="truncate">{article.slug}</span>
 							<span aria-hidden className="text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100">
@@ -1594,7 +1718,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						title={pillState === 'error' ? 'Click to retry. Cmd/Ctrl+S also saves.' : 'Cmd/Ctrl+S to save'}
 						disabled={pillState === 'saving' || pillState === 'idle'}
 						onClick={() => void saveArticle()}
-						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors disabled:cursor-default sm:flex ${
+						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors disabled:cursor-default ${
+							hasPendingEdits ? 'lg:flex' : 'sm:flex'
+						} ${
 							pillState === 'error'
 								? 'border-red-500/40 bg-red-500/5 text-red-500 hover:bg-red-500/10'
 								: pillState === 'unsaved'
@@ -1681,7 +1807,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									<Ariakit.MenuItem
 										render={
 											<Link
-												href={`/research/${article.slug}`}
+												href={articleViewHref}
 												target="_blank"
 												rel="noreferrer"
 												className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
@@ -1734,7 +1860,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 					) : article.id ? (
 						<>
 							<Link
-								href={`/research/${article.slug}`}
+								href={articleViewHref}
 								target="_blank"
 								rel="noreferrer"
 								className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
@@ -2294,6 +2420,132 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				</div>
 
 				<div className="mt-6 grid gap-6">
+					<MetaSection title="Section">
+						<div className="grid gap-1.5">
+							<Ariakit.SelectProvider
+								value={article.section ?? ''}
+								setValue={(v) => {
+									const next = typeof v === 'string' ? v : Array.isArray(v) ? v[0] : ''
+									updateArticle('section', (next || null) as ArticleSection | null)
+								}}
+							>
+								<Ariakit.Select
+									aria-label="Article section"
+									className={`flex h-10 items-center justify-between gap-2 rounded-md border bg-(--app-bg) px-3 text-sm transition-colors focus-visible:border-(--link-text) focus-visible:outline-none data-[state=open]:border-(--link-text) ${
+										publishErrors.section
+											? 'border-red-500/60 text-(--text-primary)'
+											: article.section
+												? 'border-(--form-control-border) text-(--text-primary) hover:border-(--text-tertiary)'
+												: 'border-(--form-control-border) text-(--text-tertiary) hover:border-(--text-tertiary)'
+									}`}
+								>
+									<span className="truncate text-left">
+										{article.section ? ARTICLE_SECTION_LABELS[article.section] : 'Select a section…'}
+									</span>
+									<Ariakit.SelectArrow className="shrink-0 text-(--text-tertiary)" />
+								</Ariakit.Select>
+								<Ariakit.SelectPopover
+									gutter={6}
+									sameWidth
+									portal
+									unmountOnHide
+									className="z-[90] flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) py-1 text-sm shadow-xl outline-none"
+								>
+									{ARTICLE_SECTIONS.map((section) => (
+										<Ariakit.SelectItem
+											key={section}
+											value={section}
+											className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-(--text-secondary) data-active-item:bg-(--link-button) data-active-item:text-(--link-text)"
+										>
+											<span className="truncate">{ARTICLE_SECTION_LABELS[section]}</span>
+											<Ariakit.SelectItemCheck className="shrink-0 text-(--link-text)" />
+										</Ariakit.SelectItem>
+									))}
+								</Ariakit.SelectPopover>
+							</Ariakit.SelectProvider>
+							<MetaFieldHint error={publishErrors.section}>
+								Required. Drives the URL path:{' '}
+								<span className="font-jetbrains text-(--text-secondary)">
+									/research/{article.section ?? '…'}/{article.slug || '…'}
+								</span>
+							</MetaFieldHint>
+						</div>
+					</MetaSection>
+
+					<MetaSection title="Publishing">
+						<label className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Display date</span>
+								<button
+									type="button"
+									onClick={() => updateArticle('displayDate', new Date().toISOString())}
+									className="font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:text-(--link-text)"
+								>
+									Set to now
+								</button>
+							</span>
+							<input
+								type="datetime-local"
+								value={toDateTimeLocal(article.displayDate)}
+								onChange={(event) => updateArticle('displayDate', fromDateTimeLocal(event.target.value))}
+								onClick={(event) => {
+									const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
+									input.showPicker?.()
+								}}
+								onFocus={(event) => {
+									const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
+									input.showPicker?.()
+								}}
+								className={`cursor-pointer rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors focus:outline-none ${
+									publishErrors.displayDate
+										? 'border-red-500/60 focus:border-red-500'
+										: 'border-(--form-control-border) focus:border-(--link-text)'
+								}`}
+							/>
+							<MetaFieldHint error={publishErrors.displayDate}>
+								Shown on cards and the article header. Defaults to publish time.
+							</MetaFieldHint>
+						</label>
+						{article.firstPublishedAt || article.lastPublishedAt ? (
+							<div className="grid gap-1 rounded-md border border-(--cards-border) bg-(--app-bg)/50 px-3 py-2.5">
+								{article.firstPublishedAt ? (
+									<div className="flex items-baseline justify-between gap-3">
+										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											First publish
+										</span>
+										<span className="font-jetbrains text-[11px] tabular-nums text-(--text-secondary)">
+											{formatArticleDate(article.firstPublishedAt)}
+										</span>
+									</div>
+								) : null}
+								{article.lastPublishedAt ? (
+									<div className="flex items-baseline justify-between gap-3">
+										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											Last publish
+										</span>
+										<span className="font-jetbrains text-[11px] tabular-nums text-(--text-secondary)">
+											{formatArticleDate(article.lastPublishedAt)}
+										</span>
+									</div>
+								) : null}
+							</div>
+						) : null}
+						<div className="-mx-3 grid">
+							<MetaSwitch
+								checked={article.spotlight === true}
+								onCheckedChange={(next) => updateArticle('spotlight', next)}
+								label="Spotlight"
+								description="Featured in the Spotlight widget on /research."
+							/>
+							<MetaSwitch
+								checked={article.brandByline === true}
+								onCheckedChange={(next) => updateArticle('brandByline', next)}
+								label="Publish as DefiLlama Research"
+								description="Replaces the per-user byline with the institutional name and emits Organization JSON-LD."
+							/>
+						</div>
+					</MetaSection>
+
 					<MetaSection title="URL">
 						<div className="grid gap-1.5">
 							<div className="flex items-stretch gap-1.5">
@@ -2351,8 +2603,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
 						</label>
-						<label className="grid gap-1.5">
-							<span className="text-xs text-(--text-secondary)">Tags</span>
+						<div className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Topics</span>
+								<span className="font-jetbrains text-[10px] tabular-nums text-(--text-tertiary)">
+									{(article.tags ?? []).length}/12
+								</span>
+							</span>
 							<input
 								value={(article.tags ?? []).join(', ')}
 								onChange={(event) =>
@@ -2365,9 +2622,48 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									)
 								}
 								placeholder="stablecoins, lending, ethereum"
-								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+								className={`rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) transition-colors focus:outline-none ${
+									publishErrors.tags
+										? 'border-red-500/60 focus:border-red-500'
+										: 'border-(--form-control-border) focus:border-(--link-text)'
+								}`}
 							/>
-						</label>
+							{(() => {
+								const current = new Set((article.tags ?? []).map((t) => t.toLowerCase()))
+								const suggestions = (article.entities ?? [])
+									.map((e) => e.label || e.slug)
+									.filter((label) => label && !current.has(label.toLowerCase()))
+									.slice(0, 8)
+								if (suggestions.length === 0) return null
+								return (
+									<div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											From content
+										</span>
+										{suggestions.map((label) => (
+											<button
+												key={label}
+												type="button"
+												onClick={() => {
+													const next = Array.from(new Set([...(article.tags ?? []), label]))
+													updateArticle('tags', next.slice(0, 12))
+												}}
+												className="group inline-flex items-center gap-1 rounded-full border border-(--cards-border) bg-(--app-bg) px-2 py-0.5 text-[11px] text-(--text-secondary) transition-colors hover:border-(--link-text)/50 hover:bg-(--link-button) hover:text-(--link-text)"
+											>
+												<span
+													aria-hidden
+													className="text-(--text-tertiary) transition-colors group-hover:text-(--link-text)"
+												>
+													+
+												</span>
+												{label}
+											</button>
+										))}
+									</div>
+								)
+							})()}
+							<MetaFieldHint error={publishErrors.tags} />
+						</div>
 					</MetaSection>
 
 					<MetaSection title="Search & social">
@@ -2385,6 +2681,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								maxLength={120}
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
+							<span className="text-[11px] text-(--text-tertiary)">
+								Used for the &lt;title&gt; tag. When set, also drives the URL slug if you haven't edited it manually.
+							</span>
 						</label>
 						<label className="grid gap-1.5">
 							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
@@ -2523,6 +2822,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							label="cover image"
 							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
 						/>
+						<MetaFieldHint error={publishErrors.coverImage} />
 						{article.coverImage ? (
 							<div className="mt-3 grid gap-2">
 								<label className="grid gap-1">
@@ -2552,6 +2852,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										placeholder="Caption shown under the cover"
 										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 									/>
+									<MetaFieldHint error={publishErrors['coverImage.caption']} />
 								</label>
 								<div className="grid grid-cols-2 gap-2">
 									<label className="grid gap-1">
@@ -2567,6 +2868,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 											placeholder="Photographer"
 											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 										/>
+										<MetaFieldHint error={publishErrors['coverImage.credit']} />
 									</label>
 									<label className="grid gap-1">
 										<span className="text-[11px] text-(--text-tertiary)">Copyright</span>
@@ -2581,6 +2883,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 											placeholder="Rights holder"
 											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 										/>
+										<MetaFieldHint error={publishErrors['coverImage.copyright']} />
 									</label>
 								</div>
 							</div>
@@ -2595,8 +2898,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								type="button"
 								disabled={isPublishing || isDiscarding}
 								onClick={async () => {
-									await handlePublish()
-									metaDialog.hide()
+									const ok = await handlePublish()
+									if (ok) metaDialog.hide()
 								}}
 								className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
 							>
@@ -2621,8 +2924,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							disabled={isPublishing || !article.id}
 							onClick={async () => {
 								if (isDirty) await saveArticle()
-								await handlePublish()
-								metaDialog.hide()
+								const ok = await handlePublish()
+								if (ok) metaDialog.hide()
 							}}
 							className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
 						>

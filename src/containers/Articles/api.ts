@@ -5,19 +5,27 @@ import type {
 	ArticleDocument,
 	ArticleRevision,
 	ArticleRevisionListResponse,
+	ArticleSection,
 	LocalArticleDocument
 } from './types'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
 type FetchLike = (url: string, options?: RequestInit) => Promise<Response>
 
+export type ArticleApiValidationError = {
+	field: string
+	message: string
+}
+
 export class ArticleApiError extends Error {
 	status: number
+	validationErrors?: ArticleApiValidationError[]
 
-	constructor(message: string, status: number) {
+	constructor(message: string, status: number, validationErrors?: ArticleApiValidationError[]) {
 		super(message)
 		this.name = 'ArticleApiError'
 		this.status = status
+		this.validationErrors = validationErrors
 		Object.setPrototypeOf(this, ArticleApiError.prototype)
 	}
 }
@@ -57,6 +65,10 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		coverImage: article.coverImage ?? null,
 		contentJson: article.contentJson,
 		tags: article.tags ?? [],
+		section: article.section ?? null,
+		displayDate: article.displayDate ?? null,
+		spotlight: article.spotlight ?? false,
+		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
 		featuredUntil: article.featuredUntil ? article.featuredUntil : null
 	}
@@ -71,7 +83,12 @@ async function parseResponse<T>(response: Response | null): Promise<T> {
 			data && typeof data === 'object' && typeof data.error === 'string'
 				? data.error
 				: response.statusText || 'Article request failed'
-		throw new ArticleApiError(message, response.status)
+		const details = data && typeof data === 'object' ? data.details : null
+		const validationErrors =
+			details && typeof details === 'object' && Array.isArray(details.errors)
+				? (details.errors as ArticleApiValidationError[])
+				: undefined
+		throw new ArticleApiError(message, response.status, validationErrors)
 	}
 	return data as T
 }
@@ -89,7 +106,8 @@ export async function listArticles(
 		tags?: string[]
 		entityType?: string
 		entitySlug?: string
-		sort?: 'featured' | 'newest'
+		section?: ArticleSection
+		sort?: 'featured' | 'newest' | 'displayDate'
 	} = {},
 	fetchFn: FetchLike = fetch
 ): Promise<ArticleListResponse> {
@@ -100,8 +118,35 @@ export async function listArticles(
 	appendSearchParam(search, 'tags', params.tags?.join(','))
 	appendSearchParam(search, 'entityType', params.entityType)
 	appendSearchParam(search, 'entitySlug', params.entitySlug)
+	appendSearchParam(search, 'section', params.section)
 	appendSearchParam(search, 'sort', params.sort)
 	return parseResponse(await fetchFn(articleUrl(`/articles?${search}`)))
+}
+
+export type ArticleSectionListResponse = {
+	sections: { section: ArticleSection; items: ArticleDocument[] }[]
+}
+
+export type ArticleSpotlightResponse = {
+	items: ArticleDocument[]
+}
+
+export async function listArticleSections(
+	perSection = 6,
+	fetchFn: FetchLike = fetch
+): Promise<ArticleSectionListResponse> {
+	const search = new URLSearchParams()
+	appendSearchParam(search, 'perSection', perSection)
+	return parseResponse(await fetchFn(articleUrl(`/articles/sections?${search}`)))
+}
+
+export async function listSpotlightArticles(
+	limit = 6,
+	fetchFn: FetchLike = fetch
+): Promise<ArticleSpotlightResponse> {
+	const search = new URLSearchParams()
+	appendSearchParam(search, 'limit', limit)
+	return parseResponse(await fetchFn(articleUrl(`/articles/spotlight?${search}`)))
 }
 
 export async function getArticleBySlug(slug: string, fetchFn: FetchLike = fetch): Promise<ArticleDocument | null> {

@@ -1,6 +1,51 @@
 export type ArticleVersion = 1
 
 export type ArticleStatus = 'draft' | 'published'
+export type ArticleSection =
+	| 'interview'
+	| 'report'
+	| 'introducing'
+	| 'opinion'
+	| 'roundtables'
+	| 'press_release'
+
+export const ARTICLE_SECTIONS: ArticleSection[] = [
+	'interview',
+	'report',
+	'introducing',
+	'opinion',
+	'roundtables',
+	'press_release'
+]
+
+export const ARTICLE_SECTION_LABELS: Record<ArticleSection, string> = {
+	interview: 'Interview',
+	report: 'Report',
+	introducing: 'Introducing',
+	opinion: 'Opinion',
+	roundtables: 'Roundtables',
+	press_release: 'Press Release'
+}
+
+export const ARTICLE_SECTION_SLUGS: Record<ArticleSection, string> = {
+	interview: 'interview',
+	report: 'report',
+	introducing: 'introducing',
+	opinion: 'opinion',
+	roundtables: 'roundtables',
+	press_release: 'press-release'
+}
+
+export const ARTICLE_SECTION_FROM_SLUG: Record<string, ArticleSection> = {
+	interview: 'interview',
+	report: 'report',
+	introducing: 'introducing',
+	opinion: 'opinion',
+	roundtables: 'roundtables',
+	'press-release': 'press_release',
+	press_release: 'press_release'
+}
+
 export type ArticleEntityType = 'protocol' | 'chain' | 'stablecoin' | 'metric' | 'hack' | 'category' | 'cex' | 'bridge'
 export type ArticleChartEntityType = 'protocol' | 'chain'
 export type ArticleCalloutTone = 'note' | 'warning' | 'data' | 'pullquote'
@@ -144,12 +189,18 @@ export type LocalArticleDocument = {
 	citations: ArticleCitation[]
 	embeds: ArticleEmbedConfig[]
 	tags: string[]
+	section?: ArticleSection | null
+	displayDate?: string | null
+	spotlight?: boolean
+	brandByline?: boolean
 	featuredRank?: number | null
 	featuredUntil?: string | null
 
 	createdAt: string
 	updatedAt: string
 	publishedAt: string | null
+	firstPublishedAt?: string | null
+	lastPublishedAt?: string | null
 
 	pending?: ArticleSnapshotPayload | null
 	pendingUpdatedAt?: string | null
