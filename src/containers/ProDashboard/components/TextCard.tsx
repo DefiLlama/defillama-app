@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { SANITIZE_REHYPE_PLUGINS } from '~/containers/LlamaAI/components/markdown/sanitizeConfig'
 import type { TextConfig } from '../types'
+import { ExternalLinkInterstitial } from './ExternalLinkInterstitial'
+import { isExternalLink } from './externalLink'
 
 interface TextCardProps {
 	text: TextConfig
@@ -10,6 +13,8 @@ interface TextCardProps {
 const REMARK_PLUGINS = [[remarkGfm, { singleTilde: false }]] as any
 
 export function TextCard({ text }: TextCardProps) {
+	const [pendingHref, setPendingHref] = useState<string | null>(null)
+
 	return (
 		<div className="prose prose-sm flex thin-scrollbar max-w-none flex-col gap-2 overflow-y-auto p-4 prose-invert">
 			{text.title ? <h2 className="text-lg font-semibold text-(--text-primary)">{text.title}</h2> : null}
@@ -38,16 +43,28 @@ export function TextCard({ text }: TextCardProps) {
 							{children}
 						</blockquote>
 					),
-					a: ({ children, href }) => (
-						<a
-							href={href}
-							className="m-0! text-(--link-text) hover:underline"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							{children}
-						</a>
-					),
+					a: ({ children, href }) => {
+						const external = isExternalLink(href)
+						return (
+							<a
+								href={href}
+								className="m-0! text-(--link-text) hover:underline"
+								target="_blank"
+								rel={external ? 'noopener noreferrer nofollow ugc' : 'noopener noreferrer'}
+								onClick={
+									external
+										? (event) => {
+												event.preventDefault()
+												setPendingHref(href ?? null)
+											}
+										: undefined
+								}
+							>
+								{children}
+							</a>
+						)
+					},
+					img: () => null,
 					strong: ({ children }) => <strong className="m-0! font-semibold text-(--text-primary)">{children}</strong>,
 					em: ({ children }) => <em className="m-0! text-(--text-secondary) italic">{children}</em>,
 					table: ({ children }) => (
@@ -87,6 +104,7 @@ export function TextCard({ text }: TextCardProps) {
 			>
 				{text.content}
 			</ReactMarkdown>
+			<ExternalLinkInterstitial href={pendingHref} onClose={() => setPendingHref(null)} />
 		</div>
 	)
 }
