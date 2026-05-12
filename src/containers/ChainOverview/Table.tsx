@@ -26,7 +26,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
-import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
+import { applyProtocolFeeSettings, applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
@@ -90,12 +90,14 @@ const ChainProtocolsTableInner = ({
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
+	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
 	const minTvl = parseNumberQueryParam(router.query.minTvl)
 	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const finalProtocols = useMemo(() => {
-		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
-	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
+		const tvlFilteredProtocols = applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
+		return applyProtocolFeeSettings({ protocols: tvlFilteredProtocols, extraFeesEnabled })
+	}, [protocols, extraTvlsEnabled, extraFeesEnabled, minTvl, maxTvl])
 
 	const rawColumnsInStorage = useStorageItem(tableColumnOptionsKey, defaultColumns)
 	const columnsInStorage = useDeferredValue(rawColumnsInStorage)

@@ -191,6 +191,22 @@ export interface IChildProtocol {
 		monthlyAverage1y: number | null
 		totalAllTime: number | null
 	}
+	bribeRevenue?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		monthlyAverage1y: number | null
+		totalAllTime: number | null
+	}
+	tokenTax?: {
+		total24h: number | null
+		total7d: number | null
+		total30d: number | null
+		total1y: number | null
+		monthlyAverage1y: number | null
+		totalAllTime: number | null
+	}
 	dexs?: {
 		total24h: number | null
 		total7d: number | null

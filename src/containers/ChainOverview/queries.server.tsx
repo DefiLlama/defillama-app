@@ -1,7 +1,8 @@
 import { fetchCoinPrices, fetchLlamaConfig } from '~/api'
 import { fetchCoinGeckoCoinById } from '~/api/coingecko'
 import type { CoinGeckoCoinDetailResult } from '~/api/coingecko.types'
-import { tvlOptions } from '~/components/Filters/options'
+import { feesOptions, tvlOptions } from '~/components/Filters/options'
+import type { ToggleOption } from '~/components/Filters/types'
 import { REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
@@ -29,7 +30,7 @@ import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import type { ProtocolEmissionWithHistory } from '~/containers/Unlocks/types'
-import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
+import { TVL_SETTINGS_KEYS_SET, type FeesSettingKey, type TvlSettingsKey } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, getPrevTvlFromChart, lastDayOfWeek, slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { tokenIconUrl } from '~/utils/icons'
@@ -42,6 +43,8 @@ import type {
 import type { ChainChartLabels } from './constants'
 import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
+
+type DimensionProtocolMetric = IAdapterChainMetrics['protocols'][number]
 
 function computeTvlChartSummary(chart: Array<[number, number]>): {
 	totalValueUSD: number | null
@@ -87,6 +90,26 @@ export function shouldFetchChainPerps({
 	return categoriesAndTagsMetadata?.configs?.Derivatives?.chains?.includes(currentChainMetadata.id) ?? false
 }
 
+const hasAnyDimensionTotal = (protocol: DimensionProtocolMetric) =>
+	protocol.total24h != null ||
+	protocol.total7d != null ||
+	protocol.total30d != null ||
+	protocol.total1y != null ||
+	protocol.monthlyAverage1y != null ||
+	protocol.totalAllTime != null
+
+const getDimensionTotals = (protocol: DimensionProtocolMetric) => ({
+	total24h: protocol.total24h ?? null,
+	total7d: protocol.total7d ?? null,
+	total30d: protocol.total30d ?? null,
+	total1y: protocol.total1y ?? null,
+	monthlyAverage1y: protocol.monthlyAverage1y ?? null,
+	totalAllTime: protocol.totalAllTime ?? null
+})
+
+const hasAnyProtocolDimensionTotal = (protocols: DimensionProtocolMetric[] | undefined) =>
+	protocols?.some(hasAnyDimensionTotal) ?? false
+
 export async function getChainOverviewData({
 	chain,
 	chainMetadata,
@@ -113,7 +136,7 @@ export async function getChainOverviewData({
 	try {
 		const [
 			chartData,
-			{ protocols, chains, fees, dexs },
+			{ protocols, chains, fees, dexs, feeExtraOptions },
 			stablecoins,
 			inflowsData,
 			activeUsers,
@@ -288,7 +311,10 @@ export async function getChainOverviewData({
 			dcAndLsOverlap = []
 		} = chartData || {}
 
-		const tvlAndFeesOptions = tvlOptions.filter((o) => chartData?.[o.key]?.length)
+		const tvlAndFeesOptions: Array<ToggleOption<TvlSettingsKey | FeesSettingKey>> = [
+			...tvlOptions.filter((o) => chartData?.[o.key]?.length),
+			...(feeExtraOptions ?? [])
+		]
 		const extraTvlCharts = {
 			staking: {},
 			borrowed: {},
@@ -667,8 +693,19 @@ export const getProtocolsByChain = async ({
 		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)
 	}
 
-	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsProtocols]: [
+	const [
+		{ protocols, chains, parentProtocols },
+		fees,
+		revenue,
+		holdersRevenue,
+		bribeRevenue,
+		tokenTax,
+		dexs,
+		emissionsProtocols
+	]: [
 		ProtocolsResponse,
+		IAdapterChainMetrics | null,
+		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
@@ -695,6 +732,20 @@ export const getProtocolsByChain = async ({
 					chain: currentChainMetadata.name,
 					dataType: 'dailyHoldersRevenue'
 				})
+			: Promise.resolve(null),
+		currentChainMetadata.fees
+			? fetchAdapterChainMetrics({
+					adapterType: 'fees',
+					chain: currentChainMetadata.name,
+					dataType: 'dailyBribesRevenue'
+				}).catch(() => null)
+			: Promise.resolve(null),
+		currentChainMetadata.fees
+			? fetchAdapterChainMetrics({
+					adapterType: 'fees',
+					chain: currentChainMetadata.name,
+					dataType: 'dailyTokenTaxes'
+				}).catch(() => null)
 			: Promise.resolve(null),
 		shouldFetchDexsForChain
 			? getAdapterChainOverview({
@@ -742,49 +793,46 @@ export const getProtocolsByChain = async ({
 	const dimensionProtocols = {}
 
 	for (const protocol of fees?.protocols ?? []) {
-		if (protocol.total24h != null) {
+		if (hasAnyDimensionTotal(protocol)) {
 			dimensionProtocols[protocol.defillamaId] = {
 				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				fees: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					total30d: protocol.total30d ?? null,
-					total1y: protocol.total1y ?? null,
-					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
+				fees: getDimensionTotals(protocol)
 			}
 		}
 	}
 
 	for (const protocol of revenue?.protocols ?? []) {
-		if (protocol.total24h != null) {
+		if (hasAnyDimensionTotal(protocol)) {
 			dimensionProtocols[protocol.defillamaId] = {
 				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				revenue: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					total30d: protocol.total30d ?? null,
-					total1y: protocol.total1y ?? null,
-					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
+				revenue: getDimensionTotals(protocol)
 			}
 		}
 	}
 
 	for (const protocol of holdersRevenue?.protocols ?? []) {
-		if (protocol.total24h != null) {
+		if (hasAnyDimensionTotal(protocol)) {
 			dimensionProtocols[protocol.defillamaId] = {
 				...(dimensionProtocols[protocol.defillamaId] ?? {}),
-				holdersRevenue: {
-					total24h: protocol.total24h ?? null,
-					total7d: protocol.total7d ?? null,
-					total30d: protocol.total30d ?? null,
-					total1y: protocol.total1y ?? null,
-					monthlyAverage1y: protocol.monthlyAverage1y ?? null,
-					totalAllTime: protocol.totalAllTime ?? null
-				}
+				holdersRevenue: getDimensionTotals(protocol)
+			}
+		}
+	}
+
+	for (const protocol of bribeRevenue?.protocols ?? []) {
+		if (hasAnyDimensionTotal(protocol)) {
+			dimensionProtocols[protocol.defillamaId] = {
+				...(dimensionProtocols[protocol.defillamaId] ?? {}),
+				bribeRevenue: getDimensionTotals(protocol)
+			}
+		}
+	}
+
+	for (const protocol of tokenTax?.protocols ?? []) {
+		if (hasAnyDimensionTotal(protocol)) {
+			dimensionProtocols[protocol.defillamaId] = {
+				...(dimensionProtocols[protocol.defillamaId] ?? {}),
+				tokenTax: getDimensionTotals(protocol)
 			}
 		}
 	}
@@ -910,6 +958,14 @@ export const getProtocolsByChain = async ({
 			childStore.holdersRevenue = dimensionProtocols[protocol.defillamaId].holdersRevenue
 		}
 
+		if (dimensionProtocols[protocol.defillamaId]?.bribeRevenue) {
+			childStore.bribeRevenue = dimensionProtocols[protocol.defillamaId].bribeRevenue
+		}
+
+		if (dimensionProtocols[protocol.defillamaId]?.tokenTax) {
+			childStore.tokenTax = dimensionProtocols[protocol.defillamaId].tokenTax
+		}
+
 		if (dimensionProtocols[protocol.defillamaId]?.dexs) {
 			childStore.dexs = dimensionProtocols[protocol.defillamaId].dexs
 		}
@@ -983,7 +1039,7 @@ export const getProtocolsByChain = async ({
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
 							for (const key1 in curr.fees ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.fees[key1]
+								acc[key1] = (acc[key1] ?? 0) + (curr.fees[key1] ?? 0)
 							}
 							return acc
 						},
@@ -999,7 +1055,7 @@ export const getProtocolsByChain = async ({
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
 							for (const key1 in curr.revenue ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.revenue[key1]
+								acc[key1] = (acc[key1] ?? 0) + (curr.revenue[key1] ?? 0)
 							}
 							return acc
 						},
@@ -1015,11 +1071,35 @@ export const getProtocolsByChain = async ({
 				? parentStore[parentProtocol.id].reduce(
 						(acc, curr) => {
 							for (const key1 in curr.holdersRevenue ?? {}) {
-								acc[key1] = (acc[key1] ?? 0) + curr.holdersRevenue[key1]
+								acc[key1] = (acc[key1] ?? 0) + (curr.holdersRevenue[key1] ?? 0)
 							}
 							return acc
 						},
 						{} as IChildProtocol['holdersRevenue']
+					)
+				: null
+
+			const parentBribeRevenue = parentStore[parentProtocol.id].some((child) => child.bribeRevenue != null)
+				? parentStore[parentProtocol.id].reduce(
+						(acc, curr) => {
+							for (const key1 in curr.bribeRevenue ?? {}) {
+								acc[key1] = (acc[key1] ?? 0) + (curr.bribeRevenue[key1] ?? 0)
+							}
+							return acc
+						},
+						{} as IChildProtocol['bribeRevenue']
+					)
+				: null
+
+			const parentTokenTax = parentStore[parentProtocol.id].some((child) => child.tokenTax != null)
+				? parentStore[parentProtocol.id].reduce(
+						(acc, curr) => {
+							for (const key1 in curr.tokenTax ?? {}) {
+								acc[key1] = (acc[key1] ?? 0) + (curr.tokenTax[key1] ?? 0)
+							}
+							return acc
+						},
+						{} as IChildProtocol['tokenTax']
 					)
 				: null
 
@@ -1146,6 +1226,12 @@ export const getProtocolsByChain = async ({
 			if (parentHoldersRevenue) {
 				protocolsStore[parentProtocol.id].holdersRevenue = parentHoldersRevenue
 			}
+			if (parentBribeRevenue) {
+				protocolsStore[parentProtocol.id].bribeRevenue = parentBribeRevenue
+			}
+			if (parentTokenTax) {
+				protocolsStore[parentProtocol.id].tokenTax = parentTokenTax
+			}
 			if (parentEmissions) {
 				protocolsStore[parentProtocol.id].emissions = parentEmissions
 			}
@@ -1158,12 +1244,21 @@ export const getProtocolsByChain = async ({
 		finalProtocols.push(protocolsStore[protocol])
 	}
 
+	const feeExtraOptions = feesOptions.filter((option) =>
+		option.key === 'bribes'
+			? hasAnyProtocolDimensionTotal(bribeRevenue?.protocols)
+			: option.key === 'tokentax'
+				? hasAnyProtocolDimensionTotal(tokenTax?.protocols)
+				: false
+	)
+
 	return {
 		protocols: finalProtocols.sort((a, b) => (b.tvl?.default?.tvl ?? 0) - (a.tvl?.default?.tvl ?? 0)),
 		chains,
 		fees,
 		dexs,
-		emissionsData: emissionsProtocols
+		emissionsData: emissionsProtocols,
+		feeExtraOptions
 	}
 }
 

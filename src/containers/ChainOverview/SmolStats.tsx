@@ -1,6 +1,10 @@
+import { useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
+import { applyProtocolFeeSettings } from '~/containers/Protocols/utils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formattedNum, slug } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import { FeesGeneratedChart } from './FeesGeneratedChart'
 import { SmolBarChart } from './SmolBarChart'
 import { SmolLineChart } from './SmolLineChart'
@@ -9,6 +13,28 @@ import { UpcomingUnlocksChart } from './UpcomingUnlocksChart'
 
 export const SmolStats = (props: IChainOverviewData) => {
 	const chainSlug = slug(props.metadata.name)
+	const [extraFeesEnabled] = useLocalStorageSettingsManager('fees')
+	const hasEnabledFeeExtras = extraFeesEnabled.bribes || extraFeesEnabled.tokentax
+
+	const chainFees = useMemo(() => {
+		if (!hasEnabledFeeExtras) return props.chainFees
+
+		const adjustedProtocols = applyProtocolFeeSettings({ protocols: props.protocols, extraFeesEnabled })
+		const topProtocolsChart = [...adjustedProtocols]
+			.sort((a, b) => (b.fees?.total24h ?? 0) - (a.fees?.total24h ?? 0))
+			.filter((protocol) => !!protocol.fees?.total24h)
+			.slice(0, 14)
+			.map((protocol) => [protocol.name, protocol.fees?.total24h ?? 0, tokenIconUrl(protocol.name)]) as Array<
+			[string, number, string]
+		>
+
+		return {
+			...props.chainFees,
+			feesGenerated24h: adjustedProtocols.reduce((acc, protocol) => acc + (protocol.fees?.total24h ?? 0), 0),
+			topProtocolsChart: topProtocolsChart.length > 0 ? topProtocolsChart : props.chainFees.topProtocolsChart
+		}
+	}, [extraFeesEnabled, hasEnabledFeeExtras, props.chainFees, props.protocols])
+
 	return (
 		<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
 			{props.chain === 'All' ? (
@@ -121,7 +147,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 					<SmolBarChart series={props.dexs.chart} />
 				</div>
 			) : null}
-			{props.chainFees?.topProtocolsChart?.length > 0 ? (
+			{chainFees?.topProtocolsChart?.length > 0 ? (
 				<div className="col-span-1 flex h-[196px] flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<div className="flex items-start justify-between gap-4">
 						<Tooltip
@@ -133,11 +159,11 @@ export const SmolStats = (props: IChainOverviewData) => {
 						>
 							Fees Paid
 						</Tooltip>
-						{props.chainFees.feesGenerated24h != null ? (
-							<p className="text-(--text-form)">{`${formattedNum(props.chainFees.feesGenerated24h ?? 0, true)} (24h)`}</p>
+						{chainFees.feesGenerated24h != null ? (
+							<p className="text-(--text-form)">{`${formattedNum(chainFees.feesGenerated24h ?? 0, true)} (24h)`}</p>
 						) : null}
 					</div>
-					<FeesGeneratedChart series={props.chainFees.topProtocolsChart} />
+					<FeesGeneratedChart series={chainFees.topProtocolsChart} />
 				</div>
 			) : null}
 			{props.stablecoins?.mcapChartData?.length > 0 ? (
