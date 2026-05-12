@@ -9,6 +9,8 @@ import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetr
 type ParsedOverviewBreakdownRequest = IRWAPerpsOverviewBreakdownRequest & {
 	venue?: string
 	assetGroup?: string
+	assetClass?: string
+	excludeAssetClass?: string
 }
 
 export function parseOverviewBreakdownRequest(
@@ -20,15 +22,24 @@ export function parseOverviewBreakdownRequest(
 
 	const venue = parseOptionalTarget(req.query.venue)
 	const assetGroup = parseOptionalTarget(req.query.assetGroup)
-	if (venue === null || assetGroup === null) return null
-	if (venue && assetGroup) return null
+	const assetClass = parseOptionalTarget(req.query.assetClass)
+	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
+	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
+	const targetCount =
+		Number(Boolean(venue)) +
+		Number(Boolean(assetGroup)) +
+		Number(Boolean(assetClass)) +
+		Number(Boolean(excludeAssetClass))
+	if (targetCount > 1) return null
 
 	if (breakdown === 'venue' || breakdown === 'assetClass' || breakdown === 'assetGroup' || breakdown === 'baseAsset') {
 		return {
 			breakdown,
 			key,
 			...(venue ? { venue } : {}),
-			...(assetGroup ? { assetGroup } : {})
+			...(assetGroup ? { assetGroup } : {}),
+			...(assetClass ? { assetClass } : {}),
+			...(excludeAssetClass ? { excludeAssetClass } : {})
 		}
 	}
 

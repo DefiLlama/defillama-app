@@ -113,6 +113,8 @@ type IRWAPerpsBreakdownChartParams = {
 	key: 'openInterest' | 'volume24h' | 'markets'
 	venue?: string
 	assetGroup?: string
+	assetClass?: string
+	excludeAssetClass?: string
 }
 
 export async function fetchRWAPerpsOverviewBreakdownChartData(
@@ -125,6 +127,8 @@ export async function fetchRWAPerpsOverviewBreakdownChartData(
 
 	if (params.venue) searchParams.set('venue', params.venue)
 	if (params.assetGroup) searchParams.set('assetGroup', params.assetGroup)
+	if (params.assetClass) searchParams.set('assetClass', params.assetClass)
+	if (params.excludeAssetClass) searchParams.set('excludeAssetClass', params.excludeAssetClass)
 
 	return fetchJson<IRWAPerpsBreakdownChartResponse>(
 		`${RWA_PERPS_SERVER_URL}/chart/overview-breakdown?${searchParams.toString()}`
@@ -143,6 +147,8 @@ export async function fetchRWAPerpsContractBreakdownChartData(
 
 	if (params.venue) searchParams.set('venue', params.venue)
 	if (params.assetGroup) searchParams.set('assetGroup', params.assetGroup)
+	if (params.assetClass) searchParams.set('assetClass', params.assetClass)
+	if (params.excludeAssetClass) searchParams.set('excludeAssetClass', params.excludeAssetClass)
 
 	return fetchJson<IRWAPerpsBreakdownChartResponse>(
 		`${RWA_PERPS_SERVER_URL}/chart/contract-breakdown?${searchParams.toString()}`

@@ -8,7 +8,10 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/perps/index`, async () => {
-	const data = await getRWAPerpsOverview({ activeView: getDefaultRWAPerpsChartView('overview') })
+	const data = await getRWAPerpsOverview({
+		activeView: getDefaultRWAPerpsChartView('overview'),
+		excludeAssetClass: 'Forex Perps'
+	})
 
 	return {
 		props: { data },

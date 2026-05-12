@@ -196,7 +196,12 @@ beforeEach(() => {
 		]
 	})
 	fetchRWAPerpsOverviewBreakdownChartData.mockImplementation(async (request: any) => {
-		const target = request.assetGroup ?? request.venue ?? 'all'
+		const target =
+			request.assetClass ??
+			(request.excludeAssetClass ? `exclude:${request.excludeAssetClass}` : null) ??
+			request.assetGroup ??
+			request.venue ??
+			'all'
 		const key = request.key
 		const breakdown = request.breakdown
 
@@ -222,6 +227,20 @@ beforeEach(() => {
 		}
 
 		if (target === 'all' && key === 'openInterest' && breakdown === 'assetGroup') {
+			return [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130, Commodities: 100 }
+			]
+		}
+
+		if (target === 'Forex Perps' && key === 'openInterest' && breakdown === 'assetGroup') {
+			return [
+				{ timestamp: 1774483200000, Forex: 70 },
+				{ timestamp: 1774569600000, Forex: 90 }
+			]
+		}
+
+		if (target === 'exclude:Forex Perps' && key === 'openInterest' && breakdown === 'assetGroup') {
 			return [
 				{ timestamp: 1774483200000, Equities: 120 },
 				{ timestamp: 1774569600000, Equities: 130, Commodities: 100 }
@@ -444,6 +463,45 @@ describe('perps overview queries', () => {
 			source: [
 				{ timestamp: 1774483200000, Equities: 120 },
 				{ timestamp: 1774569600000, Commodities: 100, Equities: 130 }
+			],
+			dimensions: ['timestamp', 'Equities', 'Commodities']
+		})
+	})
+
+	it('preloads asset-class-filtered overview time-series datasets', async () => {
+		const result = await getRWAPerpsOverview({ activeView: 'timeSeries', assetClass: 'Forex Perps' })
+
+		expect(fetchRWAPerpsOverviewBreakdownChartData).toHaveBeenCalledWith({
+			breakdown: 'assetGroup',
+			key: 'openInterest',
+			venue: undefined,
+			assetGroup: undefined,
+			assetClass: 'Forex Perps'
+		})
+		expect(result.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Forex: 70 },
+				{ timestamp: 1774569600000, Forex: 90 }
+			],
+			dimensions: ['timestamp', 'Forex']
+		})
+	})
+
+	it('preloads asset-class-excluded overview time-series datasets', async () => {
+		const result = await getRWAPerpsOverview({ activeView: 'timeSeries', excludeAssetClass: 'Forex Perps' })
+
+		expect(fetchRWAPerpsOverviewBreakdownChartData).toHaveBeenCalledWith({
+			breakdown: 'assetGroup',
+			key: 'openInterest',
+			venue: undefined,
+			assetGroup: undefined,
+			assetClass: undefined,
+			excludeAssetClass: 'Forex Perps'
+		})
+		expect(result.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, Equities: 120 },
+				{ timestamp: 1774569600000, Equities: 130, Commodities: 100 }
 			],
 			dimensions: ['timestamp', 'Equities', 'Commodities']
 		})

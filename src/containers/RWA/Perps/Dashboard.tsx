@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
-import { Switch } from '~/components/Switch'
 import type {
 	IHBarChartProps,
 	IMultiSeriesChart2Props,
@@ -19,6 +18,7 @@ import { LoadingDots } from '~/components/Loaders'
 import { PercentChange } from '~/components/PercentChange'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
+import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -870,6 +870,8 @@ function fetchOverviewTimeSeriesDataset(
 	})
 	if (request.venue) searchParams.set('venue', request.venue)
 	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
+	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 
 	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/perps/overview-breakdown?${searchParams.toString()}`)
 }
@@ -880,6 +882,8 @@ function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownReque
 	})
 	if (request.venue) searchParams.set('venue', request.venue)
 	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
+	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 
 	return fetchJson<MultiSeriesChart2Dataset>(`/api/rwa/perps/contract-breakdown?${searchParams.toString()}`)
 }
@@ -938,6 +942,8 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		[currentRows, isRowsFiltered]
 	)
 	const displayTotals = computedTotals ?? props.data.totals
+	const timeSeriesAssetClass = assetClassFilter
+	const timeSeriesExcludeAssetClass = showForexToggle && !includeForex ? FOREX_ASSET_CLASS : undefined
 	const onToggleIncludeForex = () => {
 		void pushShallowQuery(router, { includeForex: includeForex ? undefined : 'true' })
 	}
@@ -951,22 +957,36 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const hasPreloadedTimeSeriesDataset =
 		initialChartDataset.source.length > 0 ||
 		initialChartDataset.dimensions.some((dimension) => dimension !== 'timestamp')
-	const shouldUseInitialTimeSeriesDataset = isDefaultTimeSeriesState && hasPreloadedTimeSeriesDataset
+	const canUseInitialTimeSeriesDataset = !showForexToggle || !includeForex
+	const shouldUseInitialTimeSeriesDataset =
+		isDefaultTimeSeriesState && hasPreloadedTimeSeriesDataset && canUseInitialTimeSeriesDataset
 
 	const timeSeriesQuery = useQuery({
-		queryKey: ['rwa-perps-chart', props.mode, chartState.metric, chartState.breakdown, targetQueryValue],
+		queryKey: [
+			'rwa-perps-chart',
+			props.mode,
+			chartState.metric,
+			chartState.breakdown,
+			targetQueryValue,
+			timeSeriesAssetClass,
+			timeSeriesExcludeAssetClass
+		],
 		queryFn: () =>
 			chartState.breakdown === 'contract'
 				? fetchContractTimeSeriesDataset({
 						key: chartState.metric,
 						...(isVenueMode ? { venue: props.data.venue } : {}),
-						...(isAssetGroupMode ? { assetGroup: props.data.assetGroup } : {})
+						...(isAssetGroupMode ? { assetGroup: props.data.assetGroup } : {}),
+						...(timeSeriesAssetClass ? { assetClass: timeSeriesAssetClass } : {}),
+						...(timeSeriesExcludeAssetClass ? { excludeAssetClass: timeSeriesExcludeAssetClass } : {})
 					})
 				: fetchOverviewTimeSeriesDataset({
 						breakdown: chartState.breakdown as IRWAPerpsOverviewBreakdownRequest['breakdown'],
 						key: chartState.metric,
 						...(isVenueMode ? { venue: props.data.venue } : {}),
-						...(isAssetGroupMode ? { assetGroup: props.data.assetGroup } : {})
+						...(isAssetGroupMode ? { assetGroup: props.data.assetGroup } : {}),
+						...(timeSeriesAssetClass ? { assetClass: timeSeriesAssetClass } : {}),
+						...(timeSeriesExcludeAssetClass ? { excludeAssetClass: timeSeriesExcludeAssetClass } : {})
 					}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -1284,7 +1304,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 						<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">
 							{getErrorMessage(timeSeriesQuery.error)}
 						</p>
-					) : timeSeriesQuery.isLoading && !isDefaultTimeSeriesState ? (
+					) : timeSeriesQuery.isLoading && !shouldUseInitialTimeSeriesDataset ? (
 						<p className="flex min-h-[360px] items-center justify-center gap-1">
 							Loading
 							<LoadingDots />
