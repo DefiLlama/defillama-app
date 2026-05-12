@@ -1,19 +1,15 @@
 import * as Ariakit from '@ariakit/react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AddTextContentModal } from './AddTextContentModal'
 import { GitHubConnectModal } from './GitHubConnectModal'
-import {
-	useDeleteProjectFile,
-	useDisconnectSource,
-	useProjectFiles,
-	useProjectSources,
-	useUploadProjectFiles
-} from './hooks'
+import { useDeleteProjectFile, useDisconnectSource, useProjectFiles, useProjectSources } from './hooks'
 import type { ProjectFile, ProjectSource } from './types'
+import { useProjectFileUpload } from './useProjectFileUpload'
 
 function formatBytes(bytes: number | string): string {
 	const n = Number(bytes ?? 0)
@@ -25,6 +21,7 @@ function formatBytes(bytes: number | string): string {
 
 interface ProjectFilesPanelProps {
 	projectId: string
+	autoOpenGitHub?: boolean
 	projectBytesUsed: number
 	projectBytesLimit: number | null
 	projectFileCount: number
@@ -34,6 +31,7 @@ interface ProjectFilesPanelProps {
 
 export function ProjectFilesPanel({
 	projectId,
+	autoOpenGitHub = false,
 	projectBytesUsed,
 	projectBytesLimit,
 	projectFileCount,
@@ -41,8 +39,9 @@ export function ProjectFilesPanel({
 	tier
 }: ProjectFilesPanelProps) {
 	const filesQuery = useProjectFiles(projectId)
+	const router = useRouter()
 	const sourcesQuery = useProjectSources(projectId)
-	const upload = useUploadProjectFiles(projectId)
+	const { handleFiles, isUploading } = useProjectFileUpload(projectId)
 	const deleteFile = useDeleteProjectFile(projectId)
 	const disconnect = useDisconnectSource(projectId)
 
@@ -50,6 +49,14 @@ export function ProjectFilesPanel({
 	const addTextStore = Ariakit.useDialogStore()
 	const githubStore = Ariakit.useDialogStore()
 	const [isDragging, setIsDragging] = useState(false)
+
+	useEffect(() => {
+		if (!autoOpenGitHub || !router.isReady) return
+		githubStore.show()
+		const query = { ...router.query }
+		delete query.connectGithub
+		void router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+	}, [autoOpenGitHub, githubStore, router])
 
 	const sources = useMemo(() => sourcesQuery.data ?? [], [sourcesQuery.data])
 	const sourceById = useMemo(() => {
@@ -62,29 +69,6 @@ export function ProjectFilesPanel({
 		projectBytesLimit === null || projectBytesLimit === 0
 			? 0
 			: Math.min(100, (projectBytesUsed / projectBytesLimit) * 100)
-
-	const handleFiles = useCallback(
-		async (fileList: File[]) => {
-			if (fileList.length === 0) return
-			const isArchive = (f: File) => /\.(zip|tar|tgz|gz|7z|rar)$/i.test(f.name) || f.type === 'application/zip'
-			const archives = fileList.filter(isArchive)
-			const others = fileList.filter((f) => !isArchive(f))
-			if (archives.length > 0) {
-				toast.error('Archive uploads are not supported. Unzip and drop the folder instead.')
-			}
-			if (others.length === 0) return
-			try {
-				const res = await upload.mutateAsync(others)
-				if (res.imported.length > 0) {
-					toast.success(`Uploaded ${res.imported.length} file${res.imported.length === 1 ? '' : 's'}`)
-				}
-				for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
-			} catch (err) {
-				toast.error(err instanceof Error ? err.message : 'Upload failed')
-			}
-		},
-		[upload]
-	)
 
 	const onPick = () => fileInputRef.current?.click()
 	const onDropZoneDrop = (e: React.DragEvent) => {
@@ -280,7 +264,7 @@ export function ProjectFilesPanel({
 				)}
 			</div>
 
-			{upload.isPending ? (
+			{isUploading ? (
 				<p className="flex items-center gap-1.5 text-xs text-[#666] dark:text-[#919296]">
 					<LoadingSpinner size={10} /> Uploading…
 				</p>

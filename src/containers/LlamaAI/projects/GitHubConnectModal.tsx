@@ -78,7 +78,8 @@ export function GitHubConnectModal({ dialogStore, projectId }: GitHubConnectModa
 	const onStartInstall = async () => {
 		try {
 			setInstalling(true)
-			const { install_url } = await startInstall()
+			const returnTo = `/ai/projects/${projectId}?tab=sources&connectGithub=1`
+			const { install_url } = await startInstall(returnTo)
 			window.location.href = install_url
 		} catch (err) {
 			toast.error(err instanceof Error ? err.message : 'Could not start GitHub install')

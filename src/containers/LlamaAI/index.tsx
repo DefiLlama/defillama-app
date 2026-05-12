@@ -2025,6 +2025,9 @@ export function AgenticChat({
 								activeSessionIdRef.current = id
 								if (previousSessionId && previousSessionId !== id) {
 									registerSessionAlias(previousSessionId, id)
+									if (sharedSession) {
+										void navigate.toSession(id, { replace: true })
+									}
 								}
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
 									void createSession({

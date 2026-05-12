@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
+import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
@@ -44,6 +45,7 @@ export function ProjectLanding({
 	isStreaming,
 	onPickSession
 }: ProjectLandingProps) {
+	const router = useRouter()
 	const usage = useProjectUsage()
 	const project = useProjectDetail(projectId)
 	const { sessions: allSessions, isLoading: sessionsLoading } = useSessionList()
@@ -267,6 +269,7 @@ export function ProjectLanding({
 						<ProjectInstructionsEditor projectId={projectId} value={project.data.custom_instructions} />
 						<ProjectFilesPanel
 							projectId={projectId}
+							autoOpenGitHub={router.query.connectGithub === '1'}
 							projectBytesUsed={projectBytesUsed}
 							projectBytesLimit={projectBytesLimit}
 							projectFileCount={projectFileCount}

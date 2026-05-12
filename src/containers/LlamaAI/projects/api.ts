@@ -159,8 +159,13 @@ export async function moveSessionToProject(
 	)
 }
 
-export async function startGithubInstall(fetcher: AuthedFetch): Promise<{ install_url: string; state: string }> {
-	return unwrap(fetcher(`${AI_SERVER}/github/install/start`), 'Failed to start GitHub install')
+export async function startGithubInstall(
+	fetcher: AuthedFetch,
+	returnTo?: string
+): Promise<{ install_url: string; state: string }> {
+	const url = new URL(`${AI_SERVER}/github/install/start`)
+	if (returnTo) url.searchParams.set('returnTo', returnTo)
+	return unwrap(fetcher(url.toString()), 'Failed to start GitHub install')
 }
 
 export async function listGithubInstallations(fetcher: AuthedFetch): Promise<GitHubInstallation[]> {

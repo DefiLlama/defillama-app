@@ -22,7 +22,7 @@ import {
 	updateProject,
 	uploadProjectFiles
 } from './api'
-import type { Project } from './types'
+import type { Project, ProjectWithStats } from './types'
 
 const PROJECTS_KEY = ['projects'] as const
 const PROJECTS_USAGE_KEY = ['projects', 'usage'] as const
@@ -111,7 +111,13 @@ export function useUpdateProject(id: string) {
 		mutationFn: (body: Partial<Pick<Project, 'name' | 'description' | 'icon' | 'color' | 'custom_instructions'>>) =>
 			updateProject(authorizedFetch, id, body),
 		onSuccess: (project) => {
-			qc.setQueryData(projectKey(id), project)
+			qc.setQueryData<ProjectWithStats | Project | undefined>(projectKey(id), (old) => {
+				if (!old || !('file_count' in old)) return project
+				return {
+					...old,
+					...project
+				}
+			})
 			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
 		}
 	})
@@ -201,7 +207,7 @@ export function useGithubRepos(installationId: number | null) {
 
 export function useStartGithubInstall() {
 	const { authorizedFetch } = useAuthContext()
-	return useCallback(() => startGithubInstall(authorizedFetch), [authorizedFetch])
+	return useCallback((returnTo?: string) => startGithubInstall(authorizedFetch, returnTo), [authorizedFetch])
 }
 
 export function useConnectGithubSource(projectId: string) {

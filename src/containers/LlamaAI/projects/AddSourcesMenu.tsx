@@ -1,10 +1,9 @@
 import * as Ariakit from '@ariakit/react'
-import { useCallback, useRef } from 'react'
-import toast from 'react-hot-toast'
+import { useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { AddTextContentModal } from './AddTextContentModal'
 import { GitHubConnectModal } from './GitHubConnectModal'
-import { useUploadProjectFiles } from './hooks'
+import { useProjectFileUpload } from './useProjectFileUpload'
 
 interface AddSourcesMenuProps {
 	projectId: string
@@ -14,34 +13,11 @@ interface AddSourcesMenuProps {
 }
 
 export function AddSourcesMenu({ projectId, trigger, menuClassName, gutter = 6 }: AddSourcesMenuProps) {
-	const upload = useUploadProjectFiles(projectId)
+	const { handleFiles } = useProjectFileUpload(projectId)
 	const addTextStore = Ariakit.useDialogStore()
 	const githubStore = Ariakit.useDialogStore()
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const folderInputRef = useRef<HTMLInputElement>(null)
-
-	const handleFiles = useCallback(
-		async (fileList: File[]) => {
-			if (fileList.length === 0) return
-			const isArchive = (f: File) => /\.(zip|tar|tgz|gz|7z|rar)$/i.test(f.name) || f.type === 'application/zip'
-			const archives = fileList.filter(isArchive)
-			const others = fileList.filter((f) => !isArchive(f))
-			if (archives.length > 0) {
-				toast.error(`Archive uploads are not supported. Unzip and drop the folder instead.`)
-			}
-			if (others.length === 0) return
-			try {
-				const res = await upload.mutateAsync(others)
-				if (res.imported.length > 0) {
-					toast.success(`Uploaded ${res.imported.length} file${res.imported.length === 1 ? '' : 's'}`)
-				}
-				for (const s of res.skipped) toast.error(`Skipped ${s.path}: ${s.reason}`)
-			} catch (err) {
-				toast.error(err instanceof Error ? err.message : 'Upload failed')
-			}
-		},
-		[upload]
-	)
 
 	return (
 		<>
