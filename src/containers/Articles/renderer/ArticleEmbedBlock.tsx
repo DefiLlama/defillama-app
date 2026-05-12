@@ -91,6 +91,7 @@ function IframeEmbed({ config }: { config: ArticleEmbedConfig }) {
 	const aspect = getEmbedAspectRatio(config)
 	const cls = aspectClass(aspect)
 	const heightStyle = aspect === 'auto' ? { height: 480 } : undefined
+	const isYouTube = config.provider === 'youtube'
 	return (
 		<div
 			className={`overflow-hidden rounded-md border border-(--cards-border) bg-(--app-bg) ${cls}`}
@@ -100,9 +101,14 @@ function IframeEmbed({ config }: { config: ArticleEmbedConfig }) {
 				src={config.url}
 				title={config.title || config.sourceUrl}
 				loading="lazy"
-				referrerPolicy="no-referrer-when-downgrade"
-				allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-				sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation"
+				referrerPolicy="strict-origin-when-cross-origin"
+				allow={
+					isYouTube
+						? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen'
+						: 'encrypted-media; picture-in-picture; fullscreen'
+				}
+				allowFullScreen
+				sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-forms"
 				className="h-full w-full border-0"
 			/>
 		</div>

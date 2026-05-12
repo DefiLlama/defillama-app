@@ -1,6 +1,14 @@
 import { validateArticleChartConfig } from './chartAdapters'
 import { extractArticleContent } from './extractors'
-import type { ArticleImage, ArticleSnapshotPayload, LocalArticleDocument, TiptapJson, ValidationResult } from './types'
+import type {
+	ArticleImage,
+	ArticleSection,
+	ArticleSnapshotPayload,
+	LocalArticleDocument,
+	TiptapJson,
+	ValidationResult
+} from './types'
+import { ARTICLE_SECTIONS } from './types'
 
 export const ARTICLE_CONTENT_VERSION = 1
 export const ARTICLE_RENDERER_VERSION = 1
@@ -40,10 +48,39 @@ function normalizeSlug(value: string) {
 		.slice(0, 120)
 }
 
+export const DRAFT_SLUG_PREFIX = 'draft-'
+
+export function generateDraftSlug() {
+	const random =
+		typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+			? crypto.randomUUID().replace(/-/g, '').slice(0, 10)
+			: Math.random().toString(36).slice(2, 12)
+	return `${DRAFT_SLUG_PREFIX}${random}`
+}
+
+export function isDraftPlaceholderSlug(slug: string) {
+	return slug.startsWith(DRAFT_SLUG_PREFIX)
+}
+
 function normalizeDate(value: unknown, fallback: string) {
 	if (typeof value !== 'string') return fallback
 	const date = new Date(value)
 	return Number.isNaN(date.getTime()) ? fallback : date.toISOString()
+}
+
+function normalizeSection(value: unknown): ArticleSection | null {
+	if (typeof value !== 'string') return null
+	const lower = value
+		.trim()
+		.toLowerCase()
+		.replace(/[\s-]+/g, '_')
+	return ARTICLE_SECTIONS.includes(lower as ArticleSection) ? (lower as ArticleSection) : null
+}
+
+function normalizeOptionalDate(value: unknown): string | null {
+	if (typeof value !== 'string' || !value.trim()) return null
+	const date = new Date(value)
+	return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
 function normalizeTags(value: unknown): string[] {
@@ -111,7 +148,9 @@ export function normalizeLocalArticleDocument(
 	if (!isRecord(input)) return { ok: false, error: 'Article payload must be an object' }
 
 	const title = optionalString(input.title) || 'Untitled research'
-	const slug = normalizeSlug(optionalString(input.slug) || title) || 'local-article'
+	const seoTitle = optionalString(input.seoTitle)
+	const slugSource = optionalString(input.slug) || seoTitle || title
+	const slug = normalizeSlug(slugSource) || generateDraftSlug()
 	const status = input.status === 'published' ? 'published' : 'draft'
 	const contentJson = normalizeContentJson(input.contentJson)
 
@@ -128,7 +167,14 @@ export function normalizeLocalArticleDocument(
 	const updatedAt = now
 	const previousPublishedAt = existing?.publishedAt ?? null
 	const incomingPublishedAt = typeof input.publishedAt === 'string' ? input.publishedAt : null
-	const publishedAt = status === 'published' ? normalizeDate(incomingPublishedAt, previousPublishedAt ?? now) : null
+	const publishedAt =
+		status === 'published' ? normalizeDate(incomingPublishedAt, previousPublishedAt ?? now) : previousPublishedAt
+	const firstPublishedAt = normalizeOptionalDate(input.firstPublishedAt) ?? existing?.firstPublishedAt ?? null
+	const lastPublishedAt = normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
+	const displayDate = normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
+	const section = normalizeSection(input.section) ?? existing?.section ?? null
+	const spotlight = typeof input.spotlight === 'boolean' ? input.spotlight : (existing?.spotlight ?? false)
+	const brandByline = typeof input.brandByline === 'boolean' ? input.brandByline : (existing?.brandByline ?? false)
 	const extracted = extractArticleContent(contentJson)
 	const trimmedPlain = extracted.plainText.trim()
 	const firstSentenceMatch = trimmedPlain.match(/^[\s\S]*?[.!?](?:\s|$)/)
@@ -167,6 +213,10 @@ export function normalizeLocalArticleDocument(
 			citations: extracted.citations,
 			embeds: extracted.embeds,
 			tags: normalizeTags(input.tags),
+			section,
+			displayDate,
+			spotlight,
+			brandByline,
 			...(typeof input.featuredRank === 'number' && Number.isInteger(input.featuredRank)
 				? { featuredRank: input.featuredRank }
 				: {}),
@@ -174,11 +224,41 @@ export function normalizeLocalArticleDocument(
 			createdAt,
 			updatedAt,
 			publishedAt,
+			firstPublishedAt,
+			lastPublishedAt,
 			pending,
 			pendingUpdatedAt,
 			pendingActorPbUserId
 		}
 	}
+}
+
+export type ArticlePublishValidationError = {
+	field: string
+	message: string
+}
+
+export function validateLocalArticleForPublish(doc: LocalArticleDocument): ArticlePublishValidationError[] {
+	const errors: ArticlePublishValidationError[] = []
+	if (!doc.section) errors.push({ field: 'section', message: 'Section is required' })
+	if (!doc.title || doc.title.trim() === '' || doc.title === 'Untitled research') {
+		errors.push({ field: 'title', message: 'Headline is required' })
+	}
+	if (!doc.coverImage || !doc.coverImage.url) {
+		errors.push({ field: 'coverImage', message: 'Cover image is required' })
+	} else {
+		if (!doc.coverImage.caption) errors.push({ field: 'coverImage.caption', message: 'Cover caption is required' })
+		if (!doc.coverImage.copyright)
+			errors.push({ field: 'coverImage.copyright', message: 'Cover copyright is required' })
+		if (!doc.coverImage.credit) errors.push({ field: 'coverImage.credit', message: 'Cover credit is required' })
+	}
+	if (!doc.tags || doc.tags.length === 0) {
+		errors.push({ field: 'tags', message: 'At least one topic is required' })
+	}
+	if (!doc.displayDate) {
+		errors.push({ field: 'displayDate', message: 'Display date is required' })
+	}
+	return errors
 }
 
 export function applyPendingToLocalArticle(
@@ -208,7 +288,7 @@ export function createEmptyLocalArticle(now = new Date().toISOString()): LocalAr
 	const normalized = normalizeLocalArticleDocument(
 		{
 			title: 'Untitled research',
-			slug: 'local-article',
+			slug: generateDraftSlug(),
 			status: 'draft',
 			coverImage: null,
 			tags: [],

@@ -5,19 +5,29 @@ import type {
 	ArticleDocument,
 	ArticleRevision,
 	ArticleRevisionListResponse,
+	ArticleSection,
+	Banner,
+	BannerPayload,
 	LocalArticleDocument
 } from './types'
 
 type AuthorizedFetch = (url: string, options?: RequestInit) => Promise<Response | null>
 type FetchLike = (url: string, options?: RequestInit) => Promise<Response>
 
+export type ArticleApiValidationError = {
+	field: string
+	message: string
+}
+
 export class ArticleApiError extends Error {
 	status: number
+	validationErrors?: ArticleApiValidationError[]
 
-	constructor(message: string, status: number) {
+	constructor(message: string, status: number, validationErrors?: ArticleApiValidationError[]) {
 		super(message)
 		this.name = 'ArticleApiError'
 		this.status = status
+		this.validationErrors = validationErrors
 		Object.setPrototypeOf(this, ArticleApiError.prototype)
 	}
 }
@@ -39,20 +49,30 @@ function articleUrl(path: string) {
 	return `${FEATURES_SERVER.replace(/\/$/, '')}${path}`
 }
 
+function nullableText(value: string | null | undefined): string | null {
+	if (typeof value !== 'string') return null
+	const trimmed = value.trim()
+	return trimmed === '' ? null : value
+}
+
 function buildSavePayload(article: LocalArticleDocument, options: { includeStatus?: boolean } = {}) {
 	return {
 		title: article.title,
-		subtitle: article.subtitle,
+		subtitle: nullableText(article.subtitle),
 		slug: article.slug,
 		...(options.includeStatus ? { status: article.status } : {}),
-		seoTitle: article.seoTitle,
-		seoDescription: article.seoDescription,
-		excerpt: article.excerpt,
+		seoTitle: nullableText(article.seoTitle),
+		seoDescription: nullableText(article.seoDescription),
+		excerpt: nullableText(article.excerpt),
 		coverImage: article.coverImage ?? null,
 		contentJson: article.contentJson,
 		tags: article.tags ?? [],
-		...(typeof article.featuredRank === 'number' ? { featuredRank: article.featuredRank } : {}),
-		...(article.featuredUntil ? { featuredUntil: article.featuredUntil } : {})
+		section: article.section ?? null,
+		displayDate: article.displayDate ?? null,
+		spotlight: article.spotlight ?? false,
+		brandByline: article.brandByline ?? false,
+		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
+		featuredUntil: article.featuredUntil ? article.featuredUntil : null
 	}
 }
 
@@ -65,7 +85,12 @@ async function parseResponse<T>(response: Response | null): Promise<T> {
 			data && typeof data === 'object' && typeof data.error === 'string'
 				? data.error
 				: response.statusText || 'Article request failed'
-		throw new ArticleApiError(message, response.status)
+		const details = data && typeof data === 'object' ? data.details : null
+		const validationErrors =
+			details && typeof details === 'object' && Array.isArray(details.errors)
+				? (details.errors as ArticleApiValidationError[])
+				: undefined
+		throw new ArticleApiError(message, response.status, validationErrors)
 	}
 	return data as T
 }
@@ -83,7 +108,8 @@ export async function listArticles(
 		tags?: string[]
 		entityType?: string
 		entitySlug?: string
-		sort?: 'featured' | 'newest'
+		section?: ArticleSection
+		sort?: 'featured' | 'newest' | 'displayDate'
 	} = {},
 	fetchFn: FetchLike = fetch
 ): Promise<ArticleListResponse> {
@@ -94,8 +120,32 @@ export async function listArticles(
 	appendSearchParam(search, 'tags', params.tags?.join(','))
 	appendSearchParam(search, 'entityType', params.entityType)
 	appendSearchParam(search, 'entitySlug', params.entitySlug)
+	appendSearchParam(search, 'section', params.section)
 	appendSearchParam(search, 'sort', params.sort)
 	return parseResponse(await fetchFn(articleUrl(`/articles?${search}`)))
+}
+
+export type ArticleSectionListResponse = {
+	sections: { section: ArticleSection; items: ArticleDocument[] }[]
+}
+
+export type ArticleSpotlightResponse = {
+	items: ArticleDocument[]
+}
+
+export async function listArticleSections(
+	perSection = 6,
+	fetchFn: FetchLike = fetch
+): Promise<ArticleSectionListResponse> {
+	const search = new URLSearchParams()
+	appendSearchParam(search, 'perSection', perSection)
+	return parseResponse(await fetchFn(articleUrl(`/articles/sections?${search}`)))
+}
+
+export async function listSpotlightArticles(limit = 6, fetchFn: FetchLike = fetch): Promise<ArticleSpotlightResponse> {
+	const search = new URLSearchParams()
+	appendSearchParam(search, 'limit', limit)
+	return parseResponse(await fetchFn(articleUrl(`/articles/spotlight?${search}`)))
 }
 
 export async function getArticleBySlug(slug: string, fetchFn: FetchLike = fetch): Promise<ArticleDocument | null> {
@@ -339,4 +389,74 @@ export async function transferOwnership(
 		})
 	)
 	return data.article
+}
+
+export async function listBanners(authorizedFetch: AuthorizedFetch): Promise<Banner[]> {
+	const data = await parseResponse<{ banners: Banner[] }>(await authorizedFetch(articleUrl('/banners')))
+	return data.banners
+}
+
+export async function getBanner(id: string, authorizedFetch: AuthorizedFetch): Promise<Banner> {
+	const data = await parseResponse<{ banner: Banner }>(
+		await authorizedFetch(articleUrl(`/banners/${encodeURIComponent(id)}`))
+	)
+	return data.banner
+}
+
+export async function createBanner(payload: BannerPayload, authorizedFetch: AuthorizedFetch): Promise<Banner> {
+	const data = await parseResponse<{ banner: Banner }>(
+		await authorizedFetch(articleUrl('/banners'), {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		})
+	)
+	return data.banner
+}
+
+export async function updateBanner(
+	id: string,
+	payload: Partial<BannerPayload>,
+	authorizedFetch: AuthorizedFetch
+): Promise<Banner> {
+	const data = await parseResponse<{ banner: Banner }>(
+		await authorizedFetch(articleUrl(`/banners/${encodeURIComponent(id)}`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(payload)
+		})
+	)
+	return data.banner
+}
+
+export async function deleteBanner(id: string, authorizedFetch: AuthorizedFetch): Promise<void> {
+	await parseResponse(
+		await authorizedFetch(articleUrl(`/banners/${encodeURIComponent(id)}`), {
+			method: 'DELETE'
+		})
+	)
+}
+
+export async function getLandingBanner(authorizedFetch: AuthorizedFetch): Promise<Banner | null> {
+	const data = await parseResponse<{ banner: Banner | null }>(
+		await authorizedFetch(articleUrl('/banners/lookup/landing'))
+	)
+	return data.banner
+}
+
+export async function getSectionBanner(
+	section: ArticleSection,
+	authorizedFetch: AuthorizedFetch
+): Promise<Banner | null> {
+	const data = await parseResponse<{ banner: Banner | null }>(
+		await authorizedFetch(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
+	)
+	return data.banner
+}
+
+export async function getArticleBanner(articleId: string, authorizedFetch: AuthorizedFetch): Promise<Banner | null> {
+	const data = await parseResponse<{ banner: Banner | null }>(
+		await authorizedFetch(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
+	)
+	return data.banner
 }

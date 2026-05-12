@@ -4,9 +4,16 @@ import { useRouter } from 'next/router'
 import { ArticleApiError, getAuthorBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_SLUGS, type ArticleDocument } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+
+function articleHref(article: ArticleDocument) {
+	if (article.section) {
+		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
+	}
+	return '/research'
+}
 
 function formatDate(value: string | null) {
 	if (!value) return ''
@@ -194,7 +201,7 @@ function AuthorContent({ slug }: { slug: string }) {
 					{lead ? (
 						<section>
 							<Link
-								href={`/research/${lead.slug}`}
+								href={articleHref(lead)}
 								className="group grid overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-colors hover:border-(--link-text)/40 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)]"
 							>
 								<div className="order-2 grid content-start gap-3 p-6 md:order-1 md:p-8">
@@ -245,7 +252,7 @@ function AuthorContent({ slug }: { slug: string }) {
 											{formatShort(article.publishedAt)}
 										</div>
 										{article.coverImage?.url ? (
-											<Link href={`/research/${article.slug}`} className="block">
+											<Link href={articleHref(article)} className="block">
 												<img
 													src={article.coverImage.url}
 													alt=""
@@ -260,7 +267,7 @@ function AuthorContent({ slug }: { slug: string }) {
 												aria-hidden
 											/>
 										)}
-										<Link href={`/research/${article.slug}`} className="group grid gap-1.5">
+										<Link href={articleHref(article)} className="group grid gap-1.5">
 											<h3 className="text-base leading-tight font-semibold text-(--text-primary) transition-colors group-hover:text-(--link-text) md:text-lg">
 												{article.title}
 											</h3>

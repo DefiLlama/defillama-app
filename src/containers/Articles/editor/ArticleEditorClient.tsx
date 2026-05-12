@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import {
 	addCollaborator,
 	ArticleApiError,
@@ -24,9 +25,22 @@ import {
 	updateCollaborator
 } from '../api'
 import { validateArticleChartConfig } from '../chartAdapters'
-import { applyPendingToLocalArticle, createEmptyLocalArticle, normalizeLocalArticleDocument } from '../document'
+import {
+	applyPendingToLocalArticle,
+	createEmptyLocalArticle,
+	isDraftPlaceholderSlug,
+	normalizeLocalArticleDocument,
+	validateLocalArticleForPublish
+} from '../document'
 import { ResearchLoader } from '../ResearchLoader'
-import type { ArticleCalloutTone, ArticleChartConfig, ArticleEmbedConfig, LocalArticleDocument } from '../types'
+import type {
+	ArticleCalloutTone,
+	ArticleChartConfig,
+	ArticleEmbedConfig,
+	ArticleSection,
+	LocalArticleDocument
+} from '../types'
+import { ARTICLE_SECTIONS, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '../types'
 import { ImageUploadButton } from '../upload/ImageUploadButton'
 import { type UploadResult, useImageUpload } from '../upload/useImageUpload'
 import { ArticleChartPickerDialog } from './ArticleChartPicker'
@@ -98,6 +112,13 @@ function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: strin
 					<path d="M14 11a4 4 0 0 0-5.5 0l-3 3a4 4 0 0 0 5.5 5.5l1.5-1.5" />
 				</svg>
 			)
+		case 'pencil':
+			return (
+				<svg {...props}>
+					<path d="M14 4l6 6-10 10H4v-6z" />
+					<line x1="13" y1="5" x2="19" y2="11" />
+				</svg>
+			)
 		case 'plus':
 			return (
 				<svg {...props}>
@@ -116,6 +137,15 @@ function Icon({ name, className = 'h-4 w-4' }: { name: string; className?: strin
 				<svg {...props}>
 					<line x1="6" y1="6" x2="18" y2="18" />
 					<line x1="6" y1="18" x2="18" y2="6" />
+				</svg>
+			)
+		case 'trash':
+			return (
+				<svg {...props}>
+					<polyline points="3 6 5 6 21 6" />
+					<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+					<line x1="10" y1="11" x2="10" y2="17" />
+					<line x1="14" y1="11" x2="14" y2="17" />
 				</svg>
 			)
 		case 'external':
@@ -377,6 +407,20 @@ function TableRailButton({ label, onClick, children }: { label: string; onClick:
 	)
 }
 
+const SAFE_LINK_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:'])
+
+function sanitizeLinkHref(raw: string): string | null {
+	const value = raw.trim()
+	if (!value) return null
+	if (value.startsWith('#') || value.startsWith('/') || value.startsWith('?')) return value
+	const schemeMatch = value.match(/^([a-z][a-z0-9+.-]*):/i)
+	if (schemeMatch) {
+		const scheme = (schemeMatch[1] + ':').toLowerCase()
+		return SAFE_LINK_SCHEMES.has(scheme) ? value : null
+	}
+	return `https://${value}`
+}
+
 function TableControlsOverlay({ editor }: { editor: Editor }) {
 	const [target, setTarget] = useState<HTMLElement | null>(null)
 	const [rect, setRect] = useState<DOMRect | null>(null)
@@ -510,8 +554,29 @@ function slugFromTitle(title: string) {
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, '-')
 			.replace(/^-+|-+$/g, '')
-			.slice(0, 120) || 'local-article'
+			.slice(0, 120) || 'untitled'
 	)
+}
+
+function toDateTimeLocal(iso: string | null | undefined): string {
+	if (!iso) return ''
+	const date = new Date(iso)
+	if (Number.isNaN(date.getTime())) return ''
+	const pad = (n: number) => n.toString().padStart(2, '0')
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function fromDateTimeLocal(value: string): string | null {
+	if (!value) return null
+	const date = new Date(value)
+	return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+function formatArticleDate(iso: string | null | undefined): string {
+	if (!iso) return ''
+	const date = new Date(iso)
+	if (Number.isNaN(date.getTime())) return ''
+	return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 function formatRelative(iso: string | null | undefined) {
@@ -534,6 +599,7 @@ type EditorFlags = {
 	code: boolean
 	highlight: boolean
 	link: boolean
+	entityLink: boolean
 	h2: boolean
 	h3: boolean
 	bulletList: boolean
@@ -553,6 +619,7 @@ const EMPTY_FLAGS: EditorFlags = {
 	code: false,
 	highlight: false,
 	link: false,
+	entityLink: false,
 	h2: false,
 	h3: false,
 	bulletList: false,
@@ -578,6 +645,7 @@ function useEditorFlags(editor: Editor | null): EditorFlags {
 							code: e.isActive('code'),
 							highlight: e.isActive('highlight'),
 							link: e.isActive('link'),
+							entityLink: e.isActive('entityLink'),
 							h2: e.isActive('heading', { level: 2 }),
 							h3: e.isActive('heading', { level: 3 }),
 							bulletList: e.isActive('bulletList'),
@@ -595,6 +663,36 @@ function useEditorFlags(editor: Editor | null): EditorFlags {
 				return ka.every((k) => a[k] === b[k])
 			}
 		}) ?? EMPTY_FLAGS
+	)
+}
+
+type ActiveEntityLink = {
+	entityType: string | null
+	slug: string | null
+	label: string | null
+	route: string | null
+}
+
+function useActiveEntityLink(editor: Editor | null): ActiveEntityLink | null {
+	return (
+		useEditorState({
+			editor,
+			selector: ({ editor: e }) => {
+				if (!e || !e.isActive('entityLink')) return null
+				const a = e.getAttributes('entityLink')
+				return {
+					entityType: (a.entityType as string | null) ?? null,
+					slug: (a.slug as string | null) ?? null,
+					label: (a.label as string | null) ?? null,
+					route: (a.route as string | null) ?? null
+				}
+			},
+			equalityFn: (a, b) => {
+				if (!a && !b) return true
+				if (!a || !b) return false
+				return a.entityType === b.entityType && a.slug === b.slug && a.route === b.route && a.label === b.label
+			}
+		}) ?? null
 	)
 }
 
@@ -629,6 +727,70 @@ function MetaSection({ title, children }: { title: string; children: ReactNode }
 	)
 }
 
+function MetaSwitch({
+	checked,
+	onCheckedChange,
+	label,
+	description,
+	disabled
+}: {
+	checked: boolean
+	onCheckedChange: (next: boolean) => void
+	label: string
+	description?: string
+	disabled?: boolean
+}) {
+	return (
+		<label
+			className={`group flex items-start justify-between gap-4 rounded-md border border-transparent px-3 py-2.5 transition-colors hover:border-(--cards-border) hover:bg-(--app-bg)/40 ${
+				disabled ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+			}`}
+		>
+			<span className="grid min-w-0 gap-0.5">
+				<span className="text-sm font-medium text-(--text-primary)">{label}</span>
+				{description ? <span className="text-[11px] leading-snug text-(--text-tertiary)">{description}</span> : null}
+			</span>
+			<Ariakit.Checkbox
+				checked={checked}
+				onChange={(event) => onCheckedChange(event.currentTarget.checked)}
+				disabled={disabled}
+				render={(props) => (
+					<button
+						{...props}
+						type="button"
+						role="switch"
+						aria-checked={checked}
+						className={`relative mt-0.5 inline-flex h-[18px] w-8 shrink-0 items-center rounded-full border transition-colors focus-visible:ring-2 focus-visible:ring-(--link-text)/40 focus-visible:ring-offset-1 focus-visible:ring-offset-(--cards-bg) focus-visible:outline-none ${
+							checked
+								? 'border-(--link-text)/60 bg-(--link-text)'
+								: 'border-(--cards-border) bg-(--app-bg) group-hover:border-(--text-tertiary)'
+						}`}
+					>
+						<span
+							className={`absolute top-1/2 inline-block h-3 w-3 -translate-y-1/2 rounded-full shadow-sm transition-all duration-200 ease-out ${
+								checked ? 'left-[15px] bg-white' : 'left-[2px] bg-(--text-tertiary) group-hover:bg-(--text-secondary)'
+							}`}
+						/>
+					</button>
+				)}
+			/>
+		</label>
+	)
+}
+
+function MetaFieldHint({ children, error }: { children?: ReactNode; error?: string | null }) {
+	if (error) {
+		return (
+			<span className="flex items-center gap-1.5 text-[11px] text-red-500">
+				<span aria-hidden className="inline-block h-1 w-1 rounded-full bg-red-500" />
+				{error}
+			</span>
+		)
+	}
+	if (!children) return null
+	return <span className="text-[11px] leading-snug text-(--text-tertiary)">{children}</span>
+}
+
 export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const router = useRouter()
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
@@ -655,6 +817,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const embedDialog = Ariakit.useDialogStore()
 	const peoplePanelDialog = Ariakit.useDialogStore()
 	const metaDialog = Ariakit.useDialogStore()
+	const deleteDialog = Ariakit.useDialogStore()
+	const coverDetailsDialog = Ariakit.useDialogStore()
 	const [editingChart, setEditingChart] = useState<{ config: ArticleChartConfig; pos: number } | null>(null)
 	const [editingEmbed, setEditingEmbed] = useState<{ config: ArticleEmbedConfig; pos: number } | null>(null)
 	const [editingPanel, setEditingPanel] = useState<{ config: ArticlePeoplePanelConfig; pos: number } | null>(null)
@@ -663,6 +827,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	const [slugDraft, setSlugDraft] = useState('')
 	const [collaboratorEmail, setCollaboratorEmail] = useState('')
 	const [collaboratorError, setCollaboratorError] = useState<string | null>(null)
+	const [publishErrors, setPublishErrors] = useState<Record<string, string>>({})
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const autoCreatingRef = useRef(false)
 	const hydratedArticleIdRef = useRef<string | null>(null)
@@ -674,6 +839,12 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		scope: 'article-inline',
 		articleId: article.id ?? null
 	})
+	const { uploadWithToast: uploadCoverImage, isUploading: isUploadingCover } = useImageUpload({
+		scope: 'article-cover',
+		articleId: article.id ?? null
+	})
+	const coverFileInputRef = useRef<HTMLInputElement>(null)
+	const [coverHovered, setCoverHovered] = useState(false)
 
 	const uploadInlineImage = useCallback<ArticleImageUploadFn>(
 		(file: File): Promise<UploadResult> => {
@@ -722,6 +893,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 	})
 
 	const flags = useEditorFlags(editor)
+	const activeEntity = useActiveEntityLink(editor)
 	const ownedArticleQueryKey = articleQueryKey(articleId)
 	const ownedArticleQuery = useQuery({
 		queryKey: ownedArticleQueryKey,
@@ -781,7 +953,10 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		hydratedArticleIdRef.current = ownedArticleQuery.data.id
 		const merged = applyPendingToLocalArticle(ownedArticleQuery.data, ownedArticleQuery.data.pending)
 		setArticle(merged)
-		editor.commands.setContent(merged.contentJson, { emitUpdate: false })
+		queueMicrotask(() => {
+			if (editor.isDestroyed) return
+			editor.commands.setContent(merged.contentJson, { emitUpdate: false })
+		})
 		setIsDirty(false)
 		setSaveError(false)
 		const text = merged.plainText || ''
@@ -802,7 +977,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setArticle((current) => ({
 				...current,
 				[key]: value,
-				...(key === 'title' && current.slug === 'local-article' ? { slug: slugFromTitle(String(value)) } : {})
+				...(key === 'title' && isDraftPlaceholderSlug(current.slug) ? { slug: slugFromTitle(String(value)) } : {})
 			}))
 			setIsDirty(true)
 			scheduleAutosave()
@@ -872,17 +1047,44 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		const url = raw.trim()
 		if (url === '') {
 			editor.chain().focus().extendMarkRange('link').unsetLink().run()
-		} else {
-			const href = /^[a-z]+:|^\//i.test(url) ? url : `https://${url}`
-			editor
-				.chain()
-				.focus()
-				.extendMarkRange('link')
-				.setLink({ href, target: newTab ? '_blank' : '_self' })
-				.run()
+			setLinkEdit(null)
+			return
 		}
+		const href = sanitizeLinkHref(url)
+		if (!href) {
+			toast.error('That link is not allowed')
+			return
+		}
+		editor
+			.chain()
+			.focus()
+			.extendMarkRange('link')
+			.setLink({ href, target: newTab ? '_blank' : '_self' })
+			.run()
 		setLinkEdit(null)
 	}
+
+	const unsetActiveEntityLink = useCallback(() => {
+		if (!editor) return
+		editor.chain().focus().extendMarkRange('entityLink').unsetEntityLink().run()
+	}, [editor])
+
+	const openActiveEntityLink = useCallback(() => {
+		if (!activeEntity?.route) return
+		window.open(activeEntity.route, '_blank', 'noopener,noreferrer')
+	}, [activeEntity?.route])
+
+	const changeActiveEntityLink = useCallback(() => {
+		if (!editor) return
+		const label = activeEntity?.label ?? ''
+		editor
+			.chain()
+			.focus()
+			.extendMarkRange('entityLink')
+			.deleteSelection()
+			.insertContent(' @' + label)
+			.run()
+	}, [editor, activeEntity?.label])
 
 	const beginSlugEdit = useCallback(() => {
 		setSlugDraft(article.slug)
@@ -931,6 +1133,28 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		window.addEventListener('beforeunload', handler)
 		return () => window.removeEventListener('beforeunload', handler)
 	}, [isDirty])
+
+	useEffect(() => {
+		const hasInflight = () => isSaving || createArticleMutation.isPending
+		const handler = (nextUrl: string) => {
+			if (nextUrl === router.asPath) return
+			if (debounceRef.current) {
+				clearTimeout(debounceRef.current)
+				debounceRef.current = null
+				void saveRef.current({ silent: true })
+			}
+			if (!isDirty && !hasInflight()) return
+			const message = hasInflight()
+				? 'A save is still in progress. Leave anyway?'
+				: 'You have unsaved changes. Leave anyway?'
+			if (typeof window !== 'undefined' && !window.confirm(message)) {
+				router.events.emit('routeChangeError', new Error('routeChange aborted'), nextUrl, { shallow: false })
+				throw 'routeChange aborted to preserve unsaved changes'
+			}
+		}
+		router.events.on('routeChangeStart', handler)
+		return () => router.events.off('routeChangeStart', handler)
+	}, [isDirty, isSaving, createArticleMutation.isPending, router])
 
 	useEffect(() => {
 		return () => {
@@ -1152,11 +1376,18 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		}
 	}, [isDirty])
 
-	const handlePublish = async () => {
+	const handlePublish = async (): Promise<boolean> => {
 		if (!article.id) {
 			toast.error('Save the draft before publishing')
-			return
+			return false
 		}
+		const localErrors = validateLocalArticleForPublish(article)
+		if (localErrors.length > 0) {
+			setPublishErrors(Object.fromEntries(localErrors.map((e) => [e.field, e.message])))
+			toast.error('Fix required fields before publishing')
+			return false
+		}
+		setPublishErrors({})
 		try {
 			await flushPendingSave()
 			const saved = await publishMutation.mutateAsync(article.id)
@@ -1164,8 +1395,15 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 			setArticle(merged)
 			setSavedAt(merged.updatedAt)
 			toast.success(article.status === 'published' ? 'Update published' : 'Published')
+			return true
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : 'Failed to publish')
+			if (error instanceof ArticleApiError && error.validationErrors?.length) {
+				setPublishErrors(Object.fromEntries(error.validationErrors.map((e) => [e.field, e.message])))
+				toast.error(error.message)
+			} else {
+				toast.error(error instanceof Error ? error.message : 'Failed to publish')
+			}
+			return false
 		}
 	}
 
@@ -1219,10 +1457,42 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		[editor]
 	)
 
-	const handleDeleteArticle = async () => {
+	const handleCoverFile = async (file: File | null | undefined) => {
+		if (!file) return
+		try {
+			const result = await uploadCoverImage(file)
+			updateArticle('coverImage', {
+				...(article.coverImage ?? {}),
+				url: result.url,
+				alt: article.coverImage?.alt || article.title
+			})
+		} catch {
+			// surfaced via toast
+		} finally {
+			if (coverFileInputRef.current) coverFileInputRef.current.value = ''
+		}
+	}
+
+	const openCoverPicker = () => coverFileInputRef.current?.click()
+
+	const updateCoverField = (key: 'headline' | 'caption' | 'credit' | 'copyright', value: string) => {
+		if (!article.coverImage) return
+		updateArticle('coverImage', {
+			...article.coverImage,
+			[key]: value
+		})
+	}
+
+	const handleDeleteArticle = () => {
 		if (!article.id) return
-		if (!confirm('Delete this draft? This cannot be undone.')) return
-		deleteArticleMutation.mutate(article.id)
+		deleteDialog.show()
+	}
+
+	const confirmDeleteArticle = () => {
+		if (!article.id) return
+		deleteArticleMutation.mutate(article.id, {
+			onSettled: () => deleteDialog.hide()
+		})
 	}
 
 	const isOwner = article.viewerRole === 'owner'
@@ -1419,11 +1689,14 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				return 'bg-(--text-tertiary)/50'
 		}
 	})()
+	const articleViewHref = article.section
+		? `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
+		: '/research'
 
 	return (
 		<div className="article-editor-shell relative mx-auto w-full max-w-[760px] animate-fadein px-4 pb-32 sm:px-6">
 			<header
-				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 ${
+				className={`mb-8 flex flex-wrap items-center justify-between gap-3 border-b py-4 lg:-mx-[80px] lg:px-2 xl:-mx-[170px] xl:px-4 ${
 					isPublished ? 'border-emerald-500/25' : 'border-(--cards-border)'
 				}`}
 			>
@@ -1457,7 +1730,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							type="button"
 							onClick={beginSlugEdit}
 							title="Click to edit slug"
-							className="group flex max-w-[32ch] items-center gap-1 truncate rounded px-1 py-0.5 font-jetbrains text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+							className={`group flex ${
+								hasPendingEdits ? 'max-w-[18ch] sm:max-w-[24ch] lg:max-w-[32ch]' : 'max-w-[24ch] sm:max-w-[32ch]'
+							} items-center gap-1 truncate rounded px-1 py-0.5 font-jetbrains text-xs tracking-tight text-(--text-secondary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)`}
 						>
 							<span className="truncate">{article.slug}</span>
 							<span aria-hidden className="text-(--text-tertiary) opacity-0 transition-opacity group-hover:opacity-100">
@@ -1495,7 +1770,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						title={pillState === 'error' ? 'Click to retry. Cmd/Ctrl+S also saves.' : 'Cmd/Ctrl+S to save'}
 						disabled={pillState === 'saving' || pillState === 'idle'}
 						onClick={() => void saveArticle()}
-						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors disabled:cursor-default sm:flex ${
+						className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 font-jetbrains text-[11px] tracking-tight transition-colors disabled:cursor-default ${
+							hasPendingEdits ? 'lg:flex' : 'sm:flex'
+						} ${
 							pillState === 'error'
 								? 'border-red-500/40 bg-red-500/5 text-red-500 hover:bg-red-500/10'
 								: pillState === 'unsaved'
@@ -1582,7 +1859,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									<Ariakit.MenuItem
 										render={
 											<Link
-												href={`/research/${article.slug}`}
+												href={articleViewHref}
 												target="_blank"
 												rel="noreferrer"
 												className="flex items-center justify-between rounded px-2.5 py-1.5 text-xs text-(--text-secondary) data-[active-item]:bg-(--link-button) data-[active-item]:text-(--link-text)"
@@ -1624,7 +1901,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 												onClick={handleDeleteArticle}
 												className="flex items-center gap-2 rounded px-2.5 py-1.5 text-xs text-red-500 data-[active-item]:bg-red-500/10"
 											>
-												<Icon name="x" className="h-3.5 w-3.5" />
+												<Icon name="trash" className="h-3.5 w-3.5" />
 												Delete
 											</Ariakit.MenuItem>
 										</>
@@ -1634,15 +1911,39 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						</>
 					) : article.id ? (
 						<>
-							<Link
-								href={`/research/${article.slug}`}
-								target="_blank"
-								rel="noreferrer"
-								className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
-							>
-								<Icon name="eye" className="h-3.5 w-3.5" />
-								<span>Preview</span>
-							</Link>
+							{article.section ? (
+								<Link
+									href={articleViewHref}
+									target="_blank"
+									rel="noreferrer"
+									className="flex h-9 items-center gap-1.5 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+								>
+									<Icon name="eye" className="h-3.5 w-3.5" />
+									<span>Preview</span>
+								</Link>
+							) : (
+								<button
+									type="button"
+									onClick={() => metaDialog.show()}
+									title="Set a section to preview this draft"
+									className="flex h-9 items-center gap-1.5 rounded-md border border-dashed border-(--cards-border) bg-transparent px-3 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-secondary)"
+								>
+									<Icon name="eye" className="h-3.5 w-3.5" />
+									<span>Set section to preview</span>
+								</button>
+							)}
+							{isOwner ? (
+								<button
+									type="button"
+									aria-label="Delete draft"
+									title="Delete draft"
+									disabled={deleteArticleMutation.isPending}
+									onClick={handleDeleteArticle}
+									className="flex h-9 w-9 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+								>
+									<Icon name="trash" className="h-3.5 w-3.5" />
+								</button>
+							) : null}
 							<button
 								type="button"
 								disabled={isPublishing}
@@ -1684,6 +1985,128 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				) : null}
 			</div>
 
+			<div className="mt-5 mb-4">
+				<input
+					ref={coverFileInputRef}
+					type="file"
+					accept="image/png,image/jpeg,image/webp,image/gif"
+					className="sr-only"
+					onChange={(e) => handleCoverFile(e.target.files?.[0])}
+				/>
+				{article.coverImage?.url ? (
+					<figure className="grid gap-2">
+						<div
+							className="group relative aspect-[700/400] w-full overflow-hidden rounded-md border border-(--cards-border)"
+							onMouseEnter={() => setCoverHovered(true)}
+							onMouseLeave={() => setCoverHovered(false)}
+						>
+							{/* eslint-disable-next-line @next/next/no-img-element */}
+							<img
+								src={article.coverImage.url}
+								alt={article.coverImage.alt || article.title || ''}
+								className="block h-full w-full object-cover"
+							/>
+							<div
+								className={`pointer-events-none absolute inset-0 flex items-end justify-end gap-2 bg-gradient-to-t from-black/55 via-black/10 to-transparent p-3 transition-opacity ${
+									coverHovered || isUploadingCover ? 'opacity-100' : 'opacity-0'
+								}`}
+							>
+								<button
+									type="button"
+									onClick={() => coverDetailsDialog.show()}
+									className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-md border border-white/30 bg-black/40 px-2.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/55"
+								>
+									<Icon name="pencil" className="h-3.5 w-3.5" />
+									<span>Edit details</span>
+								</button>
+								<button
+									type="button"
+									disabled={isUploadingCover}
+									onClick={openCoverPicker}
+									className="pointer-events-auto flex h-8 items-center gap-1.5 rounded-md border border-white/30 bg-black/40 px-2.5 text-xs font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/55 disabled:cursor-not-allowed disabled:opacity-60"
+								>
+									{isUploadingCover ? 'Uploading…' : 'Replace'}
+								</button>
+								<button
+									type="button"
+									disabled={isUploadingCover}
+									aria-label="Remove cover"
+									title="Remove cover"
+									onClick={() => updateArticle('coverImage', null)}
+									className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-md border border-white/30 bg-black/40 text-white backdrop-blur-sm transition-colors hover:border-red-400/60 hover:bg-red-500/70 disabled:cursor-not-allowed disabled:opacity-60"
+								>
+									<Icon name="trash" className="h-3.5 w-3.5" />
+								</button>
+							</div>
+						</div>
+						{(() => {
+							const headline = (article.coverImage.headline ?? '').trim()
+							const caption = (article.coverImage.caption ?? '').trim()
+							const credit = (article.coverImage.credit ?? '').trim()
+							const copyright = (article.coverImage.copyright ?? '').trim()
+							const metaParts = [credit ? `Credit: ${credit}` : '', copyright ? `© ${copyright}` : ''].filter(Boolean)
+							const hasAny = headline || caption || metaParts.length > 0
+							if (!hasAny) {
+								return (
+									<button
+										type="button"
+										onClick={() => coverDetailsDialog.show()}
+										className="flex items-center gap-1.5 self-start rounded-md border border-dashed border-(--cards-border) px-2.5 py-1 text-[11px] font-medium text-(--text-tertiary) transition-colors hover:border-(--link-text)/40 hover:text-(--text-primary)"
+									>
+										<Icon name="plus" className="h-3 w-3" />
+										<span>Add caption & credits</span>
+									</button>
+								)
+							}
+							return (
+								<figcaption className="group/cap flex items-start justify-between gap-3">
+									<div className="grid gap-0.5 text-xs">
+										{headline ? <span className="font-medium text-(--text-secondary)">{headline}</span> : null}
+										{caption ? <span className="text-(--text-tertiary)">{caption}</span> : null}
+										{metaParts.length > 0 ? (
+											<span className="text-(--text-tertiary)/75">{metaParts.join(' · ')}</span>
+										) : null}
+									</div>
+									<button
+										type="button"
+										onClick={() => coverDetailsDialog.show()}
+										aria-label="Edit cover details"
+										title="Edit cover details"
+										className="shrink-0 rounded-md p-1.5 text-(--text-tertiary) opacity-0 transition-opacity group-hover/cap:opacity-100 hover:bg-(--link-hover-bg) hover:text-(--text-primary) focus-visible:opacity-100"
+									>
+										<Icon name="pencil" className="h-3.5 w-3.5" />
+									</button>
+								</figcaption>
+							)
+						})()}
+					</figure>
+				) : (
+					<button
+						type="button"
+						disabled={isUploadingCover}
+						onClick={openCoverPicker}
+						className="group flex aspect-[700/400] w-full flex-col items-center justify-center gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--app-bg) text-(--text-tertiary) transition-colors hover:border-(--link-text)/50 hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						<svg
+							viewBox="0 0 24 24"
+							className="h-6 w-6"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="1.5"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
+							<rect x="3" y="3" width="18" height="18" rx="2" />
+							<circle cx="9" cy="9" r="2" />
+							<path d="m21 15-4.586-4.586a2 2 0 0 0-2.828 0L3 21" />
+						</svg>
+						<span className="text-sm font-medium">{isUploadingCover ? 'Uploading…' : 'Add cover image'}</span>
+						<span className="text-[11px] text-(--text-tertiary)/80">PNG, JPEG, WebP, or GIF · up to 8 MB</span>
+					</button>
+				)}
+				{publishErrors.coverImage ? <p className="mt-2 text-xs text-red-500">{publishErrors.coverImage}</p> : null}
+			</div>
+
 			<div className="article-editor-canvas relative mt-2">
 				<EditorContent editor={editor} />
 
@@ -1693,8 +2116,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						options={{ placement: 'top' }}
 						shouldShow={({ editor: e, from, to, state }) => {
 							if (linkEdit) return true
-							if (from === to) return false
 							if (!e.isEditable) return false
+							if (e.isActive('entityLink') && e.isFocused) return true
+							if (from === to) return false
 							let blocked = false
 							state.doc.nodesBetween(from, to, (n) => {
 								if (
@@ -1777,6 +2201,66 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 										</a>
 									) : null}
 								</form>
+							) : flags.entityLink && activeEntity ? (
+								<div className="flex items-center gap-1">
+									<span className="flex items-center gap-2 px-2 py-1">
+										{activeEntity.slug ? (
+											<span className="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded-full border border-(--cards-border) bg-(--app-bg)">
+												<img
+													src={
+														activeEntity.entityType === 'chain'
+															? chainIconUrl(activeEntity.slug)
+															: tokenIconUrl(activeEntity.slug)
+													}
+													alt=""
+													className="h-full w-full object-cover"
+													onError={(e) => {
+														e.currentTarget.style.visibility = 'hidden'
+													}}
+												/>
+											</span>
+										) : null}
+										<span className="max-w-[160px] truncate text-sm font-medium text-(--text-primary)">
+											{activeEntity.label || activeEntity.slug || 'Entity'}
+										</span>
+										<span className="font-jetbrains text-[9px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											{activeEntity.entityType ?? ''}
+										</span>
+									</span>
+									<span aria-hidden className="mx-0.5 h-4 w-px bg-(--cards-border)" />
+									<button
+										type="button"
+										aria-label="Change entity"
+										title="Change entity"
+										onClick={changeActiveEntityLink}
+										className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-secondary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+									>
+										<Icon name="pencil" className="h-3 w-3" />
+										<span>Change</span>
+									</button>
+									<button
+										type="button"
+										aria-label="Unlink entity"
+										title="Unlink entity"
+										onClick={unsetActiveEntityLink}
+										className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+									>
+										<Icon name="x" className="h-3 w-3" />
+										<span>Unlink</span>
+									</button>
+									{activeEntity.route ? (
+										<button
+											type="button"
+											aria-label="Open entity"
+											title="Open entity in new tab"
+											onClick={openActiveEntityLink}
+											className="flex h-7 items-center gap-1 rounded-md px-2 font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)"
+										>
+											<Icon name="external" className="h-3 w-3" />
+											<span>Open</span>
+										</button>
+									) : null}
+								</div>
 							) : (
 								<>
 									{markButtons.map((b) => (
@@ -2134,6 +2618,132 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				</div>
 
 				<div className="mt-6 grid gap-6">
+					<MetaSection title="Section">
+						<div className="grid gap-1.5">
+							<Ariakit.SelectProvider
+								value={article.section ?? ''}
+								setValue={(v) => {
+									const next = typeof v === 'string' ? v : Array.isArray(v) ? v[0] : ''
+									updateArticle('section', (next || null) as ArticleSection | null)
+								}}
+							>
+								<Ariakit.Select
+									aria-label="Article section"
+									className={`flex h-10 items-center justify-between gap-2 rounded-md border bg-(--app-bg) px-3 text-sm transition-colors focus-visible:border-(--link-text) focus-visible:outline-none data-[state=open]:border-(--link-text) ${
+										publishErrors.section
+											? 'border-red-500/60 text-(--text-primary)'
+											: article.section
+												? 'border-(--form-control-border) text-(--text-primary) hover:border-(--text-tertiary)'
+												: 'border-(--form-control-border) text-(--text-tertiary) hover:border-(--text-tertiary)'
+									}`}
+								>
+									<span className="truncate text-left">
+										{article.section ? ARTICLE_SECTION_LABELS[article.section] : 'Select a section…'}
+									</span>
+									<Ariakit.SelectArrow className="shrink-0 text-(--text-tertiary)" />
+								</Ariakit.Select>
+								<Ariakit.SelectPopover
+									gutter={6}
+									sameWidth
+									portal
+									unmountOnHide
+									className="z-[90] flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) py-1 text-sm shadow-xl outline-none"
+								>
+									{ARTICLE_SECTIONS.map((section) => (
+										<Ariakit.SelectItem
+											key={section}
+											value={section}
+											className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 text-(--text-secondary) data-active-item:bg-(--link-button) data-active-item:text-(--link-text)"
+										>
+											<span className="truncate">{ARTICLE_SECTION_LABELS[section]}</span>
+											<Ariakit.SelectItemCheck className="shrink-0 text-(--link-text)" />
+										</Ariakit.SelectItem>
+									))}
+								</Ariakit.SelectPopover>
+							</Ariakit.SelectProvider>
+							<MetaFieldHint error={publishErrors.section}>
+								Required. Drives the URL path:{' '}
+								<span className="font-jetbrains text-(--text-secondary)">
+									/research/{article.section ?? '…'}/{article.slug || '…'}
+								</span>
+							</MetaFieldHint>
+						</div>
+					</MetaSection>
+
+					<MetaSection title="Publishing">
+						<label className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Display date</span>
+								<button
+									type="button"
+									onClick={() => updateArticle('displayDate', new Date().toISOString())}
+									className="font-jetbrains text-[10px] tracking-[0.16em] text-(--text-tertiary) uppercase transition-colors hover:text-(--link-text)"
+								>
+									Set to now
+								</button>
+							</span>
+							<input
+								type="datetime-local"
+								value={toDateTimeLocal(article.displayDate)}
+								onChange={(event) => updateArticle('displayDate', fromDateTimeLocal(event.target.value))}
+								onClick={(event) => {
+									const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
+									input.showPicker?.()
+								}}
+								onFocus={(event) => {
+									const input = event.currentTarget as HTMLInputElement & { showPicker?: () => void }
+									input.showPicker?.()
+								}}
+								className={`cursor-pointer rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors focus:outline-none ${
+									publishErrors.displayDate
+										? 'border-red-500/60 focus:border-red-500'
+										: 'border-(--form-control-border) focus:border-(--link-text)'
+								}`}
+							/>
+							<MetaFieldHint error={publishErrors.displayDate}>
+								Shown on cards and the article header. Defaults to publish time.
+							</MetaFieldHint>
+						</label>
+						{article.firstPublishedAt || article.lastPublishedAt ? (
+							<div className="grid gap-1 rounded-md border border-(--cards-border) bg-(--app-bg)/50 px-3 py-2.5">
+								{article.firstPublishedAt ? (
+									<div className="flex items-baseline justify-between gap-3">
+										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											First publish
+										</span>
+										<span className="font-jetbrains text-[11px] text-(--text-secondary) tabular-nums">
+											{formatArticleDate(article.firstPublishedAt)}
+										</span>
+									</div>
+								) : null}
+								{article.lastPublishedAt ? (
+									<div className="flex items-baseline justify-between gap-3">
+										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											Last publish
+										</span>
+										<span className="font-jetbrains text-[11px] text-(--text-secondary) tabular-nums">
+											{formatArticleDate(article.lastPublishedAt)}
+										</span>
+									</div>
+								) : null}
+							</div>
+						) : null}
+						<div className="-mx-3 grid">
+							<MetaSwitch
+								checked={article.spotlight === true}
+								onCheckedChange={(next) => updateArticle('spotlight', next)}
+								label="Spotlight"
+								description="Featured in the Spotlight widget on /research."
+							/>
+							<MetaSwitch
+								checked={article.brandByline === true}
+								onCheckedChange={(next) => updateArticle('brandByline', next)}
+								label="Publish as DefiLlama Research"
+								description="Replaces the per-user byline with the institutional name and emits Organization JSON-LD."
+							/>
+						</div>
+					</MetaSection>
+
 					<MetaSection title="URL">
 						<div className="grid gap-1.5">
 							<div className="flex items-stretch gap-1.5">
@@ -2166,7 +2776,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								})()}
 							</div>
 							<span className="truncate font-jetbrains text-[10px] text-(--text-tertiary)">
-								defillama.com/research/<span className="text-(--text-secondary)">{article.slug}</span>
+								defillama.com/research/{article.section ? `${ARTICLE_SECTION_SLUGS[article.section]}/` : ''}
+								<span className="text-(--text-secondary)">{article.slug}</span>
 							</span>
 						</div>
 					</MetaSection>
@@ -2191,8 +2802,13 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
 						</label>
-						<label className="grid gap-1.5">
-							<span className="text-xs text-(--text-secondary)">Tags</span>
+						<div className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Topics</span>
+								<span className="font-jetbrains text-[10px] text-(--text-tertiary) tabular-nums">
+									{(article.tags ?? []).length}/12
+								</span>
+							</span>
 							<input
 								value={(article.tags ?? []).join(', ')}
 								onChange={(event) =>
@@ -2205,9 +2821,48 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 									)
 								}
 								placeholder="stablecoins, lending, ethereum"
-								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+								className={`rounded-md border bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors placeholder:text-(--text-tertiary) focus:outline-none ${
+									publishErrors.tags
+										? 'border-red-500/60 focus:border-red-500'
+										: 'border-(--form-control-border) focus:border-(--link-text)'
+								}`}
 							/>
-						</label>
+							{(() => {
+								const current = new Set((article.tags ?? []).map((t) => t.toLowerCase()))
+								const suggestions = (article.entities ?? [])
+									.map((e) => e.label || e.slug)
+									.filter((label) => label && !current.has(label.toLowerCase()))
+									.slice(0, 8)
+								if (suggestions.length === 0) return null
+								return (
+									<div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+										<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+											From content
+										</span>
+										{suggestions.map((label) => (
+											<button
+												key={label}
+												type="button"
+												onClick={() => {
+													const next = Array.from(new Set([...(article.tags ?? []), label]))
+													updateArticle('tags', next.slice(0, 12))
+												}}
+												className="group inline-flex items-center gap-1 rounded-full border border-(--cards-border) bg-(--app-bg) px-2 py-0.5 text-[11px] text-(--text-secondary) transition-colors hover:border-(--link-text)/50 hover:bg-(--link-button) hover:text-(--link-text)"
+											>
+												<span
+													aria-hidden
+													className="text-(--text-tertiary) transition-colors group-hover:text-(--link-text)"
+												>
+													+
+												</span>
+												{label}
+											</button>
+										))}
+									</div>
+								)
+							})()}
+							<MetaFieldHint error={publishErrors.tags} />
+						</div>
 					</MetaSection>
 
 					<MetaSection title="Search & social">
@@ -2225,6 +2880,9 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								maxLength={120}
 								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
 							/>
+							<span className="text-[11px] text-(--text-tertiary)">
+								Used for the &lt;title&gt; tag. When set, also drives the URL slug if you haven't edited it manually.
+							</span>
 						</label>
 						<label className="grid gap-1.5">
 							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
@@ -2346,86 +3004,6 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							<span className="text-[11px] text-(--text-tertiary)">Only the owner can manage authors.</span>
 						) : null}
 					</MetaSection>
-
-					<MetaSection title="Cover">
-						<ImageUploadButton
-							scope="article-cover"
-							articleId={articleId}
-							currentUrl={article.coverImage?.url ?? null}
-							onUploaded={(result) =>
-								updateArticle('coverImage', {
-									...(article.coverImage ?? {}),
-									url: result.url,
-									alt: article.coverImage?.alt || article.title
-								})
-							}
-							onCleared={() => updateArticle('coverImage', null)}
-							label="cover image"
-							helperText="PNG, JPEG, WebP, or GIF · up to 8 MB"
-						/>
-						{article.coverImage ? (
-							<div className="mt-3 grid gap-2">
-								<label className="grid gap-1">
-									<span className="text-[11px] text-(--text-tertiary)">Headline</span>
-									<input
-										value={article.coverImage.headline ?? ''}
-										onChange={(event) =>
-											updateArticle('coverImage', {
-												...article.coverImage!,
-												headline: event.target.value
-											})
-										}
-										placeholder="Image title"
-										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-									/>
-								</label>
-								<label className="grid gap-1">
-									<span className="text-[11px] text-(--text-tertiary)">Caption</span>
-									<input
-										value={article.coverImage.caption ?? ''}
-										onChange={(event) =>
-											updateArticle('coverImage', {
-												...article.coverImage!,
-												caption: event.target.value
-											})
-										}
-										placeholder="Caption shown under the cover"
-										className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-									/>
-								</label>
-								<div className="grid grid-cols-2 gap-2">
-									<label className="grid gap-1">
-										<span className="text-[11px] text-(--text-tertiary)">Credit</span>
-										<input
-											value={article.coverImage.credit ?? ''}
-											onChange={(event) =>
-												updateArticle('coverImage', {
-													...article.coverImage!,
-													credit: event.target.value
-												})
-											}
-											placeholder="Photographer"
-											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-										/>
-									</label>
-									<label className="grid gap-1">
-										<span className="text-[11px] text-(--text-tertiary)">Copyright</span>
-										<input
-											value={article.coverImage.copyright ?? ''}
-											onChange={(event) =>
-												updateArticle('coverImage', {
-													...article.coverImage!,
-													copyright: event.target.value
-												})
-											}
-											placeholder="Rights holder"
-											className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
-										/>
-									</label>
-								</div>
-							</div>
-						) : null}
-					</MetaSection>
 				</div>
 
 				<div className="mt-auto grid gap-2 border-t border-(--cards-border) pt-4">
@@ -2435,8 +3013,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 								type="button"
 								disabled={isPublishing || isDiscarding}
 								onClick={async () => {
-									await handlePublish()
-									metaDialog.hide()
+									const ok = await handlePublish()
+									if (ok) metaDialog.hide()
 								}}
 								className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
 							>
@@ -2461,8 +3039,8 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 							disabled={isPublishing || !article.id}
 							onClick={async () => {
 								if (isDirty) await saveArticle()
-								await handlePublish()
-								metaDialog.hide()
+								const ok = await handlePublish()
+								if (ok) metaDialog.hide()
 							}}
 							className="flex h-10 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white shadow-[0_4px_12px_-4px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
 						>
@@ -2475,6 +3053,134 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 						className="text-xs text-(--text-tertiary) transition-colors hover:text-(--text-primary)"
 					>
 						{isPublished ? 'Cancel' : 'Keep editing'}
+					</button>
+				</div>
+			</Ariakit.Dialog>
+
+			<Ariakit.Dialog
+				store={coverDetailsDialog}
+				backdrop={
+					<div className="fixed inset-0 z-40 bg-black/40 opacity-0 backdrop-blur-sm transition-opacity duration-150 data-[enter]:opacity-100 data-[leave]:opacity-0" />
+				}
+				className="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5 opacity-0 shadow-2xl transition-opacity duration-150 data-[enter]:opacity-100"
+			>
+				<div className="mb-4 flex items-start justify-between gap-3">
+					<div className="grid gap-1">
+						<Ariakit.DialogHeading className="text-base font-semibold tracking-tight text-(--text-primary)">
+							Cover details
+						</Ariakit.DialogHeading>
+						<p className="text-xs text-(--text-tertiary)">Optional captions and attribution shown below the cover.</p>
+					</div>
+					<Ariakit.DialogDismiss
+						aria-label="Close"
+						className="rounded-md p-1.5 text-(--text-secondary) hover:bg-(--link-hover-bg)"
+					>
+						<Icon name="x" className="h-4 w-4" />
+					</Ariakit.DialogDismiss>
+				</div>
+
+				<div className="grid gap-3">
+					<label className="grid gap-1">
+						<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Headline</span>
+						<input
+							value={article.coverImage?.headline ?? ''}
+							onChange={(e) => updateCoverField('headline', e.target.value)}
+							placeholder="Image title"
+							className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+						/>
+					</label>
+					<label className="grid gap-1">
+						<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Caption</span>
+						<input
+							value={article.coverImage?.caption ?? ''}
+							onChange={(e) => updateCoverField('caption', e.target.value)}
+							placeholder="Caption shown under the cover"
+							className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+						/>
+						{publishErrors['coverImage.caption'] ? (
+							<span className="text-[11px] text-red-500">{publishErrors['coverImage.caption']}</span>
+						) : null}
+					</label>
+					<div className="grid grid-cols-2 gap-2">
+						<label className="grid gap-1">
+							<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Credit</span>
+							<input
+								value={article.coverImage?.credit ?? ''}
+								onChange={(e) => updateCoverField('credit', e.target.value)}
+								placeholder="Photographer"
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+							{publishErrors['coverImage.credit'] ? (
+								<span className="text-[11px] text-red-500">{publishErrors['coverImage.credit']}</span>
+							) : null}
+						</label>
+						<label className="grid gap-1">
+							<span className="text-[11px] font-medium tracking-wide text-(--text-tertiary) uppercase">Copyright</span>
+							<input
+								value={article.coverImage?.copyright ?? ''}
+								onChange={(e) => updateCoverField('copyright', e.target.value)}
+								placeholder="Rights holder"
+								className="rounded-md border border-(--form-control-border) bg-(--app-bg) px-2.5 py-1.5 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+							{publishErrors['coverImage.copyright'] ? (
+								<span className="text-[11px] text-red-500">{publishErrors['coverImage.copyright']}</span>
+							) : null}
+						</label>
+					</div>
+				</div>
+
+				<div className="mt-5 flex justify-end">
+					<Ariakit.DialogDismiss className="flex h-9 items-center rounded-md bg-(--link-text) px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90">
+						Done
+					</Ariakit.DialogDismiss>
+				</div>
+			</Ariakit.Dialog>
+
+			<Ariakit.Dialog
+				store={deleteDialog}
+				backdrop={
+					<div className="fixed inset-0 z-40 bg-black/40 opacity-0 backdrop-blur-sm transition-opacity duration-150 data-[enter]:opacity-100 data-[leave]:opacity-0" />
+				}
+				className="fixed top-1/2 left-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-5 opacity-0 shadow-2xl transition-opacity duration-150 data-[enter]:opacity-100"
+			>
+				<div className="flex items-start gap-3">
+					<div
+						aria-hidden
+						className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-500"
+					>
+						<Icon name="trash" className="h-4 w-4" />
+					</div>
+					<div className="grid gap-1">
+						<Ariakit.DialogHeading className="text-base font-semibold tracking-tight text-(--text-primary)">
+							{isPublished ? 'Delete this article?' : 'Delete this draft?'}
+						</Ariakit.DialogHeading>
+						<Ariakit.DialogDescription className="text-sm text-(--text-secondary)">
+							{article.title ? (
+								<>
+									<span className="font-medium text-(--text-primary)">{article.title}</span> will be permanently
+									removed. This cannot be undone.
+								</>
+							) : (
+								<>This will be permanently removed. This cannot be undone.</>
+							)}
+						</Ariakit.DialogDescription>
+					</div>
+				</div>
+				<div className="mt-5 flex justify-end gap-2">
+					<Ariakit.DialogDismiss
+						disabled={deleteArticleMutation.isPending}
+						className="flex h-9 items-center rounded-md border border-(--cards-border) bg-transparent px-3 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50"
+					>
+						Cancel
+					</Ariakit.DialogDismiss>
+					<button
+						type="button"
+						onClick={confirmDeleteArticle}
+						disabled={deleteArticleMutation.isPending}
+						className="flex h-9 items-center gap-1.5 rounded-md bg-red-600 px-3.5 text-xs font-medium text-white shadow-[0_4px_12px_-4px_rgba(220,38,38,0.45)] transition-colors hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						<Icon name="trash" className="h-3.5 w-3.5" />
+						<span>{deleteArticleMutation.isPending ? 'Deleting…' : 'Delete'}</span>
 					</button>
 				</div>
 			</Ariakit.Dialog>
