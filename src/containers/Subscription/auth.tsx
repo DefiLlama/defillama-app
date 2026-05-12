@@ -1,10 +1,11 @@
 import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { RecordAuthResponse } from 'pocketbase'
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { getReferrer } from '~/containers/Subscription/referrer'
 import { clearSignupSource, getSignupSource } from '~/containers/Subscription/signupSource'
+import { VerifyEmailDialog } from '~/containers/Subscription/VerifyEmailDialog'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
 
@@ -166,7 +167,8 @@ interface AuthContextType {
 	addWallet: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
 	resetPasswordMutation: UseMutationResult<void, Error, string>
 	changeEmail: (email: string) => void
-	resendVerification: (email: string) => void
+	sendOtp: () => Promise<void>
+	verifyOtp: (otp: string) => Promise<void>
 	addEmail: (email: string) => Promise<void>
 	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
@@ -179,7 +181,8 @@ interface AuthContextType {
 		logout: boolean
 		addWallet: boolean
 		changeEmail: boolean
-		resendVerification: boolean
+		sendOtp: boolean
+		verifyOtp: boolean
 		addEmail: boolean
 		setPromotionalEmails: boolean
 		userLoading: boolean
@@ -191,6 +194,7 @@ const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	// Use useSyncExternalStore to listen to authStore changes
 	const authStoreState = useSyncExternalStore(subscribeToAuthStore, getAuthStoreSnapshot, getServerSnapshot)
+	const [verifyEmailPrompt, setVerifyEmailPrompt] = useState<{ isOpen: boolean; email?: string }>({ isOpen: false })
 
 	// Derive isAuthenticated from authStoreState
 	const isAuthenticated = authStoreState.isValid && !!authStoreState.token
@@ -291,7 +295,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					source: getSignupSource(),
 					referrer: getReferrer(),
 					turnstile_token: turnstileToken,
-					promotionalEmails
+					promotionalEmails,
+					sendVerificationEmail: false
 				})
 			})
 
@@ -302,11 +307,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 			const { token } = await response.json()
 			pb.authStore.save(token)
+			try {
+				await pb.collection('users').authRefresh()
+			} catch (error) {
+				console.log('Error refreshing auth after signup:', error)
+			}
 		},
-		onSuccess: () => {
+		onSuccess: (_data, variables) => {
 			clearSignupSource()
 			sessionStorage.setItem('just_signed_up', 'true')
-			toast.success('Account created! Please check your email to verify your account.', { duration: 5000 })
+			toast.success('Account created!', { duration: 3000 })
+			setVerifyEmailPrompt({ isOpen: true, email: variables.email })
 		},
 		onError: (error: any) => {
 			if (error?.error === 'User with this email already exists') {
@@ -569,19 +580,57 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		}
 	})
 
-	const resendVerification = useMutation({
-		mutationFn: async (email: string) => {
+	const sendOtpMutation = useMutation({
+		mutationFn: async () => {
 			if (!pb.authStore.isValid) {
 				throw new Error('User not authenticated')
 			}
-
-			await pb.collection('users').requestVerification(email)
-
-			toast.success('Verification email sent')
-			return true
+			const response = await fetch(`${AUTH_SERVER}/sendOtp`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				}
+			})
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to send verification code'))
+			})
 		},
-		onError: () => {
-			toast.error('Failed to send verification email. Please try again.')
+		onSuccess: () => {
+			toast.success('Verification code sent')
+		},
+		onError: (error: any) => {
+			toast.error(getUserFacingErrorMessage(error, 'Failed to send verification code'))
+		}
+	})
+
+	const verifyOtpMutation = useMutation({
+		mutationFn: async (otp: string) => {
+			if (!pb.authStore.isValid) {
+				throw new Error('User not authenticated')
+			}
+			const response = await fetch(`${AUTH_SERVER}/verifyOtp`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ otp })
+			})
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Invalid or expired code'))
+			})
+		},
+		onSuccess: async () => {
+			try {
+				await pb.collection('users').authRefresh()
+			} catch (error) {
+				console.log('Error refreshing auth after OTP verification:', error)
+			}
+			toast.success('Email verified')
+		},
+		onError: (error: any) => {
+			toast.error(getUserFacingErrorMessage(error, 'Invalid or expired code'))
 		}
 	})
 
@@ -679,7 +728,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		addWallet,
 		resetPasswordMutation,
 		changeEmail: changeEmail.mutate,
-		resendVerification: resendVerification.mutate,
+		sendOtp: sendOtpMutation.mutateAsync,
+		verifyOtp: verifyOtpMutation.mutateAsync,
 		addEmail: addEmail.mutateAsync,
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
@@ -691,14 +741,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			logout: logoutMutation.isPending,
 			addWallet: addWalletMutation.isPending,
 			changeEmail: changeEmail.isPending,
-			resendVerification: resendVerification.isPending,
+			sendOtp: sendOtpMutation.isPending,
+			verifyOtp: verifyOtpMutation.isPending,
 			addEmail: addEmail.isPending,
 			setPromotionalEmails: setPromotionalEmails.isPending,
 			userLoading
 		}
 	}
 
-	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
+	return (
+		<AuthContext.Provider value={contextValue}>
+			{children}
+			<VerifyEmailDialog
+				isOpen={verifyEmailPrompt.isOpen}
+				email={verifyEmailPrompt.email}
+				onClose={() => setVerifyEmailPrompt({ isOpen: false })}
+			/>
+		</AuthContext.Provider>
+	)
 }
 
 export const useAuthContext = () => {
