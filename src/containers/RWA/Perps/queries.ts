@@ -210,11 +210,11 @@ function toVenueDetailLink(venue: string) {
 	return `/rwa/perps/venue/${rwaSlug(venue)}`
 }
 
-function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
+export function sumProtocolFees24h(markets: IRWAPerpsMarket[]) {
 	return markets.reduce((sum, market) => sum + safeNumber(market.estimatedProtocolFees24h), 0)
 }
 
-function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' | 'volume24h') {
+export function sumMarketMetric(markets: IRWAPerpsMarket[], key: 'openInterest' | 'volume24h') {
 	return markets.reduce((sum, market) => sum + safeNumber(market[key]), 0)
 }
 
@@ -270,14 +270,14 @@ function getAggregateMarketChange24h(
 	return getPercentChange(comparableCurrent, comparablePrevious)
 }
 
-function getAggregateOpenInterestChange24h(markets: IRWAPerpsMarket[]): number | null {
+export function getAggregateOpenInterestChange24h(markets: IRWAPerpsMarket[]): number | null {
 	return getAggregateMarketChange24h(markets, {
 		valueKey: 'openInterest',
 		changeKey: 'openInterestChange24h'
 	})
 }
 
-function getAggregateVolume24hChange24h(markets: IRWAPerpsMarket[]): number | null {
+export function getAggregateVolume24hChange24h(markets: IRWAPerpsMarket[]): number | null {
 	return getAggregateMarketChange24h(markets, {
 		valueKey: 'volume24h',
 		changeKey: 'volume24hChange24h'

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
+import { Switch } from '~/components/Switch'
 import type {
 	IHBarChartProps,
 	IMultiSeriesChart2Props,
@@ -26,7 +27,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
-import { pushShallowQuery } from '~/utils/routerQuery'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import {
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsBreakdownLabel,
@@ -53,8 +54,12 @@ import {
 	buildRWAPerpsOverviewSnapshotBreakdownTotals,
 	buildRWAPerpsVenueSnapshotBreakdownTotals,
 	appendRWAPerpsTimeSeriesDatasetTotal,
+	getAggregateOpenInterestChange24h,
+	getAggregateVolume24hChange24h,
 	groupRWAPerpsTimeSeriesDataset,
-	hasEnoughTimeSeriesHistory
+	hasEnoughTimeSeriesHistory,
+	sumMarketMetric,
+	sumProtocolFees24h
 } from './queries'
 import { buildRWAPerpsTreemapTreeData } from './treemap'
 import type {
@@ -81,8 +86,9 @@ const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as 
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
 const PIE_CHART_RADIUS = ['50%', '70%'] as [string, string]
 const MAX_HORIZONTAL_BARS = 9
+const FOREX_ASSET_CLASS = 'Forex Perps'
 
-type RWAPerpsDashboardProps =
+type RWAPerpsDashboardProps = (
 	| {
 			mode: 'overview'
 			data: IRWAPerpsOverviewPageData
@@ -95,6 +101,10 @@ type RWAPerpsDashboardProps =
 			mode: 'assetGroup'
 			data: IRWAPerpsAssetGroupPageData
 	  }
+) & {
+	/** When set, restricts rendered markets/totals to the matching `assetClass[0]`. Used by the dedicated Forex page. */
+	assetClassFilter?: string
+}
 
 const overviewColumnHelper = createColumnHelper<IRWAPerpsOverviewPageData['markets'][number]>()
 const venueColumnHelper = createColumnHelper<IRWAPerpsVenuePageData['markets'][number]>()
@@ -900,7 +910,37 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const isOverviewMode = props.mode === 'overview'
 	const isVenueMode = props.mode === 'venue'
 	const isAssetGroupMode = props.mode === 'assetGroup'
-	const currentRows = props.data.markets
+	const assetClassFilter = props.assetClassFilter
+	const showForexToggle = isOverviewMode && assetClassFilter == null
+	const includeForex = showForexToggle ? isTrueQueryParam(router.query.includeForex) : true
+	const currentRows = useMemo(() => {
+		if (assetClassFilter != null) {
+			return props.data.markets.filter((market) => market.assetClass?.[0] === assetClassFilter)
+		}
+		if (showForexToggle && !includeForex) {
+			return props.data.markets.filter((market) => market.assetClass?.[0] !== FOREX_ASSET_CLASS)
+		}
+		return props.data.markets
+	}, [assetClassFilter, includeForex, props.data.markets, showForexToggle])
+	const isRowsFiltered = currentRows !== props.data.markets
+	const computedTotals = useMemo(
+		() =>
+			isRowsFiltered
+				? {
+						openInterest: sumMarketMetric(currentRows, 'openInterest'),
+						openInterestChange24h: getAggregateOpenInterestChange24h(currentRows),
+						volume24h: sumMarketMetric(currentRows, 'volume24h'),
+						volume24hChange24h: getAggregateVolume24hChange24h(currentRows),
+						markets: currentRows.length,
+						protocolFees24h: sumProtocolFees24h(currentRows)
+					}
+				: null,
+		[currentRows, isRowsFiltered]
+	)
+	const displayTotals = computedTotals ?? props.data.totals
+	const onToggleIncludeForex = () => {
+		void pushShallowQuery(router, { includeForex: includeForex ? undefined : 'true' })
+	}
 	const initialChartDataset = props.data.initialChartDataset
 	const venueLabel = isVenueMode ? props.data.venue : undefined
 	const targetQueryValue = isVenueMode ? props.data.venue : isAssetGroupMode ? props.data.assetGroup : 'all'
@@ -1130,52 +1170,52 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				{
 					label: d.totalOpenInterest.label,
 					tooltip: d.totalOpenInterest.description,
-					value: formattedNum(props.data.totals.openInterest, true),
-					change: props.data.totals.openInterestChange24h,
+					value: formattedNum(displayTotals.openInterest, true),
+					change: displayTotals.openInterestChange24h,
 					changeTooltip: d.openInterestChange24h.description
 				},
 				{
 					label: d.totalVolume24h.label,
 					tooltip: d.totalVolume24h.description,
-					value: formattedNum(props.data.totals.volume24h, true),
-					change: props.data.totals.volume24hChange24h,
+					value: formattedNum(displayTotals.volume24h, true),
+					change: displayTotals.volume24hChange24h,
 					changeTooltip: d.volume24hChange24h.description
 				},
 				{
 					label: d.totalMarkets.label,
 					tooltip: d.totalMarkets.description,
-					value: formattedNum(props.data.totals.markets, false)
+					value: formattedNum(displayTotals.markets, false)
 				},
 				{
 					label: d.estimatedProtocolFees24h.label,
 					tooltip: d.estimatedProtocolFees24h.description,
-					value: formattedNum(props.data.totals.protocolFees24h, true)
+					value: formattedNum(displayTotals.protocolFees24h, true)
 				}
 			]
 		: [
 				{
 					label: d.openInterest.label,
 					tooltip: d.openInterest.description,
-					value: formattedNum(props.data.totals.openInterest, true),
-					change: props.data.totals.openInterestChange24h,
+					value: formattedNum(displayTotals.openInterest, true),
+					change: displayTotals.openInterestChange24h,
 					changeTooltip: d.openInterestChange24h.description
 				},
 				{
 					label: d.volume24h.label,
 					tooltip: d.volume24h.description,
-					value: formattedNum(props.data.totals.volume24h, true),
-					change: props.data.totals.volume24hChange24h,
+					value: formattedNum(displayTotals.volume24h, true),
+					change: displayTotals.volume24hChange24h,
 					changeTooltip: d.volume24hChange24h.description
 				},
 				{
 					label: d.markets.label,
 					tooltip: d.markets.description,
-					value: formattedNum(props.data.totals.markets, false)
+					value: formattedNum(displayTotals.markets, false)
 				},
 				{
 					label: d.estimatedProtocolFees24h.label,
 					tooltip: d.estimatedProtocolFees24h.description,
-					value: formattedNum(props.data.totals.protocolFees24h, true)
+					value: formattedNum(displayTotals.protocolFees24h, true)
 				}
 			]
 
@@ -1185,6 +1225,17 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				<RowLinksWithDropdown links={props.data.venueLinks} activeLink={props.data.venue} />
 			) : isAssetGroupMode ? (
 				<RowLinksWithDropdown links={props.data.assetGroupLinks} activeLink={props.data.assetGroup} />
+			) : null}
+			{showForexToggle ? (
+				<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<Switch
+						label="Forex Perps"
+						value="includeForex"
+						checked={includeForex}
+						help="Include forex-pair perps in markets, totals, and snapshot charts. Time-series chart still aggregates all markets."
+						onChange={onToggleIncludeForex}
+					/>
+				</div>
 			) : null}
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				{statCards.map((card) => (
