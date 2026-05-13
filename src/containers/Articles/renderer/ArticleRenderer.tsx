@@ -1,6 +1,6 @@
 import { common, createLowlight } from 'lowlight'
 import Link from 'next/link'
-import { createElement, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createElement, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { validateArticleChartConfig } from '../chartAdapters'
 import { validateArticlePeoplePanel } from '../editor/peoplePanel'
@@ -18,6 +18,8 @@ import type {
 import { ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '../types'
 import { ArticleChartBlock } from './ArticleChartBlock'
 import { ArticleEmbedBlock } from './ArticleEmbedBlock'
+import { ArticleImageBanner } from './ArticleImageBanner'
+import { ArticleImageBannerHorizontal } from './ArticleImageBannerHorizontal'
 import { ArticleImageBlock } from './ArticleImageBlock'
 import { ArticlePeoplePanelBlock } from './ArticlePeoplePanelBlock'
 import { EntityPreviewLink } from './EntityPreviewLink'
@@ -57,6 +59,16 @@ function headingSlug(text: string) {
 			.replace(/-+/g, '-')
 			.replace(/^-|-$/g, '') || 'section'
 	)
+}
+
+function horizontalBannerSlot(articleId: string, blockCount: number): number {
+	if (blockCount < 2) return blockCount
+	let hash = 0
+	for (let i = 0; i < articleId.length; i++) {
+		hash = ((hash << 5) - hash + articleId.charCodeAt(i)) | 0
+	}
+	const maxSlot = Math.min(3, blockCount)
+	return (Math.abs(hash) % maxSlot) + 1
 }
 
 type HastNode =
@@ -477,10 +489,106 @@ function ActivePill() {
 	)
 }
 
-function ArticleToc({ toc }: { toc: TocEntry[] }) {
+function useReadingProgress() {
+	const [progress, setProgress] = useState(0)
+	useEffect(() => {
+		if (typeof window === 'undefined') return
+		let raf = 0
+		const update = () => {
+			const doc = document.documentElement
+			const max = doc.scrollHeight - window.innerHeight
+			const next = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+			setProgress(next)
+		}
+		const onScroll = () => {
+			cancelAnimationFrame(raf)
+			raf = requestAnimationFrame(update)
+		}
+		update()
+		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener('resize', onScroll)
+		return () => {
+			cancelAnimationFrame(raf)
+			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener('resize', onScroll)
+		}
+	}, [])
+	return progress
+}
+
+function CompactTocBar({ toc, groups, active }: { toc: TocEntry[]; groups: TocGroup[]; active: string | null }) {
+	const progress = useReadingProgress()
+	const currentGroupIndex = useMemo(() => {
+		if (!active) return 0
+		const idx = groups.findIndex((g) => g.id === active || g.children.some((c) => c.id === active))
+		return idx < 0 ? 0 : idx
+	}, [active, groups])
+	const currentEntry = useMemo(() => {
+		if (!active) return groups[0] ?? toc[0] ?? null
+		return toc.find((t) => t.id === active) ?? groups[currentGroupIndex] ?? toc[0] ?? null
+	}, [active, toc, groups, currentGroupIndex])
+	const totalGroups = Math.max(groups.length, 1)
+	const displayNumber = String(Math.min(currentGroupIndex + 1, totalGroups)).padStart(2, '0')
+	const displayTotal = String(totalGroups).padStart(2, '0')
+	const pct = Math.round(progress * 100)
+
+	const onJumpToTop = () => {
+		if (typeof window === 'undefined') return
+		window.scrollTo({ top: 0, behavior: 'smooth' })
+	}
+
+	return (
+		<button
+			type="button"
+			onClick={onJumpToTop}
+			aria-label={`Currently reading: ${currentEntry?.text ?? 'article'}. Return to top of article.`}
+			className="group relative flex w-full flex-col gap-3 border-y border-(--cards-border) py-3.5 text-left transition-colors hover:bg-(--cards-bg)/40 focus-visible:ring-1 focus-visible:ring-(--link-text)/60 focus-visible:outline-none"
+		>
+			<div className="flex items-center justify-between gap-3">
+				<span className="text-[10px] leading-none font-semibold tracking-[0.18em] text-(--text-tertiary) uppercase">
+					On this page
+				</span>
+				<span className="flex items-center gap-1 text-[10px] leading-none font-medium tracking-[0.12em] text-(--text-tertiary) uppercase transition-colors group-hover:text-(--link-text)">
+					<span>Top</span>
+					<Icon name="arrow-up" className="h-3 w-3" />
+				</span>
+			</div>
+			<div className="flex items-baseline gap-3">
+				<span className="font-jetbrains text-[11px] leading-none tracking-tight text-(--text-tertiary) tabular-nums">
+					{displayNumber}
+					<span className="text-(--text-tertiary)/50">/{displayTotal}</span>
+				</span>
+				<span className="min-w-0 flex-1 truncate text-[15px] leading-6 font-bold text-(--text-primary)">
+					{currentEntry?.text ?? '—'}
+				</span>
+			</div>
+			<div className="relative h-px w-full bg-(--cards-border)">
+				<span
+					aria-hidden
+					className="absolute inset-y-0 left-0 bg-(--link-text) transition-[width] duration-300 ease-out"
+					style={{ width: `${pct}%` }}
+				/>
+			</div>
+		</button>
+	)
+}
+
+function ArticleToc({ toc, compactMode = false }: { toc: TocEntry[]; compactMode?: boolean }) {
 	const [active, setActive] = useActiveHeading(toc)
 	const groups = useMemo(() => groupToc(toc), [toc])
 	const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set(groups.map((g) => g.id)))
+	const prevCompactRef = useRef(compactMode)
+
+	useEffect(() => {
+		if (prevCompactRef.current && !compactMode) {
+			setCollapsed(new Set(groups.map((g) => g.id)))
+		}
+		prevCompactRef.current = compactMode
+	}, [compactMode, groups])
+
+	if (compactMode) {
+		return <CompactTocBar toc={toc} groups={groups} active={active} />
+	}
 
 	const toggle = (id: string) => {
 		setCollapsed((prev) => {
@@ -490,18 +598,6 @@ function ArticleToc({ toc }: { toc: TocEntry[] }) {
 			return next
 		})
 	}
-
-	useEffect(() => {
-		if (!active) return
-		setCollapsed((prev) => {
-			if (prev.size === 0) return prev
-			const parent = groups.find((g) => g.id === active || g.children.some((c) => c.id === active))
-			if (!parent || !prev.has(parent.id)) return prev
-			const next = new Set(prev)
-			next.delete(parent.id)
-			return next
-		})
-	}, [active, groups])
 
 	return (
 		<nav aria-label="On this page" className="grid">
@@ -668,6 +764,30 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 		}
 	}, [article.slug, article.section])
 
+	const sentinelRef = useRef<HTMLDivElement>(null)
+	const [pastHeader, setPastHeader] = useState(false)
+	useEffect(() => {
+		const el = sentinelRef.current
+		if (!el || typeof window === 'undefined') return
+		let raf = 0
+		const update = () => {
+			const top = el.getBoundingClientRect().top
+			setPastHeader(top < 24)
+		}
+		const onScroll = () => {
+			cancelAnimationFrame(raf)
+			raf = requestAnimationFrame(update)
+		}
+		update()
+		window.addEventListener('scroll', onScroll, { passive: true })
+		window.addEventListener('resize', onScroll)
+		return () => {
+			cancelAnimationFrame(raf)
+			window.removeEventListener('scroll', onScroll)
+			window.removeEventListener('resize', onScroll)
+		}
+	}, [])
+
 	const cover = article.coverImage ?? null
 	const coverHeadline = cover ? (cover.headline ?? '').trim() : ''
 	const coverCaption = cover ? (cover.caption ?? '').trim() : ''
@@ -803,22 +923,40 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 					</div>
 				) : null}
 
+				<div ref={sentinelRef} aria-hidden className="h-0 w-full" />
+
 				<div className="article-prose [overflow-wrap:anywhere] break-words">
 					<div className="prose max-w-none prose-neutral dark:prose-invert prose-headings:font-semibold prose-headings:tracking-tight prose-h1:mt-8 prose-h1:mb-3 prose-h2:mt-6 prose-h2:mb-2 prose-h2:text-2xl prose-h3:mt-5 prose-h3:mb-1.5 prose-h3:text-lg prose-h4:mt-4 prose-h4:mb-1.5 prose-h4:text-base prose-h5:mt-3 prose-h5:mb-1 prose-h5:text-sm prose-h6:mt-3 prose-h6:mb-1 prose-h6:text-sm prose-p:my-3 prose-p:leading-[1.65] prose-a:font-medium prose-a:text-(--link-text) prose-a:no-underline hover:prose-a:underline prose-blockquote:my-4 prose-blockquote:border-l-2 prose-blockquote:border-(--link-text) prose-blockquote:bg-transparent prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:text-(--text-secondary) prose-blockquote:not-italic prose-figure:my-4 prose-strong:text-(--text-primary) prose-code:rounded prose-code:bg-(--link-button) prose-code:px-1.5 prose-code:py-0.5 prose-code:text-[0.92em] prose-code:text-(--link-text) prose-code:before:hidden prose-code:after:hidden prose-pre:my-4 prose-pre:border prose-pre:border-(--cards-border) prose-pre:bg-(--cards-bg) prose-pre:text-(--text-primary) prose-ol:my-3 prose-ul:my-3 prose-li:my-1 prose-img:my-4 prose-hr:my-6 prose-hr:border-(--cards-border) [&_.article-table_p]:my-0 [&_.article-table_td]:border [&_.article-table_td]:border-(--cards-border) [&_.article-table_td]:px-3 [&_.article-table_td]:py-2 [&_.article-table_td]:align-top [&_.article-table_td]:text-(--text-secondary) [&_.article-table_th]:border [&_.article-table_th]:border-(--cards-border) [&_.article-table_th]:bg-(--app-bg) [&_.article-table_th]:px-3 [&_.article-table_th]:py-2 [&_.article-table_th]:text-left [&_.article-table_th]:font-semibold [&_.article-table_th]:text-(--text-primary) [&_:where(h1,h2,h3,h4,h5,h6):first-child]:mt-0 [&_li>p]:my-0 [&_li>p]:leading-[1.55]">
-						{renderNode(article.contentJson, 'article-root', ctx)}
+						{(() => {
+							const docContent = article.contentJson?.content ?? []
+							const nodes = docContent.map((child, idx) => renderNode(child, `article-root-${idx}`, ctx))
+							if (docContent.length === 0) return nodes
+							const slot = horizontalBannerSlot(article.id ?? '', docContent.length)
+							const banner = (
+								<ArticleImageBannerHorizontal
+									key="article-mobile-banner"
+									articleId={article.id ?? ''}
+									section={article.section ?? null}
+								/>
+							)
+							return [...nodes.slice(0, slot), banner, ...nodes.slice(slot)]
+						})()}
 					</div>
 				</div>
 			</article>
 
-			<aside className="hidden border-l border-(--cards-border) pt-10 pl-5 lg:block lg:min-h-[calc(100vh_-_7rem)]">
-				<div className="sticky top-24 flex flex-col gap-8 pb-6" style={{ height: 'calc(100vh - 7rem)' }}>
+			<aside className="hidden lg:sticky lg:top-6 lg:block lg:self-start">
+				<div className="flex flex-col gap-8 border-l border-(--cards-border) pt-10 pr-1 pb-6 pl-5">
 					{toc.length > 1 ? (
-						<div className="min-h-0 flex-1 overflow-y-auto pr-2 [scrollbar-color:var(--cards-border)_transparent] [scrollbar-width:thin]">
-							<ArticleToc toc={toc} />
+						<div className="pr-2">
+							<ArticleToc toc={toc} compactMode={pastHeader} />
 						</div>
 					) : null}
-					<div className="mt-auto shrink-0 pr-2">
+					<div className="pr-2">
 						<ShareBlock url={shareUrl} title={article.title} />
+					</div>
+					<div className="pr-2">
+						<ArticleImageBanner articleId={article.id} section={article.section ?? null} />
 					</div>
 				</div>
 			</aside>

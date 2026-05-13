@@ -5,68 +5,114 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import toast from 'react-hot-toast'
 import { ArticlePicker } from '~/containers/Articles/admin/ArticlePicker'
 import { ArticleApiError, createBanner, deleteBanner, updateBanner } from '~/containers/Articles/api'
-import type { ArticleSection, Banner, BannerPayload, BannerScope } from '~/containers/Articles/types'
+import type { ArticleSection, Banner, BannerKind, BannerPayload, BannerScope } from '~/containers/Articles/types'
 import {
 	ARTICLE_SECTIONS,
 	ARTICLE_SECTION_LABELS,
+	BANNER_KIND_DESCRIPTIONS,
+	BANNER_KIND_LABELS,
+	BANNER_KINDS,
 	BANNER_SCOPES,
 	BANNER_SCOPE_LABELS
 } from '~/containers/Articles/types'
+import { ImageUploadButton } from '~/containers/Articles/upload/ImageUploadButton'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
 const TEXT_MAX = 500
 const LINK_URL_MAX = 2000
 const LINK_LABEL_MAX = 64
+const IMAGE_ALT_MAX = 200
 
 type FormState = {
+	kind: BannerKind
 	scope: BannerScope
 	section: ArticleSection | ''
 	articleId: string | null
 	text: string
 	linkUrl: string
 	linkLabel: string
+	imageUrl: string
+	imageAlt: string
 	enabled: boolean
 }
 
 function bannerToForm(banner: Banner | null): FormState {
 	if (!banner) {
 		return {
+			kind: 'text',
 			scope: 'landing',
 			section: '',
 			articleId: null,
 			text: '',
 			linkUrl: '',
 			linkLabel: '',
+			imageUrl: '',
+			imageAlt: '',
 			enabled: true
 		}
 	}
 	return {
+		kind: banner.type,
 		scope: banner.scope,
 		section: banner.section ?? '',
 		articleId: banner.articleId,
-		text: banner.text,
+		text: banner.text ?? '',
 		linkUrl: banner.linkUrl ?? '',
 		linkLabel: banner.linkLabel ?? '',
+		imageUrl: banner.imageUrl ?? '',
+		imageAlt: banner.imageAlt ?? '',
 		enabled: banner.enabled
 	}
 }
 
 function buildPayload(state: FormState): BannerPayload {
-	return {
+	const linkUrl = state.linkUrl.trim() || null
+	const base: BannerPayload = {
+		type: state.kind,
 		scope: state.scope,
 		section: state.scope === 'section' ? (state.section as ArticleSection) : null,
 		articleId: state.scope === 'article' ? state.articleId : null,
-		text: state.text.trim(),
-		linkUrl: state.linkUrl.trim() ? state.linkUrl.trim() : null,
-		linkLabel: state.linkLabel.trim() ? state.linkLabel.trim() : null,
+		linkUrl,
 		enabled: state.enabled
+	}
+	if (state.kind === 'text') {
+		return {
+			...base,
+			text: state.text.trim(),
+			linkLabel: state.linkLabel.trim() || null,
+			imageUrl: null,
+			imageAlt: null
+		}
+	}
+	return {
+		...base,
+		text: null,
+		linkLabel: null,
+		imageUrl: state.imageUrl.trim(),
+		imageAlt: state.imageAlt.trim() || null
 	}
 }
 
-function validate(state: FormState) {
-	const errors: { text?: string; section?: string; articleId?: string; linkUrl?: string } = {}
-	if (!state.text.trim()) errors.text = 'Banner text is required'
-	if (state.text.length > TEXT_MAX) errors.text = `Max ${TEXT_MAX} characters`
+type FormErrors = {
+	text?: string
+	section?: string
+	articleId?: string
+	linkUrl?: string
+	imageUrl?: string
+	scope?: string
+}
+
+function validate(state: FormState): FormErrors {
+	const errors: FormErrors = {}
+	if (state.kind !== 'text' && state.scope === 'landing') {
+		errors.scope = 'Image banners cannot use the landing scope'
+	}
+	if (state.kind === 'text') {
+		if (!state.text.trim()) errors.text = 'Banner text is required'
+		else if (state.text.length > TEXT_MAX) errors.text = `Max ${TEXT_MAX} characters`
+	} else {
+		if (!state.imageUrl.trim()) errors.imageUrl = 'Image is required'
+	}
 	if (state.scope === 'section' && !state.section) errors.section = 'Pick a section'
 	if (state.scope === 'article' && !state.articleId) errors.articleId = 'Pick an article'
 	const link = state.linkUrl.trim()
@@ -94,12 +140,15 @@ export function BannerForm({ banner }: Props) {
 	const hasError = Object.keys(errors).length > 0
 
 	const dirty =
+		state.kind !== initial.kind ||
 		state.scope !== initial.scope ||
 		state.section !== initial.section ||
 		state.articleId !== initial.articleId ||
 		state.text !== initial.text ||
 		state.linkUrl !== initial.linkUrl ||
 		state.linkLabel !== initial.linkLabel ||
+		state.imageUrl !== initial.imageUrl ||
+		state.imageAlt !== initial.imageAlt ||
 		state.enabled !== initial.enabled
 
 	const saveMutation = useMutation({
@@ -118,6 +167,18 @@ export function BannerForm({ banner }: Props) {
 	})
 
 	const update = (patch: Partial<FormState>) => setState((prev) => ({ ...prev, ...patch }))
+
+	const handleKindChange = (kind: BannerKind) => {
+		update({
+			kind,
+			...(kind !== 'text' && state.scope === 'landing' ? { scope: 'section' as BannerScope } : {})
+		})
+	}
+
+	const visibleScopes = useMemo(
+		() => BANNER_SCOPES.filter((scope) => state.kind === 'text' || scope !== 'landing'),
+		[state.kind]
+	)
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -147,12 +208,15 @@ export function BannerForm({ banner }: Props) {
 
 	const previewBanner: Banner = {
 		id: banner?.id ?? 'preview',
+		type: state.kind,
 		scope: state.scope,
 		section: state.scope === 'section' ? (state.section as ArticleSection) : null,
 		articleId: state.scope === 'article' ? state.articleId : null,
-		text: state.text || 'Banner preview text — write your message above',
+		text: state.kind === 'text' ? state.text || 'Banner preview text — write your message above' : null,
 		linkUrl: state.linkUrl.trim() || null,
-		linkLabel: state.linkLabel.trim() || null,
+		linkLabel: state.kind === 'text' ? state.linkLabel.trim() || null : null,
+		imageUrl: state.kind !== 'text' ? state.imageUrl.trim() || null : null,
+		imageAlt: state.kind !== 'text' ? state.imageAlt.trim() || null : null,
 		enabled: true,
 		createdByPbUserId: banner?.createdByPbUserId ?? '',
 		createdAt: banner?.createdAt ?? new Date().toISOString(),
@@ -161,11 +225,42 @@ export function BannerForm({ banner }: Props) {
 
 	return (
 		<form onSubmit={handleSubmit} className="mx-auto grid w-full max-w-4xl gap-0 px-1 pb-28">
-			<PreviewStrip banner={previewBanner} />
+			<BannerPreview banner={previewBanner} />
+
+			<Section
+				title="Kind"
+				description="Text shows as a dismissible strip at the top of the page. Right-rail image shows under SHARE on desktop. Mobile inline image is placed near the top of the article body on mobile."
+			>
+				<div className="grid gap-2 sm:grid-cols-3">
+					{BANNER_KINDS.map((kind) => (
+						<label
+							key={kind}
+							className={`flex cursor-pointer items-start gap-3 rounded-md border px-4 py-3 transition-colors ${
+								state.kind === kind
+									? 'border-(--link-text)/60 bg-(--link-button)'
+									: 'border-(--cards-border) hover:border-(--link-text)/40'
+							}`}
+						>
+							<input
+								type="radio"
+								name="kind"
+								value={kind}
+								checked={state.kind === kind}
+								onChange={() => handleKindChange(kind)}
+								className="mt-0.5 accent-(--link-text)"
+							/>
+							<div className="grid gap-0.5">
+								<span className="text-sm font-medium text-(--text-primary)">{BANNER_KIND_LABELS[kind]}</span>
+								<span className="text-xs text-(--text-tertiary)">{BANNER_KIND_DESCRIPTIONS[kind]}</span>
+							</div>
+						</label>
+					))}
+				</div>
+			</Section>
 
 			<Section title="Scope" description="Where should this banner appear?">
 				<div className="grid gap-2">
-					{BANNER_SCOPES.map((scope) => (
+					{visibleScopes.map((scope) => (
 						<label
 							key={scope}
 							className={`flex cursor-pointer items-start gap-3 rounded-md border px-4 py-3 transition-colors ${
@@ -195,6 +290,7 @@ export function BannerForm({ banner }: Props) {
 						</label>
 					))}
 				</div>
+				{errors.scope ? <p className="text-xs text-red-500">{errors.scope}</p> : null}
 
 				{state.scope === 'section' ? (
 					<div className="grid gap-1.5">
@@ -256,54 +352,108 @@ export function BannerForm({ banner }: Props) {
 				) : null}
 			</Section>
 
-			<Section title="Content" description="The text readers see and an optional link.">
-				<label className="grid gap-1.5">
-					<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
-						Banner text
-						<CharCount value={state.text} max={TEXT_MAX} />
-					</span>
-					<textarea
-						value={state.text}
-						onChange={(e) => update({ text: e.target.value })}
-						maxLength={TEXT_MAX}
-						rows={3}
-						placeholder="KATANA’S VKAT ARMORY REPRESENTS THE NEXT EVOLUTION OF VE-TOKENOMICS."
-						className="w-full resize-y rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
-					/>
-					{errors.text ? <p className="text-xs text-red-500">{errors.text}</p> : null}
-				</label>
+			{state.kind === 'text' ? (
+				<Section title="Content" description="The text readers see and an optional link.">
+					<label className="grid gap-1.5">
+						<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
+							Banner text
+							<CharCount value={state.text} max={TEXT_MAX} />
+						</span>
+						<textarea
+							value={state.text}
+							onChange={(e) => update({ text: e.target.value })}
+							maxLength={TEXT_MAX}
+							rows={3}
+							placeholder="KATANA’S VKAT ARMORY REPRESENTS THE NEXT EVOLUTION OF VE-TOKENOMICS."
+							className="w-full resize-y rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
+						/>
+						{errors.text ? <p className="text-xs text-red-500">{errors.text}</p> : null}
+					</label>
 
-				<label className="grid gap-1.5">
-					<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
-						Link URL <span className="font-normal text-(--text-tertiary)">(optional)</span>
-						<CharCount value={state.linkUrl} max={LINK_URL_MAX} />
-					</span>
-					<input
-						type="text"
-						value={state.linkUrl}
-						onChange={(e) => update({ linkUrl: e.target.value })}
-						maxLength={LINK_URL_MAX}
-						placeholder="https://… or /research/…"
-						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
-					/>
-					{errors.linkUrl ? <p className="text-xs text-red-500">{errors.linkUrl}</p> : null}
-				</label>
+					<label className="grid gap-1.5">
+						<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
+							Link URL <span className="font-normal text-(--text-tertiary)">(optional)</span>
+							<CharCount value={state.linkUrl} max={LINK_URL_MAX} />
+						</span>
+						<input
+							type="text"
+							value={state.linkUrl}
+							onChange={(e) => update({ linkUrl: e.target.value })}
+							maxLength={LINK_URL_MAX}
+							placeholder="https://… or /research/…"
+							className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
+						/>
+						{errors.linkUrl ? <p className="text-xs text-red-500">{errors.linkUrl}</p> : null}
+					</label>
 
-				<label className="grid gap-1.5">
-					<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
-						Link label <span className="font-normal text-(--text-tertiary)">(optional, default “Read more”)</span>
-						<CharCount value={state.linkLabel} max={LINK_LABEL_MAX} />
-					</span>
-					<input
-						type="text"
-						value={state.linkLabel}
-						onChange={(e) => update({ linkLabel: e.target.value })}
-						maxLength={LINK_LABEL_MAX}
-						placeholder="Read more"
-						className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
-					/>
-				</label>
-			</Section>
+					<label className="grid gap-1.5">
+						<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
+							Link label <span className="font-normal text-(--text-tertiary)">(optional, default “Read more”)</span>
+							<CharCount value={state.linkLabel} max={LINK_LABEL_MAX} />
+						</span>
+						<input
+							type="text"
+							value={state.linkLabel}
+							onChange={(e) => update({ linkLabel: e.target.value })}
+							maxLength={LINK_LABEL_MAX}
+							placeholder="Read more"
+							className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
+						/>
+					</label>
+				</Section>
+			) : (
+				<Section title="Content" description="The image readers see and an optional click-through link.">
+					<div className="grid gap-1.5">
+						<span className="text-sm font-medium text-(--text-primary)">Image</span>
+						<ImageUploadButton
+							scope={state.kind === 'image-horizontal' ? 'banner-image-horizontal' : 'banner-image'}
+							previewShape="wide"
+							currentUrl={state.imageUrl || null}
+							onUploaded={(result) => update({ imageUrl: result.url })}
+							onCleared={() => update({ imageUrl: '' })}
+							label="banner image"
+							helperText={
+								state.kind === 'image-horizontal'
+									? 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 1600 × 600, transcoded to WebP.'
+									: 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 800 × 1200, transcoded to WebP.'
+							}
+						/>
+						{errors.imageUrl ? <p className="text-xs text-red-500">{errors.imageUrl}</p> : null}
+					</div>
+
+					<label className="grid gap-1.5">
+						<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
+							Alt text{' '}
+							<span className="font-normal text-(--text-tertiary)">(optional, recommended for accessibility)</span>
+							<CharCount value={state.imageAlt} max={IMAGE_ALT_MAX} />
+						</span>
+						<input
+							type="text"
+							value={state.imageAlt}
+							onChange={(e) => update({ imageAlt: e.target.value })}
+							maxLength={IMAGE_ALT_MAX}
+							placeholder="e.g. State of DeFi banner — get in touch"
+							className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
+						/>
+					</label>
+
+					<label className="grid gap-1.5">
+						<span className="flex items-center justify-between gap-2 text-sm font-medium text-(--text-primary)">
+							Link URL <span className="font-normal text-(--text-tertiary)">(optional)</span>
+							<CharCount value={state.linkUrl} max={LINK_URL_MAX} />
+						</span>
+						<input
+							type="text"
+							value={state.linkUrl}
+							onChange={(e) => update({ linkUrl: e.target.value })}
+							maxLength={LINK_URL_MAX}
+							placeholder="https://… or /research/…"
+							className="w-full rounded-md border border-(--cards-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) transition-colors outline-none focus:border-(--link-text)/60"
+						/>
+						{errors.linkUrl ? <p className="text-xs text-red-500">{errors.linkUrl}</p> : null}
+					</label>
+				</Section>
+			)}
 
 			<Section title="Visibility" description="Disable a banner to hide it without deleting it.">
 				<label className="flex items-center gap-3">
@@ -351,18 +501,47 @@ export function BannerForm({ banner }: Props) {
 	)
 }
 
-function PreviewStrip({ banner }: { banner: Banner }) {
+function BannerPreview({ banner }: { banner: Banner }) {
 	return (
 		<div className="grid gap-2 pt-2 pb-6">
 			<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">Preview</span>
-			<div className="overflow-hidden rounded-md border border-(--cards-border)">
-				<PreviewStripInner banner={banner} />
-			</div>
+			{banner.type === 'text' ? (
+				<div className="overflow-hidden rounded-md border border-(--cards-border)">
+					<TextPreviewInner banner={banner} />
+				</div>
+			) : (
+				<ImagePreview banner={banner} />
+			)}
 		</div>
 	)
 }
 
-function PreviewStripInner({ banner }: { banner: Banner }) {
+function ImagePreview({ banner }: { banner: Banner }) {
+	const isHorizontal = banner.type === 'image-horizontal'
+	const widthClass = isHorizontal ? 'max-w-[640px]' : 'max-w-[280px]'
+	const placeholderHeight = isHorizontal ? 'h-32' : 'h-48'
+	const placeholderCopy = isHorizontal
+		? 'Upload an image to preview the mobile inline banner'
+		: 'Upload an image to preview the right-rail banner'
+	return (
+		<div className={widthClass}>
+			{banner.imageUrl ? (
+				<div className="overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					{/* eslint-disable-next-line @next/next/no-img-element */}
+					<img src={banner.imageUrl} alt={banner.imageAlt ?? ''} className="block h-auto w-full" />
+				</div>
+			) : (
+				<div
+					className={`flex ${placeholderHeight} items-center justify-center rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) px-4 text-center text-xs text-(--text-tertiary)`}
+				>
+					{placeholderCopy}
+				</div>
+			)}
+		</div>
+	)
+}
+
+function TextPreviewInner({ banner }: { banner: Banner }) {
 	return (
 		<div className="flex w-full items-center gap-3 bg-[#0b1e6b] px-4 py-2.5 text-white">
 			<div className="flex flex-1 items-center justify-center">
