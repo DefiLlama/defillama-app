@@ -261,6 +261,7 @@ export interface IProtocolCoreChartProps {
 	chartOptions?: Record<string, Record<string, unknown>>
 	height?: string
 	unlockTokenSymbol?: string | null
+	gasUsedValueSymbol?: string
 	isThemeDark: boolean
 	groupBy?: ChartTimeGroupingWithCumulative
 	hideDataZoom?: boolean

@@ -151,9 +151,10 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	const chartRenderModel = useMemo(
 		() => ({
 			chartData: finalCharts,
-			valueSymbol
+			valueSymbol,
+			gasUsedValueSymbol: props.chartDenominations[1]?.symbol ?? valueSymbol
 		}),
-		[finalCharts, valueSymbol]
+		[finalCharts, props.chartDenominations, valueSymbol]
 	)
 	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 	const loadingChartSet = useMemo(() => new Set(loadingCharts), [loadingCharts])
@@ -400,6 +401,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						chartColors={props.chartColors}
 						isThemeDark={isThemeDark}
 						valueSymbol={deferredChartRenderModel.valueSymbol}
+						gasUsedValueSymbol={deferredChartRenderModel.gasUsedValueSymbol}
 						groupBy={groupBy}
 						hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 						rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}

@@ -1,3 +1,4 @@
+import { formatTooltipValue } from '~/components/ECharts/formatters'
 import { formattedNum } from '~/utils'
 import type { ProtocolChartsLabels } from './constants'
 
@@ -9,6 +10,7 @@ type AxisBuilderContext = {
 	chartColors: Record<string, string>
 	chartsInSeries: Set<string>
 	unlockTokenSymbol: string
+	gasUsedValueSymbol: string
 }
 
 type AxisConfig = {
@@ -92,7 +94,7 @@ const AXIS_CONFIG_BY_TYPE: Partial<Record<ProtocolChartsLabels, AxisConfig>> = {
 		resolveColor: ({ chartColors }) => chartColors['Transactions']
 	},
 	'Gas Used': {
-		formatter: (value) => formattedNum(value),
+		formatter: (value, { gasUsedValueSymbol }) => formatTooltipValue(value, gasUsedValueSymbol),
 		resolveColor: ({ chartColors }) => chartColors['Gas Used']
 	},
 	'Median APY': {
@@ -127,16 +129,18 @@ export function buildProtocolYAxis({
 	baseYAxis,
 	chartColors,
 	chartsInSeries,
-	unlockTokenSymbol
+	unlockTokenSymbol,
+	gasUsedValueSymbol
 }: {
 	allYAxis: Array<[ProtocolChartsLabels, number | undefined]>
 	baseYAxis: Record<string, unknown>
 	chartColors: Record<string, string>
 	chartsInSeries: Set<string>
 	unlockTokenSymbol: string
+	gasUsedValueSymbol: string
 }) {
 	const finalYAxis: Array<Record<string, unknown>> = []
-	const context: AxisBuilderContext = { chartColors, chartsInSeries, unlockTokenSymbol }
+	const context: AxisBuilderContext = { chartColors, chartsInSeries, unlockTokenSymbol, gasUsedValueSymbol }
 	const noOffset = allYAxis.length < 3
 
 	for (const [type, index] of allYAxis) {
