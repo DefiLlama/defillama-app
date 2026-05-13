@@ -61,16 +61,17 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 				: (landingBannerQuery.data?.text ?? null)
 
 	const [dismissed, setDismissed] = useState(false)
+	const bannerId = banner?.id
 
 	useEffect(() => {
 		setDismissed(false)
-		if (typeof window === 'undefined' || !banner) return
+		if (typeof window === 'undefined' || !bannerId) return
 		try {
-			if (window.localStorage.getItem(DISMISSED_KEY_PREFIX + banner.id)) {
+			if (window.localStorage.getItem(DISMISSED_KEY_PREFIX + bannerId)) {
 				setDismissed(true)
 			}
 		} catch {}
-	}, [banner?.id])
+	}, [bannerId])
 
 	if (!banner || !banner.enabled || dismissed) return null
 
