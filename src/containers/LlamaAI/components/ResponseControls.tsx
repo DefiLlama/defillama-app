@@ -2,9 +2,11 @@ import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useReducer, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { DownloadArtifactButton } from '~/containers/LlamaAI/components/DownloadArtifactButton'
 import { FeedbackForm } from '~/containers/LlamaAI/components/FeedbackForm'
 import { PDFExportButton } from '~/containers/LlamaAI/components/PDFExportButton'
-import type { MessageMetadata } from '~/containers/LlamaAI/types'
+import { messageHasCharts } from '~/containers/LlamaAI/renderModel'
+import type { Message, MessageMetadata } from '~/containers/LlamaAI/types'
 import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -17,6 +19,8 @@ interface ResponseControlsProps {
 	messageMetadata?: MessageMetadata
 	isLatest?: boolean
 	onShare?: (messageId?: string) => void
+	/** Full message — when provided alongside sessionId on an assistant message that looks like a report, enables the HTML artifact export button. */
+	message?: Message
 }
 
 type Rating = 'good' | 'bad' | null
@@ -110,7 +114,8 @@ export function ResponseControls({
 	readOnly = false,
 	messageMetadata,
 	isLatest = false,
-	onShare
+	onShare,
+	message
 }: ResponseControlsProps) {
 	const [state, dispatch] = useReducer(responseControlsReducer, initialRating || null, createInitialState)
 	const { copied, showFeedback, selectedRating, submittedRating } = state
@@ -231,6 +236,9 @@ export function ResponseControls({
 						exportType="single_message"
 						className="flex items-center gap-1 rounded-md p-1.5 text-[#999] transition-colors hover:bg-black/5 hover:text-[#444] dark:text-[#666] dark:hover:bg-white/5 dark:hover:text-[#ccc]"
 					/>
+				) : null}
+				{content && sessionId && !readOnly && message && messageHasCharts(message) ? (
+					<DownloadArtifactButton message={message} sessionId={sessionId} />
 				) : null}
 				{messageMetadata && (messageMetadata.outputTokens != null || messageMetadata.x402CostUsd) ? (
 					<Ariakit.PopoverProvider placement="top">
