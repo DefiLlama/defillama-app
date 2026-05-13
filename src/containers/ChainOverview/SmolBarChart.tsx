@@ -1,6 +1,7 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { CHART_COLORS, purple } from '~/constants/colors'
+import { useDeferredLayoutEffect } from '~/hooks/useDeferredLayoutEffect'
 import { formattedNum } from '~/utils'
 
 export function SmolBarChart({
@@ -32,7 +33,7 @@ export function SmolBarChart({
 
 	const onMouseLeave = useCallback(() => setHoveredIndex(null), [])
 
-	useLayoutEffect(() => {
+	useDeferredLayoutEffect(() => {
 		const el = tooltipRef.current
 		if (!el || hoveredIndex == null) return
 		const flipX = mousePos.x + 12 + el.offsetWidth > window.innerWidth

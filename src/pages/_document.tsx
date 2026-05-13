@@ -5,6 +5,7 @@ export default function Document() {
 	return (
 		<Html lang="en">
 			<Head>
+				<meta charSet="utf-8" />
 				<link rel="dns-prefetch" href="https://tasty.defillama.com" />
 
 				<link rel="icon" href="/favicon.ico" />
@@ -15,7 +16,7 @@ export default function Document() {
 				<link href="/fonts/inter.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" type="font/ttf" crossOrigin="anonymous" />
 				<link href="/icons/v38.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
-				<link href="/assets/defillama.webp" rel="preload" as="image" type="image/webp" />
+				<link href="/assets/defillama.webp" rel="preload" as="image" type="image/webp" fetchPriority="high" />
 				<script
 					dangerouslySetInnerHTML={{
 						__html: getHeadBootstrapScript()

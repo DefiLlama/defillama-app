@@ -6,7 +6,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscription/auth'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 import type { FormSubmitEvent } from '~/types/forms'
 
 type Step = 'signin' | 'signup' | 'forgot'

@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useState, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { useAuthContext } from '../Subscription/auth'
 

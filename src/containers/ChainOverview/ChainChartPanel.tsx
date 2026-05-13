@@ -1,7 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -24,7 +25,21 @@ import { pushShallowQuery } from '~/utils/routerQuery'
 import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import type { IChainOverviewData } from './types'
 
-const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+// Chart.tsx's destructured props are inferred as required (no defaults, no explicit types),
+// so its component type lists `color`, `chartOptions`, and `height` as required even though
+// Chart.tsx tolerates them being undefined at runtime. Rather than reaching past Chart.tsx
+// here (out of scope), assert the panel-facing prop shape this component actually uses.
+type ChainCoreChartProps = {
+	chartData: any
+	valueSymbol: string
+	isThemeDark: boolean
+	groupBy: ChartTimeGroupingWithCumulative
+	onReady: (instance: unknown) => void
+}
+
+const ChainCoreChart = dynamic(() => import('~/containers/ChainOverview/Chart'), {
+	loading: () => <div className="m-auto flex min-h-[360px] items-center justify-center" />
+}) as React.ComponentType<ChainCoreChartProps>
 
 type ChainMetricOption = {
 	id: ChainChartLabels
@@ -273,15 +288,13 @@ export function ChainChartPanel({
 						</p>
 					</div>
 				) : (
-					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<ChainCoreChart
-							chartData={deferredChartRenderModel.chartData}
-							valueSymbol={deferredChartRenderModel.valueSymbol}
-							isThemeDark={darkMode}
-							groupBy={groupBy}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
+					<ChainCoreChart
+						chartData={deferredChartRenderModel.chartData}
+						valueSymbol={deferredChartRenderModel.valueSymbol}
+						isThemeDark={darkMode}
+						groupBy={groupBy}
+						onReady={handleChartReady}
+					/>
 				)}
 				{isClient && !isFetchingChartData && failedMetrics.length > 0 ? (
 					<Ariakit.PopoverProvider>

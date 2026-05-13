@@ -8,7 +8,7 @@ import { PricingCardContent } from '~/containers/Subscription/components'
 import { MONTHLY_PRICING_CARDS } from '~/containers/Subscription/data'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const PRO_CARD = MONTHLY_PRICING_CARDS.find((c) => c.key === 'pro')!

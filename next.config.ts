@@ -32,6 +32,23 @@ const nextConfig: NextConfig = {
 	reactStrictMode: true,
 	reactCompiler: true,
 	bundlePagesRouterDependencies: true,
+	experimental: {
+		// Note: 'echarts' intentionally omitted — codebase uses subpath imports only
+		// (echarts/core, echarts/charts, …); optimizePackageImports targets barrel-file
+		// imports of the named package and does nothing for subpaths.
+		optimizePackageImports: [
+			'@ariakit/react',
+			'@dnd-kit/core',
+			'@dnd-kit/sortable',
+			'@dnd-kit/modifiers',
+			'@tanstack/react-table',
+			'@tanstack/react-virtual',
+			'react-select',
+			'@rainbow-me/rainbowkit',
+			'wagmi',
+			'viem'
+		]
+	},
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
 	redirects() {

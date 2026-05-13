@@ -1,5 +1,6 @@
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
+import { useDeferredLayoutEffect } from '~/hooks/useDeferredLayoutEffect'
 import { formattedNum, slug } from '~/utils'
 
 export function FeesGeneratedChart({ series }: { series: Array<[string, number, string]> }) {
@@ -23,7 +24,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 
 	const onMouseLeave = useCallback(() => setHoveredIndex(null), [])
 
-	useLayoutEffect(() => {
+	useDeferredLayoutEffect(() => {
 		const el = tooltipRef.current
 		if (!el || hoveredIndex == null) return
 		const flipX = mousePos.x + 12 + el.offsetWidth > window.innerWidth

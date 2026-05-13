@@ -1,6 +1,6 @@
 import { SubscribeLayout } from '~/containers/Subscription/Layout'
 import { WelcomeOnboarding } from '~/containers/Subscription/WelcomeOnboarding'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { LazyWalletProvider as WalletProvider } from '~/layout/LazyWalletProvider'
 
 export default function Welcome() {
 	return (
