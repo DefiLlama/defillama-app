@@ -24,6 +24,7 @@ import type {
 import { toRWAPerpsBreakdownChartDataset } from './breakdownDataset'
 import { getRWAPerpsOverviewSnapshotBreakdownLabel, getRWAPerpsVenueSnapshotBreakdownLabel } from './breakdownLabels'
 import { getDefaultRWAPerpsChartBreakdown, getDefaultRWAPerpsChartView } from './chartState'
+import type { RWAPerpsTimeSeriesBreakdown } from './chartState'
 import type {
 	IRWAPerpsAssetGroupBreakdownRequest,
 	IRWAPerpsAssetGroupPageData,
@@ -42,6 +43,7 @@ import type {
 	RWAPerpsAssetGroupSnapshotBreakdown,
 	RWAPerpsChartMetricKey,
 	RWAPerpsChartView,
+	RWAPerpsOverviewTimeSeriesBreakdown,
 	RWAPerpsOverviewSnapshotBreakdown,
 	RWAPerpsVenueSnapshotBreakdown
 } from './types'
@@ -448,15 +450,19 @@ async function getInitialTimeSeriesDataset({
 	venue,
 	assetGroup,
 	assetClass,
-	excludeAssetClass
+	excludeAssetClass,
+	defaultTimeSeriesBreakdown
 }: {
 	mode: 'overview' | 'venue' | 'assetGroup'
 	venue?: string
 	assetGroup?: string
 	assetClass?: string
 	excludeAssetClass?: string
+	defaultTimeSeriesBreakdown?: RWAPerpsTimeSeriesBreakdown
 }): Promise<MultiSeriesChart2Dataset> {
-	const defaultBreakdown = getDefaultRWAPerpsChartBreakdown(mode, 'timeSeries')
+	const defaultBreakdown = getDefaultRWAPerpsChartBreakdown(mode, 'timeSeries', {
+		timeSeriesBreakdown: defaultTimeSeriesBreakdown
+	})
 	if (defaultBreakdown === 'contract') {
 		return getRWAPerpsContractBreakdownChartDataset({
 			key: 'openInterest',
@@ -480,11 +486,13 @@ async function getInitialTimeSeriesDataset({
 export async function getRWAPerpsOverview({
 	activeView = getDefaultRWAPerpsChartView('overview'),
 	assetClass,
-	excludeAssetClass
+	excludeAssetClass,
+	defaultTimeSeriesBreakdown
 }: {
 	activeView?: RWAPerpsChartView
 	assetClass?: string
 	excludeAssetClass?: string
+	defaultTimeSeriesBreakdown?: RWAPerpsOverviewTimeSeriesBreakdown
 } = {}): Promise<IRWAPerpsOverviewPageData> {
 	const [stats, current] = await Promise.all([fetchRWAPerpsStats(), fetchRWAPerpsCurrent()])
 
@@ -493,7 +501,12 @@ export async function getRWAPerpsOverview({
 	}
 
 	const initialChartDataset = shouldPreloadInitialChartDataset(activeView)
-		? await getInitialTimeSeriesDataset({ mode: 'overview', assetClass, excludeAssetClass })
+		? await getInitialTimeSeriesDataset({
+				mode: 'overview',
+				assetClass,
+				excludeAssetClass,
+				defaultTimeSeriesBreakdown
+			})
 		: EMPTY_CHART_DATASET
 	const totalOpenInterest = sumMarketMetric(current, 'openInterest')
 	const totalVolume24h = sumMarketMetric(current, 'volume24h')

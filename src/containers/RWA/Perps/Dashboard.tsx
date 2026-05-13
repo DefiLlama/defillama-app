@@ -69,10 +69,13 @@ import type {
 	IRWAPerpsOverviewPageData,
 	IRWAPerpsVenuePageData,
 	RWAPerpsAssetGroupSnapshotBreakdown,
+	RWAPerpsAssetGroupTimeSeriesBreakdown,
 	RWAPerpsAssetGroupTreemapBreakdown,
+	RWAPerpsOverviewTimeSeriesBreakdown,
 	RWAPerpsOverviewSnapshotBreakdown,
 	RWAPerpsOverviewTreemapBreakdown,
 	RWAPerpsVenueSnapshotBreakdown,
+	RWAPerpsVenueTimeSeriesBreakdown,
 	RWAPerpsVenueTreemapBreakdown
 } from './types'
 
@@ -92,14 +95,17 @@ type RWAPerpsDashboardProps = (
 	| {
 			mode: 'overview'
 			data: IRWAPerpsOverviewPageData
+			defaultTimeSeriesBreakdown?: RWAPerpsOverviewTimeSeriesBreakdown
 	  }
 	| {
 			mode: 'venue'
 			data: IRWAPerpsVenuePageData
+			defaultTimeSeriesBreakdown?: RWAPerpsVenueTimeSeriesBreakdown
 	  }
 	| {
 			mode: 'assetGroup'
 			data: IRWAPerpsAssetGroupPageData
+			defaultTimeSeriesBreakdown?: RWAPerpsAssetGroupTimeSeriesBreakdown
 	  }
 ) & {
 	/** When set, restricts rendered markets/totals to the matching `assetClass[0]`. Used by the dedicated Forex page. */
@@ -890,7 +896,8 @@ function fetchContractTimeSeriesDataset(request: IRWAPerpsContractBreakdownReque
 
 export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const router = useRouter()
-	const chartState = parseRWAPerpsChartState(router.query, props.mode)
+	const chartDefaults = { timeSeriesBreakdown: props.defaultTimeSeriesBreakdown }
+	const chartState = parseRWAPerpsChartState(router.query, props.mode, chartDefaults)
 	const chartMetricLabel = getRWAPerpsChartMetricLabel(chartState.metric, d)
 	const chartMetricOptions = getRWAPerpsChartMetricOptions(d)
 	const chartViewOptions = getRWAPerpsChartViewOptions()
@@ -953,7 +960,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 	const isDefaultTimeSeriesState =
 		chartState.view === 'timeSeries' &&
 		chartState.metric === 'openInterest' &&
-		chartState.breakdown === getDefaultRWAPerpsChartBreakdown(props.mode, 'timeSeries')
+		chartState.breakdown === getDefaultRWAPerpsChartBreakdown(props.mode, 'timeSeries', chartDefaults)
 	const hasPreloadedTimeSeriesDataset =
 		initialChartDataset.source.length > 0 ||
 		initialChartDataset.dimensions.some((dimension) => dimension !== 'timestamp')
@@ -1120,9 +1127,9 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		void pushShallowQuery(router, {
 			chartView: getRWAPerpsChartViewQueryValueForMode(props.mode, nextState.view),
 			timeSeriesChartBreakdown:
-				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState) : undefined,
+				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState, chartDefaults) : undefined,
 			nonTimeSeriesChartBreakdown:
-				nextState.view === 'timeSeries' ? undefined : getRWAPerpsChartBreakdownQueryValue(nextState)
+				nextState.view === 'timeSeries' ? undefined : getRWAPerpsChartBreakdownQueryValue(nextState, chartDefaults)
 		})
 	}
 
@@ -1132,7 +1139,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 			if (selectedBreakdown === 'total') {
 				const nextState = setRWAPerpsTimeSeriesMode(chartState, 'grouped')
 				void pushShallowQuery(router, {
-					timeSeriesChartBreakdown: getRWAPerpsChartBreakdownQueryValue(nextState),
+					timeSeriesChartBreakdown: getRWAPerpsChartBreakdownQueryValue(nextState, chartDefaults),
 					timeSeriesMode: getRWAPerpsTimeSeriesModeQueryValue(nextState.timeSeriesMode)
 				})
 				return
@@ -1143,7 +1150,7 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 				'breakdown'
 			)
 			void pushShallowQuery(router, {
-				timeSeriesChartBreakdown: getRWAPerpsChartBreakdownQueryValue(nextState),
+				timeSeriesChartBreakdown: getRWAPerpsChartBreakdownQueryValue(nextState, chartDefaults),
 				timeSeriesMode: getRWAPerpsTimeSeriesModeQueryValue(nextState.timeSeriesMode)
 			})
 			return
@@ -1152,9 +1159,9 @@ export function RWAPerpsDashboard(props: RWAPerpsDashboardProps) {
 		const nextState = setRWAPerpsChartBreakdown(chartState, selectedBreakdown as typeof chartState.breakdown)
 		void pushShallowQuery(router, {
 			timeSeriesChartBreakdown:
-				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState) : undefined,
+				nextState.view === 'timeSeries' ? getRWAPerpsChartBreakdownQueryValue(nextState, chartDefaults) : undefined,
 			nonTimeSeriesChartBreakdown:
-				nextState.view === 'timeSeries' ? undefined : getRWAPerpsChartBreakdownQueryValue(nextState)
+				nextState.view === 'timeSeries' ? undefined : getRWAPerpsChartBreakdownQueryValue(nextState, chartDefaults)
 		})
 	}
 

@@ -43,6 +43,10 @@ export type RWAPerpsChartState = {
 	treemapNestedBy: RWAPerpsTreemapNestedBy
 }
 
+export type RWAPerpsChartDefaults = {
+	timeSeriesBreakdown?: RWAPerpsTimeSeriesBreakdown
+}
+
 export type RWAPerpsChartOption<T extends string> = {
 	key: T
 	name: string
@@ -215,8 +219,10 @@ export function getRWAPerpsTreemapNestedByLabel(nestedBy: RWAPerpsTreemapNestedB
 
 export function getDefaultRWAPerpsChartBreakdown(
 	mode: RWAPerpsChartMode,
-	view: RWAPerpsChartView
+	view: RWAPerpsChartView,
+	defaults?: RWAPerpsChartDefaults
 ): RWAPerpsChartBreakdown {
+	if (view === 'timeSeries' && defaults?.timeSeriesBreakdown) return defaults.timeSeriesBreakdown
 	if (view === 'timeSeries') return TIME_SERIES_BREAKDOWNS[mode][0]
 	if (view === 'treemap') return TREEMAP_BREAKDOWNS[mode][0]
 	return NON_TIME_SERIES_BREAKDOWNS[mode][0]
@@ -251,10 +257,14 @@ export function getRWAPerpsTreemapNestedByOptions(
 	}))
 }
 
-export function parseRWAPerpsChartState(query: ParsedUrlQuery, mode: RWAPerpsChartMode): RWAPerpsChartState {
+export function parseRWAPerpsChartState(
+	query: ParsedUrlQuery,
+	mode: RWAPerpsChartMode,
+	defaults?: RWAPerpsChartDefaults
+): RWAPerpsChartState {
 	const view = normalizeChartView(mode, readSingleQueryValue(query.chartView))
 	const metric = normalizeChartMetric(readSingleQueryValue(query.chartType))
-	const breakdown = normalizeBreakdown(mode, view, readSingleQueryValue(query[getBreakdownQueryKey(view)]))
+	const breakdown = normalizeBreakdown(mode, view, readSingleQueryValue(query[getBreakdownQueryKey(view)]), defaults)
 	const timeSeriesMode = normalizeTimeSeriesMode(readSingleQueryValue(query.timeSeriesMode))
 	const treemapNestedBy = normalizeTreemapNestedBy(
 		mode,
@@ -334,8 +344,8 @@ export function getRWAPerpsTimeSeriesModeQueryValue(timeSeriesMode: RWAPerpsTime
 	return timeSeriesMode === DEFAULT_TIME_SERIES_MODE ? undefined : timeSeriesMode
 }
 
-export function getRWAPerpsChartBreakdownQueryValue(state: RWAPerpsChartState) {
-	const defaultBreakdown = getDefaultRWAPerpsChartBreakdown(state.mode, state.view)
+export function getRWAPerpsChartBreakdownQueryValue(state: RWAPerpsChartState, defaults?: RWAPerpsChartDefaults) {
+	const defaultBreakdown = getDefaultRWAPerpsChartBreakdown(state.mode, state.view, defaults)
 	return state.breakdown === defaultBreakdown ? undefined : state.breakdown
 }
 
@@ -381,14 +391,15 @@ function normalizeTimeSeriesMode(value: string | undefined): RWAPerpsTimeSeriesM
 function normalizeBreakdown(
 	mode: RWAPerpsChartMode,
 	view: RWAPerpsChartView,
-	value: string | undefined
+	value: string | undefined,
+	defaults?: RWAPerpsChartDefaults
 ): RWAPerpsChartBreakdown {
 	const allowedBreakdowns = getAllowedBreakdowns(mode, view)
 	if (value && allowedBreakdowns.includes(value as RWAPerpsChartBreakdown)) {
 		return value as RWAPerpsChartBreakdown
 	}
 
-	return getDefaultRWAPerpsChartBreakdown(mode, view)
+	return getDefaultRWAPerpsChartBreakdown(mode, view, defaults)
 }
 
 function normalizeTreemapNestedBy(

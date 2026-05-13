@@ -240,6 +240,13 @@ beforeEach(() => {
 			]
 		}
 
+		if (target === 'Forex Perps' && key === 'openInterest' && breakdown === 'baseAsset') {
+			return [
+				{ timestamp: 1774483200000, EUR: 70 },
+				{ timestamp: 1774569600000, GBP: 40, EUR: 90 }
+			]
+		}
+
 		if (target === 'exclude:Forex Perps' && key === 'openInterest' && breakdown === 'assetGroup') {
 			return [
 				{ timestamp: 1774483200000, Equities: 120 },
@@ -484,6 +491,29 @@ describe('perps overview queries', () => {
 				{ timestamp: 1774569600000, Forex: 90 }
 			],
 			dimensions: ['timestamp', 'Forex']
+		})
+	})
+
+	it('preloads custom-default asset-class-filtered overview time-series datasets', async () => {
+		const result = await getRWAPerpsOverview({
+			activeView: 'timeSeries',
+			assetClass: 'Forex Perps',
+			defaultTimeSeriesBreakdown: 'baseAsset'
+		})
+
+		expect(fetchRWAPerpsOverviewBreakdownChartData).toHaveBeenCalledWith({
+			breakdown: 'baseAsset',
+			key: 'openInterest',
+			venue: undefined,
+			assetGroup: undefined,
+			assetClass: 'Forex Perps'
+		})
+		expect(result.initialChartDataset).toEqual({
+			source: [
+				{ timestamp: 1774483200000, EUR: 70 },
+				{ timestamp: 1774569600000, EUR: 90, GBP: 40 }
+			],
+			dimensions: ['timestamp', 'EUR', 'GBP']
 		})
 	})
 

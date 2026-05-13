@@ -4,6 +4,7 @@ import {
 	getDefaultRWAPerpsChartView,
 	getDefaultRWAPerpsChartBreakdown,
 	getRWAPerpsChartBreakdownOptions,
+	getRWAPerpsChartBreakdownQueryValue,
 	getRWAPerpsChartMetricOptions,
 	getRWAPerpsChartViewQueryValueForMode,
 	getRWAPerpsTimeSeriesModeOptions,
@@ -119,6 +120,17 @@ describe('parseRWAPerpsChartState', () => {
 
 		expect(state.timeSeriesMode).toBe('breakdown')
 	})
+
+	it('supports a page-specific time-series breakdown default', () => {
+		const state = parseRWAPerpsChartState({}, 'overview', { timeSeriesBreakdown: 'baseAsset' })
+
+		expect(state).toMatchObject({
+			view: 'timeSeries',
+			breakdown: 'baseAsset',
+			timeSeriesMode: 'breakdown'
+		})
+		expect(getRWAPerpsChartBreakdownQueryValue(state, { timeSeriesBreakdown: 'baseAsset' })).toBeUndefined()
+	})
 })
 
 describe('perps chartState options', () => {
@@ -139,6 +151,9 @@ describe('perps chartState options', () => {
 
 	it('uses the expected defaults for each page/view', () => {
 		expect(getDefaultRWAPerpsChartBreakdown('overview', 'timeSeries')).toBe('assetGroup')
+		expect(getDefaultRWAPerpsChartBreakdown('overview', 'timeSeries', { timeSeriesBreakdown: 'baseAsset' })).toBe(
+			'baseAsset'
+		)
 		expect(getDefaultRWAPerpsChartBreakdown('overview', 'pie')).toBe('assetGroup')
 		expect(getDefaultRWAPerpsChartBreakdown('overview', 'treemap')).toBe('assetGroup')
 		expect(getDefaultRWAPerpsChartBreakdown('venue', 'timeSeries')).toBe('assetGroup')

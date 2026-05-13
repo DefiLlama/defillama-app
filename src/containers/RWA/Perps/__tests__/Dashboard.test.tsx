@@ -278,6 +278,34 @@ describe('RWAPerpsDashboard treemap controls', () => {
 		)
 	})
 
+	it('defaults the Forex overview time series to base asset when configured', async () => {
+		const html = renderToStaticMarkup(
+			<RWAPerpsDashboard
+				mode="overview"
+				data={overviewData}
+				assetClassFilter="Forex Perps"
+				defaultTimeSeriesBreakdown="baseAsset"
+			/>
+		)
+
+		expect(html).toContain('Base Asset')
+		expect(lastUseQueryOptions.queryKey).toEqual([
+			'rwa-perps-chart',
+			'overview',
+			'openInterest',
+			'baseAsset',
+			'all',
+			'Forex Perps',
+			undefined
+		])
+
+		await lastUseQueryOptions.queryFn()
+
+		expect(fetchJson).toHaveBeenCalledWith(
+			'/api/rwa/perps/overview-breakdown?breakdown=baseAsset&key=openInterest&assetClass=Forex+Perps'
+		)
+	})
+
 	it('requests asset-class-filtered contract time-series data when contract breakdown is selected', async () => {
 		routerQuery = {
 			chartView: 'timeSeries',

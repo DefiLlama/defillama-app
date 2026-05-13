@@ -7,10 +7,13 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
+const DEFAULT_TIME_SERIES_BREAKDOWN = 'baseAsset' as const
+
 export const getStaticProps = withPerformanceLogging(`rwa/perps/forex`, async () => {
 	const data = await getRWAPerpsOverview({
 		activeView: getDefaultRWAPerpsChartView('overview'),
-		assetClass: 'Forex Perps'
+		assetClass: 'Forex Perps',
+		defaultTimeSeriesBreakdown: DEFAULT_TIME_SERIES_BREAKDOWN
 	})
 
 	return {
@@ -30,7 +33,12 @@ export default function RWAPerpsForexPage({ data }: InferGetStaticPropsType<type
 			canonicalUrl="/rwa/perps/forex"
 		>
 			<RWAPerpsTabNav active="forex" />
-			<RWAPerpsDashboard mode="overview" data={data} assetClassFilter="Forex Perps" />
+			<RWAPerpsDashboard
+				mode="overview"
+				data={data}
+				assetClassFilter="Forex Perps"
+				defaultTimeSeriesBreakdown={DEFAULT_TIME_SERIES_BREAKDOWN}
+			/>
 		</Layout>
 	)
 }
