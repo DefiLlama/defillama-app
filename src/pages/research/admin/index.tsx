@@ -28,6 +28,20 @@ export default function ResearchAdminHubPage() {
 
 						<div className="grid gap-4 sm:grid-cols-2">
 							<Link
+								href="/research/admin/curation"
+								className="group grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 transition-colors hover:border-(--link-text)/40"
+							>
+								<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+									Editorial
+								</span>
+								<span className="text-lg font-semibold text-(--text-primary) group-hover:text-(--link-text)">
+									Curation
+								</span>
+								<span className="text-sm text-(--text-secondary)">
+									Pick the Spotlight and Insights articles shown on /research.
+								</span>
+							</Link>
+							<Link
 								href="/research/admin/banners"
 								className="group grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 transition-colors hover:border-(--link-text)/40"
 							>

@@ -173,8 +173,10 @@ export function normalizeLocalArticleDocument(
 	const lastPublishedAt = normalizeOptionalDate(input.lastPublishedAt) ?? existing?.lastPublishedAt ?? null
 	const displayDate = normalizeOptionalDate(input.displayDate) ?? existing?.displayDate ?? null
 	const section = normalizeSection(input.section) ?? existing?.section ?? null
-	const spotlight = typeof input.spotlight === 'boolean' ? input.spotlight : (existing?.spotlight ?? false)
 	const brandByline = typeof input.brandByline === 'boolean' ? input.brandByline : (existing?.brandByline ?? false)
+	const editorialTags = Array.isArray(input.editorialTags)
+		? input.editorialTags.filter((value): value is string => typeof value === 'string')
+		: (existing?.editorialTags ?? [])
 	const extracted = extractArticleContent(contentJson)
 	const trimmedPlain = extracted.plainText.trim()
 	const firstSentenceMatch = trimmedPlain.match(/^[\s\S]*?[.!?](?:\s|$)/)
@@ -213,9 +215,9 @@ export function normalizeLocalArticleDocument(
 			citations: extracted.citations,
 			embeds: extracted.embeds,
 			tags: normalizeTags(input.tags),
+			editorialTags,
 			section,
 			displayDate,
-			spotlight,
 			brandByline,
 			...(typeof input.featuredRank === 'number' && Number.isInteger(input.featuredRank)
 				? { featuredRank: input.featuredRank }

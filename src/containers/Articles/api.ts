@@ -70,7 +70,6 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		tags: article.tags ?? [],
 		section: article.section ?? null,
 		displayDate: article.displayDate ?? null,
-		spotlight: article.spotlight ?? false,
 		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
 		featuredUntil: article.featuredUntil ? article.featuredUntil : null
@@ -130,7 +129,7 @@ export type ArticleSectionListResponse = {
 	sections: { section: ArticleSection; items: ArticleDocument[] }[]
 }
 
-export type ArticleSpotlightResponse = {
+export type ArticleByTagResponse = {
 	items: ArticleDocument[]
 }
 
@@ -143,10 +142,40 @@ export async function listArticleSections(
 	return parseResponse(await fetchFn(articleUrl(`/articles/sections?${search}`)))
 }
 
-export async function listSpotlightArticles(limit = 6, fetchFn: FetchLike = fetch): Promise<ArticleSpotlightResponse> {
+export async function listArticlesByTag(
+	tag: string,
+	limit = 20,
+	fetchFn: FetchLike = fetch
+): Promise<ArticleByTagResponse> {
 	const search = new URLSearchParams()
 	appendSearchParam(search, 'limit', limit)
-	return parseResponse(await fetchFn(articleUrl(`/articles/spotlight?${search}`)))
+	return parseResponse(await fetchFn(articleUrl(`/articles/by-tag/${encodeURIComponent(tag)}?${search}`)))
+}
+
+export async function setEditorialTag(
+	articleId: string,
+	tag: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<{ articleId: string; tag: string }> {
+	return parseResponse(
+		await authorizedFetch(
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
+			{ method: 'POST' }
+		)
+	)
+}
+
+export async function unsetEditorialTag(
+	articleId: string,
+	tag: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<{ articleId: string; tag: string }> {
+	return parseResponse(
+		await authorizedFetch(
+			articleUrl(`/articles/${encodeURIComponent(articleId)}/editorial-tags/${encodeURIComponent(tag)}`),
+			{ method: 'DELETE' }
+		)
+	)
 }
 
 export async function getArticleBySlug(slug: string, fetchFn: FetchLike = fetch): Promise<ArticleDocument | null> {

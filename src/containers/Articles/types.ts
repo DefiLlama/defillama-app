@@ -183,9 +183,9 @@ export type LocalArticleDocument = {
 	citations: ArticleCitation[]
 	embeds: ArticleEmbedConfig[]
 	tags: string[]
+	editorialTags?: string[]
 	section?: ArticleSection | null
 	displayDate?: string | null
-	spotlight?: boolean
 	brandByline?: boolean
 	featuredRank?: number | null
 	featuredUntil?: string | null

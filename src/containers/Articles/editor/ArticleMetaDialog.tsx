@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import type { Dispatch, SetStateAction } from 'react'
+import { EDITORIAL_TAGS, isEditorialTagSlug } from '../editorialTags'
 import type { ArticleCollaborator, ArticleSection, LocalArticleDocument } from '../types'
 import { ARTICLE_SECTIONS, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '../types'
 import { Icon } from './ArticleEditorIcon'
@@ -206,18 +207,30 @@ export function ArticleMetaDialog({
 					) : null}
 					<div className="-mx-3 grid">
 						<MetaSwitch
-							checked={article.spotlight === true}
-							onCheckedChange={(next) => updateArticle('spotlight', next)}
-							label="Spotlight"
-							description="Featured in the Spotlight widget on /research."
-						/>
-						<MetaSwitch
 							checked={article.brandByline === true}
 							onCheckedChange={(next) => updateArticle('brandByline', next)}
 							label="Publish as DefiLlama Research"
 							description="Replaces the per-user byline with the institutional name and emits Organization JSON-LD."
 						/>
 					</div>
+					{article.editorialTags && article.editorialTags.length > 0 ? (
+						<div className="grid gap-1.5">
+							<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+								Editorial
+							</span>
+							<div className="flex flex-wrap gap-1.5">
+								{article.editorialTags.filter(isEditorialTagSlug).map((slug) => (
+									<span
+										key={slug}
+										className="inline-flex items-center gap-1 rounded-full bg-(--link-button) px-2 py-0.5 font-jetbrains text-[10px] tracking-[0.18em] text-(--link-text) uppercase"
+									>
+										{EDITORIAL_TAGS[slug].label}
+									</span>
+								))}
+							</div>
+							<p className="text-xs text-(--text-tertiary)">Managed by editors from /research/admin/curation.</p>
+						</div>
+					) : null}
 				</MetaSection>
 
 				<MetaSection title="URL">

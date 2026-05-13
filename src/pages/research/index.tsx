@@ -7,13 +7,14 @@ import {
 	ArticleApiError,
 	listArticleSections,
 	listArticles,
-	listSpotlightArticles,
+	listArticlesByTag,
+	type ArticleByTagResponse,
 	type ArticleListResponse,
-	type ArticleSectionListResponse,
-	type ArticleSpotlightResponse
+	type ArticleSectionListResponse
 } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
 import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { EDITORIAL_TAGS, type EditorialTagSlug } from '~/containers/Articles/editorialTags'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
@@ -894,12 +895,14 @@ function MagazineFront({
 	query,
 	tag,
 	spotlight,
+	insights,
 	sections
 }: {
 	data: LandingData
 	query: string
 	tag: string
 	spotlight: ArticleDocument[]
+	insights: ArticleDocument[]
 	sections: { section: string; items: ArticleDocument[] }[]
 }) {
 	const tagStats = getTagStats(data.articles, 10)
@@ -948,7 +951,8 @@ function MagazineFront({
 						</div>
 						<MagazineIndex articles={indexArticles} />
 					</section>
-					<SpotlightStrip items={spotlight} />
+					<EditorialTagStrip slug="spotlight" items={spotlight} />
+					<EditorialTagStrip slug="insights" items={insights} />
 					{featureRow.length ? (
 						<section className="grid gap-4">
 							<SectionHeader label="Features" />
@@ -992,9 +996,16 @@ function ArticlesContent() {
 		retry: false
 	})
 
-	const { data: spotlight } = useQuery<ArticleSpotlightResponse>({
-		queryKey: ['research', 'spotlight'],
-		queryFn: () => listSpotlightArticles(6, authorizedFetch),
+	const { data: spotlight } = useQuery<ArticleByTagResponse>({
+		queryKey: ['research', 'by-tag', 'spotlight'],
+		queryFn: () => listArticlesByTag('spotlight', 1, authorizedFetch),
+		enabled: !isFiltered,
+		retry: false
+	})
+
+	const { data: insights } = useQuery<ArticleByTagResponse>({
+		queryKey: ['research', 'by-tag', 'insights'],
+		queryFn: () => listArticlesByTag('insights', 6, authorizedFetch),
 		enabled: !isFiltered,
 		retry: false
 	})
@@ -1046,27 +1057,36 @@ function ArticlesContent() {
 				query={query}
 				tag={tag}
 				spotlight={spotlight?.items ?? []}
+				insights={insights?.items ?? []}
 				sections={sections?.sections ?? []}
 			/>
 		</>
 	)
 }
 
-function SpotlightStrip({ items }: { items: ArticleDocument[] }) {
+function EditorialTagStrip({ slug, items }: { slug: EditorialTagSlug; items: ArticleDocument[] }) {
 	if (!items.length) return null
+	const definition = EDITORIAL_TAGS[slug]
+	const renderItems = definition.cardinality === 'singleton' ? items.slice(0, 1) : items.slice(0, 6)
 	return (
 		<section className="grid gap-4">
 			<div className="flex items-end justify-between gap-3 border-t border-(--link-text)/40 pt-3">
 				<h2 className="flex items-center gap-2.5 font-jetbrains text-[11px] font-semibold tracking-[0.24em] text-(--link-text) uppercase">
 					<span aria-hidden className="inline-block h-1.5 w-1.5 rotate-45 bg-(--link-text)" />
-					Spotlight
+					{definition.label}
 				</h2>
 				<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
-					Editor’s picks · {items.length}
+					Editor’s picks · {renderItems.length}
 				</span>
 			</div>
-			<div className="grid gap-6 border-b border-(--cards-border) pb-6 md:grid-cols-3 md:gap-0 md:divide-x md:divide-(--cards-border)">
-				{items.slice(0, 3).map((article) => (
+			<div
+				className={
+					definition.cardinality === 'singleton'
+						? 'grid border-b border-(--cards-border) pb-6'
+						: 'grid gap-6 border-b border-(--cards-border) pb-6 md:grid-cols-3 md:gap-0 md:divide-x md:divide-(--cards-border)'
+				}
+			>
+				{renderItems.map((article) => (
 					<SignalCard key={article.id} article={article} />
 				))}
 			</div>
