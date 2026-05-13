@@ -1590,11 +1590,11 @@ export function AgenticChat({
 				return
 			}
 
-			const { restored: didRestore } = await restoreSessionSnapshot(
+			const { restored: didRestore, recoveredResponse } = await restoreSessionSnapshot(
 				currentController.sessionId,
 				activeRequestIdRef.current
 			)
-			if (didRestore) {
+			if (didRestore && recoveredResponse) {
 				dispatchStream({ type: 'RESET_STREAM' })
 				clearRecoveryController()
 				return
