@@ -7,6 +7,7 @@ import type {
 	ArticleRevisionListResponse,
 	ArticleSection,
 	Banner,
+	BannerLookupResult,
 	BannerPayload,
 	LocalArticleDocument
 } from './types'
@@ -437,26 +438,31 @@ export async function deleteBanner(id: string, authorizedFetch: AuthorizedFetch)
 	)
 }
 
-export async function getLandingBanner(authorizedFetch: AuthorizedFetch): Promise<Banner | null> {
-	const data = await parseResponse<{ banner: Banner | null }>(
+const EMPTY_BANNER_LOOKUP: BannerLookupResult = { text: null, image: null, imageHorizontal: null }
+
+export async function getLandingBanner(authorizedFetch: AuthorizedFetch): Promise<BannerLookupResult> {
+	const data = await parseResponse<BannerLookupResult | null>(
 		await authorizedFetch(articleUrl('/banners/lookup/landing'))
 	)
-	return data.banner
+	return data ?? EMPTY_BANNER_LOOKUP
 }
 
 export async function getSectionBanner(
 	section: ArticleSection,
 	authorizedFetch: AuthorizedFetch
-): Promise<Banner | null> {
-	const data = await parseResponse<{ banner: Banner | null }>(
+): Promise<BannerLookupResult> {
+	const data = await parseResponse<BannerLookupResult | null>(
 		await authorizedFetch(articleUrl(`/banners/lookup/section/${encodeURIComponent(section)}`))
 	)
-	return data.banner
+	return data ?? EMPTY_BANNER_LOOKUP
 }
 
-export async function getArticleBanner(articleId: string, authorizedFetch: AuthorizedFetch): Promise<Banner | null> {
-	const data = await parseResponse<{ banner: Banner | null }>(
+export async function getArticleBanner(
+	articleId: string,
+	authorizedFetch: AuthorizedFetch
+): Promise<BannerLookupResult> {
+	const data = await parseResponse<BannerLookupResult | null>(
 		await authorizedFetch(articleUrl(`/banners/lookup/article/${encodeURIComponent(articleId)}`))
 	)
-	return data.banner
+	return data ?? EMPTY_BANNER_LOOKUP
 }

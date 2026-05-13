@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { getArticleBanner, getLandingBanner, getSectionBanner } from '~/containers/Articles/api'
-import type { ArticleSection, Banner } from '~/containers/Articles/types'
+import type { ArticleSection, Banner, BannerLookupResult } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
 type Props = {
@@ -21,7 +21,7 @@ function isExternalUrl(url: string) {
 export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 	const { authorizedFetch, isAuthenticated, loaders } = useAuthContext()
 
-	const articleBannerQuery = useQuery<Banner | null>({
+	const articleBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'article', articleId],
 		queryFn: () => getArticleBanner(articleId as string, authorizedFetch),
 		enabled: scope === 'article' && !!articleId && isAuthenticated && !loaders.userLoading,
@@ -34,10 +34,10 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 		scope === 'section'
 			? !!section
 			: scope === 'article'
-				? !!section && !articleBannerQuery.isLoading && !articleBannerQuery.data
+				? !!section && !articleBannerQuery.isLoading && !articleBannerQuery.data?.text
 				: false
 
-	const sectionBannerQuery = useQuery<Banner | null>({
+	const sectionBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'section', sectionSlug],
 		queryFn: () => getSectionBanner(sectionSlug as ArticleSection, authorizedFetch),
 		enabled: sectionEnabled && isAuthenticated && !loaders.userLoading,
@@ -45,7 +45,7 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 		staleTime: 60_000
 	})
 
-	const landingBannerQuery = useQuery<Banner | null>({
+	const landingBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'landing'],
 		queryFn: () => getLandingBanner(authorizedFetch),
 		enabled: scope === 'landing' && isAuthenticated && !loaders.userLoading,
@@ -55,10 +55,10 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 
 	const banner: Banner | null =
 		scope === 'article'
-			? (articleBannerQuery.data ?? sectionBannerQuery.data ?? null)
+			? (articleBannerQuery.data?.text ?? sectionBannerQuery.data?.text ?? null)
 			: scope === 'section'
-				? (sectionBannerQuery.data ?? null)
-				: (landingBannerQuery.data ?? null)
+				? (sectionBannerQuery.data?.text ?? null)
+				: (landingBannerQuery.data?.text ?? null)
 
 	const [dismissed, setDismissed] = useState(false)
 

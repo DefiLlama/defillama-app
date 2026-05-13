@@ -253,14 +253,33 @@ export const BANNER_SCOPE_LABELS: Record<BannerScope, string> = {
 	article: 'Specific article'
 }
 
+export type BannerKind = 'text' | 'image' | 'image-horizontal'
+
+export const BANNER_KINDS: BannerKind[] = ['text', 'image', 'image-horizontal']
+
+export const BANNER_KIND_LABELS: Record<BannerKind, string> = {
+	text: 'Text strip',
+	image: 'Right-rail image',
+	'image-horizontal': 'Mobile inline image'
+}
+
+export const BANNER_KIND_DESCRIPTIONS: Record<BannerKind, string> = {
+	text: 'Full-width dismissible strip at the top of the page',
+	image: 'Image in the article right rail, under SHARE (desktop only)',
+	'image-horizontal': 'Wide image placed near the top of the article body (mobile only)'
+}
+
 export type Banner = {
 	id: string
+	type: BannerKind
 	scope: BannerScope
 	section: ArticleSection | null
 	articleId: string | null
-	text: string
+	text: string | null
 	linkUrl: string | null
 	linkLabel: string | null
+	imageUrl: string | null
+	imageAlt: string | null
 	enabled: boolean
 	createdByPbUserId: string
 	createdAt: string
@@ -268,11 +287,20 @@ export type Banner = {
 }
 
 export type BannerPayload = {
+	type?: BannerKind
 	scope: BannerScope
 	section?: ArticleSection | null
 	articleId?: string | null
-	text: string
+	text?: string | null
 	linkUrl?: string | null
 	linkLabel?: string | null
+	imageUrl?: string | null
+	imageAlt?: string | null
 	enabled?: boolean
+}
+
+export type BannerLookupResult = {
+	text: Banner | null
+	image: Banner | null
+	imageHorizontal: Banner | null
 }

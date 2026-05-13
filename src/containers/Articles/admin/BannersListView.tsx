@@ -3,7 +3,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { ArticleApiError, deleteBanner, listBanners, updateBanner } from '~/containers/Articles/api'
 import type { Banner } from '~/containers/Articles/types'
-import { ARTICLE_SECTION_LABELS, BANNER_SCOPE_LABELS } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS, BANNER_KIND_LABELS, BANNER_SCOPE_LABELS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
 export function BannersListView() {
@@ -71,7 +71,8 @@ export function BannersListView() {
 					</Link>
 					<h1 className="mt-2 text-3xl font-semibold tracking-tight text-(--text-primary)">Banners</h1>
 					<p className="mt-1 text-sm text-(--text-secondary)">
-						Configure the dismissible strip shown on /research, on a section's articles, or on a single article.
+						Configure the dismissible top strip, the desktop right-rail image, or the mobile inline image shown on
+						/research, a section's articles, or a single article.
 					</p>
 				</div>
 				<Link
@@ -103,6 +104,9 @@ export function BannersListView() {
 										{banner.scope === 'section' && banner.section ? ` · ${ARTICLE_SECTION_LABELS[banner.section]}` : ''}
 										{banner.scope === 'article' && banner.articleId ? ` · #${banner.articleId.slice(0, 8)}` : ''}
 									</span>
+									<span className="inline-flex items-center rounded-full bg-(--link-button) px-2 py-0.5 font-jetbrains text-[9px] tracking-[0.18em] text-(--link-text) uppercase">
+										{BANNER_KIND_LABELS[banner.type]}
+									</span>
 									<span
 										className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-jetbrains text-[9px] tracking-[0.18em] uppercase ${
 											banner.enabled
@@ -114,12 +118,32 @@ export function BannersListView() {
 										{banner.enabled ? 'Live' : 'Disabled'}
 									</span>
 								</div>
-								<p className="line-clamp-2 text-sm text-(--text-primary)">{banner.text}</p>
-								{banner.linkUrl ? (
-									<p className="truncate text-xs text-(--text-tertiary)">
-										→ {banner.linkLabel?.trim() || 'Read more'} · {banner.linkUrl}
-									</p>
-								) : null}
+								{banner.type === 'text' ? (
+									<>
+										<p className="line-clamp-2 text-sm text-(--text-primary)">{banner.text}</p>
+										{banner.linkUrl ? (
+											<p className="truncate text-xs text-(--text-tertiary)">
+												→ {banner.linkLabel?.trim() || 'Read more'} · {banner.linkUrl}
+											</p>
+										) : null}
+									</>
+								) : (
+									<div className="mt-1 flex items-center gap-3">
+										{banner.imageUrl ? (
+											// eslint-disable-next-line @next/next/no-img-element
+											<img
+												src={banner.imageUrl}
+												alt=""
+												className={`shrink-0 rounded border border-(--cards-border) object-cover ${
+													banner.type === 'image-horizontal' ? 'h-8 w-20' : 'h-12 w-12'
+												}`}
+											/>
+										) : null}
+										<p className="line-clamp-2 text-sm text-(--text-secondary)">
+											{banner.imageAlt?.trim() || <span className="text-(--text-tertiary) italic">no alt text</span>}
+										</p>
+									</div>
+								)}
 							</div>
 							<div className="flex flex-wrap items-center gap-2 justify-self-end">
 								<button
