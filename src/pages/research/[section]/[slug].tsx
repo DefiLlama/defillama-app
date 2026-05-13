@@ -63,11 +63,12 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 
 	useEffect(() => {
 		if (!article) return
-		if (article.section && article.section !== expectedSection) {
-			const canonicalSectionSlug = ARTICLE_SECTION_SLUGS[article.section]
-			void router.replace(`/research/${canonicalSectionSlug}/${article.slug}`)
-		}
-	}, [article, expectedSection, router])
+		const sectionMismatch = !!article.section && article.section !== expectedSection
+		const slugMismatch = article.slug !== slug
+		if (!sectionMismatch && !slugMismatch) return
+		const canonicalSectionSlug = article.section ? ARTICLE_SECTION_SLUGS[article.section] : sectionSlug
+		void router.replace(`/research/${canonicalSectionSlug}/${article.slug}`)
+	}, [article, expectedSection, slug, sectionSlug, router])
 
 	if (!expectedSection) {
 		return (
@@ -106,8 +107,9 @@ function SectionArticleContent({ slug, sectionSlug }: { slug: string; sectionSlu
 	}
 
 	const sectionMismatch = article.section ? article.section !== expectedSection : false
+	const slugMismatch = article.slug !== slug
 
-	if (sectionMismatch && article.status === 'published') {
+	if ((sectionMismatch || slugMismatch) && article.status === 'published') {
 		return <ResearchLoader />
 	}
 
