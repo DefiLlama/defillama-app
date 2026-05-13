@@ -401,7 +401,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 				: 'You have unsaved changes. Leave anyway?'
 			if (typeof window !== 'undefined' && !window.confirm(message)) {
 				router.events.emit('routeChangeError', new Error('routeChange aborted'), nextUrl, { shallow: false })
-				throw 'routeChange aborted to preserve unsaved changes'
+				throw new Error('routeChange aborted to preserve unsaved changes')
 			}
 		}
 		router.events.on('routeChangeStart', handler)

@@ -14,13 +14,22 @@ export function parseContractBreakdownRequest(
 
 	const venue = parseOptionalTarget(req.query.venue)
 	const assetGroup = parseOptionalTarget(req.query.assetGroup)
-	if (venue === null || assetGroup === null) return null
-	if (venue && assetGroup) return null
+	const assetClass = parseOptionalTarget(req.query.assetClass)
+	const excludeAssetClass = parseOptionalTarget(req.query.excludeAssetClass)
+	if (venue === null || assetGroup === null || assetClass === null || excludeAssetClass === null) return null
+	const targetCount =
+		Number(Boolean(venue)) +
+		Number(Boolean(assetGroup)) +
+		Number(Boolean(assetClass)) +
+		Number(Boolean(excludeAssetClass))
+	if (targetCount > 1) return null
 
 	return {
 		key,
 		...(venue ? { venue } : {}),
-		...(assetGroup ? { assetGroup } : {})
+		...(assetGroup ? { assetGroup } : {}),
+		...(assetClass ? { assetClass } : {}),
+		...(excludeAssetClass ? { excludeAssetClass } : {})
 	}
 }
 
@@ -28,6 +37,8 @@ function buildContractBreakdownCacheJitterKey(request: IRWAPerpsContractBreakdow
 	const searchParams = new URLSearchParams({ key: request.key })
 	if (request.venue) searchParams.set('venue', request.venue)
 	if (request.assetGroup) searchParams.set('assetGroup', request.assetGroup)
+	if (request.assetClass) searchParams.set('assetClass', request.assetClass)
+	if (request.excludeAssetClass) searchParams.set('excludeAssetClass', request.excludeAssetClass)
 	return `/api/rwa/perps/contract-breakdown?${searchParams.toString()}`
 }
 

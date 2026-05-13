@@ -7,10 +7,10 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging(`rwa/perps/index`, async () => {
+export const getStaticProps = withPerformanceLogging(`rwa/perps/forex`, async () => {
 	const data = await getRWAPerpsOverview({
 		activeView: getDefaultRWAPerpsChartView('overview'),
-		excludeAssetClass: 'Forex Perps'
+		assetClass: 'Forex Perps'
 	})
 
 	return {
@@ -21,16 +21,16 @@ export const getStaticProps = withPerformanceLogging(`rwa/perps/index`, async ()
 
 const pageName = ['RWA Perps']
 
-export default function RWAPerpsPage({ data }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function RWAPerpsForexPage({ data }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="RWA Perps Dashboard & Analytics - DefiLlama"
-			description="Track RWA perpetual markets across venues. Compare open interest, 24h volume, market counts, and venue-level breakdowns."
+			title="RWA Forex Perps Dashboard & Analytics - DefiLlama"
+			description="Track tokenized forex perpetual markets across venues. Compare open interest, 24h volume, market counts, and venue-level breakdowns for forex pairs."
 			pageName={pageName}
-			canonicalUrl="/rwa/perps"
+			canonicalUrl="/rwa/perps/forex"
 		>
-			<RWAPerpsTabNav active="overview" />
-			<RWAPerpsDashboard mode="overview" data={data} />
+			<RWAPerpsTabNav active="forex" />
+			<RWAPerpsDashboard mode="overview" data={data} assetClassFilter="Forex Perps" />
 		</Layout>
 	)
 }

@@ -65,5 +65,5 @@ export function ArticleImageBannerHorizontal({ articleId, section }: Props) {
 		</Link>
 	)
 
-	return <div className="my-6 not-prose lg:hidden">{content}</div>
+	return <div className="not-prose my-6 lg:hidden">{content}</div>
 }

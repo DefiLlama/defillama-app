@@ -108,7 +108,7 @@ function IframeEmbed({ config }: { config: ArticleEmbedConfig }) {
 						: 'encrypted-media; picture-in-picture; fullscreen'
 				}
 				allowFullScreen
-				sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation allow-forms"
+				sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-presentation allow-forms"
 				className="h-full w-full border-0"
 			/>
 		</div>
