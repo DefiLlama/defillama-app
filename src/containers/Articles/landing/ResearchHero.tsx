@@ -65,12 +65,7 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ introTitle, reports 
 		<div className="bg-top-center bg-[url(/assets/research/dotted-bg.webp)] bg-no-repeat pt-[32px] text-white lg:bg-contain lg:pt-[45px] 2xl:bg-cover">
 			<div>
 				<div className="flex flex-col items-center">
-					<img
-						src="/assets/research_logo_white.webp"
-						alt="DefiLlama"
-						width={301}
-						height={99}
-					/>
+					<img src="/assets/research_logo_white.webp" alt="DefiLlama" width={301} height={99} />
 					<h1
 						className="mt-[35px] mb-[24px] text-center text-[22px] leading-[130%] font-light lg:mb-[45px] lg:text-[32px]"
 						dangerouslySetInnerHTML={{ __html: introTitle }}

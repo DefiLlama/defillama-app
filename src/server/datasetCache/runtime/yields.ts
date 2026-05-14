@@ -16,19 +16,9 @@ import {
 	getYieldProtocolConfigFromCache
 } from '../yields'
 import { readThroughDatasetCache } from './source'
+import type { YieldPoolPageData, YieldPoolPageDataResult } from './yields.types'
 
 const YIELD_POOL_CONFIG_ID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-export type YieldPoolPageData = {
-	pool: IYieldTableRow
-	config: any | null
-	poolId: string
-}
-
-export type YieldPoolPageDataResult = {
-	source: 'cache' | 'network'
-	data: YieldPoolPageData | null
-}
 
 async function getProtocolYieldRowsFromNetwork(protocolSlugs: string[]): Promise<IYieldTableRow[]> {
 	const yieldsData = await getYieldPageData()

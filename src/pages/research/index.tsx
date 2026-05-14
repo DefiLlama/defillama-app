@@ -19,8 +19,11 @@ import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/lan
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { RESEARCH_LANDING_LIMITS } from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
+import type { ArticleDocument } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import Layout from '~/layout'
+
+const EMPTY_ARTICLES: ArticleDocument[] = []
 
 function ArticlesLandingInner() {
 	const { authorizedFetch } = useAuthContext()
@@ -35,7 +38,7 @@ function ArticlesLandingInner() {
 		retry: false
 	})
 
-	const articles = response?.items ?? []
+	const articles = response?.items ?? EMPTY_ARTICLES
 
 	// TODO: fetch correct sections
 	const slices = useMemo(() => {

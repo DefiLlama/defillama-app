@@ -1,10 +1,6 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense } from 'react'
 import { useAuthContext } from '~/containers/Subscription/auth'
-
-const LazySignInDialog = lazy(() =>
-	import('~/containers/Subscription/SignInDialog').then((m) => ({ default: m.SignInDialog }))
-)
+import { SignInDialog } from '~/containers/Subscription/SignInDialog'
 
 export function SignInModal({
 	text,
@@ -33,11 +29,7 @@ export function SignInModal({
 					{text ?? 'Sign In'}
 				</button>
 			) : null}
-			{isOpen ? (
-				<Suspense fallback={null}>
-					<LazySignInDialog store={dialogStore} />
-				</Suspense>
-			) : null}
+			{isOpen ? <SignInDialog store={dialogStore} /> : null}
 		</>
 	)
 }

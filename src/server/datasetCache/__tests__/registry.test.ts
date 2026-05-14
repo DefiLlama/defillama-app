@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import nextConfig from '../../../../next.config'
 import {
 	DATASET_CACHE_MANIFEST_TRACE_INCLUDE,
@@ -11,6 +11,10 @@ import {
 } from '../registry'
 
 describe('dataset cache registry', () => {
+	afterEach(() => {
+		vi.unstubAllEnvs()
+	})
+
 	it('declares every domain once with a build adapter', () => {
 		const registeredDomains = Object.keys(DATASET_CACHE_REGISTRY).toSorted()
 
@@ -41,6 +45,15 @@ describe('dataset cache registry', () => {
 		expect(getDatasetCacheTraceIncludes('markets', 'markets')).toEqual([
 			DATASET_CACHE_MANIFEST_TRACE_INCLUDE,
 			'./.cache/datasets/markets/**/*'
+		])
+	})
+
+	it('keeps trace includes statically scoped to the default dataset cache folder', () => {
+		vi.stubEnv('DATASET_CACHE_DIR', '.cache/custom-datasets')
+
+		expect(getDatasetCacheTraceIncludes('yields')).toEqual([
+			DATASET_CACHE_MANIFEST_TRACE_INCLUDE,
+			'./.cache/datasets/yields/**/*'
 		])
 	})
 

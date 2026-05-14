@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenLiquidationsSectionData } from '~/server/datasetCache/runtime/liquidations'
 import { validateSubscription } from '~/utils/apiAuth'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -40,6 +39,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			chainMetadata: metadataModule.default.chainMetadata,
 			protocolMetadata: metadataModule.default.protocolMetadata
 		}
+		const { getTokenLiquidationsSectionData } = await import('~/server/datasetCache/runtime/liquidations')
 		const data = await getTokenLiquidationsSectionData(normalizedSymbol, metadataCache)
 
 		if (!data) {

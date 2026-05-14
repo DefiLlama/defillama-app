@@ -24,7 +24,6 @@ import { useHolderStats, useVolatility } from '~/containers/Yields/queries/clien
 import { clearYieldsQueries, hasActiveYieldsQueries } from '~/containers/Yields/queryState'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
-import { getProtocolYieldRows } from '~/server/datasetCache/runtime/yields'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -83,6 +82,7 @@ export const getStaticProps = withPerformanceLogging(
 				}
 			}
 
+			const { getProtocolYieldRows } = await import('~/server/datasetCache/runtime/yields')
 			poolsList = await getProtocolYieldRows(protocolSlugs)
 		} catch (err) {
 			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')

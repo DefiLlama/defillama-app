@@ -9,7 +9,6 @@ import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
 import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
 import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
-import { fetchTokenRightsEntryByDefillamaId } from '~/server/datasetCache/runtime/tokenRights'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
@@ -57,6 +56,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const defillamaId = metadata[0]
+		const { fetchTokenRightsEntryByDefillamaId } = await import('~/server/datasetCache/runtime/tokenRights')
 		const [rawEntry, protocolData] = await Promise.all([
 			fetchTokenRightsEntryByDefillamaId(defillamaId),
 			fetchProtocolOverviewMetrics(protocol)
