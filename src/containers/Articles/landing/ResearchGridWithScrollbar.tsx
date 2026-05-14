@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
-import { formatDate } from '~/containers/Articles/landing/utils'
+import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { useScrollerHeightFromFirstItem } from '~/hooks/useScrollerHeightFromFirstItem'
 
@@ -64,7 +64,7 @@ function ResearchGridWithScrollbarScroller({ articles, pageWidget, onHeightChang
 						<Link
 							key={article.id}
 							className="group relative top-0 overflow-hidden rounded-lg transition-all duration-200 ease-out hover:top-[-4px]"
-							href={`/research/${article.slug}`}
+							href={articleHref(article)}
 							onClick={() => pushResearchAnalyticsEvent(article, 'widget_click', pageWidget)}
 						>
 							<div className="relative aspect-[207/119] overflow-hidden rounded-[7px] group-hover:brightness-[0.8] lg:min-w-[40%]">

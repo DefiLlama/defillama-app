@@ -1,8 +1,10 @@
 import * as Ariakit from '@ariakit/react'
 import type { Dispatch, SetStateAction } from 'react'
 import { EDITORIAL_TAGS, isEditorialTagSlug } from '../editorialTags'
-import type { ArticleCollaborator, ArticleSection, LocalArticleDocument } from '../types'
+import type { ArticleCollaborator, ArticleImage, ArticleSection, LocalArticleDocument } from '../types'
 import { ARTICLE_SECTIONS, ARTICLE_SECTION_LABELS, ARTICLE_SECTION_SLUGS } from '../types'
+import { ImageUploadButton } from '../upload/ImageUploadButton'
+import { PdfUploadButton } from '../upload/PdfUploadButton'
 import { Icon } from './ArticleEditorIcon'
 import type { ArticleFieldUpdater } from './ArticleEditorTypes'
 import { formatArticleDate, fromDateTimeLocal, slugFromTitle, toDateTimeLocal } from './ArticleEditorUtils'
@@ -146,6 +148,82 @@ export function ArticleMetaDialog({
 						</MetaFieldHint>
 					</div>
 				</MetaSection>
+
+				{article.section === 'report' ? (
+					<MetaSection title="Report">
+						<div className="grid gap-1.5">
+							<span className="text-xs text-(--text-secondary)">Carousel image</span>
+							<ImageUploadButton
+								scope="report-carousel"
+								articleId={article.id ?? null}
+								currentUrl={article.carouselImage?.url ?? null}
+								label="carousel image"
+								helperText="Used on the rotating hero carousel on /research. Falls back to the cover image."
+								previewShape="wide"
+								onUploaded={(result) =>
+									updateArticle('carouselImage', {
+										url: result.url,
+										width: result.width,
+										height: result.height
+									} as ArticleImage)
+								}
+								onCleared={() => updateArticle('carouselImage', null)}
+							/>
+						</div>
+						<div className="grid gap-1.5">
+							<span className="text-xs text-(--text-secondary)">Sponsor logo</span>
+							<ImageUploadButton
+								scope="report-sponsor-logo"
+								articleId={article.id ?? null}
+								currentUrl={article.sponsorLogo?.url ?? null}
+								label="sponsor logo"
+								helperText="Shown as a 'Sponsored by' badge on the report card."
+								previewShape="square"
+								onUploaded={(result) =>
+									updateArticle('sponsorLogo', {
+										url: result.url,
+										width: result.width,
+										height: result.height
+									} as ArticleImage)
+								}
+								onCleared={() => updateArticle('sponsorLogo', null)}
+							/>
+						</div>
+						<label className="grid gap-1.5">
+							<span className="flex items-baseline justify-between gap-2 text-xs text-(--text-secondary)">
+								<span>Report description</span>
+								<span className="font-jetbrains text-[10px] text-(--text-tertiary)">
+									{(article.reportDescription ?? '').length}/600
+								</span>
+							</span>
+							<textarea
+								value={article.reportDescription ?? ''}
+								onChange={(event) => updateArticle('reportDescription', event.target.value.slice(0, 600))}
+								placeholder="Shown on hover over the report card in the /research carousel."
+								rows={4}
+								maxLength={600}
+								className="resize-none rounded-md border border-(--form-control-border) bg-(--app-bg) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--link-text) focus:outline-none"
+							/>
+						</label>
+						<div className="grid gap-1.5">
+							<span className="text-xs text-(--text-secondary)">Report PDF</span>
+							<PdfUploadButton
+								articleId={article.id ?? null}
+								currentPdf={article.reportPdf ?? null}
+								helperText="Downloadable from the article page and the /research carousel."
+								onUploaded={(result) =>
+									updateArticle('reportPdf', {
+										id: result.id,
+										url: result.url,
+										sizeBytes: result.sizeBytes,
+										...(result.originalName ? { originalName: result.originalName } : {})
+									})
+								}
+								onCleared={() => updateArticle('reportPdf', null)}
+							/>
+						</div>
+					</MetaSection>
+				) : null}
 
 				<MetaSection title="Publishing">
 					<label className="grid gap-1.5">

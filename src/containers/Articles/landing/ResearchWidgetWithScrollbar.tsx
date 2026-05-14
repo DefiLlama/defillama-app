@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
+import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchWidgetWithScrollbarProps {
@@ -56,7 +57,7 @@ function ResearchWidgetWithScrollbarScroller({ articles, onHeightChange }: Resea
 							<Link
 								key={article.id}
 								className="group relative top-0 flex gap-[16px] overflow-hidden rounded-lg"
-								href={`/research/${article.slug}`}
+								href={articleHref(article)}
 							>
 								<div className="relative aspect-[85/65] w-[85px] min-w-[85px] overflow-hidden rounded-[7px] group-hover:brightness-[0.8] lg:aspect-[120/70] lg:w-[120px] lg:min-w-[120px]">
 									{img ? (

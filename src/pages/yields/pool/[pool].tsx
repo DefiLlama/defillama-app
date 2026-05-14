@@ -35,7 +35,7 @@ import { extractPoolTokens } from '~/containers/Yields/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
-import { getYieldPoolPageData, type YieldPoolPageData } from '~/server/datasetCache/runtime/yields'
+import type { YieldPoolPageData } from '~/server/datasetCache/runtime/yields.types'
 import { formattedNum } from '~/utils'
 import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { jitterCacheControlHeader, maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -58,6 +58,7 @@ const getServerSidePropsHandler: GetServerSideProps<YieldPoolPageProps> = async 
 		return { notFound: true }
 	}
 
+	const { getYieldPoolPageData } = await import('~/server/datasetCache/runtime/yields')
 	const result = await getYieldPoolPageData(poolId)
 
 	if (!result.data) {

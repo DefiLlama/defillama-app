@@ -16,6 +16,8 @@ import Layout from '~/layout'
 
 type ArchiveFilter = ArticleSection | 'all'
 
+const EMPTY_ARTICLES: ArticleDocument[] = []
+
 function articleHref(article: ArticleDocument) {
 	if (article.section) {
 		return `/research/${ARTICLE_SECTION_SLUGS[article.section]}/${article.slug}`
@@ -93,6 +95,27 @@ function AuthorContent({ slug }: { slug: string }) {
 		retry: false
 	})
 
+	const articles = data?.articles ?? EMPTY_ARTICLES
+	const rest = useMemo(() => articles.slice(1), [articles])
+	const sectionCounts = useMemo(() => {
+		const counts = new Map<ArticleSection, number>()
+		for (const article of rest) {
+			if (!article.section) continue
+			counts.set(article.section, (counts.get(article.section) ?? 0) + 1)
+		}
+		return counts
+	}, [rest])
+	const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>('all')
+	const filteredArchive = useMemo(() => {
+		if (archiveFilter === 'all') return rest
+		return rest.filter((article) => article.section === archiveFilter)
+	}, [rest, archiveFilter])
+	const archiveTabs: ArchiveFilter[] = useMemo(() => {
+		const tabs: ArchiveFilter[] = ['all']
+		for (const [section] of sectionCounts) tabs.push(section)
+		return tabs
+	}, [sectionCounts])
+
 	if (isLoading) {
 		return (
 			<div className="mx-auto flex max-w-3xl items-center justify-center py-24 text-sm text-(--text-tertiary)">
@@ -122,7 +145,7 @@ function AuthorContent({ slug }: { slug: string }) {
 		)
 	}
 
-	const { author, articles } = data
+	const { author } = data
 	const totalMinutes = articles.reduce((sum, article) => sum + readingMinutes(article), 0)
 	const firstYear = articles.length ? formatYear(articles[articles.length - 1]?.publishedAt) : null
 	const latestYear = articles.length ? formatYear(articles[0]?.publishedAt) : null
@@ -130,31 +153,8 @@ function AuthorContent({ slug }: { slug: string }) {
 		firstYear && latestYear ? (firstYear === latestYear ? firstYear : `${firstYear}–${latestYear}`) : null
 
 	const lead = articles[0]
-	const rest = articles.slice(1)
 
 	const socialEntries = author.socials ? Object.entries(author.socials).filter(([, value]) => Boolean(value)) : []
-
-	const sectionCounts = useMemo(() => {
-		const counts = new Map<ArticleSection, number>()
-		for (const article of rest) {
-			if (!article.section) continue
-			counts.set(article.section, (counts.get(article.section) ?? 0) + 1)
-		}
-		return counts
-	}, [rest])
-
-	const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>('all')
-
-	const filteredArchive = useMemo(() => {
-		if (archiveFilter === 'all') return rest
-		return rest.filter((article) => article.section === archiveFilter)
-	}, [rest, archiveFilter])
-
-	const archiveTabs: ArchiveFilter[] = useMemo(() => {
-		const tabs: ArchiveFilter[] = ['all']
-		for (const [section] of sectionCounts) tabs.push(section)
-		return tabs
-	}, [sectionCounts])
 
 	return (
 		<div className="mx-auto grid w-full max-w-4xl gap-10 px-1 pt-2 pb-20 md:gap-14">

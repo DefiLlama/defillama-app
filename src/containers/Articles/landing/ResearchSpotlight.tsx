@@ -3,7 +3,7 @@ import Link from 'next/link'
 import React from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
-import { formatDate } from '~/containers/Articles/landing/utils'
+import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 const SpotlightIcon = ({ fill }: { fill: string }) => (
@@ -64,7 +64,7 @@ export const ResearchSpotlight: React.FC<ResearchSpotlightProps> = ({ title, art
 					<Link
 						key={article.id}
 						className="group relative top-0 transition-all duration-200 ease-out hover:top-[-4px]"
-						href={`/research/${article.slug}`}
+						href={articleHref(article)}
 						onClick={() => pushResearchAnalyticsEvent(article, 'widget_click', 'DefiLlama Research Spotlight widget')}
 					>
 						<div

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import React, { useMemo, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
+import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { useScrollerHeightFromFirstItem } from '~/hooks/useScrollerHeightFromFirstItem'
 
@@ -55,7 +56,7 @@ export const ResearchCollections: React.FC<ResearchCollectionsProps> = ({ title,
 								key={article.id}
 								data-collections-item
 								className="group relative top-0 flex w-full shrink-0 overflow-hidden transition-all duration-200 ease-out hover:top-[-4px] lg:w-auto"
-								href={`/research/${article.slug}`}
+								href={articleHref(article)}
 								onClick={() => pushResearchAnalyticsEvent(article, 'widget_click', pageWidget)}
 							>
 								<div className="relative aspect-[85/65] min-w-[85px] overflow-hidden rounded-[7px] group-hover:brightness-[0.8] lg:aspect-[170/121] lg:min-w-[40%]">

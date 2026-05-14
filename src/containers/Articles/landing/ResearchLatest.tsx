@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import React from 'react'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
+import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 const NAV_ITEMS: Array<{ id: string; label: string; anchor: string }> = [
@@ -67,7 +68,7 @@ function normalizeItem(article: ArticleDocument, index: number): NormalizedItem 
 		label: label.toUpperCase(),
 		title: article.title,
 		image: article.coverImage?.url,
-		href: `/research/${article.slug}`
+		href: articleHref(article)
 	}
 }
 

@@ -79,6 +79,14 @@ export type ArticleImage = {
 	height?: number
 }
 
+export type ArticlePdf = {
+	id: string
+	url: string
+	sizeBytes: number
+	originalName?: string
+	pageCount?: number
+}
+
 export type ArticleEntityRef = {
 	entityType: ArticleEntityType
 	slug: string
@@ -184,6 +192,10 @@ export type LocalArticleDocument = {
 	seoDescription?: string
 	excerpt?: string
 	coverImage?: ArticleImage | null
+	carouselImage?: ArticleImage | null
+	sponsorLogo?: ArticleImage | null
+	reportDescription?: string | null
+	reportPdf?: ArticlePdf | null
 
 	contentJson: TiptapJson
 	plainText: string
