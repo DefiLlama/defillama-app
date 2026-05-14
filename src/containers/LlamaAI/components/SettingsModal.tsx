@@ -2,13 +2,18 @@ import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { TelegramStatus } from '~/containers/LlamaAI/api/telegram'
-import { IntegrationRow } from '~/containers/LlamaAI/components/IntegrationRow'
+import { getIntegrationRowResetKey, IntegrationRow } from '~/containers/LlamaAI/components/IntegrationRow'
 import {
 	type EffortOption,
 	type LlamaAISettings,
 	type LlamaAISettingsActions,
 	type ModelOption
 } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
+import {
+	isSettingsTabId,
+	type SettingsInitialState,
+	type SettingsTabId
+} from '~/containers/LlamaAI/utils/settingsIntent'
 import { useDarkModeManager, useLlamaAINotifyBannerDismissed } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -16,14 +21,7 @@ const MAX_LENGTH = 500
 
 type ModalStatus = 'closed' | 'open_clean' | 'open_dirty' | 'committing'
 
-const SETTINGS_TAB_IDS = ['persona', 'app', 'capabilities', 'integrations', 'lab'] as const
-
-export type SettingsTabId = (typeof SETTINGS_TAB_IDS)[number]
 type TabId = SettingsTabId
-
-function isSettingsTabId(tab: unknown): tab is TabId {
-	return typeof tab === 'string' && SETTINGS_TAB_IDS.includes(tab as TabId)
-}
 
 function isEffortAvailableForModel(effort: string, model: string) {
 	const isClaude = model === '' || model.startsWith('anthropic/')
@@ -52,7 +50,7 @@ interface SettingsModalProps {
 	availableEfforts?: EffortOption[]
 	telegramStatus?: TelegramStatus | null
 	isSettingsLoading?: boolean
-	initialState?: { tab?: TabId; tgloginToken?: string | null } | null
+	initialState?: SettingsInitialState | null
 	onInitialStateConsumed?: () => void
 }
 
@@ -585,6 +583,7 @@ export const SettingsModal = memo(function SettingsModal({
 										</div>
 									) : (
 										<IntegrationRow
+											key={getIntegrationRowResetKey(initialState?.tgloginToken, telegramStatus)}
 											kind="telegram"
 											title="Telegram"
 											description="Chat with LlamaAI and receive alerts in your Telegram DMs."

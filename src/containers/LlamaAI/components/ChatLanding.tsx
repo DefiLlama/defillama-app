@@ -9,6 +9,7 @@ import { useTipActions } from '~/containers/LlamaAI/components/TipActionContext'
 import { TipOrNotifyBanner } from '~/containers/LlamaAI/components/TipOrNotifyBanner'
 import { useActiveTip } from '~/containers/LlamaAI/hooks/useLlamaAITip'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import { isSettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
@@ -76,10 +77,7 @@ export function ChatLanding({
 		switch (greetingTip.cta.action) {
 			case 'open-settings': {
 				const payload = greetingTip.cta.kind === 'action' ? greetingTip.cta.payload : undefined
-				const tab =
-					payload && typeof payload.tab === 'string'
-						? (payload.tab as 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab')
-						: undefined
+				const tab = isSettingsTabId(payload?.tab) ? payload.tab : undefined
 				tipActions.openSettingsModal?.(tab)
 				break
 			}

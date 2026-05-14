@@ -58,6 +58,7 @@ import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useLlamaAISetting, useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
+import { useSettingsRouteIntent } from '~/containers/LlamaAI/hooks/useSettingsRouteIntent'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
@@ -82,6 +83,7 @@ import type {
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
 import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
+import type { SettingsInitialState, SettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -822,10 +824,7 @@ export function AgenticChat({
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
-	const [initialIntegrationsState, setInitialIntegrationsState] = useState<{
-		tab?: 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab'
-		tgloginToken?: string | null
-	} | null>(null)
+	const [initialIntegrationsState, setInitialIntegrationsState] = useState<SettingsInitialState | null>(null)
 	const router = useRouter()
 	const {
 		settings,
@@ -918,97 +917,7 @@ export function AgenticChat({
 		return () => clearTimeout(timer)
 	}, [dashboardPanelIsOpen, dashboardPanelMountedConfig])
 
-	useEffect(() => {
-		if (!router.isReady) return
-		const tg = typeof router.query.tglogin === 'string' ? router.query.tglogin : null
-		if (!tg) return
-
-		const { tglogin: _drop, ...rest } = router.query
-		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
-
-		if (!user) {
-			try {
-				sessionStorage.setItem('pending_tglogin', tg)
-			} catch {}
-			return
-		}
-		settingsModalStore.show()
-		setInitialIntegrationsState({ tab: 'integrations', tgloginToken: tg })
-	}, [router.isReady, router.query.tglogin, user, router, settingsModalStore])
-
-	useEffect(() => {
-		if (!router.isReady) return
-		const modal = typeof router.query.modal === 'string' ? router.query.modal : null
-		if (modal !== 'settings') return
-		const tglogin =
-			typeof router.query.tglogin === 'string'
-				? router.query.tglogin
-				: Array.isArray(router.query.tglogin)
-					? router.query.tglogin[0]
-					: null
-		if (tglogin) return
-
-		const requestedTab = typeof router.query.tab === 'string' ? router.query.tab : null
-		const tab =
-			requestedTab === 'persona' ||
-			requestedTab === 'app' ||
-			requestedTab === 'capabilities' ||
-			requestedTab === 'integrations' ||
-			requestedTab === 'lab'
-				? requestedTab
-				: undefined
-
-		const { modal: _modal, tab: _tab, ...rest } = router.query
-		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
-
-		if (!user) {
-			if (tab) {
-				try {
-					sessionStorage.setItem('pending_settings_tab', tab)
-				} catch {}
-			}
-			return
-		}
-
-		if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
-		settingsModalStore.show()
-	}, [router.isReady, router.query.modal, router.query.tab, router.query.tglogin, user, router, settingsModalStore])
-
-	useEffect(() => {
-		if (!user) return
-		let stashed: string | null = null
-		try {
-			stashed = sessionStorage.getItem('pending_tglogin')
-		} catch {}
-		if (!stashed) return
-		try {
-			sessionStorage.removeItem('pending_tglogin')
-		} catch {}
-		settingsModalStore.show()
-		setInitialIntegrationsState({ tab: 'integrations', tgloginToken: stashed })
-	}, [user, settingsModalStore])
-
-	useEffect(() => {
-		if (!user) return
-		let stashed: string | null = null
-		try {
-			stashed = sessionStorage.getItem('pending_settings_tab')
-		} catch {}
-		if (
-			stashed !== 'persona' &&
-			stashed !== 'app' &&
-			stashed !== 'capabilities' &&
-			stashed !== 'integrations' &&
-			stashed !== 'lab'
-		) {
-			return
-		}
-		try {
-			sessionStorage.removeItem('pending_settings_tab')
-		} catch {}
-		setInitialIntegrationsState({ tab: stashed, tgloginToken: null })
-		settingsModalStore.show()
-	}, [user, settingsModalStore])
+	useSettingsRouteIntent({ router, user, settingsModalStore, setInitialIntegrationsState })
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -2567,7 +2476,7 @@ export function AgenticChat({
 
 	const tipActionHandlers = useMemo(
 		() => ({
-			openSettingsModal: (tab?: 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab') => {
+			openSettingsModal: (tab?: SettingsTabId) => {
 				if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
 				settingsModalStore.show()
 			},

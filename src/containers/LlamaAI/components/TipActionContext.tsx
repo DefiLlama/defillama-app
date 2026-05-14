@@ -1,7 +1,8 @@
 import { createContext, useContext, type ReactNode } from 'react'
+import type { SettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 
 export type TipActionHandlers = {
-	openSettingsModal?: (tab?: 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab') => void
+	openSettingsModal?: (tab?: SettingsTabId) => void
 	openAlertsModal?: () => void
 	toggleResearchMode?: () => void
 	submitPrompt?: (prompt: string) => void

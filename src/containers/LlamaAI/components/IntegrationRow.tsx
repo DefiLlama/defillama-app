@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { TelegramStatus } from '~/containers/LlamaAI/api/telegram'
 import { useIntegrationLink } from '~/containers/LlamaAI/hooks/useIntegrationLink'
 
@@ -8,7 +8,7 @@ type Props = {
 	kind: IntegrationKind
 	title: string
 	description: string
-	glyph?: React.ReactNode
+	glyph?: ReactNode
 	initialStatus?: TelegramStatus | null
 	initialTgloginToken?: string | null
 	onInitialStateConsumed?: () => void
@@ -17,6 +17,16 @@ type Props = {
 function formatHandle(raw: string | null | undefined): string {
 	if (!raw) return ''
 	return raw.startsWith('@') ? raw : `@${raw}`
+}
+
+export function getIntegrationRowResetKey(
+	initialTgloginToken: string | null | undefined,
+	status: TelegramStatus | null | undefined
+) {
+	if (initialTgloginToken) return `tglogin:${initialTgloginToken}`
+	if (status?.pending) return `pending:${status.pending.token}`
+	if (status?.link.state === 'linked') return `linked:${status.link.telegramUsername}`
+	return 'unlinked'
 }
 
 export function IntegrationRow({
@@ -32,11 +42,6 @@ export function IntegrationRow({
 		initialStatus: kind === 'telegram' ? initialStatus : null,
 		initialTgloginToken: kind === 'telegram' ? initialTgloginToken : null
 	})
-
-	useEffect(() => {
-		if (initialTgloginToken && onInitialStateConsumed) onInitialStateConsumed()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	const [codeDraft, setCodeDraft] = useState('')
 	const [inlineError, setInlineError] = useState<string | null>(null)
@@ -71,13 +76,13 @@ export function IntegrationRow({
 							</button>
 						</div>
 					</div>
-				) : link.state.status === 'idle' || link.state.status === 'starting' ? (
+				) : link.state.status === 'idle' || link.state.status === 'starting' || link.state.status === 'loading' ? (
 					<button
-						disabled={link.state.status === 'starting'}
+						disabled={link.state.status === 'starting' || link.state.status === 'loading'}
 						onClick={() => link.connect()}
 						className="shrink-0 rounded-lg bg-[#1853A8] px-3 py-1.5 text-xs whitespace-nowrap text-white disabled:opacity-50 dark:bg-[#4B86DB]"
 					>
-						{link.state.status === 'starting' ? 'Opening…' : 'Connect'}
+						{link.state.status === 'starting' ? 'Opening…' : link.state.status === 'loading' ? 'Loading…' : 'Connect'}
 					</button>
 				) : null}
 			</div>
@@ -85,15 +90,19 @@ export function IntegrationRow({
 			{link.state.status === 'awaiting_tg' && (
 				<div className="mt-3 rounded-lg bg-black/[0.04] p-3 text-xs text-[#777] dark:bg-white/[0.04] dark:text-[#919296]">
 					Waiting for confirmation in Telegram…
-					{link.state.showFallback && (
-						<div className="mt-2">
-							Didn&apos;t see Telegram open?{' '}
-							<a href={link.state.deepLink} target="_blank" rel="noopener" className="underline">
-								DM /start to the bot
-							</a>
-							.
-						</div>
-					)}
+					<div className="mt-2">
+						Didn&apos;t see Telegram open?{' '}
+						<a href={link.state.deepLink} target="_blank" rel="noopener" className="underline">
+							DM /start to the bot
+						</a>
+						.
+					</div>
+				</div>
+			)}
+
+			{link.state.status === 'confirming' && (
+				<div className="mt-3 rounded-lg bg-black/[0.04] p-3 text-xs text-[#777] dark:bg-white/[0.04] dark:text-[#919296]">
+					Confirming Telegram link…
 				</div>
 			)}
 
@@ -102,9 +111,14 @@ export function IntegrationRow({
 					onSubmit={(e) => {
 						e.preventDefault()
 						setInlineError(null)
-						link.confirmCode(codeDraft).catch((err: any) => {
-							setInlineError(err?.body?.error || err?.message || 'Invalid code')
-						})
+						link
+							.confirmCode(codeDraft)
+							.then((result) => {
+								if (result && 'linked' in result && result.linked) onInitialStateConsumed?.()
+							})
+							.catch((err: any) => {
+								setInlineError(err?.body?.error || err?.message || 'Invalid code')
+							})
 					}}
 					className="mt-3 flex gap-2"
 				>
@@ -137,13 +151,20 @@ export function IntegrationRow({
 					</p>
 					<div className="flex gap-2">
 						<button
-							onClick={() => link.confirmSwitch()}
+							onClick={() => {
+								link.confirmSwitch().then((consumed) => {
+									if (consumed) onInitialStateConsumed?.()
+								})
+							}}
 							className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs text-white"
 						>
 							Yes, switch
 						</button>
 						<button
-							onClick={() => link.cancelSwitch()}
+							onClick={() => {
+								link.cancelSwitch()
+								onInitialStateConsumed?.()
+							}}
 							className="rounded-lg border border-black/[0.1] px-3 py-1.5 text-xs"
 						>
 							Cancel
