@@ -27,19 +27,15 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 			</div>
 			<div className="grid grid-cols-1 gap-[32px] lg:grid-cols-[397fr_719fr] lg:gap-[48px]">
 				<div className="flex flex-col gap-[24px]">
-					<div className="flex items-start justify-between gap-3">
-						<h2 className="text-blue-[#0c2956] text-[24px] leading-[150%] font-medium dark:text-white">
-							{highlight.title}
-						</h2>
-						{sponsorLogoUrl ? (
-							<div className="flex shrink-0 flex-col items-end gap-1">
-								<span className="font-jetbrains text-[9px] tracking-[0.18em] text-[#1D1D1D]/60 uppercase dark:text-white/60">
-									Sponsored by
-								</span>
-								<img src={sponsorLogoUrl} alt="" className="h-7 w-auto max-w-[120px] object-contain" />
+					{sponsorLogoUrl ? (
+						<div className="space-y-2">
+							<div className="text-[9px] tracking-[0.18em] text-[#1D1D1D]/60 uppercase dark:text-white/60">
+								Sponsored by
 							</div>
-						) : null}
-					</div>
+							<img src={sponsorLogoUrl} alt="" className="h-7 w-auto max-w-[120px] object-contain" />
+						</div>
+					) : null}
+					<h2 className="text-[24px] leading-[150%] font-medium text-[#0c2956] dark:text-white">{highlight.title}</h2>
 					{coverUrl ? (
 						<div className="w-full">
 							<img

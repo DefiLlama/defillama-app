@@ -4,25 +4,31 @@ import { useMedia } from '~/hooks/useMedia'
 
 interface Logo {
 	id: number
+	name: string
 	logo: string
 	link: string
 }
 
 const TRUSTED_BY_LOGOS: Logo[] = [
-	{ id: 1, logo: '/assets/research/partners/arbitrum.webp', link: 'https://arbitrum.io/' },
-	{ id: 2, logo: '/assets/research/partners/bybit.webp', link: 'https://www.bybit.com/' },
-	{ id: 3, logo: '/assets/research/partners/kpk.webp', link: 'https://kpk.io/' },
-	{ id: 4, logo: '/assets/research/partners/redstone.webp', link: 'https://redstone.finance/' },
-	{ id: 5, logo: '/assets/research/partners/katana.webp', link: 'https://katana.network/' },
-	{ id: 6, logo: '/assets/research/partners/market-across.webp', link: 'https://marketacross.com/' },
-	{ id: 7, logo: '/assets/research/partners/chainwire.webp', link: 'https://chainwire.org/' },
-	{ id: 8, logo: '/assets/research/partners/pr-genius.webp', link: 'https://www.theprgenius.com/' },
-	{ id: 9, logo: '/assets/research/partners/sentora.webp', link: 'https://sentora.com/' },
-	{ id: 10, logo: '/assets/research/partners/trezor.webp', link: 'https://trezor.io/' },
-	{ id: 11, logo: '/assets/research/partners/0G.webp', link: 'https://0g.ai/' },
-	{ id: 12, logo: '/assets/research/partners/1inch.webp', link: 'https://1inch.io/' },
-	{ id: 13, logo: '/assets/research/partners/plasma.webp', link: 'https://www.plasma.to/' },
-	{ id: 14, logo: '/assets/research/partners/shaga.webp', link: 'https://www.shaga.xyz/' }
+	{ id: 1, name: 'Arbitrum', logo: '/assets/research/partners/arbitrum.webp', link: 'https://arbitrum.io/' },
+	{ id: 2, name: 'Bybit', logo: '/assets/research/partners/bybit.webp', link: 'https://www.bybit.com/' },
+	{ id: 3, name: 'KPK', logo: '/assets/research/partners/kpk.webp', link: 'https://kpk.io/' },
+	{ id: 4, name: 'RedStone', logo: '/assets/research/partners/redstone.webp', link: 'https://redstone.finance/' },
+	{ id: 5, name: 'Katana', logo: '/assets/research/partners/katana.webp', link: 'https://katana.network/' },
+	{
+		id: 6,
+		name: 'MarketAcross',
+		logo: '/assets/research/partners/market-across.webp',
+		link: 'https://marketacross.com/'
+	},
+	{ id: 7, name: 'Chainwire', logo: '/assets/research/partners/chainwire.webp', link: 'https://chainwire.org/' },
+	{ id: 8, name: 'PR Genius', logo: '/assets/research/partners/pr-genius.webp', link: 'https://www.theprgenius.com/' },
+	{ id: 9, name: 'Sentora', logo: '/assets/research/partners/sentora.webp', link: 'https://sentora.com/' },
+	{ id: 10, name: 'Trezor', logo: '/assets/research/partners/trezor.webp', link: 'https://trezor.io/' },
+	{ id: 11, name: '0G', logo: '/assets/research/partners/0G.webp', link: 'https://0g.ai/' },
+	{ id: 12, name: '1inch', logo: '/assets/research/partners/1inch.webp', link: 'https://1inch.io/' },
+	{ id: 13, name: 'Plasma', logo: '/assets/research/partners/plasma.webp', link: 'https://www.plasma.to/' },
+	{ id: 14, name: 'Shaga', logo: '/assets/research/partners/shaga.webp', link: 'https://www.shaga.xyz/' }
 ]
 
 const GAP_PX = 16
@@ -34,13 +40,13 @@ const renderLogo = (item: Logo) => (
 	<Link
 		key={item.id}
 		href={item.link}
-		rel="nofollow"
+		rel="nofollow noopener noreferrer"
 		target="_blank"
 		className="relative inline-flex h-[56px] w-[131px] shrink-0 items-center justify-center rounded-[6px] border border-[#8CB3EF] bg-white px-[18px] py-[12px] lg:h-[96px] lg:w-[236px] lg:px-[36px]"
 	>
 		<img
 			src={item.logo}
-			alt=""
+			alt={item.name}
 			className="max-h-[25px] max-w-[125px] object-contain transition-opacity duration-500 hover:opacity-50 lg:max-h-[35px] lg:max-w-[195px]"
 			loading="lazy"
 			decoding="async"

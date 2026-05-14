@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import React, { useEffect, useRef, useState } from 'react'
+import { TweetEmbed } from '~/containers/Articles/renderer/ArticleEmbedBlock'
+import type { ArticleEmbedConfig } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
 
 interface MentionQuote {
@@ -132,25 +134,20 @@ const QuoteBlock: React.FC<{
 const TweetWidget: React.FC<{ tweetId: string; mobile?: boolean }> = ({ tweetId, mobile }) => {
 	if (!tweetId) return null
 
+	const sourceUrl = `https://x.com/i/status/${tweetId}`
+	const config: ArticleEmbedConfig = {
+		provider: 'twitter',
+		url: sourceUrl,
+		sourceUrl
+	}
+
 	const wrapperClass = mobile
 		? 'w-full min-w-0 h-[356px] overflow-hidden rounded-[4px] bg-white'
 		: 'w-[215px] min-w-[215px] h-[215px] overflow-hidden rounded-[4px] bg-white'
 
 	return (
 		<div className={wrapperClass}>
-			{
-				// oxlint-disable-next-line react/iframe-missing-sandbox -- Twitter embeds require allow-scripts + allow-same-origin which the rule forbids
-				<iframe
-					src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light&dnt=true&hideCard=true&hideThread=true`}
-					title={`Tweet ${tweetId}`}
-					allowTransparency
-					allow="encrypted-media"
-					referrerPolicy="strict-origin-when-cross-origin"
-					loading="lazy"
-					scrolling="no"
-					className="block h-full w-full overflow-hidden border-0"
-				/>
-			}
+			<TweetEmbed config={config} action="Open" />
 		</div>
 	)
 }
