@@ -39,11 +39,11 @@ describe('rwa perps api urls', () => {
 		})
 
 		expect(fetchJson.mock.calls).toEqual([
-			['https://example.com/rwa-perps/market/xyz%3AMETA%2F2026?zz=14'],
-			['https://example.com/rwa-perps/contract/xyz%3AMETA%2F2026?zz=14'],
-			['https://example.com/rwa-perps/venue/my%20venue?zz=14'],
-			['https://example.com/rwa-perps/assetGroup/US%20Equities?zz=14'],
-			['https://example.com/rwa-perps/chart/venue/venue%2Fone?zz=14'],
+			['https://example.com/rwa-perps/market/xyz%3AMETA%2F2026?zz=15'],
+			['https://example.com/rwa-perps/contract/xyz%3AMETA%2F2026?zz=15'],
+			['https://example.com/rwa-perps/venue/my%20venue?zz=15'],
+			['https://example.com/rwa-perps/assetGroup/US%20Equities?zz=15'],
+			['https://example.com/rwa-perps/chart/venue/venue%2Fone?zz=15'],
 			['https://example.com/rwa-perps/chart/overview-breakdown?breakdown=assetGroup&key=openInterest&venue=xyz'],
 			['https://example.com/rwa-perps/chart/contract-breakdown?key=markets&assetGroup=US+Equities']
 		])
@@ -56,8 +56,8 @@ describe('rwa perps api urls', () => {
 		await api.fetchRWAPerpsFundingHistory('xyz:META')
 
 		expect(fetchJson.mock.calls).toEqual([
-			['https://example.com/rwa-perps/funding/xyz%3AMETA?startTime=10&endTime=20&zz=14'],
-			['https://example.com/rwa-perps/funding/xyz%3AMETA?zz=14']
+			['https://example.com/rwa-perps/funding/xyz%3AMETA?startTime=10&endTime=20&zz=15'],
+			['https://example.com/rwa-perps/funding/xyz%3AMETA?zz=15']
 		])
 	})
 })

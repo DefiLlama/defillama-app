@@ -5,8 +5,14 @@ export type DatasetDomainBuildResult = {
 export type DatasetDomainBuildAdapter = (rootDir: string) => Promise<DatasetDomainBuildResult>
 
 const DATASET_CACHE_TRACE_ROOT_INCLUDE = './.cache/datasets'
+let domainBuildersImport: Promise<typeof import('./domainBuilders')> | null = null
 
 export const DATASET_CACHE_MANIFEST_TRACE_INCLUDE = `${DATASET_CACHE_TRACE_ROOT_INCLUDE}/manifest.json`
+
+function importDomainBuilders(): Promise<typeof import('./domainBuilders')> {
+	domainBuildersImport ??= import('./domainBuilders')
+	return domainBuildersImport
+}
 
 export type DatasetDomainArtifactContract = {
 	files: Readonly<Record<string, string>>
@@ -68,42 +74,42 @@ export const DATASET_DOMAIN_ARTIFACTS = {
 
 export const DATASET_CACHE_REGISTRY = {
 	yields: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildYieldsDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildYieldsDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.yields,
 		traceFolders: ['yields']
 	},
 	'token-rights': {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildTokenRightsDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildTokenRightsDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS['token-rights'],
 		traceFolders: ['token-rights']
 	},
 	risk: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildRiskDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildRiskDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.risk,
 		traceFolders: ['risk']
 	},
 	raises: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildRaisesDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildRaisesDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.raises,
 		traceFolders: ['raises']
 	},
 	treasuries: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildTreasuriesDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildTreasuriesDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.treasuries,
 		traceFolders: ['treasuries']
 	},
 	liquidity: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildLiquidityDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildLiquidityDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.liquidity,
 		traceFolders: ['liquidity']
 	},
 	liquidations: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildLiquidationsDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildLiquidationsDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.liquidations,
 		traceFolders: ['liquidations']
 	},
 	markets: {
-		buildAdapter: (rootDir) => import('./domainBuilders').then((builders) => builders.buildMarketsDomain(rootDir)),
+		buildAdapter: (rootDir) => importDomainBuilders().then((builders) => builders.buildMarketsDomain(rootDir)),
 		artifacts: DATASET_DOMAIN_ARTIFACTS.markets,
 		traceFolders: ['markets']
 	}
