@@ -107,6 +107,11 @@ function EditorialTagSection({ definition }: { definition: EditorialTagDefinitio
 						if (!article || pending) return
 						setMutation.mutate(article.id)
 					}}
+					listArticlesParams={
+						definition.slug === 'report-highlight' || definition.slug === 'reports-hero'
+							? { section: 'report' }
+							: undefined
+					}
 					hint={
 						definition.cardinality === 'singleton'
 							? 'Picking an article replaces the current Spotlight.'
