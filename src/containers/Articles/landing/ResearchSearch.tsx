@@ -352,7 +352,7 @@ export default function ResearchSearch() {
 	}
 
 	return (
-		<div className="mx-auto grid w-full max-w-5xl gap-6 px-1 pb-16">
+		<div className="mx-auto grid w-full max-w-5xl gap-6 px-1 py-4 pb-16">
 			<header className="grid gap-5 border-b-2 border-(--text-primary) pb-5">
 				<div className="flex flex-wrap items-end justify-between gap-3">
 					<div className="grid gap-2">

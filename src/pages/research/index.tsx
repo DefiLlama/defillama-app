@@ -225,7 +225,7 @@ export default function ArticlesPage() {
 			<style>{`main{padding:0}#__next{gap:0;}`}</style>
 			<ArticleProxyAuthProvider>
 				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
-					<div className="col-span-full min-h-screen w-full bg-white text-blue-950 dark:bg-[#13141a] dark:text-white">
+					<div className="col-span-full min-h-screen w-full text-blue-950 dark:text-white">
 						{showSearch ? <ResearchSearch /> : <ArticlesLandingInner />}
 					</div>
 				</ArticlesAccessGate>
