@@ -4,6 +4,7 @@ import { useEditor } from '@tiptap/react'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+import { canManageResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import {
@@ -708,7 +709,7 @@ export function ArticleEditorClient({ articleId }: { articleId?: string }) {
 		})
 	}
 
-	const isOwner = article.viewerRole === 'owner'
+	const isOwner = canManageResearchArticle(article)
 	const isCollaborator = article.viewerRole === 'collaborator'
 
 	const insertCallout = (tone: ArticleCalloutTone) => editor?.chain().focus().insertCallout(tone).run()

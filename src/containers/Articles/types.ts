@@ -162,7 +162,7 @@ export type ArticleInterviewee = {
 	externalUrl?: string | null
 }
 
-export type ArticleViewerRole = 'owner' | 'collaborator'
+export type ArticleViewerRole = 'owner' | 'collaborator' | 'researcher'
 
 export type ArticleCollaborator = {
 	pbUserId: string
