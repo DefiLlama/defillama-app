@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { LlamaAIShell } from '~/containers/LlamaAI/LlamaAIShell'
+import { ProjectsGrid } from '~/containers/LlamaAI/projects/ProjectsGrid'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { SignInModal } from '~/containers/Subscription/SignInModal'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -19,9 +20,16 @@ export default function ProjectsIndexPage() {
 		if (!router.isReady) return
 		if (router.query.ghInstalled === '1') {
 			toast.success('GitHub app installed — pick a repo to connect.')
-			void queryClient.invalidateQueries({ queryKey: ['github', 'installations'] })
-			const { ghInstalled: _drop, ...rest } = router.query
-			void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+			void (async () => {
+				try {
+					await queryClient.invalidateQueries({ queryKey: ['github', 'installations'] })
+					const { ghInstalled: _drop, ...rest } = router.query
+					await router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+				} catch (error) {
+					console.error('Failed to refresh GitHub installations after install', error)
+					toast.error('Failed to refresh GitHub installations.')
+				}
+			})()
 		}
 	}, [router, queryClient])
 
@@ -46,7 +54,7 @@ export default function ProjectsIndexPage() {
 		)
 	}
 
-	return null
+	return <ProjectsGrid />
 }
 
 ProjectsIndexPage.getLayout = LlamaAIShell.getLayout

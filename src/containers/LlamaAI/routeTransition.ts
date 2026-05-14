@@ -12,6 +12,7 @@ export function isSameAgenticRouteTransition(a: AgenticRouteTransition, b: Agent
 	}
 	if (a.kind === 'project-list' && b.kind === 'project-list') return true
 	if (a.kind === 'project' && b.kind === 'project') return a.projectId === b.projectId
+	return false
 }
 
 export function shouldSkipCurrentSessionRouteRestore(

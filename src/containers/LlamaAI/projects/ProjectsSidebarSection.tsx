@@ -35,9 +35,25 @@ export function ProjectsSidebarSection({
 	const expandedProjectId = currentProjectId ?? currentSessionProjectId ?? storedProjectId
 	const projectSessions = useProjectSessions(isLocked ? null : expandedProjectId)
 	const projects = useMemo<ProjectWithStats[]>(() => data ?? [], [data])
-	const visible = projects.slice(0, VISIBLE_LIMIT)
+	const visible = useMemo(() => {
+		const next = projects.slice(0, VISIBLE_LIMIT)
+		if (!expandedProjectId || next.some((p) => p.id === expandedProjectId)) return next
+		const activeProject = projects.find((p) => p.id === expandedProjectId)
+		if (!activeProject) return next
+		if (next.length < VISIBLE_LIMIT) return [...next, activeProject]
+		return [...next.slice(0, VISIBLE_LIMIT - 1), activeProject]
+	}, [expandedProjectId, projects])
 	const hasOverflow = projects.length > VISIBLE_LIMIT
-	const activeProjectSessions = projectSessions.data ?? []
+	const activeProjectSessions = projectSessions.data
+	const visibleProjectSessions = useMemo(() => {
+		if (!activeProjectSessions) return []
+		const next = activeProjectSessions.slice(0, NESTED_SESSIONS_LIMIT)
+		if (!currentSessionId || next.some((s) => s.sessionId === currentSessionId)) return next
+		const currentSession = activeProjectSessions.find((s) => s.sessionId === currentSessionId)
+		if (!currentSession) return next
+		if (next.length < NESTED_SESSIONS_LIMIT) return [...next, currentSession]
+		return [...next.slice(0, NESTED_SESSIONS_LIMIT - 1), currentSession]
+	}, [activeProjectSessions, currentSessionId])
 
 	const navigate = useLlamaAINavigate()
 
@@ -123,7 +139,7 @@ export function ProjectsSidebarSection({
 								const isActive = p.id === currentProjectId
 								const isSessionContext = !isActive && p.id === currentSessionProjectId
 								const isExpanded = p.id === expandedProjectId
-								const nestedSessions = isExpanded ? activeProjectSessions : []
+								const nestedSessions = isExpanded ? visibleProjectSessions : []
 								return (
 									<li key={p.id} className="flex flex-col">
 										<button
@@ -141,7 +157,7 @@ export function ProjectsSidebarSection({
 										</button>
 										{isExpanded && nestedSessions.length > 0 ? (
 											<ul className="mt-0.5 mb-1 ml-0.5 flex flex-col border-l border-[#e6e6e6] pl-1.5 dark:border-[#222324]">
-												{nestedSessions.slice(0, NESTED_SESSIONS_LIMIT).map((s) => {
+												{nestedSessions.map((s) => {
 													const isCurrent = s.sessionId === currentSessionId
 													return (
 														<li key={s.sessionId}>
@@ -159,7 +175,7 @@ export function ProjectsSidebarSection({
 														</li>
 													)
 												})}
-												{nestedSessions.length > NESTED_SESSIONS_LIMIT ? (
+												{(activeProjectSessions?.length ?? 0) > NESTED_SESSIONS_LIMIT ? (
 													<li>
 														<button
 															type="button"

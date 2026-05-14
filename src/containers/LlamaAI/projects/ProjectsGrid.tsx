@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import Router from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { type KeyboardEvent, startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -44,7 +44,7 @@ export function ProjectsGrid() {
 	const usage = useProjectUsage(!isLocked)
 	const createStore = Ariakit.useDialogStore()
 	const deleteStore = Ariakit.useDialogStore()
-	const { data, isLoading } = useProjectList(!isLocked)
+	const { data, isLoading, error, refetch } = useProjectList(!isLocked)
 	const [query, setQuery] = useState('')
 	const [sortBy, setSortBy] = useState<SortBy>('updated')
 	const [projectToDelete, setProjectToDelete] = useState<ProjectWithStats | null>(null)
@@ -70,6 +70,17 @@ export function ProjectsGrid() {
 
 	const onCreated = (project: { id: string }) => {
 		void Router.push(`/ai/projects/${project.id}`)
+	}
+
+	const goToProject = (projectId: string) => {
+		void Router.push(`/ai/projects/${projectId}`)
+	}
+
+	const onProjectCardKeyDown = (event: KeyboardEvent<HTMLDivElement>, projectId: string) => {
+		if (event.target !== event.currentTarget) return
+		if (event.key !== 'Enter' && event.key !== ' ') return
+		event.preventDefault()
+		goToProject(projectId)
 	}
 
 	if (isLocked) {
@@ -181,6 +192,18 @@ export function ProjectsGrid() {
 				<div className="flex justify-center py-10">
 					<LoadingSpinner size={16} />
 				</div>
+			) : error ? (
+				<div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-red-300 bg-red-50 py-12 text-center text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+					<Icon name="alert-triangle" height={24} width={24} />
+					<p>Couldn't load projects.</p>
+					<button
+						type="button"
+						onClick={() => void refetch()}
+						className="rounded-md border border-red-300 px-3 py-1.5 text-xs font-medium hover:bg-red-100 dark:border-red-800 dark:hover:bg-red-900"
+					>
+						Retry
+					</button>
+				</div>
 			) : !hasProjects ? (
 				<div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e6e6] py-12 text-center text-sm text-[#666] dark:border-[#2a2b2c] dark:text-[#919296]">
 					<Icon name="folder-plus" height={28} width={28} className="text-[#999] dark:text-[#555]" />
@@ -209,10 +232,12 @@ export function ProjectsGrid() {
 				<ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 					{visibleProjects.map((p) => (
 						<li key={p.id}>
-							<button
-								type="button"
-								onClick={() => void Router.push(`/ai/projects/${p.id}`)}
-								className="group flex h-full w-full flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-3 text-left transition-colors hover:border-(--old-blue) dark:border-[#222324]"
+							<div
+								role="link"
+								tabIndex={0}
+								onClick={() => goToProject(p.id)}
+								onKeyDown={(event) => onProjectCardKeyDown(event, p.id)}
+								className="group flex h-full w-full cursor-pointer flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-3 text-left transition-colors hover:border-(--old-blue) focus-visible:border-(--old-blue) focus-visible:outline-hidden dark:border-[#222324]"
 							>
 								<header className="flex items-center gap-2">
 									<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-(--old-blue)/12 text-(--old-blue) transition-colors group-hover:bg-(--old-blue) group-hover:text-white">
@@ -252,7 +277,7 @@ export function ProjectsGrid() {
 									</span>
 									<span>{formatBytes(p.total_bytes)}</span>
 								</footer>
-							</button>
+							</div>
 						</li>
 					))}
 				</ul>
