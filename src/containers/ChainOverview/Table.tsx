@@ -13,7 +13,6 @@ import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -720,19 +719,7 @@ const columns = [
 	columnHelper.accessor((row) => row.tokenPrice ?? undefined, {
 		id: 'token_price',
 		header: 'Token Price',
-		cell: ({ getValue, row }) => {
-			const price = getValue()
-			if (price == null) return null
-
-			return (
-				<span className="flex items-center justify-end gap-2">
-					{row.original.llamaswapChains?.length ? (
-						<BuyOnLlamaswap chains={row.original.llamaswapChains} placement="chain_overview_table" />
-					) : null}
-					<span>{formattedNum(price, true)}</span>
-				</span>
-			)
-		},
+		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue(), true) : null),
 		meta: {
 			headerClassName: 'w-[120px]',
 			align: 'end',

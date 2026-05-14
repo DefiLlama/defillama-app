@@ -1,6 +1,5 @@
 import dayjs from 'dayjs'
 import { Fragment, memo, useRef } from 'react'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { BasicLink } from '~/components/Link'
 import {
 	MetricRow as ChainMetricRow,
@@ -424,12 +423,7 @@ function ChainTokenInfo({ chainTokenInfo }: { chainTokenInfo: IChainOverviewData
 		<>
 			<ChainMetricRow
 				label={`$${chainTokenInfo.token_symbol} Price`}
-				value={
-					<span className="flex items-center gap-2">
-						<BuyOnLlamaswap chains={chainTokenInfo.llamaswapChains} placement="chain_overview_stats" />
-						{formatNullableCurrency(chainTokenInfo.current_price)}
-					</span>
-				}
+				value={formatNullableCurrency(chainTokenInfo.current_price)}
 			/>
 			<ChainMetricRow
 				label={`$${chainTokenInfo.token_symbol} Market Cap`}

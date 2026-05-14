@@ -5,7 +5,6 @@ import { matchSorter } from 'match-sorter'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useDeferredValue, useMemo, useState } from 'react'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import {
 	ChartGroupingSelector,
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
@@ -161,11 +160,6 @@ export function TokenPageHero({
 					<span className="font-bold">{overview.name}</span>
 					{overview.symbol ? <span className="font-normal">({overview.symbol})</span> : null}
 				</Heading>
-				<span className="ml-auto flex items-center gap-2">
-					{overview.llamaswapChains?.length ? (
-						<BuyOnLlamaswap chains={overview.llamaswapChains} placement="token_page" size="large" />
-					) : null}
-				</span>
 			</div>
 			{hasPriceBreakdown ? (
 				<details className="group/price">

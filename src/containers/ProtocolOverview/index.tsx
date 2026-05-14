@@ -2,7 +2,6 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense } from 'react'
 import { useGetTokenPrice } from '~/api/client'
 import { Bookmark } from '~/components/Bookmark'
-import { BuyOnLlamaswap } from '~/components/BuyOnLlamaswap'
 import { Icon } from '~/components/Icon'
 import { LinkPreviewCard } from '~/components/SEO'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -162,7 +161,6 @@ function ProtocolHeader({
 					</Tooltip>
 				) : null}
 				<span className="ml-auto flex items-center justify-end gap-2">
-					{props.llamaswapChains?.length ? <BuyOnLlamaswap chains={props.llamaswapChains} size="large" /> : null}
 					<Bookmark readableName={props.name} />
 				</span>
 			</Tag>
