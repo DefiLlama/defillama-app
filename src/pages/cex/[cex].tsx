@@ -4,7 +4,6 @@ import { fetchCexs } from '~/containers/Cexs/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
-import { fetchExchangeMarketsList } from '~/server/datasetCache/runtime/markets'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -32,6 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
+		const { fetchExchangeMarketsList } = await import('~/server/datasetCache/runtime/markets')
 		const exchangesList = await fetchExchangeMarketsList()
 		const normalizedCexSlug = slug(exchangeData.slug ?? '')
 		let cexMarketsExchange: string | null = null

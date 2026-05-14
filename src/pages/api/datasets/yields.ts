@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getTokenYieldsRows } from '~/server/datasetCache/runtime/yields'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -9,6 +8,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
 		const { chains, token } = req.query
 		const tokenFilter = typeof token === 'string' ? token.trim() : Array.isArray(token) ? token[0]?.trim() : ''
+		const { getTokenYieldsRows } = await import('~/server/datasetCache/runtime/yields')
 		const rows = await getTokenYieldsRows(tokenFilter, chains)
 
 		res.setHeader('Cache-Control', jitterCacheControlHeader(CACHE_CONTROL, req.url ?? tokenFilter))

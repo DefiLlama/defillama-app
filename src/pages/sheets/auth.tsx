@@ -1,14 +1,19 @@
 import * as Ariakit from '@ariakit/react'
+import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { Icon } from '~/components/Icon'
 import { Toast } from '~/components/Toast'
 import { AuthProvider, useAuthContext } from '~/containers/Subscription/auth'
-import { SignInFlow } from '~/containers/Subscription/SignInDialog'
 import { useSubscribe } from '~/containers/Subscription/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+
+const SignInFlow = dynamic<{ dialogStore: Ariakit.DialogStore }>(
+	() => import('~/containers/Subscription/SignInDialog').then((mod) => mod.SignInFlow),
+	{ ssr: false }
+)
 
 export default function AuthPage() {
 	return (
