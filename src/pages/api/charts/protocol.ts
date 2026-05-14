@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
+import { getCachedCgChartData } from '~/api/coingecko'
 import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import {
@@ -24,6 +25,7 @@ const NO_STORE_CACHE_CONTROL = 'no-store'
 const VALID_ADAPTER_TYPES = new Set<string>(Object.values(ADAPTER_TYPES))
 const VALID_ADAPTER_DATA_TYPES = new Set<string>(Object.values(ADAPTER_DATA_TYPES))
 const VALID_ADAPTER_BREAKDOWN_TYPES = new Set<AdapterBreakdownType>(['chain', 'version'])
+const VALID_GECKO_ID = /^[A-Za-z0-9._-]{1,80}$/
 
 type AdapterBreakdownType = Parameters<typeof fetchAdapterProtocolChartDataByBreakdownType>[0]['type']
 type AdapterBreakdownRequest =
@@ -325,6 +327,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) 
 				.catch((): null => null)
 
 			if (data === null) {
+				setNoStoreHeaders(res)
+				return res.status(200).json(null)
+			}
+
+			setSuccessCacheHeaders(req, res)
+			return res.status(200).json(data)
+		}
+
+		if (kind === 'coingecko') {
+			const geckoId = getQueryParam(req.query.geckoId)
+			if (!geckoId || !VALID_GECKO_ID.test(geckoId)) {
+				setNoStoreHeaders(res)
+				return res.status(400).json({ error: 'Invalid geckoId parameter' })
+			}
+
+			const fullChart = getQueryParam(req.query.fullChart) === 'true'
+			const data = await getCachedCgChartData(geckoId, fullChart)
+			if (!data) {
 				setNoStoreHeaders(res)
 				return res.status(200).json(null)
 			}
