@@ -51,7 +51,7 @@ describe('dataset cache publish', () => {
 
 		await publishDatasetCache()
 
-		expect(buildAllDatasetDomainsMock).toHaveBeenCalledWith(`${rootDir}.tmp`, { strict: true })
+		expect(buildAllDatasetDomainsMock).toHaveBeenCalledWith(`${rootDir}.tmp`, { logger: console, strict: true })
 	})
 
 	it('uses non-strict dataset builds in production refresh mode', async () => {
@@ -67,6 +67,7 @@ describe('dataset cache publish', () => {
 
 		expect(buildAllDatasetDomainsMock).toHaveBeenCalledWith(`${rootDir}.tmp`, {
 			strict: false,
+			logger: console,
 			failureLogPrefix: null
 		})
 	})
@@ -130,7 +131,7 @@ describe('dataset cache publish', () => {
 
 		await publishDatasetCache()
 
-		expect(buildAllDatasetDomainsMock).toHaveBeenCalledWith(`${rootDir}.tmp`, { strict: false })
+		expect(buildAllDatasetDomainsMock).toHaveBeenCalledWith(`${rootDir}.tmp`, { logger: console, strict: false })
 	})
 
 	it('removes the temp directory when the build fails', async () => {
