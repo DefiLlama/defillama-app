@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo } from 'react'
 import { AI_SERVER } from '~/constants'
+import type { TelegramStatus } from '~/containers/LlamaAI/api/telegram'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { removeStorageItem, setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { getErrorMessage } from '~/utils/error'
@@ -64,7 +65,7 @@ export type TipDTO = {
 	placement: 'banner' | 'greeting'
 	cta:
 		| { kind: 'link'; label: string; href: string; external: boolean }
-		| { kind: 'action'; label: string; action: string; prompt?: string }
+		| { kind: 'action'; label: string; action: string; prompt?: string; payload?: Record<string, unknown> }
 		| { kind: 'none' }
 	dismissPolicy: { kind: 'permanent' } | { kind: 'snooze'; days: number }
 }
@@ -73,6 +74,7 @@ export interface SettingsQueryResult {
 	settings: StoredLlamaAISettings
 	availableModels: ModelOption[]
 	availableEfforts: EffortOption[]
+	telegramStatus: TelegramStatus | null
 	tip: TipDTO | null
 }
 
@@ -289,20 +291,23 @@ export function useLlamaAISettings() {
 		queryKey: [...LLAMA_AI_SETTINGS_QUERY_KEY, userId],
 		queryFn: async (): Promise<SettingsQueryResult> => {
 			if (!authorizedFetch || !isAuthenticated || !userId) {
-				return { settings: null, availableModels: [], availableEfforts: [], tip: null }
+				return { settings: null, availableModels: [], availableEfforts: [], telegramStatus: null, tip: null }
 			}
 			const response = await authorizedFetch(`${AI_SERVER}/user-settings`)
-			if (!response?.ok) return { settings: null, availableModels: [], availableEfforts: [], tip: null }
+			if (!response?.ok)
+				return { settings: null, availableModels: [], availableEfforts: [], telegramStatus: null, tip: null }
 			const data = (await response.json().catch(() => null)) as {
 				settings?: unknown
 				availableModels?: ModelOption[]
 				availableEfforts?: EffortOption[]
+				telegramStatus?: TelegramStatus | null
 				tip?: TipDTO | null
 			} | null
 			return {
 				settings: normalizeServerSettings(data?.settings),
 				availableModels: Array.isArray(data?.availableModels) ? data.availableModels : [],
 				availableEfforts: Array.isArray(data?.availableEfforts) ? data.availableEfforts : [],
+				telegramStatus: data?.telegramStatus ?? null,
 				tip: data?.tip ?? null
 			}
 		},
@@ -340,6 +345,7 @@ export function useLlamaAISettings() {
 				settings: mergeDefinedSettings(previous?.settings ?? null, update),
 				availableModels: previous?.availableModels ?? [],
 				availableEfforts: previous?.availableEfforts ?? [],
+				telegramStatus: previous?.telegramStatus ?? null,
 				tip: previous?.tip ?? null
 			}))
 		},
@@ -426,6 +432,7 @@ export function useLlamaAISettings() {
 		availableModels,
 		availableEfforts,
 		tip: settingsQuery.data?.tip ?? null,
+		telegramStatus: settingsQuery.data?.telegramStatus ?? null,
 		queryState: settingsQuery
 	}
 }

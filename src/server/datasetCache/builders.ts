@@ -10,9 +10,10 @@ export async function buildDatasetDomain(domain: DatasetDomain, rootDir: string)
 export async function buildAllDatasetDomains(
 	rootDir: string,
 	{
+		logger = console,
 		strict = isDatasetCacheStrict(),
 		failureLogPrefix = '[dev:prepare] Dataset cache'
-	}: { strict?: boolean; failureLogPrefix?: string | null } = {}
+	}: { failureLogPrefix?: string | null; logger?: Pick<Console, 'warn'>; strict?: boolean } = {}
 ): Promise<DatasetManifest> {
 	const manifest = buildEmptyDatasetManifest()
 	const buildResults = await Promise.allSettled(
@@ -53,7 +54,7 @@ export async function buildAllDatasetDomains(
 			throw new Error(message)
 		}
 		if (failureLogPrefix) {
-			console.warn(`${failureLogPrefix}: ${message}`)
+			logger.warn(`${failureLogPrefix}: ${message}`)
 		}
 	}
 

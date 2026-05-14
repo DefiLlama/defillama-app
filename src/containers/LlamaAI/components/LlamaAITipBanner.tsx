@@ -3,6 +3,7 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useTipActions } from '~/containers/LlamaAI/components/TipActionContext'
 import { useActiveTip } from '~/containers/LlamaAI/hooks/useLlamaAITip'
+import { isSettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 
 export function LlamaAITipBanner() {
 	const { tip, dismissTip, clickTip } = useActiveTip()
@@ -18,7 +19,12 @@ export function LlamaAITipBanner() {
 			return
 		}
 		void clickTip(tip, tip.cta.action)
-		runAction(tip.cta.action, actions, tip.cta.kind === 'action' ? tip.cta.prompt : undefined)
+		runAction(
+			tip.cta.action,
+			actions,
+			tip.cta.kind === 'action' ? tip.cta.prompt : undefined,
+			tip.cta.kind === 'action' ? tip.cta.payload : undefined
+		)
 	}
 
 	return (
@@ -49,11 +55,18 @@ export function LlamaAITipBanner() {
 	)
 }
 
-function runAction(action: string, actions: ReturnType<typeof useTipActions>, prompt?: string) {
+function runAction(
+	action: string,
+	actions: ReturnType<typeof useTipActions>,
+	prompt?: string,
+	payload?: Record<string, unknown>
+) {
 	switch (action) {
-		case 'open-settings':
-			actions.openSettingsModal?.()
+		case 'open-settings': {
+			const tab = isSettingsTabId(payload?.tab) ? payload.tab : undefined
+			actions.openSettingsModal?.(tab)
 			break
+		}
 		case 'open-alerts':
 			actions.openAlertsModal?.()
 			break

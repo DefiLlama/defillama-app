@@ -16,14 +16,15 @@ export function articleHref(article: { slug: string; section?: ArticleSection | 
 	return '/research'
 }
 
-export const RESEARCH_LANDING_LIMITS = {
-	heroReports: 9,
+/** Per-widget limits for research landing */
+export const RESEARCH_LANDING_SECTION_LIMITS = {
+	reportsHero: 9,
 	latest: 6,
 	spotlight: 4,
 	interviews: 17,
+	reportHighlight: 1,
 	insights: 8,
-	introducingGrid: 4,
-	introducingColumn: 20,
 	moreReports: 10,
+	introducing: 20,
 	collections: 15
 } as const

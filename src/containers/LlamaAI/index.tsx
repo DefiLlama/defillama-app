@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
+import Router, { useRouter } from 'next/router'
 import {
 	lazy,
 	memo,
@@ -57,6 +58,7 @@ import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useLlamaAISetting, useLlamaAISettings } from '~/containers/LlamaAI/hooks/useLlamaAISettings'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
+import { useSettingsRouteIntent } from '~/containers/LlamaAI/hooks/useSettingsRouteIntent'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
 import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
@@ -83,6 +85,7 @@ import type {
 } from '~/containers/LlamaAI/types'
 import { buildRestoredAlerts } from '~/containers/LlamaAI/utils/restoredAlerts'
 import type { RestoredAlertMetadata } from '~/containers/LlamaAI/utils/restoredAlerts'
+import type { SettingsInitialState, SettingsTabId } from '~/containers/LlamaAI/utils/settingsIntent'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
@@ -855,7 +858,16 @@ export function AgenticChat({
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
-	const { settings, actions, availableModels, availableEfforts } = useLlamaAISettings()
+	const [initialIntegrationsState, setInitialIntegrationsState] = useState<SettingsInitialState | null>(null)
+	const router = useRouter()
+	const {
+		settings,
+		actions,
+		availableModels,
+		availableEfforts,
+		telegramStatus,
+		queryState: settingsQueryState
+	} = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
 	const [viewError, setViewError] = useState<string | null>(null)
@@ -951,6 +963,8 @@ export function AgenticChat({
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
 		return () => clearTimeout(timer)
 	}, [dashboardPanelIsOpen, dashboardPanelMountedConfig])
+
+	useSettingsRouteIntent({ router, user, settingsModalStore, setInitialIntegrationsState })
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -2602,12 +2616,15 @@ export function AgenticChat({
 
 	const tipActionHandlers = useMemo(
 		() => ({
-			openSettingsModal: settingsModalStore.show,
+			openSettingsModal: (tab?: SettingsTabId) => {
+				if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
+				settingsModalStore.show()
+			},
 			openAlertsModal: alertsModalStore.show,
 			toggleResearchMode: () => setIsResearchMode((v) => !v),
 			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode, handleSubmit]
+		[settingsModalStore, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
 
 	const landingOverride =
@@ -2934,6 +2951,12 @@ export function AgenticChat({
 							actions={actions}
 							availableModels={availableModels}
 							availableEfforts={availableEfforts}
+							telegramStatus={telegramStatus}
+							isSettingsLoading={
+								settingsQueryState.isLoading || (settingsQueryState.isFetching && !settingsQueryState.data)
+							}
+							initialState={initialIntegrationsState}
+							onInitialStateConsumed={() => setInitialIntegrationsState(null)}
 						/>
 					) : null}
 				</div>

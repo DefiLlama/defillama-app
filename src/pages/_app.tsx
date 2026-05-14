@@ -6,10 +6,9 @@ import Router from 'next/router'
 import Script from 'next/script'
 import '@rainbow-me/rainbowkit/styles.css'
 import '~/tailwind.css'
-import '~/nprogress.css'
-import NProgress from 'nprogress'
 import type { ReactElement } from 'react'
 import { useEffect, useRef } from 'react'
+import { RouteProgressIndicator } from '~/components/RouteProgressIndicator'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider } from '~/containers/Subscription/auth'
 import { useAuthBridge } from '~/hooks/useAuthBridge'
@@ -24,8 +23,6 @@ type NextPageWithLayout = AppProps['Component'] & {
 type AppPropsWithLayout = AppProps & {
 	Component: NextPageWithLayout
 }
-
-NProgress.configure({ showSpinner: false })
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
 
@@ -47,35 +44,6 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 	const reloadInProgressRef = useRef(false)
 
 	useEffect(() => {
-		const handleRouteChange = () => {
-			NProgress.start()
-		}
-
-		Router.events.on('routeChangeStart', handleRouteChange)
-
-		// If the component is unmounted, unsubscribe
-		// from the event with the `off` method:
-		return () => {
-			Router.events.off('routeChangeStart', handleRouteChange)
-		}
-	}, [])
-
-	useEffect(() => {
-		const handleRouteChange = () => {
-			NProgress.done()
-			reloadInProgressRef.current = false
-		}
-
-		Router.events.on('routeChangeComplete', handleRouteChange)
-
-		// If the component is unmounted, unsubscribe
-		// from the event with the `off` method:
-		return () => {
-			Router.events.off('routeChangeComplete', handleRouteChange)
-		}
-	}, [])
-
-	useEffect(() => {
 		const reloadOnce = (url?: string) => {
 			if (typeof window === 'undefined') return
 			if (reloadInProgressRef.current) return
@@ -94,9 +62,13 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 		}
 
 		const handleRouteChangeError = (error: unknown, url: string) => {
-			NProgress.done()
 			if (!isChunkLoadError(error)) return
 			reloadOnce(url)
+		}
+
+		const handleRouteChangeComplete = () => {
+			reloadInProgressRef.current = false
+			sessionStorage.removeItem(CHUNK_LOAD_ERROR_KEY)
 		}
 
 		const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
@@ -109,11 +81,13 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 			reloadOnce()
 		}
 
+		Router.events.on('routeChangeComplete', handleRouteChangeComplete)
 		Router.events.on('routeChangeError', handleRouteChangeError)
 		window.addEventListener('unhandledrejection', handleUnhandledRejection)
 		window.addEventListener('error', handleError)
 
 		return () => {
+			Router.events.off('routeChangeComplete', handleRouteChangeComplete)
 			Router.events.off('routeChangeError', handleRouteChangeError)
 			window.removeEventListener('unhandledrejection', handleUnhandledRejection)
 			window.removeEventListener('error', handleError)
@@ -158,6 +132,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
 				data-host-url="https://tasty.defillama.com"
 			/>
 
+			<RouteProgressIndicator />
 			{getLayout(<Component {...pageProps} />)}
 		</>
 	)

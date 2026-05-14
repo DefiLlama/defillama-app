@@ -7,14 +7,17 @@ import type { ArticleDocument } from '~/containers/Articles/types'
 import { ARTICLE_SECTION_LABELS } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
+type ListArticlesParams = NonNullable<Parameters<typeof listArticles>[0]>
+
 type Props = {
 	value: string | null
 	onChange: (article: ArticleDocument | null) => void
 	hint?: string
 	error?: string | null
+	listArticlesParams?: Partial<ListArticlesParams>
 }
 
-export function ArticlePicker({ value, onChange, hint, error }: Props) {
+export function ArticlePicker({ value, onChange, hint, error, listArticlesParams }: Props) {
 	const { authorizedFetch } = useAuthContext()
 	const [searchValue, setSearchValue] = useState('')
 	const [open, setOpen] = useState(false)
@@ -23,8 +26,9 @@ export function ArticlePicker({ value, onChange, hint, error }: Props) {
 	const trimmed = searchValue.trim()
 
 	const { data: results, isFetching } = useQuery<ArticleListResponse>({
-		queryKey: ['research', 'admin', 'article-picker', trimmed],
-		queryFn: () => listArticles({ query: trimmed || undefined, limit: 20, sort: 'newest' }, authorizedFetch),
+		queryKey: ['research', 'admin', 'article-picker', trimmed, listArticlesParams],
+		queryFn: () =>
+			listArticles({ query: trimmed || undefined, limit: 20, sort: 'newest', ...listArticlesParams }, authorizedFetch),
 		retry: false,
 		staleTime: 30_000,
 		enabled: open
@@ -33,12 +37,12 @@ export function ArticlePicker({ value, onChange, hint, error }: Props) {
 	const items = useMemo<ArticleDocument[]>(() => results?.items ?? [], [results])
 
 	const selectedQuery = useQuery<ArticleDocument | null>({
-		queryKey: ['research', 'admin', 'article-picker', 'selected', value],
+		queryKey: ['research', 'admin', 'article-picker', 'selected', value, listArticlesParams],
 		queryFn: async () => {
 			if (!value) return null
 			const matched = items.find((item) => item.id === value)
 			if (matched) return matched
-			const fallback = await listArticles({ limit: 50, sort: 'newest' }, authorizedFetch)
+			const fallback = await listArticles({ limit: 50, sort: 'newest', ...listArticlesParams }, authorizedFetch)
 			return fallback.items.find((item) => item.id === value) ?? null
 		},
 		enabled: !!value && !selectedLabel,

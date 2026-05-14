@@ -41,12 +41,16 @@ function formatRefreshDomainFailure(domain: DatasetDomain, error: string, keptPr
 	return `${domain}: ${error} (${keptPreviousArtifacts ? 'kept previous artifacts' : 'no previous ready artifacts'})`
 }
 
+type DatasetCacheLogger = Pick<Console, 'error' | 'log' | 'warn'>
+
 async function preserveReadyDomainsForFailedRefresh({
+	logger,
 	manifest,
 	currentManifest,
 	rootDir,
 	tempDir
 }: {
+	logger: DatasetCacheLogger
 	manifest: DatasetManifest
 	currentManifest: DatasetManifest | null
 	rootDir: string
@@ -80,15 +84,16 @@ async function preserveReadyDomainsForFailedRefresh({
 	}
 
 	if (refreshFailures.length > 0) {
-		console.error(
+		logger.error(
 			`[dataset-cache:refresh] failed for domains; previous cache was preserved where available:\n${refreshFailures.join('\n')}`
 		)
 	}
 }
 
 export async function publishDatasetCache({
+	logger = console,
 	phase = 'build'
-}: { phase?: DatasetCachePolicyPhase } = {}): Promise<void> {
+}: { logger?: DatasetCacheLogger; phase?: DatasetCachePolicyPhase } = {}): Promise<void> {
 	const rootDir = getDatasetCacheRootDir()
 	const parentDir = path.dirname(rootDir)
 	const tempDir = path.join(parentDir, `${path.basename(rootDir)}.tmp`)
@@ -100,7 +105,7 @@ export async function publishDatasetCache({
 		await recoverDirectoryReplacement(rootDir, backupDir)
 		const currentManifest = await readDatasetManifestFrom(rootDir).catch(() => null)
 		if (currentManifest && shouldUseRecentDatasetCache(currentManifest)) {
-			console.log('[dev:prepare] Dataset cache: recently built; skipping rebuild')
+			logger.log('[dev:prepare] Dataset cache: recently built; skipping rebuild')
 			return
 		}
 
@@ -110,10 +115,10 @@ export async function publishDatasetCache({
 		const strict = isDatasetCacheStrict({ phase })
 		const manifest = await buildAllDatasetDomains(
 			tempDir,
-			phase === 'refresh' ? { strict, failureLogPrefix: null } : { strict }
+			phase === 'refresh' ? { failureLogPrefix: null, logger, strict } : { logger, strict }
 		)
 		if (phase === 'refresh') {
-			await preserveReadyDomainsForFailedRefresh({ manifest, currentManifest, rootDir, tempDir })
+			await preserveReadyDomainsForFailedRefresh({ logger, manifest, currentManifest, rootDir, tempDir })
 		}
 		await writeDatasetManifest(manifest, tempDir)
 		await readDatasetManifestFrom(tempDir)
@@ -128,7 +133,7 @@ export async function publishDatasetCache({
 	} catch (error) {
 		await removeDirectory(tempDir)
 		if (phase === 'refresh') {
-			console.error('[dataset-cache:refresh] failed; keeping previous cache:', error)
+			logger.error('[dataset-cache:refresh] failed; keeping previous cache:', error)
 		}
 		throw error
 	}
