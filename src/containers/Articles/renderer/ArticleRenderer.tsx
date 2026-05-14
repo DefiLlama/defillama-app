@@ -829,7 +829,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 	const bylineNode = brandByline ? (
 		<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
 			<span className="font-normal">{bylineLabel}</span>
-			<Link href="/research/authors" className="font-semibold text-(--text-primary) hover:text-(--link-text)">
+			<Link href="/research" className="font-semibold text-(--text-primary) hover:text-(--link-text)">
 				DefiLlama Research
 			</Link>
 		</span>

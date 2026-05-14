@@ -137,7 +137,7 @@ function LinkCard({ config, action }: { config: ArticleEmbedConfig; action: stri
 	)
 }
 
-function TweetEmbed({ config, action }: { config: ArticleEmbedConfig; action: string }) {
+export function TweetEmbed({ config, action }: { config: ArticleEmbedConfig; action: string }) {
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const [visible, setVisible] = useState(false)
 	const [resolved, setResolved] = useState(false)

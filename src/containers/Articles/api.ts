@@ -503,6 +503,13 @@ export async function getLandingBanner(authorizedFetch: AuthorizedFetch): Promis
 	return data ?? EMPTY_BANNER_LOOKUP
 }
 
+export async function getAllArticlesBanner(authorizedFetch: AuthorizedFetch): Promise<BannerLookupResult> {
+	const data = await parseResponse<BannerLookupResult | null>(
+		await authorizedFetch(articleUrl('/banners/lookup/all-articles'))
+	)
+	return data ?? EMPTY_BANNER_LOOKUP
+}
+
 export async function getSectionBanner(
 	section: ArticleSection,
 	authorizedFetch: AuthorizedFetch

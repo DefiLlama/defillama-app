@@ -162,7 +162,7 @@ export type ArticleInterviewee = {
 	externalUrl?: string | null
 }
 
-export type ArticleViewerRole = 'owner' | 'collaborator'
+export type ArticleViewerRole = 'owner' | 'collaborator' | 'researcher'
 
 export type ArticleCollaborator = {
 	pbUserId: string
@@ -265,14 +265,15 @@ export type ArticleRevisionListResponse = {
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: string }
 
-export type BannerScope = 'landing' | 'section' | 'article'
+export type BannerScope = 'landing' | 'section' | 'article' | 'all_articles'
 
-export const BANNER_SCOPES: BannerScope[] = ['landing', 'section', 'article']
+export const BANNER_SCOPES: BannerScope[] = ['landing', 'section', 'article', 'all_articles']
 
 export const BANNER_SCOPE_LABELS: Record<BannerScope, string> = {
 	landing: 'Research landing page',
 	section: 'Section',
-	article: 'Specific article'
+	article: 'Specific article',
+	all_articles: 'All articles'
 }
 
 export type BannerKind = 'text' | 'image' | 'image-horizontal'
@@ -281,14 +282,14 @@ export const BANNER_KINDS: BannerKind[] = ['text', 'image', 'image-horizontal']
 
 export const BANNER_KIND_LABELS: Record<BannerKind, string> = {
 	text: 'Text strip',
-	image: 'Right-rail image',
-	'image-horizontal': 'Mobile inline image'
+	image: 'Desktop image',
+	'image-horizontal': 'Wide/mobile image'
 }
 
 export const BANNER_KIND_DESCRIPTIONS: Record<BannerKind, string> = {
 	text: 'Full-width dismissible strip at the top of the page',
-	image: 'Image in the article right rail, under SHARE (desktop only)',
-	'image-horizontal': 'Wide image placed near the top of the article body (mobile only)'
+	image: 'Desktop image used by landing placements or the article right rail',
+	'image-horizontal': 'Wide image used by landing placements or the mobile article body'
 }
 
 export type Banner = {

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { getArticleBanner, getLandingBanner, getSectionBanner } from '~/containers/Articles/api'
+import { getAllArticlesBanner, getArticleBanner, getLandingBanner, getSectionBanner } from '~/containers/Articles/api'
 import type { ArticleSection, Banner, BannerLookupResult } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
@@ -45,6 +45,24 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 		staleTime: 60_000
 	})
 
+	const allArticlesEnabled =
+		scope === 'article' &&
+		!!articleId &&
+		isAuthenticated &&
+		!loaders.userLoading &&
+		!articleBannerQuery.isLoading &&
+		!articleBannerQuery.data?.text &&
+		!sectionBannerQuery.isLoading &&
+		!sectionBannerQuery.data?.text
+
+	const allArticlesBannerQuery = useQuery<BannerLookupResult>({
+		queryKey: ['research', 'banner', 'all-articles'],
+		queryFn: () => getAllArticlesBanner(authorizedFetch),
+		enabled: allArticlesEnabled,
+		retry: false,
+		staleTime: 60_000
+	})
+
 	const landingBannerQuery = useQuery<BannerLookupResult>({
 		queryKey: ['research', 'banner', 'landing'],
 		queryFn: () => getLandingBanner(authorizedFetch),
@@ -55,7 +73,7 @@ export function ArticleBannerStrip({ scope, section, articleId }: Props) {
 
 	const banner: Banner | null =
 		scope === 'article'
-			? (articleBannerQuery.data?.text ?? sectionBannerQuery.data?.text ?? null)
+			? (articleBannerQuery.data?.text ?? sectionBannerQuery.data?.text ?? allArticlesBannerQuery.data?.text ?? null)
 			: scope === 'section'
 				? (sectionBannerQuery.data?.text ?? null)
 				: (landingBannerQuery.data?.text ?? null)

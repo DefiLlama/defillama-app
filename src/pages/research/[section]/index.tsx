@@ -112,7 +112,12 @@ function GenericCard({ article }: { article: ArticleDocument }) {
 				</p>
 			) : null}
 			<span className="flex items-center gap-2 text-xs text-(--text-tertiary)">
-				{article.authorProfile?.displayName ? (
+				{article.brandByline ? (
+					<>
+						<span className="font-medium text-(--text-secondary)">DefiLlama Research</span>
+						<span aria-hidden>·</span>
+					</>
+				) : article.authorProfile?.displayName ? (
 					<>
 						<span className="font-medium text-(--text-secondary)">{article.authorProfile.displayName}</span>
 						<span aria-hidden>·</span>

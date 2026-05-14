@@ -8,7 +8,11 @@ interface SharedHeightContextType {
 const SharedHeightContext = createContext<SharedHeightContextType | undefined>(undefined)
 
 export function useSharedHeight() {
-	return useContext(SharedHeightContext)
+	const context = useContext(SharedHeightContext)
+	if (context === undefined) {
+		throw new Error('useSharedHeight must be used within a ResearchSectionWithSharedHeightProvider')
+	}
+	return context
 }
 
 interface ResearchSectionWithSharedHeightProviderProps {

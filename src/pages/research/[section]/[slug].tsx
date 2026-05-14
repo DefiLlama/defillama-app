@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { ArticleApiError, getArticleBySlug } from '~/containers/Articles/api'
 import { ArticleProxyAuthProvider } from '~/containers/Articles/ArticleProxyAuthProvider'
-import { ArticlesAccessGate } from '~/containers/Articles/ArticlesAccessGate'
+import { ArticlesAccessGate, canEditResearchArticle } from '~/containers/Articles/ArticlesAccessGate'
 import { ArticleSeo } from '~/containers/Articles/ArticleSeo'
 import { ArticleBannerStrip } from '~/containers/Articles/renderer/ArticleBannerStrip'
 import { ArticleRenderer } from '~/containers/Articles/renderer/ArticleRenderer'
@@ -17,10 +17,7 @@ import Layout from '~/layout'
 
 function OwnerEditChip({ article }: { article: ArticleDocument }) {
 	const { user, isAuthenticated } = useAuthContext()
-	const canEdit =
-		article.viewerRole === 'owner' ||
-		article.viewerRole === 'collaborator' ||
-		(isAuthenticated && !!user?.id && !!article.authorProfile?.pbUserId && user.id === article.authorProfile.pbUserId)
+	const canEdit = canEditResearchArticle({ article, isAuthenticated, user })
 	if (!canEdit) return null
 	return (
 		<div className="pointer-events-none fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 justify-center sm:bottom-8">

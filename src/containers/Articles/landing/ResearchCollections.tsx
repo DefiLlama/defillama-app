@@ -3,7 +3,7 @@ import React, { useMemo, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
 import { articleHref } from '~/containers/Articles/landing/utils'
-import type { ArticleDocument } from '~/containers/Articles/types'
+import { ARTICLE_SECTION_LABELS, type ArticleDocument } from '~/containers/Articles/types'
 import { useScrollerHeightFromFirstItem } from '~/hooks/useScrollerHeightFromFirstItem'
 
 interface ResearchCollectionsProps {
@@ -78,9 +78,11 @@ export const ResearchCollections: React.FC<ResearchCollectionsProps> = ({ title,
 										{article.title}
 									</div>
 
-									{article.tags?.[0] && (
-										<span className="text-[10px] text-white uppercase">{article.tags[0].replace(/-/g, ' ')}</span>
-									)}
+									{article.section ? (
+										<div className="mt-[5px] text-[12px] font-bold text-white" style={{ color: '#3A8BFF' }}>
+											{ARTICLE_SECTION_LABELS[article.section]}
+										</div>
+									) : null}
 								</div>
 							</Link>
 						))}

@@ -25,7 +25,9 @@ export function ArticleTitleFields({ article, updateArticle }: ArticleTitleField
 				style={{ fontFamily: titleSerif }}
 				className="mt-3 w-full bg-transparent text-lg leading-snug text-(--text-secondary) italic placeholder:text-(--text-tertiary)/60 focus:outline-none md:text-xl"
 			/>
-			{article.author ? (
+			{article.brandByline ? (
+				<div className="mt-4 text-xs tracking-[0.18em] text-(--text-tertiary) uppercase">By DefiLlama Research</div>
+			) : article.author ? (
 				<div className="mt-4 text-xs tracking-[0.18em] text-(--text-tertiary) uppercase">
 					{(() => {
 						const names = [article.author, ...(article.coAuthors ?? []).map((p) => p.displayName)]

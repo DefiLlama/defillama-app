@@ -72,7 +72,7 @@ export function BannersListView() {
 					<h1 className="mt-2 text-3xl font-semibold tracking-tight text-(--text-primary)">Banners</h1>
 					<p className="mt-1 text-sm text-(--text-secondary)">
 						Configure the dismissible top strip, the desktop right-rail image, or the mobile inline image shown on
-						/research, a section's articles, or a single article.
+						/research, all articles, a section's articles, or a single article.
 					</p>
 				</div>
 				<Link

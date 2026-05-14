@@ -30,7 +30,11 @@ function ArticlesLandingInner() {
 		retry: false,
 		queryFn: async () => {
 			const settled = await Promise.allSettled([
-				listArticlesByTag(EDITORIAL_TAGS['reports-hero'].slug, RESEARCH_LANDING_SECTION_LIMITS.latest, authorizedFetch),
+				listArticlesByTag(
+					EDITORIAL_TAGS['reports-hero'].slug,
+					RESEARCH_LANDING_SECTION_LIMITS.reportsHero,
+					authorizedFetch
+				),
 				listArticlesByTag(EDITORIAL_TAGS.latest.slug, RESEARCH_LANDING_SECTION_LIMITS.latest, authorizedFetch),
 				listArticlesByTag(EDITORIAL_TAGS.spotlight.slug, RESEARCH_LANDING_SECTION_LIMITS.spotlight, authorizedFetch),
 				listArticles({ section: 'interview', limit: RESEARCH_LANDING_SECTION_LIMITS.interviews }, authorizedFetch),
@@ -100,9 +104,10 @@ function ArticlesLandingInner() {
 	}
 
 	return (
-		<>
+		<div className="bg-top-center bg-[url(/assets/research/dotted-bg.webp)] bg-no-repeat">
 			<ResearchHero
-				introTitle="In-depth research reports, intelligence and custom content <br />to take your brand to the next level"
+				title="Bespoke Digital Asset Research and Market Intelligence"
+				subtitle="Independent and trusted in-depth analysis of digital asset markets for institutional strategy and decision-making."
 				reports={landingQuery.data?.heroReports ?? []}
 			/>
 
@@ -114,7 +119,8 @@ function ArticlesLandingInner() {
 						height: '900px',
 						position: 'absolute',
 						right: '-690px',
-						top: '1000px'
+						top: '1000px',
+						zIndex: 0
 					}}
 				></div>
 
@@ -125,7 +131,8 @@ function ArticlesLandingInner() {
 						height: '900px',
 						position: 'absolute',
 						left: '-690px',
-						top: '2300px'
+						top: '2300px',
+						zIndex: 0
 					}}
 				></div>
 
@@ -136,11 +143,12 @@ function ArticlesLandingInner() {
 						height: '900px',
 						position: 'absolute',
 						right: '-590px',
-						top: '2900px'
+						top: '2900px',
+						zIndex: 0
 					}}
 				></div>
 
-				<div className="mx-auto w-full max-w-7xl space-y-[30px] px-4 sm:px-6 lg:space-y-[70px] lg:px-8">
+				<div className="relative z-1 mx-auto w-full max-w-7xl space-y-[30px] px-4 sm:px-6 lg:space-y-[70px] lg:px-8">
 					<ResearchLatest articles={landingQuery.data?.latest ?? []} />
 
 					<ResearchSpotlight title="In the spotlight" articles={landingQuery.data?.spotlight ?? []} />
@@ -198,14 +206,14 @@ function ArticlesLandingInner() {
 					<ResearchCollections title="Collections" articles={landingQuery.data?.collections ?? []} />
 				</div>
 			</div>
-		</>
+		</div>
 	)
 }
 
 export default function ArticlesPage() {
 	return (
 		<Layout
-			title="DefiLlama Research - DefiLlama"
+			title="Crypto Research Reports & Market Intelligence | DefiLlama Research"
 			description="Data-driven crypto and digital asset research and market analysis. Read expert perspectives powered by DefiLlama metrics."
 			canonicalUrl="/research"
 			hideDesktopSearch

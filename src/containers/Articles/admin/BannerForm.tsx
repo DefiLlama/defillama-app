@@ -16,6 +16,7 @@ import {
 	BANNER_SCOPE_LABELS
 } from '~/containers/Articles/types'
 import { ImageUploadButton } from '~/containers/Articles/upload/ImageUploadButton'
+import type { UploadScope } from '~/containers/Articles/upload/useImageUpload'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
 const TEXT_MAX = 500
@@ -99,14 +100,10 @@ type FormErrors = {
 	articleId?: string
 	linkUrl?: string
 	imageUrl?: string
-	scope?: string
 }
 
 function validate(state: FormState): FormErrors {
 	const errors: FormErrors = {}
-	if (state.kind !== 'text' && state.scope === 'landing') {
-		errors.scope = 'Image banners cannot use the landing scope'
-	}
 	if (state.kind === 'text') {
 		if (!state.text.trim()) errors.text = 'Banner text is required'
 		else if (state.text.length > TEXT_MAX) errors.text = `Max ${TEXT_MAX} characters`
@@ -120,6 +117,31 @@ function validate(state: FormState): FormErrors {
 		errors.linkUrl = 'Must start with http://, https://, or /'
 	}
 	return errors
+}
+
+function imageUploadConfig(state: FormState): { scope: UploadScope; helperText: string } {
+	if (state.scope === 'landing') {
+		if (state.kind === 'image-horizontal') {
+			return {
+				scope: 'banner-landing-mobile',
+				helperText: 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 1200 × 600, transcoded to WebP.'
+			}
+		}
+		return {
+			scope: 'banner-landing-desktop',
+			helperText: 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 2745 × 380, transcoded to WebP.'
+		}
+	}
+	if (state.kind === 'image-horizontal') {
+		return {
+			scope: 'banner-image-horizontal',
+			helperText: 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 1600 × 600, transcoded to WebP.'
+		}
+	}
+	return {
+		scope: 'banner-image',
+		helperText: 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 800 × 1200, transcoded to WebP.'
+	}
 }
 
 type Props = {
@@ -167,18 +189,13 @@ export function BannerForm({ banner }: Props) {
 	})
 
 	const update = (patch: Partial<FormState>) => setState((prev) => ({ ...prev, ...patch }))
+	const imageUpload = imageUploadConfig(state)
 
 	const handleKindChange = (kind: BannerKind) => {
-		update({
-			kind,
-			...(kind !== 'text' && state.scope === 'landing' ? { scope: 'section' as BannerScope } : {})
-		})
+		update({ kind })
 	}
 
-	const visibleScopes = useMemo(
-		() => BANNER_SCOPES.filter((scope) => state.kind === 'text' || scope !== 'landing'),
-		[state.kind]
-	)
+	const visibleScopes = BANNER_SCOPES
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -229,7 +246,7 @@ export function BannerForm({ banner }: Props) {
 
 			<Section
 				title="Kind"
-				description="Text shows as a dismissible strip at the top of the page. Right-rail image shows under SHARE on desktop. Mobile inline image is placed near the top of the article body on mobile."
+				description="Text shows as a dismissible strip at the top of the page. Desktop images are used by landing placements or the article right rail. Wide/mobile images are used by landing placements or the mobile article body."
 			>
 				<div className="grid gap-2 sm:grid-cols-3">
 					{BANNER_KINDS.map((kind) => (
@@ -284,13 +301,14 @@ export function BannerForm({ banner }: Props) {
 										? 'Shows on /research'
 										: scope === 'section'
 											? 'Shows on every article in the chosen section'
-											: 'Shows only on the chosen article'}
+											: scope === 'all_articles'
+												? 'Shows on every article'
+												: 'Shows only on the chosen article'}
 								</span>
 							</div>
 						</label>
 					))}
 				</div>
-				{errors.scope ? <p className="text-xs text-red-500">{errors.scope}</p> : null}
 
 				{state.scope === 'section' ? (
 					<div className="grid gap-1.5">
@@ -406,17 +424,13 @@ export function BannerForm({ banner }: Props) {
 					<div className="grid gap-1.5">
 						<span className="text-sm font-medium text-(--text-primary)">Image</span>
 						<ImageUploadButton
-							scope={state.kind === 'image-horizontal' ? 'banner-image-horizontal' : 'banner-image'}
+							scope={imageUpload.scope}
 							previewShape="wide"
 							currentUrl={state.imageUrl || null}
 							onUploaded={(result) => update({ imageUrl: result.url })}
 							onCleared={() => update({ imageUrl: '' })}
 							label="banner image"
-							helperText={
-								state.kind === 'image-horizontal'
-									? 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 1600 × 600, transcoded to WebP.'
-									: 'Up to 8 MB. PNG, JPEG, WebP, or GIF. Resized to fit 800 × 1200, transcoded to WebP.'
-							}
+							helperText={imageUpload.helperText}
 						/>
 						{errors.imageUrl ? <p className="text-xs text-red-500">{errors.imageUrl}</p> : null}
 					</div>

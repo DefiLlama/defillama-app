@@ -4,7 +4,8 @@ import { ReportsCarousel } from '~/containers/Articles/landing/ReportsCarousel'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchHeroProps {
-	introTitle: string
+	title: React.ReactNode
+	subtitle: React.ReactNode
 	reports: ArticleDocument[]
 }
 
@@ -41,15 +42,6 @@ const TelegramIcon = () => (
 	</svg>
 )
 
-const LinkedinIcon = () => (
-	<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<path
-			d="M18 0C8.05875 0 0 8.05875 0 18C0 27.9412 8.05875 36 18 36C27.9412 36 36 27.9412 36 18C36 8.05875 27.9412 0 18 0ZM13.5937 25.4606H9.94875V13.7306H13.5937V25.4606ZM11.7487 12.2906C10.5975 12.2906 9.85312 11.475 9.85312 10.4662C9.85312 9.43687 10.62 8.64562 11.7956 8.64562C12.9712 8.64562 13.6912 9.43687 13.7137 10.4662C13.7137 11.475 12.9712 12.2906 11.7487 12.2906ZM26.9062 25.4606H23.2612V18.96C23.2612 17.4469 22.7325 16.4194 21.4144 16.4194C20.4075 16.4194 19.8094 17.115 19.545 17.7844C19.4475 18.0225 19.4231 18.36 19.4231 18.6956V25.4587H15.7762V17.4713C15.7762 16.0069 15.7294 14.7825 15.6806 13.7287H18.8475L19.0144 15.3581H19.0875C19.5675 14.5931 20.7431 13.4644 22.71 13.4644C25.1081 13.4644 26.9062 15.0712 26.9062 18.525V25.4606Z"
-			fill="white"
-		/>
-	</svg>
-)
-
 const BookCallIcon = () => (
 	<svg xmlns="http://www.w3.org/2000/svg" width={18} height={16} fill="none">
 		<path
@@ -60,21 +52,23 @@ const BookCallIcon = () => (
 	</svg>
 )
 
-export const ResearchHero: React.FC<ResearchHeroProps> = ({ introTitle, reports }) => {
+export const ResearchHero: React.FC<ResearchHeroProps> = ({ title, subtitle, reports }) => {
 	return (
-		<div className="bg-top-center bg-[url(/assets/research/dotted-bg.webp)] bg-no-repeat pt-[32px] text-white lg:bg-contain lg:pt-[45px] 2xl:bg-cover">
+		<div className="pt-[32px] text-white lg:pt-[45px]">
 			<div>
 				<div className="flex flex-col items-center">
-					<img src="/assets/research_logo_white.webp" alt="DefiLlama" width={301} height={99} />
-					<h1
-						className="mt-[35px] mb-[24px] text-center text-[22px] leading-[130%] font-light lg:mb-[45px] lg:text-[32px]"
-						dangerouslySetInnerHTML={{ __html: introTitle }}
-					/>
+					<img src="/assets/research_logo_white.webp" alt="DefiLlama" width={229} height={99} />
+					<h1 className="mt-[35px] mb-[12px] text-center text-[22px] leading-[130%] font-semibold lg:mb-[16px] lg:text-[32px]">
+						{title}
+					</h1>
+					<h2 className="mb-[24px] text-center text-[16px] leading-[130%] font-light lg:mb-[35px] lg:text-[20px]">
+						{subtitle}
+					</h2>
 
 					<div className="flex flex-col items-center gap-[36px] lg:flex-row">
 						<div className="flex space-x-[12px]">
 							<Link
-								href="#work-with-DLR"
+								href="mailto:research@defillama.com"
 								className="flex items-center rounded-full bg-white px-[14px] py-[12px] text-[16px] leading-[50%] text-[#237BFF] md:px-[24px] md:py-[14px]"
 							>
 								Contact us
@@ -92,14 +86,21 @@ export const ResearchHero: React.FC<ResearchHeroProps> = ({ introTitle, reports 
 						</div>
 
 						<div className="flex space-x-[7px]">
-							<Link href="https://x.com/dl_research?lang=en" target="_blank">
+							<Link
+								href="https://x.com/dl_research?lang=en"
+								aria-label="Follow us on X"
+								rel="noopener noreferrer"
+								target="_blank"
+							>
 								<TwitterIcon />
 							</Link>
-							<Link href="https://t.me/dl_research" target="_blank">
+							<Link
+								href="https://t.me/dl_research"
+								aria-label="Follow us on Telegram"
+								rel="noopener noreferrer"
+								target="_blank"
+							>
 								<TelegramIcon />
-							</Link>
-							<Link href="https://www.linkedin.com/company/dl-research" target="_blank">
-								<LinkedinIcon />
 							</Link>
 						</div>
 					</div>
