@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getArticleBanner, getSectionBanner } from '~/containers/Articles/api'
+import { getAllArticlesBanner, getArticleBanner, getSectionBanner } from '~/containers/Articles/api'
 import type { ArticleSection, Banner, BannerLookupResult } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
@@ -38,7 +38,23 @@ export function ArticleImageBanner({ articleId, section }: Props) {
 		staleTime: 60_000
 	})
 
-	const banner: Banner | null = articleBannerQuery.data?.image ?? sectionBannerQuery.data?.image ?? null
+	const allArticlesBannerQuery = useQuery<BannerLookupResult>({
+		queryKey: ['research', 'banner', 'all-articles'],
+		queryFn: () => getAllArticlesBanner(authorizedFetch),
+		enabled:
+			!!articleId &&
+			isAuthenticated &&
+			!loaders.userLoading &&
+			!articleBannerQuery.isLoading &&
+			!articleBannerQuery.data?.image &&
+			!sectionBannerQuery.isLoading &&
+			!sectionBannerQuery.data?.image,
+		retry: false,
+		staleTime: 60_000
+	})
+
+	const banner: Banner | null =
+		articleBannerQuery.data?.image ?? sectionBannerQuery.data?.image ?? allArticlesBannerQuery.data?.image ?? null
 
 	if (!banner || !banner.enabled || !banner.imageUrl) return null
 

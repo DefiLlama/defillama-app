@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ArticleApiError, listArticles, listArticlesByTag } from '../api'
+import { ArticleApiError, getAllArticlesBanner, listArticles, listArticlesByTag } from '../api'
 import { EDITORIAL_TAGS } from '../editorialTags'
 
 const createFetchMock = (response: Response) => vi.fn(async (_url: string, _options?: RequestInit) => response.clone())
@@ -30,6 +30,15 @@ describe('articles api client', () => {
 		const url = new URL(fetchFn.mock.calls[0][0])
 		expect(url.pathname).toBe('/articles/by-tag/report-highlight')
 		expect(url.searchParams.get('limit')).toBe('1')
+	})
+
+	it('requests the all-articles banner lookup path', async () => {
+		const fetchFn = createFetchMock(new Response(JSON.stringify({ text: null, image: null, imageHorizontal: null })))
+
+		await getAllArticlesBanner(fetchFn)
+
+		const url = new URL(fetchFn.mock.calls[0][0])
+		expect(url.pathname).toBe('/banners/lookup/all-articles')
 	})
 
 	it('surfaces server errors', async () => {

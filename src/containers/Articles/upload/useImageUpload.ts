@@ -9,6 +9,8 @@ export type UploadScope =
 	| 'article-inline'
 	| 'banner-image'
 	| 'banner-image-horizontal'
+	| 'banner-landing-desktop'
+	| 'banner-landing-mobile'
 	| 'report-carousel'
 	| 'report-sponsor-logo'
 
