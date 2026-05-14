@@ -22,6 +22,7 @@ import { ArticleImageBanner } from './ArticleImageBanner'
 import { ArticleImageBannerHorizontal } from './ArticleImageBannerHorizontal'
 import { ArticleImageBlock } from './ArticleImageBlock'
 import { ArticlePeoplePanelBlock } from './ArticlePeoplePanelBlock'
+import { ArticleQAAnswer, ArticleQABlock, ArticleQAQuestion } from './ArticleQABlock'
 import { EntityPreviewLink } from './EntityPreviewLink'
 
 const lowlight = createLowlight(common)
@@ -328,6 +329,22 @@ function renderNode(node: TiptapJson, key: string, ctx: RenderContext): ReactNod
 		if (!config) return null
 		return <ArticlePeoplePanelBlock key={key} config={config} />
 	}
+	if (node.type === 'qa') {
+		const questionNode = (node.content ?? []).find((child) => child?.type === 'qaQuestion')
+		const questionText = questionNode ? getTiptapNodeText(questionNode).trim() : ''
+		const qaId = questionText ? `qa-${headingSlug(questionText)}` : undefined
+		return (
+			<ArticleQABlock key={key} id={qaId}>
+				{renderChildren(node, key, ctx)}
+			</ArticleQABlock>
+		)
+	}
+	if (node.type === 'qaQuestion') {
+		return <ArticleQAQuestion key={key}>{renderChildren(node, key, ctx)}</ArticleQAQuestion>
+	}
+	if (node.type === 'qaAnswer') {
+		return <ArticleQAAnswer key={key}>{renderChildren(node, key, ctx)}</ArticleQAAnswer>
+	}
 	if (node.type === 'table') return renderTable(node, key, ctx)
 	if (node.type === 'tableRow') return renderTableRow(node, key, ctx)
 	if (node.type === 'tableHeader') {
@@ -435,6 +452,15 @@ function collectToc(node: TiptapJson | null | undefined, out: TocEntry[]) {
 			const text = getTiptapNodeText(node).trim()
 			if (text) out.push({ id: headingSlug(text), text, level })
 		}
+	}
+	if (node.type === 'qa') {
+		const questionNode = (node.content ?? []).find((child) => child?.type === 'qaQuestion')
+		const text = questionNode ? getTiptapNodeText(questionNode).trim() : ''
+		if (text) {
+			const qIndex = out.filter((entry) => entry.id.startsWith('qa-')).length + 1
+			out.push({ id: `qa-${headingSlug(text)}`, text: `Q${qIndex}. ${text}`, level: 3 })
+		}
+		return
 	}
 	for (const child of node.content ?? []) collectToc(child, out)
 }
@@ -798,9 +824,11 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 		: []
 	const hasCoverMeta = !!cover && (coverHeadline || coverCaption || coverMetaParts.length > 0)
 
+	const isInterview = article.section === 'interview'
+	const bylineLabel = isInterview ? 'Interviewer' : 'By'
 	const bylineNode = brandByline ? (
 		<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
-			<span className="font-normal">By</span>
+			<span className="font-normal">{bylineLabel}</span>
 			<Link href="/research/authors" className="font-semibold text-(--text-primary) hover:text-(--link-text)">
 				DefiLlama Research
 			</Link>
@@ -832,7 +860,7 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 			const links = [ownerLink, ...coAuthorLinks]
 			return (
 				<span className="flex flex-wrap items-center gap-1 text-xs text-(--text-secondary)">
-					<span className="font-normal">By</span>
+					<span className="font-normal">{bylineLabel}</span>
 					{links.map((node, index) => (
 						<span key={index} className="flex items-center gap-1">
 							{node}
@@ -844,6 +872,55 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 			)
 		})()
 	) : null
+
+	const intervieweesList = isInterview ? (article.interviewees ?? []).filter((p) => p?.name?.trim()) : []
+	const intervieweeNode =
+		intervieweesList.length > 0 ? (
+			<span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-(--text-secondary)">
+				<span className="font-normal">Interviewee{intervieweesList.length > 1 ? 's' : ''}</span>
+				{intervieweesList.map((person, index) => {
+					const labelNode = (
+						<span className="inline-flex items-center gap-1.5">
+							{person.avatarUrl ? (
+								// eslint-disable-next-line @next/next/no-img-element
+								<img
+									src={person.avatarUrl}
+									alt=""
+									className="h-5 w-5 shrink-0 rounded-full border border-(--cards-border) object-cover"
+								/>
+							) : null}
+							<span className="font-semibold text-(--text-primary)">{person.name}</span>
+							{person.role ? <span className="text-(--text-tertiary)">· {person.role}</span> : null}
+						</span>
+					)
+					const href = person.authorSlug
+						? `/research/authors/${person.authorSlug}`
+						: person.externalUrl
+							? person.externalUrl
+							: null
+					const linked = href ? (
+						person.authorSlug ? (
+							<Link href={href} className="hover:text-(--link-text)">
+								{labelNode}
+							</Link>
+						) : (
+							<a href={href} target="_blank" rel="noreferrer noopener" className="hover:text-(--link-text)">
+								{labelNode}
+							</a>
+						)
+					) : (
+						labelNode
+					)
+					return (
+						<span key={index} className="flex items-center gap-1">
+							{linked}
+							{index < intervieweesList.length - 2 ? <span>,</span> : null}
+							{index === intervieweesList.length - 2 ? <span>and</span> : null}
+						</span>
+					)
+				})}
+			</span>
+		) : null
 
 	return (
 		<div className="article-page mx-auto grid w-full max-w-[1300px] animate-fadein gap-10 px-4 pb-24 sm:px-6 lg:grid-cols-[minmax(0,700px)_401px] lg:gap-[125px]">
@@ -875,8 +952,11 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 				) : null}
 
 				<div className={`hidden flex-wrap items-center justify-between gap-3 lg:flex ${cover ? 'mt-5' : 'mt-6'} pb-8`}>
-					<div className="flex flex-wrap items-center gap-5">
-						{bylineNode}
+					<div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+						<div className="grid gap-1">
+							{bylineNode}
+							{intervieweeNode}
+						</div>
 						{(sectionLabel || tagChips.length > 0) && (
 							<div className="flex flex-wrap items-center gap-1.5">
 								{sectionLabel ? <MetaChip>{sectionLabel}</MetaChip> : null}
@@ -893,7 +973,10 @@ export function ArticleRenderer({ article }: { article: LocalArticleDocument }) 
 
 				<div className={`grid gap-3 lg:hidden ${cover ? 'mt-5' : 'mt-6'} pb-6`}>
 					<div className="flex flex-wrap items-center justify-between gap-3">
-						{bylineNode}
+						<div className="grid gap-1">
+							{bylineNode}
+							{intervieweeNode}
+						</div>
 						{publishedLabel ? (
 							<span className="text-xs whitespace-nowrap text-(--text-secondary)">{publishedLabel}</span>
 						) : null}

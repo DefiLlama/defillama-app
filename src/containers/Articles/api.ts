@@ -72,7 +72,8 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		displayDate: article.displayDate ?? null,
 		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
-		featuredUntil: article.featuredUntil ? article.featuredUntil : null
+		featuredUntil: article.featuredUntil ? article.featuredUntil : null,
+		interviewees: article.interviewees ?? null
 	}
 }
 

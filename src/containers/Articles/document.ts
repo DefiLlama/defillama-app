@@ -2,6 +2,7 @@ import { validateArticleChartConfig } from './chartAdapters'
 import { extractArticleContent } from './extractors'
 import type {
 	ArticleImage,
+	ArticleInterviewee,
 	ArticleSection,
 	ArticleSnapshotPayload,
 	LocalArticleDocument,
@@ -98,6 +99,43 @@ function normalizeTags(value: unknown): string[] {
 	return tags
 }
 
+function normalizeOptionalString(value: unknown): string | null {
+	if (typeof value !== 'string') return null
+	const trimmed = value.trim()
+	return trimmed.length > 0 ? trimmed : null
+}
+
+function normalizeInterviewUrl(value: unknown): string | null {
+	const trimmed = normalizeOptionalString(value)
+	if (!trimmed) return null
+	if (/^(https?:\/\/|mailto:)/i.test(trimmed)) return trimmed
+	return `https://${trimmed}`
+}
+
+function normalizeInterviewees(value: unknown): ArticleInterviewee[] | undefined {
+	if (!Array.isArray(value)) return undefined
+	const out: ArticleInterviewee[] = []
+	for (const entry of value) {
+		if (!isRecord(entry)) continue
+		const name = normalizeOptionalString(entry.name)
+		if (!name) continue
+		const interviewee: ArticleInterviewee = { name }
+		const avatarUrl = normalizeOptionalString(entry.avatarUrl)
+		if (avatarUrl) interviewee.avatarUrl = avatarUrl
+		const bio = normalizeOptionalString(entry.bio)
+		if (bio) interviewee.bio = bio
+		const role = normalizeOptionalString(entry.role)
+		if (role) interviewee.role = role
+		const authorSlug = normalizeOptionalString(entry.authorSlug)
+		if (authorSlug) interviewee.authorSlug = authorSlug
+		const externalUrl = normalizeInterviewUrl(entry.externalUrl)
+		if (externalUrl) interviewee.externalUrl = externalUrl
+		out.push(interviewee)
+		if (out.length >= 12) break
+	}
+	return out.length > 0 ? out : undefined
+}
+
 function normalizeCoverImage(value: unknown): ArticleImage | null | undefined {
 	if (value == null) return null
 	if (!isRecord(value)) return undefined
@@ -177,6 +215,8 @@ export function normalizeLocalArticleDocument(
 	const editorialTags = Array.isArray(input.editorialTags)
 		? input.editorialTags.filter((value): value is string => typeof value === 'string')
 		: (existing?.editorialTags ?? [])
+	const interviewees =
+		'interviewees' in input ? normalizeInterviewees(input.interviewees) : (existing?.interviewees ?? undefined)
 	const extracted = extractArticleContent(contentJson)
 	const trimmedPlain = extracted.plainText.trim()
 	const firstSentenceMatch = trimmedPlain.match(/^[\s\S]*?[.!?](?:\s|$)/)
@@ -216,6 +256,7 @@ export function normalizeLocalArticleDocument(
 			embeds: extracted.embeds,
 			tags: normalizeTags(input.tags),
 			editorialTags,
+			...(interviewees && interviewees.length > 0 ? { interviewees } : {}),
 			section,
 			displayDate,
 			brandByline,

@@ -145,6 +145,15 @@ export type ArticleAuthorProfile = {
 	updatedAt: string
 }
 
+export type ArticleInterviewee = {
+	name: string
+	avatarUrl?: string | null
+	bio?: string | null
+	role?: string | null
+	authorSlug?: string | null
+	externalUrl?: string | null
+}
+
 export type ArticleViewerRole = 'owner' | 'collaborator'
 
 export type ArticleCollaborator = {
@@ -184,6 +193,7 @@ export type LocalArticleDocument = {
 	embeds: ArticleEmbedConfig[]
 	tags: string[]
 	editorialTags?: string[]
+	interviewees?: ArticleInterviewee[]
 	section?: ArticleSection | null
 	displayDate?: string | null
 	brandByline?: boolean

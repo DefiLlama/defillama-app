@@ -1103,6 +1103,7 @@ function SectionWidgets({ sections }: { sections: { section: string; items: Arti
 				const label = ARTICLE_SECTION_LABELS[section] ?? bucket.section
 				if (!bucket.items?.length) return null
 				const number = String(index + 1).padStart(2, '0')
+				const sectionSlug = ARTICLE_SECTION_SLUGS[section]
 				return (
 					<section key={bucket.section} className="grid gap-4">
 						<div className="flex items-end justify-between gap-3 border-t border-(--cards-border) pt-3">
@@ -1111,9 +1112,19 @@ function SectionWidgets({ sections }: { sections: { section: string; items: Arti
 								<span aria-hidden className="h-px w-6 self-center bg-(--text-tertiary)/60" />
 								{label}
 							</h2>
-							<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
-								{bucket.items.length} {bucket.items.length === 1 ? 'story' : 'stories'}
-							</span>
+							<div className="flex items-baseline gap-3">
+								<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase tabular-nums">
+									{bucket.items.length} {bucket.items.length === 1 ? 'story' : 'stories'}
+								</span>
+								{sectionSlug ? (
+									<Link
+										href={`/research/${sectionSlug}`}
+										className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase transition-colors hover:text-(--link-text)"
+									>
+										See all →
+									</Link>
+								) : null}
+							</div>
 						</div>
 						<div className="grid gap-6 md:grid-cols-3">
 							{bucket.items.slice(0, 6).map((article) => (

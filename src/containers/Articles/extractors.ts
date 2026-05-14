@@ -22,6 +22,9 @@ const BLOCK_TEXT_NODES = new Set([
 	'articleEmbed',
 	'articleImage',
 	'articlePeoplePanel',
+	'qa',
+	'qaQuestion',
+	'qaAnswer',
 	'tableCell',
 	'tableHeader'
 ])
@@ -162,4 +165,31 @@ export function getTiptapNodeText(node: TiptapJson | null | undefined): string {
 	if (node.type === 'text') return node.text ?? ''
 	if (node.type === 'hardBreak') return '\n'
 	return (node.content ?? []).map(getTiptapNodeText).join('')
+}
+
+export type ArticleQAPair = { question: string; answer: string }
+
+function getQAAnswerText(answerNode: TiptapJson | null | undefined): string {
+	if (!answerNode) return ''
+	const paragraphs = (answerNode.content ?? []).map((child) => getTiptapNodeText(child).trim()).filter(Boolean)
+	return paragraphs.join(' ').replace(/\s+/g, ' ').trim()
+}
+
+export function extractQAPairs(contentJson: TiptapJson | null | undefined): ArticleQAPair[] {
+	const pairs: ArticleQAPair[] = []
+	const visit = (node: TiptapJson | null | undefined) => {
+		if (!node) return
+		if (node.type === 'qa') {
+			const children = node.content ?? []
+			const questionNode = children.find((child) => child?.type === 'qaQuestion')
+			const answerNode = children.find((child) => child?.type === 'qaAnswer')
+			const question = questionNode ? getTiptapNodeText(questionNode).trim() : ''
+			const answer = getQAAnswerText(answerNode)
+			if (question && answer) pairs.push({ question, answer })
+			return
+		}
+		for (const child of node.content ?? []) visit(child)
+	}
+	visit(contentJson)
+	return pairs
 }
