@@ -2,6 +2,7 @@ import React, { type CSSProperties } from 'react'
 import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
+import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchReportHighlightProps {
@@ -56,7 +57,7 @@ export const ResearchReportHighlight: React.FC<ResearchReportHighlightProps> = (
 
 					<div className="mt-auto pt-[8px] text-right">
 						<div>
-							<ReadMoreLink url={`/research/${highlight.slug}`} title="Explore more" />
+							<ReadMoreLink url={articleHref(highlight)} title="Explore more" />
 						</div>
 					</div>
 				</div>

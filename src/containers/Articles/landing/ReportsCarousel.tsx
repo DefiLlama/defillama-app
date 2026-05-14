@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import Link from 'next/link'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
 
@@ -92,7 +93,7 @@ interface CarouselArticleSlideProps {
 
 /** Carousel card: mirrors DL HoverReport layout for `ArticleDocument`. */
 function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: CarouselArticleSlideProps) {
-	const href = `/research/${article.slug}`
+	const href = articleHref(article)
 	const imgUrl = article.coverImage?.url
 	const blurb = (article.excerpt || article.subtitle || '').trim()
 

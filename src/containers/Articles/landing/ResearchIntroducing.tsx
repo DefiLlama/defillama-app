@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import { InViewAnalytics, pushResearchAnalyticsEvent } from '~/containers/Articles/landing/Analytics'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
-import { formatDate } from '~/containers/Articles/landing/utils'
+import { articleHref, formatDate } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 
 interface ResearchIntroducingProps {
@@ -44,7 +44,7 @@ export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchI
 									<Link
 										key={article.id}
 										className="group relative top-0 flex gap-[16px]"
-										href={`/research/${article.slug}`}
+										href={articleHref(article)}
 										onClick={() =>
 											pushResearchAnalyticsEvent(article, 'widget_click', 'DefiLlama Research Introducing column')
 										}

@@ -7,6 +7,7 @@ import { ReadMoreLink } from '~/containers/Articles/landing/ReadMoreLink'
 import { ResearchSectionWithSharedHeightProvider } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { useSharedHeight } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
+import { articleHref } from '~/containers/Articles/landing/utils'
 import type { ArticleDocument } from '~/containers/Articles/types'
 import { useMedia } from '~/hooks/useMedia'
 
@@ -50,7 +51,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 		<Link
 			key={article.id}
 			className="group block"
-			href={`/research/${article.slug}`}
+			href={articleHref(article)}
 			onClick={() => pushResearchAnalyticsEvent(article, 'widget_click', pageWidget)}
 		>
 			<div className="relative aspect-[368/240] overflow-hidden rounded-[7.2px] text-center transition-all duration-500 ease-out group-hover:brightness-[0.8]">
@@ -109,7 +110,7 @@ function ResearchInterviewsContent({ articles, pageWidget }: ResearchInterviewsC
 							<li key={article.id}>
 								<Link
 									className="group flex items-center gap-[16px]"
-									href={`/research/${article.slug}`}
+									href={articleHref(article)}
 									onClick={() => pushResearchAnalyticsEvent(article, 'widget_click', pageWidget)}
 								>
 									<span className="text-blue-[#0c2956] line-clamp-2 min-w-0 flex-1 text-[16px] leading-snug font-medium transition-colors group-hover:text-[#0c2956] lg:text-[18px] lg:font-semibold dark:text-white dark:group-hover:text-white/70">
