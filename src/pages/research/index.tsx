@@ -11,12 +11,14 @@ import { ResearchInterviews } from '~/containers/Articles/landing/ResearchInterv
 import { ResearchIntroducingWithHeight } from '~/containers/Articles/landing/ResearchIntroducing'
 import { ResearchLatest } from '~/containers/Articles/landing/ResearchLatest'
 import { ResearchReportHighlightWithHeight } from '~/containers/Articles/landing/ResearchReportHighlight'
+import ResearchSearch from '~/containers/Articles/landing/ResearchSearch'
 import { ResearchSectionWithSharedHeightProvider } from '~/containers/Articles/landing/ResearchSectionWithSharedHeight'
 import { ResearchSocialMediaMentions } from '~/containers/Articles/landing/ResearchSocialMediaMentions'
 import { ResearchSpotlight } from '~/containers/Articles/landing/ResearchSpotlight'
 import { ResearchTrustedByCarousel } from '~/containers/Articles/landing/ResearchTrustedByCarousel'
 import { ResearchWidgetWithScrollbarWithHeight } from '~/containers/Articles/landing/ResearchWidgetWithScrollbar'
 import { TitleLine } from '~/containers/Articles/landing/TitleLine'
+import { useResearchSearchParams } from '~/containers/Articles/landing/useResearchSearchParams'
 import { RESEARCH_LANDING_SECTION_LIMITS } from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -211,6 +213,8 @@ function ArticlesLandingInner() {
 }
 
 export default function ArticlesPage() {
+	const { showSearch } = useResearchSearchParams()
+
 	return (
 		<Layout
 			title="Crypto Research Reports & Market Intelligence | DefiLlama Research"
@@ -221,7 +225,7 @@ export default function ArticlesPage() {
 			<ArticleProxyAuthProvider>
 				<ArticlesAccessGate loadingFallback={<ResearchLoader />}>
 					<div className="col-span-full min-h-screen w-full bg-white text-blue-950 dark:bg-[#13141a] dark:text-white">
-						<ArticlesLandingInner />
+						{showSearch ? <ResearchSearch /> : <ArticlesLandingInner />}
 					</div>
 				</ArticlesAccessGate>
 			</ArticleProxyAuthProvider>

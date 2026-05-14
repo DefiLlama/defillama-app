@@ -31,7 +31,7 @@ export function ResearchIntroducing({ title, articles, sharedHeight }: ResearchI
 	if (articles.length === 0) return null
 
 	return (
-		<div id="introducing-column">
+		<div id="introducing">
 			<div>
 				<div className="mb-[26px]">
 					<TitleLine title={title} />
