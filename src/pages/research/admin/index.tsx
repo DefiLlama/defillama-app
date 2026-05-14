@@ -55,6 +55,20 @@ export default function ResearchAdminHubPage() {
 									Configure the dismissible strip shown above articles or on /research.
 								</span>
 							</Link>
+							<Link
+								href="/research/admin/reports"
+								className="group grid gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 transition-colors hover:border-(--link-text)/40"
+							>
+								<span className="font-jetbrains text-[10px] tracking-[0.18em] text-(--text-tertiary) uppercase">
+									Reports
+								</span>
+								<span className="text-lg font-semibold text-(--text-primary) group-hover:text-(--link-text)">
+									Report PDFs
+								</span>
+								<span className="text-sm text-(--text-secondary)">
+									Attach a PDF, carousel image, sponsor logo, and description to each Report article.
+								</span>
+							</Link>
 						</div>
 					</div>
 				</ArticlesAccessGate>

@@ -16,7 +16,6 @@ import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapter
 import type { ProtocolLite, ParentProtocolLite } from '~/containers/Protocols/api.types'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
 import Layout from '~/layout'
-import { fetchTokenRightsEntries } from '~/server/datasetCache/runtime/tokenRights'
 import { formattedNum, slug } from '~/utils'
 import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -97,6 +96,9 @@ const TOKEN_RIGHTS_FILTERS: Array<{ key: TokenRightsFilter; label: string }> = [
 ]
 
 export const getStaticProps = withPerformanceLogging('token-rights', async () => {
+	const tokenRightsEntriesPromise = import('~/server/datasetCache/runtime/tokenRights').then((mod) =>
+		mod.fetchTokenRightsEntries()
+	)
 	const metadataModule = await import('~/utils/metadata')
 	const holdersRevenue = await import('~/containers/DimensionAdapters/api')
 		.then((m) =>
@@ -107,7 +109,7 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 			})
 		)
 		.catch(() => null)
-	const entries = await fetchTokenRightsEntries()
+	const entries = await tokenRightsEntriesPromise
 
 	const { chainMetadata, protocolMetadata, tokenDirectory, cexs } = metadataModule.default as {
 		chainMetadata: Record<string, IChainMetadata>

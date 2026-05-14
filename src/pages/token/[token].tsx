@@ -27,18 +27,6 @@ import { parseTokenRightsEntry } from '~/containers/TokenRights/utils'
 import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { extractPoolTokens } from '~/containers/Yields/utils'
 import Layout from '~/layout'
-import { isDatasetCacheIntegrityError } from '~/server/datasetCache/core'
-import { hasTokenLiquidationsData } from '~/server/datasetCache/runtime/liquidations'
-import { fetchLiquidityEntryByProtocolId } from '~/server/datasetCache/runtime/liquidity'
-import { fetchTokenMarketsList } from '~/server/datasetCache/runtime/markets'
-import { fetchRaisesByDefillamaId } from '~/server/datasetCache/runtime/raises'
-import { getIndexedTokenRiskBorrowCapacity } from '~/server/datasetCache/runtime/risk'
-import {
-	fetchTokenRightsEntryByDefillamaId,
-	fetchTokenRightsEntryByName
-} from '~/server/datasetCache/runtime/tokenRights'
-import { fetchTreasuryById } from '~/server/datasetCache/runtime/treasuries'
-import { getTokenBorrowRoutes, getTokenYieldsRows, getYieldConfig } from '~/server/datasetCache/runtime/yields'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { normalizeLiquidationsTokenSymbol } from '~/utils/metadata/liquidations'
@@ -194,12 +182,13 @@ function getCoinGeckoId(tokenNk: string | undefined): string | null {
 	return tokenNk.slice('coingecko:'.length) || null
 }
 
-function isTokenPageIntegrityError(error: unknown): boolean {
-	return isDatasetCacheIntegrityError(error)
-}
-
-function downgradeTokenPageDataError<T>(error: unknown, message: string, fallback: T): T {
-	if (isTokenPageIntegrityError(error)) {
+function downgradeTokenPageDataError<T>(
+	error: unknown,
+	message: string,
+	fallback: T,
+	isIntegrityError: (error: unknown) => boolean
+): T {
+	if (isIntegrityError(error)) {
 		throw error
 	}
 	console.error(message, error)
@@ -315,6 +304,29 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 		const normalizedLiquidationsSymbol = normalizeLiquidationsTokenSymbol(record.symbol)
 		const chainDefiLlamaId = record.chainId ? `chain#${record.chainId.toLowerCase()}` : null
 		const protocolDefiLlamaId = record.protocolId ?? protocolMetadata?.name ?? null
+		const [
+			{ isDatasetCacheIntegrityError },
+			{ hasTokenLiquidationsData },
+			{ fetchLiquidityEntryByProtocolId },
+			{ fetchTokenMarketsList },
+			{ fetchRaisesByDefillamaId },
+			{ getIndexedTokenRiskBorrowCapacity },
+			{ fetchTokenRightsEntryByDefillamaId, fetchTokenRightsEntryByName },
+			{ fetchTreasuryById },
+			{ getTokenBorrowRoutes, getTokenYieldsRows, getYieldConfig }
+		] = await Promise.all([
+			import('~/server/datasetCache/core'),
+			import('~/server/datasetCache/runtime/liquidations'),
+			import('~/server/datasetCache/runtime/liquidity'),
+			import('~/server/datasetCache/runtime/markets'),
+			import('~/server/datasetCache/runtime/raises'),
+			import('~/server/datasetCache/runtime/risk'),
+			import('~/server/datasetCache/runtime/tokenRights'),
+			import('~/server/datasetCache/runtime/treasuries'),
+			import('~/server/datasetCache/runtime/yields')
+		])
+		const downgradeTokenPageError = <T,>(error: unknown, message: string, fallback: T): T =>
+			downgradeTokenPageDataError(error, message, fallback, isDatasetCacheIntegrityError)
 		let incomeStatementData = null
 		let incomeStatementProtocolName: string | null = null
 		let incomeStatementHasIncentives = false
@@ -328,14 +340,12 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 				}
 				return false
 			})
-			.catch((error) =>
-				downgradeTokenPageDataError(error, `Failed to load token markets list for ${record.symbol}`, false)
-			)
+			.catch((error) => downgradeTokenPageError(error, `Failed to load token markets list for ${record.symbol}`, false))
 		let liquidationsPromise: Promise<boolean> = Promise.resolve(false)
 		if (normalizedLiquidationsSymbol && metadataCache.liquidationsTokenSymbolsSet.has(normalizedLiquidationsSymbol)) {
 			const liquidationsSymbol = normalizedLiquidationsSymbol
 			liquidationsPromise = hasTokenLiquidationsData(liquidationsSymbol).catch((error) =>
-				downgradeTokenPageDataError(error, `Failed to load token liquidations data for ${record.symbol}`, false)
+				downgradeTokenPageError(error, `Failed to load token liquidations data for ${record.symbol}`, false)
 			)
 		}
 		const overviewPromise = (async () => {
@@ -378,7 +388,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 							: await fetchTokenRightsEntryByName(record.name)
 						return rawEntry ? parseTokenRightsEntry(rawEntry) : null
 					} catch (error) {
-						return downgradeTokenPageDataError(
+						return downgradeTokenPageError(
 							error,
 							`Failed to load token rights data for ${record.chainId || record.protocolId}`,
 							null
@@ -410,13 +420,13 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 						borrowCapacitySnapshot: await getIndexedTokenRiskBorrowCapacity()
 					})
 				})().catch((error) => {
-					return downgradeTokenPageDataError(error, `Failed to load token risk data for ${geckoId}`, null)
+					return downgradeTokenPageError(error, `Failed to load token risk data for ${geckoId}`, null)
 				})
 			: Promise.resolve(null)
 
 		const yieldsRowsPromise = record.is_yields
 			? getTokenYieldsRows(record.symbol).catch((error) =>
-					downgradeTokenPageDataError(error, `Failed to load token yields data for ${record.symbol}`, [])
+					downgradeTokenPageError(error, `Failed to load token yields data for ${record.symbol}`, [])
 				)
 			: Promise.resolve([])
 
@@ -443,7 +453,7 @@ export const getStaticProps = withPerformanceLogging<TokenPageProps, TokenRouteP
 			incomeStatementPromise,
 			yieldsRowsPromise,
 			getTokenBorrowRoutes(record.symbol).catch((error) =>
-				downgradeTokenPageDataError(error, `Failed to load token borrow routes data for ${record.symbol}`, null)
+				downgradeTokenPageError(error, `Failed to load token borrow routes data for ${record.symbol}`, null)
 			),
 			liquidationsPromise,
 			tokenRiskPromise,

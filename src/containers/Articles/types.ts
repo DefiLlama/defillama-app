@@ -79,6 +79,14 @@ export type ArticleImage = {
 	height?: number
 }
 
+export type ArticlePdf = {
+	id: string
+	url: string
+	sizeBytes: number
+	originalName?: string
+	pageCount?: number
+}
+
 export type ArticleEntityRef = {
 	entityType: ArticleEntityType
 	slug: string
@@ -145,6 +153,15 @@ export type ArticleAuthorProfile = {
 	updatedAt: string
 }
 
+export type ArticleInterviewee = {
+	name: string
+	avatarUrl?: string | null
+	bio?: string | null
+	role?: string | null
+	authorSlug?: string | null
+	externalUrl?: string | null
+}
+
 export type ArticleViewerRole = 'owner' | 'collaborator'
 
 export type ArticleCollaborator = {
@@ -175,6 +192,10 @@ export type LocalArticleDocument = {
 	seoDescription?: string
 	excerpt?: string
 	coverImage?: ArticleImage | null
+	carouselImage?: ArticleImage | null
+	sponsorLogo?: ArticleImage | null
+	reportDescription?: string | null
+	reportPdf?: ArticlePdf | null
 
 	contentJson: TiptapJson
 	plainText: string
@@ -184,6 +205,7 @@ export type LocalArticleDocument = {
 	embeds: ArticleEmbedConfig[]
 	tags: string[]
 	editorialTags?: string[]
+	interviewees?: ArticleInterviewee[]
 	section?: ArticleSection | null
 	displayDate?: string | null
 	brandByline?: boolean

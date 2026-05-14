@@ -3,7 +3,14 @@ import toast from 'react-hot-toast'
 import { FEATURES_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscription/auth'
 
-export type UploadScope = 'avatar' | 'article-cover' | 'article-inline' | 'banner-image' | 'banner-image-horizontal'
+export type UploadScope =
+	| 'avatar'
+	| 'article-cover'
+	| 'article-inline'
+	| 'banner-image'
+	| 'banner-image-horizontal'
+	| 'report-carousel'
+	| 'report-sponsor-logo'
 
 export type UploadResult = {
 	id: string

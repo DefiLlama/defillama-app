@@ -158,6 +158,63 @@ function FreeUpgradeBanner() {
 	)
 }
 
+function PastDueSubscriptionCard({
+	subscription,
+	onUpdatePayment,
+	onCancel,
+	isUpdateLoading,
+	isCancelLoading
+}: {
+	subscription: Subscription
+	onUpdatePayment: () => void
+	onCancel: () => void
+	isUpdateLoading: boolean
+	isCancelLoading: boolean
+}) {
+	const planName = getPlanName(subscription.type)
+	const canUpdatePayment = subscription.provider === 'stripe'
+	return (
+		<div className="flex flex-col gap-4 rounded-2xl border border-sub-warning-border-light bg-sub-warning-bg/10 p-4 dark:border-sub-warning-border-dark">
+			<div className="flex items-start gap-2">
+				<Icon
+					name="alert-warning"
+					height={20}
+					width={20}
+					className="mt-0.5 shrink-0 text-sub-warning-text-light dark:text-sub-warning-text-dark"
+				/>
+				<div className="flex flex-col gap-1">
+					<h3 className="text-base font-semibold text-sub-warning-text-light dark:text-sub-warning-text-dark">
+						{planName} Subscription Past Due
+					</h3>
+					<p className="text-sm text-sub-warning-text-light dark:text-sub-warning-text-dark">
+						Your most recent payment failed. To keep your subscription active, update your payment method on Stripe.
+						Otherwise, you can cancel the overdue subscription below.
+					</p>
+				</div>
+			</div>
+			<div className="flex flex-wrap gap-2">
+				{canUpdatePayment && (
+					<button
+						onClick={onUpdatePayment}
+						disabled={isUpdateLoading}
+						className="flex h-9 items-center gap-1 rounded-lg bg-(--sub-brand-primary) px-3 text-sm font-medium whitespace-nowrap text-white disabled:opacity-50"
+					>
+						{isUpdateLoading ? 'Loading...' : 'Update Payment on Stripe'}
+						{!isUpdateLoading && <Icon name="circle-external-link" height={16} width={16} className="shrink-0" />}
+					</button>
+				)}
+				<button
+					onClick={onCancel}
+					disabled={isCancelLoading}
+					className="flex h-9 items-center rounded-lg border border-(--sub-border-muted) px-3 text-sm font-medium whitespace-nowrap text-(--sub-ink-primary) disabled:opacity-50 dark:border-(--sub-border-strong) dark:text-white"
+				>
+					{isCancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
+				</button>
+			</div>
+		</div>
+	)
+}
+
 function LegacyWarning() {
 	return (
 		<div className="flex items-start gap-2 rounded-2xl border border-sub-warning-border-light bg-sub-warning-bg/10 p-4 dark:border-sub-warning-border-dark">
@@ -227,6 +284,7 @@ export function SubscriptionSection() {
 	const {
 		apiSubscription,
 		llamafeedSubscription,
+		pastDueSubscription,
 		credits,
 		usageStats,
 		isUsageStatsLoading,
@@ -299,6 +357,7 @@ export function SubscriptionSection() {
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active'
 	const activeSubscription = hasApiSubscription ? apiSubscription : hasProSubscription ? llamafeedSubscription : null
+	const isPastDue = Boolean(pastDueSubscription?.id) && !hasApiSubscription && !hasProSubscription
 	const isProMonthly = hasProSubscription && llamafeedSubscription?.billing_interval === 'month'
 	const isApiMonthly = hasApiSubscription && apiSubscription?.billing_interval === 'month'
 	const isTrial = hasProSubscription && (isTrialFromAuth || String(llamafeedSubscription?.metadata?.isTrial) === 'true')
@@ -325,6 +384,37 @@ export function SubscriptionSection() {
 	const handleUpgradeToYearly = (type: 'llamafeed' | 'api') => {
 		setYearlyUpgradeType(type)
 		setIsYearlyUpgradeModalOpen(true)
+	}
+
+	if (isPastDue && pastDueSubscription) {
+		const handlePastDuePayment = async () => {
+			if (pastDueSubscription.provider === 'stripe') {
+				await createPortalSession()
+			}
+		}
+		return (
+			<>
+				<PastDueSubscriptionCard
+					subscription={pastDueSubscription}
+					onUpdatePayment={handlePastDuePayment}
+					onCancel={() => setIsCancelSubModalOpen(true)}
+					isUpdateLoading={isPortalSessionLoading}
+					isCancelLoading={isCancelSubscriptionLoading}
+				/>
+				{isCancelSubModalOpen ? (
+					<CancelSubscriptionModal
+						isOpen={isCancelSubModalOpen}
+						onClose={() => setIsCancelSubModalOpen(false)}
+						onConfirm={async (message) => {
+							await cancelSubscription(message)
+							setIsCancelSubModalOpen(false)
+						}}
+						isLoading={isCancelSubscriptionLoading}
+						variant="subscription"
+					/>
+				) : null}
+			</>
+		)
 	}
 
 	if (isTrial && llamafeedSubscription) {

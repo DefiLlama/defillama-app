@@ -2,17 +2,19 @@ import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscription/auth'
+import { VerifyEmailDialog } from '~/containers/Subscription/VerifyEmailDialog'
 import { EmailChangeModal } from './EmailChangeModal'
 import { PasswordResetModal } from './PasswordResetModal'
 import { SwitchToEmailModal } from './SwitchToEmailModal'
 import { isWalletEmail, truncateAddress } from './utils'
 
 export function AuthenticationCard() {
-	const { user, resetPasswordMutation, resendVerification, loaders } = useAuthContext()
+	const { user, resetPasswordMutation, loaders } = useAuthContext()
 
 	const [isEmailModalOpen, setIsEmailModalOpen] = useState(false)
 	const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
 	const [isSwitchToEmailModalOpen, setIsSwitchToEmailModalOpen] = useState(false)
+	const [isVerifyEmailModalOpen, setIsVerifyEmailModalOpen] = useState(false)
 	const [passwordCooldownMsg, setPasswordCooldownMsg] = useState('')
 	const passwordResetSentAt = useRef(0)
 	const PASSWORD_COOLDOWN_MS = 60_000
@@ -60,9 +62,9 @@ export function AuthenticationCard() {
 		})
 	}
 
-	const handleResendVerification = () => {
-		if (loaders.resendVerification || !user?.email) return
-		resendVerification(user.email)
+	const handleVerifyEmail = () => {
+		if (!user?.email) return
+		setIsVerifyEmailModalOpen(true)
 	}
 
 	return (
@@ -163,15 +165,14 @@ export function AuthenticationCard() {
 								className="shrink-0 text-sub-warning-text-light dark:text-sub-warning-text-dark"
 							/>
 							<p className="text-xs leading-4 text-sub-warning-text-light dark:text-sub-warning-text-dark">
-								Your email is not verified. Please verify your email by clicking the link sent to your email.
+								Your email is not verified. Enter the verification code sent to your email.
 							</p>
 						</div>
 						<button
-							onClick={handleResendVerification}
-							disabled={loaders.resendVerification}
+							onClick={handleVerifyEmail}
 							className="flex h-8 shrink-0 items-center rounded-lg border border-sub-warning-border-light px-3 text-xs font-medium whitespace-nowrap text-sub-warning-text-light disabled:opacity-50 dark:border-sub-warning-border-dark dark:text-sub-warning-text-dark"
 						>
-							{loaders.resendVerification ? 'Sending...' : 'Resend Email'}
+							Verify email
 						</button>
 					</div>
 				)}
@@ -192,6 +193,12 @@ export function AuthenticationCard() {
 				isOpen={isSwitchToEmailModalOpen}
 				onClose={() => setIsSwitchToEmailModalOpen(false)}
 				defaultEmail={user?.ethereum_email}
+			/>
+
+			<VerifyEmailDialog
+				isOpen={isVerifyEmailModalOpen}
+				email={user?.email ?? undefined}
+				onClose={() => setIsVerifyEmailModalOpen(false)}
 			/>
 		</>
 	)

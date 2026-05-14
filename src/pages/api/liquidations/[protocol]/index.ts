@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getLiquidationsProtocolPageData } from '~/server/datasetCache/runtime/liquidations'
 import { validateSubscription } from '~/utils/apiAuth'
 import metadataCache from '~/utils/metadata'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
@@ -29,6 +28,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 			return res.status(auth.status).json({ error: auth.error })
 		}
 
+		const { getLiquidationsProtocolPageData } = await import('~/server/datasetCache/runtime/liquidations')
 		const data = await getLiquidationsProtocolPageData(protocol, {
 			chainMetadata: metadataCache.chainMetadata,
 			protocolMetadata: metadataCache.protocolMetadata

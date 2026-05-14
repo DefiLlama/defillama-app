@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { TokenBorrowRoutesResponse } from '~/containers/Token/tokenBorrowRoutes.types'
-import { getTokenBorrowRoutes } from '~/server/datasetCache/runtime/yields'
 import { jitterCacheControlHeader } from '~/utils/maxAgeForNext'
 import { recordRouteRuntimeError, withApiRouteTelemetry } from '~/utils/telemetry'
 
@@ -22,6 +21,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<TokenBorrowRout
 		}
 
 		res.setHeader('Cache-Control', jitterCacheControlHeader(CACHE_CONTROL, req.url ?? token))
+		const { getTokenBorrowRoutes } = await import('~/server/datasetCache/runtime/yields')
 		const data = await getTokenBorrowRoutes(token)
 
 		res.status(200).json(data)

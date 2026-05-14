@@ -1,4 +1,4 @@
-export type EditorialTagSlug = 'spotlight' | 'insights'
+export type EditorialTagSlug = 'spotlight' | 'latest' | 'insights' | 'report-highlight' | 'reports-hero'
 
 export type EditorialTagCardinality = 'singleton' | 'multi'
 
@@ -13,13 +13,31 @@ export const EDITORIAL_TAGS: Record<EditorialTagSlug, EditorialTagDefinition> = 
 	spotlight: {
 		slug: 'spotlight',
 		label: 'Spotlight',
-		description: 'Lead article featured at the top of /research.',
-		cardinality: 'singleton'
+		description: 'Curated articles featured at the top of /research.',
+		cardinality: 'multi'
+	},
+	latest: {
+		slug: 'latest',
+		label: 'Latest from DefiLlama Research',
+		description: 'Curated articles for the Latest from DefiLlama Research section.',
+		cardinality: 'multi'
 	},
 	insights: {
 		slug: 'insights',
 		label: 'Insights',
 		description: 'Curated set of analytical pieces.',
+		cardinality: 'multi'
+	},
+	'report-highlight': {
+		slug: 'report-highlight',
+		label: 'Report highlight',
+		description: 'Single highlighted report card.',
+		cardinality: 'singleton'
+	},
+	'reports-hero': {
+		slug: 'reports-hero',
+		label: 'Reports hero',
+		description: 'Curated items for the reports carousel in the hero of /research.',
 		cardinality: 'multi'
 	}
 }

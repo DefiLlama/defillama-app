@@ -66,13 +66,18 @@ function buildSavePayload(article: LocalArticleDocument, options: { includeStatu
 		seoDescription: nullableText(article.seoDescription),
 		excerpt: nullableText(article.excerpt),
 		coverImage: article.coverImage ?? null,
+		carouselImage: article.carouselImage ?? null,
+		sponsorLogo: article.sponsorLogo ?? null,
+		reportDescription: nullableText(article.reportDescription ?? null),
+		reportPdf: article.reportPdf ?? null,
 		contentJson: article.contentJson,
 		tags: article.tags ?? [],
 		section: article.section ?? null,
 		displayDate: article.displayDate ?? null,
 		brandByline: article.brandByline ?? false,
 		featuredRank: typeof article.featuredRank === 'number' ? article.featuredRank : null,
-		featuredUntil: article.featuredUntil ? article.featuredUntil : null
+		featuredUntil: article.featuredUntil ? article.featuredUntil : null,
+		interviewees: article.interviewees ?? null
 	}
 }
 
@@ -222,6 +227,28 @@ export async function updateArticle(
 			method: 'PATCH',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(buildSavePayload(article))
+		})
+	)
+	return data.article
+}
+
+export type ReportFieldsPatch = {
+	reportPdf?: LocalArticleDocument['reportPdf']
+	carouselImage?: LocalArticleDocument['carouselImage']
+	sponsorLogo?: LocalArticleDocument['sponsorLogo']
+	reportDescription?: string | null
+}
+
+export async function updateArticleReportFields(
+	id: string,
+	patch: ReportFieldsPatch,
+	authorizedFetch: AuthorizedFetch
+): Promise<ArticleDocument> {
+	const data = await parseResponse<{ article: ArticleDocument }>(
+		await authorizedFetch(articleUrl(`/articles/${encodeURIComponent(id)}`), {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(patch)
 		})
 	)
 	return data.article

@@ -1,5 +1,7 @@
-import { CACHE_SERVER, COINGECKO_KEY, DATASETS_SERVER_URL } from '~/constants'
+import dayjs from 'dayjs'
+import { COINGECKO_KEY, COINS_CHART_API, DATASETS_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
+import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 import type {
 	CgChartResponse,
 	CgMarketChartResponse,
@@ -31,9 +33,10 @@ const COINGECKO_API_BASE_URL = COINGECKO_KEY
 
 const COINGECKO_REQUEST_HEADERS = COINGECKO_KEY ? { 'x-cg-pro-api-key': COINGECKO_KEY } : undefined
 const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
-const CG_CHART_CACHE_URL = `${CACHE_SERVER}/cgchart`
 const COINGECKO_EXCHANGES_MAX_PAGE_SIZE = 250
 const COINGECKO_TICKERS_PAGE_SIZE = 100
+const CG_CHART_CACHE_TTL_SECONDS = 60 * 60
+const CG_CHART_LOCAL_API_PATH = '/api/charts/protocol'
 
 function createCoinGeckoUrl(pathname: string): URL {
 	return new URL(pathname.replace(/^\//, ''), `${COINGECKO_API_BASE_URL}/`)
@@ -314,35 +317,79 @@ async function fetchCoinGeckoCoinMarketChartById(
 	return fetchCoinGeckoJson<CgMarketChartResponse>(url.pathname, url).catch(() => null)
 }
 
-/**
- * Fetch chart data for a CoinGecko id, using the DefiLlama chart cache first and falling back to
- * CoinGecko GET /coins/{id}/market_chart when the cache misses.
- */
+interface LlamaCoinsChartResponse {
+	coins?: Record<string, { prices?: Array<{ timestamp: number; price: number }> }>
+}
+
+async function fetchLlamaPricesFallback(geckoId: string, fullChart: boolean): Promise<Array<[number, number]> | null> {
+	const startUnix = dayjs().subtract(1, 'year').startOf('day').unix()
+	const url = `${COINS_CHART_API}/coingecko:${encodeURIComponent(geckoId)}?start=${startUnix}&span=${
+		fullChart ? '1000' : '365'
+	}`
+	const response = await fetchJson<LlamaCoinsChartResponse>(url).catch(() => null)
+	const series = response?.coins?.[`coingecko:${geckoId}`]?.prices
+	if (!series?.length) return null
+	return series.map((point) => [point.timestamp * 1000, point.price] as [number, number])
+}
+
+async function fetchCgChartFresh(geckoId: string, fullChart: boolean): Promise<CgChartResponse['data'] | null> {
+	const [marketChart, coinData] = await Promise.all([
+		fetchCoinGeckoCoinMarketChartById(geckoId, {
+			vsCurrency: 'usd',
+			days: fullChart ? 'max' : 365
+		}),
+		fetchCoinGeckoCoinById(geckoId)
+	])
+
+	let prices: Array<[number, number]> | undefined = marketChart?.prices
+	if (!prices) {
+		const llamaPrices = await fetchLlamaPricesFallback(geckoId, fullChart)
+		if (llamaPrices) prices = llamaPrices
+	}
+
+	if (!prices) return null
+
+	return {
+		prices,
+		mcaps: marketChart?.market_caps,
+		volumes: marketChart?.total_volumes,
+		coinData: coinData as CgChartResponse['data']['coinData']
+	}
+}
+
+export async function getCachedCgChartData(
+	geckoId: string,
+	fullChart: boolean
+): Promise<CgChartResponse['data'] | null> {
+	if (!geckoId) return null
+	const cacheKey = `cgchart_${geckoId}${fullChart ? '_full' : ''}`
+	const cached = await getObjectCache<CgChartResponse['data']>(cacheKey)
+	if (cached?.prices) return cached
+
+	const fresh = await fetchCgChartFresh(geckoId, fullChart)
+	if (fresh?.prices) {
+		await setObjectCache(cacheKey, fresh, CG_CHART_CACHE_TTL_SECONDS)
+	}
+	return fresh
+}
+
 export async function fetchCoinGeckoChartByIdWithCacheFallback(
 	geckoId: string,
 	{ fullChart = true }: { fullChart?: boolean } = {}
 ): Promise<CgChartResponse | null> {
 	if (!geckoId) return null
 
-	const cacheUrl = new URL(`${CG_CHART_CACHE_URL}/${geckoId}`)
-	if (fullChart) cacheUrl.searchParams.set('fullChart', 'true')
-
-	const cached = await fetchJson<CgChartResponse>(cacheUrl.toString()).catch(() => null)
-	if (cached?.data?.prices) return cached
-
-	const fallback = await fetchCoinGeckoCoinMarketChartById(geckoId, {
-		vsCurrency: 'usd',
-		days: fullChart ? 'max' : 365
-	})
-	if (!fallback) return null
-
-	return {
-		data: {
-			prices: fallback.prices,
-			mcaps: fallback.market_caps,
-			volumes: fallback.total_volumes
-		}
+	if (typeof window === 'undefined') {
+		const data = await getCachedCgChartData(geckoId, fullChart)
+		return data ? { data } : null
 	}
+
+	const url = new URL(CG_CHART_LOCAL_API_PATH, window.location.origin)
+	url.searchParams.set('kind', 'coingecko')
+	url.searchParams.set('geckoId', geckoId)
+	if (fullChart) url.searchParams.set('fullChart', 'true')
+	const data = await fetchJson<CgChartResponse['data'] | null>(url.toString()).catch(() => null)
+	return data?.prices ? { data } : null
 }
 
 /**

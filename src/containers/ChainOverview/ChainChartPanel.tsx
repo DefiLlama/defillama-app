@@ -46,6 +46,7 @@ interface ChainChartPanelProps {
 	hasBarChart: boolean
 	groupBy: ChartTimeGroupingWithCumulative
 	chainGeckoId: string | null
+	gasUsedValueSymbol: string
 	finalCharts: any
 	valueSymbol: string
 	isFetchingChartData: boolean
@@ -64,6 +65,7 @@ export function ChainChartPanel({
 	hasBarChart,
 	groupBy,
 	chainGeckoId,
+	gasUsedValueSymbol,
 	finalCharts,
 	valueSymbol,
 	isFetchingChartData,
@@ -75,9 +77,10 @@ export function ChainChartPanel({
 	const chartRenderModel = useMemo(
 		() => ({
 			chartData: finalCharts,
-			valueSymbol
+			valueSymbol,
+			gasUsedValueSymbol
 		}),
-		[finalCharts, valueSymbol]
+		[finalCharts, valueSymbol, gasUsedValueSymbol]
 	)
 	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 
@@ -277,6 +280,7 @@ export function ChainChartPanel({
 						<ChainCoreChart
 							chartData={deferredChartRenderModel.chartData}
 							valueSymbol={deferredChartRenderModel.valueSymbol}
+							gasUsedValueSymbol={deferredChartRenderModel.gasUsedValueSymbol}
 							isThemeDark={darkMode}
 							groupBy={groupBy}
 							onReady={handleChartReady}

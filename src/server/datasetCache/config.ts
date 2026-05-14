@@ -15,7 +15,10 @@ function getEnvNumber(name: string, fallback: number, { allowZero }: { allowZero
 }
 
 export function getDatasetCacheRootDir(): string {
-	return path.resolve(process.cwd(), process.env.DATASET_CACHE_DIR?.trim() || DEFAULT_DATASET_CACHE_ROOT_DIR)
+	return path.resolve(
+		/* turbopackIgnore: true */ process.cwd(),
+		process.env.DATASET_CACHE_DIR?.trim() || DEFAULT_DATASET_CACHE_ROOT_DIR
+	)
 }
 
 export function isDatasetCacheEnabled(): boolean {

@@ -81,46 +81,58 @@ export default function ChainChartPage(props) {
 		)
 	}, [router.query, props.metadata.id])
 
-	const { toggledCharts, chainGeckoId, groupBy, denomination, tvlSettings, isThemeDark } = useMemo(() => {
-		const queryParams = JSON.parse(queryParamsString)
+	const { toggledCharts, chainGeckoId, gasUsedSymbol, groupBy, denomination, tvlSettings, isThemeDark } =
+		useMemo(() => {
+			const queryParams = JSON.parse(queryParamsString)
 
-		let chainGeckoId = null
+			let chainGeckoId = null
+			let gasUsedSymbol = null
 
-		if (selectedChain !== 'All') {
-			let chainDenomination =
-				props.chainTokenInfo?.gecko_id ?? chainCoingeckoIdsForGasNotMcap[selectedChain]?.geckoId ?? null
+			if (selectedChain !== 'All') {
+				const gasToken = chainCoingeckoIdsForGasNotMcap[selectedChain]
+				let chainDenomination = props.chainTokenInfo?.gecko_id ?? gasToken?.geckoId ?? null
 
-			chainGeckoId = chainDenomination ?? null
-		}
+				chainGeckoId = chainDenomination ?? null
+				gasUsedSymbol = gasToken?.symbol ?? props.chainTokenInfo?.token_symbol ?? null
+			}
 
-		const tvlSettings = {}
+			const tvlSettings = {}
 
-		for (const setting in TVL_SETTINGS) {
-			tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
-		}
+			for (const setting in TVL_SETTINGS) {
+				tvlSettings[TVL_SETTINGS[setting]] = queryParams[`include_${TVL_SETTINGS[setting]}_in_tvl`]
+			}
 
-		const toggledCharts = props.charts.filter((tchart, index) =>
-			index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
-		) as ChainChartLabels[]
+			const toggledCharts = props.charts.filter((tchart, index) =>
+				index === 0 ? queryParams[chainCharts[tchart]] !== 'false' : queryParams[chainCharts[tchart]] === 'true'
+			) as ChainChartLabels[]
 
-		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+			const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
-		const groupBy =
-			hasAtleasOneBarChart && queryParams?.groupBy ? (normalizeChartInterval(queryParams.groupBy) ?? 'daily') : 'daily'
+			const groupBy =
+				hasAtleasOneBarChart && queryParams?.groupBy
+					? (normalizeChartInterval(queryParams.groupBy) ?? 'daily')
+					: 'daily'
 
-		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
+			const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 
-		const isThemeDark = queryParams.theme === 'dark'
+			const isThemeDark = queryParams.theme === 'dark'
 
-		return {
-			chainGeckoId,
-			toggledCharts,
-			groupBy,
-			denomination,
-			tvlSettings,
-			isThemeDark
-		}
-	}, [queryParamsString, props.charts, props.chainTokenInfo?.gecko_id, selectedChain])
+			return {
+				chainGeckoId,
+				gasUsedSymbol,
+				toggledCharts,
+				groupBy,
+				denomination,
+				tvlSettings,
+				isThemeDark
+			}
+		}, [
+			queryParamsString,
+			props.charts,
+			props.chainTokenInfo?.gecko_id,
+			props.chainTokenInfo?.token_symbol,
+			selectedChain
+		])
 
 	const { finalCharts, valueSymbol, isFetchingChartData } = useFetchChainChartData({
 		denomination,
@@ -160,6 +172,7 @@ export default function ChainChartPage(props) {
 					<ChainCoreChart
 						chartData={finalCharts}
 						valueSymbol={valueSymbol}
+						gasUsedValueSymbol={gasUsedSymbol ?? valueSymbol}
 						isThemeDark={isThemeDark}
 						groupBy={groupBy}
 					/>

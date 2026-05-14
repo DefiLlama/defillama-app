@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeLocalArticleDocument } from '../document'
+import { extractQAPairs } from '../extractors'
 
 const now = '2026-05-01T10:00:00.000Z'
 
@@ -75,6 +76,64 @@ describe('local article documents', () => {
 		})
 
 		expect(result.ok).toBe(false)
+	})
+
+	it('normalizes interviewees and strips empty entries', () => {
+		const result = normalizeLocalArticleDocument(
+			{
+				title: 'An interview',
+				section: 'interview',
+				contentJson: { type: 'doc', content: [] },
+				interviewees: [
+					{ name: '  Stani  ', role: 'Founder, Aave', externalUrl: 'twitter.com/stani' },
+					{ name: '' },
+					{ name: 'Hayden', authorSlug: 'hayden' }
+				]
+			},
+			null,
+			now
+		)
+
+		expect(result.ok).toBe(true)
+		if (!result.ok) return
+		expect(result.value.section).toBe('interview')
+		expect(result.value.interviewees).toEqual([
+			{ name: 'Stani', role: 'Founder, Aave', externalUrl: 'https://twitter.com/stani' },
+			{ name: 'Hayden', authorSlug: 'hayden' }
+		])
+	})
+
+	it('extracts Q&A pairs from content', () => {
+		const pairs = extractQAPairs({
+			type: 'doc',
+			content: [
+				{ type: 'paragraph', content: [{ type: 'text', text: 'intro' }] },
+				{
+					type: 'qa',
+					content: [
+						{ type: 'qaQuestion', content: [{ type: 'text', text: 'What changed?' }] },
+						{
+							type: 'qaAnswer',
+							content: [
+								{ type: 'paragraph', content: [{ type: 'text', text: 'A lot.' }] },
+								{ type: 'paragraph', content: [{ type: 'text', text: 'In particular fees.' }] }
+							]
+						}
+					]
+				},
+				{
+					type: 'qa',
+					content: [
+						{ type: 'qaQuestion', content: [{ type: 'text', text: '' }] },
+						{
+							type: 'qaAnswer',
+							content: [{ type: 'paragraph', content: [{ type: 'text', text: 'orphan answer' }] }]
+						}
+					]
+				}
+			]
+		})
+		expect(pairs).toEqual([{ question: 'What changed?', answer: 'A lot. In particular fees.' }])
 	})
 
 	it('preserves existing createdAt while updating updatedAt', () => {
