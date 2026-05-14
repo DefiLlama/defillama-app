@@ -94,8 +94,10 @@ interface CarouselArticleSlideProps {
 /** Carousel card: mirrors DL HoverReport layout for `ArticleDocument`. */
 function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: CarouselArticleSlideProps) {
 	const href = articleHref(article)
-	const imgUrl = article.coverImage?.url
-	const blurb = (article.excerpt || article.subtitle || '').trim()
+	const imgUrl = article.carouselImage?.url ?? article.coverImage?.url
+	const blurb = (article.reportDescription || article.excerpt || article.subtitle || '').trim()
+	const sponsorLogoUrl = article.sponsorLogo?.url
+	const pdfUrl = article.reportPdf?.url ?? null
 
 	const imageBlock = (
 		<div className="space-y-[12px] bg-white" style={{ aspectRatio: `${IMG_ASPECT.w}/${IMG_ASPECT.h}` }}>
@@ -106,6 +108,13 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 			)}
 		</div>
 	)
+
+	const sponsorBadge = sponsorLogoUrl ? (
+		<div className="pointer-events-none absolute top-[12px] right-[12px] flex items-center gap-2 rounded-full bg-black/55 px-2 py-1 text-white backdrop-blur-sm">
+			<span className="font-jetbrains text-[8px] tracking-[0.16em] uppercase opacity-80">Sponsored by</span>
+			<img src={sponsorLogoUrl} alt="" className="h-5 w-auto max-w-[80px] object-contain" />
+		</div>
+	) : null
 
 	const overlay = (
 		<div
@@ -119,12 +128,25 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 				{blurb || article.title}
 			</p>
 			{addOverlayLink ? (
-				<span className="inline-block w-full rounded border border-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium">
-					Read more
-				</span>
+				<div className="grid gap-2">
+					<span className="inline-block w-full rounded border border-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium">
+						Read more
+					</span>
+					{pdfUrl ? (
+						<a
+							href={pdfUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							onClick={(e) => e.stopPropagation()}
+							className="w-full rounded bg-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium text-[#0D1E3B] transition-opacity hover:opacity-90"
+						>
+							Download PDF
+						</a>
+					) : null}
+				</div>
 			) : (
 				<div
-					className="bottom-[15px] grid grid-cols-1"
+					className="bottom-[15px] grid gap-2"
 					onClick={(e) => {
 						e.stopPropagation()
 					}}
@@ -135,6 +157,16 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 					>
 						Read more
 					</Link>
+					{pdfUrl ? (
+						<a
+							href={pdfUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="w-full rounded bg-white px-3 py-2 text-center text-[12px] leading-[120%] font-medium text-[#0D1E3B] transition-opacity hover:opacity-90"
+						>
+							Download PDF
+						</a>
+					) : null}
 				</div>
 			)}
 		</div>
@@ -163,6 +195,7 @@ function CarouselArticleSlide({ article, isMobile, edgeFade, addOverlayLink }: C
 		<>
 			{fades}
 			{imageBlock}
+			{sponsorBadge}
 			{overlay}
 		</>
 	)

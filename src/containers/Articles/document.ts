@@ -3,6 +3,7 @@ import { extractArticleContent } from './extractors'
 import type {
 	ArticleImage,
 	ArticleInterviewee,
+	ArticlePdf,
 	ArticleSection,
 	ArticleSnapshotPayload,
 	LocalArticleDocument,
@@ -136,6 +137,30 @@ function normalizeInterviewees(value: unknown): ArticleInterviewee[] | undefined
 	return out.length > 0 ? out : undefined
 }
 
+function normalizeReportPdf(value: unknown): ArticlePdf | null | undefined {
+	if (value == null) return null
+	if (!isRecord(value)) return undefined
+	const id = optionalString(value.id)
+	const url = optionalString(value.url)
+	if (!id || !url) return undefined
+	const sizeBytes =
+		typeof value.sizeBytes === 'number' && Number.isFinite(value.sizeBytes)
+			? Math.max(0, Math.floor(value.sizeBytes))
+			: 0
+	const originalName = optionalString(value.originalName)
+	const pageCount =
+		typeof value.pageCount === 'number' && Number.isFinite(value.pageCount)
+			? Math.max(0, Math.floor(value.pageCount))
+			: undefined
+	return {
+		id,
+		url,
+		sizeBytes,
+		...(originalName ? { originalName } : {}),
+		...(pageCount != null ? { pageCount } : {})
+	}
+}
+
 function normalizeCoverImage(value: unknown): ArticleImage | null | undefined {
 	if (value == null) return null
 	if (!isRecord(value)) return undefined
@@ -200,6 +225,20 @@ export function normalizeLocalArticleDocument(
 	if (coverImage === undefined) {
 		return { ok: false, error: 'coverImage must be null or an object with a url' }
 	}
+	const carouselImage = normalizeCoverImage(input.carouselImage)
+	if (carouselImage === undefined) {
+		return { ok: false, error: 'carouselImage must be null or an object with a url' }
+	}
+	const sponsorLogo = normalizeCoverImage(input.sponsorLogo)
+	if (sponsorLogo === undefined) {
+		return { ok: false, error: 'sponsorLogo must be null or an object with a url' }
+	}
+	const reportPdf = normalizeReportPdf(input.reportPdf)
+	if (reportPdf === undefined) {
+		return { ok: false, error: 'reportPdf must be null or an object with id and url' }
+	}
+	const reportDescriptionRaw = optionalString(input.reportDescription)
+	const reportDescription = reportDescriptionRaw ? reportDescriptionRaw.slice(0, 2000) : null
 
 	const createdAt = normalizeDate(input.createdAt, existing?.createdAt ?? now)
 	const updatedAt = now
@@ -248,6 +287,10 @@ export function normalizeLocalArticleDocument(
 			...(seoDescription ? { seoDescription } : {}),
 			...(excerpt ? { excerpt } : {}),
 			coverImage,
+			carouselImage,
+			sponsorLogo,
+			reportDescription,
+			reportPdf,
 			contentJson,
 			plainText: extracted.plainText,
 			entities: extracted.entities,
