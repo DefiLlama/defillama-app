@@ -942,7 +942,7 @@ export function AgenticChat({
 	const sessionListEntry = lookupSessionId ? (sessions.find((s) => s.sessionId === lookupSessionId) ?? null) : null
 	const sessionListTitle = sessionListEntry?.title ?? null
 	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle ?? sessionListTitle
-	const effectiveProjectId = routeProjectId ?? currentSessionProjectId ?? sessionListEntry?.projectId ?? null
+	const effectiveSessionProjectId = currentSessionProjectId ?? sessionListEntry?.projectId ?? null
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
 	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
@@ -2712,7 +2712,8 @@ export function AgenticChat({
 								isFetchingMoreSessions={isFetchingMoreSessions}
 								loadMoreSessionsError={loadMoreSessionsError}
 								onLoadMoreSessions={loadMoreSessions}
-								currentProjectId={effectiveProjectId}
+								currentProjectId={routeProjectId}
+								currentSessionProjectId={effectiveSessionProjectId}
 							/>
 							<div className="flex min-h-11 lg:hidden" />
 						</>

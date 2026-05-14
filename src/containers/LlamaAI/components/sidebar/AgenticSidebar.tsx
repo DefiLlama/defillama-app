@@ -49,6 +49,7 @@ interface AgenticSidebarProps {
 	loadMoreSessionsError?: string | null
 	onLoadMoreSessions?: () => void
 	currentProjectId?: string | null
+	currentSessionProjectId?: string | null
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -173,7 +174,8 @@ export function AgenticSidebar({
 	isFetchingMoreSessions = false,
 	loadMoreSessionsError = null,
 	onLoadMoreSessions,
-	currentProjectId = null
+	currentProjectId = null,
+	currentSessionProjectId = null
 }: AgenticSidebarProps) {
 	const { hideSidebar, isFullscreen, toggleFullscreen, toggleSidebar } = useLlamaAIChrome()
 	const sidebarRef = useRef<HTMLDivElement>(null)
@@ -473,7 +475,11 @@ export function AgenticSidebar({
 
 			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto overscroll-contain">
 				<div ref={projectsSectionRef} className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
-					<ProjectsSidebarSection currentProjectId={currentProjectId} currentSessionId={currentSessionId} />
+					<ProjectsSidebarSection
+						currentProjectId={currentProjectId}
+						currentSessionProjectId={currentSessionProjectId}
+						currentSessionId={currentSessionId}
+					/>
 				</div>
 
 				<nav className="p-4 pt-3 pr-1" aria-label="Chat history">

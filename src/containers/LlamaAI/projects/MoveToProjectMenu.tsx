@@ -8,8 +8,9 @@ interface MoveToProjectMenuItemProps {
 	sessionId: string
 }
 
-const PARENT_ITEM_CLASS =
-	'flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)'
+const MENU_ITEM_CLASS =
+	'flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)'
+const PARENT_ITEM_CLASS = `${MENU_ITEM_CLASS} border-b border-(--form-control-border) first-of-type:rounded-t-md last-of-type:rounded-b-md aria-disabled:cursor-not-allowed aria-disabled:opacity-60`
 
 export function MoveToProjectMenuItem({ sessionId }: MoveToProjectMenuItemProps) {
 	const projects = useProjectList()
@@ -53,21 +54,17 @@ export function MoveToProjectMenuItem({ sessionId }: MoveToProjectMenuItemProps)
 				) : (
 					<>
 						{projects.data.map((p) => (
-							<Ariakit.MenuItem
-								key={p.id}
-								onClick={() => void onMove(p.id)}
-								className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden px-3 py-2 text-xs hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-							>
-								<Icon name="folder-plus" height={12} width={12} className="shrink-0 opacity-60" />
-								<span className="truncate">{p.name}</span>
+							<Ariakit.MenuItem key={p.id} onClick={() => void onMove(p.id)} className={MENU_ITEM_CLASS}>
+								<Icon name="folder-plus" height={14} width={14} className="shrink-0 opacity-70" />
+								<span className="min-w-0 flex-1 truncate text-left">{p.name}</span>
 							</Ariakit.MenuItem>
 						))}
 						<Ariakit.MenuItem
 							onClick={() => void onMove(null)}
-							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-t border-(--form-control-border) px-3 py-2 text-xs hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className={`${MENU_ITEM_CLASS} border-t border-(--form-control-border)`}
 						>
-							<Icon name="x" height={12} width={12} className="shrink-0 opacity-60" />
-							Remove from project
+							<Icon name="x" height={14} width={14} className="shrink-0 opacity-70" />
+							<span className="min-w-0 flex-1 truncate text-left">Remove from project</span>
 						</Ariakit.MenuItem>
 					</>
 				)}
