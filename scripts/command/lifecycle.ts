@@ -23,7 +23,10 @@ type InstallProcessLifecycleOptions = {
 }
 
 export function installProcessLifecycle({ activeChildren, logger }: InstallProcessLifecycleOptions): () => void {
+	let closed = false
 	const close = () => {
+		if (closed) return
+		closed = true
 		killActiveChildren(activeChildren)
 		logger.flush()
 		logger.close()

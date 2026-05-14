@@ -21,7 +21,12 @@ function packageBin(name) {
 
 function run(command, args) {
 	return new Promise((resolve) => {
-		const child = spawn(command, args, { cwd: repoRoot, env, stdio: 'inherit' })
+		const child = spawn(command, args, {
+			cwd: repoRoot,
+			env,
+			shell: process.platform === 'win32' || command.endsWith('.cmd'),
+			stdio: 'inherit'
+		})
 		child.on('error', (error) => {
 			console.error(`${command}: ${error.message}`)
 			resolve(1)
