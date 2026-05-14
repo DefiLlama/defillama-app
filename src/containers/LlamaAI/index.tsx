@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import {
 	lazy,
 	memo,
@@ -822,7 +822,19 @@ export function AgenticChat({
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [showShareModal, setShowShareModal] = useState(false)
 	const [shareTargetMessageId, setShareTargetMessageId] = useState<string | null>(null)
-	const { settings, actions, availableModels, availableEfforts } = useLlamaAISettings()
+	const [initialIntegrationsState, setInitialIntegrationsState] = useState<{
+		tab?: 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab'
+		tgloginToken?: string | null
+	} | null>(null)
+	const router = useRouter()
+	const {
+		settings,
+		actions,
+		availableModels,
+		availableEfforts,
+		telegramStatus,
+		queryState: settingsQueryState
+	} = useLlamaAISettings()
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -905,6 +917,91 @@ export function AgenticChat({
 		const timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 250)
 		return () => clearTimeout(timer)
 	}, [dashboardPanelIsOpen, dashboardPanelMountedConfig])
+
+	useEffect(() => {
+		if (!router.isReady) return
+		const tg = typeof router.query.tglogin === 'string' ? router.query.tglogin : null
+		if (!tg) return
+
+		const { tglogin: _drop, ...rest } = router.query
+		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+
+		if (!user) {
+			try {
+				sessionStorage.setItem('pending_tglogin', tg)
+			} catch {}
+			return
+		}
+		settingsModalStore.show()
+		setInitialIntegrationsState({ tab: 'integrations', tgloginToken: tg })
+	}, [router.isReady, router.query.tglogin, user, router, settingsModalStore])
+
+	useEffect(() => {
+		if (!router.isReady) return
+		const modal = typeof router.query.modal === 'string' ? router.query.modal : null
+		if (modal !== 'settings') return
+
+		const requestedTab = typeof router.query.tab === 'string' ? router.query.tab : null
+		const tab =
+			requestedTab === 'persona' ||
+			requestedTab === 'app' ||
+			requestedTab === 'capabilities' ||
+			requestedTab === 'integrations' ||
+			requestedTab === 'lab'
+				? requestedTab
+				: undefined
+
+		const { modal: _modal, tab: _tab, ...rest } = router.query
+		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+
+		if (!user) {
+			if (tab) {
+				try {
+					sessionStorage.setItem('pending_settings_tab', tab)
+				} catch {}
+			}
+			return
+		}
+
+		if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
+		settingsModalStore.show()
+	}, [router.isReady, router.query.modal, router.query.tab, user, router, settingsModalStore])
+
+	useEffect(() => {
+		if (!user) return
+		let stashed: string | null = null
+		try {
+			stashed = sessionStorage.getItem('pending_tglogin')
+		} catch {}
+		if (!stashed) return
+		try {
+			sessionStorage.removeItem('pending_tglogin')
+		} catch {}
+		settingsModalStore.show()
+		setInitialIntegrationsState({ tab: 'integrations', tgloginToken: stashed })
+	}, [user, settingsModalStore])
+
+	useEffect(() => {
+		if (!user) return
+		let stashed: string | null = null
+		try {
+			stashed = sessionStorage.getItem('pending_settings_tab')
+		} catch {}
+		if (
+			stashed !== 'persona' &&
+			stashed !== 'app' &&
+			stashed !== 'capabilities' &&
+			stashed !== 'integrations' &&
+			stashed !== 'lab'
+		) {
+			return
+		}
+		try {
+			sessionStorage.removeItem('pending_settings_tab')
+		} catch {}
+		setInitialIntegrationsState({ tab: stashed, tgloginToken: null })
+		settingsModalStore.show()
+	}, [user, settingsModalStore])
 
 	const clearPromptTransitionTimer = useCallback(() => {
 		if (promptTransitionTimerRef.current !== null) {
@@ -2463,12 +2560,15 @@ export function AgenticChat({
 
 	const tipActionHandlers = useMemo(
 		() => ({
-			openSettingsModal: settingsModalStore.show,
+			openSettingsModal: (tab?: 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab') => {
+				if (tab) setInitialIntegrationsState({ tab, tgloginToken: null })
+				settingsModalStore.show()
+			},
 			openAlertsModal: alertsModalStore.show,
 			toggleResearchMode: () => setIsResearchMode((v) => !v),
 			submitPrompt: (prompt: string) => handleSubmit(prompt)
 		}),
-		[settingsModalStore.show, alertsModalStore.show, setIsResearchMode, handleSubmit]
+		[settingsModalStore, alertsModalStore.show, setIsResearchMode, handleSubmit]
 	)
 
 	if (!user && !readOnly && !sharedSession) {
@@ -2765,6 +2865,12 @@ export function AgenticChat({
 							actions={actions}
 							availableModels={availableModels}
 							availableEfforts={availableEfforts}
+							telegramStatus={telegramStatus}
+							isSettingsLoading={
+								settingsQueryState.isLoading || (settingsQueryState.isFetching && !settingsQueryState.data)
+							}
+							initialState={initialIntegrationsState}
+							onInitialStateConsumed={() => setInitialIntegrationsState(null)}
 						/>
 					) : null}
 				</div>

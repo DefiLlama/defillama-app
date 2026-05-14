@@ -1,6 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import type { TelegramStatus } from '~/containers/LlamaAI/api/telegram'
+import { IntegrationRow } from '~/containers/LlamaAI/components/IntegrationRow'
 import {
 	type EffortOption,
 	type LlamaAISettings,
@@ -14,7 +16,8 @@ const MAX_LENGTH = 500
 
 type ModalStatus = 'closed' | 'open_clean' | 'open_dirty' | 'committing'
 
-type TabId = 'persona' | 'app' | 'capabilities' | 'lab'
+export type SettingsTabId = 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab'
+type TabId = SettingsTabId
 
 function isEffortAvailableForModel(effort: string, model: string) {
 	const isClaude = model === '' || model.startsWith('anthropic/')
@@ -41,6 +44,10 @@ interface SettingsModalProps {
 	actions: LlamaAISettingsActions
 	availableModels?: ModelOption[]
 	availableEfforts?: EffortOption[]
+	telegramStatus?: TelegramStatus | null
+	isSettingsLoading?: boolean
+	initialState?: { tab?: TabId; tgloginToken?: string | null } | null
+	onInitialStateConsumed?: () => void
 }
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
@@ -65,7 +72,11 @@ export const SettingsModal = memo(function SettingsModal({
 	settings,
 	actions,
 	availableModels,
-	availableEfforts
+	availableEfforts,
+	telegramStatus,
+	isSettingsLoading,
+	initialState,
+	onInitialStateConsumed
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const [isDark] = useDarkModeManager()
@@ -95,6 +106,12 @@ export const SettingsModal = memo(function SettingsModal({
 			dispatch({ type: 'MARK_CLEAN' })
 		})
 	}, [isOpen, modalState.status, settings.customInstructions])
+
+	useEffect(() => {
+		if (!isOpen) return
+		if (initialState?.tab) setActiveTab(initialState.tab)
+		if (initialState && !initialState.tgloginToken && onInitialStateConsumed) onInitialStateConsumed()
+	}, [isOpen, initialState, onInitialStateConsumed])
 
 	const syncDirtyState = useCallback(() => {
 		draftValueRef.current = textareaRef.current?.value ?? draftValueRef.current
@@ -288,10 +305,15 @@ export const SettingsModal = memo(function SettingsModal({
 	const showClear = modalState.status === 'open_dirty' || settings.customInstructions.trim().length > 0
 	const notifSupported = notifPermission !== 'unsupported'
 
-	const tabs: Array<{ id: TabId; label: string; icon: 'pencil' | 'gear-settings' | 'sparkles' | 'flame' }> = [
+	const tabs: Array<{
+		id: TabId
+		label: string
+		icon: 'pencil' | 'gear-settings' | 'sparkles' | 'flame' | 'link'
+	}> = [
 		{ id: 'persona', label: 'Persona', icon: 'pencil' },
 		{ id: 'app', label: 'App', icon: 'gear-settings' },
-		{ id: 'capabilities', label: 'Capabilities', icon: 'sparkles' }
+		{ id: 'capabilities', label: 'Capabilities', icon: 'sparkles' },
+		{ id: 'integrations', label: 'Integrations', icon: 'link' }
 	]
 	if (isDark) tabs.push({ id: 'lab', label: 'Lab', icon: 'flame' })
 
@@ -536,6 +558,35 @@ export const SettingsModal = memo(function SettingsModal({
 											</div>
 										</div>
 									) : null}
+								</div>
+							)}
+
+							{activeTab === 'integrations' && (
+								<div className="space-y-5">
+									<SectionHeading
+										title="Integrations"
+										subtitle="Connect external accounts to chat and receive alerts."
+									/>
+									{isSettingsLoading ? (
+										<div className="rounded-xl border border-black/[0.06] bg-black/[0.015] p-4 dark:border-white/[0.06] dark:bg-white/[0.015]">
+											<div className="flex items-center justify-between gap-3">
+												<div className="min-w-0 flex-1">
+													<div className="h-4 w-24 animate-pulse rounded bg-black/[0.08] dark:bg-white/[0.08]" />
+													<div className="mt-2 h-3 w-full max-w-[360px] animate-pulse rounded bg-black/[0.06] dark:bg-white/[0.06]" />
+												</div>
+												<div className="h-8 w-20 shrink-0 animate-pulse rounded-lg bg-black/[0.08] dark:bg-white/[0.08]" />
+											</div>
+										</div>
+									) : (
+										<IntegrationRow
+											kind="telegram"
+											title="Telegram"
+											description="Chat with LlamaAI and receive alerts in your Telegram DMs."
+											initialStatus={telegramStatus}
+											initialTgloginToken={initialState?.tgloginToken ?? null}
+											onInitialStateConsumed={onInitialStateConsumed}
+										/>
+									)}
 								</div>
 							)}
 

@@ -74,9 +74,15 @@ export function ChatLanding({
 			return
 		}
 		switch (greetingTip.cta.action) {
-			case 'open-settings':
-				tipActions.openSettingsModal?.()
+			case 'open-settings': {
+				const payload = greetingTip.cta.kind === 'action' ? greetingTip.cta.payload : undefined
+				const tab =
+					payload && typeof payload.tab === 'string'
+						? (payload.tab as 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab')
+						: undefined
+				tipActions.openSettingsModal?.(tab)
 				break
+			}
 			case 'open-alerts':
 				tipActions.openAlertsModal?.()
 				break

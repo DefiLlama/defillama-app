@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react'
 
 export type TipActionHandlers = {
-	openSettingsModal?: () => void
+	openSettingsModal?: (tab?: 'persona' | 'app' | 'capabilities' | 'integrations' | 'lab') => void
 	openAlertsModal?: () => void
 	toggleResearchMode?: () => void
 	submitPrompt?: (prompt: string) => void
