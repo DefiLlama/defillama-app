@@ -116,7 +116,7 @@ function ArticlesLandingInner() {
 			<div className="relative overflow-hidden">
 				<div
 					style={{
-						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 75%)',
+						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)',
 						width: '900px',
 						height: '900px',
 						position: 'absolute',
@@ -128,7 +128,7 @@ function ArticlesLandingInner() {
 
 				<div
 					style={{
-						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 75%)',
+						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)',
 						width: '900px',
 						height: '900px',
 						position: 'absolute',
@@ -140,7 +140,7 @@ function ArticlesLandingInner() {
 
 				<div
 					style={{
-						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 75%)',
+						background: 'radial-gradient(circle, rgb(35, 123, 255) 0%, transparent 70%)',
 						width: '900px',
 						height: '900px',
 						position: 'absolute',

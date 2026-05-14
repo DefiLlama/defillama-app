@@ -13,7 +13,7 @@ import {
 	type ResearchSearchQuery,
 	useResearchSearchParams
 } from '~/containers/Articles/landing/useResearchSearchParams'
-import { articleHref } from '~/containers/Articles/landing/utils'
+import { articleHref, getArticleBylineAuthorEntries } from '~/containers/Articles/landing/utils'
 import { ResearchLoader } from '~/containers/Articles/ResearchLoader'
 import type { ArticleDocument, ArticleSection } from '~/containers/Articles/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
@@ -152,33 +152,36 @@ function AccentDot({ className = '' }: { className?: string }) {
 	return <span aria-hidden className={`inline-block h-1.5 w-1.5 shrink-0 bg-(--accent) align-middle ${className}`} />
 }
 
-function ByLine({
-	article,
-	className = '',
-	includeTags = false
-}: {
-	article: ArticleDocument
-	className?: string
-	includeTags?: boolean
-}) {
-	const tags = includeTags ? (article.tags?.slice(0, 2) ?? []) : []
+function ByLine({ article, className = '' }: { article: ArticleDocument; className?: string }) {
+	const authorEntries =
+		getArticleBylineAuthorEntries(article) ??
+		(article.authorProfile
+			? [{ name: article.authorProfile.displayName, href: `/research/authors/${article.authorProfile.slug}` }]
+			: null)
+
 	return (
 		<div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-(--text-tertiary) ${className}`}>
-			{article.authorProfile ? (
-				<span className="font-medium text-(--text-secondary)">{article.authorProfile.displayName}</span>
+			{authorEntries?.length ? (
+				<span className="flex flex-wrap items-center gap-1 font-medium text-(--text-secondary)">
+					{authorEntries.map((entry, index) => (
+						<span key={`${entry.name}-${index}`} className="inline-flex items-center gap-1">
+							{entry.href ? (
+								<Link href={entry.href} className="text-(--text-secondary) transition-colors hover:text-(--link-text)">
+									{entry.name}
+								</Link>
+							) : (
+								<span>{entry.name}</span>
+							)}
+							{index < authorEntries.length - 2 ? <span>,</span> : null}
+							{index === authorEntries.length - 2 ? <span className="font-normal">and</span> : null}
+						</span>
+					))}
+				</span>
 			) : null}
-			{article.authorProfile ? <span aria-hidden>·</span> : null}
+			{authorEntries?.length ? <span aria-hidden>·</span> : null}
 			<span className="font-jetbrains tabular-nums">{timeAgo(article.publishedAt)}</span>
 			<span aria-hidden>·</span>
 			<span>{readingMinutes(article)} min read</span>
-			{tags.length ? (
-				<>
-					<span aria-hidden>·</span>
-					<span className="font-jetbrains tracking-[0.18em] uppercase">
-						{tags.map((tag) => humanizeTag(tag)).join(' · ')}
-					</span>
-				</>
-			) : null}
 		</div>
 	)
 }
@@ -272,7 +275,7 @@ function ResultRow({ article }: { article: ArticleDocument }) {
 					) : null}
 					<div className="flex items-center gap-2">
 						<AccentDot />
-						<ByLine article={article} includeTags />
+						<ByLine article={article} />
 					</div>
 				</div>
 			</Link>
