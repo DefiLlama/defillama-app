@@ -3,7 +3,7 @@ import { createContext, type PropsWithChildren, useContext, useMemo } from 'reac
 
 export type LlamaAIRouteState =
 	| { kind: 'chat-new' }
-	| { kind: 'chat-session'; sessionId: string; initialPrompt?: string; shareToken?: string }
+	| { kind: 'chat-session'; sessionId: string; aroundMessageId?: string; initialPrompt?: string; shareToken?: string }
 	| { kind: 'project'; projectId: string; initialTab: 'chats' | 'sources' }
 	| { kind: 'unknown' }
 
@@ -12,6 +12,12 @@ const LlamaAIRouteContext = createContext<LlamaAIRouteState>({ kind: 'unknown' }
 function firstString(value: string | string[] | undefined) {
 	if (typeof value === 'string') return value
 	return Array.isArray(value) ? value[0] : undefined
+}
+
+function getAroundMessageId(asPath: string) {
+	const hash = asPath.split('#')[1]
+	const match = hash?.match(/^msg-([A-Za-z0-9_-]+)$/)
+	return match?.[1]
 }
 
 export function useLlamaAIRouteState(): LlamaAIRouteState {
@@ -31,6 +37,7 @@ export function useLlamaAIRouteState(): LlamaAIRouteState {
 			return {
 				kind: 'chat-session',
 				sessionId,
+				aroundMessageId: getAroundMessageId(router.asPath),
 				initialPrompt: firstString(router.query.prompt),
 				shareToken: firstString(router.query.shareToken)
 			}
@@ -52,6 +59,7 @@ export function useLlamaAIRouteState(): LlamaAIRouteState {
 	}, [
 		router.isReady,
 		router.pathname,
+		router.asPath,
 		router.query.sessionId,
 		router.query.prompt,
 		router.query.shareToken,

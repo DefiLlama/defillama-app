@@ -2,11 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscription/auth'
 import { useLlamaAINavigate } from '~/contexts/LlamaAINavigate'
 import { CreateProjectModal } from './CreateProjectModal'
-import { useProjectList } from './hooks'
+import { useProjectList, useProjectSessions } from './hooks'
 import { getProjectTier } from './tier'
 import type { ProjectWithStats } from './types'
 
@@ -16,26 +15,19 @@ const NESTED_SESSIONS_LIMIT = 5
 interface ProjectsSidebarSectionProps {
 	currentProjectId?: string | null
 	currentSessionId?: string | null
-	sessions?: ChatSession[]
 }
 
-export function ProjectsSidebarSection({
-	currentProjectId,
-	currentSessionId,
-	sessions = []
-}: ProjectsSidebarSectionProps) {
+export function ProjectsSidebarSection({ currentProjectId, currentSessionId }: ProjectsSidebarSectionProps) {
 	const { user, hasActiveSubscription, isTrial } = useAuthContext()
 	const tier = getProjectTier(user, hasActiveSubscription, isTrial)
 	const isLocked = tier === 'free'
 	const createStore = Ariakit.useDialogStore()
 	const { data, isLoading } = useProjectList(!isLocked)
+	const projectSessions = useProjectSessions(isLocked ? null : currentProjectId)
 	const projects = useMemo<ProjectWithStats[]>(() => data ?? [], [data])
 	const visible = projects.slice(0, VISIBLE_LIMIT)
 	const hasOverflow = projects.length > VISIBLE_LIMIT
-	const activeProjectSessions = useMemo(
-		() => (currentProjectId ? sessions.filter((s) => s.projectId === currentProjectId) : []),
-		[sessions, currentProjectId]
-	)
+	const activeProjectSessions = projectSessions.data ?? []
 
 	const navigate = useLlamaAINavigate()
 

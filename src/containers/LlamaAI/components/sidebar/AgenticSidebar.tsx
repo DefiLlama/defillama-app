@@ -34,7 +34,7 @@ interface AgenticSidebarProps {
 	restoringSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
-	onDelete: (sessionId: string) => Promise<void>
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	isDeletingSession: boolean
 	isUpdatingTitle: boolean
@@ -91,7 +91,7 @@ const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	deletingSessionId: string | null
 	updatingTitleSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
-	onDelete: (sessionId: string) => Promise<void>
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	selectMode: boolean
 	isSelected: boolean
@@ -224,9 +224,9 @@ export function AgenticSidebar({
 	}, [])
 
 	const handleDelete = useCallback(
-		(sessionId: string) => {
+		(sessionId: string, projectId?: string | null) => {
 			setDeletingSessionId(sessionId)
-			return onDelete(sessionId).finally(() => {
+			return onDelete(sessionId, projectId).finally(() => {
 				setDeletingSessionId(null)
 			})
 		},
@@ -457,11 +457,7 @@ export function AgenticSidebar({
 			</header>
 
 			<div className="border-b border-[#e6e6e6] pb-3 dark:border-[#222324]">
-				<ProjectsSidebarSection
-					currentProjectId={currentProjectId}
-					currentSessionId={currentSessionId}
-					sessions={sessions}
-				/>
+				<ProjectsSidebarSection currentProjectId={currentProjectId} currentSessionId={currentSessionId} />
 			</div>
 
 			<nav
@@ -547,6 +543,28 @@ export function AgenticSidebar({
 				)}
 			</nav>
 
+			{balance ? (
+				<Tooltip
+					content={
+						hasActiveSubscription
+							? 'Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more.'
+							: 'Subscribe to a plan to top up your external data balance.'
+					}
+					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
+					className="flex min-h-[52px] w-full shrink-0 items-center justify-between overflow-hidden border-t border-[#e6e6e6] bg-(--cards-bg) px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324]"
+				>
+					<div className="flex min-w-0 items-center gap-2">
+						<Icon name="package" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />
+						<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
+					</div>
+					<span
+						className={`shrink-0 font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
+					>
+						${totalAvailable.toFixed(2)}
+					</span>
+				</Tooltip>
+			) : null}
+
 			{selectMode ? (
 				<footer className="flex min-h-[52px] shrink-0 items-center gap-2 border-t border-[#e6e6e6] px-4 py-2 dark:border-[#222324]">
 					<button
@@ -585,28 +603,6 @@ export function AgenticSidebar({
 					</div>
 					<span>Settings</span>
 				</button>
-			) : null}
-
-			{balance ? (
-				<Tooltip
-					content={
-						hasActiveSubscription
-							? 'Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more.'
-							: 'Subscribe to a plan to top up your external data balance.'
-					}
-					render={<button type="button" onClick={() => hasActiveSubscription && setIsTopupModalOpen(true)} />}
-					className={`absolute right-0 left-0 flex min-h-[52px] items-center justify-between overflow-hidden border-t border-[#e6e6e6] bg-(--cards-bg) px-4 py-3 text-ellipsis whitespace-nowrap transition-colors hover:bg-[#f0f0f0] dark:border-[#222324] dark:hover:bg-[#222324] ${selectMode || onOpenSettings ? 'bottom-[52px]' : 'bottom-0'}`}
-				>
-					<div className="flex min-w-0 items-center gap-2">
-						<Icon name="package" height={14} width={14} className="shrink-0 text-[#5C5CF9]" />
-						<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
-					</div>
-					<span
-						className={`shrink-0 font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
-					>
-						${totalAvailable.toFixed(2)}
-					</span>
-				</Tooltip>
 			) : null}
 
 			{isTopupModalOpen ? (

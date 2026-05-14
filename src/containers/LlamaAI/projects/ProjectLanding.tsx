@@ -1,15 +1,14 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { AddSourcesMenu } from './AddSourcesMenu'
 import { CreateProjectModal } from './CreateProjectModal'
 import { DeleteProjectModal } from './DeleteProjectModal'
-import { useProjectDetail, useProjectUsage } from './hooks'
+import { useProjectDetail, useProjectSessions, useProjectUsage } from './hooks'
 import { ProjectFilesPanel } from './ProjectFilesPanel'
 import { ProjectInstructionsEditor } from './ProjectInstructionsEditor'
 import type { ProjectTier } from './types'
@@ -48,14 +47,10 @@ export function ProjectLanding({
 	const router = useRouter()
 	const usage = useProjectUsage()
 	const project = useProjectDetail(projectId)
-	const { sessions: allSessions, isLoading: sessionsLoading } = useSessionList()
-	const projectSessions = useMemo(
-		() => (allSessions ?? []).filter((s) => s.projectId === projectId),
-		[allSessions, projectId]
-	)
+	const projectSessions = useProjectSessions(projectId)
 	const renameStore = Ariakit.useDialogStore()
 	const deleteStore = Ariakit.useDialogStore()
-	const [tab, setTab] = useState<'chats' | 'sources'>(initialTab)
+	const tab = initialTab
 	const [prompt, setPrompt] = useState('')
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -110,10 +105,22 @@ export function ProjectLanding({
 		}
 	}
 
+	const setTab = (nextTab: 'chats' | 'sources') => {
+		if (nextTab === tab) return
+		const query = { ...router.query }
+		if (nextTab === 'sources') {
+			query.tab = 'sources'
+		} else {
+			delete query.tab
+		}
+		void router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+	}
+
 	const projectBytesLimit = usage.data?.limits.project_bytes ?? null
 	const projectFileLimit = usage.data?.limits.project_files ?? null
 	const projectBytesUsed = project.data.total_bytes ?? 0
 	const projectFileCount = project.data.file_count ?? 0
+	const sessions = projectSessions.data ?? []
 
 	return (
 		<div className="mx-auto flex h-full w-full max-w-[760px] flex-col overflow-y-auto px-6 pt-6 pb-16">
@@ -237,17 +244,17 @@ export function ProjectLanding({
 			<div className="pt-5">
 				{tab === 'chats' ? (
 					<section>
-						{sessionsLoading ? (
+						{projectSessions.isLoading ? (
 							<div className="flex justify-center py-8">
 								<LoadingSpinner size={12} />
 							</div>
-						) : projectSessions.length === 0 ? (
+						) : sessions.length === 0 ? (
 							<p className="py-10 text-center text-sm text-[#999] dark:text-[#555]">
 								Start a chat above to keep conversations organized in this project.
 							</p>
 						) : (
 							<ul className="flex flex-col">
-								{projectSessions.map((s) => (
+								{sessions.map((s) => (
 									<li key={s.sessionId}>
 										<button
 											type="button"

@@ -19,7 +19,7 @@ interface AgenticSessionItemProps {
 	session: ChatSession
 	isActive: boolean
 	onSessionSelect: (sessionId: string) => void
-	onDelete: (sessionId: string) => Promise<void>
+	onDelete: (sessionId: string, projectId?: string | null) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	isRestoring: boolean
 	isDeleting: boolean
@@ -102,7 +102,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		if (window.confirm('Are you sure you want to delete this chat?')) {
 			trackUmamiEvent('llamaai-session-delete')
 			try {
-				await onDelete(session.sessionId)
+				await onDelete(session.sessionId, session.projectId)
 				setIsEditing(false)
 			} catch (err) {
 				console.error('Failed to delete session:', err)

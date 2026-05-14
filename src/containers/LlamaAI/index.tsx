@@ -87,9 +87,14 @@ import { useAuthContext } from '~/containers/Subscription/auth'
 import { setSignupSource } from '~/containers/Subscription/signupSource'
 import { useAiBalance } from '~/containers/Subscription/useTopup'
 import { useLlamaAINavigate, useProjectHomeSignal } from '~/contexts/LlamaAINavigate'
-import { useLlamaAIRouteContext, type LlamaAIRouteState } from '~/contexts/LlamaAIRouteState'
+import { useLlamaAIRouteContext } from '~/contexts/LlamaAIRouteState'
 import { useOptionalSessionAliases } from '~/contexts/SessionAliasRegistry'
 import { useMedia } from '~/hooks/useMedia'
+import {
+	isSameAgenticRouteTransition,
+	shouldSkipCurrentSessionRouteRestore,
+	type AgenticRouteTransition
+} from './routeTransition'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -885,7 +890,7 @@ export function AgenticChat({
 	const promptTransitionTimerRef = useRef<number | null>(null)
 	const currentSessionIdRef = useRef<string | null>(null)
 	const currentSessionProjectIdRef = useRef<string | null>(null)
-	const previousRouteRef = useRef<LlamaAIRouteState | null>(null)
+	const previousRouteTransitionRef = useRef<AgenticRouteTransition | null>(null)
 	const consumedInitialPromptRef = useRef<{ sessionId: string; prompt: string } | null>(null)
 	const {
 		isStreaming,
@@ -1320,7 +1325,11 @@ export function AgenticChat({
 						onTokenLimit: () => setShowTokenLimitModal(true),
 						onTitle: (title) => {
 							setSessionTitle(title)
-							updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+							updateSessionTitle({
+								sessionId: targetSessionId,
+								title,
+								projectId: currentSessionProjectIdRef.current
+							}).catch(() => {})
 							moveSessionToTop(targetSessionId)
 						}
 					})
@@ -1403,7 +1412,11 @@ export function AgenticChat({
 				onTokenLimit: () => setShowTokenLimitModal(true),
 				onTitle: (title) => {
 					setSessionTitle(title)
-					updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+					updateSessionTitle({
+						sessionId: targetSessionId,
+						title,
+						projectId: currentSessionProjectIdRef.current
+					}).catch(() => {})
 					moveSessionToTop(targetSessionId)
 				}
 			})
@@ -1827,6 +1840,20 @@ export function AgenticChat({
 		[navigate]
 	)
 
+	const routeTransition = useMemo<AgenticRouteTransition | null>(() => {
+		if (readOnly || sharedSession) return null
+		if (route.kind === 'chat-new') return { kind: 'new-chat' }
+		if (route.kind === 'chat-session') {
+			return {
+				kind: 'session',
+				sessionId: resolveSessionAlias(route.sessionId),
+				aroundMessageId: route.aroundMessageId
+			}
+		}
+		if (route.kind === 'project') return { kind: 'project', projectId: route.projectId }
+		return null
+	}, [readOnly, sharedSession, route, resolveSessionAlias])
+
 	// Same-URL project clicks (sidebar click while already on /ai/projects/[id]) bump the project-home
 	// signal so we can reset the inline chat back to the project landing — Next.js doesn't fire route
 	// change events for same-URL navigation, so we need a separate trigger.
@@ -1839,37 +1866,27 @@ export function AgenticChat({
 	}, [projectHomeSignal, route.kind, readOnly, sharedSession, clearConversationState])
 
 	useEffect(() => {
-		if (readOnly || sharedSession) return
-		if (route.kind === 'unknown') return
+		if (!routeTransition) return
 
-		const previousRoute = previousRouteRef.current
+		const previousTransition = previousRouteTransitionRef.current
 
 		// Bail out if the route hasn't actually changed. The effect can re-fire if a callback
 		// in its dep list re-creates (e.g. after we dispatch state changes inside the transition),
 		// and re-running the transition body would loop the clear/restore actions indefinitely.
-		if (previousRoute && previousRoute.kind === route.kind) {
-			if (route.kind === 'chat-new') return
-			if (
-				route.kind === 'chat-session' &&
-				previousRoute.kind === 'chat-session' &&
-				previousRoute.sessionId === route.sessionId
-			)
-				return
-			if (route.kind === 'project' && previousRoute.kind === 'project' && previousRoute.projectId === route.projectId)
-				return
-		}
-		previousRouteRef.current = route
+		if (previousTransition && isSameAgenticRouteTransition(previousTransition, routeTransition)) return
+		previousRouteTransitionRef.current = routeTransition
 
 		const transition = async () => {
-			if (route.kind === 'chat-new') {
+			if (routeTransition.kind === 'new-chat') {
 				await clearConversationState()
 				promptInputRef.current?.focus()
 				return
 			}
 
-			if (route.kind === 'chat-session') {
-				const nextSessionId = resolveSessionAlias(route.sessionId)
-				if (nextSessionId === currentSessionIdRef.current) return
+			if (routeTransition.kind === 'session') {
+				const nextSessionId = routeTransition.sessionId
+				if (shouldSkipCurrentSessionRouteRestore(routeTransition, previousTransition, currentSessionIdRef.current))
+					return
 
 				setMessages([])
 				setActiveLeafMessageId(null)
@@ -1877,13 +1894,14 @@ export function AgenticChat({
 				dispatchDashboardPanel({ type: 'RESET' })
 				setPaginationState({ hasMore: false, cursor: null })
 				restoredSessionIdRef.current = null
-				const hash = typeof window !== 'undefined' ? window.location.hash : ''
-				const anchorMatch = hash.match(/^#msg-(.+)$/)
-				await handleSessionSelect(nextSessionId, anchorMatch ? { around: anchorMatch[1] } : undefined)
+				await handleSessionSelect(
+					nextSessionId,
+					routeTransition.aroundMessageId ? { around: routeTransition.aroundMessageId } : undefined
+				)
 				return
 			}
 
-			if (route.kind === 'project') {
+			if (routeTransition.kind === 'project') {
 				// Always reset to the project landing on navigation. The submit-from-landing flow
 				// keeps the inline chat visible because URL doesn't change (no transition fires);
 				// any actual navigation to /ai/projects/[id] should land you on the project home.
@@ -1892,7 +1910,7 @@ export function AgenticChat({
 		}
 
 		void transition()
-	}, [route, readOnly, sharedSession, clearConversationState, resolveSessionAlias, handleSessionSelect])
+	}, [routeTransition, clearConversationState, handleSessionSelect])
 
 	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
 	const handleSubmit = useCallback(
@@ -2033,7 +2051,8 @@ export function AgenticChat({
 								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
 									void createSession({
 										sessionId: id,
-										title: sessionTitle ?? undefined
+										title: sessionTitle ?? undefined,
+										projectId: submitProjectId
 									}).catch((createSessionError) => {
 										console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
 									})
@@ -2043,7 +2062,7 @@ export function AgenticChat({
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
 								setSessionTitle(title)
 								if (currentSessionId) {
-									updateSessionTitle({ sessionId: currentSessionId, title }).catch(() => {})
+									updateSessionTitle({ sessionId: currentSessionId, title, projectId: submitProjectId }).catch(() => {})
 									moveSessionToTop(currentSessionId)
 								}
 							}
@@ -2282,7 +2301,7 @@ export function AgenticChat({
 						onTokenLimit: () => setShowTokenLimitModal(true),
 						onTitle: (title) => {
 							setSessionTitle(title)
-							updateSessionTitle({ sessionId, title }).catch(() => {})
+							updateSessionTitle({ sessionId, title, projectId: currentSessionProjectId }).catch(() => {})
 						}
 					})
 				})

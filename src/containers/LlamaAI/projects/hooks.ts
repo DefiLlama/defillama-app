@@ -22,14 +22,16 @@ import {
 	updateProject,
 	uploadProjectFiles
 } from './api'
+import {
+	PROJECTS_KEY,
+	PROJECTS_USAGE_KEY,
+	projectFilesKey,
+	projectKey,
+	projectSessionsKey,
+	projectSourcesKey
+} from './queryKeys'
 import type { Project, ProjectWithStats } from './types'
 
-const PROJECTS_KEY = ['projects'] as const
-const PROJECTS_USAGE_KEY = ['projects', 'usage'] as const
-const projectKey = (id: string) => ['projects', id] as const
-const projectFilesKey = (id: string) => ['projects', id, 'files'] as const
-const projectSessionsKey = (id: string) => ['projects', id, 'sessions'] as const
-const projectSourcesKey = (id: string) => ['projects', id, 'sources'] as const
 const githubInstallationsKey = ['github', 'installations'] as const
 const githubReposKey = (id: number) => ['github', 'installations', id, 'repos'] as const
 
@@ -192,7 +194,8 @@ export function useGithubInstallations() {
 		queryKey: githubInstallationsKey,
 		queryFn: () => listGithubInstallations(authorizedFetch),
 		enabled: isAuthenticated,
-		staleTime: 60_000
+		staleTime: 60_000,
+		refetchOnMount: 'always'
 	})
 }
 
@@ -202,7 +205,8 @@ export function useGithubRepos(installationId: number | null) {
 		queryKey: githubReposKey(installationId ?? 0),
 		queryFn: () => listInstallationRepos(authorizedFetch, installationId as number),
 		enabled: isAuthenticated && !!installationId,
-		staleTime: 60_000
+		staleTime: 60_000,
+		refetchOnMount: 'always'
 	})
 }
 
@@ -220,6 +224,8 @@ export function useConnectGithubSource(projectId: string) {
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: projectSourcesKey(projectId) })
 			void qc.invalidateQueries({ queryKey: projectFilesKey(projectId) })
+			void qc.invalidateQueries({ queryKey: projectKey(projectId) })
+			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
 		}
 	})
 }
@@ -232,6 +238,8 @@ export function useDisconnectSource(projectId: string) {
 		onSuccess: () => {
 			void qc.invalidateQueries({ queryKey: projectSourcesKey(projectId) })
 			void qc.invalidateQueries({ queryKey: projectFilesKey(projectId) })
+			void qc.invalidateQueries({ queryKey: projectKey(projectId) })
+			void qc.invalidateQueries({ queryKey: PROJECTS_KEY })
 		}
 	})
 }
